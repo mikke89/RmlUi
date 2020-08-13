@@ -34,8 +34,8 @@
 
 Rml::String GetCompareInputDirectory()
 {
-#ifdef RMLUI_VISUAL_TESTS_INPUT_DIRECTORY
-	const Rml::String input_directory = Rml::String(RMLUI_VISUAL_TESTS_INPUT_DIRECTORY);
+#ifdef RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY
+	const Rml::String input_directory = Rml::String(RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY);
 #else
 	const Rml::String input_directory = Shell::FindSamplesRoot() + "../Tests/Output";
 #endif
@@ -44,8 +44,8 @@ Rml::String GetCompareInputDirectory()
 
 Rml::String GetCaptureOutputDirectory()
 {
-#ifdef RMLUI_VISUAL_TESTS_OUTPUT_DIRECTORY
-	const Rml::String output_directory = Rml::String(RMLUI_VISUAL_TESTS_OUTPUT_DIRECTORY);
+#ifdef RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY
+	const Rml::String output_directory = Rml::String(RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY);
 #else
 	const Rml::String output_directory = Shell::FindSamplesRoot() + "../Tests/Output";
 #endif
@@ -58,8 +58,8 @@ Rml::StringList GetTestInputDirectories()
 
 	Rml::StringList directories = { samples_root + "../Tests/Data/VisualTests" };
 
-#ifdef RMLUI_VISUAL_TESTS_DIRECTORIES
-	Rml::StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_DIRECTORIES, ';');
+#ifdef RMLUI_VISUAL_TESTS_RML_DIRECTORIES
+	Rml::StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_RML_DIRECTORIES, ';');
 #endif
 
 	return directories;

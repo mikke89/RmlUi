@@ -30,7 +30,7 @@ static const char* log_rcss = R"RCSS(body
 {
 	width: 400dp;
 	height: 300dp;
-	min-width: 230dp;
+	min-width: 250dp;
 	min-height: 150dp;
 	top: 42dp;
 	left: 20dp;

@@ -125,7 +125,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 			if (files.empty())
 			{
-				Rml::Log::Message(Rml::Log::LT_WARNING, "Could not find any *.rml* files in directory '%s'. Ignoring.'", directory.c_str());
+				Rml::Log::Message(Rml::Log::LT_WARNING, "Could not find any *.rml files in directory '%s'. Ignoring.", directory.c_str());
 			}
 			else
 			{

@@ -1,4 +1,5 @@
-This software or document includes material copied and modified from the CSS specifications [1], in particular from examples there-in. In addition, parts of the CSS test suites [2] have been modified and included with this software. The license [3] of this material is restated below. Copyright © 2020 W3C® (MIT, ERCIM, Keio, Beihang).
+This software or document includes material copied and modified from the CSS specifications [1], in particular from examples there-in. In addition, parts of the CSS test suites [2] have been modified and included with this software. The material is located in some of the *.rml files in the same directory as this file, and have been tagged with an XML 'link' node with a 'rel=source' attribute pointing to the exact place on the 'w3.org' or 'csswg.org' websites the material has been copied and modified from. The license [3] of this material is restated below. Copyright © 2020 W3C® (MIT, ERCIM, Keio, Beihang).
+
 [1] https://drafts.csswg.org/
 [2] https://www.w3.org/Style/CSS/Test/
 [3] https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document

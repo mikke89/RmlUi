@@ -2,6 +2,7 @@
 <head>
 	<title>CSS Position: Floating a box - Sibling</title>
 	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<meta name="description" content='Identical to the previous example, save that there is now "sibling" text flowing with the "body" and "outer" text.' />
 	<style>

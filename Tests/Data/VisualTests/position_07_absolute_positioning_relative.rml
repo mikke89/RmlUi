@@ -2,6 +2,7 @@
 <head>
 	<title>CSS Position: Absolute positioning - Relative</title>
 	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<meta name="description" content='The "inner" text is positioned in an independent box, relative to the top-left corner of the start of the "outer" text.' />
 	<style>

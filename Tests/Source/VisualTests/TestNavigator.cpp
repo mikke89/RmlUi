@@ -121,17 +121,18 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 			else
 			{
 				ComparisonResult result = CompareCurrentView();
+				const Rml::String compare_path = GetCompareInputDirectory() + '/' + GetImageFilenameFromCurrentTest();
 				if (result.success)
 				{
 					if (result.is_equal)
 					{
-						Rml::Log::Message(Rml::Log::LT_INFO, "%s compares EQUAL to the reference image.",
-							CurrentSuite().GetFilename().c_str());
+						Rml::Log::Message(Rml::Log::LT_INFO, "%s compares EQUAL to the reference image %s.",
+							CurrentSuite().GetFilename().c_str(), compare_path.c_str());
 					}
 					else
 					{
-						Rml::Log::Message(Rml::Log::LT_INFO, "%s compares NOT EQUAL to the reference image. See diff image written to %s.",
-							CurrentSuite().GetFilename().c_str(), GetCaptureOutputDirectory().c_str());
+						Rml::Log::Message(Rml::Log::LT_INFO, "%s compares NOT EQUAL to the reference image %s.\nSee diff image written to %s.",
+							CurrentSuite().GetFilename().c_str(), compare_path.c_str(), GetCaptureOutputDirectory().c_str());
 					}
 
 					if (!result.error_msg.empty())
@@ -141,15 +142,22 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 				{
 					Rml::Log::Message(Rml::Log::LT_ERROR, "Comparison of %s failed.\n%s", CurrentSuite().GetFilename().c_str(), result.error_msg.c_str());
 				}
-
 			}
 		}
 		else if (key_identifier == Rml::Input::KI_F7)
 		{
 			if (key_ctrl && key_shift)
+			{
 				StartTestSuiteIteration(IterationState::Capture);
+			}
 			else
-				CaptureCurrentView();
+			{
+				const Rml::String filepath = GetCaptureOutputDirectory() + '/' + GetImageFilenameFromCurrentTest();
+				if (CaptureCurrentView())
+					Rml::Log::Message(Rml::Log::LT_INFO, "Succesfully captured and saved screenshot to %s", filepath.c_str());
+				else
+					Rml::Log::Message(Rml::Log::LT_ERROR, "Could not capture screenshot to %s", filepath.c_str());
+			}
 		}
 		else if (key_identifier == Rml::Input::KI_F1)
 		{
@@ -330,15 +338,15 @@ void TestNavigator::LoadActiveTest()
 	UpdateGoToText();
 }
 
-static Rml::String ImageFilenameFromTest(const TestSuite& suite)
+Rml::String TestNavigator::GetImageFilenameFromCurrentTest()
 {
-	const Rml::String& filename = suite.GetFilename();
+	const Rml::String& filename = CurrentSuite().GetFilename();
 	return filename.substr(0, filename.rfind('.')) + ".png";
 }
 
 ComparisonResult TestNavigator::CompareCurrentView()
 {
-	const Rml::String filename = ImageFilenameFromTest(CurrentSuite());
+	const Rml::String filename = GetImageFilenameFromCurrentTest();
 
 	ComparisonResult result = CompareScreenToPreviousCapture(shell_renderer, filename);
 
@@ -348,7 +356,7 @@ ComparisonResult TestNavigator::CompareCurrentView()
 
 bool TestNavigator::CaptureCurrentView()
 {
-	const Rml::String filename = ImageFilenameFromTest(CurrentSuite());
+	const Rml::String filename = GetImageFilenameFromCurrentTest();
 	
 	bool result = CaptureScreenshot(shell_renderer, filename, 1060);
 	

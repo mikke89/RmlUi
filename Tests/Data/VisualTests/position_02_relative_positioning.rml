@@ -2,6 +2,7 @@
 <head>
 	<title>CSS Position: Relative positioning</title>
 	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<meta name="description" content='The result is identical to normal flow, except that the "outer" text is shifted 12px upward, without affecting the flow of the "body" or "inner" text.' />
 	<style>

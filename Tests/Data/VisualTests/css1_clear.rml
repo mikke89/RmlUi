@@ -4,7 +4,7 @@
 <link type="text/rcss" href="../style.rcss"/>
 <link rel="source" href="https://www.w3.org/Style/CSS/Test/CSS1/current/sec5526.htm"/>
 <link rel="help" href="http://www.w3.org/TR/REC-CSS1#clear"/>
-<meta name="description" content="This is the ACID1 test. Some minor modifications have been applied such as matching fonts and borders to the RmlUi syntax." />
+<meta name="description" content="Basic CSS1 test of the 'clear' property." />
 <style type="text/css">
 @spritesheet theme 
 {

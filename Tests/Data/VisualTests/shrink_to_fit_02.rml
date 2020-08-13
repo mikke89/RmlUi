@@ -74,7 +74,7 @@
 </head>
 
 <body id="test">
-<p>The following boxes should all appear the same, with the background and border tightly packed around the word 'BOX'.</p>
+<p>The background of the following boxes should pack tightly around their contents, with no line-breaks.</p>
 <div style="position: relative; top: -50px;">
 <div class="x" id="absolute">
 Element Information

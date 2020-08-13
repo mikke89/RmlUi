@@ -2,6 +2,7 @@
 <head>
 	<title>CSS Position: Absolute positioning - Change bars</title>
 	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<meta name="description" content='The two red hyphens, indicating a change, sit in the left margin of the page on the line containing the word "THIS", regardless of what line that ends up being.' />
 	<style>

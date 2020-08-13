@@ -2,7 +2,9 @@
 <head>
     <title>Inline-block</title>
     <link type="text/rcss" href="../style.rcss"/>
-	<meta name="Description" content="Inline-block" />
+	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inlineblock-width" />
+	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#leading" />
+	<meta name="Description" content="Elements with 'display: inline-block' should shrink-to-fit when no width is specified. The baseline of the element should be the baseline of its last line." />
 	<style>
 		body {
 			background: #ddd;

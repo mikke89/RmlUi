@@ -2,6 +2,7 @@
 <head>
 	<title>CSS Position: Floating a box</title>
 	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<meta name="description" content='The "inner" text lays out in an independent box on the right, causing the remaining "body" and "outer" text to flow around it.' />
 	<style>

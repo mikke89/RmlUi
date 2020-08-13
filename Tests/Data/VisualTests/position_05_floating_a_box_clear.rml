@@ -2,6 +2,7 @@
 <head>
 	<title>CSS Position: Floating a box - Clear</title>
 	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<meta name="description" content='Now the "sibling" text moves down to below the "inner" text’s box, leaving blank space behind. The text following the "sibling" text flows after it as normal.' />
 	<style>

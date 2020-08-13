@@ -2,6 +2,7 @@
 <head>
 	<title>CSS Position: Absolute positioning</title>
 	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
 	<meta name="description" content='All of the text within #outer (the "outer" and "inner" text) moves down to an independent box in the lower right corner. The two halves of "body" text flow together.' />
 	<style>

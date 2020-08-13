@@ -63,6 +63,8 @@ private:
 
 	void UpdateGoToText(bool out_of_bounds = false);
 
+	Rml::String GetImageFilenameFromCurrentTest();
+
 	ShellRenderInterfaceOpenGL* shell_renderer;
 	Rml::Context* context;
 	TestViewer* viewer;
