@@ -474,7 +474,7 @@ void TestNavigator::StopTestSuiteIteration()
 		log += "\n\nNot Equal:\n";
 
 		if (!not_equal.empty())
-			log += "Percentages are similarity scores. Difference images written to " + GetCaptureOutputDirectory() + "/diff-*.png\n\n";
+			log += "Percentages are similarity scores. Difference images written to " + GetCaptureOutputDirectory() + "/*-diff.png\n\n";
 		for (int i : not_equal)
 		{
 			suite.SetIndex(i);

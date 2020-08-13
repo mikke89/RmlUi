@@ -35,24 +35,24 @@
 </head>
 
 <body>
-<p>The following boxes should all appear the same, with the background and border tightly packed around the word 'BOX'.</p>
+<p>The following boxes should all appear the same, with the background and border tightly packed around the words 'A BOX'.</p>
 <div>
-	<span>BOX</span>
+	<span>A BOX</span>
 </div>
 <div>
-	<div class="absolute">BOX</div>
+	<div class="absolute">A BOX</div>
 </div>
 <div>
-	<div class="float">BOX</div>
+	<div class="float">A BOX</div>
 </div>
 <div>
-	<span class="float">BOX</span>
+	<span class="float">A BOX</span>
 </div>
 <div>
-	<div class="iblock">BOX</div>
+	<div class="iblock">A BOX</div>
 </div>
 <div>
-	<div class="iblock right">BOX</div>
+	<div class="iblock right">A BOX</div>
 </div>
 </body>
 </rml>

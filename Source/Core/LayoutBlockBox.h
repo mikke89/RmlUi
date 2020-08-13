@@ -59,14 +59,13 @@ public:
 	};
 
 	/// Creates a new block box for rendering a block element.
-	/// @param layout_engine[in] The layout engine that created this block box.
 	/// @param parent[in] The parent of this block box. This will be nullptr for the root element.
 	/// @param element[in] The element this block box is laying out.
-	LayoutBlockBox(LayoutBlockBox* parent, Element* element, bool allow_shrink = true);
+	/// @param override_shrink_to_fit_width[in] Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
+	LayoutBlockBox(LayoutBlockBox* parent, Element* element, float override_shrink_to_fit_width = -1);
 	/// Creates a new block box in an inline context.
-	/// @param layout_engine[in] The layout engine that created this block box.
 	/// @param parent[in] The parent of this block box.
-	LayoutBlockBox(LayoutBlockBox* parent, bool allow_shrink = true);
+	LayoutBlockBox(LayoutBlockBox* parent);
 	/// Releases the block box.
 	~LayoutBlockBox();
 
@@ -89,8 +88,9 @@ public:
 	/// Adds a new block element to this block-context box.
 	/// @param element[in] The new block element.
 	/// @param placed[in] True if the element is to be placed, false otherwise.
+	/// @param override_shrink_to_fit_width[in] Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
 	/// @return The block box representing the element. Once the element's children have been positioned, Close() must be called on it.
-	LayoutBlockBox* AddBlockElement(Element* element, bool allow_shrink = true);
+	LayoutBlockBox* AddBlockElement(Element* element, float override_shrink_to_fit_width = -1);
 	/// Adds a new inline element to this inline-context box.
 	/// @param element[in] The new inline element.
 	/// @param box[in] The box defining the element's bounds.

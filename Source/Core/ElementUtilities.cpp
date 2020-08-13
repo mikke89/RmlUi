@@ -308,13 +308,13 @@ bool ElementUtilities::FormatElement(Element* element, const Vector2f& containin
 }
 
 // Generates the box for an element.
-void ElementUtilities::BuildBox(Box& box, const Vector2f& containing_block, Element* element, bool inline_element)
+void ElementUtilities::BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element)
 {
 	LayoutDetails::BuildBox(box, containing_block, element, inline_element);
 }
 
 // Sizes an element, and positions it within its parent offset from the borders of its content area.
-bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset, PositionAnchor anchor)
+bool ElementUtilities::PositionElement(Element* element, Vector2f offset, PositionAnchor anchor)
 {
 	Element* parent = element->GetParentNode();
 	if (parent == nullptr)

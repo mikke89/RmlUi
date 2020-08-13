@@ -37,7 +37,7 @@
 namespace Rml {
 
 // Generates the box for an element.
-void LayoutDetails::BuildBox(Box& box, const Vector2f& containing_block, Element* element, bool inline_element, bool allow_shrink)
+void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element, float override_shrink_to_fit_width)
 {
 	if (element == nullptr)
 	{
@@ -135,19 +135,19 @@ void LayoutDetails::BuildBox(Box& box, const Vector2f& containing_block, Element
 	else
 	{
 		box.SetContent(content_area);
-		BuildBoxWidth(box, computed, containing_block, element, allow_shrink, replaced_element);
+		BuildBoxWidth(box, computed, containing_block, element, replaced_element, override_shrink_to_fit_width);
 		BuildBoxHeight(box, computed, containing_block.y);
 	}
 }
 
 // Generates the box for an element placed in a block box.
-void LayoutDetails::BuildBox(Box& box, float& min_height, float& max_height, LayoutBlockBox* containing_box, Element* element, bool inline_element, bool allow_shrink)
+void LayoutDetails::BuildBox(Box& box, float& min_height, float& max_height, LayoutBlockBox* containing_box, Element* element, bool inline_element, float override_shrink_to_fit_width)
 {
 	Vector2f containing_block = GetContainingBlock(containing_box);
-	BuildBox(box, containing_block, element, inline_element, allow_shrink);
+	BuildBox(box, containing_block, element, inline_element, override_shrink_to_fit_width);
 
 	float box_height = box.GetSize().y;
-	if (box_height < 0)
+	if (box_height < 0 && element)
 	{
 		auto& computed = element->GetComputedValues();
 		min_height = ResolveValue(computed.min_height, containing_block.y);
@@ -209,11 +209,18 @@ Vector2f LayoutDetails::GetContainingBlock(const LayoutBlockBox* containing_box)
 
 float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_block)
 {
+	// First we need to format the element, then we get the shrink-to-fit width based on the largest line or box.
+
 	LayoutBlockBox containing_block_box(nullptr, nullptr);
 	containing_block_box.GetBox().SetContent(containing_block);
 
-	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element, false);
+	// Here we fix the element's width to its containing block so that any content is wrapped at this width.
+	// We can consider to instead set this to infinity and clamp it to the available width later after formatting,
+	// but right now the formatting procedure doesn't work well with such numbers.
+	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element, containing_block.x);
 
+	// @performance. Some formatting can be simplified, eg. absolute elements do not contribute to the shrink-to-fit width.
+	// Also, children of elements with a fixed width and height don't need to be formatted further.
 	for (int i = 0; i < element->GetNumChildren(); i++)
 	{
 		if (!LayoutEngine::FormatElement(block_context_box, element->GetChild(i)))
@@ -223,13 +230,12 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	// We only do layouting to get the fit-to-shrink width here, and for this purpose we may get
 	// away with not closing the boxes. This is avoided for performance reasons.
 	//block_context_box->Close();
-	//block_context_box->CloseAbsoluteElements();
 
 	return Math::Min(containing_block.x, block_context_box->GetShrinkToFitWidth());
 }
 
 // Builds the block-specific width and horizontal margins of a Box.
-void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, Vector2f containing_block, Element* element, bool allow_shrink, bool replaced_element)
+void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, Vector2f containing_block, Element* element, bool replaced_element, float override_shrink_to_fit_width)
 {
 	RMLUI_ZoneScoped;
 
@@ -278,7 +284,7 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, Vect
 	{
 		// Apply the shrink-to-fit algorithm here to find the width of the element.
 		// See CSS 2.1 section 10.3.7 for when this should be applied.
-		const bool shrink_to_fit = allow_shrink && !replaced_element &&
+		const bool shrink_to_fit = !replaced_element &&
 			(
 				(computed.float_ != Style::Float::None) ||
 				((computed.position == Style::Position::Absolute || computed.position == Style::Position::Fixed) && (computed.left.type == Style::Left::Auto || computed.right.type == Style::Right::Auto)) ||
@@ -302,9 +308,14 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, Vect
 		if (margins_auto[1])
 			box.SetEdge(Box::MARGIN, Box::RIGHT, 0);
 
-		if (shrink_to_fit)
+		if (shrink_to_fit && override_shrink_to_fit_width < 0)
 		{
 			content_area.x = GetShrinkToFitWidth(element, containing_block);
+			override_shrink_to_fit_width = content_area.x;
+		}
+		else if (shrink_to_fit)
+		{
+			content_area.x = override_shrink_to_fit_width;
 		}
 		else
 		{
@@ -345,7 +356,7 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, Vect
 			if (margins_auto[1])
 				box.SetEdge(Box::MARGIN, Box::RIGHT, 0);
 
-			BuildBoxWidth(box, computed, containing_block, element, allow_shrink, replaced_element);
+			BuildBoxWidth(box, computed, containing_block, element, replaced_element, override_shrink_to_fit_width);
 		}
 	}
 	else

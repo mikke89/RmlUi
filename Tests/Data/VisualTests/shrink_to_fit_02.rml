@@ -3,89 +3,95 @@
     <title>Shrink-to-fit 2</title>
     <link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/CSS21/visudet.html#shrink-to-fit-float" />
-	<meta name="Description" content="Shrink-to-fit width" />
+	<meta name="Description" content="Shrink-to-fit width with differently positioned and floated boxes." />
 	<style>
 		body {
 			background: #ddd;
 			color: #444;
 		}
+		hr {
+			margin-top: 15px;
+			margin-bottom: 15px;
+			background-color: #ccc;
+		}
+		div {
+			border: 2px #444;
+			background: #ccf;
+		}
 		body > div {
-			clear: both;
-			position: relative;
-			height: 50px;
-		}
-		.absolute
-		{
-			position: absolute;
-			top: 10em;
-			left: 2em;
-			right: auto;
-			height: 22dp;
-			padding: 4dp 5dp;
-			color: white;
-			background-color: #888;
-			font-size: 15dp;
-		}
-		.x
-		{
-			position: absolute;
-			top: 5em;
-			left: 10px;
-			background: #fff;
-		}
-		.close
-		{
-			margin-left: 10dp;
-			z-index: 1;
-			float: right;
-			width: 18dp;
-			color: black;
-			background-color: #ddd;
-			border-width: 1px;
-			border-color: #666;
-			text-align: center;
-		}
-		.close:hover
-		{
-			background-color: #eee;
-		}
-		.close:active
-		{
-			background-color: #fff;
-		}
-		.title {
-			/*width: 280dp;*/
 			display: inline-block;
+			position: relative;
+			/*overflow: auto;*/
 		}
-		.button
-		{
-			font-size: 0.9em;
-			margin-left: 3dp;
-			z-index: 1;
+		body > div > div {
+			width: 150px;
+			height: 30px;
+			background: #cfc;
+		}
+		.absolute {
+			position: absolute;
+			top: 20px;
+			left: 50px;
+		}
+		.relative {
+			position: relative;
+			top: 20px;
+			left: 50px;
+		}
+		.float-left {
+			float: left;
+		}
+		.float-right {
 			float: right;
-			width: 18dp;
-			color: #fff;
-			background-color: #666;
-			border-width: 1px;
-			border-color: #ccc;
-			text-align: center;
 		}
 	</style>
 </head>
 
-<body id="test">
-<p>The background of the following boxes should pack tightly around their contents, with no line-breaks.</p>
-<div style="position: relative; top: -50px;">
-<div class="x" id="absolute">
-Element Information
+<body>
+<div>
+  Some text
+  <div>Block</div>
+  Text after
 </div>
+<hr/>
+<div>
+  Some text
+  <div class="absolute">Absolute</div>
+  Text after
 </div>
-<div class="absolute" id="absolute">
-	<div class="close">X</div>
-	<div class="button">U</div>
-	<div class="button">D</div>
-	<div class="button">*</div>
-	<div class="title">Element Information</div>
+<hr style="margin-top: 55px;"/>
+<div>
+  Some text
+  <div class="relative">Relative</div>
+  Text after
+</div>
+<hr/>
+<div>
+  Some text
+  <div class="float-left">Float left</div>
+  Text after
+</div>
+<hr/>
+<div>
+  Some text
+  <div class="float-right">Float right</div>
+  Text after
+</div>
+<hr/>
+<div>
+  <div class="float-left">Float left</div>
+  Text after
+</div>
+<hr/>
+<div>
+  <div class="float-right">Float right</div>
+  Text after
+</div>
+<hr/>
+<div>
+  Some text
+  <div class="float-left relative">Float relative</div>
+  Text after
 </div>
 </body>
 </rml>

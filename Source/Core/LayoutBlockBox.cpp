@@ -40,7 +40,7 @@
 namespace Rml {
 
 // Creates a new block box for rendering a block element.
-LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, bool allow_shrink) : position(0), visible_outer_width(0)
+LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, float override_shrink_to_fit_width) : position(0), visible_outer_width(0)
 {
 	RMLUI_ZoneScoped;
 
@@ -85,8 +85,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, bool 
 		space->ImportSpace(*parent->space);
 
 		// Build our box if possible; if not, it will have to be set up manually.
-		// TODO: Calculate outside and pass the box into the constructor.
-		LayoutDetails::BuildBox(box, min_height, max_height, parent, element, false, allow_shrink);
+		LayoutDetails::BuildBox(box, min_height, max_height, parent, element, false, override_shrink_to_fit_width);
 
 		// Position ourselves within our containing block (if we have a valid offset parent).
 		if (parent->GetElement() != nullptr)
@@ -130,7 +129,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, bool 
 }
 
 // Creates a new block box in an inline context.
-LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, bool allow_shrink) : position(-1, -1)
+LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent) : position(-1, -1)
 {
 	parent = _parent;
 	offset_parent = parent->offset_parent;
@@ -148,8 +147,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, bool allow_shrink) : pos
 	box_cursor = 0;
 	vertical_overflow = false;
 
-	// TODO: Calculate outside and pass the box into the constructor.
-	LayoutDetails::BuildBox(box, min_height, max_height, parent, nullptr, false, allow_shrink);
+	LayoutDetails::BuildBox(box, min_height, max_height, parent, nullptr, false);
 	parent->PositionBlockBox(position, box, Style::Clear::None);
 	box.SetContent(Vector2f(box.GetSize(Box::CONTENT).x, -1));
 
@@ -361,7 +359,7 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, UniquePtr<La
 }
 
 // Adds a new block element to this block box.
-LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, bool allow_shrink)
+LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, float override_shrink_to_fit_width)
 {
 	RMLUI_ZoneScoped;
 
@@ -394,7 +392,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, bool allow_shr
 		}
 	}
 
-	block_boxes.push_back(MakeUnique<LayoutBlockBox>(this, element, allow_shrink));
+	block_boxes.push_back(MakeUnique<LayoutBlockBox>(this, element, override_shrink_to_fit_width));
 	return block_boxes.back().get();
 }
 
