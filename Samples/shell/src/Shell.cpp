@@ -28,6 +28,13 @@
 
 #include "Shell.h"
 #include <RmlUi/Core/Core.h>
+#include <string.h>
+
+#ifdef RMLUI_PLATFORM_WIN32
+#include <io.h>
+#else
+#include <dirent.h>
+#endif
 
 /// Loads the default fonts from the given path.
 void Shell::LoadFonts(const char* directory)
@@ -45,5 +52,85 @@ void Shell::LoadFonts(const char* directory)
 	{
 		Rml::LoadFontFace(Rml::String(directory) + font_names[i], i == fallback_face);
 	}
+}
+
+
+enum class ListType { Files, Directories };
+
+static Rml::StringList ListFilesOrDirectories(ListType type, const Rml::String& directory, const Rml::String& extension)
+{
+	if (directory.empty())
+		return Rml::StringList();
+
+	Rml::StringList result;
+
+#ifdef RMLUI_PLATFORM_WIN32
+	const Rml::String find_path = directory + "/*." + (extension.empty() ? Rml::String("*") : extension);
+
+	_finddata_t find_data;
+	intptr_t find_handle = _findfirst(find_path.c_str(), &find_data);
+	if (find_handle != -1)
+	{
+		do
+		{
+			if (strcmp(find_data.name, ".") == 0 ||
+				strcmp(find_data.name, "..") == 0)
+				continue;
+
+			bool is_directory = ((find_data.attrib & _A_SUBDIR) == _A_SUBDIR);
+			bool is_file = (!is_directory && ((find_data.attrib & _A_NORMAL) == _A_NORMAL));
+
+			if (((type == ListType::Files) && is_file) ||
+				((type == ListType::Directories) && is_directory))
+			{
+				result.push_back(find_data.name);
+			}
+
+		} while (_findnext(find_handle, &find_data) == 0);
+
+		_findclose(find_handle);
+	}
+#else
+	struct dirent** file_list = nullptr;
+	const int file_count = scandir(directory.c_str(), &file_list, 0, alphasort);
+	if (file_count == -1)
+		return Rml::StringList();
+
+	for (int i = 0; i < file_count; i++)
+	{
+		if (strcmp(file_list[i]->d_name, ".") == 0 ||
+			strcmp(file_list[i]->d_name, "..") == 0)
+			continue;
+
+		bool is_directory = ((file_list[i]->d_type & DT_DIR) == DT_DIR);
+		bool is_file = ((file_list[i]->d_type & DT_REG) == DT_REG);
+
+		if (!extension.empty())
+		{
+			const char* last_dot = strrchr(file_list[i]->d_name, '.');
+			if (!last_dot || strcmp(last_dot + 1, extension.c_str()) != 0)
+				continue;
+		}
+
+		if ((type == ListType::Files && is_file) ||
+			(type == ListType::Directories && is_directory))
+		{
+			result.push_back(file_list[i]->d_name);
+		}
+	}
+	free(file_list);
+#endif
+
+	return result;
+}
+
+Rml::StringList Shell::ListDirectories(const Rml::String& in_directory)
+{
+	return ListFilesOrDirectories(ListType::Directories, in_directory, Rml::String());
+}
+
+Rml::StringList Shell::ListFiles(const Rml::String& in_directory, const Rml::String& extension)
+{
+	return ListFilesOrDirectories(ListType::Files, in_directory, extension);
 }
 

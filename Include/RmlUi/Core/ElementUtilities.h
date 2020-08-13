@@ -117,14 +117,14 @@ public:
 	/// @param[in] containing_block The dimensions of the content area of the block containing the element.
 	/// @param[in] element The element to build the box for.
 	/// @param[in] inline_element True if the element is placed in an inline context, false if not.
-	static void BuildBox(Box& box, const Vector2f& containing_block, Element* element, bool inline_element = false);
+	static void BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element = false);
 
 	/// Sizes an element, and positions it within its parent offset from the borders of its content area. Any relative
 	/// values will be evaluated against the size of the element parent's content area.
 	/// @param element[in] The element to size and position.
 	/// @param offset[in] The offset from the parent's borders.
 	/// @param anchor[in] Defines which corner or edge the border is to be positioned relative to.
-	static bool PositionElement(Element* element, const Vector2f& offset, PositionAnchor anchor);
+	static bool PositionElement(Element* element, Vector2f offset, PositionAnchor anchor);
 
 	/// Applies an element's accumulated transform matrix, determined from its and ancestor's `perspective' and `transform' properties.
 	/// Note: All calls to RenderInterface::SetTransform must go through here.

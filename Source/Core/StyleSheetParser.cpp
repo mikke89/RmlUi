@@ -55,7 +55,10 @@ public:
 */
 class PropertySpecificationParser : public AbstractPropertyParser {
 private:
+	// The dictionary to store the properties in.
 	PropertyDictionary& properties;
+
+	// The specification used to parse the values. Normally the default stylesheet specification, but not for e.g. all at-rules such as decorators.
 	const PropertySpecification& specification;
 
 public:
@@ -499,7 +502,7 @@ bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, co
 	StreamMemory stream_owner((const byte*)properties.c_str(), properties.size());
 	stream = &stream_owner;
 	PropertySpecificationParser parser(parsed_properties, StyleSheetSpecification::GetPropertySpecification());
-	bool success = ReadProperties(parser, false);
+	bool success = ReadProperties(parser);
 	stream = nullptr;
 	return success;
 }
@@ -525,7 +528,7 @@ StyleSheetNodeListRaw StyleSheetParser::ConstructNodes(StyleSheetNode& root_node
 }
 
 
-bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser, bool require_end_semicolon)
+bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 {
 	String name;
 	String value;
@@ -555,7 +558,7 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser, b
 				else if (character == '}')
 				{
 					name = StringUtilities::StripWhitespace(name);
-					if (!StringUtilities::StripWhitespace(name).empty())
+					if (!name.empty())
 						Log::Message(Log::LT_WARNING, "End of rule encountered while parsing property declaration '%s' at %s:%d", name.c_str(), stream_file_name.c_str(), line_number);
 					return true;
 				}
@@ -584,8 +587,7 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser, b
 				}
 				else if (character == '}')
 				{
-					Log::Message(Log::LT_WARNING, "End of rule encountered while parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
-					return true;
+					break;
 				}
 				else
 				{
@@ -605,10 +607,12 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser, b
 			break;
 		}
 
+		if (character == '}')
+			break;
 		previous_character = character;
 	}
 
-	if (!require_end_semicolon && !name.empty() && !value.empty())
+	if (state == VALUE && !name.empty() && !value.empty())
 	{
 		value = StringUtilities::StripWhitespace(value);
 

@@ -1,0 +1,31 @@
+<rml>
+<head>
+<title>RCSS Test description</title>
+<link type="text/rcss" href="style.rcss"/>
+<style>
+	body {
+		font-family: rmlui-debugger-font;
+		font-weight: normal;
+		font-style: normal;
+		font-size: 16px;
+		width: auto;
+		color: #444;
+		position: absolute;
+		top: 0px; right: 0px;
+		bottom: 0px; left: 0px;
+		background-color: #222222f9;
+		color: #ddd;
+		z-index: 200;
+	}
+	#code {
+		display: block;
+		white-space: pre-wrap;
+		font-size: 0.9em;
+		padding: 20px 30px;
+	}
+</style>
+</head>
+<body>
+<div id="code"/>
+</body>
+</rml>

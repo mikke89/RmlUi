@@ -47,8 +47,7 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(
 
 	width = 0;
 
-	// If this box has intrinsic dimensions, then we set our height to the total height of the element; otherwise, it
-	// is zero height.
+	// If this box has intrinsic dimensions, then we set our height to the total height of the element; otherwise, it is zero height.
 	if (box.GetSize().y > 0)
 	{
 		height = box.GetSize(Box::MARGIN).y;
@@ -146,7 +145,7 @@ bool LayoutInlineBox::IsLastChild() const
 }
 
 // Flows the inline box's content into its parent line.
-LayoutInlineBox* LayoutInlineBox::FlowContent(bool RMLUI_UNUSED_PARAMETER(first_box), float RMLUI_UNUSED_PARAMETER(available_width), float RMLUI_UNUSED_PARAMETER(right_spacing_width))
+UniquePtr<LayoutInlineBox> LayoutInlineBox::FlowContent(bool RMLUI_UNUSED_PARAMETER(first_box), float RMLUI_UNUSED_PARAMETER(available_width), float RMLUI_UNUSED_PARAMETER(right_spacing_width))
 {
 	RMLUI_UNUSED(first_box);
 	RMLUI_UNUSED(available_width);

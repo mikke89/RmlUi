@@ -59,6 +59,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/IdNameMap.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutDetails.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutEngine.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBoxText.h
@@ -328,6 +329,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutDetails.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutEngine.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBox.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBoxText.cpp

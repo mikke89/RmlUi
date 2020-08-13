@@ -95,7 +95,7 @@ void Shell::Shutdown()
 
 Rml::String Shell::FindSamplesRoot()
 {
-	const char* candidate_paths[] = { "", "..\\..\\Samples\\", "..\\Samples\\", "..\\..\\..\\Samples\\" };
+	const char* candidate_paths[] = { "", "..\\Samples\\", "..\\..\\Samples\\", "..\\..\\..\\Samples\\", "..\\..\\..\\..\\Samples\\" };
 	
 	// Fetch the path of the executable, test the candidate paths appended to that.
 	char executable_file_name[MAX_PATH];

@@ -79,6 +79,15 @@ XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XML
 	return result;
 }
 
+XMLNodeHandler* XMLParser::GetNodeHandler(const String& tag)
+{
+	auto it = node_handlers.find(tag);
+	if (it != node_handlers.end())
+		return it->second.get();
+	
+	return nullptr;
+}
+
 // Releases all registered node handlers. This is called internally.
 void XMLParser::ReleaseHandlers()
 {

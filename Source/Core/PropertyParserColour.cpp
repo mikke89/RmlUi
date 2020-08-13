@@ -42,7 +42,7 @@ PropertyParserColour::PropertyParserColour()
 	html_colours["red"] = Colourb(255, 0, 0);
 	html_colours["orange"] = Colourb(255, 165, 0);
 	html_colours["purple"] = Colourb(128, 0, 128);
-	html_colours["fuschia"] =  Colourb(255, 0, 255);
+	html_colours["fuchsia"] =  Colourb(255, 0, 255);
 	html_colours["green"] =  Colourb(0, 128, 0);
 	html_colours["lime"] =  Colourb(0, 255, 0);
 	html_colours["olive"] =  Colourb(128, 128, 0);

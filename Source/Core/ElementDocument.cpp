@@ -373,8 +373,7 @@ void ElementDocument::UpdateLayout()
 		if (GetParentNode() != nullptr)
 			containing_block = GetParentNode()->GetBox().GetSize();
 
-		LayoutEngine layout_engine;
-		layout_engine.FormatElement(this, containing_block);
+		LayoutEngine::FormatElement(this, containing_block);
 	}
 }
 
@@ -491,6 +490,20 @@ void ElementDocument::OnResize()
 	DirtyPosition();
 }
 
+enum class CanFocus { Yes, No, NoAndNoChildren };
+static CanFocus CanFocusElement(Element* element)
+{
+	if (element->IsPseudoClassSet("disabled"))
+		return CanFocus::NoAndNoChildren;
+
+	if (!element->IsVisible())
+		return CanFocus::NoAndNoChildren;
+
+	if (element->GetComputedValues().tab_index == Style::TabIndex::Auto)
+		return CanFocus::Yes;
+
+	return CanFocus::No;
+}
 
 // Find the next element to focus, starting at the current element
 //
@@ -533,7 +546,7 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 				if(Element* result = SearchFocusSubtree(search_child, forward))
 					return result;
 
-			// If we find the child, enable searching
+			// Enable searching when we reach the child.
 			if (search_child == child)
 				search_enabled = true;
 		}
@@ -542,11 +555,20 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 		child = parent;
 		parent = parent->GetParentNode();
 
-		// If we hit the top, enable searching the entire tree
 		if (parent == document)
+		{
+			// When we hit the top, see if we can focus the document first.
+			if (CanFocusElement(document) == CanFocus::Yes)
+				return document;
+			
+			// Otherwise, search the entire tree to loop back around.
 			search_enabled = true;
-		else // otherwise enable searching if we're going backward and disable if we're going forward
+		}
+		else
+		{
+			// Prepare for the next iteration by disabling searching.
 			search_enabled = false;
+		}
 	}
 
 	return nullptr;
@@ -554,21 +576,11 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 
 Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 {
-	// Skip disabled elements
-	if (element->IsPseudoClassSet("disabled"))
-	{
-		return nullptr;
-	}
-	if (!element->IsVisible())
-	{
-		return nullptr;
-	}
-
-	// Check if this is the node we're looking for
-	if (element->GetComputedValues().tab_index == Style::TabIndex::Auto)
-	{
+	CanFocus can_focus = CanFocusElement(element);
+	if (can_focus == CanFocus::Yes)
 		return element;
-	}
+	else if (can_focus == CanFocus::NoAndNoChildren)
+		return nullptr;
 
 	// Check all children
 	for (int i = 0; i < element->GetNumChildren(); i++)

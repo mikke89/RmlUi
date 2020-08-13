@@ -1,0 +1,78 @@
+<rml>
+<head>
+<title>RCSS Test value</title>
+<link type="text/rcss" href="style.rcss"/>
+<style>
+	body {
+		width: auto;
+		color: #444;
+		position: absolute;
+		top: 0px; right: 0px;
+		bottom: 0px; left: 0px;
+		background-color: #222222f9;
+		color: #ddd;
+		z-index: 300;
+	}
+	#content {
+		display: block;
+		white-space: pre-wrap;
+		font-size: 17px;
+		width: 700px;
+		margin: 0 auto;
+		padding-top: 30px;
+	}
+	p {
+		clear: both;
+		padding-top: 1em;
+	}
+	h1 {
+		font-size: 1.2em;
+		padding: 1em 0;
+		color: #fff;
+		clear: both;
+	}
+	key, value {
+		display: block;
+		line-height: 1.5;
+	}
+	key {
+		width: 40%;
+		float: left;
+		clear: both;
+		text-align: right;
+	}
+	value {
+		width: 52%;
+		float: right;
+		clear: right;
+	}
+</style>
+</head>
+<body>
+<div id="content">
+<h1>Keyboard shortcuts</h1>
+<key>Left / Right</key> <value>Navigate tests</value>
+<key>Home / End</key> <value>Go to first / last test</value>
+<key>Up / Down</key> <value>Navigate test suites</value>
+<key>F5</key> <value>Compare test to previous capture</value>
+<key>Ctrl+Shift+F5</key> <value>Compare all tests</value>
+<key>F7</key> <value>Capture screenshot of test</value>
+<key>Ctrl+Shift+F7</key> <value>Capture all tests</value>
+<key>F8</key> <value>Open debugger</value>
+<key>Ctrl+G</key> <value>Go To test (followed by number, enter)</value>
+<key>Ctrl+F</key> <value>Filter tests</value>
+<key>Ctrl+R</key> <value>Reload test</value>
+<key>Ctrl+S</key> <value>View source of test</value>
+<key>Ctrl+Shift+S</key> <value>View source of reference</value>
+<key>Left Mouse Button on Link</key> <value>Copy link to clipboard (on supported platforms)</value>
+<key>F1</key> <value>Show / hide help</value>
+
+<p>Results of comparisons and captures are written to the log output.</p>
+
+<h1>Directories</h1>
+<key>Test suite(s)</key> <span id="test_directories"><value>C:\</value> <value>E:\</value> <value>D:\</value></span>
+<key>Compare input</key> <value id="compare_input">C:\</value>
+<key>Capture output</key> <value id="capture_output">C:\</value>
+</div>
+</body>
+</rml>

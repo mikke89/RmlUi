@@ -136,14 +136,14 @@ size_t SpritesheetList::NumSprites() const
 
 String SpritesheetList::ToString() const
 {
-	String result = CreateString(100, "#SpriteSheets: %d\n", spritesheet_map.size());
+	String result = CreateString(100, "#SpriteSheets: %zu\n", spritesheet_map.size());
 
 	for (auto& sheet : spritesheet_map)
 	{
-		result += CreateString(100, "  Sheet '%s'.   #Sprites %d.\n", sheet.first.c_str(), sheet.second->sprite_names.size());
+		result += CreateString(100, "  Sheet '%s'.   #Sprites %zu.\n", sheet.first.c_str(), sheet.second->sprite_names.size());
 	}
 
-	result += CreateString(100, "\n#Sprites: %d\n", sprite_map.size());
+	result += CreateString(100, "\n#Sprites: %zu\n", sprite_map.size());
 	for (auto& sprite : sprite_map)
 	{
 		result += CreateString(100, "  In '%s': %s\n", sprite.second.sprite_sheet->name.c_str(), sprite.first.c_str());

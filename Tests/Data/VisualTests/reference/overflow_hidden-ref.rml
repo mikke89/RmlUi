@@ -1,0 +1,60 @@
+<rml>
+<head>
+    <title>Overflow: hidden</title>
+    <link type="text/rcss" href="../../style.rcss"/>
+	<style>
+		body {
+			display: block;
+			background: #ddd;
+			color: #444;
+		}
+		div.overflow {
+			border: 1px black;
+			overflow: hidden;
+			width: 200px;
+			height: 200px;
+		}
+		div.relative {
+			position: relative;
+		}
+		div.wide {
+			width: 300px;
+			height: 20px;
+			color: #f00;
+			text-align: right;
+			background-color: #aaa;
+		}
+		div.absolute {
+			position: absolute;
+			top: 100px;
+			left: 250px;
+			width: 80px;
+			height: 80px;
+		}
+		.green { background-color: #7f7; }
+		.red { background-color: #f77; }
+	</style>
+</head>
+
+<body>
+<p>There should be a green box, no red visible, and the word 'fail' should not appear.</p>
+<div class="overflow">
+	<div class="wide">FAIL</div>
+	LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL
+</div>
+<div class="absolute green">Should be visible</div>
+<div class="overflow relative">
+	<div class="wide">FAIL</div>
+	LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL
+	<div class="absolute red">Should not be visible</div>
+</div>
+<div class="overflow">
+	<span>
+		LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL
+	</span>
+	<div>
+		LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL
+	</div>
+</div>
+</body>
+</rml>

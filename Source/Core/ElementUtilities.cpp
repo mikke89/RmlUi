@@ -38,6 +38,7 @@
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "ElementStyle.h"
+#include "LayoutDetails.h"
 #include "LayoutEngine.h"
 #include "TransformState.h"
 #include <limits>
@@ -55,7 +56,7 @@ static void SetBox(Element* element)
 	containing_block.y -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
 
 	Box box;
-	LayoutEngine::BuildBox(box, containing_block, element);
+	LayoutDetails::BuildBox(box, containing_block, element);
 
 	if (element->GetComputedValues().height.type != Style::Height::Auto)
 		box.SetContent(Vector2f(box.GetSize().x, containing_block.y));
@@ -303,18 +304,17 @@ void ElementUtilities::ApplyActiveClipRegion(Context* context, RenderInterface* 
 // Formats the contents of an element.
 bool ElementUtilities::FormatElement(Element* element, const Vector2f& containing_block)
 {
-	LayoutEngine layout_engine;
-	return layout_engine.FormatElement(element, containing_block);
+	return LayoutEngine::FormatElement(element, containing_block);
 }
 
 // Generates the box for an element.
-void ElementUtilities::BuildBox(Box& box, const Vector2f& containing_block, Element* element, bool inline_element)
+void ElementUtilities::BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element)
 {
-	LayoutEngine::BuildBox(box, containing_block, element, inline_element);
+	LayoutDetails::BuildBox(box, containing_block, element, inline_element);
 }
 
 // Sizes an element, and positions it within its parent offset from the borders of its content area.
-bool ElementUtilities::PositionElement(Element* element, const Vector2f& offset, PositionAnchor anchor)
+bool ElementUtilities::PositionElement(Element* element, Vector2f offset, PositionAnchor anchor)
 {
 	Element* parent = element->GetParentNode();
 	if (parent == nullptr)

@@ -1,0 +1,58 @@
+<rml>
+<head>
+    <title>Shrink-to-fit</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/CSS21/visudet.html#shrink-to-fit-float" />
+	<meta name="Description" content="Floating elements, absolutely positioned elements, and inline-block elements should shrink-to-fit when their width is auto." />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		body > div {
+			clear: both;
+			position: relative;
+			height: 50px;
+		}
+		body > div > * {
+			border: 2px #888;
+			color: black;
+			background: #ccf;
+		}
+		.absolute {
+			position: absolute;
+		}
+		.float {
+			float: left;
+		}
+		.iblock {
+			display: inline-block;
+		}
+		.right {
+			text-align: right;
+		}
+	</style>
+</head>
+
+<body>
+<p>The following boxes should all appear the same, with the background and border tightly packed around the words 'A BOX'.</p>
+<div>
+	<span>A BOX</span>
+</div>
+<div>
+	<div class="absolute">A BOX</div>
+</div>
+<div>
+	<div class="float">A BOX</div>
+</div>
+<div>
+	<span class="float">A BOX</span>
+</div>
+<div>
+	<div class="iblock">A BOX</div>
+</div>
+<div>
+	<div class="iblock right">A BOX</div>
+</div>
+</body>
+</rml>

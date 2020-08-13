@@ -202,7 +202,7 @@ bool ElementTextDefault::GenerateLine(String& line, int& line_length, float& lin
 	bool collapse_white_space = white_space_property == WhiteSpace::Normal ||
 								white_space_property == WhiteSpace::Nowrap ||
 								white_space_property == WhiteSpace::Preline;
-	bool break_at_line = maximum_line_width >= 0 && 
+	bool break_at_line = (maximum_line_width >= 0) && 
 		                   (white_space_property == WhiteSpace::Normal ||
 							white_space_property == WhiteSpace::Prewrap ||
 							white_space_property == WhiteSpace::Preline);
@@ -210,8 +210,10 @@ bool ElementTextDefault::GenerateLine(String& line, int& line_length, float& lin
 							white_space_property == WhiteSpace::Prewrap ||
 							white_space_property == WhiteSpace::Preline;
 
-	// Determine what (if any) text transformation we are putting the characters through.
 	TextTransform text_transform_property = computed.text_transform;
+	WordBreak word_break = computed.word_break;
+
+	FontEngineInterface* font_engine_interface = GetFontEngineInterface();
 
 	// Starting at the line_begin character, we generate sections of the text (we'll call them tokens) depending on the
 	// white-space parsing parameters. Each section is then appended to the line if it can fit. If not, or if an
@@ -228,21 +230,59 @@ bool ElementTextDefault::GenerateLine(String& line, int& line_length, float& lin
 
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property, decode_escape_characters);
-		int token_width = GetFontEngineInterface()->GetStringWidth(font_face_handle, token, previous_codepoint);
+		int token_width = font_engine_interface->GetStringWidth(font_face_handle, token, previous_codepoint);
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
 		if (break_at_line)
 		{
-			if (!line.empty() &&
-				(line_width + token_width > maximum_line_width ||
-				 (LastToken(next_token_begin, string_end, collapse_white_space, break_at_endline) && line_width + token_width > maximum_line_width - right_spacing_width)))
+			const bool is_last_token = LastToken(next_token_begin, string_end, collapse_white_space, break_at_endline);
+			int max_token_width = int(maximum_line_width - (is_last_token ? line_width + right_spacing_width : line_width));
+
+			if (token_width > max_token_width)
 			{
-				return false;
+				if (word_break == WordBreak::BreakAll || (word_break == WordBreak::BreakWord && line.empty()))
+				{
+					// Try to break up the word
+					max_token_width = int(maximum_line_width - line_width);
+					const int token_max_size = int(next_token_begin - token_begin);
+					bool force_loop_break_after_next = false;
+
+					// @performance: Can be made much faster. Use string width heuristics and logarithmic search.
+					for (int i = token_max_size - 1; i > 0; --i)
+					{
+						token.clear();
+						next_token_begin = token_begin;
+						const char* partial_string_end = StringUtilities::SeekBackwardUTF8(token_begin + i, token_begin);
+						break_line = BuildToken(token, next_token_begin, partial_string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property, decode_escape_characters);
+						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, previous_codepoint);
+
+						if (force_loop_break_after_next || token_width <= max_token_width)
+						{
+							break;
+						}
+						else if (next_token_begin == token_begin)
+						{
+							// This means the first character of the token doesn't fit. Let it overflow into the next line if we can.
+							if (!line.empty())
+								return false;
+
+							// Not even the first character of the line fits. Go back to consume the first character even though it will overflow.
+							i += 2;
+							force_loop_break_after_next = true;
+						}
+					}
+
+					break_line = true;
+				}
+				else if (!line.empty())
+				{
+					// Let the token overflow into the next line.
+					return false;
+				}
 			}
 		}
 
-		// The token can fit on the end of the line, so add it onto the end and increment our width and length
-		// counters.
+		// The token can fit on the end of the line, so add it onto the end and increment our width and length counters.
 		line += token;
 		line_length += (int)(next_token_begin - token_begin);
 		line_width += token_width;

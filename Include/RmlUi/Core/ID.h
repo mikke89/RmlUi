@@ -123,6 +123,7 @@ enum class PropertyId : uint8_t
 	TextDecoration,
 	TextTransform,
 	WhiteSpace,
+	WordBreak,
 	Cursor,
 	Drag,
 	TabIndex,

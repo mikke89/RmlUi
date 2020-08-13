@@ -47,7 +47,9 @@ em
 h1
 {
 	position: absolute;
-	top: 0px;
+	top: 0;
+	right: 0;
+	left: 0;
 	height: 22dp;
 	padding: 4dp 5dp;
 	color: white;

@@ -57,17 +57,31 @@ For now, this is considered an experimental feature.
 - Have a look at the 'databinding' sample for usage examples.
 - See discussion in [#83](https://github.com/mikke89/RmlUi/pull/83) and [#25](https://github.com/mikke89/RmlUi/issues/25).
 
+### Test suite
+
+Work has started on a complete test suite for RmlUi. The tests have been separated into three projects.
+
+- `Visual tests`. For visually testing the layout engine in particular, with small test documents that can be easily added. Includes features for capturing and comparing tests for easily spotting differences during development. A best-effort conversion script for the [CSS 2.1 tests](https://www.w3.org/Style/CSS/Test/CSS2.1/), which includes thousands of tests, to RML/RCSS is included for testing conformance with the CSS specifications.
+- `Unit tests`. To ensure smaller units of the library are working properly.
+- `Benchmarks`. Benchmarking various components of the library to keep track of performance increases or regressions for future development, and find any performance hotspots that could need extra attention.
+
+
 ### Other features and improvements
 
 - Implemented `Element::QuerySelector` and `Element::QuerySelectorAll`.
 - Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
-
+- Implemented the `word-break` RCSS property.
+- Floating elements, absolutely positioned elements, and inline-block elements (as before) will now all shrink to the width of their contents when their width is set to `auto`.
+- Several other layouting improvements (to-be-detailed).
+- `tab-index: auto` can now be set on the `body` element to enable tabbing back to the document.
+- Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
 
 ### Breaking changes
 
 - Namespaces and plugin names changed! See the restructuring changes above.
 - It is no longer possible to use `{{` and `}}` inside RML documents outside the context of data bindings.
 - Attributes starting with `data-` are now reserved for RmlUi.
+- The changes to the layout engine may result in changes to the rendered layout in some situations.
 - The `BaseXMLParser` class has some minor interface changes.
 
 

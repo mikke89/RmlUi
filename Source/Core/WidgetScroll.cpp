@@ -28,7 +28,7 @@
 
 #include "WidgetScroll.h"
 #include "Clock.h"
-#include "LayoutEngine.h"
+#include "LayoutDetails.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Factory.h"
@@ -217,7 +217,7 @@ void WidgetScroll::FormatElements(const Vector2f& containing_block, bool resize_
 	// Build the box for the containing slider element. As the containing block is not guaranteed to have a defined
 	// height, we must use the width for both axes.
 	Box parent_box;
-	LayoutEngine::BuildBox(parent_box, Vector2f(containing_block.x, containing_block.x), parent);
+	LayoutDetails::BuildBox(parent_box, Vector2f(containing_block.x, containing_block.x), parent);
 	slider_length -= orientation == VERTICAL ? (parent_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM)) :
 											   (parent_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
 
@@ -231,7 +231,7 @@ void WidgetScroll::FormatElements(const Vector2f& containing_block, bool resize_
 
 	// Generate the initial dimensions for the track. It'll need to be cut down to fit the arrows.
 	Box track_box;
-	LayoutEngine::BuildBox(track_box, parent_box.GetSize(), track);
+	LayoutDetails::BuildBox(track_box, parent_box.GetSize(), track);
 	content = track_box.GetSize();
 	content[length_axis] = slider_length -= orientation == VERTICAL ? (track_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + track_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM)) :
 																	  (track_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + track_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
@@ -245,7 +245,7 @@ void WidgetScroll::FormatElements(const Vector2f& containing_block, bool resize_
 	for (int i = 0; i < 2; i++)
 	{
 		Box arrow_box;
-		LayoutEngine::BuildBox(arrow_box, parent_box.GetSize(), arrows[i]);
+		LayoutDetails::BuildBox(arrow_box, parent_box.GetSize(), arrows[i]);
 
 		// Clamp the size to (0, 0).
 		Vector2f arrow_size = arrow_box.GetSize();
@@ -297,7 +297,7 @@ void WidgetScroll::FormatElements(const Vector2f& containing_block, bool resize_
 void WidgetScroll::FormatBar(float bar_length)
 {
 	Box bar_box;
-	LayoutEngine::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
+	LayoutDetails::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
 
 	const auto& computed = bar->GetComputedValues();
 

@@ -299,3 +299,29 @@ void ShellRenderInterfaceOpenGL::SetTransform(const Rml::Matrix4f* transform)
 		glLoadIdentity();
 }
 
+
+ShellRenderInterfaceOpenGL::Image ShellRenderInterfaceOpenGL::CaptureScreen()
+{
+	Image image;
+	image.num_components = 3;
+	image.width = m_width;
+	image.height = m_height;
+
+	const int byte_size = image.width * image.height * image.num_components;
+	image.data = Rml::UniquePtr<Rml::byte[]>(new Rml::byte[byte_size]);
+
+	glReadPixels(0, 0, image.width, image.height, GL_RGB, GL_UNSIGNED_BYTE, image.data.get());
+
+	bool result = true;
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR)
+	{
+		result = false;
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not capture screenshot, got GL error: 0x%x", err);
+	}
+
+	if (!result)
+		return Image();
+
+	return image;
+}

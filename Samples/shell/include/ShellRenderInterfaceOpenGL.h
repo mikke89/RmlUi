@@ -68,6 +68,15 @@ public:
 	/// Called by RmlUi when it wants to set the current transform matrix to a new matrix.
 	void SetTransform(const Rml::Matrix4f* transform) override;
 
+	// Extensions used by the test suite
+	struct Image {
+		int width = 0;
+		int height = 0;
+		int num_components = 0;
+		Rml::UniquePtr<Rml::byte[]> data;
+	};
+	Image CaptureScreen();
+
 	// ShellRenderInterfaceExtensions
 	void SetViewport(int width, int height) override;
 	void SetContext(void *context) override;

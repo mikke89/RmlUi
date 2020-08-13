@@ -1,0 +1,53 @@
+<rml>
+<head>
+    <title>Word-break property</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-text-3/#word-break-property" />
+	<meta name="Description" content="Word-break property." />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		h1 {
+			margin-top: 0.5em;
+			font-size: 1.1em;
+		}
+		p {
+			color: #45e;
+		}
+		.box {
+			width: 60px;
+			border: 2px #aaa;
+		}
+		.zero {
+			width: 0px;
+		}
+		.break-all {
+			word-break: break-all;
+		}
+		.break-word {
+			word-break: break-word;
+		}
+		
+	</style>
+</head>
+
+<body>
+	<h1>Fixed-width box</h1>
+	<p>word-break: normal</p>
+	<div class="box">A very veeery veeeeeeeeeeeery long word.</div>
+	<p>word-break: break-all</p>
+	<div class="box break-all">A very veeery veeeeeeeeeeeery long word.</div>
+	<p>word-break: break-word</p>
+	<div class="box break-word">A very veeery veeeeeeeeeeeery long word.</div>
+	<hr/>
+	<h1>Zero-width box</h1>
+	<p>word-break: normal</p>
+	<div class="box zero">A WORD</div>
+	<p>word-break: break-all</p>
+	<div class="box zero break-all">A WORD</div>
+	<p>word-break: break-word</p>
+	<div class="box zero break-word">A WORD</div>
+</body>
+</rml>

@@ -1,0 +1,30 @@
+<rml>
+<head>
+	<title>CSS Position: Floating a box - Sibling</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<meta name="description" content='Identical to the previous example, save that there is now "sibling" text flowing with the "body" and "outer" text.' />
+	<style>
+		body {
+			font-size: 20px;
+			display: block;
+			background: #ddd;
+			color: #444;
+			line-height: 200%;
+		}
+		#inner { float: right; width: 130px; color: blue }
+		#sibling { color: red }
+	</style>
+</head>
+<body>
+	<p>
+		Beginning of p contents.
+		<span id="outer"> Start of outer contents.
+		<span id="inner"> Inner contents.</span>
+		<span id="sibling"> Sibling contents.</span>
+		End of outer contents.</span>
+		End of p contents.
+	</p>
+</body>
+</rml>

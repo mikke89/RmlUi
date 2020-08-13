@@ -1,0 +1,27 @@
+<rml>
+<head>
+	<title>CSS Position: Absolute positioning - Change bars</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<meta name="description" content='The two red hyphens, indicating a change, sit in the left margin of the page on the line containing the word "THIS", regardless of what line that ends up being.' />
+	<style>
+		body {
+			font-size: 20px;
+			display: block;
+			background: #ddd;
+			color: #444;
+			line-height: 200%;
+		}
+		body { padding: 30px; }
+	</style>
+</head>
+<body>
+	<p style="position: relative; margin-right: 10px; left: 10px;">
+	  I used two red hyphens to serve as a change bar. They
+	  will "float" to the left of the line containing THIS
+	  <span style="position: absolute; top: auto; left: -1em; color: red;">--</span>
+	  word.
+	</p>
+</body>
+</rml>

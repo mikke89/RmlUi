@@ -1,0 +1,96 @@
+dl,dt,dd,ul,li,blockquote,address,h1,h2,h3,h4,h5,h6,p,pre,div,section {
+	display: block;
+}
+
+p, pre { margin: 0.8em 0; }
+pre { white-space: pre; }
+hr {
+	display: block;
+	clear: both;
+	padding: 1px;
+	background-color: #999;
+	margin: 5px 0;
+}
+
+input.radio {
+	width: 10px;
+	height: 10px;
+	border: 1px #666;
+	background: #fff;
+}
+
+body {
+	font-family: Delicious;
+	font-weight: normal;
+	font-style: normal;
+	font-size: 14px;
+	padding: 8px;
+	width: 484px;
+	min-height: 484px;
+	max-height: 100%;
+	color: black;
+	background: #ccc;
+	overflow: auto;
+}
+strong {
+	font-weight: bold;
+}
+em {
+	font-style: italic;
+}
+* {
+	border-color: black;
+}
+a {
+	color: #9ab7ef;
+}
+a:hover {
+	color: #5285e6;
+}
+a:active {
+	color: #4275e0;
+}
+scrollbarvertical
+{
+	width: 16dp;
+}
+scrollbarhorizontal
+{
+	height: 16dp;
+}
+scrollbarvertical slidertrack,
+scrollbarhorizontal slidertrack
+{
+	background: #aaa;
+	border-color: #888;
+}
+scrollbarvertical slidertrack
+{
+	border-left-width: 1px;
+}
+scrollbarhorizontal slidertrack
+{
+	height: 15dp;
+	border-top-width: 1px;
+}
+scrollbarvertical sliderbar,
+scrollbarhorizontal sliderbar
+{
+	background: #ddd;
+	border-color: #888;
+}
+scrollbarvertical sliderbar
+{
+	border-width: 1px 0px;
+	margin-left: 1dp;
+}
+scrollbarhorizontal sliderbar
+{
+	height: 15dp;
+	border-width: 0px 1px;
+	margin-top: 1dp;
+}
+scrollbarcorner
+{
+	background: #888;
+}

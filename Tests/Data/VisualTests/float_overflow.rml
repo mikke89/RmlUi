@@ -1,0 +1,43 @@
+<rml>
+<head>
+    <title>Floats: overflow</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="http://www.w3.org/TR/CSS21/visuren.html#floats" />
+	<meta name="Description" content="Floating boxes" />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		#content {
+			width: 200px;
+			margin: 0 auto;
+		}
+		.box {
+			background-color: #cce;
+			border: 5px #77b;
+		}
+		.float {
+			float: left;
+			background-color: #ddda;
+			border: 1px #333;
+			width: 200px;
+			height: 130px;
+			margin: 5px;
+		}
+		
+	</style>
+</head>
+
+<body>
+<div class="box">
+	<div class="float">float: left</div>
+	<p>The float to the left should extend past the background of the containing '.box' element.</p>
+</div>
+<hr/>
+<div class="box" style="overflow:auto">
+	<div class="float">float: left</div>
+	<p>Using 'overflow: auto' on the containing '.box' element. This should establish a new block formatting context (thereby resolving all floats) so that the background wraps around the entire float.</p>
+</div>
+</body>
+</rml>

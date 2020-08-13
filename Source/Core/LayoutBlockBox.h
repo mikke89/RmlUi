@@ -59,14 +59,13 @@ public:
 	};
 
 	/// Creates a new block box for rendering a block element.
-	/// @param layout_engine[in] The layout engine that created this block box.
 	/// @param parent[in] The parent of this block box. This will be nullptr for the root element.
 	/// @param element[in] The element this block box is laying out.
-	LayoutBlockBox(LayoutEngine* layout_engine, LayoutBlockBox* parent, Element* element);
+	/// @param override_shrink_to_fit_width[in] Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
+	LayoutBlockBox(LayoutBlockBox* parent, Element* element, float override_shrink_to_fit_width = -1);
 	/// Creates a new block box in an inline context.
-	/// @param layout_engine[in] The layout engine that created this block box.
 	/// @param parent[in] The parent of this block box.
-	LayoutBlockBox(LayoutEngine* layout_engine, LayoutBlockBox* parent);
+	LayoutBlockBox(LayoutBlockBox* parent);
 	/// Releases the block box.
 	~LayoutBlockBox();
 
@@ -84,13 +83,14 @@ public:
 	/// @param overflow[in] The overflow from the closing line box. May be nullptr if there was no overflow.
 	/// @param overflow_chain[in] The end of the chained hierarchy to be spilled over to the new line, as the parent to the overflow box (if one exists).
 	/// @return If the line box had overflow, this will be the last inline box created by the overflow.
-	LayoutInlineBox* CloseLineBox(LayoutLineBox* child, LayoutInlineBox* overflow, LayoutInlineBox* overflow_chain);
+	LayoutInlineBox* CloseLineBox(LayoutLineBox* child, UniquePtr<LayoutInlineBox> overflow, LayoutInlineBox* overflow_chain);
 
 	/// Adds a new block element to this block-context box.
 	/// @param element[in] The new block element.
 	/// @param placed[in] True if the element is to be placed, false otherwise.
+	/// @param override_shrink_to_fit_width[in] Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
 	/// @return The block box representing the element. Once the element's children have been positioned, Close() must be called on it.
-	LayoutBlockBox* AddBlockElement(Element* element);
+	LayoutBlockBox* AddBlockElement(Element* element, float override_shrink_to_fit_width = -1);
 	/// Adds a new inline element to this inline-context box.
 	/// @param element[in] The new inline element.
 	/// @param box[in] The box defining the element's bounds.
@@ -107,8 +107,6 @@ public:
 	/// rendering in a block-context.
 	/// @param element[in] The element to be positioned absolutely within this block box.
 	void AddAbsoluteElement(Element* element);
-	/// Formats, sizes, and positions all absolute elements in this block.
-	void CloseAbsoluteElements();
 
 	/// Returns the offset from the top-left corner of this box's offset element the next child box will be
 	/// positioned at.
@@ -129,7 +127,8 @@ public:
 	/// @param dimensions[in] The minimum dimensions of the line.
 	void PositionLineBox(Vector2f& box_position, float& box_width, bool& wrap_content, const Vector2f& dimensions) const;
 
-	float InternalContentWidth() const;
+	/// Calculate the dimensions of the box's internal content width; i.e. the size used to calculate the shrink-to-fit width.
+	float GetShrinkToFitWidth() const;
 
 	/// Returns the block box's element.
 	/// @return The block box's element.
@@ -145,10 +144,10 @@ public:
 
 	/// Returns the block box against which all positions of boxes in the hierarchy are set relative to.
 	/// @return This box's offset parent.
-	LayoutBlockBox* GetOffsetParent() const;
+	const LayoutBlockBox* GetOffsetParent() const;
 	/// Returns the block box against which all positions of boxes in the hierarchy are calculated relative to.
 	/// @return This box's offset root.
-	LayoutBlockBox* GetOffsetRoot() const;
+	const LayoutBlockBox* GetOffsetRoot() const;
 
 
 	/// Returns the block box's dimension box.
@@ -168,6 +167,9 @@ private:
 		Vector2f position;
 	};
 
+	/// Formats, sizes, and positions all absolute elements in this block.
+	void CloseAbsoluteElements();
+
 	// Closes our last block box, if it is an open inline block box.
 	CloseResult CloseInlineBlockBox();
 
@@ -179,22 +181,20 @@ private:
 	// overflow occured, false if it did.
 	bool CatchVerticalOverflow(float cursor = -1);
 
-	typedef Vector< AbsoluteElement > AbsoluteElementList;
-	typedef Vector< LayoutBlockBox* > BlockBoxList;
-	typedef Vector< LayoutLineBox* > LineBoxList;
+	using AbsoluteElementList = Vector< AbsoluteElement >;
+	using BlockBoxList = Vector< UniquePtr<LayoutBlockBox> >;
+	using LineBoxList = Vector< UniquePtr<LayoutLineBox> >;
 
 	// The object managing our space, as occupied by floating elements of this box and our ancestors.
 	LayoutBlockBoxSpace* space;
 
-	// The box's layout engine.
-	LayoutEngine* layout_engine;
 	// The element this box represents. This will be nullptr for boxes rendering in an inline context.
 	Element* element;
 
 	// The element we'll be computing our offset relative to during layout.
-	LayoutBlockBox* offset_root;
+	const LayoutBlockBox* offset_root;
 	// The element this block box's children are to be offset from.
-	LayoutBlockBox* offset_parent;
+	const LayoutBlockBox* offset_parent;
 
 	// The box's block parent. This will be nullptr for the root of the box tree.
 	LayoutBlockBox* parent;
@@ -208,6 +208,7 @@ private:
 	Box box;
 	float min_height;
 	float max_height;
+
 	// Used by inline contexts only; set to true if the block box's line boxes should stretch to fit their inline content instead of wrapping.
 	bool wrap_content;
 
@@ -218,12 +219,17 @@ private:
 	BlockBoxList block_boxes;
 	// Used by block contexts only; stores any elements that are to be absolutely positioned within this block box.
 	AbsoluteElementList absolute_elements;
+	// Used by block contexts only; stores the block box space pointed to by the 'space' member.
+	UniquePtr<LayoutBlockBoxSpace> space_owner;
 	// Used by block contexts only; stores an inline element hierarchy that was interrupted by a child block box.
 	// The hierarchy will be resumed in an inline-context box once the intervening block box is completed.
 	LayoutInlineBox* interrupted_chain;
 	// Used by block contexts only; stores the value of the overflow property for the element.
 	Style::Overflow overflow_x_property;
 	Style::Overflow overflow_y_property;
+	//  Used by block contexts only; the content width as visible from the parent. Similar to scroll width, but shrinked if overflow is caught here. 
+	//   This can be wider than the box if we are overflowing. Only available after the box has been closed. 
+	float visible_outer_width;
 	// Used by block contexts only; if true, we've enabled our vertical scrollbar.
 	bool vertical_overflow;
 

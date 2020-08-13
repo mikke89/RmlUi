@@ -132,8 +132,10 @@ float LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float cursor, con
 	AnchorEdge box_edge = float_property == Style::Float::Right ? RIGHT : LEFT;
 
 	box_position.y = cursor;
-	box_position.x = box_edge == LEFT ? 0 : (parent->GetBox().GetSize().x - dimensions.x) - parent_scrollbar_width;
-	box_position.x += parent_origin;
+	box_position.x = parent_origin;
+
+	if (box_edge == RIGHT)
+		box_position.x += parent->GetBox().GetSize().x - dimensions.x - parent_scrollbar_width;
 
 	float next_cursor = FLT_MAX;
 

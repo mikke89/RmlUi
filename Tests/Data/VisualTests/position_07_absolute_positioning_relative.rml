@@ -1,0 +1,37 @@
+<rml>
+<head>
+	<title>CSS Position: Absolute positioning - Relative</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<meta name="description" content='The "inner" text is positioned in an independent box, relative to the top-left corner of the start of the "outer" text.' />
+	<style>
+		body {
+			font-size: 20px;
+			display: block;
+			background: #ddd;
+			color: #444;
+			line-height: 200%;
+		}
+		#outer {
+			position: relative;
+			color: red
+		}
+		#inner {
+			position: absolute;
+			top: 200px; left: -100px;
+			height: 130px; width: 130px;
+			color: blue;
+		}
+	</style>
+</head>
+<body>
+	<p>
+		Beginning of p contents.
+		<span id="outer"> Start of outer contents.
+		<span id="inner"> Inner contents.</span>
+		End of outer contents.</span>
+		End of p contents.
+	</p>
+</body>
+</rml>

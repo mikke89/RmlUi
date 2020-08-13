@@ -42,7 +42,7 @@ namespace Rml {
 class DataParser;
 
 /*
-	The abstract machine for RmlUi data scripts.
+	The abstract machine for RmlUi data expressions.
 
 	The machine can execute a program which contains a list of instructions listed below.
 
@@ -62,7 +62,8 @@ class DataParser;
 		S+  Push to stack S.
 		S-  Pop stack S (returns the popped value).
 */
-enum class Instruction { // Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
+enum class Instruction {    
+	                        // Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
 	Push         = 'P',     //      S+ = R
 	Pop          = 'o',     // <R/L/C> = S-  (D determines R/L/C)
 	Literal      = 'D',     //       R = D
@@ -86,6 +87,7 @@ enum class Instruction { // Assignment (register/stack) = Read (register R/L/C, 
 	EventFnc     = 'E',     //       DataModel.EventCallback(D, A); A.Clear();
 	Assign       = 'A',     //       DataModel.SetVariable(D, R)
 };
+
 enum class Register {
 	R,
 	L,
@@ -791,7 +793,7 @@ public:
 		for (size_t i = 0; i < program.size(); i++)
 		{
 			String instruction_str = program[i].data.Get<String>();
-			str += CreateString(50 + instruction_str.size(), "  %4d  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
+			str += CreateString(50 + instruction_str.size(), "  %4zu  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
 		}
 		return str;
 	}
@@ -902,7 +904,7 @@ private:
 			if (num_arguments < 0)
 				return Error("Invalid number of arguments.");
 			if (stack.size() < size_t(num_arguments))
-				return Error(CreateString(100, "Cannot pop %d arguments, stack contains only %d elements.", num_arguments, stack.size()));
+				return Error(CreateString(100, "Cannot pop %d arguments, stack contains only %zu elements.", num_arguments, stack.size()));
 
 			arguments.resize(num_arguments);
 			for (int i = num_arguments - 1; i >= 0; i--)
@@ -970,126 +972,11 @@ private:
 };
 
 
-
-#ifdef RMLUI_TESTS_ENABLED
-
-struct TestParser {
-	TestParser() : model(type_register.GetTransformFuncRegister())
-	{
-		DataModelConstructor handle(&model, &type_register);
-		handle.Bind("radius", &radius);
-		handle.Bind("color_name", &color_name);
-		handle.BindFunc("color_value", [this](Variant& variant) {
-			variant = ToString(color_value);
-		});
-
-		String result;
-		result = TestExpression("!!10 - 1 ? 'hello' : 'world' | to_upper",         "WORLD");
-		result = TestExpression("(color_name) + (': rgba(' + color_value + ')')",  "color: rgba(180, 100, 255, 255)");
-		result = TestExpression("'hello world' | to_upper(5 + 12 == 17 ? 'yes' : 'no', 9*2)",  "HELLO WORLD");
-		result = TestExpression("true == false",  "0");
-		result = TestExpression("true != false",  "1");
-		result = TestExpression("true",           "1");
-
-		result = TestExpression("true || false ? true && 3==1+2 ? 'Absolutely!' : 'well..' : 'no'",  "Absolutely!");
-		result = TestExpression(R"('It\'s a fit')",  R"(It's a fit)");
-		result = TestExpression("2 * 2",           "4");
-		result = TestExpression("50000 / 1500",    "33.333");
-		result = TestExpression("5*1+2",           "7");
-		result = TestExpression("5*(1+2)",         "15");
-		result = TestExpression("2*(-2)/4",        "-1");
-		result = TestExpression("5.2 + 19 + 'px'", "24.2px");
-
-		result = TestExpression("(radius | format(2)) + 'm'",    "8.70m");
-		result = TestExpression("radius < 10.5 ? 'smaller' : 'larger'",  "smaller");
-		TestAssignment("radius = 15");
-		result = TestExpression("radius < 10.5 ? 'smaller' : 'larger'",  "larger");
-		TestAssignment("radius = 4; color_name = 'image-color'");
-		result = TestExpression("radius == 4 && color_name == 'image-color'",  "1");
-
-		result = TestExpression("5 == 1 + 2*2 || 8 == 1 + 4  ? 'yes' : 'no'",  "yes");
-		result = TestExpression("!!('fa' + 'lse')", "0");
-		result = TestExpression("!!('tr' + 'ue')", "1");
-		result = TestExpression("'fox' + 'dog' ? 'FoxyDog' : 'hot' + 'dog' | to_upper", "HOTDOG");
-
-		result = TestExpression("3.62345 | round", "4");
-		result = TestExpression("3.62345 | format(0)", "4");
-		result = TestExpression("3.62345 | format(2)", "3.62");
-		result = TestExpression("3.62345 | format(10)", "3.6234500000");
-		result = TestExpression("3.62345 | format(10, true)", "3.62345");
-		result = TestExpression("3.62345 | round | format(2)", "4.00");
-		result = TestExpression("3.0001 | format(2, false)", "3.00");
-		result = TestExpression("3.0001 | format(2, true)", "3");
-
-		result = TestExpression("0.2 + 3.42345 | round", "4");
-		result = TestExpression("(3.42345 | round) + 0.2", "3.2");
-		result = TestExpression("(3.42345 | format(0)) + 0.2", "30.2"); // Here, format(0) returns a string, so the + means string concatenation.
-	}
-
-	String TestExpression(String expression, String expected = String())
-	{
-		String result;
-		DataExpressionInterface interface(&model, nullptr);
-		DataParser parser(expression, interface);
-		if (parser.Parse(false))
-		{
-			Program program = parser.ReleaseProgram();
-			AddressList addresses = parser.ReleaseAddresses();
-
-			DataInterpreter interpreter(program, addresses, interface);
-			if (interpreter.Run())
-				result = interpreter.Result().Get<String>();
-
-			if (!expected.empty() && result != expected)
-			{
-				String program_str = interpreter.DumpProgram();
-				Log::Message(Log::LT_WARNING, "%s", program_str.c_str());
-				RMLUI_ERRORMSG("Got unexpected data parser result.");
-			}
-		}
-		else
-		{
-			RMLUI_ERRORMSG("Could not parse expression.");
-		}
-
-		return result;
-	};
-
-	bool TestAssignment(String expression)
-	{
-		bool result = false;
-		DataExpressionInterface interface(&model, nullptr);
-		DataParser parser(expression, interface);
-		if (parser.Parse(true))
-		{
-			Program program = parser.ReleaseProgram();
-			AddressList addresses = parser.ReleaseAddresses();
-
-			DataInterpreter interpreter(program, addresses, interface);
-			result = interpreter.Run();
-		}
-		RMLUI_ASSERT(result);
-		return result;
-	};
-
-	DataTypeRegister type_register;
-	DataModel model;
-
-	float radius = 8.7f;
-	String color_name = "color";
-	Colourb color_value = Colourb(180, 100, 255);
-};
-
-static TestParser test_parser;
-
-#endif
-
-
-DataExpression::DataExpression(String expression) : expression(expression) {}
+DataExpression::DataExpression(String expression) : expression(expression)
+{}
 
 DataExpression::~DataExpression()
-{
-}
+{}
 
 bool DataExpression::Parse(const DataExpressionInterface& expression_interface, bool is_assignment_expression)
 {
