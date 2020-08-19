@@ -72,10 +72,14 @@ Work has started on a complete test suite for RmlUi. The tests have been separat
 
 These changes may result in a differently rendered layout when upgrading to RmlUi 4.0. In particular the first item. If the changes are undesired, set a definite width on the related elements, eg. using the `width` property or the `left`/`right` properties.
 
+### New RCSS properties
+
+- The `border-radius` property is now supported in RmlUi for drawing rounded backgrounds and borders. The gradient decorator also adds support for this property.
+- Implemented the `word-break` RCSS property.
+
 ### Other features and improvements
 
 - Implemented `Element::QuerySelector` and `Element::QuerySelectorAll`.
-- Implemented the `word-break` RCSS property.
 - The `tab-index: auto` property can now be set on the `body` element to enable tabbing back to the document.
 - A custom configuration can now be used by RmlUi. In this way it is possible to replace several types including containers to other STL-compatible containers (such as [EASTL](https://github.com/electronicarts/EASTL)), or to STL containers with custom allocators. See the `CUSTOM_CONFIGURATION` [CMake option](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html#cmake-options). [#110](https://github.com/mikke89/RmlUi/pull/110) (thanks @rokups).
 - Added ability to change the default base tag in documents [#112](https://github.com/mikke89/RmlUi/pull/112)  (thanks @aquawicket).

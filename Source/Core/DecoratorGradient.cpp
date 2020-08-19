@@ -28,9 +28,10 @@
 
 #include "DecoratorGradient.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
-#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 /*
@@ -65,10 +66,19 @@ bool DecoratorGradient::Initialise(const Direction &dir_, const Colourb &start_,
 
 DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) const
 {
-	auto *data = new Geometry(element);
-	Vector2f padded_size = element->GetBox().GetSize(Box::PADDING);
+	Geometry* geometry = new Geometry(element);
+	const Box& box = element->GetBox();
 
-	const float opacity = element->GetComputedValues().opacity;
+	const ComputedValues& computed = element->GetComputedValues();
+	const float opacity = computed.opacity;
+
+	const Vector4f border_radius{
+		computed.border_top_left_radius,
+		computed.border_top_right_radius,
+		computed.border_bottom_right_radius,
+		computed.border_bottom_left_radius,
+	};
+	GeometryUtilities::GenerateBackgroundBorder(geometry, element->GetBox(), border_radius, Colourb());
 
 	// Apply opacity
 	Colourb colour_start = start;
@@ -76,22 +86,29 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 	Colourb colour_stop = stop;
 	colour_stop.alpha = (byte)(opacity * (float)colour_stop.alpha);
 
-	auto &vertices = data->GetVertices();
-	vertices.resize(4);
+	const Vector2f padding_offset = box.GetPosition(Box::PADDING);
+	const Vector2f padding_size = box.GetSize(Box::PADDING);
 
-	auto &indices = data->GetIndices();
-	indices.resize(6);
+	Vector<Vertex>& vertices = geometry->GetVertices();
 
-	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), padded_size, colour_start, 0);
-
-	if (dir == Direction::Horizontal) {
-		vertices[1].colour = vertices[2].colour = colour_stop;
-	} else if (dir == Direction::Vertical) {
-		vertices[2].colour = vertices[3].colour = colour_stop;
+	if (dir == Direction::Horizontal)
+	{
+		for (int i = 0; i < (int)vertices.size(); i++)
+		{
+			const float t = (vertices[i].position.x - padding_offset.x) / padding_size.x;
+			vertices[i].colour = Math::Lerp(Math::Clamp(t, 0.0f, 1.0f), colour_start, colour_stop);
+		}
+	}
+	else if (dir == Direction::Vertical)
+	{
+		for (int i = 0; i < (int)vertices.size(); i++)
+		{
+			const float t = (vertices[i].position.y - padding_offset.y) / padding_size.y;
+			vertices[i].colour = Math::Lerp(t, colour_start, colour_stop);
+		}
 	}
 
-	data->SetHostElement(element);
-	return reinterpret_cast<DecoratorDataHandle>(data);
+	return reinterpret_cast<DecoratorDataHandle>(geometry);
 }
 
 void DecoratorGradient::ReleaseElementData(DecoratorDataHandle element_data) const
@@ -102,7 +119,7 @@ void DecoratorGradient::ReleaseElementData(DecoratorDataHandle element_data) con
 void DecoratorGradient::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	auto* data = reinterpret_cast<Geometry*>(element_data);
-	data->Render(element->GetAbsoluteOffset(Box::PADDING).Round());
+	data->Render(element->GetAbsoluteOffset(Box::BORDER));
 }
 
 //=======================================================

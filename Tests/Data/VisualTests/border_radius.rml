@@ -19,6 +19,7 @@
 		.thin {
 			border-width: 10px 5px 25px 20px;
 			border-radius: 80px 30px;
+			decorator: gradient( horizontal #ff8400 #ffd34f );
 		}
 		.thick {
 			border-width: 40px 20px;
