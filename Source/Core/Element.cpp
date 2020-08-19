@@ -160,9 +160,6 @@ Element::~Element()
 
 	PluginRegistry::NotifyElementDestroy(this);
 
-	// Remove scrollbar elements before we delete the children!
-	meta->scroll.ClearScrollbars();
-
 	// A simplified version of RemoveChild() for destruction.
 	for (ElementPtr& child : children)
 	{

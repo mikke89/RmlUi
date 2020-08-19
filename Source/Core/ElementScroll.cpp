@@ -43,26 +43,7 @@ ElementScroll::ElementScroll(Element* _element)
 }
 
 ElementScroll::~ElementScroll()
-{
-	ClearScrollbars();
-}
-
-void ElementScroll::ClearScrollbars()
-{
-	for (int i = 0; i < 2; i++)
-	{
-		if (scrollbars[i].element != nullptr)
-		{
-			scrollbars[i] = Scrollbar();
-		}
-	}
-
-	if (corner != nullptr)
-	{
-		corner->GetParentNode()->RemoveChild(element);
-		corner = nullptr;
-	}
-}
+{}
 
 // Updates the increment / decrement arrows.
 void ElementScroll::Update()
@@ -238,7 +219,7 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 	scrollbars[orientation].element = scrollbar_element.get();
 	scrollbars[orientation].element->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
-	scrollbars[orientation].widget = new WidgetScroll(scrollbars[orientation].element);
+	scrollbars[orientation].widget = MakeUnique<WidgetScroll>(scrollbars[orientation].element);
 	scrollbars[orientation].widget->Initialise(orientation == VERTICAL ? WidgetScroll::VERTICAL : WidgetScroll::HORIZONTAL);
 
 	Element* child = element->AppendChild(std::move(scrollbar_element), false);
@@ -263,23 +244,9 @@ bool ElementScroll::CreateCorner()
 }
 
 ElementScroll::Scrollbar::Scrollbar()
-{
-	element = nullptr;
-	widget = nullptr;
-	enabled = false;
-	size = 0;
-}
+{}
 
 ElementScroll::Scrollbar::~Scrollbar()
-{
-	if (widget != nullptr)
-		delete widget;
-
-	if (element != nullptr)
-	{
-		if (element->GetParentNode() != nullptr)
-			element->GetParentNode()->RemoveChild(element);
-	}
-}
+{}
 
 } // namespace Rml

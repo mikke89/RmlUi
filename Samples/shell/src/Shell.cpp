@@ -118,6 +118,8 @@ static Rml::StringList ListFilesOrDirectories(ListType type, const Rml::String& 
 			result.push_back(file_list[i]->d_name);
 		}
 	}
+	for (int i = 0; i < file_count; i++)
+		free(file_list[i]);
 	free(file_list);
 #endif
 

@@ -30,6 +30,7 @@
 #define RMLUI_CORE_ELEMENTSCROLL_H
 
 #include "Header.h"
+#include "Types.h"
 
 namespace Rml {
 
@@ -81,19 +82,16 @@ public:
 	/// Formats the enabled scrollbars based on the current size of the host element.
 	void FormatScrollbars();
 
-	/// Clears the scrollbars, resetting it to initial conditions.
-	void ClearScrollbars();
-
 private:
 	struct Scrollbar
 	{
 		Scrollbar();
 		~Scrollbar();
 
-		Element* element;
-		WidgetScroll* widget;
-		bool enabled;
-		float size;
+		Element* element = nullptr;
+		UniquePtr<WidgetScroll> widget;
+		bool enabled = false;
+		float size = 0;
 	};
 
 	// Creates one of the scroll component's scrollbar.
