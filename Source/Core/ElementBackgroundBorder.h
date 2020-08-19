@@ -26,44 +26,30 @@
  *
  */
 
-#ifndef RMLUI_CORE_ELEMENTBACKGROUND_H
-#define RMLUI_CORE_ELEMENTBACKGROUND_H
+#ifndef RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
+#define RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
 
+#include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 
 namespace Rml {
 
-class Box;
-class Element;
-
-/**
-	@author Peter Curry
- */
-
-class ElementBackground
-{
+class ElementBackgroundBorder {
 public:
-	ElementBackground(Element* element);
-	~ElementBackground();
+	ElementBackgroundBorder(Element* element);
 
-	/// Renders the element's border, if it has one.
-	void RenderBackground();
+	void Render(Element* element);
 
-	/// Marks the border geometry as dirty.
 	void DirtyBackground();
+	void DirtyBorder();
 
 private:
-	// Generates the border geometry for the element.
-	void GenerateBackground();
-	// Generates the border geometry for a single box.
-	void GenerateBackground(Vertex*& vertices, int*& indices, int& index_offset, const Box& box, const Colourb& colour);
+	void GenerateGeometry(Element* element);
 
-	Element* element;
+	bool background_dirty = false;
+	bool border_dirty = false;
 
-	// The background geometry.
 	Geometry geometry;
-
-	bool background_dirty;
 };
 
 } // namespace Rml

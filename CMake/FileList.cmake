@@ -21,8 +21,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackground.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementBorder.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackgroundBorder.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.h
@@ -55,6 +54,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectGlow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutline.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/GeometryBackgroundBorder.h
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.h
     ${PROJECT_SOURCE_DIR}/Source/Core/IdNameMap.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
@@ -261,8 +261,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Element.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackground.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementBorder.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackgroundBorder.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDocument.cpp
@@ -325,6 +324,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Geometry.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/GeometryBackgroundBorder.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.cpp

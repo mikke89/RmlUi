@@ -46,8 +46,7 @@
 #include "Clock.h"
 #include "ComputeProperty.h"
 #include "ElementAnimation.h"
-#include "ElementBackground.h"
-#include "ElementBorder.h"
+#include "ElementBackgroundBorder.h"
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
@@ -100,11 +99,10 @@ static constexpr int ChildNotifyLevels = 2;
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta
 {
-	ElementMeta(Element* el) : event_dispatcher(el), style(el), background(el), border(el), decoration(el), scroll(el) {}
+	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(el), decoration(el), scroll(el) {}
 	EventDispatcher event_dispatcher;
 	ElementStyle style;
-	ElementBackground background;
-	ElementBorder border;
+	ElementBackgroundBorder background_border;
 	ElementDecoration decoration;
 	ElementScroll scroll;
 	Style::ComputedValues computed_values;
@@ -248,6 +246,11 @@ void Element::Render()
 	RMLUI_ZoneText(name.c_str(), name.size());
 #endif
 
+	// TODO: This is a work-around for the dirty offset not being properly updated when used by (stacking context?) children. This results
+	// in scrolling not working properly. We don't care about the return value, the call is only used to force the absolute offset to update.
+	if (offset_dirty)
+		GetAbsoluteOffset(Box::BORDER);
+
 	// Rebuild our stacking context if necessary.
 	if (stacking_context_dirty)
 		BuildLocalStackingContext();
@@ -265,8 +268,7 @@ void Element::Render()
 	// Set up the clipping region for this element.
 	if (ElementUtilities::SetClippingRegion(this))
 	{
-		meta->background.RenderBackground();
-		meta->border.RenderBorder();
+		meta->background_border.Render(this);
 		meta->decoration.RenderDecorators();
 
 		{
@@ -495,8 +497,8 @@ void Element::SetBox(const Box& box)
 
 		OnResize();
 
-		meta->background.DirtyBackground();
-		meta->border.DirtyBorder();
+		meta->background_border.DirtyBackground();
+		meta->background_border.DirtyBorder();
 		meta->decoration.DirtyDecorators();
 	}
 }
@@ -508,8 +510,8 @@ void Element::AddBox(const Box& box)
 
 	OnResize();
 
-	meta->background.DirtyBackground();
-	meta->border.DirtyBorder();
+	meta->background_border.DirtyBackground();
+	meta->background_border.DirtyBorder();
 	meta->decoration.DirtyDecorators();
 }
 
@@ -1560,18 +1562,6 @@ String Element::GetEventDispatcherSummary() const
 	return meta->event_dispatcher.ToString();
 }
 
-// Access the element background.
-ElementBackground* Element::GetElementBackground() const
-{
-	return &meta->background;
-}
-
-// Access the element border.
-ElementBorder* Element::GetElementBorder() const
-{
-	return &meta->border;
-}
-
 // Access the element decorators
 ElementDecoration* Element::GetElementDecoration() const
 {
@@ -1716,6 +1706,13 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 			DirtyLayout();
 	}
 
+	const bool border_radius_changed = (
+		changed_properties.Contains(PropertyId::BorderTopLeftRadius) ||
+		changed_properties.Contains(PropertyId::BorderTopRightRadius) ||
+		changed_properties.Contains(PropertyId::BorderBottomRightRadius) ||
+		changed_properties.Contains(PropertyId::BorderBottomLeftRadius)
+	);
+
 
 	// Update the visibility.
 	if (changed_properties.Contains(PropertyId::Visibility) ||
@@ -1800,21 +1797,17 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 
 	// Dirty the background if it's changed.
-    if (changed_properties.Contains(PropertyId::BackgroundColor) ||
+    if (border_radius_changed ||
+		changed_properties.Contains(PropertyId::BackgroundColor) ||
 		changed_properties.Contains(PropertyId::Opacity) ||
-		changed_properties.Contains(PropertyId::ImageColor)) {
-		meta->background.DirtyBackground();
+		changed_properties.Contains(PropertyId::ImageColor))
+	{
+		meta->background_border.DirtyBackground();
     }
-	
-	// Dirty the decoration if it's changed.
-	if (changed_properties.Contains(PropertyId::Decorator) ||
-		changed_properties.Contains(PropertyId::Opacity) ||
-		changed_properties.Contains(PropertyId::ImageColor)) {
-		meta->decoration.DirtyDecorators();
-	}
 
 	// Dirty the border if it's changed.
-	if (changed_properties.Contains(PropertyId::BorderTopWidth) ||
+	if (border_radius_changed ||
+		changed_properties.Contains(PropertyId::BorderTopWidth) ||
 		changed_properties.Contains(PropertyId::BorderRightWidth) ||
 		changed_properties.Contains(PropertyId::BorderBottomWidth) ||
 		changed_properties.Contains(PropertyId::BorderLeftWidth) ||
@@ -1823,8 +1816,18 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		changed_properties.Contains(PropertyId::BorderBottomColor) ||
 		changed_properties.Contains(PropertyId::BorderLeftColor) ||
 		changed_properties.Contains(PropertyId::Opacity))
-		meta->border.DirtyBorder();
-
+	{
+		meta->background_border.DirtyBorder();
+	}
+	
+	// Dirty the decoration if it's changed.
+	if (border_radius_changed ||
+		changed_properties.Contains(PropertyId::Decorator) ||
+		changed_properties.Contains(PropertyId::Opacity) ||
+		changed_properties.Contains(PropertyId::ImageColor))
+	{
+		meta->decoration.DirtyDecorators();
+	}
 	
 	// Check for clipping state changes
 	if (changed_properties.Contains(PropertyId::Clip) ||

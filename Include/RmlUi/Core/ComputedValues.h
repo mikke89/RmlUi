@@ -139,6 +139,7 @@ struct ComputedValues
 	Padding padding_top, padding_right, padding_bottom, padding_left;
 	float border_top_width = 0, border_right_width = 0, border_bottom_width = 0, border_left_width = 0;
 	Colourb border_top_color{ 255, 255, 255 }, border_right_color{ 255, 255, 255 }, border_bottom_color{ 255, 255, 255 }, border_left_color{ 255, 255, 255 };
+	float border_top_left_radius = 0, border_top_right_radius = 0, border_bottom_right_radius = 0, border_bottom_left_radius = 0;
 
 	Display display = Display::Inline;
 	Position position = Position::Static;

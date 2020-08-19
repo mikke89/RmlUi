@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include "GeometryBackgroundBorder.h"
 
 namespace Rml {
 
@@ -43,13 +44,13 @@ GeometryUtilities::~GeometryUtilities()
 }
 
 // Generates a quad from a position, size and colour.
-void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, const Vector2f& origin, const Vector2f& dimensions, const Colourb& colour, int index_offset)
+void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, int index_offset)
 {
 	GenerateQuad(vertices, indices, origin, dimensions, colour, Vector2f(0, 0), Vector2f(1, 1), index_offset);
 }
 
 // Generates a quad from a position, size, colour and texture coordinates.
-void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, const Vector2f& origin, const Vector2f& dimensions, const Colourb& colour, const Vector2f& top_left_texcoord, const Vector2f& bottom_right_texcoord, int index_offset)
+void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, Vector2f top_left_texcoord, Vector2f bottom_right_texcoord, int index_offset)
 {
 	vertices[0].position = origin;
 	vertices[0].colour = colour;
@@ -77,7 +78,7 @@ void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, const Vecto
 }
 
 // Generates the geometry required to render a line above, below or through a line of text.
-void GeometryUtilities::GenerateLine(FontFaceHandle font_face_handle, Geometry* geometry, const Vector2f& position, int width, Style::TextDecoration height, const Colourb& colour)
+void GeometryUtilities::GenerateLine(FontFaceHandle font_face_handle, Geometry* geometry, Vector2f position, int width, Style::TextDecoration height, Colourb colour)
 {
 	Vector< Vertex >& line_vertices = geometry->GetVertices();
 	Vector< int >& line_indices = geometry->GetIndices();
@@ -105,6 +106,15 @@ void GeometryUtilities::GenerateLine(FontFaceHandle font_face_handle, Geometry* 
 									colour,
 									(int)line_vertices.size() - 4
 									);
+}
+
+void GeometryUtilities::GenerateBackgroundBorder(Geometry* geometry, const Box& box, Vector4f border_radius, Colourb background_colour, const Colourb* border_colours)
+{
+	Vector<Vertex>& vertices = geometry->GetVertices();
+	Vector<int>& indices = geometry->GetIndices();
+
+	CornerSizes corner_sizes{ border_radius.x, border_radius.y, border_radius.z, border_radius.w };
+	GeometryBackgroundBorder::Draw(vertices, indices, corner_sizes, box, background_colour, border_colours);
 }
 
 } // namespace Rml

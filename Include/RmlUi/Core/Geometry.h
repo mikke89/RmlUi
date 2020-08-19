@@ -86,6 +86,9 @@ public:
 	/// @param[in] clear_buffers True to also clear the vertex and index buffers, false to leave intact.
 	void Release(bool clear_buffers = false);
 
+	/// Returns true if there is geometry to be rendered.
+	explicit operator bool() const;
+
 private:
 	// Move members from another geometry.
 	void MoveFrom(Geometry& other);

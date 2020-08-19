@@ -68,6 +68,12 @@ Type Clamp(Type value, Type min, Type max)
 	return (value < min) ? min : (value > max) ? max : value;
 }
 
+template< typename Type >
+Type Lerp(float t, Type v0, Type v1)
+{
+	return v0 * (1.0f - t) + v1 * t;
+}
+
 /// Evaluates if a number is, or close to, zero.
 /// @param[in] value The number to compare to zero.
 /// @return True if the number if zero or close to it, false otherwise.

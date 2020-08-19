@@ -1,0 +1,53 @@
+<rml>
+<head>
+    <title>Border-radius</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-backgrounds-3/#border-radius" />
+	<meta name="Description" content="Border-radius property" />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		div {
+			margin: 20px auto;
+			width: 200px;
+			height: 120px;
+			background: #c3c3c3;
+			border-color: #55f #f57 #55f #afa;
+		}
+		.thin {
+			border-width: 10px 5px 25px 20px;
+			border-radius: 80px 30px;
+		}
+		.thick {
+			border-width: 40px 20px;
+			border-radius: 30px;
+		}
+		.arc {
+			width: 80px;
+			height: 80px;
+			border-width: 40px;
+			border-color: #ff8400 #ff8400 #ffd34f #ffd34f;
+			border-radius: 0 150px;
+		}
+		.split {
+			line-height: 2.5;
+		}
+		.split span {
+			background: #c3c3c3;
+			border-color: #55f #f57 #55f #afa;
+			border-width: 5px;
+			border-radius: 8px;
+		}
+	</style>
+</head>
+
+<body>
+<p>The following boxes should produce curved borders. There should be no overlapping triangles, and their backgrounds should not be visible outside their borders.</p>
+<div class="thin"/>
+<div class="thick"/>
+<div class="arc"/>
+<p class="split">The following text <span>should wrap down to the<br/> next line</span> and produce borders on each line.</p>
+</body>
+</rml>

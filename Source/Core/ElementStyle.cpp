@@ -41,8 +41,6 @@
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
-#include "ElementBackground.h"
-#include "ElementBorder.h"
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
 #include "ComputeProperty.h"
@@ -672,6 +670,19 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 		case PropertyId::BorderLeftColor:
 			values.border_left_color = p->Get<Colourb>();
+			break;
+
+		case PropertyId::BorderTopLeftRadius:
+			values.border_top_left_radius = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			break;
+		case PropertyId::BorderTopRightRadius:
+			values.border_top_right_radius = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			break;
+		case PropertyId::BorderBottomRightRadius:
+			values.border_bottom_right_radius = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			break;
+		case PropertyId::BorderBottomLeftRadius:
+			values.border_bottom_left_radius = ComputeLength(p, font_size, document_font_size, dp_ratio);
 			break;
 
 		case PropertyId::Display:

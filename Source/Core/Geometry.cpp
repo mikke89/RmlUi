@@ -181,6 +181,11 @@ void Geometry::Release(bool clear_buffers)
 	}
 }
 
+Geometry::operator bool() const
+{
+	return !indices.empty();
+}
+
 // Returns the host context's render interface.
 RenderInterface* Geometry::GetRenderInterface()
 {
