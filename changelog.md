@@ -87,6 +87,7 @@ These changes may result in a differently rendered layout when upgrading to RmlU
 - Fixed building with MinGW, and added it to the CI to avoid future breaks. [#108](https://github.com/mikke89/RmlUi/pull/108) (thanks @cloudwu).
 - Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) (thanks @SpaceCat-Chan).
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
+- Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
 
 ### Breaking changes
 
@@ -95,6 +96,7 @@ These changes may result in a differently rendered layout when upgrading to RmlU
 - Attributes starting with `data-` are now reserved for RmlUi.
 - The changes to the layout engine may result in changes to the rendered layout in some situations, see above for more details.
 - The `BaseXMLParser` class has some minor interface changes.
+- Tab set elements `tab` and `panel` should now have their `display` property set in the RCSS document, use `display: inline-block` for the same behavior as before.
 
 
 

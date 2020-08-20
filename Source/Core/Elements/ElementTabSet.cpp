@@ -124,7 +124,7 @@ void ElementTabSet::SetActiveTab(int tab_index)
 		if (old_window)
 			old_window->SetProperty(PropertyId::Display, Property(Style::Display::None));
 		if (new_window)
-			new_window->SetProperty(PropertyId::Display, Property(Style::Display::InlineBlock));
+			new_window->RemoveProperty(PropertyId::Display);
 
 		active_tab = tab_index;
 
@@ -177,7 +177,7 @@ void ElementTabSet::OnChildAdd(Element* child)
 	if (child->GetParentNode() == GetChildByTag("tabs"))
 	{
 		// Set up the new button and append it
-		child->SetProperty(PropertyId::Display, Property(Style::Display::InlineBlock));
+		child->RemoveProperty(PropertyId::Display);
 
 		if (child->GetParentNode()->GetChild(active_tab) == child)
 			child->SetPseudoClass("selected", true);
@@ -190,7 +190,7 @@ void ElementTabSet::OnChildAdd(Element* child)
 		
 		// Make the new element visible if its the active tab
 		if (child->GetParentNode()->GetChild(active_tab) == child)
-			child->SetProperty(PropertyId::Display, Property(Style::Display::InlineBlock));
+			child->RemoveProperty(PropertyId::Display);
 	}
 }
 

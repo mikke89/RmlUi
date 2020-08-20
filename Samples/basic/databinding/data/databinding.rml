@@ -36,6 +36,7 @@ tabs
 }
 tab
 {
+	display: inline-block;
     width: 100px;
 	padding: 0px 20px;
 	line-height: 40px;
