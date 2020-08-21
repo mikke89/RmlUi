@@ -711,6 +711,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::Clear:
 			values.clear = (Clear)p->Get<int>();
 			break;
+		case PropertyId::BoxSizing:
+			values.box_sizing = (BoxSizing)p->Get<int>();
+			break;
 
 		case PropertyId::ZIndex:
 			values.z_index = (p->unit == Property::KEYWORD ? ZIndex(ZIndex::Auto) : ZIndex(ZIndex::Number, p->Get<float>()));

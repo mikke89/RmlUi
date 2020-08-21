@@ -71,6 +71,8 @@ using Left = LengthPercentageAuto;
 enum class Float : uint8_t { None, Left, Right };
 enum class Clear : uint8_t { None, Left, Right, Both };
 
+enum class BoxSizing : uint8_t { ContentBox, BorderBox };
+
 using ZIndex = NumberAuto;
 
 using Width = LengthPercentageAuto;
@@ -151,6 +153,8 @@ struct ComputedValues
 
 	Float float_ = Float::None;
 	Clear clear = Clear::None;
+
+	BoxSizing box_sizing = BoxSizing::ContentBox;
 
 	ZIndex z_index = { ZIndex::Auto };
 

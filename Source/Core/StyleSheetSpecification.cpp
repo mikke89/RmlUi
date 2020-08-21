@@ -326,6 +326,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Float, "float", "none", false, true).AddParser("keyword", "none, left, right");
 	RegisterProperty(PropertyId::Clear, "clear", "none", false, true).AddParser("keyword", "none, left, right, both");
 
+	RegisterProperty(PropertyId::BoxSizing, "box-sizing", "content-box", false, true).AddParser("keyword", "content-box, border-box");
+
 	RegisterProperty(PropertyId::ZIndex, "z-index", "auto", false, false)
 		.AddParser("keyword", "auto")
 		.AddParser("number");
@@ -403,8 +405,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	// Rare properties (not added to computed values)
 	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");
 
-	instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds);
-	instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds);
+	RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");
+	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");
 }
 
 } // namespace Rml

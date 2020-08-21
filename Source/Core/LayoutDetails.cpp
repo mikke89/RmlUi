@@ -36,10 +36,22 @@
 
 namespace Rml {
 
+static inline float BorderWidthToContentWidth(float border_width, const Box& box)
+{
+	const float border_padding_edges_width = box.GetEdge(Box::BORDER, Box::LEFT) + box.GetEdge(Box::BORDER, Box::RIGHT) + box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT);
+	return Math::Max(0.0f, border_width - border_padding_edges_width);
+}
+static inline float BorderHeightToContentHeight(float border_height, const Box& box)
+{
+	const float border_padding_edges_height = box.GetEdge(Box::BORDER, Box::TOP) + box.GetEdge(Box::BORDER, Box::BOTTOM) + box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM);
+	return Math::Max(0.0f, border_height - border_padding_edges_height);
+}
+
+
 // Generates the box for an element.
 void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element, float override_shrink_to_fit_width)
 {
-	if (element == nullptr)
+	if (!element)
 	{
 		box.SetContent(containing_block);
 		return;
@@ -48,14 +60,10 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 	const ComputedValues& computed = element->GetComputedValues();
 
 	// Calculate the padding area.
-	float padding = ResolveValue(computed.padding_top, containing_block.x);
-	box.SetEdge(Box::PADDING, Box::TOP, Math::Max(0.0f, padding));
-	padding = ResolveValue(computed.padding_right, containing_block.x);
-	box.SetEdge(Box::PADDING, Box::RIGHT, Math::Max(0.0f, padding));
-	padding = ResolveValue(computed.padding_bottom, containing_block.x);
-	box.SetEdge(Box::PADDING, Box::BOTTOM, Math::Max(0.0f, padding));
-	padding = ResolveValue(computed.padding_left, containing_block.x);
-	box.SetEdge(Box::PADDING, Box::LEFT, Math::Max(0.0f, padding));
+	box.SetEdge(Box::PADDING, Box::TOP, Math::Max(0.0f, ResolveValue(computed.padding_top, containing_block.x)));
+	box.SetEdge(Box::PADDING, Box::RIGHT, Math::Max(0.0f, ResolveValue(computed.padding_right, containing_block.x)));
+	box.SetEdge(Box::PADDING, Box::BOTTOM, Math::Max(0.0f, ResolveValue(computed.padding_bottom, containing_block.x)));
+	box.SetEdge(Box::PADDING, Box::LEFT, Math::Max(0.0f, ResolveValue(computed.padding_left, containing_block.x)));
 
 	// Calculate the border area.
 	box.SetEdge(Box::BORDER, Box::TOP, Math::Max(0.0f, computed.border_top_width));
@@ -115,8 +123,8 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 	{
 		if (replaced_element)
 		{
-			content_area.x = ClampWidth(content_area.x, computed, containing_block.x);
-			content_area.y = ClampHeight(content_area.y, computed, containing_block.y);
+			content_area.x = ClampWidth(content_area.x, computed, box, containing_block.x);
+			content_area.y = ClampHeight(content_area.y, computed, box, containing_block.y);
 		}
 
 		// If the element was not replaced, then we leave its dimension as unsized (-1, -1) and ignore the width and
@@ -152,6 +160,12 @@ void LayoutDetails::BuildBox(Box& box, float& min_height, float& max_height, Lay
 		auto& computed = element->GetComputedValues();
 		min_height = ResolveValue(computed.min_height, containing_block.y);
 		max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveValue(computed.max_height, containing_block.y));
+
+		if (computed.box_sizing == Style::BoxSizing::BorderBox)
+		{
+			min_height = BorderHeightToContentHeight(min_height, box);
+			max_height = BorderHeightToContentHeight(max_height, box);
+		}
 	}
 	else
 	{
@@ -161,19 +175,31 @@ void LayoutDetails::BuildBox(Box& box, float& min_height, float& max_height, Lay
 }
 
 // Clamps the width of an element based from its min-width and max-width properties.
-float LayoutDetails::ClampWidth(float width, const ComputedValues& computed, float containing_block_width)
+float LayoutDetails::ClampWidth(float width, const ComputedValues& computed, const Box& box, float containing_block_width)
 {
 	float min_width = ResolveValue(computed.min_width, containing_block_width);
 	float max_width = (computed.max_width.value < 0.f ? FLT_MAX : ResolveValue(computed.max_width, containing_block_width));
+
+	if (computed.box_sizing == Style::BoxSizing::BorderBox)
+	{
+		min_width = BorderWidthToContentWidth(min_width, box);
+		max_width = BorderWidthToContentWidth(max_width, box);
+	}
 
 	return Math::Clamp(width, min_width, max_width);
 }
 
 // Clamps the height of an element based from its min-height and max-height properties.
-float LayoutDetails::ClampHeight(float height, const ComputedValues& computed, float containing_block_height)
+float LayoutDetails::ClampHeight(float height, const ComputedValues& computed, const Box& box, float containing_block_height)
 {
 	float min_height = ResolveValue(computed.min_height, containing_block_height);
 	float max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveValue(computed.max_height, containing_block_height));
+
+	if (computed.box_sizing == Style::BoxSizing::BorderBox)
+	{
+		min_height = BorderHeightToContentHeight(min_height, box);
+		max_height = BorderHeightToContentHeight(max_height, box);
+	}
 
 	return Math::Clamp(height, min_height, max_height);
 }
@@ -242,22 +268,15 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, Vect
 	Vector2f content_area = box.GetSize();
 
 	// Determine if the element has an automatic width, and if not calculate it.
-	bool width_auto;
-	if (content_area.x >= 0)
-	{
-		width_auto = false;
-	}
-	else
+	bool width_auto = false;
+	if (content_area.x < 0)
 	{
 		if (computed.width.type == Style::Width::Auto)
-		{
 			width_auto = true;
-		}
-		else
-		{
-			width_auto = false;
+		else if (computed.box_sizing == Style::BoxSizing::ContentBox)
 			content_area.x = ResolveValue(computed.width, containing_block.x);
-		}
+		else
+			content_area.x = BorderWidthToContentWidth(ResolveValue(computed.width, containing_block.x), box);
 	}
 
 	// Determine if the element has automatic margins.
@@ -342,7 +361,7 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, Vect
 
 	// Clamp the calculated width; if the width is changed by the clamp, then the margins need to be recalculated if
 	// they were set to auto.
-	float clamped_width = ClampWidth(content_area.x, computed, containing_block.x);
+	float clamped_width = ClampWidth(content_area.x, computed, box, containing_block.x);
 	if (clamped_width != content_area.x)
 	{
 		content_area.x = clamped_width;
@@ -371,22 +390,15 @@ void LayoutDetails::BuildBoxHeight(Box& box, const ComputedValues& computed, flo
 	Vector2f content_area = box.GetSize();
 
 	// Determine if the element has an automatic height, and if not calculate it.
-	bool height_auto;
-	if (content_area.y >= 0)
+	bool height_auto = false;
+	if (content_area.y < 0)
 	{
-		height_auto = false;
-	}
-	else
-	{
-		if (computed.height.type == Style::Height::Auto)
-		{
+		if (computed.height.type == Style::Width::Auto)
 			height_auto = true;
-		}
-		else
-		{
-			height_auto = false;
+		else if (computed.box_sizing == Style::BoxSizing::ContentBox)
 			content_area.y = ResolveValue(computed.height, containing_block_height);
-		}
+		else
+			content_area.y = BorderHeightToContentHeight(ResolveValue(computed.height, containing_block_height), box);
 	}
 
 	// Determine if the element has automatic margins.
@@ -463,7 +475,7 @@ void LayoutDetails::BuildBoxHeight(Box& box, const ComputedValues& computed, flo
 	{
 		// Clamp the calculated height; if the height is changed by the clamp, then the margins need to be recalculated if
 		// they were set to auto.
-		float clamped_height = ClampHeight(content_area.y, computed, containing_block_height);
+		float clamped_height = ClampHeight(content_area.y, computed, box, containing_block_height);
 		if (clamped_height != content_area.y)
 		{
 			content_area.y = clamped_height;

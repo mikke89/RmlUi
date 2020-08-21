@@ -104,6 +104,7 @@ enum class PropertyId : uint8_t
 	Left,
 	Float,
 	Clear,
+	BoxSizing,
 	ZIndex,
 	Width,
 	MinWidth,

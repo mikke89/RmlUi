@@ -1,0 +1,67 @@
+<rml>
+<head>
+    <title>Box-sizing property</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-ui-3/#box-sizing" />
+	<meta name="Description" content="Box-sizing property." />
+	<style>
+		div > div {
+			width: 50%;
+			margin: 10px 0;
+			padding: 20px;
+			border: 10px #999;
+			background-color: #aaf;
+		}
+		.border-box {
+			background-color: #aea;
+			box-sizing: border-box;
+		}
+		.float {
+			float: left;
+		}
+		.margin {
+			width: 23.3%;  /* width + margins should be 33.3% */
+			margin-left: 5%;
+			margin-right: 5%;
+			border-width: 20px;
+		}
+		.fill {
+			height: 200px;
+			border: 15px #ffa;
+			background: #f00;
+			overflow: auto;
+		}
+		.fill > div {
+			width: 100%;
+			height: 50%;
+			margin: 0 auto;
+		}
+	</style>
+</head>
+
+<body>
+<p>Setting the 'box-sizing' property on elements using the same width and height.</p>
+<div>
+	<div>box-sizing: content-box</div>
+	<div class="border-box">box-sizing: border-box</div>
+</div>
+<hr/>
+<p>The following boxes should line up side-by-side.</p>
+<div>
+	<div class="border-box float"/>
+	<div class="border-box float"/>
+</div>
+<hr/>
+<div>
+	<div class="margin border-box float"/>
+	<div class="margin border-box float"/>
+	<div class="margin border-box float"/>
+</div>
+<hr/>
+<p>There should be no scrollbars, and no red visible.</p>
+<div class="fill">
+	<div class="border-box"/>
+	<div class="border-box"/>
+</div>
+</body>
+</rml>

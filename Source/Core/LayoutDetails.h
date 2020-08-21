@@ -66,13 +66,13 @@ public:
 	/// @param[in] element The element to read the properties from.
 	/// @param[in] containing_block_width The width of the element's containing block.
 	/// @return The clamped width.
-	static float ClampWidth(float width, const ComputedValues& computed, float containing_block_width);
+	static float ClampWidth(float width, const ComputedValues& computed, const Box& box, float containing_block_width);
 	/// Clamps the height of an element based from its min-height and max-height properties.
 	/// @param[in] height The height to clamp.
 	/// @param[in] element The element to read the properties from.
 	/// @param[in] containing_block_height The height of the element's containing block.
 	/// @return The clamped height.
-	static float ClampHeight(float height, const ComputedValues& computed, float containing_block_height);
+	static float ClampHeight(float height, const ComputedValues& computed, const Box& box, float containing_block_height);
 
 	/// Returns the fully-resolved, fixed-width and -height containing block from a block box.
 	/// @param[in] containing_box The leaf box.
