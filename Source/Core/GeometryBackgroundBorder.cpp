@@ -194,6 +194,23 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 		}
 	}
 
+#if 0
+	// Debug draw vertices
+	if (has_radius)
+	{
+		const int num_vertices = vertices.size();
+		const int num_indices = indices.size();
+
+		vertices.resize(num_vertices + 4 * num_vertices);
+		indices.resize(num_indices + 6 * num_indices);
+
+		for (int i = 0; i < num_vertices; i++)
+		{
+			GeometryUtilities::GenerateQuad(vertices.data() + num_vertices + 4 * i, indices.data() + num_indices + 6 * i, vertices[i].position, Vector2f(3, 3), Colourb(255, 0, (i % 2) == 0 ? 0 : 255), num_vertices + 4 * i);
+		}
+	}
+#endif
+
 #ifdef RMLUI_DEBUG
 	const int num_vertices = (int)vertices.size();
 	for (int index : indices)
@@ -373,8 +390,8 @@ void GeometryBackgroundBorder::DrawArcPoint(Vector2f pos_center, Vector2f pos_in
 	for (int i = 0; i < num_triangles; i++)
 	{
 		indices[offset_indices + 3 * i + 0] = (i > num_triangles / 2 ? i_vertex_inner1 : i_vertex_inner0);
-		indices[offset_indices + 3 * i + 1] = offset_vertices + i + 1;
-		indices[offset_indices + 3 * i + 2] = offset_vertices + i;
+		indices[offset_indices + 3 * i + 1] = offset_vertices + i + 2;
+		indices[offset_indices + 3 * i + 2] = offset_vertices + i + 1;
 	}
 
 	// Since we swapped the last two vertices we also need to change the last triangle.
@@ -400,7 +417,7 @@ void GeometryBackgroundBorder::FillEdge(int index_next_corner)
 
 int GeometryBackgroundBorder::GetNumPoints(float R) const
 {
-	return Math::Clamp(2 + int(R / 5.f), 2, 100);
+	return Math::Clamp(3 + int(R / 6.f), 2, 100);
 }
 
 } // namespace Rml

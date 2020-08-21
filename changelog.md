@@ -76,6 +76,7 @@ These changes may result in a differently rendered layout when upgrading to RmlU
 
 - The `border-radius` property is now supported in RmlUi for drawing rounded backgrounds and borders. The gradient decorator also adds support for this property.
 - Implemented the `word-break` RCSS property.
+- Implemented the `box-sizing` RCSS property.
 
 ### Other features and improvements
 
