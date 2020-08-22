@@ -159,7 +159,7 @@ void ElementFormControlSelect::OnLayout()
 }
 
 // Returns true to mark this element as replaced.
-bool ElementFormControlSelect::GetIntrinsicDimensions(Vector2f& intrinsic_dimensions)
+bool ElementFormControlSelect::GetIntrinsicDimensions(Vector2f& intrinsic_dimensions, float& /*ratio*/)
 {
 	intrinsic_dimensions.x = 128;
 	intrinsic_dimensions.y = 16;

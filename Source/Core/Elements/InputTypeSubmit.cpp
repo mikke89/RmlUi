@@ -70,10 +70,8 @@ void InputTypeSubmit::ProcessDefaultAction(Event& event)
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeSubmit::GetIntrinsicDimensions(Vector2f& RMLUI_UNUSED_PARAMETER(dimensions))
+bool InputTypeSubmit::GetIntrinsicDimensions(Vector2f& /*dimensions*/, float& /*ratio*/)
 {
-	RMLUI_UNUSED(dimensions);
-	
 	return false;
 }
 

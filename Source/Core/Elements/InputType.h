@@ -83,8 +83,7 @@ public:
 	virtual void ProcessDefaultAction(Event& event) = 0;
 
 	/// Sizes the dimensions to the element's inherent size.
-	/// @return True.
-	virtual bool GetIntrinsicDimensions(Vector2f& dimensions) = 0;
+	virtual bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) = 0;
 
 protected:
 	ElementFormControlInput* element;

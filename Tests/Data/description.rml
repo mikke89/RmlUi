@@ -47,8 +47,6 @@
 		background-color: #444;
 		color: #ffe;
 		border: 1px #555;
-		line-height: 1.2;
-		height: 1.8em;
 		cursor: text;
 		tab-index: auto;
 	}

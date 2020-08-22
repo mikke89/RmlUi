@@ -73,9 +73,7 @@ public:
 	virtual ~ElementImage();
 
 	/// Returns the element's inherent size.
-	/// @param[out] The element's intrinsic dimensions.
-	/// @return True.
-	bool GetIntrinsicDimensions(Vector2f& dimensions) override;
+	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 protected:
 	/// Renders the image.

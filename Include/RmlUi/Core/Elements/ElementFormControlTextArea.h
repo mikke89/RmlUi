@@ -93,7 +93,7 @@ public:
 
 	/// Returns the control's inherent size, based on the length of the input field and the current font size.
 	/// @return True.
-	bool GetIntrinsicDimensions(Vector2f& dimensions) override;
+	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 protected:
 	/// Updates the control's widget.

@@ -76,10 +76,11 @@ void InputTypeCheckbox::ProcessDefaultAction(Event& event)
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeCheckbox::GetIntrinsicDimensions(Vector2f& dimensions)
+bool InputTypeCheckbox::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
 	dimensions.x = 16;
 	dimensions.y = 16;
+	ratio = 1;
 
 	return true;
 }

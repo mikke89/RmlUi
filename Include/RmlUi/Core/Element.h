@@ -164,9 +164,10 @@ public:
 	virtual float GetBaseline() const;
 	/// Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size. This size will
 	/// only be overriden by a styled width or height.
-	/// @param[in] dimensions The dimensions to size, if appropriate.
+	/// @param[out] dimensions The dimensions to size, if appropriate.
+	/// @param[out] ratio The intrinsic ratio (width/height), if appropriate.
 	/// @return True if the element has intrinsic dimensions, false otherwise. The default element will return false.
-	virtual bool GetIntrinsicDimensions(Vector2f& dimensions);
+	virtual bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio);
 
 	/// Checks if a given point in screen coordinates lies within the bordered area of this element.
 	/// @param[in] point The point to test.

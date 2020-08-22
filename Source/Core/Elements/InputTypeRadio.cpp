@@ -85,10 +85,11 @@ void InputTypeRadio::ProcessDefaultAction(Event& event)
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeRadio::GetIntrinsicDimensions(Vector2f& dimensions)
+bool InputTypeRadio::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
 	dimensions.x = 16;
 	dimensions.y = 16;
+	ratio = 1;
 
 	return true;
 }

@@ -98,7 +98,7 @@ void InputTypeRange::ProcessDefaultAction(Event& /*event*/)
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeRange::GetIntrinsicDimensions(Vector2f& dimensions)
+bool InputTypeRange::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
 	widget->GetDimensions(dimensions);
 	return true;

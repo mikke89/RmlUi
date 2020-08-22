@@ -58,7 +58,7 @@ public:
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return False.
-	bool GetIntrinsicDimensions(Vector2f& dimensions) override;
+	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 };
 
 } // namespace Rml

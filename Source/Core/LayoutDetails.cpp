@@ -73,48 +73,47 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 
 	// Calculate the size of the content area.
 	Vector2f content_area(-1, -1);
+	float intrinsic_ratio = -1;
 	bool replaced_element = false;
 
 	// If the element has intrinsic dimensions, then we use those as the basis for the content area and only adjust
 	// them if a non-auto style has been applied to them.
-	if (element->GetIntrinsicDimensions(content_area))
+	if (element->GetIntrinsicDimensions(content_area, intrinsic_ratio))
 	{
 		replaced_element = true;
-
-		Vector2f original_content_area = content_area;
 
 		// The element has resized itself, so we only resize it if a RCSS width or height was set explicitly. A value of
 		// 'auto' (or 'auto-fit', ie, both keywords) means keep (or adjust) the intrinsic dimensions.
 		bool auto_width = false, auto_height = false;
 
-		if (computed.width.type != Style::Width::Auto)
+		if (computed.width.type == Style::Width::Auto)
+			auto_width = true;
+		else if (computed.box_sizing == Style::BoxSizing::ContentBox)
 			content_area.x = ResolveValue(computed.width, containing_block.x);
 		else
-			auto_width = true;
+			content_area.x = BorderWidthToContentWidth(ResolveValue(computed.width, containing_block.x), box);
 
-		if (computed.height.type != Style::Height::Auto)
+		if (computed.height.type == Style::Height::Auto)
+			auto_height = true;
+		else if (computed.box_sizing == Style::BoxSizing::ContentBox)
 			content_area.y = ResolveValue(computed.height, containing_block.y);
 		else
-			auto_height = true;
+			content_area.y = BorderHeightToContentHeight(ResolveValue(computed.height, containing_block.y), box);
 
-		// If one of the dimensions is 'auto' then we need to scale it such that the original ratio is preserved.
-		if (auto_width && !auto_height)
-			content_area.x = (content_area.y / original_content_area.y) * original_content_area.x;
-		else if (auto_height && !auto_width)
-			content_area.y = (content_area.x / original_content_area.x) * original_content_area.y;
+		// Use a fallback size if we still couldn't determine the size.
+		if (content_area.x < 0)
+			content_area.x = 300;
+		if (content_area.y < 0)
+			content_area.y = 150;
 
-		// Reduce the width and height to make up for borders and padding.
-		content_area.x -= (box.GetEdge(Box::BORDER, Box::LEFT) +
-						   box.GetEdge(Box::PADDING, Box::LEFT) +
-						   box.GetEdge(Box::BORDER, Box::RIGHT) +
-						   box.GetEdge(Box::PADDING, Box::RIGHT));
-		content_area.y -= (box.GetEdge(Box::BORDER, Box::TOP) +
-						   box.GetEdge(Box::PADDING, Box::TOP) +
-						   box.GetEdge(Box::BORDER, Box::BOTTOM) +
-						   box.GetEdge(Box::PADDING, Box::BOTTOM));
-
-		content_area.x = Math::Max(content_area.x, 0.0f);
-		content_area.y = Math::Max(content_area.y, 0.0f);
+		// If we have an intrinsic ratio and one of the dimensions is 'auto', then scale it such that the ratio is preserved.
+		if (intrinsic_ratio > 0)
+		{
+			if (auto_width && !auto_height)
+				content_area.x = content_area.y * intrinsic_ratio;
+			else if (auto_height && !auto_width)
+				content_area.y = content_area.x / intrinsic_ratio;
+		}
 	}
 
 	// If the element is inline, then its calculations are much more straightforward (no worrying about auto margins

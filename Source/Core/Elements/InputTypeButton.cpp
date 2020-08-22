@@ -51,7 +51,7 @@ void InputTypeButton::ProcessDefaultAction(Event& /*event*/)
 }
 
 // Sizes the dimensions to the element's inherent size.
-bool InputTypeButton::GetIntrinsicDimensions(Vector2f& /*dimensions*/)
+bool InputTypeButton::GetIntrinsicDimensions(Vector2f& /*dimensions*/, float& /*ratio*/)
 {
 	return false;
 }

@@ -107,14 +107,20 @@ p.title
 
 /***  Forms  ***/
 
-form
-{
+form {
 	display: block;
 	text-align: left;
 }
-form input, form select { margin-left: 0; }
-form h2 
-{
+form input, form select {
+	margin-left: 0;
+}
+form input.text, form input.password {
+	width: 35%;
+}
+input.text.two-wide {
+	width: 70%;
+}
+form h2 {
 	display: block;
 	font-size: 16px;
 	font-weight: bold;
@@ -191,12 +197,12 @@ form h2
 	<form onsubmit="submit_form">
 		<h2>Full name</h2>
 		<div>
-			<input type="text" size="20" name="name"/>
+			<input class="two-wide" type="text" name="name"/>
 		</div>
 		<h2>Email and password</h2>
 		<div>
-			<input type="text" size="10" name="email"/>
-			<input type="password" size="10" name="password"/>
+			<input type="text" name="email"/>
+			<input type="password" name="password"/>
 		</div>
 		<h2>Favorite animal</h2>
 		<div>
@@ -227,7 +233,7 @@ form h2
 		</div>
 		<h2>Message</h2>
 		<div>
-			<textarea cols="30" rows="5" wrap="nowrap" name="message">😍 Hello 🌐 World! 😎</textarea>
+			<textarea cols="25" rows="4" wrap="nowrap" name="message">😍 Hello 🌐 World! 😎</textarea>
 		</div>
 		<div style="margin-bottom: 15px;">
 			<input type="submit">Submit</input>

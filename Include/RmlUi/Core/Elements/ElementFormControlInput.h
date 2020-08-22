@@ -91,7 +91,7 @@ protected:
 
 	/// Sizes the dimensions to the element's inherent size.
 	/// @return True.
-	bool GetIntrinsicDimensions(Vector2f& dimensions) override;
+	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 private:
 	InputType* type;

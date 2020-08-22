@@ -48,7 +48,7 @@ ElementImage::~ElementImage()
 }
 
 // Sizes the box to the element's inherent size.
-bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions)
+bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 {
 	// Check if we need to reload the texture.
 	if (texture_dirty)
@@ -73,6 +73,8 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions)
 	// Return the calculated dimensions. If this changes the size of the element, it will result in
 	// a call to 'onresize' below which will regenerate the geometry.
 	_dimensions = dimensions;
+	_ratio = dimensions.x / dimensions.y;
+
 	return true;
 }
 

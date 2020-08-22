@@ -119,7 +119,7 @@ bool ElementFormControlTextArea::GetWordWrap()
 }
 
 // Returns the control's inherent size, based on the length of the input field and the current font size.
-bool ElementFormControlTextArea::GetIntrinsicDimensions(Vector2f& dimensions)
+bool ElementFormControlTextArea::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
 	dimensions.x = (float) (GetNumColumns() * ElementUtilities::GetStringWidth(this, "m"));
 	dimensions.y = (float)GetNumRows() * GetLineHeight();

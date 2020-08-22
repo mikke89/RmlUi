@@ -547,10 +547,10 @@ float Element::GetBaseline() const
 }
 
 // Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size.
-bool Element::GetIntrinsicDimensions(Vector2f& RMLUI_UNUSED_PARAMETER(dimensions))
+bool Element::GetIntrinsicDimensions(Vector2f& RMLUI_UNUSED_PARAMETER(dimensions), float& RMLUI_UNUSED_PARAMETER(ratio))
 {
 	RMLUI_UNUSED(dimensions);
-
+	RMLUI_UNUSED(ratio);
 	return false;
 }
 

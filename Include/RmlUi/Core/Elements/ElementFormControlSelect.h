@@ -99,8 +99,9 @@ protected:
 
 	/// Returns true to mark this element as replaced.
 	/// @param[out] intrinsic_dimensions Set to the arbitrary dimensions of 128 x 16 just to give this element a size. Resize with the 'width' and 'height' properties.
+	/// @param[out] intrinsic_ratio Ignored.
 	/// @return True.
-	bool GetIntrinsicDimensions(Vector2f& intrinsic_dimensions) override;
+	bool GetIntrinsicDimensions(Vector2f& intrinsic_dimensions, float& intrinsic_ratio) override;
 
 	WidgetDropDown* widget;
 };

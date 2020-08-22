@@ -177,11 +177,11 @@ void ElementFormControlInput::ProcessDefaultAction(Event& event)
 		type->ProcessDefaultAction(event);
 }
 
-bool ElementFormControlInput::GetIntrinsicDimensions(Vector2f& dimensions)
+bool ElementFormControlInput::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
 	if (!type)
 		return false;
-	return type->GetIntrinsicDimensions(dimensions);
+	return type->GetIntrinsicDimensions(dimensions, ratio);
 }
 
 } // namespace Rml

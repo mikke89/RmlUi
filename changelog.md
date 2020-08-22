@@ -67,10 +67,15 @@ Work has started on a complete test suite for RmlUi. The tests have been separat
 ### Layout improvements
 
 - Floating elements, absolutely positioned elements, and inline-block elements (as before) will now all shrink to the width of their contents when their width is set to `auto`.
+- Replaced elements (eg. `img` and some `input` elements) now follow the normal CSS sizing rules. That is, padding and borders are no longer subtracted from the width and height of the element by default.
+- Replaced elements can now decide whether to provide an intrinsic aspect ratio, such that users can eg. set the width property on `input.text` without affecting their height.
 - Fixed some situations where overflowing content would not be hidden or scrolled when setting a non-default `overflow` property. [#116](https://github.com/mikke89/RmlUi/issues/116)
 - Several other layouting improvements (to-be-detailed).
 
-These changes may result in a differently rendered layout when upgrading to RmlUi 4.0. In particular the first item. If the changes are undesired, set a definite width on the related elements, eg. using the `width` property or the `left`/`right` properties.
+These changes may result in a differently rendered layout when upgrading to RmlUi 4.0. In particular the first two items. 
+
+- If the shrink-to-fit width is undesired, set a definite width on the related elements, eg. using the `width` property or the `left`/`right` properties.
+- Replaced elements may need adjustment of width and height, in this case it may be useful to use the new `box-sizing: border-box` property in some situations.
 
 ### New RCSS properties
 
@@ -98,6 +103,7 @@ These changes may result in a differently rendered layout when upgrading to RmlU
 - The changes to the layout engine may result in changes to the rendered layout in some situations, see above for more details.
 - The `BaseXMLParser` class has some minor interface changes.
 - Tab set elements `tab` and `panel` should now have their `display` property set in the RCSS document, use `display: inline-block` for the same behavior as before.
+- For custom, replaced elements: `Element::GetIntrinsicDimensions()` now additionally takes an intrinsic ratio parameter.
 
 
 

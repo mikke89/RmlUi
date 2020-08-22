@@ -1,0 +1,67 @@
+<rml>
+<head>
+    <title>Replaced elements</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width" />
+	<meta name="Description" content="Sizing of replaced elements." />
+	<style>
+		@spritesheet theme 
+		{
+			src: /assets/invader.tga;
+			invader: 179px 152px 50px 40px;
+		}
+		img {
+			vertical-align: bottom;
+			margin: 10px 5px;
+		}
+		.border-box {
+			box-sizing: border-box;
+		}
+		input.text {
+			font-size: 1.1em;
+			background-color: #fff;
+			color: #555;
+			border: 5px #999;
+			padding: 15px;
+			cursor: text;
+			tab-index: auto;
+			box-sizing: border-box;
+		}
+	</style>
+</head>
+
+<body>
+<p>The following images should be the same size (width and height).</p>
+<div>
+	<img style="padding: 10px;" sprite="invader"/>
+	<img style="padding: 10px;" class="border-box" sprite="invader"/>
+	<img style="padding: 10px; height: 40px;" sprite="invader"/>
+	<img style="padding: 10px; width: 50px;" sprite="invader"/>
+	<img style="padding: 10px; height: 60px;" class="border-box" sprite="invader"/>
+	<img style="padding: 10px; width: 70px;" class="border-box" sprite="invader"/>
+</div>
+<hr/>
+<p>There should be three evenly spaced, same-sized images on a single line.</p>
+<div style="text-align: center">
+	<img style="float: left" sprite="invader"/>
+	<img style="float: right" sprite="invader"/>
+	<img sprite="invader"/>
+</div>
+<hr/>
+<p>The outer border of the images should take up the same height.</p>
+<div>
+	<img style="border: 10px black; height: 30px;" sprite="invader"/>
+	<img style="border: 2px black; height: 50px;" class="border-box" sprite="invader"/>
+	<img style="border: 2px black; padding: 5px; height: 50px;" class="border-box" sprite="invader"/>
+</div>
+<hr/>
+<p>The two images should be same-sized, and perfectly aligned below each other.</p>
+<div style="text-align: center;">
+	<img style="display: block; margin: 10px auto;" sprite="invader"/>
+	<img style="display: inline;" sprite="invader"/>
+</div>
+<hr/>
+<p>The two text boxes should have the same height and fit on a single line.</p>
+<input style="width: 30%;" type="text" value="hello"/><input style="width: 70%;" type="text" value="world"/>
+</body>
+</rml>
