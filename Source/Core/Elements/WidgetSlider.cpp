@@ -245,7 +245,7 @@ void WidgetSlider::FormatElements()
 
 
 // Lays out and resizes the internal elements.
-void WidgetSlider::FormatElements(const Vector2f& containing_block, float slider_length, float bar_length)
+void WidgetSlider::FormatElements(const Vector2f& containing_block, float slider_length)
 {
 	int length_axis = orientation == VERTICAL ? 1 : 0;
 
@@ -320,7 +320,7 @@ void WidgetSlider::FormatElements(const Vector2f& containing_block, float slider
 		arrows[1]->SetOffset(offset, parent);
 	}
 
-	FormatBar(bar_length);
+	FormatBar();
 
 	if (parent->IsDisabled())
 	{
@@ -333,7 +333,7 @@ void WidgetSlider::FormatElements(const Vector2f& containing_block, float slider
 }
 
 // Lays out and positions the bar element.
-void WidgetSlider::FormatBar(float bar_length)
+void WidgetSlider::FormatBar()
 {
 	Box bar_box;
 	ElementUtilities::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
@@ -344,54 +344,6 @@ void WidgetSlider::FormatBar(float bar_length)
 	{
 		if (computed.height.type == Style::Height::Auto)
 			bar_box_content.y = parent->GetBox().GetSize().y;
-	}
-
-	if (bar_length >= 0)
-	{
-		Vector2f track_size = track->GetBox().GetSize();
-
-		if (orientation == VERTICAL)
-		{
-			float track_length = track_size.y - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM));
-
-			if (computed.height.type == Style::Height::Auto)
-			{
-				bar_box_content.y = track_length * bar_length;
-
-				// Check for 'min-height' restrictions.
-				float min_track_length = ResolveValue(computed.min_height, track_length);
-				bar_box_content.y = Math::Max(min_track_length, bar_box_content.y);
-
-				// Check for 'max-height' restrictions.
-				float max_track_length = ResolveValue(computed.max_height, track_length);
-				if (max_track_length > 0)
-					bar_box_content.y = Math::Min(max_track_length, bar_box_content.y);
-			}
-
-			// Make sure we haven't gone further than we're allowed to (min-height may have made us too big).
-			bar_box_content.y = Math::Min(bar_box_content.y, track_length);
-		}
-		else
-		{
-			float track_length = track_size.x - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
-
-			if (computed.width.type == Style::Width::Auto)
-			{
-				bar_box_content.x = track_length * bar_length;
-
-				// Check for 'min-width' restrictions.
-				float min_track_length = ResolveValue(computed.min_width, track_length);
-				bar_box_content.x = Math::Max(min_track_length, bar_box_content.x);
-
-				// Check for 'max-width' restrictions.
-				float max_track_length = ResolveValue(computed.max_width, track_length);
-				if (max_track_length > 0)
-					bar_box_content.x = Math::Min(max_track_length, bar_box_content.x);
-			}
-
-			// Make sure we haven't gone further than we're allowed to (min-width may have made us too big).
-			bar_box_content.x = Math::Min(bar_box_content.x, track_length);
-		}
 	}
 
 	// Set the new dimensions on the bar to re-decorate it.
