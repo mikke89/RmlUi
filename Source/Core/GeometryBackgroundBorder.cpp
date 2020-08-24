@@ -42,10 +42,10 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 	using Edge = Box::Edge;
 
 	EdgeSizes border_widths = {
-		box.GetEdge(Box::BORDER, Edge::TOP),
-		box.GetEdge(Box::BORDER, Edge::RIGHT),
-		box.GetEdge(Box::BORDER, Edge::BOTTOM),
-		box.GetEdge(Box::BORDER, Edge::LEFT),
+		Math::RoundFloat(box.GetEdge(Box::BORDER, Edge::TOP)),
+		Math::RoundFloat(box.GetEdge(Box::BORDER, Edge::RIGHT)),
+		Math::RoundFloat(box.GetEdge(Box::BORDER, Edge::BOTTOM)),
+		Math::RoundFloat(box.GetEdge(Box::BORDER, Edge::LEFT)),
 	};
 
 	int num_borders = 0;
@@ -57,7 +57,7 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 				num_borders += 1;
 	}
 
-	const Vector2f padding_size = box.GetSize(Box::PADDING);
+	const Vector2f padding_size = box.GetSize(Box::PADDING).Round();
 
 	const bool has_background = (background_color.alpha > 0 && padding_size.x > 0 && padding_size.y > 0);
 	const bool has_border = (num_borders > 0);
@@ -65,11 +65,10 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 	if (!has_background && !has_border)
 		return;
 
-
 	// -- Find the corner positions --
 
-	const Vector2f padding_position = box.GetPosition(Box::PADDING);
-	const Vector2f border_position = padding_position - Vector2f(border_widths[Edge::LEFT], border_widths[Edge::TOP]);
+	const Vector2f border_position = box.GetPosition(Box::BORDER).Round();
+	const Vector2f padding_position = border_position + Vector2f(border_widths[Edge::LEFT], border_widths[Edge::TOP]);
 	const Vector2f border_size = padding_size + Vector2f(border_widths[Edge::LEFT] + border_widths[Edge::RIGHT], border_widths[Edge::TOP] + border_widths[Edge::BOTTOM]);
 
 	// Border edge positions
@@ -92,7 +91,7 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 	// -- For curved borders, find the positions to draw ellipses around, and the scaled outer and inner radii --
 
 	const float sum_radius = (radii[TOP_LEFT] + radii[TOP_RIGHT] + radii[BOTTOM_RIGHT] + radii[BOTTOM_LEFT]);
-	const bool has_radius = (sum_radius > 0);
+	const bool has_radius = (sum_radius > 1.f);
 
 	// Curved borders are drawn as circles (outer border) and ellipses (inner border) around the centers.
 	CornerPositions positions_circle_center;
@@ -111,11 +110,10 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 		scale_factor = Math::Min(scale_factor, padding_size.x / (radii[BOTTOM_RIGHT] + radii[BOTTOM_LEFT])); // Bottom
 		scale_factor = Math::Min(scale_factor, padding_size.y / (radii[BOTTOM_LEFT] + radii[TOP_LEFT]));     // Left
 
-		if (scale_factor < 1)
-		{
-			for (int i = 0; i < 4; i++)
-				radii[i] *= scale_factor;
-		}
+		scale_factor = Math::Min(1.0f, scale_factor);
+
+		for (float& radius : radii)
+			radius = Math::RoundFloat(radius * scale_factor);
 
 		// Place the circle/ellipse centers
 		positions_circle_center = {
@@ -417,7 +415,7 @@ void GeometryBackgroundBorder::FillEdge(int index_next_corner)
 
 int GeometryBackgroundBorder::GetNumPoints(float R) const
 {
-	return Math::Clamp(3 + int(R / 6.f), 2, 100);
+	return Math::Clamp(3 + Math::RoundToInteger(R / 6.f), 2, 100);
 }
 
 } // namespace Rml

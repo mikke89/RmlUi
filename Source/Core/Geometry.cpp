@@ -97,11 +97,13 @@ void Geometry::SetHostElement(Element* _host_element)
 	host_element = _host_element;
 }
 
-void Geometry::Render(const Vector2f& translation)
+void Geometry::Render(Vector2f translation)
 {
 	RenderInterface* const render_interface = GetRenderInterface();
 	if (!render_interface)
 		return;
+
+	translation = translation.Round();
 
 	// Render our compiled geometry if possible.
 	if (compiled_geometry)

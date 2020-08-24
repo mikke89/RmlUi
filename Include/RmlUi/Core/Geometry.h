@@ -67,7 +67,7 @@ public:
 
 	/// Attempts to compile the geometry if appropriate, then renders the geometry, compiled if it can.
 	/// @param[in] translation The translation of the geometry.
-	void Render(const Vector2f& translation);
+	void Render(Vector2f translation);
 
 	/// Returns the geometry's vertices. If these are written to, Release() should be called to force a recompile.
 	/// @return The geometry's vertex array.
