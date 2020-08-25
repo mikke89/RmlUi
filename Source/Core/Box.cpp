@@ -38,7 +38,7 @@ Box::Box() : content(0, 0), offset(0, 0)
 }
 
 // Initialises a box with a default content area and no padding, borders and margins.
-Box::Box(const Vector2f& content) : content(content), offset(0, 0)
+Box::Box(Vector2f content) : content(content), offset(0, 0)
 {
 	memset(area_edges, 0, sizeof(area_edges));
 }
@@ -48,7 +48,7 @@ Box::~Box()
 }
 
 // Returns the offset of this box. This will usually be (0, 0).
-const Vector2f& Box::GetOffset() const
+Vector2f Box::GetOffset() const
 {
 	return offset;
 }
@@ -80,13 +80,13 @@ Vector2f Box::GetSize(Area area) const
 }
 
 // Sets the offset of the box, relative usually to the owning element.
-void Box::SetOffset(const Vector2f& _offset)
+void Box::SetOffset(Vector2f _offset)
 {
 	offset = _offset;
 }
 
 // Sets the size of the content area.
-void Box::SetContent(const Vector2f& _content)
+void Box::SetContent(Vector2f _content)
 {
 	content = _content;
 }
@@ -110,6 +110,22 @@ float Box::GetCumulativeEdge(Area area, Edge edge) const
 	int max_area = Math::Min((int)area, (int)PADDING);
 	for (int i = 0; i <= max_area; i++)
 		size += area_edges[i][edge];
+
+	return size;
+}
+
+float Box::GetSizeAcross(Direction direction, Area area, Area area_end) const
+{
+	static_assert(HORIZONTAL == 1 && VERTICAL == 0, "");
+	RMLUI_ASSERT(area <= area_end && direction <= 1);
+
+	float size = 0.0f;
+
+	if (area_end == CONTENT)
+		size = (direction == HORIZONTAL ? content.x : content.y);
+	
+	for (int i = area; i <= area_end && i < CONTENT; i++)
+		size += (area_edges[i][TOP + direction] + area_edges[i][BOTTOM + direction]);
 
 	return size;
 }

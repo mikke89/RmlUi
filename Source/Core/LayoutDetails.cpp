@@ -38,12 +38,12 @@ namespace Rml {
 
 static inline float BorderWidthToContentWidth(float border_width, const Box& box)
 {
-	const float border_padding_edges_width = box.GetEdge(Box::BORDER, Box::LEFT) + box.GetEdge(Box::BORDER, Box::RIGHT) + box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT);
+	const float border_padding_edges_width = box.GetSizeAcross(Box::HORIZONTAL, Box::BORDER, Box::PADDING);
 	return Math::Max(0.0f, border_width - border_padding_edges_width);
 }
 static inline float BorderHeightToContentHeight(float border_height, const Box& box)
 {
-	const float border_padding_edges_height = box.GetEdge(Box::BORDER, Box::TOP) + box.GetEdge(Box::BORDER, Box::BOTTOM) + box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM);
+	const float border_padding_edges_height = box.GetSizeAcross(Box::VERTICAL, Box::BORDER, Box::PADDING);
 	return Math::Max(0.0f, border_height - border_padding_edges_height);
 }
 
