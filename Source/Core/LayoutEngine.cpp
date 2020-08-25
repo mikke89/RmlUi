@@ -49,7 +49,7 @@ struct LayoutChunk
 static Pool< LayoutChunk > layout_chunk_pool(200, true);
 
 // Formats the contents for a root-level element (usually a document or floating element).
-bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block)
+void LayoutEngine::FormatElement(Element* element, Vector2f containing_block)
 {
 #ifdef RMLUI_ENABLE_PROFILING
 	RMLUI_ZoneScopedC(0xB22222);
@@ -76,8 +76,6 @@ bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block)
 
 	block_context_box->CloseAbsoluteElements();
 	element->OnLayout();
-
-	return true;
 }
 
 void* LayoutEngine::AllocateLayoutChunk(size_t size)

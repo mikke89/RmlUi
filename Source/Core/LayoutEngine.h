@@ -46,7 +46,7 @@ public:
 	/// @param element[in] The element to lay out.
 	/// @param containing_block[in] The size of the containing block.
 	/// @param shrink_to_fit[in] True to shrink the element to the width of its contents.
-	static bool FormatElement(Element* element, Vector2f containing_block);
+	static void FormatElement(Element* element, Vector2f containing_block);
 
 	/// Positions a single element and its children within a block formatting context.
 	/// @param[in] block_context_box The open block box to layout the element in.

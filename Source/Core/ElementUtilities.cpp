@@ -65,7 +65,7 @@ static void SetBox(Element* element)
 }
 
 // Positions an element relative to an offset parent.
-static void SetElementOffset(Element* element, const Vector2f& offset)
+static void SetElementOffset(Element* element, Vector2f offset)
 {
 	Vector2f relative_offset = element->GetParentNode()->GetBox().GetPosition(Box::CONTENT);
 	relative_offset += offset;
@@ -302,9 +302,9 @@ void ElementUtilities::ApplyActiveClipRegion(Context* context, RenderInterface* 
 }
 
 // Formats the contents of an element.
-bool ElementUtilities::FormatElement(Element* element, const Vector2f& containing_block)
+void ElementUtilities::FormatElement(Element* element, Vector2f containing_block)
 {
-	return LayoutEngine::FormatElement(element, containing_block);
+	LayoutEngine::FormatElement(element, containing_block);
 }
 
 // Generates the box for an element.
