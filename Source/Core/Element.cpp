@@ -388,7 +388,7 @@ String Element::GetAddress(bool include_pseudo_classes, bool include_parents) co
 }
 
 // Sets the position of this element, as a two-dimensional offset from another element.
-void Element::SetOffset(const Vector2f& offset, Element* _offset_parent, bool _offset_fixed)
+void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_fixed)
 {
 	_offset_fixed |= GetPosition() == Style::Position::Fixed;
 
