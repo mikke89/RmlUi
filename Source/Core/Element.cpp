@@ -144,10 +144,6 @@ transform_state(), dirty_transform(false), dirty_perspective(false), dirty_anima
 
 	computed_values_are_default_initialized = true;
 
-	clipping_ignore_depth = 0;
-	clipping_enabled = false;
-	clipping_state_dirty = true;
-
 	meta = element_meta_chunk_pool.AllocateAndConstruct(this);
 	data_model = nullptr;
 }
@@ -469,7 +465,7 @@ Box::Area Element::GetClientArea() const
 }
 
 // Sets the dimensions of the element's internal content.
-void Element::SetContentBox(const Vector2f& _content_offset, const Vector2f& _content_box)
+void Element::SetContentBox(Vector2f _content_offset, Vector2f _content_box)
 {
 	if (content_offset != _content_offset ||
 		content_box != _content_box)
@@ -1583,31 +1579,13 @@ DataModel* Element::GetDataModel() const
 	
 int Element::GetClippingIgnoreDepth()
 {
-	if (clipping_state_dirty)
-	{
-		IsClippingEnabled();
-	}
-	
-	return clipping_ignore_depth;
+	return GetComputedValues().clip.number;
 }
 	
 bool Element::IsClippingEnabled()
 {
-	if (clipping_state_dirty)
-	{
-		const auto& computed = GetComputedValues();
-
-		// Is clipping enabled for this element, yes unless both overlow properties are set to visible
-		clipping_enabled = computed.overflow_x != Style::Overflow::Visible
-							|| computed.overflow_y != Style::Overflow::Visible;
-		
-		// Get the clipping ignore depth from the clip property
-		clipping_ignore_depth = computed.clip.number;
-
-		clipping_state_dirty = false;
-	}
-	
-	return clipping_enabled;
+	const auto& computed = GetComputedValues();
+	return computed.overflow_x != Style::Overflow::Visible || computed.overflow_y != Style::Overflow::Visible;
 }
 
 // Gets the render interface owned by this element's context.
@@ -1829,14 +1807,6 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		changed_properties.Contains(PropertyId::ImageColor))
 	{
 		meta->decoration.DirtyDecorators();
-	}
-	
-	// Check for clipping state changes
-	if (changed_properties.Contains(PropertyId::Clip) ||
-		changed_properties.Contains(PropertyId::OverflowX) ||
-		changed_properties.Contains(PropertyId::OverflowY))
-	{
-		clipping_state_dirty = true;
 	}
 
 	// Check for `perspective' and `perspective-origin' changes

@@ -141,7 +141,7 @@ public:
 	/// this element's logical children, plus the element's padding.
 	/// @param[in] content_offset The offset of the box's internal content.
 	/// @param[in] content_box The dimensions of the box's internal content.
-	void SetContentBox(const Vector2f& content_offset, const Vector2f& content_box);
+	void SetContentBox(Vector2f content_offset, Vector2f content_box);
 	/// Sets the box describing the size of the element, and removes all others.
 	/// @param[in] box The new dimensions box for the element.
 	void SetBox(const Box& box);
@@ -737,11 +737,6 @@ private:
 	bool structure_dirty;
 
 	bool computed_values_are_default_initialized;
-
-	// Cached rendering information
-	int clipping_ignore_depth;
-	bool clipping_enabled;
-	bool clipping_state_dirty;
 
 	// Transform state
 	UniquePtr< TransformState > transform_state;

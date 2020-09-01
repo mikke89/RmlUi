@@ -198,8 +198,8 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 		if (num_ignored_clips == 0 && clipping_element->IsClippingEnabled())
 		{
 			// Ignore nodes that don't clip.
-			if (clipping_element->GetClientWidth() < clipping_element->GetScrollWidth()
-				|| clipping_element->GetClientHeight() < clipping_element->GetScrollHeight())
+			if (clipping_element->GetClientWidth() < clipping_element->GetScrollWidth() - 0.5f
+				|| clipping_element->GetClientHeight() < clipping_element->GetScrollHeight() - 0.5f)
 			{
 				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(Box::PADDING);
 				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(Box::PADDING);

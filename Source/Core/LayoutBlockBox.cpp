@@ -219,7 +219,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		// If our content is larger than our window, we can enable the horizontal scrollbar if
 		// we're set to auto-scrollbars. If we're set to always use scrollbars, then the horiontal
 		// scrollbar will already have been enabled in the constructor.
-		if (content_box.x > box.GetSize().x)
+		if (content_box.x > box.GetSize().x + 0.5f)
 		{
 			if (overflow_x_property == Style::Overflow::Auto)
 			{
@@ -724,7 +724,7 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 		box_height >= 0 &&
 		overflow_y_property == Style::Overflow::Auto)
 	{
-		if (cursor > box_height - element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL))
+		if (cursor > box_height - element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL) + 0.5f)
 		{
 			RMLUI_ZoneScopedC(0xDD3322);
 			vertical_overflow = true;
