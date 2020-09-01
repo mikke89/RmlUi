@@ -149,7 +149,9 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 		case Style::Display::Table:       return FormatElementTable(block_context_box, element);
 
 		case Style::Display::TableRow:
-		case Style::Display::TableCell:   RMLUI_ERROR; /* should always be formatted in the table context formatter, if we get here it means the user has added a sporadic 'display: table-row/-cell', or we have a bug */ break;
+		case Style::Display::TableColumn:
+		case Style::Display::TableCell:   RMLUI_ERROR; /* should always be formatted in the table context formatter, if we get here it means the user has added a sporadic 'display: table-row/-column/-cell', or we have a bug 
+													      TODO: Handle this situation better. */ break;
 		case Style::Display::None:        RMLUI_ERROR; /* handled above */ break;
 	}
 

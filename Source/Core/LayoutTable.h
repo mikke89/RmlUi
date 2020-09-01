@@ -48,9 +48,16 @@ public:
 
 
 private:
-	using ColumnWidths = Vector<float>;
+	struct Column {
+		Element* element_column = nullptr; // The '<col>' element which defines this column, or nullptr if the column is spanned from a previous column or defined by cells in the first row.
+		float cell_width = 0;              // The *border* width of cells in this column.
+		float cell_offset = 0;             // Horizontal offset from the table content box to the border box of cells in this column.
+		float column_width = 0;            // The *content* width of the column element, which may span multiple columns.
+		float column_offset = 0;           // Horizontal offset from the table content box to the border box of the column element.
+	};
+	using Columns = Vector<Column>;
 
-	static ColumnWidths DetermineColumnWidths(Element* element_table, const Vector2f containing_block, const Vector2f table_gap);
+	static Columns DetermineColumnWidths(Element* element_table, float table_content_width, float column_gap);
 };
 
 } // namespace Rml

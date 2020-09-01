@@ -23,15 +23,29 @@
 		}
 		table {
 			box-sizing: border-box;
+			
 			display: table;
 			border: 5px #666;
+			gap: 10px 2%;
+		}
+		col {
+			box-sizing: border-box;
+			display: table-column;
+			border-left: 2px #e3e;
+			border-right: 5px #3ce;
+		}
+		col:first-child {
+			border-left-width: 0;
+		}
+		col:last-of-type {
+			border-right-width: 0;
 		}
 		tr {
 			box-sizing: border-box;
 			display: table-row;
 			border-bottom: 5px #ec3;
 			/*background: #3cc;*/
-			padding-top: 15px;
+			padding-top: 5px;
 			padding-bottom: 15px;
 		}
 		td {
@@ -53,10 +67,13 @@
 <body>
 <p>Try resizing the table using the document handle in the lower-right corner.</p>
 <table>
+	<col span="2" style="min-width: 150px; max-width: 250px;"/>
+	<col/>
+	<col style="min-width: 50px; max-width: 300px;"/>
 	<tr>
-		<td style="min-width: 150px; max-width: 250px;" rowspan="2" colspan="2">Hello</td>
+		<td rowspan="2" colspan="2">Hello</td>
 		<td>Whoop!</td>
-		<td style="min-width: 50px; max-width: 250px;">World<br/>Hi!</td>
+		<td>World<br/>Hi!</td>
 	</tr>
 	<tr>
 		<td colspan="2">World<br/>Hi!</td>
@@ -71,6 +88,7 @@
 		<td colspan="2">3</td>
 	</tr>
 </table>
+<p style="text-align: center;">Paragraph after table.</p>
 <handle size_target="#document"></handle>
 </body>
 </rml>

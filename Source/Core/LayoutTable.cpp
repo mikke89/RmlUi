@@ -43,9 +43,13 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 	const Vector2f content_top_left = table_block_context_box->GetBox().GetPosition();
 	const Vector2f content_containing_block = Vector2f(table_block_context_box->GetBox().GetSize().x, Math::Max(0.0f, table_block_context_box->GetBox().GetSize().y));
 
-	const Vector2f table_gap(10.f, 0.f);
+	const ComputedValues& computed_table = element_table->GetComputedValues();
+	const Vector2f table_gap(
+		ResolveValue(computed_table.column_gap, content_containing_block.x), 
+		ResolveValue(computed_table.row_gap, content_containing_block.y)
+	);
 
-	Vector<float> column_border_widths = DetermineColumnWidths(element_table, content_containing_block, table_gap);
+	Vector<Column> columns = DetermineColumnWidths(element_table, content_containing_block.x, table_gap.x);
 
 	// Now that we have the size of each column, we can move on to formatting the elements.
 	// After we format and size an element, we record its height as well, and keep the maximum_height over all cells in the current row.
@@ -65,11 +69,10 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 		float rows_accumulated_height;
 	};
 	Vector<Cell> cells;
-	cells.reserve(column_border_widths.size());
+	cells.reserve(columns.size());
 
 	const int num_table_children = element_table->GetNumChildren();
-	int row = -1;
-	for (int i = 0; i < num_table_children; i++)
+	for (int i = 0, row = -1; i < num_table_children; i++)
 	{
 		Element* element_row = element_table->GetChild(i);
 
@@ -86,12 +89,11 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 
 		// Prepare the cursor for this row
 		table_cursor.x = content_top_left.x;
-		table_cursor.y += table_gap.y;
 
-		const Vector2f row_element_offset = table_cursor + Vector2f(row_box.GetEdge(Box::MARGIN, Box::LEFT), row_box.GetEdge(Box::MARGIN, Box::TOP));
+		const Vector2f row_element_offset = table_cursor + Vector2f(0.0f, table_gap.y) + Vector2f(row_box.GetEdge(Box::MARGIN, Box::LEFT), row_box.GetEdge(Box::MARGIN, Box::TOP));
 
 		{
-			const float row_top_offset = row_box.GetEdge(Box::MARGIN, Box::TOP) + row_box.GetEdge(Box::BORDER, Box::TOP) + row_box.GetEdge(Box::PADDING, Box::TOP);
+			const float row_top_offset = table_gap.y + row_box.GetEdge(Box::MARGIN, Box::TOP) + row_box.GetEdge(Box::BORDER, Box::TOP) + row_box.GetEdge(Box::PADDING, Box::TOP);
 			table_cursor.y += row_top_offset;
 
 			for (Cell& cell : cells)
@@ -118,8 +120,6 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 
 			{
 				// Offset the column if we have any rowspan elements from previous rows overlapping with the current column.
-				const int column_offset_from = column;
-
 				for (bool continue_offset_column = true; continue_offset_column; )
 				{
 					continue_offset_column = false;
@@ -136,23 +136,17 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 
 				column_last = column + col_span - 1;
 
-				if (column_last >= (int)column_border_widths.size())
+				if (column_last >= (int)columns.size())
 				{
-					Log::Message(Log::LT_WARNING, "Too many columns in table row %d: %s\nThe number of columns is %d, as determined by the first table row.",
-						row + 1, element_row->GetAddress().c_str(), (int)column_border_widths.size());
+					Log::Message(Log::LT_WARNING, "Too many columns in table row %d: %s\nThe number of columns is %d, as determined by the table columns or first table row.",
+						row + 1, element_row->GetAddress().c_str(), (int)columns.size());
 					break;
 				}
 
-				for (int k = column_offset_from; k < column; k++)
-					table_cursor.x += column_border_widths[k];
-
-				table_cursor.x += table_gap.x * float(column - column_offset_from);
-
-				for (int k = column; k <= column_last; k++)
-					spanning_column_border_width += column_border_widths[k];
-
-				spanning_column_border_width += table_gap.x * float(col_span - 1);
+				spanning_column_border_width = columns[column_last].cell_width + (columns[column_last].cell_offset - columns[column].cell_offset);
 			}
+
+			table_cursor.x = content_top_left.x + columns[column].cell_offset;
 
 			// Add the new cell to our list.
 			cells.emplace_back();
@@ -172,8 +166,6 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 			// Determine the box width from the current column width.
 			const float content_width = Math::Max(0.0f, spanning_column_border_width - box.GetSizeAcross(Box::HORIZONTAL, Box::BORDER, Box::PADDING));
 			box.SetContent(Vector2f(content_width, box.GetSize().y));
-
-			table_cursor.x += spanning_column_border_width + table_gap.x;
 
 			column += col_span;
 		}
@@ -304,6 +296,22 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 			cell.rows_accumulated_height += row_bottom_offset;
 	}
 
+	const float table_content_height = table_cursor.y - content_top_left.y;
+
+	// Size and position the column elements.
+	for (const Column& column : columns)
+	{
+		if (Element* element = column.element_column)
+		{
+			Box box;
+			LayoutDetails::BuildBox(box, content_containing_block, element, false, 0.0f);
+			box.SetContent(Vector2f(column.column_width, table_content_height));
+			element->SetBox(box);
+
+			element->SetOffset(content_top_left + Vector2f(column.column_offset, 0.0f), element_table);
+		}
+	}
+
 	table_block_context_box->ExtendInnerContentSize(table_content_overflow_size);
 
 	CloseResult result = table_block_context_box->Close();
@@ -311,142 +319,249 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 }
 
 
-LayoutTable::ColumnWidths LayoutTable::DetermineColumnWidths(Element* element_table, const Vector2f containing_block, const Vector2f table_gap)
+LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_table, const float table_content_width, const float column_gap)
 {
-	ColumnWidths column_widths;
+	// The column widths are determined entirely by any <col> elements preceding the first row, and <td> elements in the first row.
+	// If <col> has a fixed width, that is used. Otherwise, if <td> has a fixed width, that is used. Otherwise the column is 'flexible' width.
+	// All flexible widths are then sized to evenly fill the content width of the table.
 
-	// Determine the widths of the cells.
-	Element* element_first_row = nullptr;
+	struct ColumnMetric {
+		// All widths are defined in terms of the border width of cells in the column. The column element can add padding,
+		// and borders which extends beyond the cell's border width, and is instead added to 'sum_fixed_spacing'.
+		float fixed_width = 0;
+		float flex_width = 0;
+		float min_width = 0;
+		float max_width = 0;
+		// The following are only used for <col> elements.
+		Element* element_column = nullptr;
+		bool has_fixed_size = false;
+		int column_span = 0;
+		float column_padding_border_left = 0;
+		float column_padding_border_right = 0;
+	};
 
-	for (int i = 0; i < element_table->GetNumChildren(); i++)
+	Vector<ColumnMetric> column_metrics;
+	float sum_fixed_spacing = 0; // Includes column gaps and the column elements' padding, and border.
+
+	const int num_table_children = element_table->GetNumChildren();
+
+	Element* element_row = nullptr;
+
+	// First look for any <col> elements preceding any <tr> elements, use them for defining the width of the respective columns.
+	for (int i = 0; i < num_table_children; i++)
 	{
-		element_first_row = element_table->GetChild(i);
-		if (element_first_row->GetDisplay() != Style::Display::TableRow)
+		Element* element = element_table->GetChild(i);
+		const ComputedValues& computed = element->GetComputedValues();
+
+		if (computed.display == Style::Display::TableRow)
 		{
-			Log::Message(Log::LT_WARNING, "Only table rows ('display: table-row') are allowed as children of tables. %s", element_first_row->GetAddress().c_str());
-		}
-		else
-		{
+			// End of column elements.
+			element_row = element;
 			break;
 		}
-	}
-
-	if (!element_first_row)
-	{
-		Log::Message(Log::LT_WARNING, "No rows in table. %s", element_table->GetAddress().c_str());
-		// TODO: Handle this more gracefully.
-		return ColumnWidths();
-	}
-
-
-	const int num_row_children = element_first_row->GetNumChildren();
-
-	struct CellMetrics {
-		float fixed_content_width;
-		float padding_border_edges_width;
-		float flex_width;
-		float min_content_width;
-		float max_content_width;
-	};
-	Vector<CellMetrics> cell_metrics;
-	cell_metrics.reserve(num_row_children);
-
-	for (int i = 0; i < num_row_children; i++)
-	{
-		Element* element_cell = element_first_row->GetChild(i);
-
-		const ComputedValues& computed = element_cell->GetComputedValues();
-
-		if (computed.display != Style::Display::TableCell)
+		else if (computed.display != Style::Display::TableColumn)
 		{
-			Log::Message(Log::LT_WARNING, "Only table cells ('display: table-cell') are allowed as children of table rows. %s", element_cell->GetAddress().c_str());
 			continue;
 		}
 
-		const float padding_border_edges_width =
-			Math::Max(0.0f, ResolveValue(computed.padding_left, containing_block.x)) +
-			Math::Max(0.0f, ResolveValue(computed.padding_right, containing_block.x)) +
-			Math::Max(0.0f, computed.border_left_width) +
-			Math::Max(0.0f, computed.border_right_width);
+		const float padding_border_left = Math::Max(0.0f, ResolveValue(computed.padding_left, table_content_width)) + Math::Max(0.0f, computed.border_left_width);
+		const float padding_border_right = Math::Max(0.0f, ResolveValue(computed.padding_right, table_content_width)) + Math::Max(0.0f, computed.border_right_width);
+		const float padding_border_sum = padding_border_left + padding_border_right;
 
-		auto min_max_widths = [containing_block_width = containing_block.x](float& min_width, float& max_width, float border_padding_edges_width, const ComputedValues& computed) {
-			min_width = ResolveValue(computed.min_width, containing_block_width);
-			max_width = (computed.max_width.value < 0.f ? FLT_MAX : ResolveValue(computed.max_width, containing_block_width));
+		sum_fixed_spacing += padding_border_sum;
 
-			if (computed.box_sizing == Style::BoxSizing::BorderBox)
-			{
-				min_width = Math::Max(0.0f, min_width - border_padding_edges_width);
-				max_width = Math::Max(0.0f, max_width - border_padding_edges_width);
-			}
-		};
+		ColumnMetric column_metric;
 
-		CellMetrics metric = {};
-		metric.padding_border_edges_width = padding_border_edges_width;
-		min_max_widths(metric.min_content_width, metric.max_content_width, padding_border_edges_width, computed);
+		// Find the min/max width.
+		column_metric.min_width = ResolveValue(computed.min_width, table_content_width);
+		column_metric.max_width = (computed.max_width.value < 0.f ? FLT_MAX : ResolveValue(computed.max_width, table_content_width));
+
+		if (computed.box_sizing == Style::BoxSizing::BorderBox)
+		{
+			column_metric.min_width = Math::Max(0.0f, column_metric.min_width - padding_border_sum);
+			column_metric.max_width = Math::Max(0.0f, column_metric.max_width - padding_border_sum);
+		}
 
 		if (computed.width.type == Style::Width::Auto)
 		{
-			metric.flex_width = 1;
+			column_metric.flex_width = 1;
 		}
 		else
 		{
-			if (computed.box_sizing == Style::BoxSizing::ContentBox)
-				metric.fixed_content_width = ResolveValue(computed.width, containing_block.x);
-			else
-				metric.fixed_content_width = Math::Max(0.f, ResolveValue(computed.width, containing_block.x - padding_border_edges_width));
+			float width = ResolveValue(computed.width, table_content_width);
 
-			metric.fixed_content_width = Math::Clamp(metric.fixed_content_width, metric.min_content_width, metric.max_content_width);
+			if (computed.box_sizing == Style::BoxSizing::BorderBox)
+				width = Math::Max(0.f, ResolveValue(computed.width, table_content_width) - padding_border_sum);
+
+			column_metric.fixed_width = Math::Clamp(width, column_metric.min_width, column_metric.max_width);
+			column_metric.has_fixed_size = true;
 		}
 
-		const int colspan = Math::Max(1, element_cell->GetAttribute("colspan", 1));
-		if (colspan > 1)
+		const int span = Math::Max(1, element->GetAttribute("span", 1));
+		if (span > 1)
 		{
-			const float width_factor = 1.f / float(colspan);
-			metric.fixed_content_width *= width_factor;
-			metric.min_content_width *= width_factor;
-			metric.max_content_width *= width_factor;
+			// Distribute any fixed widths over the columns we are spanning.
+			const float width_factor = 1.f / float(span);
+			column_metric.fixed_width *= width_factor;
+			column_metric.min_width *= width_factor;
+			column_metric.max_width *= width_factor;
 		}
 
-		for(int j = 0; j < colspan; j++)
-			cell_metrics.push_back(metric);
+		column_metric.element_column = element;
+		column_metric.column_span = span;
+		column_metric.column_padding_border_left = padding_border_left;
+
+		for (int j = 0; j < span; j++)
+		{
+			if (j == 1)
+			{
+				column_metric.element_column = nullptr;
+				column_metric.column_span = 0;
+				column_metric.column_padding_border_left = 0;
+			}
+			if (j == span - 1)
+				column_metric.column_padding_border_right = padding_border_right;
+
+			column_metrics.emplace_back(column_metric);
+		}
 	}
 
 
-	auto calculate_fr_to_px_ratio = [table_content_width = containing_block.x, column_gap = table_gap.x, &cell_metrics]() {
-		float sum_fixed_width = 0; // [px]
-		float sum_flex_width = 0;  // [fr]
+	const int num_row_children = (!element_row ? 0 : element_row->GetNumChildren());
+	column_metrics.reserve(num_row_children);
 
-		for (const CellMetrics& metric : cell_metrics)
+	// Next, walk through the cells in the first table row. This procedure is subtly different from the <col>-iteration above:
+	//    (1) Cells use their border width to line up the column, while <col> use their content width.
+	//    (2a) We only add new columns here if they are not already represented by a <col> element.
+	//    (2b) Otherwise, if the <col> element has auto (min-/max-) width, we use the cell's (min-/max-) width if it has any.
+	for (int i = 0, column = 0; i < num_row_children; i++)
+	{
+		Element* element = element_row->GetChild(i);
+		const ComputedValues& computed = element->GetComputedValues();
+
+		if (computed.display != Style::Display::TableCell)
 		{
-			sum_flex_width += metric.flex_width;
-			sum_fixed_width += (metric.flex_width == 0.f ? metric.fixed_content_width : 0.0f) + metric.padding_border_edges_width + column_gap;
+			Log::Message(Log::LT_WARNING, "Only table cells ('display: table-cell') are allowed as children of table rows. %s", element->GetAddress().c_str());
+			continue;
 		}
 
-		sum_flex_width = Math::Max(1.f, sum_flex_width);
-		sum_fixed_width = Math::Max(0.f, sum_fixed_width - column_gap);
+		const float padding_border_sum =
+			Math::Max(0.0f, ResolveValue(computed.padding_left, table_content_width)) +
+			Math::Max(0.0f, ResolveValue(computed.padding_right, table_content_width)) +
+			Math::Max(0.0f, computed.border_left_width) +
+			Math::Max(0.0f, computed.border_right_width);
 
-		const float available_flex_width = table_content_width - sum_fixed_width;
-		const float fr_to_px_ratio = available_flex_width / sum_flex_width;
+		ColumnMetric column_metric;
 
-		return fr_to_px_ratio;
-	};
+		// Find the min/max width.
+		column_metric.min_width = ResolveValue(computed.min_width, table_content_width);
+		column_metric.max_width = (computed.max_width.value < 0.f ? FLT_MAX : ResolveValue(computed.max_width, table_content_width));
+
+		if (computed.box_sizing == Style::BoxSizing::ContentBox)
+		{
+			if (column_metric.min_width > 0)
+				column_metric.min_width += padding_border_sum;
+			if (column_metric.max_width < FLT_MAX)
+				column_metric.max_width += padding_border_sum;
+		}
+
+		if (computed.width.type == Style::Width::Auto)
+		{
+			column_metric.flex_width = 1;
+		}
+		else
+		{
+			float width = ResolveValue(computed.width, table_content_width);
+			
+			if (computed.box_sizing == Style::BoxSizing::ContentBox)
+				width += padding_border_sum;
+
+			column_metric.fixed_width = Math::Clamp(width, column_metric.min_width, column_metric.max_width);
+			column_metric.has_fixed_size = true;
+		}
+
+		const int colspan = Math::Max(1, element->GetAttribute("colspan", 1));
+
+		if (colspan > 1)
+		{
+			const float width_factor = 1.f / float(colspan);
+			column_metric.fixed_width *= width_factor;
+			column_metric.min_width *= width_factor;
+			column_metric.max_width *= width_factor;
+		}
+
+		for (int j = 0; j < colspan; j++)
+		{
+			if (j + column < (int)column_metrics.size())
+			{
+				ColumnMetric& destination = column_metrics[j + column];
+
+				if (!destination.has_fixed_size && column_metric.has_fixed_size)
+				{
+					destination.fixed_width = column_metric.fixed_width;
+					destination.has_fixed_size = true;
+				}
+
+				if (destination.min_width == 0)
+					destination.min_width = column_metric.min_width;
+
+				if (destination.max_width == FLT_MAX)
+					destination.max_width = column_metric.max_width;
+			}
+			else
+			{
+				column_metrics.emplace_back(column_metric);
+			}
+		}
+
+		column += colspan;
+	}
 
 
+	if (column_metrics.empty())
+	{
+		Log::Message(Log::LT_WARNING, "No columns or rows in table %s", element_table->GetAddress().c_str());
+		// TODO: Handle this more gracefully.
+		return Columns();
+	}
+
+	sum_fixed_spacing += column_gap * float((int)column_metrics.size() - 1);
+
+	// Now all the widths are determined in terms of fixed or flexible widths.
+	// Next, convert any flexible widths to fixed widths by filling up the table width.
 	for (bool continue_iteration = true; continue_iteration; )
 	{
 		continue_iteration = false;
-		const float fr_to_px_ratio = calculate_fr_to_px_ratio();
+		float fr_to_px_ratio = 0;
 
-		for (auto& metric : cell_metrics)
+		// Calculate the fr/px-ratio.
+		{
+			float sum_fixed_width = sum_fixed_spacing;  // [px]
+			float sum_flex_width = 0;                   // [fr]
+
+			for (const ColumnMetric& metric : column_metrics)
+			{
+				sum_flex_width += metric.flex_width;
+				sum_fixed_width += (metric.flex_width == 0.f ? metric.fixed_width : 0.0f);
+			}
+
+			sum_flex_width = Math::Max(1.f, sum_flex_width);
+
+			const float available_flex_width = Math::Max(0.0f, table_content_width - sum_fixed_width);
+			fr_to_px_ratio = available_flex_width / sum_flex_width;
+		}
+
+		// Iterate through the columns and convert flexible widths to fixed widths.
+		for (auto& metric : column_metrics)
 		{
 			if (metric.flex_width > 0)
 			{
 				const float fixed_flex_width = metric.flex_width * fr_to_px_ratio;
-				metric.fixed_content_width = Math::Clamp(fixed_flex_width, metric.min_content_width, metric.max_content_width);
+				metric.fixed_width = Math::Clamp(fixed_flex_width, metric.min_width, metric.max_width);
 
-				if (metric.fixed_content_width != fixed_flex_width)
+				if (metric.fixed_width != fixed_flex_width)
 				{
-					// We met a min/max-constraint, fix the size of this column.
+					// We met a min/max-constraint, fix the size of this column. Start over with the procedure once we are done with all the columns.
 					metric.flex_width = 0.0f;
 					continue_iteration = true;
 				}
@@ -454,16 +569,40 @@ LayoutTable::ColumnWidths LayoutTable::DetermineColumnWidths(Element* element_ta
 		}
 	}
 
-	column_widths.resize(cell_metrics.size());
+	// Fill in the resulting columns.
+	Columns columns;
+	columns.resize(column_metrics.size());
+	float cursor_x = 0;
 
-	for (size_t i = 0; i < cell_metrics.size(); i++)
+	for (size_t i = 0; i < column_metrics.size(); i++)
 	{
-		column_widths[i] = cell_metrics[i].fixed_content_width + cell_metrics[i].padding_border_edges_width;
+		Column& col = columns[i];
+		const ColumnMetric& metric = column_metrics[i];
+		col.element_column = metric.element_column;
+		col.cell_width = metric.fixed_width;
+		col.cell_offset = cursor_x + metric.column_padding_border_left;
+		col.column_width = col.cell_width; // Column content width is the cell border width, unless there is a spanning column element (see next loop).
+		col.column_offset = cursor_x;
+
+		cursor_x += metric.fixed_width + metric.column_padding_border_left + metric.column_padding_border_right + column_gap;
+	}
+
+	// Extend column widths to cover multiple columns for spanning column elements.
+	for (size_t i = 0; i < column_metrics.size(); i++)
+	{
+		const ColumnMetric& metric = column_metrics[i];
+
+		if (metric.column_span > 1 && metric.element_column && i + metric.column_span - 1 < column_metrics.size())
+		{
+			Column& col = columns[i];
+			Column& col_last_span = columns[i + metric.column_span - 1];
+			col.column_width = col_last_span.cell_width + (col_last_span.cell_offset - col.cell_offset);
+		}
 	}
 
 	// TODO: What to do with any left-over space? Distribute evenly across columns, or make table smaller etc.
 
-	return column_widths;
+	return columns;
 }
 
 } // namespace Rml
