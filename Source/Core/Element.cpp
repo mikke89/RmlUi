@@ -1651,6 +1651,18 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		meta->style.SetClassNames(it->second.Get<String>());
 	}
 
+	if (changed_attributes.count("colspan") || changed_attributes.count("rowspan"))
+	{
+		if (meta->computed_values.display == Style::Display::TableCell)
+			DirtyLayout();
+	}
+
+	if (changed_attributes.count("span"))
+	{
+		if (meta->computed_values.display == Style::Display::TableColumn)
+			DirtyLayout();
+	}
+
 	it = changed_attributes.find("style");
 	if (it != changed_attributes.end())
 	{
