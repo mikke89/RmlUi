@@ -201,8 +201,8 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 			if (clipping_element->GetClientWidth() < clipping_element->GetScrollWidth()
 				|| clipping_element->GetClientHeight() < clipping_element->GetScrollHeight())
 			{
-				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(Box::CONTENT);
-				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(Box::CONTENT);
+				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(Box::PADDING);
+				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(Box::PADDING);
 				
 				Vector2i element_origin(Math::RealToInteger(element_origin_f.x), Math::RealToInteger(element_origin_f.y));
 				Vector2i element_dimensions(Math::RealToInteger(element_dimensions_f.x), Math::RealToInteger(element_dimensions_f.y));
