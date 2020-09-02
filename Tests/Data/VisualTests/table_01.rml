@@ -73,7 +73,7 @@
 	<tr>
 		<td rowspan="2" colspan="2">Hello</td>
 		<td>Whoop!</td>
-		<td>World<br/>Hi!</td>
+		<td>World Hi!</td>
 	</tr>
 	<tr>
 		<td colspan="2">World<br/>Hi!</td>

@@ -49,7 +49,8 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 		ResolveValue(computed_table.row_gap, content_containing_block.y)
 	);
 
-	Vector<Column> columns = DetermineColumnWidths(element_table, content_containing_block.x, table_gap.x);
+	Vector2f table_resulting_content_size = content_containing_block;
+	Vector<Column> columns = DetermineColumnWidths(element_table, table_gap.x, table_resulting_content_size.x);
 
 	// Now that we have the size of each column, we can move on to formatting the elements.
 	// After we format and size an element, we record its height as well, and keep the maximum_height over all cells in the current row.
@@ -296,7 +297,7 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 			cell.rows_accumulated_height += row_bottom_offset;
 	}
 
-	const float table_content_height = table_cursor.y - content_top_left.y;
+	table_resulting_content_size.y = table_cursor.y - content_top_left.y;
 
 	// Size and position the column elements.
 	for (const Column& column : columns)
@@ -305,11 +306,16 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 		{
 			Box box;
 			LayoutDetails::BuildBox(box, content_containing_block, element, false, 0.0f);
-			box.SetContent(Vector2f(column.column_width, table_content_height));
+			box.SetContent(Vector2f(column.column_width, table_resulting_content_size.y));
 			element->SetBox(box);
 
 			element->SetOffset(content_top_left + Vector2f(column.column_offset, 0.0f), element_table);
 		}
+	}
+
+	if (table_resulting_content_size != content_containing_block)
+	{
+		table_block_context_box->GetBox().SetContent(table_resulting_content_size);
 	}
 
 	table_block_context_box->ExtendInnerContentSize(table_content_overflow_size);
@@ -319,7 +325,7 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 }
 
 
-LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_table, const float table_content_width, const float column_gap)
+LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_table, const float column_gap, float& table_content_width)
 {
 	// The column widths are determined entirely by any <col> elements preceding the first row, and <td> elements in the first row.
 	// If <col> has a fixed width, that is used. Otherwise, if <td> has a fixed width, that is used. Otherwise the column is 'flexible' width.
@@ -532,6 +538,7 @@ LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_t
 	for (bool continue_iteration = true; continue_iteration; )
 	{
 		continue_iteration = false;
+		float table_available_width = 0.0f;
 		float fr_to_px_ratio = 0;
 
 		// Calculate the fr/px-ratio.
@@ -547,8 +554,8 @@ LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_t
 
 			sum_flex_width = Math::Max(1.f, sum_flex_width);
 
-			const float available_flex_width = Math::Max(0.0f, table_content_width - sum_fixed_width);
-			fr_to_px_ratio = available_flex_width / sum_flex_width;
+			table_available_width = table_content_width - sum_fixed_width;
+			fr_to_px_ratio = Math::Max(0.0f, table_available_width) / sum_flex_width;
 		}
 
 		// Iterate through the columns and convert flexible widths to fixed widths.
@@ -558,12 +565,51 @@ LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_t
 			{
 				const float fixed_flex_width = metric.flex_width * fr_to_px_ratio;
 				metric.fixed_width = Math::Clamp(fixed_flex_width, metric.min_width, metric.max_width);
+				table_available_width -= metric.fixed_width;
 
 				if (metric.fixed_width != fixed_flex_width)
 				{
 					// We met a min/max-constraint, fix the size of this column. Start over with the procedure once we are done with all the columns.
 					metric.flex_width = 0.0f;
 					continue_iteration = true;
+				}
+			}
+		}
+
+		// If we have distributed all the flexible space, and there is still space available, then distribute the available space over the column widths while respecting max-widths.
+		if (!continue_iteration && table_available_width > 0.5f)
+		{
+			const int num_columns = (int)column_metrics.size();
+
+			struct ColumnAvailableWidth {
+				int column;
+				float available_width;
+			};
+			Vector<ColumnAvailableWidth> col_available_widths(num_columns);
+
+			for (int i = 0; i < num_columns; i++)
+			{
+				col_available_widths[i].column = i;
+				col_available_widths[i].available_width = column_metrics[i].max_width - column_metrics[i].fixed_width;
+			}
+
+			// Sort the columns by available width, smallest to largest. This lets us "fill up" the most constrained columns first.
+			std::sort(col_available_widths.begin(), col_available_widths.end(), [](const ColumnAvailableWidth& c1, const ColumnAvailableWidth& c2) {
+				return c1.available_width < c2.available_width;
+			});
+
+			for (int i = 0; i < num_columns; i++)
+			{
+				const int column = col_available_widths[i].column;
+				const int num_columns_remaining = num_columns - i;
+
+				const float ideal_add_column_width = table_available_width / float(num_columns_remaining);
+				const float add_column_width = Math::Min(ideal_add_column_width, col_available_widths[i].available_width);
+
+				if (add_column_width > 0)
+				{
+					column_metrics[column].fixed_width += add_column_width;
+					table_available_width = Math::Max(0.0f, table_available_width - add_column_width);
 				}
 			}
 		}
@@ -584,8 +630,15 @@ LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_t
 		col.column_width = col.cell_width; // Column content width is the cell border width, unless there is a spanning column element (see next loop).
 		col.column_offset = cursor_x;
 
-		cursor_x += metric.fixed_width + metric.column_padding_border_left + metric.column_padding_border_right + column_gap;
+		cursor_x += metric.fixed_width + metric.column_padding_border_left + metric.column_padding_border_right;
+		if (i != column_metrics.size() - 1)
+			cursor_x += column_gap;
 	}
+	
+	// Extend the table content width if the summed column widths and spacing is larger. Include some margin for floating-point imprecision.
+	// TODO: What if the content width is smaller? (This could possibly happen if all columns have a max-width)
+	if (cursor_x > table_content_width + 0.5f)
+		table_content_width = cursor_x;
 
 	// Extend column widths to cover multiple columns for spanning column elements.
 	for (size_t i = 0; i < column_metrics.size(); i++)
@@ -599,8 +652,6 @@ LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_t
 			col.column_width = col_last_span.cell_width + (col_last_span.cell_offset - col.cell_offset);
 		}
 	}
-
-	// TODO: What to do with any left-over space? Distribute evenly across columns, or make table smaller etc.
 
 	return columns;
 }

@@ -57,7 +57,7 @@ private:
 	};
 	using Columns = Vector<Column>;
 
-	static Columns DetermineColumnWidths(Element* element_table, float table_content_width, float column_gap);
+	static Columns DetermineColumnWidths(Element* element_table, float column_gap, float& table_content_width);
 };
 
 } // namespace Rml
