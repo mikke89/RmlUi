@@ -95,6 +95,10 @@ These changes may result in a differently rendered layout when upgrading to RmlU
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
 - Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
 
+### Bug fixes
+
+- Fix some situations where `text-decoration` would not be rendered. [#119](https://github.com/mikke89/RmlUi/issues/119).
+
 ### Breaking changes
 
 - Namespaces and plugin names changed! See the restructuring changes above.

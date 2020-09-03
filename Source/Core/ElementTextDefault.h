@@ -103,8 +103,8 @@ private:
 	void GenerateGeometry(const FontFaceHandle font_face_handle);
 	// Generates the geometry for a single line of text.
 	void GenerateGeometry(const FontFaceHandle font_face_handle, Line& line);
-	// Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).
-	void GenerateLineDecoration(const FontFaceHandle font_face_handle, const Line& line);
+	// Generates any geometry necessary for rendering decoration (underline, strike-through, etc).
+	void GenerateDecoration(const FontFaceHandle font_face_handle);
 
 	String text;
 

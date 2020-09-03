@@ -102,7 +102,18 @@ void ElementTextDefault::OnRender()
 	if (geometry_dirty)
 		GenerateGeometry(font_face_handle);
 
-	Vector2f translation = GetAbsoluteOffset();
+	// Regenerate text decoration if necessary.
+	if (decoration_property != generated_decoration)
+	{
+		decoration.Release(true);
+
+		if (decoration_property != Style::TextDecoration::None)
+			GenerateDecoration(font_face_handle);
+
+		generated_decoration = decoration_property;
+	}
+
+	const Vector2f translation = GetAbsoluteOffset();
 	
 	bool render = true;
 	Vector2i clip_origin;
@@ -135,8 +146,6 @@ void ElementTextDefault::OnRender()
 			}
 		}
 	}
-
-	translation = translation.Round();
 	
 	if (render)
 	{
@@ -306,6 +315,7 @@ void ElementTextDefault::ClearLines()
 		geometry[i].Release(true);
 
 	lines.clear();
+	generated_decoration = Style::TextDecoration::None;
 	decoration.Release(true);
 }
 
@@ -373,22 +383,6 @@ void ElementTextDefault::OnPropertyChange(const PropertyIdSet& changed_propertie
 	if (changed_properties.Contains(PropertyId::TextDecoration))
 	{
 		decoration_property = computed.text_decoration;
-		if (decoration_property != Style::TextDecoration::None)
-		{
-			if (decoration_property != generated_decoration)
-			{
-				decoration.Release(true);
-
-				FontFaceHandle font_face_handle = GetFontFaceHandle();
-				if (font_face_handle != 0)
-				{
-					for (size_t i = 0; i < lines.size(); ++i)
-						GenerateLineDecoration(font_face_handle, lines[i]);
-				}
-
-				generated_decoration = decoration_property;
-			}
-		}
 	}
 
 	if (font_face_changed)
@@ -459,6 +453,9 @@ void ElementTextDefault::GenerateGeometry(const FontFaceHandle font_face_handle)
 	for (size_t i = 0; i < lines.size(); ++i)
 		GenerateGeometry(font_face_handle, lines[i]);
 
+	decoration.Release(true);
+	generated_decoration = Style::TextDecoration::None;
+
 	geometry_dirty = false;
 }
 
@@ -467,17 +464,15 @@ void ElementTextDefault::GenerateGeometry(const FontFaceHandle font_face_handle,
 	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, geometry);
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].SetHostElement(this);
-
-	if (decoration_property != Style::TextDecoration::None)
-		GenerateLineDecoration(font_face_handle, line);
 }
 
 // Generates any geometry necessary for rendering a line decoration (underline, strike-through, etc).
-void ElementTextDefault::GenerateLineDecoration(const FontFaceHandle font_face_handle, const Line& line)
+void ElementTextDefault::GenerateDecoration(const FontFaceHandle font_face_handle)
 {
 	RMLUI_ZoneScopedC(0xA52A2A);
 	
-	GeometryUtilities::GenerateLine(font_face_handle, &decoration, line.position, line.width, decoration_property, colour);
+	for(const Line& line : lines)
+		GeometryUtilities::GenerateLine(font_face_handle, &decoration, line.position, line.width, decoration_property, colour);
 }
 
 static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation, bool decode_escape_characters)
