@@ -66,33 +66,6 @@
 
 namespace Rml {
 
-/**
-	STL function object for sorting elements by z-type (ie, float-types before general types, etc).
-	@author Peter Curry
- */
-class ElementSortZOrder
-{
-public:
-	bool operator()(const Pair< Element*, float >& lhs, const Pair< Element*, float >& rhs) const
-	{
-		return lhs.second < rhs.second;
-	}
-};
-
-/**
-	STL function object for sorting elements by z-index property.
-	@author Peter Curry
- */
-class ElementSortZIndex
-{
-public:
-	bool operator()(const Element* lhs, const Element* rhs) const
-	{
-		// Check the z-index.
-		return lhs->GetZIndex() < rhs->GetZIndex();
-	}
-};
-
 // Determines how many levels up in the hierarchy the OnChildAdd and OnChildRemove are called (starting at the child itself)
 static constexpr int ChildNotifyLevels = 2;
 
@@ -2162,7 +2135,7 @@ void Element::BuildLocalStackingContext()
 	stacking_context.clear();
 
 	BuildStackingContext(&stacking_context);
-	std::stable_sort(stacking_context.begin(), stacking_context.end(), ElementSortZIndex());
+	std::stable_sort(stacking_context.begin(), stacking_context.end(), [](const Element* lhs, const Element* rhs) { return lhs->GetZIndex() < rhs->GetZIndex(); });
 }
 
 void Element::BuildStackingContext(ElementList* new_stacking_context)
@@ -2172,52 +2145,93 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 	// Build the list of ordered children. Our child list is sorted within the stacking context so stacked elements
 	// will render in the right order; ie, positioned elements will render on top of inline elements, which will render
 	// on top of floated elements, which will render on top of block elements.
-	Vector< Pair< Element*, float > > ordered_children;
-	for (size_t i = 0; i < children.size(); ++i)
+
+	enum class RenderOrder { Block, TableColumn, TableRow, TableCell, Inline, Floating, Positioned };
+
+	struct OrderedChild {
+		Element* element;
+		RenderOrder order;
+		bool include_children;
+	};
+	Vector< OrderedChild > ordered_children;
+	
+	const size_t num_children = children.size();
+	ordered_children.reserve(num_children);
+
+	const Style::Display current_display = GetDisplay();
+
+	for (size_t i = 0; i < num_children; ++i)
 	{
 		Element* child = children[i].get();
 
 		if (!child->IsVisible())
 			continue;
 
-		Pair< Element*, float > ordered_child;
-		ordered_child.first = child;
+		ordered_children.emplace_back();
+		OrderedChild& ordered_child = ordered_children.back();
 
-		if (child->GetPosition() != Style::Position::Static)
-			ordered_child.second = 3;
-		else if (child->GetFloat() != Style::Float::None)
-			ordered_child.second = 1;
-		else if (child->GetDisplay() == Style::Display::Block)
-			ordered_child.second = 0;
+		ordered_child.element = child;
+		ordered_child.order = RenderOrder::Inline;
+		ordered_child.include_children = !child->local_stacking_context;
+
+		const Style::Display child_display = child->GetDisplay();
+
+		if (current_display != Style::Display::Table)
+		{
+			if (child->GetPosition() != Style::Position::Static)
+				ordered_child.order = RenderOrder::Positioned;
+			else if (child->GetFloat() != Style::Float::None)
+				ordered_child.order = RenderOrder::Floating;
+			else if (child_display == Style::Display::Block || child_display == Style::Display::Table)
+				ordered_child.order = RenderOrder::Block;
+			else
+				ordered_child.order = RenderOrder::Inline;
+		}
 		else
-			ordered_child.second = 2;
+		{
+			// Tables always render columns first, then rows, then cells. Cells are treated as if they were direct descendents of the table.
+			if (child_display == Style::Display::TableColumn)
+			{
+				ordered_child.order = RenderOrder::TableColumn;
+				ordered_child.include_children = false;
+			}
+			else if (child_display == Style::Display::TableRow)
+			{
+				ordered_child.order = RenderOrder::TableRow;
+				ordered_child.include_children = false;
 
-		ordered_children.push_back(ordered_child);
+				for (const ElementPtr& row_child : child->children)
+				{
+					if (row_child->IsVisible() && row_child->GetDisplay() == Style::Display::TableCell)
+						ordered_children.emplace_back(OrderedChild{ row_child.get(), RenderOrder::TableCell, !row_child->local_stacking_context });
+				}
+			}
+		}
 	}
 
 	// Sort the list!
-	std::stable_sort(ordered_children.begin(), ordered_children.end(), ElementSortZOrder());
+	std::stable_sort(ordered_children.begin(), ordered_children.end(), [](const OrderedChild& lhs, const OrderedChild& rhs) { return int(lhs.order) < int(rhs.order); });
 
 	// Add the list of ordered children into the stacking context in order.
 	for (size_t i = 0; i < ordered_children.size(); ++i)
 	{
-		new_stacking_context->push_back(ordered_children[i].first);
+		new_stacking_context->push_back(ordered_children[i].element);
 
-		if (!ordered_children[i].first->local_stacking_context)
-			ordered_children[i].first->BuildStackingContext(new_stacking_context);
+		if (ordered_children[i].include_children)
+			ordered_children[i].element->BuildStackingContext(new_stacking_context);
 	}
 }
 
 void Element::DirtyStackingContext()
 {
-	// The first ancestor of ours that doesn't have an automatic z-index is the ancestor that is establishing our local
-	// stacking context.
+	// Find the first ancestor that has a local stacking context, that is our stacking context parent.
 	Element* stacking_context_parent = this;
-	while (stacking_context_parent != nullptr &&
-		   !stacking_context_parent->local_stacking_context)
+	while (stacking_context_parent && !stacking_context_parent->local_stacking_context)
+	{
 		stacking_context_parent = stacking_context_parent->GetParentNode();
+	}
 
-	if (stacking_context_parent != nullptr)
+	if (stacking_context_parent)
 		stacking_context_parent->stacking_context_dirty = true;
 }
 

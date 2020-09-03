@@ -27,10 +27,13 @@
 			border: 5px #666;
 			gap: 10px 2%;
 			height: 50%;
+			padding-left: 5px;
+			padding-right: 20px;
 		}
 		col {
 			box-sizing: border-box;
 			display: table-column;
+			background: #aac;
 			border-left: 2px #e3e;
 			border-right: 5px #3ce;
 			margin: 15px 0;
@@ -44,8 +47,8 @@
 		tr {
 			box-sizing: border-box;
 			display: table-row;
-			border-bottom: 5px #ec3;
-			/*background: #3cc;*/
+			border-top: 5px #ec3;
+			background: #acc;
 			padding-top: 5px;
 			padding-bottom: 15px;
 			margin: 10px 20px;
