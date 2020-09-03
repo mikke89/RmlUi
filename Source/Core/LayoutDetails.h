@@ -64,15 +64,25 @@ public:
 	/// Clamps the width of an element based from its min-width and max-width properties.
 	/// @param[in] width The width to clamp.
 	/// @param[in] element The element to read the properties from.
+	/// @param[in] box The box to base the calculations on.
 	/// @param[in] containing_block_width The width of the element's containing block.
 	/// @return The clamped width.
 	static float ClampWidth(float width, const ComputedValues& computed, const Box& box, float containing_block_width);
 	/// Clamps the height of an element based from its min-height and max-height properties.
 	/// @param[in] height The height to clamp.
 	/// @param[in] element The element to read the properties from.
+	/// @param[in] box The box to base the calculations on.
 	/// @param[in] containing_block_height The height of the element's containing block.
 	/// @return The clamped height.
 	static float ClampHeight(float height, const ComputedValues& computed, const Box& box, float containing_block_height);
+
+	/// Retrieves the minimum and maximum height of an element's box.
+	/// @param[out] min_height The minimum height of the element's box.
+	/// @param[out] max_height The maximum height of the element's box.
+	/// @param[in] computed The computed values to get the min/max-height values, or nullptr.
+	/// @param[in] box The box to base the calculations on.
+	/// @param[in] containing_block_height The height of the element's containing block.
+	static void GetMinMaxHeight(float& min_height, float& max_height, const ComputedValues* computed, const Box& box, float containing_block_height);
 
 	/// Returns the fully-resolved, fixed-width and -height containing block from a block box.
 	/// @param[in] containing_box The leaf box.

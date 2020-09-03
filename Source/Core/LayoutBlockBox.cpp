@@ -40,7 +40,8 @@
 namespace Rml {
 
 // Creates a new block box for rendering a block element.
-LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, float override_shrink_to_fit_width) : position(0), visible_outer_width(0)
+LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, const Box& _box, float _min_height, float _max_height) 
+	: position(0), visible_outer_width(0), box(_box), min_height(_min_height), max_height(_max_height)
 {
 	RMLUI_ZoneScoped;
 
@@ -57,38 +58,33 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, float
 	vertical_overflow = false;
 
 	// Get our offset root from our parent, if it has one; otherwise, our element is the offset parent.
-	if (parent != nullptr &&
-		parent->offset_root->GetElement() != nullptr)
+	if (parent && parent->offset_root->GetElement())
 		offset_root = parent->offset_root;
 	else
 		offset_root = this;
 
 	// Determine the offset parent for this element.
 	const LayoutBlockBox* self_offset_parent;
-	if (parent != nullptr &&
-		parent->offset_parent->GetElement() != nullptr)
+	if (parent && parent->offset_parent->GetElement())
 		self_offset_parent = parent->offset_parent;
 	else
 		self_offset_parent = this;
 
 	// Determine the offset parent for our children.
-	if (parent != nullptr &&
-		parent->offset_parent->GetElement() != nullptr &&
-		(element == nullptr || element->GetPosition() == Style::Position::Static))
+	if (parent &&
+		parent->offset_parent->GetElement() &&
+		(!element || element->GetPosition() == Style::Position::Static))
 		offset_parent = parent->offset_parent;
 	else
 		offset_parent = this;
 
 	// Build the box for our element, and position it if we can.
-	if (parent != nullptr)
+	if (parent)
 	{
 		space->ImportSpace(*parent->space);
 
-		// Build our box if possible; if not, it will have to be set up manually.
-		LayoutDetails::BuildBox(box, min_height, max_height, parent, element, false, override_shrink_to_fit_width);
-
 		// Position ourselves within our containing block (if we have a valid offset parent).
-		if (parent->GetElement() != nullptr)
+		if (parent->GetElement())
 		{
 			if (self_offset_parent != this)
 			{
@@ -101,7 +97,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, float
 		}
 	}
 
-	if (element != nullptr)
+	if (element)
 	{
 		const auto& computed = element->GetComputedValues();
 		wrap_content = computed.white_space != Style::WhiteSpace::Nowrap;
@@ -131,6 +127,8 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, float
 // Creates a new block box in an inline context.
 LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent) : position(-1, -1)
 {
+	RMLUI_ASSERT(_parent);
+
 	parent = _parent;
 	offset_parent = parent->offset_parent;
 	offset_root = parent->offset_root;
@@ -147,9 +145,9 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent) : position(-1, -1)
 	box_cursor = 0;
 	vertical_overflow = false;
 
-	LayoutDetails::BuildBox(box, min_height, max_height, parent, nullptr, false);
+	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent);
+	box.SetContent(Vector2f(containing_block.x, -1));
 	parent->PositionBlockBox(position, box, Style::Clear::None);
-	box.SetContent(Vector2f(box.GetSize(Box::CONTENT).x, -1));
 
 	// Reset the min and max heights; they're not valid for inline block boxes.
 	min_height = 0;
@@ -282,7 +280,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		}
 
 		// Set the baseline for inline-block elements to the baseline of the last line of the element.
-		// This is a special rule for inline-blocks (see CSS 2.1 §10.8.1).
+		// This is a special rule for inline-blocks (see CSS 2.1 Sec. 10.8.1).
 		if (element->GetDisplay() == Style::Display::InlineBlock)
 		{
 			bool found_baseline = false;
@@ -359,7 +357,7 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, UniquePtr<La
 }
 
 // Adds a new block element to this block box.
-LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, float override_shrink_to_fit_width)
+LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, const Box& box, float min_height, float max_height)
 {
 	RMLUI_ZoneScoped;
 
@@ -392,7 +390,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, float override
 		}
 	}
 
-	block_boxes.push_back(MakeUnique<LayoutBlockBox>(this, element, override_shrink_to_fit_width));
+	block_boxes.push_back(MakeUnique<LayoutBlockBox>(this, element, box, min_height, max_height));
 	return block_boxes.back().get();
 }
 

@@ -49,18 +49,27 @@ struct LayoutChunk
 static Pool< LayoutChunk > layout_chunk_pool(200, true);
 
 // Formats the contents for a root-level element (usually a document or floating element).
-void LayoutEngine::FormatElement(Element* element, Vector2f containing_block)
+void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box)
 {
+	RMLUI_ASSERT(element);
 #ifdef RMLUI_ENABLE_PROFILING
 	RMLUI_ZoneScopedC(0xB22222);
 	auto name = CreateString(80, "%s %x", element->GetAddress(false, false).c_str(), element);
 	RMLUI_ZoneName(name.c_str(), name.size());
 #endif
 
-	LayoutBlockBox containing_block_box(nullptr, nullptr);
-	containing_block_box.GetBox().SetContent(containing_block);
+	LayoutBlockBox containing_block_box(nullptr, nullptr, Box(containing_block), 0.0f, FLT_MAX);
 
-	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element);
+	Box box;
+	if (override_initial_box)
+		box = *override_initial_box;
+	else
+		LayoutDetails::BuildBox(box, containing_block, element, false);
+
+	float min_height, max_height;
+	LayoutDetails::GetMinMaxHeight(min_height, max_height, &element->GetComputedValues(), box, containing_block.y);
+
+	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element, box, min_height, max_height);
 
 	for (int layout_iteration = 0; layout_iteration < 2; layout_iteration++)
 	{
@@ -129,10 +138,10 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 	// The element is nothing exceptional, so we treat it as a normal block, inline or replaced element.
 	switch (computed.display)
 	{
-		case Style::Display::Block:       return FormatElementBlock(block_context_box, element); break;
-		case Style::Display::Inline:      return FormatElementInline(block_context_box, element); break;
-		case Style::Display::InlineBlock: return FormatElementInlineBlock(block_context_box, element); break;
-		default: RMLUI_ERROR;
+		case Style::Display::Block:       return FormatElementBlock(block_context_box, element);
+		case Style::Display::Inline:      return FormatElementInline(block_context_box, element);
+		case Style::Display::InlineBlock: return FormatElementInlineBlock(block_context_box, element);
+		case Style::Display::None:        RMLUI_ERROR; /* handled above */ break;
 	}
 
 	return true;
@@ -143,7 +152,11 @@ bool LayoutEngine::FormatElementBlock(LayoutBlockBox* block_context_box, Element
 {
 	RMLUI_ZoneScopedC(0x2F4F4F);
 
-	LayoutBlockBox* new_block_context_box = block_context_box->AddBlockElement(element);
+	Box box;
+	float min_height, max_height;
+	LayoutDetails::BuildBox(box, min_height, max_height, block_context_box, element, false);
+
+	LayoutBlockBox* new_block_context_box = block_context_box->AddBlockElement(element, box, min_height, max_height);
 	if (new_block_context_box == nullptr)
 		return false;
 
@@ -190,9 +203,10 @@ bool LayoutEngine::FormatElementInline(LayoutBlockBox* block_context_box, Elemen
 {
 	RMLUI_ZoneScopedC(0x3F6F6F);
 
+	const Vector2f containing_block = LayoutDetails::GetContainingBlock(block_context_box);
+
 	Box box;
-	float min_height, max_height;
-	LayoutDetails::BuildBox(box, min_height, max_height, block_context_box, element, true);
+	LayoutDetails::BuildBox(box, containing_block, element, true);
 	LayoutInlineBox* inline_box = block_context_box->AddInlineElement(element, box);
 
 	// Format the element's children.

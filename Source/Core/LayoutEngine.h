@@ -30,6 +30,7 @@
 #define RMLUI_CORE_LAYOUTENGINE_H
 
 #include "LayoutBlockBox.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
@@ -43,10 +44,10 @@ class LayoutEngine
 {
 public:
 	/// Formats the contents for a root-level element (usually a document, floating or replaced element). Establishes a new block formatting context.
-	/// @param element[in] The element to lay out.
-	/// @param containing_block[in] The size of the containing block.
-	/// @param shrink_to_fit[in] True to shrink the element to the width of its contents.
-	static void FormatElement(Element* element, Vector2f containing_block);
+	/// @param[in] element The element to lay out.
+	/// @param[in] containing_block The size of the containing block.
+	/// @param[in] override_initial_box Optional pointer to a box to override the generated box for the element.
+	static void FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box = nullptr);
 
 	/// Positions a single element and its children within a block formatting context.
 	/// @param[in] block_context_box The open block box to layout the element in.

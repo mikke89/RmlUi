@@ -61,8 +61,10 @@ public:
 	/// Creates a new block box for rendering a block element.
 	/// @param parent[in] The parent of this block box. This will be nullptr for the root element.
 	/// @param element[in] The element this block box is laying out.
-	/// @param override_shrink_to_fit_width[in] Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
-	LayoutBlockBox(LayoutBlockBox* parent, Element* element, float override_shrink_to_fit_width = -1);
+	/// @param box[in] The box used for this block box.
+	/// @param min_height[in] The minimum height of the content box.
+	/// @param max_height[in] The maximum height of the content box.
+	LayoutBlockBox(LayoutBlockBox* parent, Element* element, const Box& box, float min_height, float max_height);
 	/// Creates a new block box in an inline context.
 	/// @param parent[in] The parent of this block box.
 	LayoutBlockBox(LayoutBlockBox* parent);
@@ -87,10 +89,11 @@ public:
 
 	/// Adds a new block element to this block-context box.
 	/// @param element[in] The new block element.
-	/// @param placed[in] True if the element is to be placed, false otherwise.
-	/// @param override_shrink_to_fit_width[in] Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
+	/// @param box[in] The box used for the new block box.
+	/// @param min_height[in] The minimum height of the content box.
+	/// @param max_height[in] The maximum height of the content box.
 	/// @return The block box representing the element. Once the element's children have been positioned, Close() must be called on it.
-	LayoutBlockBox* AddBlockElement(Element* element, float override_shrink_to_fit_width = -1);
+	LayoutBlockBox* AddBlockElement(Element* element, const Box& box, float min_height, float max_height);
 	/// Adds a new inline element to this inline-context box.
 	/// @param element[in] The new inline element.
 	/// @param box[in] The box defining the element's bounds.
@@ -153,10 +156,8 @@ public:
 
 
 	/// Returns the block box's dimension box.
-	/// @return The block box's dimension box.
 	Box& GetBox();
 	/// Returns the block box's dimension box.
-	/// @return The block box's dimension box.
 	const Box& GetBox() const;
 
 	void* operator new(size_t size);

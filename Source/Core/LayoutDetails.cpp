@@ -150,27 +150,11 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 // Generates the box for an element placed in a block box.
 void LayoutDetails::BuildBox(Box& box, float& min_height, float& max_height, LayoutBlockBox* containing_box, Element* element, bool inline_element, float override_shrink_to_fit_width)
 {
-	Vector2f containing_block = GetContainingBlock(containing_box);
+	Vector2f containing_block = LayoutDetails::GetContainingBlock(containing_box);
+
 	BuildBox(box, containing_block, element, inline_element, override_shrink_to_fit_width);
 
-	float box_height = box.GetSize().y;
-	if (box_height < 0 && element)
-	{
-		auto& computed = element->GetComputedValues();
-		min_height = ResolveValue(computed.min_height, containing_block.y);
-		max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveValue(computed.max_height, containing_block.y));
-
-		if (computed.box_sizing == Style::BoxSizing::BorderBox)
-		{
-			min_height = BorderHeightToContentHeight(min_height, box);
-			max_height = BorderHeightToContentHeight(max_height, box);
-		}
-	}
-	else
-	{
-		min_height = box_height;
-		max_height = box_height;
-	}
+	GetMinMaxHeight(min_height, max_height, (element ? &element->GetComputedValues() : nullptr), box, containing_block.y);
 }
 
 // Clamps the width of an element based from its min-width and max-width properties.
@@ -203,9 +187,33 @@ float LayoutDetails::ClampHeight(float height, const ComputedValues& computed, c
 	return Math::Clamp(height, min_height, max_height);
 }
 
+// Generates the box for an element placed in a block box.
+void LayoutDetails::GetMinMaxHeight(float& min_height, float& max_height, const ComputedValues* computed, const Box& box, float containing_block_height)
+{
+	const float box_height = box.GetSize().y;
+	if (box_height < 0 && computed)
+	{
+		min_height = ResolveValue(computed->min_height, containing_block_height);
+		max_height = (computed->max_height.value < 0.f ? FLT_MAX : ResolveValue(computed->max_height, containing_block_height));
+
+		if (computed->box_sizing == Style::BoxSizing::BorderBox)
+		{
+			min_height = BorderHeightToContentHeight(min_height, box);
+			max_height = BorderHeightToContentHeight(max_height, box);
+		}
+	}
+	else
+	{
+		min_height = box_height;
+		max_height = box_height;
+	}
+}
+
 // Returns the fully-resolved, fixed-width and -height containing block from a block box.
 Vector2f LayoutDetails::GetContainingBlock(const LayoutBlockBox* containing_box)
 {
+	RMLUI_ASSERT(containing_box);
+
 	Vector2f containing_block;
 
 	containing_block.x = containing_box->GetBox().GetSize(Box::CONTENT).x;
@@ -234,15 +242,20 @@ Vector2f LayoutDetails::GetContainingBlock(const LayoutBlockBox* containing_box)
 
 float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_block)
 {
-	// First we need to format the element, then we get the shrink-to-fit width based on the largest line or box.
+	RMLUI_ASSERT(element);
 
-	LayoutBlockBox containing_block_box(nullptr, nullptr);
-	containing_block_box.GetBox().SetContent(containing_block);
+	Box box;
+	float min_height, max_height;
+	LayoutDetails::BuildBox(box, containing_block, element, false, containing_block.x);
+	LayoutDetails::GetMinMaxHeight(min_height, max_height, &element->GetComputedValues(), box, containing_block.y);
+
+	// First we need to format the element, then we get the shrink-to-fit width based on the largest line or box.
+	LayoutBlockBox containing_block_box(nullptr, nullptr, Box(containing_block), 0.0f, FLT_MAX);
 
 	// Here we fix the element's width to its containing block so that any content is wrapped at this width.
 	// We can consider to instead set this to infinity and clamp it to the available width later after formatting,
 	// but right now the formatting procedure doesn't work well with such numbers.
-	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element, containing_block.x);
+	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element, box, min_height, max_height);
 
 	// @performance. Some formatting can be simplified, eg. absolute elements do not contribute to the shrink-to-fit width.
 	// Also, children of elements with a fixed width and height don't need to be formatted further.
