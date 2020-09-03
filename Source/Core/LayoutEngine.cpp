@@ -150,8 +150,15 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 
 		case Style::Display::TableRow:
 		case Style::Display::TableColumn:
-		case Style::Display::TableCell:   RMLUI_ERROR; /* should always be formatted in the table context formatter, if we get here it means the user has added a sporadic 'display: table-row/-column/-cell', or we have a bug 
-													      TODO: Handle this situation better. */ break;
+		case Style::Display::TableCell:
+		{
+			const Property* display_property = element->GetProperty(PropertyId::Display);
+			Log::Message(Log::LT_WARNING, "Element has a display type '%s', but is not located in a table. It will not be formatted. In element %s",
+				display_property ? display_property->ToString().c_str() : "*unknown*",
+				element->GetAddress().c_str()
+			);
+			return true;
+		}
 		case Style::Display::None:        RMLUI_ERROR; /* handled above */ break;
 	}
 

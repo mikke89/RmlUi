@@ -37,19 +37,35 @@
 
 namespace Rml {
 
+static void SnapToPixelGrid(float& x, float& width)
+{
+	float rounded_x = Math::RoundFloat(x);
+	width = Math::RoundFloat(x + width) - rounded_x;
+	x = rounded_x;
+}
+static void SnapToPixelGrid(Vector2f& position, Vector2f& size)
+{
+	Vector2f rounded_position = position.Round();
+	size = (position + size).Round() - rounded_position;
+	position = rounded_position;
+}
 
 LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_context_box, Element* element_table)
 {
-	const Vector2f content_top_left = table_block_context_box->GetBox().GetPosition();
-	const Vector2f content_containing_block = Vector2f(table_block_context_box->GetBox().GetSize().x, Math::Max(0.0f, table_block_context_box->GetBox().GetSize().y));
+	Vector2f table_content_offset = table_block_context_box->GetBox().GetPosition();
+	Vector2f table_initial_content_size = Vector2f(table_block_context_box->GetBox().GetSize().x, Math::Max(0.0f, table_block_context_box->GetBox().GetSize().y));
+
+	SnapToPixelGrid(table_content_offset, table_initial_content_size);
 
 	const ComputedValues& computed_table = element_table->GetComputedValues();
-	const Vector2f table_gap(
-		ResolveValue(computed_table.column_gap, content_containing_block.x), 
-		ResolveValue(computed_table.row_gap, content_containing_block.y)
-	);
+	const Vector2f table_gap = Vector2f(
+		ResolveValue(computed_table.column_gap, table_initial_content_size.x), 
+		ResolveValue(computed_table.row_gap, table_initial_content_size.y)
+	).Round();
 
-	Vector2f table_resulting_content_size = content_containing_block;
+	// The final size of the table will be determined by the size of its columns, rows, and spacing.
+	Vector2f table_resulting_content_size = table_initial_content_size;
+
 	Vector<Column> columns = DetermineColumnWidths(element_table, table_gap.x, table_resulting_content_size.x);
 
 	// Now that we have the size of each column, we can move on to formatting the elements.
@@ -58,47 +74,58 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 
 	Vector2f table_content_overflow_size;
 
-	Vector2f table_cursor = content_top_left;
+	Vector2f table_cursor = table_content_offset;
 	table_cursor.y -= table_gap.y;
 
 	struct Cell {
 		Element* element_cell;
-		int row_last; // The last row the cell spans
+		int row_last; // The last row the cell spans.
 		int column_begin, column_last;
 		Box box;
 		Vector2f table_offset;
-		float rows_accumulated_height;
+		float rows_accumulated_height; // The height of rows this cell spans, including row spacing.
 	};
 	Vector<Cell> cells;
 	cells.reserve(columns.size());
 
 	const int num_table_children = element_table->GetNumChildren();
+
+	// Iterate through the table rows. First, determine the row height, then format all cells ending at this row.
 	for (int i = 0, row = -1; i < num_table_children; i++)
 	{
 		Element* element_row = element_table->GetChild(i);
 
 		const ComputedValues& computed_row = element_row->GetComputedValues();
 		if (computed_row.display != Style::Display::TableRow)
+		{
+			if (row >= 0 && computed_row.display == Style::Display::TableColumn)
+			{
+				Log::Message(Log::LT_WARNING, "Table columns must precede any table rows. Ignoring element %s.", element_row->GetAddress().c_str());
+			}
+			else if (computed_row.display != Style::Display::TableColumn)
+			{
+				Log::Message(Log::LT_WARNING, "Only table columns and table rows are valid children of tables. Ignoring element %s.", element_row->GetAddress().c_str());
+			}
 			continue;
+		}
 
 		row += 1;
+		table_cursor.x = table_content_offset.x;
 
 		Box row_box;
 		float row_min_height, row_max_height;
-		LayoutDetails::BuildBox(row_box, content_containing_block, element_row, false, 0.f);
-		LayoutDetails::GetMinMaxHeight(row_min_height, row_max_height, &computed_row, row_box, content_containing_block.y);
-
-		// Prepare the cursor for this row
-		table_cursor.x = content_top_left.x;
+		LayoutDetails::BuildBox(row_box, table_initial_content_size, element_row, false, 0.f);
+		LayoutDetails::GetMinMaxHeight(row_min_height, row_max_height, &computed_row, row_box, table_initial_content_size.y);
 
 		const Vector2f row_element_offset = table_cursor + Vector2f(0.0f, table_gap.y) + Vector2f(row_box.GetEdge(Box::MARGIN, Box::LEFT), row_box.GetEdge(Box::MARGIN, Box::TOP));
-
+		
 		{
-			const float row_top_offset = table_gap.y + row_box.GetEdge(Box::MARGIN, Box::TOP) + row_box.GetEdge(Box::BORDER, Box::TOP) + row_box.GetEdge(Box::PADDING, Box::TOP);
-			table_cursor.y += row_top_offset;
+			// Add the row top spacing to the cursor and row-spanning elements.
+			const float row_top_spacing = table_gap.y + row_box.GetEdge(Box::MARGIN, Box::TOP) + row_box.GetEdge(Box::BORDER, Box::TOP) + row_box.GetEdge(Box::PADDING, Box::TOP);
+			table_cursor.y += row_top_spacing;
 
 			for (Cell& cell : cells)
-				cell.rows_accumulated_height += row_top_offset;
+				cell.rows_accumulated_height += row_top_spacing;
 		}
 
 		const int num_cells_spanning_this_row = (int)cells.size();
@@ -111,43 +138,40 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 
 			const ComputedValues& computed_cell = element_cell->GetComputedValues();
 			if (computed_cell.display != Style::Display::TableCell)
+			{
+				Log::Message(Log::LT_WARNING, "Only table cells are allowed as children of table rows. %s", element_cell->GetAddress().c_str());
 				continue;
+			}
 
 			const int row_span = Math::Max(1, element_cell->GetAttribute("rowspan", 1));
 			const int col_span = Math::Max(1, element_cell->GetAttribute("colspan", 1));
 
-			float spanning_column_border_width = 0;
-			int column_last = -1;
-
+			// Offset the column if we have any rowspan elements from previous rows overlapping with the current column.
+			for (bool continue_offset_column = true; continue_offset_column; )
 			{
-				// Offset the column if we have any rowspan elements from previous rows overlapping with the current column.
-				for (bool continue_offset_column = true; continue_offset_column; )
+				continue_offset_column = false;
+				for (int k = 0; k < num_cells_spanning_this_row; k++)
 				{
-					continue_offset_column = false;
-					for (int k = 0; k < num_cells_spanning_this_row; k++)
+					if (column >= cells[k].column_begin && column <= cells[k].column_last)
 					{
-						if (column >= cells[k].column_begin && column <= cells[k].column_last)
-						{
-							column = cells[k].column_last + 1;
-							continue_offset_column = true;
-							break;
-						}
+						column = cells[k].column_last + 1;
+						continue_offset_column = true;
+						break;
 					}
 				}
-
-				column_last = column + col_span - 1;
-
-				if (column_last >= (int)columns.size())
-				{
-					Log::Message(Log::LT_WARNING, "Too many columns in table row %d: %s\nThe number of columns is %d, as determined by the table columns or first table row.",
-						row + 1, element_row->GetAddress().c_str(), (int)columns.size());
-					break;
-				}
-
-				spanning_column_border_width = columns[column_last].cell_width + (columns[column_last].cell_offset - columns[column].cell_offset);
 			}
 
-			table_cursor.x = content_top_left.x + columns[column].cell_offset;
+			const int column_last = column + col_span - 1;
+
+			if (column_last >= (int)columns.size())
+			{
+				Log::Message(Log::LT_WARNING, "Too many columns in table row %d: %s\nThe number of columns is %d, as determined by the table columns or the first table row.",
+					row + 1, element_row->GetAddress().c_str(), (int)columns.size());
+				break;
+			}
+
+			// Find the horizontal offset for this cell.
+			table_cursor.x = table_content_offset.x + columns[column].cell_offset;
 
 			// Add the new cell to our list.
 			cells.emplace_back();
@@ -162,10 +186,11 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 
 			// Determine the cell's box for formatting later, we may get an indefinite (-1) vertical content size.
 			Box& box = cell.box;
-			LayoutDetails::BuildBox(box, content_containing_block, element_cell, false, 0.f);
+			LayoutDetails::BuildBox(box, table_initial_content_size, element_cell, false, 0.f);
 
-			// Determine the box width from the current column width.
-			const float content_width = Math::Max(0.0f, spanning_column_border_width - box.GetSizeAcross(Box::HORIZONTAL, Box::BORDER, Box::PADDING));
+			// Determine the cell's content width. Include any spanning columns in the cell width.
+			const float cell_border_width = columns[column_last].cell_width + (columns[column_last].cell_offset - columns[column].cell_offset);
+			const float content_width = Math::Max(0.0f, cell_border_width - box.GetSizeAcross(Box::HORIZONTAL, Box::BORDER, Box::PADDING));
 			box.SetContent(Vector2f(content_width, box.GetSize().y));
 
 			column += col_span;
@@ -194,7 +219,7 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 				// If the cell's height is also indefinite, we need to format it to get its height.
 				if (box.GetSize().y < 0)
 				{
-					LayoutEngine::FormatElement(element_cell, content_containing_block, &box);
+					LayoutEngine::FormatElement(element_cell, table_initial_content_size, &box);
 					box.SetContent(element_cell->GetBox().GetSize());
 				}
 
@@ -208,96 +233,95 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 			cell.rows_accumulated_height += row_content_height;
 
 		// Now we have the height of the row, position and format each cell.
-		auto FormatCellsInRow = [row, &cells, it_cells_in_row_end, &table_content_overflow_size, element_table, content_containing_block, content_top_left]() {
 
-			// Assumes the cells are already partitioned.
-			for (auto it = cells.begin(); it != it_cells_in_row_end; ++it)
+		// Loop through every cell ending at this row.
+		for (auto it = cells.begin(); it != it_cells_in_row_end; ++it)
+		{
+			Cell& cell = *it;
+			Element* element_cell = cell.element_cell;
+			Box& box = cell.box;
+			Style::VerticalAlign vertical_align = cell.element_cell->GetComputedValues().vertical_align;
+
+			if (box.GetSize().y < 0)
 			{
-				Cell& cell = *it;
-				Element* element_cell = cell.element_cell;
-				Box& box = cell.box;
-				Style::VerticalAlign vertical_align = cell.element_cell->GetComputedValues().vertical_align;
-
-				if (box.GetSize().y < 0)
+				const bool is_aligned = (vertical_align.type == Style::VerticalAlign::Middle || vertical_align.type == Style::VerticalAlign::Bottom);
+				if (is_aligned)
 				{
-					const bool is_aligned = (vertical_align.type == Style::VerticalAlign::Middle || vertical_align.type == Style::VerticalAlign::Bottom);
-					if (is_aligned)
-					{
-						// The size of the cell is indefinite, we need to get the height by formatting the cell.
-						LayoutEngine::FormatElement(element_cell, content_containing_block, &box);
-						box.SetContent(element_cell->GetBox().GetSize());
-					}
-					else
-					{
-						box.SetContent(Vector2f(box.GetSize().x, Math::Max(0.0f, cell.rows_accumulated_height - box.GetSizeAcross(Box::VERTICAL, Box::BORDER, Box::PADDING))));
-					}
+					// The size of the cell is indefinite, we need to get the height by formatting the cell.
+					LayoutEngine::FormatElement(element_cell, table_initial_content_size, &box);
+					box.SetContent(element_cell->GetBox().GetSize());
 				}
-
-				const float available_height = cell.rows_accumulated_height - box.GetSizeAcross(Box::VERTICAL, Box::BORDER);
-
-				if (available_height > 0)
+				else
 				{
-					// Pad the cell for vertical alignment
-					float add_padding_top;
-					float add_padding_bottom;
-
-					switch (vertical_align.type)
-					{
-					case Style::VerticalAlign::Bottom:
-						add_padding_top = available_height;
-						add_padding_bottom = 0;
-						break;
-					case Style::VerticalAlign::Middle:
-						add_padding_top = 0.5f * available_height;
-						add_padding_bottom = 0.5f * available_height;
-						break;
-					case Style::VerticalAlign::Top:
-					default:
-						add_padding_top = 0.0f;
-						add_padding_bottom = available_height;
-					}
-
-					box.SetEdge(Box::PADDING, Box::TOP, box.GetEdge(Box::PADDING, Box::TOP) + add_padding_top);
-					box.SetEdge(Box::PADDING, Box::BOTTOM, box.GetEdge(Box::PADDING, Box::BOTTOM) + add_padding_bottom);
+					box.SetContent(Vector2f(box.GetSize().x, Math::Max(0.0f, cell.rows_accumulated_height - box.GetSizeAcross(Box::VERTICAL, Box::BORDER, Box::PADDING))));
 				}
-
-				{
-					// Format the cell in a new block formatting context.
-					Vector2f cell_visible_overflow_size;
-					LayoutEngine::FormatElement(element_cell, content_containing_block, &box, &cell_visible_overflow_size);
-
-					table_content_overflow_size.x = Math::Max(table_content_overflow_size.x, cell.table_offset.x - content_top_left.x + cell_visible_overflow_size.x);
-					table_content_overflow_size.y = Math::Max(table_content_overflow_size.y, cell.table_offset.y - content_top_left.y + cell_visible_overflow_size.y);
-
-					// Set the position of the element within the the table container
-					element_cell->SetOffset(cell.table_offset, element_table);
-				}
-
 			}
 
-			// Remove the formatted cells from pending
-			cells.erase(cells.begin(), it_cells_in_row_end);
-		};
+			const float available_height = cell.rows_accumulated_height - box.GetSizeAcross(Box::VERTICAL, Box::BORDER);
 
-		FormatCellsInRow();
+			if (available_height > 0)
+			{
+				// Pad the cell for vertical alignment
+				float add_padding_top;
+				float add_padding_bottom;
 
-		// TODO: What to do with any remaining row-spanning cells after the last row?
+				switch (vertical_align.type)
+				{
+				case Style::VerticalAlign::Bottom:
+					add_padding_top = available_height;
+					add_padding_bottom = 0;
+					break;
+				case Style::VerticalAlign::Middle:
+					add_padding_top = 0.5f * available_height;
+					add_padding_bottom = 0.5f * available_height;
+					break;
+				case Style::VerticalAlign::Top:
+				default:
+					add_padding_top = 0.0f;
+					add_padding_bottom = available_height;
+				}
 
-		// Position and size the row element
-		if (row_box.GetSize().y < 0.0f)
-			row_box.SetContent(Vector2f(row_box.GetSize().x, row_content_height));
+				box.SetEdge(Box::PADDING, Box::TOP, box.GetEdge(Box::PADDING, Box::TOP) + add_padding_top);
+				box.SetEdge(Box::PADDING, Box::BOTTOM, box.GetEdge(Box::PADDING, Box::BOTTOM) + add_padding_bottom);
+			}
 
+			// Format the cell in a new block formatting context.
+			// @performance: We may have already formatted the element during the above procedure without the extra padding. In that case, we may
+			//   instead set the new box and offset all descending elements whose offset parent is the cell, to account for the new padding box.
+			//   That should be faster than formatting the element again, but there may be edge-cases not accounted for.
+			Vector2f cell_visible_overflow_size;
+			LayoutEngine::FormatElement(element_cell, table_initial_content_size, &box, &cell_visible_overflow_size);
+			
+			// Set the position of the element within the the table container
+			element_cell->SetOffset(cell.table_offset, element_table);
+
+			// The cell contents may overflow, propagate this to the table.
+			table_content_overflow_size.x = Math::Max(table_content_overflow_size.x, cell.table_offset.x - table_content_offset.x + cell_visible_overflow_size.x);
+			table_content_overflow_size.y = Math::Max(table_content_overflow_size.y, cell.table_offset.y - table_content_offset.y + cell_visible_overflow_size.y);
+		}
+
+		// Remove the formatted cells from pending
+		cells.erase(cells.begin(), it_cells_in_row_end);
+
+		// Size and position the row element
+		const Vector2f row_element_content_size(
+			table_resulting_content_size.x - row_box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN, Box::PADDING),
+			Math::Max(row_box.GetSize().y, row_content_height)
+		);
+		row_box.SetContent(row_element_content_size);
+		
 		element_row->SetOffset(row_element_offset, element_table);
 		element_row->SetBox(row_box);
 
-		const float row_bottom_offset = row_box.GetEdge(Box::MARGIN, Box::BOTTOM) + row_box.GetEdge(Box::BORDER, Box::BOTTOM) + row_box.GetEdge(Box::PADDING, Box::BOTTOM);
-		table_cursor.y += row_content_height + row_bottom_offset;
+		// Add the row bottom spacing to the cursor and any row-spanning cells.
+		const float row_bottom_spacing = row_box.GetEdge(Box::MARGIN, Box::BOTTOM) + row_box.GetEdge(Box::BORDER, Box::BOTTOM) + row_box.GetEdge(Box::PADDING, Box::BOTTOM);
+		table_cursor.y += row_content_height + row_bottom_spacing;
 
 		for (Cell& cell : cells)
-			cell.rows_accumulated_height += row_bottom_offset;
+			cell.rows_accumulated_height += row_bottom_spacing;
 	}
 
-	table_resulting_content_size.y = table_cursor.y - content_top_left.y;
+	table_resulting_content_size.y = Math::Max(table_cursor.y - table_content_offset.y, 0.0f);
 
 	// Size and position the column elements.
 	for (const Column& column : columns)
@@ -305,15 +329,24 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 		if (Element* element = column.element_column)
 		{
 			Box box;
-			LayoutDetails::BuildBox(box, content_containing_block, element, false, 0.0f);
-			box.SetContent(Vector2f(column.column_width, table_resulting_content_size.y));
+			LayoutDetails::BuildBox(box, table_initial_content_size, element, false, 0.0f);
+			const Vector2f content_size(
+				column.column_width,
+				table_resulting_content_size.y - box.GetSizeAcross(Box::VERTICAL, Box::BORDER, Box::PADDING) - box.GetEdge(Box::MARGIN, Box::TOP) - box.GetEdge(Box::MARGIN, Box::BOTTOM)
+			);
+			box.SetContent(content_size);
 			element->SetBox(box);
 
-			element->SetOffset(content_top_left + Vector2f(column.column_offset, 0.0f), element_table);
+			element->SetOffset(table_content_offset + Vector2f(column.column_offset, box.GetEdge(Box::MARGIN, Box::TOP)), element_table);
 		}
 	}
 
-	if (table_resulting_content_size != content_containing_block)
+	if (!cells.empty())
+	{
+		Log::Message(Log::LT_WARNING, "One or more cells span below the last row in table %s. They will not be formatted. Add additional rows, or adjust the rowspan attribute.", element_table->GetAddress().c_str());
+	}
+
+	if (table_resulting_content_size != table_initial_content_size)
 	{
 		table_block_context_box->GetBox().SetContent(table_resulting_content_size);
 	}
@@ -432,7 +465,6 @@ LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_t
 		}
 	}
 
-
 	const int num_row_children = (!element_row ? 0 : element_row->GetNumChildren());
 	column_metrics.reserve(num_row_children);
 
@@ -446,10 +478,7 @@ LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_t
 		const ComputedValues& computed = element->GetComputedValues();
 
 		if (computed.display != Style::Display::TableCell)
-		{
-			Log::Message(Log::LT_WARNING, "Only table cells ('display: table-cell') are allowed as children of table rows. %s", element->GetAddress().c_str());
 			continue;
-		}
 
 		const float padding_border_sum =
 			Math::Max(0.0f, ResolveValue(computed.padding_left, table_content_width)) +
@@ -526,8 +555,7 @@ LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_t
 
 	if (column_metrics.empty())
 	{
-		Log::Message(Log::LT_WARNING, "No columns or rows in table %s", element_table->GetAddress().c_str());
-		// TODO: Handle this more gracefully.
+		// No columns found in this table.
 		return Columns();
 	}
 
@@ -630,14 +658,16 @@ LayoutTable::Columns LayoutTable::DetermineColumnWidths(Element* const element_t
 		col.column_width = col.cell_width; // Column content width is the cell border width, unless there is a spanning column element (see next loop).
 		col.column_offset = cursor_x;
 
+		SnapToPixelGrid(col.cell_offset, col.cell_width);
+		SnapToPixelGrid(col.column_offset, col.column_width);
+
 		cursor_x += metric.fixed_width + metric.column_padding_border_left + metric.column_padding_border_right;
 		if (i != column_metrics.size() - 1)
 			cursor_x += column_gap;
 	}
 	
 	// Extend the table content width if the summed column widths and spacing is larger. Include some margin for floating-point imprecision.
-	// TODO: What if the content width is smaller? (This could possibly happen if all columns have a max-width)
-	if (cursor_x > table_content_width + 0.5f)
+	if (Math::AbsoluteValue(cursor_x - table_content_width) > 0.5f)
 		table_content_width = cursor_x;
 
 	// Extend column widths to cover multiple columns for spanning column elements.

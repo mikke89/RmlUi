@@ -23,16 +23,17 @@
 		}
 		table {
 			box-sizing: border-box;
-			
 			display: table;
 			border: 5px #666;
 			gap: 10px 2%;
+			height: 50%;
 		}
 		col {
 			box-sizing: border-box;
 			display: table-column;
 			border-left: 2px #e3e;
 			border-right: 5px #3ce;
+			margin: 15px 0;
 		}
 		col:first-child {
 			border-left-width: 0;
@@ -47,6 +48,7 @@
 			/*background: #3cc;*/
 			padding-top: 5px;
 			padding-bottom: 15px;
+			margin: 10px 20px;
 		}
 		td {
 			box-sizing: border-box;
