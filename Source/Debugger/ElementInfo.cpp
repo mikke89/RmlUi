@@ -232,6 +232,15 @@ void ElementInfo::ProcessEvent(Event& event)
 						force_update_once = true;
 					}
 				}
+				else if (id == "offset_parent")
+				{
+					if (source_element)
+					{
+						Element* offset_parent = source_element->GetOffsetParent();
+						if (offset_parent)
+							SetSourceElement(offset_parent);
+					}
+				}
 				// Check if the id is in the form "a %d" or "c %d" - these are the ancestor or child labels.
 				else
 				{
@@ -287,6 +296,11 @@ void ElementInfo::ProcessEvent(Event& event)
 				{
 					if (source_element != nullptr)
 						hover_element = source_element->GetChild(element_index);
+				}
+				else if (id == "offset_parent")
+				{
+					if (source_element)
+						hover_element = source_element->GetOffsetParent();
 				}
 				else
 				{
@@ -489,24 +503,39 @@ void ElementInfo::UpdateSourceElement()
 	// Set the position
 	if (Element* position_content = GetElementById("position-content"))
 	{
+		String position;
+
 		// left, top, width, height.
 		if (source_element != nullptr)
 		{
 			const Vector2f element_offset = source_element->GetRelativeOffset(Box::BORDER);
 			const Vector2f element_size = source_element->GetBox().GetSize(Box::BORDER);
+			Element* offset_parent = source_element->GetOffsetParent();
+			const String offset_parent_rml = (offset_parent ? StringUtilities::EncodeRml(offset_parent->GetAddress(false, false)) : String("<em>none</em>"));
 
-			const String positions = 
+			position = 
 				"<span class='name'>left: </span><em>"   + ToString(element_offset.x) + "px</em><br/>" +
 				"<span class='name'>top: </span><em>"    + ToString(element_offset.y) + "px</em><br/>" +
 				"<span class='name'>width: </span><em>"  + ToString(element_size.x)   + "px</em><br/>" +
-				"<span class='name'>height: </span><em>" + ToString(element_size.y)   + "px</em><br/>";
-
-			position_content->SetInnerRML( positions );
+				"<span class='name'>height: </span><em>" + ToString(element_size.y)   + "px</em><br/>" +
+				"<span class='name'>offset parent: </span><p style='display: inline' id='offset_parent'>" + offset_parent_rml + "</p>";
 		}
 		else
 		{
 			while (position_content->HasChildNodes())
 				position_content->RemoveChild(position_content->GetFirstChild());
+		}
+
+		if (position.empty())
+		{
+			while (position_content->HasChildNodes())
+				position_content->RemoveChild(position_content->GetFirstChild());
+			position_rml.clear();
+		}
+		else if (position != position_rml)
+		{
+			position_content->SetInnerRML(position);
+			position_rml = std::move(position);
 		}
 	}
 
