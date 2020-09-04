@@ -134,6 +134,10 @@ public:
 
 	/// Calculate the dimensions of the box's internal content width; i.e. the size used to calculate the shrink-to-fit width.
 	float GetShrinkToFitWidth() const;
+	/// Get the visible overflow size. Note: This is only well-defined after the layout box has been closed.
+	Vector2f GetVisibleOverflowSize() const;
+	/// Set the inner content size if it is larger than the current value on each axis individually.
+	void ExtendInnerContentSize(Vector2f inner_content_size);
 
 	/// Returns the block box's element.
 	/// @return The block box's element.
@@ -227,9 +231,14 @@ private:
 	// Used by block contexts only; stores the value of the overflow property for the element.
 	Style::Overflow overflow_x_property;
 	Style::Overflow overflow_y_property;
-	//  Used by block contexts only; the content width as visible from the parent. Similar to scroll width, but shrinked if overflow is caught here. 
+
+	// The outer size of this box including overflowing content. Similar to scroll width, but shrinked if overflow is caught here. 
 	//   This can be wider than the box if we are overflowing. Only available after the box has been closed. 
-	float visible_outer_width;
+	Vector2f visible_overflow_size;
+	// The inner content size (excluding any padding/border/margins).
+	// This is extended as child block boxes are closed, or from external formatting contexts.
+	Vector2f inner_content_size;
+
 	// Used by block contexts only; if true, we've enabled our vertical scrollbar.
 	bool vertical_overflow;
 
