@@ -47,7 +47,7 @@ public:
 	/// @param[in] element The element to lay out.
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] override_initial_box Optional pointer to a box to override the generated box for the element.
-	static void FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box = nullptr);
+	static void FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box = nullptr, Vector2f* visible_overflow_size = nullptr);
 
 	/// Positions a single element and its children within a block formatting context.
 	/// @param[in] block_context_box The open block box to layout the element in.
@@ -70,7 +70,11 @@ private:
 	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The inline-block element.
 	static bool FormatElementInlineBlock(LayoutBlockBox* block_context_box, Element* element);
-	/// Executes any special formatting for special elements.
+	/// Formats and positions a table, including all table-rows and table-cells contained within.
+	/// @param[in] block_context_box The open block box to layout the element in.
+	/// @param[in] element The table element.
+	static bool FormatElementTable(LayoutBlockBox* block_context_box, Element* element);
+
 	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The element to parse.
 	/// @return True if the element was parsed as a special element, false otherwise.

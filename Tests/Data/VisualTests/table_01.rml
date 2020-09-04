@@ -1,0 +1,76 @@
+<rml>
+<head>
+    <title>Table</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width" />
+	<meta name="Description" content="Basic table" />
+	<style>
+		@spritesheet theme 
+		{
+			src: /assets/invader.tga;
+			invader: 179px 152px 50px 40px;
+		}
+		body { overflow-x: auto; }
+		handle {
+			position: fixed;
+			background: #555a;
+			width: 16px;
+			height: 16px;
+			bottom: 0px;
+			right: 0px;
+			clip: 1;
+			cursor: resize;
+		}
+		table {
+			box-sizing: border-box;
+			display: table;
+			border: 5px #666;
+		}
+		tr {
+			box-sizing: border-box;
+			display: table-row;
+			border-bottom: 5px #ec3;
+			/*background: #3cc;*/
+			padding-top: 15px;
+			padding-bottom: 15px;
+		}
+		td {
+			box-sizing: border-box;
+			display: table-cell;
+			border-right: 5px red;
+			background: #bbb;
+		}
+		.bottom-right {
+			position: absolute;
+			bottom: 0;
+			right: 0;
+			width: 15px;
+			height: 15px;
+		}
+	</style>
+</head>
+
+<body>
+<p>Try resizing the table using the document handle in the lower-right corner.</p>
+<table>
+	<tr>
+		<td style="min-width: 150px; max-width: 250px;" rowspan="2" colspan="2">Hello</td>
+		<td>Whoop!</td>
+		<td style="min-width: 50px; max-width: 250px;">World<br/>Hi!</td>
+	</tr>
+	<tr>
+		<td colspan="2">World<br/>Hi!</td>
+	</tr>
+	<tr>
+		<td style="height: 50%;">Cat<div class="bottom-right">X</div></td>
+		<td style="padding-left: 30px; padding-top: 50px;" colspan="2">Mouse<div class="bottom-right">X</div></td>
+		<td style="border-left: 5px green; border-right-width: 2px; vertical-align: bottom" rowspan="2">RatTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT</td>
+	</tr>
+	<tr>
+		<td style="vertical-align: bottom;">Row<br/>Row</td>
+		<td colspan="2">3</td>
+	</tr>
+</table>
+<handle size_target="#document"></handle>
+</body>
+</rml>

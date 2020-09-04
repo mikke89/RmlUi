@@ -60,7 +60,7 @@ struct NumberAuto {
 using Margin = LengthPercentageAuto;
 using Padding = LengthPercentage;
 
-enum class Display : uint8_t { None, Block, Inline, InlineBlock };
+enum class Display : uint8_t { None, Block, Inline, InlineBlock, Table, TableRow, TableCell };
 enum class Position : uint8_t { Static, Relative, Absolute, Fixed };
 
 using Top = LengthPercentageAuto;

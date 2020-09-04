@@ -30,6 +30,7 @@
 #include "LayoutBlockBoxSpace.h"
 #include "LayoutDetails.h"
 #include "LayoutInlineBoxText.h"
+#include "LayoutTable.h"
 #include "Pool.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
@@ -49,9 +50,9 @@ struct LayoutChunk
 static Pool< LayoutChunk > layout_chunk_pool(200, true);
 
 // Formats the contents for a root-level element (usually a document or floating element).
-void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box)
+void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box, Vector2f* visible_overflow_size)
 {
-	RMLUI_ASSERT(element);
+	RMLUI_ASSERT(element && containing_block.x >= 0 && containing_block.y >= 0);
 #ifdef RMLUI_ENABLE_PROFILING
 	RMLUI_ZoneScopedC(0xB22222);
 	auto name = CreateString(80, "%s %x", element->GetAddress(false, false).c_str(), element);
@@ -84,6 +85,10 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, co
 	}
 
 	block_context_box->CloseAbsoluteElements();
+
+	if (visible_overflow_size)
+		*visible_overflow_size = block_context_box->GetVisibleOverflowSize();
+
 	element->OnLayout();
 }
 
@@ -141,6 +146,10 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 		case Style::Display::Block:       return FormatElementBlock(block_context_box, element);
 		case Style::Display::Inline:      return FormatElementInline(block_context_box, element);
 		case Style::Display::InlineBlock: return FormatElementInlineBlock(block_context_box, element);
+		case Style::Display::Table:       return FormatElementTable(block_context_box, element);
+
+		case Style::Display::TableRow:
+		case Style::Display::TableCell:   RMLUI_ERROR; /* should always be formatted in the table context formatter, if we get here it means the user has added a sporadic 'display: table-row/-cell', or we have a bug */ break;
 		case Style::Display::None:        RMLUI_ERROR; /* handled above */ break;
 	}
 
@@ -232,6 +241,38 @@ bool LayoutEngine::FormatElementInlineBlock(LayoutBlockBox* block_context_box, E
 	FormatElement(element, containing_block_size);
 
 	block_context_box->AddInlineElement(element, element->GetBox())->Close();
+
+	return true;
+}
+
+
+bool LayoutEngine::FormatElementTable(LayoutBlockBox* block_context_box, Element* element_table)
+{
+	LayoutBlockBox* table_block_context_box = nullptr;
+	
+	{
+		Box box;
+		float min_height, max_height;
+		LayoutDetails::BuildBox(box, min_height, max_height, block_context_box, element_table, false);
+
+		table_block_context_box = block_context_box->AddBlockElement(element_table, box, min_height, max_height);
+	}
+
+	if (!table_block_context_box)
+		return false;
+
+	for (int i = 0; i < 2; i++)
+	{
+		LayoutBlockBox::CloseResult result = LayoutTable::FormatTable(table_block_context_box, element_table);
+
+		// If the close failed, it probably means that the table or its parent produced scrollbars. Try again, but only once.
+		if (result == LayoutBlockBox::LAYOUT_SELF)
+			continue;
+		else if (result == LayoutBlockBox::LAYOUT_PARENT)
+			return false;
+		else if (result == LayoutBlockBox::OK)
+			break;
+	}
 
 	return true;
 }
