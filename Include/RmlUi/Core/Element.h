@@ -147,14 +147,16 @@ public:
 	void SetBox(const Box& box);
 	/// Adds a box to the end of the list describing this element's geometry.
 	/// @param[in] box The auxiliary box for the element.
-	void AddBox(const Box& box);
+	/// @param[in] offset The offset of the box relative to the top left border corner of the element.
+	void AddBox(const Box& box, Vector2f offset);
 	/// Returns the main box describing the size of the element.
 	/// @return The box.
 	const Box& GetBox();
 	/// Returns one of the boxes describing the size of the element.
 	/// @param[in] index The index of the desired box, with 0 being the main box. If outside of bounds, the main box will be returned.
+	/// @param[out] offset The offset of the box relative to the element's border box.
 	/// @return The requested box.
-	const Box& GetBox(int index);
+	const Box& GetBox(int index, Vector2f& offset);
 	/// Returns the number of boxes making up this element's geometry.
 	/// @return the number of boxes making up this element's geometry.
 	int GetNumBoxes();
@@ -702,9 +704,13 @@ private:
 	Vector2f scroll_offset;
 
 	// The size of the element.
-	using BoxList = Vector< Box >;
+	struct PositionedBox {
+		Box box;
+		Vector2f offset;
+	};
+	using PositionedBoxList = Vector< PositionedBox >;
 	Box main_box;
-	BoxList additional_boxes;
+	PositionedBoxList additional_boxes;
 
 	// And of the element's internal content.
 	Vector2f content_offset;

@@ -73,9 +73,6 @@ public:
 	Box(Vector2f content);
 	~Box();
 
-	/// Returns the offset of this box. This will usually be (0, 0).
-	/// @return The box's offset.
-	Vector2f GetOffset() const;
 	/// Returns the top-left position of one of the box's areas, relative to the top-left of the border area. This
 	/// means the position of the margin area is likely to be negative.
 	/// @param area[in] The desired area.
@@ -86,10 +83,6 @@ public:
 	/// @return The size of the requested area.
 	Vector2f GetSize(Area area = Box::CONTENT) const;
 
-	/// Sets the offset of the box, relative usually to the owning element. This should only be set for auxiliary
-	/// boxes of an element.
-	/// @param offset[in] The offset of the box from the primary box.
-	void SetOffset(Vector2f offset);
 	/// Sets the size of the content area.
 	/// @param content[in] The size of the new content area.
 	void SetContent(Vector2f content);
@@ -127,8 +120,6 @@ public:
 private:
 	Vector2f content;
 	float area_edges[NUM_AREAS][NUM_EDGES];
-
-	Vector2f offset;
 };
 
 } // namespace Rml

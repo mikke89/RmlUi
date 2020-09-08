@@ -138,11 +138,12 @@ void ElementInfo::RenderHoverElement()
 		for (int i = 0; i < hover_element->GetNumBoxes(); i++)
 		{
 			// Render the content area.
-			const Box element_box = hover_element->GetBox(i);
+			Vector2f box_offset;
+			const Box& element_box = hover_element->GetBox(i, box_offset);
 			Vector2f size = element_box.GetSize(Box::BORDER);
 			size = Vector2f(std::max(size.x, 2.0f), std::max(size.y, 2.0f));
 			Geometry::RenderOutline(
-				hover_element->GetAbsoluteOffset(Box::BORDER) + element_box.GetPosition(Box::BORDER), 
+				hover_element->GetAbsoluteOffset(Box::BORDER) + box_offset + element_box.GetPosition(Box::BORDER),
 				size,
 				Colourb(255, 0, 0, 255), 
 				1
@@ -159,19 +160,21 @@ void ElementInfo::RenderSourceElement()
 
 		for (int i = 0; i < source_element->GetNumBoxes(); i++)
 		{
-			const Box element_box = source_element->GetBox(i);
+			Vector2f box_offset;
+			const Box element_box = source_element->GetBox(i, box_offset);
+			const Vector2f border_offset = box_offset + source_element->GetAbsoluteOffset(Box::BORDER);
 
 			// Content area:
-			Geometry::RenderBox(source_element->GetAbsoluteOffset(Box::BORDER) + element_box.GetPosition(Box::CONTENT), element_box.GetSize(), Colourb(158, 214, 237, 128));
+			Geometry::RenderBox(border_offset + element_box.GetPosition(Box::CONTENT), element_box.GetSize(), Colourb(158, 214, 237, 128));
 
 			// Padding area:
-			Geometry::RenderBox(source_element->GetAbsoluteOffset(Box::BORDER) + element_box.GetPosition(Box::PADDING), element_box.GetSize(Box::PADDING), source_element->GetAbsoluteOffset(Box::BORDER) + element_box.GetPosition(Box::CONTENT), element_box.GetSize(), Colourb(135, 122, 214, 128));
+			Geometry::RenderBox(border_offset + element_box.GetPosition(Box::PADDING), element_box.GetSize(Box::PADDING), border_offset + element_box.GetPosition(Box::CONTENT), element_box.GetSize(), Colourb(135, 122, 214, 128));
 
 			// Border area:
-			Geometry::RenderBox(source_element->GetAbsoluteOffset(Box::BORDER) + element_box.GetPosition(Box::BORDER), element_box.GetSize(Box::BORDER), source_element->GetAbsoluteOffset(Box::BORDER) + element_box.GetPosition(Box::PADDING), element_box.GetSize(Box::PADDING), Colourb(133, 133, 133, 128));
+			Geometry::RenderBox(border_offset + element_box.GetPosition(Box::BORDER), element_box.GetSize(Box::BORDER), border_offset + element_box.GetPosition(Box::PADDING), element_box.GetSize(Box::PADDING), Colourb(133, 133, 133, 128));
 
 			// Border area:
-			Geometry::RenderBox(source_element->GetAbsoluteOffset(Box::BORDER) + element_box.GetPosition(Box::MARGIN), element_box.GetSize(Box::MARGIN), source_element->GetAbsoluteOffset(Box::BORDER) + element_box.GetPosition(Box::BORDER), element_box.GetSize(Box::BORDER), Colourb(240, 255, 131, 128));
+			Geometry::RenderBox(border_offset + element_box.GetPosition(Box::MARGIN), element_box.GetSize(Box::MARGIN), border_offset + element_box.GetPosition(Box::BORDER), element_box.GetSize(Box::BORDER), Colourb(240, 255, 131, 128));
 		}
 	}
 }

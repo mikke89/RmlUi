@@ -53,9 +53,10 @@ public:
 	/// @param[out] indices Destination vector for generated indices.
 	/// @param[in] radii The radius of each corner.
 	/// @param[in] box The box used for positioning and sizing of the background and borders.
+	/// @param[in] offset Offset the position of the generated vertices.
 	/// @param[in] background_color Color of the background, set alpha to zero to not generate a background.
 	/// @param[in] border_colors Pointer to a four-element array of border colors in top-right-bottom-left order, or nullptr to not generate borders.
-	static void Draw(Vector<Vertex>& vertices, Vector<int>& indices, CornerSizes radii, const Box& box, Colourb background_color, const Colourb* border_colors);
+	static void Draw(Vector<Vertex>& vertices, Vector<int>& indices, CornerSizes radii, const Box& box, Vector2f offset, Colourb background_color, const Colourb* border_colors);
 
 private:
 	enum Corner { TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT };

@@ -504,9 +504,9 @@ void Element::SetBox(const Box& box)
 }
 
 // Adds a box to the end of the list describing this element's geometry.
-void Element::AddBox(const Box& box)
+void Element::AddBox(const Box& box, Vector2f offset)
 {
-	additional_boxes.push_back(box);
+	additional_boxes.emplace_back(PositionedBox{ box, offset });
 
 	OnResize();
 
@@ -522,16 +522,20 @@ const Box& Element::GetBox()
 }
 
 // Returns one of the boxes describing the size of the element.
-const Box& Element::GetBox(int index)
+const Box& Element::GetBox(int index, Vector2f& offset)
 {
+	offset = Vector2f(0);
+
 	if (index < 1)
 		return main_box;
 	
-	int additional_box_index = index - 1;
+	const int additional_box_index = index - 1;
 	if (additional_box_index >= (int)additional_boxes.size())
 		return main_box;
 
-	return additional_boxes[additional_box_index];
+	offset = additional_boxes[additional_box_index].offset;
+
+	return additional_boxes[additional_box_index].box;
 }
 
 // Returns the number of boxes making up this element's geometry.
@@ -561,10 +565,11 @@ bool Element::IsPointWithinElement(const Vector2f& point)
 
 	for (int i = 0; i < GetNumBoxes(); ++i)
 	{
-		const Box& box = GetBox(i);
+		Vector2f box_offset;
+		const Box& box = GetBox(i, box_offset);
 
-		Vector2f box_position = position + box.GetOffset();
-		Vector2f box_dimensions = box.GetSize(Box::BORDER);
+		const Vector2f box_position = position + box_offset;
+		const Vector2f box_dimensions = box.GetSize(Box::BORDER);
 		if (point.x >= box_position.x &&
 			point.x <= (box_position.x + box_dimensions.x) &&
 			point.y >= box_position.y &&
@@ -1246,10 +1251,7 @@ void Element::ScrollIntoView(bool align_with_top)
 {
 	Vector2f size(0, 0);
 	if (!align_with_top)
-	{
-		size.y = main_box.GetOffset().y +
-			main_box.GetSize(Box::BORDER).y;
-	}
+		size.y = main_box.GetSize(Box::BORDER).y;
 
 	Element* scroll_parent = parent;
 	while (scroll_parent != nullptr)
