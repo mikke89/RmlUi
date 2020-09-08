@@ -47,7 +47,8 @@ public:
 	/// @param[in] element The element to lay out.
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] override_initial_box Optional pointer to a box to override the generated box for the element.
-	static void FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box = nullptr, Vector2f* visible_overflow_size = nullptr);
+	/// @param[out] visible_overflow_size Optionally output the overflow size of the element.
+	static void FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box = nullptr, Vector2f* out_visible_overflow_size = nullptr);
 
 	/// Positions a single element and its children within a block formatting context.
 	/// @param[in] block_context_box The open block box to layout the element in.

@@ -36,6 +36,7 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include <cstddef>
+#include <float.h>
 
 namespace Rml {
 
@@ -50,7 +51,7 @@ struct LayoutChunk
 static Pool< LayoutChunk > layout_chunk_pool(200, true);
 
 // Formats the contents for a root-level element (usually a document or floating element).
-void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box, Vector2f* visible_overflow_size)
+void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box, Vector2f* out_visible_overflow_size)
 {
 	RMLUI_ASSERT(element && containing_block.x >= 0 && containing_block.y >= 0);
 #ifdef RMLUI_ENABLE_PROFILING
@@ -68,7 +69,7 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, co
 		LayoutDetails::BuildBox(box, containing_block, element, false);
 
 	float min_height, max_height;
-	LayoutDetails::GetMinMaxHeight(min_height, max_height, &element->GetComputedValues(), box, containing_block.y);
+	LayoutDetails::GetMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
 
 	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element, box, min_height, max_height);
 
@@ -86,8 +87,8 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, co
 
 	block_context_box->CloseAbsoluteElements();
 
-	if (visible_overflow_size)
-		*visible_overflow_size = block_context_box->GetVisibleOverflowSize();
+	if (out_visible_overflow_size)
+		*out_visible_overflow_size = block_context_box->GetVisibleOverflowSize();
 
 	element->OnLayout();
 }

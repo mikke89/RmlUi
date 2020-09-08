@@ -34,6 +34,7 @@
 #include "../../Include/RmlUi/Core/Types.h"
 #include <cstddef>
 #include <algorithm>
+#include <float.h>
 
 namespace Rml {
 
@@ -115,7 +116,7 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 		Box row_box;
 		float row_min_height, row_max_height;
 		LayoutDetails::BuildBox(row_box, table_initial_content_size, element_row, false, 0.f);
-		LayoutDetails::GetMinMaxHeight(row_min_height, row_max_height, &computed_row, row_box, table_initial_content_size.y);
+		LayoutDetails::GetMinMaxHeight(row_min_height, row_max_height, computed_row, row_box, table_initial_content_size.y);
 
 		const Vector2f row_element_offset = table_cursor + Vector2f(0.0f, table_gap.y) + Vector2f(row_box.GetEdge(Box::MARGIN, Box::LEFT), row_box.GetEdge(Box::MARGIN, Box::TOP));
 		

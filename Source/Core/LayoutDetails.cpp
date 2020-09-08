@@ -154,10 +154,12 @@ void LayoutDetails::BuildBox(Box& box, float& min_height, float& max_height, Lay
 
 	BuildBox(box, containing_block, element, inline_element, override_shrink_to_fit_width);
 
-	GetMinMaxHeight(min_height, max_height, (element ? &element->GetComputedValues() : nullptr), box, containing_block.y);
+	if (element)
+		GetMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
+	else
+		min_height = max_height = box.GetSize().y;
 }
 
-// Clamps the width of an element based from its min-width and max-width properties.
 float LayoutDetails::ClampWidth(float width, const ComputedValues& computed, const Box& box, float containing_block_width)
 {
 	float min_width = ResolveValue(computed.min_width, containing_block_width);
@@ -172,7 +174,6 @@ float LayoutDetails::ClampWidth(float width, const ComputedValues& computed, con
 	return Math::Clamp(width, min_width, max_width);
 }
 
-// Clamps the height of an element based from its min-height and max-height properties.
 float LayoutDetails::ClampHeight(float height, const ComputedValues& computed, const Box& box, float containing_block_height)
 {
 	float min_height = ResolveValue(computed.min_height, containing_block_height);
@@ -187,16 +188,15 @@ float LayoutDetails::ClampHeight(float height, const ComputedValues& computed, c
 	return Math::Clamp(height, min_height, max_height);
 }
 
-// Generates the box for an element placed in a block box.
-void LayoutDetails::GetMinMaxHeight(float& min_height, float& max_height, const ComputedValues* computed, const Box& box, float containing_block_height)
+void LayoutDetails::GetMinMaxHeight(float& min_height, float& max_height, const ComputedValues& computed, const Box& box, float containing_block_height)
 {
 	const float box_height = box.GetSize().y;
-	if (box_height < 0 && computed)
+	if (box_height < 0)
 	{
-		min_height = ResolveValue(computed->min_height, containing_block_height);
-		max_height = (computed->max_height.value < 0.f ? FLT_MAX : ResolveValue(computed->max_height, containing_block_height));
+		min_height = ResolveValue(computed.min_height, containing_block_height);
+		max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveValue(computed.max_height, containing_block_height));
 
-		if (computed->box_sizing == Style::BoxSizing::BorderBox)
+		if (computed.box_sizing == Style::BoxSizing::BorderBox)
 		{
 			min_height = BorderHeightToContentHeight(min_height, box);
 			max_height = BorderHeightToContentHeight(max_height, box);
@@ -247,7 +247,7 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	Box box;
 	float min_height, max_height;
 	LayoutDetails::BuildBox(box, containing_block, element, false, containing_block.x);
-	LayoutDetails::GetMinMaxHeight(min_height, max_height, &element->GetComputedValues(), box, containing_block.y);
+	LayoutDetails::GetMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
 
 	// First we need to format the element, then we get the shrink-to-fit width based on the largest line or box.
 	LayoutBlockBox containing_block_box(nullptr, nullptr, Box(containing_block), 0.0f, FLT_MAX);
