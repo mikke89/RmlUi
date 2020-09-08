@@ -82,8 +82,6 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 	{
 		replaced_element = true;
 
-		// The element has resized itself, so we only resize it if a RCSS width or height was set explicitly. A value of
-		// 'auto' (or 'auto-fit', ie, both keywords) means keep (or adjust) the intrinsic dimensions.
 		bool auto_width = false, auto_height = false;
 
 		if (computed.width.type == Style::Width::Auto)
@@ -106,26 +104,82 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 		if (content_area.y < 0)
 			content_area.y = 150;
 
+		// Resolve the size constraints.
+		float min_width = ResolveValue(computed.min_width, containing_block.x);
+		float max_width = (computed.max_width.value < 0.f ? FLT_MAX : ResolveValue(computed.max_width, containing_block.x));
+		float min_height = ResolveValue(computed.min_height, containing_block.y);
+		float max_height = (computed.max_height.value < 0.f ? FLT_MAX : ResolveValue(computed.max_height, containing_block.y));
+
+		if (computed.box_sizing == Style::BoxSizing::BorderBox)
+		{
+			min_width = BorderWidthToContentWidth(min_width, box);
+			max_width = BorderWidthToContentWidth(max_width, box);
+			min_height = BorderHeightToContentHeight(min_height, box);
+			max_height = BorderHeightToContentHeight(max_height, box);
+		}
+
 		// If we have an intrinsic ratio and one of the dimensions is 'auto', then scale it such that the ratio is preserved.
 		if (intrinsic_ratio > 0)
 		{
 			if (auto_width && !auto_height)
+			{
 				content_area.x = content_area.y * intrinsic_ratio;
+			}
 			else if (auto_height && !auto_width)
+			{
 				content_area.y = content_area.x / intrinsic_ratio;
+			}
+			else if (auto_width && auto_height)
+			{
+				// If both width and height are auto, try to preserve the ratio under the respective min/max constraints.
+				const float w = content_area.x;
+				const float h = content_area.y;
+
+				if ((w < min_width && h > max_height) || (w > max_width && h < min_height))
+				{
+					// Cannot preserve aspect ratio, let it be clamped.
+				}
+				else if (w < min_width && h < min_height)
+				{
+					// Increase the size such that both min-constraints are respected. The non-scaled axis will
+					// be clamped below, preserving the aspect ratio.
+					if (min_width <= min_height * intrinsic_ratio)
+						content_area.x = min_height * intrinsic_ratio;
+					else
+						content_area.y = min_width / intrinsic_ratio;
+				}
+				else if (w > max_width && h > max_height)
+				{
+					// Shrink the size such that both max-constraints are respected. The non-scaled axis will
+					// be clamped below, preserving the aspect ratio.
+					if (max_width <= max_height * intrinsic_ratio)
+						content_area.y = max_width / intrinsic_ratio;
+					else
+						content_area.x = max_height * intrinsic_ratio;
+				}
+				else
+				{
+					// Single constraint violations.
+					if (w < min_width)
+						content_area.y = min_width / intrinsic_ratio;
+					else if (w > max_width)
+						content_area.y = max_width / intrinsic_ratio;
+					else if (h < min_height)
+						content_area.x = min_height * intrinsic_ratio;
+					else if (h > max_height)
+						content_area.x = max_height * intrinsic_ratio;
+				}
+			}
 		}
+
+		content_area.x = Math::Clamp(content_area.x, min_width, max_width);
+		content_area.y = Math::Clamp(content_area.y, min_height, max_height);
 	}
 
 	// If the element is inline, then its calculations are much more straightforward (no worrying about auto margins
 	// and dimensions, etc). All we do is calculate the margins, set the content area and bail.
 	if (inline_element)
 	{
-		if (replaced_element)
-		{
-			content_area.x = ClampWidth(content_area.x, computed, box, containing_block.x);
-			content_area.y = ClampHeight(content_area.y, computed, box, containing_block.y);
-		}
-
 		// If the element was not replaced, then we leave its dimension as unsized (-1, -1) and ignore the width and
 		// height properties.
 		box.SetContent(content_area);
