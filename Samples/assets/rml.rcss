@@ -42,3 +42,25 @@ tabset tabs
 	display: block;
 }
 
+table {
+	box-sizing: border-box;
+	display: table;
+}
+tr {
+	box-sizing: border-box;
+	display: table-row;
+}
+td {
+	box-sizing: border-box;
+	display: table-cell;
+}
+col {
+	box-sizing: border-box;
+	display: table-column;
+}
+colgroup {
+	display: table-column-group;
+}
+thead, tbody, tfoot {
+	display: table-row-group;
+}

@@ -1,12 +1,11 @@
 <rml>
 <head>
-    <title>Table 01</title>
-    <link type="text/rcss" href="../style.rcss"/>
-	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html" />
-    <link rel="match" href="reference/table_01-ref.rml"/>
-	<meta name="Description" content="Basic table layout." />
+    <title>Table 01 ref</title>
+    <link type="text/rcss" href="../../style.rcss"/>
+	<meta name="Reference" content="Reference implemented using 'inline-blocks' instead. Row coloring does not work here. Might not be pixel accurate." />
 	<style>
 		table {
+			display: block;
 			border-width: 20px 5px 0;
 			color: #333;
 			text-align: center;
@@ -14,26 +13,37 @@
 			min-width: 100px;
 			max-width: 400px;
 		}
-		table, table * {
+		body * {
 			border-color: #666;
 		}
 		td {
+			display: inline-block;
+			box-sizing: border-box;
 			padding: 15px 5px;
-		}
-		col {
+			width: 25%;
+			height: 47px;
 			background: #3d3;
 		}
-		col:first-child {
+		td.span2 { width: 50%; }
+		td.span4 { width: 100%; }
+		tr {
+			display: block;
+		}
+		td:first-child {
 			background: #6df;
 			border-right-width: 3px;
 		}
-		col:nth-child(3) {
+		td:last-of-type {
 			background: #dd3;
 		}
 		thead {
+			display: block;
 			color: black;
 			background: #fff5;
 			border-bottom: 3px #666;
+		}
+		tbody {
+			display: block;
 		}
 		tbody tr {
 			border-bottom: 1px #666a;
@@ -45,6 +55,7 @@
 			background: #fff5;
 		}
 		tfoot {
+			display: block;
 			background: #666;
 			color: #ccc;
 		}
@@ -59,13 +70,10 @@
 
 <body>
 <table>
-	<col/>
-	<col span="2"/>
-	<col/>
 	<thead>
 		<tr>
 			<td>A</td>
-			<td colspan="2">B</td>
+			<td class="span2">B</td>
 			<td>C</td>
 		</tr>
 	</thead>
@@ -85,10 +93,11 @@
 	</tbody>
 	<tfoot>
 		<tr>
-			<td colspan="4">[1] Footnote</td>
+			<td style="background: transparent" class="span4">[1] Footnote</td>
 		</tr>
 	</tfoot>
 </table>
+
 <handle size_target="#document"/>
 </body>
 </rml>

@@ -94,3 +94,36 @@ scrollbarcorner
 {
 	background: #888;
 }
+
+table {
+	box-sizing: border-box;
+	display: table;
+}
+tr {
+	box-sizing: border-box;
+	display: table-row;
+}
+td {
+	box-sizing: border-box;
+	display: table-cell;
+}
+col {
+	box-sizing: border-box;
+	display: table-column;
+}
+colgroup {
+	display: table-column-group;
+}
+thead, tbody, tfoot {
+	display: table-row-group;
+}
+handle {
+	position: fixed;
+	background: #555a;
+	width: 16px;
+	height: 16px;
+	bottom: 0px;
+	right: 0px;
+	clip: 1;
+	cursor: resize;
+}
