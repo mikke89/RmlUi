@@ -29,19 +29,16 @@
 #ifndef RMLUI_INVADERS_HIGHSCORES_H
 #define RMLUI_INVADERS_HIGHSCORES_H
 
-#include <RmlUi/Core/Elements/DataSource.h>
 #include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/DataModel.h>
 
-const int NUM_SCORES = 10;
-
-class HighScores : public Rml::DataSource
+class HighScores
 {
 public:
-	static void Initialise();
+	static void Initialise(Rml::Context* context);
 	static void Shutdown();
 
-	void GetRow(Rml::StringList& row, const Rml::String& table, int row_index, const Rml::StringList& columns);
-	int GetNumRows(const Rml::String& table);
+	static void Update();
 
 	static int GetHighScore();
 
@@ -54,7 +51,7 @@ public:
 	static void SubmitName(const Rml::String& name);
 
 private:
-	HighScores();
+	HighScores(Rml::Context* context);
 	~HighScores();
 
 	static HighScores* instance;
@@ -70,9 +67,15 @@ private:
 		Rml::Colourb colour;
 		int score;
 		int wave;
-	};
 
-	Score scores[NUM_SCORES];
+		void GetColour(Rml::Variant& variant) {
+			variant = "rgba(" + Rml::ToString(colour) + ')';
+		}
+	};
+	using ScoreList = Rml::Vector< Score >;
+	ScoreList scores;
+
+	Rml::DataModelHandle model_handle;
 };
 
 #endif

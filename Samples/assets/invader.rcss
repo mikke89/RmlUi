@@ -318,7 +318,7 @@ textarea
 	font-size: 13px;
 }
 
-datagrid input.text
+datagrid input.text, table input.text
 {
 	box-sizing: border-box;
 	width: 100%;
@@ -397,7 +397,8 @@ dataselect selectbox
 
 select selectbox,
 dataselect selectbox,
-datagrid datagridbody
+datagrid datagridbody,
+tbody
 {
 	decorator: tiled-box(
 		selectbox-tl, selectbox-t, selectbox-tr, 
@@ -416,7 +417,8 @@ dataselect selectbox option
 
 select selectbox option:nth-child(even),
 dataselect selectbox option:nth-child(even),
-datagrid datagridrow:nth-child(even)
+datagrid datagridrow:nth-child(even),
+tr:nth-child(even)
 {
 	background: #FFFFFFA0;
 }
@@ -538,6 +540,28 @@ input.range sliderarrowdec:hover  { decorator: image( range-dec-hover  ); }
 input.range sliderarrowinc:hover  { decorator: image( range-inc-hover  ); }
 input.range sliderarrowdec:active { decorator: image( range-dec-active ); }
 input.range sliderarrowinc:active { decorator: image( range-inc-active ); }
+
+thead tr {
+	height: 35px;
+	decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
+}
+thead td {
+	padding-top: 11px;
+}
+
+tbody {
+	/* Margin left/right only affects the background positioning for the decorator, not the cell placement */
+	margin-left: 5px;
+	margin-right: 4px;
+	/* Padding top/bottom adds extra spacing between the header row and the body, and between the body and table bottom */
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+tbody tr {
+	margin-left: 9px;
+	margin-right: 8px;
+	color: black;
+}
 
 datagrid datagridheader
 {
