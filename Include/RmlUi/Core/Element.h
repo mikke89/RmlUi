@@ -62,6 +62,7 @@ class RenderInterface;
 class StyleSheet;
 class TransformState;
 struct ElementMeta;
+struct StackingOrderedChild;
 
 /**
 	A generic element in the DOM tree.
@@ -642,6 +643,7 @@ private:
 
 	void BuildLocalStackingContext();
 	void BuildStackingContext(ElementList* stacking_context);
+	static void BuildStackingContextForTable(Vector<StackingOrderedChild>& ordered_children, Element* child);
 	void DirtyStackingContext();
 
 	void DirtyStructure();

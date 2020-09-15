@@ -41,23 +41,62 @@ class LayoutTable
 public:
 	using CloseResult = LayoutBlockBox::CloseResult;
 
-	/// Formats and positions a table, including all table-rows and table-cells contained within.
+	/// Formats and positions a table, including all elements contained within.
 	/// @param[in] block_context_box The open block box to layout the element in.
-	/// @param[in] element The table element.
+	/// @param[in] element_table The table element.
+	/// @returns A close result which tells whether the table or parent need to be reformatted.
 	static CloseResult FormatTable(LayoutBlockBox* table_block_context_box, Element* element_table);
 
-
 private:
+	LayoutTable(Element* element_table, Vector2f table_gap, Vector2f table_content_offset, Vector2f table_initial_content_size);
+
 	struct Column {
-		Element* element_column = nullptr; // The '<col>' element which defines this column, or nullptr if the column is spanned from a previous column or defined by cells in the first row.
+		Element* element_column = nullptr; // The '<col>' element which begins at this column, or nullptr if the column is spanned from a previous column or defined by cells in the first row.
+		Element* element_group = nullptr;  // The '<colgroup>' element which begins at this column, otherwise nullptr.
 		float cell_width = 0;              // The *border* width of cells in this column.
 		float cell_offset = 0;             // Horizontal offset from the table content box to the border box of cells in this column.
 		float column_width = 0;            // The *content* width of the column element, which may span multiple columns.
 		float column_offset = 0;           // Horizontal offset from the table content box to the border box of the column element.
+		float group_width = 0;             // The *content* width of the column group element, which may span multiple columns.
+		float group_offset = 0;            // Horizontal offset from the table content box to the border box of the column group element.
 	};
-	using Columns = Vector<Column>;
+	using ColumnList = Vector<Column>;
 
-	static Columns DetermineColumnWidths(Element* element_table, float column_gap, float& table_content_width);
+	struct Cell {
+		Element* element_cell;         // The <td> element.
+		int row_last;                  // The last row the cell spans.
+		int column_begin, column_last; // The first and last columns the cell spans.
+		Box box;                       // The cell element's resulting sizing box.
+		Vector2f table_offset;         // The cell element's offset from the table border box.
+	};
+	using CellList = Vector<Cell>;
+
+	// Format the table.
+	void FormatTable();
+
+	// Determines the column widths and populates the 'columns' data member.
+	void DetermineColumnWidths();
+
+	// Formats the table row element and all table cells ending at this row.
+	// @return The y-position of the row's bottom edge.
+	float FormatTableRow(int row_index, Element* element_row, float row_position_y);
+
+	Element* const element_table;
+
+	const Vector2f table_gap;
+	const Vector2f table_content_offset;
+	const Vector2f table_initial_content_size;
+
+	// The final size of the table which will be determined by the size of its columns, rows, and spacing.
+	Vector2f table_resulting_content_size;
+	// Overflow size in case the contents of any cells overflow their cell box (without being caught by the cell).
+	Vector2f table_content_overflow_size;
+
+	// Defines all the columns of this table, one entry per table column (spanning columns will add multiple entries).
+	ColumnList columns;
+
+	// Cells are added during iteration of each table row, and removed once they are placed at the last of the rows they span.
+	CellList cells;
 };
 
 } // namespace Rml

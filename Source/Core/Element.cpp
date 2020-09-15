@@ -1632,7 +1632,7 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 
 	if (changed_attributes.count("span"))
 	{
-		if (meta->computed_values.display == Style::Display::TableColumn)
+		if (meta->computed_values.display == Style::Display::TableColumn || meta->computed_values.display == Style::Display::TableColumnGroup)
 			DirtyLayout();
 	}
 
@@ -2138,6 +2138,13 @@ void Element::BuildLocalStackingContext()
 	std::stable_sort(stacking_context.begin(), stacking_context.end(), [](const Element* lhs, const Element* rhs) { return lhs->GetZIndex() < rhs->GetZIndex(); });
 }
 
+enum class RenderOrder { Block, TableColumnGroup, TableColumn, TableRowGroup, TableRow, TableCell, Inline, Floating, Positioned };
+struct StackingOrderedChild {
+	Element* element;
+	RenderOrder order;
+	bool include_children;
+};
+
 void Element::BuildStackingContext(ElementList* new_stacking_context)
 {
 	RMLUI_ZoneScoped;
@@ -2145,39 +2152,33 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 	// Build the list of ordered children. Our child list is sorted within the stacking context so stacked elements
 	// will render in the right order; ie, positioned elements will render on top of inline elements, which will render
 	// on top of floated elements, which will render on top of block elements.
+	Vector< StackingOrderedChild > ordered_children;
 
-	enum class RenderOrder { Block, TableColumn, TableRow, TableCell, Inline, Floating, Positioned };
-
-	struct OrderedChild {
-		Element* element;
-		RenderOrder order;
-		bool include_children;
-	};
-	Vector< OrderedChild > ordered_children;
-	
 	const size_t num_children = children.size();
 	ordered_children.reserve(num_children);
 
-	const Style::Display current_display = GetDisplay();
-
-	for (size_t i = 0; i < num_children; ++i)
+	if (GetDisplay() == Style::Display::Table)
 	{
-		Element* child = children[i].get();
-
-		if (!child->IsVisible())
-			continue;
-
-		ordered_children.emplace_back();
-		OrderedChild& ordered_child = ordered_children.back();
-
-		ordered_child.element = child;
-		ordered_child.order = RenderOrder::Inline;
-		ordered_child.include_children = !child->local_stacking_context;
-
-		const Style::Display child_display = child->GetDisplay();
-
-		if (current_display != Style::Display::Table)
+		BuildStackingContextForTable(ordered_children, this);
+	}
+	else
+	{
+		for (size_t i = 0; i < num_children; ++i)
 		{
+			Element* child = children[i].get();
+
+			if (!child->IsVisible())
+				continue;
+
+			ordered_children.emplace_back();
+			StackingOrderedChild& ordered_child = ordered_children.back();
+
+			ordered_child.element = child;
+			ordered_child.order = RenderOrder::Inline;
+			ordered_child.include_children = !child->local_stacking_context;
+
+			const Style::Display child_display = child->GetDisplay();
+
 			if (child->GetPosition() != Style::Position::Static)
 				ordered_child.order = RenderOrder::Positioned;
 			else if (child->GetFloat() != Style::Float::None)
@@ -2187,30 +2188,10 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 			else
 				ordered_child.order = RenderOrder::Inline;
 		}
-		else
-		{
-			// Tables always render columns first, then rows, then cells. Cells are treated as if they were direct descendents of the table.
-			if (child_display == Style::Display::TableColumn)
-			{
-				ordered_child.order = RenderOrder::TableColumn;
-				ordered_child.include_children = false;
-			}
-			else if (child_display == Style::Display::TableRow)
-			{
-				ordered_child.order = RenderOrder::TableRow;
-				ordered_child.include_children = false;
-
-				for (const ElementPtr& row_child : child->children)
-				{
-					if (row_child->IsVisible() && row_child->GetDisplay() == Style::Display::TableCell)
-						ordered_children.emplace_back(OrderedChild{ row_child.get(), RenderOrder::TableCell, !row_child->local_stacking_context });
-				}
-			}
-		}
 	}
 
 	// Sort the list!
-	std::stable_sort(ordered_children.begin(), ordered_children.end(), [](const OrderedChild& lhs, const OrderedChild& rhs) { return int(lhs.order) < int(rhs.order); });
+	std::stable_sort(ordered_children.begin(), ordered_children.end(), [](const StackingOrderedChild& lhs, const StackingOrderedChild& rhs) { return int(lhs.order) < int(rhs.order); });
 
 	// Add the list of ordered children into the stacking context in order.
 	for (size_t i = 0; i < ordered_children.size(); ++i)
@@ -2219,6 +2200,57 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 
 		if (ordered_children[i].include_children)
 			ordered_children[i].element->BuildStackingContext(new_stacking_context);
+	}
+}
+
+void Element::BuildStackingContextForTable(Vector<StackingOrderedChild>& ordered_children, Element* parent)
+{
+	const size_t num_children = parent->children.size();
+
+	for (size_t i = 0; i < num_children; ++i)
+	{
+		Element* child = parent->children[i].get();
+
+		if (!child->IsVisible())
+			continue;
+
+		ordered_children.emplace_back();
+		StackingOrderedChild& ordered_child = ordered_children.back();
+		ordered_child.element = child;
+		ordered_child.order = RenderOrder::Inline;
+		ordered_child.include_children = false;
+
+		bool recurse_into_children = false;
+
+		switch (child->GetDisplay())
+		{
+		case Style::Display::TableRow:
+			ordered_child.order = RenderOrder::TableRow;
+			recurse_into_children = true;
+			break;
+		case Style::Display::TableRowGroup:
+			ordered_child.order = RenderOrder::TableRowGroup;
+			recurse_into_children = true;
+			break;
+		case Style::Display::TableColumn:
+			ordered_child.order = RenderOrder::TableColumn;
+			break;
+		case Style::Display::TableColumnGroup:
+			ordered_child.order = RenderOrder::TableColumnGroup;
+			recurse_into_children = true;
+			break;
+		case Style::Display::TableCell:
+			ordered_child.order = RenderOrder::TableCell;
+			ordered_child.include_children = !child->local_stacking_context;
+			break;
+		default:
+			ordered_child.order = RenderOrder::Positioned;
+			ordered_child.include_children = !child->local_stacking_context;
+			break;
+		}
+
+		if (recurse_into_children)
+			BuildStackingContextForTable(ordered_children, child);
 	}
 }
 

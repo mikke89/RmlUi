@@ -150,7 +150,9 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 		case Style::Display::Table:       return FormatElementTable(block_context_box, element);
 
 		case Style::Display::TableRow:
+		case Style::Display::TableRowGroup:
 		case Style::Display::TableColumn:
+		case Style::Display::TableColumnGroup:
 		case Style::Display::TableCell:
 		{
 			const Property* display_property = element->GetProperty(PropertyId::Display);
