@@ -69,7 +69,7 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, co
 		LayoutDetails::BuildBox(box, containing_block, element, false);
 
 	float min_height, max_height;
-	LayoutDetails::GetMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
+	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
 
 	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element, box, min_height, max_height);
 

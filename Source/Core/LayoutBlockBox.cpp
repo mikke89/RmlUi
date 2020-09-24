@@ -618,7 +618,9 @@ float LayoutBlockBox::GetShrinkToFitWidth() const
 				content_width = Math::Max(content_width, width_value);
 			}
 
-			content_width = LayoutDetails::ClampWidth(content_width, computed, box, block_width);
+			float min_width, max_width;
+			LayoutDetails::GetMinMaxWidth(min_width, max_width, computed, box, block_width);
+			content_width = Math::Clamp(content_width, min_width, max_width);
 		}
 		else
 		{
