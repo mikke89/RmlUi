@@ -38,27 +38,21 @@
 
 namespace Rml {
 
-static void SnapToPixelGrid(float& x, float& width)
-{
-	float rounded_x = Math::RoundFloat(x);
-	width = Math::RoundFloat(x + width) - rounded_x;
-	x = rounded_x;
-}
-static void SnapToPixelGrid(Vector2f& position, Vector2f& size)
-{
-	Vector2f rounded_position = position.Round();
-	size = (position + size).Round() - rounded_position;
-	position = rounded_position;
-}
 
-LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_context_box, Element* element_table)
+Vector2f LayoutTable::FormatTable(Box& box, Vector2f min_size, Vector2f max_size, Element* element_table)
 {
-	Vector2f table_content_offset = table_block_context_box->GetBox().GetPosition();
-	Vector2f table_initial_content_size = Vector2f(table_block_context_box->GetBox().GetSize().x, Math::Max(0.0f, table_block_context_box->GetBox().GetSize().y));
-
-	SnapToPixelGrid(table_content_offset, table_initial_content_size);
-
 	const ComputedValues& computed_table = element_table->GetComputedValues();
+
+	Vector2f table_content_offset = box.GetPosition();
+	Vector2f table_initial_content_size = Vector2f(box.GetSize().x, Math::Max(0.0f, box.GetSize().y));
+
+	// When width or height is set, they act as minimum width or height, just as in CSS.
+	if (computed_table.width.type != Style::Width::Auto)
+		min_size.x = Math::Max(min_size.x, table_initial_content_size.x);
+	if (computed_table.height.type != Style::Height::Auto)
+		min_size.y = Math::Max(min_size.y, table_initial_content_size.y);
+
+	Math::SnapToPixelGrid(table_content_offset, table_initial_content_size);
 
 	const Vector2f table_gap = Vector2f(
 		ResolveValue(computed_table.column_gap, table_initial_content_size.x), 
@@ -66,26 +60,19 @@ LayoutTable::CloseResult LayoutTable::FormatTable(LayoutBlockBox* table_block_co
 	);
 
 	// Construct the layout object and format the table.
-	LayoutTable layout_table(element_table, table_gap, table_content_offset, table_initial_content_size);
+	LayoutTable layout_table(element_table, table_gap, table_content_offset, table_initial_content_size, min_size, max_size);
 
 	layout_table.FormatTable();
 
-	// Set the new size of the table on the block box.
-	if (layout_table.table_resulting_content_size != table_initial_content_size)
-	{
-		table_block_context_box->GetBox().SetContent(layout_table.table_resulting_content_size);
-	}
+	// Update the box size based on the new table size.
+	box.SetContent(layout_table.table_resulting_content_size);
 
-	// Set the inner content size so that any overflow can be caught.
-	table_block_context_box->ExtendInnerContentSize(layout_table.table_content_overflow_size);
-
-	CloseResult result = table_block_context_box->Close();
-	return result;
+	return layout_table.table_content_overflow_size;
 }
 
 
-LayoutTable::LayoutTable(Element* element_table, Vector2f table_gap, Vector2f table_content_offset, Vector2f table_initial_content_size)
-	: element_table(element_table), table_gap(table_gap), table_content_offset(table_content_offset), table_initial_content_size(table_initial_content_size)
+LayoutTable::LayoutTable(Element* element_table, Vector2f table_gap, Vector2f table_content_offset, Vector2f table_initial_content_size, Vector2f table_min_size, Vector2f table_max_size)
+	: element_table(element_table), table_min_size(table_min_size), table_max_size(table_max_size), table_gap(table_gap), table_content_offset(table_content_offset), table_initial_content_size(table_initial_content_size)
 {
 	table_resulting_content_size = table_initial_content_size;
 }
@@ -120,7 +107,7 @@ void LayoutTable::FormatTable()
 			}
 			else if (display != Display::TableColumn && display != Display::TableColumnGroup && display != Display::None)
 			{
-				Log::Message(Log::LT_WARNING, "Only table columns and table rows are valid children of tables. Ignoring element %s.", element->GetAddress().c_str());
+				Log::Message(Log::LT_WARNING, "Only table columns, column groups, rows, and row groups are valid children of tables. Ignoring element %s.", element->GetAddress().c_str());
 			}
 			continue;
 		}
@@ -179,7 +166,7 @@ void LayoutTable::FormatTable()
 		}
 	}
 
-	table_resulting_content_size.y = Math::Max(table_cursor_y - table_content_offset.y, 0.0f);
+	table_resulting_content_size.y = Math::Clamp(table_cursor_y - table_content_offset.y, table_min_size.y, table_max_size.y);
 
 	// Size and position the column and column group elements.
 	auto FormatColumn = [this](Element* element, float content_width, float offset_x) {
@@ -354,6 +341,8 @@ void LayoutTable::DetermineColumnWidths()
 	// Fill the column metric with fixed, flexible and min/max widths, based on the element's computed values.
 	auto InitializeColumnWidths = [this, GetEdgeWidths](ColumnMetric& metric, float& margin_left, float& margin_right, float& padding_border_left, float& padding_border_right, const ComputedValues& computed, int span, Style::BoxSizing column_target_box)
 	{
+		RMLUI_ASSERT(span >= 1);
+
 		GetEdgeWidths(margin_left, margin_right, padding_border_left, padding_border_right, computed);
 
 		const float padding_border_sum = padding_border_left + padding_border_right;
@@ -381,6 +370,11 @@ void LayoutTable::DetermineColumnWidths()
 		{
 			metric.flex_width = 1;
 		}
+		else if (computed.width.type == Style::Width::Percentage && computed.width.value >= 100.f)
+		{
+			// Percentages >= 100% are resolved as flexible widths.
+			metric.flex_width = Math::Max(0.01f * computed.width.value / float(span), 0.f);
+		}
 		else
 		{
 			float width = ResolveValue(computed.width, table_initial_content_size.x);
@@ -399,7 +393,7 @@ void LayoutTable::DetermineColumnWidths()
 
 		if (span > 1)
 		{
-			// Distribute any fixed widths over the columns we are spanning.
+			// Account for distribution of fixed widths over the columns we are spanning.
 			const float width_factor = 1.f / float(span);
 			metric.fixed_width *= width_factor;
 			metric.min_width *= width_factor;
@@ -648,7 +642,7 @@ void LayoutTable::DetermineColumnWidths()
 		}
 	}
 
-	// Fill in the resulting columns.
+	// Generate the column results based on the metrics.
 	columns.resize(column_metrics.size());
 	float cursor_x = 0;
 
@@ -673,23 +667,22 @@ void LayoutTable::DetermineColumnWidths()
 			cursor_x += table_gap.x;
 	}
 	
-	// Extend the table content width if the summed column widths and spacing is larger. Include a margin for floating-point imprecision.
-	if (cursor_x - table_initial_content_size.x > 0.5f)
-		table_resulting_content_size.x = cursor_x;
+	// Adjust the table content width based on the accumulated column widths and spacing.
+	table_resulting_content_size.x = Math::Clamp(cursor_x, table_min_size.x, table_max_size.x);
 
 	// Extend column and column group widths to cover multiple columns for spanning column (group) elements.
 	for (size_t i = 0; i < column_metrics.size(); i++)
 	{
 		const ColumnMetric& metric = column_metrics[i];
 
-		if (metric.element_column && metric.column_span > 1 && i + metric.column_span - 1 < (int)column_metrics.size())
+		if (metric.element_column && metric.column_span > 1 && i + metric.column_span - 1 < column_metrics.size())
 		{
 			Column& col = columns[i];
 			Column& col_last_span = columns[i + metric.column_span - 1];
 			col.column_width = col_last_span.cell_width + (col_last_span.cell_offset - col.cell_offset);
 		}
 
-		if (metric.element_group && metric.group_span > 1 && i + metric.group_span - 1 < (int)column_metrics.size())
+		if (metric.element_group && metric.group_span > 1 && i + metric.group_span - 1 < column_metrics.size())
 		{
 			Column& col = columns[i];
 			Column& col_last_span = columns[i + metric.group_span - 1];
@@ -700,9 +693,9 @@ void LayoutTable::DetermineColumnWidths()
 	// Finally, snap boxes to the pixel grid.
 	for (Column& col : columns)
 	{
-		SnapToPixelGrid(col.cell_offset, col.cell_width);
-		SnapToPixelGrid(col.column_offset, col.column_width);
-		SnapToPixelGrid(col.group_offset, col.group_width);
+		Math::SnapToPixelGrid(col.cell_offset, col.cell_width);
+		Math::SnapToPixelGrid(col.column_offset, col.column_width);
+		Math::SnapToPixelGrid(col.group_offset, col.group_width);
 	}
 }
 

@@ -39,19 +39,19 @@ class Box;
 class LayoutTable
 {
 public:
-	using CloseResult = LayoutBlockBox::CloseResult;
-
 	/// Formats and positions a table, including all elements contained within.
-	/// @param[in] block_context_box The open block box to layout the element in.
+	/// @param[inout] box The box used for dimensioning the table, the resulting table size is set on the box.
+	/// @param[in] min_size Minimum width and height of the table.
+	/// @param[in] max_size Maximum width and height of the table.
 	/// @param[in] element_table The table element.
-	/// @returns A close result which tells whether the table or parent need to be reformatted.
-	static CloseResult FormatTable(LayoutBlockBox* table_block_context_box, Element* element_table);
+	/// @return The content size of the table's overflowing content.
+	static Vector2f FormatTable(Box& box, Vector2f min_size, Vector2f max_size, Element* element_table);
 
 private:
-	LayoutTable(Element* element_table, Vector2f table_gap, Vector2f table_content_offset, Vector2f table_initial_content_size);
+	LayoutTable(Element* element_table, Vector2f table_gap, Vector2f table_content_offset, Vector2f table_initial_content_size, Vector2f table_min_size, Vector2f table_max_size);
 
 	struct Column {
-		Element* element_column = nullptr; // The '<col>' element which begins at this column, or nullptr if the column is spanned from a previous column or defined by cells in the first row.
+		Element* element_column = nullptr; // The '<col>' element which begins at this column, or nullptr if there is no such element or if the column is spanned from a previous column.
 		Element* element_group = nullptr;  // The '<colgroup>' element which begins at this column, otherwise nullptr.
 		float cell_width = 0;              // The *border* width of cells in this column.
 		float cell_offset = 0;             // Horizontal offset from the table content box to the border box of cells in this column.
@@ -83,6 +83,7 @@ private:
 
 	Element* const element_table;
 
+	const Vector2f table_min_size, table_max_size;
 	const Vector2f table_gap;
 	const Vector2f table_content_offset;
 	const Vector2f table_initial_content_size;

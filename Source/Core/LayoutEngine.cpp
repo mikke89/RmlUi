@@ -260,31 +260,43 @@ bool LayoutEngine::FormatElementInlineBlock(LayoutBlockBox* block_context_box, E
 
 bool LayoutEngine::FormatElementTable(LayoutBlockBox* block_context_box, Element* element_table)
 {
-	LayoutBlockBox* table_block_context_box = nullptr;
-	
-	{
-		Box box;
-		float min_height, max_height;
-		LayoutDetails::BuildBox(box, min_height, max_height, block_context_box, element_table, false);
+	const ComputedValues& computed_table = element_table->GetComputedValues();
 
-		table_block_context_box = block_context_box->AddBlockElement(element_table, box, min_height, max_height);
+	const Vector2f containing_block = LayoutDetails::GetContainingBlock(block_context_box);
+
+	// Build the initial box as specified by the table's style, as if it were a normal block element.
+	Box box;
+	LayoutDetails::BuildBox(box, containing_block, element_table, false);
+
+	Vector2f min_size, max_size;
+	LayoutDetails::GetMinMaxWidth(min_size.x, max_size.x, computed_table, box, containing_block.x);
+	LayoutDetails::GetMinMaxHeight(min_size.y, max_size.y, computed_table, box, containing_block.y);
+	const Vector2f initial_content_size = box.GetSize();
+
+	// Format the table, this may adjust the box content size.
+	const Vector2f table_content_overflow_size = LayoutTable::FormatTable(box, min_size, max_size, element_table);
+
+	const Vector2f final_content_size = box.GetSize();
+	RMLUI_ASSERT(final_content_size.y >= 0);
+
+	if (final_content_size != initial_content_size)
+	{
+		// Perform this step to re-evaluate any auto margins.
+		LayoutDetails::BuildBoxSizeAndMargins(box, min_size, max_size, containing_block, element_table, false, true);
 	}
 
+	// Now that the box is finalized, we can add table as a block element. If we did it earlier, eg. just before formatting the table,
+	// then the table element's offset would not be correct in cases where table size and auto-margins were adjusted.
+	LayoutBlockBox* table_block_context_box = block_context_box->AddBlockElement(element_table, box, final_content_size.y, final_content_size.y);
 	if (!table_block_context_box)
 		return false;
 
-	for (int i = 0; i < 2; i++)
-	{
-		LayoutBlockBox::CloseResult result = LayoutTable::FormatTable(table_block_context_box, element_table);
+	// Set the inner content size so that any overflow can be caught.
+	table_block_context_box->ExtendInnerContentSize(table_content_overflow_size);
 
-		// If the close failed, it probably means that the table or its parent produced scrollbars. Try again, but only once.
-		if (result == LayoutBlockBox::LAYOUT_SELF)
-			continue;
-		else if (result == LayoutBlockBox::LAYOUT_PARENT)
-			return false;
-		else if (result == LayoutBlockBox::OK)
-			break;
-	}
+	// If the close failed, it probably means that its parent produced scrollbars.
+	if (table_block_context_box->Close() != LayoutBlockBox::OK)
+		return false;
 
 	return true;
 }
