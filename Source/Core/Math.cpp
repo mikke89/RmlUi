@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include <time.h>
 #include <math.h>
 #include <stdlib.h>
@@ -161,6 +162,20 @@ RMLUICORE_API int RoundDownToInteger(float value)
 RMLUICORE_API int RealToInteger(float value)
 {
 	return int(value);
+}
+
+RMLUICORE_API void SnapToPixelGrid(float& offset, float& width)
+{
+	const float rounded_offset = Math::RoundFloat(offset);
+	width = Math::RoundFloat(offset + width) - rounded_offset;
+	offset = rounded_offset;
+}
+
+RMLUICORE_API void SnapToPixelGrid(Vector2f& position, Vector2f& size)
+{
+	const Vector2f rounded_position = position.Round();
+	size = (position + size).Round() - rounded_position;
+	position = rounded_position;
 }
 
 // Converts the given number to a power of two, rounding up if necessary.
