@@ -500,7 +500,11 @@ class Matrix4
 			const Vector3< Component >& skew, const Vector4< Component >& perspective, const Vector4< Component >& quaternion) noexcept;
 
 #ifdef RMLUI_MATRIX4_USER_EXTRA
+	#if defined(__has_include) && __has_include(RMLUI_MATRIX4_USER_EXTRA)
+		#include RMLUI_MATRIX4_USER_EXTRA
+	#else
 		RMLUI_MATRIX4_USER_EXTRA
+	#endif
 #endif
 };
 
