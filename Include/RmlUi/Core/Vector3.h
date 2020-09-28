@@ -135,7 +135,11 @@ class Vector3
 		Type z;
 
 #ifdef RMLUI_VECTOR3_USER_EXTRA
+	#if defined(__has_include) && __has_include(RMLUI_VECTOR3_USER_EXTRA)
+		#include RMLUI_VECTOR3_USER_EXTRA
+	#else
 		RMLUI_VECTOR3_USER_EXTRA
+	#endif
 #endif
 };
 

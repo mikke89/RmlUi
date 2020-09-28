@@ -140,7 +140,11 @@ class Vector4
 		Type w;
 
 #ifdef RMLUI_VECTOR4_USER_EXTRA
+	#if defined(__has_include) && __has_include(RMLUI_VECTOR4_USER_EXTRA)
+		#include RMLUI_VECTOR4_USER_EXTRA
+	#else
 		RMLUI_VECTOR4_USER_EXTRA
+	#endif
 #endif
 };
 

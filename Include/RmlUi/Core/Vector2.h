@@ -149,7 +149,11 @@ class Vector2
 		Type y;
 
 #ifdef RMLUI_VECTOR2_USER_EXTRA
+	#if defined(__has_include) && __has_include(RMLUI_VECTOR2_USER_EXTRA)
+		#include RMLUI_VECTOR2_USER_EXTRA
+	#else
 		RMLUI_VECTOR2_USER_EXTRA
+	#endif
 #endif
 };
 
