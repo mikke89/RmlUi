@@ -65,7 +65,7 @@ static void SetBox(Element* element)
 }
 
 // Positions an element relative to an offset parent.
-static void SetElementOffset(Element* element, const Vector2f& offset)
+static void SetElementOffset(Element* element, Vector2f offset)
 {
 	Vector2f relative_offset = element->GetParentNode()->GetBox().GetPosition(Box::CONTENT);
 	relative_offset += offset;
@@ -198,11 +198,11 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 		if (num_ignored_clips == 0 && clipping_element->IsClippingEnabled())
 		{
 			// Ignore nodes that don't clip.
-			if (clipping_element->GetClientWidth() < clipping_element->GetScrollWidth()
-				|| clipping_element->GetClientHeight() < clipping_element->GetScrollHeight())
+			if (clipping_element->GetClientWidth() < clipping_element->GetScrollWidth() - 0.5f
+				|| clipping_element->GetClientHeight() < clipping_element->GetScrollHeight() - 0.5f)
 			{
-				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(Box::CONTENT);
-				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(Box::CONTENT);
+				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(Box::PADDING);
+				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(Box::PADDING);
 				
 				Vector2i element_origin(Math::RealToInteger(element_origin_f.x), Math::RealToInteger(element_origin_f.y));
 				Vector2i element_dimensions(Math::RealToInteger(element_dimensions_f.x), Math::RealToInteger(element_dimensions_f.y));
@@ -302,9 +302,9 @@ void ElementUtilities::ApplyActiveClipRegion(Context* context, RenderInterface* 
 }
 
 // Formats the contents of an element.
-bool ElementUtilities::FormatElement(Element* element, const Vector2f& containing_block)
+void ElementUtilities::FormatElement(Element* element, Vector2f containing_block)
 {
-	return LayoutEngine::FormatElement(element, containing_block);
+	LayoutEngine::FormatElement(element, containing_block);
 }
 
 // Generates the box for an element.

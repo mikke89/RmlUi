@@ -100,7 +100,7 @@ float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 
 // Determines the appropriate vertical position for an object that is choosing to clear floating elements to the left
 // or right (or both).
-float LayoutBlockBoxSpace::ClearBoxes(float cursor, Style::Clear clear_property)
+float LayoutBlockBoxSpace::ClearBoxes(float cursor, Style::Clear clear_property) const
 {
 	using namespace Style;
 	// Clear left boxes.

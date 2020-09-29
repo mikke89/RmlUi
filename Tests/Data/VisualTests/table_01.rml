@@ -1,0 +1,94 @@
+<rml>
+<head>
+    <title>Table 01</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html" />
+    <link rel="match" href="reference/table_01-ref.rml"/>
+	<meta name="Description" content="Basic table layout." />
+	<style>
+		table {
+			border-width: 20px 5px 0;
+			color: #333;
+			text-align: center;
+			margin: 0 auto;
+			min-width: 100px;
+			max-width: 400px;
+		}
+		table, table * {
+			border-color: #666;
+		}
+		td {
+			padding: 15px 5px;
+		}
+		col {
+			background: #3d3;
+		}
+		col:first-child {
+			background: #6df;
+			border-right-width: 3px;
+		}
+		col:nth-child(3) {
+			background: #dd3;
+		}
+		thead {
+			color: black;
+			background: #fff5;
+			border-bottom: 3px #666;
+		}
+		tbody tr {
+			border-bottom: 1px #666a;
+		}
+		tbody tr:last-child {
+			border-bottom: 0;
+		}
+		tbody tr:hover {
+			background: #fff5;
+		}
+		tfoot {
+			background: #666;
+			color: #ccc;
+		}
+		tfoot td {
+			padding-top: 0px;
+			padding-bottom: 0px;
+			text-align: right;
+			height: 20px;
+		}
+	</style>
+</head>
+
+<body>
+<table>
+	<col/>
+	<col span="2"/>
+	<col/>
+	<thead>
+		<tr>
+			<td>A</td>
+			<td colspan="2">B</td>
+			<td>C</td>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>D</td>
+			<td>E</td>
+			<td>F</td>
+			<td>G</td>
+		</tr>
+		<tr>
+			<td>H</td>
+			<td>I</td>
+			<td>J</td>
+			<td>K</td>
+		</tr>
+	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="4">[1] Footnote</td>
+		</tr>
+	</tfoot>
+</table>
+<handle size_target="#document"/>
+</body>
+</rml>

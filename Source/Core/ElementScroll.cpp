@@ -140,7 +140,8 @@ float ElementScroll::GetScrollbarSize(Orientation orientation)
 // Formats the enabled scrollbars based on the current size of the host element.
 void ElementScroll::FormatScrollbars()
 {
-	Vector2f containing_block = element->GetBox().GetSize(Box::PADDING);
+	const Box& element_box = element->GetBox();
+	const Vector2f containing_block = element_box.GetSize(Box::PADDING);
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -179,7 +180,7 @@ void ElementScroll::FormatScrollbars()
 		scrollbars[i].widget->SetLineHeight(element->GetLineHeight());
 
 		int variable_axis = i == VERTICAL ? 0 : 1;
-		Vector2f offset = element->GetBox().GetPosition(Box::PADDING);
+		Vector2f offset = element_box.GetPosition(Box::PADDING);
 		offset[variable_axis] += containing_block[variable_axis] - (scrollbars[i].element->GetBox().GetSize(Box::BORDER)[variable_axis] + scrollbars[i].element->GetBox().GetEdge(Box::MARGIN, i == VERTICAL ? Box::RIGHT : Box::BOTTOM));
 		// Add the top or left margin (as appropriate) onto the scrollbar's position.
 		offset[1 - variable_axis] += scrollbars[i].element->GetBox().GetEdge(Box::MARGIN, i == VERTICAL ? Box::TOP : Box::LEFT);
@@ -195,7 +196,7 @@ void ElementScroll::FormatScrollbars()
 		Box corner_box;
 		corner_box.SetContent(Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size));
 		corner->SetBox(corner_box);
-		corner->SetOffset(containing_block - Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size), element, true);
+		corner->SetOffset(containing_block + element_box.GetPosition(Box::PADDING) - Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size), element, true);
 		corner->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
 		corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));

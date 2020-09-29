@@ -345,8 +345,8 @@ void LayoutInlineBox::SizeElement(bool split)
 	// The elements of a chained box have already had their positions set by the first link.
 	if (chained)
 	{
-		element_box.SetOffset((line->GetPosition() + position) - element->GetRelativeOffset(Box::BORDER));
-		element->AddBox(element_box);
+		const Vector2f box_offset = (line->GetPosition() + position) - element->GetRelativeOffset(Box::BORDER);
+		element->AddBox(element_box, box_offset);
 
 		if (chain != nullptr)
 			element->OnLayout();

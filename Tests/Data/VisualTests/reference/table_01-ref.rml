@@ -1,0 +1,103 @@
+<rml>
+<head>
+    <title>Table 01 ref</title>
+    <link type="text/rcss" href="../../style.rcss"/>
+	<meta name="Reference" content="Reference implemented using 'inline-blocks' instead. Row coloring does not work here. Might not be pixel accurate." />
+	<style>
+		table {
+			display: block;
+			border-width: 20px 5px 0;
+			color: #333;
+			text-align: center;
+			margin: 0 auto;
+			min-width: 100px;
+			max-width: 400px;
+		}
+		body * {
+			border-color: #666;
+		}
+		td {
+			display: inline-block;
+			box-sizing: border-box;
+			padding: 15px 5px;
+			width: 25%;
+			height: 47px;
+			background: #3d3;
+		}
+		td.span2 { width: 50%; }
+		td.span4 { width: 100%; }
+		tr {
+			display: block;
+		}
+		td:first-child {
+			background: #6df;
+			border-right-width: 3px;
+		}
+		td:last-of-type {
+			background: #dd3;
+		}
+		thead {
+			display: block;
+			color: black;
+			background: #fff5;
+			border-bottom: 3px #666;
+		}
+		tbody {
+			display: block;
+		}
+		tbody tr {
+			border-bottom: 1px #666a;
+		}
+		tbody tr:last-child {
+			border-bottom: 0;
+		}
+		tbody tr:hover {
+			background: #fff5;
+		}
+		tfoot {
+			display: block;
+			background: #666;
+			color: #ccc;
+		}
+		tfoot td {
+			padding-top: 0px;
+			padding-bottom: 0px;
+			text-align: right;
+			height: 20px;
+		}
+	</style>
+</head>
+
+<body>
+<table>
+	<thead>
+		<tr>
+			<td>A</td>
+			<td class="span2">B</td>
+			<td>C</td>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>D</td>
+			<td>E</td>
+			<td>F</td>
+			<td>G</td>
+		</tr>
+		<tr>
+			<td>H</td>
+			<td>I</td>
+			<td>J</td>
+			<td>K</td>
+		</tr>
+	</tbody>
+	<tfoot>
+		<tr>
+			<td style="background: transparent" class="span4">[1] Footnote</td>
+		</tr>
+	</tfoot>
+</table>
+
+<handle size_target="#document"/>
+</body>
+</rml>

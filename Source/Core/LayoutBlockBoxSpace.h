@@ -73,7 +73,7 @@ public:
 	/// @param[in] cursor The ideal vertical position.
 	/// @param[in] clear_property The value of the clear property of the clearing object.
 	/// @return The appropriate vertical position for the clearing object.
-	float ClearBoxes(float cursor, Style::Clear clear_property);
+	float ClearBoxes(float cursor, Style::Clear clear_property) const;
 
 	/// Returns the top-left corner of the boxes within the space.
 	/// @return The space's offset.

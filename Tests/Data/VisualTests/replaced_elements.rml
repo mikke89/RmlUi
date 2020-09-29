@@ -9,6 +9,7 @@
 		{
 			src: /assets/invader.tga;
 			invader: 179px 152px 50px 40px;
+			bar: 108px 308px 70px 20px;
 		}
 		img {
 			vertical-align: bottom;
@@ -31,14 +32,28 @@
 </head>
 
 <body>
-<p>The following images should be the same size (width and height).</p>
+<p>The following images should be the same size (width and height) in each section.</p>
 <div>
+	<!-- Test replaced element scaling with intrinsic ratio. -->
 	<img style="padding: 10px;" sprite="invader"/>
 	<img style="padding: 10px;" class="border-box" sprite="invader"/>
 	<img style="padding: 10px; height: 40px;" sprite="invader"/>
 	<img style="padding: 10px; width: 50px;" sprite="invader"/>
 	<img style="padding: 10px; height: 60px;" class="border-box" sprite="invader"/>
 	<img style="padding: 10px; width: 70px;" class="border-box" sprite="invader"/>
+<hr/>
+	<!-- Test width and height auto sizing with constraints. -->
+	<img style="padding: 10px; max-height: 20px;" sprite="invader"/>
+	<img style="padding: 10px; max-width: 25px;" sprite="invader"/>
+	<img style="padding: 10px; max-width: 25px; max-height: 40px;" sprite="invader"/>
+	<img style="padding: 10px; max-height: 20px; max-width: 50px;" sprite="invader"/>
+	<img style="padding: 10px; max-width: 40px; max-height: 20px;" sprite="invader"/>
+	<img style="padding: 10px; max-width: 25px; max-height: 35px;" sprite="invader"/>
+<hr/>
+	<img style="padding: 10px; min-height: 24px;" sprite="bar"/>
+	<img style="padding: 10px; min-width: 84px;" sprite="bar"/>
+	<img style="padding: 10px; min-width: 84px; min-height: 20px;" sprite="bar"/>
+	<img style="padding: 10px; min-height: 24px; min-width: 20px;" sprite="bar"/>
 </div>
 <hr/>
 <p>There should be three evenly spaced, same-sized images on a single line.</p>

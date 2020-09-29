@@ -56,6 +56,7 @@ enum class ShorthandId : uint8_t
 	Overflow,
 	Background,
 	Font,
+	Gap,
 	PerspectiveOrigin,
 	TransformOrigin,
 
@@ -130,6 +131,8 @@ enum class PropertyId : uint8_t
 	TextTransform,
 	WhiteSpace,
 	WordBreak,
+	RowGap,
+	ColumnGap,
 	Cursor,
 	Drag,
 	TabIndex,

@@ -33,6 +33,9 @@
 
 namespace Rml {
 
+template <typename Type> class Vector2;
+using Vector2f = Vector2< float >;
+
 namespace Math {
 
 // The constant PI.
@@ -163,6 +166,15 @@ RMLUICORE_API int RoundDownToInteger(float value);
 /// @param[in] value The value to truncate.
 /// @return The truncated value as a signed integer.
 RMLUICORE_API int RealToInteger(float value);
+
+/// Round the position and width of a line segment to the pixel grid while minimizing movement of the edges.
+/// @param[inout] x The position, which will use normal rounding.
+/// @param[inout] width The width, which is rounded such that movement of the right edge is minimized.
+RMLUICORE_API void SnapToPixelGrid(float& x, float& width);
+/// Round the position and size of a rectangle to the pixel grid while minimizing movement of the edges.
+/// @param[inout] position The position, which will use normal rounding.
+/// @param[inout] size The size, which is rounded such that movement of the right and bottom edges is minimized.
+RMLUICORE_API void SnapToPixelGrid(Vector2f& position, Vector2f& size);
 
 /// Converts a number to the nearest power of two, rounding up if necessary.
 /// @param[in] value The value to convert to a power-of-two.

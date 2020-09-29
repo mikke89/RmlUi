@@ -1,0 +1,135 @@
+<rml>
+<head>
+    <title>Table 02</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#fixed-table-layout" />
+	<meta name="Description" content="Test table column sizing algorithm." />
+	<style>
+		table {
+			margin: 2em 0;
+			border: 2px #666;
+			gap: 5px;
+			text-align: center;
+		}
+		td {
+			background: #bbb;
+			vertical-align: middle;
+			padding: 5px;
+		}
+		.color {
+			background: #333;
+			padding: 5px;
+			width: 0px;
+		}
+		.color colgroup {
+			padding: 0 5px;
+			margin: 0 5px;
+			background: #a33;
+			border: 5px #f33;
+		}
+		.color col {
+			width: 80px;
+			padding: 0 5px;
+			margin: 0 5px;
+			background: #33b;
+			border: 5px #66f;
+		}
+		.color tr { 
+			height: auto;
+		}
+		.color td {
+			margin: 0 5px;
+			padding: 0 5px;
+			background: #bbb;
+			border: 5px #ddd;
+			height: 30px;
+		}
+		.color-ref {
+			border: 2px #666;
+			background: #333;
+			margin: 20px 0;
+			height: 40px;
+			width: 305px; /* 2*col width + 8*td margin + 4*col margin + 4*colgroup padding + 4*colgroup border +
+			                 4*colgroup margin + 3*column-gap + 2*table padding */
+		}
+	</style>
+</head>
+
+<body>
+<p>The following tables should be the same size.</p>
+<table>
+	<tr>
+		<td style="width: 50px">A</td>
+		<td>B</td>
+		<td>C</td>
+		<td>D</td>
+		<td style="width: 50px">E</td>
+	</tr>
+</table>
+<table>
+	<col style="width: 50px"/>
+	<colgroup span="3"/>
+	<col style="width: 50px"/>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+		<td>C</td>
+		<td>D</td>
+		<td>E</td>
+	</tr>
+</table>
+<table>
+	<colgroup>
+		<col style="width: 50px"/>
+	</colgroup>
+	<col span="3"/>
+	<colgroup>
+		<col style="width: 50px"/>
+	</colgroup>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+		<td>C</td>
+		<td>D</td>
+		<td>E</td>
+	</tr>
+</table>
+<table>
+	<colgroup>
+		<col style="min-width: 50px; max-width: 50px"/>
+		<col/>
+		<col/>
+		<col/>
+		<col style="width: 50px"/>
+	</colgroup>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+		<td>C</td>
+		<td>D</td>
+		<td>E</td>
+	</tr>
+</table>
+
+<hr/>
+
+The following table should be symmetrical and have the same size as the reference box beneath.
+<table class="color">
+	<colgroup>
+		<col span="2"/>
+	</colgroup>
+	<colgroup>
+		<col span="2"/>
+	</colgroup>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+		<td>C</td>
+		<td>D</td>
+	</tr>
+</table>
+<div class="color-ref"/>
+
+<handle size_target="#document"/>
+</body>
+</rml>

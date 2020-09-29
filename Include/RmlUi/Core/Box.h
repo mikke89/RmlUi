@@ -61,15 +61,18 @@ public:
 		NUM_EDGES = 4
 	};
 
+	enum Direction
+	{
+		VERTICAL = 0,
+		HORIZONTAL = 1
+	};
+
 	/// Initialises a zero-sized box.
 	Box();
 	/// Initialises a box with a default content area and no padding, borders and margins.
-	Box(const Vector2f& content);
+	Box(Vector2f content);
 	~Box();
 
-	/// Returns the offset of this box. This will usually be (0, 0).
-	/// @return The box's offset.
-	const Vector2f& GetOffset() const;
 	/// Returns the top-left position of one of the box's areas, relative to the top-left of the border area. This
 	/// means the position of the margin area is likely to be negative.
 	/// @param area[in] The desired area.
@@ -80,13 +83,9 @@ public:
 	/// @return The size of the requested area.
 	Vector2f GetSize(Area area = Box::CONTENT) const;
 
-	/// Sets the offset of the box, relative usually to the owning element. This should only be set for auxiliary
-	/// boxes of an element.
-	/// @param offset[in] The offset of the box from the primary box.
-	void SetOffset(const Vector2f& offset);
 	/// Sets the size of the content area.
 	/// @param content[in] The size of the new content area.
-	void SetContent(const Vector2f& content);
+	void SetContent(Vector2f content);
 	/// Sets the size of one of the edges of one of the box's outer areas.
 	/// @param area[in] The area to change.
 	/// @param edge[in] The area edge to change.
@@ -104,6 +103,13 @@ public:
 	/// @return The cumulative size of the edge.
 	float GetCumulativeEdge(Area area, Edge edge) const;
 
+	/// Returns the size along a single direction of the given 'area', including all inner areas up-to and including 'area_end'.
+	/// @example GetSizeAcross(HORIZONTAL, BORDER, PADDING) returns the total width of the horizontal borders and paddings.
+	/// @param direction The desired direction.
+	/// @param area The widest area to include.
+	/// @param area_end The last area to include, anything inside this is excluded.
+	float GetSizeAcross(Direction direction, Area area, Area area_end = Area::CONTENT) const;
+
 	/// Compares the size of the content area and the other area edges.
 	/// @return True if the boxes represent the same area.
 	bool operator==(const Box& rhs) const;
@@ -114,8 +120,6 @@ public:
 private:
 	Vector2f content;
 	float area_edges[NUM_AREAS][NUM_EDGES];
-
-	Vector2f offset;
 };
 
 } // namespace Rml

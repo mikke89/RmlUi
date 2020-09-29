@@ -30,11 +30,13 @@
 #include "LayoutBlockBoxSpace.h"
 #include "LayoutDetails.h"
 #include "LayoutInlineBoxText.h"
+#include "LayoutTable.h"
 #include "Pool.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include <cstddef>
+#include <float.h>
 
 namespace Rml {
 
@@ -49,18 +51,27 @@ struct LayoutChunk
 static Pool< LayoutChunk > layout_chunk_pool(200, true);
 
 // Formats the contents for a root-level element (usually a document or floating element).
-bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block)
+void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box, Vector2f* out_visible_overflow_size)
 {
+	RMLUI_ASSERT(element && containing_block.x >= 0 && containing_block.y >= 0);
 #ifdef RMLUI_ENABLE_PROFILING
 	RMLUI_ZoneScopedC(0xB22222);
 	auto name = CreateString(80, "%s %x", element->GetAddress(false, false).c_str(), element);
 	RMLUI_ZoneName(name.c_str(), name.size());
 #endif
 
-	LayoutBlockBox containing_block_box(nullptr, nullptr);
-	containing_block_box.GetBox().SetContent(containing_block);
+	LayoutBlockBox containing_block_box(nullptr, nullptr, Box(containing_block), 0.0f, FLT_MAX);
 
-	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element);
+	Box box;
+	if (override_initial_box)
+		box = *override_initial_box;
+	else
+		LayoutDetails::BuildBox(box, containing_block, element, false);
+
+	float min_height, max_height;
+	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
+
+	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element, box, min_height, max_height);
 
 	for (int layout_iteration = 0; layout_iteration < 2; layout_iteration++)
 	{
@@ -75,9 +86,11 @@ bool LayoutEngine::FormatElement(Element* element, Vector2f containing_block)
 	}
 
 	block_context_box->CloseAbsoluteElements();
-	element->OnLayout();
 
-	return true;
+	if (out_visible_overflow_size)
+		*out_visible_overflow_size = block_context_box->GetVisibleOverflowSize();
+
+	element->OnLayout();
 }
 
 void* LayoutEngine::AllocateLayoutChunk(size_t size)
@@ -131,10 +144,25 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 	// The element is nothing exceptional, so we treat it as a normal block, inline or replaced element.
 	switch (computed.display)
 	{
-		case Style::Display::Block:       return FormatElementBlock(block_context_box, element); break;
-		case Style::Display::Inline:      return FormatElementInline(block_context_box, element); break;
-		case Style::Display::InlineBlock: return FormatElementInlineBlock(block_context_box, element); break;
-		default: RMLUI_ERROR;
+		case Style::Display::Block:       return FormatElementBlock(block_context_box, element);
+		case Style::Display::Inline:      return FormatElementInline(block_context_box, element);
+		case Style::Display::InlineBlock: return FormatElementInlineBlock(block_context_box, element);
+		case Style::Display::Table:       return FormatElementTable(block_context_box, element);
+
+		case Style::Display::TableRow:
+		case Style::Display::TableRowGroup:
+		case Style::Display::TableColumn:
+		case Style::Display::TableColumnGroup:
+		case Style::Display::TableCell:
+		{
+			const Property* display_property = element->GetProperty(PropertyId::Display);
+			Log::Message(Log::LT_WARNING, "Element has a display type '%s', but is not located in a table. It will not be formatted. In element %s",
+				display_property ? display_property->ToString().c_str() : "*unknown*",
+				element->GetAddress().c_str()
+			);
+			return true;
+		}
+		case Style::Display::None:        RMLUI_ERROR; /* handled above */ break;
 	}
 
 	return true;
@@ -145,7 +173,11 @@ bool LayoutEngine::FormatElementBlock(LayoutBlockBox* block_context_box, Element
 {
 	RMLUI_ZoneScopedC(0x2F4F4F);
 
-	LayoutBlockBox* new_block_context_box = block_context_box->AddBlockElement(element);
+	Box box;
+	float min_height, max_height;
+	LayoutDetails::BuildBox(box, min_height, max_height, block_context_box, element, false);
+
+	LayoutBlockBox* new_block_context_box = block_context_box->AddBlockElement(element, box, min_height, max_height);
 	if (new_block_context_box == nullptr)
 		return false;
 
@@ -192,9 +224,10 @@ bool LayoutEngine::FormatElementInline(LayoutBlockBox* block_context_box, Elemen
 {
 	RMLUI_ZoneScopedC(0x3F6F6F);
 
+	const Vector2f containing_block = LayoutDetails::GetContainingBlock(block_context_box);
+
 	Box box;
-	float min_height, max_height;
-	LayoutDetails::BuildBox(box, min_height, max_height, block_context_box, element, true);
+	LayoutDetails::BuildBox(box, containing_block, element, true);
 	LayoutInlineBox* inline_box = block_context_box->AddInlineElement(element, box);
 
 	// Format the element's children.
@@ -220,6 +253,50 @@ bool LayoutEngine::FormatElementInlineBlock(LayoutBlockBox* block_context_box, E
 	FormatElement(element, containing_block_size);
 
 	block_context_box->AddInlineElement(element, element->GetBox())->Close();
+
+	return true;
+}
+
+
+bool LayoutEngine::FormatElementTable(LayoutBlockBox* block_context_box, Element* element_table)
+{
+	const ComputedValues& computed_table = element_table->GetComputedValues();
+
+	const Vector2f containing_block = LayoutDetails::GetContainingBlock(block_context_box);
+
+	// Build the initial box as specified by the table's style, as if it were a normal block element.
+	Box box;
+	LayoutDetails::BuildBox(box, containing_block, element_table, false);
+
+	Vector2f min_size, max_size;
+	LayoutDetails::GetMinMaxWidth(min_size.x, max_size.x, computed_table, box, containing_block.x);
+	LayoutDetails::GetMinMaxHeight(min_size.y, max_size.y, computed_table, box, containing_block.y);
+	const Vector2f initial_content_size = box.GetSize();
+
+	// Format the table, this may adjust the box content size.
+	const Vector2f table_content_overflow_size = LayoutTable::FormatTable(box, min_size, max_size, element_table);
+
+	const Vector2f final_content_size = box.GetSize();
+	RMLUI_ASSERT(final_content_size.y >= 0);
+
+	if (final_content_size != initial_content_size)
+	{
+		// Perform this step to re-evaluate any auto margins.
+		LayoutDetails::BuildBoxSizeAndMargins(box, min_size, max_size, containing_block, element_table, false, true);
+	}
+
+	// Now that the box is finalized, we can add table as a block element. If we did it earlier, eg. just before formatting the table,
+	// then the table element's offset would not be correct in cases where table size and auto-margins were adjusted.
+	LayoutBlockBox* table_block_context_box = block_context_box->AddBlockElement(element_table, box, final_content_size.y, final_content_size.y);
+	if (!table_block_context_box)
+		return false;
+
+	// Set the inner content size so that any overflow can be caught.
+	table_block_context_box->ExtendInnerContentSize(table_content_overflow_size);
+
+	// If the close failed, it probably means that its parent produced scrollbars.
+	if (table_block_context_box->Close() != LayoutBlockBox::OK)
+		return false;
 
 	return true;
 }

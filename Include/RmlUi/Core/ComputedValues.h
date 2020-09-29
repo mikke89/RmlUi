@@ -60,7 +60,7 @@ struct NumberAuto {
 using Margin = LengthPercentageAuto;
 using Padding = LengthPercentage;
 
-enum class Display : uint8_t { None, Block, Inline, InlineBlock };
+enum class Display : uint8_t { None, Block, Inline, InlineBlock, Table, TableRow, TableRowGroup, TableColumn, TableColumnGroup, TableCell };
 enum class Position : uint8_t { Static, Relative, Absolute, Fixed };
 
 using Top = LengthPercentageAuto;
@@ -191,6 +191,8 @@ struct ComputedValues
 	TextTransform text_transform = TextTransform::None;
 	WhiteSpace white_space = WhiteSpace::Normal;
 	WordBreak word_break = WordBreak::Normal;
+
+	LengthPercentage row_gap, column_gap;
 
 	String cursor;
 
