@@ -21,8 +21,6 @@ namespace Rml
 		if (this->m_is_need_recreate_texture)
 			this->LoadTexture();
 
-		m_dimensions.x += 1;
-		m_dimensions.y += 1;
 		dimensions = this->m_dimensions;
 		
 		return true;

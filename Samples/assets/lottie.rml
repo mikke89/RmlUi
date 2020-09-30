@@ -23,6 +23,6 @@
 		</style>
 	</head>
 	<body template="window">
-		<lottie></lottie>
+		<lottie style="background-color: transparent;"></lottie>
 	</body>
 </rml>
