@@ -8,6 +8,7 @@
 6. cd build
 
 We don't need a real dependency for user, we make a static library for linking and usage
+
 7. cmake -DBUILD_SHARED_LIBS=OFF ..
 8. cd ..
 9. cd ..
