@@ -1,0 +1,3 @@
+[submodule "sdk/rlottie"]
+	path = sdk/rlottie
+	url = https://github.com/Samsung/rlottie.git
