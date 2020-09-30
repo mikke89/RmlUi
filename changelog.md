@@ -69,7 +69,9 @@ Work has started on a complete test suite for RmlUi. The tests have been separat
 - Floating elements, absolutely positioned elements, and inline-block elements (as before) will now all shrink to the width of their contents when their width is set to `auto`.
 - Replaced elements (eg. `img` and some `input` elements) now follow the normal CSS sizing rules. That is, padding and borders are no longer subtracted from the width and height of the element by default.
 - Replaced elements can now decide whether to provide an intrinsic aspect ratio, such that users can eg. set the width property on `input.text` without affecting their height.
-- Fixed some situations where overflowing content would not be hidden or scrolled when setting a non-default `overflow` property. [#116](https://github.com/mikke89/RmlUi/issues/116)
+- Replaced elements now try to preserve the aspect ratio when both width and height are auto, and min/max-width/height are set.
+- Fixed several situations where overflowing content would not be hidden or scrolled when setting a non-default `overflow` property. [#116](https://github.com/mikke89/RmlUi/issues/116)
+- Overflow is now clipped on the padding area instead of the content area.
 - Several other layouting improvements (to-be-detailed).
 
 These changes may result in a differently rendered layout when upgrading to RmlUi 4.0. In particular the first two items. 
@@ -77,9 +79,31 @@ These changes may result in a differently rendered layout when upgrading to RmlU
 - If the shrink-to-fit width is undesired, set a definite width on the related elements, eg. using the `width` property or the `left`/`right` properties.
 - Replaced elements may need adjustment of width and height, in this case it may be useful to use the new `box-sizing: border-box` property in some situations.
 
+### Table support
+
+RmlUi now supports tables like in CSS. See the [tables documentation](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html) for details.
+
+```html
+<table>
+	<tr>
+		<td>Name</td>
+		<td colspan="2">Items</td>
+		<td>Age</td>
+	</tr>
+	<tr>
+		<td>Gimli</td>
+		<td>Helmet</td>
+		<td>Axe</td>
+		<td>139 years</td>
+	</tr>
+</table>
+```
+
+Use the RCSS `display` property to enable table formatting. See the stylesheet rules in the tables documentation to use the common HTML tags.
+
 ### New RCSS properties
 
-- The `border-radius` property is now supported in RmlUi for drawing rounded backgrounds and borders. The gradient decorator also adds support for this property.
+- The `border-radius` property is now supported in RmlUi for drawing rounded backgrounds and borders. The gradient decorator is made compatible with this property.
 - Implemented the `word-break` RCSS property.
 - Implemented the `box-sizing` RCSS property.
 
