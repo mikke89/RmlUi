@@ -295,6 +295,14 @@ if(NOT NO_FONT_INTERFACE_DEFAULT)
 	endif()
 endif()
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/sdk/rlottie/build)
+find_package(rlottie REQUIRED)
+if (RLOTTIE_FOUND)
+	include_directories(${RLOTTIE_INCLUDE_DIRS})
+	link_directories(${RLOTTIE_LINK_DIRS})
+	list(APPEND CORE_LINK_LIBS ${RLOTTIE_LIBRARY})
+endif()
+
 #Lua
 if(BUILD_LUA_BINDINGS)
 	find_package(Lua REQUIRED)
