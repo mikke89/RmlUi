@@ -44,13 +44,17 @@ namespace Rml
 		// Loads the rect value from the element's attribute, but only if we're not a sprite.
 		void UpdateRect();
 
+
+	private:
+		bool m_is_need_recreate_texture;
+		bool m_is_need_recreate_geometry;
+
 		// The texture this element is rendering from.
 		Texture texture;
-		// True if we need to refetch the texture's source from the element's attributes.
-		bool texture_dirty;
+ 
 		// The element's computed intrinsic dimensions. If either of these values are set to -1, then
 		// that dimension has not been computed yet.
-		Vector2f dimensions;
+		Vector2f m_dimensions;
 
 		// The rectangle extracted from the sprite or 'rect' attribute. The rect_source will be None if
 		// these have not been specified or are invalid.
@@ -60,7 +64,5 @@ namespace Rml
 		Geometry geometry;
 
 		std::unique_ptr<rlottie::Animation> m_p_lottie;
-
-		bool geometry_dirty;
 	};
 }
