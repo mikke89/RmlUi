@@ -79,6 +79,7 @@
 #include "XMLParseTools.h"
 
 #include "Elements/ElementImage.h"
+#include "Elements/ElementLottie.h"
 #include "Elements/ElementTextSelection.h"
 #include "Elements/XMLNodeHandlerDataGrid.h"
 #include "Elements/XMLNodeHandlerTabSet.h"
@@ -134,6 +135,7 @@ struct DefaultInstancers {
 	ElementInstancerElement element_default;
 	ElementInstancerTextDefault element_text_default;
 	ElementInstancerGeneric<ElementImage> element_img;
+	ElementInstancerGeneric<ElementLottie> element_lottie;
 	ElementInstancerGeneric<ElementHandle> element_handle;
 	ElementInstancerGeneric<ElementDocument> element_body;
 
@@ -222,6 +224,7 @@ bool Factory::Initialise()
 	// Basic element instancers
 	RegisterElementInstancer("*", &default_instancers->element_default);
 	RegisterElementInstancer("img", &default_instancers->element_img);
+	RegisterElementInstancer("lottie", &default_instancers->element_lottie);
 	RegisterElementInstancer("#text", &default_instancers->element_text_default);
 	RegisterElementInstancer("handle", &default_instancers->element_handle);
 	RegisterElementInstancer("body", &default_instancers->element_body);

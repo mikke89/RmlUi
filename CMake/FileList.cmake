@@ -26,6 +26,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementImage.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementLottie.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementTextSelection.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputType.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeButton.h
@@ -282,6 +283,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementFormControlSelect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementFormControlTextArea.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementImage.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementLottie.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementProgressBar.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementTabSet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementTextSelection.cpp

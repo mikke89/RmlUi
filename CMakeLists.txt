@@ -297,10 +297,10 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/sdk/rlottie/build)
 find_package(rlottie REQUIRED)
-if (RLOTTIE_FOUND)
-	include_directories(${RLOTTIE_INCLUDE_DIRS})
-	link_directories(${RLOTTIE_LINK_DIRS})
-	list(APPEND CORE_LINK_LIBS ${RLOTTIE_LIBRARY})
+if (rlottie_FOUND)
+	message("rlottie FOUND")
+	include_directories(${CMAKE_SOURCE_DIR}/sdk/rlottie/inc/)
+	list(APPEND CORE_LINK_LIBS ${rlottie_LIBRARIES})
 endif()
 
 #Lua

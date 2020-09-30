@@ -105,7 +105,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Shell::LoadFonts("assets/");
 
 	// Load and show the demo document.
-	if (Rml::ElementDocument * document = context->LoadDocument("assets/demo.rml"))
+	if (Rml::ElementDocument * document = context->LoadDocument("assets/lottie.rml"))
 		document->Show();
 
 	Shell::EventLoop(GameLoop);
