@@ -39,7 +39,6 @@
 #include "../../Include/RmlUi/Core/DataModel.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "EventDispatcher.h"
-#include "EventIterators.h"
 #include "PluginRegistry.h"
 #include "StreamFile.h"
 #include <algorithm>
@@ -651,12 +650,11 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 
 		last_click_mouse_position = mouse_position;
 
-		for (ElementSet::iterator itr = hover_chain.begin(); itr != hover_chain.end(); ++itr)
-			active_chain.push_back((*itr));
+		active_chain.insert(active_chain.end(), hover_chain.begin(), hover_chain.end());
 
 		if (propagate)
 		{
-			// Traverse down the hierarchy of the newly focussed element (if any), and see if we can begin dragging it.
+			// Traverse down the hierarchy of the newly focused element (if any), and see if we can begin dragging it.
 			drag_started = false;
 			drag = hover;
 			while (drag)
@@ -704,8 +702,9 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 
 		// Unset the 'active' pseudo-class on all the elements in the active chain; because they may not necessarily
 		// have had 'onmouseup' called on them, we can't guarantee this has happened already.
-		auto func = PseudoClassFunctor("active", false);
-		std::for_each(active_chain.begin(), active_chain.end(), func);
+		std::for_each(active_chain.begin(), active_chain.end(), [](Element* element) {
+			element->SetPseudoClass("active", false);
+		});
 		active_chain.clear();
 
 		if (drag)
