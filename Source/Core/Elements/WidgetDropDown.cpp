@@ -464,9 +464,11 @@ void WidgetDropDown::ProcessEvent(Event& event)
 		{
 		case Input::KI_UP:
 			SetSelection((selected_option - 1 + (int)options.size()) % (int)options.size());
+			event.StopPropagation();
 			break;
 		case Input::KI_DOWN:
 			SetSelection((selected_option + 1) % (int)options.size());
+			event.StopPropagation();
 			break;
 		default:
 			break;

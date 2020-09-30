@@ -449,24 +449,15 @@ void WidgetSlider::ProcessEvent(Event& event)
 
 	case EventId::Keydown:
 	{
-		Input::KeyIdentifier key_identifier = (Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+		const Input::KeyIdentifier key_identifier = (Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
-		switch (key_identifier)
+		const bool increment = (key_identifier == Input::KI_RIGHT && orientation == HORIZONTAL) || (key_identifier == Input::KI_DOWN && orientation == VERTICAL);
+		const bool decrement = (key_identifier == Input::KI_LEFT  && orientation == HORIZONTAL) || (key_identifier == Input::KI_UP   && orientation == VERTICAL);
+
+		if (increment || decrement)
 		{
-		case Input::KI_LEFT:
-			if (orientation == HORIZONTAL) SetBarPosition(OnLineDecrement());
-			break;
-		case Input::KI_UP:
-			if (orientation == VERTICAL) SetBarPosition(OnLineDecrement());
-			break;
-		case Input::KI_RIGHT:
-			if (orientation == HORIZONTAL) SetBarPosition(OnLineIncrement());
-			break;
-		case Input::KI_DOWN:
-			if (orientation == VERTICAL) SetBarPosition(OnLineIncrement());
-			break;
-		default:
-			break;
+			SetBarPosition(decrement ? OnLineDecrement() : OnLineIncrement());
+			event.StopPropagation();
 		}
 	}
 	break;

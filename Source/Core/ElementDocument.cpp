@@ -468,7 +468,10 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			if (Element* element = FindNextTabElement(event.GetTargetElement(), !event.GetParameter<bool>("shift_key", false)))
 			{
 				if(element->Focus())
+				{
 					element->ScrollIntoView(false);
+					event.StopPropagation();
+				}
 			}
 		}
 		// Process ENTER being pressed on a focusable object (emulate click)
@@ -480,6 +483,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			if (focus_node && focus_node->GetComputedValues().tab_index == Style::TabIndex::Auto)
 			{
 				focus_node->Click();
+				event.StopPropagation();
 			}
 		}
 	}
