@@ -1,3 +1,22 @@
+# Lottie compilation
+0. Navigate to repo root directory
+1. git submodule init 
+2. git submodule update
+3. cd sdk
+4. cd rlottie
+5. mkdir build
+6. cd build
+
+We don't need a real dependency for user, we make a static library for linking and usage
+7. cmake -DBUILD_SHARED_LIBS=OFF ..
+8. cd ..
+9. cd ..
+10. cd.. 
+We are in root folder of repository (e.g. C:/users/user/RmlUi/)
+11. mkdir Build
+12. cd Build
+13. cmake -DBUILD_SAMPLES=ON ..
+
 # RmlUi - The HTML/CSS User Interface Library Evolved
 
 ![RmlUi](https://github.com/mikke89/RmlUiDoc/raw/cc01edd834b003df6c649967bfd552bb0acc3d1e/assets/rmlui.png)
