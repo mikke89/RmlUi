@@ -13,6 +13,7 @@ We don't need a real dependency for user, we make a static library for linking a
 8. cd ..
 9. cd ..
 10. cd.. 
+
 We are in root folder of repository (e.g. C:/users/user/RmlUi/)
 11. mkdir Build
 12. cd Build
