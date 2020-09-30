@@ -538,7 +538,7 @@ bool Context::ProcessTextInput(const String& string)
 }
 
 // Sends a mouse movement event into RmlUi.
-void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
+bool Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 {
 	// Check whether the mouse moved since the last event came through.
 	Vector2i old_mouse_position = mouse_position;
@@ -575,6 +575,8 @@ void Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 				drag_hover->DispatchEvent(EventId::Dragmove, drag_parameters);
 		}
 	}
+
+	return !IsMouseInteracting();
 }
 	
 static Element* FindFocusElement(Element* element)
@@ -592,7 +594,7 @@ static Element* FindFocusElement(Element* element)
 }
 
 // Sends a mouse-button down event into RmlUi.
-void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
+bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 {
 	Dictionary parameters;
 	GenerateMouseEventParameters(parameters, button_index);
@@ -609,7 +611,7 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 			if (new_focus && new_focus != focus)
 			{
 				if (!new_focus->Focus())
-					return;
+					return !IsMouseInteracting();
 			}
 		}
 
@@ -677,14 +679,19 @@ void Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 		if (hover)
 			hover->DispatchEvent(EventId::Mousedown, parameters);
 	}
+
+	return !IsMouseInteracting();
 }
 
 // Sends a mouse-button up event into RmlUi.
-void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
+bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 {
 	Dictionary parameters;
 	GenerateMouseEventParameters(parameters, button_index);
 	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
+
+	// We want to return the interaction state before handling the mouse up events, so that any active element that is released is considered to capture the event.
+	const bool result = !IsMouseInteracting();
 
 	// Process primary click.
 	if (button_index == 0)
@@ -706,6 +713,7 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 			element->SetPseudoClass("active", false);
 		});
 		active_chain.clear();
+		active = nullptr;
 
 		if (drag)
 		{
@@ -747,6 +755,8 @@ void Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 		if (hover)
 			hover->DispatchEvent(EventId::Mouseup, parameters);
 	}
+
+	return result;
 }
 
 // Sends a mouse-wheel movement event into RmlUi.
@@ -762,6 +772,11 @@ bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 	}
 
 	return true;
+}
+
+bool Context::IsMouseInteracting() const
+{
+	return (hover && hover != root.get()) || (active && active != root.get());
 }
 
 // Gets the context's render interface.
