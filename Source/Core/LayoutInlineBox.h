@@ -133,7 +133,7 @@ public:
 	float GetBaseline() const;
 
 	void* operator new(size_t size);
-	void operator delete(void* chunk);
+	void operator delete(void* chunk, size_t size);
 
 protected:
 	/// Returns our parent box's font face handle.

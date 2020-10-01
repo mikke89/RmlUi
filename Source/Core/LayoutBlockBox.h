@@ -165,7 +165,7 @@ public:
 	const Box& GetBox() const;
 
 	void* operator new(size_t size);
-	void operator delete(void* chunk);
+	void operator delete(void* chunk, size_t size);
 
 private:
 	struct AbsoluteElement

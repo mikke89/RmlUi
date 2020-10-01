@@ -56,7 +56,7 @@ public:
 	static bool FormatElement(LayoutBlockBox* block_context_box, Element* element);
 
 	static void* AllocateLayoutChunk(size_t size);
-	static void DeallocateLayoutChunk(void* chunk);
+	static void DeallocateLayoutChunk(void* chunk, size_t size);
 
 private:
 	/// Formats and positions an element as a block element.

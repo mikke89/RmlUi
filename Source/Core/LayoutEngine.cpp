@@ -42,13 +42,19 @@ namespace Rml {
 
 #define MAX(a, b) (a > b ? a : b)
 
-struct LayoutChunk
-{
-	static const unsigned int size = MAX(sizeof(LayoutBlockBox), MAX(sizeof(LayoutInlineBox), MAX(sizeof(LayoutInlineBoxText), MAX(sizeof(LayoutLineBox), sizeof(LayoutBlockBoxSpace)))));
-	alignas(std::max_align_t) char buffer[size];
+template <size_t Size>
+struct LayoutChunk {
+	alignas(std::max_align_t) byte buffer[Size];
 };
 
-static Pool< LayoutChunk > layout_chunk_pool(200, true);
+static constexpr std::size_t ChunkSizeBig = sizeof(LayoutBlockBox);
+static constexpr std::size_t ChunkSizeMedium = MAX(sizeof(LayoutInlineBox), sizeof(LayoutInlineBoxText));
+static constexpr std::size_t ChunkSizeSmall = MAX(sizeof(LayoutLineBox), sizeof(LayoutBlockBoxSpace));
+
+static Pool< LayoutChunk<ChunkSizeBig> > layout_chunk_pool_big(50, true);
+static Pool< LayoutChunk<ChunkSizeMedium> > layout_chunk_pool_medium(50, true);
+static Pool< LayoutChunk<ChunkSizeSmall> > layout_chunk_pool_small(50, true);
+
 
 // Formats the contents for a root-level element (usually a document or floating element).
 void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box, Vector2f* out_visible_overflow_size)
@@ -60,7 +66,7 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, co
 	RMLUI_ZoneName(name.c_str(), name.size());
 #endif
 
-	LayoutBlockBox containing_block_box(nullptr, nullptr, Box(containing_block), 0.0f, FLT_MAX);
+	auto containing_block_box = MakeUnique<LayoutBlockBox>(nullptr, nullptr, Box(containing_block), 0.0f, FLT_MAX);
 
 	Box box;
 	if (override_initial_box)
@@ -71,7 +77,7 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, co
 	float min_height, max_height;
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
 
-	LayoutBlockBox* block_context_box = containing_block_box.AddBlockElement(element, box, min_height, max_height);
+	LayoutBlockBox* block_context_box = containing_block_box->AddBlockElement(element, box, min_height, max_height);
 
 	for (int layout_iteration = 0; layout_iteration < 2; layout_iteration++)
 	{
@@ -95,15 +101,33 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, co
 
 void* LayoutEngine::AllocateLayoutChunk(size_t size)
 {
-	RMLUI_ASSERT(size <= LayoutChunk::size);
-	(void)size;
-	
-	return layout_chunk_pool.AllocateAndConstruct();
+	static_assert(ChunkSizeBig > ChunkSizeMedium && ChunkSizeMedium > ChunkSizeSmall, "The following assumes a strict ordering of the chunk sizes.");
+
+	// Note: If any change is made here, make sure a corresponding change is applied to the deallocation procedure below.
+	if (size <= ChunkSizeSmall)
+		return layout_chunk_pool_small.AllocateAndConstruct();
+	else if (size <= ChunkSizeMedium)
+		return layout_chunk_pool_medium.AllocateAndConstruct();
+	else if (size <= ChunkSizeBig)
+		return layout_chunk_pool_big.AllocateAndConstruct();
+
+	RMLUI_ERROR;
+	return nullptr;
 }
 
-void LayoutEngine::DeallocateLayoutChunk(void* chunk)
+void LayoutEngine::DeallocateLayoutChunk(void* chunk, size_t size)
 {
-	layout_chunk_pool.DestroyAndDeallocate((LayoutChunk*) chunk);
+	// Note: If any change is made here, make sure a corresponding change is applied to the allocation procedure above.
+	if (size <= ChunkSizeSmall)
+		layout_chunk_pool_small.DestroyAndDeallocate((LayoutChunk<ChunkSizeSmall>*)chunk);
+	else if (size <= ChunkSizeMedium)
+		layout_chunk_pool_medium.DestroyAndDeallocate((LayoutChunk<ChunkSizeMedium>*)chunk);
+	else if (size <= ChunkSizeBig)
+		layout_chunk_pool_big.DestroyAndDeallocate((LayoutChunk<ChunkSizeBig>*)chunk);
+	else
+	{
+		RMLUI_ERROR;
+	}
 }
 
 // Positions a single element and its children within this layout.

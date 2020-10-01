@@ -147,6 +147,10 @@ private:
 	PoolNode* first_free_node;
 
 	int num_allocated_objects;
+
+#ifdef RMLUI_DEBUG
+	int max_num_allocated_objects = 0;
+#endif
 };
 
 } // namespace Rml

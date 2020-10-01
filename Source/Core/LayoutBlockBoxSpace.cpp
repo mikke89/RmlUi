@@ -274,9 +274,9 @@ void* LayoutBlockBoxSpace::operator new(size_t size)
 	return LayoutEngine::AllocateLayoutChunk(size);
 }
 
-void LayoutBlockBoxSpace::operator delete(void* chunk)
+void LayoutBlockBoxSpace::operator delete(void* chunk, size_t size)
 {
-	LayoutEngine::DeallocateLayoutChunk(chunk);
+	LayoutEngine::DeallocateLayoutChunk(chunk, size);
 }
 
 LayoutBlockBoxSpace::SpaceBox::SpaceBox() : offset(0, 0), dimensions(0, 0)

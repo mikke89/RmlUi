@@ -83,7 +83,7 @@ public:
 	Vector2f GetDimensions() const;
 
 	void* operator new(size_t size);
-	void operator delete(void* chunk);
+	void operator delete(void* chunk, size_t size);
 
 private:
 	enum AnchorEdge

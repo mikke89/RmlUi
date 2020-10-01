@@ -49,6 +49,8 @@ Pool< PoolType >::Pool(int _chunk_size, bool _grow)
 template < typename PoolType >
 Pool< PoolType >::~Pool()
 {
+	RMLUI_ASSERT(num_allocated_objects == 0);
+
 	PoolChunk* chunk = pool;
 	while (chunk)
 	{
@@ -108,6 +110,11 @@ inline PoolType* Pool<PoolType>::AllocateAndConstruct(Args&&... args)
 
 	// We're about to allocate an object.
 	++num_allocated_objects;
+
+#ifdef RMLUI_DEBUG
+	if (num_allocated_objects > max_num_allocated_objects)
+		max_num_allocated_objects = num_allocated_objects;
+#endif
 
 	// This one!
 	PoolNode* allocated_object = first_free_node;

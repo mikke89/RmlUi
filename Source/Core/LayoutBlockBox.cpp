@@ -704,9 +704,9 @@ void* LayoutBlockBox::operator new(size_t size)
 	return memory;
 }
 
-void LayoutBlockBox::operator delete(void* chunk)
+void LayoutBlockBox::operator delete(void* chunk, size_t size)
 {
-	LayoutEngine::DeallocateLayoutChunk(chunk);
+	LayoutEngine::DeallocateLayoutChunk(chunk, size);
 }
 
 // Closes our last block box, if it is an open inline block box.

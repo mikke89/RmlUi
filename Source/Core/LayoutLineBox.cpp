@@ -384,9 +384,9 @@ void* LayoutLineBox::operator new(size_t size)
 	return LayoutEngine::AllocateLayoutChunk(size);
 }
 
-void LayoutLineBox::operator delete(void* chunk)
+void LayoutLineBox::operator delete(void* chunk, size_t size)
 {
-	LayoutEngine::DeallocateLayoutChunk(chunk);
+	LayoutEngine::DeallocateLayoutChunk(chunk, size);
 }
 
 // Appends an inline box to the end of the line box's list of inline boxes.

@@ -399,9 +399,9 @@ void* LayoutInlineBox::operator new(size_t size)
 	return LayoutEngine::AllocateLayoutChunk(size);
 }
 
-void LayoutInlineBox::operator delete(void* chunk)
+void LayoutInlineBox::operator delete(void* chunk, size_t size)
 {
-	LayoutEngine::DeallocateLayoutChunk(chunk);
+	LayoutEngine::DeallocateLayoutChunk(chunk, size);
 }
 
 // Returns our parent box's font face handle.

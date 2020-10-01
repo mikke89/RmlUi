@@ -41,9 +41,9 @@ class LayoutInlineBoxText : public LayoutInlineBox
 {
 public:
 	/// Constructs a new inline box for a text element.
-	/// @param[in] element The element this inline box is flowing.
+	/// @param[in] element The text element this inline box is flowing.
 	/// @param[in] line_begin The index of the first character of the element's string this text box will render.
-	LayoutInlineBoxText(Element* element, int line_begin = 0);
+	LayoutInlineBoxText(ElementText* element, int line_begin = 0);
 	virtual ~LayoutInlineBoxText();
 
 	/// Returns true if this box is capable of overflowing, or if it must be rendered on a single line.
@@ -72,7 +72,7 @@ public:
 	void SizeElement(bool split) override;
 
 	void* operator new(size_t size);
-	void operator delete(void* chunk);
+	void operator delete(void* chunk, size_t size);
 
 private:
 	/// Returns the box's element as a text element.

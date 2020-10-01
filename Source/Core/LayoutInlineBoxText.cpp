@@ -132,9 +132,9 @@ void* LayoutInlineBoxText::operator new(size_t size)
 	return LayoutEngine::AllocateLayoutChunk(size);
 }
 
-void LayoutInlineBoxText::operator delete(void* chunk)
+void LayoutInlineBoxText::operator delete(void* chunk, size_t size)
 {
-	LayoutEngine::DeallocateLayoutChunk(chunk);
+	LayoutEngine::DeallocateLayoutChunk(chunk, size);
 }
 
 // Returns the box's element as a text element.
