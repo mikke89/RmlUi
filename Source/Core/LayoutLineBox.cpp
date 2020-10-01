@@ -194,8 +194,10 @@ LayoutInlineBox* LayoutLineBox::AddElement(Element* element, const Box& box)
 {
 	RMLUI_ZoneScoped;
 
-	if (rmlui_dynamic_cast< ElementText* >(element) != nullptr)
-		return AddBox(MakeUnique<LayoutInlineBoxText>(element));
+	ElementText* element_text = rmlui_dynamic_cast<ElementText*>(element);
+
+	if (element_text)
+		return AddBox(MakeUnique<LayoutInlineBoxText>(element_text));
 	else
 		return AddBox(MakeUnique<LayoutInlineBox>(element, box));
 }
