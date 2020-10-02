@@ -44,7 +44,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementTextDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventDispatcher.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventInstancerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventSpecification.h
@@ -305,7 +304,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementText.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementTextDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Event.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/EventDispatcher.cpp

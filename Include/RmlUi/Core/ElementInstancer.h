@@ -87,12 +87,12 @@ public:
 };
 
 /**
-	The element text default instancer constructs ElementTextDefault.
+	The element text instancer constructs ElementText.
 	This is a slightly faster version of the generic instancer, making use of a memory
 	pool for allocations.
  */
 
-class RMLUICORE_API ElementInstancerTextDefault : public ElementInstancer
+class RMLUICORE_API ElementInstancerText : public ElementInstancer
 {
 public:
 	ElementPtr InstanceElement(Element* parent, const String& tag, const XMLAttributes& attributes) override;
@@ -102,7 +102,7 @@ public:
 
 /**
 	Generic Instancer that creates the provided element type using new and delete. This instancer
-	is typically used specialized element types.
+	is typically used for specialized element types.
  */
 
 template <typename T>

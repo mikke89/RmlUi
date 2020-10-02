@@ -30,18 +30,16 @@
 #define RMLUI_CORE_ELEMENTTEXT_H
 
 #include "Header.h"
-#include "Types.h"
 #include "Element.h"
+#include "Geometry.h"
 
 namespace Rml {
 
 /**
-	RmlUi's text-element interface.
-
 	@author Peter Curry
  */
 
-class RMLUICORE_API ElementText : public Element
+class RMLUICORE_API ElementText final : public Element
 {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementText, Element)
@@ -49,19 +47,16 @@ public:
 	ElementText(const String& tag);
 	virtual ~ElementText();
 
-	/// Sets the raw string this text element contains. The actual rendered text may be different due to whitespace
-	/// formatting.
-	/// @param[in] text The new string to set on this element.
-	virtual void SetText(const String& text) = 0;
+	/// Sets the raw string this text element contains. The actual rendered text may be different due to whitespace formatting.
+	void SetText(const String& text);
 	/// Returns the raw string this text element contains.
-	/// @return This element's raw text.
-	virtual const String& GetText() const = 0;
+	const String& GetText() const;
 
 	/// Generates a token of text from this element, returning only the width.
 	/// @param[out] token_width The window (in pixels) of the token.
 	/// @param[in] token_begin The first character to be included in the token.
 	/// @return True if the token is the end of the element's text, false if not.
-	virtual bool GenerateToken(float& token_width, int token_begin) = 0;
+	bool GenerateToken(float& token_width, int token_begin);
 	/// Generates a line of text rendered from this element.
 	/// @param[out] line The characters making up the line, with white-space characters collapsed and endlines processed appropriately.
 	/// @param[out] line_length The number of characters from the source string consumed making up this string; this may very well be different from line.size()!
@@ -72,17 +67,70 @@ public:
 	/// @param[in] trim_whitespace_prefix If we're collapsing whitespace, whether or not to remove all prefixing whitespace or collapse it down to a single space.
 	/// @param[in] decode_escape_characters Decode escaped characters such as &amp; into &.
 	/// @return True if the line reached the end of the element's text, false if not.
-	virtual bool GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix, bool decode_escape_characters) = 0;
+	bool GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width, bool trim_whitespace_prefix, bool decode_escape_characters);
 
 	/// Clears all lines of generated text and prepares the element for generating new lines.
-	virtual void ClearLines() = 0;
+	void ClearLines();
 	/// Adds a new line into the text element.
 	/// @param[in] line_position The position of this line, as an offset from the first line.
 	/// @param[in] line The contents of the line.
-	virtual void AddLine(const Vector2f& line_position, const String& line) = 0;
+	void AddLine(const Vector2f& line_position, const String& line);
 
 	/// Prevents the element from dirtying its document's layout when its text is changed.
-	virtual void SuppressAutoLayout() = 0;
+	void SuppressAutoLayout();
+
+protected:
+	void OnRender() override;
+
+	void OnPropertyChange(const PropertyIdSet& properties) override;
+
+	void GetRML(String& content) override;
+
+private:
+	// Prepares the font effects this element uses for its font.
+	bool UpdateFontEffects();
+
+	// Used to store the position and length of each line we have geometry for.
+	struct Line
+	{
+		Line(const String& text, const Vector2f& position) : text(text), position(position), width(0) {}
+		String text;
+		Vector2f position;
+		int width;
+	};
+
+	// Clears and regenerates all of the text's geometry.
+	void GenerateGeometry(const FontFaceHandle font_face_handle);
+	// Generates the geometry for a single line of text.
+	void GenerateGeometry(const FontFaceHandle font_face_handle, Line& line);
+	// Generates any geometry necessary for rendering decoration (underline, strike-through, etc).
+	void GenerateDecoration(const FontFaceHandle font_face_handle);
+
+	String text;
+
+	typedef Vector< Line > LineList;
+	LineList lines;
+
+	bool dirty_layout_on_change;
+
+	GeometryList geometry;
+	bool geometry_dirty;
+
+	Colourb colour;
+
+	// The decoration geometry we've generated for this string.
+	Geometry decoration;
+	// What the decoration type is that we have generated.
+	Style::TextDecoration generated_decoration;
+	// What the element's actual text-decoration property is; this may be different from the generated decoration
+	// if it is set to none; this means we can keep generated decoration and simply toggle it on or off as long as
+	// it isn't being changed.
+	Style::TextDecoration decoration_property;
+
+	FontEffectsHandle font_effects_handle;
+	bool font_effects_dirty;
+
+	int font_handle_version;
 };
 
 } // namespace Rml
