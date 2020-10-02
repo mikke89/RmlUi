@@ -101,8 +101,9 @@ public:
 	ElementDocument* LoadDocument(Stream* document_stream);
 	/// Load a document into the context.
 	/// @param[in] string The string containing the document RML.
+	/// @param[in] string Optional string used to name the document - mainly for Log Messages.
 	/// @return The loaded document, or nullptr if no document was loaded.
-	ElementDocument* LoadDocumentFromMemory(const String& string);
+	ElementDocument* LoadDocumentFromMemory(const String& string, const String& source_url = "[document from memory]");
 	/// Unload the given document.
 	/// @param[in] document The document to unload.
 	void UnloadDocument(ElementDocument* document);
