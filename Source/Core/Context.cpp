@@ -279,15 +279,12 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 }
 
 // Load a document into the context.
-ElementDocument* Context::LoadDocumentFromMemory(const String& string, const String* document_name)
+ElementDocument* Context::LoadDocumentFromMemory(const String& string, const String& source_url)
 {
 	// Open the stream based on the string contents.
 	auto stream = MakeUnique<StreamMemory>((byte*)string.c_str(), string.size());
 
-	if (document_name)
-	    stream->SetSourceURL( document_name->c_str() );
-    else
-	    stream->SetSourceURL("[document from memory]");
+	stream->SetSourceURL( source_url.c_str() );
 
 	// Load the document from the stream.
 	ElementDocument* document = LoadDocument(stream.get());
