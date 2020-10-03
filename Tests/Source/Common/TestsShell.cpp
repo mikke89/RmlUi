@@ -28,118 +28,174 @@
 
 #include "TestsShell.h"
 #include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/EventListener.h>
+#include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
 #include <Input.h>
 #include <ShellRenderInterfaceOpenGL.h>
+#include "TestsInterface.h"
 
 #include <doctest.h>
 
+// Uncomment the following to render to the shell window instead of the dummy renderer.
+//#define RMLUI_TESTS_USE_SHELL
+
+// Uncomment the following line to enable rendering the context in a loop. Requires the shell backend. Useful for viewing the result while building RML.
+//#define RMLUI_TESTS_ENABLE_RENDER_LOOP
+
 
 namespace {
+	const Rml::Vector2i window_size(1500, 800);
+
 	bool shell_initialized = false;
-
-	ShellRenderInterfaceOpenGL shell_render_interface;
-	ShellSystemInterface shell_system_interface;
-
+	int num_documents_begin = 0;
 	Rml::Context* shell_context = nullptr;
 
-	const Rml::Vector2i window_size(1500, 800);
+	ShellSystemInterface shell_system_interface;
+
+#ifdef RMLUI_TESTS_USE_SHELL
+	ShellRenderInterfaceOpenGL shell_render_interface;
+
+	class TestsShellEventListener : public Rml::EventListener {
+	public:
+		void ProcessEvent(Rml::Event& event) override
+		{
+			if (event.GetId() == Rml::EventId::Keydown)
+			{
+				Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter< int >("key_identifier", 0);
+
+				// Will escape the current render loop
+				if (key_identifier == Rml::Input::KI_ESCAPE || key_identifier == Rml::Input::KI_RETURN || key_identifier == Rml::Input::KI_NUMPADENTER)
+					Shell::RequestExit();
+			}
+		}
+	} shell_event_listener;
+#else
+	// The tests renderer only collects statistics, does not render anything.
+	TestsRenderInterface shell_render_interface;
+#endif
 }
 
 static void InitializeShell()
 {
+	// Initialize shell and create context.
 	if (!shell_initialized)
 	{
+		shell_initialized = true;
+
 		Rml::SetSystemInterface(&shell_system_interface);
 		Rml::SetRenderInterface(&shell_render_interface);
 
-		shell_initialized = true;
+		REQUIRE(Rml::Initialise());
+		shell_context = Rml::CreateContext("main", window_size);
 
-		// Generic OS initialisation, creates a window and attaches OpenGL.
 		REQUIRE(Shell::Initialise());
-		REQUIRE(Shell::OpenWindow("Element benchmark", &shell_render_interface, window_size.x, window_size.y, true));
+		Shell::LoadFonts("assets/");
 
-		// RmlUi initialisation.
+#ifdef RMLUI_TESTS_USE_SHELL
+		// Also, create the window.
+
+		Rml::Debugger::Initialise(shell_context);
+		num_documents_begin = shell_context->GetNumDocuments();
+
+		REQUIRE(Shell::OpenWindow("RmlUi Tests", &shell_render_interface, window_size.x, window_size.y, true));
+
 		shell_render_interface.SetViewport(window_size.x, window_size.y);
 
-		REQUIRE(Rml::Initialise());
-
-		REQUIRE(!shell_context);
-		shell_context = Rml::CreateContext("main", window_size);
-		REQUIRE(shell_context);
-
-		REQUIRE(Rml::Debugger::Initialise(shell_context));
 		::Input::SetContext(shell_context);
 		shell_render_interface.SetContext(shell_context);
 
-		Shell::LoadFonts("assets/");
+		shell_context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, &shell_event_listener, true);
+#endif
 	}
 }
 
 
-Rml::Context* TestsShell::GetMainContext()
+Rml::Context* TestsShell::GetContext()
 {
 	InitializeShell();
 	return shell_context;
 }
 
-
-Rml::Context* TestsShell::CreateContext(const Rml::String& name, Rml::RenderInterface* render_interface)
-{
-	InitializeShell();
-
-	if (!render_interface)
-		render_interface = &shell_render_interface;
-
-	Rml::Context* context = Rml::CreateContext(name, window_size, render_interface);
-	REQUIRE(context);
-
-	return context;
-}
-
-
-void TestsShell::RemoveContext(Rml::Context* context)
-{
-	REQUIRE(context);
-	REQUIRE(context != shell_context);
-
-	const Rml::String& name = context->GetName();
-	REQUIRE(name != "main");
-
-	REQUIRE(Rml::RemoveContext(name));
-}
-
-void TestsShell::EventLoop(ShellIdleFunction idle_func)
-{
-	Shell::EventLoop(idle_func);
-}
-
 void TestsShell::PrepareRenderBuffer()
 {
+#ifdef RMLUI_TESTS_USE_SHELL
 	shell_render_interface.PrepareRenderBuffer();
+#endif
 }
 
 void TestsShell::PresentRenderBuffer()
 {
+#ifdef RMLUI_TESTS_USE_SHELL
 	shell_render_interface.PresentRenderBuffer();
+#endif
 }
 
-void TestsShell::RequestExit()
+void TestsShell::RenderLoop()
 {
-	Shell::RequestExit();
+#if defined(RMLUI_TESTS_USE_SHELL) && defined(RMLUI_TESTS_ENABLE_RENDER_LOOP)
+	REQUIRE(shell_context);
+	
+	Shell::EventLoop([]() {
+		shell_context->Update();
+		PrepareRenderBuffer();
+		shell_context->Render();
+		PresentRenderBuffer();
+	});
+#endif
 }
 
 void TestsShell::ShutdownShell()
 {
 	if (shell_initialized)
 	{
+		RMLUI_ASSERTMSG(shell_context->GetNumDocuments() == num_documents_begin, "Make sure all previously opened documents have been closed.");
+		(void)num_documents_begin;
+
 		Rml::Shutdown();
+
+#ifdef RMLUI_TESTS_USE_SHELL
 		Shell::CloseWindow();
 		Shell::Shutdown();
+#endif
 
 		shell_context = nullptr;
 		shell_initialized = false;
 	}
+}
+
+Rml::String TestsShell::GetRenderStats()
+{
+	Rml::String result;
+
+#if !defined(RMLUI_TESTS_USE_SHELL)
+
+	shell_context->Update();
+	shell_render_interface.ResetCounters();
+	shell_context->Render();
+	auto& counters = shell_render_interface.GetCounters();
+
+	result = Rml::CreateString(256,
+		"Context::Render() stats:\n"
+		"  Render calls: %zu\n"
+		"  Scissor enable: %zu\n"
+		"  Scissor set: %zu\n"
+		"  Texture load: %zu\n"
+		"  Texture generate: %zu\n"
+		"  Texture release: %zu\n"
+		"  Transform set: %zu",
+		counters.render_calls,
+		counters.enable_scissor,
+		counters.set_scissor,
+		counters.load_texture,
+		counters.generate_texture,
+		counters.release_texture,
+		counters.set_transform
+	);
+
+#endif
+
+	return result;
 }

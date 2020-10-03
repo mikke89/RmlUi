@@ -27,7 +27,6 @@
  */
 
 #include "../Common/TestsShell.h"
-#include "../Common/TestsInterface.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -240,8 +239,7 @@ static const String rml_inline_block_element = R"(
 
 TEST_CASE("table_basic")
 {
-	TestsRenderInterface render_interface;
-	Context* context = TestsShell::CreateContext("table_dummy", &render_interface);
+	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(rml_table_document);
@@ -256,6 +254,10 @@ TEST_CASE("table_basic")
 	context->Update();
 	context->Render();
 
+	TestsShell::RenderLoop();
+	const String msg = TestsShell::GetRenderStats();
+	MESSAGE(msg);
+
 	bench.run("Update (unmodified)", [&] {
 		context->Update();
 	});
@@ -279,39 +281,13 @@ TEST_CASE("table_basic")
 		context->Render();
 	});
 
-	render_interface.ResetCounters();
-	context->Render();
-	auto& counters = render_interface.GetCounters();
-
-	const String msg = CreateString(256,
-		"Stats for single Context::Render() with n=%d rows: \n"
-		"Render calls: %zu\n"
-		"Scissor enable: %zu\n"
-		"Scissor set: %zu\n"
-		"Texture load: %zu\n"
-		"Texture generate: %zu\n"
-		"Texture release: %zu\n"
-		"Transform set: %zu\n",
-		0,
-		counters.render_calls,
-		counters.enable_scissor,
-		counters.set_scissor,
-		counters.load_texture,
-		counters.generate_texture,
-		counters.release_texture,
-		counters.set_transform
-	);
-	MESSAGE(msg);
-
 	document->Close();
-	TestsShell::RemoveContext(context);
 }
 
 
 TEST_CASE("table_inline-block")
 {
-	TestsRenderInterface render_interface;
-	Context* context = TestsShell::CreateContext("table_dummy", &render_interface);
+	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(rml_inlineblock_document);
@@ -326,6 +302,10 @@ TEST_CASE("table_inline-block")
 	context->Update();
 	context->Render();
 
+	TestsShell::RenderLoop();
+	const String msg = TestsShell::GetRenderStats();
+	MESSAGE(msg);
+
 	bench.run("Update (unmodified)", [&] {
 		context->Update();
 	});
@@ -349,30 +329,5 @@ TEST_CASE("table_inline-block")
 		context->Render();
 	});
 
-	render_interface.ResetCounters();
-	context->Render();
-	auto& counters = render_interface.GetCounters();
-
-	const String msg = CreateString(256,
-		"Stats for single Context::Render() with n=%d rows: \n"
-		"Render calls: %zu\n"
-		"Scissor enable: %zu\n"
-		"Scissor set: %zu\n"
-		"Texture load: %zu\n"
-		"Texture generate: %zu\n"
-		"Texture release: %zu\n"
-		"Transform set: %zu\n",
-		0,
-		counters.render_calls,
-		counters.enable_scissor,
-		counters.set_scissor,
-		counters.load_texture,
-		counters.generate_texture,
-		counters.release_texture,
-		counters.set_transform
-	);
-	MESSAGE(msg);
-
 	document->Close();
-	TestsShell::RemoveContext(context);
 }

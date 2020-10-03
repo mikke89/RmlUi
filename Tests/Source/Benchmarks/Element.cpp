@@ -27,7 +27,6 @@
  */
 
 #include "../Common/TestsShell.h"
-#include "../Common/TestsInterface.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -38,6 +37,48 @@
 
 using namespace ankerl;
 using namespace Rml;
+
+static const String document_rml = R"(
+<rml>
+<head>
+	<link type="text/template" href="/assets/window.rml"/>
+	<title>Benchmark Sample</title>
+	<style>
+		body.window
+		{
+			max-width: 2000px;
+			max-height: 2000px;
+			left: 100px;
+			top: 50px;
+			width: 1300px;
+			height: 600px;
+		}
+		#performance 
+		{
+			width: 800px;
+			height: 300px;
+		}
+	</style>
+</head>
+
+<body template="window">
+<div id="performance"/>
+</body>
+</rml>
+)";
+
+
+static int GetNumDescendentElements(Element* element)
+{
+	const int num_children = element->GetNumChildren(true);
+	int result = num_children;
+	for (int i = 0; i < num_children; i++)
+	{
+		result += GetNumDescendentElements(element->GetChild(i));
+	}
+	return result;
+}
+
 
 static String GenerateRml(const int num_rows)
 {
@@ -79,140 +120,64 @@ static String GenerateRml(const int num_rows)
 }
 
 
-TEST_CASE("Elements (shell)")
+TEST_CASE("element.creation_and_destruction")
 {
-	Context* context = TestsShell::GetMainContext();
+	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	ElementDocument* document = context->LoadDocument("basic/benchmark/data/benchmark.rml");
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
 	REQUIRE(document);
 	document->Show();
 
 	Element* el = document->GetElementById("performance");
 	REQUIRE(el);
-
-	nanobench::Bench bench;
-	bench.title("Elements (shell)");
-	bench.relative(true);
-
 	constexpr int num_rows = 50;
 	const String rml = GenerateRml(num_rows);
 
 	el->SetInnerRML(rml);
 	context->Update();
 	context->Render();
+	TestsShell::RenderLoop();
 
-	bench.run("Update (unmodified)", [&] {
-		context->Update();
-	});
-
-	bench.run("Render", [&] {
-		TestsShell::PrepareRenderBuffer();
-		context->Render();
-		TestsShell::PresentRenderBuffer();
-	});
-
-	bench.run("SetInnerRML", [&] {
-		el->SetInnerRML(rml);
-	});
-
-	bench.run("SetInnerRML + Update", [&] {
-		el->SetInnerRML(rml);
-		context->Update();
-	});
-
-	bench.run("SetInnerRML + Update + Render", [&] {
-		el->SetInnerRML(rml);
-		context->Update();
-		TestsShell::PrepareRenderBuffer();
-		context->Render();
-		TestsShell::PresentRenderBuffer();
-	});
-
-	document->Close();
-}
-
-
-TEST_CASE("Elements (dummy interface)")
-{
-	TestsRenderInterface render_interface;
-	Context* context = TestsShell::CreateContext("element_dummy", &render_interface);
-	REQUIRE(context);
-
-	ElementDocument* document = context->LoadDocument("basic/benchmark/data/benchmark.rml");
-	REQUIRE(document);
-	document->Show();
-
-	Element* el = document->GetElementById("performance");
-	REQUIRE(el);
-
-	nanobench::Bench bench;
-	bench.title("Elements (dummy interface)");
-	bench.relative(true);
-
-	constexpr int num_rows = 50;
-	const String rml = GenerateRml(num_rows);
-
-	el->SetInnerRML(rml);
-	context->Update();
-	context->Render();
-
-	bench.run("Update (unmodified)", [&] {
-		context->Update();
-	});
-
-	bench.run("Render", [&] {
-		context->Render();
-	});
-
-	bench.run("SetInnerRML", [&] {
-		el->SetInnerRML(rml);
-	});
-
-	bench.run("SetInnerRML + Update", [&] {
-		el->SetInnerRML(rml);
-		context->Update();
-	});
-
-	bench.run("SetInnerRML + Update + Render", [&] {
-		el->SetInnerRML(rml);
-		context->Update();
-		context->Render();
-	});
-
-	render_interface.ResetCounters();
-	context->Render();
-	auto& counters = render_interface.GetCounters();
-
-	const String msg = CreateString(256,
-		"Stats for single Context::Render() with n=%d rows: \n"
-		"Render calls: %zu\n"
-		"Scissor enable: %zu\n"
-		"Scissor set: %zu\n"
-		"Texture load: %zu\n"
-		"Texture generate: %zu\n"
-		"Texture release: %zu\n"
-		"Transform set: %zu\n",
-		num_rows,
-		counters.render_calls,
-		counters.enable_scissor,
-		counters.set_scissor,
-		counters.load_texture,
-		counters.generate_texture,
-		counters.release_texture,
-		counters.set_transform
-	);
+	String msg = Rml::CreateString(128, "\nElement construction and destruction of %d total elements.\n", GetNumDescendentElements(el));
+	msg += TestsShell::GetRenderStats();
 	MESSAGE(msg);
 
+	nanobench::Bench bench;
+	bench.title("Element");
+	bench.timeUnit(std::chrono::microseconds(1), "us");
+	bench.relative(true);
+
+	bench.run("Update (unmodified)", [&] {
+		context->Update();
+	});
+
+	bench.run("Render", [&] {
+		context->Render();
+	});
+
+	bench.run("SetInnerRML", [&] {
+		el->SetInnerRML(rml);
+	});
+
+	bench.run("SetInnerRML + Update", [&] {
+		el->SetInnerRML(rml);
+		context->Update();
+	});
+
+	bench.run("SetInnerRML + Update + Render", [&] {
+		el->SetInnerRML(rml);
+		context->Update();
+		context->Render();
+	});
+
 	document->Close();
-	TestsShell::RemoveContext(context);
 }
 
 
-TEST_CASE("Elements asymptotic complexity (dummy interface)")
+TEST_CASE("element.asymptotic_complexity")
 {
-	TestsRenderInterface render_interface;
-	Context* context = TestsShell::CreateContext("element_complexity", &render_interface);
+	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
 	ElementDocument* document = context->LoadDocument("basic/benchmark/data/benchmark.rml");
@@ -268,6 +233,7 @@ TEST_CASE("Elements asymptotic complexity (dummy interface)")
 	{
 		nanobench::Bench bench;
 		bench.title(bench_def.title);
+		bench.timeUnit(std::chrono::microseconds(1), "us");
 		bench.relative(true);
 
 		// Running the benchmark multiple times, with different number of rows.
@@ -284,10 +250,10 @@ TEST_CASE("Elements asymptotic complexity (dummy interface)")
 			});
 		}
 
-#ifdef RMLUI_BENCHMARKS_SHOW_COMPLEXITY
+#if defined(RMLUI_BENCHMARKS_SHOW_COMPLEXITY) || 0
 		MESSAGE(bench.complexityBigO());
 #endif
 	}
 
-	TestsShell::RemoveContext(context);
+	document->Close();
 }

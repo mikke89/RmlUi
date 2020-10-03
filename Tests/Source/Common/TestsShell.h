@@ -34,25 +34,21 @@ namespace Rml { class RenderInterface; }
 
 namespace TestsShell {
 
-// Will initialize the shell when necessary.
-// No need to call RemoveContext with this.
-Rml::Context* GetMainContext();
+	// Will initialize the shell and create a context on first use.
+	Rml::Context* GetContext();
 
-// If no interface is passed, it will use the shell renderer's interface. Will initialize the shell when necessary.
-// Call RemoveContext() when you are done with the test.
-Rml::Context* CreateContext(const Rml::String& name, Rml::RenderInterface* render_interface = nullptr);
-void RemoveContext(Rml::Context* context);
+	void PrepareRenderBuffer();
+	void PresentRenderBuffer();
 
-using ShellIdleFunction = void(*)();
-void EventLoop(ShellIdleFunction idle_func);
-void PrepareRenderBuffer();
-void PresentRenderBuffer();
-void RequestExit();
+	// Render the current state of the context. Press 'escape' or 'return' to break out of the loop.
+	// Useful for viewing documents while building the RML to benchmark.
+	// Applies only when compiled with the shell backend.
+	void RenderLoop();
 
-void ShutdownShell();
+	void ShutdownShell();
 
-bool CaptureScreenshot(const Rml::String& filename, int clip_width = 0);
-
+	// Stats only available for the dummy renderer.
+	Rml::String GetRenderStats();
 }
 
 #endif
