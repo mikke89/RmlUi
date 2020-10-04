@@ -181,10 +181,13 @@ void ElementDocument::SetStyleSheet(SharedPtr<StyleSheet> _style_sheet)
 	if (style_sheet == _style_sheet)
 		return;
 
-	style_sheet = _style_sheet;
+	style_sheet = std::move(_style_sheet);
 	
 	if (style_sheet)
-		style_sheet->BuildNodeIndexAndOptimizeProperties();
+	{
+		style_sheet->BuildNodeIndex();
+		style_sheet->OptimizeNodeProperties();
+	}
 
 	GetStyle()->DirtyDefinition();
 }

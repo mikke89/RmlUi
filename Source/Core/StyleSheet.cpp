@@ -107,12 +107,19 @@ SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 }
 
 // Builds the node index for a combined style sheet.
-void StyleSheet::BuildNodeIndexAndOptimizeProperties()
+void StyleSheet::BuildNodeIndex()
 {
 	RMLUI_ZoneScoped;
 	styled_node_index.clear();
-	root->BuildIndexAndOptimizeProperties(styled_node_index, *this);
+	root->BuildIndex(styled_node_index);
 	root->SetStructurallyVolatileRecursive(false);
+}
+
+// Builds the node index for a combined style sheet.
+void StyleSheet::OptimizeNodeProperties()
+{
+	RMLUI_ZoneScoped;
+	root->OptimizeProperties(*this);
 }
 
 // Returns the Keyframes of the given name, or null if it does not exist.

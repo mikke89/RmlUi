@@ -84,9 +84,11 @@ public:
 
 	/// Combines this style sheet with another one, producing a new sheet.
 	SharedPtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
-	/// Builds the node index for a combined style sheet, and optimizes some properties for faster retrieval.
-	/// Specifically, converts all decorator properties from strings to instanced decorator lists.
-	void BuildNodeIndexAndOptimizeProperties();
+	/// Builds the node index for a combined style sheet.
+	void BuildNodeIndex();
+	/// Optimizes some properties for faster retrieval.
+	/// Specifically, converts all decorator and font-effect properties from strings to instanced decorator and font effect lists.
+	void OptimizeNodeProperties();
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
 	Keyframes* GetKeyframes(const String& name);

@@ -72,22 +72,24 @@ const PropertyMap& PropertyDictionary::GetProperties() const
 }
 
 // Imports potentially un-specified properties into the dictionary.
-void PropertyDictionary::Import(const PropertyDictionary& property_dictionary, int property_specificity)
+void PropertyDictionary::Import(const PropertyDictionary& other, int property_specificity)
 {
-	for (PropertyMap::const_iterator iterator = property_dictionary.properties.begin(); iterator != property_dictionary.properties.end(); ++iterator)
+	for (const auto& pair : other.properties)
 	{
-		const Property& property = iterator->second;
-		SetProperty(iterator->first, property, property_specificity > 0 ? property_specificity : property.specificity);
+		const PropertyId id = pair.first;
+		const Property& property = pair.second;
+		SetProperty(id, property, property_specificity > 0 ? property_specificity : property.specificity);
 	}
 }
 
 // Merges the contents of another fully-specified property dictionary with this one.
-void PropertyDictionary::Merge(const PropertyDictionary& property_dictionary, int specificity_offset)
+void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_offset)
 {
-	for (PropertyMap::const_iterator iterator = property_dictionary.properties.begin(); iterator != property_dictionary.properties.end(); ++iterator)
+	for (const auto& pair : other.properties)
 	{
-		const Property& property = iterator->second;
-		SetProperty(iterator->first, property, property.specificity + specificity_offset);
+		const PropertyId id = pair.first;
+		const Property& property = pair.second;
+		SetProperty(id, property, property.specificity + specificity_offset);
 	}
 }
 
