@@ -145,11 +145,12 @@ DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 	//   decorator: invader-theme-background, ...;
 	// or is an anonymous decorator with inline properties
 	//   decorator: tiled-box( <shorthand properties> ), ...;
-	
-	Decorators decorators;
+
 	if (decorator_string_value.empty() || decorator_string_value == "none")
 		return nullptr;
 
+	RMLUI_ZoneScoped;
+	Decorators decorators;
 	const char* source_path = (source ? source->path.c_str() : "");
 	const int source_line_number = (source ? source->line_number : 0);
 
@@ -205,6 +206,7 @@ DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 			
 			properties.SetSourceOfAllProperties(source);
 
+			RMLUI_ZoneScopedN("InstanceDecorator");
 			SharedPtr<Decorator> decorator = instancer->InstanceDecorator(type, properties, DecoratorInstancerInterface(*this));
 
 			if (decorator)
@@ -230,6 +232,7 @@ FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 	if (font_effect_string_value.empty() || font_effect_string_value == "none")
 		return nullptr;
 
+	RMLUI_ZoneScoped;
 	const char* source_path = (source ? source->path.c_str() : "");
 	const int source_line_number = (source ? source->line_number : 0);
 
@@ -283,6 +286,7 @@ FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effe
 
 			properties.SetSourceOfAllProperties(source);
 
+			RMLUI_ZoneScopedN("InstanceFontEffect");
 			SharedPtr<FontEffect> font_effect = instancer->InstanceFontEffect(type, properties);
 			if (font_effect)
 			{

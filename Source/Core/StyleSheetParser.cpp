@@ -530,6 +530,8 @@ StyleSheetNodeListRaw StyleSheetParser::ConstructNodes(StyleSheetNode& root_node
 
 bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 {
+	RMLUI_ZoneScoped;
+
 	String name;
 	String value;
 
