@@ -113,7 +113,7 @@ float Box::GetSizeAcross(Direction direction, Area area, Area area_end) const
 		size = (direction == HORIZONTAL ? content.x : content.y);
 	
 	for (int i = area; i <= area_end && i < CONTENT; i++)
-		size += (area_edges[i][TOP + direction] + area_edges[i][BOTTOM + direction]);
+		size += (area_edges[i][TOP + (int)direction] + area_edges[i][BOTTOM + (int)direction]);
 
 	return size;
 }
