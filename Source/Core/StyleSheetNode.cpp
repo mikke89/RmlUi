@@ -89,8 +89,10 @@ StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(String&& tag, String&& id, 
 }
 
 // Merges an entire tree hierarchy into our hierarchy.
-bool StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset)
+void StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset)
 {
+	RMLUI_ZoneScoped;
+
 	// Merge the other node's properties into ours.
 	properties.Merge(node->properties, specificity_offset);
 
@@ -99,8 +101,23 @@ bool StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset
 		StyleSheetNode* local_node = GetOrCreateChildNode(*other_child);
 		local_node->MergeHierarchy(other_child.get(), specificity_offset);
 	}
+}
 
-	return true;
+UniquePtr<StyleSheetNode> StyleSheetNode::DeepCopy(StyleSheetNode* in_parent) const
+{
+	RMLUI_ZoneScoped;
+
+	auto node = MakeUnique<StyleSheetNode>(in_parent, tag, id, class_names, pseudo_class_names, structural_selectors, child_combinator);
+
+	node->properties = properties;
+	node->children.resize(children.size());
+	
+	for (size_t i = 0; i < children.size(); i++)
+	{
+		node->children[i] = children[i]->DeepCopy(node.get());
+	}
+
+	return node;
 }
 
 // Builds up a style sheet's index recursively.

@@ -73,11 +73,9 @@ SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 	RMLUI_ZoneScoped;
 
 	SharedPtr<StyleSheet> new_sheet = MakeShared<StyleSheet>();
-	if (!new_sheet->root->MergeHierarchy(root.get()) ||
-		!new_sheet->root->MergeHierarchy(other_sheet.root.get(), specificity_offset))
-	{
-		return nullptr;
-	}
+	
+	new_sheet->root = root->DeepCopy();
+	new_sheet->root->MergeHierarchy(other_sheet.root.get(), specificity_offset);
 
 	// Any matching @keyframe names are overridden as per CSS rules
 	new_sheet->keyframes.reserve(keyframes.size() + other_sheet.keyframes.size());
