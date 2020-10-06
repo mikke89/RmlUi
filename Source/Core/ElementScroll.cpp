@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "LayoutDetails.h"
 #include "WidgetScroll.h"
+#include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Event.h"
@@ -226,7 +227,8 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 	Element* child = element->AppendChild(std::move(scrollbar_element), false);
 
 	// The construction of scrollbars can occur during layouting, then we need some properties and computed values straight away.
-	child->UpdateProperties();
+	Context* context = element->GetContext();
+	child->Update(context ? context->GetDensityIndependentPixelRatio() : 1.0f);
 
 	return true;
 }
