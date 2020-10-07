@@ -360,7 +360,7 @@ void WidgetScroll::FormatBar(float bar_length)
 	}
 
 	// Set the new dimensions on the bar to re-decorate it.
-	bar_box.SetContent(bar_box_content);
+	bar_box.SetContent(bar_box_content.Round());
 	bar->SetBox(bar_box);
 
 	// Now that it's been resized, re-position it.
@@ -455,8 +455,8 @@ void WidgetScroll::ProcessEvent(Event& event)
 
 void WidgetScroll::PositionBar()
 {
-	const Vector2f& track_dimensions = track->GetBox().GetSize();
-	const Vector2f& bar_dimensions = bar->GetBox().GetSize(Box::BORDER);
+	const Vector2f track_dimensions = track->GetBox().GetSize();
+	const Vector2f bar_dimensions = bar->GetBox().GetSize(Box::BORDER);
 
 	if (orientation == VERTICAL)
 	{
