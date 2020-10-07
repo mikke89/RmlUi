@@ -31,6 +31,7 @@
 
 #include "../Header.h"
 #include "../Types.h"
+#include "../ObserverPtr.h"
 
 namespace Rml {
 
@@ -100,7 +101,7 @@ class RMLUICORE_API DataSource
 	private:
 		String name;
 
-		using ListenerList = List< DataSourceListener* >;
+		using ListenerList = Vector< ObserverPtr<DataSourceListener> >;
 		ListenerList listeners;
 };
 

@@ -97,6 +97,10 @@ public:
 	// Returns true if we can dereference the pointer.
 	explicit operator bool() const noexcept { return block && block->pointed_to_object; }
 
+	// Comparison operators return true when they point to the same object, or they are both nullptr or expired.
+	bool operator==(const T* other) const noexcept { return get() == other; }
+	bool operator==(const ObserverPtr<T>& other) const noexcept { return get() == other.get(); }
+
 	// Retrieve the pointer to the observed object if we have one and it's still alive.
 	T* get() const noexcept {
 		return block ? static_cast<T*>(block->pointed_to_object) : nullptr;
