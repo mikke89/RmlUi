@@ -100,27 +100,24 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		new_style_sheet = StyleSheetFactory::GetStyleSheet(header.rcss_external);
 
 	// Combine any inline sheets.
-	if (header.rcss_inline.size() > 0)
-	{			
-		for (size_t i = 0;i < header.rcss_inline.size(); i++)
-		{			
-			UniquePtr<StyleSheet> inline_sheet = MakeUnique<StyleSheet>();
-			auto stream = MakeUnique<StreamMemory>((const byte*) header.rcss_inline[i].c_str(), header.rcss_inline[i].size());
-			stream->SetSourceURL(document_header->source);
+	for (size_t i = 0; i < header.rcss_inline.size(); i++)
+	{
+		UniquePtr<StyleSheet> inline_sheet = MakeUnique<StyleSheet>();
+		auto stream = MakeUnique<StreamMemory>((const byte*)header.rcss_inline[i].c_str(), header.rcss_inline[i].size());
+		stream->SetSourceURL(document_header->source);
 
-			if (inline_sheet->LoadStyleSheet(stream.get(), header.rcss_inline_line_numbers[i]))
+		if (inline_sheet->LoadStyleSheet(stream.get(), header.rcss_inline_line_numbers[i]))
+		{
+			if (new_style_sheet)
 			{
-				if (new_style_sheet)
-				{
-					SharedPtr<StyleSheet> combined_sheet = new_style_sheet->CombineStyleSheet(*inline_sheet);
-					new_style_sheet = combined_sheet;
-				}
-				else
-					new_style_sheet = std::move(inline_sheet);
+				SharedPtr<StyleSheet> combined_sheet = new_style_sheet->CombineStyleSheet(*inline_sheet);
+				new_style_sheet = combined_sheet;
 			}
+			else
+				new_style_sheet = std::move(inline_sheet);
+		}
 
-			stream.reset();
-		}		
+		stream.reset();
 	}
 
 	// If a style sheet is available, set it on the document and release it.
