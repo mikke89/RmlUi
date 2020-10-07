@@ -370,13 +370,15 @@ void ElementDocument::UpdateLayout()
 		RMLUI_ZoneScoped;
 		RMLUI_ZoneText(source_url.c_str(), source_url.size());
 
-		layout_dirty = false;
-
 		Vector2f containing_block(0, 0);
 		if (GetParentNode() != nullptr)
 			containing_block = GetParentNode()->GetBox().GetSize();
 
 		LayoutEngine::FormatElement(this, containing_block);
+
+		// Ignore dirtied layout during document formatting. Layouting must not require re-iteration.
+		// In particular, scrollbars being enabled may set the dirty flag, but this case is already handled within the layout engine.
+		layout_dirty = false;
 	}
 }
 
