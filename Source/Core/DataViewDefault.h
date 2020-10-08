@@ -70,12 +70,17 @@ public:
 	bool Update(DataModel& model) override;
 };
 
+class DataViewAttributeIf final : public DataViewCommon {
+public:
+	DataViewAttributeIf(Element* element);
+
+	bool Update(DataModel& model) override;
+};
 
 class DataViewValue final : public DataViewAttribute {
 public:
 	DataViewValue(Element* element);
 };
-
 
 class DataViewStyle final : public DataViewCommon {
 public:

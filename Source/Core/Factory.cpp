@@ -170,6 +170,7 @@ struct DefaultInstancers {
 
 	// Data binding views
 	DataViewInstancerDefault<DataViewAttribute> data_view_attribute;
+	DataViewInstancerDefault<DataViewAttributeIf> data_view_attribute_if;
 	DataViewInstancerDefault<DataViewClass> data_view_class;
 	DataViewInstancerDefault<DataViewIf> data_view_if;
 	DataViewInstancerDefault<DataViewVisible> data_view_visible;
@@ -259,6 +260,7 @@ bool Factory::Initialise()
 
 	// Data binding views
 	RegisterDataViewInstancer(&default_instancers->data_view_attribute,      "attr",    false);
+	RegisterDataViewInstancer(&default_instancers->data_view_attribute_if,   "attrif",  false);
 	RegisterDataViewInstancer(&default_instancers->data_view_class,          "class",   false);
 	RegisterDataViewInstancer(&default_instancers->data_view_if,             "if",      false);
 	RegisterDataViewInstancer(&default_instancers->data_view_visible,        "visible", false);
