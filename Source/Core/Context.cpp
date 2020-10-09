@@ -1280,7 +1280,7 @@ public:
 	using container_type = ElementObserverList;
 
 	ElementObserverListBackInserter(ElementObserverList& elements) : elements(&elements) {}
-	ElementObserverListBackInserter& operator=(const Element* element) {
+	ElementObserverListBackInserter& operator=(Element* element) {
 		elements->push_back(element->GetObserverPtr());
 		return *this;
 	}

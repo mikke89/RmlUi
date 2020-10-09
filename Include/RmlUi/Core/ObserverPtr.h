@@ -106,12 +106,13 @@ public:
 		return block ? static_cast<T*>(block->pointed_to_object) : nullptr;
 	}
 	// Dereference the pointed to object.
-	T* operator->() const noexcept { return static_cast<T*>(block->pointed_to_object); }
+	T* operator->() const noexcept {
+		return static_cast<T*>(block->pointed_to_object);
+	}
 
 	// Reset the pointer so that it does not point to anything.
 	// When the pointed to object and all observer pointers to it have been destroyed, it will deallocate the block.
-	void reset() noexcept
-	{
+	void reset() noexcept {
 		if (block)
 		{
 			block->num_observers -= 1;
@@ -121,11 +122,9 @@ public:
 	}
 
 private:
-
 	friend class Rml::EnableObserverPtr<T>;
 
-	explicit ObserverPtr(ObserverPtrBlock* block) noexcept : block(block)
-	{
+	explicit ObserverPtr(ObserverPtrBlock* block) noexcept : block(block) {
 		if (block)
 			block->num_observers += 1;
 	}
@@ -135,39 +134,38 @@ private:
 
 
 
-
 template<typename T>
 class RMLUICORE_API EnableObserverPtr {
 public:
 
-	ObserverPtr<T> GetObserverPtr() const noexcept { return ObserverPtr<T>(block); }
+	ObserverPtr<T> GetObserverPtr() {
+		InitializeBlock();
+		return ObserverPtr<T>(block);
+	}
 
 protected:
-
-	EnableObserverPtr()
-	{
+	EnableObserverPtr() noexcept {
 		static_assert(std::is_base_of<EnableObserverPtr<T>, T>::value, "T must derive from EnableObserverPtr<T>.");
-		InitializeBlock();
 	}
 
-	~EnableObserverPtr() noexcept 
-	{
-		block->pointed_to_object = nullptr;
-		DeallocateObserverPtrBlockIfEmpty(block);
+	~EnableObserverPtr() noexcept {
+		if (block)
+		{
+			block->pointed_to_object = nullptr;
+			DeallocateObserverPtrBlockIfEmpty(block);
+		}
 	}
 
-	EnableObserverPtr(const EnableObserverPtr<T>&) {
-		// We do not copy or modify the block, it should always point to the same object.
-		InitializeBlock();
+	EnableObserverPtr(const EnableObserverPtr<T>&) noexcept {
+		// Do not copy or modify the block, it should always point to the same object.
 	}
 	EnableObserverPtr<T>& operator=(const EnableObserverPtr<T>&) noexcept { 
 		// Assignment should not do anything, the block must point to the initially constructed object.
 		return *this; 
 	}
 
-	EnableObserverPtr(EnableObserverPtr<T>&&) {
-		// We do not move or modify the block, it should always point to the same object.
-		InitializeBlock();
+	EnableObserverPtr(EnableObserverPtr<T>&&) noexcept {
+		// Do not move or modify the block, it should always point to the same object.
 	}
 	EnableObserverPtr<T>& operator=(EnableObserverPtr<T>&&) noexcept {
 		// Assignment should not do anything, the block must point to the initially constructed object.
@@ -178,14 +176,16 @@ private:
 
 	inline void InitializeBlock()
 	{
-		block = AllocateObserverPtrBlock();
-		block->num_observers = 0;
-		block->pointed_to_object = static_cast<void*>(static_cast<T*>(this));
+		if (!block)
+		{
+			block = AllocateObserverPtrBlock();
+			block->num_observers = 0;
+			block->pointed_to_object = static_cast<void*>(static_cast<T*>(this));
+		}
 	}
 
-	ObserverPtrBlock* block;
+	ObserverPtrBlock* block = nullptr;
 };
-
 
 
 } // namespace Rml
