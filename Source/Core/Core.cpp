@@ -78,6 +78,10 @@ static ContextMap contexts;
 
 bool Initialise()
 {
+	RMLUI_ASSERTMSG(!initialised, "Rml::Initialise() called, but RmlUi is already initialised!");
+
+	Log::Initialise();
+
 	// Check for valid interfaces, or install default interfaces as appropriate.
 	if (!system_interface)
 	{	
@@ -95,8 +99,6 @@ bool Initialise()
 		return false;
 #endif
 	}
-
-	Log::Initialise();
 
 	EventSpecificationInterface::Initialize();
 
@@ -130,29 +132,33 @@ bool Initialise()
 
 void Shutdown()
 {
+	RMLUI_ASSERTMSG(initialised, "Rml::Shutdown() called, but RmlUi is not initialised!");
+
 	// Clear out all contexts, which should also clean up all attached elements.
 	contexts.clear();
 
 	// Notify all plugins we're being shutdown.
 	PluginRegistry::NotifyShutdown();
 
+	Factory::Shutdown();
 	TemplateCache::Shutdown();
 	StyleSheetFactory::Shutdown();
 	StyleSheetSpecification::Shutdown();
-	TextureDatabase::Shutdown();
-	Factory::Shutdown();
 
-	Log::Shutdown();
+	font_interface = nullptr;
+	default_font_interface.reset();
+
+	TextureDatabase::Shutdown();
 
 	initialised = false;
 
 	render_interface = nullptr;
 	file_interface = nullptr;
 	system_interface = nullptr;
-	font_interface = nullptr;
 
 	default_file_interface.reset();
-	default_font_interface.reset();
+
+	Log::Shutdown();
 }
 
 // Returns the version of this RmlUi library.
