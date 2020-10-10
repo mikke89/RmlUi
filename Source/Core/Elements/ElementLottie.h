@@ -24,6 +24,7 @@ namespace Rml
 	protected:
 		/// Renders the image.
 		void OnRender() override;
+		void OnUpdate() override;
 
 		/// Regenerates the element's geometry.
 		void OnResize() override;

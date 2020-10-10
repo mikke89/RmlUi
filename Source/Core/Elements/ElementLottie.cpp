@@ -28,10 +28,16 @@ namespace Rml
 
 	void ElementLottie::OnRender()
 	{
-		//if (this->m_is_need_recreate_geometry)
+		if (this->m_is_need_recreate_geometry)
 			this->GenerateGeometry();
 
+		this->LoadTexture();
 		geometry.Render(GetAbsoluteOffset(Box::CONTENT).Round());
+	}
+
+	void ElementLottie::OnUpdate()
+	{
+
 	}
 
 	void ElementLottie::OnResize()
@@ -104,7 +110,7 @@ namespace Rml
 
 		counter += 0.01f;
 
-		const String& attiribute_value_name = GetAttribute<String>("src", "C:\\Users\\user\\RmlUi\\Samples\\assets\\lottie.json");
+		const String& attiribute_value_name = GetAttribute<String>("src", "C:\\Users\\lord\\RmlUi\\Samples\\assets\\lottie.json");
 
 		if (attiribute_value_name.empty())
 			return false;
