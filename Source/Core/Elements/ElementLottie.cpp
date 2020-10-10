@@ -8,7 +8,7 @@
 
 namespace Rml
 {
-	ElementLottie::ElementLottie(const String& tag) : Element(tag), geometry(this), m_dimensions(200.0f, 200.0f), m_is_need_recreate_texture(true), m_is_need_recreate_geometry(true)
+	ElementLottie::ElementLottie(const String& tag) : Element(tag), geometry(this), m_dimensions(200.0f, 200.0f), m_is_need_recreate_texture(true), m_is_need_recreate_geometry(true), m_p_raw_data(nullptr)
 	{
 	}
 
@@ -28,11 +28,9 @@ namespace Rml
 
 	void ElementLottie::OnRender()
 	{
-		if (this->m_is_need_recreate_geometry)
-			this->GenerateGeometry();
 
-		this->LoadTexture();
 		geometry.Render(GetAbsoluteOffset(Box::CONTENT).Round());
+		this->Play();
 	}
 
 	void ElementLottie::OnUpdate()
@@ -42,6 +40,7 @@ namespace Rml
 
 	void ElementLottie::OnResize()
 	{
+		this->GenerateGeometry();
 	}
 
 	void ElementLottie::OnAttributeChange(const ElementAttributes& changed_attributes)
@@ -103,18 +102,14 @@ namespace Rml
 
 	bool ElementLottie::LoadTexture()
 	{
-/*		this->m_is_need_recreate_texture = false;*/
-		static float counter = 0.0f;
-		if (counter > 0.995f)
-			counter = 0.0f;
-
-		counter += 0.01f;
+		this->m_is_need_recreate_texture = false;
 
 		const String& attiribute_value_name = GetAttribute<String>("src", "C:\\Users\\lord\\RmlUi\\Samples\\assets\\lottie.json");
 
 		if (attiribute_value_name.empty())
 			return false;
 
+		this->m_file_name = attiribute_value_name;
 		this->m_p_lottie = rlottie::Animation::loadFromFile(attiribute_value_name.c_str());
 
 		if (this->m_p_lottie == nullptr)
@@ -125,9 +120,10 @@ namespace Rml
 
 		auto p_callback = [this](const String& name, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
 			size_t bytes_per_line = m_dimensions.x * sizeof(std::uint32_t);
-			std::uint32_t* p_data = static_cast<std::uint32_t*>(calloc(bytes_per_line * m_dimensions.y, sizeof(std::uint32_t)));
-			rlottie::Surface surface(p_data, m_dimensions.x, m_dimensions.y, bytes_per_line);
-			m_p_lottie->renderSync(m_p_lottie->frameAtPos(counter), surface);
+			std::uint32_t* p_data = new std::uint32_t[bytes_per_line * m_dimensions.y];
+			this->m_p_raw_data = p_data;
+/*			rlottie::Surface surface(p_data, m_dimensions.x, m_dimensions.y, bytes_per_line);*/
+/*			m_p_lottie->renderSync(m_p_lottie->frameAtPos(counter), surface);*/
 			const Rml::byte* p_result = reinterpret_cast<Rml::byte*>(p_data);
 			data.reset(p_result);
 
@@ -147,5 +143,39 @@ namespace Rml
 
 	void ElementLottie::UpdateRect()
 	{
+	}
+
+	void ElementLottie::Play(void)
+	{
+		if (this->m_p_raw_data == nullptr)
+			return;
+
+		static std::uint32_t current_frame = 0;
+		++current_frame;
+		current_frame = current_frame % this->m_p_lottie->totalFrame();
+		static float pos = 0.0f;
+		pos += 0.1f / this->m_p_lottie->frameRate();
+		if (pos >= 1.0f)
+			pos = 0.0f;
+
+		auto p_callback = [this](const String& name, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
+			size_t bytes_per_line = m_dimensions.x * sizeof(std::uint32_t);
+			std::uint32_t* p_data = new std::uint32_t[bytes_per_line * m_dimensions.y];
+			this->m_p_raw_data = p_data;
+			rlottie::Surface surface(p_data, m_dimensions.x, m_dimensions.y, bytes_per_line);
+			m_p_lottie->renderSync(this->m_p_lottie->frameAtPos(pos), surface);
+			const Rml::byte* p_result = reinterpret_cast<Rml::byte*>(p_data);
+			data.reset(p_result);
+
+			dimensions.x = m_dimensions.x;
+			dimensions.y = m_dimensions.y;
+
+
+			return true;
+		};
+
+		this->texture.Set(this->m_file_name, p_callback);
+
+		this->geometry.SetTexture(&this->texture);
 	}
 }

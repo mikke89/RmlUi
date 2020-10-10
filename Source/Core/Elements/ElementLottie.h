@@ -45,11 +45,13 @@ namespace Rml
 		// Loads the rect value from the element's attribute, but only if we're not a sprite.
 		void UpdateRect();
 
+		void Play(void);
 
 	private:
 		bool m_is_need_recreate_texture;
 		bool m_is_need_recreate_geometry;
-
+		std::uint32_t* m_p_raw_data;
+		String m_file_name;
 		// The texture this element is rendering from.
 		Texture texture;
  
