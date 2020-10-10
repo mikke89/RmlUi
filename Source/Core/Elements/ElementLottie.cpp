@@ -164,6 +164,21 @@ namespace Rml
 			this->m_p_raw_data = p_data;
 			rlottie::Surface surface(p_data, m_dimensions.x, m_dimensions.y, bytes_per_line);
 			m_p_lottie->renderSync(this->m_p_lottie->frameAtPos(pos), surface);
+
+			size_t total_bytes = m_dimensions.x * m_dimensions.y;
+
+/*
+
+			for (int i = 0; i < total_bytes; ++i)
+			{
+				p_data[i] = p_data[i] << 8 | p_data[i] >> 24;
+			}
+*/
+			for (int i = 0; i < total_bytes; ++i)
+			{
+				p_data[i] = p_data[i] << 8 | p_data[i] >> 24;
+			}
+
 			const Rml::byte* p_result = reinterpret_cast<Rml::byte*>(p_data);
 			data.reset(p_result);
 
