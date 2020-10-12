@@ -39,7 +39,7 @@
 
 namespace Rml {
 
-LayoutInlineBoxText::LayoutInlineBoxText(Element* element, int _line_begin) : LayoutInlineBox(element, Box())
+LayoutInlineBoxText::LayoutInlineBoxText(ElementText* element, int _line_begin) : LayoutInlineBox(static_cast<Element*>(element), Box())
 {
 	line_begin = _line_begin;
 
@@ -76,7 +76,7 @@ UniquePtr<LayoutInlineBox> LayoutInlineBoxText::FlowContent(bool first_box, floa
 	LayoutInlineBox::FlowContent(first_box, available_width, right_spacing_width);
 
 	if (overflow)
-		return MakeUnique<LayoutInlineBoxText>(element, line_begin + line_length);
+		return MakeUnique<LayoutInlineBoxText>(GetTextElement(), line_begin + line_length);
 
 	return nullptr;
 }
@@ -132,15 +132,17 @@ void* LayoutInlineBoxText::operator new(size_t size)
 	return LayoutEngine::AllocateLayoutChunk(size);
 }
 
-void LayoutInlineBoxText::operator delete(void* chunk)
+void LayoutInlineBoxText::operator delete(void* chunk, size_t size)
 {
-	LayoutEngine::DeallocateLayoutChunk(chunk);
+	LayoutEngine::DeallocateLayoutChunk(chunk, size);
 }
 
 // Returns the box's element as a text element.
 ElementText* LayoutInlineBoxText::GetTextElement()
 {
-	return rmlui_dynamic_cast< ElementText* >(element);
+	RMLUI_ASSERT(rmlui_dynamic_cast<ElementText*>(element));
+
+	return static_cast< ElementText* >(element);
 }
 
 // Builds a box for the first word of the element.
@@ -162,7 +164,7 @@ void LayoutInlineBoxText::BuildWordBox()
 
 	Vector2f content_area;
 	line_segmented = !text_element->GenerateToken(content_area.x, line_begin);
-	content_area.y = element->GetLineHeight();
+	content_area.y = text_element->GetLineHeight();
 	box.SetContent(content_area);
 }
 

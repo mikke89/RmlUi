@@ -27,7 +27,6 @@
  */
 
 #include "../Common/TestsShell.h"
-#include "../Common/TestsInterface.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -80,38 +79,16 @@ static String document_rml = R"(
 )";
 
 
-TEST_CASE("Backgrounds and borders")
+TEST_CASE("backgrounds_and_borders")
 {
-	TestsRenderInterface render_interface;
-	Context* context = TestsShell::CreateContext("background_dummy", &render_interface);
+	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
 	REQUIRE(document);
 	document->Show();
 
-	render_interface.ResetCounters();
-	context->Update();
-	context->Render();
-
-	auto& counters = render_interface.GetCounters();
-	const String msg = CreateString(512,
-		"\nStats for Context::Render(): \n"
-		"Render calls: %zu\n"
-		"Scissor enable: %zu\n"
-		"Scissor set: %zu\n"
-		"Texture load: %zu\n"
-		"Texture generate: %zu\n"
-		"Texture release: %zu\n"
-		"Transform set: %zu\n",
-		counters.render_calls,
-		counters.enable_scissor,
-		counters.set_scissor,
-		counters.load_texture,
-		counters.generate_texture,
-		counters.release_texture,
-		counters.set_transform
-	);
+	const String msg = TestsShell::GetRenderStats();
 	MESSAGE(msg);
 
 	nanobench::Bench bench;
@@ -119,6 +96,8 @@ TEST_CASE("Backgrounds and borders")
 	bench.relative(true);
 	bench.minEpochIterations(100);
 	bench.warmup(50);
+
+	TestsShell::RenderLoop();
 
 	bench.run("Reference (update + render)", [&] {
 		context->Update();
@@ -162,5 +141,4 @@ TEST_CASE("Backgrounds and borders")
 	}
 
 	document->Close();
-	TestsShell::RemoveContext(context);
 }

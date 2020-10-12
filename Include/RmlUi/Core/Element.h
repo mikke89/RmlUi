@@ -62,6 +62,7 @@ class RenderInterface;
 class StyleSheet;
 class TransformState;
 struct ElementMeta;
+struct StackingOrderedChild;
 
 /**
 	A generic element in the DOM tree.
@@ -118,7 +119,7 @@ public:
 	/// @param[in] offset The offset (in pixels) of our primary box's top-left border corner from our offset parent's top-left border corner.
 	/// @param[in] offset_parent The element this element is being positioned relative to.
 	/// @param[in] offset_fixed True if the element is fixed in place (and will not scroll), false if not.
-	void SetOffset(const Vector2f& offset, Element* offset_parent, bool offset_fixed = false);
+	void SetOffset(Vector2f offset, Element* offset_parent, bool offset_fixed = false);
 	/// Returns the position of the top-left corner of one of the areas of this element's primary box, relative to its
 	/// offset parent's top-left border corner.
 	/// @param[in] area The desired area position.
@@ -141,20 +142,22 @@ public:
 	/// this element's logical children, plus the element's padding.
 	/// @param[in] content_offset The offset of the box's internal content.
 	/// @param[in] content_box The dimensions of the box's internal content.
-	void SetContentBox(const Vector2f& content_offset, const Vector2f& content_box);
+	void SetContentBox(Vector2f content_offset, Vector2f content_box);
 	/// Sets the box describing the size of the element, and removes all others.
 	/// @param[in] box The new dimensions box for the element.
 	void SetBox(const Box& box);
 	/// Adds a box to the end of the list describing this element's geometry.
 	/// @param[in] box The auxiliary box for the element.
-	void AddBox(const Box& box);
+	/// @param[in] offset The offset of the box relative to the top left border corner of the element.
+	void AddBox(const Box& box, Vector2f offset);
 	/// Returns the main box describing the size of the element.
 	/// @return The box.
 	const Box& GetBox();
 	/// Returns one of the boxes describing the size of the element.
 	/// @param[in] index The index of the desired box, with 0 being the main box. If outside of bounds, the main box will be returned.
+	/// @param[out] offset The offset of the box relative to the element's border box.
 	/// @return The requested box.
-	const Box& GetBox(int index);
+	const Box& GetBox(int index, Vector2f& offset);
 	/// Returns the number of boxes making up this element's geometry.
 	/// @return the number of boxes making up this element's geometry.
 	int GetNumBoxes();
@@ -640,6 +643,7 @@ private:
 
 	void BuildLocalStackingContext();
 	void BuildStackingContext(ElementList* stacking_context);
+	static void BuildStackingContextForTable(Vector<StackingOrderedChild>& ordered_children, Element* child);
 	void DirtyStackingContext();
 
 	void DirtyStructure();
@@ -702,9 +706,13 @@ private:
 	Vector2f scroll_offset;
 
 	// The size of the element.
-	using BoxList = Vector< Box >;
+	struct PositionedBox {
+		Box box;
+		Vector2f offset;
+	};
+	using PositionedBoxList = Vector< PositionedBox >;
 	Box main_box;
-	BoxList additional_boxes;
+	PositionedBoxList additional_boxes;
 
 	// And of the element's internal content.
 	Vector2f content_offset;
@@ -731,11 +739,6 @@ private:
 	bool structure_dirty;
 
 	bool computed_values_are_default_initialized;
-
-	// Cached rendering information
-	int clipping_ignore_depth;
-	bool clipping_enabled;
-	bool clipping_state_dirty;
 
 	// Transform state
 	UniquePtr< TransformState > transform_state;

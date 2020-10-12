@@ -194,8 +194,10 @@ LayoutInlineBox* LayoutLineBox::AddElement(Element* element, const Box& box)
 {
 	RMLUI_ZoneScoped;
 
-	if (rmlui_dynamic_cast< ElementText* >(element) != nullptr)
-		return AddBox(MakeUnique<LayoutInlineBoxText>(element));
+	ElementText* element_text = rmlui_dynamic_cast<ElementText*>(element);
+
+	if (element_text)
+		return AddBox(MakeUnique<LayoutInlineBoxText>(element_text));
 	else
 		return AddBox(MakeUnique<LayoutInlineBox>(element, box));
 }
@@ -382,9 +384,9 @@ void* LayoutLineBox::operator new(size_t size)
 	return LayoutEngine::AllocateLayoutChunk(size);
 }
 
-void LayoutLineBox::operator delete(void* chunk)
+void LayoutLineBox::operator delete(void* chunk, size_t size)
 {
-	LayoutEngine::DeallocateLayoutChunk(chunk);
+	LayoutEngine::DeallocateLayoutChunk(chunk, size);
 }
 
 // Appends an inline box to the end of the line box's list of inline boxes.

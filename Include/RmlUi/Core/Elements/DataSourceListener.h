@@ -31,6 +31,7 @@
 
 #include "../Header.h"
 #include "../Types.h"
+#include "../ObserverPtr.h"
 
 namespace Rml {
 
@@ -43,7 +44,7 @@ class DataSource;
 	@author Robert Curry
  */
 
-class RMLUICORE_API DataSourceListener
+class RMLUICORE_API DataSourceListener : public EnableObserverPtr<DataSourceListener>
 {
 public:
 	DataSourceListener();

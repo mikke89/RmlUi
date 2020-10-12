@@ -956,7 +956,7 @@ void WidgetTextInput::FormatElement()
 			content_area = FormatText();
 
 			if (x_overflow_property == Overflow::Auto &&
-				parent->GetClientWidth() < content_area.y)
+				parent->GetClientWidth() < content_area.x)
 			{
 				scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 			}

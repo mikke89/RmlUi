@@ -100,7 +100,7 @@ float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 
 // Determines the appropriate vertical position for an object that is choosing to clear floating elements to the left
 // or right (or both).
-float LayoutBlockBoxSpace::ClearBoxes(float cursor, Style::Clear clear_property)
+float LayoutBlockBoxSpace::ClearBoxes(float cursor, Style::Clear clear_property) const
 {
 	using namespace Style;
 	// Clear left boxes.
@@ -274,9 +274,9 @@ void* LayoutBlockBoxSpace::operator new(size_t size)
 	return LayoutEngine::AllocateLayoutChunk(size);
 }
 
-void LayoutBlockBoxSpace::operator delete(void* chunk)
+void LayoutBlockBoxSpace::operator delete(void* chunk, size_t size)
 {
-	LayoutEngine::DeallocateLayoutChunk(chunk);
+	LayoutEngine::DeallocateLayoutChunk(chunk, size);
 }
 
 LayoutBlockBoxSpace::SpaceBox::SpaceBox() : offset(0, 0), dimensions(0, 0)

@@ -66,33 +66,6 @@
 
 namespace Rml {
 
-/**
-	STL function object for sorting elements by z-type (ie, float-types before general types, etc).
-	@author Peter Curry
- */
-class ElementSortZOrder
-{
-public:
-	bool operator()(const Pair< Element*, float >& lhs, const Pair< Element*, float >& rhs) const
-	{
-		return lhs.second < rhs.second;
-	}
-};
-
-/**
-	STL function object for sorting elements by z-index property.
-	@author Peter Curry
- */
-class ElementSortZIndex
-{
-public:
-	bool operator()(const Element* lhs, const Element* rhs) const
-	{
-		// Check the z-index.
-		return lhs->GetZIndex() < rhs->GetZIndex();
-	}
-};
-
 // Determines how many levels up in the hierarchy the OnChildAdd and OnChildRemove are called (starting at the child itself)
 static constexpr int ChildNotifyLevels = 2;
 
@@ -143,10 +116,6 @@ transform_state(), dirty_transform(false), dirty_perspective(false), dirty_anima
 	structure_dirty = false;
 
 	computed_values_are_default_initialized = true;
-
-	clipping_ignore_depth = 0;
-	clipping_enabled = false;
-	clipping_state_dirty = true;
 
 	meta = element_meta_chunk_pool.AllocateAndConstruct(this);
 	data_model = nullptr;
@@ -388,7 +357,7 @@ String Element::GetAddress(bool include_pseudo_classes, bool include_parents) co
 }
 
 // Sets the position of this element, as a two-dimensional offset from another element.
-void Element::SetOffset(const Vector2f& offset, Element* _offset_parent, bool _offset_fixed)
+void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_fixed)
 {
 	_offset_fixed |= GetPosition() == Style::Position::Fixed;
 
@@ -469,7 +438,7 @@ Box::Area Element::GetClientArea() const
 }
 
 // Sets the dimensions of the element's internal content.
-void Element::SetContentBox(const Vector2f& _content_offset, const Vector2f& _content_box)
+void Element::SetContentBox(Vector2f _content_offset, Vector2f _content_box)
 {
 	if (content_offset != _content_offset ||
 		content_box != _content_box)
@@ -504,9 +473,9 @@ void Element::SetBox(const Box& box)
 }
 
 // Adds a box to the end of the list describing this element's geometry.
-void Element::AddBox(const Box& box)
+void Element::AddBox(const Box& box, Vector2f offset)
 {
-	additional_boxes.push_back(box);
+	additional_boxes.emplace_back(PositionedBox{ box, offset });
 
 	OnResize();
 
@@ -522,16 +491,20 @@ const Box& Element::GetBox()
 }
 
 // Returns one of the boxes describing the size of the element.
-const Box& Element::GetBox(int index)
+const Box& Element::GetBox(int index, Vector2f& offset)
 {
+	offset = Vector2f(0);
+
 	if (index < 1)
 		return main_box;
 	
-	int additional_box_index = index - 1;
+	const int additional_box_index = index - 1;
 	if (additional_box_index >= (int)additional_boxes.size())
 		return main_box;
 
-	return additional_boxes[additional_box_index];
+	offset = additional_boxes[additional_box_index].offset;
+
+	return additional_boxes[additional_box_index].box;
 }
 
 // Returns the number of boxes making up this element's geometry.
@@ -561,10 +534,11 @@ bool Element::IsPointWithinElement(const Vector2f& point)
 
 	for (int i = 0; i < GetNumBoxes(); ++i)
 	{
-		const Box& box = GetBox(i);
+		Vector2f box_offset;
+		const Box& box = GetBox(i, box_offset);
 
-		Vector2f box_position = position + box.GetOffset();
-		Vector2f box_dimensions = box.GetSize(Box::BORDER);
+		const Vector2f box_position = position + box_offset;
+		const Vector2f box_dimensions = box.GetSize(Box::BORDER);
 		if (point.x >= box_position.x &&
 			point.x <= (box_position.x + box_dimensions.x) &&
 			point.y >= box_position.y &&
@@ -1246,10 +1220,7 @@ void Element::ScrollIntoView(bool align_with_top)
 {
 	Vector2f size(0, 0);
 	if (!align_with_top)
-	{
-		size.y = main_box.GetOffset().y +
-			main_box.GetSize(Box::BORDER).y;
-	}
+		size.y = main_box.GetSize(Box::BORDER).y;
 
 	Element* scroll_parent = parent;
 	while (scroll_parent != nullptr)
@@ -1581,31 +1552,13 @@ DataModel* Element::GetDataModel() const
 	
 int Element::GetClippingIgnoreDepth()
 {
-	if (clipping_state_dirty)
-	{
-		IsClippingEnabled();
-	}
-	
-	return clipping_ignore_depth;
+	return GetComputedValues().clip.number;
 }
 	
 bool Element::IsClippingEnabled()
 {
-	if (clipping_state_dirty)
-	{
-		const auto& computed = GetComputedValues();
-
-		// Is clipping enabled for this element, yes unless both overlow properties are set to visible
-		clipping_enabled = computed.overflow_x != Style::Overflow::Visible
-							|| computed.overflow_y != Style::Overflow::Visible;
-		
-		// Get the clipping ignore depth from the clip property
-		clipping_ignore_depth = computed.clip.number;
-
-		clipping_state_dirty = false;
-	}
-	
-	return clipping_enabled;
+	const auto& computed = GetComputedValues();
+	return computed.overflow_x != Style::Overflow::Visible || computed.overflow_y != Style::Overflow::Visible;
 }
 
 // Gets the render interface owned by this element's context.
@@ -1669,6 +1622,18 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 	if (it != changed_attributes.end())
 	{
 		meta->style.SetClassNames(it->second.Get<String>());
+	}
+
+	if (changed_attributes.count("colspan") || changed_attributes.count("rowspan"))
+	{
+		if (meta->computed_values.display == Style::Display::TableCell)
+			DirtyLayout();
+	}
+
+	if (changed_attributes.count("span"))
+	{
+		if (meta->computed_values.display == Style::Display::TableColumn || meta->computed_values.display == Style::Display::TableColumnGroup)
+			DirtyLayout();
 	}
 
 	it = changed_attributes.find("style");
@@ -1827,14 +1792,6 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		changed_properties.Contains(PropertyId::ImageColor))
 	{
 		meta->decoration.DirtyDecorators();
-	}
-	
-	// Check for clipping state changes
-	if (changed_properties.Contains(PropertyId::Clip) ||
-		changed_properties.Contains(PropertyId::OverflowX) ||
-		changed_properties.Contains(PropertyId::OverflowY))
-	{
-		clipping_state_dirty = true;
 	}
 
 	// Check for `perspective' and `perspective-origin' changes
@@ -2178,8 +2135,15 @@ void Element::BuildLocalStackingContext()
 	stacking_context.clear();
 
 	BuildStackingContext(&stacking_context);
-	std::stable_sort(stacking_context.begin(), stacking_context.end(), ElementSortZIndex());
+	std::stable_sort(stacking_context.begin(), stacking_context.end(), [](const Element* lhs, const Element* rhs) { return lhs->GetZIndex() < rhs->GetZIndex(); });
 }
+
+enum class RenderOrder { Block, TableColumnGroup, TableColumn, TableRowGroup, TableRow, TableCell, Inline, Floating, Positioned };
+struct StackingOrderedChild {
+	Element* element;
+	RenderOrder order;
+	bool include_children;
+};
 
 void Element::BuildStackingContext(ElementList* new_stacking_context)
 {
@@ -2188,52 +2152,118 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 	// Build the list of ordered children. Our child list is sorted within the stacking context so stacked elements
 	// will render in the right order; ie, positioned elements will render on top of inline elements, which will render
 	// on top of floated elements, which will render on top of block elements.
-	Vector< Pair< Element*, float > > ordered_children;
-	for (size_t i = 0; i < children.size(); ++i)
+	Vector< StackingOrderedChild > ordered_children;
+
+	const size_t num_children = children.size();
+	ordered_children.reserve(num_children);
+
+	if (GetDisplay() == Style::Display::Table)
 	{
-		Element* child = children[i].get();
+		BuildStackingContextForTable(ordered_children, this);
+	}
+	else
+	{
+		for (size_t i = 0; i < num_children; ++i)
+		{
+			Element* child = children[i].get();
 
-		if (!child->IsVisible())
-			continue;
+			if (!child->IsVisible())
+				continue;
 
-		Pair< Element*, float > ordered_child;
-		ordered_child.first = child;
+			ordered_children.emplace_back();
+			StackingOrderedChild& ordered_child = ordered_children.back();
 
-		if (child->GetPosition() != Style::Position::Static)
-			ordered_child.second = 3;
-		else if (child->GetFloat() != Style::Float::None)
-			ordered_child.second = 1;
-		else if (child->GetDisplay() == Style::Display::Block)
-			ordered_child.second = 0;
-		else
-			ordered_child.second = 2;
+			ordered_child.element = child;
+			ordered_child.order = RenderOrder::Inline;
+			ordered_child.include_children = !child->local_stacking_context;
 
-		ordered_children.push_back(ordered_child);
+			const Style::Display child_display = child->GetDisplay();
+
+			if (child->GetPosition() != Style::Position::Static)
+				ordered_child.order = RenderOrder::Positioned;
+			else if (child->GetFloat() != Style::Float::None)
+				ordered_child.order = RenderOrder::Floating;
+			else if (child_display == Style::Display::Block || child_display == Style::Display::Table)
+				ordered_child.order = RenderOrder::Block;
+			else
+				ordered_child.order = RenderOrder::Inline;
+		}
 	}
 
 	// Sort the list!
-	std::stable_sort(ordered_children.begin(), ordered_children.end(), ElementSortZOrder());
+	std::stable_sort(ordered_children.begin(), ordered_children.end(), [](const StackingOrderedChild& lhs, const StackingOrderedChild& rhs) { return int(lhs.order) < int(rhs.order); });
 
 	// Add the list of ordered children into the stacking context in order.
 	for (size_t i = 0; i < ordered_children.size(); ++i)
 	{
-		new_stacking_context->push_back(ordered_children[i].first);
+		new_stacking_context->push_back(ordered_children[i].element);
 
-		if (!ordered_children[i].first->local_stacking_context)
-			ordered_children[i].first->BuildStackingContext(new_stacking_context);
+		if (ordered_children[i].include_children)
+			ordered_children[i].element->BuildStackingContext(new_stacking_context);
+	}
+}
+
+void Element::BuildStackingContextForTable(Vector<StackingOrderedChild>& ordered_children, Element* parent)
+{
+	const size_t num_children = parent->children.size();
+
+	for (size_t i = 0; i < num_children; ++i)
+	{
+		Element* child = parent->children[i].get();
+
+		if (!child->IsVisible())
+			continue;
+
+		ordered_children.emplace_back();
+		StackingOrderedChild& ordered_child = ordered_children.back();
+		ordered_child.element = child;
+		ordered_child.order = RenderOrder::Inline;
+		ordered_child.include_children = false;
+
+		bool recurse_into_children = false;
+
+		switch (child->GetDisplay())
+		{
+		case Style::Display::TableRow:
+			ordered_child.order = RenderOrder::TableRow;
+			recurse_into_children = true;
+			break;
+		case Style::Display::TableRowGroup:
+			ordered_child.order = RenderOrder::TableRowGroup;
+			recurse_into_children = true;
+			break;
+		case Style::Display::TableColumn:
+			ordered_child.order = RenderOrder::TableColumn;
+			break;
+		case Style::Display::TableColumnGroup:
+			ordered_child.order = RenderOrder::TableColumnGroup;
+			recurse_into_children = true;
+			break;
+		case Style::Display::TableCell:
+			ordered_child.order = RenderOrder::TableCell;
+			ordered_child.include_children = !child->local_stacking_context;
+			break;
+		default:
+			ordered_child.order = RenderOrder::Positioned;
+			ordered_child.include_children = !child->local_stacking_context;
+			break;
+		}
+
+		if (recurse_into_children)
+			BuildStackingContextForTable(ordered_children, child);
 	}
 }
 
 void Element::DirtyStackingContext()
 {
-	// The first ancestor of ours that doesn't have an automatic z-index is the ancestor that is establishing our local
-	// stacking context.
+	// Find the first ancestor that has a local stacking context, that is our stacking context parent.
 	Element* stacking_context_parent = this;
-	while (stacking_context_parent != nullptr &&
-		   !stacking_context_parent->local_stacking_context)
+	while (stacking_context_parent && !stacking_context_parent->local_stacking_context)
+	{
 		stacking_context_parent = stacking_context_parent->GetParentNode();
+	}
 
-	if (stacking_context_parent != nullptr)
+	if (stacking_context_parent)
 		stacking_context_parent->stacking_context_dirty = true;
 }
 

@@ -108,13 +108,13 @@ void GeometryUtilities::GenerateLine(FontFaceHandle font_face_handle, Geometry* 
 									);
 }
 
-void GeometryUtilities::GenerateBackgroundBorder(Geometry* geometry, const Box& box, Vector4f border_radius, Colourb background_colour, const Colourb* border_colours)
+void GeometryUtilities::GenerateBackgroundBorder(Geometry* geometry, const Box& box, Vector2f offset, Vector4f border_radius, Colourb background_colour, const Colourb* border_colours)
 {
 	Vector<Vertex>& vertices = geometry->GetVertices();
 	Vector<int>& indices = geometry->GetIndices();
 
 	CornerSizes corner_sizes{ border_radius.x, border_radius.y, border_radius.z, border_radius.w };
-	GeometryBackgroundBorder::Draw(vertices, indices, corner_sizes, box, background_colour, border_colours);
+	GeometryBackgroundBorder::Draw(vertices, indices, corner_sizes, box, offset, background_colour, border_colours);
 }
 
 } // namespace Rml

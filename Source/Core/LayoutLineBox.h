@@ -93,7 +93,7 @@ public:
 	bool GetBaselineOfLastLine(float& baseline) const;
 
 	void* operator new(size_t size);
-	void operator delete(void* chunk);
+	void operator delete(void* chunk, size_t size);
 
 private:
 	/// Appends an inline box to the end of the line box's list of inline boxes. Returns a pointer to the appended box.

@@ -45,10 +45,8 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementTextDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventDispatcher.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventInstancerDefault.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/EventIterators.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventSpecification.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectBlur.h
@@ -65,6 +63,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBox.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBoxText.h
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutLineBox.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutTable.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Memory.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Pool.h
@@ -307,7 +306,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementText.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementTextDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Event.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/EventDispatcher.cpp
@@ -336,6 +334,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBox.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBoxText.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/LayoutLineBox.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutTable.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Log.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Math.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Memory.cpp

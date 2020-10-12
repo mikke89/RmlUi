@@ -805,6 +805,13 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.word_break = (WordBreak)p->Get< int >();
 			break;
 
+		case PropertyId::RowGap:
+			values.row_gap = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			break;
+		case PropertyId::ColumnGap:
+			values.column_gap = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			break;
+
 		case PropertyId::Cursor:
 			values.cursor = p->Get< String >();
 			break;

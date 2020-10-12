@@ -36,7 +36,7 @@
 
 namespace Rml {
 
-DataViewCommon::DataViewCommon(Element* element, String override_modifier) : DataView(element), modifier(override_modifier)
+DataViewCommon::DataViewCommon(Element* element, String override_modifier) : DataView(element), modifier(std::move(override_modifier))
 {}
 
 bool DataViewCommon::Initialize(DataModel& model, Element* element, const String& expression_str, const String& in_modifier)
@@ -94,6 +94,34 @@ bool DataViewAttribute::Update(DataModel& model)
 		if (!attribute || (attribute && attribute->Get<String>() != value))
 		{
 			element->SetAttribute(attribute_name, value);
+			result = true;
+		}
+	}
+	return result;
+}
+
+
+DataViewAttributeIf::DataViewAttributeIf(Element* element) : DataViewCommon(element)
+{}
+
+bool DataViewAttributeIf::Update(DataModel& model)
+{
+	const String& attribute_name = GetModifier();
+	bool result = false;
+	Variant variant;
+	Element* element = GetElement();
+	DataExpressionInterface expr_interface(&model, element);
+
+	if (element && GetExpression().Run(expr_interface, variant))
+	{
+		const bool value = variant.Get<bool>();
+		const bool is_set = static_cast<bool>(element->GetAttribute(attribute_name));
+		if (is_set != value)
+		{
+			if (value)
+				element->SetAttribute(attribute_name, String());
+			else
+				element->RemoveAttribute(attribute_name);
 			result = true;
 		}
 	}

@@ -96,7 +96,9 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 
 	for (int i = 0; i < element->GetNumBoxes(); i++)
 	{
-		GeometryUtilities::GenerateBackgroundBorder(&geometry, element->GetBox(i), radii, background_color, border_colors);
+		Vector2f offset;
+		const Box& box = element->GetBox(i, offset);
+		GeometryUtilities::GenerateBackgroundBorder(&geometry, box, offset, radii, background_color, border_colors);
 	}
 
 	geometry.Release();

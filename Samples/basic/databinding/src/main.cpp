@@ -281,6 +281,32 @@ namespace InvadersExample {
 	}
 }
 
+namespace FormsExample {
+
+	Rml::DataModelHandle model_handle;
+
+	struct MyData {
+		int rating = 50;
+	} my_data;
+
+	bool Initialize(Rml::Context* context)
+	{
+		Rml::DataModelConstructor constructor = context->CreateDataModel("forms");
+		if (!constructor)
+			return false;
+
+		constructor.Bind("rating", &my_data.rating);
+
+		model_handle = constructor.GetModelHandle();
+
+		return true;
+	}
+
+	void Update()
+	{
+		model_handle.Update();
+	}
+}
 
 
 class DemoWindow : public Rml::EventListener
@@ -354,6 +380,7 @@ void GameLoop()
 	BasicExample::Update();
 	EventsExample::Update();
 	InvadersExample::Update(t);
+	FormsExample::Update();
 
 	context->Update();
 
@@ -411,6 +438,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 		|| !BasicExample::Initialize(context)
 		|| !EventsExample::Initialize(context)
 		|| !InvadersExample::Initialize(context)
+		|| !FormsExample::Initialize(context)
 		)
 	{
 		Rml::Shutdown();

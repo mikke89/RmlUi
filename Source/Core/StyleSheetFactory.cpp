@@ -137,7 +137,7 @@ SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 			if (sheet)
 			{
 				SharedPtr<StyleSheet> new_sheet = sheet->CombineStyleSheet(*sub_sheet);
-				sheet = new_sheet;
+				sheet = std::move(new_sheet);
 			}
 			else
 				sheet = sub_sheet;
@@ -148,6 +148,8 @@ SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 
 	if (!sheet)
 		return nullptr;
+
+	sheet->OptimizeNodeProperties();
 
 	// Add to cache, and a reference to the sheet to hold it in the cache.
 	instance->stylesheet_cache[combined_key] = sheet;

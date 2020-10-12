@@ -41,12 +41,11 @@ static DataModel model(type_register.GetTransformFuncRegister());
 static DataExpressionInterface interface(&model, nullptr);
 
 
-TEST_CASE("Data expressions")
+TEST_CASE("data_expressions")
 {
 	float radius = 6.0f;
 	String color_name = "color";
 	Colourb color_value = Colourb(180, 100, 255);
-
 
 	DataModelConstructor constructor(&model, &type_register);
 	constructor.Bind("radius", &radius);
@@ -54,7 +53,6 @@ TEST_CASE("Data expressions")
 	constructor.BindFunc("color_value", [&](Variant& variant) {
 		variant = ToString(color_value);
 	});
-
 
 	nanobench::Bench bench;
 	bench.title("Data expression");
@@ -80,7 +78,6 @@ TEST_CASE("Data expressions")
 
 		REQUIRE(result);
 	};
-
 
 	bench_expression(
 		"2 * 2",

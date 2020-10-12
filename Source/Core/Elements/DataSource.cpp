@@ -57,9 +57,10 @@ DataSource::DataSource(const String& _name)
 DataSource::~DataSource()
 {
 	ListenerList listeners_copy = listeners;
-	for (ListenerList::iterator i = listeners_copy.begin(); i != listeners_copy.end(); ++i)
+	for (auto& listener : listeners_copy)
 	{
-		(*i)->OnDataSourceDestroy(this);
+		if (listener)
+			listener->OnDataSourceDestroy(this);
 	}
 
 	DataSourceMap::iterator iterator = data_sources.find(name);
@@ -88,17 +89,17 @@ DataSource* DataSource::GetDataSource(const String& data_source_name)
 
 void DataSource::AttachListener(DataSourceListener* listener)
 {
-	if (find(listeners.begin(), listeners.end(), listener) != listeners.end())
+	if (std::find(listeners.begin(), listeners.end(), listener) != listeners.end())
 	{
 		RMLUI_ERROR;
 		return;
 	}
-	listeners.push_back(listener);
+	listeners.push_back(listener->GetObserverPtr());
 }
 
 void DataSource::DetachListener(DataSourceListener* listener)
 {
-	ListenerList::iterator i = find(listeners.begin(), listeners.end(), listener);
+	ListenerList::iterator i = std::find(listeners.begin(), listeners.end(), listener);
 	RMLUI_ASSERT(i != listeners.end());
 	if (i != listeners.end())
 	{
@@ -114,36 +115,40 @@ void* DataSource::GetScriptObject() const
 void DataSource::NotifyRowAdd(const String& table, int first_row_added, int num_rows_added)
 {
 	ListenerList listeners_copy = listeners;
-	for (ListenerList::iterator i = listeners_copy.begin(); i != listeners_copy.end(); ++i)
+	for (auto& listener : listeners_copy)
 	{
-		(*i)->OnRowAdd(this, table, first_row_added, num_rows_added);
+		if (listener)
+			listener->OnRowAdd(this, table, first_row_added, num_rows_added);
 	}
 }
 
 void DataSource::NotifyRowRemove(const String& table, int first_row_removed, int num_rows_removed)
 {
 	ListenerList listeners_copy = listeners;
-	for (ListenerList::iterator i = listeners_copy.begin(); i != listeners_copy.end(); ++i)
+	for (auto& listener : listeners_copy)
 	{
-		(*i)->OnRowRemove(this, table, first_row_removed, num_rows_removed);
+		if (listener)
+			listener->OnRowRemove(this, table, first_row_removed, num_rows_removed);
 	}
 }
 
 void DataSource::NotifyRowChange(const String& table, int first_row_changed, int num_rows_changed)
 {
 	ListenerList listeners_copy = listeners;
-	for (ListenerList::iterator i = listeners_copy.begin(); i != listeners_copy.end(); ++i)
+	for (auto& listener : listeners_copy)
 	{
-		(*i)->OnRowChange(this, table, first_row_changed, num_rows_changed);
+		if (listener)
+			listener->OnRowChange(this, table, first_row_changed, num_rows_changed);
 	}
 }
 
 void DataSource::NotifyRowChange(const String& table)
 {
 	ListenerList listeners_copy = listeners;
-	for (ListenerList::iterator i = listeners_copy.begin(); i != listeners_copy.end(); ++i)
+	for (auto& listener : listeners_copy)
 	{
-		(*i)->OnRowChange(this, table);
+		if (listener)
+			listener->OnRowChange(this, table);
 	}
 }
 

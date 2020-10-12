@@ -34,7 +34,7 @@ namespace Rml {
 static Pool< ObserverPtrBlock >& GetPool()
 {
 	// Wrap pool in a function to ensure it is initialized before use.
-	static Pool< ObserverPtrBlock > pool(400, true);
+	static Pool< ObserverPtrBlock > pool(128, true);
 	return pool;
 }
 

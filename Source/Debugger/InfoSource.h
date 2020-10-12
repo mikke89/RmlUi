@@ -54,6 +54,7 @@ div#content .name
 {
 	color: #610;
 }
+div#position p:hover,
 div#ancestors p:hover,
 div#children p:hover
 {

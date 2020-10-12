@@ -137,9 +137,9 @@ using SharedPtr = std::shared_ptr<T>;
 template<typename T>
 using WeakPtr = std::weak_ptr<T>;
 template<typename T, typename... Args>
-inline SharedPtr<T> MakeShared(Args... args) { return std::make_shared<T, Args...>(std::forward<Args>(args)...); }
+inline SharedPtr<T> MakeShared(Args&&... args) { return std::make_shared<T, Args...>(std::forward<Args>(args)...); }
 template<typename T, typename... Args>
-inline UniquePtr<T> MakeUnique(Args... args) { return std::make_unique<T, Args...>(std::forward<Args>(args)...); }
+inline UniquePtr<T> MakeUnique(Args&&... args) { return std::make_unique<T, Args...>(std::forward<Args>(args)...); }
 
 }
 

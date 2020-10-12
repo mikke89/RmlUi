@@ -30,6 +30,7 @@
 #define RMLUI_CORE_LAYOUTENGINE_H
 
 #include "LayoutBlockBox.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
@@ -43,10 +44,11 @@ class LayoutEngine
 {
 public:
 	/// Formats the contents for a root-level element (usually a document, floating or replaced element). Establishes a new block formatting context.
-	/// @param element[in] The element to lay out.
-	/// @param containing_block[in] The size of the containing block.
-	/// @param shrink_to_fit[in] True to shrink the element to the width of its contents.
-	static bool FormatElement(Element* element, Vector2f containing_block);
+	/// @param[in] element The element to lay out.
+	/// @param[in] containing_block The size of the containing block.
+	/// @param[in] override_initial_box Optional pointer to a box to override the generated box for the element.
+	/// @param[out] visible_overflow_size Optionally output the overflow size of the element.
+	static void FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box = nullptr, Vector2f* out_visible_overflow_size = nullptr);
 
 	/// Positions a single element and its children within a block formatting context.
 	/// @param[in] block_context_box The open block box to layout the element in.
@@ -54,7 +56,7 @@ public:
 	static bool FormatElement(LayoutBlockBox* block_context_box, Element* element);
 
 	static void* AllocateLayoutChunk(size_t size);
-	static void DeallocateLayoutChunk(void* chunk);
+	static void DeallocateLayoutChunk(void* chunk, size_t size);
 
 private:
 	/// Formats and positions an element as a block element.
@@ -69,7 +71,11 @@ private:
 	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The inline-block element.
 	static bool FormatElementInlineBlock(LayoutBlockBox* block_context_box, Element* element);
-	/// Executes any special formatting for special elements.
+	/// Formats and positions a table, including all table-rows and table-cells contained within.
+	/// @param[in] block_context_box The open block box to layout the element in.
+	/// @param[in] element The table element.
+	static bool FormatElementTable(LayoutBlockBox* block_context_box, Element* element);
+
 	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The element to parse.
 	/// @return True if the element was parsed as a special element, false otherwise.

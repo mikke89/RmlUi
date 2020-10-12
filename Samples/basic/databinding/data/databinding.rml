@@ -192,7 +192,7 @@ form h2 {
 	<h1 data-if="invaders.size == 0">It's all safe and sound, sir!</h1>
 </panel>
 <tab>Forms</tab>
-<panel id="controls">
+<panel id="controls" data-model="forms">
 	<h1>Todo</h1>
 	<form onsubmit="submit_form">
 		<h2>Full name</h2>
@@ -213,13 +213,14 @@ form h2 {
 		</div>
 		<h2>Favorite meals</h2>
 		<div>
-			<input type="checkbox" name="meals" value="pizza" checked/> Pizza
+			<input type="checkbox" name="meals" value="pizza" data-attrif-checked="rating > 70" disabled/> Pizza
 			<input type="checkbox" name="meals" value="pasta" checked/> Pasta
 			<input type="checkbox" name="meals" value="lasagne" checked/> Lasagne
+			<p data-visible="rating < 70">You can only have pizza if the rating is satisfactory.</p>
 		</div>
 		<h2>Rating</h2>
 		<div>
-			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating"/> <span id="rating"/><span id="rating_emoji">&nbsp;</span>
+			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating" data-value="rating"/> <span id="rating">{{rating}}</span><span id="rating_emoji">&nbsp;</span>
 		</div>
 		<h2>Subject</h2>
 		<div>

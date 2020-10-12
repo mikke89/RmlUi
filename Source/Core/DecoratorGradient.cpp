@@ -78,7 +78,7 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 		computed.border_bottom_right_radius,
 		computed.border_bottom_left_radius,
 	};
-	GeometryUtilities::GenerateBackgroundBorder(geometry, element->GetBox(), border_radius, Colourb());
+	GeometryUtilities::GenerateBackgroundBorder(geometry, element->GetBox(), Vector2f(0), border_radius, Colourb());
 
 	// Apply opacity
 	Colourb colour_start = start;

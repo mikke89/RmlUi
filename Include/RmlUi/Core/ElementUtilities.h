@@ -110,7 +110,7 @@ public:
 	/// for non-DOM elements of custom elements.
 	/// @param[in] element The element to lay out.
 	/// @param[in] containing_block The size of the element's containing block.
-	static bool FormatElement(Element* element, const Vector2f& containing_block);
+	static void FormatElement(Element* element, Vector2f containing_block);
 
 	/// Generates the box for an element.
 	/// @param[out] box The box to be built.

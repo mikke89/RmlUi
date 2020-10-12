@@ -32,6 +32,7 @@
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementInstancer.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/EventListenerInstancer.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
@@ -61,7 +62,6 @@
 #include "DecoratorNinePatch.h"
 #include "DecoratorGradient.h"
 #include "ElementHandle.h"
-#include "ElementTextDefault.h"
 #include "EventInstancerDefault.h"
 #include "FontEffectBlur.h"
 #include "FontEffectGlow.h"
@@ -133,7 +133,7 @@ struct DefaultInstancers {
 
 	// Basic elements
 	ElementInstancerElement element_default;
-	ElementInstancerTextDefault element_text_default;
+	ElementInstancerText element_text;
 	ElementInstancerGeneric<ElementImage> element_img;
 	ElementInstancerGeneric<ElementLottie> element_lottie;
 	ElementInstancerGeneric<ElementHandle> element_handle;
@@ -172,6 +172,7 @@ struct DefaultInstancers {
 
 	// Data binding views
 	DataViewInstancerDefault<DataViewAttribute> data_view_attribute;
+	DataViewInstancerDefault<DataViewAttributeIf> data_view_attribute_if;
 	DataViewInstancerDefault<DataViewClass> data_view_class;
 	DataViewInstancerDefault<DataViewIf> data_view_if;
 	DataViewInstancerDefault<DataViewVisible> data_view_visible;
@@ -225,7 +226,7 @@ bool Factory::Initialise()
 	RegisterElementInstancer("*", &default_instancers->element_default);
 	RegisterElementInstancer("img", &default_instancers->element_img);
 	RegisterElementInstancer("lottie", &default_instancers->element_lottie);
-	RegisterElementInstancer("#text", &default_instancers->element_text_default);
+	RegisterElementInstancer("#text", &default_instancers->element_text);
 	RegisterElementInstancer("handle", &default_instancers->element_handle);
 	RegisterElementInstancer("body", &default_instancers->element_body);
 
@@ -262,6 +263,7 @@ bool Factory::Initialise()
 
 	// Data binding views
 	RegisterDataViewInstancer(&default_instancers->data_view_attribute,      "attr",    false);
+	RegisterDataViewInstancer(&default_instancers->data_view_attribute_if,   "attrif",  false);
 	RegisterDataViewInstancer(&default_instancers->data_view_class,          "class",   false);
 	RegisterDataViewInstancer(&default_instancers->data_view_if,             "if",      false);
 	RegisterDataViewInstancer(&default_instancers->data_view_visible,        "visible", false);

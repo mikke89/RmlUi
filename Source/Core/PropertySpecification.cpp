@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "PropertyShorthandDefinition.h"
 #include "IdNameMap.h"
 #include <limits.h>
@@ -223,6 +224,8 @@ const ShorthandDefinition* PropertySpecification::GetShorthand(const String& sho
 
 bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const
 {
+	RMLUI_ZoneScoped;
+
 	// Try as a property first
 	PropertyId property_id = property_map->GetId(property_name);
 	if (property_id != PropertyId::Invalid)

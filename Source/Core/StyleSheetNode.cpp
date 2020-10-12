@@ -89,8 +89,10 @@ StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(String&& tag, String&& id, 
 }
 
 // Merges an entire tree hierarchy into our hierarchy.
-bool StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset)
+void StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset)
 {
+	RMLUI_ZoneScoped;
+
 	// Merge the other node's properties into ours.
 	properties.Merge(node->properties, specificity_offset);
 
@@ -99,15 +101,28 @@ bool StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset
 		StyleSheetNode* local_node = GetOrCreateChildNode(*other_child);
 		local_node->MergeHierarchy(other_child.get(), specificity_offset);
 	}
-
-	return true;
 }
 
-// Builds up a style sheet's index recursively.
-void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styled_node_index, const StyleSheet& style_sheet)
+UniquePtr<StyleSheetNode> StyleSheetNode::DeepCopy(StyleSheetNode* in_parent) const
 {
 	RMLUI_ZoneScoped;
 
+	auto node = MakeUnique<StyleSheetNode>(in_parent, tag, id, class_names, pseudo_class_names, structural_selectors, child_combinator);
+
+	node->properties = properties;
+	node->children.resize(children.size());
+	
+	for (size_t i = 0; i < children.size(); i++)
+	{
+		node->children[i] = children[i]->DeepCopy(node.get());
+	}
+
+	return node;
+}
+
+// Builds up a style sheet's index recursively.
+void StyleSheetNode::BuildIndex(StyleSheet::NodeIndex& styled_node_index)
+{
 	// If this has properties defined, then we insert it into the styled node index.
 	if(properties.GetNumProperties() > 0)
 	{
@@ -119,10 +134,18 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 			nodes.push_back(this);
 	}
 
+	for (auto& child : children)
+	{
+		child->BuildIndex(styled_node_index);
+	}
+}
+
+// Builds up a style sheet's index recursively.
+void StyleSheetNode::OptimizeProperties(const StyleSheet& style_sheet)
+{
 	// Turn any decorator and font-effect properties from String to DecoratorList / FontEffectList.
 	// This is essentially an optimization, it will work fine to skip this step and let ElementStyle::ComputeValues() do all the work.
 	// However, when we do it here, we only need to do it once.
-	// Note, since the user may set a new decorator through its style, we still do the conversion as necessary again in ComputeValues.
 	if (properties.GetNumProperties() > 0)
 	{
 		// Decorators
@@ -131,8 +154,8 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 			if (property->unit == Property::STRING)
 			{
 				const String string_value = property->Get<String>();
-				
-				if(DecoratorsPtr decorators = style_sheet.InstanceDecoratorsFromString(string_value, property->source))
+
+				if (DecoratorsPtr decorators = style_sheet.InstanceDecoratorsFromString(string_value, property->source))
 				{
 					Property new_property = *property;
 					new_property.value = std::move(decorators);
@@ -143,7 +166,7 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 		}
 
 		// Font-effects
-		if (const Property * property = properties.GetProperty(PropertyId::FontEffect))
+		if (const Property* property = properties.GetProperty(PropertyId::FontEffect))
 		{
 			if (property->unit == Property::STRING)
 			{
@@ -158,12 +181,11 @@ void StyleSheetNode::BuildIndexAndOptimizeProperties(StyleSheet::NodeIndex& styl
 		}
 	}
 
-	for (auto& child : children)
+	for (const auto& child : children)
 	{
-		child->BuildIndexAndOptimizeProperties(styled_node_index, style_sheet);
+		child->OptimizeProperties(style_sheet);
 	}
 }
-
 
 bool StyleSheetNode::SetStructurallyVolatileRecursive(bool ancestor_is_structural_pseudo_class)
 {

@@ -37,7 +37,7 @@ namespace Rml {
 GeometryBackgroundBorder::GeometryBackgroundBorder(Vector<Vertex>& vertices, Vector<int>& indices) : vertices(vertices), indices(indices)
 {}
 
-void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indices, CornerSizes radii, const Box& box, const Colourb background_color, const Colourb* border_colors)
+void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indices, CornerSizes radii, const Box& box, const Vector2f offset, const Colourb background_color, const Colourb* border_colors)
 {
 	using Edge = Box::Edge;
 
@@ -67,7 +67,7 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 
 	// -- Find the corner positions --
 
-	const Vector2f border_position = box.GetPosition(Box::BORDER).Round();
+	const Vector2f border_position = (offset + box.GetPosition(Box::BORDER)).Round();
 	const Vector2f padding_position = border_position + Vector2f(border_widths[Edge::LEFT], border_widths[Edge::TOP]);
 	const Vector2f border_size = padding_size + Vector2f(border_widths[Edge::LEFT] + border_widths[Edge::RIGHT], border_widths[Edge::TOP] + border_widths[Edge::BOTTOM]);
 

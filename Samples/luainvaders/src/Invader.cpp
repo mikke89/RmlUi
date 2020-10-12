@@ -87,7 +87,7 @@ Invader::Invader(Game* _game, InvaderType _type, int _index) : position(0,0)
 	invader_index = _index;
 
 	bomb_probability = GameDetails::GetDifficulty() == GameDetails::EASY ? BOMB_PROBABILITY_EASY : BOMB_PROBABILITY_HARD;
-	bomb_probability *= type;
+	bomb_probability *= float(type);
 }
 
 Invader::~Invader()

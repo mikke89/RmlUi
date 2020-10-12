@@ -80,7 +80,7 @@ private:
 
 	double previous_update_time;
 
-	String attributes_rml, properties_rml, events_rml, ancestors_rml, children_rml;
+	String attributes_rml, properties_rml, events_rml, position_rml, ancestors_rml, children_rml;
 
 	// Enables or disables the selection of elements in user context.
 	bool enable_element_select;

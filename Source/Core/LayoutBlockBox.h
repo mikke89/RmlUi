@@ -61,8 +61,10 @@ public:
 	/// Creates a new block box for rendering a block element.
 	/// @param parent[in] The parent of this block box. This will be nullptr for the root element.
 	/// @param element[in] The element this block box is laying out.
-	/// @param override_shrink_to_fit_width[in] Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
-	LayoutBlockBox(LayoutBlockBox* parent, Element* element, float override_shrink_to_fit_width = -1);
+	/// @param box[in] The box used for this block box.
+	/// @param min_height[in] The minimum height of the content box.
+	/// @param max_height[in] The maximum height of the content box.
+	LayoutBlockBox(LayoutBlockBox* parent, Element* element, const Box& box, float min_height, float max_height);
 	/// Creates a new block box in an inline context.
 	/// @param parent[in] The parent of this block box.
 	LayoutBlockBox(LayoutBlockBox* parent);
@@ -87,10 +89,11 @@ public:
 
 	/// Adds a new block element to this block-context box.
 	/// @param element[in] The new block element.
-	/// @param placed[in] True if the element is to be placed, false otherwise.
-	/// @param override_shrink_to_fit_width[in] Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
+	/// @param box[in] The box used for the new block box.
+	/// @param min_height[in] The minimum height of the content box.
+	/// @param max_height[in] The maximum height of the content box.
 	/// @return The block box representing the element. Once the element's children have been positioned, Close() must be called on it.
-	LayoutBlockBox* AddBlockElement(Element* element, float override_shrink_to_fit_width = -1);
+	LayoutBlockBox* AddBlockElement(Element* element, const Box& box, float min_height, float max_height);
 	/// Adds a new inline element to this inline-context box.
 	/// @param element[in] The new inline element.
 	/// @param box[in] The box defining the element's bounds.
@@ -131,6 +134,10 @@ public:
 
 	/// Calculate the dimensions of the box's internal content width; i.e. the size used to calculate the shrink-to-fit width.
 	float GetShrinkToFitWidth() const;
+	/// Get the visible overflow size. Note: This is only well-defined after the layout box has been closed.
+	Vector2f GetVisibleOverflowSize() const;
+	/// Set the inner content size if it is larger than the current value on each axis individually.
+	void ExtendInnerContentSize(Vector2f inner_content_size);
 
 	/// Returns the block box's element.
 	/// @return The block box's element.
@@ -153,14 +160,12 @@ public:
 
 
 	/// Returns the block box's dimension box.
-	/// @return The block box's dimension box.
 	Box& GetBox();
 	/// Returns the block box's dimension box.
-	/// @return The block box's dimension box.
 	const Box& GetBox() const;
 
 	void* operator new(size_t size);
-	void operator delete(void* chunk);
+	void operator delete(void* chunk, size_t size);
 
 private:
 	struct AbsoluteElement
@@ -226,9 +231,14 @@ private:
 	// Used by block contexts only; stores the value of the overflow property for the element.
 	Style::Overflow overflow_x_property;
 	Style::Overflow overflow_y_property;
-	//  Used by block contexts only; the content width as visible from the parent. Similar to scroll width, but shrinked if overflow is caught here. 
+
+	// The outer size of this box including overflowing content. Similar to scroll width, but shrinked if overflow is caught here. 
 	//   This can be wider than the box if we are overflowing. Only available after the box has been closed. 
-	float visible_outer_width;
+	Vector2f visible_overflow_size;
+	// The inner content size (excluding any padding/border/margins).
+	// This is extended as child block boxes are closed, or from external formatting contexts.
+	Vector2f inner_content_size;
+
 	// Used by block contexts only; if true, we've enabled our vertical scrollbar.
 	bool vertical_overflow;
 

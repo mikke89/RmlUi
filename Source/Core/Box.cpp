@@ -32,13 +32,13 @@
 namespace Rml {
 
 // Initialises a zero-sized box.
-Box::Box() : content(0, 0), offset(0, 0)
+Box::Box() : content(0, 0)
 {
 	memset(area_edges, 0, sizeof(area_edges));
 }
 
 // Initialises a box with a default content area and no padding, borders and margins.
-Box::Box(const Vector2f& content) : content(content), offset(0, 0)
+Box::Box(Vector2f content) : content(content)
 {
 	memset(area_edges, 0, sizeof(area_edges));
 }
@@ -47,16 +47,10 @@ Box::~Box()
 {
 }
 
-// Returns the offset of this box. This will usually be (0, 0).
-const Vector2f& Box::GetOffset() const
-{
-	return offset;
-}
-
 // Returns the top-left position of one of the areas.
 Vector2f Box::GetPosition(Area area) const
 {
-	Vector2f area_position(offset.x - area_edges[MARGIN][LEFT], offset.y - area_edges[MARGIN][TOP]);
+	Vector2f area_position(-area_edges[MARGIN][LEFT], -area_edges[MARGIN][TOP]);
 	for (int i = 0; i < area; i++)
 	{
 		area_position.x += area_edges[i][LEFT];
@@ -79,14 +73,8 @@ Vector2f Box::GetSize(Area area) const
 	return area_size;
 }
 
-// Sets the offset of the box, relative usually to the owning element.
-void Box::SetOffset(const Vector2f& _offset)
-{
-	offset = _offset;
-}
-
 // Sets the size of the content area.
-void Box::SetContent(const Vector2f& _content)
+void Box::SetContent(Vector2f _content)
 {
 	content = _content;
 }
@@ -110,6 +98,22 @@ float Box::GetCumulativeEdge(Area area, Edge edge) const
 	int max_area = Math::Min((int)area, (int)PADDING);
 	for (int i = 0; i <= max_area; i++)
 		size += area_edges[i][edge];
+
+	return size;
+}
+
+float Box::GetSizeAcross(Direction direction, Area area, Area area_end) const
+{
+	static_assert(HORIZONTAL == 1 && VERTICAL == 0, "");
+	RMLUI_ASSERT(area <= area_end && direction <= 1);
+
+	float size = 0.0f;
+
+	if (area_end == CONTENT)
+		size = (direction == HORIZONTAL ? content.x : content.y);
+	
+	for (int i = area; i <= area_end && i < CONTENT; i++)
+		size += (area_edges[i][TOP + (int)direction] + area_edges[i][BOTTOM + (int)direction]);
 
 	return size;
 }

@@ -95,7 +95,7 @@ void ElementImage::OnAttributeChange(const ElementAttributes& changed_attributes
 	// Call through to the base element's OnAttributeChange().
 	Element::OnAttributeChange(changed_attributes);
 
-	float dirty_layout = false;
+	bool dirty_layout = false;
 
 	// Check for a changed 'src' attribute. If this changes, the old texture handle is released,
 	// forcing a reload when the layout is regenerated.

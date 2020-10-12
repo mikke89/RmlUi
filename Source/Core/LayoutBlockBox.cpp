@@ -40,7 +40,8 @@
 namespace Rml {
 
 // Creates a new block box for rendering a block element.
-LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, float override_shrink_to_fit_width) : position(0), visible_outer_width(0)
+LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, const Box& _box, float _min_height, float _max_height) 
+	: position(0), box(_box), min_height(_min_height), max_height(_max_height)
 {
 	RMLUI_ZoneScoped;
 
@@ -57,38 +58,33 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, float
 	vertical_overflow = false;
 
 	// Get our offset root from our parent, if it has one; otherwise, our element is the offset parent.
-	if (parent != nullptr &&
-		parent->offset_root->GetElement() != nullptr)
+	if (parent && parent->offset_root->GetElement())
 		offset_root = parent->offset_root;
 	else
 		offset_root = this;
 
 	// Determine the offset parent for this element.
 	const LayoutBlockBox* self_offset_parent;
-	if (parent != nullptr &&
-		parent->offset_parent->GetElement() != nullptr)
+	if (parent && parent->offset_parent->GetElement())
 		self_offset_parent = parent->offset_parent;
 	else
 		self_offset_parent = this;
 
 	// Determine the offset parent for our children.
-	if (parent != nullptr &&
-		parent->offset_parent->GetElement() != nullptr &&
-		(element == nullptr || element->GetPosition() == Style::Position::Static))
+	if (parent &&
+		parent->offset_parent->GetElement() &&
+		(!element || element->GetPosition() == Style::Position::Static))
 		offset_parent = parent->offset_parent;
 	else
 		offset_parent = this;
 
 	// Build the box for our element, and position it if we can.
-	if (parent != nullptr)
+	if (parent)
 	{
 		space->ImportSpace(*parent->space);
 
-		// Build our box if possible; if not, it will have to be set up manually.
-		LayoutDetails::BuildBox(box, min_height, max_height, parent, element, false, override_shrink_to_fit_width);
-
 		// Position ourselves within our containing block (if we have a valid offset parent).
-		if (parent->GetElement() != nullptr)
+		if (parent->GetElement())
 		{
 			if (self_offset_parent != this)
 			{
@@ -101,7 +97,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, float
 		}
 	}
 
-	if (element != nullptr)
+	if (element)
 	{
 		const auto& computed = element->GetComputedValues();
 		wrap_content = computed.white_space != Style::WhiteSpace::Nowrap;
@@ -131,6 +127,8 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, float
 // Creates a new block box in an inline context.
 LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent) : position(-1, -1)
 {
+	RMLUI_ASSERT(_parent);
+
 	parent = _parent;
 	offset_parent = parent->offset_parent;
 	offset_root = parent->offset_root;
@@ -147,9 +145,9 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent) : position(-1, -1)
 	box_cursor = 0;
 	vertical_overflow = false;
 
-	LayoutDetails::BuildBox(box, min_height, max_height, parent, nullptr, false);
+	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent);
+	box.SetContent(Vector2f(containing_block.x, -1));
 	parent->PositionBlockBox(position, box, Style::Clear::None);
-	box.SetContent(Vector2f(box.GetSize(Box::CONTENT).x, -1));
 
 	// Reset the min and max heights; they're not valid for inline block boxes.
 	min_height = 0;
@@ -196,7 +194,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		box.SetContent(content_area);
 	}
 	
-	visible_outer_width = 0;
+	visible_overflow_size = Vector2f(0);
 	RMLUI_ASSERTMSG(!(context == INLINE && element), "The following assumes inline contexts do not represent a particular element.");
 
 	// Set the computed box on the element.
@@ -204,22 +202,18 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 	{
 		// Calculate the dimensions of the box's *internal* content; this is the tightest-fitting box around all of the
 		// internal elements, plus this element's padding.
-		Vector2f content_box(0, 0);
 
-		for (size_t i = 0; i < block_boxes.size(); i++)
-		{
-			// TODO: Only if the containing block is not an ancestor of us (ie. we are the containing block?).
-			content_box.x = Math::Max(content_box.x, block_boxes[i]->visible_outer_width);
-		}
+		// Start with the inner content size, as set by the child blocks boxes or external formatting contexts.
+		Vector2f content_box = inner_content_size;
 
 		// Check how big our floated area is.
-		Vector2f space_box = space->GetDimensions();
+		const Vector2f space_box = space->GetDimensions();
 		content_box.x = Math::Max(content_box.x, space_box.x);
 
 		// If our content is larger than our window, we can enable the horizontal scrollbar if
 		// we're set to auto-scrollbars. If we're set to always use scrollbars, then the horiontal
 		// scrollbar will already have been enabled in the constructor.
-		if (content_box.x > box.GetSize().x)
+		if (content_box.x > box.GetSize().x + 0.5f)
 		{
 			if (overflow_x_property == Style::Overflow::Auto)
 			{
@@ -230,26 +224,32 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 			}
 		}
 
-		content_box.x += (box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT));
-
-		content_box.y = box_cursor;
+		content_box.y = Math::Max(content_box.y, box_cursor);
 		content_box.y = Math::Max(content_box.y, space_box.y);
 		if (!CatchVerticalOverflow(content_box.y))
 			return LAYOUT_SELF;
 
-		content_box.y += (box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM));
+		const Vector2f padding_edges = Vector2f(
+			box.GetEdge(Box::PADDING, Box::LEFT) + box.GetEdge(Box::PADDING, Box::RIGHT),
+			box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM)
+		);
 
 		element->SetBox(box);
-		element->SetContentBox(space->GetOffset(), content_box);
+		element->SetContentBox(space->GetOffset(), content_box + padding_edges);
 
-		const float margin_width = box.GetSize(Box::MARGIN).x;
+		const Vector2f margin_size = box.GetSize(Box::MARGIN);
 
-		// Set the visible outer width so that ancestors can catch any overflow produced by us. That is, hiding it or providing a scrolling mechanism.
+		// Set the visible overflow size so that ancestors can catch any overflow produced by us. That is, hiding it or providing a scrolling mechanism.
 		// If we catch our own overflow here, then just use the normal margin box as that will effectively remove the overflow from our ancestor's perspective.
 		if (overflow_x_property != Style::Overflow::Visible)
-			visible_outer_width = margin_width;
+			visible_overflow_size.x = margin_size.x;
 		else
-			visible_outer_width = Math::Max(margin_width, space->GetOffset().x + content_box.x + box.GetEdge(Box::MARGIN, Box::LEFT) + box.GetEdge(Box::MARGIN, Box::RIGHT));
+			visible_overflow_size.x = Math::Max(margin_size.x, content_box.x + box.GetEdge(Box::MARGIN, Box::LEFT) + box.GetEdge(Box::BORDER, Box::LEFT) + box.GetEdge(Box::PADDING, Box::LEFT));
+
+		if (overflow_y_property != Style::Overflow::Visible)
+			visible_overflow_size.y = margin_size.y;
+		else
+			visible_overflow_size.y = Math::Max(margin_size.y, content_box.y + box.GetEdge(Box::MARGIN, Box::TOP) + box.GetEdge(Box::BORDER, Box::TOP) + box.GetEdge(Box::PADDING, Box::TOP));
 
 		// Format any scrollbars which were enabled on this element.
 		element->GetElementScroll()->FormatScrollbars();
@@ -260,7 +260,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		for (size_t i = 0; i < line_boxes.size(); i++)
 		{
 			LayoutLineBox* line_box = line_boxes[i].get();
-			visible_outer_width = Math::Max(visible_outer_width, line_box->GetBoxCursor());
+			visible_overflow_size.x = Math::Max(visible_overflow_size.x, line_box->GetBoxCursor());
 		}
 	}
 
@@ -282,7 +282,7 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		}
 
 		// Set the baseline for inline-block elements to the baseline of the last line of the element.
-		// This is a special rule for inline-blocks (see CSS 2.1 §10.8.1).
+		// This is a special rule for inline-blocks (see CSS 2.1 Sec. 10.8.1).
 		if (element->GetDisplay() == Style::Display::InlineBlock)
 		{
 			bool found_baseline = false;
@@ -323,7 +323,14 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 bool LayoutBlockBox::CloseBlockBox(LayoutBlockBox* child)
 {
 	RMLUI_ASSERT(context == BLOCK);
-	box_cursor = (child->GetPosition().y - child->box.GetEdge(Box::MARGIN, Box::TOP) - (box.GetPosition().y + position.y)) + child->GetBox().GetSize(Box::MARGIN).y;
+	
+	const float child_position_y = child->GetPosition().y - child->box.GetEdge(Box::MARGIN, Box::TOP) - (box.GetPosition().y + position.y);
+	
+	box_cursor = child_position_y + child->GetBox().GetSize(Box::MARGIN).y;
+	
+	// Extend the inner content size. The vertical size can be larger than the box_cursor due to overflow.
+	inner_content_size.x = Math::Max(inner_content_size.x, child->visible_overflow_size.x);
+	inner_content_size.y = Math::Max(inner_content_size.y, child_position_y + child->visible_overflow_size.y);
 
 	return CatchVerticalOverflow();
 }
@@ -359,7 +366,7 @@ LayoutInlineBox* LayoutBlockBox::CloseLineBox(LayoutLineBox* child, UniquePtr<La
 }
 
 // Adds a new block element to this block box.
-LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, float override_shrink_to_fit_width)
+LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, const Box& box, float min_height, float max_height)
 {
 	RMLUI_ZoneScoped;
 
@@ -392,7 +399,7 @@ LayoutBlockBox* LayoutBlockBox::AddBlockElement(Element* element, float override
 		}
 	}
 
-	block_boxes.push_back(MakeUnique<LayoutBlockBox>(this, element, override_shrink_to_fit_width));
+	block_boxes.push_back(MakeUnique<LayoutBlockBox>(this, element, box, min_height, max_height));
 	return block_boxes.back().get();
 }
 
@@ -611,7 +618,9 @@ float LayoutBlockBox::GetShrinkToFitWidth() const
 				content_width = Math::Max(content_width, width_value);
 			}
 
-			content_width = LayoutDetails::ClampWidth(content_width, computed, box, block_width);
+			float min_width, max_width;
+			LayoutDetails::GetMinMaxWidth(min_width, max_width, computed, box, block_width);
+			content_width = Math::Clamp(content_width, min_width, max_width);
 		}
 		else
 		{
@@ -636,6 +645,16 @@ float LayoutBlockBox::GetShrinkToFitWidth() const
 	return content_width;
 }
 
+Vector2f LayoutBlockBox::GetVisibleOverflowSize() const
+{
+	return visible_overflow_size;
+}
+
+void LayoutBlockBox::ExtendInnerContentSize(Vector2f _inner_content_size)
+{
+	inner_content_size.x = Math::Max(inner_content_size.x, _inner_content_size.x);
+	inner_content_size.y = Math::Max(inner_content_size.y, _inner_content_size.y);
+}
 
 // Returns the block box's element.
 Element* LayoutBlockBox::GetElement() const
@@ -685,9 +704,9 @@ void* LayoutBlockBox::operator new(size_t size)
 	return memory;
 }
 
-void LayoutBlockBox::operator delete(void* chunk)
+void LayoutBlockBox::operator delete(void* chunk, size_t size)
 {
-	LayoutEngine::DeallocateLayoutChunk(chunk);
+	LayoutEngine::DeallocateLayoutChunk(chunk, size);
 }
 
 // Closes our last block box, if it is an open inline block box.
@@ -713,7 +732,7 @@ void LayoutBlockBox::PositionFloat(Element* element, float offset)
 bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 {
 	if (cursor == -1)
-		cursor = box_cursor;
+		cursor = Math::Max(box_cursor, inner_content_size.y);
 
 	float box_height = box.GetSize().y;
 	if (box_height < 0)
@@ -724,7 +743,7 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 		box_height >= 0 &&
 		overflow_y_property == Style::Overflow::Auto)
 	{
-		if (cursor > box_height - element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL))
+		if (cursor > box_height - element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL) + 0.5f)
 		{
 			RMLUI_ZoneScopedC(0xDD3322);
 			vertical_overflow = true;

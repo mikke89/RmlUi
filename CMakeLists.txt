@@ -2,7 +2,7 @@
 # Build script for RmlUi ===========
 #===================================
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 if(APPLE)
 	# This has to be before most other options so CMake properly handles the 
@@ -54,10 +54,6 @@ if(POLICY CMP0074)
 endif(POLICY CMP0074)
 
 project(RmlUi LANGUAGES C CXX VERSION 4.0)
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(RMLUI_VERSION_RELEASE false)
 
@@ -265,6 +261,18 @@ option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors." OFF)
 mark_as_advanced(WARNINGS_AS_ERRORS)
 
 macro(add_common_target_options NAME)
+	# C++ language version
+	if(CMAKE_VERSION VERSION_LESS 3.8.0)
+		set_target_properties(${NAME} PROPERTIES 
+			CXX_STANDARD 14
+			CXX_STANDARD_REQUIRED YES
+		)
+	else()
+		target_compile_features(${NAME} PUBLIC cxx_std_14)
+	endif()
+	set_target_properties(${NAME} PROPERTIES CXX_EXTENSIONS OFF)
+	
+	# Compiler warnings
 	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 		target_compile_options(${NAME} PRIVATE -Wall -pedantic -Wextra)
 		

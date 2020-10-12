@@ -45,6 +45,24 @@ TextureDatabase::TextureDatabase()
 TextureDatabase::~TextureDatabase()
 {
 	RMLUI_ASSERT(texture_database == this);
+
+#ifdef RMLUI_DEBUG
+	// All textures not owned by the database should have been released at this point.
+	int num_leaks_file = 0;
+	
+	for (auto& texture : textures)
+		num_leaks_file += (texture.second.use_count() > 1);
+
+	const int num_leaks_callback = (int)callback_textures.size();
+	const int total_num_leaks = num_leaks_file + num_leaks_callback;
+
+	if (total_num_leaks > 0)
+	{
+		Log::Message(Log::LT_ERROR, "Textures leaked during shutdown. Total: %d  From file: %d  Generated: %d.",
+			total_num_leaks, num_leaks_file, num_leaks_callback);
+	}
+#endif
+
 	texture_database = nullptr;
 }
 
