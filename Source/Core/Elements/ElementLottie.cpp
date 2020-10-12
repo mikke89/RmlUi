@@ -165,7 +165,7 @@ namespace Rml
 			rlottie::Surface surface(p_data, m_dimensions.x, m_dimensions.y, bytes_per_line);
 			m_p_lottie->renderSync(this->m_p_lottie->frameAtPos(pos), surface);
 
-			size_t total_bytes = m_dimensions.x * m_dimensions.y;
+			size_t total_bytes = m_dimensions.x * m_dimensions.y * 4;
 
 /*
 
@@ -174,11 +174,38 @@ namespace Rml
 				p_data[i] = p_data[i] << 8 | p_data[i] >> 24;
 			}
 */
+			// temporary convertation, but need future fixes
 			for (int i = 0; i < total_bytes; ++i)
 			{
 				p_data[i] = p_data[i] << 8 | p_data[i] >> 24;
 			}
 
+/* not working well
+			for (int i = 0; i < total_bytes; i += 4) {
+				auto a = p_data[i + 3];
+				// compute only if alpha is non zero
+				if (a) {
+					auto r = p_data[i + 2];
+					auto g = p_data[i + 1];
+					auto b = p_data[i];
+
+					if (a != 255) {  // un premultiply
+						r = (r * 255) / a;
+						g = (g * 255) / a;
+						b = (b * 255) / a;
+
+						p_data[i] = r;
+						p_data[i + 1] = g;
+						p_data[i + 2] = b;
+
+					}
+					else {
+						// only swizzle r and b
+						p_data[i] = r;
+						p_data[i + 2] = b;
+					}
+				}
+			}*/
 			const Rml::byte* p_result = reinterpret_cast<Rml::byte*>(p_data);
 			data.reset(p_result);
 
