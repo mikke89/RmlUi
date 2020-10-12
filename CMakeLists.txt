@@ -120,6 +120,10 @@ if(NOT DEFINED ENV{TRACY_DIR})
 	set(ENV{TRACY_DIR} "${PROJECT_SOURCE_DIR}/Dependencies")
 endif()
 
+if(NOT DEFINED ENV{RLOTTIE_DIR})
+	set(ENV{RLOTTIE_DIR} "${PROJECT_SOURCE_DIR}/Dependencies/rlottie")
+endif()
+
 #===================================
 # Plaform specific global hacks ====
 #===================================
@@ -255,7 +259,6 @@ if (ENABLE_PRECOMPILED_HEADERS AND (CMAKE_VERSION VERSION_LESS 3.16.0))
 elseif (ENABLE_PRECOMPILED_HEADERS)
 	set(PRECOMPILED_HEADERS_ENABLED ON)
 endif()
-
 
 option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors." OFF)
 mark_as_advanced(WARNINGS_AS_ERRORS)
@@ -675,6 +678,36 @@ endif(NOT BUILD_FRAMEWORK)
 				RUNTIME DESTINATION ${SAMPLES_DIR}/sfml2
 				BUNDLE DESTINATION ${SAMPLES_DIR})
 	endif()
+	
+	# Try to find rlottie for the lottie sample.
+	if(NOT DEFINED rlottie_DIR)
+		set(rlottie_DIR $ENV{RLOTTIE_DIR})
+	endif()
+
+	list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/rlottie/build)
+	find_package(rlottie CONFIG)
+	find_path(rlottie_INCLUDE_DIR rlottie.h HINTS ${rlottie_DIR} $ENV{rlottie_DIR} PATH_SUFFIXES inc rlottie/inc )
+	
+	if(rlottie_FOUND AND rlottie_INCLUDE_DIR)
+		message("-- Can lottie sample be built - yes")
+		bl_sample(lottie ${sample_LIBRARIES} rlottie::rlottie)
+		target_include_directories(lottie PRIVATE ${rlottie_INCLUDE_DIR})
+		
+		# The samples always set this as their current working directory
+		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/lottie)
+		install(TARGETS lottie
+			RUNTIME DESTINATION ${SAMPLES_DIR}/lottie
+			BUNDLE DESTINATION ${SAMPLES_DIR}
+		)
+	else()
+		if(rlottie_FOUND)
+			message("-- Can lottie sample be built - no - rlottie library found - rlotty include directory not found")
+		elseif(rlottie_INCLUDE_DIR)
+			message("-- Can lottie sample be built - no - rlottie library not found - rlotty include directory found at ${rlottie_INCLUDE_DIR}")
+		else()
+			message("-- Can lottie sample be built - no - rlottie not found")
+		endif()
+	endif()
 
 	# Build and install the tutorials
 	foreach(tutorial ${tutorials})
@@ -771,6 +804,12 @@ if(BUILD_SAMPLES)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
 			DESTINATION ${SAMPLES_DIR}/invaders
 	)
+	
+	if(TARGET lottie)
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/data
+				DESTINATION ${SAMPLES_DIR}/basic/lottie
+		)
+	endif()
 
 	if(BUILD_LUA_BINDINGS)
 		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 

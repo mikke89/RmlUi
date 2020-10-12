@@ -103,6 +103,17 @@ set(transform_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/transform/src/main.cpp
 )
 
+set(lottie_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/src/ElementLottie.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/src/LottiePlugin.h
+)
+
+set(lottie_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/src/ElementLottie.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/src/LottiePlugin.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/src/main.cpp
+)
+
 set(sdl2_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/RenderInterfaceSDL2.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.h
