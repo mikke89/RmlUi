@@ -37,7 +37,7 @@ file(GLOB UnitTests_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.h )
 file(GLOB UnitTests_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.cpp )
 
 add_executable(UnitTests ${UnitTests_HDR_FILES} ${UnitTests_SRC_FILES})
-target_link_libraries(UnitTests RmlCore doctest::doctest)
+target_link_libraries(UnitTests RmlCore doctest::doctest ${sample_LIBRARIES})
 set_target_properties(UnitTests PROPERTIES CXX_STANDARD 14)
 
 add_common_target_options(UnitTests)
