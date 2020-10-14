@@ -52,7 +52,7 @@ public:
 	virtual ~FileInterface();
 
 	/// Opens a file.
-	/// @param file The file handle to write to.
+	/// @param path The path to the file to open.
 	/// @return A valid file handle, or nullptr on failure
 	virtual FileHandle Open(const String& path) = 0;
 	/// Closes a previously opened file.
@@ -81,6 +81,12 @@ public:
 	/// @param file The handle of the file to be queried.
 	/// @return The length of the file in bytes.
 	virtual size_t Length(FileHandle file);
+
+	/// Load and return a file.
+	/// @param path The path to the file to load.
+	/// @param out_data The string contents of the file.
+	/// @return True on success.
+	virtual bool LoadFile(const String& path, String& out_data);
 };
 
 } // namespace Rml
