@@ -140,23 +140,9 @@ TestViewer::~TestViewer()
 
 static Rml::String LoadFile(const String& file_path)
 {
-	FileInterface* file = Rml::GetFileInterface();
-	FileHandle handle = file->Open(file_path);
-	if (!handle)
-	{
-		return Rml::String();
-	}
-
-	const size_t length = file->Length(handle);
-	UniquePtr<char[]> buf = UniquePtr<char[]>(new char[length + 1]);
-
-	const size_t read_length = file->Read(buf.get(), length, handle);
-	file->Close(handle);
-	RMLUI_ASSERT(read_length > 0);
-	RMLUI_ASSERT(read_length <= length);
-	buf[read_length] = '\0';
-
-	return String(buf.get());
+	String result;
+	Rml::GetFileInterface()->LoadFile(file_path, result);
+	return result;
 }
 
 void TestViewer::ShowSource(SourceType type)
@@ -230,7 +216,7 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 		if (source_test.empty())
 			return false;
 
-		document_test = context->LoadDocumentFromMemory(source_test);
+		document_test = context->LoadDocumentFromMemory(source_test, filename);
 		if (!document_test)
 			return false;
 
@@ -253,7 +239,7 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 
 			if (!source_reference.empty())
 			{
-				document_reference = context->LoadDocumentFromMemory(source_reference);
+				document_reference = context->LoadDocumentFromMemory(source_reference, reference_filename);
 				if (document_reference)
 				{
 					document_reference->SetProperty(PropertyId::Left, Property(510.f, Property::PX));
