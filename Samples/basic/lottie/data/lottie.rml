@@ -20,9 +20,13 @@
 			{
 				text-align: left;
 			}
+			lottie {
+				width: 100%;
+				max-height: 100%;
+			}
 		</style>
 	</head>
 	<body template="window">
-		<lottie></lottie>
+		<lottie src="a_mountain.json"></lottie>
 	</body>
 </rml>
