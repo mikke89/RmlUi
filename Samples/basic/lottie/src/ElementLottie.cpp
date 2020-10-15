@@ -27,225 +27,209 @@
  */
 
 #include "ElementLottie.h"
+#include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/URL.h>
 #include <RmlUi/Core/PropertyIdSet.h>
 #include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/StyleSheet.h>
+#include <RmlUi/Core/SystemInterface.h>
+#include <RmlUi/Core/FileInterface.h>
+#include <cmath>
 #include <rlottie.h>
 
-namespace Rml
+namespace Rml {
+
+ElementLottie::ElementLottie(const String& tag) : Element(tag), geometry(this)
 {
-	ElementLottie::ElementLottie(const String& tag) : Element(tag), geometry(this), m_dimensions(200.0f, 200.0f), m_is_need_recreate_texture(true), m_is_need_recreate_geometry(true), m_p_raw_data(nullptr)
+}
+
+ElementLottie::~ElementLottie(void)
+{
+}
+
+bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
+{
+	if (animation_dirty)
+		LoadAnimation();
+
+	dimensions = intrinsic_dimensions;
+	if (dimensions.y > 0)
+		ratio = dimensions.x / dimensions.y;
+
+	return true;
+}
+
+void ElementLottie::OnRender()
+{
+	if (animation)
 	{
-	}
+		if (geometry_dirty)
+			GenerateGeometry();
 
-	ElementLottie::~ElementLottie(void)
-	{
-	}
-
-	bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
-	{
-		if (this->m_is_need_recreate_texture)
-			this->LoadTexture();
-
-		dimensions = this->m_dimensions;
-		
-		return true;
-	}
-
-	void ElementLottie::OnRender()
-	{
-
+		UpdateTexture();
 		geometry.Render(GetAbsoluteOffset(Box::CONTENT).Round());
-		this->Play();
+	}
+}
+
+void ElementLottie::OnResize()
+{
+	geometry_dirty = true;
+}
+
+void ElementLottie::OnAttributeChange(const ElementAttributes& changed_attributes)
+{
+	Element::OnAttributeChange(changed_attributes);
+
+	if (changed_attributes.count("src"))
+	{
+		animation_dirty = true;
+		DirtyLayout();
+	}
+}
+
+void ElementLottie::OnPropertyChange(const PropertyIdSet& changed_properties)
+{
+	Element::OnPropertyChange(changed_properties);
+
+	if (changed_properties.Contains(PropertyId::ImageColor) ||
+		changed_properties.Contains(PropertyId::Opacity)) {
+		geometry_dirty = true;
+	}
+}
+
+void ElementLottie::GenerateGeometry()
+{
+	geometry.Release(true);
+
+	Vector< Vertex >& vertices = geometry.GetVertices();
+	Vector< int >& indices = geometry.GetIndices();
+
+	vertices.resize(4);
+	indices.resize(6);
+
+	Vector2f texcoords[2] = {
+		{0.0f, 0.0f},
+		{1.0f, 1.0f}
+	};
+
+	const ComputedValues& computed = GetComputedValues();
+
+	const float opacity = computed.opacity;
+	Colourb quad_colour = computed.image_color;
+	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+
+	const Vector2f render_dimensions_f = GetBox().GetSize(Box::CONTENT).Round();
+	render_dimensions.x = int(render_dimensions_f.x);
+	render_dimensions.y = int(render_dimensions_f.y);
+
+	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), render_dimensions_f, quad_colour, texcoords[0], texcoords[1]);
+
+	geometry_dirty = false;
+}
+
+bool ElementLottie::LoadAnimation()
+{
+	animation_dirty = false;
+	intrinsic_dimensions = Vector2f{};
+	geometry.SetTexture(nullptr);
+	animation.reset();
+	prev_animation_frame = size_t(-1);
+	time_animation_start = -1;
+
+	const String attribute_src = GetAttribute<String>("src", "");
+
+	if (attribute_src.empty())
+		return false;
+
+	String path = attribute_src;
+	String directory;
+
+	if (ElementDocument* document = GetOwnerDocument())
+	{
+		const String document_source_url = StringUtilities::Replace(document->GetSourceURL(), '|', ':');
+		GetSystemInterface()->JoinPath(path, document_source_url, attribute_src);
+		GetSystemInterface()->JoinPath(directory, document_source_url, "");
 	}
 
-	void ElementLottie::OnUpdate()
-	{
+	String json_data;
 
+	if (path.empty() || !GetFileInterface()->LoadFile(path, json_data))
+	{
+		Log::Message(Rml::Log::Type::LT_WARNING, "Could not load lottie file %s", path.c_str());
+		return false;
 	}
 
-	void ElementLottie::OnResize()
+	animation = rlottie::Animation::loadFromData(std::move(json_data), path, directory);
+
+	if (!animation)
 	{
-		this->GenerateGeometry();
+		Log::Message(Rml::Log::Type::LT_WARNING, "Could not construct the lottie animation %s", path.c_str());
+		return false;
 	}
 
-	void ElementLottie::OnAttributeChange(const ElementAttributes& changed_attributes)
-	{
-	}
+	size_t width = 0, height = 0;
+	animation->size(width, height);
+	intrinsic_dimensions.x = float(width);
+	intrinsic_dimensions.y = float(height);
 
-	void ElementLottie::OnPropertyChange(const PropertyIdSet& changed_properties)
-	{
-	}
+	return true;
+}
 
-	void ElementLottie::GenerateGeometry()
-	{
-		geometry.Release(true);
+void ElementLottie::UpdateTexture()
+{
+	if (!animation)
+		return;
 
-		Vector< Vertex >& vertices = geometry.GetVertices();
-		Vector< int >& indices = geometry.GetIndices();
+	const double t = GetSystemInterface()->GetElapsedTime();
 
-		vertices.resize(4);
-		indices.resize(6);
+	if (time_animation_start < 0.0)
+		time_animation_start = t;
 
-		// Generate the texture coordinates.
-		Vector2f texcoords[2];
-/*
-		if (rect_source != RectSource::None)
+	double _unused;
+	// Find the normalized animation progress [0, 1].
+	const double pos = std::modf((t - time_animation_start) / animation->duration(), &_unused);
+
+	const size_t next_frame = animation->frameAtPos(pos);
+	if (next_frame == prev_animation_frame)
+		return;
+
+	auto p_callback = [this, next_frame](const String& /*name*/, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
+		RMLUI_ASSERT(animation);
+
+		const size_t bytes_per_line = 4 * render_dimensions.x;
+		const size_t total_bytes = bytes_per_line * render_dimensions.y;
+
+		byte* p_data = new byte[total_bytes];
+
+		rlottie::Surface surface(reinterpret_cast<std::uint32_t*>(p_data), render_dimensions.x, render_dimensions.y, bytes_per_line);
+		animation->renderSync(next_frame, surface);
+
+		// Swizzle the channel order from rlottie's BGRA to RmlUi's RGBA, and change pre-multiplied to post-multiplied alpha.
+		for (size_t i = 0; i < total_bytes; i += 4)
 		{
-			Vector2f texture_dimensions((float)texture.GetDimensions(GetRenderInterface()).x, (float)texture.GetDimensions(GetRenderInterface()).y);
-			if (texture_dimensions.x == 0.0f)
-				texture_dimensions.x = 1.0f;
+			// Swap the RB order for correct color channels.
+			std::swap(p_data[i], p_data[i + 2]);
 
-			if (texture_dimensions.y == 0.0f)
-				texture_dimensions.y = 1.0f;
+			const byte a = p_data[i + 3];
 
-			texcoords[0].x = rect.x / texture_dimensions.x;
-			texcoords[0].y = rect.y / texture_dimensions.y;
-
-			texcoords[1].x = (rect.x + rect.width) / texture_dimensions.x;
-			texcoords[1].y = (rect.y + rect.height) / texture_dimensions.y;
-		}
-		else
-		{*/
-			texcoords[0] = Vector2f(0.0f, 0.0f);
-			texcoords[1] = Vector2f(1.0f, 1.0f);
-/*
-		}
-*/
-
-		const ComputedValues& computed = GetComputedValues();
-
-		float opacity = computed.opacity;
-		Colourb quad_colour = computed.image_color;
-		quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
-
-		Vector2f quad_size = GetBox().GetSize(Box::CONTENT).Round();
-
-		GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), quad_size, quad_colour, texcoords[0], texcoords[1]);
-
-		this->m_is_need_recreate_geometry = false;
-	}
-
-	bool ElementLottie::LoadTexture()
-	{
-		this->m_is_need_recreate_texture = false;
-
-		const String& attiribute_value_name = GetAttribute<String>("src", "C:\\Users\\lord\\RmlUi\\Samples\\assets\\lottie.json");
-
-		if (attiribute_value_name.empty())
-			return false;
-
-		this->m_file_name = attiribute_value_name;
-		this->m_p_lottie = rlottie::Animation::loadFromFile(attiribute_value_name.c_str());
-
-		if (this->m_p_lottie == nullptr)
-		{
-			Log::Message(Rml::Log::Type::LT_WARNING, "can't load lottie file properly");
-			return false;
+			// The RmlUi samples shell uses post-multiplied alpha, while rlottie serves pre-multiplied alpha.
+			// Here, we un-premultiply the colors.
+			if (a > 0 && a < 255)
+			{
+				for (size_t j = 0; j < 3; j++)
+					p_data[i + j] = (p_data[i + j] * 255) / a;
+			}
 		}
 
-		auto p_callback = [this](const String& name, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
-			size_t bytes_per_line = m_dimensions.x * sizeof(std::uint32_t);
-			std::uint32_t* p_data = new std::uint32_t[bytes_per_line * m_dimensions.y];
-			this->m_p_raw_data = p_data;
-/*			rlottie::Surface surface(p_data, m_dimensions.x, m_dimensions.y, bytes_per_line);*/
-/*			m_p_lottie->renderSync(m_p_lottie->frameAtPos(counter), surface);*/
-			const Rml::byte* p_result = reinterpret_cast<Rml::byte*>(p_data);
-			data.reset(p_result);
-
-			dimensions.x = m_dimensions.x;
-			dimensions.y = m_dimensions.y;
-
-
-			return true;
-		};
-
-		this->texture.Set(attiribute_value_name, p_callback);
-
-		this->geometry.SetTexture(&this->texture);
+		data.reset(p_data);
+		dimensions = render_dimensions;
 
 		return true;
-	}
+	};
 
-	void ElementLottie::UpdateRect()
-	{
-	}
-
-	void ElementLottie::Play(void)
-	{
-		if (this->m_p_raw_data == nullptr)
-			return;
-
-		static std::uint32_t current_frame = 0;
-		++current_frame;
-		current_frame = current_frame % this->m_p_lottie->totalFrame();
-		static float pos = 0.0f;
-		pos += 0.1f / this->m_p_lottie->frameRate();
-		if (pos >= 1.0f)
-			pos = 0.0f;
-
-		auto p_callback = [this](const String& name, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
-			size_t bytes_per_line = m_dimensions.x * sizeof(std::uint32_t);
-			std::uint32_t* p_data = new std::uint32_t[bytes_per_line * m_dimensions.y];
-			this->m_p_raw_data = p_data;
-			rlottie::Surface surface(p_data, m_dimensions.x, m_dimensions.y, bytes_per_line);
-			m_p_lottie->renderSync(this->m_p_lottie->frameAtPos(pos), surface);
-
-			size_t total_bytes = m_dimensions.x * m_dimensions.y * 4;
-
-/*
-
-			for (int i = 0; i < total_bytes; ++i)
-			{
-				p_data[i] = p_data[i] << 8 | p_data[i] >> 24;
-			}
-*/
-			// temporary convertation, but need future fixes
-			for (int i = 0; i < total_bytes; ++i)
-			{
-				p_data[i] = p_data[i] << 8 | p_data[i] >> 24;
-			}
-
-/* not working well
-			for (int i = 0; i < total_bytes; i += 4) {
-				auto a = p_data[i + 3];
-				// compute only if alpha is non zero
-				if (a) {
-					auto r = p_data[i + 2];
-					auto g = p_data[i + 1];
-					auto b = p_data[i];
-
-					if (a != 255) {  // un premultiply
-						r = (r * 255) / a;
-						g = (g * 255) / a;
-						b = (b * 255) / a;
-
-						p_data[i] = r;
-						p_data[i + 1] = g;
-						p_data[i + 2] = b;
-
-					}
-					else {
-						// only swizzle r and b
-						p_data[i] = r;
-						p_data[i + 2] = b;
-					}
-				}
-			}*/
-			const Rml::byte* p_result = reinterpret_cast<Rml::byte*>(p_data);
-			data.reset(p_result);
-
-			dimensions.x = m_dimensions.x;
-			dimensions.y = m_dimensions.y;
-
-
-			return true;
-		};
-
-		this->texture.Set(this->m_file_name, p_callback);
-
-		this->geometry.SetTexture(&this->texture);
-	}
+	texture.Set("lottie", p_callback);
+	geometry.SetTexture(&texture);
+	prev_animation_frame = next_frame;
+}
 }

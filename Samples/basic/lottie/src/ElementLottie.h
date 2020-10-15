@@ -33,66 +33,70 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/Geometry.h>
 #include <RmlUi/Core/Texture.h>
+#include <memory>
 
-#include <rlottie.h>
+namespace rlottie { class Animation; }
 
-namespace Rml
+namespace Rml {
+
+
+class ElementLottie : public Element
 {
-	class ElementLottie : public Element
-	{
-	public:
-		RMLUI_RTTI_DefineWithParent(ElementLottie, Element);
-		ElementLottie(const String& tag);
+public:
+	RMLUI_RTTI_DefineWithParent(ElementLottie, Element)
 
-		virtual ~ElementLottie(void);
+	ElementLottie(const String& tag);
+	virtual ~ElementLottie();
 
-		/// Returns the element's inherent size.
-		bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
+	/// Returns the element's inherent size.
+	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
-	protected:
-		/// Renders the image.
-		void OnRender() override;
-		void OnUpdate() override;
+protected:
+	/// Renders the animation.
+	void OnRender() override;
 
-		/// Regenerates the element's geometry.
-		void OnResize() override;
+	/// Regenerates the element's geometry.
+	void OnResize() override;
 
-		/// Checks for changes to the image's source or dimensions.
-		/// @param[in] changed_attributes A list of attributes changed on the element.
-		void OnAttributeChange(const ElementAttributes& changed_attributes) override;
+	/// Checks for changes to the image's source or dimensions.
+	/// @param[in] changed_attributes A list of attributes changed on the element.
+	void OnAttributeChange(const ElementAttributes& changed_attributes) override;
 
-		/// Called when properties on the element are changed.
-		/// @param[in] changed_properties The properties changed on the element.
-		void OnPropertyChange(const PropertyIdSet& changed_properties) override;
+	/// Called when properties on the element are changed.
+	/// @param[in] changed_properties The properties changed on the element.
+	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
-	private:
-		// Generates the element's geometry.
-		void GenerateGeometry();
-		// Loads the element's texture, as specified by the 'src' attribute.
-		bool LoadTexture();
-		// Loads the rect value from the element's attribute, but only if we're not a sprite.
-		void UpdateRect();
+private:
+	// Generates the element's geometry.
+	void GenerateGeometry();
+	// Loads the element's animation, as specified by the 'src' attribute.
+	bool LoadAnimation();
+	// Update the texture to render the next frame.
+	void UpdateTexture();
 
-		void Play(void);
+private:
+	bool animation_dirty = false;
+	bool geometry_dirty = false;
 
-	private:
-		bool m_is_need_recreate_texture;
-		bool m_is_need_recreate_geometry;
-		std::uint32_t* m_p_raw_data;
-		String m_file_name;
-		// The texture this element is rendering from.
-		Texture texture;
- 
-		// The element's computed intrinsic dimensions. If either of these values are set to -1, then
-		// that dimension has not been computed yet.
-		Vector2f m_dimensions;
+	// The texture this element is rendering from.
+	Texture texture;
 
-		// The geometry used to render this element.
-		Geometry geometry;
+	// The animation's intrinsic dimensions.
+	Vector2f intrinsic_dimensions;
+	// The element's size for rendering.
+	Vector2i render_dimensions;
 
-		std::unique_ptr<rlottie::Animation> m_p_lottie;
-	};
+	// The geometry used to render this element.
+	Geometry geometry;
+
+	// The absolute time when the current animation was first displayed.
+	double time_animation_start = -1;
+	// The previous animation frame displayed.
+	size_t prev_animation_frame = size_t(-1);
+
+	std::unique_ptr<rlottie::Animation> animation;
+};
+
 }
-
 
 #endif
