@@ -63,10 +63,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	RMLUI_UNUSED(argv);
 #endif
 
-#ifdef RMLUI_PLATFORM_WIN32
-	AllocConsole();
-#endif
-
 	int window_width = 1024;
 	int window_height = 768;
 
@@ -108,7 +104,10 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Load and show the demo document.
 	if (Rml::ElementDocument* document = context->LoadDocument("basic/lottie/data/lottie.rml"))
+	{
 		document->Show();
+		document->GetElementById("title")->SetInnerRML("Lottie");
+	}
 
 	Shell::EventLoop(GameLoop);
 

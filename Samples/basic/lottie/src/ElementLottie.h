@@ -71,10 +71,9 @@ private:
 	void GenerateGeometry();
 	// Loads the element's animation, as specified by the 'src' attribute.
 	bool LoadAnimation();
-	// Update the texture to render the next frame.
+	// Update the texture for the next animation frame when necessary.
 	void UpdateTexture();
 
-private:
 	bool animation_dirty = false;
 	bool geometry_dirty = false;
 

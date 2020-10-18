@@ -30,22 +30,18 @@
 #include "ElementLottie.h"
 #include <RmlUi/Core/ElementInstancer.h>
 #include <RmlUi/Core/Factory.h>
-#include <RmlUi/Core/StyleSheetSpecification.h>
-#include <RmlUi/Core/XMLParser.h>
 #include <RmlUi/Core/Plugin.h>
 #include <RmlUi/Core/Core.h>
 
 namespace Rml {
 namespace Lottie {
 
-static bool initialised = false;
 static UniquePtr<ElementInstancerGeneric<ElementLottie>> instancer;
 
 class LottiePlugin : public Plugin {
 public:
 	void OnShutdown() override
 	{
-		initialised = false;
 		instancer.reset();
 		delete this;
 	}
@@ -58,15 +54,13 @@ public:
 
 void Initialise()
 {
-	if (!initialised)
+	if (!instancer)
 	{
 		instancer = MakeUnique<ElementInstancerGeneric<ElementLottie> >();
 
 		Factory::RegisterElementInstancer("lottie", instancer.get());
 
 		RegisterPlugin(new LottiePlugin());
-
-		initialised = true;
 	}
 }
 

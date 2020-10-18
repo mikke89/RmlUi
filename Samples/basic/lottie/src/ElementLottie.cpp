@@ -28,11 +28,9 @@
 
 #include "ElementLottie.h"
 #include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/URL.h>
 #include <RmlUi/Core/PropertyIdSet.h>
 #include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/StyleSheet.h>
 #include <RmlUi/Core/SystemInterface.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <cmath>
@@ -186,6 +184,8 @@ void ElementLottie::UpdateTexture()
 	if (time_animation_start < 0.0)
 		time_animation_start = t;
 
+	// Find the next animation frame to display.
+	// Here it is possible to add more logic to control playback speed, pause/resume, and more.
 	double _unused;
 	// Find the normalized animation progress [0, 1].
 	const double pos = std::modf((t - time_animation_start) / animation->duration(), &_unused);
@@ -194,6 +194,7 @@ void ElementLottie::UpdateTexture()
 	if (next_frame == prev_animation_frame)
 		return;
 
+	// Callback for generating texture.
 	auto p_callback = [this, next_frame](const String& /*name*/, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
 		RMLUI_ASSERT(animation);
 
