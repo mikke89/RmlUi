@@ -118,6 +118,7 @@ Use the RCSS `display` property to enable table formatting. See the stylesheet r
 - Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) (thanks @SpaceCat-Chan).
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
 - Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
+- [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html) added for displaying vector animations [#134](https://github.com/mikke89/RmlUi/pull/134) (thanks @diamondhat).
 
 ### Bug fixes
 

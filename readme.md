@@ -162,6 +162,9 @@ body
 ![Transform](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transform.gif)  
 **Animated transforms (entirely in RCSS)**
 
+![Lottie animation](https://github.com/mikke89/RmlUiDoc/blob/086385e119f0fc6e196229b785e91ee0252fe4b4/assets/gallery/lottie.gif)  
+**Vector animations with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)**
+
 To see more examples of animations and transitions in action, have a look at the videos in the [animations documentation](https://mikke89.github.io/RmlUiDoc/pages/rcss/animations_transitions_transforms.html).
 
 
