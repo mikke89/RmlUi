@@ -20,7 +20,15 @@ install:
     mv freetype_tmp/include include
     mv freetype_tmp/%PLATFORM_NAME% lib
     
-    cd ..
+    git clone --depth 1 --branch v0.2 https://github.com/Samsung/rlottie.git
+    cd rlottie
+    mkdir build
+    cd build
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DLOTTIE_MODULE=OFF ..
+    cmake --build . --target rlottie --config Debug -- "/clp:ErrorsOnly"
+    cmake --build . --target rlottie --config Release -- "/clp:ErrorsOnly"
+    cd ../../../
+    
     mkdir Build-Dynamic, Build-Static
     
     cd Build-Dynamic
@@ -66,10 +74,12 @@ after_build:
     echo Built using %VS_GENERATOR% on %APPVEYOR_REPO_COMMIT_TIMESTAMP:~0,10% (build %APPVEYOR_BUILD_NUMBER%).>> Readme.txt
     echo Commit id: %APPVEYOR_REPO_COMMIT%.>> Readme.txt
     
-    7z a RmlUi-%PLATFORM_NAME%.zip Bin/ Include/ Readme.txt changelog.md LICENSE Dependencies/freetype-%FREETYPE_VER%/ Samples/
+    7z a RmlUi-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Readme.txt changelog.md LICENSE Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/licenses/
     
-    mkdir Samples\Dependencies\freetype-%FREETYPE_VER%
+    mkdir Samples\Dependencies\freetype-%FREETYPE_VER%, Samples\Dependencies\rlottie, Samples\Dependencies\rlottie\licenses
     cp Dependencies/freetype-%FREETYPE_VER%/*.TXT Samples/Dependencies/freetype-%FREETYPE_VER%
+    cp Dependencies/rlottie/COPYING Samples/Dependencies/rlottie
+    cp Dependencies/rlottie/licenses/* Samples/Dependencies/rlottie/licenses
     IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip LICENSE .\Samples\* -r -xr!src\ -x!shell\ -x!luainvaders\
     
 for:

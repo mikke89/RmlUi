@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,47 +26,43 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/FileInterface.h"
-#include "../../Include/RmlUi/Core/Log.h"
+
+#include "ElementLottie.h"
+#include <RmlUi/Core/ElementInstancer.h>
+#include <RmlUi/Core/Factory.h>
+#include <RmlUi/Core/Plugin.h>
+#include <RmlUi/Core/Core.h>
 
 namespace Rml {
+namespace Lottie {
 
-FileInterface::FileInterface()
-{
-}
+static UniquePtr<ElementInstancerGeneric<ElementLottie>> instancer;
 
-FileInterface::~FileInterface()
-{
-}
-
-// Returns the length of the file.
-size_t FileInterface::Length(FileHandle file)
-{
-    size_t current_position = Tell(file);
-    Seek( file, 0, SEEK_END);
-    size_t length = Tell( file);
-    Seek( file, (long)current_position, SEEK_SET);
-    return length;
-}
-
-bool FileInterface::LoadFile(const String& path, String& out_data)
-{
-	FileHandle handle = Open(path);
-	if (!handle)
-		return false;
-
-	const size_t length = Length(handle);
-
-	out_data = String(length, 0);
-
-	const size_t read_length = Read(&out_data[0], length, handle);
-	
-	if (length != read_length)
+class LottiePlugin : public Plugin {
+public:
+	void OnShutdown() override
 	{
-		Log::Message(Log::LT_WARNING, "Could only read %zu of %zu bytes from file %s", read_length, length, path.c_str());
+		instancer.reset();
+		delete this;
 	}
 
-	return true;
+	int GetEventClasses() override
+	{
+		return Plugin::EVT_BASIC;
+	}
+};
+
+void Initialise()
+{
+	if (!instancer)
+	{
+		instancer = MakeUnique<ElementInstancerGeneric<ElementLottie> >();
+
+		Factory::RegisterElementInstancer("lottie", instancer.get());
+
+		RegisterPlugin(new LottiePlugin());
+	}
 }
 
-} // namespace Rml
+}
+}
