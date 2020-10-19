@@ -111,8 +111,7 @@ public:
 
 	bool Parse(const String& name, const String& value) override
 	{
-		static const String str_src = "src";
-		if (name == str_src)
+		if (name == "src")
 		{
 			image_source = value;
 		}
@@ -139,6 +138,8 @@ public:
 };
 
 
+static UniquePtr<SpritesheetPropertyParser> spritesheet_property_parser;
+
 
 StyleSheetParser::StyleSheetParser()
 {
@@ -149,6 +150,16 @@ StyleSheetParser::StyleSheetParser()
 
 StyleSheetParser::~StyleSheetParser()
 {
+}
+
+void StyleSheetParser::Initialise()
+{
+	spritesheet_property_parser = MakeUnique<SpritesheetPropertyParser>();
+}
+
+void StyleSheetParser::Shutdown()
+{
+	spritesheet_property_parser.reset();
 }
 
 static bool IsValidIdentifier(const String& str)
@@ -406,14 +417,11 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 					}
 					else if (at_rule_identifier == "spritesheet")
 					{
-						// This is reasonably heavy to initialize, so we make it static
-						static SpritesheetPropertyParser spritesheet_property_parser;
-						spritesheet_property_parser.Clear();
+						// The spritesheet parser is reasonably heavy to initialize, so we make it a static global.
+						ReadProperties(*spritesheet_property_parser);
 
-						ReadProperties(spritesheet_property_parser);
-
-						const String& image_source = spritesheet_property_parser.GetImageSource();
-						const SpriteDefinitionList& sprite_definitions = spritesheet_property_parser.GetSpriteDefinitions();
+						const String& image_source = spritesheet_property_parser->GetImageSource();
+						const SpriteDefinitionList& sprite_definitions = spritesheet_property_parser->GetSpriteDefinitions();
 						
 						if (at_rule_name.empty())
 						{
@@ -432,7 +440,7 @@ int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSh
 							spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, sprite_definitions);
 						}
 
-						spritesheet_property_parser.Clear();
+						spritesheet_property_parser->Clear();
 						at_rule_name.clear();
 						state = State::Global;
 					}
@@ -526,7 +534,6 @@ StyleSheetNodeListRaw StyleSheetParser::ConstructNodes(StyleSheetNode& root_node
 
 	return leaf_nodes;
 }
-
 
 bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 {

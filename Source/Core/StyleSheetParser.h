@@ -71,6 +71,11 @@ public:
 	// @return The list of leaf nodes in the constructed tree, which are all owned by the root node.
 	static StyleSheetNodeListRaw ConstructNodes(StyleSheetNode& root_node, const String& selectors);
 
+	// Initialises property parsers. Call after initialisation of StylesheetSpecification.
+	static void Initialise();
+	// Reset property parsers.
+	static void Shutdown();
+
 private:
 	// Stream we're parsing from.
 	Stream* stream;

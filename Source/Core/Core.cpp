@@ -42,6 +42,7 @@
 #include "GeometryDatabase.h"
 #include "PluginRegistry.h"
 #include "StyleSheetFactory.h"
+#include "StyleSheetParser.h"
 #include "TemplateCache.h"
 #include "TextureDatabase.h"
 #include "EventSpecification.h"
@@ -116,6 +117,7 @@ bool Initialise()
 	}
 
 	StyleSheetSpecification::Initialise();
+	StyleSheetParser::Initialise();
 	StyleSheetFactory::Initialise();
 
 	TemplateCache::Initialise();
@@ -143,6 +145,7 @@ void Shutdown()
 	Factory::Shutdown();
 	TemplateCache::Shutdown();
 	StyleSheetFactory::Shutdown();
+	StyleSheetParser::Shutdown();
 	StyleSheetSpecification::Shutdown();
 
 	font_interface = nullptr;
