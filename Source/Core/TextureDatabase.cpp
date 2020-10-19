@@ -111,6 +111,21 @@ void TextureDatabase::RemoveCallbackTexture(TextureResource* texture)
 		texture_database->callback_textures.erase(texture);
 }
 
+StringList TextureDatabase::GetSourceList()
+{
+	StringList result;
+	
+	if (texture_database)
+	{
+		result.reserve(texture_database->textures.size());
+
+		for (const auto& pair : texture_database->textures)
+			result.push_back(pair.first);
+	}
+
+	return result;
+}
+
 void TextureDatabase::ReleaseTextures(RenderInterface* render_interface)
 {
 	if (texture_database)

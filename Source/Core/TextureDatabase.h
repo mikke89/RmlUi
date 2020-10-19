@@ -61,6 +61,9 @@ public:
     /// Removes a callback texture from the database.
     static void RemoveCallbackTexture(TextureResource* texture);
 
+	/// Return a list of all texture sources currently in the database.
+	static StringList GetSourceList();
+
 private:
 	TextureDatabase();
 	~TextureDatabase();

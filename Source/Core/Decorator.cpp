@@ -57,7 +57,7 @@ int Decorator::LoadTexture(const String& texture_name, const String& rcss_path)
 	Texture texture;
 	texture.Set(texture_name, rcss_path);
 
-	additional_textures.push_back(texture);
+	additional_textures.push_back(std::move(texture));
 	return (int)additional_textures.size();
 }
 
