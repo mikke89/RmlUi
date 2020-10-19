@@ -90,6 +90,9 @@ protected:
 	/// @param[in] changed_properties The properties changed on the element.
 	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
+	/// Detect when we have been added to the document.
+	void OnChildAdd(Element* child) override;
+
 private:
 	// Generates the element's geometry.
 	void GenerateGeometry();

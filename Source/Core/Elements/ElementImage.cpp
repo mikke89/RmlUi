@@ -138,6 +138,15 @@ void ElementImage::OnPropertyChange(const PropertyIdSet& changed_properties)
     }
 }
 
+void ElementImage::OnChildAdd(Element* child)
+{
+	if (child == this && texture_dirty)
+	{
+		// Load the texture once we have attached to the document
+		LoadTexture();
+	}
+}
+
 // Regenerates the element's geometry.
 void ElementImage::OnResize()
 {
