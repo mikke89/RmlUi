@@ -133,8 +133,7 @@ int LuaPrint(lua_State* L)
         lua_call(L, 1, 1);
         s = lua_tostring(L, -1);  /* get result */
         if (s == nullptr)
-            return luaL_error(L, LUA_QL("tostring") " must return a string to "
-                                 LUA_QL("print"));
+            return luaL_error(L, "'tostring' must return a string to 'print'");
         if (i>1) 
             output += "\t";
         output += String(s);
