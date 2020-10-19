@@ -458,8 +458,6 @@ progressbar {
 	decorator: image( gauge );
 	width: 100px;
 	height: 86px;
-}
-#gauge fill { 
 	fill-image: gauge-fill;
 }
 #progress_horizontal { 

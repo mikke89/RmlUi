@@ -42,7 +42,6 @@ namespace Rml {
 ElementProgressBar::ElementProgressBar(const String& tag) : Element(tag), direction(DefaultDirection), start_edge(DefaultStartEdge), value(0), fill(nullptr), rect_set(false), geometry(this)
 {
 	geometry_dirty = false;
-	texture_dirty = true;
 
 	// Add the fill element as a non-DOM element.
 	ElementPtr fill_element = Factory::InstanceElement(this, "*", "fill", XMLAttributes());
@@ -129,7 +128,7 @@ void ElementProgressBar::OnPropertyChange(const PropertyIdSet& changed_propertie
     }
 
 	if (changed_properties.Contains(PropertyId::FillImage)) {
-		texture_dirty = true;
+		LoadTexture();
 	}
 }
 
@@ -161,6 +160,10 @@ void ElementProgressBar::OnResize()
 
 void ElementProgressBar::GenerateGeometry()
 {
+	// Warn the user when using the old approach of adding the 'fill-image' property to the 'fill' element.
+	if (const Property* property = fill->GetLocalProperty(PropertyId::FillImage))
+		Log::Message(Log::LT_WARNING, "Breaking change: The 'fill-image' property now needs to be set on the <progressbar> element, instead of its inner <fill> element. Please update your RCSS source to fix progress bars in this document.");
+
 	Vector2f render_size = fill_size;
 
 	{
@@ -196,9 +199,6 @@ void ElementProgressBar::GenerateGeometry()
 		fill->SetBox(fill_box);
 		fill->SetOffset(offset, this);
 	}
-
-	if (texture_dirty)
-		LoadTexture();
 
 	geometry.Release(true);
 	geometry_dirty = false;
@@ -332,13 +332,12 @@ void ElementProgressBar::GenerateGeometry()
 
 bool ElementProgressBar::LoadTexture()
 {
-	texture_dirty = false;
 	geometry_dirty = true;
 	rect_set = false;
 
 	String name;
 
-	if (auto property = fill->GetLocalProperty(PropertyId::FillImage))
+	if (const Property* property = GetLocalProperty(PropertyId::FillImage))
 		name = property->Get<String>();
 
 	ElementDocument* document = GetOwnerDocument();

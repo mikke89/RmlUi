@@ -123,6 +123,7 @@ Use the RCSS `display` property to enable table formatting. See the stylesheet r
 ### Bug fixes
 
 - Fix some situations where `text-decoration` would not be rendered. [#119](https://github.com/mikke89/RmlUi/issues/119).
+- Changing the `fill-image` property of \<progressbar\> elements now actually updates the image.
 
 ### Breaking changes
 
@@ -133,7 +134,7 @@ Use the RCSS `display` property to enable table formatting. See the stylesheet r
 - The `BaseXMLParser` class has some minor interface changes.
 - Tab set elements `tab` and `panel` should now have their `display` property set in the RCSS document, use `display: inline-block` for the same behavior as before.
 - For custom, replaced elements: `Element::GetIntrinsicDimensions()` now additionally takes an intrinsic ratio parameter.
-
+- The `fill-image` property should now be applied to the \<progressbar\> element instead of its inner \<fill\> element.
 
 
 ## RmlUi 3.3

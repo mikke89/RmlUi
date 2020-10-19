@@ -104,7 +104,6 @@ private:
 
 	// The texture this element is rendering from if the 'fill-image' property is set.
 	Texture texture;
-	bool texture_dirty;
 
 	// The rectangle extracted from a sprite, 'rect_set' controls whether it is active.
 	Rectangle rect;
