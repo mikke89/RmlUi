@@ -161,7 +161,7 @@ void ElementProgressBar::OnResize()
 void ElementProgressBar::GenerateGeometry()
 {
 	// Warn the user when using the old approach of adding the 'fill-image' property to the 'fill' element.
-	if (const Property* property = fill->GetLocalProperty(PropertyId::FillImage))
+	if (fill->GetLocalProperty(PropertyId::FillImage))
 		Log::Message(Log::LT_WARNING, "Breaking change: The 'fill-image' property now needs to be set on the <progressbar> element, instead of its inner <fill> element. Please update your RCSS source to fix progress bars in this document.");
 
 	Vector2f render_size = fill_size;

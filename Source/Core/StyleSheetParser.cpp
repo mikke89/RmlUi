@@ -53,7 +53,7 @@ public:
  *  PropertySpecificationParser just passes the parsing to a property specification. Usually
  *    the main stylesheet specification, except for e.g. @decorator blocks.
 */
-class PropertySpecificationParser : public AbstractPropertyParser {
+class PropertySpecificationParser final : public AbstractPropertyParser {
 private:
 	// The dictionary to store the properties in.
 	PropertyDictionary& properties;
@@ -75,7 +75,7 @@ public:
  *    while its values are always rectangles. Thus, it must be parsed with a special "rectangle" parser
  *    for every name-value pair. We can probably optimize this for @performance.
 */
-class SpritesheetPropertyParser : public AbstractPropertyParser {
+class SpritesheetPropertyParser final : public AbstractPropertyParser {
 private:
 	String image_source;
 	SpriteDefinitionList sprite_definitions;
