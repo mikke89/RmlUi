@@ -1948,22 +1948,19 @@ void Element::GetRML(String& content)
 
 void Element::SetOwnerDocument(ElementDocument* document)
 {
-	// If this element is a document, then never change owner_document.
-	if (owner_document != this)
+	if (owner_document && !document)
 	{
-		if (owner_document && !document)
-		{
-			// We are detaching from the document and thereby also the context.
-			if (Context * context = owner_document->GetContext())
-				context->OnElementDetach(this);
-		}
+		// We are detaching from the document and thereby also the context.
+		if (Context* context = owner_document->GetContext())
+			context->OnElementDetach(this);
+	}
 
-		if (owner_document != document)
-		{
-			owner_document = document;
-			for (ElementPtr& child : children)
-				child->SetOwnerDocument(document);
-		}
+	// If this element is a document, then never change owner_document.
+	if (owner_document != this && owner_document != document)
+	{
+		owner_document = document;
+		for (ElementPtr& child : children)
+			child->SetOwnerDocument(document);
 	}
 }
 
