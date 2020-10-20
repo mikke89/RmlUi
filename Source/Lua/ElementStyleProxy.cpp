@@ -102,7 +102,6 @@ struct ElementStyleProxyPairs
 {
     static int next(lua_State* L) 
     {
-        ElementStyleProxy* obj = LuaType<ElementStyleProxy>::check(L,1);
         ElementStyleProxyPairs* self = static_cast<ElementStyleProxyPairs*>(lua_touserdata(L, lua_upvalueindex(1)));
         if (self->m_view.AtEnd())
         {
@@ -150,8 +149,7 @@ int ElementStyleProxy__pairs(lua_State* L)
     ElementStyleProxy* obj = LuaType<ElementStyleProxy>::check(L,1);
     RMLUI_CHECK_OBJ(obj);
     ElementStyleProxyPairs::constructor(L, obj);
-    lua_pushvalue(L, 1);
-    return 2;
+    return 1;
 }
 
 RegType<ElementStyleProxy> ElementStyleProxyMethods[] = 
