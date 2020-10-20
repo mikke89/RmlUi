@@ -34,8 +34,10 @@ namespace Rml {
 static Pool< ObserverPtrBlock >& GetPool()
 {
 	// Wrap pool in a function to ensure it is initialized before use.
-	static Pool< ObserverPtrBlock > pool(128, true);
-	return pool;
+	// This pool must outlive all other global variables that derive from EnableObserverPtr. This even includes
+	// user variables which we have no control over. For this reason, we intentionally let this leak.
+	static Pool< ObserverPtrBlock >* pool =  new Pool< ObserverPtrBlock >(128, true);
+	return *pool;
 }
 
 
