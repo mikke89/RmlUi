@@ -28,6 +28,7 @@
  
 #include "ElementChildNodesProxy.h"
 #include "Element.h"
+#include "Pairs.h"
 
 namespace Rml {
 namespace Lua {
@@ -38,8 +39,6 @@ template<> void ExtraInit<ElementChildNodesProxy>(lua_State* L, int metatable_in
     lua_setfield(L,metatable_index,"__index");
     lua_pushcfunction(L,ElementChildNodesProxy__pairs);
     lua_setfield(L,metatable_index,"__pairs");
-    lua_pushcfunction(L,ElementChildNodesProxy__ipairs);
-    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 int ElementChildNodesProxy__index(lua_State* L)
@@ -61,32 +60,7 @@ int ElementChildNodesProxy__index(lua_State* L)
 
 int ElementChildNodesProxy__pairs(lua_State* L)
 {
-    //because it is only indexed by integer, just go through ipairs
-    return ElementChildNodesProxy__ipairs(L);
-}
-
-
-//[1] is the object, [2] is the key that was just used, [3] is the userdata
-int ElementChildNodesProxy__ipairs(lua_State* L)
-{
-    ElementChildNodesProxy* obj = LuaType<ElementChildNodesProxy>::check(L,1);
-    RMLUI_CHECK_OBJ(obj);
-    int* pindex = (int*)lua_touserdata(L,3);
-    if((*pindex) == -1) //initial value
-        (*pindex) = 0;
-    int num_children = obj->owner->GetNumChildren();
-    if((*pindex) < num_children)
-    {
-        lua_pushinteger(L,*pindex); //key
-        LuaType<Element>::push(L,obj->owner->GetChild(*pindex)); //value
-        (*pindex) += 1;
-    }
-    else
-    {
-        lua_pushnil(L);
-        lua_pushnil(L);
-    }
-    return 2;
+    return MakeIntPairs(L);
 }
 
 RegType<ElementChildNodesProxy> ElementChildNodesProxyMethods[] = 

@@ -30,6 +30,7 @@
 #include <RmlUi/Lua/Utilities.h>
 #include <RmlUi/Core/Variant.h>
 #include <RmlUi/Core/Dictionary.h>
+#include "Pairs.h"
 
 
 namespace Rml {
@@ -41,8 +42,6 @@ template<> void ExtraInit<EventParametersProxy>(lua_State* L, int metatable_inde
     lua_setfield(L,metatable_index,"__index");
     lua_pushcfunction(L,EventParametersProxy__pairs);
     lua_setfield(L,metatable_index,"__pairs");
-    lua_pushcfunction(L,EventParametersProxy__ipairs);
-    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 int EventParametersProxy__index(lua_State* L)
@@ -63,40 +62,11 @@ int EventParametersProxy__index(lua_State* L)
         return LuaType<EventParametersProxy>::index(L);
 }
 
-
-//[1] is the object, [2] is the last used key, [3] is the userdata
 int EventParametersProxy__pairs(lua_State* L)
 {
     EventParametersProxy* obj = LuaType<EventParametersProxy>::check(L,1);
     RMLUI_CHECK_OBJ(obj);
-    int& pindex = *(int*)lua_touserdata(L,3);
-	if ((pindex) == -1)
-		pindex = 0;
-	const Dictionary& attributes = obj->owner->GetParameters();
-    if(pindex >= 0 && pindex < (int)attributes.size())
-    {
-		auto it = attributes.begin();
-		for (int i = 0; i < pindex; ++i)
-			++it;
-		const String& key = it->first;
-		const Variant* value = &it->second;
-        lua_pushstring(L,key.c_str());
-        PushVariant(L,value);
-    }
-    else
-    {
-        lua_pushnil(L);
-        lua_pushnil(L);
-    }
-    return 2;
-}
-
-//only index by string
-int EventParametersProxy__ipairs(lua_State* L)
-{
-    lua_pushnil(L);
-    lua_pushnil(L);
-    return 2;
+    return MakePairs(L, obj->owner->GetParameters());
 }
 
 RegType<EventParametersProxy> EventParametersProxyMethods[] =

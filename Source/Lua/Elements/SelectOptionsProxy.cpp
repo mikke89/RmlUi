@@ -28,6 +28,7 @@
  
 #include "SelectOptionsProxy.h"
 #include <RmlUi/Core/Element.h>
+#include "../Pairs.h"
 
 
 namespace Rml {
@@ -56,44 +57,10 @@ int SelectOptionsProxy__index(lua_State* L)
         return LuaType<SelectOptionsProxy>::index(L);
 }
 
-//since there are no string keys, just use __ipairs
+
 int SelectOptionsProxy__pairs(lua_State* L)
 {
-    return SelectOptionsProxy__ipairs(L);
-}
-
-//[1] is the object, [2] is the previous key, [3] is the userdata
-int SelectOptionsProxy__ipairs(lua_State* L)
-{
-    SelectOptionsProxy* proxy = LuaType<SelectOptionsProxy>::check(L,1);
-    RMLUI_CHECK_OBJ(proxy);
-    int* pindex = (int*)lua_touserdata(L,3);
-    if((*pindex) == -1)
-        *pindex = 0;
-    SelectOption* opt = nullptr;
-    while((*pindex) < proxy->owner->GetNumOptions())
-    {
-        opt = proxy->owner->GetOption((*pindex)++);
-        if(opt != nullptr) 
-            break;
-    }
-    //we got to the end without finding an option
-    if(opt == nullptr)
-    {
-        lua_pushnil(L);
-        lua_pushnil(L);
-    }
-    else //we found an option
-    {
-        lua_pushinteger(L,(*pindex)-1); //key
-        lua_newtable(L); //value
-        //fill the value
-        LuaType<Element>::push(L,opt->GetElement());
-        lua_setfield(L,-2,"element");
-        lua_pushstring(L,opt->GetValue().c_str());
-        lua_setfield(L,-2,"value");
-    }
-    return 2;
+    return MakeIntPairs(L);
 }
 
 RegType<SelectOptionsProxy> SelectOptionsProxyMethods[] =
@@ -118,8 +85,6 @@ template<> void ExtraInit<SelectOptionsProxy>(lua_State* L, int metatable_index)
     lua_setfield(L,metatable_index,"__index");
     lua_pushcfunction(L,SelectOptionsProxy__pairs);
     lua_setfield(L,metatable_index,"__pairs");
-    lua_pushcfunction(L,SelectOptionsProxy__ipairs);
-    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 RMLUI_LUATYPE_DEFINE(SelectOptionsProxy)

@@ -29,7 +29,7 @@
 #include "RmlUiContextsProxy.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
-
+#include "Pairs.h"
 
 namespace Rml {
 namespace Lua {
@@ -40,8 +40,6 @@ template<> void ExtraInit<RmlUiContextsProxy>(lua_State* L, int metatable_index)
     lua_setfield(L,metatable_index,"__index");
     lua_pushcfunction(L,RmlUiContextsProxy__pairs);
     lua_setfield(L,metatable_index,"__pairs");
-    lua_pushcfunction(L,RmlUiContextsProxy__ipairs);
-    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 int RmlUiContextsProxy__index(lua_State* L)
@@ -69,57 +67,11 @@ int RmlUiContextsProxy__index(lua_State* L)
 }
 
 
-//[1] is the object, [2] is the last used key, [3] is the userdata
 int RmlUiContextsProxy__pairs(lua_State* L)
 {
-    RmlUiContextsProxy* obj = LuaType<RmlUiContextsProxy>::check(L,1);
-    RMLUI_CHECK_OBJ(obj);
-    int* pindex = (int*)lua_touserdata(L,3);
-    if((*pindex) == -1)
-        *pindex = 0;
-    Context* value = nullptr;
-    if((*pindex)++ < GetNumContexts())
-    {
-        value = GetContext(*pindex);
-    }
-    if(value == nullptr)
-    {
-        lua_pushnil(L);
-        lua_pushnil(L);
-    }
-    else
-    {
-        lua_pushstring(L,value->GetName().c_str());
-        LuaType<Context>::push(L,value);
-    }
-    return 2;
+    return MakeIntPairs(L);
 }
 
-//[1] is the object, [2] is the last used key, [3] is the userdata
-int RmlUiContextsProxy__ipairs(lua_State* L)
-{
-    RmlUiContextsProxy* obj = LuaType<RmlUiContextsProxy>::check(L,1);
-    RMLUI_CHECK_OBJ(obj);
-    int* pindex = (int*)lua_touserdata(L,3);
-    if((*pindex) == -1)
-        *pindex = 0;
-    Context* value = nullptr;
-    if((*pindex)++ < GetNumContexts())
-    {
-        value = GetContext(*pindex);
-    }
-    if(value == nullptr)
-    {
-        lua_pushnil(L);
-        lua_pushnil(L);
-    }
-    else
-    {
-        lua_pushinteger(L,(*pindex)-1);
-        LuaType<Context>::push(L,value);
-    }
-    return 2;
-}
 
 RegType<RmlUiContextsProxy> RmlUiContextsProxyMethods[] =
 {

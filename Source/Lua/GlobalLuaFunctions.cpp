@@ -40,83 +40,6 @@ namespace Lua {
 Below here are global functions and their helper functions that help overwrite the Lua global functions
 */
 
-//__pairs should return two values.
-//upvalue 1 is the __pairs function, upvalue 2 is the userdata created in rmlui_pairs
-//[1] is the object implementing __pairs
-//[2] is the key that was just read
-int rmlui_pairsaux(lua_State* L)
-{
-    lua_pushvalue(L,lua_upvalueindex(1)); //push __pairs to top
-    lua_insert(L,1); //move __pairs to the bottom
-    lua_pushvalue(L,lua_upvalueindex(2)); //push userdata
-    //stack looks like [1] = __pairs, [2] = object, [3] = latest key, [4] = userdata
-    if(lua_pcall(L,lua_gettop(L)-1,LUA_MULTRET,0) != 0)
-        Report(L,"__pairs");
-    return lua_gettop(L);
-}
-
-//A version of paris that respects a __pairs metamethod.
-//"next" function is upvalue 1
-int rmlui_pairs(lua_State* L)
-{
-    luaL_checkany(L,1); //[1] is the object given to us by pairs(object)
-    if(luaL_getmetafield(L,1,"__pairs"))
-    {
-        void* ud = lua_newuserdata(L,sizeof(void*)); //create a new block of memory to be used as upvalue 1
-        (*(int*)(ud)) = -1;
-        lua_pushcclosure(L,rmlui_pairsaux,2); //uv 1 is __pairs, uv 2 is ud
-    }
-    else
-        lua_pushvalue(L,lua_upvalueindex(1)); //generator
-    lua_pushvalue(L,1); //state
-    lua_pushnil(L); //initial value
-    return 3;
-}
-
-//copy + pasted from Lua's lbaselib.c
-int ipairsaux (lua_State *L) {
-    lua_Integer i = luaL_checkinteger(L, 2);
-    luaL_checktype(L, 1, LUA_TTABLE);
-    i++;  /* next value */
-    lua_pushinteger(L, i);
-    lua_rawgeti(L, 1, i);
-    return (lua_isnil(L, -1)) ? 0 : 2;
-}
-
-//__ipairs should return two values
-//upvalue 1 is the __ipairs function, upvalue 2 is the userdata created in rmlui_ipairs
-//[1] is the object implementing __ipairs, [2] is the key last used
-int rmlui_ipairsaux(lua_State* L)
-{
-    lua_pushvalue(L,lua_upvalueindex(1)); //push __ipairs
-    lua_insert(L,1); //move __ipairs to the bottom
-    lua_pushvalue(L,lua_upvalueindex(2)); //push userdata
-    //stack looks like [1] = __ipairs, [2] = object, [3] = latest key, [4] = userdata
-    if(lua_pcall(L,lua_gettop(L)-1,LUA_MULTRET,0) != 0)
-        Report(L,"__ipairs");
-    return lua_gettop(L);
-}
-
-
-//A version of paris that respects a __pairs metamethod.
-//ipairsaux function is upvalue 1
-int rmlui_ipairs(lua_State* L)
-{
-    luaL_checkany(L,1); //[1] is the object given to us by ipairs(object)
-    if(luaL_getmetafield(L,1,"__ipairs"))
-    {
-        void* ud = lua_newuserdata(L,sizeof(void*)); //create a new block of memory to be used as upvalue 1
-        (*(int*)(ud)) = -1;
-        lua_pushcclosure(L,rmlui_pairsaux,2); //uv 1 is __ipairs, uv 2 is ud
-    }
-    else
-        lua_pushvalue(L,lua_upvalueindex(1)); //generator
-    lua_pushvalue(L,1); //state
-    lua_pushnil(L); //initial value
-    return 3;
-}
-
-
 //Based off of the luaB_print function from Lua's lbaselib.c
 int LuaPrint(lua_State* L)
 {
@@ -147,14 +70,6 @@ int LuaPrint(lua_State* L)
 void OverrideLuaGlobalFunctions(lua_State* L)
 {
     lua_getglobal(L,"_G");
-
-    lua_getglobal(L,"next");
-    lua_pushcclosure(L,rmlui_pairs,1);
-    lua_setfield(L,-2,"pairs");
-
-    lua_pushcfunction(L,ipairsaux);
-    lua_pushcclosure(L,rmlui_ipairs,1);
-    lua_setfield(L,-2,"ipairs");
 
     lua_pushcfunction(L,LuaPrint);
     lua_setfield(L,-2,"print");
