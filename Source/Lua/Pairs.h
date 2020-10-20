@@ -118,7 +118,8 @@ inline int ipairsaux(lua_State* L) {
     return (lua_geti(L, 1, i) == LUA_TNIL) ? 1 : 2;
 #else
     lua_pushinteger(L, i);
-    return (lua_gettable(L, 1) == LUA_TNIL) ? 1 : 2;
+    lua_gettable(L, 1);
+    return (lua_isnil(L, -1)) ? 1 : 2;
 #endif
 }
 
