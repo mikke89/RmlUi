@@ -62,18 +62,13 @@ inline int PairsConvertTolua<Variant>(lua_State* L, const Variant& v) {
 template <typename T>
 struct PairsHelper {
     static int next(lua_State* L) {
-        try {
-            PairsHelper* self = static_cast<PairsHelper*>(lua_touserdata(L, lua_upvalueindex(1)));
-            if (self->m_first == self->m_last) {
-                return 0;
-            }
-            int nreslut = PairsConvertTolua(L, *self->m_first);
-            ++(self->m_first);
-            return nreslut;
-        } catch (const std::exception& e) { 
-            lua_pushstring(L, e.what());
-            return lua_error(L); 
+        PairsHelper* self = static_cast<PairsHelper*>(lua_touserdata(L, lua_upvalueindex(1)));
+        if (self->m_first == self->m_last) {
+            return 0;
         }
+        int nreslut = PairsConvertTolua(L, *self->m_first);
+        ++(self->m_first);
+        return nreslut;
     }
     static int destroy(lua_State* L) {
         static_cast<PairsHelper*>(lua_touserdata(L, 1))->~PairsHelper();
