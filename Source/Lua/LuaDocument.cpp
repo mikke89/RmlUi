@@ -50,7 +50,7 @@ void LuaDocument::LoadScript(Stream* stream, const String& source_name)
     {
         String buffer;
         stream->Read(buffer,stream->Length()); //just do the whole thing
-        Interpreter::DoString(buffer, this->GetSourceURL());
+        Interpreter::DoString(buffer, buffer);
     }
 }
 

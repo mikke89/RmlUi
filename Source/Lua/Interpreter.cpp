@@ -67,7 +67,7 @@ void Interpreter::LoadFile(const String& file)
     file_interface->Read(file_contents, size, handle);
     file_interface->Close(handle);
 
-    if (luaL_loadbuffer(L, file_contents, size, file.c_str()) != 0)
+    if (luaL_loadbuffer(L, file_contents, size, ("@" + file).c_str()) != 0)
         Report(L);
     else //if there were no errors loading, then the compiled function is on the top of the stack
     {
