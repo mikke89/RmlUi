@@ -38,8 +38,6 @@ file(GLOB UnitTests_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.cpp
 
 add_executable(UnitTests ${UnitTests_HDR_FILES} ${UnitTests_SRC_FILES})
 target_link_libraries(UnitTests RmlCore doctest::doctest ${sample_LIBRARIES})
-set_target_properties(UnitTests PROPERTIES CXX_STANDARD 14)
-
 add_common_target_options(UnitTests)
 
 if(MSVC)
@@ -64,9 +62,6 @@ else()
 endif()
 
 target_link_libraries(VisualTests RmlCore RmlDebugger lodepng::lodepng ${sample_LIBRARIES})
-set_target_properties(VisualTests PROPERTIES CXX_STANDARD 14)
-
-# Enable compiler warnings
 add_common_target_options(VisualTests)
 
 if(VISUAL_TESTS_RML_DIRECTORIES)
@@ -94,9 +89,6 @@ file(GLOB Benchmarks_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/Benchmarks/*.c
 
 add_executable(Benchmarks ${Benchmarks_HDR_FILES} ${Benchmarks_SRC_FILES} ${TestsCommon_HDR_FILES} ${TestsCommon_SRC_FILES})
 target_link_libraries(Benchmarks RmlCore RmlDebugger doctest::doctest nanobench::nanobench ${sample_LIBRARIES})
-set_target_properties(Benchmarks PROPERTIES CXX_STANDARD 14)
-
-# Enable compiler warnings
 add_common_target_options(Benchmarks)
 
 if(MSVC)
