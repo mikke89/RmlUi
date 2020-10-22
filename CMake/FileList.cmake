@@ -4,8 +4,11 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancerDefault.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataController.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DataControllerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DataExpression.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataModel.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataView.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DataViewDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorGradient.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNinePatch.h
@@ -129,12 +132,10 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ContextInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ConvolutionFilter.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Core.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataController.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataModel.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataModelHandle.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypeRegister.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataVariable.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataView.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DecoratorInstancer.h
@@ -239,6 +240,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DataControllerDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataExpression.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataModel.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/DataModelHandle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataTypeRegister.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataVariable.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DataView.cpp

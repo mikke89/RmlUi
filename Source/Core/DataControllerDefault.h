@@ -33,7 +33,7 @@
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Core/DataVariable.h"
-#include "../../Include/RmlUi/Core/DataController.h"
+#include "DataController.h"
 
 namespace Rml {
 

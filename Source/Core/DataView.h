@@ -29,10 +29,10 @@
 #ifndef RMLUI_CORE_DATAVIEW_H
 #define RMLUI_CORE_DATAVIEW_H
 
-#include "Header.h"
-#include "Types.h"
-#include "Traits.h"
-#include "DataTypes.h"
+#include "../../Include/RmlUi/Core/Header.h"
+#include "../../Include/RmlUi/Core/Types.h"
+#include "../../Include/RmlUi/Core/Traits.h"
+#include "../../Include/RmlUi/Core/DataTypes.h"
 
 namespace Rml {
 
@@ -40,7 +40,7 @@ class Element;
 class DataModel;
 
 
-class RMLUICORE_API DataViewInstancer : public NonCopyMoveable {
+class DataViewInstancer : public NonCopyMoveable {
 public:
 	DataViewInstancer() {}
 	virtual ~DataViewInstancer() {}
@@ -66,7 +66,7 @@ public:
 	The modifier may or may not be required depending on the data view.
  */
 
-class RMLUICORE_API DataView : public Releasable {
+class DataView : public Releasable {
 public:
 	virtual ~DataView();
 
@@ -104,7 +104,7 @@ private:
 
 
 
-class RMLUICORE_API DataViews : NonCopyMoveable {
+class DataViews : NonCopyMoveable {
 public:
 	DataViews();
 	~DataViews();

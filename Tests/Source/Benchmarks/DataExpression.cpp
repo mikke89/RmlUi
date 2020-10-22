@@ -29,7 +29,7 @@
 
 #include "../../../Source/Core/DataExpression.cpp"
 
-#include <RmlUi/Core/DataModel.h>
+#include <RmlUi/Core/DataModelHandle.h>
 #include <doctest.h>
 #include <nanobench.h>
 
