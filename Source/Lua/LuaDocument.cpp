@@ -49,6 +49,9 @@ void LuaDocument::LoadScript(Stream* stream, const String& source_name)
     else
     {
         String buffer;
+        buffer += "--";
+        buffer += this->GetSourceURL();
+        buffer += "\n";
         stream->Read(buffer,stream->Length()); //just do the whole thing
         Interpreter::DoString(buffer, buffer);
     }
