@@ -47,8 +47,6 @@ ShellRenderInterfaceExtensions *shell_renderer;
 
 void GameLoop()
 {
-	HighScores::Update();
-
 	context->Update();
 
 	shell_renderer->PrepareRenderBuffer();

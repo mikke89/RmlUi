@@ -58,11 +58,6 @@ namespace BasicExample {
 
 		return true;
 	}
-
-	void Update()
-	{
-		model_handle.Update();
-	}
 }
 
 
@@ -154,8 +149,6 @@ namespace EventsExample {
 				model_handle.DirtyVariable("list");
 			}
 		}
-
-		model_handle.Update();
 	}
 }
 
@@ -276,8 +269,6 @@ namespace InvadersExample {
 			}
 			invaders_data.time_last_weapons_launched = t;
 		}
-
-		model_handle.Update();
 	}
 }
 
@@ -300,11 +291,6 @@ namespace FormsExample {
 		model_handle = constructor.GetModelHandle();
 
 		return true;
-	}
-
-	void Update()
-	{
-		model_handle.Update();
 	}
 }
 
@@ -377,10 +363,8 @@ void GameLoop()
 {
 	const double t = Rml::GetSystemInterface()->GetElapsedTime();
 	
-	BasicExample::Update();
 	EventsExample::Update();
 	InvadersExample::Update(t);
-	FormsExample::Update();
 
 	context->Update();
 
