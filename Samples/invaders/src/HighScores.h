@@ -38,8 +38,6 @@ public:
 	static void Initialise(Rml::Context* context);
 	static void Shutdown();
 
-	static void Update();
-
 	static int GetHighScore();
 
 	/// Two functions to add a score to the chart.

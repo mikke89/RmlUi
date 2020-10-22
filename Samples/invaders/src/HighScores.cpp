@@ -81,12 +81,6 @@ void HighScores::Shutdown()
 	delete instance;
 }
 
-void HighScores::Update()
-{
-	if (instance->model_handle)
-		instance->model_handle.Update();
-}
-
 int HighScores::GetHighScore()
 {
 	if (instance->scores.empty())

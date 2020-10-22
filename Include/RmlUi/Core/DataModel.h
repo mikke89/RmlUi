@@ -75,7 +75,7 @@ public:
 
 	void OnElementRemove(Element* element);
 
-	bool Update();
+	bool Update(bool clear_dirty_variables);
 
 private:
 	UniquePtr<DataViews> views;
@@ -101,10 +101,6 @@ class RMLUICORE_API DataModelHandle {
 public:
 	DataModelHandle(DataModel* model = nullptr) : model(model)
 	{}
-
-	void Update() {
-		model->Update();
-	}
 
 	bool IsVariableDirty(const String& variable_name) {
 		return model->IsVariableDirty(variable_name);

@@ -365,10 +365,13 @@ void DataModel::OnElementRemove(Element* element)
 	attached_elements.erase(element);
 }
 
-bool DataModel::Update() 
+bool DataModel::Update(bool clear_dirty_variables)
 {
-	bool result = views->Update(*this, dirty_variables);
-	dirty_variables.clear();
+	const bool result = views->Update(*this, dirty_variables);
+
+	if (clear_dirty_variables)
+		dirty_variables.clear();
+	
 	return result;
 }
 
