@@ -28,7 +28,7 @@
 
 #include "DataViewDefault.h"
 #include "DataExpression.h"
-#include "../../Include/RmlUi/Core/DataModel.h"
+#include "DataModel.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Factory.h"

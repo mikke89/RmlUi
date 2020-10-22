@@ -29,7 +29,7 @@
 #include "HighScores.h"
 #include <RmlUi/Core/TypeConverter.h>
 #include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/DataModel.h>
+#include <RmlUi/Core/DataModelHandle.h>
 #include <stdio.h>
 #include <algorithm>
 

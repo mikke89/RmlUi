@@ -30,7 +30,7 @@
 #define RMLUI_INVADERS_HIGHSCORES_H
 
 #include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/DataModel.h>
+#include <RmlUi/Core/DataModelHandle.h>
 
 class HighScores
 {

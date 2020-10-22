@@ -31,8 +31,8 @@
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/Variant.h"
+#include "DataView.h"
 
 namespace Rml {
 

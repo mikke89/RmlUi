@@ -29,9 +29,9 @@
 #ifndef RMLUI_CORE_DATACONTROLLER_H
 #define RMLUI_CORE_DATACONTROLLER_H
 
-#include "Header.h"
-#include "Types.h"
-#include "Traits.h"
+#include "../../Include/RmlUi/Core/Header.h"
+#include "../../Include/RmlUi/Core/Types.h"
+#include "../../Include/RmlUi/Core/Traits.h"
 
 namespace Rml {
 
@@ -39,7 +39,7 @@ class Element;
 class DataModel;
 
 
-class RMLUICORE_API DataControllerInstancer : public NonCopyMoveable {
+class DataControllerInstancer : public NonCopyMoveable {
 public:
     DataControllerInstancer() {}
     virtual ~DataControllerInstancer() {}
@@ -74,7 +74,7 @@ public:
 
  */
 
-class RMLUICORE_API DataController : public Releasable {
+class DataController : public Releasable {
 public:
 	virtual ~DataController();
 
@@ -100,7 +100,7 @@ private:
 };
 
 
-class RMLUICORE_API DataControllers : NonCopyMoveable {
+class DataControllers : NonCopyMoveable {
 public:
     DataControllers();
     ~DataControllers();
