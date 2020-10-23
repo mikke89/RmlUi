@@ -46,9 +46,6 @@ template<> void ExtraInit<ElementStyleProxy>(lua_State* L, int metatable_index)
 
     lua_pushcfunction(L,ElementStyleProxy__pairs);
     lua_setfield(L,metatable_index,"__pairs");
-
-    lua_pushcfunction(L,ElementStyleProxy__ipairs);
-    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 int ElementStyleProxy__index(lua_State* L)
@@ -101,46 +98,58 @@ int ElementStyleProxy__newindex(lua_State* L)
 
 }
 
-//[1] is the object, [2] is the last used key, [3] is the userdata
+struct ElementStyleProxyPairs
+{
+    static int next(lua_State* L) 
+    {
+        ElementStyleProxyPairs* self = static_cast<ElementStyleProxyPairs*>(lua_touserdata(L, lua_upvalueindex(1)));
+        if (self->m_view.AtEnd())
+        {
+            return 0;
+        }
+		const String& key = self->m_view.GetName();
+		const Property& property = self->m_view.GetProperty();
+		String val;
+        property.definition->GetValue(val, property);
+        lua_pushlstring(L, key.c_str(), key.size());
+        lua_pushlstring(L, val.c_str(), val.size());
+        ++self->m_view;
+        return 2;
+    }
+    static int destroy(lua_State* L)
+    {
+        static_cast<ElementStyleProxyPairs*>(lua_touserdata(L, 1))->~ElementStyleProxyPairs();
+        return 0;
+    }
+    static int constructor(lua_State* L, ElementStyleProxy* obj)
+    {
+        void* storage = lua_newuserdata(L, sizeof(ElementStyleProxyPairs));
+        if (luaL_newmetatable(L, "RmlUi::Lua::ElementStyleProxyPairs"))
+        {
+            static luaL_Reg mt[] =
+            {
+                {"__gc", destroy},
+                {NULL, NULL},
+            };
+            luaL_setfuncs(L, mt, 0);
+        }
+        lua_setmetatable(L, -2);
+        lua_pushcclosure(L, next, 1);
+        new (storage) ElementStyleProxyPairs(obj);
+        return 1;
+    }
+    ElementStyleProxyPairs(ElementStyleProxy* obj)
+        : m_view(obj->owner->IterateLocalProperties())
+    { }
+    PropertiesIteratorView m_view;
+};
+
 int ElementStyleProxy__pairs(lua_State* L)
 {
     ElementStyleProxy* obj = LuaType<ElementStyleProxy>::check(L,1);
     RMLUI_CHECK_OBJ(obj);
-    int* pindex = (int*)lua_touserdata(L,3);
-	if ((*pindex) == -1)
-		*pindex = 0;
-
-	int i = 0;
-	auto it = obj->owner->IterateLocalProperties();
-	while (i < (*pindex) && !it.AtEnd())
-	{
-		++it;
-		++i;
-	}
-
-    if(!it.AtEnd())
-    {
-		const String& key = it.GetName();
-		const Property& property = it.GetProperty();
-		String val;
-        property.definition->GetValue(val, property);
-        lua_pushstring(L,key.c_str());
-        lua_pushstring(L,val.c_str());
-    }
-    else
-    {
-        lua_pushnil(L);
-        lua_pushnil(L);
-    }
-    return 2;
-}
-
-//only indexed by string
-int ElementStyleProxy__ipairs(lua_State* L)
-{
-    lua_pushnil(L);
-    lua_pushnil(L);
-    return 2;
+    ElementStyleProxyPairs::constructor(L, obj);
+    return 1;
 }
 
 RegType<ElementStyleProxy> ElementStyleProxyMethods[] = 

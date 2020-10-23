@@ -41,7 +41,6 @@ struct RmlUiContextsProxy { void* nothing;  };
 template<> void ExtraInit<RmlUiContextsProxy>(lua_State* L, int metatable_index);
 int RmlUiContextsProxy__index(lua_State* L);
 int RmlUiContextsProxy__pairs(lua_State* L);
-int RmlUiContextsProxy__ipairs(lua_State* L);
 
 extern RegType<RmlUiContextsProxy> RmlUiContextsProxyMethods[];
 extern luaL_Reg RmlUiContextsProxyGetters[];

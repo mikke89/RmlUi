@@ -40,7 +40,6 @@ struct SelectOptionsProxy { ElementFormControlSelect* owner;  };
 
 int SelectOptionsProxy__index(lua_State* L);
 int SelectOptionsProxy__pairs(lua_State* L);
-int SelectOptionsProxy__ipairs(lua_State* L);
 
 extern RegType<SelectOptionsProxy> SelectOptionsProxyMethods[];
 extern luaL_Reg SelectOptionsProxyGetters[];

@@ -38,8 +38,6 @@ template<> void ExtraInit<ContextDocumentsProxy>(lua_State* L, int metatable_ind
     lua_setfield(L,metatable_index,"__index");
     lua_pushcfunction(L,ContextDocumentsProxy__pairs);
     lua_setfield(L,metatable_index,"__pairs");
-    lua_pushcfunction(L,ContextDocumentsProxy__ipairs);
-    lua_setfield(L,metatable_index,"__ipairs");
 }
 
 int ContextDocumentsProxy__index(lua_State* L)
@@ -53,7 +51,7 @@ int ContextDocumentsProxy__index(lua_State* L)
         if(type == LUA_TSTRING)
             ret = proxy->owner->GetDocument(luaL_checkstring(L,2));
         else
-            ret = proxy->owner->GetDocument((int)luaL_checkinteger(L,2));
+            ret = proxy->owner->GetDocument((int)luaL_checkinteger(L,2)-1);
         LuaType<Document>::push(L,ret,false);
         return 1;
     }
@@ -62,74 +60,64 @@ int ContextDocumentsProxy__index(lua_State* L)
     
 }
 
-//[1] is the object, [2] is the last used key, [3] is the userdata
-int ContextDocumentsProxy__pairs(lua_State* L)
+struct ContextDocumentsProxyPairs
 {
-    Document* doc = nullptr;
-    ContextDocumentsProxy* obj = LuaType<ContextDocumentsProxy>::check(L,1);
-    RMLUI_CHECK_OBJ(obj);
-    int* pindex = (int*)lua_touserdata(L,3);
-    if((*pindex) == -1)
-        *pindex = 0;
-
-    int num_docs = obj->owner->GetNumDocuments();
-    //because there can be missing indexes, make sure to continue until there
-    //is actually a document at the index
-    while((*pindex) < num_docs)
+    static int next(lua_State* L) 
     {
-        doc = obj->owner->GetDocument((*pindex)++);
-        if(doc != nullptr)
-            break;
-    }
-
-    //If we found a document 
-    if(doc != nullptr)
-    {
+        ContextDocumentsProxy* obj = LuaType<ContextDocumentsProxy>::check(L,1);
+        ContextDocumentsProxyPairs* self = static_cast<ContextDocumentsProxyPairs*>(lua_touserdata(L, lua_upvalueindex(1)));
+        Document* doc = nullptr;
+        int num_docs = obj->owner->GetNumDocuments();
+        //because there can be missing indexes, make sure to continue until there
+        //is actually a document at the index
+        while (self->m_cur < num_docs)
+        {
+            doc = obj->owner->GetDocument(self->m_cur++);
+            if (doc != nullptr)
+                break;
+        }
+        if (doc == nullptr)
+        {
+            return 0;
+        }
         lua_pushstring(L,doc->GetId().c_str());
         LuaType<Document>::push(L,doc);
+        return 2;
     }
-    else //if we were at the end and didn't find a document
+    static int destroy(lua_State* L)
     {
-        lua_pushnil(L);
-        lua_pushnil(L);
+        static_cast<ContextDocumentsProxyPairs*>(lua_touserdata(L, 1))->~ContextDocumentsProxyPairs();
+        return 0;
     }
-    return 2;
-}
+    static int constructor(lua_State* L)
+    {
+        void* storage = lua_newuserdata(L, sizeof(ContextDocumentsProxyPairs));
+        if (luaL_newmetatable(L, "RmlUi::Lua::ContextDocumentsProxyPairs"))
+        {
+            static luaL_Reg mt[] =
+            {
+                {"__gc", destroy},
+                {NULL, NULL},
+            };
+            luaL_setfuncs(L, mt, 0);
+        }
+        lua_setmetatable(L, -2);
+        lua_pushcclosure(L, next, 1);
+        new (storage) ContextDocumentsProxyPairs();
+        return 1;
+    }
+    ContextDocumentsProxyPairs()
+        : m_cur(0)
+    { }
+    int m_cur;
+};
 
-//same as __pairs, but putting an integer key instead of a string key
-int ContextDocumentsProxy__ipairs(lua_State* L)
+int ContextDocumentsProxy__pairs(lua_State* L)
 {
-    Document* doc = nullptr;
-    ContextDocumentsProxy* obj = LuaType<ContextDocumentsProxy>::check(L,1);
-    RMLUI_CHECK_OBJ(obj);
-    int* pindex = (int*)lua_touserdata(L,3);
-    if((*pindex) == -1)
-        *pindex = 0;
-
-    int num_docs = obj->owner->GetNumDocuments();
-    //because there can be missing indexes, make sure to continue until there
-    //is actually a document at the index
-    while((*pindex) < num_docs)
-    {
-        doc = obj->owner->GetDocument((*pindex)++);
-        if(doc != nullptr)
-            break;
-    }
-
-    //we found a document
-    if(doc != nullptr)
-    {
-        lua_pushinteger(L,(*pindex)-1);
-        LuaType<Document>::push(L,doc);
-    }
-    else //we got to the end and didn't find another document
-    {
-        lua_pushnil(L);
-        lua_pushnil(L);
-    }
+    ContextDocumentsProxyPairs::constructor(L);
+    lua_pushvalue(L, 1);
     return 2;
 }
-
 
 RegType<ContextDocumentsProxy> ContextDocumentsProxyMethods[] =
 {

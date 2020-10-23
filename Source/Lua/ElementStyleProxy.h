@@ -42,7 +42,6 @@ template<> void ExtraInit<ElementStyleProxy>(lua_State* L, int metatable_index);
 int ElementStyleProxy__index(lua_State* L);
 int ElementStyleProxy__newindex(lua_State* L);
 int ElementStyleProxy__pairs(lua_State* L);
-int ElementStyleProxy__ipairs(lua_State* L);
 
 extern RegType<ElementStyleProxy> ElementStyleProxyMethods[];
 extern luaL_Reg ElementStyleProxyGetters[];
