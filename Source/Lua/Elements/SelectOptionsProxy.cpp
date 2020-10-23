@@ -44,7 +44,7 @@ int SelectOptionsProxy__index(lua_State* L)
         SelectOptionsProxy* proxy = LuaType<SelectOptionsProxy>::check(L,1);
         RMLUI_CHECK_OBJ(proxy);
         int index = (int)luaL_checkinteger(L,2);
-        SelectOption* opt = proxy->owner->GetOption(index);
+        SelectOption* opt = proxy->owner->GetOption(index-1);
         RMLUI_CHECK_OBJ(opt);
         lua_newtable(L);
         LuaType<Element>::push(L,opt->GetElement(),false);
