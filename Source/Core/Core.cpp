@@ -285,9 +285,9 @@ Context* GetContext(int index)
 {
 	ContextMap::iterator i = contexts.begin();
 	int count = 0;
-
-	if (index >= GetNumContexts())
-		index = GetNumContexts() - 1;
+	
+	if (index < 0 || index >= GetNumContexts())
+		return nullptr;
 
 	while (count < index)
 	{
