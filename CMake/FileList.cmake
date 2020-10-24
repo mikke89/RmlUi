@@ -500,6 +500,7 @@ set(Lua_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Lua/LuaEventListener.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/LuaEventListenerInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/LuaPlugin.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/Pairs.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/RmlUi.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/RmlUiContextsProxy.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2f.h

@@ -111,6 +111,20 @@ Use the RCSS `display` property to enable table formatting. See the stylesheet r
 
 - Added [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html) for displaying vector animations using the `<lottie>` element [#134](https://github.com/mikke89/RmlUi/pull/134) (thanks @diamondhat).
 
+### Lua plugin
+
+Improved Lua plugin in several aspects.
+
+- Added detailed [documentation for the Lua plugin](https://mikke89.github.io/RmlUiDoc/pages/lua_manual.html). [RmlUiDocs#4](https://github.com/mikke89/RmlUiDoc/pull/4) (thanks @IronicallySerious)
+- Remove overriding globals, use standard pairs/ipars implementation, make array indices 1-based. [#95](https://github.com/mikke89/RmlUi/issues/95) [#137](https://github.com/mikke89/RmlUi/pull/137) (thanks @actboy168)
+- Improve compatibility with debuggers and fix compatibility with Lua 5.4. [#136](https://github.com/mikke89/RmlUi/pull/136) [#138](https://github.com/mikke89/RmlUi/pull/138) (thanks @actboy168)
+
+### Input
+
+- Added `Context::IsMouseInteracting()` to determine whether the mouse cursor hovers or otherwise interacts with documents. [#124](https://github.com/mikke89/RmlUi/issues/124)
+- Added boolean return values to `Context::ProcessMouse...()` functions to determine whether the mouse is interacting with documents.
+- Fixed some situations where the return value of `Context::Process...()` was wrong.
+
 ### Other features and improvements
 
 - Implemented `Element::QuerySelector` and `Element::QuerySelectorAll`.
@@ -118,8 +132,6 @@ Use the RCSS `display` property to enable table formatting. See the stylesheet r
 - A custom configuration can now be used by RmlUi. In this way it is possible to replace several types including containers to other STL-compatible containers (such as [EASTL](https://github.com/electronicarts/EASTL)), or to STL containers with custom allocators. See the `CUSTOM_CONFIGURATION` [CMake option](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html#cmake-options). [#110](https://github.com/mikke89/RmlUi/pull/110) (thanks @rokups).
 - Added ability to change the default base tag in documents [#112](https://github.com/mikke89/RmlUi/pull/112)  (thanks @aquawicket).
 - Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
-- Fixed building with MinGW, and added it to the CI to avoid future breaks. [#108](https://github.com/mikke89/RmlUi/pull/108) (thanks @cloudwu).
-- Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) (thanks @SpaceCat-Chan).
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
 - Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
 - Add `Rml::GetTextureSourceList()` function to list all image sources loaded in all documents. [#131](https://github.com/mikke89/RmlUi/issues/131)
@@ -128,6 +140,11 @@ Use the RCSS `display` property to enable table formatting. See the stylesheet r
 
 - Fix some situations where `text-decoration` would not be rendered. [#119](https://github.com/mikke89/RmlUi/issues/119).
 - Changing the `fill-image` property of \<progressbar\> elements now actually updates the image.
+- Fix a bug where font textures were leaked on `Rml::Shutdown()`. [#133](https://github.com/mikke89/RmlUi/issues/133)
+- Fixed building with MinGW, and added it to the CI to avoid future breaks. [#108](https://github.com/mikke89/RmlUi/pull/108) (thanks @cloudwu).
+- Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) (thanks @SpaceCat-Chan).
+- Fix \<textarea\> getting an unnecessary horizontal scrollbar. [#122](https://github.com/mikke89/RmlUi/issues/122)
+- Fix text-decoration not always being regenerated. [#119](https://github.com/mikke89/RmlUi/issues/119)
 
 ### Breaking changes
 
