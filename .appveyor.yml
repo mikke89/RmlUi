@@ -1,16 +1,23 @@
 version: build.{build}
-image: Visual Studio 2017
-matrix:
-  fast_finish: true
+
+# We run MinGW on the Visual Studio 2019 image and MSVC on the Visual Studio 2017 image.
+image:
+  - Visual Studio 2019
+  - Visual Studio 2017
+
 environment:
   FREETYPE_VER: 2.10.1
-  RUN_MINGW: false
+  VS_SHORTNAME: vs2017
   matrix:
-    - RUN_MINGW: true
     - VS_GENERATOR: Visual Studio 15 2017 Win64
       PLATFORM_NAME: win64
     - VS_GENERATOR: Visual Studio 15 2017
       PLATFORM_NAME: win32
+matrix:
+  exclude:
+    - image: Visual Studio 2019
+      PLATFORM_NAME: win32
+
 install:
 - cmd: |-
     cd Dependencies
@@ -74,7 +81,7 @@ after_build:
     echo Built using %VS_GENERATOR% on %APPVEYOR_REPO_COMMIT_TIMESTAMP:~0,10% (build %APPVEYOR_BUILD_NUMBER%).>> Readme.txt
     echo Commit id: %APPVEYOR_REPO_COMMIT%.>> Readme.txt
     
-    7z a RmlUi-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Readme.txt changelog.md LICENSE Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/licenses/
+    7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Readme.txt changelog.md LICENSE Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/licenses/
     
     mkdir Samples\Dependencies\freetype-%FREETYPE_VER%, Samples\Dependencies\rlottie, Samples\Dependencies\rlottie\licenses
     cp Dependencies/freetype-%FREETYPE_VER%/*.TXT Samples/Dependencies/freetype-%FREETYPE_VER%
@@ -86,19 +93,11 @@ for:
 -
   matrix:
     only:
-      - RUN_MINGW: true
+      - image: Visual Studio 2019
   install:
   - cmd: |-
-      C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Syuu"
-      C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Syuu"
-      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-gcc"
-      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-make"
-      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-freetype"
-      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-sfml"
-      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-lua"
-      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-SDL2"
-      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-SDL2_image"
-      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-glew"
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-freetype mingw-w64-x86_64-lua"
+      C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-sfml mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-glew"
       
       mkdir Build
       cd Build
@@ -122,9 +121,7 @@ for:
       ls {*.exe,*.dll} -s -h -X
 
 artifacts:
-- path: RmlUi-win64.zip
-- path: RmlUi-win64-samples-only.zip
-- path: RmlUi-win32.zip
+- path: RmlUi-*.zip
 deploy:
   release: RmlUi $(APPVEYOR_REPO_TAG_NAME)
   description: 'Release description'
