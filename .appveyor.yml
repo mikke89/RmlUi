@@ -89,6 +89,8 @@ for:
       - RUN_MINGW: true
   install:
   - cmd: |-
+      C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Syuu"
+      C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Syuu"
       C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-gcc"
       C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-make"
       C:\msys64\usr\bin\bash -lc "pacman --needed --noconfirm -S mingw-w64-x86_64-freetype"
