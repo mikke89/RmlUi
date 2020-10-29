@@ -146,6 +146,7 @@ int ElementDispatchEvent(lua_State* L, Element* obj)
         default:
             break;
         }
+        lua_pop(L, 1); //pops value, leaves key for next iteration
     }
     obj->DispatchEvent(event, params);
     return 0;

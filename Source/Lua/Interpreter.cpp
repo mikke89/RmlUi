@@ -89,7 +89,7 @@ bool Interpreter::LoadFile(const String& file)
         Log::Message(Log::LT_WARNING, "LoadFile: File is 0 bytes in size: %s", file.c_str());
         return false;
     }
-    std::unique_ptr<char[]> file_contents(new char[size]);
+    UniquePtr<char[]> file_contents(new char[size]);
     file_interface->Read(file_contents.get(), size, handle);
     file_interface->Close(handle);
 
