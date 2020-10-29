@@ -60,7 +60,7 @@ static bool LuaCall(lua_State* L, int nargs, int nresults)
     if (lua_pcall(L, nargs, nresults, errfunc) != LUA_OK)
     {
         Log::Message(Log::LT_WARNING, "%s", lua_tostring(L, -1));
-        lua_pop(L, 1);
+        lua_pop(L, 2);
         return false;
     }
     lua_remove(L, -1 - nresults);
