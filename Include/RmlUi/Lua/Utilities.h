@@ -43,13 +43,6 @@ namespace Lua {
 @relates LuaType */
 void RMLUILUA_API PushVariant(lua_State* L, const Variant* var);
 
-/** If there are errors on the top of the stack, this will print those out to the log.
-@param L A Lua state, and if not passed in, will use the Interpreter's state
-@param place A string that will be printed to the log right before the error message, seperated by a space. Set
-this when you would get no information about where the error happens.
-@relates Interpreter   */
-void RMLUILUA_API Report(lua_State* L = nullptr, const String& place = "");
-
 //Helper function, so that the types don't have to define individual functions themselves
 // to fill the Elements.As table
 template<typename ToType>

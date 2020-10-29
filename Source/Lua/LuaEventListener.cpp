@@ -57,19 +57,11 @@ LuaEventListener::LuaEventListener(const String& code, Element* element) : Event
     int tbl = lua_gettop(L);
 
     //compile,execute,and save the function
-    if(luaL_loadstring(L,function.c_str()) != 0)
+    if (!Interpreter::LoadString(function, code) || !Interpreter::ExecuteCall(0, 1))
     {
-        Report(L);
         return;
     }
-    else
-    {
-        if(lua_pcall(L,0,1,0) != 0)
-        {
-            Report(L);
-            return;
-        }
-    }
+
     luaFuncRef = luaL_ref(L,tbl); //creates a reference to the item at the top of the stack in to the table we just created
     lua_pop(L,1); //pop the EVENTLISTENERFUNCTIONS table
 

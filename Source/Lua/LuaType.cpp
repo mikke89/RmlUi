@@ -56,8 +56,7 @@ int LuaTypeImpl::index(lua_State* L, const char* class_name)
             if (lua_type(L, -1) == LUA_TFUNCTION) //[-1 = 5]
             {
                 lua_pushvalue(L, 1); //push the userdata to the stack [6]
-                if (lua_pcall(L, 1, 1, 0) != 0) //remove one, result is at [6]
-                    Report(L, String(class_name).append(".__index for ").append(lua_tostring(L, 2)).append(": "));
+                lua_call(L, 1, 1); //remove one, result is at [6]
             }
             else
             {
@@ -70,8 +69,7 @@ int LuaTypeImpl::index(lua_State* L, const char* class_name)
                     {
                         lua_pushvalue(L, 1); //[1] = object -> [7] = object
                         lua_pushvalue(L, 2); //[2] = key -> [8] = key
-                        if (lua_pcall(L, 2, 1, 0) != 0) //call function at top of stack (__index) -> pop top 2 as args; [7] = return value
-                            Report(L, String(class_name).append(".__index for ").append(lua_tostring(L, 2)).append(": "));
+                        lua_call(L, 2, 1); //call function at top of stack (__index) -> pop top 2 as args; [7] = return value
                     }
                     else if (lua_istable(L, -1))
                         lua_getfield(L, -1, key); //shorthand version of above -> [7] = return value
@@ -109,8 +107,7 @@ int LuaTypeImpl::newindex(lua_State* L, const char* class_name)
     {
         lua_pushvalue(L, 1); //userdata at [7]
         lua_pushvalue(L, 3); //[8] = copy of [3]
-        if (lua_pcall(L, 2, 0, 0) != 0) //call function, pop 2 off push 0 on
-            Report(L, String(class_name).append(".__newindex for ").append(lua_tostring(L, 2)).append(": "));
+        lua_call(L, 2, 0); //call function, pop 2 off push 0 on
     }
     else
         lua_pop(L, 1); //not a setter function.

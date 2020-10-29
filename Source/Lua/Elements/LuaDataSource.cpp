@@ -59,22 +59,19 @@ void LuaDataSource::GetRow(StringList& row, const String& table, int row_index, 
     }
     Interpreter::ExecuteCall(3,1); //3 parameters, 1 return. After here, the top of the stack contains the return value
 
-    int res = lua_gettop(L);
-    if(lua_type(L,res) == LUA_TTABLE)
+    if(lua_type(L,-1) == LUA_TTABLE)
     {
         lua_pushnil(L);
-        while(lua_next(L,res) != 0)
+        while (lua_next(L, -2))
         {
             //key at -2, value at -1
             row.push_back(luaL_checkstring(L,-1));
             lua_pop(L,1); //pops value, leaves key for next iteration
         }
-        lua_pop(L,1); //pop key
     }
     else
-        Log::Message(Log::LT_WARNING, "Lua: DataSource.GetRow must return a table, the function it called returned a %s", lua_typename(L,res));
-
-    Interpreter::EndCall(1);
+        Log::Message(Log::LT_WARNING, "Lua: DataSource.GetRow must return a table, the function it called returned a %s", lua_typename(L,-1));
+    lua_pop(L,1);
 }
 
 /// Fetches the number of rows within one of this data source's tables.
@@ -89,17 +86,17 @@ int LuaDataSource::GetNumRows(const String& table)
     lua_pushstring(L,table.c_str());
     Interpreter::ExecuteCall(1,1); //1 parameter, 1 return. After this, the top of the stack contains the return value
 
-    int res = lua_gettop(L);
-    if(lua_type(L,res) == LUA_TNUMBER)
+    int res = -1;
+    if(lua_type(L, -1) == LUA_TNUMBER)
     {
-        return (int)luaL_checkinteger(L,res);
+        res = (int)luaL_checkinteger(L,res);
     }
     else
     {
-        Log::Message(Log::LT_WARNING, "Lua: DataSource.GetNumRows must return an integer, the function it called returned a %s", lua_typename(L,res));
-        return -1;
+        Log::Message(Log::LT_WARNING, "Lua: DataSource.GetNumRows must return an integer, the function it called returned a %s", lua_typename(L,-1));
     }
-
+    lua_pop(L, 1);
+    return res;
 }
 
 } // namespace Lua

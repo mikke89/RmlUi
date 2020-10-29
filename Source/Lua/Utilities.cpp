@@ -72,22 +72,5 @@ void PushVariant(lua_State* L, const Variant* var)
     }
 }
 
-
-void Report(lua_State* L, const String& place)
-{
-    const char * msg= lua_tostring(L,-1);
-    String strmsg;
-    while(msg)
-    {
-        lua_pop(L,1);
-        if(place == "")
-            strmsg = msg;
-        else
-            strmsg = String(place).append(" ").append(msg);
-        Log::Message(Log::LT_WARNING, strmsg.c_str());
-        msg=lua_tostring(L,-1);
-    }
-}
-
 } // namespace Lua
 } // namespace Rml
