@@ -30,7 +30,6 @@
 #include "LuaPlugin.h"
 #include "LuaDocumentElementInstancer.h"
 #include "LuaEventListenerInstancer.h"
-#include <RmlUi/Lua/Utilities.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/FileInterface.h>
@@ -39,12 +38,41 @@
 namespace Rml {
 namespace Lua {
 
+static int ErrorHandler(lua_State* L)
+{
+    const char* msg = lua_tostring(L, 1);
+    if (msg == NULL)
+    {
+        if (luaL_callmeta(L, 1, "__tostring") && lua_type(L, -1) == LUA_TSTRING)
+            return 1;
+        else
+            msg = lua_pushfstring(L, "(error object is a %s value)", luaL_typename(L, 1));
+    }
+    luaL_traceback(L, L, msg, 1);
+    return 1;
+}
+
+static bool LuaCall(lua_State* L, int nargs, int nresults)
+{
+    int errfunc = -2 - nargs;
+    lua_pushcfunction(L, ErrorHandler);
+    lua_insert(L, errfunc);
+    if (lua_pcall(L, nargs, nresults, errfunc) != LUA_OK)
+    {
+        Log::Message(Log::LT_WARNING, "%s", lua_tostring(L, -1));
+        lua_pop(L, 2);
+        return false;
+    }
+    lua_remove(L, -1 - nresults);
+    return true;
+}
+
 lua_State* Interpreter::GetLuaState()
 {
     return LuaPlugin::GetLuaState();
 }
 
-void Interpreter::LoadFile(const String& file)
+bool Interpreter::LoadFile(const String& file)
 {
     lua_State* L = GetLuaState();
 
@@ -52,52 +80,45 @@ void Interpreter::LoadFile(const String& file)
     FileInterface* file_interface = GetFileInterface();
     FileHandle handle = file_interface->Open(file);
     if (handle == 0) {
-        lua_pushfstring(L, "LoadFile: Unable to open file: %s", file.c_str());
-        Report(L);
-        return;
+        Log::Message(Log::LT_WARNING, "LoadFile: Unable to open file: %s", file.c_str());
+        return false;
     }
 
     size_t size = file_interface->Length(handle);
     if (size == 0) {
-        lua_pushfstring(L, "LoadFile: File is 0 bytes in size: %s", file.c_str());
-        Report(L);
-        return;
+        Log::Message(Log::LT_WARNING, "LoadFile: File is 0 bytes in size: %s", file.c_str());
+        return false;
     }
-    char* file_contents = new char[size];
-    file_interface->Read(file_contents, size, handle);
+    std::unique_ptr<char[]> file_contents(new char[size]);
+    file_interface->Read(file_contents.get(), size, handle);
     file_interface->Close(handle);
 
-    if (luaL_loadbuffer(L, file_contents, size, ("@" + file).c_str()) != 0)
-        Report(L);
-    else //if there were no errors loading, then the compiled function is on the top of the stack
+    if (luaL_loadbuffer(L, file_contents.get(), size, ("@" + file).c_str()) != 0)
     {
-        if (lua_pcall(L, 0, 0, 0) != 0)
-            Report(L);
+        Log::Message(Log::LT_WARNING, "%s", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return false;
     }
-
-    delete[] file_contents;
+    return LuaCall(L, 0, 0);;
 }
 
+bool Interpreter::DoString(const String& code, const String& name)
+{
+    lua_State* L = GetLuaState();
+    return LoadString(code, name) && LuaCall(L, 0, 0);
+}
 
-void Interpreter::DoString(const String& code, const String& name)
+bool Interpreter::LoadString(const String& code, const String& name)
 {
     lua_State* L = GetLuaState();
 
     if (luaL_loadbuffer(L, code.c_str(), code.length(), name.c_str()) != 0)
-        Report(L);
-    else
     {
-        if (lua_pcall(L, 0, 0, 0) != 0)
-            Report(L);
+        Log::Message(Log::LT_WARNING, "%s", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return false;
     }
-}
-
-void Interpreter::LoadString(const String& code, const String& name)
-{
-    lua_State* L = GetLuaState();
-
-    if (luaL_loadbuffer(L, code.c_str(), code.length(), name.c_str()) != 0)
-        Report(L);
+    return true;
 }
 
 
@@ -113,43 +134,13 @@ void Interpreter::BeginCall(int funRef)
 bool Interpreter::ExecuteCall(int params, int res)
 {
     lua_State* L = GetLuaState();
-
-    bool ret = true;
-    int top = lua_gettop(L);
-    if (lua_type(L, top - params) != LUA_TFUNCTION)
-    {
-        ret = false;
-        //stack cleanup
-        if (params > 0)
-        {
-            for (int i = top; i >= (top - params); i--)
-            {
-                if (!lua_isnone(L, i))
-                    lua_remove(L, i);
-            }
-        }
-    }
-    else
-    {
-        if (lua_pcall(L, params, res, 0) != 0)
-        {
-            Report(L);
-            ret = false;
-        }
-    }
-    return ret;
+    return LuaCall(L, params, res);
 }
 
 void Interpreter::EndCall(int res)
 {
     lua_State* L = GetLuaState();
-
-    //stack cleanup
-    for (int i = res; i > 0; i--)
-    {
-        if (!lua_isnone(L, res))
-            lua_remove(L, res);
-    }
+    lua_pop(L, res);
 }
 
 } // namespace Lua

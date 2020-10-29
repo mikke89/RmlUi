@@ -50,16 +50,16 @@ namespace Interpreter {
     @param[in] file Fully qualified file name to execute.
     @remark Somewhat misleading name if you are used to the Lua meaning of "load file". It behaves
     exactly as luaL_dofile does.            */
-    RMLUILUA_API void LoadFile(const String& file);
+    RMLUILUA_API bool LoadFile(const String& file);
     /** Calls lua_dostring and reports the errors.
     @param[in] code String to execute
     @param[in] name Name for the code that will show up in the Log  */
-    RMLUILUA_API void DoString(const String& code, const String& name = "");
+    RMLUILUA_API bool DoString(const String& code, const String& name = "");
     /** Same as DoString, except does NOT call pcall on it. It will leave the compiled (but not executed) string
     on top of the stack. It behaves exactly like luaL_loadstring, but you get to specify the name
     @param[in] code String to compile
     @param[in] name Name for the code that will show up in the Log    */
-    RMLUILUA_API void LoadString(const String& code, const String& name = "");
+    RMLUILUA_API bool LoadString(const String& code, const String& name = "");
 
     /** Clears all of the items on the stack, and pushes the function from funRef on top of the stack. Only use
     this if you used lua_ref instead of luaL_ref
