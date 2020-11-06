@@ -126,19 +126,18 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		SetStyleSheet(std::move(new_style_sheet));
 	}
 
-	// Load external scripts.
-	for (size_t i = 0; i < header.scripts_external.size(); i++)
+	// Load scripts.
+	for (auto const& s : header.scripts)
 	{
-		auto stream = MakeUnique<StreamFile>();
-		if (stream->Open(header.scripts_external[i]))
-			LoadScript(stream.get(), header.scripts_external[i]);
-	}
-
-	// Load internal scripts.
-	for (size_t i = 0; i < header.scripts_inline.size(); i++)
-	{
-		auto stream = MakeUnique<StreamMemory>((const byte*) header.scripts_inline[i].c_str(), header.scripts_inline[i].size());
-		LoadScript(stream.get(), "");
+		if (s.line)
+		{
+			auto stream = MakeUnique<StreamMemory>((const byte*) s.context.c_str(), s.context.size());
+			LoadInlineScript(s.context, s.line);
+		}
+		else
+		{
+			LoadExternalScript(s.context);
+		}
 	}
 
 	// Hide this document.
@@ -341,10 +340,16 @@ bool ElementDocument::IsModal() const
 	return modal && IsVisible();
 }
 
-// Default load script implementation
-void ElementDocument::LoadScript(Stream* RMLUI_UNUSED_PARAMETER(stream), const String& RMLUI_UNUSED_PARAMETER(source_name))
+// Default load inline script implementation
+void ElementDocument::LoadInlineScript(const String& RMLUI_UNUSED_PARAMETER(source), int RMLUI_UNUSED_PARAMETER(line))
 {
-	RMLUI_UNUSED(stream);
+	RMLUI_UNUSED(source);
+	RMLUI_UNUSED(line);
+}
+
+// Default load external script implementation
+void ElementDocument::LoadExternalScript(const String& RMLUI_UNUSED_PARAMETER(source_name))
+{
 	RMLUI_UNUSED(source_name);
 }
 

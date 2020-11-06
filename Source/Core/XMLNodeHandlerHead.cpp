@@ -95,7 +95,7 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 		String src = Get<String>(attributes, "src", "");
 		if (src.size() > 0)
 		{
-			parser->GetDocumentHeader()->scripts_external.push_back(src);
+			parser->GetDocumentHeader()->scripts.push_back({src});
 		}
 	}
 
@@ -134,7 +134,7 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data, XMLD
 
 	// Store an inline script
 	if (tag == "script" && data.size() > 0)
-		parser->GetDocumentHeader()->scripts_inline.push_back(data);
+		parser->GetDocumentHeader()->scripts.push_back({data, parser->GetLineNumberOpenTag()});
 
 	// Store an inline style
 	if (tag == "style" && data.size() > 0)

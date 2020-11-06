@@ -52,16 +52,22 @@ public:
 	/// A list of template resources that can used while parsing the document
 	StringList template_resources;
 
+	struct Resource {
+		String context;
+		int line = 0;
+	};
 	/// Inline RCSS definitions
 	StringList rcss_inline;
 	LineNumberList rcss_inline_line_numbers;
 	/// External RCSS definitions that should be loaded
 	StringList rcss_external;
 
-	/// Inline script source
-	StringList scripts_inline;
-	/// External scripts that should be loaded
-	StringList scripts_external;
+	struct Script {
+		int line = 0;
+		String context;
+	};
+	/// script source
+	Vector<Resource> scripts;
 
 	/// Merges the specified header with this one
 	/// @param header Header to merge
@@ -69,6 +75,9 @@ public:
 
 	/// Merges paths from one string list to another, preserving the base_path
 	void MergePaths(StringList& target, const StringList& source, const String& base_path);
+
+	/// Merges reources
+	void MergeReources(Vector<Resource>& target, const Vector<Resource>& source, const String& base_path);
 };
 
 } // namespace Rml

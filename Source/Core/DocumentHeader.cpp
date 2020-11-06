@@ -46,12 +46,12 @@ void DocumentHeader::MergeHeader(const DocumentHeader& header)
 	// Combine internal data	
 	rcss_inline.insert(rcss_inline.end(), header.rcss_inline.begin(), header.rcss_inline.end());	
 	rcss_inline_line_numbers.insert(rcss_inline_line_numbers.end(), header.rcss_inline_line_numbers.begin(), header.rcss_inline_line_numbers.end());
-	scripts_inline.insert(scripts_inline.end(), header.scripts_inline.begin(), header.scripts_inline.end());
+
 	
 	// Combine external data, keeping relative paths
 	MergePaths(template_resources, header.template_resources, header.source);
 	MergePaths(rcss_external, header.rcss_external, header.source);
-	MergePaths(scripts_external, header.scripts_external, header.source);
+	MergeReources(scripts, header.scripts, header.source);
 }
 
 void DocumentHeader::MergePaths(StringList& target, const StringList& source, const String& source_path)
@@ -62,6 +62,23 @@ void DocumentHeader::MergePaths(StringList& target, const StringList& source, co
 		::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(source_path, '|', ':'), StringUtilities::Replace(source[i], '|', ':'));
 
 		target.push_back(StringUtilities::Replace(joined_path, ':', '|'));
+	}
+}
+
+void DocumentHeader::MergeReources(Vector<Resource>& target, const Vector<Resource>& source, const String& base_path)
+{
+	for (auto const& s : source)
+	{
+		if (s.line)
+		{
+			target.push_back(s);
+		}
+		else
+		{
+			String joined_path;
+			::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(base_path, '|', ':'), StringUtilities::Replace(s.context, '|', ':'));
+			target.push_back({StringUtilities::Replace(joined_path, ':', '|')});
+		}
 	}
 }
 

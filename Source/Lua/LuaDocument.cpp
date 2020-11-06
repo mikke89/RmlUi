@@ -39,22 +39,21 @@ LuaDocument::LuaDocument(const String& tag) : ElementDocument(tag)
 {
 }
 
-void LuaDocument::LoadScript(Stream* stream, const String& source_name)
+void LuaDocument::LoadInlineScript(const String& source, int line)
 {
-    //if it is loaded from a file
-    if(!source_name.empty())
-    {
-        Interpreter::LoadFile(source_name);
-    }
-    else
-    {
-        String buffer;
-        buffer += "--";
-        buffer += this->GetSourceURL();
-        buffer += "\n";
-        stream->Read(buffer,stream->Length()); //just do the whole thing
-        Interpreter::DoString(buffer, buffer);
-    }
+    String buffer;
+    buffer += "--";
+    buffer += this->GetSourceURL();
+    buffer += ":";
+    buffer += std::to_string(line);
+    buffer += "\n";
+    buffer += source;
+    Interpreter::DoString(buffer, buffer);
+}
+
+void LuaDocument::LoadExternalScript(const String& source_name)
+{
+    Interpreter::LoadFile(source_name);
 }
 
 } // namespace Lua
