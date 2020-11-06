@@ -62,10 +62,6 @@ public:
 	/// External RCSS definitions that should be loaded
 	StringList rcss_external;
 
-	struct Script {
-		int line = 0;
-		String context;
-	};
 	/// script source
 	Vector<Resource> scripts;
 
