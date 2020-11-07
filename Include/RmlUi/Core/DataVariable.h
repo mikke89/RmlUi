@@ -41,6 +41,12 @@ namespace Rml {
 enum class DataVariableType { Scalar, Array, Struct, Function, MemberFunction };
 
 
+/*
+*   A 'DataVariable' wraps a user handle (pointer) and a VariableDefinition.
+*
+*   Together they can be used to get and set variables between the user side and data model side.
+*/
+
 class RMLUICORE_API DataVariable {
 public:
 	DataVariable() {}
@@ -60,6 +66,11 @@ private:
 };
 
 
+/*
+*   A 'VariableDefinition' specifies how a user handle (pointer) is translated to and from a value in the data model.
+* 
+*   Generally, Scalar types can set and get values, while Array and Struct types can retrieve children based on data addresses.
+*/
 
 class RMLUICORE_API VariableDefinition {
 public:
