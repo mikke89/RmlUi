@@ -87,6 +87,12 @@ public:
 		});
 	}
 
+	// Bind a user-declared DataVariable.
+	// For advanced use cases, for example for binding variables to a custom 'VariableDefinition'.
+	bool BindCustomDataVariable(const String& name, DataVariable data_variable) {
+		return BindVariable(name, data_variable);
+	}
+
 	// Register a struct type.
 	// @note The type applies to every data model associated with the current Context.
 	// @return A handle which can be used to register struct members.
