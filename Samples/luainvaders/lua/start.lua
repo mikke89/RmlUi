@@ -33,6 +33,11 @@ Formatters["ship"] = DataFormatter.new("ship",SecondFormatData)
 
 function Startup()
 	maincontext = rmlui.contexts["main"]
+	datamodel = maincontext:OpenDataModel("menu", {
+		button1 = "1",
+		button2 = "High Scores",
+	})
+	datamodel.button1 = "Start Game"	-- Change button1
 	maincontext:LoadDocument("luainvaders/data/background.rml"):Show()
 	maincontext:LoadDocument("luainvaders/data/main_menu.rml"):Show()
 end
