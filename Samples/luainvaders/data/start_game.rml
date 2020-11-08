@@ -21,6 +21,14 @@
 				width: 200px;
 				margin: auto;
 			}
+			color
+			{
+				display: inline-block;
+				width: 9px;
+				height: 9px;
+				border: 1px #666;
+				margin-right: 0.5em;
+			}
 		</style>
 		<script>
 StartGame = StartGame or {}
@@ -54,13 +62,13 @@ end
 				<p>
 					Colour:<br />
 					<select name="colour">
-						<option value="233,116,81">Burnt Sienna</option>
-						<option value="127,255,0">Chartreuse</option>
-						<option value="21,96,189">Denim</option>
-						<option value="246,74,138">French Rose</option>
-						<option value="255,0,255">Fuschia</option>
-						<option value="218,165,32">Goldenrod</option>
-						<option selected value="255,255,240">Ivory</option>
+						<option value="233,116,81"><color style="background: rgb(233,116,81)"/>Burnt Sienna</option>
+						<option value="127,255,0"><color style="background: rgb(127,255,0)"/>Chartreuse</option>
+						<option value="21,96,189"><color style="background: rgb(21,96,189)"/>Denim</option>
+						<option value="246,74,138"><color style="background: rgb(246,74,138)"/>French Rose</option>
+						<option value="255,0,255"><color style="background: rgb(255,0,255)"/>Fuchsia</option>
+						<option value="218,165,32"><color style="background: rgb(218,165,32)"/>Goldenrod</option>
+						<option selected value="255,255,240"><color style="background: rgb(255,255,240)"/>Ivory</option>
 					</select>
 				</p>
 			</div>
