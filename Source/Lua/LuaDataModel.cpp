@@ -27,6 +27,7 @@
  */
  
 #include "LuaDataModel.h"
+#include <RmlUi/Lua/Utilities.h>
 #include <RmlUi/Core/DataVariable.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
@@ -44,97 +45,26 @@ struct LuaDataModel {
 	LuaScalarDef *scalarDef;
 };
 
-static void
-PushVariant(lua_State *L, const Rml::Variant &v) {
-	switch (v.GetType()) {
-	case Rml::Variant::Type::BOOL:
-		lua_pushboolean(L, v.GetReference<bool>());
-		break;
-	case Rml::Variant::Type::BYTE:
-		lua_pushinteger(L, v.GetReference<unsigned char>());
-		break;
-	case Rml::Variant::Type::CHAR: {
-		char s[1] = {v.GetReference<char>() };
-		lua_pushlstring(L, s, 1);
-		break; }
-	case Rml::Variant::Type::FLOAT:
-		lua_pushnumber(L, v.GetReference<float>());
-		break;
-	case Rml::Variant::Type::DOUBLE:
-		lua_pushnumber(L, v.GetReference<double>());
-		break;
-	case Rml::Variant::Type::INT:
-		lua_pushinteger(L, v.GetReference<int>());
-		break;
-	case Rml::Variant::Type::INT64:
-		lua_pushinteger(L, v.GetReference<int64_t>());
-		break;
-	case Rml::Variant::Type::STRING: {
-		const Rml::String &s = v.GetReference<Rml::String>();
-		lua_pushlstring(L, s.c_str(), s.length());
-		break; }
-	case Rml::Variant::Type::NONE:
-	case Rml::Variant::Type::VECTOR2:
-	case Rml::Variant::Type::VECTOR3:
-	case Rml::Variant::Type::VECTOR4:
-	case Rml::Variant::Type::COLOURF:
-	case Rml::Variant::Type::COLOURB:
-	case Rml::Variant::Type::SCRIPTINTERFACE:
-	case Rml::Variant::Type::TRANSFORMPTR:
-	case Rml::Variant::Type::TRANSITIONLIST:
-	case Rml::Variant::Type::ANIMATIONLIST:
-	case Rml::Variant::Type::DECORATORSPTR:
-	case Rml::Variant::Type::FONTEFFECTSPTR:
-	case Rml::Variant::Type::VOIDPTR:
-	default:
-		// todo : support other types
-		lua_pushnil(L);
-		break;
-	}
-}
-
-static void
-GetVariant(lua_State *L, int index, Variant &variant) {
-	switch(lua_type(L, index)) {
-	case LUA_TBOOLEAN:
-		variant = (bool)lua_toboolean(L, index);
-		break;
-	case LUA_TNUMBER:
-		if (lua_isinteger(L, index)) {
-			variant = (int64_t)lua_tointeger(L, index);
-		} else {
-			variant = (double)lua_tonumber(L, index);
-		}
-		break;
-	case LUA_TSTRING:
-		variant = Rml::String(lua_tostring(L, index));
-		break;
-	case LUA_TNIL:
-	default:	// todo: support other types
-		variant = Variant();
-		break;
-	}
-}
 
 class LuaScalarDef final : public VariableDefinition {
 public:
 	LuaScalarDef (const struct LuaDataModel *model) :
 		VariableDefinition(DataVariableType::Scalar), model(model) {}
 private:
-	virtual bool Get(void* ptr, Variant& variant) {
+	bool Get(void* ptr, Variant& variant) override {
 		lua_State *L = model->dataL;
 		if (!L)
 			return false;
-		int id = (intptr_t)ptr;
-		GetVariant(L, id, variant);
+		int id = int((intptr_t)ptr);
+		GetVariant(L, id, &variant);
 		return true;
 	}
-	virtual bool Set(void* ptr, const Rml::Variant& variant) {
-		int id = (intptr_t)ptr;
+	bool Set(void* ptr, const Rml::Variant& variant) override {
+		int id = int((intptr_t)ptr);
 		lua_State *L = model->dataL;
 		if (!L)
 			return false;
-		PushVariant(L, variant);
+		PushVariant(L, &variant);
 		lua_replace(L, id);
 		return true;
 	}
@@ -147,10 +77,11 @@ getId(lua_State *L, lua_State *dataL) {
 	lua_pushvalue(dataL, 1);
 	lua_xmove(dataL, L, 1);
 	lua_pushvalue(L, 2);
-	if (lua_rawget(L, -2) != LUA_TNUMBER) {
+	lua_rawget(L, -2);
+	if (lua_type(L, -1) != LUA_TNUMBER) {
 		luaL_error(L, "DataModel has no key : %s", lua_tostring(L, 2));
 	}
-	int id = lua_tointeger(L, -1);
+	int id = (int)lua_tointeger(L, -1);
 	lua_pop(L, 2);
 	return id;
 }

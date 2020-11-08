@@ -496,6 +496,7 @@ set(Lua_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Lua/EventParametersProxy.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/GlobalLuaFunctions.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/Log.h
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDataModel.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDocument.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDocumentElementInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Lua/LuaElementInstancer.h
@@ -550,6 +551,7 @@ set(Lua_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Lua/Interpreter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Lua/Log.cpp
     ${PROJECT_SOURCE_DIR}/Source/Lua/Lua.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDataModel.cpp
     ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDocument.cpp
     ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDocumentElementInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Lua/LuaElementInstancer.cpp
@@ -562,6 +564,5 @@ set(Lua_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Lua/Utilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2f.cpp
     ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2i.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDataModel.cpp
 )
 

@@ -43,6 +43,9 @@ namespace Lua {
 @relates LuaType */
 void RMLUILUA_API PushVariant(lua_State* L, const Variant* var);
 
+/** Populate the variant based on the Lua value at the given index */
+void RMLUILUA_API GetVariant(lua_State* L, int index, Variant* variant);
+
 //Helper function, so that the types don't have to define individual functions themselves
 // to fill the Elements.As table
 template<typename ToType>
