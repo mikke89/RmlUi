@@ -561,5 +561,6 @@ set(Lua_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Lua/Utilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2f.cpp
     ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2i.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lua/LuaDataModel.cpp
 )
 
