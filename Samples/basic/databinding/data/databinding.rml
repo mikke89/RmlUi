@@ -225,14 +225,10 @@ form h2 {
 		</div>
 		<h2>Subject</h2>
 		<div>
-			<select name="subject" data-event-change="subject = ev.value">
-				<option value="none" selected>Choose your subject</option>
-				<option value="feature">Feature request</option>
-				<option value="bug">Bug report</option>
-				<option value="praise">Praise</option>
-				<option value="criticism">Criticism</option>
+			<select name="subject" data-event-change="selected_subject = ev.value">
+				<option data-for="s : subjects" data-value="it_index" data-attrif-selected="it_index == selected_subject">{{s}}</option>
 			</select>
-			<p>Selected subject: {{subject}}</p>
+			<p>Selected subject index: {{selected_subject}}</p>
 		</div>
 		<h2>Message</h2>
 		<div>
