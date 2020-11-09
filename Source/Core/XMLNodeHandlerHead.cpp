@@ -58,7 +58,10 @@ static DocumentHeader::Resource MakeInlineResource(XMLParser* parser, const Stri
 
 static DocumentHeader::Resource MakeExternalResource(XMLParser* parser, const String& path)
 {
-	return {Absolutepath(path, parser->GetSourceURL().GetURL())};
+	DocumentHeader::Resource resource;
+	resource.is_inline = false;
+	resource.path = Absolutepath(path, parser->GetSourceURL().GetURL());
+	return resource;
 }
 
 XMLNodeHandlerHead::XMLNodeHandlerHead()
