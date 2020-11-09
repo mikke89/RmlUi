@@ -53,9 +53,12 @@ public:
 	StringList template_resources;
 
 	struct Resource {
-		String context;
-		int line = 0;
+		String content_or_path; // Content for inline resources, path for external resources.
+		bool is_inline = false;
+		int line = 0;           // Only set for inline resources.
 	};
+	using ResourceList = Vector<Resource>;
+
 	/// Inline RCSS definitions
 	StringList rcss_inline;
 	LineNumberList rcss_inline_line_numbers;
@@ -72,8 +75,8 @@ public:
 	/// Merges paths from one string list to another, preserving the base_path
 	void MergePaths(StringList& target, const StringList& source, const String& base_path);
 
-	/// Merges reources
-	void MergeReources(Vector<Resource>& target, const Vector<Resource>& source, const String& base_path);
+	/// Merges resources
+	void MergeResources(ResourceList& target, const ResourceList& source, const String& base_path);
 };
 
 } // namespace Rml

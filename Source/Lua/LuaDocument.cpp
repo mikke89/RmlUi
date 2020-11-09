@@ -45,7 +45,7 @@ void LuaDocument::LoadInlineScript(const String& source, int line)
     buffer += "--";
     buffer += this->GetSourceURL();
     buffer += ":";
-    buffer += std::to_string(line);
+    buffer += Rml::ToString(line);
     buffer += "\n";
     buffer += source;
     Interpreter::DoString(buffer, buffer);

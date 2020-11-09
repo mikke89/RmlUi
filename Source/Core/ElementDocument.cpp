@@ -127,16 +127,15 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	}
 
 	// Load scripts.
-	for (auto const& s : header.scripts)
+	for (const DocumentHeader::Resource& script : header.scripts)
 	{
-		if (s.line)
+		if (script.is_inline)
 		{
-			auto stream = MakeUnique<StreamMemory>((const byte*) s.context.c_str(), s.context.size());
-			LoadInlineScript(s.context, s.line);
+			LoadInlineScript(script.content_or_path, script.line);
 		}
 		else
 		{
-			LoadExternalScript(s.context);
+			LoadExternalScript(script.content_or_path);
 		}
 	}
 

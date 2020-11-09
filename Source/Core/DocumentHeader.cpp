@@ -34,6 +34,13 @@
 
 namespace Rml {
 
+static String MergePath(const String& source, const String& base)
+{
+	String joined_path;
+	::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(base, '|', ':'), StringUtilities::Replace(source, '|', ':'));
+	return StringUtilities::Replace(joined_path, ':', '|');
+}
+
 void DocumentHeader::MergeHeader(const DocumentHeader& header)
 {
 	// Copy the title across if ours is empty
@@ -51,33 +58,28 @@ void DocumentHeader::MergeHeader(const DocumentHeader& header)
 	// Combine external data, keeping relative paths
 	MergePaths(template_resources, header.template_resources, header.source);
 	MergePaths(rcss_external, header.rcss_external, header.source);
-	MergeReources(scripts, header.scripts, header.source);
+	MergeResources(scripts, header.scripts, header.source);
 }
 
 void DocumentHeader::MergePaths(StringList& target, const StringList& source, const String& source_path)
 {
 	for (size_t i = 0; i < source.size(); i++)
 	{
-		String joined_path;
-		::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(source_path, '|', ':'), StringUtilities::Replace(source[i], '|', ':'));
-
-		target.push_back(StringUtilities::Replace(joined_path, ':', '|'));
+		target.push_back(MergePath(source[i], source_path));
 	}
 }
 
-void DocumentHeader::MergeReources(Vector<Resource>& target, const Vector<Resource>& source, const String& base_path)
+void DocumentHeader::MergeResources(ResourceList& target, const ResourceList& source, const String& base_path)
 {
-	for (auto const& s : source)
+	for (const Resource& script : source)
 	{
-		if (s.line)
+		if (script.is_inline)
 		{
-			target.push_back(s);
+			target.push_back(script);
 		}
 		else
 		{
-			String joined_path;
-			::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(base_path, '|', ':'), StringUtilities::Replace(s.context, '|', ':'));
-			target.push_back({StringUtilities::Replace(joined_path, ':', '|')});
+			target.push_back({MergePath(script.content_or_path, base_path)});
 		}
 	}
 }
