@@ -278,6 +278,9 @@ namespace FormsExample {
 
 	struct MyData {
 		int rating = 50;
+		bool lasagne = true;
+		Rml::Vector<Rml::String> subjects = { "Choose your subject", "Feature request", "Bug report", "Praise", "Criticism" };
+		int selected_subject = 1;
 	} my_data;
 
 	bool Initialize(Rml::Context* context)
@@ -286,7 +289,12 @@ namespace FormsExample {
 		if (!constructor)
 			return false;
 
+		constructor.RegisterArray<Rml::Vector<Rml::String>>();
+
 		constructor.Bind("rating", &my_data.rating);
+		constructor.Bind("lasagne", &my_data.lasagne);
+		constructor.Bind("subjects", &my_data.subjects);
+		constructor.Bind("selected_subject", &my_data.selected_subject);
 
 		model_handle = constructor.GetModelHandle();
 
