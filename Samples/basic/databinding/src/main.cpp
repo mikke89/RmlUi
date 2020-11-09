@@ -287,6 +287,8 @@ namespace FormsExample {
 
 	struct MyData {
 		int rating = 50;
+		bool lasagne = true;
+		Rml::String subject;
 	} my_data;
 
 	bool Initialize(Rml::Context* context)
@@ -296,6 +298,8 @@ namespace FormsExample {
 			return false;
 
 		constructor.Bind("rating", &my_data.rating);
+		constructor.Bind("lasagne", &my_data.lasagne);
+		constructor.Bind("subject", &my_data.subject);
 
 		model_handle = constructor.GetModelHandle();
 

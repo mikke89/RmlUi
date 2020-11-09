@@ -46,6 +46,8 @@ class WidgetDropDown;
 class RMLUICORE_API ElementFormControlSelect : public ElementFormControl
 {
 public:
+	RMLUI_RTTI_DefineWithParent(ElementFormControlSelect, ElementFormControl)
+
 	/// Constructs a new ElementFormControlSelect. This should not be called directly; use the
 	/// Factory instead.
 	/// @param[in] tag The tag the element was declared as in RML.
