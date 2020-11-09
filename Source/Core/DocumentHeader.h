@@ -53,7 +53,8 @@ public:
 	StringList template_resources;
 
 	struct Resource {
-		String content_or_path; // Content for inline resources, path for external resources.
+		String path; // Content path for inline resources, source path for external resources.
+		String content; // Only set for inline resources.
 		bool is_inline = false;
 		int line = 0;           // Only set for inline resources.
 	};
@@ -76,7 +77,7 @@ public:
 	void MergePaths(StringList& target, const StringList& source, const String& base_path);
 
 	/// Merges resources
-	void MergeResources(ResourceList& target, const ResourceList& source, const String& base_path);
+	void MergeResources(ResourceList& target, const ResourceList& source);
 };
 
 } // namespace Rml

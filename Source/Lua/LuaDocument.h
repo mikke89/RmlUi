@@ -40,8 +40,8 @@ class LuaDocument : public ::Rml::ElementDocument
 {
 public:
     LuaDocument(const String& tag);
-    void LoadInlineScript(const String& source, int line) override;
-    void LoadExternalScript(const String& source_name) override;
+    void LoadInlineScript(const String& content, const String& source_path, int source_line) override;
+    void LoadExternalScript(const String& source_path) override;
 };
 
 } // namespace Lua

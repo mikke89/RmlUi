@@ -39,6 +39,13 @@
 
 namespace Rml {
 
+static String Absolutepath(const String& source, const String& base)
+{
+	String joined_path;
+	::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(base, '|', ':'), StringUtilities::Replace(source, '|', ':'));
+	return StringUtilities::Replace(joined_path, ':', '|');
+}
+
 XMLNodeHandlerHead::XMLNodeHandlerHead()
 {
 }
@@ -95,7 +102,7 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 		String src = Get<String>(attributes, "src", "");
 		if (src.size() > 0)
 		{
-			parser->GetDocumentHeader()->scripts.push_back({src});
+			parser->GetDocumentHeader()->scripts.push_back({Absolutepath(src, parser->GetSourceURL().GetURL())});
 		}
 	}
 
@@ -134,7 +141,14 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data, XMLD
 
 	// Store an inline script
 	if (tag == "script" && data.size() > 0)
-		parser->GetDocumentHeader()->scripts.push_back({data, true, parser->GetLineNumberOpenTag()});
+	{
+		DocumentHeader::Resource resource;
+		resource.is_inline = true;
+		resource.content = data;
+		resource.path = parser->GetSourceURL().GetURL();
+		resource.line = parser->GetLineNumberOpenTag();
+		parser->GetDocumentHeader()->scripts.push_back(resource);
+	}
 
 	// Store an inline style
 	if (tag == "style" && data.size() > 0)

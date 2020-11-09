@@ -58,7 +58,7 @@ void DocumentHeader::MergeHeader(const DocumentHeader& header)
 	// Combine external data, keeping relative paths
 	MergePaths(template_resources, header.template_resources, header.source);
 	MergePaths(rcss_external, header.rcss_external, header.source);
-	MergeResources(scripts, header.scripts, header.source);
+	MergeResources(scripts, header.scripts);
 }
 
 void DocumentHeader::MergePaths(StringList& target, const StringList& source, const String& source_path)
@@ -69,19 +69,9 @@ void DocumentHeader::MergePaths(StringList& target, const StringList& source, co
 	}
 }
 
-void DocumentHeader::MergeResources(ResourceList& target, const ResourceList& source, const String& base_path)
+void DocumentHeader::MergeResources(ResourceList& target, const ResourceList& source)
 {
-	for (const Resource& script : source)
-	{
-		if (script.is_inline)
-		{
-			target.push_back(script);
-		}
-		else
-		{
-			target.push_back({MergePath(script.content_or_path, base_path)});
-		}
-	}
+	target.insert(target.end(), source.begin(), source.end());
 }
 
 } // namespace Rml

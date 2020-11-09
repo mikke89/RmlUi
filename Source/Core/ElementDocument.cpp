@@ -131,11 +131,11 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	{
 		if (script.is_inline)
 		{
-			LoadInlineScript(script.content_or_path, script.line);
+			LoadInlineScript(script.content, script.path, script.line);
 		}
 		else
 		{
-			LoadExternalScript(script.content_or_path);
+			LoadExternalScript(script.path);
 		}
 	}
 
@@ -340,16 +340,17 @@ bool ElementDocument::IsModal() const
 }
 
 // Default load inline script implementation
-void ElementDocument::LoadInlineScript(const String& RMLUI_UNUSED_PARAMETER(source), int RMLUI_UNUSED_PARAMETER(line))
+void ElementDocument::LoadInlineScript(const String& RMLUI_UNUSED_PARAMETER(content), const String& RMLUI_UNUSED_PARAMETER(source_path), int RMLUI_UNUSED_PARAMETER(line))
 {
-	RMLUI_UNUSED(source);
+	RMLUI_UNUSED(content);
+	RMLUI_UNUSED(source_path);
 	RMLUI_UNUSED(line);
 }
 
 // Default load external script implementation
-void ElementDocument::LoadExternalScript(const String& RMLUI_UNUSED_PARAMETER(source_name))
+void ElementDocument::LoadExternalScript(const String& RMLUI_UNUSED_PARAMETER(source_path))
 {
-	RMLUI_UNUSED(source_name);
+	RMLUI_UNUSED(source_path);
 }
 
 // Updates the document, including its layout

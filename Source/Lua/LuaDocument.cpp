@@ -39,21 +39,21 @@ LuaDocument::LuaDocument(const String& tag) : ElementDocument(tag)
 {
 }
 
-void LuaDocument::LoadInlineScript(const String& source, int line)
+void LuaDocument::LoadInlineScript(const String& context, const String& source_path, int source_line)
 {
     String buffer;
     buffer += "--";
-    buffer += this->GetSourceURL();
+    buffer += source_path;
     buffer += ":";
-    buffer += Rml::ToString(line);
+    buffer += Rml::ToString(source_line);
     buffer += "\n";
-    buffer += source;
+    buffer += context;
     Interpreter::DoString(buffer, buffer);
 }
 
-void LuaDocument::LoadExternalScript(const String& source_name)
+void LuaDocument::LoadExternalScript(const String& source_path)
 {
-    Interpreter::LoadFile(source_name);
+    Interpreter::LoadFile(source_path);
 }
 
 } // namespace Lua
