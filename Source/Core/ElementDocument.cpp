@@ -96,28 +96,45 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	// If a style-sheet (or sheets) has been specified for this element, then we load them and set the combined sheet
 	// on the element; all of its children will inherit it by default.
 	SharedPtr<StyleSheet> new_style_sheet;
-	if (header.rcss_external.size() > 0)
-		new_style_sheet = StyleSheetFactory::GetStyleSheet(header.rcss_external);
 
 	// Combine any inline sheets.
-	for (size_t i = 0; i < header.rcss_inline.size(); i++)
+	for (const DocumentHeader::Resource& rcss : header.rcss)
 	{
-		UniquePtr<StyleSheet> inline_sheet = MakeUnique<StyleSheet>();
-		auto stream = MakeUnique<StreamMemory>((const byte*)header.rcss_inline[i].c_str(), header.rcss_inline[i].size());
-		stream->SetSourceURL(document_header->source);
-
-		if (inline_sheet->LoadStyleSheet(stream.get(), header.rcss_inline_line_numbers[i]))
+		if (rcss.is_inline)
 		{
-			if (new_style_sheet)
+			UniquePtr<StyleSheet> inline_sheet = MakeUnique<StyleSheet>();
+			auto stream = MakeUnique<StreamMemory>((const byte*)rcss.content.c_str(), rcss.content.size());
+			stream->SetSourceURL(rcss.path);
+
+			if (inline_sheet->LoadStyleSheet(stream.get(), rcss.line))
 			{
-				SharedPtr<StyleSheet> combined_sheet = new_style_sheet->CombineStyleSheet(*inline_sheet);
-				new_style_sheet = combined_sheet;
+				if (new_style_sheet)
+				{
+					SharedPtr<StyleSheet> combined_sheet = new_style_sheet->CombineStyleSheet(*inline_sheet);
+					new_style_sheet = combined_sheet;
+				}
+				else
+					new_style_sheet = std::move(inline_sheet);
+			}
+
+			stream.reset();
+		}
+		else
+		{
+			SharedPtr<StyleSheet> sub_sheet = StyleSheetFactory::GetStyleSheet(rcss.path);
+			if (sub_sheet)
+			{
+				if (new_style_sheet)
+				{
+					SharedPtr<StyleSheet> combined_sheet = new_style_sheet->CombineStyleSheet(*sub_sheet);
+					new_style_sheet = std::move(combined_sheet);
+				}
+				else
+					new_style_sheet = sub_sheet;
 			}
 			else
-				new_style_sheet = std::move(inline_sheet);
+				Log::Message(Log::LT_ERROR, "Failed to load style sheet %s.", rcss.path.c_str());
 		}
-
-		stream.reset();
 	}
 
 	// If a style sheet is available, set it on the document and release it.

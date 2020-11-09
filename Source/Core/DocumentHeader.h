@@ -60,14 +60,11 @@ public:
 	};
 	using ResourceList = Vector<Resource>;
 
-	/// Inline RCSS definitions
-	StringList rcss_inline;
-	LineNumberList rcss_inline_line_numbers;
-	/// External RCSS definitions that should be loaded
-	StringList rcss_external;
+	/// RCSS definitions
+	ResourceList rcss;
 
 	/// script source
-	Vector<Resource> scripts;
+	ResourceList scripts;
 
 	/// Merges the specified header with this one
 	/// @param header Header to merge

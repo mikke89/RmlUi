@@ -46,6 +46,21 @@ static String Absolutepath(const String& source, const String& base)
 	return StringUtilities::Replace(joined_path, ':', '|');
 }
 
+static DocumentHeader::Resource MakeInlineResource(XMLParser* parser, const String& data)
+{
+	DocumentHeader::Resource resource;
+	resource.is_inline = true;
+	resource.content = data;
+	resource.path = parser->GetSourceURL().GetURL();
+	resource.line = parser->GetLineNumberOpenTag();
+	return resource;
+}
+
+static DocumentHeader::Resource MakeExternalResource(XMLParser* parser, const String& path)
+{
+	return {Absolutepath(path, parser->GetSourceURL().GetURL())};
+}
+
 XMLNodeHandlerHead::XMLNodeHandlerHead()
 {
 }
@@ -75,7 +90,7 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 			if (type == "text/rcss" ||
 				 type == "text/css")
 			{
-				parser->GetDocumentHeader()->rcss_external.push_back(href);
+				parser->GetDocumentHeader()->rcss.push_back(MakeExternalResource(parser, href));
 			}
 
 			// If its an template, add to the template fields
@@ -102,7 +117,7 @@ Element* XMLNodeHandlerHead::ElementStart(XMLParser* parser, const String& name,
 		String src = Get<String>(attributes, "src", "");
 		if (src.size() > 0)
 		{
-			parser->GetDocumentHeader()->scripts.push_back({Absolutepath(src, parser->GetSourceURL().GetURL())});
+			parser->GetDocumentHeader()->scripts.push_back(MakeExternalResource(parser, src));
 		}
 	}
 
@@ -142,19 +157,13 @@ bool XMLNodeHandlerHead::ElementData(XMLParser* parser, const String& data, XMLD
 	// Store an inline script
 	if (tag == "script" && data.size() > 0)
 	{
-		DocumentHeader::Resource resource;
-		resource.is_inline = true;
-		resource.content = data;
-		resource.path = parser->GetSourceURL().GetURL();
-		resource.line = parser->GetLineNumberOpenTag();
-		parser->GetDocumentHeader()->scripts.push_back(resource);
+		parser->GetDocumentHeader()->scripts.push_back(MakeInlineResource(parser, data));
 	}
 
 	// Store an inline style
 	if (tag == "style" && data.size() > 0)
 	{
-		parser->GetDocumentHeader()->rcss_inline.push_back(data);
-		parser->GetDocumentHeader()->rcss_inline_line_numbers.push_back(parser->GetLineNumberOpenTag());
+		parser->GetDocumentHeader()->rcss.push_back(MakeInlineResource(parser, data));
 	}
 
 	return true;

@@ -34,13 +34,6 @@
 
 namespace Rml {
 
-static String MergePath(const String& source, const String& base)
-{
-	String joined_path;
-	::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(base, '|', ':'), StringUtilities::Replace(source, '|', ':'));
-	return StringUtilities::Replace(joined_path, ':', '|');
-}
-
 void DocumentHeader::MergeHeader(const DocumentHeader& header)
 {
 	// Copy the title across if ours is empty
@@ -50,14 +43,9 @@ void DocumentHeader::MergeHeader(const DocumentHeader& header)
 	if (source.empty())
 		source = header.source;
 
-	// Combine internal data	
-	rcss_inline.insert(rcss_inline.end(), header.rcss_inline.begin(), header.rcss_inline.end());	
-	rcss_inline_line_numbers.insert(rcss_inline_line_numbers.end(), header.rcss_inline_line_numbers.begin(), header.rcss_inline_line_numbers.end());
-
-	
 	// Combine external data, keeping relative paths
 	MergePaths(template_resources, header.template_resources, header.source);
-	MergePaths(rcss_external, header.rcss_external, header.source);
+	MergeResources(rcss, header.rcss);
 	MergeResources(scripts, header.scripts);
 }
 
@@ -65,7 +53,10 @@ void DocumentHeader::MergePaths(StringList& target, const StringList& source, co
 {
 	for (size_t i = 0; i < source.size(); i++)
 	{
-		target.push_back(MergePath(source[i], source_path));
+		String joined_path;
+		::Rml::GetSystemInterface()->JoinPath(joined_path, StringUtilities::Replace(source_path, '|', ':'), StringUtilities::Replace(source[i], '|', ':'));
+
+		target.push_back(StringUtilities::Replace(joined_path, ':', '|'));
 	}
 }
 
