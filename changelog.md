@@ -136,6 +136,7 @@ Improved Lua plugin in several aspects.
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
 - Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
 - Add `Rml::GetTextureSourceList()` function to list all image sources loaded in all documents. [#131](https://github.com/mikke89/RmlUi/issues/131)
+- RCSS and scripts are now always loaded in declared order [#144](https://github.com/mikke89/RmlUi/pull/144) (thanks @actboy168).
 
 ### Bug fixes
 
@@ -157,6 +158,7 @@ Improved Lua plugin in several aspects.
 - Tab set elements `tab` and `panel` should now have their `display` property set in the RCSS document, use `display: inline-block` for the same behavior as before.
 - For custom, replaced elements: `Element::GetIntrinsicDimensions()` now additionally takes an intrinsic ratio parameter.
 - The `fill-image` property should now be applied to the \<progressbar\> element instead of its inner \<fill\> element.
+- The function `ElementDocument::LoadScript` is now changed to handle internal and external scripts separately. [#144](https://github.com/mikke89/RmlUi/pull/144)
 
 
 ## RmlUi 3.3
