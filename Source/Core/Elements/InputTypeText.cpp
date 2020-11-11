@@ -70,6 +70,11 @@ void InputTypeText::OnResize()
 	widget->OnResize();
 }
 
+void InputTypeText::OnLayout()
+{
+	widget->OnLayout();
+}
+
 // Checks for necessary functional changes in the control as a result of changed attributes.
 bool InputTypeText::OnAttributeChange(const ElementAttributes& changed_attributes)
 {

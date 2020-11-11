@@ -65,6 +65,9 @@ public:
 	/// Called every time the host element's size changes.
 	virtual void OnResize();
 
+	/// Called every time the host element is layed out.
+	virtual void OnLayout();
+
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
 	/// @return True if no layout is required, false if the layout needs to be dirtied.

@@ -3,7 +3,7 @@
     <title>Overflow in absolutely positioned input</title>
     <link type="text/rcss" href="../style.rcss"/>
 	<link rel="GitHub issue #143" href="https://github.com/mikke89/RmlUi/issues/143" />
-	<meta name="Description" content="An &lt;input&gt; with a too long value starts out overflowing. When selecting some text in it, then removing the selection (by clicking, arrow key, home/end or taking the focus out) the text does get clipped. Now when something else needs clipping, the &lt;input&gt; overflows again. It only happens when the &lt;input&gt; is position: absolute." />
+	<meta name="Description" content="The contents of input text element (purple) should always be clipped and never overflow. The also applies when hovering the mouse cursor over the designated area." />
 	<style>
 		body {
 			background: #ddd;

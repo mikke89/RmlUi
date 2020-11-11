@@ -65,6 +65,10 @@ void InputType::OnResize()
 {
 }
 
+void InputType::OnLayout()
+{
+}
+
 // Checks for necessary functional changes in the control as a result of changed attributes.
 bool InputType::OnAttributeChange(const ElementAttributes& RMLUI_UNUSED_PARAMETER(changed_attributes))
 {
