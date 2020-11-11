@@ -29,7 +29,7 @@
 #ifndef RMLUI_LUA_LUADOCUMENT_H
 #define RMLUI_LUA_LUADOCUMENT_H
 /*
-    This class is an ElementDocument that overrides the LoadScript function
+    This class is an ElementDocument that overrides the LoadInlineScript and LoadExternalScript function
 */
 #include <RmlUi/Core/ElementDocument.h>
 
@@ -40,7 +40,8 @@ class LuaDocument : public ::Rml::ElementDocument
 {
 public:
     LuaDocument(const String& tag);
-    void LoadScript(Stream* stream, const String& source_name) override;
+    void LoadInlineScript(const String& content, const String& source_path, int source_line) override;
+    void LoadExternalScript(const String& source_path) override;
 };
 
 } // namespace Lua

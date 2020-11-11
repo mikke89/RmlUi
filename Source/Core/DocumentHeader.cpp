@@ -43,15 +43,10 @@ void DocumentHeader::MergeHeader(const DocumentHeader& header)
 	if (source.empty())
 		source = header.source;
 
-	// Combine internal data	
-	rcss_inline.insert(rcss_inline.end(), header.rcss_inline.begin(), header.rcss_inline.end());	
-	rcss_inline_line_numbers.insert(rcss_inline_line_numbers.end(), header.rcss_inline_line_numbers.begin(), header.rcss_inline_line_numbers.end());
-	scripts_inline.insert(scripts_inline.end(), header.scripts_inline.begin(), header.scripts_inline.end());
-	
 	// Combine external data, keeping relative paths
 	MergePaths(template_resources, header.template_resources, header.source);
-	MergePaths(rcss_external, header.rcss_external, header.source);
-	MergePaths(scripts_external, header.scripts_external, header.source);
+	MergeResources(rcss, header.rcss);
+	MergeResources(scripts, header.scripts);
 }
 
 void DocumentHeader::MergePaths(StringList& target, const StringList& source, const String& source_path)
@@ -63,6 +58,11 @@ void DocumentHeader::MergePaths(StringList& target, const StringList& source, co
 
 		target.push_back(StringUtilities::Replace(joined_path, ':', '|'));
 	}
+}
+
+void DocumentHeader::MergeResources(ResourceList& target, const ResourceList& source)
+{
+	target.insert(target.end(), source.begin(), source.end());
 }
 
 } // namespace Rml

@@ -113,11 +113,17 @@ public:
 	/// @return True if the document is hogging focus.
 	bool IsModal() const;
 
-	/// Load a script into the document. Note that the base implementation does nothing, scripting language addons hook
+	/// Load a inline script into the document. Note that the base implementation does nothing, scripting language addons hook
 	/// this method.
-	/// @param[in] stream Stream of code to process.
-	/// @param[in] source_name Name of the the script the source comes from, useful for debug information.
-	virtual void LoadScript(Stream* stream, const String& source_name);
+	/// @param[in] content The script content.
+	/// @param[in] source_path Path of the script the source comes from, useful for debug information.
+	/// @param[in] source_line Line of the script the source comes from, useful for debug information.
+	virtual void LoadInlineScript(const String& content, const String& source_path, int source_line);
+
+	/// Load a external script into the document. Note that the base implementation does nothing, scripting language addons hook
+	/// this method.
+	/// @param[in] source_path The script file path.
+	virtual void LoadExternalScript(const String& source_path);
 
 	/// Updates the document, including its layout. Users must call this manually before requesting information such as 
 	/// size or position of an element if any element in the document was recently changed, unless Context::Update has
