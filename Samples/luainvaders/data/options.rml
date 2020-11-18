@@ -31,6 +31,10 @@ if Options.datamodel == nil then
 	Options.datamodel = rmlui.contexts["main"]:OpenDataModel("options", {
 		graphics = 'ok',
 		options_changed = false,
+		audios = {
+			{id="reverb", label="Reverb", checked=true},
+			{id="3d", label="3D Spatialisation"},
+		}
 	})
 end
 
@@ -119,8 +123,9 @@ end
 				<p data-if="graphics == 'bad'">Are you sure about this? Bad graphics are just plain <em>bad.</em></p>
 				<p>
 					Audio:<br />
-					<input id="reverb" type="checkbox" name="reverb" checked /> Reverb<br />
-					<input id="3d" type="checkbox" name="3d" /> 3D Spatialisation
+					<span data-for="audio : audios">
+						<input data-attr-id="audio.id" type="checkbox" data-attr-name="audio.id" data-attrif-checked="audio.checked" /> {{audio.label}}<br />
+					</span>
 				</p>
 			</div>
 			<input type="submit" name="button" value="accept" data-attrif-disabled="!options_changed">Accept</input>

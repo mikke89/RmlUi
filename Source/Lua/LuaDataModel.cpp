@@ -37,40 +37,209 @@
 namespace Rml {
 namespace Lua {
 
+namespace luabind {
+	typedef std::function<void(void)> call_t;
+	typedef std::function<void(const char*)> error_t;
+	inline int errhandler(lua_State* L) {
+		const char* msg = lua_tostring(L, 1);
+		if (msg == NULL) {
+			if (luaL_callmeta(L, 1, "__tostring") && lua_type(L, -1) == LUA_TSTRING)
+				return 1;
+			else
+				msg = lua_pushfstring(L, "(error object is a %s value)", luaL_typename(L, 1));
+		}
+		luaL_traceback(L, L, msg, 1);
+		return 1;
+	}
+	inline void errfunc(const char* msg) {
+		// todo: use Rml log
+		lua_writestringerror("%s\n", msg);
+	}
+	inline int function_call(lua_State* L) {
+		call_t& f = *(call_t*)lua_touserdata(L, 1);
+		f();
+		return 0;
+	}
+	inline bool invoke(lua_State* L, call_t f, int argn = 0, error_t err = errfunc) {
+		if (!lua_checkstack(L, 3)) {
+			err("stack overflow");
+			lua_pop(L, argn);
+			return false;
+		}
+		lua_pushcfunction(L, errhandler);
+		lua_pushcfunction(L, function_call);
+		lua_pushlightuserdata(L, &f);
+		lua_rotate(L, -argn - 3, 3);
+		if (lua_pcall(L, 1 + argn, 0, lua_gettop(L) - argn - 2) != LUA_OK) {
+			err(lua_tostring(L, -1));
+			lua_pop(L, 2);
+			return false;
+		}
+		lua_pop(L, 1);
+		return true;
+	}
+}
+
 class LuaScalarDef;
+class LuaTableDef;
 
 struct LuaDataModel {
+	DataModelConstructor constructor;
 	DataModelHandle handle;
 	lua_State *dataL;
 	LuaScalarDef *scalarDef;
+	LuaTableDef *tableDef;
+	int top;
 };
 
-
-class LuaScalarDef final : public VariableDefinition {
+class LuaTableDef : public VariableDefinition {
 public:
-	LuaScalarDef (const struct LuaDataModel *model) :
-		VariableDefinition(DataVariableType::Scalar), model(model) {}
-private:
-	bool Get(void* ptr, Variant& variant) override {
-		lua_State *L = model->dataL;
-		if (!L)
-			return false;
-		int id = int((intptr_t)ptr);
-		GetVariant(L, id, &variant);
-		return true;
-	}
-	bool Set(void* ptr, const Rml::Variant& variant) override {
-		int id = int((intptr_t)ptr);
-		lua_State *L = model->dataL;
-		if (!L)
-			return false;
-		PushVariant(L, &variant);
-		lua_replace(L, id);
-		return true;
-	}
-
-	const struct LuaDataModel *model;
+	LuaTableDef(const struct LuaDataModel* model);
+	virtual bool Get(void* ptr, Variant& variant);
+	virtual bool Set(void* ptr, const Variant& variant);
+	virtual int Size(void* ptr);
+	virtual DataVariable Child(void* ptr, const DataAddressEntry& address);
+protected:
+	const struct LuaDataModel* model;
 };
+
+class LuaScalarDef final : public LuaTableDef {
+public:
+	LuaScalarDef(const struct LuaDataModel* model);
+	virtual DataVariable Child(void* ptr, const DataAddressEntry& address);
+};
+
+LuaTableDef::LuaTableDef(const struct LuaDataModel *model)
+	: VariableDefinition(DataVariableType::Scalar)
+	, model(model)
+{}
+
+bool LuaTableDef::Get(void* ptr, Variant& variant) {
+	lua_State *L = model->dataL;
+	if (!L)
+		return false;
+	int id = (int)(intptr_t)ptr;
+	GetVariant(L, id, &variant);
+	return true;
+}
+
+bool LuaTableDef::Set(void* ptr, const Variant& variant) {
+	int id = (int)(intptr_t)ptr;
+	lua_State *L = model->dataL;
+	if (!L)
+		return false;
+	PushVariant(L, &variant);
+	lua_replace(L, id);
+	return true;
+}
+
+
+static int
+lLuaTableDefSize(lua_State* L) {
+	lua_pushinteger(L, luaL_len(L, 1));
+	return 1;
+}
+
+static int
+lLuaTableDefChild(lua_State* L) {
+	lua_gettable(L, 1);
+	return 1;
+}
+
+int LuaTableDef::Size(void* ptr) {
+	lua_State* L = model->dataL;
+	if (!L)
+		return 0;
+	int id = (int)(intptr_t)ptr;
+	if (lua_type(L, id) != LUA_TTABLE) {
+		return 0;
+	}
+	if (!lua_checkstack(L, 4)) {
+		return 0;
+	}
+	lua_pushcfunction(L, lLuaTableDefSize);
+	lua_pushvalue(L, id);
+	if (LUA_OK != lua_pcall(L, 1, 1, 0)) {
+		lua_pop(L, 1);
+		return 0;
+	}
+	int size = (int)lua_tointeger(L, -1);
+	lua_pop(L, 1);
+	return size;
+}
+
+DataVariable LuaTableDef::Child(void* ptr, const DataAddressEntry& address) {
+	lua_State* L = model->dataL;
+	if (!L)
+		return DataVariable{};
+	int id = (int)(intptr_t)ptr;
+	if (lua_type(L, id) != LUA_TTABLE) {
+		return DataVariable{};
+	}
+	if (!lua_checkstack(L, 4)) {
+		return DataVariable{};
+	}
+	lua_pushcfunction(L, lLuaTableDefChild);
+	lua_pushvalue(L, id);
+	if (address.index == -1) {
+		lua_pushlstring(L, address.name.data(), address.name.size());
+	}
+	else {
+		lua_pushinteger(L, (lua_Integer)address.index + 1);
+	}
+	if (LUA_OK != lua_pcall(L, 2, 1, 0)) {
+		lua_pop(L, 1);
+		return DataVariable{};
+	}
+	return DataVariable(model->tableDef, (void*)(intptr_t)lua_gettop(L));
+}
+
+LuaScalarDef::LuaScalarDef(const struct LuaDataModel* model)
+	: LuaTableDef(model)
+{}
+
+DataVariable LuaScalarDef::Child(void* ptr, const DataAddressEntry& address) {
+	lua_State* L = model->dataL;
+	if (!L)
+		return DataVariable{};
+	lua_settop(L, model->top);
+	return LuaTableDef::Child(ptr, address);
+}
+
+static void
+BindVariable(struct LuaDataModel* D, lua_State* L) {
+	lua_State* dataL = D->dataL;
+	if (!lua_checkstack(dataL, 4)) {
+		luaL_error(L, "Memory Error");
+	}
+	int id = lua_gettop(dataL) + 1;
+	D->top = id;
+	// L top : key value
+	lua_xmove(L, dataL, 1);	// move value to dataL with index(id)
+	lua_pushvalue(L, -1);	// dup key
+	lua_xmove(L, dataL, 1);
+	lua_pushinteger(dataL, id);
+	lua_rawset(dataL, 1);
+	const char* key = lua_tostring(L, -1);
+	if (lua_type(dataL, D->top) == LUA_TFUNCTION) {
+		D->constructor.BindEventCallback(key, [=](DataModelHandle, Event& event, const VariantList& varlist) {
+			lua_pushvalue(dataL, id);
+			lua_xmove(dataL, L, 1);
+			luabind::invoke(L, [&](){
+				LuaType<Event>::push(L,&event,false);
+				for (auto const& variant : varlist) {
+					PushVariant(L, &variant);
+				}
+				lua_call(L, (int)varlist.size() + 1, 0);
+			}, 1);
+		});
+	}
+	else {
+		D->constructor.BindCustomDataVariable(key,
+			DataVariable(D->scalarDef, (void*)(intptr_t)id)
+		);
+	}
+}
 
 static int
 getId(lua_State *L, lua_State *dataL) {
@@ -102,51 +271,31 @@ static int
 lDataModelSet(lua_State *L) {
 	struct LuaDataModel *D = (struct LuaDataModel *)lua_touserdata(L, 1);
 	lua_State *dataL = D->dataL;
-	if (dataL == nullptr)
-		luaL_error(L, "DataModel closed");
-	int id = getId(L, dataL);
+	if (dataL == NULL)
+		luaL_error(L, "DataModel released");
+	lua_settop(dataL, D->top);
+
+	lua_pushvalue(L, 2);
 	lua_xmove(L, dataL, 1);
-	lua_replace(dataL, id);
-	D->handle.DirtyVariable(lua_tostring(L, 2));
+	if (lua_rawget(dataL, 1) == LUA_TNUMBER) {
+		int id = (int)lua_tointeger(dataL, -1);
+		lua_pop(dataL, 1);
+		lua_xmove(L, dataL, 1);
+		lua_replace(dataL, id);
+		D->handle.DirtyVariable(lua_tostring(L, 2));
+		return 0;
+	}
+	lua_pop(dataL, 1);
+	BindVariable(D, L);
 	return 0;
 }
 
-// Construct a lua sub thread for LuaDataModel
-// stack 1 : { name(string) -> id(integer) }
-// stack 2- : values
-// For example : build from { str = "Hello", x = 0 }
-//	1: { str = 2 , x = 3 }
-//	2: "Hello"
-//	3: 0
-static lua_State *
-InitDataModelFromTable(lua_State *L, int index, Rml::DataModelConstructor &ctor, class LuaScalarDef *def) {
-	lua_State *dataL = lua_newthread(L);
-	lua_newtable(dataL);
-	intptr_t id = 2;
-	lua_pushnil(L);
-	while (lua_next(L, index) != 0) {
-		if (!lua_checkstack(dataL, 4)) {
-			luaL_error(L, "Memory Error");
-		}
-		// L top : key value
-		lua_xmove(L, dataL, 1);	// move value to dataL with index(id)
-		lua_pushvalue(L, -1);	// dup key
-		lua_xmove(L, dataL, 1);
-		lua_pushinteger(dataL, id);
-		lua_rawset(dataL, 1);
-		const char *key = lua_tostring(L, -1);
-		ctor.BindCustomDataVariable(key, Rml::DataVariable(def, (void *)id));
-		++id;
-	}
-	return dataL;
-}
-
 bool
-OpenLuaDataModel(lua_State *L, Rml::Context *context, int name_index, int table_index) {
-	Rml::String name = luaL_checkstring(L, name_index);
+OpenLuaDataModel(lua_State *L, Context *context, int name_index, int table_index) {
+	String name = luaL_checkstring(L, name_index);
 	luaL_checktype(L, table_index, LUA_TTABLE);
 
-	Rml::DataModelConstructor constructor = context->CreateDataModel(name);
+	DataModelConstructor constructor = context->CreateDataModel(name);
 	if (!constructor) {
 		constructor = context->GetDataModel(name);
 		if (!constructor) {
@@ -157,11 +306,20 @@ OpenLuaDataModel(lua_State *L, Rml::Context *context, int name_index, int table_
 	struct LuaDataModel *D = (struct LuaDataModel *)lua_newuserdata(L, sizeof(*D));
 	D->dataL = nullptr;
 	D->scalarDef = nullptr;
+	D->tableDef = nullptr;
+	D->constructor = constructor;
 	D->handle = constructor.GetModelHandle();
 
 	D->scalarDef = new LuaScalarDef(D);
-	D->dataL = InitDataModelFromTable(L, table_index, constructor, D->scalarDef);
-	lua_setuservalue(L, -2);	// set D->dataL into uservalue of D
+	D->tableDef = new LuaTableDef(D);
+	D->dataL = lua_newthread(L);
+	D->top = 1;
+	lua_newtable(D->dataL);
+	lua_pushnil(L);
+	while (lua_next(L, table_index) != 0) {
+		BindVariable(D, L);
+	}
+	lua_setuservalue(L, -2);
 
 	if (luaL_newmetatable(L, RMLDATAMODEL)) {
 		luaL_Reg l[] = {
@@ -185,8 +343,11 @@ CloseLuaDataModel(lua_State *L) {
 	luaL_checkudata(L, -1, RMLDATAMODEL);
 	struct LuaDataModel *D = (struct LuaDataModel *)lua_touserdata(L, -1);
 	D->dataL = nullptr;
+	D->top = 0;
 	delete D->scalarDef;
 	D->scalarDef = nullptr;
+	delete D->tableDef;
+	D->tableDef = nullptr;
 	lua_pushnil(L);
 	lua_setuservalue(L, -2);
 }
