@@ -70,6 +70,8 @@ protected:
 	void OnRender() override;
 	/// Calls the element's underlying type.
 	void OnResize() override;
+	/// Calls the element's underlying type.
+	void OnLayout() override;
 
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.

@@ -62,6 +62,9 @@ public:
 	/// Called when the parent element's size changes.
 	void OnResize() override;
 
+	/// Called when the parent element is layed out.
+	void OnLayout() override;
+
 	/// Checks for necessary functional changes in the control as a result of changed attributes.
 	/// @param[in] changed_attributes The list of changed attributes.
 	/// @return True if no layout is required, false if the layout needs to be dirtied.

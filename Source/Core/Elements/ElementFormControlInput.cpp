@@ -91,6 +91,12 @@ void ElementFormControlInput::OnResize()
 	type->OnResize();
 }
 
+void ElementFormControlInput::OnLayout()
+{
+	RMLUI_ASSERT(type);
+	type->OnLayout();
+}
+
 // Checks for necessary functional changes in the control as a result of changed attributes.
 void ElementFormControlInput::OnAttributeChange(const ElementAttributes& changed_attributes)
 {

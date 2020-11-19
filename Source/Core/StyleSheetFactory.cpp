@@ -104,6 +104,8 @@ SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const String& sheet_name)
 	if (!sheet)
 		return nullptr;
 
+	sheet->OptimizeNodeProperties();
+
 	// Add it to the cache, and add a reference count so the cache will keep hold of it.
 	instance->stylesheets[sheet_name] = sheet;
 
