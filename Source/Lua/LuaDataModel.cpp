@@ -38,8 +38,32 @@ namespace Rml {
 namespace Lua {
 
 namespace luabind {
+#if LUA_VERSION_NUM < 503
+	static void lua_reverse(lua_State* L, int a, int b) {
+		for (; a < b; ++a, --b) {
+			lua_pushvalue(L, a);
+			lua_pushvalue(L, b);
+			lua_replace(L, a);
+			lua_replace(L, b);
+		}
+	}
+	void lua_rotate(lua_State* L, int idx, int n) {
+		int n_elems = 0;
+		idx = lua_absindex(L, idx);
+		n_elems = lua_gettop(L) - idx + 1;
+		if (n < 0) {
+			n += n_elems;
+		}
+		if (n > 0 && n < n_elems) {
+			luaL_checkstack(L, 2, "not enough stack slots available");
+			n = n_elems - n;
+			lua_reverse(L, idx, idx + n - 1);
+			lua_reverse(L, idx + n, idx + n_elems - 1);
+			lua_reverse(L, idx, idx + n_elems - 1);
+		}
+	}
+#endif
 	typedef std::function<void(void)> call_t;
-	typedef std::function<void(const char*)> error_t;
 	inline int errhandler(lua_State* L) {
 		const char* msg = lua_tostring(L, 1);
 		if (msg == NULL) {
@@ -52,17 +76,16 @@ namespace luabind {
 		return 1;
 	}
 	inline void errfunc(const char* msg) {
-		// todo: use Rml log
-		lua_writestringerror("%s\n", msg);
+		Log::Message(Log::LT_WARNING, "%s", msg);
 	}
 	inline int function_call(lua_State* L) {
 		call_t& f = *(call_t*)lua_touserdata(L, 1);
 		f();
 		return 0;
 	}
-	inline bool invoke(lua_State* L, call_t f, int argn = 0, error_t err = errfunc) {
+	inline bool invoke(lua_State* L, call_t f, int argn = 0) {
 		if (!lua_checkstack(L, 3)) {
-			err("stack overflow");
+			errfunc("stack overflow");
 			lua_pop(L, argn);
 			return false;
 		}
@@ -71,7 +94,7 @@ namespace luabind {
 		lua_pushlightuserdata(L, &f);
 		lua_rotate(L, -argn - 3, 3);
 		if (lua_pcall(L, 1 + argn, 0, lua_gettop(L) - argn - 2) != LUA_OK) {
-			err(lua_tostring(L, -1));
+			errfunc(lua_tostring(L, -1));
 			lua_pop(L, 2);
 			return false;
 		}
@@ -277,7 +300,8 @@ lDataModelSet(lua_State *L) {
 
 	lua_pushvalue(L, 2);
 	lua_xmove(L, dataL, 1);
-	if (lua_rawget(dataL, 1) == LUA_TNUMBER) {
+	lua_rawget(dataL, 1);
+	if (lua_type(dataL, -1) == LUA_TNUMBER) {
 		int id = (int)lua_tointeger(dataL, -1);
 		lua_pop(dataL, 1);
 		lua_xmove(L, dataL, 1);
