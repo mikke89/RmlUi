@@ -203,9 +203,8 @@ void BaseXMLParser::ReadBody()
 		}
 		else
 		{
-			if (ReadOpenTag())
-				line_number_open_tag = line_number;
-			else
+			line_number_open_tag = line_number;
+			if (!ReadOpenTag())
 				break;
 		}
 	}
