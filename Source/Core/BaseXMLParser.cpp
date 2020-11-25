@@ -137,6 +137,7 @@ char BaseXMLParser::Look() const {
 
 void BaseXMLParser::HandleElementStartInternal(const String& name, const XMLAttributes& attributes)
 {
+	line_number_open_tag = line_number;
 	if (!inner_xml_data)
 		HandleElementStart(name, attributes);
 }
@@ -203,7 +204,6 @@ void BaseXMLParser::ReadBody()
 		}
 		else
 		{
-			line_number_open_tag = line_number;
 			if (!ReadOpenTag())
 				break;
 		}
@@ -440,6 +440,12 @@ bool BaseXMLParser::FindWord(String& word, const char* terminators)
 	{
 		char c = Look();
 
+		// Count line numbers
+		if (c == '\n')
+		{
+			line_number++;
+		}
+
 		// Ignore white space
 		if (StringUtilities::IsWhitespace(c))
 		{
@@ -522,6 +528,7 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 bool BaseXMLParser::PeekString(const char* string, bool consume)
 {
 	const size_t start_index = xml_index;
+	const int start_line = line_number;
 	bool success = true;
 	int i = 0;
 	while (string[i])
@@ -533,6 +540,12 @@ bool BaseXMLParser::PeekString(const char* string, bool consume)
 		}
 
 		const char c = Look();
+
+		// Count line numbers
+		if (c == '\n')
+		{
+			line_number++;
+		}
 
 		// Seek past all the whitespace if we haven't hit the initial character yet.
 		if (i == 0 && StringUtilities::IsWhitespace(c))
@@ -554,7 +567,10 @@ bool BaseXMLParser::PeekString(const char* string, bool consume)
 
 	// Set the index to the start index unless we are consuming.
 	if (!consume || !success)
+	{
 		xml_index = start_index;
+		line_number = start_line;
+	}
 
 	return success;
 }
