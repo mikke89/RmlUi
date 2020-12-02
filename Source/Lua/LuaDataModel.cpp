@@ -63,7 +63,7 @@ namespace luabind {
 		}
 	}
 #endif
-	typedef std::function<void(void)> call_t;
+	using call_t = Rml::Function<void(void)>;
 	inline int errhandler(lua_State* L) {
 		const char* msg = lua_tostring(L, 1);
 		if (msg == NULL) {
@@ -118,10 +118,10 @@ struct LuaDataModel {
 class LuaTableDef : public VariableDefinition {
 public:
 	LuaTableDef(const struct LuaDataModel* model);
-	virtual bool Get(void* ptr, Variant& variant);
-	virtual bool Set(void* ptr, const Variant& variant);
-	virtual int Size(void* ptr);
-	virtual DataVariable Child(void* ptr, const DataAddressEntry& address);
+	bool Get(void* ptr, Variant& variant) override;
+	bool Set(void* ptr, const Variant& variant) override;
+	int Size(void* ptr) override;
+	DataVariable Child(void* ptr, const DataAddressEntry& address) override;
 protected:
 	const struct LuaDataModel* model;
 };
@@ -129,7 +129,7 @@ protected:
 class LuaScalarDef final : public LuaTableDef {
 public:
 	LuaScalarDef(const struct LuaDataModel* model);
-	virtual DataVariable Child(void* ptr, const DataAddressEntry& address);
+	DataVariable Child(void* ptr, const DataAddressEntry& address) override;
 };
 
 LuaTableDef::LuaTableDef(const struct LuaDataModel *model)
