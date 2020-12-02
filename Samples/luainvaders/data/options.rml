@@ -76,8 +76,8 @@ function Options.LoadOptions(document)
     
     AsInput(document:GetElementById(options['graphics'])).checked = true
     --because everything is loaded as a string, we have to fool around with the boolean variables
-    AsInput(document:GetElementById('reverb')).checked = (options['reverb'] == 'true')
-    AsInput(document:GetElementById('3d')).checked = (options['3d'] == 'true')
+	Options.datamodel.audios[1].checked = (options['reverb'] == 'true')
+	Options.datamodel.audios[2].checked = (options['3d'] == 'true')
 	Options.datamodel.options_changed = false
 end
 
