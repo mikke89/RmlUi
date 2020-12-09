@@ -873,8 +873,18 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 				// user sets a decorator on the element's style, we may still get a string here which must be parsed and instanced.
 				if (auto & style_sheet = element->GetStyleSheet())
 				{
-					String value = p->Get<String>();
-					values.decorator = style_sheet->InstanceDecoratorsFromString(value, p->source);
+					// The property source will not be set if the property is defined in inline style. However, we may need it in order to locate
+					// resource files (typically images). In this case, generate one from the document's source URL.
+					SharedPtr<const PropertySource> document_source;
+
+					if (!p->source)
+					{
+						if (ElementDocument* document = element->GetOwnerDocument())
+							document_source = MakeShared<PropertySource>(document->GetSourceURL(), 0, String());
+					}
+
+					const String& value = p->value.GetReference<String>();
+					values.decorator = style_sheet->InstanceDecoratorsFromString(value, p->source ? p->source : document_source);
 				}
 				else
 					values.decorator.reset();
@@ -891,7 +901,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			{
 				if (auto & style_sheet = element->GetStyleSheet())
 				{
-					String value = p->Get<String>();
+					const String& value = p->value.GetReference<String>();
 					values.font_effect = style_sheet->InstanceFontEffectsFromString(value, p->source);
 				}
 				else

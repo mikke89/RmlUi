@@ -29,16 +29,15 @@
 #ifndef RMLUI_TESTS_TESTSINTERFACE_H
 #define RMLUI_TESTS_TESTSINTERFACE_H
 
-#include <RmlUi/Core/SystemInterface.h>
+#include <Shell.h>
 #include <RmlUi/Core/RenderInterface.h>
 
-class TestsSystemInterface : public Rml::SystemInterface
+
+class TestsSystemInterface : public ShellSystemInterface
 {
 public:
-	double GetElapsedTime() override;
 	bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
 };
-
 
 
 class TestsRenderInterface : public Rml::RenderInterface
