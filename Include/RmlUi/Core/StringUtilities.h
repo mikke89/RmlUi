@@ -78,6 +78,9 @@ namespace StringUtilities
 	/// Encode RML characters, eg. '<' to '&lt;'
 	RMLUICORE_API String EncodeRml(const String& string);
 
+	/// Decode RML characters, eg. '&lt;' to '<'
+	RMLUICORE_API String DecodeRml(const String& string);
+
 	// Replaces all occurences of 'search' in 'subject' with 'replace'.
 	RMLUICORE_API String Replace(String subject, const String& search, const String& replace);
 	// Replaces all occurences of 'search' in 'subject' with 'replace'.
