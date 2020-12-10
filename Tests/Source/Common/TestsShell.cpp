@@ -53,7 +53,7 @@ namespace {
 	int num_documents_begin = 0;
 	Rml::Context* shell_context = nullptr;
 
-	ShellSystemInterface shell_system_interface;
+	TestsSystemInterface tests_system_interface;
 
 #ifdef RMLUI_TESTS_USE_SHELL
 	ShellRenderInterfaceOpenGL shell_render_interface;
@@ -85,7 +85,7 @@ static void InitializeShell()
 	{
 		shell_initialized = true;
 
-		Rml::SetSystemInterface(&shell_system_interface);
+		Rml::SetSystemInterface(&tests_system_interface);
 		Rml::SetRenderInterface(&shell_render_interface);
 
 		REQUIRE(Rml::Initialise());

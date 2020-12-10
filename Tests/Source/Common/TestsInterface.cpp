@@ -28,22 +28,13 @@
 
 #include "TestsInterface.h"
 #include <doctest.h>
-#include <chrono>
 
-double TestsSystemInterface::GetElapsedTime()
-{
-	static const auto start_time = std::chrono::steady_clock::now();
-
-	const auto now = std::chrono::steady_clock::now();
-	const double t = std::chrono::duration<double>(now - start_time).count();
-
-	return t;
-}
 
 bool TestsSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)
 {
+	static const char* message_type_str[Rml::Log::Type::LT_MAX] = { "Always", "Error", "Assert", "Warning", "Info", "Debug" };
 	bool result = Rml::SystemInterface::LogMessage(type, message);
-	CHECK_MESSAGE(type >= Rml::Log::Type::LT_INFO, "RmlUi logged: " << message);
+	CHECK_MESSAGE(type >= Rml::Log::Type::LT_INFO, "RmlUi " << message_type_str[type] << ": " << message);
 	return result;
 }
 
