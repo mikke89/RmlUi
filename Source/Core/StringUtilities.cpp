@@ -122,6 +122,45 @@ RMLUICORE_API String StringUtilities::EncodeRml(const String& string)
 	return result;
 }
 
+String StringUtilities::DecodeRml(const String& s)
+{
+	String result;
+	result.reserve(s.size());
+	for (size_t i = 0; i < s.size();)
+	{
+		if (s[i] == '&')
+		{
+			if (s[i+1] == 'l' && s[i+2] == 't' && s[i+3] == ';')
+			{
+				result += "<";
+				i += 4;
+				continue;
+			}
+			else if (s[i+1] == 'g' && s[i+2] == 't' && s[i+3] == ';')
+			{
+				result += ">";
+				i += 4;
+				continue;
+			}
+			else if (s[i+1] == 'a' && s[i+2] == 'm' && s[i+3] == 'p' && s[i+4] == ';')
+			{
+				result += "&";
+				i += 5;
+				continue;
+			}
+			else if (s[i+1] == 'q' && s[i+2] == 'u' && s[i+3] == 'o' && s[i+4] == 't' && s[i+5] == ';')
+			{
+				result += "\"";
+				i += 6;
+				continue;
+			}
+		}
+		result += s[i];
+		i += 1;
+	}
+	return result;
+}
+
 String StringUtilities::Replace(String subject, const String& search, const String& replace)
 {
 	size_t pos = 0;

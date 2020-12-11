@@ -382,7 +382,7 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes, bool& parse_raw_xm
 		if (attributes_for_inner_xml_data.count(attribute) == 1)
 			parse_raw_xml_content = true;
 
- 		attributes[attribute] = value;
+ 		attributes[attribute] = StringUtilities::DecodeRml(value);
 
 		// Check for the end of the tag.
 		if (PeekString("/", false) || PeekString(">", false))
