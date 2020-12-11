@@ -651,6 +651,11 @@ DataControllerPtr Factory::InstanceDataController(const String& type_name, Eleme
 	return DataControllerPtr();
 }
 
+bool Factory::IsStructuralDataView(const String& type_name)
+{
+	return structural_data_view_instancers.find(type_name) != structural_data_view_instancers.end();
+}
+
 const StringList& Factory::GetStructuralDataViewAttributeNames()
 {
 	return structural_data_view_attribute_names;

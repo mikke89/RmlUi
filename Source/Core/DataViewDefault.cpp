@@ -454,6 +454,17 @@ bool DataViewFor::Initialize(DataModel& model, Element* element, const String& i
 
 	element->SetProperty(PropertyId::Display, Property(Style::Display::None));
 
+	// Copy over the attributes, but remove the 'data-for' which would otherwise recreate the data-for loop on all constructed children recursively.
+	attributes = element->GetAttributes();
+	for (auto it = attributes.begin(); it != attributes.end(); ++it)
+	{
+		if (it->first == "data-for")
+		{
+			attributes.erase(it);
+			break;
+		}
+	}
+
 	return true;
 }
 

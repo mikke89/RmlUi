@@ -228,7 +228,13 @@ form h2 {
 			<select name="subject" data-event-change="selected_subject = ev.value">
 				<option data-for="s : subjects" data-value="it_index" data-attrif-selected="it_index == selected_subject">{{s}}</option>
 			</select>
-			<p>Selected subject index: {{selected_subject}}</p>
+			<div>
+				<p data-for="s : subjects" data-style-color="it_index == selected_subject ? 'red' : 'black'" data-event-click="selected_subject = it_index">{{it_index + 1 + ': ' + s}}</p>
+			</div>
+			<p>
+				Selected subject index:<br/>
+				<input type="range" name="rating" min="0" max="0" data-attr-max="subjects.size - 1" step="1" value="0" data-value="selected_subject"/> {{selected_subject + 1}}
+			</p>
 		</div>
 		<h2>Message</h2>
 		<div>
