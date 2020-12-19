@@ -132,6 +132,45 @@ bool DataViewAttributeIf::Update(DataModel& model)
 DataViewValue::DataViewValue(Element* element) : DataViewAttribute(element, "value")
 {}
 
+DataViewChecked::DataViewChecked(Element* element) : DataViewCommon(element)
+{}
+
+bool DataViewChecked::Update(DataModel & model)
+{
+	bool result = false;
+	Variant variant;
+	Element* element = GetElement();
+	DataExpressionInterface expr_interface(&model, element);
+
+	if (element && GetExpression().Run(expr_interface, variant))
+	{
+		bool new_checked_state = false;
+
+		if (variant.GetType() == Variant::BOOL)
+		{
+			new_checked_state = variant.Get<bool>();
+		}
+		else
+		{
+			const String value = variant.Get<String>();
+			new_checked_state = (!value.empty() && value == element->GetAttribute<String>("value", ""));
+		}
+
+		const bool current_checked_state = element->HasAttribute("checked");
+
+		if (new_checked_state != current_checked_state)
+		{
+			result = true;
+			if (new_checked_state)
+				element->SetAttribute("checked", String());
+			else
+				element->RemoveAttribute("checked");
+		}
+	}
+
+	return result;
+}
+
 
 DataViewStyle::DataViewStyle(Element* element) : DataViewCommon(element)
 {}

@@ -82,6 +82,13 @@ public:
 	DataViewValue(Element* element);
 };
 
+class DataViewChecked final : public DataViewCommon {
+public:
+	DataViewChecked(Element* element);
+
+	bool Update(DataModel& model) override;
+};
+
 class DataViewStyle final : public DataViewCommon {
 public:
 	DataViewStyle(Element* element);
