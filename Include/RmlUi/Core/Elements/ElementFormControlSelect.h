@@ -105,6 +105,9 @@ protected:
 	/// @return True.
 	bool GetIntrinsicDimensions(Vector2f& intrinsic_dimensions, float& intrinsic_ratio) override;
 
+	/// Respond to changed value attribute.
+	void OnAttributeChange(const ElementAttributes& changed_attributes) override;
+
 	WidgetDropDown* widget;
 };
 

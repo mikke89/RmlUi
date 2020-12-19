@@ -283,7 +283,7 @@ namespace FormsExample {
 		bool lasagne = false;
 		Rml::String animal = "dog";
 		Rml::Vector<Rml::String> subjects = { "Choose your subject", "Feature request", "Bug report", "Praise", "Criticism" };
-		int selected_subject = 1;
+		int selected_subject = 0;
 	} my_data;
 
 	bool Initialize(Rml::Context* context)

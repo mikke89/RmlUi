@@ -240,15 +240,16 @@ li {
 		</div>
 		<h2>Subject</h2>
 		<div>
-			<!--<select name="subject" data-event-change="selected_subject = ev.value">
+			<!--<select name="subject" data-value="selected_subject">
                 <option data-for="s : subjects" data-value="it_index">{{s}}</option>
-            </select>
-            <select name="subject" data-value="selected_subject">
-                <option value="0" selected>{{ subjects[0] }}</option>
-                <option value="1">{{ subjects[1] }}</option>
-                <option value="2">{{ subjects[2] }}</option>
-                <option value="3">{{ subjects[3] }}</option>
             </select>-->
+            <select name="subject" data-value="selected_subject">
+                <option value="0">Choose your subject</option>
+                <option value="1">Feature request</option>
+                <option value="2">Bug report</option>
+                <option value="3">Praise</option>
+                <option value="4">Criticism</option>
+            </select>
 			<div class="picker">
 				<p data-for="s : subjects" data-style-color="it_index == selected_subject ? 'red' : 'black'" data-event-click="selected_subject = it_index">{{it_index + 1 + ': ' + s}}</p>
 			</div>
