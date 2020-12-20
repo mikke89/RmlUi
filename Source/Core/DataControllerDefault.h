@@ -33,7 +33,7 @@
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Core/DataVariable.h"
-#include "../../Include/RmlUi/Core/DataController.h"
+#include "DataController.h"
 
 namespace Rml {
 
@@ -43,7 +43,7 @@ class DataExpression;
 using DataExpressionPtr = UniquePtr<DataExpression>;
 
 
-class DataControllerValue final : public DataController, private EventListener {
+class DataControllerValue : public DataController, private EventListener {
 public:
     DataControllerValue(Element* element);
     ~DataControllerValue();
@@ -57,10 +57,18 @@ protected:
     // Delete this.
     void Release() override;
 
-private:
-    void SetValue(const Variant& new_value);
+    // Set the new value on the variable, returns true if it should be dirtied.
+    virtual bool SetValue(const Variant& new_value, DataVariable variable);
 
     DataAddress address;
+};
+
+
+class DataControllerChecked final : public DataControllerValue {
+public:
+    DataControllerChecked(Element* element);
+
+    bool SetValue(const Variant& new_value, DataVariable variable) override;
 };
 
 

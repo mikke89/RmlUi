@@ -195,6 +195,9 @@ public:
 	/// Instance the data controller with the given type name.
 	static DataControllerPtr InstanceDataController(const String& type_name, Element* element);
 
+	/// Returns true if the given type name is a structural data view.
+	static bool IsStructuralDataView(const String& type_name);
+
 	/// Returns the list of element attribute names with an associated structural data view instancer.
 	static const StringList& GetStructuralDataViewAttributeNames();
 

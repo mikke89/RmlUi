@@ -26,7 +26,7 @@ tabset
 }
 tabs
 {
-    display: block;
+	display: block;
 	position: fixed;
 	clip: none;
 	text-align: right;
@@ -37,7 +37,7 @@ tabs
 tab
 {
 	display: inline-block;
-    width: 100px;
+	width: 100px;
 	padding: 0px 20px;
 	line-height: 40px;
 	
@@ -60,11 +60,11 @@ tab:active, tab:selected
 }
 panels
 {
-    display: block;
+	display: block;
 }
 panel
 {
-    display: block;
+	display: block;
 	padding: 30px;
 	margin-left: auto;
 	margin-right: auto;
@@ -124,7 +124,8 @@ form h2 {
 	display: block;
 	font-size: 16px;
 	font-weight: bold;
-	margin-top: 8px;
+	margin-top: 1em;
+	margin-bottom: 0.3em;
 }
 #rating {
 	display: inline-block;
@@ -140,6 +141,19 @@ form h2 {
 	font-size: 18px;
 	font-effect: outline(2px #006600);
 	color: #ddd;
+}
+.picker p {
+	cursor: pointer;
+}
+input:disabled {
+	image-color: #aaac;
+}
+li {
+	display: block;
+	color: #eee;
+	margin-left: 1em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
 }
 </style>
 </head>
@@ -193,7 +207,6 @@ form h2 {
 </panel>
 <tab>Forms</tab>
 <panel id="controls" data-model="forms">
-	<h1>Todo</h1>
 	<form onsubmit="submit_form">
 		<h2>Full name</h2>
 		<div>
@@ -204,19 +217,22 @@ form h2 {
 			<input type="text" name="email"/>
 			<input type="password" name="password"/>
 		</div>
-		<h2>Favorite animal</h2>
+		<h2>Favorite animal: {{ animal }}</h2>
 		<div>
-			<input type="radio" name="animal" value="dog" checked/> Dog
-			<input type="radio" name="animal" value="cat"/> Cat
-			<input type="radio" name="animal" value="narwhal"/> Narwhal
-			<input type="radio" name="animal" value="no"/> I don't like animals
+			<input type="radio" name="animal" value="dog" data-checked="animal"/> Dog
+			<input type="radio" name="animal" value="cat" data-checked="animal"/> Cat
+			<input type="radio" name="animal" value="narwhal" data-checked="animal"/> Narwhal
+			<input type="radio" name="animal" value="no" data-checked="animal"/> I don't like animals
 		</div>
 		<h2>Favorite meals</h2>
 		<div>
-			<input type="checkbox" name="meals" value="pizza" data-attrif-checked="rating > 70" disabled/> Pizza
-			<input type="checkbox" name="meals" value="pasta" checked/> Pasta
-			<input type="checkbox" name="meals" value="lasagne" checked/> Lasagne
-			<p data-visible="rating < 70">You can only have pizza if the rating is satisfactory.</p>
+			<input type="checkbox" name="meals" value="pizza" data-checked="pizza" data-attrif-disabled="rating < 70"/> Pizza
+			<input type="checkbox" name="meals" value="pasta" data-checked="pasta"/> Pasta
+			<input type="checkbox" name="meals" value="lasagne" data-checked="lasagne"/> Lasagne
+			<li style="color: red;" data-if="pizza && rating < 70">• You can only have pizza if the rating is satisfactory.</li>
+			<li data-if="pizza && rating >= 70">• Pizza is life!</li>
+			<li data-if="pasta">• Pasta is squiggly good!</li>
+			<li data-if="lasagne">• Lasagne is delicous!</li>
 		</div>
 		<h2>Rating</h2>
 		<div>
@@ -224,13 +240,23 @@ form h2 {
 		</div>
 		<h2>Subject</h2>
 		<div>
-			<select name="subject">
-				<option value="none" selected>Choose your subject</option>
-				<option value="feature">Feature request</option>
-				<option value="bug">Bug report</option>
-				<option value="praise">Praise</option>
-				<option value="criticism">Criticism</option>
-			</select>
+			<!--<select name="subject" data-value="selected_subject">
+                <option data-for="s : subjects" data-value="it_index">{{s}}</option>
+            </select>-->
+            <select name="subject" data-value="selected_subject">
+                <option value="0">Choose your subject</option>
+                <option value="1">Feature request</option>
+                <option value="2">Bug report</option>
+                <option value="3">Praise</option>
+                <option value="4">Criticism</option>
+            </select>
+			<div class="picker">
+				<p data-for="s : subjects" data-style-color="it_index == selected_subject ? 'red' : 'black'" data-event-click="selected_subject = it_index">{{it_index + 1 + ': ' + s}}</p>
+			</div>
+			<p>
+				Selected subject index:<br/>
+				<input type="range" name="rating" min="0" max="0" data-attr-max="subjects.size - 1" step="1" value="0" data-value="selected_subject"/> {{selected_subject + 1}}
+			</p>
 		</div>
 		<h2>Message</h2>
 		<div>

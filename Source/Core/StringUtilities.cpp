@@ -321,8 +321,6 @@ RMLUICORE_API String StringUtilities::StripWhitespace(StringView string)
 
 void StringUtilities::TrimTrailingDotZeros(String& string)
 {
-	RMLUI_ASSERTMSG(string.find('.') != String::npos, "This function probably does not do what you want if the string is not a number with a decimal point.");
-
 	size_t new_size = string.size();
 	for (size_t i = string.size() - 1; i < string.size(); i--)
 	{

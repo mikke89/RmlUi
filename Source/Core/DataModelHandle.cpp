@@ -26,28 +26,44 @@
  *
  */
 
-#include "HighScoresNameFormatter.h"
+#include "../../Include/RmlUi/Core/DataModelHandle.h"
+#include "DataModel.h"
 
-HighScoresNameFormatter::HighScoresNameFormatter() : Rml::DataFormatter("name")
-{
+namespace Rml {
+
+
+DataModelHandle::DataModelHandle(DataModel* model) : model(model)
+{}
+
+bool DataModelHandle::IsVariableDirty(const String& variable_name) {
+	return model->IsVariableDirty(variable_name);
 }
 
-HighScoresNameFormatter::~HighScoresNameFormatter()
-{
+void DataModelHandle::DirtyVariable(const String& variable_name) {
+	model->DirtyVariable(variable_name);
 }
 
-void HighScoresNameFormatter::FormatData(Rml::String& formatted_data, const Rml::StringList& raw_data)
-{
-	// Data format:
-	// raw_data[0] is the name.
-	// raw_data[1] is a bool - True means the name has to be entered. False means the name has been entered already.
 
-	if (raw_data[1] == "1")
-	{
-		formatted_data = "<input id=\"player_input\" type=\"text\" name=\"name\" onkeydown=\"enter_name\" autofocus/>";
-	}
-	else
-	{
-		formatted_data = raw_data[0];
-	}
+DataModelConstructor::DataModelConstructor() : model(nullptr), type_register(nullptr) {}
+
+DataModelConstructor::DataModelConstructor(DataModel* model, DataTypeRegister* type_register) : model(model), type_register(type_register) {
+	RMLUI_ASSERT(model && type_register);
 }
+
+DataModelHandle DataModelConstructor::GetModelHandle() const {
+	return DataModelHandle(model);
+}
+
+bool DataModelConstructor::BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func) {
+	return model->BindFunc(name, std::move(get_func), std::move(set_func));
+}
+
+bool DataModelConstructor::BindEventCallback(const String& name, DataEventFunc event_func) {
+	return model->BindEventCallback(name, std::move(event_func));
+}
+
+bool DataModelConstructor::BindVariable(const String& name, DataVariable data_variable) {
+	return model->BindVariable(name, data_variable);
+}
+
+} // namespace Rml

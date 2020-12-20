@@ -40,8 +40,6 @@
 #include "EventInstancer.h"
 #include "EventManager.h"
 #include "HighScores.h"
-#include "HighScoresNameFormatter.h"
-#include "HighScoresShipFormatter.h"
 
 Rml::Context* context = nullptr;
 
@@ -126,12 +124,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	Rml::Factory::RegisterDecoratorInstancer("starfield", &decorator_instancer_starfield);
 	Rml::Factory::RegisterDecoratorInstancer("defender", &decorator_instancer_defender);
 
-	// Register Invader's data formatters
-	HighScoresNameFormatter name_formatter;
-	HighScoresShipFormatter ship_formatter;
-
 	// Construct the game singletons.
-	HighScores::Initialise();
+	HighScores::Initialise(context);
 
 	// Initialise the event instancer and handlers.
 	EventInstancer event_listener_instancer;

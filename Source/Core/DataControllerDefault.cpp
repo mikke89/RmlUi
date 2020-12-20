@@ -27,10 +27,10 @@
  */
 
 #include "DataControllerDefault.h"
-#include "../../Include/RmlUi/Core/DataController.h"
-#include "../../Include/RmlUi/Core/DataModel.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "DataController.h"
 #include "DataExpression.h"
+#include "DataModel.h"
 #include "EventSpecification.h"
 
 namespace Rml {
@@ -67,6 +67,7 @@ void DataControllerValue::ProcessEvent(Event& event)
 	if (Element* element = GetElement())
 	{
 		const auto& parameters = event.GetParameters();
+
 		auto it = parameters.find("value");
 		if (it == parameters.end())
 		{
@@ -74,7 +75,15 @@ void DataControllerValue::ProcessEvent(Event& event)
 			return;
 		}
 
-		SetValue(it->second);
+		DataModel* model = element->GetDataModel();
+		if (!model)
+			return;
+
+		if (DataVariable variable = model->GetVariable(address))
+		{
+			if (SetValue(it->second, variable))
+				model->DirtyVariable(address.front().name);
+		}
 	}
 }
 
@@ -83,22 +92,43 @@ void DataControllerValue::Release()
 	delete this;
 }
 
-void DataControllerValue::SetValue(const Variant& value)
+bool DataControllerValue::SetValue(const Variant& value, DataVariable variable)
 {
-	Element* element = GetElement();
-	if (!element)
-		return;
-
-	DataModel* model = element->GetDataModel();
-	if (!model)
-		return;
-
-	if (DataVariable variable = model->GetVariable(address))
-	{
-		variable.Set(value);
-		model->DirtyVariable(address.front().name);
-	}
+	return variable.Set(value);
 }
+
+
+DataControllerChecked::DataControllerChecked(Element* element) : DataControllerValue(element)
+{}
+
+
+bool DataControllerChecked::SetValue(const Variant& value, DataVariable variable)
+{
+	bool result = false;
+	Variant old_value;
+
+	if (variable.Get(old_value))
+	{
+		// Value will be empty if the button was just unchecked, otherwise it will take the 'value' attribute.
+		const String new_value = value.Get<String>();
+
+		if (old_value.GetType() == Variant::BOOL)
+		{
+			// If the client variable is a boolean type, we assume the button acts like a checkbox, and set the new checked state.
+			result = variable.Set(Variant(!new_value.empty()));
+		}
+		else
+		{
+			// Otherwise, we assume the button acts like a radio box. Then, we do nothing if the box was unchecked,
+			// and instead let only the newly checked box set the new value.
+			if (!new_value.empty())
+				result = variable.Set(value);
+		}
+	}
+
+	return result;
+}
+
 
 
 DataControllerEvent::DataControllerEvent(Element* element) : DataController(element)

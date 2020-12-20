@@ -25,21 +25,24 @@
  * THE SOFTWARE.
  *
  */
+ 
+#ifndef RMLUI_LUA_DATAMODEL_H
+#define RMLUI_LUA_DATAMODEL_H
 
-#include "HighScoresShipFormatter.h"
-#include <RmlUi/Core/TypeConverter.h>
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Lua/IncludeLua.h>
 
-HighScoresShipFormatter::HighScoresShipFormatter() : Rml::DataFormatter("ship")
-{
-}
+namespace Rml {
+namespace Lua {
 
-HighScoresShipFormatter::~HighScoresShipFormatter()
-{
-}
+struct LuaDataModel;
 
-void HighScoresShipFormatter::FormatData(Rml::String& formatted_data, const Rml::StringList& raw_data)
-{
-	// Data format:
-	// raw_data[0] is the colour, in "%d, %d, %d, %d" format.
-	formatted_data = "<defender style=\"color: rgba(" + raw_data[0] + ");\" />";
-}
+// Create or Get a DataModel in L, return false on fail
+bool OpenLuaDataModel(lua_State *L, Rml::Context *context, int name_index, int table_index);
+// Should Close object (on L top) after DataModel released (Context::RemoveDataModel)
+void CloseLuaDataModel(lua_State *L);
+
+} // namespace Lua
+} // namespace Rml
+#endif

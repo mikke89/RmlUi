@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Factory.h>
 #include "LuaEventListener.h"
 #include "ContextDocumentsProxy.h"
+#include "LuaDataModel.h"
 
 namespace Rml {
 namespace Lua {
@@ -121,6 +122,14 @@ int ContextUpdate(lua_State* L, Context* obj)
     return 1;
 }
 
+int ContextOpenDataModel(lua_State *L, Context *obj)
+{
+	if (!OpenLuaDataModel(L, obj, 1, 2)) {
+		// Open fails
+		lua_pushboolean(L, false);
+	}
+	return 1;
+}
 
 //getters
 int ContextGetAttrdimensions(lua_State* L)
@@ -197,6 +206,8 @@ RegType<Context> ContextMethods[] =
     RMLUI_LUAMETHOD(Context,UnloadAllDocuments)
     RMLUI_LUAMETHOD(Context,UnloadDocument)
     RMLUI_LUAMETHOD(Context,Update)
+	RMLUI_LUAMETHOD(Context,OpenDataModel)
+	// todo: CloseDataModel
     { nullptr, nullptr },
 };
 

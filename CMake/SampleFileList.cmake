@@ -197,8 +197,6 @@ set(invaders_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Game.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/GameDetails.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScores.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresNameFormatter.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresShipFormatter.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Invader.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Mothership.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Shield.h
@@ -222,8 +220,6 @@ set(invaders_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Game.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/GameDetails.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScores.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresNameFormatter.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/HighScoresShipFormatter.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Invader.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/main.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Mothership.cpp

@@ -26,8 +26,7 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/DataController.h"
-#include "../../Include/RmlUi/Core/DataModel.h"
+#include "DataController.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "EventSpecification.h"
 

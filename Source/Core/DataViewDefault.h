@@ -31,8 +31,8 @@
 
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/Variant.h"
+#include "DataView.h"
 
 namespace Rml {
 
@@ -80,6 +80,13 @@ public:
 class DataViewValue final : public DataViewAttribute {
 public:
 	DataViewValue(Element* element);
+};
+
+class DataViewChecked final : public DataViewCommon {
+public:
+	DataViewChecked(Element* element);
+
+	bool Update(DataModel& model) override;
 };
 
 class DataViewStyle final : public DataViewCommon {

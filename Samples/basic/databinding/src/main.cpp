@@ -58,11 +58,6 @@ namespace BasicExample {
 
 		return true;
 	}
-
-	void Update()
-	{
-		model_handle.Update();
-	}
 }
 
 
@@ -154,8 +149,6 @@ namespace EventsExample {
 				model_handle.DirtyVariable("list");
 			}
 		}
-
-		model_handle.Update();
 	}
 }
 
@@ -276,8 +269,6 @@ namespace InvadersExample {
 			}
 			invaders_data.time_last_weapons_launched = t;
 		}
-
-		model_handle.Update();
 	}
 }
 
@@ -287,6 +278,12 @@ namespace FormsExample {
 
 	struct MyData {
 		int rating = 50;
+		bool pizza = true;
+		bool pasta = false;
+		bool lasagne = false;
+		Rml::String animal = "dog";
+		Rml::Vector<Rml::String> subjects = { "Choose your subject", "Feature request", "Bug report", "Praise", "Criticism" };
+		int selected_subject = 0;
 	} my_data;
 
 	bool Initialize(Rml::Context* context)
@@ -295,16 +292,19 @@ namespace FormsExample {
 		if (!constructor)
 			return false;
 
+		constructor.RegisterArray<Rml::Vector<Rml::String>>();
+
 		constructor.Bind("rating", &my_data.rating);
+		constructor.Bind("pizza", &my_data.pizza);
+		constructor.Bind("pasta", &my_data.pasta);
+		constructor.Bind("lasagne", &my_data.lasagne);
+		constructor.Bind("animal", &my_data.animal);
+		constructor.Bind("subjects", &my_data.subjects);
+		constructor.Bind("selected_subject", &my_data.selected_subject);
 
 		model_handle = constructor.GetModelHandle();
 
 		return true;
-	}
-
-	void Update()
-	{
-		model_handle.Update();
 	}
 }
 
@@ -377,10 +377,8 @@ void GameLoop()
 {
 	const double t = Rml::GetSystemInterface()->GetElapsedTime();
 	
-	BasicExample::Update();
 	EventsExample::Update();
 	InvadersExample::Update(t);
-	FormsExample::Update();
 
 	context->Update();
 

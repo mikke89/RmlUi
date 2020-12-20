@@ -99,7 +99,7 @@ namespace StringUtilities
 	RMLUICORE_API String StripWhitespace(StringView string);
 
 	/// Trim trailing zeros and the dot from a string-representation of a number with a decimal point.
-	/// @warning If the string does not represent a number _with_ a decimal point, the result will probably not be as desired.
+	/// @warning If the string does not represent a number _with_ a decimal point, the result is ill-defined.
 	RMLUICORE_API void TrimTrailingDotZeros(String& string);
 
 	/// Case insensitive string comparison. Returns true if they compare equal.

@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUI_CORE_DATAMODEL_H
-#define RMLUI_CORE_DATAMODEL_H
+#ifndef RMLUI_CORE_DATAMODELHANDLE_H
+#define RMLUI_CORE_DATAMODELHANDLE_H
 
 #include "Header.h"
 #include "Types.h"
@@ -37,81 +37,15 @@
 
 namespace Rml {
 
-class DataViews;
-class DataControllers;
-class Element;
-
-
-class RMLUICORE_API DataModel : NonCopyMoveable {
-public:
-	DataModel(const TransformFuncRegister* transform_register = nullptr);
-	~DataModel();
-
-	void AddView(DataViewPtr view);
-	void AddController(DataControllerPtr controller);
-
-	bool BindVariable(const String& name, DataVariable variable);
-	bool BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func);
-
-	bool BindEventCallback(const String& name, DataEventFunc event_func);
-
-	bool InsertAlias(Element* element, const String& alias_name, DataAddress replace_with_address);
-	bool EraseAliases(Element* element);
-
-	DataAddress ResolveAddress(const String& address_str, Element* element) const;
-	const DataEventFunc* GetEventCallback(const String& name);
-
-	DataVariable GetVariable(const DataAddress& address) const;
-	bool GetVariableInto(const DataAddress& address, Variant& out_value) const;
-
-	void DirtyVariable(const String& variable_name);
-	bool IsVariableDirty(const String& variable_name) const;
-
-	bool CallTransform(const String& name, Variant& inout_result, const VariantList& arguments) const;
-
-	// Elements declaring 'data-model' need to be attached.
-	void AttachModelRootElement(Element* element);
-	ElementList GetAttachedModelRootElements() const;
-
-	void OnElementRemove(Element* element);
-
-	bool Update();
-
-private:
-	UniquePtr<DataViews> views;
-	UniquePtr<DataControllers> controllers;
-
-	UnorderedMap<String, DataVariable> variables;
-	DirtyVariables dirty_variables;
-
-	UnorderedMap<String, UniquePtr<FuncDefinition>> function_variable_definitions;
-	UnorderedMap<String, DataEventFunc> event_callbacks;
-
-	using ScopedAliases = UnorderedMap<Element*, SmallUnorderedMap<String, DataAddress>>;
-	ScopedAliases aliases;
-
-	const TransformFuncRegister* transform_register;
-
-	SmallUnorderedSet<Element*> attached_elements;
-};
-
+class DataModel;
 
 
 class RMLUICORE_API DataModelHandle {
 public:
-	DataModelHandle(DataModel* model = nullptr) : model(model)
-	{}
+	DataModelHandle(DataModel* model = nullptr);
 
-	void Update() {
-		model->Update();
-	}
-
-	bool IsVariableDirty(const String& variable_name) {
-		return model->IsVariableDirty(variable_name);
-	}
-	void DirtyVariable(const String& variable_name) {
-		model->DirtyVariable(variable_name);
-	}
+	bool IsVariableDirty(const String& variable_name);
+	void DirtyVariable(const String& variable_name);
 
 	explicit operator bool() { return model; }
 
@@ -125,38 +59,38 @@ public:
 	template<typename T>
 	using DataEventMemberFunc = void(T::*)(DataModelHandle, Event&, const VariantList&);
 
-	DataModelConstructor() : model(nullptr), type_register(nullptr) {}
-	DataModelConstructor(DataModel* model, DataTypeRegister* type_register) : model(model), type_register(type_register) {
-		RMLUI_ASSERT(model && type_register);
-	}
+	DataModelConstructor();
+	DataModelConstructor(DataModel* model, DataTypeRegister* type_register);
 
 	// Return a handle to the data model being constructed, which can later be used to synchronize variables and update the model.
-	DataModelHandle GetModelHandle() const {
-		return DataModelHandle(model);
-	}
+	DataModelHandle GetModelHandle() const;
 
 	// Bind a data variable.
 	// @note For non-scalar types make sure they first have been registered with the appropriate 'Register...()' functions.
-	template<typename T> bool Bind(const String& name, T* ptr) {
+	template<typename T>
+	bool Bind(const String& name, T* ptr) {
 		RMLUI_ASSERTMSG(ptr, "Invalid pointer to data variable");
-		return model->BindVariable(name, DataVariable(type_register->GetOrAddScalar<T>(), ptr));
+		return BindVariable(name, DataVariable(type_register->GetOrAddScalar<T>(), ptr));
 	}
 
 	// Bind a get/set function pair.
-	bool BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func = {}) {
-		return model->BindFunc(name, std::move(get_func), std::move(set_func));
-	}
+	bool BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func = {});
 
 	// Bind an event callback.
-	bool BindEventCallback(const String& name, DataEventFunc event_func) {
-		return model->BindEventCallback(name, std::move(event_func));
-	}
+	bool BindEventCallback(const String& name, DataEventFunc event_func);
+
 	// Convenience wrapper around BindEventCallback for member functions.
 	template<typename T>
 	bool BindEventCallback(const String& name, DataEventMemberFunc<T> member_func, T* object_pointer) {
 		return BindEventCallback(name, [member_func, object_pointer](DataModelHandle handle, Event& event, const VariantList& arguments) {
 			(object_pointer->*member_func)(handle, event, arguments);
 		});
+	}
+
+	// Bind a user-declared DataVariable.
+	// For advanced use cases, for example for binding variables to a custom 'VariableDefinition'.
+	bool BindCustomDataVariable(const String& name, DataVariable data_variable) {
+		return BindVariable(name, data_variable);
 	}
 
 	// Register a struct type.
@@ -186,9 +120,12 @@ public:
 	explicit operator bool() { return model && type_register; }
 
 private:
+	bool BindVariable(const String& name, DataVariable data_variable);
+
 	DataModel* model;
 	DataTypeRegister* type_register;
 };
 
 } // namespace Rml
+
 #endif

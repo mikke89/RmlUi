@@ -28,6 +28,7 @@
 
 #include "../../../Source/Core/DataModel.cpp"
 #include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/DataModelHandle.h>
 #include <doctest.h>
 
 using namespace Rml;

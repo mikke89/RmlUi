@@ -178,12 +178,14 @@ struct DefaultInstancers {
 	DataViewInstancerDefault<DataViewStyle> data_view_style;
 	DataViewInstancerDefault<DataViewText> data_view_text;
 	DataViewInstancerDefault<DataViewValue> data_view_value;
+	DataViewInstancerDefault<DataViewChecked> data_view_checked;
 
 	DataViewInstancerDefault<DataViewFor> structural_data_view_for;
 
 	// Data binding controllers
 	DataControllerInstancerDefault<DataControllerValue> data_controller_value;
 	DataControllerInstancerDefault<DataControllerEvent> data_controller_event;
+	DataControllerInstancerDefault<DataControllerChecked> data_controller_checked;
 };
 
 static UniquePtr<DefaultInstancers> default_instancers;
@@ -268,11 +270,13 @@ bool Factory::Initialise()
 	RegisterDataViewInstancer(&default_instancers->data_view_style,          "style",   false);
 	RegisterDataViewInstancer(&default_instancers->data_view_text,           "text",    false);
 	RegisterDataViewInstancer(&default_instancers->data_view_value,          "value",   false);
+	RegisterDataViewInstancer(&default_instancers->data_view_checked,        "checked", false);
 	RegisterDataViewInstancer(&default_instancers->structural_data_view_for, "for",     true );
 
 	// Data binding controllers
 	RegisterDataControllerInstancer(&default_instancers->data_controller_value, "value");
 	RegisterDataControllerInstancer(&default_instancers->data_controller_event, "event");
+	RegisterDataControllerInstancer(&default_instancers->data_controller_checked, "checked");
 
 	// XML node handlers
 	XMLParser::RegisterNodeHandler("", MakeShared<XMLNodeHandlerDefault>());
@@ -649,6 +653,11 @@ DataControllerPtr Factory::InstanceDataController(const String& type_name, Eleme
 	if (it != data_controller_instancers.end())
 		return it->second->InstanceController(element);
 	return DataControllerPtr();
+}
+
+bool Factory::IsStructuralDataView(const String& type_name)
+{
+	return structural_data_view_instancers.find(type_name) != structural_data_view_instancers.end();
 }
 
 const StringList& Factory::GetStructuralDataViewAttributeNames()

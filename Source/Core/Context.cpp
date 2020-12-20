@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/ContextInstancer.h"
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
@@ -36,8 +37,8 @@
 #include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
-#include "../../Include/RmlUi/Core/DataModel.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
+#include "DataModel.h"
 #include "EventDispatcher.h"
 #include "PluginRegistry.h"
 #include "StreamFile.h"
@@ -167,6 +168,10 @@ bool Context::Update()
 {
 	RMLUI_ZoneScoped;
 
+	// Update all data models first
+	for (auto& data_model : data_models)
+		data_model.second->Update(true);
+
 	root->Update(density_independent_pixel_ratio);
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
@@ -272,6 +277,12 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	// querying such information in the event handler.
 	PluginRegistry::NotifyDocumentLoad(document);
 	document->DispatchEvent(EventId::Load, Dictionary());
+
+	// Data models are updated after the 'load' event so that the user has a chance to change
+	// any data variables first. We do not clear dirty variables here, since users may need to
+	// retrieve whether or not eg. a data variable has changed in a controller.
+	for (auto& data_model : data_models)
+		data_model.second->Update(false);
 
 	document->UpdateDocument();
 

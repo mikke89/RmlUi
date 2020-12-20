@@ -115,7 +115,7 @@ int main(int, char**)
 	Rml::Factory::RegisterDecoratorInstancer("defender", &decorator_defender);
 
 	// Construct the game singletons.
-	HighScores::Initialise();
+	HighScores::Initialise(context);
 
 	// Fire off the startup script.
     LuaInterface::Initialise(Rml::Lua::Interpreter::GetLuaState()); //the tables/functions defined in the samples

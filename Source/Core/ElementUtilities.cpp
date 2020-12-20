@@ -29,14 +29,14 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/DataController.h"
-#include "../../Include/RmlUi/Core/DataModel.h"
-#include "../../Include/RmlUi/Core/DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "DataController.h"
+#include "DataModel.h"
+#include "DataView.h"
 #include "ElementStyle.h"
 #include "LayoutDetails.h"
 #include "LayoutEngine.h"
@@ -434,6 +434,14 @@ static bool ApplyDataViewsControllersInternal(Element* element, const bool const
 				}
 				else
 				{
+					if (Factory::IsStructuralDataView(type_name))
+					{
+						// Structural data views should cancel all other non-structural data views and controllers. Exit now.
+						// Eg. in elements with a 'data-for' attribute, the data views should be constructed on the generated
+						// children elements and not on the current element generating the 'for' view.
+						return false;
+					}
+
 					const size_t modifier_offset = data_str_length + type_name.size() + 1;
 					if (modifier_offset < name.size())
 						initializer.modifier_or_inner_rml = name.substr(modifier_offset);
