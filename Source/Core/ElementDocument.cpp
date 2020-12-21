@@ -223,7 +223,6 @@ void ElementDocument::ReloadStyleSheet()
 		return;
 
 	SetStyleSheet(temp_doc->GetStyleSheet());
-	context->UnloadDocument(static_cast<ElementDocument*>(temp_doc.get()));
 }
 
 // Brings the document to the front of the document stack.
