@@ -87,6 +87,8 @@ public:
 	void SetStyleSheet(SharedPtr<StyleSheet> style_sheet);
 	/// Returns the document's style sheet.
 	const SharedPtr<StyleSheet>& GetStyleSheet() const override;
+	/// Reload the document's style sheet from source files.
+	void ReloadStyleSheet();
 
 	/// Brings the document to the front of the document stack.
 	void PullToFront();

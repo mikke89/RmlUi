@@ -210,6 +210,21 @@ const SharedPtr<StyleSheet>& ElementDocument::GetStyleSheet() const
 	return style_sheet;
 }
 
+// Reload the document's style sheet from source files.
+void ElementDocument::ReloadStyleSheet()
+{
+	auto stream = MakeUnique<StreamFile>();
+	if(!stream->Open(source_url))
+		return;
+
+	Factory::ClearStyleSheetCache();
+	ElementPtr temp_doc = Factory::InstanceDocumentStream(context, stream.get());
+	if(!temp_doc)
+		return;
+
+	SetStyleSheet(temp_doc->GetStyleSheet());
+}
+
 // Brings the document to the front of the document stack.
 void ElementDocument::PullToFront()
 {
