@@ -69,7 +69,8 @@ static bool isRegularFile(const Rml::String& path)
 bool Shell::Initialise()
 {
 	gettimeofday(&start_time, nullptr);
-	InputX11::Initialise();
+	if (!InputX11::Initialise())
+		return false;
 
 	Rml::String root = FindSamplesRoot();
 	bool result = !root.empty();
@@ -119,6 +120,8 @@ Rml::String Shell::FindSamplesRoot()
 			return absolute_path;
 		}
 	}
+
+	printf("Unable to find the path to the samples root!\n");
 
 	return Rml::String();
 }
