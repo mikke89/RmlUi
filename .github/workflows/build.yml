@@ -1,0 +1,77 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  Linux:
+    runs-on: ubuntu-20.04
+    
+    env:
+      BUILD_TYPE: Release
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+  
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cc: clang
+            cxx: clang++
+          - cmake_options: -DBUILD_TESTING=ON
+            enable_testing: true
+          - cmake_options: -DNO_FONT_INTERFACE_DEFAULT=ON
+          - cmake_options: -DDISABLE_RTTI_AND_EXCEPTIONS=ON
+          - cmake_options: -DNO_THIRDPARTY_CONTAINERS=ON
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Install Dependencies
+      run: sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev
+      
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/Build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/Build
+      run: >-
+        cmake $GITHUB_WORKSPACE -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        ${{ matrix.cmake_options }}
+
+    - name: Build
+      working-directory: ${{github.workspace}}/Build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
+
+    - name: Test
+      if: ${{ matrix.enable_testing }}
+      working-directory: ${{github.workspace}}/Build
+      shell: bash
+      run: ctest -C $BUILD_TYPE
+
+
+  macOS:
+    runs-on: macos-latest
+    
+    env:
+      BUILD_TYPE: Release
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Install Dependencies
+      run: brew install lua
+      
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/Build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/Build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=OFF -DWARNINGS_AS_ERRORS=ON
+
+    - name: Build
+      working-directory: ${{github.workspace}}/Build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
