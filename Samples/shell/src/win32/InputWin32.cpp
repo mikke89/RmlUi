@@ -50,7 +50,7 @@ void InputWin32::Shutdown()
 {
 }
 
-void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_param)
+void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, LPARAM l_param)
 {
 	if (context == nullptr)
 		return;
@@ -60,9 +60,11 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 	{
 		case WM_LBUTTONDOWN:
 			context->ProcessMouseButtonDown(0, GetKeyModifierState());
+			SetCapture(window);
 			break;
 
 		case WM_LBUTTONUP:
+			ReleaseCapture();
 			context->ProcessMouseButtonUp(0, GetKeyModifierState());
 			break;
 
@@ -83,7 +85,7 @@ void InputWin32::ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_para
 			break;
 
 		case WM_MOUSEMOVE:
-			context->ProcessMouseMove(LOWORD(l_param), HIWORD(l_param), GetKeyModifierState());
+			context->ProcessMouseMove(static_cast<int>((short)LOWORD(l_param)), static_cast<int>((short)HIWORD(l_param)), GetKeyModifierState());
 			break;
 
 		case WM_MOUSEWHEEL:

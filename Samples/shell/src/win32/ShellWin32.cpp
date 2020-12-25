@@ -412,7 +412,7 @@ static LRESULT CALLBACK WindowProcedure(HWND local_window_handle, UINT message, 
 
 		default:
 		{
-			InputWin32::ProcessWindowsEvent(message, w_param, l_param);
+			InputWin32::ProcessWindowsEvent(local_window_handle, message, w_param, l_param);
 		}
 		break;
 	}

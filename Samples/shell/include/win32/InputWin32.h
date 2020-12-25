@@ -45,7 +45,7 @@ public:
 	static void Shutdown();
 
 	/// Process the Windows message.
-	static void ProcessWindowsEvent(UINT message, WPARAM w_param, LPARAM l_param);
+	static void ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
 };
 
 #endif
