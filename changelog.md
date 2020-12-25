@@ -56,6 +56,8 @@ For now, this is considered an experimental feature.
 - Have a look at the 'databinding' sample for usage examples.
 - See discussion in [#83](https://github.com/mikke89/RmlUi/pull/83) and [#25](https://github.com/mikke89/RmlUi/issues/25).
 
+Thanks to contributions from @actboy, @cloudwu, and @C-Core; and everyone who helped with testing.
+
 ### Test suite
 
 Work has started on a complete test suite for RmlUi. The tests have been separated into three projects.
@@ -72,7 +74,6 @@ Work has started on a complete test suite for RmlUi. The tests have been separat
 - Replaced elements now try to preserve the aspect ratio when both width and height are auto, and min/max-width/height are set.
 - Fixed several situations where overflowing content would not be hidden or scrolled when setting a non-default `overflow` property. [#116](https://github.com/mikke89/RmlUi/issues/116)
 - Overflow is now clipped on the padding area instead of the content area.
-- Several other layouting improvements (to-be-detailed).
 
 These changes may result in a differently rendered layout when upgrading to RmlUi 4.0. In particular the first two items. 
 
@@ -99,7 +100,7 @@ RmlUi now supports tables like in CSS. See the [tables documentation](https://mi
 </table>
 ```
 
-Use the RCSS `display` property to enable table formatting. See the stylesheet rules in the tables documentation to use the common HTML tags.
+Use the RCSS `display` property to enable table formatting. See the style sheet rules in the tables documentation to use the common HTML tags.
 
 ### New RCSS properties
 
@@ -111,6 +112,20 @@ Use the RCSS `display` property to enable table formatting. See the stylesheet r
 
 - Added [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html) for displaying vector animations using the `<lottie>` element [#134](https://github.com/mikke89/RmlUi/pull/134) (thanks @diamondhat).
 
+### Element improvements
+
+- Implemented `Element::QuerySelector` and `Element::QuerySelectorAll`.
+- The `tab-index: auto` property can now be set on the `<body>` element to enable tabbing back to the document.
+- `<select>` elements now react to changes in the `value` attribute.
+- Element attributes can now use escaped RML characters, eg. `<p example="&quot;Quoted text&quot;"/>`. [#154](https://github.com/mikke89/RmlUi/pull/154) (thanks @actboy168).
+- Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
+
+### Input handling
+
+- Added `Context::IsMouseInteracting()` to determine whether the mouse cursor hovers or otherwise interacts with documents. [#124](https://github.com/mikke89/RmlUi/issues/124)
+- Added boolean return values to `Context::ProcessMouse...()` functions to determine whether the mouse is interacting with documents.
+- Fixed some situations where the return value of `Context::Process...()` was wrong.
+
 ### Lua plugin
 
 Improved Lua plugin in several aspects.
@@ -118,25 +133,18 @@ Improved Lua plugin in several aspects.
 - Added detailed [documentation for the Lua plugin](https://mikke89.github.io/RmlUiDoc/pages/lua_manual.html). [RmlUiDocs#4](https://github.com/mikke89/RmlUiDoc/pull/4) (thanks @IronicallySerious)
 - Remove overriding globals, use standard pairs/ipars implementation, make array indices 1-based. [#95](https://github.com/mikke89/RmlUi/issues/95) [#137](https://github.com/mikke89/RmlUi/pull/137) (thanks @actboy168)
 - Improve compatibility with debuggers and fix compatibility with Lua 5.4. [#136](https://github.com/mikke89/RmlUi/pull/136) [#138](https://github.com/mikke89/RmlUi/pull/138) (thanks @actboy168)
-- Add stack trace to Lua error messages. [#140](https://github.com/mikke89/RmlUi/pull/140) (thanks @actboy168)
-
-### Input
-
-- Added `Context::IsMouseInteracting()` to determine whether the mouse cursor hovers or otherwise interacts with documents. [#124](https://github.com/mikke89/RmlUi/issues/124)
-- Added boolean return values to `Context::ProcessMouse...()` functions to determine whether the mouse is interacting with documents.
-- Fixed some situations where the return value of `Context::Process...()` was wrong.
+- Lua error reporting improvements, including stack trace. [#140](https://github.com/mikke89/RmlUi/pull/140) [#151](https://github.com/mikke89/RmlUi/pull/151) (thanks @actboy168)
+- Add support for declaring data bindings. [#146](https://github.com/mikke89/RmlUi/pull/146)  [#150](https://github.com/mikke89/RmlUi/pull/150) (thanks @cloudwu and @actboy168)
 
 ### Other features and improvements
 
-- Implemented `Element::QuerySelector` and `Element::QuerySelectorAll`.
-- The `tab-index: auto` property can now be set on the `body` element to enable tabbing back to the document.
+- Added `Rml::GetTextureSourceList()` function to list all image sources loaded in all documents. [#131](https://github.com/mikke89/RmlUi/issues/131)
+- Added `ElementDocument::ReloadStyleSheet()` function to reload styles without affecting the document tree. [#159](https://github.com/mikke89/RmlUi/issues/159) (thanks @Lyatus)
+- RCSS and scripts are now always loaded in declared order [#144](https://github.com/mikke89/RmlUi/pull/144) (thanks @actboy168).
 - A custom configuration can now be used by RmlUi. In this way it is possible to replace several types including containers to other STL-compatible containers (such as [EASTL](https://github.com/electronicarts/EASTL)), or to STL containers with custom allocators. See the `CUSTOM_CONFIGURATION` [CMake option](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html#cmake-options). [#110](https://github.com/mikke89/RmlUi/pull/110) (thanks @rokups).
 - Added ability to change the default base tag in documents [#112](https://github.com/mikke89/RmlUi/pull/112)  (thanks @aquawicket).
 - Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
-- Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
-- Add `Rml::GetTextureSourceList()` function to list all image sources loaded in all documents. [#131](https://github.com/mikke89/RmlUi/issues/131)
-- RCSS and scripts are now always loaded in declared order [#144](https://github.com/mikke89/RmlUi/pull/144) (thanks @actboy168).
 
 ### Bug fixes
 
@@ -144,7 +152,7 @@ Improved Lua plugin in several aspects.
 - Changing the `fill-image` property of \<progressbar\> elements now actually updates the image.
 - Fix a bug where font textures were leaked on `Rml::Shutdown()`. [#133](https://github.com/mikke89/RmlUi/issues/133)
 - Fixed building with MinGW, and added it to the CI to avoid future breaks. [#108](https://github.com/mikke89/RmlUi/pull/108) (thanks @cloudwu).
-- Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) (thanks @SpaceCat-Chan).
+- Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) [#157](https://github.com/mikke89/RmlUi/pull/157) (thanks @SpaceCat-Chan and @LWSS).
 - Fix \<textarea\> getting an unnecessary horizontal scrollbar. [#122](https://github.com/mikke89/RmlUi/issues/122)
 - Fix text-decoration not always being regenerated. [#119](https://github.com/mikke89/RmlUi/issues/119)
 
