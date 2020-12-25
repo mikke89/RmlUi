@@ -213,14 +213,22 @@ const SharedPtr<StyleSheet>& ElementDocument::GetStyleSheet() const
 // Reload the document's style sheet from source files.
 void ElementDocument::ReloadStyleSheet()
 {
-	auto stream = MakeUnique<StreamFile>();
-	if(!stream->Open(source_url))
+	if (!context)
 		return;
 
-	Factory::ClearStyleSheetCache();
-	ElementPtr temp_doc = Factory::InstanceDocumentStream(context, stream.get());
-	if(!temp_doc)
+	auto stream = MakeUnique<StreamFile>();
+	if (!stream->Open(source_url))
+	{
+		Log::Message(Log::LT_WARNING, "Failed to open file to reload style sheet in document: %s", source_url.c_str());
 		return;
+	}
+
+	Factory::ClearStyleSheetCache();
+	ElementPtr temp_doc = Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag());
+	if (!temp_doc) {
+		Log::Message(Log::LT_WARNING, "Failed to reload style sheet, could not instance document: %s", source_url.c_str());
+		return;
+	}
 
 	SetStyleSheet(temp_doc->GetStyleSheet());
 }

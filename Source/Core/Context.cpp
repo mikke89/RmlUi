@@ -261,7 +261,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 {
 	PluginRegistry::NotifyDocumentOpen(this, stream->GetSourceURL().GetURL());
 
-	ElementPtr element = Factory::InstanceDocumentStream(this, stream);
+	ElementPtr element = Factory::InstanceDocumentStream(this, stream, GetDocumentsBaseTag());
 	if (!element)
 		return nullptr;
 

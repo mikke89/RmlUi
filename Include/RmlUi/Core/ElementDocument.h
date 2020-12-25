@@ -88,6 +88,8 @@ public:
 	/// Returns the document's style sheet.
 	const SharedPtr<StyleSheet>& GetStyleSheet() const override;
 	/// Reload the document's style sheet from source files.
+	/// Styles will be reloaded from <style> tags and external style sheets, but not inline 'style' attributes.
+	/// @note The source url originally used to load the document must still be a valid RML document.
 	void ReloadStyleSheet();
 
 	/// Brings the document to the front of the document stack.

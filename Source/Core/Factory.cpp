@@ -472,12 +472,11 @@ bool Factory::InstanceElementStream(Element* parent, Stream* stream)
 }
 
 // Instances a element tree based on the stream
-ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream)
+ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream, const String& document_base_tag)
 {
 	RMLUI_ZoneScoped;
-	RMLUI_ASSERT(context);
 
-	ElementPtr element = Factory::InstanceElement(nullptr, context->GetDocumentsBaseTag(), context->GetDocumentsBaseTag(), XMLAttributes());
+	ElementPtr element = Factory::InstanceElement(nullptr, document_base_tag, document_base_tag, XMLAttributes());
 	if (!element)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to instance document, instancer returned nullptr.");
