@@ -67,17 +67,16 @@ function Options.Deserialize(filename)
     
     return ret
 end
-        
-        
+
 function Options.LoadOptions(document)
     local options = Options.Deserialize('options.dat')
     if options == nil then return end --short circuit if the file doesn't exist
-    local AsInput = Element.As.ElementFormControlInput
-    
-    AsInput(document:GetElementById(options['graphics'])).checked = true
+	
     --because everything is loaded as a string, we have to fool around with the boolean variables
 	Options.datamodel.audios[1].checked = (options['reverb'] == 'true')
 	Options.datamodel.audios[2].checked = (options['3d'] == 'true')
+	
+	Options.datamodel.graphics = options['graphics']
 	Options.datamodel.options_changed = false
 end
 
@@ -96,29 +95,16 @@ function Options.SaveOptions(event)
     
     Options.Serialize('options.dat',options)
 end
-
-function Options.OnChange(event)
-	Options.datamodel.options_changed = true
-	
-	local name = event.target_element.attributes.name
-	local value = event.parameters.value
-	
-	-- When a radio button gets checked, it sets the value parameter. When it gets unchecked, the value is nil.
-	if name == 'graphics' and value ~= nil then
-		Options.datamodel.graphics = value
-	end
-end
-
 	</script>
 	</head>
 	<body template="luawindow" onload="Window.OnWindowLoad(document) Options.LoadOptions(document)">
-		<form data-model="options" onsubmit="Options.SaveOptions(event) Window.LoadMenu('main_menu',document)" onchange="Options.OnChange(event)">
+		<form data-model="options" onsubmit="Options.SaveOptions(event) Window.LoadMenu('main_menu',document)" data-event-change="options_changed = true">
 			<div>
 				<p>
 					Graphics:<br />
-					<input id="good" type="radio" name="graphics" value="good" /> Good<br />
-					<input id="ok" type="radio" name="graphics" value="ok" checked /> OK<br />
-					<input id="bad" type="radio" name="graphics" value="bad" /> Bad<br />
+					<input id="good" type="radio" name="graphics" value="good" data-checked="graphics" /> Good<br />
+					<input id="ok" type="radio" name="graphics" value="ok" data-checked="graphics" /> OK<br />
+					<input id="bad" type="radio" name="graphics" value="bad" data-checked="graphics" /> Bad<br />
 				</p>
 				<p data-if="graphics == 'bad'">Are you sure about this? Bad graphics are just plain <em>bad.</em></p>
 				<p>
