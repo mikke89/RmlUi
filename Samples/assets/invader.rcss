@@ -583,7 +583,7 @@ datagrid datagridbody
 
 
 
-datagridexpand
+datagridexpand, expand
 {
 	display: block;
 	
@@ -594,27 +594,27 @@ datagridexpand
 	decorator: image( datagridexpand );
 }
 
-datagridexpand:hover
+datagridexpand:hover, expand:hover
 {
 	decorator: image( datagridexpand-hover );
 }
 
-datagridexpand:active
+datagridexpand:active, expand:active
 {
 	decorator: image( datagridexpand-active  );
 }
 
-datagridexpand.collapsed
+datagridexpand.collapsed, expand.collapsed
 {
 	decorator: image( datagridexpand-collapsed );
 }
 
-datagridexpand.collapsed:hover
+datagridexpand.collapsed:hover, expand.collapsed:hover
 {
 	decorator: image( datagridexpand-collapsed-hover );
 }
 
-datagridexpand.collapsed:active
+datagridexpand.collapsed:active, expand.collapsed:active
 {
 	decorator: image( datagridexpand-collapsed-active  );
 }

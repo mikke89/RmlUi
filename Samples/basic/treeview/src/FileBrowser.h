@@ -26,30 +26,16 @@
  *
  */
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#ifndef FILEBROWSER_H
+#define FILEBROWSER_H
 
 #include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Elements/DataSource.h>
 
-struct FileSystemNode;
 
-/**
-	Reads the directory structure of the current directory and fills in a data source.
-	@author Peter Curry
- */
+namespace FileBrowser {
 
-class FileSystem : public Rml::DataSource
-{
-public:
-	FileSystem(const Rml::String& root);
-	virtual ~FileSystem();
+bool Initialise(Rml::Context* context, const Rml::String& root_dir);
 
-	void GetRow(Rml::StringList& row, const Rml::String& table, int row_index, const Rml::StringList& columns) override;
-	int GetNumRows(const Rml::String& table) override;
-
-private:
-	FileSystemNode* GetNode(const Rml::String& table);
-};
+}
 
 #endif

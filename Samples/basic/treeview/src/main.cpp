@@ -31,8 +31,7 @@
 #include <Input.h>
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
-#include "FileFormatter.h"
-#include "FileSystem.h"
+#include "FileBrowser.h"
 
 Rml::Context* context = nullptr;
 
@@ -108,8 +107,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Create the file data source and formatter.
 	const Rml::String root = Shell::FindSamplesRoot();
-	FileSystem file_system(root);
-	FileFormatter file_formatter;
+	FileBrowser::Initialise(context, root);
 
 	// Load and show the demo document.
 	Rml::ElementDocument* document = context->LoadDocument("basic/treeview/data/treeview.rml");

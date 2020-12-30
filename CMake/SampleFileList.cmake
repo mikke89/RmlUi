@@ -86,13 +86,11 @@ set(loaddocument_SRC_FILES
 )
 
 set(treeview_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileFormatter.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileSystem.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileBrowser.h
 )
 
 set(treeview_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileFormatter.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileSystem.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/FileBrowser.cpp
     ${PROJECT_SOURCE_DIR}/Samples/basic/treeview/src/main.cpp
 )
 
