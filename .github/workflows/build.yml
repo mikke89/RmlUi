@@ -17,7 +17,8 @@ jobs:
         include:
           - cc: clang
             cxx: clang++
-          - cmake_options: -DBUILD_TESTING=ON
+            cmake_options: -DENABLE_PRECOMPILED_HEADERS=OFF
+          - cmake_options: -DBUILD_TESTING=ON -DENABLE_PRECOMPILED_HEADERS=OFF
             enable_testing: true
           - cmake_options: -DNO_FONT_INTERFACE_DEFAULT=ON
           - cmake_options: -DDISABLE_RTTI_AND_EXCEPTIONS=ON
