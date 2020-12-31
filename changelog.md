@@ -46,7 +46,7 @@ The Lua plugins have been changed to reflect the above changes.
 - Refactored `TransformPrimitive.h` by moving utility functions that should only be used internally to an internal header file.
 - Renamed header guard macros.
 
-### Model-view-controller (MVC) implementation
+### Data bindings (model-view-controller)
 
 RmlUi now supports a model-view-controller (MVC) approach through data bindings. This is a powerful approach for making documents respond to data changes, or in reverse, updating data based on user actions.
 
@@ -136,6 +136,12 @@ Improved Lua plugin in several aspects.
 - Lua error reporting improvements, including stack trace. [#140](https://github.com/mikke89/RmlUi/pull/140) [#151](https://github.com/mikke89/RmlUi/pull/151) (thanks @actboy168)
 - Add support for declaring data bindings. [#146](https://github.com/mikke89/RmlUi/pull/146)  [#150](https://github.com/mikke89/RmlUi/pull/150) (thanks @cloudwu and @actboy168)
 
+### Samples
+
+- New `databinding` sample for demonstrating data bindings.
+- The use of `datagrid` in sample projects has now been replaced with data bindings. This includes the `treeview` sample and the high scores document in the `invader` sample. Tutorials have not been updated.
+- The options document in the `luainvader` sample now demonstrate data bindings combined with Lua scripts.
+
 ### Other features and improvements
 
 - Added `Rml::GetTextureSourceList()` function to list all image sources loaded in all documents. [#131](https://github.com/mikke89/RmlUi/issues/131)
@@ -155,6 +161,10 @@ Improved Lua plugin in several aspects.
 - Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) [#157](https://github.com/mikke89/RmlUi/pull/157) (thanks @SpaceCat-Chan and @LWSS).
 - Fix \<textarea\> getting an unnecessary horizontal scrollbar. [#122](https://github.com/mikke89/RmlUi/issues/122)
 - Fix text-decoration not always being regenerated. [#119](https://github.com/mikke89/RmlUi/issues/119)
+
+### Deprecated functionality
+
+- The `datagrid` element and related functionality has been deprecated in favor of [data bindings](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html) and [RCSS tables](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html).
 
 ### Breaking changes
 
