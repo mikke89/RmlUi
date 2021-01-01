@@ -36,13 +36,16 @@ install:
     cmake --build . --target rlottie --config Release -- "/clp:ErrorsOnly"
     cd ../../../
     
-    mkdir Build-Dynamic, Build-Static
+    mkdir Build-Dynamic, Build-Static, Build-Samples
     
     cd Build-Dynamic
-    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON ..
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DBUILD_SAMPLES=OFF -DWARNINGS_AS_ERRORS=ON ..
 
     cd ../Build-Static
     cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DBUILD_SAMPLES=OFF -DWARNINGS_AS_ERRORS=ON ..
+    
+    cd ../Build-Samples
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DENABLE_LOTTIE_PLUGIN=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON ..
     
     cd ..
     
@@ -56,6 +59,8 @@ build_script:
     
     msbuild Build-Static/RmlUi.sln  /p:configuration=release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
     
+    msbuild Build-Samples/RmlUi.sln  /p:configuration=release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+    
 after_build:
 - cmd: |-
     mkdir Bin
@@ -67,8 +72,8 @@ after_build:
     cp ../Build-Static/Release/Rml*.lib Static-Release
     cd ..
     
-    cp Build-Dynamic/Release/*.exe Samples
-    cp Bin/Dynamic-Release/*.dll Samples
+    cp Build-Samples/Release/*.exe Samples
+    cp Build-Samples/Release/Rml*.dll Samples
     cp Dependencies/lib/*.dll Samples
 
     mv Dependencies/lib/ Dependencies/freetype-%FREETYPE_VER%
