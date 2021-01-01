@@ -26,23 +26,24 @@
  *
  */
 
-#include "ElementLottie.h"
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/PropertyIdSet.h>
-#include <RmlUi/Core/GeometryUtilities.h>
-#include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/SystemInterface.h>
-#include <RmlUi/Core/FileInterface.h>
+#include "../../Include/RmlUi/Lottie/ElementLottie.h"
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/FileInterface.h"
 #include <cmath>
 #include <rlottie.h>
 
 namespace Rml {
 
+
 ElementLottie::ElementLottie(const String& tag) : Element(tag), geometry(this)
 {
 }
 
-ElementLottie::~ElementLottie(void)
+ElementLottie::~ElementLottie()
 {
 }
 
@@ -73,6 +74,7 @@ void ElementLottie::OnRender()
 void ElementLottie::OnResize()
 {
 	geometry_dirty = true;
+	texture_size_dirty = true;
 }
 
 void ElementLottie::OnAttributeChange(const ElementAttributes& changed_attributes)
@@ -191,8 +193,11 @@ void ElementLottie::UpdateTexture()
 	const double pos = std::modf((t - time_animation_start) / animation->duration(), &_unused);
 
 	const size_t next_frame = animation->frameAtPos(pos);
-	if (next_frame == prev_animation_frame)
+	if (!texture_size_dirty && next_frame == prev_animation_frame)
+	{
+		// No need to update the texture if we are drawing the same frame at the same size.
 		return;
+	}
 
 	// Callback for generating texture.
 	auto p_callback = [this, next_frame](const String& /*name*/, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
@@ -232,5 +237,7 @@ void ElementLottie::UpdateTexture()
 	texture.Set("lottie", p_callback);
 	geometry.SetTexture(&texture);
 	prev_animation_frame = next_frame;
+	texture_size_dirty = false;
 }
-}
+
+} // namespace Rml

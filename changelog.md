@@ -139,6 +139,7 @@ Improved Lua plugin in several aspects.
 ### Samples
 
 - New `databinding` sample for demonstrating data bindings.
+- New `lottie` sample for demonstrating Lottie animations with the Lottie plugin.
 - The use of `datagrid` in sample projects has now been replaced with data bindings. This includes the `treeview` sample and the high scores document in the `invader` sample. Tutorials have not been updated.
 - The options document in the `luainvader` sample now demonstrate data bindings combined with Lua scripts.
 

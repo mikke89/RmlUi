@@ -20,6 +20,7 @@ This directory contains basic applications that demonstrate initialisation, usag
 -  `demo` demonstrates a variety of features in RmlUi and includes a sandbox for playing with RML/RCSS
 -  `drag` dragging elements between containers
 -  `loaddocument` loading your first document
+-  `lottie` playing Lottie animations, only enabled with the Lottie plugin
 -  `sdl2` integrating with SDL2
 -  `sfml2` integrating with SFML2
 -  `transform` demonstration of transforms

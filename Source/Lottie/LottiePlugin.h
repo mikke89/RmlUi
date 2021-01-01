@@ -26,43 +26,16 @@
  *
  */
 
+#ifndef RMLUI_LOTTIE_LOTTIE_PLUGIN_H
+#define RMLUI_LOTTIE_LOTTIE_PLUGIN_H
 
-#include "ElementLottie.h"
-#include <RmlUi/Core/ElementInstancer.h>
-#include <RmlUi/Core/Factory.h>
-#include <RmlUi/Core/Plugin.h>
-#include <RmlUi/Core/Core.h>
 
 namespace Rml {
 namespace Lottie {
 
-static UniquePtr<ElementInstancerGeneric<ElementLottie>> instancer;
-
-class LottiePlugin : public Plugin {
-public:
-	void OnShutdown() override
-	{
-		instancer.reset();
-		delete this;
-	}
-
-	int GetEventClasses() override
-	{
-		return Plugin::EVT_BASIC;
-	}
-};
-
-void Initialise()
-{
-	if (!instancer)
-	{
-		instancer = MakeUnique<ElementInstancerGeneric<ElementLottie> >();
-
-		Factory::RegisterElementInstancer("lottie", instancer.get());
-
-		RegisterPlugin(new LottiePlugin());
-	}
-}
+void Initialise();
 
 }
 }
+
+#endif

@@ -26,21 +26,20 @@
  *
  */
 
-#ifndef RMLUI_ELEMENT_LOTTIE_H
-#define RMLUI_ELEMENT_LOTTIE_H
+#ifndef RMLUI_LOTTIE_ELEMENT_LOTTIE_H
+#define RMLUI_LOTTIE_ELEMENT_LOTTIE_H
 
-#include <RmlUi/Core/Header.h>
-#include <RmlUi/Core/Element.h>
-#include <RmlUi/Core/Geometry.h>
-#include <RmlUi/Core/Texture.h>
+#include "../Core/Header.h"
+#include "../Core/Element.h"
+#include "../Core/Geometry.h"
+#include "../Core/Texture.h"
 #include <memory>
 
 namespace rlottie { class Animation; }
 
 namespace Rml {
 
-
-class ElementLottie : public Element
+class RMLUICORE_API ElementLottie : public Element
 {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementLottie, Element)
@@ -76,6 +75,7 @@ private:
 
 	bool animation_dirty = false;
 	bool geometry_dirty = false;
+	bool texture_size_dirty = false;
 
 	// The texture this element is rendering from.
 	Texture texture;
@@ -93,9 +93,9 @@ private:
 	// The previous animation frame displayed.
 	size_t prev_animation_frame = size_t(-1);
 
-	std::unique_ptr<rlottie::Animation> animation;
+	UniquePtr<rlottie::Animation> animation;
 };
 
-}
+} // namespace Rml
 
 #endif

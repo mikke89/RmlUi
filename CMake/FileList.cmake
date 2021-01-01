@@ -566,3 +566,16 @@ set(Lua_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Lua/Vector2i.cpp
 )
 
+set(Lottie_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Source/Lottie/LottiePlugin.h
+)
+
+set(Lottie_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Lottie/ElementLottie.h
+)
+
+set(Lottie_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Source/Lottie/ElementLottie.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Lottie/LottiePlugin.cpp
+)
+

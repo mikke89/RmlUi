@@ -31,7 +31,6 @@
 #include <Input.h>
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
-#include "LottiePlugin.h"
 
 Rml::Context* context = nullptr;
 
@@ -95,7 +94,6 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 		return -1;
 	}
 
-	Rml::Lottie::Initialise();
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
 	shell_renderer->SetContext(context);

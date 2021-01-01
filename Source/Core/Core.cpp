@@ -51,6 +51,10 @@
 #include "FontEngineDefault/FontEngineInterfaceDefault.h"
 #endif
 
+#ifdef RMLUI_ENABLE_LOTTIE_PLUGIN
+#include "../Lottie/LottiePlugin.h"
+#endif
+
 
 namespace Rml {
 
@@ -123,6 +127,11 @@ bool Initialise()
 	TemplateCache::Initialise();
 
 	Factory::Initialise();
+
+	// Initialise plugins integrated with Core.
+#ifdef RMLUI_ENABLE_LOTTIE_PLUGIN
+	Lottie::Initialise();
+#endif
 
 	// Notify all plugins we're starting up.
 	PluginRegistry::NotifyInitialise();

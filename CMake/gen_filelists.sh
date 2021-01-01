@@ -11,13 +11,12 @@ fontdefaultbegin='if(NOT NO_FONT_INTERFACE_DEFAULT)'
 fontdefaultend='endif()'
 srcpath=Source
 hdrpath=Include/RmlUi
-luapath=Lua
 fontdefaultpath=FontEngineDefault
 
 printfiles() {
     # Print headers
     echo ${hdr/lib/$1} >>$file
-    find  $srcpath/$1 -maxdepth 3 -path */$luapath -prune -o -path */$fontdefaultpath -prune -o \( -iname "*.h" -o -iname "*.hpp" \) -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
+    find  $srcpath/$1 -maxdepth 3 -path */$fontdefaultpath -prune -o \( -iname "*.h" -o -iname "*.hpp" \) -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
     # Print master header for library
     echo ${masterpubhdr/lib/$1} >>$file
@@ -26,11 +25,11 @@ printfiles() {
     # Print public headers sub directory
     echo ${pubhdr/lib/$1} >>$file
 	if [[ "$1" == "Core" ]]; then echo '    '$srcdir/Include/RmlUi/Config/Config.h >>$file; fi
-    find  $hdrpath/$1 -maxdepth 3 -path */$luapath -prune -o -path */$fontdefaultpath -prune -o \( -iname "*.h" -o -iname "*.inl" -o -iname "*.hpp" \) -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
+    find  $hdrpath/$1 -maxdepth 3 -path */$fontdefaultpath -prune -o \( -iname "*.h" -o -iname "*.inl" -o -iname "*.hpp" \) -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
     # Print source files
     echo ${src/lib/$1} >>$file
-    find  $srcpath/$1 -maxdepth 3 -path */$luapath -prune -o -path */$fontdefaultpath -prune -o -iname "*.cpp" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
+    find  $srcpath/$1 -maxdepth 3 -path */$fontdefaultpath -prune -o -iname "*.cpp" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
 }
 
@@ -49,18 +48,18 @@ printfontdefaultfiles() {
 	echo -e $fontdefaultend'\n' >>$file
 }
 
-printluafiles() {
+printpluginfiles() {
     # Print headers
-    echo ${hdr/lib/Lua} >>$file
-    find  $srcpath/$luapath$1 -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
+    echo ${hdr/lib/$1} >>$file
+    find  $srcpath/$1 -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
     # Print public headers
-    echo ${pubhdr/lib/Lua} >>$file
-    find  $hdrpath/$luapath$1 -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file 2>/dev/null
+    echo ${pubhdr/lib/$1} >>$file
+    find  $hdrpath/$1 -iname "*.h" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file 2>/dev/null
     echo -e ')\n' >>$file
     # Print source files
-    echo ${src/lib/Lua} >>$file
-    find  $srcpath/$luapath$1 -iname "*.cpp" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
+    echo ${src/lib/$1} >>$file
+    find  $srcpath/$1 -iname "*.cpp" -exec echo '    '$srcdir/{} \; 2>/dev/null | sort -f >>$file
     echo -e ')\n' >>$file
 }
 
@@ -72,6 +71,8 @@ done
 
 printfontdefaultfiles "Core"
 
-printluafiles
+printpluginfiles "Lua"
+
+printpluginfiles "Lottie"
 
 popd

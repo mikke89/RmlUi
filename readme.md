@@ -10,7 +10,7 @@ RmlUi - now with added boosters taking control of the rocket, targeting *your* g
 
 RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
 
-RmlUi uses the time-tested open standards XHTML1.0 and CSS2.0 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space. Please have a look at the supported [RCSS properties](https://mikke89.github.io/RmlUiDoc/pages/rcss/property_index.html) and [RML elements](https://mikke89.github.io/RmlUiDoc/pages/rml/element_index.html).
+RmlUi uses the time-tested open standards XHTML1 and CSS2 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space. Please have a look at the supported [RCSS properties](https://mikke89.github.io/RmlUiDoc/pages/rcss/property_index.html) and [RML elements](https://mikke89.github.io/RmlUiDoc/pages/rml/element_index.html).
 
 Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
@@ -164,7 +164,7 @@ body
 ![Lottie animation](https://github.com/mikke89/RmlUiDoc/blob/086385e119f0fc6e196229b785e91ee0252fe4b4/assets/gallery/lottie.gif)  
 **Vector animations with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)**
 
-To see more screenshots and videos of the library in action, have a look at the [full gallery](https://mikke89.github.io/RmlUiDoc/pages/gallery.html) in the documentation.
+See the **[full gallery](https://mikke89.github.io/RmlUiDoc/pages/gallery.html)** for more screenshots and videos of the library in action.
 
 
 

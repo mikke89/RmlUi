@@ -65,6 +65,8 @@ endif()
 
 set(RMLUI_VERSION_SHORT ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}${RMLUI_VERSION_SUFFIX})
 
+list(APPEND CORE_PRIVATE_DEFS RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
+
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	option(BUILD_TESTING "" OFF)
     include(CTest)
@@ -182,7 +184,7 @@ endif(APPLE)
 
 option(NO_FONT_INTERFACE_DEFAULT "Do not include the default font engine in the build. Allows building without the FreeType dependency, but a custom font engine must be created and set." OFF)
 if(NO_FONT_INTERFACE_DEFAULT)
-	add_definitions(-DRMLUI_NO_FONT_INTERFACE_DEFAULT)
+	list(APPEND CORE_PRIVATE_DEFS RMLUI_NO_FONT_INTERFACE_DEFAULT)
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
@@ -246,6 +248,8 @@ elseif( CMAKE_CONFIGURATION_TYPES )
 	list(REMOVE_ITEM CMAKE_CONFIGURATION_TYPES Tracy)
 endif()
 
+option(ENABLE_LOTTIE_PLUGIN "Enable plugin for Lottie animations. Requires the rlottie library." OFF)
+
 option(DISABLE_RTTI_AND_EXCEPTIONS "Build with rtti and exceptions disabled." OFF)
 if(DISABLE_RTTI_AND_EXCEPTIONS)
 	add_definitions(-DRMLUI_USE_CUSTOM_RTTI)
@@ -292,6 +296,17 @@ macro(add_common_target_options NAME)
 endmacro()
 
 #===================================
+# Setup paths ======================
+#===================================
+
+include_directories(
+	${PROJECT_SOURCE_DIR}/Include
+)
+
+# Include list of source files
+include(FileList)
+
+#===================================
 # Find dependencies ================
 #===================================
 
@@ -306,7 +321,7 @@ if(NOT NO_FONT_INTERFACE_DEFAULT)
 	endif()
 endif()
 
-#Lua
+# Lua
 if(BUILD_LUA_BINDINGS)
 	find_package(Lua REQUIRED)
 	if(LUA_FOUND)
@@ -315,17 +330,37 @@ if(BUILD_LUA_BINDINGS)
 	endif()
 endif()
 
+# rlottie
+if( ENABLE_LOTTIE_PLUGIN )
+	# Try to find the rlottie library.
+	if(NOT DEFINED rlottie_DIR)
+		set(rlottie_DIR $ENV{RLOTTIE_DIR})
+	endif()
 
-#===================================
-# Setup paths ======================
-#===================================
-
-include_directories(
-	${PROJECT_SOURCE_DIR}/Include
-)
-
-# Include list of source files
-include(FileList)
+	list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/rlottie/build)
+	find_package(rlottie CONFIG)
+	find_path(rlottie_INCLUDE_DIR rlottie.h HINTS ${rlottie_DIR} $ENV{rlottie_DIR} PATH_SUFFIXES inc rlottie/inc )
+	
+	if(rlottie_FOUND AND rlottie_INCLUDE_DIR)
+		message("-- Can Lottie plugin be added to RmlCore - yes - rlottie library found")
+		
+		list(APPEND CORE_LINK_LIBS rlottie::rlottie)
+		list(APPEND CORE_INCLUDE_DIRS ${rlottie_INCLUDE_DIR})
+		list(APPEND CORE_PRIVATE_DEFS RMLUI_ENABLE_LOTTIE_PLUGIN)
+		
+		list(APPEND Core_HDR_FILES ${Lottie_HDR_FILES})
+		list(APPEND Core_PUB_HDR_FILES ${Lottie_PUB_HDR_FILES})
+		list(APPEND Core_SRC_FILES ${Lottie_SRC_FILES})
+	else()
+		if(rlottie_FOUND)
+			message(FATAL_ERROR "-- Can Lottie plugin be added to RmlCore - no - rlottie library found - rlottie include directory not found")
+		elseif(rlottie_INCLUDE_DIR)
+			message(FATAL_ERROR "-- Can Lottie plugin be added to RmlCore - no - rlottie library not found - rlottie include directory found at ${rlottie_INCLUDE_DIR}")
+		else()
+			message(FATAL_ERROR "-- Can Lottie plugin be added to RmlCore - no - rlottie not found")
+		endif()
+	endif()
+endif()
 
 if(NOT BUILD_FRAMEWORK)
 #===================================
@@ -373,7 +408,8 @@ if( CUSTOM_CONFIGURATION )
 	endforeach(library ${CUSTOM_LINK_LIBRARIES})
 endif()
 
-target_compile_definitions(RmlCore PRIVATE RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
+
+target_compile_definitions(RmlCore PRIVATE ${CORE_PRIVATE_DEFS})
 
 if( MATRIX_ROW_MAJOR )
 	target_compile_definitions(RmlCore PUBLIC -DRMLUI_MATRIX_ROW_MAJOR)
@@ -445,6 +481,9 @@ else(NOT BUILD_FRAMEWORK)
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endif(NOT BUILD_FRAMEWORK)
 
+# Add additional Core include directories
+target_include_directories(RmlCore PRIVATE ${CORE_INCLUDE_DIRS})
+
 # Build Lua bindings
 if(BUILD_LUA_BINDINGS)
 	set(NAME RmlLua)
@@ -470,7 +509,6 @@ if(BUILD_LUA_BINDINGS)
 	
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endif()
-
 
 if(DISABLE_RTTI_AND_EXCEPTIONS)
     if( CMAKE_COMPILER_IS_GNUCXX )
@@ -679,19 +717,8 @@ endif(NOT BUILD_FRAMEWORK)
 				BUNDLE DESTINATION ${SAMPLES_DIR})
 	endif()
 	
-	# Try to find rlottie for the lottie sample.
-	if(NOT DEFINED rlottie_DIR)
-		set(rlottie_DIR $ENV{RLOTTIE_DIR})
-	endif()
-
-	list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/rlottie/build)
-	find_package(rlottie CONFIG)
-	find_path(rlottie_INCLUDE_DIR rlottie.h HINTS ${rlottie_DIR} $ENV{rlottie_DIR} PATH_SUFFIXES inc rlottie/inc )
-	
-	if(rlottie_FOUND AND rlottie_INCLUDE_DIR)
-		message("-- Can lottie sample be built - yes")
-		bl_sample(lottie ${sample_LIBRARIES} rlottie::rlottie)
-		target_include_directories(lottie PRIVATE ${rlottie_INCLUDE_DIR})
+	if( ENABLE_LOTTIE_PLUGIN )
+		bl_sample(lottie ${sample_LIBRARIES})
 		
 		# The samples always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/lottie)
@@ -699,14 +726,6 @@ endif(NOT BUILD_FRAMEWORK)
 			RUNTIME DESTINATION ${SAMPLES_DIR}/lottie
 			BUNDLE DESTINATION ${SAMPLES_DIR}
 		)
-	else()
-		if(rlottie_FOUND)
-			message("-- Can lottie sample be built - no - rlottie library found - rlotty include directory not found")
-		elseif(rlottie_INCLUDE_DIR)
-			message("-- Can lottie sample be built - no - rlottie library not found - rlotty include directory found at ${rlottie_INCLUDE_DIR}")
-		else()
-			message("-- Can lottie sample be built - no - rlottie not found")
-		endif()
 	endif()
 
 	# Build and install the tutorials
