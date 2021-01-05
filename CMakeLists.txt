@@ -126,6 +126,10 @@ if(NOT DEFINED ENV{RLOTTIE_DIR})
 	set(ENV{RLOTTIE_DIR} "${PROJECT_SOURCE_DIR}/Dependencies/rlottie")
 endif()
 
+if(NOT DEFINED ENV{LUNASVG_DIR})
+	set(ENV{LUNASVG_DIR} "${PROJECT_SOURCE_DIR}/Dependencies/lunasvg")
+endif()
+
 #===================================
 # Plaform specific global hacks ====
 #===================================
@@ -253,6 +257,7 @@ elseif( CMAKE_CONFIGURATION_TYPES )
 endif()
 
 option(ENABLE_LOTTIE_PLUGIN "Enable plugin for Lottie animations. Requires the rlottie library." OFF)
+option(ENABLE_SVG_PLUGIN "Enable plugin for SVG images. Requires the lunasvg library." OFF)
 
 option(DISABLE_RTTI_AND_EXCEPTIONS "Build with rtti and exceptions disabled." OFF)
 if(DISABLE_RTTI_AND_EXCEPTIONS)
@@ -365,6 +370,28 @@ if( ENABLE_LOTTIE_PLUGIN )
 		endif()
 	endif()
 endif()
+
+# lunasvg
+if( ENABLE_SVG_PLUGIN )
+	if(NOT DEFINED LUNASVG_DIR)
+		set(LUNASVG_DIR $ENV{LUNASVG_DIR})
+	endif()
+	
+	message("-- Can SVG plugin be enabled - looking for lunasvg library")
+
+	find_package(lunasvg REQUIRED)
+	
+	list(APPEND CORE_LINK_LIBS ${LUNASVG_LIBRARIES})
+	list(APPEND CORE_INCLUDE_DIRS ${LUNASVG_INCLUDE_DIR})
+	list(APPEND CORE_PRIVATE_DEFS RMLUI_ENABLE_SVG_PLUGIN)
+	
+	list(APPEND Core_HDR_FILES ${SVG_HDR_FILES})
+	list(APPEND Core_PUB_HDR_FILES ${SVG_PUB_HDR_FILES})
+	list(APPEND Core_SRC_FILES ${SVG_SRC_FILES})
+
+	message("-- Can SVG plugin be enabled - yes - lunasvg library found")
+endif()
+
 
 if(NOT BUILD_FRAMEWORK)
 #===================================
@@ -733,6 +760,17 @@ if(BUILD_SAMPLES)
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/lottie)
 		install(TARGETS lottie
 			RUNTIME DESTINATION ${SAMPLES_DIR}/lottie
+			BUNDLE DESTINATION ${SAMPLES_DIR}
+		)
+	endif()
+	
+	if( ENABLE_SVG_PLUGIN )
+		bl_sample(svg ${sample_LIBRARIES})
+		
+		# The samples always set this as their current working directory
+		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/svg)
+		install(TARGETS svg
+			RUNTIME DESTINATION ${SAMPLES_DIR}/svg
 			BUNDLE DESTINATION ${SAMPLES_DIR}
 		)
 	endif()

@@ -20,9 +20,10 @@ This directory contains basic applications that demonstrate initialisation, usag
 -  `demo` demonstrates a variety of features in RmlUi and includes a sandbox for playing with RML/RCSS
 -  `drag` dragging elements between containers
 -  `loaddocument` loading your first document
--  `lottie` playing Lottie animations, only enabled with the Lottie plugin
+-  `lottie` playing Lottie animations, only enabled with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)
 -  `sdl2` integrating with SDL2
 -  `sfml2` integrating with SFML2
+-  `svg` render SVG images, only enabled with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html)
 -  `transform` demonstration of transforms
 -  `treeview` using data bindings to create a file browser
                

@@ -55,6 +55,10 @@
 #include "../Lottie/LottiePlugin.h"
 #endif
 
+#ifdef RMLUI_ENABLE_SVG_PLUGIN
+#include "../SVG/SVGPlugin.h"
+#endif
+
 
 namespace Rml {
 
@@ -131,6 +135,9 @@ bool Initialise()
 	// Initialise plugins integrated with Core.
 #ifdef RMLUI_ENABLE_LOTTIE_PLUGIN
 	Lottie::Initialise();
+#endif
+#ifdef RMLUI_ENABLE_SVG_PLUGIN
+	SVG::Initialise();
 #endif
 
 	// Notify all plugins we're starting up.
