@@ -28,7 +28,9 @@ jobs:
     - uses: actions/checkout@v2
       
     - name: Install Dependencies
-      run: sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev
+      run: |-
+        sudo apt-get update
+        sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev
       
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
