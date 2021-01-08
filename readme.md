@@ -193,4 +193,4 @@ THE SOFTWARE.
 
 ---
 
-Third-party source code and assets with their own licenses are also included in this library. See [LICENSE_THIRDPARTY](LICENSE_THIRDPARTY) for details.
+Third-party source code and assets with their own licenses are also included in this library. See [LICENSES_THIRDPARTY](LICENSES_THIRDPARTY) for details.
