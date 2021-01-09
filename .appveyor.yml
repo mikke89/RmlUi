@@ -86,15 +86,15 @@ after_build:
     echo Built using %VS_GENERATOR% on %APPVEYOR_REPO_COMMIT_TIMESTAMP:~0,10% (build %APPVEYOR_BUILD_NUMBER%).>> Build.txt
     echo Commit id: %APPVEYOR_REPO_COMMIT%.>> Build.txt
     
-    7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/licenses/
+    7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE.txt Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/licenses/
     
     mkdir Samples\Dependencies\freetype-%FREETYPE_VER%, Samples\Dependencies\rlottie, Samples\Dependencies\rlottie\licenses
-    cp Include/RmlUi/Core/Containers/LICENSE.txt Samples/LICENSE_CORE_THIRDPARTY.txt
-    cp Source/Debugger/LICENSE.txt Samples/LICENSE_DEBUGGER_THIRDPARTY.txt
+    cp Include/RmlUi/Core/Containers/LICENSE.txt Samples/LICENSE.Core.Thirdparty.txt
+    cp Source/Debugger/LICENSE.txt Samples/LICENSE.Debugger.Thirdparty.txt
     cp Dependencies/freetype-%FREETYPE_VER%/*.TXT Samples/Dependencies/freetype-%FREETYPE_VER%
     cp Dependencies/rlottie/COPYING Samples/Dependencies/rlottie
     cp Dependencies/rlottie/licenses/* Samples/Dependencies/rlottie/licenses
-    IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip LICENSE .\Samples\* -r -xr!src\ -x!shell\ -x!luainvaders\
+    IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip LICENSE.txt .\Samples\* -r -xr!src\ -x!shell\ -x!luainvaders\
     
 for:
 -

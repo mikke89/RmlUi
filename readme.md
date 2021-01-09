@@ -170,14 +170,14 @@ See the **[full gallery](https://mikke89.github.io/RmlUiDoc/pages/gallery.html)*
 
 ## License
 
-RmlUi is published under the [MIT license](LICENSE). The library includes third-party source code and assets with their own licenses, as detailed below.
+RmlUi is published under the [MIT license](LICENSE.txt). The library includes third-party source code and assets with their own licenses, as detailed below.
 
 #### RmlUi source code and assets
 
 MIT License
 
 Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors\
-Copyright (c) 2019 The RmlUi Team, and contributors
+Copyright (c) 2019-2021 The RmlUi Team, and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
