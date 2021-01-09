@@ -168,8 +168,14 @@ See the **[full gallery](https://mikke89.github.io/RmlUiDoc/pages/gallery.html)*
 
 
 
-## License (MIT)
- 
+## License
+
+RmlUi is published under the [MIT license](LICENSE). The library includes third-party source code and assets with their own licenses, as detailed below.
+
+#### RmlUi source code and assets
+
+MIT License
+
 Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors\
 Copyright (c) 2019 The RmlUi Team, and contributors
 
@@ -191,6 +197,25 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
----
+#### Third-party source code included in RmlUi Core
 
-Third-party source code and assets with their own licenses are also included in this library. See [LICENSES_THIRDPARTY](LICENSES_THIRDPARTY) for details.
+See [Include/RmlUi/Core/Containers/LICENSE.txt](Include/RmlUi/Core/Containers/LICENSE.txt) - all MIT licensed.
+
+#### Third-party font assets included in RmlUi Debugger
+
+See [Source/Debugger/LICENSE.txt](Source/Debugger/LICENSE.txt) - SIL Open Font License.
+
+#### Additional sample assets *(in Samples/)*
+
+See
+- [Samples/assets/LICENSE.txt](Samples/assets/LICENSE.txt)
+- [Samples/basic/lottie/data/LICENSE.txt](Samples/basic/lottie/data/LICENSE.txt)
+- [Samples/basic/bitmapfont/data/LICENSE.txt](Samples/basic/bitmapfont/data/LICENSE.txt)
+
+#### Libraries included with the test suite *(in Tests/Dependencies/)*
+
+See [Tests/Dependencies/LICENSE.txt](Tests/Dependencies/LICENSE.txt).
+
+#### Additional test suite assets *(in Tests/Data/VisualTests/)*
+
+See [Tests/Data/VisualTests/LICENSE.txt](Tests/Data/VisualTests/LICENSE.txt).
