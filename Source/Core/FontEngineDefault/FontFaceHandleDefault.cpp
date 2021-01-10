@@ -36,6 +36,9 @@
 
 namespace Rml {
 
+static constexpr char32_t KerningCache_AsciiSubsetBegin = 32;
+static constexpr char32_t KerningCache_AsciiSubsetLast = 126;
+
 FontFaceHandleDefault::FontFaceHandleDefault()
 {
 	base_layer = nullptr;
@@ -59,6 +62,9 @@ bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_siz
 	{
 		return false;
 	}
+
+	has_kerning = FreeType::HasKerning(ft_face);
+	FillKerningPairCache();
 
 	// Generate the default layer and layer configuration.
 	base_layer = GetOrCreateLayer(nullptr);
@@ -116,8 +122,8 @@ int FontFaceHandleDefault::GetStringWidth(const String& string, Character prior_
 			continue;
 
 		// Adjust the cursor for the kerning between this character and the previous one.
-		if (prior_character != Character::Null)
-			width += GetKerning(prior_character, character);
+		width += GetKerning(prior_character, character);
+
 		// Adjust the cursor for this character's advance.
 		width += glyph->advance;
 
@@ -268,8 +274,7 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 				continue;
 
 			// Adjust the cursor for the kerning between this character and the previous one.
-			if (prior_character != Character::Null)
-				line_width += GetKerning(prior_character, character);
+			line_width += GetKerning(prior_character, character);
 
 			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), layer_colour);
 
@@ -321,9 +326,53 @@ bool FontFaceHandleDefault::AppendGlyph(Character character)
 	return result;
 }
 
+void FontFaceHandleDefault::FillKerningPairCache()
+{
+	if (!has_kerning)
+		return;
+
+	for (char32_t i = KerningCache_AsciiSubsetBegin; i <= KerningCache_AsciiSubsetLast; i++)
+	{
+		for (char32_t j = KerningCache_AsciiSubsetBegin; j <= KerningCache_AsciiSubsetLast; j++)
+		{
+			const bool first_iteration = (i == KerningCache_AsciiSubsetBegin && j == KerningCache_AsciiSubsetBegin);
+
+			// Fetch the kerning from the font face. Submit zero font size on subsequent iterations for performance reasons.
+			const int kerning = FreeType::GetKerning(ft_face, first_iteration ? metrics.size : 0, Character(i), Character(j));
+			if (kerning != 0)
+			{
+				kerning_pair_cache.emplace(AsciiPair((i << 8) | j), KerningIntType(kerning));
+			}
+		}
+	}
+}
+
 int FontFaceHandleDefault::GetKerning(Character lhs, Character rhs) const
 {
-	int result = FreeType::GetKerning(ft_face, metrics.size, lhs, rhs);
+	static_assert(' ' == 32, "Only ASCII/UTF8 character set supported.");
+
+	// Check if we have no kerning, or if we are have a control character.
+	if (!has_kerning || char32_t(lhs) < ' ' || char32_t(rhs) < ' ')
+		return 0;
+
+	// See if the kerning pair has been cached.
+	const bool lhs_in_cache = (char32_t(lhs) >= KerningCache_AsciiSubsetBegin && char32_t(lhs) <= KerningCache_AsciiSubsetLast);
+	const bool rhs_in_cache = (char32_t(rhs) >= KerningCache_AsciiSubsetBegin && char32_t(rhs) <= KerningCache_AsciiSubsetLast);
+
+	if (lhs_in_cache && rhs_in_cache)
+	{
+		const auto it = kerning_pair_cache.find(AsciiPair((int(lhs) << 8) | int(rhs)));
+
+		if (it != kerning_pair_cache.end())
+		{
+			return it->second;
+		}
+
+		return 0;
+	}
+
+	// Fetch it from the font face instead.
+	const int result = FreeType::GetKerning(ft_face, metrics.size, lhs, rhs);
 	return result;
 }
 

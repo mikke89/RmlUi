@@ -56,7 +56,11 @@ bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphM
 bool AppendGlyph(FontFaceHandleFreetype face, int font_size, Character character, FontGlyphMap& glyphs);
 
 // Returns the kerning between two characters.
+// 'font_size' value of zero assumes the font size is already set on the face, and skips this step for performance reasons.
 int GetKerning(FontFaceHandleFreetype face, int font_size, Character lhs, Character rhs);
+
+// Returns true if the font face has kerning.
+bool HasKerning(FontFaceHandleFreetype face);
 
 }
 } // namespace Rml

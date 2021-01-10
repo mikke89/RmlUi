@@ -349,8 +349,8 @@ dataselect selectvalue
 	width: auto;
 	margin-right: 30px;
 	
-	height: 27px;
-	padding: 10px 10px 0px 10px;
+	height: 26px;
+	padding: 11px 10px 0px 10px;
 
 	decorator: image( selectvalue  );
 }

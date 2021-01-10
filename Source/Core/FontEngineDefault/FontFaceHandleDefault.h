@@ -98,11 +98,14 @@ public:
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;
 
-
 private:
 	// Build and append glyph to 'glyphs'
 	bool AppendGlyph(Character character);
 
+	// Build a kerning cache for common characters.
+	void FillKerningPairCache();
+
+	// Return the kerning for a character pair.
 	int GetKerning(Character lhs, Character rhs) const;
 
 	/// Retrieve a glyph from the given code point, building and appending a new glyph if not already built.
@@ -137,8 +140,15 @@ private:
 	// Each font layer that generated geometry or textures, indexed by the font-effect's fingerprint key.
 	FontLayerCache layer_cache;
 
-	int version = 0;
+	// Pre-cache kerning pairs for some ascii subset of all characters.
+	using AsciiPair = std::uint16_t;
+	using KerningIntType = std::int16_t;
+	using KerningPairs = UnorderedMap< AsciiPair, KerningIntType >;
+	KerningPairs kerning_pair_cache;
+
+	bool has_kerning = false;
 	bool is_layers_dirty = false;
+	int version = 0;
 
 	// All configurations currently in use on this handle. New configurations will be generated as required.
 	LayerConfigurationList layer_configurations;

@@ -169,17 +169,20 @@ int FreeType::GetKerning(FontFaceHandleFreetype face, int font_size, Character l
 {
 	FT_Face ft_face = (FT_Face)face;
 
-	if (!FT_HAS_KERNING(ft_face))
-		return 0;
+	RMLUI_ASSERT(FT_HAS_KERNING(ft_face));
 
 	// Set face size again in case it was used at another size in another font face handle.
-	FT_Error ft_error = FT_Set_Char_Size(ft_face, 0, font_size << 6, 0, 0);
-	if (ft_error)
-		return 0;
+	// Font size value of zero assumes it is already set.
+	if (font_size > 0)
+	{
+		FT_Error ft_error = FT_Set_Char_Size(ft_face, 0, font_size << 6, 0, 0);
+		if (ft_error)
+			return 0;
+	}
 
 	FT_Vector ft_kerning;
 
-	ft_error = FT_Get_Kerning(
+	FT_Error ft_error = FT_Get_Kerning(
 		ft_face,
 		FT_Get_Char_Index(ft_face, (FT_ULong)lhs),
 		FT_Get_Char_Index(ft_face, (FT_ULong)rhs),
@@ -192,6 +195,13 @@ int FreeType::GetKerning(FontFaceHandleFreetype face, int font_size, Character l
 
 	int kerning = ft_kerning.x >> 6;
 	return kerning;
+}
+
+bool FreeType::HasKerning(FontFaceHandleFreetype face)
+{
+	FT_Face ft_face = (FT_Face)face;
+
+	return FT_HAS_KERNING(ft_face);
 }
 
 
