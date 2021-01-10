@@ -12,6 +12,18 @@
 			perspective: 3000px;
 			/*opacity: 0;*/
 		}
+		section
+		{
+			display: block;
+			position: absolute;
+			width: 20%;
+			height: 80%;
+		}
+		#fps
+		{
+			font-size: 0.85em;
+			text-align: left;
+		}
 		button {
 			margin-top: 50px;
 		}
@@ -225,35 +237,36 @@
 </head>
 
 <body template="window">
-<div style="width: 20%; height: 80%; position: absolute;">
-	<div style="font-size: 0.85em; text-align: left;" id="fps"></div>
+<section>
+	<div id="fps"/>
 	<button id="start_game">Start Game</button><br />
 	<button id="high_scores" onkeydown="hello">High Scores</button><br />
 	<button id="options">Options</button><br />
 	<button id="help">Help</button><br />
 	<button id="exit" onclick="exit">Exit</button>
-</div>
+</section>
 
-<div id="performance"/>
+<section id="performance"/>
 
-<div style="width: 20%; height: 80%;position: absolute; left: 28%;" id="transform_tests">
-	<div style="font-size: 1.5em; text-align: left;">Test transform animations</div>
+<section style="left: 28%;" id="transform_tests">
+	<h1>Test transform animations</h1>
 	<div class="container"><div class="plain" id="generic">Generic form conversion.</div></div>
 	<div class="container"><div class="plain" id="combine">Match different transform primitive sizes</div></div>
 	<div class="container"><div class="plain" id="decomposition">Force full matrix decomposition</div></div>
-</div>
+</section>
 
-<div style="width: 20%; height: 80%;position: absolute; left: 52%;" id="mixed_units_tests">
-	<div style="font-size: 1.5em; text-align: left;">Mixed units tests</div>
+<section style="left: 52%;" id="mixed_units_tests">
+	<h1>Mixed units tests</h1>
 	<div class="container"><div class="plain" id="abs_rel">Pixel vs percentage.</div></div>
 	<div class="container"><div class="plain" id="abs_rel_transform">Pixel vs percentage transform.</div></div>
 	<div class="container"><div class="plain" id="animation_event">Animation event</div><div class="plain" id="keyevent_response">Events (press arrow keys)</div></div>
-</div>
-<div style="width: 20%; height: 80%;position: absolute; left: 75%;" id="transition_tests">
-	<div style="font-size: 1.5em; text-align: left;">Transition tests</div>
+</section>
+
+<section style="left: 75%;" id="transition_tests">
+	<h1>Transition tests</h1>
 	<div class="container"><div class="plain" id="transition_test">Transition test (hover)</div></div>
 	<div class="container"><div class="plain" id="transition_class" onclick="add_class">Transition class (click)</div></div>
 	<div class="container"><div class="plain" id="keyframes_test">Keyframes test</div><div class="plain" id="keyframes_missing_keys"/></div>
-</div>
+</section>
 </body>
 </rml>

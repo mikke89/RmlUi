@@ -1,6 +1,6 @@
 @spritesheet theme 
 {
-	src: ../../../assets/invader.tga;
+	src: /assets/invader.tga;
 
 	window-tl: 0px 0px 133px 140px;
 	window-t:  134px 0px 1px 140px;
@@ -15,7 +15,7 @@
 
 body
 {
-	font-family: Delicious;
+	font-family: LatoLatin;
 	font-weight: normal;
 	font-style: normal;
 	font-size: 15px;

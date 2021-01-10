@@ -89,12 +89,13 @@ after_build:
     7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE.txt Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/licenses/
     
     mkdir Samples\Dependencies\freetype-%FREETYPE_VER%, Samples\Dependencies\rlottie, Samples\Dependencies\rlottie\licenses
-    cp Include/RmlUi/Core/Containers/LICENSE.txt Samples/LICENSE.Core.Thirdparty.txt
-    cp Source/Debugger/LICENSE.txt Samples/LICENSE.Debugger.Thirdparty.txt
+    cp LICENSE.txt Samples/LICENSE.txt
+    cp Include/RmlUi/Core/Containers/LICENSE.txt Samples/LICENSE.Core.ThirdParty.txt
+    cp Source/Debugger/LICENSE.txt Samples/LICENSE.Debugger.ThirdParty.txt
     cp Dependencies/freetype-%FREETYPE_VER%/*.TXT Samples/Dependencies/freetype-%FREETYPE_VER%
     cp Dependencies/rlottie/COPYING Samples/Dependencies/rlottie
     cp Dependencies/rlottie/licenses/* Samples/Dependencies/rlottie/licenses
-    IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip LICENSE.txt .\Samples\* -r -xr!src\ -x!shell\ -x!luainvaders\
+    IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip .\Samples\* -r -xr!src\ -x!shell\ -x!luainvaders\
     
 for:
 -

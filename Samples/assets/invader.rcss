@@ -132,7 +132,7 @@
 
 body
 {
-	font-family: Delicious;
+	font-family: LatoLatin;
 	font-weight: normal;
 	font-style: normal;
 	font-size: 15px;
@@ -156,7 +156,7 @@ div#title_bar
 	z-index: 1;
 
 	position: absolute;
-	top: 0px;
+	top: 3px;
 	left: 0px;
 	
 	text-align: left;
@@ -180,10 +180,10 @@ div#title_bar span
 	padding-top: 17px;
 	padding-bottom: 51px;
 
-	font-size: 22px;
+	font-size: 20px;
 	font-weight: bold;
 	
-	font-effect: glow(1px black);
+	font-effect: glow(2px 2px 0px 1px #1117);
 
 	decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
 }
@@ -229,7 +229,7 @@ h1
 	font-size: 16px;
 	font-weight: bold;
 
-	font-effect: shadow(1px 1px black);
+	font-effect: glow(1px 1px 1px 1px #1117);
 }
 
 
@@ -254,12 +254,12 @@ input.submit
 	display: inline-block;
 
 	width: 159px;
-	height: 37px;
+	height: 35px;
 
-	padding-top: 8px;
+	padding-top: 10px;
 	vertical-align: -18px;
 
-	font-size: 18px;
+	font-size: 16px;
 	text-align: center;
 	tab-index: auto;
 
@@ -269,8 +269,7 @@ input.submit
 button:focus,
 input.submit:focus
 {
-	font-weight: bold;
-	font-effect: shadow(1px 1px black);
+	font-effect: blur(3px #fff);
 }
 
 button:hover,

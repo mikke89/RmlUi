@@ -217,6 +217,10 @@ li {
 			<input type="text" name="email"/>
 			<input type="password" name="password"/>
 		</div>
+		<h2>Rating</h2>
+		<div>
+			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating" data-value="rating"/> <span id="rating">{{rating}}</span><span id="rating_emoji">&nbsp;</span>
+		</div>
 		<h2>Favorite animal: {{ animal }}</h2>
 		<div>
 			<input type="radio" name="animal" value="dog" data-checked="animal"/> Dog
@@ -233,10 +237,6 @@ li {
 			<li data-if="pizza && rating >= 70">• Pizza is life!</li>
 			<li data-if="pasta">• Pasta is squiggly good!</li>
 			<li data-if="lasagne">• Lasagne is delicous!</li>
-		</div>
-		<h2>Rating</h2>
-		<div>
-			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating" data-value="rating"/> <span id="rating">{{rating}}</span><span id="rating_emoji">&nbsp;</span>
 		</div>
 		<h2>Subject</h2>
 		<div>

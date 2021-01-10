@@ -4,9 +4,6 @@
 <link type="text/rcss" href="style.rcss"/>
 <style>
 	body {
-		font-family: Delicious;
-		font-weight: normal;
-		font-style: normal;
 		font-size: 17px;
 		color: #444;
 		position: absolute;

@@ -20,10 +20,3 @@ icon
     
     drag: clone;
 }
-
-icon:drag
-{
-    /* Since this is an ad-hoc element, we need to define the font face to 
-       avoid runtime warnings about not having a font-family defined       */
-    font-family: Delicious;
-}

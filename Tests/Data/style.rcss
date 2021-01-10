@@ -20,7 +20,7 @@ input.radio {
 }
 
 body {
-	font-family: Delicious;
+	font-family: LatoLatin;
 	font-weight: normal;
 	font-style: normal;
 	font-size: 14px;

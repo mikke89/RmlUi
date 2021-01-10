@@ -39,18 +39,21 @@
 /// Loads the default fonts from the given path.
 void Shell::LoadFonts(const char* directory)
 {
-	Rml::String font_names[5];
-	font_names[0] = "Delicious-Roman.otf";
-	font_names[1] = "Delicious-Italic.otf";
-	font_names[2] = "Delicious-Bold.otf";
-	font_names[3] = "Delicious-BoldItalic.otf";
-	font_names[4] = "NotoEmoji-Regular.ttf";
+	struct FontFace {
+		Rml::String filename;
+		bool fallback_face;
+	};
+	FontFace font_faces[] = {
+		{ "LatoLatin-Regular.ttf",    false },
+		{ "LatoLatin-Italic.ttf",     false },
+		{ "LatoLatin-Bold.ttf",       false },
+		{ "LatoLatin-BoldItalic.ttf", false },
+		{ "NotoEmoji-Regular.ttf",    true  },
+	};
 
-	const int fallback_face = 4;
-
-	for (size_t i = 0; i < sizeof(font_names) / sizeof(Rml::String); i++)
+	for (const FontFace& face : font_faces)
 	{
-		Rml::LoadFontFace(Rml::String(directory) + font_names[i], i == fallback_face);
+		Rml::LoadFontFace(Rml::String(directory) + face.filename, face.fallback_face);
 	}
 }
 
