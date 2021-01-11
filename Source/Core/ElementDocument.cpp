@@ -484,6 +484,12 @@ void ElementDocument::DirtyDpProperties()
 	GetStyle()->DirtyPropertiesWithUnitRecursive(Property::DP);
 }
 
+void ElementDocument::DirtyVwAndVhProperties()
+{
+	GetStyle()->DirtyPropertiesWithUnitRecursive(Property::VW);
+	GetStyle()->DirtyPropertiesWithUnitRecursive(Property::VH);
+}
+
 // Repositions the document if necessary.
 void ElementDocument::OnPropertyChange(const PropertyIdSet& changed_properties)
 {

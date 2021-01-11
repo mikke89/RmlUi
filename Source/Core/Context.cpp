@@ -125,6 +125,7 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
 			if (document != nullptr)
 			{
+				document->DirtyVwAndVhProperties();
 				document->DirtyLayout();
 				document->DirtyPosition();
 				document->DispatchEvent(EventId::Resize, Dictionary());
