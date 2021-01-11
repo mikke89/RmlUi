@@ -509,8 +509,9 @@ progressbar {
 #controls textarea 
 {
 	font-size: 18px;
-	font-effect: outline(2px #006600);
+	font-effect: outline(2px #060);
 	color: #ddd;
+	caret-color: #060;
 }
 #controls textarea selection
 {

@@ -55,7 +55,6 @@ void ElementTextSelection::OnPropertyChange(const PropertyIdSet& changed_propert
 	if (widget == nullptr)
 		return;
 
-	// Check for a colour change.
 	if (changed_properties.Contains(PropertyId::Color) ||
 		changed_properties.Contains(PropertyId::BackgroundColor))
 	{

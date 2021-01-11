@@ -361,6 +361,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	RegisterProperty(PropertyId::Color, "color", "white", true, false).AddParser("color");
 
+	RegisterProperty(PropertyId::CaretColor, "caret-color", "auto", true, false).AddParser("keyword", "auto").AddParser("color");
+
 	RegisterProperty(PropertyId::ImageColor, "image-color", "white", false, false).AddParser("color");
 	RegisterProperty(PropertyId::Opacity, "opacity", "1", true, false).AddParser("number");
 

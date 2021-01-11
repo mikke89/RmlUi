@@ -65,6 +65,8 @@ public:
 
 	/// Update the colours of the selected text.
 	void UpdateSelectionColours();
+	/// Generates the text cursor.
+	void GenerateCursor();
 
 	/// Updates the cursor, if necessary.
 	void OnUpdate();
@@ -154,8 +156,6 @@ private:
 	/// @return The content area of the element.
 	Vector2f FormatText();
 
-	/// Generates the text cursor.
-	void GenerateCursor();
 	/// Updates the position to render the cursor.
 	void UpdateCursorPosition();
 

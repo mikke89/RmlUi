@@ -107,6 +107,9 @@ void InputTypeText::OnPropertyChange(const PropertyIdSet& changed_properties)
 	if (changed_properties.Contains(PropertyId::Color) ||
 		changed_properties.Contains(PropertyId::BackgroundColor))
 		widget->UpdateSelectionColours();
+
+	if (changed_properties.Contains(PropertyId::CaretColor))
+		widget->GenerateCursor();
 }
 
 // Checks for necessary functional changes in the control as a result of the event.

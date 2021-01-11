@@ -36,6 +36,7 @@
 #include "../../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../../Include/RmlUi/Core/Input.h"
 #include "../../../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "../Clock.h"
@@ -209,6 +210,9 @@ void WidgetTextInput::UpdateSelectionColours()
 		selection_colour = colour_property->Get< Colourb >();
 	else
 		selection_colour = Colourb(255 - colour.red, 255 - colour.green, 255 - colour.blue, colour.alpha);
+
+	// Color may have changed, so we update the cursor geometry.
+	GenerateCursor();
 }
 
 // Updates the cursor, if necessary.
@@ -1137,9 +1141,18 @@ void WidgetTextInput::GenerateCursor()
 	Vector< int >& indices = cursor_geometry.GetIndices();
 	indices.resize(6);
 
-	cursor_size.x = ElementUtilities::GetDensityIndependentPixelRatio(text_element);
+	cursor_size.x = Math::RoundFloat( ElementUtilities::GetDensityIndependentPixelRatio(text_element) );
 	cursor_size.y = text_element->GetLineHeight() + 2.0f;
-	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), cursor_size, parent->GetProperty< Colourb >("color"));
+
+	Colourb color = parent->GetComputedValues().color;
+
+	if (const Property* property = parent->GetProperty(PropertyId::CaretColor))
+	{
+		if (property->unit == Property::COLOUR)
+			color = property->Get<Colourb>();
+	}
+
+	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), cursor_size, color);
 }
 
 void WidgetTextInput::UpdateCursorPosition()

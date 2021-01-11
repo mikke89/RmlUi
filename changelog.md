@@ -104,9 +104,10 @@ Use the RCSS `display` property to enable table formatting. See the style sheet 
 
 ### New RCSS properties
 
-- The `border-radius` property is now supported in RmlUi for drawing rounded backgrounds and borders. The gradient decorator is made compatible with this property.
+- The `border-radius` property is now supported in RmlUi for drawing rounded backgrounds and borders.
 - Implemented the `word-break` RCSS property.
 - Implemented the `box-sizing` RCSS property.
+- Implemented the `caret-color` RCSS property.
 
 ### New RML elements
 
@@ -119,6 +120,7 @@ Use the RCSS `display` property to enable table formatting. See the style sheet 
 - `<select>` elements now react to changes in the `value` attribute.
 - Element attributes can now use escaped RML characters, eg. `<p example="&quot;Quoted text&quot;"/>`. [#154](https://github.com/mikke89/RmlUi/pull/154) (thanks @actboy168).
 - Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
+- Changing the `fill-image` property of `<progressbar>` elements now actually updates the image.
 
 ### Input handling
 
@@ -152,15 +154,16 @@ Improved Lua plugin in several aspects.
 - Added ability to change the default base tag in documents [#112](https://github.com/mikke89/RmlUi/pull/112)  (thanks @aquawicket).
 - Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
+- Improved performance when using fonts with kerning.
 
 ### Bug fixes
 
 - Fix some situations where `text-decoration` would not be rendered. [#119](https://github.com/mikke89/RmlUi/issues/119).
-- Changing the `fill-image` property of \<progressbar\> elements now actually updates the image.
 - Fix a bug where font textures were leaked on `Rml::Shutdown()`. [#133](https://github.com/mikke89/RmlUi/issues/133)
 - Fixed building with MinGW, and added it to the CI to avoid future breaks. [#108](https://github.com/mikke89/RmlUi/pull/108) (thanks @cloudwu).
 - Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) [#157](https://github.com/mikke89/RmlUi/pull/157) (thanks @SpaceCat-Chan and @LWSS).
 - Fix \<textarea\> getting an unnecessary horizontal scrollbar. [#122](https://github.com/mikke89/RmlUi/issues/122)
+- Fix text position changing in input fields when selecting text and font has kerning.
 - Fix text-decoration not always being regenerated. [#119](https://github.com/mikke89/RmlUi/issues/119)
 
 ### Deprecated functionality

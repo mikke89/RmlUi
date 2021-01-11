@@ -121,6 +121,7 @@ enum class PropertyId : uint8_t
 	Visibility,
 	BackgroundColor,
 	Color,
+	CaretColor,
 	ImageColor,
 	FontFamily,
 	FontStyle,

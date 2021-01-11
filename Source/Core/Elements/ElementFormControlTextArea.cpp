@@ -183,6 +183,9 @@ void ElementFormControlTextArea::OnPropertyChange(const PropertyIdSet& changed_p
 	if (changed_properties.Contains(PropertyId::Color) ||
 		changed_properties.Contains(PropertyId::BackgroundColor))
 		widget->UpdateSelectionColours();
+
+	if (changed_properties.Contains(PropertyId::CaretColor))
+		widget->GenerateCursor();
 }
 
 // Returns the text content of the element.
