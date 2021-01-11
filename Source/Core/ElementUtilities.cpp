@@ -153,6 +153,15 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 	return context->GetDensityIndependentPixelRatio();
 }
 
+Vector2f ElementUtilities::GetViewportSizePercentages(Element * element)
+{
+	Context* context = element->GetContext();
+	if (context == nullptr)
+		return Vector2f(1.0f);
+
+	return context->GetViewportSizePercentages();
+}
+
 // Returns the width of a string rendered within the context of the given element.
 int ElementUtilities::GetStringWidth(Element* element, const String& string, Character prior_character)
 {

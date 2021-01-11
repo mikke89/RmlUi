@@ -80,6 +80,9 @@ public:
 	/// Returns the size ratio of 'dp' unit to 'px' unit
 	/// @return The current density-independent pixel ratio of the context.
 	float GetDensityIndependentPixelRatio() const;
+	/// Returns the ratop of 'vw' and 'vh' units in percent of viewport size
+	/// @return The current viewport-size percentage of the context.
+	Vector2f GetViewportSizePercentages() const;
 
 	/// Updates all elements in the context's documents. 
 	/// This must be called before Context::Render, but after any elements have been changed, added or removed.

@@ -358,12 +358,13 @@ float ElementStyle::ResolveNumericProperty(const Property* property, float base_
 		return ComputeAngle(*property);
 
 	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(element);
+	const Vector2f vp_ratio = ElementUtilities::GetViewportSizePercentages(element);
 	const float font_size = element->GetComputedValues().font_size;
 
 	auto doc = element->GetOwnerDocument();
 	const float doc_font_size = (doc ? doc->GetComputedValues().font_size : DefaultComputedValues.font_size);
 
-	float result = ComputeLength(property, font_size, doc_font_size, dp_ratio);
+	float result = ComputeLength(property, font_size, doc_font_size, dp_ratio, vp_ratio);
 
 	return result;
 }
@@ -378,7 +379,7 @@ float ElementStyle::ResolveLength(const Property* property, RelativeTarget relat
 		auto doc = element->GetOwnerDocument();
 		const float doc_font_size = (doc ? doc->GetComputedValues().font_size : DefaultComputedValues.font_size);
 
-		float result = ComputeLength(property, element->GetComputedValues().font_size, doc_font_size, ElementUtilities::GetDensityIndependentPixelRatio(element));
+		float result = ComputeLength(property, element->GetComputedValues().font_size, doc_font_size, ElementUtilities::GetDensityIndependentPixelRatio(element), ElementUtilities::GetViewportSizePercentages(element));
 
 		return result;
 	}
@@ -504,7 +505,7 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 	dirty_properties |= properties;
 }
 
-PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio)
+PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_ratio)
 {
 	if (dirty_properties.Empty())
 		return PropertyIdSet();
@@ -536,7 +537,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	if(dirty_properties.Contains(PropertyId::FontSize))
 	{
 		if (auto p = GetLocalProperty(PropertyId::FontSize))
-			values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio);
+			values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, vp_ratio);
 		else if (parent_values)
 			values.font_size = parent_values->font_size;
 		
@@ -560,7 +561,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	{
 		if (auto p = GetLocalProperty(PropertyId::LineHeight))
 		{
-			values.line_height = ComputeLineHeight(p, font_size, document_font_size, dp_ratio);
+			values.line_height = ComputeLineHeight(p, font_size, document_font_size, dp_ratio, vp_ratio);
 		}
 		else if (parent_values)
 		{
@@ -624,42 +625,42 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		switch (id)
 		{
 		case PropertyId::MarginTop:
-			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::MarginRight:
-			values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::MarginBottom:
-			values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::MarginLeft:
-			values.margin_left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.margin_left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::PaddingTop:
-			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::PaddingRight:
-			values.padding_right = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.padding_right = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::PaddingBottom:
-			values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::PaddingLeft:
-			values.padding_left = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.padding_left = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::BorderTopWidth:
-			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::BorderRightWidth:
-			values.border_right_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.border_right_width = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::BorderBottomWidth:
-			values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::BorderLeftWidth:
-			values.border_left_width = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.border_left_width = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::BorderTopColor:
@@ -676,16 +677,16 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::BorderTopLeftRadius:
-			values.border_top_left_radius = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.border_top_left_radius = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::BorderTopRightRadius:
-			values.border_top_right_radius = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.border_top_right_radius = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::BorderBottomRightRadius:
-			values.border_bottom_right_radius = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.border_bottom_right_radius = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::BorderBottomLeftRadius:
-			values.border_bottom_left_radius = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.border_bottom_left_radius = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::Display:
@@ -696,16 +697,16 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::Top:
-			values.top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::Right:
-			values.right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::Bottom:
-			values.bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::Left:
-			values.left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::Float:
@@ -723,30 +724,30 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::Width:
-			values.width = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.width = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::MinWidth:
-			values.min_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.min_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::MaxWidth:
-			values.max_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.max_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::Height:
-			values.height = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio);
+			values.height = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::MinHeight:
-			values.min_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.min_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::MaxHeight:
-			values.max_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.max_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::LineHeight:
 			// (Line-height computed above)
 			break;
 		case PropertyId::VerticalAlign:
-			values.vertical_align = ComputeVerticalAlign(p, values.line_height.value, font_size, document_font_size, dp_ratio);
+			values.vertical_align = ComputeVerticalAlign(p, values.line_height.value, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::OverflowX:
@@ -809,10 +810,10 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::RowGap:
-			values.row_gap = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.row_gap = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::ColumnGap:
-			values.column_gap = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio);
+			values.column_gap = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::Cursor:
@@ -829,33 +830,33 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.focus = (Focus)p->Get<int>();
 			break;
 		case PropertyId::ScrollbarMargin:
-			values.scrollbar_margin = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.scrollbar_margin = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::PointerEvents:
 			values.pointer_events = (PointerEvents)p->Get<int>();
 			break;
 
 		case PropertyId::Perspective:
-			values.perspective = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.perspective = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::PerspectiveOriginX:
-			values.perspective_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
+			values.perspective_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::PerspectiveOriginY:
-			values.perspective_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
+			values.perspective_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::Transform:
 			values.transform = p->Get<TransformPtr>();
 			break;
 		case PropertyId::TransformOriginX:
-			values.transform_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
+			values.transform_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::TransformOriginY:
-			values.transform_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio);
+			values.transform_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 		case PropertyId::TransformOriginZ:
-			values.transform_origin_z = ComputeLength(p, font_size, document_font_size, dp_ratio);
+			values.transform_origin_z = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_ratio);
 			break;
 
 		case PropertyId::Transition:

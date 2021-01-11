@@ -66,32 +66,34 @@ public:
 		RAD = 1 << 6,               // number suffixed by 'rad'; fetch as < float >
 		COLOUR = 1 << 7,            // colour; fetch as < Colourb >
 		DP = 1 << 8,                // density-independent pixel; number suffixed by 'dp'; fetch as < float >
-		ABSOLUTE_UNIT = NUMBER | PX | DP | DEG | RAD | COLOUR,
+        VW = 1 << 9,                // viewport-width percentage; number suffixed by 'vh'; fetch as < float >
+        VH = 1 << 10,               // viewport-height percentage; number suffixed by 'dp'; fetch as < float >
+        ABSOLUTE_UNIT = NUMBER | PX | DP | DEG | RAD | COLOUR | VW | VH,
 
 		// Relative values.
-		EM = 1 << 9,                // number suffixed by 'em'; fetch as < float >
-		PERCENT = 1 << 10,          // number suffixed by '%'; fetch as < float >
-		REM = 1 << 11,              // number suffixed by 'rem'; fetch as < float >
+        EM = 1 << 11,               // number suffixed by 'em'; fetch as < float >
+        PERCENT = 1 << 12,          // number suffixed by '%'; fetch as < float >
+        REM = 1 << 13,              // number suffixed by 'rem'; fetch as < float >
 		RELATIVE_UNIT = EM | REM | PERCENT,
 
 		// Values based on pixels-per-inch.
-		INCH = 1 << 12,             // number suffixed by 'in'; fetch as < float >
-		CM = 1 << 13,               // number suffixed by 'cm'; fetch as < float >
-		MM = 1 << 14,               // number suffixed by 'mm'; fetch as < float >
-		PT = 1 << 15,               // number suffixed by 'pt'; fetch as < float >
-		PC = 1 << 16,               // number suffixed by 'pc'; fetch as < float >
+        INCH = 1 << 14,             // number suffixed by 'in'; fetch as < float >
+        CM = 1 << 15,               // number suffixed by 'cm'; fetch as < float >
+        MM = 1 << 16,               // number suffixed by 'mm'; fetch as < float >
+        PT = 1 << 17,               // number suffixed by 'pt'; fetch as < float >
+        PC = 1 << 18,               // number suffixed by 'pc'; fetch as < float >
 		PPI_UNIT = INCH | CM | MM | PT | PC,
 
-		TRANSFORM = 1 << 17,        // transform; fetch as < TransformPtr >, may be empty
-		TRANSITION = 1 << 18,       // transition; fetch as < TransitionList >
-		ANIMATION = 1 << 19,        // animation; fetch as < AnimationList >
-		DECORATOR = 1 << 20,        // decorator; fetch as < DecoratorsPtr >
-		FONTEFFECT = 1 << 21,       // font-effect; fetch as < FontEffectsPtr >
+        TRANSFORM = 1 << 19,        // transform; fetch as < TransformPtr >, may be empty
+        TRANSITION = 1 << 20,       // transition; fetch as < TransitionList >
+        ANIMATION = 1 << 21,        // animation; fetch as < AnimationList >
+        DECORATOR = 1 << 22,        // decorator; fetch as < DecoratorsPtr >
+        FONTEFFECT = 1 << 23,       // font-effect; fetch as < FontEffectsPtr >
 
-		LENGTH = PX | DP | PPI_UNIT | EM | REM,
+        LENGTH = PX | DP | PPI_UNIT | EM | REM | VW | VH,
 		LENGTH_PERCENT = LENGTH | PERCENT,
 		NUMBER_LENGTH_PERCENT = NUMBER | LENGTH | PERCENT,
-		ABSOLUTE_LENGTH = PX | DP | PPI_UNIT,
+        ABSOLUTE_LENGTH = PX | DP | PPI_UNIT | VH | VW,
 		ANGLE = DEG | RAD
 	};
 

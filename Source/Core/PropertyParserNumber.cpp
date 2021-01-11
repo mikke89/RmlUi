@@ -37,6 +37,8 @@ static const UnorderedMap<String, Property::Unit> g_property_unit_string_map =
 	{"%", Property::PERCENT},
 	{"px", Property::PX},
 	{"dp", Property::DP},
+	{"vw", Property::VW},
+	{"vh", Property::VH},
 	{"em", Property::EM},
 	{"rem", Property::REM},
 	{"in", Property::INCH},
