@@ -512,6 +512,11 @@ progressbar {
 	font-effect: outline(2px #006600);
 	color: #ddd;
 }
+#controls textarea selection
+{
+	background-color: #aca;
+	color: #999;
+}
 
 
 /***  Sandbox  ***/

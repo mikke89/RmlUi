@@ -83,8 +83,9 @@ public:
 	/// Returns the width of a string rendered within the context of the given element.
 	/// @param[in] element The element to measure the string from.
 	/// @param[in] string The string to measure.
+	/// @param[in] prior_character The character placed just before this string, used for kerning.
 	/// @return The string width, in pixels.
-	static int GetStringWidth(Element* element, const String& string);
+	static int GetStringWidth(Element* element, const String& string, Character prior_character = Character::Null);
 
 	/// Bind and instance all event attributes on the given element onto the element
 	/// @param element Element to bind events on

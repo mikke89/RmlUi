@@ -331,7 +331,7 @@ void ElementText::AddLine(const Vector2f& line_position, const String& line)
 		UpdateFontEffects();
 
 	Vector2f baseline_position = line_position + Vector2f(0.0f, (float)GetFontEngineInterface()->GetLineHeight(font_face_handle) - GetFontEngineInterface()->GetBaseline(font_face_handle));
-	lines.push_back(Line(line, baseline_position));
+	lines.emplace_back(line, baseline_position);
 
 	geometry_dirty = true;
 }

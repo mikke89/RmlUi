@@ -154,13 +154,13 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 }
 
 // Returns the width of a string rendered within the context of the given element.
-int ElementUtilities::GetStringWidth(Element* element, const String& string)
+int ElementUtilities::GetStringWidth(Element* element, const String& string, Character prior_character)
 {
 	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
 	if (font_face_handle == 0)
 		return 0;
 
-	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string);
+	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string, prior_character);
 }
 
 void ElementUtilities::BindEventAttributes(Element* element)
