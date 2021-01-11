@@ -228,7 +228,11 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 
 	// The construction of scrollbars can occur during layouting, then we need some properties and computed values straight away.
 	Context* context = element->GetContext();
-	child->Update(context ? context->GetDensityIndependentPixelRatio() : 1.0f);
+	
+	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
+	const Vector2f vp_ratio = (context ? context->GetViewportSizePercentages() : Vector2f(1.0f));
+
+	child->Update(dp_ratio, vp_ratio);
 
 	return true;
 }

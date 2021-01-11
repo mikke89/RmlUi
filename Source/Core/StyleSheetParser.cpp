@@ -122,13 +122,13 @@ public:
 
 			Rectangle rectangle;
 			if (auto property = properties.GetProperty(id_rx))
-				rectangle.x = ComputeAbsoluteLength(*property, 1.f);
+				rectangle.x = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
 			if (auto property = properties.GetProperty(id_ry))
-				rectangle.y = ComputeAbsoluteLength(*property, 1.f);
+				rectangle.y = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
 			if (auto property = properties.GetProperty(id_rw))
-				rectangle.width = ComputeAbsoluteLength(*property, 1.f);
+				rectangle.width = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
 			if (auto property = properties.GetProperty(id_rh))
-				rectangle.height = ComputeAbsoluteLength(*property, 1.f);
+				rectangle.height = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
 
 			sprite_definitions.emplace_back(name, rectangle);
 		}

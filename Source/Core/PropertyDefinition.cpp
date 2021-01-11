@@ -153,6 +153,8 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 		break;
 
 		case Property::PX:		value += "px"; break;
+		case Property::VW:		value += "vw"; break;
+		case Property::VH:		value += "vh"; break;
 		case Property::DEG:		value += "deg"; break;
 		case Property::RAD:		value += "rad"; break;
 		case Property::DP:		value += "dp"; break;

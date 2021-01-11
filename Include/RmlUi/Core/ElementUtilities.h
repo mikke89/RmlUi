@@ -80,6 +80,10 @@ public:
 	/// @param[in] element The element to determine the density-independent pixel ratio for.
 	/// @return The density-independent pixel ratio of the context, or 1.0 if no context assigned.
 	static float GetDensityIndependentPixelRatio(Element* element);
+	/// Returns an element's viewport-width and -height percentage sizes, defined by it's context
+	/// @param[in] element The element to viewport-width and -height percentage sizes for.
+	/// @return The viewport-width and -height percentage sizes of the context, or [1.0, 1.0] if no context assigned.
+	static Vector2f GetViewportSizePercentages(Element* element);
 	/// Returns the width of a string rendered within the context of the given element.
 	/// @param[in] element The element to measure the string from.
 	/// @param[in] string The string to measure.
