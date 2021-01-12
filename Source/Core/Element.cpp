@@ -1017,6 +1017,36 @@ Element* Element::GetParentNode() const
 	return parent;
 }
 
+// Recursively search for a ancestor of this node matching the given selector.
+Element* Element::Closest(const String& selectors) const
+{
+	StyleSheetNode root_node;
+	StyleSheetNodeListRaw leaf_nodes = StyleSheetParser::ConstructNodes(root_node, selectors);
+
+	if (leaf_nodes.empty())
+	{
+		Log::Message(Log::LT_WARNING, "Query selector '%s' is empty. In element %s", selectors.c_str(), GetAddress().c_str());
+		return nullptr;
+	}
+
+	Element* parent = GetParentNode();
+
+	while(parent)
+	{
+		for (const StyleSheetNode* node : leaf_nodes)
+		{
+			if (node->IsApplicable(parent, false))
+			{
+				return parent;
+			}
+		}
+		
+		parent = parent->GetParentNode();
+	}
+
+	return nullptr;
+}
+
 // Gets the element immediately following this one in the tree.
 Element* Element::GetNextSibling() const
 {
