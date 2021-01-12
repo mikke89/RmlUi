@@ -172,6 +172,9 @@ void ElementLog::AddLogMessage(Log::Type type, const String& message)
 					beacon_button->SetClassNames(log_types[type].class_name);
 					beacon_button->SetInnerRML(log_types[type].alert_contents);
 				}
+
+				// We need to update the document manually in case the beacon appears during context update.
+				beacon->UpdateDocument();
 			}
 		}
 	}

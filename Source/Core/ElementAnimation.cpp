@@ -408,7 +408,7 @@ bool ElementAnimation::InternalAddKey(float time, const Property& in_property, E
 
 	if (!(in_property.unit & valid_properties))
 	{
-		Log::Message(Log::LT_WARNING, "Property '%s' is not a valid target for interpolation.", in_property.ToString().c_str());
+		Log::Message(Log::LT_WARNING, "Property value '%s' is not a valid target for interpolation.", in_property.ToString().c_str());
 		return false;
 	}
 

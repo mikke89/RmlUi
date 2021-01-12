@@ -120,7 +120,10 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& pr
 	// Now that we have the concept of computed values, we may want do this operation directly on them instead.
 	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, inline_properties, new_definition))
 	{
-		auto transition_list = transition_property->Get<TransitionList>();
+		if (transition_property->value.GetType() != Variant::TRANSITIONLIST)
+			return;
+
+		const TransitionList& transition_list = transition_property->value.GetReference<TransitionList>();
 
 		if (!transition_list.none)
 		{
@@ -149,7 +152,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& pr
 			}
 			else
 			{
-				for (auto& transition : transition_list.transitions)
+				for (const Transition& transition : transition_list.transitions)
 				{
 					if (properties.Contains(transition.id))
 					{
@@ -912,6 +915,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 		// Unhandled properties. Must be manually retrieved with 'GetProperty()'.
 		case PropertyId::FillImage:
+		case PropertyId::CaretColor:
 			break;
 		// Invalid properties
 		case PropertyId::Invalid:
