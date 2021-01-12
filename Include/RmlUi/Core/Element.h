@@ -419,9 +419,11 @@ public:
 	/// Gets this element's parent node.
 	/// @return This element's parent.
 	Element* GetParentNode() const;
-	/// Recursively search for a parent of this node matching the given selector.
-	/// @return The parent if found, or nullptr if no parent could be matched
-	Element* FindParent(const String& selector) const;
+	/// Recursively search for a ancestor of this node matching the given selector.
+	/// @param[in] selectors The selector or comma-separated selectors to match against.
+	/// @return The ancestor if found, or nullptr if no ancestor could be matched.
+	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
+	Element* Closest(const String& selectors) const;
 
 	/// Gets the element immediately following this one in the tree.
 	/// @return This element's next sibling element, or nullptr if there is no sibling element.

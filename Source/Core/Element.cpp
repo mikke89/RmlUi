@@ -1017,15 +1017,15 @@ Element* Element::GetParentNode() const
 	return parent;
 }
 
-// Recursively search for a parent of this node matching the given selector.
-Element* Element::FindParent(const String& selector) const
+// Recursively search for a ancestor of this node matching the given selector.
+Element* Element::Closest(const String& selectors) const
 {
 	StyleSheetNode root_node;
-	StyleSheetNodeListRaw leaf_nodes = StyleSheetParser::ConstructNodes(root_node, selector);
+	StyleSheetNodeListRaw leaf_nodes = StyleSheetParser::ConstructNodes(root_node, selectors);
 
-	if (leaf_nodes.size() != 1)
+	if (leaf_nodes.empty())
 	{
-		Log::Message(Log::LT_WARNING, "Query selector '%s' does not contain exactly one selector. In element %s", selector.c_str(), GetAddress().c_str());
+		Log::Message(Log::LT_WARNING, "Query selector '%s' is empty. In element %s", selectors.c_str(), GetAddress().c_str());
 		return nullptr;
 	}
 
@@ -1033,14 +1033,15 @@ Element* Element::FindParent(const String& selector) const
 
 	while(parent)
 	{
-		if(leaf_nodes[0]->IsApplicable(parent, false))
+		for (const StyleSheetNode* node : leaf_nodes)
 		{
-			return parent;
-		} 
-		else
-		{
-			parent = parent->GetParentNode();
+			if (node->IsApplicable(parent, false))
+			{
+				return parent;
+			}
 		}
+		
+		parent = parent->GetParentNode();
 	}
 
 	return nullptr;
