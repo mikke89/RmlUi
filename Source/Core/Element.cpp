@@ -1023,7 +1023,7 @@ Element* Element::FindParent(const String& selector) const
 	StyleSheetNode root_node;
 	StyleSheetNodeListRaw leaf_nodes = StyleSheetParser::ConstructNodes(root_node, selector);
 
-	 if (leaf_nodes.size() != 1)
+	if (leaf_nodes.size() != 1)
 	{
 		Log::Message(Log::LT_WARNING, "Query selector '%s' does not contain exactly one selector. In element %s", selector.c_str(), GetAddress().c_str());
 		return nullptr;
