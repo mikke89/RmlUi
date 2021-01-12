@@ -419,6 +419,9 @@ public:
 	/// Gets this element's parent node.
 	/// @return This element's parent.
 	Element* GetParentNode() const;
+	/// Recursively search for a parent of this node matching the given selector.
+	/// @return The parent if found, or nullptr if no parent could be matched
+	Element* FindParent(const String& selector) const;
 
 	/// Gets the element immediately following this one in the tree.
 	/// @return This element's next sibling element, or nullptr if there is no sibling element.

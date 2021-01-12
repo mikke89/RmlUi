@@ -1017,6 +1017,35 @@ Element* Element::GetParentNode() const
 	return parent;
 }
 
+// Recursively search for a parent of this node matching the given selector.
+Element* Element::FindParent(const String& selector) const
+{
+	StyleSheetNode root_node;
+	StyleSheetNodeListRaw leaf_nodes = StyleSheetParser::ConstructNodes(root_node, selector);
+
+	 if (leaf_nodes.size() != 1)
+	{
+		Log::Message(Log::LT_WARNING, "Query selector '%s' does not contain exactly one selector. In element %s", selector.c_str(), GetAddress().c_str());
+		return nullptr;
+	}
+
+	Element* parent = GetParentNode();
+
+	while(parent)
+	{
+		if(leaf_nodes[0]->IsApplicable(parent, false))
+		{
+			return parent;
+		} 
+		else
+		{
+			parent = parent->GetParentNode();
+		}
+	}
+
+	return nullptr;
+}
+
 // Gets the element immediately following this one in the tree.
 Element* Element::GetNextSibling() const
 {
