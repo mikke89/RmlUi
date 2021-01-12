@@ -153,9 +153,7 @@
 		}
 		/* -- TRANSITION TESTS */
 		#transition_test {
-			/*transition: padding-left 1.6s elastic-in 1.0, background-color 1.2s quadratic-in 1.0, transform 1.3s exponential-in 1.0;*/
-			transition: padding-left background-color transform 1.6s elastic-out 0.0;
-			transform: scale(1.0);
+			transition: all 1.6s elastic-out 0.0;
 		}
 		#transition_test:hover {
 			/*transition: padding-left background-color transform 0.8s quadratic-out 1.0;*/
@@ -164,11 +162,12 @@
 		} 
 		#transition_class {
 			margin-left: 50px;
-			transition: margin-left background-color 0.5s cubic-out;
+			transition: all 0.5s cubic-out;
+			cursor: pointer;
 		}
 		#transition_class.move_me {
 			margin-left: -50px;
-			font-size: 22px;
+			background-color: #dd3;
 		}
 		
 		/* -- KEYFRAMES TESTS */

@@ -331,16 +331,28 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 		}
 
 		// Validate the parsed transition
-		if (target_property_ids.Empty() || transition.duration <= 0.0f || transition.reverse_adjustment_factor < 0.0f || transition.reverse_adjustment_factor > 1.0f
-			|| (transition_list.all && target_property_ids.Size() != 1))
+		if ((transition_list.all && !target_property_ids.Empty())
+			|| (!transition_list.all && target_property_ids.Empty())
+			|| transition.duration <= 0.0f
+			|| transition.reverse_adjustment_factor < 0.0f
+			|| transition.reverse_adjustment_factor > 1.0f
+			)
 		{
 			return false;
 		}
 
-		for (const PropertyId id : target_property_ids)
+		if (transition_list.all)
 		{
-			transition.id = id;
+			transition.id = PropertyId::Invalid;
 			transition_list.transitions.push_back(transition);
+		}
+		else
+		{
+			for (const PropertyId id : target_property_ids)
+			{
+				transition.id = id;
+				transition_list.transitions.push_back(transition);
+			}
 		}
 	}
 
