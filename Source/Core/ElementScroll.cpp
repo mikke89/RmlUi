@@ -230,9 +230,9 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 	Context* context = element->GetContext();
 	
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
-	const Vector2f vp_ratio = (context ? context->GetViewportSizePercentages() : Vector2f(1.0f));
-
-	child->Update(dp_ratio, vp_ratio);
+	const Vector2i dimensions = (context ? context->GetDimensions() : Vector2i(1));
+	const Vector2f vp_dimensions((float)dimensions.x, (float)dimensions.y);
+	child->Update(dp_ratio, vp_dimensions);
 
 	return true;
 }

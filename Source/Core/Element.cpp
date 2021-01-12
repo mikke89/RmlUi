@@ -143,7 +143,7 @@ Element::~Element()
 	element_meta_chunk_pool.DestroyAndDeallocate(meta);
 }
 
-void Element::Update(float dp_ratio, Vector2f vp_ratio)
+void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 {
 #ifdef RMLUI_ENABLE_PROFILING
 	auto name = GetAddress(false, false);
@@ -172,7 +172,7 @@ void Element::Update(float dp_ratio, Vector2f vp_ratio)
 	}
 
 	for (size_t i = 0; i < children.size(); i++)
-		children[i]->Update(dp_ratio, vp_ratio);
+		children[i]->Update(dp_ratio, vp_dimensions);
 }
 
 
@@ -188,19 +188,22 @@ void Element::UpdateProperties()
 
 		const ComputedValues* document_values = nullptr;
 		float dp_ratio = 1.0f;
-		Vector2f vp_ratio(1.0f);
+		Vector2f vp_dimensions(1.0f);
 		if (auto doc = GetOwnerDocument())
 		{
 			document_values = &doc->GetComputedValues();
 			if (Context * context = doc->GetContext())
 			{
 				dp_ratio = context->GetDensityIndependentPixelRatio();
-				vp_ratio = context->GetViewportSizePercentages();
+				Vector2i dimensions = context->GetDimensions();
+				vp_dimensions.x = (float)dimensions.x;
+				vp_dimensions.y = (float)dimensions.y;
+
 			}
 		}
 
 		// Compute values and clear dirty properties
-		PropertyIdSet dirty_properties = meta->style.ComputeValues(meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio, vp_ratio);
+		PropertyIdSet dirty_properties = meta->style.ComputeValues(meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio, vp_dimensions);
 
 		computed_values_are_default_initialized = false;
 

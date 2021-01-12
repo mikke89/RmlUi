@@ -397,8 +397,9 @@ void ElementDocument::LoadExternalScript(const String& RMLUI_UNUSED_PARAMETER(so
 void ElementDocument::UpdateDocument()
 {
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
-	const Vector2f vp_ratio = (context ? context->GetViewportSizePercentages() : Vector2f(1.0f));
-	Update(dp_ratio, vp_ratio);
+	const Vector2i dimensions = (context ? context->GetDimensions() : Vector2i(1));
+	const Vector2f vp_dimensions((float)dimensions.x, (float)dimensions.y);
+	Update(dp_ratio, vp_dimensions);
 	UpdateLayout();
 	UpdatePosition();
 }

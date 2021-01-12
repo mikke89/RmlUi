@@ -164,11 +164,6 @@ float Context::GetDensityIndependentPixelRatio() const
 	return density_independent_pixel_ratio;
 }
 
-Vector2f Context::GetViewportSizePercentages() const
-{
-	return Vector2f(dimensions.x * 0.01f, dimensions.y * 0.01f);
-}
-
 // Updates all elements in the element tree.
 bool Context::Update()
 {
@@ -178,9 +173,9 @@ bool Context::Update()
 	for (auto& data_model : data_models)
 		data_model.second->Update(true);
 
-	Vector2f vp_ratio = GetViewportSizePercentages();
+	Vector2f vp_dimensions((float)dimensions.x, (float)dimensions.y);
 
-	root->Update(density_independent_pixel_ratio, vp_ratio);
+	root->Update(density_independent_pixel_ratio, vp_dimensions);
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 		if (auto doc = root->GetChild(i)->GetOwnerDocument())
