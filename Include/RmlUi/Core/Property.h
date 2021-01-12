@@ -66,8 +66,8 @@ public:
 		RAD = 1 << 6,               // number suffixed by 'rad'; fetch as < float >
 		COLOUR = 1 << 7,            // colour; fetch as < Colourb >
 		DP = 1 << 8,                // density-independent pixel; number suffixed by 'dp'; fetch as < float >
-		VW = 1 << 9,                // viewport-width percentage; number suffixed by 'vh'; fetch as < float >
-		VH = 1 << 10,               // viewport-height percentage; number suffixed by 'dp'; fetch as < float >
+		VW = 1 << 9,                // viewport-width percentage; number suffixed by 'vw'; fetch as < float >
+		VH = 1 << 10,               // viewport-height percentage; number suffixed by 'vh'; fetch as < float >
 		ABSOLUTE_UNIT = NUMBER | PX | DP | DEG | RAD | COLOUR | VW | VH,
 
 		// Relative values.
