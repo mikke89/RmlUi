@@ -155,8 +155,11 @@ private:
 	/// Returns true if the document has been marked as needing a re-layout.
 	bool IsLayoutDirty() override;
 
-	/// Updates all sizes defined by the 'lp' unit.
+	/// Updates all sizes defined by the 'dp' unit.
 	void DirtyDpProperties();
+
+	/// Updates all sizes defined by the 'vw' and the 'vh' units.
+	void DirtyVwAndVhProperties();
 
 	/// Updates the layout if necessary.
 	void UpdateLayout();

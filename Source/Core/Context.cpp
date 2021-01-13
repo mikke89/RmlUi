@@ -125,6 +125,7 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
 			if (document != nullptr)
 			{
+				document->DirtyVwAndVhProperties();
 				document->DirtyLayout();
 				document->DirtyPosition();
 				document->DispatchEvent(EventId::Resize, Dictionary());
@@ -172,7 +173,9 @@ bool Context::Update()
 	for (auto& data_model : data_models)
 		data_model.second->Update(true);
 
-	root->Update(density_independent_pixel_ratio);
+	Vector2f vp_dimensions((float)dimensions.x, (float)dimensions.y);
+
+	root->Update(density_independent_pixel_ratio, vp_dimensions);
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 		if (auto doc = root->GetChild(i)->GetOwnerDocument())
