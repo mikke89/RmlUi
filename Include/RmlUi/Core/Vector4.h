@@ -71,6 +71,9 @@ class Vector4
 		/// @return The computed dot-product between the two vectors.
 		inline Type DotProduct(const Vector4& rhs) const;
 
+		/// Return a Vector3 after perspective divide
+		inline Vector3< Type > PerspectiveDivide() const;
+
 		/// Returns the negation of this vector.
 		/// @return The negation of this vector.
 		inline Vector4 operator-() const;
@@ -125,8 +128,10 @@ class Vector4
 		/// @return A constant pointer to the first value.
 		inline operator Type*();
 
-		/// Return a Vector3 after perspective divide
-		inline Vector3< Type > PerspectiveDivide() const;
+		/// Underlying type-cast operator.
+		/// @return A copy of the vector with another underlying type.
+		template < typename U >
+		explicit inline operator Vector4<U>() const;
 
 		/// Cast to Vector3
 		explicit inline operator Vector3< Type >() const;

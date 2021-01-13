@@ -130,7 +130,7 @@ public:
 	/// @param box_width[out] The available width for the line box.
 	/// @param wrap_content[out] Set to true if the line box should grow to fit inline boxes, false if it should wrap them.
 	/// @param dimensions[in] The minimum dimensions of the line.
-	void PositionLineBox(Vector2f& box_position, float& box_width, bool& wrap_content, const Vector2f& dimensions) const;
+	void PositionLineBox(Vector2f& box_position, float& box_width, bool& wrap_content, Vector2f dimensions) const;
 
 	/// Calculate the dimensions of the box's internal content width; i.e. the size used to calculate the shrink-to-fit width.
 	float GetShrinkToFitWidth() const;
@@ -149,7 +149,7 @@ public:
 
 	/// Returns the position of the block box, relative to its parent's content area.
 	/// @return The relative position of the block box.
-	const Vector2f& GetPosition() const;
+	Vector2f GetPosition() const;
 
 	/// Returns the block box against which all positions of boxes in the hierarchy are set relative to.
 	/// @return This box's offset parent.

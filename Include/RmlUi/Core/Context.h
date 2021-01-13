@@ -69,10 +69,10 @@ public:
 
 	/// Changes the dimensions of the context.
 	/// @param[in] dimensions The new dimensions of the context.
-	void SetDimensions(const Vector2i& dimensions);
+	void SetDimensions(Vector2i dimensions);
 	/// Returns the dimensions of the context.
 	/// @return The current dimensions of the context.
-	const Vector2i& GetDimensions() const;
+	Vector2i GetDimensions() const;
 
 	/// Changes the size ratio of 'dp' unit to 'px' unit
 	/// @param[in] dp_ratio The new density-independent pixel ratio of the context.
@@ -223,7 +223,7 @@ public:
 	/// Sets the current clipping region for the render traversal
 	/// @param[out] origin The clipping origin
 	/// @param[out] dimensions The clipping dimensions
-	void SetActiveClipRegion(const Vector2i& origin, const Vector2i& dimensions);
+	void SetActiveClipRegion(Vector2i origin, Vector2i dimensions);
 
 	/// Sets the instancer to use for releasing this object.
 	/// @param[in] instancer The context's instancer.
@@ -339,7 +339,7 @@ private:
 	void GenerateClickEvent(Element* element);
 
 	// Updates the current hover elements, sending required events.
-	void UpdateHoverChain(const Dictionary& parameters, const Dictionary& drag_parameters, const Vector2i& old_mouse_position);
+	void UpdateHoverChain(const Dictionary& parameters, const Dictionary& drag_parameters, Vector2i old_mouse_position);
 
 	// Creates the drag clone from the given element. The old drag clone will be released if necessary.
 	void CreateDragClone(Element* element);
@@ -365,7 +365,7 @@ private:
 	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
 
 	friend class Rml::Element;
-	friend RMLUICORE_API Context* CreateContext(const String&, const Vector2i&, RenderInterface*);
+	friend RMLUICORE_API Context* CreateContext(const String&, Vector2i, RenderInterface*);
 };
 
 } // namespace Rml

@@ -86,10 +86,7 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 				Vector2i glyph_dimensions(Math::RealToInteger(box.dimensions.x), Math::RealToInteger(box.dimensions.y));
 
 				if (effect->GetGlyphMetrics(glyph_origin, glyph_dimensions, glyph))
-				{
-					box.origin.x = (float)glyph_origin.x;
-					box.origin.y = (float)glyph_origin.y;
-				}
+					box.origin = Vector2f(glyph_origin);
 				else
 					box.texture_index = -1;
 			}
@@ -116,7 +113,7 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 
 			TextureBox box;
 			box.origin = Vector2f(float(glyph_origin.x + glyph.bearing.x), float(glyph_origin.y - glyph.bearing.y));
-			box.dimensions = Vector2f(float(glyph_dimensions.x), float(glyph_dimensions.y));
+			box.dimensions = Vector2f(glyph_dimensions);
 			
 			RMLUI_ASSERT(box.dimensions.x >= 0 && box.dimensions.y >= 0);
 
@@ -253,7 +250,7 @@ int FontFaceLayer::GetNumTextures() const
 }
 
 // Returns the layer's colour.
-const Colourb& FontFaceLayer::GetColour() const
+Colourb FontFaceLayer::GetColour() const
 {
 	return colour;
 }

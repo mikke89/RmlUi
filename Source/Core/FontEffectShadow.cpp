@@ -40,7 +40,7 @@ FontEffectShadow::~FontEffectShadow()
 {
 }
 
-bool FontEffectShadow::Initialise(const Vector2i& _offset)
+bool FontEffectShadow::Initialise(const Vector2i _offset)
 {
 	offset = _offset;
 	return true;

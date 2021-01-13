@@ -181,7 +181,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Input.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Log.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Math.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/MathTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ObserverPtr.h
@@ -394,8 +393,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TypeConverter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/URL.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Variant.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Vector3.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Vector4.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandler.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerBody.cpp

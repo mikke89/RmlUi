@@ -50,11 +50,11 @@ public:
 	static void SetContext(Context* context);
 
 	// Renders a one-pixel rectangular outline.
-	static void RenderOutline(const Vector2f& origin, const Vector2f& dimensions, const Colourb& colour, float width);
+	static void RenderOutline(Vector2f origin, Vector2f dimensions, Colourb colour, float width);
 	// Renders a box.
-	static void RenderBox(const Vector2f& origin, const Vector2f& dimensions, const Colourb& colour);
+	static void RenderBox(Vector2f origin, Vector2f dimensions, Colourb colour);
 	// Renders a box with a hole in the middle.
-	static void RenderBox(const Vector2f& origin, const Vector2f& dimensions, const Vector2f& hole_origin, const Vector2f& hole_dimensions, const Colourb& colour);
+	static void RenderBox(Vector2f origin, Vector2f dimensions, Vector2f hole_origin, Vector2f hole_dimensions, Colourb colour);
 
 private:
 	Geometry();

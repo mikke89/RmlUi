@@ -161,46 +161,28 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 	meta->scroll.Update();
 
-	UpdateProperties();
+	UpdateProperties(dp_ratio, vp_dimensions);
 
 	// Do en extra pass over the animations and properties if the 'animation' property was just changed.
 	if (dirty_animation)
 	{
 		HandleAnimationProperty();
 		AdvanceAnimations();
-		UpdateProperties();
+		UpdateProperties(dp_ratio, vp_dimensions);
 	}
 
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio, vp_dimensions);
 }
 
-
-void Element::UpdateProperties()
+void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)
 {
 	meta->style.UpdateDefinition();
 
 	if (meta->style.AnyPropertiesDirty())
 	{
-		const ComputedValues* parent_values = nullptr;
-		if (parent)
-			parent_values = &parent->GetComputedValues();
-
-		const ComputedValues* document_values = nullptr;
-		float dp_ratio = 1.0f;
-		Vector2f vp_dimensions(1.0f);
-		if (auto doc = GetOwnerDocument())
-		{
-			document_values = &doc->GetComputedValues();
-			if (Context * context = doc->GetContext())
-			{
-				dp_ratio = context->GetDensityIndependentPixelRatio();
-				Vector2i dimensions = context->GetDimensions();
-				vp_dimensions.x = (float)dimensions.x;
-				vp_dimensions.y = (float)dimensions.y;
-
-			}
-		}
+		const ComputedValues* parent_values = parent ? &parent->GetComputedValues() : nullptr;
+		const ComputedValues* document_values = owner_document ? &owner_document->GetComputedValues() : nullptr;
 
 		// Compute values and clear dirty properties
 		PropertyIdSet dirty_properties = meta->style.ComputeValues(meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio, vp_dimensions);
@@ -535,9 +517,9 @@ bool Element::GetIntrinsicDimensions(Vector2f& RMLUI_UNUSED_PARAMETER(dimensions
 }
 
 // Checks if a given point in screen coordinates lies within the bordered area of this element.
-bool Element::IsPointWithinElement(const Vector2f& point)
+bool Element::IsPointWithinElement(const Vector2f point)
 {
-	Vector2f position = GetAbsoluteOffset(Box::BORDER);
+	const Vector2f position = GetAbsoluteOffset(Box::BORDER);
 
 	for (int i = 0; i < GetNumBoxes(); ++i)
 	{

@@ -84,7 +84,7 @@ TextureHandle TextureResource::GetHandle(RenderInterface* render_interface)
 }
 
 // Returns the dimensions of the resource's texture.
-const Vector2i& TextureResource::GetDimensions(RenderInterface* render_interface)
+Vector2i TextureResource::GetDimensions(RenderInterface* render_interface)
 {
 	auto texture_iterator = texture_data.find(render_interface);
 	if (texture_iterator == texture_data.end())

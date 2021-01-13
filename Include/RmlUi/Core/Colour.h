@@ -57,15 +57,11 @@ public:
 	/// Returns the sum of this colour and another. This does not saturate the channels.
 	/// @param[in] rhs The colour to add this to.
 	/// @return The sum of the two colours.
-	inline Colour operator+(const Colour& rhs) const;
+	inline Colour operator+(Colour rhs) const;
 	/// Returns the result of subtracting another colour from this colour.
 	/// @param[in] rhs The colour to subtract from this colour.
 	/// @return The result of the subtraction.
-	inline Colour operator-(const Colour& rhs) const;
-	/// Returns the result of multiplying this colour by another.
-	/// @param[in] rhs The colour to multiply by.
-	/// @return The result of the multiplication.
-	Colour operator*(const Colour& rhs) const;
+	inline Colour operator-(Colour rhs) const;
 	/// Returns the result of multiplying this colour component-wise by a scalar.
 	/// @param[in] rhs The scalar value to multiply by.
 	/// @return The result of the scale.
@@ -77,14 +73,10 @@ public:
 
 	/// Adds another colour to this in-place. This does not saturate the channels.
 	/// @param[in] rhs The colour to add.
-	inline void operator+=(const Colour& rhs);
+	inline void operator+=(Colour rhs);
 	/// Subtracts another colour from this in-place.
 	/// @param[in] rhs The colour to subtract.
-	inline void operator-=(const Colour& rhs);
-	/// Multiplies this colour component-wise with another in-place.
-	/// @param[in] rhs The colour to multiply by.
-	/// @return This colour, post-operation.
-	void operator*=(const Colour& rhs);
+	inline void operator-=(Colour rhs);
 	/// Scales this colour component-wise in-place.
 	/// @param[in] rhs The value to scale this colours's components by.
 	inline void operator*=(float rhs);
@@ -95,11 +87,11 @@ public:
 	/// Equality operator.
 	/// @param[in] rhs The colour to compare this against.
 	/// @return True if the two colours are equal, false otherwise.
-	inline bool operator==(const Colour& rhs)	{ return red == rhs.red && green == rhs.green && blue == rhs.blue && alpha == rhs.alpha; }
+	inline bool operator==(Colour rhs) { return red == rhs.red && green == rhs.green && blue == rhs.blue && alpha == rhs.alpha; }
 	/// Inequality operator.
 	/// @param[in] rhs The colour to compare this against.
 	/// @return True if the two colours are not equal, false otherwise.
-	inline bool operator!=(const Colour& rhs)	{ return red != rhs.red || green != rhs.green || blue != rhs.blue || alpha != rhs.alpha; }
+	inline bool operator!=(Colour rhs) { return !(*this == rhs); }
 
 	/// Auto-cast operator.
 	/// @return A pointer to the first value.

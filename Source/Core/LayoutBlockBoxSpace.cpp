@@ -56,7 +56,7 @@ void LayoutBlockBoxSpace::ImportSpace(const LayoutBlockBoxSpace& space)
 }
 
 // Generates the position for a box of a given size within a containing block box.
-void LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float& box_width, float cursor, const Vector2f& dimensions) const
+void LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float& box_width, float cursor, const Vector2f dimensions) const
 {
 	box_width = PositionBox(box_position, cursor, dimensions);
 }
@@ -123,7 +123,7 @@ float LayoutBlockBoxSpace::ClearBoxes(float cursor, Style::Clear clear_property)
 }
 
 // Generates the position for an arbitrary box within our space layout, floated against either the left or right edge.
-float LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float cursor, const Vector2f& dimensions, Style::Float float_property) const
+float LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float cursor, const Vector2f dimensions, Style::Float float_property) const
 {
 	float parent_scrollbar_width = parent->GetElement()->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);
 	float parent_origin = parent->GetPosition().x + parent->GetBox().GetPosition(Box::CONTENT).x;
@@ -258,7 +258,7 @@ float LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float cursor, con
 }
 
 // Returns the top-left offset of the boxes within the space.
-const Vector2f& LayoutBlockBoxSpace::GetOffset() const
+Vector2f LayoutBlockBoxSpace::GetOffset() const
 {
 	return offset;
 }
@@ -283,7 +283,7 @@ LayoutBlockBoxSpace::SpaceBox::SpaceBox() : offset(0, 0), dimensions(0, 0)
 {
 }
 
-LayoutBlockBoxSpace::SpaceBox::SpaceBox(const Vector2f& offset, const Vector2f& dimensions) : offset(offset), dimensions(dimensions)
+LayoutBlockBoxSpace::SpaceBox::SpaceBox(const Vector2f offset, const Vector2f dimensions) : offset(offset), dimensions(dimensions)
 {
 }
 

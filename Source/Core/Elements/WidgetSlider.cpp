@@ -245,7 +245,7 @@ void WidgetSlider::FormatElements()
 
 
 // Lays out and resizes the internal elements.
-void WidgetSlider::FormatElements(const Vector2f& containing_block, float slider_length)
+void WidgetSlider::FormatElements(const Vector2f containing_block, float slider_length)
 {
 	int length_axis = orientation == VERTICAL ? 1 : 0;
 

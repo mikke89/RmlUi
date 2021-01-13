@@ -58,7 +58,7 @@ public:
 	/// Returns the resource's underlying texture handle.
 	TextureHandle GetHandle(RenderInterface* render_interface);
 	/// Returns the dimensions of the resource's texture.
-	const Vector2i& GetDimensions(RenderInterface* render_interface);
+	Vector2i GetDimensions(RenderInterface* render_interface);
 
 	/// Returns the resource's source.
 	const String& GetSource() const;

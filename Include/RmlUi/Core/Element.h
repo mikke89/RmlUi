@@ -175,7 +175,7 @@ public:
 	/// Checks if a given point in screen coordinates lies within the bordered area of this element.
 	/// @param[in] point The point to test.
 	/// @return True if the element is within this element, false otherwise.
-	virtual bool IsPointWithinElement(const Vector2f& point);
+	virtual bool IsPointWithinElement(Vector2f point);
 
 	/// Returns the visibility of the element.
 	/// @return True if the element is visible, false otherwise.
@@ -595,7 +595,7 @@ protected:
 	void Render();
 
 	/// Updates definition, computed values, and runs OnPropertyChange on this element.
-	void UpdateProperties();
+	void UpdateProperties(float dp_ratio, Vector2f vp_dimensions);
 
 	/// Forces the element to generate a local stacking context, regardless of the value of its z-index property.
 	void ForceLocalStackingContext();

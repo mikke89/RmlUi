@@ -159,8 +159,11 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	// Hide this document.
 	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 
+	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
+	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
+
 	// Update properties so that e.g. visibility status can be queried properly immediately.
-	UpdateProperties();
+	UpdateProperties(dp_ratio, vp_dimensions);
 }
 
 // Returns the document's context.
@@ -397,8 +400,7 @@ void ElementDocument::LoadExternalScript(const String& RMLUI_UNUSED_PARAMETER(so
 void ElementDocument::UpdateDocument()
 {
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
-	const Vector2i dimensions = (context ? context->GetDimensions() : Vector2i(1));
-	const Vector2f vp_dimensions((float)dimensions.x, (float)dimensions.y);
+	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
 	Update(dp_ratio, vp_dimensions);
 	UpdateLayout();
 	UpdatePosition();

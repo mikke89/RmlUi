@@ -93,7 +93,7 @@ public:
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0);
+	int GenerateString(GeometryList& geometry, const String& string, Vector2f position, Colourb colour, int layer_configuration = 0);
 
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;

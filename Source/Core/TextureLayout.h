@@ -51,7 +51,7 @@ public:
 	/// the layout before the layout is generated.
 	/// @param[in] id The id of the rectangle; used to identify the rectangle after it has been positioned.
 	/// @param[in] dimensions The dimensions of the rectangle.
-	void AddRectangle(int id, const Vector2i& dimensions);
+	void AddRectangle(int id, Vector2i dimensions);
 
 	/// Returns one of the layout's rectangles.
 	/// @param[in] index The index of the desired rectangle.

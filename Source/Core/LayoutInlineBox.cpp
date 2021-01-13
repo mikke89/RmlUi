@@ -289,7 +289,7 @@ void LayoutInlineBox::OffsetBaseline(float ascender)
 }
 
 // Returns the inline box's offset from its parent's content area.
-const Vector2f& LayoutInlineBox::GetPosition() const
+Vector2f LayoutInlineBox::GetPosition() const
 {
 	return position;
 }

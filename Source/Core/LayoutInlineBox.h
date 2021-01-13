@@ -91,7 +91,7 @@ public:
 
 	/// Returns the inline box's offset from its line.
 	/// @return The box's offset from its line.
-	const Vector2f& GetPosition() const;
+	Vector2f GetPosition() const;
 
 	/// Sets the inline box's horizontal offset from its parent's content area.
 	/// @param position[in] The box's horizontal offset.

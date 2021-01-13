@@ -94,7 +94,7 @@ public:
 	/// Lays out and resizes the internal elements.
 	/// @param[in] containing_block The padded box containing the slider. This is used to resolve relative properties.
 	/// @param[in] length The total length, in pixels, of the slider widget.
-	void FormatElements(const Vector2f& containing_block, float slider_length);
+	void FormatElements(Vector2f containing_block, float slider_length);
 
 private:
 	/// Handles events coming through from the slider's components.
@@ -105,7 +105,7 @@ private:
 	/// @param[in] resize_element True to resize the parent slider element, false to only resize its components.
 	/// @param[in] slider_length The total length, in pixels, of the slider widget.
 	/// @param[in] bar_length The total length of the bar, as a proportion of the track length. If this is -1, the intrinsic length will be used.
-	void FormatElements(const Vector2f& containing_block, bool resize_element, float slider_length, float bar_length = -1);
+	void FormatElements(Vector2f containing_block, bool resize_element, float slider_length, float bar_length = -1);
 	/// Lays out and positions the bar element.
 	/// @param[in] bar_length The total length of the bar, as a proportion of the track length. If this is -1, the intrinsic length will be used.
 	void FormatBar(float bar_length = -1);

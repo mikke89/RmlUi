@@ -337,7 +337,7 @@ void LayoutLineBox::AddChainedBox(LayoutInlineBox* chained_box)
 }
 
 // Returns the position of the line box, relative to its parent's block box's content area.
-const Vector2f& LayoutLineBox::GetPosition() const
+Vector2f LayoutLineBox::GetPosition() const
 {
 	return position;
 }
@@ -349,7 +349,7 @@ Vector2f LayoutLineBox::GetRelativePosition() const
 }
 
 // Returns the dimensions of the line box.
-const Vector2f& LayoutLineBox::GetDimensions() const
+Vector2f LayoutLineBox::GetDimensions() const
 {
 	return dimensions;
 }

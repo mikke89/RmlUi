@@ -573,7 +573,7 @@ void LayoutBlockBox::PositionBlockBox(Vector2f& box_position, const Box& box, St
 }
 
 // Returns the offset from the top-left corner of this box for the next line.
-void LayoutBlockBox::PositionLineBox(Vector2f& box_position, float& box_width, bool& _wrap_content, const Vector2f& dimensions) const
+void LayoutBlockBox::PositionLineBox(Vector2f& box_position, float& box_width, bool& _wrap_content, const Vector2f dimensions) const
 {
 	Vector2f cursor;
 	PositionBox(cursor);
@@ -669,7 +669,7 @@ LayoutBlockBox* LayoutBlockBox::GetParent() const
 }
 
 // Returns the position of the block box, relative to its parent's content area.
-const Vector2f& LayoutBlockBox::GetPosition() const
+Vector2f LayoutBlockBox::GetPosition() const
 {
 	return position;
 }

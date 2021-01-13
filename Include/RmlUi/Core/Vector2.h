@@ -67,7 +67,7 @@ class Vector2
 		/// Computes the dot-product between this vector and another.
 		/// @param[in] rhs The other vector to use in the dot-product.
 		/// @return The computed dot-product between the two vectors.
-		inline Type DotProduct(const Vector2& rhs) const;
+		inline Type DotProduct(Vector2 rhs) const;
 
 		/// Returns this vector rotated around the origin.
 		/// @param[in] theta The angle to rotate by, in radians.
@@ -81,11 +81,11 @@ class Vector2
 		/// Returns the sum of this vector and another.
 		/// @param[in] rhs The vector to add this to.
 		/// @return The sum of the two vectors.
-		inline Vector2 operator+(const Vector2& rhs) const;
+		inline Vector2 operator+(Vector2 rhs) const;
 		/// Returns the result of subtracting another vector from this vector.
 		/// @param[in] rhs The vector to subtract from this vector.
 		/// @return The result of the subtraction.
-		inline Vector2 operator-(const Vector2& rhs) const;
+		inline Vector2 operator-(Vector2 rhs) const;
 		/// Returns the result of multiplying this vector by a scalar.
 		/// @param[in] rhs The scalar value to multiply by.
 		/// @return The result of the scale.
@@ -93,7 +93,7 @@ class Vector2
 		/// Returns the result of element-wise multiplication.
 		/// @param[in] rhs The vector to multiply by.
 		/// @return The result of the multiplication.
-		inline Vector2 operator*(const Vector2& rhs) const;
+		inline Vector2 operator*(Vector2 rhs) const;
 		/// Returns the result of dividing this vector by a scalar.
 		/// @param[in] rhs The scalar value to divide by.
 		/// @return The result of the scale.
@@ -101,41 +101,41 @@ class Vector2
 		/// Returns the result of element-wise division.
 		/// @param[in] rhs The vector to divide by.
 		/// @return The result of the division.
-		inline Vector2 operator/(const Vector2& rhs) const;
+		inline Vector2 operator/(Vector2 rhs) const;
 
 		/// Adds another vector to this in-place.
 		/// @param[in] rhs The vector to add.
 		/// @return This vector, post-operation.
-		inline Vector2& operator+=(const Vector2& rhs);
+		inline Vector2& operator+=(Vector2 rhs);
 		/// Subtracts another vector from this in-place.
 		/// @param[in] rhs The vector to subtract.
 		/// @return This vector, post-operation.
-		inline Vector2& operator-=(const Vector2& rhs);
+		inline Vector2& operator-=(Vector2 rhs);
 		/// Scales this vector in-place.
 		/// @param[in] rhs The value to scale this vector's components by.
 		/// @return This vector, post-operation.
-		inline Vector2& operator*=(const Type& rhs);
+		inline Vector2& operator*=(Type rhs);
 		/// Element-wise multiplication in-place.
 		/// @param[in] rhs The vector to multiply.
 		/// @return This vector, post-operation.
-		inline Vector2& operator*=(const Vector2& rhs);
+		inline Vector2& operator*=(Vector2 rhs);
 		/// Scales this vector in-place by the inverse of a value.
 		/// @param[in] rhs The value to divide this vector's components by.
 		/// @return This vector, post-operation.
-		inline Vector2& operator/=(const Type& rhs);
+		inline Vector2& operator/=(Type rhs);
 		/// Element-wise division in-place.
 		/// @param[in] rhs The vector to divide by.
 		/// @return This vector, post-operation.
-		inline Vector2& operator/=(const Vector2& rhs);
+		inline Vector2& operator/=(Vector2 rhs);
 
 		/// Equality operator.
 		/// @param[in] rhs The vector to compare this against.
 		/// @return True if the two vectors are equal, false otherwise.
-		inline bool operator==(const Vector2& rhs) const;
+		inline bool operator==(Vector2 rhs) const;
 		/// Inequality operator.
 		/// @param[in] rhs The vector to compare this against.
 		/// @return True if the two vectors are not equal, false otherwise.
-		inline bool operator!=(const Vector2& rhs) const;
+		inline bool operator!=(Vector2 rhs) const;
 
 		/// Auto-cast operator.
 		/// @return A pointer to the first value.
@@ -143,6 +143,11 @@ class Vector2
 		/// Constant auto-cast operator.
 		/// @return A constant pointer to the first value.
 		inline operator Type*();
+
+		/// Underlying type-cast operator.
+		/// @return A copy of the vector with another underlying type.
+		template < typename U >
+		explicit inline operator Vector2<U>() const;
 
 		// The components of the vector.
 		Type x;

@@ -50,7 +50,7 @@ TextureLayout::~TextureLayout()
 }
 
 // Adds a rectangle to the list of rectangles to be laid out.
-void TextureLayout::AddRectangle(int id, const Vector2i& dimensions)
+void TextureLayout::AddRectangle(int id, Vector2i dimensions)
 {
 	rectangles.push_back(TextureLayoutRectangle(id, dimensions));
 }

@@ -42,7 +42,7 @@ namespace Rml {
 class TextureLayoutRectangle
 {
 public:
-	TextureLayoutRectangle(int id, const Vector2i& dimensions);
+	TextureLayoutRectangle(int id, Vector2i dimensions);
 	~TextureLayoutRectangle();
 
 	/// Returns the rectangle's id.
@@ -50,15 +50,15 @@ public:
 	int GetId() const;
 	/// Returns the rectangle's position; this is only valid if it has been placed.
 	/// @return The rectangle's position within its texture.
-	const Vector2i& GetPosition() const;
+	Vector2i GetPosition() const;
 	/// Returns the rectangle's dimensions.
 	/// @return The rectangle's dimensions.
-	const Vector2i& GetDimensions() const;
+	Vector2i GetDimensions() const;
 
 	/// Places the rectangle within a texture.
 	/// @param[in] texture_index The index of the texture this rectangle is placed on.
 	/// @param[in] position The position within the texture of this rectangle's top-left corner.
-	void Place(int texture_index, const Vector2i& position);
+	void Place(int texture_index, Vector2i position);
 	/// Unplaces the rectangle.
 	void Unplace();
 	/// Returns the rectangle's placed state.

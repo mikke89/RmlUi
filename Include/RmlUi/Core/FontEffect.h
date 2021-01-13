@@ -66,9 +66,9 @@ public:
 	virtual void GenerateGlyphTexture(byte* destination_data, Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const;
 
 	/// Sets the colour of the effect's geometry.
-	void SetColour(const Colourb& colour);
+	void SetColour(Colourb colour);
 	/// Returns the effect's colour.
-	const Colourb& GetColour() const;
+	Colourb GetColour() const;
 
 	Layer GetLayer() const;
 	void SetLayer(Layer layer);

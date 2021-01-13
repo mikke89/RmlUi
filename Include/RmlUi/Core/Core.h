@@ -98,7 +98,7 @@ RMLUICORE_API FontEngineInterface* GetFontEngineInterface();
 /// @param[in] render_interface The custom render interface to use, or nullptr to use the default.
 /// @lifetime If specified, the render interface must be kept alive until after the context is destroyed or the call to Rml::Shutdown.
 /// @return A non-owning pointer to the new context, or nullptr if the context could not be created.
-RMLUICORE_API Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInterface* render_interface = nullptr);
+RMLUICORE_API Context* CreateContext(const String& name, Vector2i dimensions, RenderInterface* render_interface = nullptr);
 /// Removes and destroys a context.
 /// @param[in] name The name of the context to remove.
 /// @return True if name is a valid context, false otherwise.

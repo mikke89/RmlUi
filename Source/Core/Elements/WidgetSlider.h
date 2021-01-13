@@ -93,7 +93,7 @@ private:
 	/// Lays out and resizes the slider's internal elements.
 	/// @param[in] containing_block The padded box containing the slider. This is used to resolve relative properties.
 	/// @param[in] slider_length The total length, in pixels, of the slider widget.
-	void FormatElements(const Vector2f& containing_block, float slider_length);
+	void FormatElements(Vector2f containing_block, float slider_length);
 	/// Lays out and positions the bar element.
 	void FormatBar();
 

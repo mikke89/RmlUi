@@ -210,7 +210,7 @@ void WidgetScroll::GetDimensions(Vector2f& dimensions) const
 }
 
 // Lays out and resizes the internal elements.
-void WidgetScroll::FormatElements(const Vector2f& containing_block, bool resize_element, float slider_length, float bar_length)
+void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_element, float slider_length, float bar_length)
 {
 	int length_axis = orientation == VERTICAL ? 1 : 0;
 
@@ -503,7 +503,7 @@ void WidgetScroll::SetLineHeight(float _line_height)
 }
 
 // Lays out and resizes the internal elements.
-void WidgetScroll::FormatElements(const Vector2f& containing_block, float slider_length)
+void WidgetScroll::FormatElements(const Vector2f containing_block, float slider_length)
 {
 	float relative_bar_length;
 

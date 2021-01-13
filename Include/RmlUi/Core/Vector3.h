@@ -126,6 +126,11 @@ class Vector3
 		/// @return A constant pointer to the first value.
 		inline operator Type*();
 
+		/// Underlying type-cast operator.
+		/// @return A copy of the vector with another underlying type.
+		template < typename U >
+		explicit inline operator Vector3<U>() const;
+
 		// Cast to Vector2
 		explicit inline operator Vector2< Type >() const;
 

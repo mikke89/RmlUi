@@ -72,7 +72,7 @@ public:
 	/// @param[in] character_code The character to generate geometry for.
 	/// @param[in] position The position of the baseline.
 	/// @param[in] colour The colour of the string.
-	inline void GenerateGeometry(Geometry* geometry, const Character character_code, const Vector2f& position, const Colourb& colour) const
+	inline void GenerateGeometry(Geometry* geometry, const Character character_code, const Vector2f position, const Colourb colour) const
 	{
 		auto it = character_boxes.find(character_code);
 		if (it == character_boxes.end())
@@ -110,7 +110,7 @@ public:
 	int GetNumTextures() const;
 
 	/// Returns the layer's colour.
-	const Colourb& GetColour() const;
+	Colourb GetColour() const;
 
 private:
 

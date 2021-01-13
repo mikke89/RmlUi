@@ -61,7 +61,14 @@ Type Vector2< Type >::SquaredMagnitude() const
 
 // Generates a normalised vector from this vector.
 template < typename Type >
-Vector2< Type > Vector2< Type >::Normalise() const
+inline Vector2< Type > Vector2< Type >::Normalise() const
+{
+	static_assert(std::is_same<Type, float>::value, "Normalise only implemented for Vector<float>.");
+	return *this;
+}
+
+template < >
+inline Vector2< float > Vector2< float >::Normalise() const
 {
 	float magnitude = Magnitude();
 	if (Math::IsZero(magnitude))
@@ -89,7 +96,7 @@ inline Vector2< int > Vector2< int >::Round() const
 
 // Computes the dot-product between this vector and another.
 template < typename Type >
-Type Vector2< Type >::DotProduct(const Vector2< Type >& rhs) const
+Type Vector2< Type >::DotProduct(Vector2 rhs) const
 {
 	return x * rhs.x +
 		y * rhs.y;
@@ -115,14 +122,14 @@ Vector2< Type > Vector2< Type >::operator-() const
 
 // Returns the sum of this vector and another.
 template < typename Type >
-Vector2< Type > Vector2< Type >::operator+(const Vector2< Type > & rhs) const
+Vector2< Type > Vector2< Type >::operator+(Vector2 rhs) const
 {
 	return Vector2< Type >(x + rhs.x, y + rhs.y);
 }
 
 // Returns the result of subtracting another vector from this vector.
 template < typename Type >
-Vector2< Type > Vector2< Type >::operator-(const Vector2< Type > & rhs) const
+Vector2< Type > Vector2< Type >::operator-(Vector2 rhs) const
 {
 	return Vector2(x - rhs.x, y - rhs.y);
 }
@@ -135,7 +142,7 @@ Vector2< Type > Vector2< Type >::operator*(Type rhs) const
 }
 
 template<typename Type>
-Vector2< Type > Vector2<Type>::operator*(const Vector2& rhs) const
+Vector2< Type > Vector2<Type>::operator*(Vector2 rhs) const
 {
 	return Vector2(x * rhs.x, y * rhs.y);
 }
@@ -148,14 +155,14 @@ Vector2< Type > Vector2< Type >::operator/(Type rhs) const
 }
 
 template<typename Type>
-Vector2< Type > Vector2<Type>::operator/(const Vector2& rhs) const
+Vector2< Type > Vector2<Type>::operator/(Vector2 rhs) const
 {
 	return Vector2(x / rhs.x, y / rhs.y);
 }
 
 // Adds another vector to this in-place.
 template < typename Type >
-Vector2< Type >& Vector2< Type >::operator+=(const Vector2 & rhs)
+Vector2< Type >& Vector2< Type >::operator+=(Vector2 rhs)
 {
 	x += rhs.x;
 	y += rhs.y;
@@ -165,7 +172,7 @@ Vector2< Type >& Vector2< Type >::operator+=(const Vector2 & rhs)
 
 // Subtracts another vector from this in-place.
 template < typename Type >
-Vector2< Type >& Vector2< Type >::operator-=(const Vector2 & rhs)
+Vector2< Type >& Vector2< Type >::operator-=(Vector2 rhs)
 {
 	x -= rhs.x;
 	y -= rhs.y;
@@ -175,7 +182,7 @@ Vector2< Type >& Vector2< Type >::operator-=(const Vector2 & rhs)
 
 // Scales this vector in-place.
 template < typename Type >
-Vector2< Type >& Vector2< Type >::operator*=(const Type & rhs)
+Vector2< Type >& Vector2< Type >::operator*=(Type rhs)
 {
 	x *= rhs;
 	y *= rhs;
@@ -184,7 +191,7 @@ Vector2< Type >& Vector2< Type >::operator*=(const Type & rhs)
 }
 
 template<typename Type>
-Vector2< Type >& Vector2<Type>::operator*=(const Vector2& rhs)
+Vector2< Type >& Vector2<Type>::operator*=(Vector2 rhs)
 {
 	x *= rhs.x;
 	y *= rhs.y;
@@ -194,7 +201,7 @@ Vector2< Type >& Vector2<Type>::operator*=(const Vector2& rhs)
 
 // Scales this vector in-place by the inverse of a value.
 template < typename Type >
-Vector2< Type >& Vector2< Type >::operator/=(const Type & rhs)
+Vector2< Type >& Vector2< Type >::operator/=(Type rhs)
 {
 	x /= rhs;
 	y /= rhs;
@@ -203,7 +210,7 @@ Vector2< Type >& Vector2< Type >::operator/=(const Type & rhs)
 }
 
 template<typename Type>
-Vector2< Type >& Vector2<Type>::operator/=(const Vector2& rhs)
+Vector2< Type >& Vector2<Type>::operator/=(Vector2 rhs)
 {
 	x /= rhs.x;
 	y /= rhs.y;
@@ -212,14 +219,14 @@ Vector2< Type >& Vector2<Type>::operator/=(const Vector2& rhs)
 
 // Equality operator.
 template < typename Type >
-bool Vector2< Type >::operator==(const Vector2 & rhs) const
+bool Vector2< Type >::operator==(Vector2 rhs) const
 {
 	return (x == rhs.x && y == rhs.y);
 }
 
 // Inequality operator.
 template < typename Type >
-bool Vector2< Type >::operator!=(const Vector2 & rhs) const
+bool Vector2< Type >::operator!=(Vector2 rhs) const
 {
 	return (x != rhs.x || y != rhs.y);
 }
@@ -236,6 +243,21 @@ template < typename Type >
 Vector2< Type >::operator Type* ()
 {
 	return &x;
+}
+
+// Underlying type-cast operator.
+template < typename Type >
+template < typename U >
+inline Vector2< Type >::operator Vector2<U>() const
+{
+	return Vector2<U>(static_cast<U>(x), static_cast<U>(y));
+}
+
+// Multiply by scalar operator.
+template < typename Type >
+inline Vector2< Type > operator*(Type lhs, Vector2< Type> rhs)
+{
+	return rhs * lhs;
 }
 
 } // namespace Rml

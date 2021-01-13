@@ -135,10 +135,8 @@ int ContextOpenDataModel(lua_State *L, Context *obj)
 int ContextGetAttrdimensions(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
-    const Vector2i* dim = &cont->GetDimensions();
-    //const_cast-ing so that the user can do dimensions.x = 3 and it will actually change the dimensions
-    //of the context
-    LuaType<Vector2i>::push(L,const_cast<Vector2i*>(dim));
+    Vector2i* dim = new Vector2i(cont->GetDimensions());
+    LuaType<Vector2i>::push(L,dim,true);
     return 1;
 }
 

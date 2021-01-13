@@ -46,7 +46,7 @@ void Geometry::SetContext(Context* _context)
 }
 
 // Renders a one-pixel rectangular outline.
-void Geometry::RenderOutline(const Vector2f& origin, const Vector2f& dimensions, const Colourb& colour, float width)
+void Geometry::RenderOutline(const Vector2f origin, const Vector2f dimensions, const Colourb colour, float width)
 {
 	if (context == nullptr)
 		return;
@@ -65,7 +65,7 @@ void Geometry::RenderOutline(const Vector2f& origin, const Vector2f& dimensions,
 }
 
 // Renders a box.
-void Geometry::RenderBox(const Vector2f& origin, const Vector2f& dimensions, const Colourb& colour)
+void Geometry::RenderBox(const Vector2f origin, const Vector2f dimensions, const Colourb colour)
 {
 	if (context == nullptr)
 		return;
@@ -81,7 +81,7 @@ void Geometry::RenderBox(const Vector2f& origin, const Vector2f& dimensions, con
 }
 
 // Renders a box with a hole in the middle.
-void Geometry::RenderBox(const Vector2f& origin, const Vector2f& dimensions, const Vector2f& hole_origin, const Vector2f& hole_dimensions, const Colourb& colour)
+void Geometry::RenderBox(const Vector2f origin, const Vector2f dimensions, const Vector2f hole_origin, const Vector2f hole_dimensions, const Colourb colour)
 {
 	// Top box.
 	float top_y_dimensions = hole_origin.y - origin.y;

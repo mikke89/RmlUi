@@ -59,7 +59,7 @@ public:
 	/// @param[out] box_width The available width for the box.
 	/// @param[in] cursor The ideal vertical position for the box.
 	/// @param[in] dimensions The minimum available space required for the box.
-	void PositionBox(Vector2f& box_position, float& box_width, float cursor, const Vector2f& dimensions) const;
+	void PositionBox(Vector2f& box_position, float& box_width, float cursor, Vector2f dimensions) const;
 
 	/// Generates and sets the position for a floating box of a given size within our block box. The element's box
 	/// is then added into our list of floating boxes.
@@ -77,7 +77,7 @@ public:
 
 	/// Returns the top-left corner of the boxes within the space.
 	/// @return The space's offset.
-	const Vector2f& GetOffset() const;
+	Vector2f GetOffset() const;
 	/// Returns the dimensions of the boxes within the space.
 	/// @return The space's dimensions.
 	Vector2f GetDimensions() const;
@@ -99,12 +99,12 @@ private:
 	/// @param cursor[in] The ideal vertical position for the box.
 	/// @param dimensions[in] The size of the box to place.
 	/// @return The maximum width at the box position.
-	float PositionBox(Vector2f& box_position, float cursor, const Vector2f& dimensions, Style::Float float_property = Style::Float::None) const;
+	float PositionBox(Vector2f& box_position, float cursor, Vector2f dimensions, Style::Float float_property = Style::Float::None) const;
 
 	struct SpaceBox
 	{
 		SpaceBox();
-		SpaceBox(const Vector2f& offset, const Vector2f& dimensions);
+		SpaceBox(Vector2f offset, Vector2f dimensions);
 
 		Vector2f offset;
 		Vector2f dimensions;

@@ -112,12 +112,12 @@ const String& Context::GetName() const
 }
 
 // Changes the dimensions of the screen.
-void Context::SetDimensions(const Vector2i& _dimensions)
+void Context::SetDimensions(const Vector2i _dimensions)
 {
 	if (dimensions != _dimensions)
 	{
 		dimensions = _dimensions;
-		root->SetBox(Box(Vector2f((float) dimensions.x, (float) dimensions.y)));
+		root->SetBox(Box(Vector2f(dimensions)));
 		root->DirtyLayout();
 
 		for (int i = 0; i < root->GetNumChildren(); ++i)
@@ -137,7 +137,7 @@ void Context::SetDimensions(const Vector2i& _dimensions)
 }
 
 // Returns the dimensions of the screen.
-const Vector2i& Context::GetDimensions() const
+Vector2i Context::GetDimensions() const
 {
 	return dimensions;
 }
@@ -173,9 +173,7 @@ bool Context::Update()
 	for (auto& data_model : data_models)
 		data_model.second->Update(true);
 
-	Vector2f vp_dimensions((float)dimensions.x, (float)dimensions.y);
-
-	root->Update(density_independent_pixel_ratio, vp_dimensions);
+	root->Update(density_independent_pixel_ratio, Vector2f(dimensions));
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 		if (auto doc = root->GetChild(i)->GetOwnerDocument())
@@ -813,7 +811,7 @@ bool Context::GetActiveClipRegion(Vector2i& origin, Vector2i& dimensions) const
 }
 	
 // Sets the current clipping region for the render traversal
-void Context::SetActiveClipRegion(const Vector2i& origin, const Vector2i& dimensions)
+void Context::SetActiveClipRegion(const Vector2i origin, const Vector2i dimensions)
 {
 	clip_origin = origin;
 	clip_dimensions = dimensions;
@@ -1006,9 +1004,9 @@ void Context::GenerateClickEvent(Element* element)
 }
 
 // Updates the current hover elements, sending required events.
-void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& drag_parameters, const Vector2i& old_mouse_position)
+void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& drag_parameters, const Vector2i old_mouse_position)
 {
-	Vector2f position((float) mouse_position.x, (float) mouse_position.y);
+	const Vector2f position(mouse_position);
 
 	// Send out drag events.
 	if (drag)

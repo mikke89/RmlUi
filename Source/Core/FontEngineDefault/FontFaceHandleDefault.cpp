@@ -218,7 +218,7 @@ bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& textur
 }
 
 // Generates the geometry required to render a single line of text.
-int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index)
+int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& string, const Vector2f position, const Colourb colour, int layer_configuration_index)
 {
 	int geometry_index = 0;
 	int line_width = 0;

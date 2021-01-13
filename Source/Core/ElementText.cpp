@@ -320,7 +320,7 @@ void ElementText::ClearLines()
 }
 
 // Adds a new line into the text element.
-void ElementText::AddLine(const Vector2f& line_position, const String& line)
+void ElementText::AddLine(Vector2f line_position, const String& line)
 {
 	FontFaceHandle font_face_handle = GetFontFaceHandle();
 

@@ -41,7 +41,7 @@ TextureLayoutTexture::~TextureLayoutTexture()
 }
 
 // Returns the texture's dimensions. This is only valid after the texture has been generated.
-const Vector2i& TextureLayoutTexture::GetDimensions() const
+Vector2i TextureLayoutTexture::GetDimensions() const
 {
 	return dimensions;
 }

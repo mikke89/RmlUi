@@ -56,7 +56,7 @@ DecoratorGradient::~DecoratorGradient()
 {
 }
 
-bool DecoratorGradient::Initialise(const Direction &dir_, const Colourb &start_, const Colourb & stop_)
+bool DecoratorGradient::Initialise(const Direction dir_, const Colourb start_, const Colourb stop_)
 {
 	dir = dir_;
 	start = start_;

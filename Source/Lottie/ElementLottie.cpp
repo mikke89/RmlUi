@@ -120,8 +120,7 @@ void ElementLottie::GenerateGeometry()
 	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 
 	const Vector2f render_dimensions_f = GetBox().GetSize(Box::CONTENT).Round();
-	render_dimensions.x = int(render_dimensions_f.x);
-	render_dimensions.y = int(render_dimensions_f.y);
+	render_dimensions = Vector2i(render_dimensions_f);
 
 	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), render_dimensions_f, quad_colour, texcoords[0], texcoords[1]);
 

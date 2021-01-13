@@ -34,7 +34,7 @@ namespace Rml {
 
 using namespace Transforms;
 
-static Vector3f Combine(const Vector3f& a, const Vector3f& b, float a_scale, float b_scale)
+static Vector3f Combine(const Vector3f a, const Vector3f b, float a_scale, float b_scale)
 {
 	Vector3f result;
 	result.x = a_scale * a.x + b_scale * b.x;
@@ -45,7 +45,7 @@ static Vector3f Combine(const Vector3f& a, const Vector3f& b, float a_scale, flo
 
 
 // Interpolate two quaternions a, b with weight alpha [0, 1]
-static Vector4f QuaternionSlerp(const Vector4f& a, const Vector4f& b, float alpha)
+static Vector4f QuaternionSlerp(const Vector4f a, const Vector4f b, float alpha)
 {
 	using namespace Math;
 

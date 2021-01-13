@@ -74,7 +74,7 @@ public:
 	/// Adds a new line into the text element.
 	/// @param[in] line_position The position of this line, as an offset from the first line.
 	/// @param[in] line The contents of the line.
-	void AddLine(const Vector2f& line_position, const String& line);
+	void AddLine(Vector2f line_position, const String& line);
 
 	/// Prevents the element from dirtying its document's layout when its text is changed.
 	void SuppressAutoLayout();

@@ -228,7 +228,7 @@ FontEngineInterface* GetFontEngineInterface()
 }
 
 // Creates a new element context.
-Context* CreateContext(const String& name, const Vector2i& dimensions, RenderInterface* custom_render_interface)
+Context* CreateContext(const String& name, const Vector2i dimensions, RenderInterface* custom_render_interface)
 {
 	if (!initialised)
 		return nullptr;

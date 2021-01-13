@@ -121,11 +121,11 @@ float ComputeAbsoluteLength(const Property& property, float dp_ratio, Vector2f v
 	case Property::PX:
 		return property.value.Get< float >();
 	case Property::DP:
-		return property.value.Get< float >()* dp_ratio;
+		return property.value.Get< float >() * dp_ratio;
 	case Property::VW:
-		return property.value.Get< float >()* vp_dimensions.x * 0.01f;
+		return property.value.Get< float >() * vp_dimensions.x * 0.01f;
 	case Property::VH:
-		return property.value.Get< float >()* vp_dimensions.y * 0.01f;
+		return property.value.Get< float >() * vp_dimensions.y * 0.01f;
 	default:
 		// Values based on pixels-per-inch.
 		if (property.unit & Property::PPI_UNIT)

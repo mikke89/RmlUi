@@ -62,16 +62,16 @@ Type Vector3< Type >::SquaredMagnitude() const
 
 // Generates a normalised vector from this vector.
 template < typename Type >
-Vector3< Type > Vector3< Type >::Normalise() const
+inline Vector3< Type > Vector3< Type >::Normalise() const
 {
-	static_assert(std::is_floating_point< Type >::value, "Invalid operation");
+	static_assert(std::is_same<Type, float>::value, "Normalise only implemented for Vector<float>.");
 	return *this;
 }
 
 template <>
 inline Vector3< float > Vector3< float >::Normalise() const
 {
-	float magnitude = Magnitude();
+	const float magnitude = Magnitude();
 	if (Math::IsZero(magnitude))
 		return *this;
 
@@ -203,10 +203,25 @@ Vector3< Type >::operator Type* ()
 	return &x;
 }
 
+// Underlying type-cast operator.
+template < typename Type >
+template < typename U >
+inline Vector3< Type >::operator Vector3<U>() const
+{
+	return Vector3<U>(static_cast<U>(x), static_cast<U>(y), static_cast<U>(z));
+}
+
 template < typename Type >
 Vector3< Type >::operator Vector2< Type >() const
 {
 	return Vector2< Type >(x, y);
+}
+
+// Multiply by scalar operator.
+template < typename Type >
+inline Vector3< Type > operator*(Type lhs, Vector3< Type > rhs)
+{
+	return rhs * lhs;
 }
 
 } // namespace Rml

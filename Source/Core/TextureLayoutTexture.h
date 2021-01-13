@@ -52,7 +52,7 @@ public:
 
 	/// Returns the texture's dimensions. This is only valid after the texture has been generated.
 	/// @return The texture's dimensions.
-	const Vector2i& GetDimensions() const;
+	Vector2i GetDimensions() const;
 
 	/// Attempts to position unplaced rectangles from the layout into this texture. The size of
 	/// this texture will be determined by its contents.

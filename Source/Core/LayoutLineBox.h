@@ -73,13 +73,13 @@ public:
 
 	/// Returns the position of the line box, relative to its parent's block box's content area.
 	/// @return The position of the line box.
-	const Vector2f& GetPosition() const;
+	Vector2f GetPosition() const;
 	/// Returns the position of the line box, relative to its parent's block box's offset parent.
 	/// @return The relative position of the line box.
 	Vector2f GetRelativePosition() const;
 	/// Returns the dimensions of the line box.
 	/// @return The dimensions of the line box.
-	const Vector2f& GetDimensions() const;
+	Vector2f GetDimensions() const;
 
 	/// Returns the line box's open inline box.
 	/// @return The line's open inline box, or nullptr if it currently has none.

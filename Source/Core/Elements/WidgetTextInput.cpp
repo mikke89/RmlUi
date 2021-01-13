@@ -280,7 +280,7 @@ ElementText* WidgetTextInput::GetTextElement()
 }
 
 // Returns the input element's maximum allowed text dimensions.
-const Vector2f& WidgetTextInput::GetTextDimensions() const
+Vector2f WidgetTextInput::GetTextDimensions() const
 {
 	return internal_dimensions;
 }

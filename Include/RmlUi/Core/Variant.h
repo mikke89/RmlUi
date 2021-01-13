@@ -131,11 +131,11 @@ private:
 	void Set(const int64_t value);
 	void Set(const char* value);
 	void Set(void* value);
-	void Set(const Vector2f& value);
-	void Set(const Vector3f& value);
-	void Set(const Vector4f& value);
-	void Set(const Colourf& value);
-	void Set(const Colourb& value);
+	void Set(const Vector2f value);
+	void Set(const Vector3f value);
+	void Set(const Vector4f value);
+	void Set(const Colourf value);
+	void Set(const Colourb value);
 	void Set(ScriptInterface* value);
 
 	void Set(const String& value);

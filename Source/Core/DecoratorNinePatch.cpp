@@ -63,8 +63,7 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 
 	const Texture* texture = GetTexture();
 	data->SetTexture(texture);
-	const Vector2i texture_dimensions_i = texture->GetDimensions(render_interface);
-	const Vector2f texture_dimensions = { (float)texture_dimensions_i.x, (float)texture_dimensions_i.y };
+	const Vector2f texture_dimensions(texture->GetDimensions(render_interface));
 
 	const Vector2f surface_dimensions = element->GetBox().GetSize(Box::PADDING);
 

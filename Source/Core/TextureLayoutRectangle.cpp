@@ -30,7 +30,7 @@
 
 namespace Rml {
 
-TextureLayoutRectangle::TextureLayoutRectangle(int _id, const Vector2i& dimensions) : dimensions(dimensions), texture_position(0, 0)
+TextureLayoutRectangle::TextureLayoutRectangle(const int _id, const Vector2i dimensions) : dimensions(dimensions), texture_position(0, 0)
 {
 	id = _id;
 	texture_index = -1;
@@ -50,19 +50,19 @@ int TextureLayoutRectangle::GetId() const
 }
 
 // Returns the rectangle's position; this is only valid if it has been placed.
-const Vector2i& TextureLayoutRectangle::GetPosition() const
+Vector2i TextureLayoutRectangle::GetPosition() const
 {
 	return texture_position;
 }
 
 // Returns the rectangle's dimensions.
-const Vector2i& TextureLayoutRectangle::GetDimensions() const
+Vector2i TextureLayoutRectangle::GetDimensions() const
 {
 	return dimensions;
 }
 
 // Places the rectangle within a texture.
-void TextureLayoutRectangle::Place(int _texture_index, const Vector2i& position)
+void TextureLayoutRectangle::Place(const int _texture_index, const Vector2i position)
 {
 	texture_index = _texture_index;
 	texture_position = position;

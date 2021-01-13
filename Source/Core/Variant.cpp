@@ -244,31 +244,31 @@ void Variant::Set(void* voidptr)
 	memcpy(data, &voidptr, sizeof(void*));
 }
 
-void Variant::Set(const Vector2f& value)
+void Variant::Set(const Vector2f value)
 {
 	type = VECTOR2;
 	SET_VARIANT(Vector2f);
 }
 
-void Variant::Set(const Vector3f& value)
+void Variant::Set(const Vector3f value)
 {
 	type = VECTOR3;
 	SET_VARIANT(Vector3f);
 }
 
-void Variant::Set(const Vector4f& value)
+void Variant::Set(const Vector4f value)
 {
 	type = VECTOR4;
 	SET_VARIANT(Vector4f);
 }
 
-void Variant::Set(const Colourf& value)
+void Variant::Set(const Colourf value)
 {
 	type = COLOURF;
 	SET_VARIANT(Colourf);
 }
 
-void Variant::Set(const Colourb& value)
+void Variant::Set(const Colourb value)
 {
 	type = COLOURB;
 	SET_VARIANT(Colourb);

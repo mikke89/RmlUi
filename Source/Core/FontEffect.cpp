@@ -62,12 +62,12 @@ void FontEffect::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_d
 	RMLUI_UNUSED(glyph);
 }
 
-void FontEffect::SetColour(const Colourb& _colour)
+void FontEffect::SetColour(const Colourb _colour)
 {
 	colour = _colour;
 }
 
-const Colourb& FontEffect::GetColour() const
+Colourb FontEffect::GetColour() const
 {
 	return colour;
 }

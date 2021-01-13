@@ -134,7 +134,7 @@ const Dictionary& Event::GetParameters() const
 	return parameters;
 }
 
-const Vector2f& Event::GetUnprojectedMouseScreenPos() const
+Vector2f Event::GetUnprojectedMouseScreenPos() const
 {
 	return mouse_screen_position;
 }

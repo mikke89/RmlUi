@@ -346,6 +346,28 @@ const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 	return inline_properties.GetProperties();
 }
 
+static float ComputeLength(const Property* property, Element* element)
+{
+	const float font_size = element->GetComputedValues().font_size;
+	float doc_font_size = DefaultComputedValues.font_size;
+	float dp_ratio = 1.0f;
+	Vector2f vp_dimensions(1.0f);
+
+	if (ElementDocument* document = element->GetOwnerDocument())
+	{
+		doc_font_size = document->GetComputedValues().font_size;
+
+		if (Context* context = document->GetContext())
+		{
+			dp_ratio = context->GetDensityIndependentPixelRatio();
+			vp_dimensions = Vector2f(context->GetDimensions());
+		}
+	}
+
+	const float result = ComputeLength(property, font_size, doc_font_size, dp_ratio, vp_dimensions);
+	return result;
+}
+
 float ElementStyle::ResolveNumericProperty(const Property* property, float base_value) const
 {
 	if (!property || !(property->unit & (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE)))
@@ -358,15 +380,7 @@ float ElementStyle::ResolveNumericProperty(const Property* property, float base_
 	else if (property->unit & Property::ANGLE)
 		return ComputeAngle(*property);
 
-	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(element);
-	Vector2i dimensions = (element->GetContext() ? element->GetContext()->GetDimensions() : Vector2i(1));
-	Vector2f vp_dimensions((float)dimensions.x, (float)dimensions.y);
-	const float font_size = element->GetComputedValues().font_size;
-
-	auto doc = element->GetOwnerDocument();
-	const float doc_font_size = (doc ? doc->GetComputedValues().font_size : DefaultComputedValues.font_size);
-
-	float result = ComputeLength(property, font_size, doc_font_size, dp_ratio, vp_dimensions);
+	const float result = ComputeLength(property, element);
 
 	return result;
 }
@@ -378,12 +392,7 @@ float ElementStyle::ResolveLength(const Property* property, RelativeTarget relat
 	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
 	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && relative_target == RelativeTarget::ParentFontSize))
 	{
-		auto doc = element->GetOwnerDocument();
-		const float doc_font_size = (doc ? doc->GetComputedValues().font_size : DefaultComputedValues.font_size);
-		Vector2i dimensions = (element->GetContext() ? element->GetContext()->GetDimensions() : Vector2i(1));
-		Vector2f vp_dimensions((float)dimensions.x, (float)dimensions.y);
-		float result = ComputeLength(property, element->GetComputedValues().font_size, doc_font_size, ElementUtilities::GetDensityIndependentPixelRatio(element), vp_dimensions);
-
+		const float result = ComputeLength(property, element);
 		return result;
 	}
 

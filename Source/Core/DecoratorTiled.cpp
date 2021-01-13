@@ -65,8 +65,7 @@ void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& 
 	if (data_iterator == data.end())
 	{
 		TileData new_data;
-		const Vector2i texture_dimensions_i = texture.GetDimensions(render_interface);
-		const Vector2f texture_dimensions((float)texture_dimensions_i.x, (float)texture_dimensions_i.y);
+		const Vector2f texture_dimensions(texture.GetDimensions(render_interface));
 
 		if (texture_dimensions.x == 0 || texture_dimensions.y == 0)
 		{
@@ -106,7 +105,7 @@ Vector2f DecoratorTiled::Tile::GetDimensions(Element* element) const
 }
 
 // Generates geometry to render this tile across a surface.
-void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< int >& indices, Element* element, const Vector2f& surface_origin, const Vector2f& surface_dimensions, const Vector2f& tile_dimensions) const
+void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< int >& indices, Element* element, const Vector2f surface_origin, const Vector2f surface_dimensions, const Vector2f tile_dimensions) const
 {
 	if (surface_dimensions.x <= 0 || surface_dimensions.y <= 0)
 		return;

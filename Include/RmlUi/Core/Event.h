@@ -115,7 +115,7 @@ public:
 
 	/// Return the unprojected mouse screen position.
 	/// Note: Only specified for events with 'mouse_x' and 'mouse_y' parameters.
-	const Vector2f& GetUnprojectedMouseScreenPos() const;
+	Vector2f GetUnprojectedMouseScreenPos() const;
 
 protected:
 	Dictionary parameters;

@@ -71,20 +71,33 @@ Type Vector4< Type >::SquaredMagnitude() const
 
 // Generates a normalised vector from this vector.
 template < typename Type >
-Vector4< Type > Vector4< Type >::Normalise() const
+inline Vector4< Type > Vector4< Type >::Normalise() const
 {
-	static_assert(std::is_floating_point< Type >::value, "Invalid operation");
+	static_assert(std::is_same<Type, float>::value, "Normalise only implemented for Vector<float>.");
 	return *this;
 }
 
 template <>
-RMLUICORE_API Vector4< float > Vector4< float >::Normalise() const;
+inline Vector4< float > Vector4< float >::Normalise() const
+{
+	const float magnitude = Magnitude();
+	if (Math::IsZero(magnitude))
+		return *this;
+
+	return *this / magnitude;
+}
 
 // Computes the dot-product between this vector and another.
 template < typename Type >
 Type Vector4< Type >::DotProduct(const Vector4< Type >& rhs) const
 {
 	return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w;
+}
+
+template < typename Type >
+Vector3< Type > Vector4< Type >::PerspectiveDivide() const
+{
+	return Vector3< Type >(x / w, y / w, z / w);
 }
 
 // Returns the negation of this vector.
@@ -198,11 +211,14 @@ Vector4< Type >::operator Type* ()
 	return &x;
 }
 
+// Underlying type-cast operator.
 template < typename Type >
-Vector3< Type > Vector4< Type >::PerspectiveDivide() const
+template < typename U >
+inline Vector4< Type >::operator Vector4<U>() const
 {
-	return Vector3< Type >(x / w, y / w, z / w);
+	return Vector4<U>(static_cast<U>(x), static_cast<U>(y), static_cast<U>(z), static_cast<U>(w));
 }
+
 
 template < typename Type >
 Vector4< Type >::operator Vector3< Type >() const
@@ -214,6 +230,13 @@ template < typename Type >
 Vector4< Type >::operator Vector2< Type >() const
 {
 	return Vector2< Type >(x, y);
+}
+
+// Multiply by scalar operator.
+template < typename Type >
+inline Vector4< Type > operator*(Type lhs, Vector4< Type > rhs)
+{
+	return rhs * lhs;
 }
 
 } // namespace Rml
