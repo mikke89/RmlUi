@@ -115,7 +115,7 @@ Use the RCSS `display` property to enable table formatting. See the style sheet 
 
 ### Element improvements
 
-- Implemented `Element::QuerySelector` and `Element::QuerySelectorAll`.
+- Implemented `Element::QuerySelector`, `Element::QuerySelectorAll`, and `Element::Closest`.
 - The `tab-index: auto` property can now be set on the `<body>` element to enable tabbing back to the document.
 - `<select>` elements now react to changes in the `value` attribute.
 - Element attributes can now use escaped RML characters, eg. `<p example="&quot;Quoted text&quot;"/>`. [#154](https://github.com/mikke89/RmlUi/pull/154) (thanks @actboy168).
@@ -162,6 +162,7 @@ Improved Lua plugin in several aspects.
 - Fix a bug where font textures were leaked on `Rml::Shutdown()`. [#133](https://github.com/mikke89/RmlUi/issues/133)
 - Fixed building with MinGW, and added it to the CI to avoid future breaks. [#108](https://github.com/mikke89/RmlUi/pull/108) (thanks @cloudwu).
 - Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) [#157](https://github.com/mikke89/RmlUi/pull/157) (thanks @SpaceCat-Chan and @LWSS).
+- Fixed a bug where the `transition: all ...;` property would not parse correctly.
 - Fix \<textarea\> getting an unnecessary horizontal scrollbar. [#122](https://github.com/mikke89/RmlUi/issues/122)
 - Fix text position changing in input fields when selecting text and font has kerning.
 - Fix text-decoration not always being regenerated. [#119](https://github.com/mikke89/RmlUi/issues/119)

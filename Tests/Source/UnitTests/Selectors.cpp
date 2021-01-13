@@ -70,11 +70,11 @@ static const String doc_end = R"(
 </rml>
 )";
 
-struct Selector {
+struct QuerySelector {
 	String selector;
 	String expected_ids;
 };
-static const Vector<Selector> selectors =
+static const Vector<QuerySelector> query_selectors =
 {
 	{ "span",                        "Y D0 D1 F0" },
 	{ ".hello",                      "X Z H" },
@@ -104,6 +104,24 @@ static const Vector<Selector> selectors =
 	{ "span:empty",                  "Y D0 D1 F0" },
 	{ ".hello.world, #P span, #I",   "Z D0 D1 F0 I" },
 	{ "body * span",                 "D0 D1 F0" },
+};
+struct ClosestSelector {
+	String start_id;
+	String selector;
+	String expected_id;
+};
+static const Vector<ClosestSelector> closest_selectors =
+{
+	{ "D1",  "#P",               "P" },
+	{ "D1",  "#P, body",         "P" },
+	{ "D1",  "#P, #D",           "D" },
+	{ "D1",  "#Z",               "" },
+	{ "D1",  "#D1",              "" },
+	{ "D1",  "#D0",              "" },
+	{ "D1",  "div",              "P" },
+	{ "D1",  "p",                "D" },
+	{ "D1",  ":nth-child(4)",    "D" },
+	{ "D1",  "div:nth-child(4)", "P" },
 };
 
 
@@ -156,7 +174,7 @@ TEST_CASE("Selectors")
 
 	SUBCASE("RCSS document selectors")
 	{
-		for (const Selector& selector : selectors)
+		for (const QuerySelector& selector : query_selectors)
 		{
 			const String selector_css = selector.selector + " { drag: drag; } ";
 			const String document_string = doc_begin + selector_css + doc_end;
@@ -180,7 +198,7 @@ TEST_CASE("Selectors")
 		ElementDocument* document = context->LoadDocumentFromMemory(document_string);
 		REQUIRE(document);
 
-		for (const Selector& selector : selectors)
+		for (const QuerySelector& selector : query_selectors)
 		{
 			ElementList elements;
 			document->QuerySelectorAll(elements, selector.selector);
@@ -197,8 +215,26 @@ TEST_CASE("Selectors")
 			}
 
 			CHECK_MESSAGE(matching_ids == selector.expected_ids, "QuerySelector: " << selector.selector);
-			context->UnloadDocument(document);
 		}
+		context->UnloadDocument(document);
+	}
+
+	SUBCASE("Closest")
+	{
+		const String document_string = doc_begin + doc_end;
+		ElementDocument* document = context->LoadDocumentFromMemory(document_string);
+		REQUIRE(document);
+
+		for (const ClosestSelector& selector : closest_selectors)
+		{
+			Element* start = document->GetElementById(selector.start_id);
+			REQUIRE(start);
+
+			Element* match = start->Closest(selector.selector);
+			const String match_id = match ? match->GetId() : "";
+			CHECK_MESSAGE(match_id == selector.expected_id, "Closest() selector '" << selector.selector << "' from " << selector.start_id);
+		}
+		context->UnloadDocument(document);
 	}
 
 	Rml::Shutdown();
