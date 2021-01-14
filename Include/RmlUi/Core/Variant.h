@@ -59,8 +59,8 @@ public:
 		DOUBLE = 'd',
 		INT = 'i',
 		INT64 = 'I',
-        UINT = 'u',
-        UINT64 = 'U',
+		UINT = 'u',
+		UINT64 = 'U',
 		STRING = 's',
 		VECTOR2 = '2',
 		VECTOR3 = '3',
@@ -131,8 +131,8 @@ private:
 	void Set(const double value);
 	void Set(const int value);
 	void Set(const int64_t value);
-    void Set(const unsigned int value);
-    void Set(const uint64_t value);
+	void Set(const unsigned int value);
+	void Set(const uint64_t value);
 	void Set(const char* value);
 	void Set(void* value);
 	void Set(const Vector2f value);

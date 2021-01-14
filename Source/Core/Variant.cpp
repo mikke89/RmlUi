@@ -235,14 +235,14 @@ void Variant::Set(const int64_t value)
 
 void Variant::Set(const unsigned int value)
 {
-    type = UINT;
-    SET_VARIANT(unsigned int);
+	type = UINT;
+	SET_VARIANT(unsigned int);
 }
 
 void Variant::Set(const uint64_t value)
 {
-    type = UINT64;
-    SET_VARIANT(uint64_t);
+	type = UINT64;
+	SET_VARIANT(uint64_t);
 }
 
 void Variant::Set(const char* value) 
@@ -482,10 +482,10 @@ bool Variant::operator==(const Variant & other) const
 		return DEFAULT_VARIANT_COMPARE(int);
 	case INT64:
 		return DEFAULT_VARIANT_COMPARE(int64_t);
-    case UINT:
-        return DEFAULT_VARIANT_COMPARE(unsigned int);
-    case UINT64:
-        return DEFAULT_VARIANT_COMPARE(uint64_t);
+	case UINT:
+		return DEFAULT_VARIANT_COMPARE(unsigned int);
+	case UINT64:
+		return DEFAULT_VARIANT_COMPARE(uint64_t);
 	case STRING:
 		return DEFAULT_VARIANT_COMPARE(String);
 	case VECTOR2:
