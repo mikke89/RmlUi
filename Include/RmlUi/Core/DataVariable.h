@@ -110,6 +110,23 @@ public:
 	}
 };
 
+template<typename T>
+class ScalarGetterDefinition final : public VariableDefinition {
+public:
+    ScalarGetterDefinition() : VariableDefinition(DataVariableType::Scalar) {}
+
+	bool Get(void* ptr, Variant& variant) override
+	{
+		variant = *static_cast<T*>(ptr);
+		return true;
+	}
+	bool Set(void* ptr, const Variant& variant) override
+	{
+        Log::Message(Log::LT_WARNING, "Only getter exposed for this variable.");
+        return false;
+	}
+};
+
 
 class FuncDefinition final : public VariableDefinition {
 public:
@@ -226,6 +243,58 @@ public:
 
 private:
     SharedPtr<MemberType> Object::* member_ptr;
+};
+
+template <typename Object, typename GetterType, typename ReturnType>
+struct Extractor {
+    static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
+    {
+        auto v = (const void*)&((static_cast<Object*>(base_ptr)->*member_ptr)());
+        return const_cast<void*>(v);
+    }
+};
+
+template <typename Object, typename GetterType>
+struct Extractor<SharedPtr<Object>, GetterType, Object*> {
+    static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
+    {
+        SharedPtr<Object>* obj = static_cast<SharedPtr<Object>*>(base_ptr);
+        Object* val = obj->get();
+        auto ptr = (const void*) val;
+        return const_cast<void*>(ptr);
+    }
+};
+
+template <typename Object, typename GetterType, typename ReturnType>
+struct Extractor<Object, GetterType, SharedPtr<ReturnType>&> {
+    static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
+    {
+        SharedPtr<ReturnType> shptr = ((static_cast<Object*>(base_ptr)->*member_ptr)());
+        auto ptr = (const void*) shptr.get();
+        return const_cast<void*>(ptr);
+    }
+};
+
+template <typename Object, typename GetterType, typename ReturnType>
+struct Extractor<Object, GetterType, ReturnType*> {
+    static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
+    {
+        auto ptr = (const void*)((static_cast<Object*>(base_ptr)->*member_ptr)());
+        return const_cast<void*>(ptr);
+    }
+};
+
+template <typename Object, typename GetterType>
+class StructMemberObjectGetter final : public StructMember {
+public:
+    StructMemberObjectGetter(VariableDefinition* definition, GetterType member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
+    
+    void* GetPointer(void* base_ptr) override {
+        return Extractor<Object, GetterType, typename std::result_of<GetterType(Object)>::type>::ExtractPointer(base_ptr, member_ptr);
+    }
+
+private:
+    GetterType member_ptr;
 };
 
 class StructMemberFunc final : public StructMember {
