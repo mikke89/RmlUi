@@ -459,22 +459,22 @@ void ElementStyle::DirtyChildDefinitions()
 		element->GetChild(i)->GetStyle()->DirtyDefinition();
 }
 
-void ElementStyle::DirtyPropertiesWithUnitRecursive(Property::Unit unit)
+void ElementStyle::DirtyPropertiesWithUnitsRecursive(Property::Unit units)
 {
-	// Dirty all the properties of this element that use the unit.
+	// Dirty all the properties of this element that use the unit(s).
 	for (auto it = Iterate(); !it.AtEnd(); ++it)
 	{
 		auto name_property_pair = *it;
 		PropertyId id = name_property_pair.first;
 		const Property& property = name_property_pair.second;
-		if (property.unit == unit)
+		if (property.unit & units)
 			DirtyProperty(id);
 	}
 
-	// Now dirty all of our descendant's properties that use the unit.
+	// Now dirty all of our descendant's properties that use the unit(s).
 	int num_children = element->GetNumChildren(true);
 	for (int i = 0; i < num_children; ++i)
-		element->GetChild(i)->GetStyle()->DirtyPropertiesWithUnitRecursive(unit);
+		element->GetChild(i)->GetStyle()->DirtyPropertiesWithUnitsRecursive(units);
 }
 
 bool ElementStyle::AnyPropertiesDirty() const 

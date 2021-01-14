@@ -31,6 +31,7 @@
 
 #include "Variant.h"
 #include "Header.h"
+#include <type_traits>
 
 namespace Rml {
 
@@ -129,6 +130,13 @@ public:
 
 	SharedPtr<const PropertySource> source;
 };
+
+// OR operator for combining multiple units where applicable.
+inline Property::Unit operator|(Property::Unit lhs, Property::Unit rhs)
+{
+	using underlying_t = std::underlying_type<Property::Unit>::type;
+	return static_cast<Property::Unit>(static_cast<underlying_t>(lhs) | static_cast<underlying_t>(rhs));
+}
 
 } // namespace Rml
 #endif

@@ -108,6 +108,7 @@ Use the RCSS `display` property to enable table formatting. See the style sheet 
 - Implemented the `word-break` RCSS property.
 - Implemented the `box-sizing` RCSS property.
 - Implemented the `caret-color` RCSS property.
+- New RCSS length units: `vw` and `vh`. [#162](https://github.com/mikke89/RmlUi/pull/162) (thanks @Dakror).
 
 ### New RML elements
 
@@ -115,7 +116,7 @@ Use the RCSS `display` property to enable table formatting. See the style sheet 
 
 ### Element improvements
 
-- Implemented `Element::QuerySelector`, `Element::QuerySelectorAll`, and `Element::Closest`.
+- Implemented `Element::QuerySelector`, `Element::QuerySelectorAll`, and `Element::Closest`. [#164](https://github.com/mikke89/RmlUi/pull/164) (thanks @Dakror).
 - The `tab-index: auto` property can now be set on the `<body>` element to enable tabbing back to the document.
 - `<select>` elements now react to changes in the `value` attribute.
 - Element attributes can now use escaped RML characters, eg. `<p example="&quot;Quoted text&quot;"/>`. [#154](https://github.com/mikke89/RmlUi/pull/154) (thanks @actboy168).
