@@ -156,6 +156,7 @@ Improved Lua plugin in several aspects.
 - Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
 - Improved performance when using fonts with kerning.
+- Added `unsigned int` and `uint64_t` to Variant. [#166](https://github.com/mikke89/RmlUi/pull/166) (thanks @Omegapol).
 
 ### Bug fixes
 
