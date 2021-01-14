@@ -175,6 +175,16 @@ public:
 };
 
 template<>
+class TypeConverter< String, uint64_t >
+{
+public:
+	static bool Convert(const String& src, uint64_t& dest)
+	{
+		return sscanf(src.c_str(), "%" SCNu64, &dest) == 1;
+	}
+};
+
+template<>
 class TypeConverter< String, int64_t >
 {
 public:
