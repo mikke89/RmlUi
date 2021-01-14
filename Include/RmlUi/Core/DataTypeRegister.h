@@ -187,12 +187,15 @@ private:
 };
 
 template<typename Object>
-template<typename MemberType>
+template <typename MemberType>
 inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberType Object::* member_ptr) {
-	VariableDefinition* member_type = type_register->GetOrAddScalar<MemberType>();
-	struct_definition->AddMember(name, MakeUnique<StructMemberObject<Object, MemberType>>(member_type, member_ptr));
-	return *this;
+    using MemberTypeValue = typename std::remove_pointer<MemberType>::type;
+    using MemberTypeValue2 = typename Rml::remove_smart_pointer<MemberTypeValue>::type;
+    VariableDefinition* member_type = type_register->GetOrAddScalar<MemberTypeValue2>();
+    struct_definition->AddMember(name, MakeUnique<StructMemberObject<Object, MemberType>>(member_type, member_ptr));
+    return *this;
 }
+
 template<typename Object>
 inline StructHandle<Object>& StructHandle<Object>::RegisterMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func) {
 	VariableDefinition* definition = type_register->RegisterMemberFunc<Object>(get_func, set_func);

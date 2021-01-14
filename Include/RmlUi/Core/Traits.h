@@ -96,8 +96,21 @@ public:
 		return GetId< typename std::remove_cv< typename std::remove_reference< T >::type >::type >();
 	}
 };
-
-} // namespace Rml
+    
+    template< class T > struct remove_smart_pointer                    {typedef T type;};
+    template< class T > struct remove_smart_pointer<SharedPtr<T>> {typedef T type;};
+    template< class T > struct remove_smart_pointer<SharedPtr<const T>> {typedef T type;};
+    template< class T > struct remove_smart_pointer<SharedPtr<T>&> {typedef T type;};
+    template< class T > struct remove_smart_pointer<SharedPtr<const T>&> {typedef T type;};
+    
+    template<typename MemberType>
+    struct remove_raw_smart_pointer
+    {
+        using _type1 = typename std::remove_const<MemberType>::type;
+        using _type2 = typename Rml::remove_smart_pointer<_type1>::type;
+        using type = typename std::remove_pointer<_type2>::type;
+    };
+}; // namespace Rml
 
 
 

@@ -199,6 +199,35 @@ private:
 	MemberType Object::* member_ptr;
 };
 
+template <typename Object, typename MemberType>
+class StructMemberObject<Object, MemberType*> final : public StructMember {
+public:
+    StructMemberObject(VariableDefinition* definition, MemberType* Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
+    
+    void* GetPointer(void* base_ptr) override {
+        auto ptr = (const void*)(static_cast<Object*>(base_ptr)->*member_ptr);
+        return const_cast<void*>(ptr);
+    }
+
+private:
+    MemberType* Object::* member_ptr;
+};
+
+template <typename Object, typename MemberType>
+class StructMemberObject<Object, SharedPtr<MemberType>> final : public StructMember {
+public:
+    StructMemberObject(VariableDefinition* definition, SharedPtr<MemberType> Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
+
+    void* GetPointer(void* base_ptr) override {
+        SharedPtr<MemberType> shptr = (static_cast<Object*>(base_ptr)->*member_ptr);
+        auto ptr = (const void*) shptr.get();
+        return const_cast<void*>(ptr);
+    }
+
+private:
+    SharedPtr<MemberType> Object::* member_ptr;
+};
+
 class StructMemberFunc final : public StructMember {
 public:
 	StructMemberFunc(VariableDefinition* definition) : StructMember(definition) {}
