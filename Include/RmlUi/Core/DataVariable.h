@@ -120,7 +120,7 @@ public:
 		variant = *static_cast<T*>(ptr);
 		return true;
 	}
-	bool Set(void* ptr, const Variant& variant) override
+	bool Set(void* RMLUI_UNUSED_PARAMETER(ptr), const Variant& RMLUI_UNUSED_PARAMETER(variant)) override
 	{
         Log::Message(Log::LT_WARNING, "Only getter exposed for this variable.");
         return false;
@@ -256,7 +256,7 @@ struct Extractor {
 
 template <typename Object, typename GetterType>
 struct Extractor<SharedPtr<Object>, GetterType, Object*> {
-    static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
+    static void* ExtractPointer(void* base_ptr, GetterType RMLUI_UNUSED_PARAMETER(member_ptr))
     {
         SharedPtr<Object>* obj = static_cast<SharedPtr<Object>*>(base_ptr);
         Object* val = obj->get();

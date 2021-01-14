@@ -110,7 +110,7 @@ public:
         using _type2 = typename Rml::remove_smart_pointer<_type1>::type;
         using type = typename std::remove_pointer<_type2>::type;
     };
-}; // namespace Rml
+} // namespace Rml
 
 
 
