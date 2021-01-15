@@ -139,8 +139,14 @@ form h2 {
 #controls textarea 
 {
 	font-size: 18px;
-	font-effect: outline(2px #006600);
+	font-effect: outline(2px #060);
 	color: #ddd;
+	caret-color: #060;
+}
+#controls textarea selection
+{
+	background-color: #aca;
+	color: #999;
 }
 .picker p {
 	cursor: pointer;
@@ -223,16 +229,16 @@ li {
 		</div>
 		<h2>Favorite animal: {{ animal }}</h2>
 		<div>
-			<input type="radio" name="animal" value="dog" data-checked="animal"/> Dog
-			<input type="radio" name="animal" value="cat" data-checked="animal"/> Cat
-			<input type="radio" name="animal" value="narwhal" data-checked="animal"/> Narwhal
-			<input type="radio" name="animal" value="no" data-checked="animal"/> I don't like animals
+			<label><input type="radio" name="animal" value="dog" data-checked="animal"/> Dog </label>
+			<label><input type="radio" name="animal" value="cat" data-checked="animal"/> Cat </label>
+			<label><input type="radio" name="animal" value="narwhal" data-checked="animal"/> Narwhal </label>
+			<label><input type="radio" name="animal" value="no" data-checked="animal"/> I don't like animals </label>
 		</div>
 		<h2>Favorite meals</h2>
 		<div>
-			<input type="checkbox" name="meals" value="pizza" data-checked="pizza" data-attrif-disabled="rating < 70"/> Pizza
-			<input type="checkbox" name="meals" value="pasta" data-checked="pasta"/> Pasta
-			<input type="checkbox" name="meals" value="lasagne" data-checked="lasagne"/> Lasagne
+			<label><input type="checkbox" name="meals" value="pizza" data-checked="pizza" data-attrif-disabled="rating < 70"/> Pizza </label>
+			<label><input type="checkbox" name="meals" value="pasta" data-checked="pasta"/> Pasta </label>
+			<label><input type="checkbox" name="meals" value="lasagne" data-checked="lasagne"/> Lasagne </label>
 			<li style="color: red;" data-if="pizza && rating < 70">• You can only have pizza if the rating is satisfactory.</li>
 			<li data-if="pizza && rating >= 70">• Pizza is life!</li>
 			<li data-if="pasta">• Pasta is squiggly good!</li>

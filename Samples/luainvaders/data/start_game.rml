@@ -55,12 +55,12 @@ end
 		<form onsubmit="StartGame.SetupGame(event,document)">
 			<div>
 				<p>
-					Difficulty:<br />
-					<input type="radio" name="difficulty" value="easy" checked="true" /> Easy<br />
-					<input type="radio" name="difficulty" value="hard" /> Hard
+					Difficulty<br />
+					<label><input type="radio" name="difficulty" value="easy" checked="true" /> Easy</label><br />
+					<label><input type="radio" name="difficulty" value="hard" /> Hard</label>
 				</p>
 				<p>
-					Colour:<br />
+					Colour<br />
 					<select name="colour">
 						<option value="233,116,81"><color style="background: rgb(233,116,81)"/>Burnt Sienna</option>
 						<option value="127,255,0"><color style="background: rgb(127,255,0)"/>Chartreuse</option>
