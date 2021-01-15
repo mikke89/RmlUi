@@ -281,7 +281,7 @@ private:
 
 	// Root of the element tree.
 	ElementPtr root;
-	// The element that current has input focus.
+	// The element that currently has input focus.
 	Element* focus;
 	// The top-most element being hovered over.
 	Element* hover;
