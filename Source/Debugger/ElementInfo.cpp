@@ -364,9 +364,17 @@ void ElementInfo::UpdateSourceElement()
 	// Set the pseudo classes
 	if (Element* pseudo = GetElementById("pseudo"))
 	{
-		PseudoClassList list;
+		StringList list;
 		if (source_element)
 			list = source_element->GetActivePseudoClasses();
+
+		auto EraseFromList = [](StringList& list, const String& value) {
+			auto it = std::find(list.begin(), list.end(), value);
+			if (it == list.end())
+				return false;
+			list.erase(it);
+			return true;
+		};
 
 		// There are some fixed pseudo classes that we always show and iterate through to determine if they are set.
 		// We also want to show other pseudo classes when they are set, they are added under the #extra element last.
@@ -377,17 +385,17 @@ void ElementInfo::UpdateSourceElement()
 
 			if (!name.empty())
 			{
-				bool active = (list.erase(name) == 1);
+				bool active = EraseFromList(list, name);
 				child->SetClass("active", active);
 			}
-			else if(child->GetId() == "extra")
+			else if (child->GetId() == "extra")
 			{
 				// First, we iterate through the extra elements and remove those that are no longer active.
 				for (int j = 0; j < child->GetNumChildren(); j++)
 				{
 					Element* grandchild = child->GetChild(j);
 					const String grandchild_name = grandchild->GetAttribute<String>("name", "");
-					bool active = (list.erase(grandchild_name) == 1);
+					bool active = (EraseFromList(list, grandchild_name) == 1);
 					if(!active)
 						child->RemoveChild(grandchild);
 				}

@@ -108,7 +108,6 @@ using OwnedElementList = Vector< ElementPtr >;
 using VariantList = Vector< Variant >;
 using ElementAnimationList = Vector< ElementAnimation >;
 
-using PseudoClassList = SmallUnorderedSet< String >;
 using AttributeNameList = SmallUnorderedSet< String >;
 using PropertyMap = UnorderedMap< PropertyId, Property >;
 

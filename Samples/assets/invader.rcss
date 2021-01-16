@@ -355,12 +355,6 @@ dataselect selectvalue
 	decorator: image( selectvalue  );
 }
 
-select selectvalue:hover,
-dataselect selectvalue:hover
-{
-	decorator: image( selectvalue-hover );
-}
-
 select selectarrow,
 dataselect selectarrow
 {
@@ -370,15 +364,15 @@ dataselect selectarrow
 	decorator: image( selectarrow );
 }
 
-select selectarrow:hover,
-dataselect selectarrow:hover
+select:hover selectarrow,
+dataselect:hover selectarrow
 {
 	decorator: image( selectarrow-hover );
 }
 
-select selectarrow:active,
+select:active selectarrow,
 select selectarrow:checked,
-dataselect selectarrow:active,
+dataselect:active selectarrow,
 dataselect selectarrow:checked
 {
 	decorator: image( selectarrow-active );

@@ -283,12 +283,12 @@ public:
 	/// @return True if the pseudo-class is set on the element, false if not.
 	bool IsPseudoClassSet(const String& pseudo_class) const;
 	/// Checks if a complete set of pseudo-classes are set on the element.
-	/// @param[in] pseudo_classes The set of pseudo-classes to check for.
+	/// @param[in] pseudo_classes The list of pseudo-classes to check for.
 	/// @return True if all of the pseudo-classes are set, false if not.
-	bool ArePseudoClassesSet(const PseudoClassList& pseudo_classes) const;
+	bool ArePseudoClassesSet(const StringList& pseudo_classes) const;
 	/// Gets a list of the current active pseudo-classes.
 	/// @return The list of active pseudo-classes.
-	const PseudoClassList& GetActivePseudoClasses() const;
+	StringList GetActivePseudoClasses() const;
 	//@}
 
 	/** @name Attributes
@@ -615,6 +615,10 @@ protected:
 	/// Called when properties on the element are changed.
 	/// @param[in] changed_properties The properties changed on the element.
 	virtual void OnPropertyChange(const PropertyIdSet& changed_properties);
+	/// Called when a pseudo class on the element is changed.
+	/// @param[in] pseudo_class The pseudo class changed on the element.
+	/// @param[in] activate True if the pseudo class was activated.
+	virtual void OnPseudoClassChange(const String& pseudo_class, bool activate);
 
 	/// Called when a child node has been added up to two levels below us in the hierarchy.
 	/// @param[in] child The element that has been added. This may be this element.
@@ -632,6 +636,12 @@ protected:
 	/// Returns the RML of this element and all children.
 	/// @param[out] content The content of this element and those under it, in XML form.
 	virtual void GetRML(String& content);
+
+	/// Sets or removes an overriding pseudo-class on the element.
+	/// @param[in] target_element The element to set or remove the pseudo class on.
+	/// @param[in] pseudo_class The pseudo class to activate or deactivate.
+	/// @param[in] activate True if the pseudo-class is to be activated, false to be deactivated.
+	static void OverridePseudoClass(Element* target_element, const String& pseudo_class, bool activate);
 
 	void SetOwnerDocument(ElementDocument* document);
 

@@ -51,6 +51,16 @@
 
 namespace Rml {
 
+// Bitwise operations on the PseudoClassState.
+inline PseudoClassState operator|(PseudoClassState lhs, PseudoClassState rhs)
+{
+	return PseudoClassState(int(lhs) | int(rhs));
+}
+inline PseudoClassState operator&(PseudoClassState lhs, PseudoClassState rhs)
+{
+	return PseudoClassState(int(lhs) & int(rhs));
+}
+
 ElementStyle::ElementStyle(Element* _element)
 {
 	definition = nullptr;
@@ -220,22 +230,36 @@ void ElementStyle::UpdateDefinition()
 	}
 }
 
-
-
 // Sets or removes a pseudo-class on the element.
-void ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate)
+bool ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate, bool override_class)
 {
 	bool changed = false;
 
 	if (activate)
-		changed = pseudo_classes.insert(pseudo_class).second;
+	{
+		PseudoClassState& state = pseudo_classes[pseudo_class];
+		changed = (state == PseudoClassState::Clear);
+		state = (state | (override_class ? PseudoClassState::Override : PseudoClassState::Set));
+	}
 	else
-		changed = (pseudo_classes.erase(pseudo_class) == 1);
+	{
+		auto it = pseudo_classes.find(pseudo_class);
+		if (it != pseudo_classes.end())
+		{
+			PseudoClassState& state = it->second;
+			state = (state & (override_class ? PseudoClassState::Set : PseudoClassState::Override));
+			if (state == PseudoClassState::Clear)
+			{
+				pseudo_classes.erase(it);
+				changed = true;
+			}
+		}
+	}
 
 	if (changed)
-	{
 		DirtyDefinition();
-	}
+
+	return changed;
 }
 
 // Checks if a specific pseudo-class has been set on the element.
@@ -244,7 +268,7 @@ bool ElementStyle::IsPseudoClassSet(const String& pseudo_class) const
 	return (pseudo_classes.count(pseudo_class) == 1);
 }
 
-const PseudoClassList& ElementStyle::GetActivePseudoClasses() const
+const PseudoClassMap& ElementStyle::GetActivePseudoClasses() const
 {
 	return pseudo_classes;
 }

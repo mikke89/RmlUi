@@ -40,6 +40,10 @@ class ElementDefinition;
 class PropertiesIterator;
 enum class RelativeTarget;
 
+enum class PseudoClassState : std::uint8_t { Clear = 0, Set = 1, Override = 2 };
+using PseudoClassMap = SmallUnorderedMap< String, PseudoClassState >;
+
+
 /**
 	Manages an element's style and property information.
 	@author Lloyd Weehuizen
@@ -60,14 +64,17 @@ public:
 
 	/// Sets or removes a pseudo-class on the element.
 	/// @param[in] pseudo_class The pseudo class to activate or deactivate.
-	/// @param[in] activate True if the pseudo-class is to be activated, false to be deactivated.
-	void SetPseudoClass(const String& pseudo_class, bool activate);
+	/// @param[in] activate True if the pseudo class is to be activated, false to be deactivated.
+	/// @param[in] override_class True to activate or deactivate the override state of the pseudo class, for advanced use cases.
+	/// @note An overriden pseudo class means that it will act as if activated even when it has been cleared the normal way.
+	/// @return True if the pseudo class was changed.
+	bool SetPseudoClass(const String& pseudo_class, bool activate, bool override_class = false);
 	/// Checks if a specific pseudo-class has been set on the element.
 	/// @param[in] pseudo_class The name of the pseudo-class to check for.
 	/// @return True if the pseudo-class is set on the element, false if not.
 	bool IsPseudoClassSet(const String& pseudo_class) const;
 	/// Gets a list of the current active pseudo classes
-	const PseudoClassList& GetActivePseudoClasses() const;
+	const PseudoClassMap& GetActivePseudoClasses() const;
 
 	/// Sets or removes a class on the element.
 	/// @param[in] class_name The name of the class to add or remove from the class list.
@@ -154,7 +161,7 @@ private:
 	// The list of classes applicable to this object.
 	StringList classes;
 	// This element's current pseudo-classes.
-	PseudoClassList pseudo_classes;
+	PseudoClassMap pseudo_classes;
 
 	// Any properties that have been overridden in this element.
 	PropertyDictionary inline_properties;

@@ -53,6 +53,12 @@ void PushVariant(lua_State* L, const Variant* var)
 	case Variant::INT64:
 		lua_pushinteger(L, var->Get<int64_t>());
 		break;
+	case Variant::UINT:
+		lua_pushinteger(L, var->Get<unsigned int>());
+		break;
+	case Variant::UINT64:
+		lua_pushinteger(L, var->Get<uint64_t>());
+		break;
 	case Variant::FLOAT:
 	case Variant::DOUBLE:
 		lua_pushnumber(L, var->Get<double>());

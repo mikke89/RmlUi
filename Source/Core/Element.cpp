@@ -328,11 +328,11 @@ String Element::GetAddress(bool include_pseudo_classes, bool include_parents) co
 
 	if (include_pseudo_classes)
 	{
-		const PseudoClassList& pseudo_classes = meta->style.GetActivePseudoClasses();		
-		for (PseudoClassList::const_iterator i = pseudo_classes.begin(); i != pseudo_classes.end(); ++i)
+		const PseudoClassMap& pseudo_classes = meta->style.GetActivePseudoClasses();
+		for (auto& pseudo_class : pseudo_classes)
 		{
 			address += ":";
-			address += (*i);
+			address += pseudo_class.first;
 		}
 	}
 
@@ -746,7 +746,8 @@ PropertiesIteratorView Element::IterateLocalProperties() const
 // Sets or removes a pseudo-class on the element.
 void Element::SetPseudoClass(const String& pseudo_class, bool activate)
 {
-	meta->style.SetPseudoClass(pseudo_class, activate);
+	if (meta->style.SetPseudoClass(pseudo_class, activate, false))
+		OnPseudoClassChange(pseudo_class, activate);
 }
 
 // Checks if a specific pseudo-class has been set on the element.
@@ -756,11 +757,11 @@ bool Element::IsPseudoClassSet(const String& pseudo_class) const
 }
 
 // Checks if a complete set of pseudo-classes are set on the element.
-bool Element::ArePseudoClassesSet(const PseudoClassList& pseudo_classes) const
+bool Element::ArePseudoClassesSet(const StringList& pseudo_classes) const
 {
-	for (PseudoClassList::const_iterator i = pseudo_classes.begin(); i != pseudo_classes.end(); ++i)
+	for (const String& pseudo_class : pseudo_classes)
 	{
-		if (!IsPseudoClassSet(*i))
+		if (!IsPseudoClassSet(pseudo_class))
 			return false;
 	}
 
@@ -768,9 +769,23 @@ bool Element::ArePseudoClassesSet(const PseudoClassList& pseudo_classes) const
 }
 
 // Gets a list of the current active pseudo classes
-const PseudoClassList& Element::GetActivePseudoClasses() const
+StringList Element::GetActivePseudoClasses() const
 {
-	return meta->style.GetActivePseudoClasses();
+	const PseudoClassMap& pseudo_classes = meta->style.GetActivePseudoClasses();
+	StringList names;
+	names.reserve(pseudo_classes.size());
+	for (auto& pseudo_class : pseudo_classes)
+	{
+		names.push_back(pseudo_class.first);
+	}
+
+	return names;
+}
+
+void Element::OverridePseudoClass(Element* element, const String& pseudo_class, bool activate)
+{
+	RMLUI_ASSERT(element);
+	element->GetStyle()->SetPseudoClass(pseudo_class, activate, true);
 }
 
 /// Get the named attribute
@@ -1476,7 +1491,9 @@ void Element::GetElementsByClassName(ElementList& elements, const String& class_
 
 static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, Element* element)
 {
-	for (int i = 0; i < element->GetNumChildren(); i++)
+	const int num_children = element->GetNumChildren();
+
+	for (int i = 0; i < num_children; i++)
 	{
 		Element* child = element->GetChild(i);
 
@@ -1496,7 +1513,9 @@ static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, 
 
 static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const StyleSheetNodeListRaw& nodes, Element* element)
 {
-	for (int i = 0; i < element->GetNumChildren(); i++)
+	const int num_children = element->GetNumChildren();
+
+	for (int i = 0; i < num_children; i++)
 	{
 		Element* child = element->GetChild(i);
 
@@ -1842,6 +1861,10 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 }
 
+void Element::OnPseudoClassChange(const String& /*pseudo_class*/, bool /*activate*/)
+{
+}
+
 // Called when a child node has been added somewhere in the hierarchy
 void Element::OnChildAdd(Element* /*child*/)
 {
@@ -1871,9 +1894,13 @@ bool Element::IsLayoutDirty()
 
 void Element::ProcessDefaultAction(Event& event)
 {
-	if (event == EventId::Mousedown && IsPointWithinElement(Vector2f(event.GetParameter< float >("mouse_x", 0), event.GetParameter< float >("mouse_y", 0))) &&
-		event.GetParameter< int >("button", 0) == 0)
-		SetPseudoClass("active", true);
+	if (event == EventId::Mousedown)
+	{
+		const Vector2f mouse_pos(event.GetParameter("mouse_x", 0.f), event.GetParameter("mouse_y", 0.f));
+
+		if (IsPointWithinElement(mouse_pos) && event.GetParameter("button", 0) == 0)
+			SetPseudoClass("active", true);
+	}
 
 	if (event == EventId::Mousescroll)
 	{

@@ -81,6 +81,14 @@ bool Variant::GetInto(T& value) const
 		return TypeConverter< int64_t, T >::Convert(*(int64_t*)data, value);
 		break;
 
+	case UINT:
+		return TypeConverter< unsigned int, T >::Convert(*(unsigned int*)data, value);
+		break;
+
+	case UINT64:
+		return TypeConverter< uint64_t, T >::Convert(*(uint64_t*)data, value);
+		break;
+
 	case STRING:
 		return TypeConverter< String, T >::Convert(*(String*)data, value);
 		break;

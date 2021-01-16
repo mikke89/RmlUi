@@ -79,6 +79,7 @@ public: \
 PASS_THROUGH(int);
 PASS_THROUGH(unsigned int);
 PASS_THROUGH(int64_t);
+PASS_THROUGH(uint64_t);
 PASS_THROUGH(float);
 PASS_THROUGH(double);
 PASS_THROUGH(bool);
@@ -107,12 +108,14 @@ PASS_THROUGH(voidPtr);
 BASIC_CONVERTER(bool, int);
 BASIC_CONVERTER(bool, unsigned int);
 BASIC_CONVERTER(bool, int64_t);
+BASIC_CONVERTER(bool, uint64_t);
 BASIC_CONVERTER(bool, float);
 BASIC_CONVERTER(bool, double);
 
 BASIC_CONVERTER_BOOL(int, bool);
 BASIC_CONVERTER(int, unsigned int);
 BASIC_CONVERTER(int, int64_t);
+BASIC_CONVERTER(int, uint64_t);
 BASIC_CONVERTER(int, float);
 BASIC_CONVERTER(int, double);
 
@@ -122,15 +125,24 @@ BASIC_CONVERTER(int64_t, float);
 BASIC_CONVERTER(int64_t, double);
 BASIC_CONVERTER(int64_t, unsigned int);
 
+BASIC_CONVERTER_BOOL(uint64_t, bool);
+BASIC_CONVERTER(uint64_t, int);
+BASIC_CONVERTER(uint64_t, float);
+BASIC_CONVERTER(uint64_t, double);
+BASIC_CONVERTER(uint64_t, unsigned int);
+BASIC_CONVERTER(uint64_t, int64_t);
+
 BASIC_CONVERTER_BOOL(float, bool);
 BASIC_CONVERTER(float, int);
 BASIC_CONVERTER(float, int64_t);
+BASIC_CONVERTER(float, uint64_t);
 BASIC_CONVERTER(float, double);
 BASIC_CONVERTER(float, unsigned int);
 
 BASIC_CONVERTER_BOOL(double, bool);
 BASIC_CONVERTER(double, int);
 BASIC_CONVERTER(double, int64_t);
+BASIC_CONVERTER(double, uint64_t);
 BASIC_CONVERTER(double, float);
 BASIC_CONVERTER(double, unsigned int);
 
@@ -171,6 +183,16 @@ public:
 	static bool Convert(const String& src, unsigned int& dest)
 	{
 		return sscanf(src.c_str(), "%u", &dest) == 1;
+	}
+};
+
+template<>
+class TypeConverter< String, uint64_t >
+{
+public:
+	static bool Convert(const String& src, uint64_t& dest)
+	{
+		return sscanf(src.c_str(), "%" SCNu64, &dest) == 1;
 	}
 };
 
@@ -301,6 +323,16 @@ public:
 	static bool Convert(const int64_t& src, String& dest)
 	{
 		return FormatString(dest, 32, "%" PRId64, src) > 0;
+	}
+};
+
+template<>
+class TypeConverter< uint64_t, String >
+{
+public:
+	static bool Convert(const uint64_t& src, String& dest)
+	{
+		return FormatString(dest, 32, "%" PRIu64, src) > 0;
 	}
 };
 
