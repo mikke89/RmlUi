@@ -1259,26 +1259,30 @@ void Element::ScrollIntoView(bool align_with_top)
 	Element* scroll_parent = parent;
 	while (scroll_parent != nullptr)
 	{
-		Style::Overflow overflow_x_property = scroll_parent->GetComputedValues().overflow_x;
-		Style::Overflow overflow_y_property = scroll_parent->GetComputedValues().overflow_y;
+		using Style::Overflow;
+		const ComputedValues& computed = scroll_parent->GetComputedValues();
+		const bool scrollable_box_x = (computed.overflow_x != Overflow::Visible && computed.overflow_x != Overflow::Hidden);
+		const bool scrollable_box_y = (computed.overflow_y != Overflow::Visible && computed.overflow_y != Overflow::Hidden);
 
-		if ((overflow_x_property != Style::Overflow::Visible &&
-			 scroll_parent->GetScrollWidth() > scroll_parent->GetClientWidth()) ||
-			(overflow_y_property != Style::Overflow::Visible &&
-			 scroll_parent->GetScrollHeight() > scroll_parent->GetClientHeight()))
+		const Vector2f parent_scroll_size = { scroll_parent->GetScrollWidth(), scroll_parent->GetScrollHeight() };
+		const Vector2f parent_client_size = { scroll_parent->GetClientWidth(), scroll_parent->GetClientHeight() };
+
+		if ((scrollable_box_x && parent_scroll_size.x > parent_client_size.x) ||
+			(scrollable_box_y && parent_scroll_size.y > parent_client_size.y))
 		{
-			Vector2f offset = scroll_parent->GetAbsoluteOffset(Box::BORDER) - GetAbsoluteOffset(Box::BORDER);
+			const Vector2f relative_offset = scroll_parent->GetAbsoluteOffset(Box::BORDER) - GetAbsoluteOffset(Box::BORDER);
+
 			Vector2f scroll_offset(scroll_parent->GetScrollLeft(), scroll_parent->GetScrollTop());
-			scroll_offset -= offset;
+			scroll_offset -= relative_offset;
 			scroll_offset.x += scroll_parent->GetClientLeft();
 			scroll_offset.y += scroll_parent->GetClientTop();
 
 			if (!align_with_top)
-				scroll_offset.y -= (scroll_parent->GetClientHeight() - size.y);
+				scroll_offset.y -= (parent_client_size.y - size.y);
 
-			if (overflow_x_property != Style::Overflow::Visible)
+			if (scrollable_box_x)
 				scroll_parent->SetScrollLeft(scroll_offset.x);
-			if (overflow_y_property != Style::Overflow::Visible)
+			if (scrollable_box_y)
 				scroll_parent->SetScrollTop(scroll_offset.y);
 		}
 
