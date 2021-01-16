@@ -84,7 +84,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
-		!Shell::OpenWindow("Load Document Sample", shell_renderer, window_width, window_height, true))
+		!Shell::OpenWindow("Visual tests", shell_renderer, window_width, window_height, true))
 	{
 		Shell::Shutdown();
 		return -1;

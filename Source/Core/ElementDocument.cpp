@@ -553,13 +553,15 @@ void ElementDocument::OnResize()
 enum class CanFocus { Yes, No, NoAndNoChildren };
 static CanFocus CanFocusElement(Element* element)
 {
-	if (element->IsPseudoClassSet("disabled"))
-		return CanFocus::NoAndNoChildren;
-
 	if (!element->IsVisible())
 		return CanFocus::NoAndNoChildren;
 
-	if (element->GetComputedValues().tab_index == Style::TabIndex::Auto)
+	const ComputedValues& computed = element->GetComputedValues();
+
+	if (computed.focus == Style::Focus::None)
+		return CanFocus::NoAndNoChildren;
+
+	if (computed.tab_index == Style::TabIndex::Auto)
 		return CanFocus::Yes;
 
 	return CanFocus::No;
@@ -573,7 +575,7 @@ static CanFocus CanFocusElement(Element* element)
 // anticlock wise direction depending if you're searching forward or backward respectively
 Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward)
 {
-	// If we're searching forward, check the immediate children of this node first off
+	// If we're searching forward, check the immediate children of this node first off.
 	if (forward)
 	{
 		for (int i = 0; i < current_element->GetNumChildren(); i++)
@@ -582,23 +584,19 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 	}
 
 	// Now walk up the tree, testing either the bottom or top
-	// of the tree, depending on whether we're going forwards
-	// or backwards respectively
-	//
-	// If we make it all the way up to the document, then
-	// we search the entire tree (to loop back round)
+	// of the tree, depending on whether we're going forward
+	// or backward respectively.
 	bool search_enabled = false;
 	Element* document = current_element->GetOwnerDocument();
 	Element* child = current_element;
 	Element* parent = current_element->GetParentNode();
 	while (child != document)
 	{
-		for (int i = 0; i < parent->GetNumChildren(); i++)
+		const int num_children = parent->GetNumChildren();
+		for (int i = 0; i < num_children; i++)
 		{
 			// Calculate index into children
-			int child_index = i;
-			if (!forward)
-				child_index = parent->GetNumChildren() - i - 1;
+			const int child_index = forward ? i : (num_children - i - 1);
 			Element* search_child = parent->GetChild(child_index);
 
 			// Do a search if its enabled
@@ -614,21 +612,22 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 		// Advance up the tree
 		child = parent;
 		parent = parent->GetParentNode();
+		search_enabled = false;
+	}
 
-		if (parent == document)
-		{
-			// When we hit the top, see if we can focus the document first.
-			if (CanFocusElement(document) == CanFocus::Yes)
-				return document;
-			
-			// Otherwise, search the entire tree to loop back around.
-			search_enabled = true;
-		}
-		else
-		{
-			// Prepare for the next iteration by disabling searching.
-			search_enabled = false;
-		}
+	// We could not find anything to focus along this direction.
+
+	// If we can focus the document, then focus that now.
+	if (current_element != document && CanFocusElement(document) == CanFocus::Yes)
+		return document;
+
+	// Otherwise, search the entire document tree. This way we will wrap around.
+	const int num_children = document->GetNumChildren();
+	for (int i = 0; i < num_children; i++)
+	{
+		const int child_index = forward ? i : (num_children - i - 1);
+		if (Element* result = SearchFocusSubtree(document->GetChild(child_index), forward))
+			return result;
 	}
 
 	return nullptr;

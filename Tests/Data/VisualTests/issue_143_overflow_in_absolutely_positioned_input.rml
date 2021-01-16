@@ -26,7 +26,7 @@
 
 <body>
 	<input type="text" value="a bunch of text that's longer than the input" />
-	<br />
+	<br/><br/>
 	<div class="hover">hover here</div>
 </body>
 </rml>

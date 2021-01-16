@@ -169,6 +169,8 @@ Improved Lua plugin in several aspects.
 - Fix \<textarea\> getting an unnecessary horizontal scrollbar. [#122](https://github.com/mikke89/RmlUi/issues/122)
 - Fix text position changing in input fields when selecting text and font has kerning.
 - Fix text-decoration not always being regenerated. [#119](https://github.com/mikke89/RmlUi/issues/119)
+- Fix tabbing navigation when tabable elements are direct children of body.
+- Fix tabbing navigation in reverse direction from body.
 
 ### Deprecated functionality
 
