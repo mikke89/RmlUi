@@ -136,6 +136,12 @@ const char* rmlui_type_name(const T& /*var*/)
 	return "(type name unavailable)";
 }
 
+template<class T>
+const char* rmlui_type_name()
+{
+	return "(type name unavailable)";
+}
+
 #else
 
 #include <typeinfo>
@@ -154,6 +160,12 @@ template<class T>
 const char* rmlui_type_name(const T& var)
 {
 	return typeid(var).name();
+}
+
+template<class T>
+const char* rmlui_type_name()
+{
+	return typeid(T).name();
 }
 
 #endif	// RMLUI_USE_CUSTOM_RTTI
