@@ -232,6 +232,7 @@ public:
 		return int(static_cast<Container*>(ptr)->size());
 	}
 
+	using value_type = typename Container::value_type;
 protected:
 	DataVariable Child(void* void_ptr, const DataAddressEntry& address) override
 	{
@@ -251,7 +252,7 @@ protected:
 		auto it = ptr->begin();
 		std::advance(it, index);
 
-		void* next_ptr = &(*it);
+		void* next_ptr = Extractor<value_type, void*, value_type>::ConvertPointer(*it);
 		return DataVariable(underlying_definition, next_ptr);
 	}
 
@@ -312,6 +313,11 @@ struct Extractor {
         auto v = (const void*)&(res);
         return const_cast<void*>(v);
     }
+    static void* ConvertPointer(Object& base_obj)
+    {
+        auto v = (const void*)&(base_obj);
+        return const_cast<void*>(v);
+    }
 };
 
 template <typename Object, typename GetterType, typename ReturnType>
@@ -323,6 +329,11 @@ struct Extractor<Object, GetterType, ReturnType*> {
         auto ptr = (const void*)(res);
         return const_cast<void*>(ptr);
     }
+	static void* ConvertPointer(Object& base_obj)
+	{
+		auto v = (const void*)(base_obj);
+		return const_cast<void*>(v);
+	}
 };
 
 template <typename Object, typename GetterType>
