@@ -5,7 +5,7 @@
 <style>
 @spritesheet demo-sheet
 {
-	src: ../../../assets/invader.tga;
+	src: /assets/invader.tga;
 	
 	window-outer: 0px 0px 144px 151px;
 	
@@ -787,16 +787,16 @@ progressbar {
 		</div>
 		<h2>Favorite animal</h2>
 		<div>
-			<input type="radio" name="animal" value="dog" checked/> Dog
-			<input type="radio" name="animal" value="cat"/> Cat
-			<input type="radio" name="animal" value="narwhal"/> Narwhal
-			<input type="radio" name="animal" value="no"/> I don't like animals
+			<label><input type="radio" name="animal" value="dog" checked/> Dog </label>
+			<label><input type="radio" name="animal" value="cat"/> Cat </label>
+			<label><input type="radio" name="animal" value="narwhal"/> Narwhal </label>
+			<label><input type="radio" name="animal" value="no"/> I don't like animals </label>
 		</div>
 		<h2>Favorite meals</h2>
 		<div>
-			<input type="checkbox" name="meals" value="pizza" checked/> Pizza
-			<input type="checkbox" name="meals" value="pasta" checked/> Pasta
-			<input type="checkbox" name="meals" value="lasagne" checked/> Lasagne
+			<label><input type="checkbox" name="meals" value="pizza" checked/> Pizza </label>
+			<label><input type="checkbox" name="meals" value="pasta" checked/> Pasta </label>
+			<label><input type="checkbox" name="meals" value="lasagne" checked/> Lasagne </label>
 		</div>
 		<h2>Rating</h2>
 		<div>

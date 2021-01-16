@@ -79,6 +79,7 @@
 #include "XMLParseTools.h"
 
 #include "Elements/ElementImage.h"
+#include "Elements/ElementLabel.h"
 #include "Elements/ElementTextSelection.h"
 #include "Elements/XMLNodeHandlerDataGrid.h"
 #include "Elements/XMLNodeHandlerTabSet.h"
@@ -142,6 +143,7 @@ struct DefaultInstancers {
 	ElementInstancerGeneric<ElementFormControlInput> input;
 	ElementInstancerGeneric<ElementFormControlDataSelect> dataselect;
 	ElementInstancerGeneric<ElementFormControlSelect> select;
+	ElementInstancerGeneric<ElementLabel> element_label;
 
 	ElementInstancerGeneric<ElementFormControlTextArea> textarea;
 	ElementInstancerGeneric<ElementTextSelection> selection;
@@ -234,6 +236,7 @@ bool Factory::Initialise()
 	RegisterElementInstancer("input", &default_instancers->input);
 	RegisterElementInstancer("dataselect", &default_instancers->dataselect);
 	RegisterElementInstancer("select", &default_instancers->select);
+	RegisterElementInstancer("label", &default_instancers->element_label);
 
 	RegisterElementInstancer("textarea", &default_instancers->textarea);
 	RegisterElementInstancer("#selection", &default_instancers->selection);
