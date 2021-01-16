@@ -180,7 +180,7 @@ public:
 		auto it = type_register.find(id);
 		if (it == type_register.end())
 		{
-			log_type_error<T>("Desired data type T not registered with the type register, please use the 'Register...()' functions before binding values, adding members, or registering arrays of non-scalar types.")
+			log_type_error<T>("Desired data type T not registered with the type register, please use the 'Register...()' functions before binding values, adding members, or registering arrays of non-scalar types.");
 			return nullptr;
 		}
 
