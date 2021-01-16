@@ -292,6 +292,7 @@ DataVariable DataModel::GetVariable(const DataAddress& address) const
 		for (int i = 1; i < (int)address.size() && variable; i++)
 		{
 			variable = variable.Child(address[i]);
+            variable.Access(variable);
 			if (!variable)
 				return DataVariable();
 		}

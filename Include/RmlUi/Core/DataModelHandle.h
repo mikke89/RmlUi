@@ -110,6 +110,23 @@ public:
 		return type_register->RegisterArray<Container>();
 	}
 
+	// Register a pointer type.
+	// @note The type applies to every data model associated with the current Context.
+	// @note If 'PointerType' represents a non-scalar type, that type must already have been registered with the appropriate 'Register...()' functions.
+	template<typename PointerType>
+	bool RegisterPointer() {
+		return type_register->RegisterPointer<PointerType>();
+	}
+
+	// Register an array type.
+	// @note The type applies to every data model associated with the current Context.
+	// @note If 'PointerType::element_type' represents a non-scalar type, that type must already have been registered with the appropriate 'Register...()' functions.
+	// @note PointerType requires the following functions to be implemented: PointerType::element_type* get(). This is satisfied by several "pointer containers" such as std::shared_ptr.
+	template<typename PointerType>
+	bool RegisterComplexPointer() {
+		return type_register->RegisterComplexPointer<PointerType>();
+	}
+
 	// Register a transform function.
 	// A transform function modifies a variant with optional arguments. It can be called in data expressions using the pipe '|' operator.
 	// @note The transform function applies to every data model associated with the current Context.

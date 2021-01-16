@@ -54,6 +54,7 @@ public:
 
 	explicit operator bool() const { return definition; }
 
+	void Access(DataVariable& out);
 	bool Get(Variant& variant);
 	bool Set(const Variant& variant);
 	int Size();
@@ -77,6 +78,7 @@ public:
 	virtual ~VariableDefinition() = default;
 	DataVariableType Type() const { return type; }
 
+	virtual void Access(void* ptr, VariableDefinition*& output_def, void*& output_ptr);
 	virtual bool Get(void* ptr, Variant& variant);
 	virtual bool Set(void* ptr, const Variant& variant);
 
@@ -108,6 +110,74 @@ public:
 	{
 		return variant.GetInto<T>(*static_cast<T*>(ptr));
 	}
+};
+
+template<typename T>
+class PointerDefinition final : public VariableDefinition {
+public:
+	PointerDefinition(VariableDefinition* underlying_definition) : VariableDefinition(DataVariableType::Scalar), underlying_definition(underlying_definition){}
+
+	void Access(void* ptr, VariableDefinition*& output_def, void*& output_ptr) override
+	{
+		output_def = underlying_definition;
+		output_ptr =  ptr;
+	}
+	bool Get(void* ptr, Variant& variant) override
+	{
+		return underlying_definition->Get(ptr, variant);
+	}
+
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		return underlying_definition->Set(ptr, variant);
+	}
+
+	DataVariable Child(void* ptr, const DataAddressEntry& address) override
+	{
+		return underlying_definition->Child(ptr, address);
+	}
+
+protected:
+	VariableDefinition* underlying_definition;
+};
+
+template<typename T>
+class ComplexPointerDefinition final : public VariableDefinition {
+public:
+	ComplexPointerDefinition(VariableDefinition* underlying_definition) : VariableDefinition(DataVariableType::Scalar), underlying_definition(underlying_definition){}
+	using elty = typename T::element_type;
+    void Access(void* ptr, VariableDefinition*& output_def, void*& output_ptr) override
+	{
+		output_def = underlying_definition;
+		output_ptr = getPtr(ptr);
+	}
+	bool Get(void* ptr, Variant& variant) override
+	{
+		ptr = getPtr(ptr);
+		return underlying_definition->Get(ptr, variant);
+	}
+
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		ptr = getPtr(ptr);
+		return underlying_definition->Set(ptr, variant);
+	}
+
+	DataVariable Child(void* ptr, const DataAddressEntry& address) override
+	{
+		ptr = getPtr(ptr);
+		return underlying_definition->Child(ptr, address);
+	}
+
+private:
+	void* getPtr(void* ptr)
+	{
+		T* shptr = static_cast<T*>(ptr);
+		elty* tmp = shptr->get();
+		return (void*) tmp;
+	}
+protected:
+	VariableDefinition* underlying_definition;
 };
 
 template<typename T>
@@ -209,7 +279,9 @@ public:
 	StructMemberObject(VariableDefinition* definition, MemberType Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
 
 	void* GetPointer(void* base_ptr) override {
-		return &(static_cast<Object*>(base_ptr)->*member_ptr);
+		auto tmp = static_cast<Object*>(base_ptr);
+		auto& res = tmp->*member_ptr;
+		return &(res);
 	}
 
 private:
@@ -219,59 +291,26 @@ private:
 template <typename Object, typename MemberType>
 class StructMemberObject<Object, MemberType*> final : public StructMember {
 public:
-    StructMemberObject(VariableDefinition* definition, MemberType* Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
-    
-    void* GetPointer(void* base_ptr) override {
-        auto ptr = (const void*)(static_cast<Object*>(base_ptr)->*member_ptr);
-        return const_cast<void*>(ptr);
-    }
+	StructMemberObject(VariableDefinition* definition, MemberType* Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
+
+	void* GetPointer(void* base_ptr) override {
+		auto tmp = static_cast<Object*>(base_ptr);
+		auto res = tmp->*member_ptr;
+		return (void*) res;
+	}
 
 private:
-    MemberType* Object::* member_ptr;
-};
-
-template <typename Object, typename MemberType>
-class StructMemberObject<Object, SharedPtr<MemberType>> final : public StructMember {
-public:
-    StructMemberObject(VariableDefinition* definition, SharedPtr<MemberType> Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
-
-    void* GetPointer(void* base_ptr) override {
-        SharedPtr<MemberType> shptr = (static_cast<Object*>(base_ptr)->*member_ptr);
-        auto ptr = (const void*) shptr.get();
-        return const_cast<void*>(ptr);
-    }
-
-private:
-    SharedPtr<MemberType> Object::* member_ptr;
+	MemberType* Object::* member_ptr;
 };
 
 template <typename Object, typename GetterType, typename ReturnType>
 struct Extractor {
     static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
     {
-        auto v = (const void*)&((static_cast<Object*>(base_ptr)->*member_ptr)());
+        auto tmp = static_cast<Object*>(base_ptr);
+        auto &res = (tmp->*member_ptr)();
+        auto v = (const void*)&(res);
         return const_cast<void*>(v);
-    }
-};
-
-template <typename Object, typename GetterType>
-struct Extractor<SharedPtr<Object>, GetterType, Object*> {
-    static void* ExtractPointer(void* base_ptr, GetterType RMLUI_UNUSED_PARAMETER(member_ptr))
-    {
-        SharedPtr<Object>* obj = static_cast<SharedPtr<Object>*>(base_ptr);
-        Object* val = obj->get();
-        auto ptr = (const void*) val;
-        return const_cast<void*>(ptr);
-    }
-};
-
-template <typename Object, typename GetterType, typename ReturnType>
-struct Extractor<Object, GetterType, SharedPtr<ReturnType>&> {
-    static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
-    {
-        SharedPtr<ReturnType> shptr = ((static_cast<Object*>(base_ptr)->*member_ptr)());
-        auto ptr = (const void*) shptr.get();
-        return const_cast<void*>(ptr);
     }
 };
 
@@ -279,7 +318,9 @@ template <typename Object, typename GetterType, typename ReturnType>
 struct Extractor<Object, GetterType, ReturnType*> {
     static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
     {
-        auto ptr = (const void*)((static_cast<Object*>(base_ptr)->*member_ptr)());
+        auto tmp = static_cast<Object*>(base_ptr);
+        auto res = (tmp->*member_ptr)();
+        auto ptr = (const void*)(res);
         return const_cast<void*>(ptr);
     }
 };

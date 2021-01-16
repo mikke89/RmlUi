@@ -105,6 +105,43 @@ public:
 		return StructHandle<T>(this, struct_variable_raw);
 	}
 
+	template<typename PointerType, typename InnerType, typename Definition>
+	bool RegisterPointer()
+	{
+		VariableDefinition* value_variable = GetOrAddScalar<InnerType>();
+		RMLUI_ASSERTMSG(value_variable, "Underlying type of the pointer has not been registered.");
+		if (!value_variable)
+			return false;
+
+		FamilyId container_id = Family<PointerType>::Id();
+
+		auto ptr_variable = MakeUnique<Definition>(value_variable);
+
+		bool inserted = type_register.emplace(container_id, std::move(ptr_variable)).second;
+		if (!inserted)
+		{
+			RMLUI_ERRORMSG("Pointer type already declared.");
+			return false;
+		}
+
+		return true;
+	}
+
+	template<typename PointerType>
+	bool RegisterPointer()
+	{
+		using ValueType = typename std::remove_pointer<PointerType>::type;
+		static_assert(std::is_pointer<PointerType>::value, "Provided type is not a pointer!");
+		return RegisterPointer<PointerType, ValueType, PointerDefinition<PointerType>>();
+	}
+
+	template<typename PointerType>
+	bool RegisterComplexPointer()
+	{
+		using ValueType = typename PointerType::element_type;
+		return RegisterPointer<PointerType, ValueType, ComplexPointerDefinition<PointerType>>();
+	}
+
 	template<typename Container>
 	bool RegisterArray()
 	{
@@ -204,9 +241,7 @@ private:
 template<typename Object>
 template <typename MemberType>
 inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberType Object::* member_ptr) {
-    using MemberTypeValue = typename std::remove_pointer<MemberType>::type;
-    using MemberTypeValue2 = typename Rml::remove_smart_pointer<MemberTypeValue>::type;
-    VariableDefinition* member_type = type_register->GetOrAddScalar<MemberTypeValue2>();
+    VariableDefinition* member_type = type_register->GetOrAddScalar<MemberType>();
     struct_definition->AddMember(name, MakeUnique<StructMemberObject<Object, MemberType>>(member_type, member_ptr));
     return *this;
 }
@@ -222,8 +257,7 @@ template<typename Object>
 template<typename GetterType>
 inline StructHandle<Object>& StructHandle<Object>::RegisterMemberGetter(const String& name, GetterType member_ptr) {
     using ReturnType = typename std::result_of<GetterType(Object)>::type;
-    using MemberTypeValue = typename remove_raw_smart_pointer<ReturnType>::type;
-    VariableDefinition* member_type = type_register->GetOrAddScalarGetter<MemberTypeValue>();
+    VariableDefinition* member_type = type_register->GetOrAddScalarGetter<ReturnType>();
     struct_definition->AddMember(name, MakeUnique<StructMemberObjectGetter<Object, GetterType>>(member_type, member_ptr));
     return *this;
 }

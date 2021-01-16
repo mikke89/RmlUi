@@ -30,6 +30,15 @@
 
 namespace Rml {
 
+void DataVariable::Access(DataVariable& out) {
+	if(this->definition == nullptr)
+		return;
+	auto ndef = this->definition;
+	void* nptr = nullptr;
+    this->definition->Access(ptr, ndef, nptr);
+    out = DataVariable(ndef, nptr);
+}
+
 bool DataVariable::Get(Variant& variant) {
     return definition->Get(ptr, variant);
 }
@@ -50,7 +59,9 @@ DataVariableType DataVariable::Type() {
     return definition->Type();
 }
 
-
+void VariableDefinition::Access(void* ptr, VariableDefinition*& output_def, void*& output_ptr){
+	output_ptr = ptr;
+}
 bool VariableDefinition::Get(void* /*ptr*/, Variant& /*variant*/) {
     Log::Message(Log::LT_WARNING, "Values can only be retrieved from scalar data types.");
     return false;
