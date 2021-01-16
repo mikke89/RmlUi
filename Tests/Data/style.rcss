@@ -12,13 +12,6 @@ hr {
 	margin: 5px 0;
 }
 
-input.radio {
-	width: 10px;
-	height: 10px;
-	border: 1px #666;
-	background: #fff;
-}
-
 body {
 	font-family: LatoLatin;
 	font-weight: normal;
@@ -126,4 +119,33 @@ handle {
 	right: 0px;
 	clip: 1;
 	cursor: resize;
+}
+
+input.radio, input.checkbox {
+	width: 10px;
+	height: 10px;
+	border: 1px #666;
+	background: #fff;
+	tab-index: auto;
+}
+input.radio {
+	border-radius: 5px;
+}
+input.radio:hover, input.checkbox:hover {
+	background: #ff3;
+}
+input.radio:active, input.checkbox:active {
+	background: #ccc;
+}
+input.radio:checked, input.checkbox:checked {
+	background: #222;
+}
+input.text {
+	background-color: #fff;
+	color: #555;
+	border: 2px #999;
+	padding: 5px;
+	tab-index: auto;
+	cursor: text;
+	box-sizing: border-box;
 }

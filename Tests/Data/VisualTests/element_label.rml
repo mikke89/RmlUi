@@ -1,0 +1,92 @@
+<rml>
+<head>
+    <title>Element &lt;label&gt;</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://html.spec.whatwg.org/multipage/forms.html#the-label-element" />
+	<meta name="Description" content="The label element. Pay attention to the hover and active states, and that the target is clicked when its label is clicked." />
+	<style>
+		@spritesheet theme 
+		{
+			src: /assets/invader.tga;
+			invader: 179px 152px 50px 40px;
+		}
+		body {
+			font-size: 16px;
+		}
+		input, button {
+			margin: 0 1em;
+		}
+		label {
+			cursor: pointer;
+		}
+		label:hover {
+			color: #ff3;
+		}
+		input:focus, button:focus {
+			border-color: #3af;
+		}
+		input.checkbox, input.radio {
+			width: 1.2em;
+			height: 1.2em;
+			vertical-align: middle;
+		}
+		button {
+			display: inline-block;
+			background: #aaa;
+			border: 1px #333;
+			padding: 0.5em 1em;
+			tab-index: auto;
+		}
+		button:hover {
+			color: #333;
+			background: #cca;
+		}
+		button:active {
+			background: #eec;
+		}
+		label.float {
+			display: inline-block;
+			float: left;
+			background-color: #ddd;
+			border-radius: 1em; 
+			padding: 0.5em;
+		}
+	</style>
+</head>
+
+<body>
+<p>
+	<label><input type="checkbox"/> Pizza</label>
+</p>
+<p>
+	<input type="checkbox" id="pasta"/><label for="pasta"> Pasta</label>
+</p>
+<p>
+	<label id="my_label" for="my_label">
+		<input type="checkbox"/> Self referenced label (invalid)
+	</label>
+</p>
+<p>
+	<label>Left<input type="checkbox"/> Right</label>
+</p>
+<p>
+	<label for="sandwich">Left</label><input type="checkbox" id="sandwich"/><label for="sandwich"> Right</label>
+</p>
+
+<h1><label for="name">Name</label></h1>
+<p>
+	<input style="width: 50%;" type="text" id="name"/>
+</p>
+
+<label class="float">
+	<button id="submit">Submit</button> 
+	<p>
+		Press button from many places.<img sprite="invader"/><br/>
+		Even here...
+	</p>
+</label>
+<label class="float" style="float: right;" for="submit">
+	...or here.
+</label>
+</body>
+</rml>

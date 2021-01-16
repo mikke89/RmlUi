@@ -106,7 +106,9 @@ Element* ElementLabel::GetTarget()
 	}
 	else
 	{
-		return GetElementById(target_id);
+		Element* target = GetElementById(target_id);
+		if (target != this)
+			return target;
 	}
 
 	return nullptr;

@@ -20,12 +20,8 @@
 		}
 		input.text {
 			font-size: 1.1em;
-			background-color: #fff;
-			color: #555;
 			border: 5px #999;
 			padding: 15px;
-			cursor: text;
-			tab-index: auto;
 			box-sizing: border-box;
 		}
 	</style>
