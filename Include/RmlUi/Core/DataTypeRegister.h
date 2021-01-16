@@ -39,17 +39,8 @@
 
 namespace Rml {
 
-template<typename T>
-inline void log_type_error(const char* msg)
-{
-	RMLUI_ERRORMSG((String(msg) + String(" T: ") + String(rmlui_type_name<T>())).c_str());
-}
-
-template<typename T, typename ValueType>
-inline void log_type_error(ValueType& val, const char* msg)
-{
-	RMLUI_ASSERTMSG(val, (String(msg) + String(" T: ") + String(rmlui_type_name<T>())).c_str());
-}
+#define RMLUI_LOG_TYPE_ERROR(T, msg) RMLUI_ERRORMSG((String(msg) + String(" T: ") + String(rmlui_type_name<T>())).c_str())
+#define RMLUI_LOG_TYPE_ERROR_ASSERT(T, val, msg) RMLUI_ASSERTMSG(val, (String(msg) + String(" T: ") + String(rmlui_type_name<T>())).c_str())
 
 template<typename T>
 struct is_valid_data_scalar {
@@ -107,7 +98,7 @@ public:
 		bool inserted = type_register.emplace(id, std::move(struct_variable)).second;
 		if (!inserted)
 		{
-			log_type_error<T>("Type already declared");
+			RMLUI_LOG_TYPE_ERROR(T, "Type already declared");
 			return StructHandle<T>(nullptr, nullptr);
 		}
 		
@@ -119,7 +110,7 @@ public:
 	{
 		using value_type = typename Container::value_type;
 		VariableDefinition* value_variable = GetOrAddScalar<value_type>();
-		log_type_error<value_type>(value_variable, "Underlying value type of array has not been registered.");
+		RMLUI_LOG_TYPE_ERROR_ASSERT(value_type, value_variable, "Underlying value type of array has not been registered.");
 		if (!value_variable)
 			return false;
 
@@ -130,7 +121,7 @@ public:
 		bool inserted = type_register.emplace(container_id, std::move(array_variable)).second;
 		if (!inserted)
 		{
-			log_type_error<Container>("Array type already declared.");
+			RMLUI_LOG_TYPE_ERROR(Container, "Array type already declared.");
 			return false;
 		}
 
@@ -180,7 +171,7 @@ public:
 		auto it = type_register.find(id);
 		if (it == type_register.end())
 		{
-			log_type_error<T>("Desired data type T not registered with the type register, please use the 'Register...()' functions before binding values, adding members, or registering arrays of non-scalar types.");
+			RMLUI_LOG_TYPE_ERROR(T, "Desired data type T not registered with the type register, please use the 'Register...()' functions before binding values, adding members, or registering arrays of non-scalar types.");
 			return nullptr;
 		}
 
