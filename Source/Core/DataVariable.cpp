@@ -59,7 +59,7 @@ DataVariableType DataVariable::Type() {
     return definition->Type();
 }
 
-void VariableDefinition::Access(void* ptr, VariableDefinition*& output_def, void*& output_ptr){
+void VariableDefinition::Access(void* ptr, VariableDefinition*& /*output_def*/, void*& output_ptr){
 	output_ptr = ptr;
 }
 bool VariableDefinition::Get(void* /*ptr*/, Variant& /*variant*/) {
