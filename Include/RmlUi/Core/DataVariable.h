@@ -47,6 +47,38 @@ enum class DataVariableType { Scalar, Array, Struct, Function, MemberFunction };
 *   Together they can be used to get and set variables between the user side and data model side.
 */
 
+template <typename Object, typename GetterType, typename ReturnType>
+struct Extractor {
+	static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
+	{
+		auto tmp = static_cast<Object*>(base_ptr);
+		auto &res = (tmp->*member_ptr)();
+		auto v = (const void*)&(res);
+		return const_cast<void*>(v);
+	}
+	static void* ConvertPointer(Object& base_obj)
+	{
+		auto v = (const void*)&(base_obj);
+		return const_cast<void*>(v);
+	}
+};
+
+template <typename Object, typename GetterType, typename ReturnType>
+struct Extractor<Object, GetterType, ReturnType*> {
+	static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
+	{
+		auto tmp = static_cast<Object*>(base_ptr);
+		auto res = (tmp->*member_ptr)();
+		auto ptr = (const void*)(res);
+		return const_cast<void*>(ptr);
+	}
+	static void* ConvertPointer(Object& base_obj)
+	{
+		auto v = (const void*)(base_obj);
+		return const_cast<void*>(v);
+	}
+};
+
 class RMLUICORE_API DataVariable {
 public:
 	DataVariable() {}
@@ -302,38 +334,6 @@ public:
 
 private:
 	MemberType* Object::* member_ptr;
-};
-
-template <typename Object, typename GetterType, typename ReturnType>
-struct Extractor {
-    static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
-    {
-        auto tmp = static_cast<Object*>(base_ptr);
-        auto &res = (tmp->*member_ptr)();
-        auto v = (const void*)&(res);
-        return const_cast<void*>(v);
-    }
-    static void* ConvertPointer(Object& base_obj)
-    {
-        auto v = (const void*)&(base_obj);
-        return const_cast<void*>(v);
-    }
-};
-
-template <typename Object, typename GetterType, typename ReturnType>
-struct Extractor<Object, GetterType, ReturnType*> {
-    static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
-    {
-        auto tmp = static_cast<Object*>(base_ptr);
-        auto res = (tmp->*member_ptr)();
-        auto ptr = (const void*)(res);
-        return const_cast<void*>(ptr);
-    }
-	static void* ConvertPointer(Object& base_obj)
-	{
-		auto v = (const void*)(base_obj);
-		return const_cast<void*>(v);
-	}
 };
 
 template <typename Object, typename GetterType>
