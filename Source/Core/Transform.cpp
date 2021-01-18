@@ -39,13 +39,13 @@ Transform::Transform()
 }
 
 Transform::Transform(PrimitiveList primitives) 
-	: primitives(primitives)
+	: primitives(std::move(primitives))
 {
 }
 
 Property Transform::MakeProperty(PrimitiveList primitives)
 {
-	Property p{ TransformPtr{new Transform{primitives}}, Property::TRANSFORM };
+	Property p( TransformPtr(new Transform(std::move(primitives))), Property::TRANSFORM );
 	p.definition = StyleSheetSpecification::GetProperty(PropertyId::Transform);
 	return p;
 }

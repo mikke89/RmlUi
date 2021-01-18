@@ -38,7 +38,8 @@ namespace Rml {
 class PropertyDefinition;
 
 struct RMLUICORE_API PropertySource {
-	PropertySource(String path, int line_number, String rule_name) : path(path), line_number(line_number), rule_name(rule_name) {}
+	PropertySource(String path, int line_number, String rule_name) 
+		: path(std::move(path)), line_number(line_number), rule_name(std::move(rule_name)) {}
 	String path;
 	int line_number;
 	String rule_name;
