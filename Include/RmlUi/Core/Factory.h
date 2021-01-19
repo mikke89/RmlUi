@@ -167,7 +167,7 @@ public:
 	/// @return The instanced event.
 	static EventPtr InstanceEvent(Element* target, EventId id, const String& type, const Dictionary& parameters, bool interruptible);
 
-	/// Register the instancer to be used for all event listeners.
+	/// Register the instancer to be used for all event listeners, or nullptr to clear an existing instancer.
 	/// @lifetime The instancer must be kept alive until after the call to Rml::Shutdown, or until a new instancer is set.
 	static void RegisterEventListenerInstancer(EventListenerInstancer* instancer);
 	/// Instance an event listener with the given string. This is used for instancing listeners for the on* events from RML.
