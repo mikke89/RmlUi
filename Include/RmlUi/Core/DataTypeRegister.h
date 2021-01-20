@@ -129,6 +129,24 @@ public:
 	}
 
 	template<typename T>
+	bool RegisterScalar(DataTypeGetFunc<T> get_func, DataTypeSetFunc<T> set_func)
+	{
+		static_assert(!is_valid_data_scalar<T>::value, "Cannot register scalar data type function. Arithmetic types and String are handled internally and does not need to be registered.");
+		FamilyId id = Family<T>::Id();
+
+		auto scalar_func_definition = MakeUnique<ScalarFuncDefinition<T>>(get_func, set_func);
+
+		bool inserted = type_register.emplace(id, std::move(scalar_func_definition)).second;
+		if (!inserted)
+		{
+			RMLUI_LOG_TYPE_ERROR(T, "Scalar function type already registered.");
+			return false;
+		}
+
+		return true;
+	}
+
+	template<typename T>
 	VariableDefinition* RegisterMemberFunc(MemberGetFunc<T> get_func, MemberSetFunc<T> set_func)
 	{
 		FamilyId id = Family<MemberGetFunc<T>>::Id();

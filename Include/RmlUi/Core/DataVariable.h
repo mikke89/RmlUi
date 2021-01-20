@@ -135,6 +135,30 @@ private:
 	DataSetFunc set;
 };
 
+template<typename T>
+class ScalarFuncDefinition final : public VariableDefinition {
+public:
+
+	ScalarFuncDefinition(DataTypeGetFunc<T> get, DataTypeSetFunc<T> set) : VariableDefinition(DataVariableType::Function), get(get), set(set) {}
+
+	bool Get(void* ptr, Variant& variant) override
+	{
+		if (!get)
+			return false;
+		get(static_cast<const T*>(ptr), variant);
+		return true;
+	}
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		if (!set)
+			return false;
+		set(static_cast<T*>(ptr), variant);
+		return true;
+	}
+private:
+	DataTypeGetFunc<T> get;
+	DataTypeSetFunc<T> set;
+};
 
 template<typename Container>
 class ArrayDefinition final : public VariableDefinition {

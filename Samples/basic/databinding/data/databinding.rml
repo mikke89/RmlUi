@@ -204,7 +204,7 @@ li {
 	<div data-for="invader : invaders">
 		<h1 data-class-red="invader.danger_rating > 70">{{invader.name}}</h1>
 		<p>Invader {{it_index + 1}} of {{ invaders.size }}.</p>
-		<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color"/>
+		<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color" data-event-click="invader.color = 'rgba(100,50,0,255)'"/>
 		<p>
 			Shots fired (damage): <span data-for="invader.damage"> {{it}} </span>
 		</p>

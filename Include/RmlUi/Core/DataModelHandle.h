@@ -93,6 +93,14 @@ public:
 		return BindVariable(name, data_variable);
 	}
 
+	// Register a scalar type with associated get and set functions.
+	// @note This registers a type which can later be used as a normal data variable, while 'BindFunc' registers a named data variable with a specific getter and setter.
+	// @note The type applies to every data model associated with the current Context.
+	template<typename T>
+	bool RegisterScalar(DataTypeGetFunc<T> get_func, DataTypeSetFunc<T> set_func = {}) {
+		return type_register->RegisterScalar<T>(get_func, set_func);
+	}
+
 	// Register a struct type.
 	// @note The type applies to every data model associated with the current Context.
 	// @return A handle which can be used to register struct members.

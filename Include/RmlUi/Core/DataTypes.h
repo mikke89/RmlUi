@@ -48,6 +48,9 @@ using DataEventFunc = Function<void(DataModelHandle, Event&, const VariantList&)
 template<typename T> using MemberGetFunc = void(T::*)(Variant&);
 template<typename T> using MemberSetFunc = void(T::*)(const Variant&);
 
+template<typename T> using DataTypeGetFunc = void(*)(const T*, Variant&);
+template<typename T> using DataTypeSetFunc = void(*)(T*, const Variant&);
+
 using DirtyVariables = SmallUnorderedSet<String>;
 
 struct DataAddressEntry {
