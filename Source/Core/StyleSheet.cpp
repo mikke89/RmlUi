@@ -50,6 +50,14 @@ inline static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleShee
 	return lhs->GetSpecificity() < rhs->GetSpecificity();
 }
 
+MediaQueryList::MediaQueryList()
+{
+}
+
+MediaQueryList::~MediaQueryList()
+{
+}
+
 StyleSheet::StyleSheet()
 {
 	root = MakeUnique<StyleSheetNode>();
