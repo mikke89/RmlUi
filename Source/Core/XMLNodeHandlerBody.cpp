@@ -48,18 +48,19 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 
 	Element* element = parser->GetParseFrame()->element;
 
-	// Check for and apply any template
-	String template_name = Get<String>(attributes, "template", "");
-	if (!template_name.empty())
+	// Apply any attributes to the document if the current element is actually a body
+	// Alternatively we are inside a template and add them to the parent element in the embedder file
+	if(element->GetTagName() == "body")
 	{
-		element = XMLParseTools::ParseTemplate(element, template_name);
+		ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
+		if (document)
+			document->SetAttributes(attributes);
+	} 
+	else
+	{
+		element->SetAttributes(attributes);
 	}
-
-	// Apply any attributes to the document
-	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
-	if (document)
-		document->SetAttributes(attributes);
-
+	
 	// Tell the parser to use the element handler for all children
 	parser->PushDefaultHandler();
 	
