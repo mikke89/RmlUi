@@ -64,13 +64,6 @@ Element* XMLNodeHandlerDefault::ElementStart(XMLParser* parser, const String& na
 	// Move and append the element to the parent
 	Element* result = parent->AppendChild(std::move(element));
 
-	// Check for and apply any template
-	String template_name = Get<String>(attributes, "template", "");
-	if (!template_name.empty())
-	{
-		return XMLParseTools::ParseTemplate(result, template_name);
-	}
-
 	return result;
 }
 
