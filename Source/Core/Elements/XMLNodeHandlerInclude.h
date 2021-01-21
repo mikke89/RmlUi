@@ -36,7 +36,7 @@ namespace Rml {
 /**
 	Node handler that processes the contents of the include tag.
 
-	@author Peter Curry
+	@author Maximilian Stark
  */
 
 class XMLNodeHandlerInclude : public XMLNodeHandler
