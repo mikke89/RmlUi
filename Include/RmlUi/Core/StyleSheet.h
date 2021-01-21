@@ -65,6 +65,27 @@ struct DecoratorSpecification {
 using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
 /**
+ * Media MediaQueryList contains a map of media features and their values that
+ * enable different versions of stylesheets (StyleSheetMediaBlock) depending on the context's properties.
+ * 
+ * This implementation only supports a purely-conjunctive (meaning "and-all") combination of multiple conditions. 
+ * 
+ */
+class RMLUICORE_API MediaQueryList : public NonCopyMoveable
+{
+public:
+	typedef UnorderedMap< MediaFeatureId, Property > MediaFeatureMap;
+	
+	MediaQueryList();
+	virtual ~MediaQueryList();
+
+	bool IsApplicable(const Context* ctx) const;
+
+private:
+	MediaFeatureMap media_features;
+};
+
+/**
 	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
 	a new, merged stylesheet.
 
@@ -105,6 +126,9 @@ public:
 	static size_t NodeHash(const String& tag, const String& id);
 
 private:
+	// Requirements for a given context to use this stylesheet media block
+	MediaQueryList media_query_list;
+
 	// Root level node, attributes from special nodes like "body" get added to this node
 	UniquePtr<StyleSheetNode> root;
 
