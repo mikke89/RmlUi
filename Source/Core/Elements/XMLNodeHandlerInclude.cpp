@@ -42,8 +42,10 @@ XMLNodeHandlerInclude::~XMLNodeHandlerInclude()
 {
 }
 
-Element* XMLNodeHandlerInclude::ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes)
+Element* XMLNodeHandlerInclude::ElementStart(XMLParser* parser, const String& RMLUI_UNUSED_PARAMETER(name), const XMLAttributes& attributes)
 {
+	RMLUI_UNUSED(name);
+	
 	Element* element = parser->GetParseFrame()->element;
 
 	// Apply the template directly into the parent
@@ -53,7 +55,7 @@ Element* XMLNodeHandlerInclude::ElementStart(XMLParser* parser, const String& na
 	{
 		element = XMLParseTools::ParseTemplate(element, template_name);
 	}
-	
+
 	return element;
 }
 
