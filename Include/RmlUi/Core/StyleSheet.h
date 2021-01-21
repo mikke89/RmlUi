@@ -35,6 +35,7 @@
 
 namespace Rml {
 
+class Context;
 class Element;
 class ElementDefinition;
 class StyleSheetNode;
@@ -70,20 +71,17 @@ using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API StyleSheet : public NonCopyMoveable
+class RMLUICORE_API StyleSheetMediaBlock : public NonCopyMoveable
 {
 public:
 	typedef Vector< StyleSheetNode* > NodeList;
 	typedef UnorderedMap< size_t, NodeList > NodeIndex;
 
-	StyleSheet();
-	virtual ~StyleSheet();
-
-	/// Loads a style from a CSS definition.
-	bool LoadStyleSheet(Stream* stream, int begin_line_number = 1);
+	StyleSheetMediaBlock();
+	virtual ~StyleSheetMediaBlock();
 
 	/// Combines this style sheet with another one, producing a new sheet.
-	SharedPtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
+	SharedPtr<StyleSheetMediaBlock> Combine(const StyleSheetMediaBlock& sheet) const;
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
 	/// Optimizes some properties for faster retrieval.
@@ -95,12 +93,6 @@ public:
 
 	/// Returns the Decorator of the given name, or null if it does not exist.
 	SharedPtr<Decorator> GetDecorator(const String& name) const;
-
-	/// Parses the decorator property from a string and returns a list of instanced decorators.
-	DecoratorsPtr InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const;
-
-	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
-	FontEffectsPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const;
 
 	/// Get sprite located in any spritesheet within this stylesheet.
 	const Sprite* GetSprite(const String& name) const;
@@ -138,6 +130,48 @@ private:
 	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
+};
+
+
+class RMLUICORE_API StyleSheet : public NonCopyMoveable
+{
+public:
+	StyleSheet();
+	virtual ~StyleSheet();
+
+	/// Loads a style from a CSS definition.
+	bool LoadStyleSheet(Stream* stream, int begin_line_number = 1);
+
+	/// Combines this style sheet with another one, producing a new sheet.
+	SharedPtr<StyleSheet> Combine(const StyleSheet& sheet) const;
+
+	/// Returns the Keyframes of the given name, or null if it does not exist.
+	/// @param[in] ctx The context to retrieve media-query related properties from.
+	Keyframes* GetKeyframes(const String& name, const Context* ctx);
+
+	/// Returns the Decorator of the given name, or null if it does not exist.
+	/// @param[in] ctx The context to retrieve media-query related properties from.
+	SharedPtr<Decorator> GetDecorator(const String& name, const Context* ctx) const;
+
+	/// Get sprite located in any spritesheet within this stylesheet.
+	/// @param[in] ctx The context to retrieve media-query related properties from.
+	const Sprite* GetSprite(const String& name, const Context* ctx) const;
+
+	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
+	/// caller, so another should not be added. The definition should be released by removing the reference count.
+	/// @param[in] ctx The context to retrieve media-query related properties from.
+	SharedPtr<ElementDefinition> GetElementDefinition(const Element* element, const Context* ctx) const;
+
+	/// Parses the decorator property from a string and returns a list of instanced decorators.
+	/// @param[in] ctx The context to retrieve media-query related properties from.
+	DecoratorsPtr InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source, const Context* ctx) const;
+
+	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
+	/// @param[in] ctx The context to retrieve media-query related properties from.
+	FontEffectsPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source, const Context* ctx) const;
+
+private: 
+	Vector<UniquePtr<StyleSheetMediaBlock>> media_blocks;
 };
 
 } // namespace Rml

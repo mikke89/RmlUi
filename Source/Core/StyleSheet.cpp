@@ -142,7 +142,7 @@ const Sprite* StyleSheet::GetSprite(const String& name) const
 	return spritesheet_list.GetSprite(name);
 }
 
-DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const
+DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source, const Context* ctx) const
 {
 	// Decorators are declared as
 	//   decorator: <decorator-value>[, <decorator-value> ...];
@@ -176,7 +176,7 @@ DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 		if (invalid_parenthesis)
 		{
 			// We found no parenthesis, that means the value must be a name of a @decorator rule, look it up
-			SharedPtr<Decorator> decorator = GetDecorator(decorator_string);
+			SharedPtr<Decorator> decorator = GetDecorator(decorator_string, ctx);
 			if (decorator)
 				decorators.list.emplace_back(std::move(decorator));
 			else
@@ -227,7 +227,7 @@ DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 	return MakeShared<Decorators>(std::move(decorators));
 }
 
-FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const
+FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source, const Context* ctx) const
 {	
 	// Font-effects are declared as
 	//   font-effect: <font-effect-value>[, <font-effect-value> ...];

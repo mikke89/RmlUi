@@ -221,5 +221,32 @@ enum class EventId : uint16_t
 	MaxNumIds = 0xffff
 };
 
+
+enum class MediaFeatureId : uint8_t 
+{
+	Invalid,
+	
+	Width,
+	MinWidth,
+	MaxWidth,
+	Height,
+	MinHeight,
+	MaxHeight,
+	AspectRatio,
+	MinAspectRatio,
+	MaxAspectRatio,
+	Resolution,
+	MinResolution,
+	MaxResolution,
+	Orientation,
+	AnyHover,
+
+	NumDefinedIds,
+	FirstCustomId = NumDefinedIds,
+
+	// The maximum number of IDs. This limits the number of possible custom IDs to MaxNumIds - FirstCustomId.
+	MaxNumIds = 0xff
+};
+
 } // namespace Rml
 #endif
