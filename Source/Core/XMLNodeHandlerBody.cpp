@@ -52,7 +52,18 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 	// which should only hold for body elements, but not for included templates.
 	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
 	if (document && document == element)
-		document->SetAttributes(attributes);
+	{
+		for (auto& pair : attributes) 
+		{
+			auto attribute = document->GetAttribute(pair.first);
+			if(attribute && *attribute != pair.second)
+			{
+				Log::Message(Log::LT_WARNING, "Overriding attribute '%s' in element %s during template insertion.", pair.first.c_str(), element->GetAddress().c_str());
+			}
+
+			document->SetAttribute(pair.first, pair.second);
+		}
+	}
 
 	// Check for and apply any template
 	String template_name = Get<String>(attributes, "template", "");

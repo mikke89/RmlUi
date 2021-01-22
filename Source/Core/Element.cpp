@@ -845,14 +845,8 @@ Context* Element::GetContext() const
 void Element::SetAttributes(const ElementAttributes& _attributes)
 {
 	attributes.reserve(attributes.size() + _attributes.size());
-	for (auto& pair : _attributes) {
-		auto attribute = attributes.find(pair.first);
-		if(attribute != attributes.end() && attribute->second != pair.second) {
-			Log::Message(Log::LT_WARNING, "Overriding attribute '%s' in element %s", pair.first.c_str(), GetAddress().c_str());
-		}
-
+	for (auto& pair : _attributes)
 		attributes[pair.first] = pair.second;
-	}
 
 	OnAttributeChange(_attributes);
 }
