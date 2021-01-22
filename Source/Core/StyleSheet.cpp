@@ -50,14 +50,6 @@ inline static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleShee
 	return lhs->GetSpecificity() < rhs->GetSpecificity();
 }
 
-MediaQueryList::MediaQueryList()
-{
-}
-
-MediaQueryList::~MediaQueryList()
-{
-}
-
 StyleSheet::StyleSheet()
 {
 	root = MakeUnique<StyleSheetNode>();
@@ -404,20 +396,6 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 	node_cache[seed] = new_definition;
 
 	return new_definition;
-}
-
-StyleSheetContainer::~StyleSheetContainer()
-{
-}
-
-bool StyleSheetContainer::LoadStyleSheets(Stream* stream, int begin_line_number)
-{
-	// StyleSheetParser parser;
-	// specificity_offset = parser.Parse(root.get(), stream, *this, keyframes, decorator_map, spritesheet_list, begin_line_number);
-	// return specificity_offset >= 0;
-
-	// TODO: parser
-	return false;
 }
 
 } // namespace Rml

@@ -202,6 +202,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StreamMemory.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StringUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheet.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetContainer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetSpecification.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/SystemInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Texture.h
@@ -361,6 +362,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamMemory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StringUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheet.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetContainer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNode.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelector.cpp

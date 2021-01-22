@@ -35,7 +35,6 @@
 
 namespace Rml {
 
-class Context;
 class Element;
 class ElementDefinition;
 class StyleSheetNode;
@@ -64,33 +63,9 @@ struct DecoratorSpecification {
 };
 using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
-using MediaFeatureMap = UnorderedMap<MediaFeatureId, Property>;
-
 /**
- * Media MediaQueryList contains a map of media features and their values that
- * enable different versions of stylesheets (StyleSheet) depending on the context's properties.
- * 
- * This implementation only supports a purely-conjunctive (meaning "and-all") combination of multiple conditions. 
- * 
- */
-class RMLUICORE_API MediaQueryList : public NonCopyMoveable
-{
-public:
-	MediaQueryList();
-	virtual ~MediaQueryList();
-
-	bool IsApplicable(const Context* ctx) const;
-
-private:
-	MediaFeatureMap media_features;
-};
-
-
-/**
-	StyleSheet maintains a single stylesheet definition with an optional
-	mapping of media features that are conditional to this stylesheet being applied. 
-	
-	A stylesheet can be combined with another to create a new, merged stylesheet.
+	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
+	a new, merged stylesheet.
 
 	@author Lloyd Weehuizen
  */
@@ -118,6 +93,12 @@ public:
 	/// Returns the Decorator of the given name, or null if it does not exist.
 	SharedPtr<Decorator> GetDecorator(const String& name) const;
 
+	/// Parses the decorator property from a string and returns a list of instanced decorators.
+	DecoratorsPtr InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const;
+
+	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
+	FontEffectsPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const;
+
 	/// Get sprite located in any spritesheet within this stylesheet.
 	const Sprite* GetSprite(const String& name) const;
 
@@ -125,19 +106,10 @@ public:
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
 	SharedPtr<ElementDefinition> GetElementDefinition(const Element* element) const;
 
-	/// Parses the decorator property from a string and returns a list of instanced decorators.
-	DecoratorsPtr InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const;
-
-	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
-	FontEffectsPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const;
-
 	/// Retrieve the hash key used to look-up applicable nodes in the node index.
 	static size_t NodeHash(const String& tag, const String& id);
 
 private:
-	// Requirements for a given context to use this stylesheet media block
-	MediaQueryList media_query_list;
-
 	// Root level node, attributes from special nodes like "body" get added to this node
 	UniquePtr<StyleSheetNode> root;
 
@@ -163,30 +135,6 @@ private:
 	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
-};
-
-/**
-	StyleSheetContainer contains a list of media blocks and creates a combined style sheet when getting
-	properties of the current context regarding the available media features.
-
-	@author Maximilian Stark
- */
-
-class RMLUICORE_API StyleSheetContainer : public StyleSheet
-{
-public:
-	StyleSheetContainer() : StyleSheet() {};
-	virtual ~StyleSheetContainer();
-
-	/// Loads a style from a CSS definition.
-	bool LoadStyleSheets(Stream* stream, int begin_line_number = 1);
-
-	/// Combines the underlying media blocks into a final merged stylesheet according to the given media features
-	/// @param[in] media_features The current media features of the style sheet's context
-	void UpdateMediaFeatures(const MediaFeatureMap& media_features);
-	
-private: 
-	Vector<UniquePtr<StyleSheet>> media_blocks;
 };
 
 } // namespace Rml
