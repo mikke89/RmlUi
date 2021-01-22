@@ -48,17 +48,18 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 
 	Element* element = parser->GetParseFrame()->element;
 
+	// Apply any attributes to the document, but only if the current element is the root of the current document,
+	// which should only hold for body elements, but not for included templates.
+	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
+	if (document && document == element)
+		document->SetAttributes(attributes);
+
 	// Check for and apply any template
 	String template_name = Get<String>(attributes, "template", "");
 	if (!template_name.empty())
 	{
 		element = XMLParseTools::ParseTemplate(element, template_name);
 	}
-
-	// Apply any attributes to the document
-	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
-	if (document)
-		document->SetAttributes(attributes);
 
 	// Tell the parser to use the element handler for all children
 	parser->PushDefaultHandler();
