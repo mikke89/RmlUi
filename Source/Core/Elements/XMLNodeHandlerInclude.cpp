@@ -26,47 +26,33 @@
  *
  */
 
-#include "XMLNodeHandlerBody.h"
-#include "XMLParseTools.h"
-#include "../../Include/RmlUi/Core/XMLParser.h"
-#include "../../Include/RmlUi/Core/ElementDocument.h"
-#include "../../Include/RmlUi/Core/Factory.h"
+#include "XMLNodeHandlerInclude.h"
+#include "../../../Include/RmlUi/Core/Core.h"
+#include "../../../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
+#include "../../../Include/RmlUi/Core/XMLParser.h"
+#include "../../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../XMLParseTools.h"
 
 namespace Rml {
 
-XMLNodeHandlerBody::XMLNodeHandlerBody()
+XMLNodeHandlerInclude::XMLNodeHandlerInclude()
 {
 }
 
-XMLNodeHandlerBody::~XMLNodeHandlerBody()
+XMLNodeHandlerInclude::~XMLNodeHandlerInclude()
 {
 }
 
-Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI_UNUSED_PARAMETER(name), const XMLAttributes& attributes)
+Element* XMLNodeHandlerInclude::ElementStart(XMLParser* parser, const String& RMLUI_UNUSED_PARAMETER(name), const XMLAttributes& attributes)
 {
 	RMLUI_UNUSED(name);
 
 	Element* element = parser->GetParseFrame()->element;
 
-	// Apply any attributes to the document, but only if the current element is the root of the current document,
-	// which should only hold for body elements, but not for included templates.
-	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
-	if (document && document == element)
-	{
-		for (auto& pair : attributes) 
-		{
-			auto attribute = document->GetAttribute(pair.first);
-			if(attribute && *attribute != pair.second)
-			{
-				Log::Message(Log::LT_WARNING, "Overriding attribute '%s' in element %s during template insertion.", pair.first.c_str(), element->GetAddress().c_str());
-			}
-
-			document->SetAttribute(pair.first, pair.second);
-		}
-	}
-
-	// Check for and apply any template
+	// Apply the template directly into the parent
 	String template_name = Get<String>(attributes, "template", "");
+
 	if (!template_name.empty())
 	{
 		element = XMLParseTools::ParseTemplate(element, template_name);
@@ -78,7 +64,7 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 	return element;
 }
 
-bool XMLNodeHandlerBody::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))
+bool XMLNodeHandlerInclude::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))
 {
 	RMLUI_UNUSED(parser);
 	RMLUI_UNUSED(name);
@@ -86,10 +72,23 @@ bool XMLNodeHandlerBody::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), c
 	return true;
 }
 
-bool XMLNodeHandlerBody::ElementData(XMLParser* parser, const String& data, XMLDataType RMLUI_UNUSED_PARAMETER(type))
+bool XMLNodeHandlerInclude::ElementData(XMLParser* parser, const String& data, XMLDataType type)
 {
-	RMLUI_UNUSED(type);
-	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
+	RMLUI_ZoneScopedC(0x006400);
+
+	// Determine the parent
+	Element* parent = parser->GetParseFrame()->element;
+	RMLUI_ASSERT(parent);
+
+	if (type == XMLDataType::InnerXML)
+	{
+		// Structural data views use the raw inner xml contents of the node, submit them now.
+		if (ElementUtilities::ApplyStructuralDataViews(parent, data))
+			return true;
+	}
+
+	// Parse the text into the element
+	return Factory::InstanceElementText(parent, data);
 }
 
 } // namespace Rml
