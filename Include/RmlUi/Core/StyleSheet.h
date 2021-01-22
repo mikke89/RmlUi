@@ -64,9 +64,11 @@ struct DecoratorSpecification {
 };
 using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
+using MediaFeatureMap = UnorderedMap<MediaFeatureId, Property>;
+
 /**
  * Media MediaQueryList contains a map of media features and their values that
- * enable different versions of stylesheets (StyleSheetMediaBlock) depending on the context's properties.
+ * enable different versions of stylesheets (StyleSheet) depending on the context's properties.
  * 
  * This implementation only supports a purely-conjunctive (meaning "and-all") combination of multiple conditions. 
  * 
@@ -74,8 +76,6 @@ using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 class RMLUICORE_API MediaQueryList : public NonCopyMoveable
 {
 public:
-	typedef UnorderedMap< MediaFeatureId, Property > MediaFeatureMap;
-	
 	MediaQueryList();
 	virtual ~MediaQueryList();
 
@@ -85,24 +85,27 @@ private:
 	MediaFeatureMap media_features;
 };
 
+
 /**
-	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
-	a new, merged stylesheet.
+	StyleSheet maintains a single stylesheet definition with an optional
+	mapping of media features that are conditional to this stylesheet being applied. 
+	
+	A stylesheet can be combined with another to create a new, merged stylesheet.
 
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API StyleSheetMediaBlock : public NonCopyMoveable
+class RMLUICORE_API StyleSheet : public NonCopyMoveable
 {
 public:
 	typedef Vector< StyleSheetNode* > NodeList;
 	typedef UnorderedMap< size_t, NodeList > NodeIndex;
 
-	StyleSheetMediaBlock();
-	virtual ~StyleSheetMediaBlock();
+	StyleSheet();
+	virtual ~StyleSheet();
 
 	/// Combines this style sheet with another one, producing a new sheet.
-	SharedPtr<StyleSheetMediaBlock> Combine(const StyleSheetMediaBlock& sheet) const;
+	SharedPtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
 	/// Optimizes some properties for faster retrieval.
@@ -121,6 +124,12 @@ public:
 	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
 	/// caller, so another should not be added. The definition should be released by removing the reference count.
 	SharedPtr<ElementDefinition> GetElementDefinition(const Element* element) const;
+
+	/// Parses the decorator property from a string and returns a list of instanced decorators.
+	DecoratorsPtr InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const;
+
+	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
+	FontEffectsPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const;
 
 	/// Retrieve the hash key used to look-up applicable nodes in the node index.
 	static size_t NodeHash(const String& tag, const String& id);
@@ -156,46 +165,28 @@ private:
 	mutable ElementDefinitionCache node_cache;
 };
 
+/**
+	StyleSheetContainer contains a list of media blocks and creates a combined style sheet when getting
+	properties of the current context regarding the available media features.
 
-class RMLUICORE_API StyleSheet : public NonCopyMoveable
+	@author Maximilian Stark
+ */
+
+class RMLUICORE_API StyleSheetContainer : public StyleSheet
 {
 public:
-	StyleSheet();
-	virtual ~StyleSheet();
+	StyleSheetContainer() : StyleSheet() {};
+	virtual ~StyleSheetContainer();
 
 	/// Loads a style from a CSS definition.
-	bool LoadStyleSheet(Stream* stream, int begin_line_number = 1);
+	bool LoadStyleSheets(Stream* stream, int begin_line_number = 1);
 
-	/// Combines this style sheet with another one, producing a new sheet.
-	SharedPtr<StyleSheet> Combine(const StyleSheet& sheet) const;
-
-	/// Returns the Keyframes of the given name, or null if it does not exist.
-	/// @param[in] ctx The context to retrieve media-query related properties from.
-	Keyframes* GetKeyframes(const String& name, const Context* ctx);
-
-	/// Returns the Decorator of the given name, or null if it does not exist.
-	/// @param[in] ctx The context to retrieve media-query related properties from.
-	SharedPtr<Decorator> GetDecorator(const String& name, const Context* ctx) const;
-
-	/// Get sprite located in any spritesheet within this stylesheet.
-	/// @param[in] ctx The context to retrieve media-query related properties from.
-	const Sprite* GetSprite(const String& name, const Context* ctx) const;
-
-	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
-	/// caller, so another should not be added. The definition should be released by removing the reference count.
-	/// @param[in] ctx The context to retrieve media-query related properties from.
-	SharedPtr<ElementDefinition> GetElementDefinition(const Element* element, const Context* ctx) const;
-
-	/// Parses the decorator property from a string and returns a list of instanced decorators.
-	/// @param[in] ctx The context to retrieve media-query related properties from.
-	DecoratorsPtr InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source, const Context* ctx) const;
-
-	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
-	/// @param[in] ctx The context to retrieve media-query related properties from.
-	FontEffectsPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source, const Context* ctx) const;
-
+	/// Combines the underlying media blocks into a final merged stylesheet according to the given media features
+	/// @param[in] media_features The current media features of the style sheet's context
+	void UpdateMediaFeatures(const MediaFeatureMap& media_features);
+	
 private: 
-	Vector<UniquePtr<StyleSheetMediaBlock>> media_blocks;
+	Vector<UniquePtr<StyleSheet>> media_blocks;
 };
 
 } // namespace Rml

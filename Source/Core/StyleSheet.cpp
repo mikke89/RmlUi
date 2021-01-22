@@ -68,13 +68,6 @@ StyleSheet::~StyleSheet()
 {
 }
 
-bool StyleSheet::LoadStyleSheet(Stream* stream, int begin_line_number)
-{
-	StyleSheetParser parser;
-	specificity_offset = parser.Parse(root.get(), stream, *this, keyframes, decorator_map, spritesheet_list, begin_line_number);
-	return specificity_offset >= 0;
-}
-
 /// Combines this style sheet with another one, producing a new sheet
 SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_sheet) const
 {
@@ -150,7 +143,7 @@ const Sprite* StyleSheet::GetSprite(const String& name) const
 	return spritesheet_list.GetSprite(name);
 }
 
-DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source, const Context* ctx) const
+DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const
 {
 	// Decorators are declared as
 	//   decorator: <decorator-value>[, <decorator-value> ...];
@@ -184,7 +177,7 @@ DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 		if (invalid_parenthesis)
 		{
 			// We found no parenthesis, that means the value must be a name of a @decorator rule, look it up
-			SharedPtr<Decorator> decorator = GetDecorator(decorator_string, ctx);
+			SharedPtr<Decorator> decorator = GetDecorator(decorator_string);
 			if (decorator)
 				decorators.list.emplace_back(std::move(decorator));
 			else
@@ -235,7 +228,7 @@ DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_s
 	return MakeShared<Decorators>(std::move(decorators));
 }
 
-FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source, const Context* ctx) const
+FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const
 {	
 	// Font-effects are declared as
 	//   font-effect: <font-effect-value>[, <font-effect-value> ...];
@@ -411,6 +404,20 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 	node_cache[seed] = new_definition;
 
 	return new_definition;
+}
+
+StyleSheetContainer::~StyleSheetContainer()
+{
+}
+
+bool StyleSheetContainer::LoadStyleSheets(Stream* stream, int begin_line_number)
+{
+	// StyleSheetParser parser;
+	// specificity_offset = parser.Parse(root.get(), stream, *this, keyframes, decorator_map, spritesheet_list, begin_line_number);
+	// return specificity_offset >= 0;
+
+	// TODO: parser
+	return false;
 }
 
 } // namespace Rml
