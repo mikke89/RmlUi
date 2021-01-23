@@ -142,7 +142,7 @@ struct Basic
 	int GetD() {
 		return 4;
 	}
-	int& GetE() {
+	int& GetE() const {
 		static int e = 5;
 		return e;
 	}
@@ -277,6 +277,8 @@ struct Arrays {
 
 DataModelHandle model_handle;
 
+
+
 bool InitializeDataBindings(Context* context)
 {
 	Rml::DataModelConstructor constructor = context->CreateDataModel("basics");
@@ -301,7 +303,7 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("a", &Basic::a);
 		handle.RegisterMember("b", &Basic::b);
 		handle.RegisterMember("c", &Basic::c);
-		handle.RegisterMemberScalar("d", &Basic::GetD);
+		handle.RegisterMember("d", &Basic::GetD);
 		handle.RegisterMember("e", &Basic::GetE);
 		handle.RegisterMember("f", &Basic::GetF);
 		handle.RegisterMember("g", &Basic::GetG);
@@ -314,7 +316,7 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("a", &Wrapped::a);
 		handle.RegisterMember("b", &Wrapped::b);
 		handle.RegisterMember("c", &Wrapped::c);
-		//handle.RegisterMemberScalar("d", &Wrapped::GetD);
+		//handle.RegisterMember("d", &Wrapped::GetD);
 		handle.RegisterMember("e", &Wrapped::GetE);
 		handle.RegisterMember("f", &Wrapped::GetF);
 		handle.RegisterMember("g", &Wrapped::GetG);

@@ -38,7 +38,7 @@
 
 namespace Rml {
 
-enum class DataVariableType { Scalar, Array, Struct, Function, MemberFunction };
+enum class DataVariableType { Scalar, Array, Struct };
 
 
 /*
@@ -112,8 +112,7 @@ public:
 
 class FuncDefinition final : public VariableDefinition {
 public:
-
-	FuncDefinition(DataGetFunc get, DataSetFunc set) : VariableDefinition(DataVariableType::Function), get(std::move(get)), set(std::move(set)) {}
+	FuncDefinition(DataGetFunc get, DataSetFunc set) : VariableDefinition(DataVariableType::Scalar), get(std::move(get)), set(std::move(set)) {}
 
 	bool Get(void* /*ptr*/, Variant& variant) override
 	{
@@ -137,8 +136,7 @@ private:
 template<typename T>
 class ScalarFuncDefinition final : public VariableDefinition {
 public:
-
-	ScalarFuncDefinition(DataTypeGetFunc<T> get, DataTypeSetFunc<T> set) : VariableDefinition(DataVariableType::Function), get(get), set(set) {}
+	ScalarFuncDefinition(DataTypeGetFunc<T> get, DataTypeSetFunc<T> set) : VariableDefinition(DataVariableType::Scalar), get(get), set(set) {}
 
 	bool Get(void* ptr, Variant& variant) override
 	{
@@ -195,50 +193,50 @@ private:
 	VariableDefinition* underlying_definition;
 };
 
-
-template<typename T>
-class PointerDefinition final : public VariableDefinition {
+class BasePointerDefinition : public VariableDefinition {
 public:
-	PointerDefinition(VariableDefinition* underlying_definition) : VariableDefinition(underlying_definition->Type()), underlying_definition(underlying_definition) {}
+	BasePointerDefinition(VariableDefinition* underlying_definition) : VariableDefinition(underlying_definition->Type()), underlying_definition(underlying_definition) {}
 
-	bool Get(void* ptr, Variant& variant) override
-	{
-		return underlying_definition->Get(DereferencePointer(ptr), variant);
-	}
-	bool Set(void* ptr, const Variant& variant) override
-	{
-		return SetDetail<T>(ptr, variant);
-	}
-	int Size(void* ptr) override
-	{
-		return underlying_definition->Size(DereferencePointer(ptr));
-	}
-	DataVariable Child(void* ptr, const DataAddressEntry& address) override
-	{
-		// TODO: Return the constness of T?
-		return underlying_definition->Child(DereferencePointer(ptr), address);
-	}
+	bool Get(void* ptr, Variant& variant) override;
+	bool Set(void* ptr, const Variant& variant) override;
+	int Size(void* ptr) override;
+	DataVariable Child(void* ptr, const DataAddressEntry& address) override;
+
+protected:
+	virtual void* DereferencePointer(void* ptr) = 0;
 
 private:
-	template<typename U, typename std::enable_if<!std::is_const<typename PointerTraits<U>::element_type>::value, int>::type = 0>
-	bool SetDetail(void* ptr, const Variant& variant)
-	{
-		return underlying_definition->Set(DereferencePointer(ptr), variant);
-	}
-	template<typename U, typename std::enable_if<std::is_const<typename PointerTraits<U>::element_type>::value, int>::type = 0>
-	bool SetDetail(void* /*ptr*/, const Variant& /*variant*/)
-	{
-		return false;
-	}
-
-	static void* DereferencePointer(void* ptr)
-	{
-		return PointerTraits<T>::Dereference(ptr);
-	}
-
 	VariableDefinition* underlying_definition;
 };
 
+template<typename T>
+class PointerDefinition final : public BasePointerDefinition {
+public:
+	PointerDefinition(VariableDefinition* underlying_definition) : BasePointerDefinition(underlying_definition) {}
+
+protected:
+	void* DereferencePointer(void* ptr) override
+	{
+		return PointerTraits<T>::Dereference(ptr);
+	}
+};
+
+//template<typename T>
+//class ConstPointerDefinition final : public BasePointerDefinition {
+//public:
+//	ConstPointerDefinition(VariableDefinition* underlying_definition) : BasePointerDefinition(underlying_definition) {}
+//
+//	bool Set(void* ptr, const Variant& variant) override
+//	{
+//		// Emit warning
+//		return false;
+//	}
+//	DataVariable Child(void* ptr, const DataAddressEntry& address) override
+//	{
+//		// TODO: Return the constness of T?
+//		return PointerDefinition::Child(ptr, address);
+//	}
+//};
 
 class StructDefinition final : public VariableDefinition {
 public:
@@ -279,81 +277,39 @@ private:
 };
 
 
-template <typename Object, typename MemberType>
-class MemberAccessor {
-protected:
-	MemberAccessor(MemberType Object::* member_ptr) : member_ptr(member_ptr) {}
 
-	void* ResolvePointer(void* base_ptr) const {
+template<typename Object, typename MemberType>
+class MemberObjectDefinition final : public BasePointerDefinition {
+public:
+	MemberObjectDefinition(VariableDefinition* underlying_definition, MemberType Object::* member_ptr) : BasePointerDefinition(underlying_definition), member_ptr(member_ptr) {}
+
+protected:
+	void* DereferencePointer(void* base_ptr) override
+	{
 		return &(static_cast<Object*>(base_ptr)->*member_ptr);
 	}
-
 private:
 	MemberType Object::* member_ptr;
 };
 
-template <typename Object, typename MemberType>
-class MemberObjectPointerDefinition final : public VariableDefinition, public MemberAccessor<Object, MemberType> {
+
+template<typename Object, typename MemberType, typename BasicReturnType>
+class MemberGetFuncDefinition final : public BasePointerDefinition {
 public:
-	MemberObjectPointerDefinition(VariableDefinition* underlying_definition, MemberType Object::* member_ptr)
-		: VariableDefinition(underlying_definition->Type()), MemberAccessor<Object, MemberType>(member_ptr), underlying_definition(underlying_definition) {}
+	using MemberFunc = MemberType Object::*;
 
-	bool Get(void* ptr, Variant& variant) override
+	MemberGetFuncDefinition(VariableDefinition* underlying_definition, MemberType Object::* member_get_func_ptr)
+		: BasePointerDefinition(underlying_definition), member_get_func_ptr(member_get_func_ptr)
 	{
-		return underlying_definition->Get(ResolvePointer(ptr), variant);
-	}
-	bool Set(void* ptr, const Variant& variant) override
-	{
-		return underlying_definition->Set(ResolvePointer(ptr), variant);
-	}
-	int Size(void* ptr) override
-	{
-		return underlying_definition->Size(ResolvePointer(ptr));
-	}
-	DataVariable Child(void* ptr, const DataAddressEntry& address) override
-	{
-		return underlying_definition->Child(ResolvePointer(ptr), address);
+		static_assert(std::is_member_function_pointer<MemberFunc>::value, "Must be a member function pointer");
 	}
 
+protected:
+	void* DereferencePointer(void* base_ptr) override
+	{
+		return (void*)Extract((static_cast<Object*>(base_ptr)->*member_get_func_ptr)());
+	}
 private:
-	using MemberAccessor<Object, MemberType>::ResolvePointer;
-
-	VariableDefinition* underlying_definition;
-};
-
-
-template <typename Object, typename ReturnType, typename BasicReturnType>
-class MemberFunctionPointerDefinition final : public VariableDefinition {
-public:
-	using MemberFunc = ReturnType(Object::*)();
-
-	MemberFunctionPointerDefinition(VariableDefinition* underlying_definition, MemberFunc member_ptr)
-		: VariableDefinition(underlying_definition->Type()), underlying_definition(underlying_definition), member_ptr(member_ptr) 
-	{
-		// static assert return type is reference or pointer
-	}
-
-	bool Get(void* ptr, Variant& variant) override
-	{
-		return underlying_definition->Get(GetPointer(ptr), variant);
-	}
-	bool Set(void* ptr, const Variant& variant) override
-	{
-		return underlying_definition->Set(GetPointer(ptr), variant);
-	}
-	int Size(void* ptr) override
-	{
-		return underlying_definition->Size(GetPointer(ptr));
-	}
-	DataVariable Child(void* ptr, const DataAddressEntry& address) override
-	{
-		return underlying_definition->Child(GetPointer(ptr), address);
-	}
-
-private:
-	void* GetPointer(void* base_ptr) {
-		return (void*)Extract((static_cast<Object*>(base_ptr)->*member_ptr)());
-	}
 
 	// Pointer return types
 	BasicReturnType* Extract(BasicReturnType* value) {
@@ -364,20 +320,18 @@ private:
 		return &value;
 	}
 
-	VariableDefinition* underlying_definition;
-	MemberFunc member_ptr;
+	MemberType Object::* member_get_func_ptr;
 };
 
-
-
-template <typename Object, typename ReturnType, typename AssignType, typename UnderlyingType>
-class MemberScalarFunctionPointerDefinition final : public VariableDefinition {
+template<typename Object, typename MemberGetType, typename MemberSetType, typename UnderlyingType>
+class MemberScalarGetSetFuncDefinition final : public VariableDefinition {
 public:
-	using MemberFunc = ReturnType(Object::*)();
-
-	MemberScalarFunctionPointerDefinition(VariableDefinition* underlying_definition, MemberGetterFunc<Object, ReturnType> get_func, MemberSetterFunc<Object, AssignType> set_func)
-		: VariableDefinition(underlying_definition->Type()), underlying_definition(underlying_definition), get_func(get_func), set_func(set_func)
-	{}
+	MemberScalarGetSetFuncDefinition(VariableDefinition* underlying_definition, MemberGetType Object::* member_get_func_ptr, MemberSetType Object::* member_set_func_ptr)
+		: VariableDefinition(underlying_definition->Type()), underlying_definition(underlying_definition), member_get_func_ptr(member_get_func_ptr), member_set_func_ptr(member_set_func_ptr)
+	{
+		using MemberGetFunctionPtr = MemberGetType Object::*;
+		static_assert(std::is_member_function_pointer<MemberGetFunctionPtr>::value, "Must be a member function pointer");
+	}
 
 	bool Get(void* ptr, Variant& variant) override
 	{
@@ -390,48 +344,48 @@ public:
 
 private:
 
-	template<typename R = ReturnType, typename std::enable_if<std::is_null_pointer<R>::value, int>::type = 0>
+	template<typename T = MemberGetType, typename std::enable_if<std::is_null_pointer<T>::value, int>::type = 0>
 	bool GetDetail(void* /*ptr*/, Variant& /*variant*/)
 	{
 		return false;
 	}
 
-	template<typename R = ReturnType, typename std::enable_if<!std::is_null_pointer<R>::value, int>::type = 0>
+	template<typename T = MemberGetType, typename std::enable_if<!std::is_null_pointer<T>::value, int>::type = 0>
 	bool GetDetail(void* ptr, Variant& variant)
 	{
-		if (!get_func)
+		if (!member_get_func_ptr)
 			return false;
 
 		// TODO: Does this work for pointers?
-		auto&& value = (static_cast<Object*>(ptr)->*get_func)();
+		auto&& value = (static_cast<Object*>(ptr)->*member_get_func_ptr)();
 		bool result = underlying_definition->Get((void*)&value, variant);
 		return result;
 	}
 
-	template<typename A = AssignType, typename std::enable_if<std::is_null_pointer<A>::value, int>::type = 0>
+	template<typename T = MemberSetType, typename std::enable_if<std::is_null_pointer<T>::value, int>::type = 0>
 	bool SetDetail(void* /*ptr*/, const Variant& /*variant*/)
 	{
 		return false;
 	}
 
-	template<typename A = AssignType, typename std::enable_if<!std::is_null_pointer<A>::value, int>::type = 0>
+	template<typename T = MemberSetType, typename std::enable_if<!std::is_null_pointer<T>::value, int>::type = 0>
 	bool SetDetail(void* ptr, const Variant& variant)
 	{
-		if (!set_func)
+		if (!member_set_func_ptr)
 			return false;
 
 		UnderlyingType result;
 		if (!underlying_definition->Set((void*)&result, variant))
 			return false;
 
-		(static_cast<Object*>(ptr)->*set_func)(result);
+		(static_cast<Object*>(ptr)->*member_set_func_ptr)(result);
 
 		return true;
 	}
 
 	VariableDefinition* underlying_definition;
-	MemberGetterFunc<Object, ReturnType> get_func;
-	MemberSetterFunc<Object, AssignType> set_func;
+	MemberGetType Object::* member_get_func_ptr;
+	MemberSetType Object::* member_set_func_ptr;
 };
 
 

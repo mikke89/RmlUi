@@ -85,4 +85,21 @@ DataVariable MakeLiteralIntVariable(int value)
     return DataVariable(&literal_int_definition, reinterpret_cast<void*>(static_cast<intptr_t>(value)));
 }
 
+bool BasePointerDefinition::Get(void* ptr, Variant& variant) {
+    return underlying_definition->Get(DereferencePointer(ptr), variant);
+}
+
+bool BasePointerDefinition::Set(void* ptr, const Variant& variant) {
+    return underlying_definition->Set(DereferencePointer(ptr), variant);
+}
+
+int BasePointerDefinition::Size(void* ptr) {
+    return underlying_definition->Size(DereferencePointer(ptr));
+}
+
+DataVariable BasePointerDefinition::Child(void* ptr, const DataAddressEntry& address) {
+    // TODO: Return the constness of T?
+    return underlying_definition->Child(DereferencePointer(ptr), address);
+}
+
 } // namespace Rml

@@ -66,8 +66,8 @@ private:
 		int score;
 		int wave;
 
-		void GetColour(Rml::Variant& variant) {
-			variant = "rgba(" + Rml::ToString(colour) + ')';
+		Rml::String GetColour() {
+			return "rgba(" + Rml::ToString(colour) + ')';
 		}
 	};
 	using ScoreList = Rml::Vector< Score >;

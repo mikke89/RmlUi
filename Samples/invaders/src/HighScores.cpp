@@ -48,7 +48,7 @@ HighScores::HighScores(Rml::Context* context)
 	{
 		score_handle.RegisterMember("name_required", &Score::name_required);
 		score_handle.RegisterMember("name", &Score::name);
-		score_handle.RegisterMemberFunc("colour", &Score::GetColour);
+		score_handle.RegisterMember("colour", &Score::GetColour);
 		score_handle.RegisterMember("wave", &Score::wave);
 		score_handle.RegisterMember("score", &Score::score);
 	}
