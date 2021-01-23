@@ -38,6 +38,7 @@
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include <algorithm>
 #include <string.h>
@@ -337,7 +338,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	return true;
 }
 
-int StyleSheetParser::Parse(StyleSheetNode* node, Stream* _stream, const StyleSheet& style_sheet, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, SpritesheetList& spritesheet_list, int begin_line_number)
+int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, int begin_line_number)
 {
 	RMLUI_ZoneScoped;
 

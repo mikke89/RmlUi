@@ -29,17 +29,18 @@
 #ifndef RMLUI_CORE_STYLESHEETPARSER_H
 #define RMLUI_CORE_STYLESHEETPARSER_H
 
-#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
 class PropertyDictionary;
 class Stream;
+class StyleSheetContainer;
 class StyleSheetNode;
 class AbstractPropertyParser;
 struct PropertySource;
 using StyleSheetNodeListRaw = Vector<StyleSheetNode*>;
+using MediaBlockListRaw = Vector<Pair<MediaFeatureMap, UniquePtr<StyleSheet>>>;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.
@@ -54,10 +55,10 @@ public:
 	~StyleSheetParser();
 
 	/// Parses the given stream into the style sheet
-	/// @param node The root node the stream will be parsed into
+	/// @param style_sheets The collection of style sheets to write into, organized into media blocks
 	/// @param stream The stream to read
 	/// @return The number of parsed rules, or -1 if an error occured.
-	int Parse(StyleSheetNode* node, Stream* stream, const StyleSheet& style_sheet, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, SpritesheetList& spritesheet_list, int begin_line_number);
+	int Parse(MediaBlockListRaw& style_sheets, Stream* stream, int begin_line_number);
 
 	/// Parses the given string into the property dictionary
 	/// @param parsed_properties The properties dictionary the properties will be read into

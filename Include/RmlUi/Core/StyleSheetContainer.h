@@ -37,8 +37,6 @@ namespace Rml {
 class Stream;
 class StyleSheet;
 
-using MediaFeatureMap = UnorderedMap<MediaFeatureId, Property>;
-
 /**
 	StyleSheetContainer contains a list of media blocks and creates a combined style sheet when getting
 	properties of the current context regarding the available media features.

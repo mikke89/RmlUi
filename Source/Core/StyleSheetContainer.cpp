@@ -42,10 +42,11 @@ StyleSheetContainer::~StyleSheetContainer()
 {
 }
 
-bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line_number = 1)
+bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line_number)
 {
-
-    return true;
+	StyleSheetParser parser;
+	int rule_count = parser.Parse(media_blocks, stream, begin_line_number);
+	return rule_count >= 0;
 }
 
 void StyleSheetContainer::UpdateMediaFeatures(const MediaFeatureMap& media_features)
@@ -62,12 +63,5 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
 {
     return {};
 }
-
-// bool StyleSheet::LoadStyleSheet(Stream* stream, int begin_line_number)
-// {
-// 	StyleSheetParser parser;
-// 	specificity_offset = parser.Parse(root.get(), stream, *this, keyframes, decorator_map, spritesheet_list, begin_line_number);
-// 	return specificity_offset >= 0;
-// }
 
 } // namespace Rml
