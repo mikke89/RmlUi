@@ -338,6 +338,101 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	return true;
 }
 
+bool StyleSheetParser::ParseMediaFeatureMap(MediaFeatureMap& media_feature_map, const String & rules)
+{
+	enum ParseState { Global, Name, Value };
+	ParseState state = Name;
+
+	char character = 0;
+	char previous_character = 0;
+
+	size_t cursor = 0;
+
+	String name;
+
+	String current_string;
+
+	while(cursor++ < rules.length())
+	{
+		previous_character = character;
+		character = rules[cursor];
+
+		switch(character)
+		{
+		case '(':
+		{
+			if (state != Global)
+			{
+				Log::Message(Log::LT_WARNING, "Unexpected '(' in @media query list at %s:%d.", stream_file_name.c_str(), line_number);
+				return false;
+			}
+
+			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(current_string));
+
+			if (current_string != "and")
+			{
+				Log::Message(Log::LT_WARNING, "Unexpected '%s' in @media query list at %s:%d. Expected 'and'.", current_string.c_str(), stream_file_name.c_str(), line_number);
+				return false;
+			}
+
+			current_string.clear();
+			state = Name;
+		}
+		break;
+		case ')':
+		{
+			if (state != Value)
+			{
+				Log::Message(Log::LT_WARNING, "Unexpected ')' in @media query list at %s:%d.", stream_file_name.c_str(), line_number);
+				return false;
+			}
+
+			/// TODO: map from string name & value to feature id + value variant
+
+			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(current_string));
+
+			Log::Message(Log::LT_DEBUG, "%s:%s", name.c_str(), current_string.c_str());
+
+			if (!IsValidIdentifier(current_string))
+			{
+				Log::Message(Log::LT_WARNING, "Malformed property value '%s' in @media query list at %s:%d.", current_string.c_str(), stream_file_name.c_str(), line_number);
+				return false;
+			}
+
+			current_string.clear();
+			state = Global;
+		}
+		break;
+		case ':':
+		{
+			if (state != Name)
+			{
+				Log::Message(Log::LT_WARNING, "Unexpected ':' in @media query list at %s:%d.", stream_file_name.c_str(), line_number);
+				return false;
+			}
+
+			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(current_string));
+
+			if (!IsValidIdentifier(current_string))
+			{
+				Log::Message(Log::LT_WARNING, "Malformed property name '%s' in @media query list at %s:%d.", current_string.c_str(), stream_file_name.c_str(), line_number);
+				return false;
+			}
+
+			name = current_string;
+			current_string.clear();
+
+			state = Value;
+		}
+		break;
+		default:
+			current_string += character;
+		}
+	}
+
+	return true;
+}
+
 int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, int begin_line_number)
 {
 	RMLUI_ZoneScoped;
@@ -350,7 +445,11 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 	enum class State { Global, AtRuleIdentifier, KeyframeBlock, Invalid };
 	State state = State::Global;
 
-	Pair<MediaFeatureMap, UniquePtr<StyleSheet>> current_block = {MediaFeatureMap{}, MakeUnique<StyleSheet>()};
+
+	Pair<MediaFeatureMap, UniquePtr<StyleSheet>> current_block = {};
+
+	// Need to track whether currently inside a nested media block or not, since the default scope is also a media block
+	bool inside_media_block = false;
 
 	// At-rules given by the following syntax in global space: @identifier name { block }
 	String at_rule_name;
@@ -368,6 +467,12 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 			{
 				if (token == '{')
 				{
+					// Initialize current block if not present
+					if (!current_block.second)
+					{
+						current_block = {MediaFeatureMap{}, MakeUnique<StyleSheet>()};
+					}
+
 					const int rule_line_number = (int)line_number;
 					
 					// Read the attributes
@@ -393,6 +498,15 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 				{
 					state = State::AtRuleIdentifier;
 				}
+				else if (inside_media_block && token == '}')
+				{
+					// Complete current block
+					PostprocessKeyframes(current_block.second->keyframes);
+					style_sheets.push_back(std::move(current_block));
+
+					inside_media_block = false;
+					break;
+				}
 				else
 				{
 					Log::Message(Log::LT_WARNING, "Invalid character '%c' found while parsing stylesheet at %s:%d. Trying to proceed.", token, stream_file_name.c_str(), line_number);
@@ -402,7 +516,13 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 			case State::AtRuleIdentifier:
 			{
 				if (token == '{')
-				{
+				{					
+					// Initialize current block if not present
+					if (!current_block.second)
+					{
+						current_block = {MediaFeatureMap{}, MakeUnique<StyleSheet>()};
+					}
+
 					String at_rule_identifier = pre_token_str.substr(0, pre_token_str.find(' '));
 					at_rule_name = StringUtilities::StripWhitespace(pre_token_str.substr(at_rule_identifier.size()));
 
@@ -447,6 +567,23 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 						at_rule_name.clear();
 						state = State::Global;
 					}
+					else if (at_rule_identifier == "media")
+					{
+						// complete the current "global" block if present and start a new block
+						if (current_block.second)
+						{
+							PostprocessKeyframes(current_block.second->keyframes);
+							style_sheets.push_back(std::move(current_block));
+						}
+
+						// parse media query list into block
+						MediaFeatureMap feature_map;
+						ParseMediaFeatureMap(feature_map, pre_token_str.substr(pre_token_str.find(' ') + 1));
+						current_block = {feature_map, MakeUnique<StyleSheet>()};
+
+						inside_media_block = true;
+						state = State::Global;
+					}
 					else
 					{
 						// Invalid identifier, should ignore
@@ -466,7 +603,13 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 			case State::KeyframeBlock:
 			{
 				if (token == '{')
-				{
+				{	
+					// Initialize current block if not present
+					if (!current_block.second)
+					{
+						current_block = {MediaFeatureMap{}, MakeUnique<StyleSheet>()};
+					}
+
 					// Each keyframe in keyframes has its own block which is processed here
 					PropertyDictionary properties;
 					PropertySpecificationParser parser(properties, StyleSheetSpecification::GetPropertySpecification());
@@ -502,8 +645,12 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 			break;
 	}	
 
-	PostprocessKeyframes(current_block.second->keyframes);
-	style_sheets.push_back(std::move(current_block));
+	// Complete last block if present
+	if (current_block.second)
+	{
+		PostprocessKeyframes(current_block.second->keyframes);
+		style_sheets.push_back(std::move(current_block));
+	}
 
 	return rule_count;
 }
