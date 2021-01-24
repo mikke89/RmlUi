@@ -555,7 +555,7 @@ SharedPtr<StyleSheetContainer> Factory::InstanceStyleSheetFile(const String& fil
 SharedPtr<StyleSheetContainer> Factory::InstanceStyleSheetStream(Stream* stream)
 {
 	SharedPtr<StyleSheetContainer> style_sheet_container = MakeShared<StyleSheetContainer>();
-	if (style_sheet_container->LoadStyleSheets(stream))
+	if (style_sheet_container->LoadStyleSheetContainer(stream))
 	{
 		return style_sheet_container;
 	}

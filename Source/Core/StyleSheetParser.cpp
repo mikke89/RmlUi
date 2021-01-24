@@ -350,6 +350,8 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 	enum class State { Global, AtRuleIdentifier, KeyframeBlock, Invalid };
 	State state = State::Global;
 
+	Pair<MediaFeatureMap, UniquePtr<StyleSheet>> current_block = {MediaFeatureMap{}, MakeUnique<StyleSheet>()};
+
 	// At-rules given by the following syntax in global space: @identifier name { block }
 	String at_rule_name;
 
@@ -382,7 +384,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					{
 						auto source = MakeShared<PropertySource>(stream_file_name, rule_line_number, rule_name_list[i]);
 						properties.SetSourceOfAllProperties(source);
-						ImportProperties(node, rule_name_list[i], properties, rule_count);
+						ImportProperties(current_block.second->root.get(), rule_name_list[i], properties, rule_count);
 					}
 
 					rule_count++;
@@ -411,7 +413,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					else if (at_rule_identifier == "decorator")
 					{
 						auto source = MakeShared<PropertySource>(stream_file_name, (int)line_number, pre_token_str);
-						ParseDecoratorBlock(at_rule_name, decorator_map, style_sheet, source);
+						ParseDecoratorBlock(at_rule_name, current_block.second->decorator_map, *current_block.second, source);
 						
 						at_rule_name.clear();
 						state = State::Global;
@@ -438,7 +440,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 						}
 						else
 						{
-							spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, sprite_definitions);
+							current_block.second->spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, sprite_definitions);
 						}
 
 						spritesheet_property_parser->Clear();
@@ -471,7 +473,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					if(!ReadProperties(parser))
 						continue;
 
-					if (!ParseKeyframeBlock(keyframes, at_rule_name, pre_token_str, properties))
+					if (!ParseKeyframeBlock(current_block.second->keyframes, at_rule_name, pre_token_str, properties))
 						continue;
 				}
 				else if (token == '}')
@@ -500,7 +502,8 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 			break;
 	}	
 
-	PostprocessKeyframes(keyframes);
+	PostprocessKeyframes(current_block.second->keyframes);
+	style_sheets.push_back(std::move(current_block));
 
 	return rule_count;
 }

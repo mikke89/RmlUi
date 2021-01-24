@@ -60,6 +60,7 @@ class PropertiesIteratorView;
 class PropertyDictionary;
 class RenderInterface;
 class StyleSheet;
+class StyleSheetContainer;
 class TransformState;
 struct ElementMeta;
 struct StackingOrderedChild;
@@ -104,7 +105,10 @@ public:
 
 	/// Returns the active style sheet for this element. This may be nullptr.
 	/// @return The element's style sheet.
-	virtual const SharedPtr<StyleSheet>& GetStyleSheet() const;
+	virtual const StyleSheet* GetStyleSheet() const;
+	/// Returns the active style sheet container for this element.
+	/// @return The element's style sheet.
+	virtual const SharedPtr<StyleSheetContainer>& GetStyleSheetContainer() const;
 
 	/// Returns the element's definition.
 	/// @return The element's definition.

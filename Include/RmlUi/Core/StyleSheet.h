@@ -42,6 +42,7 @@ class Decorator;
 class FontEffect;
 class SpritesheetList;
 class Stream;
+class StyleSheetParser;
 struct Sprite;
 struct Spritesheet;
 
@@ -80,7 +81,7 @@ public:
 	virtual ~StyleSheet();
 
 	/// Combines this style sheet with another one, producing a new sheet.
-	SharedPtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
+	UniquePtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
 	/// Optimizes some properties for faster retrieval.
@@ -135,6 +136,8 @@ private:
 	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
+
+	friend StyleSheetParser;
 };
 
 } // namespace Rml

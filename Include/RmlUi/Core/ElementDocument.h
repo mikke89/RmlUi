@@ -38,6 +38,7 @@ class Stream;
 class DocumentHeader;
 class ElementText;
 class StyleSheet;
+class StyleSheetContainer;
 
 /**
 	 ModalFlag used for controlling the modal state of the document.
@@ -83,10 +84,12 @@ public:
 	/// Returns the source address of this document.
 	const String& GetSourceURL() const;
 
-	/// Sets the style sheet this document, and all of its children, uses.
-	void SetStyleSheet(SharedPtr<StyleSheet> style_sheet);
 	/// Returns the document's style sheet.
-	const SharedPtr<StyleSheet>& GetStyleSheet() const override;
+	const StyleSheet* GetStyleSheet() const override;
+	/// Sets the style sheet this document, and all of its children, uses.
+	void SetStyleSheetContainer(SharedPtr<StyleSheetContainer> style_sheet);
+	/// Returns the document's style sheet container.
+	const SharedPtr<StyleSheetContainer>& GetStyleSheetContainer() const override;
 	/// Reload the document's style sheet from source files.
 	/// Styles will be reloaded from <style> tags and external style sheets, but not inline 'style' attributes.
 	/// @note The source url originally used to load the document must still be a valid RML document.
@@ -176,7 +179,10 @@ private:
 	String source_url;
 
 	// The document's style sheet.
-	SharedPtr<StyleSheet> style_sheet;
+	StyleSheet* style_sheet;
+
+	// The document's style sheet container.
+	SharedPtr<StyleSheetContainer> style_sheet_container;
 
 	Context* context;
 

@@ -291,11 +291,19 @@ String Element::GetClassNames() const
 }
 
 // Returns the active style sheet for this element. This may be nullptr.
-const SharedPtr<StyleSheet>& Element::GetStyleSheet() const
+const StyleSheet* Element::GetStyleSheet() const
 {
 	if (ElementDocument * document = GetOwnerDocument())
 		return document->GetStyleSheet();
-	static SharedPtr<StyleSheet> null_style_sheet;
+	return nullptr;
+}
+
+// Returns the active style sheet container for this element. This may be nullptr.
+const SharedPtr<StyleSheetContainer>& Element::GetStyleSheetContainer() const
+{
+	if (ElementDocument* document = GetOwnerDocument())
+		return document->GetStyleSheetContainer();	
+	static SharedPtr<StyleSheetContainer> null_style_sheet;
 	return null_style_sheet;
 }
 
@@ -2536,7 +2544,7 @@ void Element::HandleAnimationProperty()
 		StyleSheet* stylesheet = nullptr;
 
 		if (element_has_animations)
-			stylesheet = GetStyleSheet().get();
+			stylesheet = const_cast<StyleSheet*>(GetStyleSheet());
 
 		if (stylesheet)
 		{

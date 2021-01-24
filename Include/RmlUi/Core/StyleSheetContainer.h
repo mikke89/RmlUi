@@ -55,8 +55,13 @@ public:
 
 	/// Combines the underlying media blocks into a final merged stylesheet according to the given media features
 	/// @param[in] media_features The current media features of the style sheet's context
-	void UpdateMediaFeatures(const MediaFeatureMap& media_features);
-	
+	void UpdateMediaFeatures(Vector2i dimensions, float density_ratio, bool any_hover);
+	/// Builds the node index for a combined style sheet.
+	void BuildNodeIndex();
+	/// Optimizes some properties for faster retrieval.
+	/// Specifically, converts all decorator and font-effect properties from strings to instanced decorator and font effect lists.
+	void OptimizeNodeProperties();
+
 	/// Returns the currently compiled style sheet that has been merged from incorporating all matching media blocks.
 	StyleSheet* GetCompiledStyleSheet() const;
 

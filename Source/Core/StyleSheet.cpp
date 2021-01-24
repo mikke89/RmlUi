@@ -61,11 +61,11 @@ StyleSheet::~StyleSheet()
 }
 
 /// Combines this style sheet with another one, producing a new sheet
-SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_sheet) const
+UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_sheet) const
 {
 	RMLUI_ZoneScoped;
 
-	SharedPtr<StyleSheet> new_sheet = MakeShared<StyleSheet>();
+	UniquePtr<StyleSheet> new_sheet = MakeUnique<StyleSheet>();
 	
 	new_sheet->root = root->DeepCopy();
 	new_sheet->root->MergeHierarchy(other_sheet.root.get(), specificity_offset);
@@ -94,7 +94,7 @@ SharedPtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 	new_sheet->spritesheet_list.Merge(spritesheet_list);
 
 	new_sheet->specificity_offset = specificity_offset + other_sheet.specificity_offset;
-	return new_sheet;
+	return std::move(new_sheet);
 }
 
 // Builds the node index for a combined style sheet.

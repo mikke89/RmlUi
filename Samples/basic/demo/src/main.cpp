@@ -102,8 +102,8 @@ public:
 				Rml::StreamMemory stream((Rml::byte*)style_sheet_content.data(), style_sheet_content.size());
 				stream.SetSourceURL("sandbox://default_rcss");
 
-				rml_basic_style_sheet = MakeShared<Rml::StyleSheet>();
-				rml_basic_style_sheet->LoadStyleSheet(&stream);
+				rml_basic_style_sheet = MakeShared<Rml::StyleSheetContainer>();
+				rml_basic_style_sheet->LoadStyleSheetContainer(&stream);
 			}
 
 			// Add sandbox style sheet text.
@@ -224,13 +224,13 @@ public:
 	{
 		if (iframe && rml_basic_style_sheet)
 		{
-			auto style = Rml::MakeShared<Rml::StyleSheet>();
+			auto style = Rml::MakeShared<Rml::StyleSheetContainer>();
 			Rml::StreamMemory stream((const Rml::byte*)string.data(), string.size());
 			stream.SetSourceURL("sandbox://rcss");
 
-			style->LoadStyleSheet(&stream);
-			style = rml_basic_style_sheet->CombineStyleSheet(*style);
-			iframe->SetStyleSheet(style);
+			style->LoadStyleSheetContainer(&stream);
+			style = rml_basic_style_sheet->CombineStyleSheetContainer(*style);
+			iframe->SetStyleSheetContainer(style);
 		}
 	}
 
@@ -246,7 +246,7 @@ private:
 	Rml::ElementDocument *document = nullptr;
 	Rml::ElementDocument *iframe = nullptr;
 	Rml::Element *gauge = nullptr, *progress_horizontal = nullptr;
-	Rml::SharedPtr<Rml::StyleSheet> rml_basic_style_sheet;
+	Rml::SharedPtr<Rml::StyleSheetContainer> rml_basic_style_sheet;
 
 	bool submitting = false;
 	double submitting_start_time = 0;

@@ -1199,7 +1199,7 @@ void Context::CreateDragClone(Element* element)
 	cursor_proxy->AppendChild(std::move(element_drag_clone));
 
 	// Set the style sheet on the cursor proxy.
-	static_cast<ElementDocument&>(*cursor_proxy).SetStyleSheet(element->GetStyleSheet());
+	static_cast<ElementDocument&>(*cursor_proxy).SetStyleSheetContainer(element->GetOwnerDocument()->GetStyleSheetContainer());
 
 	// Set all the required properties and pseudo-classes on the clone.
 	drag_clone->SetPseudoClass("drag", true);

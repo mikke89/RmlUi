@@ -33,6 +33,7 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "DocumentHeader.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
@@ -95,22 +96,22 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 
 	// If a style-sheet (or sheets) has been specified for this element, then we load them and set the combined sheet
 	// on the element; all of its children will inherit it by default.
-	SharedPtr<StyleSheet> new_style_sheet;
+	SharedPtr<StyleSheetContainer> new_style_sheet;
 
 	// Combine any inline sheets.
 	for (const DocumentHeader::Resource& rcss : header.rcss)
 	{
 		if (rcss.is_inline)
 		{
-			UniquePtr<StyleSheet> inline_sheet = MakeUnique<StyleSheet>();
+			UniquePtr<StyleSheetContainer> inline_sheet = MakeUnique<StyleSheetContainer>();
 			auto stream = MakeUnique<StreamMemory>((const byte*)rcss.content.c_str(), rcss.content.size());
 			stream->SetSourceURL(rcss.path);
 
-			if (inline_sheet->LoadStyleSheet(stream.get(), rcss.line))
+			if (inline_sheet->LoadStyleSheetContainer(stream.get(), rcss.line))
 			{
 				if (new_style_sheet)
 				{
-					SharedPtr<StyleSheet> combined_sheet = new_style_sheet->CombineStyleSheet(*inline_sheet);
+					SharedPtr<StyleSheetContainer> combined_sheet = new_style_sheet->CombineStyleSheetContainer(*inline_sheet);
 					new_style_sheet = combined_sheet;
 				}
 				else
@@ -121,12 +122,12 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		}
 		else
 		{
-			SharedPtr<StyleSheet> sub_sheet = StyleSheetFactory::GetStyleSheet(rcss.path);
+			SharedPtr<StyleSheetContainer> sub_sheet = StyleSheetFactory::GetStyleSheetContainer(rcss.path);
 			if (sub_sheet)
 			{
 				if (new_style_sheet)
 				{
-					SharedPtr<StyleSheet> combined_sheet = new_style_sheet->CombineStyleSheet(*sub_sheet);
+					SharedPtr<StyleSheetContainer> combined_sheet = new_style_sheet->CombineStyleSheetContainer(*sub_sheet);
 					new_style_sheet = std::move(combined_sheet);
 				}
 				else
@@ -140,7 +141,8 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	// If a style sheet is available, set it on the document and release it.
 	if (new_style_sheet)
 	{
-		SetStyleSheet(std::move(new_style_sheet));
+		SetStyleSheetContainer(std::move(new_style_sheet));
+		style_sheet = style_sheet_container->GetCompiledStyleSheet();
 	}
 
 	// Load scripts.
@@ -189,28 +191,38 @@ const String& ElementDocument::GetSourceURL() const
 }
 
 // Sets the style sheet this document, and all of its children, uses.
-void ElementDocument::SetStyleSheet(SharedPtr<StyleSheet> _style_sheet)
+void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _style_sheet_container)
 {
 	RMLUI_ZoneScoped;
 
-	if (style_sheet == _style_sheet)
+	if (style_sheet_container == _style_sheet_container)
 		return;
 
-	style_sheet = std::move(_style_sheet);
+	style_sheet_container = std::move(_style_sheet_container);
 	
-	if (style_sheet)
+	if (style_sheet_container)
 	{
-		style_sheet->BuildNodeIndex();
-		style_sheet->OptimizeNodeProperties();
+		if(auto ctx = GetContext())
+			style_sheet_container->UpdateMediaFeatures(ctx->GetDimensions(), ctx->GetDensityIndependentPixelRatio(), true);
+		style_sheet_container->BuildNodeIndex();
+		style_sheet_container->OptimizeNodeProperties();
 	}
 
 	GetStyle()->DirtyDefinition();
 }
 
 // Returns the document's style sheet.
-const SharedPtr<StyleSheet>& ElementDocument::GetStyleSheet() const
+const StyleSheet* ElementDocument::GetStyleSheet() const
 {
-	return style_sheet;
+	if(style_sheet_container)
+		return style_sheet_container->GetCompiledStyleSheet();
+	return nullptr;
+}
+
+// Returns the document's style sheet container.
+const SharedPtr<StyleSheetContainer>& ElementDocument::GetStyleSheetContainer() const
+{
+	return style_sheet_container;
 }
 
 // Reload the document's style sheet from source files.
@@ -233,7 +245,7 @@ void ElementDocument::ReloadStyleSheet()
 		return;
 	}
 
-	SetStyleSheet(temp_doc->GetStyleSheet());
+	SetStyleSheetContainer(temp_doc->GetStyleSheetContainer());
 }
 
 // Brings the document to the front of the document stack.

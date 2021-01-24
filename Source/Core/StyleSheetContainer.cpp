@@ -35,7 +35,6 @@ namespace Rml {
 
 StyleSheetContainer::StyleSheetContainer()
 {
-    compiled_style_sheet = MakeUnique<StyleSheet>();
 }
 
 StyleSheetContainer::~StyleSheetContainer()
@@ -49,8 +48,112 @@ bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line
 	return rule_count >= 0;
 }
 
-void StyleSheetContainer::UpdateMediaFeatures(const MediaFeatureMap& media_features)
+void StyleSheetContainer::UpdateMediaFeatures(Vector2i dimensions, float density_ratio, bool any_hover)
 {
+    UniquePtr<StyleSheet> new_sheet = MakeUnique<StyleSheet>();
+
+    for(auto const& pair : media_blocks)
+    {
+        bool all_match = true;
+        for(auto const& property : pair.first)
+        {
+            switch(property.first) 
+            {
+            case MediaFeatureId::Width:
+                if(dimensions.x != property.second.Get<int>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::MinWidth:
+                if(dimensions.x < property.second.Get<int>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::MaxWidth:
+                if(dimensions.x > property.second.Get<int>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::Height:
+                if(dimensions.y != property.second.Get<int>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::MinHeight:
+                if(dimensions.y < property.second.Get<int>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::MaxHeight:
+                if(dimensions.y > property.second.Get<int>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::AspectRatio:
+                if(((float)dimensions.x / (float)dimensions.y) != property.second.Get<float>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::MinAspectRatio:
+                if(((float)dimensions.x / (float)dimensions.y) < property.second.Get<float>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::MaxAspectRatio:
+                if(((float)dimensions.x / (float)dimensions.y) > property.second.Get<float>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::Resolution:
+                if(density_ratio != property.second.Get<float>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::MinResolution:
+                if(density_ratio < property.second.Get<float>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::MaxResolution:
+                if(density_ratio > property.second.Get<float>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::Orientation:
+                // Landscape (x > y) = 0 
+                // Portrait (x <= y) = 1
+                if((dimensions.x <= dimensions.y) != property.second.Get<bool>())
+                    all_match = false;
+                break;
+            case MediaFeatureId::AnyHover:
+                if(any_hover != property.second.Get<bool>())
+                    all_match = false;
+                break;
+
+            // Invalid properties
+            case MediaFeatureId::Invalid:
+            case MediaFeatureId::NumDefinedIds:
+            case MediaFeatureId::MaxNumIds:
+                break;
+            }
+            
+            if(!all_match)
+                break;
+        }
+
+        if(all_match)
+        {
+            new_sheet = new_sheet->CombineStyleSheet(*pair.second);
+        }
+    }
+
+    compiled_style_sheet = std::move(new_sheet);
+}
+
+void StyleSheetContainer::BuildNodeIndex()
+{
+    for(auto& pair : media_blocks)
+        pair.second->BuildNodeIndex();
+
+    if (compiled_style_sheet)
+        compiled_style_sheet->BuildNodeIndex();
+}
+
+void StyleSheetContainer::OptimizeNodeProperties()
+{
+    for(auto& pair : media_blocks)
+        pair.second->OptimizeNodeProperties();
+
+    if (compiled_style_sheet)
+        compiled_style_sheet->OptimizeNodeProperties();
 }
 
 StyleSheet* StyleSheetContainer::GetCompiledStyleSheet() const
@@ -61,7 +164,31 @@ StyleSheet* StyleSheetContainer::GetCompiledStyleSheet() const
 /// Combines this style sheet container with another one, producing a new sheet container.
 SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(const StyleSheetContainer& container) const
 {
-    return {};
+    SharedPtr<StyleSheetContainer> new_sheet = MakeShared<StyleSheetContainer>();
+
+    for(auto const& pair : media_blocks)
+    {      
+        new_sheet->media_blocks.emplace_back(MediaFeatureMap{pair.first}, pair.second->CombineStyleSheet(StyleSheet{}));
+    }
+
+    for(auto const& pair : container.media_blocks)
+    {      
+        bool block_found = false;
+        for(auto& media_block : new_sheet->media_blocks)
+        {
+            if(pair.first == media_block.first)
+            {
+                media_block.second = media_block.second->CombineStyleSheet(*pair.second);
+                block_found = true;
+                break;
+            }
+        }
+
+        if (!block_found)
+            new_sheet->media_blocks.emplace_back(MediaFeatureMap{pair.first}, pair.second->CombineStyleSheet(StyleSheet{}));
+    }
+
+    return new_sheet;
 }
 
 } // namespace Rml
