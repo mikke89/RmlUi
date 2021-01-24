@@ -93,7 +93,7 @@ TEST_CASE("mediaqueries.basic")
 	document->GetElementsByTagName(elems, "div");
 	CHECK(elems.size() == 1);
 
-	CHECK(elems[0]->GetBox() == Box(Vector2f(32.0f, 32.0f)));
+	CHECK(elems[0]->GetBox() == Box(Vector2f(64.0f, 64.0f)));
 
 	document->Close();
 
