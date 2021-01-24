@@ -47,6 +47,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerDataGrid.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerInclude.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventDispatcher.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventInstancerDefault.h
@@ -305,6 +306,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerDataGrid.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerInclude.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementText.cpp

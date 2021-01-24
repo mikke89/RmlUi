@@ -84,6 +84,7 @@
 #include "Elements/XMLNodeHandlerDataGrid.h"
 #include "Elements/XMLNodeHandlerTabSet.h"
 #include "Elements/XMLNodeHandlerTextArea.h"
+#include "Elements/XMLNodeHandlerInclude.h"
 
 #include <algorithm>
 
@@ -286,6 +287,7 @@ bool Factory::Initialise()
 	XMLParser::RegisterNodeHandler("body", MakeShared<XMLNodeHandlerBody>());
 	XMLParser::RegisterNodeHandler("head", MakeShared<XMLNodeHandlerHead>());
 	XMLParser::RegisterNodeHandler("template", MakeShared<XMLNodeHandlerTemplate>());
+	XMLParser::RegisterNodeHandler("include", MakeShared<XMLNodeHandlerInclude>());
 
 	// XML node handlers for control elements
 	XMLParser::RegisterNodeHandler("datagrid", MakeShared<XMLNodeHandlerDataGrid>());

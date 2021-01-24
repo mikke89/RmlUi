@@ -3,7 +3,7 @@
  *
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
- * Copyright (c) 2014 Markus Schöngart
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
  * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,48 +26,32 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/Transform.h"
-#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
-#include "../../Include/RmlUi/Core/TransformPrimitive.h"
-#include "../../Include/RmlUi/Core/Property.h"
+#ifndef RMLUI_CORE_ELEMENTS_XMLNODEHANDLERINCLUDE_H
+#define RMLUI_CORE_ELEMENTS_XMLNODEHANDLERINCLUDE_H
+
+#include "../../../Include/RmlUi/Core/XMLNodeHandler.h"
 
 namespace Rml {
 
-// Default constructor, initializes an identity transform
-Transform::Transform()
-{
-}
+/**
+	Node handler that processes the contents of the include tag.
 
-Transform::Transform(PrimitiveList primitives) 
-	: primitives(std::move(primitives))
-{
-}
+	@author Maximilian Stark
+ */
 
-Property Transform::MakeProperty(PrimitiveList primitives)
+class XMLNodeHandlerInclude : public XMLNodeHandler
 {
-	Property p( TransformPtr(new Transform(std::move(primitives))), Property::TRANSFORM );
-	p.definition = StyleSheetSpecification::GetProperty(PropertyId::Transform);
-	return p;
-}
+public:
+	XMLNodeHandlerInclude();
+	virtual ~XMLNodeHandlerInclude();
 
-void Transform::ClearPrimitives() 
-{
-	primitives.clear();
-}
-
-void Transform::AddPrimitive(const TransformPrimitive & p)
-{
-	primitives.push_back(p);
-}
-
-int Transform::GetNumPrimitives() const noexcept 
-{
-	return (int)primitives.size();
-}
-
-const TransformPrimitive & Transform::GetPrimitive(int i) const noexcept 
-{
-	return primitives[i];
-}
+	/// Called when a new element is opened.
+	Element* ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes) override;
+	/// Called when an element is closed.
+	bool ElementEnd(XMLParser* parser, const String& name) override;
+	/// Called for element data.
+	bool ElementData(XMLParser* parser, const String& data, XMLDataType type) override;
+};
 
 } // namespace Rml
+#endif
