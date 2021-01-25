@@ -36,6 +36,7 @@
 
 namespace Rml {
 
+enum class PropertyFlags;
 class StyleSheetSpecification;
 class PropertyDefinition;
 class PropertyDictionary;
@@ -74,11 +75,10 @@ public:
 	/// Registers a property with a new definition.
 	/// @param[in] property_name The name to register the new property under.
 	/// @param[in] default_value The default value to be used for an element if it has no other definition provided.
-	/// @param[in] inherited True if this property is inherited from parent to child, false otherwise.
-	/// @param[in] forces_layout True if this property requires its parent to be reformatted if changed.
+	/// @param[in] flags The flags for this property. Combine multiple using the "|" bitwise or operator.
 	/// @param[in] id If 'Invalid' then automatically assigns a new id, otherwise assigns the given id.
 	/// @return The new property definition, ready to have parsers attached.
-	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout, PropertyId id = PropertyId::Invalid);
+	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, PropertyFlags flags, PropertyId id = PropertyId::Invalid);
 	/// Returns a property definition.
 	/// @param[in] id The id of the desired property.
 	/// @return The appropriate property definition if it could be found, nullptr otherwise.

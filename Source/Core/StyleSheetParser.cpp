@@ -89,10 +89,10 @@ private:
 public:
 	SpritesheetPropertyParser() : specification(4, 1) 
 	{
-		id_rx = specification.RegisterProperty("rectangle-x", "", false, false).AddParser("length").GetId();
-		id_ry = specification.RegisterProperty("rectangle-y", "", false, false).AddParser("length").GetId();
-		id_rw = specification.RegisterProperty("rectangle-w", "", false, false).AddParser("length").GetId();
-		id_rh = specification.RegisterProperty("rectangle-h", "", false, false).AddParser("length").GetId();
+		id_rx = specification.RegisterProperty("rectangle-x", "", PropertyFlags::Empty).AddParser("length").GetId();
+		id_ry = specification.RegisterProperty("rectangle-y", "", PropertyFlags::Empty).AddParser("length").GetId();
+		id_rw = specification.RegisterProperty("rectangle-w", "", PropertyFlags::Empty).AddParser("length").GetId();
+		id_rh = specification.RegisterProperty("rectangle-h", "", PropertyFlags::Empty).AddParser("length").GetId();
 		id_rectangle = specification.RegisterShorthand("rectangle", "rectangle-x, rectangle-y, rectangle-w, rectangle-h", ShorthandType::FallThrough);
 	}
 
@@ -338,7 +338,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	return true;
 }
 
-bool StyleSheetParser::ParseMediaFeatureMap(MediaFeatureMap& media_feature_map, const String & rules)
+bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& media_feature_map, const String & rules)
 {
 	enum ParseState { Global, Name, Value };
 	ParseState state = Name;
@@ -446,7 +446,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 	State state = State::Global;
 
 
-	Pair<MediaFeatureMap, UniquePtr<StyleSheet>> current_block = {};
+	Pair<PropertyDictionary, UniquePtr<StyleSheet>> current_block = {};
 
 	// Need to track whether currently inside a nested media block or not, since the default scope is also a media block
 	bool inside_media_block = false;
@@ -470,7 +470,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					// Initialize current block if not present
 					if (!current_block.second)
 					{
-						current_block = {MediaFeatureMap{}, MakeUnique<StyleSheet>()};
+						current_block = {PropertyDictionary{}, MakeUnique<StyleSheet>()};
 					}
 
 					const int rule_line_number = (int)line_number;
@@ -520,7 +520,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					// Initialize current block if not present
 					if (!current_block.second)
 					{
-						current_block = {MediaFeatureMap{}, MakeUnique<StyleSheet>()};
+						current_block = {PropertyDictionary{}, MakeUnique<StyleSheet>()};
 					}
 
 					String at_rule_identifier = pre_token_str.substr(0, pre_token_str.find(' '));
@@ -577,7 +577,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 						}
 
 						// parse media query list into block
-						MediaFeatureMap feature_map;
+						PropertyDictionary feature_map;
 						ParseMediaFeatureMap(feature_map, pre_token_str.substr(pre_token_str.find(' ') + 1));
 						current_block = {feature_map, MakeUnique<StyleSheet>()};
 
@@ -607,7 +607,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					// Initialize current block if not present
 					if (!current_block.second)
 					{
-						current_block = {MediaFeatureMap{}, MakeUnique<StyleSheet>()};
+						current_block = {PropertyDictionary{}, MakeUnique<StyleSheet>()};
 					}
 
 					// Each keyframe in keyframes has its own block which is processed here

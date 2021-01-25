@@ -32,11 +32,9 @@
 
 namespace Rml {
 
-PropertyDefinition::PropertyDefinition(PropertyId id, const String& _default_value, bool _inherited, bool _forces_layout) 
-	: id(id), default_value(_default_value, Property::UNKNOWN), relative_target(RelativeTarget::None)
+PropertyDefinition::PropertyDefinition(PropertyId id, const String& _default_value, PropertyFlags _flags) 
+	: id(id), default_value(_default_value, Property::UNKNOWN), relative_target(RelativeTarget::None), flags(_flags)
 {
-	inherited = _inherited;
-	forces_layout = _forces_layout;
 	default_value.definition = this;
 }
 
@@ -172,16 +170,10 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 	return true;
 }
 
-// Returns true if this property is inherited from a parent to child elements.
-bool PropertyDefinition::IsInherited() const
+// Returns the flags for this property.
+PropertyFlags PropertyDefinition::GetFlags() const
 {
-	return inherited;
-}
-
-// Returns true if this property forces a re-layout when changed.
-bool PropertyDefinition::IsLayoutForced() const
-{
-	return forces_layout;
+	return flags;
 }
 
 // Returns the default for this property.

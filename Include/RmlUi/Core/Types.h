@@ -88,7 +88,6 @@ struct TransitionList;
 struct Rectangle;
 enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
-enum class MediaFeatureId : uint8_t;
 enum class FamilyId : int;
 
 // Types for external interfaces.
@@ -111,7 +110,6 @@ using ElementAnimationList = Vector< ElementAnimation >;
 
 using AttributeNameList = SmallUnorderedSet< String >;
 using PropertyMap = UnorderedMap< PropertyId, Property >;
-using MediaFeatureMap = UnorderedMap<MediaFeatureId, Property>;
 
 using Dictionary = SmallUnorderedMap< String, Variant >;
 using ElementAttributes = Dictionary;

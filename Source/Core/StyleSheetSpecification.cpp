@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "PropertyParserNumber.h"
 #include "PropertyParserAnimation.h"
+#include "PropertyParserAspectRatio.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserKeyword.h"
 #include "PropertyParserString.h"
@@ -55,6 +56,8 @@ struct DefaultStyleSheetParsers {
 	PropertyParserAnimation transition = PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER);
 	PropertyParserColour color = PropertyParserColour();
 	PropertyParserTransform transform = PropertyParserTransform();
+	PropertyParserAspectRatio aspect_ratio = PropertyParserAspectRatio();
+	PropertyParserNumber resolution = PropertyParserNumber(Property::DPI);
 };
 
 StyleSheetSpecification::StyleSheetSpecification() : 
@@ -73,9 +76,9 @@ StyleSheetSpecification::~StyleSheetSpecification()
 	instance = nullptr;
 }
 
-PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout)
+PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, const String& property_name, const String& default_value, PropertyFlags flags)
 {
-	return properties.RegisterProperty(property_name, default_value, inherited, forces_layout, id);
+	return properties.RegisterProperty(property_name, default_value, flags, id);
 }
 
 ShorthandId StyleSheetSpecification::RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type)
@@ -129,10 +132,10 @@ PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 }
 
 // Registers a property with a new definition.
-PropertyDefinition& StyleSheetSpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
+PropertyDefinition& StyleSheetSpecification::RegisterProperty(const String& property_name, const String& default_value, PropertyFlags flags)
 {
 	RMLUI_ASSERTMSG((size_t)instance->properties.property_map->GetId(property_name) < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
-	return instance->RegisterProperty(PropertyId::Invalid, property_name, default_value, inherited, forces_layout); 
+	return instance->RegisterProperty(PropertyId::Invalid, property_name, default_value, flags); 
 }
 
 // Returns a property definition.
@@ -247,6 +250,8 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("transition", &default_parsers->transition);
 	RegisterParser("color", &default_parsers->color);
 	RegisterParser("transform", &default_parsers->transform);
+	RegisterParser("aspect_ratio", &default_parsers->aspect_ratio);
+	RegisterParser("resolution", &default_parsers->resolution);
 }
 
 
@@ -264,36 +269,36 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	*/
 
-	RegisterProperty(PropertyId::MarginTop, "margin-top", "0px", false, true)
+	RegisterProperty(PropertyId::MarginTop, "margin-top", "0px", PropertyFlags::ForcesLayout)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::MarginRight, "margin-right", "0px", false, true)
+	RegisterProperty(PropertyId::MarginRight, "margin-right", "0px", PropertyFlags::ForcesLayout)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::MarginBottom, "margin-bottom", "0px", false, true)
+	RegisterProperty(PropertyId::MarginBottom, "margin-bottom", "0px", PropertyFlags::ForcesLayout)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::MarginLeft, "margin-left", "0px", false, true)
+	RegisterProperty(PropertyId::MarginLeft, "margin-left", "0px", PropertyFlags::ForcesLayout)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 	RegisterShorthand(ShorthandId::Margin, "margin", "margin-top, margin-right, margin-bottom, margin-left", ShorthandType::Box);
 
-	RegisterProperty(PropertyId::PaddingTop, "padding-top", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::PaddingRight, "padding-right", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::PaddingBottom, "padding-bottom", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::PaddingLeft, "padding-left", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::PaddingTop, "padding-top", "0px", PropertyFlags::ForcesLayout).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::PaddingRight, "padding-right", "0px", PropertyFlags::ForcesLayout).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::PaddingBottom, "padding-bottom", "0px", PropertyFlags::ForcesLayout).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::PaddingLeft, "padding-left", "0px", PropertyFlags::ForcesLayout).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 	RegisterShorthand(ShorthandId::Padding, "padding", "padding-top, padding-right, padding-bottom, padding-left", ShorthandType::Box);
 
-	RegisterProperty(PropertyId::BorderTopWidth, "border-top-width", "0px", false, true).AddParser("length");
-	RegisterProperty(PropertyId::BorderRightWidth, "border-right-width", "0px", false, true).AddParser("length");
-	RegisterProperty(PropertyId::BorderBottomWidth, "border-bottom-width", "0px", false, true).AddParser("length");
-	RegisterProperty(PropertyId::BorderLeftWidth, "border-left-width", "0px", false, true).AddParser("length");
+	RegisterProperty(PropertyId::BorderTopWidth, "border-top-width", "0px", PropertyFlags::ForcesLayout).AddParser("length");
+	RegisterProperty(PropertyId::BorderRightWidth, "border-right-width", "0px", PropertyFlags::ForcesLayout).AddParser("length");
+	RegisterProperty(PropertyId::BorderBottomWidth, "border-bottom-width", "0px", PropertyFlags::ForcesLayout).AddParser("length");
+	RegisterProperty(PropertyId::BorderLeftWidth, "border-left-width", "0px", PropertyFlags::ForcesLayout).AddParser("length");
 	RegisterShorthand(ShorthandId::BorderWidth, "border-width", "border-top-width, border-right-width, border-bottom-width, border-left-width", ShorthandType::Box);
 
-	RegisterProperty(PropertyId::BorderTopColor, "border-top-color", "black", false, false).AddParser("color");
-	RegisterProperty(PropertyId::BorderRightColor, "border-right-color", "black", false, false).AddParser("color");
-	RegisterProperty(PropertyId::BorderBottomColor, "border-bottom-color", "black", false, false).AddParser("color");
-	RegisterProperty(PropertyId::BorderLeftColor, "border-left-color", "black", false, false).AddParser("color");
+	RegisterProperty(PropertyId::BorderTopColor, "border-top-color", "black", PropertyFlags::Empty).AddParser("color");
+	RegisterProperty(PropertyId::BorderRightColor, "border-right-color", "black", PropertyFlags::Empty).AddParser("color");
+	RegisterProperty(PropertyId::BorderBottomColor, "border-bottom-color", "black", PropertyFlags::Empty).AddParser("color");
+	RegisterProperty(PropertyId::BorderLeftColor, "border-left-color", "black", PropertyFlags::Empty).AddParser("color");
 	RegisterShorthand(ShorthandId::BorderColor, "border-color", "border-top-color, border-right-color, border-bottom-color, border-left-color", ShorthandType::Box);
 
 	RegisterShorthand(ShorthandId::BorderTop, "border-top", "border-top-width, border-top-color", ShorthandType::FallThrough);
@@ -302,114 +307,125 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterShorthand(ShorthandId::BorderLeft, "border-left", "border-left-width, border-left-color", ShorthandType::FallThrough);
 	RegisterShorthand(ShorthandId::Border, "border", "border-top, border-right, border-bottom, border-left", ShorthandType::RecursiveRepeat);
 
-	RegisterProperty(PropertyId::BorderTopLeftRadius, "border-top-left-radius", "0px", false, false).AddParser("length");
-	RegisterProperty(PropertyId::BorderTopRightRadius, "border-top-right-radius", "0px", false, false).AddParser("length");
-	RegisterProperty(PropertyId::BorderBottomRightRadius, "border-bottom-right-radius", "0px", false, false).AddParser("length");
-	RegisterProperty(PropertyId::BorderBottomLeftRadius, "border-bottom-left-radius", "0px", false, false).AddParser("length");
+	RegisterProperty(PropertyId::BorderTopLeftRadius, "border-top-left-radius", "0px", PropertyFlags::Empty).AddParser("length");
+	RegisterProperty(PropertyId::BorderTopRightRadius, "border-top-right-radius", "0px", PropertyFlags::Empty).AddParser("length");
+	RegisterProperty(PropertyId::BorderBottomRightRadius, "border-bottom-right-radius", "0px", PropertyFlags::Empty).AddParser("length");
+	RegisterProperty(PropertyId::BorderBottomLeftRadius, "border-bottom-left-radius", "0px", PropertyFlags::Empty).AddParser("length");
 	RegisterShorthand(ShorthandId::BorderRadius, "border-radius", "border-top-left-radius, border-top-right-radius, border-bottom-right-radius, border-bottom-left-radius", ShorthandType::Box);
 
-	RegisterProperty(PropertyId::Display, "display", "inline", false, true).AddParser("keyword", "none, block, inline, inline-block, table, table-row, table-row-group, table-column, table-column-group, table-cell");
-	RegisterProperty(PropertyId::Position, "position", "static", false, true).AddParser("keyword", "static, relative, absolute, fixed");
-	RegisterProperty(PropertyId::Top, "top", "auto", false, false)
+	RegisterProperty(PropertyId::Display, "display", "inline", PropertyFlags::ForcesLayout).AddParser("keyword", "none, block, inline, inline-block, table, table-row, table-row-group, table-column, table-column-group, table-cell");
+	RegisterProperty(PropertyId::Position, "position", "static", PropertyFlags::ForcesLayout).AddParser("keyword", "static, relative, absolute, fixed");
+	RegisterProperty(PropertyId::Top, "top", "auto", PropertyFlags::Empty)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(PropertyId::Right, "right", "auto", false, false)
+	RegisterProperty(PropertyId::Right, "right", "auto", PropertyFlags::Empty)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::Bottom, "bottom", "auto", false, false)
+	RegisterProperty(PropertyId::Bottom, "bottom", "auto", PropertyFlags::Empty)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(PropertyId::Left, "left", "auto", false, false)
+	RegisterProperty(PropertyId::Left, "left", "auto", PropertyFlags::Empty)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 
-	RegisterProperty(PropertyId::Float, "float", "none", false, true).AddParser("keyword", "none, left, right");
-	RegisterProperty(PropertyId::Clear, "clear", "none", false, true).AddParser("keyword", "none, left, right, both");
+	RegisterProperty(PropertyId::Float, "float", "none", PropertyFlags::ForcesLayout).AddParser("keyword", "none, left, right");
+	RegisterProperty(PropertyId::Clear, "clear", "none", PropertyFlags::ForcesLayout).AddParser("keyword", "none, left, right, both");
 
-	RegisterProperty(PropertyId::BoxSizing, "box-sizing", "content-box", false, true).AddParser("keyword", "content-box, border-box");
+	RegisterProperty(PropertyId::BoxSizing, "box-sizing", "content-box", PropertyFlags::ForcesLayout).AddParser("keyword", "content-box, border-box");
 
-	RegisterProperty(PropertyId::ZIndex, "z-index", "auto", false, false)
+	RegisterProperty(PropertyId::ZIndex, "z-index", "auto", PropertyFlags::Empty)
 		.AddParser("keyword", "auto")
 		.AddParser("number");
 
-	RegisterProperty(PropertyId::Width, "width", "auto", false, true)
+	RegisterProperty(PropertyId::Width, "width", "auto", PropertyFlags::ForcesLayout | PropertyFlags::MediaQuery)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::MinWidth, "min-width", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::MaxWidth, "max-width", "-1px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::MinWidth, "min-width", "0px", PropertyFlags::ForcesLayout | PropertyFlags::MediaQuery).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::MaxWidth, "max-width", "-1px", PropertyFlags::ForcesLayout | PropertyFlags::MediaQuery).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 
-	RegisterProperty(PropertyId::Height, "height", "auto", false, true)
+	RegisterProperty(PropertyId::Height, "height", "auto", PropertyFlags::ForcesLayout | PropertyFlags::MediaQuery)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(PropertyId::MinHeight, "min-height", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(PropertyId::MaxHeight, "max-height", "-1px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::MinHeight, "min-height", "0px", PropertyFlags::ForcesLayout | PropertyFlags::MediaQuery).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::MaxHeight, "max-height", "-1px", PropertyFlags::ForcesLayout | PropertyFlags::MediaQuery).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
 
-	RegisterProperty(PropertyId::LineHeight, "line-height", "1.2", true, true).AddParser("number_length_percent").SetRelativeTarget(RelativeTarget::FontSize);
-	RegisterProperty(PropertyId::VerticalAlign, "vertical-align", "baseline", false, true)
+	RegisterProperty(PropertyId::LineHeight, "line-height", "1.2", PropertyFlags::Inherited | PropertyFlags::ForcesLayout).AddParser("number_length_percent").SetRelativeTarget(RelativeTarget::FontSize);
+	RegisterProperty(PropertyId::VerticalAlign, "vertical-align", "baseline", PropertyFlags::ForcesLayout)
 		.AddParser("keyword", "baseline, middle, sub, super, text-top, text-bottom, top, bottom")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::LineHeight);
 
-	RegisterProperty(PropertyId::OverflowX, "overflow-x", "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
-	RegisterProperty(PropertyId::OverflowY, "overflow-y", "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");
+	RegisterProperty(PropertyId::OverflowX, "overflow-x", "visible", PropertyFlags::ForcesLayout).AddParser("keyword", "visible, hidden, auto, scroll");
+	RegisterProperty(PropertyId::OverflowY, "overflow-y", "visible", PropertyFlags::ForcesLayout).AddParser("keyword", "visible, hidden, auto, scroll");
 	RegisterShorthand(ShorthandId::Overflow, "overflow", "overflow-x, overflow-y", ShorthandType::Replicate);
-	RegisterProperty(PropertyId::Clip, "clip", "auto", true, false).AddParser("keyword", "auto, none").AddParser("number");
-	RegisterProperty(PropertyId::Visibility, "visibility", "visible", false, false).AddParser("keyword", "visible, hidden");
+	RegisterProperty(PropertyId::Clip, "clip", "auto", PropertyFlags::Inherited).AddParser("keyword", "auto, none").AddParser("number");
+	RegisterProperty(PropertyId::Visibility, "visibility", "visible", PropertyFlags::Empty).AddParser("keyword", "visible, hidden");
 
 	// Need some work on this if we are to include images.
-	RegisterProperty(PropertyId::BackgroundColor, "background-color", "transparent", false, false).AddParser("color");
+	RegisterProperty(PropertyId::BackgroundColor, "background-color", "transparent", PropertyFlags::Empty).AddParser("color");
 	RegisterShorthand(ShorthandId::Background, "background", "background-color", ShorthandType::FallThrough);
 
-	RegisterProperty(PropertyId::Color, "color", "white", true, false).AddParser("color");
+	RegisterProperty(PropertyId::Color, "color", "white", PropertyFlags::Inherited).AddParser("color");
 
-	RegisterProperty(PropertyId::CaretColor, "caret-color", "auto", true, false).AddParser("keyword", "auto").AddParser("color");
+	RegisterProperty(PropertyId::CaretColor, "caret-color", "auto", PropertyFlags::Inherited).AddParser("keyword", "auto").AddParser("color");
 
-	RegisterProperty(PropertyId::ImageColor, "image-color", "white", false, false).AddParser("color");
-	RegisterProperty(PropertyId::Opacity, "opacity", "1", true, false).AddParser("number");
+	RegisterProperty(PropertyId::ImageColor, "image-color", "white", PropertyFlags::Empty).AddParser("color");
+	RegisterProperty(PropertyId::Opacity, "opacity", "1", PropertyFlags::Inherited).AddParser("number");
 
-	RegisterProperty(PropertyId::FontFamily, "font-family", "", true, true).AddParser("string");
-	RegisterProperty(PropertyId::FontStyle, "font-style", "normal", true, true).AddParser("keyword", "normal, italic");
-	RegisterProperty(PropertyId::FontWeight, "font-weight", "normal", true, true).AddParser("keyword", "normal, bold");
-	RegisterProperty(PropertyId::FontSize, "font-size", "12px", true, true).AddParser("length").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ParentFontSize);
+	RegisterProperty(PropertyId::FontFamily, "font-family", "", PropertyFlags::Inherited | PropertyFlags::ForcesLayout).AddParser("string");
+	RegisterProperty(PropertyId::FontStyle, "font-style", "normal", PropertyFlags::Inherited | PropertyFlags::ForcesLayout).AddParser("keyword", "normal, italic");
+	RegisterProperty(PropertyId::FontWeight, "font-weight", "normal", PropertyFlags::Inherited | PropertyFlags::ForcesLayout).AddParser("keyword", "normal, bold");
+	RegisterProperty(PropertyId::FontSize, "font-size", "12px", PropertyFlags::Inherited | PropertyFlags::ForcesLayout).AddParser("length").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ParentFontSize);
 	RegisterShorthand(ShorthandId::Font, "font", "font-style, font-weight, font-size, font-family", ShorthandType::FallThrough);
 
-	RegisterProperty(PropertyId::TextAlign, "text-align", "left", true, true).AddParser("keyword", "left, right, center, justify");
-	RegisterProperty(PropertyId::TextDecoration, "text-decoration", "none", true, false).AddParser("keyword", "none, underline, overline, line-through");
-	RegisterProperty(PropertyId::TextTransform, "text-transform", "none", true, true).AddParser("keyword", "none, capitalize, uppercase, lowercase");
-	RegisterProperty(PropertyId::WhiteSpace, "white-space", "normal", true, true).AddParser("keyword", "normal, pre, nowrap, pre-wrap, pre-line");
-	RegisterProperty(PropertyId::WordBreak, "word-break", "normal", true, true).AddParser("keyword", "normal, break-all, break-word");
+	RegisterProperty(PropertyId::TextAlign, "text-align", "left", PropertyFlags::Inherited | PropertyFlags::ForcesLayout).AddParser("keyword", "left, right, center, justify");
+	RegisterProperty(PropertyId::TextDecoration, "text-decoration", "none", PropertyFlags::Inherited).AddParser("keyword", "none, underline, overline, line-through");
+	RegisterProperty(PropertyId::TextTransform, "text-transform", "none", PropertyFlags::Inherited | PropertyFlags::ForcesLayout).AddParser("keyword", "none, capitalize, uppercase, lowercase");
+	RegisterProperty(PropertyId::WhiteSpace, "white-space", "normal", PropertyFlags::Inherited | PropertyFlags::ForcesLayout).AddParser("keyword", "normal, pre, nowrap, pre-wrap, pre-line");
+	RegisterProperty(PropertyId::WordBreak, "word-break", "normal", PropertyFlags::Inherited | PropertyFlags::ForcesLayout).AddParser("keyword", "normal, break-all, break-word");
 
-	RegisterProperty(PropertyId::RowGap, "row-gap", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(PropertyId::ColumnGap, "column-gap", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::RowGap, "row-gap", "0px", PropertyFlags::ForcesLayout).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::ColumnGap, "column-gap", "0px", PropertyFlags::ForcesLayout).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
 	RegisterShorthand(ShorthandId::Gap, "gap", "row-gap, column-gap", ShorthandType::Replicate);
 
-	RegisterProperty(PropertyId::Cursor, "cursor", "", true, false).AddParser("string");
+	RegisterProperty(PropertyId::Cursor, "cursor", "", PropertyFlags::Inherited).AddParser("string");
 
 	// Functional property specifications.
-	RegisterProperty(PropertyId::Drag, "drag", "none", false, false).AddParser("keyword", "none, drag, drag-drop, block, clone");
-	RegisterProperty(PropertyId::TabIndex, "tab-index", "none", false, false).AddParser("keyword", "none, auto");
-	RegisterProperty(PropertyId::Focus, "focus", "auto", true, false).AddParser("keyword", "none, auto");
-	RegisterProperty(PropertyId::ScrollbarMargin, "scrollbar-margin", "0", false, false).AddParser("length");
-	RegisterProperty(PropertyId::PointerEvents, "pointer-events", "auto", true, false).AddParser("keyword", "none, auto");
+	RegisterProperty(PropertyId::Drag, "drag", "none", PropertyFlags::Empty).AddParser("keyword", "none, drag, drag-drop, block, clone");
+	RegisterProperty(PropertyId::TabIndex, "tab-index", "none", PropertyFlags::Empty).AddParser("keyword", "none, auto");
+	RegisterProperty(PropertyId::Focus, "focus", "auto", PropertyFlags::Inherited).AddParser("keyword", "none, auto");
+	RegisterProperty(PropertyId::ScrollbarMargin, "scrollbar-margin", "0", PropertyFlags::Empty).AddParser("length");
+	RegisterProperty(PropertyId::PointerEvents, "pointer-events", "auto", PropertyFlags::Inherited).AddParser("keyword", "none, auto");
 
 	// Perspective and Transform specifications
-	RegisterProperty(PropertyId::Perspective, "perspective", "none", false, false).AddParser("keyword", "none").AddParser("length");
-	RegisterProperty(PropertyId::PerspectiveOriginX, "perspective-origin-x", "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length_percent");
-	RegisterProperty(PropertyId::PerspectiveOriginY, "perspective-origin-y", "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
+	RegisterProperty(PropertyId::Perspective, "perspective", "none", PropertyFlags::Empty).AddParser("keyword", "none").AddParser("length");
+	RegisterProperty(PropertyId::PerspectiveOriginX, "perspective-origin-x", "50%", PropertyFlags::Empty).AddParser("keyword", "left, center, right").AddParser("length_percent");
+	RegisterProperty(PropertyId::PerspectiveOriginY, "perspective-origin-y", "50%", PropertyFlags::Empty).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
 	RegisterShorthand(ShorthandId::PerspectiveOrigin, "perspective-origin", "perspective-origin-x, perspective-origin-y", ShorthandType::FallThrough);
-	RegisterProperty(PropertyId::Transform, "transform", "none", false, false).AddParser("transform");
-	RegisterProperty(PropertyId::TransformOriginX, "transform-origin-x", "50%", false, false).AddParser("keyword", "left, center, right").AddParser("length_percent");
-	RegisterProperty(PropertyId::TransformOriginY, "transform-origin-y", "50%", false, false).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
-	RegisterProperty(PropertyId::TransformOriginZ, "transform-origin-z", "0", false, false).AddParser("length");
+	RegisterProperty(PropertyId::Transform, "transform", "none", PropertyFlags::Empty).AddParser("transform");
+	RegisterProperty(PropertyId::TransformOriginX, "transform-origin-x", "50%", PropertyFlags::Empty).AddParser("keyword", "left, center, right").AddParser("length_percent");
+	RegisterProperty(PropertyId::TransformOriginY, "transform-origin-y", "50%", PropertyFlags::Empty).AddParser("keyword", "top, center, bottom").AddParser("length_percent");
+	RegisterProperty(PropertyId::TransformOriginZ, "transform-origin-z", "0", PropertyFlags::Empty).AddParser("length");
 	RegisterShorthand(ShorthandId::TransformOrigin, "transform-origin", "transform-origin-x, transform-origin-y, transform-origin-z", ShorthandType::FallThrough);
 
-	RegisterProperty(PropertyId::Transition, "transition", "none", false, false).AddParser("transition");
-	RegisterProperty(PropertyId::Animation, "animation", "none", false, false).AddParser("animation");
+	RegisterProperty(PropertyId::Transition, "transition", "none", PropertyFlags::Empty).AddParser("transition");
+	RegisterProperty(PropertyId::Animation, "animation", "none", PropertyFlags::Empty).AddParser("animation");
 
-	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("string");
-	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("string");
+	RegisterProperty(PropertyId::Decorator, "decorator", "", PropertyFlags::Empty).AddParser("string");
+	RegisterProperty(PropertyId::FontEffect, "font-effect", "", PropertyFlags::Inherited).AddParser("string");
 
 	// Rare properties (not added to computed values)
-	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");
+	RegisterProperty(PropertyId::FillImage, "fill-image", "", PropertyFlags::Empty).AddParser("string");
+
+	// Media-Query properties
+	RegisterProperty(PropertyId::AspectRatio, "aspect-ratio", "", PropertyFlags::MediaQuery).AddParser("aspect_ratio");
+	RegisterProperty(PropertyId::MinAspectRatio, "min-aspect-ratio", "", PropertyFlags::MediaQuery).AddParser("aspect_ratio");
+	RegisterProperty(PropertyId::MaxAspectRatio, "max-aspect-ratio", "", PropertyFlags::MediaQuery).AddParser("aspect_ratio");
+
+	RegisterProperty(PropertyId::Resolution, "resolution", "", PropertyFlags::MediaQuery).AddParser("resolution");
+	RegisterProperty(PropertyId::MinResolution, "min-resolution", "", PropertyFlags::MediaQuery).AddParser("resolution");
+	RegisterProperty(PropertyId::MaxResolution, "max-resolution", "", PropertyFlags::MediaQuery).AddParser("resolution");
+
+	RegisterProperty(PropertyId::Orientation, "orientation", "", PropertyFlags::MediaQuery).AddParser("keyword");
 
 	RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");
 	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");

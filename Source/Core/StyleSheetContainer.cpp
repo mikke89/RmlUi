@@ -26,6 +26,7 @@
  *
  */
 
+#include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "StyleSheetParser.h"
@@ -48,80 +49,72 @@ bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line
 	return rule_count >= 0;
 }
 
-void StyleSheetContainer::UpdateMediaFeatures(Vector2i dimensions, float density_ratio, bool any_hover)
+void StyleSheetContainer::UpdateMediaFeatures(Vector2i dimensions, float density_ratio)
 {
     UniquePtr<StyleSheet> new_sheet = MakeUnique<StyleSheet>();
 
     for(auto const& pair : media_blocks)
     {
         bool all_match = true;
-        for(auto const& property : pair.first)
+        for(auto const& property : pair.first.GetProperties())
         {
             switch(property.first) 
             {
-            case MediaFeatureId::Width:
+            case PropertyId::Width:
                 if(dimensions.x != property.second.Get<int>())
                     all_match = false;
                 break;
-            case MediaFeatureId::MinWidth:
+            case PropertyId::MinWidth:
                 if(dimensions.x < property.second.Get<int>())
                     all_match = false;
                 break;
-            case MediaFeatureId::MaxWidth:
+            case PropertyId::MaxWidth:
                 if(dimensions.x > property.second.Get<int>())
                     all_match = false;
                 break;
-            case MediaFeatureId::Height:
+            case PropertyId::Height:
                 if(dimensions.y != property.second.Get<int>())
                     all_match = false;
                 break;
-            case MediaFeatureId::MinHeight:
+            case PropertyId::MinHeight:
                 if(dimensions.y < property.second.Get<int>())
                     all_match = false;
                 break;
-            case MediaFeatureId::MaxHeight:
+            case PropertyId::MaxHeight:
                 if(dimensions.y > property.second.Get<int>())
                     all_match = false;
                 break;
-            case MediaFeatureId::AspectRatio:
+            case PropertyId::AspectRatio:
                 if(((float)dimensions.x / (float)dimensions.y) != property.second.Get<float>())
                     all_match = false;
                 break;
-            case MediaFeatureId::MinAspectRatio:
+            case PropertyId::MinAspectRatio:
                 if(((float)dimensions.x / (float)dimensions.y) < property.second.Get<float>())
                     all_match = false;
                 break;
-            case MediaFeatureId::MaxAspectRatio:
+            case PropertyId::MaxAspectRatio:
                 if(((float)dimensions.x / (float)dimensions.y) > property.second.Get<float>())
                     all_match = false;
                 break;
-            case MediaFeatureId::Resolution:
+            case PropertyId::Resolution:
                 if(density_ratio != property.second.Get<float>())
                     all_match = false;
                 break;
-            case MediaFeatureId::MinResolution:
+            case PropertyId::MinResolution:
                 if(density_ratio < property.second.Get<float>())
                     all_match = false;
                 break;
-            case MediaFeatureId::MaxResolution:
+            case PropertyId::MaxResolution:
                 if(density_ratio > property.second.Get<float>())
                     all_match = false;
                 break;
-            case MediaFeatureId::Orientation:
+            case PropertyId::Orientation:
                 // Landscape (x > y) = 0 
                 // Portrait (x <= y) = 1
                 if((dimensions.x <= dimensions.y) != property.second.Get<bool>())
                     all_match = false;
                 break;
-            case MediaFeatureId::AnyHover:
-                if(any_hover != property.second.Get<bool>())
-                    all_match = false;
-                break;
-
-            // Invalid properties
-            case MediaFeatureId::Invalid:
-            case MediaFeatureId::NumDefinedIds:
-            case MediaFeatureId::MaxNumIds:
+            default:
                 break;
             }
             
@@ -168,7 +161,9 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
 
     for(auto const& pair : media_blocks)
     {      
-        new_sheet->media_blocks.emplace_back(MediaFeatureMap{pair.first}, pair.second->CombineStyleSheet(StyleSheet{}));
+        PropertyDictionary dict;
+        dict.Import(pair.first);
+        new_sheet->media_blocks.emplace_back(dict, pair.second->CombineStyleSheet(StyleSheet{}));
     }
 
     for(auto const& pair : container.media_blocks)
@@ -176,7 +171,7 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
         bool block_found = false;
         for(auto& media_block : new_sheet->media_blocks)
         {
-            if(pair.first == media_block.first)
+            if(pair.first.GetProperties() == media_block.first.GetProperties())
             {
                 media_block.second = media_block.second->CombineStyleSheet(*pair.second);
                 block_found = true;
@@ -185,7 +180,11 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
         }
 
         if (!block_found)
-            new_sheet->media_blocks.emplace_back(MediaFeatureMap{pair.first}, pair.second->CombineStyleSheet(StyleSheet{}));
+        {
+            PropertyDictionary dict;
+            dict.Import(pair.first);
+            new_sheet->media_blocks.emplace_back(dict, pair.second->CombineStyleSheet(StyleSheet{}));
+        }
     }
 
     return new_sheet;

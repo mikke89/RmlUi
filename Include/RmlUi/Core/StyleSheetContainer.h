@@ -34,6 +34,7 @@
 
 namespace Rml {
 
+class PropertyDictionary;
 class Stream;
 class StyleSheet;
 
@@ -54,8 +55,9 @@ public:
 	bool LoadStyleSheetContainer(Stream* stream, int begin_line_number = 1);
 
 	/// Combines the underlying media blocks into a final merged stylesheet according to the given media features
-	/// @param[in] media_features The current media features of the style sheet's context
-	void UpdateMediaFeatures(Vector2i dimensions, float density_ratio, bool any_hover);
+	/// @param[in] dimensions The current context viewport dimensions
+	/// @param[in] density_ratio The current context ratio of 'dp' units to 'px' units
+	void UpdateMediaFeatures(Vector2i dimensions, float density_ratio);
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
 	/// Optimizes some properties for faster retrieval.
@@ -69,7 +71,7 @@ public:
 	SharedPtr<StyleSheetContainer> CombineStyleSheetContainer(const StyleSheetContainer& container) const;
 
 private: 
-	Vector<Pair<MediaFeatureMap, UniquePtr<StyleSheet>>> media_blocks;
+	Vector<Pair<PropertyDictionary, UniquePtr<StyleSheet>>> media_blocks;
 
 	UniquePtr<StyleSheet> compiled_style_sheet;
 };

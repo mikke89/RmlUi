@@ -40,7 +40,7 @@ class StyleSheetNode;
 class AbstractPropertyParser;
 struct PropertySource;
 using StyleSheetNodeListRaw = Vector<StyleSheetNode*>;
-using MediaBlockListRaw = Vector<Pair<MediaFeatureMap, UniquePtr<StyleSheet>>>;
+using MediaBlockListRaw = Vector<Pair<PropertyDictionary, UniquePtr<StyleSheet>>>;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.
@@ -109,7 +109,7 @@ private:
 	bool ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet, const SharedPtr<const PropertySource>& source);
 
 	// Attempts to parse the properties of a @media query
-	bool ParseMediaFeatureMap(MediaFeatureMap& media_feature_map, const String & rules);
+	bool ParseMediaFeatureMap(PropertyDictionary& media_feature_map, const String& rules);
 
 	// Attempts to find one of the given character tokens in the active stream
 	// If it's found, buffer is filled with all content up until the token

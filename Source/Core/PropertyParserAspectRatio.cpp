@@ -26,40 +26,51 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/StyleSheet.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "PropertyParserAspectRatio.h"
 
 namespace Rml {
 
-DecoratorInstancer::DecoratorInstancer() : properties(10, 10)
+PropertyParserAspectRatio::PropertyParserAspectRatio()
 {
 }
 
-DecoratorInstancer::~DecoratorInstancer()
+PropertyParserAspectRatio::~PropertyParserAspectRatio()
 {
 }
 
-// Returns the property specification associated with the instancer.
-const PropertySpecification& DecoratorInstancer::GetPropertySpecification() const
+// Called to parse a RCSS string declaration.
+bool PropertyParserAspectRatio::ParseValue(Property& property, const String& value, const ParameterMap& RMLUI_UNUSED_PARAMETER(parameters)) const
 {
-	return properties;
-}
+	RMLUI_UNUSED(parameters);
 
-// Registers a property for the decorator.
-PropertyDefinition& DecoratorInstancer::RegisterProperty(const String& property_name, const String& default_value)
-{
-	return properties.RegisterProperty(property_name, default_value, PropertyFlags::Empty);
-}
+	StringList parts;
+	StringUtilities::ExpandString(parts, value, '/');
 
-// Registers a shorthand property definition.
-ShorthandId DecoratorInstancer::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
-{
-	return properties.RegisterShorthand(shorthand_name, property_names, type);
-}
+	if(parts.size() != 2)
+	{
+		return false;
+	}
 
+	char* str_end = nullptr;
+	float first_value = strtof(parts[0].c_str(), &str_end);
+	if (parts[0].c_str() == str_end)
+	{
+		// Number conversion failed
+		return false;
+	}
+	
+	str_end = nullptr;
+	float second_value = strtof(parts[1].c_str(), &str_end);
+	if (parts[1].c_str() == str_end)
+	{
+		// Number conversion failed
+		return false;
+	}
 
-const Sprite* DecoratorInstancerInterface::GetSprite(const String& name) const {
-	return style_sheet.GetSprite(name);
+	property.value = Variant(first_value / second_value);
+	property.unit = Property::NUMBER;
+
+	return true;
 }
 
 } // namespace Rml

@@ -203,7 +203,7 @@ void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _sty
 	if (style_sheet_container)
 	{
 		if(auto ctx = GetContext())
-			style_sheet_container->UpdateMediaFeatures(ctx->GetDimensions(), ctx->GetDensityIndependentPixelRatio(), true);
+			style_sheet_container->UpdateMediaFeatures(ctx->GetDimensions(), ctx->GetDensityIndependentPixelRatio());
 		style_sheet_container->BuildNodeIndex();
 		style_sheet_container->OptimizeNodeProperties();
 	}

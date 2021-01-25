@@ -45,9 +45,9 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLine.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLinePassword.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerDataGrid.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerInclude.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerInclude.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventDispatcher.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventInstancerDefault.h
@@ -74,6 +74,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIterator.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAspectRatio.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.h
@@ -304,9 +305,9 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLine.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLinePassword.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerDataGrid.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerInclude.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerInclude.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementScroll.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementText.cpp
@@ -351,6 +352,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAspectRatio.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.cpp

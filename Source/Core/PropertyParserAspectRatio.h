@@ -26,40 +26,32 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/StyleSheet.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#ifndef RMLUI_CORE_PROPERTYPARSERASPECTRATIO_H
+#define RMLUI_CORE_PROPERTYPARSERASPECTRATIO_H
+
+#include "../../Include/RmlUi/Core/PropertyParser.h"
 
 namespace Rml {
 
-DecoratorInstancer::DecoratorInstancer() : properties(10, 10)
+/**
+	A passthrough property parser that parses an aspect ratio in the format of x/y, like 16/9.
+
+	@author Maximilian Stark
+ */
+
+class PropertyParserAspectRatio : public PropertyParser
 {
-}
+public:
+	PropertyParserAspectRatio();
+	virtual ~PropertyParserAspectRatio();
 
-DecoratorInstancer::~DecoratorInstancer()
-{
-}
-
-// Returns the property specification associated with the instancer.
-const PropertySpecification& DecoratorInstancer::GetPropertySpecification() const
-{
-	return properties;
-}
-
-// Registers a property for the decorator.
-PropertyDefinition& DecoratorInstancer::RegisterProperty(const String& property_name, const String& default_value)
-{
-	return properties.RegisterProperty(property_name, default_value, PropertyFlags::Empty);
-}
-
-// Registers a shorthand property definition.
-ShorthandId DecoratorInstancer::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
-{
-	return properties.RegisterShorthand(shorthand_name, property_names, type);
-}
-
-
-const Sprite* DecoratorInstancerInterface::GetSprite(const String& name) const {
-	return style_sheet.GetSprite(name);
-}
+	/// Called to parse a RCSS string declaration.
+	/// @param[out] property The property to set the parsed value on.
+	/// @param[in] value The raw value defined for this property.
+	/// @param[in] parameters The parameters defined for this property; not used for this parser.
+	/// @return True if the value was validated successfully, false otherwise.
+	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
+};
 
 } // namespace Rml
+#endif
