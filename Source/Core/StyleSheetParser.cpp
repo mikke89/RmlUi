@@ -338,7 +338,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	return true;
 }
 
-bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& media_feature_map, const String & rules)
+bool StyleSheetParser::ParseMediaFeatureMap(AbstractPropertyParser& parser, const String & rules)
 {
 	enum ParseState { Global, Name, Value };
 	ParseState state = Name;
@@ -387,8 +387,6 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& media_feature_ma
 				return false;
 			}
 
-			/// TODO: map from string name & value to feature id + value variant
-
 			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(current_string));
 
 			Log::Message(Log::LT_DEBUG, "%s:%s", name.c_str(), current_string.c_str());
@@ -398,6 +396,9 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& media_feature_ma
 				Log::Message(Log::LT_WARNING, "Malformed property value '%s' in @media query list at %s:%d.", current_string.c_str(), stream_file_name.c_str(), line_number);
 				return false;
 			}
+
+			if(!parser.Parse(name, current_string))
+				Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), current_string.c_str(), stream_file_name.c_str(), line_number);
 
 			current_string.clear();
 			state = Global;
@@ -578,7 +579,8 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 
 						// parse media query list into block
 						PropertyDictionary feature_map;
-						ParseMediaFeatureMap(feature_map, pre_token_str.substr(pre_token_str.find(' ') + 1));
+						PropertySpecificationParser parser(feature_map, StyleSheetSpecification::GetPropertySpecification());
+						ParseMediaFeatureMap(parser, pre_token_str.substr(pre_token_str.find(' ') + 1));
 						current_block = {feature_map, MakeUnique<StyleSheet>()};
 
 						inside_media_block = true;
