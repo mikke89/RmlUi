@@ -109,7 +109,7 @@ private:
 	bool ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet, const SharedPtr<const PropertySource>& source);
 
 	// Attempts to parse the properties of a @media query
-	bool ParseMediaFeatureMap(AbstractPropertyParser& parser, const String& rules);
+	bool ParseMediaFeatureMap(PropertyDictionary& properties, const String& rules);
 
 	// Attempts to find one of the given character tokens in the active stream
 	// If it's found, buffer is filled with all content up until the token

@@ -141,6 +141,54 @@ public:
 
 static UniquePtr<SpritesheetPropertyParser> spritesheet_property_parser;
 
+/*
+ * Media queries need a special parser because they have unique properties that 
+ * aren't admissible in other property declaration contexts and the syntax of
+*/
+class MediaQueryPropertyParser final : public AbstractPropertyParser {
+private:
+	// The dictionary to store the properties in.
+	PropertyDictionary* properties;
+
+	PropertySpecification specification;
+
+public:
+	MediaQueryPropertyParser() : specification(14, 0) 
+	{	
+		specification.RegisterProperty("width", "", false, false, PropertyId::Width).AddParser("pixels");
+		specification.RegisterProperty("min-width", "", false, false, PropertyId::MinWidth).AddParser("pixels");
+		specification.RegisterProperty("max-width", "", false, false, PropertyId::MaxWidth).AddParser("pixels");
+
+		specification.RegisterProperty("height", "", false, false, PropertyId::Height).AddParser("pixels");
+		specification.RegisterProperty("min-height", "", false, false, PropertyId::MinHeight).AddParser("pixels");
+		specification.RegisterProperty("max-height", "", false, false, PropertyId::MaxHeight).AddParser("pixels");
+
+		specification.RegisterProperty("aspect-ratio", "", false, false, PropertyId::AspectRatio).AddParser("aspect_ratio");
+		specification.RegisterProperty("min-aspect-ratio", "", false, false, PropertyId::MinAspectRatio).AddParser("aspect_ratio");
+		specification.RegisterProperty("max-aspect-ratio", "", false, false, PropertyId::MaxAspectRatio).AddParser("aspect_ratio");
+
+		specification.RegisterProperty("resolution", "", false, false, PropertyId::Resolution).AddParser("resolution");
+		specification.RegisterProperty("min-resolution", "", false, false, PropertyId::MinResolution).AddParser("resolution");
+		specification.RegisterProperty("max-resolution", "", false, false, PropertyId::MaxResolution).AddParser("resolution");
+
+		specification.RegisterProperty("orientation", "", false, false, PropertyId::Orientation).AddParser("keyword", "landscape, portrait");
+	}
+
+	void SetTargetProperties(PropertyDictionary* _properties)
+	{
+		properties = _properties;
+	}
+
+	bool Parse(const String& name, const String& value) override
+	{
+		RMLUI_ASSERT(properties);
+		return specification.ParsePropertyDeclaration(*properties, name, value);
+	}
+};
+
+
+static UniquePtr<MediaQueryPropertyParser> media_query_property_parser;
+
 
 StyleSheetParser::StyleSheetParser()
 {
@@ -156,6 +204,7 @@ StyleSheetParser::~StyleSheetParser()
 void StyleSheetParser::Initialise()
 {
 	spritesheet_property_parser = MakeUnique<SpritesheetPropertyParser>();
+	media_query_property_parser = MakeUnique<MediaQueryPropertyParser>();
 }
 
 void StyleSheetParser::Shutdown()
@@ -338,8 +387,10 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	return true;
 }
 
-bool StyleSheetParser::ParseMediaFeatureMap(AbstractPropertyParser& parser, const String & rules)
+bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, const String & rules)
 {
+	media_query_property_parser->SetTargetProperties(&properties);
+
 	enum ParseState { Global, Name, Value };
 	ParseState state = Name;
 
@@ -389,16 +440,8 @@ bool StyleSheetParser::ParseMediaFeatureMap(AbstractPropertyParser& parser, cons
 
 			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(current_string));
 
-			Log::Message(Log::LT_DEBUG, "%s:%s", name.c_str(), current_string.c_str());
-
-			if (!IsValidIdentifier(current_string))
-			{
-				Log::Message(Log::LT_WARNING, "Malformed property value '%s' in @media query list at %s:%d.", current_string.c_str(), stream_file_name.c_str(), line_number);
-				return false;
-			}
-
-			if(!parser.Parse(name, current_string))
-				Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), current_string.c_str(), stream_file_name.c_str(), line_number);
+			if(!media_query_property_parser->Parse(name, current_string))
+				Log::Message(Log::LT_WARNING, "Syntax error parsing media-query property declaration '%s: %s;' in %s: %d.", name.c_str(), current_string.c_str(), stream_file_name.c_str(), line_number);
 
 			current_string.clear();
 			state = Global;
@@ -579,8 +622,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 
 						// parse media query list into block
 						PropertyDictionary feature_map;
-						PropertySpecificationParser parser(feature_map, StyleSheetSpecification::GetPropertySpecification());
-						ParseMediaFeatureMap(parser, pre_token_str.substr(pre_token_str.find(' ') + 1));
+						ParseMediaFeatureMap(feature_map, pre_token_str.substr(pre_token_str.find(' ') + 1));
 						current_block = {feature_map, MakeUnique<StyleSheet>()};
 
 						inside_media_block = true;

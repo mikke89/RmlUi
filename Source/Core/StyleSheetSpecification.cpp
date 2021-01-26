@@ -58,6 +58,7 @@ struct DefaultStyleSheetParsers {
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserAspectRatio aspect_ratio = PropertyParserAspectRatio();
 	PropertyParserNumber resolution = PropertyParserNumber(Property::DPI);
+	PropertyParserNumber pixels = PropertyParserNumber(Property::PX);
 };
 
 StyleSheetSpecification::StyleSheetSpecification() : 
@@ -252,6 +253,7 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("transform", &default_parsers->transform);
 	RegisterParser("aspect_ratio", &default_parsers->aspect_ratio);
 	RegisterParser("resolution", &default_parsers->resolution);
+	RegisterParser("pixels", &default_parsers->pixels);
 }
 
 
@@ -416,7 +418,6 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	// Rare properties (not added to computed values)
 	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");
 
-	RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");
 	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");
 }
 
