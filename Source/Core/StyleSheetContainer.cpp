@@ -49,8 +49,11 @@ bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line
 	return rule_count >= 0;
 }
 
-void StyleSheetContainer::UpdateMediaFeatures(Vector2i dimensions, float density_ratio)
+bool StyleSheetContainer::UpdateMediaFeatures(Vector2i dimensions, float density_ratio)
 {
+    if(compiled_style_sheet && dimensions == current_dimensions && density_ratio == current_density_ratio)
+        return false;
+
     UniquePtr<StyleSheet> new_sheet = MakeUnique<StyleSheet>();
 
     for(auto const& pair : media_blocks)
@@ -127,26 +130,15 @@ void StyleSheetContainer::UpdateMediaFeatures(Vector2i dimensions, float density
             new_sheet = new_sheet->CombineStyleSheet(*pair.second);
         }
     }
+    
+    new_sheet->BuildNodeIndex();
+    new_sheet->OptimizeNodeProperties();
 
     compiled_style_sheet = std::move(new_sheet);
-}
+    current_dimensions = dimensions;
+    current_density_ratio = current_density_ratio;
 
-void StyleSheetContainer::BuildNodeIndex()
-{
-    for(auto& pair : media_blocks)
-        pair.second->BuildNodeIndex();
-
-    if (compiled_style_sheet)
-        compiled_style_sheet->BuildNodeIndex();
-}
-
-void StyleSheetContainer::OptimizeNodeProperties()
-{
-    for(auto& pair : media_blocks)
-        pair.second->OptimizeNodeProperties();
-
-    if (compiled_style_sheet)
-        compiled_style_sheet->OptimizeNodeProperties();
+    return true;
 }
 
 StyleSheet* StyleSheetContainer::GetCompiledStyleSheet() const

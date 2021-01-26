@@ -189,6 +189,39 @@ TEST_CASE("mediaqueries.basic")
 	TestsShell::ShutdownShell();
 }
 
+TEST_CASE("mediaqueries.dynamic")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	// There should be no warnings loading this document. There should be one div of 32px width & height
+	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query1_rml, "assets/");
+	REQUIRE(document);
+	document->Show();
+
+	context->Update();
+	context->Render();
+
+	TestsShell::RenderLoop();
+
+	// Shell default window dimensions are 1500, 800
+
+	ElementList elems;
+	document->GetElementsByTagName(elems, "div");
+	CHECK(elems.size() == 1);
+
+	CHECK(elems[0]->GetBox() == Box(Vector2f(32.0f, 32.0f)));
+
+	context->SetDimensions(Vector2i(480, 320));
+	document->UpdateDocument();
+
+	CHECK(elems[0]->GetBox() == Box(Vector2f(64.0f, 64.0f)));
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
 TEST_CASE("mediaqueries.custom_properties")
 {
 	Context* context = TestsShell::GetContext();

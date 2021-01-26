@@ -200,13 +200,8 @@ void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _sty
 
 	style_sheet_container = std::move(_style_sheet_container);
 	
-	if (style_sheet_container)
-	{
-		if(auto ctx = GetContext())
-			style_sheet_container->UpdateMediaFeatures(ctx->GetDimensions(), ctx->GetDensityIndependentPixelRatio());
-		style_sheet_container->BuildNodeIndex();
-		style_sheet_container->OptimizeNodeProperties();
-	}
+	if (style_sheet_container && context)
+		style_sheet_container->UpdateMediaFeatures(context->GetDimensions(), context->GetDensityIndependentPixelRatio());
 
 	GetStyle()->DirtyDefinition();
 }
@@ -410,7 +405,10 @@ void ElementDocument::LoadExternalScript(const String& RMLUI_UNUSED_PARAMETER(so
 
 // Updates the document, including its layout
 void ElementDocument::UpdateDocument()
-{
+{	
+	if (context && style_sheet_container && style_sheet_container->UpdateMediaFeatures(context->GetDimensions(), context->GetDensityIndependentPixelRatio()))
+		GetStyle()->DirtyDefinition();
+		
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
 	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
 	Update(dp_ratio, vp_dimensions);

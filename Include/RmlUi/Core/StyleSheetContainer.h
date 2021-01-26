@@ -57,12 +57,8 @@ public:
 	/// Combines the underlying media blocks into a final merged stylesheet according to the given media features
 	/// @param[in] dimensions The current context viewport dimensions
 	/// @param[in] density_ratio The current context ratio of 'dp' units to 'px' units
-	void UpdateMediaFeatures(Vector2i dimensions, float density_ratio);
-	/// Builds the node index for a combined style sheet.
-	void BuildNodeIndex();
-	/// Optimizes some properties for faster retrieval.
-	/// Specifically, converts all decorator and font-effect properties from strings to instanced decorator and font effect lists.
-	void OptimizeNodeProperties();
+	/// @return True if a new style sheet has been compiled
+	bool UpdateMediaFeatures(Vector2i dimensions, float density_ratio);
 
 	/// Returns the currently compiled style sheet that has been merged from incorporating all matching media blocks.
 	StyleSheet* GetCompiledStyleSheet() const;
@@ -70,10 +66,13 @@ public:
 	/// Combines this style sheet container with another one, producing a new sheet container.
 	SharedPtr<StyleSheetContainer> CombineStyleSheetContainer(const StyleSheetContainer& container) const;
 
-private: 
+private:
 	Vector<Pair<PropertyDictionary, UniquePtr<StyleSheet>>> media_blocks;
 
 	UniquePtr<StyleSheet> compiled_style_sheet;
+
+	Vector2i current_dimensions;
+	float current_density_ratio;
 };
 
 } // namespace Rml

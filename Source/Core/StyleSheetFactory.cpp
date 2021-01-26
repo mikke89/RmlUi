@@ -104,8 +104,6 @@ SharedPtr<StyleSheetContainer> StyleSheetFactory::GetStyleSheetContainer(const S
 	if (!sheet)
 		return nullptr;
 
-	sheet->OptimizeNodeProperties();
-
 	// Add it to the cache, and add a reference count so the cache will keep hold of it.
 	instance->stylesheets[sheet_name] = sheet;
 
@@ -150,8 +148,6 @@ SharedPtr<StyleSheetContainer> StyleSheetFactory::GetStyleSheetContainer(const S
 
 	if (!sheet)
 		return nullptr;
-
-	sheet->OptimizeNodeProperties();
 
 	// Add to cache, and a reference to the sheet to hold it in the cache.
 	instance->stylesheet_cache[combined_key] = sheet;
