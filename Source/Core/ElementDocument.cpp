@@ -227,6 +227,7 @@ void ElementDocument::ReloadStyleSheet()
 	}
 
 	Factory::ClearStyleSheetCache();
+	Factory::ClearTemplateCache();
 	ElementPtr temp_doc = Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag());
 	if (!temp_doc) {
 		Log::Message(Log::LT_WARNING, "Failed to reload style sheet, could not instance document: %s", source_url.c_str());
