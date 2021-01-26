@@ -48,7 +48,7 @@ const PropertySpecification& DecoratorInstancer::GetPropertySpecification() cons
 // Registers a property for the decorator.
 PropertyDefinition& DecoratorInstancer::RegisterProperty(const String& property_name, const String& default_value)
 {
-	return properties.RegisterProperty(property_name, default_value, PropertyFlags::Empty);
+	return properties.RegisterProperty(property_name, default_value, false, false);
 }
 
 // Registers a shorthand property definition.

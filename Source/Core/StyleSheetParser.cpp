@@ -89,10 +89,10 @@ private:
 public:
 	SpritesheetPropertyParser() : specification(4, 1) 
 	{
-		id_rx = specification.RegisterProperty("rectangle-x", "", PropertyFlags::Empty).AddParser("length").GetId();
-		id_ry = specification.RegisterProperty("rectangle-y", "", PropertyFlags::Empty).AddParser("length").GetId();
-		id_rw = specification.RegisterProperty("rectangle-w", "", PropertyFlags::Empty).AddParser("length").GetId();
-		id_rh = specification.RegisterProperty("rectangle-h", "", PropertyFlags::Empty).AddParser("length").GetId();
+		id_rx = specification.RegisterProperty("rectangle-x", "", false, false).AddParser("length").GetId();
+		id_ry = specification.RegisterProperty("rectangle-y", "", false, false).AddParser("length").GetId();
+		id_rw = specification.RegisterProperty("rectangle-w", "", false, false).AddParser("length").GetId();
+		id_rh = specification.RegisterProperty("rectangle-h", "", false, false).AddParser("length").GetId();
 		id_rectangle = specification.RegisterShorthand("rectangle", "rectangle-x, rectangle-y, rectangle-w, rectangle-h", ShorthandType::FallThrough);
 	}
 

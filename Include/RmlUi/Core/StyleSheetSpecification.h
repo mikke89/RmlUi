@@ -65,9 +65,10 @@ public:
 	/// Registers a custom property with a new definition.
 	/// @param[in] property_name The name to register the new property under.
 	/// @param[in] default_value The default value to be used for an element if it has no other definition provided.
-	/// @param[in] flags The flags for this property. Combine multiple using the "|" bitwise or operator.
+	/// @param[in] inherited True if this property is inherited from parent to child, false otherwise.
+	/// @param[in] forces_layout True if a change in this property on an element will cause the element's layout to possibly change.
 	/// @return The new property definition, ready to have parsers attached.
-	static PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, PropertyFlags flags);
+	static PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
 	/// Returns a property definition.
 	/// @param[in] property_name The name of the desired property.
 	/// @return The appropriate property definition if it could be found, nullptr otherwise.
@@ -116,7 +117,7 @@ private:
 	StyleSheetSpecification();
 	~StyleSheetSpecification();
 
-	PropertyDefinition& RegisterProperty(PropertyId id, const String& property_name, const String& default_value, PropertyFlags flags);
+	PropertyDefinition& RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
 	ShorthandId RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type);
 
 	// Registers RmlUi's default parsers.

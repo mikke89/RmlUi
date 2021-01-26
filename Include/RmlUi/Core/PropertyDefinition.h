@@ -41,29 +41,10 @@ namespace Rml {
 
 enum class RelativeTarget { None, ContainingBlockWidth, ContainingBlockHeight, FontSize, ParentFontSize, LineHeight };
 
-enum class PropertyFlags
-{
-	Empty = 0,
-	Inherited = 1 << 0,
-	ForcesLayout = 1 << 1,
-	MediaQuery = 1 << 2
-};
-
-inline PropertyFlags operator|(PropertyFlags a, PropertyFlags b)
-{
-    return static_cast<PropertyFlags>(static_cast<int>(a) | static_cast<int>(b));
-}
-
-inline PropertyFlags operator&(PropertyFlags a, PropertyFlags b)
-{
-    return static_cast<PropertyFlags>(static_cast<int>(a) & static_cast<int>(b));
-}
-
-
 class RMLUICORE_API PropertyDefinition final
 {
 public:
-	PropertyDefinition(PropertyId id, const String& default_value, PropertyFlags flags);
+	PropertyDefinition(PropertyId id, const String& default_value, bool inherited, bool forces_layout);
 	PropertyDefinition(const PropertyDefinition &) = delete; 
 	PropertyDefinition& operator=(const PropertyDefinition &) = delete;
 	~PropertyDefinition();
@@ -88,8 +69,11 @@ public:
 	/// @return True if the property was reverse-engineered successfully, false otherwise.
 	bool GetValue(String& value, const Property& property) const;
 
-	/// Returns the flags for this property.
-	PropertyFlags GetFlags() const;
+	/// Returns true if this property is inherited from parent to child elements.
+	bool IsInherited() const;
+
+	/// Returns true if this property forces a re-layout when changed.
+	bool IsLayoutForced() const;
 
 	/// Returns the default defined for this property.
 	const Property* GetDefaultValue() const;
@@ -104,7 +88,8 @@ private:
 	PropertyId id;
 
 	Property default_value;
-	PropertyFlags flags;
+	bool inherited;
+	bool forces_layout;
 
 	struct ParserState
 	{

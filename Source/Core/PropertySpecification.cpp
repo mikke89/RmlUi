@@ -51,7 +51,7 @@ PropertySpecification::~PropertySpecification()
 }
 
 // Registers a property with a new definition.
-PropertyDefinition& PropertySpecification::RegisterProperty(const String& property_name, const String& default_value, PropertyFlags flags, PropertyId id)
+PropertyDefinition& PropertySpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout, PropertyId id)
 {
 	if (id == PropertyId::Invalid)
 		id = property_map->GetOrCreateId(property_name);
@@ -83,11 +83,11 @@ PropertyDefinition& PropertySpecification::RegisterProperty(const String& proper
 	}
 
 	// Create and insert the new property
-	properties[index] = MakeUnique<PropertyDefinition>(id, default_value, flags);
+	properties[index] = MakeUnique<PropertyDefinition>(id, default_value, inherited, forces_layout);
 	property_ids.Insert(id);
-	if ((flags & PropertyFlags::Inherited) != PropertyFlags::Empty)
+	if (inherited)
 		property_ids_inherited.Insert(id);
-	if ((flags & PropertyFlags::ForcesLayout) != PropertyFlags::Empty)
+	if (forces_layout)
 		property_ids_forcing_layout.Insert(id);
 
 	return *properties[index];

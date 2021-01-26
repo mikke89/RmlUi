@@ -102,7 +102,7 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 		return nullptr;
 
 	// If we can inherit this property, return our parent's property.
-	if ((property->GetFlags() & PropertyFlags::Inherited) != PropertyFlags::Empty)
+	if (property->IsInherited())
 	{
 		Element* parent = element->GetParentNode();
 		while (parent)
@@ -953,15 +953,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		// Unhandled properties. Must be manually retrieved with 'GetProperty()'.
 		case PropertyId::FillImage:
 		case PropertyId::CaretColor:
-			break;
-		// Media query properties. Ignored here.
-		case PropertyId::AspectRatio:
-		case PropertyId::MinAspectRatio:
-		case PropertyId::MaxAspectRatio:
-		case PropertyId::Resolution:
-		case PropertyId::MinResolution:
-		case PropertyId::MaxResolution:
-		case PropertyId::Orientation:
 			break;
 		// Invalid properties
 		case PropertyId::Invalid:
