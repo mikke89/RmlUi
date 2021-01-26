@@ -49,10 +49,10 @@ bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line
 	return rule_count >= 0;
 }
 
-bool StyleSheetContainer::UpdateMediaFeatures(Vector2i dimensions, float density_ratio)
+StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(Vector2i dimensions, float density_ratio)
 {
     if(compiled_style_sheet && dimensions == current_dimensions && density_ratio == current_density_ratio)
-        return false;
+        return compiled_style_sheet.get();
 
     UniquePtr<StyleSheet> new_sheet = MakeUnique<StyleSheet>();
 
@@ -136,13 +136,7 @@ bool StyleSheetContainer::UpdateMediaFeatures(Vector2i dimensions, float density
 
     compiled_style_sheet = std::move(new_sheet);
     current_dimensions = dimensions;
-    current_density_ratio = current_density_ratio;
-
-    return true;
-}
-
-StyleSheet* StyleSheetContainer::GetCompiledStyleSheet() const
-{
+    current_density_ratio = density_ratio;
     return compiled_style_sheet.get();
 }
 

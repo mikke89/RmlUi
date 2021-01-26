@@ -54,14 +54,11 @@ public:
 	/// Loads a style from a CSS definition.
 	bool LoadStyleSheetContainer(Stream* stream, int begin_line_number = 1);
 
-	/// Combines the underlying media blocks into a final merged stylesheet according to the given media features
+	/// Returns the currently compiled style sheet that has been merged from incorporating all matching media blocks
+	/// or creates it ad-hoc if the given properties differ from the currently stored values.
 	/// @param[in] dimensions The current context viewport dimensions
 	/// @param[in] density_ratio The current context ratio of 'dp' units to 'px' units
-	/// @return True if a new style sheet has been compiled
-	bool UpdateMediaFeatures(Vector2i dimensions, float density_ratio);
-
-	/// Returns the currently compiled style sheet that has been merged from incorporating all matching media blocks.
-	StyleSheet* GetCompiledStyleSheet() const;
+	StyleSheet* GetCompiledStyleSheet(Vector2i dimensions, float density_ratio);
 
 	/// Combines this style sheet container with another one, producing a new sheet container.
 	SharedPtr<StyleSheetContainer> CombineStyleSheetContainer(const StyleSheetContainer& container) const;

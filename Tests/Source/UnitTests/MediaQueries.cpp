@@ -213,7 +213,8 @@ TEST_CASE("mediaqueries.dynamic")
 	CHECK(elems[0]->GetBox() == Box(Vector2f(32.0f, 32.0f)));
 
 	context->SetDimensions(Vector2i(480, 320));
-	document->UpdateDocument();
+
+	context->Update();
 
 	CHECK(elems[0]->GetBox() == Box(Vector2f(64.0f, 64.0f)));
 

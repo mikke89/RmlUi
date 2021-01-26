@@ -178,9 +178,6 @@ private:
 	// The original path this document came from
 	String source_url;
 
-	// The document's style sheet.
-	StyleSheet* style_sheet;
-
 	// The document's style sheet container.
 	SharedPtr<StyleSheetContainer> style_sheet_container;
 

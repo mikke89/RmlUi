@@ -48,7 +48,6 @@ namespace Rml {
 
 ElementDocument::ElementDocument(const String& tag) : Element(tag)
 {
-	style_sheet = nullptr;
 	context = nullptr;
 
 	modal = false;
@@ -140,10 +139,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 
 	// If a style sheet is available, set it on the document and release it.
 	if (new_style_sheet)
-	{
 		SetStyleSheetContainer(std::move(new_style_sheet));
-		style_sheet = style_sheet_container->GetCompiledStyleSheet();
-	}
 
 	// Load scripts.
 	for (const DocumentHeader::Resource& script : header.scripts)
@@ -200,17 +196,14 @@ void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _sty
 
 	style_sheet_container = std::move(_style_sheet_container);
 	
-	if (style_sheet_container && context)
-		style_sheet_container->UpdateMediaFeatures(context->GetDimensions(), context->GetDensityIndependentPixelRatio());
-
 	GetStyle()->DirtyDefinition();
 }
 
 // Returns the document's style sheet.
 const StyleSheet* ElementDocument::GetStyleSheet() const
 {
-	if(style_sheet_container)
-		return style_sheet_container->GetCompiledStyleSheet();
+	if(context && style_sheet_container)
+		return style_sheet_container->GetCompiledStyleSheet(context->GetDimensions(), context->GetDensityIndependentPixelRatio());
 	return nullptr;
 }
 
@@ -405,10 +398,7 @@ void ElementDocument::LoadExternalScript(const String& RMLUI_UNUSED_PARAMETER(so
 
 // Updates the document, including its layout
 void ElementDocument::UpdateDocument()
-{	
-	if (context && style_sheet_container && style_sheet_container->UpdateMediaFeatures(context->GetDimensions(), context->GetDensityIndependentPixelRatio()))
-		GetStyle()->DirtyDefinition();
-		
+{
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
 	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
 	Update(dp_ratio, vp_dimensions);
