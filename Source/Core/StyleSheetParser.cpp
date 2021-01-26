@@ -395,7 +395,6 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 	ParseState state = Name;
 
 	char character = 0;
-	char previous_character = 0;
 
 	size_t cursor = 0;
 
@@ -405,7 +404,6 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 
 	while(cursor++ < rules.length())
 	{
-		previous_character = character;
 		character = rules[cursor];
 
 		switch(character)

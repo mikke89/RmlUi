@@ -94,7 +94,7 @@ UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 	new_sheet->spritesheet_list.Merge(spritesheet_list);
 
 	new_sheet->specificity_offset = specificity_offset + other_sheet.specificity_offset;
-	return std::move(new_sheet);
+	return new_sheet;
 }
 
 // Builds the node index for a combined style sheet.
