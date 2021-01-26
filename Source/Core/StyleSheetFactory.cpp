@@ -27,7 +27,7 @@
  */
 
 #include "StyleSheetFactory.h"
-#include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "StyleSheetNode.h"
 #include "StreamFile.h"
 #include "StyleSheetNodeSelectorNthChild.h"

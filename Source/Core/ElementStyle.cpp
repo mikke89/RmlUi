@@ -954,6 +954,15 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::FillImage:
 		case PropertyId::CaretColor:
 			break;
+		// Media query properties
+		case PropertyId::AspectRatio:
+		case PropertyId::MinAspectRatio:
+		case PropertyId::MaxAspectRatio:
+		case PropertyId::Resolution:
+		case PropertyId::MinResolution:
+		case PropertyId::MaxResolution:
+		case PropertyId::Orientation:
+			break;
 		// Invalid properties
 		case PropertyId::Invalid:
 		case PropertyId::NumDefinedIds:
