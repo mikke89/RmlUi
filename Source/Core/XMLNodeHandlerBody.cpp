@@ -48,29 +48,17 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 
 	Element* element = parser->GetParseFrame()->element;
 
-	// Apply any attributes to the document, but only if the current element is the root of the current document,
-	// which should only hold for body elements, but not for included templates.
-	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
-	if (document && document == element)
-	{
-		for (auto& pair : attributes) 
-		{
-			auto attribute = document->GetAttribute(pair.first);
-			if(attribute && *attribute != pair.second)
-			{
-				Log::Message(Log::LT_WARNING, "Overriding attribute '%s' in element %s during template insertion.", pair.first.c_str(), element->GetAddress().c_str());
-			}
-
-			document->SetAttribute(pair.first, pair.second);
-		}
-	}
-
 	// Check for and apply any template
 	String template_name = Get<String>(attributes, "template", "");
 	if (!template_name.empty())
 	{
 		element = XMLParseTools::ParseTemplate(element, template_name);
 	}
+
+	// Apply any attributes to the document
+	ElementDocument* document = parser->GetParseFrame()->element->GetOwnerDocument();
+	if (document)
+		document->SetAttributes(attributes);
 
 	// Tell the parser to use the element handler for all children
 	parser->PushDefaultHandler();
