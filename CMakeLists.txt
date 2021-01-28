@@ -187,6 +187,10 @@ if(NO_FONT_INTERFACE_DEFAULT)
 	list(APPEND CORE_PRIVATE_DEFS RMLUI_NO_FONT_INTERFACE_DEFAULT)
 endif()
 
+if(WIN32 AND BUILD_SHARED_LIBS AND BUILD_TESTING)
+	message(FATAL_ERROR "-- The RmlUi testing framework cannot be built when using shared libraries on Windows. Please disable either BUILD_SHARED_LIBS or BUILD_TESTING.")
+endif()
+
 if(NOT BUILD_SHARED_LIBS)
 	add_definitions(-DRMLUI_STATIC_LIB)
 	message("-- Building static libraries. Make sure to #define RMLUI_STATIC_LIB before including RmlUi in your project.")
@@ -577,24 +581,22 @@ macro(bl_sample NAME)
 	target_link_libraries(${NAME} ${ARGN})
 endmacro()
 
-if(BUILD_SAMPLES)
+# Build shell
+if(BUILD_SAMPLES OR BUILD_TESTING)
 	include(SampleFileList)
-
-	set(samples treeview customlog drag loaddocument transform bitmapfont animation benchmark demo databinding)
-	set(tutorials template datagrid datagrid_tree drag)
 	
-if(NOT BUILD_FRAMEWORK)
-	set(sample_LIBRARIES
-		shell
-		RmlCore
-		RmlDebugger
-	)
-else(NOT BUILD_FRAMEWORK)
-	set(sample_LIBRARIES
-		shell
-		RmlUi
-	)
-endif(NOT BUILD_FRAMEWORK)
+	if(NOT BUILD_FRAMEWORK)
+		set(sample_LIBRARIES
+			shell
+			RmlCore
+			RmlDebugger
+		)
+	else()
+		set(sample_LIBRARIES
+			shell
+			RmlUi
+		)
+	endif()
 
 	# Find OpenGL 
 	find_package(OpenGL REQUIRED)
@@ -649,6 +651,13 @@ endif(NOT BUILD_FRAMEWORK)
 	target_link_libraries(shell PUBLIC RmlCore)
 	
 	add_common_target_options(shell)
+
+endif()
+
+
+if(BUILD_SAMPLES)
+	set(samples treeview customlog drag loaddocument transform bitmapfont animation benchmark demo databinding)
+	set(tutorials template datagrid datagrid_tree drag)
 
 	# Build and install the basic samples
 	foreach(sample ${samples})
