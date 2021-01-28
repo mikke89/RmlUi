@@ -29,9 +29,11 @@
 #include "DataViewDefault.h"
 #include "DataExpression.h"
 #include "DataModel.h"
+#include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/Variant.h"
 
 namespace Rml {
@@ -380,7 +382,11 @@ bool DataViewText::Update(DataModel& model)
 			if (ElementText* text_element = static_cast<ElementText*>(element))
 			{
 				String new_text = BuildText();
-				text_element->SetText(new_text);
+
+				String text;
+				if (SystemInterface* system_interface = GetSystemInterface())
+					system_interface->TranslateString(text, new_text);
+				text_element->SetText(text);
 			}
 		}
 		else
