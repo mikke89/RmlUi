@@ -27,8 +27,10 @@
  */
 
 #include "XMLNodeHandlerTabSet.h"
+#include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/Log.h"
 #include "../../../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/XMLParser.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementTabSet.h"
 
