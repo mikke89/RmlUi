@@ -135,10 +135,23 @@ bool XMLNodeHandlerTabSet::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser),
 	return true;
 }
 
-bool XMLNodeHandlerTabSet::ElementData(XMLParser* parser, const String& data, XMLDataType RMLUI_UNUSED_PARAMETER(type))
-{	
-	RMLUI_UNUSED(type);
-	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
+bool XMLNodeHandlerTabSet::ElementData(XMLParser* parser, const String& data, XMLDataType type)
+{
+	RMLUI_ZoneScopedC(0x006400);
+
+	// Determine the parent
+	Element* parent = parser->GetParseFrame()->element;
+	RMLUI_ASSERT(parent);
+
+	if (type == XMLDataType::InnerXML)
+	{
+		// Structural data views use the raw inner xml contents of the node, submit them now.
+		if (ElementUtilities::ApplyStructuralDataViews(parent, data))
+			return true;
+	}
+
+	// Parse the text into the element
+	return Factory::InstanceElementText(parent, data);
 }
 
 } // namespace Rml
