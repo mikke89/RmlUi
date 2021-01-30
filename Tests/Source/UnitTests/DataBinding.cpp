@@ -66,12 +66,21 @@ static const String document_rml = R"(
 <body template="window">
 <div data-model="basics">
 
-<p>{{ test }}</p>
-<p>{{ str1.val }}</p>
-<p>{{ str2.val }}</p>
-<p>{{ str3.val }}</p>
-<p>{{ test2.val }}</p>
-	
+<input type="text" data-value="i0"/>
+
+<h1>Globals</h1>
+<p>{{ i0 }}</p>
+<p>{{ i1 }}</p>
+<p>{{ i2 }}</p>
+<p>{{ i3 }}</p>
+
+<p>{{ s0 }}</p>
+<p>{{ s1 }}</p>
+<p>{{ s2.val }}</p>
+<p>{{ s3.val }}</p>
+<p>{{ s4.val }}</p>
+<p>{{ s5.val }}</p>
+
 <h1>Basic</h1>
 <p>{{ basic.a }}</p>
 <p>{{ basic.b }}</p>
@@ -79,41 +88,25 @@ static const String document_rml = R"(
 <p>{{ basic.d }}</p>
 <p>{{ basic.e }}</p>
 <p>{{ basic.f }}</p>
-<p>{{ basic.g }}</p>
-<p>{{ basic.h }}</p>
-	
+
 <h1>Wrapped</h1>
 <p>{{ wrapped.a.val }}</p>
 <p>{{ wrapped.b.val }}</p>
 <p>{{ wrapped.c.val }}</p>
 <p>{{ wrapped.d.val }}</p>
 <p>{{ wrapped.e.val }}</p>
-<p>{{ wrapped.f.val }}</p>
-<p>{{ wrapped.g.val }}</p>
-<p>{{ wrapped.h.val }}</p>
-	
+
 <h1>Pointed</h1>
 <p>{{ pointed.a.val }}</p>
-<p>{{ pointed.e.val }}</p>
-<p>{{ pointed.f.val }}</p>
-<p>{{ pointed.g.val }}</p>
-<p>{{ pointed.h.val }}</p>
-	
-<h1>ConstPointed</h1>
-<p>{{ const_pointed.a.val }}</p>
-<p>{{ const_pointed.e.val }}</p>
-<p>{{ const_pointed.f.val }}</p>
-<p>{{ const_pointed.g.val }}</p>
-<p>{{ const_pointed.h.val }}</p>
-	
+<p>{{ pointed.b.val }}</p>
+<p>{{ pointed.c.val }}</p>
+
 <h1>Arrays</h1>
 <p><span data-for="arrays.a">{{ it }} </span></p>
 <p><span data-for="arrays.b">{{ it }} </span></p>
-<p><span data-for="arrays.c">{{ it }} </span></p>
+<p><span data-for="arrays.c">{{ it.val }} </span></p>
 <p><span data-for="arrays.d">{{ it.val }} </span></p>
 <p><span data-for="arrays.e">{{ it.val }} </span></p>
-<p><span data-for="arrays.f">{{ it.val }} </span></p>
-<p><span data-for="arrays.g">{{ it.val }} </span></p>
 
 </div>
 </body>
@@ -126,66 +119,101 @@ struct StringWrap
 	String val;
 };
 
-StringWrap gStr0 = StringWrap("obj");
-StringWrap* gStr1 = new StringWrap("raw");
-UniquePtr<StringWrap> gStr2 = MakeUnique<StringWrap>("unique");
-SharedPtr<StringWrap> gStr3 = MakeShared<StringWrap>("shared");
-const StringWrap* gStr4 = new StringWrap("const raw");
-const int* const_ptr_test = new int(5);
+struct Globals
+{
+	int i0 = 0;
+	int* i1 = new int(1);
+	UniquePtr<int> i2 = MakeUnique<int>(2);
+	SharedPtr<int> i3 = MakeShared<int>(3);
+
+	String s0 = "s0";
+	String* s1 = new String("s1");
+	StringWrap s2 = StringWrap("s2");
+	StringWrap* s3 = new StringWrap("s3");
+	UniquePtr<StringWrap> s4 = MakeUnique<StringWrap>("s4");
+	SharedPtr<StringWrap> s5 = MakeShared<StringWrap>("s5");
+
+	// Invalid
+	const int x0 = 100;                                            // Invalid: const variable
+	const int* x1 = new int(101);                                  // Invalid: const pointer
+	UniquePtr<const int> x2 = MakeUnique<int>(102);                // Invalid: const pointer
+	const StringWrap* x3 = new StringWrap("x2");                   // Invalid: const pointer
+	UniquePtr<const StringWrap> x4 = MakeUnique<StringWrap>("x3"); // Invalid: const pointer
+} globals;
 
 struct Basic
 {
 	int a = 1;
 	int* b = new int(2);
-	const int* c = new int(3);
 
-	int GetD() {
+	int GetC() {
+		static int v = 5;
+		return v;
+	}
+	int& GetD() {
+		static int v = 5;
+		return v;
+	}
+	int* GetE() {
+		static int v = 6;
+		return &v;
+	}
+	UniquePtr<int> GetF() {
+		return MakeUnique<int>(7);
+	}
+
+	// Invalid: const member
+	const int x0 = 2;
+	// Invalid: const pointer
+	const int* x1 = new int(3);
+	// Invalid: const qualified member function
+	int GetX2() const {
 		return 4;
 	}
-	int& GetE() const {
-		static int e = 5;
-		return e;
-	}
-	int* GetF() {
-		static int f = 6;
-		return &f;
-	}
-	const int& GetG() {
+	// Invalid: const reference return
+	const int& GetX3() {
 		static int g = 7;
 		return g;
 	}
-	const int* GetH() {
+	// Invalid: const pointer return
+	const int* GetX4() {
 		static int h = 8;
 		return &h;
 	}
-
+	// Invalid: Illegal signature
+	int GetX5(int) {
+		return 9;
+	}
+	// Invalid: Const qualified return type
+	const int GetX6() {
+		return 9;
+	}
 };
 
 struct Wrapped
 {
 	StringWrap a = { "a" };
 	StringWrap* b = new StringWrap("b");
-	const StringWrap* c = new StringWrap("c");
+	UniquePtr<StringWrap> c = MakeUnique<StringWrap>("c");
 
-	// Illegal: Must return by reference, or return scalar value.
-	StringWrap GetD() {
-		return { "d" };
+	StringWrap& GetD() {
+		static StringWrap v = { "e" };
+		return v;
 	}
-	StringWrap& GetE() {
-		static StringWrap e = { "e" };
-		return e;
+	StringWrap* GetE() {
+		static StringWrap v = { "f" };
+		return &v;
 	}
-	StringWrap* GetF() {
-		static StringWrap f = { "f" };
-		return &f;
+	
+	// Invalid: const pointer
+	const StringWrap* x0 = new StringWrap("x0");
+	// Invalid (run-time): Returning non-scalar variable by value.
+	StringWrap GetX1() {
+		return { "x1" };
 	}
-	const StringWrap& GetG() {
-		static StringWrap g = { "g" };
-		return g;
-	}
-	const StringWrap* GetH() {
-		static StringWrap h = { "h" };
-		return &h;
+	// Invalid (run-time): Returning non-scalar variable by value.
+	UniquePtr<StringWrap> GetX2() {
+		return MakeUnique<StringWrap>("x2");
 	}
 };
 
@@ -195,83 +223,45 @@ struct Pointed
 {
 	StringWrapPtr a = MakeUnique<StringWrap>("a");
 
-	// We disallow recursive pointer types (pointer to pointer)
-	// Invalid: 
-	StringWrapPtr* b = new StringWrapPtr(new StringWrap("b"));
-	const StringWrapPtr* c = new StringWrapPtr(new StringWrap("c"));
+	StringWrapPtr& GetB() {
+		static StringWrapPtr v = MakeUnique<StringWrap>("b");
+		return v;
+	}
+	StringWrapPtr* GetC() {
+		static StringWrapPtr v = MakeUnique<StringWrap>("c");
+		return &v;
+	}
+	
+	// Invalid: We disallow recursive pointer types (pointer to pointer)
+	StringWrapPtr* x0 = new StringWrapPtr(new StringWrap("x0"));
 
-	StringWrapPtr GetD() {
-		return MakeUnique<StringWrap>("d");
+	// Invalid (run-time error): Only scalar data members can be returned by value
+	StringWrapPtr GetX1() {
+		return MakeUnique<StringWrap>("x1");
 	}
-	// -- End Invalid
 
-	StringWrapPtr& GetE() {
-		static StringWrapPtr e = MakeUnique<StringWrap>("e");
-		return e;
-	}
-	StringWrapPtr* GetF() {
-		static StringWrapPtr f = MakeUnique<StringWrap>("f");
-		return &f;
-	}
-	const StringWrapPtr& GetG() {
-		static StringWrapPtr g = MakeUnique<StringWrap>("g");
-		return g;
-	}
-	const StringWrapPtr* GetH() {
-		static StringWrapPtr h = MakeUnique<StringWrap>("h");
-		return &h;
-	}
 };
 
-using StringWrapConstPtr = UniquePtr<const StringWrap>;
-
-struct ConstPointed
+struct Arrays
 {
-	StringWrapConstPtr a = MakeUnique<StringWrap>("a");
-
-	// We disallow recursive pointer types (pointer to pointer)
-	// -- Invalid
-	StringWrapConstPtr* b = new StringWrapConstPtr(new StringWrap("b"));
-	const StringWrapConstPtr* c = new StringWrapConstPtr(new StringWrap("c"));
-
-	StringWrapConstPtr GetD() {
-		return MakeUnique<StringWrap>("d");
-	}
-	// -- End Invalid
-
-	StringWrapConstPtr& GetE() {
-		static StringWrapConstPtr e = MakeUnique<StringWrap>("e");
-		return e;
-	}
-	StringWrapConstPtr* GetF() {
-		static StringWrapConstPtr f = MakeUnique<StringWrap>("f");
-		return &f;
-	}
-	const StringWrapConstPtr& GetG() {
-		static StringWrapConstPtr g = MakeUnique<StringWrap>("g");
-		return g;
-	}
-	const StringWrapConstPtr* GetH() {
-		static StringWrapConstPtr h = MakeUnique<StringWrap>("h");
-		return &h;
-	}
-};
-
-struct Arrays {
 	Vector<int> a = { 10, 11, 12 };
 	Vector<int*> b = { new int(20), new int(21), new int(22) };
-	Vector<const int*> c = { new int(30), new int(31), new int(32) };
-	Vector<StringWrap> d = { StringWrap("d1"), StringWrap("d2"), StringWrap("d3") };
-	Vector<StringWrap*> e = { new StringWrap("e1"), new StringWrap("e2"), new StringWrap("e3") };
-	Vector<StringWrapPtr> f;
-	Vector<StringWrapConstPtr> g;
+	Vector<StringWrap> c = { StringWrap("c1"), StringWrap("c2"), StringWrap("c3") };
+	Vector<StringWrap*> d = { new StringWrap("d1"), new StringWrap("d2"), new StringWrap("d3") };
+	Vector<StringWrapPtr> e;
+	
+	// Invalid: const pointer
+	Vector<const int*> x0 = { new int(30), new int(31), new int(32) };
+	// Invalid: const pointer
+	Vector<UniquePtr<const StringWrap>> x1;
+	
 	Arrays() {
-		f.emplace_back(MakeUnique<StringWrap>("f1"));
-		f.emplace_back(MakeUnique<StringWrap>("f2"));
-		f.emplace_back(MakeUnique<StringWrap>("f3"));
-		g.emplace_back(MakeUnique<StringWrap>("g1"));
-		g.emplace_back(MakeUnique<StringWrap>("g2"));
-		g.emplace_back(MakeUnique<StringWrap>("g3"));
+		e.emplace_back(MakeUnique<StringWrap>("e1"));
+		e.emplace_back(MakeUnique<StringWrap>("e2"));
+		e.emplace_back(MakeUnique<StringWrap>("e3"));
+		x1.emplace_back(MakeUnique<StringWrap>("x1_1"));
+		x1.emplace_back(MakeUnique<StringWrap>("x1_2"));
+		x1.emplace_back(MakeUnique<StringWrap>("x1_3"));
 	}
 };
 
@@ -290,24 +280,43 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("val", &StringWrap::val);
 	}
 
-	constructor.Bind("test", &const_ptr_test);
-	constructor.Bind("test2", &gStr4);
+	{
+		// Globals
+		constructor.Bind("i0", &globals.i0);
+		constructor.Bind("i1", &globals.i1);
+		constructor.Bind("i2", &globals.i2);
+		constructor.Bind("i3", &globals.i3);
 
-	constructor.Bind("str0", &gStr0);
-	constructor.Bind("str1", &gStr1);
-	constructor.Bind("str2", &gStr2);
-	constructor.Bind("str3", &gStr3);
+		constructor.Bind("s0", &globals.s0);
+		constructor.Bind("s1", &globals.s1);
+		constructor.Bind("s2", &globals.s2);
+		constructor.Bind("s3", &globals.s3);
+		constructor.Bind("s4", &globals.s4);
+		constructor.Bind("s5", &globals.s5);
+
+		// Invalid: Each of the following should give a compile-time failure.
+		//constructor.Bind("x0", &globals.x0);
+		//constructor.Bind("x1", &globals.x1);
+		//constructor.Bind("x2", &globals.x2);
+		//constructor.Bind("x3", &globals.x3);
+		//constructor.Bind("x4", &globals.x4);
+	}
 
 	if (auto handle = constructor.RegisterStruct<Basic>())
 	{
 		handle.RegisterMember("a", &Basic::a);
 		handle.RegisterMember("b", &Basic::b);
-		handle.RegisterMember("c", &Basic::c);
+		handle.RegisterMember("c", &Basic::GetC);
 		handle.RegisterMember("d", &Basic::GetD);
 		handle.RegisterMember("e", &Basic::GetE);
 		handle.RegisterMember("f", &Basic::GetF);
-		handle.RegisterMember("g", &Basic::GetG);
-		handle.RegisterMember("h", &Basic::GetH);
+
+		//handle.RegisterMember("x0", &Basic::x0);
+		//handle.RegisterMember("x1", &Basic::x1);
+		//handle.RegisterMember("x2", &Basic::GetX2);
+		//handle.RegisterMember("x3", &Basic::GetX3);
+		//handle.RegisterMember("x4", &Basic::GetX4);
+		//handle.RegisterMember("x6", &Basic::GetX6);
 	}
 	constructor.Bind("basic", new Basic);
 	
@@ -316,50 +325,34 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("a", &Wrapped::a);
 		handle.RegisterMember("b", &Wrapped::b);
 		handle.RegisterMember("c", &Wrapped::c);
-		//handle.RegisterMember("d", &Wrapped::GetD);
+		handle.RegisterMember("d", &Wrapped::GetD);
 		handle.RegisterMember("e", &Wrapped::GetE);
-		handle.RegisterMember("f", &Wrapped::GetF);
-		handle.RegisterMember("g", &Wrapped::GetG);
-		handle.RegisterMember("h", &Wrapped::GetH);
+
+		//handle.RegisterMember("x0", &Wrapped::x0);
+		//handle.RegisterMember("x1", &Wrapped::GetX1);
+		//handle.RegisterMember("x2", &Wrapped::GetX2);
 	}
 	constructor.Bind("wrapped", new Wrapped);
 	
 	if (auto handle = constructor.RegisterStruct<Pointed>())
 	{
 		handle.RegisterMember("a", &Pointed::a);
-		//handle.RegisterMember("b", &Pointed::b);
-		//handle.RegisterMember("c", &Pointed::c);
-		//handle.RegisterMember("d", &Pointed::GetD);
-		handle.RegisterMember("e", &Pointed::GetE);
-		handle.RegisterMember("f", &Pointed::GetF);
-		handle.RegisterMember("g", &Pointed::GetG);
-		handle.RegisterMember("h", &Pointed::GetH);
+		handle.RegisterMember("b", &Pointed::GetB);
+		handle.RegisterMember("c", &Pointed::GetC);
+
+		//handle.RegisterMember("x0", &Pointed::x0);
+		//handle.RegisterMember("x1", &Pointed::GetX1);
 	}
 	constructor.Bind("pointed", new Pointed);
-
-	
-	if (auto handle = constructor.RegisterStruct<ConstPointed>())
-	{
-		handle.RegisterMember("a", &ConstPointed::a);
-		//handle.RegisterMember("b", &ConstPointed::b);
-		//handle.RegisterMember("c", &ConstPointed::c);
-		//handle.RegisterMemberGetter("d", &ConstPointed::GetD);
-		handle.RegisterMember("e", &ConstPointed::GetE);
-		handle.RegisterMember("f", &ConstPointed::GetF);
-		handle.RegisterMember("g", &ConstPointed::GetG);
-		handle.RegisterMember("h", &ConstPointed::GetH);
-	}
-	constructor.Bind("const_pointed", new ConstPointed);
-
 
 	constructor.RegisterArray<decltype(Arrays::a)>();
 	constructor.RegisterArray<decltype(Arrays::b)>();
 	constructor.RegisterArray<decltype(Arrays::c)>();
 	constructor.RegisterArray<decltype(Arrays::d)>();
 	constructor.RegisterArray<decltype(Arrays::e)>();
-	constructor.RegisterArray<decltype(Arrays::f)>();
-	constructor.RegisterArray<decltype(Arrays::g)>();
 
+	//constructor.RegisterArray<decltype(Arrays::x0)>();
+	//constructor.RegisterArray<decltype(Arrays::x1)>();
 
 	if (auto handle = constructor.RegisterStruct<Arrays>())
 	{
@@ -368,8 +361,9 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("c", &Arrays::c);
 		handle.RegisterMember("d", &Arrays::d);
 		handle.RegisterMember("e", &Arrays::e);
-		handle.RegisterMember("f", &Arrays::f);
-		handle.RegisterMember("g", &Arrays::g);
+
+		//handle.RegisterMember("x0", &Arrays::x0);
+		//handle.RegisterMember("x1", &Arrays::x1);
 	}
 	constructor.Bind("arrays", new Arrays);
 	

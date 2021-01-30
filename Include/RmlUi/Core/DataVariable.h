@@ -101,7 +101,7 @@ public:
 
 	bool Get(void* ptr, Variant& variant) override
 	{
-		variant = *static_cast<T*>(ptr);
+		variant = *static_cast<const T*>(ptr);
 		return true;
 	}
 	bool Set(void* ptr, const Variant& variant) override
@@ -128,6 +128,7 @@ public:
 		set(variant);
 		return true;
 	}
+
 private:
 	DataGetFunc get;
 	DataSetFunc set;
@@ -152,6 +153,7 @@ public:
 		set(static_cast<T*>(ptr), variant);
 		return true;
 	}
+
 private:
 	DataTypeGetFunc<T> get;
 	DataTypeSetFunc<T> set;
@@ -221,22 +223,6 @@ protected:
 	}
 };
 
-//template<typename T>
-//class ConstPointerDefinition final : public BasePointerDefinition {
-//public:
-//	ConstPointerDefinition(VariableDefinition* underlying_definition) : BasePointerDefinition(underlying_definition) {}
-//
-//	bool Set(void* ptr, const Variant& variant) override
-//	{
-//		// Emit warning
-//		return false;
-//	}
-//	DataVariable Child(void* ptr, const DataAddressEntry& address) override
-//	{
-//		// TODO: Return the constness of T?
-//		return PointerDefinition::Child(ptr, address);
-//	}
-//};
 
 class StructDefinition final : public VariableDefinition {
 public:
@@ -288,6 +274,7 @@ protected:
 	{
 		return &(static_cast<Object*>(base_ptr)->*member_ptr);
 	}
+
 private:
 	MemberType Object::* member_ptr;
 };
@@ -296,21 +283,21 @@ private:
 template<typename Object, typename MemberType, typename BasicReturnType>
 class MemberGetFuncDefinition final : public BasePointerDefinition {
 public:
-	using MemberFunc = MemberType Object::*;
 
 	MemberGetFuncDefinition(VariableDefinition* underlying_definition, MemberType Object::* member_get_func_ptr)
 		: BasePointerDefinition(underlying_definition), member_get_func_ptr(member_get_func_ptr)
 	{
+		using MemberFunc = MemberType Object::*;
 		static_assert(std::is_member_function_pointer<MemberFunc>::value, "Must be a member function pointer");
 	}
 
 protected:
 	void* DereferencePointer(void* base_ptr) override
 	{
-		return (void*)Extract((static_cast<Object*>(base_ptr)->*member_get_func_ptr)());
+		return static_cast<void*>(Extract((static_cast<Object*>(base_ptr)->*member_get_func_ptr)()));
 	}
-private:
 
+private:
 	// Pointer return types
 	BasicReturnType* Extract(BasicReturnType* value) {
 		return value;
@@ -343,7 +330,6 @@ public:
 	}
 
 private:
-
 	template<typename T = MemberGetType, typename std::enable_if<std::is_null_pointer<T>::value, int>::type = 0>
 	bool GetDetail(void* /*ptr*/, Variant& /*variant*/)
 	{
@@ -358,7 +344,7 @@ private:
 
 		// TODO: Does this work for pointers?
 		auto&& value = (static_cast<Object*>(ptr)->*member_get_func_ptr)();
-		bool result = underlying_definition->Get((void*)&value, variant);
+		bool result = underlying_definition->Get(static_cast<void*>(&value), variant);
 		return result;
 	}
 
@@ -375,7 +361,7 @@ private:
 			return false;
 
 		UnderlyingType result;
-		if (!underlying_definition->Set((void*)&result, variant))
+		if (!underlying_definition->Set(static_cast<void*>(&result), variant))
 			return false;
 
 		(static_cast<Object*>(ptr)->*member_set_func_ptr)(result);
