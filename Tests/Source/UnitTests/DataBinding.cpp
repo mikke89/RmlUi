@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <doctest.h>
+#include <map>
 
 using namespace Rml;
 
@@ -113,6 +114,7 @@ static const String document_rml = R"(
 </rml>
 )";
 
+
 struct StringWrap
 {
 	StringWrap(String val = "wrap_default") : val(val) {}
@@ -182,10 +184,6 @@ struct Basic
 	}
 	// Invalid: Illegal signature
 	int GetX5(int) {
-		return 9;
-	}
-	// Invalid: Const qualified return type
-	const int GetX6() {
 		return 9;
 	}
 };
@@ -316,7 +314,7 @@ bool InitializeDataBindings(Context* context)
 		//handle.RegisterMember("x2", &Basic::GetX2);
 		//handle.RegisterMember("x3", &Basic::GetX3);
 		//handle.RegisterMember("x4", &Basic::GetX4);
-		//handle.RegisterMember("x6", &Basic::GetX6);
+		//handle.RegisterMember("x5", &Basic::GetX5);
 	}
 	constructor.Bind("basic", new Basic);
 	

@@ -134,6 +134,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ConvolutionFilter.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Core.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataModelHandle.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataStructHandle.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypeRegister.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataVariable.h

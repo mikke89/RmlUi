@@ -27,6 +27,8 @@
  */
 
 #include "../../Include/RmlUi/Core/DataTypeRegister.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../Include/RmlUi/Core/Variant.h"
 
 namespace Rml {
 
