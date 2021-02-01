@@ -47,6 +47,10 @@ namespace TestsShell {
 
 	void ShutdownShell();
 
+	// Set the number of expected warnings and errors logged by RmlUi until the next call to this function
+	// or until 'ShutdownShell()'.
+	void SetNumExpectedWarnings(int num_warnings);
+
 	// Stats only available for the dummy renderer.
 	Rml::String GetRenderStats();
 }

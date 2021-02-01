@@ -31,6 +31,7 @@
 #include "TemplateCache.h"
 #include "XMLParseTools.h"
 #include "../../Include/RmlUi/Core/Dictionary.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/XMLParser.h"
 
@@ -49,12 +50,19 @@ Element* XMLNodeHandlerTemplate::ElementStart(XMLParser* parser, const String& R
 	RMLUI_UNUSED_ASSERT(name);
 	RMLUI_ASSERT(name == "template");
 
-	String template_name = Get<String>(attributes, "src", "");
-
-	// Tell the parser to use the element handler for all child nodes
+	// Tell the parser to use the default handler for all child nodes
 	parser->PushDefaultHandler();
 
-	return XMLParseTools::ParseTemplate(parser->GetParseFrame()->element, template_name);
+	const String template_name = Get<String>(attributes, "src", "");
+	Element* element = parser->GetParseFrame()->element;
+
+	if (template_name.empty())
+	{
+		Log::Message(Log::LT_WARNING, "Inline template injection requires the 'src' attribute with the target template name, but none provided. In element %s", element->GetAddress().c_str());
+		return element;
+	}
+
+	return XMLParseTools::ParseTemplate(element, template_name);
 }
 
 bool XMLNodeHandlerTemplate::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))

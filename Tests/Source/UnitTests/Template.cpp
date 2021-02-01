@@ -35,70 +35,72 @@
 
 using namespace Rml;
 
-static const String document_template_rml = R"(
+static const String document_body_template_rml = R"(
 <rml>
 <head>
-	<link type="text/rcss" href="/assets/rml.rcss"/>
 	<link type="text/template" href="/assets/window.rml"/>
 	<style>
 		body.window
 		{
 			top: 100px;
 			left: 200px;
-			width: 1300px;
+			width: 600px;
 			height: 450px;
 		}
 	</style>
 </head>
 
-<body id="body" template="window">
+<body id="body" class="overridden" template="window">
 <p id="p">A paragraph</p>
 </body>
 </rml>
 )";
 
-static const String p_address_template = "p#p < div#content < div#window < body#body.window < #root#main";
+static const String p_address_body_template = "p#p < div#content < div#window < body#body.window < #root#main";
 
-static const String document_include_rml = R"(
+static const String document_inline_template_rml = R"(
 <rml>
 <head>
-	<link type="text/rcss" href="/assets/rml.rcss"/>
 	<link type="text/template" href="/assets/window.rml"/>
 	<style>
-		body.window
+		body
 		{
 			top: 100px;
 			left: 200px;
-			width: 1300px;
+			width: 600px;
 			height: 450px;
 		}
 	</style>
 </head>
 
-<body id="body">
+<body id="body" class="inline">
 <p>Paragraph outside the window.</p>
-<div id="include">
-	<include template="window">
+<div id="template_parent">
+	<template src="window">
 		<p id="p">A paragraph</p>
-	</include>
+	</template>
 </div>
 </body>
 </rml>
 )";
 
-static const String p_address_include = "p#p < div#content < div#window < div#include < body#body < #root#main";
+static const String p_address_inline_template = "p#p < div#content < div#window < div#template_parent < body#body.inline < #root#main";
 
 
-
-TEST_CASE("template.body")
+TEST_CASE("template")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
 	SUBCASE("body")
 	{
-		ElementDocument* document = context->LoadDocumentFromMemory(document_template_rml);
+		INFO("Expected warning: Body 'class' attribute overridden by template.");
+		TestsShell::SetNumExpectedWarnings(1);
+
+		ElementDocument* document = context->LoadDocumentFromMemory(document_body_template_rml);
 		REQUIRE(document);
+		TestsShell::SetNumExpectedWarnings(0);
+
 		document->Show();
 
 		context->Update();
@@ -109,14 +111,14 @@ TEST_CASE("template.body")
 		Element* el_p = document->GetElementById("p");
 		REQUIRE(el_p);
 
-		CHECK(el_p->GetAddress() == p_address_template);
+		CHECK(el_p->GetAddress() == p_address_body_template);
 
 		document->Close();
 	}
 
-	SUBCASE("include")
+	SUBCASE("inline")
 	{
-		ElementDocument* document = context->LoadDocumentFromMemory(document_include_rml);
+		ElementDocument* document = context->LoadDocumentFromMemory(document_inline_template_rml);
 		REQUIRE(document);
 		document->Show();
 
@@ -128,7 +130,7 @@ TEST_CASE("template.body")
 		Element* el_p = document->GetElementById("p");
 		REQUIRE(el_p);
 
-		CHECK(el_p->GetAddress() == p_address_include);
+		CHECK(el_p->GetAddress() == p_address_inline_template);
 
 		document->Close();
 	}

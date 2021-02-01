@@ -37,6 +37,16 @@ class TestsSystemInterface : public ShellSystemInterface
 {
 public:
 	bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
+
+	// Checks and clears previously logged messages, then sets the number of expected
+	// warnings and errors until the next call.
+	void SetNumExpectedWarnings(int num_expected_warnings);
+
+private:
+	int num_logged_warnings = 0;
+	int num_expected_warnings = 0;
+
+	Rml::StringList warnings;
 };
 
 
