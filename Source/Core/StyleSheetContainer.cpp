@@ -56,10 +56,10 @@ StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(Vector2i dimensions, floa
 
     UniquePtr<StyleSheet> new_sheet = MakeUnique<StyleSheet>();
 
-    for(auto const& pair : media_blocks)
+    for(auto const& media_block : media_blocks)
     {
         bool all_match = true;
-        for(auto const& property : pair.first.GetProperties())
+        for(auto const& property : media_block.properties.GetProperties())
         {
             switch(static_cast<MediaQueryId>(property.first)) 
             {
@@ -130,7 +130,7 @@ StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(Vector2i dimensions, floa
 
         if(all_match)
         {
-            new_sheet = new_sheet->CombineStyleSheet(*pair.second);
+            new_sheet = std::move(new_sheet->CombineStyleSheet(*media_block.stylesheet));
         }
     }
     
@@ -151,8 +151,8 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
     for(auto const& pair : media_blocks)
     {      
         PropertyDictionary dict;
-        dict.Import(pair.first);
-        new_sheet->media_blocks.emplace_back(dict, pair.second->CombineStyleSheet(StyleSheet{}));
+        dict.Import(pair.properties);
+        new_sheet->media_blocks.push_back(MediaBlock(dict, pair.stylesheet->CombineStyleSheet(StyleSheet{})));
     }
 
     for(auto const& pair : container.media_blocks)
@@ -160,9 +160,9 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
         bool block_found = false;
         for(auto& media_block : new_sheet->media_blocks)
         {
-            if(pair.first.GetProperties() == media_block.first.GetProperties())
+            if(pair.properties.GetProperties() == media_block.properties.GetProperties())
             {
-                media_block.second = media_block.second->CombineStyleSheet(*pair.second);
+                media_block.stylesheet = std::move(media_block.stylesheet->CombineStyleSheet(*pair.stylesheet));
                 block_found = true;
                 break;
             }
@@ -171,8 +171,8 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
         if (!block_found)
         {
             PropertyDictionary dict;
-            dict.Import(pair.first);
-            new_sheet->media_blocks.emplace_back(dict, pair.second->CombineStyleSheet(StyleSheet{}));
+            dict.Import(pair.properties);
+            new_sheet->media_blocks.push_back(MediaBlock(dict, pair.stylesheet->CombineStyleSheet(StyleSheet{})));
         }
     }
 

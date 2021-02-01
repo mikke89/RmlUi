@@ -30,13 +30,21 @@
 #define RMLUI_CORE_STYLESHEETCONTAINER_H
 
 #include "Traits.h"
-#include "Property.h"
+#include "PropertyDictionary.h"
 
 namespace Rml {
 
-class PropertyDictionary;
 class Stream;
 class StyleSheet;
+
+struct MediaBlock
+{
+	PropertyDictionary properties;
+	UniquePtr<StyleSheet> stylesheet;
+
+	MediaBlock() {}
+	MediaBlock(PropertyDictionary _properties, UniquePtr<StyleSheet> _stylesheet) : properties(_properties), stylesheet(std::move(_stylesheet)) {}
+};
 
 /**
 	StyleSheetContainer contains a list of media blocks and creates a combined style sheet when getting
@@ -64,7 +72,7 @@ public:
 	SharedPtr<StyleSheetContainer> CombineStyleSheetContainer(const StyleSheetContainer& container) const;
 
 private:
-	Vector<Pair<PropertyDictionary, UniquePtr<StyleSheet>>> media_blocks;
+	Vector<MediaBlock> media_blocks;
 
 	UniquePtr<StyleSheet> compiled_style_sheet;
 

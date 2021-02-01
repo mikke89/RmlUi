@@ -37,11 +37,12 @@ namespace Rml {
 class PropertyDictionary;
 class Stream;
 class StyleSheetContainer;
+struct MediaBlock;
 class StyleSheetNode;
 class AbstractPropertyParser;
 struct PropertySource;
 using StyleSheetNodeListRaw = Vector<StyleSheetNode*>;
-using MediaBlockListRaw = Vector<Pair<PropertyDictionary, UniquePtr<StyleSheet>>>;
+using MediaBlockListRaw = Vector<MediaBlock>;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.

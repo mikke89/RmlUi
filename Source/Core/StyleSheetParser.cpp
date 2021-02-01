@@ -498,7 +498,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 	State state = State::Global;
 
 
-	Pair<PropertyDictionary, UniquePtr<StyleSheet>> current_block = {};
+	MediaBlock current_block = {};
 
 	// Need to track whether currently inside a nested media block or not, since the default scope is also a media block
 	bool inside_media_block = false;
@@ -520,9 +520,9 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 				if (token == '{')
 				{
 					// Initialize current block if not present
-					if (!current_block.second)
+					if (!current_block.stylesheet)
 					{
-						current_block = {PropertyDictionary{}, MakeUnique<StyleSheet>()};
+						current_block = MediaBlock{PropertyDictionary{}, MakeUnique<StyleSheet>()};
 					}
 
 					const int rule_line_number = (int)line_number;
@@ -541,7 +541,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					{
 						auto source = MakeShared<PropertySource>(stream_file_name, rule_line_number, rule_name_list[i]);
 						properties.SetSourceOfAllProperties(source);
-						ImportProperties(current_block.second->root.get(), rule_name_list[i], properties, rule_count);
+						ImportProperties(current_block.stylesheet->root.get(), rule_name_list[i], properties, rule_count);
 					}
 
 					rule_count++;
@@ -553,7 +553,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 				else if (inside_media_block && token == '}')
 				{
 					// Complete current block
-					PostprocessKeyframes(current_block.second->keyframes);
+					PostprocessKeyframes(current_block.stylesheet->keyframes);
 					style_sheets.push_back(std::move(current_block));
 					current_block = {};
 
@@ -571,7 +571,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 				if (token == '{')
 				{					
 					// Initialize current block if not present
-					if (!current_block.second)
+					if (!current_block.stylesheet)
 					{
 						current_block = {PropertyDictionary{}, MakeUnique<StyleSheet>()};
 					}
@@ -586,7 +586,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					else if (at_rule_identifier == "decorator")
 					{
 						auto source = MakeShared<PropertySource>(stream_file_name, (int)line_number, pre_token_str);
-						ParseDecoratorBlock(at_rule_name, current_block.second->decorator_map, *current_block.second, source);
+						ParseDecoratorBlock(at_rule_name, current_block.stylesheet->decorator_map, *current_block.stylesheet, source);
 						
 						at_rule_name.clear();
 						state = State::Global;
@@ -613,7 +613,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 						}
 						else
 						{
-							current_block.second->spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, sprite_definitions);
+							current_block.stylesheet->spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, sprite_definitions);
 						}
 
 						spritesheet_property_parser->Clear();
@@ -623,9 +623,9 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					else if (at_rule_identifier == "media")
 					{
 						// complete the current "global" block if present and start a new block
-						if (current_block.second)
+						if (current_block.stylesheet)
 						{
-							PostprocessKeyframes(current_block.second->keyframes);
+							PostprocessKeyframes(current_block.stylesheet->keyframes);
 							style_sheets.push_back(std::move(current_block));
 							current_block = {};
 						}
@@ -659,7 +659,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 				if (token == '{')
 				{	
 					// Initialize current block if not present
-					if (!current_block.second)
+					if (!current_block.stylesheet)
 					{
 						current_block = {PropertyDictionary{}, MakeUnique<StyleSheet>()};
 					}
@@ -670,7 +670,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					if(!ReadProperties(parser))
 						continue;
 
-					if (!ParseKeyframeBlock(current_block.second->keyframes, at_rule_name, pre_token_str, properties))
+					if (!ParseKeyframeBlock(current_block.stylesheet->keyframes, at_rule_name, pre_token_str, properties))
 						continue;
 				}
 				else if (token == '}')
@@ -700,9 +700,9 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 	}	
 
 	// Complete last block if present
-	if (current_block.second)
+	if (current_block.stylesheet)
 	{
-		PostprocessKeyframes(current_block.second->keyframes);
+		PostprocessKeyframes(current_block.stylesheet->keyframes);
 		style_sheets.push_back(std::move(current_block));
 	}
 

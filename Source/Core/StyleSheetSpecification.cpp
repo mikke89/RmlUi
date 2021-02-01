@@ -416,7 +416,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	// Rare properties (not added to computed values)
 	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");
 
-	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");
+	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");
 }
 
 } // namespace Rml
