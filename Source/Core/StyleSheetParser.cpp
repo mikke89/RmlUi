@@ -163,9 +163,9 @@ public:
 		specification.RegisterProperty("min-height", "", false, false, PropertyId::MinHeight).AddParser("pixels");
 		specification.RegisterProperty("max-height", "", false, false, PropertyId::MaxHeight).AddParser("pixels");
 
-		specification.RegisterProperty("aspect-ratio", "", false, false, PropertyId::AspectRatio).AddParser("aspect_ratio");
-		specification.RegisterProperty("min-aspect-ratio", "", false, false, PropertyId::MinAspectRatio).AddParser("aspect_ratio");
-		specification.RegisterProperty("max-aspect-ratio", "", false, false, PropertyId::MaxAspectRatio).AddParser("aspect_ratio");
+		specification.RegisterProperty("aspect-ratio", "", false, false, PropertyId::AspectRatio).AddParser("ratio");
+		specification.RegisterProperty("min-aspect-ratio", "", false, false, PropertyId::MinAspectRatio).AddParser("ratio");
+		specification.RegisterProperty("max-aspect-ratio", "", false, false, PropertyId::MaxAspectRatio).AddParser("ratio");
 
 		specification.RegisterProperty("resolution", "", false, false, PropertyId::Resolution).AddParser("resolution");
 		specification.RegisterProperty("min-resolution", "", false, false, PropertyId::MinResolution).AddParser("resolution");
@@ -436,7 +436,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 				return false;
 			}
 
-			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(current_string));
+			current_string = StringUtilities::StripWhitespace(current_string);
 
 			if(!media_query_property_parser->Parse(name, current_string))
 				Log::Message(Log::LT_WARNING, "Syntax error parsing media-query property declaration '%s: %s;' in %s: %d.", name.c_str(), current_string.c_str(), stream_file_name.c_str(), line_number);
@@ -470,6 +470,11 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 		default:
 			current_string += character;
 		}
+	}
+
+	if (properties.GetNumProperties() == 0)
+	{
+		Log::Message(Log::LT_WARNING, "Media query list parsing yielded no properties at %s:%d.", stream_file_name.c_str(), line_number);
 	}
 
 	return true;
@@ -545,6 +550,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					// Complete current block
 					PostprocessKeyframes(current_block.second->keyframes);
 					style_sheets.push_back(std::move(current_block));
+					current_block = {};
 
 					inside_media_block = false;
 					break;
@@ -616,12 +622,13 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 						{
 							PostprocessKeyframes(current_block.second->keyframes);
 							style_sheets.push_back(std::move(current_block));
+							current_block = {};
 						}
 
 						// parse media query list into block
 						PropertyDictionary feature_map;
-						ParseMediaFeatureMap(feature_map, pre_token_str.substr(pre_token_str.find(' ') + 1));
-						current_block = {feature_map, MakeUnique<StyleSheet>()};
+						ParseMediaFeatureMap(feature_map, at_rule_name);
+						current_block = {std::move(feature_map), MakeUnique<StyleSheet>()};
 
 						inside_media_block = true;
 						state = State::Global;

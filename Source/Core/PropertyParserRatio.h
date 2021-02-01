@@ -26,51 +26,32 @@
  *
  */
 
-#include "PropertyParserAspectRatio.h"
+#ifndef RMLUI_CORE_PropertyParserRatio_H
+#define RMLUI_CORE_PropertyParserRatio_H
+
+#include "../../Include/RmlUi/Core/PropertyParser.h"
 
 namespace Rml {
 
-PropertyParserAspectRatio::PropertyParserAspectRatio()
+/**
+	A property parser that parses an ratio in the format of x/y, like 16/9.
+
+	@author Maximilian Stark
+ */
+
+class PropertyParserRatio : public PropertyParser
 {
-}
+public:
+	PropertyParserRatio();
+	virtual ~PropertyParserRatio();
 
-PropertyParserAspectRatio::~PropertyParserAspectRatio()
-{
-}
-
-// Called to parse a RCSS string declaration.
-bool PropertyParserAspectRatio::ParseValue(Property& property, const String& value, const ParameterMap& RMLUI_UNUSED_PARAMETER(parameters)) const
-{
-	RMLUI_UNUSED(parameters);
-
-	StringList parts;
-	StringUtilities::ExpandString(parts, value, '/');
-
-	if(parts.size() != 2)
-	{
-		return false;
-	}
-
-	char* str_end = nullptr;
-	float first_value = strtof(parts[0].c_str(), &str_end);
-	if (parts[0].c_str() == str_end)
-	{
-		// Number conversion failed
-		return false;
-	}
-	
-	str_end = nullptr;
-	float second_value = strtof(parts[1].c_str(), &str_end);
-	if (parts[1].c_str() == str_end)
-	{
-		// Number conversion failed
-		return false;
-	}
-
-	property.value = Variant(first_value / second_value);
-	property.unit = Property::NUMBER;
-
-	return true;
-}
+	/// Called to parse a RCSS string declaration.
+	/// @param[out] property The property to set the parsed value on.
+	/// @param[in] value The raw value defined for this property.
+	/// @param[in] parameters The parameters defined for this property; not used for this parser.
+	/// @return True if the value was validated successfully, false otherwise.
+	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
+};
 
 } // namespace Rml
+#endif

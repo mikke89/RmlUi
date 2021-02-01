@@ -2541,10 +2541,10 @@ void Element::HandleAnimationProperty()
 
 		const AnimationList& animation_list = meta->computed_values.animation;
 		bool element_has_animations = (!animation_list.empty() || !animations.empty());
-		StyleSheet* stylesheet = nullptr;
+		const StyleSheet* stylesheet = nullptr;
 
 		if (element_has_animations)
-			stylesheet = const_cast<StyleSheet*>(GetStyleSheet());
+			stylesheet = GetStyleSheet();
 
 		if (stylesheet)
 		{

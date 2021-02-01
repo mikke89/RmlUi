@@ -30,7 +30,6 @@
 #include "ElementDefinition.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
-#include "StyleSheetParser.h"
 #include "Utilities.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Element.h"
@@ -114,7 +113,7 @@ void StyleSheet::OptimizeNodeProperties()
 }
 
 // Returns the Keyframes of the given name, or null if it does not exist.
-Keyframes * StyleSheet::GetKeyframes(const String & name)
+const Keyframes * StyleSheet::GetKeyframes(const String & name) const
 {
 	auto it = keyframes.find(name);
 	if (it != keyframes.end())

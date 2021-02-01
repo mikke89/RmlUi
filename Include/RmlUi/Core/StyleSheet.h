@@ -89,7 +89,7 @@ public:
 	void OptimizeNodeProperties();
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
-	Keyframes* GetKeyframes(const String& name);
+	const Keyframes* GetKeyframes(const String& name) const;
 
 	/// Returns the Decorator of the given name, or null if it does not exist.
 	SharedPtr<Decorator> GetDecorator(const String& name) const;

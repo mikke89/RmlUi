@@ -213,7 +213,7 @@ bool ElementImage::LoadTexture()
 
 		if (ElementDocument* document = GetOwnerDocument())
 		{
-			if (auto style_sheet = document->GetStyleSheet())
+			if (const StyleSheet* style_sheet = document->GetStyleSheet())
 			{
 				if (const Sprite* sprite = style_sheet->GetSprite(sprite_name))
 				{

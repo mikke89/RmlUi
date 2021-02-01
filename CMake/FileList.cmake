@@ -74,7 +74,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIterator.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAspectRatio.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserRatio.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.h
@@ -352,7 +352,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAspectRatio.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserRatio.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.cpp
