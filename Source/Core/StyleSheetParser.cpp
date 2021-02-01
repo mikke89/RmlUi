@@ -155,13 +155,13 @@ private:
 public:
 	MediaQueryPropertyParser() : specification(14, 0) 
 	{	
-		specification.RegisterProperty("width", "", false, false, PropertyId::Width).AddParser("pixels");
-		specification.RegisterProperty("min-width", "", false, false, PropertyId::MinWidth).AddParser("pixels");
-		specification.RegisterProperty("max-width", "", false, false, PropertyId::MaxWidth).AddParser("pixels");
+		specification.RegisterProperty("width", "", false, false, PropertyId::Width).AddParser("length");
+		specification.RegisterProperty("min-width", "", false, false, PropertyId::MinWidth).AddParser("length");
+		specification.RegisterProperty("max-width", "", false, false, PropertyId::MaxWidth).AddParser("length");
 
-		specification.RegisterProperty("height", "", false, false, PropertyId::Height).AddParser("pixels");
-		specification.RegisterProperty("min-height", "", false, false, PropertyId::MinHeight).AddParser("pixels");
-		specification.RegisterProperty("max-height", "", false, false, PropertyId::MaxHeight).AddParser("pixels");
+		specification.RegisterProperty("height", "", false, false, PropertyId::Height).AddParser("length");
+		specification.RegisterProperty("min-height", "", false, false, PropertyId::MinHeight).AddParser("length");
+		specification.RegisterProperty("max-height", "", false, false, PropertyId::MaxHeight).AddParser("length");
 
 		specification.RegisterProperty("aspect-ratio", "", false, false, PropertyId::AspectRatio).AddParser("ratio");
 		specification.RegisterProperty("min-aspect-ratio", "", false, false, PropertyId::MinAspectRatio).AddParser("ratio");

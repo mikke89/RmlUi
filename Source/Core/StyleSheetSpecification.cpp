@@ -58,7 +58,6 @@ struct DefaultStyleSheetParsers {
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserRatio ratio = PropertyParserRatio();
 	PropertyParserNumber resolution = PropertyParserNumber(Property::DPI);
-	PropertyParserNumber pixels = PropertyParserNumber(Property::PX);
 };
 
 StyleSheetSpecification::StyleSheetSpecification() : 
@@ -253,7 +252,6 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("transform", &default_parsers->transform);
 	RegisterParser("ratio", &default_parsers->ratio);
 	RegisterParser("resolution", &default_parsers->resolution);
-	RegisterParser("pixels", &default_parsers->pixels);
 }
 
 

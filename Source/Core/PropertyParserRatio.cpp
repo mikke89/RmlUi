@@ -51,17 +51,15 @@ bool PropertyParserRatio::ParseValue(Property& property, const String& value, co
 		return false;
 	}
 
-	char* str_end = nullptr;
-	float first_value = strtof(parts[0].c_str(), &str_end);
-	if (parts[0].c_str() == str_end)
+	float first_value = 0;
+	if (!TypeConverter<String, float>::Convert(parts[0], first_value))
 	{
 		// Number conversion failed
 		return false;
 	}
 	
-	str_end = nullptr;
-	float second_value = strtof(parts[1].c_str(), &str_end);
-	if (parts[1].c_str() == str_end)
+	float second_value = 0;
+	if (!TypeConverter<String, float>::Convert(parts[1], second_value))
 	{
 		// Number conversion failed
 		return false;
