@@ -26,50 +26,42 @@
  *
  */
 
-#ifndef RMLUI_CORE_STYLESHEETCONTAINER_H
-#define RMLUI_CORE_STYLESHEETCONTAINER_H
+#ifndef RMLUI_CORE_STYLESHEETTYPES_H
+#define RMLUI_CORE_STYLESHEETTYPES_H
 
 #include "Traits.h"
 #include "PropertyDictionary.h"
-#include "StyleSheetTypes.h"
+#include "Spritesheet.h"
 
 namespace Rml {
 
-class Stream;
 class StyleSheet;
 
-/**
-	StyleSheetContainer contains a list of media blocks and creates a combined style sheet when getting
-	properties of the current context regarding the available media features.
+struct KeyframeBlock {
+	KeyframeBlock(float normalized_time) : normalized_time(normalized_time) {}
+	float normalized_time;  // [0, 1]
+	PropertyDictionary properties;
+};
+struct Keyframes {
+	Vector<PropertyId> property_ids;
+	Vector<KeyframeBlock> blocks;
+};
+using KeyframesMap = UnorderedMap<String, Keyframes>;
 
-	@author Maximilian Stark
- */
+struct DecoratorSpecification {
+	String decorator_type;
+	PropertyDictionary properties;
+	SharedPtr<Decorator> decorator;
+};
+using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
-class RMLUICORE_API StyleSheetContainer : public NonCopyMoveable
+struct MediaBlock
 {
-public:
-	StyleSheetContainer();
-	virtual ~StyleSheetContainer();
+	PropertyDictionary properties;
+	UniquePtr<StyleSheet> stylesheet;
 
-	/// Loads a style from a CSS definition.
-	bool LoadStyleSheetContainer(Stream* stream, int begin_line_number = 1);
-
-	/// Returns the currently compiled style sheet that has been merged from incorporating all matching media blocks
-	/// or creates it ad-hoc if the given properties differ from the currently stored values.
-	/// @param[in] dimensions The current context viewport dimensions
-	/// @param[in] density_ratio The current context ratio of 'dp' units to 'px' units
-	StyleSheet* GetCompiledStyleSheet(Vector2i dimensions, float density_ratio);
-
-	/// Combines this style sheet container with another one, producing a new sheet container.
-	SharedPtr<StyleSheetContainer> CombineStyleSheetContainer(const StyleSheetContainer& container) const;
-
-private:
-	Vector<MediaBlock> media_blocks;
-
-	UniquePtr<StyleSheet> compiled_style_sheet;
-
-	Vector2i current_dimensions;
-	float current_density_ratio;
+	MediaBlock() {}
+	MediaBlock(PropertyDictionary _properties, UniquePtr<StyleSheet> _stylesheet) : properties(_properties), stylesheet(std::move(_stylesheet)) {}
 };
 
 } // namespace Rml

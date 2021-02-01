@@ -32,6 +32,7 @@
 #include "Traits.h"
 #include "PropertyDictionary.h"
 #include "Spritesheet.h"
+#include "StyleSheetTypes.h"
 
 namespace Rml {
 
@@ -45,24 +46,6 @@ class Stream;
 class StyleSheetParser;
 struct Sprite;
 struct Spritesheet;
-
-struct KeyframeBlock {
-	KeyframeBlock(float normalized_time) : normalized_time(normalized_time) {}
-	float normalized_time;  // [0, 1]
-	PropertyDictionary properties;
-};
-struct Keyframes {
-	Vector<PropertyId> property_ids;
-	Vector<KeyframeBlock> blocks;
-};
-using KeyframesMap = UnorderedMap<String, Keyframes>;
-
-struct DecoratorSpecification {
-	String decorator_type;
-	PropertyDictionary properties;
-	SharedPtr<Decorator> decorator;
-};
-using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
 /**
 	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
