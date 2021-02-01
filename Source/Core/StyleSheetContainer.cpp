@@ -130,7 +130,7 @@ StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(Vector2i dimensions, floa
 
         if(all_match)
         {
-            new_sheet = std::move(new_sheet->CombineStyleSheet(*media_block.stylesheet));
+            new_sheet = new_sheet->CombineStyleSheet(*media_block.stylesheet);
         }
     }
     
@@ -162,7 +162,7 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
         {
             if(pair.properties.GetProperties() == media_block.properties.GetProperties())
             {
-                media_block.stylesheet = std::move(media_block.stylesheet->CombineStyleSheet(*pair.stylesheet));
+                media_block.stylesheet = media_block.stylesheet->CombineStyleSheet(*pair.stylesheet);
                 block_found = true;
                 break;
             }
