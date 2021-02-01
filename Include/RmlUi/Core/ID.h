@@ -159,6 +159,23 @@ enum class PropertyId : uint8_t
 
 	FillImage,
 
+	NumDefinedIds,
+	FirstCustomId = NumDefinedIds,
+
+	// The maximum number of IDs. This limits the number of possible custom IDs to MaxNumIds - FirstCustomId.
+	MaxNumIds = 128
+};
+
+enum class MediaQueryId : uint8_t
+{
+	Invalid, 
+
+	Width,
+	MinWidth,
+	MaxWidth,
+	Height,
+	MinHeight,
+	MaxHeight,
 	AspectRatio,
 	MinAspectRatio,
 	MaxAspectRatio,
@@ -173,7 +190,6 @@ enum class PropertyId : uint8_t
 	// The maximum number of IDs. This limits the number of possible custom IDs to MaxNumIds - FirstCustomId.
 	MaxNumIds = 128
 };
-
 
 enum class EventId : uint16_t 
 {

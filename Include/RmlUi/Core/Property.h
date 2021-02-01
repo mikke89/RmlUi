@@ -140,5 +140,11 @@ inline Property::Unit operator|(Property::Unit lhs, Property::Unit rhs)
 	return static_cast<Property::Unit>(static_cast<underlying_t>(lhs) | static_cast<underlying_t>(rhs));
 }
 
+template <typename Id>
+inline PropertyId CastId(Id id)
+{
+	return static_cast<PropertyId>(id);
+}
+
 } // namespace Rml
 #endif

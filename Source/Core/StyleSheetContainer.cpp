@@ -61,63 +61,66 @@ StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(Vector2i dimensions, floa
         bool all_match = true;
         for(auto const& property : pair.first.GetProperties())
         {
-            switch(property.first) 
+            switch(static_cast<MediaQueryId>(property.first)) 
             {
-            case PropertyId::Width:
+            case MediaQueryId::Width:
                 if(dimensions.x != property.second.Get<int>())
                     all_match = false;
                 break;
-            case PropertyId::MinWidth:
+            case MediaQueryId::MinWidth:
                 if(dimensions.x < property.second.Get<int>())
                     all_match = false;
                 break;
-            case PropertyId::MaxWidth:
+            case MediaQueryId::MaxWidth:
                 if(dimensions.x > property.second.Get<int>())
                     all_match = false;
                 break;
-            case PropertyId::Height:
+            case MediaQueryId::Height:
                 if(dimensions.y != property.second.Get<int>())
                     all_match = false;
                 break;
-            case PropertyId::MinHeight:
+            case MediaQueryId::MinHeight:
                 if(dimensions.y < property.second.Get<int>())
                     all_match = false;
                 break;
-            case PropertyId::MaxHeight:
+            case MediaQueryId::MaxHeight:
                 if(dimensions.y > property.second.Get<int>())
                     all_match = false;
                 break;
-            case PropertyId::AspectRatio:
+            case MediaQueryId::AspectRatio:
                 if(((float)dimensions.x / (float)dimensions.y) != property.second.Get<float>())
                     all_match = false;
                 break;
-            case PropertyId::MinAspectRatio:
+            case MediaQueryId::MinAspectRatio:
                 if(((float)dimensions.x / (float)dimensions.y) < property.second.Get<float>())
                     all_match = false;
                 break;
-            case PropertyId::MaxAspectRatio:
+            case MediaQueryId::MaxAspectRatio:
                 if(((float)dimensions.x / (float)dimensions.y) > property.second.Get<float>())
                     all_match = false;
                 break;
-            case PropertyId::Resolution:
+            case MediaQueryId::Resolution:
                 if(density_ratio != property.second.Get<float>())
                     all_match = false;
                 break;
-            case PropertyId::MinResolution:
+            case MediaQueryId::MinResolution:
                 if(density_ratio < property.second.Get<float>())
                     all_match = false;
                 break;
-            case PropertyId::MaxResolution:
+            case MediaQueryId::MaxResolution:
                 if(density_ratio > property.second.Get<float>())
                     all_match = false;
                 break;
-            case PropertyId::Orientation:
+            case MediaQueryId::Orientation:
                 // Landscape (x > y) = 0 
                 // Portrait (x <= y) = 1
                 if((dimensions.x <= dimensions.y) != property.second.Get<bool>())
                     all_match = false;
-                break;
-            default:
+                break;  
+            // Invalid properties
+            case MediaQueryId::Invalid:
+            case MediaQueryId::NumDefinedIds:
+            case MediaQueryId::MaxNumIds:
                 break;
             }
             

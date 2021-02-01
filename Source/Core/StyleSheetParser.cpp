@@ -155,28 +155,32 @@ private:
 public:
 	MediaQueryPropertyParser() : specification(14, 0) 
 	{	
-		specification.RegisterProperty("width", "", false, false, PropertyId::Width).AddParser("length");
-		specification.RegisterProperty("min-width", "", false, false, PropertyId::MinWidth).AddParser("length");
-		specification.RegisterProperty("max-width", "", false, false, PropertyId::MaxWidth).AddParser("length");
+		specification.RegisterProperty("width", "", false, false, CastId(MediaQueryId::Width)).AddParser("length");
+		specification.RegisterProperty("min-width", "", false, false, CastId(MediaQueryId::MinWidth)).AddParser("length");
+		specification.RegisterProperty("max-width", "", false, false, CastId(MediaQueryId::MaxWidth)).AddParser("length");
 
-		specification.RegisterProperty("height", "", false, false, PropertyId::Height).AddParser("length");
-		specification.RegisterProperty("min-height", "", false, false, PropertyId::MinHeight).AddParser("length");
-		specification.RegisterProperty("max-height", "", false, false, PropertyId::MaxHeight).AddParser("length");
+		specification.RegisterProperty("height", "", false, false, CastId(MediaQueryId::Height)).AddParser("length");
+		specification.RegisterProperty("min-height", "", false, false, CastId(MediaQueryId::MinHeight)).AddParser("length");
+		specification.RegisterProperty("max-height", "", false, false, CastId(MediaQueryId::MaxHeight)).AddParser("length");
 
-		specification.RegisterProperty("aspect-ratio", "", false, false, PropertyId::AspectRatio).AddParser("ratio");
-		specification.RegisterProperty("min-aspect-ratio", "", false, false, PropertyId::MinAspectRatio).AddParser("ratio");
-		specification.RegisterProperty("max-aspect-ratio", "", false, false, PropertyId::MaxAspectRatio).AddParser("ratio");
+		specification.RegisterProperty("aspect-ratio", "", false, false, CastId(MediaQueryId::AspectRatio)).AddParser("ratio");
+		specification.RegisterProperty("min-aspect-ratio", "", false, false, CastId(MediaQueryId::MinAspectRatio)).AddParser("ratio");
+		specification.RegisterProperty("max-aspect-ratio", "", false, false, CastId(MediaQueryId::MaxAspectRatio)).AddParser("ratio");
 
-		specification.RegisterProperty("resolution", "", false, false, PropertyId::Resolution).AddParser("resolution");
-		specification.RegisterProperty("min-resolution", "", false, false, PropertyId::MinResolution).AddParser("resolution");
-		specification.RegisterProperty("max-resolution", "", false, false, PropertyId::MaxResolution).AddParser("resolution");
+		specification.RegisterProperty("resolution", "", false, false, CastId(MediaQueryId::Resolution)).AddParser("resolution");
+		specification.RegisterProperty("min-resolution", "", false, false, CastId(MediaQueryId::MinResolution)).AddParser("resolution");
+		specification.RegisterProperty("max-resolution", "", false, false, CastId(MediaQueryId::MaxResolution)).AddParser("resolution");
 
-		specification.RegisterProperty("orientation", "", false, false, PropertyId::Orientation).AddParser("keyword", "landscape, portrait");
+		specification.RegisterProperty("orientation", "", false, false, CastId(MediaQueryId::Orientation)).AddParser("keyword", "landscape, portrait");
 	}
 
 	void SetTargetProperties(PropertyDictionary* _properties)
 	{
 		properties = _properties;
+	}
+
+	void Clear() {
+		properties = nullptr;
 	}
 
 	bool Parse(const String& name, const String& value) override
@@ -210,6 +214,7 @@ void StyleSheetParser::Initialise()
 void StyleSheetParser::Shutdown()
 {
 	spritesheet_property_parser.reset();
+	media_query_property_parser.reset();
 }
 
 static bool IsValidIdentifier(const String& str)
