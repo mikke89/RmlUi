@@ -298,15 +298,6 @@ const StyleSheet* Element::GetStyleSheet() const
 	return nullptr;
 }
 
-// Returns the active style sheet container for this element. This may be nullptr.
-const SharedPtr<StyleSheetContainer>& Element::GetStyleSheetContainer() const
-{
-	if (ElementDocument* document = GetOwnerDocument())
-		return document->GetStyleSheetContainer();	
-	static SharedPtr<StyleSheetContainer> null_style_sheet;
-	return null_style_sheet;
-}
-
 // Returns the element's definition.
 const ElementDefinition* Element::GetDefinition()
 {

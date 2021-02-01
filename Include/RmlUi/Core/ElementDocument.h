@@ -88,8 +88,9 @@ public:
 	const StyleSheet* GetStyleSheet() const override;
 	/// Sets the style sheet this document, and all of its children, uses.
 	void SetStyleSheetContainer(SharedPtr<StyleSheetContainer> style_sheet);
-	/// Returns the document's style sheet container.
-	const SharedPtr<StyleSheetContainer>& GetStyleSheetContainer() const override;
+	/// Returns the active style sheet container for this element.
+	/// @return The element's style sheet container.
+	const SharedPtr<StyleSheetContainer>& GetStyleSheetContainer() const;
 	/// Reload the document's style sheet from source files.
 	/// Styles will be reloaded from <style> tags and external style sheets, but not inline 'style' attributes.
 	/// @note The source url originally used to load the document must still be a valid RML document.

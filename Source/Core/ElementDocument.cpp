@@ -234,7 +234,7 @@ void ElementDocument::ReloadStyleSheet()
 		return;
 	}
 
-	SetStyleSheetContainer(temp_doc->GetStyleSheetContainer());
+	SetStyleSheetContainer(static_cast<ElementDocument*>(temp_doc.get())->GetStyleSheetContainer());
 }
 
 // Brings the document to the front of the document stack.
