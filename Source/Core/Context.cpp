@@ -39,7 +39,6 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "DataModel.h"
-#include "ElementStyle.h"
 #include "EventDispatcher.h"
 #include "PluginRegistry.h"
 #include "StreamFile.h"
@@ -126,9 +125,7 @@ void Context::SetDimensions(const Vector2i _dimensions)
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
 			if (document != nullptr)
 			{
-				// Invalidate definition to force stylesheet recompilation
-				document->GetStyle()->DirtyDefinition();
-
+				document->DirtyMediaQueries();
 				document->DirtyVwAndVhProperties();
 				document->DirtyLayout();
 				document->DirtyPosition();
@@ -157,9 +154,7 @@ void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_r
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
 			if (document != nullptr)
 			{
-				// Invalidate definition to force stylesheet recompilation
-				document->GetStyle()->DirtyDefinition();
-
+				document->DirtyMediaQueries();
 				document->DirtyDpProperties();
 			}
 		}

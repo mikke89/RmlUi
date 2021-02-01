@@ -68,10 +68,10 @@ public:
 		RAD = 1 << 6,               // number suffixed by 'rad'; fetch as < float >
 		COLOUR = 1 << 7,            // colour; fetch as < Colourb >
 		DP = 1 << 8,                // density-independent pixel; number suffixed by 'dp'; fetch as < float >
-		DPI = 1 << 9,               // dots per inch, density resolution; number suffixed by 'dpi'; fetch as < float >
+		X = 1 << 9,                 // dots per px unit; number suffixed by 'x'; fetch as < float >
 		VW = 1 << 10,               // viewport-width percentage; number suffixed by 'vw'; fetch as < float >
 		VH = 1 << 11,               // viewport-height percentage; number suffixed by 'vh'; fetch as < float >
-		ABSOLUTE_UNIT = NUMBER | PX | DP | DPI | DEG | RAD | COLOUR | VW | VH,
+		ABSOLUTE_UNIT = NUMBER | PX | DP | X | DEG | RAD | COLOUR | VW | VH,
 
 		// Relative values.
 		EM = 1 << 12,               // number suffixed by 'em'; fetch as < float >
@@ -93,10 +93,10 @@ public:
 		DECORATOR = 1 << 23,        // decorator; fetch as < DecoratorsPtr >
 		FONTEFFECT = 1 << 24,       // font-effect; fetch as < FontEffectsPtr >
 
-		LENGTH = PX | DP | PPI_UNIT | EM | REM | VW | VH,
+		LENGTH = PX | DP | PPI_UNIT | EM | REM | VW | VH | X,
 		LENGTH_PERCENT = LENGTH | PERCENT,
 		NUMBER_LENGTH_PERCENT = NUMBER | LENGTH | PERCENT,
-		ABSOLUTE_LENGTH = PX | DP | PPI_UNIT | VH | VW,
+		ABSOLUTE_LENGTH = PX | DP | PPI_UNIT | VH | VW | X,
 		ANGLE = DEG | RAD
 	};
 

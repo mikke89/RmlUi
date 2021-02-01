@@ -159,6 +159,9 @@ private:
 	/// Returns true if the document has been marked as needing a re-layout.
 	bool IsLayoutDirty() override;
 
+	/// Notify the document that media query related properties have changed and that stylesheets need to be re-evaluated.
+	void DirtyMediaQueries();
+	
 	/// Updates all sizes defined by the 'dp' unit.
 	void DirtyDpProperties();
 

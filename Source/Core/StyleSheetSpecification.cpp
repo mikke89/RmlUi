@@ -57,7 +57,7 @@ struct DefaultStyleSheetParsers {
 	PropertyParserColour color = PropertyParserColour();
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserRatio ratio = PropertyParserRatio();
-	PropertyParserNumber resolution = PropertyParserNumber(Property::DPI);
+	PropertyParserNumber resolution = PropertyParserNumber(Property::X);
 };
 
 StyleSheetSpecification::StyleSheetSpecification() : 

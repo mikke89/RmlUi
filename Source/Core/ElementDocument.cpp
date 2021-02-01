@@ -237,6 +237,11 @@ void ElementDocument::ReloadStyleSheet()
 	SetStyleSheetContainer(static_cast<ElementDocument*>(temp_doc.get())->GetStyleSheetContainer());
 }
 
+void ElementDocument::DirtyMediaQueries()
+{
+	GetStyle()->DirtyDefinition();
+}
+
 // Brings the document to the front of the document stack.
 void ElementDocument::PullToFront()
 {

@@ -106,7 +106,7 @@ static const String document_media_query2_rml = R"(
 			}
 		}
 
-		@media (min-resolution: 90dpi) {
+		@media (min-resolution: 90x) {
 			div {
 				height: 128px;
 			}
