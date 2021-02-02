@@ -67,13 +67,7 @@ TEST_CASE("stylesheet.override_basic")
 
 	TestsShell::RenderLoop();
 
-	// Shell default window dimensions are 1500, 800
-
-	ElementList elems;
-	document->GetElementsByTagName(elems, "div");
-	CHECK(elems.size() == 1);
-
-	CHECK(elems[0]->GetBox() == Box(Vector2f(48.0f, 100.0f)));
+	CHECK(document->GetBox() == Box(Vector2f(48.0f, 100.0f)));
 
 	document->Close();
 
