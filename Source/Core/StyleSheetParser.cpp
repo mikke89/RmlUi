@@ -554,6 +554,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 				{
 					// Complete current block
 					PostprocessKeyframes(current_block.stylesheet->keyframes);
+					current_block.stylesheet->specificity_offset = rule_count;
 					style_sheets.push_back(std::move(current_block));
 					current_block = {};
 
@@ -626,6 +627,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 						if (current_block.stylesheet)
 						{
 							PostprocessKeyframes(current_block.stylesheet->keyframes);
+							current_block.stylesheet->specificity_offset = rule_count;
 							style_sheets.push_back(std::move(current_block));
 							current_block = {};
 						}
@@ -703,6 +705,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 	if (current_block.stylesheet)
 	{
 		PostprocessKeyframes(current_block.stylesheet->keyframes);
+		current_block.stylesheet->specificity_offset = rule_count;
 		style_sheets.push_back(std::move(current_block));
 	}
 
