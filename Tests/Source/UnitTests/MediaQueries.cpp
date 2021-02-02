@@ -106,7 +106,7 @@ static const String document_media_query2_rml = R"(
 			}
 		}
 
-		@media (min-resolution: 90x) {
+		@media (min-resolution: 2x) {
 			div {
 				height: 128px;
 			}
@@ -228,7 +228,7 @@ TEST_CASE("mediaqueries.custom_properties")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	context->SetDensityIndependentPixelRatio(90.0f);
+	context->SetDensityIndependentPixelRatio(2.0f);
 
 	// There should be no warnings loading this document. There should be one div of 32px width & height
 	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query2_rml, "assets/");
