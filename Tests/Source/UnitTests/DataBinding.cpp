@@ -65,13 +65,14 @@ static const String document_rml = R"(
 <body template="window">
 <div data-model="basics">
 
-<input type="text" data-value="i0"/>
+<input type="text" data-value="arrays.x0[1]"/>
 
 <h1>Globals</h1>
 <p>{{ i0 }}</p>
 <p>{{ i1 }}</p>
 <p>{{ i2 }}</p>
 <p>{{ i3 }}</p>
+<p>{{ x1 }}</p>
 
 <p>{{ s0 }}</p>
 <p>{{ s1 }}</p>
@@ -110,6 +111,11 @@ static const String document_rml = R"(
 <p><span data-for="arrays.c">{{ it.val }} </span></p>
 <p><span data-for="arrays.d">{{ it.val }} </span></p>
 <p><span data-for="arrays.e">{{ it.val }} </span></p>
+
+<p><span data-for="arrays.x0">{{ it }} </span></p>
+
+<p>The next line crashes the program:</p>
+<!-- <p><span data-for="arrays.x2">{{ it }} </span></p> -->
 
 </div>
 </body>
@@ -264,21 +270,21 @@ struct Basic {
 };
 
 struct Wrapped {
-	StringWrap a = {"a"};
+	StringWrap a = { "a" };
 	StringWrap* b = new StringWrap("b");
 	UniquePtr<StringWrap> c = MakeUnique<StringWrap>("c");
 
 	StringWrap& GetD()
 	{
-		static StringWrap v = {"e"};
+		static StringWrap v = { "e" };
 		return v;
 	}
 	StringWrap* GetE()
 	{
-		static StringWrap v = {"f"};
+		static StringWrap v = { "f" };
 		return &v;
 	}
-
+	
 	// Invalid: const pointer
 	const StringWrap* x0 = new StringWrap("x0");
 	// Invalid (run-time): Returning non-scalar variable by value.
@@ -302,7 +308,7 @@ struct Pointed {
 		static StringWrapPtr v = MakeUnique<StringWrap>("c");
 		return &v;
 	}
-
+	
 	// Invalid: We disallow recursive pointer types (pointer to pointer)
 	StringWrapPtr* x0 = new StringWrapPtr(new StringWrap("x0"));
 
@@ -311,17 +317,19 @@ struct Pointed {
 };
 
 struct Arrays {
-	Vector<int> a = {10, 11, 12};
-	Vector<int*> b = {new int(20), new int(21), new int(22)};
-	Vector<StringWrap> c = {StringWrap("c1"), StringWrap("c2"), StringWrap("c3")};
-	Vector<StringWrap*> d = {new StringWrap("d1"), new StringWrap("d2"), new StringWrap("d3")};
+	Vector<int> a = { 10, 11, 12 };
+	Vector<int*> b = { new int(20), new int(21), new int(22) };
+	Vector<StringWrap> c = { StringWrap("c1"), StringWrap("c2"), StringWrap("c3") };
+	Vector<StringWrap*> d = { new StringWrap("d1"), new StringWrap("d2"), new StringWrap("d3") };
 	Vector<StringWrapPtr> e;
 
 	// Invalid: const pointer
-	Vector<const int*> x0 = {new int(30), new int(31), new int(32)};
+	Vector<const int*> x0 = { new int(30), new int(31), new int(32) };
 	// Invalid: const pointer
 	Vector<UniquePtr<const StringWrap>> x1;
-
+	// Invalid: const object
+	const Vector<int*> x2 = { new int(20), new int(21), new int(22) };
+	
 	Arrays()
 	{
 		e.emplace_back(MakeUnique<StringWrap>("e1"));
@@ -334,6 +342,67 @@ struct Arrays {
 };
 
 DataModelHandle model_handle;
+
+
+TEST_CASE("databinding.types")
+{
+	static_assert(!PointerTraits<int>::is_pointer::value, "");
+	static_assert(!PointerTraits<int&>::is_pointer::value, "");
+	static_assert(PointerTraits<int*>::is_pointer::value, "");
+	static_assert(PointerTraits<UniquePtr<int>>::is_pointer::value, "");
+	static_assert(PointerTraits<UniquePtr<const int>>::is_pointer::value, "");
+	static_assert(PointerTraits<SharedPtr<int>>::is_pointer::value, "");
+	static_assert(PointerTraits<SharedPtr<const int>>::is_pointer::value, "");
+
+	static_assert(std::is_same<int,       PointerTraits<int>::element_type>::value, "");
+	static_assert(std::is_same<const int, PointerTraits<const int>::element_type>::value, "");
+	static_assert(std::is_same<int&,      PointerTraits<int&>::element_type>::value, "");
+
+	static_assert(std::is_same<int,  PointerTraits<int*>::element_type>::value, "");
+	static_assert(std::is_same<int,  PointerTraits<UniquePtr<int>>::element_type>::value, "");
+	static_assert(std::is_same<int,  PointerTraits<SharedPtr<int>>::element_type>::value, "");
+	static_assert(std::is_same<int,  PointerTraits<SharedPtr<int>>::element_type>::value, "");
+	static_assert(std::is_same<int*, PointerTraits<int**>::element_type>::value, "");
+
+
+	{
+		int x = 10;
+		DataPointer ptr(&x);
+		*ptr.Get<int*>() += 5;
+
+		CHECK(x == 15);
+		CHECK(x == *ptr.Get<int*>());
+	}
+
+	{
+		UniquePtr<int> u = MakeUnique<int>(20);
+		DataPointer ptr(&u);
+		CHECK(ptr.Get<UniquePtr<int>*>() == &u);
+
+		DataPointer ptr_underlying = PointerTraits< UniquePtr<int> >::Dereference(ptr);
+		CHECK(ptr_underlying.Get<int*>() == u.get());
+
+		int u_out = *ptr_underlying.Get<int*>();
+		CHECK(*u == u_out);
+
+		*ptr_underlying.Get<int*>() += 5;
+		CHECK(*u == 25);
+	}
+
+	{
+		UniquePtr<const int> u = MakeUnique<const int>(20);
+		DataPointer ptr(&u);
+		CHECK(ptr.Get<UniquePtr<const int>*>() == &u);
+
+		DataPointer ptr_underlying = PointerTraits< UniquePtr<const int> >::Dereference(ptr);
+		CHECK(ptr_underlying.Get<const int*>() == u.get());
+		CHECK(ptr_underlying.Get<int*>() == nullptr);
+
+		int u_out = *ptr_underlying.Get<const int*>();
+		CHECK(*u == u_out);
+	}
+}
+
 
 bool InitializeDataBindings(Context* context)
 {
@@ -363,11 +432,11 @@ bool InitializeDataBindings(Context* context)
 		constructor.Bind("simple", &globals.simple);
 		constructor.Bind("scoped", &globals.scoped);
 		// Invalid: Each of the following should give a compile-time failure.
-		// constructor.Bind("x0", &globals.x0);
-		// constructor.Bind("x1", &globals.x1);
-		// constructor.Bind("x2", &globals.x2);
-		// constructor.Bind("x3", &globals.x3);
-		// constructor.Bind("x4", &globals.x4);
+		constructor.Bind("x0", &globals.x0);
+		constructor.Bind("x1", &globals.x1);
+		//constructor.Bind("x2", &globals.x2);
+		//constructor.Bind("x3", &globals.x3);
+		//constructor.Bind("x4", &globals.x4);
 	}
 
 	if (auto handle = constructor.RegisterStruct<Basic>())
@@ -381,15 +450,15 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("simple", &Basic::simple);
 		handle.RegisterMember("scoped", &Basic::scoped);
 
-		// handle.RegisterMember("x0", &Basic::x0);
-		// handle.RegisterMember("x1", &Basic::x1);
-		// handle.RegisterMember("x2", &Basic::GetX2);
-		// handle.RegisterMember("x3", &Basic::GetX3);
-		// handle.RegisterMember("x4", &Basic::GetX4);
-		// handle.RegisterMember("x5", &Basic::GetX5);
+		//handle.RegisterMember("x0", &Basic::x0);
+		//handle.RegisterMember("x1", &Basic::x1);
+		//handle.RegisterMember("x2", &Basic::GetX2);
+		//handle.RegisterMember("x3", &Basic::GetX3);
+		//handle.RegisterMember("x4", &Basic::GetX4);
+		//handle.RegisterMember("x5", &Basic::GetX5);
 	}
 	constructor.Bind("basic", new Basic);
-
+	
 	if (auto handle = constructor.RegisterStruct<Wrapped>())
 	{
 		handle.RegisterMember("a", &Wrapped::a);
@@ -398,20 +467,20 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("d", &Wrapped::GetD);
 		handle.RegisterMember("e", &Wrapped::GetE);
 
-		// handle.RegisterMember("x0", &Wrapped::x0);
-		// handle.RegisterMember("x1", &Wrapped::GetX1);
-		// handle.RegisterMember("x2", &Wrapped::GetX2);
+		//handle.RegisterMember("x0", &Wrapped::x0);
+		//handle.RegisterMember("x1", &Wrapped::GetX1);
+		//handle.RegisterMember("x2", &Wrapped::GetX2);
 	}
 	constructor.Bind("wrapped", new Wrapped);
-
+	
 	if (auto handle = constructor.RegisterStruct<Pointed>())
 	{
 		handle.RegisterMember("a", &Pointed::a);
 		handle.RegisterMember("b", &Pointed::GetB);
 		handle.RegisterMember("c", &Pointed::GetC);
 
-		// handle.RegisterMember("x0", &Pointed::x0);
-		// handle.RegisterMember("x1", &Pointed::GetX1);
+		//handle.RegisterMember("x0", &Pointed::x0);
+		//handle.RegisterMember("x1", &Pointed::GetX1);
 	}
 	constructor.Bind("pointed", new Pointed);
 
@@ -421,8 +490,9 @@ bool InitializeDataBindings(Context* context)
 	constructor.RegisterArray<decltype(Arrays::d)>();
 	constructor.RegisterArray<decltype(Arrays::e)>();
 
-	// constructor.RegisterArray<decltype(Arrays::x0)>();
-	// constructor.RegisterArray<decltype(Arrays::x1)>();
+	constructor.RegisterArray<decltype(Arrays::x0)>();
+	//constructor.RegisterArray<decltype(Arrays::x1)>();
+	constructor.RegisterArray<decltype(Arrays::x2)>();
 
 	if (auto handle = constructor.RegisterStruct<Arrays>())
 	{
@@ -432,11 +502,12 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("d", &Arrays::d);
 		handle.RegisterMember("e", &Arrays::e);
 
-		// handle.RegisterMember("x0", &Arrays::x0);
-		// handle.RegisterMember("x1", &Arrays::x1);
+		handle.RegisterMember("x0", &Arrays::x0);
+		//handle.RegisterMember("x1", &Arrays::x1);
+		handle.RegisterMember("x2", &Arrays::x2);
 	}
 	constructor.Bind("arrays", new Arrays);
-
+	
 	model_handle = constructor.GetModelHandle();
 
 	return true;

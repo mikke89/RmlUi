@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,148 +32,145 @@ namespace Rml {
 
 bool DataVariable::Get(Variant& variant)
 {
-	return definition->Get(ptr, variant);
+    return definition->Get(ptr, variant);
 }
 
 bool DataVariable::Set(const Variant& variant)
 {
-	return definition->Set(ptr, variant);
+    return definition->Set(ptr, variant);
 }
 
 int DataVariable::Size()
 {
-	return definition->Size(ptr);
+    return definition->Size(ptr);
 }
 
 DataVariable DataVariable::Child(const DataAddressEntry& address)
 {
-	return definition->Child(ptr, address);
+    return definition->Child(ptr, address);
 }
 
 DataVariableType DataVariable::Type()
 {
-	return definition->Type();
+    return definition->Type();
 }
 
-bool VariableDefinition::Get(void* /*ptr*/, Variant& /*variant*/)
-{
-	Log::Message(Log::LT_WARNING, "Values can only be retrieved from scalar data types.");
-	return false;
+
+bool VariableDefinition::Get(DataPointer /*ptr*/, Variant& /*variant*/) {
+    Log::Message(Log::LT_WARNING, "Values can only be retrieved from scalar data types.");
+    return false;
 }
-bool VariableDefinition::Set(void* /*ptr*/, const Variant& /*variant*/)
-{
-	Log::Message(Log::LT_WARNING, "Values can only be assigned to scalar data types.");
-	return false;
+bool VariableDefinition::Set(DataPointer /*ptr*/, const Variant& /*variant*/) {
+    Log::Message(Log::LT_WARNING, "Values can only be assigned to scalar data types.");
+    return false;
 }
-int VariableDefinition::Size(void* /*ptr*/)
-{
-	Log::Message(Log::LT_WARNING, "Tried to get the size from a non-array data type.");
-	return 0;
+int VariableDefinition::Size(DataPointer /*ptr*/) {
+    Log::Message(Log::LT_WARNING, "Tried to get the size from a non-array data type.");
+    return 0;
 }
-DataVariable VariableDefinition::Child(void* /*ptr*/, const DataAddressEntry& /*address*/)
-{
-	Log::Message(Log::LT_WARNING, "Tried to get the child of a scalar type.");
-	return DataVariable();
+DataVariable VariableDefinition::Child(DataPointer /*ptr*/, const DataAddressEntry& /*address*/) {
+    Log::Message(Log::LT_WARNING, "Tried to get the child of a scalar type.");
+    return DataVariable();
 }
 
 class LiteralIntDefinition final : public VariableDefinition {
 public:
-	LiteralIntDefinition() : VariableDefinition(DataVariableType::Scalar) {}
+    LiteralIntDefinition() : VariableDefinition(DataVariableType::Scalar) {}
 
-	bool Get(void* ptr, Variant& variant) override
-	{
-		variant = static_cast<int>(reinterpret_cast<intptr_t>(ptr));
-		return true;
-	}
+    bool Get(DataPointer ptr, Variant& variant) override
+    {
+        variant = static_cast<int>(reinterpret_cast<intptr_t>(ptr.Get<const void*>()));
+        return true;
+    }
 };
 
 DataVariable MakeLiteralIntVariable(int value)
 {
-	static LiteralIntDefinition literal_int_definition;
-	return DataVariable(&literal_int_definition, reinterpret_cast<void*>(static_cast<intptr_t>(value)));
+    static LiteralIntDefinition literal_int_definition;
+    return DataVariable(&literal_int_definition, reinterpret_cast<const void*>(static_cast<intptr_t>(value)));
 }
 
 StructDefinition::StructDefinition() : VariableDefinition(DataVariableType::Struct) {}
 
-DataVariable StructDefinition::Child(void* ptr, const DataAddressEntry& address)
+DataVariable StructDefinition::Child(DataPointer ptr, const DataAddressEntry& address)
 {
-	const String& name = address.name;
-	if (name.empty())
-	{
-		Log::Message(Log::LT_WARNING, "Expected a struct member name but none given.");
-		return DataVariable();
-	}
+    const String& name = address.name;
+    if (name.empty())
+    {
+        Log::Message(Log::LT_WARNING, "Expected a struct member name but none given.");
+        return DataVariable();
+    }
 
-	auto it = members.find(name);
-	if (it == members.end())
-	{
-		Log::Message(Log::LT_WARNING, "Member %s not found in data struct.", name.c_str());
-		return DataVariable();
-	}
+    auto it = members.find(name);
+    if (it == members.end())
+    {
+        Log::Message(Log::LT_WARNING, "Member %s not found in data struct.", name.c_str());
+        return DataVariable();
+    }
 
-	VariableDefinition* next_definition = it->second.get();
+    VariableDefinition* next_definition = it->second.get();
 
-	return DataVariable(next_definition, ptr);
+    return DataVariable(next_definition, ptr);
 }
 
 void StructDefinition::AddMember(const String& name, UniquePtr<VariableDefinition> member)
 {
-	RMLUI_ASSERT(member);
-	bool inserted = members.emplace(name, std::move(member)).second;
-	RMLUI_ASSERTMSG(inserted, "Member name already exists.");
-	(void)inserted;
+    RMLUI_ASSERT(member);
+    bool inserted = members.emplace(name, std::move(member)).second;
+    RMLUI_ASSERTMSG(inserted, "Member name already exists.");
+    (void)inserted;
 }
 
 FuncDefinition::FuncDefinition(DataGetFunc get, DataSetFunc set) :
 	VariableDefinition(DataVariableType::Scalar), get(std::move(get)), set(std::move(set))
 {}
 
-bool FuncDefinition::Get(void* /*ptr*/, Variant& variant)
+bool FuncDefinition::Get(DataPointer /*ptr*/, Variant& variant)
 {
-	if (!get)
-		return false;
-	get(variant);
-	return true;
+    if (!get)
+        return false;
+    get(variant);
+    return true;
 }
 
-bool FuncDefinition::Set(void* /*ptr*/, const Variant& variant)
+bool FuncDefinition::Set(DataPointer /*ptr*/, const Variant& variant)
 {
-	if (!set)
-		return false;
-	set(variant);
-	return true;
+    if (!set)
+        return false;
+    set(variant);
+    return true;
 }
 
 BasePointerDefinition::BasePointerDefinition(VariableDefinition* underlying_definition) :
 	VariableDefinition(underlying_definition->Type()), underlying_definition(underlying_definition)
 {}
 
-bool BasePointerDefinition::Get(void* ptr, Variant& variant)
+bool BasePointerDefinition::Get(DataPointer ptr, Variant& variant)
 {
 	if (!ptr)
 		return false;
-	return underlying_definition->Get(DereferencePointer(ptr), variant);
+    return underlying_definition->Get(DereferencePointer(ptr), variant);
 }
 
-bool BasePointerDefinition::Set(void* ptr, const Variant& variant)
+bool BasePointerDefinition::Set(DataPointer ptr, const Variant& variant)
 {
 	if (!ptr)
 		return false;
-	return underlying_definition->Set(DereferencePointer(ptr), variant);
+    return underlying_definition->Set(DereferencePointer(ptr), variant);
 }
 
-int BasePointerDefinition::Size(void* ptr)
+int BasePointerDefinition::Size(DataPointer ptr)
 {
 	if (!ptr)
 		return 0;
-	return underlying_definition->Size(DereferencePointer(ptr));
+    return underlying_definition->Size(DereferencePointer(ptr));
 }
 
-DataVariable BasePointerDefinition::Child(void* ptr, const DataAddressEntry& address)
+DataVariable BasePointerDefinition::Child(DataPointer ptr, const DataAddressEntry& address)
 {
 	if (!ptr)
 		return DataVariable();
-	return underlying_definition->Child(DereferencePointer(ptr), address);
+    return underlying_definition->Child(DereferencePointer(ptr), address);
 }
 
 } // namespace Rml

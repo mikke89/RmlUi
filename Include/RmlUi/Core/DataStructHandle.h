@@ -38,7 +38,7 @@
 
 namespace Rml {
 
-template <typename Object>
+template<typename Object>
 class StructHandle {
 public:
 	StructHandle(DataTypeRegister* type_register, StructDefinition* struct_definition) :
@@ -55,7 +55,7 @@ public:
 	/// 	};
 	///		struct_handle.RegisterMember("health", &Invader::health);
 	template <typename MemberType>
-	bool RegisterMember(const String& name, MemberType Object::*member_object_ptr)
+	bool RegisterMember(const String& name, MemberType Object::* member_object_ptr)
 	{
 		return CreateMemberObjectDefinition(name, member_object_ptr);
 	}
@@ -71,7 +71,7 @@ public:
 	/// 	};
 	///		struct_handle.RegisterMember("weapons", &Invader::GetWeapons);
 	template <typename ReturnType>
-	bool RegisterMember(const String& name, ReturnType (Object::*member_get_func_ptr)())
+	bool RegisterMember(const String& name, ReturnType(Object::* member_get_func_ptr)())
 	{
 		return RegisterMemberGetter(name, member_get_func_ptr);
 	}
@@ -87,7 +87,7 @@ public:
 	/// 	};
 	///		struct_handle.RegisterMember("color", &Invader::GetColor, &Invader::SetColor);
 	template <typename ReturnType, typename AssignType>
-	bool RegisterMember(const String& name, ReturnType (Object::*member_get_func_ptr)(), void (Object::*member_set_func_ptr)(AssignType))
+	bool RegisterMember(const String& name, ReturnType(Object::* member_get_func_ptr)(), void(Object::* member_set_func_ptr)(AssignType))
 	{
 		using BasicReturnType = typename std::remove_reference<ReturnType>::type;
 		using BasicAssignType = typename std::remove_const<typename std::remove_reference<AssignType>::type>::type;
@@ -125,13 +125,13 @@ private:
 		return CreateMemberScalarGetSetFuncDefinition<ReturnType>(name, member_get_func_ptr, SetType{});
 	}
 
-	template <typename MemberType>
-	bool CreateMemberObjectDefinition(const String& name, MemberType Object::*member_ptr);
+	template<typename MemberType>
+	bool CreateMemberObjectDefinition(const String& name, MemberType Object::* member_ptr);
 
-	template <typename BasicReturnType, typename MemberType>
-	bool CreateMemberGetFuncDefinition(const String& name, MemberType Object::*member_get_func_ptr);
+	template<typename BasicReturnType, typename MemberType>
+	bool CreateMemberGetFuncDefinition(const String& name, MemberType Object::* member_get_func_ptr);
 
-	template <typename UnderlyingType, typename MemberGetType, typename MemberSetType>
+	template<typename UnderlyingType, typename MemberGetType, typename MemberSetType>
 	bool CreateMemberScalarGetSetFuncDefinition(const String& name, MemberGetType Object::*member_get_func_ptr,
 		MemberSetType Object::*member_set_func_ptr);
 
@@ -139,9 +139,9 @@ private:
 	StructDefinition* struct_definition;
 };
 
-template <typename Object>
-template <typename MemberType>
-bool StructHandle<Object>::CreateMemberObjectDefinition(const String& name, MemberType Object::*member_ptr)
+template<typename Object>
+template<typename MemberType>
+bool StructHandle<Object>::CreateMemberObjectDefinition(const String& name, MemberType Object::* member_ptr)
 {
 	using MemberObjectPtr = MemberType Object::*;
 
@@ -149,7 +149,6 @@ bool StructHandle<Object>::CreateMemberObjectDefinition(const String& name, Memb
 	// that case.
 	static_assert(!std::is_member_function_pointer<MemberObjectPtr>::value,
 		"Illegal data member getter function signature. Make sure it takes no arguments and is not const qualified.");
-	static_assert(!std::is_const<MemberType>::value, "Data member objects cannot be const qualified.");
 
 	VariableDefinition* underlying_definition = type_register->GetDefinition<MemberType>();
 	if (!underlying_definition)
@@ -158,9 +157,9 @@ bool StructHandle<Object>::CreateMemberObjectDefinition(const String& name, Memb
 	return true;
 }
 
-template <typename Object>
-template <typename BasicReturnType, typename MemberType>
-bool StructHandle<Object>::CreateMemberGetFuncDefinition(const String& name, MemberType Object::*member_get_func_ptr)
+template<typename Object>
+template<typename BasicReturnType, typename MemberType>
+bool StructHandle<Object>::CreateMemberGetFuncDefinition(const String& name, MemberType Object::* member_get_func_ptr)
 {
 	static_assert(!std::is_const<BasicReturnType>::value, "Returned type from data member function cannot be const qualified.");
 
@@ -173,8 +172,8 @@ bool StructHandle<Object>::CreateMemberGetFuncDefinition(const String& name, Mem
 	return true;
 }
 
-template <typename Object>
-template <typename UnderlyingType, typename MemberGetType, typename MemberSetType>
+template<typename Object>
+template<typename UnderlyingType, typename MemberGetType, typename MemberSetType>
 bool StructHandle<Object>::CreateMemberScalarGetSetFuncDefinition(const String& name, MemberGetType Object::*member_get_func_ptr,
 	MemberSetType Object::*member_set_func_ptr)
 {
