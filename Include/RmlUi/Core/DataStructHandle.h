@@ -144,7 +144,6 @@ bool StructHandle<Object>::CreateMemberObjectDefinition(const String& name, Memb
 
 	// If the member function signature doesn't match the getter function signature, it will end up calling this function. Emit a compile error in that case.
 	static_assert(!std::is_member_function_pointer<MemberObjectPtr>::value, "Illegal data member getter function signature. Make sure it takes no arguments and is not const qualified.");
-	static_assert(!std::is_const<MemberType>::value, "Data member objects cannot be const qualified.");
 
 	VariableDefinition* underlying_definition = type_register->GetDefinition<MemberType>();
 	if (!underlying_definition)

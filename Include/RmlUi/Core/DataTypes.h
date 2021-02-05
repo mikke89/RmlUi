@@ -65,36 +65,55 @@ struct DataAddressEntry {
 };
 using DataAddress = Vector<DataAddressEntry>;
 
+// DataPointer is a wrapper around void* which preserves the constness of the underlying object.
+class DataPointer {
+public:
+	DataPointer(std::nullptr_t) : ptr(nullptr), cptr(nullptr) {};
+	DataPointer(void* p) : ptr(p), cptr(p) {};
+	DataPointer(const void* p) : ptr(nullptr), cptr(p) {};
+
+	template<typename T, typename std::enable_if<!std::is_const<typename std::remove_pointer<T>::type>::value, int>::type = 0>
+	T Get() {
+		return static_cast<T>(ptr);
+	}
+	template<typename T, typename std::enable_if<std::is_const<typename std::remove_pointer<T>::type>::value, int>::type = 0>
+	T Get() {
+		return static_cast<T>(cptr);
+	}
+
+private:
+	void* ptr = nullptr;
+	const void* cptr = nullptr;
+};
+
 template<class T>
 struct PointerTraits {
 	using is_pointer = std::false_type;
 	using element_type = T;
-	static void* Dereference(void* ptr) {
-		return ptr;
-	}
+	// Dereference() function intentionally missing.
 };
 template<class T>
 struct PointerTraits<T*> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static void* Dereference(void* ptr) {
-		return static_cast<void*>(*static_cast<T**>(ptr));
+	static DataPointer Dereference(DataPointer ptr) {
+		return DataPointer(*ptr.Get<T**>());
 	}
 };
 template<class T>
 struct PointerTraits<UniquePtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static void* Dereference(void* ptr) {
-		return static_cast<void*>(static_cast<UniquePtr<T>*>(ptr)->get());
+	static DataPointer Dereference(DataPointer ptr) {
+		return DataPointer(ptr.Get<UniquePtr<T>*>()->get());
 	}
 };
 template<class T>
 struct PointerTraits<SharedPtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static void* Dereference(void* ptr) {
-		return static_cast<void*>(static_cast<SharedPtr<T>*>(ptr)->get());
+	static DataPointer Dereference(DataPointer ptr) {
+		return DataPointer(ptr.Get<SharedPtr<T>*>()->get());
 	}
 };
 

@@ -82,7 +82,6 @@ private:
 	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && is_builtin_data_scalar<T>::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
-		static_assert(!std::is_const<T>::value, "Data binding variables cannot point to constant variables.");
 		FamilyId id = Family<T>::Id();
 
 		auto result = type_register.emplace(id, nullptr);
@@ -120,7 +119,6 @@ private:
 
 		using UnderlyingType = typename PointerTraits<T>::element_type;
 		static_assert(!PointerTraits<UnderlyingType>::is_pointer::value, "Recursive pointer types (pointer to pointer) to data variables are disallowed.");
-		static_assert(!std::is_const<UnderlyingType>::value, "Pointer to a const data variable is not supported.");
 
 		// Get the underlying definition.
 		VariableDefinition* underlying_definition = GetDefinitionDetail<UnderlyingType>();
