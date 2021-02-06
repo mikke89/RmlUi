@@ -43,6 +43,7 @@ class Decorator;
 class FontEffect;
 class SpritesheetList;
 class Stream;
+class StyleSheetContainer;
 class StyleSheetParser;
 struct Sprite;
 struct Spritesheet;
