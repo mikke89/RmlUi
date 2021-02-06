@@ -64,7 +64,7 @@ UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 {
 	RMLUI_ZoneScoped;
 
-	UniquePtr<StyleSheet> new_sheet = MakeUnique<StyleSheet>();
+	UniquePtr<StyleSheet> new_sheet = UniquePtr<StyleSheet>(new StyleSheet());
 	
 	new_sheet->root = root->DeepCopy();
 	new_sheet->root->MergeHierarchy(other_sheet.root.get(), specificity_offset);
@@ -94,6 +94,11 @@ UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 
 	new_sheet->specificity_offset = specificity_offset + other_sheet.specificity_offset;
 	return new_sheet;
+}
+
+UniquePtr<StyleSheet> StyleSheet::Clone() const
+{
+	return CombineStyleSheet(StyleSheet{});
 }
 
 // Builds the node index for a combined style sheet.

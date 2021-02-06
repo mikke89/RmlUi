@@ -54,7 +54,7 @@ StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(Vector2i dimensions, floa
     if(compiled_style_sheet && dimensions == current_dimensions && density_ratio == current_density_ratio)
         return compiled_style_sheet.get();
 
-    UniquePtr<StyleSheet> new_sheet = MakeUnique<StyleSheet>();
+    UniquePtr<StyleSheet> new_sheet = UniquePtr<StyleSheet>(new StyleSheet());
 
     for(auto const& media_block : media_blocks)
     {
@@ -152,7 +152,7 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
     {      
         PropertyDictionary dict;
         dict.Import(pair.properties);
-        new_sheet->media_blocks.push_back(MediaBlock(dict, pair.stylesheet->CombineStyleSheet(StyleSheet{})));
+        new_sheet->media_blocks.emplace_back(dict, pair.stylesheet->Clone());
     }
 
     for(auto const& pair : container.media_blocks)
@@ -172,7 +172,7 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
         {
             PropertyDictionary dict;
             dict.Import(pair.properties);
-            new_sheet->media_blocks.push_back(MediaBlock(dict, pair.stylesheet->CombineStyleSheet(StyleSheet{})));
+            new_sheet->media_blocks.emplace_back(dict, pair.stylesheet->Clone());
         }
     }
 

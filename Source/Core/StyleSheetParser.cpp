@@ -522,7 +522,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					// Initialize current block if not present
 					if (!current_block.stylesheet)
 					{
-						current_block = MediaBlock{PropertyDictionary{}, MakeUnique<StyleSheet>()};
+						current_block = MediaBlock{PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
 					}
 
 					const int rule_line_number = (int)line_number;
@@ -574,7 +574,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					// Initialize current block if not present
 					if (!current_block.stylesheet)
 					{
-						current_block = {PropertyDictionary{}, MakeUnique<StyleSheet>()};
+						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
 					}
 
 					String at_rule_identifier = pre_token_str.substr(0, pre_token_str.find(' '));
@@ -635,7 +635,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 						// parse media query list into block
 						PropertyDictionary feature_map;
 						ParseMediaFeatureMap(feature_map, at_rule_name);
-						current_block = {std::move(feature_map), MakeUnique<StyleSheet>()};
+						current_block = {std::move(feature_map), UniquePtr<StyleSheet>(new StyleSheet())};
 
 						inside_media_block = true;
 						state = State::Global;
@@ -663,7 +663,7 @@ int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, in
 					// Initialize current block if not present
 					if (!current_block.stylesheet)
 					{
-						current_block = {PropertyDictionary{}, MakeUnique<StyleSheet>()};
+						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
 					}
 
 					// Each keyframe in keyframes has its own block which is processed here
