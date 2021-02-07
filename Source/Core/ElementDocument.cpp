@@ -203,7 +203,7 @@ void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _sty
 const StyleSheet* ElementDocument::GetStyleSheet() const
 {
 	if(context && style_sheet_container)
-		return style_sheet_container->GetCompiledStyleSheet(context->GetDimensions(), context->GetDensityIndependentPixelRatio());
+		return style_sheet_container->GetCompiledStyleSheet(context->GetDensityIndependentPixelRatio(), Vector2f(context->GetDimensions()));
 	return nullptr;
 }
 

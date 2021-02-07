@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "ComputeProperty.h"
 #include "StyleSheetParser.h"
 #include "Utilities.h"
 
@@ -49,12 +50,14 @@ bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line
 	return rule_count >= 0;
 }
 
-StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(Vector2i dimensions, float density_ratio)
+StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(float dp_ratio, Vector2f vp_dimensions)
 {
-    if(compiled_style_sheet && dimensions == current_dimensions && density_ratio == current_density_ratio)
+    if(compiled_style_sheet && vp_dimensions == current_dimensions && dp_ratio == current_density_ratio)
         return compiled_style_sheet.get();
 
     UniquePtr<StyleSheet> new_sheet = UniquePtr<StyleSheet>(new StyleSheet());
+
+    float font_size = DefaultComputedValues.font_size;
 
     for(auto const& media_block : media_blocks)
     {
@@ -64,57 +67,57 @@ StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(Vector2i dimensions, floa
             switch(static_cast<MediaQueryId>(property.first)) 
             {
             case MediaQueryId::Width:
-                if(dimensions.x != property.second.Get<int>())
+                if(vp_dimensions.x != ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
                     all_match = false;
                 break;
             case MediaQueryId::MinWidth:
-                if(dimensions.x < property.second.Get<int>())
+                if(vp_dimensions.x < ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
                     all_match = false;
                 break;
             case MediaQueryId::MaxWidth:
-                if(dimensions.x > property.second.Get<int>())
+                if(vp_dimensions.x > ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
                     all_match = false;
                 break;
             case MediaQueryId::Height:
-                if(dimensions.y != property.second.Get<int>())
+                if(vp_dimensions.y != ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
                     all_match = false;
                 break;
             case MediaQueryId::MinHeight:
-                if(dimensions.y < property.second.Get<int>())
+                if(vp_dimensions.y < ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
                     all_match = false;
                 break;
             case MediaQueryId::MaxHeight:
-                if(dimensions.y > property.second.Get<int>())
+                if(vp_dimensions.y > ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
                     all_match = false;
                 break;
             case MediaQueryId::AspectRatio:
-                if(((float)dimensions.x / (float)dimensions.y) != property.second.Get<float>())
+                if((vp_dimensions.x / vp_dimensions.y) != property.second.Get<float>())
                     all_match = false;
                 break;
             case MediaQueryId::MinAspectRatio:
-                if(((float)dimensions.x / (float)dimensions.y) < property.second.Get<float>())
+                if((vp_dimensions.x / vp_dimensions.y) < property.second.Get<float>())
                     all_match = false;
                 break;
             case MediaQueryId::MaxAspectRatio:
-                if(((float)dimensions.x / (float)dimensions.y) > property.second.Get<float>())
+                if((vp_dimensions.x / vp_dimensions.y) > property.second.Get<float>())
                     all_match = false;
                 break;
             case MediaQueryId::Resolution:
-                if(density_ratio != property.second.Get<float>())
+                if(dp_ratio != property.second.Get<float>())
                     all_match = false;
                 break;
             case MediaQueryId::MinResolution:
-                if(density_ratio < property.second.Get<float>())
+                if(dp_ratio < property.second.Get<float>())
                     all_match = false;
                 break;
             case MediaQueryId::MaxResolution:
-                if(density_ratio > property.second.Get<float>())
+                if(dp_ratio > property.second.Get<float>())
                     all_match = false;
                 break;
             case MediaQueryId::Orientation:
                 // Landscape (x > y) = 0 
                 // Portrait (x <= y) = 1
-                if((dimensions.x <= dimensions.y) != property.second.Get<bool>())
+                if((vp_dimensions.x <= vp_dimensions.y) != property.second.Get<bool>())
                     all_match = false;
                 break;  
             // Invalid properties
@@ -138,8 +141,8 @@ StyleSheet* StyleSheetContainer::GetCompiledStyleSheet(Vector2i dimensions, floa
     new_sheet->OptimizeNodeProperties();
 
     compiled_style_sheet = std::move(new_sheet);
-    current_dimensions = dimensions;
-    current_density_ratio = density_ratio;
+    current_dimensions = vp_dimensions;
+    current_density_ratio = dp_ratio;
     return compiled_style_sheet.get();
 }
 

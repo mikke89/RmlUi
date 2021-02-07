@@ -56,9 +56,9 @@ public:
 
 	/// Returns the currently compiled style sheet that has been merged from incorporating all matching media blocks
 	/// or creates it ad-hoc if the given properties differ from the currently stored values.
-	/// @param[in] dimensions The current context viewport dimensions
-	/// @param[in] density_ratio The current context ratio of 'dp' units to 'px' units
-	StyleSheet* GetCompiledStyleSheet(Vector2i dimensions, float density_ratio);
+	/// @param[in] dp_ratio The current context ratio of 'dp' units to 'px' units
+	/// @param[in] vp_dimensions The current context viewport dimensions
+	StyleSheet* GetCompiledStyleSheet(float dp_ratio, Vector2f vp_dimensions);
 
 	/// Combines this style sheet container with another one, producing a new sheet container.
 	SharedPtr<StyleSheetContainer> CombineStyleSheetContainer(const StyleSheetContainer& container) const;
@@ -68,7 +68,7 @@ private:
 
 	UniquePtr<StyleSheet> compiled_style_sheet;
 
-	Vector2i current_dimensions;
+	Vector2f current_dimensions;
 	float current_density_ratio;
 };
 

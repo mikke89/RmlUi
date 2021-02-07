@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUI_CORE_PropertyParserRatio_H
-#define RMLUI_CORE_PropertyParserRatio_H
+#ifndef RMLUI_CORE_PROPERTYPARSERRATIO_H
+#define RMLUI_CORE_PROPERTYPARSERRATIO_H
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 

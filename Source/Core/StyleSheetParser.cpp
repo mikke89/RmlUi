@@ -485,7 +485,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 	return true;
 }
 
-int StyleSheetParser::Parse(MediaBlockListRaw& style_sheets, Stream* _stream, int begin_line_number)
+int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int begin_line_number)
 {
 	RMLUI_ZoneScoped;
 

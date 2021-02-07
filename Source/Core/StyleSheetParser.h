@@ -42,7 +42,7 @@ class StyleSheetNode;
 class AbstractPropertyParser;
 struct PropertySource;
 using StyleSheetNodeListRaw = Vector<StyleSheetNode*>;
-using MediaBlockListRaw = Vector<MediaBlock>;
+using MediaBlockList = Vector<MediaBlock>;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.
@@ -60,7 +60,7 @@ public:
 	/// @param style_sheets The collection of style sheets to write into, organized into media blocks
 	/// @param stream The stream to read
 	/// @return The number of parsed rules, or -1 if an error occured.
-	int Parse(MediaBlockListRaw& style_sheets, Stream* stream, int begin_line_number);
+	int Parse(MediaBlockList& style_sheets, Stream* stream, int begin_line_number);
 
 	/// Parses the given string into the property dictionary
 	/// @param parsed_properties The properties dictionary the properties will be read into
