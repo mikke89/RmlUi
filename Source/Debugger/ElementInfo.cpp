@@ -71,11 +71,11 @@ bool ElementInfo::Initialise()
 	AddEventListener(EventId::Mouseover, this);
 	AddEventListener(EventId::Mouseout, this);
 
-	SharedPtr<StyleSheet> style_sheet = Factory::InstanceStyleSheetString(String(common_rcss) + String(info_rcss));
+	SharedPtr<StyleSheetContainer> style_sheet = Factory::InstanceStyleSheetString(String(common_rcss) + String(info_rcss));
 	if (!style_sheet)
 		return false;
 
-	SetStyleSheet(std::move(style_sheet));
+	SetStyleSheetContainer(std::move(style_sheet));
 
 	return true;
 }

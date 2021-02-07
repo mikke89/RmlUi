@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "PropertyParserNumber.h"
 #include "PropertyParserAnimation.h"
+#include "PropertyParserRatio.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserKeyword.h"
 #include "PropertyParserString.h"
@@ -55,6 +56,8 @@ struct DefaultStyleSheetParsers {
 	PropertyParserAnimation transition = PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER);
 	PropertyParserColour color = PropertyParserColour();
 	PropertyParserTransform transform = PropertyParserTransform();
+	PropertyParserRatio ratio = PropertyParserRatio();
+	PropertyParserNumber resolution = PropertyParserNumber(Property::X);
 };
 
 StyleSheetSpecification::StyleSheetSpecification() : 
@@ -247,6 +250,8 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("transition", &default_parsers->transition);
 	RegisterParser("color", &default_parsers->color);
 	RegisterParser("transform", &default_parsers->transform);
+	RegisterParser("ratio", &default_parsers->ratio);
+	RegisterParser("resolution", &default_parsers->resolution);
 }
 
 
@@ -411,8 +416,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	// Rare properties (not added to computed values)
 	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");
 
-	RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");
 	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");
+	RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");
 }
 
 } // namespace Rml

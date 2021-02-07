@@ -88,6 +88,7 @@ struct TransitionList;
 struct Rectangle;
 enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
+enum class MediaQueryId : uint8_t;
 enum class FamilyId : int;
 
 // Types for external interfaces.

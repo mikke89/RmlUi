@@ -347,7 +347,7 @@ bool ElementProgressBar::LoadTexture()
 	if(!name.empty() && document)
 	{
 		// Check for a sprite first, this takes precedence.
-		if (auto& style_sheet = document->GetStyleSheet())
+		if (const StyleSheet* style_sheet = document->GetStyleSheet())
 		{
 			if (const Sprite* sprite = style_sheet->GetSprite(name))
 			{

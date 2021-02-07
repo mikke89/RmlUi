@@ -125,6 +125,7 @@ void Context::SetDimensions(const Vector2i _dimensions)
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
 			if (document != nullptr)
 			{
+				document->DirtyMediaQueries();
 				document->DirtyVwAndVhProperties();
 				document->DirtyLayout();
 				document->DirtyPosition();
@@ -153,6 +154,7 @@ void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_r
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
 			if (document != nullptr)
 			{
+				document->DirtyMediaQueries();
 				document->DirtyDpProperties();
 			}
 		}
@@ -1199,7 +1201,8 @@ void Context::CreateDragClone(Element* element)
 	cursor_proxy->AppendChild(std::move(element_drag_clone));
 
 	// Set the style sheet on the cursor proxy.
-	static_cast<ElementDocument&>(*cursor_proxy).SetStyleSheet(element->GetStyleSheet());
+	if(ElementDocument* document = element->GetOwnerDocument())
+		static_cast<ElementDocument&>(*cursor_proxy).SetStyleSheetContainer(document->GetStyleSheetContainer());
 
 	// Set all the required properties and pseudo-classes on the clone.
 	drag_clone->SetPseudoClass("drag", true);

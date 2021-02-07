@@ -1,0 +1,9 @@
+div {
+    background: #ccc;
+}
+
+body {
+    display:block;
+    width: 100px;
+    height: 100px;
+}

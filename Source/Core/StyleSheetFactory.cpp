@@ -27,7 +27,7 @@
  */
 
 #include "StyleSheetFactory.h"
-#include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "StyleSheetNode.h"
 #include "StreamFile.h"
 #include "StyleSheetNodeSelectorNthChild.h"
@@ -90,7 +90,7 @@ void StyleSheetFactory::Shutdown()
 	}
 }
 
-SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const String& sheet_name)
+SharedPtr<StyleSheetContainer> StyleSheetFactory::GetStyleSheetContainer(const String& sheet_name)
 {
 	// Look up the sheet definition in the cache
 	StyleSheets::iterator itr = instance->stylesheets.find(sheet_name);
@@ -100,11 +100,9 @@ SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const String& sheet_name)
 	}
 
 	// Don't currently have the sheet, attempt to load it
-	SharedPtr<StyleSheet> sheet = instance->LoadStyleSheet(sheet_name);
+	SharedPtr<StyleSheetContainer> sheet = instance->LoadStyleSheetContainer(sheet_name);
 	if (!sheet)
 		return nullptr;
-
-	sheet->OptimizeNodeProperties();
 
 	// Add it to the cache, and add a reference count so the cache will keep hold of it.
 	instance->stylesheets[sheet_name] = sheet;
@@ -112,7 +110,7 @@ SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const String& sheet_name)
 	return sheet;
 }
 
-SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const StringList& sheets)
+SharedPtr<StyleSheetContainer> StyleSheetFactory::GetStyleSheetContainer(const StringList& sheets)
 {
 	// Generate a unique key for these sheets
 	String combined_key;
@@ -130,15 +128,15 @@ SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 	}
 
 	// Load and combine the sheets.
-	SharedPtr<StyleSheet> sheet;
+	SharedPtr<StyleSheetContainer> sheet;
 	for (size_t i = 0; i < sheets.size(); i++)
 	{
-		SharedPtr<StyleSheet> sub_sheet = GetStyleSheet(sheets[i]);
+		SharedPtr<StyleSheetContainer> sub_sheet = GetStyleSheetContainer(sheets[i]);
 		if (sub_sheet)
 		{
 			if (sheet)
 			{
-				SharedPtr<StyleSheet> new_sheet = sheet->CombineStyleSheet(*sub_sheet);
+				SharedPtr<StyleSheetContainer> new_sheet = sheet->CombineStyleSheetContainer(*sub_sheet);
 				sheet = std::move(new_sheet);
 			}
 			else
@@ -150,8 +148,6 @@ SharedPtr<StyleSheet> StyleSheetFactory::GetStyleSheet(const StringList& sheets)
 
 	if (!sheet)
 		return nullptr;
-
-	sheet->OptimizeNodeProperties();
 
 	// Add to cache, and a reference to the sheet to hold it in the cache.
 	instance->stylesheet_cache[combined_key] = sheet;
@@ -244,17 +240,17 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 	return StructuralSelector(it->second, a, b);
 }
 
-SharedPtr<StyleSheet> StyleSheetFactory::LoadStyleSheet(const String& sheet)
+SharedPtr<StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(const String& sheet)
 {
-	SharedPtr<StyleSheet> new_style_sheet;
+	SharedPtr<StyleSheetContainer> new_style_sheet;
 
 	// Open stream, construct new sheet and pass the stream into the sheet
 	// TODO: Make this support ASYNC
 	auto stream = MakeUnique<StreamFile>();
 	if (stream->Open(sheet))
 	{
-		new_style_sheet = MakeShared<StyleSheet>();
-		if (!new_style_sheet->LoadStyleSheet(stream.get()))
+		new_style_sheet = MakeShared<StyleSheetContainer>();
+		if (!new_style_sheet->LoadStyleSheetContainer(stream.get()))
 		{
 			new_style_sheet = nullptr;
 		}

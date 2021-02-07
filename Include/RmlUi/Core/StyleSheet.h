@@ -32,6 +32,7 @@
 #include "Traits.h"
 #include "PropertyDictionary.h"
 #include "Spritesheet.h"
+#include "StyleSheetTypes.h"
 
 namespace Rml {
 
@@ -42,26 +43,10 @@ class Decorator;
 class FontEffect;
 class SpritesheetList;
 class Stream;
+class StyleSheetContainer;
+class StyleSheetParser;
 struct Sprite;
 struct Spritesheet;
-
-struct KeyframeBlock {
-	KeyframeBlock(float normalized_time) : normalized_time(normalized_time) {}
-	float normalized_time;  // [0, 1]
-	PropertyDictionary properties;
-};
-struct Keyframes {
-	Vector<PropertyId> property_ids;
-	Vector<KeyframeBlock> blocks;
-};
-using KeyframesMap = UnorderedMap<String, Keyframes>;
-
-struct DecoratorSpecification {
-	String decorator_type;
-	PropertyDictionary properties;
-	SharedPtr<Decorator> decorator;
-};
-using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
 /**
 	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
@@ -76,14 +61,14 @@ public:
 	typedef Vector< StyleSheetNode* > NodeList;
 	typedef UnorderedMap< size_t, NodeList > NodeIndex;
 
-	StyleSheet();
 	virtual ~StyleSheet();
 
-	/// Loads a style from a CSS definition.
-	bool LoadStyleSheet(Stream* stream, int begin_line_number = 1);
-
 	/// Combines this style sheet with another one, producing a new sheet.
-	SharedPtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
+	UniquePtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
+
+	/// Creates an exact copy of this style sheet.
+	UniquePtr<StyleSheet> Clone() const;
+
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
 	/// Optimizes some properties for faster retrieval.
@@ -91,7 +76,7 @@ public:
 	void OptimizeNodeProperties();
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
-	Keyframes* GetKeyframes(const String& name);
+	const Keyframes* GetKeyframes(const String& name) const;
 
 	/// Returns the Decorator of the given name, or null if it does not exist.
 	SharedPtr<Decorator> GetDecorator(const String& name) const;
@@ -113,6 +98,8 @@ public:
 	static size_t NodeHash(const String& tag, const String& id);
 
 private:
+	StyleSheet();
+	
 	// Root level node, attributes from special nodes like "body" get added to this node
 	UniquePtr<StyleSheetNode> root;
 
@@ -138,6 +125,9 @@ private:
 	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
+
+	friend StyleSheetParser;
+	friend StyleSheetContainer;
 };
 
 } // namespace Rml

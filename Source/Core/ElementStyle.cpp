@@ -186,7 +186,7 @@ void ElementStyle::UpdateDefinition()
 
 		SharedPtr<ElementDefinition> new_definition;
 		
-		if (auto& style_sheet = element->GetStyleSheet())
+		if (const StyleSheet* style_sheet = element->GetStyleSheet())
 		{
 			new_definition = style_sheet->GetElementDefinition(element);
 		}
@@ -911,7 +911,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			{
 				// Usually the decorator is converted from string after the style sheet is set on the ElementDocument. However, if the
 				// user sets a decorator on the element's style, we may still get a string here which must be parsed and instanced.
-				if (auto & style_sheet = element->GetStyleSheet())
+				if (const StyleSheet* style_sheet = element->GetStyleSheet())
 				{
 					// The property source will not be set if the property is defined in inline style. However, we may need it in order to locate
 					// resource files (typically images). In this case, generate one from the document's source URL.
@@ -939,7 +939,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			}
 			else if (p->unit == Property::STRING)
 			{
-				if (auto & style_sheet = element->GetStyleSheet())
+				if (const StyleSheet* style_sheet = element->GetStyleSheet())
 				{
 					const String& value = p->value.GetReference<String>();
 					values.font_effect = style_sheet->InstanceFontEffectsFromString(value, p->source);

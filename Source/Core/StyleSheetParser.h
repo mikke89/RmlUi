@@ -36,10 +36,13 @@ namespace Rml {
 
 class PropertyDictionary;
 class Stream;
+class StyleSheetContainer;
+struct MediaBlock;
 class StyleSheetNode;
 class AbstractPropertyParser;
 struct PropertySource;
 using StyleSheetNodeListRaw = Vector<StyleSheetNode*>;
+using MediaBlockList = Vector<MediaBlock>;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.
@@ -54,10 +57,10 @@ public:
 	~StyleSheetParser();
 
 	/// Parses the given stream into the style sheet
-	/// @param node The root node the stream will be parsed into
+	/// @param style_sheets The collection of style sheets to write into, organized into media blocks
 	/// @param stream The stream to read
 	/// @return The number of parsed rules, or -1 if an error occured.
-	int Parse(StyleSheetNode* node, Stream* stream, const StyleSheet& style_sheet, KeyframesMap& keyframes, DecoratorSpecificationMap& decorator_map, SpritesheetList& spritesheet_list, int begin_line_number);
+	int Parse(MediaBlockList& style_sheets, Stream* stream, int begin_line_number);
 
 	/// Parses the given string into the property dictionary
 	/// @param parsed_properties The properties dictionary the properties will be read into
@@ -106,6 +109,9 @@ private:
 
 	// Attempts to parse a @decorator block
 	bool ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet, const SharedPtr<const PropertySource>& source);
+
+	// Attempts to parse the properties of a @media query
+	bool ParseMediaFeatureMap(PropertyDictionary& properties, const String& rules);
 
 	// Attempts to find one of the given character tokens in the active stream
 	// If it's found, buffer is filled with all content up until the token

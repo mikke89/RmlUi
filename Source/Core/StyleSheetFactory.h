@@ -33,7 +33,7 @@
 
 namespace Rml {
 
-class StyleSheet;
+class StyleSheetContainer;
 class StyleSheetNodeSelector;
 struct StructuralSelector;
 
@@ -53,12 +53,12 @@ public:
 
 	/// Gets the named sheet, retrieving it from the cache if its already been loaded
 	/// @param sheet name of sheet to load
-	static SharedPtr<StyleSheet> GetStyleSheet(const String& sheet);
+	static SharedPtr<StyleSheetContainer> GetStyleSheetContainer(const String& sheet);
 
 	/// Builds and returns a stylesheet based on the list of input sheets
 	/// Generated sheets will be cached for later use
 	/// @param sheets List of sheets to combine into one	
-	static SharedPtr<StyleSheet> GetStyleSheet(const StringList& sheets);
+	static SharedPtr<StyleSheetContainer> GetStyleSheetContainer(const StringList& sheets);
 
 	/// Clear the style sheet cache.
 	static void ClearStyleSheetCache();
@@ -73,10 +73,10 @@ private:
 	~StyleSheetFactory();
 
 	// Loads an individual style sheet
-	SharedPtr<StyleSheet> LoadStyleSheet(const String& sheet);
+	SharedPtr<StyleSheetContainer> LoadStyleSheetContainer(const String& sheet);
 
 	// Individual loaded stylesheets
-	typedef UnorderedMap<String, SharedPtr<StyleSheet>> StyleSheets;
+	typedef UnorderedMap<String, SharedPtr<StyleSheetContainer>> StyleSheets;
 	StyleSheets stylesheets;
 
 	// Cache of combined style sheets
