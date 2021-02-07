@@ -184,11 +184,7 @@ enum class MediaQueryId : uint8_t
 	MaxResolution,
 	Orientation,
 
-	NumDefinedIds,
-	FirstCustomId = NumDefinedIds,
-
-	// The maximum number of IDs. This limits the number of possible custom IDs to MaxNumIds - FirstCustomId.
-	MaxNumIds = 128
+	NumDefinedIds
 };
 
 enum class EventId : uint16_t 

@@ -45,62 +45,49 @@
 
 namespace Rml {
 
-static StyleSheetFactory* instance = nullptr;
+static UniquePtr<StyleSheetFactory> instance;
 
 StyleSheetFactory::StyleSheetFactory()
-{
-	RMLUI_ASSERT(instance == nullptr);
-	instance = this;
-}
+{}
 
 StyleSheetFactory::~StyleSheetFactory()
-{
-	instance = nullptr;
-}
+{}
 
 bool StyleSheetFactory::Initialise()
 {
-	new StyleSheetFactory();
+	RMLUI_ASSERT(instance == nullptr);
 
-	instance->selectors["nth-child"] = new StyleSheetNodeSelectorNthChild();
-	instance->selectors["nth-last-child"] = new StyleSheetNodeSelectorNthLastChild();
-	instance->selectors["nth-of-type"] = new StyleSheetNodeSelectorNthOfType();
-	instance->selectors["nth-last-of-type"] = new StyleSheetNodeSelectorNthLastOfType();
-	instance->selectors["first-child"] = new StyleSheetNodeSelectorFirstChild();
-	instance->selectors["last-child"] = new StyleSheetNodeSelectorLastChild();
-	instance->selectors["first-of-type"] = new StyleSheetNodeSelectorFirstOfType();
-	instance->selectors["last-of-type"] = new StyleSheetNodeSelectorLastOfType();
-	instance->selectors["only-child"] = new StyleSheetNodeSelectorOnlyChild();
-	instance->selectors["only-of-type"] = new StyleSheetNodeSelectorOnlyOfType();
-	instance->selectors["empty"] = new StyleSheetNodeSelectorEmpty();
+	instance = UniquePtr<StyleSheetFactory>(new StyleSheetFactory);
+
+	instance->selectors["nth-child"] = MakeUnique<StyleSheetNodeSelectorNthChild>();
+	instance->selectors["nth-last-child"] = MakeUnique<StyleSheetNodeSelectorNthLastChild>();
+	instance->selectors["nth-of-type"] = MakeUnique<StyleSheetNodeSelectorNthOfType>();
+	instance->selectors["nth-last-of-type"] = MakeUnique<StyleSheetNodeSelectorNthLastOfType>();
+	instance->selectors["first-child"] = MakeUnique<StyleSheetNodeSelectorFirstChild>();
+	instance->selectors["last-child"] = MakeUnique<StyleSheetNodeSelectorLastChild>();
+	instance->selectors["first-of-type"] = MakeUnique<StyleSheetNodeSelectorFirstOfType>();
+	instance->selectors["last-of-type"] = MakeUnique<StyleSheetNodeSelectorLastOfType>();
+	instance->selectors["only-child"] = MakeUnique<StyleSheetNodeSelectorOnlyChild>();
+	instance->selectors["only-of-type"] = MakeUnique<StyleSheetNodeSelectorOnlyOfType>();
+	instance->selectors["empty"] = MakeUnique<StyleSheetNodeSelectorEmpty>();
 
 	return true;
 }
 
 void StyleSheetFactory::Shutdown()
 {
-	if (instance != nullptr)
-	{
-		ClearStyleSheetCache();
-
-		for (SelectorMap::iterator i = instance->selectors.begin(); i != instance->selectors.end(); ++i)
-			delete (*i).second;
-
-		delete instance;
-	}
+	instance.reset();
 }
 
-SharedPtr<StyleSheetContainer> StyleSheetFactory::GetStyleSheetContainer(const String& sheet_name)
+SharedPtr<const StyleSheetContainer> StyleSheetFactory::GetStyleSheetContainer(const String& sheet_name)
 {
 	// Look up the sheet definition in the cache
-	StyleSheets::iterator itr = instance->stylesheets.find(sheet_name);
-	if (itr != instance->stylesheets.end())
-	{
-		return (*itr).second;
-	}
+	auto it = instance->stylesheets.find(sheet_name);
+	if (it != instance->stylesheets.end())
+		return it->second;
 
 	// Don't currently have the sheet, attempt to load it
-	SharedPtr<StyleSheetContainer> sheet = instance->LoadStyleSheetContainer(sheet_name);
+	SharedPtr<const StyleSheetContainer> sheet = instance->LoadStyleSheetContainer(sheet_name);
 	if (!sheet)
 		return nullptr;
 
@@ -110,55 +97,10 @@ SharedPtr<StyleSheetContainer> StyleSheetFactory::GetStyleSheetContainer(const S
 	return sheet;
 }
 
-SharedPtr<StyleSheetContainer> StyleSheetFactory::GetStyleSheetContainer(const StringList& sheets)
-{
-	// Generate a unique key for these sheets
-	String combined_key;
-	for (size_t i = 0; i < sheets.size(); i++)
-	{		
-		URL path(sheets[i]);
-		combined_key += path.GetFileName();
-	}
-
-	// Look up the sheet definition in the cache.
-	StyleSheets::iterator itr = instance->stylesheet_cache.find(combined_key);
-	if (itr != instance->stylesheet_cache.end())
-	{
-		return (*itr).second;
-	}
-
-	// Load and combine the sheets.
-	SharedPtr<StyleSheetContainer> sheet;
-	for (size_t i = 0; i < sheets.size(); i++)
-	{
-		SharedPtr<StyleSheetContainer> sub_sheet = GetStyleSheetContainer(sheets[i]);
-		if (sub_sheet)
-		{
-			if (sheet)
-			{
-				SharedPtr<StyleSheetContainer> new_sheet = sheet->CombineStyleSheetContainer(*sub_sheet);
-				sheet = std::move(new_sheet);
-			}
-			else
-				sheet = sub_sheet;
-		}
-		else
-			Log::Message(Log::LT_ERROR, "Failed to load style sheet %s.", sheets[i].c_str());
-	}
-
-	if (!sheet)
-		return nullptr;
-
-	// Add to cache, and a reference to the sheet to hold it in the cache.
-	instance->stylesheet_cache[combined_key] = sheet;
-	return sheet;
-}
-
 // Clear the style sheet cache.
 void StyleSheetFactory::ClearStyleSheetCache()
 {
 	instance->stylesheets.clear();
-	instance->stylesheet_cache.clear();
 }
 
 // Returns one of the available node selectors.
@@ -237,15 +179,14 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 		}
 	}
 
-	return StructuralSelector(it->second, a, b);
+	return StructuralSelector(it->second.get(), a, b);
 }
 
-SharedPtr<StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(const String& sheet)
+SharedPtr<const StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(const String& sheet)
 {
 	SharedPtr<StyleSheetContainer> new_style_sheet;
 
 	// Open stream, construct new sheet and pass the stream into the sheet
-	// TODO: Make this support ASYNC
 	auto stream = MakeUnique<StreamFile>();
 	if (stream->Open(sheet))
 	{
@@ -255,6 +196,9 @@ SharedPtr<StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(const 
 			new_style_sheet = nullptr;
 		}
 	}
+
+	new_style_sheet->OptimizeNodeProperties();
+
 	return new_style_sheet;
 }
 

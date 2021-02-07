@@ -367,7 +367,7 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 			// Now see if we satisfy all of the requirements not yet tested: classes, pseudo classes, structural selectors, 
 			// and the full requirements of parent nodes. What this involves is traversing the style nodes backwards, 
 			// trying to match nodes in the element's hierarchy to nodes in the style hierarchy.
-			for (StyleSheetNode* node : nodes)
+			for (const StyleSheetNode* node : nodes)
 			{
 				if (node->IsApplicable(element, true))
 				{

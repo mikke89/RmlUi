@@ -55,13 +55,13 @@ struct Spritesheet;
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API StyleSheet : public NonCopyMoveable
+class RMLUICORE_API StyleSheet final : public NonCopyMoveable
 {
 public:
-	typedef Vector< StyleSheetNode* > NodeList;
-	typedef UnorderedMap< size_t, NodeList > NodeIndex;
+	~StyleSheet();
 
-	virtual ~StyleSheet();
+	using NodeList = Vector< const StyleSheetNode* >;
+	using NodeIndex = UnorderedMap< size_t, NodeList >;
 
 	/// Combines this style sheet with another one, producing a new sheet.
 	UniquePtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
@@ -76,10 +76,8 @@ public:
 	void OptimizeNodeProperties();
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
+	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to subobjects around.
 	const Keyframes* GetKeyframes(const String& name) const;
-
-	/// Returns the Decorator of the given name, or null if it does not exist.
-	SharedPtr<Decorator> GetDecorator(const String& name) const;
 
 	/// Parses the decorator property from a string and returns a list of instanced decorators.
 	DecoratorsPtr InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const;
@@ -88,10 +86,10 @@ public:
 	FontEffectsPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const;
 
 	/// Get sprite located in any spritesheet within this stylesheet.
+	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to subobjects around.
 	const Sprite* GetSprite(const String& name) const;
 
-	/// Returns the compiled element definition for a given element hierarchy. A reference count will be added for the
-	/// caller, so another should not be added. The definition should be released by removing the reference count.
+	/// Returns the compiled element definition for a given element and its hierarchy.
 	SharedPtr<ElementDefinition> GetElementDefinition(const Element* element) const;
 
 	/// Retrieve the hash key used to look-up applicable nodes in the node index.
@@ -99,6 +97,11 @@ public:
 
 private:
 	StyleSheet();
+
+	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
+
+	/// Returns the Decorator of the given name, or null if it does not exist.
+	SharedPtr<Decorator> GetDecorator(const String& name) const;
 	
 	// Root level node, attributes from special nodes like "body" get added to this node
 	UniquePtr<StyleSheetNode> root;
@@ -122,12 +125,11 @@ private:
 	// Map of all styled nodes, that is, they have one or more properties.
 	NodeIndex styled_node_index;
 
-	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
 	// Index of node sets to element definitions.
 	mutable ElementDefinitionCache node_cache;
 
-	friend StyleSheetParser;
-	friend StyleSheetContainer;
+	friend Rml::StyleSheetParser;
+	friend Rml::StyleSheetContainer;
 };
 
 } // namespace Rml

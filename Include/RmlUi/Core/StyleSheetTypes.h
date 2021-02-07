@@ -55,13 +55,12 @@ struct DecoratorSpecification {
 };
 using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
-struct MediaBlock
-{
+struct MediaBlock {
+	MediaBlock() {}
+	MediaBlock(PropertyDictionary _properties, UniquePtr<StyleSheet> _stylesheet) : properties(std::move(_properties)), stylesheet(std::move(_stylesheet)) {}
+
 	PropertyDictionary properties;
 	UniquePtr<StyleSheet> stylesheet;
-
-	MediaBlock() {}
-	MediaBlock(PropertyDictionary _properties, UniquePtr<StyleSheet> _stylesheet) : properties(_properties), stylesheet(std::move(_stylesheet)) {}
 };
 
 } // namespace Rml

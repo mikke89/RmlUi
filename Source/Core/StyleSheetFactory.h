@@ -46,6 +46,8 @@ struct StructuralSelector;
 class StyleSheetFactory
 {
 public:
+	~StyleSheetFactory();
+
 	/// Initialise the style factory
 	static bool Initialise();
 	/// Shutdown style manager
@@ -53,12 +55,7 @@ public:
 
 	/// Gets the named sheet, retrieving it from the cache if its already been loaded
 	/// @param sheet name of sheet to load
-	static SharedPtr<StyleSheetContainer> GetStyleSheetContainer(const String& sheet);
-
-	/// Builds and returns a stylesheet based on the list of input sheets
-	/// Generated sheets will be cached for later use
-	/// @param sheets List of sheets to combine into one	
-	static SharedPtr<StyleSheetContainer> GetStyleSheetContainer(const StringList& sheets);
+	static SharedPtr<const StyleSheetContainer> GetStyleSheetContainer(const String& sheet);
 
 	/// Clear the style sheet cache.
 	static void ClearStyleSheetCache();
@@ -70,20 +67,16 @@ public:
 
 private:
 	StyleSheetFactory();
-	~StyleSheetFactory();
 
 	// Loads an individual style sheet
-	SharedPtr<StyleSheetContainer> LoadStyleSheetContainer(const String& sheet);
+	SharedPtr<const StyleSheetContainer> LoadStyleSheetContainer(const String& sheet);
 
 	// Individual loaded stylesheets
-	typedef UnorderedMap<String, SharedPtr<StyleSheetContainer>> StyleSheets;
+	using StyleSheets = UnorderedMap<String, SharedPtr<const StyleSheetContainer>>;
 	StyleSheets stylesheets;
 
-	// Cache of combined style sheets
-	StyleSheets stylesheet_cache;
-
 	// Custom complex selectors available for style sheets.
-	typedef UnorderedMap< String, StyleSheetNodeSelector* > SelectorMap;
+	using SelectorMap = UnorderedMap<String, UniquePtr<StyleSheetNodeSelector>>;
 	SelectorMap selectors;
 };
 

@@ -298,12 +298,6 @@ const StyleSheet* Element::GetStyleSheet() const
 	return nullptr;
 }
 
-// Returns the element's definition.
-const ElementDefinition* Element::GetDefinition()
-{
-	return meta->style.GetDefinition();
-}
-
 // Fills an String with the full address of this element.
 String Element::GetAddress(bool include_pseudo_classes, bool include_parents) const
 {

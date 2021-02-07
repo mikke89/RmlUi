@@ -149,8 +149,12 @@ class MediaQueryPropertyParser final : public AbstractPropertyParser {
 private:
 	// The dictionary to store the properties in.
 	PropertyDictionary* properties;
-
 	PropertySpecification specification;
+
+	static inline PropertyId CastId(MediaQueryId id)
+	{
+		return static_cast<PropertyId>(id);
+	}
 
 public:
 	MediaQueryPropertyParser() : specification(14, 0) 

@@ -109,10 +109,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 			if (inline_sheet->LoadStyleSheetContainer(stream.get(), rcss.line))
 			{
 				if (new_style_sheet)
-				{
-					SharedPtr<StyleSheetContainer> combined_sheet = new_style_sheet->CombineStyleSheetContainer(*inline_sheet);
-					new_style_sheet = combined_sheet;
-				}
+					new_style_sheet->MergeStyleSheetContainer(*inline_sheet);
 				else
 					new_style_sheet = std::move(inline_sheet);
 			}
@@ -121,23 +118,20 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		}
 		else
 		{
-			SharedPtr<StyleSheetContainer> sub_sheet = StyleSheetFactory::GetStyleSheetContainer(rcss.path);
+			SharedPtr<const StyleSheetContainer> sub_sheet = StyleSheetFactory::GetStyleSheetContainer(rcss.path);
 			if (sub_sheet)
 			{
 				if (new_style_sheet)
-				{
-					SharedPtr<StyleSheetContainer> combined_sheet = new_style_sheet->CombineStyleSheetContainer(*sub_sheet);
-					new_style_sheet = std::move(combined_sheet);
-				}
+					new_style_sheet->MergeStyleSheetContainer(*sub_sheet);
 				else
-					new_style_sheet = sub_sheet;
+					new_style_sheet = sub_sheet->CombineStyleSheetContainer(StyleSheetContainer());
 			}
 			else
 				Log::Message(Log::LT_ERROR, "Failed to load style sheet %s.", rcss.path.c_str());
 		}
 	}
 
-	// If a style sheet is available, set it on the document and release it.
+	// If a style sheet is available, set it on the document.
 	if (new_style_sheet)
 		SetStyleSheetContainer(std::move(new_style_sheet));
 
@@ -196,14 +190,14 @@ void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _sty
 
 	style_sheet_container = std::move(_style_sheet_container);
 	
-	GetStyle()->DirtyDefinition();
+	DirtyMediaQueries();
 }
 
 // Returns the document's style sheet.
 const StyleSheet* ElementDocument::GetStyleSheet() const
 {
-	if(context && style_sheet_container)
-		return style_sheet_container->GetCompiledStyleSheet(context->GetDensityIndependentPixelRatio(), Vector2f(context->GetDimensions()));
+	if (style_sheet_container)
+		return style_sheet_container->GetCompiledStyleSheet();
 	return nullptr;
 }
 
@@ -239,7 +233,13 @@ void ElementDocument::ReloadStyleSheet()
 
 void ElementDocument::DirtyMediaQueries()
 {
-	GetStyle()->DirtyDefinition();
+	if (context && style_sheet_container)
+	{
+		const bool changed_style_sheet = style_sheet_container->UpdateCompiledStyleSheet(context->GetDensityIndependentPixelRatio(), Vector2f(context->GetDimensions()));
+
+		if (changed_style_sheet)
+			GetStyle()->DirtyDefinition();
+	}
 }
 
 // Brings the document to the front of the document stack.

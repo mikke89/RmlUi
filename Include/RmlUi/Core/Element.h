@@ -107,10 +107,6 @@ public:
 	/// @return The element's style sheet.
 	virtual const StyleSheet* GetStyleSheet() const;
 
-	/// Returns the element's definition.
-	/// @return The element's definition.
-	const ElementDefinition* GetDefinition();
-
 	/// Fills a string with the full address of this element.
 	/// @param[in] include_pseudo_classes True if the address is to include the pseudo-classes of the leaf element.
 	/// @return The address of the element, including its full parentage.

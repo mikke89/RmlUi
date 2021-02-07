@@ -121,7 +121,7 @@ UniquePtr<StyleSheetNode> StyleSheetNode::DeepCopy(StyleSheetNode* in_parent) co
 }
 
 // Builds up a style sheet's index recursively.
-void StyleSheetNode::BuildIndex(StyleSheet::NodeIndex& styled_node_index)
+void StyleSheetNode::BuildIndex(StyleSheet::NodeIndex& styled_node_index) const
 {
 	// If this has properties defined, then we insert it into the styled node index.
 	if(properties.GetNumProperties() > 0)

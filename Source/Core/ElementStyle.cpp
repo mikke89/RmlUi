@@ -63,15 +63,8 @@ inline PseudoClassState operator&(PseudoClassState lhs, PseudoClassState rhs)
 
 ElementStyle::ElementStyle(Element* _element)
 {
-	definition = nullptr;
 	element = _element;
-
 	definition_dirty = true;
-}
-
-const ElementDefinition* ElementStyle::GetDefinition() const
-{
-	return definition.get();
 }
 
 // Returns one of this element's properties.

@@ -56,9 +56,6 @@ public:
 	/// @param[in] element The element this structure belongs to.
 	ElementStyle(Element* element);
 
-	/// Returns the element's definition.
-	const ElementDefinition* GetDefinition() const;
-	
 	/// Update this definition if required
 	void UpdateDefinition();
 

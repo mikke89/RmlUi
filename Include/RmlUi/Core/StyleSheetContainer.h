@@ -54,22 +54,31 @@ public:
 	/// Loads a style from a CSS definition.
 	bool LoadStyleSheetContainer(Stream* stream, int begin_line_number = 1);
 
-	/// Returns the currently compiled style sheet that has been merged from incorporating all matching media blocks
-	/// or creates it ad-hoc if the given properties differ from the currently stored values.
+	/// Compiles a single style sheet by combining all contained style sheets whose media queries match the provided parameters.
 	/// @param[in] dp_ratio The current context ratio of 'dp' units to 'px' units
 	/// @param[in] vp_dimensions The current context viewport dimensions
-	StyleSheet* GetCompiledStyleSheet(float dp_ratio, Vector2f vp_dimensions);
+	/// @returns True when the compiled style sheet was changed, otherwise false.
+	/// @warning This operation invalidates all references to the previously compiled style sheet.
+	bool UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_dimensions);
+
+	/// Returns the previously compiled style sheet. 
+	StyleSheet* GetCompiledStyleSheet();
 
 	/// Combines this style sheet container with another one, producing a new sheet container.
 	SharedPtr<StyleSheetContainer> CombineStyleSheetContainer(const StyleSheetContainer& container) const;
 
+	/// Merge another style sheet container into this.
+	void MergeStyleSheetContainer(const StyleSheetContainer& container);
+
+	/// Optimizes properties of the underlying style sheet(s) for faster retrieval.
+	void OptimizeNodeProperties();
+
 private:
 	Vector<MediaBlock> media_blocks;
 
-	UniquePtr<StyleSheet> compiled_style_sheet;
-
-	Vector2f current_dimensions;
-	float current_density_ratio;
+	StyleSheet* compiled_style_sheet = nullptr;
+	UniquePtr<StyleSheet> combined_compiled_style_sheet;
+	Vector<int> active_media_block_indices;
 };
 
 } // namespace Rml
