@@ -50,6 +50,7 @@ static const String document_media_query1_rml = R"(
 		div {
 			height: 48px;
 			width: 48px;
+			background: white;
 		}
 
 		@media (min-width: 640px) {
@@ -90,6 +91,7 @@ static const String document_media_query2_rml = R"(
 		div {
 			height: 48px;
 			width: 48px;
+			background: white;
 		}
 
 		@media (orientation: landscape) {
@@ -136,6 +138,7 @@ static const String document_media_query3_rml = R"(
 		div {
 			height: 48px;
 			width: 48px;
+			background: white;
 		}
 
 		@media (orientation: landscape) and (min-width: 640px) {
@@ -161,13 +164,13 @@ static const String document_media_query3_rml = R"(
 )";
 
 
-TEST_CASE("mediaqueries.basic")
+TEST_CASE("mediaquery.basic")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
 	// There should be no warnings loading this document. There should be one div of 32px width & height
-	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query1_rml, "assets/");
+	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query1_rml);
 	REQUIRE(document);
 	document->Show();
 
@@ -189,13 +192,13 @@ TEST_CASE("mediaqueries.basic")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("mediaqueries.dynamic")
+TEST_CASE("mediaquery.dynamic")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
 	// There should be no warnings loading this document. There should be one div of 32px width & height
-	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query1_rml, "assets/");
+	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query1_rml);
 	REQUIRE(document);
 	document->Show();
 
@@ -223,7 +226,7 @@ TEST_CASE("mediaqueries.dynamic")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("mediaqueries.custom_properties")
+TEST_CASE("mediaquery.custom_properties")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -231,7 +234,7 @@ TEST_CASE("mediaqueries.custom_properties")
 	context->SetDensityIndependentPixelRatio(2.0f);
 
 	// There should be no warnings loading this document. There should be one div of 32px width & height
-	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query2_rml, "assets/");
+	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query2_rml);
 	REQUIRE(document);
 	document->Show();
 
@@ -253,13 +256,13 @@ TEST_CASE("mediaqueries.custom_properties")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("mediaqueries.composite")
+TEST_CASE("mediaquery.composite")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
 	// There should be no warnings loading this document. There should be one div of 32px width & height
-	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query3_rml, "assets/");
+	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query3_rml);
 	REQUIRE(document);
 	document->Show();
 

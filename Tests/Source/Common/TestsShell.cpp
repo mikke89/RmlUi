@@ -161,6 +161,7 @@ void TestsShell::ShutdownShell()
 #ifdef RMLUI_TESTS_USE_SHELL
 		Shell::CloseWindow();
 		Shell::Shutdown();
+		shell_render_interface.SetContext(nullptr);
 #endif
 
 		shell_context = nullptr;

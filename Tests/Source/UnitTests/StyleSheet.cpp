@@ -34,42 +34,81 @@
 
 using namespace Rml;
 
-static const String simple_doc_rml = R"(
+static const String simple_doc1_rml = R"(
 <rml>
 <head>
 	<title>Test</title>
-	<link type="text/rcss" href="/assets/test.rcss"/>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
 	<style>
 		body {
 			width: 48px;
 		}
 	</style>
 </head>
-
-<body>
-<div/>
-</body>
+<body/>
 </rml>
 )";
+static const String simple_doc2_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<style>
+		body {
+			width: 48px;
+		}
+	</style>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc3_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<style>
+		body.narrow {
+			width: 48px;
+		}
+	</style>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+</head>
+<body class="narrow"/>
+</rml>
+)";
+
 
 TEST_CASE("stylesheet.override_basic")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	// There should be no warnings loading this document.
-	ElementDocument* document = context->LoadDocumentFromMemory(simple_doc_rml, "assets/");
-	REQUIRE(document);
-	document->Show();
+	struct Test {
+		const String* document_rml;
+		float expected_width;
+	};
 
-	context->Update();
-	context->Render();
+	Test tests[] = {
+		{&simple_doc1_rml, 48.f},
+		{&simple_doc2_rml, 100.f},
+		{&simple_doc3_rml, 48.f},
+	};
 
-	TestsShell::RenderLoop();
+	for (const Test& test : tests)
+	{
+		ElementDocument* document = context->LoadDocumentFromMemory(*test.document_rml);
+		REQUIRE(document);
+		document->Show();
 
-	CHECK(document->GetBox() == Box(Vector2f(48.0f, 100.0f)));
+		context->Update();
+		context->Render();
 
-	document->Close();
+		TestsShell::RenderLoop();
+
+		CHECK(document->GetBox().GetSize().x == test.expected_width);
+
+		document->Close();
+	}
 
 	TestsShell::ShutdownShell();
 }
