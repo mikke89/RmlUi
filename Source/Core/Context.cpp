@@ -65,10 +65,8 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 
 	cursor_proxy = Factory::InstanceElement(nullptr, documents_base_tag, documents_base_tag, XMLAttributes());
 	ElementDocument* cursor_proxy_document = rmlui_dynamic_cast< ElementDocument* >(cursor_proxy.get());
-	if (cursor_proxy_document)
-		cursor_proxy_document->context = this;
-	else
-		cursor_proxy.reset();
+	RMLUI_ASSERT(cursor_proxy_document);
+	cursor_proxy_document->context = this;
 		
 	enable_cursor = true;
 
@@ -96,9 +94,9 @@ Context::~Context()
 
 	ReleaseUnloadedDocuments();
 
-	cursor_proxy.reset();
-
 	root.reset();
+
+	cursor_proxy.reset();
 
 	instancer = nullptr;
 
@@ -206,8 +204,8 @@ bool Context::Render()
 
 	ElementUtilities::SetClippingRegion(nullptr, this);
 
-	// Render the cursor proxy so any elements attached the cursor will be rendered below the cursor.
-	if (cursor_proxy)
+	// Render the cursor proxy so that any attached drag clone will be rendered below the cursor.
+	if (drag_clone)
 	{
 		static_cast<ElementDocument&>(*cursor_proxy).UpdateDocument();
 		cursor_proxy->SetOffset(Vector2f((float)Math::Clamp(mouse_position.x, 0, dimensions.x),
@@ -350,6 +348,7 @@ void Context::UnloadDocument(ElementDocument* _document)
 	if (drag && drag->GetOwnerDocument() == document)
 	{
 		drag = nullptr;
+		ReleaseDragClone();
 	}
 
 	if (drag_hover && drag_hover->GetOwnerDocument() == document)
@@ -1179,11 +1178,7 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 // Creates the drag clone from the given element.
 void Context::CreateDragClone(Element* element)
 {
-	if (!cursor_proxy)
-	{
-		Log::Message(Log::LT_ERROR, "Unable to create drag clone, no cursor proxy document.");
-		return;
-	}
+	RMLUI_ASSERTMSG(cursor_proxy, "Unable to create drag clone, no cursor proxy document.");
 
 	ReleaseDragClone();
 
@@ -1201,8 +1196,10 @@ void Context::CreateDragClone(Element* element)
 	cursor_proxy->AppendChild(std::move(element_drag_clone));
 
 	// Set the style sheet on the cursor proxy.
-	if(ElementDocument* document = element->GetOwnerDocument())
+	if (ElementDocument* document = element->GetOwnerDocument())
+	{
 		static_cast<ElementDocument&>(*cursor_proxy).SetStyleSheetContainer(document->GetStyleSheetContainer());
+	}
 
 	// Set all the required properties and pseudo-classes on the clone.
 	drag_clone->SetPseudoClass("drag", true);
@@ -1218,6 +1215,7 @@ void Context::ReleaseDragClone()
 	{
 		cursor_proxy->RemoveChild(drag_clone);
 		drag_clone = nullptr;
+		static_cast<ElementDocument&>(*cursor_proxy).SetStyleSheetContainer(nullptr);
 	}
 }
 

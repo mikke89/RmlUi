@@ -53,9 +53,10 @@ public:
 	/// Shutdown style manager
 	static void Shutdown();
 
-	/// Gets the named sheet, retrieving it from the cache if its already been loaded
+	/// Gets the named sheet, retrieving it from the cache if its already been loaded.
 	/// @param sheet name of sheet to load
-	static SharedPtr<const StyleSheetContainer> GetStyleSheetContainer(const String& sheet);
+	/// @lifetime Returned pointer is valid until the next call to ClearStyleSheetCache or Shutdown, it should not be stored around.
+	static const StyleSheetContainer* GetStyleSheetContainer(const String& sheet);
 
 	/// Clear the style sheet cache.
 	static void ClearStyleSheetCache();
@@ -69,10 +70,10 @@ private:
 	StyleSheetFactory();
 
 	// Loads an individual style sheet
-	SharedPtr<const StyleSheetContainer> LoadStyleSheetContainer(const String& sheet);
+	UniquePtr<const StyleSheetContainer> LoadStyleSheetContainer(const String& sheet);
 
 	// Individual loaded stylesheets
-	using StyleSheets = UnorderedMap<String, SharedPtr<const StyleSheetContainer>>;
+	using StyleSheets = UnorderedMap<String, UniquePtr<const StyleSheetContainer>>;
 	StyleSheets stylesheets;
 
 	// Custom complex selectors available for style sheets.

@@ -79,22 +79,24 @@ void StyleSheetFactory::Shutdown()
 	instance.reset();
 }
 
-SharedPtr<const StyleSheetContainer> StyleSheetFactory::GetStyleSheetContainer(const String& sheet_name)
+const StyleSheetContainer* StyleSheetFactory::GetStyleSheetContainer(const String& sheet_name)
 {
 	// Look up the sheet definition in the cache
 	auto it = instance->stylesheets.find(sheet_name);
 	if (it != instance->stylesheets.end())
-		return it->second;
+		return it->second.get();
 
 	// Don't currently have the sheet, attempt to load it
-	SharedPtr<const StyleSheetContainer> sheet = instance->LoadStyleSheetContainer(sheet_name);
+	UniquePtr<const StyleSheetContainer> sheet = instance->LoadStyleSheetContainer(sheet_name);
 	if (!sheet)
 		return nullptr;
 
-	// Add it to the cache, and add a reference count so the cache will keep hold of it.
-	instance->stylesheets[sheet_name] = sheet;
+	const StyleSheetContainer* result = sheet.get();
 
-	return sheet;
+	// Add it to the cache.
+	instance->stylesheets[sheet_name] = std::move(sheet);
+
+	return result;
 }
 
 // Clear the style sheet cache.
@@ -182,15 +184,15 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 	return StructuralSelector(it->second.get(), a, b);
 }
 
-SharedPtr<const StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(const String& sheet)
+UniquePtr<const StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(const String& sheet)
 {
-	SharedPtr<StyleSheetContainer> new_style_sheet;
+	UniquePtr<StyleSheetContainer> new_style_sheet;
 
 	// Open stream, construct new sheet and pass the stream into the sheet
 	auto stream = MakeUnique<StreamFile>();
 	if (stream->Open(sheet))
 	{
-		new_style_sheet = MakeShared<StyleSheetContainer>();
+		new_style_sheet = MakeUnique<StyleSheetContainer>();
 		if (!new_style_sheet->LoadStyleSheetContainer(stream.get()))
 		{
 			new_style_sheet = nullptr;

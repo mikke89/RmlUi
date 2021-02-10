@@ -102,7 +102,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	{
 		if (rcss.is_inline)
 		{
-			UniquePtr<StyleSheetContainer> inline_sheet = MakeUnique<StyleSheetContainer>();
+			auto inline_sheet = MakeShared<StyleSheetContainer>();
 			auto stream = MakeUnique<StreamMemory>((const byte*)rcss.content.c_str(), rcss.content.size());
 			stream->SetSourceURL(rcss.path);
 
@@ -118,7 +118,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 		}
 		else
 		{
-			SharedPtr<const StyleSheetContainer> sub_sheet = StyleSheetFactory::GetStyleSheetContainer(rcss.path);
+			const StyleSheetContainer* sub_sheet = StyleSheetFactory::GetStyleSheetContainer(rcss.path);
 			if (sub_sheet)
 			{
 				if (new_style_sheet)
