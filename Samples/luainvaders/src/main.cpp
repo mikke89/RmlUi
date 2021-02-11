@@ -103,7 +103,7 @@ int main(int, char**)
 
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
-	shell_renderer->SetContext(context);
+	Shell::SetContext(context);
 
 	// Load the font faces required for Invaders.
 	Shell::LoadFonts("assets/");

@@ -53,14 +53,30 @@ static const EventTypeSpec WINDOW_EVENTS[] = {
 	{ kEventClassWindow, kEventWindowBoundsChanged },
 };
 
+static Rml::Context* context = nullptr;
+static ShellRenderInterfaceExtensions* shell_renderer;
+static UniquePtr<ShellFileInterface> file_interface;
+
 static WindowRef window;
 static timeval start_time;
 static Rml::String clipboard_text;
-
-static Rml::UniquePtr<ShellFileInterface> file_interface;
+static int window_width = 0;
+static int window_height = 0;
 
 static void IdleTimerCallback(EventLoopTimerRef timer, EventLoopIdleTimerMessage inState, void* p);
 static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, void* p);
+
+static void UpdateWindowDimensions(int width = 0, int height = 0)
+{
+	if (width > 0)
+		window_width = width;
+	if (height > 0)
+		window_height = height;
+	if (context)
+		context->SetDimensions(Rml::Vector2i(window_width, window_height));
+	if (shell_renderer)
+		shell_renderer->SetViewport(window_width, window_height);
+}
 
 bool Shell::Initialise()
 {
@@ -104,12 +120,12 @@ Rml::String Shell::FindSamplesRoot()
 	return (executable_path + "../../../" + path);
 }
 
-static ShellRenderInterfaceExtensions *shell_renderer;
-
 bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
 	shell_renderer = _shell_renderer;
 	Rect content_bounds = { 60, 20, 60 + height, 20 + width };
+	window_width = width;
+	window_height = height;
 
 	OSStatus result = CreateNewWindow(kDocumentWindowClass,
 									  (allow_resize ? (kWindowStandardDocumentAttributes | kWindowLiveResizeAttribute) :
@@ -257,7 +273,6 @@ void Shell::SetMouseCursor(const Rml::String& cursor_name)
 	// Not implemented
 }
 
-
 void Shell::SetClipboardText(const Rml::String& text)
 {
 	// Todo: interface with system clipboard
@@ -268,6 +283,12 @@ void Shell::GetClipboardText(Rml::String& text)
 {
 	// Todo: interface with system clipboard
 	text = clipboard_text;
+}
+
+void Shell::SetContext(Rml::Context* new_context)
+{
+	context = new_context;
+	UpdateWindowDimensions();
 }
 
 static void IdleTimerCallback(EventLoopTimerRef timer, EventLoopIdleTimerMessage inState, void* p)
@@ -300,7 +321,7 @@ static OSStatus EventHandler(EventHandlerCallRef next_handler, EventRef event, v
 						UInt32 width = bounds.right - bounds.left;
 						UInt32 height = bounds.bottom - bounds.top;
 
-						shell_renderer->SetViewport(width, height);
+						UpdateWindowDimensions((int)width, (int)height);
 					}
 					break;
 			}

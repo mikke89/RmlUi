@@ -37,11 +37,17 @@
 
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param);
 
+static Rml::Context* context = nullptr;
+static ShellRenderInterfaceExtensions* shell_renderer = nullptr;
+
 static bool activated = true;
 static bool running = false;
 static Rml::U16String instance_name;
 static HWND window_handle = nullptr;
 static HINSTANCE instance_handle = nullptr;
+
+static int window_width = 0;
+static int window_height = 0;
 
 static double time_frequency;
 static LARGE_INTEGER time_startup;
@@ -56,6 +62,18 @@ static HCURSOR cursor_cross = nullptr;
 static HCURSOR cursor_text = nullptr;
 static HCURSOR cursor_unavailable = nullptr;
 
+
+static void UpdateWindowDimensions(int width = 0, int height = 0)
+{
+	if (width > 0)
+		window_width = width;
+	if (height > 0)
+		window_height = height;
+	if (context)
+		context->SetDimensions(Rml::Vector2i(window_width, window_height));
+	if (shell_renderer)
+		shell_renderer->SetViewport(window_width, window_height);
+}
 
 bool Shell::Initialise()
 {
@@ -128,7 +146,6 @@ Rml::String Shell::FindSamplesRoot()
 	return Rml::String();
 }
 
-static ShellRenderInterfaceExtensions *shell_renderer = nullptr;
 bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
 	WNDCLASSW window_class;
@@ -172,6 +189,9 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 
 		return false;
 	}
+
+	window_width = width;
+	window_height = height;
 
 	instance_name = name;
 
@@ -376,6 +396,12 @@ void Shell::GetClipboardText(Rml::String& text)
 	}
 }
 
+void Shell::SetContext(Rml::Context* new_context)
+{
+	context = new_context;
+	UpdateWindowDimensions();
+}
+
 static LRESULT CALLBACK WindowProcedure(HWND local_window_handle, UINT message, WPARAM w_param, LPARAM l_param)
 {
 	// See what kind of message we've got.
@@ -406,7 +432,7 @@ static LRESULT CALLBACK WindowProcedure(HWND local_window_handle, UINT message, 
 		{
 			int width = LOWORD(l_param);
 			int height = HIWORD(l_param);
-			shell_renderer->SetViewport(width, height);
+			UpdateWindowDimensions(width, height);
 		}
 		break;
 
