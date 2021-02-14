@@ -89,8 +89,8 @@ UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 		spritesheet_list.NumSpriteSheets() + other_sheet.spritesheet_list.NumSpriteSheets(),
 		spritesheet_list.NumSprites() + other_sheet.spritesheet_list.NumSprites()
 	);
-	new_sheet->spritesheet_list = other_sheet.spritesheet_list;
-	new_sheet->spritesheet_list.Merge(spritesheet_list);
+	new_sheet->spritesheet_list = spritesheet_list;
+	new_sheet->spritesheet_list.Merge(other_sheet.spritesheet_list);
 
 	new_sheet->specificity_offset = specificity_offset + other_sheet.specificity_offset;
 	return new_sheet;

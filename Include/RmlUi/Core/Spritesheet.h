@@ -78,7 +78,7 @@ public:
 	/// Note: The pointer is invalidated whenever another sprite is added. Do not store it around.
 	const Sprite* GetSprite(const String& name) const;
 
-	/// Merge 'other' into this.
+	/// Merge 'other' into this. Sprites in 'other' will overwrite local sprites if they share the same name.
 	void Merge(const SpritesheetList& other);
 
 	void Reserve(size_t size_sprite_sheets, size_t size_sprites);
