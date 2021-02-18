@@ -98,8 +98,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		// Skip the tile if it has no source name.
 		// Declaring the name 'auto' is the same as an empty string. This gives an easy way to skip certain
 		// tiles in a shorthand since we can't always declare an empty string.
-		static const String auto_str = "auto";
-		if (texture_name.empty() || texture_name == auto_str)
+		if (texture_name.empty() || texture_name == "auto")
 			continue;
 
 		// We are required to set default values before instancing the tile, thus, all properties should always be dereferencable.
