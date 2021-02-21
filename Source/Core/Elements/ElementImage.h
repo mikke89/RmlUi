@@ -85,6 +85,9 @@ protected:
 	/// Our intrinsic dimensions may change with the dp-ratio.
 	void OnDpRatioChange() override;
 
+	/// The sprite may have changed when the style sheet is recompiled.
+	void OnStyleSheetChange() override;
+
 	/// Checks for changes to the image's source or dimensions.
 	/// @param[in] changed_attributes A list of attributes changed on the element.
 	void OnAttributeChange(const ElementAttributes& changed_attributes) override;

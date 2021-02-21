@@ -153,7 +153,7 @@ void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_r
 			if (document)
 			{
 				document->DirtyMediaQueries();
-				document->DirtyDpRatio();
+				document->OnDpRatioChangeRecursive();
 			}
 		}
 	}

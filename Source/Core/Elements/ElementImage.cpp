@@ -163,6 +163,15 @@ void ElementImage::OnDpRatioChange()
 	DirtyLayout();
 }
 
+void ElementImage::OnStyleSheetChange()
+{
+	if (HasAttribute("sprite"))
+	{
+		texture_dirty = true;
+		DirtyLayout();
+	}
+}
+
 void ElementImage::GenerateGeometry()
 {
 	// Release the old geometry before specifying the new vertices.

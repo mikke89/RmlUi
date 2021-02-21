@@ -416,7 +416,7 @@ public:
 	/// Gets this element's parent node.
 	/// @return This element's parent.
 	Element* GetParentNode() const;
-	/// Recursively search for a ancestor of this node matching the given selector.
+	/// Recursively search for the first ancestor of this node matching the given selector.
 	/// @param[in] selectors The selector or comma-separated selectors to match against.
 	/// @return The ancestor if found, or nullptr if no ancestor could be matched.
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
@@ -607,6 +607,8 @@ protected:
 	virtual void OnLayout();
 	/// Called when the 'dp'-ratio has been changed.
 	virtual void OnDpRatioChange();
+	/// Called when the current document's compiled style sheet has been changed. This may result in changed sprites.
+	virtual void OnStyleSheetChange();
 
 	/// Called when attributes on the element are changed.
 	/// @param[in] changed_attributes Dictionary of attributes changed on the element. Attribute value will be empty if it was unset.
@@ -644,9 +646,9 @@ protected:
 
 	void SetOwnerDocument(ElementDocument* document);
 
-	void Release() override;
+	void OnStyleSheetChangeRecursive();
 
-	void DirtyDecoratorsRecursive();
+	void Release() override;
 
 private:
 	void SetParent(Element* parent);
@@ -668,7 +670,7 @@ private:
 	void DirtyTransformState(bool perspective_dirty, bool transform_dirty);
 	void UpdateTransformState();
 
-	void DirtyDpRatio();
+	void OnDpRatioChangeRecursive();
 
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
 	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool initiated_by_animation_property);

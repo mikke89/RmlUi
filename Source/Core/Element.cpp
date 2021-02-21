@@ -1649,6 +1649,10 @@ void Element::OnDpRatioChange()
 {
 }
 
+void Element::OnStyleSheetChange()
+{
+}
+
 // Called when attributes on the element are changed.
 void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
@@ -2799,27 +2803,29 @@ void Element::UpdateTransformState()
 	}
 }
 
-void Element::DirtyDpRatio()
+void Element::OnStyleSheetChangeRecursive()
+{
+	GetElementDecoration()->DirtyDecorators();
+
+	OnStyleSheetChange();
+
+	// Now dirty all of our descendants.
+	const int num_children = GetNumChildren(true);
+	for (int i = 0; i < num_children; ++i)
+		GetChild(i)->OnStyleSheetChangeRecursive();
+}
+
+void Element::OnDpRatioChangeRecursive()
 {
 	GetElementDecoration()->DirtyDecorators();
 	GetStyle()->DirtyPropertiesWithUnits(Property::DP);
 
 	OnDpRatioChange();
 
-	// Now dirty all of our descendant's properties that use the unit.
+	// Now dirty all of our descendants.
 	const int num_children = GetNumChildren(true);
 	for (int i = 0; i < num_children; ++i)
-		GetChild(i)->DirtyDpRatio();
-}
-
-void Element::DirtyDecoratorsRecursive()
-{
-	GetElementDecoration()->DirtyDecorators();
-
-	// Now dirty all of our descendant decorators as well.
-	const int num_children = GetNumChildren(true);
-	for (int i = 0; i < num_children; ++i)
-		GetChild(i)->DirtyDecoratorsRecursive();
+		GetChild(i)->OnDpRatioChangeRecursive();
 }
 
 } // namespace Rml

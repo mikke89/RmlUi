@@ -240,7 +240,7 @@ void ElementDocument::DirtyMediaQueries()
 		if (changed_style_sheet)
 		{
 			GetStyle()->DirtyDefinition();
-			DirtyDecoratorsRecursive();
+			OnStyleSheetChangeRecursive();
 		}
 	}
 }
