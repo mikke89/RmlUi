@@ -163,6 +163,47 @@ static const String document_media_query3_rml = R"(
 </rml>
 )";
 
+static const String document_media_query4_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+		}
+
+		div {
+			height: 48px;
+			width: 48px;
+			background: white;
+		}
+
+		@media (theme: big) {
+			div {
+				height: 96px;
+				width: 96px;
+			}
+		}
+
+		@media (theme: tiny) {
+			div {
+				height: 32px;
+				width: 32px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+<div/>
+</body>
+</rml>
+)";
+
 
 TEST_CASE("mediaquery.basic")
 {
@@ -278,6 +319,55 @@ TEST_CASE("mediaquery.composite")
 	CHECK(elems.size() == 1);
 
 	CHECK(elems[0]->GetBox() == Box(Vector2f(32.0f, 32.0f)));
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("mediaquery.theme")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query4_rml);
+	REQUIRE(document);
+	document->Show();
+
+	context->Update();
+	context->Render();
+
+	TestsShell::RenderLoop();
+
+	ElementList elems;
+	document->GetElementsByTagName(elems, "div");
+	CHECK(elems.size() == 1);
+
+	CHECK(elems[0]->GetBox().GetSize().x == 48.0f);
+
+	context->ActivateTheme("big", true);
+	context->Update();
+	context->Render();
+
+	CHECK(elems[0]->GetBox().GetSize().x == 96.0f);
+
+	context->ActivateTheme("big", false);
+	context->Update();
+	context->Render();
+
+	CHECK(elems[0]->GetBox().GetSize().x == 48.0f);
+
+	context->ActivateTheme("tiny", true);
+	context->Update();
+	context->Render();
+
+	CHECK(elems[0]->GetBox().GetSize().x == 32.0f);
+
+	context->ActivateTheme("big", true);
+	context->Update();
+	context->Render();
+
+	CHECK(elems[0]->GetBox().GetSize().x == 32.0f);
 
 	document->Close();
 

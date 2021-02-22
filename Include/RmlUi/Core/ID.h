@@ -183,6 +183,7 @@ enum class MediaQueryId : uint8_t
 	MinResolution,
 	MaxResolution,
 	Orientation,
+	Theme,
 
 	NumDefinedIds
 };

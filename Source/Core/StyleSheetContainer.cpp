@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
+#include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
@@ -51,9 +52,12 @@ bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line
 	return result;
 }
 
-bool StyleSheetContainer::UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_dimensions)
+bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 {
 	RMLUI_ZoneScoped;
+
+	const float dp_ratio = context->GetDensityIndependentPixelRatio();
+	const Vector2f vp_dimensions(context->GetDimensions());
 
 	Vector<int> new_active_media_block_indices;
 
@@ -121,6 +125,10 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_d
 				// Landscape (x > y) = 0 
 				// Portrait (x <= y) = 1
 				if ((vp_dimensions.x <= vp_dimensions.y) != property.second.Get<bool>())
+					all_match = false;
+				break;
+			case MediaQueryId::Theme:
+				if (!context->IsThemeActive(property.second.Get<String>()))
 					all_match = false;
 				break;
 				// Invalid properties

@@ -53,12 +53,11 @@ public:
 	/// Loads a style from a CSS definition.
 	bool LoadStyleSheetContainer(Stream* stream, int begin_line_number = 1);
 
-	/// Compiles a single style sheet by combining all contained style sheets whose media queries match the provided parameters.
-	/// @param[in] dp_ratio The current context ratio of 'dp' units to 'px' units
-	/// @param[in] vp_dimensions The current context viewport dimensions
+	/// Compiles a single style sheet by combining all contained style sheets whose media queries match the current state of the context.
+	/// @param[in] context The current context used for evaluating media query parameters against.
 	/// @returns True when the compiled style sheet was changed, otherwise false.
 	/// @warning This operation invalidates all references to the previously compiled style sheet.
-	bool UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_dimensions);
+	bool UpdateCompiledStyleSheet(const Context* context);
 
 	/// Returns the previously compiled style sheet. 
 	StyleSheet* GetCompiledStyleSheet();

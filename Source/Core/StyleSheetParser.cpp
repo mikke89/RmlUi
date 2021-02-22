@@ -194,6 +194,8 @@ public:
 		specification.RegisterProperty("max-resolution", "", false, false, CastId(MediaQueryId::MaxResolution)).AddParser("resolution");
 
 		specification.RegisterProperty("orientation", "", false, false, CastId(MediaQueryId::Orientation)).AddParser("keyword", "landscape, portrait");
+
+		specification.RegisterProperty("theme", "", false, false, CastId(MediaQueryId::Theme)).AddParser("string");
 	}
 
 	void SetTargetProperties(PropertyDictionary* _properties)

@@ -381,6 +381,30 @@ void Context::EnableMouseCursor(bool enable)
 	enable_cursor = enable;
 }
 
+void Context::ActivateTheme(const String& theme_name, bool activate)
+{
+	bool theme_changed = false;
+
+	if (activate)
+		theme_changed = active_themes.insert(theme_name).second;
+	else
+		theme_changed = (active_themes.erase(theme_name) > 0);
+
+	if (theme_changed)
+	{
+		for (int i = 0; i < root->GetNumChildren(true); ++i)
+		{
+			if (ElementDocument* document = root->GetChild(i)->GetOwnerDocument())
+				document->DirtyMediaQueries();
+		}
+	}
+}
+
+bool Context::IsThemeActive(const String& theme_name) const
+{
+	return active_themes.count(theme_name);
+}
+
 // Returns the first document found in the root with the given id.
 ElementDocument* Context::GetDocument(const String& id)
 {
