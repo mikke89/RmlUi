@@ -65,7 +65,7 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	data->SetTexture(texture);
 	const Vector2f texture_dimensions(texture->GetDimensions(render_interface));
 
-	const Vector2f surface_dimensions = element->GetBox().GetSize(Box::PADDING);
+	const Vector2f surface_dimensions = element->GetBox().GetSize(Box::PADDING).Round();
 
 	const float opacity = computed.opacity;
 	Colourb quad_colour = computed.image_color;
@@ -124,6 +124,10 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 		}
 	}
 
+	// Round the inner corners
+	surface_pos[1] = surface_pos[1].Round();
+	surface_pos[2] = surface_pos[2].Round();
+
 	/* Now we have all the coordinates we need. Expand the diagonal vertices to the 16 individual vertices. */
 
 	Vector<Vertex>& vertices = data->GetVertices();
@@ -170,7 +174,7 @@ void DecoratorNinePatch::ReleaseElementData(DecoratorDataHandle element_data) co
 void DecoratorNinePatch::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	Geometry* data = reinterpret_cast< Geometry* >(element_data);
-	data->Render(element->GetAbsoluteOffset(Box::PADDING).Round());
+	data->Render(element->GetAbsoluteOffset(Box::PADDING));
 }
 
 

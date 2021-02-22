@@ -229,9 +229,11 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< 
 	int* new_indices = &indices[0] + num_indices;
 
 	// Generate the vertices for the tiled surface.
-	Vector2f tile_position = (surface_origin + tile_offset).Round();
+	Vector2f tile_position = (surface_origin + tile_offset);
 
-	GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, final_tile_dimensions.Round(), quad_colour, scaled_texcoords[0], scaled_texcoords[1], index_offset);
+	Math::SnapToPixelGrid(tile_position, final_tile_dimensions);
+
+	GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, final_tile_dimensions, quad_colour, scaled_texcoords[0], scaled_texcoords[1], index_offset);
 }
 
 // Scales a tile dimensions by a fixed value along one axis.
