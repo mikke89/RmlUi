@@ -215,6 +215,8 @@ bool ElementImage::LoadTexture()
 	geometry_dirty = true;
 	dimensions_scale = 1.0f;
 
+	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(this);
+
 	// Check for a sprite first, this takes precedence.
 	const String sprite_name = GetAttribute< String >("sprite", "");
 	if (!sprite_name.empty())
@@ -231,7 +233,7 @@ bool ElementImage::LoadTexture()
 					rect = sprite->rectangle;
 					rect_source = RectSource::Sprite;
 					texture = sprite->sprite_sheet->texture;
-					dimensions_scale = sprite->sprite_sheet->image_inv_scale * ElementUtilities::GetDensityIndependentPixelRatio(this);
+					dimensions_scale = sprite->sprite_sheet->display_scale * dp_ratio;
 					valid_sprite = true;
 				}
 			}
@@ -264,7 +266,7 @@ bool ElementImage::LoadTexture()
 
 		texture.Set(source_name, source_url.GetPath());
 
-		dimensions_scale = ElementUtilities::GetDensityIndependentPixelRatio(this);
+		dimensions_scale = dp_ratio;
 	}
 
 	// Set the texture onto our geometry object.

@@ -42,7 +42,7 @@ public:
 	DecoratorNinePatch();
 	virtual ~DecoratorNinePatch();
 
-	bool Initialise(const Rectangle& rect_outer, const Rectangle& rect_inner, const Array<Property, 4>* _edges, const Texture& texture);
+	bool Initialise(const Rectangle& rect_outer, const Rectangle& rect_inner, const Array<Property, 4>* _edges, const Texture& texture, float display_scale);
 
 	DecoratorDataHandle GenerateElementData(Element* element) const override;
 	void ReleaseElementData(DecoratorDataHandle element_data) const override;
@@ -51,6 +51,7 @@ public:
 
 private:
 	Rectangle rect_outer, rect_inner;
+	float display_scale = 1;
 	UniquePtr<Array<Property,4>> edges;
 };
 

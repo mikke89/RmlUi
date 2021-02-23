@@ -114,6 +114,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			tile.position.y = sprite->rectangle.y;
 			tile.size.x = sprite->rectangle.width;
 			tile.size.y = sprite->rectangle.height;
+			tile.display_scale = sprite->sprite_sheet->display_scale;
 
 			texture = sprite->sprite_sheet->texture;
 		}

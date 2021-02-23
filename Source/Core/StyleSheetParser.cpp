@@ -641,8 +641,8 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 						}
 						else
 						{
-							const float image_inv_scale = 1.0f / image_resolution_factor;
-							current_block.stylesheet->spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, image_inv_scale, sprite_definitions);
+							const float display_scale = 1.0f / image_resolution_factor;
+							current_block.stylesheet->spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, display_scale, sprite_definitions);
 						}
 
 						spritesheet_property_parser->Clear();
