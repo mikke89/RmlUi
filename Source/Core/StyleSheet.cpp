@@ -30,6 +30,7 @@
 #include "ElementDefinition.h"
 #include "StyleSheetNode.h"
 #include "Utilities.h"
+#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
@@ -118,12 +119,50 @@ const Keyframes * StyleSheet::GetKeyframes(const String & name) const
 	return nullptr;
 }
 
-SharedPtr<Decorator> StyleSheet::GetDecorator(const String& name) const
+const Vector<SharedPtr<const Decorator>>& StyleSheet::InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* source) const
 {
-	auto it = decorator_map.find(name);
-	if (it == decorator_map.end())
-		return nullptr;
-	return it->second.decorator;
+	// Generate the cache key. Relative paths of textures may be affected by the source path, and ultimately
+	// which texture should be displayed. Thus, we need to include this path in the cache key.
+	String key;
+	key.reserve(declaration_list.value.size() + 1 + (source ? source->path.size() : 0));
+	key = declaration_list.value;
+	key += ';';
+	if (source)
+		key += source->path;
+
+	auto it_cache = decorator_cache.find(key);
+	if (it_cache != decorator_cache.end())
+		return it_cache->second;
+
+	Vector<SharedPtr<const Decorator>>& decorators = decorator_cache[key];
+
+	for (const DecoratorDeclaration& declaration : declaration_list.list)
+	{
+		if (declaration.instancer)
+		{
+			RMLUI_ZoneScopedN("InstanceDecorator");
+			
+			if (SharedPtr<Decorator> decorator = declaration.instancer->InstanceDecorator(declaration.type, declaration.properties, DecoratorInstancerInterface(*this, source)))
+				decorators.push_back(std::move(decorator));
+			else
+				Log::Message(Log::LT_WARNING, "Decorator '%s' in '%s' could not be instanced, declared at %s:%d", declaration.type.c_str(), declaration_list.value.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
+		}
+		else
+		{
+			// If we have no instancer, this means the type is the name of an @decorator rule.
+			SharedPtr<Decorator> decorator;
+			auto it_map = decorator_map.find(declaration.type);
+			if (it_map != decorator_map.end())
+				decorator = it_map->second.decorator;
+
+			if (decorator)
+				decorators.push_back(std::move(decorator));
+			else
+				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", declaration.type.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
+		}
+	}
+
+	return decorators;
 }
 
 const Sprite* StyleSheet::GetSprite(const String& name) const

@@ -50,17 +50,22 @@ public:
 	ElementDecoration(Element* element);
 	~ElementDecoration();
 
+	/// Instances decorators if necessary.
+	void InstanceDecorators();
+
 	/// Renders all appropriate decorators.
 	void RenderDecorators();
 
 	/// Mark decorators as dirty and force them to reset themselves.
 	void DirtyDecorators();
+	/// Mark the element data of decorators as dirty.
+	void DirtyDecoratorsData();
 
 private:
-	// Loads a single decorator and adds it to the list of loaded decorators for this element.
-	int LoadDecorator(SharedPtr<const Decorator> decorator);
 	// Releases existing decorators and loads all decorators required by the element's definition.
 	bool ReloadDecorators();
+	// Releases existing element data of decorators, and regenerates it.
+	void ReloadDecoratorsData();
 	// Releases all existing decorators and frees their data.
 	void ReleaseDecorators();
 
@@ -78,8 +83,10 @@ private:
 	// The list of every decorator used by this element in every class.
 	DecoratorHandleList decorators;
 
-	// If set, a full reload is necessary
-	bool decorators_dirty;
+	// If set, a full reload is necessary.
+	bool decorators_dirty = false;
+	// If set, element data of all decorators need to be regenerated.
+	bool decorators_data_dirty = false;
 };
 
 } // namespace Rml

@@ -36,15 +36,22 @@
 
 namespace Rml {
 
-ElementDecoration::ElementDecoration(Element* _element)
-{
-	element = _element;
-	decorators_dirty = false;
-}
+ElementDecoration::ElementDecoration(Element* _element) : element(_element)
+{}
 
 ElementDecoration::~ElementDecoration()
 {
 	ReleaseDecorators();
+}
+
+void ElementDecoration::InstanceDecorators()
+{
+	if (decorators_dirty)
+	{
+		decorators_dirty = false;
+		decorators_data_dirty = true;
+		ReloadDecorators();
+	}
 }
 
 // Releases existing decorators and loads all decorators required by the element's definition.
@@ -60,8 +67,8 @@ bool ElementDecoration::ReloadDecorators()
 	if (!property || property->unit != Property::DECORATOR)
 		return false;
 
-	DecoratorsPtr decorators = property->Get<DecoratorsPtr>();
-	if (!decorators)
+	DecoratorsPtr decorators_ptr = property->Get<DecoratorsPtr>();
+	if (!decorators_ptr)
 		return false;
 
 	const StyleSheet* style_sheet = element->GetStyleSheet();
@@ -80,27 +87,17 @@ bool ElementDecoration::ReloadDecorators()
 		}
 	}
 
-	for (const DecoratorDeclaration& decorator : decorators->list)
+	const auto& decorator_list = style_sheet->InstanceDecorators(*decorators_ptr, source);
+
+	for (const SharedPtr<const Decorator>& decorator : decorator_list)
 	{
-		if (decorator.instancer)
+		if (decorator)
 		{
-			RMLUI_ZoneScopedN("InstanceDecorator");
-			SharedPtr<const Decorator> decorator_instance = decorator.instancer->InstanceDecorator(decorator.type, decorator.properties, DecoratorInstancerInterface(*style_sheet, source));
+			DecoratorHandle decorator_handle;
+			decorator_handle.decorator_data = 0;
+			decorator_handle.decorator = decorator;
 
-			if (decorator_instance)
-				LoadDecorator(std::move(decorator_instance));
-			else
-				Log::Message(Log::LT_WARNING, "Decorator '%s' in '%s' could not be instanced, declared at %s:%d", decorator.type.c_str(), decorators->value.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
-		}
-		else
-		{
-			// If we have no instancer, this means the type is the name of an @decorator rule.
-			SharedPtr<const Decorator> decorator_instance = style_sheet->GetDecorator(decorator.type);
-
-			if (decorator_instance)
-				LoadDecorator(std::move(decorator_instance));
-			else
-				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", decorator.type.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
+			decorators.push_back(std::move(decorator_handle));
 		}
 	}
 
@@ -108,23 +105,29 @@ bool ElementDecoration::ReloadDecorators()
 }
 
 // Loads a single decorator and adds it to the list of loaded decorators for this element.
-int ElementDecoration::LoadDecorator(SharedPtr<const Decorator> decorator)
+void ElementDecoration::ReloadDecoratorsData()
 {
-	DecoratorHandle element_decorator;
-	element_decorator.decorator_data = decorator->GenerateElementData(element);
-	element_decorator.decorator = std::move(decorator);
+	if (decorators_data_dirty)
+	{
+		decorators_data_dirty = false;
 
-	decorators.push_back(element_decorator);
-	return (int) (decorators.size() - 1);
+		for (DecoratorHandle& decorator : decorators)
+		{
+			if (decorator.decorator_data)
+				decorator.decorator->ReleaseElementData(decorator.decorator_data);
+
+			decorator.decorator_data = decorator.decorator->GenerateElementData(element);
+		}
+	}
 }
 
 // Releases all existing decorators and frees their data.
 void ElementDecoration::ReleaseDecorators()
 {
-	for (size_t i = 0; i < decorators.size(); i++)
+	for (DecoratorHandle& decorator : decorators)
 	{
-		if (decorators[i].decorator_data)
-			decorators[i].decorator->ReleaseElementData(decorators[i].decorator_data);
+		if (decorator.decorator_data)
+			decorator.decorator->ReleaseElementData(decorator.decorator_data);
 	}
 
 	decorators.clear();
@@ -133,12 +136,8 @@ void ElementDecoration::ReleaseDecorators()
 
 void ElementDecoration::RenderDecorators()
 {
-	// @performance: Ignore dirty flag if e.g. pseudo classes do not affect the decorators
-	if (decorators_dirty)
-	{
-		decorators_dirty = false;
-		ReloadDecorators();
-	}
+	InstanceDecorators();
+	ReloadDecoratorsData();
 
 	// Render the decorators attached to this element in its current state.
 	// Render from back to front for correct render order.
@@ -152,6 +151,11 @@ void ElementDecoration::RenderDecorators()
 void ElementDecoration::DirtyDecorators()
 {
 	decorators_dirty = true;
+}
+
+void ElementDecoration::DirtyDecoratorsData()
+{
+	decorators_data_dirty = true;
 }
 
 } // namespace Rml

@@ -171,6 +171,8 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 		UpdateProperties(dp_ratio, vp_dimensions);
 	}
 
+	meta->decoration.InstanceDecorators();
+
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio, vp_dimensions);
 }
@@ -450,7 +452,7 @@ void Element::SetBox(const Box& box)
 
 		meta->background_border.DirtyBackground();
 		meta->background_border.DirtyBorder();
-		meta->decoration.DirtyDecorators();
+		meta->decoration.DirtyDecoratorsData();
 	}
 }
 
@@ -463,7 +465,7 @@ void Element::AddBox(const Box& box, Vector2f offset)
 
 	meta->background_border.DirtyBackground();
 	meta->background_border.DirtyBorder();
-	meta->decoration.DirtyDecorators();
+	meta->decoration.DirtyDecoratorsData();
 }
 
 // Returns one of the boxes describing the size of the element.
@@ -1825,12 +1827,17 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 	
 	// Dirty the decoration if it's changed.
+	if (changed_properties.Contains(PropertyId::Decorator))
+	{
+		meta->decoration.DirtyDecorators();
+	}
+
+	// Dirty the decoration data when its visual looks may have changed.
 	if (border_radius_changed ||
-		changed_properties.Contains(PropertyId::Decorator) ||
 		changed_properties.Contains(PropertyId::Opacity) ||
 		changed_properties.Contains(PropertyId::ImageColor))
 	{
-		meta->decoration.DirtyDecorators();
+		meta->decoration.DirtyDecoratorsData();
 	}
 
 	// Check for `perspective' and `perspective-origin' changes

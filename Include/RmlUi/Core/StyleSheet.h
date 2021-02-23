@@ -45,6 +45,7 @@ class SpritesheetList;
 class Stream;
 class StyleSheetContainer;
 class StyleSheetParser;
+struct PropertySource;
 struct Sprite;
 struct Spritesheet;
 
@@ -85,8 +86,8 @@ public:
 	/// Retrieve the hash key used to look-up applicable nodes in the node index.
 	static size_t NodeHash(const String& tag, const String& id);
 
-	/// Returns the @decorator of the given name, or null if it does not exist.
-	SharedPtr<Decorator> GetDecorator(const String& name) const;
+	/// Returns a list of instanced decorators from the declarations. The instances are cached for faster future retrieval.
+	const Vector<SharedPtr<const Decorator>>& InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* decorator_source) const;
 
 private:
 	StyleSheet();
@@ -116,6 +117,10 @@ private:
 	// Index of node sets to element definitions.
 	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
 	mutable ElementDefinitionCache node_cache;
+
+	// Cached decorator instances.
+	using DecoratorCache = UnorderedMap< String, Vector<SharedPtr<const Decorator>> >;
+	mutable DecoratorCache decorator_cache;
 
 	friend Rml::StyleSheetParser;
 	friend Rml::StyleSheetContainer;
