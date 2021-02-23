@@ -599,7 +599,7 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
 					}
 
-					String at_rule_identifier = pre_token_str.substr(0, pre_token_str.find(' '));
+					const String at_rule_identifier = StringUtilities::StripWhitespace(pre_token_str.substr(0, pre_token_str.find(' ')));
 					at_rule_name = StringUtilities::StripWhitespace(pre_token_str.substr(at_rule_identifier.size()));
 
 					if (at_rule_identifier == "keyframes")
@@ -623,13 +623,9 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 						const SpriteDefinitionList& sprite_definitions = spritesheet_property_parser->GetSpriteDefinitions();
 						const float image_resolution_factor = spritesheet_property_parser->GetImageResolutionFactor();
 						
-						if (at_rule_name.empty())
+						if (sprite_definitions.empty())
 						{
-							Log::Message(Log::LT_WARNING, "No name given for @spritesheet at %s:%d", stream_file_name.c_str(), line_number);
-						}
-						else if (sprite_definitions.empty())
-						{
-							Log::Message(Log::LT_WARNING, "Spritesheet with name '%s' has no sprites defined, ignored. At %s:%d", at_rule_name.c_str(), stream_file_name.c_str(), line_number);
+							Log::Message(Log::LT_WARNING, "Spritesheet '%s' has no sprites defined, ignored. At %s:%d", at_rule_name.c_str(), stream_file_name.c_str(), line_number);
 						}
 						else if (image_source.empty())
 						{

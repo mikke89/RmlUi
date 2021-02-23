@@ -58,13 +58,11 @@ struct Spritesheet {
 	int definition_line_number;
 	float display_scale; // The inverse of the 'resolution' spritesheet property.
 	Texture texture;
-	StringList sprite_names;
 
 	Spritesheet(const String& name, const String& image_source, const String& definition_source,
 		int definition_line_number, float display_scale, const Texture& texture);
 };
 
-using SpritesheetMap = SmallUnorderedMap<String, SharedPtr<const Spritesheet>>; // key: spritesheet name (as given in @spritesheet)
 using SpriteDefinitionList = Vector<Pair<String, Rectangle>>; // Sprite name and rectangle
 
 
@@ -87,10 +85,11 @@ public:
 	size_t NumSpriteSheets() const;
 	size_t NumSprites() const;
 
-	String ToString() const;
 
 private:
-	SpritesheetMap spritesheet_map;
+	using Spritesheets = Vector<SharedPtr<const Spritesheet>>;
+
+	Spritesheets spritesheets;
 	SpriteMap sprite_map;
 };
 
