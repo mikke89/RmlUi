@@ -96,6 +96,10 @@ public:
 	/// This will use the document path where the 'decorator' property was declared to locate relative files, if available.
 	Texture GetTexture(const String& filename) const;
 
+	/// Get the path from the texture from a filename set in the decorator property.
+	/// This will use the document path where the 'decorator' property was declared to locate relative files, if available.
+	const String& GetSourcePath(const String& filename) const;
+
 private:
 	const StyleSheet& style_sheet;
 	const PropertySource* property_source;

@@ -42,25 +42,6 @@ Decorator::~Decorator()
 {
 }
 
-// Attempts to load a texture into the list of textures in use by the decorator.
-int Decorator::LoadTexture(const String& texture_name, const String& rcss_path)
-{
-	if (texture_name == first_texture.GetSource())
-		return 0;
-
-	for (size_t i = 0; i < additional_textures.size(); i++)
-	{
-		if (texture_name == additional_textures[i].GetSource())
-			return (int)i + 1;
-	}
-
-	Texture texture;
-	texture.Set(texture_name, rcss_path);
-
-	additional_textures.push_back(std::move(texture));
-	return (int)additional_textures.size();
-}
-
 int Decorator::AddTexture(const Texture& texture)
 {
 	if (!texture)

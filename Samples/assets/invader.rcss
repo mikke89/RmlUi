@@ -48,7 +48,7 @@
 	
 	text-l: 162px 192px 14px 31px;
 	text-c: 176px 192px 1px 31px;
-	textarea: 162px 192px 145px 31px;
+	textarea: 162px 193px 145px 31px;
 	textarea-inner: 173px 206px 127px 10px;
 	
 	selectbox-tl: 281px 275px 11px 9px;
