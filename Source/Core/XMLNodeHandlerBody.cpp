@@ -56,7 +56,7 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 		for (auto& pair : attributes)
 		{
 			Variant* attribute = document->GetAttribute(pair.first);
-			if (attribute && *attribute != pair.second)
+			if (attribute && *attribute != pair.second && pair.first != "template")
 			{
 				Log::Message(Log::LT_WARNING, "Overriding attribute '%s' in element %s during template injection.", pair.first.c_str(), element->GetAddress().c_str());
 			}
