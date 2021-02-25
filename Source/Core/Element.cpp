@@ -257,6 +257,9 @@ ElementPtr Element::Clone() const
 
 	if (clone != nullptr)
 	{
+		// Set the attributes manually in case the instancer does not set them.
+		clone->SetAttributes(attributes);
+
 		String inner_rml;
 		GetInnerRML(inner_rml);
 
