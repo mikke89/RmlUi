@@ -38,8 +38,8 @@ Inventory::Inventory(const Rml::String& title, const Rml::Vector2f& position, Rm
 	{
 		using Rml::PropertyId;
 		document->GetElementById("title")->SetInnerRML(title);
-		document->SetProperty(PropertyId::Left, Rml::Property(position.x, Rml::Property::PX));
-		document->SetProperty(PropertyId::Top, Rml::Property(position.y, Rml::Property::PX));
+		document->SetProperty(PropertyId::Left, Rml::Property(position.x, Rml::Property::DP));
+		document->SetProperty(PropertyId::Top, Rml::Property(position.y, Rml::Property::DP));
 		document->Show();
 	}
 
