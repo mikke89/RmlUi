@@ -30,7 +30,6 @@
 #define RMLUI_CORE_STYLESHEETCONTAINER_H
 
 #include "Traits.h"
-#include "PropertyDictionary.h"
 #include "StyleSheetTypes.h"
 
 namespace Rml {
@@ -70,11 +69,8 @@ public:
 	/// Merge another style sheet container into this.
 	void MergeStyleSheetContainer(const StyleSheetContainer& container);
 
-	/// Optimizes properties of the underlying style sheet(s) for faster retrieval.
-	void OptimizeNodeProperties();
-
 private:
-	Vector<MediaBlock> media_blocks;
+	MediaBlockList media_blocks;
 
 	StyleSheet* compiled_style_sheet = nullptr;
 	UniquePtr<StyleSheet> combined_compiled_style_sheet;

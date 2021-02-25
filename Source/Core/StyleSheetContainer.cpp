@@ -149,8 +149,10 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_d
 			MediaBlock& media_block = media_blocks[index];
 			if (!first_sheet)
 				first_sheet = media_block.stylesheet.get();
+			else if (!new_sheet)
+				new_sheet = first_sheet->CombineStyleSheet(*media_block.stylesheet);
 			else
-				new_sheet = (new_sheet ? new_sheet.get() : first_sheet)->CombineStyleSheet(*media_block.stylesheet);
+				new_sheet->MergeStyleSheet(*media_block.stylesheet);
 		}
 
 		if (!first_sheet)
@@ -163,7 +165,6 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_d
 		combined_compiled_style_sheet = std::move(new_sheet);
 
 		compiled_style_sheet->BuildNodeIndex();
-		compiled_style_sheet->OptimizeNodeProperties();
 	}
 
 	active_media_block_indices = std::move(new_active_media_block_indices);
@@ -184,7 +185,7 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
 
 	for (const MediaBlock& media_block : media_blocks)
 	{
-		new_sheet->media_blocks.emplace_back(media_block.properties, media_block.stylesheet->Clone());
+		new_sheet->media_blocks.emplace_back(media_block.properties, media_block.stylesheet);
 	}
 
 	new_sheet->MergeStyleSheetContainer(container);
@@ -199,16 +200,33 @@ void StyleSheetContainer::MergeStyleSheetContainer(const StyleSheetContainer& ot
 	// Style sheet container must not be merged after it's been compiled. This will invalidate references to the compiled style sheet.
 	RMLUI_ASSERT(!compiled_style_sheet);
 
-	for (const MediaBlock& block_other : other.media_blocks)
-	{
-		media_blocks.emplace_back(block_other.properties, block_other.stylesheet->Clone());
-	}
-}
+	auto it_other_begin = other.media_blocks.begin();
 
-void StyleSheetContainer::OptimizeNodeProperties()
-{
-	for (MediaBlock& block : media_blocks)
-		block.stylesheet->OptimizeNodeProperties();
+#if 0
+	// If the last block here has the same media requirements as the first block in other, we can safely merge them
+	// while retaining correct specificity of all properties. This is essentially an optimization to avoid more
+	// style sheet merging later on.
+	if (!media_blocks.empty() && !other.media_blocks.empty())
+	{
+		MediaBlock& block_local = media_blocks.back();
+		const MediaBlock& block_other = other.media_blocks.front();
+		if (block_local.properties.GetProperties() == block_other.properties.GetProperties())
+		{
+			// Now we can safely merge the two style sheets.
+			block_local.stylesheet = block_local.stylesheet->CombineStyleSheet(*block_other.stylesheet);
+
+			// And we need to skip the first media block in the 'other' style sheet, since we merged it just now.
+			++it_other_begin;
+		}
+	}
+#endif
+
+	// Add all the other blocks into ours.
+	for (auto it = it_other_begin; it != other.media_blocks.end(); ++it)
+	{
+		const MediaBlock& block_other = *it;
+		media_blocks.emplace_back(block_other.properties, block_other.stylesheet);
+	}
 }
 
 } // namespace Rml

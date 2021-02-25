@@ -29,20 +29,17 @@
 #ifndef RMLUI_CORE_STYLESHEETPARSER_H
 #define RMLUI_CORE_STYLESHEETPARSER_H
 
-#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 
 namespace Rml {
 
 class PropertyDictionary;
 class Stream;
-class StyleSheetContainer;
-struct MediaBlock;
 class StyleSheetNode;
 class AbstractPropertyParser;
 struct PropertySource;
 using StyleSheetNodeListRaw = Vector<StyleSheetNode*>;
-using MediaBlockList = Vector<MediaBlock>;
 
 /**
 	Helper class for parsing a style sheet into its memory representation.

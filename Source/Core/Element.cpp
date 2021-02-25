@@ -2805,4 +2805,14 @@ void Element::DirtyDpRatio()
 		GetChild(i)->DirtyDpRatio();
 }
 
+void Element::DirtyDecoratorsRecursive()
+{
+	GetElementDecoration()->DirtyDecorators();
+
+	// Now dirty all of our descendant decorators as well.
+	const int num_children = GetNumChildren(true);
+	for (int i = 0; i < num_children; ++i)
+		GetChild(i)->DirtyDecoratorsRecursive();
+}
+
 } // namespace Rml

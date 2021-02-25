@@ -238,7 +238,10 @@ void ElementDocument::DirtyMediaQueries()
 		const bool changed_style_sheet = style_sheet_container->UpdateCompiledStyleSheet(context->GetDensityIndependentPixelRatio(), Vector2f(context->GetDimensions()));
 
 		if (changed_style_sheet)
+		{
 			GetStyle()->DirtyDefinition();
+			DirtyDecoratorsRecursive();
+		}
 	}
 }
 

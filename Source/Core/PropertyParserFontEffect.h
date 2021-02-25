@@ -26,54 +26,26 @@
  *
  */
 
-#ifndef RMLUI_CORE_STYLESHEETTYPES_H
-#define RMLUI_CORE_STYLESHEETTYPES_H
+#ifndef RMLUI_CORE_PROPERTYPARSERFONTEFFECT_H
+#define RMLUI_CORE_PROPERTYPARSERFONTEFFECT_H
 
-#include "Types.h"
-#include "PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/PropertyParser.h"
 
 namespace Rml {
 
-class Decorator;
-class DecoratorInstancer;
-class StyleSheet;
+/**
+	A property parser for the font-effect property.
+ */
 
-struct KeyframeBlock {
-	KeyframeBlock(float normalized_time) : normalized_time(normalized_time) {}
-	float normalized_time;  // [0, 1]
-	PropertyDictionary properties;
-};
-struct Keyframes {
-	Vector<PropertyId> property_ids;
-	Vector<KeyframeBlock> blocks;
-};
-using KeyframesMap = UnorderedMap<String, Keyframes>;
+class PropertyParserFontEffect : public PropertyParser
+{
+public:
+	PropertyParserFontEffect();
+	virtual ~PropertyParserFontEffect();
 
-struct DecoratorSpecification {
-	String decorator_type;
-	PropertyDictionary properties;
-	SharedPtr<Decorator> decorator;
+	/// Called to parse a font-effect declaration.
+	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 };
-using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
-
-struct DecoratorDeclaration {
-	String type;
-	DecoratorInstancer* instancer;
-	PropertyDictionary properties;
-};
-struct DecoratorDeclarationList {
-	Vector<DecoratorDeclaration> list;
-	String value;
-};
-
-struct MediaBlock {
-	MediaBlock() {}
-	MediaBlock(PropertyDictionary _properties, SharedPtr<StyleSheet> _stylesheet) : properties(std::move(_properties)), stylesheet(std::move(_stylesheet)) {}
-
-	PropertyDictionary properties; // Media query properties
-	SharedPtr<StyleSheet> stylesheet;
-};
-using MediaBlockList = Vector<MediaBlock>;
 
 } // namespace Rml
 #endif

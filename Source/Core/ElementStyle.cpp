@@ -641,7 +641,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 		values.pointer_events = parent_values->pointer_events;
 		
-		values.font_effect = parent_values->font_effect;
+		values.has_font_effect = parent_values->has_font_effect;
 	}
 
 
@@ -901,53 +901,12 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::Decorator:
-			if (p->unit == Property::DECORATOR)
-			{
-				values.decorator = p->Get<DecoratorsPtr>();
-			}
-			else if (p->unit == Property::STRING)
-			{
-				// Usually the decorator is converted from string after the style sheet is set on the ElementDocument. However, if the
-				// user sets a decorator on the element's style, we may still get a string here which must be parsed and instanced.
-				if (const StyleSheet* style_sheet = element->GetStyleSheet())
-				{
-					// The property source will not be set if the property is defined in inline style. However, we may need it in order to locate
-					// resource files (typically images). In this case, generate one from the document's source URL.
-					SharedPtr<const PropertySource> document_source;
-
-					if (!p->source)
-					{
-						if (ElementDocument* document = element->GetOwnerDocument())
-							document_source = MakeShared<PropertySource>(document->GetSourceURL(), 0, String());
-					}
-
-					const String& value = p->value.GetReference<String>();
-					values.decorator = style_sheet->InstanceDecoratorsFromString(value, p->source ? p->source : document_source);
-				}
-				else
-					values.decorator.reset();
-			}
-			else
-				values.decorator.reset();
+			values.has_decorator = (p->unit == Property::DECORATOR);
 			break;
 		case PropertyId::FontEffect:
-			if (p->unit == Property::FONTEFFECT)
-			{
-				values.font_effect = p->Get<FontEffectsPtr>();
-			}
-			else if (p->unit == Property::STRING)
-			{
-				if (const StyleSheet* style_sheet = element->GetStyleSheet())
-				{
-					const String& value = p->value.GetReference<String>();
-					values.font_effect = style_sheet->InstanceFontEffectsFromString(value, p->source);
-				}
-				else
-					values.font_effect.reset();
-			}
-			else
-				values.font_effect.reset();
+			values.has_font_effect = (p->unit == Property::FONTEFFECT);
 			break;
+
 		// Unhandled properties. Must be manually retrieved with 'GetProperty()'.
 		case PropertyId::FillImage:
 		case PropertyId::CaretColor:

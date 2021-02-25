@@ -27,10 +27,12 @@
  */
 
 #include "ElementDecoration.h"
-#include "ElementDefinition.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 
 namespace Rml {
 
@@ -51,15 +53,54 @@ bool ElementDecoration::ReloadDecorators()
 	RMLUI_ZoneScopedC(0xB22222);
 	ReleaseDecorators();
 
-	const Decorators* decorators = element->GetComputedValues().decorator.get();
-	if (!decorators)
+	if (!element->GetComputedValues().has_decorator)
 		return true;
 
-	for (const auto& decorator : decorators->list)
+	const Property* property = element->GetLocalProperty(PropertyId::Decorator);
+	if (!property || property->unit != Property::DECORATOR)
+		return false;
+
+	DecoratorsPtr decorators = property->Get<DecoratorsPtr>();
+	if (!decorators)
+		return false;
+
+	const StyleSheet* style_sheet = element->GetStyleSheet();
+	if (!style_sheet)
+		return false;
+
+	PropertySource document_source("", 0, "");
+	const PropertySource* source = property->source.get();
+
+	if (!source)
 	{
-		if (decorator)
+		if (ElementDocument* document = element->GetOwnerDocument())
 		{
-			LoadDecorator(decorator);
+			document_source.path = document->GetSourceURL();
+			source = &document_source;
+		}
+	}
+
+	for (const DecoratorDeclaration& decorator : decorators->list)
+	{
+		if (decorator.instancer)
+		{
+			RMLUI_ZoneScopedN("InstanceDecorator");
+			SharedPtr<const Decorator> decorator_instance = decorator.instancer->InstanceDecorator(decorator.type, decorator.properties, DecoratorInstancerInterface(*style_sheet, source));
+
+			if (decorator_instance)
+				LoadDecorator(std::move(decorator_instance));
+			else
+				Log::Message(Log::LT_WARNING, "Decorator '%s' in '%s' could not be instanced, declared at %s:%d", decorator.type.c_str(), decorators->value.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
+		}
+		else
+		{
+			// If we have no instancer, this means the type is the name of an @decorator rule.
+			SharedPtr<const Decorator> decorator_instance = style_sheet->GetDecorator(decorator.type);
+
+			if (decorator_instance)
+				LoadDecorator(std::move(decorator_instance));
+			else
+				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", decorator.type.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
 		}
 	}
 

@@ -193,11 +193,7 @@ UniquePtr<const StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(
 	if (stream->Open(sheet))
 	{
 		new_style_sheet = MakeUnique<StyleSheetContainer>();
-		if (new_style_sheet->LoadStyleSheetContainer(stream.get()))
-		{
-			new_style_sheet->OptimizeNodeProperties();
-		}
-		else
+		if (!new_style_sheet->LoadStyleSheetContainer(stream.get()))
 		{
 			new_style_sheet.reset();
 		}

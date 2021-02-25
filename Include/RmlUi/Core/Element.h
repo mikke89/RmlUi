@@ -646,6 +646,8 @@ protected:
 
 	void Release() override;
 
+	void DirtyDecoratorsRecursive();
+
 private:
 	void SetParent(Element* parent);
 	
