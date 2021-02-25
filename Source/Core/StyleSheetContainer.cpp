@@ -47,8 +47,8 @@ StyleSheetContainer::~StyleSheetContainer()
 bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line_number)
 {
 	StyleSheetParser parser;
-	int rule_count = parser.Parse(media_blocks, stream, begin_line_number);
-	return rule_count >= 0;
+	bool result = parser.Parse(media_blocks, stream, begin_line_number);
+	return result;
 }
 
 bool StyleSheetContainer::UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_dimensions)
@@ -192,30 +192,16 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
 	return new_sheet;
 }
 
-void StyleSheetContainer::MergeStyleSheetContainer(const StyleSheetContainer& container)
+void StyleSheetContainer::MergeStyleSheetContainer(const StyleSheetContainer& other)
 {
 	RMLUI_ZoneScoped;
 
 	// Style sheet container must not be merged after it's been compiled. This will invalidate references to the compiled style sheet.
 	RMLUI_ASSERT(!compiled_style_sheet);
 
-	for (const MediaBlock& block_other : container.media_blocks)
+	for (const MediaBlock& block_other : other.media_blocks)
 	{
-		bool block_found = false;
-		for (MediaBlock& block_local : media_blocks)
-		{
-			if (block_other.properties.GetProperties() == block_local.properties.GetProperties())
-			{
-				block_local.stylesheet = block_local.stylesheet->CombineStyleSheet(*block_other.stylesheet);
-				block_found = true;
-				break;
-			}
-		}
-
-		if (!block_found)
-		{
-			media_blocks.emplace_back(block_other.properties, block_other.stylesheet->Clone());
-		}
+		media_blocks.emplace_back(block_other.properties, block_other.stylesheet->Clone());
 	}
 }
 
