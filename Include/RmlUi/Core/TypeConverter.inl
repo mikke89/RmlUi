@@ -119,6 +119,13 @@ BASIC_CONVERTER(int, uint64_t);
 BASIC_CONVERTER(int, float);
 BASIC_CONVERTER(int, double);
 
+BASIC_CONVERTER_BOOL(unsigned int, bool);
+BASIC_CONVERTER(unsigned int, int);
+BASIC_CONVERTER(unsigned int, int64_t);
+BASIC_CONVERTER(unsigned int, uint64_t);
+BASIC_CONVERTER(unsigned int, float);
+BASIC_CONVERTER(unsigned int, double);
+
 BASIC_CONVERTER_BOOL(int64_t, bool);
 BASIC_CONVERTER(int64_t, int);
 BASIC_CONVERTER(int64_t, float);
