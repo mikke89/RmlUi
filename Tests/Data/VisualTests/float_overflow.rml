@@ -10,20 +10,20 @@
 			color: #444;
 		}
 		#content {
-			width: 200px;
+			width: 200dp;
 			margin: 0 auto;
 		}
 		.box {
 			background-color: #cce;
-			border: 5px #77b;
+			border: 5dp #77b;
 		}
 		.float {
 			float: left;
 			background-color: #ddda;
-			border: 1px #333;
-			width: 200px;
-			height: 130px;
-			margin: 5px;
+			border: 1dp #333;
+			width: 200dp;
+			height: 130dp;
+			margin: 5dp;
 		}
 		
 	</style>

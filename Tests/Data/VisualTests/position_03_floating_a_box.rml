@@ -7,14 +7,14 @@
 	<meta name="description" content='The "inner" text lays out in an independent box on the right, causing the remaining "body" and "outer" text to flow around it.' />
 	<style>
 		body {
-			font-size: 20px;
+			font-size: 20dp;
 			display: block;
 			background: #ddd;
 			color: #444;
 			line-height: 200%;
 		}
 		#outer { color: red }
-		#inner { float: right; width: 130px; color: blue }
+		#inner { float: right; width: 130dp; color: blue }
 	</style>
 </head>
 <body>

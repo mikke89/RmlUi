@@ -12,10 +12,10 @@
 		body > div {
 			clear: both;
 			position: relative;
-			height: 50px;
+			height: 50dp;
 		}
 		body > div > * {
-			border: 2px #888;
+			border: 2dp #888;
 			color: black;
 			background: #ccf;
 		}

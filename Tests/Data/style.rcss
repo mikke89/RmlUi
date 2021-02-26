@@ -7,20 +7,20 @@ pre { white-space: pre; }
 hr {
 	display: block;
 	clear: both;
-	padding: 1px;
+	padding: 1dp;
 	background-color: #999;
-	margin: 5px 0;
+	margin: 5dp 0;
 }
 
 body {
 	font-family: LatoLatin;
 	font-weight: normal;
 	font-style: normal;
-	font-size: 14px;
-	padding: 8px;
-	width: 484px;
-	top: 0px;
-	bottom: 0px;
+	font-size: 14dp;
+	padding: 8dp;
+	width: 484dp;
+	top: 0;
+	bottom: 0;
 	color: black;
 	background: #ccc;
 	overflow: auto;
@@ -59,12 +59,12 @@ scrollbarhorizontal slidertrack
 }
 scrollbarvertical slidertrack
 {
-	border-left-width: 1px;
+	border-left-width: 1dp;
 }
 scrollbarhorizontal slidertrack
 {
 	height: 15dp;
-	border-top-width: 1px;
+	border-top-width: 1dp;
 }
 scrollbarvertical sliderbar,
 scrollbarhorizontal sliderbar
@@ -74,13 +74,13 @@ scrollbarhorizontal sliderbar
 }
 scrollbarvertical sliderbar
 {
-	border-width: 1px 0px;
+	border-width: 1dp 0;
 	margin-left: 1dp;
 }
 scrollbarhorizontal sliderbar
 {
 	height: 15dp;
-	border-width: 0px 1px;
+	border-width: 0 1dp;
 	margin-top: 1dp;
 }
 scrollbarcorner
@@ -113,23 +113,23 @@ thead, tbody, tfoot {
 handle {
 	position: fixed;
 	background: #555a;
-	width: 16px;
-	height: 16px;
-	bottom: 0px;
-	right: 0px;
+	width: 16dp;
+	height: 16dp;
+	bottom: 0;
+	right: 0;
 	clip: 1;
 	cursor: resize;
 }
 
 input.radio, input.checkbox {
-	width: 10px;
-	height: 10px;
-	border: 1px #666;
+	width: 10dp;
+	height: 10dp;
+	border: 1dp #666;
 	background: #fff;
 	tab-index: auto;
 }
 input.radio {
-	border-radius: 5px;
+	border-radius: 5dp;
 }
 input.radio:hover, input.checkbox:hover {
 	background: #ff3;
@@ -143,8 +143,8 @@ input.radio:checked, input.checkbox:checked {
 input.text {
 	background-color: #fff;
 	color: #555;
-	border: 2px #999;
-	padding: 5px;
+	border: 2dp #999;
+	padding: 5dp;
 	tab-index: auto;
 	cursor: text;
 	box-sizing: border-box;

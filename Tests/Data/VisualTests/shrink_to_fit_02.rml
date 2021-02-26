@@ -10,12 +10,12 @@
 			color: #444;
 		}
 		hr {
-			margin-top: 15px;
-			margin-bottom: 15px;
+			margin-top: 15dp;
+			margin-bottom: 15dp;
 			background-color: #ccc;
 		}
 		div {
-			border: 2px #444;
+			border: 2dp #444;
 			background: #ccf;
 		}
 		body > div {
@@ -24,19 +24,19 @@
 			/*overflow: auto;*/
 		}
 		body > div > div {
-			width: 150px;
-			height: 30px;
+			width: 150dp;
+			height: 30dp;
 			background: #cfc;
 		}
 		.absolute {
 			position: absolute;
-			top: 20px;
-			left: 50px;
+			top: 20dp;
+			left: 50dp;
 		}
 		.relative {
 			position: relative;
-			top: 20px;
-			left: 50px;
+			top: 20dp;
+			left: 50dp;
 		}
 		.float-left {
 			float: left;
@@ -59,7 +59,7 @@
   <div class="absolute">Absolute</div>
   Text after
 </div>
-<hr style="margin-top: 55px;"/>
+<hr style="margin-top: 55dp;"/>
 <div>
   Some text
   <div class="relative">Relative</div>

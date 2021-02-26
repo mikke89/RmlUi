@@ -7,12 +7,12 @@
 		font-family: rmlui-debugger-font;
 		font-weight: normal;
 		font-style: normal;
-		font-size: 16px;
+		font-size: 16dp;
 		width: auto;
 		color: #444;
 		position: absolute;
-		top: 0px; right: 0px;
-		bottom: 0px; left: 0px;
+		top: 0; right: 0;
+		bottom: 0; left: 0;
 		background-color: #222222f9;
 		color: #ddd;
 		z-index: 200;
@@ -21,7 +21,7 @@
 		display: block;
 		white-space: pre-wrap;
 		font-size: 0.9em;
-		padding: 20px 30px;
+		padding: 20dp 30dp;
 	}
 </style>
 </head>

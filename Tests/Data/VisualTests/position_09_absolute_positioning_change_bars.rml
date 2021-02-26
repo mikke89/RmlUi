@@ -7,7 +7,7 @@
 	<meta name="description" content='The two red hyphens, indicating a change, sit in the left margin of the page on the line containing the word "THIS", regardless of what line that ends up being.' />
 	<style>
 		body {
-			font-size: 20px;
+			font-size: 20dp;
 			display: block;
 			background: #ddd;
 			color: #444;
@@ -16,7 +16,7 @@
 	</style>
 </head>
 <body>
-	<p style="position: relative; margin-right: 10px; left: 10px;">
+	<p style="position: relative; margin-right: 10dp; left: 10dp;">
 	  I used two red hyphens to serve as a change bar. They
 	  will "float" to the left of the line containing THIS
 	  <span style="position: absolute; top: auto; left: -1em; color: red;">--</span>

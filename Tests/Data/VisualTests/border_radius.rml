@@ -10,27 +10,27 @@
 			color: #444;
 		}
 		div {
-			margin: 20px auto;
-			width: 200px;
-			height: 120px;
+			margin: 20dp auto;
+			width: 200dp;
+			height: 120dp;
 			background: #c3c3c3;
 			border-color: #55f #f57 #55f #afa;
 		}
 		.thin {
-			border-width: 10px 5px 25px 20px;
-			border-radius: 80px 30px;
+			border-width: 10dp 5dp 25dp 20dp;
+			border-radius: 80dp 30dp;
 			decorator: gradient( horizontal #ff8400 #ffd34f );
 		}
 		.thick {
-			border-width: 40px 20px;
-			border-radius: 30px;
+			border-width: 40dp 20dp;
+			border-radius: 30dp;
 		}
 		.arc {
-			width: 80px;
-			height: 80px;
-			border-width: 40px;
+			width: 80dp;
+			height: 80dp;
+			border-width: 40dp;
 			border-color: #ff8400 #ff8400 #ffd34f #ffd34f;
-			border-radius: 0 150px;
+			border-radius: 0 150dp;
 		}
 		.split {
 			line-height: 2.5;
@@ -38,8 +38,8 @@
 		.split span {
 			background: #c3c3c3;
 			border-color: #55f #f57 #55f #afa;
-			border-width: 5px;
-			border-radius: 8px;
+			border-width: 5dp;
+			border-radius: 8dp;
 		}
 	</style>
 </head>

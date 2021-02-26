@@ -11,21 +11,21 @@
 		}
 		div.outer {
 			overflow: auto;
-			width: 200px;
-			height: 200px;
+			width: 200dp;
+			height: 200dp;
 		}
 		div.overflow {
-			border: 1px black;
+			border: 1dp black;
 			overflow: auto;
-			width: 150px;
-			height: 150px;
+			width: 150dp;
+			height: 150dp;
 		}
 		div.wide {
-			width: 300px;
-			height: 20px;
+			width: 300dp;
+			height: 20dp;
 			text-align: center;
-			border: 1px #0a0;
-			margin: 5px;
+			border: 1dp #0a0;
+			margin: 5dp;
 			background-color: #eee;
 		}
 	</style>

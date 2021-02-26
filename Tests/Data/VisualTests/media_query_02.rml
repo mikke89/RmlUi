@@ -7,15 +7,15 @@
 		body {
 			background: #ddd;
 			color: #444;
-			right: 440px;
+			right: 440dp;
 			width: -1px;
-			left: 0px;
+			left: 0;
 		}
 		icon {
 			display: block;
 			decorator: image(icon scale-none);
-			width: 64px;
-			height: 64px;
+			width: 64dp;
+			height: 64dp;
 		}
 
 		@spritesheet
@@ -44,7 +44,7 @@
 			@spritesheet
 			{
 				src: /assets/high_scores_alien_1.tga;
-				icon: 0px 0px 64px 64px;
+				icon: 0 0 64px 64px;
 				resolution: 2x;
 			}
 		}

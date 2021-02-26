@@ -7,13 +7,13 @@
 	<meta name="description" content='Identical to the previous example, save that there is now "sibling" text flowing with the "body" and "outer" text.' />
 	<style>
 		body {
-			font-size: 20px;
+			font-size: 20dp;
 			display: block;
 			background: #ddd;
 			color: #444;
 			line-height: 200%;
 		}
-		#inner { float: right; width: 130px; color: blue }
+		#inner { float: right; width: 130dp; color: blue }
 		#sibling { color: red }
 	</style>
 </head>

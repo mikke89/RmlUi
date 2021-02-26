@@ -7,49 +7,49 @@
 	<style>
 		table {
 			margin: 2em 0;
-			border: 2px #666;
-			gap: 5px;
+			border: 2dp #666;
+			gap: 5dp;
 			text-align: center;
 		}
 		td {
 			background: #bbb;
 			vertical-align: middle;
-			padding: 5px;
+			padding: 5dp;
 		}
 		.color {
 			background: #333;
-			padding: 5px;
-			width: 0px;
+			padding: 5dp;
+			width: 0;
 		}
 		.color colgroup {
-			padding: 0 5px;
-			margin: 0 5px;
+			padding: 0 5dp;
+			margin: 0 5dp;
 			background: #a33;
-			border: 5px #f33;
+			border: 5dp #f33;
 		}
 		.color col {
-			width: 80px;
-			padding: 0 5px;
-			margin: 0 5px;
+			width: 80dp;
+			padding: 0 5dp;
+			margin: 0 5dp;
 			background: #33b;
-			border: 5px #66f;
+			border: 5dp #66f;
 		}
 		.color tr { 
 			height: auto;
 		}
 		.color td {
-			margin: 0 5px;
-			padding: 0 5px;
+			margin: 0 5dp;
+			padding: 0 5dp;
 			background: #bbb;
-			border: 5px #ddd;
-			height: 30px;
+			border: 5dp #ddd;
+			height: 30dp;
 		}
 		.color-ref {
-			border: 2px #666;
+			border: 2dp #666;
 			background: #333;
-			margin: 20px 0;
-			height: 40px;
-			width: 305px; /* 2*col width + 8*td margin + 4*col margin + 4*colgroup padding + 4*colgroup border +
+			margin: 20dp 0;
+			height: 40dp;
+			width: 305dp; /* 2*col width + 8*td margin + 4*col margin + 4*colgroup padding + 4*colgroup border +
 			                 4*colgroup margin + 3*column-gap + 2*table padding */
 		}
 	</style>
@@ -59,17 +59,17 @@
 <p>The following tables should be the same size.</p>
 <table>
 	<tr>
-		<td style="width: 50px">A</td>
+		<td style="width: 50dp">A</td>
 		<td>B</td>
 		<td>C</td>
 		<td>D</td>
-		<td style="width: 50px">E</td>
+		<td style="width: 50dp">E</td>
 	</tr>
 </table>
 <table>
-	<col style="width: 50px"/>
+	<col style="width: 50dp"/>
 	<colgroup span="3"/>
-	<col style="width: 50px"/>
+	<col style="width: 50dp"/>
 	<tr>
 		<td>A</td>
 		<td>B</td>
@@ -80,11 +80,11 @@
 </table>
 <table>
 	<colgroup>
-		<col style="width: 50px"/>
+		<col style="width: 50dp"/>
 	</colgroup>
 	<col span="3"/>
 	<colgroup>
-		<col style="width: 50px"/>
+		<col style="width: 50dp"/>
 	</colgroup>
 	<tr>
 		<td>A</td>
@@ -96,11 +96,11 @@
 </table>
 <table>
 	<colgroup>
-		<col style="min-width: 50px; max-width: 50px"/>
+		<col style="min-width: 50dp; max-width: 50dp"/>
 		<col/>
 		<col/>
 		<col/>
-		<col style="width: 50px"/>
+		<col style="width: 50dp"/>
 	</colgroup>
 	<tr>
 		<td>A</td>

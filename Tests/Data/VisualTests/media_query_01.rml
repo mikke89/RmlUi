@@ -14,15 +14,15 @@
 		body {
 			background: #ddd;
 			color: #444;
-			right: 440px;
+			right: 440dp;
 			width: -1px;
-			left: 0px;
+			left: 0;
 		}
 		item {
 			background: #fff;
 			font-size: 1.2em;
 			padding: 1em;
-			border: 3px #ccc;
+			border: 3dp #ccc;
 			cursor: pointer;
 		}
 		item:hover {
@@ -32,7 +32,7 @@
 			background: #e0e0e0;
 		}
 		
-		@media (min-width: 1000px)
+		@media (min-width: 1000dp)
 		{
 			menu {
 				display: table;
@@ -47,17 +47,17 @@
 				border-right-width: 0;
 			}
 			item:last-child {
-				border-right-width: 3px;
+				border-right-width: 3dp;
 			}
 		}
 
-		@media (max-width: 999px)
+		@media (max-width: 999dp)
 		{
 			menu {
 				display: block;
 				width: 100%;
-				min-width: 100px;
-				height: 37px;
+				min-width: 100dp;
+				height: 37dp;
 				cursor: pointer;
 				decorator: image(selectarrow contain left);
 			}
@@ -69,7 +69,7 @@
 			}
 			items {
 				display: none;
-				padding-top: 37px;
+				padding-top: 37dp;
 				z-index: 10;
 			}
 			menu:focus items {
@@ -80,7 +80,7 @@
 				border-bottom-width: 0;
 			}
 			item:last-child {
-				border-bottom-width: 3px;
+				border-bottom-width: 3dp;
 			}
 		}
 	</style>

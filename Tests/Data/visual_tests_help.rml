@@ -7,8 +7,8 @@
 		width: auto;
 		color: #444;
 		position: absolute;
-		top: 0px; right: 0px;
-		bottom: 0px; left: 0px;
+		top: 0; right: 0;
+		bottom: 0; left: 0;
 		background-color: #222222f9;
 		color: #ddd;
 		z-index: 300;
@@ -16,10 +16,10 @@
 	#content {
 		display: block;
 		white-space: pre-wrap;
-		font-size: 17px;
-		width: 700px;
+		font-size: 17dp;
+		width: 700dp;
 		margin: 0 auto;
-		padding-top: 30px;
+		padding-top: 30dp;
 	}
 	p {
 		clear: both;

@@ -7,13 +7,13 @@
 	<meta name="description" content='Now the "sibling" text moves down to below the "inner" text’s box, leaving blank space behind. The text following the "sibling" text flows after it as normal.' />
 	<style>
 		body {
-			font-size: 20px;
+			font-size: 20dp;
 			display: block;
 			background: #ddd;
 			color: #444;
 			line-height: 200%;
 		}
-		#inner { float: right; width: 130px; color: blue }
+		#inner { float: right; width: 130dp; color: blue }
 		#sibling { clear: right; color: red }
 	</style>
 </head>

@@ -6,12 +6,12 @@
 	<style>
 		table {
 			display: block;
-			border-width: 20px 5px 0;
+			border-width: 20dp 5dp 0;
 			color: #333;
 			text-align: center;
 			margin: 0 auto;
-			min-width: 100px;
-			max-width: 400px;
+			min-width: 100dp;
+			max-width: 400dp;
 		}
 		body * {
 			border-color: #666;
@@ -19,9 +19,9 @@
 		td {
 			display: inline-block;
 			box-sizing: border-box;
-			padding: 15px 5px;
+			padding: 15dp 5dp;
 			width: 25%;
-			height: 47px;
+			height: 47dp;
 			background: #3d3;
 		}
 		td.span2 { width: 50%; }
@@ -31,7 +31,7 @@
 		}
 		td:first-child {
 			background: #6df;
-			border-right-width: 3px;
+			border-right-width: 3dp;
 		}
 		td:last-of-type {
 			background: #dd3;
@@ -40,13 +40,13 @@
 			display: block;
 			color: black;
 			background: #fff5;
-			border-bottom: 3px #666;
+			border-bottom: 3dp #666;
 		}
 		tbody {
 			display: block;
 		}
 		tbody tr {
-			border-bottom: 1px #666a;
+			border-bottom: 1dp #666a;
 		}
 		tbody tr:last-child {
 			border-bottom: 0;
@@ -60,10 +60,10 @@
 			color: #ccc;
 		}
 		tfoot td {
-			padding-top: 0px;
-			padding-bottom: 0px;
+			padding-top: 0;
+			padding-bottom: 0;
 			text-align: right;
-			height: 20px;
+			height: 20dp;
 		}
 	</style>
 </head>

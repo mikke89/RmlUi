@@ -7,7 +7,7 @@
 	<meta name="description" content="Position demo" />
 	<style>
 		body {
-			font-size: 20px;
+			font-size: 20dp;
 			display: block;
 			background: #ddd;
 			color: #444;

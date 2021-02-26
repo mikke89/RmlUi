@@ -8,19 +8,19 @@
 		table {
 			box-sizing: border-box;
 			display: table;
-			border: 5px #666;
-			gap: 10px 2%;
+			border: 5dp #666;
+			gap: 10dp 2%;
 			height: 50%;
-			padding-left: 5px;
-			padding-right: 20px;
+			padding-left: 5dp;
+			padding-right: 20dp;
 		}
 		col {
 			box-sizing: border-box;
 			display: table-column;
 			background: #aac;
-			border-left: 2px #e3e;
-			border-right: 5px #3ce;
-			margin: 15px 0;
+			border-left: 2dp #e3e;
+			border-right: 5dp #3ce;
+			margin: 15dp 0;
 		}
 		col:first-child {
 			border-left-width: 0;
@@ -31,24 +31,24 @@
 		tr {
 			box-sizing: border-box;
 			display: table-row;
-			border-top: 5px #ec3;
+			border-top: 5dp #ec3;
 			background: #acc;
-			padding-top: 5px;
-			padding-bottom: 15px;
-			margin: 10px 20px;
+			padding-top: 5dp;
+			padding-bottom: 15dp;
+			margin: 10dp 20dp;
 		}
 		td {
 			box-sizing: border-box;
 			display: table-cell;
-			border-right: 5px red;
+			border-right: 5dp red;
 			background: #bbb;
 		}
 		.bottom-right {
 			position: absolute;
 			bottom: 0;
 			right: 0;
-			width: 15px;
-			height: 15px;
+			width: 15dp;
+			height: 15dp;
 		}
 	</style>
 </head>
@@ -56,9 +56,9 @@
 <body>
 <p>Try resizing the table using the document handle in the lower-right corner.</p>
 <table>
-	<col span="2" style="min-width: 150px; max-width: 250px;"/>
+	<col span="2" style="min-width: 150dp; max-width: 250dp;"/>
 	<col/>
-	<col style="min-width: 50px; max-width: 300px;"/>
+	<col style="min-width: 50dp; max-width: 300dp;"/>
 	<tr>
 		<td rowspan="2" colspan="2">Hello</td>
 		<td>Whoop!</td>
@@ -69,8 +69,8 @@
 	</tr>
 	<tr>
 		<td style="height: 50%;">Cat<div class="bottom-right">X</div></td>
-		<td style="padding-left: 30px; padding-top: 50px;" colspan="2">Mouse<div class="bottom-right">X</div></td>
-		<td style="border-left: 5px green; border-right-width: 2px; vertical-align: bottom" rowspan="2">RatTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT</td>
+		<td style="padding-left: 30dp; padding-top: 50dp;" colspan="2">Mouse<div class="bottom-right">X</div></td>
+		<td style="border-left: 5dp green; border-right-width: 2dp; vertical-align: bottom" rowspan="2">RatTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT</td>
 	</tr>
 	<tr>
 		<td style="vertical-align: bottom;">Row<br/>Row</td>
