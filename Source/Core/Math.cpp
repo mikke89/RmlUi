@@ -137,6 +137,16 @@ RMLUICORE_API double RoundFloat(double value)
 	return round(value);
 }
 
+RMLUICORE_API float RoundUpFloat(float value)
+{
+	return ceilf(value);
+}
+
+RMLUICORE_API float RoundDownFloat(float value)
+{
+	return floorf(value);
+}
+
 // Rounds a floating-point value to the nearest integer.
 RMLUICORE_API int RoundToInteger(float value)
 {

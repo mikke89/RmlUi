@@ -301,7 +301,7 @@ LayoutInlineBox* LayoutLineBox::AddBox(UniquePtr<LayoutInlineBox> box_ptr)
 
 	float available_width = -1;
 	if (wrap_content)
-		available_width = dimensions.x - (open_inline_box->GetPosition().x + open_inline_box->GetBox().GetPosition(Box::CONTENT).x);
+		available_width = Math::RoundUpFloat(dimensions.x - (open_inline_box->GetPosition().x + open_inline_box->GetBox().GetPosition(Box::CONTENT).x));
 
 	// Flow the box's content into the line.
 	UniquePtr<LayoutInlineBox> overflow_box = open_inline_box->FlowContent(first_box, available_width, right_spacing);
