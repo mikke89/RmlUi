@@ -27,6 +27,7 @@
  */
 
 #include "ElementGame.h"
+#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Input.h>
 #include "Defender.h"
@@ -92,7 +93,7 @@ void ElementGame::OnUpdate()
 // Renders the game.
 void ElementGame::OnRender()
 {
-	game->Render();
+	game->Render(GetContext()->GetDensityIndependentPixelRatio());
 }
 
 void ElementGame::OnChildAdd(Rml::Element* element)

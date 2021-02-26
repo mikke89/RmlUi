@@ -5,8 +5,8 @@
 		<style>
 			body
 			{
-				padding: 0px;
-				margin: 0px;
+				padding: 0dp;
+				margin: 0dp;
 				width: 100%;
 				height: 100%;
 
@@ -22,11 +22,11 @@
 
 			div
 			{
-				height: 47px;
-				padding: 8px 0px 0px 65px;
-				margin: 0px 20px;
+				height: 47dp;
+				padding: 8dp 0dp 0dp 65dp;
+				margin: 0dp 20dp;
 
-				font-size: 20px;
+				font-size: 20dp;
 
 				decorator: tiled-horizontal( huditem-l, huditem-c, huditem-r );
 			}
@@ -34,36 +34,36 @@
 			div#score_div
 			{
 				float: left;
-				width: 155px;
+				width: 155dp;
 			}
 
 			div#hiscore_div
 			{
 				float: left;
-				width: 205px;
+				width: 205dp;
 			}
 
 			div#waves_div
 			{
 				float: right;
-				width: 95px;
+				width: 95dp;
 			}
 
 			div#lives_div
 			{
 				float: right;
-				width: 80px;
+				width: 80dp;
 			}
 
 			icon
 			{
 				display: block;
 				position: absolute;
-				left: 14px;
-				top: 3px;
+				left: 14dp;
+				top: 3dp;
 
-				width: 51px;
-				height: 39px;
+				width: 51dp;
+				height: 39dp;
 			}
 
 			div#score_div icon

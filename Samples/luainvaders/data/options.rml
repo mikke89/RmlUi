@@ -5,8 +5,8 @@
 		<style>
 			body
 			{
-				width: 350px;
-				height: 350px;
+				width: 350dp;
+				height: 350dp;
 				
 				margin: auto;
 			}
@@ -19,7 +19,7 @@
 
 			form div
 			{
-				width: 200px;
+				width: 200dp;
 				margin: auto;
 			}
 		</style>

@@ -12,8 +12,8 @@
 			#rifm_logo
 			{
 				position: absolute;
-				left: 25px;
-				top: 25px;
+				left: 25dp;
+				top: 25dp;
 			}
 		</style>
 	</head>

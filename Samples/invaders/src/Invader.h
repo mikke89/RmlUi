@@ -60,7 +60,7 @@ public:
 	virtual void Update();
 
 	/// Render the invader
-	void Render();
+	void Render(float dp_ratio);
 
 	/// Update the invaders animation
 	void UpdateAnimation();

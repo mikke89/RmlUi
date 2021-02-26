@@ -182,7 +182,7 @@ void Invader::UpdateAnimation()
 	}
 }
 
-void Invader::Render()
+void Invader::Render(float dp_ratio)
 {
 	if (type == MOTHERSHIP)
 	{
@@ -192,11 +192,11 @@ void Invader::Render()
 	int sprite_offset = Rml::Math::RealToInteger((invader_sprites[sprite_index].dimensions.x - 48) / 2);
 
 	if (state != DEAD)
-		invader_sprites[sprite_index].Render(Rml::Vector2f(position.x - sprite_offset, position.y));
+		invader_sprites[sprite_index].Render(Rml::Vector2f(position.x - sprite_offset, position.y), dp_ratio);
 	
 	if (bomb != NONE)
 	{
-		bomb_sprites[bomb_animation_frame].Render(bomb_position);
+		bomb_sprites[bomb_animation_frame].Render(bomb_position, dp_ratio);
 	}
 
 	if (type == MOTHERSHIP)

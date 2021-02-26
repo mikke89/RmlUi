@@ -27,6 +27,7 @@
  */
 
 #include "Sprite.h"
+#include <RmlUi/Core/Math.h>
 #include <ShellOpenGL.h>
 
 Sprite::Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord) : dimensions(dimensions), top_left_texcoord(top_left_texcoord), bottom_right_texcoord(bottom_right_texcoord)
@@ -37,17 +38,22 @@ Sprite::~Sprite()
 {
 }
 
-void Sprite::Render(const Rml::Vector2f& position)
+void Sprite::Render(Rml::Vector2f position, const float dp_ratio)
 {
+	position = (dp_ratio * position);
+	Rml::Vector2f dimensions_px = dp_ratio * dimensions;
+
+	Rml::Math::SnapToPixelGrid(position, dimensions_px);
+
 	glTexCoord2f(top_left_texcoord.x, top_left_texcoord.y);
 	glVertex2f(position.x, position.y);
 
 	glTexCoord2f(top_left_texcoord.x, bottom_right_texcoord.y);
-	glVertex2f(position.x, position.y + dimensions.y);
+	glVertex2f(position.x, position.y + dimensions_px.y);
 
 	glTexCoord2f(bottom_right_texcoord.x, bottom_right_texcoord.y);
-	glVertex2f(position.x + dimensions.x, position.y + dimensions.y);
+	glVertex2f(position.x + dimensions_px.x, position.y + dimensions_px.y);
 
 	glTexCoord2f(bottom_right_texcoord.x, top_left_texcoord.y);
-	glVertex2f(position.x + dimensions.x, position.y);
+	glVertex2f(position.x + dimensions_px.x, position.y);
 }

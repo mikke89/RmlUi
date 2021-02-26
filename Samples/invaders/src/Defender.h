@@ -48,7 +48,7 @@ public:
 	/// Update the defender state.
 	void Update();
 	/// Render the defender.
-	void Render();
+	void Render(float dp_ratio);
 
 	/// Move the defender left.
 	void StartMove(float direction);	

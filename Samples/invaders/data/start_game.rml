@@ -5,8 +5,8 @@
 		<style>
 			body
 			{
-				width: 300px;
-				height: 225px;
+				width: 300dp;
+				height: 225dp;
 				
 				margin: auto;
 			}
@@ -18,15 +18,15 @@
 			
 			form div
 			{
-				width: 200px;
+				width: 200dp;
 				margin: auto;
 			}
 			color
 			{
 				display: inline-block;
-				width: 9px;
-				height: 9px;
-				border: 1px #666;
+				width: 9dp;
+				height: 9dp;
+				border: 1dp #666;
 				margin-right: 0.5em;
 			}
 		</style>

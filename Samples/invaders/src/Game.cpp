@@ -142,7 +142,7 @@ void Game::Update()
 	}
 }
 
-void Game::Render()
+void Game::Render(float dp_ratio)
 {	
 	if (defender_lives <= 0)
 		return;
@@ -150,7 +150,7 @@ void Game::Render()
 	// Render all available shields
 	for (int i = 0; i < NUM_SHIELDS; i++)
 	{
-		shields[i]->Render();
+		shields[i]->Render(dp_ratio);
 	}
 
 	glEnable(GL_TEXTURE_2D);
@@ -161,10 +161,10 @@ void Game::Render()
 	// Render all available invaders
 	for (int i = 0; i < NUM_INVADERS + 1; i++)
 	{
-		invaders[i]->Render();
+		invaders[i]->Render(dp_ratio);
 	}
 	
-	defender->Render();
+	defender->Render(dp_ratio);
 
 	glEnd();
 }

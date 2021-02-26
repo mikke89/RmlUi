@@ -103,18 +103,18 @@ void Defender::Update()
 	}
 }
 
-void Defender::Render()
+void Defender::Render(float dp_ratio)
 {
 	glColor4ubv(GameDetails::GetDefenderColour());
 
 	// Render our sprite if rendering is enabled
 	if (render)
-		defender_sprite.Render(Rml::Vector2f(position.x, position.y));
+		defender_sprite.Render(position, dp_ratio);
 
 	// Update the bullet, doing collision detection
 	if (bullet_in_flight)
 	{
-		bullet_sprite.Render(Rml::Vector2f(bullet_position.x, bullet_position.y));
+		bullet_sprite.Render(bullet_position, dp_ratio);
 
 		// Check if we hit the shields
 		for (int i = 0; i < game->GetNumShields(); i++)
