@@ -93,7 +93,7 @@ public:
 	/// Sets the RmlUi context to send window resized events to.
 	static void SetContext(Rml::Context* context);
 
-	/// Sets the RmlUi context to send window resized events to.
+	/// Return the dp-ratio of the system.
 	static float GetDensityIndependentPixelRatio();
 };
 

@@ -105,7 +105,7 @@ static void InitializeShell()
 		shell_render_interface.SetViewport(window_size.x, window_size.y);
 
 		::Input::SetContext(shell_context);
-		shell_render_interface.SetContext(shell_context);
+		Shell::SetContext(shell_context);
 
 		shell_context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, &shell_event_listener, true);
 #endif
@@ -161,7 +161,7 @@ void TestsShell::ShutdownShell()
 #ifdef RMLUI_TESTS_USE_SHELL
 		Shell::CloseWindow();
 		Shell::Shutdown();
-		shell_render_interface.SetContext(nullptr);
+		Shell::SetContext(nullptr);
 #endif
 
 		shell_context = nullptr;
