@@ -51,6 +51,7 @@ SystemInterface::~SystemInterface()
 bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 {
 	// By default we just send a platform message
+#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
 	if (logtype == Log::LT_ASSERT)
 	{
 		String message_user = CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());	
@@ -59,6 +60,7 @@ bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 		return (IDNO == MessageBoxA(nullptr, message_user.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL));
 	}
 	else
+#endif
 	{
 		OutputDebugStringA(message.c_str());
 		OutputDebugStringA("\r\n");
