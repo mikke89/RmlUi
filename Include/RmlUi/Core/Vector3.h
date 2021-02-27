@@ -139,12 +139,10 @@ class Vector3
 		Type y;
 		Type z;
 
-#ifdef RMLUI_VECTOR3_USER_EXTRA
-	#if defined(__has_include) && __has_include(RMLUI_VECTOR3_USER_EXTRA)
-		#include RMLUI_VECTOR3_USER_EXTRA
-	#else
-		RMLUI_VECTOR3_USER_EXTRA
-	#endif
+#if defined(RMLUI_VECTOR3_USER_EXTRA)
+	RMLUI_VECTOR3_USER_EXTRA
+#elif defined(RMLUI_VECTOR3_USER_INCLUDE)
+	#include RMLUI_VECTOR3_USER_INCLUDE
 #endif
 };
 

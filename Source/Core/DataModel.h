@@ -32,6 +32,7 @@
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/Traits.h"
+#include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/DataTypes.h"
 #include "../../Include/RmlUi/Core/DataVariable.h"
 
