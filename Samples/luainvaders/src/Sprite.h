@@ -41,7 +41,7 @@ public:
 	Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord);
 	~Sprite();
 
-	void Render(const Rml::Vector2f& position);
+	void Render(Rml::Vector2f position, float dp_ratio);
 
 	Rml::Vector2f dimensions;
 	Rml::Vector2f top_left_texcoord;

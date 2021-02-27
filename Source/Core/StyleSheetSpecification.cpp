@@ -33,6 +33,8 @@
 #include "PropertyParserAnimation.h"
 #include "PropertyParserRatio.h"
 #include "PropertyParserColour.h"
+#include "PropertyParserDecorator.h"
+#include "PropertyParserFontEffect.h"
 #include "PropertyParserKeyword.h"
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
@@ -55,6 +57,8 @@ struct DefaultStyleSheetParsers {
 	PropertyParserAnimation animation = PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER);
 	PropertyParserAnimation transition = PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER);
 	PropertyParserColour color = PropertyParserColour();
+	PropertyParserDecorator decorator = PropertyParserDecorator();
+	PropertyParserFontEffect font_effect = PropertyParserFontEffect();
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserRatio ratio = PropertyParserRatio();
 	PropertyParserNumber resolution = PropertyParserNumber(Property::X);
@@ -249,6 +253,8 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("animation", &default_parsers->animation);
 	RegisterParser("transition", &default_parsers->transition);
 	RegisterParser("color", &default_parsers->color);
+	RegisterParser("decorator", &default_parsers->decorator);
+	RegisterParser("font_effect", &default_parsers->font_effect);
 	RegisterParser("transform", &default_parsers->transform);
 	RegisterParser("ratio", &default_parsers->ratio);
 	RegisterParser("resolution", &default_parsers->resolution);
@@ -410,8 +416,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Transition, "transition", "none", false, false).AddParser("transition");
 	RegisterProperty(PropertyId::Animation, "animation", "none", false, false).AddParser("animation");
 
-	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("string");
-	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("string");
+	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("decorator");
+	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("font_effect");
 
 	// Rare properties (not added to computed values)
 	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");

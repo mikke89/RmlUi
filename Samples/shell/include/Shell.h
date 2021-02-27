@@ -90,12 +90,11 @@ public:
 	/// Get clipboard text.
 	static void GetClipboardText(Rml::String& text);
 	
-	/// Sets the context to send window resized events to.
-	/// @param[in] context The context to send  events to.
+	/// Sets the RmlUi context to send window resized events to.
 	static void SetContext(Rml::Context* context);
 
-private:
-	static Rml::Context* context;
+	/// Return the dp-ratio of the system.
+	static float GetDensityIndependentPixelRatio();
 };
 
 #include "ShellSystemInterface.h"

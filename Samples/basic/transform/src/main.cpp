@@ -46,8 +46,8 @@ public:
 		if (document)
 		{
 			document->GetElementById("title")->SetInnerRML(title);
-			document->SetProperty(Rml::PropertyId::Left, Rml::Property(position.x, Rml::Property::PX));
-			document->SetProperty(Rml::PropertyId::Top, Rml::Property(position.y, Rml::Property::PX));
+			document->SetProperty(Rml::PropertyId::Left, Rml::Property(position.x, Rml::Property::DP));
+			document->SetProperty(Rml::PropertyId::Top, Rml::Property(position.y, Rml::Property::DP));
 			document->Show();
 		}
 	}
@@ -65,7 +65,7 @@ public:
 		if (document && perspective > 0)
 		{
 			std::stringstream s;
-			s << "perspective(" << perspective << "px) ";
+			s << "perspective(" << perspective << "dp) ";
 			document->SetProperty("transform", s.str().c_str());
 		}
 	}
@@ -76,7 +76,7 @@ public:
 		{
 			std::stringstream s;
 			if (perspective > 0)
-				s << "perspective(" << perspective << "px) ";
+				s << "perspective(" << perspective << "dp) ";
 			s << "rotate3d(0.0, 1.0, 0.0, " << degrees << "deg)";
 			document->SetProperty("transform", s.str().c_str());
 		}
@@ -184,7 +184,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
-	shell_renderer->SetContext(context);
+	Shell::SetContext(context);
 
 	Shell::LoadFonts("assets/");
 

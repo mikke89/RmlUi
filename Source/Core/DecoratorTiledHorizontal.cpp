@@ -101,14 +101,14 @@ DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* eleme
 
 	Vector2f padded_size = element->GetBox().GetSize(Box::PADDING);
 
-	Vector2f left_dimensions = tiles[LEFT].GetDimensions(element);
-	Vector2f right_dimensions = tiles[RIGHT].GetDimensions(element);
-	Vector2f centre_dimensions = tiles[CENTRE].GetDimensions(element);
+	Vector2f left_dimensions = tiles[LEFT].GetNaturalDimensions(element);
+	Vector2f right_dimensions = tiles[RIGHT].GetNaturalDimensions(element);
+	Vector2f centre_dimensions = tiles[CENTRE].GetNaturalDimensions(element);
 
 	// Scale the tile sizes by the height scale.
-	ScaleTileDimensions(left_dimensions, padded_size.y, 1);
-	ScaleTileDimensions(right_dimensions, padded_size.y, 1);
-	ScaleTileDimensions(centre_dimensions, padded_size.y, 1);
+	ScaleTileDimensions(left_dimensions, padded_size.y, Axis::Vertical);
+	ScaleTileDimensions(right_dimensions, padded_size.y, Axis::Vertical);
+	ScaleTileDimensions(centre_dimensions, padded_size.y, Axis::Vertical);
 
 	// Round the outer tile widths now so that we don't get gaps when rounding again in GenerateGeometry.
 	left_dimensions.x = Math::RoundFloat(left_dimensions.x);

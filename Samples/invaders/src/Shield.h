@@ -62,7 +62,7 @@ public:
 	const Rml::Vector2f& GetPosition() const;
 
 	/// Render the shield.
-	void Render();
+	void Render(float dp_ratio);
 
 	/// Returns true if the position hits the shield
 	/// If a hit is detected, will degrade the shield.

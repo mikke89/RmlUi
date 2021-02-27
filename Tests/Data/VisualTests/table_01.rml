@@ -7,25 +7,25 @@
 	<meta name="Description" content="Basic table layout." />
 	<style>
 		table {
-			border-width: 20px 5px 0;
+			border-width: 20dp 5dp 0;
 			color: #333;
 			text-align: center;
 			margin: 0 auto;
-			min-width: 100px;
-			max-width: 400px;
+			min-width: 100dp;
+			max-width: 400dp;
 		}
 		table, table * {
 			border-color: #666;
 		}
 		td {
-			padding: 15px 5px;
+			padding: 15dp 5dp;
 		}
 		col {
 			background: #3d3;
 		}
 		col:first-child {
 			background: #6df;
-			border-right-width: 3px;
+			border-right-width: 3dp;
 		}
 		col:nth-child(3) {
 			background: #dd3;
@@ -33,10 +33,10 @@
 		thead {
 			color: black;
 			background: #fff5;
-			border-bottom: 3px #666;
+			border-bottom: 3dp #666;
 		}
 		tbody tr {
-			border-bottom: 1px #666a;
+			border-bottom: 1dp #666a;
 		}
 		tbody tr:last-child {
 			border-bottom: 0;
@@ -49,10 +49,10 @@
 			color: #ccc;
 		}
 		tfoot td {
-			padding-top: 0px;
-			padding-bottom: 0px;
+			padding-top: 0;
+			padding-bottom: 0;
 			text-align: right;
-			height: 20px;
+			height: 20dp;
 		}
 	</style>
 </head>

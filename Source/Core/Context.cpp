@@ -147,13 +147,13 @@ void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_r
 	{
 		density_independent_pixel_ratio = _density_independent_pixel_ratio;
 
-		for (int i = 0; i < root->GetNumChildren(); ++i)
+		for (int i = 0; i < root->GetNumChildren(true); ++i)
 		{
 			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
-			if (document != nullptr)
+			if (document)
 			{
 				document->DirtyMediaQueries();
-				document->DirtyDpProperties();
+				document->OnDpRatioChangeRecursive();
 			}
 		}
 	}
@@ -379,6 +379,30 @@ void Context::EnableMouseCursor(bool enable)
 	// The cursor is set to an invalid name so that it is forced to update in the next update loop.
 	cursor_name = ":reset:";
 	enable_cursor = enable;
+}
+
+void Context::ActivateTheme(const String& theme_name, bool activate)
+{
+	bool theme_changed = false;
+
+	if (activate)
+		theme_changed = active_themes.insert(theme_name).second;
+	else
+		theme_changed = (active_themes.erase(theme_name) > 0);
+
+	if (theme_changed)
+	{
+		for (int i = 0; i < root->GetNumChildren(true); ++i)
+		{
+			if (ElementDocument* document = root->GetChild(i)->GetOwnerDocument())
+				document->DirtyMediaQueries();
+		}
+	}
+}
+
+bool Context::IsThemeActive(const String& theme_name) const
+{
+	return active_themes.count(theme_name);
 }
 
 // Returns the first document found in the root with the given id.

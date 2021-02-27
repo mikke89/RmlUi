@@ -115,6 +115,15 @@ public:
 	/// @param[in] show True to enable mouse cursor handling, false to disable.
 	void EnableMouseCursor(bool enable);
 
+	/// Activate or deactivate a media theme. Themes can be used in RCSS media queries.
+	/// @param theme_name[in] The name of the theme to (de)activate.
+	/// @param activate True to activate the given theme, false to deactivate.
+	void ActivateTheme(const String& theme_name, bool activate);
+	/// Check if a given media theme has been activated.
+	/// @param theme_name The name of the theme.
+	/// @return True if the theme is activated.
+	bool IsThemeActive(const String& theme_name) const;
+
 	/// Returns the first document in the context with the given id.
 	/// @param[in] id The id of the desired document.
 	/// @return The document (if it was found), or nullptr if no document exists with the ID.
@@ -264,6 +273,8 @@ private:
 	Vector2i dimensions;
 	float density_independent_pixel_ratio;
 	String documents_base_tag = "body";
+
+	SmallUnorderedSet<String> active_themes;
 
 	ContextInstancer* instancer;
 

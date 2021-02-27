@@ -5,8 +5,8 @@
 		<style>
 			body
 			{
-				width: 300px;
-				height: 225px;
+				width: 300dp;
+				height: 225dp;
 
 				margin: auto;
 			}

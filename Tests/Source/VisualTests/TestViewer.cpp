@@ -242,7 +242,7 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 				document_reference = context->LoadDocumentFromMemory(source_reference, Rml::StringUtilities::Replace(reference_path, ':', '|'));
 				if (document_reference)
 				{
-					document_reference->SetProperty(PropertyId::Left, Property(510.f, Property::PX));
+					document_reference->SetProperty(PropertyId::Left, Property(510.f, Property::DP));
 					document_reference->Show(ModalFlag::None, FocusFlag::None);
 				}
 			}

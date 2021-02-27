@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
+#include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
@@ -47,13 +48,16 @@ StyleSheetContainer::~StyleSheetContainer()
 bool StyleSheetContainer::LoadStyleSheetContainer(Stream* stream, int begin_line_number)
 {
 	StyleSheetParser parser;
-	int rule_count = parser.Parse(media_blocks, stream, begin_line_number);
-	return rule_count >= 0;
+	bool result = parser.Parse(media_blocks, stream, begin_line_number);
+	return result;
 }
 
-bool StyleSheetContainer::UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_dimensions)
+bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 {
 	RMLUI_ZoneScoped;
+
+	const float dp_ratio = context->GetDensityIndependentPixelRatio();
+	const Vector2f vp_dimensions(context->GetDimensions());
 
 	Vector<int> new_active_media_block_indices;
 
@@ -123,6 +127,10 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_d
 				if ((vp_dimensions.x <= vp_dimensions.y) != property.second.Get<bool>())
 					all_match = false;
 				break;
+			case MediaQueryId::Theme:
+				if (!context->IsThemeActive(property.second.Get<String>()))
+					all_match = false;
+				break;
 				// Invalid properties
 			case MediaQueryId::Invalid:
 			case MediaQueryId::NumDefinedIds:
@@ -149,8 +157,10 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_d
 			MediaBlock& media_block = media_blocks[index];
 			if (!first_sheet)
 				first_sheet = media_block.stylesheet.get();
+			else if (!new_sheet)
+				new_sheet = first_sheet->CombineStyleSheet(*media_block.stylesheet);
 			else
-				new_sheet = (new_sheet ? new_sheet.get() : first_sheet)->CombineStyleSheet(*media_block.stylesheet);
+				new_sheet->MergeStyleSheet(*media_block.stylesheet);
 		}
 
 		if (!first_sheet)
@@ -163,7 +173,6 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(float dp_ratio, Vector2f vp_d
 		combined_compiled_style_sheet = std::move(new_sheet);
 
 		compiled_style_sheet->BuildNodeIndex();
-		compiled_style_sheet->OptimizeNodeProperties();
 	}
 
 	active_media_block_indices = std::move(new_active_media_block_indices);
@@ -184,7 +193,7 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
 
 	for (const MediaBlock& media_block : media_blocks)
 	{
-		new_sheet->media_blocks.emplace_back(media_block.properties, media_block.stylesheet->Clone());
+		new_sheet->media_blocks.emplace_back(media_block.properties, media_block.stylesheet);
 	}
 
 	new_sheet->MergeStyleSheetContainer(container);
@@ -192,37 +201,40 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
 	return new_sheet;
 }
 
-void StyleSheetContainer::MergeStyleSheetContainer(const StyleSheetContainer& container)
+void StyleSheetContainer::MergeStyleSheetContainer(const StyleSheetContainer& other)
 {
 	RMLUI_ZoneScoped;
 
 	// Style sheet container must not be merged after it's been compiled. This will invalidate references to the compiled style sheet.
 	RMLUI_ASSERT(!compiled_style_sheet);
 
-	for (const MediaBlock& block_other : container.media_blocks)
-	{
-		bool block_found = false;
-		for (MediaBlock& block_local : media_blocks)
-		{
-			if (block_other.properties.GetProperties() == block_local.properties.GetProperties())
-			{
-				block_local.stylesheet = block_local.stylesheet->CombineStyleSheet(*block_other.stylesheet);
-				block_found = true;
-				break;
-			}
-		}
+	auto it_other_begin = other.media_blocks.begin();
 
-		if (!block_found)
+#if 0
+	// If the last block here has the same media requirements as the first block in other, we can safely merge them
+	// while retaining correct specificity of all properties. This is essentially an optimization to avoid more
+	// style sheet merging later on.
+	if (!media_blocks.empty() && !other.media_blocks.empty())
+	{
+		MediaBlock& block_local = media_blocks.back();
+		const MediaBlock& block_other = other.media_blocks.front();
+		if (block_local.properties.GetProperties() == block_other.properties.GetProperties())
 		{
-			media_blocks.emplace_back(block_other.properties, block_other.stylesheet->Clone());
+			// Now we can safely merge the two style sheets.
+			block_local.stylesheet = block_local.stylesheet->CombineStyleSheet(*block_other.stylesheet);
+
+			// And we need to skip the first media block in the 'other' style sheet, since we merged it just now.
+			++it_other_begin;
 		}
 	}
-}
+#endif
 
-void StyleSheetContainer::OptimizeNodeProperties()
-{
-	for (MediaBlock& block : media_blocks)
-		block.stylesheet->OptimizeNodeProperties();
+	// Add all the other blocks into ours.
+	for (auto it = it_other_begin; it != other.media_blocks.end(); ++it)
+	{
+		const MediaBlock& block_other = *it;
+		media_blocks.emplace_back(block_other.properties, block_other.stylesheet);
+	}
 }
 
 } // namespace Rml

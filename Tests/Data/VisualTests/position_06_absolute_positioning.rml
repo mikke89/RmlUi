@@ -7,7 +7,7 @@
 	<meta name="description" content='All of the text within #outer (the "outer" and "inner" text) moves down to an independent box in the lower right corner. The two halves of "body" text flow together.' />
 	<style>
 		body {
-			font-size: 20px;
+			font-size: 20dp;
 			display: block;
 			background: #ddd;
 			color: #444;
@@ -15,8 +15,8 @@
 		}
 		#outer {
 			position: absolute;
-			top: 200px; left: 200px;
-			width: 200px;
+			top: 200dp; left: 200dp;
+			width: 200dp;
 			color: red;
 		}
 		#inner { color: blue }

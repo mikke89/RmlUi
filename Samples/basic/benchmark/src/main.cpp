@@ -36,7 +36,7 @@
 class DemoWindow
 {
 public:
-	DemoWindow(const Rml::String &title, const Rml::Vector2f &position, Rml::Context *context)
+	DemoWindow(const Rml::String &title, Rml::Context *context)
 	{
 		using namespace Rml;
 		document = context->LoadDocument("basic/benchmark/data/benchmark.rml");
@@ -44,8 +44,6 @@ public:
 		{
 			{
 				document->GetElementById("title")->SetInnerRML(title);
-				document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
-				document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
 			}
 
 			document->Show();
@@ -289,14 +287,14 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
-	shell_renderer->SetContext(context);
+	Shell::SetContext(context);
 
 	EventInstancer event_listener_instancer;
 	Rml::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
 	Shell::LoadFonts("assets/");
 
-	window = new DemoWindow("Benchmark sample", Rml::Vector2f(81, 100), context);
+	window = new DemoWindow("Benchmark sample", context);
 	window->GetDocument()->AddEventListener(Rml::EventId::Keydown, new Event("hello"));
 	window->GetDocument()->AddEventListener(Rml::EventId::Keyup, new Event("hello"));
 	window->GetDocument()->AddEventListener(Rml::EventId::Animationend, new Event("hello"));

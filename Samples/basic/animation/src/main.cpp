@@ -39,18 +39,13 @@
 class DemoWindow
 {
 public:
-	DemoWindow(const Rml::String &title, const Rml::Vector2f &position, Rml::Context *context)
+	DemoWindow(const Rml::String &title, Rml::Context *context)
 	{
 		using namespace Rml;
 		document = context->LoadDocument("basic/animation/data/animation.rml");
 		if (document != nullptr)
 		{
-			{
-				document->GetElementById("title")->SetInnerRML(title);
-				document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
-				document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
-				//document->Animate("opacity", Property(0.0f, Property::NUMBER), 2.0f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true, 1.0f);
-			}
+			document->GetElementById("title")->SetInnerRML(title);
 
 			// Button fun
 			{
@@ -260,17 +255,17 @@ public:
 			else if (key_identifier == Rml::Input::KI_LEFT)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				if (el) el->Animate("left", Property{ -200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
+				if (el) el->Animate("left", Property{ -200.f, Property::DP }, 0.5, Tween{ Tween::Cubic });
 			}
 			else if (key_identifier == Rml::Input::KI_RIGHT)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				if (el) el->Animate("left", Property{ 200.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
+				if (el) el->Animate("left", Property{ 200.f, Property::DP }, 0.5, Tween{ Tween::Cubic });
 			}
 			else if (key_identifier == Rml::Input::KI_UP)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				auto offset_right = Property{ 200.f, Property::PX };
+				auto offset_right = Property{ 200.f, Property::DP };
 				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic }, 1, true, 0, &offset_right);
 			}
 			else if (key_identifier == Rml::Input::KI_DOWN)
@@ -343,8 +338,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	RMLUI_UNUSED(argv);
 #endif
 
-	const int width = 1800;
-	const int height = 1000;
+	const int width = 1700;
+	const int height = 900;
 
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
@@ -378,14 +373,14 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
-	shell_renderer->SetContext(context);
+	Shell::SetContext(context);
 
 	EventInstancer event_listener_instancer;
 	Rml::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
 	Shell::LoadFonts("assets/");
 
-	window = new DemoWindow("Animation sample", Rml::Vector2f(81, 100), context);
+	window = new DemoWindow("Animation sample", context);
 	window->GetDocument()->AddEventListener(Rml::EventId::Keydown, new Event("hello"));
 	window->GetDocument()->AddEventListener(Rml::EventId::Keyup, new Event("hello"));
 	window->GetDocument()->AddEventListener(Rml::EventId::Animationend, new Event("hello"));

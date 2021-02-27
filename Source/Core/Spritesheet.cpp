@@ -32,36 +32,39 @@
 
 namespace Rml {
 
-bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, const SpriteDefinitionList& sprite_definitions)
+
+Spritesheet::Spritesheet(const String& name, const String& image_source, const String& definition_source,
+	int definition_line_number, float display_scale, const Texture& texture)
+	: name(name), image_source(image_source), definition_source(definition_source),
+	definition_line_number(definition_line_number), display_scale(display_scale), texture(texture)
+{}
+
+bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, float display_scale, const SpriteDefinitionList& sprite_definitions)
 {
 	// Load the texture
 	Texture texture;
 	texture.Set(image_source, definition_source);
 
-	auto sprite_sheet = MakeShared<Spritesheet>(name, image_source, definition_source, definition_line_number, texture);
-	auto result = spritesheet_map.emplace(name, sprite_sheet);
-	if (!result.second)
-	{
-		Log::Message(Log::LT_WARNING, "Spritesheet '%s' has the same name as another spritesheet, ignored. See %s:%d", name.c_str(), definition_source.c_str(), definition_line_number);
-		return false;
-	}
+	auto sprite_sheet_ptr = MakeShared<Spritesheet>(name, image_source, definition_source, definition_line_number, display_scale, texture);
+	Spritesheet* sprite_sheet = sprite_sheet_ptr.get();
+	spritesheets.push_back(std::move(sprite_sheet_ptr));
 
-	StringList& sprite_names = sprite_sheet->sprite_names;
+	sprite_map.reserve(sprite_map.size() + sprite_definitions.size());
 
-	// Insert all the sprites with names not already defined in the global sprite list.
+	// Insert all the sprites, overwriting any existing sprites already defined in the current media block scope.
 	for (auto& sprite_definition : sprite_definitions)
 	{
 		const String& sprite_name = sprite_definition.first;
 		const Rectangle& sprite_rectangle = sprite_definition.second;
-		auto sprite_result = sprite_map.emplace(sprite_name, Sprite{ sprite_rectangle, sprite_sheet.get() });
-		if (sprite_result.second)
+
+		Sprite& new_sprite = sprite_map[sprite_name];
+		if (new_sprite.sprite_sheet)
 		{
-			sprite_names.push_back(sprite_name);
+			Log::Message(Log::LT_WARNING, "Sprite '%s' was overwritten due to duplicate names at the same block scope. Declared at %s:%d and %s:%d",
+				sprite_name.c_str(), new_sprite.sprite_sheet->definition_source.c_str(), new_sprite.sprite_sheet->definition_line_number, definition_source.c_str(), definition_line_number);
 		}
-		else
-		{
-			Log::Message(Log::LT_WARNING, "Sprite '%s' has the same name as an existing sprite, skipped. See %s:%d", sprite_name.c_str(), definition_source.c_str(), definition_line_number);
-		}
+
+		new_sprite = Sprite{ sprite_rectangle, sprite_sheet };
 	}
 
 	return true;
@@ -80,76 +83,33 @@ const Sprite* SpritesheetList::GetSprite(const String& name) const
 
 void SpritesheetList::Merge(const SpritesheetList& other)
 {
-	for (auto& pair : other.spritesheet_map)
-	{
-		auto sheet_result = spritesheet_map.emplace(pair);
-		const String& sheet_name = sheet_result.first->first;
-		const Spritesheet& sheet = *sheet_result.first->second;
-		bool sheet_inserted = sheet_result.second;
-		
-		if (sheet_inserted)
-		{
-			// The sprite sheet was succesfully added, now try to add each sprite to the global list.
-			for (const String& sprite_name  : sheet.sprite_names)
-			{
-				// Lookup the sprite in the other map.
-				auto it_sprite = other.sprite_map.find(sprite_name);
-				if (it_sprite != other.sprite_map.end())
-				{
-					// Add the sprite into our map. Each sprite name must be unique.
-					auto sprite_result = sprite_map.emplace(sprite_name, it_sprite->second);
-					bool inserted = sprite_result.second;
+	spritesheets.insert(spritesheets.end(), other.spritesheets.begin(), other.spritesheets.end());
+	sprite_map.reserve(sprite_map.size() + other.sprite_map.size());
 
-					if (!inserted)
-					{
-						Log::Message(Log::LT_WARNING, "Duplicate sprite name '%s' found while merging style sheets, defined in %s:%d.", sprite_name.c_str(), sheet.definition_source.c_str(), sheet.definition_line_number);
-					}
-				}
-				else
-				{
-					RMLUI_ERRORMSG("Something went wrong while merging style sheets.");
-				}
-			}
-		}
-		else
-		{
-			Log::Message(Log::LT_WARNING, "Duplicate sprite sheet name '%s' found while merging style sheets, defined in %s:%d.", sheet_name.c_str(), sheet.definition_source.c_str(), sheet.definition_line_number);
-		}
+	for (auto& pair : other.sprite_map)
+	{
+		const String& sprite_name = pair.first;
+		const Sprite& sprite = pair.second;
+
+		// Add the sprite into our map. If a sprite with the same name exists, it will be overwritten by the other sprite.
+		sprite_map[sprite_name] = sprite;
 	}
 }
 
 void SpritesheetList::Reserve(size_t size_sprite_sheets, size_t size_sprites) 
 { 
-	spritesheet_map.reserve(size_sprite_sheets);
+	spritesheets.reserve(size_sprite_sheets);
 	sprite_map.reserve(size_sprites);
 }
 
 size_t SpritesheetList::NumSpriteSheets() const 
 {
-	return spritesheet_map.size();
+	return spritesheets.size();
 }
 
 size_t SpritesheetList::NumSprites() const 
 { 
 	return sprite_map.size();
-}
-
-String SpritesheetList::ToString() const
-{
-	String result = CreateString(100, "#SpriteSheets: %zu\n", spritesheet_map.size());
-
-	for (auto& sheet : spritesheet_map)
-	{
-		result += CreateString(100, "  Sheet '%s'.   #Sprites %zu.\n", sheet.first.c_str(), sheet.second->sprite_names.size());
-	}
-
-	result += CreateString(100, "\n#Sprites: %zu\n", sprite_map.size());
-	for (auto& sprite : sprite_map)
-	{
-		result += CreateString(100, "  In '%s': %s\n", sprite.second.sprite_sheet->name.c_str(), sprite.first.c_str());
-	}
-
-	return result;
 }
 
 } // namespace Rml

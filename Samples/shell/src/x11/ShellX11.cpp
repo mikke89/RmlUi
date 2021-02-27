@@ -28,7 +28,9 @@
 
 #include <Shell.h>
 #include <ShellOpenGL.h>
-#include <RmlUi/Core.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/Types.h>
 #include "ShellFileInterface.h"
 #include <x11/InputX11.h>
 #include <X11/Xlib.h>
@@ -45,12 +47,21 @@
 #include <stdarg.h>
 #include <string.h>
 
+static Rml::Context* context = nullptr;
+static ShellRenderInterfaceExtensions* shell_renderer = nullptr;
+
 static bool running = false;
 static int screen = -1;
 static timeval start_time;
 static Rml::String clipboard_text;
+static int window_width = 0;
+static int window_height = 0;
 
 static Rml::UniquePtr<ShellFileInterface> file_interface;
+
+static Display* display = nullptr;
+static XVisualInfo* visual_info = nullptr;
+static Window window = 0;
 
 static Cursor cursor_default = 0;
 static Cursor cursor_move = 0;
@@ -59,6 +70,18 @@ static Cursor cursor_resize = 0;
 static Cursor cursor_cross = 0;
 static Cursor cursor_text = 0;
 static Cursor cursor_unavailable = 0;
+
+static void UpdateWindowDimensions(int width = 0, int height = 0)
+{
+	if (width > 0)
+		window_width = width;
+	if (height > 0)
+		window_height = height;
+	if (context)
+		context->SetDimensions(Rml::Vector2i(window_width, window_height));
+	if (shell_renderer)
+		shell_renderer->SetViewport(window_width, window_height);
+}
 
 static bool isRegularFile(const Rml::String& path)
 {
@@ -126,17 +149,14 @@ Rml::String Shell::FindSamplesRoot()
 	return Rml::String();
 }
 
-static Display* display = nullptr;
-static XVisualInfo* visual_info = nullptr;
-static Window window = 0;
-
-static ShellRenderInterfaceExtensions *shell_renderer = nullptr;
-
 bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
 	display = XOpenDisplay(0);
 	if (display == nullptr)
 		return false;
+
+	window_width = width;
+	window_height = height;
 
 	// This initialise they keyboard to keycode mapping system of X11
 	// itself.  It must be done here as it needs to query the connected
@@ -300,7 +320,7 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 					int x = event.xconfigure.width;
 					int y = event.xconfigure.height;
 
-					shell_renderer->SetViewport(x, y);
+					UpdateWindowDimensions(x, y);
 				}
 				break;
 				
@@ -411,4 +431,10 @@ void Shell::GetClipboardText(Rml::String& text)
 {
 	// Todo: interface with system clipboard
 	text = clipboard_text;
+}
+
+void Shell::SetContext(Rml::Context* new_context)
+{
+	context = new_context;
+	UpdateWindowDimensions();
 }

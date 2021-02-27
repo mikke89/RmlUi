@@ -312,16 +312,13 @@ namespace FormsExample {
 class DemoWindow : public Rml::EventListener
 {
 public:
-	DemoWindow(const Rml::String &title, const Rml::Vector2f &position, Rml::Context *context)
+	DemoWindow(const Rml::String &title, Rml::Context *context)
 	{
 		using namespace Rml;
 		document = context->LoadDocument("basic/databinding/data/databinding.rml");
 		if (document)
 		{
 			document->GetElementById("title")->SetInnerRML(title);
-			document->SetProperty(PropertyId::Left, Property(position.x, Property::PX));
-			document->SetProperty(PropertyId::Top, Property(position.y, Property::PX));
-
 			document->Show();
 		}
 	}
@@ -346,10 +343,6 @@ public:
 			if (key_identifier == Rml::Input::KI_ESCAPE)
 			{
 				Shell::RequestExit();
-			}
-			else if (key_identifier == Rml::Input::KI_F8)
-			{
-				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 			}
 		}
 		break;
@@ -446,11 +439,11 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
-	shell_renderer->SetContext(context);
+	Shell::SetContext(context);
 	
 	Shell::LoadFonts("assets/");
 
-	auto demo_window = Rml::MakeUnique<DemoWindow>("Data binding", Rml::Vector2f(150, 50), context);
+	auto demo_window = Rml::MakeUnique<DemoWindow>("Data binding", context);
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keydown, demo_window.get());
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keyup, demo_window.get());
 

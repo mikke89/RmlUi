@@ -11,7 +11,7 @@
 			invader: 179px 152px 50px 40px;
 		}
 		body {
-			font-size: 16px;
+			font-size: 16dp;
 		}
 		input, button {
 			margin: 0 1em;
@@ -33,7 +33,7 @@
 		button {
 			display: inline-block;
 			background: #aaa;
-			border: 1px #333;
+			border: 1dp #333;
 			padding: 0.5em 1em;
 			tab-index: auto;
 		}

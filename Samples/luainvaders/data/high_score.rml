@@ -5,8 +5,8 @@
 	<style>
 		body
 		{
-			width: 440px;
-			height: 440px;
+			width: 440dp;
+			height: 440dp;
 			
 			margin: auto;
 		}
@@ -18,18 +18,18 @@
 		defender
 		{
 			display: inline-block;
-			width: 64px;
-			height: 16px;
+			width: 64dp;
+			height: 16dp;
 			
 			decorator: defender( high_scores_defender.tga );
 		}
 		tbody tr {
-			height: 30px;
+			height: 30dp;
 		}
 		tbody td
 		{
-			padding-top: 5px;
-			height: 30px;
+			padding-top: 5dp;
+			height: 30dp;
 			white-space: nowrap;
 			overflow: hidden;
 		}
@@ -48,10 +48,10 @@ end
 	<table data-model="high_scores">
 		<thead>
 			<tr>
-				<td style="width: 200%; margin-left: 10px;">Pilot</td>
-				<td style="min-width: 64px;">Ship</td>
+				<td style="width: 200%; margin-left: 10dp;">Pilot</td>
+				<td style="min-width: 64dp;">Ship</td>
 				<td>Wave</td>
-				<td style="min-width: 64px;">Score</td>
+				<td style="min-width: 64dp;">Score</td>
 			</tr>
 		</thead>
 		<tbody>

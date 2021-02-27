@@ -62,4 +62,19 @@ const Sprite* DecoratorInstancerInterface::GetSprite(const String& name) const {
 	return style_sheet.GetSprite(name);
 }
 
+Texture DecoratorInstancerInterface::GetTexture(const String& filename) const
+{
+	Texture texture;
+
+	if (!property_source)
+	{
+		Log::Message(Log::LT_WARNING, "Texture name '%s' in decorator could not be loaded, no property source available.", filename.c_str());
+		return texture;
+	}
+
+	texture.Set(filename, property_source->path);
+
+	return texture;
+}
+
 } // namespace Rml

@@ -11,16 +11,16 @@
 			color: #444;
 		}
 		#content {
-			width: 250px;
+			width: 250dp;
 			margin: 0 auto;
 		}
 		div.float {
 			float: left;
 			background-color: #bbb;
-			border: 1px #333;
-			width: 100px;
-			height: 100px;
-			margin: 5px;
+			border: 1dp #333;
+			width: 100dp;
+			height: 100dp;
+			margin: 5dp;
 		}
 		.red {
 			color: red;

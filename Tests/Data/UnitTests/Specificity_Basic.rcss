@@ -1,0 +1,16 @@
+body {
+    display: block;
+    width: 10px;
+    height: 100px;
+	background: #ccc;
+}
+
+.a {
+    width: 80px;
+}
+.b {
+    width: 90px;
+}
+.c {
+    width: 100px;
+}

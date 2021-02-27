@@ -28,17 +28,13 @@
 
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "ElementDefinition.h"
-#include "StyleSheetFactory.h"
 #include "StyleSheetNode.h"
 #include "Utilities.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/Factory.h"
-#include "../../Include/RmlUi/Core/FontEffect.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
-#include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 #include <algorithm>
 
 namespace Rml {
@@ -67,38 +63,42 @@ UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 	UniquePtr<StyleSheet> new_sheet = UniquePtr<StyleSheet>(new StyleSheet());
 	
 	new_sheet->root = root->DeepCopy();
-	new_sheet->root->MergeHierarchy(other_sheet.root.get(), specificity_offset);
-
-	// Any matching @keyframe names are overridden as per CSS rules
-	new_sheet->keyframes.reserve(keyframes.size() + other_sheet.keyframes.size());
+	new_sheet->specificity_offset = specificity_offset;
 	new_sheet->keyframes = keyframes;
-	for (auto& other_keyframes : other_sheet.keyframes)
-	{
-		new_sheet->keyframes[other_keyframes.first] = other_keyframes.second;
-	}
-
-	// Copy over the decorators, and replace any matching decorator names from other_sheet
-	new_sheet->decorator_map.reserve(decorator_map.size() + other_sheet.decorator_map.size());
 	new_sheet->decorator_map = decorator_map;
-	for (auto& other_decorator: other_sheet.decorator_map)
-	{
-		new_sheet->decorator_map[other_decorator.first] = other_decorator.second;
-	}
+	new_sheet->spritesheet_list = spritesheet_list;
 
-	new_sheet->spritesheet_list.Reserve(
-		spritesheet_list.NumSpriteSheets() + other_sheet.spritesheet_list.NumSpriteSheets(),
-		spritesheet_list.NumSprites() + other_sheet.spritesheet_list.NumSprites()
-	);
-	new_sheet->spritesheet_list = other_sheet.spritesheet_list;
-	new_sheet->spritesheet_list.Merge(spritesheet_list);
+	new_sheet->MergeStyleSheet(other_sheet);
 
-	new_sheet->specificity_offset = specificity_offset + other_sheet.specificity_offset;
 	return new_sheet;
 }
 
-UniquePtr<StyleSheet> StyleSheet::Clone() const
+void StyleSheet::MergeStyleSheet(const StyleSheet& other_sheet)
 {
-	return CombineStyleSheet(StyleSheet{});
+	RMLUI_ZoneScoped;
+
+	root->MergeHierarchy(other_sheet.root.get(), specificity_offset);
+	specificity_offset += other_sheet.specificity_offset;
+
+	// Any matching @keyframe names are overridden as per CSS rules
+	keyframes.reserve(keyframes.size() + other_sheet.keyframes.size());
+	for (auto& other_keyframes : other_sheet.keyframes)
+	{
+		keyframes[other_keyframes.first] = other_keyframes.second;
+	}
+
+	// Copy over the decorators, and replace any matching decorator names from other_sheet
+	decorator_map.reserve(decorator_map.size() + other_sheet.decorator_map.size());
+	for (auto& other_decorator : other_sheet.decorator_map)
+	{
+		decorator_map[other_decorator.first] = other_decorator.second;
+	}
+
+	spritesheet_list.Reserve(
+		spritesheet_list.NumSpriteSheets() + other_sheet.spritesheet_list.NumSpriteSheets(),
+		spritesheet_list.NumSprites() + other_sheet.spritesheet_list.NumSprites()
+	);
+	spritesheet_list.Merge(other_sheet.spritesheet_list);
 }
 
 // Builds the node index for a combined style sheet.
@@ -110,13 +110,6 @@ void StyleSheet::BuildNodeIndex()
 	root->SetStructurallyVolatileRecursive(false);
 }
 
-// Builds the node index for a combined style sheet.
-void StyleSheet::OptimizeNodeProperties()
-{
-	RMLUI_ZoneScoped;
-	root->OptimizeProperties(*this);
-}
-
 // Returns the Keyframes of the given name, or null if it does not exist.
 const Keyframes * StyleSheet::GetKeyframes(const String & name) const
 {
@@ -126,195 +119,55 @@ const Keyframes * StyleSheet::GetKeyframes(const String & name) const
 	return nullptr;
 }
 
-SharedPtr<Decorator> StyleSheet::GetDecorator(const String& name) const
+const Vector<SharedPtr<const Decorator>>& StyleSheet::InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* source) const
 {
-	auto it = decorator_map.find(name);
-	if (it == decorator_map.end())
-		return nullptr;
-	return it->second.decorator;
+	// Generate the cache key. Relative paths of textures may be affected by the source path, and ultimately
+	// which texture should be displayed. Thus, we need to include this path in the cache key.
+	String key;
+	key.reserve(declaration_list.value.size() + 1 + (source ? source->path.size() : 0));
+	key = declaration_list.value;
+	key += ';';
+	if (source)
+		key += source->path;
+
+	auto it_cache = decorator_cache.find(key);
+	if (it_cache != decorator_cache.end())
+		return it_cache->second;
+
+	Vector<SharedPtr<const Decorator>>& decorators = decorator_cache[key];
+
+	for (const DecoratorDeclaration& declaration : declaration_list.list)
+	{
+		if (declaration.instancer)
+		{
+			RMLUI_ZoneScopedN("InstanceDecorator");
+			
+			if (SharedPtr<Decorator> decorator = declaration.instancer->InstanceDecorator(declaration.type, declaration.properties, DecoratorInstancerInterface(*this, source)))
+				decorators.push_back(std::move(decorator));
+			else
+				Log::Message(Log::LT_WARNING, "Decorator '%s' in '%s' could not be instanced, declared at %s:%d", declaration.type.c_str(), declaration_list.value.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
+		}
+		else
+		{
+			// If we have no instancer, this means the type is the name of an @decorator rule.
+			SharedPtr<Decorator> decorator;
+			auto it_map = decorator_map.find(declaration.type);
+			if (it_map != decorator_map.end())
+				decorator = it_map->second.decorator;
+
+			if (decorator)
+				decorators.push_back(std::move(decorator));
+			else
+				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", declaration.type.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
+		}
+	}
+
+	return decorators;
 }
 
 const Sprite* StyleSheet::GetSprite(const String& name) const
 {
 	return spritesheet_list.GetSprite(name);
-}
-
-DecoratorsPtr StyleSheet::InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const
-{
-	// Decorators are declared as
-	//   decorator: <decorator-value>[, <decorator-value> ...];
-	// Where <decorator-value> is either a @decorator name:
-	//   decorator: invader-theme-background, ...;
-	// or is an anonymous decorator with inline properties
-	//   decorator: tiled-box( <shorthand properties> ), ...;
-
-	if (decorator_string_value.empty() || decorator_string_value == "none")
-		return nullptr;
-
-	RMLUI_ZoneScoped;
-	Decorators decorators;
-	const char* source_path = (source ? source->path.c_str() : "");
-	const int source_line_number = (source ? source->line_number : 0);
-
-	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
-	StringList decorator_string_list;
-	StringUtilities::ExpandString(decorator_string_list, decorator_string_value, ',', '(', ')');
-
-	decorators.value = decorator_string_value;
-	decorators.list.reserve(decorator_string_list.size());
-
-	// Get or instance each decorator in the comma-separated string list
-	for (const String& decorator_string : decorator_string_list)
-	{
-		const size_t shorthand_open = decorator_string.find('(');
-		const size_t shorthand_close = decorator_string.rfind(')');
-		const bool invalid_parenthesis = (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close);
-
-		if (invalid_parenthesis)
-		{
-			// We found no parenthesis, that means the value must be a name of a @decorator rule, look it up
-			SharedPtr<Decorator> decorator = GetDecorator(decorator_string);
-			if (decorator)
-				decorators.list.emplace_back(std::move(decorator));
-			else
-				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", decorator_string.c_str(), source_path, source_line_number);
-		}
-		else
-		{
-			// Since we have parentheses it must be an anonymous decorator with inline properties
-			const String type = StringUtilities::StripWhitespace(decorator_string.substr(0, shorthand_open));
-
-			// Check for valid decorator type
-			DecoratorInstancer* instancer = Factory::GetDecoratorInstancer(type);
-			if (!instancer)
-			{
-				Log::Message(Log::LT_WARNING, "Decorator type '%s' not found, declared at %s:%d", type.c_str(), source_path, source_line_number);
-				continue;
-			}
-
-			const String shorthand = decorator_string.substr(shorthand_open + 1, shorthand_close - shorthand_open - 1);
-			const PropertySpecification& specification = instancer->GetPropertySpecification();
-
-			// Parse the shorthand properties given by the 'decorator' shorthand property
-			PropertyDictionary properties;
-			if (!specification.ParsePropertyDeclaration(properties, "decorator", shorthand))
-			{
-				Log::Message(Log::LT_WARNING, "Could not parse decorator value '%s' at %s:%d", decorator_string.c_str(), source_path, source_line_number);
-				continue;
-			}
-
-			// Set unspecified values to their defaults
-			specification.SetPropertyDefaults(properties);
-			
-			properties.SetSourceOfAllProperties(source);
-
-			RMLUI_ZoneScopedN("InstanceDecorator");
-			SharedPtr<Decorator> decorator = instancer->InstanceDecorator(type, properties, DecoratorInstancerInterface(*this));
-
-			if (decorator)
-				decorators.list.emplace_back(std::move(decorator));
-			else
-			{
-				Log::Message(Log::LT_WARNING, "Decorator '%s' could not be instanced, declared at %s:%d", decorator_string.c_str(), source_path, source_line_number);
-				continue;
-			}
-		}
-	}
-
-	return MakeShared<Decorators>(std::move(decorators));
-}
-
-FontEffectsPtr StyleSheet::InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const
-{	
-	// Font-effects are declared as
-	//   font-effect: <font-effect-value>[, <font-effect-value> ...];
-	// Where <font-effect-value> is declared with inline properties, e.g.
-	//   font-effect: outline( 1px black ), ...;
-
-	if (font_effect_string_value.empty() || font_effect_string_value == "none")
-		return nullptr;
-
-	RMLUI_ZoneScoped;
-	const char* source_path = (source ? source->path.c_str() : "");
-	const int source_line_number = (source ? source->line_number : 0);
-
-	FontEffects font_effects;
-
-	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
-	StringList font_effect_string_list;
-	StringUtilities::ExpandString(font_effect_string_list, font_effect_string_value, ',', '(', ')');
-
-	font_effects.value = font_effect_string_value;
-	font_effects.list.reserve(font_effect_string_list.size());
-
-	// Get or instance each decorator in the comma-separated string list
-	for (const String& font_effect_string : font_effect_string_list)
-	{
-		const size_t shorthand_open = font_effect_string.find('(');
-		const size_t shorthand_close = font_effect_string.rfind(')');
-		const bool invalid_parenthesis = (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close);
-
-		if (invalid_parenthesis)
-		{
-			// We found no parenthesis, font-effects can only be declared anonymously for now.
-			Log::Message(Log::LT_WARNING, "Invalid syntax for font-effect '%s', declared at %s:%d", font_effect_string.c_str(), source_path, source_line_number);
-		}
-		else
-		{
-			// Since we have parentheses it must be an anonymous decorator with inline properties
-			const String type = StringUtilities::StripWhitespace(font_effect_string.substr(0, shorthand_open));
-
-			// Check for valid font-effect type
-			FontEffectInstancer* instancer = Factory::GetFontEffectInstancer(type);
-			if (!instancer)
-			{
-				Log::Message(Log::LT_WARNING, "Font-effect type '%s' not found, declared at %s:%d", type.c_str(), source_path, source_line_number);
-				continue;
-			}
-
-			const String shorthand = font_effect_string.substr(shorthand_open + 1, shorthand_close - shorthand_open - 1);
-			const PropertySpecification& specification = instancer->GetPropertySpecification();
-
-			// Parse the shorthand properties given by the 'font-effect' shorthand property
-			PropertyDictionary properties;
-			if (!specification.ParsePropertyDeclaration(properties, "font-effect", shorthand))
-			{
-				Log::Message(Log::LT_WARNING, "Could not parse font-effect value '%s' at %s:%d", font_effect_string.c_str(), source_path, source_line_number);
-				continue;
-			}
-
-			// Set unspecified values to their defaults
-			specification.SetPropertyDefaults(properties);
-
-			properties.SetSourceOfAllProperties(source);
-
-			RMLUI_ZoneScopedN("InstanceFontEffect");
-			SharedPtr<FontEffect> font_effect = instancer->InstanceFontEffect(type, properties);
-			if (font_effect)
-			{
-				// Create a unique hash value for the given type and values
-				size_t fingerprint = Hash<String>{}(type);
-				for (const auto& id_value : properties.GetProperties())
-					Utilities::HashCombine(fingerprint, id_value.second.Get<String>());
-
-				font_effect->SetFingerprint(fingerprint);
-
-				font_effects.list.emplace_back(std::move(font_effect));
-			}
-			else
-			{
-				Log::Message(Log::LT_WARNING, "Font-effect '%s' could not be instanced, declared at %s:%d", font_effect_string.c_str(), source_path, source_line_number);
-				continue;
-			}
-		}
-	}
-
-	// Partition the list such that the back layer effects appear before the front layer effects
-	std::stable_partition(font_effects.list.begin(), font_effects.list.end(), 
-		[](const SharedPtr<const FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
-	);
-
-	return MakeShared<FontEffects>(std::move(font_effects));
 }
 
 size_t StyleSheet::NodeHash(const String& tag, const String& id)

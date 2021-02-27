@@ -45,6 +45,7 @@ class SpritesheetList;
 class Stream;
 class StyleSheetContainer;
 class StyleSheetParser;
+struct PropertySource;
 struct Sprite;
 struct Spritesheet;
 
@@ -65,25 +66,15 @@ public:
 
 	/// Combines this style sheet with another one, producing a new sheet.
 	UniquePtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
-
-	/// Creates an exact copy of this style sheet.
-	UniquePtr<StyleSheet> Clone() const;
+	/// Merges another style sheet into this.
+	void MergeStyleSheet(const StyleSheet& sheet);
 
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
-	/// Optimizes some properties for faster retrieval.
-	/// Specifically, converts all decorator and font-effect properties from strings to instanced decorator and font effect lists.
-	void OptimizeNodeProperties();
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
 	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to subobjects around.
 	const Keyframes* GetKeyframes(const String& name) const;
-
-	/// Parses the decorator property from a string and returns a list of instanced decorators.
-	DecoratorsPtr InstanceDecoratorsFromString(const String& decorator_string_value, const SharedPtr<const PropertySource>& source) const;
-
-	/// Parses the font-effect property from a string and returns a list of instanced font-effects.
-	FontEffectsPtr InstanceFontEffectsFromString(const String& font_effect_string_value, const SharedPtr<const PropertySource>& source) const;
 
 	/// Get sprite located in any spritesheet within this stylesheet.
 	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to subobjects around.
@@ -95,14 +86,12 @@ public:
 	/// Retrieve the hash key used to look-up applicable nodes in the node index.
 	static size_t NodeHash(const String& tag, const String& id);
 
+	/// Returns a list of instanced decorators from the declarations. The instances are cached for faster future retrieval.
+	const Vector<SharedPtr<const Decorator>>& InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* decorator_source) const;
+
 private:
 	StyleSheet();
 
-	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
-
-	/// Returns the Decorator of the given name, or null if it does not exist.
-	SharedPtr<Decorator> GetDecorator(const String& name) const;
-	
 	// Root level node, attributes from special nodes like "body" get added to this node
 	UniquePtr<StyleSheetNode> root;
 
@@ -126,7 +115,12 @@ private:
 	NodeIndex styled_node_index;
 
 	// Index of node sets to element definitions.
+	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
 	mutable ElementDefinitionCache node_cache;
+
+	// Cached decorator instances.
+	using DecoratorCache = UnorderedMap< String, Vector<SharedPtr<const Decorator>> >;
+	mutable DecoratorCache decorator_cache;
 
 	friend Rml::StyleSheetParser;
 	friend Rml::StyleSheetContainer;

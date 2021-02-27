@@ -31,6 +31,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/Types.h>
 
 #include <doctest.h>
@@ -100,41 +101,86 @@ TEST_CASE("elementdocument")
 		context->Update();
 	}
 
-	nanobench::Bench bench;
-	bench.title("ElementDocument");
-	bench.timeUnit(std::chrono::microseconds(1), "us");
-	bench.relative(true);
+	{
+		nanobench::Bench bench;
+		bench.title("ElementDocument");
+		bench.timeUnit(std::chrono::microseconds(1), "us");
+		bench.relative(true);
 
-	bench.run("LoadDocument", [&] {
-		ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-		document->Close();
-		context->Update();
-	});
+		bench.run("LoadDocument", [&] {
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+			document->Close();
+			context->Update();
+		});
 
-	bench.run("LoadDocument + Show", [&] {
-		ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-		document->Show();
-		document->Close();
-		context->Update();
-	});
+		bench.run("LoadDocument + Show", [&] {
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+			document->Show();
+			document->Close();
+			context->Update();
+		});
 
-	bench.run("LoadDocument + Show + Update", [&] {
-		ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-		document->Show();
-		context->Update();
-		document->Close();
-		context->Update();
-	});
+		bench.run("LoadDocument + Show + Update", [&] {
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+			document->Show();
+			context->Update();
+			document->Close();
+			context->Update();
+		});
 
-	bench.run("LoadDocument + Show + Update + Render", [&] {
-		ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-		document->Show();
-		context->Update();
-		TestsShell::PrepareRenderBuffer();
-		context->Render();
-		TestsShell::PresentRenderBuffer();
-		document->Close();
-		context->Update();
-	});
+		bench.run("LoadDocument + Show + Update + Render", [&] {
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+			document->Show();
+			context->Update();
+			TestsShell::PrepareRenderBuffer();
+			context->Render();
+			TestsShell::PresentRenderBuffer();
+			document->Close();
+			context->Update();
+		});
+	}
 
+
+	{
+		nanobench::Bench bench;
+		bench.title("ElementDocument w/ClearStyleSheetCache");
+		bench.timeUnit(std::chrono::microseconds(1), "us");
+		bench.relative(true);
+
+		bench.run("Clear + LoadDocument", [&] {
+			Factory::ClearStyleSheetCache();
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+			document->Close();
+			context->Update();
+		});
+
+		bench.run("Clear + LoadDocument + Show", [&] {
+			Factory::ClearStyleSheetCache();
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+			document->Show();
+			document->Close();
+			context->Update();
+		});
+
+		bench.run("Clear + LoadDocument + Show + Update", [&] {
+			Factory::ClearStyleSheetCache();
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+			document->Show();
+			context->Update();
+			document->Close();
+			context->Update();
+		});
+
+		bench.run("Clear + LoadDocument + Show + Update + Render", [&] {
+			Factory::ClearStyleSheetCache();
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+			document->Show();
+			context->Update();
+			TestsShell::PrepareRenderBuffer();
+			context->Render();
+			TestsShell::PresentRenderBuffer();
+			document->Close();
+			context->Update();
+		});
+	}
 }

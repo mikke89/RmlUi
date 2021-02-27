@@ -7,9 +7,9 @@
 	<style>
 		div > div {
 			width: 50%;
-			margin: 10px 0;
-			padding: 20px;
-			border: 10px #999;
+			margin: 10dp 0;
+			padding: 20dp;
+			border: 10dp #999;
 			background-color: #aaf;
 		}
 		.border-box {
@@ -23,11 +23,11 @@
 			width: 23.3%;  /* width + margins should be 33.3% */
 			margin-left: 5%;
 			margin-right: 5%;
-			border-width: 20px;
+			border-width: 20dp;
 		}
 		.fill {
-			height: 200px;
-			border: 15px #ffa;
+			height: 200dp;
+			border: 15dp #ffa;
 			background: #f00;
 			overflow: auto;
 		}

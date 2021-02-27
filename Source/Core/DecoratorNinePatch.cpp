@@ -42,10 +42,12 @@ DecoratorNinePatch::~DecoratorNinePatch()
 {
 }
 
-bool DecoratorNinePatch::Initialise(const Rectangle& _rect_outer, const Rectangle& _rect_inner, const Array<Property, 4>* _edges, const Texture& _texture)
+bool DecoratorNinePatch::Initialise(const Rectangle& _rect_outer, const Rectangle& _rect_inner, const Array<Property, 4>* _edges, const Texture& _texture, float _display_scale)
 {
 	rect_outer = _rect_outer;
 	rect_inner = _rect_inner;
+	
+	display_scale = _display_scale;
 
 	if (_edges)
 		edges = MakeUnique< Array<Property, 4> >(*_edges);
@@ -65,7 +67,7 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	data->SetTexture(texture);
 	const Vector2f texture_dimensions(texture->GetDimensions(render_interface));
 
-	const Vector2f surface_dimensions = element->GetBox().GetSize(Box::PADDING);
+	const Vector2f surface_dimensions = element->GetBox().GetSize(Box::PADDING).Round();
 
 	const float opacity = computed.opacity;
 	Colourb quad_colour = computed.image_color;
@@ -87,23 +89,26 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	for (int i = 0; i < 4; i++)
 		tex_coords[i] = tex_pos[i] / texture_dimensions;
 
-	// Surface position [0, surface_dimensions]
-	// Need to keep the corner patches at their native pixel size, but stretch the inner patches.
+	// Natural size is determined from the raw pixel size multiplied by the dp-ratio and the sprite's
+	// display scale (determined by eg. the inverse of spritesheet's 'src-scale').
+	const float scale_raw_to_natural_dimensions = ElementUtilities::GetDensityIndependentPixelRatio(element) * display_scale;
+
+	// Surface position in pixels [0, surface_dimensions]
+	// Need to keep the corner patches at their natural size, but stretch the inner patches.
 	Vector2f surface_pos[4];
 	surface_pos[0] = { 0, 0 };
-	surface_pos[1] = tex_pos[1] - tex_pos[0];
-	surface_pos[2] = surface_dimensions - (tex_pos[3] - tex_pos[2]);
+	surface_pos[1] = (tex_pos[1] - tex_pos[0]) * scale_raw_to_natural_dimensions;
+	surface_pos[2] = surface_dimensions - (tex_pos[3] - tex_pos[2]) * scale_raw_to_natural_dimensions;
 	surface_pos[3] = surface_dimensions;
 
 	// Change the size of the edges if specified.
 	if (edges)
 	{
-		const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(element);
 		float lengths[4]; // top, right, bottom, left
-		lengths[0] = element->ResolveNumericProperty(&(*edges)[0], dp_ratio * (surface_pos[1].y - surface_pos[0].y));
-		lengths[1] = element->ResolveNumericProperty(&(*edges)[1], dp_ratio * (surface_pos[3].x - surface_pos[2].x));
-		lengths[2] = element->ResolveNumericProperty(&(*edges)[2], dp_ratio * (surface_pos[3].y - surface_pos[2].y));
-		lengths[3] = element->ResolveNumericProperty(&(*edges)[3], dp_ratio * (surface_pos[1].x - surface_pos[0].x));
+		lengths[0] = element->ResolveNumericProperty(&(*edges)[0], (surface_pos[1].y - surface_pos[0].y));
+		lengths[1] = element->ResolveNumericProperty(&(*edges)[1], (surface_pos[3].x - surface_pos[2].x));
+		lengths[2] = element->ResolveNumericProperty(&(*edges)[2], (surface_pos[3].y - surface_pos[2].y));
+		lengths[3] = element->ResolveNumericProperty(&(*edges)[3], (surface_pos[1].x - surface_pos[0].x));
 
 		surface_pos[1].y = lengths[0];
 		surface_pos[2].x = surface_dimensions.x - lengths[1];
@@ -123,6 +128,10 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 			surface_pos[2][i] = surface_pos[1][i];
 		}
 	}
+
+	// Round the inner corners
+	surface_pos[1] = surface_pos[1].Round();
+	surface_pos[2] = surface_pos[2].Round();
 
 	/* Now we have all the coordinates we need. Expand the diagonal vertices to the 16 individual vertices. */
 
@@ -170,7 +179,7 @@ void DecoratorNinePatch::ReleaseElementData(DecoratorDataHandle element_data) co
 void DecoratorNinePatch::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	Geometry* data = reinterpret_cast< Geometry* >(element_data);
-	data->Render(element->GetAbsoluteOffset(Box::PADDING).Round());
+	data->Render(element->GetAbsoluteOffset(Box::PADDING));
 }
 
 
@@ -240,8 +249,11 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 
 	auto decorator = MakeShared<DecoratorNinePatch>();
 
-	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, (edges_set ? &edges : nullptr), sprite_outer->sprite_sheet->texture))
+	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, (edges_set ? &edges : nullptr),
+		sprite_outer->sprite_sheet->texture, sprite_outer->sprite_sheet->display_scale))
+	{
 		return nullptr;
+	}
 
 	return decorator;
 }

@@ -7,14 +7,14 @@
 	<meta name="description" content='The result is identical to normal flow, except that the "outer" text is shifted 12px upward, without affecting the flow of the "body" or "inner" text.' />
 	<style>
 		body {
-			font-size: 20px;
+			font-size: 20dp;
 			display: block;
 			background: #ddd;
 			color: #444;
 			line-height: 200%;
 		}
-		#outer { position: relative; top: -12px; color: red }
-		#inner { position: relative; top: 12px; color: blue }
+		#outer { position: relative; top: -12dp; color: red }
+		#inner { position: relative; top: 12dp; color: blue }
 	</style>
 </head>
 <body>

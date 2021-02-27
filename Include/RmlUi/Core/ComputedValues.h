@@ -214,8 +214,8 @@ struct ComputedValues
 	TransitionList transition;
 	AnimationList animation;
 
-	DecoratorsPtr decorator;
-	FontEffectsPtr font_effect; // Sorted by layer first (back then front), then by declaration order.
+	bool has_decorator = false;
+	bool has_font_effect = false;
 };
 }
 

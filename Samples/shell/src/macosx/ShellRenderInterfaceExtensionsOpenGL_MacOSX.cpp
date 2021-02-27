@@ -29,14 +29,8 @@
 #include <ShellRenderInterfaceExtensions.h>
 #include <ShellRenderInterfaceOpenGL.h>
 #include <Carbon/Carbon.h>
-#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Core/Types.h>
-
-void ShellRenderInterfaceOpenGL::SetContext(void *context)
-{
-	m_rmlui_context = context;
-}
 
 void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 {
@@ -55,11 +49,6 @@ void ShellRenderInterfaceOpenGL::SetViewport(int width, int height)
 		glLoadMatrixf(view);
 
 		aglUpdateContext(gl_context);
-
-		if(m_rmlui_context != nullptr)
-		{
-			((Rml::Context*)m_rmlui_context)->SetDimensions(Rml::Vector2i(width, height));
-		}
 	}
 }
 

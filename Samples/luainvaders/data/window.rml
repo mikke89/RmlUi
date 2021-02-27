@@ -19,6 +19,6 @@ function Window.LoadMenu(name,document)
 end
 	</script>
 </head>
-<body template="window" onload="Window.OnWindowLoad(document)">
+<body template="window">
 </body>
 </template>

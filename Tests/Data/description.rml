@@ -4,15 +4,15 @@
 <link type="text/rcss" href="style.rcss"/>
 <style>
 	body {
-		font-size: 17px;
+		font-size: 17dp;
 		color: #444;
 		position: absolute;
 		top: 0; bottom: 0;
 		right: 0;
-		width: 400px;
+		width: 400dp;
 		background: #333;
 		color: #ccc;
-		padding: 20px 20px;
+		padding: 20dp 20dp;
 		z-index: 100;
 		tab-index: auto;
 	}
@@ -32,18 +32,18 @@
 	}
 	#filter {
 		position: absolute;
-		right: 20px;
-		top: 20px;
+		right: 20dp;
+		top: 20dp;
 		width: 50%;
 		text-align: right;
 	}
 	input.text {
 		font-size: 0.85em;
-		padding: 3px 4px;
+		padding: 3dp 4dp;
 		width: 80%;
 		background-color: #444;
 		color: #ffe;
-		border: 1px #555;
+		border: 1dp #555;
 		cursor: text;
 		tab-index: auto;
 	}
@@ -57,7 +57,7 @@
 		overflow: hidden auto;	
 	}
 	#goto {
-		margin: 0 20px 10px 20px;
+		margin: 0 20dp 10dp 20dp;
 		color: #ddb;
 	}
 	#bottom {
@@ -69,7 +69,7 @@
 		word-break: break-all;
 	}
 	#hovertext {
-		margin: 0px 20px 10px 20px;
+		margin: 0dp 20dp 10dp 20dp;
 		font-size: 0.9em;
 		color: #aaa;
 		min-height: 1.5em;

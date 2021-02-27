@@ -5,8 +5,8 @@
 <style>
 body
 {
-	width: 550px;
-	height: 500px;
+	width: 550dp;
+	height: 500dp;
 	/*transform: rotate3d(0,1,0,15deg);*/
 }
 
@@ -25,7 +25,7 @@ div#title_bar:hover
 spacer
 {
 	display: inline-block;
-	width: 25px;
+	width: 25dp;
 }
 scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 {
@@ -37,25 +37,25 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
    https://developer.mozilla.org/en-US/docs/Web/CSS/perspective */
 
 .pers250 {
-	perspective: 250px;
+	perspective: 250dp;
 }
 
 .pers350 {
-	perspective: 350px;
+	perspective: 350dp;
 }
 
 .pers500 {
-	perspective: 500px;
+	perspective: 500dp;
 }
 
 .pers650 {
-	perspective: 650px;
+	perspective: 650dp;
 }
 
 .container {
-	width: 200px;
-	height: 200px;
-	margin: 75px auto;
+	width: 200dp;
+	height: 200dp;
+	margin: 75dp auto;
 	background-color: #a003;
 }
 
@@ -63,18 +63,18 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 	width: 100%;
 	height: 100%;
 	position: relative;
-	transform: translateZ(50px);
+	transform: translateZ(50dp);
 	perspective-origin: 150% 150%;
 }
 
 .face {
-	left: 50px; top: 50px;
+	left: 50dp; top: 50dp;
 	display: block;
 	position: absolute;
-	width: 100px;
-	height: 100px;
-	line-height: 100px;
-	font-size: 60px;
+	width: 100dp;
+	height: 100dp;
+	line-height: 100dp;
+	font-size: 60dp;
 	color: white;
 	text-align: center;
 }
@@ -82,7 +82,7 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 /* Define each face based on direction */
 .front {
 	background: rgba(0, 0, 0, 160);
-	transform: translateZ(50px);
+	transform: translateZ(50dp);
 }
 .front:hover {
 	background: rgba(255, 255, 0, 120);
@@ -90,23 +90,23 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 .back {
 	background: rgba(0, 255, 0, 255);
 	color: black;
-	transform: rotateY(180deg) translateZ(50px);
+	transform: rotateY(180deg) translateZ(50dp);
 }
 .right {
 	background: rgba(196, 0, 0, 200);
-	transform: rotateY(90deg) translateZ(50px);
+	transform: rotateY(90deg) translateZ(50dp);
 }
 .left {
 	background: rgba(0, 0, 196, 200);
-	transform: rotateY(-90deg) translateZ(50px);
+	transform: rotateY(-90deg) translateZ(50dp);
 }
 .top {
 	background: rgba(196, 196, 0, 200);
-	transform: rotateX(90deg) translateZ(50px);
+	transform: rotateX(90deg) translateZ(50dp);
 }
 .bottom {
 	background: rgba(196, 0, 196, 200);
-	transform: rotateX(-90deg) translateZ(50px);
+	transform: rotateX(-90deg) translateZ(50dp);
 }
 </style>
 </head>
@@ -120,7 +120,7 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 		<div class="face right">2</div>
 		<div class="face front">1</div>
 	</div>
-	perspective: 650px;
+	perspective: 650dp;
 </div>
 
 <p>Press 'space' to toggle rotation.</p>
@@ -145,7 +145,7 @@ augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet,
 consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut
 laoreet dolore magna aliquam erat volutpat.</p>
 
-<button style="width: 220px; transform: translateZ(-30px);">A wild button appears!</button>
+<button style="width: 220dp; transform: translateZ(-30dp);">A wild button appears!</button>
 
 <p>Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit
 lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure
@@ -170,7 +170,8 @@ commodo consequat.</p>
 		<div class="face right">2</div>
 		<div class="face front">1</div>
 	</div>
-	perspective: 250px; clip: none;
+	perspective: 250dp; clip:none;<br/>
+	(rendered outside the window)
 </div>
 
 <p>Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse

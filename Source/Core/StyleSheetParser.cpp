@@ -79,11 +79,12 @@ public:
 class SpritesheetPropertyParser final : public AbstractPropertyParser {
 private:
 	String image_source;
+	float image_resolution_factor = 1.f;
 	SpriteDefinitionList sprite_definitions;
 
 	PropertyDictionary properties;
 	PropertySpecification specification;
-	PropertyId id_rx, id_ry, id_rw, id_rh;
+	PropertyId id_rx, id_ry, id_rw, id_rh, id_resolution;
 	ShorthandId id_rectangle;
 
 public:
@@ -94,6 +95,7 @@ public:
 		id_rw = specification.RegisterProperty("rectangle-w", "", false, false).AddParser("length").GetId();
 		id_rh = specification.RegisterProperty("rectangle-h", "", false, false).AddParser("length").GetId();
 		id_rectangle = specification.RegisterShorthand("rectangle", "rectangle-x, rectangle-y, rectangle-w, rectangle-h", ShorthandType::FallThrough);
+		id_resolution = specification.RegisterProperty("resolution", "", false, false).AddParser("resolution").GetId();
 	}
 
 	const String& GetImageSource() const
@@ -104,8 +106,13 @@ public:
 	{
 		return sprite_definitions;
 	}
+	float GetImageResolutionFactor() const
+	{
+		return image_resolution_factor;
+	}
 
 	void Clear() {
+		image_resolution_factor = 1.f;
 		image_source.clear();
 		sprite_definitions.clear();
 	}
@@ -115,6 +122,17 @@ public:
 		if (name == "src")
 		{
 			image_source = value;
+		}
+		else if (name == "resolution")
+		{
+			if (!specification.ParsePropertyDeclaration(properties, id_resolution, value))
+				return false;
+
+			if (const Property* property = properties.GetProperty(id_resolution))
+			{
+				if (property->unit == Property::X)
+					image_resolution_factor = property->Get<float>();
+			}
 		}
 		else
 		{
@@ -176,6 +194,8 @@ public:
 		specification.RegisterProperty("max-resolution", "", false, false, CastId(MediaQueryId::MaxResolution)).AddParser("resolution");
 
 		specification.RegisterProperty("orientation", "", false, false, CastId(MediaQueryId::Orientation)).AddParser("keyword", "landscape, portrait");
+
+		specification.RegisterProperty("theme", "", false, false, CastId(MediaQueryId::Theme)).AddParser("string");
 	}
 
 	void SetTargetProperties(PropertyDictionary* _properties)
@@ -384,7 +404,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	property_specification.SetPropertyDefaults(properties);
 	properties.SetSourceOfAllProperties(source);
 
-	SharedPtr<Decorator> decorator = decorator_instancer->InstanceDecorator(decorator_type, properties, DecoratorInstancerInterface(style_sheet));
+	SharedPtr<Decorator> decorator = decorator_instancer->InstanceDecorator(decorator_type, properties, DecoratorInstancerInterface(style_sheet, source.get()));
 	if (!decorator)
 	{
 		Log::Message(Log::LT_WARNING, "Could not instance decorator of type '%s' declared at %s:%d.", decorator_type.c_str(), stream_file_name.c_str(), line_number);
@@ -489,7 +509,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 	return true;
 }
 
-int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int begin_line_number)
+bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int begin_line_number)
 {
 	RMLUI_ZoneScoped;
 
@@ -581,7 +601,7 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
 					}
 
-					String at_rule_identifier = pre_token_str.substr(0, pre_token_str.find(' '));
+					const String at_rule_identifier = StringUtilities::StripWhitespace(pre_token_str.substr(0, pre_token_str.find(' ')));
 					at_rule_name = StringUtilities::StripWhitespace(pre_token_str.substr(at_rule_identifier.size()));
 
 					if (at_rule_identifier == "keyframes")
@@ -603,22 +623,24 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 
 						const String& image_source = spritesheet_property_parser->GetImageSource();
 						const SpriteDefinitionList& sprite_definitions = spritesheet_property_parser->GetSpriteDefinitions();
+						const float image_resolution_factor = spritesheet_property_parser->GetImageResolutionFactor();
 						
-						if (at_rule_name.empty())
+						if (sprite_definitions.empty())
 						{
-							Log::Message(Log::LT_WARNING, "No name given for @spritesheet at %s:%d", stream_file_name.c_str(), line_number);
-						}
-						else if (sprite_definitions.empty())
-						{
-							Log::Message(Log::LT_WARNING, "Spritesheet with name '%s' has no sprites defined, ignored. At %s:%d", at_rule_name.c_str(), stream_file_name.c_str(), line_number);
+							Log::Message(Log::LT_WARNING, "Spritesheet '%s' has no sprites defined, ignored. At %s:%d", at_rule_name.c_str(), stream_file_name.c_str(), line_number);
 						}
 						else if (image_source.empty())
 						{
 							Log::Message(Log::LT_WARNING, "No image source (property 'src') specified for spritesheet '%s'. At %s:%d", at_rule_name.c_str(), stream_file_name.c_str(), line_number);
 						}
+						else if (image_resolution_factor <= 0.0f || image_resolution_factor >= 100.f)
+						{
+							Log::Message(Log::LT_WARNING, "Spritesheet resolution (property 'resolution') value must be larger than 0.0 and smaller than 100.0, given %g. In spritesheet '%s'. At %s:%d", image_resolution_factor, at_rule_name.c_str(), stream_file_name.c_str(), line_number);
+						}
 						else
 						{
-							current_block.stylesheet->spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, sprite_definitions);
+							const float display_scale = 1.0f / image_resolution_factor;
+							current_block.stylesheet->spritesheet_list.AddSpriteSheet(at_rule_name, image_source, stream_file_name, (int)line_number, display_scale, sprite_definitions);
 						}
 
 						spritesheet_property_parser->Clear();
@@ -713,7 +735,7 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 		style_sheets.push_back(std::move(current_block));
 	}
 
-	return rule_count;
+	return !style_sheets.empty();
 }
 
 bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, const String& properties)

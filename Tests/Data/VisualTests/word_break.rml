@@ -17,11 +17,11 @@
 			color: #45e;
 		}
 		.box {
-			width: 60px;
-			border: 2px #aaa;
+			width: 60dp;
+			border: 2dp #aaa;
 		}
 		.zero {
-			width: 0px;
+			width: 0;
 		}
 		.break-all {
 			word-break: break-all;

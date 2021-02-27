@@ -32,6 +32,7 @@
 #include "../../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/StyleSheet.h"
 
 namespace Rml {
@@ -39,6 +40,7 @@ namespace Rml {
 // Constructs a new ElementImage.
 ElementImage::ElementImage(const String& tag) : Element(tag), dimensions(-1, -1), rect_source(RectSource::None), geometry(this)
 {
+	dimensions_scale = 1.0f;
 	geometry_dirty = false;
 	texture_dirty = true;
 }
@@ -57,18 +59,20 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 	// Calculate the x dimension.
 	if (HasAttribute("width"))
 		dimensions.x = GetAttribute< float >("width", -1);
-	else if (rect_source != RectSource::None)
-		dimensions.x = rect.width;
-	else
+	else if (rect_source == RectSource::None)
 		dimensions.x = (float)texture.GetDimensions(GetRenderInterface()).x;
+	else
+		dimensions.x = rect.width;
 
 	// Calculate the y dimension.
 	if (HasAttribute("height"))
 		dimensions.y = GetAttribute< float >("height", -1);
-	else if (rect_source != RectSource::None)
-		dimensions.y = rect.height;
-	else
+	else if (rect_source == RectSource::None)
 		dimensions.y = (float)texture.GetDimensions(GetRenderInterface()).y;
+	else
+		dimensions.y = rect.height;
+
+	dimensions *= dimensions_scale;
 
 	// Return the calculated dimensions. If this changes the size of the element, it will result in
 	// a call to 'onresize' below which will regenerate the geometry.
@@ -153,6 +157,21 @@ void ElementImage::OnResize()
 	GenerateGeometry();
 }
 
+void ElementImage::OnDpRatioChange()
+{
+	texture_dirty = true;
+	DirtyLayout();
+}
+
+void ElementImage::OnStyleSheetChange()
+{
+	if (HasAttribute("sprite"))
+	{
+		texture_dirty = true;
+		DirtyLayout();
+	}
+}
+
 void ElementImage::GenerateGeometry()
 {
 	// Release the old geometry before specifying the new vertices.
@@ -203,6 +222,9 @@ bool ElementImage::LoadTexture()
 {
 	texture_dirty = false;
 	geometry_dirty = true;
+	dimensions_scale = 1.0f;
+
+	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(this);
 
 	// Check for a sprite first, this takes precedence.
 	const String sprite_name = GetAttribute< String >("sprite", "");
@@ -220,6 +242,7 @@ bool ElementImage::LoadTexture()
 					rect = sprite->rectangle;
 					rect_source = RectSource::Sprite;
 					texture = sprite->sprite_sheet->texture;
+					dimensions_scale = sprite->sprite_sheet->display_scale * dp_ratio;
 					valid_sprite = true;
 				}
 			}
@@ -230,7 +253,7 @@ bool ElementImage::LoadTexture()
 			texture = Texture();
 			rect_source = RectSource::None;
 			UpdateRect();
-			Log::Message(Log::LT_WARNING, "Could not find sprite '%s' specified in img element.", sprite_name.c_str());
+			Log::Message(Log::LT_WARNING, "Could not find sprite '%s' specified in img element %s", sprite_name.c_str(), GetAddress().c_str());
 			return false;
 		}
 	}
@@ -251,6 +274,8 @@ bool ElementImage::LoadTexture()
 			source_url.SetURL(document->GetSourceURL());
 
 		texture.Set(source_name, source_url.GetPath());
+
+		dimensions_scale = dp_ratio;
 	}
 
 	// Set the texture onto our geometry object.

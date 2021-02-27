@@ -4,8 +4,8 @@
 	<title>Tree View</title>
 	<style>
 		body {
-			width: 450px;
-			height: 400px;
+			width: 450dp;
+			height: 400dp;
 			margin: auto;
 		}
 		
@@ -19,8 +19,8 @@
 		}
 		expand {
 			display: inline-block;
-			vertical-align: -3px;
-			margin-right: 2px;
+			vertical-align: -3dp;
+			margin-right: 2dp;
 		}
 		tbody tr {
 			height: 1.5em;
@@ -38,12 +38,12 @@
 <body template="window">
 <table data-model="filebrowser">
 	<thead>
-		<tr><td style="margin-left: 10px; margin-right: 10px;"></td></tr>
+		<tr><td style="margin-left: 10dp; margin-right: 10dp;"></td></tr>
 	</thead>
 	<tbody>
 		<tr data-for="file : files" data-if="file.visible">
 			<td>
-				<spacer data-style-width="25 * (1 - file.directory + file.depth) + 'px'"/>
+				<spacer data-style-width="25 * (1 - file.directory + file.depth) + 'dp'"/>
 				<expand data-if="file.directory" data-class-collapsed="file.collapsed" data-event-click="toggle_expand(it_index)"/>
 				{{ file.name }}
 			</td>

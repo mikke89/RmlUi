@@ -44,13 +44,13 @@ body
 	font-family: LatoLatin;
 	font-weight: normal;
 	font-style: normal;
-	font-size: 15px;
+	font-size: 15dp;
 	color: white;
 }
 
 body.window
 {
-	padding: 10px 15px;
+	padding: 10dp 15dp;
 	
 	decorator: tiled-box(
 		window-tl, window-t, window-tr, 
@@ -61,20 +61,20 @@ body.window
 div#title-bar
 {
 	position: absolute;
-	top: -40px;
+	top: -40dp;
 }
 
 div#title-bar span
 {
-	padding-left: 85px;
-	padding-right: 25px;
-	padding-top: 17px;
-	padding-bottom: 48px;
+	padding-left: 85dp;
+	padding-right: 25dp;
+	padding-top: 17dp;
+	padding-bottom: 48dp;
 
-	font-size: 20px;
+	font-size: 20dp;
 	font-weight: bold;
 
-	font-effect: glow(2px 2px 0px 1px #1117);
+	font-effect: glow(2dp 2dp 0dp 1dp #1117);
 	
 	decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
 }
@@ -89,10 +89,10 @@ div#content
 
 scrollbarvertical
 {
-	margin-top: -6px;
-	margin-bottom: -6px;
-	margin-right: -11px;
-	width: 27px;
+	margin-top: -6dp;
+	margin-bottom: -6dp;
+	margin-right: -11dp;
+	width: 27dp;
 }
 
 scrollbarvertical slidertrack
@@ -106,9 +106,9 @@ scrollbarvertical slidertrack:active
 
 scrollbarvertical sliderbar
 {
-	margin-left: 4px;
-	width: 23px;
-	min-height: 46px;
+	margin-left: 4dp;
+	width: 23dp;
+	min-height: 46dp;
 
 	decorator: tiled-vertical( sliderbar-t, sliderbar-c, sliderbar-b );
 }
@@ -126,8 +126,8 @@ scrollbarvertical sliderbar:active
 scrollbarvertical sliderarrowdec,
 scrollbarvertical sliderarrowinc
 {
-	width: 27px;
-	height: 24px;
+	width: 27dp;
+	height: 24dp;
 }
 
 scrollbarvertical sliderarrowdec

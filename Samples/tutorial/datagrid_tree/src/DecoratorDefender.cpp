@@ -19,9 +19,9 @@ DecoratorDefender::~DecoratorDefender()
 {
 }
 
-bool DecoratorDefender::Initialise(const Rml::String& image_source, const Rml::String& image_path)
+bool DecoratorDefender::Initialise(const Rml::Texture& texture)
 {
-	image_index = LoadTexture(image_source, image_path);
+	image_index = AddTexture(texture);
 	if (image_index == -1)
 	{
 		return false;

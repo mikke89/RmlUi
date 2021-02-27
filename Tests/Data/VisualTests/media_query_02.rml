@@ -1,0 +1,58 @@
+<rml>
+<head>
+    <title>Media query: Sprite sheets</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Spritesheets located within media blocks.<br/><br/>Try reducing the width of the window to see the icon and image change, and adjust the dp-ratio with Ctrl +/-/0." />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+			right: 440dp;
+			width: -1px;
+			left: 0;
+		}
+		icon {
+			display: block;
+			decorator: image(icon scale-none);
+			width: 64dp;
+			height: 64dp;
+		}
+
+		@spritesheet
+		{
+			src: /assets/invader.tga;
+			icon: 332px 152px 51px 39px; /* icon-waves */
+		}
+		@media (min-width: 1000px)
+		{
+			@spritesheet
+			{
+				src: /assets/invader.tga;
+				icon: 179px 152px 51px 39px; /* icon-invader */
+			}
+		}
+		@media (min-width: 1300px)
+		{
+			@spritesheet
+			{
+				src: /assets/invader.tga;
+				icon: 230px 152px 51px 39px; /* icon-game */
+			}
+		}
+		@media (min-resolution: 2x)
+		{
+			@spritesheet
+			{
+				src: /assets/high_scores_alien_1.tga;
+				icon: 0 0 64px 64px;
+				resolution: 2x;
+			}
+		}
+	</style>
+</head>
+
+<body>
+<icon/>
+<img sprite="icon"/>
+</body>
+</rml>

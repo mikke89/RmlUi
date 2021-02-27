@@ -56,14 +56,13 @@ struct Spritesheet {
 	String image_source;
 	String definition_source;
 	int definition_line_number;
+	float display_scale; // The inverse of the 'resolution' spritesheet property.
 	Texture texture;
-	StringList sprite_names;
 
-	Spritesheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, const Texture& texture)
-		: name(name), image_source(image_source), definition_source(definition_source), definition_line_number(definition_line_number), texture(texture) {}
+	Spritesheet(const String& name, const String& image_source, const String& definition_source,
+		int definition_line_number, float display_scale, const Texture& texture);
 };
 
-using SpritesheetMap = SmallUnorderedMap<String, SharedPtr<const Spritesheet>>; // key: spritesheet name (as given in @spritesheet)
 using SpriteDefinitionList = Vector<Pair<String, Rectangle>>; // Sprite name and rectangle
 
 
@@ -73,23 +72,24 @@ using SpriteDefinitionList = Vector<Pair<String, Rectangle>>; // Sprite name and
 class SpritesheetList {
 public:
 	/// Adds a new sprite sheet to the list and inserts all sprites with unique names into the global list.
-	bool AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, const SpriteDefinitionList& sprite_definitions);
+	bool AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, float display_scale, const SpriteDefinitionList& sprite_definitions);
 
 	/// Get a sprite from its name if it exists.
 	/// Note: The pointer is invalidated whenever another sprite is added. Do not store it around.
 	const Sprite* GetSprite(const String& name) const;
 
-	/// Merge 'other' into this.
+	/// Merge 'other' into this. Sprites in 'other' will overwrite local sprites if they share the same name.
 	void Merge(const SpritesheetList& other);
 
 	void Reserve(size_t size_sprite_sheets, size_t size_sprites);
 	size_t NumSpriteSheets() const;
 	size_t NumSprites() const;
 
-	String ToString() const;
 
 private:
-	SpritesheetMap spritesheet_map;
+	using Spritesheets = Vector<SharedPtr<const Spritesheet>>;
+
+	Spritesheets spritesheets;
 	SpriteMap sprite_map;
 };
 

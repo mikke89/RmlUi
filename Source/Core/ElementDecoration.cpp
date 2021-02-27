@@ -27,22 +27,31 @@
  */
 
 #include "ElementDecoration.h"
-#include "ElementDefinition.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 
 namespace Rml {
 
-ElementDecoration::ElementDecoration(Element* _element)
-{
-	element = _element;
-	decorators_dirty = false;
-}
+ElementDecoration::ElementDecoration(Element* _element) : element(_element)
+{}
 
 ElementDecoration::~ElementDecoration()
 {
 	ReleaseDecorators();
+}
+
+void ElementDecoration::InstanceDecorators()
+{
+	if (decorators_dirty)
+	{
+		decorators_dirty = false;
+		decorators_data_dirty = true;
+		ReloadDecorators();
+	}
 }
 
 // Releases existing decorators and loads all decorators required by the element's definition.
@@ -51,15 +60,44 @@ bool ElementDecoration::ReloadDecorators()
 	RMLUI_ZoneScopedC(0xB22222);
 	ReleaseDecorators();
 
-	auto& decorators_ptr = element->GetComputedValues().decorator;
-	if (!decorators_ptr)
+	if (!element->GetComputedValues().has_decorator)
 		return true;
 
-	for (const auto& decorator : decorators_ptr->list)
+	const Property* property = element->GetLocalProperty(PropertyId::Decorator);
+	if (!property || property->unit != Property::DECORATOR)
+		return false;
+
+	DecoratorsPtr decorators_ptr = property->Get<DecoratorsPtr>();
+	if (!decorators_ptr)
+		return false;
+
+	const StyleSheet* style_sheet = element->GetStyleSheet();
+	if (!style_sheet)
+		return false;
+
+	PropertySource document_source("", 0, "");
+	const PropertySource* source = property->source.get();
+
+	if (!source)
+	{
+		if (ElementDocument* document = element->GetOwnerDocument())
+		{
+			document_source.path = document->GetSourceURL();
+			source = &document_source;
+		}
+	}
+
+	const auto& decorator_list = style_sheet->InstanceDecorators(*decorators_ptr, source);
+
+	for (const SharedPtr<const Decorator>& decorator : decorator_list)
 	{
 		if (decorator)
 		{
-			LoadDecorator(decorator);
+			DecoratorHandle decorator_handle;
+			decorator_handle.decorator_data = 0;
+			decorator_handle.decorator = decorator;
+
+			decorators.push_back(std::move(decorator_handle));
 		}
 	}
 
@@ -67,23 +105,29 @@ bool ElementDecoration::ReloadDecorators()
 }
 
 // Loads a single decorator and adds it to the list of loaded decorators for this element.
-int ElementDecoration::LoadDecorator(SharedPtr<const Decorator> decorator)
+void ElementDecoration::ReloadDecoratorsData()
 {
-	DecoratorHandle element_decorator;
-	element_decorator.decorator_data = decorator->GenerateElementData(element);
-	element_decorator.decorator = std::move(decorator);
+	if (decorators_data_dirty)
+	{
+		decorators_data_dirty = false;
 
-	decorators.push_back(element_decorator);
-	return (int) (decorators.size() - 1);
+		for (DecoratorHandle& decorator : decorators)
+		{
+			if (decorator.decorator_data)
+				decorator.decorator->ReleaseElementData(decorator.decorator_data);
+
+			decorator.decorator_data = decorator.decorator->GenerateElementData(element);
+		}
+	}
 }
 
 // Releases all existing decorators and frees their data.
 void ElementDecoration::ReleaseDecorators()
 {
-	for (size_t i = 0; i < decorators.size(); i++)
+	for (DecoratorHandle& decorator : decorators)
 	{
-		if (decorators[i].decorator_data)
-			decorators[i].decorator->ReleaseElementData(decorators[i].decorator_data);
+		if (decorator.decorator_data)
+			decorator.decorator->ReleaseElementData(decorator.decorator_data);
 	}
 
 	decorators.clear();
@@ -92,12 +136,8 @@ void ElementDecoration::ReleaseDecorators()
 
 void ElementDecoration::RenderDecorators()
 {
-	// @performance: Ignore dirty flag if e.g. pseudo classes do not affect the decorators
-	if (decorators_dirty)
-	{
-		decorators_dirty = false;
-		ReloadDecorators();
-	}
+	InstanceDecorators();
+	ReloadDecoratorsData();
 
 	// Render the decorators attached to this element in its current state.
 	// Render from back to front for correct render order.
@@ -111,6 +151,11 @@ void ElementDecoration::RenderDecorators()
 void ElementDecoration::DirtyDecorators()
 {
 	decorators_dirty = true;
+}
+
+void ElementDecoration::DirtyDecoratorsData()
+{
+	decorators_data_dirty = true;
 }
 
 } // namespace Rml

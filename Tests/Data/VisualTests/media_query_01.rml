@@ -1,0 +1,100 @@
+<rml>
+<head>
+    <title>Media query: Collapsing menu</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="A basic responsive design for a collapsing menu." />
+	<style>
+		@spritesheet theme 
+		{
+			src: /assets/invader.tga;
+			selectarrow: 307px 192px 30px 37px;
+			selectarrow-hover: 307px 230px 30px 37px;
+			selectarrow-active: 307px 268px 30px 37px;
+		}
+		body {
+			background: #ddd;
+			color: #444;
+			right: 440dp;
+			width: -1px;
+			left: 0;
+		}
+		item {
+			background: #fff;
+			font-size: 1.2em;
+			padding: 1em;
+			border: 3dp #ccc;
+			cursor: pointer;
+		}
+		item:hover {
+			background: #eee;
+		}
+		item:active {
+			background: #e0e0e0;
+		}
+		
+		@media (min-width: 1000dp)
+		{
+			menu {
+				display: table;
+				focus: none;
+			}
+			items {
+				display: table-row;
+			}
+			item {
+				display: table-cell;
+				text-align: center;
+				border-right-width: 0;
+			}
+			item:last-child {
+				border-right-width: 3dp;
+			}
+		}
+
+		@media (max-width: 999dp)
+		{
+			menu {
+				display: block;
+				width: 100%;
+				min-width: 100dp;
+				height: 37dp;
+				cursor: pointer;
+				decorator: image(selectarrow contain left);
+			}
+			menu:hover {
+				decorator: image(selectarrow-hover contain left);
+			}
+			menu:active, menu:focus {
+				decorator: image(selectarrow-active contain left);
+			}
+			items {
+				display: none;
+				padding-top: 37dp;
+				z-index: 10;
+			}
+			menu:focus items {
+				display: block;
+			}
+			item {
+				display: block;
+				border-bottom-width: 0;
+			}
+			item:last-child {
+				border-bottom-width: 3dp;
+			}
+		}
+	</style>
+</head>
+
+<body>
+<menu>
+	<items>
+		<item>Home</item>
+		<item>Blog</item>
+		<item>About</item>
+		<item>Contact</item>
+	</items>
+</menu>
+<p>Try reducing the width of the window.</p>
+</body>
+</rml>

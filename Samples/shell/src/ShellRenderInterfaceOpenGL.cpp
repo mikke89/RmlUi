@@ -35,7 +35,7 @@
 
 #define GL_CLAMP_TO_EDGE 0x812F
 
-ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL() : m_width(0), m_height(0), m_transform_enabled(false), m_rmlui_context(nullptr)
+ShellRenderInterfaceOpenGL::ShellRenderInterfaceOpenGL() : m_width(0), m_height(0), m_transform_enabled(false)
 {
 
 }

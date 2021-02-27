@@ -195,11 +195,9 @@ UniquePtr<const StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(
 		new_style_sheet = MakeUnique<StyleSheetContainer>();
 		if (!new_style_sheet->LoadStyleSheetContainer(stream.get()))
 		{
-			new_style_sheet = nullptr;
+			new_style_sheet.reset();
 		}
 	}
-
-	new_style_sheet->OptimizeNodeProperties();
 
 	return new_style_sheet;
 }

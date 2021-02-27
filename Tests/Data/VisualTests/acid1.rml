@@ -9,7 +9,7 @@
 <style type="text/css">
 /* RmlUi does not accept styling of the html/rml element, they have been moved into body. */
 body {
-font-size: 10px;
+font-size: 10dp;
 color: white;
 margin: 1.5em;
 border: .5em black;
@@ -30,7 +30,7 @@ dt {
 background-color: rgb(204,0,0);
 margin: 0; 
 padding: 1em;
-width: 10.638%; /* refers to parent element's width of 47em. = 5em or 50px */
+width: 10.638%; /* refers to parent element's width of 47em. = 5em or 50dp */
 height: 28em;
 border: .5em black;
 float: left;

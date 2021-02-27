@@ -58,7 +58,7 @@ DecoratorDataHandle DecoratorTiledImage::GenerateElementData(Element* element) c
 	data->SetTexture(GetTexture());
 
 	// Generate the geometry for the tile.
-	tile.GenerateGeometry(data->GetVertices(), data->GetIndices(), element, Vector2f(0, 0), element->GetBox().GetSize(Box::PADDING), tile.GetDimensions(element));
+	tile.GenerateGeometry(data->GetVertices(), data->GetIndices(), element, Vector2f(0, 0), element->GetBox().GetSize(Box::PADDING), tile.GetNaturalDimensions(element));
 
 	return reinterpret_cast<DecoratorDataHandle>(data);
 }

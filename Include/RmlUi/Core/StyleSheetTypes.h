@@ -29,12 +29,13 @@
 #ifndef RMLUI_CORE_STYLESHEETTYPES_H
 #define RMLUI_CORE_STYLESHEETTYPES_H
 
-#include "Traits.h"
+#include "Types.h"
 #include "PropertyDictionary.h"
-#include "Spritesheet.h"
 
 namespace Rml {
 
+class Decorator;
+class DecoratorInstancer;
 class StyleSheet;
 
 struct KeyframeBlock {
@@ -55,13 +56,24 @@ struct DecoratorSpecification {
 };
 using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
 
+struct DecoratorDeclaration {
+	String type;
+	DecoratorInstancer* instancer;
+	PropertyDictionary properties;
+};
+struct DecoratorDeclarationList {
+	Vector<DecoratorDeclaration> list;
+	String value;
+};
+
 struct MediaBlock {
 	MediaBlock() {}
-	MediaBlock(PropertyDictionary _properties, UniquePtr<StyleSheet> _stylesheet) : properties(std::move(_properties)), stylesheet(std::move(_stylesheet)) {}
+	MediaBlock(PropertyDictionary _properties, SharedPtr<StyleSheet> _stylesheet) : properties(std::move(_properties)), stylesheet(std::move(_stylesheet)) {}
 
-	PropertyDictionary properties;
-	UniquePtr<StyleSheet> stylesheet;
+	PropertyDictionary properties; // Media query properties
+	SharedPtr<StyleSheet> stylesheet;
 };
+using MediaBlockList = Vector<MediaBlock>;
 
 } // namespace Rml
 #endif

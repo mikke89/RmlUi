@@ -110,7 +110,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	// Initialise the RmlUi debugger.
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
-	shell_renderer->SetContext(context);
+	Shell::SetContext(context);
 
 	// Load the font faces required for Invaders.
 	Shell::LoadFonts("assets/");

@@ -76,7 +76,7 @@ void Initialize()
 		{EventId::Scroll        , "scroll"        , false , true  , DefaultActionPhase::None},
 		{EventId::Animationend  , "animationend"  , false , true  , DefaultActionPhase::None},
 		{EventId::Transitionend , "transitionend" , false , true  , DefaultActionPhase::None},
-								 				 
+		
 		{EventId::Change        , "change"        , false , true  , DefaultActionPhase::None},
 		{EventId::Submit        , "submit"        , true  , true  , DefaultActionPhase::None},
 		{EventId::Tabchange     , "tabchange"     , false , true  , DefaultActionPhase::None},

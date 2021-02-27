@@ -43,13 +43,8 @@ public:
      * @param[in] width width of viewport
      * @param[in] height height of viewport
 	 */
-    virtual void SetViewport(int width, int height) = 0;
-	
-    /**
-	 * @param[in] context Rml::Context to set dimensions on when SetViewport is called
-     */
-    virtual void SetContext(void *context) = 0;
-	
+	virtual void SetViewport(int width, int height) = 0;
+
 	/// Attach the internal window buffer to a native window
 	/// @param[in] nativeWindow A handle to the OS specific native window handle
 	virtual bool AttachToNative(void *nativeWindow) = 0;

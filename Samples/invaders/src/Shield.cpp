@@ -119,11 +119,14 @@ const Rml::Vector2f& Shield::GetPosition() const
 	return position;
 }
 
-void Shield::Render()
+void Shield::Render(float dp_ratio)
 {
 	if (health > 0)
 	{
-		glPointSize((GLfloat) PIXEL_SIZE);
+		const Rml::Vector2f scaled_position = (dp_ratio * position).Round();
+		const int scaled_pixel = Rml::Math::RoundUpToInteger(PIXEL_SIZE * dp_ratio);
+
+		glPointSize((GLfloat)scaled_pixel);
 		glDisable(GL_TEXTURE_2D);
 		glColor4ubv(GameDetails::GetDefenderColour());
 
@@ -135,7 +138,7 @@ void Shield::Render()
 			{
 				if (shield_cells[i][j] == ON)
 				{
-					Rml::Vector2f cell_position = position + Rml::Vector2f((float) (PIXEL_SIZE * i), (float) (PIXEL_SIZE * j));
+					Rml::Vector2f cell_position = scaled_position + Rml::Vector2f(float(scaled_pixel * i), float(scaled_pixel * j));
 					glVertex2f(cell_position.x, cell_position.y);
 				}
 			}

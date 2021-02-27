@@ -7,7 +7,7 @@
 	<meta name="description" content='Same as before, except now the "inner text" is positioned relative to the top-left corner of the page itself.' />
 	<style>
 		body {
-			font-size: 20px;
+			font-size: 20dp;
 			display: block;
 			background: #ddd;
 			color: #444;
@@ -16,8 +16,8 @@
 		#outer { color: red }
 		#inner {
 			position: absolute;
-			top: 200px; left: -100px;
-			height: 130px; width: 130px;
+			top: 200dp; left: -100dp;
+			height: 130dp; width: 130dp;
 			color: blue;
 		}
 	</style>

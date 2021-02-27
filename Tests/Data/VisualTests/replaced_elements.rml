@@ -13,15 +13,15 @@
 		}
 		img {
 			vertical-align: bottom;
-			margin: 10px 5px;
+			margin: 10dp 5dp;
 		}
 		.border-box {
 			box-sizing: border-box;
 		}
 		input.text {
 			font-size: 1.1em;
-			border: 5px #999;
-			padding: 15px;
+			border: 5dp #999;
+			padding: 15dp;
 			box-sizing: border-box;
 		}
 	</style>
@@ -31,25 +31,25 @@
 <p>The following images should be the same size (width and height) in each section.</p>
 <div>
 	<!-- Test replaced element scaling with intrinsic ratio. -->
-	<img style="padding: 10px;" sprite="invader"/>
-	<img style="padding: 10px;" class="border-box" sprite="invader"/>
-	<img style="padding: 10px; height: 40px;" sprite="invader"/>
-	<img style="padding: 10px; width: 50px;" sprite="invader"/>
-	<img style="padding: 10px; height: 60px;" class="border-box" sprite="invader"/>
-	<img style="padding: 10px; width: 70px;" class="border-box" sprite="invader"/>
+	<img style="padding: 10dp;" sprite="invader"/>
+	<img style="padding: 10dp;" class="border-box" sprite="invader"/>
+	<img style="padding: 10dp; height: 40dp;" sprite="invader"/>
+	<img style="padding: 10dp; width: 50dp;" sprite="invader"/>
+	<img style="padding: 10dp; height: 60dp;" class="border-box" sprite="invader"/>
+	<img style="padding: 10dp; width: 70dp;" class="border-box" sprite="invader"/>
 <hr/>
 	<!-- Test width and height auto sizing with constraints. -->
-	<img style="padding: 10px; max-height: 20px;" sprite="invader"/>
-	<img style="padding: 10px; max-width: 25px;" sprite="invader"/>
-	<img style="padding: 10px; max-width: 25px; max-height: 40px;" sprite="invader"/>
-	<img style="padding: 10px; max-height: 20px; max-width: 50px;" sprite="invader"/>
-	<img style="padding: 10px; max-width: 40px; max-height: 20px;" sprite="invader"/>
-	<img style="padding: 10px; max-width: 25px; max-height: 35px;" sprite="invader"/>
+	<img style="padding: 10dp; max-height: 20dp;" sprite="invader"/>
+	<img style="padding: 10dp; max-width: 25dp;" sprite="invader"/>
+	<img style="padding: 10dp; max-width: 25dp; max-height: 40dp;" sprite="invader"/>
+	<img style="padding: 10dp; max-height: 20dp; max-width: 50dp;" sprite="invader"/>
+	<img style="padding: 10dp; max-width: 40dp; max-height: 20dp;" sprite="invader"/>
+	<img style="padding: 10dp; max-width: 25dp; max-height: 35dp;" sprite="invader"/>
 <hr/>
-	<img style="padding: 10px; min-height: 24px;" sprite="bar"/>
-	<img style="padding: 10px; min-width: 84px;" sprite="bar"/>
-	<img style="padding: 10px; min-width: 84px; min-height: 20px;" sprite="bar"/>
-	<img style="padding: 10px; min-height: 24px; min-width: 20px;" sprite="bar"/>
+	<img style="padding: 10dp; min-height: 24dp;" sprite="bar"/>
+	<img style="padding: 10dp; min-width: 84dp;" sprite="bar"/>
+	<img style="padding: 10dp; min-width: 84dp; min-height: 20dp;" sprite="bar"/>
+	<img style="padding: 10dp; min-height: 24dp; min-width: 20dp;" sprite="bar"/>
 </div>
 <hr/>
 <p>There should be three evenly spaced, same-sized images on a single line.</p>
@@ -61,14 +61,14 @@
 <hr/>
 <p>The outer border of the images should take up the same height.</p>
 <div>
-	<img style="border: 10px black; height: 30px;" sprite="invader"/>
-	<img style="border: 2px black; height: 50px;" class="border-box" sprite="invader"/>
-	<img style="border: 2px black; padding: 5px; height: 50px;" class="border-box" sprite="invader"/>
+	<img style="border: 10dp black; height: 30dp;" sprite="invader"/>
+	<img style="border: 2dp black; height: 50dp;" class="border-box" sprite="invader"/>
+	<img style="border: 2dp black; padding: 5dp; height: 50dp;" class="border-box" sprite="invader"/>
 </div>
 <hr/>
 <p>The two images should be same-sized, and perfectly aligned below each other.</p>
 <div style="text-align: center;">
-	<img style="display: block; margin: 10px auto;" sprite="invader"/>
+	<img style="display: block; margin: 10dp auto;" sprite="invader"/>
 	<img style="display: inline;" sprite="invader"/>
 </div>
 <hr/>

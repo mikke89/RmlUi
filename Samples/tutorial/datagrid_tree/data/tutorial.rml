@@ -30,8 +30,8 @@
 	
 		body
 		{
-			width: 400px;
-			height: 300px;
+			width: 400dp;
+			height: 300dp;
 
 			margin: auto;
 		}
@@ -39,8 +39,8 @@
 		defender
 		{
 			display: block;
-			width: 64px;
-			height: 16px;
+			width: 64dp;
+			height: 16dp;
 			
 			decorator: defender( ../../../assets/high_scores_defender.tga );
 		}
@@ -63,8 +63,8 @@
 		datagridheader
 		{
 			width: auto;
-			height: 25px;
-			padding: 5px 10px 0px 10px;
+			height: 25dp;
+			padding: 5dp 10dp 0dp 10dp;
 		
 			decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
 		}
@@ -74,9 +74,9 @@
 			color: black;
 			text-align: center;
 			
-			margin-left: 4px;
-			margin-right: 3px;
-			padding: 0px 4px 4px 4px;
+			margin-left: 4dp;
+			margin-right: 3dp;
+			padding: 0dp 4dp 4dp 4dp;
 			
 			decorator: tiled-box(
 				datagridbody-tl, datagridbody-t, datagridbody-tr, 
@@ -94,9 +94,9 @@
 		{
 			display: block;
 			
-			margin: 1px 0px 1px 5px;
-			height: 17px;
-			width: 17px;
+			margin: 1dp 0dp 1dp 5dp;
+			height: 17dp;
+			width: 17dp;
 			
 			decorator: image( datagridexpand );
 		}

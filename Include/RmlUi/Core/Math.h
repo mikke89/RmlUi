@@ -149,6 +149,14 @@ RMLUICORE_API float RoundFloat(float value);
 /// @param[in] value The value to round.
 /// @return The rounded integer as double.
 RMLUICORE_API double RoundFloat(double value);
+/// Rounds a floating-point value up to the nearest integer.
+/// @param[in] value The value to round.
+/// @return The rounded integer as float.
+RMLUICORE_API float RoundUpFloat(float value);
+/// Rounds a floating-point value down to the nearest integer.
+/// @param[in] value The value to round.
+/// @return The rounded integer as float.
+RMLUICORE_API float RoundDownFloat(float value);
 /// Rounds a floating-point value to the nearest integer.
 /// @param[in] value The value to round.
 /// @return The rounded integer.

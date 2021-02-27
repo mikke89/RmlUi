@@ -36,6 +36,7 @@
 namespace Rml {
 
 struct Sprite;
+struct Texture;
 class StyleSheet;
 class Decorator;
 class DecoratorInstancerInterface;
@@ -86,13 +87,22 @@ private:
 
 class RMLUICORE_API DecoratorInstancerInterface {
 public:
-	DecoratorInstancerInterface(const StyleSheet& style_sheet) : style_sheet(style_sheet) {}
+	DecoratorInstancerInterface(const StyleSheet& style_sheet, const PropertySource* property_source) : style_sheet(style_sheet), property_source(property_source) {}
 
 	/// Get a sprite from any @spritesheet in the style sheet the decorator is being instanced on.
 	const Sprite* GetSprite(const String& name) const;
 
+	/// Get the texture from a filename set in the decorator property.
+	/// This will use the document path where the 'decorator' property was declared to locate relative files, if available.
+	Texture GetTexture(const String& filename) const;
+
+	/// Get the path from the texture from a filename set in the decorator property.
+	/// This will use the document path where the 'decorator' property was declared to locate relative files, if available.
+	const String& GetSourcePath(const String& filename) const;
+
 private:
 	const StyleSheet& style_sheet;
+	const PropertySource* property_source;
 };
 
 } // namespace Rml

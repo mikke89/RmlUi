@@ -37,11 +37,19 @@
 
 static LRESULT CALLBACK WindowProcedure(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param);
 
+static Rml::Context* context = nullptr;
+static ShellRenderInterfaceExtensions* shell_renderer = nullptr;
+
 static bool activated = true;
 static bool running = false;
 static Rml::U16String instance_name;
 static HWND window_handle = nullptr;
 static HINSTANCE instance_handle = nullptr;
+
+static bool has_dpi_support = false;
+static UINT window_dpi = USER_DEFAULT_SCREEN_DPI;
+static int window_width = 0;
+static int window_height = 0;
 
 static double time_frequency;
 static LARGE_INTEGER time_startup;
@@ -56,6 +64,49 @@ static HCURSOR cursor_cross = nullptr;
 static HCURSOR cursor_text = nullptr;
 static HCURSOR cursor_unavailable = nullptr;
 
+
+#ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((HANDLE)-4)
+#endif
+#ifndef WM_DPICHANGED
+#define WM_DPICHANGED 0x02E0
+#endif
+
+// Declare pointers to the DPI aware Windows API functions.
+using ProcSetProcessDpiAwarenessContext = BOOL(WINAPI*)(HANDLE value);
+using ProcGetDpiForWindow = UINT(WINAPI*)(HWND hwnd);
+using ProcAdjustWindowRectExForDpi = BOOL(WINAPI*)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+
+static ProcSetProcessDpiAwarenessContext procSetProcessDpiAwarenessContext = NULL;
+static ProcGetDpiForWindow procGetDpiForWindow = NULL;
+static ProcAdjustWindowRectExForDpi procAdjustWindowRectExForDpi = NULL;
+
+
+static void UpdateDpi()
+{
+	if (has_dpi_support)
+	{
+		UINT dpi = procGetDpiForWindow(window_handle);
+		if (dpi != 0)
+		{
+			window_dpi = dpi;
+			if (context)
+				context->SetDensityIndependentPixelRatio(Shell::GetDensityIndependentPixelRatio());
+		}
+	}
+}
+
+static void UpdateWindowDimensions(int width = 0, int height = 0)
+{
+	if (width > 0)
+		window_width = width;
+	if (height > 0)
+		window_height = height;
+	if (context)
+		context->SetDimensions(Rml::Vector2i(window_width, window_height));
+	if (shell_renderer)
+		shell_renderer->SetViewport(window_width, window_height);
+}
 
 bool Shell::Initialise()
 {
@@ -82,6 +133,23 @@ bool Shell::Initialise()
 	
 	file_interface = Rml::MakeUnique<ShellFileInterface>(root);
 	Rml::SetFileInterface(file_interface.get());
+
+	// See if we have Per Monitor V2 DPI awareness. Requires Windows 10, version 1703.
+	// Cast function pointers to void* first for MinGW not to emit errors.
+	procSetProcessDpiAwarenessContext = (ProcSetProcessDpiAwarenessContext)(void*)GetProcAddress(
+		GetModuleHandle(TEXT("User32.dll")),
+		"SetProcessDpiAwarenessContext"
+	);
+	procGetDpiForWindow = (ProcGetDpiForWindow)(void*)GetProcAddress(
+		GetModuleHandle(TEXT("User32.dll")),
+		"GetDpiForWindow"
+	);
+	procAdjustWindowRectExForDpi = (ProcAdjustWindowRectExForDpi)(void*)GetProcAddress(
+		GetModuleHandle(TEXT("User32.dll")),
+		"AdjustWindowRectExForDpi"
+	);
+
+	has_dpi_support = (procSetProcessDpiAwarenessContext != NULL && procGetDpiForWindow != NULL && procAdjustWindowRectExForDpi != NULL);
 
 	return result;
 }
@@ -128,9 +196,15 @@ Rml::String Shell::FindSamplesRoot()
 	return Rml::String();
 }
 
-static ShellRenderInterfaceExtensions *shell_renderer = nullptr;
+
 bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize)
 {
+	// Activate Per Monitor V2.
+	if (has_dpi_support && !procSetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
+	{
+		has_dpi_support = false;
+	}
+
 	WNDCLASSW window_class;
 
 	Rml::U16String name = Rml::StringUtilities::ToUTF16(Rml::String(in_name));
@@ -160,7 +234,7 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 								   (LPCWSTR)name.data(),
 								   WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW,
 								   0, 0,	// Window position.
-								   width, height,// Window size.
+								   0, 0,// Window size.
 								   nullptr,
 								   nullptr,
 								   instance_handle,
@@ -173,6 +247,13 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 		return false;
 	}
 
+	window_width = width;
+	window_height = height;
+
+	UpdateDpi();
+	window_width = (width * window_dpi) / USER_DEFAULT_SCREEN_DPI;
+	window_height = (height * window_dpi) / USER_DEFAULT_SCREEN_DPI;
+
 	instance_name = name;
 
 	DWORD style = (allow_resize ? WS_OVERLAPPEDWINDOW : (WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX & ~WS_MAXIMIZEBOX));
@@ -182,9 +263,12 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 	RECT window_rect;
 	window_rect.top = 0;
 	window_rect.left = 0;
-	window_rect.right = width;
-	window_rect.bottom = height;
-	AdjustWindowRectEx(&window_rect, style, FALSE, extended_style);
+	window_rect.right = window_width;
+	window_rect.bottom = window_height;
+	if (has_dpi_support)
+		procAdjustWindowRectExForDpi(&window_rect, style, FALSE, extended_style, window_dpi);
+	else
+		AdjustWindowRectEx(&window_rect, style, FALSE, extended_style);
 
 	SetWindowLong(window_handle, GWL_EXSTYLE, extended_style);
 	SetWindowLong(window_handle, GWL_STYLE, style);
@@ -198,6 +282,8 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 			return false;
 		}
 	}
+
+	UpdateWindowDimensions();
 
 	// Resize the window.
 	SetWindowPos(window_handle, HWND_TOP, 0, 0, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, SWP_NOACTIVATE);
@@ -376,6 +462,18 @@ void Shell::GetClipboardText(Rml::String& text)
 	}
 }
 
+void Shell::SetContext(Rml::Context* new_context)
+{
+	context = new_context;
+	UpdateDpi();
+	UpdateWindowDimensions();
+}
+
+float Shell::GetDensityIndependentPixelRatio()
+{
+	return float(window_dpi) / float(USER_DEFAULT_SCREEN_DPI);
+}
+
 static LRESULT CALLBACK WindowProcedure(HWND local_window_handle, UINT message, WPARAM w_param, LPARAM l_param)
 {
 	// See what kind of message we've got.
@@ -406,7 +504,22 @@ static LRESULT CALLBACK WindowProcedure(HWND local_window_handle, UINT message, 
 		{
 			int width = LOWORD(l_param);
 			int height = HIWORD(l_param);
-			shell_renderer->SetViewport(width, height);
+			UpdateWindowDimensions(width, height);
+		}
+		break;
+
+		case WM_DPICHANGED:
+		{
+			UpdateDpi();
+
+			RECT* const new_pos = (RECT*)l_param;
+			SetWindowPos(window_handle,
+				NULL,
+				new_pos->left,
+				new_pos->top,
+				new_pos->right - new_pos->left,
+				new_pos->bottom - new_pos->top,
+				SWP_NOZORDER | SWP_NOACTIVATE);
 		}
 		break;
 

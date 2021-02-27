@@ -5,10 +5,12 @@
 <style>
 body.window
 {
-	width: 1300px;
-	height: 750px;
-	min-width: 1090px;
-	min-height: 300px;
+	left: 80dp;
+	right: 80dp;
+	top: 50dp;
+	bottom: 50dp;
+	min-width: 1040dp;
+	min-height: 300dp;
 	max-width: -1px;
 	max-height: -1px;
 }
@@ -30,18 +32,18 @@ tabs
 	position: fixed;
 	clip: none;
 	text-align: right;
-	top: -47px;
-	left: 205px;
-	right: 10px;
+	top: -47dp;
+	left: 205dp;
+	right: 10dp;
 }
 tab
 {
 	display: inline-block;
-	width: 100px;
-	padding: 0px 20px;
-	line-height: 40px;
+	width: 100dp;
+	padding: 0 20dp;
+	line-height: 40dp;
 	
-	font-size: 16px;
+	font-size: 16dp;
 	color: #ddd;
 	text-align: center;
 	
@@ -65,21 +67,21 @@ panels
 panel
 {
 	display: block;
-	padding: 30px;
+	padding: 30dp;
 	margin-left: auto;
 	margin-right: auto;
-	max-width: 500px;
+	max-width: 500dp;
 }
 h1
 {
 	margin: 1.4em 0 0.7em;
-	font-size: 18px;
+	font-size: 18dp;
 }
 p.title
 {
-	font-size: 35px;
+	font-size: 35dp;
 	color: #b33;
-	font-effect: glow(2px #ed5);
+	font-effect: glow(2dp #ed5);
 }
 .center {
 	text-align: center;
@@ -95,11 +97,11 @@ p.title
 	font-size: 1.8em;
 }
 .mouse_detector {
-	width: 300px;
+	width: 300dp;
 	min-height: 2em;
-	line-height: 30px;
+	line-height: 30dp;
 	background-color: #909090;
-	border: 1px #666;
+	border: 1dp #666;
 	margin: 2em auto;
 	cursor: pointer;
 }
@@ -122,14 +124,14 @@ input.text.two-wide {
 }
 form h2 {
 	display: block;
-	font-size: 16px;
+	font-size: 16dp;
 	font-weight: bold;
 	margin-top: 1em;
 	margin-bottom: 0.3em;
 }
 #rating {
 	display: inline-block;
-	width: 40px;
+	width: 40dp;
 	padding-left: 1em;
 }
 #rating_emoji { 
@@ -138,8 +140,8 @@ form h2 {
 }
 #controls textarea 
 {
-	font-size: 18px;
-	font-effect: outline(2px #060);
+	font-size: 18dp;
+	font-effect: outline(2dp #060);
 	color: #ddd;
 	caret-color: #060;
 }
@@ -178,7 +180,7 @@ li {
 	<p>Data binding demo. We rate this a good old {{rating}}!</p>
 	<input type="range" name="rating" min="0" max="100" step="1" value="50" data-value="rating"/>
 	<div data-visible="rating > 50">Thanks for the <span data-if="rating < 80">good</span><span data-if="rating >= 80">awesome</span> rating!</div>
-	<div class="mouse_detector" style="height: 70px;"
+	<div class="mouse_detector" style="height: 70dp;"
 		data-event-mousemove="mouse_detector = 'x: ' + ev.mouse_x + '<br/>y: ' + ev.mouse_y"
 		data-event-click="add_mouse_pos(); hello_world = 'Hello click!'"
 		data-rml="mouse_detector">
@@ -268,7 +270,7 @@ li {
 		<div>
 			<textarea cols="25" rows="4" wrap="nowrap" name="message">😍 Hello 🌐 World! 😎</textarea>
 		</div>
-		<div style="margin-bottom: 15px;">
+		<div style="margin-bottom: 15dp;">
 			<input type="submit">Submit</input>
 		</div>
 	</form>

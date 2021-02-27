@@ -79,7 +79,6 @@ public:
 
 	// ShellRenderInterfaceExtensions
 	void SetViewport(int width, int height) override;
-	void SetContext(void *context) override;
 	bool AttachToNative(void *nativeWindow) override;
 	void DetachFromNative(void) override;
 	void PrepareRenderBuffer(void) override;
@@ -89,7 +88,6 @@ protected:
 	int m_width;
 	int m_height;
 	bool m_transform_enabled;
-	void *m_rmlui_context;
 	
 #if defined(RMLUI_PLATFORM_MACOSX)
 	AGLContext gl_context;

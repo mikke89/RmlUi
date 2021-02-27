@@ -115,7 +115,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	Rml::Debugger::Initialise(context);
 	Input::SetContext(context);
-	shell_renderer->SetContext(context);
+	Shell::SetContext(context);
 
     // Load bitmap font
 	if (!Rml::LoadFontFace("basic/bitmapfont/data/Comfortaa_Regular_22.fnt"))

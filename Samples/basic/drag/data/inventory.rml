@@ -6,8 +6,8 @@
 	<style>
 		body
 		{
-			width: 400px;
-			height: 300px;
+			width: 400dp;
+			height: 300dp;
 		}
 		
 		/* Hide the window icon. */

@@ -98,8 +98,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		// Skip the tile if it has no source name.
 		// Declaring the name 'auto' is the same as an empty string. This gives an easy way to skip certain
 		// tiles in a shorthand since we can't always declare an empty string.
-		static const String auto_str = "auto";
-		if (texture_name.empty() || texture_name == auto_str)
+		if (texture_name.empty() || texture_name == "auto")
 			continue;
 
 		// We are required to set default values before instancing the tile, thus, all properties should always be dereferencable.
@@ -115,6 +114,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			tile.position.y = sprite->rectangle.y;
 			tile.size.x = sprite->rectangle.width;
 			tile.size.y = sprite->rectangle.height;
+			tile.display_scale = sprite->sprite_sheet->display_scale;
 
 			texture = sprite->sprite_sheet->texture;
 		}
@@ -127,17 +127,15 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			{
 				texture = previous_texture;
 			}
-			else if (src_property->source)
-			{
-				texture.Set(texture_name, src_property->source->path);
-				previous_texture_name = texture_name;
-				previous_texture = texture;
-			}
 			else
 			{
-				auto& source = src_property->source;
-				Log::Message(Log::LT_WARNING, "Texture name '%s' is neither a valid sprite name nor a texture file. Specified in decorator at %s:%d.", texture_name.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
-				return false;
+				texture = instancer_interface.GetTexture(texture_name);
+
+				if (!texture)
+					return false;
+
+				previous_texture_name = texture_name;
+				previous_texture = texture;
 			}
 		}
 

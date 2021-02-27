@@ -235,10 +235,13 @@ void ElementDocument::DirtyMediaQueries()
 {
 	if (context && style_sheet_container)
 	{
-		const bool changed_style_sheet = style_sheet_container->UpdateCompiledStyleSheet(context->GetDensityIndependentPixelRatio(), Vector2f(context->GetDimensions()));
+		const bool changed_style_sheet = style_sheet_container->UpdateCompiledStyleSheet(context);
 
 		if (changed_style_sheet)
+		{
 			GetStyle()->DirtyDefinition();
+			OnStyleSheetChangeRecursive();
+		}
 	}
 }
 
@@ -486,11 +489,6 @@ void ElementDocument::DirtyLayout()
 bool ElementDocument::IsLayoutDirty()
 {
 	return layout_dirty;
-}
-
-void ElementDocument::DirtyDpProperties()
-{
-	GetStyle()->DirtyPropertiesWithUnitsRecursive(Property::DP);
 }
 
 void ElementDocument::DirtyVwAndVhProperties()
