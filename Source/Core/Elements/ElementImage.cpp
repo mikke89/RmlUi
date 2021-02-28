@@ -298,7 +298,7 @@ void ElementImage::UpdateRect()
 
 			if (coords_list.size() != 4)
 			{
-				Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'rect' attribute; rect requires 4 space-separated values, found %d.", GetAddress().c_str(), coords_list.size());
+				Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'rect' attribute; rect requires 4 space-separated values, found %zu.", GetAddress().c_str(), coords_list.size());
 			}
 			else
 			{

@@ -255,21 +255,21 @@ static bool BuildGlyph(FT_Face ft_face, Character character, FontGlyphMap& glyph
 	FT_Error error = FT_Load_Glyph(ft_face, index, 0);
 	if (error != 0)
 	{
-		Log::Message(Log::LT_WARNING, "Unable to load glyph for character '%u' on the font face '%s %s'; error code: %d.", character, ft_face->family_name, ft_face->style_name, error);
+		Log::Message(Log::LT_WARNING, "Unable to load glyph for character '%u' on the font face '%s %s'; error code: %d.", (unsigned int)character, ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
 	error = FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_NORMAL);
 	if (error != 0)
 	{
-		Log::Message(Log::LT_WARNING, "Unable to render glyph for character '%u' on the font face '%s %s'; error code: %d.", character, ft_face->family_name, ft_face->style_name, error);
+		Log::Message(Log::LT_WARNING, "Unable to render glyph for character '%u' on the font face '%s %s'; error code: %d.", (unsigned int)character, ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
 	auto result = glyphs.emplace(character, FontGlyph{});
 	if (!result.second)
 	{
-		Log::Message(Log::LT_WARNING, "Glyph character '%u' is already loaded in the font face '%s %s'.", character, ft_face->family_name, ft_face->style_name);
+		Log::Message(Log::LT_WARNING, "Glyph character '%u' is already loaded in the font face '%s %s'.", (unsigned int)character, ft_face->family_name, ft_face->style_name);
 		return false;
 	}
 

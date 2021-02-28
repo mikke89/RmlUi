@@ -549,7 +549,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 						current_block = MediaBlock{PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
 					}
 
-					const int rule_line_number = (int)line_number;
+					const int rule_line_number = line_number;
 					
 					// Read the attributes
 					PropertyDictionary properties;

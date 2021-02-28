@@ -88,7 +88,7 @@ private:
 	// The name of the file we're parsing.
 	String stream_file_name;
 	// Current line number we're parsing.
-	size_t line_number;
+	int line_number;
 
 	// Parses properties from the parse buffer.
 	// @param property_parser An abstract parser which specifies how the properties are parsed and stored.

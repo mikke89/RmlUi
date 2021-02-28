@@ -143,12 +143,12 @@ public:
 	void Error(const String message)
 	{
 		parse_error = true;
-		Log::Message(Log::LT_WARNING, "Error in data expression at %d. %s", index, message.c_str());
+		Log::Message(Log::LT_WARNING, "Error in data expression at %zu. %s", index, message.c_str());
 		Log::Message(Log::LT_WARNING, "  \"%s\"", expression.c_str());
 		
 		const size_t cursor_offset = size_t(index) + 3;
 		const String cursor_string = String(cursor_offset, ' ') + '^';
-		Log::Message(Log::LT_WARNING, cursor_string.c_str());
+		Log::Message(Log::LT_WARNING, "%s", cursor_string.c_str());
 	}
 	void Expected(String expected_symbols) {
 		const char c = Look();
@@ -758,7 +758,7 @@ public:
 	bool Error(String message) const
 	{
 		message = "Error during execution. " + message;
-		Log::Message(Log::LT_WARNING, message.c_str());
+		Log::Message(Log::LT_WARNING, "%s", message.c_str());
 		RMLUI_ERROR;
 		return false;
 	}
@@ -776,13 +776,13 @@ public:
 		}
 
 		if(success && !stack.empty())
-			Log::Message(Log::LT_WARNING, "Possible data interpreter stack corruption. Stack size is %d at end of execution (should be zero).", stack.size());
+			Log::Message(Log::LT_WARNING, "Possible data interpreter stack corruption. Stack size is %zu at end of execution (should be zero).", stack.size());
 
 		if(!success)
 		{
 			String program_str = DumpProgram();
-			Log::Message(Log::LT_WARNING, "Failed to execute program with %d instructions:", program.size());
-			Log::Message(Log::LT_WARNING, program_str.c_str());
+			Log::Message(Log::LT_WARNING, "Failed to execute program with %zu instructions:", program.size());
+			Log::Message(Log::LT_WARNING, "%s", program_str.c_str());
 		}
 
 		return success;

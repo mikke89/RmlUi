@@ -73,7 +73,7 @@ int LogMessage(lua_State* L)
     Log::Type type = Log::Type((int)luaL_checkinteger(L,1));
     const char* str = luaL_checkstring(L,2);
     
-    Log::Message(type, str);
+    Log::Message(type, "%s", str);
     return 0;
 }
 
