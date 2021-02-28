@@ -57,7 +57,8 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 	RMLUI_ZoneScoped;
 
 	const float dp_ratio = context->GetDensityIndependentPixelRatio();
-	const Vector2f vp_dimensions(context->GetDimensions());
+	const Vector2i vp_dimensions_i(context->GetDimensions());
+	const Vector2f vp_dimensions(vp_dimensions_i);
 
 	Vector<int> new_active_media_block_indices;
 
@@ -70,6 +71,7 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 		for (const auto& property : media_block.properties.GetProperties())
 		{
 			const MediaQueryId id = static_cast<MediaQueryId>(property.first);
+			Vector2i ratio;
 
 			switch (id)
 			{
@@ -98,15 +100,18 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 					all_match = false;
 				break;
 			case MediaQueryId::AspectRatio:
-				if ((vp_dimensions.x / vp_dimensions.y) != property.second.Get<float>())
+				ratio = Vector2i(property.second.Get<Vector2f>());
+				if (vp_dimensions_i.x * ratio.y != vp_dimensions_i.y * ratio.x)
 					all_match = false;
 				break;
 			case MediaQueryId::MinAspectRatio:
-				if ((vp_dimensions.x / vp_dimensions.y) < property.second.Get<float>())
+				ratio = Vector2i(property.second.Get<Vector2f>());
+				if (vp_dimensions_i.x * ratio.y < vp_dimensions_i.y * ratio.x)
 					all_match = false;
 				break;
 			case MediaQueryId::MaxAspectRatio:
-				if ((vp_dimensions.x / vp_dimensions.y) > property.second.Get<float>())
+				ratio = Vector2i(property.second.Get<Vector2f>());
+				if (vp_dimensions_i.x * ratio.y > vp_dimensions_i.y * ratio.x)
 					all_match = false;
 				break;
 			case MediaQueryId::Resolution:

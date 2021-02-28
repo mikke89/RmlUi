@@ -65,8 +65,8 @@ bool PropertyParserRatio::ParseValue(Property& property, const String& value, co
 		return false;
 	}
 
-	property.value = Variant(first_value / second_value);
-	property.unit = Property::NUMBER;
+	property.value = Variant(Vector2f(first_value, second_value));
+	property.unit = Property::RATIO;
 
 	return true;
 }
