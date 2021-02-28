@@ -105,7 +105,11 @@ void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, 
 			}
 			else if (key_identifier == Rml::Input::KI_0 && key_modifier_state & Rml::Input::KM_CTRL)
 			{
-				context->SetDensityIndependentPixelRatio(key_modifier_state == Rml::Input::KM_SHIFT ? 1.f : Shell::GetDensityIndependentPixelRatio());
+				context->SetDensityIndependentPixelRatio(Shell::GetDensityIndependentPixelRatio());
+			}
+			else if (key_identifier == Rml::Input::KI_1 && key_modifier_state & Rml::Input::KM_CTRL)
+			{
+				context->SetDensityIndependentPixelRatio(1.f);
 			}
 			else if (key_identifier == Rml::Input::KI_OEM_MINUS && key_modifier_state & Rml::Input::KM_CTRL)
 			{

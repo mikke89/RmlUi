@@ -94,10 +94,22 @@ int main(int /*argc*/, char** /*argv*/)
 	if (!Rml::Initialise())
 		return 1;
 
-	Rml::LoadFontFace("assets/Delicious-Bold.otf");
-	Rml::LoadFontFace("assets/Delicious-BoldItalic.otf");
-	Rml::LoadFontFace("assets/Delicious-Italic.otf");
-	Rml::LoadFontFace("assets/Delicious-Roman.otf");
+	struct FontFace {
+		Rml::String filename;
+		bool fallback_face;
+	};
+	FontFace font_faces[] = {
+		{ "LatoLatin-Regular.ttf",    false },
+		{ "LatoLatin-Italic.ttf",     false },
+		{ "LatoLatin-Bold.ttf",       false },
+		{ "LatoLatin-BoldItalic.ttf", false },
+		{ "NotoEmoji-Regular.ttf",    true  },
+	};
+
+	for (const FontFace& face : font_faces)
+	{
+		Rml::LoadFontFace("assets/" + face.filename, face.fallback_face);
+	}
 
 	Rml::Context* Context = Rml::CreateContext("default",
 		Rml::Vector2i(window_width, window_height));

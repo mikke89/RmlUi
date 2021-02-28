@@ -169,7 +169,7 @@ div#title_bar div#icon
 {
 	position: absolute;
 	left: 20dp;
-	top: 2dp;
+	top: -4dp;
 	
 	width: 51dp;
 	height: 39dp;
@@ -180,7 +180,7 @@ div#title_bar span
 {
 	padding-left: 85dp;
 	padding-right: 25dp;
-	padding-top: 17dp;
+	padding-top: 23dp;
 	padding-bottom: 51dp;
 
 	font-size: 20dp;
@@ -257,9 +257,9 @@ input.submit
 	display: inline-block;
 
 	width: 159dp;
-	height: 35dp;
+	height: 33dp;
 
-	padding-top: 10dp;
+	padding-top: 12dp;
 	vertical-align: -18dp;
 
 	font-size: 16dp;
@@ -298,7 +298,7 @@ input.text, input.password
 {
 	box-sizing: border-box;
 	height: 31dp;
-	padding: 10dp 10dp 0;
+	padding: 11dp 10dp 0;
 	decorator: tiled-horizontal( text-l, text-c, auto ); /* Right becomes mirrored left */
 	cursor: text;
 }
@@ -327,6 +327,7 @@ datagrid input.text, table input.text
 	height: 18dp;
 	margin: 0;
 	padding: 0 5dp;
+	line-height: 1.0;
 
 	border-width: 1dp;
 	border-color: black;
@@ -352,8 +353,8 @@ dataselect selectvalue
 	width: auto;
 	margin-right: 30dp;
 	
-	height: 26dp;
-	padding: 11dp 10dp 0dp 10dp;
+	height: 25dp;
+	padding: 12dp 10dp 0dp 10dp;
 
 	decorator: image( selectvalue  );
 }

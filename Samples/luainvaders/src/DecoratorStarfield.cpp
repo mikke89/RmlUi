@@ -29,6 +29,7 @@
 #include "DecoratorStarfield.h"
 #include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/ElementUtilities.h>
 #include <Shell.h>
 #include <ShellOpenGL.h>
 #include "GameDetails.h"
@@ -96,15 +97,16 @@ void DecoratorStarfield::ReleaseElementData(Rml::DecoratorDataHandle element_dat
 }
 
 // Called to render the decorator on an element.
-void DecoratorStarfield::RenderElement(Rml::Element* RMLUI_UNUSED_PARAMETER(element), Rml::DecoratorDataHandle element_data) const
+void DecoratorStarfield::RenderElement(Rml::Element* element, Rml::DecoratorDataHandle element_data) const
 {
-	RMLUI_UNUSED(element);
-
 	StarField* star_field = (StarField*)element_data;
 	star_field->Update();
 
+	const float dp_ratio = Rml::ElementUtilities::GetDensityIndependentPixelRatio(element);
+	const float point_size = Rml::Math::RoundUpFloat(2.f * dp_ratio);
+
 	glDisable(GL_TEXTURE_2D);
-	glPointSize(2);
+	glPointSize(point_size);
 	glBegin(GL_POINTS);
 
 	for (size_t i = 0; i < star_field->star_layers.size(); i++)
