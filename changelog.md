@@ -56,7 +56,7 @@ For now, this is considered an experimental feature.
 - Have a look at the 'databinding' sample for usage examples.
 - See discussion in [#83](https://github.com/mikke89/RmlUi/pull/83) and [#25](https://github.com/mikke89/RmlUi/issues/25).
 
-Thanks to contributions from @actboy, @cloudwu, and @C-Core; and everyone who helped with testing.
+Thanks to contributions from @actboy, @cloudwu, @C-Core, @Dakror, and @Omegapol; and everyone who helped with testing!
 
 ### Test suite
 
@@ -110,6 +110,21 @@ Use the RCSS `display` property to enable table formatting. See the style sheet 
 - Implemented the `caret-color` RCSS property.
 - New RCSS length units: `vw` and `vh`. [#162](https://github.com/mikke89/RmlUi/pull/162) (thanks @Dakror).
 
+### RCSS Media query support
+
+We now support `@media` rules for dynamically or programmatically changing active styles. [#169](https://github.com/mikke89/RmlUi/pull/169) (thanks @Dakror).
+
+See the [media queries documentation](https://mikke89.github.io/RmlUiDoc/pages/rcss/media_queries.html) for usage details and supported media features.
+
+### Improved high DPI support
+
+- Media queries support with `resolution` feature to toggle styles and sprites based on DPI.
+- Spritesheets can now define the target DPI scaling by using the `resolution` property.
+- Sprites can now be overrided by later `@spritesheet` rules, making it easy to eg. define high DPI versions of sprites.
+- Sprites in decorators and `<img>` elements now scale according to the targeted DPI.
+- Decorators and `<img>` elements now automatically update when sprites or DPI changes.
+- The samples and shell now implement high dpi support (only on Windows 10 for now).
+
 ### New RML elements
 
 - Added [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html) for displaying vector animations using the `<lottie>` element [#134](https://github.com/mikke89/RmlUi/pull/134) (thanks @diamondhat).
@@ -150,20 +165,22 @@ Improved Lua plugin in several aspects.
 ### Other features and improvements
 
 - Added `Rml::GetTextureSourceList()` function to list all image sources loaded in all documents. [#131](https://github.com/mikke89/RmlUi/issues/131)
-- Added `ElementDocument::ReloadStyleSheet()` function to reload styles without affecting the document tree. [#159](https://github.com/mikke89/RmlUi/issues/159) (thanks @Lyatus)
+- Added `ElementDocument::ReloadStyleSheet()` function to reload styles without affecting the document tree. [#159](https://github.com/mikke89/RmlUi/pull/159) [#171](https://github.com/mikke89/RmlUi/pull/171) (thanks @Lyatus and @Dakror)
 - RCSS and scripts are now always loaded in declared order [#144](https://github.com/mikke89/RmlUi/pull/144) (thanks @actboy168).
 - A custom configuration can now be used by RmlUi. In this way it is possible to replace several types including containers to other STL-compatible containers (such as [EASTL](https://github.com/electronicarts/EASTL)), or to STL containers with custom allocators. See the `CUSTOM_CONFIGURATION` [CMake option](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html#cmake-options). [#110](https://github.com/mikke89/RmlUi/pull/110) (thanks @rokups).
 - Added ability to change the default base tag in documents [#112](https://github.com/mikke89/RmlUi/pull/112)  (thanks @aquawicket).
 - Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
 - Improved performance when using fonts with kerning.
-- Added `unsigned int` and `uint64_t` to Variant. [#166](https://github.com/mikke89/RmlUi/pull/166) (thanks @Omegapol).
+- Added `unsigned int` and `uint64_t` to Variant. [#166](https://github.com/mikke89/RmlUi/pull/166) [#176](https://github.com/mikke89/RmlUi/pull/176)  (thanks @Omegapol and @Dakror).
+- Sprite sheets can now be declared anonymous, no name needed.
 
 ### Bug fixes
 
 - Fix some situations where `text-decoration` would not be rendered. [#119](https://github.com/mikke89/RmlUi/issues/119).
 - Fix a bug where font textures were leaked on `Rml::Shutdown()`. [#133](https://github.com/mikke89/RmlUi/issues/133)
 - Fixed building with MinGW, and added it to the CI to avoid future breaks. [#108](https://github.com/mikke89/RmlUi/pull/108) (thanks @cloudwu).
+- Fixed building when targeting Windows UWP apps. [#178](https://github.com/mikke89/RmlUi/pull/178) (thanks @rokups).
 - Fixed several compilation issues and warnings. [#118](https://github.com/mikke89/RmlUi/issues/118) [#97](https://github.com/mikke89/RmlUi/pull/97) [#157](https://github.com/mikke89/RmlUi/pull/157) (thanks @SpaceCat-Chan and @LWSS).
 - Fixed a bug where the `transition: all ...;` property would not parse correctly.
 - Fix \<textarea\> getting an unnecessary horizontal scrollbar. [#122](https://github.com/mikke89/RmlUi/issues/122)
@@ -171,6 +188,7 @@ Improved Lua plugin in several aspects.
 - Fix text-decoration not always being regenerated. [#119](https://github.com/mikke89/RmlUi/issues/119)
 - Fix tabbing navigation when tabable elements are direct children of body.
 - Fix tabbing navigation in reverse direction from body.
+- Fix missing attributes when cloning elements. [#177](https://github.com/mikke89/RmlUi/pull/177) (thanks @Dakror).
 
 ### Deprecated functionality
 
@@ -187,6 +205,7 @@ Improved Lua plugin in several aspects.
 - For custom, replaced elements: `Element::GetIntrinsicDimensions()` now additionally takes an intrinsic ratio parameter.
 - The `fill-image` property should now be applied to the \<progressbar\> element instead of its inner \<fill\> element.
 - The function `ElementDocument::LoadScript` is now changed to handle internal and external scripts separately. [#144](https://github.com/mikke89/RmlUi/pull/144)
+- For custom decorators: Textures from filenames should now first be loaded through the `DecoratorInstancerInterface` and then submitted to the `Decorator`.
 
 
 ## RmlUi 3.3
