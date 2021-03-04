@@ -1222,7 +1222,9 @@ void Context::CreateDragClone(Element* element)
 	// Set the style sheet on the cursor proxy.
 	if (ElementDocument* document = element->GetOwnerDocument())
 	{
-		static_cast<ElementDocument&>(*cursor_proxy).SetStyleSheetContainer(document->GetStyleSheetContainer());
+		// Borrow the target document's style sheet. Sharing style sheet containers should be used with care, and
+		// only within the same context.
+		static_cast<ElementDocument&>(*cursor_proxy).SetStyleSheetContainer(document->style_sheet_container);
 	}
 
 	// Set all the required properties and pseudo-classes on the clone.

@@ -84,14 +84,18 @@ public:
 	/// Returns the source address of this document.
 	const String& GetSourceURL() const;
 
-	/// Returns the document's style sheet.
+	/// Returns the document's compiled style sheet.
+	/// @note The style sheet may be regenerated when media query parameters change, invalidating the pointer.
 	const StyleSheet* GetStyleSheet() const override;
-	/// Sets the style sheet this document, and all of its children, uses.
-	void SetStyleSheetContainer(SharedPtr<StyleSheetContainer> style_sheet);
 	/// Reload the document's style sheet from source files.
 	/// Styles will be reloaded from <style> tags and external style sheets, but not inline 'style' attributes.
 	/// @note The source url originally used to load the document must still be a valid RML document.
 	void ReloadStyleSheet();
+
+	/// Returns the document's style sheet container.
+	const StyleSheetContainer* GetStyleSheetContainer() const;
+	/// Sets the style sheet this document, and all of its children, uses.
+	void SetStyleSheetContainer(SharedPtr<StyleSheetContainer> style_sheet);
 
 	/// Brings the document to the front of the document stack.
 	void PullToFront();
@@ -150,10 +154,6 @@ private:
 	Element* FindNextTabElement(Element* current_element, bool forward);
 	/// Searches forwards or backwards for a focusable element in the given substree
 	Element* SearchFocusSubtree(Element* element, bool forward);
-
-	/// Returns the active style sheet container for this element.
-	/// @warning Shared style sheet containers should be used with care, mainly used for proxy elements in the same context.
-	const SharedPtr<StyleSheetContainer>& GetStyleSheetContainer() const;
 
 	/// Sets the dirty flag on the layout so the document will format its children before the next render.
 	void DirtyLayout() override;

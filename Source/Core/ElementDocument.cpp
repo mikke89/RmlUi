@@ -180,19 +180,6 @@ const String& ElementDocument::GetSourceURL() const
 	return source_url;
 }
 
-// Sets the style sheet this document, and all of its children, uses.
-void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _style_sheet_container)
-{
-	RMLUI_ZoneScoped;
-
-	if (style_sheet_container == _style_sheet_container)
-		return;
-
-	style_sheet_container = std::move(_style_sheet_container);
-	
-	DirtyMediaQueries();
-}
-
 // Returns the document's style sheet.
 const StyleSheet* ElementDocument::GetStyleSheet() const
 {
@@ -202,9 +189,22 @@ const StyleSheet* ElementDocument::GetStyleSheet() const
 }
 
 // Returns the document's style sheet container.
-const SharedPtr<StyleSheetContainer>& ElementDocument::GetStyleSheetContainer() const
+const StyleSheetContainer* ElementDocument::GetStyleSheetContainer() const
 {
-	return style_sheet_container;
+	return style_sheet_container.get();
+}
+
+// Sets the style sheet this document, and all of its children, uses.
+void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _style_sheet_container)
+{
+	RMLUI_ZoneScoped;
+
+	if (style_sheet_container == _style_sheet_container)
+		return;
+
+	style_sheet_container = std::move(_style_sheet_container);
+
+	DirtyMediaQueries();
 }
 
 // Reload the document's style sheet from source files.
@@ -228,7 +228,7 @@ void ElementDocument::ReloadStyleSheet()
 		return;
 	}
 
-	SetStyleSheetContainer(static_cast<ElementDocument*>(temp_doc.get())->GetStyleSheetContainer());
+	SetStyleSheetContainer(static_cast<ElementDocument*>(temp_doc.get())->style_sheet_container);
 }
 
 void ElementDocument::DirtyMediaQueries()
