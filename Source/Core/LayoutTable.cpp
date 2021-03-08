@@ -85,34 +85,50 @@ void LayoutTable::FormatTable()
 	// After we format and size an element, we record its height as well, and keep the maximum_height over all cells in the current row.
 	// At the end of a row, we then know the height of the row, and we can proceed by positioning the cells.
 
-	float table_cursor_y = table_content_offset.y;
+	// Maintain a list of cells not located in a table row element.
+	ElementList non_parented_cell_elements;
 
+	auto format_non_parented_cells_as_row = [&non_parented_cell_elements, this](int row_index, float table_cursor_y) -> float {
+		Row row{
+			row_index,
+			table_cursor_y + (row_index > 0 ? table_gap.y : 0.f),
+			-1.f,
+			0.f,
+			FLT_MAX,
+			0.f
+		};
+		table_cursor_y = FormatCellsInRow(non_parented_cell_elements, row);
+		non_parented_cell_elements.clear();
+		return table_cursor_y;
+	};
+
+	float table_cursor_y = table_content_offset.y;
 	cells.reserve(columns.size());
 
-	const int num_table_children = element_table->GetNumChildren();
-
 	// Iterate through the table rows and row groups, and format them.
-	for (int i = 0, row = -1; i < num_table_children; i++)
+	const int num_table_children = element_table->GetNumChildren();
+	int row = -1;
+	for (int i = 0; i < num_table_children; i++)
 	{
 		using Display = Style::Display;
 
 		Element* element = element_table->GetChild(i);
 		const Display display = element->GetDisplay();
 
-		if (display != Display::TableRow && display != Display::TableRowGroup)
-		{
-			if (row >= 0 && (display == Display::TableColumn || display == Display::TableColumnGroup))
-			{
-				Log::Message(Log::LT_WARNING, "Table columns and column groups must precede any table rows. Ignoring element %s.", element->GetAddress().c_str());
-			}
-			else if (display != Display::TableColumn && display != Display::TableColumnGroup && display != Display::None)
-			{
-				Log::Message(Log::LT_WARNING, "Only table columns, column groups, rows, and row groups are valid children of tables. Ignoring element %s.", element->GetAddress().c_str());
-			}
+		if (display == Display::None)
 			continue;
+
+		if (!non_parented_cell_elements.empty() && display != Display::TableCell)
+		{
+			row += 1;
+			table_cursor_y = format_non_parented_cells_as_row(row, table_cursor_y);
 		}
 
-		if (display == Display::TableRow)
+		if (display == Display::TableCell)
+		{
+			non_parented_cell_elements.push_back(element);
+		}
+		else if (display == Display::TableRow)
 		{
 			row += 1;
 			table_cursor_y = FormatTableRow(row, element, table_cursor_y);
@@ -164,6 +180,24 @@ void LayoutTable::FormatTable()
 
 			table_cursor_y += row_group_box.GetEdge(Box::MARGIN, Box::BOTTOM) + row_group_box.GetEdge(Box::BORDER, Box::BOTTOM) + row_group_box.GetEdge(Box::PADDING, Box::BOTTOM);
 		}
+		else
+		{
+			if (row >= 0 && (display == Display::TableColumn || display == Display::TableColumnGroup))
+			{
+				Log::Message(Log::LT_WARNING, "Table columns and column groups must precede any table rows. Ignoring element %s.", element->GetAddress().c_str());
+			}
+			else if (display != Display::TableColumn && display != Display::TableColumnGroup)
+			{
+				Log::Message(Log::LT_WARNING, "Only table columns, column groups, rows, row groups, and cells are valid children of tables. Ignoring element %s.", element->GetAddress().c_str());
+			}
+			continue;
+		}
+	}
+
+	if(!non_parented_cell_elements.empty())
+	{
+		row += 1;
+		table_cursor_y = format_non_parented_cells_as_row(row, table_cursor_y);
 	}
 
 	table_resulting_content_size.y = Math::Clamp(table_cursor_y - table_content_offset.y, table_min_size.y, table_max_size.y);
@@ -234,6 +268,7 @@ void LayoutTable::DetermineColumnWidths()
 	Vector<ColumnMetric> column_metrics;
 
 	Element* element_row = nullptr;
+	ElementList first_row_cells;
 
 	const int num_table_children = element_table->GetNumChildren();
 
@@ -300,6 +335,16 @@ void LayoutTable::DetermineColumnWidths()
 				column_metrics[column_begin].group_span = group_span;
 				column_index += group_span;
 			}
+		}
+		else if (display == Style::Display::TableCell)
+		{
+			// We found a non-parented table cell before any table rows.
+			first_row_cells.push_back(element);
+		}
+		else if (!first_row_cells.empty())
+		{
+			// First row of non-parented table cells filled.
+			break;
 		}
 		else if (display == Style::Display::TableRow)
 		{
@@ -475,21 +520,33 @@ void LayoutTable::DetermineColumnWidths()
 		}
 	}
 
-	const int num_row_children = (!element_row ? 0 : element_row->GetNumChildren());
-	column_metrics.reserve(num_row_children);
+	if (element_row)
+	{
+		const int num_row_children = element_row->GetNumChildren();
+		first_row_cells.reserve(num_row_children);
+
+		for (int i = 0; i < num_row_children; i++)
+		{
+			Element* element = element_row->GetChild(i);
+			const ComputedValues& computed = element->GetComputedValues();
+
+			if (computed.display == Style::Display::TableCell)
+				first_row_cells.push_back(element);
+		}
+	}
+
+	column_metrics.reserve(first_row_cells.size());
 
 	// Next, walk through the cells in the first table row.
 	//   - We add new columns here if they are not already represented by a <col> or <colgroup> element.
 	//   - Otherwise, we merge the metrics of the cell with the existing column: If the existing column
 	//       has auto min-/max-/width, we use the cell's min-/max-/width if it has any.
 	// Note: Cells use their border width to line up the column, while <col> use their content width.
-	for (int i = 0, column = 0; i < num_row_children; i++)
+	for (int i = 0, column = 0; i < (int)first_row_cells.size(); i++)
 	{
-		Element* element = element_row->GetChild(i);
+		Element* element = first_row_cells[i];
 		const ComputedValues& computed = element->GetComputedValues();
-
-		if (computed.display != Style::Display::TableCell)
-			continue;
+		RMLUI_ASSERT(computed.display == Style::Display::TableCell);
 
 		const int colspan = Math::Max(1, element->GetAttribute("colspan", 1));
 
@@ -707,34 +764,73 @@ float LayoutTable::FormatTableRow(int row_index, Element* element_row, float row
 	if (row_index > 0)
 		row_position_y += table_gap.y;
 
-	const ComputedValues& computed_row = element_row->GetComputedValues();
-
-	Vector2f table_cursor = Vector2f(table_content_offset.x, row_position_y);
-
 	Box row_box;
 	float row_min_height, row_max_height;
 	LayoutDetails::BuildBox(row_box, table_initial_content_size, element_row, false, 0.f);
-	LayoutDetails::GetMinMaxHeight(row_min_height, row_max_height, computed_row, row_box, table_initial_content_size.y);
+	LayoutDetails::GetMinMaxHeight(row_min_height, row_max_height, element_row->GetComputedValues(), row_box, table_initial_content_size.y);
 
 	// Add the row top spacing to the cursor and row-spanning elements.
-	table_cursor.y += row_box.GetEdge(Box::MARGIN, Box::TOP) + row_box.GetEdge(Box::BORDER, Box::TOP) + row_box.GetEdge(Box::PADDING, Box::TOP);
+	float table_cursor_y = row_position_y + row_box.GetEdge(Box::MARGIN, Box::TOP) + row_box.GetEdge(Box::BORDER, Box::TOP) + row_box.GetEdge(Box::PADDING, Box::TOP);
 
-	const int num_cells_spanning_this_row = (int)cells.size();
 	const int num_row_children = element_row->GetNumChildren();
 
-	// For all child cell elements of this row, add them to the list of cells and determine their position.
-	for (int j = 0, column = 0; j < num_row_children; j++)
+	ElementList cell_elements;
+	cell_elements.reserve(num_row_children);
+
+	for (int j = 0; j < num_row_children; j++)
 	{
 		Element* element_cell = element_row->GetChild(j);
 
-		const ComputedValues& computed_cell = element_cell->GetComputedValues();
-		if (computed_cell.display != Style::Display::TableCell)
+		const Style::Display cell_display = element_cell->GetComputedValues().display;
+		if (cell_display == Style::Display::TableCell)
 		{
-			if (computed_cell.display != Style::Display::None)
-				Log::Message(Log::LT_WARNING, "Only table cells are allowed as children of table rows. %s", element_cell->GetAddress().c_str());
-
-			continue;
+			cell_elements.push_back(element_cell);
 		}
+		else if (cell_display != Style::Display::None)
+		{
+			Log::Message(Log::LT_WARNING, "Only table cells are allowed as children of table rows. %s", element_cell->GetAddress().c_str());
+		}
+	}
+
+	Row row{
+		row_index,
+		table_cursor_y,
+		row_box.GetSize().y,
+		row_min_height,
+		row_max_height,
+		0.f
+	};
+
+	table_cursor_y = FormatCellsInRow(cell_elements, row);
+
+	// Size and position the row element
+	const Vector2f row_element_content_size(
+		table_resulting_content_size.x - row_box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN, Box::PADDING),
+		Math::Max(row.fixed_height, row.content_height)
+	);
+	row_box.SetContent(row_element_content_size);
+
+	const Vector2f row_element_offset = Vector2f(table_content_offset.x, row_position_y) + Vector2f(row_box.GetEdge(Box::MARGIN, Box::LEFT), row_box.GetEdge(Box::MARGIN, Box::TOP));
+
+	element_row->SetOffset(row_element_offset, element_table);
+	element_row->SetBox(row_box);
+
+	// Add the row bottom spacing to the cursor and any row-spanning cells.
+	const float row_bottom_spacing = row_box.GetEdge(Box::MARGIN, Box::BOTTOM) + row_box.GetEdge(Box::BORDER, Box::BOTTOM) + row_box.GetEdge(Box::PADDING, Box::BOTTOM);
+	table_cursor_y += row_bottom_spacing;
+
+	return table_cursor_y;
+}
+
+float LayoutTable::FormatCellsInRow(const ElementList& cell_elements, Row& row)
+{
+	Vector2f table_cursor = Vector2f(table_content_offset.x, row.content_position_y);
+	const int num_cells_spanning_this_row = (int)cells.size();
+
+	// For all child cell elements of this row, add them to the list of cells and determine their position.
+	for (int j = 0, column = 0; j < (int)cell_elements.size(); j++)
+	{
+		Element* element_cell = cell_elements[j];
 
 		const int row_span = Math::Max(1, element_cell->GetAttribute("rowspan", 1));
 		const int col_span = Math::Max(1, element_cell->GetAttribute("colspan", 1));
@@ -758,8 +854,8 @@ float LayoutTable::FormatTableRow(int row_index, Element* element_row, float row
 
 		if (column_last >= (int)columns.size())
 		{
-			Log::Message(Log::LT_WARNING, "Too many columns in table row %d: %s\nThe number of columns is %d, as determined by the table columns or the first table row.",
-				row_index + 1, element_row->GetAddress().c_str(), (int)columns.size());
+			Log::Message(Log::LT_WARNING, "Too many columns in table row %d while encountering cell: %s\nThe number of columns is %d, as determined by the table columns or the first table row.",
+				row.index + 1, element_cell->GetAddress().c_str(), (int)columns.size());
 			break;
 		}
 
@@ -770,7 +866,7 @@ float LayoutTable::FormatTableRow(int row_index, Element* element_row, float row
 		cells.emplace_back();
 		Cell& cell = cells.back();
 
-		cell.row_last = row_index + row_span - 1;
+		cell.row_last = row.index + row_span - 1;
 		cell.column_begin = column;
 		cell.column_last = column_last;
 		cell.element_cell = element_cell;
@@ -789,14 +885,14 @@ float LayoutTable::FormatTableRow(int row_index, Element* element_row, float row
 	}
 
 	// Partition the cells to determine those who end at this row.
-	const auto it_cells_in_row_end = std::partition(cells.begin(), cells.end(), [row_index](const Cell& cell) { return cell.row_last == row_index; });
+	const auto it_cells_in_row_end = std::partition(cells.begin(), cells.end(), [row_index = row.index](const Cell& cell) { return cell.row_last == row_index; });
 
 	// Determine the row height.
-	float row_content_height = 0;
-	if (row_box.GetSize().y >= 0)
+	row.content_height = 0;
+	if (row.fixed_height >= 0)
 	{
 		//  The row has a definite size, use that.
-		row_content_height = row_box.GetSize().y;
+		row.content_height = row.fixed_height;
 	}
 	else
 	{
@@ -816,12 +912,12 @@ float LayoutTable::FormatTableRow(int row_index, Element* element_row, float row
 			}
 
 			const float cell_inrow_height = box.GetSizeAcross(Box::VERTICAL, Box::BORDER) - (table_cursor.y - cell.table_offset.y);
-			row_content_height = Math::Max(row_content_height, cell_inrow_height);
+			row.content_height = Math::Max(row.content_height, cell_inrow_height);
 		}
 	}
 
-	row_content_height = Math::Clamp(row_content_height, row_min_height, row_max_height);
-	table_cursor.y += row_content_height;
+	row.content_height = Math::Clamp(row.content_height, row.min_height, row.max_height);
+	table_cursor.y += row.content_height;
 
 	// Now we have the height of the row, position and format each cell.
 
@@ -896,24 +992,7 @@ float LayoutTable::FormatTableRow(int row_index, Element* element_row, float row
 	// Remove the formatted cells from pending
 	cells.erase(cells.begin(), it_cells_in_row_end);
 
-	// Size and position the row element
-	const Vector2f row_element_content_size(
-		table_resulting_content_size.x - row_box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN, Box::PADDING),
-		Math::Max(row_box.GetSize().y, row_content_height)
-	);
-	row_box.SetContent(row_element_content_size);
-
-	const Vector2f row_element_offset = Vector2f(table_content_offset.x, row_position_y) + Vector2f(row_box.GetEdge(Box::MARGIN, Box::LEFT), row_box.GetEdge(Box::MARGIN, Box::TOP));
-
-	element_row->SetOffset(row_element_offset, element_table);
-	element_row->SetBox(row_box);
-
-	// Add the row bottom spacing to the cursor and any row-spanning cells.
-	const float row_bottom_spacing = row_box.GetEdge(Box::MARGIN, Box::BOTTOM) + row_box.GetEdge(Box::BORDER, Box::BOTTOM) + row_box.GetEdge(Box::PADDING, Box::BOTTOM);
-	table_cursor.y += row_bottom_spacing;
-
 	return table_cursor.y;
-}
-
+};
 
 } // namespace Rml

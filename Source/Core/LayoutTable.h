@@ -71,15 +71,27 @@ private:
 	};
 	using CellList = Vector<Cell>;
 
+	struct Row {
+		const int index;
+		const float content_position_y;
+		const float fixed_height;
+		const float min_height, max_height;
+		float content_height;
+	};
+
 	// Format the table.
 	void FormatTable();
 
 	// Determines the column widths and populates the 'columns' data member.
 	void DetermineColumnWidths();
 
-	// Formats the table row element and all table cells ending at this row.
+	// Format the table row element, add cell elements beginning at this row, and format all table cells ending at this row.
 	// @return The y-position of the row's bottom edge.
 	float FormatTableRow(int row_index, Element* element_row, float row_position_y);
+
+	// Add cell elements beginning at this row and format all cells ending at this row.
+	// @return The y-position of the row's bottom content edge.
+	float FormatCellsInRow(const ElementList& cell_elements, Row& row);
 
 	Element* const element_table;
 
