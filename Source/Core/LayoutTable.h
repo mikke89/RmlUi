@@ -29,15 +29,17 @@
 #ifndef RMLUI_CORE_LAYOUTTABLE_H
 #define RMLUI_CORE_LAYOUTTABLE_H
 
-#include "LayoutBlockBox.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
 class Box;
+class TableGrid;
+struct TrackBox;
+using TrackBoxList = Vector<TrackBox>;
 
-class LayoutTable
-{
+
+class LayoutTable {
 public:
 	/// Formats and positions a table, including all elements contained within.
 	/// @param[inout] box The box used for dimensioning the table, the resulting table size is set on the box.
@@ -48,36 +50,8 @@ public:
 	static Vector2f FormatTable(Box& box, Vector2f min_size, Vector2f max_size, Element* element_table);
 
 private:
-	LayoutTable(Element* element_table, Vector2f table_gap, Vector2f table_content_offset, Vector2f table_initial_content_size, Vector2f table_min_size, Vector2f table_max_size);
-
-	struct Column {
-		Element* element_column = nullptr; // The '<col>' element which begins at this column, or nullptr if there is no such element or if the column is spanned from a previous column.
-		Element* element_group = nullptr;  // The '<colgroup>' element which begins at this column, otherwise nullptr.
-		float cell_width = 0;              // The *border* width of cells in this column.
-		float cell_offset = 0;             // Horizontal offset from the table content box to the border box of cells in this column.
-		float column_width = 0;            // The *content* width of the column element, which may span multiple columns.
-		float column_offset = 0;           // Horizontal offset from the table content box to the border box of the column element.
-		float group_width = 0;             // The *content* width of the column group element, which may span multiple columns.
-		float group_offset = 0;            // Horizontal offset from the table content box to the border box of the column group element.
-	};
-	using ColumnList = Vector<Column>;
-
-	struct Cell {
-		Element* element_cell;         // The <td> element.
-		int row_last;                  // The last row the cell spans.
-		int column_begin, column_last; // The first and last columns the cell spans.
-		Box box;                       // The cell element's resulting sizing box.
-		Vector2f table_offset;         // The cell element's offset from the table border box.
-	};
-	using CellList = Vector<Cell>;
-
-	struct Row {
-		const int index;
-		const float content_position_y;
-		const float fixed_height;
-		const float min_height, max_height;
-		float content_height;
-	};
+	LayoutTable(Element* element_table, const TableGrid& grid, Vector2f table_gap, Vector2f table_content_offset,
+		Vector2f table_initial_content_size, bool table_auto_height, Vector2f table_min_size, Vector2f table_max_size);
 
 	// Format the table.
 	void FormatTable();
@@ -85,16 +59,26 @@ private:
 	// Determines the column widths and populates the 'columns' data member.
 	void DetermineColumnWidths();
 
-	// Format the table row element, add cell elements beginning at this row, and format all table cells ending at this row.
-	// @return The y-position of the row's bottom edge.
-	float FormatTableRow(int row_index, Element* element_row, float row_position_y);
+	// Generate the initial boxes for all cells, content height may be indeterminate for now (-1).
+	void InitializeCellBoxes();
 
-	// Add cell elements beginning at this row and format all cells ending at this row.
-	// @return The y-position of the row's bottom content edge.
-	float FormatCellsInRow(const ElementList& cell_elements, Row& row);
+	// Determines the row heights and populates the 'rows' data member.
+	void DetermineRowHeights();
+
+	// Format the table row and row group elements.
+	void FormatRows();
+
+	// Format the table row and row group elements.
+	void FormatColumns();
+
+	// Format the table cell elements.
+	void FormatCells();
 
 	Element* const element_table;
 
+	const TableGrid& grid;
+
+	const bool table_auto_height;
 	const Vector2f table_min_size, table_max_size;
 	const Vector2f table_gap;
 	const Vector2f table_content_offset;
@@ -105,11 +89,15 @@ private:
 	// Overflow size in case the contents of any cells overflow their cell box (without being caught by the cell).
 	Vector2f table_content_overflow_size;
 
-	// Defines all the columns of this table, one entry per table column (spanning columns will add multiple entries).
-	ColumnList columns;
+	// Defines the boxes for all columns in this table, one entry per table column (spanning columns will add multiple entries).
+	TrackBoxList columns;
 
-	// Cells are added during iteration of each table row, and removed once they are placed at the last of the rows they span.
-	CellList cells;
+	// Defines the boxes for all rows in this table, one entry per table row.
+	TrackBoxList rows;
+
+	// Defines the boxes for all cells in this table.
+	using BoxList = Vector<Box>;
+	BoxList cells;
 };
 
 } // namespace Rml
