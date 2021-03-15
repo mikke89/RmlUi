@@ -1,0 +1,40 @@
+<rml>
+<head>
+    <title>Table 05</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html" />
+	<meta name="Description" content="Non-parented table cells form a new row." />
+	<style>
+		table {
+			border-width: 20dp 5dp;
+			border-color: #666;
+			color: #333;
+			text-align: center;
+			margin: 0 auto;
+			gap: 2dp 3dp;
+		}
+		td {
+			padding: 15dp 5dp;
+			border: 1dp #f335;
+			vertical-align: middle;
+		}
+		tr { border: 5dp #ff02; }
+	</style>
+</head>
+
+<body>
+<table>
+	<td rowspan="2">A</td>
+	<td colspan="2">B</td>
+	<td>C</td>
+	<tr>
+		<td>D</td>
+		<td>E</td>
+		<td rowspan="2">F</td>
+	</tr>
+	<td colspan="2">G</td>
+	<td>H</td>
+</table>
+<handle size_target="#document"/>
+</body>
+</rml>

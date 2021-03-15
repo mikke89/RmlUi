@@ -1,40 +1,51 @@
 <rml>
 <head>
-    <title>Table 04</title>
+    <title>Table 04 - Table height algorithm</title>
     <link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html" />
-	<meta name="Description" content="Non-parented table cells form a new row." />
+	<meta name="Description" content="Flexible row heights mixed with 'auto' row height and minimum/maximum constraints." />
+	<meta name="Assert (initial size)" content="Row 1 should be formatted according to its content height. Row 2 should be twice as high as Row 3." />
+	<meta name="Assert (resizing down)" content="The height of Row 2 and 3 should scale down until they meet their minimum height. The table height should not change with any further downsizing." />
+	<meta name="Assert (resizing up)" content="When Row 2 and 3 meet their maximum height, Row 1 should increase in size until it meets its maximum height. When Row 1 also meets its maximum height, the table should fill empty space at the bottom." />
 	<style>
 		table {
 			border-width: 20dp 5dp;
 			border-color: #666;
 			color: #333;
 			text-align: center;
-			margin: 0 auto;
-			width: 100%;
-			gap: 2dp 3dp;
+			gap: 5dp 3dp;
+			height: 50%;
+			min-width: 150dp;
 		}
 		td {
 			padding: 15dp 5dp;
 			border: 1dp #f335;
 			vertical-align: middle;
 		}
-		tr { border: 5dp #ff02; }
+		tr {
+			border: 5dp #ff02;
+			min-height: 60dp;
+			max-height: 120dp;
+		}
 	</style>
 </head>
 
 <body>
 <table>
-	<td rowspan="2">A</td>
-	<td colspan="2">B</td>
-	<td>C</td>
 	<tr>
+		<td rowspan="2">A</td>
+		<td colspan="2">B1<br/>B2</td>
+		<td>C</td>
+	</tr>
+	<tr style="height: 200%; max-height: 240dp;">
 		<td>D</td>
 		<td>E</td>
 		<td rowspan="2">F</td>
 	</tr>
-	<td colspan="2">G</td>
-	<td>H</td>
+	<tr style="height: 100%;">
+		<td colspan="2">G</td>
+		<td>H</td>
+	</tr>
 </table>
 <handle size_target="#document"/>
 </body>
