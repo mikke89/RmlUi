@@ -7,7 +7,6 @@
 		{
 			width: 440dp;
 			height: 440dp;
-			
 			margin: auto;
 		}
 		
@@ -20,11 +19,18 @@
 			display: inline-block;
 			width: 64dp;
 			height: 16dp;
-			
 			decorator: defender( high_scores_defender.tga );
+		}
+		table {
+			margin-top: 5dp;
+			height: 345dp;
 		}
 		tbody tr {
 			height: 30dp;
+		}
+		tbody tr:last-child {
+			height: auto;
+			background-color: transparent;
 		}
 		tbody td
 		{
@@ -32,6 +38,9 @@
 			height: 30dp;
 			white-space: nowrap;
 			overflow: hidden;
+		}
+		button {
+			margin-top: 20dp;
 		}
 	</style>
 	<script>
@@ -73,8 +82,9 @@ end
 				</td>
 			</tr>
 			<tr data-if="scores.size == 0">
-				<td colspan="4"><em>No scores recorded. Go play!</em></td>
+				<td colspan="4" style="vertical-align: middle"><em>No scores recorded. Play a game!</em></td>
 			</tr>
+			<tr data-if="scores.size > 0"/>
 		</tbody>
 	</table>
 	<button onclick="Game.SetHighScoreName('Anon') Window.LoadMenu('main_menu',document)">Main Menu</button>
