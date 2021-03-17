@@ -532,6 +532,16 @@ progressbar {
 	bottom: 20dp;
 	left: 30dp;
 	padding: 0;
+	max-width: -1px;
+}
+#sandbox table
+{
+	height: 100%;
+	gap: 5dp;
+}
+#sandbox tr
+{
+	background-color: transparent;
 }
 #sandbox textarea
 {
@@ -539,22 +549,51 @@ progressbar {
 	color: #222;
 	font-family: rmlui-debugger-font;
 	box-sizing: border-box;
-	width: 50%;
-	height: 40%;
+	width: 100%;
+	height: 100%;
 }
 #sandbox_target 
 {
 	box-sizing: border-box;
 	background-color: #fff;
 	border: 1px #000;
-	height: 55%;
-	margin-top: 15dp;
+	height: 100%;
 	color: #000;
 	text-align: left;
 	position: relative;
 }
-#sandbox_rml_source { margin-left: -5dp; }
-#sandbox_rcss_source { margin-left: 5dp; }
+#col_rml_source
+{
+	min-width: 15%;
+	max-width: 85%;
+}
+#row_source
+{
+	height: 40%;
+	min-height: 15%;
+	max-height: 85%;
+}
+.slider
+{
+	display: block;
+	height: 100%;
+	background: #3332;
+	cursor: move;
+}
+.slider:hover, .slider:active
+{
+	background: #dda;
+}
+#vertical_slider
+{	
+	width: 5dp;
+	margin-left: 2dp;
+	padding-top: 5dp;
+}
+#horizontal_slider
+{
+	height: 5dp;
+}
 </style>
 </head>
 
@@ -834,10 +873,23 @@ progressbar {
 	</form>
 </panel>
 <tab>Sandbox</tab>
-<panel id="sandbox" style="max-width: -1px;">
-	<textarea id="sandbox_rml_source" wrap="nowrap" onchange="set_sandbox_body"></textarea>
-	<textarea id="sandbox_rcss_source" wrap="nowrap" onchange="set_sandbox_style"></textarea>
-	<div id="sandbox_target"></div>
+<panel id="sandbox">
+	<table>
+		<col id="col_rml_source"/>
+		<col/>
+		<col/>
+		<tr id="row_source">
+			<td><textarea id="sandbox_rml_source" wrap="nowrap" onchange="set_sandbox_body"></textarea></td>
+			<td id="vertical_slider"><handle class="slider"size_target="col_rml_source"/></td>
+			<td><textarea id="sandbox_rcss_source" wrap="nowrap" onchange="set_sandbox_style"></textarea></td>
+		</tr>
+		<tr>
+			<td colspan=3 id="horizontal_slider"><handle class="slider" size_target="row_source"/></td>
+		</tr>
+		<tr style="height: 100%">
+			<td colspan=3><div id="sandbox_target"/></td>
+		</tr>
+	</table>
 </panel>
 </tabset>
 </body>
