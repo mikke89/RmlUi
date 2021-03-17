@@ -82,7 +82,7 @@ These changes may result in a differently rendered layout when upgrading to RmlU
 
 ### Table support
 
-RmlUi now supports tables like in CSS. See the [tables documentation](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html) for details.
+RmlUi now supports tables like in CSS, with some differences and enhancements. RCSS supports flexible sizing of rows and columns (as if using the CSS `fr` unit in grid layout). See the [tables documentation](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html) for details. 
 
 ```html
 <table>
