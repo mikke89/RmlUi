@@ -222,15 +222,17 @@ bool URL::SetURL(const String& _url)
 
 		// Normalise the path, stripping any ../'s from it
 		size_t parent_dir_pos = String::npos;
-		while ((parent_dir_pos = path.find("/..")) != String::npos && parent_dir_pos != 0)
+		while ((parent_dir_pos = path.find("/../")) != String::npos && parent_dir_pos != 0)
 		{
 			// Find the start of the parent directory.
 			size_t parent_dir_start_pos = path.rfind('/', parent_dir_pos - 1);
 			if (parent_dir_start_pos == String::npos)
 				parent_dir_start_pos = 0;
+			else
+				parent_dir_start_pos += 1;
 
 			// Strip out the parent dir and the /..
-			path.erase(parent_dir_start_pos, parent_dir_pos - parent_dir_start_pos + 3);
+			path.erase(parent_dir_start_pos, parent_dir_pos - parent_dir_start_pos + 4);
 
 			// We've altered the URL, mark it dirty
 			url_dirty = true;
