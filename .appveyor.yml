@@ -89,7 +89,7 @@ after_build:
     cd Dependencies/rlottie/
     echo The rlottie library includes source code licensed under Mozilla Public License Version 2.0.> MPL_SOURCE.txt
     echo The source for this code can be found in the rlottie library at the following URL:>> MPL_SOURCE.txt
-    echo https://github.com/Samsung/rlottie/blob/29b391b95913877b7234543da8b4a9ec6d8175d0/src/vector/vinterpolator.cpp.>> MPL_SOURCE.txt
+    echo https://github.com/Samsung/rlottie/blob/29b391b95913877b7234543da8b4a9ec6d8175d0/src/vector/vinterpolator.cpp>> MPL_SOURCE.txt
     cd ../..
     
     7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE.txt Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/MPL_SOURCE.txt Dependencies/rlottie/licenses/
