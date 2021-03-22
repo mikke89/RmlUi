@@ -53,11 +53,24 @@ template<typename Object>
 class StructHandle {
 public:
 	StructHandle(DataTypeRegister* type_register, StructDefinition* struct_definition) : type_register(type_register), struct_definition(struct_definition) {}
-	
+
+	// Register a member object. Any data type can be used.
 	template <typename MemberType>
 	StructHandle<Object>& RegisterMember(const String& name, MemberType Object::* member_ptr);
 
-	StructHandle<Object>& RegisterMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func = nullptr);
+	// Register a member using a getter function. Must return value by reference or by raw pointer. Any data type can be used.
+    template<typename ReturnType>
+    StructHandle<Object>& RegisterMember(const String& name, ReturnType(Object::* member_get_func_ptr)());
+
+	// Register a member using a getter function and optionally a setter function. Only scalar data types can be used.
+	// Can get and set by value or by reference.
+	/// @example
+	///     RegisterMemberScalar("color", &Invader::GetColor, &Invader::SetColor);
+	///       where functions can be declared as 
+	///     MyColorType Invader::GetColor();
+	///     void Invader::SetColor(MyColorType color);
+	template<typename ReturnType = std::nullptr_t, typename AssignType = std::nullptr_t>
+	StructHandle<Object>& RegisterMemberScalar(const String& name, ReturnType(Object::* member_get_func_ptr)(), void(Object::* member_set_func_ptr)(AssignType) = nullptr);
 
 	explicit operator bool() const {
 		return type_register && struct_definition;
@@ -99,7 +112,7 @@ public:
 		bool inserted = type_register.emplace(id, std::move(struct_definition)).second;
 		if (!inserted)
 		{
-			RMLUI_LOG_TYPE_ERROR(T, "Type already declared");
+			RMLUI_LOG_TYPE_ERROR(T, "Struct type already declared");
 			return StructHandle<T>(nullptr, nullptr);
 		}
 		
@@ -145,21 +158,6 @@ public:
 		}
 
 		return true;
-	}
-
-	template<typename T>
-	VariableDefinition* RegisterMemberFunc(MemberGetFunc<T> get_func, MemberSetFunc<T> set_func)
-	{
-		FamilyId id = Family<MemberGetFunc<T>>::Id();
-
-		auto result = type_register.emplace(id, nullptr);
-		auto& it = result.first;
-		bool inserted = result.second;
-
-		if (inserted)
-			it->second = MakeUnique<MemberFuncDefinition<T>>(get_func, set_func);
-
-		return it->second.get();
 	}
 
 	template<typename T>
@@ -213,10 +211,10 @@ private:
 	VariableDefinition* GetDefinitionDetail()
 	{
 		static_assert(PointerTraits<T>::is_pointer::value, "Not a valid pointer type.");
-		static_assert(!PointerTraits<PointerTraits<T>::element_type>::is_pointer::value, "Recursive pointer type (pointer to pointer) detected.");
+		static_assert(!PointerTraits<typename PointerTraits<T>::element_type>::is_pointer::value, "Recursive pointer type (pointer to pointer) detected.");
 
 		// Get the underlying definition.
-		VariableDefinition* underlying_definition = GetDefinitionDetail<typename std::remove_cv<PointerTraits<T>::element_type>::type>();
+		VariableDefinition* underlying_definition = GetDefinitionDetail<typename std::remove_cv<typename PointerTraits<T>::element_type>::type>();
 		if (!underlying_definition)
 		{
 			RMLUI_LOG_TYPE_ERROR(T, "Underlying type of pointer not registered.");
@@ -244,15 +242,60 @@ private:
 
 template<typename Object>
 template<typename MemberType>
-inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberType Object::* member_ptr) {
-	VariableDefinition* member_type = type_register->GetDefinition<MemberType>();
-	struct_definition->AddMember(name, MakeUnique<StructMemberObject<Object, MemberType>>(member_type, member_ptr));
+inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberType Object::* member_ptr)
+{
+	if (VariableDefinition* member_definition = type_register->GetDefinition<MemberType>())
+	{
+		struct_definition->AddMember(
+			name,
+			MakeUnique<MemberObjectPointerDefinition<Object, MemberType>>(member_definition, member_ptr)
+		);
+	}
 	return *this;
 }
+
 template<typename Object>
-inline StructHandle<Object>& StructHandle<Object>::RegisterMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func) {
-	VariableDefinition* definition = type_register->RegisterMemberFunc<Object>(get_func, set_func);
-	struct_definition->AddMember(name, MakeUnique<StructMemberFunc>(definition));
+template<typename ReturnType>
+inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, ReturnType(Object::*member_get_func_ptr)())
+{
+	using BasicReturnType = typename std::remove_pointer<typename std::remove_reference<ReturnType>::type>::type;
+	static_assert(!std::is_same<ReturnType, BasicReturnType>::value, "Struct member getter function must return value by reference or raw pointer.");
+
+	VariableDefinition* underlying_definition = type_register->GetDefinition<BasicReturnType>();
+	struct_definition->AddMember(
+		name,
+		MakeUnique<MemberFunctionPointerDefinition<Object, ReturnType, BasicReturnType>>(underlying_definition, member_get_func_ptr)
+	);
+	return *this;
+}
+
+template<typename Object>
+template<typename ReturnType, typename AssignType>
+inline StructHandle<Object>& StructHandle<Object>::RegisterMemberScalar(const String& name, ReturnType(Object::* member_get_func_ptr)(), void(Object::* member_set_func_ptr)(AssignType))
+{
+	using BasicReturnType = typename std::remove_cv<typename std::remove_reference<ReturnType>::type>::type;
+	using BasicAssignType = typename std::remove_cv<typename std::remove_reference<AssignType>::type>::type;
+	using UnderlyingType = typename std::conditional<std::is_null_pointer<BasicReturnType>::value, BasicAssignType, BasicReturnType>::type;
+
+	static_assert(std::is_null_pointer<ReturnType>::value || std::is_null_pointer<AssignType>::value || std::is_same<BasicReturnType, BasicAssignType>::value, "Provided getter and setter functions must get and set the same type.");
+	static_assert(std::is_copy_assignable<UnderlyingType>::value, "Struct member getter and setter functions must return/assign a type that is copy assignable.");
+	static_assert(std::is_default_constructible<UnderlyingType>::value, "Struct member getter and setter functions must return/assign a type that is default constructible.");
+
+	VariableDefinition* underlying_definition = type_register->GetDefinition<UnderlyingType>();
+	if (!underlying_definition)
+		return *this;
+
+	DataVariableType type = underlying_definition->Type();
+	if (!(type == DataVariableType::Scalar || type == DataVariableType::Function))
+	{
+		RMLUI_LOG_TYPE_ERROR(UnderlyingType, "A getter/setter member function must return and assign a scalar data variable type.");
+		return *this;
+	}
+
+	struct_definition->AddMember(
+		name,
+		MakeUnique<MemberScalarFunctionPointerDefinition<Object, ReturnType, AssignType, UnderlyingType>>(underlying_definition, member_get_func_ptr, member_set_func_ptr)
+	);
 	return *this;
 }
 
