@@ -61,5 +61,27 @@ struct DataAddressEntry {
 };
 using DataAddress = Vector<DataAddressEntry>;
 
+template<class T>
+struct PointerTraits {
+	using is_pointer = std::false_type;
+	using element_type = T;
+};
+template<class T>
+struct PointerTraits<T*> {
+	using is_pointer = std::true_type;
+	using element_type = T;
+};
+template<class T>
+struct PointerTraits<UniquePtr<T>> {
+	using is_pointer = std::true_type;
+	using element_type = T;
+};
+template<class T>
+struct PointerTraits<SharedPtr<T>> {
+	using is_pointer = std::true_type;
+	using element_type = T;
+};
+
+
 } // namespace Rml
 #endif

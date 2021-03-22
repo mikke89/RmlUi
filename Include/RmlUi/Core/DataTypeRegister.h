@@ -81,7 +81,8 @@ private:
 
 
 
-class RMLUICORE_API DataTypeRegister : NonCopyMoveable {
+
+class RMLUICORE_API DataTypeRegister final : NonCopyMoveable {
 public:
 	DataTypeRegister();
 	~DataTypeRegister();
@@ -92,10 +93,10 @@ public:
 		static_assert(std::is_class<T>::value, "Type must be a struct or class type.");
 		FamilyId id = Family<T>::Id();
 
-		auto struct_variable = MakeUnique<StructDefinition>();
-		StructDefinition* struct_variable_raw = struct_variable.get();
+		auto struct_definition = MakeUnique<StructDefinition>();
+		StructDefinition* struct_variable_raw = struct_definition.get();
 
-		bool inserted = type_register.emplace(id, std::move(struct_variable)).second;
+		bool inserted = type_register.emplace(id, std::move(struct_definition)).second;
 		if (!inserted)
 		{
 			RMLUI_LOG_TYPE_ERROR(T, "Type already declared");
@@ -109,16 +110,16 @@ public:
 	bool RegisterArray()
 	{
 		using value_type = typename Container::value_type;
-		VariableDefinition* value_variable = GetOrAddScalar<value_type>();
+		VariableDefinition* value_variable = GetDefinitionDetail<value_type>();
 		RMLUI_LOG_TYPE_ERROR_ASSERT(value_type, value_variable, "Underlying value type of array has not been registered.");
 		if (!value_variable)
 			return false;
 
 		FamilyId container_id = Family<Container>::Id();
 
-		auto array_variable = MakeUnique<ArrayDefinition<Container>>(value_variable);
+		auto array_definition = MakeUnique<ArrayDefinition<Container>>(value_variable);
 
-		bool inserted = type_register.emplace(container_id, std::move(array_variable)).second;
+		bool inserted = type_register.emplace(container_id, std::move(array_definition)).second;
 		if (!inserted)
 		{
 			RMLUI_LOG_TYPE_ERROR(Container, "Array type already declared.");
@@ -161,8 +162,22 @@ public:
 		return it->second.get();
 	}
 
-	template<typename T, typename std::enable_if<is_valid_data_scalar<T>::value, int>::type = 0>
-	VariableDefinition* GetOrAddScalar()
+	template<typename T>
+	VariableDefinition* GetDefinition()
+	{
+		return GetDefinitionDetail<T>();
+	}
+
+	TransformFuncRegister* GetTransformFuncRegister() {
+		return &transform_register;
+	}
+
+private:
+
+	// Get definition for scalar types that can be assigned to and from Rml::Variant.
+	// We automatically register these when needed, so users don't have to register trivial types manually.
+	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value&& is_valid_data_scalar<T>::value, int>::type = 0>
+	VariableDefinition* GetDefinitionDetail()
 	{
 		FamilyId id = Family<T>::Id();
 
@@ -176,14 +191,10 @@ public:
 		return definition.get();
 	}
 
-	template<typename T, typename std::enable_if<!is_valid_data_scalar<T>::value, int>::type = 0>
-	VariableDefinition* GetOrAddScalar()
-	{
-		return Get<T>();
-	}
-
-	template<typename T>
-	VariableDefinition* Get()
+	// Get definition for non-scalar types.
+	// These must already have been registered by the user.
+	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_valid_data_scalar<T>::value, int>::type = 0>
+	VariableDefinition* GetDefinitionDetail()
 	{
 		FamilyId id = Family<T>::Id();
 		auto it = type_register.find(id);
@@ -196,21 +207,45 @@ public:
 		return it->second.get();
 	}
 
-	TransformFuncRegister* GetTransformFuncRegister() {
-		return &transform_register;
+	// Get definition for pointer types, or create one as needed.
+	// This will create a wrapper definition that forwards the call to the definition for the underlying type.
+	template<typename T, typename std::enable_if<PointerTraits<T>::is_pointer::value, int>::type = 0>
+	VariableDefinition* GetDefinitionDetail()
+	{
+		static_assert(PointerTraits<T>::is_pointer::value, "Not a valid pointer type.");
+		static_assert(!PointerTraits<PointerTraits<T>::element_type>::is_pointer::value, "Recursive pointer type (pointer to pointer) detected.");
+
+		// Get the underlying definition.
+		VariableDefinition* underlying_definition = GetDefinitionDetail<typename std::remove_cv<PointerTraits<T>::element_type>::type>();
+		if (!underlying_definition)
+		{
+			RMLUI_LOG_TYPE_ERROR(T, "Underlying type of pointer not registered.");
+			return nullptr;
+		}
+
+		// Get or create the pointer wrapper definition.
+		FamilyId id = Family<T>::Id();
+
+		auto result = type_register.emplace(id, nullptr);
+		bool inserted = result.second;
+		UniquePtr<VariableDefinition>& definition = result.first->second;
+
+		if (inserted)
+			definition = MakeUnique<PointerDefinition<T>>(underlying_definition);
+
+		return definition.get();
 	}
 
-private:
+
 	UnorderedMap<FamilyId, UniquePtr<VariableDefinition>> type_register;
 
 	TransformFuncRegister transform_register;
-
 };
 
 template<typename Object>
 template<typename MemberType>
 inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberType Object::* member_ptr) {
-	VariableDefinition* member_type = type_register->GetOrAddScalar<MemberType>();
+	VariableDefinition* member_type = type_register->GetDefinition<MemberType>();
 	struct_definition->AddMember(name, MakeUnique<StructMemberObject<Object, MemberType>>(member_type, member_ptr));
 	return *this;
 }

@@ -110,7 +110,6 @@ public:
 	}
 };
 
-
 class FuncDefinition final : public VariableDefinition {
 public:
 
@@ -193,6 +192,49 @@ protected:
 	}
 
 private:
+	VariableDefinition* underlying_definition;
+};
+
+template<typename T>
+class PointerDefinition final : public VariableDefinition {
+public:
+	PointerDefinition(VariableDefinition* underlying_definition) : VariableDefinition(underlying_definition->Type()), underlying_definition(underlying_definition) {}
+
+	bool Get(void* ptr, Variant& variant) override
+	{
+		return underlying_definition->Get(DereferencePointer(ptr), variant);
+	}
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		return SetDetail<T>(ptr, variant);
+	}
+	int Size(void* ptr) override
+	{
+		return underlying_definition->Size(DereferencePointer(ptr));
+	}
+	DataVariable Child(void* ptr, const DataAddressEntry& address) override
+	{
+		// TODO: Return the constness of T?
+		return underlying_definition->Child(DereferencePointer(ptr), address);
+	}
+
+private:
+	template<typename U, typename std::enable_if<!std::is_const<typename PointerTraits<U>::element_type>::value, int>::type = 0>
+	bool SetDetail(void* ptr, const Variant& variant)
+	{
+		return underlying_definition->Set(DereferencePointer(ptr), variant);
+	}
+	template<typename U, typename std::enable_if<std::is_const<typename PointerTraits<U>::element_type>::value, int>::type = 0>
+	bool SetDetail(void* /*ptr*/, const Variant& /*variant*/)
+	{
+		return false;
+	}
+
+	static void* DereferencePointer(void* ptr)
+	{
+		return (void*)(&(*(*static_cast<T*>(ptr))));
+	}
+
 	VariableDefinition* underlying_definition;
 };
 
