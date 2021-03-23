@@ -164,17 +164,6 @@ namespace InvadersExample {
 		Rml::Colourb color{ 255, 255, 255 };
 		Rml::Vector<int> damage;
 		float danger_rating = 50;
-
-		void GetColor(Rml::Variant& variant) {
-			variant = "rgba(" + Rml::ToString(color) + ')';
-		}
-		void SetColor(const Rml::Variant& variant) {
-			using namespace Rml;
-			String str = variant.Get<String>();
-			if (str.size() > 6)
-				str = str.substr(5, str.size() - 6);
-			color = Rml::FromString<Colourb>(variant.Get<String>());
-		}
 	};
 
 	struct InvadersData {
@@ -201,6 +190,21 @@ namespace InvadersExample {
 		if (!constructor)
 			return false;
 
+		// Register a custom getter/setter for the Colourb type.
+		constructor.RegisterScalar<Rml::Colourb>(
+			[](const Rml::Colourb& color, Rml::Variant& variant) {
+				variant = "rgba(" + Rml::ToString(color) + ')';
+			},
+			[](Rml::Colourb& color, const Rml::Variant& variant) {
+				Rml::String str = variant.Get<Rml::String>();
+				bool success = false;
+				if (str.size() > 6 && str.substr(0, 5) == "rgba(")
+					success = Rml::TypeConverter<Rml::String, Rml::Colourb>::Convert(str.substr(5), color);
+				if (!success)
+					Rml::Log::Message(Rml::Log::LT_WARNING, "Invalid color specified: '%s'. Use syntax rgba(R,G,B,A).", str.c_str());
+			}
+		);
+
 		// Since Invader::damage is an array type.
 		constructor.RegisterArray<Rml::Vector<int>>();
 
@@ -209,11 +213,9 @@ namespace InvadersExample {
 		{
 			invader_handle.RegisterMember("name", &Invader::name);
 			invader_handle.RegisterMember("sprite", &Invader::sprite);
+			invader_handle.RegisterMember("color", &Invader::color);
 			invader_handle.RegisterMember("damage", &Invader::damage);
 			invader_handle.RegisterMember("danger_rating", &Invader::danger_rating);
-
-			// Getter and setter functions can also be used.
-			invader_handle.RegisterMemberFunc("color", &Invader::GetColor);
 		}
 
 		// We can even have an Array of Structs, infinitely nested if we so desire.

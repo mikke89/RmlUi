@@ -85,4 +85,78 @@ DataVariable MakeLiteralIntVariable(int value)
     return DataVariable(&literal_int_definition, reinterpret_cast<void*>(static_cast<intptr_t>(value)));
 }
 
+StructDefinition::StructDefinition() : VariableDefinition(DataVariableType::Struct)
+{}
+
+DataVariable StructDefinition::Child(void* ptr, const DataAddressEntry& address)
+{
+    const String& name = address.name;
+    if (name.empty())
+    {
+        Log::Message(Log::LT_WARNING, "Expected a struct member name but none given.");
+        return DataVariable();
+    }
+
+    auto it = members.find(name);
+    if (it == members.end())
+    {
+        Log::Message(Log::LT_WARNING, "Member %s not found in data struct.", name.c_str());
+        return DataVariable();
+    }
+
+    VariableDefinition* next_definition = it->second.get();
+
+    return DataVariable(next_definition, ptr);
+}
+
+void StructDefinition::AddMember(const String& name, UniquePtr<VariableDefinition> member)
+{
+    RMLUI_ASSERT(member);
+    bool inserted = members.emplace(name, std::move(member)).second;
+    RMLUI_ASSERTMSG(inserted, "Member name already exists.");
+    (void)inserted;
+}
+
+FuncDefinition::FuncDefinition(DataGetFunc get, DataSetFunc set)
+    : VariableDefinition(DataVariableType::Scalar), get(std::move(get)), set(std::move(set)) {}
+
+bool FuncDefinition::Get(void* /*ptr*/, Variant& variant)
+{
+    if (!get)
+        return false;
+    get(variant);
+    return true;
+}
+
+bool FuncDefinition::Set(void* /*ptr*/, const Variant& variant)
+{
+    if (!set)
+        return false;
+    set(variant);
+    return true;
+}
+
+BasePointerDefinition::BasePointerDefinition(VariableDefinition* underlying_definition)
+    : VariableDefinition(underlying_definition->Type()), underlying_definition(underlying_definition) {}
+
+bool BasePointerDefinition::Get(void* ptr, Variant& variant)
+{
+    return underlying_definition->Get(DereferencePointer(ptr), variant);
+}
+
+bool BasePointerDefinition::Set(void* ptr, const Variant& variant)
+{
+    return underlying_definition->Set(DereferencePointer(ptr), variant);
+}
+
+int BasePointerDefinition::Size(void* ptr)
+{
+    return underlying_definition->Size(DereferencePointer(ptr));
+}
+
+DataVariable BasePointerDefinition::Child(void* ptr, const DataAddressEntry& address)
+{
+    return underlying_definition->Child(DereferencePointer(ptr), address);
+}
+
 } // namespace Rml

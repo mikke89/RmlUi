@@ -34,6 +34,7 @@
 #include "Traits.h"
 #include "DataTypes.h"
 #include "DataTypeRegister.h"
+#include "DataStructHandle.h"
 
 namespace Rml {
 
@@ -66,13 +67,13 @@ public:
 	DataModelHandle GetModelHandle() const;
 
 	// Bind a data variable.
-	// @note For non-scalar types make sure they first have been registered with the appropriate 'Register...()' functions.
+	// @note For non-builtin types, make sure they first have been registered with the appropriate 'Register...()' functions.
 	template<typename T>
 	bool Bind(const String& name, T* ptr) {
 		RMLUI_ASSERTMSG(ptr, "Invalid pointer to data variable");
-		return BindVariable(name, DataVariable(type_register->GetOrAddScalar<T>(), ptr));
+		return BindVariable(name, DataVariable(type_register->GetDefinition<T>(), static_cast<void*>(ptr)));
 	}
-
+	
 	// Bind a get/set function pair.
 	bool BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func = {});
 
@@ -93,22 +94,24 @@ public:
 		return BindVariable(name, data_variable);
 	}
 
+	// Register a scalar type with associated get and set functions.
+	// @note This registers a type which can later be used as a normal data variable, while 'BindFunc' registers a named data variable with a specific getter and setter.
+	// @note The type applies to every data model associated with the current Context.
+	template<typename T>
+	bool RegisterScalar(DataTypeGetFunc<T> get_func, DataTypeSetFunc<T> set_func = {});
+
 	// Register a struct type.
 	// @note The type applies to every data model associated with the current Context.
 	// @return A handle which can be used to register struct members.
 	template<typename T>
-	StructHandle<T> RegisterStruct() {
-		return type_register->RegisterStruct<T>();
-	}
+	StructHandle<T> RegisterStruct();
 
 	// Register an array type.
 	// @note The type applies to every data model associated with the current Context.
 	// @note If 'Container::value_type' represents a non-scalar type, that type must already have been registered with the appropriate 'Register...()' functions.
-	// @note Container requires the following functions to be implemented: size() and begin(). This is satisfied by several containers such as std::vector and std::array.
+	// @note Container requires the following functions to be implemented: size() and begin(). This is satisfied by several containers including std::vector and std::array.
 	template<typename Container>
-	bool RegisterArray() {
-		return type_register->RegisterArray<Container>();
-	}
+	bool RegisterArray();
 
 	// Register a transform function.
 	// A transform function modifies a variant with optional arguments. It can be called in data expressions using the pipe '|' operator.
@@ -125,6 +128,66 @@ private:
 	DataModel* model;
 	DataTypeRegister* type_register;
 };
+
+
+template<typename T>
+inline bool DataModelConstructor::RegisterScalar(DataTypeGetFunc<T> get_func, DataTypeSetFunc<T> set_func)
+{
+	static_assert(!is_builtin_data_scalar<T>::value, "Cannot register scalar data type function. Arithmetic types and String are handled internally and does not need to be registered.");
+	const FamilyId id = Family<T>::Id();
+
+	auto scalar_func_definition = MakeUnique<ScalarFuncDefinition<T>>(get_func, set_func);
+
+	const bool inserted = type_register->RegisterDefinition(id, std::move(scalar_func_definition));
+	if (!inserted)
+	{
+		RMLUI_LOG_TYPE_ERROR(T, "Scalar function type already registered.");
+		return false;
+	}
+
+	return true;
+}
+
+template<typename T>
+inline StructHandle<T> DataModelConstructor::RegisterStruct()
+{
+	static_assert(std::is_class<T>::value, "Type must be a struct or class type.");
+	const FamilyId id = Family<T>::Id();
+
+	auto struct_definition = MakeUnique<StructDefinition>();
+	StructDefinition* struct_variable_raw = struct_definition.get();
+
+	const bool inserted = type_register->RegisterDefinition(id, std::move(struct_definition));
+	if (!inserted)
+	{
+		RMLUI_LOG_TYPE_ERROR(T, "Struct type already declared");
+		return StructHandle<T>(nullptr, nullptr);
+	}
+
+	return StructHandle<T>(type_register, struct_variable_raw);
+}
+
+template<typename Container>
+inline bool DataModelConstructor::RegisterArray()
+{
+	using value_type = typename Container::value_type;
+	VariableDefinition* value_variable = type_register->GetDefinition<value_type>();
+	RMLUI_LOG_TYPE_ERROR_ASSERT(value_type, value_variable, "Underlying value type of array has not been registered.");
+	if (!value_variable)
+		return false;
+
+	const FamilyId container_id = Family<Container>::Id();
+	auto array_definition = MakeUnique<ArrayDefinition<Container>>(value_variable);
+
+	const bool inserted = type_register->RegisterDefinition(container_id, std::move(array_definition));
+	if (!inserted)
+	{
+		RMLUI_LOG_TYPE_ERROR(Container, "Array type already declared.");
+		return false;
+	}
+
+	return true;
+}
 
 } // namespace Rml
 

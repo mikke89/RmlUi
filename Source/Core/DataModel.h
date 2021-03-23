@@ -34,13 +34,14 @@
 #include "../../Include/RmlUi/Core/Traits.h"
 #include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/DataTypes.h"
-#include "../../Include/RmlUi/Core/DataVariable.h"
 
 namespace Rml {
 
 class DataViews;
 class DataControllers;
+class DataVariable;
 class Element;
+class FuncDefinition;
 
 
 class DataModel : NonCopyMoveable {
