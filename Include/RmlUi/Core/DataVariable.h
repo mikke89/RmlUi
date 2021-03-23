@@ -133,14 +133,14 @@ public:
 	{
 		if (!get)
 			return false;
-		get(static_cast<const T*>(ptr), variant);
+		get(*static_cast<const T*>(ptr), variant);
 		return true;
 	}
 	bool Set(void* ptr, const Variant& variant) override
 	{
 		if (!set)
 			return false;
-		set(static_cast<T*>(ptr), variant);
+		set(*static_cast<T*>(ptr), variant);
 		return true;
 	}
 

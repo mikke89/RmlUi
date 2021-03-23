@@ -36,8 +36,6 @@
 
 namespace BasicExample {
 
-	using namespace Rml;
-
 	Rml::DataModelHandle model_handle;
 
 	struct MyData {
@@ -194,14 +192,14 @@ namespace InvadersExample {
 
 		// Register a custom getter/setter for the Colourb type.
 		constructor.RegisterScalar<Rml::Colourb>(
-			[](const Rml::Colourb* color, Rml::Variant& variant) {
-				variant = "rgba(" + Rml::ToString(*color) + ')';
+			[](const Rml::Colourb& color, Rml::Variant& variant) {
+				variant = "rgba(" + Rml::ToString(color) + ')';
 			},
-			[](Rml::Colourb* color, const Rml::Variant& variant) {
+			[](Rml::Colourb& color, const Rml::Variant& variant) {
 				Rml::String str = variant.Get<Rml::String>();
 				bool success = false;
 				if (str.size() > 6 && str.substr(0, 5) == "rgba(")
-					success = Rml::TypeConverter<Rml::String, Rml::Colourb>::Convert(str.substr(5), *color);
+					success = Rml::TypeConverter<Rml::String, Rml::Colourb>::Convert(str.substr(5), color);
 				if (!success)
 					Rml::Log::Message(Rml::Log::LT_WARNING, "Invalid color specified: '%s'. Use syntax rgba(R,G,B,A).", str.c_str());
 			}
