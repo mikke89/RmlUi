@@ -26,44 +26,25 @@
  *
  */
 
-#ifndef RMLUI_CORE_ELEMENTS_SELECTOPTION_H
-#define RMLUI_CORE_ELEMENTS_SELECTOPTION_H
+#ifndef RMLUI_CORE_ELEMENTS_XMLNODEHANDLERSELECT_H
+#define RMLUI_CORE_ELEMENTS_XMLNODEHANDLERSELECT_H
 
-#include "../Header.h"
-#include "../Types.h"
+#include "../XMLNodeHandlerDefault.h"
 
 namespace Rml {
 
-class Element;
-
-
 /**
-	Represents individual options within a select control.
-
-	@author Peter Curry
+	XML node handler for processing the select and option tags.
  */
 
-class RMLUICORE_API SelectOption
+class XMLNodeHandlerSelect : public XMLNodeHandlerDefault
 {
 public:
-	SelectOption(Element* element, const String& value, bool selectable);
-	~SelectOption();
+	XMLNodeHandlerSelect();
+	virtual ~XMLNodeHandlerSelect();
 
-	/// Returns the element that represents the option visually.
-	/// @return The option's element.
-	Element* GetElement();
-	/// Returns the value of the option.
-	/// @return The option's value.
-	const String& GetValue() const;
-
-	/// Returns true if the item is selectable.
-	/// @return True if the item is selectable.
-	bool IsSelectable() { return selectable; }
-
-private:
-	Element* element;
-	String value;
-	bool selectable;
+	/// Called when a new element start is opened
+	Element* ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes) override;
 };
 
 } // namespace Rml

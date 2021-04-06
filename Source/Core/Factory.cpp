@@ -82,6 +82,7 @@
 #include "Elements/ElementLabel.h"
 #include "Elements/ElementTextSelection.h"
 #include "Elements/XMLNodeHandlerDataGrid.h"
+#include "Elements/XMLNodeHandlerSelect.h"
 #include "Elements/XMLNodeHandlerTabSet.h"
 #include "Elements/XMLNodeHandlerTextArea.h"
 
@@ -291,6 +292,7 @@ bool Factory::Initialise()
 	XMLParser::RegisterNodeHandler("datagrid", MakeShared<XMLNodeHandlerDataGrid>());
 	XMLParser::RegisterNodeHandler("tabset", MakeShared<XMLNodeHandlerTabSet>());
 	XMLParser::RegisterNodeHandler("textarea", MakeShared<XMLNodeHandlerTextArea>());
+	XMLParser::RegisterNodeHandler("select", MakeShared<XMLNodeHandlerSelect>());
 
 	return true;
 }

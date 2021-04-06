@@ -104,6 +104,5 @@
 #include "Core/Elements/ElementFormControlTextArea.h"
 #include "Core/Elements/ElementProgressBar.h"
 #include "Core/Elements/ElementTabSet.h"
-#include "Core/Elements/SelectOption.h"
 
 #endif

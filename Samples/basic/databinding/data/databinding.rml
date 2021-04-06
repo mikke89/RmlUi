@@ -150,8 +150,11 @@ form h2 {
 	background-color: #aca;
 	color: #999;
 }
-.picker p {
+a {
 	cursor: pointer;
+}
+a:hover {
+	text-decoration: underline;
 }
 input:disabled {
 	image-color: #aaac;
@@ -162,6 +165,10 @@ li {
 	margin-left: 1em;
 	margin-top: 0.3em;
 	margin-bottom: 0.3em;
+}
+select selectbox option.disabled {
+	color: #666;
+	background-color: #ccc;
 }
 </style>
 </head>
@@ -216,15 +223,6 @@ li {
 <tab>Forms</tab>
 <panel id="controls" data-model="forms">
 	<form onsubmit="submit_form">
-		<h2>Full name</h2>
-		<div>
-			<input class="two-wide" type="text" name="name"/>
-		</div>
-		<h2>Email and password</h2>
-		<div>
-			<input type="text" name="email"/>
-			<input type="password" name="password"/>
-		</div>
 		<h2>Rating</h2>
 		<div>
 			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating" data-value="rating"/> <span id="rating">{{rating}}</span><span id="rating_emoji">&nbsp;</span>
@@ -248,30 +246,24 @@ li {
 		</div>
 		<h2>Subject</h2>
 		<div>
-			<!--<select name="subject" data-value="selected_subject">
-                <option data-for="s : subjects" data-value="it_index">{{s}}</option>
-            </select>-->
-            <select name="subject" data-value="selected_subject">
-                <option value="0">Choose your subject</option>
-                <option value="1">Feature request</option>
-                <option value="2">Bug report</option>
-                <option value="3">Praise</option>
-                <option value="4">Criticism</option>
+			<select id="select" name="subject" data-value="selected_subject">
+                <option data-for="s : subjects" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
             </select>
-			<div class="picker">
-				<p data-for="s : subjects" data-style-color="it_index == selected_subject ? 'red' : 'black'" data-event-click="selected_subject = it_index">{{it_index + 1 + ': ' + s}}</p>
-			</div>
+			<br/>
 			<p>
-				Selected subject index:<br/>
+				Select subject by index<br/>
 				<input type="range" name="rating" min="0" max="0" data-attr-max="subjects.size - 1" step="1" value="0" data-value="selected_subject"/> {{selected_subject + 1}}
 			</p>
-		</div>
-		<h2>Message</h2>
-		<div>
-			<textarea cols="25" rows="4" wrap="nowrap" name="message">😍 Hello 🌐 World! 😎</textarea>
-		</div>
-		<div style="margin-bottom: 15dp;">
-			<input type="submit">Submit</input>
+			<div class="picker">
+				<p data-for="s : subjects" data-style-color="it_index == selected_subject ? 'red' : 'black'">
+					{{it_index + 1}}: <a data-event-click="selected_subject = it_index">{{ s }}</a>&nbsp;
+					<a data-if="it_index > 0" data-event-click="erase_subject(it_index)">[-]</a>
+				</p>
+			</div>
+			<div>
+				<input type="text" name="name" data-value="new_subject"/><br/>
+				<button data-event-click="add_subject(new_subject)">Add subject</button>
+			</div>
 		</div>
 	</form>
 </panel>

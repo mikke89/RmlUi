@@ -35,7 +35,7 @@
 namespace Rml {
 
 // Constructs a new ElementFormControlSelect.
-ElementFormControlSelect::ElementFormControlSelect(const String& tag) : ElementFormControl(tag)
+ElementFormControlSelect::ElementFormControlSelect(const String& tag) : ElementFormControl(tag), widget(nullptr)
 {
 	widget = new WidgetDropDown(this);
 }
@@ -48,77 +48,75 @@ ElementFormControlSelect::~ElementFormControlSelect()
 // Returns a string representation of the current value of the form control.
 String ElementFormControlSelect::GetValue() const
 {
-	RMLUI_ASSERT(widget != nullptr);
-	return widget->GetValue();
+	return GetAttribute("value", String());
 }
 
 // Sets the current value of the form control.
 void ElementFormControlSelect::SetValue(const String& value)
 {
-	OnUpdate();
+	MoveChildren();
 
-	RMLUI_ASSERT(widget != nullptr);
-	widget->SetValue(value);
+	SetAttribute("value", value);
 }
 
 // Sets the index of the selection. If the new index lies outside of the bounds, it will be clamped.
 void ElementFormControlSelect::SetSelection(int selection)
 {
-	OnUpdate();
+	MoveChildren();
 
-	RMLUI_ASSERT(widget != nullptr);
-	widget->SetSelection(selection);
+	widget->SetSelection(widget->GetOption(selection));
 }
 
 // Returns the index of the currently selected item.
 int ElementFormControlSelect::GetSelection() const
 {
-	RMLUI_ASSERT(widget != nullptr);
 	return widget->GetSelection();
 }
 
 // Returns one of the select control's option elements.
-SelectOption* ElementFormControlSelect::GetOption(int index)
+Element* ElementFormControlSelect::GetOption(int index)
 {
-	OnUpdate();
+	MoveChildren();
 
-	RMLUI_ASSERT(widget != nullptr);
 	return widget->GetOption(index);
 }
 
 // Returns the number of options in the select control.
 int ElementFormControlSelect::GetNumOptions()
 {
-	OnUpdate();
+	MoveChildren();
 
-	RMLUI_ASSERT(widget != nullptr);
 	return widget->GetNumOptions();
 }
 
 // Adds a new option to the select control.
 int ElementFormControlSelect::Add(const String& rml, const String& value, int before, bool selectable)
 {
-	OnUpdate();
+	MoveChildren();
 
-	RMLUI_ASSERT(widget != nullptr);
 	return widget->AddOption(rml, value, before, false, selectable);
+}
+
+int ElementFormControlSelect::Add(ElementPtr element, int before)
+{
+	MoveChildren();
+
+	return widget->AddOption(std::move(element), before);
 }
 
 // Removes an option from the select control.
 void ElementFormControlSelect::Remove(int index)
 {
-	OnUpdate();
+	MoveChildren();
 
-	RMLUI_ASSERT(widget != nullptr);
 	widget->RemoveOption(index);
 }
 
 // Removes all options from the select control.
 void ElementFormControlSelect::RemoveAll()
 {
-	OnUpdate();
+	MoveChildren();
 
-	RMLUI_ASSERT(widget != nullptr);
 	widget->ClearOptions();
 }
 
@@ -127,21 +125,9 @@ void ElementFormControlSelect::OnUpdate()
 {
 	ElementFormControl::OnUpdate();
 
-	// Move any child elements into the widget (except for the three functional elements).
-	while (Element * raw_child = GetFirstChild())
-	{
-		ElementPtr child = RemoveChild(raw_child);
+	MoveChildren();
 
-		bool select = child->GetAttribute("selected");
-		bool selectable = !child->GetAttribute("disabled");
-		String option_value = child->GetAttribute("value", String());
-
-		child->RemoveAttribute("selected");
-		child->RemoveAttribute("disabled");
-		child->RemoveAttribute("value");
-
-		widget->AddOption(std::move(child), option_value, -1, select, selectable);
-	}
+	widget->OnUpdate();
 }
 
 // Updates the layout of the widget's elements.
@@ -158,6 +144,28 @@ void ElementFormControlSelect::OnLayout()
 	widget->OnLayout();
 }
 
+void ElementFormControlSelect::OnChildAdd(Element* child)
+{
+	if (widget)
+		widget->OnChildAdd(child);
+}
+
+void ElementFormControlSelect::OnChildRemove(Element* child)
+{
+	if (widget)
+		widget->OnChildRemove(child);
+}
+
+void ElementFormControlSelect::MoveChildren()
+{
+	// Move any child elements into the widget (except for the three functional elements).
+	while (Element* raw_child = GetFirstChild())
+	{
+		ElementPtr child = RemoveChild(raw_child);
+		widget->AddOption(std::move(child), -1);
+	}
+}
+
 // Returns true to mark this element as replaced.
 bool ElementFormControlSelect::GetIntrinsicDimensions(Vector2f& intrinsic_dimensions, float& /*ratio*/)
 {
@@ -168,11 +176,13 @@ bool ElementFormControlSelect::GetIntrinsicDimensions(Vector2f& intrinsic_dimens
 
 void ElementFormControlSelect::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
+	RMLUI_ASSERT(widget);
+
 	ElementFormControl::OnAttributeChange(changed_attributes);
 
 	auto it = changed_attributes.find("value");
 	if (it != changed_attributes.end())
-		SetValue(it->second.Get<String>());
+		widget->OnValueChange(it->second.Get<String>());
 }
 
 } // namespace Rml

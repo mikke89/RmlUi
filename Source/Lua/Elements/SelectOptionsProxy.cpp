@@ -44,12 +44,12 @@ int SelectOptionsProxy__index(lua_State* L)
         SelectOptionsProxy* proxy = LuaType<SelectOptionsProxy>::check(L,1);
         RMLUI_CHECK_OBJ(proxy);
         int index = (int)luaL_checkinteger(L,2);
-        SelectOption* opt = proxy->owner->GetOption(index-1);
+        Element* opt = proxy->owner->GetOption(index-1);
         RMLUI_CHECK_OBJ(opt);
         lua_newtable(L);
-        LuaType<Element>::push(L,opt->GetElement(),false);
+        LuaType<Element>::push(L,opt,false);
         lua_setfield(L,-2,"element");
-        lua_pushstring(L,opt->GetValue().c_str());
+        lua_pushstring(L,opt->GetAttribute("value",String()).c_str());
         lua_setfield(L,-2,"value");
         return 1;
     }

@@ -45,6 +45,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLine.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLinePassword.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerDataGrid.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerSelect.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementStyle.h
@@ -166,7 +167,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlTextArea.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementProgressBar.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementTabSet.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/SelectOption.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementText.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementUtilities.h
@@ -301,7 +301,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeRange.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeSubmit.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputTypeText.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/SelectOption.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetDropDown.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetSlider.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInput.cpp
@@ -309,6 +308,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLine.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/WidgetTextInputSingleLinePassword.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerDataGrid.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerSelect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTabSet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/XMLNodeHandlerTextArea.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementScroll.cpp

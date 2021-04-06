@@ -44,11 +44,11 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 {
 	parent_element = element;
 
+	selection_dirty = false;
 	box_layout_dirty = false;
+	value_rml_dirty = false;
 	value_layout_dirty = false;
 	box_visible = false;
-
-	selected_option = -1;
 
 	// Create the button and selection elements.
 	button_element = parent_element->AppendChild(Factory::InstanceElement(parent_element, "*", "selectarrow", XMLAttributes()), false);
@@ -75,8 +75,9 @@ WidgetDropDown::~WidgetDropDown()
 {
 	// We shouldn't clear the options ourselves, as removing the element will automatically clear children.
 	//   However, we do need to remove events of children.
-	for(auto& option : options)
-		option.GetElement()->RemoveEventListener(EventId::Click, this);
+	const int num_options = selection_element->GetNumChildren();
+	for (int i = 0; i < num_options; i++)
+		selection_element->GetChild(i)->RemoveEventListener(EventId::Click, this);
 
 	parent_element->RemoveEventListener(EventId::Click, this, true);
 	parent_element->RemoveEventListener(EventId::Blur, this);
@@ -88,7 +89,56 @@ WidgetDropDown::~WidgetDropDown()
 	DetachScrollEvent();
 }
 
-// Updates the selection box layout if necessary.
+void WidgetDropDown::OnUpdate()
+{
+	if (selection_dirty)
+	{
+		// Find the best option element to select in the following priority:
+		//  1. First option with 'selected' attribute.
+		//  2. An option whose 'value' attribute matches the select 'value' attribute.
+		//  3. The first option.
+		// The select element's value may change as a result of this.
+		const String select_value = parent_element->GetAttribute("value", String());
+		Element* select_option = selection_element->GetFirstChild();
+
+		const int num_options = selection_element->GetNumChildren();
+		for (int i = 0; i < num_options; i++)
+		{
+			Element* option = selection_element->GetChild(i);
+			if (option->HasAttribute("selected"))
+			{
+				select_option = option;
+				break;
+			}
+			else if (!select_value.empty() && select_value == option->GetAttribute("value", String()))
+			{
+				select_option = option;
+			}
+		}
+
+		if (select_option)
+			SetSelection(select_option);
+
+		selection_dirty = false;
+	}
+
+	if (value_rml_dirty)
+	{
+		String value_rml;
+		const int selection = GetSelection();
+
+		if (Element* option = selection_element->GetChild(selection))
+			option->GetInnerRML(value_rml);
+		else
+			value_rml = parent_element->GetValue();
+
+		value_element->SetInnerRML(value_rml);
+
+		value_rml_dirty = false;
+		value_layout_dirty = true;
+	}
+}
+
 void WidgetDropDown::OnRender()
 {
 	if (box_visible && box_layout_dirty)
@@ -213,166 +263,198 @@ void WidgetDropDown::OnLayout()
 }
 
 // Sets the value of the widget.
-void WidgetDropDown::SetValue(const String& _value)
+void WidgetDropDown::OnValueChange(const String& value)
 {
-	for (size_t i = 0; i < options.size(); ++i)
+	Element* select_option = nullptr;
+	const int num_options = selection_element->GetNumChildren();
+	for (int i = 0; i < num_options; i++)
 	{
-		if (options[i].GetValue() == _value)
+		Element* option = selection_element->GetChild(i);
+		Variant* variant = option->GetAttribute("value");
+		if (variant && variant->Get<String>() == value)
 		{
-			SetSelection((int) i);
+			select_option = option;
+			break;
+		}
+	}
+
+	if (select_option && !select_option->HasAttribute("selected"))
+		SetSelection(select_option, true);
+
+	Dictionary parameters;
+	parameters["value"] = value;
+	parent_element->DispatchEvent(EventId::Change, parameters);
+
+	value_rml_dirty = true;
+}
+
+void WidgetDropDown::SetSelection(Element* select_option, bool force)
+{
+	const String old_value = parent_element->GetAttribute("value", String());
+	const String new_value = select_option ? select_option->GetAttribute("value", String()) : String();
+
+	const int num_options = selection_element->GetNumChildren();
+	for (int i = 0; i < num_options; i++)
+	{
+		Element* option = selection_element->GetChild(i);
+		
+		if (select_option == option)
+		{
+			option->SetAttribute("selected", String());
+			option->SetPseudoClass("checked", true);
+		}
+		else
+		{
+			option->RemoveAttribute("selected");
+			option->SetPseudoClass("checked", false);
+		}
+	}
+
+	if (force || (old_value != new_value))
+	{
+		parent_element->SetAttribute("value", new_value);
+	}
+
+	value_rml_dirty = true;
+}
+
+void WidgetDropDown::SeekSelection(bool seek_forward)
+{
+	const int selected_option = GetSelection();
+	const int num_options = selection_element->GetNumChildren();
+
+	for (int i = 1; i < num_options && selected_option >= 0; i++)
+	{
+		const int option_index = (selected_option + i * (seek_forward ? 1 : -1) + num_options) % num_options;
+
+		Element* element = selection_element->GetChild(option_index);
+
+		if (!element->HasAttribute("disabled") && element->IsVisible())
+		{
+			SetSelection(element);
 			return;
 		}
 	}
 
-	if (selected_option >= 0 && selected_option < (int)options.size())
-		options[selected_option].GetElement()->SetPseudoClass("checked", false);
-
-	value = _value;
-	value_element->SetInnerRML(value);
-	value_layout_dirty = true;
-
-	selected_option = -1;
-}
-
-// Returns the current value of the widget.
-const String& WidgetDropDown::GetValue() const
-{
-	return value;
-}
-
-// Sets the index of the selection. If the new index lies outside of the bounds, it will be clamped.
-void WidgetDropDown::SetSelection(int selection, bool force)
-{
-	String new_value;
-
-	if (selection < 0 ||
-		selection >= (int) options.size())
-	{
-		selection = -1;
-	}
-	else
-	{
-		new_value = options[selection].GetValue();
-	}
-
-	if (force ||
-		selection != selected_option ||
-		value != new_value)
-	{
-		if (selected_option >= 0 && selected_option < (int)options.size())
-			options[selected_option].GetElement()->SetPseudoClass("checked", false);
-		
-		selected_option = selection;
-		value = new_value;
-
-		String value_rml;
-		if (selected_option >= 0) 
-		{
-			auto* el = options[selected_option].GetElement();
-			el->GetInnerRML(value_rml);
-			el->SetPseudoClass("checked", true);
-		}
-
-
-		value_element->SetInnerRML(value_rml);
-		value_layout_dirty = true;
-
-		Dictionary parameters;
-		parameters["value"] = value;
-		parent_element->DispatchEvent(EventId::Change, parameters);
-	}
+	// No valid option found, remove any selection.
+	SetSelection(nullptr);
 }
 
 // Returns the index of the currently selected item.
 int WidgetDropDown::GetSelection() const
 {
-	return selected_option;
+	const int num_options = selection_element->GetNumChildren();
+	for (int i = 0; i < num_options; i++)
+	{
+		if (selection_element->GetChild(i)->HasAttribute("selected"))
+			return i;
+	}
+
+	return -1;
 }
 
 // Adds a new option to the select control.
-int WidgetDropDown::AddOption(const String& rml, const String& new_value, int before, bool select, bool selectable)
+int WidgetDropDown::AddOption(const String& rml, const String& option_value, int before, bool select, bool selectable)
 {
 	ElementPtr element = Factory::InstanceElement(selection_element, "*", "option", XMLAttributes());
 	element->SetInnerRML(rml);
 
-	int result = AddOption(std::move(element), new_value, before, select, selectable);
+	element->SetAttribute("value", option_value);
+
+	if (select)
+		element->SetAttribute("selected", String());
+	if (!selectable)
+		element->SetAttribute("disabled", String());
+
+	int result = AddOption(std::move(element), before);
 
 	return result;
 }
 
-int WidgetDropDown::AddOption(ElementPtr element, const String& new_value, int before, bool select, bool selectable)
+int WidgetDropDown::AddOption(ElementPtr element, int before)
 {
-	static const String str_option = "option";
-
-	if (element->GetTagName() != str_option)
+	if (element->GetTagName() != "option")
 	{
 		Log::Message(Log::LT_WARNING, "A child of '%s' must be of type 'option' but '%s' was given. See element '%s'.", parent_element->GetTagName().c_str(), element->GetTagName().c_str(), parent_element->GetAddress().c_str());
 		return -1;
 	}
 
-	// Force to block display. Register a click handler so we can be notified of selection.
-	element->SetProperty(PropertyId::Display, Property(Style::Display::Block));
-	element->SetProperty(PropertyId::Clip, Property(Style::Clip::Type::Auto));
-	element->AddEventListener(EventId::Click, this);
-
+	const int num_children_before = selection_element->GetNumChildren();
 	int option_index;
-	if (before < 0 || before >= (int)options.size())
+	if (before < 0 || before >= num_children_before)
 	{
-		Element* ptr = selection_element->AppendChild(std::move(element));
-		options.push_back(SelectOption(ptr, new_value, selectable));
-		option_index = (int)options.size() - 1;
+		selection_element->AppendChild(std::move(element));
+		option_index = num_children_before;
 	}
 	else
 	{
-		Element* ptr = selection_element->InsertBefore(std::move(element), selection_element->GetChild(before));
-		options.insert(options.begin() + before, SelectOption(ptr, new_value, selectable));
+		selection_element->InsertBefore(std::move(element), selection_element->GetChild(before));
 		option_index = before;
 	}
 
-	// Select the option if appropriate.
-	if (select)
-		SetSelection(option_index);
-
-	box_layout_dirty = true;
 	return option_index;
 }
 
 // Removes an option from the select control.
 void WidgetDropDown::RemoveOption(int index)
 {
-	if (index < 0 ||
-		index >= (int) options.size())
+	Element* element = selection_element->GetChild(index);
+	if (!element)
 		return;
 
-	// Remove the listener and delete the option element.
-	options[index].GetElement()->RemoveEventListener(EventId::Click, this);
-	selection_element->RemoveChild(options[index].GetElement());
-	options.erase(options.begin() + index);
-
-	box_layout_dirty = true;
+	selection_element->RemoveChild(element);
 }
 
 // Removes all options from the list.
 void WidgetDropDown::ClearOptions()
 {
-	while (!options.empty())
-		RemoveOption((int) options.size() - 1);
+	while (Element* element = selection_element->GetLastChild())
+		selection_element->RemoveChild(element);
 }
 
 // Returns on of the widget's options.
-SelectOption* WidgetDropDown::GetOption(int index)
+Element* WidgetDropDown::GetOption(int index)
 {
-	if (index < 0 ||
-		index >= GetNumOptions())
-		return nullptr;
-
-	return &options[index];
+	return selection_element->GetChild(index);
 }
 
 // Returns the number of options in the widget.
 int WidgetDropDown::GetNumOptions() const
 {
-	return (int) options.size();
+	return selection_element->GetNumChildren();
+}
+
+void WidgetDropDown::OnChildAdd(Element* element)
+{
+	// We have a special case for 'data-for' here, since that element must remain hidden.
+	if (element->GetParentNode() != selection_element || element->HasAttribute("data-for"))
+		return;
+
+	// Force to block display. Register a click handler so we can be notified of selection.
+	element->SetProperty(PropertyId::Display, Property(Style::Display::Block));
+	element->SetProperty(PropertyId::Clip, Property(Style::Clip::Type::Auto));
+	element->AddEventListener(EventId::Click, this);
+
+	// Select the option if appropriate.
+	if (element->HasAttribute("selected"))
+		SetSelection(element, true);
+
+	selection_dirty = true;
+	box_layout_dirty = true;
+}
+
+void WidgetDropDown::OnChildRemove(Element* element)
+{
+	if (element->GetParentNode() != selection_element)
+		return;
+
+	element->RemoveEventListener(EventId::Click, this);
+
+	if (element->HasAttribute("selected"))
+		SetSelection(nullptr);
+
+	selection_dirty = true;
+	box_layout_dirty = true;
 }
 
 void WidgetDropDown::AttachScrollEvent()
@@ -397,17 +479,18 @@ void WidgetDropDown::ProcessEvent(Event& event)
 	{
 	case EventId::Click:
 	{
-
 		if (event.GetCurrentElement()->GetParentNode() == selection_element)
 		{
+			const int num_options = selection_element->GetNumChildren();
 			// Find the element in the options and fire the selection event
-			for (size_t i = 0; i < options.size(); i++)
+			for (int i = 0; i < num_options; i++)
 			{
-				if (options[i].GetElement() == event.GetCurrentElement())
+				Element* current_element = event.GetCurrentElement();
+				if (selection_element->GetChild(i) == current_element)
 				{
-					if (options[i].IsSelectable())
+					if (!event.GetCurrentElement()->HasAttribute("disabled"))
 					{
-						SetSelection((int)i);
+						SetSelection(current_element);
 						event.StopPropagation();
 
 						ShowSelectBox(false);
@@ -463,11 +546,11 @@ void WidgetDropDown::ProcessEvent(Event& event)
 		switch (key_identifier)
 		{
 		case Input::KI_UP:
-			SetSelection((selected_option - 1 + (int)options.size()) % (int)options.size());
+			SeekSelection(false);
 			event.StopPropagation();
 			break;
 		case Input::KI_DOWN:
-			SetSelection((selected_option + 1) % (int)options.size());
+			SeekSelection(true);
 			event.StopPropagation();
 			break;
 		default:
@@ -532,6 +615,7 @@ void WidgetDropDown::ShowSelectBox(bool show)
 		button_element->SetPseudoClass("checked", false);
 		DetachScrollEvent();
 	}
+
 	box_visible = show;
 }
 

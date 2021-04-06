@@ -216,10 +216,11 @@ void ElementFormControlDataSelect::BuildOptions()
 		// Try to find a selection with the same value as the previous one.
 		for (int i = 0; i < GetNumOptions(); ++i)
 		{
-			SelectOption* option = GetOption(i);
-			if (option->GetValue() == old_value)
+			Element* option = GetOption(i);
+			Variant* variant = option->GetAttribute("value");
+			if (variant && variant->Get<String>() == old_value)
 			{
-				widget->SetSelection(i, true);
+				widget->SetSelection(option, true);
 				return;
 			}
 		}
@@ -229,7 +230,7 @@ void ElementFormControlDataSelect::BuildOptions()
 		if (GetNumOptions() == 0)
 			new_selection = -1;
 
-		widget->SetSelection(new_selection, true);
+		widget->SetSelection(GetOption(new_selection), true);
 	}
 }
 
