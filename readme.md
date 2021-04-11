@@ -45,7 +45,7 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 Here are the general steps to integrate the library into a C++ application, have a look at the [documentation](https://mikke89.github.io/RmlUiDoc/) for details.
 
-1. Build RmlUi using CMake and your favorite compiler, or fetch the Windows library binaries.
+1. Build RmlUi using CMake and your favorite compiler, fetch the Windows library binaries, or consume [the library using Conan](https://conan.io/center/rmlui).
 2. Link it up to your application.
 3. Implement the abstract [system interface](Include/RmlUi/Core/SystemInterface.h) and [render interface](Include/RmlUi/Core/RenderInterface.h).
 4. Initialize RmlUi with the interfaces, create a context, provide font files, and load a document.
@@ -60,6 +60,33 @@ Several [samples](Samples/) demonstrate everything from basic integration to mor
 - The standard library.
 
 In addition, a C++14 compatible compiler is required.
+
+## Conformance
+
+RmlUi aims to support the most common and familar features from HTML and CSS, while keeping the library light and performant. We do not aim to be fully compliant with CSS or HTML, in particular when it conflicts with lightness and performance. Users are generally expected to author documents specifically for RmlUi, but any experience and skills from web design should be transferable.
+
+RmlUi supports most of CSS2 with some CSS3 features such as
+
+- Animations and transitions
+- Transforms (with full interpolation support)
+- Media queries
+- Border radius
+
+and many of the common HTML elements including `<input>`,  `<textarea>`, and `<select>`.
+
+For details, see
+- [RCSS Property index](https://mikke89.github.io/RmlUiDoc/pages/rcss/property_index.html) for all supported properties and differences from CSS.
+- [RML Element index](https://mikke89.github.io/RmlUiDoc/pages/rml/element_index.html) for all supported elements.
+
+## Enhancements
+
+RmlUi adds features and enhancements over CSS and HTML where it makes sense, most notably the following.
+
+- [Data binding (model-view-controller)](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html). Synchronization between application data and user interface.
+- [Decorators](https://mikke89.github.io/RmlUiDoc/pages/rcss/decorators.html). Full control over the styling of [all elements](https://mikke89.github.io/RmlUiDoc/pages/style_guide.html).
+- [Sprite sheets](https://mikke89.github.io/RmlUiDoc/pages/rcss/sprite_sheets.html). Define and use sprites with easy high DPI support.
+- [Templates](https://mikke89.github.io/RmlUiDoc/pages/rml/templates.html). Making windows look consistent.
+- [Localization](https://mikke89.github.io/RmlUiDoc/pages/localisation.html). Translate all text in the document.
 
 
 ## Example: Basic document
