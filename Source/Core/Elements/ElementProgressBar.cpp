@@ -63,6 +63,13 @@ void ElementProgressBar::SetValue(float in_value)
 	SetAttribute("value", in_value);
 }
 
+bool ElementProgressBar::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
+{
+	dimensions.x = 256;
+	dimensions.y = 16;
+	return true;
+}
+
 void ElementProgressBar::OnRender()
 {
 	// Some properties may change geometry without dirtying the layout, eg. opacity.

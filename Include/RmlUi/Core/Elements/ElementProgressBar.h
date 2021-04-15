@@ -73,6 +73,9 @@ public:
 	/// Set the value of the progress bar
 	void SetValue(float value);
 
+	/// Returns the element's inherent size.
+	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
+
 protected:
 	void OnRender() override;
 
