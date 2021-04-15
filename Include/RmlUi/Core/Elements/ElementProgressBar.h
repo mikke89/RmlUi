@@ -69,12 +69,13 @@ public:
 
 	/// Returns the value of the progress bar.
 	float GetValue() const;
+	/// Sets the value of the progress bar.
+	void SetValue(float value);
 
 	/// Returns the maximum value of the progress bar.
 	float GetMax() const;
-
-	/// Sets the value of the progress bar.
-	void SetValue(float value);
+	/// Sets the maximum value of the progress bar.
+	void SetMax(float max_value);
 
 	/// Returns the element's inherent size.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;

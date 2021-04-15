@@ -65,6 +65,11 @@ float ElementProgressBar::GetMax() const
 	return max_value <= 0.0f ? 1.0f : max_value;
 }
 
+void ElementProgressBar::SetMax(float max_value)
+{
+	SetAttribute("max", max_value);
+}
+
 void ElementProgressBar::SetValue(float in_value)
 {
 	SetAttribute("value", in_value);
