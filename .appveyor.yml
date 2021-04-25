@@ -34,8 +34,19 @@ install:
     cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DLOTTIE_MODULE=OFF ..
     cmake --build . --target rlottie --config Debug -- "/clp:ErrorsOnly"
     cmake --build . --target rlottie --config Release -- "/clp:ErrorsOnly"
-    cd ../../../
+    cd ../../
     
+    git clone https://github.com/sammycage/lunasvg.git
+    cd lunasvg
+    git checkout 2dc6de0d48ea55458348677580262c65469ee8cf
+    mkdir build
+    cd build
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DLUNASVG_BUILD_EXAMPLES=OFF ..
+    cmake --build . --target lunasvg --config Debug -- "/clp:ErrorsOnly"
+    cmake --build . --target lunasvg --config Release -- "/clp:ErrorsOnly"
+    cd ../../
+    
+    cd ..
     mkdir Build-Dynamic, Build-Static, Build-Samples
     
     cd Build-Dynamic
@@ -45,7 +56,7 @@ install:
     cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DBUILD_SAMPLES=OFF -DWARNINGS_AS_ERRORS=ON ..
     
     cd ../Build-Samples
-    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DENABLE_LOTTIE_PLUGIN=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON ..
+    cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=ON -DENABLE_LOTTIE_PLUGIN=ON -DENABLE_SVG_PLUGIN=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON ..
     
     cd ..
     
@@ -92,9 +103,9 @@ after_build:
     echo https://github.com/Samsung/rlottie/blob/29b391b95913877b7234543da8b4a9ec6d8175d0/src/vector/vinterpolator.cpp>> MPL_SOURCE.txt
     cd ../..
     
-    7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE.txt Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/MPL_SOURCE.txt Dependencies/rlottie/licenses/
+    7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE.txt Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/MPL_SOURCE.txt Dependencies/rlottie/licenses/ Dependencies/lunasvg/LICENSE
     
-    mkdir Samples\Dependencies\freetype-%FREETYPE_VER%, Samples\Dependencies\rlottie, Samples\Dependencies\rlottie\licenses
+    mkdir Samples\Dependencies\freetype-%FREETYPE_VER%, Samples\Dependencies\rlottie, Samples\Dependencies\rlottie\licenses, Samples\Dependencies\lunasvg
     cp LICENSE.txt Samples/LICENSE.txt
     cp Include/RmlUi/Core/Containers/LICENSE.txt Samples/LICENSE.Core.ThirdParty.txt
     cp Source/Debugger/LICENSE.txt Samples/LICENSE.Debugger.ThirdParty.txt
@@ -102,6 +113,7 @@ after_build:
     cp Dependencies/rlottie/COPYING Samples/Dependencies/rlottie
     cp Dependencies/rlottie/MPL_SOURCE.txt Samples/Dependencies/rlottie
     cp Dependencies/rlottie/licenses/* Samples/Dependencies/rlottie/licenses
+    cp Dependencies/lunasvg/LICENSE Samples/Dependencies/lunasvg
     
     IF "%PLATFORM_NAME%"=="win64" 7z a RmlUi-%PLATFORM_NAME%-samples-only.zip .\Samples\* -r -xr!src\ -x!shell\ -x!luainvaders\
     
