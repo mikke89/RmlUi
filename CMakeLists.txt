@@ -876,6 +876,11 @@ if(BUILD_SAMPLES)
 				DESTINATION ${SAMPLES_DIR}/basic/lottie
 		)
 	endif()
+	if(TARGET svg)
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/svg/data
+				DESTINATION ${SAMPLES_DIR}/basic/svg
+		)
+	endif()
 
 	if(BUILD_LUA_BINDINGS)
 		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 
