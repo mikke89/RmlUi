@@ -128,6 +128,7 @@ See the [media queries documentation](https://mikke89.github.io/RmlUiDoc/pages/r
 ### New RML elements
 
 - Added [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html) for displaying vector animations using the `<lottie>` element [#134](https://github.com/mikke89/RmlUi/pull/134) (thanks @diamondhat).
+- Added [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html) for displaying vector images using the `<svg>` element.
 - Added `<label>` element for associating a caption with an input element.
 
 ### Element improvements
@@ -137,7 +138,7 @@ See the [media queries documentation](https://mikke89.github.io/RmlUiDoc/pages/r
 - `<select>` elements now react to changes in the `value` attribute.
 - Element attributes can now use escaped RML characters, eg. `<p example="&quot;Quoted text&quot;"/>`. [#154](https://github.com/mikke89/RmlUi/pull/154) (thanks @actboy168).
 - Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
-- `<progressbar>` elements now supports the `max` attribute.
+- `<progressbar>` elements now support the `max` attribute.
 - Changing the `fill-image` property of `<progressbar>` elements now actually updates the image.
 
 ### Input handling
