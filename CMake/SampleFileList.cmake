@@ -108,6 +108,13 @@ set(lottie_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/src/main.cpp
 )
 
+set(svg_HDR_FILES
+)
+
+set(svg_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/svg/src/main.cpp
+)
+
 set(sdl2_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/RenderInterfaceSDL2.h
     ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.h

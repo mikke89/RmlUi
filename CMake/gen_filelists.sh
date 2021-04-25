@@ -75,4 +75,6 @@ printpluginfiles "Lua"
 
 printpluginfiles "Lottie"
 
+printpluginfiles "SVG"
+
 popd

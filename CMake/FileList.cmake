@@ -590,3 +590,16 @@ set(Lottie_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Lottie/LottiePlugin.cpp
 )
 
+set(SVG_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Source/SVG/SVGPlugin.h
+)
+
+set(SVG_PUB_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/SVG/ElementSVG.h
+)
+
+set(SVG_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Source/SVG/ElementSVG.cpp
+    ${PROJECT_SOURCE_DIR}/Source/SVG/SVGPlugin.cpp
+)
+

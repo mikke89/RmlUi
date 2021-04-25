@@ -26,31 +26,31 @@
  *
  */
 
-#ifndef RMLUI_LOTTIE_ELEMENT_LOTTIE_H
-#define RMLUI_LOTTIE_ELEMENT_LOTTIE_H
+#ifndef RMLUI_SVG_ELEMENT_SVG_H
+#define RMLUI_SVG_ELEMENT_SVG_H
 
 #include "../Core/Header.h"
 #include "../Core/Element.h"
 #include "../Core/Geometry.h"
 #include "../Core/Texture.h"
 
-namespace rlottie { class Animation; }
+namespace lunasvg { class Document; }
 
 namespace Rml {
 
-class RMLUICORE_API ElementLottie : public Element
+class RMLUICORE_API ElementSVG : public Element
 {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementLottie, Element)
+	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
 
-	ElementLottie(const String& tag);
-	virtual ~ElementLottie();
+	ElementSVG(const String& tag);
+	virtual ~ElementSVG();
 
 	/// Returns the element's inherent size.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 protected:
-	/// Renders the animation.
+	/// Renders the image.
 	void OnRender() override;
 
 	/// Regenerates the element's geometry.
@@ -67,19 +67,19 @@ protected:
 private:
 	// Generates the element's geometry.
 	void GenerateGeometry();
-	// Loads the element's animation, as specified by the 'src' attribute.
-	bool LoadAnimation();
-	// Update the texture for the next animation frame when necessary.
+	// Loads the SVG document specified by the 'src' attribute.
+	bool LoadSource();
+	// Update the texture when necessary.
 	void UpdateTexture();
 
-	bool animation_dirty = false;
+	bool source_dirty = false;
 	bool geometry_dirty = false;
 	bool texture_size_dirty = false;
 
 	// The texture this element is rendering from.
 	Texture texture;
 
-	// The animation's intrinsic dimensions.
+	// The image's intrinsic dimensions.
 	Vector2f intrinsic_dimensions;
 	// The element's size for rendering.
 	Vector2i render_dimensions;
@@ -87,12 +87,7 @@ private:
 	// The geometry used to render this element.
 	Geometry geometry;
 
-	// The absolute time when the current animation was first displayed.
-	double time_animation_start = -1;
-	// The previous animation frame displayed.
-	size_t prev_animation_frame = size_t(-1);
-
-	UniquePtr<rlottie::Animation> animation;
+	UniquePtr<lunasvg::Document> svg_document;
 };
 
 } // namespace Rml

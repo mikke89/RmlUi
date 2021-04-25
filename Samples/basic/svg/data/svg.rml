@@ -1,0 +1,25 @@
+<rml>
+	<head>
+		<title>Demo</title>
+		<link type="text/template" href="/assets/window.rml" />
+		<style>
+			body
+			{
+				width: 300px;
+				height: 225px;
+				
+				margin: auto;
+			}
+			
+			svg {
+				display: block;
+				max-width: 80%;
+				max-height: 80%;
+				margin: auto;
+			}
+		</style>
+	</head>
+	<body template="window">
+		<svg src="tiger.svg"></svg>
+	</body>
+</rml>
