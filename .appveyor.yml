@@ -36,9 +36,8 @@ install:
     cmake --build . --target rlottie --config Release -- "/clp:ErrorsOnly"
     cd ../../
     
-    git clone https://github.com/sammycage/lunasvg.git
+    git clone --depth 1 --branch v2.0.1 https://github.com/sammycage/lunasvg.git
     cd lunasvg
-    git checkout 2dc6de0d48ea55458348677580262c65469ee8cf
     mkdir build
     cd build
     cmake -G "%VS_GENERATOR%" -DBUILD_SHARED_LIBS=OFF -DLUNASVG_BUILD_EXAMPLES=OFF ..
