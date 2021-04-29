@@ -88,11 +88,15 @@ void DataViews::OnElementRemove(Element* element)
 bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 {
 	bool result = false;
+	size_t num_dirty_variables_prev = 0;
 
-	// View updates may result in newly added views, thus we do it recursively but with an upper limit.
-	//   Without the loop, newly added views won't be updated until the next Update() call.
-	for(int i = 0; i == 0 || (!views_to_add.empty() && i < 10); i++)
+	// View updates may result in newly added views, or even new dirty variables. Thus, we do the
+	// update recursively but with an upper limit. Without the loop, newly added views won't be
+	// updated until the next Update() call.
+	for(int i = 0; (i == 0 || !views_to_add.empty() || num_dirty_variables_prev != dirty_variables.size()) && i < 10; i++)
 	{
+		num_dirty_variables_prev = dirty_variables.size();
+
 		Vector<DataView*> dirty_views;
 
 		if (!views_to_add.empty())
