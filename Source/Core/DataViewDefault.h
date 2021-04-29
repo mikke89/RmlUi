@@ -43,7 +43,7 @@ using DataExpressionPtr = UniquePtr<DataExpression>;
 
 class DataViewCommon : public DataView {
 public:
-	DataViewCommon(Element* element, String override_modifier = String());
+	DataViewCommon(Element* element, String override_modifier = String(), int sort_offset = 0);
 
 	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
@@ -65,7 +65,7 @@ private:
 class DataViewAttribute : public DataViewCommon {
 public:
 	DataViewAttribute(Element* element);
-	DataViewAttribute(Element* element, String override_attribute);
+	DataViewAttribute(Element* element, String override_attribute, int sort_offset);
 
 	bool Update(DataModel& model) override;
 };

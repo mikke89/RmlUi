@@ -43,19 +43,21 @@ Element* DataView::GetElement() const
 	return result;
 }
 
-int DataView::GetElementDepth() const {
-	return element_depth;
+int DataView::GetSortOrder() const {
+	return sort_order;
 }
 
 bool DataView::IsValid() const {
 	return static_cast<bool>(attached_element);
 }
 
-DataView::DataView(Element* element) : attached_element(element->GetObserverPtr()), element_depth(0) {
+DataView::DataView(Element* element, int bias) : attached_element(element->GetObserverPtr()), sort_order(bias + 1000) {
+	RMLUI_ASSERT(bias >= -1000 && bias <= 999);
+
 	if (element)
 	{
 		for (Element* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
-			element_depth += 1;
+			sort_order += 2000;
 	}
 }
 
@@ -127,7 +129,7 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 
 		// Sort by the element's depth in the document tree so that any structural changes due to a changed variable are reflected in the element's children.
 		// Eg. the 'data-for' view will remove children if any of its data variable array size is reduced.
-		std::sort(dirty_views.begin(), dirty_views.end(), [](auto&& left, auto&& right) { return left->GetElementDepth() < right->GetElementDepth(); });
+		std::sort(dirty_views.begin(), dirty_views.end(), [](auto&& left, auto&& right) { return left->GetSortOrder() < right->GetSortOrder(); });
 
 		for (DataView* view : dirty_views)
 		{

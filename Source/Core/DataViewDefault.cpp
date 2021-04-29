@@ -39,7 +39,14 @@
 
 namespace Rml {
 
-DataViewCommon::DataViewCommon(Element* element, String override_modifier) : DataView(element), modifier(std::move(override_modifier))
+// Some data views need to offset the update order for proper behavior.
+//  'data-value' may need other attributes applied first, eg. min/max attributes.
+static constexpr int SortOffset_DataValue = 100;
+//  'data-checked' may need a value attribute already set.
+static constexpr int SortOffset_DataChecked = 110;
+
+
+DataViewCommon::DataViewCommon(Element* element, String override_modifier, int sort_offset) : DataView(element, sort_offset), modifier(std::move(override_modifier))
 {}
 
 bool DataViewCommon::Initialize(DataModel& model, Element* element, const String& expression_str, const String& in_modifier)
@@ -78,7 +85,7 @@ void DataViewCommon::Release()
 DataViewAttribute::DataViewAttribute(Element* element) : DataViewCommon(element)
 {}
 
-DataViewAttribute::DataViewAttribute(Element * element, String override_attribute) : DataViewCommon(element, std::move(override_attribute))
+DataViewAttribute::DataViewAttribute(Element * element, String override_attribute, int sort_offset) : DataViewCommon(element, std::move(override_attribute), sort_offset)
 {}
 
 bool DataViewAttribute::Update(DataModel& model)
@@ -132,10 +139,10 @@ bool DataViewAttributeIf::Update(DataModel& model)
 }
 
 
-DataViewValue::DataViewValue(Element* element) : DataViewAttribute(element, "value")
+DataViewValue::DataViewValue(Element* element) : DataViewAttribute(element, "value", SortOffset_DataValue)
 {}
 
-DataViewChecked::DataViewChecked(Element* element) : DataViewCommon(element)
+DataViewChecked::DataViewChecked(Element* element) : DataViewCommon(element, String(), SortOffset_DataChecked)
 {}
 
 bool DataViewChecked::Update(DataModel & model)
@@ -303,7 +310,7 @@ bool DataViewVisible::Update(DataModel& model)
 }
 
 
-DataViewText::DataViewText(Element* element) : DataView(element)
+DataViewText::DataViewText(Element* element) : DataView(element, 0)
 {}
 
 bool DataViewText::Initialize(DataModel& model, Element* element, const String& RMLUI_UNUSED_PARAMETER(expression), const String& RMLUI_UNUSED_PARAMETER(modifier))
@@ -449,7 +456,7 @@ String DataViewText::BuildText() const
 
 
 
-DataViewFor::DataViewFor(Element* element) : DataView(element)
+DataViewFor::DataViewFor(Element* element) : DataView(element, 0)
 {}
 
 bool DataViewFor::Initialize(DataModel& model, Element* element, const String& in_expression, const String& in_rml_content)

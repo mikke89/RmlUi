@@ -88,18 +88,22 @@ public:
 	// Returns the attached element if it still exists.
 	Element* GetElement() const;
 
-	// Returns the depth of the attached element in the document tree.
-	int GetElementDepth() const;
+	// Data views are first sorted by the depth of the attached element in the
+	// document tree, then optionally by an offset specified for each data view.
+	int GetSortOrder() const;
 	
 	// Returns true if the element still exists.
 	bool IsValid() const;
 	
 protected:
-	DataView(Element* element);
+	// @param[in] element The element this data view is attached to.
+	// @param[in] sort_offset A number [-1000, 999] specifying the update order of this
+	//            data view at the same tree depth, negative numbers are updated first.
+	DataView(Element* element, int sort_offset);
 
 private:
 	ObserverPtr<Element> attached_element;
-	int element_depth;
+	int sort_order;
 };
 
 
