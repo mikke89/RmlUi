@@ -102,12 +102,13 @@ after_build:
     echo https://github.com/Samsung/rlottie/blob/29b391b95913877b7234543da8b4a9ec6d8175d0/src/vector/vinterpolator.cpp>> MPL_SOURCE.txt
     cd ../..
     
-    7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE.txt Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/MPL_SOURCE.txt Dependencies/rlottie/licenses/ Dependencies/lunasvg/LICENSE
+    cp Include/RmlUi/Core/Containers/LICENSE.txt LICENSE.Core.ThirdParty.txt
+    cp Source/Debugger/LICENSE.txt LICENSE.Debugger.ThirdParty.txt
+    
+    7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE* Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/MPL_SOURCE.txt Dependencies/rlottie/licenses/ Dependencies/lunasvg/LICENSE
     
     mkdir Samples\Dependencies\freetype-%FREETYPE_VER%, Samples\Dependencies\rlottie, Samples\Dependencies\rlottie\licenses, Samples\Dependencies\lunasvg
-    cp LICENSE.txt Samples/LICENSE.txt
-    cp Include/RmlUi/Core/Containers/LICENSE.txt Samples/LICENSE.Core.ThirdParty.txt
-    cp Source/Debugger/LICENSE.txt Samples/LICENSE.Debugger.ThirdParty.txt
+    cp LICENSE* Samples
     cp Dependencies/freetype-%FREETYPE_VER%/*.TXT Samples/Dependencies/freetype-%FREETYPE_VER%
     cp Dependencies/rlottie/COPYING Samples/Dependencies/rlottie
     cp Dependencies/rlottie/MPL_SOURCE.txt Samples/Dependencies/rlottie
