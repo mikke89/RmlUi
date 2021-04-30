@@ -116,6 +116,7 @@ private:
 	Element* selection_element;
 	Element* value_element;
 
+	bool lock_selection;
 	bool selection_dirty;
 	bool value_rml_dirty;
 	bool value_layout_dirty;

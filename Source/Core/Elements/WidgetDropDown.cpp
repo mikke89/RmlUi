@@ -44,6 +44,7 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 {
 	parent_element = element;
 
+	lock_selection = false;
 	selection_dirty = false;
 	box_layout_dirty = false;
 	value_rml_dirty = false;
@@ -265,21 +266,24 @@ void WidgetDropDown::OnLayout()
 // Sets the value of the widget.
 void WidgetDropDown::OnValueChange(const String& value)
 {
-	Element* select_option = nullptr;
-	const int num_options = selection_element->GetNumChildren();
-	for (int i = 0; i < num_options; i++)
+	if (!lock_selection)
 	{
-		Element* option = selection_element->GetChild(i);
-		Variant* variant = option->GetAttribute("value");
-		if (variant && variant->Get<String>() == value)
+		Element* select_option = nullptr;
+		const int num_options = selection_element->GetNumChildren();
+		for (int i = 0; i < num_options; i++)
 		{
-			select_option = option;
-			break;
+			Element* option = selection_element->GetChild(i);
+			Variant* variant = option->GetAttribute("value");
+			if (variant && variant->Get<String>() == value)
+			{
+				select_option = option;
+				break;
+			}
 		}
-	}
 
-	if (select_option && !select_option->HasAttribute("selected"))
-		SetSelection(select_option, true);
+		if (select_option && !select_option->HasAttribute("selected"))
+			SetSelection(select_option);
+	}
 
 	Dictionary parameters;
 	parameters["value"] = value;
@@ -312,7 +316,9 @@ void WidgetDropDown::SetSelection(Element* select_option, bool force)
 
 	if (force || (old_value != new_value))
 	{
+		lock_selection = true;
 		parent_element->SetAttribute("value", new_value);
+		lock_selection = false;
 	}
 
 	value_rml_dirty = true;
