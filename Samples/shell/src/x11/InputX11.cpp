@@ -28,6 +28,7 @@
 
 #include <x11/InputX11.h>
 #include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
@@ -156,21 +157,35 @@ void InputX11::ProcessXEvent(Display* display, const XEvent& event)
 				key_identifier = key_identifier_map[lower_sym & 0xFF];
 			}
 
-			int key_modifier_state = GetKeyModifierState(event.xkey.state);
+			const int key_modifier_state = GetKeyModifierState(event.xkey.state);
 
-			// Check for F8 to toggle the debugger.
+			// Check for special key combinations
 			if (key_identifier == Rml::Input::KI_F8)
 			{
 				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
-				break;
 			}
+			else if (key_identifier == Rml::Input::KI_R && key_modifier_state & Rml::Input::KM_CTRL)
+			{
+				for (int i = 0; i < context->GetNumDocuments(); i++)
+				{
+					Rml::ElementDocument* document = context->GetDocument(i);
+					const Rml::String& src = document->GetSourceURL();
+					if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
+					{
+						document->ReloadStyleSheet();
+					}
+				}
+			}
+			else
+			{
+				// No special shortcut, pass the key on to the context.
+				if (key_identifier != Rml::Input::KI_UNKNOWN)
+					context->ProcessKeyDown(key_identifier, key_modifier_state);
 
-			if (key_identifier != Rml::Input::KI_UNKNOWN)
-				context->ProcessKeyDown(key_identifier, key_modifier_state);
-
-			Rml::Character character = GetCharacterCode(key_identifier, key_modifier_state);
-			if (character != Rml::Character::Null)
-				context->ProcessTextInput(character);
+				Rml::Character character = GetCharacterCode(key_identifier, key_modifier_state);
+				if (character != Rml::Character::Null)
+					context->ProcessTextInput(character);
+			}
 		}
 		break;
 

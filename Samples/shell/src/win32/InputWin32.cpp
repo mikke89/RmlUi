@@ -31,6 +31,7 @@
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/StringUtilities.h>
+#include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
 #include <string.h>
@@ -120,6 +121,18 @@ void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, 
 			{
 				const float new_dp_ratio = Rml::Math::Min(context->GetDensityIndependentPixelRatio() * 1.2f, 2.5f);
 				context->SetDensityIndependentPixelRatio(new_dp_ratio);
+			}
+			else if (key_identifier == Rml::Input::KI_R && key_modifier_state & Rml::Input::KM_CTRL)
+			{
+				for (int i = 0; i < context->GetNumDocuments(); i++)
+				{
+					Rml::ElementDocument* document = context->GetDocument(i);
+					const Rml::String& src = document->GetSourceURL();
+					if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
+					{
+						document->ReloadStyleSheet();
+					}
+				}
 			}
 			else
 			{
