@@ -559,6 +559,11 @@ void WidgetDropDown::ProcessEvent(Event& event)
 			SeekSelection(true);
 			event.StopPropagation();
 			break;
+		case Input::KI_RETURN:
+		case Input::KI_NUMPADENTER:
+			parent_element->Click();
+			event.StopPropagation();
+			break;
 		default:
 			break;
 		}
