@@ -107,6 +107,149 @@ p.title
 }
 
 
+/***  Invaders  ***/
+
+panel#invaders {
+	max-width: 650dp;
+}
+
+.sidebox {
+	text-align: center;
+	position: fixed;
+	top: 50dp;
+	left: 50dp;
+	width: 150dp;
+	font-size: 20dp;
+	line-height: 1.5em;
+}
+.sidebox.right {
+	left: auto;
+	right: 50dp;
+}
+
+progress {
+	display: block;
+	background: #ccc3;
+	margin-top: 8dp;
+	width: 100%;
+	box-sizing: border-box;
+	border-width: 1dp;
+}
+
+.health {
+	color: #cfc;
+	font-effect: glow(1dp #060);
+}
+.health progress {
+	border-color: #0606;
+}
+.health progress fill {
+	background: #4d4a;
+}
+.charge {
+	top: 150dp;
+	color: #dde;
+	font-effect: glow(1dp #269);
+}
+.charge progress {
+	border-color: #1486;
+}
+.charge progress fill {
+	background: #49da;
+}
+
+.time, .score {
+	color: #eec;
+	font-effect: glow(1dp #663);
+}
+.score {
+	top: 150dp;
+}
+
+.messagebox {
+	position: absolute;
+	top: 150dp;
+	left: 25%;
+	right: 25%;
+	padding: 50dp 80dp;
+	border-radius: 15dp;
+	background-color: #888c;
+	font-effect: shadow(3px 3px #333);
+}
+.messagebox button {
+	margin-top: 2em;
+}
+.start_game {
+	font-size: 20dp;
+}
+@keyframes game_over {
+	from { transform: rotate(-8deg); }
+	to   { transform: rotate( 8deg); }
+}
+.game_over {
+	font-size: 40dp;
+	animation: 0.7s elastic-in-out infinite alternate game_over;
+}
+
+invader {
+	display: inline-block;
+	position: relative;
+	width: 150dp;
+	height: 100dp;
+	background-color: #ccc3;
+	margin: 10dp 20dp;
+	border: 1dp #5553;
+	transition: opacity visibility background-color cubic-out 0.5s;
+	opacity: 0;
+	visibility: hidden;
+}
+invader.alive {
+	visibility: visible;
+	opacity: 1;
+}
+invader.firing {
+	background-color: #ee3d;
+}
+invader img {
+	display: block;
+	margin: auto auto;
+	padding-bottom: 10dp;
+	cursor: cross;
+}
+.paused invader img  {
+	cursor: arrow;
+}
+invader progress {
+	position: absolute;
+	margin: 0;
+	border-width: 0;
+	width: 10dp;
+	top: 0;
+	bottom: 0;
+	height: 100%;
+}
+.invader-health {
+	left: 0;
+}
+.invader-health fill {
+	background: #252a;
+}
+.invader-charge {
+	right: 0;
+}
+.invader-charge fill {
+	background: #d43a;
+}
+invader name {
+	display: block;
+	position: absolute;
+	color: #333;
+	left: 12dp;
+	right: 12dp;
+	bottom: 0;
+}
+
+
 /***  Forms  ***/
 
 form {
@@ -116,39 +259,12 @@ form {
 form input, form select {
 	margin-left: 0;
 }
-form input.text, form input.password {
-	width: 35%;
-}
-input.text.two-wide {
-	width: 70%;
-}
 form h2 {
 	display: block;
 	font-size: 16dp;
 	font-weight: bold;
 	margin-top: 1em;
 	margin-bottom: 0.3em;
-}
-#rating {
-	display: inline-block;
-	width: 40dp;
-	padding-left: 1em;
-}
-#rating_emoji { 
-	color: #ffd40f;
-	font-size: 1.7em;
-}
-#controls textarea 
-{
-	font-size: 18dp;
-	font-effect: outline(2dp #060);
-	color: #ddd;
-	caret-color: #060;
-}
-#controls textarea selection
-{
-	background-color: #aca;
-	color: #999;
 }
 a {
 	cursor: pointer;
@@ -204,28 +320,43 @@ select selectbox option.disabled {
 </panel>
 <tab>Invaders</tab>
 <panel id="invaders" data-model="invaders">
-	<p>
-		Incoming invaders:
-		<input type="range" name="rating" min="0" max="20" step="5" data-value="incoming_invaders_rate"/>
-		{{ incoming_invaders_rate }} / min.
-	</p>
-	<button data-event-click="launch_weapons">Launch weapons!</button>
-	<div data-for="invader : invaders">
-		<h1 data-class-red="invader.danger_rating > 70">{{invader.name}}</h1>
-		<p>Invader {{it_index + 1}} of {{ invaders.size }}.</p>
-		<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color" data-event-click="invader.color = 'rgba(100,50,0,255)'"/>
-		<p>
-			Shots fired (damage): <span data-for="invader.damage"> {{it}} </span>
-		</p>
+	<div class="sidebox health">
+		Health
+		<progress data-attr-value="health" max="100"/>
 	</div>
-	<h1 data-if="invaders.size == 0">It's all safe and sound, sir!</h1>
+	<div class="sidebox charge">
+		Charge
+		<progress data-attr-value="charge" max="100"/>
+	</div>
+	<div class="sidebox right time">
+		Time<br/>{{ elapsed_time | format_time }}
+	</div>
+	<div class="sidebox right score">
+		Score<br/>{{ score }}
+	</div>
+	<div class="messagebox start_game" data-if="health == 0 && num_games_played == 0">
+		Do you dare to take on the fight against the alien invaders?<br/>
+		<button data-event-click="start_game">Start game</button>
+	</div>
+	<div class="messagebox game_over" data-if="health == 0 && num_games_played > 0">
+		Game Over!<br/>
+		<button data-event-click="start_game">Restart game</button>
+	</div>
+	<div class="invaders" data-class-paused="health == 0">
+		<invader data-for="invader : invaders" data-class-alive="invader.health > 0" data-class-firing="invader.charge >= 100">
+			<progress class="invader-health" direction="top" data-attr-max="invader.max_health" data-attr-value="invader.health"/>
+			<progress class="invader-charge" direction="top" data-attr-value="invader.charge" max="100"/>
+			<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color" data-event-click="fire(it_index)"/>
+			<name>{{ invader.name }}</name>
+		</invader>
+	</div>
 </panel>
 <tab>Forms</tab>
 <panel id="controls" data-model="forms">
 	<form onsubmit="submit_form">
 		<h2>Rating</h2>
 		<div>
-			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating" data-value="rating"/> <span id="rating">{{rating}}</span><span id="rating_emoji">&nbsp;</span>
+			<input type="range" min="0" max="100" step="1" value="50" data-value="rating"/> {{rating}}
 		</div>
 		<h2>Favorite animal: {{ animal }}</h2>
 		<div>

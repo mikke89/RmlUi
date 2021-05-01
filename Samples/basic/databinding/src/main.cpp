@@ -158,31 +158,78 @@ namespace InvadersExample {
 
 	Rml::DataModelHandle model_handle;
 
+	static constexpr int num_invaders = 12;
+	static constexpr double incoming_invaders_rate = 50; // Per minute
+
 	struct Invader {
 		Rml::String name;
 		Rml::String sprite;
 		Rml::Colourb color{ 255, 255, 255 };
-		Rml::Vector<int> damage;
-		float danger_rating = 50;
+		float max_health = 0;
+		float charge_rate = 0;
+		float health = 0;
+		float charge = 0;
 	};
 
 	struct InvadersData {
-		double time_last_invader_spawn = 0;
-		double time_last_weapons_launched = 0;
+		float health = 0;
+		float charge = 0;
+		int score = 0;
+		
+		double elapsed_time = 0;
+		double next_invader_spawn_time = 0;
 
-		float incoming_invaders_rate = 10; // Per minute
+		int num_games_played = 0;
 
-		Rml::Vector<Invader> invaders = {
-			Invader{"Angry invader", "icon-invader", {255, 40, 30}, {3, 6, 7}, 80}
-		};
+		Rml::Array<Invader, num_invaders> invaders;
 
-		void LaunchWeapons(Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& /*arguments*/)
+		// Start a new game.
+		void StartGame(Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& /*arguments*/)
 		{
-			invaders.clear();
+			health = 100;
+			charge = 30;
+			score = 0;
+			elapsed_time = 0;
+			next_invader_spawn_time = 0;
+			num_games_played += 1;
+
+			for (Invader& invader : invaders)
+				invader.health = 0;
+
+			model.DirtyVariable("health");
+			model.DirtyVariable("charge");
+			model.DirtyVariable("score");
+			model.DirtyVariable("elapsed_time");
+			model.DirtyVariable("num_games_played");
 			model.DirtyVariable("invaders");
 		}
 
-	} invaders_data;
+		// Fire on the invader of the given index (first argument).
+		void Fire(Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments)
+		{
+			if (arguments.size() != 1)
+				return;
+			const std::size_t index = arguments[0].Get<std::size_t>();
+			if (index >= invaders.size())
+				return;
+
+			Invader& invader = invaders[index];
+			if (health <= 0 || invader.health <= 0)
+				return;
+
+			const float new_health = Rml::Math::Max(invader.health - charge * Rml::Math::SquareRoot(charge), 0.0f);
+
+			charge = 30.f;
+			score += int(invader.health - new_health) + 1000 * (new_health == 0);
+
+			invader.health = new_health;
+
+			model.DirtyVariable("invaders");
+			model.DirtyVariable("charge");
+			model.DirtyVariable("score");
+		}
+
+	} data;
 
 	bool Initialize(Rml::Context* context)
 	{
@@ -190,86 +237,122 @@ namespace InvadersExample {
 		if (!constructor)
 			return false;
 
-		// Register a custom getter/setter for the Colourb type.
+		// Register a custom getter for the Colourb type.
 		constructor.RegisterScalar<Rml::Colourb>(
 			[](const Rml::Colourb& color, Rml::Variant& variant) {
 				variant = "rgba(" + Rml::ToString(color) + ')';
-			},
-			[](Rml::Colourb& color, const Rml::Variant& variant) {
-				Rml::String str = variant.Get<Rml::String>();
-				bool success = false;
-				if (str.size() > 6 && str.substr(0, 5) == "rgba(")
-					success = Rml::TypeConverter<Rml::String, Rml::Colourb>::Convert(str.substr(5), color);
-				if (!success)
-					Rml::Log::Message(Rml::Log::LT_WARNING, "Invalid color specified: '%s'. Use syntax rgba(R,G,B,A).", str.c_str());
 			}
 		);
+		// Register a transform function for formatting time
+		constructor.RegisterTransformFunc("format_time", [](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const double t = variant.Get<double>();
+			const int minutes = int(t) / 60;
+			const double seconds = t - 60.0 * double(minutes);
+			variant = Rml::CreateString(10, "%02d:%05.2f", minutes, seconds);
+			return true;
+		});
 
-		// Since Invader::damage is an array type.
-		constructor.RegisterArray<Rml::Vector<int>>();
-
-		// Structs are registered by adding all its members through the returned handle.
+		// Structs are registered by adding all their members through the returned handle.
 		if (auto invader_handle = constructor.RegisterStruct<Invader>())
 		{
 			invader_handle.RegisterMember("name", &Invader::name);
 			invader_handle.RegisterMember("sprite", &Invader::sprite);
 			invader_handle.RegisterMember("color", &Invader::color);
-			invader_handle.RegisterMember("damage", &Invader::damage);
-			invader_handle.RegisterMember("danger_rating", &Invader::danger_rating);
+			invader_handle.RegisterMember("max_health", &Invader::max_health);
+			invader_handle.RegisterMember("charge_rate", &Invader::charge_rate);
+			invader_handle.RegisterMember("health", &Invader::health);
+			invader_handle.RegisterMember("charge", &Invader::charge);
 		}
 
 		// We can even have an Array of Structs, infinitely nested if we so desire.
 		// Make sure the underlying type (here Invader) is registered before the array.
-		constructor.RegisterArray<Rml::Vector<Invader>>();
+		constructor.RegisterArray<decltype(data.invaders)>();
 
 		// Now we can bind the variables to the model.
-		constructor.Bind("incoming_invaders_rate", &invaders_data.incoming_invaders_rate);
-		constructor.Bind("invaders", &invaders_data.invaders);
+		constructor.Bind("invaders", &data.invaders);
+		constructor.Bind("health", &data.health);
+		constructor.Bind("charge", &data.charge);
+		constructor.Bind("score", &data.score);
+		constructor.Bind("elapsed_time", &data.elapsed_time);
+		constructor.Bind("num_games_played", &data.num_games_played);
 
-		// This function will be called when the user clicks the 'Launch weapons' button.
-		constructor.BindEventCallback("launch_weapons", &InvadersData::LaunchWeapons, &invaders_data);
+		// This function will be called when the user clicks on the (re)start game button.
+		constructor.BindEventCallback("start_game", &InvadersData::StartGame, &data);
+		// This function will be called when the user clicks on any of the invaders.
+		constructor.BindEventCallback("fire", &InvadersData::Fire, &data);
 
 		model_handle = constructor.GetModelHandle();
 
 		return true;
 	}
 
-	void Update(const double t)
+	void Update(const double dt)
 	{
-		// Add new invaders at regular time intervals.
-		const double t_next_spawn = invaders_data.time_last_invader_spawn + 60.0 / double(invaders_data.incoming_invaders_rate);
-		if (t >= t_next_spawn)
+		using namespace Rml;
+		
+		if (data.health == 0)
+			return;
+
+		data.elapsed_time += dt;
+		model_handle.DirtyVariable("elapsed_time");
+
+		// Steadily increase the player charge.
+		data.charge = Math::Min(data.charge + float(40.0 * dt), 100.f);
+		model_handle.DirtyVariable("charge");
+
+		// Add new invaders at the scheduled time.
+		if (data.elapsed_time >= data.next_invader_spawn_time)
 		{
-			using namespace Rml;
-			const int num_items = 4;
+			constexpr int num_items = 4;
 			static Array<String, num_items> names = { "Angry invader", "Harmless invader", "Deceitful invader", "Cute invader" };
 			static Array<String, num_items> sprites = { "icon-invader", "icon-flag", "icon-game", "icon-waves" };
 			static Array<Colourb, num_items> colors = { { { 255, 40, 30 }, {20, 40, 255}, {255, 255, 30}, {230, 230, 230} } };
 
 			Invader new_invader;
-			new_invader.name = names[rand() % num_items];
-			new_invader.sprite = sprites[rand() % num_items];
-			new_invader.color = colors[rand() % num_items];
-			new_invader.danger_rating = float((rand() % 100) + 1);
-			invaders_data.invaders.push_back(new_invader);
+			new_invader.name = names[Math::RandomInteger(num_items)];
+			new_invader.sprite = sprites[Math::RandomInteger(num_items)];
+			new_invader.color = colors[Math::RandomInteger(num_items)];
 
-			model_handle.DirtyVariable("invaders");
-			invaders_data.time_last_invader_spawn = t;
+			new_invader.max_health = 300.f + float(30.0 * data.elapsed_time) + Math::RandomReal(300.f);
+			new_invader.charge_rate = 10.f + Math::RandomReal(50.f);
+
+			new_invader.health = new_invader.max_health;
+
+			// Find an available slot to spawn the new invader in.
+			const int i_begin = Math::RandomInteger(num_invaders);
+			for (int i = 0; i < num_invaders; i++)
+			{
+				Invader& invader = data.invaders[(i + i_begin) % num_invaders];
+				if (invader.health <= 0)
+				{
+					invader = std::move(new_invader);
+					model_handle.DirtyVariable("invaders");
+					break;
+				}
+			}
+
+			// Add new invaders at steadily decreasing time intervals.
+			data.next_invader_spawn_time = data.elapsed_time + 60.0 / (incoming_invaders_rate + 0.1 * data.elapsed_time);
 		}
 
-		// Launch shots from a random invader.
-		if (t >= invaders_data.time_last_weapons_launched + 1.0)
+		// Iterate through the invaders and fire at the player.
+		for (Invader& invader : data.invaders)
 		{
-			if (!invaders_data.invaders.empty())
+			if (invader.health > 0)
 			{
-				const size_t index = size_t(rand() % int(invaders_data.invaders.size()));
+				invader.charge = invader.charge + invader.charge_rate * float(dt);
 
-				Invader& invader = invaders_data.invaders[index];
-				invader.damage.push_back(rand() % int(invader.danger_rating));
+				if (invader.charge >= 100)
+				{
+					data.health = Math::Max(data.health - float(10.0 * dt), 0.0f);
+					model_handle.DirtyVariable("health");
+				}
+				
+				if (invader.charge >= 120)
+					invader.charge = 0;
 
 				model_handle.DirtyVariable("invaders");
 			}
-			invaders_data.time_last_weapons_launched = t;
 		}
 	}
 }
@@ -390,10 +473,13 @@ ShellRenderInterfaceExtensions *shell_renderer;
 
 void GameLoop()
 {
+	static double t_prev = 0;
 	const double t = Rml::GetSystemInterface()->GetElapsedTime();
-	
+	const double dt = Rml::Math::Min(t - t_prev, 0.1);
+	t_prev = t;
+
 	EventsExample::Update();
-	InvadersExample::Update(t);
+	InvadersExample::Update(dt);
 
 	context->Update();
 
