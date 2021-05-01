@@ -452,7 +452,7 @@ form h2 {
 	color: #ffd40f;
 	font-size: 1.7em;
 }
-progressbar {
+progress {
 	margin: 10dp 20dp;
 	display: inline-block;
 	vertical-align: middle;
@@ -862,10 +862,10 @@ progressbar {
 		</div>
 		<div id="submit_progress" style="display: none;">
 			<p id="progress_label">&nbsp;</p>
-			<progressbar id="gauge" direction="clockwise" start-edge="bottom" value="0.0">
+			<progress id="gauge" direction="clockwise" start-edge="bottom" value="0.0">
 				<div id="gauge_value">50%</div>
-			</progressbar>
-			<progressbar id="progress_horizontal" direction="right" value="0.0"/>
+			</progress>
+			<progress id="progress_horizontal" direction="right" value="0.0"/>
 			<div id="progress_value">50%</div>
 			<h2>Form output</h2>
 			<div id="form_output"></div>

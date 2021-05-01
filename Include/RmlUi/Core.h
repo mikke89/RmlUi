@@ -102,7 +102,7 @@
 #include "Core/Elements/ElementFormControlInput.h"
 #include "Core/Elements/ElementFormControlSelect.h"
 #include "Core/Elements/ElementFormControlTextArea.h"
-#include "Core/Elements/ElementProgressBar.h"
+#include "Core/Elements/ElementProgress.h"
 #include "Core/Elements/ElementTabSet.h"
 
 #endif

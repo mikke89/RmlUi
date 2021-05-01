@@ -165,7 +165,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlInput.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlSelect.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlTextArea.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementProgressBar.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementProgress.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementTabSet.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementText.h
@@ -291,7 +291,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementFormControlTextArea.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementImage.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementLabel.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementProgressBar.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementProgress.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementTabSet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementTextSelection.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/InputType.cpp

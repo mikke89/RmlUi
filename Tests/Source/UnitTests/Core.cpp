@@ -60,7 +60,7 @@ static const String document_textures_rml = R"(
 			height: 100px;
 			decorator: image(alien3);
 		}
-		progressbar { 
+		progress { 
 			display: block;
 			width: 50px;
 			height: 50px;
@@ -75,7 +75,7 @@ static const String document_textures_rml = R"(
 	<img src="/assets/high_scores_alien_1.tga"/>
 	<div class="file"/>
 	<div class="sprite"/>
-	<progressbar direction="clockwise" start-edge="bottom" value="0.5"/>
+	<progress direction="clockwise" start-edge="bottom" value="0.5"/>
 </div>
 </body>
 </rml>

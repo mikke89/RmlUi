@@ -100,7 +100,7 @@ Element* ElementLabel::GetTarget()
 
 	if (target_id.empty())
 	{
-		const StringList matching_tags = { "button", "input", "textarea", "progressbar", "select" };
+		const StringList matching_tags = { "button", "input", "textarea", "progress", "progressbar", "select" };
 
 		return TagMatchRecursive(matching_tags, this);
 	}

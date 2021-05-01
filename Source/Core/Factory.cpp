@@ -47,7 +47,7 @@
 #include "../../Include/RmlUi/Core/Elements/ElementFormControlSelect.h"
 #include "../../Include/RmlUi/Core/Elements/ElementFormControlTextArea.h"
 #include "../../Include/RmlUi/Core/Elements/ElementTabSet.h"
-#include "../../Include/RmlUi/Core/Elements/ElementProgressBar.h"
+#include "../../Include/RmlUi/Core/Elements/ElementProgress.h"
 #include "../../Include/RmlUi/Core/Elements/ElementDataGrid.h"
 #include "../../Include/RmlUi/Core/Elements/ElementDataGridExpandButton.h"
 #include "../../Include/RmlUi/Core/Elements/ElementDataGridCell.h"
@@ -150,7 +150,7 @@ struct DefaultInstancers {
 	ElementInstancerGeneric<ElementTextSelection> selection;
 	ElementInstancerGeneric<ElementTabSet> tabset;
 
-	ElementInstancerGeneric<ElementProgressBar> progressbar;
+	ElementInstancerGeneric<ElementProgress> progress;
 
 	ElementInstancerGeneric<ElementDataGrid> datagrid;
 	ElementInstancerGeneric<ElementDataGridExpandButton> datagrid_expand;
@@ -243,7 +243,8 @@ bool Factory::Initialise()
 	RegisterElementInstancer("#selection", &default_instancers->selection);
 	RegisterElementInstancer("tabset", &default_instancers->tabset);
 
-	RegisterElementInstancer("progressbar", &default_instancers->progressbar);
+	RegisterElementInstancer("progress", &default_instancers->progress);
+	RegisterElementInstancer("progressbar", &default_instancers->progress);
 
 	RegisterElementInstancer("datagrid", &default_instancers->datagrid);
 	RegisterElementInstancer("datagridexpand", &default_instancers->datagrid_expand);

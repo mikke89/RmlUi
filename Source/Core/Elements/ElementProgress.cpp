@@ -26,7 +26,7 @@
  *
  */
 
-#include "../../../Include/RmlUi/Core/Elements/ElementProgressBar.h"
+#include "../../../Include/RmlUi/Core/Elements/ElementProgress.h"
 #include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../../Include/RmlUi/Core/PropertyIdSet.h"
@@ -39,8 +39,11 @@
 
 namespace Rml {
 
-ElementProgressBar::ElementProgressBar(const String& tag) : Element(tag), direction(DefaultDirection), start_edge(DefaultStartEdge), fill(nullptr), rect_set(false), geometry(this)
+ElementProgress::ElementProgress(const String& tag) : Element(tag), direction(DefaultDirection), start_edge(DefaultStartEdge), fill(nullptr), rect_set(false), geometry(this)
 {
+	if (tag == "progressbar")
+		Log::Message(Log::LT_WARNING, "Deprecation notice: Element '<progressbar>' renamed to '<progress>', please adjust RML tags accordingly.");
+
 	geometry_dirty = false;
 
 	// Add the fill element as a non-DOM element.
@@ -49,40 +52,40 @@ ElementProgressBar::ElementProgressBar(const String& tag) : Element(tag), direct
 	fill = AppendChild(std::move(fill_element), false);
 }
 
-ElementProgressBar::~ElementProgressBar()
+ElementProgress::~ElementProgress()
 {
 }
 
-float ElementProgressBar::GetValue() const
+float ElementProgress::GetValue() const
 {
 	const float max_value = GetMax();
 	return Math::Clamp(GetAttribute< float >("value", 0.0f), 0.0f, max_value);
 }
 
-float ElementProgressBar::GetMax() const
+float ElementProgress::GetMax() const
 {
 	const float max_value = GetAttribute< float >("max", 1.0f);
 	return max_value <= 0.0f ? 1.0f : max_value;
 }
 
-void ElementProgressBar::SetMax(float max_value)
+void ElementProgress::SetMax(float max_value)
 {
 	SetAttribute("max", max_value);
 }
 
-void ElementProgressBar::SetValue(float in_value)
+void ElementProgress::SetValue(float in_value)
 {
 	SetAttribute("value", in_value);
 }
 
-bool ElementProgressBar::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
+bool ElementProgress::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
 	dimensions.x = 256;
 	dimensions.y = 16;
 	return true;
 }
 
-void ElementProgressBar::OnRender()
+void ElementProgress::OnRender()
 {
 	// Some properties may change geometry without dirtying the layout, eg. opacity.
 	if (geometry_dirty)
@@ -92,7 +95,7 @@ void ElementProgressBar::OnRender()
 	geometry.Render(fill->GetAbsoluteOffset());
 }
 
-void ElementProgressBar::OnAttributeChange(const ElementAttributes& changed_attributes)
+void ElementProgress::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	Element::OnAttributeChange(changed_attributes);
 
@@ -137,7 +140,7 @@ void ElementProgressBar::OnAttributeChange(const ElementAttributes& changed_attr
 	}
 }
 
-void ElementProgressBar::OnPropertyChange(const PropertyIdSet& changed_properties)
+void ElementProgress::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
     Element::OnPropertyChange(changed_properties);
 
@@ -151,7 +154,7 @@ void ElementProgressBar::OnPropertyChange(const PropertyIdSet& changed_propertie
 	}
 }
 
-void ElementProgressBar::OnResize()
+void ElementProgress::OnResize()
 {
 	const Vector2f element_size = GetBox().GetSize();
 
@@ -177,17 +180,17 @@ void ElementProgressBar::OnResize()
 	geometry_dirty = true;
 }
 
-void ElementProgressBar::GenerateGeometry()
+void ElementProgress::GenerateGeometry()
 {
 	// Warn the user when using the old approach of adding the 'fill-image' property to the 'fill' element.
 	if (fill->GetLocalProperty(PropertyId::FillImage))
-		Log::Message(Log::LT_WARNING, "Breaking change: The 'fill-image' property now needs to be set on the <progressbar> element, instead of its inner <fill> element. Please update your RCSS source to fix progress bars in this document.");
+		Log::Message(Log::LT_WARNING, "Breaking change: The 'fill-image' property now needs to be set on the <progress> element, instead of its inner <fill> element. Please update your RCSS source to fix progress bars in this document.");
 
 	const float normalized_value = GetValue() / GetMax();
 	Vector2f render_size = fill_size;
 
 	{
-		// Size and offset the fill element depending on the progressbar value.
+		// Size and offset the fill element depending on the progress value.
 		Vector2f offset = fill_offset;
 
 		switch (direction) {
@@ -350,7 +353,7 @@ void ElementProgressBar::GenerateGeometry()
 	}
 }
 
-bool ElementProgressBar::LoadTexture()
+bool ElementProgress::LoadTexture()
 {
 	geometry_dirty = true;
 	rect_set = false;

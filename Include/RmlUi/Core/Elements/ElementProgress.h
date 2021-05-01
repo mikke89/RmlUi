@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUI_CORE_ELEMENTS_ELEMENTPROGRESSBAR_H
-#define RMLUI_CORE_ELEMENTS_ELEMENTPROGRESSBAR_H
+#ifndef RMLUI_CORE_ELEMENTS_ELEMENTPROGRESS_H
+#define RMLUI_CORE_ELEMENTS_ELEMENTPROGRESS_H
 
 #include "../Header.h"
 #include "../Element.h"
@@ -38,7 +38,7 @@
 namespace Rml {
 
 /**
-	The 'progressbar' element.
+	The 'progress' element.
 
 	The 'value' attribute should be a number [0, 1] where 1 means completely filled.
 
@@ -50,22 +50,22 @@ namespace Rml {
 	Only applies to 'clockwise' or 'counter-clockwise' directions. Defines which edge the
 	circle should start expanding from.
 
-	The progressbar generates a non-dom 'fill' element beneath it which can be used to style
-	the filled part of the bar. The 'fill' element can use the 'fill-image'-property to set
-	an image which will be clipped according to the progressbar value. This property is the
-	only way to style a 'clockwise' or 'counter-clockwise' progressbar.
+	The progress element generates a non-dom 'fill' element beneath it which can be used to 
+	style the filled part of the bar. The 'fill' element can use the 'fill-image'-property
+	to set an image which will be clipped according to the progress value. This property is
+	the only way to style a 'clockwise' or 'counter-clockwise' progress element.
 
  */
 
-class RMLUICORE_API ElementProgressBar : public Element
+class RMLUICORE_API ElementProgress : public Element
 {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementProgressBar, Element)
+	RMLUI_RTTI_DefineWithParent(ElementProgress, Element)
 
-	/// Constructs a new ElementProgressBar. This should not be called directly; use the Factory instead.
+	/// Constructs a new ElementProgress. This should not be called directly; use the Factory instead.
 	/// @param[in] tag The tag the element was declared as in RML.
-	ElementProgressBar(const String& tag);
-	virtual ~ElementProgressBar();
+	ElementProgress(const String& tag);
+	virtual ~ElementProgress();
 
 	/// Returns the value of the progress bar.
 	float GetValue() const;
@@ -104,7 +104,7 @@ private:
 
 	Element* fill;
 
-	// The size of the fill geometry as if fully filled, and the offset relative to the 'progressbar' element.
+	// The size of the fill geometry as if fully filled, and the offset relative to the 'progress' element.
 	Vector2f fill_size, fill_offset;
 
 	// The texture this element is rendering from if the 'fill-image' property is set.

@@ -138,8 +138,7 @@ See the [media queries documentation](https://mikke89.github.io/RmlUiDoc/pages/r
 - `<select>` elements now react to changes in the `value` attribute.
 - Element attributes can now use escaped RML characters, eg. `<p example="&quot;Quoted text&quot;"/>`. [#154](https://github.com/mikke89/RmlUi/pull/154) (thanks @actboy168).
 - Tabs and panels in tab sets will no longer set the `display` property to `inline-block`, thus it is now possible to customize the display property.
-- `<progressbar>` elements now support the `max` attribute.
-- Changing the `fill-image` property of `<progressbar>` elements now actually updates the image.
+- `<progress>` element now supports the `max` attribute. Changing its `fill-image` property now actually updates the image.
 
 ### Input handling
 
@@ -205,7 +204,8 @@ Improved Lua plugin in several aspects.
 - The `BaseXMLParser` class has some minor interface changes.
 - Tab set elements `tab` and `panel` should now have their `display` property set in the RCSS document, use `display: inline-block` for the same behavior as before.
 - For custom, replaced elements: `Element::GetIntrinsicDimensions()` now additionally takes an intrinsic ratio parameter.
-- The `fill-image` property should now be applied to the \<progressbar\> element instead of its inner \<fill\> element.
+- The \<progressbar\> tag name has been deprecated in favor of \<progress\>. For now they work identically, but usage of \<progressbar\>  will raise a warning, expect future removal of this tag.
+- The `fill-image` property should now be applied to the \<progress\> element instead of its inner \<fill\> element.
 - The function `ElementDocument::LoadScript` is now changed to handle internal and external scripts separately. [#144](https://github.com/mikke89/RmlUi/pull/144)
 - For custom decorators: Textures from filenames should now first be loaded through the `DecoratorInstancerInterface` and then submitted to the `Decorator`.
 
