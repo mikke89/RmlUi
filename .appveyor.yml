@@ -161,4 +161,3 @@ deploy:
   prerelease: false
   on:
     APPVEYOR_REPO_TAG: true
-    RUN_MINGW: false
