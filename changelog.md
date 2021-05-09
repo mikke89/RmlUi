@@ -1,3 +1,4 @@
+* [RmlUi 4.0](#rmlui-40)
 * [RmlUi 3.3](#rmlui-33)
 * [RmlUi 3.2](#rmlui-32)
 * [RmlUi 3.1](#rmlui-31)
@@ -5,55 +6,24 @@
 * [RmlUi 2.0](#rmlui-20)
 
 
-## RmlUi 4.0 (WIP)
+## RmlUi 4.0
 
-### Restructuring RmlUi
-
-RmlUi has been restructured to simplify its usage. This involves breaking changes but should benefit everyone using the library in the future. See discussion in [#58](https://github.com/mikke89/RmlUi/issues/58).
-
-- The old `Controls` plugin is now gone. But fear not! It has been merged into the `Core` project.
-- The old `Rml::Core` and `Rml::Controls` namespaces have been removed, their contents are now located directly in the `Rml` namespace.
-- The old `Controls` public header files have been moved to `<RmlUi/Core/Elements/...>`.
-- The old `Controls` source files and private header files have been moved to `Source/Core/Elements/...`.
-- The `Debugger` plugin remains as before at the same location and same namespace `Rml::Debugger`.
-
-The Lua plugins have been changed to reflect the above changes.
-
-- The old Lua plugins `RmlCoreLua` and `RmlControlsLua` have been merged into a single library `RmlLua`.
-- The public header files are now located at `<RmlUi/Lua/...>`.
-- The Lua plugin is now initialized by calling `Rml::Lua::Initialise()` located in `<RmlUi/Lua/Lua.h>`.
-- Separated the Lua interpreter functions from initialization and the Lua plugin.
-- Renamed macros in the Lua plugin, they now start with `RMLUI_`.
-
-#### Upgrade guide
-
-- Remove the call to `Rml::Controls::Initialise()`, this is no longer needed.
-- Replace all inclusions of `<RmlUi/Controls.h>` with `<RmlUi/Core.h>` unless it is already included, or include individual header files.
-- Rename all inclusions of `<RmlUi/Controls/...>` to `<RmlUi/Core/Elements/...>`.
-- Replace all occurrences of `Rml::Core` with `Rml`.
-- Replace all occurrences of `Rml::Controls` with `Rml`.
-- Look for forward declarations in `namespace Rml { namespace Core { ... } }` and `namespace Rml { namespace Controls { ... } }`. Replace with `namespace Rml { ... }`.
-- Remove the linkage to the `RmlControls` library.
-- For users of the Lua plugin:
-  - Replace RmlUi's Lua header files with `<RmlUi/Lua.h>` or individual header files in `<RmlUi/Lua/...>`.
-  - Replace the old initialization calls with `Rml::Lua::Initialise()`. Previously this was `Rml::Core::Lua::Interpreter::Initialise()` and `Rml::Controls::Lua::RegisterTypes(...)`.
-  - Link with the library `RmlLua`, remove `RmlCoreLua` and `RmlControlsLua`.
-- Welcome to RmlUi 4.0 :)
-
-#### Related internal changes.
-
-- Refactored the two `WidgetSlider` classes to avoid duplicate names in Core and Controls.
-- Refactored `TransformPrimitive.h` by moving utility functions that should only be used internally to an internal header file.
-- Renamed header guard macros.
+RmlUi 4.0 comes packed with several valuable new features as well as many fixes, as detailed below. The library has also been restructured to simplify its usage. For users coming from RmlUi 3.x, see [restructuring RmlUi](#restructuring-rmlui) below for details and an upgrade guide.
 
 ### Data bindings (model-view-controller)
 
 RmlUi now supports a model-view-controller (MVC) approach through data bindings. This is a powerful approach for making documents respond to data changes, or in reverse, updating data based on user actions.
 
-For now, this is considered an experimental feature.
+```html
+<div data-model="my_model">
+	<h2>{{title}}</h2>
+	<p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
+	<input type="text" data-value="animal"/>
+</div>
+```
 
-- See the work-in-progress [documentation for this feature](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html).
-- Have a look at the 'databinding' sample for usage examples.
+- See [documentation for this feature](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html) and more examples therein.
+- Have a look at the 'databinding' sample for usage examples and an enjoyable little game.
 - See discussion in [#83](https://github.com/mikke89/RmlUi/pull/83) and [#25](https://github.com/mikke89/RmlUi/issues/25).
 
 Thanks to contributions from @actboy, @cloudwu, @C-Core, @Dakror, and @Omegapol; and everyone who helped with testing!
@@ -160,8 +130,10 @@ Improved Lua plugin in several aspects.
 
 - New `databinding` sample for demonstrating data bindings.
 - New `lottie` sample for demonstrating Lottie animations with the Lottie plugin.
+- New `svg` sample for demonstrating the SVG plugin.
 - The use of `datagrid` in sample projects has now been replaced with data bindings. This includes the `treeview` sample and the high scores document in the `invader` sample. Tutorials have not been updated.
 - The options document in the `luainvader` sample now demonstrate data bindings combined with Lua scripts.
+- Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
 
 ### Other features and improvements
 
@@ -170,10 +142,9 @@ Improved Lua plugin in several aspects.
 - RCSS and scripts are now always loaded in declared order [#144](https://github.com/mikke89/RmlUi/pull/144) (thanks @actboy168).
 - A custom configuration can now be used by RmlUi. In this way it is possible to replace several types including containers to other STL-compatible containers (such as [EASTL](https://github.com/electronicarts/EASTL)), or to STL containers with custom allocators. See the `CUSTOM_CONFIGURATION` [CMake option](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html#cmake-options). [#110](https://github.com/mikke89/RmlUi/pull/110) (thanks @rokups).
 - Added ability to change the default base tag in documents [#112](https://github.com/mikke89/RmlUi/pull/112)  (thanks @aquawicket).
-- Improved the SFML2 sample [#106](https://github.com/mikke89/RmlUi/pull/106) and [#103](https://github.com/mikke89/RmlUi/issues/103) (thanks @hachmeister).
 - Debugger improvements: Sort property names alphabetically. Fix a bug where the outlines would draw underneath the document.
 - Improved performance when using fonts with kerning.
-- Added `unsigned int` and `uint64_t` to Variant. [#166](https://github.com/mikke89/RmlUi/pull/166) [#176](https://github.com/mikke89/RmlUi/pull/176)  (thanks @Omegapol and @Dakror).
+- Added `unsigned int` and `uint64_t` to Variant. [#166](https://github.com/mikke89/RmlUi/pull/166) [#176](https://github.com/mikke89/RmlUi/pull/176) (thanks @Omegapol and @Dakror).
 - Sprite sheets can now be declared anonymous, no name needed.
 
 ### Bug fixes
@@ -191,21 +162,60 @@ Improved Lua plugin in several aspects.
 - Fix tabbing navigation in reverse direction from body.
 - Fix missing attributes when cloning elements. [#177](https://github.com/mikke89/RmlUi/pull/177) (thanks @Dakror).
 
+### Restructuring RmlUi
+
+RmlUi has been restructured to simplify its usage. This involves breaking changes but should benefit everyone using the library in the future. See discussion in [#58](https://github.com/mikke89/RmlUi/issues/58).
+
+- The old `Controls` plugin is now gone. But fear not! It has been merged into the `Core` project.
+- The old `Rml::Core` and `Rml::Controls` namespaces have been removed, their contents are now located directly in the `Rml` namespace.
+- The old `Controls` public header files have been moved to `<RmlUi/Core/Elements/...>`.
+- The old `Controls` source files and private header files have been moved to `Source/Core/Elements/...`.
+- The `Debugger` plugin remains as before at the same location and same namespace `Rml::Debugger`.
+
+The Lua plugins have been changed to reflect the above changes.
+
+- The old Lua plugins `RmlCoreLua` and `RmlControlsLua` have been merged into a single library `RmlLua`.
+- The public header files are now located at `<RmlUi/Lua/...>`.
+- The Lua plugin is now initialized by calling `Rml::Lua::Initialise()` located in `<RmlUi/Lua/Lua.h>`.
+- Separated the Lua interpreter functions from initialization and the Lua plugin.
+- Renamed macros in the Lua plugin, they now start with `RMLUI_`.
+
+#### Upgrade guide
+
+- Remove the call to `Rml::Controls::Initialise()`, this is no longer needed.
+- Replace all inclusions of `<RmlUi/Controls.h>` with `<RmlUi/Core.h>` unless it is already included, or include individual header files.
+- Rename all inclusions of `<RmlUi/Controls/...>` to `<RmlUi/Core/Elements/...>`.
+- Replace all occurrences of `Rml::Core` with `Rml`.
+- Replace all occurrences of `Rml::Controls` with `Rml`.
+- Look for forward declarations in `namespace Rml { namespace Core { ... } }` and `namespace Rml { namespace Controls { ... } }`. Replace with `namespace Rml { ... }`.
+- Remove the linkage to the `RmlControls` library.
+- For users of the Lua plugin:
+  - Replace RmlUi's Lua header files with `<RmlUi/Lua.h>` or individual header files in `<RmlUi/Lua/...>`.
+  - Replace the old initialization calls with `Rml::Lua::Initialise()`. Previously this was `Rml::Core::Lua::Interpreter::Initialise()` and `Rml::Controls::Lua::RegisterTypes(...)`.
+  - Link with the library `RmlLua`, remove `RmlCoreLua` and `RmlControlsLua`.
+- Welcome to RmlUi 4.0 :)
+
+#### Related internal changes.
+
+- Refactored the two `WidgetSlider` classes to avoid duplicate names in Core and Controls.
+- Refactored `TransformPrimitive.h` by moving utility functions that should only be used internally to an internal header file.
+- Renamed header guard macros.
+
 ### Deprecated functionality
 
 - The `datagrid` element and related functionality has been deprecated in favor of [data bindings](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html) and [RCSS tables](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html).
+- The `<progressbar>` tag name has been deprecated in favor of `<progress>`. For now they work identically, but usage of `<progressbar>`  will raise a warning, expect future removal of this tag.
 
 ### Breaking changes
 
 - Namespaces and plugin names changed! See the restructuring changes above.
-- It is no longer possible to use `{{` and `}}` inside RML documents outside the context of data bindings.
+- Using `{{` and `}}` inside RML documents is now reserved for usage with data bindings.
 - Attributes starting with `data-` are now reserved for RmlUi.
 - The changes to the layout engine may result in changes to the rendered layout in some situations, see above for more details.
 - The `BaseXMLParser` class has some minor interface changes.
 - Tab set elements `tab` and `panel` should now have their `display` property set in the RCSS document, use `display: inline-block` for the same behavior as before.
 - For custom, replaced elements: `Element::GetIntrinsicDimensions()` now additionally takes an intrinsic ratio parameter.
-- The \<progressbar\> tag name has been deprecated in favor of \<progress\>. For now they work identically, but usage of \<progressbar\>  will raise a warning, expect future removal of this tag.
-- The `fill-image` property should now be applied to the \<progress\> element instead of its inner \<fill\> element.
+- The `fill-image` property should now be applied to the `<progress>` element instead of its inner `<fill>` element.
 - The function `ElementDocument::LoadScript` is now changed to handle internal and external scripts separately. [#144](https://github.com/mikke89/RmlUi/pull/144)
 - For custom decorators: Textures from filenames should now first be loaded through the `DecoratorInstancerInterface` and then submitted to the `Decorator`.
 

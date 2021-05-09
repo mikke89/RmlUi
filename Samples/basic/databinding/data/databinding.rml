@@ -131,6 +131,7 @@ progress {
 	display: block;
 	background: #ccc3;
 	margin-top: 8dp;
+	height: 18dp;
 	width: 100%;
 	box-sizing: border-box;
 	border-width: 1dp;
