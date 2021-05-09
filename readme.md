@@ -1,4 +1,4 @@
-# RmlUi - The HTML/CSS User Interface Library Evolved
+﻿# RmlUi - The HTML/CSS User Interface Library Evolved
 
 ![RmlUi](https://github.com/mikke89/RmlUiDoc/raw/cc01edd834b003df6c649967bfd552bb0acc3d1e/assets/rmlui.png)
 
@@ -10,7 +10,9 @@ RmlUi - now with added boosters taking control of the rocket, targeting *your* g
 
 RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
 
-RmlUi uses the time-tested open standards XHTML1 and CSS2 while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Because of this, you don't have to learn a whole new proprietary technology like other libraries in this space. Please have a look at the supported [RCSS properties](https://mikke89.github.io/RmlUiDoc/pages/rcss/property_index.html) and [RML elements](https://mikke89.github.io/RmlUiDoc/pages/rml/element_index.html).
+RmlUi aims at being a light-weight and performant library with its own layouting engine. The core library compiles down to fractions of the size it takes to integrate a fully fledged web browser as other libraries do in this space. In essence, RmlUi takes your HTML/CSS-like source files and turns them into vertices, indices and draw commands, and then you bring your own renderer to draw them. And of course there is full access to the element hierarchy/DOM, event handling, and all the interactivity and customizability you would expect. All of this directly from C++, or optionally from scripting languages using plugins.
+
+RmlUi is based around the XHTML1 and CSS2 standards while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Take a look at the [conformance](#conformance) and [enhancements](#enhancements) sections below for details.
 
 Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
@@ -61,7 +63,7 @@ In addition, a C++14 compatible compiler is required.
 
 ## Conformance
 
-RmlUi aims to support the most common and familar features from HTML and CSS, while keeping the library light and performant. We do not aim to be fully compliant with CSS or HTML, in particular when it conflicts with lightness and performance. Users are generally expected to author documents specifically for RmlUi, but any experience and skills from web design should be transferable.
+RmlUi aims to support the most common and familiar features from HTML and CSS, while keeping the library light and performant. We do not aim to be fully compliant with CSS or HTML, in particular when it conflicts with lightness and performance. Users are generally expected to author documents specifically for RmlUi, but any experience and skills from web design should be transferable.
 
 RmlUi supports most of CSS2 with some CSS3 features such as
 
@@ -87,9 +89,9 @@ RmlUi adds features and enhancements over CSS and HTML where it makes sense, mos
 - [Localization](https://mikke89.github.io/RmlUiDoc/pages/localisation.html). Translate all text in the document.
 
 
-## Example: Basic document
+## Example document
 
-In this example a document is created using a templated window. The template is optional but can aid in achieving a consistent look by sharing it between multiple documents.
+This example demonstrates a basic document with [data bindings](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html), which is loaded and displayed using the C++ code below.
 
 #### Document
 
@@ -99,64 +101,152 @@ In this example a document is created using a templated window. The template is 
 <rml>
 <head>
 	<title>Hello world</title>
-	<link type="text/template" href="window.rml" />
-	<style>
-		body
-		{
-			width: 200px;
-			height: 100px;
-			margin: auto;
-		}
-	</style>
-</head>
-<body template="window">
-	Hello world!
-</body>
-</rml>
-```
-
-#### Window template
-
-`window.rml`
-
-```html
-<template name="window" content="content">
-<head>
 	<link type="text/rcss" href="rml.rcss"/>
 	<link type="text/rcss" href="window.rcss"/>
 </head>
-<body>
-	<div id="title_header">RmlUi</div>
-	<div id="content"/>
+<body data-model="animals">
+	<h1>RmlUi</h1>
+	<p>Hello <span id="world">world</span>!</p>
+	<p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
+	<input type="text" data-value="animal"/>
 </body>
-</template>
+</rml>
 ```
-No styles are defined internally, thus `rml.rcss` can be included for [styling the standard elements](Samples/assets/rml.rcss).
+The `{{animal}}` text and the `data-value` attribute represent data bindings and will synchronize with the application data. No styles are defined internally, thus `rml.rcss` can be included for [styling the standard elements](Samples/assets/rml.rcss).
 
 #### Style sheet
 
 `window.rcss`
 
 ```css
-body
-{
-	font-family: Delicious;
-	font-weight: normal;
-	font-style: normal;
-	font-size: 15px;
-	color: #6f42c1;
-	background: #f6f8fa;
+body {
+	font-family: LatoLatin;
+	font-size: 18px;
+	color: #02475e;
+	background: #fefecc;
 	text-align: center;
-	padding: 2em 3em;
+	padding: 2em 1em;
+	position: absolute;
 	border: 2px #ccc;
+	width: 500px;
+	height: 200px;
+	margin: auto;
 }
-
-#title_header
-{
-	color: #9a42c5;
+		
+h1 {
+	color: #f6470a;
 	font-size: 1.5em;
 	font-weight: bold;
-	padding-bottom: 1em;
+	margin-bottom: 0.7em;
+}
+		
+p { 
+	margin: 0.7em 0;
+}
+		
+input.text {
+	background-color: #fff;
+	color: #555;
+	border: 2px #999;
+	padding: 5px;
+	tab-index: auto;
+	cursor: text;
+	box-sizing: border-box;
+	width: 200px;
+	font-size: 0.9em;
+}
+```
+
+
+#### C++ Initialization and loop
+
+`main.cpp`
+
+```cpp
+#include <RmlUi/Core.h>
+
+class MyRenderInterface : public Rml::RenderInterface
+{
+	// RmlUi sends vertices, indices and draw commands through this interface for your
+	// application to render how you'd like.
+	/* ... */
+}
+
+class MySystemInterface : public Rml::SystemInterface
+{	
+	// RmlUi requests the current time and provides various utilities through this interface.
+	/* ... */
+}
+
+struct ApplicationData {
+	bool show_text = true;
+	Rml::String animal = "dog";
+} my_data;
+
+int main(int argc, char** argv)
+{
+	// Initialize the window and graphics API being used, along with your game or application.
+
+	/* ... */
+
+	MyRenderInterface render_interface;
+	MySystemInterface system_interface;
+
+	// Begin by installing the custom interfaces.
+	Rml::SetRenderInterface(&render_interface);
+	Rml::SetSystemInterface(&system_interface);
+
+	// Now we can initialize RmlUi.
+	Rml::Initialise();
+
+	// Create a context next.
+	Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
+
+	// Tell RmlUi to load the given fonts.
+	Rml::LoadFontFace("LatoLatin-Regular.ttf");
+	// Fonts can be registered as fallback fonts to display emojis in this case.
+	Rml::LoadFontFace("NotoEmoji-Regular.ttf", true);
+
+	// Set up data bindings to synchronize application data.
+	if (Rml::DataModelConstructor constructor = context->CreateDataModel("animals"))
+	{
+		constructor.Bind("show_text", &my_data.show_text);
+		constructor.Bind("animal", &my_data.animal);
+	}
+
+	// Now we are ready to load our document.
+	Rml::ElementDocument* document = context->LoadDocument("hello_world.rml");
+	document->Show();
+
+	// Replace and style some text in the loaded document.
+	Rml::Element* element = document->GetElementById("world");
+	element->SetInnerRML((const char*)u8"🌍");
+	element->SetProperty("font-size", "1.5em");
+
+	bool exit_application = false;
+	while (!exit_application)
+	{
+		// We assume here that we have some way of updating and retrieving inputs internally.
+		if (my_input->KeyPressed(KEY_ESC))
+			exit_application = true;
+
+		// Submit input events such as MouseMove and key events (not shown) to the context.
+		if (my_input->MouseMoved())
+			context->ProcessMouseMove(mouse_pos.x, mouse_pos.y, 0);
+
+		// Update the context to reflect any changes resulting from input events, animations,
+		// modified and added elements, or changed data in data bindings.
+		context->Update();
+
+		// Render the user interface. All geometry and other rendering commands are now
+		// submitted through the render interface.
+		context->Render();
+	}
+
+	// Shutting down RmlUi releases all its resources, including elements, documents, and contexts.
+	Rml::Shutdown();
+
+	return 0;
 }
 ```
 
@@ -164,6 +254,7 @@ body
 
 ![Hello world document](Samples/assets/hello_world.png)
 
+Users can now edit the text field to change the animal. This results in both the text paragraph within the document as well as the application string `my_data.animal` to automatically be modified, since we are using data bindings here.
 
 
 ## Gallery
