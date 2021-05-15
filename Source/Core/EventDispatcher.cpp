@@ -33,7 +33,7 @@
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "EventSpecification.h"
 #include <algorithm>
-#include <limits.h>
+#include <limits>
 
 namespace Rml {
 
@@ -50,8 +50,8 @@ struct CompareIdPhase {
 
 
 EventDispatcher::EventDispatcher(Element* _element)
+	: element(_element)
 {
-	element = _element;
 }
 
 EventDispatcher::~EventDispatcher()
@@ -61,36 +61,27 @@ EventDispatcher::~EventDispatcher()
 		event.listener->OnDetach(element);
 }
 
-void EventDispatcher::AttachEvent(EventId id, EventListener* listener, bool in_capture_phase)
+void EventDispatcher::AttachEvent(const EventId id, EventListener* listener, const bool in_capture_phase)
 {
-	EventListenerEntry entry(id, listener, in_capture_phase);
+	const EventListenerEntry entry(id, listener, in_capture_phase);
 
 	// The entries are sorted by (id,phase). Find the bounds of this sort, then find the entry.
-	auto range = std::equal_range(listeners.begin(), listeners.end(), entry, CompareIdPhase());
-	auto it = std::find(range.first, range.second, entry);
-
-	if(it == range.second)
+	const auto range = std::equal_range(listeners.cbegin(), listeners.cend(), entry, CompareIdPhase());
+	const auto matching_entry_it = std::find(range.first, range.second, entry);
+	if (matching_entry_it == range.second)
 	{
-		// No existing entry found, add it to the end of the (id, phase) range
-		listeners.emplace(it, entry);
+		listeners.emplace(range.second, entry);
 		listener->OnAttach(element);
 	}
 }
 
 
-void EventDispatcher::DetachEvent(EventId id, EventListener* listener, bool in_capture_phase)
+void EventDispatcher::DetachEvent(const EventId id, EventListener* listener, const bool in_capture_phase)
 {
-	EventListenerEntry entry(id, listener, in_capture_phase);
-	
-	// The entries are sorted by (id,phase). Find the bounds of this sort, then find the entry.
-	// We could also just do a linear search over all the entries, which might be faster for low number of entries.
-	auto range = std::equal_range(listeners.begin(), listeners.end(), entry, CompareIdPhase());
-	auto it = std::find(range.first, range.second, entry);
-
-	if (it != range.second)
+	const auto listenerIt = std::find(listeners.cbegin(), listeners.cend(), EventListenerEntry(id, listener, in_capture_phase));
+	if (listenerIt != listeners.cend())
 	{
-		// We found our listener, remove it
-		listeners.erase(it);
+		listeners.erase(listenerIt);
 		listener->OnDetach(element);
 	}
 }
@@ -178,7 +169,7 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const EventId id, c
 	if (!event)
 		return false;
 
-	int previous_sort_value = INT_MAX;
+	auto previous_sort_value = std::numeric_limits<int>::max();
 
 	// Process the event in each listener.
 	for (const auto& listener_desc : listeners)

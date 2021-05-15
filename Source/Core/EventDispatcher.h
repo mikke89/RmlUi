@@ -39,7 +39,8 @@ class EventListener;
 struct CollectedListener;
 
 struct EventListenerEntry {
-	EventListenerEntry(EventId id, EventListener* listener, bool in_capture_phase) : id(id), in_capture_phase(in_capture_phase), listener(listener) {}
+	EventListenerEntry(const EventId id, EventListener* listener, const bool in_capture_phase) : id(id), in_capture_phase(in_capture_phase), listener(listener) {}
+
 	EventId id;
 	bool in_capture_phase;
 	EventListener* listener;
@@ -63,15 +64,15 @@ public:
 	/// Destructor
 	~EventDispatcher();
 
-	/// Attaches a new listener to the specified event name
-	/// @param[in] type Type of the event to attach to
-	/// @param[in] event_listener The event listener to be notified when the event fires
-	/// @param[in] in_capture_phase Should the listener be notified in the capture phase
+	/// Attaches a new listener to the specified event name.
+	/// @param[in] type Type of the event to attach to.
+	/// @param[in] event_listener The event listener to be notified when the event fires.
+	/// @param[in] in_capture_phase Should the listener be notified in the capture phase.
 	void AttachEvent(EventId id, EventListener* event_listener, bool in_capture_phase);
 
 	/// Detaches a listener from the specified event name
 	/// @param[in] type Type of the event to attach to
-	/// @para[in]m event_listener The event listener to be notified when the event fires
+	/// @param[in] event_listener The event listener to be notified when the event fires
 	/// @param[in] in_capture_phase Should the listener be notified in the capture phase
 	void DetachEvent(EventId id, EventListener* listener, bool in_capture_phase);
 
