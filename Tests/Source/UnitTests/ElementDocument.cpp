@@ -27,9 +27,11 @@
  */
 
 #include "../Common/TestsShell.h"
+#include "FakeEventListenerInstancer.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Factory.h>
 #include <doctest.h>
 #include <algorithm>
 
@@ -60,7 +62,7 @@ static const String document_focus_rml = R"(
 	</style>
 </head>
 
-<body id="body">
+<body id="body" onload="something">
 <input type="checkbox" id="p1"/> P1
 <label><input type="checkbox" id="p2"/> P2</label>
 <p>
@@ -94,8 +96,9 @@ static const String document_focus_rml = R"(
 
 static const String focus_forward = "p1 p2 p3 p5 p7 p9 p10 p11 p12 p13";
 
+TEST_SUITE_BEGIN("elementdocument");
 
-TEST_CASE("elementdocument.focus")
+TEST_CASE("focus")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -108,42 +111,47 @@ TEST_CASE("elementdocument.focus")
 	context->Render();
 
 	TestsShell::RenderLoop();
-
-	document->Focus();
-
-	StringList ids;
-	StringUtilities::ExpandString(ids, focus_forward, ' ');
-
-	REQUIRE(!ids.empty());
-
-	// Forward direction
-	for(const String& id : ids)
+	SUBCASE("tab order")
 	{
-		context->ProcessKeyDown(Input::KI_TAB, 0);
-		CHECK(context->GetFocusElement()->GetId() == id);
+		StringList ids;
+		StringUtilities::ExpandString(ids, focus_forward, ' ');
+		REQUIRE(!ids.empty());
+
+		document->Focus();
+		SUBCASE("forward")
+		{
+			for(const String& id : ids)
+			{
+				context->ProcessKeyDown(Input::KI_TAB, 0);
+				CHECK(context->GetFocusElement()->GetId() == id);
+			}
+
+			// Wrap around
+			context->ProcessKeyDown(Input::KI_TAB, 0);
+			CHECK(context->GetFocusElement()->GetId() == ids[0]);
+		}
+
+		SUBCASE("reverse")
+		{
+			std::reverse(ids.begin(), ids.end());
+			for (const String& id : ids)
+			{
+				context->ProcessKeyDown(Input::KI_TAB, Input::KM_SHIFT);
+				CHECK(context->GetFocusElement()->GetId() == id);
+			}
+
+			// Wrap around (reverse)
+			context->ProcessKeyDown(Input::KI_TAB, Input::KM_SHIFT);
+			CHECK(context->GetFocusElement()->GetId() == ids[0]);
+		}
 	}
 
-	// Wrap around
-	context->ProcessKeyDown(Input::KI_TAB, 0);
-	CHECK(context->GetFocusElement()->GetId() == ids[0]);
-
-	document->Focus();
-
-	std::reverse(ids.begin(), ids.end());
-
-	// Reverse direction
-	for (const String& id : ids)
+	SUBCASE("Tab to document")
 	{
-		context->ProcessKeyDown(Input::KI_TAB, Input::KM_SHIFT);
-		CHECK(context->GetFocusElement()->GetId() == id);
-	}
+		Element* element = document->GetElementById("p13");
+		REQUIRE(element);
+		element->Focus();
 
-	// Wrap around (reverse)
-	context->ProcessKeyDown(Input::KI_TAB, Input::KM_SHIFT);
-	CHECK(context->GetFocusElement()->GetId() == ids[0]);
-
-	// Tab to document
-	{
 		document->SetProperty("tab-index", "auto");
 		document->UpdateDocument();
 
@@ -151,7 +159,7 @@ TEST_CASE("elementdocument.focus")
 		CHECK(context->GetFocusElement()->GetId() == "body");
 	}
 
-	// Tab from container element
+	SUBCASE("Tab from container element")
 	{
 		Element* container = document->GetElementById("container");
 		REQUIRE(container);
@@ -165,7 +173,7 @@ TEST_CASE("elementdocument.focus")
 		CHECK(context->GetFocusElement()->GetId() == "p10");
 	}
 
-	// Single element
+	SUBCASE("Single element")
 	{
 		document->SetProperty("tab-index", "none");
 		document->SetInnerRML(R"(<input type="checkbox" id="p1"/> P1)");
@@ -193,7 +201,7 @@ TEST_CASE("elementdocument.focus")
 		CHECK(context->GetFocusElement()->GetId() == "body");
 	}
 
-	// Single, non-tabable element
+	SUBCASE("Single, non-tabable element")
 	{
 		document->SetProperty("tab-index", "none");
 		document->SetInnerRML(R"(<div id="child"/>)");
@@ -230,6 +238,23 @@ TEST_CASE("elementdocument.focus")
 	}
 
 	document->Close();
-
 	TestsShell::ShutdownShell();
 }
+
+TEST_CASE("load")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	FakeEventListenerInstancer eventListenerInstancer;
+	Factory::RegisterEventListenerInstancer(&eventListenerInstancer);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_focus_rml);
+	REQUIRE(document);
+	CHECK_EQ(eventListenerInstancer.GetLastInstancedValue(), "something");
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_SUITE_END();

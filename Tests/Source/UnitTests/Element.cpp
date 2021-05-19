@@ -27,9 +27,11 @@
  */
 
 #include "../Common/TestsShell.h"
+#include "FakeEventListenerInstancer.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Factory.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -65,8 +67,7 @@ static const String document_clone_rml = R"(
 </rml>
 )";
 
-
-TEST_CASE("element.clone")
+TEST_CASE("element")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -79,27 +80,85 @@ TEST_CASE("element.clone")
 	context->Render();
 
 	TestsShell::RenderLoop();
+	SUBCASE("attribute")
+	{
+		auto* button = document->AppendChild(document->CreateElement("button"));
+		SUBCASE("event listener")
+		{
+			static constexpr auto CLICK_EVENT = "click";
+			static constexpr auto ON_CLICK_ATTRIBUTE = "onclick";
+			static constexpr auto ON_CLICK_VALUE = "moo";
 
-	// Simulate input for mouse click and drag
-	context->ProcessMouseMove(10, 10, 0);
+			FakeEventListenerInstancer eventListenerInstancer;
+			Factory::RegisterEventListenerInstancer(&eventListenerInstancer);
 
-	context->Update();
-	context->Render();
+			REQUIRE(button->DispatchEvent(CLICK_EVENT, {}));
+			button->SetAttribute(ON_CLICK_ATTRIBUTE, ON_CLICK_VALUE);
+			REQUIRE_EQ(eventListenerInstancer.GetLastInstancedValue(), ON_CLICK_VALUE);
+			CHECK_FALSE(button->DispatchEvent(CLICK_EVENT, {}));
 
-	context->ProcessMouseButtonDown(0, 0);
+			SUBCASE("removal")
+			{
+				button->RemoveAttribute(ON_CLICK_ATTRIBUTE);
+				CHECK(button->DispatchEvent(CLICK_EVENT, {}));
+			}
 
-	context->Update();
-	context->Render();
+			SUBCASE("replacement")
+			{
+				static constexpr auto REPLACEMENT_ON_CLICK_VALUE = "boo";
+				button->SetAttribute(ON_CLICK_ATTRIBUTE, REPLACEMENT_ON_CLICK_VALUE);
+				REQUIRE_EQ(eventListenerInstancer.GetLastInstancedValue(), REPLACEMENT_ON_CLICK_VALUE);
+				CHECK_FALSE(button->DispatchEvent(CLICK_EVENT, {}));
+			}
+		}
 
-	// This should initiate a drag clone.
-	context->ProcessMouseMove(10, 11, 0);
+		SUBCASE("simple")
+		{
+			static constexpr auto DISABLED_ATTRIBUTE = "disabled";
+			REQUIRE_FALSE(button->HasAttribute(DISABLED_ATTRIBUTE));
+			button->SetAttribute(DISABLED_ATTRIBUTE, "");
+			REQUIRE(button->HasAttribute(DISABLED_ATTRIBUTE));
 
-	context->Update();
-	context->Render();
+			SUBCASE("removal")
+			{
+				button->RemoveAttribute(DISABLED_ATTRIBUTE);
+				CHECK_FALSE(button->HasAttribute(DISABLED_ATTRIBUTE));
+			}
 
-	context->ProcessMouseButtonUp(0, 0);
+			SUBCASE("replacement")
+			{
+				static constexpr auto VALUE = "something";
+				button->SetAttribute(DISABLED_ATTRIBUTE, VALUE);
+				const auto* attributeValue = button->GetAttribute(DISABLED_ATTRIBUTE);
+				REQUIRE(attributeValue);
+				REQUIRE(attributeValue->GetType() == Variant::Type::STRING);
+				CHECK(attributeValue->Get<String>() == VALUE);
+			}
+		}
+	}
+
+	SUBCASE("clone")
+	{
+		// Simulate input for mouse click and drag
+		context->ProcessMouseMove(10, 10, 0);
+
+		context->Update();
+		context->Render();
+
+		context->ProcessMouseButtonDown(0, 0);
+
+		context->Update();
+		context->Render();
+
+		// This should initiate a drag clone.
+		context->ProcessMouseMove(10, 11, 0);
+
+		context->Update();
+		context->Render();
+
+		context->ProcessMouseButtonUp(0, 0);
+	}
 
 	document->Close();
-
 	TestsShell::ShutdownShell();
 }
