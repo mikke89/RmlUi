@@ -7,20 +7,21 @@ target_compile_definitions(RmlCore PUBLIC RMLUI_TESTS_ENABLED)
 #===================================
 # Include dependencies =============
 #===================================
-set(DOCTEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/doctest)
-add_library(doctest::doctest IMPORTED INTERFACE)
-set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}")
+function(include_dependency NAME)
+	set(DEPENDENCY_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/${NAME})
+	set(DEPENDENCY_TARGET ${NAME}::${NAME})
 
+	add_library(${DEPENDENCY_TARGET} IMPORTED INTERFACE)
+	set_property(TARGET ${DEPENDENCY_TARGET} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DEPENDENCY_INCLUDE_DIR}")
+endfunction()
+
+include_dependency("doctest")
 # Include doctest's discovery module
-include(${DOCTEST_INCLUDE_DIR}/cmake/doctest.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/doctest/cmake/doctest.cmake)
 
-set(NANOBENCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/nanobench)
-add_library(nanobench::nanobench IMPORTED INTERFACE)
-set_property(TARGET nanobench::nanobench PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${NANOBENCH_INCLUDE_DIR}")
-
-set(LODEPNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/lodepng)
-add_library(lodepng::lodepng IMPORTED INTERFACE)
-set_property(TARGET lodepng::lodepng PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LODEPNG_INCLUDE_DIR}")
+include_dependency("nanobench")
+include_dependency("lodepng")
+include_dependency("trompeloeil")
 
 #===================================
 # Common source files ==============
@@ -37,7 +38,7 @@ file(GLOB UnitTests_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.h )
 file(GLOB UnitTests_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.cpp )
 
 add_executable(UnitTests ${UnitTests_HDR_FILES} ${UnitTests_SRC_FILES})
-target_link_libraries(UnitTests RmlCore doctest::doctest ${sample_LIBRARIES})
+target_link_libraries(UnitTests RmlCore doctest::doctest trompeloeil::trompeloeil ${sample_LIBRARIES})
 add_common_target_options(UnitTests)
 
 if(MSVC)
