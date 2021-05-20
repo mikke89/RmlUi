@@ -26,8 +26,8 @@
  *
  */
 
+#include "../Common/Mocks.h"
 #include "../Common/TestsShell.h"
-#include "FakeEventListenerInstancer.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -67,7 +67,7 @@ static const String document_clone_rml = R"(
 </rml>
 )";
 
-TEST_CASE("element")
+TEST_CASE("Element")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -80,64 +80,75 @@ TEST_CASE("element")
 	context->Render();
 
 	TestsShell::RenderLoop();
-	SUBCASE("attribute")
+	SUBCASE("Attribute")
 	{
 		auto* button = document->AppendChild(document->CreateElement("button"));
-		SUBCASE("event listener")
+		SUBCASE("Event listener")
 		{
-			static constexpr auto CLICK_EVENT = "click";
+			namespace tl = trompeloeil;
 			static constexpr auto ON_CLICK_ATTRIBUTE = "onclick";
 			static constexpr auto ON_CLICK_VALUE = "moo";
 
-			FakeEventListenerInstancer eventListenerInstancer;
-			Factory::RegisterEventListenerInstancer(&eventListenerInstancer);
+			std::vector<UniquePtr<tl::expectation>> expectations;
 
-			REQUIRE(button->DispatchEvent(CLICK_EVENT, {}));
-			button->SetAttribute(ON_CLICK_ATTRIBUTE, ON_CLICK_VALUE);
-			REQUIRE_EQ(eventListenerInstancer.GetLastInstancedValue(), ON_CLICK_VALUE);
-			CHECK_FALSE(button->DispatchEvent(CLICK_EVENT, {}));
-
-			SUBCASE("removal")
+			UniquePtr<MockEventListener> mockEventListener;
+			const auto configureMockEventListener = [&]()
 			{
-				button->RemoveAttribute(ON_CLICK_ATTRIBUTE);
-				CHECK(button->DispatchEvent(CLICK_EVENT, {}));
-			}
+				mockEventListener.reset(new MockEventListener());
+				expectations.emplace_back(NAMED_ALLOW_CALL(*mockEventListener, OnAttach(button)));
+				expectations.emplace_back(NAMED_ALLOW_CALL(*mockEventListener, OnDetach(button))
+					.LR_SIDE_EFFECT(mockEventListener.reset()));
+			};
 
-			SUBCASE("replacement")
+			MockEventListenerInstancer mockEventListenerInstancer;
+			const auto configureMockEventListenerInstancer = [&](const auto value)
+			{
+				expectations.emplace_back(NAMED_REQUIRE_CALL(mockEventListenerInstancer, InstanceEventListener(value, button))
+					.LR_SIDE_EFFECT(configureMockEventListener())
+					.LR_RETURN(mockEventListener.get()));
+			};
+
+			Factory::RegisterEventListenerInstancer(&mockEventListenerInstancer);
+
+			configureMockEventListenerInstancer(ON_CLICK_VALUE);
+			button->SetAttribute(ON_CLICK_ATTRIBUTE, ON_CLICK_VALUE);
+
+			SUBCASE("Replacement")
 			{
 				static constexpr auto REPLACEMENT_ON_CLICK_VALUE = "boo";
+
+				configureMockEventListenerInstancer(REPLACEMENT_ON_CLICK_VALUE);
 				button->SetAttribute(ON_CLICK_ATTRIBUTE, REPLACEMENT_ON_CLICK_VALUE);
-				REQUIRE_EQ(eventListenerInstancer.GetLastInstancedValue(), REPLACEMENT_ON_CLICK_VALUE);
-				CHECK_FALSE(button->DispatchEvent(CLICK_EVENT, {}));
 			}
+
+			button->RemoveAttribute(ON_CLICK_ATTRIBUTE);
 		}
 
-		SUBCASE("simple")
+		SUBCASE("Simple")
 		{
 			static constexpr auto DISABLED_ATTRIBUTE = "disabled";
+
 			REQUIRE_FALSE(button->HasAttribute(DISABLED_ATTRIBUTE));
 			button->SetAttribute(DISABLED_ATTRIBUTE, "");
 			REQUIRE(button->HasAttribute(DISABLED_ATTRIBUTE));
 
-			SUBCASE("removal")
-			{
-				button->RemoveAttribute(DISABLED_ATTRIBUTE);
-				CHECK_FALSE(button->HasAttribute(DISABLED_ATTRIBUTE));
-			}
-
-			SUBCASE("replacement")
+			SUBCASE("Replacement")
 			{
 				static constexpr auto VALUE = "something";
+
 				button->SetAttribute(DISABLED_ATTRIBUTE, VALUE);
 				const auto* attributeValue = button->GetAttribute(DISABLED_ATTRIBUTE);
 				REQUIRE(attributeValue);
 				REQUIRE(attributeValue->GetType() == Variant::Type::STRING);
 				CHECK(attributeValue->Get<String>() == VALUE);
 			}
+
+			button->RemoveAttribute(DISABLED_ATTRIBUTE);
+			CHECK_FALSE(button->HasAttribute(DISABLED_ATTRIBUTE));
 		}
 	}
 
-	SUBCASE("clone")
+	SUBCASE("Clone")
 	{
 		// Simulate input for mouse click and drag
 		context->ProcessMouseMove(10, 10, 0);

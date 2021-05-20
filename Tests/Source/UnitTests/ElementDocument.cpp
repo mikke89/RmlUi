@@ -26,8 +26,8 @@
  *
  */
 
+#include "../Common/Mocks.h"
 #include "../Common/TestsShell.h"
-#include "FakeEventListenerInstancer.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -96,9 +96,9 @@ static const String document_focus_rml = R"(
 
 static const String focus_forward = "p1 p2 p3 p5 p7 p9 p10 p11 p12 p13";
 
-TEST_SUITE_BEGIN("elementdocument");
+TEST_SUITE_BEGIN("ElementDocument");
 
-TEST_CASE("focus")
+TEST_CASE("Focus")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -111,14 +111,14 @@ TEST_CASE("focus")
 	context->Render();
 
 	TestsShell::RenderLoop();
-	SUBCASE("tab order")
+	SUBCASE("Tab order")
 	{
 		StringList ids;
 		StringUtilities::ExpandString(ids, focus_forward, ' ');
 		REQUIRE(!ids.empty());
 
 		document->Focus();
-		SUBCASE("forward")
+		SUBCASE("Forward")
 		{
 			for(const String& id : ids)
 			{
@@ -131,7 +131,7 @@ TEST_CASE("focus")
 			CHECK(context->GetFocusElement()->GetId() == ids[0]);
 		}
 
-		SUBCASE("reverse")
+		SUBCASE("Reverse")
 		{
 			std::reverse(ids.begin(), ids.end());
 			for (const String& id : ids)
@@ -241,17 +241,34 @@ TEST_CASE("focus")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("load")
+TEST_CASE("Load")
 {
+	namespace tl = trompeloeil;
+	constexpr auto BODY_TAG = "body";
+
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	FakeEventListenerInstancer eventListenerInstancer;
-	Factory::RegisterEventListenerInstancer(&eventListenerInstancer);
+	MockEventListener mockEventListener;
+	MockEventListenerInstancer mockEventListenerInstancer;
+
+	tl::sequence sequence;
+	REQUIRE_CALL(mockEventListenerInstancer, InstanceEventListener("something", tl::_))
+		.WITH(_2->GetTagName() == BODY_TAG)
+		.IN_SEQUENCE(sequence)
+		.LR_RETURN(&mockEventListener);
+
+	ALLOW_CALL(mockEventListener, OnAttach(tl::_));
+	ALLOW_CALL(mockEventListener, OnDetach(tl::_));
+
+	REQUIRE_CALL(mockEventListener, ProcessEvent(tl::_))
+		.WITH(_1.GetId() == EventId::Load && _1.GetTargetElement()->GetTagName() == BODY_TAG)
+		.IN_SEQUENCE(sequence);
+
+	Factory::RegisterEventListenerInstancer(&mockEventListenerInstancer);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(document_focus_rml);
 	REQUIRE(document);
-	CHECK_EQ(eventListenerInstancer.GetLastInstancedValue(), "something");
 
 	document->Close();
 	TestsShell::ShutdownShell();
