@@ -400,14 +400,21 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 	bool has_data_expression = false;
 
 	bool inside_brackets = false;
+	bool inside_string = false;
 	char previous = 0;
 	for (const char c : text)
 	{
-		const char* error_str = XMLParseTools::ParseDataBrackets(inside_brackets, c, previous);
-		if (error_str)
-		{
-			Log::Message(Log::LT_WARNING, "Failed to instance text element '%s'. %s", text.c_str(), error_str);
-			return false;
+		if (inside_brackets && c == '\'') {
+			inside_string = !inside_string;
+		}
+
+		if (!inside_string) {
+			const char* error_str = XMLParseTools::ParseDataBrackets(inside_brackets, c, previous);
+			if (error_str)
+			{
+				Log::Message(Log::LT_WARNING, "Failed to instance text element '%s'. %s", text.c_str(), error_str);
+				return false;
+			}
 		}
 
 		if (inside_brackets)
