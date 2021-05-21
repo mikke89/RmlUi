@@ -494,17 +494,11 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 
 		if(escape_brackets)
 		{
-			if (in_brackets && c == '\'') {
-				in_string = !in_string;
-			}
-
-			if (!in_string) {
-				const char* error_str = XMLParseTools::ParseDataBrackets(in_brackets, c, previous);
-				if (error_str)
-				{
-					Log::Message(Log::LT_WARNING, "XML parse error. %s", error_str);
-					return false;
-				}
+			const char* error_str = XMLParseTools::ParseDataBrackets(in_brackets, in_string, c, previous);
+			if (error_str)
+			{
+				Log::Message(Log::LT_WARNING, "XML parse error. %s", error_str);
+				return false;
 			}
 		}
 

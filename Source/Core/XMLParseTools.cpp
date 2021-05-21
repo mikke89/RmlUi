@@ -153,24 +153,30 @@ Element* XMLParseTools::ParseTemplate(Element* element, const String& template_n
 	return parse_template->ParseTemplate(element);
 }
 
-const char* XMLParseTools::ParseDataBrackets(bool& inside_brackets, char c, char previous)
+const char* XMLParseTools::ParseDataBrackets(bool& inside_brackets, bool& inside_string, char c, char previous)
 {
 	if (inside_brackets)
 	{
-		if (c == '}' && previous == '}')
-			inside_brackets = false;
+		if (c == '\'')
+			inside_string = !inside_string;
 
-		else if (c == '{' && previous == '{')
-			return "Nested double curly brackets are illegal.";
+		if(!inside_string)
+		{
+			if (c == '}' && previous == '}')
+				inside_brackets = false;
 
-		else if (previous == '}' && c != '}')
-			return "Single closing curly bracket encountered, use double curly brackets to close an expression.";
+			else if (c == '{' && previous == '{')
+				return "Nested double curly brackets are illegal.";
 
-		else if (previous == '/' && c == '>')
-			return "Closing double curly brackets not found, XML end node encountered first.";
+			else if (previous == '}' && c != '}')
+				return "Single closing curly bracket encountered, use double curly brackets to close an expression.";
 
-		else if (previous == '<' && c == '/')
-			return "Closing double curly brackets not found, XML end node encountered first.";
+			else if (previous == '/' && c == '>')
+				return "Closing double curly brackets not found, XML end node encountered first.";
+
+			else if (previous == '<' && c == '/')
+				return "Closing double curly brackets not found, XML end node encountered first.";
+		}
 	}
 	else
 	{

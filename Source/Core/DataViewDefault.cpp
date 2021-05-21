@@ -29,6 +29,7 @@
 #include "DataViewDefault.h"
 #include "DataExpression.h"
 #include "DataModel.h"
+#include "XMLParseTools.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/DataVariable.h"
 #include "../../Include/RmlUi/Core/Element.h"
@@ -328,34 +329,55 @@ bool DataViewText::Initialize(DataModel& model, Element* element, const String& 
 
 	DataExpressionInterface expression_interface(&model, element);
 
-	size_t previous_close_brackets = 0;
 	size_t begin_brackets = 0;
-	while ((begin_brackets = in_text.find("{{", begin_brackets)) != String::npos)
-	{
-		text.insert(text.end(), in_text.begin() + previous_close_brackets, in_text.begin() + begin_brackets);
+	size_t cur = 0;
+	char previous = 0;
+	bool was_in_brackets = false;
+	bool in_brackets = false;
+	bool in_string = false;
 
-		const size_t begin_name = begin_brackets + 2;
-		const size_t end_name = in_text.find("}}", begin_name);
+	for(char c : in_text) {
+		was_in_brackets = in_brackets;
 
-		if (end_name == String::npos)
+		const char* error_str = XMLParseTools::ParseDataBrackets(in_brackets, in_string, c, previous);
+		if (error_str)
+		{
+			Log::Message(Log::LT_WARNING, "Failed to parse data view text '%s'. %s", in_text.c_str(), error_str);
 			return false;
+		}
 
-		DataEntry entry;
-		entry.index = text.size();
-		entry.data_expression = MakeUnique<DataExpression>(String(in_text.begin() + begin_name, in_text.begin() + end_name));
+		if (!was_in_brackets && in_brackets)
+		{
+			begin_brackets = cur;
+		}
+		else if (was_in_brackets && !in_brackets)
+		{
+			DataEntry entry;
+			entry.index = text.size();
+			entry.data_expression = MakeUnique<DataExpression>(String(in_text.begin() + begin_brackets + 1, in_text.begin() + cur - 2));
 
-		if (entry.data_expression->Parse(expression_interface, false))
-			data_entries.push_back(std::move(entry));
+			if (entry.data_expression->Parse(expression_interface, false))
+				data_entries.push_back(std::move(entry));
 
-		previous_close_brackets = end_name + 2;
-		begin_brackets = previous_close_brackets;
+			// Reset char so that it won't appended to the output
+			c = 0;
+		}
+		else if (!in_brackets && previous)
+		{
+			text.push_back(previous);
+		}
+
+		cur++;
+		previous = c;
+	}
+
+	if (!in_brackets && previous)
+	{
+		text.push_back(previous);
 	}
 
 	if (data_entries.empty())
 		return false;
-
-	if (previous_close_brackets < in_text.size())
-		text.insert(text.end(), in_text.begin() + previous_close_brackets, in_text.end());
 
 	return true;
 }

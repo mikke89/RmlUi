@@ -139,6 +139,8 @@ static const String inside_string_rml = R"(
 <p>{{ i0 }}</p>
 <p>{{ 'i0' }}</p>
 <p>{{ 'i{}23' }}</p>
+<p>before {{ 'i{{test}}23' }} test</p>
+<p>a {{ 'i' }} b {{ 'j' }} c</p>
 
 </div>
 </body>
@@ -439,6 +441,9 @@ TEST_CASE("databinding.inside_string")
 	context->Render();
 
 	TestsShell::RenderLoop();
+
+	CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "before i{{test}}23 test");
+	CHECK(document->QuerySelector("p:nth-child(5)")->GetInnerRML() == "a i b j c");
 
 	document->Close();
 
