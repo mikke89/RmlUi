@@ -114,6 +114,38 @@ static const String document_rml = R"(
 </rml>
 )";
 
+static const String inside_string_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<link type="text/template" href="/assets/window.rml"/>
+	<style>
+		body.window
+		{
+			left: 50px;
+			right: 50px;
+			top: 30px;
+			bottom: 30px;
+			max-width: -1px;
+			max-height: -1px;
+		}
+	</style>
+</head>
+
+<body template="window">
+<div data-model="basics">
+
+<p>{{ i0 }}</p>
+<p>{{ 'i0' }}</p>
+<p>{{ 'i{}23' }}</p>
+<p>before {{ 'i{{test}}23' }} test</p>
+<p>a {{ 'i' }} b {{ 'j' }} c</p>
+
+</div>
+</body>
+</rml>	
+)";
 
 struct StringWrap
 {
@@ -388,6 +420,30 @@ TEST_CASE("databinding")
 	context->Render();
 
 	TestsShell::RenderLoop();
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("databinding.inside_string")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	REQUIRE(InitializeDataBindings(context));
+
+	ElementDocument* document = context->LoadDocumentFromMemory(inside_string_rml);
+	REQUIRE(document);
+	document->Show();
+
+	context->Update();
+	context->Render();
+
+	TestsShell::RenderLoop();
+
+	CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "before i{{test}}23 test");
+	CHECK(document->QuerySelector("p:nth-child(5)")->GetInnerRML() == "a i b j c");
 
 	document->Close();
 

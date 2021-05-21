@@ -64,8 +64,9 @@ public:
     /// Determine the presence of data expression brackets inside XML data.
     /// Call this for each iteration through the data string.
     /// 'inside_brackets' should be initialized to false.
+    /// 'inside_string' should be initialized to false.
     /// Returns nullptr on success, or an error string on failure.
-    static const char* ParseDataBrackets(bool& inside_brackets, char c, char previous);
+    static const char* ParseDataBrackets(bool& inside_brackets, bool& inside_string, char c, char previous);
 };
 
 } // namespace Rml

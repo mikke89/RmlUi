@@ -476,6 +476,7 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 {
 	int index = 0;
 	bool in_brackets = false;
+	bool in_string = false;
 	char previous = 0;
 
 	while (string[index])
@@ -493,7 +494,7 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 
 		if(escape_brackets)
 		{
-			const char* error_str = XMLParseTools::ParseDataBrackets(in_brackets, c, previous);
+			const char* error_str = XMLParseTools::ParseDataBrackets(in_brackets, in_string, c, previous);
 			if (error_str)
 			{
 				Log::Message(Log::LT_WARNING, "XML parse error. %s", error_str);
