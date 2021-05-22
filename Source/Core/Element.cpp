@@ -73,6 +73,7 @@ static constexpr int ChildNotifyLevels = 2;
 struct ElementMeta
 {
 	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(el), decoration(el), scroll(el) {}
+	SmallUnorderedMap<EventId, EventListener*> attribute_event_listeners;
 	EventDispatcher event_dispatcher;
 	ElementStyle style;
 	ElementBackgroundBorder background_border;
@@ -1200,14 +1201,14 @@ void Element::Click()
 }
 
 // Adds an event listener
-void Element::AddEventListener(const String& event, EventListener* listener, bool in_capture_phase)
+void Element::AddEventListener(const String& event, EventListener* listener, const bool in_capture_phase)
 {
-	EventId id = EventSpecificationInterface::GetIdOrInsert(event);
+	const EventId id = EventSpecificationInterface::GetIdOrInsert(event);
 	meta->event_dispatcher.AttachEvent(id, listener, in_capture_phase);
 }
 
 // Adds an event listener
-void Element::AddEventListener(EventId id, EventListener* listener, bool in_capture_phase)
+void Element::AddEventListener(const EventId id, EventListener* listener, const bool in_capture_phase)
 {
 	meta->event_dispatcher.AttachEvent(id, listener, in_capture_phase);
 }
@@ -1659,48 +1660,66 @@ void Element::OnStyleSheetChange()
 // Called when attributes on the element are changed.
 void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
-	auto it = changed_attributes.find("id");
-	if (it != changed_attributes.end())
+	for (const auto& element_attribute : changed_attributes)
 	{
-		id = it->second.Get<String>();
-		meta->style.DirtyDefinition();
-	}
-
-	it = changed_attributes.find("class");
-	if (it != changed_attributes.end())
-	{
-		meta->style.SetClassNames(it->second.Get<String>());
-	}
-
-	if (changed_attributes.count("colspan") || changed_attributes.count("rowspan"))
-	{
-		if (meta->computed_values.display == Style::Display::TableCell)
-			DirtyLayout();
-	}
-
-	if (changed_attributes.count("span"))
-	{
-		if (meta->computed_values.display == Style::Display::TableColumn || meta->computed_values.display == Style::Display::TableColumnGroup)
-			DirtyLayout();
-	}
-
-	it = changed_attributes.find("style");
-	if (it != changed_attributes.end())
-	{
-		if (it->second.GetType() == Variant::STRING)
+		const auto& attribute = element_attribute.first;
+		const auto& value = element_attribute.second;
+		if (attribute == "id")
 		{
-			PropertyDictionary properties;
-			StyleSheetParser parser;
-			parser.ParseProperties(properties, it->second.GetReference<String>());
-
-			for (const auto& name_value : properties.GetProperties())
-			{
-				meta->style.SetProperty(name_value.first, name_value.second);
-			}
+			id = value.Get<String>();
+			meta->style.DirtyDefinition();
 		}
-		else if (it->second.GetType() != Variant::NONE)
+		else if (attribute == "class")
 		{
-			Log::Message(Log::LT_WARNING, "Invalid 'style' attribute, string type required. In element: %s", GetAddress().c_str());
+			meta->style.SetClassNames(value.Get<String>());
+		}
+		else if (((attribute == "colspan" || attribute == "rowspan") && meta->computed_values.display == Style::Display::TableCell)
+			|| (attribute == "span" && (meta->computed_values.display == Style::Display::TableColumn || meta->computed_values.display == Style::Display::TableColumnGroup)))
+		{
+			DirtyLayout();
+		}
+		else if (attribute.size() > 2 && attribute[0] == 'o' && attribute[1] == 'n')
+		{
+			static constexpr bool IN_CAPTURE_PHASE = false;
+
+			auto& attribute_event_listeners = meta->attribute_event_listeners;
+			auto& event_dispatcher = meta->event_dispatcher;
+			const auto event_id = EventSpecificationInterface::GetIdOrInsert(attribute.substr(2));
+			const auto remove_event_listener_if_exists = [&attribute_event_listeners, &event_dispatcher, event_id]()
+			{
+				const auto listener_it = attribute_event_listeners.find(event_id);
+				if (listener_it != attribute_event_listeners.cend())
+				{
+					event_dispatcher.DetachEvent(event_id, listener_it->second, IN_CAPTURE_PHASE);
+					attribute_event_listeners.erase(listener_it);
+				}
+			};
+
+			if (value.GetType() == Variant::Type::STRING)
+			{
+				remove_event_listener_if_exists();
+
+				const auto value_as_string = value.Get<String>();
+				auto insertion_result = attribute_event_listeners.emplace(event_id, Factory::InstanceEventListener(value_as_string, this));
+				if (auto* listener = insertion_result.first->second)
+					event_dispatcher.AttachEvent(event_id, listener, IN_CAPTURE_PHASE);
+			}
+			else if (value.GetType() == Variant::Type::NONE)
+				remove_event_listener_if_exists();
+		}
+		else if (attribute == "style")
+		{
+			if (value.GetType() == Variant::STRING)
+			{
+				PropertyDictionary properties;
+				StyleSheetParser parser;
+				parser.ParseProperties(properties, value.GetReference<String>());
+
+				for (const auto& name_value : properties.GetProperties())
+					meta->style.SetProperty(name_value.first, name_value.second);
+			}
+			else if (value.GetType() != Variant::NONE)
+				Log::Message(Log::LT_WARNING, "Invalid 'style' attribute, string type required. In element: %s", GetAddress().c_str());
 		}
 	}
 }

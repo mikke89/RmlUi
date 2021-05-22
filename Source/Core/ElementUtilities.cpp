@@ -163,20 +163,6 @@ int ElementUtilities::GetStringWidth(Element* element, const String& string, Cha
 	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string, prior_character);
 }
 
-void ElementUtilities::BindEventAttributes(Element* element)
-{
-	// Check for and instance the on* events
-	for (const auto& pair: element->GetAttributes())
-	{
-		if (pair.first.size() > 2 && pair.first[0] == 'o' && pair.first[1] == 'n')
-		{
-			EventListener* listener = Factory::InstanceEventListener(pair.second.Get<String>(), element);
-			if (listener)
-				element->AddEventListener(pair.first.substr(2), listener, false);
-		}
-	}
-}
-	
 // Generates the clipping region for an element.
 bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_dimensions, Element* element)
 {

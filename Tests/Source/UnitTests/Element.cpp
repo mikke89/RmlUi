@@ -26,10 +26,12 @@
  *
  */
 
+#include "../Common/Mocks.h"
 #include "../Common/TestsShell.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Factory.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -65,8 +67,7 @@ static const String document_clone_rml = R"(
 </rml>
 )";
 
-
-TEST_CASE("element.clone")
+TEST_CASE("Element")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -79,27 +80,96 @@ TEST_CASE("element.clone")
 	context->Render();
 
 	TestsShell::RenderLoop();
+	SUBCASE("Attribute")
+	{
+		auto* button = document->AppendChild(document->CreateElement("button"));
+		SUBCASE("Event listener")
+		{
+			namespace tl = trompeloeil;
+			static constexpr auto ON_CLICK_ATTRIBUTE = "onclick";
+			static constexpr auto ON_CLICK_VALUE = "moo";
 
-	// Simulate input for mouse click and drag
-	context->ProcessMouseMove(10, 10, 0);
+			std::vector<UniquePtr<tl::expectation>> expectations;
 
-	context->Update();
-	context->Render();
+			UniquePtr<MockEventListener> mockEventListener;
+			const auto configureMockEventListener = [&]()
+			{
+				mockEventListener.reset(new MockEventListener());
+				expectations.emplace_back(NAMED_ALLOW_CALL(*mockEventListener, OnAttach(button)));
+				expectations.emplace_back(NAMED_ALLOW_CALL(*mockEventListener, OnDetach(button))
+					.LR_SIDE_EFFECT(mockEventListener.reset()));
+			};
 
-	context->ProcessMouseButtonDown(0, 0);
+			MockEventListenerInstancer mockEventListenerInstancer;
+			const auto configureMockEventListenerInstancer = [&](const auto value)
+			{
+				expectations.emplace_back(NAMED_REQUIRE_CALL(mockEventListenerInstancer, InstanceEventListener(value, button))
+					.LR_SIDE_EFFECT(configureMockEventListener())
+					.LR_RETURN(mockEventListener.get()));
+			};
 
-	context->Update();
-	context->Render();
+			Factory::RegisterEventListenerInstancer(&mockEventListenerInstancer);
 
-	// This should initiate a drag clone.
-	context->ProcessMouseMove(10, 11, 0);
+			configureMockEventListenerInstancer(ON_CLICK_VALUE);
+			button->SetAttribute(ON_CLICK_ATTRIBUTE, ON_CLICK_VALUE);
 
-	context->Update();
-	context->Render();
+			SUBCASE("Replacement")
+			{
+				static constexpr auto REPLACEMENT_ON_CLICK_VALUE = "boo";
 
-	context->ProcessMouseButtonUp(0, 0);
+				configureMockEventListenerInstancer(REPLACEMENT_ON_CLICK_VALUE);
+				button->SetAttribute(ON_CLICK_ATTRIBUTE, REPLACEMENT_ON_CLICK_VALUE);
+			}
+
+			button->RemoveAttribute(ON_CLICK_ATTRIBUTE);
+		}
+
+		SUBCASE("Simple")
+		{
+			static constexpr auto DISABLED_ATTRIBUTE = "disabled";
+
+			REQUIRE_FALSE(button->HasAttribute(DISABLED_ATTRIBUTE));
+			button->SetAttribute(DISABLED_ATTRIBUTE, "");
+			REQUIRE(button->HasAttribute(DISABLED_ATTRIBUTE));
+
+			SUBCASE("Replacement")
+			{
+				static constexpr auto VALUE = "something";
+
+				button->SetAttribute(DISABLED_ATTRIBUTE, VALUE);
+				const auto* attributeValue = button->GetAttribute(DISABLED_ATTRIBUTE);
+				REQUIRE(attributeValue);
+				REQUIRE(attributeValue->GetType() == Variant::Type::STRING);
+				CHECK(attributeValue->Get<String>() == VALUE);
+			}
+
+			button->RemoveAttribute(DISABLED_ATTRIBUTE);
+			CHECK_FALSE(button->HasAttribute(DISABLED_ATTRIBUTE));
+		}
+	}
+
+	SUBCASE("Clone")
+	{
+		// Simulate input for mouse click and drag
+		context->ProcessMouseMove(10, 10, 0);
+
+		context->Update();
+		context->Render();
+
+		context->ProcessMouseButtonDown(0, 0);
+
+		context->Update();
+		context->Render();
+
+		// This should initiate a drag clone.
+		context->ProcessMouseMove(10, 11, 0);
+
+		context->Update();
+		context->Render();
+
+		context->ProcessMouseButtonUp(0, 0);
+	}
 
 	document->Close();
-
 	TestsShell::ShutdownShell();
 }

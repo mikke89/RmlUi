@@ -270,8 +270,6 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	
 	root->AppendChild(std::move(element));
 
-	ElementUtilities::BindEventAttributes(document);
-
 	// The 'load' event is fired before updating the document, because the user might
 	// need to initalize things before running an update. The drawback is that computed
 	// values and layouting are not performed yet, resulting in default values when

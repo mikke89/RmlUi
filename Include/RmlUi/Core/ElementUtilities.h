@@ -87,10 +87,6 @@ public:
 	/// @return The string width, in pixels.
 	static int GetStringWidth(Element* element, const String& string, Character prior_character = Character::Null);
 
-	/// Bind and instance all event attributes on the given element onto the element
-	/// @param element Element to bind events on
-	static void BindEventAttributes(Element* element);
-
 	/// Generates the clipping region for an element.
 	/// @param[out] clip_origin The origin, in context coordinates, of the origin of the element's clipping window.
 	/// @param[out] clip_dimensions The size, in context coordinates, of the element's clipping window.

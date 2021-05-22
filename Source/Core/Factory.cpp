@@ -359,23 +359,16 @@ ElementInstancer* Factory::GetElementInstancer(const String& tag)
 // Instances a single element.
 ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_name, const String& tag, const XMLAttributes& attributes)
 {
-	ElementInstancer* instancer = GetElementInstancer(instancer_name);
-
-	if (instancer)
+	if (ElementInstancer* instancer = GetElementInstancer(instancer_name))
 	{
-		ElementPtr element = instancer->InstanceElement(parent, tag, attributes);		
-
-		// Process the generic attributes and bind any events
-		if (element)
+		if (ElementPtr element = instancer->InstanceElement(parent, tag, attributes))
 		{
 			element->SetInstancer(instancer);
 			element->SetAttributes(attributes);
-			ElementUtilities::BindEventAttributes(element.get());
 
 			PluginRegistry::NotifyElementCreate(element.get());
+			return element;
 		}
-
-		return element;
 	}
 
 	return nullptr;
