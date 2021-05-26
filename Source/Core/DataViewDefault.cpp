@@ -354,7 +354,7 @@ bool DataViewText::Initialize(DataModel& model, Element* element, const String& 
 		{
 			DataEntry entry;
 			entry.index = text.size();
-			entry.data_expression = MakeUnique<DataExpression>(String(in_text.begin() + begin_brackets + 1, in_text.begin() + cur - 2));
+			entry.data_expression = MakeUnique<DataExpression>(String(in_text.begin() + begin_brackets + 1, in_text.begin() + cur - 1));
 
 			if (entry.data_expression->Parse(expression_interface, false))
 				data_entries.push_back(std::move(entry));
