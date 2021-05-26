@@ -96,7 +96,7 @@ protected:
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 private:
-	InputType* type;
+	UniquePtr<InputType> type;
 	String type_name;
 };
 

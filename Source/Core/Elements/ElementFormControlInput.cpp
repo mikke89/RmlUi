@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,13 +43,10 @@ ElementFormControlInput::ElementFormControlInput(const String& tag) : ElementFor
 	// OnAttributeChange will be called right after this, possible with a non-default type. Thus,
 	// creating the default InputTypeText here may result in it being destroyed in just a few moments.
 	// Instead, we create the InputTypeText in OnAttributeChange in the case where the type attribute has not been set.
-	type = nullptr;
 }
 
 ElementFormControlInput::~ElementFormControlInput()
-{
-	delete type;
-}
+{}
 
 // Returns a string representation of the current value of the form control.
 String ElementFormControlInput::GetValue() const
@@ -112,38 +109,30 @@ void ElementFormControlInput::OnAttributeChange(const ElementAttributes& changed
 
 	if (!type || (!new_type_name.empty() && new_type_name != type_name))
 	{
-		InputType* new_type = nullptr;
-
 		if (new_type_name == "password")
-			new_type = new InputTypeText(this, InputTypeText::OBSCURED);
+			type = MakeUnique<InputTypeText>(this, InputTypeText::OBSCURED);
 		else if (new_type_name == "radio")
-			new_type = new InputTypeRadio(this);
+			type = MakeUnique<InputTypeRadio>(this);
 		else if (new_type_name == "checkbox")
-			new_type = new InputTypeCheckbox(this);
+			type = MakeUnique<InputTypeCheckbox>(this);
 		else if (new_type_name == "range")
-			new_type = new InputTypeRange(this);
+			type = MakeUnique<InputTypeRange>(this);
 		else if (new_type_name == "submit")
-			new_type = new InputTypeSubmit(this);
+			type = MakeUnique<InputTypeSubmit>(this);
 		else if (new_type_name == "button")
-			new_type = new InputTypeButton(this);
+			type = MakeUnique<InputTypeButton>(this);
 		else
 		{
 			new_type_name = "text";
-			new_type = new InputTypeText(this);
+			type = MakeUnique<InputTypeText>(this);
 		}
 
-		if (new_type)
-		{
-			delete type;
-			type = new_type;
+		if (!type_name.empty())
+			SetClass(type_name, false);
+		SetClass(new_type_name, true);
+		type_name = new_type_name;
 
-			if(!type_name.empty())
-				SetClass(type_name, false);
-			SetClass(new_type_name, true);
-			type_name = new_type_name;
-
-			DirtyLayout();
-		}
+		DirtyLayout();
 	}
 
 	RMLUI_ASSERT(type);
@@ -157,21 +146,21 @@ void ElementFormControlInput::OnPropertyChange(const PropertyIdSet& changed_prop
 {
 	ElementFormControl::OnPropertyChange(changed_properties);
 
-	if (type != nullptr)
+	if (type)
 		type->OnPropertyChange(changed_properties);
 }
 
 // If we are the added element, this will pass the call onto our type handler.
 void ElementFormControlInput::OnChildAdd(Element* child)
 {
-	if (child == this && type != nullptr)
+	if (child == this && type)
 		type->OnChildAdd();
 }
 
 // If we are the removed element, this will pass the call onto our type handler.
 void ElementFormControlInput::OnChildRemove(Element* child)
 {
-	if (child == this && type != nullptr)
+	if (child == this && type)
 		type->OnChildRemove();
 }
 
@@ -179,15 +168,15 @@ void ElementFormControlInput::OnChildRemove(Element* child)
 void ElementFormControlInput::ProcessDefaultAction(Event& event)
 {
 	ElementFormControl::ProcessDefaultAction(event);
-	if(type != nullptr)
+	if (type)
 		type->ProcessDefaultAction(event);
 }
 
 bool ElementFormControlInput::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
-	if (!type)
-		return false;
-	return type->GetIntrinsicDimensions(dimensions, ratio);
+	if (type)
+		return type->GetIntrinsicDimensions(dimensions, ratio);
+	return false;
 }
 
 } // namespace Rml
