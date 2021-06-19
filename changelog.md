@@ -1,3 +1,4 @@
+* [RmlUi 4.1](#rmlui-41)
 * [RmlUi 4.0](#rmlui-40)
 * [RmlUi 3.3](#rmlui-33)
 * [RmlUi 3.2](#rmlui-32)
@@ -6,12 +7,13 @@
 * [RmlUi 2.0](#rmlui-20)
 
 
-## RmlUi 4.1 (WIP)
+## RmlUi 4.1
 
+RmlUi 4.1 is a maintenance release.
 
+- Several CMake fixes so that clients can more easily find and import RmlUi.
 - Curly brackets can now be used inside string literals in data expressions. [#190](https://github.com/mikke89/RmlUi/pull/190) (thanks @Dakror).
 - Inline events are now attached and detached when `on..` attributes change. [#189](https://github.com/mikke89/RmlUi/pull/189) (thanks @ZombieRaccoon).
-
 
 
 ## RmlUi 4.0
