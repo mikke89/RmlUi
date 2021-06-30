@@ -42,6 +42,10 @@ namespace Debugger {
 /// @return True if the debugger was successfully initialised
 RMLUIDEBUGGER_API bool Initialise(Context* context);
 
+/// Shuts down the debugger.
+/// @return True if the debugger was successfully shut down
+RMLUIDEBUGGER_API bool Shutdown();
+
 /// Sets the context to be debugged.
 /// @param[in] context The context to be debugged.
 /// @return True if the debugger is initialised and the context was switched, false otherwise.
