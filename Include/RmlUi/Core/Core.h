@@ -134,6 +134,9 @@ RMLUICORE_API bool LoadFontFace(const byte* data, int data_size, const String& f
 /// Registers a generic RmlUi plugin.
 RMLUICORE_API void RegisterPlugin(Plugin* plugin);
 
+/// Unregisters a generic RmlUi plugin.
+RMLUICORE_API void UnregisterPlugin(Plugin* plugin);
+
 /// Registers a new event type. If the type already exists, it will replace custom event types, but not internal types.
 /// @param[in] type The new event type.
 /// @param[in] interruptible Whether the event can be interrupted during dispatch.

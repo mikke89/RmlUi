@@ -342,6 +342,15 @@ void RegisterPlugin(Plugin* plugin)
 	PluginRegistry::RegisterPlugin(plugin);
 }
 
+// Unregisters a generic rmlui plugin
+void UnregisterPlugin(Plugin* plugin)
+{
+	PluginRegistry::UnregisterPlugin(plugin);
+
+	if(initialised)
+		plugin->OnShutdown();
+}
+
 EventId RegisterEventType(const String& type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
 {
 	return EventSpecificationInterface::InsertOrReplaceCustom(type, interruptible, bubbles, default_action_phase);
