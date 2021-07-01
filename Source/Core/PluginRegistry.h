@@ -46,6 +46,7 @@ class PluginRegistry
 {
 public:
 	static void RegisterPlugin(Plugin* plugin);
+	static void UnregisterPlugin(Plugin* plugin);
 
 	/// Calls OnInitialise() on all plugins.
 	static void NotifyInitialise();

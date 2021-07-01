@@ -28,6 +28,7 @@
 
 #include "PluginRegistry.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
+#include <algorithm>
 
 namespace Rml {
 
@@ -50,6 +51,18 @@ void PluginRegistry::RegisterPlugin(Plugin* plugin)
 		document_plugins.push_back(plugin);
 	if (event_classes & Plugin::EVT_ELEMENT)
 		element_plugins.push_back(plugin);
+}
+
+void PluginRegistry::UnregisterPlugin(Plugin* plugin)
+{
+	int event_classes = plugin->GetEventClasses();
+
+	if(event_classes & Plugin::EVT_BASIC)
+		basic_plugins.erase(std::remove(basic_plugins.begin(), basic_plugins.end(), plugin), basic_plugins.end());
+	if(event_classes & Plugin::EVT_DOCUMENT)
+		document_plugins.erase(std::remove(document_plugins.begin(), document_plugins.end(), plugin), document_plugins.end());
+	if(event_classes & Plugin::EVT_ELEMENT)
+		element_plugins.erase(std::remove(element_plugins.begin(), element_plugins.end(), plugin), element_plugins.end());
 }
 
 // Calls OnInitialise() on all plugins.
