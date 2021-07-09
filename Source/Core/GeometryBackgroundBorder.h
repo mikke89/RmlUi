@@ -31,7 +31,6 @@
 
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/Vertex.h"
-#include <math.h>
 
 namespace Rml {
 

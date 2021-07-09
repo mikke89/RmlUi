@@ -260,13 +260,13 @@ void GeometryBackgroundBorder::DrawArc(Vector2f pos_center, Vector2f r, float a0
 		const float a = Math::Lerp(t, a0, a1);
 		const Colourb color
 		{
-			static_cast<unsigned char>(std::lroundf(Math::Lerp(t, 
+			static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
 				static_cast<float>(color0[0]), static_cast<float>(color1[0])))),
-			static_cast<unsigned char>(std::lroundf(Math::Lerp(t, 
+			static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
 				static_cast<float>(color0[1]), static_cast<float>(color1[1])))),
-			static_cast<unsigned char>(std::lroundf(Math::Lerp(t, 
+			static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
 				static_cast<float>(color0[2]), static_cast<float>(color1[2])))),
-			static_cast<unsigned char>(std::lroundf(Math::Lerp(t, 
+			static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
 				static_cast<float>(color0[3]), static_cast<float>(color1[3]))))
 		};
 
@@ -348,13 +348,13 @@ void GeometryBackgroundBorder::DrawArcArc(Vector2f pos_center, float R, Vector2f
 		const float a = Math::Lerp(t, a0, a1);
 		const Colourb color
 		{
-			static_cast<unsigned char>(std::lroundf(Math::Lerp(t, 
+			static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
 				static_cast<float>(color0[0]), static_cast<float>(color1[0])))),
-			static_cast<unsigned char>(std::lroundf(Math::Lerp(t, 
+			static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
 				static_cast<float>(color0[1]), static_cast<float>(color1[1])))),
-			static_cast<unsigned char>(std::lroundf(Math::Lerp(t, 
+			static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
 				static_cast<float>(color0[2]), static_cast<float>(color1[2])))),
-			static_cast<unsigned char>(std::lroundf(Math::Lerp(t, 
+			static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
 				static_cast<float>(color0[3]), static_cast<float>(color1[3]))))
 		};
 
