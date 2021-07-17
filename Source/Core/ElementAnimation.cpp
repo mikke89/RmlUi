@@ -48,7 +48,6 @@ static Colourf ColourToLinearSpace(Colourb c)
 	result.blue = c.blue / 255.f;
 	result.blue *= result.blue;
 	result.alpha = c.alpha / 255.f;
-	result.alpha *= result.alpha;
 	return result;
 }
 
