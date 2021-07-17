@@ -95,8 +95,20 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 	{
 		for (int i = 0; i < (int)vertices.size(); i++)
 		{
-			const float t = (vertices[i].position.x - padding_offset.x) / padding_size.x;
-			vertices[i].colour = Math::Lerp(Math::Clamp(t, 0.0f, 1.0f), colour_start, colour_stop);
+			const float t = Math::Clamp((vertices[i].position.x - padding_offset.x) / padding_size.x, 0.0f, 1.0f);
+			const Colourb color
+			{
+				static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
+					static_cast<float>(colour_start[0]), static_cast<float>(colour_stop[0])))),
+				static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
+					static_cast<float>(colour_start[1]), static_cast<float>(colour_stop[1])))),
+				static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
+					static_cast<float>(colour_start[2]), static_cast<float>(colour_stop[2])))),
+				static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
+					static_cast<float>(colour_start[3]), static_cast<float>(colour_stop[3]))))
+			};
+			vertices[i].colour = color;
+
 		}
 	}
 	else if (dir == Direction::Vertical)
@@ -104,7 +116,18 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 		for (int i = 0; i < (int)vertices.size(); i++)
 		{
 			const float t = (vertices[i].position.y - padding_offset.y) / padding_size.y;
-			vertices[i].colour = Math::Lerp(t, colour_start, colour_stop);
+			const Colourb color
+			{
+				static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
+					static_cast<float>(colour_start[0]), static_cast<float>(colour_stop[0])))),
+				static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
+					static_cast<float>(colour_start[1]), static_cast<float>(colour_stop[1])))),
+				static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
+					static_cast<float>(colour_start[2]), static_cast<float>(colour_stop[2])))),
+				static_cast<unsigned char>(Math::RoundToInteger(Math::Lerp(t, 
+					static_cast<float>(colour_start[3]), static_cast<float>(colour_stop[3]))))
+			};
+			vertices[i].colour = color;
 		}
 	}
 
