@@ -54,12 +54,18 @@
 
 // Define the LT_ASSERT and RMLUI_VERIFY macros.
 #if !defined RMLUI_DEBUG
+namespace Rml {
+
+bool RMLUICORE_API Assert(const char* message, const char* file, int line);
 #define RMLUI_ASSERT(x)
 #define RMLUI_ASSERTMSG(x, m)
 #define RMLUI_ERROR
 #define RMLUI_ERRORMSG(m)
 #define RMLUI_VERIFY(x) x
 #define RMLUI_ASSERT_NONRECURSIVE
+
+} // namespace Rml
+
 #else
 namespace Rml {
 
