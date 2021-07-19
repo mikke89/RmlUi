@@ -97,9 +97,9 @@ void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, 
 		case WM_KEYDOWN:
 		{
 			Rml::Input::KeyIdentifier key_identifier = key_identifier_map[w_param];
-			int key_modifier_state = GetKeyModifierState();
+			const int key_modifier_state = GetKeyModifierState();
 
-			// Toggle debugger and set 'dp'-ratio ctrl +/-/0 keys
+			// Toggle debugger and set 'dp'-ratio ctrl +/-/0 keys. These global shortcuts take priority.
 			if (key_identifier == Rml::Input::KI_F8)
 			{
 				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
@@ -122,21 +122,26 @@ void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, 
 				const float new_dp_ratio = Rml::Math::Min(context->GetDensityIndependentPixelRatio() * 1.2f, 2.5f);
 				context->SetDensityIndependentPixelRatio(new_dp_ratio);
 			}
-			else if (key_identifier == Rml::Input::KI_R && key_modifier_state & Rml::Input::KM_CTRL)
-			{
-				for (int i = 0; i < context->GetNumDocuments(); i++)
-				{
-					Rml::ElementDocument* document = context->GetDocument(i);
-					const Rml::String& src = document->GetSourceURL();
-					if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
-					{
-						document->ReloadStyleSheet();
-					}
-				}
-			}
 			else
 			{
-				context->ProcessKeyDown(key_identifier, key_modifier_state);
+				// No global shortcuts detected, submit the key to the context.
+				if (context->ProcessKeyDown(key_identifier, key_modifier_state))
+				{
+					// The key was not consumed, check for shortcuts that are of lower priority.
+					if (key_identifier == Rml::Input::KI_R && key_modifier_state & Rml::Input::KM_CTRL)
+					{
+						for (int i = 0; i < context->GetNumDocuments(); i++)
+						{
+							Rml::ElementDocument* document = context->GetDocument(i);
+							const Rml::String& src = document->GetSourceURL();
+							if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
+							{
+								document->ReloadStyleSheet();
+							}
+						}
+
+					}
+				}
 			}
 		}
 		break;
