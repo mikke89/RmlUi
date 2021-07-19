@@ -130,7 +130,7 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 							context->ProcessKeyDown(key_identifier, key_modifier_state);
 
 						Rml::Character character = GetCharacterCode(key_identifier, key_modifier_state);
-						if (character != Rml::Character::Null)
+						if (character != Rml::Character::Null && !(key_modifier_state & Rml::Input::KM_CTRL))
 							context->ProcessTextInput(character);
 					}
 				}
