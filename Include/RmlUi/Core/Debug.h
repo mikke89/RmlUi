@@ -51,19 +51,24 @@
 #endif
 
 
+namespace Rml {
 
-// Define the LT_ASSERT and RMLUI_VERIFY macros.
+bool RMLUICORE_API Assert(const char* message, const char* file, int line);
+
+}
+
+// Define the RmlUi assertion macros.
 #if !defined RMLUI_DEBUG
+
 #define RMLUI_ASSERT(x)
 #define RMLUI_ASSERTMSG(x, m)
 #define RMLUI_ERROR
 #define RMLUI_ERRORMSG(m)
 #define RMLUI_VERIFY(x) x
 #define RMLUI_ASSERT_NONRECURSIVE
-#else
-namespace Rml {
 
-bool RMLUICORE_API Assert(const char* message, const char* file, int line);
+#else
+
 #define RMLUI_ASSERT(x) \
 if (!(x)) \
 { \
@@ -107,8 +112,6 @@ struct RmlUiAssertNonrecursive {
 static bool rmlui_nonrecursive_entered = false; \
 RmlUiAssertNonrecursive rmlui_nonrecursive(rmlui_nonrecursive_entered)
 
-} // namespace Rml
-#endif
+#endif  // RMLUI_DEBUG
 
-
-#endif
+#endif  // RMLUI_CORE_DEBUG_H
