@@ -177,7 +177,7 @@ int WidgetTextInput::GetMaxLength() const
 
 int WidgetTextInput::GetLength() const
 {
-	String value = GetElement()->GetAttribute< String >("value", "");
+	const String value = GetElement()->GetAttribute< String >("value", "");
 	size_t result = StringUtilities::LengthUTF8(value);
 	return (int)result;
 }
@@ -388,14 +388,14 @@ void WidgetTextInput::ProcessEvent(Event& event)
 
 		case Input::KI_C:
 		{
-			if (ctrl)
+			if (ctrl && selection_length > 0)
 				CopySelection();
 		}
 		break;
 
 		case Input::KI_X:
 		{
-			if (ctrl)
+			if (ctrl && selection_length > 0)
 			{
 				CopySelection();
 				DeleteSelection();
@@ -566,7 +566,7 @@ bool WidgetTextInput::DeleteCharacters(CursorMovement direction)
 // Copies the selection (if any) to the clipboard.
 void WidgetTextInput::CopySelection()
 {
-	const String& value = GetElement()->GetAttribute< String >("value", "");
+	const String value = GetElement()->GetAttribute< String >("value", "");
 	const String snippet = value.substr(std::min(size_t(selection_begin_index), size_t(value.size())), selection_length);
 	GetSystemInterface()->SetClipboardText(snippet);
 }
