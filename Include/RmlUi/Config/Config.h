@@ -123,7 +123,6 @@ using Function = std::function<T>;
 // Strings.
 using String = std::string;
 using StringList = Vector< String >;
-using U16String = std::u16string;
 
 // Smart pointer types.
 template<typename T>

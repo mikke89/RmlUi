@@ -31,6 +31,7 @@
 
 #include <Input.h>
 #include <win32/IncludeWindows.h>
+#include <string>
 
 /**
 	Processes Windows input events and passes them through to RmlUi. Feel free to take this class and integrate it
@@ -47,5 +48,8 @@ public:
 	/// Process the Windows message.
 	static void ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
 };
+
+Rml::String ConvertToUTF8(const std::wstring& wstr);
+std::wstring ConvertToUTF16(const Rml::String& str);
 
 #endif

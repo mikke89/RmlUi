@@ -131,14 +131,6 @@ namespace StringUtilities
 			--p;
 		return p;
 	}
-
-	/// Converts a string in UTF-8 encoding to a u16string in UTF-16 encoding.
-	/// Reports a warning if some or all characters could not be converted.
-	RMLUICORE_API U16String ToUTF16(const String& str);
-
-	/// Converts a u16string in UTF-16 encoding into a string in UTF-8 encoding.
-	/// Reports a warning if some or all characters could not be converted.
-	RMLUICORE_API String ToUTF8(const U16String& u16str);
 }
 
 
