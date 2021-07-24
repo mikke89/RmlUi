@@ -41,19 +41,22 @@ static Colourf ColourToLinearSpace(Colourb c)
 {
 	Colourf result;
 	// Approximate inverse sRGB function
-	result.red = Math::SquareRoot((float)c.red / 255.f);
-	result.green = Math::SquareRoot((float)c.green / 255.f);
-	result.blue = Math::SquareRoot((float)c.blue / 255.f);
-	result.alpha = (float)c.alpha / 255.f;
+	result.red = c.red / 255.f;
+	result.red *= result.red;
+	result.green = c.green / 255.f;
+	result.green *= result.green;
+	result.blue = c.blue / 255.f;
+	result.blue *= result.blue;
+	result.alpha = c.alpha / 255.f;
 	return result;
 }
 
 static Colourb ColourFromLinearSpace(Colourf c)
 {
 	Colourb result;
-	result.red = (byte)Math::Clamp(c.red*c.red*255.f, 0.0f, 255.f);
-	result.green = (byte)Math::Clamp(c.green*c.green*255.f, 0.0f, 255.f);
-	result.blue = (byte)Math::Clamp(c.blue*c.blue*255.f, 0.0f, 255.f);
+	result.red = (byte)Math::Clamp(Math::SquareRoot(c.red)*255.f, 0.0f, 255.f);
+	result.green = (byte)Math::Clamp(Math::SquareRoot(c.green)*255.f, 0.0f, 255.f);
+	result.blue = (byte)Math::Clamp(Math::SquareRoot(c.blue)*255.f, 0.0f, 255.f);
 	result.alpha = (byte)Math::Clamp(c.alpha*255.f, 0.0f, 255.f);
 	return result;
 }
