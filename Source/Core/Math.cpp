@@ -248,5 +248,19 @@ RMLUICORE_API bool RandomBool()
 	return RandomInteger(2) == 1;
 }
 
+Colourb RoundedLerp(float t, Colourb v0, Colourb v1)
+{
+	return Colourb{
+		static_cast<unsigned char>(RoundToInteger(Lerp(t, 
+			static_cast<float>(v0[0]), static_cast<float>(v1[0])))),
+		static_cast<unsigned char>(RoundToInteger(Lerp(t, 
+			static_cast<float>(v0[1]), static_cast<float>(v1[1])))),
+		static_cast<unsigned char>(RoundToInteger(Lerp(t, 
+			static_cast<float>(v0[2]), static_cast<float>(v1[2])))),
+		static_cast<unsigned char>(RoundToInteger(Lerp(t, 
+			static_cast<float>(v0[3]), static_cast<float>(v1[3]))))
+	};
+}
+
 }
 } // namespace Rml
