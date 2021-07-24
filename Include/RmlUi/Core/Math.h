@@ -82,7 +82,7 @@ Type Lerp(float t, Type v0, Type v1)
 	return v0 * (1.0f - t) + v1 * t;
 }
 
-Colourb RoundedLerp(float t, Colourb v0, Colourb v1);
+RMLUICORE_API Colourb RoundedLerp(float t, Colourb c0, Colourb c1);
 
 /// Evaluates if a number is, or close to, zero.
 /// @param[in] value The number to compare to zero.
