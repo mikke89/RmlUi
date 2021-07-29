@@ -94,7 +94,10 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 				move_original_position.y = move_target->GetOffsetTop();
 			}
 			if (size_target)
-				size_original_size = size_target->GetBox().GetSize(Box::CONTENT);
+				size_original_size = size_target->GetBox().GetSize(
+					(size_target->GetComputedValues().box_sizing == Style::BoxSizing::BorderBox)
+					? Box::BORDER
+					: Box::CONTENT);
 		}
 		else if (event == EventId::Drag)
 		{
