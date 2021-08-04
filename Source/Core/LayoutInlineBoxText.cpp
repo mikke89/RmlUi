@@ -27,6 +27,7 @@
  */
 
 #include "LayoutInlineBoxText.h"
+#include "ComputeProperty.h"
 #include "LayoutEngine.h"
 #include "LayoutLineBox.h"
 #include "../../Include/RmlUi/Core/Core.h"
@@ -158,7 +159,40 @@ void LayoutInlineBoxText::BuildWordBox()
 	{
 		height = 0;
 		baseline = 0;
-		Log::Message(Log::LT_WARNING, "No font face defined on element %s. Please specify a font-family in your RCSS, otherwise make sure Context::Update is run after new elements are constructed, before Context::Render.", text_element->GetAddress().c_str());
+
+		const String font_family_property = text_element->GetProperty<String>("font-family");
+		const String& font_family_computed = text_element->GetComputedValues().font_family;
+
+		if (ComputeFontFamily(font_family_property) != font_family_computed)
+		{
+			Log::Message(
+				Log::LT_WARNING,
+				"No font face defined. Mismatch between specified font family property '%s' and computed value '%s'. "
+				"Make sure Context::Update is run after new elements are constructed, before Context::Render. On element %s",
+				font_family_property.c_str(),
+				font_family_computed.c_str(),
+				text_element->GetAddress().c_str()
+			);
+		}
+		else if (font_family_property.empty())
+		{
+			Log::Message(
+				Log::LT_WARNING,
+				"No font face defined. Missing 'font-family' property, please add it to your RCSS. On element %s",
+				text_element->GetAddress().c_str()
+			);
+		}
+		else
+		{
+			Log::Message(
+				Log::LT_WARNING,
+				"No font face defined. Ensure that the specified font family '%s' is correct and has been successfully loaded. "
+				"Please see previous log messages for all successfully loaded fonts, their font family names are logged when they are loaded. On element %s",
+				font_family_property.c_str(),
+				text_element->GetAddress().c_str()
+			);
+		}
+
 		return;
 	}
 
