@@ -43,7 +43,7 @@ class FontFaceHandleDefault;
 class FontFace
 {
 public:
-	FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
+	FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]> face_memory);
 	~FontFace();
 
 	Style::FontStyle GetStyle() const;
@@ -58,7 +58,8 @@ private:
 	Style::FontStyle style;
 	Style::FontWeight weight;
 
-	bool release_stream;
+	// Only filled if we own the memory used by the FreeType face handle.
+	UniquePtr<byte[]> face_memory;
 
 	// Key is font size
 	using HandleMap = UnorderedMap< int, UniquePtr<FontFaceHandleDefault> >;

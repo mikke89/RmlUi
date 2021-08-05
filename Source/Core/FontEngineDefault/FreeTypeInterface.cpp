@@ -95,15 +95,10 @@ FontFaceHandleFreetype FreeType::LoadFace(const byte* data, int data_length, con
 	return (FontFaceHandleFreetype)face;
 }
 
-bool FreeType::ReleaseFace(FontFaceHandleFreetype in_face, bool release_stream)
+bool FreeType::ReleaseFace(FontFaceHandleFreetype in_face)
 {
 	FT_Face face = (FT_Face)in_face;
-
-	FT_Byte* face_memory = face->stream->base;
 	FT_Error error = FT_Done_Face(face);
-
-	if (release_stream)
-		delete[] face_memory;
 
 	return (error == 0);
 }

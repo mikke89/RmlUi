@@ -115,11 +115,12 @@ bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face)
 
 	size_t length = file_interface->Length(handle);
 
-	byte* buffer = new byte[length];
+	auto buffer_ptr = UniquePtr<byte[]>(new byte[length]);
+	byte* buffer = buffer_ptr.get();
 	file_interface->Read(buffer, length, handle);
 	file_interface->Close(handle);
 
-	bool result = Get().LoadFontFace(buffer, (int)length, fallback_face, true, file_name);
+	bool result = Get().LoadFontFace(buffer, (int)length, fallback_face, std::move(buffer_ptr), file_name);
 
 	return result;
 }
@@ -129,21 +130,18 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, const String& f
 {
 	const String source = "memory";
 	
-	bool result = Get().LoadFontFace(data, data_size, fallback_face, false, source, font_family, style, weight);
+	bool result = Get().LoadFontFace(data, data_size, fallback_face, nullptr, source, font_family, style, weight);
 	
 	return result;
 }
 
-bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_face, bool local_data, const String& source,
+bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source,
 	String font_family, Style::FontStyle style, Style::FontWeight weight)
 {
 	FontFaceHandleFreetype ft_face = FreeType::LoadFace(data, data_size, source);
 	
 	if (!ft_face)
 	{
-		if (local_data)
-			delete[] data;
-
 		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", font_family.c_str(), source.c_str());
 		return false;
 	}
@@ -153,7 +151,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 		FreeType::GetFaceStyle(ft_face, font_family, style, weight);
 	}
 
-	if (!AddFace(ft_face, font_family, style, weight, fallback_face, local_data))
+	if (!AddFace(ft_face, font_family, style, weight, fallback_face, std::move(face_memory)))
 	{
 		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", font_family.c_str(), source.c_str());
 		return false;
@@ -163,7 +161,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 	return true;
 }
 
-bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, bool release_stream)
+bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, UniquePtr<byte[]> face_memory)
 {
 	String family_lower = StringUtilities::ToLower(family);
 	FontFamily* font_family = nullptr;
@@ -179,7 +177,7 @@ bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, St
 		font_families[family_lower] = std::move(font_family_ptr);
 	}
 
-	FontFace* font_face_result = font_family->AddFace(face, style, weight, release_stream);
+	FontFace* font_face_result = font_family->AddFace(face, style, weight, std::move(face_memory));
 
 	if (font_face_result && fallback_face)
 	{
