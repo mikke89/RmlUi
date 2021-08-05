@@ -6,6 +6,38 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
+## RmlUi 4.2 (WIP)
+
+### Improvements
+
+- Add `Rml::Debugger::Shutdown`. This allows the debugger to be restarted on another host context. [#200](https://github.com/mikke89/RmlUi/issues/200) [#201](https://github.com/mikke89/RmlUi/pull/201) (thanks @Lyatus)
+- Improve color blending and animations. [#203](https://github.com/mikke89/RmlUi/pull/203) [#208](https://github.com/mikke89/RmlUi/pull/208) (thanks @jac8888)
+- Improve error messages on missing font face.
+- Export `Rml::Assert()` in release mode. [#209](https://github.com/mikke89/RmlUi/pull/209) (thanks @kinbei)
+
+### Elements
+
+- Fix a crash in some situations where the `input.range` element could result in infinite recursion. [#202](https://github.com/mikke89/RmlUi/issues/202)
+- The `input.text` element will no longer copy to clipboard when the selection is empty.
+- Fix `handle` element resizing incorrectly when the size target has `box-sizing: border-box`. [#215](https://github.com/mikke89/RmlUi/pull/215) (thanks @nimble0)
+
+### Samples
+
+- Fix shortcut keys on X11 and macOS. [#210](https://github.com/mikke89/RmlUi/issues/210).
+- Fix full reloading shortcut (Ctrl+R) in visual tests suite.
+
+### Other fixes
+
+- Fix minor layout issue in `inline-block`s. [#199](https://github.com/mikke89/RmlUi/pull/199) (thanks @svenvvv)
+- Fix an issue in data bindings where text expressions initialized with an empty string would not be evaluated correctly. [#213](https://github.com/mikke89/RmlUi/issues/213)
+- Fix an issue in the FreeType font engine where `.woff` files would cause a crash on shutdown. [#217](https://github.com/mikke89/RmlUi/issues/217)
+- Fix inline styles not always being applied on a cloned element. [#218](https://github.com/mikke89/RmlUi/issues/218)
+
+### Breaking changes
+
+- Removed built-in conversion functions between UTF-8 and UTF-16 character encodings.
+
+
 
 ## RmlUi 4.1
 
