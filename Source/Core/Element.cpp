@@ -258,10 +258,16 @@ ElementPtr Element::Clone() const
 	else
 		clone = Factory::InstanceElement(nullptr, GetTagName(), GetTagName(), attributes);
 
-	if (clone != nullptr)
+	if (clone)
 	{
-		// Set the attributes manually in case the instancer does not set them.
-		clone->SetAttributes(attributes);
+		// Copy over the attributes. The 'style' attribute is skipped because inline styles are copied manually below. This is necessary in
+		// case any properties have been set manually, in that case the 'style' attribute is out of sync with the inline properties.
+		ElementAttributes clone_attributes = attributes;
+		clone_attributes.erase("style");
+		clone->SetAttributes(clone_attributes);
+
+		for (auto& id_property : GetStyle()->GetLocalStyleProperties())
+			clone->SetProperty(id_property.first, id_property.second);
 
 		String inner_rml;
 		GetInnerRML(inner_rml);
