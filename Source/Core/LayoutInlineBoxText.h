@@ -91,5 +91,9 @@ private:
 	bool line_segmented;
 };
 
+
+String FontFaceDescription(const String& font_family, Style::FontStyle style, Style::FontWeight weight);
+
+
 } // namespace Rml
 #endif

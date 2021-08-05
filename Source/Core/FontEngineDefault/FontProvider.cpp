@@ -30,6 +30,7 @@
 #include "FontFace.h"
 #include "FontFamily.h"
 #include "FreeTypeInterface.h"
+#include "../LayoutInlineBoxText.h"
 #include "../../../Include/RmlUi/Core/Core.h"
 #include "../../../Include/RmlUi/Core/FileInterface.h"
 #include "../../../Include/RmlUi/Core/Log.h"
@@ -142,7 +143,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 	
 	if (!ft_face)
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", font_family.c_str(), source.c_str());
+		Log::Message(Log::LT_ERROR, "Failed to load font face %s from '%s'.", font_family.c_str(), source.c_str());
 		return false;
 	}
 
@@ -151,13 +152,15 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 		FreeType::GetFaceStyle(ft_face, font_family, style, weight);
 	}
 
+	const String font_face_description = FontFaceDescription(font_family, style, weight);
+
 	if (!AddFace(ft_face, font_family, style, weight, fallback_face, std::move(face_memory)))
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s (from %s).", font_family.c_str(), source.c_str());
+		Log::Message(Log::LT_ERROR, "Failed to load font face %s from '%s'.", font_face_description.c_str(), source.c_str());
 		return false;
 	}
 
-	Log::Message(Log::LT_INFO, "Loaded font face %s (from %s).", font_family.c_str(), source.c_str());
+	Log::Message(Log::LT_INFO, "Loaded font face %s from '%s'.", font_face_description.c_str(), source.c_str());
 	return true;
 }
 
