@@ -173,6 +173,11 @@ float ComputeAngle(const Property& property)
 	return 0.0f;
 }
 
+String ComputeFontFamily(String font_family)
+{
+	return StringUtilities::ToLower(std::move(font_family));
+}
+
 float ComputeFontsize(const Property& property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, Vector2f vp_dimensions)
 {
 	// The calculated value of the font-size property is inherited, so we need to check if this

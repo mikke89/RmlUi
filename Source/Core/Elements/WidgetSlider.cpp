@@ -592,10 +592,8 @@ float WidgetSlider::SetValueInternal(float new_value)
 	parameters["value"] = value;
 	GetParent()->DispatchEvent(EventId::Change, parameters);
 
-
-	// TODO: This might not be the safest approach as this will call SetValue(), 
-	// thus, a slight mismatch will result in infinite recursion.
-	GetParent()->SetAttribute("value", value);
+	if (value != GetParent()->GetAttribute("value", 0.0f))
+		GetParent()->SetAttribute("value", value);
 
 	return (value - min_value) / (max_value - min_value);
 }

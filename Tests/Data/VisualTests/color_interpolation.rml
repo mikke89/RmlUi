@@ -1,0 +1,74 @@
+<rml>
+<head>
+    <title>Color interpolation</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Color interpolation using animation, border-radius property, and gradient decorator." />
+	<meta name="Assert" content="There should be smooth transitions between the colors. The red squares can be hovered for animation transitions." />
+	<link rel="GitHub discussion #207" href="https://github.com/mikke89/RmlUi/discussions/207" />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		div {
+			margin: 20dp auto;
+			width: 100dp;
+			height: 100dp;
+			box-sizing: border-box;
+		}
+		.animate {
+			background-color: #f00;
+			transition: background-color 0.6s linear-in-out;
+		}
+		.animate:hover {
+			background-color: #0f0;
+		}
+		.animate.black:hover {
+			background-color: #000;
+		}
+		.wide {
+			width: 300dp;
+		 }
+		.rectangle {
+			decorator: gradient( horizontal #f00 #0f0 );
+		}
+		.round {
+			decorator: gradient( horizontal #f00 #0f0 );
+			border-radius: 50dp;
+		}
+		.round-border {
+			border-radius: 100dp;
+			border: 15dp #000;
+			border-color: #0f0 #f00 #0f0 #f00;
+		}
+		.rectangle.black {
+			decorator: gradient( horizontal #f00 #000 );
+		}
+		.round.black {
+			decorator: gradient( horizontal #f00 #000 );
+			border-radius: 50dp;
+		}
+		.round-border.black {
+			border-radius: 100dp;
+			border: 15dp #000;
+			border-color: #000 #f00 #000 #f00;
+		}
+	</style>
+</head>
+
+<body>
+<div class="animate"/>
+<div class="rectangle"/>
+<div class="round"/>
+<div class="round-border"/>
+<div class="rectangle wide"/>
+<div class="round wide"/>
+
+<div class="animate black"/>
+<div class="rectangle black"/>
+<div class="round black"/>
+<div class="round-border black"/>
+<div class="rectangle black wide"/>
+<div class="round black wide"/>
+</body>
+</rml>

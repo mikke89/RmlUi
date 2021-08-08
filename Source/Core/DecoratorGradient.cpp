@@ -95,16 +95,16 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 	{
 		for (int i = 0; i < (int)vertices.size(); i++)
 		{
-			const float t = (vertices[i].position.x - padding_offset.x) / padding_size.x;
-			vertices[i].colour = Math::Lerp(Math::Clamp(t, 0.0f, 1.0f), colour_start, colour_stop);
+			const float t = Math::Clamp((vertices[i].position.x - padding_offset.x) / padding_size.x, 0.0f, 1.0f);
+			vertices[i].colour = Math::RoundedLerp(t, colour_start, colour_stop);
 		}
 	}
 	else if (dir == Direction::Vertical)
 	{
 		for (int i = 0; i < (int)vertices.size(); i++)
 		{
-			const float t = (vertices[i].position.y - padding_offset.y) / padding_size.y;
-			vertices[i].colour = Math::Lerp(t, colour_start, colour_stop);
+			const float t = Math::Clamp((vertices[i].position.y - padding_offset.y) / padding_size.y, 0.0f, 1.0f);
+			vertices[i].colour = Math::RoundedLerp(t, colour_start, colour_stop);
 		}
 	}
 

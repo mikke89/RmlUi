@@ -30,9 +30,13 @@
 #define RMLUI_CORE_MATH_H
 
 #include "Header.h"
+#include <type_traits>
 
 namespace Rml {
 
+using byte = unsigned char;
+template <typename ColourType, int AlphaDefault> class Colour;
+using Colourb = Colour< byte, 255 >;
 template <typename Type> class Vector2;
 using Vector2f = Vector2< float >;
 
@@ -74,8 +78,11 @@ Type Clamp(Type value, Type min, Type max)
 template< typename Type >
 Type Lerp(float t, Type v0, Type v1)
 {
+	static_assert(!std::is_same<Type, Colourb>::value, "Lerp currently cannot be used with Colourb. Use RoundedLerp instead.");
 	return v0 * (1.0f - t) + v1 * t;
 }
+
+RMLUICORE_API Colourb RoundedLerp(float t, Colourb c0, Colourb c1);
 
 /// Evaluates if a number is, or close to, zero.
 /// @param[in] value The number to compare to zero.

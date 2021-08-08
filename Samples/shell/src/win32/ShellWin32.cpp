@@ -42,7 +42,7 @@ static ShellRenderInterfaceExtensions* shell_renderer = nullptr;
 
 static bool activated = true;
 static bool running = false;
-static Rml::U16String instance_name;
+static std::wstring instance_name;
 static HWND window_handle = nullptr;
 static HINSTANCE instance_handle = nullptr;
 
@@ -80,7 +80,6 @@ using ProcAdjustWindowRectExForDpi = BOOL(WINAPI*)(LPRECT lpRect, DWORD dwStyle,
 static ProcSetProcessDpiAwarenessContext procSetProcessDpiAwarenessContext = NULL;
 static ProcGetDpiForWindow procGetDpiForWindow = NULL;
 static ProcAdjustWindowRectExForDpi procAdjustWindowRectExForDpi = NULL;
-
 
 static void UpdateDpi()
 {
@@ -207,7 +206,7 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 
 	WNDCLASSW window_class;
 
-	Rml::U16String name = Rml::StringUtilities::ToUTF16(Rml::String(in_name));
+	const std::wstring name = ConvertToUTF16(Rml::String(in_name));
 
 	// Fill out the window class struct.
 	window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -219,7 +218,7 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 	window_class.hCursor = cursor_default;
 	window_class.hbrBackground = nullptr;
 	window_class.lpszMenuName = nullptr;
-	window_class.lpszClassName = (LPCWSTR)name.data();
+	window_class.lpszClassName = name.data();
 
 	if (!RegisterClassW(&window_class))
 	{
@@ -230,11 +229,11 @@ bool Shell::OpenWindow(const char* in_name, ShellRenderInterfaceExtensions *_she
 	}
 
 	window_handle = CreateWindowExW(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-								   (LPCWSTR)name.data(),	// Window class name.
-								   (LPCWSTR)name.data(),
+								   name.data(), // Window class name.
+								   name.data(),
 								   WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW,
-								   0, 0,	// Window position.
-								   0, 0,// Window size.
+								   0, 0, // Window position.
+								   0, 0, // Window size.
 								   nullptr,
 								   nullptr,
 								   instance_handle,
@@ -354,7 +353,7 @@ void Shell::DisplayError(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	MessageBoxW(window_handle, (LPCWSTR)Rml::StringUtilities::ToUTF16(buffer).c_str(), L"Shell Error", MB_OK);
+	MessageBoxW(window_handle, ConvertToUTF16(buffer).c_str(), L"Shell Error", MB_OK);
 }
 
 void Shell::Log(const char* fmt, ...)
@@ -374,7 +373,7 @@ void Shell::Log(const char* fmt, ...)
 	buffer[len + 1] = '\0';
 	va_end(argument_list);
 
-	OutputDebugStringW((LPCWSTR)Rml::StringUtilities::ToUTF16(buffer).c_str());
+	OutputDebugStringW(ConvertToUTF16(buffer).c_str());
 }
 
 double Shell::GetElapsedTime() 
@@ -422,9 +421,8 @@ void Shell::SetClipboardText(const Rml::String& text_utf8)
 
 		EmptyClipboard();
 
-		const Rml::U16String text = Rml::StringUtilities::ToUTF16(text_utf8);
-
-		size_t size = sizeof(char16_t) * (text.size() + 1);
+		const std::wstring text = ConvertToUTF16(text_utf8);
+		const size_t size = sizeof(wchar_t) * (text.size() + 1);
 
 		HGLOBAL clipboard_data = GlobalAlloc(GMEM_FIXED, size);
 		memcpy(clipboard_data, text.data(), size);
@@ -453,9 +451,9 @@ void Shell::GetClipboardText(Rml::String& text)
 			return;
 		}
 
-		const char16_t* clipboard_text = (const char16_t*)GlobalLock(clipboard_data);
+		const wchar_t* clipboard_text = (const wchar_t*)GlobalLock(clipboard_data);
 		if (clipboard_text)
-			text = Rml::StringUtilities::ToUTF8(clipboard_text);
+			text = ConvertToUTF8(clipboard_text);
 		GlobalUnlock(clipboard_data);
 
 		CloseClipboard();

@@ -52,7 +52,7 @@ static const String document_clone_rml = R"(
 		}
 		div {
 			drag: clone;
-			background: #ccc;
+			background-color: #fff;
 			height: 100px;
 		}
 		span {
@@ -62,7 +62,7 @@ static const String document_clone_rml = R"(
 </head>
 
 <body>
-<div>This is a <span>sample</span>.</div>
+<div style="background-color: #f00">This is a <span>sample</span>.</div>
 </body>
 </rml>
 )";
@@ -80,6 +80,7 @@ TEST_CASE("Element")
 	context->Render();
 
 	TestsShell::RenderLoop();
+
 	SUBCASE("Attribute")
 	{
 		auto* button = document->AppendChild(document->CreateElement("button"));
@@ -148,7 +149,7 @@ TEST_CASE("Element")
 		}
 	}
 
-	SUBCASE("Clone")
+	SUBCASE("CloneDrag")
 	{
 		// Simulate input for mouse click and drag
 		context->ProcessMouseMove(10, 10, 0);
@@ -168,6 +169,16 @@ TEST_CASE("Element")
 		context->Render();
 
 		context->ProcessMouseButtonUp(0, 0);
+	}
+
+	SUBCASE("CloneManual")
+	{
+		Element* element = document->GetFirstChild();
+		REQUIRE(element->GetProperty<String>("background-color") == "255, 0, 0, 255");
+		CHECK(element->Clone()->GetProperty<String>("background-color") == "255, 0, 0, 255");
+
+		element->SetProperty("background-color", "#0f0");
+		CHECK(element->Clone()->GetProperty<String>("background-color") == "0, 255, 0, 255");
 	}
 
 	document->Close();

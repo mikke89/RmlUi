@@ -445,7 +445,6 @@ String StringUtilities::ToUTF8(const Character* characters, int num_characters)
 	return result;
 }
 
-
 size_t StringUtilities::LengthUTF8(StringView string_view)
 {
 	const char* const p_end = string_view.end();
@@ -464,98 +463,6 @@ size_t StringUtilities::LengthUTF8(StringView string_view)
 
 	return string_view.size() - num_continuation_bytes;
 }
-
-U16String StringUtilities::ToUTF16(const String& input)
-{
-	U16String result;
-
-	if (input.empty())
-		return result;
-
-	Vector<Character> characters;
-	characters.reserve(input.size());
-
-	for (auto it = StringIteratorU8(input); it; ++it)
-		characters.push_back(*it);
-
-	result.reserve(input.size());
-
-	bool valid_characters = true;
-
-	for (Character character : characters)
-	{
-		char32_t c = (char32_t)character;
-
-		if (c <= 0xD7FF || (c >= 0xE000 && c <= 0xFFFF))
-		{
-			// Single 16-bit code unit.
-			result += (char16_t)c;
-		}
-		else if (c >= 0x10000 && c <= 0x10FFFF)
-		{
-			// Encode as two 16-bit code units.
-			char32_t c_shift = c - 0x10000;
-			char16_t w1 = (0xD800 | ((c_shift >> 10) & 0x3FF));
-			char16_t w2 = (0xDC00 | (c_shift & 0x3FF));
-			result += {w1, w2};
-		}
-		else
-		{
-			valid_characters = false;
-		}
-	}
-
-	if (!valid_characters)
-		Log::Message(Log::LT_WARNING, "Invalid characters encountered while converting UTF-8 string to UTF-16.");
-
-	return result;
-}
-
-String StringUtilities::ToUTF8(const U16String& input)
-{
-	Vector<Character> characters;
-	characters.reserve(input.size());
-
-	bool valid_input = true;
-	char16_t w1 = 0;
-
-	for (char16_t w : input)
-	{
-		if (w <= 0xD7FF || w >= 0xE000)
-		{
-			// Single 16-bit code unit.
-			characters.push_back((Character)(w));
-		}
-		else
-		{
-			// Two 16-bit code units.
-			if (!w1 && w < 0xDC00)
-			{
-				w1 = w;
-			}
-			else if (w1 && w >= 0xDC00)
-			{
-				characters.push_back((Character)(((((char32_t)w1 & 0x3FF) << 10) | ((char32_t)(w) & 0x3FF)) + 0x10000u));
-				w1 = 0;
-			}
-			else
-			{
-				valid_input = false;
-			}
-		}
-	}
-
-	String result;
-
-	if (characters.size() > 0)
-		result = StringUtilities::ToUTF8(characters.data(), (int)characters.size());
-
-	if (!valid_input)
-		Log::Message(Log::LT_WARNING, "Invalid characters encountered while converting UTF-16 string to UTF-8.");
-
-	return result;
-}
-
 
 StringView::StringView()
 {

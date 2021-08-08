@@ -159,32 +159,36 @@ void InputX11::ProcessXEvent(Display* display, const XEvent& event)
 
 			const int key_modifier_state = GetKeyModifierState(event.xkey.state);
 
-			// Check for special key combinations
+			// Check for special key combinations.
 			if (key_identifier == Rml::Input::KI_F8)
 			{
 				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
 			}
-			else if (key_identifier == Rml::Input::KI_R && key_modifier_state & Rml::Input::KM_CTRL)
-			{
-				for (int i = 0; i < context->GetNumDocuments(); i++)
-				{
-					Rml::ElementDocument* document = context->GetDocument(i);
-					const Rml::String& src = document->GetSourceURL();
-					if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
-					{
-						document->ReloadStyleSheet();
-					}
-				}
-			}
 			else
 			{
+				bool propagates = false;
+
 				// No special shortcut, pass the key on to the context.
 				if (key_identifier != Rml::Input::KI_UNKNOWN)
-					context->ProcessKeyDown(key_identifier, key_modifier_state);
+					propagates = context->ProcessKeyDown(key_identifier, key_modifier_state);
 
 				Rml::Character character = GetCharacterCode(key_identifier, key_modifier_state);
-				if (character != Rml::Character::Null)
+				if (character != Rml::Character::Null && !(key_modifier_state & Rml::Input::KM_CTRL))
 					context->ProcessTextInput(character);
+
+				// Check for low-priority key combinations that are only activated if not already consumed by the context.
+				if (propagates && key_identifier == Rml::Input::KI_R && key_modifier_state & Rml::Input::KM_CTRL)
+				{
+					for (int i = 0; i < context->GetNumDocuments(); i++)
+					{
+						Rml::ElementDocument* document = context->GetDocument(i);
+						const Rml::String& src = document->GetSourceURL();
+						if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
+						{
+							document->ReloadStyleSheet();
+						}
+					}
+				}
 			}
 		}
 		break;

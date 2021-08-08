@@ -57,9 +57,9 @@ public:
 	/// @param[in] ft_face The previously loaded FreeType face.
 	/// @param[in] style The style of the new face.
 	/// @param[in] weight The weight of the new face.
-	/// @param[in] release_stream True if the application must free the face's memory stream.
+	/// @param[in] face_memory Optionally pass ownership of the face's memory to the face itself, automatically releasing it on destruction.
 	/// @return True if the face was loaded successfully, false otherwise.
-	FontFace* AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, bool release_stream);
+	FontFace* AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]> face_memory);
 
 protected:
 	String name;

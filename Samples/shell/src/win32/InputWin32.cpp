@@ -97,9 +97,9 @@ void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, 
 		case WM_KEYDOWN:
 		{
 			Rml::Input::KeyIdentifier key_identifier = key_identifier_map[w_param];
-			int key_modifier_state = GetKeyModifierState();
+			const int key_modifier_state = GetKeyModifierState();
 
-			// Toggle debugger and set 'dp'-ratio ctrl +/-/0 keys
+			// Toggle debugger and set 'dp'-ratio ctrl +/-/0 keys. These global shortcuts take priority.
 			if (key_identifier == Rml::Input::KI_F8)
 			{
 				Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
@@ -122,21 +122,26 @@ void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, 
 				const float new_dp_ratio = Rml::Math::Min(context->GetDensityIndependentPixelRatio() * 1.2f, 2.5f);
 				context->SetDensityIndependentPixelRatio(new_dp_ratio);
 			}
-			else if (key_identifier == Rml::Input::KI_R && key_modifier_state & Rml::Input::KM_CTRL)
-			{
-				for (int i = 0; i < context->GetNumDocuments(); i++)
-				{
-					Rml::ElementDocument* document = context->GetDocument(i);
-					const Rml::String& src = document->GetSourceURL();
-					if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
-					{
-						document->ReloadStyleSheet();
-					}
-				}
-			}
 			else
 			{
-				context->ProcessKeyDown(key_identifier, key_modifier_state);
+				// No global shortcuts detected, submit the key to the context.
+				if (context->ProcessKeyDown(key_identifier, key_modifier_state))
+				{
+					// The key was not consumed, check for shortcuts that are of lower priority.
+					if (key_identifier == Rml::Input::KI_R && key_modifier_state & Rml::Input::KM_CTRL)
+					{
+						for (int i = 0; i < context->GetNumDocuments(); i++)
+						{
+							Rml::ElementDocument* document = context->GetDocument(i);
+							const Rml::String& src = document->GetSourceURL();
+							if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
+							{
+								document->ReloadStyleSheet();
+							}
+						}
+
+					}
+				}
 			}
 		}
 		break;
@@ -144,9 +149,9 @@ void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, 
 
 		case WM_CHAR:
 		{
-			static char16_t first_u16_code_unit = 0;
+			static wchar_t first_u16_code_unit = 0;
 
-			char16_t c = (char16_t)w_param;
+			const wchar_t c = (wchar_t)w_param;
 			Rml::Character character = (Rml::Character)c;
 
 			// Windows sends two-wide characters as two messages.
@@ -160,7 +165,7 @@ void InputWin32::ProcessWindowsEvent(HWND window, UINT message, WPARAM w_param, 
 				if (c >= 0xDC00 && c < 0xE000 && first_u16_code_unit != 0)
 				{
 					// Second 16-bit code unit of a two-wide character.
-					Rml::String utf8 = Rml::StringUtilities::ToUTF8({ first_u16_code_unit, c });
+					Rml::String utf8 = ConvertToUTF8(std::wstring{ first_u16_code_unit, c });
 					character = Rml::StringUtilities::ToCharacter(utf8.data());
 				}
 				else if (c == '\r')
@@ -429,4 +434,20 @@ static void InitialiseKeymap()
 	key_identifier_map[VK_ZOOM] = Rml::Input::KI_ZOOM;
 	key_identifier_map[VK_PA1] = Rml::Input::KI_PA1;
 	key_identifier_map[VK_OEM_CLEAR] = Rml::Input::KI_OEM_CLEAR;
+}
+
+Rml::String ConvertToUTF8(const std::wstring& wstr)
+{
+	const int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.length(), NULL, 0, NULL, NULL);
+	Rml::String str(count, 0);
+	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], count, NULL, NULL);
+	return str;
+}
+
+std::wstring ConvertToUTF16(const Rml::String& str)
+{
+	const int count = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), NULL, 0);
+	std::wstring wstr(count, 0);
+	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), &wstr[0], count);
+	return wstr;
 }

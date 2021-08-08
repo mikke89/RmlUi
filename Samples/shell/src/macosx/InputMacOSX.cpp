@@ -28,6 +28,7 @@
 
 #include <macosx/InputMacOSX.h>
 #include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
@@ -126,12 +127,28 @@ OSStatus InputMacOSX::EventHandler(EventHandlerCallRef next_handler, EventRef ev
 							break;
 						}
 
+						bool propagates = false;
+
 						if (key_identifier != Rml::Input::KI_UNKNOWN)
-							context->ProcessKeyDown(key_identifier, key_modifier_state);
+							propagates = context->ProcessKeyDown(key_identifier, key_modifier_state);
 
 						Rml::Character character = GetCharacterCode(key_identifier, key_modifier_state);
-						if (character != Rml::Character::Null)
+						if (character != Rml::Character::Null && !(key_modifier_state & Rml::Input::KM_CTRL))
 							context->ProcessTextInput(character);
+
+						// Check for low-priority key combinations that are only activated if not already consumed by the context.
+						if (propagates && key_identifier == Rml::Input::KI_R && key_modifier_state & Rml::Input::KM_CTRL)
+						{
+							for (int i = 0; i < context->GetNumDocuments(); i++)
+							{
+								Rml::ElementDocument* document = context->GetDocument(i);
+								const Rml::String& src = document->GetSourceURL();
+								if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
+								{
+									document->ReloadStyleSheet();
+								}
+							}
+						}
 					}
 				}
 				break;

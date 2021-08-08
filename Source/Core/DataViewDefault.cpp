@@ -355,11 +355,12 @@ bool DataViewText::Initialize(DataModel& model, Element* element, const String& 
 			DataEntry entry;
 			entry.index = text.size();
 			entry.data_expression = MakeUnique<DataExpression>(String(in_text.begin() + begin_brackets + 1, in_text.begin() + cur - 1));
+			entry.value = "#rmlui#"; // A random value that the user string will not be initialized with.
 
 			if (entry.data_expression->Parse(expression_interface, false))
 				data_entries.push_back(std::move(entry));
 
-			// Reset char so that it won't appended to the output
+			// Reset char so that it won't be appended to the output
 			c = 0;
 		}
 		else if (!in_brackets && previous)

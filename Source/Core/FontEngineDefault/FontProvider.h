@@ -78,10 +78,10 @@ private:
 
 	static FontProvider& Get();
 
-	bool LoadFontFace(const byte* data, int data_size, bool fallback_face, bool local_data, const String& source,
+	bool LoadFontFace(const byte* data, int data_size, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source,
 		String font_family = {}, Style::FontStyle style = Style::FontStyle::Normal, Style::FontWeight weight = Style::FontWeight::Normal);
 
-	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, bool release_stream);
+	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, UniquePtr<byte[]> face_memory);
 
 	using FontFaceList = Vector<FontFace*>;
 	using FontFamilyMap = UnorderedMap< String, UniquePtr<FontFamily>>;

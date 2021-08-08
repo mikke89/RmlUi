@@ -42,6 +42,8 @@ float ComputeAbsoluteLength(const Property& property, float dp_ratio, Vector2f v
 
 float ComputeAngle(const Property& property);
 
+String ComputeFontFamily(String font_family);
+
 float ComputeFontsize(const Property& property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, Vector2f vp_dimensions);
 
 Style::Clip ComputeClip(const Property* property);

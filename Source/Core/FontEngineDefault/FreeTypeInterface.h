@@ -44,7 +44,7 @@ void Shutdown();
 FontFaceHandleFreetype LoadFace(const byte* data, int data_length, const String& source);
 
 // Releases the FreeType face.
-bool ReleaseFace(FontFaceHandleFreetype face, bool release_stream);
+bool ReleaseFace(FontFaceHandleFreetype face);
 
 // Retrieves the font family, style and weight of the given font face.
 void GetFaceStyle(FontFaceHandleFreetype face, String& font_family, Style::FontStyle& style, Style::FontWeight& weight);
