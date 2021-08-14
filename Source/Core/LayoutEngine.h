@@ -71,6 +71,10 @@ private:
 	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The inline-block element.
 	static bool FormatElementInlineBlock(LayoutBlockBox* block_context_box, Element* element);
+	/// Formats and positions a flexbox.
+	/// @param[in] block_context_box The open block box to layout the element in.
+	/// @param[in] element The flex container element.
+	static bool FormatElementFlex(LayoutBlockBox* block_context_box, Element* element);
 	/// Formats and positions a table, including all table-rows and table-cells contained within.
 	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The table element.

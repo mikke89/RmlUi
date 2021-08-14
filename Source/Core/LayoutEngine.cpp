@@ -171,6 +171,7 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 		case Style::Display::Block:       return FormatElementBlock(block_context_box, element);
 		case Style::Display::Inline:      return FormatElementInline(block_context_box, element);
 		case Style::Display::InlineBlock: return FormatElementInlineBlock(block_context_box, element);
+		case Style::Display::Flex:        return FormatElementFlex(block_context_box, element);
 		case Style::Display::Table:       return FormatElementTable(block_context_box, element);
 
 		case Style::Display::TableRow:
@@ -306,6 +307,13 @@ bool LayoutEngine::FormatElementInlineBlock(LayoutBlockBox* block_context_box, E
 	FormatElement(element, containing_block_size);
 
 	block_context_box->AddInlineElement(element, element->GetBox())->Close();
+
+	return true;
+}
+
+bool LayoutEngine::FormatElementFlex(LayoutBlockBox* /*block_context_box*/, Element* /*element*/)
+{
+	// TODO
 
 	return true;
 }
