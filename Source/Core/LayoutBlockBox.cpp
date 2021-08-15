@@ -772,6 +772,8 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 			box_cursor = 0;
 			interrupted_chain = nullptr;
 
+			inner_content_size = Vector2f(0);
+
 			return false;
 		}
 	}

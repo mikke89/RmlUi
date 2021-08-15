@@ -29,6 +29,7 @@
 #include "LayoutEngine.h"
 #include "LayoutBlockBoxSpace.h"
 #include "LayoutDetails.h"
+#include "LayoutFlex.h"
 #include "LayoutInlineBoxText.h"
 #include "LayoutTable.h"
 #include "Pool.h"
@@ -311,9 +312,63 @@ bool LayoutEngine::FormatElementInlineBlock(LayoutBlockBox* block_context_box, E
 	return true;
 }
 
-bool LayoutEngine::FormatElementFlex(LayoutBlockBox* /*block_context_box*/, Element* /*element*/)
+bool LayoutEngine::FormatElementFlex(LayoutBlockBox* block_context_box, Element* element)
 {
-	// TODO
+	const ComputedValues& computed = element->GetComputedValues();
+	const Vector2f containing_block = LayoutDetails::GetContainingBlock(block_context_box);
+	RMLUI_ASSERT(containing_block.x >= 0.f);
+
+	// Build the initial box as specified by the flex's style, as if it was a normal block element.
+	Box box;
+	LayoutDetails::BuildBox(box, containing_block, element, BoxContext::Block);
+
+	Vector2f min_size, max_size;
+	LayoutDetails::GetMinMaxWidth(min_size.x, max_size.x, computed, box, containing_block.x);
+	LayoutDetails::GetMinMaxHeight(min_size.y, max_size.y, computed, box, containing_block.y);
+
+	// Add the flex container element as if it was a normal block element.
+	LayoutBlockBox* flex_block_context_box = block_context_box->AddBlockElement(element, box, min_size.y, max_size.y);
+	if (!flex_block_context_box)
+		return false;
+
+	// Format the flexbox and all its children.
+	ElementList absolutely_positioned_elements;
+	Vector2f formatted_content_size, content_overflow_size;
+	LayoutFlex::Format(
+		box, min_size, max_size, containing_block, element, formatted_content_size, content_overflow_size, absolutely_positioned_elements);
+
+	// Set the box content size to match the one determined by the formatting procedure.
+	flex_block_context_box->GetBox().SetContent(formatted_content_size);
+	// Set the inner content size so that any overflow can be caught.
+	flex_block_context_box->ExtendInnerContentSize(content_overflow_size);
+
+	// Finally, add any absolutely positioned flex children.
+	for (Element* abs_element : absolutely_positioned_elements)
+		flex_block_context_box->AddAbsoluteElement(abs_element);
+
+	// Close the block box, this may result in scrollbars being added to ourself or our parent.
+	const auto close_result = flex_block_context_box->Close();
+	if (close_result == LayoutBlockBox::LAYOUT_PARENT)
+	{
+		// Scollbars added to parent, bail out to reformat all its children.
+		return false;
+	}
+	else if (close_result == LayoutBlockBox::LAYOUT_SELF)
+	{
+		// Scrollbars added to flex container, it needs to be formatted again to account for changed width or height.
+		absolutely_positioned_elements.clear();
+
+		LayoutFlex::Format(
+			box, min_size, max_size, containing_block, element, formatted_content_size, content_overflow_size, absolutely_positioned_elements);
+
+		flex_block_context_box->GetBox().SetContent(formatted_content_size);
+		flex_block_context_box->ExtendInnerContentSize(content_overflow_size);
+
+		if (flex_block_context_box->Close() == LayoutBlockBox::LAYOUT_PARENT)
+			return false;
+	}
+
+	element->OnLayout();
 
 	return true;
 }

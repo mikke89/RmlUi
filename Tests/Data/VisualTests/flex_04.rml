@@ -1,0 +1,113 @@
+<rml>
+<head>
+    <title>Flex 04 - Flex shorthand</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-flexbox/#flex-property" />
+	<meta name="Description" content="The default value of flex should allow the items to shrink but not grow. With 'flex: auto' the items should fill the container and also allow shrinking. With 'flex: none' the items neither shrink nor grow with the container size. Finally, with 'flex: &amp;lt;number&amp;gt;' each item should be given that proportion of the available space." />
+	<meta name="Instructions" content="Resize the document to see the resizing behavior of the flexboxes." />
+	<style>
+		h1 {
+			text-align: center;
+			margin-bottom: 5dp;
+			padding: 0.25em 0;
+			border-color: #aaa;
+			border-width: 1dp 0;
+		}
+		h1:first-child { margin-top: 0; }
+		h1, h2 { white-space: nowrap; }
+		.flex {
+			display: flex;
+			margin: 3dp 0 7dp;
+			border: 2dp #333;
+			overflow: hidden;
+			justify-content: space-around;
+			align-items: flex-end;
+			flex-wrap: wrap;
+		}
+		.flex > div {
+			border: 2dp #d66;
+			background: #fff;
+			text-align: center;
+		}
+		.flex.nowrap {
+			flex-wrap: nowrap;
+		}
+		.flex.auto > div {
+			flex: 1 1 auto;
+		}
+		.flex.none > div {
+			flex: none;
+		}
+		.flex.number > div {
+			flex: 1;
+		}
+		.wrapper {
+			min-height: 165dp;
+		}
+	</style>
+</head>
+
+<body>
+<h1>flex: <em>default value</em> (0 1 auto)</h1>
+<div class="wrapper">
+	<h2>flex-wrap: wrap</h2>
+	<div class="flex">
+		<div>Hello</div>
+		<div>big world!</div>
+		<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+	</div>
+	<h2>flex-wrap: nowrap</h2>
+	<div class="flex nowrap">
+		<div>Hello</div>
+		<div>big world!</div>
+		<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+	</div>
+</div>
+<h1>flex: auto (1 1 auto)</h1>
+<div class="wrapper">
+	<h2>flex-wrap: wrap</h2>
+	<div class="flex auto">
+		<div>Hello</div>
+		<div>big world!</div>
+		<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+	</div>
+	<h2>flex-wrap: nowrap</h2>
+	<div class="flex nowrap auto">
+		<div>Hello</div>
+		<div>big world!</div>
+		<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+	</div>
+</div>
+<h1>flex: none (0 0 auto)</h1>
+<div class="wrapper">
+	<h2>flex-wrap: wrap</h2>
+	<div class="flex none">
+		<div>Hello</div>
+		<div>big world!</div>
+		<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+	</div>
+	<h2>flex-wrap: nowrap</h2>
+	<div class="flex nowrap none">
+		<div>Hello</div>
+		<div>big world!</div>
+		<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+	</div>
+</div>
+<h1>flex: 1 (1 1 0)</h1>
+<div class="wrapper">
+	<h2>flex-wrap: wrap</h2>
+	<div class="flex number">
+		<div>Hello</div>
+		<div>big world!</div>
+		<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+	</div>
+	<h2>flex-wrap: nowrap</h2>
+	<div class="flex nowrap number">
+		<div>Hello</div>
+		<div>big world!</div>
+		<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+	</div>
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>

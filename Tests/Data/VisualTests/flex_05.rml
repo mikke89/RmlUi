@@ -1,0 +1,97 @@
+<rml>
+<head>
+    <title>Flex 05 - Height constraints</title>
+    <link type="text/rcss" href="../style.rcss"/>
+    <link rel="match" href="reference/flex_05-ref.rml"/>
+	<link rel="help" href="https://drafts.csswg.org/css-flexbox/" />
+	<meta name="Description" content="The flex container should always respect (min-/max-) height constraints." />
+	<style>
+		h1 {
+			text-align: center;
+			margin-bottom: 5dp;
+			padding: 0.25em 0;
+			border-color: #333;
+			border-width: 1dp 0;
+		}
+		h1:first-child { margin-top: 0; }
+		h1, h2 { white-space: nowrap; }
+		.flex {
+			display: flex;
+			margin: 1dp 0 3dp;
+			border: 1dp #999;
+			overflow: hidden;
+			justify-content: space-around;
+			align-items: flex-start;
+		}
+		.flex > div {
+			border: 2dp #d66;
+			background: #fff;
+			text-align: center;
+		}
+		.wrap {
+			flex-wrap: wrap;
+		}
+		.column {
+			flex-direction: column;
+		}
+		.height {
+			height: 40dp;
+		}
+		.min-height {
+			min-height: 40dp;
+		}
+		.max-height {
+			max-height: 40dp;
+		}
+	</style>
+</head>
+
+<body>
+<h1>height, rows</h1>
+<div class="flex wrap height">
+	<div>Hello<br/>world!<br/>More<br/>Text</div><div>More Text</div>
+	<div>Hello world!</div><div>More Text</div>
+</div>
+<div class="flex height">
+	<div>Hello world!</div><div>More Text</div>
+</div>
+<h1>height, columns</h1>
+<div class="flex column wrap height">
+	<div>Hello<br/>world!<br/>More<br/>Text</div><div>More Text</div>
+	<div>Hello world!</div><div>More Text</div>
+</div>
+<div class="flex column height">
+	<div>Hello<br/>world!</div><div>More<br/>Text</div>
+</div>
+<h1>min-height, rows</h1>
+<div class="flex wrap min-height">
+	<div>Hello world!</div>
+</div>
+<div class="flex min-height">
+	<div>Hello world!</div>
+</div>
+<h1>min-height, columns</h1>
+<div class="flex column wrap min-height">
+	<div>Hello world!</div>
+</div>
+<div class="flex column min-height">
+	<div>Hello world!</div>
+</div>
+<h1>max-height, rows</h1>
+<div class="flex wrap max-height">
+	<div>Hello<br/>world!<br/>More<br/>Text</div>
+</div>
+<div class="flex max-height">
+	<div>Hello<br/>world!<br/>More<br/>Text</div>
+</div>
+<h1>max-height, columns</h1>
+<div class="flex column wrap max-height">
+	<div>Hello<br/>world!<br/>More<br/>Text</div><div>More<br/>Text</div>
+	<div>Hello<br/>world!</div><div>More<br/>Text</div>
+</div>
+<div class="flex column max-height">
+	<div>Hello<br/>world!</div><div>More<br/>Text</div>
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>
