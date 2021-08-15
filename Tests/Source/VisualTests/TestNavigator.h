@@ -39,7 +39,7 @@ class ShellRenderInterfaceOpenGL;
 
 class TestNavigator : public Rml::EventListener {
 public:
-	TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites);
+	TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites, int start_index);
 	~TestNavigator();
 
 	void Update();

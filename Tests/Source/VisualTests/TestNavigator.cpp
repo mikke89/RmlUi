@@ -41,7 +41,7 @@
 constexpr int iteration_wait_frame_count = 2;
 
 
-TestNavigator::TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites)
+TestNavigator::TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites, int start_index)
 	: shell_renderer(shell_renderer), context(context), viewer(viewer), test_suites(std::move(test_suites))
 {
 	RMLUI_ASSERT(context);
@@ -50,6 +50,8 @@ TestNavigator::TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Co
 	context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Textinput, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Change, this);
+	if(start_index > 0)
+		CurrentSuite().SetIndex(start_index);
 	LoadActiveTest();
 }
 

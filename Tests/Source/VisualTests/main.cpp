@@ -61,20 +61,24 @@ void GameLoop()
 
 #if defined RMLUI_PLATFORM_WIN32
 #include <windows.h>
-int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
+int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* command_line, int RMLUI_UNUSED_PARAMETER(command_show))
 #else
-int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
+int main(int argc, char** argv)
 #endif
 {
+	int load_test_case_index = -1;
+
 #ifdef RMLUI_PLATFORM_WIN32
 	RMLUI_UNUSED(instance_handle);
 	RMLUI_UNUSED(previous_instance_handle);
-	RMLUI_UNUSED(command_line);
 	RMLUI_UNUSED(command_show);
+
+	load_test_case_index = std::atoi(command_line) - 1;
 #else
-	RMLUI_UNUSED(argc);
-	RMLUI_UNUSED(argv);
+	if (argc > 1)
+		load_test_case_index = std::atoi(argv[1]) - 1;
 #endif
+
 
 	int window_width = 1500;
 	int window_height = 800;
@@ -137,7 +141,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 		TestViewer viewer(context);
 
-		TestNavigator navigator(shell_renderer, context, &viewer, std::move(test_suites));
+		TestNavigator navigator(shell_renderer, context, &viewer, std::move(test_suites), load_test_case_index);
 		g_navigator = &navigator;
 
 		Shell::EventLoop(GameLoop);
