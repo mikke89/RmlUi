@@ -179,6 +179,35 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 		case Style::Display::TableColumnGroup:
 		case Style::Display::TableCell:
 		{
+			// These elements should have been handled within FormatElementTable.
+			// See if we are located in an absolutely positioned or floating table element. Then,
+			// we will have issues and end up here because these properties establish a new block 
+			// formatting context, but then tables need to be specially handled and they are not
+			// yet. Both FormatElement(element, containing_block) and GetShrinkToFitWidth() need
+			// to handle tables if we want to fix this.
+			Element* table_ancestor = element->GetParentNode();
+			while (table_ancestor && table_ancestor->GetDisplay() != Style::Display::Table)
+				table_ancestor = table_ancestor->GetParentNode();
+
+			if (table_ancestor)
+			{
+				const auto float_ = table_ancestor->GetFloat();
+				const auto position = table_ancestor->GetPosition();
+				const char* warning_msg = nullptr;
+
+				if (float_ != Style::Float::None)
+					warning_msg = "Table element cannot be floating. Instead, wrap it within a floating parent element.";
+				else if (position == Style::Position::Absolute || position == Style::Position::Fixed)
+					warning_msg = "Table element cannot be absolutely positioned. Instead, wrap it within an absolutely positioned parent element.";
+
+				if (warning_msg)
+				{
+					Log::Message(Log::LT_WARNING, "%s In element %s", warning_msg, table_ancestor->GetAddress().c_str());
+					return true;
+				}
+			}
+
+			// Seems like our issue isn't with the table element, instead we're encountering table parts in the wild!
 			const Property* display_property = element->GetProperty(PropertyId::Display);
 			Log::Message(Log::LT_WARNING, "Element has a display type '%s', but is not located in a table. It will not be formatted. In element %s",
 				display_property ? display_property->ToString().c_str() : "*unknown*",
