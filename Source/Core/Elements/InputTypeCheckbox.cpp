@@ -48,15 +48,16 @@ bool InputTypeCheckbox::IsSubmitted()
 // Checks for necessary functional changes in the control as a result of changed attributes.
 bool InputTypeCheckbox::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
-	// Check if maxlength has been defined.
-	if (changed_attributes.find("checked") != changed_attributes.end())
+	if (changed_attributes.count("checked"))
 	{
-		bool checked = element->HasAttribute("checked");
+		const bool checked = element->HasAttribute("checked");
 		element->SetPseudoClass("checked", checked);
 
-		Dictionary parameters;
-		parameters["value"] = String(checked ? GetValue() : "");
-		element->DispatchEvent(EventId::Change, parameters);
+		const auto value = GetValue();
+		element->DispatchEvent(EventId::Change, {
+			{ "checked", Variant(checked) },
+			{ "value", Variant(checked ? (value.empty() ? "on" : value) : "") }
+		});
 	}
 
 	return true;
@@ -65,8 +66,7 @@ bool InputTypeCheckbox::OnAttributeChange(const ElementAttributes& changed_attri
 // Checks for necessary functional changes in the control as a result of the event.
 void InputTypeCheckbox::ProcessDefaultAction(Event& event)
 {
-	if (event == EventId::Click &&
-		!element->IsDisabled())
+	if (event == EventId::Click && !element->IsDisabled())
 	{
 		if (element->HasAttribute("checked"))
 			element->RemoveAttribute("checked");

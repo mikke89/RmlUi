@@ -42,33 +42,37 @@ class DataModel;
 class DataExpression;
 using DataExpressionPtr = UniquePtr<DataExpression>;
 
-
-class DataControllerValue : public DataController, private EventListener {
+class DataControllerAttributeBased : public DataController, private EventListener {
 public:
-    DataControllerValue(Element* element);
-    ~DataControllerValue();
+    DataControllerAttributeBased(Element* element, String attribute);
+    ~DataControllerAttributeBased();
 
     bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
-protected:
+private:
     // Responds to 'Change' events.
     void ProcessEvent(Event& event) override;
     
     // Delete this.
     void Release() override;
 
-    // Set the new value on the variable, returns true if it should be dirtied.
-    virtual bool SetValue(const Variant& new_value, DataVariable variable);
-
     DataAddress address;
+    String attribute;
 };
 
 
-class DataControllerChecked final : public DataControllerValue {
+class DataControllerAttributeBasedInstancer final : public DataControllerInstancer {
 public:
-    DataControllerChecked(Element* element);
+    DataControllerAttributeBasedInstancer(String attribute)
+        : attribute(std::move(attribute))
+    {}
 
-    bool SetValue(const Variant& new_value, DataVariable variable) override;
+    DataControllerPtr InstanceController(Element* element) override {
+        return DataControllerPtr(new DataControllerAttributeBased(element, attribute));
+    }
+
+private:
+    String attribute;
 };
 
 

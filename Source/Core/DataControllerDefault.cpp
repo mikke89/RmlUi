@@ -35,18 +35,17 @@
 
 namespace Rml {
 
-DataControllerValue::DataControllerValue(Element* element) : DataController(element)
+DataControllerAttributeBased::DataControllerAttributeBased(Element* element, String attribute)
+	: DataController(element), attribute(std::move(attribute))
 {}
 
-DataControllerValue::~DataControllerValue()
+DataControllerAttributeBased::~DataControllerAttributeBased()
 {
 	if (Element* element = GetElement())
-	{
 		element->RemoveEventListener(EventId::Change, this);
-	}
 }
 
-bool DataControllerValue::Initialize(DataModel& model, Element* element, const String& variable_name, const String& /*modifier*/)
+bool DataControllerAttributeBased::Initialize(DataModel& model, Element* element, const String& variable_name, const String& /*modifier*/)
 {
 	RMLUI_ASSERT(element);
 
@@ -62,18 +61,22 @@ bool DataControllerValue::Initialize(DataModel& model, Element* element, const S
 	return true;
 }
 
-void DataControllerValue::ProcessEvent(Event& event)
+void DataControllerAttributeBased::ProcessEvent(Event& event)
 {
-	if (Element* element = GetElement())
+	if (const Element* element = GetElement())
 	{
 		const auto& parameters = event.GetParameters();
-
-		auto it = parameters.find("value");
-		if (it == parameters.end())
+		const auto it = parameters.find(attribute);
+		if (it == parameters.cend())
 		{
-			Log::Message(Log::LT_WARNING, "A 'change' event was received, but it did not contain a value. During processing of 'data-value' in %s", element->GetAddress().c_str());
+			Log::Message(Log::LT_WARNING, "A 'change' event was received, but it did not contain the attribute '%s' when processing 'data-%s' in %s",
+				attribute.c_str(), attribute.c_str(), element->GetAddress().c_str());
 			return;
 		}
+
+		const auto affected_it = parameters.find("should_affect_data_binding");
+		if (affected_it != parameters.cend() && !affected_it->second.Get<bool>())
+			return;
 
 		DataModel* model = element->GetDataModel();
 		if (!model)
@@ -81,54 +84,16 @@ void DataControllerValue::ProcessEvent(Event& event)
 
 		if (DataVariable variable = model->GetVariable(address))
 		{
-			if (SetValue(it->second, variable))
+			if (variable.Set(it->second))
 				model->DirtyVariable(address.front().name);
 		}
 	}
 }
 
-void DataControllerValue::Release()
+void DataControllerAttributeBased::Release()
 {
 	delete this;
 }
-
-bool DataControllerValue::SetValue(const Variant& value, DataVariable variable)
-{
-	return variable.Set(value);
-}
-
-
-DataControllerChecked::DataControllerChecked(Element* element) : DataControllerValue(element)
-{}
-
-
-bool DataControllerChecked::SetValue(const Variant& value, DataVariable variable)
-{
-	bool result = false;
-	Variant old_value;
-
-	if (variable.Get(old_value))
-	{
-		// Value will be empty if the button was just unchecked, otherwise it will take the 'value' attribute.
-		const String new_value = value.Get<String>();
-
-		if (old_value.GetType() == Variant::BOOL)
-		{
-			// If the client variable is a boolean type, we assume the button acts like a checkbox, and set the new checked state.
-			result = variable.Set(Variant(!new_value.empty()));
-		}
-		else
-		{
-			// Otherwise, we assume the button acts like a radio box. Then, we do nothing if the box was unchecked,
-			// and instead let only the newly checked box set the new value.
-			if (!new_value.empty())
-				result = variable.Set(value);
-		}
-	}
-
-	return result;
-}
-
 
 
 DataControllerEvent::DataControllerEvent(Element* element) : DataController(element)
