@@ -39,6 +39,12 @@ InputTypeCheckbox::~InputTypeCheckbox()
 {
 }
 
+String InputTypeCheckbox::GetValue() const
+{
+	auto value = InputType::GetValue();
+	return value.empty() ? "on" : value;
+}
+
 // Returns if this value should be submitted with the form.
 bool InputTypeCheckbox::IsSubmitted()
 {
@@ -52,11 +58,9 @@ bool InputTypeCheckbox::OnAttributeChange(const ElementAttributes& changed_attri
 	{
 		const bool checked = element->HasAttribute("checked");
 		element->SetPseudoClass("checked", checked);
-
-		const auto value = GetValue();
 		element->DispatchEvent(EventId::Change, {
-			{ "checked", Variant(checked) },
-			{ "value", Variant(checked ? (value.empty() ? "on" : value) : "") }
+			{ "data-binding-override-value", Variant(checked) },
+			{ "value", Variant(checked ? GetValue() : "") }
 		});
 	}
 

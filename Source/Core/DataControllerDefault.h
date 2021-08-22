@@ -42,10 +42,10 @@ class DataModel;
 class DataExpression;
 using DataExpressionPtr = UniquePtr<DataExpression>;
 
-class DataControllerAttributeBased : public DataController, private EventListener {
+class DataControllerValue : public DataController, private EventListener {
 public:
-    DataControllerAttributeBased(Element* element, String attribute);
-    ~DataControllerAttributeBased();
+    DataControllerValue(Element* element);
+    ~DataControllerValue();
 
     bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
@@ -57,22 +57,6 @@ private:
     void Release() override;
 
     DataAddress address;
-    String attribute;
-};
-
-
-class DataControllerAttributeBasedInstancer final : public DataControllerInstancer {
-public:
-    DataControllerAttributeBasedInstancer(String attribute)
-        : attribute(std::move(attribute))
-    {}
-
-    DataControllerPtr InstanceController(Element* element) override {
-        return DataControllerPtr(new DataControllerAttributeBased(element, attribute));
-    }
-
-private:
-    String attribute;
 };
 
 

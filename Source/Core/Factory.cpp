@@ -186,9 +186,8 @@ struct DefaultInstancers {
 	DataViewInstancerDefault<DataViewFor> structural_data_view_for;
 
 	// Data binding controllers
-	DataControllerAttributeBasedInstancer data_controller_checked { "checked" };
 	DataControllerInstancerDefault<DataControllerEvent> data_controller_event;
-	DataControllerAttributeBasedInstancer data_controller_value { "value" };
+	DataControllerInstancerDefault<DataControllerValue> data_controller_value;
 };
 
 static UniquePtr<DefaultInstancers> default_instancers;
@@ -279,7 +278,7 @@ bool Factory::Initialise()
 	RegisterDataViewInstancer(&default_instancers->structural_data_view_for, "for",     true );
 
 	// Data binding controllers
-	RegisterDataControllerInstancer(&default_instancers->data_controller_checked, "checked");
+	RegisterDataControllerInstancer(&default_instancers->data_controller_value, "checked");
 	RegisterDataControllerInstancer(&default_instancers->data_controller_event, "event");
 	RegisterDataControllerInstancer(&default_instancers->data_controller_value, "value");
 

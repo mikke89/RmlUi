@@ -35,17 +35,17 @@
 
 namespace Rml {
 
-DataControllerAttributeBased::DataControllerAttributeBased(Element* element, String attribute)
-	: DataController(element), attribute(std::move(attribute))
+DataControllerValue::DataControllerValue(Element* element)
+	: DataController(element)
 {}
 
-DataControllerAttributeBased::~DataControllerAttributeBased()
+DataControllerValue::~DataControllerValue()
 {
 	if (Element* element = GetElement())
 		element->RemoveEventListener(EventId::Change, this);
 }
 
-bool DataControllerAttributeBased::Initialize(DataModel& model, Element* element, const String& variable_name, const String& /*modifier*/)
+bool DataControllerValue::Initialize(DataModel& model, Element* element, const String& variable_name, const String& /*modifier*/)
 {
 	RMLUI_ASSERT(element);
 
@@ -61,36 +61,33 @@ bool DataControllerAttributeBased::Initialize(DataModel& model, Element* element
 	return true;
 }
 
-void DataControllerAttributeBased::ProcessEvent(Event& event)
+void DataControllerValue::ProcessEvent(Event& event)
 {
 	if (const Element* element = GetElement())
 	{
+		Variant value_to_set;
 		const auto& parameters = event.GetParameters();
-		const auto it = parameters.find(attribute);
-		if (it == parameters.cend())
-		{
-			Log::Message(Log::LT_WARNING, "A 'change' event was received, but it did not contain the attribute '%s' when processing 'data-%s' in %s",
-				attribute.c_str(), attribute.c_str(), element->GetAddress().c_str());
-			return;
-		}
-
-		const auto affected_it = parameters.find("should_affect_data_binding");
-		if (affected_it != parameters.cend() && !affected_it->second.Get<bool>())
-			return;
+		const auto override_value_it = parameters.find("data-binding-override-value");
+		const auto value_it = parameters.find("value");
+		if (override_value_it != parameters.cend())
+			value_to_set = override_value_it->second;
+		else if (value_it != parameters.cend())
+			value_to_set = value_it->second;
+		else
+		 	Log::Message(Log::LT_WARNING, "A 'change' event was received, but it did not contain the attribute 'value' when processing a data binding in %s",
+				element->GetAddress().c_str());
 
 		DataModel* model = element->GetDataModel();
-		if (!model)
+		if (value_to_set.GetType() == Variant::NONE || !model)
 			return;
 
 		if (DataVariable variable = model->GetVariable(address))
-		{
-			if (variable.Set(it->second))
+			if (variable.Set(value_to_set))
 				model->DirtyVariable(address.front().name);
-		}
 	}
 }
 
-void DataControllerAttributeBased::Release()
+void DataControllerValue::Release()
 {
 	delete this;
 }

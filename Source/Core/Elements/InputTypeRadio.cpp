@@ -43,6 +43,12 @@ InputTypeRadio::~InputTypeRadio()
 {
 }
 
+String InputTypeRadio::GetValue() const
+{
+	auto value = InputType::GetValue();
+	return value.empty() ? "on" : value;
+}
+
 // Returns if this value should be submitted with the form.
 bool InputTypeRadio::IsSubmitted()
 {
@@ -62,8 +68,7 @@ bool InputTypeRadio::OnAttributeChange(const ElementAttributes& changed_attribut
 
 		const auto perceived_value = Variant(checked ? GetValue() : "");
 		element->DispatchEvent(EventId::Change, {
-			{ "checked", perceived_value },
-			{ "should_affect_data_binding", Variant(checked) },
+			{ "data-binding-override-value", checked ? Variant(perceived_value) : Variant() },
 			{ "value", perceived_value }
 		});
 	}
