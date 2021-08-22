@@ -43,6 +43,12 @@ InputTypeRadio::~InputTypeRadio()
 {
 }
 
+String InputTypeRadio::GetValue() const
+{
+	auto value = InputType::GetValue();
+	return value.empty() ? "on" : value;
+}
+
 // Returns if this value should be submitted with the form.
 bool InputTypeRadio::IsSubmitted()
 {
@@ -52,8 +58,7 @@ bool InputTypeRadio::IsSubmitted()
 // Checks for necessary functional changes in the control as a result of changed attributes.
 bool InputTypeRadio::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
-	// Check if maxlength has been defined.
-	if (changed_attributes.find("checked") != changed_attributes.end())
+	if (changed_attributes.count("checked"))
 	{
 		bool checked = element->HasAttribute("checked");
 		element->SetPseudoClass("checked", checked);
@@ -61,9 +66,11 @@ bool InputTypeRadio::OnAttributeChange(const ElementAttributes& changed_attribut
 		if (checked)
 			PopRadioSet();
 
-		Dictionary parameters;
-		parameters["value"] = String(checked ? GetValue() : "");
-		element->DispatchEvent(EventId::Change, parameters);
+		const auto perceived_value = Variant(checked ? GetValue() : "");
+		element->DispatchEvent(EventId::Change, {
+			{ "data-binding-override-value", checked ? Variant(perceived_value) : Variant() },
+			{ "value", perceived_value }
+		});
 	}
 
 	return true;
@@ -79,8 +86,7 @@ void InputTypeRadio::OnChildAdd()
 // Checks for necessary functional changes in the control as a result of the event.
 void InputTypeRadio::ProcessDefaultAction(Event& event)
 {
-	if (event == EventId::Click &&
-		!element->IsDisabled())
+	if (event == EventId::Click && !element->IsDisabled())
 		element->SetAttribute("checked", "");
 }
 

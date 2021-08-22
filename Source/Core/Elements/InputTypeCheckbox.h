@@ -45,6 +45,10 @@ public:
 	InputTypeCheckbox(ElementFormControlInput* element);
 	virtual ~InputTypeCheckbox();
 
+	/// Returns a string representation of the current value of the form control.
+	/// @return The value of the form control.
+	String GetValue() const override;
+
 	/// Returns if this value should be submitted with the form.
 	/// @return True if the form control is to be submitted, false otherwise.
 	bool IsSubmitted() override;

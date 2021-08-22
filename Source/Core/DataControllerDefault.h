@@ -42,7 +42,6 @@ class DataModel;
 class DataExpression;
 using DataExpressionPtr = UniquePtr<DataExpression>;
 
-
 class DataControllerValue : public DataController, private EventListener {
 public:
     DataControllerValue(Element* element);
@@ -50,25 +49,14 @@ public:
 
     bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
-protected:
+private:
     // Responds to 'Change' events.
     void ProcessEvent(Event& event) override;
     
     // Delete this.
     void Release() override;
 
-    // Set the new value on the variable, returns true if it should be dirtied.
-    virtual bool SetValue(const Variant& new_value, DataVariable variable);
-
     DataAddress address;
-};
-
-
-class DataControllerChecked final : public DataControllerValue {
-public:
-    DataControllerChecked(Element* element);
-
-    bool SetValue(const Variant& new_value, DataVariable variable) override;
 };
 
 
