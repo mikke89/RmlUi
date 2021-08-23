@@ -106,8 +106,10 @@ public:
 	ElementDocument* LoadDocumentFromMemory(const String& document_rml, const String& source_url = "[document from memory]");
 	/// Unload the given document.
 	/// @param[in] document The document to unload.
+	/// @note The destruction of the document is deferred until the next call to Context::Update().
 	void UnloadDocument(ElementDocument* document);
 	/// Unloads all loaded documents.
+	/// @note The destruction of the documents is deferred until the next call to Context::Update().
 	void UnloadAllDocuments();
 
 	/// Enable or disable handling of the mouse cursor from this context.

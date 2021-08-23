@@ -109,6 +109,7 @@ public:
 	/// Hide the document.
 	void Hide();
 	/// Close the document.
+	/// @note The destruction of the document is deferred until the next call to Context::Update().
 	void Close();
 
 	/// Creates the named element.
