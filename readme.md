@@ -33,7 +33,7 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - Abstracted interfaces for plugging in to any game engine.
 - Decorator engine allowing custom application-specific effects that can be applied to any element.
 - Generic event system that binds seamlessly into existing projects.
-- Easily integrated and extensible with Lua scripting.
+- Easily integrated and extensible with the Lua scripting plugin.
 
 ## Controllable
 
@@ -44,25 +44,54 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - File handling and the font engine can optionally be fully replaced by the user.
 
 
-## Integrating RmlUi
-
-Here are the general steps to integrate the library into a C++ application, have a look at the [documentation](https://mikke89.github.io/RmlUiDoc/) for details.
-
-1. Build RmlUi using CMake and your favorite compiler, fetch the Windows library binaries, or consume [the library using Conan](https://conan.io/center/rmlui).
-2. Link it up to your application.
-3. Implement the abstract [system interface](Include/RmlUi/Core/SystemInterface.h) and [render interface](Include/RmlUi/Core/RenderInterface.h).
-4. Initialize RmlUi with the interfaces, create a context, provide font files, and load a document.
-5. Call into the context's update and render methods in a loop, and submit input events.
-6. Compile and run!
-
-Several [samples](Samples/) demonstrate everything from basic integration to more complex use of the library, feel free to have a look for inspiration.
-
 ## Dependencies
 
 - [FreeType](https://www.freetype.org/). However, it can be fully replaced by a custom [font engine](Include/RmlUi/Core/FontEngineInterface.h).
 - The standard library.
 
 In addition, a C++14 compatible compiler is required.
+
+
+## Building RmlUi
+
+RmlUi is built using CMake and your favorite compiler, see the [building documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html) for all the details and options. Windows binaries are also available for the [latest release](https://github.com/mikke89/RmlUi/releases/latest). Most conveniently, it is possible to fetch the library using a dependency manager such as [vcpkg](https://vcpkg.io/en/getting-started.html) or [Conan](https://conan.io/).
+
+#### vcpkg
+
+```
+vcpkg install rmlui
+```
+
+That's it! See below for details on integrating RmlUi.
+
+To build RmlUi with the included samples we can use git and CMake together with vcpkg to handle the dependency.
+
+```
+vcpkg install freetype
+git clone https://github.com/mikke89/RmlUi.git
+cd RmlUi
+cmake -B Build -S . -DBUILD_SAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake"
+cmake --build Build
+```
+Make sure to replace the path to vcpkg.
+
+#### Conan
+
+RmlUi is readily available from [ConanCenter](https://conan.io/center/rmlui).
+
+
+## Integrating RmlUi
+
+Here are the general steps to integrate the library into a C++ application, have a look at the [documentation](https://mikke89.github.io/RmlUiDoc/) for details.
+
+1. Build RmlUi as above or fetch the binaries, and [link it up](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/integrating.html) to your application.
+2. Implement the abstract [system interface](Include/RmlUi/Core/SystemInterface.h) and [render interface](Include/RmlUi/Core/RenderInterface.h).
+3. Initialize RmlUi with the interfaces, create a context, provide font files, and load a document.
+4. Call into the context's update and render methods in a loop, and submit input events.
+5. Compile and run!
+
+Several [samples](Samples/) demonstrate everything from basic integration to more complex use of the library, feel free to have a look for inspiration.
+
 
 ## Conformance
 

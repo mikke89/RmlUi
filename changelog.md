@@ -1,3 +1,4 @@
+* [RmlUi 4.2](#rmlui-42)
 * [RmlUi 4.1](#rmlui-41)
 * [RmlUi 4.0](#rmlui-40)
 * [RmlUi 3.3](#rmlui-33)
@@ -6,7 +7,7 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
-## RmlUi 4.2 (WIP)
+## RmlUi 4.2
 
 ### Improvements
 
@@ -14,12 +15,15 @@
 - Improve color blending and animations. [#203](https://github.com/mikke89/RmlUi/pull/203) [#208](https://github.com/mikke89/RmlUi/pull/208) (thanks @jac8888)
 - Improve error messages on missing font face.
 - Export `Rml::Assert()` in release mode. [#209](https://github.com/mikke89/RmlUi/pull/209) (thanks @kinbei)
+- Add `.clang-format`. [#223](https://github.com/mikke89/RmlUi/issues/223)
 
 ### Elements
 
 - Fix a crash in some situations where the `input.range` element could result in infinite recursion. [#202](https://github.com/mikke89/RmlUi/issues/202)
 - The `input.text` element will no longer copy to clipboard when the selection is empty.
+- Checkboxes (`input.checkbox`) no longer require a `value` attribute to properly function. [#214](https://github.com/mikke89/RmlUi/pull/214) (thanks @ZombieRaccoon)
 - Fix `handle` element resizing incorrectly when the size target has `box-sizing: border-box`. [#215](https://github.com/mikke89/RmlUi/pull/215) (thanks @nimble0)
+- Improve warnings when using unsupported positioning and floating modes on tables. [#221](https://github.com/mikke89/RmlUi/issues/221)
 
 ### Samples
 
@@ -32,10 +36,12 @@
 - Fix an issue in data bindings where text expressions initialized with an empty string would not be evaluated correctly. [#213](https://github.com/mikke89/RmlUi/issues/213)
 - Fix an issue in the FreeType font engine where `.woff` files would cause a crash on shutdown. [#217](https://github.com/mikke89/RmlUi/issues/217)
 - Fix inline styles not always being applied on a cloned element. [#218](https://github.com/mikke89/RmlUi/issues/218)
+- Fix render interface destructor calling virtual functions in some circumstances. [#222](https://github.com/mikke89/RmlUi/issues/222)
 
 ### Breaking changes
 
 - Removed built-in conversion functions between UTF-8 and UTF-16 character encodings.
+- Slightly modified the lifetime requirements for the render interface for special use cases, see [requirements here](https://github.com/mikke89/RmlUi/blob/aa070e7292302f9e61f3b0b3f60e13aded0561d6/Include/RmlUi/Core/Core.h#L99-L100). Will warn in debug mode on wrong use. [#222](https://github.com/mikke89/RmlUi/issues/222)
 
 
 
