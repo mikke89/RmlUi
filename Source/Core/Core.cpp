@@ -361,9 +361,9 @@ StringList GetTextureSourceList()
 	return TextureDatabase::GetSourceList();
 }
 
-void ReleaseTextures()
+void ReleaseTextures(RenderInterface* in_render_interface)
 {
-	TextureDatabase::ReleaseTextures();
+	TextureDatabase::ReleaseTextures(in_render_interface);
 }
 
 void ReleaseCompiledGeometry()
