@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,20 +29,19 @@
 #ifndef RMLUI_CORE_TEXTURERESOURCE_H
 #define RMLUI_CORE_TEXTURERESOURCE_H
 
-#include "../../Include/RmlUi/Core/Traits.h"
 #include "../../Include/RmlUi/Core/Texture.h"
+#include "../../Include/RmlUi/Core/Traits.h"
 
 namespace Rml {
 
 /**
-	A texture resource stores application-generated texture data (handle and dimensions) for each
-	unique render interface that needs to render the data. It is used through a Texture object.
+    A texture resource stores application-generated texture data (handle and dimensions) for each
+    unique render interface that needs to render the data. It is used through a Texture object.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class TextureResource : public NonCopyMoveable
-{
+class TextureResource : public NonCopyMoveable {
 public:
 	TextureResource();
 	~TextureResource();
@@ -66,6 +65,9 @@ public:
 	/// Releases the texture's handle.
 	void Release(RenderInterface* render_interface = nullptr);
 
+	/// For debugging. Returns true if the texture holds a reference to the given render interface, otherwise false.
+	inline bool HoldsRenderInterface(RenderInterface* render_interface) const { return texture_data.count(render_interface); }
+
 private:
 	void Reset();
 
@@ -74,8 +76,8 @@ private:
 
 	String source;
 
-	using TextureData = Pair< TextureHandle, Vector2i >;
-	using TextureDataMap = SmallUnorderedMap< RenderInterface*, TextureData >;
+	using TextureData = Pair<TextureHandle, Vector2i>;
+	using TextureDataMap = SmallUnorderedMap<RenderInterface*, TextureData>;
 	TextureDataMap texture_data;
 
 	UniquePtr<TextureCallback> texture_callback;

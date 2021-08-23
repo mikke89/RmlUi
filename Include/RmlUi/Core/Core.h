@@ -96,7 +96,8 @@ RMLUICORE_API FontEngineInterface* GetFontEngineInterface();
 /// @param[in] name The new name of the context. This must be unique.
 /// @param[in] dimensions The initial dimensions of the new context.
 /// @param[in] render_interface The custom render interface to use, or nullptr to use the default.
-/// @lifetime If specified, the render interface must be kept alive until after the context is destroyed or the call to Rml::Shutdown.
+/// @lifetime If specified, the render interface must be kept alive until after the call to Rml::Shutdown. Alternatively, the render interface can be
+///           destroyed after all contexts it belongs to have been destroyed and a subsequent call has been made to Rml::ReleaseTextures.
 /// @return A non-owning pointer to the new context, or nullptr if the context could not be created.
 RMLUICORE_API Context* CreateContext(const String& name, Vector2i dimensions, RenderInterface* render_interface = nullptr);
 /// Removes and destroys a context.

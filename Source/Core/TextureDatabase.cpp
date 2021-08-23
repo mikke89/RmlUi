@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,10 +27,10 @@
  */
 
 #include "TextureDatabase.h"
-#include "TextureResource.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "TextureResource.h"
 
 namespace Rml {
 
@@ -49,7 +49,7 @@ TextureDatabase::~TextureDatabase()
 #ifdef RMLUI_DEBUG
 	// All textures not owned by the database should have been released at this point.
 	int num_leaks_file = 0;
-	
+
 	for (auto& texture : textures)
 		num_leaks_file += (texture.second.use_count() > 1);
 
@@ -58,8 +58,8 @@ TextureDatabase::~TextureDatabase()
 
 	if (total_num_leaks > 0)
 	{
-		Log::Message(Log::LT_ERROR, "Textures leaked during shutdown. Total: %d  From file: %d  Generated: %d.",
-			total_num_leaks, num_leaks_file, num_leaks_callback);
+		Log::Message(Log::LT_ERROR, "Textures leaked during shutdown. Total: %d  From file: %d  Generated: %d.", total_num_leaks, num_leaks_file,
+			num_leaks_callback);
 	}
 #endif
 
@@ -76,8 +76,6 @@ void TextureDatabase::Shutdown()
 	delete texture_database;
 }
 
-// If the requested texture is already in the database, it will be returned with an extra reference count. If not, it
-// will be loaded through the application's render interface.
 SharedPtr<TextureResource> TextureDatabase::Fetch(const String& source, const String& source_directory)
 {
 	String path;
@@ -86,11 +84,9 @@ SharedPtr<TextureResource> TextureDatabase::Fetch(const String& source, const St
 	else
 		GetSystemInterface()->JoinPath(path, StringUtilities::Replace(source_directory, '|', ':'), source);
 
-	TextureMap::iterator iterator = texture_database->textures.find(path);
+	auto iterator = texture_database->textures.find(path);
 	if (iterator != texture_database->textures.end())
-	{
 		return iterator->second;
-	}
 
 	auto resource = MakeShared<TextureResource>();
 	resource->Set(path);
@@ -114,7 +110,7 @@ void TextureDatabase::RemoveCallbackTexture(TextureResource* texture)
 StringList TextureDatabase::GetSourceList()
 {
 	StringList result;
-	
+
 	if (texture_database)
 	{
 		result.reserve(texture_database->textures.size());
@@ -136,6 +132,22 @@ void TextureDatabase::ReleaseTextures(RenderInterface* render_interface)
 		for (const auto& texture : texture_database->callback_textures)
 			texture->Release(render_interface);
 	}
+}
+
+bool TextureDatabase::HoldsReferenceToRenderInterface(RenderInterface* render_interface)
+{
+	if (texture_database)
+	{
+		for (const auto& texture : texture_database->textures)
+			if (texture.second->HoldsRenderInterface(render_interface))
+				return true;
+
+		for (const auto& texture : texture_database->callback_textures)
+			if (texture->HoldsRenderInterface(render_interface))
+				return true;
+	}
+
+	return false;
 }
 
 } // namespace Rml

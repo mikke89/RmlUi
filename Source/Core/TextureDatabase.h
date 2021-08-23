@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,42 +37,44 @@ class RenderInterface;
 class TextureResource;
 
 /**
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class TextureDatabase
-{
+class TextureDatabase {
 public:
 	static void Initialise();
 	static void Shutdown();
 
-    /// Fetch a texture resource from file.
-	/// If the requested texture is already in the database, it will be returned with an extra
-	/// reference count. If not, it will be loaded through the application's render interface.
+	/// Fetch a texture resource from file.
+	/// The texture will be returned from the database if it already exists, otherwise a new
+	/// entry will be added and returned.
 	static SharedPtr<TextureResource> Fetch(const String& source, const String& source_directory);
 
 	/// Release all textures bound through a render interface.
-    /// Pass nullptr to release all textures in the database.
+	/// Pass nullptr to release all textures in the database.
 	static void ReleaseTextures(RenderInterface* render_interface = nullptr);
 
-    /// Adds a texture resource with a callback function and stores it as a weak (raw) pointer in the database.
-    static void AddCallbackTexture(TextureResource* texture);
+	/// Adds a texture resource with a callback function and stores it as a weak (raw) pointer in the database.
+	static void AddCallbackTexture(TextureResource* texture);
 
-    /// Removes a callback texture from the database.
-    static void RemoveCallbackTexture(TextureResource* texture);
+	/// Removes a callback texture from the database.
+	static void RemoveCallbackTexture(TextureResource* texture);
 
 	/// Return a list of all texture sources currently in the database.
 	static StringList GetSourceList();
+
+	/// For debugging. Returns true if any textures hold a reference to the given render interface.
+	static bool HoldsReferenceToRenderInterface(RenderInterface* render_interface);
 
 private:
 	TextureDatabase();
 	~TextureDatabase();
 
-	using TextureMap = UnorderedMap< String, SharedPtr<TextureResource> >;
+	using TextureMap = UnorderedMap<String, SharedPtr<TextureResource>>;
 	TextureMap textures;
 
-    using CallbackTextureMap = UnorderedSet< TextureResource* >;
-    CallbackTextureMap callback_textures;
+	using CallbackTextureMap = UnorderedSet<TextureResource*>;
+	CallbackTextureMap callback_textures;
 };
 
 } // namespace Rml

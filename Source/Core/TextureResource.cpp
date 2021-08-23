@@ -118,7 +118,7 @@ void TextureResource::Release(RenderInterface* render_interface)
 	}
 	else
 	{
-		TextureDataMap::iterator texture_iterator = texture_data.find(render_interface);
+		auto texture_iterator = texture_data.find(render_interface);
 		if (texture_iterator == texture_data.end())
 			return;
 

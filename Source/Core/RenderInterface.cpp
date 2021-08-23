@@ -38,7 +38,12 @@ RenderInterface::RenderInterface()
 
 RenderInterface::~RenderInterface()
 {
-	TextureDatabase::ReleaseTextures(this);
+	// Note: We cannot automatically release the textures from the database here, because that involves a virtual call to this interface during its
+	// destruction which is illegal.
+	RMLUI_ASSERTMSG(!TextureDatabase::HoldsReferenceToRenderInterface(this),
+		"RenderInterface is being destroyed, but there are still active textures referencing it in the texture database. Ensure either that (1) the "
+		"render interface is destroyed *after* the call to Rml::Shutdown, or that (2) all the contexts the render interface belongs to has been "
+		"destroyed and a subsequent call has been made to Rml::ReleaseTextures before the render interface is destroyed.");
 }
 
 // Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
