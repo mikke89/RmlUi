@@ -541,9 +541,13 @@ void Shell::SetClipboardText(const Rml::String& text)
 void Shell::GetClipboardText(Rml::String& text)
 {
 	// interface with system clipboard
-	if(!UTF8_atom || !XPaste(UTF8_atom, text)) {
-		// fallback
-		XPaste(XA_STRING_atom, text);
+	if (XGetSelectionOwner(display, CLIPBOARD_atom) != window) {
+		if(!UTF8_atom || !XPaste(UTF8_atom, text)) {
+			// fallback
+			XPaste(XA_STRING_atom, text);
+		}
+	} else {
+		text = clipboard_text;
 	}
 }
 
