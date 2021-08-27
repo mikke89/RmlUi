@@ -656,6 +656,7 @@ private:
 	void SetDataModel(DataModel* new_data_model);
 
 	void DirtyOffset();
+	void DirtyOffsetRecursive();
 	void UpdateOffset();
 	void SetBaseline(float baseline);
 

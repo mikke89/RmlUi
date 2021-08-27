@@ -2130,17 +2130,22 @@ void Element::SetParent(Element* _parent)
 
 void Element::DirtyOffset()
 {
-	if(!offset_dirty)
+	if (!offset_dirty)
+		DirtyOffsetRecursive();
+}
+
+void Element::DirtyOffsetRecursive()
+{
+	if (!offset_dirty)
 	{
 		offset_dirty = true;
 
-		if(transform_state)
+		if (transform_state)
 			DirtyTransformState(true, true);
-
-		// Not strictly true ... ?
-		for (size_t i = 0; i < children.size(); i++)
-			children[i]->DirtyOffset();
 	}
+
+	for (size_t i = 0; i < children.size(); i++)
+		children[i]->DirtyOffsetRecursive();
 }
 
 void Element::UpdateOffset()
