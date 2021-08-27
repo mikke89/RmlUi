@@ -71,6 +71,15 @@ static Cursor cursor_cross = 0;
 static Cursor cursor_text = 0;
 static Cursor cursor_unavailable = 0;
 
+static Atom XA_atom = 4;
+static Atom XA_STRING_atom = 31;
+static Atom UTF8_atom;
+static Atom CLIPBOARD_atom;
+static Atom XSEL_DATA_atom;
+static Atom TARGETS_atom;
+static Atom TEXT_atom;
+
+
 static void UpdateWindowDimensions(int width = 0, int height = 0)
 {
 	if (width > 0)
@@ -87,6 +96,90 @@ static bool isRegularFile(const Rml::String& path)
 {
 	struct stat sb;
 	return (stat(path.c_str(), &sb) == 0 && S_ISREG(sb.st_mode));
+}
+
+void XCopy(const Rml::String &clipboard_data, const XEvent &event)
+{
+	Atom format;
+	if (UTF8_atom) {
+		format = UTF8_atom;
+	} else {
+		format = XA_STRING_atom;
+	}
+	XSelectionEvent ev = {
+		SelectionNotify, // the event type that will be sent to the requestor
+		0,               // serial
+		0,               // send_event
+		event.xselectionrequest.display,
+		event.xselectionrequest.requestor,
+		event.xselectionrequest.selection,
+		event.xselectionrequest.target,
+		event.xselectionrequest.property,
+		0                // time
+	};
+	int retval = 0;
+	if (ev.target == TARGETS_atom) {
+		retval = XChangeProperty(ev.display, ev.requestor, ev.property, XA_atom, 32, PropModeReplace,
+				(unsigned char*)&format, 1);
+	} else if (ev.target == XA_STRING_atom || ev.target == TEXT_atom) { 
+		retval = XChangeProperty(ev.display, ev.requestor, ev.property, XA_STRING_atom, 8, PropModeReplace,
+				(unsigned char*)clipboard_data.c_str(), clipboard_data.size());
+	} else if (ev.target == UTF8_atom) {
+		retval = XChangeProperty(ev.display, ev.requestor, ev.property, UTF8_atom, 8, PropModeReplace,
+				(unsigned char*)clipboard_data.c_str(), clipboard_data.size());
+	} else {
+		ev.property = 0;
+	}
+	if ((retval & 2) == 0) {
+		// Notify the requestor that clipboard data is available
+		XSendEvent(display, ev.requestor, 0, 0, (XEvent *)&ev);
+	}
+}
+
+bool XPaste(Atom target_atom, Rml::String &clipboard_data)
+{
+	XEvent event;
+
+	// A SelectionRequest event will be sent to the clipboard owner, which should respond with SelectionNotify
+	XConvertSelection(display, CLIPBOARD_atom, target_atom, XSEL_DATA_atom, window, CurrentTime);
+	XSync(display, 0);
+	XNextEvent(display, &event);
+
+	if (event.type == SelectionNotify) {
+		if (event.xselection.property == 0) {
+			// If no owner for the specified selection exists, the X server generates
+			// a SelectionNotify event with property None (0).
+			return false;
+		}
+		if (event.xselection.selection == CLIPBOARD_atom) {
+			int actual_format;
+			unsigned long bytes_after, nitems;
+			char *prop = nullptr;
+			Atom actual_type;
+			XGetWindowProperty(
+				event.xselection.display,
+				event.xselection.requestor,
+				event.xselection.property,
+				0L,    // offset
+				(~0L), // length
+				0,     // delete?
+				AnyPropertyType,
+				&actual_type,
+				&actual_format,
+				&nitems,
+				&bytes_after,
+				(unsigned char**)&prop
+			);
+			if(actual_type == UTF8_atom || actual_type == XA_STRING_atom) {
+				clipboard_data = Rml::String(prop, prop + nitems);
+				XFree(prop);
+			}
+			XDeleteProperty(event.xselection.display, event.xselection.requestor, event.xselection.property);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool Shell::Initialise()
@@ -252,6 +345,13 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 		cursor_unavailable = XCreateFontCursor(display, XC_X_cursor);
 	}
 
+	// For copy & paste functions
+	UTF8_atom = XInternAtom(display, "UTF8_STRING", 1);
+	XSEL_DATA_atom = XInternAtom(display, "XSEL_DATA", 0);
+	CLIPBOARD_atom = XInternAtom(display, "CLIPBOARD", 0);
+	TARGETS_atom = XInternAtom(display, "TARGETS", 0);
+	TEXT_atom = XInternAtom(display, "TEXT", 0);
+
 	// Set the window title and show the window.
 	XSetStandardProperties(display, window, name, "", 0L, nullptr, 0, nullptr);
 	XMapRaised(display, window);
@@ -265,7 +365,7 @@ bool Shell::OpenWindow(const char* name, ShellRenderInterfaceExtensions *_shell_
 		nwData.visual_info = visual_info;
 		return shell_renderer->AttachToNative(&nwData);
 	}
-    return true;
+	return true;
 }
 
 void Shell::CloseWindow()
@@ -323,7 +423,17 @@ void Shell::EventLoop(ShellIdleFunction idle_function)
 					UpdateWindowDimensions(x, y);
 				}
 				break;
-				
+
+				case SelectionRequest:
+				{
+					if (XGetSelectionOwner(display, CLIPBOARD_atom) == window &&
+						event.xselectionrequest.selection == CLIPBOARD_atom
+					) {
+						XCopy(clipboard_text, event);
+					}
+				}
+				break;
+
 				default:
 				{
 					InputX11::ProcessXEvent(display, event);
@@ -423,14 +533,22 @@ void Shell::SetMouseCursor(const Rml::String& cursor_name)
 
 void Shell::SetClipboardText(const Rml::String& text)
 {
-	// Todo: interface with system clipboard
+	// interface with system clipboard
 	clipboard_text = text;
+	XSetSelectionOwner(display, CLIPBOARD_atom, window, 0);
 }
 
 void Shell::GetClipboardText(Rml::String& text)
 {
-	// Todo: interface with system clipboard
-	text = clipboard_text;
+	// interface with system clipboard
+	if (XGetSelectionOwner(display, CLIPBOARD_atom) != window) {
+		if(!UTF8_atom || !XPaste(UTF8_atom, text)) {
+			// fallback
+			XPaste(XA_STRING_atom, text);
+		}
+	} else {
+		text = clipboard_text;
+	}
 }
 
 void Shell::SetContext(Rml::Context* new_context)
