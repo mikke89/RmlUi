@@ -177,6 +177,12 @@ int LuaType<T>::gc_T(lua_State* L)
 		{
 			delete obj;
 			obj = nullptr;
+
+			// Change the field to not gc the next time we encounter this pointer. This may be necessary in case the
+			// just deleted object shared an address with a previously deleted (non-GCed) object, the latter which
+			// this function will be called upon later.
+			lua_pushboolean(L, 1);     // ->[4] = true
+			lua_setfield(L, -3, name); // represents t[k] = v, [-3 = 2] = t -> v = [4], k = <ClassName>; pop [4]
 		}
     }
     lua_pop(L,3); //balance function
