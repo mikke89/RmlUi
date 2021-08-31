@@ -35,7 +35,7 @@
 #include "../../Include/RmlUi/Core/FileInterface.h"
 #include "../../Include/RmlUi/Core/Math.h"
 #include <cmath>
-#include <document.h>
+#include <lunasvg.h>
 
 namespace Rml {
 

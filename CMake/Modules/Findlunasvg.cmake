@@ -1,6 +1,6 @@
 # Try to find LunaSVG
 
-find_path(LUNASVG_INCLUDE_DIR document.h
+find_path(LUNASVG_INCLUDE_DIR lunasvg.h
           HINTS $ENV{LUNASVG_DIR}
           PATH_SUFFIXES lunasvg lunasvg/include include )
 
