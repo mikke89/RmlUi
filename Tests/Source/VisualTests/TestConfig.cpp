@@ -59,7 +59,7 @@ Rml::StringList GetTestInputDirectories()
 	Rml::StringList directories = { samples_root + "../Tests/Data/VisualTests" };
 
 #ifdef RMLUI_VISUAL_TESTS_RML_DIRECTORIES
-	Rml::StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_RML_DIRECTORIES, ';');
+	Rml::StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_RML_DIRECTORIES, ',');
 #endif
 
 	return directories;
