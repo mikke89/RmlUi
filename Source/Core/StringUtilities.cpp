@@ -49,7 +49,7 @@ static int FormatString(String& string, size_t max_size, const char* format, va_
 #ifdef RMLUI_DEBUG
 	if (length == -1)
 	{
-		Log::Message(Log::LT_WARNING, "FormatString: String truncated to %d bytes when processing %s", max_size, format);
+		Log::Message(Log::LT_WARNING, "FormatString: String truncated to %zu bytes when processing %s", max_size, format);
 	}
 #endif
 
