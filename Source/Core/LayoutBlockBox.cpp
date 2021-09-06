@@ -557,8 +557,23 @@ void LayoutBlockBox::PositionBox(Vector2f& box_position, float top_margin, Style
 		if (!block_boxes.empty() &&
 			block_boxes.back()->context == BLOCK)
 		{
-			float bottom_margin = block_boxes.back()->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM);
-			box_position.y -= Math::Min(top_margin, bottom_margin);
+			const float bottom_margin = block_boxes.back()->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM);
+
+			const int num_negative_margins = int(top_margin < 0.f) + int(bottom_margin < 0.f);
+			switch (num_negative_margins)
+			{
+			case 0:
+				// Use the largest margin by subtracting the smallest margin.
+				box_position.y -= Math::Min(top_margin, bottom_margin);
+				break;
+			case 1:
+				// Use the sum of the positive and negative margin, no special behavior needed here.
+				break;
+			case 2:
+				// Use the most negative margin by subtracting the least negative margin.
+				box_position.y -= Math::Max(top_margin, bottom_margin);
+				break;
+			}
 		}
 	}
 }
