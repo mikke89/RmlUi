@@ -44,6 +44,8 @@ public:
 
 	void Update();
 
+	void Render();
+
 protected:
 	void ProcessEvent(Rml::Event& event) override;
 
@@ -63,6 +65,8 @@ private:
 
 	void UpdateGoToText(bool out_of_bounds = false);
 
+	void ShowReference(bool show);
+
 	Rml::String GetImageFilenameFromCurrentTest();
 
 	ShellRenderInterfaceOpenGL* shell_renderer;
@@ -75,6 +79,8 @@ private:
 	int suite_index = 0;
 	int goto_index = -1;
 	SourceType source_state = SourceType::None;
+	bool show_reference = false;
+	TextureGeometry reference_geometry;
 
 	IterationState iteration_state = IterationState::None;
 

@@ -51,6 +51,8 @@ public:
 
 	void SetGoToText(const Rml::String& rml);
 
+	void SetAttention(bool active);
+
 private:
 	Rml::Context* context;
 

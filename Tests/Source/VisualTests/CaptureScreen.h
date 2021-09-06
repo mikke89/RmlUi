@@ -30,6 +30,7 @@
 #define RMLUI_TESTS_VISUALTESTS_CAPTURESCREEN_H
 
 #include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Vertex.h>
 
 class ShellRenderInterfaceOpenGL;
 
@@ -45,6 +46,19 @@ struct ComparisonResult {
 bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width);
 
 ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename);
+
+struct TextureGeometry {
+	Rml::TextureHandle texture_handle = 0;
+	Rml::Vertex vertices[4];
+	int indices[6] = {};
+};
+
+bool LoadPreviousCapture(
+	ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, TextureGeometry& out_geometry, Rml::String& out_error_msg);
+
+void RenderTextureGeometry(ShellRenderInterfaceOpenGL* shell_renderer, TextureGeometry& geometry);
+
+void ReleaseTextureGeometry(ShellRenderInterfaceOpenGL* shell_renderer, TextureGeometry& geometry);
 
 
 #endif

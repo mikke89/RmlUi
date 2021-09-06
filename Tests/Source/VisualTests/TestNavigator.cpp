@@ -34,6 +34,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <Shell.h>
+#include <ShellRenderInterfaceOpenGL.h>
 #include <cstdio>
 
 // When capturing frames it seems we need to wait at least an extra frame for the newly submitted
@@ -61,6 +62,7 @@ TestNavigator::~TestNavigator()
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Textinput, this);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Change, this);
+	ReleaseTextureGeometry(shell_renderer, reference_geometry);
 }
 
 void TestNavigator::Update()
@@ -101,6 +103,15 @@ void TestNavigator::Update()
 			else
 				StopTestSuiteIteration();
 		}
+	}
+}
+
+void TestNavigator::Render()
+{
+	if (show_reference && reference_geometry.texture_handle)
+	{
+		shell_renderer->RenderGeometry(
+			reference_geometry.vertices, 4, reference_geometry.indices, 6, reference_geometry.texture_handle, Rml::Vector2f(0, 0));
 	}
 }
 
@@ -189,6 +200,11 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 					source_state = SourceType::None;
 			}
 			viewer->ShowSource(source_state);
+			ShowReference(false);
+		}
+		else if (key_identifier == Rml::Input::KI_Q && key_ctrl)
+		{
+			ShowReference(!show_reference);
 		}
 		else if (key_identifier == Rml::Input::KI_ESCAPE)
 		{
@@ -337,6 +353,7 @@ void TestNavigator::LoadActiveTest()
 	const TestSuite& suite = CurrentSuite();
 	viewer->LoadTest(suite.GetDirectory(), suite.GetFilename(), suite.GetIndex(), suite.GetNumTests(), suite.GetFilterIndex(), suite.GetNumFilteredTests(), suite_index, (int)test_suites.size());
 	viewer->ShowSource(source_state);
+	ShowReference(false);
 	UpdateGoToText();
 }
 
@@ -514,13 +531,13 @@ void TestNavigator::StopTestSuiteIteration()
 			Rml::Log::Message(Rml::Log::LT_ERROR, "Failed writing comparison log output to file %s", log_path.c_str());
 	}
 
-	suite.SetIndex(iteration_initial_index);
-	LoadActiveTest();
-
 	iteration_index = -1;
 	iteration_initial_index = -1;
 	iteration_wait_frames = -1;
 	iteration_state = IterationState::None;
+
+	suite.SetIndex(iteration_initial_index);
+	LoadActiveTest();
 }
 
 void TestNavigator::UpdateGoToText(bool out_of_bounds)
@@ -531,9 +548,29 @@ void TestNavigator::UpdateGoToText(bool out_of_bounds)
 		viewer->SetGoToText(Rml::CreateString(64, "Go To: %d", goto_index));
 	else if(goto_index == 0)
 		viewer->SetGoToText("Go To:");
+	else if (show_reference)
+		viewer->SetGoToText("Showing reference capture '" + GetImageFilenameFromCurrentTest() + "'");
+	else if (iteration_state == IterationState::Capture)
+		viewer->SetGoToText("Capturing all tests");
+	else if (iteration_state == IterationState::Comparison)
+		viewer->SetGoToText("Comparing all tests");
 	else
 		viewer->SetGoToText("Press 'F1' for keyboard shortcuts.");
 }
 
+void TestNavigator::ShowReference(bool in_show_reference)
+{
+	show_reference = in_show_reference;
+	ReleaseTextureGeometry(shell_renderer, reference_geometry);
 
+	Rml::String error_msg;
+	if (show_reference)
+		show_reference = LoadPreviousCapture(shell_renderer, GetImageFilenameFromCurrentTest(), reference_geometry, error_msg);
 
+	viewer->SetAttention(show_reference);
+
+	if (!error_msg.empty())
+		viewer->SetGoToText(error_msg);
+	else
+		UpdateGoToText();
+}

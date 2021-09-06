@@ -50,12 +50,14 @@ void GameLoop()
 
 	shell_renderer->PrepareRenderBuffer();
 	context->Render();
+
+	if (g_navigator)
+		g_navigator->Render();
+
 	shell_renderer->PresentRenderBuffer();
 
 	if (g_navigator)
-	{
 		g_navigator->Update();
-	}
 }
 
 

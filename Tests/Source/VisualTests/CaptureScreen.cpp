@@ -32,6 +32,7 @@
 #include <ShellRenderInterfaceOpenGL.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/StringUtilities.h>
+#include <RmlUi/Core/GeometryUtilities.h>
 #include <cmath>
 
 #define LODEPNG_NO_COMPILE_CPP
@@ -196,6 +197,57 @@ ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shel
 	return result;
 }
 
+bool LoadPreviousCapture(
+	ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, TextureGeometry& out_geometry, Rml::String& out_error_msg)
+{
+	RMLUI_ASSERT(!out_geometry.texture_handle);
+
+	const Rml::String input_path = GetCompareInputDirectory() + "/" + filename;
+
+	unsigned char* data_ref = nullptr;
+	unsigned int w_ref = 0, h_ref = 0;
+
+	unsigned int lodepng_result = lodepng_decode32_file(&data_ref, &w_ref, &h_ref, input_path.c_str());
+	DeferFree defer_free{data_ref};
+
+	if (lodepng_result)
+	{
+		out_error_msg =
+			Rml::CreateString(1024, "Could not load captured screenshot from %s: %s", input_path.c_str(), lodepng_error_text(lodepng_result));
+		return false;
+	}
+	RMLUI_ASSERT(w_ref > 0 && h_ref > 0 && data_ref);
+
+	if (!shell_renderer->GenerateTexture(out_geometry.texture_handle, data_ref, Rml::Vector2i((int)w_ref, (int)h_ref)))
+	{
+		out_error_msg = Rml::CreateString(1024, "Could not generate texture from file %s", input_path.c_str());
+		return false;
+	}
+
+	const Rml::Colourb colour = {255, 255, 255, 255};
+	const Rml::Vector2f uv_top_left = {0, 0};
+	const Rml::Vector2f uv_bottom_right = {1, 1};
+
+	Rml::GeometryUtilities::GenerateQuad(out_geometry.vertices, out_geometry.indices, Rml::Vector2f(0, 0), Rml::Vector2f((float)w_ref, (float)h_ref),
+		colour, uv_top_left, uv_bottom_right, 0);
+
+	return true;
+}
+
+void RenderTextureGeometry(ShellRenderInterfaceOpenGL* shell_renderer, TextureGeometry& geometry)
+{
+	if (geometry.texture_handle)
+		shell_renderer->RenderGeometry(geometry.vertices, 4, geometry.indices, 6, geometry.texture_handle, Rml::Vector2f(0, 0));
+}
+
+void ReleaseTextureGeometry(ShellRenderInterfaceOpenGL* shell_renderer, TextureGeometry& geometry)
+{
+	if (geometry.texture_handle)
+	{
+		shell_renderer->ReleaseTexture(geometry.texture_handle);
+		geometry.texture_handle = 0;
+	}
+}
 
 // Suppress warnings emitted by lodepng
 #if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)

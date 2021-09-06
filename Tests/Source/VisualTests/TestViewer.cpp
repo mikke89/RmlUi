@@ -332,3 +332,11 @@ void TestViewer::SetGoToText(const Rml::String& rml)
 	RMLUI_ASSERT(description_goto);
 	description_goto->SetInnerRML(rml);
 }
+
+void TestViewer::SetAttention(bool active)
+{
+	if (active)
+		document_description->SetProperty(Rml::PropertyId::BackgroundColor, Rml::Property(Rml::Colourb(100, 100, 30), Rml::Property::COLOUR));
+	else
+		document_description->RemoveProperty(Rml::PropertyId::BackgroundColor);
+}
