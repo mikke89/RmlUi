@@ -331,12 +331,11 @@ void WidgetDropDown::SeekSelection(bool seek_forward)
 {
 	const int selected_option = GetSelection();
 	const int num_options = selection_element->GetNumChildren();
+	const int seek_direction = (seek_forward ? 1 : -1);
 
-	for (int i = 1; i < num_options && selected_option >= 0; i++)
+	for (int i = selected_option + seek_direction; i >= 0 && i < num_options; i += seek_direction)
 	{
-		const int option_index = (selected_option + i * (seek_forward ? 1 : -1) + num_options) % num_options;
-
-		Element* element = selection_element->GetChild(option_index);
+		Element* element = selection_element->GetChild(i);
 
 		if (!element->HasAttribute("disabled") && element->IsVisible())
 		{
@@ -345,8 +344,7 @@ void WidgetDropDown::SeekSelection(bool seek_forward)
 		}
 	}
 
-	// No valid option found, remove any selection.
-	SetSelection(nullptr);
+	// No valid option found, leave selection unchanged.
 }
 
 // Returns the index of the currently selected item.

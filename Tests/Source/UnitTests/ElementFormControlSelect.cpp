@@ -549,6 +549,20 @@ TEST_CASE("form.select.event.change")
 	CHECK(listener->num_events_processed == 2);
 	CHECK(listener->value == "c");
 
+	ClickAt(context, 100, 20);             // Open select again
+	context->ProcessMouseMove(100, 85, 0); // Hover option 'Cylinder'
+	context->Update();
+	context->Render();
+	context->ProcessKeyDown(Rml::Input::KI_DOWN, 0);
+	context->Update();
+	context->Render();
+	CHECK(listener->num_events_processed == 3);
+	CHECK(listener->value == "d");
+	context->ProcessKeyDown(Rml::Input::KI_DOWN, 0);
+	context->Update();
+	context->Render();
+	CHECK(listener->num_events_processed == 3);
+
 	document->Close();
 
 	TestsShell::ShutdownShell();

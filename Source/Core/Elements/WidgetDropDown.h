@@ -60,7 +60,7 @@ public:
 	/// @param[in] option_element The option element to select.
 	/// @param[in] force Forces the new selection, even if the widget believes the selection to not have changed.
 	void SetSelection(Element* option_element, bool force = false);
-	/// Seek to the next or previous valid (visible and not disabled) option. Wraps around.
+	/// Seek to the next or previous valid (visible and not disabled) option.
 	/// @param[in] seek_forward True to select the next valid option, false to select the previous valid option.
 	void SeekSelection(bool seek_forward = true);
 	/// Returns the index of the currently selected item.
