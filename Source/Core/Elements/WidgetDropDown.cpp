@@ -297,13 +297,16 @@ void WidgetDropDown::SetSelection(Element* select_option, bool force)
 	const String old_value = parent_element->GetAttribute("value", String());
 	const String new_value = select_option ? select_option->GetAttribute("value", String()) : String();
 
+	bool newly_selected = false;
 	const int num_options = selection_element->GetNumChildren();
 	for (int i = 0; i < num_options; i++)
 	{
 		Element* option = selection_element->GetChild(i);
-		
+
 		if (select_option == option)
 		{
+			if (!option->IsPseudoClassSet("checked"))
+				newly_selected = true;
 			option->SetAttribute("selected", String());
 			option->SetPseudoClass("checked", true);
 		}
@@ -314,7 +317,7 @@ void WidgetDropDown::SetSelection(Element* select_option, bool force)
 		}
 	}
 
-	if (force || (old_value != new_value))
+	if (force || newly_selected || (old_value != new_value))
 	{
 		lock_selection = true;
 		parent_element->SetAttribute("value", new_value);

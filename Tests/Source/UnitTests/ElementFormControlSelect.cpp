@@ -32,6 +32,7 @@
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Elements/ElementFormControlSelect.h>
+#include <RmlUi/Core/EventListener.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -70,7 +71,6 @@ static const String data_model_doc_rml_post = R"(
 </body>
 </rml>
 )";
-
 
 static String GetSelectValueRml(ElementFormControlSelect* select_element)
 {
@@ -479,6 +479,77 @@ TEST_CASE("form.select.data-for")
 
 		document->Close();
 	}
+
+	TestsShell::ShutdownShell();
+}
+
+static const String event_doc_rml = R"(
+<rml>
+<head>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<link type="text/rcss" href="/assets/invader.rcss"/>
+</head>
+<body>
+    <select id="sel">
+        <option selected>Cube</option>
+        <option>Cone</option>
+        <option value="c">Cylinder</option>
+        <option value="d">Sphere</option>
+    </select>
+</body>
+</rml>
+)";
+
+static void ClickAt(Context* context, int x, int y)
+{
+	context->Update();
+	context->Render();
+	context->ProcessMouseMove(x, y, 0);
+	context->Update();
+	context->Render();
+	context->ProcessMouseButtonDown(0, 0);
+	context->ProcessMouseButtonUp(0, 0);
+	context->Update();
+	context->Render();
+}
+
+TEST_CASE("form.select.event.change")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(event_doc_rml);
+	REQUIRE(document);
+
+	document->Show();
+
+	struct SelectionEventListener : public Rml::EventListener {
+		void ProcessEvent(Rml::Event& ev) override
+		{
+			num_events_processed += 1;
+			value = ev.GetParameter<Rml::String>("value", "*empty*");
+		}
+		int num_events_processed = 0;
+		String value;
+	};
+	auto listener = MakeUnique<SelectionEventListener>();
+	document->GetElementById("sel")->AddEventListener(Rml::EventId::Change, listener.get());
+
+	ClickAt(context, 100, 20); // Open select
+	ClickAt(context, 100, 40); // Click option 'Cube'
+	CHECK(listener->num_events_processed == 0);
+
+	ClickAt(context, 100, 20); // Open select
+	ClickAt(context, 100, 63); // Click option 'Cone'
+	CHECK(listener->num_events_processed == 1);
+	CHECK(listener->value == "");
+
+	ClickAt(context, 100, 20); // Open select again
+	ClickAt(context, 100, 85); // Click option 'Cylinder'
+	CHECK(listener->num_events_processed == 2);
+	CHECK(listener->value == "c");
+
+	document->Close();
 
 	TestsShell::ShutdownShell();
 }
