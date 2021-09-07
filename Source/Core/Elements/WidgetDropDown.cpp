@@ -434,7 +434,7 @@ int WidgetDropDown::GetNumOptions() const
 void WidgetDropDown::OnChildAdd(Element* element)
 {
 	// We have a special case for 'data-for' here, since that element must remain hidden.
-	if (element->GetParentNode() != selection_element || element->HasAttribute("data-for"))
+	if (element->GetParentNode() != selection_element || element->HasAttribute("data-for") || element->GetTagName() != "option")
 		return;
 
 	// Force to block display. Register a click handler so we can be notified of selection.
