@@ -99,11 +99,18 @@ struct VerticalAlign {
 
 enum class Overflow : uint8_t { Visible, Hidden, Auto, Scroll };
 struct Clip {
-	enum class Type : uint8_t { Auto, None, Number };
-	// Note, internally 'number' is encoded with Auto as 0 and None as -1. However, the enum must correspond to the keywords in StyleSheetSpec.
-	int number = 0;
+private:
+	// Here, 'value' is encoded with Auto <=> 0, None <=> -1, Always <=> -2. A value > 0 means the given number.
+	int8_t value = 0;
+
+public:
+	// The Type enum must instead correspond to the keywords in StyleSheetSpec.
+	enum class Type : uint8_t { Auto, None, Always, Number };
 	Clip() {}
-	Clip(Type type, int number = 0) : number(type == Type::Auto ? 0 : (type == Type::None ? -1 : number)) {}
+	Clip(Type type, int8_t number = 0) : value(type == Type::Auto ? 0 : (type == Type::None ? -1 : (type == Type::Always ? -2 : number))) {}
+	int GetNumber() const { return value < 0 ? 0 : value; }
+	Type GetType() const { return value == 0 ? Type::Auto : (value == -1 ? Type::None : (value == -2 ? Type::Always : Type::Number)); }
+	bool operator==(Type type) const { return GetType() == type; }
 };
 
 enum class Visibility : uint8_t { Visible, Hidden };

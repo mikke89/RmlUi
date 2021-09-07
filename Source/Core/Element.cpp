@@ -1596,17 +1596,6 @@ DataModel* Element::GetDataModel() const
 {
 	return data_model;
 }
-	
-int Element::GetClippingIgnoreDepth()
-{
-	return GetComputedValues().clip.number;
-}
-	
-bool Element::IsClippingEnabled()
-{
-	const auto& computed = GetComputedValues();
-	return computed.overflow_x != Style::Overflow::Visible || computed.overflow_y != Style::Overflow::Visible;
-}
 
 // Gets the render interface owned by this element's context.
 RenderInterface* Element::GetRenderInterface()

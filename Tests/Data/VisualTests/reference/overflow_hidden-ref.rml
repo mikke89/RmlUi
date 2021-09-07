@@ -12,10 +12,17 @@
 			border: 1dp black;
 			overflow: hidden;
 			width: 200dp;
-			height: 200dp;
+			height: 120dp;
+			margin: 10dp 0;
 		}
 		div.relative {
 			position: relative;
+		}
+		div.clip-always {
+			clip: always;
+		}
+		div.clip-none {
+			clip: none;
 		}
 		div.wide {
 			width: 300dp;
@@ -30,6 +37,10 @@
 			left: 250dp;
 			width: 80dp;
 			height: 80dp;
+		}
+		div.close {
+			top: 20dp;
+			left: 250dp;
 		}
 		.green { background-color: #7f7; }
 		.red { background-color: #f77; }
@@ -55,6 +66,18 @@
 	<div>
 		LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL
 	</div>
+</div>
+<div class="overflow relative" style="overflow: visible">
+	<div style="overflow: hidden">
+		LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD&nbsp;FAIL
+		<div class="absolute close red">Should not be visible</div>
+	</div>
+		Don't clip within a clipping parent using 'clip: none'.
+	LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD
+	<div class="absolute close green">Should be visible</div>
+</div>
+<div class="overflow">
+	Force clipping even though contents don't overflow using 'clip: always'.
 </div>
 </body>
 </rml>

@@ -620,8 +620,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	{
 		// Inherited properties are copied here, but may be overwritten below by locally defined properties
 		// Line-height and font-size are computed above
-		values.clip = parent_values->clip;
-		
 		values.color = parent_values->color;
 		values.opacity = parent_values->opacity;
 

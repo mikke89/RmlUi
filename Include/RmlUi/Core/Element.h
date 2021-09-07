@@ -566,11 +566,6 @@ public:
 	DataModel* GetDataModel() const;
 	//@}
 	
-	/// Returns true if this element requires clipping
-	int GetClippingIgnoreDepth();
-	/// Returns true if this element has clipping enabled
-	bool IsClippingEnabled();
-
 	/// Gets the render interface owned by this element's context.
 	/// @return The element's context's render interface.
 	RenderInterface* GetRenderInterface();
