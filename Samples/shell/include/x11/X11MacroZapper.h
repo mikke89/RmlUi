@@ -26,35 +26,18 @@
  *
  */
 
-#ifndef RMLUI_SHELL_X11_INPUTX11_H
-#define RMLUI_SHELL_X11_INPUTX11_H
+#ifndef RMLUI_SHELL_X11_X11MACROZAPPER_H
+#define RMLUI_SHELL_X11_X11MACROZAPPER_H
 
-#include <X11/Xlib.h>
-#include <x11/X11MacroZapper.h>
-
-#include "Input.h"
-
-/**
- * Input Wrapper Code
- *
- * Feel free to take this class and integrate it with your project.
- *
- * @author Lloyd Weehuizen
- */
-
-class InputX11 : public Input
-{
-public:
-	static bool Initialise();
-	static void Shutdown();
-
-	/// Process the windows message
-	static void ProcessXEvent(Display* display, const XEvent& event);
-
-	// Initialises Xkb extension if available or reads keymap from X11
-	// server otherwise.  This is internal to the X11 subsystem and
-	// has nothing to do with RmlUi's mapping.
-	static void InitialiseX11Keymap(Display *display);
-};
+// The None and Always defines from X.h conflicts with RmlUi code base,
+// use their underlying constants where necessary.
+#ifdef None
+	// Value 0L
+	#undef None
+#endif
+#ifdef Always
+	// Value 2
+	#undef Always
+#endif
 
 #endif

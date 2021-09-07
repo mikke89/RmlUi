@@ -293,5 +293,6 @@ else()
        )
        list(APPEND shell_HDR_FILES
                ${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/InputX11.h
+               ${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/X11MacroZapper.h
        )
 endif()

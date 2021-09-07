@@ -61,6 +61,7 @@ echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/ShellRenderInte
 echo '       )' >> $file
 echo '       list(APPEND shell_HDR_FILES' >> $file
 echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/InputX11.h' >> $file
+echo '               ${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/X11MacroZapper.h' >> $file
 echo '       )' >> $file
 echo 'endif()' >> $file
 
