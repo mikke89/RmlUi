@@ -43,18 +43,16 @@ struct ComparisonResult {
 	Rml::String error_msg;
 };
 
-bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width);
-
-ComparisonResult CompareScreenToPreviousCapture(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename);
-
 struct TextureGeometry {
 	Rml::TextureHandle texture_handle = 0;
 	Rml::Vertex vertices[4];
 	int indices[6] = {};
 };
 
-bool LoadPreviousCapture(
-	ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, TextureGeometry& out_geometry, Rml::String& out_error_msg);
+bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width);
+
+ComparisonResult CompareScreenToPreviousCapture(
+	ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, bool write_diff_image, TextureGeometry* out_geometry);
 
 void RenderTextureGeometry(ShellRenderInterfaceOpenGL* shell_renderer, TextureGeometry& geometry);
 

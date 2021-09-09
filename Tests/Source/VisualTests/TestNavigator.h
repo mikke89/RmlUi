@@ -65,7 +65,7 @@ private:
 
 	void UpdateGoToText(bool out_of_bounds = false);
 
-	void ShowReference(bool show);
+	void ShowReference(bool show, bool clear);
 
 	Rml::String GetImageFilenameFromCurrentTest();
 
@@ -79,7 +79,9 @@ private:
 	int suite_index = 0;
 	int goto_index = -1;
 	SourceType source_state = SourceType::None;
+
 	bool show_reference = false;
+	ComparisonResult reference_comparison;
 	TextureGeometry reference_geometry;
 
 	IterationState iteration_state = IterationState::None;

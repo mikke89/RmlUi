@@ -200,11 +200,11 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 					source_state = SourceType::None;
 			}
 			viewer->ShowSource(source_state);
-			ShowReference(false);
+			ShowReference(false, false);
 		}
 		else if (key_identifier == Rml::Input::KI_Q && key_ctrl)
 		{
-			ShowReference(!show_reference);
+			ShowReference(!show_reference, false);
 		}
 		else if (key_identifier == Rml::Input::KI_ESCAPE)
 		{
@@ -353,7 +353,7 @@ void TestNavigator::LoadActiveTest()
 	const TestSuite& suite = CurrentSuite();
 	viewer->LoadTest(suite.GetDirectory(), suite.GetFilename(), suite.GetIndex(), suite.GetNumTests(), suite.GetFilterIndex(), suite.GetNumFilteredTests(), suite_index, (int)test_suites.size());
 	viewer->ShowSource(source_state);
-	ShowReference(false);
+	ShowReference(false, true);
 	UpdateGoToText();
 }
 
@@ -367,7 +367,7 @@ ComparisonResult TestNavigator::CompareCurrentView()
 {
 	const Rml::String filename = GetImageFilenameFromCurrentTest();
 
-	ComparisonResult result = CompareScreenToPreviousCapture(shell_renderer, filename);
+	ComparisonResult result = CompareScreenToPreviousCapture(shell_renderer, filename, true, nullptr);
 
 	return result;
 }
@@ -546,31 +546,42 @@ void TestNavigator::UpdateGoToText(bool out_of_bounds)
 		viewer->SetGoToText("Go To out of bounds");
 	else if (goto_index > 0)
 		viewer->SetGoToText(Rml::CreateString(64, "Go To: %d", goto_index));
-	else if(goto_index == 0)
+	else if (goto_index == 0)
 		viewer->SetGoToText("Go To:");
-	else if (show_reference)
-		viewer->SetGoToText("Showing reference capture '" + GetImageFilenameFromCurrentTest() + "'");
 	else if (iteration_state == IterationState::Capture)
 		viewer->SetGoToText("Capturing all tests");
 	else if (iteration_state == IterationState::Comparison)
 		viewer->SetGoToText("Comparing all tests");
+	else if (show_reference)
+		viewer->SetGoToText(Rml::CreateString(100, "Showing reference capture (%.1f%% similar)", reference_comparison.similarity_score * 100.));
 	else
 		viewer->SetGoToText("Press 'F1' for keyboard shortcuts.");
 }
 
-void TestNavigator::ShowReference(bool in_show_reference)
+void TestNavigator::ShowReference(bool show, bool clear)
 {
-	show_reference = in_show_reference;
-	ReleaseTextureGeometry(shell_renderer, reference_geometry);
+	if (clear)
+	{
+		ReleaseTextureGeometry(shell_renderer, reference_geometry);
+		reference_comparison = {};
+	}
 
 	Rml::String error_msg;
-	if (show_reference)
-		show_reference = LoadPreviousCapture(shell_renderer, GetImageFilenameFromCurrentTest(), reference_geometry, error_msg);
+	if (show && !reference_geometry.texture_handle)
+	{
+		reference_comparison = CompareScreenToPreviousCapture(shell_renderer, GetImageFilenameFromCurrentTest(), false, &reference_geometry);
 
+		if (!reference_comparison.success)
+			error_msg = reference_comparison.error_msg;
+	}
+
+	show_reference = (show && reference_comparison.success && !reference_comparison.is_equal);
 	viewer->SetAttention(show_reference);
 
 	if (!error_msg.empty())
 		viewer->SetGoToText(error_msg);
+	else if (reference_comparison.is_equal)
+		viewer->SetGoToText("EQUAL to reference capture");
 	else
 		UpdateGoToText();
 }
