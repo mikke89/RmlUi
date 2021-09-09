@@ -7,6 +7,48 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
+## RmlUi 4.3 (WIP)
+
+### Elements
+
+- `select` element:
+  - Emit `change` event even when the value of the newly selected option is the same.
+  - Do not wrap around when using up/down keys on options.
+  - Fix unintentional clipping of the scrollbar.
+
+### RCSS Properties
+
+- Add (non-standard) property value `clip: always` to force clipping to the element, [see `clip` documentation](https://mikke89.github.io/RmlUiDoc/pages/rcss/visual_effects.html#clip). [#235](https://github.com/mikke89/RmlUi/issues/235)
+
+### Layout improvements
+
+- Fix an issue where some elements could end up rendered at the wrong offset after scrolling. [#230](https://github.com/mikke89/RmlUi/issues/230)
+- Improve behavior for collapsing negative vertical margins.
+
+### Samples
+
+- Add clipboard support for X11 samples. [#231](https://github.com/mikke89/RmlUi/pull/231) (thanks @barotto)
+
+### Tests
+
+- Visual tests suite: Add ability to overlay the previous reference capture of the test using the shortcut Ctrl+Q.
+
+### Dependencies
+
+- Update LunaSVG plugin for compatibility with v2.3.0. [#232](https://github.com/mikke89/RmlUi/issues/232)
+- Fix crash due to double delete in the Lua plugin. [#216](https://github.com/mikke89/RmlUi/issues/216)
+- Warn when using FreeType 2.11.0 with the MSVC compiler, as this version introduced [an issue](https://gitlab.freedesktop.org/freetype/freetype/-/issues/1092) leading to crashes.
+
+### Build improvements
+
+- Fix log message format string when compiling in debug mode. [#234](https://github.com/mikke89/RmlUi/pull/234) (thanks @barotto)
+
+### Breaking changes
+
+- The `clip` property is now non-inherited. Users may need to update their RCSS selectors to achieve the same clipping behavior as previously when using this property.
+- Minor changes to the clipping behavior when explicitly using the `clip` property, may lead to different results in some circumstances.
+
+
 ## RmlUi 4.2
 
 ### Improvements
