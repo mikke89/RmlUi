@@ -243,7 +243,7 @@ static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs)
 
 static bool BuildGlyph(FT_Face ft_face, Character character, FontGlyphMap& glyphs)
 {
-	int index = FT_Get_Char_Index(ft_face, (FT_ULong)character);
+	FT_UInt index = FT_Get_Char_Index(ft_face, (FT_ULong)character);
 	if (index == 0)
 		return false;
 
@@ -370,11 +370,11 @@ static void GenerateMetrics(FT_Face ft_face, FontMetrics& metrics)
 	metrics.underline_thickness = Math::Max(metrics.underline_thickness, 1.0f);
 
 	// Determine the x-height of this font face.
-	int index = FT_Get_Char_Index(ft_face, 'x');
-	if (FT_Load_Glyph(ft_face, index, 0) == 0)
+	FT_UInt index = FT_Get_Char_Index(ft_face, 'x');
+	if (index != 0 && FT_Load_Glyph(ft_face, index, 0) == 0)
 		metrics.x_height = ft_face->glyph->metrics.height >> 6;
 	else
-		metrics.x_height = 0;
+		metrics.x_height = metrics.line_height / 2;
 }
 
 
