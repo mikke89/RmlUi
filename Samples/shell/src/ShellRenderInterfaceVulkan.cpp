@@ -1,5 +1,11 @@
 #include "ShellRenderInterfaceVulkan.h"
 
+#define VK_ASSERT(statement, msg, ...)         \
+	if (statement == false)                    \
+	{                                          \
+		Shell::DisplayError(msg, __VA_ARGS__); \
+	}
+
 VkValidationFeaturesEXT debug_validation_features_ext = {};
 VkValidationFeatureEnableEXT debug_validation_features_ext_requested[] = {VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
 	VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT, VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
@@ -13,7 +19,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 		return VK_FALSE;
 	}
 
-	Rml::Log::Message(Rml::Log::LT_INFO, "[Vulkan][VALIDATION] %s", pMessage);
+	Shell::Log("[Vulkan][VALIDATION] %s ", pMessage);
 
 	return VK_FALSE;
 }
@@ -120,24 +126,57 @@ void ShellRenderInterfaceVulkan::Initialize_Instance(void) noexcept
 
 	VkResult status = vkCreateInstance(&info_instance, nullptr, &this->m_p_instance);
 
-	RMLUI_ASSERT(status == VK_SUCCESS && "failed to vkCreateInstance");
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateInstance");
 
 	this->CreateReportDebugCallback();
 }
 
-void ShellRenderInterfaceVulkan::Initialize_Device(void) noexcept {}
+void ShellRenderInterfaceVulkan::Initialize_Device(void) noexcept 
+{
+	this->CreatePropertiesFor_Device();
+	this->AddExtensionToDevice(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	this->AddExtensionToDevice(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
+}
 
-void ShellRenderInterfaceVulkan::Initialize_PhysicalDevice(void) noexcept {}
+void ShellRenderInterfaceVulkan::Initialize_PhysicalDevice(void) noexcept
+{
+	this->CollectPhysicalDevices();
+	bool status = this->ChoosePhysicalDevice(VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
+
+	if (status == false)
+	{
+		Shell::Log("Failed to pick the discrete gpu, now trying to pick integrated GPU");
+		status = this->ChoosePhysicalDevice(VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU);
+
+		if (status == false)
+		{
+			Shell::Log("Failed to pick the integrated gpu, now trying to pick up the CPU");
+			status = this->ChoosePhysicalDevice(VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_CPU);
+
+			VK_ASSERT(status, "there's no suitable physical device for rendering, abort this application");
+		}
+	}
+	else
+	{
+		Shell::Log("Picked discrete GPU!");
+	}
+}
 
 void ShellRenderInterfaceVulkan::Initialize_Swapchain(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::Initialize_Surface(void) noexcept {}
 
-void ShellRenderInterfaceVulkan::Destroy_Instance(void) noexcept {}
+void ShellRenderInterfaceVulkan::Initialize_QueueIndecies(void) noexcept 
+{
+
+}
+
+void ShellRenderInterfaceVulkan::Destroy_Instance(void) noexcept
+{
+	vkDestroyInstance(this->m_p_instance, nullptr);
+}
 
 void ShellRenderInterfaceVulkan::Destroy_Device() noexcept {}
-
-void ShellRenderInterfaceVulkan::Destroy_PhysicalDevice(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::Destroy_Swapchain(void) noexcept {}
 
@@ -149,7 +188,7 @@ void ShellRenderInterfaceVulkan::QueryInstanceLayers(void) noexcept
 
 	VkResult status = vkEnumerateInstanceLayerProperties(&instance_layer_properties_count, nullptr);
 
-	RMLUI_ASSERT(status == VK_SUCCESS && "failed to vkEnumerateInstanceLayerProperties (getting count)");
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceLayerProperties (getting count)");
 
 	if (instance_layer_properties_count)
 	{
@@ -157,7 +196,7 @@ void ShellRenderInterfaceVulkan::QueryInstanceLayers(void) noexcept
 
 		status = vkEnumerateInstanceLayerProperties(&instance_layer_properties_count, this->m_instance_layer_properties.data());
 
-		RMLUI_ASSERT(status == VK_SUCCESS && "failed to vkEnumerateInstanceLayerProperties (filling vector of VkLayerProperties)");
+		VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceLayerProperties (filling vector of VkLayerProperties)");
 	}
 }
 
@@ -167,13 +206,14 @@ void ShellRenderInterfaceVulkan::QueryInstanceExtensions(void) noexcept
 
 	VkResult status = vkEnumerateInstanceExtensionProperties(nullptr, &instance_extension_property_count, nullptr);
 
-	RMLUI_ASSERT(status == VK_SUCCESS && "failed to vkEnumerateInstanceExtensionProperties (getting count)");
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceExtensionProperties (getting count)");
 
 	if (instance_extension_property_count)
 	{
+		this->m_instance_extension_properties.resize(instance_extension_property_count);
 		status = vkEnumerateInstanceExtensionProperties(nullptr, &instance_extension_property_count, this->m_instance_extension_properties.data());
 
-		RMLUI_ASSERT(status == VK_SUCCESS && "failed to vkEnumerateInstanceExtensionProperties (filling vector of VkExtensionProperties)");
+		VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceExtensionProperties (filling vector of VkExtensionProperties)");
 	}
 
 	uint32_t count = 0;
@@ -198,8 +238,7 @@ void ShellRenderInterfaceVulkan::QueryInstanceExtensions(void) noexcept
 				if (status == VK_SUCCESS)
 				{
 #ifdef RMLUI_DEBUG
-					Rml::Log::Message(
-						Rml::Log::LT_INFO, "[Vulkan] obtained extensions for layer: %s, count: %s", layer_property.layerName, props.size());
+					Shell::Log("[Vulkan] obtained extensions for layer: %s, count: %d", layer_property.layerName, props.size());
 #endif
 
 					for (const auto& extension : props)
@@ -207,7 +246,7 @@ void ShellRenderInterfaceVulkan::QueryInstanceExtensions(void) noexcept
 						if (this->IsExtensionPresent(this->m_instance_extension_properties, extension.extensionName) == false)
 						{
 #ifdef RMLUI_DEBUG
-							Rml::Log::Message(Rml::Log::LT_INFO, "[Vulkan] new extension is added: %s", extension.extensionName);
+							Shell::Log("[Vulkan] new extension is added: %s", extension.extensionName);
 #endif
 
 							this->m_instance_extension_properties.push_back(extension);
@@ -223,7 +262,7 @@ bool ShellRenderInterfaceVulkan::AddLayerToInstance(const char* p_instance_layer
 {
 	if (p_instance_layer_name == nullptr)
 	{
-		RMLUI_ASSERT(false && "you have an invalid layer");
+		VK_ASSERT(false, "you have an invalid layer");
 		return false;
 	}
 
@@ -233,16 +272,16 @@ bool ShellRenderInterfaceVulkan::AddLayerToInstance(const char* p_instance_layer
 		return true;
 	}
 
-	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan] can't add layer %s", p_instance_layer_name);
+	Shell::Log("[Vulkan] can't add layer %s", p_instance_layer_name);
 
 	return false;
 }
 
 bool ShellRenderInterfaceVulkan::AddExtensionToInstance(const char* p_instance_extension_name) noexcept
 {
-	if (p_instance_extension_name)
+	if (p_instance_extension_name == nullptr)
 	{
-		RMLUI_ASSERT(false && "you have an invalid extension");
+		VK_ASSERT(false, "you have an invalid extension");
 		return false;
 	}
 
@@ -252,7 +291,7 @@ bool ShellRenderInterfaceVulkan::AddExtensionToInstance(const char* p_instance_e
 		return true;
 	}
 
-	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan] can't add extension %s", p_instance_extension_name);
+	Shell::Log("[Vulkan] can't add extension %s", p_instance_extension_name);
 
 	return false;
 }
@@ -279,7 +318,7 @@ void ShellRenderInterfaceVulkan::CreatePropertiesFor_Instance(void) noexcept
 
 	if (is_cpu_validation)
 	{
-		Rml::Log::Message(Rml::Log::LT_INFO, "CPU validation is enabled");
+		// Rml::Log::Message(Rml::Log::LT_INFO, "CPU validation is enabled");
 
 		Rml::Vector<const char*> requested_extensions_for_gpu = {VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME};
 
@@ -322,7 +361,87 @@ bool ShellRenderInterfaceVulkan::IsExtensionPresent(const Rml::Vector<VkExtensio
 	}) != properties.cend();
 }
 
-void ShellRenderInterfaceVulkan::CreatePropertiesFor_Device(void) noexcept {}
+bool ShellRenderInterfaceVulkan::AddExtensionToDevice(const char* p_device_extension_name) noexcept
+{
+	if (this->IsExtensionPresent(this->m_device_extension_properties, p_device_extension_name)) 
+	{
+		this->m_device_extension_names.push_back(p_device_extension_name);
+		return true;
+	}
+
+	return false;
+}
+
+void ShellRenderInterfaceVulkan::CreatePropertiesFor_Device(void) noexcept
+{
+	VK_ASSERT(this->m_p_physical_device_current, "you must initialize your physical device. Call InitializePhysicalDevice first");
+
+	uint32_t extension_count = 0;
+
+	VkResult status = vkEnumerateDeviceExtensionProperties(this->m_p_physical_device_current, nullptr, &extension_count, nullptr);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateDeviceExtensionProperties (getting count)");
+
+	this->m_device_extension_properties.resize(extension_count);
+
+	status = vkEnumerateDeviceExtensionProperties(
+		this->m_p_physical_device_current, nullptr, &extension_count, this->m_device_extension_properties.data());
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateDeviceExtensionProperties (filling vector of VkExtensionProperties)");
+
+	uint32_t instance_layer_property_count = 0;
+
+	Rml::Vector<VkLayerProperties> layers;
+
+	status = vkEnumerateInstanceLayerProperties(&instance_layer_property_count, nullptr);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceLayerProperties (getting count)");
+
+	layers.resize(instance_layer_property_count);
+
+	// On different OS Vulkan acts strange, so we can't get our extensions to just iterate through default functions
+	// We need to deeply analyze our layers and get specified extensions which pass user
+	// So we collect all extensions that are presented in physical device 
+	// And add when they exist to extension_names so we don't pass properties
+
+	if (instance_layer_property_count)
+	{
+		status = vkEnumerateInstanceLayerProperties(&instance_layer_property_count, layers.data());
+
+		VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceLayerProperties (filling vector of VkLayerProperties)");
+
+		for (const auto& layer : layers) 
+		{
+			extension_count = 0;
+
+			status = vkEnumerateDeviceExtensionProperties(this->m_p_physical_device_current, layer.layerName, &extension_count, nullptr);
+
+			VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateDeviceExtensionProperties (getting count)");
+
+			if (extension_count) 
+			{
+				Rml::Vector<VkExtensionProperties> new_extensions;
+
+				new_extensions.resize(extension_count);
+
+				status =
+					vkEnumerateDeviceExtensionProperties(this->m_p_physical_device_current, layer.layerName, &extension_count, new_extensions.data());
+
+				VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateDeviceExtensionProperties (filling vector of VkExtensionProperties)");
+
+				for (const auto& extension : new_extensions) 
+				{
+					if (this->IsExtensionPresent(this->m_device_extension_properties, extension.extensionName) == false) 
+					{
+						Shell::Log("[Vulkan] obtained new device extension from layer[%s]: %s", layer.layerName, extension.extensionName);
+
+						this->m_device_extension_properties.push_back(extension);
+					}
+				}
+			}
+		}
+	}
+}
 
 void ShellRenderInterfaceVulkan::CreateReportDebugCallback(void) noexcept
 {
@@ -340,15 +459,16 @@ void ShellRenderInterfaceVulkan::CreateReportDebugCallback(void) noexcept
 
 	VkResult status = p_callback_creation(this->m_p_instance, &info, nullptr, &this->m_debug_report_callback_instance);
 
-	RMLUI_ASSERT(status == VK_SUCCESS && "failed to vkCreateDebugReportCallbackEXT");
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateDebugReportCallbackEXT");
 #endif
 }
 
 void ShellRenderInterfaceVulkan::Destroy_ReportDebugCallback(void) noexcept
 {
-	PFN_vkDestroyDebugReportCallbackEXT p_destroy_callback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(this->m_p_instance, "vkDestroyDebugReportCallbackEXT"));
+	PFN_vkDestroyDebugReportCallbackEXT p_destroy_callback =
+		reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(this->m_p_instance, "vkDestroyDebugReportCallbackEXT"));
 
-	if (p_destroy_callback) 
+	if (p_destroy_callback)
 	{
 		p_destroy_callback(this->m_p_instance, this->m_debug_report_callback_instance, nullptr);
 	}
@@ -360,7 +480,7 @@ uint32_t ShellRenderInterfaceVulkan::GetUserAPIVersion(void) const noexcept
 
 	VkResult status = vkEnumerateInstanceVersion(&result);
 
-	RMLUI_ASSERT(status == VK_SUCCESS && "failed to vkEnumerateInstanceVersion, See Status");
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceVersion, See Status");
 
 	return result;
 }
@@ -370,7 +490,46 @@ uint32_t ShellRenderInterfaceVulkan::GetRequiredVersionAndValidateMachine(void) 
 	constexpr uint32_t kRequiredVersion = VK_API_VERSION_1_0;
 	const uint32_t user_version = this->GetUserAPIVersion();
 
-	RMLUI_ASSERT(kRequiredVersion <= user_version && "Your machine doesn't support Vulkan");
+	VK_ASSERT(kRequiredVersion <= user_version, "Your machine doesn't support Vulkan");
 
 	return kRequiredVersion;
+}
+
+void ShellRenderInterfaceVulkan::CollectPhysicalDevices(void) noexcept
+{
+	uint32_t gpu_count = 1;
+	const uint32_t required_count = gpu_count;
+
+	VkResult status = vkEnumeratePhysicalDevices(this->m_p_instance, &gpu_count, nullptr);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumeratePhysicalDevices (getting count)");
+
+	this->m_physical_devices.resize(gpu_count);
+
+	status = vkEnumeratePhysicalDevices(this->m_p_instance, &gpu_count, this->m_physical_devices.data());
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumeratePhysicalDevices (filling the vector of VkPhysicalDevice)");
+
+	VK_ASSERT(this->m_physical_devices.empty() == false, "you must have one videocard at least!");
+}
+
+bool ShellRenderInterfaceVulkan::ChoosePhysicalDevice(VkPhysicalDeviceType device_type) noexcept
+{
+	VK_ASSERT(this->m_physical_devices.empty() == false,
+		"you must have one videocard at least or early calling of this method, try call this after CollectPhysicalDevices");
+
+	VkPhysicalDeviceProperties props = {};
+
+	for (const auto& p_device : this->m_physical_devices)
+	{
+		vkGetPhysicalDeviceProperties(p_device, &props);
+
+		if (props.deviceType == device_type)
+		{
+			this->m_p_physical_device_current = p_device;
+			return true;
+		}
+	}
+
+	return false;
 }

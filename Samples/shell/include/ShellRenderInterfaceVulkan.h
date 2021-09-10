@@ -72,10 +72,10 @@ private:
 	void Initialize_PhysicalDevice(void) noexcept;
 	void Initialize_Swapchain(void) noexcept;
 	void Initialize_Surface(void) noexcept;
+	void Initialize_QueueIndecies(void) noexcept;
 
 	void Destroy_Instance(void) noexcept;
 	void Destroy_Device() noexcept;
-	void Destroy_PhysicalDevice(void) noexcept;
 	void Destroy_Swapchain(void) noexcept;
 	void Destroy_Surface(void) noexcept;
 
@@ -88,6 +88,7 @@ private:
 	bool IsLayerPresent(const Rml::Vector<VkLayerProperties>& properties, const char* p_layer_name) noexcept;
 	bool IsExtensionPresent(const Rml::Vector<VkExtensionProperties>& properties, const char* p_extension_name) noexcept;
 
+	bool AddExtensionToDevice(const char* p_device_extension_name) noexcept;
 	void CreatePropertiesFor_Device(void) noexcept;
 
 	void CreateReportDebugCallback(void) noexcept;
@@ -95,6 +96,13 @@ private:
 
 	uint32_t GetUserAPIVersion(void) const noexcept;
 	uint32_t GetRequiredVersionAndValidateMachine(void) noexcept;
+
+	void CollectPhysicalDevices(void) noexcept;
+	bool ChoosePhysicalDevice(VkPhysicalDeviceType device_type) noexcept;
+	
+	#pragma region Resource management
+	#pragma endregion
+
 #pragma endregion
 
 private:
@@ -120,6 +128,7 @@ private:
 	Rml::Vector<VkPhysicalDevice> m_physical_devices;
 	Rml::Vector<VkLayerProperties> m_instance_layer_properties;
 	Rml::Vector<VkExtensionProperties> m_instance_extension_properties;
+	Rml::Vector<VkExtensionProperties> m_device_extension_properties;
 	Rml::Vector<const char*> m_instance_layer_names;
 	Rml::Vector<const char*> m_instance_extension_names;
 	Rml::Vector<const char*> m_device_extension_names;

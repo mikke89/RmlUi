@@ -10,6 +10,9 @@ set(shell_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellRenderInterfaceOpenGL.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellRenderInterfaceVulkan.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellSystemInterface.h
+    ${PROJECT_SOURCE_DIR}/Samples/shell/include/spirv.h
+    ${PROJECT_SOURCE_DIR}/Samples/shell/include/spirv_reflect.h
+    ${PROJECT_SOURCE_DIR}/Samples/shell/include/vk_mem_alloc.h
 )
 
 set(shell_SRC_FILES
@@ -19,6 +22,7 @@ set(shell_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellRenderInterfaceOpenGL.cpp
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellRenderInterfaceVulkan.cpp
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellSystemInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/shell/src/spirv_reflect.cpp
 )
 
 set(animation_HDR_FILES

@@ -31,6 +31,7 @@
 #include <Input.h>
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
+#include <ShellRenderInterfaceVulkan.h>
 
 Rml::Context* context = nullptr;
 
@@ -69,7 +70,10 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
     int window_width = 1024;
     int window_height = 768;
 
+	// TODO: [From diamondhat] implemnet choosing renderer...
 	ShellRenderInterfaceOpenGL opengl_renderer;
+	{ShellRenderInterfaceVulkan vulkan_renderer;}
+
 	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
