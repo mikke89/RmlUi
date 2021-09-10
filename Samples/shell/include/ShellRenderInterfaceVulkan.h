@@ -81,14 +81,17 @@ private:
 
 	void QueryInstanceLayers(void) noexcept;
 	void QueryInstanceExtensions(void) noexcept;
-	void AddLayerToInstance(const char* p_instance_layer_name) noexcept;
-	void AddExtensionToInstance(const char* p_instance_extension_name) noexcept;
+	bool AddLayerToInstance(const char* p_instance_layer_name) noexcept;
+	bool AddExtensionToInstance(const char* p_instance_extension_name) noexcept;
 	void CreatePropertiesFor_Instance(void) noexcept;
 
 	bool IsLayerPresent(const Rml::Vector<VkLayerProperties>& properties, const char* p_layer_name) noexcept;
 	bool IsExtensionPresent(const Rml::Vector<VkExtensionProperties>& properties, const char* p_extension_name) noexcept;
 
 	void CreatePropertiesFor_Device(void) noexcept;
+
+	void CreateReportDebugCallback(void) noexcept;
+	void Destroy_ReportDebugCallback(void) noexcept;
 
 	uint32_t GetUserAPIVersion(void) const noexcept;
 	uint32_t GetRequiredVersionAndValidateMachine(void) noexcept;
