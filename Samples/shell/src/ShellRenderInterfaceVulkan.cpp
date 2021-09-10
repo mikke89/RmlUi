@@ -1,7 +1,7 @@
 #include "ShellRenderInterfaceVulkan.h"
 
 #define VK_ASSERT(statement, msg, ...)         \
-	if (statement == false)                    \
+	if (!!(statement) == false)                    \
 	{                                          \
 		Shell::DisplayError(msg, __VA_ARGS__); \
 	}
