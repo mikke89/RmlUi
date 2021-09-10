@@ -33,8 +33,13 @@
 
 #if defined RMLUI_PLATFORM_WIN32
 #include "win32/IncludeWindows.h"
+
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <vulkan/vulkan.h>
+
 #include <gl/Gl.h>
 #include <gl/Glu.h>
+
 #elif defined RMLUI_PLATFORM_MACOSX
 #include <AGL/agl.h>
 #include <OpenGL/gl.h>

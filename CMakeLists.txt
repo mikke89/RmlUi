@@ -626,10 +626,21 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 
 	# Find OpenGL 
 	find_package(OpenGL REQUIRED)
+
+	find_package(Vulkan REQUIRED)
 		   
 	if(OPENGL_FOUND)
+		message("-- OpenGL is found! ${OPENGL_INCLUDE_DIR}")
+		message("-- OpenGL is found! ${OPENGL_LIBRARIES}")
 		include_directories(${OPENGL_INCLUDE_DIR})
 		list(APPEND sample_LIBRARIES ${OPENGL_LIBRARIES})
+	endif()
+
+	if (Vulkan_FOUND)
+		message("-- Vulkan is found! ${Vulkan_INCLUDE_DIR}")
+		message("-- Vulkan is found! ${Vulkan_LIBRARIES}")
+		include_directories(${Vulkan_INCLUDE_DIR})
+		list(APPEND sample_LIBRARIES ${Vulkan_LIBRARIES})
 	endif()
 	
 	# Set up required system libraries

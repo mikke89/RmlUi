@@ -8,6 +8,7 @@ set(shell_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellOpenGL.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellRenderInterfaceExtensions.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellRenderInterfaceOpenGL.h
+    ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellRenderInterfaceVulkan.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellSystemInterface.h
 )
 
@@ -16,6 +17,7 @@ set(shell_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/Shell.cpp
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellFileInterface.cpp
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellRenderInterfaceOpenGL.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellRenderInterfaceVulkan.cpp
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellSystemInterface.cpp
 )
 
