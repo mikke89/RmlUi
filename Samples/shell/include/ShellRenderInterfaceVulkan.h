@@ -10,6 +10,16 @@
 
 /**
  * Low level Vulkan render interface for RmlUi
+ * 
+ * My aim is to create compact, but easy to use class
+ * I understand that it doesn't good architectural choice to keep all things in one class 
+ * But I follow to RMLUI design and for implementing one GAPI backend it just needs one class
+ * For user looks cool, but for programmer...
+ * 
+ * It's better to try operate with very clean 'one-class' architecture rather than create own library for Vulkan
+ * With many different classes, with not trivial signatures and etc
+ * And we should document that library so it's just a headache for all of us 
+ * 
  * @author diamondhat
  */
 
@@ -99,9 +109,9 @@ private:
 
 	void CollectPhysicalDevices(void) noexcept;
 	bool ChoosePhysicalDevice(VkPhysicalDeviceType device_type) noexcept;
-	
-	#pragma region Resource management
-	#pragma endregion
+
+#pragma region Resource management
+#pragma endregion
 
 #pragma endregion
 
@@ -119,6 +129,14 @@ private:
 	VkPhysicalDevice m_p_physical_device_current;
 	VkSurfaceKHR m_p_surface;
 
+#if defined(RMLUI_PLATFORM_MACOSX)
+#elif defined(RMLUI_PLATFORM_LINUX)
+#elif defined(RMLUI_PLATFORM_WIN32)
+	HWND m_p_window_handle;
+#else
+	#error Platform is undefined and it doesn't supported by the RMLUI
+#endif
+
 	VkQueue m_p_queue_present;
 	VkQueue m_p_queue_graphics;
 	VkQueue m_p_queue_compute;
@@ -133,12 +151,7 @@ private:
 	Rml::Vector<const char*> m_instance_extension_names;
 	Rml::Vector<const char*> m_device_extension_names;
 
-#if defined(RMLUI_PLATFORM_MACOSX)
-#elif defined(RMLUI_PLATFORM_LINUX)
-#elif defined(RMLUI_PLATFORM_WIN32)
-#else
-	#error Platform is undefined and it doesn't supported by the RMLUI
-#endif
+	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
 };
 
 #endif

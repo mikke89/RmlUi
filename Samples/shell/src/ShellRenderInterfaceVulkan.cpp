@@ -83,8 +83,9 @@ void ShellRenderInterfaceVulkan::Initialize(void) noexcept
 {
 	this->Initialize_Instance();
 	this->Initialize_PhysicalDevice();
-	this->Initialize_Device();
 	this->Initialize_Surface();
+	this->Initialize_QueueIndecies();
+	this->Initialize_Device();
 	this->Initialize_Swapchain();
 }
 
@@ -92,7 +93,6 @@ void ShellRenderInterfaceVulkan::Shutdown(void) noexcept
 {
 	this->Destroy_Swapchain();
 	this->Destroy_Surface();
-	this->Destroy_PhysicalDevice();
 	this->Destroy_Device();
 	this->Destroy_ReportDebugCallback();
 	this->Destroy_Instance();
@@ -131,7 +131,7 @@ void ShellRenderInterfaceVulkan::Initialize_Instance(void) noexcept
 	this->CreateReportDebugCallback();
 }
 
-void ShellRenderInterfaceVulkan::Initialize_Device(void) noexcept 
+void ShellRenderInterfaceVulkan::Initialize_Device(void) noexcept
 {
 	this->CreatePropertiesFor_Device();
 	this->AddExtensionToDevice(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -164,11 +164,36 @@ void ShellRenderInterfaceVulkan::Initialize_PhysicalDevice(void) noexcept
 
 void ShellRenderInterfaceVulkan::Initialize_Swapchain(void) noexcept {}
 
-void ShellRenderInterfaceVulkan::Initialize_Surface(void) noexcept {}
-
-void ShellRenderInterfaceVulkan::Initialize_QueueIndecies(void) noexcept 
+void ShellRenderInterfaceVulkan::Initialize_Surface(void) noexcept
 {
+	VK_ASSERT(this->m_p_instance, "you must initialize your VkInstance");
 
+#if defined(RMLUI_PLATFORM_WIN32)
+	VkWin32SurfaceCreateInfoKHR info = {};
+
+	VkResult status = vkCreateWin32SurfaceKHR(this->m_p_instance, )
+#else
+#error this platform doesn't support Vulkan!!!
+#endif
+}
+
+void ShellRenderInterfaceVulkan::Initialize_QueueIndecies(void) noexcept
+{
+	VK_ASSERT(this->m_p_physical_device_current, "you must initialize your physical device");
+
+	uint32_t queue_family_count = 0;
+
+	vkGetPhysicalDeviceQueueFamilyProperties(this->m_p_physical_device_current, &queue_family_count, nullptr);
+
+	VK_ASSERT(queue_family_count >= 1, "failed to vkGetPhysicalDeviceQueueFamilyProperties (getting count)");
+
+	Rml::Vector<VkQueueFamilyProperties> queue_props;
+
+	queue_props.resize(queue_family_count);
+
+	vkGetPhysicalDeviceQueueFamilyProperties(this->m_p_physical_device_current, &queue_family_count, queue_props.data());
+
+	VK_ASSERT(queue_family_count >= 1, "failed to vkGetPhysicalDeviceQueueFamilyProperties (filling vector of VkQueueFamilyProperties)");
 }
 
 void ShellRenderInterfaceVulkan::Destroy_Instance(void) noexcept
@@ -363,7 +388,7 @@ bool ShellRenderInterfaceVulkan::IsExtensionPresent(const Rml::Vector<VkExtensio
 
 bool ShellRenderInterfaceVulkan::AddExtensionToDevice(const char* p_device_extension_name) noexcept
 {
-	if (this->IsExtensionPresent(this->m_device_extension_properties, p_device_extension_name)) 
+	if (this->IsExtensionPresent(this->m_device_extension_properties, p_device_extension_name))
 	{
 		this->m_device_extension_names.push_back(p_device_extension_name);
 		return true;
@@ -401,7 +426,7 @@ void ShellRenderInterfaceVulkan::CreatePropertiesFor_Device(void) noexcept
 
 	// On different OS Vulkan acts strange, so we can't get our extensions to just iterate through default functions
 	// We need to deeply analyze our layers and get specified extensions which pass user
-	// So we collect all extensions that are presented in physical device 
+	// So we collect all extensions that are presented in physical device
 	// And add when they exist to extension_names so we don't pass properties
 
 	if (instance_layer_property_count)
@@ -410,7 +435,7 @@ void ShellRenderInterfaceVulkan::CreatePropertiesFor_Device(void) noexcept
 
 		VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceLayerProperties (filling vector of VkLayerProperties)");
 
-		for (const auto& layer : layers) 
+		for (const auto& layer : layers)
 		{
 			extension_count = 0;
 
@@ -418,7 +443,7 @@ void ShellRenderInterfaceVulkan::CreatePropertiesFor_Device(void) noexcept
 
 			VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateDeviceExtensionProperties (getting count)");
 
-			if (extension_count) 
+			if (extension_count)
 			{
 				Rml::Vector<VkExtensionProperties> new_extensions;
 
@@ -429,9 +454,9 @@ void ShellRenderInterfaceVulkan::CreatePropertiesFor_Device(void) noexcept
 
 				VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateDeviceExtensionProperties (filling vector of VkExtensionProperties)");
 
-				for (const auto& extension : new_extensions) 
+				for (const auto& extension : new_extensions)
 				{
-					if (this->IsExtensionPresent(this->m_device_extension_properties, extension.extensionName) == false) 
+					if (this->IsExtensionPresent(this->m_device_extension_properties, extension.extensionName) == false)
 					{
 						Shell::Log("[Vulkan] obtained new device extension from layer[%s]: %s", layer.layerName, extension.extensionName);
 
