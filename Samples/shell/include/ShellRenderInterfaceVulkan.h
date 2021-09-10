@@ -83,6 +83,7 @@ private:
 	void Initialize_Swapchain(void) noexcept;
 	void Initialize_Surface(void) noexcept;
 	void Initialize_QueueIndecies(void) noexcept;
+	void Initialize_Queues(void) noexcept;
 
 	void Destroy_Instance(void) noexcept;
 	void Destroy_Device() noexcept;

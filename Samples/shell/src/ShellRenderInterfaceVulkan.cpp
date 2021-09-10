@@ -1,7 +1,7 @@
 #include "ShellRenderInterfaceVulkan.h"
 
 #define VK_ASSERT(statement, msg, ...)         \
-	if (!!(statement) == false)                    \
+	if (!!(statement) == false)                \
 	{                                          \
 		Shell::DisplayError(msg, __VA_ARGS__); \
 	}
@@ -24,13 +24,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 	return VK_FALSE;
 }
 
-ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan()
-{
-}
+ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() {}
 
-ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void)
-{
-}
+ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
@@ -69,13 +65,13 @@ void ShellRenderInterfaceVulkan::SetViewport(int width, int height) {}
 bool ShellRenderInterfaceVulkan::AttachToNative(void* nativeWindow)
 {
 	this->m_p_window_handle = reinterpret_cast<HWND>(nativeWindow);
-	
+
 	this->Initialize();
 
 	return true;
 }
 
-void ShellRenderInterfaceVulkan::DetachFromNative(void) 
+void ShellRenderInterfaceVulkan::DetachFromNative(void)
 {
 	this->Shutdown();
 }
@@ -91,6 +87,7 @@ void ShellRenderInterfaceVulkan::Initialize(void) noexcept
 	this->Initialize_Surface();
 	this->Initialize_QueueIndecies();
 	this->Initialize_Device();
+	this->Initialize_Queues();
 	this->Initialize_Swapchain();
 }
 
@@ -186,13 +183,14 @@ void ShellRenderInterfaceVulkan::Initialize_Surface(void) noexcept
 
 	VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateWin32SurfaceKHR");
 #else
-#error this platform doesn't support Vulkan!!!
+	#error this platform doesn't support Vulkan!!!
 #endif
 }
 
 void ShellRenderInterfaceVulkan::Initialize_QueueIndecies(void) noexcept
 {
 	VK_ASSERT(this->m_p_physical_device_current, "you must initialize your physical device");
+	VK_ASSERT(this->m_p_surface, "you must initialize VkSurfaceKHR before calling this method");
 
 	uint32_t queue_family_count = 0;
 
@@ -207,6 +205,93 @@ void ShellRenderInterfaceVulkan::Initialize_QueueIndecies(void) noexcept
 	vkGetPhysicalDeviceQueueFamilyProperties(this->m_p_physical_device_current, &queue_family_count, queue_props.data());
 
 	VK_ASSERT(queue_family_count >= 1, "failed to vkGetPhysicalDeviceQueueFamilyProperties (filling vector of VkQueueFamilyProperties)");
+
+	constexpr uint32_t kUint32Undefined = uint32_t(-1);
+
+	this->m_queue_index_compute = kUint32Undefined;
+	this->m_queue_index_graphics = kUint32Undefined;
+	this->m_queue_index_present = kUint32Undefined;
+
+	for (uint32_t i = 0; i < queue_family_count; ++i)
+	{
+		if ((queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0)
+		{
+			if (this->m_queue_index_graphics == kUint32Undefined)
+				this->m_queue_index_graphics = i;
+
+			VkBool32 is_support_present;
+
+			vkGetPhysicalDeviceSurfaceSupportKHR(this->m_p_physical_device_current, i, this->m_p_surface, &is_support_present);
+
+			// User's videocard may have same index for two queues like graphics and present
+
+			if (is_support_present == VK_TRUE)
+			{
+				this->m_queue_index_graphics = i;
+				this->m_queue_index_present = this->m_queue_index_graphics;
+				break;
+			}
+		}
+	}
+
+	if (this->m_queue_index_present == -1)
+	{
+		Shell::Log("[Vulkan] User doesn't have one index for two queues, so we need to find for present queue index");
+
+		for (uint32_t i = 0; i < queue_family_count; ++i)
+		{
+			VkBool32 is_support_present;
+
+			vkGetPhysicalDeviceSurfaceSupportKHR(this->m_p_physical_device_current, i, this->m_p_surface, &is_support_present);
+
+			if (is_support_present == VK_TRUE)
+			{
+				this->m_queue_index_present = i;
+				break;
+			}
+		}
+	}
+
+	for (uint32_t i = 0; i < queue_family_count; ++i)
+	{
+		if ((queue_props[i].queueFlags & VK_QUEUE_COMPUTE_BIT) != 0)
+		{
+			if (this->m_queue_index_compute == kUint32Undefined)
+				this->m_queue_index_compute = i;
+
+			if (i != this->m_queue_index_graphics)
+			{
+				this->m_queue_index_compute = i;
+				break;
+			}
+		}
+	}
+
+	Shell::Log("[Vulkan] User family queues indecies: Graphics[%d] Present[%d] Compute[%d]", this->m_queue_index_graphics,
+		this->m_queue_index_present, this->m_queue_index_compute);
+}
+
+void ShellRenderInterfaceVulkan::Initialize_Queues(void) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must initialize VkDevice before using this method");
+
+	vkGetDeviceQueue(this->m_p_device, this->m_queue_index_graphics, 0, &this->m_p_queue_graphics);
+
+	if (this->m_queue_index_graphics == this->m_queue_index_present) 
+	{
+		this->m_p_queue_present = this->m_p_queue_graphics;
+	}
+	else
+	{
+		vkGetDeviceQueue(this->m_p_device, this->m_queue_index_present, 0, &this->m_p_queue_present);
+	}
+
+	constexpr uint32_t kUint32Undefined = uint32_t(-1);
+
+	if (this->m_queue_index_compute != kUint32Undefined) 
+	{
+		vkGetDeviceQueue(this->m_p_device, this->m_queue_index_compute, 0, &this->m_p_queue_compute);
+	}
 }
 
 void ShellRenderInterfaceVulkan::Destroy_Instance(void) noexcept
@@ -221,7 +306,7 @@ void ShellRenderInterfaceVulkan::Destroy_Device() noexcept
 
 void ShellRenderInterfaceVulkan::Destroy_Swapchain(void) noexcept {}
 
-void ShellRenderInterfaceVulkan::Destroy_Surface(void) noexcept 
+void ShellRenderInterfaceVulkan::Destroy_Surface(void) noexcept
 {
 	vkDestroySurfaceKHR(this->m_p_instance, this->m_p_surface, nullptr);
 }
