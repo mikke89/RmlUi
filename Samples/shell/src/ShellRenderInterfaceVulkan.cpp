@@ -138,6 +138,57 @@ void ShellRenderInterfaceVulkan::Initialize_Device(void) noexcept
 	this->CreatePropertiesFor_Device();
 	this->AddExtensionToDevice(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	this->AddExtensionToDevice(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
+
+	float queue_priorities[1] = {0.0f};
+
+	VkDeviceQueueCreateInfo info_queue[2] = {};
+
+	info_queue[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	info_queue[0].pNext = nullptr;
+	info_queue[0].queueCount = 1;
+	info_queue[0].pQueuePriorities = queue_priorities;
+	info_queue[0].queueFamilyIndex = this->m_queue_index_graphics;
+
+	info_queue[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	info_queue[1].pNext = nullptr;
+	info_queue[1].queueCount = 1;
+	info_queue[1].pQueuePriorities = queue_priorities;
+	info_queue[1].queueFamilyIndex = this->m_queue_index_compute;
+
+	VkPhysicalDeviceFeatures features_physical_device = {};
+
+	features_physical_device.fillModeNonSolid = true;
+	features_physical_device.pipelineStatisticsQuery = true;
+	features_physical_device.fragmentStoresAndAtomics = true;
+	features_physical_device.vertexPipelineStoresAndAtomics = true;
+	features_physical_device.shaderImageGatherExtended = true;
+	features_physical_device.wideLines = true;
+
+	VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR shader_subgroup_extended_type = {};
+
+	shader_subgroup_extended_type.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES_KHR;
+	shader_subgroup_extended_type.pNext = nullptr;
+	shader_subgroup_extended_type.shaderSubgroupExtendedTypes = VK_TRUE;
+
+	VkPhysicalDeviceFeatures2 features_physical_device2 = {};
+
+	features_physical_device2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+	features_physical_device2.features = features_physical_device;
+	features_physical_device2.pNext = &shader_subgroup_extended_type;
+
+	VkDeviceCreateInfo info_device = {};
+
+	info_device.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	info_device.pNext = &features_physical_device2;
+	info_device.queueCreateInfoCount = 2;
+	info_device.pQueueCreateInfos = info_queue;
+	info_device.enabledExtensionCount = this->m_device_extension_names.size();
+	info_device.ppEnabledExtensionNames = info_device.enabledExtensionCount ? this->m_device_extension_names.data() : nullptr;
+	info_device.pEnabledFeatures = nullptr;
+
+	VkResult status = vkCreateDevice(this->m_p_physical_device_current, &info_device, nullptr, &this->m_p_device);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateDevice");
 }
 
 void ShellRenderInterfaceVulkan::Initialize_PhysicalDevice(void) noexcept
@@ -277,7 +328,7 @@ void ShellRenderInterfaceVulkan::Initialize_Queues(void) noexcept
 
 	vkGetDeviceQueue(this->m_p_device, this->m_queue_index_graphics, 0, &this->m_p_queue_graphics);
 
-	if (this->m_queue_index_graphics == this->m_queue_index_present) 
+	if (this->m_queue_index_graphics == this->m_queue_index_present)
 	{
 		this->m_p_queue_present = this->m_p_queue_graphics;
 	}
@@ -288,7 +339,7 @@ void ShellRenderInterfaceVulkan::Initialize_Queues(void) noexcept
 
 	constexpr uint32_t kUint32Undefined = uint32_t(-1);
 
-	if (this->m_queue_index_compute != kUint32Undefined) 
+	if (this->m_queue_index_compute != kUint32Undefined)
 	{
 		vkGetDeviceQueue(this->m_p_device, this->m_queue_index_compute, 0, &this->m_p_queue_compute);
 	}
