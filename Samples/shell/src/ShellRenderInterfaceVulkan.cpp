@@ -70,7 +70,9 @@ void ShellRenderInterfaceVulkan::SetViewport(int width, int height) {}
 
 bool ShellRenderInterfaceVulkan::AttachToNative(void* nativeWindow)
 {
-	return false;
+	this->m_p_window_handle = reinterpret_cast<HWND>(nativeWindow);
+
+	return true;
 }
 
 void ShellRenderInterfaceVulkan::DetachFromNative(void) {}
