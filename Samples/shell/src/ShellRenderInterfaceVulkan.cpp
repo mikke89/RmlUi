@@ -169,9 +169,17 @@ void ShellRenderInterfaceVulkan::Initialize_Surface(void) noexcept
 	VK_ASSERT(this->m_p_instance, "you must initialize your VkInstance");
 
 #if defined(RMLUI_PLATFORM_WIN32)
+	VK_ASSERT(this->m_p_window_handle, "you must initialize your window before creating Surface!");
+
 	VkWin32SurfaceCreateInfoKHR info = {};
 
-	VkResult status = vkCreateWin32SurfaceKHR(this->m_p_instance, )
+	info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	info.hinstance = GetModuleHandle(NULL);
+	info.hwnd = this->m_p_window_handle;
+
+	VkResult status = vkCreateWin32SurfaceKHR(this->m_p_instance, &info, nullptr, &this->m_p_surface);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateWin32SurfaceKHR");
 #else
 #error this platform doesn't support Vulkan!!!
 #endif
@@ -201,11 +209,17 @@ void ShellRenderInterfaceVulkan::Destroy_Instance(void) noexcept
 	vkDestroyInstance(this->m_p_instance, nullptr);
 }
 
-void ShellRenderInterfaceVulkan::Destroy_Device() noexcept {}
+void ShellRenderInterfaceVulkan::Destroy_Device() noexcept
+{
+	vkDestroyDevice(this->m_p_device, nullptr);
+}
 
 void ShellRenderInterfaceVulkan::Destroy_Swapchain(void) noexcept {}
 
-void ShellRenderInterfaceVulkan::Destroy_Surface(void) noexcept {}
+void ShellRenderInterfaceVulkan::Destroy_Surface(void) noexcept 
+{
+	vkDestroySurfaceKHR(this->m_p_instance, this->m_p_surface, nullptr);
+}
 
 void ShellRenderInterfaceVulkan::QueryInstanceLayers(void) noexcept
 {
