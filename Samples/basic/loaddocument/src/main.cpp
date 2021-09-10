@@ -71,7 +71,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
     int window_height = 768;
 
 	// TODO: [From diamondhat] implemnet choosing renderer...
-//	ShellRenderInterfaceOpenGL opengl_renderer;
+	ShellRenderInterfaceOpenGL opengl_renderer;
 	ShellRenderInterfaceVulkan vulkan_renderer;
 
 	shell_renderer = &vulkan_renderer;

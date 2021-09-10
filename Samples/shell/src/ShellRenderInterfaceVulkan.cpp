@@ -26,12 +26,10 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 
 ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan()
 {
-	this->Initialize();
 }
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void)
 {
-	this->Shutdown();
 }
 
 void ShellRenderInterfaceVulkan::RenderGeometry(
@@ -71,11 +69,16 @@ void ShellRenderInterfaceVulkan::SetViewport(int width, int height) {}
 bool ShellRenderInterfaceVulkan::AttachToNative(void* nativeWindow)
 {
 	this->m_p_window_handle = reinterpret_cast<HWND>(nativeWindow);
+	
+	this->Initialize();
 
 	return true;
 }
 
-void ShellRenderInterfaceVulkan::DetachFromNative(void) {}
+void ShellRenderInterfaceVulkan::DetachFromNative(void) 
+{
+	this->Shutdown();
+}
 
 void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void) {}
 
