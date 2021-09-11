@@ -832,6 +832,10 @@ VkExtent2D ShellRenderInterfaceVulkan::CreateValidSwapchainExtent(void) noexcept
 			result.height = caps.maxImageExtent.height;
 		}
 	}
+	else
+	{
+		result = caps.currentExtent;
+	}
 
 	return result;
 }
