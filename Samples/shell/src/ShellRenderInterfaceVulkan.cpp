@@ -28,7 +28,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 constexpr uint32_t kSwapchainBackBufferCount = 3;
 #pragma endregion
 
-ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() {}
+ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() : m_is_transform_enabled(false), m_width(0), m_height(0), m_queue_index_present(0), m_queue_index_graphics(0), m_queue_index_compute(0), m_p_instance(nullptr), m_p_device(nullptr), m_p_physical_device_current(nullptr), m_p_surface(nullptr), m_p_swapchain(nullptr), m_p_window_handle(nullptr), m_p_queue_present(nullptr), m_p_queue_graphics(nullptr), m_p_queue_compute(nullptr)  {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 
@@ -64,7 +64,10 @@ void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handl
 
 void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform) {}
 
-void ShellRenderInterfaceVulkan::SetViewport(int width, int height) {}
+void ShellRenderInterfaceVulkan::SetViewport(int width, int height) 
+{
+	this->OnResize(width, height);
+}
 
 bool ShellRenderInterfaceVulkan::AttachToNative(void* nativeWindow)
 {
@@ -92,7 +95,6 @@ void ShellRenderInterfaceVulkan::Initialize(void) noexcept
 	this->Initialize_QueueIndecies();
 	this->Initialize_Device();
 	this->Initialize_Queues();
-	this->Initialize_Swapchain();
 }
 
 void ShellRenderInterfaceVulkan::Shutdown(void) noexcept
@@ -108,7 +110,11 @@ void ShellRenderInterfaceVulkan::OnResize(int width, int height) noexcept
 {
 	this->m_width = width;
 	this->m_height = height;
-	this->Destroy_Swapchain();
+
+	if (this->m_p_swapchain) {
+		this->Destroy_Swapchain();
+	}
+
 	this->Initialize_Swapchain();
 }
 
