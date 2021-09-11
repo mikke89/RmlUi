@@ -28,7 +28,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 constexpr uint32_t kSwapchainBackBufferCount = 3;
 #pragma endregion
 
-ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() : m_is_transform_enabled(false), m_width(0), m_height(0), m_queue_index_present(0), m_queue_index_graphics(0), m_queue_index_compute(0), m_p_instance(nullptr), m_p_device(nullptr), m_p_physical_device_current(nullptr), m_p_surface(nullptr), m_p_swapchain(nullptr), m_p_window_handle(nullptr), m_p_queue_present(nullptr), m_p_queue_graphics(nullptr), m_p_queue_compute(nullptr)  {}
+ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
+	m_is_transform_enabled(false), m_width(0), m_height(0), m_queue_index_present(0), m_queue_index_graphics(0), m_queue_index_compute(0),
+	m_semaphore_index(0), m_semaphore_index_previous(0), m_p_instance(nullptr), m_p_device(nullptr), m_p_physical_device_current(nullptr),
+	m_p_surface(nullptr), m_p_swapchain(nullptr), m_p_window_handle(nullptr), m_p_queue_present(nullptr), m_p_queue_graphics(nullptr),
+	m_p_queue_compute(nullptr)
+{}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 
@@ -64,7 +69,7 @@ void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handl
 
 void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform) {}
 
-void ShellRenderInterfaceVulkan::SetViewport(int width, int height) 
+void ShellRenderInterfaceVulkan::SetViewport(int width, int height)
 {
 	this->OnResize(width, height);
 }
@@ -83,9 +88,16 @@ void ShellRenderInterfaceVulkan::DetachFromNative(void)
 	this->Shutdown();
 }
 
-void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void) {}
+void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void)
+{
+	this->Wait();
+}
 
-void ShellRenderInterfaceVulkan::PresentRenderBuffer(void) {}
+void ShellRenderInterfaceVulkan::PresentRenderBuffer(void)
+{
+	this->Submit();
+	this->Present();
+}
 
 void ShellRenderInterfaceVulkan::Initialize(void) noexcept
 {
@@ -113,7 +125,8 @@ void ShellRenderInterfaceVulkan::OnResize(int width, int height) noexcept
 	this->m_width = width;
 	this->m_height = height;
 
-	if (this->m_p_swapchain) {
+	if (this->m_p_swapchain)
+	{
 		this->Destroy_Swapchain();
 	}
 
@@ -235,7 +248,7 @@ void ShellRenderInterfaceVulkan::Initialize_PhysicalDevice(void) noexcept
 	}
 }
 
-void ShellRenderInterfaceVulkan::Initialize_Swapchain(void) noexcept 
+void ShellRenderInterfaceVulkan::Initialize_Swapchain(void) noexcept
 {
 	VkSwapchainCreateInfoKHR info = {};
 
@@ -262,12 +275,9 @@ void ShellRenderInterfaceVulkan::Initialize_Swapchain(void) noexcept
 	uint32_t queue_family_index_present = this->m_queue_index_present;
 	uint32_t queue_family_index_graphics = this->m_queue_index_graphics;
 
-	if (queue_family_index_graphics != queue_family_index_present) 
+	if (queue_family_index_graphics != queue_family_index_present)
 	{
-		uint32_t p_indecies[2] = {
-			queue_family_index_graphics,
-			queue_family_index_present
-		};
+		uint32_t p_indecies[2] = {queue_family_index_graphics, queue_family_index_present};
 
 		info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		info.queueFamilyIndexCount = sizeof(p_indecies) / sizeof(p_indecies[0]);
@@ -407,7 +417,7 @@ void ShellRenderInterfaceVulkan::Initialize_Queues(void) noexcept
 	}
 }
 
-void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept 
+void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "you must initialize your device");
 
@@ -417,7 +427,7 @@ void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept
 
 	VkResult status = VK_SUCCESS;
 
-	for (uint32_t i = 0; i < kSwapchainBackBufferCount; ++i) 
+	for (uint32_t i = 0; i < kSwapchainBackBufferCount; ++i)
 	{
 		VkFenceCreateInfo info_fence = {};
 
@@ -455,10 +465,10 @@ void ShellRenderInterfaceVulkan::Destroy_Device() noexcept
 	vkDestroyDevice(this->m_p_device, nullptr);
 }
 
-void ShellRenderInterfaceVulkan::Destroy_Swapchain(void) noexcept 
+void ShellRenderInterfaceVulkan::Destroy_Swapchain(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "you must initialize device");
-	
+
 	vkDestroySwapchainKHR(this->m_p_device, this->m_p_swapchain, nullptr);
 }
 
@@ -467,19 +477,19 @@ void ShellRenderInterfaceVulkan::Destroy_Surface(void) noexcept
 	vkDestroySurfaceKHR(this->m_p_instance, this->m_p_surface, nullptr);
 }
 
-void ShellRenderInterfaceVulkan::Destroy_SyncPrimitives(void) noexcept 
+void ShellRenderInterfaceVulkan::Destroy_SyncPrimitives(void) noexcept
 {
-	for (auto& p_fence : this->m_executed_fences) 
+	for (auto& p_fence : this->m_executed_fences)
 	{
 		vkDestroyFence(this->m_p_device, p_fence, nullptr);
 	}
 
-	for (auto& p_semaphore : this->m_semaphores_image_available) 
+	for (auto& p_semaphore : this->m_semaphores_image_available)
 	{
 		vkDestroySemaphore(this->m_p_device, p_semaphore, nullptr);
 	}
 
-	for (auto& p_semaphore : this->m_semaphores_finished_render) 
+	for (auto& p_semaphore : this->m_semaphores_finished_render)
 	{
 		vkDestroySemaphore(this->m_p_device, p_semaphore, nullptr);
 	}
@@ -892,7 +902,7 @@ VkExtent2D ShellRenderInterfaceVulkan::CreateValidSwapchainExtent(void) noexcept
 	}
 	else
 	{
-		result = caps.currentExtent;
+		return caps.currentExtent;
 	}
 
 	return result;
@@ -952,7 +962,7 @@ VkPresentModeKHR ShellRenderInterfaceVulkan::GetPresentMode(VkPresentModeKHR req
 
 	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfacePresentModesKHR (filling vector of VkPresentModeKHR)");
 
-	for (const auto& mode : present_modes) 
+	for (const auto& mode : present_modes)
 	{
 		if (mode == required)
 			return result;
@@ -976,4 +986,85 @@ VkSurfaceCapabilitiesKHR ShellRenderInterfaceVulkan::GetSurfaceCapabilities(void
 	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
 
 	return result;
+}
+
+void ShellRenderInterfaceVulkan::Wait(void) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must initialize device");
+	VK_ASSERT(this->m_p_swapchain, "you must initialize swapchain");
+
+	constexpr uint64_t kMaxUint64 = std::numeric_limits<uint64_t>::max();
+
+	vkAcquireNextImageKHR(this->m_p_device, this->m_p_swapchain, kMaxUint64, this->m_semaphores_image_available.at(this->m_semaphore_index), nullptr,
+		&this->m_image_index);
+
+	this->m_semaphore_index_previous = this->m_semaphore_index;
+	++this->m_semaphore_index;
+
+	if (this->m_semaphore_index >= kSwapchainBackBufferCount)
+		this->m_semaphore_index = 0;
+
+	vkWaitForFences(this->m_p_device, 1, &this->m_executed_fences[this->m_semaphore_index_previous], VK_TRUE, kMaxUint64);
+
+	vkResetFences(this->m_p_device, 1, &this->m_executed_fences[this->m_semaphore_index_previous]);
+}
+
+void ShellRenderInterfaceVulkan::Submit(void) noexcept 
+{
+	const VkSemaphore p_semaphores_wait[] = {
+		this->m_semaphores_image_available.at(this->m_semaphore_index_previous)
+	};
+
+	const VkSemaphore p_semaphores_signal[] = {
+		this->m_semaphores_finished_render.at(this->m_semaphore_index)
+	};
+
+	VkFence p_fence = this->m_executed_fences.at(this->m_semaphore_index_previous);
+
+	VkPipelineStageFlags submit_wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+	VkSubmitInfo info = {};
+
+
+	info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	info.pNext = nullptr;
+	info.waitSemaphoreCount = 1;
+	info.pWaitSemaphores = p_semaphores_wait;
+	info.pWaitDstStageMask = &submit_wait_stage;
+	info.signalSemaphoreCount = 1;
+	info.pSignalSemaphores = p_semaphores_signal;
+	info.commandBufferCount = 0;
+	info.pCommandBuffers = nullptr;
+
+	VkResult status = vkQueueSubmit(this->m_p_queue_graphics, 1, &info, p_fence);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkQueueSubmit");
+}
+
+void ShellRenderInterfaceVulkan::Present(void) noexcept
+{
+	VkPresentInfoKHR info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	info.pNext = nullptr;
+	info.waitSemaphoreCount = 1;
+	info.pWaitSemaphores = &(this->m_semaphores_finished_render.at(this->m_semaphore_index));
+	info.swapchainCount = 1;
+	info.pSwapchains = &this->m_p_swapchain;
+	info.pImageIndices = &this->m_image_index;
+	info.pResults = nullptr;
+
+	VkResult status = vkQueuePresentKHR(this->m_p_queue_present, &info);
+
+	if (!(status == VK_SUCCESS)) 
+	{
+		if (status == VK_ERROR_OUT_OF_DATE_KHR) 
+		{
+			this->OnResize(this->m_width, this->m_height);
+		}
+		else
+		{
+			VK_ASSERT(status == VK_SUCCESS, "failed to vkQueuePresentKHR");
+		}
+	}
 }

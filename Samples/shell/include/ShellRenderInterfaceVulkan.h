@@ -122,6 +122,10 @@ private:
 	VkPresentModeKHR GetPresentMode(VkPresentModeKHR type = VkPresentModeKHR::VK_PRESENT_MODE_FIFO_KHR) noexcept;
 	VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(void) noexcept;
 
+	void Wait(void) noexcept;
+	void Submit(void) noexcept;
+	void Present(void) noexcept;
+
 #pragma region Resource management
 #pragma endregion
 
@@ -135,6 +139,9 @@ private:
 	uint32_t m_queue_index_present;
 	uint32_t m_queue_index_graphics;
 	uint32_t m_queue_index_compute;
+	uint32_t m_semaphore_index;
+	uint32_t m_semaphore_index_previous;
+	uint32_t m_image_index;
 
 	VkInstance m_p_instance;
 	VkDevice m_p_device;
