@@ -86,11 +86,13 @@ private:
 	void Initialize_Surface(void) noexcept;
 	void Initialize_QueueIndecies(void) noexcept;
 	void Initialize_Queues(void) noexcept;
+	void Initialize_SyncPrimitives(void) noexcept;
 
 	void Destroy_Instance(void) noexcept;
 	void Destroy_Device() noexcept;
 	void Destroy_Swapchain(void) noexcept;
 	void Destroy_Surface(void) noexcept;
+	void Destroy_SyncPrimitives(void) noexcept;
 
 	void QueryInstanceLayers(void) noexcept;
 	void QueryInstanceExtensions(void) noexcept;
@@ -160,6 +162,9 @@ private:
 	Rml::Vector<const char*> m_instance_layer_names;
 	Rml::Vector<const char*> m_instance_extension_names;
 	Rml::Vector<const char*> m_device_extension_names;
+	Rml::Vector<VkFence> m_executed_fences;
+	Rml::Vector<VkSemaphore> m_semaphores_image_available;
+	Rml::Vector<VkSemaphore> m_semaphores_finished_render;
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
 	VkSurfaceFormatKHR m_swapchain_format;

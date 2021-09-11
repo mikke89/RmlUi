@@ -95,10 +95,12 @@ void ShellRenderInterfaceVulkan::Initialize(void) noexcept
 	this->Initialize_QueueIndecies();
 	this->Initialize_Device();
 	this->Initialize_Queues();
+	this->Initialize_SyncPrimitives();
 }
 
 void ShellRenderInterfaceVulkan::Shutdown(void) noexcept
 {
+	this->Destroy_SyncPrimitives();
 	this->Destroy_Swapchain();
 	this->Destroy_Surface();
 	this->Destroy_Device();
@@ -405,6 +407,44 @@ void ShellRenderInterfaceVulkan::Initialize_Queues(void) noexcept
 	}
 }
 
+void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept 
+{
+	VK_ASSERT(this->m_p_device, "you must initialize your device");
+
+	this->m_executed_fences.resize(kSwapchainBackBufferCount);
+	this->m_semaphores_finished_render.resize(kSwapchainBackBufferCount);
+	this->m_semaphores_image_available.resize(kSwapchainBackBufferCount);
+
+	VkResult status = VK_SUCCESS;
+
+	for (uint32_t i = 0; i < kSwapchainBackBufferCount; ++i) 
+	{
+		VkFenceCreateInfo info_fence = {};
+
+		info_fence.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		info_fence.pNext = nullptr;
+		info_fence.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+		status = vkCreateFence(this->m_p_device, &info_fence, nullptr, &this->m_executed_fences[i]);
+
+		VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateFence");
+
+		VkSemaphoreCreateInfo info_semaphore = {};
+
+		info_semaphore.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		info_semaphore.pNext = nullptr;
+		info_semaphore.flags = 0;
+
+		status = vkCreateSemaphore(this->m_p_device, &info_semaphore, nullptr, &this->m_semaphores_image_available[i]);
+
+		VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateSemaphore");
+
+		status = vkCreateSemaphore(this->m_p_device, &info_semaphore, nullptr, &this->m_semaphores_finished_render[i]);
+
+		VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateSemaphore");
+	}
+}
+
 void ShellRenderInterfaceVulkan::Destroy_Instance(void) noexcept
 {
 	vkDestroyInstance(this->m_p_instance, nullptr);
@@ -425,6 +465,24 @@ void ShellRenderInterfaceVulkan::Destroy_Swapchain(void) noexcept
 void ShellRenderInterfaceVulkan::Destroy_Surface(void) noexcept
 {
 	vkDestroySurfaceKHR(this->m_p_instance, this->m_p_surface, nullptr);
+}
+
+void ShellRenderInterfaceVulkan::Destroy_SyncPrimitives(void) noexcept 
+{
+	for (auto& p_fence : this->m_executed_fences) 
+	{
+		vkDestroyFence(this->m_p_device, p_fence, nullptr);
+	}
+
+	for (auto& p_semaphore : this->m_semaphores_image_available) 
+	{
+		vkDestroySemaphore(this->m_p_device, p_semaphore, nullptr);
+	}
+
+	for (auto& p_semaphore : this->m_semaphores_finished_render) 
+	{
+		vkDestroySemaphore(this->m_p_device, p_semaphore, nullptr);
+	}
 }
 
 void ShellRenderInterfaceVulkan::QueryInstanceLayers(void) noexcept
