@@ -10,16 +10,16 @@
 
 /**
  * Low level Vulkan render interface for RmlUi
- * 
+ *
  * My aim is to create compact, but easy to use class
- * I understand that it doesn't good architectural choice to keep all things in one class 
+ * I understand that it doesn't good architectural choice to keep all things in one class
  * But I follow to RMLUI design and for implementing one GAPI backend it just needs one class
  * For user looks cool, but for programmer...
- * 
+ *
  * It's better to try operate with very clean 'one-class' architecture rather than create own library for Vulkan
  * With many different classes, with not trivial signatures and etc
- * And we should document that library so it's just a headache for all of us 
- * 
+ * And we should document that library so it's just a headache for all of us
+ *
  * @author diamondhat
  */
 
@@ -77,6 +77,8 @@ private:
 	void Initialize(void) noexcept;
 	void Shutdown(void) noexcept;
 
+	void OnResize(int width, int height) noexcept;
+
 	void Initialize_Instance(void) noexcept;
 	void Initialize_Device(void) noexcept;
 	void Initialize_PhysicalDevice(void) noexcept;
@@ -111,6 +113,13 @@ private:
 	void CollectPhysicalDevices(void) noexcept;
 	bool ChoosePhysicalDevice(VkPhysicalDeviceType device_type) noexcept;
 
+	VkSurfaceFormatKHR ChooseSwapchainFormat(void) noexcept;
+	VkExtent2D CreateValidSwapchainExtent(void) noexcept;
+	VkSurfaceTransformFlagBitsKHR CreatePretransformSwapchain(void) noexcept;
+	VkCompositeAlphaFlagBitsKHR ChooseSwapchainCompositeAlpha(void) noexcept;
+	VkPresentModeKHR GetPresentMode(VkPresentModeKHR type = VkPresentModeKHR::VK_PRESENT_MODE_FIFO_KHR) noexcept;
+	VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(void) noexcept;
+
 #pragma region Resource management
 #pragma endregion
 
@@ -129,7 +138,7 @@ private:
 	VkDevice m_p_device;
 	VkPhysicalDevice m_p_physical_device_current;
 	VkSurfaceKHR m_p_surface;
-
+	VkSwapchainKHR m_p_swapchain;
 #if defined(RMLUI_PLATFORM_MACOSX)
 #elif defined(RMLUI_PLATFORM_LINUX)
 #elif defined(RMLUI_PLATFORM_WIN32)
@@ -153,6 +162,7 @@ private:
 	Rml::Vector<const char*> m_device_extension_names;
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
+	VkSurfaceFormatKHR m_swapchain_format;
 };
 
 #endif

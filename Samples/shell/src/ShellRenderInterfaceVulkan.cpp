@@ -24,6 +24,10 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 	return VK_FALSE;
 }
 
+#pragma region System Constants for Vulkan API
+constexpr uint32_t kSwapchainBackBufferCount = 3;
+#pragma endregion
+
 ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
@@ -98,6 +102,14 @@ void ShellRenderInterfaceVulkan::Shutdown(void) noexcept
 	this->Destroy_Device();
 	this->Destroy_ReportDebugCallback();
 	this->Destroy_Instance();
+}
+
+void ShellRenderInterfaceVulkan::OnResize(int width, int height) noexcept
+{
+	this->m_width = width;
+	this->m_height = height;
+	this->Destroy_Swapchain();
+	this->Initialize_Swapchain();
 }
 
 void ShellRenderInterfaceVulkan::Initialize_Instance(void) noexcept
@@ -215,7 +227,49 @@ void ShellRenderInterfaceVulkan::Initialize_PhysicalDevice(void) noexcept
 	}
 }
 
-void ShellRenderInterfaceVulkan::Initialize_Swapchain(void) noexcept {}
+void ShellRenderInterfaceVulkan::Initialize_Swapchain(void) noexcept 
+{
+	VkSwapchainCreateInfoKHR info = {};
+
+	this->m_swapchain_format = this->ChooseSwapchainFormat();
+
+	info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	info.pNext = nullptr;
+	info.surface = this->m_p_surface;
+	info.imageFormat = this->m_swapchain_format.format;
+	info.minImageCount = kSwapchainBackBufferCount;
+	info.imageColorSpace = this->m_swapchain_format.colorSpace;
+	info.imageExtent = this->CreateValidSwapchainExtent();
+	info.preTransform = this->CreatePretransformSwapchain();
+	info.compositeAlpha = this->ChooseSwapchainCompositeAlpha();
+	info.imageArrayLayers = 1;
+	info.presentMode = this->GetPresentMode();
+	info.oldSwapchain = nullptr;
+	info.clipped = true;
+	info.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	info.queueFamilyIndexCount = 0;
+	info.pQueueFamilyIndices = nullptr;
+
+	uint32_t queue_family_index_present = this->m_queue_index_present;
+	uint32_t queue_family_index_graphics = this->m_queue_index_graphics;
+
+	if (queue_family_index_graphics != queue_family_index_present) 
+	{
+		uint32_t p_indecies[2] = {
+			queue_family_index_graphics,
+			queue_family_index_present
+		};
+
+		info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+		info.queueFamilyIndexCount = sizeof(p_indecies) / sizeof(p_indecies[0]);
+		info.pQueueFamilyIndices = p_indecies;
+	}
+
+	VkResult status = vkCreateSwapchainKHR(this->m_p_device, &info, nullptr, &this->m_p_swapchain);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateSwapchainKHR");
+}
 
 void ShellRenderInterfaceVulkan::Initialize_Surface(void) noexcept
 {
@@ -355,7 +409,12 @@ void ShellRenderInterfaceVulkan::Destroy_Device() noexcept
 	vkDestroyDevice(this->m_p_device, nullptr);
 }
 
-void ShellRenderInterfaceVulkan::Destroy_Swapchain(void) noexcept {}
+void ShellRenderInterfaceVulkan::Destroy_Swapchain(void) noexcept 
+{
+	VK_ASSERT(this->m_p_device, "you must initialize device");
+	
+	vkDestroySwapchainKHR(this->m_p_device, this->m_p_swapchain, nullptr);
+}
 
 void ShellRenderInterfaceVulkan::Destroy_Surface(void) noexcept
 {
@@ -712,4 +771,141 @@ bool ShellRenderInterfaceVulkan::ChoosePhysicalDevice(VkPhysicalDeviceType devic
 	}
 
 	return false;
+}
+
+VkSurfaceFormatKHR ShellRenderInterfaceVulkan::ChooseSwapchainFormat(void) noexcept
+{
+	VK_ASSERT(this->m_p_physical_device_current, "you must initialize your physical device, before calling this method");
+	VK_ASSERT(this->m_p_surface, "you must initialize your surface, before calling this method");
+
+	uint32_t surface_count = 0;
+
+	VkResult status = vkGetPhysicalDeviceSurfaceFormatsKHR(this->m_p_physical_device_current, this->m_p_surface, &surface_count, nullptr);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfaceFormatsKHR (getting count)");
+
+	Rml::Vector<VkSurfaceFormatKHR> formats(surface_count);
+
+	status = vkGetPhysicalDeviceSurfaceFormatsKHR(this->m_p_physical_device_current, this->m_p_surface, &surface_count, formats.data());
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfaceFormatsKHR (filling vector of VkSurfaceFormatKHR)");
+
+	return formats.front();
+}
+
+VkExtent2D ShellRenderInterfaceVulkan::CreateValidSwapchainExtent(void) noexcept
+{
+	VkSurfaceCapabilitiesKHR caps = this->GetSurfaceCapabilities();
+
+	VkExtent2D result;
+
+	result.width = this->m_width;
+	result.height = this->m_height;
+
+	/*
+	    https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSurfaceCapabilitiesKHR.html
+	*/
+
+	if (caps.currentExtent.width == 0xFFFFFFFF)
+	{
+		if (result.width < caps.minImageExtent.width)
+		{
+			result.width = caps.minImageExtent.width;
+		}
+		else if (result.width > caps.maxImageExtent.width)
+		{
+			result.width = caps.maxImageExtent.width;
+		}
+
+		if (result.height < caps.minImageExtent.height)
+		{
+			result.height = caps.minImageExtent.height;
+		}
+		else if (result.height > caps.maxImageExtent.height)
+		{
+			result.height = caps.maxImageExtent.height;
+		}
+	}
+
+	return result;
+}
+
+VkSurfaceTransformFlagBitsKHR ShellRenderInterfaceVulkan::CreatePretransformSwapchain(void) noexcept
+{
+	auto caps = this->GetSurfaceCapabilities();
+
+	VkSurfaceTransformFlagBitsKHR result =
+		(caps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR : caps.currentTransform;
+
+	return result;
+}
+
+VkCompositeAlphaFlagBitsKHR ShellRenderInterfaceVulkan::ChooseSwapchainCompositeAlpha(void) noexcept
+{
+	auto caps = this->GetSurfaceCapabilities();
+
+	VkCompositeAlphaFlagBitsKHR result = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+
+	VkCompositeAlphaFlagBitsKHR composite_alpha_flags[4] = {VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR, VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
+		VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR, VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR};
+
+	for (uint32_t i = 0; i < sizeof(composite_alpha_flags); ++i)
+	{
+		if (caps.supportedCompositeAlpha & composite_alpha_flags[i])
+		{
+			result = composite_alpha_flags[i];
+			break;
+		}
+	}
+
+	return result;
+}
+
+// https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPresentModeKHR.html
+// VK_PRESENT_MODE_FIFO_KHR system must support this mode at least so by default we want to use it otherwise user can specify his mode
+VkPresentModeKHR ShellRenderInterfaceVulkan::GetPresentMode(VkPresentModeKHR required) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must initialize your device, before calling this method");
+	VK_ASSERT(this->m_p_physical_device_current, "you must initialize your physical device, before calling this method");
+	VK_ASSERT(this->m_p_surface, "you must initialize your surface, before calling this method");
+
+	VkPresentModeKHR result = required;
+
+	uint32_t present_modes_count = 0;
+
+	VkResult status = vkGetPhysicalDeviceSurfacePresentModesKHR(this->m_p_physical_device_current, this->m_p_surface, &present_modes_count, nullptr);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfacePresentModesKHR (getting count)");
+
+	Rml::Vector<VkPresentModeKHR> present_modes(present_modes_count);
+
+	status =
+		vkGetPhysicalDeviceSurfacePresentModesKHR(this->m_p_physical_device_current, this->m_p_surface, &present_modes_count, present_modes.data());
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfacePresentModesKHR (filling vector of VkPresentModeKHR)");
+
+	for (const auto& mode : present_modes) 
+	{
+		if (mode == required)
+			return result;
+	}
+
+	Shell::Log("[Vulkan] WARNING system can't detect your type of present mode so we choose the first from vector front");
+
+	return present_modes.front();
+}
+
+VkSurfaceCapabilitiesKHR ShellRenderInterfaceVulkan::GetSurfaceCapabilities(void) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must initialize your device, before calling this method");
+	VK_ASSERT(this->m_p_physical_device_current, "you must initialize your physical device, before calling this method");
+	VK_ASSERT(this->m_p_surface, "you must initialize your surface, before calling this method");
+
+	VkSurfaceCapabilitiesKHR result;
+
+	VkResult status = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->m_p_physical_device_current, this->m_p_surface, &result);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+
+	return result;
 }
