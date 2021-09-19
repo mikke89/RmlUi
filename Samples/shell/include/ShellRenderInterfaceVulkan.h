@@ -139,7 +139,6 @@ private:
 	void CreateDescriptorSetLayout(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept;
 	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept;
 	void CreatePipelineLayout(void) noexcept;
-	void CreateLayouts(void) noexcept;
 	void CreateSwapchainFrameBuffers(void) noexcept;
 	void CreateRenderPass(void) noexcept;
 

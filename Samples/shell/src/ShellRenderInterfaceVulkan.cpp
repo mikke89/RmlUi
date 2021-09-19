@@ -1166,8 +1166,6 @@ void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 	VK_ASSERT(this->m_p_descriptor_set_layout, "[Vulkan] You must initialize VkDescriptorSetLayout before calling this method");
 }
 
-void ShellRenderInterfaceVulkan::CreateLayouts(void) noexcept {}
-
 void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept {}
