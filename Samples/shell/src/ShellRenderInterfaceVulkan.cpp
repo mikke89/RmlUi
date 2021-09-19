@@ -514,6 +514,11 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 {
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
 	vkDestroyPipelineLayout(this->m_p_device, this->m_p_pipeline_layout, nullptr);
+
+	for (const auto& pair_shader_type_shader_module : this->m_shaders) 
+	{
+		vkDestroyShaderModule(this->m_p_device, pair_shader_type_shader_module.second, nullptr);
+	}
 }
 
 void ShellRenderInterfaceVulkan::QueryInstanceLayers(void) noexcept
@@ -1024,6 +1029,8 @@ Rml::UnorderedMap<ShellRenderInterfaceVulkan::shader_type_t, ShellRenderInterfac
 
 ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader(const Rml::String& relative_path_from_samples_folder_with_file_and_fileformat) noexcept
 {
+	VK_ASSERT(Rml::GetFileInterface(), "[Vulkan] you must initialize FileInterface before calling this method");
+
 	if (relative_path_from_samples_folder_with_file_and_fileformat.empty()) 
 	{
 		VK_ASSERT(false, "[Vulkan] you can't pass an empty string for loading shader");
@@ -1052,11 +1059,30 @@ ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader
 void ShellRenderInterfaceVulkan::CreateShaders(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept 
 {
 	VK_ASSERT(storage.empty() == false, "[Vulkan] you must load shaders before creating resources");
+	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
+
+	VkShaderModuleCreateInfo info = {};
+	
+	for (const auto& pair_shader_type_shader_data : storage) 
+	{
+		VkShaderModule p_module = nullptr;
+
+		info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		info.pCode = pair_shader_type_shader_data.second.data();
+		info.codeSize = pair_shader_type_shader_data.second.size();
+		
+		VkResult status = vkCreateShaderModule(this->m_p_device, &info, nullptr, &p_module);
+
+		VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreateShaderModule");
+
+		this->m_shaders[pair_shader_type_shader_data.first] = p_module;
+	}
 }
 
 void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept
 {
 	VK_ASSERT(storage.empty() == false, "[Vulkan] you must load shaders before creating resources");
+	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 
 	Rml::Vector<VkDescriptorSetLayoutBinding> all_bindings;
 

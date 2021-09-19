@@ -32,7 +32,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		kShaderType_Unknown = -1
 	};
 
-	using shader_data_t = Rml::Vector<char>;
+	using shader_data_t = Rml::Vector<uint32_t>;
 public:
 	ShellRenderInterfaceVulkan();
 	~ShellRenderInterfaceVulkan(void);
@@ -146,6 +146,8 @@ private:
 	void Wait(void) noexcept;
 	void Submit(void) noexcept;
 	void Present(void) noexcept;
+
+
 
 #pragma region Resource management
 #pragma endregion
