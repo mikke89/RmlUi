@@ -135,7 +135,8 @@ private:
 
 	Rml::UnorderedMap<shader_type_t, shader_data_t> LoadShaders(void) noexcept;
 	shader_data_t LoadShader(const Rml::String& relative_path_from_samples_folder_with_file_and_fileformat) noexcept;
-	void CreateDescriptorSetLayout(void) noexcept;
+	void CreateShaders(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept;
+	void CreateDescriptorSetLayout(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept;
 	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept;
 	void CreatePipelineLayout(void) noexcept;
 	void CreateLayouts(void) noexcept;
@@ -199,6 +200,10 @@ private:
 	Rml::Vector<VkFence> m_executed_fences;
 	Rml::Vector<VkSemaphore> m_semaphores_image_available;
 	Rml::Vector<VkSemaphore> m_semaphores_finished_render;
+
+	#pragma region Resources
+	Rml::UnorderedMap<shader_type_t, VkShaderModule> m_shaders;
+	#pragma endregion
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
 	VkSurfaceFormatKHR m_swapchain_format;

@@ -463,7 +463,11 @@ void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept
 
 void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept 
 {
-	this->CreateDescriptorSetLayout();
+	auto storage = this->LoadShaders();
+
+	this->CreateShaders(storage);
+	this->CreateDescriptorSetLayout(storage);
+	this->CreatePipelineLayout();
 }
 
 void ShellRenderInterfaceVulkan::Destroy_Instance(void) noexcept
@@ -509,6 +513,7 @@ void ShellRenderInterfaceVulkan::Destroy_SyncPrimitives(void) noexcept
 void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept 
 {
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
+	vkDestroyPipelineLayout(this->m_p_device, this->m_p_pipeline_layout, nullptr);
 }
 
 void ShellRenderInterfaceVulkan::QueryInstanceLayers(void) noexcept
@@ -1044,9 +1049,14 @@ ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader
 	return buffer;
 }
 
-void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(void) noexcept
+void ShellRenderInterfaceVulkan::CreateShaders(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept 
 {
-	auto storage = this->LoadShaders();
+	VK_ASSERT(storage.empty() == false, "[Vulkan] you must load shaders before creating resources");
+}
+
+void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept
+{
+	VK_ASSERT(storage.empty() == false, "[Vulkan] you must load shaders before creating resources");
 
 	Rml::Vector<VkDescriptorSetLayoutBinding> all_bindings;
 
@@ -1125,7 +1135,10 @@ Rml::Vector<VkDescriptorSetLayoutBinding> ShellRenderInterfaceVulkan::CreateDesc
 	return result;
 }
 
-void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept {}
+void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept 
+{
+	VK_ASSERT(this->m_p_descriptor_set_layout, "[Vulkan] You must initialize VkDescriptorSetLayout before calling this method");
+}
 
 void ShellRenderInterfaceVulkan::CreateLayouts(void) noexcept {}
 
