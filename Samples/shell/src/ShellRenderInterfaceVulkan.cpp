@@ -1,4 +1,8 @@
 #include "ShellRenderInterfaceVulkan.h"
+#include "ShellFileInterface.h"
+
+#include "vk_mem_alloc.h"
+#include "spirv_reflect.h"
 
 #define VK_ASSERT(statement, msg, ...)         \
 	if (!!(statement) == false)                \
@@ -32,7 +36,7 @@ ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 	m_is_transform_enabled(false), m_width(0), m_height(0), m_queue_index_present(0), m_queue_index_graphics(0), m_queue_index_compute(0),
 	m_semaphore_index(0), m_semaphore_index_previous(0), m_p_instance(nullptr), m_p_device(nullptr), m_p_physical_device_current(nullptr),
 	m_p_surface(nullptr), m_p_swapchain(nullptr), m_p_window_handle(nullptr), m_p_queue_present(nullptr), m_p_queue_graphics(nullptr),
-	m_p_queue_compute(nullptr)
+	m_p_queue_compute(nullptr), m_p_descriptor_set_layout(nullptr), m_p_pipeline_layout(nullptr)
 {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
@@ -108,10 +112,12 @@ void ShellRenderInterfaceVulkan::Initialize(void) noexcept
 	this->Initialize_Device();
 	this->Initialize_Queues();
 	this->Initialize_SyncPrimitives();
+	this->Initialize_Resources();
 }
 
 void ShellRenderInterfaceVulkan::Shutdown(void) noexcept
 {
+	this->Destroy_Resources();
 	this->Destroy_SyncPrimitives();
 	this->Destroy_Swapchain();
 	this->Destroy_Surface();
@@ -455,6 +461,11 @@ void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept
 	}
 }
 
+void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept 
+{
+	this->CreateDescriptorSetLayout();
+}
+
 void ShellRenderInterfaceVulkan::Destroy_Instance(void) noexcept
 {
 	vkDestroyInstance(this->m_p_instance, nullptr);
@@ -493,6 +504,11 @@ void ShellRenderInterfaceVulkan::Destroy_SyncPrimitives(void) noexcept
 	{
 		vkDestroySemaphore(this->m_p_device, p_semaphore, nullptr);
 	}
+}
+
+void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept 
+{
+	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
 }
 
 void ShellRenderInterfaceVulkan::QueryInstanceLayers(void) noexcept
@@ -987,6 +1003,135 @@ VkSurfaceCapabilitiesKHR ShellRenderInterfaceVulkan::GetSurfaceCapabilities(void
 
 	return result;
 }
+
+Rml::UnorderedMap<ShellRenderInterfaceVulkan::shader_type_t, ShellRenderInterfaceVulkan::shader_data_t> ShellRenderInterfaceVulkan::LoadShaders(void) noexcept
+{
+	auto frag = this->LoadShader("assets/rmlui_frag.spv");
+	auto vertex = this->LoadShader("assets/rmlui_vert.spv");
+
+	Rml::UnorderedMap<shader_type_t, shader_data_t> result;
+
+	result[shader_type_t::kShaderType_Vertex] = vertex;
+	result[shader_type_t::kShaderType_Pixel] = frag;
+
+	return result;
+}
+
+ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader(const Rml::String& relative_path_from_samples_folder_with_file_and_fileformat) noexcept
+{
+	if (relative_path_from_samples_folder_with_file_and_fileformat.empty()) 
+	{
+		VK_ASSERT(false, "[Vulkan] you can't pass an empty string for loading shader");
+		return shader_data_t();
+	}
+
+	auto* p_file_interface = Rml::GetFileInterface();
+
+	auto p_file = Rml::GetFileInterface()->Open(relative_path_from_samples_folder_with_file_and_fileformat);
+
+	VK_ASSERT(p_file, "[Vulkan] Rml::FileHandle is invalid! %s", relative_path_from_samples_folder_with_file_and_fileformat.c_str());
+
+	auto file_size = p_file_interface->Length(p_file);
+
+	VK_ASSERT(file_size != -1L, "[Vulkan] can't get length of file: %s", relative_path_from_samples_folder_with_file_and_fileformat.c_str());
+
+	shader_data_t buffer(file_size);
+
+	p_file_interface->Read(buffer.data(), buffer.size(), p_file);
+
+	p_file_interface->Close(p_file);
+
+	return buffer;
+}
+
+void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(void) noexcept
+{
+	auto storage = this->LoadShaders();
+
+	Rml::Vector<VkDescriptorSetLayoutBinding> all_bindings;
+
+	for (const auto& pair_shader_type_shader_data : storage)
+	{
+		const auto& current_bindings = this->CreateDescriptorSetLayoutBindings(pair_shader_type_shader_data.second);
+
+		all_bindings.insert(all_bindings.end(), all_bindings.begin(), all_bindings.end());
+	}
+
+	VkDescriptorSetLayoutCreateInfo info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	info.pBindings = all_bindings.data();
+	info.bindingCount = all_bindings.size();
+
+	VkDescriptorSetLayout p_layout = nullptr;
+
+	VkResult status = vkCreateDescriptorSetLayout(this->m_p_device, &info, nullptr, &p_layout);
+
+	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreateDescriptorSetLayout");
+
+	this->m_p_descriptor_set_layout = p_layout;
+}
+
+Rml::Vector<VkDescriptorSetLayoutBinding> ShellRenderInterfaceVulkan::CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept
+{
+	Rml::Vector<VkDescriptorSetLayoutBinding> result;
+
+	VK_ASSERT(data.empty() == false, "[Vulkan] can't be empty data of shader");
+
+	SpvReflectShaderModule spv_module = {};
+
+	SpvReflectResult status = spvReflectCreateShaderModule(data.size() * sizeof(char), data.data(), &spv_module);
+
+	VK_ASSERT(status == SPV_REFLECT_RESULT_SUCCESS, "[Vulkan] SPIRV-Reflect failed to spvReflectCreateShaderModule");
+
+	uint32_t count = 0;
+	status = spvReflectEnumerateDescriptorSets(&spv_module, &count, nullptr);
+
+	VK_ASSERT(status == SPV_REFLECT_RESULT_SUCCESS, "[Vulkan] SPIRV-Reflect failed to spvReflectEnumerateDescriptorSets");
+
+	Rml::Vector<SpvReflectDescriptorSet*> sets(count);
+	status = spvReflectEnumerateDescriptorSets(&spv_module, &count, sets.data());
+
+	VK_ASSERT(status == SPV_REFLECT_RESULT_SUCCESS, "[Vulkan] SPIRV-Reflect failed to spvReflectEnumerateDescriptorSets");
+
+	Rml::Vector<VkDescriptorSetLayoutBinding> temp;
+	for (const auto* p_descriptor_set : sets)
+	{
+		temp.resize(p_descriptor_set->binding_count);
+
+		for (uint32_t binding_index = 0; binding_index < p_descriptor_set->binding_count; ++binding_index)
+		{
+			const SpvReflectDescriptorBinding* p_binding = p_descriptor_set->bindings[binding_index];
+
+			VkDescriptorSetLayoutBinding& info = temp[binding_index];
+
+			info.binding = p_binding->binding;
+			info.descriptorCount = 1;
+			info.descriptorType = static_cast<VkDescriptorType>(p_binding->descriptor_type);
+			info.stageFlags = static_cast<VkShaderStageFlagBits>(spv_module.shader_stage);
+
+			for (uint32_t index = 0; index < p_binding->array.dims_count; ++index)
+			{
+				info.descriptorCount *= p_binding->array.dims[index];
+			}
+		}
+
+		result.insert(result.end(), temp.begin(), temp.end());
+		temp.clear();
+	}
+
+	spvReflectDestroyShaderModule(&spv_module);
+
+	return result;
+}
+
+void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept {}
+
+void ShellRenderInterfaceVulkan::CreateLayouts(void) noexcept {}
+
+void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept {}
+
+void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::Wait(void) noexcept
 {

@@ -23,7 +23,16 @@
  * @author diamondhat
  */
 
-class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
+class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions 
+{
+	enum class shader_type_t : int
+	{
+		kShaderType_Vertex,
+		kShaderType_Pixel,
+		kShaderType_Unknown = -1
+	};
+
+	using shader_data_t = Rml::Vector<char>;
 public:
 	ShellRenderInterfaceVulkan();
 	~ShellRenderInterfaceVulkan(void);
@@ -87,12 +96,14 @@ private:
 	void Initialize_QueueIndecies(void) noexcept;
 	void Initialize_Queues(void) noexcept;
 	void Initialize_SyncPrimitives(void) noexcept;
+	void Initialize_Resources(void) noexcept;
 
 	void Destroy_Instance(void) noexcept;
 	void Destroy_Device() noexcept;
 	void Destroy_Swapchain(void) noexcept;
 	void Destroy_Surface(void) noexcept;
 	void Destroy_SyncPrimitives(void) noexcept;
+	void Destroy_Resources(void) noexcept;
 
 	void QueryInstanceLayers(void) noexcept;
 	void QueryInstanceExtensions(void) noexcept;
@@ -122,6 +133,15 @@ private:
 	VkPresentModeKHR GetPresentMode(VkPresentModeKHR type = VkPresentModeKHR::VK_PRESENT_MODE_FIFO_KHR) noexcept;
 	VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(void) noexcept;
 
+	Rml::UnorderedMap<shader_type_t, shader_data_t> LoadShaders(void) noexcept;
+	shader_data_t LoadShader(const Rml::String& relative_path_from_samples_folder_with_file_and_fileformat) noexcept;
+	void CreateDescriptorSetLayout(void) noexcept;
+	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept;
+	void CreatePipelineLayout(void) noexcept;
+	void CreateLayouts(void) noexcept;
+	void CreateSwapchainFrameBuffers(void) noexcept;
+	void CreateRenderPass(void) noexcept;
+
 	void Wait(void) noexcept;
 	void Submit(void) noexcept;
 	void Present(void) noexcept;
@@ -148,6 +168,13 @@ private:
 	VkPhysicalDevice m_p_physical_device_current;
 	VkSurfaceKHR m_p_surface;
 	VkSwapchainKHR m_p_swapchain;
+
+	#pragma region Resources
+	VkDescriptorSetLayout m_p_descriptor_set_layout;
+	VkPipelineLayout m_p_pipeline_layout;
+	#pragma endregion
+
+
 #if defined(RMLUI_PLATFORM_MACOSX)
 #elif defined(RMLUI_PLATFORM_LINUX)
 #elif defined(RMLUI_PLATFORM_WIN32)
