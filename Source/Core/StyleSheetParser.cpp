@@ -933,12 +933,11 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 					case '[':
 					{
 						const size_t attribute_end = identifier.find(']');
-						if(attribute_end != String::npos)
-						{
+						if(attribute_end != String::npos){
 						    String attribute_str = identifier.substr(1, attribute_end - 1);
 						    attribute_str = StringUtilities::Replace(attribute_str, "\"", "");
 							
-							if(!attribute_str.empty())
+							if(!attribute_str.empty()) //has attribute selector data
 							{
 								const size_t equals_index = attribute_str.find('=');
 								if(equals_index != String::npos)
@@ -948,15 +947,15 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 									switch(attribute_value[0])
 									{
 										case '~':
-										case '|':
-										case '^':
-										case '$':
+										case '|': 
+										case '^': 
+										case '$': 
 										case '*':
-											attribute_name = attribute_str.substr(0, equals_index-1);
+											attribute_name = attribute_str.substr(0, equals_index -1);
 											break;
 										default:
-											attribute_value[0] = '=';
 											attribute_name = attribute_str.substr(0, equals_index);
+											attribute_value[0] = '=';
 											break;
 									}
 									attributes[attribute_name] = attribute_value;
