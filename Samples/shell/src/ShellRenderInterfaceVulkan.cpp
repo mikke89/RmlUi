@@ -1,8 +1,7 @@
 #include "ShellRenderInterfaceVulkan.h"
 #include "ShellFileInterface.h"
-
-#include "vk_mem_alloc.h"
 #include "spirv_reflect.h"
+#include "vk_mem_alloc.h"
 
 #define VK_ASSERT(statement, msg, ...)         \
 	if (!!(statement) == false)                \
@@ -248,10 +247,8 @@ void ShellRenderInterfaceVulkan::Initialize_PhysicalDevice(void) noexcept
 			VK_ASSERT(status, "there's no suitable physical device for rendering, abort this application");
 		}
 	}
-	else
-	{
-		Shell::Log("Picked discrete GPU!");
-	}
+
+	this->PrintInformationAboutPickedPhysicalDevice(this->m_p_physical_device_current);
 }
 
 void ShellRenderInterfaceVulkan::Initialize_Swapchain(void) noexcept
@@ -461,7 +458,7 @@ void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept
 	}
 }
 
-void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept 
+void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 {
 	auto storage = this->LoadShaders();
 
@@ -510,12 +507,12 @@ void ShellRenderInterfaceVulkan::Destroy_SyncPrimitives(void) noexcept
 	}
 }
 
-void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept 
+void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 {
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
 	vkDestroyPipelineLayout(this->m_p_device, this->m_p_pipeline_layout, nullptr);
 
-	for (const auto& pair_shader_type_shader_module : this->m_shaders) 
+	for (const auto& pair_shader_type_shader_module : this->m_shaders)
 	{
 		vkDestroyShaderModule(this->m_p_device, pair_shader_type_shader_module.second, nullptr);
 	}
@@ -839,17 +836,24 @@ void ShellRenderInterfaceVulkan::CollectPhysicalDevices(void) noexcept
 	uint32_t gpu_count = 1;
 	const uint32_t required_count = gpu_count;
 
+	Rml::Vector<VkPhysicalDevice> temp_devices;
+
 	VkResult status = vkEnumeratePhysicalDevices(this->m_p_instance, &gpu_count, nullptr);
 
 	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumeratePhysicalDevices (getting count)");
 
-	this->m_physical_devices.resize(gpu_count);
+	temp_devices.resize(gpu_count);
 
-	status = vkEnumeratePhysicalDevices(this->m_p_instance, &gpu_count, this->m_physical_devices.data());
+	status = vkEnumeratePhysicalDevices(this->m_p_instance, &gpu_count, temp_devices.data());
 
 	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumeratePhysicalDevices (filling the vector of VkPhysicalDevice)");
 
-	VK_ASSERT(this->m_physical_devices.empty() == false, "you must have one videocard at least!");
+	VK_ASSERT(temp_devices.empty() == false, "you must have one videocard at least!");
+
+	for (const auto& p_handle : temp_devices)
+	{
+		this->m_physical_devices.push_back({p_handle});
+	}
 }
 
 bool ShellRenderInterfaceVulkan::ChoosePhysicalDevice(VkPhysicalDeviceType device_type) noexcept
@@ -859,18 +863,33 @@ bool ShellRenderInterfaceVulkan::ChoosePhysicalDevice(VkPhysicalDeviceType devic
 
 	VkPhysicalDeviceProperties props = {};
 
-	for (const auto& p_device : this->m_physical_devices)
+	for (const auto& device : this->m_physical_devices)
 	{
-		vkGetPhysicalDeviceProperties(p_device, &props);
-
-		if (props.deviceType == device_type)
+		if (device.GetProperties().deviceType == device_type)
 		{
-			this->m_p_physical_device_current = p_device;
+			this->m_p_physical_device_current = device.GetHandle();
 			return true;
 		}
 	}
 
 	return false;
+}
+
+void ShellRenderInterfaceVulkan::PrintInformationAboutPickedPhysicalDevice(VkPhysicalDevice p_physical_device) noexcept
+{
+	if (p_physical_device == nullptr)
+		return;
+
+	for (const auto& device : this->m_physical_devices)
+	{
+		if (p_physical_device == device.GetHandle())
+		{
+			const auto& properties = device.GetProperties();
+			Shell::Log("Picked physical device: %s", properties.deviceName);
+
+			return;
+		}
+	}
 }
 
 VkSurfaceFormatKHR ShellRenderInterfaceVulkan::ChooseSwapchainFormat(void) noexcept
@@ -1014,7 +1033,8 @@ VkSurfaceCapabilitiesKHR ShellRenderInterfaceVulkan::GetSurfaceCapabilities(void
 	return result;
 }
 
-Rml::UnorderedMap<ShellRenderInterfaceVulkan::shader_type_t, ShellRenderInterfaceVulkan::shader_data_t> ShellRenderInterfaceVulkan::LoadShaders(void) noexcept
+Rml::UnorderedMap<ShellRenderInterfaceVulkan::shader_type_t, ShellRenderInterfaceVulkan::shader_data_t> ShellRenderInterfaceVulkan::LoadShaders(
+	void) noexcept
 {
 	auto frag = this->LoadShader("assets/rmlui_frag.spv");
 	auto vertex = this->LoadShader("assets/rmlui_vert.spv");
@@ -1027,11 +1047,12 @@ Rml::UnorderedMap<ShellRenderInterfaceVulkan::shader_type_t, ShellRenderInterfac
 	return result;
 }
 
-ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader(const Rml::String& relative_path_from_samples_folder_with_file_and_fileformat) noexcept
+ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader(
+	const Rml::String& relative_path_from_samples_folder_with_file_and_fileformat) noexcept
 {
 	VK_ASSERT(Rml::GetFileInterface(), "[Vulkan] you must initialize FileInterface before calling this method");
 
-	if (relative_path_from_samples_folder_with_file_and_fileformat.empty()) 
+	if (relative_path_from_samples_folder_with_file_and_fileformat.empty())
 	{
 		VK_ASSERT(false, "[Vulkan] you can't pass an empty string for loading shader");
 		return shader_data_t();
@@ -1056,21 +1077,21 @@ ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader
 	return buffer;
 }
 
-void ShellRenderInterfaceVulkan::CreateShaders(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept 
+void ShellRenderInterfaceVulkan::CreateShaders(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept
 {
 	VK_ASSERT(storage.empty() == false, "[Vulkan] you must load shaders before creating resources");
 	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 
 	VkShaderModuleCreateInfo info = {};
-	
-	for (const auto& pair_shader_type_shader_data : storage) 
+
+	for (const auto& pair_shader_type_shader_data : storage)
 	{
 		VkShaderModule p_module = nullptr;
 
 		info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		info.pCode = pair_shader_type_shader_data.second.data();
 		info.codeSize = pair_shader_type_shader_data.second.size();
-		
+
 		VkResult status = vkCreateShaderModule(this->m_p_device, &info, nullptr, &p_module);
 
 		VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreateShaderModule");
@@ -1161,14 +1182,40 @@ Rml::Vector<VkDescriptorSetLayoutBinding> ShellRenderInterfaceVulkan::CreateDesc
 	return result;
 }
 
-void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept 
+void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 {
 	VK_ASSERT(this->m_p_descriptor_set_layout, "[Vulkan] You must initialize VkDescriptorSetLayout before calling this method");
+	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
+
+	VkPipelineLayoutCreateInfo info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	info.pNext = nullptr;
+	info.pSetLayouts = &this->m_p_descriptor_set_layout;
+	info.setLayoutCount = 1;
+
+	auto status = vkCreatePipelineLayout(this->m_p_device, &info, nullptr, &this->m_p_pipeline_layout);
+
+	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreatePipelineLayout");
 }
 
-void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept {}
+void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept 
+{
+}
 
-void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept {}
+void ShellRenderInterfaceVulkan::CreatePipeline(void) noexcept 
+{
+}
+
+void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept 
+{
+
+}
+
+void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept 
+{
+
+}
 
 void ShellRenderInterfaceVulkan::Wait(void) noexcept
 {
@@ -1191,22 +1238,17 @@ void ShellRenderInterfaceVulkan::Wait(void) noexcept
 	vkResetFences(this->m_p_device, 1, &this->m_executed_fences[this->m_semaphore_index_previous]);
 }
 
-void ShellRenderInterfaceVulkan::Submit(void) noexcept 
+void ShellRenderInterfaceVulkan::Submit(void) noexcept
 {
-	const VkSemaphore p_semaphores_wait[] = {
-		this->m_semaphores_image_available.at(this->m_semaphore_index_previous)
-	};
+	const VkSemaphore p_semaphores_wait[] = {this->m_semaphores_image_available.at(this->m_semaphore_index_previous)};
 
-	const VkSemaphore p_semaphores_signal[] = {
-		this->m_semaphores_finished_render.at(this->m_semaphore_index)
-	};
+	const VkSemaphore p_semaphores_signal[] = {this->m_semaphores_finished_render.at(this->m_semaphore_index)};
 
 	VkFence p_fence = this->m_executed_fences.at(this->m_semaphore_index_previous);
 
 	VkPipelineStageFlags submit_wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 	VkSubmitInfo info = {};
-
 
 	info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	info.pNext = nullptr;
@@ -1238,9 +1280,9 @@ void ShellRenderInterfaceVulkan::Present(void) noexcept
 
 	VkResult status = vkQueuePresentKHR(this->m_p_queue_present, &info);
 
-	if (!(status == VK_SUCCESS)) 
+	if (!(status == VK_SUCCESS))
 	{
-		if (status == VK_ERROR_OUT_OF_DATE_KHR) 
+		if (status == VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			this->OnResize(this->m_width, this->m_height);
 		}
@@ -1249,4 +1291,32 @@ void ShellRenderInterfaceVulkan::Present(void) noexcept
 			VK_ASSERT(status == VK_SUCCESS, "failed to vkQueuePresentKHR");
 		}
 	}
+}
+
+ShellRenderInterfaceVulkan::PhysicalDeviceWrapper::PhysicalDeviceWrapper(VkPhysicalDevice p_physical_device) : m_p_physical_device(p_physical_device)
+{
+	VK_ASSERT(this->m_p_physical_device, "you passed an invalid pointer of VkPhysicalDevice");
+
+	vkGetPhysicalDeviceProperties(this->m_p_physical_device, &this->m_physical_device_properties);
+
+	this->m_physical_device_limits = this->m_physical_device_properties.limits;
+}
+
+ShellRenderInterfaceVulkan::PhysicalDeviceWrapper::PhysicalDeviceWrapper(void) {}
+
+ShellRenderInterfaceVulkan::PhysicalDeviceWrapper::~PhysicalDeviceWrapper(void) {}
+
+VkPhysicalDevice ShellRenderInterfaceVulkan::PhysicalDeviceWrapper::GetHandle(void) const noexcept
+{
+	return this->m_p_physical_device;
+}
+
+const VkPhysicalDeviceProperties& ShellRenderInterfaceVulkan::PhysicalDeviceWrapper::GetProperties(void) const noexcept
+{
+	return this->m_physical_device_properties;
+}
+
+const VkPhysicalDeviceLimits& ShellRenderInterfaceVulkan::PhysicalDeviceWrapper::GetLimits(void) const noexcept
+{
+	return this->m_physical_device_limits;
 }

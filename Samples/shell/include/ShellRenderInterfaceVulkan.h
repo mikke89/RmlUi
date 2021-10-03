@@ -23,16 +23,27 @@
  * @author diamondhat
  */
 
-class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions 
-{
-	enum class shader_type_t : int
-	{
-		kShaderType_Vertex,
-		kShaderType_Pixel,
-		kShaderType_Unknown = -1
-	};
+class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
+	enum class shader_type_t : int { kShaderType_Vertex, kShaderType_Pixel, kShaderType_Unknown = -1 };
 
 	using shader_data_t = Rml::Vector<uint32_t>;
+
+	class PhysicalDeviceWrapper {
+	public:
+		PhysicalDeviceWrapper(VkPhysicalDevice p_physical_device);
+		PhysicalDeviceWrapper(void);
+		~PhysicalDeviceWrapper(void);
+
+		VkPhysicalDevice GetHandle(void) const noexcept;
+		const VkPhysicalDeviceProperties& GetProperties(void) const noexcept;
+		const VkPhysicalDeviceLimits& GetLimits(void) const noexcept;
+
+	private:
+		VkPhysicalDevice m_p_physical_device;
+		VkPhysicalDeviceProperties m_physical_device_properties;
+		VkPhysicalDeviceLimits m_physical_device_limits;
+	};
+
 public:
 	ShellRenderInterfaceVulkan();
 	~ShellRenderInterfaceVulkan(void);
@@ -125,6 +136,7 @@ private:
 
 	void CollectPhysicalDevices(void) noexcept;
 	bool ChoosePhysicalDevice(VkPhysicalDeviceType device_type) noexcept;
+	void PrintInformationAboutPickedPhysicalDevice(VkPhysicalDevice p_physical_device) noexcept;
 
 	VkSurfaceFormatKHR ChooseSwapchainFormat(void) noexcept;
 	VkExtent2D CreateValidSwapchainExtent(void) noexcept;
@@ -139,14 +151,14 @@ private:
 	void CreateDescriptorSetLayout(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept;
 	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept;
 	void CreatePipelineLayout(void) noexcept;
+	void CreateDescriptorSets(void) noexcept;
+	void CreatePipeline(void) noexcept;
 	void CreateSwapchainFrameBuffers(void) noexcept;
 	void CreateRenderPass(void) noexcept;
 
 	void Wait(void) noexcept;
 	void Submit(void) noexcept;
 	void Present(void) noexcept;
-
-
 
 #pragma region Resource management
 #pragma endregion
@@ -171,11 +183,14 @@ private:
 	VkSurfaceKHR m_p_surface;
 	VkSwapchainKHR m_p_swapchain;
 
-	#pragma region Resources
+#pragma region Resources
 	VkDescriptorSetLayout m_p_descriptor_set_layout;
 	VkPipelineLayout m_p_pipeline_layout;
-	#pragma endregion
-
+	VkPipeline m_p_pipeline;
+	VkDescriptorSet m_p_descriptor_set;
+	VkFramebuffer m_p_frame_buffer;
+	VkRenderPass m_p_render_pass;
+#pragma endregion
 
 #if defined(RMLUI_PLATFORM_MACOSX)
 #elif defined(RMLUI_PLATFORM_LINUX)
@@ -191,7 +206,7 @@ private:
 
 	VkDebugReportCallbackEXT m_debug_report_callback_instance;
 
-	Rml::Vector<VkPhysicalDevice> m_physical_devices;
+	Rml::Vector<PhysicalDeviceWrapper> m_physical_devices;
 	Rml::Vector<VkLayerProperties> m_instance_layer_properties;
 	Rml::Vector<VkExtensionProperties> m_instance_extension_properties;
 	Rml::Vector<VkExtensionProperties> m_device_extension_properties;
@@ -202,9 +217,9 @@ private:
 	Rml::Vector<VkSemaphore> m_semaphores_image_available;
 	Rml::Vector<VkSemaphore> m_semaphores_finished_render;
 
-	#pragma region Resources
+#pragma region Resources
 	Rml::UnorderedMap<shader_type_t, VkShaderModule> m_shaders;
-	#pragma endregion
+#pragma endregion
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
 	VkSurfaceFormatKHR m_swapchain_format;
