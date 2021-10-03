@@ -153,7 +153,16 @@ private:
 	void CreatePipelineLayout(void) noexcept;
 	void CreateDescriptorSets(void) noexcept;
 	void CreatePipeline(void) noexcept;
+	
 	void CreateSwapchainFrameBuffers(void) noexcept;
+	
+	// This method is called in Views, so don't call it manually
+	void CreateSwapchainImages(void) noexcept;
+	void CreateSwapchainImageViews(void) noexcept;
+
+	void DestroySwapchainImageViews(void) noexcept;
+	void DestroySwapchainFrameBuffers(void) noexcept;
+
 	void CreateRenderPass(void) noexcept;
 
 	void Wait(void) noexcept;
@@ -188,7 +197,6 @@ private:
 	VkPipelineLayout m_p_pipeline_layout;
 	VkPipeline m_p_pipeline;
 	VkDescriptorSet m_p_descriptor_set;
-	VkFramebuffer m_p_frame_buffer;
 	VkRenderPass m_p_render_pass;
 #pragma endregion
 
@@ -216,7 +224,9 @@ private:
 	Rml::Vector<VkFence> m_executed_fences;
 	Rml::Vector<VkSemaphore> m_semaphores_image_available;
 	Rml::Vector<VkSemaphore> m_semaphores_finished_render;
-
+	Rml::Vector<VkFramebuffer> m_swapchain_frame_buffers;
+	Rml::Vector<VkImage> m_swapchain_images;
+	Rml::Vector<VkImageView> m_swapchain_image_views;
 #pragma region Resources
 	Rml::UnorderedMap<shader_type_t, VkShaderModule> m_shaders;
 #pragma endregion
