@@ -38,7 +38,7 @@ namespace Lua {
 int ElementTabSetSetPanel(lua_State* L, ElementTabSet* obj)
 {
     RMLUI_CHECK_OBJ(obj);
-    int index = (int)luaL_checkinteger(L,1);
+    int index = GetIndex(L,1);
     const char* rml = luaL_checkstring(L,2);
 
     obj->SetPanel(index,rml);
@@ -48,7 +48,7 @@ int ElementTabSetSetPanel(lua_State* L, ElementTabSet* obj)
 int ElementTabSetSetTab(lua_State* L, ElementTabSet* obj)
 {
     RMLUI_CHECK_OBJ(obj);
-    int index = (int)luaL_checkinteger(L,1);
+    int index = GetIndex(L,1);
     const char* rml = luaL_checkstring(L,2);
 
     obj->SetTab(index,rml);
@@ -62,7 +62,7 @@ int ElementTabSetGetAttractive_tab(lua_State* L)
     ElementTabSet* obj = LuaType<ElementTabSet>::check(L,1);
     RMLUI_CHECK_OBJ(obj);
     int tab = obj->GetActiveTab();
-    lua_pushinteger(L,tab);
+    PushIndex(L,tab);
     return 1;
 }
 
@@ -81,7 +81,7 @@ int ElementTabSetSetAttractive_tab(lua_State* L)
 {
     ElementTabSet* obj = LuaType<ElementTabSet>::check(L,1);
     RMLUI_CHECK_OBJ(obj);
-    int tab = (int)luaL_checkinteger(L,2);
+    int tab = GetIndex(L,2);
     obj->SetActiveTab(tab);
     return 0;
 }

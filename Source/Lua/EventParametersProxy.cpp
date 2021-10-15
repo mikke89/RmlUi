@@ -31,6 +31,7 @@
 #include <RmlUi/Core/Variant.h>
 #include <RmlUi/Core/Dictionary.h>
 #include "Pairs.h"
+#include <cstring>
 
 
 namespace Rml {
@@ -55,7 +56,15 @@ int EventParametersProxy__index(lua_State* L)
         const char* key = lua_tostring(L,2);
 		auto it = obj->owner->GetParameters().find(key);
 		const Variant* param = (it == obj->owner->GetParameters().end() ? nullptr : &it->second);
-        PushVariant(L,param);
+        if (obj->owner->GetId() == EventId::Tabchange &&
+            std::strcmp(key, "tab_index") == 0 &&
+            param &&
+            param->GetType() == Variant::Type::INT)
+        {
+            PushIndex(L,param->Get<int>());
+        }
+        else
+            PushVariant(L,param);
         return 1;
     }
     else
