@@ -63,7 +63,7 @@ void ElementTabSet::SetTab(int tab_index, ElementPtr element)
 	Element* tabs = GetChildByTag("tabs");
 	if (tab_index >= 0 &&
 		tab_index < tabs->GetNumChildren())
-		tabs->ReplaceChild(std::move(element), GetChild(tab_index));
+		tabs->ReplaceChild(std::move(element), tabs->GetChild(tab_index));
 	else
 		tabs->AppendChild(std::move(element));
 }
@@ -75,7 +75,7 @@ void ElementTabSet::SetPanel(int tab_index, ElementPtr element)
 	Element* windows = GetChildByTag("panels");
 	if (tab_index >= 0 &&
 		tab_index < windows->GetNumChildren())
-		windows->ReplaceChild(std::move(element), GetChild(tab_index));
+		windows->ReplaceChild(std::move(element), windows->GetChild(tab_index));
 	else
 		windows->AppendChild(std::move(element));
 }
