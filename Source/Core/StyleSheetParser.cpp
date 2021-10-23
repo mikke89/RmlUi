@@ -936,6 +936,7 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 						if(attribute_end != String::npos){
 						    String attribute_str = identifier.substr(1, attribute_end - 1);
 						    attribute_str = StringUtilities::Replace(attribute_str, "\"", "");
+						    attribute_str = StringUtilities::Replace(attribute_str, "'", "");
 							
 							if(!attribute_str.empty()) //has attribute selector data
 							{
