@@ -423,11 +423,15 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 	int open_parentheses = 0;
 
 	size_t character_index = 0;
-	char previous_character = 0;
+	bool escape_next = false;
+
 	while (character_index < values.size())
 	{
-		char character = values[character_index];
+		const char character = values[character_index];
 		character_index++;
+
+		const bool escape_character = escape_next;
+		escape_next = false;
 
 		switch (state)
 		{
@@ -489,13 +493,15 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 
 			case VALUE_PARENTHESIS:
 			{
-				if (previous_character == '/')
+				if (escape_character)
 				{
-					if (character == ')' || character == '(')
+					if (character == ')' || character == '(' || character == '\\')
+					{
 						value += character;
+					}
 					else
 					{
-						value += '/';
+						value += '\\';
 						value += character;
 					}
 				}
@@ -513,7 +519,11 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 						if (open_parentheses == 0)
 							state = VALUE;
 					}
-					else if (character != '/')
+					else if (character == '\\')
+					{
+						escape_next = true;
+					}
+					else
 					{
 						value += character;
 					}
@@ -523,13 +533,15 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 
 			case VALUE_QUOTE:
 			{
-				if (previous_character == '/')
+				if (escape_character)
 				{
-					if (character == '"')
+					if (character == '"' || character == '\\')
+					{
 						value += character;
+					}
 					else
 					{
-						value += '/';
+						value += '\\';
 						value += character;
 					}
 				}
@@ -550,15 +562,17 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 							value += ' ';
 						state = VALUE;
 					}
-					else if (character != '/')
+					else if (character == '\\')
+					{
+						escape_next = true;
+					}
+					else
 					{
 						value += character;
 					}
 				}
 			}
 		}
-
-		previous_character = character;
 	}
 
 	if (state == VALUE)
