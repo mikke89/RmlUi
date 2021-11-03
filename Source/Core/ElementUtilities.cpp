@@ -194,7 +194,7 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 			break;
 
 		// Merge the existing clip region with the current clip region if we aren't ignoring clip regions.
-		if (clip_always || (num_ignored_clips == 0 && clip_enabled))
+		if ((clip_always || clip_enabled) && num_ignored_clips == 0)
 		{
 			// Ignore nodes that don't clip.
 			if (clip_always || clipping_element->GetClientWidth() < clipping_element->GetScrollWidth() - 0.5f ||
