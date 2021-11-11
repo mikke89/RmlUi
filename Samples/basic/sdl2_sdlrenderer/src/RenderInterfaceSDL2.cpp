@@ -31,10 +31,6 @@
 
 #include "RenderInterfaceSDL2.h"
 
-#if !(SDL_VIDEO_RENDER_OGL)
-    #error "Only the opengl sdl backend is supported."
-#endif
-
 RmlUiSDL2Renderer::RmlUiSDL2Renderer(SDL_Renderer* renderer, SDL_Window* screen)
 {
     mRenderer = renderer;

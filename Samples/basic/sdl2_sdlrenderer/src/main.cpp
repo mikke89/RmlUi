@@ -52,11 +52,14 @@ int main(int /*argc*/, char** /*argv*/)
     int window_height = 768;
 
     SDL_Init( SDL_INIT_VIDEO );
-    SDL_Window * screen = SDL_CreateWindow("LibRocket SDL2 with SDL_Renderer test", 20, 20, window_width, window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Window * screen = SDL_CreateWindow("RmlUi SDL2 with SDL_Renderer test", 20, 20, window_width, window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
+    /*
+     * Force a specific back-end
     SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+    */
     
     SDL_Renderer * renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	
