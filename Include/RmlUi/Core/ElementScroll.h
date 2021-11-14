@@ -98,6 +98,8 @@ private:
 	bool CreateScrollbar(Orientation orientation);
 	// Creates the scrollbar corner.
 	bool CreateCorner();
+	// Update properties of scroll elements immediately after construction.
+	void UpdateScrollElementProperties(Element* scroll_element);
 
 	Element* element;
 
