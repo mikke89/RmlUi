@@ -201,8 +201,12 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 				clipping_element->GetClientHeight() < clipping_element->GetScrollHeight() - 0.5f)
 			{
 				const Box::Area client_area = clipping_element->GetClientArea();
-				const Vector2i element_origin(clipping_element->GetAbsoluteOffset(client_area));
-				const Vector2i element_dimensions(clipping_element->GetBox().GetSize(client_area));
+				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(client_area);
+				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(client_area);
+				Math::SnapToPixelGrid(element_origin_f, element_dimensions_f);
+
+				const Vector2i element_origin(element_origin_f);
+				const Vector2i element_dimensions(element_dimensions_f);
 				
 				if (clip_origin == Vector2i(-1, -1) && clip_dimensions == Vector2i(-1, -1))
 				{
