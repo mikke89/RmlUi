@@ -46,6 +46,14 @@ void RMLUILUA_API PushVariant(lua_State* L, const Variant* var);
 /** Populate the variant based on the Lua value at the given index */
 void RMLUILUA_API GetVariant(lua_State* L, int index, Variant* variant);
 
+// Converts index from 0-based to 1-based before pushing it to the stack
+void RMLUILUA_API PushIndex(lua_State* L, int index);
+
+// Returns 0-based index after retrieving from stack and converting from 1-based
+// The index parameter refers to the position on the stack and is not affected
+// by the conversion
+int RMLUILUA_API GetIndex(lua_State* L, int index);
+
 //Helper function, so that the types don't have to define individual functions themselves
 // to fill the Elements.As table
 template<typename ToType>

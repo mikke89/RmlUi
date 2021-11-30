@@ -113,5 +113,16 @@ void GetVariant(lua_State* L, int index, Variant* variant)
 		break;
 	}
 }
+
+void PushIndex(lua_State* L, int index)
+{
+	lua_pushinteger(L, index + 1);
+}
+
+int GetIndex(lua_State* L, int index)
+{
+	return (int)luaL_checkinteger(L, index) - 1;
+}
+
 } // namespace Lua
 } // namespace Rml

@@ -45,7 +45,7 @@ int ElementFormControlSelectAdd(lua_State* L, ElementFormControlSelect* obj)
     const char* value = luaL_checkstring(L,2);
     int before = -1; //default
     if(lua_gettop(L) >= 3)
-        before = (int)luaL_checkinteger(L,3);
+        before = GetIndex(L,3);
 
     int index = obj->Add(rml,value,before);
     lua_pushinteger(L,index);
@@ -54,7 +54,7 @@ int ElementFormControlSelectAdd(lua_State* L, ElementFormControlSelect* obj)
 
 int ElementFormControlSelectRemove(lua_State* L, ElementFormControlSelect* obj)
 {
-    int index = (int)luaL_checkinteger(L,1);
+    int index = GetIndex(L,1);
     obj->Remove(index);
     return 0;
 }
@@ -81,7 +81,7 @@ int ElementFormControlSelectGetAttrselection(lua_State* L)
     ElementFormControlSelect* obj = LuaType<ElementFormControlSelect>::check(L,1);
     RMLUI_CHECK_OBJ(obj);
     int selection = obj->GetSelection();
-    lua_pushinteger(L,selection);
+    PushIndex(L,selection);
     return 1;
 }
 
@@ -91,7 +91,7 @@ int ElementFormControlSelectSetAttrselection(lua_State* L)
 {
     ElementFormControlSelect* obj = LuaType<ElementFormControlSelect>::check(L,1);
     RMLUI_CHECK_OBJ(obj);
-    int selection = (int)luaL_checkinteger(L,2);
+    int selection = GetIndex(L,2);
     obj->SetSelection(selection);
     return 0;
 }

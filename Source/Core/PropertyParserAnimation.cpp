@@ -37,27 +37,29 @@
 
 namespace Rml {
 
-struct Keyword {
-	enum Type { NONE, TWEEN, ALL, ALTERNATE, INFINITE, PAUSED } type;
-	Tween tween;
-	Keyword(Tween tween) : type(TWEEN), tween(tween) {}
-	Keyword(Type type) : type(type) {}
+enum class KeywordType { None, Tween, All, Alternate, Infinite, Paused };
 
-	bool ValidTransition() const {
-		return type == NONE || type == TWEEN || type == ALL;
-	}
-	bool ValidAnimation() const {
-		return type == NONE || type == TWEEN || type == ALTERNATE || type == INFINITE || type == PAUSED;
+struct Keyword {
+	KeywordType type;
+	Tween tween;
+	Keyword(Tween tween) : type(KeywordType::Tween), tween(tween) {}
+	Keyword(KeywordType type) : type(type) {}
+
+	bool ValidTransition() const { return type == KeywordType::None || type == KeywordType::Tween || type == KeywordType::All; }
+	bool ValidAnimation() const
+	{
+		return type == KeywordType::None || type == KeywordType::Tween || type == KeywordType::Alternate || type == KeywordType::Infinite ||
+			type == KeywordType::Paused;
 	}
 };
 
 
 static const UnorderedMap<String, Keyword> keywords = {
-		{"none", {Keyword::NONE} },
-		{"all", {Keyword::ALL}},
-		{"alternate", {Keyword::ALTERNATE}},
-		{"infinite", {Keyword::INFINITE}},
-		{"paused", {Keyword::PAUSED}},
+		{"none", {KeywordType::None} },
+		{"all", {KeywordType::All}},
+		{"alternate", {KeywordType::Alternate}},
+		{"infinite", {KeywordType::Infinite}},
+		{"paused", {KeywordType::Paused}},
 
 		{"back-in", {Tween{Tween::Back, Tween::In}}},
 		{"back-out", {Tween{Tween::Back, Tween::Out}}},
@@ -138,7 +140,7 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 			{
 				switch (it->second.type)
 				{
-				case Keyword::NONE:
+				case KeywordType::None:
 				{
 					if (animation_list.size() > 0) // The none keyword can not be part of multiple definitions
 						return false;
@@ -146,19 +148,19 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 					return true;
 				}
 				break;
-				case Keyword::TWEEN:
+				case KeywordType::Tween:
 					animation.tween = it->second.tween;
 					break;
-				case Keyword::ALTERNATE:
+				case KeywordType::Alternate:
 					animation.alternate = true;
 					break;
-				case Keyword::INFINITE:
+				case KeywordType::Infinite:
 					if (num_iterations_found)
 						return false;
 					animation.num_iterations = -1;
 					num_iterations_found = true;
 					break;
-				case Keyword::PAUSED:
+				case KeywordType::Paused:
 					animation.paused = true;
 					break;
 				default:
@@ -253,20 +255,20 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 			auto it = keywords.find(argument);
 			if (it != keywords.end() && it->second.ValidTransition())
 			{
-				if (it->second.type == Keyword::NONE)
+				if (it->second.type == KeywordType::None)
 				{
 					if (transition_list.transitions.size() > 0) // The none keyword can not be part of multiple definitions
 						return false;
 					property = Property{ TransitionList{true, false, {}}, Property::TRANSITION };
 					return true;
 				}
-				else if (it->second.type == Keyword::ALL)
+				else if (it->second.type == KeywordType::All)
 				{
 					if (transition_list.transitions.size() > 0) // The all keyword can not be part of multiple definitions
 						return false;
 					transition_list.all = true;
 				}
-				else if (it->second.type == Keyword::TWEEN)
+				else if (it->second.type == KeywordType::Tween)
 				{
 					transition.tween = it->second.tween;
 				}

@@ -182,7 +182,7 @@ int ElementGetElementsByTagName(lua_State* L, Element* obj)
     lua_newtable(L);
     for(unsigned int i = 0; i < list.size(); i++)
     {
-        lua_pushinteger(L,i);
+        PushIndex(L,i);
         LuaType<Element>::push(L,list[i],false);
         lua_settable(L,-3); //-3 is the table
     }

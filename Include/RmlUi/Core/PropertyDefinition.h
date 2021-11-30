@@ -41,12 +41,10 @@ namespace Rml {
 
 enum class RelativeTarget { None, ContainingBlockWidth, ContainingBlockHeight, FontSize, ParentFontSize, LineHeight };
 
-class RMLUICORE_API PropertyDefinition final
+class RMLUICORE_API PropertyDefinition final : public NonCopyMoveable
 {
 public:
 	PropertyDefinition(PropertyId id, const String& default_value, bool inherited, bool forces_layout);
-	PropertyDefinition(const PropertyDefinition &) = delete; 
-	PropertyDefinition& operator=(const PropertyDefinition &) = delete;
 	~PropertyDefinition();
 
 	/// Registers a parser to parse values for this definition.
