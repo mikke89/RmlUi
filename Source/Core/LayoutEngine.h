@@ -43,7 +43,8 @@ class Box;
 class LayoutEngine
 {
 public:
-	/// Formats the contents for a root-level element (usually a document, floating or replaced element). Establishes a new block formatting context.
+	/// Formats the contents for a root-level element, usually a document, absolutely positioned, floating, or replaced element. Establishes a new
+	/// block formatting context.
 	/// @param[in] element The element to lay out.
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] override_initial_box Optional pointer to a box to override the generated box for the element.

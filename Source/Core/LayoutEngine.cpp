@@ -146,14 +146,34 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 	if (FormatElementSpecial(block_context_box, element))
 		return true;
 
+	const Style::Display display = element->GetDisplay();
+
 	// Fetch the display property, and don't lay this element out if it is set to a display type of none.
-	if (computed.display == Style::Display::None)
+	if (display == Style::Display::None)
 		return true;
+
+	// Tables and flex boxes need to be specially handled when they are absolutely positioned or floated. Currently it is assumed for both
+	// FormatElement(element, containing_block) and GetShrinkToFitWidth(), and possibly others, that they are strictly called on block boxes.
+	// The mentioned functions need to be updated if we want to support all combinations of display, position, and float properties.
+	auto uses_unsupported_display_position_float_combination = [display, element](const char* abs_positioned_or_floated) -> bool {
+		if (display == Style::Display::Flex || display == Style::Display::Table)
+		{
+			const char* element_type = (display == Style::Display::Flex ? "Flex" : "Table");
+			Log::Message(Log::LT_WARNING,
+				"%s elements cannot be %s. Instead, wrap it within a parent block element which is %s. Element will not be formatted: %s",
+				element_type, abs_positioned_or_floated, abs_positioned_or_floated, element->GetAddress().c_str());
+			return true;
+		}
+		return false;
+	};
 
 	// Check for an absolute position; if this has been set, then we remove it from the flow and add it to the current
 	// block box to be laid out and positioned once the block has been closed and sized.
 	if (computed.position == Style::Position::Absolute || computed.position == Style::Position::Fixed)
 	{
+		if (uses_unsupported_display_position_float_combination("absolutely positioned"))
+			return true;
+
 		// Display the element as a block element.
 		block_context_box->AddAbsoluteElement(element);
 		return true;
@@ -162,12 +182,15 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 	// If the element is floating, we remove it from the flow.
 	if (computed.float_ != Style::Float::None)
 	{
+		if (uses_unsupported_display_position_float_combination("floated"))
+			return true;
+
 		LayoutEngine::FormatElement(element, LayoutDetails::GetContainingBlock(block_context_box));
 		return block_context_box->AddFloatElement(element);
 	}
 
-	// The element is nothing exceptional, so we treat it as a normal block, inline or replaced element.
-	switch (computed.display)
+	// The element is nothing exceptional, so format it according to its display property.
+	switch (display)
 	{
 		case Style::Display::Block:       return FormatElementBlock(block_context_box, element);
 		case Style::Display::Inline:      return FormatElementInline(block_context_box, element);
@@ -181,37 +204,9 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 		case Style::Display::TableColumnGroup:
 		case Style::Display::TableCell:
 		{
-			// These elements should have been handled within FormatElementTable.
-			// See if we are located in an absolutely positioned or floating table element. Then,
-			// we will have issues and end up here because these properties establish a new block 
-			// formatting context, but then tables need to be specially handled and they are not
-			// yet. Both FormatElement(element, containing_block) and GetShrinkToFitWidth() need
-			// to handle tables if we want to fix this.
-			Element* table_ancestor = element->GetParentNode();
-			while (table_ancestor && table_ancestor->GetDisplay() != Style::Display::Table)
-				table_ancestor = table_ancestor->GetParentNode();
-
-			if (table_ancestor)
-			{
-				const auto float_ = table_ancestor->GetFloat();
-				const auto position = table_ancestor->GetPosition();
-				const char* warning_msg = nullptr;
-
-				if (float_ != Style::Float::None)
-					warning_msg = "Table element cannot be floating. Instead, wrap it within a floating parent element.";
-				else if (position == Style::Position::Absolute || position == Style::Position::Fixed)
-					warning_msg = "Table element cannot be absolutely positioned. Instead, wrap it within an absolutely positioned parent element.";
-
-				if (warning_msg)
-				{
-					Log::Message(Log::LT_WARNING, "%s In element %s", warning_msg, table_ancestor->GetAddress().c_str());
-					return true;
-				}
-			}
-
-			// Seems like our issue isn't with the table element, instead we're encountering table parts in the wild!
+			// These elements should have been handled within FormatElementTable, seems like we're encountering table parts in the wild.
 			const Property* display_property = element->GetProperty(PropertyId::Display);
-			Log::Message(Log::LT_WARNING, "Element has a display type '%s', but is not located in a table. It will not be formatted. In element %s",
+			Log::Message(Log::LT_WARNING, "Element has a display type '%s', but is not located in a table. Element will not be formatted: %s",
 				display_property ? display_property->ToString().c_str() : "*unknown*",
 				element->GetAddress().c_str()
 			);
