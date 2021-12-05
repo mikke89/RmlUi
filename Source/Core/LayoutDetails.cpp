@@ -46,7 +46,7 @@ static inline float BorderSizeToContentSize(float border_size, float border_padd
 }
 
 // Generates the box for an element.
-void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element, float override_shrink_to_fit_width)
+void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* element, BoxContext box_context, float override_shrink_to_fit_width)
 {
 	if (!element)
 	{
@@ -81,7 +81,7 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 
 	// Calculate the content area and constraints. 'auto' width and height are handled later.
 	// For inline non-replaced elements, width and height are ignored, so we can skip the calculations.
-	if (!inline_element || replaced_element)
+	if (box_context == BoxContext::Block || box_context == BoxContext::FlexOrTable || replaced_element)
 	{
 		if (content_area.x < 0 && computed.width.type != Style::Width::Auto)
 			content_area.x = ResolveValue(computed.width, containing_block.x);
@@ -125,15 +125,16 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 	box.SetContent(content_area);
 
 	// Evaluate the margins, and width and height if they are auto.
-	BuildBoxSizeAndMargins(box, min_size, max_size, containing_block, element, inline_element, replaced_element, override_shrink_to_fit_width);
+	BuildBoxSizeAndMargins(box, min_size, max_size, containing_block, element, box_context, replaced_element, override_shrink_to_fit_width);
 }
 
 // Generates the box for an element placed in a block box.
-void LayoutDetails::BuildBox(Box& box, float& min_height, float& max_height, LayoutBlockBox* containing_box, Element* element, bool inline_element, float override_shrink_to_fit_width)
+void LayoutDetails::BuildBox(Box& box, float& min_height, float& max_height, LayoutBlockBox* containing_box, Element* element, BoxContext box_context,
+	float override_shrink_to_fit_width)
 {
 	Vector2f containing_block = LayoutDetails::GetContainingBlock(containing_box);
 
-	BuildBox(box, containing_block, element, inline_element, override_shrink_to_fit_width);
+	BuildBox(box, containing_block, element, box_context, override_shrink_to_fit_width);
 
 	if (element)
 		GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
@@ -213,11 +214,12 @@ Vector2f LayoutDetails::GetContainingBlock(const LayoutBlockBox* containing_box)
 }
 
 
-void LayoutDetails::BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f max_size, Vector2f containing_block, Element* element, bool inline_element, bool replaced_element, float override_shrink_to_fit_width)
+void LayoutDetails::BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f max_size, Vector2f containing_block, Element* element,
+	BoxContext box_context, bool replaced_element, float override_shrink_to_fit_width)
 {
 	const ComputedValues& computed = element->GetComputedValues();
 
-	if (inline_element)
+	if (box_context == BoxContext::Inline || box_context == BoxContext::FlexOrTable)
 	{
 		// For inline elements, their calculations are straightforward. No worrying about auto margins and dimensions, etc.
 		// Evaluate the margins. Any declared as 'auto' will resolve to 0.
@@ -240,7 +242,7 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 
 	Box box;
 	float min_height, max_height;
-	LayoutDetails::BuildBox(box, containing_block, element, false, containing_block.x);
+	LayoutDetails::BuildBox(box, containing_block, element, BoxContext::Block, containing_block.x);
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
 
 	// First we need to format the element, then we get the shrink-to-fit width based on the largest line or box.
@@ -278,8 +280,8 @@ ComputedAxisSize LayoutDetails::BuildComputedVerticalSize(const ComputedValues& 
 		computed.margin_top, computed.margin_bottom, computed.border_top_width, computed.border_bottom_width, computed.box_sizing};
 }
 
-void LayoutDetails::GetEdgeSizes(
-	float& margin_a, float& margin_b, float& padding_border_a, float& padding_border_b, const ComputedAxisSize& computed_size, const float base_value)
+void LayoutDetails::GetEdgeSizes(float& margin_a, float& margin_b, float& padding_border_a, float& padding_border_b,
+	const ComputedAxisSize& computed_size, const float base_value)
 {
 	margin_a = ResolveValue(computed_size.margin_a, base_value);
 	margin_b = ResolveValue(computed_size.margin_b, base_value);

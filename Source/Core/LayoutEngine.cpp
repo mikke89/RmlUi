@@ -72,7 +72,7 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, co
 	if (override_initial_box)
 		box = *override_initial_box;
 	else
-		LayoutDetails::BuildBox(box, containing_block, element, false);
+		LayoutDetails::BuildBox(box, containing_block, element);
 
 	float min_height, max_height;
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
@@ -228,7 +228,7 @@ bool LayoutEngine::FormatElementBlock(LayoutBlockBox* block_context_box, Element
 
 	Box box;
 	float min_height, max_height;
-	LayoutDetails::BuildBox(box, min_height, max_height, block_context_box, element, false);
+	LayoutDetails::BuildBox(box, min_height, max_height, block_context_box, element);
 
 	LayoutBlockBox* new_block_context_box = block_context_box->AddBlockElement(element, box, min_height, max_height);
 	if (new_block_context_box == nullptr)
@@ -280,7 +280,7 @@ bool LayoutEngine::FormatElementInline(LayoutBlockBox* block_context_box, Elemen
 	const Vector2f containing_block = LayoutDetails::GetContainingBlock(block_context_box);
 
 	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element, true);
+	LayoutDetails::BuildBox(box, containing_block, element, BoxContext::Inline);
 	LayoutInlineBox* inline_box = block_context_box->AddInlineElement(element, box);
 
 	// Format the element's children.
@@ -317,9 +317,9 @@ bool LayoutEngine::FormatElementTable(LayoutBlockBox* block_context_box, Element
 
 	const Vector2f containing_block = LayoutDetails::GetContainingBlock(block_context_box);
 
-	// Build the initial box as specified by the table's style, as if it were a normal block element.
+	// Build the initial box as specified by the table's style, as if it was a normal block element.
 	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element_table, false);
+	LayoutDetails::BuildBox(box, containing_block, element_table, BoxContext::Block);
 
 	Vector2f min_size, max_size;
 	LayoutDetails::GetMinMaxWidth(min_size.x, max_size.x, computed_table, box, containing_block.x);
@@ -335,7 +335,7 @@ bool LayoutEngine::FormatElementTable(LayoutBlockBox* block_context_box, Element
 	if (final_content_size != initial_content_size)
 	{
 		// Perform this step to re-evaluate any auto margins.
-		LayoutDetails::BuildBoxSizeAndMargins(box, min_size, max_size, containing_block, element_table, false, true);
+		LayoutDetails::BuildBoxSizeAndMargins(box, min_size, max_size, containing_block, element_table, BoxContext::Block, true);
 	}
 
 	// Now that the box is finalized, we can add table as a block element. If we did it earlier, eg. just before formatting the table,

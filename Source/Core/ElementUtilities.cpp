@@ -303,7 +303,7 @@ void ElementUtilities::FormatElement(Element* element, Vector2f containing_block
 // Generates the box for an element.
 void ElementUtilities::BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element)
 {
-	LayoutDetails::BuildBox(box, containing_block, element, inline_element);
+	LayoutDetails::BuildBox(box, containing_block, element, inline_element ? BoxContext::Inline : BoxContext::Block);
 }
 
 // Sizes an element, and positions it within its parent offset from the borders of its content area.
