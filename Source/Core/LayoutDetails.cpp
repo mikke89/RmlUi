@@ -266,6 +266,28 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	return Math::Min(containing_block.x, block_context_box->GetShrinkToFitWidth());
 }
 
+ComputedAxisSize LayoutDetails::BuildComputedHorizontalSize(const ComputedValues& computed)
+{
+	return ComputedAxisSize{computed.width, computed.min_width, computed.max_width, computed.padding_left, computed.padding_right,
+		computed.margin_left, computed.margin_right, computed.border_left_width, computed.border_right_width, computed.box_sizing};
+}
+
+ComputedAxisSize LayoutDetails::BuildComputedVerticalSize(const ComputedValues& computed)
+{
+	return ComputedAxisSize{computed.height, computed.min_height, computed.max_height, computed.padding_top, computed.padding_bottom,
+		computed.margin_top, computed.margin_bottom, computed.border_top_width, computed.border_bottom_width, computed.box_sizing};
+}
+
+void LayoutDetails::GetEdgeSizes(
+	float& margin_a, float& margin_b, float& padding_border_a, float& padding_border_b, const ComputedAxisSize& computed_size, const float base_value)
+{
+	margin_a = ResolveValue(computed_size.margin_a, base_value);
+	margin_b = ResolveValue(computed_size.margin_b, base_value);
+
+	padding_border_a = Math::Max(0.0f, ResolveValue(computed_size.padding_a, base_value)) + Math::Max(0.0f, computed_size.border_a);
+	padding_border_b = Math::Max(0.0f, ResolveValue(computed_size.padding_b, base_value)) + Math::Max(0.0f, computed_size.border_b);
+}
+
 Vector2f LayoutDetails::CalculateSizeForReplacedElement(const Vector2f specified_content_size, const Vector2f min_size, const Vector2f max_size, const Vector2f intrinsic_size, const float intrinsic_ratio)
 {
 	// Start with the element's specified width and height. If any of them are auto, use the element's intrinsic

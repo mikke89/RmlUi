@@ -123,7 +123,7 @@ void LayoutTable::DetermineColumnWidths()
 	{
 		if (Element* element_group = grid.columns[i].element_group)
 		{
-			const ComputedTrackSize computed = BuildComputedColumnSize(element_group->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedHorizontalSize(element_group->GetComputedValues());
 			const int span = grid.columns[i].group_span;
 
 			sizing.ApplyGroupElement(i, span, computed);
@@ -131,7 +131,7 @@ void LayoutTable::DetermineColumnWidths()
 
 		if (Element* element_column = grid.columns[i].element_column)
 		{
-			const ComputedTrackSize computed = BuildComputedColumnSize(element_column->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedHorizontalSize(element_column->GetComputedValues());
 			const int span = grid.columns[i].column_span;
 
 			sizing.ApplyTrackElement(i, span, computed);
@@ -143,7 +143,7 @@ void LayoutTable::DetermineColumnWidths()
 	{
 		if (Element* element_cell = grid.columns[i].element_cell)
 		{
-			const ComputedTrackSize computed = BuildComputedColumnSize(element_cell->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedHorizontalSize(element_cell->GetComputedValues());
 			const int colspan = grid.columns[i].cell_span;
 
 			sizing.ApplyCellElement(i, colspan, computed);
@@ -223,7 +223,7 @@ void LayoutTable::DetermineRowHeights()
 		if (Element* element_group = grid.rows[i].element_group)
 		{
 			// The padding/border/margin of column groups are used, but their widths are ignored.
-			const ComputedTrackSize computed = BuildComputedRowSize(element_group->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedVerticalSize(element_group->GetComputedValues());
 			const int span = grid.rows[i].group_span;
 
 			sizing.ApplyGroupElement(i, span, computed);
@@ -232,7 +232,7 @@ void LayoutTable::DetermineRowHeights()
 		if (Element* element_row = grid.rows[i].element_row)
 		{
 			// The padding/border/margin and widths of columns are used.
-			const ComputedTrackSize computed = BuildComputedRowSize(element_row->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedVerticalSize(element_row->GetComputedValues());
 			
 			if (computed.size.type == Style::LengthPercentageAuto::Percentage)
 				percentage_size_used = true;
