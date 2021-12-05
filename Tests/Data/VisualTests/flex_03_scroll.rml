@@ -1,0 +1,73 @@
+<rml>
+<head>
+	<title>Flex 03 - Scrolling container</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-flexbox/" />
+	<meta name="Description" content="Flex container with scrollbars." />
+	<style>
+		.flex {
+			display: flex;
+			background-color: #555;
+			margin: 5dp 20dp 15dp;
+			border: 2dp #333;
+			justify-content: space-between;
+			color: #d44fff;
+		}
+		.auto {
+			overflow: auto;
+		}
+		.scroll {
+			overflow: scroll;
+		}
+		.flex div {
+			flex: 0 1 auto;
+			width: 50dp;
+			height: 50dp;
+			margin: 20dp;
+			background-color: #eee;
+			line-height: 50dp;
+			text-align: center;
+		}
+		.flex div.tall {
+			height: 80dp;
+			width: 15dp;
+			margin: 0;
+			border: 2dp #d44fff;
+		}
+	</style>
+</head>
+
+<body>
+overflow: scroll
+<div class="flex scroll" id="scroll">
+	<div>Hello<div class="tall"/></div>
+	<div>big world!</div>
+	<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+</div>
+overflow: auto
+<div class="flex auto" id="auto">
+	<div>Hello<div class="tall"/></div>
+	<div>big world!</div>
+	<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+</div>
+overflow: auto - only vertical overflow
+<div class="flex auto" id="vertical">
+	<div>Hello<div class="tall"/></div>
+	<div>big world!</div>
+	<div>LONG</div>
+</div>
+overflow: auto - only horizontal overflow
+<div class="flex auto" id="horizontal">
+	<div>Hello</div>
+	<div>big</div>
+	<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+</div>
+overflow: visible
+<div class="flex" id="visible">
+	<div>Hello<div class="tall"/></div>
+	<div>big world!</div>
+	<div>LOOOOOOOOOOOOOOOOOOOOONG</div>
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>

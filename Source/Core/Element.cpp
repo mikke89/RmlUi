@@ -2260,7 +2260,7 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 				ordered_child.order = RenderOrder::Positioned;
 			else if (child->GetFloat() != Style::Float::None)
 				ordered_child.order = RenderOrder::Floating;
-			else if (child_display == Style::Display::Block || child_display == Style::Display::Table)
+			else if (child_display == Style::Display::Block || child_display == Style::Display::Table || child_display == Style::Display::Flex)
 				ordered_child.order = RenderOrder::Block;
 			else
 				ordered_child.order = RenderOrder::Inline;

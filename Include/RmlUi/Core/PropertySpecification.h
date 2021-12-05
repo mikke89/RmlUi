@@ -55,7 +55,9 @@ enum class ShorthandType
 	// Repeatedly resolves the full value string on each property, whether it is a normal property or another shorthand.
 	RecursiveRepeat,
 	// Comma-separated list of properties or shorthands, the number of declared values must match the specified.
-	RecursiveCommaSeparated
+	RecursiveCommaSeparated,
+	// The 'flex' shorthand has some special behavior but otherwise acts like 'FallThrough'.
+	Flex
 };
 
 

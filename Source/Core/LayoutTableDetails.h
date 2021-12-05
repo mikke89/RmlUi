@@ -35,6 +35,8 @@
 
 namespace Rml {
 
+struct ComputedAxisSize;
+
 /*
 	TableGrid builds the structure of the table, that is a list of rows, columns, and cells, taking
 	spanning attributes into account to position cells.
@@ -84,24 +86,6 @@ private:
 	CellList open_cells;
 };
 
-
-/*
-	ComputedTrackSize is an abstraction for computed size properties of rows and column elements alike which
-	allows them to use the same algorithms. Here, 'a' means left or top, 'b' means right or bottom.
-*/
-struct ComputedTrackSize {
-	Style::LengthPercentageAuto size;
-	Style::LengthPercentage min_size, max_size;
-	Style::Padding padding_a, padding_b;
-	Style::Margin margin_a, margin_b;
-	float border_a, border_b;
-	Style::BoxSizing box_sizing;
-};
-
-ComputedTrackSize BuildComputedColumnSize(const ComputedValues& computed);
-ComputedTrackSize BuildComputedRowSize(const ComputedValues& computed);
-
-
 enum class TrackSizingMode { Auto, Fixed, Flexible };
 
 /*
@@ -136,21 +120,21 @@ public:
 	{}
 
 	// Apply group element. This sets the initial size of edges.
-	void ApplyGroupElement(const int index, const int span, const ComputedTrackSize& computed);
+	void ApplyGroupElement(const int index, const int span, const ComputedAxisSize& computed);
 	// Apply track element. This merges its edges, and sets the initial content size.
-	void ApplyTrackElement(const int index, const int span, const ComputedTrackSize& computed);
+	void ApplyTrackElement(const int index, const int span, const ComputedAxisSize& computed);
 	// Apply cell element for column sizing. This merges its content size and margins.
-	void ApplyCellElement(const int index, const int span, const ComputedTrackSize& computed);
+	void ApplyCellElement(const int index, const int span, const ComputedAxisSize& computed);
 
 	// Convert flexible size to fixed size for all tracks.
 	void ResolveFlexibleSize();
 
 private:
-	void GetEdgeSizes(float& margin_a, float& margin_b, float& padding_border_a, float& padding_border_b, const ComputedTrackSize& computed) const;
+	void GetEdgeSizes(float& margin_a, float& margin_b, float& padding_border_a, float& padding_border_b, const ComputedAxisSize& computed) const;
 
 	// Fill the track metric with fixed, flexible and min/max size, based on the element's computed values.
 	void InitializeSize(TrackMetric& metric, float& margin_a, float& margin_b, float& padding_border_a,
-		float& padding_border_b, const ComputedTrackSize& computed, const int span, const Style::BoxSizing target_box) const;
+		float& padding_border_b, const ComputedAxisSize& computed, const int span, const Style::BoxSizing target_box) const;
 
 	TrackMetricList& metrics;
 	const float table_initial_content_size;

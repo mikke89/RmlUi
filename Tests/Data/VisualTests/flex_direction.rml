@@ -1,0 +1,71 @@
+<rml>
+<head>
+    <link type="text/rcss" href="/../Tests/Data/style.rcss" />
+    <title>CSS Test: flex flow direction</title>
+    <link href="https://test.csswg.org/suites/css-flexbox-1_dev/nightly-unstable/xhtml1/flex-direction.xht" rel="source" />
+    <link href="http://www.github.com/sskyy" rel="author" title="houzhenyu" />
+    <link href="http://www.w3.org/TR/css-flexbox-1/#flex-direction" rel="help" />
+    <link href="reference/flex_direction-ref.rml" rel="match" />
+    <meta content="The flow of flex items in the the flex container should observe the flex-direction property." name="assert" />
+    <style>
+        .flex-container {
+            display: flex;
+            margin: 20dp;
+            background-color: #333;
+        }
+        
+        .flex-item {
+            width: 50dp;
+            height: 50dp;
+            margin: 20dp;
+            background-color: #eee;
+            line-height: 50dp;
+            text-align: center;
+        }
+        
+        .flex-container.flex-direction-row {
+            flex-direction: row;
+        }
+        .flex-container.flex-direction-row-reverse {
+            flex-direction: row-reverse;
+        }
+        .flex-container.flex-direction-column {
+            flex-direction: column;
+        }
+        .flex-container.flex-direction-column-reverse {
+            flex-direction: column-reverse;
+        }
+    </style>
+</head>
+<body>
+    <h1>flex-direction:row</h1>
+    <div class="flex-container flex-direction-row">
+        <div class="flex-item">1</div>
+        <div class="flex-item">2</div>
+        <div class="flex-item">3</div>
+    </div>
+
+    <h1>flex-direction:row-reverse</h1>
+    <div class="flex-container flex-direction-row-reverse">
+        <div class="flex-item">1</div>
+        <div class="flex-item">2</div>
+        <div class="flex-item">3</div>
+    </div>
+
+    <h1>flex-direction:column</h1>
+    <div class="flex-container flex-direction-column">
+        <div class="flex-item">1</div>
+        <div class="flex-item">2</div>
+        <div class="flex-item">3</div>
+    </div>
+
+    <h1>flex-direction:column-reverse</h1>
+    <div class="flex-container flex-direction-column-reverse">
+        <div class="flex-item">1</div>
+        <div class="flex-item">2</div>
+        <div class="flex-item">3</div>
+    </div>
+    
+    <handle size_target="#document"/>
+</body>
+</rml>

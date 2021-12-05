@@ -1,0 +1,72 @@
+<rml>
+<head>
+    <title>Flex 05 ref</title>
+    <link type="text/rcss" href="../../style.rcss"/>
+	<meta name="Reference" content="The size of the flex containers should match the size of the block boxes in the reference." />
+	<style>
+		h1 {
+			text-align: center;
+			margin-bottom: 5dp;
+			padding: 0.25em 0;
+			border-color: #333;
+			border-width: 1dp 0;
+		}
+		h1:first-child { margin-top: 0; }
+		h1, h2 { white-space: nowrap; }
+		.flex {
+			display: block;
+			margin: 1dp 0 3dp;
+			border: 1dp #999;
+		}
+		.wrap {
+			flex-wrap: wrap;
+		}
+		.column {
+			flex-direction: column;
+		}
+		.height {
+			height: 40dp;
+		}
+		.min-height {
+			height: 40dp;
+		}
+		.max-height {
+			height: 40dp;
+		}
+	</style>
+</head>
+
+<body>
+<h1>height, rows</h1>
+<div class="flex wrap height">
+</div>
+<div class="flex height">
+</div>
+<h1>height, columns</h1>
+<div class="flex column wrap height">
+</div>
+<div class="flex column height">
+</div>
+<h1>min-height, rows</h1>
+<div class="flex wrap min-height">
+</div>
+<div class="flex min-height">
+</div>
+<h1>min-height, columns</h1>
+<div class="flex column wrap min-height">
+</div>
+<div class="flex column min-height">
+</div>
+<h1>max-height, rows</h1>
+<div class="flex wrap max-height">
+</div>
+<div class="flex max-height">
+</div>
+<h1>max-height, columns</h1>
+<div class="flex column wrap max-height">
+</div>
+<div class="flex column max-height">
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>
