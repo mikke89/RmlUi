@@ -101,6 +101,7 @@ RmlUi supports most of CSS2 with some CSS3 features such as
 
 - Animations and transitions
 - Transforms (with full interpolation support)
+- Flexbox layout
 - Media queries
 - Border radius
 
@@ -309,6 +310,9 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 ![Transform](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transform.gif)  
 **Animated transforms (entirely in RCSS)**
+
+![Flexbox](https://github.com/mikke89/RmlUiDoc/blob/4cf0c6ac23b822174e69e5f1413b71254230c619/assets/images/flexbox-example.png)  
+**Flexbox layout**
 
 ![Lottie animation](https://github.com/mikke89/RmlUiDoc/blob/086385e119f0fc6e196229b785e91ee0252fe4b4/assets/gallery/lottie.gif)  
 **Vector animations with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)**
