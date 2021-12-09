@@ -140,7 +140,8 @@ void ShellRenderInterfaceVulkan::OnResize(int width, int height) noexcept
 	this->m_height = height;
 
 #ifdef RMLUI_PLATFORM_WIN32
-	// TODO: rmlui team try to call OnResize method only in case when the windows is shown, all other iterations (you can try to delete this if block and see the results of validation) cause validation error with invalid extent it means height with zero value and it is not acceptable
+	// TODO: rmlui team try to call OnResize method only in case when the windows is shown, all other iterations (you can try to delete this if block
+	// and see the results of validation) cause validation error with invalid extent it means height with zero value and it is not acceptable
 	if (!IsWindowVisible(this->m_p_window_handle))
 	{
 		return;
