@@ -674,7 +674,7 @@ void ShellRenderInterfaceVulkan::CreatePropertiesFor_Instance(void) noexcept
 
 	if (is_cpu_validation)
 	{
-		// Rml::Log::Message(Rml::Log::LT_INFO, "CPU validation is enabled");
+		Shell::Log("[Vulkan] CPU validation is enabled");
 
 		Rml::Vector<const char*> requested_extensions_for_gpu = {VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME};
 
@@ -969,8 +969,6 @@ VkExtent2D ShellRenderInterfaceVulkan::CreateValidSwapchainExtent(void) noexcept
 	{
 		return caps.currentExtent;
 	}
-
-	return result;
 }
 
 VkSurfaceTransformFlagBitsKHR ShellRenderInterfaceVulkan::CreatePretransformSwapchain(void) noexcept
