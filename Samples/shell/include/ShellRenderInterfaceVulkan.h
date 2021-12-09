@@ -18,7 +18,7 @@
  *
  * It's better to try operate with very clean 'one-class' architecture rather than create own library for Vulkan
  * With many different classes, with not trivial signatures and etc
- * And we should document that library so it's just a headache for all of us
+ * And as a result we should document that library so it's just a headache for all of us
  *
  * @author diamondhat
  */

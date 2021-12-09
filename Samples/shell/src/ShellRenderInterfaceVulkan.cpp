@@ -116,6 +116,10 @@ void ShellRenderInterfaceVulkan::Initialize(void) noexcept
 
 void ShellRenderInterfaceVulkan::Shutdown(void) noexcept
 {
+	auto status = vkDeviceWaitIdle(this->m_p_device);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "you must have a valid status here");
+
 	this->Destroy_Resources();
 	this->Destroy_SyncPrimitives();
 	this->Destroy_Swapchain();
@@ -133,7 +137,6 @@ void ShellRenderInterfaceVulkan::OnResize(int width, int height) noexcept
 	if (this->m_p_swapchain)
 	{
 		this->Destroy_Swapchain();
-		
 	}
 
 	this->Initialize_Swapchain();
@@ -1200,15 +1203,11 @@ void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreatePipelineLayout");
 }
 
-void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept 
-{
-}
+void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept {}
 
-void ShellRenderInterfaceVulkan::CreatePipeline(void) noexcept 
-{
-}
+void ShellRenderInterfaceVulkan::CreatePipeline(void) noexcept {}
 
-void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept 
+void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept
 {
 	this->CreateSwapchainImageViews();
 
@@ -1220,7 +1219,7 @@ void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept
 	}
 }
 
-void ShellRenderInterfaceVulkan::CreateSwapchainImages(void) noexcept 
+void ShellRenderInterfaceVulkan::CreateSwapchainImages(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 	VK_ASSERT(this->m_p_swapchain, "[Vulkan] you must initialize VkSwapchainKHR before calling this method");
@@ -1232,22 +1231,22 @@ void ShellRenderInterfaceVulkan::CreateSwapchainImages(void) noexcept
 
 	this->m_swapchain_images.resize(count);
 
-	auto status = vkGetSwapchainImagesKHR(this->m_p_device, this->m_p_swapchain, &count, this->m_swapchain_images.data());
+	status = vkGetSwapchainImagesKHR(this->m_p_device, this->m_p_swapchain, &count, this->m_swapchain_images.data());
 
 	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkGetSwapchainImagesKHR (filling vector)");
 }
 
-void ShellRenderInterfaceVulkan::CreateSwapchainImageViews(void) noexcept 
+void ShellRenderInterfaceVulkan::CreateSwapchainImageViews(void) noexcept
 {
 	this->CreateSwapchainImages();
 
 	this->m_swapchain_image_views.resize(this->m_swapchain_images.size());
 
 	uint32_t index = 0;
-	for (auto p_image : this->m_swapchain_images) 
-	{
-		VkImageViewCreateInfo info = {};
+	VkImageViewCreateInfo info = {};
 
+	for (auto p_image : this->m_swapchain_images)
+	{
 		info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		info.pNext = nullptr;
 		info.format = this->m_swapchain_format.format;
@@ -1271,13 +1270,13 @@ void ShellRenderInterfaceVulkan::CreateSwapchainImageViews(void) noexcept
 	}
 }
 
-void ShellRenderInterfaceVulkan::DestroySwapchainImageViews(void) noexcept 
+void ShellRenderInterfaceVulkan::DestroySwapchainImageViews(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 
 	this->m_swapchain_images.clear();
 
-	for (auto p_view : this->m_swapchain_image_views) 
+	for (auto p_view : this->m_swapchain_image_views)
 	{
 		vkDestroyImageView(this->m_p_device, p_view, nullptr);
 	}
@@ -1285,11 +1284,11 @@ void ShellRenderInterfaceVulkan::DestroySwapchainImageViews(void) noexcept
 	this->m_swapchain_image_views.clear();
 }
 
-void ShellRenderInterfaceVulkan::DestroySwapchainFrameBuffers(void) noexcept 
+void ShellRenderInterfaceVulkan::DestroySwapchainFrameBuffers(void) noexcept
 {
 	this->DestroySwapchainImageViews();
 
-	for (auto p_frame_buffer : this->m_swapchain_frame_buffers) 
+	for (auto p_frame_buffer : this->m_swapchain_frame_buffers)
 	{
 		vkDestroyFramebuffer(this->m_p_device, p_frame_buffer, nullptr);
 	}
@@ -1297,10 +1296,7 @@ void ShellRenderInterfaceVulkan::DestroySwapchainFrameBuffers(void) noexcept
 	this->m_swapchain_frame_buffers.clear();
 }
 
-void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept 
-{
-
-}
+void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::Wait(void) noexcept
 {
