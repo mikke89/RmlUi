@@ -35,7 +35,7 @@ ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 	m_is_transform_enabled(false), m_width(0), m_height(0), m_queue_index_present(0), m_queue_index_graphics(0), m_queue_index_compute(0),
 	m_semaphore_index(0), m_semaphore_index_previous(0), m_p_instance(nullptr), m_p_device(nullptr), m_p_physical_device_current(nullptr),
 	m_p_surface(nullptr), m_p_swapchain(nullptr), m_p_window_handle(nullptr), m_p_queue_present(nullptr), m_p_queue_graphics(nullptr),
-	m_p_queue_compute(nullptr), m_p_descriptor_set_layout(nullptr), m_p_pipeline_layout(nullptr)
+	m_p_queue_compute(nullptr), m_p_descriptor_set_layout(nullptr), m_p_pipeline_layout(nullptr), m_p_render_pass(nullptr)
 {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
@@ -120,6 +120,7 @@ void ShellRenderInterfaceVulkan::Shutdown(void) noexcept
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "you must have a valid status here");
 
+	this->DestroyResourcesDependentOnSize();
 	this->Destroy_Resources();
 	this->Destroy_SyncPrimitives();
 	this->Destroy_Swapchain();
@@ -138,12 +139,22 @@ void ShellRenderInterfaceVulkan::OnResize(int width, int height) noexcept
 	this->m_width = width;
 	this->m_height = height;
 
+#ifdef RMLUI_PLATFORM_WIN32
+	// TODO: rmlui team try to call OnResize method only in case when the windows is shown, all other iterations (you can try to delete this if block and see the results of validation) cause validation error with invalid extent it means height with zero value and it is not acceptable
+	if (!IsWindowVisible(this->m_p_window_handle))
+	{
+		return;
+	}
+#endif
+
 	if (this->m_p_swapchain)
 	{
 		this->Destroy_Swapchain();
+		this->DestroyResourcesDependentOnSize();
 	}
 
 	this->Initialize_Swapchain();
+	this->CreateResourcesDependentOnSize();
 }
 
 void ShellRenderInterfaceVulkan::Initialize_Instance(void) noexcept
@@ -1213,12 +1224,33 @@ void ShellRenderInterfaceVulkan::CreatePipeline(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept
 {
+	VK_ASSERT(this->m_p_render_pass, "you must create a VkRenderPass before calling this method");
+	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
+
 	this->CreateSwapchainImageViews();
 
 	this->m_swapchain_frame_buffers.resize(this->m_swapchain_image_views.size());
 
 	VkFramebufferCreateInfo info = {};
-	for (auto p_view : this->m_swapchain_image_views) {}
+	int index = 0;
+	VkResult status = VkResult::VK_SUCCESS;
+
+	for (auto p_view : this->m_swapchain_image_views)
+	{
+		VkImageView p_attachment_image_views[] = {p_view};
+		info.sType = VkStructureType::VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		info.pNext = nullptr;
+		info.renderPass = this->m_p_render_pass;
+		info.attachmentCount = 1;
+		info.pAttachments = p_attachment_image_views;
+		info.width = this->m_width;
+		info.height = this->m_height;
+		info.layers = 1;
+
+		status = vkCreateFramebuffer(this->m_p_device, &info, nullptr, &this->m_swapchain_frame_buffers[index]);
+
+		++index;
+	}
 }
 
 void ShellRenderInterfaceVulkan::CreateSwapchainImages(void) noexcept
@@ -1246,6 +1278,7 @@ void ShellRenderInterfaceVulkan::CreateSwapchainImageViews(void) noexcept
 
 	uint32_t index = 0;
 	VkImageViewCreateInfo info = {};
+	VkResult status = VkResult::VK_SUCCESS;
 
 	for (auto p_image : this->m_swapchain_images)
 	{
@@ -1265,11 +1298,23 @@ void ShellRenderInterfaceVulkan::CreateSwapchainImageViews(void) noexcept
 		info.flags = 0;
 		info.image = p_image;
 
-		auto status = vkCreateImageView(this->m_p_device, &info, nullptr, &this->m_swapchain_image_views.at(index));
+		status = vkCreateImageView(this->m_p_device, &info, nullptr, &this->m_swapchain_image_views.at(index));
 		++index;
 
 		VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreateImageView (creating swapchain views)");
 	}
+}
+
+void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
+{
+	this->CreateRenderPass();
+	this->CreateSwapchainFrameBuffers();
+}
+
+void ShellRenderInterfaceVulkan::DestroyResourcesDependentOnSize(void) noexcept
+{
+	this->DestroySwapchainFrameBuffers();
+	this->DestroyRenderPass();
 }
 
 void ShellRenderInterfaceVulkan::DestroySwapchainImageViews(void) noexcept
@@ -1298,7 +1343,82 @@ void ShellRenderInterfaceVulkan::DestroySwapchainFrameBuffers(void) noexcept
 	this->m_swapchain_frame_buffers.clear();
 }
 
-void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept {}
+void ShellRenderInterfaceVulkan::DestroyRenderPass(void) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
+
+	if (this->m_p_render_pass)
+	{
+		vkDestroyRenderPass(this->m_p_device, this->m_p_render_pass, nullptr);
+		this->m_p_render_pass = nullptr;
+	}
+}
+
+void ShellRenderInterfaceVulkan::DestroyPipeline(void) noexcept {}
+
+void ShellRenderInterfaceVulkan::DestroyDescriptorSets(void) noexcept {}
+
+void ShellRenderInterfaceVulkan::DestroyPipelineLayout(void) noexcept {}
+
+void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
+
+	VkAttachmentDescription attachments[1];
+
+	attachments[0].format = this->m_swapchain_format.format;
+	attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	attachments[0].flags = 0;
+
+	VkAttachmentReference swapchain_color_reference;
+
+	swapchain_color_reference.attachment = 0;
+	swapchain_color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = {};
+
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass.flags = 0;
+	subpass.inputAttachmentCount = 0;
+	subpass.pInputAttachments = nullptr;
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &swapchain_color_reference;
+	subpass.pResolveAttachments = nullptr;
+	subpass.pDepthStencilAttachment = nullptr;
+	subpass.preserveAttachmentCount = 0;
+	subpass.pPreserveAttachments = nullptr;
+
+	VkSubpassDependency dep = {};
+
+	dep.dependencyFlags = 0;
+	dep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dep.srcAccessMask = 0;
+	dep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dep.dstSubpass = 0;
+	dep.srcSubpass = VK_SUBPASS_EXTERNAL;
+
+	VkRenderPassCreateInfo info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	info.pNext = nullptr;
+	info.attachmentCount = 1;
+	info.pAttachments = attachments;
+	info.subpassCount = 1;
+	info.pSubpasses = &subpass;
+	info.dependencyCount = 1;
+	info.pDependencies = &dep;
+
+	VkResult status = vkCreateRenderPass(this->m_p_device, &info, nullptr, &this->m_p_render_pass);
+
+	VK_ASSERT(status == VK_SUCCESS, "failed to vkCreateRenderPass");
+}
 
 void ShellRenderInterfaceVulkan::Wait(void) noexcept
 {
@@ -1307,8 +1427,8 @@ void ShellRenderInterfaceVulkan::Wait(void) noexcept
 
 	constexpr uint64_t kMaxUint64 = std::numeric_limits<uint64_t>::max();
 
-	auto status = vkAcquireNextImageKHR(this->m_p_device, this->m_p_swapchain, kMaxUint64, this->m_semaphores_image_available.at(this->m_semaphore_index), nullptr,
-		&this->m_image_index);
+	auto status = vkAcquireNextImageKHR(this->m_p_device, this->m_p_swapchain, kMaxUint64,
+		this->m_semaphores_image_available.at(this->m_semaphore_index), nullptr, &this->m_image_index);
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkAcquireNextImageKHR (see status)");
 

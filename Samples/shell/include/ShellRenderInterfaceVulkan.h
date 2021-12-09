@@ -153,17 +153,23 @@ private:
 	void CreatePipelineLayout(void) noexcept;
 	void CreateDescriptorSets(void) noexcept;
 	void CreatePipeline(void) noexcept;
-	
+	void CreateRenderPass(void) noexcept;
+
 	void CreateSwapchainFrameBuffers(void) noexcept;
-	
+
 	// This method is called in Views, so don't call it manually
 	void CreateSwapchainImages(void) noexcept;
 	void CreateSwapchainImageViews(void) noexcept;
 
+	void CreateResourcesDependentOnSize(void) noexcept;
+	
+	void DestroyResourcesDependentOnSize(void) noexcept;
 	void DestroySwapchainImageViews(void) noexcept;
 	void DestroySwapchainFrameBuffers(void) noexcept;
-
-	void CreateRenderPass(void) noexcept;
+	void DestroyRenderPass(void) noexcept;
+	void DestroyPipeline(void) noexcept;
+	void DestroyDescriptorSets(void) noexcept;
+	void DestroyPipelineLayout(void) noexcept;
 
 	void Wait(void) noexcept;
 	void Submit(void) noexcept;
