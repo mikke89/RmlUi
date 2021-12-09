@@ -131,6 +131,10 @@ void ShellRenderInterfaceVulkan::Shutdown(void) noexcept
 
 void ShellRenderInterfaceVulkan::OnResize(int width, int height) noexcept
 {
+	auto status = vkDeviceWaitIdle(this->m_p_device);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkDeviceWaitIdle");
+
 	this->m_width = width;
 	this->m_height = height;
 
@@ -1213,10 +1217,8 @@ void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept
 
 	this->m_swapchain_frame_buffers.resize(this->m_swapchain_image_views.size());
 
-	for (auto p_view : this->m_swapchain_image_views)
-	{
-		VkFramebufferCreateInfo info = {};
-	}
+	VkFramebufferCreateInfo info = {};
+	for (auto p_view : this->m_swapchain_image_views) {}
 }
 
 void ShellRenderInterfaceVulkan::CreateSwapchainImages(void) noexcept
@@ -1305,8 +1307,10 @@ void ShellRenderInterfaceVulkan::Wait(void) noexcept
 
 	constexpr uint64_t kMaxUint64 = std::numeric_limits<uint64_t>::max();
 
-	vkAcquireNextImageKHR(this->m_p_device, this->m_p_swapchain, kMaxUint64, this->m_semaphores_image_available.at(this->m_semaphore_index), nullptr,
+	auto status = vkAcquireNextImageKHR(this->m_p_device, this->m_p_swapchain, kMaxUint64, this->m_semaphores_image_available.at(this->m_semaphore_index), nullptr,
 		&this->m_image_index);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkAcquireNextImageKHR (see status)");
 
 	this->m_semaphore_index_previous = this->m_semaphore_index;
 	++this->m_semaphore_index;
@@ -1314,9 +1318,13 @@ void ShellRenderInterfaceVulkan::Wait(void) noexcept
 	if (this->m_semaphore_index >= kSwapchainBackBufferCount)
 		this->m_semaphore_index = 0;
 
-	vkWaitForFences(this->m_p_device, 1, &this->m_executed_fences[this->m_semaphore_index_previous], VK_TRUE, kMaxUint64);
+	status = vkWaitForFences(this->m_p_device, 1, &this->m_executed_fences[this->m_semaphore_index_previous], VK_TRUE, kMaxUint64);
 
-	vkResetFences(this->m_p_device, 1, &this->m_executed_fences[this->m_semaphore_index_previous]);
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkWaitForFences (see status)");
+
+	status = vkResetFences(this->m_p_device, 1, &this->m_executed_fences[this->m_semaphore_index_previous]);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkResetFences (see status)");
 }
 
 void ShellRenderInterfaceVulkan::Submit(void) noexcept
