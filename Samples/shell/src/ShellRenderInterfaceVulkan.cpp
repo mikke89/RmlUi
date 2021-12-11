@@ -39,7 +39,9 @@ ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
-{}
+{
+
+}
 
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture)
@@ -479,6 +481,10 @@ void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept
 
 void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 {
+	this->m_command_list.Initialize(this->m_p_device, this->m_queue_index_graphics, kSwapchainBackBufferCount, 2);
+	this->m_memory_pool.Initialize(
+		this->m_p_allocator, this->m_p_device, kSwapchainBackBufferCount, ShellRenderInterfaceVulkan::ConvertCountToMegabytes(32));
+
 	auto storage = this->LoadShaders();
 
 	this->CreateShaders(storage);
@@ -546,6 +552,9 @@ void ShellRenderInterfaceVulkan::Destroy_SyncPrimitives(void) noexcept
 
 void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 {
+	this->m_memory_pool.Shutdown();
+	this->m_command_list.Shutdown();
+
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
 	vkDestroyPipelineLayout(this->m_p_device, this->m_p_pipeline_layout, nullptr);
 
@@ -1874,6 +1883,7 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(
 	VkBufferCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	info.size = this->m_memory_total_size;
 
 	VmaAllocationCreateInfo info_alloc = {};
 
@@ -1890,7 +1900,7 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateBuffer");
 
 #ifdef RMLUI_DEBUG
-	Shell::Log("[Vulkan][Debug] allocated memory for pool: %d", ShellRenderInterfaceVulkan::TranslateBytesToMegaBytes(info_stats.size));
+	Shell::Log("[Vulkan][Debug] allocated memory for pool: %d Mbs", ShellRenderInterfaceVulkan::TranslateBytesToMegaBytes(info_stats.size));
 #endif
 
 	status = vmaMapMemory(this->m_p_vk_allocator, this->m_p_buffer_alloc, (void**)&this->m_p_data);

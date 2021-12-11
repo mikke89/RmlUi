@@ -383,6 +383,11 @@ private:
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
 	VkSurfaceFormatKHR m_swapchain_format;
+
+#pragma region Resources
+	CommandListRing m_command_list;
+	MemoryRingPool m_memory_pool;
+#pragma endregion
 };
 
 #endif
