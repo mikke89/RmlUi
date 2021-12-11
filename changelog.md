@@ -1,3 +1,4 @@
+* [RmlUi 4.3](#rmlui-43)
 * [RmlUi 4.2](#rmlui-42)
 * [RmlUi 4.1](#rmlui-41)
 * [RmlUi 4.0](#rmlui-40)
@@ -7,8 +8,7 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
-## RmlUi 4.3 (WIP)
-
+## RmlUi 4.3
 
 ### Flexbox layout
 
@@ -31,7 +31,7 @@ See usage examples, differences from CSS, performance tips, and all the details 
 ### RCSS
 
 - Add (non-standard) property value `clip: always` to force clipping to the element, [see `clip` documentation](https://mikke89.github.io/RmlUiDoc/pages/rcss/visual_effects.html#clip). [#235](https://github.com/mikke89/RmlUi/issues/235) [#251](https://github.com/mikke89/RmlUi/pull/251) (thanks @MatthiasJFM)
-- Escape character changed from forward slash to backslash `\`.
+- Escape character changed from forward slash to backslash `\` to align with CSS.
 
 ### Layout improvements
 
@@ -44,20 +44,21 @@ See usage examples, differences from CSS, performance tips, and all the details 
 ### Samples
 
 - Add clipboard support to X11 samples. [#231](https://github.com/mikke89/RmlUi/pull/231) (thanks @barotto)
-
-### Lua plugin
-
-- Make Lua plugin API consistently one-indexed instead of zero-indexed. [#237](https://github.com/mikke89/RmlUi/issues/237) [#247](https://github.com/mikke89/RmlUi/pull/247) (thanks @nimble0)
+- Windows shell: Fix OpenGL error on startup.
 
 ### Tests
 
 - Visual tests suite: Add ability to overlay the previous reference capture of the test using the shortcut Ctrl+Q.
 - Add support for CSS flexbox tests to the CSS tests converter.
 
+### Lua plugin
+
+- Make Lua plugin API consistently one-indexed instead of zero-indexed. [#237](https://github.com/mikke89/RmlUi/issues/237) [#247](https://github.com/mikke89/RmlUi/pull/247) (thanks @nimble0)
+- Fix crash due to double delete in the Lua plugin. [#216](https://github.com/mikke89/RmlUi/issues/216)
+
 ### Dependencies
 
 - Update LunaSVG plugin for compatibility with v2.3.0. [#232](https://github.com/mikke89/RmlUi/issues/232)
-- Fix crash due to double delete in the Lua plugin. [#216](https://github.com/mikke89/RmlUi/issues/216)
 - Warn when using FreeType 2.11.0 with the MSVC compiler, as this version introduced [an issue](https://gitlab.freedesktop.org/freetype/freetype/-/issues/1092) leading to crashes.
 
 ### Build improvements
