@@ -60,12 +60,12 @@ void ShellRenderInterfaceVulkan::SetScissorRegion(int x, int y, int width, int h
 
 bool ShellRenderInterfaceVulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
-	return false;
+	return true;
 }
 
 bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
-	return false;
+	return true;
 }
 
 void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handle) {}
@@ -1527,4 +1527,155 @@ const VkPhysicalDeviceProperties& ShellRenderInterfaceVulkan::PhysicalDeviceWrap
 const VkPhysicalDeviceLimits& ShellRenderInterfaceVulkan::PhysicalDeviceWrapper::GetLimits(void) const noexcept
 {
 	return this->m_physical_device_limits;
+}
+
+ShellRenderInterfaceVulkan::CommandListRing::CommandListRing(void) :
+	m_p_current_frame{}, m_frame_index{}, m_number_of_frames{}, m_command_lists_per_frame{}
+{}
+
+ShellRenderInterfaceVulkan::CommandListRing::~CommandListRing(void) {}
+
+void ShellRenderInterfaceVulkan::CommandListRing::Initialize(
+	VkDevice p_device, uint32_t queue_index_graphics, uint32_t number_of_back_buffers, uint32_t command_list_per_frame) noexcept
+{
+	VK_ASSERT(p_device, "you can't pass an invalid VkDevice here");
+	VK_ASSERT(number_of_back_buffers, "you must pass a positive value or just greater than 0");
+	VK_ASSERT(command_list_per_frame, "you must pass a positive value or just greater than 0");
+
+	this->m_number_of_frames = number_of_back_buffers;
+	this->m_command_lists_per_frame = command_list_per_frame;
+	this->m_p_device = p_device;
+	this->m_frames.resize(this->m_number_of_frames);
+
+	for (uint32_t current_frame_index = 0; current_frame_index < this->m_number_of_frames; ++current_frame_index)
+	{
+		CommandBufferPerFrame* p_current_buffer = &this->m_frames[current_frame_index];
+
+		p_current_buffer->SetCountCommandListsAndPools(command_list_per_frame);
+
+		for (uint32_t current_command_buffer_index = 0; current_command_buffer_index < this->m_command_lists_per_frame;
+			 ++current_command_buffer_index)
+		{
+			VkCommandPoolCreateInfo info_pool = {};
+
+			info_pool.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			info_pool.pNext = nullptr;
+
+			info_pool.queueFamilyIndex = queue_index_graphics;
+
+			info_pool.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+
+			VkCommandPool p_pool = nullptr;
+
+			auto status = vkCreateCommandPool(p_device, &info_pool, nullptr, &p_pool);
+
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "can't create command pool");
+
+			p_current_buffer->AddCommandPools(p_pool);
+
+			VkCommandBufferAllocateInfo info_buffer = {};
+
+			info_buffer.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+			info_buffer.pNext = nullptr;
+			info_buffer.commandPool = p_current_buffer->GetCommandPools()[current_command_buffer_index];
+			info_buffer.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+			info_buffer.commandBufferCount = 1;
+
+			VkCommandBuffer p_buffer = nullptr;
+
+			status = vkAllocateCommandBuffers(p_device, &info_buffer, &p_buffer);
+
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to fill command buffers");
+
+			p_current_buffer->AddCommandBuffers(p_buffer);
+		}
+	}
+
+	this->m_frame_index = 0;
+	this->m_p_current_frame = &this->m_frames[this->m_frame_index % this->m_number_of_frames];
+	this->m_p_current_frame->SetUsedCalls(0);
+}
+
+void ShellRenderInterfaceVulkan::CommandListRing::Shutdown(void)
+{
+	VK_ASSERT(this->m_p_device, "you can't have an uninitialized VkDevice");
+
+	for (uint32_t i = 0; i < this->m_number_of_frames; ++i)
+	{
+		for (uint32_t j = 0; j < this->m_command_lists_per_frame; ++j)
+		{
+			vkFreeCommandBuffers(this->m_p_device, this->m_frames.at(i).GetCommandPools().at(j), 1, &this->m_frames.at(i).GetCommandBuffers().at(j));
+			vkDestroyCommandPool(this->m_p_device, this->m_frames.at(i).GetCommandPools().at(j), nullptr);
+		}
+	}
+}
+
+void ShellRenderInterfaceVulkan::CommandListRing::OnBeginFrame(void) 
+{
+	this->m_p_current_frame = &this->m_frames.at(this->m_frame_index % this->m_number_of_frames);
+
+	this->m_p_current_frame->SetUsedCalls(0);
+	
+	++this->m_frame_index;
+}
+
+VkCommandBuffer ShellRenderInterfaceVulkan::CommandListRing::GetNewCommandList(void)
+{
+	return VkCommandBuffer();
+}
+
+const Rml::Vector<VkCommandBuffer>& ShellRenderInterfaceVulkan::CommandListRing::GetAllCommandBuffersForCurrentFrame(void) const noexcept
+{
+	VK_ASSERT(this->m_p_current_frame, "you must have a valid pointer here");
+
+	return this->m_p_current_frame->GetCommandBuffers();
+}
+
+uint32_t ShellRenderInterfaceVulkan::CommandListRing::GetCountOfCommandBuffersPerFrame(void) const noexcept
+{
+	return this->m_command_lists_per_frame;
+}
+
+ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::CommandBufferPerFrame(void) : m_used_calls{}, m_number_per_frame_command_lists{}
+{}
+
+ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::~CommandBufferPerFrame(void) {}
+
+uint32_t ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::GetUsedCalls(void) const noexcept
+{
+	return this->m_used_calls;
+}
+
+const Rml::Vector<VkCommandPool>& ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::GetCommandPools(void) const noexcept
+{
+	return this->m_command_pools;
+}
+
+const Rml::Vector<VkCommandBuffer>& ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::GetCommandBuffers(void) const noexcept
+{
+	return this->m_command_buffers;
+}
+
+void ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::AddCommandPools(VkCommandPool p_command_pool) noexcept
+{
+	VK_ASSERT(p_command_pool, "you must pass a valid pointer of VkCommandPool");
+
+	this->m_command_pools.push_back(p_command_pool);
+}
+
+void ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::AddCommandBuffers(VkCommandBuffer p_buffer) noexcept
+{
+	VK_ASSERT(p_buffer, "you must pass a valid pointer of VkCommandBuffer");
+
+	this->m_command_buffers.push_back(p_buffer);
+}
+
+void ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::SetUsedCalls(uint32_t number) noexcept
+{
+	this->m_used_calls = number;
+}
+
+void ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::SetCountCommandListsAndPools(uint32_t number) noexcept
+{
+	this->m_number_per_frame_command_lists = number;
 }

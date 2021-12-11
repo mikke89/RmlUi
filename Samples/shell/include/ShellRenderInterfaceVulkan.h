@@ -3,16 +3,18 @@
 
 #include <RmlUi/Core/RenderInterface.h>
 
-// TODO: [From diamondhat] I suggest to rename ShellOpenGL to ShellRender, because if we have more than one Renderer it's better to keep codebase
+// TODO: [From wh1t3lord] I suggest to rename ShellOpenGL to ShellRender, because if we have more than one Renderer it's better to keep codebase
 // simple as much as possible, that means if we don't want to grow headers and other code we should use general file that keeps all needs for our
 // system in this case I mean to not create other ShellVulkan, ShellDX12, ShellDX11, ShellXXX...
+// I mean you can put all headers into one file and have a general name like ShellRender.h it means this header contains everything needed information
+// for writing own ShellRenderInterfaceXXX
 #include "ShellOpenGL.h"
 
 /**
  * Low level Vulkan render interface for RmlUi
  *
  * My aim is to create compact, but easy to use class
- * I understand that it doesn't good architectural choice to keep all things in one class
+ * I understand that it isn't good architectural choice to keep all things in one class
  * But I follow to RMLUI design and for implementing one GAPI backend it just needs one class
  * For user looks cool, but for programmer...
  *
@@ -20,7 +22,7 @@
  * With many different classes, with not trivial signatures and etc
  * And as a result we should document that library so it's just a headache for all of us
  *
- * @author diamondhat
+ * @author wh1t3lord
  */
 
 class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
@@ -42,6 +44,54 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		VkPhysicalDevice m_p_physical_device;
 		VkPhysicalDeviceProperties m_physical_device_properties;
 		VkPhysicalDeviceLimits m_physical_device_limits;
+	};
+
+	class MemoryRingPool {};
+
+	class CommandListRing {
+		class CommandBufferPerFrame {
+		public:
+			CommandBufferPerFrame(void);
+			~CommandBufferPerFrame(void);
+
+			uint32_t GetUsedCalls(void) const noexcept;
+			const Rml::Vector<VkCommandPool>& GetCommandPools(void) const noexcept;
+			const Rml::Vector<VkCommandBuffer>& GetCommandBuffers(void) const noexcept;
+
+			void AddCommandPools(VkCommandPool p_command_pool) noexcept;
+			void AddCommandBuffers(VkCommandBuffer p_buffer) noexcept;
+
+			void SetUsedCalls(uint32_t number) noexcept;
+			void SetCountCommandListsAndPools(uint32_t number) noexcept;
+
+		private:
+			uint32_t m_used_calls;
+			uint32_t m_number_per_frame_command_lists;
+			Rml::Vector<VkCommandPool> m_command_pools;
+			Rml::Vector<VkCommandBuffer> m_command_buffers;
+		};
+
+	public:
+		CommandListRing(void);
+		~CommandListRing(void);
+
+		void Initialize(VkDevice p_device, uint32_t queue_index_graphics, uint32_t number_of_back_buffers, uint32_t command_list_per_frame) noexcept;
+		void Shutdown(void);
+
+		void OnBeginFrame(void);
+
+		VkCommandBuffer GetNewCommandList(void);
+
+		const Rml::Vector<VkCommandBuffer>& GetAllCommandBuffersForCurrentFrame(void) const noexcept;
+		uint32_t GetCountOfCommandBuffersPerFrame(void) const noexcept;
+
+	private:
+		uint32_t m_frame_index;
+		uint32_t m_number_of_frames;
+		uint32_t m_command_lists_per_frame;
+		VkDevice m_p_device;
+		CommandBufferPerFrame* m_p_current_frame;
+		Rml::Vector<CommandBufferPerFrame> m_frames;
 	};
 
 public:
@@ -162,7 +212,7 @@ private:
 	void CreateSwapchainImageViews(void) noexcept;
 
 	void CreateResourcesDependentOnSize(void) noexcept;
-	
+
 	void DestroyResourcesDependentOnSize(void) noexcept;
 	void DestroySwapchainImageViews(void) noexcept;
 	void DestroySwapchainFrameBuffers(void) noexcept;
