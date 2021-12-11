@@ -1,6 +1,9 @@
 #include "ShellRenderInterfaceVulkan.h"
 #include "ShellFileInterface.h"
 
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
 #define VK_ASSERT(statement, msg, ...)         \
 	if (!!(statement) == false)                \
 	{                                          \
