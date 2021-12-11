@@ -1874,9 +1874,11 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(
 
 	VmaAllocationCreateInfo info_alloc = {};
 
+	auto p_commentary = "our pool buffer that manages all memory in vulkan (dynamic)";
+
 	info_alloc.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
 	info_alloc.flags = VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT;
-	info_alloc.pUserData = "our pool buffer that manages all memory in vulkan (dynamic)";
+	info_alloc.pUserData = const_cast<char*>(p_commentary);
 
 	VmaAllocationInfo info_stats = {};
 
