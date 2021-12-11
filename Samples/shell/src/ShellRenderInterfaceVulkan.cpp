@@ -1610,18 +1610,38 @@ void ShellRenderInterfaceVulkan::CommandListRing::Shutdown(void)
 	}
 }
 
-void ShellRenderInterfaceVulkan::CommandListRing::OnBeginFrame(void) 
+void ShellRenderInterfaceVulkan::CommandListRing::OnBeginFrame(void)
 {
 	this->m_p_current_frame = &this->m_frames.at(this->m_frame_index % this->m_number_of_frames);
 
 	this->m_p_current_frame->SetUsedCalls(0);
-	
+
 	++this->m_frame_index;
 }
 
 VkCommandBuffer ShellRenderInterfaceVulkan::CommandListRing::GetNewCommandList(void)
 {
-	return VkCommandBuffer();
+	VK_ASSERT(this->m_p_current_frame, "must be valid");
+	VK_ASSERT(this->m_p_device, "you must initialize your VkDevice field with valid pointer or it's uninitialized field");
+
+	uint32_t current_call = this->m_p_current_frame->GetUsedCalls();
+
+	auto status = vkResetCommandPool(this->m_p_device, this->m_p_current_frame->GetCommandPools().at(current_call), 0);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkResetCommandPool");
+
+	VkCommandBuffer result = this->m_p_current_frame->GetCommandBuffers().at(current_call);
+
+	VK_ASSERT(result, "your VkCommandBuffer must be valid otherwise debug your command list class for frame");
+
+	VK_ASSERT(this->m_p_current_frame->GetUsedCalls() < this->m_command_lists_per_frame,
+		"overflow, you must call GetNewCommandList only for specified count. So it means if you set m_command_lists_per_frame=2 you can call "
+	    "GetNewCommandList twice in your function scope.");
+
+	++current_call;
+	this->m_p_current_frame->SetUsedCalls(current_call);
+
+	return result;
 }
 
 const Rml::Vector<VkCommandBuffer>& ShellRenderInterfaceVulkan::CommandListRing::GetAllCommandBuffersForCurrentFrame(void) const noexcept
