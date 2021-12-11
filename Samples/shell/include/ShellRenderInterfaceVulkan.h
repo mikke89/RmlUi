@@ -25,6 +25,10 @@
  * @author wh1t3lord
  */
 
+#pragma region System Constants for Vulkan API
+constexpr uint32_t kSwapchainBackBufferCount = 3;
+#pragma endregion
+
 class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
 	enum class shader_type_t : int { kShaderType_Vertex, kShaderType_Pixel, kShaderType_Unknown = -1 };
 
@@ -65,6 +69,27 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		uint32_t m_head;
 		uint32_t m_total_size;
 		uint32_t m_allocated_size;
+	};
+
+	// Be careful frame buffer doesn't refer to Vulkan's object!
+	// It means current buffer of current frame (logical abstraction)
+	class MemoryRingAllocatorWithTabs {
+	public:
+		MemoryRingAllocatorWithTabs(void);
+		~MemoryRingAllocatorWithTabs(void);
+
+		void Initialize(uint32_t number_of_frames, uint32_t total_size_memory) noexcept;
+		void Shutdown(void) noexcept;
+		bool Alloc(uint32_t size, uint32_t* p_out) noexcept;
+		void OnBeginFrame(void) noexcept;
+
+	private:
+		uint32_t m_frame_buffer_index;
+		uint32_t m_frame_buffer_number;
+		uint32_t m_memory_allocated_in_frame;
+		MemoryRingAllocator m_allocator;
+
+		uint32_t m_p_allocated_memory_per_back_buffer[kSwapchainBackBufferCount];
 	};
 
 	class MemoryRingPool {};

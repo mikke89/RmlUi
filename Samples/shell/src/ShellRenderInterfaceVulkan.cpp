@@ -27,10 +27,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 	return VK_FALSE;
 }
 
-#pragma region System Constants for Vulkan API
-constexpr uint32_t kSwapchainBackBufferCount = 3;
-#pragma endregion
-
 ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 	m_is_transform_enabled(false), m_width(0), m_height(0), m_queue_index_present(0), m_queue_index_graphics(0), m_queue_index_compute(0),
 	m_semaphore_index(0), m_semaphore_index_previous(0), m_p_instance(nullptr), m_p_device(nullptr), m_p_physical_device_current(nullptr),
@@ -1636,7 +1632,7 @@ VkCommandBuffer ShellRenderInterfaceVulkan::CommandListRing::GetNewCommandList(v
 
 	VK_ASSERT(this->m_p_current_frame->GetUsedCalls() < this->m_command_lists_per_frame,
 		"overflow, you must call GetNewCommandList only for specified count. So it means if you set m_command_lists_per_frame=2 you can call "
-	    "GetNewCommandList twice in your function scope.");
+		"GetNewCommandList twice in your function scope.");
 
 	++current_call;
 	this->m_p_current_frame->SetUsedCalls(current_call);
@@ -1704,7 +1700,7 @@ ShellRenderInterfaceVulkan::MemoryRingAllocator::MemoryRingAllocator(void) : m_h
 
 ShellRenderInterfaceVulkan::MemoryRingAllocator::~MemoryRingAllocator(void) {}
 
-void ShellRenderInterfaceVulkan::MemoryRingAllocator::Initialize(uint32_t total_size) noexcept 
+void ShellRenderInterfaceVulkan::MemoryRingAllocator::Initialize(uint32_t total_size) noexcept
 {
 	this->m_total_size = total_size;
 }
@@ -1740,7 +1736,8 @@ uint32_t ShellRenderInterfaceVulkan::MemoryRingAllocator::GetTail(void) const no
 
 bool ShellRenderInterfaceVulkan::MemoryRingAllocator::Alloc(uint32_t size, uint32_t* p_out) noexcept
 {
-	if (this->m_allocated_size + size <= this->m_total_size) {
+	if (this->m_allocated_size + size <= this->m_total_size)
+	{
 		if (p_out)
 		{
 			*p_out = this->GetTail();
@@ -1758,7 +1755,8 @@ bool ShellRenderInterfaceVulkan::MemoryRingAllocator::Alloc(uint32_t size, uint3
 
 bool ShellRenderInterfaceVulkan::MemoryRingAllocator::Free(uint32_t size)
 {
-	if (this->m_allocated_size >= size) {
+	if (this->m_allocated_size >= size)
+	{
 		this->m_head = (this->m_head + size) % this->m_total_size;
 		this->m_allocated_size -= size;
 
@@ -1766,4 +1764,59 @@ bool ShellRenderInterfaceVulkan::MemoryRingAllocator::Free(uint32_t size)
 	}
 
 	return false;
+}
+
+ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::MemoryRingAllocatorWithTabs(void) :
+	m_frame_buffer_index{}, m_frame_buffer_number{}, m_memory_allocated_in_frame{}, m_p_allocated_memory_per_back_buffer{}
+{}
+
+ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::~MemoryRingAllocatorWithTabs(void) {}
+
+void ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::Initialize(uint32_t number_of_frames, uint32_t total_size_memory) noexcept
+{
+	this->m_frame_buffer_number = number_of_frames;
+	this->m_allocator.Initialize(total_size_memory);
+}
+
+void ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::Shutdown(void) noexcept
+{
+	this->m_allocator.Free(this->m_allocator.GetSize());
+}
+
+bool ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::Alloc(uint32_t size, uint32_t* p_out) noexcept
+{
+	uint32_t padding = this->m_allocator.MakePaddingToAvoidCrossover(size);
+
+	if (padding > 0)
+	{
+		this->m_memory_allocated_in_frame += padding;
+
+		if (this->m_allocator.Alloc(padding, nullptr) == false)
+		{
+#ifdef RMLUI_DEBUG
+			Shell::Log("[Vulkan][Debug] can't allocat, because padding equals 0");
+#endif
+
+			return false;
+		}
+	}
+
+	if (this->m_allocator.Alloc(size, p_out) == true) {
+		this->m_memory_allocated_in_frame += size;
+		return true;
+	}
+
+	return false;
+}
+
+void ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void) noexcept 
+{
+	this->m_p_allocated_memory_per_back_buffer[this->m_frame_buffer_index] = this->m_memory_allocated_in_frame;
+	this->m_memory_allocated_in_frame = 0;
+
+	this->m_frame_buffer_index = (this->m_frame_buffer_index + 1) % this->m_frame_buffer_number;
+
+	uint32_t memory_to_free = this->m_p_allocated_memory_per_back_buffer[this->m_frame_buffer_index];
+
+	this->m_allocator.Free(memory_to_free);
 }
