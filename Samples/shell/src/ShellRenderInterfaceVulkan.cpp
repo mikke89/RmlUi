@@ -1,7 +1,5 @@
 #include "ShellRenderInterfaceVulkan.h"
 #include "ShellFileInterface.h"
-#include "spirv_reflect.h"
-#include "vk_mem_alloc.h"
 
 #define VK_ASSERT(statement, msg, ...)         \
 	if (!!(statement) == false)                \
@@ -31,7 +29,7 @@ ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 	m_is_transform_enabled(false), m_width(0), m_height(0), m_queue_index_present(0), m_queue_index_graphics(0), m_queue_index_compute(0),
 	m_semaphore_index(0), m_semaphore_index_previous(0), m_p_instance(nullptr), m_p_device(nullptr), m_p_physical_device_current(nullptr),
 	m_p_surface(nullptr), m_p_swapchain(nullptr), m_p_window_handle(nullptr), m_p_queue_present(nullptr), m_p_queue_graphics(nullptr),
-	m_p_queue_compute(nullptr), m_p_descriptor_set_layout(nullptr), m_p_pipeline_layout(nullptr), m_p_render_pass(nullptr)
+	m_p_queue_compute(nullptr), m_p_descriptor_set_layout(nullptr), m_p_pipeline_layout(nullptr), m_p_render_pass(nullptr), m_p_allocator{}
 {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
@@ -107,6 +105,7 @@ void ShellRenderInterfaceVulkan::Initialize(void) noexcept
 	this->Initialize_Device();
 	this->Initialize_Queues();
 	this->Initialize_SyncPrimitives();
+	this->Initialize_Allocator();
 	this->Initialize_Resources();
 }
 
@@ -118,6 +117,7 @@ void ShellRenderInterfaceVulkan::Shutdown(void) noexcept
 
 	this->DestroyResourcesDependentOnSize();
 	this->Destroy_Resources();
+	this->Destroy_Allocator();
 	this->Destroy_SyncPrimitives();
 	this->Destroy_Swapchain();
 	this->Destroy_Surface();
@@ -483,6 +483,24 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 	this->CreatePipelineLayout();
 }
 
+void ShellRenderInterfaceVulkan::Initialize_Allocator(void) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
+	VK_ASSERT(this->m_p_physical_device_current, "you must have a valid VkPhysicalDevice here");
+	VK_ASSERT(this->m_p_instance, "you must have a valid VkInstance here");
+
+	VmaAllocatorCreateInfo info = {};
+
+	info.vulkanApiVersion = VK_API_VERSION_1_0;
+	info.device = this->m_p_device;
+	info.instance = this->m_p_instance;
+	info.physicalDevice = this->m_p_physical_device_current;
+
+	auto status = vmaCreateAllocator(&info, &this->m_p_allocator);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateAllocator");
+}
+
 void ShellRenderInterfaceVulkan::Destroy_Instance(void) noexcept
 {
 	vkDestroyInstance(this->m_p_instance, nullptr);
@@ -532,6 +550,15 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	{
 		vkDestroyShaderModule(this->m_p_device, pair_shader_type_shader_module.second, nullptr);
 	}
+}
+
+void ShellRenderInterfaceVulkan::Destroy_Allocator(void) noexcept
+{
+	VK_ASSERT(this->m_p_allocator, "you must have an initialized allocator for deleting");
+
+	vmaDestroyAllocator(this->m_p_allocator);
+
+	this->m_p_allocator = nullptr;
 }
 
 void ShellRenderInterfaceVulkan::QueryInstanceLayers(void) noexcept
@@ -1801,7 +1828,8 @@ bool ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::Alloc(uint32_t siz
 		}
 	}
 
-	if (this->m_allocator.Alloc(size, p_out) == true) {
+	if (this->m_allocator.Alloc(size, p_out) == true)
+	{
 		this->m_memory_allocated_in_frame += size;
 		return true;
 	}
@@ -1809,7 +1837,7 @@ bool ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::Alloc(uint32_t siz
 	return false;
 }
 
-void ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void) noexcept 
+void ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void) noexcept
 {
 	this->m_p_allocated_memory_per_back_buffer[this->m_frame_buffer_index] = this->m_memory_allocated_in_frame;
 	this->m_memory_allocated_in_frame = 0;
@@ -1819,4 +1847,169 @@ void ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void)
 	uint32_t memory_to_free = this->m_p_allocated_memory_per_back_buffer[this->m_frame_buffer_index];
 
 	this->m_allocator.Free(memory_to_free);
+}
+
+ShellRenderInterfaceVulkan::MemoryRingPool::MemoryRingPool(void) :
+	m_memory_total_size{}, m_p_data{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}
+{}
+
+ShellRenderInterfaceVulkan::MemoryRingPool::~MemoryRingPool(void) {}
+
+void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(
+	VmaAllocator p_allocator, VkDevice p_device, uint32_t number_of_back_buffers, uint32_t memory_total_size) noexcept
+{
+	VK_ASSERT(p_device, "you must pass a valid VkDevice");
+	VK_ASSERT(p_allocator, "you must pass a valid VmaAllocator");
+
+	this->m_p_device = p_device;
+	this->m_p_vk_allocator = p_allocator;
+
+	this->m_memory_total_size = ShellRenderInterfaceVulkan::AlignUp(memory_total_size, 256u);
+
+	this->m_allocator.Initialize(number_of_back_buffers, this->m_memory_total_size);
+
+	VkBufferCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+
+	VmaAllocationCreateInfo info_alloc = {};
+
+	info_alloc.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+	info_alloc.flags = VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT;
+	info_alloc.pUserData = "our pool buffer that manages all memory in vulkan (dynamic)";
+
+	VmaAllocationInfo info_stats = {};
+
+	auto status = vmaCreateBuffer(this->m_p_vk_allocator, &info, &info_alloc, &this->m_p_buffer, &this->m_p_buffer_alloc, &info_stats);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateBuffer");
+
+#ifdef RMLUI_DEBUG
+	Shell::Log("[Vulkan][Debug] allocated memory for pool: %d", ShellRenderInterfaceVulkan::TranslateBytesToMegaBytes(info_stats.size));
+#endif
+
+	status = vmaMapMemory(this->m_p_vk_allocator, this->m_p_buffer_alloc, (void**)&this->m_p_data);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaMapMemory");
+}
+
+void ShellRenderInterfaceVulkan::MemoryRingPool::Shutdown(void) noexcept 
+{
+	VK_ASSERT(this->m_p_vk_allocator, "you must have a valid VmaAllocator");
+	VK_ASSERT(this->m_p_buffer, "you must allocate VkBuffer for deleting");
+	VK_ASSERT(this->m_p_buffer_alloc, "you must allocate VmaAllocation for deleting");
+
+	vmaUnmapMemory(this->m_p_vk_allocator, this->m_p_buffer_alloc);
+	vmaDestroyBuffer(this->m_p_vk_allocator, this->m_p_buffer, this->m_p_buffer_alloc);
+
+	this->m_allocator.Shutdown();
+}
+
+bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocConstantBuffer(uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out) noexcept
+{
+	VK_ASSERT(p_out, "you must pass a valid pointer");
+	VK_ASSERT(this->m_p_buffer, "you must have a valid VkBuffer");
+
+	size = ShellRenderInterfaceVulkan::AlignUp(size, 256u);
+
+	uint32_t offset_memory{};
+
+	if (this->m_allocator.Alloc(size, &offset_memory) == false) {
+		VK_ASSERT(false, "overflow, rebuild your buffer with new size that bigger current: %d", this->m_memory_total_size);
+	}
+
+	*p_data = (void*)(this->m_p_data + offset_memory);
+
+	p_out->buffer = this->m_p_buffer;
+	p_out->offset = offset_memory;
+	p_out->range = size;
+
+	return true;
+}
+
+VkDescriptorBufferInfo ShellRenderInterfaceVulkan::MemoryRingPool::AllocConstantBuffer(uint32_t size, void* p_data) noexcept
+{
+	void* p_buffer{};
+
+	VkDescriptorBufferInfo result = {};
+
+	if (this->AllocConstantBuffer(size, &p_buffer, &result))
+	{
+		memcpy(p_buffer, p_data, size);
+	}
+
+	return result;
+}
+
+bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocVertexBuffer(
+	uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out) noexcept
+{
+	return this->AllocConstantBuffer(number_of_elements * stride_in_bytes, p_data, p_out);
+}
+
+bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocIndexBuffer(
+	uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out) noexcept
+{
+	return this->AllocConstantBuffer(number_of_elements * stride_in_bytes, p_data, p_out);
+}
+
+void ShellRenderInterfaceVulkan::MemoryRingPool::OnBeginFrame(void) noexcept 
+{
+	this->m_allocator.OnBeginFrame();
+}
+
+void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(
+	uint32_t binding_index, uint32_t size, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
+	VK_ASSERT(p_set, "you must have a valid VkDescriptorSet here");
+	VK_ASSERT(this->m_p_buffer, "you must have a valid VkBuffer here");
+
+	VkDescriptorBufferInfo info = {};
+
+	info.buffer = this->m_p_buffer;
+	info.offset = 0;
+	info.range = size;
+
+	VkWriteDescriptorSet info_write = {};
+
+	info_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	info_write.pNext = nullptr;
+	info_write.dstSet = p_set;
+	info_write.descriptorCount = 1;
+	info_write.descriptorType = descriptor_type;
+	info_write.dstArrayElement = 0;
+	info_write.dstBinding = binding_index;
+	info_write.pBufferInfo = &info;
+
+	vkUpdateDescriptorSets(this->m_p_device, 1, &info_write, 0, nullptr);
+}
+
+void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(uint32_t binding_index, VkSampler p_sampler, VkImageLayout layout,
+	VkImageView p_view, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
+	VK_ASSERT(p_set, "you must have a valid VkDescriptorSet here");
+	VK_ASSERT(this->m_p_buffer, "you must have a valid VkBuffer here");
+	VK_ASSERT(p_view, "you must have a valid VkImageView");
+	VK_ASSERT(p_sampler, "you must have a valid VkSampler here");
+
+	VkDescriptorImageInfo info = {};
+
+	info.imageLayout = layout;
+	info.imageView = p_view;
+	info.sampler = p_sampler;
+
+	VkWriteDescriptorSet info_write = {};
+
+	info_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	info_write.pNext = nullptr;
+	info_write.dstSet = p_set;
+	info_write.descriptorCount = 1;
+	info_write.descriptorType = descriptor_type;
+	info_write.dstArrayElement = 0;
+	info_write.dstBinding = binding_index;
+	info_write.pImageInfo = &info;
+
+	vkUpdateDescriptorSets(this->m_p_device, 1, &info_write, 0, nullptr);
 }

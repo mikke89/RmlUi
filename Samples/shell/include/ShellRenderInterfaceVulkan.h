@@ -10,6 +10,10 @@
 // for writing own ShellRenderInterfaceXXX
 #include "ShellOpenGL.h"
 
+// TODO: add preprocessor definition in case if cmake found Vulkan package
+#include "spirv_reflect.h"
+#include "vk_mem_alloc.h"
+
 /**
  * Low level Vulkan render interface for RmlUi
  *
@@ -92,7 +96,32 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		uint32_t m_p_allocated_memory_per_back_buffer[kSwapchainBackBufferCount];
 	};
 
-	class MemoryRingPool {};
+	class MemoryRingPool {
+	public:
+		MemoryRingPool(void);
+		~MemoryRingPool(void);
+
+		void Initialize(VmaAllocator p_allocator, VkDevice p_device, uint32_t number_of_back_buffers, uint32_t memory_total_size) noexcept;
+		void Shutdown(void) noexcept;
+
+		bool AllocConstantBuffer(uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out) noexcept;
+		VkDescriptorBufferInfo AllocConstantBuffer(uint32_t size, void* p_data) noexcept;
+		bool AllocVertexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out) noexcept;
+		bool AllocIndexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out) noexcept;
+		void OnBeginFrame(void) noexcept;
+		void SetDescriptorSet(uint32_t binding_index, uint32_t size, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept;
+		void SetDescriptorSet(uint32_t binding_index, VkSampler p_sampler, VkImageLayout layout, VkImageView p_view, VkDescriptorType descriptor_type,
+			VkDescriptorSet p_set) noexcept;
+
+	private:
+		uint32_t m_memory_total_size;
+		char* m_p_data;
+		VkBuffer m_p_buffer;
+		VmaAllocation m_p_buffer_alloc;
+		VkDevice m_p_device;
+		VmaAllocator m_p_vk_allocator;
+		MemoryRingAllocatorWithTabs m_allocator;
+	};
 
 	// Explanation of how to use Vulkan efficiently
 	// https://vkguide.dev/docs/chapter-4/double_buffering/
@@ -190,6 +219,20 @@ public:
 	void PrepareRenderBuffer(void) override;
 	void PresentRenderBuffer(void) override;
 
+	// AlignUp(314, 256) = 512
+	template <typename T>
+	static T AlignUp(T val, T alignment)
+	{
+		return (val + alignment - (T)1) & ~(alignment - (T)1);
+	}
+
+	// Example: opposed function to ConvertValueToMegabytes
+	// TranslateBytesToMegaBytes(52428800) returns 52428800 / (1024 * 1024) = 50 <= value indicates that it's 50 Megabytes
+	static uint32_t TranslateBytesToMegaBytes(uint32_t raw_number) noexcept { return raw_number / (1024 * 1024); }
+
+	// Example: ConvertValueToMegabytes(50) returns 50 * 1024 * 1024 = 52428800 BYTES!!!!
+	static uint32_t ConvertCountToMegabytes(uint32_t value_shows_megabytes) noexcept { return value_shows_megabytes * 1024 * 1024; }
+
 #pragma region New Methods
 private:
 	void Initialize(void) noexcept;
@@ -206,6 +249,7 @@ private:
 	void Initialize_Queues(void) noexcept;
 	void Initialize_SyncPrimitives(void) noexcept;
 	void Initialize_Resources(void) noexcept;
+	void Initialize_Allocator(void) noexcept;
 
 	void Destroy_Instance(void) noexcept;
 	void Destroy_Device() noexcept;
@@ -213,6 +257,7 @@ private:
 	void Destroy_Surface(void) noexcept;
 	void Destroy_SyncPrimitives(void) noexcept;
 	void Destroy_Resources(void) noexcept;
+	void Destroy_Allocator(void) noexcept;
 
 	void QueryInstanceLayers(void) noexcept;
 	void QueryInstanceExtensions(void) noexcept;
@@ -295,6 +340,7 @@ private:
 	VkPhysicalDevice m_p_physical_device_current;
 	VkSurfaceKHR m_p_surface;
 	VkSwapchainKHR m_p_swapchain;
+	VmaAllocator m_p_allocator;
 
 #pragma region Resources
 	VkDescriptorSetLayout m_p_descriptor_set_layout;
