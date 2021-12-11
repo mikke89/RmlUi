@@ -1699,3 +1699,71 @@ void ShellRenderInterfaceVulkan::CommandListRing::CommandBufferPerFrame::SetCoun
 {
 	this->m_number_per_frame_command_lists = number;
 }
+
+ShellRenderInterfaceVulkan::MemoryRingAllocator::MemoryRingAllocator(void) : m_head{}, m_total_size{}, m_allocated_size{} {}
+
+ShellRenderInterfaceVulkan::MemoryRingAllocator::~MemoryRingAllocator(void) {}
+
+void ShellRenderInterfaceVulkan::MemoryRingAllocator::Initialize(uint32_t total_size) noexcept 
+{
+	this->m_total_size = total_size;
+}
+
+uint32_t ShellRenderInterfaceVulkan::MemoryRingAllocator::MakePaddingToAvoidCrossover(uint32_t size) const noexcept
+{
+	uint32_t tail = this->GetTail();
+
+	if ((tail + size) > this->m_total_size)
+	{
+		return (this->m_total_size - tail);
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+uint32_t ShellRenderInterfaceVulkan::MemoryRingAllocator::GetSize(void) const noexcept
+{
+	return this->m_allocated_size;
+}
+
+uint32_t ShellRenderInterfaceVulkan::MemoryRingAllocator::GetHead(void) const noexcept
+{
+	return this->m_head;
+}
+
+uint32_t ShellRenderInterfaceVulkan::MemoryRingAllocator::GetTail(void) const noexcept
+{
+	return (this->m_head + this->m_allocated_size) % this->m_total_size;
+}
+
+bool ShellRenderInterfaceVulkan::MemoryRingAllocator::Alloc(uint32_t size, uint32_t* p_out) noexcept
+{
+	if (this->m_allocated_size + size <= this->m_total_size) {
+		if (p_out)
+		{
+			*p_out = this->GetTail();
+		}
+
+		this->m_allocated_size += size;
+
+		return true;
+	}
+
+	VK_ASSERT(false, "overflow, rebuild your allocator with pool");
+
+	return false;
+}
+
+bool ShellRenderInterfaceVulkan::MemoryRingAllocator::Free(uint32_t size)
+{
+	if (this->m_allocated_size >= size) {
+		this->m_head = (this->m_head + size) % this->m_total_size;
+		this->m_allocated_size -= size;
+
+		return true;
+	}
+
+	return false;
+}

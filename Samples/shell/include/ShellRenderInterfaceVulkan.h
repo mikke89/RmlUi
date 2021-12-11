@@ -46,6 +46,27 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		VkPhysicalDeviceLimits m_physical_device_limits;
 	};
 
+	class MemoryRingAllocator {
+	public:
+		MemoryRingAllocator(void);
+		~MemoryRingAllocator(void);
+
+		void Initialize(uint32_t total_size) noexcept;
+		uint32_t MakePaddingToAvoidCrossover(uint32_t size) const noexcept;
+
+		uint32_t GetSize(void) const noexcept;
+		uint32_t GetHead(void) const noexcept;
+		uint32_t GetTail(void) const noexcept;
+
+		bool Alloc(uint32_t size, uint32_t* p_out) noexcept;
+		bool Free(uint32_t size);
+
+	private:
+		uint32_t m_head;
+		uint32_t m_total_size;
+		uint32_t m_allocated_size;
+	};
+
 	class MemoryRingPool {};
 
 	// Explanation of how to use Vulkan efficiently
