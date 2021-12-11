@@ -48,6 +48,8 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 	class MemoryRingPool {};
 
+	// Explanation of how to use Vulkan efficiently
+	// https://vkguide.dev/docs/chapter-4/double_buffering/
 	class CommandListRing {
 		class CommandBufferPerFrame {
 		public:
