@@ -1556,8 +1556,8 @@ void ShellRenderInterfaceVulkan::Submit(void) noexcept
 	info.pWaitDstStageMask = &submit_wait_stage;
 	info.signalSemaphoreCount = 1;
 	info.pSignalSemaphores = p_semaphores_signal;
-	info.commandBufferCount = 0;
-	info.pCommandBuffers = nullptr;
+	info.commandBufferCount = 1;
+	info.pCommandBuffers = &this->m_p_current_command_buffer;
 
 	VkResult status = vkQueueSubmit(this->m_p_queue_graphics, 1, &info, p_fence);
 
