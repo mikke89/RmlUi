@@ -372,8 +372,8 @@ void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_f
 	// our final position, and our children are dirtied if they do.
 	else
 	{
-		Vector2f& old_base = relative_offset_base;
-		Vector2f& old_position = relative_offset_position;
+		const Vector2f old_base = relative_offset_base;
+		const Vector2f old_position = relative_offset_position;
 
 		UpdateOffset();
 
