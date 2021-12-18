@@ -40,8 +40,7 @@ ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
-{
-}
+{}
 
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture)
@@ -95,7 +94,7 @@ void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void)
 	this->m_memory_pool.OnBeginFrame();
 	this->m_command_list.OnBeginFrame();
 	this->Wait();
-	
+
 	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
 
 	VkCommandBufferBeginInfo info = {};
@@ -111,7 +110,7 @@ void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void)
 
 	VkClearValue for_filling_back_buffer_color;
 
-	for_filling_back_buffer_color.color = {1.0f, 1.0f, 0.0f, 1.0f};
+	for_filling_back_buffer_color.color = {1.0f, 0.0f, 1.0f, 1.0f};
 
 	const VkClearValue p_color_rt[] = {for_filling_back_buffer_color};
 
@@ -1461,7 +1460,14 @@ void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept
 
 	attachments[0].format = this->m_swapchain_format.format;
 	attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
+
+// @ in order to be sure that pClearValues and rendering are working properly
+#ifdef RMLUI_DEBUG
+	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+#else
 	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+#endif
+
 	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
