@@ -32,7 +32,8 @@ ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 	m_is_transform_enabled(false), m_width(0), m_height(0), m_queue_index_present(0), m_queue_index_graphics(0), m_queue_index_compute(0),
 	m_semaphore_index(0), m_semaphore_index_previous(0), m_p_instance(nullptr), m_p_device(nullptr), m_p_physical_device_current(nullptr),
 	m_p_surface(nullptr), m_p_swapchain(nullptr), m_p_window_handle(nullptr), m_p_queue_present(nullptr), m_p_queue_graphics(nullptr),
-	m_p_queue_compute(nullptr), m_p_descriptor_set_layout(nullptr), m_p_pipeline_layout(nullptr), m_p_render_pass(nullptr), m_p_allocator{}
+	m_p_queue_compute(nullptr), m_p_descriptor_set_layout(nullptr), m_p_pipeline_layout(nullptr), m_p_render_pass(nullptr), m_p_allocator{},
+	m_p_current_command_buffer(nullptr)
 {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
@@ -40,7 +41,6 @@ ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
-
 }
 
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
@@ -92,11 +92,55 @@ void ShellRenderInterfaceVulkan::DetachFromNative(void)
 
 void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void)
 {
+	this->m_memory_pool.OnBeginFrame();
+	this->m_command_list.OnBeginFrame();
+	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
 	this->Wait();
+
+	VkCommandBufferBeginInfo info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	info.pInheritanceInfo = nullptr;
+	info.pNext = nullptr;
+	info.flags = VkCommandBufferUsageFlagBits::VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	auto status = vkBeginCommandBuffer(this->m_p_current_command_buffer, &info);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkBeginCommandBuffer");
+
+	VkClearValue for_filling_back_buffer_color;
+
+	for_filling_back_buffer_color.color = {1.0f, 1.0f, 0.0f, 1.0f};
+
+	const VkClearValue p_color_rt[] = {for_filling_back_buffer_color};
+
+	VkRenderPassBeginInfo info_pass = {};
+
+	info_pass.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	info_pass.pNext = nullptr;
+	info_pass.renderPass = this->m_p_render_pass;
+	info_pass.framebuffer = this->m_swapchain_frame_buffers.at(this->m_image_index);
+	info_pass.pClearValues = p_color_rt;
+	info_pass.clearValueCount = 1;
+	info_pass.renderArea.offset.x = 0;
+	info_pass.renderArea.offset.y = 0;
+	info_pass.renderArea.extent.width = this->m_width;
+	info_pass.renderArea.extent.height = this->m_height;
+
+	vkCmdBeginRenderPass(this->m_p_current_command_buffer, &info_pass, VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
+
+	vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
+	vkCmdSetViewport(this->m_p_current_command_buffer, 0, 1, &this->m_viewport);
 }
 
 void ShellRenderInterfaceVulkan::PresentRenderBuffer(void)
 {
+	vkCmdEndRenderPass(this->m_p_current_command_buffer);
+
+	auto status = vkEndCommandBuffer(this->m_p_current_command_buffer);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkEndCommandBuffer");
+
 	this->Submit();
 	this->Present();
 }
@@ -1341,6 +1385,18 @@ void ShellRenderInterfaceVulkan::CreateSwapchainImageViews(void) noexcept
 
 void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 {
+	this->m_viewport.height = -this->m_height;
+	this->m_viewport.width = this->m_width;
+	this->m_viewport.minDepth = 0.0f;
+	this->m_viewport.maxDepth = 1.0f;
+	this->m_viewport.x = 0.0f;
+	this->m_viewport.y = this->m_height;
+
+	this->m_scissor.extent.width = this->m_width;
+	this->m_scissor.extent.height = this->m_height;
+	this->m_scissor.offset.x = 0;
+	this->m_scissor.offset.y = 0;
+
 	this->CreateRenderPass();
 	this->CreateSwapchainFrameBuffers();
 }
@@ -1908,7 +1964,7 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaMapMemory");
 }
 
-void ShellRenderInterfaceVulkan::MemoryRingPool::Shutdown(void) noexcept 
+void ShellRenderInterfaceVulkan::MemoryRingPool::Shutdown(void) noexcept
 {
 	VK_ASSERT(this->m_p_vk_allocator, "you must have a valid VmaAllocator");
 	VK_ASSERT(this->m_p_buffer, "you must allocate VkBuffer for deleting");
@@ -1929,7 +1985,8 @@ bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocConstantBuffer(uint32_t si
 
 	uint32_t offset_memory{};
 
-	if (this->m_allocator.Alloc(size, &offset_memory) == false) {
+	if (this->m_allocator.Alloc(size, &offset_memory) == false)
+	{
 		VK_ASSERT(false, "overflow, rebuild your buffer with new size that bigger current: %d", this->m_memory_total_size);
 	}
 
@@ -1968,7 +2025,7 @@ bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocIndexBuffer(
 	return this->AllocConstantBuffer(number_of_elements * stride_in_bytes, p_data, p_out);
 }
 
-void ShellRenderInterfaceVulkan::MemoryRingPool::OnBeginFrame(void) noexcept 
+void ShellRenderInterfaceVulkan::MemoryRingPool::OnBeginFrame(void) noexcept
 {
 	this->m_allocator.OnBeginFrame();
 }

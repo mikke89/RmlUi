@@ -341,13 +341,16 @@ private:
 	VkSurfaceKHR m_p_surface;
 	VkSwapchainKHR m_p_swapchain;
 	VmaAllocator m_p_allocator;
-
+	// @ obtained from command list see PrepareRenderBuffer method
+	VkCommandBuffer m_p_current_command_buffer;
 #pragma region Resources
 	VkDescriptorSetLayout m_p_descriptor_set_layout;
 	VkPipelineLayout m_p_pipeline_layout;
 	VkPipeline m_p_pipeline;
 	VkDescriptorSet m_p_descriptor_set;
 	VkRenderPass m_p_render_pass;
+	VkRect2D m_scissor;
+	VkViewport m_viewport;
 #pragma endregion
 
 #if defined(RMLUI_PLATFORM_MACOSX)
