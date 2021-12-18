@@ -8,6 +8,13 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
+## RmlUi 4.4 (WIP)
+
+### Layout improvements
+
+- Fix offsets of relatively positioned elements with percentage positioning. [#262](https://github.com/mikke89/RmlUi/issues/262)
+
+
 ## RmlUi 4.3
 
 ### Flexbox layout
