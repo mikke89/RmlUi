@@ -94,8 +94,9 @@ void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void)
 {
 	this->m_memory_pool.OnBeginFrame();
 	this->m_command_list.OnBeginFrame();
-	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
 	this->Wait();
+	
+	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
 
 	VkCommandBufferBeginInfo info = {};
 
@@ -143,6 +144,8 @@ void ShellRenderInterfaceVulkan::PresentRenderBuffer(void)
 
 	this->Submit();
 	this->Present();
+
+	this->m_p_current_command_buffer = nullptr;
 }
 
 void ShellRenderInterfaceVulkan::Initialize(void) noexcept
