@@ -701,31 +701,45 @@ if(BUILD_SAMPLES)
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endforeach()
 	
-	message("-- Can SDL2 sample be built")
+	message("-- Can SDL2 samples be built")
 	find_package(SDL2)
 	if(SDL2_FOUND)
-	find_package(SDL2_image)
-	if(SDL2_IMAGE_FOUND)
-		find_package(GLEW)
-		if(GLEW_FOUND)
-			message("-- Can SDL2 sample be built - yes")
-			include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
+		find_package(SDL2_image)
+		if(SDL2_IMAGE_FOUND)
+			find_package(GLEW)
+			if(GLEW_FOUND)
+				message("-- Can SDL2 sample w/OpenGL renderer be built - yes")
+				include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
-			bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
-		
-			# The samples always set this as their current working directory
-			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
-			install(TARGETS sdl2
-				RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2
-				BUNDLE DESTINATION ${SAMPLES_DIR})
+				bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
+			
+				# The samples always set this as their current working directory
+				install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
+				install(TARGETS sdl2
+					RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2
+					BUNDLE DESTINATION ${SAMPLES_DIR})
+			else()
+					message("-- Can SDL2 sample w/OpenGL renderer be built - no - GLEW not found")
+			endif()
+			
+			if("${SDL2_VERSION}" VERSION_GREATER_EQUAL "2.0.18")
+				message("-- Can SDL2 sample w/SDL-renderer be built - yes")
+				include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR})
+
+				bl_sample(sdl2_sdlrenderer ${sample_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY})
+			
+				install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2_sdlrenderer)
+				install(TARGETS sdl2_sdlrenderer
+					RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2_sdlrenderer
+					BUNDLE DESTINATION ${SAMPLES_DIR})
+			else()
+				message("-- Can SDL2 sample w/SDL-renderer be built - no - requires SDL 2.0.18 (found ${SDL2_VERSION})")
+			endif()
 		else()
-		        message("-- Can SDL2 sample be built - GLEW not found")
+				message("-- Can SDL2 samples be built - SDL2_image not found")
 		endif()
 	else()
-	        message("-- Can SDL2 sample be built - SDL2_image not found")
-	endif()
-	else()
-		message("-- Can SDL2 sample be built - SDL2 not found")
+		message("-- Can SDL2 samples be built - SDL2 not found")
 	endif()
 
 

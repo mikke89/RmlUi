@@ -50,8 +50,8 @@ void RmlUiSDL2Renderer::RenderGeometry(Rml::Vertex* vertices, int num_vertices, 
     SDL_Texture *sdl_texture = (SDL_Texture *) texture;
 
     SDL_Rect r;
-    r.x = translation.x;
-    r.y = translation.y;
+    r.x = (int)translation.x;
+    r.y = (int)translation.y;
     r.w = mRenderer_w - r.x;
     r.h = mRenderer_h - r.y;
     
