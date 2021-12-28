@@ -844,7 +844,7 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 			case QUOTE:
 			{
 				value += character;
-				if (character == '"' && previous_character != '/')
+				if (character == '"' && previous_character != '\\')
 					state = VALUE;
 			}
 			break;
@@ -862,7 +862,7 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 		if (!property_parser.Parse(name, value))
 			Log::Message(Log::LT_WARNING, "Syntax error parsing property declaration '%s: %s;' in %s: %d.", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 	}
-	else if (!name.empty() || !value.empty())
+	else if (!StringUtilities::StripWhitespace(name).empty() || !value.empty())
 	{
 		Log::Message(Log::LT_WARNING, "Invalid property declaration '%s':'%s' at %s:%d", name.c_str(), value.c_str(), stream_file_name.c_str(), line_number);
 	}

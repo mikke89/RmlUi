@@ -123,7 +123,7 @@ void LayoutTable::DetermineColumnWidths()
 	{
 		if (Element* element_group = grid.columns[i].element_group)
 		{
-			const ComputedTrackSize computed = BuildComputedColumnSize(element_group->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedHorizontalSize(element_group->GetComputedValues());
 			const int span = grid.columns[i].group_span;
 
 			sizing.ApplyGroupElement(i, span, computed);
@@ -131,7 +131,7 @@ void LayoutTable::DetermineColumnWidths()
 
 		if (Element* element_column = grid.columns[i].element_column)
 		{
-			const ComputedTrackSize computed = BuildComputedColumnSize(element_column->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedHorizontalSize(element_column->GetComputedValues());
 			const int span = grid.columns[i].column_span;
 
 			sizing.ApplyTrackElement(i, span, computed);
@@ -143,7 +143,7 @@ void LayoutTable::DetermineColumnWidths()
 	{
 		if (Element* element_cell = grid.columns[i].element_cell)
 		{
-			const ComputedTrackSize computed = BuildComputedColumnSize(element_cell->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedHorizontalSize(element_cell->GetComputedValues());
 			const int colspan = grid.columns[i].cell_span;
 
 			sizing.ApplyCellElement(i, colspan, computed);
@@ -183,7 +183,7 @@ void LayoutTable::InitializeCellBoxes()
 		Box& box = cells[i];
 
 		// Determine the cell's box for formatting later, we may get an indefinite (-1) vertical content size.
-		LayoutDetails::BuildBox(box, table_initial_content_size, grid.cells[i].element_cell, false, 0.f);
+		LayoutDetails::BuildBox(box, table_initial_content_size, grid.cells[i].element_cell, BoxContext::FlexOrTable, 0.f);
 
 		// Determine the cell's content width. Include any spanning columns in the cell width.
 		const float cell_border_width = GetSpanningCellBorderSize(columns, grid.cells[i].column_begin, grid.cells[i].column_last);
@@ -223,7 +223,7 @@ void LayoutTable::DetermineRowHeights()
 		if (Element* element_group = grid.rows[i].element_group)
 		{
 			// The padding/border/margin of column groups are used, but their widths are ignored.
-			const ComputedTrackSize computed = BuildComputedRowSize(element_group->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedVerticalSize(element_group->GetComputedValues());
 			const int span = grid.rows[i].group_span;
 
 			sizing.ApplyGroupElement(i, span, computed);
@@ -232,7 +232,7 @@ void LayoutTable::DetermineRowHeights()
 		if (Element* element_row = grid.rows[i].element_row)
 		{
 			// The padding/border/margin and widths of columns are used.
-			const ComputedTrackSize computed = BuildComputedRowSize(element_row->GetComputedValues());
+			const ComputedAxisSize computed = LayoutDetails::BuildComputedVerticalSize(element_row->GetComputedValues());
 			
 			if (computed.size.type == Style::LengthPercentageAuto::Percentage)
 				percentage_size_used = true;
@@ -318,11 +318,10 @@ void LayoutTable::FormatRows()
 	RMLUI_ASSERT(rows.size() == grid.rows.size());
 
 	// Size and position the row and row group elements.
-	//   @performance: Maybe build the box using a simpler algorithm. Eg. we don't do anything for auto
-	//                 margins. Some of the information is already gathered in the TrackMetric.
 	auto FormatRow = [this](Element* element, float content_height, float offset_y) {
 		Box box;
-		LayoutDetails::BuildBox(box, table_initial_content_size, element, false, 0.0f);
+		// We use inline context here because we only care about padding, border, and (non-auto) margin.
+		LayoutDetails::BuildBox(box, table_initial_content_size, element, BoxContext::Inline, 0.0f);
 		const Vector2f content_size(
 			table_resulting_content_size.x - box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN, Box::PADDING),
 			content_height
@@ -353,7 +352,8 @@ void LayoutTable::FormatColumns()
 	// Size and position the column and column group elements.
 	auto FormatColumn = [this](Element* element, float content_width, float offset_x) {
 		Box box;
-		LayoutDetails::BuildBox(box, table_initial_content_size, element, false, 0.0f);
+		// We use inline context here because we only care about padding, border, and (non-auto) margin.
+		LayoutDetails::BuildBox(box, table_initial_content_size, element, BoxContext::Inline, 0.0f);
 		const Vector2f content_size(
 			content_width,
 			table_resulting_content_size.y - box.GetSizeAcross(Box::VERTICAL, Box::MARGIN, Box::PADDING)

@@ -82,6 +82,19 @@ if args.clean:
 			except Exception as e:
 				print('Failed to delete {}. Reason: {}'.format(path, e))
 
+html_color_mapping = {
+	"lightblue": "#add8e6",
+	"lightgrey": "#d3d3d3",
+	"lightgray": "#d3d3d3",
+	"lightgreen": "#90ee90",
+	"pink": "#ffc0cb",
+	"coral": "#ff7f50",
+	"slateblue": "#6a5acd",
+	"steelblue": "#4682b4",
+	"tan": "#d2b48c",
+	"violet": "#ee82ee",
+}
+
 def border_format(side: str, type: str, content: str):
 	# Side: (empty)/-top/-right/-bottom/-left
 	# Type: (empty)/-width/-style/-color
@@ -90,8 +103,13 @@ def border_format(side: str, type: str, content: str):
 	content = content.replace("medium", "3px")
 	content = content.replace("thin", "1px")
 
-	if type == "-width" or type == "-color":
+	if type == "-width":
 		return "border" + side + type + ": " + content
+	if type == "-color":
+		color = content.strip()
+		if color in html_color_mapping:
+			color = html_color_mapping[color]
+		return "border" + side + type + ": " + color
 
 	# Convert style to width. This is not perfect, but seems to be the most used case.
 	if type == "-style":
@@ -116,6 +134,8 @@ def border_format(side: str, type: str, content: str):
 	color = re.search(r'\b([a-z]+|#[0-9a-f]+)\b', content)
 	if color:
 		color = color.group(1)
+		if color in html_color_mapping:
+			color = html_color_mapping[color]
 	else:
 		color = "black"
 
@@ -148,6 +168,8 @@ assert( border_find_replace("margin:10px; border:20px solid black; padding:30px;
 assert( border_find_replace(" border-left: 7px solid navy; border-right: 17px solid navy; } ") == ' border-left: 7px navy; border-right: 17px navy; } ' )
 assert( border_find_replace(" border: blue solid 3px; ") == ' border: 3px blue; ' )
 assert( border_find_replace(" border: solid lime; ") == ' border: 3px lime; ' )
+assert( border_find_replace(" border: 1px pink; ") == ' border: 1px #ffc0cb; ' )
+assert( border_find_replace(" border-color: pink; ") == ' border-color: #ffc0cb; ' )
 assert( border_find_replace(" border: 0; ") == ' border: 0 black; ' )
 assert( border_find_replace(" border-bottom: 0.25em solid green; ") == ' border-bottom: 0.25em green; ' )
 assert( border_find_replace(" border-width: 0; ") == ' border-width:  0; ' )
@@ -216,10 +238,41 @@ def process_file(in_file):
 		line = re.sub(r'(line-height:)\s*normal', r'\1 1.2em', line, flags = re.IGNORECASE)
 		line = re.sub(r'cyan', r'aqua', line, flags = re.IGNORECASE)
 
+		line = re.sub(r'flex: none;', r'flex: 0 0 auto;', line, flags = re.IGNORECASE)
+		line = re.sub(r'align-content:\s*(start|end)', r'align-content: flex-\1', line, flags = re.IGNORECASE)
+		line = re.sub(r'align-content:\s*space-evenly', r'align-content: space-around', line, flags = re.IGNORECASE)
+		line = re.sub(r'justify-content:\s*space-evenly', r'justify-content: space-around', line, flags = re.IGNORECASE)
+		line = re.sub(r'justify-content:\s*left', r'justify-content: flex-start', line, flags = re.IGNORECASE)
+		line = re.sub(r'justify-content:\s*right', r'justify-content: flex-end', line, flags = re.IGNORECASE)
+
 		if re.search(r'background:[^;}\"]*fixed', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses unsupported background.".format(in_file))
 			return False
 		line = re.sub(r'background:(\s*([a-z]+|#[0-9a-f]+)\s*[;}\"])', r'background-color:\1', line, flags = re.IGNORECASE)
+		prev_end = 0
+		new_line = ""
+		for match in re.finditer(r'background-color:([^;]*)([;"])', line, flags = re.IGNORECASE):
+			color = match.group(1).strip()
+			delimiter = match.group(2)
+			if color in html_color_mapping:
+				color = html_color_mapping[color]
+			new_line += line[prev_end:match.start()] + 'background-color: ' + color + delimiter
+			prev_end = match.end()
+			
+		new_line += line[prev_end:]
+		line = new_line
+
+		prev_end = 0
+		new_line = ""
+		for match in re.finditer(r'calc\(\s*(\d+)(\w{1,3})\s*/\s*(\d)\s*\)', line, flags = re.IGNORECASE):
+			num = match.group(1)
+			unit = match.group(2)
+			den = match.group(3)
+			calc_result = "{}{}".format(float(num) / float(den), unit)
+			new_line += line[prev_end:match.start()] + calc_result
+			prev_end = match.end()
+		new_line += line[prev_end:]
+		line = new_line
 
 		line = border_find_replace(line)
 
@@ -229,7 +282,7 @@ def process_file(in_file):
 		if flags_match and flags_match[1] != '' and flags_match[1] != 'interactive':
 			print("File '{}' skipped due to flags '{}'".format(in_file, flags_match[1]))
 			return False
-		if re.search(r'(display:[^;]*(table|run-in|list-item))|(<table)', line, flags = re.IGNORECASE):
+		if re.search(r'(display:[^;]*(table|run-in|list-item|inline-flex))|(<table)', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses tables.".format(in_file))
 			return False
 		if re.search(r'visibility:[^;]*collapse|z-index:\s*[0-9\.]+%', line, flags = re.IGNORECASE):
@@ -250,9 +303,10 @@ def process_file(in_file):
 		if re.search(r'@font-face|font:|ahem', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses special fonts.".format(in_file))
 			return False
-		if re.search(r'(direction:[^;]*[;"])|(content:[^;]*[;"])|(outline:[^;]*[;"])|(quote:[^;]*[;"])|(border-spacing:[^;]*[;"])|(border-collapse:[^;]*[;"])|(background:[^;]*[;"])|(box-sizing:[^;]*[;"])', line, flags = re.IGNORECASE)\
-			or re.search(r'(font-variant:[^;]*[;"])|(font-kerning:[^;]*[;"])|(font-feature-settings:[^;]*[;"])|(background-image:[^;]*[;"])|(caption-side:[^;]*[;"])|(clip:[^;]*[;"])|(page-break-inside:[^;]*[;"])|(word-spacing:[^;]*[;"])', line, flags = re.IGNORECASE)\
-			or re.search(r'(writing-mode:[^;]*[;"])|(text-orientation:[^;]*[;"])|(text-indent:[^;]*[;"])|(page-break-after:[^;]*[;"])|(column[^:]*:[^;]*[;"])|(empty-cells:[^;]*[;"])', line, flags = re.IGNORECASE):
+		if re.search(r'\b((direction:[^;]*[;"])|(content:[^;]*[;"])|(outline:[^;]*[;"])|(quote:[^;]*[;"])|(border-spacing:[^;]*[;"])|(border-collapse:[^;]*[;"])|(background:[^;]*[;"]))', line, flags = re.IGNORECASE)\
+			or re.search(r'\b((font-variant:[^;]*[;"])|(font-kerning:[^;]*[;"])|(font-feature-settings:[^;]*[;"])|(background-image:[^;]*[;"])|(caption-side:[^;]*[;"])|(clip:[^;]*[;"])|(page-break-inside:[^;]*[;"])|(word-spacing:[^;]*[;"]))', line, flags = re.IGNORECASE)\
+			or re.search(r'\b((writing-mode:[^;]*[;"])|(text-orientation:[^;]*[;"])|(text-indent:[^;]*[;"])|(page-break-after:[^;]*[;"])|(page-break-before:[^;]*[;"])|(column[^:]*:[^;]*[;"])|(empty-cells:[^;]*[;"]))', line, flags = re.IGNORECASE)\
+			or re.search(r'\b((aspect-ratio:[^;]*[;"])|(flex-basis:[^;]*[;"])|(order:[^;]*[;"]))', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses unsupported CSS properties.".format(in_file))
 			return False
 		data += line

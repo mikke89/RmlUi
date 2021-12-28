@@ -650,8 +650,8 @@ private:
 	
 	void SetDataModel(DataModel* new_data_model);
 
-	void DirtyOffset();
-	void DirtyOffsetRecursive();
+	void DirtyAbsoluteOffset();
+	void DirtyAbsoluteOffsetRecursive();
 	void UpdateOffset();
 	void SetBaseline(float baseline);
 
@@ -715,8 +715,8 @@ private:
 	Vector2f relative_offset_position;	// the offset of a relatively positioned element
 	bool offset_fixed;
 
-	mutable Vector2f absolute_offset;
-	mutable bool offset_dirty;
+	Vector2f absolute_offset;
+	bool absolute_offset_dirty;
 
 	// The offset this element adds to its logical children due to scrolling content.
 	Vector2f scroll_offset;

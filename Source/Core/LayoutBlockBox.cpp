@@ -64,7 +64,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, const
 		offset_root = this;
 
 	// Determine the offset parent for this element.
-	const LayoutBlockBox* self_offset_parent;
+	LayoutBlockBox* self_offset_parent;
 	if (parent && parent->offset_parent->GetElement())
 		self_offset_parent = parent->offset_parent;
 	else
@@ -115,6 +115,11 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, const
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::VERTICAL, box.GetSize(Box::PADDING).x);
 		else
 			element->GetElementScroll()->DisableScrollbar(ElementScroll::VERTICAL);
+
+		// Store relatively positioned elements with their containing block so that their offset can be updated after their containing block has been
+		// sized.
+		if (self_offset_parent != this && computed.position == Style::Position::Relative)
+			self_offset_parent->relative_elements.push_back(element);
 	}
 	else
 	{
@@ -277,9 +282,12 @@ LayoutBlockBox::CloseResult LayoutBlockBox::Close()
 		// If we represent a positioned element, then we can now (as we've been sized) act as the containing block for all
 		// the absolutely-positioned elements of our descendants.
 		if (element->GetPosition() != Style::Position::Static)
-		{
 			CloseAbsoluteElements();
-		}
+
+		// Any relatively positioned elements that we act as containing block for may also need to be have their positions
+		// updated to reflect changes to the size of this block box.
+		for (Element* child : relative_elements)
+			child->UpdateOffset();
 
 		// Set the baseline for inline-block elements to the baseline of the last line of the element.
 		// This is a special rule for inline-blocks (see CSS 2.1 Sec. 10.8.1).
@@ -771,6 +779,8 @@ bool LayoutBlockBox::CatchVerticalOverflow(float cursor)
 
 			box_cursor = 0;
 			interrupted_chain = nullptr;
+
+			inner_content_size = Vector2f(0);
 
 			return false;
 		}

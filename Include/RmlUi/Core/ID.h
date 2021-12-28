@@ -59,6 +59,8 @@ enum class ShorthandId : uint8_t
 	Gap,
 	PerspectiveOrigin,
 	TransformOrigin,
+	Flex,
+	FlexFlow,
 
 	NumDefinedIds,
 	FirstCustomId = NumDefinedIds,
@@ -158,6 +160,16 @@ enum class PropertyId : uint8_t
 	FontEffect,
 
 	FillImage,
+
+	AlignContent,
+	AlignItems,
+	AlignSelf,
+	FlexBasis,
+	FlexDirection,
+	FlexGrow,
+	FlexShrink,
+	FlexWrap,
+	JustifyContent,
 
 	NumDefinedIds,
 	FirstCustomId = NumDefinedIds,

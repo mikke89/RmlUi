@@ -209,7 +209,6 @@ void ElementScroll::FormatScrollbars()
 	}
 }
 
-
 // Creates one of the scroll component's scrollbar.
 bool ElementScroll::CreateScrollbar(Orientation orientation)
 {
@@ -226,12 +225,7 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 
 	Element* child = element->AppendChild(std::move(scrollbar_element), false);
 
-	// The construction of scrollbars can occur during layouting, then we need some properties and computed values straight away.
-	Context* context = element->GetContext();
-	
-	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
-	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
-	child->Update(dp_ratio, vp_dimensions);
+	UpdateScrollElementProperties(child);
 
 	return true;
 }
@@ -244,9 +238,24 @@ bool ElementScroll::CreateCorner()
 
 	ElementPtr corner_element = Factory::InstanceElement(element, "*", "scrollbarcorner", XMLAttributes());
 	corner = corner_element.get();
-	element->AppendChild(std::move(corner_element), false);
+	Element* child = element->AppendChild(std::move(corner_element), false);
+
+	UpdateScrollElementProperties(child);
 
 	return true;
+}
+
+void ElementScroll::UpdateScrollElementProperties(Element* scroll_element)
+{
+	// The construction of scrollbars can occur during layouting, then we need some properties and computed values straight away.
+	// In particular their size. Furthermore, updating these properties straight away avoids dirtying the document after layouting,
+	// which may result in one less additional and unnecessary layouting procedure.
+
+	Context* context = element->GetContext();
+
+	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
+	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
+	scroll_element->Update(dp_ratio, vp_dimensions);
 }
 
 ElementScroll::Scrollbar::Scrollbar()

@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,37 +29,56 @@
 #ifndef RMLUI_CORE_LAYOUTDETAILS_H
 #define RMLUI_CORE_LAYOUTDETAILS_H
 
-#include "LayoutBlockBox.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
 class Box;
+class LayoutBlockBox;
 
 /**
-	Layout functions for sizing elements.
-	
-	Corresponds to the CSS 2.1 specification, 'Section 10. Visual formatting model details'.
- */
+    ComputedAxisSize is an abstraction of an element's computed size properties along a single axis, either horizontally or vertically,
+    allowing eg. rows and columns alike to use the same algorithms. Here, 'a' means left or top, 'b' means right or bottom.
+*/
+struct ComputedAxisSize {
+	Style::LengthPercentageAuto size;
+	Style::LengthPercentage min_size, max_size;
+	Style::Padding padding_a, padding_b;
+	Style::Margin margin_a, margin_b;
+	float border_a, border_b;
+	Style::BoxSizing box_sizing;
+};
 
-class LayoutDetails
-{
+enum class BoxContext { Block, Inline, FlexOrTable };
+
+/**
+    Layout functions for sizing elements.
+
+    Some procedures based on the CSS 2.1 specification, 'Section 10. Visual formatting model details'.
+ */
+class LayoutDetails {
 public:
 	/// Generates the box for an element.
 	/// @param[out] box The box to be built.
 	/// @param[in] containing_block The dimensions of the content area of the block containing the element.
 	/// @param[in] element The element to build the box for.
-	/// @param[in] inline_element True if the element is placed in an inline context, false if not.
-	/// @param[in] override_shrink_to_fit_width Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
-	static void BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element = false, float override_shrink_to_fit_width = -1);
+	/// @param[in] box_context The formatting context in which the box is generated.
+	/// @param[in] override_shrink_to_fit_width Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow
+	/// shrinking.
+	static void BuildBox(Box& box, Vector2f containing_block, Element* element, BoxContext box_context = BoxContext::Block,
+		float override_shrink_to_fit_width = -1);
 	/// Generates the box for an element placed in a block box.
 	/// @param[out] box The box to be built.
 	/// @param[out] min_height The minimum height of the element's box.
 	/// @param[out] max_height The maximum height of the element's box.
 	/// @param[in] containing_box The block box containing the element.
 	/// @param[in] element The element to build the box for.
-	/// @param[in] inline_element True if the element is placed in an inline context, false if not.
-	/// @param[in] override_shrink_to_fit_width Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
-	static void BuildBox(Box& box, float& min_height, float& max_height, LayoutBlockBox* containing_box, Element* element, bool inline_element, float override_shrink_to_fit_width = -1);
+	/// @param[in] box_context The formatting context in which the box is generated.
+	/// @param[in] override_shrink_to_fit_width Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow
+	/// shrinking.
+	static void BuildBox(Box& box, float& min_height, float& max_height, LayoutBlockBox* containing_box, Element* element,
+		BoxContext box_context = BoxContext::Block, float override_shrink_to_fit_width = -1);
 
 	// Retrieves the minimum and maximum width from an element's computed values.
 	static void GetMinMaxWidth(float& min_width, float& max_width, const ComputedValues& computed, const Box& box, float containing_block_width);
@@ -67,44 +86,63 @@ public:
 	// Retrieves the minimum and maximum height from an element's computed values.
 	static void GetMinMaxHeight(float& min_height, float& max_height, const ComputedValues& computed, const Box& box, float containing_block_height);
 
-	// Retrieves the minimum and maximum height, set to the box's content height if it is definite (>= 0), otherwise retrieves the minimum and maximum heights from an element's computed values.
-	static void GetDefiniteMinMaxHeight(float& min_height, float& max_height, const ComputedValues& computed, const Box& box, float containing_block_height);
+	// Retrieves the minimum and maximum height, set to the box's content height if it is definite (>= 0), otherwise retrieves the minimum and maximum
+	// heights from an element's computed values.
+	static void GetDefiniteMinMaxHeight(float& min_height, float& max_height, const ComputedValues& computed, const Box& box,
+		float containing_block_height);
 
 	/// Returns the fully-resolved, fixed-width and -height containing block from a block box.
 	/// @param[in] containing_box The leaf box.
 	/// @return The dimensions of the content area, using the latest fixed dimensions for width and height in the hierarchy.
 	static Vector2f GetContainingBlock(const LayoutBlockBox* containing_box);
 
-	/// Builds margins of a Box, and resolves any auto width or height for non-inline elements. The height may be left unresolved if it depends on the element's children.
-	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. The content area is used instead of the width and height properties, and -1 means auto width/height.
+	/// Builds margins of a Box, and resolves any auto width or height for non-inline elements. The height may be left unresolved if it depends on the
+	/// element's children.
+	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. The content area is used instead of the width
+	/// and height properties, and -1 means auto width/height.
 	/// @param[in] min_size The element's minimum width and height.
 	/// @param[in] max_size The element's maximum width and height.
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] element The element the box is being generated for.
-	/// @param[in] inline_element True when the element is an inline element.
+	/// @param[in] box_context The formatting context in which the box is generated.
 	/// @param[in] replaced_element True when the element is a replaced element.
-	/// @param[in] override_shrink_to_fit_width Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
-	static void BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f max_size, Vector2f containing_block, Element* element, bool inline_element, bool replaced_element, float override_shrink_to_fit_width = -1);
+	/// @param[in] override_shrink_to_fit_width Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow
+	/// shrinking.
+	static void BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f max_size, Vector2f containing_block, Element* element,
+		BoxContext box_context, bool replaced_element, float override_shrink_to_fit_width = -1);
 
-private:
 	/// Formats the element and returns the width of its contents.
 	static float GetShrinkToFitWidth(Element* element, Vector2f containing_block);
 
+	/// Build computed axis size along the horizontal direction (width and friends).
+	static ComputedAxisSize BuildComputedHorizontalSize(const ComputedValues& computed);
+	/// Build computed axis size along the vertical direction (height and friends).
+	static ComputedAxisSize BuildComputedVerticalSize(const ComputedValues& computed);
+	/// Resolve edge sizes from a computed axis size.
+	static void GetEdgeSizes(float& margin_a, float& margin_b, float& padding_border_a, float& padding_border_b,
+		const ComputedAxisSize& computed_size, float base_value);
+
+private:
 	/// Calculates and returns the content size for replaced elements.
-	static Vector2f CalculateSizeForReplacedElement(Vector2f specified_content_size, Vector2f min_size, Vector2f max_size, Vector2f intrinsic_size, float intrinsic_ratio);
+	static Vector2f CalculateSizeForReplacedElement(Vector2f specified_content_size, Vector2f min_size, Vector2f max_size, Vector2f intrinsic_size,
+		float intrinsic_ratio);
 
 	/// Builds the block-specific width and horizontal margins of a Box.
-	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. The content area is used instead of the width property, and -1 means auto width.
+	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. The content area is used instead of the width
+	/// property, and -1 means auto width.
 	/// @param[in] computed The computed values of the element the box is being generated for.
 	/// @param[in] min_width The minimum content width of the element.
 	/// @param[in] max_width The maximum content width of the element.
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] element The element the box is being generated for.
 	/// @param[in] replaced_element True when the element is a replaced element.
-	/// @param[in] override_shrink_to_fit_width Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow shrinking.
-	static void BuildBoxWidth(Box& box, const ComputedValues& computed, float min_width, float max_width, Vector2f containing_block, Element* element, bool replaced_element, float override_shrink_to_fit_width = -1);
+	/// @param[in] override_shrink_to_fit_width Provide a fixed shrink-to-fit width instead of formatting the element when its properties allow
+	/// shrinking.
+	static void BuildBoxWidth(Box& box, const ComputedValues& computed, float min_width, float max_width, Vector2f containing_block, Element* element,
+		bool replaced_element, float override_shrink_to_fit_width = -1);
 	/// Builds the block-specific height and vertical margins of a Box.
-	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. The content area is used instead of the height property, and -1 means auto height.
+	/// @param[in,out] box The box to generate. The padding and borders must be set on the box already. The content area is used instead of the height
+	/// property, and -1 means auto height.
 	/// @param[in] computed The computed values of the element the box is being generated for.
 	/// @param[in] min_height The minimum content height of the element.
 	/// @param[in] max_height The maximum content height of the element.

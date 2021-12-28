@@ -248,6 +248,18 @@ RMLUICORE_API bool RandomBool()
 	return RandomInteger(2) == 1;
 }
 
+template <>
+Vector2f Max<Vector2f>(Vector2f a, Vector2f b)
+{
+	return Vector2f(Max(a.x, b.x), Max(a.y, b.y));
+}
+
+template <>
+Vector2f Min<Vector2f>(Vector2f a, Vector2f b)
+{
+	return Vector2f(Min(a.x, b.x), Min(a.y, b.y));
+}
+
 Colourb RoundedLerp(float t, Colourb v0, Colourb v1)
 {
 	return Colourb{

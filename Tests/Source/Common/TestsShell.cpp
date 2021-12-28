@@ -39,11 +39,8 @@
 
 #include <doctest.h>
 
-// Uncomment the following to render to the shell window instead of the dummy renderer.
+// Uncomment the following to render to the shell window instead of the dummy renderer. Useful for viewing the result while building RML.
 //#define RMLUI_TESTS_USE_SHELL
-
-// Uncomment the following line to enable rendering the context in a loop. Requires the shell backend. Useful for viewing the result while building RML.
-//#define RMLUI_TESTS_ENABLE_RENDER_LOOP
 
 
 namespace {
@@ -135,15 +132,18 @@ void TestsShell::PresentRenderBuffer()
 
 void TestsShell::RenderLoop()
 {
-#if defined(RMLUI_TESTS_USE_SHELL) && defined(RMLUI_TESTS_ENABLE_RENDER_LOOP)
 	REQUIRE(shell_context);
-	
+
+#if defined(RMLUI_TESTS_USE_SHELL)
 	Shell::EventLoop([]() {
 		shell_context->Update();
 		PrepareRenderBuffer();
 		shell_context->Render();
 		PresentRenderBuffer();
 	});
+#else
+	shell_context->Update();
+	shell_context->Render();
 #endif
 }
 

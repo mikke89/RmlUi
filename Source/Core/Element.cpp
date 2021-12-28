@@ -98,7 +98,7 @@ transform_state(), dirty_transform(false), dirty_perspective(false), dirty_anima
 
 	offset_fixed = false;
 	offset_parent = nullptr;
-	offset_dirty = true;
+	absolute_offset_dirty = true;
 
 	client_area = Box::PADDING;
 
@@ -207,9 +207,9 @@ void Element::Render()
 	RMLUI_ZoneText(name.c_str(), name.size());
 #endif
 
-	// TODO: This is a work-around for the dirty offset not being properly updated when used by (stacking context?) children. This results
+	// TODO: This is a work-around for the dirty offset not being properly updated when used by containing block children. This results
 	// in scrolling not working properly. We don't care about the return value, the call is only used to force the absolute offset to update.
-	if (offset_dirty)
+	if (absolute_offset_dirty)
 		GetAbsoluteOffset(Box::BORDER);
 
 	// Rebuild our stacking context if necessary.
@@ -365,21 +365,21 @@ void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_f
 		offset_fixed = _offset_fixed;
 		offset_parent = _offset_parent;
 		UpdateOffset();
-		DirtyOffset();
+		DirtyAbsoluteOffset();
 	}
 
 	// Otherwise, our offset is updated in case left / right / top / bottom will have an impact on
 	// our final position, and our children are dirtied if they do.
 	else
 	{
-		Vector2f& old_base = relative_offset_base;
-		Vector2f& old_position = relative_offset_position;
+		const Vector2f old_base = relative_offset_base;
+		const Vector2f old_position = relative_offset_position;
 
 		UpdateOffset();
 
 		if (old_base != relative_offset_base ||
 			old_position != relative_offset_position)
-			DirtyOffset();
+			DirtyAbsoluteOffset();
 	}
 }
 
@@ -392,9 +392,9 @@ Vector2f Element::GetRelativeOffset(Box::Area area)
 // Returns the position of the top-left corner of one of the areas of this element's primary box.
 Vector2f Element::GetAbsoluteOffset(Box::Area area)
 {
-	if (offset_dirty)
+	if (absolute_offset_dirty)
 	{
-		offset_dirty = false;
+		absolute_offset_dirty = false;
 
 		if (offset_parent != nullptr)
 			absolute_offset = offset_parent->GetAbsoluteOffset(Box::BORDER) + relative_offset_base + relative_offset_position;
@@ -446,7 +446,7 @@ void Element::SetContentBox(Vector2f _content_offset, Vector2f _content_box)
 
 		scroll_offset.x = Math::Min(scroll_offset.x, GetScrollWidth() - GetClientWidth());
 		scroll_offset.y = Math::Min(scroll_offset.y, GetScrollHeight() - GetClientHeight());
-		DirtyOffset();
+		DirtyAbsoluteOffset();
 	}
 }
 
@@ -960,7 +960,7 @@ void Element::SetScrollLeft(float scroll_left)
 	{
 		scroll_offset.x = new_offset;
 		meta->scroll.UpdateScrollbar(ElementScroll::HORIZONTAL);
-		DirtyOffset();
+		DirtyAbsoluteOffset();
 
 		DispatchEvent(EventId::Scroll, Dictionary());
 	}
@@ -980,7 +980,7 @@ void Element::SetScrollTop(float scroll_top)
 	{
 		scroll_offset.y = new_offset;
 		meta->scroll.UpdateScrollbar(ElementScroll::VERTICAL);
-		DirtyOffset();
+		DirtyAbsoluteOffset();
 
 		DispatchEvent(EventId::Scroll, Dictionary());
 	}
@@ -1774,9 +1774,8 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		changed_properties.Contains(PropertyId::Top) ||
 		changed_properties.Contains(PropertyId::Bottom))
 	{
-		// TODO: This should happen during/after layout, as the containing box is not properly defined yet. Off-by-one @frame issue.
 		UpdateOffset();
-		DirtyOffset();
+		DirtyAbsoluteOffset();
 	}
 
 	// Update the z-index.
@@ -2117,24 +2116,24 @@ void Element::SetParent(Element* _parent)
 	}
 }
 
-void Element::DirtyOffset()
+void Element::DirtyAbsoluteOffset()
 {
-	if (!offset_dirty)
-		DirtyOffsetRecursive();
+	if (!absolute_offset_dirty)
+		DirtyAbsoluteOffsetRecursive();
 }
 
-void Element::DirtyOffsetRecursive()
+void Element::DirtyAbsoluteOffsetRecursive()
 {
-	if (!offset_dirty)
+	if (!absolute_offset_dirty)
 	{
-		offset_dirty = true;
+		absolute_offset_dirty = true;
 
 		if (transform_state)
 			DirtyTransformState(true, true);
 	}
 
 	for (size_t i = 0; i < children.size(); i++)
-		children[i]->DirtyOffsetRecursive();
+		children[i]->DirtyAbsoluteOffsetRecursive();
 }
 
 void Element::UpdateOffset()
@@ -2260,7 +2259,7 @@ void Element::BuildStackingContext(ElementList* new_stacking_context)
 				ordered_child.order = RenderOrder::Positioned;
 			else if (child->GetFloat() != Style::Float::None)
 				ordered_child.order = RenderOrder::Floating;
-			else if (child_display == Style::Display::Block || child_display == Style::Display::Table)
+			else if (child_display == Style::Display::Block || child_display == Style::Display::Table || child_display == Style::Display::Flex)
 				ordered_child.order = RenderOrder::Block;
 			else
 				ordered_child.order = RenderOrder::Inline;

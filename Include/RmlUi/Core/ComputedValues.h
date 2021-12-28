@@ -32,9 +32,7 @@
 #include "Animation.h"
 
 namespace Rml {
-
-namespace Style
-{
+namespace Style {
 
 struct LengthPercentageAuto {
 	enum Type { Auto, Length, Percentage } type = Length;
@@ -60,7 +58,7 @@ struct NumberAuto {
 using Margin = LengthPercentageAuto;
 using Padding = LengthPercentage;
 
-enum class Display : uint8_t { None, Block, Inline, InlineBlock, Table, TableRow, TableRowGroup, TableColumn, TableColumnGroup, TableCell };
+enum class Display : uint8_t { None, Block, Inline, InlineBlock, Flex, Table, TableRow, TableRowGroup, TableColumn, TableColumnGroup, TableCell };
 enum class Position : uint8_t { Static, Relative, Absolute, Fixed };
 
 using Top = LengthPercentageAuto;
@@ -134,6 +132,14 @@ using TransformOrigin = LengthPercentage;
 
 enum class OriginX : uint8_t { Left, Center, Right };
 enum class OriginY : uint8_t { Top, Center, Bottom };
+
+enum class AlignContent : uint8_t { FlexStart, FlexEnd, Center, SpaceBetween, SpaceAround, Stretch };
+enum class AlignItems : uint8_t { FlexStart, FlexEnd, Center, Baseline, Stretch };
+enum class AlignSelf : uint8_t { Auto, FlexStart, FlexEnd, Center, Baseline, Stretch };
+using FlexBasis = LengthPercentageAuto;
+enum class FlexDirection : uint8_t { Row, RowReverse, Column, ColumnReverse };
+enum class FlexWrap : uint8_t { Nowrap, Wrap, WrapReverse };
+enum class JustifyContent : uint8_t { FlexStart, FlexEnd, Center, SpaceBetween, SpaceAround };
 
 
 /* 
@@ -223,8 +229,19 @@ struct ComputedValues
 
 	bool has_decorator = false;
 	bool has_font_effect = false;
+
+	AlignContent align_content = AlignContent::Stretch;
+	AlignItems align_items = AlignItems::Stretch;
+	AlignSelf align_self = AlignSelf::Auto;
+	FlexDirection flex_direction = FlexDirection::Row;
+	FlexWrap flex_wrap = FlexWrap::Nowrap;
+	JustifyContent justify_content = JustifyContent::FlexStart;
+	FlexBasis flex_basis = { FlexBasis::Auto };
+	float flex_grow = 0.f;
+	float flex_shrink = 1.f;
 };
-}
+
+} // namespace Style
 
 
 // Resolves a computed LengthPercentage value to the base unit 'px'. 

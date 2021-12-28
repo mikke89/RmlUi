@@ -198,7 +198,7 @@ private:
 	// The element we'll be computing our offset relative to during layout.
 	const LayoutBlockBox* offset_root;
 	// The element this block box's children are to be offset from.
-	const LayoutBlockBox* offset_parent;
+	LayoutBlockBox* offset_parent;
 
 	// The box's block parent. This will be nullptr for the root of the box tree.
 	LayoutBlockBox* parent;
@@ -223,6 +223,8 @@ private:
 	BlockBoxList block_boxes;
 	// Used by block contexts only; stores any elements that are to be absolutely positioned within this block box.
 	AbsoluteElementList absolute_elements;
+	// Used by block contexts only; stores any elements that are relatively positioned and whose containing block is this.
+	ElementList relative_elements;
 	// Used by block contexts only; stores the block box space pointed to by the 'space' member.
 	UniquePtr<LayoutBlockBoxSpace> space_owner;
 	// Used by block contexts only; stores an inline element hierarchy that was interrupted by a child block box.
