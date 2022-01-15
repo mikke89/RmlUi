@@ -31,17 +31,22 @@
 
 namespace Rml {
 
-static Pool< ObserverPtrBlock >& GetPool()
+// The ObserverPtrBlock pool
+Pool<ObserverPtrBlock>* observerPtrBlockPool = nullptr;
+
+static Pool<ObserverPtrBlock>& GetPool()
 {
 	// Wrap pool in a function to ensure it is initialized before use.
 	// This pool must outlive all other global variables that derive from EnableObserverPtr. This even includes
 	// user variables which we have no control over. For this reason, we intentionally let this leak.
-	static Pool< ObserverPtrBlock >* pool =  new Pool< ObserverPtrBlock >(128, true);
-	return *pool;
+	if (observerPtrBlockPool == nullptr)
+		observerPtrBlockPool = new Pool<ObserverPtrBlock>(128, true);
+	return *observerPtrBlockPool;
 }
 
 
-void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block) {
+void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block)
+{
 	RMLUI_ASSERT(block->num_observers >= 0);
 	if (block->num_observers == 0 && block->pointed_to_object == nullptr)
 	{
