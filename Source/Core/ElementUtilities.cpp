@@ -189,10 +189,6 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 		const bool clip_none = (clip_computed.clip == Clip::Type::None);
 		const int clip_number = clip_computed.clip.GetNumber();
 
-		// If this region ignores all clipping regions, then we do too.
-		if (clip_none)
-			break;
-
 		// Merge the existing clip region with the current clip region if we aren't ignoring clip regions.
 		if ((clip_always || clip_enabled) && num_ignored_clips == 0)
 		{
@@ -234,6 +230,10 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 		
 		// Inherit how many clip regions this ancestor ignores.
 		num_ignored_clips = Math::Max(num_ignored_clips, clip_number);
+
+		// If this region ignores all clipping regions, then we do too.
+		if (clip_none)
+			break;
 
 		// Climb the tree to this region's parent.
 		clipping_element = clipping_element->GetParentNode();
