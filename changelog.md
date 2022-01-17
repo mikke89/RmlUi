@@ -10,9 +10,19 @@
 
 ## RmlUi 4.4 (WIP)
 
-### Layout improvements
+### Improvements
+
+- Release memory pools on `Rml::Shutdown`, or manually through the core API. [#252](https://github.com/mikke89/RmlUi/pull/252) (thanks @jack9267)
+- Fix classes not always copied over to a cloned element. [#264](https://github.com/mikke89/RmlUi/issues/264)
+- `select` element: Fix clipping on select box.
+
+### Layout
 
 - Fix offsets of relatively positioned elements with percentage positioning. [#262](https://github.com/mikke89/RmlUi/issues/262)
+
+### Samples
+
+- New sample for integration with SDL2's native renderer. [#252](https://github.com/mikke89/RmlUi/pull/252) (thanks @1bsyl)
 
 
 ## RmlUi 4.3
