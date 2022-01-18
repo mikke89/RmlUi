@@ -12,7 +12,7 @@
 
 ### Improvements
 
-- Release memory pools on `Rml::Shutdown`, or manually through the core API. [#252](https://github.com/mikke89/RmlUi/pull/252) (thanks @jack9267)
+- Release memory pools on `Rml::Shutdown`, or manually through the core API. [#263](https://github.com/mikke89/RmlUi/issues/263) [#265](https://github.com/mikke89/RmlUi/pull/265) (thanks @jack9267)
 - Fix classes not always copied over to a cloned element. [#264](https://github.com/mikke89/RmlUi/issues/264)
 - `select` element: Fix clipping on select box.
 
