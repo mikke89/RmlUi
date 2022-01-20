@@ -117,6 +117,7 @@ private:
 	bool geometry_dirty;
 
 	Colourb colour;
+	float opacity;
 
 	// The decoration geometry we've generated for this string.
 	Geometry decoration;

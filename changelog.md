@@ -15,6 +15,7 @@
 - Release memory pools on `Rml::Shutdown`, or manually through the core API. [#263](https://github.com/mikke89/RmlUi/issues/263) [#265](https://github.com/mikke89/RmlUi/pull/265) (thanks @jack9267)
 - Fix classes not always copied over to a cloned element. [#264](https://github.com/mikke89/RmlUi/issues/264)
 - `select` element: Fix clipping on select box.
+- The `opacity` property is now also applied to font effects. [#270](https://github.com/mikke89/RmlUi/issues/270)
 
 ### Layout
 
@@ -23,6 +24,10 @@
 ### Samples
 
 - New sample for integration with SDL2's native renderer. [#252](https://github.com/mikke89/RmlUi/pull/252) (thanks @1bsyl)
+
+### Breaking changes
+
+- `FontEngineInterface::GenerateString` now takes a new argument, `opacity`.
 
 
 ## RmlUi 4.3
