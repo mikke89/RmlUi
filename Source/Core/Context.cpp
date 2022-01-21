@@ -1237,11 +1237,19 @@ void Context::CreateDragClone(Element* element)
 	// Append the clone to the cursor proxy element.
 	cursor_proxy->AppendChild(std::move(element_drag_clone));
 
-	// Set all the required properties and pseudo-classes on the clone.
-	drag_clone->SetPseudoClass("drag", true);
+	// Position the clone. Use projected mouse coordinates to handle any ancestor transforms.
+	const Vector2f absolute_pos = element->GetAbsoluteOffset(Box::BORDER);
+	Vector2f projected_mouse_position = Vector2f(mouse_position);
+	if (Element* parent = element->GetParentNode())
+		parent->Project(projected_mouse_position);
+
 	drag_clone->SetProperty(PropertyId::Position, Property(Style::Position::Absolute));
-	drag_clone->SetProperty(PropertyId::Left, Property(element->GetAbsoluteLeft() - element->GetBox().GetEdge(Box::MARGIN, Box::LEFT) - mouse_position.x, Property::PX));
-	drag_clone->SetProperty(PropertyId::Top, Property(element->GetAbsoluteTop() - element->GetBox().GetEdge(Box::MARGIN, Box::TOP) - mouse_position.y, Property::PX));
+	drag_clone->SetProperty(PropertyId::Left, Property(absolute_pos.x - projected_mouse_position.x, Property::PX));
+	drag_clone->SetProperty(PropertyId::Top, Property(absolute_pos.y - projected_mouse_position.y, Property::PX));
+	// We remove margins so that percentage- and auto-margins are evaluated correctly.
+	drag_clone->SetProperty(PropertyId::MarginLeft, Property(0.f, Property::PX));
+	drag_clone->SetProperty(PropertyId::MarginTop, Property(0.f, Property::PX));
+	drag_clone->SetPseudoClass("drag", true);
 }
 
 // Releases the drag clone, if one exists.

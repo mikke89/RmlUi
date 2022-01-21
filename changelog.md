@@ -16,6 +16,8 @@
 - Fix classes not always copied over to a cloned element. [#264](https://github.com/mikke89/RmlUi/issues/264)
 - `select` element: Fix clipping on select box.
 - The `opacity` property is now also applied to font effects. [#270](https://github.com/mikke89/RmlUi/issues/270)
+- Drag clones are now positioned correctly when their ancestors use transforms. [#269](https://github.com/mikke89/RmlUi/issues/269)
+- Drag clones no longer inherit backgrounds and decoration from the cloned element's document body.
 
 ### Layout
 
