@@ -67,6 +67,18 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	ElementDocument* cursor_proxy_document = rmlui_dynamic_cast< ElementDocument* >(cursor_proxy.get());
 	RMLUI_ASSERT(cursor_proxy_document);
 	cursor_proxy_document->context = this;
+
+	// The cursor proxy takes the style from its cloned element's document. The latter may define style rules for `<body>` which we don't want on the
+	// proxy. Thus, we override some properties here that we in particular don't want to inherit from the client document, especially those that
+	// result in decoration of the body element.
+	cursor_proxy_document->SetProperty(PropertyId::BackgroundColor, Property(Colourb(255, 255, 255, 0), Property::COLOUR));
+	cursor_proxy_document->SetProperty(PropertyId::BorderTopWidth, Property(0, Property::PX));
+	cursor_proxy_document->SetProperty(PropertyId::BorderRightWidth, Property(0, Property::PX));
+	cursor_proxy_document->SetProperty(PropertyId::BorderBottomWidth, Property(0, Property::PX));
+	cursor_proxy_document->SetProperty(PropertyId::BorderLeftWidth, Property(0, Property::PX));
+	cursor_proxy_document->SetProperty(PropertyId::Decorator, Property());
+	cursor_proxy_document->SetProperty(PropertyId::OverflowX, Property(Style::Overflow::Visible));
+	cursor_proxy_document->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Visible));
 		
 	enable_cursor = true;
 
