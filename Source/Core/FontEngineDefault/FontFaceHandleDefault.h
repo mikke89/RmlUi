@@ -51,7 +51,7 @@ public:
 	FontFaceHandleDefault();
 	~FontFaceHandleDefault();
 
-	bool Initialize(FontFaceHandleFreetype face, int font_size);
+	bool Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs);
 
 	/// Returns the point size of this font face.
 	int GetSize() const;

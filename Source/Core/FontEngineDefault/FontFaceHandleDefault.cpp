@@ -52,16 +52,14 @@ FontFaceHandleDefault::~FontFaceHandleDefault()
 	layers.clear();
 }
 
-bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_size)
+bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs)
 {
 	ft_face = face;
 
 	RMLUI_ASSERTMSG(layer_configurations.empty(), "Initialize must only be called once.");
 
-	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics))
-	{
+	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics, load_default_glyphs))
 		return false;
-	}
 
 	has_kerning = FreeType::HasKerning(ft_face);
 	FillKerningPairCache();

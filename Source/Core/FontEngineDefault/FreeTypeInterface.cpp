@@ -39,7 +39,7 @@ namespace Rml {
 static FT_Library ft_library = nullptr;
 
 static bool BuildGlyph(FT_Face ft_face, Character character, FontGlyphMap& glyphs, float bitmap_scaling_factor);
-static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, float bitmap_scaling_factor);
+static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, float bitmap_scaling_factor, bool load_default_glyphs);
 static void GenerateMetrics(FT_Face ft_face, FontMetrics& metrics, float bitmap_scaling_factor);
 static bool SetFontSize(FT_Face ft_face, int font_size, float& out_bitmap_scaling_factor);
 static void BitmapDownscale(byte* bitmap_new, int new_width, int new_height, const byte* bitmap_source, int width, int height, int pitch,
@@ -115,7 +115,7 @@ void FreeType::GetFaceStyle(FontFaceHandleFreetype in_face, String& font_family,
 }
 
 // Initialises the handle so it is able to render text.
-bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics)
+bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics, bool load_default_glyphs)
 {
 	FT_Face ft_face = (FT_Face)face;
 
@@ -126,7 +126,7 @@ bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, 
 		return false;
 
 	// Construct the initial list of glyphs.
-	BuildGlyphMap(ft_face, font_size, glyphs, bitmap_scaling_factor);
+	BuildGlyphMap(ft_face, font_size, glyphs, bitmap_scaling_factor, load_default_glyphs);
 
 	// Generate the metrics for the handle.
 	GenerateMetrics(ft_face, metrics, bitmap_scaling_factor);
@@ -194,16 +194,19 @@ bool FreeType::HasKerning(FontFaceHandleFreetype face)
 
 
 
-static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const float bitmap_scaling_factor)
+static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const float bitmap_scaling_factor, const bool load_default_glyphs)
 {
-	glyphs.reserve(128);
+	if (load_default_glyphs)
+	{
+		glyphs.reserve(128);
 
-	// Add the ASCII characters now. Other characters are added later as needed.
-	FT_ULong code_min = 32;
-	FT_ULong code_max = 126;
+		// Add the ASCII characters now. Other characters are added later as needed.
+		FT_ULong code_min = 32;
+		FT_ULong code_max = 126;
 
-	for (FT_ULong character_code = code_min; character_code <= code_max; ++character_code)
-		BuildGlyph(ft_face, (Character)character_code, glyphs, bitmap_scaling_factor);
+		for (FT_ULong character_code = code_min; character_code <= code_max; ++character_code)
+			BuildGlyph(ft_face, (Character)character_code, glyphs, bitmap_scaling_factor);
+	}
 
 	// Add a replacement character for rendering unknown characters.
 	Character replacement_character = Character::Replacement;
