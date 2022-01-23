@@ -108,9 +108,11 @@ void FontEffectBlur::GenerateGlyphTexture(byte* destination_data, const Vector2i
 	const int buf_size = buf_dimensions.x * buf_dimensions.y;
 	DynamicArray<byte, GlobalStackAllocator<byte>> x_output(buf_size);
 
-	filter_x.Run(x_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, glyph.bitmap_data, glyph.bitmap_dimensions, Vector2i(width));
+	filter_x.Run(x_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, glyph.bitmap_data, glyph.bitmap_dimensions, Vector2i(width),
+		glyph.color_format);
 
-	filter_y.Run(destination_data, destination_dimensions, destination_stride, ColorFormat::RGBA8, x_output.data(), buf_dimensions, Vector2i(0));
+	filter_y.Run(destination_data, destination_dimensions, destination_stride, ColorFormat::RGBA8, x_output.data(), buf_dimensions, Vector2i(0),
+		ColorFormat::A8);
 }
 
 
