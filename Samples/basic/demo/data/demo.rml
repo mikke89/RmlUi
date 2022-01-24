@@ -233,7 +233,7 @@ p.title
 #font_effects div 
 {
 	display: inline-block;
-	width: 150dp;
+	width: 180dp;
 	margin: 0 30dp 30dp;
 	text-align: center;
 	font-size: 35dp;
@@ -270,12 +270,12 @@ p.title
 }
 #font_effects .blur_small
 {
-	color: transparent;
+	color: #fff2;
 	font-effect: blur(3dp #ed5);
 }
 #font_effects .blur_big
 {
-	color: transparent;
+	color: #fff1;
 	font-effect: blur(10dp #ed5);
 }
 #font_effects .shadow_up
