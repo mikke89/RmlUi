@@ -43,12 +43,6 @@ enum class FilterOperation {
 	Erosion
 };
 
-enum class ColorFormat {
-	RGBA8,
-	A8
-};
-
-
 /**
 	A programmable convolution filter, designed to aid in the generation of texture data by custom
 	FontEffect types.

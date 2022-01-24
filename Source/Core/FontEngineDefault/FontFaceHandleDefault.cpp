@@ -283,7 +283,11 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 			// Adjust the cursor for the kerning between this character and the previous one.
 			line_width += GetKerning(prior_character, character);
 
-			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), layer_colour);
+			// Use white vertex colors on RGB glyphs.
+			const Colourb glyph_color =
+				(layer == base_layer && glyph->color_format == ColorFormat::RGBA8 ? Colourb(255, layer_colour.alpha) : layer_colour);
+
+			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), glyph_color);
 
 			line_width += glyph->advance;
 			prior_character = character;
