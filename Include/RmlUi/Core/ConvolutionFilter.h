@@ -43,12 +43,6 @@ enum class FilterOperation {
 	Erosion
 };
 
-enum class ColorFormat {
-	RGBA8,
-	A8
-};
-
-
 /**
 	A programmable convolution filter, designed to aid in the generation of texture data by custom
 	FontEffect types.
@@ -85,7 +79,9 @@ public:
 	/// @param[in] source The opacity information for the source buffer.
 	/// @param[in] source_dimensions The size of the source region (in pixels). The stride is assumed to be equivalent to the horizontal width.
 	/// @param[in] source_offset The offset of the source region from the destination region. This is usually the same as the kernel size.
-	void Run(byte* destination, Vector2i destination_dimensions, int destination_stride, ColorFormat destination_color_format, const byte* source, Vector2i source_dimensions, Vector2i source_offset) const;
+	/// @param[in] source_color_format Determines the representation of the bytes in the source texture, only the alpha channel will be used.
+	void Run(byte* destination, Vector2i destination_dimensions, int destination_stride, ColorFormat destination_color_format, const byte* source,
+		Vector2i source_dimensions, Vector2i source_offset, ColorFormat source_color_format) const;
 
 private:
 	Vector2i kernel_size;

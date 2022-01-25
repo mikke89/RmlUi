@@ -56,7 +56,7 @@ FontFaceHandleDefault* FontFamily::GetFaceHandle(Style::FontStyle style, Style::
 	if (matching_face == nullptr)
 		return nullptr;
 
-	return matching_face->GetHandle(size);
+	return matching_face->GetHandle(size, false);
 }
 
 

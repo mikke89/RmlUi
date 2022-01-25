@@ -51,10 +51,12 @@ bool FontEffectShadow::HasUniqueTexture() const
 	return false;
 }
 
-bool FontEffectShadow::GetGlyphMetrics(Vector2i& origin, Vector2i& RMLUI_UNUSED_PARAMETER(dimensions), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
+bool FontEffectShadow::GetGlyphMetrics(Vector2i& origin, Vector2i& RMLUI_UNUSED_PARAMETER(dimensions), const FontGlyph& glyph) const
 {
 	RMLUI_UNUSED(dimensions);
-	RMLUI_UNUSED(glyph);
+
+	if (glyph.color_format == ColorFormat::RGBA8)
+		return false;
 
 	origin += offset;
 	return true;

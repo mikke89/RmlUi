@@ -52,16 +52,14 @@ FontFaceHandleDefault::~FontFaceHandleDefault()
 	layers.clear();
 }
 
-bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_size)
+bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs)
 {
 	ft_face = face;
 
 	RMLUI_ASSERTMSG(layer_configurations.empty(), "Initialize must only be called once.");
 
-	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics))
-	{
+	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics, load_default_glyphs))
 		return false;
-	}
 
 	has_kerning = FreeType::HasKerning(ft_face);
 	FillKerningPairCache();
@@ -283,7 +281,11 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 			// Adjust the cursor for the kerning between this character and the previous one.
 			line_width += GetKerning(prior_character, character);
 
-			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), layer_colour);
+			// Use white vertex colors on RGB glyphs.
+			const Colourb glyph_color =
+				(layer == base_layer && glyph->color_format == ColorFormat::RGBA8 ? Colourb(255, layer_colour.alpha) : layer_colour);
+
+			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), glyph_color);
 
 			line_width += glyph->advance;
 			prior_character = character;

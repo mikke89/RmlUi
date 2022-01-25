@@ -58,6 +58,7 @@ enum class Character : char32_t { Null, Replacement = 0xfffd };
 namespace Rml {
 
 // Color and linear algebra
+enum class ColorFormat { RGBA8, A8 };
 using Colourf = Colour< float, 1 >;
 using Colourb = Colour< byte, 255 >;
 using Vector2i = Vector2< int >;
