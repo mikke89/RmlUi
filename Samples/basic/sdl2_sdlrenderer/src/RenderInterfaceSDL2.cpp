@@ -67,7 +67,7 @@ void RmlUiSDL2Renderer::RenderGeometry(Rml::Vertex* vertices, int num_vertices, 
     int off3 = offsetof(Rml::Vertex, tex_coord);
     SDL_RenderGeometryRaw(mRenderer, sdl_texture, 
             (float *)((Uint8 *) vertices + off1), sz,
-            (int *)((Uint8 *) vertices + off2), sz,
+            (SDL_Color *)((Uint8 *) vertices + off2), sz,
             (float *)((Uint8 *) vertices + off3), sz,
             num_vertices, indices, num_indices, 4);
 
