@@ -165,6 +165,9 @@ option(BUILD_SAMPLES "Build samples" OFF)
 
 option(MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are used by default." OFF)
 
+
+OPTION(RMLUI_SKIP_INSTALL "Skip installation and export of targets. Useful when you use RmlUi as a submodule instead of a platform dependency" OFF)
+
 if(APPLE)
 	if(IOS)
 		if(BUILD_SHARED_LIBS)
@@ -414,27 +417,31 @@ foreach(library ${LIBRARIES})
 	   VERSION ${PROJECT_VERSION}
 	   SOVERSION ${PROJECT_VERSION_MAJOR}
 	)
-	
+
 	add_common_target_options(${NAME})
 
-	install(TARGETS ${NAME}
-		EXPORT RmlUiTargets
-		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-	)
+	if(NOT RMLUI_SKIP_INSTALL)
+	        install(TARGETS ${NAME}
+			EXPORT RmlUiTargets
+			LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		)
+	endif()
 
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endforeach(library)
 
 if( CUSTOM_CONFIGURATION )
 	foreach(library ${CUSTOM_LINK_LIBRARIES})
-		install(TARGETS ${library}
-			EXPORT RmlUiTargets
-			LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-		)
+		if(NOT RMLUI_SKIP_INSTALL)
+			install(TARGETS ${library}
+				EXPORT RmlUiTargets
+				LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+				ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+				RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+			)
+		endif()
 		set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${library})
 	endforeach(library ${CUSTOM_LINK_LIBRARIES})
 endif()
@@ -498,13 +505,15 @@ else(NOT BUILD_FRAMEWORK)
 		PUBLIC_HEADER ${MASTER_PUB_HDR_FILES}
 	)
 
-	install(TARGETS ${NAME}
-		EXPORT RmlUiTargets
-		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-		FRAMEWORK DESTINATION Library/Frameworks
-	)
+	if(NOT RMLUI_SKIP_INSTALL)
+		install(TARGETS ${NAME}
+			EXPORT RmlUiTargets
+			LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+			FRAMEWORK DESTINATION Library/Frameworks
+		)
+	endif()
 
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endif(NOT BUILD_FRAMEWORK)
@@ -526,13 +535,15 @@ if(BUILD_LUA_BINDINGS)
 	
 	add_common_target_options(${NAME})
 
-	install(TARGETS ${NAME}
-		EXPORT RmlUiTargets
-		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-	)
-	
+	if(NOT RMLUI_SKIP_INSTALL)
+		install(TARGETS ${NAME}
+			EXPORT RmlUiTargets
+			LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		)
+	endif()
+
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endif()
 
@@ -694,13 +705,15 @@ if(BUILD_SAMPLES)
 	foreach(sample ${samples})
 		bl_sample(${sample} ${sample_LIBRARIES})
 
-		# The samples always set this as their current working directory
-		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
-		install(TARGETS ${sample} 
-			RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
-			BUNDLE DESTINATION ${SAMPLES_DIR})
+		if(NOT RMLUI_SKIP_INSTALL)
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
+			install(TARGETS ${sample}
+				RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+		endif()
 	endforeach()
-	
+
 	message("-- Can SDL2 samples be built")
 	find_package(SDL2)
 	if(SDL2_FOUND)
@@ -712,31 +725,33 @@ if(BUILD_SAMPLES)
 				include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 
 				bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
-			
-				# The samples always set this as their current working directory
-				install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
-				install(TARGETS sdl2
-					RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2
-					BUNDLE DESTINATION ${SAMPLES_DIR})
+				if(NOT RMLUI_SKIP_INSTALL)
+					# The samples always set this as their current working directory
+					install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
+					install(TARGETS sdl2
+						RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2
+						BUNDLE DESTINATION ${SAMPLES_DIR})
+				endif()
 			else()
-					message("-- Can SDL2 sample w/OpenGL renderer be built - no - GLEW not found")
+				message("-- Can SDL2 sample w/OpenGL renderer be built - no - GLEW not found")
 			endif()
-			
+
 			if("${SDL2_VERSION}" VERSION_GREATER_EQUAL "2.0.20")
 				message("-- Can SDL2 sample w/SDL-renderer be built - yes")
 				include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR})
 
 				bl_sample(sdl2_sdlrenderer ${sample_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY})
-			
-				install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2_sdlrenderer)
-				install(TARGETS sdl2_sdlrenderer
-					RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2_sdlrenderer
-					BUNDLE DESTINATION ${SAMPLES_DIR})
+				if(NOT RMLUI_SKIP_INSTALL)
+					install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2_sdlrenderer)
+					install(TARGETS sdl2_sdlrenderer
+						RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2_sdlrenderer
+						BUNDLE DESTINATION ${SAMPLES_DIR})
+				endif()
 			else()
 				message("-- Can SDL2 sample w/SDL-renderer be built - no - requires SDL 2.0.20 (found ${SDL2_VERSION})")
 			endif()
 		else()
-				message("-- Can SDL2 samples be built - SDL2_image not found")
+			message("-- Can SDL2 samples be built - SDL2_image not found")
 		endif()
 	else()
 		message("-- Can SDL2 samples be built - SDL2 not found")
@@ -749,6 +764,7 @@ if(BUILD_SAMPLES)
 	else()
 		find_package(SFML 2 COMPONENTS graphics window system)
 	endif()
+
 	if(NOT SFML_FOUND)
 		message("-- Can SFML 2.x sample be built - no")
 	else()
@@ -763,61 +779,71 @@ if(BUILD_SAMPLES)
 			include_directories(${SFML_INCLUDE_DIR})
 			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES})
 		endif()
-			
+
+		if(NOT RMLUI_SKIP_INSTALL)
 			# The samples always set this as their current working directory
 			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml2)
 			install(TARGETS sfml2
 				RUNTIME DESTINATION ${SAMPLES_DIR}/sfml2
 				BUNDLE DESTINATION ${SAMPLES_DIR})
+		endif()
 	endif()
-	
+
 	if( ENABLE_LOTTIE_PLUGIN )
 		bl_sample(lottie ${sample_LIBRARIES})
-		
-		# The samples always set this as their current working directory
-		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/lottie)
-		install(TARGETS lottie
-			RUNTIME DESTINATION ${SAMPLES_DIR}/lottie
-			BUNDLE DESTINATION ${SAMPLES_DIR}
-		)
+
+		if(NOT RMLUI_SKIP_INSTALL)
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/lottie)
+			install(TARGETS lottie
+				RUNTIME DESTINATION ${SAMPLES_DIR}/lottie
+				BUNDLE DESTINATION ${SAMPLES_DIR}
+			)
+		endif()
 	endif()
-	
+
 	if( ENABLE_SVG_PLUGIN )
 		bl_sample(svg ${sample_LIBRARIES})
-		
-		# The samples always set this as their current working directory
-		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/svg)
-		install(TARGETS svg
-			RUNTIME DESTINATION ${SAMPLES_DIR}/svg
-			BUNDLE DESTINATION ${SAMPLES_DIR}
-		)
+		if(NOT RMLUI_SKIP_INSTALL)
+			# The samples always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/svg)
+			install(TARGETS svg
+				RUNTIME DESTINATION ${SAMPLES_DIR}/svg
+				BUNDLE DESTINATION ${SAMPLES_DIR}
+			)
+		endif()
 	endif()
 
 	# Build and install the tutorials
 	foreach(tutorial ${tutorials})
 		set(tutorial_fullname tutorial_${tutorial})
 		bl_sample(${tutorial_fullname} ${sample_LIBRARIES})
-		
-		# The tutorials always set this as their current working directory
-		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
-		install(TARGETS ${tutorial_fullname}
-			RUNTIME DESTINATION ${SAMPLES_DIR}/${tutorial}
-			BUNDLE DESTINATION ${SAMPLES_DIR})
+		if(NOT RMLUI_SKIP_INSTALL)
+			# The tutorials always set this as their current working directory
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
+			install(TARGETS ${tutorial_fullname}
+				RUNTIME DESTINATION ${SAMPLES_DIR}/${tutorial}
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+		endif()
 	endforeach()
 
 	# Build and install invaders sample
 	bl_sample(invaders ${sample_LIBRARIES})
-	install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
-	install(TARGETS invaders 
-		RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
-		BUNDLE DESTINATION ${SAMPLES_DIR})
+	if(NOT RMLUI_SKIP_INSTALL)
+		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
+		install(TARGETS invaders
+			RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
+			BUNDLE DESTINATION ${SAMPLES_DIR})
+	endif()
 
 	if(BUILD_LUA_BINDINGS)
 		bl_sample(luainvaders RmlLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
-		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
-		install(TARGETS luainvaders 
-			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
-			BUNDLE DESTINATION ${SAMPLES_DIR})
+		if(NOT RMLUI_SKIP_INSTALL)
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
+			install(TARGETS luainvaders
+				RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+		endif()
 	endif()
 endif()
 
@@ -832,19 +858,20 @@ endif()
 #===================================
 # Installation =====================
 #===================================
-
-if(BUILD_LUA_BINDINGS)
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/RmlUi
-			DESTINATION include
-	)
-else()
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/RmlUi
-			DESTINATION include
-			PATTERN "Lua" EXCLUDE
-	)
+if(NOT RMLUI_SKIP_INSTALL)
+	if(BUILD_LUA_BINDINGS)
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/RmlUi
+				DESTINATION include
+		)
+	else()
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Include/RmlUi
+				DESTINATION include
+				PATTERN "Lua" EXCLUDE
+		)
+	endif()
 endif()
 
-if(BUILD_SAMPLES)
+if(BUILD_SAMPLES AND NOT RMLUI_SKIP_INSTALL)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/assets
 			DESTINATION ${SAMPLES_DIR}
 	)
@@ -918,7 +945,7 @@ endif()
 include(CMakePackageConfigHelpers OPTIONAL RESULT_VARIABLE PkgHelpers_AVAILABLE)
 
 # guard against older versions of cmake which do not provide it
-if(PkgHelpers_AVAILABLE)
+if(PkgHelpers_AVAILABLE AND NOT RMLUI_SKIP_INSTALL)
 	set (INCLUDE_INSTALL_DIR "include")
 	set (LIB_INSTALL_DIR "lib")
 	set (INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Include")
