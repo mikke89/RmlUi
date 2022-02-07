@@ -54,6 +54,14 @@ bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 		LoadSource();
 
 	dimensions = intrinsic_dimensions;
+
+	if (HasAttribute("width")) {
+		dimensions.x = GetAttribute< float >("width", -1);
+	}
+	if (HasAttribute("height")) {
+		dimensions.y = GetAttribute< float >("height", -1);
+	}
+
 	if (dimensions.y > 0)
 		ratio = dimensions.x / dimensions.y;
 
@@ -85,6 +93,12 @@ void ElementSVG::OnAttributeChange(const ElementAttributes& changed_attributes)
 	if (changed_attributes.count("src"))
 	{
 		source_dirty = true;
+		DirtyLayout();
+	}
+
+	if (changed_attributes.find("width") != changed_attributes.end() ||
+		changed_attributes.find("height") != changed_attributes.end())
+	{
 		DirtyLayout();
 	}
 }
