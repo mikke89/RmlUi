@@ -28,6 +28,7 @@
 
 #include "FontFaceLayer.h"
 #include "FontFaceHandleDefault.h"
+#include <string.h>
 
 namespace Rml {
 
@@ -82,8 +83,8 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 
 				TextureBox& box = it->second;
 
-				Vector2i glyph_origin(Math::RealToInteger(box.origin.x), Math::RealToInteger(box.origin.y));
-				Vector2i glyph_dimensions(Math::RealToInteger(box.dimensions.x), Math::RealToInteger(box.dimensions.y));
+				Vector2i glyph_origin = Vector2i(box.origin);
+				Vector2i glyph_dimensions = Vector2i(box.dimensions);
 
 				if (effect->GetGlyphMetrics(glyph_origin, glyph_dimensions, glyph))
 					box.origin = Vector2f(glyph_origin);
@@ -208,20 +209,33 @@ bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vecto
 			{
 				byte* destination = rectangle.GetTextureData();
 				const byte* source = glyph.bitmap_data;
+				const int num_bytes_per_line = glyph.bitmap_dimensions.x * (glyph.color_format == ColorFormat::RGBA8 ? 4 : 1);
 
 				for (int j = 0; j < glyph.bitmap_dimensions.y; ++j)
 				{
-					for (int k = 0; k < glyph.bitmap_dimensions.x; ++k)
-						destination[k * 4 + 3] = source[k];
+					switch (glyph.color_format)
+					{
+					case ColorFormat::A8:
+					{
+						for (int k = 0; k < num_bytes_per_line; ++k)
+							destination[k * 4 + 3] = source[k];
+					}
+					break;
+					case ColorFormat::RGBA8:
+					{
+						memcpy(destination, source, num_bytes_per_line);
+					}
+					break;
+					}
 
 					destination += rectangle.GetTextureStride();
-					source += glyph.bitmap_dimensions.x;
+					source += num_bytes_per_line;
 				}
 			}
 		}
 		else
 		{
-			effect->GenerateGlyphTexture(rectangle.GetTextureData(), Vector2i(Math::RealToInteger(box.dimensions.x), Math::RealToInteger(box.dimensions.y)), rectangle.GetTextureStride(), glyph);
+			effect->GenerateGlyphTexture(rectangle.GetTextureData(), Vector2i(box.dimensions), rectangle.GetTextureStride(), glyph);
 		}
 	}
 

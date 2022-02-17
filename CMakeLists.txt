@@ -722,7 +722,7 @@ if(BUILD_SAMPLES)
 					message("-- Can SDL2 sample w/OpenGL renderer be built - no - GLEW not found")
 			endif()
 			
-			if("${SDL2_VERSION}" VERSION_GREATER_EQUAL "2.0.18")
+			if("${SDL2_VERSION}" VERSION_GREATER_EQUAL "2.0.20")
 				message("-- Can SDL2 sample w/SDL-renderer be built - yes")
 				include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR})
 
@@ -733,7 +733,7 @@ if(BUILD_SAMPLES)
 					RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2_sdlrenderer
 					BUNDLE DESTINATION ${SAMPLES_DIR})
 			else()
-				message("-- Can SDL2 sample w/SDL-renderer be built - no - requires SDL 2.0.18 (found ${SDL2_VERSION})")
+				message("-- Can SDL2 sample w/SDL-renderer be built - no - requires SDL 2.0.20 (found ${SDL2_VERSION})")
 			endif()
 		else()
 				message("-- Can SDL2 samples be built - SDL2_image not found")

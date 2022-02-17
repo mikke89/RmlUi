@@ -39,11 +39,9 @@ namespace Rml {
 	@author Peter Curry
  */
 
-class RMLUICORE_API FontGlyph
-{
+class RMLUICORE_API FontGlyph {
 public:
-	FontGlyph() : dimensions(0,0), bearing(0,0), advance(0), bitmap_data(nullptr), bitmap_dimensions(0,0)
-	{}
+	FontGlyph() : dimensions(0, 0), bearing(0, 0), advance(0), bitmap_data(nullptr), bitmap_dimensions(0, 0), color_format(ColorFormat::A8) {}
 
 	/// The glyph's bounding box. Not to be confused with the dimensions of the glyph's bitmap!
 	Vector2i dimensions;
@@ -54,13 +52,13 @@ public:
 	/// character.
 	int advance;
 
-	/// 8-bit opacity information for the glyph's bitmap. The size of the data is given by the
-	/// dimensions, below. This will be nullptr if the glyph has no bitmap data.
+	/// Bitmap data defining this glyph. The dimensions and format of the data is given below. This will be nullptr if the glyph has no bitmap data.
 	const byte* bitmap_data;
-	/// The dimensions of the glyph's bitmap.
-	Vector2i bitmap_dimensions;
 
-	// Bitmap_data may point to this member or another font glyph data.
+	Vector2i bitmap_dimensions;
+	ColorFormat color_format;
+
+	// bitmap_data may point to this member or another font glyph data.
 	UniquePtr<byte[]> bitmap_owned_data;
 
 	// Create a copy with its bitmap data owned by another glyph.
@@ -72,6 +70,7 @@ public:
 		glyph.advance = advance;
 		glyph.bitmap_data = bitmap_data;
 		glyph.bitmap_dimensions = bitmap_dimensions;
+		glyph.color_format = color_format;
 		return glyph;
 	}
 };

@@ -55,6 +55,9 @@ static const String document_clone_rml = R"(
 			background-color: #fff;
 			height: 100px;
 		}
+		div.blue {
+			background-color: #00f;
+		}
 		span {
 			color: red;
 		}
@@ -179,6 +182,16 @@ TEST_CASE("Element")
 
 		element->SetProperty("background-color", "#0f0");
 		CHECK(element->Clone()->GetProperty<String>("background-color") == "0, 255, 0, 255");
+
+		element->RemoveProperty("background-color");
+		Element* clone = document->AppendChild(element->Clone());
+		context->Update();
+		CHECK(clone->GetProperty<String>("background-color") == "255, 255, 255, 255");
+
+		element->SetClass("blue", true);
+		clone = document->AppendChild(element->Clone());
+		context->Update();
+		CHECK(clone->GetProperty<String>("background-color") == "0, 0, 255, 255");
 	}
 
 	document->Close();

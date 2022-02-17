@@ -1,0 +1,59 @@
+<rml>
+<head>
+    <title>Opacity</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="Issue #270" href="https://github.com/mikke89/RmlUi/issues/270" />
+	<meta name="Description" content="Opacity should also apply to font effects." />
+	<style>
+		h1 {
+			margin-top: 2em;
+			font-size: 1.1em;
+		}
+		p {
+			margin-left: 2em;
+		}
+		.red {
+			color: #f00;
+		}
+		.translucent {
+			opacity: 0.25;
+		}
+		.invisible {
+			opacity: 0.0;
+		}
+		.font_effect {
+			font-effect: outline(2px #f00);
+			color: #ff0;
+		}
+		.red.alpha {
+			color: #f004;
+		}
+		.font_effect.alpha {
+			font-effect: outline(2px #f004);
+			color: #ff04;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Reference.</h1>
+	<p class="red">This is some text.</p>
+	<p class="font_effect">This is some text.</p>
+	
+	<h1>Translucent.</h1>
+	<p class="red translucent">This is some text.</p>
+	<p class="font_effect translucent">This is some text.</p>
+	
+	<h1>Invisible, there should be no red text below.</h1>
+	<p class="red invisible">This is some text.</p>
+	<p class="font_effect invisible">This is some text.</p>
+	
+	<h1>Color with alpha channel.</h1>
+	<p class="red alpha">This is some text.</p>
+	<p class="font_effect alpha">This is some text.</p>
+	
+	<h1>Color with alpha channel and translucency.</h1>
+	<p class="red alpha translucent">This is some text.</p>
+	<p class="font_effect alpha translucent">This is some text.</p>	
+</body>
+</rml>

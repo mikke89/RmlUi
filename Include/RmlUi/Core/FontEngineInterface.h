@@ -117,10 +117,12 @@ public:
 	/// @param[in] font_effects_handle The handle to the prepared font effects for which the geometry should be generated.
 	/// @param[in] string The string to render.
 	/// @param[in] position The position of the baseline of the first character to render.
-	/// @param[in] colour The colour to render the text.
+	/// @param[in] colour The colour to render the text. Colour alpha is premultiplied with opacity.
+	/// @param[in] opacity The opacity of the text, should be applied to font effects.
 	/// @param[out] geometry An array of geometries to generate the geometry into.
 	/// @return The width, in pixels, of the string geometry.
-	virtual int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position, const Colourb& colour, GeometryList& geometry);
+	virtual int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position,
+		const Colourb& colour, float opacity, GeometryList& geometry);
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated. Whenever the returned version
 	/// is changed, all geometry belonging to the given face handle will be re-generated.

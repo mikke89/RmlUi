@@ -1,0 +1,57 @@
+<rml>
+<head>
+    <title>Drag</title>
+    <link type="text/rcss" href="../style.rcss"/>
+	<link rel="Issue #269" href="https://github.com/mikke89/RmlUi/issues/269" />
+	<meta name="Description" content="Clone dragging should respect parent transforms when determining starting location. However, parent transforms themselves are not applied to the clone." />
+	<meta name="Assert" content="When the upper button is dragged, it should generate a clone at the same location and orientation." />
+	<meta name="Assert" content="When the lower button is dragged, it should generate a clone at approximately the same location, but at another orientation and scale." />
+	<style>
+			body {
+				width: 800dp;
+				perspective: 500dp;
+			}
+			.container {
+				width: 300dp;
+				height: 300dp;
+				position: absolute;
+				top: 0;
+				right: 50%;
+				transform: translate(50%, 50dp);
+				background-color: #C2C2C2;
+			}
+			.container.rotate {
+				top: auto;
+				bottom: 0;
+				transform: translate(50%, -30%) rotate3d(1, 0, 1, 65deg) scale(0.8);
+			}
+			.item {
+				width: 100dp;
+				height: 100dp;
+				margin: 100dp auto;
+				background-color: #1F1F1F;
+				transform: translate(100dp, 50dp) rotate(-18deg) scale(0.7);
+				drag: clone;
+			}
+			.item:hover {
+				background: #860;
+			}
+			.item:active {
+				background: #973;
+			}
+			.item:drag {
+				background: #f00;
+			}
+	</style>
+</head>
+
+<body>
+<div class="container">
+	<div class="item"></div>
+</div>
+<div class="container rotate">
+	<div class="item"></div>
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>

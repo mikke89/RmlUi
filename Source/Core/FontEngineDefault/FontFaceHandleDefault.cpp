@@ -52,16 +52,14 @@ FontFaceHandleDefault::~FontFaceHandleDefault()
 	layers.clear();
 }
 
-bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_size)
+bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs)
 {
 	ft_face = face;
 
 	RMLUI_ASSERTMSG(layer_configurations.empty(), "Initialize must only be called once.");
 
-	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics))
-	{
+	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics, load_default_glyphs))
 		return false;
-	}
 
 	has_kerning = FreeType::HasKerning(ft_face);
 	FillKerningPairCache();
@@ -218,7 +216,8 @@ bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& textur
 }
 
 // Generates the geometry required to render a single line of text.
-int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& string, const Vector2f position, const Colourb colour, int layer_configuration_index)
+int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& string, const Vector2f position, const Colourb colour,
+	const float opacity, const int layer_configuration_index)
 {
 	int geometry_index = 0;
 	int line_width = 0;
@@ -240,9 +239,15 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 
 		Colourb layer_colour;
 		if (layer == base_layer)
+		{
 			layer_colour = colour;
+		}
 		else
+		{
 			layer_colour = layer->GetColour();
+			if (opacity < 1.f)
+				layer_colour.alpha = byte(opacity * float(layer_colour.alpha));
+		}
 
 		const int num_textures = layer->GetNumTextures();
 
@@ -276,7 +281,11 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 			// Adjust the cursor for the kerning between this character and the previous one.
 			line_width += GetKerning(prior_character, character);
 
-			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), layer_colour);
+			// Use white vertex colors on RGB glyphs.
+			const Colourb glyph_color =
+				(layer == base_layer && glyph->color_format == ColorFormat::RGBA8 ? Colourb(255, layer_colour.alpha) : layer_colour);
+
+			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), glyph_color);
 
 			line_width += glyph->advance;
 			prior_character = character;

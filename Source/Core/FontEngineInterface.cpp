@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,31 +30,27 @@
 
 namespace Rml {
 
-FontEngineInterface::FontEngineInterface()
-{
-}
+FontEngineInterface::FontEngineInterface() {}
 
-FontEngineInterface::~FontEngineInterface()
-{
-}
+FontEngineInterface::~FontEngineInterface() {}
 
 bool FontEngineInterface::LoadFontFace(const String& /*file_name*/, bool /*fallback_face*/)
 {
 	return false;
 }
 
-bool FontEngineInterface::LoadFontFace(const byte* /*data*/, int /*data_size*/, const String& /*font_family*/,
-	Style::FontStyle /*style*/, Style::FontWeight /*weight*/, bool /*fallback_face*/)
+bool FontEngineInterface::LoadFontFace(const byte* /*data*/, int /*data_size*/, const String& /*font_family*/, Style::FontStyle /*style*/,
+	Style::FontWeight /*weight*/, bool /*fallback_face*/)
 {
 	return false;
 }
 
-FontFaceHandle FontEngineInterface::GetFontFaceHandle(const String& /*family*/, Style::FontStyle /*style*/,
-	Style::FontWeight /*weight*/, int /*size*/)
+FontFaceHandle FontEngineInterface::GetFontFaceHandle(const String& /*family*/, Style::FontStyle /*style*/, Style::FontWeight /*weight*/,
+	int /*size*/)
 {
 	return 0;
 }
-	
+
 FontEffectsHandle FontEngineInterface::PrepareFontEffects(FontFaceHandle /*handle*/, const FontEffectList& /*font_effects*/)
 {
 	return 0;
@@ -91,7 +87,7 @@ int FontEngineInterface::GetStringWidth(FontFaceHandle /*handle*/, const String&
 }
 
 int FontEngineInterface::GenerateString(FontFaceHandle /*face_handle*/, FontEffectsHandle /*font_effects_handle*/, const String& /*string*/,
-	const Vector2f& /*position*/, const Colourb& /*colour*/, GeometryList& /*geometry*/)
+	const Vector2f& /*position*/, const Colourb& /*colour*/, float /*opacity*/, GeometryList& /*geometry*/)
 {
 	return 0;
 }

@@ -136,11 +136,14 @@ void FontEffectGlow::GenerateGlyphTexture(byte* destination_data, const Vector2i
 	DynamicArray<byte, GlobalStackAllocator<byte>> outline_output(buf_size);
 	DynamicArray<byte, GlobalStackAllocator<byte>> blur_x_output(buf_size);
 
-	filter_outline.Run(outline_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, glyph.bitmap_data, glyph.bitmap_dimensions, Vector2i(combined_width));
+	filter_outline.Run(outline_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, glyph.bitmap_data, glyph.bitmap_dimensions,
+		Vector2i(combined_width), glyph.color_format);
 	
-	filter_blur_x.Run(blur_x_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, outline_output.data(), buf_dimensions, Vector2i(0));
+	filter_blur_x.Run(blur_x_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, outline_output.data(), buf_dimensions, Vector2i(0),
+		ColorFormat::A8);
 
-	filter_blur_y.Run(destination_data, destination_dimensions, destination_stride, ColorFormat::RGBA8, blur_x_output.data(), buf_dimensions, Vector2i(0));
+	filter_blur_y.Run(destination_data, destination_dimensions, destination_stride, ColorFormat::RGBA8, blur_x_output.data(), buf_dimensions,
+		Vector2i(0), ColorFormat::A8);
 }
 
 

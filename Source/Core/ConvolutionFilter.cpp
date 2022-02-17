@@ -54,8 +54,7 @@ bool ConvolutionFilter::Initialise(Vector2i _kernel_radii, FilterOperation _oper
 
 	kernel_size = _kernel_radii * 2 + Vector2i(1);
 
-	kernel = UniquePtr<float[]>(new float[kernel_size.x * kernel_size.y]);
-	memset(kernel.get(), 0, kernel_size.x * kernel_size.y * sizeof(float));
+	kernel = UniquePtr<float[]>(new float[kernel_size.x * kernel_size.y]());
 
 	operation = _operation;
 	return true;
@@ -70,9 +69,16 @@ float* ConvolutionFilter::operator[](int kernel_y_index)
 	return kernel.get() + kernel_size.x * kernel_y_index;
 }
 
-void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimensions, const int destination_stride, const ColorFormat destination_color_format, const byte* source, const Vector2i source_dimensions, const Vector2i source_offset) const
+void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimensions, const int destination_stride,
+	const ColorFormat destination_color_format, const byte* source, const Vector2i source_dimensions, const Vector2i source_offset,
+	const ColorFormat source_color_format) const
 {
 	RMLUI_ZoneScopedNC("ConvFilter::Run", 0xd6bf49);
+
+	const int destination_bytes_per_pixel = (destination_color_format == ColorFormat::RGBA8 ? 4 : 1);
+	const int destination_alpha_offset = (destination_color_format == ColorFormat::RGBA8 ? 3 : 0);
+	const int source_bytes_per_pixel = (source_color_format == ColorFormat::RGBA8 ? 4 : 1);
+	const int source_alpha_offset = (source_color_format == ColorFormat::RGBA8 ? 3 : 0);
 
 	const float initial_opacity = (operation == FilterOperation::Erosion ? FLT_MAX : 0.f);
 
@@ -86,20 +92,19 @@ void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimens
 
 			for (int kernel_y = 0; kernel_y < kernel_size.y; ++kernel_y)
 			{
-				int source_y = y - source_offset.y - kernel_radius.y + kernel_y;
+				const int source_y = y - source_offset.y - kernel_radius.y + kernel_y;
 
 				for (int kernel_x = 0; kernel_x < kernel_size.x; ++kernel_x)
 				{
-					float pixel_opacity;
+					float pixel_opacity = 0.f;
 
-					int source_x = x - source_offset.x - kernel_radius.x + kernel_x;
+					const int source_x = x - source_offset.x - kernel_radius.x + kernel_x;
 					if (source_y >= 0 && source_y < source_dimensions.y &&
 						source_x >= 0 && source_x < source_dimensions.x)
 					{
-						pixel_opacity = float(source[source_y * source_dimensions.x + source_x]) * kernel[kernel_y * kernel_size.x + kernel_x];
+						const int source_index = (source_y * source_dimensions.x + source_x) * source_bytes_per_pixel + source_alpha_offset;
+						pixel_opacity = float(source[source_index]) * kernel[kernel_y * kernel_size.x + kernel_x];
 					}
-					else
-						pixel_opacity = 0;
 
 					switch (operation)
 					{
@@ -112,13 +117,7 @@ void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimens
 
 			opacity = Math::Min(255.f, opacity);
 
-			int destination_index = 0;
-			switch (destination_color_format)
-			{
-			case ColorFormat::RGBA8: destination_index = x * 4 + 3; break;
-			case ColorFormat::A8:    destination_index = x; break;
-			}
-
+			const int destination_index = x * destination_bytes_per_pixel + destination_alpha_offset;
 			destination[destination_index] = byte(opacity);
 		}
 

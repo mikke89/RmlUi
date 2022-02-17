@@ -44,7 +44,7 @@ namespace Rml {
 static bool BuildToken(String& token, const char*& token_begin, const char* string_end, bool first_token, bool collapse_white_space, bool break_at_endline, Style::TextTransform text_transformation, bool decode_escape_characters);
 static bool LastToken(const char* token_begin, const char* string_end, bool collapse_white_space, bool break_at_endline);
 
-ElementText::ElementText(const String& tag) : Element(tag), colour(255, 255, 255), decoration(this)
+ElementText::ElementText(const String& tag) : Element(tag), colour(255, 255, 255), opacity(1), decoration(this)
 {
 	dirty_layout_on_change = true;
 
@@ -355,13 +355,23 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 	if (changed_properties.Contains(PropertyId::Color) ||
 		changed_properties.Contains(PropertyId::Opacity))
 	{
-		// Fetch our (potentially) new colour.
+		const float new_opacity = computed.opacity;
+		const bool opacity_changed = opacity != new_opacity;
+
 		Colourb new_colour = computed.color;
-		float opacity = computed.opacity;
-		new_colour.alpha = byte(opacity * float(new_colour.alpha));
+		new_colour.alpha = byte(new_opacity * float(new_colour.alpha));
 		colour_changed = colour != new_colour;
+
 		if (colour_changed)
+		{
 			colour = new_colour;
+		}
+		if (opacity_changed)
+		{
+			opacity = new_opacity;
+			font_effects_dirty = true;
+			geometry_dirty = true;
+		}
 	}
 
 	if (changed_properties.Contains(PropertyId::FontFamily) ||
@@ -465,7 +475,7 @@ void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle)
 
 void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle, Line& line)
 {
-	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, geometry);
+	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, opacity, geometry);
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].SetHostElement(this);
 }

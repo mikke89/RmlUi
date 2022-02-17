@@ -51,8 +51,9 @@ public:
 
 	/// Returns a handle for positioning and rendering this face at the given size.
 	/// @param[in] size The size of the desired handle, in points.
+	/// @param[in] load_default_glyphs True to load the default set of glyph (ASCII range).
 	/// @return The font handle.
-	FontFaceHandleDefault* GetHandle(int size);
+	FontFaceHandleDefault* GetHandle(int size, bool load_default_glyphs);
 
 private:
 	Style::FontStyle style;

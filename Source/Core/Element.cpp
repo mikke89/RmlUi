@@ -260,14 +260,18 @@ ElementPtr Element::Clone() const
 
 	if (clone)
 	{
-		// Copy over the attributes. The 'style' attribute is skipped because inline styles are copied manually below. This is necessary in
-		// case any properties have been set manually, in that case the 'style' attribute is out of sync with the inline properties.
+		// Copy over the attributes. The 'style' and 'class' attributes are skipped because inline styles and class names are copied manually below.
+		// This is necessary in case any properties or classes have been set manually, in which case the 'style' and 'class' attributes are out of
+		// sync with the used style and active classes.
 		ElementAttributes clone_attributes = attributes;
 		clone_attributes.erase("style");
+		clone_attributes.erase("class");
 		clone->SetAttributes(clone_attributes);
 
 		for (auto& id_property : GetStyle()->GetLocalStyleProperties())
 			clone->SetProperty(id_property.first, id_property.second);
+
+		clone->GetStyle()->SetClassNames(GetStyle()->GetClassNames());
 
 		String inner_rml;
 		GetInnerRML(inner_rml);

@@ -51,7 +51,7 @@ public:
 	FontFaceHandleDefault();
 	~FontFaceHandleDefault();
 
-	bool Initialize(FontFaceHandleFreetype face, int font_size);
+	bool Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs);
 
 	/// Returns the point size of this font face.
 	int GetSize() const;
@@ -92,8 +92,10 @@ public:
 	/// @param[in] string The string to render.
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text.
+	/// @param[in] opacity The opacity of the text, should be applied to font effects.
+	/// @param[in] layer_configuration Face configuration index to use for generating string.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(GeometryList& geometry, const String& string, Vector2f position, Colourb colour, int layer_configuration = 0);
+	int GenerateString(GeometryList& geometry, const String& string, Vector2f position, Colourb colour, float opacity, int layer_configuration = 0);
 
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;
