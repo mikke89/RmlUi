@@ -13,11 +13,18 @@
 ### Improvements
 
 - Release memory pools on `Rml::Shutdown`, or manually through the core API. [#263](https://github.com/mikke89/RmlUi/issues/263) [#265](https://github.com/mikke89/RmlUi/pull/265) (thanks @jack9267)
-- Fix classes not always copied over to a cloned element. [#264](https://github.com/mikke89/RmlUi/issues/264)
 - `select` element: Fix clipping on select box.
-- The `opacity` property is now also applied to font effects. [#270](https://github.com/mikke89/RmlUi/issues/270)
+
+### Cloning
+
+- Fix classes not always copied over to a cloned element. [#264](https://github.com/mikke89/RmlUi/issues/264)
 - Drag clones are now positioned correctly when their ancestors use transforms. [#269](https://github.com/mikke89/RmlUi/issues/269)
 - Drag clones no longer inherit backgrounds and decoration from the cloned element's document body.
+
+### Fonts
+
+- Support for color emojis 🎉. [#267](https://github.com/mikke89/RmlUi/issues/267)
+- The `opacity` property is now also applied to font effects. [#270](https://github.com/mikke89/RmlUi/issues/270)
 
 ### Layout
 
@@ -26,6 +33,15 @@
 ### Samples
 
 - New sample for integration with SDL2's native renderer. [#252](https://github.com/mikke89/RmlUi/pull/252) (thanks @1bsyl)
+
+### Build improvements
+
+- CMake: Mark RmlCore dependencies as private. [#274](https://github.com/mikke89/RmlUi/pull/274) (thanks @jonesmz)
+- CMake: Allow `lunasvg` library be found when located in builtin tree. [#282](https://github.com/mikke89/RmlUi/pull/282) (thanks @EhWhoAmI)
+
+### SVG Plugin
+
+- Add `width` and `height` attributes to the `<svg>` element. [#283](https://github.com/mikke89/RmlUi/pull/283) (thanks @EhWhoAmI)
 
 ### Breaking changes
 
