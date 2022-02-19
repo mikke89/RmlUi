@@ -213,15 +213,11 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 				}
 				else
 				{
-					const Vector2i top_left(Math::Max(clip_origin.x, element_origin.x),
-					                        Math::Max(clip_origin.y, element_origin.y));
-					
-					const Vector2i bottom_right(Math::Min(clip_origin.x + clip_dimensions.x, element_origin.x + element_dimensions.x),
-					                            Math::Min(clip_origin.y + clip_dimensions.y, element_origin.y + element_dimensions.y));
+					const Vector2i top_left = Math::Max(clip_origin, element_origin);
+					const Vector2i bottom_right = Math::Min(clip_origin + clip_dimensions, element_origin + element_dimensions);
 					
 					clip_origin = top_left;
-					clip_dimensions.x = Math::Max(0, bottom_right.x - top_left.x);
-					clip_dimensions.y = Math::Max(0, bottom_right.y - top_left.y);
+					clip_dimensions = Math::Max(Vector2i(0), bottom_right - top_left);
 				}
 			}
 		}
