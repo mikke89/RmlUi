@@ -268,11 +268,21 @@ Vector2f Max<Vector2f>(Vector2f a, Vector2f b)
 {
 	return Vector2f(Max(a.x, b.x), Max(a.y, b.y));
 }
+template <>
+Vector2i Max<Vector2i>(Vector2i a, Vector2i b)
+{
+	return Vector2i(Max(a.x, b.x), Max(a.y, b.y));
+}
 
 template <>
 Vector2f Min<Vector2f>(Vector2f a, Vector2f b)
 {
 	return Vector2f(Min(a.x, b.x), Min(a.y, b.y));
+}
+template <>
+Vector2i Min<Vector2i>(Vector2i a, Vector2i b)
+{
+	return Vector2i(Min(a.x, b.x), Min(a.y, b.y));
 }
 
 template <>
@@ -280,6 +290,12 @@ Vector2f Clamp(Vector2f value, Vector2f min, Vector2f max)
 {
 	return Vector2f(Clamp(value.x, min.x, max.x), Clamp(value.y, min.y, max.y));
 }
+template <>
+Vector2i Clamp(Vector2i value, Vector2i min, Vector2i max)
+{
+	return Vector2i(Clamp(value.x, min.x, max.x), Clamp(value.y, min.y, max.y));
+}
+
 
 Colourb RoundedLerp(float t, Colourb v0, Colourb v1)
 {
