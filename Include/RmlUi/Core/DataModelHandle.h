@@ -47,6 +47,7 @@ public:
 
 	bool IsVariableDirty(const String& variable_name);
 	void DirtyVariable(const String& variable_name);
+	void MarkAllDirty();
 
 	explicit operator bool() { return model; }
 

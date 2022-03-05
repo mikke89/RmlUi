@@ -341,6 +341,12 @@ bool DataModel::IsVariableDirty(const String& variable_name) const
 	return dirty_variables.count(variable_name) == 1;
 }
 
+void DataModel::MarkAllDirty() {
+	for (auto variable : variables) {
+		dirty_variables.emplace(variable.first);
+	}
+}
+
 bool DataModel::CallTransform(const String& name, Variant& inout_result, const VariantList& arguments) const
 {
 	if (transform_register)

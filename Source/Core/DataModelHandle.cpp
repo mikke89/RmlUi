@@ -43,6 +43,10 @@ void DataModelHandle::DirtyVariable(const String& variable_name) {
 	model->DirtyVariable(variable_name);
 }
 
+void DataModelHandle::MarkAllDirty() {
+	model->MarkAllDirty();
+}
+
 
 DataModelConstructor::DataModelConstructor() : model(nullptr), type_register(nullptr) {}
 
