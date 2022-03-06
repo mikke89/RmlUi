@@ -43,8 +43,8 @@ void DataModelHandle::DirtyVariable(const String& variable_name) {
 	model->DirtyVariable(variable_name);
 }
 
-void DataModelHandle::MarkAllDirty() {
-	model->MarkAllDirty();
+void DataModelHandle::DirtyAllVariables() {
+	model->DirtyAllVariables();
 }
 
 

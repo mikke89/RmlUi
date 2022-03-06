@@ -341,8 +341,9 @@ bool DataModel::IsVariableDirty(const String& variable_name) const
 	return dirty_variables.count(variable_name) == 1;
 }
 
-void DataModel::MarkAllDirty() {
-	for (auto variable : variables) {
+void DataModel::DirtyAllVariables() {
+	dirty_variables.reserve(variables.size());
+	for (const auto& variable : variables) {
 		dirty_variables.emplace(variable.first);
 	}
 }
