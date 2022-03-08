@@ -28,11 +28,9 @@
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
-#include <Input.h>
+#include <RmlUi_Backend.h>
 #include <Shell.h>
-#include <ShellRenderInterfaceOpenGL.h>
 #include <numeric>
-
 
 namespace BasicExample {
 
@@ -414,12 +412,10 @@ namespace FormsExample {
 }
 
 
-class DemoWindow : public Rml::EventListener
-{
+class DemoWindow : public Rml::EventListener {
 public:
-	DemoWindow(const Rml::String &title, Rml::Context *context)
+	DemoWindow(const Rml::String& title, Rml::Context* context)
 	{
-		using namespace Rml;
 		document = context->LoadDocument("basic/databinding/data/databinding.rml");
 		if (document)
 		{
@@ -428,7 +424,7 @@ public:
 		}
 	}
 
-	void Shutdown() 
+	void Shutdown()
 	{
 		if (document)
 		{
@@ -443,95 +439,53 @@ public:
 		{
 		case Rml::EventId::Keydown:
 		{
-			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
 
 			if (key_identifier == Rml::Input::KI_ESCAPE)
-			{
-				Shell::RequestExit();
-			}
+				Backend::RequestExit();
 		}
 		break;
-
 		default:
 			break;
 		}
 	}
 
-	Rml::ElementDocument * GetDocument() {
-		return document;
-	}
-
+	Rml::ElementDocument* GetDocument() { return document; }
 
 private:
-	Rml::ElementDocument *document = nullptr;
+	Rml::ElementDocument* document = nullptr;
 };
 
-
-
-Rml::Context* context = nullptr;
-ShellRenderInterfaceExtensions *shell_renderer;
-
-void GameLoop()
-{
-	static double t_prev = 0;
-	const double t = Rml::GetSystemInterface()->GetElapsedTime();
-	const double dt = Rml::Math::Min(t - t_prev, 0.1);
-	t_prev = t;
-
-	EventsExample::Update();
-	InvadersExample::Update(dt);
-
-	context->Update();
-
-	shell_renderer->PrepareRenderBuffer();
-	context->Render();
-	shell_renderer->PresentRenderBuffer();
-}
-
-
-
 #if defined RMLUI_PLATFORM_WIN32
-#include <windows.h>
-int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
+	#include <RmlUi_Include_Windows.h>
+int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* /*command_line*/, int /*command_show*/)
 #else
-int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
+int main(int /*argc*/, char** /*argv*/)
 #endif
 {
-#ifdef RMLUI_PLATFORM_WIN32
-	RMLUI_UNUSED(instance_handle);
-	RMLUI_UNUSED(previous_instance_handle);
-	RMLUI_UNUSED(command_line);
-	RMLUI_UNUSED(command_show);
-#else
-	RMLUI_UNUSED(argc);
-	RMLUI_UNUSED(argv);
-#endif
-
 	const int width = 1600;
 	const int height = 900;
 
-	ShellRenderInterfaceOpenGL opengl_renderer;
-	shell_renderer = &opengl_renderer;
+	// Initializes the shell which provides common functionality used by the included samples.
+	if (!Shell::Initialize())
+		return -1;
 
-	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise() ||
-		!Shell::OpenWindow("Data Binding Sample", shell_renderer, width, height, true))
+	// Constructs the system and render interfaces, creates a window, and attaches the renderer.
+	if (!Backend::Initialize("Data Binding Sample", width, height, true))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
+	// Install the custom interfaces constructed by the backend before initializing RmlUi.
+	Rml::SetSystemInterface(Backend::GetSystemInterface());
+	Rml::SetRenderInterface(Backend::GetRenderInterface());
+
 	// RmlUi initialisation.
-	Rml::SetRenderInterface(&opengl_renderer);
-	opengl_renderer.SetViewport(width, height);
-
-	ShellSystemInterface system_interface;
-	Rml::SetSystemInterface(&system_interface);
-
 	Rml::Initialise();
 
-	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::CreateContext("main", Rml::Vector2i(width, height));
+	// Create the main RmlUi context.
+	Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(width, height));
 
 	if (!context
 		|| !BasicExample::Initialize(context)
@@ -541,28 +495,44 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 		)
 	{
 		Rml::Shutdown();
+		Backend::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
 	Rml::Debugger::Initialise(context);
-	Input::SetContext(context);
-	Shell::SetContext(context);
-	
-	Shell::LoadFonts("assets/");
+	Shell::LoadFonts();
 
 	auto demo_window = Rml::MakeUnique<DemoWindow>("Data binding", context);
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keydown, demo_window.get());
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keyup, demo_window.get());
 
-	Shell::EventLoop(GameLoop);
+	double t_prev = 0;
+	bool running = true;
+	while (running)
+	{
+		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
+
+		const double t = Rml::GetSystemInterface()->GetElapsedTime();
+		const double dt = Rml::Math::Min(t - t_prev, 0.1);
+		t_prev = t;
+
+		EventsExample::Update();
+		InvadersExample::Update(dt);
+
+		context->Update();
+
+		Backend::BeginFrame();
+		context->Render();
+		Backend::PresentFrame();
+	}
 
 	demo_window->Shutdown();
 
 	// Shutdown RmlUi.
 	Rml::Shutdown();
 
-	Shell::CloseWindow();
+	Backend::Shutdown();
 	Shell::Shutdown();
 
 	demo_window.reset();

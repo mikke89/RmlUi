@@ -1,22 +1,17 @@
 # This file was auto-generated with gen_samplelists.sh
 
 set(shell_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/shell/src/precompiled.h
-    ${PROJECT_SOURCE_DIR}/Samples/shell/include/Input.h
+    ${PROJECT_SOURCE_DIR}/Samples/shell/include/PlatformExtensions.h
+    ${PROJECT_SOURCE_DIR}/Samples/shell/include/RendererExtensions.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/Shell.h
     ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellFileInterface.h
-    ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellOpenGL.h
-    ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellRenderInterfaceExtensions.h
-    ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellRenderInterfaceOpenGL.h
-    ${PROJECT_SOURCE_DIR}/Samples/shell/include/ShellSystemInterface.h
 )
 
 set(shell_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/shell/src/Input.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/shell/src/PlatformExtensions.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/shell/src/RendererExtensions.cpp
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/Shell.cpp
     ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellFileInterface.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellRenderInterfaceOpenGL.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/shell/src/ShellSystemInterface.cpp
 )
 
 set(animation_HDR_FILES
@@ -113,39 +108,6 @@ set(svg_HDR_FILES
 
 set(svg_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/svg/src/main.cpp
-)
-
-set(sdl2_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/RenderInterfaceSDL2.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.h
-)
-
-set(sdl2_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/RenderInterfaceSDL2.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2/src/SystemInterfaceSDL2.cpp
-)
-
-set(sdl2_sdlrenderer_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2_sdlrenderer/src/RenderInterfaceSDL2.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2_sdlrenderer/src/SystemInterfaceSDL2.h
-)
-
-set(sdl2_sdlrenderer_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2_sdlrenderer/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2_sdlrenderer/src/RenderInterfaceSDL2.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sdl2_sdlrenderer/src/SystemInterfaceSDL2.cpp
-)
-
-set(sfml2_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/RenderInterfaceSFML.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/SystemInterfaceSFML.h
-)
-
-set(sfml2_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/RenderInterfaceSFML.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/sfml2/src/SystemInterfaceSFML.cpp
 )
 
 set(tutorial_template_HDR_FILES
@@ -276,34 +238,3 @@ set(luainvaders_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Sprite.cpp
 )
 
-# Deal with platform specific sources for sample shell
-if(WIN32)
-       list(APPEND shell_SRC_FILES
-               ${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/ShellWin32.cpp
-               ${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/InputWin32.cpp
-               ${PROJECT_SOURCE_DIR}/Samples/shell/src/win32/ShellRenderInterfaceExtensionsOpenGL_Win32.cpp
-       )
-       list(APPEND shell_HDR_FILES
-               ${PROJECT_SOURCE_DIR}/Samples/shell/include/win32/InputWin32.h
-               ${PROJECT_SOURCE_DIR}/Samples/shell/include/win32/IncludeWindows.h
-       )
-elseif(APPLE)
-       list(APPEND shell_SRC_FILES
-               ${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/ShellMacOSX.cpp
-               ${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/InputMacOSX.cpp
-               ${PROJECT_SOURCE_DIR}/Samples/shell/src/macosx/ShellRenderInterfaceExtensionsOpenGL_MacOSX.cpp
-       )
-       list(APPEND shell_HDR_FILES
-               ${PROJECT_SOURCE_DIR}/Samples/shell/include/macosx/InputMacOSX.h
-       )
-else()
-       list(APPEND shell_SRC_FILES
-               ${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/ShellX11.cpp
-               ${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/InputX11.cpp
-               ${PROJECT_SOURCE_DIR}/Samples/shell/src/x11/ShellRenderInterfaceExtensionsOpenGL_X11.cpp
-       )
-       list(APPEND shell_HDR_FILES
-               ${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/InputX11.h
-               ${PROJECT_SOURCE_DIR}/Samples/shell/include/x11/X11MacroZapper.h
-       )
-endif()

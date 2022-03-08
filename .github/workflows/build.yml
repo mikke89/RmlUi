@@ -17,12 +17,12 @@ jobs:
         include:
           - cc: clang
             cxx: clang++
-            cmake_options: -DENABLE_PRECOMPILED_HEADERS=OFF
+            cmake_options: -DENABLE_PRECOMPILED_HEADERS=OFF -DSAMPLES_BACKEND=GLFW_GL2
           - cmake_options: -DBUILD_TESTING=ON -DENABLE_PRECOMPILED_HEADERS=OFF
             enable_testing: true
-          - cmake_options: -DNO_FONT_INTERFACE_DEFAULT=ON -DENABLE_LOTTIE_PLUGIN=ON
-          - cmake_options: -DDISABLE_RTTI_AND_EXCEPTIONS=ON
-          - cmake_options: -DNO_THIRDPARTY_CONTAINERS=ON
+          - cmake_options: -DNO_FONT_INTERFACE_DEFAULT=ON -DENABLE_LOTTIE_PLUGIN=ON -DSAMPLES_BACKEND=X11_GL2
+          - cmake_options: -DDISABLE_RTTI_AND_EXCEPTIONS=ON -DSAMPLES_BACKEND=SDL_GL2
+          - cmake_options: -DNO_THIRDPARTY_CONTAINERS=ON -DSAMPLES_BACKEND=SFML_GL2
 
     steps:
     - uses: actions/checkout@v2
@@ -30,7 +30,7 @@ jobs:
     - name: Install Dependencies
       run: |-
         sudo apt-get update
-        sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev
+        sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev libglfw3-dev
       
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
@@ -59,12 +59,19 @@ jobs:
     
     env:
       BUILD_TYPE: Release
-
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cmake_options: -DSAMPLES_BACKEND=auto
+          - cmake_options: -DSAMPLES_BACKEND=GLFW_GL2
+    
     steps:
     - uses: actions/checkout@v2
       
     - name: Install Dependencies
-      run: brew install lua
+      run: brew install lua sdl2 sdl2_image glfw
       
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
@@ -72,7 +79,9 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/Build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=OFF -DWARNINGS_AS_ERRORS=ON
+      run: >-
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        ${{ matrix.cmake_options }}
 
     - name: Build
       working-directory: ${{github.workspace}}/Build

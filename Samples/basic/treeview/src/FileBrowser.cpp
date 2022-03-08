@@ -30,6 +30,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <Shell.h>
+#include <PlatformExtensions.h>
 
 namespace FileBrowser {
 
@@ -48,7 +49,7 @@ static Rml::Vector<File> files;
 
 static void BuildTree(const Rml::String& current_directory, int current_depth)
 {
-	const Rml::StringList directories = Shell::ListDirectories(current_directory);
+	const Rml::StringList directories = PlatformExtensions::ListDirectories(current_directory);
 
 	for (const Rml::String& directory : directories)
 	{
@@ -59,7 +60,7 @@ static void BuildTree(const Rml::String& current_directory, int current_depth)
 		BuildTree(next_directory, current_depth + 1);
 	}
 
-	const Rml::StringList filenames = Shell::ListFiles(current_directory);
+	const Rml::StringList filenames = PlatformExtensions::ListFiles(current_directory);
 	for (const Rml::String& filename : filenames)
 	{
 		files.push_back(File(false, current_depth, filename));

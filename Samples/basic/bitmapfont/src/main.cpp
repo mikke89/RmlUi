@@ -26,13 +26,11 @@
  *
  */
 
+#include "FontEngineInterfaceBitmap.h"
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
-#include <Input.h>
+#include <RmlUi_Backend.h>
 #include <Shell.h>
-#include <ShellRenderInterfaceOpenGL.h>
-
-#include "FontEngineInterfaceBitmap.h"
 
 /*
 
@@ -43,84 +41,55 @@
 
 */
 
-Rml::Context* context = nullptr;
-
-ShellRenderInterfaceExtensions *shell_renderer;
-
-void GameLoop()
-{
-	context->Update();
-
-	shell_renderer->PrepareRenderBuffer();
-	context->Render();
-	shell_renderer->PresentRenderBuffer();
-}
-
 #if defined RMLUI_PLATFORM_WIN32
-#include <windows.h>
-int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
+	#include <RmlUi_Include_Windows.h>
+int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* /*command_line*/, int /*command_show*/)
 #else
-int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
+int main(int /*argc*/, char** /*argv*/)
 #endif
 {
-#ifdef RMLUI_PLATFORM_WIN32
-	RMLUI_UNUSED(instance_handle);
-	RMLUI_UNUSED(previous_instance_handle);
-	RMLUI_UNUSED(command_line);
-	RMLUI_UNUSED(command_show);
-#else
-	RMLUI_UNUSED(argc);
-	RMLUI_UNUSED(argv);
-#endif
-
-#ifdef RMLUI_PLATFORM_WIN32
-        AllocConsole();
-#endif
-
     int window_width = 1024;
-    int window_height = 768;
+	int window_height = 768;
 
-	ShellRenderInterfaceOpenGL opengl_renderer;
-	shell_renderer = &opengl_renderer;
+	// Initializes the shell which provides common functionality used by the included samples.
+	if (!Shell::Initialize())
+		return -1;
 
-	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise() ||
-		!Shell::OpenWindow("Bitmap Font Sample", shell_renderer, window_width, window_height, true))
+	// Constructs the system and render interfaces, creates a window, and attaches the renderer.
+	if (!Backend::Initialize("Bitmap Font Sample", window_width, window_height, true))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
-	// RmlUi initialisation.
-	Rml::SetRenderInterface(&opengl_renderer);
-	shell_renderer->SetViewport(window_width, window_height);
-
-	ShellSystemInterface system_interface;
-	Rml::SetSystemInterface(&system_interface);
+	// Install the custom interfaces constructed by the backend before initializing RmlUi.
+	Rml::SetSystemInterface(Backend::GetSystemInterface());
+	Rml::SetRenderInterface(Backend::GetRenderInterface());
 
 	// Construct and load the font interface.
-	FontEngineInterfaceBitmap font_interface;
-	Rml::SetFontEngineInterface(&font_interface);
+	auto font_interface = Rml::MakeUnique<FontEngineInterfaceBitmap>();
+	Rml::SetFontEngineInterface(font_interface.get());
 
+	// RmlUi initialisation.
 	Rml::Initialise();
 
-	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
-	if (context == nullptr)
+	// Create the main RmlUi context.
+	Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
+	if (!context)
 	{
 		Rml::Shutdown();
+		Backend::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
 	Rml::Debugger::Initialise(context);
-	Input::SetContext(context);
-	Shell::SetContext(context);
 
     // Load bitmap font
 	if (!Rml::LoadFontFace("basic/bitmapfont/data/Comfortaa_Regular_22.fnt"))
 	{
 		Rml::Shutdown();
+		Backend::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
@@ -134,12 +103,25 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 		document->Show();
 	}
 
-	Shell::EventLoop(GameLoop);
+	bool running = true;
+	while (running)
+	{
+		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
+
+		context->Update();
+
+		Backend::BeginFrame();
+		context->Render();
+		Backend::PresentFrame();
+	}
 
 	// Shutdown RmlUi.
 	Rml::Shutdown();
 
-	Shell::CloseWindow();
+	// Destroy the font interface before taking down the shell, this way font textures are properly released through the render interface.
+	font_interface.reset();
+
+	Backend::Shutdown();
 	Shell::Shutdown();
 
 	return 0;

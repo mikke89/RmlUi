@@ -67,6 +67,16 @@
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
+# Look for the library in config mode first.
+find_package(SDL2 CONFIG)
+if(SDL2_FOUND AND TARGET SDL2::SDL2)
+  message(STATUS "Found SDL2 in config mode, version ${SDL2_VERSION}.")
+  set(SDL2_LIBRARY "SDL2::SDL2")
+  return()
+else()
+  message(STATUS "Looking for SDL2 in module mode.")
+endif()
+
 SET(SDL2_SEARCH_PATHS
   ~/Library/Frameworks
   /Library/Frameworks

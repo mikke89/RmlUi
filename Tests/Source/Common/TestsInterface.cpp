@@ -27,8 +27,14 @@
  */
 
 #include "TestsInterface.h"
+#include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <doctest.h>
+
+double TestsSystemInterface::GetElapsedTime()
+{
+	return 0.0;
+}
 
 bool TestsSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)
 {

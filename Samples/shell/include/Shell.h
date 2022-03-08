@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,77 +26,30 @@
  *
  */
 
-#ifndef RMLUI_SHELL_H
-#define RMLUI_SHELL_H
+#ifndef RMLUI_SHELL_SHELL_H
+#define RMLUI_SHELL_SHELL_H
 
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/SystemInterface.h>
-#include "ShellRenderInterfaceExtensions.h"
+#include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/Types.h>
 
 /**
-	Shell functions for creating windows, attaching OpenGL and handling input in a platform independent way.
-	@author Lloyd Weehuizen
+    Provides common functionality required for the built-in RmlUi samples.
  */
+namespace Shell {
 
-class Shell
-{
-public:
-	/// Initialise the shell.
-	static bool Initialise();
-	/// Shutdown the shell.
-	static void Shutdown();
+// Initializes and sets a custom file interface used for locating the included RmlUi asset files.
+bool Initialize();
+// Destroys all resources constructed by the shell.
+void Shutdown();
 
-	/// Finds the Samples root directory.
-	static Rml::String FindSamplesRoot();
-	
-	/// Loads the default fonts from the given path.
-	static void LoadFonts(const char* directory);
+// Loads the fonts included with the RmlUi samples.
+void LoadFonts();
 
-	/// List files in the given directory. An initial forward slash '/' makes it relative to the samples root.
-	static Rml::StringList ListFiles(const Rml::String& in_directory, const Rml::String& extension = Rml::String());
-	/// List subdirectories in the given directory. An initial forward slash '/' makes it relative to the samples root.
-	static Rml::StringList ListDirectories(const Rml::String& in_directory);
+// Process key down events to handle shortcuts common to all samples.
+// @return True if the event is still propagating, false if it was handled here.
+bool ProcessKeyDownShortcuts(Rml::Context* context, Rml::Input::KeyIdentifier key, int key_modifier, float native_dp_ratio, bool priority);
 
-	/// Open a platform specific window, optionally initialising an OpenGL context on it.
-	/// @param[in] title Title of the window.
-	/// @param[in] srie Provides the interface for attaching a renderer to the window and performing related bits of interface.
-	static bool OpenWindow(const char* title, ShellRenderInterfaceExtensions *_shell_renderer, unsigned int width, unsigned int height, bool allow_resize);
-	/// Close the active window.
-	static void CloseWindow();
-
-	/// Returns a platform-dependent handle to the window.
-	static void* GetWindowHandle();
-
-	/// Run the event loop, calling the idle function every frame.
-	using ShellIdleFunction = void(*)();
-	static void EventLoop(ShellIdleFunction idle_function);
-	static void RequestExit();
-
-	/// Display an error message.
-	static void DisplayError(const char* fmt, ...);
-	/// Log a message to the debugger.
-	static void Log(const char* fmt, ...);
-
-	/// Get the number of seconds that have passed since shell startup.
-	static double GetElapsedTime();
-
-	/// Set mouse cursor.
-	static void SetMouseCursor(const Rml::String& cursor_name);
-
-	/// Set clipboard text.
-	static void SetClipboardText(const Rml::String& text);
-
-	/// Get clipboard text.
-	static void GetClipboardText(Rml::String& text);
-	
-	/// Sets the RmlUi context to send window resized events to.
-	static void SetContext(Rml::Context* context);
-
-	/// Return the dp-ratio of the system.
-	static float GetDensityIndependentPixelRatio();
-};
-
-#include "ShellSystemInterface.h"
+} // namespace Shell
 
 #endif

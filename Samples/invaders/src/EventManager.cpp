@@ -27,12 +27,13 @@
  */
 
 #include "EventManager.h"
+#include "EventHandler.h"
+#include "GameDetails.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/ElementUtilities.h>
+#include <RmlUi_Backend.h>
 #include <Shell.h>
-#include "EventHandler.h"
-#include "GameDetails.h"
 
 // The game's element context (declared in main.cpp).
 extern Rml::Context* context;
@@ -114,7 +115,7 @@ void EventManager::ProcessEvent(Rml::Event& event, const Rml::String& value)
 		}
 		else if (values[0] == "exit")
 		{
-			Shell::RequestExit();
+			Backend::RequestExit();
 		}
 		else if (values[0] == "pause")
 		{

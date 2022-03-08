@@ -21,9 +21,6 @@ This directory contains basic applications that demonstrate initialisation, usag
 -  `drag` dragging elements between containers
 -  `loaddocument` loading your first document
 -  `lottie` playing Lottie animations, only enabled with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)
--  `sdl2` integrating with SDL2 using an OpenGL-renderer
--  `sdl2_sdlrenderer` integrating with SDL2 using a native SDL-renderer
--  `sfml2` integrating with SFML2
 -  `svg` render SVG images, only enabled with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html)
 -  `transform` demonstration of transforms
 -  `treeview` using data bindings to create a file browser
@@ -38,7 +35,7 @@ Lua version of the invaders sample. Only installed with the Lua plugin.
 
 #### `shell`
 
-Common platform specific code used by all the samples for open windows, processing input and access files. Supports Windows, macOS and Linux.
+The shell is mainly a wrapper around the [backends](../Backends/), used by all the samples to initialize the interfaces and open windows for rendering on the selected backend.
 
 #### `tutorial`
 

@@ -29,13 +29,14 @@
 #ifndef RMLUI_TESTS_TESTSINTERFACE_H
 #define RMLUI_TESTS_TESTSINTERFACE_H
 
-#include <Shell.h>
 #include <RmlUi/Core/RenderInterface.h>
+#include <RmlUi/Core/SystemInterface.h>
+#include <Shell.h>
 
-
-class TestsSystemInterface : public ShellSystemInterface
-{
+class TestsSystemInterface : public Rml::SystemInterface {
 public:
+	double GetElapsedTime() override;
+
 	bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
 
 	// Checks and clears previously logged messages, then sets the number of expected
@@ -49,9 +50,7 @@ private:
 	Rml::StringList warnings;
 };
 
-
-class TestsRenderInterface : public Rml::RenderInterface
-{
+class TestsRenderInterface : public Rml::RenderInterface {
 public:
 	struct Counters {
 		size_t render_calls;
@@ -63,7 +62,8 @@ public:
 		size_t set_transform;
 	};
 
-	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation) override;
+	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
+		const Rml::Vector2f& translation) override;
 
 	void EnableScissorRegion(bool enable) override;
 	void SetScissorRegion(int x, int y, int width, int height) override;
@@ -74,15 +74,12 @@ public:
 
 	void SetTransform(const Rml::Matrix4f* transform) override;
 
-	const Counters& GetCounters() const {
-		return counters;
-	}
+	const Counters& GetCounters() const { return counters; }
 
-	void ResetCounters() {
-		counters = {};
-	}
+	void ResetCounters() { counters = {}; }
 
 private:
 	Counters counters = {};
 };
+
 #endif

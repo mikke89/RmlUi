@@ -36,7 +36,7 @@ install:
     cmake --build . --target rlottie --config Release -- "/clp:ErrorsOnly"
     cd ../../
     
-    git clone --depth 1 --branch v2.3.0 https://github.com/sammycage/lunasvg.git
+    git clone --depth 1 --branch v2.3.1 https://github.com/sammycage/lunasvg.git
     cd lunasvg
     mkdir build
     cd build
@@ -105,7 +105,7 @@ after_build:
     cp Include/RmlUi/Core/Containers/LICENSE.txt LICENSE.Core.ThirdParty.txt
     cp Source/Debugger/LICENSE.txt LICENSE.Debugger.ThirdParty.txt
     
-    7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE* Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/MPL_SOURCE.txt Dependencies/rlottie/licenses/ Dependencies/lunasvg/LICENSE
+    7z a RmlUi-%VS_SHORTNAME%-%PLATFORM_NAME%.zip Backends/ Bin/ Include/ Samples/ Build.txt readme.md changelog.md LICENSE* Dependencies/freetype-%FREETYPE_VER%/ Dependencies/rlottie/COPYING Dependencies/rlottie/MPL_SOURCE.txt Dependencies/rlottie/licenses/ Dependencies/lunasvg/LICENSE
     
     mkdir Samples\Dependencies\freetype-%FREETYPE_VER%, Samples\Dependencies\rlottie, Samples\Dependencies\rlottie\licenses, Samples\Dependencies\lunasvg
     cp LICENSE* Samples

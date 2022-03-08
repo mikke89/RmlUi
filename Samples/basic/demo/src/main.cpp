@@ -27,12 +27,11 @@
  */
 
 #include <RmlUi/Core.h>
-#include <RmlUi/Debugger.h>
-#include <Input.h>
-#include <Shell.h>
-#include <ShellRenderInterfaceOpenGL.h>
-#include <RmlUi/Core/TransformPrimitive.h>
 #include <RmlUi/Core/StreamMemory.h>
+#include <RmlUi/Core/TransformPrimitive.h>
+#include <RmlUi/Debugger.h>
+#include <RmlUi_Backend.h>
+#include <Shell.h>
 
 static const Rml::String sandbox_default_rcss = R"(
 body { top: 0; left: 0; right: 0; bottom: 0; overflow: hidden auto; }
@@ -49,7 +48,6 @@ scrollbarhorizontal sliderbar { height: 15px; min-width: 30px; background: #aaa;
 scrollbarhorizontal sliderbar:hover { background: #888; }
 scrollbarhorizontal sliderbar:active { background: #666; }
 )";
-
 
 class DemoWindow : public Rml::EventListener
 {
@@ -190,9 +188,7 @@ public:
 			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
 
 			if (key_identifier == Rml::Input::KI_ESCAPE)
-			{
-				Shell::RequestExit();
-			}
+				Backend::RequestExit();
 		}
 		break;
 
@@ -250,8 +246,6 @@ private:
 };
 
 
-Rml::Context* context = nullptr;
-ShellRenderInterfaceExtensions *shell_renderer;
 Rml::UniquePtr<DemoWindow> demo_window;
 
 struct TweeningParameters {
@@ -259,20 +253,6 @@ struct TweeningParameters {
 	Rml::Tween::Direction direction = Rml::Tween::Out;
 	float duration = 0.5f;
 } tweening_parameters;
-
-
-void GameLoop()
-{
-	demo_window->Update();
-	context->Update();
-
-	shell_renderer->PrepareRenderBuffer();
-	context->Render();
-	shell_renderer->PresentRenderBuffer();
-}
-
-
-
 
 class DemoEventListener : public Rml::EventListener
 {
@@ -295,7 +275,7 @@ public:
 		}
 		else if (value == "confirm_exit")
 		{
-			Shell::RequestExit();
+			Backend::RequestExit();
 		}
 		else if (value == "cancel_exit")
 		{
@@ -444,76 +424,74 @@ public:
 
 
 #if defined RMLUI_PLATFORM_WIN32
-#include <windows.h>
-int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
+	#include <RmlUi_Include_Windows.h>
+int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* /*command_line*/, int /*command_show*/)
 #else
-int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
+int main(int /*argc*/, char** /*argv*/)
 #endif
 {
-#ifdef RMLUI_PLATFORM_WIN32
-	RMLUI_UNUSED(instance_handle);
-	RMLUI_UNUSED(previous_instance_handle);
-	RMLUI_UNUSED(command_line);
-	RMLUI_UNUSED(command_show);
-#else
-	RMLUI_UNUSED(argc);
-	RMLUI_UNUSED(argv);
-#endif
-
 	const int width = 1600;
 	const int height = 890;
 
-	ShellRenderInterfaceOpenGL opengl_renderer;
-	shell_renderer = &opengl_renderer;
+	// Initializes the shell which provides common functionality used by the included samples.
+	if (!Shell::Initialize())
+		return -1;
 
-	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise() ||
-		!Shell::OpenWindow("Demo Sample", shell_renderer, width, height, true))
+	// Constructs the system and render interfaces, creates a window, and attaches the renderer.
+	if (!Backend::Initialize("Demo Sample", width, height, true))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
+	// Install the custom interfaces constructed by the backend before initializing RmlUi.
+	Rml::SetSystemInterface(Backend::GetSystemInterface());
+	Rml::SetRenderInterface(Backend::GetRenderInterface());
+
 	// RmlUi initialisation.
-	Rml::SetRenderInterface(&opengl_renderer);
-	opengl_renderer.SetViewport(width, height);
-
-	ShellSystemInterface system_interface;
-	Rml::SetSystemInterface(&system_interface);
-
 	Rml::Initialise();
 
-	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::CreateContext("main", Rml::Vector2i(width, height));
-	if (context == nullptr)
+	// Create the main RmlUi context.
+	Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(width, height));
+	if (!context)
 	{
 		Rml::Shutdown();
+		Backend::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
 	Rml::Debugger::Initialise(context);
-	Input::SetContext(context);
-	Shell::SetContext(context);
 
 	DemoEventListenerInstancer event_listener_instancer;
 	Rml::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
-	Shell::LoadFonts("assets/");
+	Shell::LoadFonts();
 
 	demo_window = Rml::MakeUnique<DemoWindow>("Demo sample", context);
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keydown, demo_window.get());
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Keyup, demo_window.get());
 	demo_window->GetDocument()->AddEventListener(Rml::EventId::Animationend, demo_window.get());
 
-	Shell::EventLoop(GameLoop);
+	bool running = true;
+	while (running)
+	{
+		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
+
+		demo_window->Update();
+		context->Update();
+
+		Backend::BeginFrame();
+		context->Render();
+		Backend::PresentFrame();
+	}
 
 	demo_window->Shutdown();
 
 	// Shutdown RmlUi.
 	Rml::Shutdown();
 
-	Shell::CloseWindow();
+	Backend::Shutdown();
 	Shell::Shutdown();
 
 	demo_window.reset();

@@ -35,11 +35,9 @@
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/EventListener.h>
 
-class ShellRenderInterfaceOpenGL;
-
 class TestNavigator : public Rml::EventListener {
 public:
-	TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites, int start_index);
+	TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites, int start_index);
 	~TestNavigator();
 
 	void Update();
@@ -69,7 +67,7 @@ private:
 
 	Rml::String GetImageFilenameFromCurrentTest();
 
-	ShellRenderInterfaceOpenGL* shell_renderer;
+	Rml::RenderInterface* render_interface;
 	Rml::Context* context;
 	TestViewer* viewer;
 	TestSuiteList test_suites;

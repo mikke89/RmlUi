@@ -10,14 +10,13 @@
  */
 
 #include "DecoratorDefender.h"
-#include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/GeometryUtilities.h>
+#include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/Texture.h>
-#include <ShellOpenGL.h>
 
-DecoratorDefender::~DecoratorDefender()
-{
-}
+DecoratorDefender::~DecoratorDefender() {}
 
 bool DecoratorDefender::Initialise(const Rml::Texture& texture)
 {
@@ -52,24 +51,14 @@ void DecoratorDefender::RenderElement(Rml::Element* element, Rml::DecoratorDataH
 	Rml::Vector2f position = element->GetAbsoluteOffset(Rml::Box::PADDING);
 	Rml::Vector2f size = element->GetBox().GetSize(Rml::Box::PADDING);
 
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, (GLuint) GetTexture(image_index)->GetHandle(element->GetRenderInterface()));
-	Rml::Colourb colour = element->GetProperty< Rml::Colourb >("color");
-	glColor4ubv(colour);
-	glBegin(GL_QUADS);
+	if (Rml::RenderInterface* render_interface = element->GetRenderInterface())
+	{
+		Rml::TextureHandle texture = GetTexture(image_index)->GetHandle(render_interface);
 
-		glVertex2f(position.x, position.y);
-		glTexCoord2f(0, 1);
+		Rml::Vertex vertices[4];
+		int indices[6];
+		Rml::GeometryUtilities::GenerateQuad(vertices, indices, position, size, Rml::Colourb(255));
 
-		glVertex2f(position.x, position.y + size.y);
-		glTexCoord2f(1, 1);
-
-		glVertex2f(position.x + size.x, position.y + size.y);
-		glTexCoord2f(1, 0);
-
-		glVertex2f(position.x + size.x, position.y);
-		glTexCoord2f(0, 0);
-
-	glEnd();
-	glColor4ub(255, 255, 255, 255);
+		render_interface->RenderGeometry(vertices, 4, indices, 6, texture, Rml::Vector2f(0.f));
+	}
 }

@@ -43,6 +43,35 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - File handling and the font engine can optionally be fully replaced by the user.
 
 
+## Conformance
+
+RmlUi aims to support the most common and familiar features from HTML and CSS, while keeping the library light and performant. We do not aim to be fully compliant with CSS or HTML, in particular when it conflicts with lightness and performance. Users are generally expected to author documents specifically for RmlUi, but any experience and skills from web design should be transferable.
+
+RmlUi supports most of CSS2 with some CSS3 features such as
+
+- Animations and transitions
+- Transforms (with full interpolation support)
+- Flexbox layout
+- Media queries
+- Border radius
+
+and many of the common HTML elements including `<input>`,  `<textarea>`, and `<select>`.
+
+For details, see
+- [RCSS Property index](https://mikke89.github.io/RmlUiDoc/pages/rcss/property_index.html) for all supported properties and differences from CSS.
+- [RML Element index](https://mikke89.github.io/RmlUiDoc/pages/rml/element_index.html) for all supported elements.
+
+## Enhancements
+
+RmlUi adds features and enhancements over CSS and HTML where it makes sense, most notably the following.
+
+- [Data binding (model-view-controller)](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html). Synchronization between application data and user interface.
+- [Decorators](https://mikke89.github.io/RmlUiDoc/pages/rcss/decorators.html). Full control over the styling of [all elements](https://mikke89.github.io/RmlUiDoc/pages/style_guide.html).
+- [Sprite sheets](https://mikke89.github.io/RmlUiDoc/pages/rcss/sprite_sheets.html). Define and use sprites with easy high DPI support.
+- [Templates](https://mikke89.github.io/RmlUiDoc/pages/rml/templates.html). Making windows look consistent.
+- [Localization](https://mikke89.github.io/RmlUiDoc/pages/localisation.html). Translate any text in the document.
+
+
 ## Dependencies
 
 - [FreeType](https://www.freetype.org/). However, it can be fully replaced by a custom [font engine](Include/RmlUi/Core/FontEngineInterface.h).
@@ -92,34 +121,58 @@ Here are the general steps to integrate the library into a C++ application, have
 Several [samples](Samples/) demonstrate everything from basic integration to more complex use of the library, feel free to have a look for inspiration.
 
 
-## Conformance
+## RmlUi Backends
 
-RmlUi aims to support the most common and familiar features from HTML and CSS, while keeping the library light and performant. We do not aim to be fully compliant with CSS or HTML, in particular when it conflicts with lightness and performance. Users are generally expected to author documents specifically for RmlUi, but any experience and skills from web design should be transferable.
+***Note: The backends concept is work-in-progress for RmlUi 5.0, everything here is subject to change and documentation is being worked on.***
 
-RmlUi supports most of CSS2 with some CSS3 features such as
+RmlUi comes with [many backends](Backends/) adding support for several renderers and platforms. The following terms are used here:
 
-- Animations and transitions
-- Transforms (with full interpolation support)
-- Flexbox layout
-- Media queries
-- Border radius
+- ***Renderer***: Implements the [render interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/render) for a given rendering API, and provides initialization code when necessary.
+- ***Platform***: Implements the [system interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/system.html) for a given platform (operating system or window library), and adds procedures for providing input to RmlUi contexts.
+- ***Backend***: Combines a renderer and a platform for a complete solution sample, implementing the basic [Backend interface](Backends/RmlUi_Backend.h).
 
-and many of the common HTML elements including `<input>`,  `<textarea>`, and `<select>`.
+The provided renderers and platforms are intended to be usable as-is by client projects without modifications. We encourage users to only make changes here when they are useful to all users, and then contribute back to the project. Feedback is welcome, and finding the proper abstraction level is a work-in-progress. The provided system and render interfaces are designed such that they can be derived from and further customized by the backend or end user.
 
-For details, see
-- [RCSS Property index](https://mikke89.github.io/RmlUiDoc/pages/rcss/property_index.html) for all supported properties and differences from CSS.
-- [RML Element index](https://mikke89.github.io/RmlUiDoc/pages/rml/element_index.html) for all supported elements.
+The provided backends on the other hand are not intended to be used directly by client projects, but rather copied and modified as needed. They are intentionally light-weight and implement just enough functionality to make the [included samples](Samples/) run, while being simple to understand and build upon by users.
 
-## Enhancements
+### Renderers
 
-RmlUi adds features and enhancements over CSS and HTML where it makes sense, most notably the following.
+| Renderer features | Basic rendering | Stencil | Transforms | Built-in image support                                                          |
+|-------------------|:---------------:|---------|:----------:|---------------------------------------------------------------------------------|
+| OpenGL 2          |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
+| OpenGL 3          |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
+| SDLrenderer       |        ✔️       |    ❌    |      ❌    | Based on [SDL_image](https://www.libsdl.org/projects/SDL_image/docs/index.html) |
 
-- [Data binding (model-view-controller)](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html). Synchronization between application data and user interface.
-- [Decorators](https://mikke89.github.io/RmlUiDoc/pages/rcss/decorators.html). Full control over the styling of [all elements](https://mikke89.github.io/RmlUiDoc/pages/style_guide.html).
-- [Sprite sheets](https://mikke89.github.io/RmlUiDoc/pages/rcss/sprite_sheets.html). Define and use sprites with easy high DPI support.
-- [Templates](https://mikke89.github.io/RmlUiDoc/pages/rml/templates.html). Making windows look consistent.
-- [Localization](https://mikke89.github.io/RmlUiDoc/pages/localisation.html). Translate any text in the document.
+**Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2d-layouts.\
+**Stencil**: Enables proper clipping when the `border-radius` property is set, and when transforms are enabled.\
+**Transforms**: Enables the `transform` and `perspective` properties to take effect.\
+**Built-in image support**: This only shows the supported formats built-in to the renderer, users are encouraged to derive from and extend the render interface to add support for their desired image formats.
 
+### Platforms
+
+| Platform support | Basic windowing | Clipboard | High DPI | Comments                                          |
+|------------------|:---------------:|:---------:|:----------:|---------------------------------------------------|
+| Win32            |        ✔️        |     ✔️     |     ✔️    | High DPI only supported on Windows 10 and newer.  |
+| X11              |        ✔️        |     ✔️     |     ❌    |                                                   |
+| SFML             |        ✔️        |     ⚠️     |     ❌    | Some issues with Unicode characters in clipboard. |
+| GLFW             |        ✔️        |     ✔️     |     ✔️    |                                                   |
+| SDL              |        ✔️        |     ✔️     |     ❌    |                                                   |
+
+**Basic windowing**: Open windows, react to resize events, submit inputs to the RmlUi context.\
+**Clipboard**: Read from and write to the system clipboard.\
+**High DPI**: Scale the [dp-ratio](https://mikke89.github.io/RmlUiDoc/pages/rcss/syntax#dp-unit) of RmlUi contexts based on the monitor's DPI settings. React to DPI-changes, either because of changed settings or when moving the window to another monitor.
+
+### Backends
+
+| Platform \ Renderer | OpengGL 2 | OpengGL 3 | SDLrenderer |
+|---------------------|:---------:|:---------:|:-----------:|
+| Win32               |     ✔️     |            |             |
+| X11                 |     ✔️     |            |             |
+| SFML                |     ✔️     |            |             |
+| GLFW                |     ✔️     |     ✔️      |             |
+| SDL                 |     ✔️     |     ✔️¹      |      ✔️      |
+
+¹ Supports Emscripten compilation target.
 
 ## Example document
 
