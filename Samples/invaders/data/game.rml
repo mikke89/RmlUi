@@ -23,8 +23,8 @@
 			
 			div
 			{
-				height: 47dp;
-				padding: 8dp 0 0 65dp;
+				height: 43dp;
+				padding: 12dp 0 0 72dp;
 				margin: 0 20dp;
 
 				font-size: 20dp;
