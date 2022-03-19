@@ -27,14 +27,16 @@
  */
 
 #include "DecoratorStarfield.h"
-#include <RmlUi/Core/Math.h>
+#include "GameDetails.h"
+#include "Sprite.h"
+#include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementUtilities.h>
+#include <RmlUi/Core/GeometryUtilities.h>
+#include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/RenderInterface.h>
+#include <RmlUi/Core/SystemInterface.h>
 #include <Shell.h>
-#include <ShellOpenGL.h>
-#include "GameDetails.h"
-
-float last_update_time = 0.0f;
 
 DecoratorStarfield::~DecoratorStarfield()
 {
@@ -56,8 +58,9 @@ bool DecoratorStarfield::Initialise(int _num_layers, const Rml::Colourb& _top_co
 /// Called on a decorator to generate any required per-element data for a newly decorated element.
 Rml::DecoratorDataHandle DecoratorStarfield::GenerateElementData(Rml::Element* element) const
 {
-	StarField* star_field = new StarField();
+	const double t = Rml::GetSystemInterface()->GetElapsedTime();
 
+	StarField* star_field = new StarField();
 	star_field->star_layers.resize(num_layers);
 
 	for (int i = 0; i < num_layers; i++)
@@ -84,7 +87,7 @@ Rml::DecoratorDataHandle DecoratorStarfield::GenerateElementData(Rml::Element* e
 			}
 		}
 
-		star_field->last_update = Shell::GetElapsedTime();
+		star_field->last_update = t;
 	}
 
 	return reinterpret_cast<Rml::DecoratorDataHandle>(star_field);
@@ -96,39 +99,48 @@ void DecoratorStarfield::ReleaseElementData(Rml::DecoratorDataHandle element_dat
 	delete reinterpret_cast<StarField*>(element_data);
 }
 
+
 // Called to render the decorator on an element.
 void DecoratorStarfield::RenderElement(Rml::Element* element, Rml::DecoratorDataHandle element_data) const
 {
+	const double t = Rml::GetSystemInterface()->GetElapsedTime();
+
 	StarField* star_field = reinterpret_cast<StarField*>(element_data);
-	star_field->Update();
+	star_field->Update(t);
 
 	const float dp_ratio = Rml::ElementUtilities::GetDensityIndependentPixelRatio(element);
 	const float point_size = Rml::Math::RoundUpFloat(2.f * dp_ratio);
 
-	glDisable(GL_TEXTURE_2D);
-	glPointSize(point_size);
-	glBegin(GL_POINTS);
+	Rml::RenderInterface* render_interface = element->GetRenderInterface();
+	if (!render_interface)
+		return;
+
+	int num_stars = 0;
+
+	for (size_t i = 0; i < star_field->star_layers.size(); i++)
+		num_stars += (int)star_field->star_layers[i].stars.size();
+
+	ColoredPointList points;
+	points.reserve(num_stars);
 
 	for (size_t i = 0; i < star_field->star_layers.size(); i++)
 	{
-		glColor4ubv(star_field->star_layers[i].colour);
-		
+		Rml::Colourb color = star_field->star_layers[i].colour;
+
 		for (size_t j = 0; j < star_field->star_layers[i].stars.size(); j++)
 		{
-			glVertex2f(star_field->star_layers[i].stars[j].x, star_field->star_layers[i].stars[j].y);
+			const Rml::Vector2f position = star_field->star_layers[i].stars[j];
+			points.push_back(ColoredPoint{color, position});
 		}
 	}
 
-	glEnd();
-
-	glColor4ub(255, 255, 255, 255);
+	DrawPoints(point_size, points);
 }
 
-void DecoratorStarfield::StarField::Update()
+void DecoratorStarfield::StarField::Update(double t)
 {
-	double time = Shell::GetElapsedTime();
-	float delta_time = float(time - last_update);
-	last_update = time;
+	float delta_time = float(t - last_update);
+	last_update = t;
 
 	if (!GameDetails::GetPaused())
 	{

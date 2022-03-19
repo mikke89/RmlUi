@@ -28,7 +28,6 @@
 
 #include "Defender.h"
 #include <Shell.h>
-#include <ShellOpenGL.h>
 #include "Game.h"
 #include "GameDetails.h"
 #include "Invader.h"
@@ -63,15 +62,15 @@ Defender::~Defender()
 {
 }
 
-void Defender::Update()
+void Defender::Update(double t)
 {
-	float dt = float(Shell::GetElapsedTime() - defender_frame_start);
+	float dt = float(t - defender_frame_start);
 	if (dt < UPDATE_FREQ)
 		return;
 	
 	dt = Rml::Math::Min(dt, 0.1f);
 
-	defender_frame_start = Shell::GetElapsedTime();	
+	defender_frame_start = t;	
 
 	position.x += (move_direction * dt * MOVEMENT_SPEED);
 
@@ -95,7 +94,7 @@ void Defender::Update()
 		render = !render;
 
 		// Check if we should switch back to our alive state
-		if (float(Shell::GetElapsedTime() - respawn_start) > RESPAWN_TIME)
+		if (float(t - respawn_start) > RESPAWN_TIME)
 		{
 			state = ALIVE;
 			render = true;
@@ -103,18 +102,18 @@ void Defender::Update()
 	}
 }
 
-void Defender::Render(float dp_ratio)
+void Defender::Render(double t, float dp_ratio, Rml::TextureHandle texture)
 {
-	glColor4ubv(GameDetails::GetDefenderColour());
+	Rml::Colourb color = GameDetails::GetDefenderColour();
 
 	// Render our sprite if rendering is enabled
 	if (render)
-		defender_sprite.Render(position, dp_ratio);
+		defender_sprite.Render(position, dp_ratio, color, texture);
 
 	// Update the bullet, doing collision detection
 	if (bullet_in_flight)
 	{
-		bullet_sprite.Render(bullet_position, dp_ratio);
+		bullet_sprite.Render(bullet_position, dp_ratio, color, texture);
 
 		// Check if we hit the shields
 		for (int i = 0; i < game->GetNumShields(); i++)
@@ -130,7 +129,7 @@ void Defender::Render(float dp_ratio)
 		{
 			for (int i = 0; i < game->GetNumInvaders(); i++)
 			{
-				if (game->GetInvader(i)->CheckHit(bullet_position))
+				if (game->GetInvader(i)->CheckHit(t, bullet_position))
 				{
 					bullet_in_flight = false;
 					break;
@@ -138,8 +137,6 @@ void Defender::Render(float dp_ratio)
 			}
 		}
 	}
-
-	glColor4ub(255, 255, 255, 255);
 }
 
 void Defender::StartMove(float direction)
@@ -163,7 +160,7 @@ void Defender::Fire()
 	}
 }
 
-bool Defender::CheckHit(const Rml::Vector2f& check_position)
+bool Defender::CheckHit(double t, const Rml::Vector2f& check_position)
 {	
 	float sprite_width = defender_sprite.dimensions.x;
 	float sprite_height = defender_sprite.dimensions.y;
@@ -178,7 +175,7 @@ bool Defender::CheckHit(const Rml::Vector2f& check_position)
 	{
 		game->RemoveLife();
 		state = RESPAWN;
-		respawn_start = Shell::GetElapsedTime();
+		respawn_start = t;
 
 		return true;
 	}	

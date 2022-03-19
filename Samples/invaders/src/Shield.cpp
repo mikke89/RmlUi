@@ -28,7 +28,6 @@
 
 #include "Shield.h"
 #include <RmlUi/Core/Math.h>
-#include <ShellOpenGL.h>
 #include "Game.h"
 #include "GameDetails.h"
 #include "Sprite.h"
@@ -126,11 +125,9 @@ void Shield::Render(float dp_ratio)
 		const Rml::Vector2f scaled_position = (dp_ratio * position).Round();
 		const int scaled_pixel = Rml::Math::RoundUpToInteger(PIXEL_SIZE * dp_ratio);
 
-		glPointSize((GLfloat)scaled_pixel);
-		glDisable(GL_TEXTURE_2D);
-		glColor4ubv(GameDetails::GetDefenderColour());
-
-		glBegin(GL_POINTS);
+		Rml::Colourb color = GameDetails::GetDefenderColour();
+		ColoredPointList points;
+		points.reserve(NUM_SHIELD_CELLS * NUM_SHIELD_CELLS);
 
 		for (int i = 0; i < NUM_SHIELD_CELLS; i++)
 		{
@@ -139,14 +136,12 @@ void Shield::Render(float dp_ratio)
 				if (shield_cells[i][j] == ON)
 				{
 					Rml::Vector2f cell_position = scaled_position + Rml::Vector2f(float(scaled_pixel * i), float(scaled_pixel * j));
-					glVertex2f(cell_position.x, cell_position.y);
+					points.push_back(ColoredPoint{color, cell_position});
 				}
 			}
 		}
 
-		glEnd();
-
-		glEnable(GL_TEXTURE_2D);
+		DrawPoints((float)scaled_pixel, points);
 	}
 }
 

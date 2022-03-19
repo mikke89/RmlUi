@@ -55,10 +55,10 @@ public:
 	void Initialise();
 
 	/// Update the game
-	void Update();
+	void Update(double t);
 
 	/// Render the game
-	void Render(float dp_ratio);
+	void Render(double t, float dp_ratio);
 
 	/// Access the defender
 	Defender* GetDefender();
