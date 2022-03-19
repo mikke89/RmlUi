@@ -32,9 +32,7 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 
 #include <stdarg.h>
-#ifdef RMLUI_PLATFORM_WIN32
-#include <windows.h>
-#endif
+#include <stdio.h>
 
 namespace Rml {
 
