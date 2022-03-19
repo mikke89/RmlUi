@@ -27,12 +27,14 @@
  */
 
 #include "ElementGame.h"
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/Input.h>
-#include <RmlUi/Core/Factory.h>
 #include "Defender.h"
 #include "Game.h"
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Factory.h>
+#include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/SystemInterface.h>
 
 ElementGame::ElementGame(const Rml::String& tag) : Rml::Element(tag)
 {
@@ -81,7 +83,7 @@ void ElementGame::ProcessEvent(Rml::Event& event)
 // Updates the game.
 void ElementGame::OnUpdate()
 {
-	game->Update();
+	game->Update(Rml::GetSystemInterface()->GetElapsedTime());
 
 	if (game->IsGameOver())
 		DispatchEvent("gameover", Rml::Dictionary());
@@ -90,7 +92,7 @@ void ElementGame::OnUpdate()
 // Renders the game.
 void ElementGame::OnRender()
 {
-	game->Render(GetContext()->GetDensityIndependentPixelRatio());
+	game->Render(Rml::GetSystemInterface()->GetElapsedTime(), GetContext()->GetDensityIndependentPixelRatio());
 }
 
 void ElementGame::OnChildAdd(Rml::Element* element)

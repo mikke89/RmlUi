@@ -46,9 +46,9 @@ public:
 	~Defender();
 
 	/// Update the defender state.
-	void Update();
+	void Update(double t);
 	/// Render the defender.
-	void Render(float dp_ratio);
+	void Render(double t, float dp_ratio, Rml::TextureHandle texture);
 
 	/// Move the defender left.
 	void StartMove(float direction);	
@@ -58,7 +58,7 @@ public:
 	void Fire();	
 
 	/// Check if an object at the given position would hit the defender.
-	bool CheckHit(const Rml::Vector2f& position);
+	bool CheckHit(double t, const Rml::Vector2f& position);
 
 private:
 	Game* game;

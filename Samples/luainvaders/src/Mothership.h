@@ -41,7 +41,7 @@ public:
 	~Mothership();
 
 	/// Update the mothership
-	void Update() override;
+	void Update(double t) override;
 
 private:
 	// Time of the last update

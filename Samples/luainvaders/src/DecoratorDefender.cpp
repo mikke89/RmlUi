@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,13 +28,12 @@
 
 #include "DecoratorDefender.h"
 #include <RmlUi/Core/Element.h>
-#include <RmlUi/Core/Texture.h>
+#include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Math.h>
-#include <ShellOpenGL.h>
+#include <RmlUi/Core/RenderInterface.h>
+#include <RmlUi/Core/Texture.h>
 
-DecoratorDefender::~DecoratorDefender()
-{
-}
+DecoratorDefender::~DecoratorDefender() {}
 
 bool DecoratorDefender::Initialise(const Rml::Texture& texture)
 {
@@ -66,27 +65,19 @@ void DecoratorDefender::RenderElement(Rml::Element* element, Rml::DecoratorDataH
 {
 	RMLUI_UNUSED(element_data);
 
-	Rml::Vector2f position = element->GetAbsoluteOffset(Rml::Box::PADDING).Round();
-	Rml::Vector2f size = element->GetBox().GetSize(Rml::Box::PADDING).Round();
+	Rml::Vector2f position = element->GetAbsoluteOffset(Rml::Box::PADDING);
+	Rml::Vector2f size = element->GetBox().GetSize(Rml::Box::PADDING);
+	Rml::Math::SnapToPixelGrid(position, size);
 
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, (GLuint) GetTexture(image_index)->GetHandle(element->GetRenderInterface()));
-	Rml::Colourb colour = element->GetProperty< Rml::Colourb >("color");
-	glColor4ubv(colour);
-	glBegin(GL_QUADS);
+	if (Rml::RenderInterface* render_interface = element->GetRenderInterface())
+	{
+		Rml::TextureHandle texture = GetTexture(image_index)->GetHandle(render_interface);
+		Rml::Colourb color = element->GetProperty<Rml::Colourb>("color");
 
-		glVertex2f(position.x, position.y);
-		glTexCoord2f(0, 1);
+		Rml::Vertex vertices[4];
+		int indices[6];
+		Rml::GeometryUtilities::GenerateQuad(vertices, indices, Rml::Vector2f(0.f), size, color);
 
-		glVertex2f(position.x, position.y + size.y);
-		glTexCoord2f(1, 1);
-
-		glVertex2f(position.x + size.x, position.y + size.y);
-		glTexCoord2f(1, 0);
-
-		glVertex2f(position.x + size.x, position.y);
-		glTexCoord2f(0, 0);
-
-	glEnd();
-	glColor4ub(255, 255, 255, 255);
+		render_interface->RenderGeometry(vertices, 4, indices, 6, texture, position);
+	}
 }

@@ -35,17 +35,24 @@
 	@author Peter Curry
  */
 
-class Sprite
-{
+class Sprite {
 public:
 	Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord);
 	~Sprite();
 
-	void Render(Rml::Vector2f position, float dp_ratio);
+	void Render(Rml::Vector2f position, float dp_ratio, Rml::Colourb color, Rml::TextureHandle texture);
 
 	Rml::Vector2f dimensions;
 	Rml::Vector2f top_left_texcoord;
 	Rml::Vector2f bottom_right_texcoord;
 };
+
+struct ColoredPoint {
+	Rml::Colourb color;
+	Rml::Vector2f position;
+};
+using ColoredPointList = Rml::Vector<ColoredPoint>;
+
+void DrawPoints(float point_size, const ColoredPointList& points);
 
 #endif

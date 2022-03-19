@@ -71,7 +71,7 @@ private:
 
 	struct StarField
 	{
-		void Update();
+		void Update(double t);
 		double last_update;
 		Rml::Vector2f dimensions;
 
