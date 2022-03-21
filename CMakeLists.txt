@@ -164,10 +164,12 @@ endif()
 option(BUILD_SAMPLES "Build samples" OFF)
 
 set(SAMPLES_BACKEND "auto" CACHE STRING "Backend platform and renderer used for the samples.")
-set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 X11_GL2 SDL_GL2 SDL_SDLrenderer SFML_GL2 GLFW_GL2)
+set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 X11_GL2 SDL_GL2 SDL_GL3 SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3)
 
 if(SAMPLES_BACKEND STREQUAL "auto")
-	if(WIN32)
+	if(EMSCRIPTEN)
+		set(SAMPLES_BACKEND SDL_GL3)
+	elseif(WIN32)
 		set(SAMPLES_BACKEND Win32_GL2)
 	elseif(APPLE)
 		set(SAMPLES_BACKEND SDL_SDLrenderer)
@@ -206,6 +208,10 @@ endif()
 
 if(WIN32 AND BUILD_SHARED_LIBS AND BUILD_TESTING)
 	message(FATAL_ERROR "-- The RmlUi testing framework cannot be built when using shared libraries on Windows. Please disable either BUILD_SHARED_LIBS or BUILD_TESTING.")
+endif()
+
+if(EMSCRIPTEN AND BUILD_SHARED_LIBS)
+	message(FATAL_ERROR "-- Dynamic libraries not supported when using Emscripten. Please disable BUILD_SHARED_LIBS.")
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
@@ -335,14 +341,17 @@ include(FileList)
 
 # FreeType
 if(NOT NO_FONT_INTERFACE_DEFAULT)
-	find_package(Freetype REQUIRED)
-	
-	if(MSVC AND FREETYPE_VERSION_STRING STREQUAL "2.11.0")
-		message(WARNING "You are using FreeType version 2.11.0 which introduced an issue that causes a crash on startup on some of the samples. Please avoid this version specifically.")
+	if(EMSCRIPTEN)
+		set(EMSCRIPTEN_FLAGS "${EMSCRIPTEN_FLAGS} -sUSE_FREETYPE=1")
+	else()
+		find_package(Freetype REQUIRED)
+		if(MSVC AND FREETYPE_VERSION_STRING STREQUAL "2.11.0")
+			message(WARNING "You are using FreeType version 2.11.0 which introduced an issue that causes a crash on startup on some of the samples. Please avoid this version specifically.")
+		endif()
+		
+		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARIES})
+		list(APPEND CORE_INCLUDE_DIRS ${FREETYPE_INCLUDE_DIRS})
 	endif()
-	
-	list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARIES})
-	list(APPEND CORE_INCLUDE_DIRS ${FREETYPE_INCLUDE_DIRS})
 endif()
 
 # Lua
@@ -676,7 +685,7 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 		target_link_libraries(shell PRIVATE shlwapi)
 	elseif(APPLE)
 		target_link_libraries(shell PRIVATE "-framework Cocoa")
-	elseif(UNIX AND NOT APPLE)
+	elseif(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
 		find_package(X11)
 		if (X11_FOUND)
 			message("-- Found X11 library.")
@@ -698,29 +707,33 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 	
 	if(SAMPLES_BACKEND MATCHES "^SDL")
 		message("-- Looking for SDL2 library for samples backend.")
-		find_package(SDL2 REQUIRED)
-		find_package(SDL2_image REQUIRED)
-		
-		if(NOT SDL2_FOUND)
-			message(FATAL_ERROR "SDL2 not found")
-		elseif(NOT SDL2_IMAGE_FOUND)
-			message(FATAL_ERROR "SDL2_image not found")
-		endif()
-		
-		if(SAMPLES_BACKEND STREQUAL "SDL_GL2")
-			find_package(GLEW REQUIRED)
-			if(NOT GLEW_FOUND)
-				message(FATAL_ERROR "GLEW not found")
+		if(EMSCRIPTEN)
+			set(EMSCRIPTEN_FLAGS "${EMSCRIPTEN_FLAGS} -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sSDL2_IMAGE_FORMATS='[tga]'")
+		else()
+			find_package(SDL2 REQUIRED)
+			find_package(SDL2_image REQUIRED)
+			
+			if(NOT SDL2_FOUND)
+				message(FATAL_ERROR "SDL2 not found")
+			elseif(NOT SDL2_IMAGE_FOUND)
+				message(FATAL_ERROR "SDL2_image not found")
 			endif()
+			
+			if(SAMPLES_BACKEND STREQUAL "SDL_GL2")
+				find_package(GLEW REQUIRED)
+				if(NOT GLEW_FOUND)
+					message(FATAL_ERROR "GLEW not found")
+				endif()
+			endif()
+			
+			# Check version requirement for the SDL renderer.
+			if(SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer" AND "${SDL2_VERSION}" VERSION_LESS "2.0.20")
+				message(FATAL_ERROR "SDL2 native renderer backend (${SAMPLES_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
+			endif()
+			
+			target_include_directories(shell PRIVATE ${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
+			target_link_libraries(shell PRIVATE ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
 		endif()
-		
-		# Check version requirement for the SDL renderer.
-		if(SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer" AND "${SDL2_VERSION}" VERSION_LESS "2.0.20")
-			message(FATAL_ERROR "SDL2 native renderer backend (${SAMPLES_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
-		endif()
-		
-		target_include_directories(shell PRIVATE ${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
-		target_link_libraries(shell PRIVATE ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
 	endif()
 	
 	if(SAMPLES_BACKEND MATCHES "^SFML")
@@ -750,6 +763,21 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 		target_compile_definitions(shell PRIVATE RMLUI_RENDERER_GL2)
 		if(APPLE)
 			target_compile_definitions(shell PRIVATE GL_SILENCE_DEPRECATION)
+		endif()
+	endif()
+	
+	if(SAMPLES_BACKEND MATCHES "GL3$")
+		message("-- Adding OpenGL 3 renderer backend.")
+		if(EMSCRIPTEN)
+			set(EMSCRIPTEN_EXE_FLAGS "${EMSCRIPTEN_EXE_FLAGS} -sMAX_WEBGL_VERSION=2")
+		else()
+			find_package(OpenGL REQUIRED)
+			target_include_directories(shell PRIVATE ${OPENGL_INCLUDE_DIR})
+			target_link_libraries(shell PRIVATE ${OPENGL_LIBRARIES} ${CMAKE_DL_LIBS})
+			target_compile_definitions(shell PRIVATE RMLUI_RENDERER_GL3)
+			if(APPLE)
+				target_compile_definitions(shell PRIVATE GL_SILENCE_DEPRECATION)
+			endif()
 		endif()
 	endif()
 endif()
@@ -803,6 +831,49 @@ if(BUILD_SAMPLES)
 			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endif()
+	
+	# Add assets to emscripten binaries
+	if(EMSCRIPTEN)
+		message("-- Preloading emscipten sample assets")
+		
+		set(COMMON_ASSET_FOLDER "Samples/assets/")
+		set(EMSCRIPTEN_EXE_FLAGS "${EMSCRIPTEN_EXE_FLAGS} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/${COMMON_ASSET_FOLDER}@/${COMMON_ASSET_FOLDER}")
+
+		foreach(sample ${samples})
+			set(SAMPLE_DATA_FOLDER "Samples/basic/${sample}/data/")
+			set(ABS_SAMPLE_DATA_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/${SAMPLE_DATA_FOLDER}")
+			if(EXISTS ${ABS_SAMPLE_DATA_FOLDER})
+				target_link_libraries(${sample} "--preload-file ${ABS_SAMPLE_DATA_FOLDER}@/${SAMPLE_DATA_FOLDER}")
+			endif()
+		endforeach()
+		
+		foreach(tutorial ${tutorials})
+			set(TUTORIAL_DATA_FOLDER "Samples/tutorial/${tutorial}/data/")
+			set(ABS_TUTORIAL_DATA_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/${TUTORIAL_DATA_FOLDER}")
+			if(EXISTS ${ABS_TUTORIAL_DATA_FOLDER})
+				target_link_libraries("tutorial_${tutorial}" "--preload-file ${ABS_TUTORIAL_DATA_FOLDER}@/${TUTORIAL_DATA_FOLDER}")
+			endif()
+		endforeach()
+		
+		set(INVADER_DATA_FOLDER "Samples/invaders/data/")
+		target_link_libraries(invaders "-sALLOW_MEMORY_GROWTH --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/${INVADER_DATA_FOLDER}@/${INVADER_DATA_FOLDER}")
+	endif()
+endif()
+
+#===================================
+# Add global options ===============
+#===================================
+
+if(EMSCRIPTEN)
+	# Enables Asyncify which we only need since the backend doesn't control the main loop. This enables us to yield to the browser during the backend call to
+	# Backend::ProcessEvents(). Asyncify results in larger and slower code, users are instead encouraged to use 'emscripten_set_main_loop()' and family.
+	set(EMSCRIPTEN_EXE_FLAGS "${EMSCRIPTEN_EXE_FLAGS} -sASYNCIFY")
+	
+	message(STATUS "Compiling for Emscripten.\n\t- Flags:${EMSCRIPTEN_FLAGS}\n\t- ExeFlags:${EMSCRIPTEN_EXE_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EMSCRIPTEN_FLAGS}")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMSCRIPTEN_FLAGS}")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EMSCRIPTEN_FLAGS} ${EMSCRIPTEN_EXE_FLAGS}")
+	set(CMAKE_EXECUTABLE_SUFFIX .html)
 endif()
 
 #===================================

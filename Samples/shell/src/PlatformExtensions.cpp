@@ -108,6 +108,10 @@ Rml::String PlatformExtensions::FindSamplesRoot()
 
 	return executable_path + "../../../" + path;
 
+#elif defined RMLUI_PLATFORM_EMSCRIPTEN
+
+	return Rml::String("Samples/");
+
 #elif defined RMLUI_PLATFORM_UNIX
 
 	char executable_file_name[PATH_MAX];
