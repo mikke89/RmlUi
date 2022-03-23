@@ -111,6 +111,18 @@ RMLUICORE_API float Exp(float value)
 	return expf(value);
 }
 
+// Evaluates the base-2 logarithm of an integer.
+RMLUICORE_API int Log2(int value)
+{
+	int result = 0;
+	while (value > 1)
+	{
+		value >>= 1;
+		result++;
+	}
+	return result;
+}
+
 // Converts an angle from radians to degrees.
 RMLUICORE_API float RadiansToDegrees(float angle)
 {

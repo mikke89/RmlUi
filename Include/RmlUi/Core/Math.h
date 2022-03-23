@@ -156,6 +156,10 @@ RMLUICORE_API float ATan2(float y, float x);
 /// @param[in] value The value
 /// @return e^(value)
 RMLUICORE_API float Exp(float value);
+/// Evaluates the base-2 logarithm of an integer.
+/// @param[in] value The value
+/// @return log2(value)
+RMLUICORE_API int Log2(int value);
 
 /// Converts an angle from radians to degrees.
 /// @param[in] The angle, in radians.
