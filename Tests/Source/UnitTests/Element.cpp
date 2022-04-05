@@ -194,6 +194,23 @@ TEST_CASE("Element")
 		CHECK(clone->GetProperty<String>("background-color") == "0, 0, 255, 255");
 	}
 
+	SUBCASE("SetInnerRML")
+	{
+		Element* element = document->GetFirstChild();
+		CHECK(element->GetInnerRML() == "This is a <span>sample</span>.");
+		element->SetInnerRML("text");
+		CHECK(element->GetInnerRML() == "text");
+
+		const char* inner_rml = R"(before<div class="blue">child</div>after)";
+		element->SetInnerRML(inner_rml);
+		CHECK(element->GetInnerRML() == inner_rml);
+
+		ElementPtr element_ptr = document->CreateElement("div");
+		CHECK(element_ptr->GetInnerRML() == "");
+		element_ptr->SetInnerRML("text");
+		CHECK(element_ptr->GetInnerRML() == "text");
+	}
+
 	document->Close();
 	TestsShell::ShutdownShell();
 }

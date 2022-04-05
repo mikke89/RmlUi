@@ -68,6 +68,7 @@ public:
 
 	void DirtyVariable(const String& variable_name);
 	bool IsVariableDirty(const String& variable_name) const;
+	void DirtyAllVariables();
 
 	bool CallTransform(const String& name, Variant& inout_result, const VariantList& arguments) const;
 
