@@ -39,7 +39,7 @@ public:
 	virtual ~FontEngineInterfaceDefault();
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
-	bool LoadFontFace(const String& file_name, bool fallback_face) override;
+	bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight) override;
 
 	/// Adds a new font face to the database using the provided family, style and weight.
 	bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face) override;

@@ -34,6 +34,7 @@
 #include "../../../Include/RmlUi/Core/Core.h"
 #include "../../../Include/RmlUi/Core/FileInterface.h"
 #include "../../../Include/RmlUi/Core/Log.h"
+#include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include <algorithm>
 
@@ -103,7 +104,7 @@ FontFaceHandleDefault* FontProvider::GetFallbackFontFace(int index, int font_siz
 }
 
 
-bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face)
+bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight)
 {
 	FileInterface* file_interface = GetFileInterface();
 	FileHandle handle = file_interface->Open(file_name);
@@ -121,13 +122,14 @@ bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face)
 	file_interface->Read(buffer, length, handle);
 	file_interface->Close(handle);
 
-	bool result = Get().LoadFontFace(buffer, (int)length, fallback_face, std::move(buffer_ptr), file_name);
+	bool result = Get().LoadFontFace(buffer, (int)length, fallback_face, std::move(buffer_ptr), file_name, {}, Style::FontStyle::Normal, weight);
 
 	return result;
 }
 
 
-bool FontProvider::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
+bool FontProvider::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+	bool fallback_face)
 {
 	const String source = "memory";
 	
@@ -136,36 +138,99 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, const String& f
 	return result;
 }
 
+
 bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source,
 	String font_family, Style::FontStyle style, Style::FontWeight weight)
 {
-	FontFaceHandleFreetype ft_face = FreeType::LoadFace(data, data_size, source);
-	
-	if (!ft_face)
+	using Style::FontWeight;
+
+	Vector<FaceVariation> face_variations;
+	if (!FreeType::GetFaceVariations(data, data_size, face_variations))
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s from '%s'.", font_family.c_str(), source.c_str());
+		Log::Message(Log::LT_ERROR, "Failed to load font face from '%s': Invalid or unsupported font face file format.", source.c_str());
 		return false;
 	}
 
-	if (font_family.empty())
+	Vector<FaceVariation> load_variations;
+	if (face_variations.empty())
 	{
-		FreeType::GetFaceStyle(ft_face, font_family, style, weight);
+		load_variations.push_back(FaceVariation{Style::FontWeight::Auto, 0, 0});
+	}
+	else
+	{
+		// Iterate through all the face variations and pick the ones to load. The list is already sorted by (weight, width). When weight is set to
+		// 'auto' we load all the weights of the face. However, we only want to load one width for each weight.
+		for (auto it = face_variations.begin(); it != face_variations.end();)
+		{
+			if (weight != FontWeight::Auto && it->weight != weight)
+			{
+				++it;
+				continue;
+			}
+
+			// We don't currently have any way for users to select widths, so we search for a regular (medium) value here.
+			constexpr int search_width = 100;
+			const FontWeight current_weight = it->weight;
+
+			int best_width_distance = Math::AbsoluteValue((int)it->width - search_width);
+			auto it_best_width = it;
+			
+			// Search forward to find the best 'width' with the same weight.
+			for (++it; it != face_variations.end(); ++it)
+			{
+				if (it->weight != current_weight)
+					break;
+
+				const int width_distance = Math::AbsoluteValue((int)it->width - search_width);
+				if (width_distance < best_width_distance)
+				{
+					best_width_distance = width_distance;
+					it_best_width = it;
+				}
+			}
+
+			load_variations.push_back(*it_best_width);
+		}
 	}
 
-	const String font_face_description = FontFaceDescription(font_family, style, weight);
-
-	if (!AddFace(ft_face, font_family, style, weight, fallback_face, std::move(face_memory)))
+	if (load_variations.empty())
 	{
-		Log::Message(Log::LT_ERROR, "Failed to load font face %s from '%s'.", font_face_description.c_str(), source.c_str());
+		Log::Message(Log::LT_ERROR, "Failed to load font face from '%s': Could not locate face with weight %d.", source.c_str(), (int)weight);
 		return false;
 	}
 
-	Log::Message(Log::LT_INFO, "Loaded font face %s from '%s'.", font_face_description.c_str(), source.c_str());
+	for (const FaceVariation& variation : load_variations)
+	{
+		FontFaceHandleFreetype ft_face = FreeType::LoadFace(data, data_size, source, variation.named_instance_index);
+		if (!ft_face)
+			return false;
+
+		if (font_family.empty())
+			FreeType::GetFaceStyle(ft_face, &font_family, &style, nullptr);
+		if (weight == FontWeight::Auto)
+			FreeType::GetFaceStyle(ft_face, nullptr, nullptr, &weight);
+
+		const FontWeight variation_weight = (variation.weight == FontWeight::Auto ? weight : variation.weight);
+		const String font_face_description = FontFaceDescription(font_family, style, variation_weight);
+
+		if (!AddFace(ft_face, font_family, style, variation_weight, fallback_face, std::move(face_memory)))
+		{
+			Log::Message(Log::LT_ERROR, "Failed to load font face %s from '%s'.", font_face_description.c_str(), source.c_str());
+			return false;
+		}
+
+		Log::Message(Log::LT_INFO, "Loaded font face %s from '%s'.", font_face_description.c_str(), source.c_str());
+	}
+
 	return true;
 }
 
-bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face, UniquePtr<byte[]> face_memory)
+bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face,
+	UniquePtr<byte[]> face_memory)
 {
+	if (family.empty() || weight == Style::FontWeight::Auto)
+		return false;
+
 	String family_lower = StringUtilities::ToLower(family);
 	FontFamily* font_family = nullptr;
 	auto it = font_families.find(family_lower);

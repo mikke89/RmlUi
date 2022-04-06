@@ -40,14 +40,17 @@ bool Initialise();
 // Shutdown FreeType library.
 void Shutdown();
 
+// Returns a sorted list of available font variations for the font face located in memory.
+bool GetFaceVariations(const byte* data, int data_length, Vector<FaceVariation>& out_face_variations);
+
 // Loads a FreeType face from memory, 'source' is only used for logging.
-FontFaceHandleFreetype LoadFace(const byte* data, int data_length, const String& source);
+FontFaceHandleFreetype LoadFace(const byte* data, int data_length, const String& source, int named_instance_index = 0);
 
 // Releases the FreeType face.
 bool ReleaseFace(FontFaceHandleFreetype face);
 
-// Retrieves the font family, style and weight of the given font face.
-void GetFaceStyle(FontFaceHandleFreetype face, String& font_family, Style::FontStyle& style, Style::FontWeight& weight);
+// Retrieves the font family, style and weight of the given font face. Use nullptr to ignore a property.
+void GetFaceStyle(FontFaceHandleFreetype face, String* font_family, Style::FontStyle* style, Style::FontWeight* weight);
 
 // Initializes a face for a given font size. Glyphs are filled with the ASCII subset, and the font face metrics are set.
 bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics, bool load_default_glyphs);

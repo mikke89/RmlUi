@@ -44,6 +44,7 @@ class FontFamily
 {
 public:
 	FontFamily(const String& name);
+	~FontFamily();
 
 	/// Returns a handle to the most appropriate font in the family, at the correct size.
 	/// @param[in] style The style of the desired handle.
@@ -64,7 +65,13 @@ public:
 protected:
 	String name;
 
-	using FontFaceList = Vector< UniquePtr<FontFace> >;
+	struct FontFaceEntry {
+		UniquePtr<FontFace> face;
+		// Only filled if we own the memory used by the face's FreeType handle. May be shared with other faces in this family.
+		UniquePtr<byte[]> face_memory;
+	};
+
+	using FontFaceList = Vector<FontFaceEntry>;
 	FontFaceList font_faces;
 };
 

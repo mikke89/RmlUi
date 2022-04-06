@@ -331,9 +331,9 @@ int GetNumContexts()
 	return (int) contexts.size();
 }
 
-bool LoadFontFace(const String& file_name, bool fallback_face)
+bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight)
 {
-	return font_interface->LoadFontFace(file_name, fallback_face);
+	return font_interface->LoadFontFace(file_name, fallback_face, weight);
 }
 
 bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)

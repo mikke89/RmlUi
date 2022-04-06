@@ -48,6 +48,8 @@ String FontFaceDescription(const String& font_family, Style::FontStyle style, St
 		font_attributes += "italic, ";
 	if (weight == Style::FontWeight::Bold)
 		font_attributes += "bold, ";
+	else if (weight != Style::FontWeight::Auto && weight != Style::FontWeight::Normal)
+		font_attributes += "weight=" + ToString((int)weight) + ", ";
 
 	if (font_attributes.empty())
 		font_attributes = "regular";

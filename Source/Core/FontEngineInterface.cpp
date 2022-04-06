@@ -34,7 +34,7 @@ FontEngineInterface::FontEngineInterface() {}
 
 FontEngineInterface::~FontEngineInterface() {}
 
-bool FontEngineInterface::LoadFontFace(const String& /*file_name*/, bool /*fallback_face*/)
+bool FontEngineInterface::LoadFontFace(const String& /*file_name*/, bool /*fallback_face*/, Style::FontWeight /*weight*/)
 {
 	return false;
 }

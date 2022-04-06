@@ -40,7 +40,7 @@ FontEngineInterfaceBitmap::~FontEngineInterfaceBitmap()
 	FontProviderBitmap::Shutdown();
 }
 
-bool FontEngineInterfaceBitmap::LoadFontFace(const String& file_name, bool /*fallback_face*/)
+bool FontEngineInterfaceBitmap::LoadFontFace(const String& file_name, bool /*fallback_face*/, FontWeight /*weight*/)
 {
 	return FontProviderBitmap::LoadFontFace(file_name);
 }

@@ -28,11 +28,14 @@
 
 #include "FreeTypeInterface.h"
 #include "../../../Include/RmlUi/Core/Log.h"
-
+#include <algorithm>
 #include <string.h>
 #include <limits.h>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_MULTIPLE_MASTERS_H
+#include FT_TRUETYPE_TABLES_H
 
 namespace Rml {
 
@@ -44,6 +47,11 @@ static void GenerateMetrics(FT_Face ft_face, FontMetrics& metrics, float bitmap_
 static bool SetFontSize(FT_Face ft_face, int font_size, float& out_bitmap_scaling_factor);
 static void BitmapDownscale(byte* bitmap_new, int new_width, int new_height, const byte* bitmap_source, int width, int height, int pitch,
 	ColorFormat color_format);
+
+static int ConvertFixed16_16ToInt(int32_t fx)
+{
+	return fx / 0x10000;
+}
 
 bool FreeType::Initialise()
 {
@@ -69,14 +77,70 @@ void FreeType::Shutdown()
 	}
 }
 
-// Loads a FreeType face from memory.
-FontFaceHandleFreetype FreeType::LoadFace(const byte* data, int data_length, const String& source)
+bool FreeType::GetFaceVariations(const byte* data, int data_length, Vector<FaceVariation>& out_face_variations)
 {
 	RMLUI_ASSERT(ft_library);
 
 	FT_Face face = nullptr;
-	int error = FT_New_Memory_Face(ft_library, (const FT_Byte*)data, data_length, 0, &face);
-	if (error != 0)
+	FT_Error error = FT_New_Memory_Face(ft_library, (const FT_Byte*)data, data_length, 0, &face);
+	if (error)
+		return false;
+
+	FT_MM_Var* var = nullptr;
+	error = FT_Get_MM_Var(face, &var);
+	if (error)
+		return true;
+
+	unsigned int axis_index_weight = 0;
+	unsigned int axis_index_width = 1;
+
+	const unsigned int num_axis = var->num_axis;
+	for (unsigned int i = 0; i < num_axis; i++)
+	{
+		switch (var->axis[i].tag)
+		{
+		case 0x77676874: // 'wght'
+			axis_index_weight = i;
+			break;
+		case 0x77647468: // 'wdth'
+			axis_index_width = i;
+			break;
+		}
+	}
+
+	if (num_axis > 0)
+	{
+		for (unsigned int i = 0; i < var->num_namedstyles; i++)
+		{
+			uint16_t weight = (axis_index_weight < num_axis ? (uint16_t)ConvertFixed16_16ToInt(var->namedstyle[i].coords[axis_index_weight]) : 0);
+			uint16_t width = (axis_index_width < num_axis ? (uint16_t)ConvertFixed16_16ToInt(var->namedstyle[i].coords[axis_index_width]) : 0);
+			int named_instance_index = (i + 1);
+
+			out_face_variations.push_back(
+				FaceVariation{
+					weight == 0 ? Style::FontWeight::Normal : (Style::FontWeight)weight,
+					width == 0 ? (uint16_t)100 : width,
+					named_instance_index
+				}
+			);
+		}
+	}
+
+	std::sort(out_face_variations.begin(), out_face_variations.end());
+
+	FT_Done_MM_Var(ft_library, var);
+	FT_Done_Face(face);
+
+	return true;
+}
+
+FontFaceHandleFreetype FreeType::LoadFace(const byte* data, int data_length, const String& source, int named_style_index)
+{
+	RMLUI_ASSERT(ft_library);
+
+	FT_Face face = nullptr;
+	FT_Error error = FT_New_Memory_Face(ft_library, (const FT_Byte*)data, data_length, (named_style_index << 16), &face);
+	if (error)
 	{
 		Log::Message(Log::LT_ERROR, "FreeType error %d while loading face from %s.", error, source.c_str());
 		return 0;
@@ -105,13 +169,23 @@ bool FreeType::ReleaseFace(FontFaceHandleFreetype in_face)
 	return (error == 0);
 }
 
-void FreeType::GetFaceStyle(FontFaceHandleFreetype in_face, String& font_family, Style::FontStyle& style, Style::FontWeight& weight)
+void FreeType::GetFaceStyle(FontFaceHandleFreetype in_face, String* font_family, Style::FontStyle* style, Style::FontWeight* weight)
 {
 	FT_Face face = (FT_Face)in_face;
 
-	font_family = face->family_name;
-	style = face->style_flags & FT_STYLE_FLAG_ITALIC ? Style::FontStyle::Italic : Style::FontStyle::Normal;
-	weight = face->style_flags & FT_STYLE_FLAG_BOLD ? Style::FontWeight::Bold : Style::FontWeight::Normal;
+	if (font_family)
+		*font_family = face->family_name;
+	if (style)
+		*style = face->style_flags & FT_STYLE_FLAG_ITALIC ? Style::FontStyle::Italic : Style::FontStyle::Normal;
+
+	if (weight)
+	{
+		TT_OS2* font_table = (TT_OS2*)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
+		if (font_table && font_table->usWeightClass != 0)
+			*weight = (Style::FontWeight)font_table->usWeightClass;
+		else
+			*weight = (face->style_flags & FT_STYLE_FLAG_BOLD) == FT_STYLE_FLAG_BOLD ? Style::FontWeight::Bold : Style::FontWeight::Normal;
+	}
 }
 
 // Initialises the handle so it is able to render text.

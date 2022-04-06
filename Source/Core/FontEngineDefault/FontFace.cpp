@@ -33,24 +33,17 @@
 
 namespace Rml {
 
-FontFace::FontFace(FontFaceHandleFreetype _face, Style::FontStyle _style, Style::FontWeight _weight, UniquePtr<byte[]> _face_memory)
+FontFace::FontFace(FontFaceHandleFreetype _face, Style::FontStyle _style, Style::FontWeight _weight)
 {
 	style = _style;
 	weight = _weight;
 	face = _face;
-
-	face_memory = std::move(_face_memory);
 }
 
 FontFace::~FontFace()
 {
 	if (face) 
-	{
 		FreeType::ReleaseFace(face);
-		face_memory.reset();
-		face = 0;
-	}
-	handles.clear();
 }
 
 // Returns the style of the font face.
