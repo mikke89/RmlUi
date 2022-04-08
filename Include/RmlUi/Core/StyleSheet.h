@@ -61,8 +61,8 @@ class RMLUICORE_API StyleSheet final : public NonCopyMoveable
 public:
 	~StyleSheet();
 
-	using NodeList = Vector< const StyleSheetNode* >;
-	using NodeIndex = UnorderedMap< size_t, NodeList >;
+	using NodeList = Vector<const StyleSheetNode*>;
+	using NodeIndex = UnorderedMap<size_t, NodeList>;
 
 	/// Combines this style sheet with another one, producing a new sheet.
 	UniquePtr<StyleSheet> CombineStyleSheet(const StyleSheet& sheet) const;
@@ -81,7 +81,7 @@ public:
 	const Sprite* GetSprite(const String& name) const;
 
 	/// Returns the compiled element definition for a given element and its hierarchy.
-	SharedPtr<ElementDefinition> GetElementDefinition(const Element* element) const;
+	SharedPtr<const ElementDefinition> GetElementDefinition(const Element* element) const;
 
 	/// Retrieve the hash key used to look-up applicable nodes in the node index.
 	static size_t NodeHash(const String& tag, const String& id);
@@ -115,11 +115,11 @@ private:
 	NodeIndex styled_node_index;
 
 	// Index of node sets to element definitions.
-	using ElementDefinitionCache = UnorderedMap< size_t, SharedPtr<ElementDefinition> >;
+	using ElementDefinitionCache = UnorderedMap<size_t, SharedPtr<const ElementDefinition>>;
 	mutable ElementDefinitionCache node_cache;
 
 	// Cached decorator instances.
-	using DecoratorCache = UnorderedMap< String, Vector<SharedPtr<const Decorator>> >;
+	using DecoratorCache = UnorderedMap<String, Vector<SharedPtr<const Decorator>>>;
 	mutable DecoratorCache decorator_cache;
 
 	friend Rml::StyleSheetParser;

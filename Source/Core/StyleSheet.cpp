@@ -181,7 +181,7 @@ size_t StyleSheet::NodeHash(const String& tag, const String& id)
 }
 
 // Returns the compiled element definition for a given element hierarchy.
-SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* element) const
+SharedPtr<const ElementDefinition> StyleSheet::GetElementDefinition(const Element* element) const
 {
 	RMLUI_ASSERT_NONRECURSIVE;
 
@@ -244,12 +244,12 @@ SharedPtr<ElementDefinition> StyleSheet::GetElementDefinition(const Element* ele
 	auto cache_iterator = node_cache.find(seed);
 	if (cache_iterator != node_cache.end())
 	{
-		SharedPtr<ElementDefinition>& definition = (*cache_iterator).second;
+		SharedPtr<const ElementDefinition>& definition = (*cache_iterator).second;
 		return definition;
 	}
 
 	// Create the new definition and add it to our cache.
-	auto new_definition = MakeShared<ElementDefinition>(applicable_nodes);
+	auto new_definition = MakeShared<const ElementDefinition>(applicable_nodes);
 	node_cache[seed] = new_definition;
 
 	return new_definition;

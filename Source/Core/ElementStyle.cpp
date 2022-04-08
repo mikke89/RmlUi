@@ -177,7 +177,7 @@ void ElementStyle::UpdateDefinition()
 
 		definition_dirty = false;
 
-		SharedPtr<ElementDefinition> new_definition;
+		SharedPtr<const ElementDefinition> new_definition;
 		
 		if (const StyleSheet* style_sheet = element->GetStyleSheet())
 		{
