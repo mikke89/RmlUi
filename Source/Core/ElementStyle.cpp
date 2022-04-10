@@ -319,6 +319,11 @@ String ElementStyle::GetClassNames() const
 	return class_names;
 }
 
+const StringList& ElementStyle::GetClassNameList() const
+{
+	return classes;
+}
+
 // Sets a local property override on the element to a pre-parsed value.
 bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 {

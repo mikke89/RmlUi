@@ -87,6 +87,8 @@ public:
 	/// Return the active class list.
 	/// @return A string containing all the classes on the element, separated by spaces.
 	String GetClassNames() const;
+	/// Return the active class list.
+	const StringList& GetClassNameList() const;
 
 	/// Sets a local property override on the element to a pre-parsed value.
 	/// @param[in] name The name of the new property.

@@ -29,6 +29,7 @@
 #include "StyleSheetNode.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "StyleSheetFactory.h"
 #include "StyleSheetNodeSelector.h"
 #include <algorithm>
@@ -121,23 +122,42 @@ UniquePtr<StyleSheetNode> StyleSheetNode::DeepCopy(StyleSheetNode* in_parent) co
 }
 
 // Builds up a style sheet's index recursively.
-void StyleSheetNode::BuildIndex(StyleSheet::NodeIndex& styled_node_index) const
+void StyleSheetNode::BuildIndex(StyleSheetIndex& styled_node_index) const
 {
 	// If this has properties defined, then we insert it into the styled node index.
-	if(properties.GetNumProperties() > 0)
+	if (properties.GetNumProperties() > 0)
 	{
-		// The keys of the node index is a hashed combination of tag and id. These are used for fast lookup of applicable nodes.
-		size_t node_hash = StyleSheet::NodeHash(tag, id);
-		StyleSheet::NodeList& nodes = styled_node_index[node_hash];
-		auto it = std::find(nodes.begin(), nodes.end(), this);
-		if(it == nodes.end())
-			nodes.push_back(this);
+		auto IndexInsertNode = [](StyleSheetIndex::NodeIndex& node_index, const String& key, const StyleSheetNode* node) {
+			StyleSheetIndex::NodeList& nodes = node_index[Hash<String>()(key)];
+			auto it = std::find(nodes.begin(), nodes.end(), node);
+			if (it == nodes.end())
+				nodes.push_back(node);
+		};
+
+		// Add this node to the appropriate index for looking up applicable nodes later. Prioritize the most unique requirement first and the most
+		// general requirement last. This way we are able to rule out as many nodes as possible as quickly as possible.
+		if (!id.empty())
+		{
+			IndexInsertNode(styled_node_index.ids, id, this);
+		}
+		else if (!class_names.empty())
+		{
+			// @performance Right now we just use the first class for simplicity. Later we may want to devise a better strategy to try to add the
+			// class with the most unique name. For example by adding the class from this node's list that has the fewest existing matches.
+			IndexInsertNode(styled_node_index.classes, class_names.front(), this);
+		}
+		else if (!tag.empty())
+		{
+			IndexInsertNode(styled_node_index.tags, tag, this);
+		}
+		else
+		{
+			styled_node_index.other.push_back(this);
+		}
 	}
 
 	for (auto& child : children)
-	{
 		child->BuildIndex(styled_node_index);
-	}
 }
 
 bool StyleSheetNode::SetStructurallyVolatileRecursive(bool ancestor_is_structural_pseudo_class)
@@ -241,23 +261,28 @@ inline bool StyleSheetNode::MatchStructuralSelector(const Element* element) cons
 }
 
 // Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
-bool StyleSheetNode::IsApplicable(const Element* const in_element, bool skip_id_tag) const
+bool StyleSheetNode::IsApplicable(const Element* const in_element) const
 {
 	// Determine whether the element matches the current node and its entire lineage. The entire hierarchy of
 	// the element's document will be considered during the match as necessary.
 
-	if (skip_id_tag)
+	for (const String& name : pseudo_class_names)
 	{
-		// Id and tag have already been checked, only check class and pseudo class.
-		if (!MatchClassPseudoClass(in_element))
+		if (!in_element->IsPseudoClassSet(name))
 			return false;
 	}
-	else
+
+	if (!tag.empty() && tag != in_element->GetTagName())
+		return false;
+
+	for (const String& name : class_names)
 	{
-		// Id and tag have not already been matched, match everything.
-		if (!Match(in_element))
+		if (!in_element->IsClassSet(name))
 			return false;
 	}
+
+	if (!id.empty() && id != in_element->GetId())
+		return false;
 
 	const Element* element = in_element;
 
