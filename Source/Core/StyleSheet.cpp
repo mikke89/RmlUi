@@ -27,14 +27,14 @@
  */
 
 #include "../../Include/RmlUi/Core/StyleSheet.h"
-#include "ElementDefinition.h"
-#include "StyleSheetNode.h"
-#include "Utilities.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/Utilities.h"
+#include "ElementDefinition.h"
+#include "StyleSheetNode.h"
 #include <algorithm>
 
 namespace Rml {

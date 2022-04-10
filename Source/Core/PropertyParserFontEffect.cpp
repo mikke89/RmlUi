@@ -32,7 +32,7 @@
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
-#include "Utilities.h"
+#include "../../Include/RmlUi/Core/Utilities.h"
 #include <algorithm>
 
 namespace Rml {
