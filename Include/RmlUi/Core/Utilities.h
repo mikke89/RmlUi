@@ -29,6 +29,8 @@
 #ifndef RMLUI_CORE_UTILITIES_H
 #define RMLUI_CORE_UTILITIES_H
 
+#include "Types.h"
+
 namespace Rml {
 
 namespace Utilities {

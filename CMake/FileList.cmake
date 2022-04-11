@@ -111,7 +111,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureResource.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformUtilities.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/Utilities.h
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetScroll.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerBody.h
     ${PROJECT_SOURCE_DIR}/Source/Core/XMLNodeHandlerDefault.h
@@ -221,6 +220,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Types.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/URL.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Utilities.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Variant.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Variant.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector2.h

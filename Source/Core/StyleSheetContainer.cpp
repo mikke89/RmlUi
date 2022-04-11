@@ -31,9 +31,9 @@
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../Include/RmlUi/Core/Utilities.h"
 #include "ComputeProperty.h"
 #include "StyleSheetParser.h"
-#include "Utilities.h"
 
 namespace Rml {
 

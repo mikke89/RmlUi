@@ -40,6 +40,7 @@
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "Clock.h"
@@ -1048,7 +1049,7 @@ Element* Element::Closest(const String& selectors) const
 	{
 		for (const StyleSheetNode* node : leaf_nodes)
 		{
-			if (node->IsApplicable(parent, false))
+			if (node->IsApplicable(parent))
 			{
 				return parent;
 			}
@@ -1512,7 +1513,7 @@ static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, 
 
 		for (const StyleSheetNode* node : nodes)
 		{
-			if (node->IsApplicable(child, false))
+			if (node->IsApplicable(child))
 				return child;
 		}
 
@@ -1534,7 +1535,7 @@ static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const
 
 		for (const StyleSheetNode* node : nodes)
 		{
-			if (node->IsApplicable(child, false))
+			if (node->IsApplicable(child))
 			{
 				matching_elements.push_back(child);
 				break;
