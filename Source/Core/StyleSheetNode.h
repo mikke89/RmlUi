@@ -62,11 +62,11 @@ class StyleSheetNode
 {
 public:
 	StyleSheetNode();
-	StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors, bool child_combinator);
-	StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
+	StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const ElementAttributes& attributes, const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors, bool child_combinator);
+	StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, ElementAttributes&& attributes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
 
 	/// Retrieves a child node with the given requirements if they match an existing node, or else creates a new one.
-	StyleSheetNode* GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
+	StyleSheetNode* GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, ElementAttributes&& attributes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
 	/// Retrieves or creates a child node with requirements equivalent to the 'other' node.
 	StyleSheetNode* GetOrCreateChildNode(const StyleSheetNode& other);
 
@@ -100,7 +100,7 @@ public:
 
 private:
 	// Returns true if the requirements of this node equals the given arguments.
-	bool EqualRequirements(const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_pseudo_classes, bool child_combinator) const;
+	bool EqualRequirements(const String& tag, const String& id, const StringList& classes, const ElementAttributes& attributes, const StringList& pseudo_classes, const StructuralSelectorList& structural_pseudo_classes, bool child_combinator) const;
 
 	void CalculateAndSetSpecificity();
 
@@ -108,6 +108,7 @@ private:
 	inline bool Match(const Element* element) const;
 	inline bool MatchClassPseudoClass(const Element* element) const;
 	inline bool MatchStructuralSelector(const Element* element) const;
+	inline bool MatchAttributes(const Element* element) const;
 
 	// The parent of this node; is nullptr for the root node.
 	StyleSheetNode* parent = nullptr;
@@ -115,6 +116,7 @@ private:
 	// Node requirements
 	String tag;
 	String id;
+	ElementAttributes attribute_names;
 	StringList class_names;
 	StringList pseudo_class_names;
 	StructuralSelectorList structural_selectors; // Represents structural pseudo classes

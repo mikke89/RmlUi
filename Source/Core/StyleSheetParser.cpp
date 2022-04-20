@@ -903,6 +903,7 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 		String tag;
 		String id;
 		StringList classes;
+		ElementAttributes attributes;
 		StringList pseudo_classes;
 		StructuralSelectorList structural_pseudo_classes;
 		bool child_combinator = false;
@@ -918,7 +919,8 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 				   name[end_index] != '#' &&
 				   name[end_index] != '.' &&
 				   name[end_index] != ':' &&
-				   name[end_index] != '>')
+				   name[end_index] != '>' &&
+				   name[end_index] != '[')
 				end_index++;
 
 			String identifier = name.substr(start_index, end_index - start_index);
@@ -928,8 +930,46 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 				{
 					case '#':	id = identifier.substr(1); break;
 					case '.':	classes.push_back(identifier.substr(1)); break;
-					case ':':
+					case '[':
 					{
+						const size_t attribute_end = identifier.find(']');
+						if(attribute_end != String::npos){
+						    String attribute_str = identifier.substr(1, attribute_end - 1);
+						    attribute_str = StringUtilities::Replace(attribute_str, "\"", "");
+						    attribute_str = StringUtilities::Replace(attribute_str, "'", "");
+							
+							if(!attribute_str.empty()) //has attribute selector data
+							{
+								const size_t equals_index = attribute_str.find('=');
+								if(equals_index != String::npos)
+								{
+									String attribute_name;
+									String attribute_value = attribute_str.substr(equals_index-1);
+									switch(attribute_value[0])
+									{
+										case '~':
+										case '|': 
+										case '^': 
+										case '$': 
+										case '*':
+											attribute_name = attribute_str.substr(0, equals_index -1);
+											break;
+										default:
+											attribute_name = attribute_str.substr(0, equals_index);
+											attribute_value[0] = '=';
+											break;
+									}
+									attributes[attribute_name] = attribute_value;
+									break;
+								}
+							}
+							attributes[attribute_str] = "";
+							break;
+						}
+					}
+					break;
+					case ':':
+						{
 						String pseudo_class_name = identifier.substr(1);
 						StructuralSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
 						if (node_selector.selector)
@@ -949,11 +989,12 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 
 		// Sort the classes and pseudo-classes so they are consistent across equivalent declarations that shuffle the order around.
 		std::sort(classes.begin(), classes.end());
+		//std::sort(attributes.begin(), attributes.end());
 		std::sort(pseudo_classes.begin(), pseudo_classes.end());
 		std::sort(structural_pseudo_classes.begin(), structural_pseudo_classes.end());
 
 		// Get the named child node.
-		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes), child_combinator);
+		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(attributes), std::move(pseudo_classes), std::move(structural_pseudo_classes), child_combinator);
 	}
 
 	// Merge the new properties with those already on the leaf node.
