@@ -177,7 +177,7 @@ void ElementStyle::UpdateDefinition()
 
 		definition_dirty = false;
 
-		SharedPtr<ElementDefinition> new_definition;
+		SharedPtr<const ElementDefinition> new_definition;
 		
 		if (const StyleSheet* style_sheet = element->GetStyleSheet())
 		{
@@ -317,6 +317,11 @@ String ElementStyle::GetClassNames() const
 	}
 
 	return class_names;
+}
+
+const StringList& ElementStyle::GetClassNameList() const
+{
+	return classes;
 }
 
 // Sets a local property override on the element to a pre-parsed value.

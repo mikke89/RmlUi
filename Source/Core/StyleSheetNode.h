@@ -30,12 +30,13 @@
 #define RMLUI_CORE_STYLESHEETNODE_H
 
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
-#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include <tuple>
 
 namespace Rml {
 
+struct StyleSheetIndex;
+class StyleSheetNode;
 class StyleSheetNodeSelector;
 
 struct StructuralSelector {
@@ -76,7 +77,7 @@ public:
 	/// Recursively set structural volatility.
 	bool SetStructurallyVolatileRecursive(bool ancestor_is_structurally_volatile);
 	/// Builds up a style sheet's index recursively.
-	void BuildIndex(StyleSheet::NodeIndex& styled_node_index) const;
+	void BuildIndex(StyleSheetIndex& styled_node_index) const;
 
 	/// Imports properties from a single rule definition into the node's properties and sets the
 	/// appropriate specificity on them. Any existing attributes sharing a key with a new attribute
@@ -88,7 +89,7 @@ public:
 	const PropertyDictionary& GetProperties() const;
 
 	/// Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
-	bool IsApplicable(const Element* element, bool skip_id_tag) const;
+	bool IsApplicable(const Element* element) const;
 
 	/// Returns the specificity of this node.
 	int GetSpecificity() const;
