@@ -35,7 +35,6 @@
 #include "StringUtilities.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <cinttypes>
 
 namespace Rml {
 
