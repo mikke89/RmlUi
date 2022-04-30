@@ -36,7 +36,6 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/Build
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{github.workspace}}/Build
       run: >-
         cmake $GITHUB_WORKSPACE -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
@@ -44,13 +43,11 @@ jobs:
 
     - name: Build
       working-directory: ${{github.workspace}}/Build
-      shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Test
       if: ${{ matrix.enable_testing }}
       working-directory: ${{github.workspace}}/Build
-      shell: bash
       run: ctest -C $BUILD_TYPE
 
 
@@ -77,7 +74,6 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/Build
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{github.workspace}}/Build
       run: >-
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
@@ -85,5 +81,35 @@ jobs:
 
     - name: Build
       working-directory: ${{github.workspace}}/Build
-      shell: bash
       run: cmake --build . --config $BUILD_TYPE
+
+
+  Emscripten:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run: |-
+        sudo apt-get update
+        sudo apt-get install cmake
+        wget -q https://github.com/emscripten-core/emsdk/archive/master.tar.gz
+        tar -xvf master.tar.gz
+        emsdk-master/emsdk update
+        emsdk-master/emsdk install latest
+        emsdk-master/emsdk activate latest
+              
+    - name: Create Build Environment
+      run: cmake -E make_directory Build
+      
+    - name: Configure CMake
+      run: |-
+        source emsdk-master/emsdk_env.sh
+        cd Build
+        emcmake cmake $GITHUB_WORKSPACE -DBUILD_SAMPLES=ON -DBUILD_SHARED_LIBS=OFF -DWARNINGS_AS_ERRORS=ON
+
+    - name: Build
+      run: |-
+        source emsdk-master/emsdk_env.sh
+        cd Build
+        emmake make -j4
