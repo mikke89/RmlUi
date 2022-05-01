@@ -49,11 +49,19 @@
 		#include <GL/glx.h>
 	#endif
 
+#elif defined RMLUI_RENDERER_GL3 && !defined RMLUI_PLATFORM_EMSCRIPTEN
+
+	#include <RmlUi_Include_GL3.h>
+
+#elif defined RMLUI_RENDERER_GL3 && defined RMLUI_PLATFORM_EMSCRIPTEN
+
+	#include <GLES3/gl3.h>
+
 #endif
 
 RendererExtensions::Image RendererExtensions::CaptureScreen()
 {
-#if defined RMLUI_RENDERER_GL2
+#if defined RMLUI_RENDERER_GL2 || defined RMLUI_RENDERER_GL3
 
 	int viewport[4] = {}; // x, y, width, height
 	glGetIntegerv(GL_VIEWPORT, viewport);
