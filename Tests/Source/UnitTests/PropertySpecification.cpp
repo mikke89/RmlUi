@@ -32,6 +32,7 @@
 #include <RmlUi/Core/PropertyDictionary.h>
 #include <RmlUi/Core/PropertySpecification.h>
 #include <doctest.h>
+#include <limits.h>
 
 using namespace Rml;
 
@@ -94,6 +95,64 @@ TEST_CASE("PropertySpecification")
 	Parse(R"(image( a\\b ))", R"(image( a\b ))");
 	Parse(R"(image( a\\\b ))", R"(image( a\\b ))");
 	Parse(R"(image( a\\\\b ))", R"(image( a\\b ))");
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("PropertyParser.Keyword")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	Rml::Initialise();
+
+	PropertySpecification specification(20, 0);
+
+	auto Parse = [&](const PropertyId id, const String& test_value, int expected_value) {
+		PropertyDictionary properties;
+		const bool parse_success = specification.ParsePropertyDeclaration(properties, id, test_value);
+		if (expected_value == INT_MAX)
+		{
+			CHECK(!parse_success);
+		}
+		else
+		{
+			CHECK(parse_success);
+			CHECK(properties.GetProperties().size() == 1);
+			const int parsed_value = properties.GetProperty(id)->Get<int>();
+			CHECK_MESSAGE(parsed_value == expected_value, "Test value: ", test_value);
+
+			const String parsed_value_str = properties.GetProperty(id)->ToString();
+			CHECK(parsed_value_str == test_value);
+		}
+	};
+
+	const PropertyId simple = specification.RegisterProperty("simple", "", false, false).AddParser("keyword", "a, b, c").GetId();
+	Parse(simple, "a", 0);
+	Parse(simple, "b", 1);
+	Parse(simple, "c", 2);
+	Parse(simple, "d", INT_MAX);
+	Parse(simple, "0", INT_MAX);
+	Parse(simple, "2", INT_MAX);
+
+	const PropertyId values = specification.RegisterProperty("values", "", false, false).AddParser("keyword", "a=50, b, c=-200").GetId();
+	Parse(values, "a", 50);
+	Parse(values, "b", 51);
+	Parse(values, "c", -200);
+	Parse(values, "d", INT_MAX);
+	Parse(values, "0", INT_MAX);
+	Parse(values, "2", INT_MAX);
+
+	const PropertyId numbers =
+		specification.RegisterProperty("numbers", "", false, false).AddParser("keyword", "a=10, b=20, c=30").AddParser("number").GetId();
+	Parse(numbers, "a", 10);
+	Parse(numbers, "b", 20);
+	Parse(numbers, "c", 30);
+	Parse(numbers, "d", INT_MAX);
+	Parse(numbers, "0", 0);
+	Parse(numbers, "2", 2);
+	Parse(numbers, "20", 20);
 
 	Rml::Shutdown();
 }
