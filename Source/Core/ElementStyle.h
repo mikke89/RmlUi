@@ -128,6 +128,8 @@ public:
 	/// some operations may require to dirty these manually, such as when moving an element into another.
 	void DirtyInheritedProperties();
 
+	// Sets a single property as dirty.
+	void DirtyProperty(PropertyId id);
 	/// Dirties all properties with any of the given units (OR-ed together) on the current element (*not* recursive).
 	void DirtyPropertiesWithUnits(Property::Unit units);
 	/// Dirties all properties with any of the given units (OR-ed together) on the current element and recursively on all children.
@@ -147,8 +149,6 @@ public:
 private:
 	// Dirty all child definitions
 	void DirtyChildDefinitions();
-	// Sets a single property as dirty.
-	void DirtyProperty(PropertyId id);
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
 

@@ -103,6 +103,12 @@ FontFaceHandleDefault* FontProvider::GetFallbackFontFace(int index, int font_siz
 	return nullptr;
 }
 
+void FontProvider::ReleaseFontResources()
+{
+	RMLUI_ASSERT(g_font_provider);
+	for (auto& name_family : g_font_provider->font_families)
+		name_family.second->ReleaseFontResources();
+}
 
 bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight)
 {

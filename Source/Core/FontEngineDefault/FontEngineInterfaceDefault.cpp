@@ -113,4 +113,9 @@ int FontEngineInterfaceDefault::GetVersion(FontFaceHandle handle)
 	return handle_default->GetVersion();
 }
 
+void FontEngineInterfaceDefault::ReleaseFontResources()
+{
+	FontProvider::ReleaseFontResources();
+}
+
 } // namespace Rml

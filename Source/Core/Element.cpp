@@ -2864,4 +2864,15 @@ void Element::OnDpRatioChangeRecursive()
 		GetChild(i)->OnDpRatioChangeRecursive();
 }
 
+void Element::DirtyFontFaceRecursive()
+{
+	// Dirty the font size to force the element to update the face handle during the next Update(), and update any existing text geometry.
+	meta->style.DirtyProperty(PropertyId::FontSize);
+	meta->computed_values.font_face_handle(0);
+
+	const int num_children = GetNumChildren(true);
+	for (int i = 0; i < num_children; ++i)
+		GetChild(i)->DirtyFontFaceRecursive();
+}
+
 } // namespace Rml

@@ -87,5 +87,9 @@ FontFaceHandleDefault* FontFace::GetHandle(int size, bool load_default_glyphs)
 	return result;
 }
 
+void FontFace::ReleaseFontResources()
+{
+	HandleMap().swap(handles);
+}
 
 } // namespace Rml

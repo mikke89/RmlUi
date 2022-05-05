@@ -74,6 +74,9 @@ public:
 
 	/// Returns the current version of the font face.
 	int GetVersion(FontFaceHandle handle) override;
+
+	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
+	void ReleaseFontResources() override;
 };
 
 } // namespace Rml

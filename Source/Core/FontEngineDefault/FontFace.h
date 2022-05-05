@@ -55,6 +55,9 @@ public:
 	/// @return The font handle.
 	FontFaceHandleDefault* GetHandle(int size, bool load_default_glyphs);
 
+	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
+	void ReleaseFontResources();
+
 private:
 	Style::FontStyle style;
 	Style::FontWeight weight;

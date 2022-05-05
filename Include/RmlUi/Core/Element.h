@@ -30,6 +30,7 @@
 #define RMLUI_CORE_ELEMENT_H
 
 #include "Box.h"
+#include "Core.h"
 #include "Event.h"
 #include "Header.h"
 #include "ObserverPtr.h"
@@ -667,6 +668,7 @@ private:
 	void UpdateTransformState();
 
 	void OnDpRatioChangeRecursive();
+	void DirtyFontFaceRecursive();
 
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
 	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool initiated_by_animation_property);
@@ -773,6 +775,7 @@ private:
 	friend class Rml::LayoutBlockBox;
 	friend class Rml::LayoutInlineBox;
 	friend class Rml::ElementScroll;
+	friend void Rml::ReleaseFontResources();
 };
 
 } // namespace Rml

@@ -382,7 +382,11 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		font_face_changed = true;
 
 		geometry.clear();
+		geometry_dirty = true;
+
+		font_effects_handle = 0;
 		font_effects_dirty = true;
+		font_handle_version = 0;
 	}
 
 	if (changed_properties.Contains(PropertyId::FontEffect))

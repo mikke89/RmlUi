@@ -89,4 +89,10 @@ FontFace* FontFamily::AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle s
 	return result;
 }
 
+void FontFamily::ReleaseFontResources()
+{
+	for (auto& entry : font_faces)
+		entry.face->ReleaseFontResources();
+}
+
 } // namespace Rml

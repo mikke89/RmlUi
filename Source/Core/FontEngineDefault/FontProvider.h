@@ -72,6 +72,9 @@ public:
 	/// Return a font face handle with the given index, at the given font size.
 	static FontFaceHandleDefault* GetFallbackFontFace(int index, int font_size);
 
+	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
+	static void ReleaseFontResources();
+
 private:
 	FontProvider();
 	~FontProvider();

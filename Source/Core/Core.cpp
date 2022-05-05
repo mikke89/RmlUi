@@ -28,6 +28,7 @@
 
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
@@ -385,6 +386,20 @@ void ReleaseMemoryPools()
 	{
 		delete observerPtrBlockPool;
 		observerPtrBlockPool = nullptr;
+	}
+}
+
+void ReleaseFontResources()
+{
+	if (font_interface)
+	{
+		for (const auto& name_context : contexts)
+			name_context.second->GetRootElement()->DirtyFontFaceRecursive();
+
+		font_interface->ReleaseFontResources();
+
+		for (const auto& name_context : contexts)
+			name_context.second->Update();
 	}
 }
 
