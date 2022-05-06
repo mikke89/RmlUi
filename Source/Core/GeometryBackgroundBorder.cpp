@@ -67,7 +67,7 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 
 	// -- Find the corner positions --
 
-	const Vector2f border_position = (offset + box.GetPosition(Box::BORDER)).Round();
+	const Vector2f border_position = offset.Round();
 	const Vector2f padding_position = border_position + Vector2f(border_widths[Edge::LEFT], border_widths[Edge::TOP]);
 	const Vector2f border_size = padding_size + Vector2f(border_widths[Edge::LEFT] + border_widths[Edge::RIGHT], border_widths[Edge::TOP] + border_widths[Edge::BOTTOM]);
 

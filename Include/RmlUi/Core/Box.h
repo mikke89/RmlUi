@@ -78,10 +78,13 @@ public:
 	/// @param area[in] The desired area.
 	/// @return The position of the area.
 	Vector2f GetPosition(Area area = Box::CONTENT) const;
+	/// Returns the size of the box's content area.
+	/// @return The size of the content area.
+	Vector2f GetSize() const;
 	/// Returns the size of one of the box's areas. This will include all inner areas.
 	/// @param area[in] The desired area.
 	/// @return The size of the requested area.
-	Vector2f GetSize(Area area = Box::CONTENT) const;
+	Vector2f GetSize(Area area) const;
 
 	/// Sets the size of the content area.
 	/// @param content[in] The size of the new content area.
