@@ -28,6 +28,7 @@
 
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/ContextInstancer.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
@@ -630,10 +631,10 @@ bool Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 static Element* FindFocusElement(Element* element)
 {
 	ElementDocument* owner_document = element->GetOwnerDocument();
-	if (!owner_document || owner_document->GetComputedValues().focus == Style::Focus::None)
+	if (!owner_document || owner_document->GetComputedValues().focus() == Style::Focus::None)
 		return nullptr;
 	
-	while (element && element->GetComputedValues().focus == Style::Focus::None)
+	while (element && element->GetComputedValues().focus() == Style::Focus::None)
 	{
 		element = element->GetParentNode();
 	}
@@ -709,7 +710,7 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 			drag = hover;
 			while (drag)
 			{
-				Style::Drag drag_style = drag->GetComputedValues().drag;
+				Style::Drag drag_style = drag->GetComputedValues().drag();
 				switch (drag_style)
 				{
 				case Style::Drag::None:		drag = drag->GetParentNode(); continue;
@@ -1009,7 +1010,7 @@ bool Context::OnFocusChange(Element* new_focus)
 	ElementDocument* document = focus->GetOwnerDocument();
 	if (document != nullptr)
 	{
-		Style::ZIndex z_index_property = document->GetComputedValues().z_index;
+		Style::ZIndex z_index_property = document->GetComputedValues().z_index();
 		if (z_index_property.type == Style::ZIndex::Auto)
 			document->PullToFront();
 	}
@@ -1056,7 +1057,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 				drag->DispatchEvent(EventId::Dragstart, drag_start_parameters);
 				drag_started = true;
 
-				if (drag->GetComputedValues().drag == Style::Drag::Clone)
+				if (drag->GetComputedValues().drag() == Style::Drag::Clone)
 				{
 					// Clone the element and attach it to the mouse cursor.
 					CreateDragClone(drag);
@@ -1074,9 +1075,9 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 		String new_cursor_name;
 
 		if(drag)
-			new_cursor_name = drag->GetComputedValues().cursor;
+			new_cursor_name = drag->GetComputedValues().cursor();
 		else if (hover)
-			new_cursor_name = hover->GetComputedValues().cursor;
+			new_cursor_name = hover->GetComputedValues().cursor();
 
 		if(new_cursor_name != cursor_name)
 		{
@@ -1183,7 +1184,7 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 	}
 
 	// Ignore elements whose pointer events are disabled.
-	if (element->GetComputedValues().pointer_events == Style::PointerEvents::None)
+	if (element->GetComputedValues().pointer_events() == Style::PointerEvents::None)
 		return nullptr;
 
 	// Projection may fail if we have a singular transformation matrix.

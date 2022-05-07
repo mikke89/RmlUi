@@ -27,11 +27,12 @@
  */
 
 #include "LayoutTable.h"
-#include "LayoutTableDetails.h"
-#include "LayoutDetails.h"
-#include "LayoutEngine.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include "LayoutDetails.h"
+#include "LayoutEngine.h"
+#include "LayoutTableDetails.h"
 #include <algorithm>
 #include <numeric>
 
@@ -42,8 +43,8 @@ Vector2f LayoutTable::FormatTable(Box& box, Vector2f min_size, Vector2f max_size
 	const ComputedValues& computed_table = element_table->GetComputedValues();
 
 	// Scrollbars are illegal in the table element.
-	if (!(computed_table.overflow_x == Style::Overflow::Visible || computed_table.overflow_x == Style::Overflow::Hidden) ||
-		!(computed_table.overflow_y == Style::Overflow::Visible || computed_table.overflow_y == Style::Overflow::Hidden))
+	if (!(computed_table.overflow_x() == Style::Overflow::Visible || computed_table.overflow_x() == Style::Overflow::Hidden) ||
+		!(computed_table.overflow_y() == Style::Overflow::Visible || computed_table.overflow_y() == Style::Overflow::Hidden))
 	{
 		Log::Message(Log::LT_WARNING, "Table elements can only have 'overflow' property values of 'visible' or 'hidden'. Table will not be formatted: %s.", element_table->GetAddress().c_str());
 		return Vector2f(0);
@@ -58,14 +59,14 @@ Vector2f LayoutTable::FormatTable(Box& box, Vector2f min_size, Vector2f max_size
 	Math::SnapToPixelGrid(table_content_offset, table_initial_content_size);
 
 	// When width or height is set, they act as minimum width or height, just as in CSS.
-	if (computed_table.width.type != Style::Width::Auto)
+	if (computed_table.width().type != Style::Width::Auto)
 		min_size.x = Math::Max(min_size.x, table_initial_content_size.x);
-	if (computed_table.height.type != Style::Height::Auto)
+	if (computed_table.height().type != Style::Height::Auto)
 		min_size.y = Math::Max(min_size.y, table_initial_content_size.y);
 
 	const Vector2f table_gap = Vector2f(
-		ResolveValue(computed_table.column_gap, table_initial_content_size.x), 
-		ResolveValue(computed_table.row_gap, table_initial_content_size.y)
+		ResolveValue(computed_table.column_gap(), table_initial_content_size.x), 
+		ResolveValue(computed_table.row_gap(), table_initial_content_size.y)
 	);
 
 	TableGrid grid;
@@ -387,7 +388,7 @@ void LayoutTable::FormatCells()
 		Element* element_cell = grid_cell.element_cell;
 
 		Box& box = cells[cell_index];
-		Style::VerticalAlign vertical_align = element_cell->GetComputedValues().vertical_align;
+		Style::VerticalAlign vertical_align = element_cell->GetComputedValues().vertical_align();
 
 		const float cell_border_height = GetSpanningCellBorderSize(rows, grid_cell.row_begin, grid_cell.row_last);
 		const Vector2f cell_offset = table_content_offset + Vector2f(

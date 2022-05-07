@@ -27,9 +27,10 @@
  */
 
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Context.h"
-#include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/Utilities.h"
 #include "ComputeProperty.h"
@@ -62,7 +63,7 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 
 	Vector<int> new_active_media_block_indices;
 
-	const float font_size = DefaultComputedValues.font_size;
+	const float font_size = DefaultComputedValues.font_size();
 
 	for (int media_block_index = 0; media_block_index < (int)media_blocks.size(); media_block_index++)
 	{

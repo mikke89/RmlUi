@@ -27,16 +27,17 @@
  */
 
 #include "LayoutInlineBoxText.h"
-#include "ComputeProperty.h"
-#include "LayoutEngine.h"
-#include "LayoutLineBox.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/Log.h"
-#include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "ComputeProperty.h"
+#include "LayoutEngine.h"
+#include "LayoutLineBox.h"
 
 namespace Rml {
 
@@ -178,21 +179,9 @@ void LayoutInlineBoxText::BuildWordBox()
 		baseline = 0;
 
 		const ComputedValues& computed = text_element->GetComputedValues();
-		const String font_family_property = text_element->GetProperty<String>("font-family");
-		const String& font_family_computed = computed.font_family;
+		const String font_family_property = computed.font_family();
 
-		if (ComputeFontFamily(font_family_property) != font_family_computed)
-		{
-			Log::Message(
-				Log::LT_WARNING,
-				"No font face defined. Mismatch between specified font family property '%s' and computed value '%s'. "
-				"Make sure Context::Update is run after new elements are constructed, before Context::Render. On element %s",
-				font_family_property.c_str(),
-				font_family_computed.c_str(),
-				text_element->GetAddress().c_str()
-			);
-		}
-		else if (font_family_property.empty())
+		if (font_family_property.empty())
 		{
 			Log::Message(
 				Log::LT_WARNING,
@@ -202,11 +191,12 @@ void LayoutInlineBoxText::BuildWordBox()
 		}
 		else
 		{
-			const String font_face_description = FontFaceDescription(font_family_property, computed.font_style, computed.font_weight);
+			const String font_face_description = FontFaceDescription(font_family_property, computed.font_style(), computed.font_weight());
 
 			Log::Message(
 				Log::LT_WARNING,
-				"No font face defined. Ensure that the specified font face %s has been successfully loaded. "
+				"No font face defined. Ensure (1) that Context::Update is run after new elements are constructed, before Context::Render, "
+				"and (2) that the specified font face %s has been successfully loaded. "
 				"Please see previous log messages for all successfully loaded fonts. On element %s",
 				font_face_description.c_str(),
 				text_element->GetAddress().c_str()

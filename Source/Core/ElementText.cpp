@@ -171,7 +171,7 @@ bool ElementText::GenerateToken(float& token_width, int line_begin)
 	// Determine how we are processing white-space while formatting the text.
 	using namespace Style;
 	auto& computed = GetComputedValues();
-	WhiteSpace white_space_property = computed.white_space;
+	WhiteSpace white_space_property = computed.white_space();
 	bool collapse_white_space = white_space_property == WhiteSpace::Normal ||
 								white_space_property == WhiteSpace::Nowrap ||
 								white_space_property == WhiteSpace::Preline;
@@ -182,7 +182,7 @@ bool ElementText::GenerateToken(float& token_width, int line_begin)
 	const char* token_begin = text.c_str() + line_begin;
 	String token;
 
-	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform, true);
+	BuildToken(token, token_begin, text.c_str() + text.size(), true, collapse_white_space, break_at_endline, computed.text_transform(), true);
 	token_width = (float) GetFontEngineInterface()->GetStringWidth(font_face_handle, token);
 
 	return LastToken(token_begin, text.c_str() + text.size(), collapse_white_space, break_at_endline);
@@ -207,7 +207,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	// Determine how we are processing white-space while formatting the text.
 	using namespace Style;
 	auto& computed = GetComputedValues();
-	WhiteSpace white_space_property = computed.white_space;
+	WhiteSpace white_space_property = computed.white_space();
 	bool collapse_white_space = white_space_property == WhiteSpace::Normal ||
 								white_space_property == WhiteSpace::Nowrap ||
 								white_space_property == WhiteSpace::Preline;
@@ -219,8 +219,8 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 							white_space_property == WhiteSpace::Prewrap ||
 							white_space_property == WhiteSpace::Preline;
 
-	TextTransform text_transform_property = computed.text_transform;
-	WordBreak word_break = computed.word_break;
+	TextTransform text_transform_property = computed.text_transform();
+	WordBreak word_break = computed.word_break();
 
 	FontEngineInterface* font_engine_interface = GetFontEngineInterface();
 
@@ -355,10 +355,10 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 	if (changed_properties.Contains(PropertyId::Color) ||
 		changed_properties.Contains(PropertyId::Opacity))
 	{
-		const float new_opacity = computed.opacity;
+		const float new_opacity = computed.opacity();
 		const bool opacity_changed = opacity != new_opacity;
 
-		Colourb new_colour = computed.color;
+		Colourb new_colour = computed.color();
 		new_colour.alpha = byte(new_opacity * float(new_colour.alpha));
 		colour_changed = colour != new_colour;
 
@@ -392,7 +392,7 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 	if (changed_properties.Contains(PropertyId::TextDecoration))
 	{
-		decoration_property = computed.text_decoration;
+		decoration_property = computed.text_decoration();
 	}
 
 	if (font_face_changed)
@@ -435,7 +435,7 @@ bool ElementText::UpdateFontEffects()
 
 	// Fetch the font-effect for this text element
 	const FontEffectList* font_effects = &empty_font_effects;
-	if (GetComputedValues().has_font_effect)
+	if (GetComputedValues().has_font_effect())
 	{
 		if (const Property* p = GetProperty(PropertyId::FontEffect))
 			if (FontEffectsPtr effects = p->Get<FontEffectsPtr>())

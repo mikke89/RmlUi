@@ -32,7 +32,7 @@
 #include "Header.h"
 #include "Types.h"
 #include "Vertex.h"
-#include "ComputedValues.h"
+#include "StyleTypes.h"
 
 namespace Rml {
 

@@ -27,6 +27,7 @@
  */
 
 #include "DecoratorGradient.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
@@ -70,13 +71,13 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 	const Box& box = element->GetBox();
 
 	const ComputedValues& computed = element->GetComputedValues();
-	const float opacity = computed.opacity;
+	const float opacity = computed.opacity();
 
 	const Vector4f border_radius{
-		computed.border_top_left_radius,
-		computed.border_top_right_radius,
-		computed.border_bottom_right_radius,
-		computed.border_bottom_left_radius,
+		computed.border_top_left_radius(),
+		computed.border_top_right_radius(),
+		computed.border_bottom_right_radius(),
+		computed.border_bottom_left_radius(),
 	};
 	GeometryUtilities::GenerateBackgroundBorder(geometry, element->GetBox(), Vector2f(0), border_radius, Colourb());
 

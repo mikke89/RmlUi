@@ -458,17 +458,17 @@ void ElementDocument::UpdatePosition()
 
 		auto& computed = GetComputedValues();
 
-		if (computed.left.type != Style::Left::Auto)
-			position.x = ResolveValue(computed.left, containing_block.x);
-		else if (computed.right.type != Style::Right::Auto)
-			position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveValue(computed.right, containing_block.x);
+		if (computed.left().type != Style::Left::Auto)
+			position.x = ResolveValue(computed.left(), containing_block.x);
+		else if (computed.right().type != Style::Right::Auto)
+			position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveValue(computed.right(), containing_block.x);
 		else
 			position.x = GetBox().GetEdge(Box::MARGIN, Box::LEFT);
 
-		if (computed.top.type != Style::Top::Auto)
-			position.y = ResolveValue(computed.top, containing_block.y);
-		else if (computed.bottom.type != Style::Bottom::Auto)
-			position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveValue(computed.bottom, containing_block.y);
+		if (computed.top().type != Style::Top::Auto)
+			position.y = ResolveValue(computed.top(), containing_block.y);
+		else if (computed.bottom().type != Style::Bottom::Auto)
+			position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveValue(computed.bottom(), containing_block.y);
 		else
 			position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
 
@@ -540,7 +540,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 		{
 			Element* focus_node = GetFocusLeafNode();
 
-			if (focus_node && focus_node->GetComputedValues().tab_index == Style::TabIndex::Auto)
+			if (focus_node && focus_node->GetComputedValues().tab_index() == Style::TabIndex::Auto)
 			{
 				focus_node->Click();
 				event.StopPropagation();
@@ -562,10 +562,10 @@ static CanFocus CanFocusElement(Element* element)
 
 	const ComputedValues& computed = element->GetComputedValues();
 
-	if (computed.focus == Style::Focus::None)
+	if (computed.focus() == Style::Focus::None)
 		return CanFocus::NoAndNoChildren;
 
-	if (computed.tab_index == Style::TabIndex::Auto)
+	if (computed.tab_index() == Style::TabIndex::Auto)
 		return CanFocus::Yes;
 
 	return CanFocus::No;

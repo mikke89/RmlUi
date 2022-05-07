@@ -27,6 +27,7 @@
  */
 
 #include "ElementStyle.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
@@ -370,14 +371,14 @@ const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 
 static float ComputeLength(const Property* property, Element* element)
 {
-	const float font_size = element->GetComputedValues().font_size;
-	float doc_font_size = DefaultComputedValues.font_size;
+	const float font_size = element->GetComputedValues().font_size();
+	float doc_font_size = DefaultComputedValues.font_size();
 	float dp_ratio = 1.0f;
 	Vector2f vp_dimensions(1.0f);
 
 	if (ElementDocument* document = element->GetOwnerDocument())
 	{
-		doc_font_size = document->GetComputedValues().font_size;
+		doc_font_size = document->GetComputedValues().font_size();
 
 		if (Context* context = document->GetContext())
 		{
@@ -432,12 +433,12 @@ float ElementStyle::ResolveLength(const Property* property, RelativeTarget relat
 		base_value = element->GetContainingBlock().y;
 		break;
 	case RelativeTarget::FontSize:
-		base_value = element->GetComputedValues().font_size;
+		base_value = element->GetComputedValues().font_size();
 		break;
 	case RelativeTarget::ParentFontSize:
 	{
 		auto p = element->GetParentNode();
-		base_value = (p ? p->GetComputedValues().font_size : DefaultComputedValues.font_size);
+		base_value = (p ? p->GetComputedValues().font_size() : DefaultComputedValues.font_size());
 	}
 		break;
 	case RelativeTarget::LineHeight:
@@ -557,18 +558,23 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	//   3. Assign any local properties (from inline style or stylesheet)
 	//   4. Dirty properties in children that are inherited
 
-	const float font_size_before = values.font_size;
-	const Style::LineHeight line_height_before = values.line_height;
+	const float font_size_before = values.font_size();
+	const Style::LineHeight line_height_before = values.line_height();
 
 	// The next flag is just a small optimization, if the element was just created we don't need to copy all the default values.
 	if (!values_are_default_initialized)
 	{
 		// This needs to be done in case some properties were removed and thus not in our local style anymore.
 		// If we skipped this, the old dirty value would be unmodified, instead, now it is set to its default value.
-		// Strictly speaking, we only really need to do this for the dirty values, and only non-inherited. However,
-		// it seems assigning the whole thing is faster in most cases.
-		values = DefaultComputedValues;
+		// Strictly speaking, we only really need to do this for the dirty, non-inherited values. However, in most
+		// cases it seems simply assigning all non-inherited values is faster than iterating the dirty properties.
+		values.CopyNonInherited(DefaultComputedValues);
 	}
+
+	if (parent_values)
+		values.CopyInherited(*parent_values);
+	else if (!values_are_default_initialized)
+		values.CopyInherited(DefaultComputedValues);
 
 	bool dirty_em_properties = false;
 
@@ -576,11 +582,11 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	if(dirty_properties.Contains(PropertyId::FontSize))
 	{
 		if (auto p = GetLocalProperty(PropertyId::FontSize))
-			values.font_size = ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, vp_dimensions);
+			values.font_size(ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, vp_dimensions));
 		else if (parent_values)
-			values.font_size = parent_values->font_size;
+			values.font_size(parent_values->font_size());
 		
-		if (font_size_before != values.font_size)
+		if (font_size_before != values.font_size())
 		{
 			dirty_em_properties = true;
 			dirty_properties.Insert(PropertyId::LineHeight);
@@ -588,65 +594,39 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	}
 	else
 	{
-		values.font_size = font_size_before;
+		values.font_size(font_size_before);
 	}
 
-	const float font_size = values.font_size;
-	const float document_font_size = (document_values ? document_values->font_size : DefaultComputedValues.font_size);
-
+	const float font_size = values.font_size();
+	const float document_font_size = (document_values ? document_values->font_size() : DefaultComputedValues.font_size());
 
 	// Since vertical-align depends on line-height we compute this before iteration
 	if(dirty_properties.Contains(PropertyId::LineHeight))
 	{
 		if (auto p = GetLocalProperty(PropertyId::LineHeight))
 		{
-			values.line_height = ComputeLineHeight(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.line_height(ComputeLineHeight(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 		}
 		else if (parent_values)
 		{
 			// Line height has a special inheritance case for numbers/percent: they inherit them directly instead of computed length, but for lengths, they inherit the length.
 			// See CSS specs for details. Percent is already converted to number.
-			if (parent_values->line_height.inherit_type == Style::LineHeight::Number)
-				values.line_height = Style::LineHeight(font_size * parent_values->line_height.inherit_value, Style::LineHeight::Number, parent_values->line_height.inherit_value);
+			if (parent_values->line_height().inherit_type == Style::LineHeight::Number)
+				values.line_height() = Style::LineHeight(font_size * parent_values->line_height().inherit_value, Style::LineHeight::Number,
+					parent_values->line_height().inherit_value);
 			else
-				values.line_height = parent_values->line_height;
+				values.line_height(parent_values->line_height());
 		}
 
-		if(line_height_before.value != values.line_height.value || line_height_before.inherit_value != values.line_height.inherit_value)
+		if (line_height_before.value != values.line_height().value || line_height_before.inherit_value != values.line_height().inherit_value)
 			dirty_properties.Insert(PropertyId::VerticalAlign);
 	}
 	else
 	{
-		values.line_height = line_height_before;
+		values.line_height(line_height_before);
 	}
 
-
-	if (parent_values)
-	{
-		// Inherited properties are copied here, but may be overwritten below by locally defined properties
-		// Line-height and font-size are computed above
-		values.color = parent_values->color;
-		values.opacity = parent_values->opacity;
-
-		values.font_family = parent_values->font_family;
-		values.font_style = parent_values->font_style;
-		values.font_weight = parent_values->font_weight;
-		values.font_face_handle = parent_values->font_face_handle;
-
-		values.text_align = parent_values->text_align;
-		values.text_decoration = parent_values->text_decoration;
-		values.text_transform = parent_values->text_transform;
-		values.white_space = parent_values->white_space;
-		values.word_break = parent_values->word_break;
-
-		values.cursor = parent_values->cursor;
-		values.focus = parent_values->focus;
-
-		values.pointer_events = parent_values->pointer_events;
-		
-		values.has_font_effect = parent_values->has_font_effect;
-	}
-
+	bool dirty_font_face_handle = false;
 
 	for (auto it = Iterate(); !it.AtEnd(); ++it)
 	{
@@ -662,282 +642,257 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		switch (id)
 		{
 		case PropertyId::MarginTop:
-			values.margin_top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.margin_top(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MarginRight:
-			values.margin_right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.margin_right(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MarginBottom:
-			values.margin_bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.margin_bottom(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MarginLeft:
-			values.margin_left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.margin_left(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::PaddingTop:
-			values.padding_top = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.padding_top(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PaddingRight:
-			values.padding_right = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.padding_right(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PaddingBottom:
-			values.padding_bottom = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.padding_bottom(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PaddingLeft:
-			values.padding_left = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.padding_left(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::BorderTopWidth:
-			values.border_top_width = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.border_top_width(ComputeBorderWidth(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions)));
 			break;
 		case PropertyId::BorderRightWidth:
-			values.border_right_width = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.border_right_width(ComputeBorderWidth(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions)));
 			break;
 		case PropertyId::BorderBottomWidth:
-			values.border_bottom_width = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.border_bottom_width(ComputeBorderWidth(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions)));
 			break;
 		case PropertyId::BorderLeftWidth:
-			values.border_left_width = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.border_left_width(ComputeBorderWidth(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions)));
 			break;
 
 		case PropertyId::BorderTopColor:
-			values.border_top_color = p->Get<Colourb>();
+			values.border_top_color(p->Get<Colourb>());
 			break;
 		case PropertyId::BorderRightColor:
-			values.border_right_color = p->Get<Colourb>();
+			values.border_right_color(p->Get<Colourb>());
 			break;
 		case PropertyId::BorderBottomColor:
-			values.border_bottom_color = p->Get<Colourb>();
+			values.border_bottom_color(p->Get<Colourb>());
 			break;
 		case PropertyId::BorderLeftColor:
-			values.border_left_color = p->Get<Colourb>();
+			values.border_left_color(p->Get<Colourb>());
 			break;
 
 		case PropertyId::BorderTopLeftRadius:
-			values.border_top_left_radius = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.border_top_left_radius(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::BorderTopRightRadius:
-			values.border_top_right_radius = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.border_top_right_radius(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::BorderBottomRightRadius:
-			values.border_bottom_right_radius = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.border_bottom_right_radius(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::BorderBottomLeftRadius:
-			values.border_bottom_left_radius = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.border_bottom_left_radius(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Display:
-			values.display = (Display)p->Get<int>();
+			values.display((Display)p->Get<int>());
 			break;
 		case PropertyId::Position:
-			values.position = (Position)p->Get<int>();
+			values.position((Position)p->Get<int>());
 			break;
 
 		case PropertyId::Top:
-			values.top = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.top(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::Right:
-			values.right = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.right(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::Bottom:
-			values.bottom = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.bottom(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::Left:
-			values.left = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.left(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Float:
-			values.float_ = (Float)p->Get<int>();
+			values.float_((Float)p->Get<int>());
 			break;
 		case PropertyId::Clear:
-			values.clear = (Clear)p->Get<int>();
+			values.clear((Clear)p->Get<int>());
 			break;
 		case PropertyId::BoxSizing:
-			values.box_sizing = (BoxSizing)p->Get<int>();
+			values.box_sizing((BoxSizing)p->Get<int>());
 			break;
 
 		case PropertyId::ZIndex:
-			values.z_index = (p->unit == Property::KEYWORD ? ZIndex(ZIndex::Auto) : ZIndex(ZIndex::Number, p->Get<float>()));
+			values.z_index((p->unit == Property::KEYWORD ? ZIndex(ZIndex::Auto) : ZIndex(ZIndex::Number, p->Get<float>())));
 			break;
 
 		case PropertyId::Width:
-			values.width = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.width(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MinWidth:
-			values.min_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.min_width(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MaxWidth:
-			values.max_width = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.max_width(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Height:
-			values.height = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.height(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MinHeight:
-			values.min_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.min_height(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MaxHeight:
-			values.max_height = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.max_height(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::LineHeight:
 			// (Line-height computed above)
 			break;
 		case PropertyId::VerticalAlign:
-			values.vertical_align = ComputeVerticalAlign(p, values.line_height.value, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.vertical_align(ComputeVerticalAlign(p, values.line_height().value, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::OverflowX:
-			values.overflow_x = (Overflow)p->Get< int >();
+			values.overflow_x((Overflow)p->Get< int >());
 			break;
 		case PropertyId::OverflowY:
-			values.overflow_y = (Overflow)p->Get< int >();
+			values.overflow_y((Overflow)p->Get< int >());
 			break;
 		case PropertyId::Clip:
-			values.clip = ComputeClip(p);
+			values.clip(ComputeClip(p));
 			break;
 		case PropertyId::Visibility:
-			values.visibility = (Visibility)p->Get< int >();
+			values.visibility((Visibility)p->Get< int >());
 			break;
 
 		case PropertyId::BackgroundColor:
-			values.background_color = p->Get<Colourb>();
+			values.background_color(p->Get<Colourb>());
 			break;
 		case PropertyId::Color:
-			values.color = p->Get<Colourb>();
+			values.color(p->Get<Colourb>());
 			break;
 		case PropertyId::ImageColor:
-			values.image_color = p->Get<Colourb>();
+			values.image_color(p->Get<Colourb>());
 			break;
 		case PropertyId::Opacity:
-			values.opacity = p->Get<float>();
+			values.opacity(p->Get<float>());
 			break;
 
 		case PropertyId::FontFamily:
-			values.font_family = ComputeFontFamily(p->Get<String>());
-			values.font_face_handle = 0;
+			// Fetched from element's properties.
+			dirty_font_face_handle = true;
 			break;
 		case PropertyId::FontStyle:
-			values.font_style = (FontStyle)p->Get< int >();
-			values.font_face_handle = 0;
+			values.font_style((FontStyle)p->Get< int >());
+			dirty_font_face_handle = true;
 			break;
 		case PropertyId::FontWeight:
-			values.font_weight = (FontWeight)p->Get< int >();
-			values.font_face_handle = 0;
+			values.font_weight((FontWeight)p->Get< int >());
+			dirty_font_face_handle = true;
 			break;
 		case PropertyId::FontSize:
 			// (font-size computed above)
-			values.font_face_handle = 0;
+			dirty_font_face_handle = true;
 			break;
 
 		case PropertyId::TextAlign:
-			values.text_align = (TextAlign)p->Get< int >();
+			values.text_align((TextAlign)p->Get<int>());
 			break;
 		case PropertyId::TextDecoration:
-			values.text_decoration = (TextDecoration)p->Get< int >();
+			values.text_decoration((TextDecoration)p->Get<int>());
 			break;
 		case PropertyId::TextTransform:
-			values.text_transform = (TextTransform)p->Get< int >();
+			values.text_transform((TextTransform)p->Get<int>());
 			break;
 		case PropertyId::WhiteSpace:
-			values.white_space = (WhiteSpace)p->Get< int >();
+			values.white_space((WhiteSpace)p->Get<int>());
 			break;
 		case PropertyId::WordBreak:
-			values.word_break = (WordBreak)p->Get< int >();
+			values.word_break((WordBreak)p->Get<int>());
 			break;
 
 		case PropertyId::RowGap:
-			values.row_gap = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.row_gap(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::ColumnGap:
-			values.column_gap = ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions);
-			break;
-
-		case PropertyId::Cursor:
-			values.cursor = p->Get< String >();
+			values.column_gap(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Drag:
-			values.drag = (Drag)p->Get< int >();
+			values.drag((Drag)p->Get< int >());
 			break;
 		case PropertyId::TabIndex:
-			values.tab_index = (TabIndex)p->Get< int >();
+			values.tab_index((TabIndex)p->Get< int >());
 			break;
 		case PropertyId::Focus:
-			values.focus = (Focus)p->Get<int>();
+			values.focus((Focus)p->Get<int>());
 			break;
 		case PropertyId::ScrollbarMargin:
-			values.scrollbar_margin = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.scrollbar_margin(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PointerEvents:
-			values.pointer_events = (PointerEvents)p->Get<int>();
+			values.pointer_events((PointerEvents)p->Get<int>());
 			break;
 
 		case PropertyId::Perspective:
-			values.perspective = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.perspective(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PerspectiveOriginX:
-			values.perspective_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.perspective_origin_x(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PerspectiveOriginY:
-			values.perspective_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.perspective_origin_y(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
-		case PropertyId::Transform:
-			values.transform = p->Get<TransformPtr>();
-			break;
 		case PropertyId::TransformOriginX:
-			values.transform_origin_x = ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.transform_origin_x(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::TransformOriginY:
-			values.transform_origin_y = ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions);
+			values.transform_origin_y(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::TransformOriginZ:
-			values.transform_origin_z = ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions);
-			break;
-
-		case PropertyId::Transition:
-			values.transition = p->Get<TransitionList>();
-			break;
-		case PropertyId::Animation:
-			values.animation = p->Get<AnimationList>();
+			values.transform_origin_z(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Decorator:
-			values.has_decorator = (p->unit == Property::DECORATOR);
+			values.has_decorator(p->unit == Property::DECORATOR);
 			break;
 		case PropertyId::FontEffect:
-			values.has_font_effect = (p->unit == Property::FONTEFFECT);
-			break;
-
-		case PropertyId::AlignContent:
-			values.align_content = (AlignContent)p->Get<int>();
-			break;
-		case PropertyId::AlignItems:
-			values.align_items = (AlignItems)p->Get<int>();
-			break;
-		case PropertyId::AlignSelf:
-			values.align_self = (AlignSelf)p->Get<int>();
+			values.has_font_effect((p->unit == Property::FONTEFFECT));
 			break;
 		case PropertyId::FlexBasis:
-			values.flex_basis = ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions);
-			break;
-		case PropertyId::FlexDirection:
-			values.flex_direction = (FlexDirection)p->Get<int>();
-			break;
-		case PropertyId::FlexGrow:
-			values.flex_grow = p->Get<float>();
-			break;
-		case PropertyId::FlexShrink:
-			values.flex_shrink = p->Get<float>();
-			break;
-		case PropertyId::FlexWrap:
-			values.flex_wrap = (FlexWrap)p->Get<int>();
-			break;
-		case PropertyId::JustifyContent:
-			values.justify_content = (JustifyContent)p->Get<int>();
+			values.flex_basis(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
+		// Fetched from element's properties.
+		case PropertyId::Cursor:
+		case PropertyId::Transform:
+		case PropertyId::Transition:
+		case PropertyId::Animation:
+		case PropertyId::AlignContent:
+		case PropertyId::AlignItems:
+		case PropertyId::AlignSelf:
+		case PropertyId::FlexDirection:
+		case PropertyId::FlexGrow:
+		case PropertyId::FlexShrink:
+		case PropertyId::FlexWrap:
+		case PropertyId::JustifyContent:
+			break;
 		// Unhandled properties. Must be manually retrieved with 'GetProperty()'.
 		case PropertyId::FillImage:
 		case PropertyId::CaretColor:
@@ -951,10 +906,11 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	}
 
 	// The font-face handle is nulled when local font properties are set. In that case we need to retrieve a new handle.
-	if (!values.font_face_handle)
+	if (dirty_font_face_handle)
 	{
 		RMLUI_ZoneScopedN("FontFaceHandle");
-		values.font_face_handle = GetFontEngineInterface()->GetFontFaceHandle(values.font_family, values.font_style, values.font_weight, (int)values.font_size);
+		values.font_face_handle(
+			GetFontEngineInterface()->GetFontFaceHandle(values.font_family(), values.font_style(), values.font_weight(), (int)values.font_size()));
 	}
 
 	// Next, pass inheritable dirty properties onto our children

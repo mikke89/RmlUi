@@ -27,6 +27,7 @@
  */
 
 #include "FontFamily.h"
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "FontFace.h"
 
 namespace Rml {

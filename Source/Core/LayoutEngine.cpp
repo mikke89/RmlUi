@@ -27,15 +27,16 @@
  */
 
 #include "LayoutEngine.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include "LayoutBlockBoxSpace.h"
 #include "LayoutDetails.h"
 #include "LayoutFlex.h"
 #include "LayoutInlineBoxText.h"
 #include "LayoutTable.h"
 #include "Pool.h"
-#include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/Profiling.h"
-#include "../../Include/RmlUi/Core/Types.h"
 #include <cstddef>
 #include <float.h>
 
@@ -169,7 +170,7 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 
 	// Check for an absolute position; if this has been set, then we remove it from the flow and add it to the current
 	// block box to be laid out and positioned once the block has been closed and sized.
-	if (computed.position == Style::Position::Absolute || computed.position == Style::Position::Fixed)
+	if (computed.position() == Style::Position::Absolute || computed.position() == Style::Position::Fixed)
 	{
 		if (uses_unsupported_display_position_float_combination("absolutely positioned"))
 			return true;
@@ -180,7 +181,7 @@ bool LayoutEngine::FormatElement(LayoutBlockBox* block_context_box, Element* ele
 	}
 
 	// If the element is floating, we remove it from the flow.
-	if (computed.float_ != Style::Float::None)
+	if (computed.float_() != Style::Float::None)
 	{
 		if (uses_unsupported_display_position_float_combination("floated"))
 			return true;

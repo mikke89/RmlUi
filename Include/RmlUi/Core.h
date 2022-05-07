@@ -81,6 +81,7 @@
 #include "Core/StyleSheet.h"
 #include "Core/StyleSheetContainer.h"
 #include "Core/StyleSheetSpecification.h"
+#include "Core/StyleTypes.h"
 #include "Core/SystemInterface.h"
 #include "Core/Texture.h"
 #include "Core/Transform.h"

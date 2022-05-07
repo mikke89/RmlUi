@@ -27,6 +27,7 @@
  */
 
 #include "FreeTypeInterface.h"
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/Log.h"
 
 #include <string.h>

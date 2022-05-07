@@ -29,7 +29,7 @@
 #ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTFACE_H
 #define RMLUI_CORE_FONTENGINEDEFAULT_FONTFACE_H
 
-#include "../../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../../Include/RmlUi/Core/StyleTypes.h"
 #include "FontTypes.h"
 
 namespace Rml {

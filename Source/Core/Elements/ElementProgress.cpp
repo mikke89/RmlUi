@@ -27,13 +27,14 @@
  */
 
 #include "../../../Include/RmlUi/Core/Elements/ElementProgress.h"
-#include "../../../Include/RmlUi/Core/Math.h"
-#include "../../../Include/RmlUi/Core/GeometryUtilities.h"
-#include "../../../Include/RmlUi/Core/PropertyIdSet.h"
-#include "../../../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/ElementDocument.h"
-#include "../../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../../Include/RmlUi/Core/Math.h"
+#include "../../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../../Include/RmlUi/Core/URL.h"
 #include <algorithm>
 
@@ -259,8 +260,8 @@ void ElementProgress::GenerateGeometry()
 	Colourb quad_colour;
 	{
 		const ComputedValues& computed = GetComputedValues();
-		const float opacity = computed.opacity;
-		quad_colour = computed.image_color;
+		const float opacity = computed.opacity();
+		quad_colour = computed.image_color();
 		quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 	}
 

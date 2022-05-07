@@ -27,13 +27,14 @@
  */
 
 #include "ElementImage.h"
-#include "../TextureDatabase.h"
-#include "../../../Include/RmlUi/Core/URL.h"
-#include "../../../Include/RmlUi/Core/PropertyIdSet.h"
-#include "../../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../../Include/RmlUi/Core/URL.h"
+#include "../TextureDatabase.h"
 
 namespace Rml {
 
@@ -207,8 +208,8 @@ void ElementImage::GenerateGeometry()
 
 	const ComputedValues& computed = GetComputedValues();
 
-	float opacity = computed.opacity;
-	Colourb quad_colour = computed.image_color;
+	float opacity = computed.opacity();
+	Colourb quad_colour = computed.image_color();
     quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 	
 	Vector2f quad_size = GetBox().GetSize(Box::CONTENT).Round();

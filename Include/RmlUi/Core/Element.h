@@ -29,16 +29,16 @@
 #ifndef RMLUI_CORE_ELEMENT_H
 #define RMLUI_CORE_ELEMENT_H
 
-#include "ScriptInterface.h"
-#include "Header.h"
 #include "Box.h"
-#include "ComputedValues.h"
 #include "Event.h"
+#include "Header.h"
 #include "ObserverPtr.h"
 #include "Property.h"
-#include "Types.h"
+#include "ScriptInterface.h"
+#include "StyleTypes.h"
 #include "Transform.h"
 #include "Tween.h"
+#include "Types.h"
 
 namespace Rml {
 

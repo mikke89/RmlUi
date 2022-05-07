@@ -73,7 +73,7 @@ static constexpr int ChildNotifyLevels = 2;
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta
 {
-	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(el), decoration(el), scroll(el) {}
+	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(el), decoration(el), scroll(el), computed_values(el) {}
 	SmallUnorderedMap<EventId, EventListener*> attribute_event_listeners;
 	EventDispatcher event_dispatcher;
 	ElementStyle style;
@@ -555,7 +555,7 @@ float Element::GetZIndex() const
 // Returns the element's font face handle.
 FontFaceHandle Element::GetFontFaceHandle() const
 {
-	return meta->computed_values.font_face_handle;
+	return meta->computed_values.font_face_handle();
 }
 
 // Sets a local property override on the element.
@@ -670,22 +670,22 @@ Vector2f Element::GetContainingBlock()
 
 Style::Position Element::GetPosition()
 {
-	return meta->computed_values.position;
+	return meta->computed_values.position();
 }
 
 Style::Float Element::GetFloat()
 {
-	return meta->computed_values.float_;
+	return meta->computed_values.float_();
 }
 
 Style::Display Element::GetDisplay()
 {
-	return meta->computed_values.display;
+	return meta->computed_values.display();
 }
 
 float Element::GetLineHeight()
 {
-	return meta->computed_values.line_height.value;
+	return meta->computed_values.line_height().value;
 }
 
 // Returns this element's TransformState
@@ -1145,7 +1145,7 @@ void Element::SetInnerRML(const String& rml)
 bool Element::Focus()
 {
 	// Are we allowed focus?
-	Style::Focus focus_property = meta->computed_values.focus;
+	Style::Focus focus_property = meta->computed_values.focus();
 	if (focus_property == Style::Focus::None)
 		return false;
 
@@ -1261,8 +1261,8 @@ void Element::ScrollIntoView(bool align_with_top)
 	{
 		using Style::Overflow;
 		const ComputedValues& computed = scroll_parent->GetComputedValues();
-		const bool scrollable_box_x = (computed.overflow_x != Overflow::Visible && computed.overflow_x != Overflow::Hidden);
-		const bool scrollable_box_y = (computed.overflow_y != Overflow::Visible && computed.overflow_y != Overflow::Hidden);
+		const bool scrollable_box_x = (computed.overflow_x() != Overflow::Visible && computed.overflow_x() != Overflow::Hidden);
+		const bool scrollable_box_y = (computed.overflow_y() != Overflow::Visible && computed.overflow_y() != Overflow::Hidden);
 
 		const Vector2f parent_scroll_size = { scroll_parent->GetScrollWidth(), scroll_parent->GetScrollHeight() };
 		const Vector2f parent_client_size = { scroll_parent->GetClientWidth(), scroll_parent->GetClientHeight() };
@@ -1663,8 +1663,8 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		{
 			meta->style.SetClassNames(value.Get<String>());
 		}
-		else if (((attribute == "colspan" || attribute == "rowspan") && meta->computed_values.display == Style::Display::TableCell)
-			|| (attribute == "span" && (meta->computed_values.display == Style::Display::TableColumn || meta->computed_values.display == Style::Display::TableColumnGroup)))
+		else if (((attribute == "colspan" || attribute == "rowspan") && meta->computed_values.display() == Style::Display::TableCell)
+			|| (attribute == "span" && (meta->computed_values.display() == Style::Display::TableColumn || meta->computed_values.display() == Style::Display::TableColumnGroup)))
 		{
 			DirtyLayout();
 		}
@@ -1740,7 +1740,8 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	if (changed_properties.Contains(PropertyId::Visibility) ||
 		changed_properties.Contains(PropertyId::Display))
 	{
-		bool new_visibility = (meta->computed_values.display != Style::Display::None && meta->computed_values.visibility == Style::Visibility::Visible);
+		bool new_visibility =
+			(meta->computed_values.display() != Style::Display::None && meta->computed_values.visibility() == Style::Visibility::Visible);
 			
 		if (visible != new_visibility)
 		{
@@ -1776,7 +1777,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	// Update the z-index.
 	if (changed_properties.Contains(PropertyId::ZIndex))
 	{
-		Style::ZIndex z_index_property = meta->computed_values.z_index;
+		Style::ZIndex z_index_property = meta->computed_values.z_index();
 
 		if (z_index_property.type == Style::ZIndex::Auto)
 		{
@@ -1929,7 +1930,7 @@ void Element::ProcessDefaultAction(Event& event)
 	{
 		if (GetScrollHeight() > GetClientHeight())
 		{
-			Style::Overflow overflow_property = meta->computed_values.overflow_y;
+			Style::Overflow overflow_property = meta->computed_values.overflow_y();
 			if (overflow_property == Style::Overflow::Auto ||
 				overflow_property == Style::Overflow::Scroll)
 			{
@@ -1944,7 +1945,7 @@ void Element::ProcessDefaultAction(Event& event)
 					(wheel_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
 				{
 					// Defined as three times the default line-height, multiplied by the dp ratio.
-					float default_scroll_length = 3.f * DefaultComputedValues.line_height.value;
+					float default_scroll_length = 3.f * DefaultComputedValues.line_height().value;
 					if (const Context* context = GetContext())
 						default_scroll_length *= context->GetDensityIndependentPixelRatio();
 
@@ -2135,7 +2136,7 @@ void Element::UpdateOffset()
 {
 	using namespace Style;
 	const auto& computed = meta->computed_values;
-	Position position_property = computed.position;
+	Position position_property = computed.position();
 
 	if (position_property == Position::Absolute ||
 		position_property == Position::Fixed)
@@ -2146,24 +2147,36 @@ void Element::UpdateOffset()
 			Vector2f containing_block = parent_box.GetSize(Box::PADDING);
 
 			// If the element is anchored left, then the position is offset by that resolved value.
-			if (computed.left.type != Left::Auto)
-				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) + (ResolveValue(computed.left, containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
+			if (computed.left().type != Left::Auto)
+				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) +
+					(ResolveValue(computed.left(), containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
 
 			// If the element is anchored right, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
-			else if (computed.right.type != Right::Auto)
-				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) - (ResolveValue(computed.right, containing_block.x) + GetBox().GetSize(Box::BORDER).x + GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
+			else if (computed.right().type != Right::Auto)
+			{
+				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) -
+					(ResolveValue(computed.right(), containing_block.x) + GetBox().GetSize(Box::BORDER).x +
+						GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
+			}
 
 			// If the element is anchored top, then the position is offset by that resolved value.
-			if (computed.top.type != Top::Auto)
-				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) + (ResolveValue(computed.top, containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
+			if (computed.top().type != Top::Auto)
+			{
+				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) +
+					(ResolveValue(computed.top(), containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
+			}
 
 			// If the element is anchored bottom, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
-			else if (computed.bottom.type != Bottom::Auto)
-				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) - (ResolveValue(computed.bottom, containing_block.y) + GetBox().GetSize(Box::BORDER).y + GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
+			else if (computed.bottom().type != Bottom::Auto)
+			{
+				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) -
+					(ResolveValue(computed.bottom(), containing_block.y) + GetBox().GetSize(Box::BORDER).y +
+						GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
+			}
 		}
 	}
 	else if (position_property == Position::Relative)
@@ -2173,17 +2186,17 @@ void Element::UpdateOffset()
 			const Box& parent_box = offset_parent->GetBox();
 			Vector2f containing_block = parent_box.GetSize();
 
-			if (computed.left.type != Left::Auto)
-				relative_offset_position.x = ResolveValue(computed.left, containing_block.x);
-			else if (computed.right.type != Right::Auto)
-				relative_offset_position.x = -1 * ResolveValue(computed.right, containing_block.x);
+			if (computed.left().type != Left::Auto)
+				relative_offset_position.x = ResolveValue(computed.left(), containing_block.x);
+			else if (computed.right().type != Right::Auto)
+				relative_offset_position.x = -1 * ResolveValue(computed.right(), containing_block.x);
 			else
 				relative_offset_position.x = 0;
 
-			if (computed.top.type != Top::Auto)
-				relative_offset_position.y = ResolveValue(computed.top, containing_block.y);
-			else if (computed.bottom.type != Bottom::Auto)
-				relative_offset_position.y = -1 * ResolveValue(computed.bottom, containing_block.y);
+			if (computed.top().type != Top::Auto)
+				relative_offset_position.y = ResolveValue(computed.top(), containing_block.y);
+			else if (computed.bottom().type != Bottom::Auto)
+				relative_offset_position.y = -1 * ResolveValue(computed.bottom(), containing_block.y);
 			else
 				relative_offset_position.y = 0;
 		}
@@ -2506,14 +2519,14 @@ void Element::HandleTransitionProperty()
 		dirty_transition = false;
 
 		// Remove all transitions that are no longer in our local list
-		const TransitionList& keep_transitions = GetComputedValues().transition;
+		const TransitionList* keep_transitions = GetComputedValues().transition();
 
-		if (keep_transitions.all)
+		if (keep_transitions && keep_transitions->all)
 			return;
 
 		auto it_remove = animations.end();
 
-		if (keep_transitions.none)
+		if (!keep_transitions || keep_transitions->none)
 		{
 			// All transitions should be removed, but only touch the animations that originate from the 'transition' property.
 			// Move all animations to be erased in a valid state at the end of the list, and erase later.
@@ -2523,8 +2536,10 @@ void Element::HandleTransitionProperty()
 		}
 		else
 		{
+			RMLUI_ASSERT(keep_transitions);
+
 			// Only remove the transitions that are not in our keep list.
-			const auto& keep_transitions_list = keep_transitions.transitions;
+			const auto& keep_transitions_list = keep_transitions->transitions;
 
 			it_remove = std::partition(animations.begin(), animations.end(),
 				[&keep_transitions_list](const ElementAnimation& animation) -> bool {
@@ -2555,8 +2570,8 @@ void Element::HandleAnimationProperty()
 	{
 		dirty_animation = false;
 
-		const AnimationList& animation_list = meta->computed_values.animation;
-		bool element_has_animations = (!animation_list.empty() || !animations.empty());
+		const AnimationList* animation_list = meta->computed_values.animation();
+		bool element_has_animations = ((animation_list && !animation_list->empty()) || !animations.empty());
 		const StyleSheet* stylesheet = nullptr;
 
 		if (element_has_animations)
@@ -2579,34 +2594,39 @@ void Element::HandleAnimationProperty()
 			}
 
 			// Start animations
-			for (const auto& animation : animation_list)
+			if (animation_list)
 			{
-				const Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
-				if (keyframes_ptr && keyframes_ptr->blocks.size() >= 1 && !animation.paused)
+				for (const auto& animation : *animation_list)
 				{
-					auto& property_ids = keyframes_ptr->property_ids;
-					auto& blocks = keyframes_ptr->blocks;
-
-					bool has_from_key = (blocks[0].normalized_time == 0);
-					bool has_to_key = (blocks.back().normalized_time == 1);
-
-					// If the first key defines initial conditions for a given property, use those values, else, use this element's current values.
-					for (PropertyId id : property_ids)
-						StartAnimation(id, (has_from_key ? blocks[0].properties.GetProperty(id) : nullptr), animation.num_iterations, animation.alternate, animation.delay, true);
-
-					// Add middle keys: Need to skip the first and last keys if they set the initial and end conditions, respectively.
-					for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
+					const Keyframes* keyframes_ptr = stylesheet->GetKeyframes(animation.name);
+					if (keyframes_ptr && keyframes_ptr->blocks.size() >= 1 && !animation.paused)
 					{
-						// Add properties of current key to animation
-						float time = blocks[i].normalized_time * animation.duration;
-						for (auto& property : blocks[i].properties.GetProperties())
-							AddAnimationKeyTime(property.first, &property.second, time, animation.tween);
-					}
+						auto& property_ids = keyframes_ptr->property_ids;
+						auto& blocks = keyframes_ptr->blocks;
 
-					// If the last key defines end conditions for a given property, use those values, else, use this element's current values.
-					float time = animation.duration;
-					for (PropertyId id : property_ids)
-						AddAnimationKeyTime(id, (has_to_key ? blocks.back().properties.GetProperty(id) : nullptr), time, animation.tween);
+						bool has_from_key = (blocks[0].normalized_time == 0);
+						bool has_to_key = (blocks.back().normalized_time == 1);
+
+						// If the first key defines initial conditions for a given property, use those values, else, use this element's current
+						// values.
+						for (PropertyId id : property_ids)
+							StartAnimation(id, (has_from_key ? blocks[0].properties.GetProperty(id) : nullptr), animation.num_iterations,
+								animation.alternate, animation.delay, true);
+
+						// Add middle keys: Need to skip the first and last keys if they set the initial and end conditions, respectively.
+						for (int i = (has_from_key ? 1 : 0); i < (int)blocks.size() + (has_to_key ? -1 : 0); i++)
+						{
+							// Add properties of current key to animation
+							float time = blocks[i].normalized_time * animation.duration;
+							for (auto& property : blocks[i].properties.GetProperties())
+								AddAnimationKeyTime(property.first, &property.second, time, animation.tween);
+						}
+
+						// If the last key defines end conditions for a given property, use those values, else, use this element's current values.
+						float time = animation.duration;
+						for (PropertyId id : property_ids)
+							AddAnimationKeyTime(id, (has_to_key ? blocks.back().properties.GetProperty(id) : nullptr), time, animation.tween);
+					}
 				}
 			}
 		}
@@ -2683,7 +2703,7 @@ void Element::UpdateTransformState()
 		// and let the children's transform update merge it with their transform.
 		bool had_perspective = (transform_state && transform_state->GetLocalPerspective());
 
-		float distance = computed.perspective;
+		float distance = computed.perspective();
 		Vector2f vanish = Vector2f(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 		bool have_perspective = false;
 
@@ -2692,15 +2712,15 @@ void Element::UpdateTransformState()
 			have_perspective = true;
 
 			// Compute the vanishing point from the perspective origin
-			if (computed.perspective_origin_x.type == Style::PerspectiveOrigin::Percentage)
-				vanish.x = pos.x + computed.perspective_origin_x.value * 0.01f * size.x;
+			if (computed.perspective_origin_x().type == Style::PerspectiveOrigin::Percentage)
+				vanish.x = pos.x + computed.perspective_origin_x().value * 0.01f * size.x;
 			else
-				vanish.x = pos.x + computed.perspective_origin_x.value;
+				vanish.x = pos.x + computed.perspective_origin_x().value;
 
-			if (computed.perspective_origin_y.type == Style::PerspectiveOrigin::Percentage)
-				vanish.y = pos.y + computed.perspective_origin_y.value * 0.01f * size.y;
+			if (computed.perspective_origin_y().type == Style::PerspectiveOrigin::Percentage)
+				vanish.y = pos.y + computed.perspective_origin_y().value * 0.01f * size.y;
 			else
-				vanish.y = pos.y + computed.perspective_origin_y.value;
+				vanish.y = pos.y + computed.perspective_origin_y().value;
 		}
 
 		if (have_perspective)
@@ -2736,13 +2756,13 @@ void Element::UpdateTransformState()
 		bool have_transform = false;
 		Matrix4f transform = Matrix4f::Identity();
 
-		if (computed.transform)
+		if (TransformPtr transform_ptr = computed.transform())
 		{
 			// First find the current element's transform
-			const int n = computed.transform->GetNumPrimitives();
+			const int n = transform_ptr->GetNumPrimitives();
 			for (int i = 0; i < n; ++i)
 			{
-				const TransformPrimitive& primitive = computed.transform->GetPrimitive(i);
+				const TransformPrimitive& primitive = transform_ptr->GetPrimitive(i);
 				Matrix4f matrix = TransformUtilities::ResolveTransform(primitive, *this);
 				transform *= matrix;
 				have_transform = true;
@@ -2753,17 +2773,17 @@ void Element::UpdateTransformState()
 				// Compute the transform origin
 				Vector3f transform_origin(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f, 0);
 
-				if (computed.transform_origin_x.type == Style::TransformOrigin::Percentage)
-					transform_origin.x = pos.x + computed.transform_origin_x.value * size.x * 0.01f;
+				if (computed.transform_origin_x().type == Style::TransformOrigin::Percentage)
+					transform_origin.x = pos.x + computed.transform_origin_x().value * size.x * 0.01f;
 				else
-					transform_origin.x = pos.x + computed.transform_origin_x.value;
+					transform_origin.x = pos.x + computed.transform_origin_x().value;
 
-				if (computed.transform_origin_y.type == Style::TransformOrigin::Percentage)
-					transform_origin.y = pos.y + computed.transform_origin_y.value * size.y * 0.01f;
+				if (computed.transform_origin_y().type == Style::TransformOrigin::Percentage)
+					transform_origin.y = pos.y + computed.transform_origin_y().value * size.y * 0.01f;
 				else
-					transform_origin.y = pos.y + computed.transform_origin_y.value;
+					transform_origin.y = pos.y + computed.transform_origin_y().value;
 
-				transform_origin.z = computed.transform_origin_z;
+				transform_origin.z = computed.transform_origin_z();
 
 				// Make the transformation apply relative to the transform origin
 				transform = Matrix4f::Translate(transform_origin) * transform * Matrix4f::Translate(-transform_origin);

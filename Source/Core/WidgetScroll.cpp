@@ -27,12 +27,13 @@
  */
 
 #include "WidgetScroll.h"
-#include "Clock.h"
-#include "LayoutDetails.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "Clock.h"
+#include "LayoutDetails.h"
 
 namespace Rml {
 
@@ -301,8 +302,8 @@ void WidgetScroll::FormatBar(float bar_length)
 
 	const auto& computed = bar->GetComputedValues();
 
-	const Style::Width width = computed.width;
-	const Style::Height height = computed.height;
+	const Style::Width width = computed.width();
+	const Style::Height height = computed.height();
 
 	Vector2f bar_box_content = bar_box.GetSize();
 	if (orientation == HORIZONTAL)
@@ -324,11 +325,11 @@ void WidgetScroll::FormatBar(float bar_length)
 				bar_box_content.y = track_length * bar_length;
 
 				// Check for 'min-height' restrictions.
-				float min_track_length = ResolveValue(computed.min_height, track_length);
+				float min_track_length = ResolveValue(computed.min_height(), track_length);
 				bar_box_content.y = Math::Max(min_track_length, bar_box_content.y);
 
 				// Check for 'max-height' restrictions.
-				float max_track_length = ResolveValue(computed.max_height, track_length);
+				float max_track_length = ResolveValue(computed.max_height(), track_length);
 				if (max_track_length > 0)
 					bar_box_content.y = Math::Min(max_track_length, bar_box_content.y);
 			}
@@ -345,11 +346,11 @@ void WidgetScroll::FormatBar(float bar_length)
 				bar_box_content.x = track_length * bar_length;
 
 				// Check for 'min-width' restrictions.
-				float min_track_length = ResolveValue(computed.min_width, track_length);
+				float min_track_length = ResolveValue(computed.min_width(), track_length);
 				bar_box_content.x = Math::Max(min_track_length, bar_box_content.x);
 
 				// Check for 'max-width' restrictions.
-				float max_track_length = ResolveValue(computed.max_width, track_length);
+				float max_track_length = ResolveValue(computed.max_width(), track_length);
 				if (max_track_length > 0)
 					bar_box_content.x = Math::Min(max_track_length, bar_box_content.x);
 			}

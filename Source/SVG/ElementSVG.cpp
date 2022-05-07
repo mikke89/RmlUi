@@ -27,13 +27,14 @@
  */
 
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/PropertyIdSet.h"
-#include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
-#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
+#include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include <cmath>
 #include <lunasvg.h>
 
@@ -130,8 +131,8 @@ void ElementSVG::GenerateGeometry()
 
 	const ComputedValues& computed = GetComputedValues();
 
-	const float opacity = computed.opacity;
-	Colourb quad_colour = computed.image_color;
+	const float opacity = computed.opacity();
+	Colourb quad_colour = computed.image_color();
 	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 
 	const Vector2f render_dimensions_f = GetBox().GetSize(Box::CONTENT).Round();

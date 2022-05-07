@@ -32,7 +32,7 @@
 #include "Header.h"
 #include "Types.h"
 #include "Event.h"
-#include "ComputedValues.h"
+#include "StyleTypes.h"
 
 namespace Rml {
 

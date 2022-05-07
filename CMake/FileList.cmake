@@ -210,6 +210,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetContainer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetSpecification.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetTypes.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/SystemInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Texture.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Traits.h
@@ -238,6 +239,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/BaseXMLParser.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Box.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/ComputedValues.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Context.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ContextInstancer.cpp

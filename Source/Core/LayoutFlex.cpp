@@ -27,6 +27,7 @@
  */
 
 #include "LayoutFlex.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/Types.h"
@@ -178,12 +179,12 @@ void LayoutFlex::Format()
 	// For details, see https://drafts.csswg.org/css-flexbox/#layout-algorithm
 
 	const ComputedValues& computed_flex = element_flex->GetComputedValues();
-	const Style::FlexDirection direction = computed_flex.flex_direction;
+	const Style::FlexDirection direction = computed_flex.flex_direction();
 
 	const bool main_axis_horizontal = (direction == Style::FlexDirection::Row || direction == Style::FlexDirection::RowReverse);
 	const bool direction_reverse = (direction == Style::FlexDirection::RowReverse || direction == Style::FlexDirection::ColumnReverse);
-	const bool flex_single_line = (computed_flex.flex_wrap == Style::FlexWrap::Nowrap);
-	const bool wrap_reverse = (computed_flex.flex_wrap == Style::FlexWrap::WrapReverse);
+	const bool flex_single_line = (computed_flex.flex_wrap() == Style::FlexWrap::Nowrap);
+	const bool wrap_reverse = (computed_flex.flex_wrap() == Style::FlexWrap::WrapReverse);
 
 	const float main_available_size = (main_axis_horizontal ? flex_available_content_size.x : flex_available_content_size.y);
 	const float cross_available_size = (!main_axis_horizontal ? flex_available_content_size.x : flex_available_content_size.y);
@@ -209,11 +210,11 @@ void LayoutFlex::Format()
 		Element* element = element_flex->GetChild(i);
 		const ComputedValues& computed = element->GetComputedValues();
 
-		if (computed.display == Style::Display::None)
+		if (computed.display() == Style::Display::None)
 		{
 			continue;
 		}
-		else if (computed.position == Style::Position::Absolute || computed.position == Style::Position::Fixed)
+		else if (computed.position() == Style::Position::Absolute || computed.position() == Style::Position::Fixed)
 		{
 			absolutely_positioned_elements.push_back(element);
 			continue;
@@ -237,9 +238,9 @@ void LayoutFlex::Format()
 			item_main_size = computed_main_size.size;
 		}
 
-		item.flex_shrink_factor = computed.flex_shrink;
-		item.flex_grow_factor = computed.flex_grow;
-		item.align_self = computed.align_self;
+		item.flex_shrink_factor = computed.flex_shrink();
+		item.flex_grow_factor = computed.flex_grow();
+		item.align_self = computed.align_self();
 
 		static_assert(int(Style::AlignSelf::FlexStart) == int(Style::AlignItems::FlexStart) + 1 &&
 				int(Style::AlignSelf::Stretch) == int(Style::AlignItems::Stretch) + 1,
@@ -247,21 +248,21 @@ void LayoutFlex::Format()
 
 		// Use the container's align-items property if align-self is auto.
 		if (item.align_self == Style::AlignSelf::Auto)
-			item.align_self = static_cast<Style::AlignSelf>(static_cast<int>(computed_flex.align_items) + 1);
+			item.align_self = static_cast<Style::AlignSelf>(static_cast<int>(computed_flex.align_items()) + 1);
 
 		const float sum_padding_border = item.main.sum_edges - (item.main.margin_a + item.main.margin_b);
 
 		// Find the flex base size (possibly negative when using border box sizing)
-		if (computed.flex_basis.type != Style::FlexBasis::Auto)
+		if (computed.flex_basis().type != Style::FlexBasis::Auto)
 		{
-			item.inner_flex_base_size = ResolveValue(computed.flex_basis, main_size_base_value);
-			if (computed.box_sizing == Style::BoxSizing::BorderBox)
+			item.inner_flex_base_size = ResolveValue(computed.flex_basis(), main_size_base_value);
+			if (computed.box_sizing() == Style::BoxSizing::BorderBox)
 				item.inner_flex_base_size -= sum_padding_border;
 		}
 		else if (!item.main.auto_size)
 		{
 			item.inner_flex_base_size = ResolveValue(item_main_size, main_size_base_value);
-			if (computed.box_sizing == Style::BoxSizing::BorderBox)
+			if (computed.box_sizing() == Style::BoxSizing::BorderBox)
 				item.inner_flex_base_size -= sum_padding_border;
 		}
 		else if (main_axis_horizontal)
@@ -494,7 +495,7 @@ void LayoutFlex::Format()
 				using Style::JustifyContent;
 				const int num_items = int(line.items.size());
 
-				switch (computed_flex.justify_content)
+				switch (computed_flex.justify_content())
 				{
 				case JustifyContent::SpaceBetween:
 					if (num_items > 1)
@@ -610,7 +611,7 @@ void LayoutFlex::Format()
 	}
 
 	// Stretch out the lines if we have extra space.
-	if (cross_available_size >= 0.f && computed_flex.align_content == Style::AlignContent::Stretch)
+	if (cross_available_size >= 0.f && computed_flex.align_content() == Style::AlignContent::Stretch)
 	{
 		int remaining_space = static_cast<int>(cross_available_size -
 			std::accumulate(container.lines.begin(), container.lines.end(), 0.f,
@@ -757,7 +758,7 @@ void LayoutFlex::Format()
 		{
 			using Style::AlignContent;
 
-			switch (computed_flex.align_content)
+			switch (computed_flex.align_content())
 			{
 			case AlignContent::SpaceBetween:
 				if (num_lines > 1)

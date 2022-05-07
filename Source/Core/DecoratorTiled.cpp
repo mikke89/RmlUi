@@ -118,8 +118,8 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< 
 	RenderInterface* render_interface = element->GetRenderInterface();
 	const auto& computed = element->GetComputedValues();
 
-	float opacity = computed.opacity;
-	Colourb quad_colour = computed.image_color;
+	float opacity = computed.opacity();
+	Colourb quad_colour = computed.image_color();
 
     // Apply opacity
     quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);

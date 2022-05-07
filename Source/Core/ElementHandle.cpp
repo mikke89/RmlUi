@@ -27,6 +27,7 @@
  */
 
 #include "ElementHandle.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Property.h"
@@ -95,7 +96,7 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			}
 			if (size_target)
 				size_original_size = size_target->GetBox().GetSize(
-					(size_target->GetComputedValues().box_sizing == Style::BoxSizing::BorderBox)
+					(size_target->GetComputedValues().box_sizing() == Style::BoxSizing::BorderBox)
 					? Box::BORDER
 					: Box::CONTENT);
 		}
@@ -117,13 +118,13 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 				const auto& computed = size_target->GetComputedValues();
 
 				// Check if we have auto-margins; if so, they have to be set to the current margins.
-				if (computed.margin_top.type == Margin::Auto)
+				if (computed.margin_top().type == Margin::Auto)
 					size_target->SetProperty(PropertyId::MarginTop, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::TOP)), Property::PX));
-				if (computed.margin_right.type == Margin::Auto)
+				if (computed.margin_right().type == Margin::Auto)
 					size_target->SetProperty(PropertyId::MarginRight, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::RIGHT)), Property::PX));
-				if (computed.margin_bottom.type == Margin::Auto)
+				if (computed.margin_bottom().type == Margin::Auto)
 					size_target->SetProperty(PropertyId::MarginBottom, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM)), Property::PX));
-				if (computed.margin_left.type == Margin::Auto)
+				if (computed.margin_left().type == Margin::Auto)
 					size_target->SetProperty(PropertyId::MarginLeft, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::LEFT)), Property::PX));
 
 				float new_x = Math::RoundFloat(size_original_size.x + delta.x);

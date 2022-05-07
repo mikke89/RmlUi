@@ -29,7 +29,7 @@
 #ifndef RMLUI_CORE_COMPUTEPROPERTY_H
 #define RMLUI_CORE_COMPUTEPROPERTY_H
 
-#include "../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Core/StyleTypes.h"
 
 namespace Rml {
 
@@ -57,6 +57,8 @@ Style::LengthPercentage ComputeLengthPercentage(const Property* property, float 
 Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions);
 
 Style::LengthPercentage ComputeOrigin(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions);
+
+uint16_t ComputeBorderWidth(float computed_length);
 
 extern const Style::ComputedValues DefaultComputedValues;
 

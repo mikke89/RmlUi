@@ -27,19 +27,20 @@
  */
 
 #include "WidgetTextInput.h"
-#include "ElementTextSelection.h"
-#include "../../../Include/RmlUi/Core/Elements/ElementFormControl.h"
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/Core.h"
 #include "../../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../../Include/RmlUi/Core/ElementText.h"
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../../Include/RmlUi/Core/Elements/ElementFormControl.h"
+#include "../../../Include/RmlUi/Core/Factory.h"
 #include "../../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../../Include/RmlUi/Core/Input.h"
-#include "../../../Include/RmlUi/Core/Factory.h"
 #include "../../../Include/RmlUi/Core/Math.h"
-#include "../../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
+#include "../../../Include/RmlUi/Core/SystemInterface.h"
 #include "../Clock.h"
+#include "ElementTextSelection.h"
 #include <algorithm>
 #include <limits.h>
 
@@ -193,7 +194,7 @@ void WidgetTextInput::UpdateSelectionColours()
 		colour = colour_property->Get< Colourb >();
 	else
 	{
-		colour = parent->GetComputedValues().color;
+		colour = parent->GetComputedValues().color();
 		colour.red = 255 - colour.red;
 		colour.green = 255 - colour.green;
 		colour.blue = 255 - colour.blue;
@@ -928,8 +929,8 @@ void WidgetTextInput::FormatElement()
 	ElementScroll* scroll = parent->GetElementScroll();
 	float width = parent->GetBox().GetSize(Box::PADDING).x;
 
-	Overflow x_overflow_property = parent->GetComputedValues().overflow_x;
-	Overflow y_overflow_property = parent->GetComputedValues().overflow_y;
+	Overflow x_overflow_property = parent->GetComputedValues().overflow_x();
+	Overflow y_overflow_property = parent->GetComputedValues().overflow_y();
 
 	if (x_overflow_property == Overflow::Scroll)
 		scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
@@ -1144,7 +1145,7 @@ void WidgetTextInput::GenerateCursor()
 	cursor_size.x = Math::RoundFloat( ElementUtilities::GetDensityIndependentPixelRatio(text_element) );
 	cursor_size.y = text_element->GetLineHeight() + 2.0f;
 
-	Colourb color = parent->GetComputedValues().color;
+	Colourb color = parent->GetComputedValues().color();
 
 	if (const Property* property = parent->GetProperty(PropertyId::CaretColor))
 	{

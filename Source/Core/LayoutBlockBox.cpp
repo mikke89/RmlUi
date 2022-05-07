@@ -27,14 +27,15 @@
  */
 
 #include "LayoutBlockBox.h"
-#include "LayoutBlockBoxSpace.h"
-#include "LayoutEngine.h"
-#include "LayoutDetails.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
-#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "LayoutBlockBoxSpace.h"
+#include "LayoutDetails.h"
+#include "LayoutEngine.h"
 #include <float.h>
 
 namespace Rml {
@@ -89,7 +90,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, const
 			if (self_offset_parent != this)
 			{
 				// Get the next position within our offset parent's containing block.
-				parent->PositionBlockBox(position, box, element ? element->GetComputedValues().clear : Style::Clear::None);
+				parent->PositionBlockBox(position, box, element ? element->GetComputedValues().clear() : Style::Clear::None);
 				element->SetOffset(position - (self_offset_parent->GetPosition() - offset_root->GetPosition()), self_offset_parent->GetElement());
 			}
 			else
@@ -100,11 +101,11 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, const
 	if (element)
 	{
 		const auto& computed = element->GetComputedValues();
-		wrap_content = computed.white_space != Style::WhiteSpace::Nowrap;
+		wrap_content = computed.white_space() != Style::WhiteSpace::Nowrap;
 
 		// Determine if this element should have scrollbars or not, and create them if so.
-		overflow_x_property = computed.overflow_x;
-		overflow_y_property = computed.overflow_y;
+		overflow_x_property = computed.overflow_x();
+		overflow_y_property = computed.overflow_y();
 
 		if (overflow_x_property == Style::Overflow::Scroll)
 			element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSize(Box::PADDING).x);
@@ -118,7 +119,7 @@ LayoutBlockBox::LayoutBlockBox(LayoutBlockBox* _parent, Element* _element, const
 
 		// Store relatively positioned elements with their containing block so that their offset can be updated after their containing block has been
 		// sized.
-		if (self_offset_parent != this && computed.position == Style::Position::Relative)
+		if (self_offset_parent != this && computed.position() == Style::Position::Relative)
 			self_offset_parent->relative_elements.push_back(element);
 	}
 	else
@@ -631,13 +632,13 @@ float LayoutBlockBox::GetShrinkToFitWidth() const
 			auto& computed = element->GetComputedValues();
 			const float block_width = box.GetSize(Box::CONTENT).x;
 
-			if(computed.width.type == Style::Width::Auto)
+			if (computed.width().type == Style::Width::Auto)
 			{
 				get_content_width_from_children();
 			}
 			else
 			{
-				float width_value = ResolveValue(computed.width, block_width);
+				float width_value = ResolveValue(computed.width(), block_width);
 				content_width = Math::Max(content_width, width_value);
 			}
 

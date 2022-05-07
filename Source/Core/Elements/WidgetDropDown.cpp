@@ -27,6 +27,7 @@
  */
 
 #include "WidgetDropDown.h"
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/Context.h"
 #include "../../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../../Include/RmlUi/Core/Math.h"
@@ -520,7 +521,7 @@ void WidgetDropDown::ProcessEvent(Event& event)
 				element = element->GetParentNode();
 			}
 
-			if (selection_element->GetComputedValues().visibility == Style::Visibility::Hidden)
+			if (selection_element->GetComputedValues().visibility() == Style::Visibility::Hidden)
 				ShowSelectBox(true);
 			else
 				ShowSelectBox(false);

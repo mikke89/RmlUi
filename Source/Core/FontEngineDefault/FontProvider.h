@@ -30,7 +30,7 @@
 #define RMLUI_CORE_FONTENGINEDEFAULT_FONTPROVIDER_H
 
 #include "../../../Include/RmlUi/Core/Types.h"
-#include "../../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../../Include/RmlUi/Core/StyleTypes.h"
 #include "FontTypes.h"
 
 namespace Rml {

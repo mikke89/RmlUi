@@ -27,13 +27,14 @@
  */
 
 #include "LayoutInlineBox.h"
-#include "LayoutBlockBox.h"
-#include "LayoutEngine.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "LayoutBlockBox.h"
+#include "LayoutEngine.h"
 
 namespace Rml {
 
@@ -68,7 +69,7 @@ LayoutInlineBox::LayoutInlineBox(Element* _element, const Box& _box) : position(
 		}
 	}
 
-	vertical_align_property = element->GetComputedValues().vertical_align;
+	vertical_align_property = element->GetComputedValues().vertical_align();
 
 	chained = false;
 	chain = nullptr;

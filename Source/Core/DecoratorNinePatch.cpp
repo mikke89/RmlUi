@@ -27,6 +27,7 @@
  */
 
 #include "DecoratorNinePatch.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
@@ -69,8 +70,8 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 
 	const Vector2f surface_dimensions = element->GetBox().GetSize(Box::PADDING).Round();
 
-	const float opacity = computed.opacity;
-	Colourb quad_colour = computed.image_color;
+	const float opacity = computed.opacity();
+	Colourb quad_colour = computed.image_color();
 
 	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 

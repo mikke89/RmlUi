@@ -27,13 +27,14 @@
  */
 
 #include "LayoutLineBox.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/Property.h"
 #include "LayoutBlockBox.h"
 #include "LayoutEngine.h"
 #include "LayoutInlineBoxText.h"
-#include "../../Include/RmlUi/Core/Property.h"
-#include "../../Include/RmlUi/Core/ElementUtilities.h"
-#include "../../Include/RmlUi/Core/ElementText.h"
-#include "../../Include/RmlUi/Core/Profiling.h"
 #include <stack>
 
 namespace Rml {
@@ -138,7 +139,7 @@ LayoutInlineBox* LayoutLineBox::Close(UniquePtr<LayoutInlineBox> overflow)
 
 	// Position all the boxes horizontally in the line. We only need to reposition the elements if they're set to
 	// centre or right; the element are already placed left-aligned, and justification occurs at the text level.
-	Style::TextAlign text_align_property = parent->GetParent()->GetElement()->GetComputedValues().text_align;
+	Style::TextAlign text_align_property = parent->GetParent()->GetElement()->GetComputedValues().text_align();
 	if (text_align_property == Style::TextAlign::Center ||
 		text_align_property == Style::TextAlign::Right)
 	{

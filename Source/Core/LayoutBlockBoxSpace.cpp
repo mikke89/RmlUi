@@ -27,10 +27,11 @@
  */
 
 #include "LayoutBlockBoxSpace.h"
-#include "LayoutBlockBox.h"
-#include "LayoutEngine.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
+#include "LayoutBlockBox.h"
+#include "LayoutEngine.h"
 #include <float.h>
 
 namespace Rml {
@@ -65,7 +66,7 @@ void LayoutBlockBoxSpace::PositionBox(Vector2f& box_position, float& box_width, 
 float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 {
 	Vector2f element_size = element->GetBox().GetSize(Box::MARGIN);
-	Style::Float float_property = element->GetComputedValues().float_;
+	Style::Float float_property = element->GetComputedValues().float_();
 
 	// Shift the cursor down (if necessary) so it isn't placed any higher than a previously-floated box.
 	for (int i = 0; i < NUM_ANCHOR_EDGES; ++i)
@@ -75,7 +76,7 @@ float LayoutBlockBoxSpace::PositionBox(float cursor, Element* element)
 	}
 
 	// Shift the cursor down past to clear boxes, if necessary.
-	cursor = ClearBoxes(cursor, element->GetComputedValues().clear);
+	cursor = ClearBoxes(cursor, element->GetComputedValues().clear());
 
 	// Find a place to put this box.
 	Vector2f element_offset;

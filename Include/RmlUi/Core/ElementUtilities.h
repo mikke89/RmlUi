@@ -37,7 +37,7 @@ namespace Rml {
 class Box;
 class Context;
 class RenderInterface;
-namespace Style { struct ComputedValues; }
+namespace Style { class ComputedValues; }
 
 /**
 	Utility functions for dealing with elements.

@@ -29,9 +29,9 @@
 #define RMLUI_CORE_FONTENGINEINTERFACE_H
 
 #include "Header.h"
-#include "Types.h"
-#include "ComputedValues.h"
 #include "Geometry.h"
+#include "StyleTypes.h"
+#include "Types.h"
 
 namespace Rml {
 
