@@ -2,7 +2,7 @@
 //
 // std::set-like class with an underlying vector
 //
-// Unofficial, chobo-like container, largely based on chobo::flat_map
+// Unofficial, chobo-like container, largely based on chobo::flat_set
 //
 // MIT License:
 // Copyright(c) 2019 Michael R. P. Ragazzon 
@@ -110,7 +110,7 @@ namespace chobo
 {
 
 template <typename T, typename Compare = std::less<T>, typename Container = std::vector<T>>
-class flat_set
+class flat_set : private Compare
 {
 public:
     typedef T key_type;
@@ -133,7 +133,7 @@ public:
     {}
 
     explicit flat_set(const key_compare& comp, const allocator_type& alloc = allocator_type())
-        : m_cmp(comp)
+        : Compare(comp)
         , m_container(alloc)
     {}
 
@@ -150,13 +150,13 @@ public:
 
     flat_set& operator=(const flat_set& x)
     {
-        m_cmp = x.m_cmp;
+        get_cmp() = x.get_cmp();
         m_container = x.m_container;
         return *this;
     }
     flat_set& operator=(flat_set&& x) noexcept
     {
-        m_cmp = std::move(x.m_cmp);
+        get_cmp() = std::move(x.get_cmp());
         m_container = std::move(x.m_container);
         return *this;
     }
@@ -183,18 +183,18 @@ public:
 
     iterator lower_bound(const key_type& k)
     {
-        return std::lower_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::lower_bound(m_container.begin(), m_container.end(), k, get_cmp());
     }
 
     const_iterator lower_bound(const key_type& k) const
     {
-        return std::lower_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::lower_bound(m_container.begin(), m_container.end(), k, get_cmp());
     }
 
     iterator find(const key_type& k)
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !get_cmp()(k, *i))
             return i;
 
         return end();
@@ -203,7 +203,7 @@ public:
     const_iterator find(const key_type& k) const
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !get_cmp()(k, *i))
             return i;
 
         return end();
@@ -218,7 +218,7 @@ public:
     std::pair<iterator, bool> insert(P&& val)
     {
         auto i = lower_bound(val);
-        if (i != end() && !m_cmp(val, *i))
+        if (i != end() && !get_cmp()(val, *i))
         {
             return { i, false };
         }
@@ -226,13 +226,13 @@ public:
         return{ m_container.emplace(i, std::forward<P>(val)), true };
     }
 
-	template <typename InputIt >
+    template <typename InputIt >
     void insert(InputIt first, InputIt last)
     {
-		difference_type diff = std::distance(first, last);
-		if(diff > 0) reserve(size() + (size_t)diff);
-		for (auto it = first; it != last; ++it)
-			emplace(*it);
+        difference_type diff = std::distance(first, last);
+        if(diff > 0) reserve(size() + (size_t)diff);
+        for (auto it = first; it != last; ++it)
+            emplace(*it);
     }
 
     template <class... Args>
@@ -261,7 +261,7 @@ public:
 
     void swap(flat_set& x)
     {
-        std::swap(m_cmp, x.m_cmp);
+        std::swap(get_cmp(), x.get_cmp());
         m_container.swap(x.m_container);
     }
 
@@ -325,7 +325,9 @@ public:
 #endif // !defined(CHOBO_FLAT_SET_NO_CONST_CHAR_OVERLOADS)
 
 private:
-	key_compare m_cmp;
+    const Compare& get_cmp() const { return static_cast<const Compare&>(*this); }
+    Compare& get_cmp() { return static_cast<Compare&>(*this); }
+
     container_type m_container;
 };
 
@@ -342,7 +344,7 @@ bool operator!=(const flat_set<T, Compare, Container>& a, const flat_set<T, Comp
 template <typename T, typename Compare, typename Container>
 bool operator<(const flat_set<T, Compare, Container>& a, const flat_set<T, Compare, Container>& b)
 {
-	return a.container() < b.container();
+    return a.container() < b.container();
 }
 
 }
@@ -407,7 +409,7 @@ TEST_CASE("[flat_set] test")
     CHECK(res.first == iset.begin() + 2);
 
     iset.emplace(3);
-	CHECK(iset.size() == 3);
+    CHECK(iset.size() == 3);
     iset.emplace(9);
     iset.insert(9);
     iset.emplace(12);
@@ -442,7 +444,7 @@ TEST_CASE("[flat_set] test")
     flat_set<std::string> sset;
 
     CHECK(sset.find("123") == sset.end());
-	sset.emplace("123");
+    sset.emplace("123");
     CHECK(*sset.begin() == "123");
 
     sset.emplace("asd");
@@ -476,8 +478,8 @@ TEST_CASE("[flat_set] test")
     // no == comparable tests
     flat_set<int_wrap, int_wrap::compare> iwset;
     iwset.emplace(5);
-	iwset.emplace(20);
-	iwset.emplace(10);
+    iwset.emplace(20);
+    iwset.emplace(10);
 
     auto iwi = iwset.emplace(3);
     CHECK(iwi.second == true);
@@ -508,7 +510,7 @@ TEST_CASE("[flat_set] test")
     flat_set<int> m1, m2;
     m1.reserve(10);
     m1.emplace(1);
-	m1.emplace(2);
+    m1.emplace(2);
     auto m1c = m1.capacity();
 
     CHECK(m2.capacity() == 0);
@@ -523,15 +525,43 @@ TEST_CASE("[flat_set] test")
     CHECK(m2.size() == 2);
     CHECK(m2.capacity() == m1c);
 
+    // initializer list
+    flat_set<std::string> ilset = { "hello", "great", "magnificent", "world", "hello", "again" };
+    CHECK(ilset.size() == 5);
+    CHECK(std::is_sorted(ilset.begin(), ilset.end()));
 
-	// initializer list
-	flat_set<std::string> ilset = { "hello", "great", "magnificent", "world", "hello", "again" };
-	CHECK(ilset.size() == 5);
-	CHECK(std::is_sorted(ilset.begin(), ilset.end()));
+    ilset = { "b", "a" };
+    CHECK(ilset.size() == 2);
+    CHECK(std::is_sorted(ilset.begin(), ilset.end()));
 
-	ilset = { "b", "a" };
-	CHECK(ilset.size() == 2);
-	CHECK(std::is_sorted(ilset.begin(), ilset.end()));
+    // stateful comparator
+    struct distance_from_constant {
+        int middle = 0;
+        bool operator()(const int& a, const int& b) const { return std::abs(a - middle) < std::abs(b - middle); }
+    };
+
+    flat_set<int, distance_from_constant> distmapx(distance_from_constant{10}, {});
+    for (auto v : {0, 9, 10, 11, 12, 20})
+        distmapx.emplace(v);
+
+    const std::vector<int> distmapx_equiv = {10, 9, 12, 0};
+    CHECK(distmapx.container() == distmapx_equiv);
+
+    flat_set<int, distance_from_constant> distmapy(distance_from_constant{5}, {});
+    for (auto v : {5, 10})
+        distmapy.emplace(v);
+
+    const std::vector<int> distmapy_equiv = {5, 10};
+    CHECK(distmapy.container() == distmapy_equiv);
+
+    // swap should also swap comparator state
+    distmapy.swap(distmapx);
+    distmapy.clear();
+    for (auto v : {5, 10})
+        distmapy.emplace(v);
+
+    const std::vector<int> distmapz_equiv = {10, 5};
+    CHECK(distmapy.container() == distmapz_equiv);
 }
 
 #if defined(CHOBO_FLAT_SET_TEST_STATIC_VECTOR_WITH_DOCTEST)
@@ -539,8 +569,8 @@ TEST_CASE("[flat_set] test")
 TEST_CASE("[flat_set] static_vector test")
 {
     using namespace chobo;
-	
-	// Not implemented
+    
+    // Not implemented
 }
 
 #endif
@@ -551,7 +581,7 @@ TEST_CASE("[flat_set] vector_ptr test")
 {
     using namespace chobo;
 
-	// Not implemented
+    // Not implemented
 }
 
 #endif

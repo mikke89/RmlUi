@@ -122,9 +122,18 @@
 
 namespace chobo
 {
+namespace detail {
+    template <typename key_type, typename key_compare, typename value_type>
+    struct pair_compare : key_compare {
+        pair_compare() = default;
+        pair_compare(const key_compare& kc) : key_compare(kc) {}
+        bool operator()(const value_type& a, const key_type& b) const { return static_cast<const key_compare&>(*this)(a.first, b); }
+        bool operator()(const key_type& a, const value_type& b) const { return static_cast<const key_compare&>(*this)(a, b.first); }
+    };
+}
 
 template <typename Key, typename T, typename Compare = std::less<Key>, typename Container = std::vector<std::pair<Key, T>>>
-class flat_map
+class flat_map : private detail::pair_compare<Key, Compare, std::pair<Key, T>>
 {
 public:
     typedef Key key_type;
@@ -143,19 +152,19 @@ public:
     typedef typename container_type::const_reverse_iterator const_reverse_iterator;
     typedef typename container_type::difference_type difference_type;
     typedef typename container_type::size_type size_type;
+    typedef detail::pair_compare<Key, Compare, std::pair<Key, T>> pair_compare_t;
 
     flat_map()
     {}
 
     explicit flat_map(const key_compare& comp, const allocator_type& alloc = allocator_type())
-        : m_cmp(comp)
-        , m_container(alloc)
+        : pair_compare_t(comp), m_container(alloc)
     {}
 
     flat_map(const flat_map& x) = default;
     flat_map(flat_map&& x) = default;
 
-    flat_map(std::initializer_list<value_type> ilist) : m_cmp(Compare())
+    flat_map(std::initializer_list<value_type> ilist) : pair_compare_t(Compare())
     {
         m_container.reserve(ilist.size());
         for (auto&& il : ilist)
@@ -164,13 +173,13 @@ public:
 
     flat_map& operator=(const flat_map& x)
     {
-        m_cmp = x.m_cmp;
+        get_cmp() = x.get_cmp();
         m_container = x.m_container;
         return *this;
     }
     flat_map& operator=(flat_map&& x)
     {
-        m_cmp = std::move(x.m_cmp);
+        get_cmp() = std::move(x.get_cmp());
         m_container = std::move(x.m_container);
         return *this;
     }
@@ -197,18 +206,18 @@ public:
 
     iterator lower_bound(const key_type& k)
     {
-        return std::lower_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::lower_bound(m_container.begin(), m_container.end(), k, get_cmp());
     }
 
     const_iterator lower_bound(const key_type& k) const
     {
-        return std::lower_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::lower_bound(m_container.begin(), m_container.end(), k, get_cmp());
     }
 
     iterator find(const key_type& k)
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !get_cmp()(k, *i))
             return i;
 
         return end();
@@ -217,7 +226,7 @@ public:
     const_iterator find(const key_type& k) const
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !get_cmp()(k, *i))
             return i;
 
         return end();
@@ -232,7 +241,7 @@ public:
     std::pair<iterator, bool> insert(P&& val)
     {
         auto i = lower_bound(val.first);
-        if (i != end() && !m_cmp(val.first, *i))
+        if (i != end() && !get_cmp()(val.first, *i))
         {
             return { i, false };
         }
@@ -243,7 +252,7 @@ public:
     std::pair<iterator, bool> insert(const value_type& val)
     {
         auto i = lower_bound(val.first);
-        if (i != end() && !m_cmp(val.first, *i))
+        if (i != end() && !get_cmp()(val.first, *i))
         {
             return { i, false };
         }
@@ -278,7 +287,7 @@ public:
     mapped_type& operator[](const key_type& k)
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !get_cmp()(k, *i))
         {
             return i->second;
         }
@@ -290,7 +299,7 @@ public:
     mapped_type& operator[](key_type&& k)
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !get_cmp()(k, *i))
         {
             return i->second;
         }
@@ -302,7 +311,7 @@ public:
     mapped_type& at(const key_type& k)
     {
         auto i = lower_bound(k);
-        if (i == end() || m_cmp(*i, k))
+        if (i == end() || get_cmp()(*i, k))
         {
             _CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
         }
@@ -313,7 +322,7 @@ public:
     const mapped_type& at(const key_type& k) const
     {
         auto i = lower_bound(k);
-        if (i == end() || m_cmp(*i, k))
+        if (i == end() || get_cmp()(*i, k))
         {
             _CHOBO_THROW_FLAT_MAP_OUT_OF_RANGE();
         }
@@ -323,7 +332,7 @@ public:
 
     void swap(flat_map& x)
     {
-        std::swap(m_cmp, x.m_cmp);
+        std::swap(get_cmp(), x.get_cmp());
         m_container.swap(x.m_container);
     }
 
@@ -421,23 +430,9 @@ public:
 #endif // !defined(CHOBO_FLAT_MAP_NO_CONST_CHAR_OVERLOADS)
 
 private:
-    struct pair_compare
-    {
-        pair_compare() = default;
-        pair_compare(const key_compare& kc) : kcmp(kc) {}
-        bool operator()(const value_type& a, const key_type& b) const
-        {
-            return kcmp(a.first, b);
-        }
+    const pair_compare_t& get_cmp() const { return static_cast<const pair_compare_t&>(*this); }
+    pair_compare_t& get_cmp() { return static_cast<pair_compare_t&>(*this); }
 
-        bool operator()(const key_type& a, const value_type& b) const
-        {
-            return kcmp(a, b.first);
-        }
-
-        key_compare kcmp;
-    };
-    pair_compare m_cmp;
     container_type m_container;
 };
 
@@ -455,7 +450,7 @@ bool operator!=(const flat_map<Key, T, Compare, Container>& a, const flat_map<Ke
 template <typename Key, typename T, typename Compare, typename Container>
 bool operator<(const flat_map<Key, T, Compare, Container>& a, const flat_map<Key, T, Compare, Container>& b)
 {
-	return a.container() < b.container();
+    return a.container() < b.container();
 }
 
 }
@@ -646,6 +641,35 @@ TEST_CASE("[flat_map] test")
     m2 = m2;
     CHECK(m2.size() == 2);
     CHECK(m2.capacity() == m1c);
+
+    // stateful comparator
+    struct distance_from_constant {
+        int middle = 0;
+        bool operator()(const int& a, const int& b) const { return std::abs(a - middle) < std::abs(b - middle); }
+    };
+
+    flat_map<int, char, distance_from_constant> distmapx(distance_from_constant{10}, {});
+    for (auto v : {0, 9, 10, 11, 12, 20})
+        distmapx.emplace(v, 'x');
+
+    const std::vector<std::pair<int, char>> distmapx_equiv = {{10, 'x'}, {9, 'x'}, {12, 'x'}, {0, 'x'}};
+    CHECK(distmapx.container() == distmapx_equiv);
+
+    flat_map<int, char, distance_from_constant> distmapy(distance_from_constant{5}, {});
+    for (auto v : {5, 10})
+        distmapy.emplace(v, 'y');
+
+    const std::vector<std::pair<int, char>> distmapy_equiv = {{5, 'y'}, {10, 'y'}};
+    CHECK(distmapy.container() == distmapy_equiv);
+
+    // swap should also swap comparator state
+    distmapy.swap(distmapx);
+    distmapy.clear();
+    for (auto v : {5, 10})
+        distmapy.emplace(v, 'z');
+
+    const std::vector<std::pair<int, char>> distmapz_equiv = {{10, 'z'}, {5, 'z'}};
+    CHECK(distmapy.container() == distmapz_equiv);
 }
 
 #if defined(CHOBO_FLAT_MAP_TEST_STATIC_VECTOR_WITH_DOCTEST)
