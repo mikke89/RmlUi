@@ -83,23 +83,23 @@ struct ElementMeta
 	Style::ComputedValues computed_values;
 };
 
-
 static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 
 
-/// Constructs a new RmlUi element.
-Element::Element(const String& tag) : tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0), content_box(0, 0), 
-transform_state(), dirty_transform(false), dirty_perspective(false), dirty_animation(false), dirty_transition(false)
+Element::Element(const String& tag) :
+	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
+	visible(true), offset_fixed(false), absolute_offset_dirty(true), structure_dirty(false), dirty_animation(false), dirty_transition(false),
+	dirty_transform(false), dirty_perspective(false),
+
+	tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0),
+	content_box(0, 0), transform_state()
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;
 	focus = nullptr;
 	instancer = nullptr;
 	owner_document = nullptr;
-
-	offset_fixed = false;
 	offset_parent = nullptr;
-	absolute_offset_dirty = true;
 
 	client_area = Box::PADDING;
 
@@ -107,17 +107,7 @@ transform_state(), dirty_transform(false), dirty_perspective(false), dirty_anima
 
 	num_non_dom_children = 0;
 
-	visible = true;
-
 	z_index = 0;
-
-	local_stacking_context = false;
-	local_stacking_context_forced = false;
-	stacking_context_dirty = false;
-
-	structure_dirty = false;
-
-	computed_values_are_default_initialized = true;
 
 	meta = element_meta_chunk_pool.AllocateAndConstruct(this);
 	data_model = nullptr;

@@ -688,6 +688,30 @@ private:
 	/// Advances the animations (including transitions) forward in time.
 	void AdvanceAnimations();
 
+	// State flags are packed together for compact data layout.
+	bool local_stacking_context;
+	bool local_stacking_context_forced;
+	bool stacking_context_dirty;
+	bool computed_values_are_default_initialized;
+
+	bool visible; // True if the element is visible and active.
+
+	bool offset_fixed;
+	bool absolute_offset_dirty;
+
+	bool structure_dirty : 1;
+
+	bool dirty_animation : 1;
+	bool dirty_transition : 1;
+	bool dirty_transform : 1;
+	bool dirty_perspective : 1;
+
+	OwnedElementList children;
+	int num_non_dom_children;
+
+	// Defines what box area represents the element's client area; this is usually padding, but may be content.
+	Box::Area client_area;
+
 	// Original tag this element came from.
 	String tag;
 
@@ -713,10 +737,8 @@ private:
 	Element* offset_parent;
 	Vector2f relative_offset_base;		// the base offset from the parent
 	Vector2f relative_offset_position;	// the offset of a relatively positioned element
-	bool offset_fixed;
 
 	Vector2f absolute_offset;
-	bool absolute_offset_dirty;
 
 	// The offset this element adds to its logical children due to scrolling content.
 	Vector2f scroll_offset;
@@ -734,36 +756,14 @@ private:
 	Vector2f content_offset;
 	Vector2f content_box;
 
-	// Defines what box area represents the element's client area; this is usually padding, but may be content.
-	Box::Area client_area;
-
 	float baseline;
-
-	// True if the element is visible and active.
-	bool visible;
-
-	OwnedElementList children;
-	int num_non_dom_children;
-
 	float z_index;
-	bool local_stacking_context;
-	bool local_stacking_context_forced;
 
 	ElementList stacking_context;
-	bool stacking_context_dirty;
-
-	bool structure_dirty;
-
-	bool computed_values_are_default_initialized;
-
-	// Transform state
+	
 	UniquePtr< TransformState > transform_state;
-	bool dirty_transform;
-	bool dirty_perspective;
 
 	ElementAnimationList animations;
-	bool dirty_animation;
-	bool dirty_transition;
 
 	ElementMeta* meta;
 
