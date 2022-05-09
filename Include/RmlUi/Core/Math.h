@@ -107,6 +107,10 @@ RMLUICORE_API bool AreEqual(float value_0, float value_1);
 /// @param[in] value The number of get the absolute value of.
 /// @return The absolute value of the number.
 RMLUICORE_API float AbsoluteValue(float value);
+/// Calculates the absolute value of a number.
+/// @param[in] value The number of get the absolute value of.
+/// @return The absolute value of the number.
+RMLUICORE_API int AbsoluteValue(int value);
 
 /// Calculates the cosine of an angle.
 /// @param[in] angle The angle to calculate the cosine of, in radians.

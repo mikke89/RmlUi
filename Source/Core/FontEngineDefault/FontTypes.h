@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,8 +37,7 @@ namespace Rml {
 
 using FontFaceHandleFreetype = uintptr_t;
 
-struct FontMetrics 
-{
+struct FontMetrics {
 	int size;
 	int x_height;
 	int line_height;
@@ -47,6 +46,19 @@ struct FontMetrics
 	float underline_position;
 	float underline_thickness;
 };
+
+struct FaceVariation {
+	Style::FontWeight weight;
+	uint16_t width;
+	int named_instance_index;
+};
+
+inline bool operator<(const FaceVariation& a, const FaceVariation& b)
+{
+	if (a.weight == b.weight)
+		return a.width < b.width;
+	return a.weight < b.weight;
+}
 
 } // namespace Rml
 #endif

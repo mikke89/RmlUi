@@ -111,7 +111,7 @@ namespace Style {
 
 	struct InheritedValues {
 		InheritedValues() :
-			has_font_effect(false), font_style(FontStyle::Normal), font_weight(FontWeight::Normal), pointer_events(PointerEvents::Auto),
+			font_weight(FontWeight::Normal), font_style(FontStyle::Normal), has_font_effect(false), pointer_events(PointerEvents::Auto),
 			focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None), text_transform(TextTransform::None),
 			white_space(WhiteSpace::Normal), word_break(WordBreak::Normal), line_height_inherit_type(LineHeight::Number)
 		{}
@@ -125,10 +125,10 @@ namespace Style {
 		float opacity = 1;
 		Colourb color = Colourb(255, 255, 255);
 
-		bool has_font_effect : 1;
+		FontWeight font_weight;
+		
 		FontStyle font_style : 1;
-		FontWeight font_weight : 1;
-
+		bool has_font_effect : 1;
 		PointerEvents pointer_events : 1;
 		Focus focus : 1;
 

@@ -57,7 +57,7 @@ public:
 	virtual ~FontEngineInterfaceBitmap();
 
 	/// Called by RmlUi when it wants to load a font face from file.
-	bool LoadFontFace(const String& file_name, bool fallback_face) override;
+	bool LoadFontFace(const String& file_name, bool fallback_face, FontWeight weight) override;
 
 	/// Called by RmlUi when it wants to load a font face from memory, registered using the provided family, style, and weight.
 	/// @param[in] data A pointer to the data.

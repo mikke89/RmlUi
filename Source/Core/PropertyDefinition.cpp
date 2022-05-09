@@ -62,8 +62,24 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 	{
 		StringList parameter_list;
 		StringUtilities::ExpandString(parameter_list, parser_parameters);
-		for (size_t i = 0; i < parameter_list.size(); i++)
-			new_parser.parameters[parameter_list[i]] = (int) i;
+
+		int parameter_value = 0;
+		for (const String& parameter : parameter_list)
+		{
+			// Look for an optional parameter value such as in "normal=400".
+			const size_t i_equal = parameter.find('=');
+			if (i_equal != String::npos)
+			{
+				if (!TypeConverter<String, int>::Convert(parameter.substr(i_equal + 1), parameter_value))
+				{
+					Log::Message(Log::LT_ERROR, "Parser was added with invalid parameter '%s'.", parameter.c_str());
+					return *this;
+				}
+			}
+
+			new_parser.parameters[parameter.substr(0, i_equal)] = parameter_value;
+			parameter_value += 1;
+		}
 	}
 
 	const int parser_index = (int)parsers.size();
@@ -131,12 +147,12 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 					return false;
 			}
 
-			int keyword = property.value.Get< int >();
-			for (ParameterMap::const_iterator i = parsers[parser_index].parameters.begin(); i != parsers[parser_index].parameters.end(); ++i)
+			int keyword = property.value.Get<int>();
+			for (const auto& name_keyword : parsers[parser_index].parameters)
 			{
-				if ((*i).second == keyword)
+				if (name_keyword.second == keyword)
 				{
-					value = (*i).first;
+					value = name_keyword.first;
 					break;
 				}
 			}
