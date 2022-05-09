@@ -601,7 +601,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	const float document_font_size = (document_values ? document_values->font_size() : DefaultComputedValues.font_size());
 
 	// Since vertical-align depends on line-height we compute this before iteration
-	if(dirty_properties.Contains(PropertyId::LineHeight))
+	if (dirty_properties.Contains(PropertyId::LineHeight))
 	{
 		if (auto p = GetLocalProperty(PropertyId::LineHeight))
 		{
@@ -609,11 +609,11 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		}
 		else if (parent_values)
 		{
-			// Line height has a special inheritance case for numbers/percent: they inherit them directly instead of computed length, but for lengths, they inherit the length.
-			// See CSS specs for details. Percent is already converted to number.
+			// Line height has a special inheritance case for numbers/percent: they inherit them directly instead of computed length, but for lengths,
+			// they inherit the length. See CSS specs for details. Percent is already converted to number.
 			if (parent_values->line_height().inherit_type == Style::LineHeight::Number)
-				values.line_height() = Style::LineHeight(font_size * parent_values->line_height().inherit_value, Style::LineHeight::Number,
-					parent_values->line_height().inherit_value);
+				values.line_height(Style::LineHeight(font_size * parent_values->line_height().inherit_value, Style::LineHeight::Number,
+					parent_values->line_height().inherit_value));
 			else
 				values.line_height(parent_values->line_height());
 		}
