@@ -775,7 +775,7 @@ private:
 	friend class Rml::LayoutBlockBox;
 	friend class Rml::LayoutInlineBox;
 	friend class Rml::ElementScroll;
-	friend void Rml::ReleaseFontResources();
+	friend RMLUICORE_API void Rml::ReleaseFontResources();
 };
 
 } // namespace Rml
