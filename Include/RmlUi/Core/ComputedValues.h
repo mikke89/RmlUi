@@ -273,7 +273,7 @@ namespace Style {
 		FlexWrap          flex_wrap()                  const { return GetLocalPropertyKeyword(PropertyId::FlexWrap, FlexWrap::Nowrap); }
 		JustifyContent    justify_content()            const { return GetLocalPropertyKeyword(PropertyId::JustifyContent, JustifyContent::FlexStart); }
 		float             flex_grow()                  const { return GetLocalProperty(PropertyId::FlexGrow, 0.f); }
-		float             flex_shrink()                const { return GetLocalProperty(PropertyId::FlexShrink, 0.f); }
+		float             flex_shrink()                const { return GetLocalProperty(PropertyId::FlexShrink, 1.f); }
 		FlexBasis         flex_basis()                 const { return LengthPercentageAuto(rare.flex_basis_type, rare.flex_basis); }
 		float             border_top_left_radius()     const { return (float)rare.border_top_left_radius; }
 		float             border_top_right_radius()    const { return (float)rare.border_top_right_radius; }
