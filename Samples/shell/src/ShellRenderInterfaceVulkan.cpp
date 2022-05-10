@@ -40,7 +40,9 @@ ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
-{}
+{
+	Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+}
 
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture)
@@ -110,7 +112,7 @@ void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void)
 
 	VkClearValue for_filling_back_buffer_color;
 
-	for_filling_back_buffer_color.color = {1.0f, 0.0f, 1.0f, 1.0f};
+	for_filling_back_buffer_color.color = {0.0f, 0.0f, 0.0f, 1.0f};
 
 	const VkClearValue p_color_rt[] = {for_filling_back_buffer_color};
 
@@ -529,7 +531,7 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 {
 	this->m_command_list.Initialize(this->m_p_device, this->m_queue_index_graphics, kSwapchainBackBufferCount, 2);
 	this->m_memory_pool.Initialize(
-		this->m_p_allocator, this->m_p_device, kSwapchainBackBufferCount, ShellRenderInterfaceVulkan::ConvertCountToMegabytes(32));
+		this->m_p_allocator, this->m_p_device, kSwapchainBackBufferCount, ShellRenderInterfaceVulkan::ConvertMegabytesToBytes(32));
 
 	auto storage = this->LoadShaders();
 

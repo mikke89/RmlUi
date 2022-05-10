@@ -231,7 +231,7 @@ public:
 	static uint32_t TranslateBytesToMegaBytes(uint32_t raw_number) noexcept { return raw_number / (1024 * 1024); }
 
 	// Example: ConvertValueToMegabytes(50) returns 50 * 1024 * 1024 = 52428800 BYTES!!!!
-	static uint32_t ConvertCountToMegabytes(uint32_t value_shows_megabytes) noexcept { return value_shows_megabytes * 1024 * 1024; }
+	static uint32_t ConvertMegabytesToBytes(uint32_t value_shows_megabytes) noexcept { return value_shows_megabytes * 1024 * 1024; }
 
 #pragma region New Methods
 private:
