@@ -38,6 +38,59 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 	using shader_data_t = Rml::Vector<uint32_t>;
 
+	class texture_data_t {
+	public:
+		texture_data_t() : m_p_vk_image{}, m_p_vma_allocation{} {}
+		~texture_data_t() {}
+
+		void Set_VkImage(VkImage p_image) noexcept { this->m_p_vk_image = p_image; }
+		void Set_VmaAllocation(VmaAllocation p_allocation) noexcept { this->m_p_vma_allocation = p_allocation; }
+		void Set_FileName(const Rml::String& filename) noexcept { this->m_filename = filename; }
+
+		VkImage Get_VkImage(void) const noexcept { return this->m_p_vk_image; }
+		VmaAllocation Get_VmaAllocation(void) const noexcept { return this->m_p_vma_allocation; }
+		const Rml::String& Get_FileName(void) const noexcept { return this->m_filename; }
+
+		void Destroy(void) noexcept 
+		{
+			if (this->m_p_vk_image) 
+			{
+				
+			}
+
+			if (this->m_p_vma_allocation) 
+			{
+			
+			}
+		}
+
+	private:
+		VkImage m_p_vk_image;
+		VmaAllocation m_p_vma_allocation;
+		Rml::String m_filename;
+	};
+
+	class StatisticsWrapper {
+	public:
+		StatisticsWrapper(void) : m_memory_allocated_for_textures{}, m_memory_allocated_for_vertex_geometry_buffer{} {}
+		~StatisticsWrapper(void) {}
+
+		uint32_t Get_MemoryTotal(void) const noexcept
+		{
+			return this->Get_MemoryAllocatedForTextures() + this->Get_MemoryAllocatedForVertexGeometryBuffer();
+		}
+
+		void AddMemoryTo_AllocatedForTextures(uint32_t value) noexcept { this->m_memory_allocated_for_textures += value; }
+		uint32_t Get_MemoryAllocatedForTextures(void) const noexcept { return this->m_memory_allocated_for_textures; }
+
+		void AddMemoryTo_AllocatedForVertexGeometryBuffer(uint32_t value) noexcept { this->m_memory_allocated_for_vertex_geometry_buffer += value; }
+		uint32_t Get_MemoryAllocatedForVertexGeometryBuffer(void) const noexcept { return this->m_memory_allocated_for_vertex_geometry_buffer; }
+
+	private:
+		uint32_t m_memory_allocated_for_textures;
+		uint32_t m_memory_allocated_for_vertex_geometry_buffer;
+	};
+
 	class PhysicalDeviceWrapper {
 	public:
 		PhysicalDeviceWrapper(VkPhysicalDevice p_physical_device);
@@ -282,14 +335,14 @@ private:
 	void PrintInformationAboutPickedPhysicalDevice(VkPhysicalDevice p_physical_device) noexcept;
 
 	VkSurfaceFormatKHR ChooseSwapchainFormat(void) noexcept;
-	VkExtent2D CreateValidSwapchainExtent(void) noexcept;
 	VkSurfaceTransformFlagBitsKHR CreatePretransformSwapchain(void) noexcept;
 	VkCompositeAlphaFlagBitsKHR ChooseSwapchainCompositeAlpha(void) noexcept;
 	VkPresentModeKHR GetPresentMode(VkPresentModeKHR type = VkPresentModeKHR::VK_PRESENT_MODE_FIFO_KHR) noexcept;
 	VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(void) noexcept;
-
 	Rml::UnorderedMap<shader_type_t, shader_data_t> LoadShaders(void) noexcept;
 	shader_data_t LoadShader(const Rml::String& relative_path_from_samples_folder_with_file_and_fileformat) noexcept;
+
+	VkExtent2D CreateValidSwapchainExtent(void) noexcept;
 	void CreateShaders(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept;
 	void CreateDescriptorSetLayout(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept;
 	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept;
@@ -305,6 +358,9 @@ private:
 	void CreateSwapchainImageViews(void) noexcept;
 
 	void CreateResourcesDependentOnSize(void) noexcept;
+
+	void CreateResource_Texture(int width, int height, const Rml::String& full_path_to_file) noexcept;
+	void Destroy_Textures(void) noexcept;
 
 	void DestroyResourcesDependentOnSize(void) noexcept;
 	void DestroySwapchainImageViews(void) noexcept;
@@ -380,8 +436,10 @@ private:
 	Rml::Vector<VkFramebuffer> m_swapchain_frame_buffers;
 	Rml::Vector<VkImage> m_swapchain_images;
 	Rml::Vector<VkImageView> m_swapchain_image_views;
+
 #pragma region Resources
 	Rml::UnorderedMap<shader_type_t, VkShaderModule> m_shaders;
+	Rml::UnorderedMap<Rml::String, texture_data_t> m_textures;
 #pragma endregion
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;

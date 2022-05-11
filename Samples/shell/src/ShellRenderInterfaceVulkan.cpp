@@ -1405,6 +1405,29 @@ void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->CreateSwapchainFrameBuffers();
 }
 
+void ShellRenderInterfaceVulkan::CreateResource_Texture(int width, int height, const Rml::String& full_path_to_file) noexcept 
+{
+	VK_ASSERT(width, "can't be zero!");
+	VK_ASSERT(height, "can't be zero!");
+	VK_ASSERT(full_path_to_file.empty() == false, "can't be empty!");
+
+	if (this->m_textures.find(full_path_to_file) != this->m_textures.end()) 
+	{
+		Shell::Log("you can't create a texture that is existed in m_textures already: [%s]", full_path_to_file.c_str());
+		return;
+	}
+
+
+}
+
+void ShellRenderInterfaceVulkan::Destroy_Textures(void) noexcept 
+{
+	for (auto& pair_path_to_file_data : this->m_textures) 
+	{
+		
+	}
+}
+
 void ShellRenderInterfaceVulkan::DestroyResourcesDependentOnSize(void) noexcept
 {
 	this->DestroySwapchainFrameBuffers();
