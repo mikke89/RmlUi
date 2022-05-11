@@ -129,7 +129,10 @@ bool FreeType::GetFaceVariations(const byte* data, int data_length, Vector<FaceV
 
 	std::sort(out_face_variations.begin(), out_face_variations.end());
 
+#if FREETYPE_MAJOR >= 2 && FREETYPE_MINOR >= 9
 	FT_Done_MM_Var(ft_library, var);
+#endif
+
 	FT_Done_Face(face);
 
 	return true;
