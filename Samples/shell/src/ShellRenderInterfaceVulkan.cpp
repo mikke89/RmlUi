@@ -58,13 +58,177 @@ void ShellRenderInterfaceVulkan::EnableScissorRegion(bool enable) {}
 
 void ShellRenderInterfaceVulkan::SetScissorRegion(int x, int y, int width, int height) {}
 
+// Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
+#pragma pack(1)
+struct TGAHeader {
+	char idLength;
+	char colourMapType;
+	char dataType;
+	short int colourMapOrigin;
+	short int colourMapLength;
+	char colourMapDepth;
+	short int xOrigin;
+	short int yOrigin;
+	short int width;
+	short int height;
+	char bitsPerPixel;
+	char imageDescriptor;
+};
+// Restore packing
+#pragma pack()
+
 bool ShellRenderInterfaceVulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
-	return true;
+	if (this->m_textures.find(source) != this->m_textures.end())
+	{
+		Shell::Log("[WARNING] you want to load texture that is already existed in storage (m_textures). Using existing texture");
+		return true;
+	}
+
+	Rml::FileInterface* file_interface = Rml::GetFileInterface();
+	Rml::FileHandle file_handle = file_interface->Open(source);
+	if (!file_handle)
+	{
+		return false;
+	}
+
+	file_interface->Seek(file_handle, 0, SEEK_END);
+	size_t buffer_size = file_interface->Tell(file_handle);
+	file_interface->Seek(file_handle, 0, SEEK_SET);
+
+	RMLUI_ASSERTMSG(buffer_size > sizeof(TGAHeader), "Texture file size is smaller than TGAHeader, file must be corrupt or otherwise invalid");
+	if (buffer_size <= sizeof(TGAHeader))
+	{
+		file_interface->Close(file_handle);
+		return false;
+	}
+
+	char* buffer = new char[buffer_size];
+	file_interface->Read(buffer, buffer_size, file_handle);
+	file_interface->Close(file_handle);
+
+	TGAHeader header;
+	memcpy(&header, buffer, sizeof(TGAHeader));
+
+	int color_mode = header.bitsPerPixel / 8;
+	int image_size = header.width * header.height * 4; // We always make 32bit textures
+
+	if (header.dataType != 2)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
+		return false;
+	}
+
+	// Ensure we have at least 3 colors
+	if (color_mode < 3)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported");
+		return false;
+	}
+
+	const char* image_src = buffer + sizeof(TGAHeader);
+	unsigned char* image_dest = new unsigned char[image_size];
+
+	// Targa is BGR, swap to RGB and flip Y axis
+	for (long y = 0; y < header.height; y++)
+	{
+		long read_index = y * header.width * color_mode;
+		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * color_mode;
+		for (long x = 0; x < header.width; x++)
+		{
+			image_dest[write_index] = image_src[read_index + 2];
+			image_dest[write_index + 1] = image_src[read_index + 1];
+			image_dest[write_index + 2] = image_src[read_index];
+			if (color_mode == 4)
+				image_dest[write_index + 3] = image_src[read_index + 3];
+			else
+				image_dest[write_index + 3] = 255;
+
+			write_index += 4;
+			read_index += color_mode;
+		}
+	}
+
+	texture_dimensions.x = header.width;
+	texture_dimensions.y = header.height;
+
+	// only call ctor for object in map, but we will obtain it in GenerateTexture, of course it is not right, but it did only for saving design...
+	// TODO: RmlUI team, add GenerateTexture that can get string for obtaining object in map
+	this->m_textures[source];
+	texture_handle = (Rml::TextureHandle)source.c_str();
+	bool status = this->GenerateTexture(texture_handle, image_dest, texture_dimensions);
+
+	delete[] image_dest;
+	delete[] buffer;
+
+	return status;
 }
 
+/*
+    How vulkan works with textures efficiently?
+
+    You need to create buffer that has CPU memory accessibility it means it uses your RAM memory for storing data and it has only CPU visibility (RAM)
+    After you create buffer that has GPU memory accessibility it means it uses by your video hardware and it has only VRAM visibility
+
+    So you copy data to CPU_buffer and after you copy that thing to GPU_buffer, but delete CPU_buffer
+
+    So it means you "uploaded" data to GPU
+*/
 bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
+	VK_ASSERT(source, "you pushed not valid data for copying to buffer");
+	VK_ASSERT(this->m_p_allocator, "you have to initialize Vma Allocator for this method");
+
+	int width = source_dimensions.x;
+	int height = source_dimensions.y;
+
+	VK_ASSERT(width, "invalid width");
+	VK_ASSERT(height, "invalid height");
+
+	VkDeviceSize image_size = width * height * 4;
+	VkFormat format = VkFormat::VK_FORMAT_R8G8B8A8_SRGB;
+
+	auto cpu_buffer = this->CreateResource_StagingBuffer(image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+
+	void* data;
+	vmaMapMemory(this->m_p_allocator, cpu_buffer.Get_VmaAllocation(), &data);
+	memcpy(data, source, static_cast<size_t>(image_size));
+	vmaUnmapMemory(this->m_p_allocator, cpu_buffer.Get_VmaAllocation());
+
+	VkExtent3D extent_image = {};
+	extent_image.width = static_cast<uint32_t>(width);
+	extent_image.height = static_cast<uint32_t>(height);
+	extent_image.depth = 1;
+
+	const char* file_path = reinterpret_cast<const char*>(texture_handle);
+
+	auto& texture = this->m_textures.at(file_path);
+
+	VkImageCreateInfo info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	info.pNext = nullptr;
+	info.imageType = VK_IMAGE_TYPE_2D;
+	info.format = format;
+	info.extent = extent_image;
+	info.mipLevels = 1;
+	info.arrayLayers = 1;
+	info.samples = VK_SAMPLE_COUNT_1_BIT;
+	info.tiling = VK_IMAGE_TILING_OPTIMAL;
+	info.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+	VmaAllocationCreateInfo info_allocation = {};
+	info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+	VkImage p_image = nullptr;
+	VmaAllocation p_allocation = nullptr;
+
+	VmaAllocationInfo info_stats = {};
+	VkResult status = vmaCreateImage(this->m_p_allocator, &info, &info_allocation, &p_image, &p_allocation, &info_stats);
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateImage");
+
+	Shell::Log("Create image %s with size %d", file_path, info_stats.size);
+
 	return true;
 }
 
@@ -1405,26 +1569,61 @@ void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->CreateSwapchainFrameBuffers();
 }
 
-void ShellRenderInterfaceVulkan::CreateResource_Texture(int width, int height, const Rml::String& full_path_to_file) noexcept 
+ShellRenderInterfaceVulkan::buffer_data_t ShellRenderInterfaceVulkan::CreateResource_StagingBuffer(
+	VkDeviceSize size, VkBufferUsageFlags flags) noexcept
 {
-	VK_ASSERT(width, "can't be zero!");
-	VK_ASSERT(height, "can't be zero!");
-	VK_ASSERT(full_path_to_file.empty() == false, "can't be empty!");
+	buffer_data_t result;
 
-	if (this->m_textures.find(full_path_to_file) != this->m_textures.end()) 
-	{
-		Shell::Log("you can't create a texture that is existed in m_textures already: [%s]", full_path_to_file.c_str());
-		return;
-	}
+	VkBufferCreateInfo info = {};
 
+	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	info.pNext = nullptr;
+	info.size = size;
+	info.usage = flags;
 
+	VmaAllocationCreateInfo info_allocation = {};
+	info_allocation.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+
+	VkBuffer p_buffer = nullptr;
+	VmaAllocation p_allocation = nullptr;
+
+	VmaAllocationInfo info_stats = {};
+
+	VkResult status = vmaCreateBuffer(this->m_p_allocator, &info, &info_allocation, &p_buffer, &p_allocation, &info_stats);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateBuffer");
+
+	Shell::Log("allocated buffer with size %d in bytes", info_stats.size);
+
+	result.Set_VkBuffer(p_buffer);
+	result.Set_VmaAllocation(p_allocation);
+
+	return result;
 }
 
-void ShellRenderInterfaceVulkan::Destroy_Textures(void) noexcept 
+void ShellRenderInterfaceVulkan::DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept
 {
-	for (auto& pair_path_to_file_data : this->m_textures) 
+	if (this->m_p_allocator)
 	{
-		
+		if (data.Get_VkBuffer() && data.Get_VmaAllocation())
+		{
+			vmaDestroyBuffer(this->m_p_allocator, data.Get_VkBuffer(), data.Get_VmaAllocation());
+
+			Shell::Log("destroy buffer");
+		}
+	}
+}
+
+void ShellRenderInterfaceVulkan::Destroy_Textures(void) noexcept
+{
+	for (auto& pair_path_to_file_and_data : this->m_textures)
+	{
+		const auto& texture = pair_path_to_file_and_data.second;
+
+		if (texture.Get_VmaAllocation())
+		{
+			vmaDestroyImage(this->m_p_allocator, texture.Get_VkImage(), texture.Get_VmaAllocation());
+		}
 	}
 }
 

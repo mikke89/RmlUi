@@ -51,23 +51,26 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		VmaAllocation Get_VmaAllocation(void) const noexcept { return this->m_p_vma_allocation; }
 		const Rml::String& Get_FileName(void) const noexcept { return this->m_filename; }
 
-		void Destroy(void) noexcept 
-		{
-			if (this->m_p_vk_image) 
-			{
-				
-			}
-
-			if (this->m_p_vma_allocation) 
-			{
-			
-			}
-		}
-
 	private:
 		VkImage m_p_vk_image;
 		VmaAllocation m_p_vma_allocation;
 		Rml::String m_filename;
+	};
+
+	class buffer_data_t {
+	public:
+		buffer_data_t() : m_p_vk_buffer{}, m_p_vma_allocation{} {}
+		~buffer_data_t() {}
+
+		void Set_VkBuffer(VkBuffer p_buffer) noexcept { this->m_p_vk_buffer = p_buffer; }
+		void Set_VmaAllocation(VmaAllocation p_allocation) noexcept { this->m_p_vma_allocation = p_allocation; }
+
+		VkBuffer Get_VkBuffer(void) const noexcept { return this->m_p_vk_buffer; }
+		VmaAllocation Get_VmaAllocation(void) const noexcept { return this->m_p_vma_allocation; }
+
+	private:
+		VkBuffer m_p_vk_buffer;
+		VmaAllocation m_p_vma_allocation;
 	};
 
 	class StatisticsWrapper {
@@ -359,7 +362,9 @@ private:
 
 	void CreateResourcesDependentOnSize(void) noexcept;
 
-	void CreateResource_Texture(int width, int height, const Rml::String& full_path_to_file) noexcept;
+	buffer_data_t CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept;
+	void DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept;
+
 	void Destroy_Textures(void) noexcept;
 
 	void DestroyResourcesDependentOnSize(void) noexcept;
@@ -449,6 +454,7 @@ private:
 	CommandListRing m_command_list;
 	MemoryRingPool m_memory_pool;
 #pragma endregion
+	StatisticsWrapper m_stats;
 };
 
 #endif
