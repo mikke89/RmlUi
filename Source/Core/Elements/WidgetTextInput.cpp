@@ -43,6 +43,13 @@
 #include "ElementTextSelection.h"
 #include <algorithm>
 #include <limits.h>
+#if defined RMLUI_PLATFORM_WIN32
+#pragma comment(lib, "imm32")
+//correct the CJK input method candidate window's position
+#include <Windows.h>
+#include <imm.h>
+#endif
+
 
 namespace Rml {
 
@@ -568,7 +575,7 @@ bool WidgetTextInput::DeleteCharacters(CursorMovement direction)
 void WidgetTextInput::CopySelection()
 {
 	const String value = GetElement()->GetAttribute< String >("value", "");
-	const String snippet = value.substr(std::min(size_t(selection_begin_index), size_t(value.size())), selection_length);
+	const String snippet = value.substr((std::min)(size_t(selection_begin_index), size_t(value.size())), selection_length);
 	GetSystemInterface()->SetClipboardText(snippet);
 }
 
@@ -1217,7 +1224,7 @@ void WidgetTextInput::DeleteSelection()
 	{
 		const String& value = GetElement()->GetAttribute< String >("value", "");
 
-		String new_value = value.substr(0, selection_begin_index) + value.substr(std::min(size_t(selection_begin_index + selection_length), size_t(value.size())));
+		String new_value = value.substr(0, selection_begin_index) + value.substr((std::min)(size_t(selection_begin_index + selection_length), size_t(value.size())));
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
@@ -1257,6 +1264,20 @@ void WidgetTextInput::SetKeyboardActive(bool active)
 		if (active) 
 		{
 			system->ActivateKeyboard();
+			#if defined RMLUI_PLATFORM_WIN32
+			//correct the CJK input method candidate window's position
+			HWND hwnd = GetActiveWindow();
+			if (!hwnd) return;
+			HIMC himc = ImmGetContext(hwnd);
+			if (!himc) return;
+			COMPOSITIONFORM cfs;
+			Vector2f text_translation = parent->GetAbsoluteOffset() - Vector2f(parent->GetScrollLeft(), parent->GetScrollTop());
+			cfs.ptCurrentPos.x = cursor_position.x + text_translation.x;
+			cfs.ptCurrentPos.y = cursor_position.y + text_translation.y; //not need +cursor_size.y
+			cfs.dwStyle = CFS_FORCE_POSITION;
+			::ImmSetCompositionWindow(himc, &cfs);
+			ImmReleaseContext(hwnd, himc);
+			#endif
 		} else 
 		{
 			system->DeactivateKeyboard();
