@@ -41,7 +41,7 @@ ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
-	Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+//	Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
 }
 
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
@@ -173,17 +173,44 @@ bool ShellRenderInterfaceVulkan::LoadTexture(Rml::TextureHandle& texture_handle,
     So you copy data to CPU_buffer and after you copy that thing to GPU_buffer, but delete CPU_buffer
 
     So it means you "uploaded" data to GPU
+
+    Again, you need to "write" data into CPU buffer after you need to copy that data from buffer to GPU buffer and after that buffer go to GPU.
+
+    data->CPU->Copy->GPU->Releasing_CPU <= that's how works uploading textures in Vulkan if you want to have efficient handling otherwise it is
+   cpu_to_gpu visibility
+
+    and it means you create only ONE buffer that is accessible for CPU and for GPU, but it will cause the worst performance...
 */
 bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
 	VK_ASSERT(source, "you pushed not valid data for copying to buffer");
 	VK_ASSERT(this->m_p_allocator, "you have to initialize Vma Allocator for this method");
-
+	VK_ASSERT(this->m_p_current_command_buffer, "must exist command buffer for working with Vulkan API");
 	int width = source_dimensions.x;
 	int height = source_dimensions.y;
 
 	VK_ASSERT(width, "invalid width");
 	VK_ASSERT(height, "invalid height");
+
+	const char* file_path = reinterpret_cast<const char*>(texture_handle);
+	if (this->m_textures.find(file_path) != this->m_textures.end())
+	{
+		if (this->m_textures.at(file_path).Get_VkImage() && this->m_textures.at(file_path).Get_VmaAllocation()) 
+		{
+			Shell::Log("[Vulkan] using the existing texture %s", file_path);
+			return true;
+		}
+		else
+		{
+			VK_ASSERT(false, "can't be. It supposed to have an initialized and allocated texture with valid VkImage and VmaAllocation handles");
+			return false;
+		}
+	}
+	else
+	{
+		// this means we got our calling from outside of this class it is not LoadTexture method...
+		this->m_textures[file_path];
+	}
 
 	VkDeviceSize image_size = width * height * 4;
 	VkFormat format = VkFormat::VK_FORMAT_R8G8B8A8_SRGB;
@@ -199,8 +226,6 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	extent_image.width = static_cast<uint32_t>(width);
 	extent_image.height = static_cast<uint32_t>(height);
 	extent_image.depth = 1;
-
-	const char* file_path = reinterpret_cast<const char*>(texture_handle);
 
 	auto& texture = this->m_textures.at(file_path);
 
@@ -227,7 +252,108 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	VkResult status = vmaCreateImage(this->m_p_allocator, &info, &info_allocation, &p_image, &p_allocation, &info_stats);
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateImage");
 
-	Shell::Log("Create image %s with size %d", file_path, info_stats.size);
+	Shell::Log("Created image %s with size %d", file_path, info_stats.size);
+
+	texture.Set_FileName(file_path);
+	texture.Set_VkImage(p_image);
+	texture.Set_VmaAllocation(p_allocation);
+
+	/*
+	 * So Vulkan works only through VkCommandBuffer, it is for remembering API commands what you want to call from GPU
+	 * So on CPU side you need to create a scope that consists of two things
+	 * vkBeingCommandBuffer
+	 * ... <= here your commands what you want to place into your command buffer and send it to GPU through vkQueueSubmit function
+	 * vkEndCommandBuffer
+	 *
+	 * So commands start to work ONLY when you called the vkQueueSubmit otherwise you just "place" commands into your command buffer but you
+	 * didn't issue any thing in order to start the work on GPU side
+	 *
+	 * BUT you need always sync what you have done when you called your vkQueueSubmit function, so it is wait method, but generally you can create
+	 * another queue and isolate all stuff tbh
+	 *
+	 * So understing these principles you understand how to work with API and your GPU
+	 *
+	 * There's nothing hard, but it makes all stuff on programmer side if you remember OpenGL and how it was easy to load texture upload it and create
+	 * buffers and it In OpenGL all stuff is handled by driver and other things, not a programmer definitely
+	 *
+	 * What we do here? We need to change the layout of our image. it means where we want to use it. So in our case we want to see that this image
+	 * will be in shaders Because the initial state of create object is VK_IMAGE_LAYOUT_UNDEFINED means you can't just pass that VkImage handle to
+	 * your functions and wait that it comes to shaders for exmaple No it doesn't work like that you have to have the explicit states of your resource
+	 * and where it goes
+	 *
+	 * In our case we want to see in our pixel shader so we need to change transfer into this flag VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, because we
+	 * want to copy so it means some transfer thing, but after we say it goes to pixel after our copying operation
+	 */
+	{
+		VkCommandBufferBeginInfo info = {};
+		info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		info.pNext = nullptr;
+		info.pInheritanceInfo = nullptr;
+		info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		VkResult status = vkBeginCommandBuffer(this->m_p_current_command_buffer, &info);
+
+		VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkBeginCommandBuffer");
+
+		VkImageSubresourceRange range = {};
+		range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		range.baseMipLevel = 0;
+		range.baseArrayLayer = 0;
+		range.levelCount = 1;
+		range.layerCount = 1;
+
+		VkImageMemoryBarrier info_barrier = {};
+
+		info_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		info_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		info_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		info_barrier.image = p_image;
+		info_barrier.subresourceRange = range;
+		info_barrier.srcAccessMask = 0;
+		info_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		vkCmdPipelineBarrier(this->m_p_current_command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0,
+			nullptr, 1, &info_barrier);
+
+		VkBufferImageCopy region = {};
+		region.bufferOffset = 0;
+		region.bufferRowLength = 0;
+		region.bufferImageHeight = 0;
+
+		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		region.imageSubresource.mipLevel = 0;
+		region.imageSubresource.baseArrayLayer = 0;
+		region.imageSubresource.layerCount = 1;
+		region.imageExtent = extent_image;
+
+		vkCmdCopyBufferToImage(
+			this->m_p_current_command_buffer, cpu_buffer.Get_VkBuffer(), p_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+		VkImageMemoryBarrier info_barrier_shader_read = {};
+
+		info_barrier_shader_read.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		info_barrier_shader_read.pNext = nullptr;
+		info_barrier_shader_read.image = p_image;
+		info_barrier_shader_read.subresourceRange = range;
+		info_barrier_shader_read.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		info_barrier_shader_read.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		info_barrier_shader_read.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		info_barrier_shader_read.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		vkCmdPipelineBarrier(this->m_p_current_command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr,
+			0, nullptr, 1, &info_barrier_shader_read);
+
+		status = vkEndCommandBuffer(this->m_p_current_command_buffer);
+
+		VK_ASSERT(status == VkResult::VK_SUCCESS, "faield to vkEndCommandBuffer");
+
+		this->Submit();
+		this->Wait();
+	}
+
+	this->DestroyResource_StagingBuffer(cpu_buffer);
+
+	texture_handle = (Rml::TextureHandle)p_image;
 
 	return true;
 }
@@ -1253,9 +1379,9 @@ VkCompositeAlphaFlagBitsKHR ShellRenderInterfaceVulkan::ChooseSwapchainComposite
 // VK_PRESENT_MODE_FIFO_KHR system must support this mode at least so by default we want to use it otherwise user can specify his mode
 VkPresentModeKHR ShellRenderInterfaceVulkan::GetPresentMode(VkPresentModeKHR required) noexcept
 {
-	VK_ASSERT(this->m_p_device, "you must initialize your device, before calling this method");
-	VK_ASSERT(this->m_p_physical_device_current, "you must initialize your physical device, before calling this method");
-	VK_ASSERT(this->m_p_surface, "you must initialize your surface, before calling this method");
+	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize your device, before calling this method");
+	VK_ASSERT(this->m_p_physical_device_current, "[Vulkan] you must initialize your physical device, before calling this method");
+	VK_ASSERT(this->m_p_surface, "[Vulkan] you must initialize your surface, before calling this method");
 
 	VkPresentModeKHR result = required;
 
@@ -1263,14 +1389,14 @@ VkPresentModeKHR ShellRenderInterfaceVulkan::GetPresentMode(VkPresentModeKHR req
 
 	VkResult status = vkGetPhysicalDeviceSurfacePresentModesKHR(this->m_p_physical_device_current, this->m_p_surface, &present_modes_count, nullptr);
 
-	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfacePresentModesKHR (getting count)");
+	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkGetPhysicalDeviceSurfacePresentModesKHR (getting count)");
 
 	Rml::Vector<VkPresentModeKHR> present_modes(present_modes_count);
 
 	status =
 		vkGetPhysicalDeviceSurfacePresentModesKHR(this->m_p_physical_device_current, this->m_p_surface, &present_modes_count, present_modes.data());
 
-	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfacePresentModesKHR (filling vector of VkPresentModeKHR)");
+	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkGetPhysicalDeviceSurfacePresentModesKHR (filling vector of VkPresentModeKHR)");
 
 	for (const auto& mode : present_modes)
 	{
@@ -1285,15 +1411,15 @@ VkPresentModeKHR ShellRenderInterfaceVulkan::GetPresentMode(VkPresentModeKHR req
 
 VkSurfaceCapabilitiesKHR ShellRenderInterfaceVulkan::GetSurfaceCapabilities(void) noexcept
 {
-	VK_ASSERT(this->m_p_device, "you must initialize your device, before calling this method");
-	VK_ASSERT(this->m_p_physical_device_current, "you must initialize your physical device, before calling this method");
-	VK_ASSERT(this->m_p_surface, "you must initialize your surface, before calling this method");
+	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize your device, before calling this method");
+	VK_ASSERT(this->m_p_physical_device_current, "[Vulkan] you must initialize your physical device, before calling this method");
+	VK_ASSERT(this->m_p_surface, "[Vulkan] you must initialize your surface, before calling this method");
 
 	VkSurfaceCapabilitiesKHR result;
 
 	VkResult status = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->m_p_physical_device_current, this->m_p_surface, &result);
 
-	VK_ASSERT(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
 
 	return result;
 }
