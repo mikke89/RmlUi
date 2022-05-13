@@ -198,7 +198,8 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 		if (this->m_textures.at(file_path).Get_VkImage() && this->m_textures.at(file_path).Get_VmaAllocation())
 		{
 			Shell::Log("[Vulkan] using the existing texture %s", file_path);
-			texture_handle = (Rml::TextureHandle)this->m_textures.at(file_path).Get_VkImage();
+			const auto& texture = this->m_textures.at(file_path);
+			texture_handle = (Rml::TextureHandle)texture.Get_VkImage();
 
 			return true;
 		}
@@ -254,6 +255,8 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	texture.Set_FileName(file_path);
 	texture.Set_VkImage(p_image);
 	texture.Set_VmaAllocation(p_allocation);
+	texture.Set_Width(width);
+	texture.Set_Height(height);
 
 	/*
 	 * So Vulkan works only through VkCommandBuffer, it is for remembering API commands what you want to call from GPU
@@ -883,6 +886,8 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	{
 		vkDestroyShaderModule(this->m_p_device, pair_shader_type_shader_module.second, nullptr);
 	}
+
+	this->Destroy_Textures();
 }
 
 void ShellRenderInterfaceVulkan::Destroy_Allocator(void) noexcept

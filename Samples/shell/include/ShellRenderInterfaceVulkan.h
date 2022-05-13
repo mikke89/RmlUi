@@ -40,18 +40,25 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 	class texture_data_t {
 	public:
-		texture_data_t() : m_p_vk_image{}, m_p_vma_allocation{} {}
+		texture_data_t() : m_width{}, m_height{}, m_p_vk_image{}, m_p_vma_allocation{} {}
 		~texture_data_t() {}
 
 		void Set_VkImage(VkImage p_image) noexcept { this->m_p_vk_image = p_image; }
 		void Set_VmaAllocation(VmaAllocation p_allocation) noexcept { this->m_p_vma_allocation = p_allocation; }
 		void Set_FileName(const Rml::String& filename) noexcept { this->m_filename = filename; }
+		void Set_Width(int width) noexcept { this->m_width = width; }
+		void Set_Height(int height) noexcept { this->m_height = height; }
 
 		VkImage Get_VkImage(void) const noexcept { return this->m_p_vk_image; }
 		VmaAllocation Get_VmaAllocation(void) const noexcept { return this->m_p_vma_allocation; }
 		const Rml::String& Get_FileName(void) const noexcept { return this->m_filename; }
+		int Get_Width(void) const noexcept { return this->m_width; }
+		int Get_Height(void) const noexcept { return this->m_height; }
+
 
 	private:
+		int m_width;
+		int m_height;
 		VkImage m_p_vk_image;
 		VmaAllocation m_p_vma_allocation;
 		Rml::String m_filename;
@@ -170,11 +177,11 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 			this->Create_CommandBuffer();
 		}
 
-		void Wait(void) noexcept 
+		void Wait(void) noexcept
 		{
 			RMLUI_ASSERT(this->m_p_fence, "you must initialize your VkFence");
 
-			vkWaitForFences(this->m_p_device, 1, &this->m_p_fence, VK_TRUE, UINT64_MAX); 
+			vkWaitForFences(this->m_p_device, 1, &this->m_p_fence, VK_TRUE, UINT64_MAX);
 			vkResetFences(this->m_p_device, 1, &this->m_p_fence);
 			vkResetCommandPool(this->m_p_device, this->m_p_command_pool, 0);
 		}
