@@ -5,8 +5,8 @@
 #include "vk_mem_alloc.h"
 
 #define VK_ASSERT(statement, msg, ...)         \
-	if (!!(statement) == false)                \
 	{                                          \
+		RMLUI_ASSERT(statement);               \
 		Shell::DisplayError(msg, __VA_ARGS__); \
 	}
 
