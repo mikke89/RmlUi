@@ -13,8 +13,8 @@
 ### Fonts
 
 - Support for color emojis 🎉. [#267](https://github.com/mikke89/RmlUi/issues/267)
-- Support for loading fonts with multiple included font weights. [#296](https://github.com/mikke89/RmlUi/pull/289) (thanks @MexUK)
-- The `font-weight` property now supports numeric values. [#296](https://github.com/mikke89/RmlUi/pull/289) (thanks @MexUK)
+- Support for loading fonts with multiple included font weights. [#296](https://github.com/mikke89/RmlUi/pull/296) (thanks @MexUK)
+- The `font-weight` property now supports numeric values. [#296](https://github.com/mikke89/RmlUi/pull/296) (thanks @MexUK)
 - The `opacity` property is now also applied to font effects. [#270](https://github.com/mikke89/RmlUi/issues/270)
 
 ### Performance and resource management
