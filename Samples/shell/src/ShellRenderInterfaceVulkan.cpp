@@ -42,7 +42,7 @@ ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
-	//	Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+	//Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
 }
 
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
