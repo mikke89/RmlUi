@@ -73,6 +73,94 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		VmaAllocation m_p_vma_allocation;
 	};
 
+	class UploadResourceManager {
+	public:
+		UploadResourceManager(void) : m_p_device{}, m_p_fence{}, m_p_command_buffer{}, m_p_command_pool{}, m_p_graphics_queue{} {}
+		~UploadResourceManager(void) {}
+
+		void Initialize(VkDevice p_device, VkQueue p_queue, uint32_t queue_family_index)
+		{
+			RMLUI_ASSERT(p_queue, "you have to pass a valid VkQueue");
+			RMLUI_ASSERT(p_device, "you have to pass a valid VkDevice for creation resources");
+
+			this->m_p_device = p_device;
+			this->m_p_graphics_queue = p_queue;
+
+			this->Create_All(queue_family_index);
+		}
+
+		void Shutdown(void)
+		{
+			vkDestroyFence(this->m_p_device, this->m_p_fence, nullptr);
+			vkDestroyCommandPool(this->m_p_device, this->m_p_command_pool, nullptr);
+		}
+
+		void UploadToGPU() noexcept 
+		{
+		
+		}
+
+	private:
+		void Create_Fence(void) noexcept
+		{
+			VkFenceCreateInfo info = {};
+			info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+			info.pNext = nullptr;
+			info.flags = 0;
+
+			VkResult status = vkCreateFence(this->m_p_device, &info, nullptr, &this->m_p_fence);
+
+			RMLUI_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateFence");
+		}
+
+		void Create_CommandBuffer(void) noexcept
+		{
+			RMLUI_ASSERT(this->m_p_command_pool, "you have to initialize VkCommandPool before calling this method!");
+
+			VkCommandBufferAllocateInfo info = {};
+			info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+			info.pNext = nullptr;
+			info.commandPool = this->m_p_command_pool;
+			info.commandBufferCount = 1;
+			info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+			VkResult status = vkAllocateCommandBuffers(this->m_p_device, &info, &this->m_p_command_buffer);
+
+			RMLUI_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkAllocateCommandBuffers");
+		}
+
+		void Create_CommandPool(uint32_t queue_family_index) noexcept
+		{
+			VkCommandPoolCreateInfo info = {};
+
+			info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			info.pNext = nullptr;
+			info.queueFamilyIndex = queue_family_index;
+			info.flags = 0;
+
+			VkResult status = vkCreateCommandPool(this->m_p_device, &info, nullptr, &this->m_p_command_pool);
+
+			RMLUI_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateCommandPool");
+		}
+
+		void Create_All(uint32_t queue_family_index) noexcept
+		{
+			this->Create_Fence();
+			this->Create_CommandPool(queue_family_index);
+			this->Create_CommandBuffer();
+		}
+
+		void Wait(void) noexcept {}
+		void Submit(void) noexcept {}
+
+	private:
+		VkDevice m_p_device;
+		VkFence m_p_fence;
+		VkCommandBuffer m_p_command_buffer;
+		VkCommandPool m_p_command_pool;
+		VkQueue m_p_graphics_queue;
+	};
+
 	class StatisticsWrapper {
 	public:
 		StatisticsWrapper(void) : m_memory_allocated_for_textures{}, m_memory_allocated_for_vertex_geometry_buffer{} {}
@@ -455,6 +543,7 @@ private:
 	MemoryRingPool m_memory_pool;
 #pragma endregion
 	StatisticsWrapper m_stats;
+	UploadResourceManager m_upload_manager;
 };
 
 #endif

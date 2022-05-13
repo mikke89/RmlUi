@@ -41,7 +41,7 @@ ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
-//	Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+	//	Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
 }
 
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
@@ -195,7 +195,7 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	const char* file_path = reinterpret_cast<const char*>(texture_handle);
 	if (this->m_textures.find(file_path) != this->m_textures.end())
 	{
-		if (this->m_textures.at(file_path).Get_VkImage() && this->m_textures.at(file_path).Get_VmaAllocation()) 
+		if (this->m_textures.at(file_path).Get_VkImage() && this->m_textures.at(file_path).Get_VmaAllocation())
 		{
 			Shell::Log("[Vulkan] using the existing texture %s", file_path);
 			return true;
@@ -822,6 +822,7 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 	this->m_command_list.Initialize(this->m_p_device, this->m_queue_index_graphics, kSwapchainBackBufferCount, 2);
 	this->m_memory_pool.Initialize(
 		this->m_p_allocator, this->m_p_device, kSwapchainBackBufferCount, ShellRenderInterfaceVulkan::ConvertMegabytesToBytes(32));
+	this->m_upload_manager.Initialize(this->m_p_device, this->m_p_queue_graphics, this->m_queue_index_graphics);
 
 	auto storage = this->LoadShaders();
 
