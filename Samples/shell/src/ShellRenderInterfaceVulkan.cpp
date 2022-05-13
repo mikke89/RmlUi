@@ -198,6 +198,8 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 		if (this->m_textures.at(file_path).Get_VkImage() && this->m_textures.at(file_path).Get_VmaAllocation())
 		{
 			Shell::Log("[Vulkan] using the existing texture %s", file_path);
+			texture_handle = (Rml::TextureHandle)this->m_textures.at(file_path).Get_VkImage();
+
 			return true;
 		}
 	}
@@ -238,7 +240,7 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	info.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	VmaAllocationCreateInfo info_allocation = {};
-	info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	info_allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
 	VkImage p_image = nullptr;
 	VmaAllocation p_allocation = nullptr;
@@ -247,7 +249,7 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	VkResult status = vmaCreateImage(this->m_p_allocator, &info, &info_allocation, &p_image, &p_allocation, &info_stats);
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateImage");
 
-	Shell::Log("Created image %s with size %d", file_path, info_stats.size);
+	Shell::Log("Created image %s with size [%d bytes][%d Megabytes]", file_path, info_stats.size, TranslateBytesToMegaBytes(info_stats.size));
 
 	texture.Set_FileName(file_path);
 	texture.Set_VkImage(p_image);
