@@ -200,11 +200,6 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 			Shell::Log("[Vulkan] using the existing texture %s", file_path);
 			return true;
 		}
-		else
-		{
-			VK_ASSERT(false, "can't be. It supposed to have an initialized and allocated texture with valid VkImage and VmaAllocation handles");
-			return false;
-		}
 	}
 	else
 	{
@@ -285,70 +280,54 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	 * want to copy so it means some transfer thing, but after we say it goes to pixel after our copying operation
 	 */
 	{
-		VkCommandBufferBeginInfo info = {};
-		info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		info.pNext = nullptr;
-		info.pInheritanceInfo = nullptr;
-		info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		this->m_upload_manager.UploadToGPU([p_image, extent_image, cpu_buffer](VkCommandBuffer p_cmd) {
+			VkImageSubresourceRange range = {};
+			range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			range.baseMipLevel = 0;
+			range.baseArrayLayer = 0;
+			range.levelCount = 1;
+			range.layerCount = 1;
 
-		VkResult status = vkBeginCommandBuffer(this->m_p_current_command_buffer, &info);
+			VkImageMemoryBarrier info_barrier = {};
 
-		VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkBeginCommandBuffer");
+			info_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			info_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			info_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			info_barrier.image = p_image;
+			info_barrier.subresourceRange = range;
+			info_barrier.srcAccessMask = 0;
+			info_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-		VkImageSubresourceRange range = {};
-		range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		range.baseMipLevel = 0;
-		range.baseArrayLayer = 0;
-		range.levelCount = 1;
-		range.layerCount = 1;
+			vkCmdPipelineBarrier(
+				p_cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &info_barrier);
 
-		VkImageMemoryBarrier info_barrier = {};
+			VkBufferImageCopy region = {};
+			region.bufferOffset = 0;
+			region.bufferRowLength = 0;
+			region.bufferImageHeight = 0;
 
-		info_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		info_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		info_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		info_barrier.image = p_image;
-		info_barrier.subresourceRange = range;
-		info_barrier.srcAccessMask = 0;
-		info_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			region.imageSubresource.mipLevel = 0;
+			region.imageSubresource.baseArrayLayer = 0;
+			region.imageSubresource.layerCount = 1;
+			region.imageExtent = extent_image;
 
-		vkCmdPipelineBarrier(this->m_p_current_command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0,
-			nullptr, 1, &info_barrier);
+			vkCmdCopyBufferToImage(p_cmd, cpu_buffer.Get_VkBuffer(), p_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-		VkBufferImageCopy region = {};
-		region.bufferOffset = 0;
-		region.bufferRowLength = 0;
-		region.bufferImageHeight = 0;
+			VkImageMemoryBarrier info_barrier_shader_read = {};
 
-		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		region.imageSubresource.mipLevel = 0;
-		region.imageSubresource.baseArrayLayer = 0;
-		region.imageSubresource.layerCount = 1;
-		region.imageExtent = extent_image;
+			info_barrier_shader_read.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			info_barrier_shader_read.pNext = nullptr;
+			info_barrier_shader_read.image = p_image;
+			info_barrier_shader_read.subresourceRange = range;
+			info_barrier_shader_read.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			info_barrier_shader_read.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			info_barrier_shader_read.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			info_barrier_shader_read.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-		vkCmdCopyBufferToImage(
-			this->m_p_current_command_buffer, cpu_buffer.Get_VkBuffer(), p_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
-		VkImageMemoryBarrier info_barrier_shader_read = {};
-
-		info_barrier_shader_read.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		info_barrier_shader_read.pNext = nullptr;
-		info_barrier_shader_read.image = p_image;
-		info_barrier_shader_read.subresourceRange = range;
-		info_barrier_shader_read.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		info_barrier_shader_read.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		info_barrier_shader_read.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		info_barrier_shader_read.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-		vkCmdPipelineBarrier(this->m_p_current_command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr,
-			0, nullptr, 1, &info_barrier_shader_read);
-
-		status = vkEndCommandBuffer(this->m_p_current_command_buffer);
-
-		VK_ASSERT(status == VkResult::VK_SUCCESS, "faield to vkEndCommandBuffer");
-
-		this->Submit();
-		this->Wait();
+			vkCmdPipelineBarrier(p_cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1,
+				&info_barrier_shader_read);
+		});
 	}
 
 	this->DestroyResource_StagingBuffer(cpu_buffer);
@@ -893,6 +872,7 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 {
 	this->m_memory_pool.Shutdown();
 	this->m_command_list.Shutdown();
+	this->m_upload_manager.Shutdown();
 
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
 	vkDestroyPipelineLayout(this->m_p_device, this->m_p_pipeline_layout, nullptr);
@@ -1680,7 +1660,7 @@ void ShellRenderInterfaceVulkan::CreateSwapchainImageViews(void) noexcept
 
 void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 {
-	this->m_viewport.height = -this->m_height;
+	this->m_viewport.height = this->m_height;
 	this->m_viewport.width = this->m_width;
 	this->m_viewport.minDepth = 0.0f;
 	this->m_viewport.maxDepth = 1.0f;

@@ -95,9 +95,29 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 			vkDestroyCommandPool(this->m_p_device, this->m_p_command_pool, nullptr);
 		}
 
-		void UploadToGPU() noexcept 
+		void UploadToGPU(Rml::Function<void(VkCommandBuffer p_cmd)>&& p_user_commands) noexcept
 		{
-		
+			RMLUI_ASSERT(this->m_p_command_buffer, "you didn't initialize VkCommandBuffer");
+
+			VkCommandBufferBeginInfo info_command = {};
+
+			info_command.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			info_command.pNext = nullptr;
+			info_command.pInheritanceInfo = nullptr;
+			info_command.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+			VkResult status = vkBeginCommandBuffer(this->m_p_command_buffer, &info_command);
+
+			RMLUI_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkBeginCommandBuffer");
+
+			p_user_commands(this->m_p_command_buffer);
+
+			status = vkEndCommandBuffer(this->m_p_command_buffer);
+
+			RMLUI_ASSERT(status == VkResult::VK_SUCCESS, "faield to vkEndCommandBuffer");
+
+			this->Submit();
+			this->Wait();
 		}
 
 	private:
@@ -150,8 +170,33 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 			this->Create_CommandBuffer();
 		}
 
-		void Wait(void) noexcept {}
-		void Submit(void) noexcept {}
+		void Wait(void) noexcept 
+		{
+			RMLUI_ASSERT(this->m_p_fence, "you must initialize your VkFence");
+
+			vkWaitForFences(this->m_p_device, 1, &this->m_p_fence, VK_TRUE, UINT64_MAX); 
+			vkResetFences(this->m_p_device, 1, &this->m_p_fence);
+			vkResetCommandPool(this->m_p_device, this->m_p_command_pool, 0);
+		}
+
+		void Submit(void) noexcept
+		{
+			VkSubmitInfo info = {};
+
+			info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			info.pNext = nullptr;
+			info.waitSemaphoreCount = 0;
+			info.signalSemaphoreCount = 0;
+			info.pSignalSemaphores = nullptr;
+			info.pWaitSemaphores = nullptr;
+			info.pWaitDstStageMask = nullptr;
+			info.pCommandBuffers = &this->m_p_command_buffer;
+			info.commandBufferCount = 1;
+
+			auto status = vkQueueSubmit(this->m_p_graphics_queue, 1, &info, this->m_p_fence);
+
+			RMLUI_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkQueueSubmit");
+		}
 
 	private:
 		VkDevice m_p_device;
