@@ -36,6 +36,9 @@ constexpr uint32_t kSwapchainBackBufferCount = 3;
 class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
 	enum class shader_type_t : int { kShaderType_Vertex, kShaderType_Pixel, kShaderType_Unknown = -1 };
 
+	// For obtainig our VkShaderModule in m_shaders, the order is specified in LoadShaders method
+	enum class shader_id_t : int { kShaderID_Vertex, kShaderID_Pixel_WithoutTextures, kShaderID_Pixel_WithTextures };
+
 	using shader_data_t = Rml::Vector<uint32_t>;
 
 	class texture_data_t {
@@ -54,7 +57,6 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		const Rml::String& Get_FileName(void) const noexcept { return this->m_filename; }
 		int Get_Width(void) const noexcept { return this->m_width; }
 		int Get_Height(void) const noexcept { return this->m_height; }
-
 
 	private:
 		int m_width;
@@ -482,12 +484,12 @@ private:
 	VkCompositeAlphaFlagBitsKHR ChooseSwapchainCompositeAlpha(void) noexcept;
 	VkPresentModeKHR GetPresentMode(VkPresentModeKHR type = VkPresentModeKHR::VK_PRESENT_MODE_FIFO_KHR) noexcept;
 	VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(void) noexcept;
-	Rml::UnorderedMap<shader_type_t, shader_data_t> LoadShaders(void) noexcept;
+	Rml::Vector<ShellRenderInterfaceVulkan::shader_data_t> LoadShaders(void) noexcept;
 	shader_data_t LoadShader(const Rml::String& relative_path_from_samples_folder_with_file_and_fileformat) noexcept;
 
 	VkExtent2D CreateValidSwapchainExtent(void) noexcept;
-	void CreateShaders(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept;
-	void CreateDescriptorSetLayout(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept;
+	void CreateShaders(const Rml::Vector<shader_data_t>& storage) noexcept;
+	void CreateDescriptorSetLayout(const Rml::Vector<shader_data_t>& storage) noexcept;
 	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept;
 	void CreatePipelineLayout(void) noexcept;
 	void CreateDescriptorSets(void) noexcept;
@@ -583,7 +585,7 @@ private:
 	Rml::Vector<VkImageView> m_swapchain_image_views;
 
 #pragma region Resources
-	Rml::UnorderedMap<shader_type_t, VkShaderModule> m_shaders;
+	Rml::Vector<VkShaderModule> m_shaders;
 	Rml::UnorderedMap<Rml::String, texture_data_t> m_textures;
 #pragma endregion
 

@@ -4,10 +4,11 @@
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
-#define VK_ASSERT(statement, msg, ...)         \
-	{                                          \
-		RMLUI_ASSERT(statement);               \
-		Shell::DisplayError(msg, __VA_ARGS__); \
+#define VK_ASSERT(statement, msg, ...)             \
+	{                                              \
+		RMLUI_ASSERT(statement);                   \
+		if (!!(statement) == false)                \
+			Shell::DisplayError(msg, __VA_ARGS__); \
 	}
 
 VkValidationFeaturesEXT debug_validation_features_ext = {};
@@ -882,9 +883,9 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
 	vkDestroyPipelineLayout(this->m_p_device, this->m_p_pipeline_layout, nullptr);
 
-	for (const auto& pair_shader_type_shader_module : this->m_shaders)
+	for (const auto& p_module : this->m_shaders)
 	{
-		vkDestroyShaderModule(this->m_p_device, pair_shader_type_shader_module.second, nullptr);
+		vkDestroyShaderModule(this->m_p_device, p_module, nullptr);
 	}
 
 	this->Destroy_Textures();
@@ -1412,16 +1413,17 @@ VkSurfaceCapabilitiesKHR ShellRenderInterfaceVulkan::GetSurfaceCapabilities(void
 	return result;
 }
 
-Rml::UnorderedMap<ShellRenderInterfaceVulkan::shader_type_t, ShellRenderInterfaceVulkan::shader_data_t> ShellRenderInterfaceVulkan::LoadShaders(
-	void) noexcept
+Rml::Vector<ShellRenderInterfaceVulkan::shader_data_t> ShellRenderInterfaceVulkan::LoadShaders(void) noexcept
 {
-	auto frag = this->LoadShader("assets/rmlui_frag.spv");
-	auto vertex = this->LoadShader("assets/rmlui_vert.spv");
+	auto vertex = this->LoadShader("assets/shader_vertex.spv");
+	auto frag_color = this->LoadShader("assets/shader_pixel_without_textures.spv");
+	auto frag_texture = this->LoadShader("assets/shader_pixel_with_textures.spv");
 
-	Rml::UnorderedMap<shader_type_t, shader_data_t> result;
+	Rml::Vector<shader_data_t> result;
 
-	result[shader_type_t::kShaderType_Vertex] = vertex;
-	result[shader_type_t::kShaderType_Pixel] = frag;
+	result.push_back(vertex);
+	result.push_back(frag_color);
+	result.push_back(frag_texture);
 
 	return result;
 }
@@ -1456,39 +1458,39 @@ ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader
 	return buffer;
 }
 
-void ShellRenderInterfaceVulkan::CreateShaders(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept
+void ShellRenderInterfaceVulkan::CreateShaders(const Rml::Vector<shader_data_t>& storage) noexcept
 {
 	VK_ASSERT(storage.empty() == false, "[Vulkan] you must load shaders before creating resources");
 	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 
 	VkShaderModuleCreateInfo info = {};
 
-	for (const auto& pair_shader_type_shader_data : storage)
+	for (const auto& shader_data : storage)
 	{
 		VkShaderModule p_module = nullptr;
 
 		info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		info.pCode = pair_shader_type_shader_data.second.data();
-		info.codeSize = pair_shader_type_shader_data.second.size();
+		info.pCode = shader_data.data();
+		info.codeSize = shader_data.size();
 
 		VkResult status = vkCreateShaderModule(this->m_p_device, &info, nullptr, &p_module);
 
 		VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreateShaderModule");
 
-		this->m_shaders[pair_shader_type_shader_data.first] = p_module;
+		this->m_shaders.push_back(p_module);
 	}
 }
 
-void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(const Rml::UnorderedMap<shader_type_t, shader_data_t>& storage) noexcept
+void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(const Rml::Vector<shader_data_t>& storage) noexcept
 {
 	VK_ASSERT(storage.empty() == false, "[Vulkan] you must load shaders before creating resources");
 	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 
 	Rml::Vector<VkDescriptorSetLayoutBinding> all_bindings;
 
-	for (const auto& pair_shader_type_shader_data : storage)
+	for (const auto& shader_data : storage)
 	{
-		const auto& current_bindings = this->CreateDescriptorSetLayoutBindings(pair_shader_type_shader_data.second);
+		const auto& current_bindings = this->CreateDescriptorSetLayoutBindings(shader_data);
 
 		all_bindings.insert(all_bindings.end(), all_bindings.begin(), all_bindings.end());
 	}
