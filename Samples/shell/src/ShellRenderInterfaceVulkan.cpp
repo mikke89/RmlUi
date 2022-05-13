@@ -154,7 +154,7 @@ bool ShellRenderInterfaceVulkan::LoadTexture(Rml::TextureHandle& texture_handle,
 	texture_dimensions.y = header.height;
 
 	// only call ctor for object in map, but we will obtain it in GenerateTexture, of course it is not right, but it did only for saving design...
-	// TODO: RmlUI team, add GenerateTexture that can get string for obtaining object in map
+	// TODO: RmlUI team, possibly better to pass source into generate texture too
 	this->m_textures[source];
 	texture_handle = (Rml::TextureHandle)source.c_str();
 	bool status = this->GenerateTexture(texture_handle, image_dest, texture_dimensions);
@@ -169,7 +169,7 @@ bool ShellRenderInterfaceVulkan::LoadTexture(Rml::TextureHandle& texture_handle,
     How vulkan works with textures efficiently?
 
     You need to create buffer that has CPU memory accessibility it means it uses your RAM memory for storing data and it has only CPU visibility (RAM)
-    After you create buffer that has GPU memory accessibility it means it uses by your video hardware and it has only VRAM visibility
+    After you create buffer that has GPU memory accessibility it means it uses by your video hardware and it has only VRAM (Video RAM) visibility
 
     So you copy data to CPU_buffer and after you copy that thing to GPU_buffer, but delete CPU_buffer
 
@@ -177,10 +177,9 @@ bool ShellRenderInterfaceVulkan::LoadTexture(Rml::TextureHandle& texture_handle,
 
     Again, you need to "write" data into CPU buffer after you need to copy that data from buffer to GPU buffer and after that buffer go to GPU.
 
-    data->CPU->Copy->GPU->Releasing_CPU <= that's how works uploading textures in Vulkan if you want to have efficient handling otherwise it is
-   cpu_to_gpu visibility
-
-    and it means you create only ONE buffer that is accessible for CPU and for GPU, but it will cause the worst performance...
+    RAW_POINTER_DATA_BYTES_LITERALLY->COPY_TO->CPU->COPY_TO->GPU->Releasing_CPU <= that's how works uploading textures in Vulkan if you want to have
+   efficient handling otherwise it is cpu_to_gpu visibility and it means you create only ONE buffer that is accessible for CPU and for GPU, but it
+   will cause the worst performance...
 */
 bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
@@ -1492,7 +1491,7 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(const Rml::Vector<sha
 	{
 		const auto& current_bindings = this->CreateDescriptorSetLayoutBindings(shader_data);
 
-		all_bindings.insert(all_bindings.end(), all_bindings.begin(), all_bindings.end());
+		all_bindings.insert(all_bindings.end(), current_bindings.begin(), current_bindings.end());
 	}
 
 	VkDescriptorSetLayoutCreateInfo info = {};
