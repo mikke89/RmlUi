@@ -155,7 +155,7 @@ deploy:
   description: 'Release description'
   provider: GitHub
   auth_token:
-    secure: g/WlXrOszpqKYC++IvUvNOPhuEeHbMm+2/TWzcgQko+nIGKmjvfAWUxouNhgsUy9
+    secure: YN5NBflQ6G3yLsNYRPTjgz5vXqaZeIstxzRx4XqC8VVOUKL/TY2JOdxNQKTZOwLM
   artifact: /.*\.zip/
   draft: true
   prerelease: false
