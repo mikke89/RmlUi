@@ -8,7 +8,7 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
-## RmlUi 4.4 (WIP)
+## RmlUi 4.4
 
 ### Fonts
 
@@ -16,6 +16,13 @@
 - Support for loading fonts with multiple included font weights. [#296](https://github.com/mikke89/RmlUi/pull/289) (thanks @MexUK)
 - The `font-weight` property now supports numeric values. [#296](https://github.com/mikke89/RmlUi/pull/289) (thanks @MexUK)
 - The `opacity` property is now also applied to font effects. [#270](https://github.com/mikke89/RmlUi/issues/270)
+
+### Performance and resource management
+
+- Substantial performance improvement when looking up style rules with class names. Fixes some cases of low performance, see [#293](https://github.com/mikke89/RmlUi/issues/293).
+- Reduced memory usage, more than halved the size of `ComputedValues`.
+- Added `Rml::ReleaseFontResources` to release unused font textures, cached glyph data, and related resources.
+- Release memory pools on `Rml::Shutdown`, or manually through the core API. [#263](https://github.com/mikke89/RmlUi/issues/263) [#265](https://github.com/mikke89/RmlUi/pull/265) (thanks @jack9267)
 
 ### Layout
 
@@ -32,13 +39,6 @@
 - Drag clones are now positioned correctly when their ancestors use transforms. [#269](https://github.com/mikke89/RmlUi/issues/269)
 - Drag clones no longer inherit backgrounds and decoration from the cloned element's document body.
 
-### Performance and resource management
-
-- Substantial performance improvement when looking up style rules with class names. Fixes some cases of low performance, see [#293](https://github.com/mikke89/RmlUi/issues/293).
-- Reduced memory usage, more than halved the size of `ComputedValues`.
-- Added `Rml::ReleaseFontResources` to release unused font textures, cached glyph data, and related resources.
-- Release memory pools on `Rml::Shutdown`, or manually through the core API. [#263](https://github.com/mikke89/RmlUi/issues/263) [#265](https://github.com/mikke89/RmlUi/pull/265) (thanks @jack9267)
-
 ### Samples and plugins
 
 - New sample for integration with SDL2's native renderer. [#252](https://github.com/mikke89/RmlUi/pull/252) (thanks @1bsyl)
@@ -52,6 +52,7 @@
 ### Breaking changes
 
 - `FontEngineInterface::GenerateString` now takes an additional argument, `opacity`.
+- Computed values are now retrieved by function calls instead of member objects.
 
 
 ## RmlUi 4.3
