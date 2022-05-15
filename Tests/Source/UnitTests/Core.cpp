@@ -71,7 +71,7 @@ static const String document_textures_rml = R"(
 </head>
 
 <body>
-<div style="display: block">
+<div style="display: none">
 	<img src="/assets/high_scores_alien_1.tga"/>
 	<div class="file"/>
 	<div class="sprite"/>
