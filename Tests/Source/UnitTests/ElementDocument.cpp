@@ -274,4 +274,16 @@ TEST_CASE("Load")
 	TestsShell::ShutdownShell();
 }
 
+TEST_CASE("ReloadStyleSheet")
+{
+	Context* context = TestsShell::GetContext();
+	ElementDocument* document = context->LoadDocument("basic/demo/data/demo.rml");
+
+	// There should be no warnings when reloading style sheets.
+	document->ReloadStyleSheet();
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
 TEST_SUITE_END();
