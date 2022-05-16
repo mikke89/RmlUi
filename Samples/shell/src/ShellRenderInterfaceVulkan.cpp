@@ -249,7 +249,7 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 		{
 			Shell::Log("[Vulkan] using the existing texture %s", file_path);
 			const auto& texture = this->m_textures.at(file_path);
-			texture_handle = (Rml::TextureHandle)texture.Get_VkImage();
+			texture_handle = (Rml::TextureHandle)(&texture);
 
 			return true;
 		}
