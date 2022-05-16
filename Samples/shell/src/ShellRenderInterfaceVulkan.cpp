@@ -58,7 +58,7 @@ void ShellRenderInterfaceVulkan::RenderGeometry(
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture)
 {
-	texture_data_t* p_texture = (texture_data_t*)(texture);
+	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture);
 
 	VkDescriptorImageInfo info_descriptor_image = {};
 	if (p_texture) 
@@ -101,7 +101,7 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 
 void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) 
 {
-	
+	this->m_user_data_for_vertex_shader.m_translate = translation;
 }
 
 void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) {}
