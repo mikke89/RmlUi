@@ -30,25 +30,56 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 }
 
 ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
-	m_is_transform_enabled(false), m_width(0), m_height(0), m_queue_index_present(0), m_queue_index_graphics(0), m_queue_index_compute(0),
-	m_semaphore_index(0), m_semaphore_index_previous(0), m_p_instance(nullptr), m_p_device(nullptr), m_p_physical_device_current(nullptr),
-	m_p_surface(nullptr), m_p_swapchain(nullptr), m_p_window_handle(nullptr), m_p_queue_present(nullptr), m_p_queue_graphics(nullptr),
-	m_p_queue_compute(nullptr), m_p_descriptor_set_layout(nullptr), m_p_pipeline_layout(nullptr), m_p_render_pass(nullptr), m_p_allocator{},
-	m_p_current_command_buffer(nullptr)
+	m_is_transform_enabled(false), m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
+	m_semaphore_index{}, m_semaphore_index_previous{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{},
+	m_p_window_handle{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout{}, m_p_pipeline_layout{},
+	m_p_pipeline{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
 {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 
+// TODO: RmlUI team think about how to make through local variables not globals :/, it is just a temporary solution
+VkDescriptorBufferInfo info_current_descriptor_buffer_vertex = {};
+VkDescriptorBufferInfo info_current_descriptor_buffer_index = {};
+VkDescriptorBufferInfo info_current_descriptor_buffer_shader = {};
+
+struct geometry_handle_t {
+	VkDescriptorBufferInfo* m_p_vertex{};
+	VkDescriptorBufferInfo* m_p_index{};
+	VkDescriptorBufferInfo* m_p_shader{};
+} g_geometry_handle_t;
+
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
-	//Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+	Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
 }
 
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture)
 {
-	return Rml::CompiledGeometryHandle();
+	texture_data_t* p_texture = (texture_data_t*)(texture);
+
+	if (p_texture) {}
+
+	uint32_t* pCopyDataToBuffer = nullptr;
+	const void* pData = reinterpret_cast<const void*>(vertices);
+
+	bool status = this->m_memory_pool.AllocVertexBuffer(
+		num_vertices, sizeof(Rml::Vertex), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_vertex);
+	VK_ASSERT(status, "failed to AllocVertexBuffer");
+	memcpy(pCopyDataToBuffer, pData, sizeof(Rml::Vertex));
+
+	status = this->m_memory_pool.AllocIndexBuffer(
+		num_indices, sizeof(int), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_index);
+	VK_ASSERT(status, "failed to AllocIndexBuffer");
+
+	memcpy(pCopyDataToBuffer, indices, sizeof(int));
+
+	g_geometry_handle_t.m_p_vertex = &info_current_descriptor_buffer_vertex;
+	g_geometry_handle_t.m_p_index = &info_current_descriptor_buffer_index;
+
+	return Rml::CompiledGeometryHandle(&g_geometry_handle_t);
 }
 
 void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) {}
@@ -158,7 +189,6 @@ bool ShellRenderInterfaceVulkan::LoadTexture(Rml::TextureHandle& texture_handle,
 	this->m_textures[source];
 	texture_handle = (Rml::TextureHandle)source.c_str();
 	bool status = this->GenerateTexture(texture_handle, image_dest, texture_dimensions);
-
 	delete[] image_dest;
 	delete[] buffer;
 
@@ -337,7 +367,27 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 
 	this->DestroyResource_StagingBuffer(cpu_buffer);
 
-	texture_handle = (Rml::TextureHandle)p_image;
+	VkImageViewCreateInfo info_image_view = {};
+
+	info_image_view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	info_image_view.pNext = nullptr;
+	info_image_view.image = texture.Get_VkImage();
+	info_image_view.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	info_image_view.format = format;
+	info_image_view.subresourceRange.baseMipLevel = 0;
+	info_image_view.subresourceRange.levelCount = 1;
+	info_image_view.subresourceRange.baseArrayLayer = 0;
+	info_image_view.subresourceRange.layerCount = 1;
+	info_image_view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+	VkImageView p_image_view = nullptr;
+	status = vkCreateImageView(this->m_p_device, &info_image_view, nullptr, &p_image_view);
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateImageView");
+
+	texture.Set_VkImageView(p_image_view);
+	texture.Set_VkSampler(this->m_p_sampler_nearest);
+
+	texture_handle = (Rml::TextureHandle)(&texture);
 
 	return true;
 }
@@ -807,12 +857,14 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 	this->m_memory_pool.Initialize(
 		this->m_p_allocator, this->m_p_device, kSwapchainBackBufferCount, ShellRenderInterfaceVulkan::ConvertMegabytesToBytes(32));
 	this->m_upload_manager.Initialize(this->m_p_device, this->m_p_queue_graphics, this->m_queue_index_graphics);
+	this->m_manager_descriptors.Initialize(this->m_p_device, 100, 100, 10, 10);
 
 	auto storage = this->LoadShaders();
 
 	this->CreateShaders(storage);
 	this->CreateDescriptorSetLayout(storage);
 	this->CreatePipelineLayout();
+	this->CreateSamplers();
 }
 
 void ShellRenderInterfaceVulkan::Initialize_Allocator(void) noexcept
@@ -879,6 +931,9 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	this->m_command_list.Shutdown();
 	this->m_upload_manager.Shutdown();
 
+	this->m_manager_descriptors.Free_Descriptor(this->m_p_device, this->m_p_descriptor_set);
+	this->m_manager_descriptors.Shutdown(this->m_p_device);
+
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
 	vkDestroyPipelineLayout(this->m_p_device, this->m_p_pipeline_layout, nullptr);
 
@@ -886,6 +941,8 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	{
 		vkDestroyShaderModule(this->m_p_device, p_module, nullptr);
 	}
+
+	this->DestroySamplers();
 
 	this->Destroy_Textures();
 }
@@ -1581,6 +1638,21 @@ void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 
 void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept {}
 
+void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept 
+{
+	VkSamplerCreateInfo info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	info.pNext = nullptr;
+	info.magFilter = VK_FILTER_NEAREST;
+	info.minFilter = VK_FILTER_NEAREST;
+	info.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+	vkCreateSampler(this->m_p_device, &info, nullptr, &this->m_p_sampler_nearest);
+}
+
 void ShellRenderInterfaceVulkan::CreatePipeline(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept
@@ -1731,6 +1803,9 @@ void ShellRenderInterfaceVulkan::DestroyResource_StagingBuffer(const buffer_data
 
 void ShellRenderInterfaceVulkan::Destroy_Textures(void) noexcept
 {
+	VK_ASSERT(this->m_p_device, "must exist");
+	VK_ASSERT(this->m_p_allocator, "must exist");
+
 	for (auto& pair_path_to_file_and_data : this->m_textures)
 	{
 		const auto& texture = pair_path_to_file_and_data.second;
@@ -1738,6 +1813,7 @@ void ShellRenderInterfaceVulkan::Destroy_Textures(void) noexcept
 		if (texture.Get_VmaAllocation())
 		{
 			vmaDestroyImage(this->m_p_allocator, texture.Get_VkImage(), texture.Get_VmaAllocation());
+			vkDestroyImageView(this->m_p_device, texture.Get_VkImageView(), nullptr);
 		}
 	}
 }
@@ -1790,6 +1866,12 @@ void ShellRenderInterfaceVulkan::DestroyPipeline(void) noexcept {}
 void ShellRenderInterfaceVulkan::DestroyDescriptorSets(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::DestroyPipelineLayout(void) noexcept {}
+
+void ShellRenderInterfaceVulkan::DestroySamplers(void) noexcept 
+{
+	VK_ASSERT(this->m_p_device, "must exist here");
+	vkDestroySampler(this->m_p_device, this->m_p_sampler_nearest, nullptr);
+}
 
 void ShellRenderInterfaceVulkan::CreateRenderPass(void) noexcept
 {

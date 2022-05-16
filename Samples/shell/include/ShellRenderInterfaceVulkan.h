@@ -41,18 +41,27 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 	using shader_data_t = Rml::Vector<uint32_t>;
 
+	struct shader_vertex_user_data_t {
+		Rml::Vector2f m_translate;
+		Rml::Matrix4f m_transform;
+	};
+
 	class texture_data_t {
 	public:
-		texture_data_t() : m_width{}, m_height{}, m_p_vk_image{}, m_p_vma_allocation{} {}
+		texture_data_t() : m_width{}, m_height{}, m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_sampler{}, m_p_vma_allocation{} {}
 		~texture_data_t() {}
 
 		void Set_VkImage(VkImage p_image) noexcept { this->m_p_vk_image = p_image; }
+		void Set_VkImageView(VkImageView p_view) noexcept { this->m_p_vk_image_view = p_view; }
+		void Set_VkSampler(VkSampler p_sampler) noexcept { this->m_p_vk_sampler = p_sampler; }
 		void Set_VmaAllocation(VmaAllocation p_allocation) noexcept { this->m_p_vma_allocation = p_allocation; }
 		void Set_FileName(const Rml::String& filename) noexcept { this->m_filename = filename; }
 		void Set_Width(int width) noexcept { this->m_width = width; }
 		void Set_Height(int height) noexcept { this->m_height = height; }
 
 		VkImage Get_VkImage(void) const noexcept { return this->m_p_vk_image; }
+		VkImageView Get_VkImageView(void) const noexcept { return this->m_p_vk_image_view; }
+		VkSampler Get_VkSampler(void) const noexcept { return this->m_p_vk_sampler; }
 		VmaAllocation Get_VmaAllocation(void) const noexcept { return this->m_p_vma_allocation; }
 		const Rml::String& Get_FileName(void) const noexcept { return this->m_filename; }
 		int Get_Width(void) const noexcept { return this->m_width; }
@@ -62,6 +71,8 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		int m_width;
 		int m_height;
 		VkImage m_p_vk_image;
+		VkImageView m_p_vk_image_view;
+		VkSampler m_p_vk_sampler;
 		VmaAllocation m_p_vma_allocation;
 		Rml::String m_filename;
 	};
@@ -369,6 +380,82 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		Rml::Vector<CommandBufferPerFrame> m_frames;
 	};
 
+	class DescriptorPoolManager {
+	public:
+		DescriptorPoolManager(void) {}
+		~DescriptorPoolManager(void) {}
+
+		void Initialize(VkDevice p_device, uint32_t count_uniform_buffer, uint32_t count_image_sampler, uint32_t count_sampler,
+			uint32_t count_storage_buffer) noexcept
+		{
+			RMLUI_ASSERT(p_device, "you can't pass an invalid VkDevice here");
+
+			const VkDescriptorPoolSize sizes[] = {{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, count_uniform_buffer},
+				{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, count_uniform_buffer}, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count_image_sampler},
+				{VK_DESCRIPTOR_TYPE_SAMPLER, count_sampler}, {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count_storage_buffer}};
+
+			VkDescriptorPoolCreateInfo info = {};
+
+			info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+			info.pNext = nullptr;
+			info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+			info.maxSets = 1000;
+			info.poolSizeCount = _countof(sizes);
+			info.pPoolSizes = sizes;
+
+			auto status = vkCreateDescriptorPool(p_device, &info, nullptr, &this->m_p_descriptor_pool);
+
+			RMLUI_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateDescriptorPool");
+		}
+
+		void Shutdown(VkDevice p_device)
+		{
+			RMLUI_ASSERT(p_device, "you can't pass an invalid VkDevice here");
+
+			vkDestroyDescriptorPool(p_device, this->m_p_descriptor_pool, nullptr);
+		}
+
+		uint32_t Get_AllocatedDescriptorCount(void) const noexcept { return this->m_allocated_descriptor_count; }
+
+		bool Alloc_Descriptor(VkDevice p_device, VkDescriptorSetLayout p_layout, VkDescriptorSet* p_sets) noexcept
+		{
+			RMLUI_ASSERT(p_layout, "you have to pass a valid and initialized VkDescriptorSetLayout (probably you must create it)");
+			RMLUI_ASSERT(p_sets, "you can't pass a invalid pointer here");
+			RMLUI_ASSERT(p_device, "you must pass a valid VkDevice here");
+
+			VkDescriptorSetAllocateInfo info = {};
+
+			info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+			info.pNext = nullptr;
+			info.descriptorPool = this->m_p_descriptor_pool;
+			info.descriptorSetCount = 1;
+			info.pSetLayouts = &p_layout;
+
+			auto status = vkAllocateDescriptorSets(p_device, &info, p_sets);
+
+			RMLUI_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkAllocateDescriptorSets");
+
+			++this->m_allocated_descriptor_count;
+
+			return status == VkResult::VK_SUCCESS;
+		}
+
+		void Free_Descriptor(VkDevice p_device, VkDescriptorSet p_set) noexcept
+		{
+			RMLUI_ASSERT(p_device, "you must pass a valid VkDevice here");
+
+			if (p_set)
+			{
+				--this->m_allocated_descriptor_count;
+				vkFreeDescriptorSets(p_device, this->m_p_descriptor_pool, 1, &p_set);
+			}
+		}
+
+	private:
+		uint32_t m_allocated_descriptor_count;
+		VkDescriptorPool m_p_descriptor_pool;
+	};
+
 public:
 	ShellRenderInterfaceVulkan();
 	~ShellRenderInterfaceVulkan(void);
@@ -493,6 +580,7 @@ private:
 	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept;
 	void CreatePipelineLayout(void) noexcept;
 	void CreateDescriptorSets(void) noexcept;
+	void CreateSamplers(void) noexcept;
 	void CreatePipeline(void) noexcept;
 	void CreateRenderPass(void) noexcept;
 
@@ -516,6 +604,7 @@ private:
 	void DestroyPipeline(void) noexcept;
 	void DestroyDescriptorSets(void) noexcept;
 	void DestroyPipelineLayout(void) noexcept;
+	void DestroySamplers(void) noexcept;
 
 	void Wait(void) noexcept;
 	void Submit(void) noexcept;
@@ -552,6 +641,7 @@ private:
 	VkPipeline m_p_pipeline;
 	VkDescriptorSet m_p_descriptor_set;
 	VkRenderPass m_p_render_pass;
+	VkSampler m_p_sampler_nearest;
 	VkRect2D m_scissor;
 	VkViewport m_viewport;
 #pragma endregion
@@ -598,6 +688,8 @@ private:
 #pragma endregion
 	StatisticsWrapper m_stats;
 	UploadResourceManager m_upload_manager;
+	DescriptorPoolManager m_manager_descriptors;
+	shader_vertex_user_data_t m_user_data_for_vertex_shader;
 };
 
 #endif
