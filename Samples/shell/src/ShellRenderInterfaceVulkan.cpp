@@ -60,7 +60,24 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 {
 	texture_data_t* p_texture = (texture_data_t*)(texture);
 
-	if (p_texture) {}
+	VkDescriptorImageInfo info_descriptor_image = {};
+	if (p_texture) 
+	{
+		info_descriptor_image.imageView = p_texture->Get_VkImageView();
+		info_descriptor_image.sampler = p_texture->Get_VkSampler();
+		info_descriptor_image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		VkWriteDescriptorSet info_write = {};
+
+		info_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		info_write.dstSet = this->m_p_descriptor_set;
+		info_write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		info_write.dstBinding = 2;
+		info_write.pImageInfo = &info_descriptor_image;
+		info_write.descriptorCount = 1;
+
+		vkUpdateDescriptorSets(this->m_p_device, 1, &info_write, 0, nullptr);
+	}
 
 	uint32_t* pCopyDataToBuffer = nullptr;
 	const void* pData = reinterpret_cast<const void*>(vertices);
@@ -82,7 +99,10 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	return Rml::CompiledGeometryHandle(&g_geometry_handle_t);
 }
 
-void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) {}
+void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) 
+{
+	
+}
 
 void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) {}
 
@@ -394,7 +414,10 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 
 void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handle) {}
 
-void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform) {}
+void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform) 
+{
+	this->m_user_data_for_vertex_shader.m_transform = (transform ? *transform : Rml::Matrix4f::Identity());
+}
 
 void ShellRenderInterfaceVulkan::SetViewport(int width, int height)
 {
@@ -865,6 +888,7 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 	this->CreateDescriptorSetLayout(storage);
 	this->CreatePipelineLayout();
 	this->CreateSamplers();
+	this->CreateDescriptorSets();
 }
 
 void ShellRenderInterfaceVulkan::Initialize_Allocator(void) noexcept
@@ -943,7 +967,6 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	}
 
 	this->DestroySamplers();
-
 	this->Destroy_Textures();
 }
 
@@ -1636,7 +1659,10 @@ void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreatePipelineLayout");
 }
 
-void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept {}
+void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept 
+{
+	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, this->m_p_descriptor_set_layout, &this->m_p_descriptor_set);
+}
 
 void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept 
 {
