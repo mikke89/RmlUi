@@ -581,8 +581,9 @@ private:
 	void CreatePipelineLayout(void) noexcept;
 	void CreateDescriptorSets(void) noexcept;
 	void CreateSamplers(void) noexcept;
-	void CreatePipeline(void) noexcept;
+	void Create_Pipeline(void) noexcept;
 	void CreateRenderPass(void) noexcept;
+
 
 	void CreateSwapchainFrameBuffers(void) noexcept;
 
@@ -601,10 +602,11 @@ private:
 	void DestroySwapchainImageViews(void) noexcept;
 	void DestroySwapchainFrameBuffers(void) noexcept;
 	void DestroyRenderPass(void) noexcept;
-	void DestroyPipeline(void) noexcept;
+	void Destroy_Pipeline(void) noexcept;
 	void DestroyDescriptorSets(void) noexcept;
 	void DestroyPipelineLayout(void) noexcept;
 	void DestroySamplers(void) noexcept;
+
 
 	void Wait(void) noexcept;
 	void Submit(void) noexcept;

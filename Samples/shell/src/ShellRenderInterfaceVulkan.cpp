@@ -52,7 +52,13 @@ struct geometry_handle_t {
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
-	Rml::CompiledGeometryHandle p_handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+	Rml::CompiledGeometryHandle handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+
+	if (handle) 
+	{
+		this->RenderCompiledGeometry(handle, translation);
+		this->ReleaseCompiledGeometry(handle);
+	}
 }
 
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
@@ -102,6 +108,16 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) 
 {
 	this->m_user_data_for_vertex_shader.m_translate = translation;
+
+	uint32_t* pCopyDataToBuffer = nullptr;
+
+	bool status =
+		this->m_memory_pool.AllocConstantBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_shader);
+	VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
+	memcpy(pCopyDataToBuffer, &this->m_user_data_for_vertex_shader, sizeof(this->m_user_data_for_vertex_shader));
+
+	this->m_memory_pool.SetDescriptorSet(1, sizeof(this->m_user_data_for_vertex_shader), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, this->m_p_descriptor_set);
+	g_geometry_handle_t.m_p_shader = &info_current_descriptor_buffer_shader;
 }
 
 void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) {}
@@ -1679,7 +1695,15 @@ void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept
 	vkCreateSampler(this->m_p_device, &info, nullptr, &this->m_p_sampler_nearest);
 }
 
-void ShellRenderInterfaceVulkan::CreatePipeline(void) noexcept {}
+void ShellRenderInterfaceVulkan::Create_Pipeline(void) noexcept 
+{
+	VkPipelineShaderStageCreateInfo info_shader_stages = {};
+
+	info_shader_stages.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	info_shader_stages.pNext = nullptr;
+	info_shader_stages.pName = "main";
+	info_shader_stages.stage = VK_SHADER_STAGE_VERTEX_BIT;
+}
 
 void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept
 {
@@ -1887,7 +1911,7 @@ void ShellRenderInterfaceVulkan::DestroyRenderPass(void) noexcept
 	}
 }
 
-void ShellRenderInterfaceVulkan::DestroyPipeline(void) noexcept {}
+void ShellRenderInterfaceVulkan::Destroy_Pipeline(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::DestroyDescriptorSets(void) noexcept {}
 
