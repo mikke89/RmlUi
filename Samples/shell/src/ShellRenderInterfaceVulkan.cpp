@@ -33,7 +33,8 @@ ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 	m_is_transform_enabled(false), m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
 	m_semaphore_index{}, m_semaphore_index_previous{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{},
 	m_p_window_handle{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout{}, m_p_pipeline_layout{},
-	m_p_pipeline{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
+	m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{},
+	m_p_current_command_buffer{}
 {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
@@ -54,7 +55,7 @@ void ShellRenderInterfaceVulkan::RenderGeometry(
 {
 	Rml::CompiledGeometryHandle handle = this->CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
 
-	if (handle) 
+	if (handle)
 	{
 		this->RenderCompiledGeometry(handle, translation);
 		this->ReleaseCompiledGeometry(handle);
@@ -67,7 +68,7 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture);
 
 	VkDescriptorImageInfo info_descriptor_image = {};
-	if (p_texture) 
+	if (p_texture)
 	{
 		info_descriptor_image.imageView = p_texture->Get_VkImageView();
 		info_descriptor_image.sampler = p_texture->Get_VkSampler();
@@ -105,14 +106,14 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	return Rml::CompiledGeometryHandle(&g_geometry_handle_t);
 }
 
-void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) 
+void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation)
 {
 	this->m_user_data_for_vertex_shader.m_translate = translation;
 
 	uint32_t* pCopyDataToBuffer = nullptr;
 
-	bool status =
-		this->m_memory_pool.AllocConstantBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_shader);
+	bool status = this->m_memory_pool.AllocConstantBuffer(
+		sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_shader);
 	VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
 	memcpy(pCopyDataToBuffer, &this->m_user_data_for_vertex_shader, sizeof(this->m_user_data_for_vertex_shader));
 
@@ -430,7 +431,7 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 
 void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handle) {}
 
-void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform) 
+void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform)
 {
 	this->m_user_data_for_vertex_shader.m_transform = (transform ? *transform : Rml::Matrix4f::Identity());
 }
@@ -1527,11 +1528,12 @@ ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader
 	const Rml::String& relative_path_from_samples_folder_with_file_and_fileformat) noexcept
 {
 	VK_ASSERT(Rml::GetFileInterface(), "[Vulkan] you must initialize FileInterface before calling this method");
+	shader_data_t result;
 
 	if (relative_path_from_samples_folder_with_file_and_fileformat.empty())
 	{
 		VK_ASSERT(false, "[Vulkan] you can't pass an empty string for loading shader");
-		return shader_data_t();
+		return result;
 	}
 
 	auto* p_file_interface = Rml::GetFileInterface();
@@ -1544,13 +1546,15 @@ ShellRenderInterfaceVulkan::shader_data_t ShellRenderInterfaceVulkan::LoadShader
 
 	VK_ASSERT(file_size != -1L, "[Vulkan] can't get length of file: %s", relative_path_from_samples_folder_with_file_and_fileformat.c_str());
 
-	shader_data_t buffer(file_size);
+	Rml::Vector<uint32_t> buffer(file_size);
 
 	p_file_interface->Read(buffer.data(), buffer.size(), p_file);
 
 	p_file_interface->Close(p_file);
 
-	return buffer;
+	result.Set_Data(buffer);
+
+	return result;
 }
 
 void ShellRenderInterfaceVulkan::CreateShaders(const Rml::Vector<shader_data_t>& storage) noexcept
@@ -1565,8 +1569,8 @@ void ShellRenderInterfaceVulkan::CreateShaders(const Rml::Vector<shader_data_t>&
 		VkShaderModule p_module = nullptr;
 
 		info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		info.pCode = shader_data.data();
-		info.codeSize = shader_data.size();
+		info.pCode = shader_data.Get_Data().data();
+		info.codeSize = shader_data.Get_Data().size();
 
 		VkResult status = vkCreateShaderModule(this->m_p_device, &info, nullptr, &p_module);
 
@@ -1576,14 +1580,14 @@ void ShellRenderInterfaceVulkan::CreateShaders(const Rml::Vector<shader_data_t>&
 	}
 }
 
-void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(const Rml::Vector<shader_data_t>& storage) noexcept
+void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(Rml::Vector<shader_data_t>& storage) noexcept
 {
 	VK_ASSERT(storage.empty() == false, "[Vulkan] you must load shaders before creating resources");
 	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
 
 	Rml::Vector<VkDescriptorSetLayoutBinding> all_bindings;
 
-	for (const auto& shader_data : storage)
+	for (auto& shader_data : storage)
 	{
 		const auto& current_bindings = this->CreateDescriptorSetLayoutBindings(shader_data);
 
@@ -1605,17 +1609,19 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(const Rml::Vector<sha
 	this->m_p_descriptor_set_layout = p_layout;
 }
 
-Rml::Vector<VkDescriptorSetLayoutBinding> ShellRenderInterfaceVulkan::CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept
+Rml::Vector<VkDescriptorSetLayoutBinding> ShellRenderInterfaceVulkan::CreateDescriptorSetLayoutBindings(shader_data_t& data) noexcept
 {
 	Rml::Vector<VkDescriptorSetLayoutBinding> result;
 
-	VK_ASSERT(data.empty() == false, "[Vulkan] can't be empty data of shader");
+	VK_ASSERT(data.Get_Data().empty() == false, "[Vulkan] can't be empty data of shader");
 
 	SpvReflectShaderModule spv_module = {};
 
-	SpvReflectResult status = spvReflectCreateShaderModule(data.size() * sizeof(char), data.data(), &spv_module);
+	SpvReflectResult status = spvReflectCreateShaderModule(data.Get_Data().size() * sizeof(char), data.Get_Data().data(), &spv_module);
 
 	VK_ASSERT(status == SPV_REFLECT_RESULT_SUCCESS, "[Vulkan] SPIRV-Reflect failed to spvReflectCreateShaderModule");
+
+	data.Set_Type(static_cast<VkShaderStageFlagBits>(spv_module.shader_stage));
 
 	uint32_t count = 0;
 	status = spvReflectEnumerateDescriptorSets(&spv_module, &count, nullptr);
@@ -1675,12 +1681,12 @@ void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreatePipelineLayout");
 }
 
-void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept 
+void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 {
 	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, this->m_p_descriptor_set_layout, &this->m_p_descriptor_set);
 }
 
-void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept 
+void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept
 {
 	VkSamplerCreateInfo info = {};
 
@@ -1695,14 +1701,142 @@ void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept
 	vkCreateSampler(this->m_p_device, &info, nullptr, &this->m_p_sampler_nearest);
 }
 
-void ShellRenderInterfaceVulkan::Create_Pipeline(void) noexcept 
+void ShellRenderInterfaceVulkan::Create_Pipelines(void) noexcept
 {
-	VkPipelineShaderStageCreateInfo info_shader_stages = {};
+	VkPipelineInputAssemblyStateCreateInfo info_assembly_state = {};
 
-	info_shader_stages.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	info_shader_stages.pNext = nullptr;
-	info_shader_stages.pName = "main";
-	info_shader_stages.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	info_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	info_assembly_state.pNext = nullptr;
+	info_assembly_state.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	info_assembly_state.primitiveRestartEnable = VK_FALSE;
+	info_assembly_state.flags = 0;
+
+	VkPipelineRasterizationStateCreateInfo info_raster_state = {};
+
+	info_raster_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	info_raster_state.pNext = nullptr;
+	info_raster_state.polygonMode = VK_POLYGON_MODE_FILL;
+	info_raster_state.cullMode = VK_CULL_MODE_BACK_BIT;
+	info_raster_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	info_raster_state.flags = 0;
+	info_raster_state.depthBiasEnable = VK_FALSE;
+	info_raster_state.lineWidth = 1.0f;
+
+	VkPipelineColorBlendAttachmentState info_color_blend_att = {};
+
+	info_color_blend_att.colorWriteMask = 0xf;
+	info_color_blend_att.blendEnable = VK_FALSE;
+
+	VkPipelineColorBlendStateCreateInfo info_color_blend_state = {};
+
+	info_color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	info_color_blend_state.pNext = nullptr;
+	info_color_blend_state.attachmentCount = 1;
+	info_color_blend_state.pAttachments = &info_color_blend_att;
+
+	VkPipelineDepthStencilStateCreateInfo info_depth = {};
+
+	info_depth.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	info_depth.pNext = nullptr;
+	info_depth.depthTestEnable = VK_TRUE;
+	info_depth.depthWriteEnable = VK_TRUE;
+	info_depth.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+
+	VkPipelineViewportStateCreateInfo info_viewport = {};
+
+	info_viewport.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	info_viewport.pNext = nullptr;
+	info_viewport.viewportCount = 1;
+	info_viewport.scissorCount = 1;
+	info_viewport.flags = 0;
+
+	VkPipelineMultisampleStateCreateInfo info_multisample = {};
+
+	info_multisample.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	info_multisample.pNext = nullptr;
+	info_multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	info_multisample.flags = 0;
+
+	Rml::Vector<VkDynamicState> dynamicStateEnables = {
+		VK_DYNAMIC_STATE_VIEWPORT,
+		VK_DYNAMIC_STATE_SCISSOR,
+		VK_DYNAMIC_STATE_LINE_WIDTH,
+	};
+
+	VkPipelineDynamicStateCreateInfo info_dynamic_state = {};
+
+	info_dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	info_dynamic_state.pNext = nullptr;
+	info_dynamic_state.pDynamicStates = dynamicStateEnables.data();
+	info_dynamic_state.dynamicStateCount = dynamicStateEnables.size();
+	info_dynamic_state.flags = 0;
+
+	Rml::Array<VkPipelineShaderStageCreateInfo, 2> shaders_that_will_be_used_in_pipeline;
+
+	VkPipelineShaderStageCreateInfo info_shader = {};
+
+	info_shader.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	info_shader.pNext = nullptr;
+	info_shader.pName = "main";
+	info_shader.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	info_shader.module = this->m_shaders[static_cast<int>(shader_id_t::kShaderID_Vertex)];
+
+	shaders_that_will_be_used_in_pipeline[0] = info_shader;
+
+	info_shader.module = this->m_shaders[static_cast<int>(shader_id_t::kShaderID_Pixel_WithTextures)];
+	info_shader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	shaders_that_will_be_used_in_pipeline[1] = info_shader;
+
+	VkPipelineVertexInputStateCreateInfo info_vertex = {};
+
+	info_vertex.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	info_vertex.pNext = nullptr;
+	info_vertex.flags = 0;
+
+	Rml::Array<VkVertexInputAttributeDescription, 3> info_shader_vertex_attributes;
+	// describe info about our vertex and what is used in vertex shader as "layout(location = X) in"
+
+	VkVertexInputBindingDescription info_vertex_input_binding = {};
+	info_vertex_input_binding.binding = 0;
+	info_vertex_input_binding.stride = sizeof(Rml::Vertex);
+	info_vertex_input_binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	info_shader_vertex_attributes[0].binding = 0;
+	info_shader_vertex_attributes[0].location = 0;
+	info_shader_vertex_attributes[0].format = VK_FORMAT_R32G32_SFLOAT;
+	info_shader_vertex_attributes[0].offset = offsetof(Rml::Vertex, position);
+
+	info_shader_vertex_attributes[1].binding = 0;
+	info_shader_vertex_attributes[1].location = 1;
+	info_shader_vertex_attributes[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	info_shader_vertex_attributes[1].offset = offsetof(Rml::Vertex, colour);
+
+	info_shader_vertex_attributes[2].binding = 0;
+	info_shader_vertex_attributes[2].location = 2;
+	info_shader_vertex_attributes[2].format = VK_FORMAT_R32G32_SFLOAT;
+	info_shader_vertex_attributes[2].offset = offsetof(Rml::Vertex, tex_coord);
+
+	info_vertex.pVertexAttributeDescriptions = info_shader_vertex_attributes.data();
+	info_vertex.vertexAttributeDescriptionCount = info_shader_vertex_attributes.size();
+	info_vertex.pVertexBindingDescriptions = &info_vertex_input_binding;
+	info_vertex.vertexBindingDescriptionCount = 1;
+
+	VkGraphicsPipelineCreateInfo info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	info.pNext = nullptr;
+	info.pInputAssemblyState = &info_assembly_state;
+	info.pRasterizationState = &info_raster_state;
+	info.pColorBlendState = &info_color_blend_state;
+	info.pMultisampleState = &info_multisample;
+	info.pViewportState = &info_viewport;
+	info.pDepthStencilState = &info_depth;
+	info.pDynamicState = &info_dynamic_state;
+	info.stageCount = shaders_that_will_be_used_in_pipeline.size();
+	info.pStages = shaders_that_will_be_used_in_pipeline.data();
+	info.pVertexInputState = &info_vertex;
 }
 
 void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept
@@ -1911,13 +2045,17 @@ void ShellRenderInterfaceVulkan::DestroyRenderPass(void) noexcept
 	}
 }
 
-void ShellRenderInterfaceVulkan::Destroy_Pipeline(void) noexcept {}
+void ShellRenderInterfaceVulkan::Destroy_Pipelines(void) noexcept
+{
+	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_with_textures, nullptr);
+	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_without_textures, nullptr);
+}
 
 void ShellRenderInterfaceVulkan::DestroyDescriptorSets(void) noexcept {}
 
 void ShellRenderInterfaceVulkan::DestroyPipelineLayout(void) noexcept {}
 
-void ShellRenderInterfaceVulkan::DestroySamplers(void) noexcept 
+void ShellRenderInterfaceVulkan::DestroySamplers(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "must exist here");
 	vkDestroySampler(this->m_p_device, this->m_p_sampler_nearest, nullptr);

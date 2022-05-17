@@ -39,7 +39,21 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 	// For obtainig our VkShaderModule in m_shaders, the order is specified in LoadShaders method
 	enum class shader_id_t : int { kShaderID_Vertex, kShaderID_Pixel_WithoutTextures, kShaderID_Pixel_WithTextures };
 
-	using shader_data_t = Rml::Vector<uint32_t>;
+	class shader_data_t {
+	public:
+		shader_data_t(void) : m_shader_type{} {}
+		~shader_data_t(void) {}
+
+		void Set_Type(VkShaderStageFlagBits type) noexcept { this->m_shader_type = type; }
+		VkShaderStageFlagBits Get_Type(void) const noexcept { return this->m_shader_type; }
+
+		const Rml::Vector<uint32_t>& Get_Data(void) const noexcept { return this->m_data; }
+		void Set_Data(const Rml::Vector<uint32_t>& data) noexcept { this->m_data = data; }
+
+	private:
+		Rml::Vector<uint32_t> m_data;
+		VkShaderStageFlagBits m_shader_type;
+	};
 
 	struct shader_vertex_user_data_t {
 		Rml::Vector2f m_translate;
@@ -576,14 +590,13 @@ private:
 
 	VkExtent2D CreateValidSwapchainExtent(void) noexcept;
 	void CreateShaders(const Rml::Vector<shader_data_t>& storage) noexcept;
-	void CreateDescriptorSetLayout(const Rml::Vector<shader_data_t>& storage) noexcept;
-	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(const shader_data_t& data) noexcept;
+	void CreateDescriptorSetLayout(Rml::Vector<shader_data_t>& storage) noexcept;
+	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(shader_data_t& data) noexcept;
 	void CreatePipelineLayout(void) noexcept;
 	void CreateDescriptorSets(void) noexcept;
 	void CreateSamplers(void) noexcept;
-	void Create_Pipeline(void) noexcept;
+	void Create_Pipelines(void) noexcept;
 	void CreateRenderPass(void) noexcept;
-
 
 	void CreateSwapchainFrameBuffers(void) noexcept;
 
@@ -602,11 +615,10 @@ private:
 	void DestroySwapchainImageViews(void) noexcept;
 	void DestroySwapchainFrameBuffers(void) noexcept;
 	void DestroyRenderPass(void) noexcept;
-	void Destroy_Pipeline(void) noexcept;
+	void Destroy_Pipelines(void) noexcept;
 	void DestroyDescriptorSets(void) noexcept;
 	void DestroyPipelineLayout(void) noexcept;
 	void DestroySamplers(void) noexcept;
-
 
 	void Wait(void) noexcept;
 	void Submit(void) noexcept;
@@ -640,7 +652,8 @@ private:
 #pragma region Resources
 	VkDescriptorSetLayout m_p_descriptor_set_layout;
 	VkPipelineLayout m_p_pipeline_layout;
-	VkPipeline m_p_pipeline;
+	VkPipeline m_p_pipeline_with_textures;
+	VkPipeline m_p_pipeline_without_textures;
 	VkDescriptorSet m_p_descriptor_set;
 	VkRenderPass m_p_render_pass;
 	VkSampler m_p_sampler_nearest;
