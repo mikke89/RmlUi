@@ -1703,6 +1703,9 @@ void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept
 
 void ShellRenderInterfaceVulkan::Create_Pipelines(void) noexcept
 {
+	VK_ASSERT(this->m_p_pipeline_layout, "must be initialized");
+	VK_ASSERT(this->m_p_render_pass, "must be initialized");
+
 	VkPipelineInputAssemblyStateCreateInfo info_assembly_state = {};
 
 	info_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -1837,6 +1840,19 @@ void ShellRenderInterfaceVulkan::Create_Pipelines(void) noexcept
 	info.stageCount = shaders_that_will_be_used_in_pipeline.size();
 	info.pStages = shaders_that_will_be_used_in_pipeline.data();
 	info.pVertexInputState = &info_vertex;
+	info.layout = this->m_p_pipeline_layout;
+	info.renderPass = this->m_p_render_pass;
+
+	auto status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_with_textures);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+	info_shader.module = this->m_shaders[static_cast<int>(shader_id_t::kShaderID_Pixel_WithoutTextures)];
+	shaders_that_will_be_used_in_pipeline[1] = info_shader;
+
+	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_without_textures);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
 }
 
 void ShellRenderInterfaceVulkan::CreateSwapchainFrameBuffers(void) noexcept
@@ -1938,6 +1954,7 @@ void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 
 	this->CreateRenderPass();
 	this->CreateSwapchainFrameBuffers();
+	this->Create_Pipelines();
 }
 
 ShellRenderInterfaceVulkan::buffer_data_t ShellRenderInterfaceVulkan::CreateResource_StagingBuffer(
@@ -2004,6 +2021,7 @@ void ShellRenderInterfaceVulkan::Destroy_Textures(void) noexcept
 
 void ShellRenderInterfaceVulkan::DestroyResourcesDependentOnSize(void) noexcept
 {
+	this->Destroy_Pipelines();
 	this->DestroySwapchainFrameBuffers();
 	this->DestroyRenderPass();
 }
