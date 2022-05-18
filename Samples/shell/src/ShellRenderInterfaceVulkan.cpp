@@ -91,13 +91,13 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	bool status = this->m_memory_pool.AllocVertexBuffer(
 		num_vertices, sizeof(Rml::Vertex), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_vertex);
 	VK_ASSERT(status, "failed to AllocVertexBuffer");
-	memcpy(pCopyDataToBuffer, pData, sizeof(Rml::Vertex));
+	memcpy(pCopyDataToBuffer, pData, sizeof(Rml::Vertex) * num_vertices);
 
 	status = this->m_memory_pool.AllocIndexBuffer(
 		num_indices, sizeof(int), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_index);
 	VK_ASSERT(status, "failed to AllocIndexBuffer");
 
-	memcpy(pCopyDataToBuffer, indices, sizeof(int));
+	memcpy(pCopyDataToBuffer, indices, sizeof(int) * num_indices);
 
 	g_current_compiled_geometry.m_p_vertex = info_current_descriptor_buffer_vertex;
 	g_current_compiled_geometry.m_p_index = info_current_descriptor_buffer_index;
