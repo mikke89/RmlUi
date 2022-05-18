@@ -52,7 +52,8 @@ public:
 
 	/// Sets the value of the text field.
 	/// @param[in] value The new value to set on the text field.
-	virtual void SetValue(const String& value);
+	/// @note The value will be sanitized and synchronized with the element's value attribute.
+	void SetValue(String value);
 
 	/// Sets the maximum length (in characters) of this text field.
 	/// @param[in] max_length The new maximum length of the text field. A number lower than zero will mean infinite characters.
@@ -97,15 +98,14 @@ protected:
 	/// @param[in] direction Movement of cursor for deletion.
 	/// @return True if a character was deleted, false otherwise.
 	bool DeleteCharacters(CursorMovement direction);
-	/// Returns true if the given character is permitted in the input field, false if not.
-	/// @param[in] character The character to validate.
-	/// @return True if the character is allowed, false if not.
-	virtual bool IsCharacterValid(char character) = 0;
+
+	/// Removes any invalid characters from the string.
+	virtual void SanitizeValue(String& value) = 0;
+	/// Transforms the displayed value of the text box, typically used for password fields.
+	/// @note Only use this for transforming characters, do not modify the length of the string.
+	virtual void TransformValue(String& value);
 	/// Called when the user pressed enter.
 	virtual void LineBreak() = 0;
-
-	/// Returns the absolute index of the cursor.
-	int GetCursorIndex() const;
 
 	/// Gets the parent element containing the widget.
 	Element* GetElement() const;
@@ -114,7 +114,12 @@ protected:
 	void DispatchChangeEvent(bool linebreak = false);
 
 private:
-	
+	/// Returns the displayed value of the text field.
+	/// @note For password fields this would only return the displayed asterisks '****', while the attribute value below contains the underlying text.
+	const String& GetValue() const;
+	/// Returns the underlying text from the element's value attribute.
+	String GetAttributeValue() const;
+
 	/// Moves the cursor along the current line.
 	/// @param[in] movement Cursor movement operation.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
@@ -129,15 +134,18 @@ private:
 	// Expands the cursor, selecting the current word or nearby whitespace.
 	void ExpandSelection();
 
-	/// Updates the absolute cursor index from the relative cursor indices.
-	void UpdateAbsoluteCursor();
-	/// Updates the relative cursor indices from the absolute cursor index.
-	void UpdateRelativeCursor();
+	/// Returns the current state of the relative cursor converted to the absolute index.
+	/// @note The absolute index is the byte offset into the 'value' string.
+	int GetAbsoluteCursorIndex() const;
+	/// Sets the relative cursor indices based on an absolute index.
+	/// @note The relative index for a given absolute index is not necessarily unique. For example, the very end of a word-wrapped line and the
+	/// beginning of the next line will have the same absolute index.
+	void SetCursorFromAbsoluteIndex(int absolute_index);
 
 	/// Calculates the line index under a specific vertical position.
 	/// @param[in] position The position to query.
 	/// @return The index of the line under the mouse cursor.
-	int CalculateLineIndex(float position);
+	int CalculateLineIndex(float position) const;
 	/// Calculates the character index along a line under a specific horizontal position.
 	/// @param[in] line_index The line to query.
 	/// @param[in] position The position to query.
@@ -157,7 +165,8 @@ private:
 	Vector2f FormatText();
 
 	/// Updates the position to render the cursor.
-	void UpdateCursorPosition();
+	/// @param[in] update_ideal_cursor_position Generally should be true on horizontal movement and false on vertical movement.
+	void UpdateCursorPosition(bool update_ideal_cursor_position);
 
 	/// Expand or shrink the text selection to the position of the cursor.
 	/// @param[in] selecting True if the new position of the cursor should expand / contract the selection area, false if it should only set the anchor for future selections.
@@ -175,7 +184,7 @@ private:
 	/// @param[out] post_selection The section of unselected text after any selected text on the line. If there is no selection on the line, then this will be empty.
 	/// @param[in] line The text making up the line.
 	/// @param[in] line_begin The absolute index at the beginning of the line.
-	void GetLineSelection(String& pre_selection, String& selection, String& post_selection, const String& line, int line_begin);
+	void GetLineSelection(String& pre_selection, String& selection, String& post_selection, const String& line, int line_begin) const;
 
 	struct Line
 	{
@@ -196,20 +205,19 @@ private:
 	Vector2f internal_dimensions;
 	Vector2f scroll_offset;
 
-	typedef Vector< Line > LineList;
+	using LineList = Vector<Line>;
 	LineList lines;
 
 	// Length in number of characters.
 	int max_length;
 
-	// Indices in bytes: Should always be moved along UTF-8 start bytes.
-	int edit_index;
-	
-	int absolute_cursor_index;
+	// -- All indices are in bytes: Should always be moved along UTF-8 start bytes. --
+
+	// Relative cursor indices.
 	int cursor_line_index;
 	int cursor_character_index;
 
-	bool cursor_on_right_side_of_character;
+	bool ideal_cursor_position_to_the_right_of_cursor;
 	bool cancel_next_drag;
 
 	// Selection. The start and end indices of the selection are in absolute coordinates.

@@ -855,7 +855,7 @@ progress {
 		</div>
 		<h2>Message</h2>
 		<div>
-			<textarea cols="25" rows="4" wrap="nowrap" name="message">😍 Hello 🌐 World! 😎</textarea>
+			<textarea cols="25" rows="4" name="message">😍 Hello 🌐 World! 😎</textarea>
 		</div>
 		<div style="margin-bottom: 15dp;">
 			<input type="submit">Submit</input>

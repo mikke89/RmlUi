@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,24 +34,21 @@
 namespace Rml {
 
 /**
-	A specialisation of the text input widget for multi-line text fields.
+    A specialisation of the text input widget for multi-line text fields.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class WidgetTextInputMultiLine : public WidgetTextInput
-{
+class WidgetTextInputMultiLine : public WidgetTextInput {
 public:
 	WidgetTextInputMultiLine(ElementFormControl* parent);
 	virtual ~WidgetTextInputMultiLine();
 
 protected:
-	/// Returns true if the given character is permitted in the input field, false if not.
-	/// @param[in] character The character to validate.
-	/// @return True if the character is allowed, false if not.
-	bool IsCharacterValid(char character) override;
+	/// Removes any invalid characters from the string.
+	void SanitizeValue(String& value) override;
 	/// Called when the user pressed enter.
-	void LineBreak() override;		
+	void LineBreak() override;
 };
 
 } // namespace Rml

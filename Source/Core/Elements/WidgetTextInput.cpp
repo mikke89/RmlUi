@@ -94,11 +94,9 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 		parent->AppendChild(std::move(unique_selection), false);
 	}
 
-	edit_index = 0;
-	absolute_cursor_index = 0;
 	cursor_line_index = 0;
 	cursor_character_index = 0;
-	cursor_on_right_side_of_character = true;
+	ideal_cursor_position_to_the_right_of_cursor = true;
 	cancel_next_drag = false;
 
 	ideal_cursor_position = 0;
@@ -130,14 +128,27 @@ WidgetTextInput::~WidgetTextInput()
 	parent->RemoveChild(selection_element);
 }
 
-// Sets the value of the text field.
-void WidgetTextInput::SetValue(const String& value)
+void WidgetTextInput::SetValue(String value)
 {
-	text_element->SetText(value);
-	FormatElement();
+	const size_t initial_size = value.size();
+	SanitizeValue(value);
 
-	UpdateRelativeCursor();
+	if (initial_size != value.size())
+	{
+		parent->SetAttribute("value", value);
+		DispatchChangeEvent();
+	}
+	else
+	{
+		TransformValue(value);
+		RMLUI_ASSERTMSG(value.size() == initial_size, "TransformValue must not change the text length.");
+
+		text_element->SetText(value);
+		FormatElement();
+	}
 }
+
+void WidgetTextInput::TransformValue(String& /*value*/) {}
 
 // Sets the maximum length (in characters) of this text field.
 void WidgetTextInput::SetMaxLength(int _max_length)
@@ -147,7 +158,7 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 		max_length = _max_length;
 		if (max_length >= 0)
 		{
-			String value = GetElement()->GetAttribute< String >("value", "");
+			String value = GetValue();
 
 			int num_characters = 0;
 			size_t i_erase = value.size();
@@ -179,8 +190,7 @@ int WidgetTextInput::GetMaxLength() const
 
 int WidgetTextInput::GetLength() const
 {
-	const String value = GetElement()->GetAttribute< String >("value", "");
-	size_t result = StringUtilities::LengthUTF8(value);
+	size_t result = StringUtilities::LengthUTF8(GetValue());
 	return (int)result;
 }
 
@@ -248,7 +258,7 @@ void WidgetTextInput::OnResize()
 		internal_dimensions = new_internal_dimensions;
 
 		FormatElement();
-		UpdateCursorPosition();
+		UpdateCursorPosition(true);
 	}
 }
 
@@ -297,7 +307,7 @@ Element* WidgetTextInput::GetElement() const
 void WidgetTextInput::DispatchChangeEvent(bool linebreak)
 {
 	Dictionary parameters;
-	parameters["value"] = GetElement()->GetAttribute< String >("value", "");
+	parameters["value"] = GetAttributeValue();
 	parameters["linebreak"] = Variant(linebreak);
 	GetElement()->DispatchEvent(EventId::Change, parameters);
 }
@@ -348,10 +358,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		{
 			CursorMovement direction = (ctrl ? CursorMovement::PreviousWord : CursorMovement::Left);
 			if (DeleteCharacters(direction))
-			{
 				FormatElement();
-				UpdateRelativeCursor();
-			}
 
 			ShowCursor(true);
 		}
@@ -362,10 +369,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		{
 			CursorMovement direction = (ctrl ? CursorMovement::NextWord : CursorMovement::Right);
 			if (DeleteCharacters(direction))
-			{
 				FormatElement();
-				UpdateRelativeCursor();
-			}
 
 			ShowCursor(true);
 		}
@@ -482,11 +486,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			cursor_line_index = CalculateLineIndex(mouse_position.y);
 			cursor_character_index = CalculateCharacterIndex(cursor_line_index, mouse_position.x);
 
-			UpdateAbsoluteCursor();
 			MoveCursorToCharacterBoundaries(false);
-
-			UpdateCursorPosition();
-			ideal_cursor_position = cursor_position.x;
+			UpdateCursorPosition(true);
 
 			UpdateSelection(event == EventId::Drag || event.GetParameter< int >("shift_key", 0) > 0);
 
@@ -508,20 +509,12 @@ void WidgetTextInput::ProcessEvent(Event& event)
 	default:
 		break;
 	}
-
 }
 
 // Adds a new character to the string at the cursor position.
 bool WidgetTextInput::AddCharacters(String string)
 {
-	// Erase invalid characters from string
-	auto invalid_character = [this](char c) {
-		return ((unsigned char)c <= 127 && !IsCharacterValid(c));
-	};
-	string.erase(
-		std::remove_if(string.begin(), string.end(), invalid_character),
-		string.end()
-	);
+	SanitizeValue(string);
 
 	if (string.empty())
 		return false;
@@ -532,15 +525,16 @@ bool WidgetTextInput::AddCharacters(String string)
 	if (max_length >= 0 && GetLength() >= max_length)
 		return false;
 
-	String value = GetElement()->GetAttribute< String >("value", "");
-	
-	value.insert(std::min<size_t>(GetCursorIndex(), value.size()), string);
+	String value = GetAttributeValue();
+	const int insert_position = GetAbsoluteCursorIndex();
+	value.insert(std::min<size_t>((size_t)insert_position, value.size()), string);
 
-	edit_index += (int)string.size();
+	parent->SetAttribute("value", value);
+	SetCursorFromAbsoluteIndex(insert_position + (int)string.size());
 
-	GetElement()->SetAttribute("value", value);
 	DispatchChangeEvent();
 
+	UpdateCursorPosition(true);
 	UpdateSelection(false);
 
 	return true;
@@ -570,105 +564,98 @@ bool WidgetTextInput::DeleteCharacters(CursorMovement direction)
 // Copies the selection (if any) to the clipboard.
 void WidgetTextInput::CopySelection()
 {
-	const String value = GetElement()->GetAttribute< String >("value", "");
-	const String snippet = value.substr(std::min(size_t(selection_begin_index), size_t(value.size())), selection_length);
+	const String& value = GetValue();
+	const String snippet = value.substr(std::min((size_t)selection_begin_index, (size_t)value.size()), (size_t)selection_length);
 	GetSystemInterface()->SetClipboardText(snippet);
-}
-
-// Returns the absolute index of the cursor.
-int WidgetTextInput::GetCursorIndex() const
-{
-	return edit_index;
 }
 
 // Moves the cursor along the current line.
 void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 {
+	const String& value = GetValue();
+
 	// Whether to seek forward or back to align to utf8 boundaries later.
 	bool seek_forward = false;
 
 	switch (movement)
 	{
 	case CursorMovement::Begin:
-		absolute_cursor_index = 0;
+		cursor_line_index = 0;
+		cursor_character_index = 0;
 		break;
 	case CursorMovement::BeginLine:
-		absolute_cursor_index -= cursor_character_index;
+		cursor_character_index = 0;
 		break;
+	break;
 	case CursorMovement::PreviousWord:
-		if (cursor_character_index <= 1)
+	{
+		const int absolute_cursor_index = GetAbsoluteCursorIndex();
+		bool word_character_found = false;
+		const char* p_rend = value.data();
+		const char* p_rbegin = p_rend + absolute_cursor_index;
+		const char* p = p_rbegin - 1;
+		for (; p > p_rend; --p)
 		{
-			absolute_cursor_index -= 1;
+			bool is_word_character = IsWordCharacter(*p);
+			if (word_character_found && !is_word_character)
+				break;
+			else if (is_word_character)
+				word_character_found = true;
 		}
-		else
-		{
-			bool word_character_found = false;
-			const char* p_rend = lines[cursor_line_index].content.data();
-			const char* p_rbegin = p_rend + cursor_character_index;
-			const char* p = p_rbegin - 1;
-			for (; p > p_rend; --p)
-			{
-				bool is_word_character = IsWordCharacter(*p);
-				if(word_character_found && !is_word_character)
-					break;
-				else if(is_word_character)
-					word_character_found = true;
-			}
-			if (p != p_rend) ++p;
-			absolute_cursor_index += int(p - p_rbegin);
-		}
-		break;
+		if (p != p_rend)
+			++p;
+		SetCursorFromAbsoluteIndex(absolute_cursor_index + int(p - p_rbegin));
+	}
+	break;
 	case CursorMovement::Left:
 		if (!select && selection_length > 0)
-			absolute_cursor_index = selection_begin_index;
+			SetCursorFromAbsoluteIndex(selection_begin_index);
+		else if (cursor_character_index > 0)
+			cursor_character_index -= 1;
 		else
-			absolute_cursor_index -= 1;
+			SetCursorFromAbsoluteIndex(GetAbsoluteCursorIndex() - 1);
 		break;
 	case CursorMovement::Right:
 		seek_forward = true;
 		if (!select && selection_length > 0)
-			absolute_cursor_index = selection_begin_index + selection_length;
+			SetCursorFromAbsoluteIndex(selection_begin_index + selection_length);
+		else if (cursor_character_index < lines[cursor_line_index].content_length)
+			cursor_character_index += 1;
 		else
-			absolute_cursor_index += 1;
+			SetCursorFromAbsoluteIndex(GetAbsoluteCursorIndex() + 1);
 		break;
 	case CursorMovement::NextWord:
-		if (cursor_character_index >= lines[cursor_line_index].content_length)
+	{
+		const int absolute_cursor_index = GetAbsoluteCursorIndex();
+		bool whitespace_found = false;
+		const char* p_begin = value.data() + absolute_cursor_index;
+		const char* p_end = value.data() + value.size();
+		const char* p = p_begin;
+		for (; p < p_end; ++p)
 		{
-			absolute_cursor_index += 1;
+			bool is_whitespace = !IsWordCharacter(*p);
+			if (whitespace_found && !is_whitespace)
+				break;
+			else if (is_whitespace)
+				whitespace_found = true;
 		}
-		else
-		{
-			bool whitespace_found = false;
-			const char* p_begin = lines[cursor_line_index].content.data() + cursor_character_index;
-			const char* p_end = lines[cursor_line_index].content.data() + lines[cursor_line_index].content_length;
-			const char* p = p_begin;
-			for (; p < p_end; ++p)
-			{
-				bool is_whitespace = !IsWordCharacter(*p);
-				if (whitespace_found && !is_whitespace)
-					break;
-				else if (is_whitespace)
-					whitespace_found = true;
-			}
-			absolute_cursor_index += int(p - p_begin);
-		}
-		break;
+		SetCursorFromAbsoluteIndex(absolute_cursor_index + int(p - p_begin));
+	}
+	break;
 	case CursorMovement::EndLine:
-		absolute_cursor_index += lines[cursor_line_index].content_length - cursor_character_index;
-		break;
+		cursor_character_index = lines[cursor_line_index].content_length;
+	break;
 	case CursorMovement::End:
-		absolute_cursor_index = INT_MAX;
+		SetCursorFromAbsoluteIndex(INT_MAX);
 		break;
 	default:
 		break;
 	}
-	
-	absolute_cursor_index = Math::Max(0, absolute_cursor_index);
 
-	UpdateRelativeCursor();
 	MoveCursorToCharacterBoundaries(seek_forward);
 
-	ideal_cursor_position = cursor_position.x;
+	UpdateCursorPosition(true);
+
 	UpdateSelection(select);
 	ShowCursor(true);
 }
@@ -696,22 +683,18 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 	else
 		cursor_character_index = CalculateCharacterIndex(cursor_line_index, ideal_cursor_position);
 
-	UpdateAbsoluteCursor();
-
 	MoveCursorToCharacterBoundaries(false);
-
-	UpdateCursorPosition();
-
-	if (update_ideal_cursor_position)
-		ideal_cursor_position = cursor_position.x;
+	UpdateCursorPosition(update_ideal_cursor_position);
 
 	UpdateSelection(select);
-
 	ShowCursor(true);
 }
 
 void WidgetTextInput::MoveCursorToCharacterBoundaries(bool forward)
 {
+	RMLUI_ASSERT(cursor_line_index >= 0 && cursor_line_index < (int)lines.size());
+	RMLUI_ASSERT(cursor_character_index <= (int)lines[cursor_line_index].content.size());
+
 	const char* p_line_begin = lines[cursor_line_index].content.data();
 	const char* p_line_end = p_line_begin + lines[cursor_line_index].content_length;
 	const char* p_cursor = p_line_begin + cursor_character_index;
@@ -723,17 +706,16 @@ void WidgetTextInput::MoveCursorToCharacterBoundaries(bool forward)
 		p = StringUtilities::SeekBackwardUTF8(p_cursor, p_line_begin);
 
 	if (p != p_cursor)
-	{
-		absolute_cursor_index += int(p - p_cursor);
-		UpdateRelativeCursor();
-	}
+		cursor_character_index += int(p - p_cursor);
 }
 
 void WidgetTextInput::ExpandSelection()
 {
-	const char* const p_begin = lines[cursor_line_index].content.data();
-	const char* const p_end = p_begin + lines[cursor_line_index].content_length;
-	const char* const p_index = p_begin + cursor_character_index;
+	const String& value = GetValue();
+	int absolute_cursor_index = GetAbsoluteCursorIndex();
+	const char* const p_begin = value.data();
+	const char* const p_end = p_begin + value.size();
+	const char* const p_index = p_begin + absolute_cursor_index;
 
 	// If true, we are expanding word characters, if false, whitespace characters.
 	// The first character encountered defines the bool.
@@ -770,7 +752,7 @@ void WidgetTextInput::ExpandSelection()
 	const char* p_left = p_index;
 	const char* p_right = p_index;
 
-	if (cursor_on_right_side_of_character)
+	if (ideal_cursor_position_to_the_right_of_cursor)
 	{
 		p_right = search_right();
 		p_left = search_left();
@@ -782,65 +764,75 @@ void WidgetTextInput::ExpandSelection()
 	}
 
 	absolute_cursor_index -= int(p_index - p_left);
-	UpdateRelativeCursor();
+	SetCursorFromAbsoluteIndex(absolute_cursor_index);
 	MoveCursorToCharacterBoundaries(false);
 	UpdateSelection(false);
 
 	absolute_cursor_index += int(p_right - p_left);
-	UpdateRelativeCursor();
+	SetCursorFromAbsoluteIndex(absolute_cursor_index);
 	MoveCursorToCharacterBoundaries(true);
 	UpdateSelection(true);
+
+	UpdateCursorPosition(true);
 }
 
-// Updates the absolute cursor index from the relative cursor indices.
-void WidgetTextInput::UpdateAbsoluteCursor()
+const String& WidgetTextInput::GetValue() const
 {
-	RMLUI_ASSERT(cursor_line_index < (int) lines.size())
+	return text_element->GetText();
+}
 
-	absolute_cursor_index = cursor_character_index;
-	edit_index = cursor_character_index;
+String WidgetTextInput::GetAttributeValue() const
+{
+	return parent->GetAttribute("value", String());
+}
+
+int WidgetTextInput::GetAbsoluteCursorIndex() const
+{
+	RMLUI_ASSERT(cursor_line_index < (int)lines.size())
+
+	int absolute_index = cursor_character_index;
 
 	for (int i = 0; i < cursor_line_index; i++)
-	{
-		absolute_cursor_index += (int)lines[i].content.size();
-		edit_index += (int)lines[i].content.size() + lines[i].extra_characters;
-	}
+		absolute_index += (int)lines[i].content.size();
+
+	return absolute_index;
 }
 
-// Updates the relative cursor indices from the absolute cursor index.
-void WidgetTextInput::UpdateRelativeCursor()
+void WidgetTextInput::SetCursorFromAbsoluteIndex(int absolute_index)
 {
 	int num_characters = 0;
-	edit_index = absolute_cursor_index;
 
 	for (size_t i = 0; i < lines.size(); i++)
 	{
-		if (num_characters + lines[i].content_length >= absolute_cursor_index)
+		// Test if the absolute index is located on this line.
+		if (absolute_index <= num_characters + (int)lines[i].content.size())
 		{
-			cursor_line_index = (int) i;
-			cursor_character_index = absolute_cursor_index - num_characters;
-
-			UpdateCursorPosition();
-
+			// Test if the absolute index is located after the content length. This is usually because we are located just to the right of the ending
+			// '\n' character. Then we wrap down to the beginning of the next line.
+			if (absolute_index > num_characters + lines[i].content_length && (int)i + 1 < (int)lines.size())
+			{
+				cursor_line_index = (int)i + 1;
+				cursor_character_index = 0;
+			}
+			else
+			{
+				cursor_line_index = (int)i;
+				cursor_character_index = Math::Max(absolute_index - num_characters, 0);
+			}
 			return;
 		}
 
-		num_characters += (int) lines[i].content.size();
-		edit_index += lines[i].extra_characters;
+		num_characters += (int)lines[i].content.size();
 	}
 
 	// We shouldn't ever get here; this means we actually couldn't find where the absolute cursor said it was. So we'll
-	// just set the relative cursors to the very end of the text field, and update the absolute cursor to point here.
-	cursor_line_index = (int) lines.size() - 1;
+	// just set the relative cursors to the very end of the text field.
+	cursor_line_index = (int)lines.size() - 1;
 	cursor_character_index = lines[cursor_line_index].content_length;
-	absolute_cursor_index = num_characters;
-	edit_index = num_characters;
-
-	UpdateCursorPosition();
 }
 
 // Calculates the line index under a specific vertical position.
-int WidgetTextInput::CalculateLineIndex(float position)
+int WidgetTextInput::CalculateLineIndex(float position) const
 {
 	float line_height = parent->GetLineHeight();
 	int line_index = Math::RealToInteger(position / line_height);
@@ -853,7 +845,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 	int prev_offset = 0;
 	float prev_line_width = 0;
 
-	cursor_on_right_side_of_character = true;
+	ideal_cursor_position_to_the_right_of_cursor = true;
 
 	for(auto it = StringIteratorU8(lines[line_index].content, 0, lines[line_index].content_length); it; )
 	{
@@ -869,7 +861,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 			}
 			else
 			{
-				cursor_on_right_side_of_character = false;
+				ideal_cursor_position_to_the_right_of_cursor = false;
 				return offset;
 			}
 		}
@@ -978,8 +970,6 @@ void WidgetTextInput::FormatElement()
 // Formats the input element's text field.
 Vector2f WidgetTextInput::FormatText()
 {
-	absolute_cursor_index = edit_index;
-
 	Vector2f content_area(0, 0);
 
 	// Clear the old lines, and all the lines in the text elements.
@@ -1010,17 +1000,11 @@ Vector2f WidgetTextInput::FormatText()
 		// Generate the next line.
 		last_line = text_element->GenerateLine(line.content, line.content_length, line_width, line_begin, parent->GetClientWidth() - cursor_size.x, 0, false, false);
 
-		// If this line terminates in a soft-return, then the line may be leaving a space or two behind as an orphan.
-		// If so, we must append the orphan onto the line even though it will push the line outside of the input
-		// field's bounds.
-		bool soft_return = false;
-		if (!last_line &&
-			(line.content.empty() ||
-			 line.content[line.content.size() - 1] != '\n'))
+		// If this line terminates in a soft-return (word wrap), then the line may be leaving a space or two behind as an orphan. If so, we must
+		// append the orphan onto the line even though it will push the line outside of the input field's bounds.
+		if (!last_line && (line.content.empty() || line.content.back() != '\n'))
 		{
-			soft_return = true;
-
-			const String& text = text_element->GetText();
+			const String& text = GetValue();
 			String orphan;
 			for (int i = 1; i >= 0; --i)
 			{
@@ -1048,7 +1032,6 @@ Vector2f WidgetTextInput::FormatText()
 				line_width += ElementUtilities::GetStringWidth(text_element, orphan);
 			}
 		}
-
 
 		// Now that we have the string of characters appearing on the new line, we split it into
 		// three parts; the unselected text appearing before any selected text on the line, the
@@ -1111,22 +1094,12 @@ Vector2f WidgetTextInput::FormatText()
 		content_area.x = Math::Max(content_area.x, line_width + cursor_size.x);
 		content_area.y = line_position.y;
 
-		// Push a trailing '\r' token onto the back to indicate a soft return if necessary.
-		if (soft_return)
-		{
-			line.content += '\r';
-			line.extra_characters -= 1;
-
-			if (edit_index >= line_begin)
-				absolute_cursor_index += 1;
-		}
-
 		// Push the new line into our array of lines, but first check if its content length needs to be truncated to
 		// dodge a trailing endline.
-		if (!line.content.empty() &&
-			line.content[line.content.size() - 1] == '\n')
+		if (!line.content.empty() && line.content.back() == '\n')
 			line.content_length -= 1;
-		lines.push_back(line);
+
+		lines.push_back(std::move(line));
 	}
 	while (!last_line);
 
@@ -1159,21 +1132,26 @@ void WidgetTextInput::GenerateCursor()
 	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), cursor_size, color);
 }
 
-void WidgetTextInput::UpdateCursorPosition()
+void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 {
 	if (text_element->GetFontFaceHandle() == 0)
 		return;
 
-	cursor_position.x = (float) ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.substr(0, cursor_character_index));
+	cursor_position.x = (float)ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.substr(0, cursor_character_index));
 	cursor_position.y = -1.f + (float)cursor_line_index * text_element->GetLineHeight();
+
+	if (update_ideal_cursor_position)
+		ideal_cursor_position = cursor_position.x;
 }
 
 // Expand the text selection to the position of the cursor.
 void WidgetTextInput::UpdateSelection(bool selecting)
 {
+	const int absolute_cursor_index = GetAbsoluteCursorIndex();
+
 	if (!selecting)
 	{
-		selection_anchor_index = edit_index;
+		selection_anchor_index = absolute_cursor_index;
 		ClearSelection();
 	}
 	else
@@ -1181,14 +1159,14 @@ void WidgetTextInput::UpdateSelection(bool selecting)
 		int new_begin_index;
 		int new_end_index;
 
-		if (edit_index > selection_anchor_index)
+		if (absolute_cursor_index > selection_anchor_index)
 		{
 			new_begin_index = selection_anchor_index;
-			new_end_index = edit_index;
+			new_end_index = absolute_cursor_index;
 		}
 		else
 		{
-			new_begin_index = edit_index;
+			new_begin_index = absolute_cursor_index;
 			new_end_index = selection_anchor_index;
 		}
 
@@ -1218,14 +1196,16 @@ void WidgetTextInput::DeleteSelection()
 {
 	if (selection_length > 0)
 	{
-		const String& value = GetElement()->GetAttribute< String >("value", "");
-
-		String new_value = value.substr(0, selection_begin_index) + value.substr(std::min(size_t(selection_begin_index + selection_length), size_t(value.size())));
+		String new_value = GetAttributeValue();
+		const size_t selection_end = std::min(size_t(selection_begin_index + selection_length), (size_t)new_value.size()) ;
+		
+		new_value = new_value.substr(0, selection_begin_index) + new_value.substr(selection_end);
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
-		absolute_cursor_index = selection_begin_index;
-		UpdateRelativeCursor();
+		SetCursorFromAbsoluteIndex(selection_begin_index);
+
+		UpdateCursorPosition(true);
 
 		// Erase our record of the selection.
 		ClearSelection();
@@ -1233,24 +1213,24 @@ void WidgetTextInput::DeleteSelection()
 }
 
 // Split one line of text into three parts, based on the current selection.
-void WidgetTextInput::GetLineSelection(String& pre_selection, String& selection, String& post_selection, const String& line, int line_begin)
+void WidgetTextInput::GetLineSelection(String& pre_selection, String& selection, String& post_selection, const String& line, int line_begin) const
 {
+	const int selection_end = selection_begin_index + selection_length;
+
 	// Check if we have any selection at all, and if so if the selection is on this line.
-	if (selection_length <= 0 ||
-		selection_begin_index + selection_length < line_begin ||
-		selection_begin_index > line_begin + (int) line.size())
+	if (selection_length <= 0 || selection_end < line_begin || selection_begin_index > line_begin + (int)line.size())
 	{
 		pre_selection = line;
 		return;
 	}
 
-	int line_length = (int)line.size();
+	const int line_length = (int)line.size();
 	using namespace Math;
 
 	// Split the line up into its three parts, depending on the size and placement of the selection.
 	pre_selection = line.substr(0, Max(0, selection_begin_index - line_begin));
 	selection = line.substr(Clamp(selection_begin_index - line_begin, 0, line_length), Max(0, selection_length + Min(0, selection_begin_index - line_begin)));
-	post_selection = line.substr(Clamp(selection_begin_index + selection_length - line_begin, 0, line_length));
+	post_selection = line.substr(Clamp(selection_end - line_begin, 0, line_length));
 }
 
 void WidgetTextInput::SetKeyboardActive(bool active)

@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,26 +29,20 @@
 #include "WidgetTextInputMultiLine.h"
 #include "../../../Include/RmlUi/Core/Dictionary.h"
 #include "../../../Include/RmlUi/Core/ElementText.h"
+#include <algorithm>
 
 namespace Rml {
 
-WidgetTextInputMultiLine::WidgetTextInputMultiLine(ElementFormControl* parent) : WidgetTextInput(parent)
-{
-}
+WidgetTextInputMultiLine::WidgetTextInputMultiLine(ElementFormControl* parent) : WidgetTextInput(parent) {}
 
-WidgetTextInputMultiLine::~WidgetTextInputMultiLine()
-{
-}
+WidgetTextInputMultiLine::~WidgetTextInputMultiLine() {}
 
-// Returns true if the given character is permitted in the input field, false if not.
-bool WidgetTextInputMultiLine::IsCharacterValid(char character)
+void WidgetTextInputMultiLine::SanitizeValue(String& value)
 {
-	return character != '\t';
+	value.erase(std::remove_if(value.begin(), value.end(), [](char c) { return c == '\r' || c == '\t'; }), value.end());
 }
 
 // Called when the user pressed enter.
-void WidgetTextInputMultiLine::LineBreak()
-{
-}
+void WidgetTextInputMultiLine::LineBreak() {}
 
 } // namespace Rml
