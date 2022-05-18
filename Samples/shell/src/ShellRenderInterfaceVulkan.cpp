@@ -1887,7 +1887,7 @@ void ShellRenderInterfaceVulkan::Create_Pipelines(void) noexcept
 
 	info_shader_vertex_attributes[1].binding = 0;
 	info_shader_vertex_attributes[1].location = 1;
-	info_shader_vertex_attributes[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	info_shader_vertex_attributes[1].format = VK_FORMAT_R8G8B8A8_UINT;
 	info_shader_vertex_attributes[1].offset = offsetof(Rml::Vertex, colour);
 
 	info_shader_vertex_attributes[2].binding = 0;
