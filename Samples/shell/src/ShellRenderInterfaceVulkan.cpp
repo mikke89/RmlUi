@@ -391,12 +391,14 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	/*
 	 * So Vulkan works only through VkCommandBuffer, it is for remembering API commands what you want to call from GPU
 	 * So on CPU side you need to create a scope that consists of two things
-	 * vkBeingCommandBuffer
+	 * vkBeginCommandBuffer
 	 * ... <= here your commands what you want to place into your command buffer and send it to GPU through vkQueueSubmit function
 	 * vkEndCommandBuffer
 	 *
 	 * So commands start to work ONLY when you called the vkQueueSubmit otherwise you just "place" commands into your command buffer but you
-	 * didn't issue any thing in order to start the work on GPU side
+	 * didn't issue any thing in order to start the work on GPU side. ALWAYS remember that just sumbit means execute async mode, so you have to wait
+	 * operations before they exeecute fully otherwise you will get some errors or write/read concurrent state and all other stuff, vulkan validation
+	 * will notify you :) (in most cases)
 	 *
 	 * BUT you need always sync what you have done when you called your vkQueueSubmit function, so it is wait method, but generally you can create
 	 * another queue and isolate all stuff tbh
