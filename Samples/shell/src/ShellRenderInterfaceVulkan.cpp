@@ -45,6 +45,8 @@ VkDescriptorBufferInfo info_current_descriptor_buffer_index = {};
 VkDescriptorBufferInfo info_current_descriptor_buffer_shader = {};
 
 struct geometry_handle_t {
+	bool m_is_has_texture = {false};
+	int m_num_indices = 0;
 	VkDescriptorBufferInfo* m_p_vertex{};
 	VkDescriptorBufferInfo* m_p_index{};
 	VkDescriptorBufferInfo* m_p_shader{};
@@ -103,11 +105,20 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	g_geometry_handle_t.m_p_vertex = &info_current_descriptor_buffer_vertex;
 	g_geometry_handle_t.m_p_index = &info_current_descriptor_buffer_index;
 
+	// TODO: RmlUI team checks if it is right logic that if we don't have texture the handle is NULL/0 otherwise provide in places where a such
+	// (Rml::TextureHandle)(nullptr) is more obvious and strict, because it is probably important thing. Because I am not sure if it is always valid
+	// if you have callings from different places not only from this class like LoadTexture function, but GenerateTexture can be called somewhere.
+	// Keep this in mind;
+	g_geometry_handle_t.m_is_has_texture = !!((texture_data_t*)(texture));
+	g_geometry_handle_t.m_num_indices = num_indices;
+
 	return Rml::CompiledGeometryHandle(&g_geometry_handle_t);
 }
 
 void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation)
 {
+	VK_ASSERT(this->m_p_current_command_buffer, "must be valid otherwise you can't render now!!! (can't be)");
+
 	this->m_user_data_for_vertex_shader.m_translate = translation;
 
 	uint32_t* pCopyDataToBuffer = nullptr;
@@ -119,6 +130,38 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 
 	this->m_memory_pool.SetDescriptorSet(1, sizeof(this->m_user_data_for_vertex_shader), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, this->m_p_descriptor_set);
 	g_geometry_handle_t.m_p_shader = &info_current_descriptor_buffer_shader;
+
+	uint32_t casted_offset = 0;
+	int num_uniform_offset = 0;
+
+	if (g_geometry_handle_t.m_p_shader && g_geometry_handle_t.m_p_shader->buffer)
+	{
+		num_uniform_offset = 1;
+		casted_offset = (uint32_t)g_geometry_handle_t.m_p_shader->offset;
+	}
+
+	vkCmdBindDescriptorSets(
+		this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, 1, &this->m_p_descriptor_set, 0, nullptr);
+
+	if (g_geometry_handle_t.m_is_has_texture)
+	{
+		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_with_textures);
+	}
+	else
+	{
+		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_without_textures);
+	}
+
+	// means the size of array is one (I say about []), but it is not about indexing like my_std_vector[real_positioning_from_language_perspective]
+	// like it is intuitive 0, but it is 1
+	VkDeviceSize offsets[1] = {0};
+
+	vkCmdBindVertexBuffers(this->m_p_current_command_buffer, 0, 1, &g_geometry_handle_t.m_p_vertex->buffer, &g_geometry_handle_t.m_p_vertex->offset);
+
+	vkCmdBindIndexBuffer(
+		this->m_p_current_command_buffer, g_geometry_handle_t.m_p_index->buffer, g_geometry_handle_t.m_p_index->offset, VK_INDEX_TYPE_UINT32);
+
+	vkCmdDrawIndexed(this->m_p_current_command_buffer, g_geometry_handle_t.m_num_indices, 1, 0, 0, 0);
 }
 
 void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) {}
@@ -972,7 +1015,7 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	this->m_command_list.Shutdown();
 	this->m_upload_manager.Shutdown();
 
-	this->m_manager_descriptors.Free_Descriptor(this->m_p_device, this->m_p_descriptor_set);
+	this->m_manager_descriptors.Free_Descriptors(this->m_p_device, this->m_descriptor_sets.data(), this->m_descriptor_sets.size());
 	this->m_manager_descriptors.Shutdown(this->m_p_device);
 
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
@@ -1683,7 +1726,13 @@ void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 
 void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 {
-	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, this->m_p_descriptor_set_layout, &this->m_p_descriptor_set);
+	// TODO: TO ALL, but it is better to use one descriptor set, but if we accumulate drawings and compile every time our geometry to it is better to
+	// think about how to reduce descriptor sets or cache g_geometry_handle_t for every compiled geometry and just pass them to RenderCompiledGeometry
+	// <= it is needed to be placed some where because before this calling you accumulate ALL geometry what you need to compile and after filled
+	// Rml::Vector<CompiledGeometryHandle> then you call once RenderCompiledGeometry, because you cached all stuff
+
+	this->m_manager_descriptors.Alloc_Descriptor(
+		this->m_p_device, this->m_p_descriptor_set_layout, this->m_descriptor_sets.data(), kDescriptorSetsCount);
 }
 
 void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept

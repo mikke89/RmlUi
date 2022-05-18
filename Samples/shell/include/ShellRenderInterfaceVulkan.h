@@ -31,6 +31,7 @@
 
 #pragma region System Constants for Vulkan API
 constexpr uint32_t kSwapchainBackBufferCount = 3;
+constexpr uint32_t kDescriptorSetsCount = 100;
 #pragma endregion
 
 class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
@@ -431,7 +432,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 		uint32_t Get_AllocatedDescriptorCount(void) const noexcept { return this->m_allocated_descriptor_count; }
 
-		bool Alloc_Descriptor(VkDevice p_device, VkDescriptorSetLayout p_layout, VkDescriptorSet* p_sets) noexcept
+		bool Alloc_Descriptor(VkDevice p_device, VkDescriptorSetLayout p_layout, VkDescriptorSet* p_sets, uint32_t descriptor_count_for_creation = 1) noexcept
 		{
 			RMLUI_ASSERT(p_layout, "you have to pass a valid and initialized VkDescriptorSetLayout (probably you must create it)");
 			RMLUI_ASSERT(p_sets, "you can't pass a invalid pointer here");
@@ -442,7 +443,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 			info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 			info.pNext = nullptr;
 			info.descriptorPool = this->m_p_descriptor_pool;
-			info.descriptorSetCount = 1;
+			info.descriptorSetCount = descriptor_count_for_creation;
 			info.pSetLayouts = &p_layout;
 
 			auto status = vkAllocateDescriptorSets(p_device, &info, p_sets);
@@ -454,14 +455,14 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 			return status == VkResult::VK_SUCCESS;
 		}
 
-		void Free_Descriptor(VkDevice p_device, VkDescriptorSet p_set) noexcept
+		void Free_Descriptors(VkDevice p_device, VkDescriptorSet* p_sets, uint32_t descriptor_count = 1) noexcept
 		{
 			RMLUI_ASSERT(p_device, "you must pass a valid VkDevice here");
 
-			if (p_set)
+			if (p_sets)
 			{
 				--this->m_allocated_descriptor_count;
-				vkFreeDescriptorSets(p_device, this->m_p_descriptor_pool, 1, &p_set);
+				vkFreeDescriptorSets(p_device, this->m_p_descriptor_pool, descriptor_count, p_sets);
 			}
 		}
 
@@ -691,6 +692,7 @@ private:
 
 #pragma region Resources
 	Rml::Vector<VkShaderModule> m_shaders;
+	Rml::Vector<VkDescriptorSet> m_descriptor_sets;
 	Rml::UnorderedMap<Rml::String, texture_data_t> m_textures;
 #pragma endregion
 
