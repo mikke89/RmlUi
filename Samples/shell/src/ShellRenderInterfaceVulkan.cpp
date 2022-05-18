@@ -31,10 +31,10 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 
 ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 	m_is_transform_enabled(false), m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
-	m_semaphore_index{}, m_semaphore_index_previous{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{},
-	m_p_window_handle{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout{}, m_p_pipeline_layout{},
-	m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{},
-	m_p_current_command_buffer{}
+	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_p_instance{}, m_p_device{},
+	m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_window_handle{}, m_p_queue_present{}, m_p_queue_graphics{},
+	m_p_queue_compute{}, m_p_descriptor_set_layout{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
+	m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
 {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
@@ -44,9 +44,11 @@ VkDescriptorBufferInfo info_current_descriptor_buffer_vertex = {};
 VkDescriptorBufferInfo info_current_descriptor_buffer_index = {};
 VkDescriptorBufferInfo info_current_descriptor_buffer_shader = {};
 
+// handle of compiled geometry
 struct geometry_handle_t {
 	bool m_is_has_texture = {false};
 	int m_num_indices = 0;
+	int m_descriptor_id = 0;
 	VkDescriptorBufferInfo* m_p_vertex{};
 	VkDescriptorBufferInfo* m_p_index{};
 	VkDescriptorBufferInfo* m_p_shader{};
@@ -1731,8 +1733,11 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 	// <= it is needed to be placed some where because before this calling you accumulate ALL geometry what you need to compile and after filled
 	// Rml::Vector<CompiledGeometryHandle> then you call once RenderCompiledGeometry, because you cached all stuff
 
+	Rml::Vector<VkDescriptorSetLayout> layouts(kDescriptorSetsCount, this->m_p_descriptor_set_layout);
+	this->m_descriptor_sets.resize(kDescriptorSetsCount);
+
 	this->m_manager_descriptors.Alloc_Descriptor(
-		this->m_p_device, this->m_p_descriptor_set_layout, this->m_descriptor_sets.data(), kDescriptorSetsCount);
+		this->m_p_device, layouts.data(), this->m_descriptor_sets.data(), kDescriptorSetsCount);
 }
 
 void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept

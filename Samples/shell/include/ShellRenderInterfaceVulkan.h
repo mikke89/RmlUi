@@ -432,10 +432,9 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 		uint32_t Get_AllocatedDescriptorCount(void) const noexcept { return this->m_allocated_descriptor_count; }
 
-		bool Alloc_Descriptor(VkDevice p_device, VkDescriptorSetLayout p_layout, VkDescriptorSet* p_sets, uint32_t descriptor_count_for_creation = 1) noexcept
+		bool Alloc_Descriptor(VkDevice p_device, VkDescriptorSetLayout* p_layouts, VkDescriptorSet* p_sets, uint32_t descriptor_count_for_creation = 1) noexcept
 		{
-			RMLUI_ASSERT(p_layout, "you have to pass a valid and initialized VkDescriptorSetLayout (probably you must create it)");
-			RMLUI_ASSERT(p_sets, "you can't pass a invalid pointer here");
+			RMLUI_ASSERT(p_layouts, "you have to pass a valid and initialized VkDescriptorSetLayout (probably you must create it)");
 			RMLUI_ASSERT(p_device, "you must pass a valid VkDevice here");
 
 			VkDescriptorSetAllocateInfo info = {};
@@ -444,13 +443,13 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 			info.pNext = nullptr;
 			info.descriptorPool = this->m_p_descriptor_pool;
 			info.descriptorSetCount = descriptor_count_for_creation;
-			info.pSetLayouts = &p_layout;
+			info.pSetLayouts = p_layouts;
 
 			auto status = vkAllocateDescriptorSets(p_device, &info, p_sets);
 
 			RMLUI_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkAllocateDescriptorSets");
 
-			++this->m_allocated_descriptor_count;
+			this->m_allocated_descriptor_count += descriptor_count_for_creation;
 
 			return status == VkResult::VK_SUCCESS;
 		}
@@ -641,6 +640,9 @@ private:
 	uint32_t m_semaphore_index;
 	uint32_t m_semaphore_index_previous;
 	uint32_t m_image_index;
+
+	// for obtaining descriptor sets from m_descriptor_sets[pass_here_this_variable]
+	uint32_t m_current_descriptor_id;
 
 	VkInstance m_p_instance;
 	VkDevice m_p_device;
