@@ -31,6 +31,13 @@
 
 #pragma region System Constants for Vulkan API
 constexpr uint32_t kSwapchainBackBufferCount = 3;
+
+// TODO: RmlUI team test it for all cases in order to predict the thing about descriptor sets, if it is not enough just make the value higher than it
+// was before, because in possible situations probably 100 callings for generating geometry is enough amount (is it possible or not). For me and from
+// my perspective it seems enough, but better to think how to use only one descriptor or really small amount of them, because for every instance that
+// causes generation of geometry looks strange to generate for every call a VkDescriptorSet, I guess it is possible if it doesn't nothing wrong, just
+// need to pass enough argument for generating them from outside like provide some custom inteface for these purposes. Keep in mind that not ALL
+// devices (GPU) can have VkDescriptorSets like 1000 or bigger. You need to think about embeddable devices with low charactestics
 constexpr uint32_t kDescriptorSetsCount = 100;
 #pragma endregion
 
@@ -432,7 +439,8 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 		uint32_t Get_AllocatedDescriptorCount(void) const noexcept { return this->m_allocated_descriptor_count; }
 
-		bool Alloc_Descriptor(VkDevice p_device, VkDescriptorSetLayout* p_layouts, VkDescriptorSet* p_sets, uint32_t descriptor_count_for_creation = 1) noexcept
+		bool Alloc_Descriptor(
+			VkDevice p_device, VkDescriptorSetLayout* p_layouts, VkDescriptorSet* p_sets, uint32_t descriptor_count_for_creation = 1) noexcept
 		{
 			RMLUI_ASSERT(p_layouts, "you have to pass a valid and initialized VkDescriptorSetLayout (probably you must create it)");
 			RMLUI_ASSERT(p_device, "you must pass a valid VkDevice here");
@@ -624,6 +632,32 @@ private:
 	void Submit(void) noexcept;
 	void Present(void) noexcept;
 
+	void NextDescriptorID(void) noexcept
+	{
+		// don't do anything because we don't initialize stuff
+		if (this->m_descriptor_sets.empty())
+			return;
+
+		++this->m_current_descriptor_id;
+		RMLUI_ASSERT(this->m_current_descriptor_id < this->m_descriptor_sets.size(),
+			"you can't have more than m_descriptor_sets's size, otherwise it means you want to use more descriptor sets than it is specified in "
+			"kDescriptorSetsCount constant. Overflow!");
+	}
+
+	uint32_t Get_CurrentDescriptorID(void) const noexcept { return this->m_current_descriptor_id; }
+
+	VkDescriptorSet Get_DescriptorSet(uint32_t id) const noexcept
+	{
+		if (this->m_descriptor_sets.empty())
+			return static_cast<VkDescriptorSet>(nullptr);
+
+		RMLUI_ASSERT(id < this->m_descriptor_sets.size(),
+			"you can't have more than m_descriptor_sets's size, otherwise it means you want to use more descriptor sets than it is specified in "
+			"kDescriptorSetsCount constant. Overflow!");
+
+		return this->m_descriptor_sets.at(id);
+	}
+
 #pragma region Resource management
 #pragma endregion
 
@@ -642,6 +676,8 @@ private:
 	uint32_t m_image_index;
 
 	// for obtaining descriptor sets from m_descriptor_sets[pass_here_this_variable]
+	// Don't use this variable in raw manner like this-> or just directly access, only through Get_ and Next method because for easy debugging
+	// Especially when we say about multithreading...
 	uint32_t m_current_descriptor_id;
 
 	VkInstance m_p_instance;
@@ -705,6 +741,7 @@ private:
 	CommandListRing m_command_list;
 	MemoryRingPool m_memory_pool;
 #pragma endregion
+
 	StatisticsWrapper m_stats;
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;

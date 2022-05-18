@@ -46,13 +46,16 @@ VkDescriptorBufferInfo info_current_descriptor_buffer_shader = {};
 
 // handle of compiled geometry
 struct geometry_handle_t {
+	// means it passed to vkCmd functions otherwise it is a raw geometry handle that don't rendered
+	bool m_is_draw = {false};
+
 	bool m_is_has_texture = {false};
 	int m_num_indices = 0;
 	int m_descriptor_id = 0;
 	VkDescriptorBufferInfo* m_p_vertex{};
 	VkDescriptorBufferInfo* m_p_index{};
 	VkDescriptorBufferInfo* m_p_shader{};
-} g_geometry_handle_t;
+} g_current_compiled_geometry;
 
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
@@ -71,6 +74,11 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 {
 	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture);
 
+	VkDescriptorSet p_current_descriptor_set = this->Get_DescriptorSet(this->Get_CurrentDescriptorID());
+
+	VK_ASSERT(p_current_descriptor_set, "you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
+										"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
+
 	VkDescriptorImageInfo info_descriptor_image = {};
 	if (p_texture)
 	{
@@ -81,7 +89,7 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 		VkWriteDescriptorSet info_write = {};
 
 		info_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		info_write.dstSet = this->m_p_descriptor_set;
+		info_write.dstSet = p_current_descriptor_set;
 		info_write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		info_write.dstBinding = 2;
 		info_write.pImageInfo = &info_descriptor_image;
@@ -104,21 +112,30 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 
 	memcpy(pCopyDataToBuffer, indices, sizeof(int));
 
-	g_geometry_handle_t.m_p_vertex = &info_current_descriptor_buffer_vertex;
-	g_geometry_handle_t.m_p_index = &info_current_descriptor_buffer_index;
+	g_current_compiled_geometry.m_p_vertex = &info_current_descriptor_buffer_vertex;
+	g_current_compiled_geometry.m_p_index = &info_current_descriptor_buffer_index;
 
 	// TODO: RmlUI team checks if it is right logic that if we don't have texture the handle is NULL/0 otherwise provide in places where a such
 	// (Rml::TextureHandle)(nullptr) is more obvious and strict, because it is probably important thing. Because I am not sure if it is always valid
 	// if you have callings from different places not only from this class like LoadTexture function, but GenerateTexture can be called somewhere.
 	// Keep this in mind;
-	g_geometry_handle_t.m_is_has_texture = !!((texture_data_t*)(texture));
-	g_geometry_handle_t.m_num_indices = num_indices;
+	g_current_compiled_geometry.m_is_has_texture = !!((texture_data_t*)(texture));
+	g_current_compiled_geometry.m_num_indices = num_indices;
+	g_current_compiled_geometry.m_descriptor_id = this->Get_CurrentDescriptorID();
 
-	return Rml::CompiledGeometryHandle(&g_geometry_handle_t);
+	this->NextDescriptorID();
+	g_current_compiled_geometry.m_is_draw = false;
+
+	return Rml::CompiledGeometryHandle(&g_current_compiled_geometry);
 }
 
 void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation)
 {
+	// we don't need to write the same commands to buffer or update descritor set somehow because it was already passed to it!!!!!
+	// don't do repetetive and pointless callings!!!!
+	if (g_current_compiled_geometry.m_is_draw)
+		return;
+
 	VK_ASSERT(this->m_p_current_command_buffer, "must be valid otherwise you can't render now!!! (can't be)");
 
 	this->m_user_data_for_vertex_shader.m_translate = translation;
@@ -130,22 +147,27 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 	VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
 	memcpy(pCopyDataToBuffer, &this->m_user_data_for_vertex_shader, sizeof(this->m_user_data_for_vertex_shader));
 
-	this->m_memory_pool.SetDescriptorSet(1, sizeof(this->m_user_data_for_vertex_shader), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, this->m_p_descriptor_set);
-	g_geometry_handle_t.m_p_shader = &info_current_descriptor_buffer_shader;
+	VkDescriptorSet p_current_descriptor_set = this->Get_DescriptorSet(g_current_compiled_geometry.m_descriptor_id);
+
+	VK_ASSERT(p_current_descriptor_set, "you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
+										"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
+
+	this->m_memory_pool.SetDescriptorSet(1, sizeof(this->m_user_data_for_vertex_shader), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, p_current_descriptor_set);
+	g_current_compiled_geometry.m_p_shader = &info_current_descriptor_buffer_shader;
 
 	uint32_t casted_offset = 0;
 	int num_uniform_offset = 0;
 
-	if (g_geometry_handle_t.m_p_shader && g_geometry_handle_t.m_p_shader->buffer)
+	if (g_current_compiled_geometry.m_p_shader && g_current_compiled_geometry.m_p_shader->buffer)
 	{
 		num_uniform_offset = 1;
-		casted_offset = (uint32_t)g_geometry_handle_t.m_p_shader->offset;
+		casted_offset = (uint32_t)g_current_compiled_geometry.m_p_shader->offset;
 	}
 
 	vkCmdBindDescriptorSets(
-		this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, 1, &this->m_p_descriptor_set, 0, nullptr);
+		this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, 1, &p_current_descriptor_set, 0, nullptr);
 
-	if (g_geometry_handle_t.m_is_has_texture)
+	if (g_current_compiled_geometry.m_is_has_texture)
 	{
 		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_with_textures);
 	}
@@ -158,12 +180,15 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 	// like it is intuitive 0, but it is 1
 	VkDeviceSize offsets[1] = {0};
 
-	vkCmdBindVertexBuffers(this->m_p_current_command_buffer, 0, 1, &g_geometry_handle_t.m_p_vertex->buffer, &g_geometry_handle_t.m_p_vertex->offset);
+	vkCmdBindVertexBuffers(
+		this->m_p_current_command_buffer, 0, 1, &g_current_compiled_geometry.m_p_vertex->buffer, &g_current_compiled_geometry.m_p_vertex->offset);
 
-	vkCmdBindIndexBuffer(
-		this->m_p_current_command_buffer, g_geometry_handle_t.m_p_index->buffer, g_geometry_handle_t.m_p_index->offset, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(this->m_p_current_command_buffer, g_current_compiled_geometry.m_p_index->buffer,
+		g_current_compiled_geometry.m_p_index->offset, VK_INDEX_TYPE_UINT32);
 
-	vkCmdDrawIndexed(this->m_p_current_command_buffer, g_geometry_handle_t.m_num_indices, 1, 0, 0, 0);
+	vkCmdDrawIndexed(this->m_p_current_command_buffer, g_current_compiled_geometry.m_num_indices, 1, 0, 0, 0);
+
+	g_current_compiled_geometry.m_is_draw = true;
 }
 
 void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) {}
@@ -1729,15 +1754,15 @@ void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 {
 	// TODO: TO ALL, but it is better to use one descriptor set, but if we accumulate drawings and compile every time our geometry to it is better to
-	// think about how to reduce descriptor sets or cache g_geometry_handle_t for every compiled geometry and just pass them to RenderCompiledGeometry
+	// think about how to reduce descriptor sets or cache g_current_compiled_geometry for every compiled geometry and just pass them to
+	// RenderCompiledGeometry
 	// <= it is needed to be placed some where because before this calling you accumulate ALL geometry what you need to compile and after filled
 	// Rml::Vector<CompiledGeometryHandle> then you call once RenderCompiledGeometry, because you cached all stuff
 
 	Rml::Vector<VkDescriptorSetLayout> layouts(kDescriptorSetsCount, this->m_p_descriptor_set_layout);
 	this->m_descriptor_sets.resize(kDescriptorSetsCount);
 
-	this->m_manager_descriptors.Alloc_Descriptor(
-		this->m_p_device, layouts.data(), this->m_descriptor_sets.data(), kDescriptorSetsCount);
+	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, layouts.data(), this->m_descriptor_sets.data(), kDescriptorSetsCount);
 }
 
 void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept
