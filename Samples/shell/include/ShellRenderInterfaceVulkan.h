@@ -99,6 +99,20 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		Rml::String m_filename;
 	};
 
+	// TODO: RMLUI team add set and get methods for this structure PLEASE
+	// handle of compiled geometry
+	struct geometry_handle_t {
+		// means it passed to vkCmd functions otherwise it is a raw geometry handle that don't rendered
+		bool m_is_draw = {false};
+
+		bool m_is_has_texture = {false};
+		int m_num_indices = 0;
+		int m_descriptor_id = 0;
+		VkDescriptorBufferInfo m_p_vertex{};
+		VkDescriptorBufferInfo m_p_index{};
+		VkDescriptorBufferInfo m_p_shader{};
+	};
+
 	class buffer_data_t {
 	public:
 		buffer_data_t() : m_p_vk_buffer{}, m_p_vma_allocation{} {}
@@ -731,6 +745,12 @@ private:
 #pragma region Resources
 	Rml::Vector<VkShaderModule> m_shaders;
 	Rml::Vector<VkDescriptorSet> m_descriptor_sets;
+
+	// this need for rendering constantly, but if we has flag m_is_draw as true we just directly pass it to vkCmdXXX commands otherwise we have to
+	// update the uniform buffer and remember commands anyway.
+	// I wanted to use Vector but a new element makes pointer to element in invalid state, so it is impossible to use pointers with Rml::Vector, so
+	// here we have a map...
+	Rml::UnorderedMap<uint32_t, geometry_handle_t> m_compiled_geometries;
 	Rml::UnorderedMap<Rml::String, texture_data_t> m_textures;
 #pragma endregion
 
@@ -746,6 +766,9 @@ private:
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
 	shader_vertex_user_data_t m_user_data_for_vertex_shader;
+
+	// TODO: after all tests remove it because you have already all compiled geometries in m_compiled_geometries field
+	geometry_handle_t g_current_compiled_geometry;
 };
 
 #endif
