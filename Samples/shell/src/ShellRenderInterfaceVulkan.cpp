@@ -129,6 +129,8 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 
 	this->m_user_data_for_vertex_shader.m_translate = translation;
 
+
+	// TODO: RmlUI team somehow but on resize I got invalid value here...
 	VkDescriptorSet p_current_descriptor_set = this->Get_DescriptorSet(p_casted_compiled_geometry->m_descriptor_id);
 
 	VK_ASSERT(p_current_descriptor_set, "you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
