@@ -39,6 +39,12 @@ constexpr uint32_t kSwapchainBackBufferCount = 3;
 // need to pass enough argument for generating them from outside like provide some custom inteface for these purposes. Keep in mind that not ALL
 // devices (GPU) can have VkDescriptorSets like 1000 or bigger. You need to think about embeddable devices with low charactestics
 constexpr uint32_t kDescriptorSetsCount = 100;
+
+// Mbs
+constexpr uint32_t kVideoMemoryForAllocation = 32; 
+
+// m_textures.reserve()
+constexpr uint32_t kTexturesForReserve = 100;
 #pragma endregion
 
 class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
@@ -760,7 +766,7 @@ private:
 	// I wanted to use Vector but a new element makes pointer to element in invalid state, so it is impossible to use pointers with Rml::Vector, so
 	// here we have a map...
 	Rml::UnorderedMap<uint32_t, geometry_handle_t> m_compiled_geometries;
-	Rml::UnorderedMap<Rml::String, texture_data_t> m_textures;
+	Rml::Vector<texture_data_t> m_textures;
 #pragma endregion
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;

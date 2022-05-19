@@ -56,6 +56,9 @@ void ShellRenderInterfaceVulkan::RenderGeometry(
 	}
 }
 
+// TODO: RMLUI team it is important because it affects the architecture, when we do resize WE HAVE TO UPDATE ONLY THOSE geometry_handle_ts that needs
+// to rebuild!!! So when it comes to "rebuild" our geometry on resize we need change already existed instances of geometry_handle_t otherwise we just
+// add new and old doesn't update at all. I won't change anything with resize so it is technically doesn't work. (like maximize window and vice versa)
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture)
 {
@@ -214,12 +217,6 @@ struct TGAHeader {
 
 bool ShellRenderInterfaceVulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
-	if (this->m_textures.find(source) != this->m_textures.end())
-	{
-		Shell::Log("[WARNING] you want to load texture that is already existed in storage (m_textures). Using existing texture");
-		return true;
-	}
-
 	Rml::FileInterface* file_interface = Rml::GetFileInterface();
 	Rml::FileHandle file_handle = file_interface->Open(source);
 	if (!file_handle)
@@ -287,9 +284,7 @@ bool ShellRenderInterfaceVulkan::LoadTexture(Rml::TextureHandle& texture_handle,
 	texture_dimensions.x = header.width;
 	texture_dimensions.y = header.height;
 
-	// only call ctor for object in map, but we will obtain it in GenerateTexture, of course it is not right, but it did only for saving design...
 	// TODO: RmlUI team, possibly better to pass source into generate texture too
-	this->m_textures[source];
 	texture_handle = (Rml::TextureHandle)source.c_str();
 	bool status = this->GenerateTexture(texture_handle, image_dest, texture_dimensions);
 	delete[] image_dest;
@@ -326,22 +321,26 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	VK_ASSERT(height, "invalid height");
 
 	const char* file_path = reinterpret_cast<const char*>(texture_handle);
+	/*
 	if (this->m_textures.find(file_path) != this->m_textures.end())
 	{
-		if (this->m_textures.at(file_path).Get_VkImage() && this->m_textures.at(file_path).Get_VmaAllocation())
-		{
-			Shell::Log("[Vulkan] using the existing texture %s", file_path);
-			const auto& texture = this->m_textures.at(file_path);
-			texture_handle = (Rml::TextureHandle)(&texture);
+	    if (this->m_textures.at(file_path).Get_VkImage() && this->m_textures.at(file_path).Get_VmaAllocation())
+	    {
+	        Shell::Log("[Vulkan] using the existing texture %s", file_path);
+	        const auto& texture = this->m_textures.at(file_path);
+	        texture_handle = (Rml::TextureHandle)(&texture);
 
-			return true;
-		}
+	        return true;
+	    }
 	}
 	else
 	{
-		// this means we got our calling from outside of this class it is not LoadTexture method...
-		this->m_textures[file_path];
+	    // this means we got our calling from outside of this class it is not LoadTexture method...
+	    this->m_textures[file_path];
 	}
+	*/
+
+	this->m_textures.push_back(texture_data_t());
 
 	VkDeviceSize image_size = width * height * 4;
 	VkFormat format = VkFormat::VK_FORMAT_R8G8B8A8_SRGB;
@@ -358,7 +357,7 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	extent_image.height = static_cast<uint32_t>(height);
 	extent_image.depth = 1;
 
-	auto& texture = this->m_textures.at(file_path);
+	auto& texture = this->m_textures.back();
 
 	VkImageCreateInfo info = {};
 
@@ -973,6 +972,7 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 	this->m_upload_manager.Initialize(this->m_p_device, this->m_p_queue_graphics, this->m_queue_index_graphics);
 	this->m_manager_descriptors.Initialize(this->m_p_device, 100, 100, 10, 10);
 
+	this->m_textures.reserve(kTexturesForReserve);
 	auto storage = this->LoadShaders();
 
 	this->CreateShaders(storage);
@@ -2036,7 +2036,7 @@ void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->m_scissor.offset.y = 0;
 
 	this->m_projection =
-		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -25.0f, 20.0f);
+		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -20.0f, 20.0f);
 
 	this->SetTransform(nullptr);
 
@@ -2095,10 +2095,8 @@ void ShellRenderInterfaceVulkan::Destroy_Textures(void) noexcept
 	VK_ASSERT(this->m_p_device, "must exist");
 	VK_ASSERT(this->m_p_allocator, "must exist");
 
-	for (auto& pair_path_to_file_and_data : this->m_textures)
+	for (const auto& texture : this->m_textures)
 	{
-		const auto& texture = pair_path_to_file_and_data.second;
-
 		if (texture.Get_VmaAllocation())
 		{
 			vmaDestroyImage(this->m_p_allocator, texture.Get_VkImage(), texture.Get_VmaAllocation());
