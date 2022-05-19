@@ -26,12 +26,7 @@
 #pragma region System Constants for Vulkan API
 constexpr uint32_t kSwapchainBackBufferCount = 3;
 
-// TODO: RmlUI team test it for all cases in order to predict the thing about descriptor sets, if it is not enough just make the value higher than it
-// was before, because in possible situations probably 100 callings for generating geometry is enough amount (is it possible or not). For me and from
-// my perspective it seems enough, but better to think how to use only one descriptor or really small amount of them, because for every instance that
-// causes generation of geometry looks strange to generate for every call a VkDescriptorSet, I guess it is possible if it doesn't nothing wrong, just
-// need to pass enough argument for generating them from outside like provide some custom inteface for these purposes. Keep in mind that not ALL
-// devices (GPU) can have VkDescriptorSets like 1000 or bigger. You need to think about embeddable devices with low charactestics
+// I will finish it, so the thing is to use dynamic offset for VkDescriptorSet
 constexpr uint32_t kDescriptorSetsCount = 100;
 
 // This value goes to function that converts to Mbs, it is like 32 * 1024 * 1024
@@ -516,8 +511,11 @@ public:
 
 	/// Called by RmlUi when it wants to render application-compiled geometry.
 	void RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) override;
+
 	/// Called by RmlUi when it wants to release application-compiled geometry.
 	void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) override;
+
+	void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry, Rml::UserDataHandle userdata) override;
 
 	/// Called by RmlUi when it wants to enable or disable scissoring to clip content.
 	void EnableScissorRegion(bool enable) override;
