@@ -56,7 +56,7 @@ void ShellRenderInterfaceVulkan::RenderGeometry(
 	}
 }
 
-// TODO: RMLUI team it is important because it affects the architecture, when we do resize WE HAVE TO UPDATE ONLY THOSE geometry_handle_ts that needs
+// TODO: RMLUI team it is important because it affects the architecture, when we do resize WE HAVE TO UPDATE ONLY THOSE geometry_handle_ts that need
 // to rebuild!!! So when it comes to "rebuild" our geometry on resize we need change already existed instances of geometry_handle_t otherwise we just
 // add new and old doesn't update at all. I won't change anything with resize so it is technically doesn't work. (like maximize window and vice versa)
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
@@ -145,7 +145,6 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 		bool status = this->m_memory_pool.AllocConstantBuffer(
 			sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data), &info_current_descriptor_buffer_shader);
 		VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
-		// memcpy(pCopyDataToBuffer, &this->m_user_data_for_vertex_shader, sizeof(this->m_user_data_for_vertex_shader));
 		p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
 		p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
 
@@ -343,7 +342,7 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	this->m_textures.push_back(texture_data_t());
 
 	VkDeviceSize image_size = width * height * 4;
-	VkFormat format = VkFormat::VK_FORMAT_R8G8B8A8_SRGB;
+	VkFormat format = VkFormat::VK_FORMAT_R8G8B8A8_UNORM;
 
 	auto cpu_buffer = this->CreateResource_StagingBuffer(image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
@@ -1811,7 +1810,13 @@ void ShellRenderInterfaceVulkan::Create_Pipelines(void) noexcept
 	VkPipelineColorBlendAttachmentState info_color_blend_att = {};
 
 	info_color_blend_att.colorWriteMask = 0xf;
-	info_color_blend_att.blendEnable = VK_FALSE;
+	info_color_blend_att.blendEnable = VK_TRUE;
+	info_color_blend_att.srcColorBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_SRC_ALPHA;
+	info_color_blend_att.dstColorBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	info_color_blend_att.colorBlendOp = VkBlendOp::VK_BLEND_OP_ADD;
+	info_color_blend_att.srcAlphaBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_SRC_ALPHA;
+	info_color_blend_att.dstAlphaBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	info_color_blend_att.alphaBlendOp = VkBlendOp::VK_BLEND_OP_SUBTRACT;
 
 	VkPipelineColorBlendStateCreateInfo info_color_blend_state = {};
 
