@@ -5,8 +5,8 @@
 
 layout(set=0, binding=1) uniform UserData 
 {
-	vec2 m_translate;
 	mat4 m_transform;
+	vec2 m_translate;
 } userdata;
 
 layout (location = 0) in vec2 inPosition;

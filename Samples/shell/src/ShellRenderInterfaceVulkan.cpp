@@ -137,13 +137,16 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 	{
 		uint32_t* pCopyDataToBuffer = nullptr;
 
-		bool status = this->m_memory_pool.AllocConstantBuffer(
-			sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_shader);
-		VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
-		memcpy(pCopyDataToBuffer, &this->m_user_data_for_vertex_shader, sizeof(this->m_user_data_for_vertex_shader));
+		shader_vertex_user_data_t* p_data = nullptr;
 
-		this->m_memory_pool.SetDescriptorSet(
-			1, sizeof(this->m_user_data_for_vertex_shader), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, p_current_descriptor_set);
+		bool status = this->m_memory_pool.AllocConstantBuffer(
+			sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data), &info_current_descriptor_buffer_shader);
+		VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
+		// memcpy(pCopyDataToBuffer, &this->m_user_data_for_vertex_shader, sizeof(this->m_user_data_for_vertex_shader));
+		p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
+		p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
+
+		this->m_memory_pool.SetDescriptorSet(1, &info_current_descriptor_buffer_shader, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, p_current_descriptor_set);
 		p_casted_compiled_geometry->m_p_shader = info_current_descriptor_buffer_shader;
 	}
 
@@ -498,7 +501,7 @@ void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handl
 
 void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform)
 {
-	this->m_user_data_for_vertex_shader.m_transform = (transform ? *transform : Rml::Matrix4f::Identity());
+	this->m_user_data_for_vertex_shader.m_transform = this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
 }
 
 void ShellRenderInterfaceVulkan::SetViewport(int width, int height)
@@ -747,6 +750,8 @@ void ShellRenderInterfaceVulkan::Initialize_PhysicalDevice(void) noexcept
 	}
 
 	this->PrintInformationAboutPickedPhysicalDevice(this->m_p_physical_device_current);
+
+	vkGetPhysicalDeviceProperties(this->m_p_physical_device_current, &this->m_current_physical_device_properties);
 }
 
 void ShellRenderInterfaceVulkan::Initialize_Swapchain(void) noexcept
@@ -959,8 +964,8 @@ void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept
 void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 {
 	this->m_command_list.Initialize(this->m_p_device, this->m_queue_index_graphics, kSwapchainBackBufferCount, 2);
-	this->m_memory_pool.Initialize(
-		this->m_p_allocator, this->m_p_device, kSwapchainBackBufferCount, ShellRenderInterfaceVulkan::ConvertMegabytesToBytes(32));
+	this->m_memory_pool.Initialize(&this->m_current_physical_device_properties, this->m_p_allocator, this->m_p_device, kSwapchainBackBufferCount,
+		ShellRenderInterfaceVulkan::ConvertMegabytesToBytes(32));
 	this->m_upload_manager.Initialize(this->m_p_device, this->m_p_queue_graphics, this->m_queue_index_graphics);
 	this->m_manager_descriptors.Initialize(this->m_p_device, 100, 100, 10, 10);
 
@@ -1887,7 +1892,7 @@ void ShellRenderInterfaceVulkan::Create_Pipelines(void) noexcept
 
 	info_shader_vertex_attributes[1].binding = 0;
 	info_shader_vertex_attributes[1].location = 1;
-	info_shader_vertex_attributes[1].format = VK_FORMAT_R8G8B8A8_UINT;
+	info_shader_vertex_attributes[1].format = VK_FORMAT_R8G8B8A8_UNORM;
 	info_shader_vertex_attributes[1].offset = offsetof(Rml::Vertex, colour);
 
 	info_shader_vertex_attributes[2].binding = 0;
@@ -2025,6 +2030,11 @@ void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->m_scissor.extent.height = this->m_height;
 	this->m_scissor.offset.x = 0;
 	this->m_scissor.offset.y = 0;
+
+	this->m_projection =
+		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, 0.1f, 10000.0f);
+
+	this->SetTransform(nullptr);
 
 	this->CreateRenderPass();
 	this->CreateSwapchainFrameBuffers();
@@ -2628,22 +2638,24 @@ void ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void)
 }
 
 ShellRenderInterfaceVulkan::MemoryRingPool::MemoryRingPool(void) :
-	m_memory_total_size{}, m_p_data{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}
+	m_memory_total_size{}, m_p_data{}, m_p_physical_device_current_properties{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}
 {}
 
 ShellRenderInterfaceVulkan::MemoryRingPool::~MemoryRingPool(void) {}
 
-void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(
-	VmaAllocator p_allocator, VkDevice p_device, uint32_t number_of_back_buffers, uint32_t memory_total_size) noexcept
+void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(VkPhysicalDeviceProperties* p_props, VmaAllocator p_allocator, VkDevice p_device,
+	uint32_t number_of_back_buffers, uint32_t memory_total_size) noexcept
 {
 	VK_ASSERT(p_device, "you must pass a valid VkDevice");
 	VK_ASSERT(p_allocator, "you must pass a valid VmaAllocator");
+	VK_ASSERT(p_props, "must be valid!");
 
 	this->m_p_device = p_device;
 	this->m_p_vk_allocator = p_allocator;
+	this->m_p_physical_device_current_properties = p_props;
+	this->m_align_koef = this->m_p_physical_device_current_properties->limits.minUniformBufferOffsetAlignment;
 
-	this->m_memory_total_size = ShellRenderInterfaceVulkan::AlignUp(memory_total_size, 256u);
-
+	this->m_memory_total_size = ShellRenderInterfaceVulkan::AlignUp(memory_total_size, this->m_align_koef);
 	this->m_allocator.Initialize(number_of_back_buffers, this->m_memory_total_size);
 
 	VkBufferCreateInfo info = {};
@@ -2691,7 +2703,7 @@ bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocConstantBuffer(uint32_t si
 	VK_ASSERT(p_out, "you must pass a valid pointer");
 	VK_ASSERT(this->m_p_buffer, "you must have a valid VkBuffer");
 
-	size = ShellRenderInterfaceVulkan::AlignUp(size, 256u);
+	size = ShellRenderInterfaceVulkan::AlignUp(size, this->m_align_koef);
 
 	uint32_t offset_memory{};
 
@@ -2763,6 +2775,28 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(
 	info_write.dstArrayElement = 0;
 	info_write.dstBinding = binding_index;
 	info_write.pBufferInfo = &info;
+
+	vkUpdateDescriptorSets(this->m_p_device, 1, &info_write, 0, nullptr);
+}
+
+void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(
+	uint32_t binding_index, VkDescriptorBufferInfo* p_info, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
+	VK_ASSERT(p_set, "you must have a valid VkDescriptorSet here");
+	VK_ASSERT(this->m_p_buffer, "you must have a valid VkBuffer here");
+	VK_ASSERT(p_info, "must be valid pointer");
+
+	VkWriteDescriptorSet info_write = {};
+
+	info_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	info_write.pNext = nullptr;
+	info_write.dstSet = p_set;
+	info_write.descriptorCount = 1;
+	info_write.descriptorType = descriptor_type;
+	info_write.dstArrayElement = 0;
+	info_write.dstBinding = binding_index;
+	info_write.pBufferInfo = p_info;
 
 	vkUpdateDescriptorSets(this->m_p_device, 1, &info_write, 0, nullptr);
 }

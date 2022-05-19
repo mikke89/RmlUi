@@ -63,9 +63,11 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		VkShaderStageFlagBits m_shader_type;
 	};
 
+	// BE REALLY CAREFULL WITH DATA IF YOU CHANGE THE ORDER LIKE V2f first and mat4 after you will get incorrect results in shader, matrix can't be
+	// copied right!!!!
 	struct shader_vertex_user_data_t {
-		Rml::Vector2f m_translate;
 		Rml::Matrix4f m_transform;
+		Rml::Vector2f m_translate;
 	};
 
 	class texture_data_t {
@@ -346,7 +348,8 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		MemoryRingPool(void);
 		~MemoryRingPool(void);
 
-		void Initialize(VmaAllocator p_allocator, VkDevice p_device, uint32_t number_of_back_buffers, uint32_t memory_total_size) noexcept;
+		void Initialize(VkPhysicalDeviceProperties* p_properties, VmaAllocator p_allocator, VkDevice p_device, uint32_t number_of_back_buffers,
+			uint32_t memory_total_size) noexcept;
 		void Shutdown(void) noexcept;
 
 		bool AllocConstantBuffer(uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out) noexcept;
@@ -355,13 +358,17 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		bool AllocIndexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out) noexcept;
 		void OnBeginFrame(void) noexcept;
 		void SetDescriptorSet(uint32_t binding_index, uint32_t size, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept;
+		void SetDescriptorSet(
+			uint32_t binding_index, VkDescriptorBufferInfo* p_info, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept;
 		void SetDescriptorSet(uint32_t binding_index, VkSampler p_sampler, VkImageLayout layout, VkImageView p_view, VkDescriptorType descriptor_type,
 			VkDescriptorSet p_set) noexcept;
 
 	private:
 		uint32_t m_memory_total_size;
+		uint32_t m_align_koef;
 		char* m_p_data;
 		VkBuffer m_p_buffer;
+		VkPhysicalDeviceProperties* m_p_physical_device_current_properties;
 		VmaAllocation m_p_buffer_alloc;
 		VkDevice m_p_device;
 		VmaAllocator m_p_vk_allocator;
@@ -697,6 +704,7 @@ private:
 	VkInstance m_p_instance;
 	VkDevice m_p_device;
 	VkPhysicalDevice m_p_physical_device_current;
+	VkPhysicalDeviceProperties m_current_physical_device_properties;
 	VkSurfaceKHR m_p_surface;
 	VkSwapchainKHR m_p_swapchain;
 	VmaAllocator m_p_allocator;
@@ -728,6 +736,7 @@ private:
 
 	VkDebugReportCallbackEXT m_debug_report_callback_instance;
 
+	Rml::Matrix4f m_projection;
 	Rml::Vector<PhysicalDeviceWrapper> m_physical_devices;
 	Rml::Vector<VkLayerProperties> m_instance_layer_properties;
 	Rml::Vector<VkExtensionProperties> m_instance_extension_properties;
