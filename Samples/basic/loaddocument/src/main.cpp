@@ -72,9 +72,10 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 
 	// TODO: [From wh1t3lord] implemnet choosing renderer...
 	ShellRenderInterfaceOpenGL opengl_renderer;
-	ShellRenderInterfaceVulkan vulkan_renderer;
+//	ShellRenderInterfaceVulkan vulkan_renderer;
 
-	shell_renderer = &vulkan_renderer;
+//	shell_renderer = &vulkan_renderer;
+	shell_renderer = &opengl_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
@@ -85,7 +86,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::SetRenderInterface(&vulkan_renderer);
+//	Rml::SetRenderInterface(&vulkan_renderer);
+	Rml::SetRenderInterface(&opengl_renderer);
 	shell_renderer->SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
