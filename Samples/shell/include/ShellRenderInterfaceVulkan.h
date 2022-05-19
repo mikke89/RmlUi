@@ -3,11 +3,6 @@
 
 #include <RmlUi/Core/RenderInterface.h>
 
-// TODO: [From wh1t3lord] I suggest to rename ShellOpenGL to ShellRender, because if we have more than one Renderer it's better to keep codebase
-// simple as much as possible, that means if we don't want to grow headers and other code we should use general file that keeps all needs for our
-// system in this case I mean to not create other ShellVulkan, ShellDX12, ShellDX11, ShellXXX...
-// I mean you can put all headers into one file and have a general name like ShellRender.h it means this header contains everything needed information
-// for writing own ShellRenderInterfaceXXX
 #include "ShellOpenGL.h"
 
 // TODO: add preprocessor definition in case if cmake found Vulkan package
