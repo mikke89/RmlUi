@@ -1,9 +1,8 @@
 #ifndef RMLUI_SHELL_SHELLRENDERINTERFACEVULKAN_H
 #define RMLUI_SHELL_SHELLRENDERINTERFACEVULKAN_H
 
-#include <RmlUi/Core/RenderInterface.h>
-
 #include "ShellOpenGL.h"
+#include <RmlUi/Core/RenderInterface.h>
 
 // TODO: add preprocessor definition in case if cmake found Vulkan package
 #include "spirv_reflect.h"
@@ -35,17 +34,21 @@ constexpr uint32_t kSwapchainBackBufferCount = 3;
 // devices (GPU) can have VkDescriptorSets like 1000 or bigger. You need to think about embeddable devices with low charactestics
 constexpr uint32_t kDescriptorSetsCount = 100;
 
-// Mbs
-constexpr uint32_t kVideoMemoryForAllocation = 32; 
+// This value goes to function that converts to Mbs, it is like 32 * 1024 * 1024
+constexpr uint32_t kVideoMemoryForAllocation = 32;
 
 // m_textures.reserve()
 constexpr uint32_t kTexturesForReserve = 100;
 #pragma endregion
 
+// TODO: RmlUI team change all function in one style like if you see that some prefix of function (method) repeats like CreateSomething,
+// CreateSomething2, DestroySeomthing1, DestroySomething2 you must re-write with this form of prefixes "RepetetiveOperationPrefix_" not this
+// "RepetetiveOperationPrefix" (like without under slash), so it goes like Create_Something, Create_Something2, Destroy_Something, Destroy_Something2
 class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
 	enum class shader_type_t : int { kShaderType_Vertex, kShaderType_Pixel, kShaderType_Unknown = -1 };
 
 	// For obtainig our VkShaderModule in m_shaders, the order is specified in LoadShaders method
+	// TODO: RmlUI team think how to make not hardcoded state (or is it enough for tutorials?)
 	enum class shader_id_t : int { kShaderID_Vertex, kShaderID_Pixel_WithoutTextures, kShaderID_Pixel_WithTextures };
 
 	class shader_data_t {

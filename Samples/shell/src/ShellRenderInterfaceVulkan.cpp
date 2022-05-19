@@ -969,7 +969,7 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 {
 	this->m_command_list.Initialize(this->m_p_device, this->m_queue_index_graphics, kSwapchainBackBufferCount, 2);
 	this->m_memory_pool.Initialize(&this->m_current_physical_device_properties, this->m_p_allocator, this->m_p_device, kSwapchainBackBufferCount,
-		ShellRenderInterfaceVulkan::ConvertMegabytesToBytes(32));
+		ShellRenderInterfaceVulkan::ConvertMegabytesToBytes(kVideoMemoryForAllocation));
 	this->m_upload_manager.Initialize(this->m_p_device, this->m_p_queue_graphics, this->m_queue_index_graphics);
 	this->m_manager_descriptors.Initialize(this->m_p_device, 100, 100, 10, 10);
 
