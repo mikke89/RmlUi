@@ -678,6 +678,10 @@ void ShellRenderInterfaceVulkan::Initialize_Device(void) noexcept
 	this->AddExtensionToDevice(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	this->AddExtensionToDevice(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
 
+	// this for working with negative values for VkViewport, because check this article
+	// https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/#:~:text=The%20cause%20for%20this%20is,scene%20is%20rendered%20upside%20down.
+	this->AddExtensionToDevice(VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
+
 	float queue_priorities[1] = {0.0f};
 
 	VkDeviceQueueCreateInfo info_queue[2] = {};
@@ -1798,9 +1802,9 @@ void ShellRenderInterfaceVulkan::Create_Pipelines(void) noexcept
 	info_raster_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	info_raster_state.pNext = nullptr;
 	info_raster_state.polygonMode = VK_POLYGON_MODE_FILL;
-	info_raster_state.cullMode = VK_CULL_MODE_BACK_BIT;
+	info_raster_state.cullMode = VK_CULL_MODE_NONE;
 	info_raster_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	info_raster_state.flags = 0;
+	info_raster_state.rasterizerDiscardEnable = VK_FALSE;
 	info_raster_state.depthBiasEnable = VK_FALSE;
 	info_raster_state.lineWidth = 1.0f;
 
@@ -2019,7 +2023,7 @@ void ShellRenderInterfaceVulkan::CreateSwapchainImageViews(void) noexcept
 
 void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 {
-	this->m_viewport.height = this->m_height;
+	this->m_viewport.height = -this->m_height;
 	this->m_viewport.width = this->m_width;
 	this->m_viewport.minDepth = 0.0f;
 	this->m_viewport.maxDepth = 1.0f;
@@ -2032,7 +2036,7 @@ void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->m_scissor.offset.y = 0;
 
 	this->m_projection =
-		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, 0.1f, 10000.0f);
+		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -25.0f, 20.0f);
 
 	this->SetTransform(nullptr);
 
