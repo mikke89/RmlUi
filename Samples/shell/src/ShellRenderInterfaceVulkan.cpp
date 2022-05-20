@@ -196,8 +196,6 @@ void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHa
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
 }
 
-void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry, Rml::UserDataHandle userdata) {}
-
 void ShellRenderInterfaceVulkan::EnableScissorRegion(bool enable) {}
 
 void ShellRenderInterfaceVulkan::SetScissorRegion(int x, int y, int width, int height) {}

@@ -36,9 +36,6 @@ constexpr uint32_t kVideoMemoryForAllocation = 32;
 constexpr uint32_t kTexturesForReserve = 100;
 #pragma endregion
 
-// TODO: RmlUI team change all function in one style like if you see that some prefix of function (method) repeats like CreateSomething,
-// CreateSomething2, DestroySeomthing1, DestroySomething2 you must re-write with this form of prefixes "RepetetiveOperationPrefix_" not this
-// "RepetetiveOperationPrefix" (like without under slash), so it goes like Create_Something, Create_Something2, Destroy_Something, Destroy_Something2
 class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
 	enum class shader_type_t : int { kShaderType_Vertex, kShaderType_Pixel, kShaderType_Unknown = -1 };
 
@@ -62,8 +59,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		VkShaderStageFlagBits m_shader_type;
 	};
 
-	// BE REALLY CAREFULL WITH DATA IF YOU CHANGE THE ORDER LIKE V2f first and mat4 after you will get incorrect results in shader, matrix can't be
-	// copied right!!!!
+	// don't mix, if you change the order it will copy with wrong data (idk why)
 	struct shader_vertex_user_data_t {
 		Rml::Matrix4f m_transform;
 		Rml::Vector2f m_translate;
@@ -112,6 +108,11 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		VkDescriptorBufferInfo m_p_vertex{};
 		VkDescriptorBufferInfo m_p_index{};
 		VkDescriptorBufferInfo m_p_shader{};
+
+		// @ this is for freeing our logical block for VMA
+		// see https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/virtual_allocator.html
+		VmaVirtualAllocation m_p_allocation{};
+		VmaVirtualBlock m_p_block{}; 
 	};
 
 	class buffer_data_t {
@@ -514,8 +515,6 @@ public:
 
 	/// Called by RmlUi when it wants to release application-compiled geometry.
 	void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) override;
-
-	void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry, Rml::UserDataHandle userdata) override;
 
 	/// Called by RmlUi when it wants to enable or disable scissoring to clip content.
 	void EnableScissorRegion(bool enable) override;
