@@ -5,6 +5,7 @@
 #include <RmlUi/Core/RenderInterface.h>
 
 // TODO: add preprocessor definition in case if cmake found Vulkan package
+// TODO: think about VkDescriptorSet I have to reduce it to one
 #include "spirv_reflect.h"
 #include "vk_mem_alloc.h"
 
@@ -26,14 +27,20 @@
 #pragma region System Constants for Vulkan API
 constexpr uint32_t kSwapchainBackBufferCount = 3;
 
-// I will finish it, so the thing is to use dynamic offset for VkDescriptorSet
-constexpr uint32_t kDescriptorSetsCount = 100;
-
 // This value goes to function that converts to Mbs, it is like 32 * 1024 * 1024
 constexpr uint32_t kVideoMemoryForAllocation = 32;
 
 // m_textures.reserve()
 constexpr uint32_t kTexturesForReserve = 100;
+
+// m_compiled_geometries, this goes to unordered_map for reserving, for making erase and insert operations are valid otherwise if we don't do that
+// erase operation is invalid it means all pointers and ereferences what used outside of map or just points to values of map goes INVALID so it will
+// cause errors in system
+constexpr uint32_t kGeometryForReserve = 100;
+
+// I will finish it, so the thing is to use dynamic offset for VkDescriptorSet, but maybe next time, now we just reuse available and grow in count if
+// it is need and the assert state if we out of bound, so if 10 descriptors is enough we will use 10 while we allocated for 100
+constexpr uint32_t kDescriptorSetsCount = kGeometryForReserve;
 #pragma endregion
 
 class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRenderInterfaceExtensions {
@@ -115,6 +122,26 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		VmaVirtualAllocation m_p_vertex_allocation{};
 		VmaVirtualAllocation m_p_index_allocation{};
 		VmaVirtualAllocation m_p_shader_allocation{};
+	};
+
+	class descriptor_wrapper_t {
+	public:
+		descriptor_wrapper_t(void) : m_is_available{true}, m_p_set{} {}
+		~descriptor_wrapper_t(void) {}
+
+		bool Is_Available(void) const noexcept { return this->m_is_available; }
+		void Set_Available(bool value) noexcept { this->m_is_available; }
+
+		VkDescriptorSet Get_DescriptorSet(void) const noexcept { return this->m_p_set; }
+		void Set_DescriptorSet(VkDescriptorSet p_set) noexcept
+		{
+			RMLUI_ASSERT(p_set, "you can't pass an invalid VkDescriptorSet");
+			this->m_p_set = p_set;
+		}
+
+	private:
+		bool m_is_available;
+		VkDescriptorSet m_p_set;
 	};
 
 	class buffer_data_t {
@@ -356,8 +383,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 			uint32_t memory_total_size) noexcept;
 		void Shutdown(void) noexcept;
 
-		bool Alloc_GeneralBuffer(
-			uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept;
+		bool Alloc_GeneralBuffer(uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept;
 		bool Alloc_VertexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out,
 			VmaVirtualAllocation* p_alloc) noexcept;
 		bool Alloc_IndexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out,
@@ -436,7 +462,10 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 	class DescriptorPoolManager {
 	public:
 		DescriptorPoolManager(void) : m_allocated_descriptor_count{}, m_p_descriptor_pool{} {}
-		~DescriptorPoolManager(void) {}
+		~DescriptorPoolManager(void)
+		{
+			RMLUI_ASSERT(this->m_allocated_descriptor_count == 0, "something is wrong. You didn't free some VkDescriptorSet");
+		}
 
 		void Initialize(VkDevice p_device, uint32_t count_uniform_buffer, uint32_t count_image_sampler, uint32_t count_sampler,
 			uint32_t count_storage_buffer) noexcept
@@ -499,7 +528,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 			if (p_sets)
 			{
-				--this->m_allocated_descriptor_count;
+				this->m_allocated_descriptor_count -= descriptor_count;
 				vkFreeDescriptorSets(p_device, this->m_p_descriptor_pool, descriptor_count, p_sets);
 			}
 		}
@@ -670,10 +699,26 @@ private:
 		if (this->m_descriptor_sets.empty())
 			return;
 
-		++this->m_current_descriptor_id;
+		// choose only those ids that will not cause the collision, so you can't just do Free_DescriptorID like you can't having ++, ++, ++, --, --,
+		// ++, ++, ++, ++ <==== somewhere will cause collision, because we can't do erase for m_descriptor_sets, because we need to free them manually
+		// through Vulkan, so we can do erase for compiled_geometries
+		do
+		{
+			++this->m_current_descriptor_id;
+			this->m_current_descriptor_id = this->m_current_descriptor_id % kDescriptorSetsCount;
+		} while (this->m_compiled_geometries.find(this->m_current_descriptor_id) != this->m_compiled_geometries.end());
+
 		RMLUI_ASSERT(this->m_current_descriptor_id < this->m_descriptor_sets.size(),
 			"you can't have more than m_descriptor_sets's size, otherwise it means you want to use more descriptor sets than it is specified in "
 			"kDescriptorSetsCount constant. Overflow!");
+	}
+
+	void Free_DescriptorID(void) noexcept
+	{
+		if (this->m_descriptor_sets.empty())
+			return;
+
+		--this->m_current_descriptor_id;
 	}
 
 	uint32_t Get_CurrentDescriptorID(void) const noexcept { return this->m_current_descriptor_id; }
@@ -687,7 +732,14 @@ private:
 			"you can't have more than m_descriptor_sets's size, otherwise it means you want to use more descriptor sets than it is specified in "
 			"kDescriptorSetsCount constant. Overflow!");
 
-		return this->m_descriptor_sets.at(id);
+		RMLUI_ASSERT(this->m_descriptor_sets.find(id) != this->m_descriptor_sets.end(), "you must pass a valid id that exists in map!!!");
+
+		RMLUI_ASSERT(this->m_descriptor_sets.at(id).Get_DescriptorSet(), "must exist!");
+		RMLUI_ASSERT(this->m_descriptor_sets.at(id).Is_Available(),
+			"it means you refer to a descriptor that is busy and can't be used. So it means you did something wrong or NextDescriptorID method "
+			"calculated the wrong id that can't be!!!!!!!!");
+
+		return this->m_descriptor_sets.at(id).Get_DescriptorSet();
 	}
 
 #pragma region Resource management
@@ -764,13 +816,14 @@ private:
 
 #pragma region Resources
 	Rml::Vector<VkShaderModule> m_shaders;
-	Rml::Vector<VkDescriptorSet> m_descriptor_sets;
 
 	// this need for rendering constantly, but if we has flag m_is_draw as true we just directly pass it to vkCmdXXX commands otherwise we have to
 	// update the uniform buffer and remember commands anyway.
 	// I wanted to use Vector but a new element makes pointer to element in invalid state, so it is impossible to use pointers with Rml::Vector, so
 	// here we have a map...
 	Rml::UnorderedMap<uint32_t, geometry_handle_t> m_compiled_geometries;
+	Rml::UnorderedMap<uint32_t, descriptor_wrapper_t> m_descriptor_sets;
+
 	Rml::Vector<texture_data_t> m_textures;
 #pragma endregion
 

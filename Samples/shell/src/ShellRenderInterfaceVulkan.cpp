@@ -64,6 +64,12 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	VK_ASSERT(p_current_descriptor_set, "you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
 										"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
 
+	VK_ASSERT(this->m_compiled_geometries.size() < kGeometryForReserve,
+		"if it is greater than the constant (like assert is triggered), it means that the added element and all operations with other elements "
+		"becomes INVALID, because the "
+		"erase operation will cause invalidation for all references and pointers that used from that map. (like pointer to value of the map). So "
+		"just set the value higher than it was before...");
+
 	this->m_compiled_geometries[this->Get_CurrentDescriptorID()];
 
 	auto& current_geometry_handle = this->m_compiled_geometries.at(this->Get_CurrentDescriptorID());
@@ -146,10 +152,13 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 			&p_casted_compiled_geometry->m_p_shader, &p_casted_compiled_geometry->m_p_shader_allocation);
 		VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
 
-		p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
 		p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
+		p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
 
 		this->m_memory_pool.SetDescriptorSet(1, &p_casted_compiled_geometry->m_p_shader, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, p_current_descriptor_set);
+
+		// that's a final destination where the descriptor will be not available for updating...
+		this->m_descriptor_sets.at(p_casted_compiled_geometry->m_descriptor_id).Set_Available(false);
 	}
 
 	uint32_t casted_offset = 0;
@@ -192,8 +201,11 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry)
 {
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
-
 	this->m_memory_pool.Free_GeometryHandle(p_casted_geometry);
+
+	this->m_compiled_geometries.erase(p_casted_geometry->m_descriptor_id);
+
+	this->Free_DescriptorID();
 }
 
 void ShellRenderInterfaceVulkan::EnableScissorRegion(bool enable) {}
@@ -500,7 +512,10 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	return true;
 }
 
-void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handle) {}
+void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
+{
+	// TODO: implement deleting textures
+}
 
 void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform)
 {
@@ -977,6 +992,10 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 	this->m_manager_descriptors.Initialize(this->m_p_device, 100, 100, 10, 10);
 
 	this->m_textures.reserve(kTexturesForReserve);
+
+	// fix for having valid pointers until we not out of bound
+	this->m_compiled_geometries.reserve(kGeometryForReserve);
+
 	auto storage = this->LoadShaders();
 
 	this->CreateShaders(storage);
@@ -1050,7 +1069,14 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	this->m_command_list.Shutdown();
 	this->m_upload_manager.Shutdown();
 
-	this->m_manager_descriptors.Free_Descriptors(this->m_p_device, this->m_descriptor_sets.data(), this->m_descriptor_sets.size());
+	// TODO: put this into DestroyDescriptorSets()
+	for (auto& pair_descriptor_id_descriptor_wrapper : this->m_descriptor_sets)
+	{
+		auto p_set = pair_descriptor_id_descriptor_wrapper.second.Get_DescriptorSet();
+		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
+	}
+	this->m_descriptor_sets.clear();
+
 	this->m_manager_descriptors.Shutdown(this->m_p_device);
 
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
@@ -1768,9 +1794,16 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 	// Rml::Vector<CompiledGeometryHandle> then you call once RenderCompiledGeometry, because you cached all stuff
 
 	Rml::Vector<VkDescriptorSetLayout> layouts(kDescriptorSetsCount, this->m_p_descriptor_set_layout);
-	this->m_descriptor_sets.resize(kDescriptorSetsCount);
+	Rml::Vector<VkDescriptorSet> sets(kDescriptorSetsCount, nullptr);
 
-	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, layouts.data(), this->m_descriptor_sets.data(), kDescriptorSetsCount);
+	this->m_descriptor_sets.reserve(kDescriptorSetsCount);
+
+	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, layouts.data(), sets.data(), kDescriptorSetsCount);
+
+	for (int i = 0; i < kDescriptorSetsCount; ++i)
+	{
+		this->m_descriptor_sets[i].Set_DescriptorSet(sets.at(i));
+	}
 }
 
 void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept
@@ -2857,7 +2890,15 @@ void ShellRenderInterfaceVulkan::MemoryPool::Free_GeometryHandle(geometry_handle
 		"you must have a VALID pointer of VmaAllocation for shader operations (like uniforms and etc)");
 	VK_ASSERT(this->m_p_block, "you have to allocate the virtual block before do this operation...");
 
-	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_shader_allocation);
-	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_index_allocation);
 	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_vertex_allocation);
+	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_index_allocation);
+	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_shader_allocation);
+
+	p_valid_geometry_handle->m_p_vertex_allocation = nullptr;
+	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
+	p_valid_geometry_handle->m_p_index_allocation = nullptr;
+
+#ifdef RMLUI_DEBUG
+	Shell::Log("[Vulkan][Debug] Descriptor is deleted! [%d]", p_valid_geometry_handle->m_descriptor_id);
+#endif
 }

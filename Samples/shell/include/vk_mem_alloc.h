@@ -25,7 +25,7 @@
 
 /** \mainpage Vulkan Memory Allocator
 
-<b>Version 3.0.1-development (2022-03-28)</b>
+<b>Version 3.0.0 (2022-03-25)</b>
 
 Copyright (c) 2017-2022 Advanced Micro Devices, Inc. All rights reserved. \n
 License: MIT
@@ -976,7 +976,7 @@ typedef struct VmaVulkanFunctions
 #if VMA_DEDICATED_ALLOCATION || VMA_VULKAN_VERSION >= 1001000
     /// Fetch "vkGetBufferMemoryRequirements2" on Vulkan >= 1.1, fetch "vkGetBufferMemoryRequirements2KHR" when using VK_KHR_dedicated_allocation extension.
     PFN_vkGetBufferMemoryRequirements2KHR VMA_NULLABLE vkGetBufferMemoryRequirements2KHR;
-    /// Fetch "vkGetImageMemoryRequirements2" on Vulkan >= 1.1, fetch "vkGetImageMemoryRequirements2KHR" when using VK_KHR_dedicated_allocation extension.
+    /// Fetch "vkGetImageMemoryRequirements 2" on Vulkan >= 1.1, fetch "vkGetImageMemoryRequirements2KHR" when using VK_KHR_dedicated_allocation extension.
     PFN_vkGetImageMemoryRequirements2KHR VMA_NULLABLE vkGetImageMemoryRequirements2KHR;
 #endif
 #if VMA_BIND_MEMORY2 || VMA_VULKAN_VERSION >= 1001000
@@ -2569,13 +2569,9 @@ VMA_CALL_PRE void VMA_CALL_POST vmaFreeStatsString(
 #include <cstdlib>
 #include <cstring>
 #include <utility>
-#include <type_traits>
 
 #ifdef _MSC_VER
     #include <intrin.h> // For functions like __popcnt, _BitScanForward etc.
-#endif
-#if __cplusplus >= 202002L || _MSVC_LANG >= 202002L // C++20
-    #include <bit> // For std::popcount
 #endif
 
 /*******************************************************************************
@@ -3179,16 +3175,12 @@ But you need to check in runtime whether user's CPU supports these, as some old 
 */
 static inline uint32_t VmaCountBitsSet(uint32_t v)
 {
-#if __cplusplus >= 202002L || _MSVC_LANG >= 202002L // C++20
-    return std::popcount(v);
-#else
     uint32_t c = v - ((v >> 1) & 0x55555555);
     c = ((c >> 2) & 0x33333333) + (c & 0x33333333);
     c = ((c >> 4) + c) & 0x0F0F0F0F;
     c = ((c >> 8) + c) & 0x00FF00FF;
     c = ((c >> 16) + c) & 0x0000FFFF;
     return c;
-#endif
 }
 
 static inline uint8_t VmaBitScanLSB(uint64_t mask)
@@ -3376,6 +3368,60 @@ static inline bool VmaStrIsEmpty(const char* pStr)
 {
     return pStr == VMA_NULL || *pStr == '\0';
 }
+
+#if VMA_STATS_STRING_ENABLED
+static const char* VmaAlgorithmToStr(uint32_t algorithm)
+{
+    switch (algorithm)
+    {
+    case VMA_POOL_CREATE_LINEAR_ALGORITHM_BIT:
+        return "Linear";
+    case 0:
+        return "TLSF";
+    default:
+        VMA_ASSERT(0);
+        return "";
+    }
+}
+#endif // VMA_STATS_STRING_ENABLED
+
+#ifndef VMA_SORT
+template<typename Iterator, typename Compare>
+Iterator VmaQuickSortPartition(Iterator beg, Iterator end, Compare cmp)
+{
+    Iterator centerValue = end; --centerValue;
+    Iterator insertIndex = beg;
+    for (Iterator memTypeIndex = beg; memTypeIndex < centerValue; ++memTypeIndex)
+    {
+        if (cmp(*memTypeIndex, *centerValue))
+        {
+            if (insertIndex != memTypeIndex)
+            {
+                VMA_SWAP(*memTypeIndex, *insertIndex);
+            }
+            ++insertIndex;
+        }
+    }
+    if (insertIndex != centerValue)
+    {
+        VMA_SWAP(*insertIndex, *centerValue);
+    }
+    return insertIndex;
+}
+
+template<typename Iterator, typename Compare>
+void VmaQuickSort(Iterator beg, Iterator end, Compare cmp)
+{
+    if (beg < end)
+    {
+        Iterator it = VmaQuickSortPartition<Iterator, Compare>(beg, end, cmp);
+        VmaQuickSort<Iterator, Compare>(beg, it, cmp);
+        VmaQuickSort<Iterator, Compare>(it + 1, end, cmp);
+    }
+}
+
+#define VMA_SORT(beg, end, cmp) VmaQuickSort(beg, end, cmp)
+#endif // VMA_SORT
 
 /*
 Returns true if two memory blocks occupy overlapping pages.
@@ -5445,7 +5491,6 @@ public:
     // Posts next part of an open string. The number is converted to decimal characters.
     void ContinueString(uint32_t n);
     void ContinueString(uint64_t n);
-    void ContinueString_Size(size_t n);
     // Posts next part of an open string. Pointer value is converted to characters
     // using "%p" formatting - shown as hexadecimal number, e.g.: 000000081276Ad00
     void ContinueString_Pointer(const void* ptr);
@@ -5455,7 +5500,6 @@ public:
     // Writes a number value.
     void WriteNumber(uint32_t n);
     void WriteNumber(uint64_t n);
-    void WriteSize(size_t n);
     // Writes a boolean value - false or true.
     void WriteBool(bool b);
     // Writes a null value.
@@ -5479,11 +5523,6 @@ private:
     VmaStringBuilder& m_SB;
     VmaVector< StackItem, VmaStlAllocator<StackItem> > m_Stack;
     bool m_InsideString;
-
-    // Write size_t for less than 64bits
-    void WriteSize(size_t n, std::integral_constant<bool, false>) { m_SB.AddNumber(static_cast<uint32_t>(n)); }
-    // Write size_t for 64bits
-    void WriteSize(size_t n, std::integral_constant<bool, true>) { m_SB.AddNumber(static_cast<uint64_t>(n)); }
 
     void BeginValue(bool isString);
     void WriteIndent(bool oneLess = false);
@@ -5627,14 +5666,6 @@ void VmaJsonWriter::ContinueString(uint64_t n)
     m_SB.AddNumber(n);
 }
 
-void VmaJsonWriter::ContinueString_Size(size_t n)
-{
-    VMA_ASSERT(m_InsideString);
-    // Fix for AppleClang incorrect type casting
-    // TODO: Change to if constexpr when C++17 used as minimal standard
-    WriteSize(n, std::is_same<size_t, uint64_t>{});
-}
-
 void VmaJsonWriter::ContinueString_Pointer(const void* ptr)
 {
     VMA_ASSERT(m_InsideString);
@@ -5664,15 +5695,6 @@ void VmaJsonWriter::WriteNumber(uint64_t n)
     VMA_ASSERT(!m_InsideString);
     BeginValue(false);
     m_SB.AddNumber(n);
-}
-
-void VmaJsonWriter::WriteSize(size_t n)
-{
-    VMA_ASSERT(!m_InsideString);
-    BeginValue(false);
-    // Fix for AppleClang incorrect type casting
-    // TODO: Change to if constexpr when C++17 used as minimal standard
-    WriteSize(n, std::is_same<size_t, uint64_t>{});
 }
 
 void VmaJsonWriter::WriteBool(bool b)
@@ -5857,14 +5879,9 @@ private:
     void PostMinorCounter()
     {
         if(m_MinorCounter < m_MajorCounter)
-        {
             ++m_MinorCounter;
-        }
         else if(m_MajorCounter > 0)
-        {
-            --m_MajorCounter;
-            --m_MinorCounter;
-        }
+            --m_MajorCounter, --m_MinorCounter;
     }
 };
 
@@ -6423,13 +6440,13 @@ void VmaBlockMetadata::PrintDetailedMap_Begin(class VmaJsonWriter& json,
     json.WriteNumber(GetSize());
 
     json.WriteString("UnusedBytes");
-    json.WriteSize(unusedBytes);
+    json.WriteNumber(unusedBytes);
 
     json.WriteString("Allocations");
-    json.WriteSize(allocationCount);
+    json.WriteNumber(allocationCount);
 
     json.WriteString("UnusedRanges");
-    json.WriteSize(unusedRangeCount);
+    json.WriteNumber(unusedRangeCount);
 
     json.WriteString("Suballocations");
     json.BeginArray();
@@ -10890,7 +10907,7 @@ public:
     uint32_t GetAlgorithm() const { return m_Algorithm; }
     bool HasExplicitBlockSize() const { return m_ExplicitBlockSize; }
     float GetPriority() const { return m_Priority; }
-    const void* GetAllocationNextPtr() const { return m_pMemoryAllocateNext; }
+    void* const GetAllocationNextPtr() const { return m_pMemoryAllocateNext; }
     // To be used only while the m_Mutex is locked. Used during defragmentation.
     size_t GetBlockCount() const { return m_Blocks.size(); }
     // To be used only while the m_Mutex is locked. Used during defragmentation.
@@ -13267,7 +13284,7 @@ VkResult VmaDefragmentationContext_T::DefragmentPassEnd(VmaDefragmentationPassMo
                                 VMA_SWAP(vector->m_Blocks[i], vector->m_Blocks[vector->GetBlockCount() - ++m_ImmovableBlockCount]);
                                 if (state.firstFreeBlock != SIZE_MAX)
                                 {
-                                    if (i + 1 < state.firstFreeBlock)
+                                    if (i < state.firstFreeBlock - 1)
                                     {
                                         if (state.firstFreeBlock > 1)
                                             VMA_SWAP(vector->m_Blocks[i], vector->m_Blocks[--state.firstFreeBlock]);
@@ -13687,13 +13704,6 @@ bool VmaDefragmentationContext_T::ComputeDefragmentation_Extensive(VmaBlockVecto
     case StateExtensive::Operation::FindFreeBlockTexture:
     case StateExtensive::Operation::FindFreeBlockAll:
     {
-        // No more blocks to free, just perform fast realloc and move to cleanup
-        if (vectorState.firstFreeBlock == 0)
-        {
-            vectorState.operation = StateExtensive::Operation::Cleanup;
-            return ComputeDefragmentation_Fast(vector);
-        }
-
         // No free blocks, have to clear last one
         size_t last = (vectorState.firstFreeBlock == SIZE_MAX ? vector.GetBlockCount() : vectorState.firstFreeBlock) - 1;
         VmaBlockMetadata* freeMetadata = vector.GetBlock(last)->m_pMetadata;
@@ -13762,7 +13772,8 @@ bool VmaDefragmentationContext_T::ComputeDefragmentation_Extensive(VmaBlockVecto
             }
             vectorState.firstFreeBlock = last;
             // Nothing done, block found without reallocations, can perform another reallocs in same pass
-            return ComputeDefragmentation_Extensive(vector, index);
+            if (prevMoveCount == m_Moves.size())
+                return ComputeDefragmentation_Extensive(vector, index);
         }
         break;
     }
@@ -13830,9 +13841,6 @@ bool VmaDefragmentationContext_T::ComputeDefragmentation_Extensive(VmaBlockVecto
         }
         break;
     }
-    case StateExtensive::Operation::Cleanup:
-        // Cleanup is handled below so that other operations may reuse the cleanup code. This case is here to prevent the unhandled enum value warning (C4062).
-        break;
     }
 
     if (vectorState.operation == StateExtensive::Operation::Cleanup)
@@ -15868,7 +15876,6 @@ void VmaAllocator_T::UpdateVulkanBudget()
 void VmaAllocator_T::FillAllocation(const VmaAllocation hAllocation, uint8_t pattern)
 {
     if(VMA_DEBUG_INITIALIZE_ALLOCATIONS &&
-        hAllocation->IsMappingAllowed() &&
         (m_MemProps.memoryTypes[hAllocation->GetMemoryTypeIndex()].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
     {
         void* pData = VMA_NULL;
@@ -15957,11 +15964,11 @@ void VmaAllocator_T::PrintDetailedMap(VmaJsonWriter& json)
                         {
                             json.WriteString("Name");
                             json.BeginString();
-                            json.ContinueString_Size(index++);
+                            json.ContinueString(index++);
                             if (pool->GetName())
                             {
-                                json.ContinueString(" - ");
-                                json.ContinueString(pool->GetName());
+                                json.WriteString(" - ");
+                                json.WriteString(pool->GetName());
                             }
                             json.EndString();
 
@@ -17562,10 +17569,9 @@ before including these headers (like `WIN32_LEAN_AND_MEAN` or
 `WINVER` for Windows, `VK_USE_PLATFORM_WIN32_KHR` for Vulkan), you must define
 them before every `#include` of this library.
 
-This library is written in C++, but has C-compatible interface.
+\note This library is written in C++, but has C-compatible interface.
 Thus you can include and use vk_mem_alloc.h in C or C++ code, but full
 implementation with `VMA_IMPLEMENTATION` macro must be compiled as C++, NOT as C.
-Some features of C++14 used. STL containers, RTTI, or C++ exceptions are not used.
 
 
 \section quick_start_initialization Initialization
@@ -18786,14 +18792,14 @@ To do it, define macro `VMA_DEBUG_INITIALIZE_ALLOCATIONS` to 1.
 #include "vk_mem_alloc.h"
 \endcode
 
-It makes memory of new allocations initialized to bit pattern `0xDCDCDCDC`.
+It makes memory of all new allocations initialized to bit pattern `0xDCDCDCDC`.
 Before an allocation is destroyed, its memory is filled with bit pattern `0xEFEFEFEF`.
 Memory is automatically mapped and unmapped if necessary.
 
 If you find these values while debugging your program, good chances are that you incorrectly
 read Vulkan memory that is allocated but not initialized, or already freed, respectively.
 
-Memory initialization works only with memory types that are `HOST_VISIBLE` and with allocations that can be mapped.
+Memory initialization works only with memory types that are `HOST_VISIBLE`.
 It works also with dedicated allocations.
 
 \section debugging_memory_usage_margins Margins
