@@ -39,11 +39,6 @@ ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
 
-// TODO: RmlUI team think about how to make through local variables not globals :/, it is just a temporary solution
-VkDescriptorBufferInfo info_current_descriptor_buffer_vertex = {};
-VkDescriptorBufferInfo info_current_descriptor_buffer_index = {};
-VkDescriptorBufferInfo info_current_descriptor_buffer_shader = {};
-
 void ShellRenderInterfaceVulkan::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture, const Rml::Vector2f& translation)
 {
@@ -69,6 +64,10 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	VK_ASSERT(p_current_descriptor_set, "you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
 										"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
 
+	this->m_compiled_geometries[this->Get_CurrentDescriptorID()];
+
+	auto& current_geometry_handle = this->m_compiled_geometries.at(this->Get_CurrentDescriptorID());
+
 	VkDescriptorImageInfo info_descriptor_image = {};
 	if (p_texture)
 	{
@@ -91,34 +90,34 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	uint32_t* pCopyDataToBuffer = nullptr;
 	const void* pData = reinterpret_cast<const void*>(vertices);
 
-	bool status = this->m_memory_pool.AllocVertexBuffer(
-		num_vertices, sizeof(Rml::Vertex), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_vertex);
+	bool status = this->m_memory_pool.Alloc_VertexBuffer(num_vertices, sizeof(Rml::Vertex), reinterpret_cast<void**>(&pCopyDataToBuffer),
+		&current_geometry_handle.m_p_vertex, &current_geometry_handle.m_p_vertex_allocation);
 	VK_ASSERT(status, "failed to AllocVertexBuffer");
+
 	memcpy(pCopyDataToBuffer, pData, sizeof(Rml::Vertex) * num_vertices);
 
-	status = this->m_memory_pool.AllocIndexBuffer(
-		num_indices, sizeof(int), reinterpret_cast<void**>(&pCopyDataToBuffer), &info_current_descriptor_buffer_index);
+	status = this->m_memory_pool.Alloc_IndexBuffer(num_indices, sizeof(int), reinterpret_cast<void**>(&pCopyDataToBuffer),
+		&current_geometry_handle.m_p_index, &current_geometry_handle.m_p_index_allocation);
 	VK_ASSERT(status, "failed to AllocIndexBuffer");
 
 	memcpy(pCopyDataToBuffer, indices, sizeof(int) * num_indices);
-
-	g_current_compiled_geometry.m_p_vertex = info_current_descriptor_buffer_vertex;
-	g_current_compiled_geometry.m_p_index = info_current_descriptor_buffer_index;
 
 	// TODO: RmlUI team checks if it is right logic that if we don't have texture the handle is NULL/0 otherwise provide in places where a such
 	// (Rml::TextureHandle)(nullptr) is more obvious and strict, because it is probably important thing. Because I am not sure if it is always valid
 	// if you have callings from different places not only from this class like LoadTexture function, but GenerateTexture can be called somewhere.
 	// Keep this in mind;
-	g_current_compiled_geometry.m_is_has_texture = !!((texture_data_t*)(texture));
-	g_current_compiled_geometry.m_num_indices = num_indices;
-	g_current_compiled_geometry.m_descriptor_id = this->Get_CurrentDescriptorID();
-	g_current_compiled_geometry.m_is_draw = false;
+	current_geometry_handle.m_is_has_texture = !!((texture_data_t*)(texture));
+	current_geometry_handle.m_num_indices = num_indices;
+	current_geometry_handle.m_descriptor_id = this->Get_CurrentDescriptorID();
+	current_geometry_handle.m_is_cached = false;
 
-	this->m_compiled_geometries[g_current_compiled_geometry.m_descriptor_id] = g_current_compiled_geometry;
+#ifdef RMLUI_DEBUG
+	Shell::Log("[Vulkan][Debug] created descriptor id:[%d]", current_geometry_handle.m_descriptor_id);
+#endif
 
 	this->NextDescriptorID();
 
-	return Rml::CompiledGeometryHandle(&this->m_compiled_geometries.at(this->Get_CurrentDescriptorID() - 1));
+	return Rml::CompiledGeometryHandle(&current_geometry_handle);
 }
 
 void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation)
@@ -129,7 +128,6 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 
 	this->m_user_data_for_vertex_shader.m_translate = translation;
 
-
 	// TODO: RmlUI team somehow but on resize I got invalid value here...
 	VkDescriptorSet p_current_descriptor_set = this->Get_DescriptorSet(p_casted_compiled_geometry->m_descriptor_id);
 
@@ -138,20 +136,20 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 
 	// we don't need to write the same commands to buffer or update descritor set somehow because it was already passed to it!!!!!
 	// don't do repetetive and pointless callings!!!!
-	if (!p_casted_compiled_geometry->m_is_draw)
+	if (!p_casted_compiled_geometry->m_is_cached)
 	{
 		uint32_t* pCopyDataToBuffer = nullptr;
 
 		shader_vertex_user_data_t* p_data = nullptr;
 
-		bool status = this->m_memory_pool.AllocConstantBuffer(
-			sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data), &info_current_descriptor_buffer_shader);
+		bool status = this->m_memory_pool.Alloc_GeneralBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data),
+			&p_casted_compiled_geometry->m_p_shader, &p_casted_compiled_geometry->m_p_shader_allocation);
 		VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
+
 		p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
 		p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
 
-		this->m_memory_pool.SetDescriptorSet(1, &info_current_descriptor_buffer_shader, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, p_current_descriptor_set);
-		p_casted_compiled_geometry->m_p_shader = info_current_descriptor_buffer_shader;
+		this->m_memory_pool.SetDescriptorSet(1, &p_casted_compiled_geometry->m_p_shader, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, p_current_descriptor_set);
 	}
 
 	uint32_t casted_offset = 0;
@@ -187,13 +185,15 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 
 	vkCmdDrawIndexed(this->m_p_current_command_buffer, p_casted_compiled_geometry->m_num_indices, 1, 0, 0, 0);
 
-	if (p_casted_compiled_geometry->m_is_draw == false)
-		p_casted_compiled_geometry->m_is_draw = true;
+	if (p_casted_compiled_geometry->m_is_cached == false)
+		p_casted_compiled_geometry->m_is_cached = true;
 }
 
-void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) 
+void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry)
 {
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
+
+	this->m_memory_pool.Free_GeometryHandle(p_casted_geometry);
 }
 
 void ShellRenderInterfaceVulkan::EnableScissorRegion(bool enable) {}
@@ -2649,13 +2649,14 @@ void ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void)
 	this->m_allocator.Free(memory_to_free);
 }
 
-ShellRenderInterfaceVulkan::MemoryRingPool::MemoryRingPool(void) :
-	m_memory_total_size{}, m_p_data{}, m_p_physical_device_current_properties{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}
+ShellRenderInterfaceVulkan::MemoryPool::MemoryPool(void) :
+	m_min_alignment_for_uniform_buffer{}, m_memory_total_size{}, m_p_data{}, m_p_physical_device_current_properties{}, m_p_buffer{},
+	m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}
 {}
 
-ShellRenderInterfaceVulkan::MemoryRingPool::~MemoryRingPool(void) {}
+ShellRenderInterfaceVulkan::MemoryPool::~MemoryPool(void) {}
 
-void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(VkPhysicalDeviceProperties* p_props, VmaAllocator p_allocator, VkDevice p_device,
+void ShellRenderInterfaceVulkan::MemoryPool::Initialize(VkPhysicalDeviceProperties* p_props, VmaAllocator p_allocator, VkDevice p_device,
 	uint32_t number_of_back_buffers, uint32_t memory_total_size) noexcept
 {
 	VK_ASSERT(p_device, "you must pass a valid VkDevice");
@@ -2665,10 +2666,13 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(VkPhysicalDeviceProp
 	this->m_p_device = p_device;
 	this->m_p_vk_allocator = p_allocator;
 	this->m_p_physical_device_current_properties = p_props;
-	this->m_align_koef = this->m_p_physical_device_current_properties->limits.minUniformBufferOffsetAlignment;
+	this->m_min_alignment_for_uniform_buffer = this->m_p_physical_device_current_properties->limits.minUniformBufferOffsetAlignment;
 
-	this->m_memory_total_size = ShellRenderInterfaceVulkan::AlignUp(memory_total_size, this->m_align_koef);
-	this->m_allocator.Initialize(number_of_back_buffers, this->m_memory_total_size);
+#ifdef RMLUI_DEBUG
+	Shell::Log("[Vulkan][Debug] the alignment for uniform buffer is: %d", this->m_min_alignment_for_uniform_buffer);
+#endif
+
+	this->m_memory_total_size = ShellRenderInterfaceVulkan::AlignUp(memory_total_size, this->m_min_alignment_for_uniform_buffer);
 
 	VkBufferCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -2689,6 +2693,13 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(VkPhysicalDeviceProp
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateBuffer");
 
+	VmaVirtualBlockCreateInfo info_virtual_block = {};
+	info_virtual_block.size = this->m_memory_total_size;
+
+	status = vmaCreateVirtualBlock(&info_virtual_block, &this->m_p_block);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateVirtualBlock");
+
 #ifdef RMLUI_DEBUG
 	Shell::Log("[Vulkan][Debug] allocated memory for pool: %d Mbs", ShellRenderInterfaceVulkan::TranslateBytesToMegaBytes(info_stats.size));
 #endif
@@ -2698,31 +2709,42 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::Initialize(VkPhysicalDeviceProp
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaMapMemory");
 }
 
-void ShellRenderInterfaceVulkan::MemoryRingPool::Shutdown(void) noexcept
+void ShellRenderInterfaceVulkan::MemoryPool::Shutdown(void) noexcept
 {
 	VK_ASSERT(this->m_p_vk_allocator, "you must have a valid VmaAllocator");
 	VK_ASSERT(this->m_p_buffer, "you must allocate VkBuffer for deleting");
 	VK_ASSERT(this->m_p_buffer_alloc, "you must allocate VmaAllocation for deleting");
 
-	vmaUnmapMemory(this->m_p_vk_allocator, this->m_p_buffer_alloc);
-	vmaDestroyBuffer(this->m_p_vk_allocator, this->m_p_buffer, this->m_p_buffer_alloc);
+#ifdef RMLUI_DEBUG
+	Shell::Log(
+		"[Vulkan][Debug] Destroyed buffer with memory [%d] Mbs", ShellRenderInterfaceVulkan::TranslateBytesToMegaBytes(this->m_memory_total_size));
+#endif
 
-	this->m_allocator.Shutdown();
+	vmaUnmapMemory(this->m_p_vk_allocator, this->m_p_buffer_alloc);
+	vmaDestroyVirtualBlock(this->m_p_block);
+	vmaDestroyBuffer(this->m_p_vk_allocator, this->m_p_buffer, this->m_p_buffer_alloc);
 }
 
-bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocConstantBuffer(uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out) noexcept
+bool ShellRenderInterfaceVulkan::MemoryPool::Alloc_GeneralBuffer(
+	uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept
 {
 	VK_ASSERT(p_out, "you must pass a valid pointer");
 	VK_ASSERT(this->m_p_buffer, "you must have a valid VkBuffer");
 
-	size = ShellRenderInterfaceVulkan::AlignUp(size, this->m_align_koef);
+	VK_ASSERT(*p_alloc == nullptr, "you can't pass a VALID object, because it is for initialization. So it means you passed the already allocated "
+								   "VmaVirtualAllocation and it means you did something wrong, like you wanted to allocate into the same object...");
 
-	uint32_t offset_memory{};
+	size = ShellRenderInterfaceVulkan::AlignUp(size, this->m_min_alignment_for_uniform_buffer);
 
-	if (this->m_allocator.Alloc(size, &offset_memory) == false)
-	{
-		VK_ASSERT(false, "overflow, rebuild your buffer with new size that bigger current: %d", this->m_memory_total_size);
-	}
+	VkDeviceSize offset_memory{};
+
+	VmaVirtualAllocationCreateInfo info = {};
+	info.size = size;
+	info.alignment = this->m_min_alignment_for_uniform_buffer;
+
+	auto status = vmaVirtualAllocate(this->m_p_block, &info, p_alloc, &offset_memory);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaVirtualAllocate");
 
 	*p_data = (void*)(this->m_p_data + offset_memory);
 
@@ -2733,38 +2755,22 @@ bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocConstantBuffer(uint32_t si
 	return true;
 }
 
-VkDescriptorBufferInfo ShellRenderInterfaceVulkan::MemoryRingPool::AllocConstantBuffer(uint32_t size, void* p_data) noexcept
+bool ShellRenderInterfaceVulkan::MemoryPool::Alloc_VertexBuffer(
+	uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept
 {
-	void* p_buffer{};
-
-	VkDescriptorBufferInfo result = {};
-
-	if (this->AllocConstantBuffer(size, &p_buffer, &result))
-	{
-		memcpy(p_buffer, p_data, size);
-	}
-
-	return result;
+	return this->Alloc_GeneralBuffer(number_of_elements * stride_in_bytes, p_data, p_out, p_alloc);
 }
 
-bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocVertexBuffer(
-	uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out) noexcept
+bool ShellRenderInterfaceVulkan::MemoryPool::Alloc_IndexBuffer(
+	uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept
 {
-	return this->AllocConstantBuffer(number_of_elements * stride_in_bytes, p_data, p_out);
+	return this->Alloc_GeneralBuffer(number_of_elements * stride_in_bytes, p_data, p_out, p_alloc);
 }
 
-bool ShellRenderInterfaceVulkan::MemoryRingPool::AllocIndexBuffer(
-	uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out) noexcept
-{
-	return this->AllocConstantBuffer(number_of_elements * stride_in_bytes, p_data, p_out);
-}
+// TODO: probably needs to remove because we don't use ring allocator
+void ShellRenderInterfaceVulkan::MemoryPool::OnBeginFrame(void) noexcept {}
 
-void ShellRenderInterfaceVulkan::MemoryRingPool::OnBeginFrame(void) noexcept
-{
-	this->m_allocator.OnBeginFrame();
-}
-
-void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(
+void ShellRenderInterfaceVulkan::MemoryPool::SetDescriptorSet(
 	uint32_t binding_index, uint32_t size, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept
 {
 	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
@@ -2791,7 +2797,7 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(
 	vkUpdateDescriptorSets(this->m_p_device, 1, &info_write, 0, nullptr);
 }
 
-void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(
+void ShellRenderInterfaceVulkan::MemoryPool::SetDescriptorSet(
 	uint32_t binding_index, VkDescriptorBufferInfo* p_info, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept
 {
 	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
@@ -2813,8 +2819,8 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(
 	vkUpdateDescriptorSets(this->m_p_device, 1, &info_write, 0, nullptr);
 }
 
-void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(uint32_t binding_index, VkSampler p_sampler, VkImageLayout layout,
-	VkImageView p_view, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept
+void ShellRenderInterfaceVulkan::MemoryPool::SetDescriptorSet(uint32_t binding_index, VkSampler p_sampler, VkImageLayout layout, VkImageView p_view,
+	VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept
 {
 	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
 	VK_ASSERT(p_set, "you must have a valid VkDescriptorSet here");
@@ -2840,4 +2846,18 @@ void ShellRenderInterfaceVulkan::MemoryRingPool::SetDescriptorSet(uint32_t bindi
 	info_write.pImageInfo = &info;
 
 	vkUpdateDescriptorSets(this->m_p_device, 1, &info_write, 0, nullptr);
+}
+
+void ShellRenderInterfaceVulkan::MemoryPool::Free_GeometryHandle(geometry_handle_t* p_valid_geometry_handle) noexcept
+{
+	VK_ASSERT(p_valid_geometry_handle, "you must pass a VALID pointer to geometry_handle_t, otherwise something is wrong and debug your code");
+	VK_ASSERT(p_valid_geometry_handle->m_p_vertex_allocation, "you must have a VALID pointer of VmaAllocation for vertex buffer");
+	VK_ASSERT(p_valid_geometry_handle->m_p_index_allocation, "you must have a VALID pointer of VmaAllocation for index buffer");
+	VK_ASSERT(p_valid_geometry_handle->m_p_shader_allocation,
+		"you must have a VALID pointer of VmaAllocation for shader operations (like uniforms and etc)");
+	VK_ASSERT(this->m_p_block, "you have to allocate the virtual block before do this operation...");
+
+	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_shader_allocation);
+	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_index_allocation);
+	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_vertex_allocation);
 }

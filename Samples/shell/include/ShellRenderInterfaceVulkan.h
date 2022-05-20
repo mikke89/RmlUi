@@ -100,19 +100,21 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 	// handle of compiled geometry
 	struct geometry_handle_t {
 		// means it passed to vkCmd functions otherwise it is a raw geometry handle that don't rendered
-		bool m_is_draw = {false};
+		bool m_is_cached = {false};
 
 		bool m_is_has_texture = {false};
 		int m_num_indices = 0;
 		int m_descriptor_id = 0;
+
 		VkDescriptorBufferInfo m_p_vertex{};
 		VkDescriptorBufferInfo m_p_index{};
 		VkDescriptorBufferInfo m_p_shader{};
 
-		// @ this is for freeing our logical block for VMA
+		// @ this is for freeing our logical blocks for VMA
 		// see https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/virtual_allocator.html
-		VmaVirtualAllocation m_p_allocation{};
-		VmaVirtualBlock m_p_block{}; 
+		VmaVirtualAllocation m_p_vertex_allocation{};
+		VmaVirtualAllocation m_p_index_allocation{};
+		VmaVirtualAllocation m_p_shader_allocation{};
 	};
 
 	class buffer_data_t {
@@ -324,6 +326,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 	// Be careful frame buffer doesn't refer to Vulkan's object!
 	// It means current buffer of current frame (logical abstraction)
+	// @ this allocator is simple and doesn't support deletion operation, so you can't free memory from it, so we use VMA allocator that is enough
 	class MemoryRingAllocatorWithTabs {
 	public:
 		MemoryRingAllocatorWithTabs(void);
@@ -343,36 +346,43 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		uint32_t m_p_allocated_memory_per_back_buffer[kSwapchainBackBufferCount];
 	};
 
-	class MemoryRingPool {
+	// @ main manager for "allocating" vertex, index, uniform stuff
+	class MemoryPool {
 	public:
-		MemoryRingPool(void);
-		~MemoryRingPool(void);
+		MemoryPool(void);
+		~MemoryPool(void);
 
 		void Initialize(VkPhysicalDeviceProperties* p_properties, VmaAllocator p_allocator, VkDevice p_device, uint32_t number_of_back_buffers,
 			uint32_t memory_total_size) noexcept;
 		void Shutdown(void) noexcept;
 
-		bool AllocConstantBuffer(uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out) noexcept;
-		VkDescriptorBufferInfo AllocConstantBuffer(uint32_t size, void* p_data) noexcept;
-		bool AllocVertexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out) noexcept;
-		bool AllocIndexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out) noexcept;
+		bool Alloc_GeneralBuffer(
+			uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept;
+		bool Alloc_VertexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out,
+			VmaVirtualAllocation* p_alloc) noexcept;
+		bool Alloc_IndexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out,
+			VmaVirtualAllocation* p_alloc) noexcept;
+
 		void OnBeginFrame(void) noexcept;
+
 		void SetDescriptorSet(uint32_t binding_index, uint32_t size, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept;
 		void SetDescriptorSet(
 			uint32_t binding_index, VkDescriptorBufferInfo* p_info, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept;
 		void SetDescriptorSet(uint32_t binding_index, VkSampler p_sampler, VkImageLayout layout, VkImageView p_view, VkDescriptorType descriptor_type,
 			VkDescriptorSet p_set) noexcept;
 
+		void Free_GeometryHandle(geometry_handle_t* p_valid_geometry_handle) noexcept;
+
 	private:
+		uint32_t m_min_alignment_for_uniform_buffer;
 		uint32_t m_memory_total_size;
-		uint32_t m_align_koef;
 		char* m_p_data;
 		VkBuffer m_p_buffer;
 		VkPhysicalDeviceProperties* m_p_physical_device_current_properties;
 		VmaAllocation m_p_buffer_alloc;
 		VkDevice m_p_device;
 		VmaAllocator m_p_vk_allocator;
-		MemoryRingAllocatorWithTabs m_allocator;
+		VmaVirtualBlock m_p_block;
 	};
 
 	// Explanation of how to use Vulkan efficiently
@@ -425,7 +435,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 	class DescriptorPoolManager {
 	public:
-		DescriptorPoolManager(void) {}
+		DescriptorPoolManager(void) : m_allocated_descriptor_count{}, m_p_descriptor_pool{} {}
 		~DescriptorPoolManager(void) {}
 
 		void Initialize(VkDevice p_device, uint32_t count_uniform_buffer, uint32_t count_image_sampler, uint32_t count_sampler,
@@ -769,16 +779,13 @@ private:
 
 #pragma region Resources
 	CommandListRing m_command_list;
-	MemoryRingPool m_memory_pool;
+	MemoryPool m_memory_pool;
 #pragma endregion
 
 	StatisticsWrapper m_stats;
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
 	shader_vertex_user_data_t m_user_data_for_vertex_shader;
-
-	// TODO: after all tests remove it because you have already all compiled geometries in m_compiled_geometries field
-	geometry_handle_t g_current_compiled_geometry;
 };
 
 #endif
