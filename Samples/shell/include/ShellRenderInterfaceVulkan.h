@@ -36,7 +36,7 @@ constexpr uint32_t kTexturesForReserve = 100;
 // m_compiled_geometries, this goes to unordered_map for reserving, for making erase and insert operations are valid otherwise if we don't do that
 // erase operation is invalid it means all pointers and ereferences what used outside of map or just points to values of map goes INVALID so it will
 // cause errors in system
-constexpr uint32_t kGeometryForReserve = 100;
+constexpr uint32_t kGeometryForReserve = 1000;
 
 // I will finish it, so the thing is to use dynamic offset for VkDescriptorSet, but maybe next time, now we just reuse available and grow in count if
 // it is need and the assert state if we out of bound, so if 10 descriptors is enough we will use 10 while we allocated for 100

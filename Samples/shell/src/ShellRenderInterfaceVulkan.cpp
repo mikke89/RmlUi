@@ -70,6 +70,9 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 		"erase operation will cause invalidation for all references and pointers that used from that map. (like pointer to value of the map). So "
 		"just set the value higher than it was before...");
 
+	VK_ASSERT(this->m_compiled_geometries.find(this->Get_CurrentDescriptorID()) == this->m_compiled_geometries.end(),
+		"you must delete the element before construct it");
+
 	this->m_compiled_geometries[this->Get_CurrentDescriptorID()];
 
 	auto& current_geometry_handle = this->m_compiled_geometries.at(this->Get_CurrentDescriptorID());
@@ -205,7 +208,7 @@ void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHa
 
 	this->m_compiled_geometries.erase(p_casted_geometry->m_descriptor_id);
 
-	this->Free_DescriptorID();
+	this->NextDescriptorID();
 }
 
 void ShellRenderInterfaceVulkan::EnableScissorRegion(bool enable) {}
@@ -329,7 +332,7 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 {
 	VK_ASSERT(source, "you pushed not valid data for copying to buffer");
 	VK_ASSERT(this->m_p_allocator, "you have to initialize Vma Allocator for this method");
-	VK_ASSERT(this->m_p_current_command_buffer, "must exist command buffer for working with Vulkan API");
+
 	int width = source_dimensions.x;
 	int height = source_dimensions.y;
 
@@ -337,24 +340,6 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	VK_ASSERT(height, "invalid height");
 
 	const char* file_path = reinterpret_cast<const char*>(texture_handle);
-	/*
-	if (this->m_textures.find(file_path) != this->m_textures.end())
-	{
-	    if (this->m_textures.at(file_path).Get_VkImage() && this->m_textures.at(file_path).Get_VmaAllocation())
-	    {
-	        Shell::Log("[Vulkan] using the existing texture %s", file_path);
-	        const auto& texture = this->m_textures.at(file_path);
-	        texture_handle = (Rml::TextureHandle)(&texture);
-
-	        return true;
-	    }
-	}
-	else
-	{
-	    // this means we got our calling from outside of this class it is not LoadTexture method...
-	    this->m_textures[file_path];
-	}
-	*/
 
 	this->m_textures.push_back(texture_data_t());
 

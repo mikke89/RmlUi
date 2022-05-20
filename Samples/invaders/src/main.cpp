@@ -30,6 +30,7 @@
 #include <RmlUi/Debugger.h>
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
+#include <ShellRenderInterfaceVulkan.h>
 #include <Input.h>
 #include "DecoratorInstancerDefender.h"
 #include "DecoratorInstancerStarfield.h"
@@ -78,9 +79,10 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	int window_width = 1024;
 	int window_height = 768;
 
-	ShellRenderInterfaceOpenGL opengl_renderer;
-	shell_renderer = &opengl_renderer;
-
+	//ShellRenderInterfaceOpenGL opengl_renderer;
+	ShellRenderInterfaceVulkan vulkan_renderer;
+	//shell_renderer = &opengl_renderer;
+	shell_renderer = &vulkan_renderer;
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
 		!Shell::OpenWindow("RmlUi Invaders from Mars", shell_renderer, window_width, window_height, false))
@@ -90,8 +92,9 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::SetRenderInterface(&opengl_renderer);
-	opengl_renderer.SetViewport(window_width, window_height);
+	//Rml::SetRenderInterface(&opengl_renderer);
+	Rml::SetRenderInterface(&vulkan_renderer);
+	shell_renderer->SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
 	Rml::SetSystemInterface(&system_interface);

@@ -70,7 +70,7 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
     int window_width = 1024;
     int window_height = 768;
 
-//	ShellRenderInterfaceOpenGL opengl_renderer;
+	ShellRenderInterfaceOpenGL opengl_renderer;
 	ShellRenderInterfaceVulkan vulkan_renderer;
 
 	shell_renderer = &vulkan_renderer;
