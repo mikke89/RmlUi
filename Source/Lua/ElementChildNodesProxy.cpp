@@ -39,6 +39,8 @@ template<> void ExtraInit<ElementChildNodesProxy>(lua_State* L, int metatable_in
     lua_setfield(L,metatable_index,"__index");
     lua_pushcfunction(L,ElementChildNodesProxy__pairs);
     lua_setfield(L,metatable_index,"__pairs");
+    lua_pushcfunction(L,ElementChildNodesProxy__len);
+    lua_setfield(L,metatable_index,"__len");
 }
 
 int ElementChildNodesProxy__index(lua_State* L)
@@ -61,6 +63,14 @@ int ElementChildNodesProxy__index(lua_State* L)
 int ElementChildNodesProxy__pairs(lua_State* L)
 {
     return MakeIntPairs(L);
+}
+
+int ElementChildNodesProxy__len(lua_State* L)
+{
+    ElementChildNodesProxy* obj = LuaType<ElementChildNodesProxy>::check(L,1);
+    RMLUI_CHECK_OBJ(obj);
+    lua_pushinteger(L, obj->owner->GetNumChildren());;
+    return 1;
 }
 
 RegType<ElementChildNodesProxy> ElementChildNodesProxyMethods[] = 
