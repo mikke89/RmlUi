@@ -998,7 +998,9 @@ Vector2f WidgetTextInput::FormatText()
 	Vector< int >& selection_indices = selection_geometry.GetIndices();
 
 	// Determine the line-height of the text element.
-	float line_height = parent->GetLineHeight();
+	const float line_height = parent->GetLineHeight();
+	// When the selection contains endlines we expand the selection area by this width.
+	const int endline_selection_width = int(0.4f * parent->GetComputedValues().font_size());
 
 	int line_begin = 0;
 	Vector2f line_position(0, 0);
@@ -1074,17 +1076,27 @@ Vector2f WidgetTextInput::FormatText()
 			return float(width_kerning - width_no_kerning);
 		};
 
+		bool trailing_endline = false;
+		if (!line.content.empty() && line.content.back() == '\n')
+			trailing_endline = true;
+
 		// If there is any selected text on this line, place it in the selected text element and
 		// generate the geometry for its background.
 		if (!selection.empty())
 		{
 			line_position.x += GetKerningBetween(pre_selection, selection);
 			selected_text_element->AddLine(line_position, selection);
-			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
+			int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
+
+			const int endline_absolute_index = line_begin + line.content_length - int(trailing_endline);
+			const bool selection_contains_endline = selection_begin_index + selection_length > endline_absolute_index;
+
+			const Vector2f selection_size(float(selection_width + (selection_contains_endline ? endline_selection_width : 0)), line_height);
 
 			selection_vertices.resize(selection_vertices.size() + 4);
 			selection_indices.resize(selection_indices.size() + 6);
-			GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6], line_position, Vector2f((float)selection_width, line_height), selection_colour, (int)selection_vertices.size() - 4);
+			GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6],
+				line_position, selection_size, selection_colour, (int)selection_vertices.size() - 4);
 
 			line_position.x += selection_width;
 		}
@@ -1110,7 +1122,7 @@ Vector2f WidgetTextInput::FormatText()
 
 		// Push the new line into our array of lines, but first check if its content length needs to be truncated to
 		// dodge a trailing endline.
-		if (!line.content.empty() && line.content.back() == '\n')
+		if (trailing_endline)
 			line.content_length -= 1;
 
 		lines.push_back(std::move(line));
