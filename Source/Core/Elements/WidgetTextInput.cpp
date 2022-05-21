@@ -48,8 +48,16 @@ namespace Rml {
 
 static constexpr float CURSOR_BLINK_TIME = 0.7f;
 
-static bool IsWordCharacter(char c) {
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || ((unsigned char)c >= 128);
+enum class CharacterClass { Word, Punctuation, Newline, Whitespace, Undefined };
+static CharacterClass GetCharacterClass(char c)
+{
+	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || ((unsigned char)c >= 128))
+		return CharacterClass::Word;
+	if ((c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '`') || (c >= '{' && c <= '~'))
+		return CharacterClass::Punctuation;
+	if (c == '\n')
+		return CharacterClass::Newline;
+	return CharacterClass::Whitespace;
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
@@ -589,18 +597,22 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 	break;
 	case CursorMovement::PreviousWord:
 	{
+		// First skip whitespace, then skip all characters of the same class as the first non-whitespace character.
 		const int absolute_cursor_index = GetAbsoluteCursorIndex();
-		bool word_character_found = false;
+		CharacterClass skip_character_class = CharacterClass::Whitespace;
 		const char* p_rend = value.data();
 		const char* p_rbegin = p_rend + absolute_cursor_index;
 		const char* p = p_rbegin - 1;
 		for (; p > p_rend; --p)
 		{
-			bool is_word_character = IsWordCharacter(*p);
-			if (word_character_found && !is_word_character)
-				break;
-			else if (is_word_character)
-				word_character_found = true;
+			const CharacterClass character_class = GetCharacterClass(*p);
+			if (character_class != skip_character_class)
+			{
+				if (skip_character_class == CharacterClass::Whitespace)
+					skip_character_class = character_class;
+				else
+					break;
+			}
 		}
 		if (p != p_rend)
 			++p;
@@ -626,18 +638,25 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 		break;
 	case CursorMovement::NextWord:
 	{
+		// First skip all characters of the same class as the first character, then skip any whitespace.
 		const int absolute_cursor_index = GetAbsoluteCursorIndex();
-		bool whitespace_found = false;
+		CharacterClass skip_character_class = CharacterClass::Undefined;
 		const char* p_begin = value.data() + absolute_cursor_index;
 		const char* p_end = value.data() + value.size();
 		const char* p = p_begin;
 		for (; p < p_end; ++p)
 		{
-			bool is_whitespace = !IsWordCharacter(*p);
-			if (whitespace_found && !is_whitespace)
-				break;
-			else if (is_whitespace)
-				whitespace_found = true;
+			const CharacterClass character_class = GetCharacterClass(*p);
+			if (skip_character_class == CharacterClass::Undefined)
+				skip_character_class = character_class;
+			
+			if (character_class != skip_character_class)
+			{
+				if (character_class == CharacterClass::Whitespace)
+					skip_character_class = CharacterClass::Whitespace;
+				else
+					break;
+			}
 		}
 		SetCursorFromAbsoluteIndex(absolute_cursor_index + int(p - p_begin));
 	}
@@ -717,20 +736,15 @@ void WidgetTextInput::ExpandSelection()
 	const char* const p_end = p_begin + value.size();
 	const char* const p_index = p_begin + absolute_cursor_index;
 
-	// If true, we are expanding word characters, if false, whitespace characters.
-	// The first character encountered defines the bool.
-	bool expanding_word = false;
-	bool expanding_word_set = false;
+	// The first character encountered defines the character class to expand.
+	CharacterClass expanding_character_class = CharacterClass::Undefined;
 
-	auto character_is_wrong_type = [&expanding_word_set, &expanding_word](const char* p) -> bool {
-		bool is_word_character = IsWordCharacter(*p);
-		if (expanding_word_set && (expanding_word != is_word_character))
+	auto character_is_wrong_type = [&expanding_character_class](const char* p) -> bool {
+		const CharacterClass character_class = GetCharacterClass(*p);
+		if (expanding_character_class == CharacterClass::Undefined)
+			expanding_character_class = character_class;
+		else if (character_class != expanding_character_class)
 			return true;
-		if (!expanding_word_set)
-		{
-			expanding_word = is_word_character;
-			expanding_word_set = true;
-		}
 		return false;
 	};
 
