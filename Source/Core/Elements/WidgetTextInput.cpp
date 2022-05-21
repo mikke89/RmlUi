@@ -401,6 +401,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			{
 				CopySelection();
 				DeleteSelection();
+				ShowCursor(true);
 			}
 		}
 		break;
@@ -413,6 +414,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 				GetSystemInterface()->GetClipboardText(clipboard_text);
 
 				AddCharacters(clipboard_text);
+				ShowCursor(true);
 			}
 		}
 		break;
