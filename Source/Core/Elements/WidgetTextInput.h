@@ -134,13 +134,10 @@ private:
 	// Expands the cursor, selecting the current word or nearby whitespace.
 	void ExpandSelection();
 
-	/// Returns the current state of the relative cursor converted to the absolute index.
-	/// @note The absolute index is the byte offset into the 'value' string.
-	int GetAbsoluteCursorIndex() const;
-	/// Sets the relative cursor indices based on an absolute index.
-	/// @note The relative index for a given absolute index is not necessarily unique. For example, the very end of a word-wrapped line and the
-	/// beginning of the next line will have the same absolute index.
-	void SetCursorFromAbsoluteIndex(int absolute_index);
+	/// Returns the relative indices from the current absolute index.
+	void GetRelativeCursorIndices(int& out_cursor_line_index, int& out_cursor_character_index) const;
+	/// Sets the absolute cursor index from the given relative indices.
+	void SetCursorFromRelativeIndices(int line_index, int character_index);
 
 	/// Calculates the line index under a specific vertical position.
 	/// @param[in] position The position to query.
@@ -188,14 +185,12 @@ private:
 
 	struct Line
 	{
-		// The contents of the line (including the trailing endline, if that terminated the line).
-		String content;
+		// Offset into the text field's value.
+		int value_offset;
+		// The size of the contents of the line (including the trailing endline, if that terminated the line).
+		int size;
 		// The length of the editable characters on the line (excluding any trailing endline).
-		int content_length;
-
-		// The number of extra characters at the end of the content that are not present in the actual value; in the
-		// case of a soft return, this may be negative.
-		int extra_characters;
+		int editable_length;
 	};
 
 	ElementFormControl* parent;
@@ -213,9 +208,11 @@ private:
 
 	// -- All indices are in bytes: Should always be moved along UTF-8 start bytes. --
 
-	// Relative cursor indices.
-	int cursor_line_index;
-	int cursor_character_index;
+	// Absolute cursor index. Byte index into the text field's value.
+	int absolute_cursor_index;
+	// When the cursor is located at the very end of a word-wrapped line there are two valid positions for the same absolute index: at the end of the
+	// line and at the beginning of the next line. This state determines which of these lines the cursor is placed on visually.
+	bool cursor_wrap_down;
 
 	bool ideal_cursor_position_to_the_right_of_cursor;
 	bool cancel_next_drag;
