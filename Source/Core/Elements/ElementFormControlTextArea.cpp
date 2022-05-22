@@ -164,15 +164,16 @@ void ElementFormControlTextArea::OnAttributeChange(const ElementAttributes& chan
 			SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Pre));
 	}
 
-	if (changed_attributes.find("rows") != changed_attributes.end() ||
-			 changed_attributes.find("cols") != changed_attributes.end())
+	if (changed_attributes.find("rows") != changed_attributes.end() || changed_attributes.find("cols") != changed_attributes.end())
 		DirtyLayout();
 
-	if (changed_attributes.find("maxlength") != changed_attributes.end())
-		widget->SetMaxLength(GetMaxLength());
+	auto it = changed_attributes.find("maxlength");
+	if (it != changed_attributes.end())
+		widget->SetMaxLength(it->second.Get(-1));
 
-	if (changed_attributes.find("value") != changed_attributes.end())
-		widget->SetValue(GetValue());
+	it = changed_attributes.find("value");
+	if (it != changed_attributes.end())
+		widget->SetValue(it->second.Get<String>());
 }
 
 // Called when properties on the control are changed.
