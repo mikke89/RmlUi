@@ -1,3 +1,4 @@
+* [RmlUi 4.4](#rmlui-44)
 * [RmlUi 4.3](#rmlui-43)
 * [RmlUi 4.2](#rmlui-42)
 * [RmlUi 4.1](#rmlui-41)
@@ -7,6 +8,27 @@
 * [RmlUi 3.1](#rmlui-31)
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
+
+## RmlUi 5.0 (WIP)
+
+### Text editing
+
+The `<textarea>` and `<input type="text">` elements have been improved in several aspects.
+
+- Improved cursor navigation between words (Ctrl + Left/Right).
+- Selection is now expanded to highlight selected newlines.
+- When word-wrap is enabled, words can now be broken to avoid overflow.
+- Fixed several issues where the text cursor would be offset from the text editing operations. In particular after word wrapping, or when suppressed characters were present in the text field's value.
+- Fixed an issue where Windows newline endings (\r\n) would produce an excessive space character.
+
+### Lua plugin
+
+- Add length to proxy for element children. #315 (thanks @nimble0)
+
+### General fixes
+
+- `<img>` element: Fix wrong dp-scaling being applied when an image is cloned through a parent element. #310
+
 
 ## RmlUi 4.4
 
