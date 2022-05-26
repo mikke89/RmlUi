@@ -292,32 +292,33 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 ## Gallery
 
+**Game interface from the 'invader' sample**\
 ![Game interface](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/invader.png)
-**Game interface from the 'invader' sample**
 
-![Game menu](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/menu_screen.png)
 **Game menu**
+![Game menu](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/menu_screen.png)
 
+**Form controls from the 'demo' sample**\
 ![Form controls](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/forms.png)
-**Form controls from the 'demo' sample**
 
+**Sandbox from the 'demo' sample, try it yourself!**\
 ![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png)
-**Sandbox from the 'demo' sample, try it yourself!**
 
+**Transitions on mouse hover (entirely in RCSS)**\
 ![Transition](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transition.gif)  
-**Transitions on mouse hover (entirely in RCSS)**
 
+**Animated transforms (entirely in RCSS)**\
 ![Transform](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transform.gif)  
-**Animated transforms (entirely in RCSS)**
 
+**Flexbox layout**\
 ![Flexbox](https://github.com/mikke89/RmlUiDoc/blob/4cf0c6ac23b822174e69e5f1413b71254230c619/assets/images/flexbox-example.png)  
-**Flexbox layout**
 
+**Vector animations with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)**\
 ![Lottie animation](https://github.com/mikke89/RmlUiDoc/blob/086385e119f0fc6e196229b785e91ee0252fe4b4/assets/gallery/lottie.gif)  
-**Vector animations with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)**
 
+**Vector images with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html)**\
 ![SVG image](https://github.com/mikke89/RmlUiDoc/blob/2908fe50acf7861e729ce113eafa8cf7610bf08a/assets/gallery/svg_plugin.png)  
-**Vector images with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html)**
+
 
 See the **[full gallery](https://mikke89.github.io/RmlUiDoc/pages/gallery.html)** for more screenshots and videos of the library in action.
 
