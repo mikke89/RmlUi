@@ -57,6 +57,32 @@ static Pool< LayoutChunk<ChunkSizeBig> > layout_chunk_pool_big(50, true);
 static Pool< LayoutChunk<ChunkSizeMedium> > layout_chunk_pool_medium(50, true);
 static Pool< LayoutChunk<ChunkSizeSmall> > layout_chunk_pool_small(50, true);
 
+static inline bool ValidateTopLevelElement(Element* element)
+{
+	const Style::Display display = element->GetDisplay();
+
+	// Currently we don't support flexboxes or tables in a top-level formatting context. This includes on the <body> element, table cells, the
+	// children of flex containers, and possibly elements with custom formatting such as <select>. See also the related
+	// 'uses_unsupported_display_position_float_combination' below.
+	if (display == Style::Display::Flex || display == Style::Display::Table)
+	{
+		const char* error_msg = "located in a top-level formatting context";
+		if (Element* parent = element->GetParentNode())
+		{
+			if (parent->GetDisplay() == Style::Display::Flex)
+				error_msg = "nested inside a flex container";
+		}
+		const Property* display_property = element->GetProperty(PropertyId::Display);
+		Log::Message(Log::LT_WARNING,
+			"Element with display type '%s' cannot be %s. Instead, wrap it within a parent block element such as a <div>. Element will not be "
+		    "formatted: %s",
+			display_property ? display_property->ToString().c_str() : "*unknown*", error_msg, element->GetAddress().c_str());
+
+		return false;
+	}
+
+	return true;
+}
 
 // Formats the contents for a root-level element (usually a document or floating element).
 void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, const Box* override_initial_box, Vector2f* out_visible_overflow_size)
@@ -68,6 +94,9 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, co
 	RMLUI_ZoneName(name.c_str(), name.size());
 #endif
 
+	if (!ValidateTopLevelElement(element))
+		return;
+	
 	auto containing_block_box = MakeUnique<LayoutBlockBox>(nullptr, nullptr, Box(containing_block), 0.0f, FLT_MAX);
 
 	Box box;

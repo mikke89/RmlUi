@@ -1,0 +1,46 @@
+<rml>
+<head>
+	<title>Flex - Nested flex boxes</title>
+	<link type="text/rcss" href="../style.rcss"/>
+    <link rel="match" href="reference/flex_nested-ref.rml"/>
+	<link rel="GitHub issue #320" href="https://github.com/mikke89/RmlUi/issues/320" />
+	<meta name="Description" content="Flex items should support flex layout." />
+	<meta name="Assert" content="All items should be located on a single line, and there should be no holes between them." />
+	<style>
+		#window  
+		{
+			display: flex;
+			width: 100%;
+			height: 100%;
+			overflow: hidden auto;
+			flex-direction: row;
+			justify-content: center;
+			flex-wrap: nowrap;
+		}
+		.content
+		{
+			display: flex;
+			height: 128px;
+			width: 40%;
+			text-align: center;
+			flex-direction: row;
+		}
+	</style>
+</head>
+
+<body>
+<div id="window">
+	<div class="content">
+		<div style="width: 20%; background: red;">1</div>
+		<div style="width: 60%; background: green;">2</div>
+		<div style="width: 20%; background: blue;">3</div>
+	</div>
+	<div class="content">
+		<div style="width: 20%; background: red;">1</div>
+		<div style="width: 60%; background: green;">2</div>
+		<div style="width: 20%; background: blue;">3</div>
+	</div>
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>
