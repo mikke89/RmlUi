@@ -18,7 +18,7 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - Improved cursor navigation between words (Ctrl + Left/Right).
 - Selection is now expanded to highlight selected newlines.
 - When word-wrap is enabled, words can now be broken to avoid overflow.
-- Fixed several issues where the text cursor would be offset from the text editing operations. In particular after word wrapping, or when suppressed characters were present in the text field's value.
+- Fixed several issues where the text cursor would be offset from the text editing operations. In particular after word wrapping, or when suppressed characters were present in the text field's value. #313
 - Fixed an issue where Windows newline endings (\r\n) would produce an excessive space character.
 
 ### Lua plugin
