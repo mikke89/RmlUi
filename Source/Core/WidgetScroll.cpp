@@ -215,10 +215,9 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 {
 	int length_axis = orientation == VERTICAL ? 1 : 0;
 
-	// Build the box for the containing slider element. As the containing block is not guaranteed to have a defined
-	// height, we must use the width for both axes.
+	// Build the box for the containing slider element.
 	Box parent_box;
-	LayoutDetails::BuildBox(parent_box, Vector2f(containing_block.x, containing_block.x), parent);
+	LayoutDetails::BuildBox(parent_box, containing_block, parent);
 	slider_length -= orientation == VERTICAL ? (parent_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM)) :
 											   (parent_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
 
