@@ -356,10 +356,10 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		case Input::KI_NUMPAD1: if (numlock) break; //-fallthrough
 		case Input::KI_END:     MoveCursorHorizontal(ctrl ? CursorMovement::End : CursorMovement::EndLine, shift); break;
 
-		case Input::KI_NUMPAD3: if (numlock) break; //-fallthrough
+		case Input::KI_NUMPAD9: if (numlock) break; //-fallthrough
 		case Input::KI_PRIOR:   MoveCursorVertical(-int(internal_dimensions.y / parent->GetLineHeight()) + 1, shift); break;
 
-		case Input::KI_NUMPAD9: if (numlock) break; //-fallthrough
+		case Input::KI_NUMPAD3: if (numlock) break; //-fallthrough
 		case Input::KI_NEXT:    MoveCursorVertical(int(internal_dimensions.y / parent->GetLineHeight()) - 1, shift); break;
 
 		case Input::KI_BACK:
