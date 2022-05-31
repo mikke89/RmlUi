@@ -670,8 +670,9 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 		break;
 	}
 
-	MoveCursorToCharacterBoundaries(seek_forward);
+	absolute_cursor_index = Math::Clamp(absolute_cursor_index, 0, (int)GetValue().size());
 
+	MoveCursorToCharacterBoundaries(seek_forward);
 	UpdateCursorPosition(true);
 
 	UpdateSelection(select);
