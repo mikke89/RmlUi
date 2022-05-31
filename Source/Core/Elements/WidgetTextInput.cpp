@@ -338,29 +338,29 @@ void WidgetTextInput::ProcessEvent(Event& event)
 
 		switch (key_identifier)
 		{
-		case Input::KI_NUMPAD4:	if (numlock) break; //-fallthrough
-		case Input::KI_LEFT:		MoveCursorHorizontal(ctrl ? CursorMovement::PreviousWord : CursorMovement::Left, shift); break;
+		case Input::KI_NUMPAD4: if (numlock) break; //-fallthrough
+		case Input::KI_LEFT:    MoveCursorHorizontal(ctrl ? CursorMovement::PreviousWord : CursorMovement::Left, shift); break;
 
-		case Input::KI_NUMPAD6:	if (numlock) break; //-fallthrough
-		case Input::KI_RIGHT:		MoveCursorHorizontal(ctrl ? CursorMovement::NextWord : CursorMovement::Right, shift); break;
+		case Input::KI_NUMPAD6: if (numlock) break; //-fallthrough
+		case Input::KI_RIGHT:   MoveCursorHorizontal(ctrl ? CursorMovement::NextWord : CursorMovement::Right, shift); break;
 
-		case Input::KI_NUMPAD8:	if (numlock) break; //-fallthrough
-		case Input::KI_UP:		MoveCursorVertical(-1, shift); break;
+		case Input::KI_NUMPAD8: if (numlock) break; //-fallthrough
+		case Input::KI_UP:      MoveCursorVertical(-1, shift); break;
 
-		case Input::KI_NUMPAD2:	if (numlock) break; //-fallthrough
-		case Input::KI_DOWN:		MoveCursorVertical(1, shift); break;
+		case Input::KI_NUMPAD2: if (numlock) break; //-fallthrough
+		case Input::KI_DOWN:    MoveCursorVertical(1, shift); break;
 
-		case Input::KI_NUMPAD7:	if (numlock) break; //-fallthrough
-		case Input::KI_HOME:		MoveCursorHorizontal(ctrl ? CursorMovement::Begin : CursorMovement::BeginLine, shift); break;
+		case Input::KI_NUMPAD7: if (numlock) break; //-fallthrough
+		case Input::KI_HOME:    MoveCursorHorizontal(ctrl ? CursorMovement::Begin : CursorMovement::BeginLine, shift); break;
 
-		case Input::KI_NUMPAD1:	if (numlock) break; //-fallthrough
-		case Input::KI_END:		MoveCursorHorizontal(ctrl ? CursorMovement::End : CursorMovement::EndLine, shift); break;
+		case Input::KI_NUMPAD1: if (numlock) break; //-fallthrough
+		case Input::KI_END:     MoveCursorHorizontal(ctrl ? CursorMovement::End : CursorMovement::EndLine, shift); break;
 
-		case Input::KI_NUMPAD3:	if (numlock) break; //-fallthrough
-		case Input::KI_PRIOR:		MoveCursorVertical(-int(internal_dimensions.y / parent->GetLineHeight()) + 1, shift); break;
+		case Input::KI_NUMPAD3: if (numlock) break; //-fallthrough
+		case Input::KI_PRIOR:   MoveCursorVertical(-int(internal_dimensions.y / parent->GetLineHeight()) + 1, shift); break;
 
-		case Input::KI_NUMPAD9:	if (numlock) break; //-fallthrough
-		case Input::KI_NEXT:		MoveCursorVertical(int(internal_dimensions.y / parent->GetLineHeight()) - 1, shift); break;
+		case Input::KI_NUMPAD9: if (numlock) break; //-fallthrough
+		case Input::KI_NEXT:    MoveCursorVertical(int(internal_dimensions.y / parent->GetLineHeight()) - 1, shift); break;
 
 		case Input::KI_BACK:
 		{
