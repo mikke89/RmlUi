@@ -685,22 +685,17 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 	int cursor_line_index = 0, cursor_character_index = 0;
 	GetRelativeCursorIndices(cursor_line_index, cursor_character_index);
 
-	bool update_ideal_cursor_position = false;
 	cursor_line_index += distance;
 
 	if (cursor_line_index < 0)
 	{
 		cursor_line_index = 0;
 		cursor_character_index = 0;
-
-		update_ideal_cursor_position = true;
 	}
 	else if (cursor_line_index >= (int)lines.size())
 	{
 		cursor_line_index = (int)lines.size() - 1;
 		cursor_character_index = (int)lines[cursor_line_index].editable_length;
-
-		update_ideal_cursor_position = true;
 	}
 	else
 		cursor_character_index = CalculateCharacterIndex(cursor_line_index, ideal_cursor_position);
@@ -708,7 +703,7 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 	SetCursorFromRelativeIndices(cursor_line_index, cursor_character_index);
 
 	MoveCursorToCharacterBoundaries(false);
-	UpdateCursorPosition(update_ideal_cursor_position);
+	UpdateCursorPosition(false);
 
 	UpdateSelection(select);
 	ShowCursor(true);
