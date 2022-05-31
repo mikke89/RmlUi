@@ -809,15 +809,17 @@ void WidgetTextInput::GetRelativeCursorIndices(int& out_cursor_line_index, int& 
 
 	for (size_t i = 0; i < lines.size(); i++)
 	{
-		// Test if the absolute index is located on this line.
 		const int cursor_relative_line_end = absolute_cursor_index - (line_begin + lines[i].editable_length);
 
+		// Test if the absolute index is located on the editable part of this line, otherwise we wrap down to the next line. We may have additional
+		// characters after the editable length, such as the newline character '\n'. We also wrap down if the cursor is located to the right of any
+		// such characters.
 		if (cursor_relative_line_end <= 0)
 		{
-			// Test if the absolute index is located after the editable length. This is usually because we are located just to the right of the ending
-			// '\n' character. Then we wrap down to the beginning of the next line. If we are located at a soft break (due to word wrapping) then the
-			// cursor wrap state determines whether or not we wrap down.
-			if (cursor_relative_line_end >= (cursor_wrap_down ? 0 : 1) && (int)i + 1 < (int)lines.size())
+			const bool soft_wrapped_line = (lines[i].editable_length == lines[i].size);
+
+			// If we are located exactly on a soft break (due to word wrapping) then the cursor wrap state determines whether or not we wrap down.
+			if (cursor_relative_line_end == 0 && soft_wrapped_line && cursor_wrap_down && (int)i + 1 < (int)lines.size())
 			{
 				out_cursor_line_index = (int)i + 1;
 				out_cursor_character_index = 0;
