@@ -250,10 +250,9 @@ void WidgetSlider::FormatElements(const Vector2f containing_block, float slider_
 {
 	int length_axis = orientation == VERTICAL ? 1 : 0;
 
-	// Build the box for the containing slider element. As the containing block is not guaranteed to have a defined
-	// height, we must use the width for both axes.
+	// Build the box for the containing slider element.
 	Box parent_box;
-	ElementUtilities::BuildBox(parent_box, Vector2f(containing_block.x, containing_block.x), parent);
+	ElementUtilities::BuildBox(parent_box, containing_block, parent);
 
 	// Set the length of the slider.
 	Vector2f content = parent_box.GetSize();
