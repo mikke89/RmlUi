@@ -47,7 +47,9 @@
 		#define RMLUI_BREAK
 	#endif
 #elif defined (RMLUI_PLATFORM_MACOSX)
-	#define RMLUI_BREAK {__builtin_trap();} // namespace Rml
+	#define RMLUI_BREAK {__builtin_trap();}
+#else
+	#define RMLUI_BREAK
 #endif
 
 
