@@ -165,7 +165,6 @@ TEST_CASE("data_binding")
 	REQUIRE(context);
 
 	DataModelHandle model_handle = InitializeDataBindings(context);
-	REQUIRE(model_handle);
 
 	model_handle.DirtyAllVariables();
 

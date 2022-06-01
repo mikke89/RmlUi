@@ -51,12 +51,12 @@ Mothership::~Mothership()
 {
 }
 
-void Mothership::Update()
+void Mothership::Update(double t)
 {
 	// Generic Invader update
-	Invader::Update();
+	Invader::Update(t);
 
-	if (Shell::GetElapsedTime() - update_frame_start < UPDATE_FREQ)
+	if (t - update_frame_start < UPDATE_FREQ)
 		return;
 
 	// We're alive, keep moving!
@@ -68,7 +68,7 @@ void Mothership::Update()
 			|| (direction > 0.0f && position.x > game->GetWindowDimensions().x))
 			state = DEAD;
 
-		update_frame_start = Shell::GetElapsedTime();
+		update_frame_start = t;
 	}
 	// Determine if we should come out of hiding
 	else if (Rml::Math::RandomReal(1.0f) < APPEARANCE_PROBABILITY)

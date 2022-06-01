@@ -39,7 +39,7 @@ namespace Rml {
 
 namespace Input
 {
-	enum KeyIdentifier
+	enum KeyIdentifier : unsigned char
 	{
 		KI_UNKNOWN = 0,
 
@@ -257,7 +257,7 @@ namespace Input
 		KI_RMETA = 176
 	};
 
-	enum KeyModifier
+	enum KeyModifier : unsigned char
 	{
 		KM_CTRL = 1 << 0,		// Set if at least one Ctrl key is depressed.
 		KM_SHIFT = 1 << 1,		// Set if at least one Shift key is depressed.

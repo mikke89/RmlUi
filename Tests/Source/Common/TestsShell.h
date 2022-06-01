@@ -37,8 +37,8 @@ namespace TestsShell {
 	// Will initialize the shell and create a context on first use.
 	Rml::Context* GetContext();
 
-	void PrepareRenderBuffer();
-	void PresentRenderBuffer();
+	void BeginFrame();
+	void PresentFrame();
 
 	// Render the current state of the context. Press 'escape' or 'return' to break out of the loop.
 	// Useful for viewing documents while building the RML to benchmark.

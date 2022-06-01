@@ -28,6 +28,9 @@ CompactNamespaces: false
 Cpp11BracedListStyle: true
 FixNamespaceComments: true
 IncludeBlocks: Merge
+IncludeCategories:
+  - Regex:           '^<RmlUi/'
+    Priority:        1
 IndentCaseLabels: false
 IndentPPDirectives: BeforeHash
 IndentWidth: 4

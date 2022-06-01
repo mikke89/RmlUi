@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,11 +26,6 @@
  *
  */
 
-#include <RmlUi/Core.h>
-#include <RmlUi/Debugger.h>
-#include <Shell.h>
-#include <ShellRenderInterfaceOpenGL.h>
-#include <Input.h>
 #include "DecoratorInstancerDefender.h"
 #include "DecoratorInstancerStarfield.h"
 #include "ElementGame.h"
@@ -40,83 +35,59 @@
 #include "EventInstancer.h"
 #include "EventManager.h"
 #include "HighScores.h"
+#include <RmlUi/Core.h>
+#include <RmlUi/Debugger.h>
+#include <RmlUi_Backend.h>
+#include <Shell.h>
 
 Rml::Context* context = nullptr;
 
-ShellRenderInterfaceExtensions *shell_renderer;
-
-void GameLoop()
-{
-	context->Update();
-
-	shell_renderer->PrepareRenderBuffer();
-	context->Render();
-	shell_renderer->PresentRenderBuffer();
-}
-
 #if defined RMLUI_PLATFORM_WIN32
-#include <windows.h>
-int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* RMLUI_UNUSED_PARAMETER(command_line), int RMLUI_UNUSED_PARAMETER(command_show))
+	#include <RmlUi_Include_Windows.h>
+int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* /*command_line*/, int /*command_show*/)
 #else
-int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
+int main(int /*argc*/, char** /*argv*/)
 #endif
 {
-#ifdef RMLUI_PLATFORM_WIN32
-	RMLUI_UNUSED(instance_handle);
-	RMLUI_UNUSED(previous_instance_handle);
-	RMLUI_UNUSED(command_line);
-	RMLUI_UNUSED(command_show);
-#else
-	RMLUI_UNUSED(argc);
-	RMLUI_UNUSED(argv);
-#endif
+	const int window_width = 1024;
+	const int window_height = 768;
 
-#ifdef RMLUI_PLATFORM_WIN32
-	AllocConsole();
-#endif
+	// Initializes the shell which provides common functionality used by the included samples.
+	if (!Shell::Initialize())
+		return -1;
 
-	int window_width = 1024;
-	int window_height = 768;
-
-	ShellRenderInterfaceOpenGL opengl_renderer;
-	shell_renderer = &opengl_renderer;
-
-	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise() ||
-		!Shell::OpenWindow("RmlUi Invaders from Mars", shell_renderer, window_width, window_height, false))
+	// Constructs the system and render interfaces, creates a window, and attaches the renderer.
+	if (!Backend::Initialize("RmlUi Invaders from Mars", window_width, window_height, false))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
+	// Install the custom interfaces constructed by the backend before initializing RmlUi.
+	Rml::SetSystemInterface(Backend::GetSystemInterface());
+	Rml::SetRenderInterface(Backend::GetRenderInterface());
+
 	// RmlUi initialisation.
-	Rml::SetRenderInterface(&opengl_renderer);
-	opengl_renderer.SetViewport(window_width, window_height);
-
-	ShellSystemInterface system_interface;
-	Rml::SetSystemInterface(&system_interface);
-
 	Rml::Initialise();
 
-	// Create the main RmlUi context and set it on the shell's input layer.
+	// Create the main RmlUi context.
 	context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
-	if (context == nullptr)
+	if (!context)
 	{
 		Rml::Shutdown();
+		Backend::Shutdown();
 		Shell::Shutdown();
 		return -1;
 	}
 
 	// Initialise the RmlUi debugger.
 	Rml::Debugger::Initialise(context);
-	Input::SetContext(context);
-	Shell::SetContext(context);
 
 	// Load the font faces required for Invaders.
-	Shell::LoadFonts("assets/");
+	Shell::LoadFonts();
 
 	// Register Invader's custom element and decorator instancers.
-	Rml::ElementInstancerGeneric< ElementGame > element_instancer_game;
+	Rml::ElementInstancerGeneric<ElementGame> element_instancer_game;
 	Rml::Factory::RegisterElementInstancer("game", &element_instancer_game);
 
 	DecoratorInstancerStarfield decorator_instancer_starfield;
@@ -136,9 +107,18 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	EventManager::RegisterEventHandler("options", new EventHandlerOptions());
 
 	// Start the game.
-	if (EventManager::LoadWindow("background") &&
-		EventManager::LoadWindow("main_menu"))
-		Shell::EventLoop(GameLoop);
+	bool running = (EventManager::LoadWindow("background") && EventManager::LoadWindow("main_menu"));
+
+	while (running)
+	{
+		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
+
+		context->Update();
+
+		Backend::BeginFrame();
+		context->Render();
+		Backend::PresentFrame();
+	}
 
 	// Shut down the game singletons.
 	HighScores::Shutdown();
@@ -149,8 +129,8 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	// Shutdown RmlUi.
 	Rml::Shutdown();
 
-	Shell::CloseWindow();
 	Shell::Shutdown();
+	Backend::Shutdown();
 
 	return 0;
 }

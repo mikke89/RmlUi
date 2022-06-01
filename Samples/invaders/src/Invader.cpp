@@ -29,7 +29,6 @@
 #include "Invader.h"
 #include <RmlUi/Core/Math.h>
 #include <Shell.h>
-#include <ShellOpenGL.h>
 #include "Defender.h"
 #include "Game.h"
 #include "GameDetails.h"
@@ -104,10 +103,10 @@ const Rml::Vector2f& Invader::GetPosition() const
 	return position;
 }
 
-void Invader::Update()
+void Invader::Update(double t)
 {
 	// Update the bombs
-	if (float(Shell::GetElapsedTime() - bomb_frame_start) > BOMB_UPDATE_FREQ)
+	if (float(t - bomb_frame_start) > BOMB_UPDATE_FREQ)
 	{	
 
 		// Update the bomb position if its in flight, or check if we should drop one
@@ -142,7 +141,7 @@ void Invader::Update()
 			// Check if we hit the defender
 			if (bomb != NONE)
 			{
-				if (game->GetDefender()->CheckHit(bomb_position))
+				if (game->GetDefender()->CheckHit(t, bomb_position))
 					bomb = NONE;
 			}
 		}
@@ -160,10 +159,10 @@ void Invader::Update()
 				bomb_animation_frame = 4;
 		}	
 
-		bomb_frame_start = Shell::GetElapsedTime();
+		bomb_frame_start = t;
 	}
 
-	if (state == EXPLODING && Shell::GetElapsedTime() - death_time > 0.0)
+	if (state == EXPLODING && t - death_time > 0.0)
 		state = DEAD;
 }
 
@@ -182,27 +181,21 @@ void Invader::UpdateAnimation()
 	}
 }
 
-void Invader::Render(float dp_ratio)
+void Invader::Render(float dp_ratio, Rml::TextureHandle texture)
 {
+	Rml::Colourb color(255);
+
 	if (type == MOTHERSHIP)
-	{
-		glColor4ubv(MOTHERSHIP_COLOUR);
-	}
+		color = MOTHERSHIP_COLOUR;
+
 	int sprite_index = GetSpriteIndex();
 	int sprite_offset = Rml::Math::RealToInteger((invader_sprites[sprite_index].dimensions.x - 48) / 2);
 
 	if (state != DEAD)
-		invader_sprites[sprite_index].Render(Rml::Vector2f(position.x - sprite_offset, position.y), dp_ratio);
+		invader_sprites[sprite_index].Render(Rml::Vector2f(position.x - sprite_offset, position.y), dp_ratio, color, texture);
 	
 	if (bomb != NONE)
-	{
-		bomb_sprites[bomb_animation_frame].Render(bomb_position, dp_ratio);
-	}
-
-	if (type == MOTHERSHIP)
-	{
-		glColor4ub(255, 255, 255, 255);
-	}
+		bomb_sprites[bomb_animation_frame].Render(bomb_position, dp_ratio, color, texture);
 }
 
 Invader::InvaderState Invader::GetState()
@@ -210,7 +203,7 @@ Invader::InvaderState Invader::GetState()
 	return state;
 }
 
-bool Invader::CheckHit(const Rml::Vector2f& check_position)
+bool Invader::CheckHit(double t, const Rml::Vector2f& check_position)
 {
 	// Get the sprite index we're currently using for collision detection
 	int sprite_index = GetSpriteIndex();
@@ -241,7 +234,7 @@ bool Invader::CheckHit(const Rml::Vector2f& check_position)
 
 		// Set our state to exploding and start the timer to our doom
 		state = EXPLODING;
-		death_time = Shell::GetElapsedTime() + EXPLOSION_TIME;	
+		death_time = t + EXPLOSION_TIME;	
 
 		return true;
 	}

@@ -29,7 +29,6 @@
 #include "Game.h"
 #include <RmlUi/Core.h>
 #include <Shell.h>
-#include <ShellOpenGL.h>
 #include "Defender.h"
 #include "GameDetails.h"
 #include "HighScores.h"
@@ -117,7 +116,7 @@ void Game::Initialise()
 	InitialiseWave();
 }
 
-void Game::Update()
+void Game::Update(double t)
 {
 	if (!GameDetails::GetPaused())
 	{
@@ -125,46 +124,35 @@ void Game::Update()
 			return;
 
 		// Determine if we should advance the invaders
-		if (Shell::GetElapsedTime() - invader_frame_start >= invader_move_freq)
+		if (t - invader_frame_start >= invader_move_freq)
 		{
 			MoveInvaders();		
 
-			invader_frame_start = Shell::GetElapsedTime();
+			invader_frame_start = t;
 		}
 
 		// Update all invaders
 		for (int i = 0; i < NUM_INVADERS + 1; i++)
-			invaders[i]->Update();	
+			invaders[i]->Update(t);	
 
-		defender->Update();
+		defender->Update(t);
 	}
 }
 
-void Game::Render(float dp_ratio)
+void Game::Render(double t, float dp_ratio)
 {	
 	if (defender_lives <= 0)
 		return;
 
 	// Render all available shields
 	for (int i = 0; i < NUM_SHIELDS; i++)
-	{
 		shields[i]->Render(dp_ratio);
-	}
-
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, (GLuint) texture);
-	glColor4ub(255, 255, 255, 255);
-	glBegin(GL_QUADS);
 
 	// Render all available invaders
 	for (int i = 0; i < NUM_INVADERS + 1; i++)
-	{
-		invaders[i]->Render(dp_ratio);
-	}
+		invaders[i]->Render(dp_ratio, texture);
 	
-	defender->Render(dp_ratio);
-
-	glEnd();
+	defender->Render(t, dp_ratio, texture);
 }
 
 Defender* Game::GetDefender()

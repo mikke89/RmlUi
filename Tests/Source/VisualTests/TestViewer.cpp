@@ -35,6 +35,7 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/SystemInterface.h>
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/XMLParser.h>
 #include <Shell.h>
@@ -67,9 +68,12 @@ public:
 		
 		if (event == Rml::EventId::Click)
 		{
-			Shell::SetClipboardText(href);
-			hover_text->SetInnerRML("Copied to clipboard");
-			hover_text->SetClass("confirmation", true);
+			if (Rml::SystemInterface* system_interface = Rml::GetSystemInterface())
+			{
+				system_interface->SetClipboardText(href);
+				hover_text->SetInnerRML("Copied to clipboard");
+				hover_text->SetClass("confirmation", true);
+			}
 		}
 		else if (event == Rml::EventId::Mouseover)
 		{

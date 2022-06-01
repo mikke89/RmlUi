@@ -291,6 +291,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 				result &= item.property_definition->ParseValue(new_property, default_omitted_values[i]);
 				dictionary.SetProperty(item.property_id, new_property);
 			}
+			(void)result;
 			RMLUI_ASSERT(result);
 		}
 	}

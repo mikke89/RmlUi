@@ -1,14 +1,15 @@
 #include "LuaInterface.h"
-#include <RmlUi/Lua/LuaType.h>
-#include <RmlUi/Lua/IncludeLua.h>
+#include "ElementGameInstancer.h"
 #include "Game.h"
 #include "GameDetails.h"
-#include <RmlUi/Core/Log.h>
-#include <Shell.h>
-#include <RmlUi/Core/Factory.h>
 #include "HighScores.h"
+#include <RmlUi/Core/Factory.h>
+#include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Types.h>
-#include "ElementGameInstancer.h"
+#include <RmlUi/Lua/IncludeLua.h>
+#include <RmlUi/Lua/LuaType.h>
+#include <RmlUi_Backend.h>
+#include <Shell.h>
 
 //we have to create the binding ourselves, and these are the functions that will be
 //called. It has to match the function signature of int (*ftnptr)(lua_State*)
@@ -73,7 +74,7 @@ void LuaInterface::InitGame(lua_State *L)
 
 int GameShutdown(lua_State* /*L*/)
 {
-    Shell::RequestExit();
+    Backend::RequestExit();
     return 0;
 }
 

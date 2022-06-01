@@ -69,7 +69,7 @@ list(APPEND CORE_PRIVATE_DEFS RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	option(BUILD_TESTING "" OFF)
-    include(CTest)
+	include(CTest)
 	
 	if(BUILD_TESTING)
 		set(RMLUI_TESTS_ENABLED ON)
@@ -163,6 +163,21 @@ endif()
 
 option(BUILD_SAMPLES "Build samples" OFF)
 
+set(SAMPLES_BACKEND "auto" CACHE STRING "Backend platform and renderer used for the samples.")
+set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 X11_GL2 SDL_GL2 SDL_GL3 SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3)
+
+if(SAMPLES_BACKEND STREQUAL "auto")
+	if(EMSCRIPTEN)
+		set(SAMPLES_BACKEND SDL_GL3)
+	elseif(WIN32)
+		set(SAMPLES_BACKEND Win32_GL2)
+	elseif(APPLE)
+		set(SAMPLES_BACKEND SDL_SDLrenderer)
+	else()
+		set(SAMPLES_BACKEND X11_GL2)
+	endif()
+endif()
+
 option(MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are used by default." OFF)
 
 if(APPLE)
@@ -193,6 +208,10 @@ endif()
 
 if(WIN32 AND BUILD_SHARED_LIBS AND BUILD_TESTING)
 	message(FATAL_ERROR "-- The RmlUi testing framework cannot be built when using shared libraries on Windows. Please disable either BUILD_SHARED_LIBS or BUILD_TESTING.")
+endif()
+
+if(EMSCRIPTEN AND BUILD_SHARED_LIBS)
+	message(FATAL_ERROR "-- Dynamic libraries not supported when using Emscripten. Please disable BUILD_SHARED_LIBS.")
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
@@ -322,14 +341,17 @@ include(FileList)
 
 # FreeType
 if(NOT NO_FONT_INTERFACE_DEFAULT)
-	find_package(Freetype REQUIRED)
-	
-	if(MSVC AND FREETYPE_VERSION_STRING STREQUAL "2.11.0")
-		message(WARNING "You are using FreeType version 2.11.0 which introduced an issue that causes a crash on startup on some of the samples. Please avoid this version specifically.")
+	if(EMSCRIPTEN)
+		set(EMSCRIPTEN_FLAGS "${EMSCRIPTEN_FLAGS} -sUSE_FREETYPE=1")
+	else()
+		find_package(Freetype REQUIRED)
+		if(MSVC AND FREETYPE_VERSION_STRING STREQUAL "2.11.0")
+			message(WARNING "You are using FreeType version 2.11.0 which introduced an issue that causes a crash on startup on some of the samples. Please avoid this version specifically.")
+		endif()
+		
+		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARIES})
+		list(APPEND CORE_INCLUDE_DIRS ${FREETYPE_INCLUDE_DIRS})
 	endif()
-	
-	list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARIES})
-	list(APPEND CORE_INCLUDE_DIRS ${FREETYPE_INCLUDE_DIRS})
 endif()
 
 # Lua
@@ -537,9 +559,9 @@ if(BUILD_LUA_BINDINGS)
 endif()
 
 if(DISABLE_RTTI_AND_EXCEPTIONS)
-    if( CMAKE_COMPILER_IS_GNUCXX )
+	if( CMAKE_COMPILER_IS_GNUCXX )
 		add_definitions( -fno-rtti -fno-exceptions )
-    elseif( MSVC )
+	elseif( MSVC )
 		add_definitions( -D_HAS_EXCEPTIONS=0 /GR- )
 		if(CMAKE_CXX_FLAGS MATCHES "/EHsc ")
 			string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -552,7 +574,7 @@ if(DISABLE_RTTI_AND_EXCEPTIONS)
 		endif()
 	else()
 		message(STATUS "Could not create build configuration without rtti and exceptions...")
-    endif()
+	endif()
 endif()
 
 
@@ -614,7 +636,10 @@ endmacro()
 
 # Build shell
 if(BUILD_SAMPLES OR BUILD_TESTING)
+	message("-- Adding shell with '${SAMPLES_BACKEND}' backend.")
+	
 	include(SampleFileList)
+	include(BackendFileList)
 	
 	if(NOT BUILD_FRAMEWORK)
 		set(sample_LIBRARIES
@@ -629,66 +654,145 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 		)
 	endif()
 
-	# Find OpenGL 
-	find_package(OpenGL REQUIRED)
-		   
-	if(OPENGL_FOUND)
-		include_directories(${OPENGL_INCLUDE_DIR})
-		list(APPEND sample_LIBRARIES ${OPENGL_LIBRARIES})
-	endif()
-	
-	# Set up required system libraries
-	if(APPLE)
-		include(FindCarbon)
-		find_package(Carbon REQUIRED)
-		
-		if (Carbon_FOUND)
-			include_directories(${Carbon_INCLUDE_DIR})
-			list(APPEND sample_LIBRARIES ${Carbon_LIBRARIES})
-		endif()
-	else()
-		find_package(X11 REQUIRED)
-		if (X11_FOUND)
-			list(APPEND sample_LIBRARIES ${X11_LIBRARIES})
-		# shell/src/x11/InputX11.cpp:InitialiseX11Keymap uses Xkb if
-		# possible instead of XGetKeyboardMapping for performance
-		if(X11_Xkb_FOUND)
-			FIND_PACKAGE_MESSAGE(X11 "Found X11 KBlib: ${X11_X11_LIB}" "[${X11_X11_LIB}][${X11_XkbINCLUDE_DIR}]")
-			add_definitions(-DHAS_X11XKBLIB)
-		endif()
-		endif()
-	endif()
-   
-	set(SAMPLES_DIR opt/RmlUi/Samples CACHE PATH "path to samples dir")
-	
+	set(SAMPLES_DIR opt/RmlUi/Samples CACHE PATH "Path to samples directory.")
 	if(WIN32)
 		mark_as_advanced(SAMPLES_DIR)
 	endif()
+	
 
-	# The samples and tutorials use the shell library
-	include_directories(${PROJECT_SOURCE_DIR}/Samples/shell/include)
-
-	# Build and install sample shell library
+	set(BACKEND_SRC_FILES "${${SAMPLES_BACKEND}_SRC_FILES}")
+	set(BACKEND_HDR_FILES "${${SAMPLES_BACKEND}_HDR_FILES}")
+	
+	if("${BACKEND_SRC_FILES}" STREQUAL "" OR "${BACKEND_HDR_FILES}" STREQUAL "")
+		message(FATAL_ERROR "Unknown samples backend '${SAMPLES_BACKEND}'.")
+	endif()
+	
+	list(APPEND shell_SRC_FILES ${BACKEND_SRC_FILES})
+	list(APPEND shell_HDR_FILES ${BACKEND_HDR_FILES} ${BACKEND_COMMON_HDR_FILES})
+	
 	add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
 	
-	if (PRECOMPILED_HEADERS_ENABLED)
-		target_precompile_headers(shell PRIVATE ${PROJECT_SOURCE_DIR}/Samples/shell/src/precompiled.h)
-	endif()
-
-	if (WIN32)
-		target_link_libraries(shell PUBLIC shlwapi)
-	endif()
-	
-	target_link_libraries(shell PUBLIC RmlCore)
+	target_include_directories(shell PUBLIC
+		${PROJECT_SOURCE_DIR}/Backends
+		${PROJECT_SOURCE_DIR}/Samples/shell/include
+	)
 	
 	add_common_target_options(shell)
-
+	target_link_libraries(shell PUBLIC RmlCore RmlDebugger)
+	
+	# Add OS dependencies.
+	if (WIN32)
+		target_link_libraries(shell PRIVATE shlwapi)
+	elseif(APPLE)
+		target_link_libraries(shell PRIVATE "-framework Cocoa")
+	elseif(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+		find_package(X11)
+		if (X11_FOUND)
+			message("-- Found X11 library.")
+			target_link_libraries(shell PRIVATE ${X11_LIBRARIES})
+			# Platform_X11 uses Xkb if possible instead of XGetKeyboardMapping for performance.
+			if(X11_Xkb_FOUND)
+				FIND_PACKAGE_MESSAGE(X11 "Found X11 KBlib: ${X11_X11_LIB}" "[${X11_X11_LIB}][${X11_XkbINCLUDE_DIR}]")
+				target_compile_definitions(shell PRIVATE HAS_X11XKBLIB)
+			endif()
+		endif()
+	endif()
+	
+	# Add platform dependencies.
+	if(SAMPLES_BACKEND MATCHES "^X11")		
+		if(NOT X11_FOUND)
+			message(FATAL_ERROR "X11 not found or not supported on this platform, select a different sample backend.")
+		endif()
+	endif()
+	
+	if(SAMPLES_BACKEND MATCHES "^SDL")
+		message("-- Looking for SDL2 library for samples backend.")
+		if(EMSCRIPTEN)
+			set(EMSCRIPTEN_FLAGS "${EMSCRIPTEN_FLAGS} -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sSDL2_IMAGE_FORMATS='[tga]'")
+		else()
+			find_package(SDL2 REQUIRED)
+			find_package(SDL2_image REQUIRED)
+			
+			if(NOT SDL2_FOUND)
+				message(FATAL_ERROR "SDL2 not found")
+			elseif(NOT SDL2_IMAGE_FOUND)
+				message(FATAL_ERROR "SDL2_image not found")
+			endif()
+			
+			if(SAMPLES_BACKEND STREQUAL "SDL_GL2")
+				find_package(GLEW REQUIRED)
+				if(NOT GLEW_FOUND)
+					message(FATAL_ERROR "GLEW not found")
+				endif()
+			endif()
+			
+			# Check version requirement for the SDL renderer.
+			if(SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer" AND "${SDL2_VERSION}" VERSION_LESS "2.0.20")
+				message(FATAL_ERROR "SDL2 native renderer backend (${SAMPLES_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
+			endif()
+			
+			target_include_directories(shell PRIVATE ${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
+			target_link_libraries(shell PRIVATE ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
+		endif()
+	endif()
+	
+	if(SAMPLES_BACKEND MATCHES "^SFML")
+		message("-- Looking for SFML 2.x library for samples backend.")
+		if (WIN32)
+			find_package(SFML 2 REQUIRED COMPONENTS graphics window system main)
+		else()
+			find_package(SFML 2 REQUIRED COMPONENTS graphics window system)
+		endif()
+		target_include_directories(shell PRIVATE ${SFML_INCLUDE_DIR})
+		target_link_libraries(shell PRIVATE ${SFML_LIBRARIES})
+	endif()
+	
+	if(SAMPLES_BACKEND MATCHES "^GLFW")
+		message("-- Looking for GLFW3 library for samples backend.")
+		find_package(glfw3 3.3 CONFIG REQUIRED)
+		target_link_libraries(shell PRIVATE glfw)
+		message("-- Found GLFW version ${glfw3_VERSION}.")
+	endif()
+	
+	# Add renderer dependencies.
+	if(SAMPLES_BACKEND MATCHES "GL2$")
+		message("-- Adding OpenGL 2 renderer backend.")
+		find_package(OpenGL REQUIRED)
+		target_include_directories(shell PRIVATE ${OPENGL_INCLUDE_DIR})
+		target_link_libraries(shell PRIVATE ${OPENGL_LIBRARIES})
+		target_compile_definitions(shell PRIVATE RMLUI_RENDERER_GL2)
+		if(APPLE)
+			target_compile_definitions(shell PRIVATE GL_SILENCE_DEPRECATION)
+		endif()
+	endif()
+	
+	if(SAMPLES_BACKEND MATCHES "GL3$")
+		message("-- Adding OpenGL 3 renderer backend.")
+		if(EMSCRIPTEN)
+			set(EMSCRIPTEN_EXE_FLAGS "${EMSCRIPTEN_EXE_FLAGS} -sMAX_WEBGL_VERSION=2")
+		else()
+			find_package(OpenGL REQUIRED)
+			target_include_directories(shell PRIVATE ${OPENGL_INCLUDE_DIR})
+			target_link_libraries(shell PRIVATE ${OPENGL_LIBRARIES} ${CMAKE_DL_LIBS})
+			target_compile_definitions(shell PRIVATE RMLUI_RENDERER_GL3)
+			if(APPLE)
+				target_compile_definitions(shell PRIVATE GL_SILENCE_DEPRECATION)
+			endif()
+		endif()
+	endif()
 endif()
 
 
 if(BUILD_SAMPLES)
 	set(samples treeview customlog drag loaddocument transform bitmapfont animation benchmark demo databinding)
 	set(tutorials template datagrid datagrid_tree drag)
+
+	if(ENABLE_LOTTIE_PLUGIN)
+		list(APPEND samples "lottie")
+	endif()
+	if(ENABLE_SVG_PLUGIN)
+		list(APPEND samples "svg")
+	endif()
 
 	# Build and install the basic samples
 	foreach(sample ${samples})
@@ -700,98 +804,6 @@ if(BUILD_SAMPLES)
 			RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endforeach()
-	
-	message("-- Can SDL2 samples be built")
-	find_package(SDL2)
-	if(SDL2_FOUND)
-		find_package(SDL2_image)
-		if(SDL2_IMAGE_FOUND)
-			find_package(GLEW)
-			if(GLEW_FOUND)
-				message("-- Can SDL2 sample w/OpenGL renderer be built - yes")
-				include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
-
-				bl_sample(sdl2 ${sample_LIBRARIES}  ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
-			
-				# The samples always set this as their current working directory
-				install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2)
-				install(TARGETS sdl2
-					RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2
-					BUNDLE DESTINATION ${SAMPLES_DIR})
-			else()
-					message("-- Can SDL2 sample w/OpenGL renderer be built - no - GLEW not found")
-			endif()
-			
-			if("${SDL2_VERSION}" VERSION_GREATER_EQUAL "2.0.20")
-				message("-- Can SDL2 sample w/SDL-renderer be built - yes")
-				include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR})
-
-				bl_sample(sdl2_sdlrenderer ${sample_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY})
-			
-				install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sdl2_sdlrenderer)
-				install(TARGETS sdl2_sdlrenderer
-					RUNTIME DESTINATION ${SAMPLES_DIR}/sdl2_sdlrenderer
-					BUNDLE DESTINATION ${SAMPLES_DIR})
-			else()
-				message("-- Can SDL2 sample w/SDL-renderer be built - no - requires SDL 2.0.20 (found ${SDL2_VERSION})")
-			endif()
-		else()
-				message("-- Can SDL2 samples be built - SDL2_image not found")
-		endif()
-	else()
-		message("-- Can SDL2 samples be built - SDL2 not found")
-	endif()
-
-
-	message("-- Can SFML 2.x sample be built")
-	if (WIN32)
-		find_package(SFML 2 COMPONENTS graphics window system main)
-	else()
-		find_package(SFML 2 COMPONENTS graphics window system)
-	endif()
-	if(NOT SFML_FOUND)
-		message("-- Can SFML 2.x sample be built - no")
-	else()
-		find_package(GLEW)
-		if(GLEW_FOUND)
-			message("-- Can SFML 2.x sample be built - yes: with GLEW")
-			include_directories(${SFML_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
-			add_definitions( -DENABLE_GLEW )
-			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES} ${GLEW_LIBRARIES})
-		else()
-			message("-- Can SFML 2.x sample be built - yes: without GLEW")
-			include_directories(${SFML_INCLUDE_DIR})
-			bl_sample(sfml2 ${sample_LIBRARIES} ${SFML_LIBRARIES})
-		endif()
-			
-			# The samples always set this as their current working directory
-			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/sfml2)
-			install(TARGETS sfml2
-				RUNTIME DESTINATION ${SAMPLES_DIR}/sfml2
-				BUNDLE DESTINATION ${SAMPLES_DIR})
-	endif()
-	
-	if( ENABLE_LOTTIE_PLUGIN )
-		bl_sample(lottie ${sample_LIBRARIES})
-		
-		# The samples always set this as their current working directory
-		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/lottie)
-		install(TARGETS lottie
-			RUNTIME DESTINATION ${SAMPLES_DIR}/lottie
-			BUNDLE DESTINATION ${SAMPLES_DIR}
-		)
-	endif()
-	
-	if( ENABLE_SVG_PLUGIN )
-		bl_sample(svg ${sample_LIBRARIES})
-		
-		# The samples always set this as their current working directory
-		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/svg)
-		install(TARGETS svg
-			RUNTIME DESTINATION ${SAMPLES_DIR}/svg
-			BUNDLE DESTINATION ${SAMPLES_DIR}
-		)
-	endif()
 
 	# Build and install the tutorials
 	foreach(tutorial ${tutorials})
@@ -819,6 +831,49 @@ if(BUILD_SAMPLES)
 			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endif()
+	
+	# Add assets to emscripten binaries
+	if(EMSCRIPTEN)
+		message("-- Preloading emscipten sample assets")
+		
+		set(COMMON_ASSET_FOLDER "Samples/assets/")
+		set(EMSCRIPTEN_EXE_FLAGS "${EMSCRIPTEN_EXE_FLAGS} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/${COMMON_ASSET_FOLDER}@/${COMMON_ASSET_FOLDER}")
+
+		foreach(sample ${samples})
+			set(SAMPLE_DATA_FOLDER "Samples/basic/${sample}/data/")
+			set(ABS_SAMPLE_DATA_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/${SAMPLE_DATA_FOLDER}")
+			if(EXISTS ${ABS_SAMPLE_DATA_FOLDER})
+				target_link_libraries(${sample} "--preload-file ${ABS_SAMPLE_DATA_FOLDER}@/${SAMPLE_DATA_FOLDER}")
+			endif()
+		endforeach()
+		
+		foreach(tutorial ${tutorials})
+			set(TUTORIAL_DATA_FOLDER "Samples/tutorial/${tutorial}/data/")
+			set(ABS_TUTORIAL_DATA_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/${TUTORIAL_DATA_FOLDER}")
+			if(EXISTS ${ABS_TUTORIAL_DATA_FOLDER})
+				target_link_libraries("tutorial_${tutorial}" "--preload-file ${ABS_TUTORIAL_DATA_FOLDER}@/${TUTORIAL_DATA_FOLDER}")
+			endif()
+		endforeach()
+		
+		set(INVADER_DATA_FOLDER "Samples/invaders/data/")
+		target_link_libraries(invaders "-sALLOW_MEMORY_GROWTH --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/${INVADER_DATA_FOLDER}@/${INVADER_DATA_FOLDER}")
+	endif()
+endif()
+
+#===================================
+# Add global options ===============
+#===================================
+
+if(EMSCRIPTEN)
+	# Enables Asyncify which we only need since the backend doesn't control the main loop. This enables us to yield to the browser during the backend call to
+	# Backend::ProcessEvents(). Asyncify results in larger and slower code, users are instead encouraged to use 'emscripten_set_main_loop()' and family.
+	set(EMSCRIPTEN_EXE_FLAGS "${EMSCRIPTEN_EXE_FLAGS} -sASYNCIFY")
+	
+	message(STATUS "Compiling for Emscripten.\n\t- Flags:${EMSCRIPTEN_FLAGS}\n\t- ExeFlags:${EMSCRIPTEN_EXE_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EMSCRIPTEN_FLAGS}")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMSCRIPTEN_FLAGS}")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EMSCRIPTEN_FLAGS} ${EMSCRIPTEN_EXE_FLAGS}")
+	set(CMAKE_EXECUTABLE_SUFFIX .html)
 endif()
 
 #===================================
@@ -826,7 +881,7 @@ endif()
 #===================================
 
 if(RMLUI_TESTS_ENABLED)
-    add_subdirectory(Tests)
+	add_subdirectory(Tests)
 endif()
 
 #===================================

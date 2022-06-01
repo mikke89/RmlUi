@@ -159,16 +159,17 @@ div#title_bar
 	z-index: 1;
 
 	position: absolute;
-	top: 3dp;
+	top: 7dp;
 	left: 0;
 	
 	text-align: left;
+	vertical-align: bottom;
 }
 
 div#title_bar div#icon
 {
 	position: absolute;
-	left: 20dp;
+	left: 15dp;
 	top: -4dp;
 	
 	width: 51dp;
@@ -180,14 +181,16 @@ div#title_bar span
 {
 	padding-left: 85dp;
 	padding-right: 25dp;
-	padding-top: 23dp;
-	padding-bottom: 51dp;
-
+	padding-top: 18dp;
+	padding-bottom: 43dp;
+	
+	vertical-align: top;
+	
+	line-height: 24dp;
 	font-size: 20dp;
 	font-weight: bold;
 	
 	font-effect: glow(1dp black);
-
 	decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
 }
 

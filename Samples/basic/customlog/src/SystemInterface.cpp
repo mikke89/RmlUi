@@ -30,9 +30,10 @@
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <Shell.h>
+#include <chrono>
 #include <stdio.h>
 #ifdef RMLUI_PLATFORM_WIN32
-#include <windows.h>
+#include <RmlUi_Include_Windows.h>
 #endif
 
 SystemInterface::SystemInterface()
@@ -42,19 +43,22 @@ SystemInterface::SystemInterface()
 
 SystemInterface::~SystemInterface()
 {
-	if (fp != nullptr)
+	if (fp)
 		fclose(fp);
 }
 
 // Get the number of seconds elapsed since the start of the application.
 double SystemInterface::GetElapsedTime()
 {
-	return Shell::GetElapsedTime();
+	static const auto start = std::chrono::steady_clock::now();
+	const auto current = std::chrono::steady_clock::now();
+	std::chrono::duration<double> diff = current - start;
+	return diff.count();
 }
 
 bool SystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)
 {
-	if (fp != nullptr)
+	if (fp)
 	{
 		// Select a prefix appropriate for the severity of the message.
 		const char* prefix;
@@ -75,7 +79,7 @@ bool SystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message
 		}
 
 		// Print the message and timestamp to file, and force a write in case of a crash.
-		fprintf(fp, "%s (%.2f): %s", prefix, GetElapsedTime(), message.c_str());
+		fprintf(fp, "%s (%.2f): %s\n", prefix, GetElapsedTime(), message.c_str());
 		fflush(fp);
 
 #ifdef RMLUI_PLATFORM_WIN32
@@ -84,7 +88,7 @@ bool SystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message
 			Rml::String assert_message = Rml::CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());
 
 			// Return TRUE if the user presses NO (continue execution)
-			return MessageBox(nullptr, assert_message.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDNO;
+			return MessageBoxA(nullptr, assert_message.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDNO;
 		}
 #endif
 	}

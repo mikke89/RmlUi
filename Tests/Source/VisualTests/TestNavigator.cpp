@@ -34,7 +34,6 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <Shell.h>
-#include <ShellRenderInterfaceOpenGL.h>
 #include <cstdio>
 
 // When capturing frames it seems we need to wait at least an extra frame for the newly submitted
@@ -42,8 +41,10 @@
 constexpr int iteration_wait_frame_count = 2;
 
 
-TestNavigator::TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites, int start_index)
-	: shell_renderer(shell_renderer), context(context), viewer(viewer), test_suites(std::move(test_suites))
+TestNavigator::TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites,
+	int start_index) :
+	render_interface(render_interface),
+	context(context), viewer(viewer), test_suites(std::move(test_suites))
 {
 	RMLUI_ASSERT(context);
 	RMLUI_ASSERTMSG(!this->test_suites.empty(), "At least one test suite is required.");
@@ -51,7 +52,7 @@ TestNavigator::TestNavigator(ShellRenderInterfaceOpenGL* shell_renderer, Rml::Co
 	context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Textinput, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Change, this);
-	if(start_index > 0)
+	if (start_index > 0)
 		CurrentSuite().SetIndex(start_index);
 	LoadActiveTest();
 }
@@ -62,7 +63,7 @@ TestNavigator::~TestNavigator()
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Textinput, this);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Change, this);
-	ReleaseTextureGeometry(shell_renderer, reference_geometry);
+	ReleaseTextureGeometry(render_interface, reference_geometry);
 }
 
 void TestNavigator::Update()
@@ -110,8 +111,8 @@ void TestNavigator::Render()
 {
 	if (show_reference && reference_geometry.texture_handle)
 	{
-		shell_renderer->RenderGeometry(
-			reference_geometry.vertices, 4, reference_geometry.indices, 6, reference_geometry.texture_handle, Rml::Vector2f(0, 0));
+		render_interface->RenderGeometry(reference_geometry.vertices, 4, reference_geometry.indices, 6, reference_geometry.texture_handle,
+			Rml::Vector2f(0, 0));
 	}
 }
 
@@ -367,7 +368,7 @@ ComparisonResult TestNavigator::CompareCurrentView()
 {
 	const Rml::String filename = GetImageFilenameFromCurrentTest();
 
-	ComparisonResult result = CompareScreenToPreviousCapture(shell_renderer, filename, true, nullptr);
+	ComparisonResult result = CompareScreenToPreviousCapture(render_interface, filename, true, nullptr);
 
 	return result;
 }
@@ -377,7 +378,7 @@ bool TestNavigator::CaptureCurrentView()
 {
 	const Rml::String filename = GetImageFilenameFromCurrentTest();
 	
-	bool result = CaptureScreenshot(shell_renderer, filename, 1060);
+	bool result = CaptureScreenshot(filename, 1060);
 	
 	return result;
 }
@@ -562,14 +563,14 @@ void TestNavigator::ShowReference(bool show, bool clear)
 {
 	if (clear)
 	{
-		ReleaseTextureGeometry(shell_renderer, reference_geometry);
+		ReleaseTextureGeometry(render_interface, reference_geometry);
 		reference_comparison = {};
 	}
 
 	Rml::String error_msg;
 	if (show && !reference_geometry.texture_handle)
 	{
-		reference_comparison = CompareScreenToPreviousCapture(shell_renderer, GetImageFilenameFromCurrentTest(), false, &reference_geometry);
+		reference_comparison = CompareScreenToPreviousCapture(render_interface, GetImageFilenameFromCurrentTest(), false, &reference_geometry);
 
 		if (!reference_comparison.success)
 			error_msg = reference_comparison.error_msg;

@@ -26,116 +26,120 @@
  *
  */
 
-#include "Shell.h"
+#include "../include/Shell.h"
+#include "../include/PlatformExtensions.h"
+#include "../include/ShellFileInterface.h"
+#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
-#include <string.h>
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Input.h>
+#include <RmlUi/Debugger.h>
 
-#ifdef RMLUI_PLATFORM_WIN32
-#include <io.h>
-#else
-#include <dirent.h>
-#endif
+static Rml::UniquePtr<ShellFileInterface> file_interface;
 
-/// Loads the default fonts from the given path.
-void Shell::LoadFonts(const char* directory)
+bool Shell::Initialize()
 {
+	// Find the path to the 'Samples' directory.
+	Rml::String root = PlatformExtensions::FindSamplesRoot();
+	if (root.empty())
+		return false;
+
+	// The shell overrides the default file interface so that absolute paths in RML/RCSS-documents are relative to the 'Samples' directory.
+	file_interface = Rml::MakeUnique<ShellFileInterface>(root);
+	Rml::SetFileInterface(file_interface.get());
+
+	return true;
+}
+
+void Shell::Shutdown()
+{
+	file_interface.reset();
+}
+
+void Shell::LoadFonts()
+{
+	const Rml::String directory = "assets/";
+
 	struct FontFace {
-		Rml::String filename;
+		const char* filename;
 		bool fallback_face;
 	};
 	FontFace font_faces[] = {
-		{ "LatoLatin-Regular.ttf",    false },
-		{ "LatoLatin-Italic.ttf",     false },
-		{ "LatoLatin-Bold.ttf",       false },
-		{ "LatoLatin-BoldItalic.ttf", false },
-		{ "NotoEmoji-Regular.ttf",    true  },
+		{"LatoLatin-Regular.ttf", false},
+		{"LatoLatin-Italic.ttf", false},
+		{"LatoLatin-Bold.ttf", false},
+		{"LatoLatin-BoldItalic.ttf", false},
+		{"NotoEmoji-Regular.ttf", true},
 	};
 
 	for (const FontFace& face : font_faces)
-	{
-		Rml::LoadFontFace(Rml::String(directory) + face.filename, face.fallback_face);
-	}
+		Rml::LoadFontFace(directory + face.filename, face.fallback_face);
 }
 
-
-enum class ListType { Files, Directories };
-
-static Rml::StringList ListFilesOrDirectories(ListType type, const Rml::String& directory, const Rml::String& extension)
+bool Shell::ProcessKeyDownShortcuts(Rml::Context* context, Rml::Input::KeyIdentifier key, int key_modifier, float native_dp_ratio, bool priority)
 {
-	if (directory.empty())
-		return Rml::StringList();
+	if (!context)
+		return true;
 
-	Rml::StringList result;
+	// Result should return true to allow the event to propagate to the next handler.
+	bool result = false;
 
-#ifdef RMLUI_PLATFORM_WIN32
-	const Rml::String find_path = directory + "/*." + (extension.empty() ? Rml::String("*") : extension);
-
-	_finddata_t find_data;
-	intptr_t find_handle = _findfirst(find_path.c_str(), &find_data);
-	if (find_handle != -1)
+	// This function is intended to be called twice by the backend, before and after submitting the key event to the context. This way we can
+	// intercept shortcuts that should take priority over the context, and then handle any shortcuts of lower priority if the context did not
+	// intercept it.
+	if (priority)
 	{
-		do
+		// Priority shortcuts are handled before submitting the key to the context.
+
+		// Toggle debugger and set dp-ratio using Ctrl +/-/0 keys.
+		if (key == Rml::Input::KI_F8)
 		{
-			if (strcmp(find_data.name, ".") == 0 ||
-				strcmp(find_data.name, "..") == 0)
-				continue;
-
-			bool is_directory = ((find_data.attrib & _A_SUBDIR) == _A_SUBDIR);
-			bool is_file = (!is_directory && ((find_data.attrib & _A_NORMAL) == _A_NORMAL));
-
-			if (((type == ListType::Files) && is_file) ||
-				((type == ListType::Directories) && is_directory))
+			Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
+		}
+		else if (key == Rml::Input::KI_0 && key_modifier & Rml::Input::KM_CTRL)
+		{
+			context->SetDensityIndependentPixelRatio(native_dp_ratio);
+		}
+		else if (key == Rml::Input::KI_1 && key_modifier & Rml::Input::KM_CTRL)
+		{
+			context->SetDensityIndependentPixelRatio(1.f);
+		}
+		else if ((key == Rml::Input::KI_OEM_MINUS || key == Rml::Input::KI_SUBTRACT) && key_modifier & Rml::Input::KM_CTRL)
+		{
+			const float new_dp_ratio = Rml::Math::Max(context->GetDensityIndependentPixelRatio() / 1.2f, 0.5f);
+			context->SetDensityIndependentPixelRatio(new_dp_ratio);
+		}
+		else if ((key == Rml::Input::KI_OEM_PLUS || key == Rml::Input::KI_ADD) && key_modifier & Rml::Input::KM_CTRL)
+		{
+			const float new_dp_ratio = Rml::Math::Min(context->GetDensityIndependentPixelRatio() * 1.2f, 2.5f);
+			context->SetDensityIndependentPixelRatio(new_dp_ratio);
+		}
+		else
+		{
+			// Propagate the key down event to the context.
+			result = true;
+		}
+	}
+	else
+	{
+		// We arrive here when no priority keys are detected and the key was not consumed by the context. Check for shortcuts of lower priority.
+		if (key == Rml::Input::KI_R && key_modifier & Rml::Input::KM_CTRL)
+		{
+			for (int i = 0; i < context->GetNumDocuments(); i++)
 			{
-				result.push_back(find_data.name);
+				Rml::ElementDocument* document = context->GetDocument(i);
+				const Rml::String& src = document->GetSourceURL();
+				if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
+				{
+					document->ReloadStyleSheet();
+				}
 			}
-
-		} while (_findnext(find_handle, &find_data) == 0);
-
-		_findclose(find_handle);
-	}
-#else
-	struct dirent** file_list = nullptr;
-	const int file_count = scandir(directory.c_str(), &file_list, 0, alphasort);
-	if (file_count == -1)
-		return Rml::StringList();
-
-	for (int i = 0; i < file_count; i++)
-	{
-		if (strcmp(file_list[i]->d_name, ".") == 0 ||
-			strcmp(file_list[i]->d_name, "..") == 0)
-			continue;
-
-		bool is_directory = ((file_list[i]->d_type & DT_DIR) == DT_DIR);
-		bool is_file = ((file_list[i]->d_type & DT_REG) == DT_REG);
-
-		if (!extension.empty())
-		{
-			const char* last_dot = strrchr(file_list[i]->d_name, '.');
-			if (!last_dot || strcmp(last_dot + 1, extension.c_str()) != 0)
-				continue;
 		}
-
-		if ((type == ListType::Files && is_file) ||
-			(type == ListType::Directories && is_directory))
+		else
 		{
-			result.push_back(file_list[i]->d_name);
+			result = true;
 		}
 	}
-	for (int i = 0; i < file_count; i++)
-		free(file_list[i]);
-	free(file_list);
-#endif
 
 	return result;
 }
-
-Rml::StringList Shell::ListDirectories(const Rml::String& in_directory)
-{
-	return ListFilesOrDirectories(ListType::Directories, in_directory, Rml::String());
-}
-
-Rml::StringList Shell::ListFiles(const Rml::String& in_directory, const Rml::String& extension)
-{
-	return ListFilesOrDirectories(ListType::Files, in_directory, extension);
-}
-

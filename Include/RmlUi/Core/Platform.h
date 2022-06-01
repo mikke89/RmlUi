@@ -36,6 +36,10 @@
 	#define RMLUI_PLATFORM_UNIX
 	#define RMLUI_PLATFORM_MACOSX
 	#define RMLUI_PLATFORM_NAME "macosx"
+#elif defined __EMSCRIPTEN__
+	#define RMLUI_PLATFORM_UNIX
+	#define RMLUI_PLATFORM_EMSCRIPTEN
+	#define RMLUI_PLATFORM_NAME "emscripten"
 #else
 	#define RMLUI_PLATFORM_UNIX
 	#define RMLUI_PLATFORM_LINUX

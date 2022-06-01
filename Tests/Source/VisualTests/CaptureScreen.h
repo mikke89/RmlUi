@@ -29,10 +29,9 @@
 #ifndef RMLUI_TESTS_VISUALTESTS_CAPTURESCREEN_H
 #define RMLUI_TESTS_VISUALTESTS_CAPTURESCREEN_H
 
+#include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Vertex.h>
-
-class ShellRenderInterfaceOpenGL;
 
 struct ComparisonResult {
 	bool skipped = true;
@@ -49,14 +48,13 @@ struct TextureGeometry {
 	int indices[6] = {};
 };
 
-bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width);
+bool CaptureScreenshot(const Rml::String& filename, int clip_width);
 
-ComparisonResult CompareScreenToPreviousCapture(
-	ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, bool write_diff_image, TextureGeometry* out_geometry);
+ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_interface, const Rml::String& filename, bool write_diff_image,
+	TextureGeometry* out_geometry);
 
-void RenderTextureGeometry(ShellRenderInterfaceOpenGL* shell_renderer, TextureGeometry& geometry);
+void RenderTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry);
 
-void ReleaseTextureGeometry(ShellRenderInterfaceOpenGL* shell_renderer, TextureGeometry& geometry);
-
+void ReleaseTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry);
 
 #endif

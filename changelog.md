@@ -11,6 +11,22 @@
 
 ## RmlUi 5.0 (WIP)
 
+### Backends
+
+RmlUi 5.0 introduces the backends concept. This is a complete refactoring of the old sample shell, replacing most of it with a multitude of backends. A backend is a combination of a renderer and a platform. The shell is now only used for common functions specific to the included samples.
+
+This change is beneficial in several aspects:
+
+- Makes it easier to integrate RmlUi as users can directly use the renderer and platform suited for their setup.
+- Makes it a lot easier to add new backends and maintain existing ones.
+- Allows all the samples to run on any backend by choosing the desired backend during CMake configuration.
+
+All samples and tests have been updated to work with the [backends interface](Backends/RmlUi_Backend.h), which is a very light abstraction over all the different backends.
+
+A new GLFW backend has been added, along with the SFML and SDL platforms ported from the old samples. The old macOS shell has been removed as it used a legacy API that is no longer working on modern Apple devices. Now the samples build again on macOS using one of the windowing libraries such as GLFW or SDL. Further, an OpenGL 3 renderer has been added (#261), and also Emscripten support so RmlUi even runs in web browsers now.
+
+See the [Backends section in the readme](readme.md#rmlui-backends) for more details.
+
 ### Text editing
 
 The `<textarea>` and `<input type="text">` elements have been improved in several aspects.
@@ -20,14 +36,22 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - When word-wrap is enabled, words can now be broken to avoid overflow.
 - Fixed several issues where the text cursor would be offset from the text editing operations. In particular after word wrapping, or when suppressed characters were present in the text field's value. #313
 - Fixed an issue where Windows newline endings (\r\n) would produce an excessive space character.
+- Fixed operation of page up/down numpad keys being swapped.
 
 ### Lua plugin
 
 - Add length to proxy for element children. #315 (thanks @nimble0)
 
+### Layout improvements
+
+- Scroll and slider elements now use containing block's height instead of width to calculate height-relative values. #314 #321 (thanks @nimble0)
+- Generate warnings when directly nesting flexboxes and other unsupported elements in a top-level formatting context. #320
+
 ### General fixes
 
 - `<img>` element: Fix wrong dp-scaling being applied when an image is cloned through a parent element. #310
+- Win32 backend: Fix slow input handling especially with CJK input. #311
+- Logging a message without an installed system interface will now be written to cout instead of crashing the application.
 
 
 ## RmlUi 4.4

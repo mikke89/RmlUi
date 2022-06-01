@@ -26,44 +26,22 @@
  *
  */
 
-#include "TestConfig.h"
-#include "TestViewer.h"
-#include "TestNavigator.h"
 #include "CaptureScreen.h"
+#include "TestConfig.h"
+#include "TestNavigator.h"
 #include "TestSuite.h"
+#include "TestViewer.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Debugger.h>
+#include <PlatformExtensions.h>
+#include <RmlUi_Backend.h>
 #include <Shell.h>
-#include <Input.h>
-#include <ShellRenderInterfaceOpenGL.h>
-
-
-Rml::Context* context = nullptr;
-ShellRenderInterfaceOpenGL* shell_renderer = nullptr;
-TestNavigator* g_navigator = nullptr;
-
-void GameLoop()
-{
-	context->Update();
-
-	shell_renderer->PrepareRenderBuffer();
-	context->Render();
-
-	if (g_navigator)
-		g_navigator->Render();
-
-	shell_renderer->PresentRenderBuffer();
-
-	if (g_navigator)
-		g_navigator->Update();
-}
-
 
 #if defined RMLUI_PLATFORM_WIN32
-#include <windows.h>
-int APIENTRY WinMain(HINSTANCE RMLUI_UNUSED_PARAMETER(instance_handle), HINSTANCE RMLUI_UNUSED_PARAMETER(previous_instance_handle), char* command_line, int RMLUI_UNUSED_PARAMETER(command_show))
+	#include <RmlUi_Include_Windows.h>
+int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* command_line, int /*command_show*/)
 #else
 int main(int argc, char** argv)
 #endif
@@ -71,43 +49,36 @@ int main(int argc, char** argv)
 	int load_test_case_index = -1;
 
 #ifdef RMLUI_PLATFORM_WIN32
-	RMLUI_UNUSED(instance_handle);
-	RMLUI_UNUSED(previous_instance_handle);
-	RMLUI_UNUSED(command_show);
-
 	load_test_case_index = std::atoi(command_line) - 1;
 #else
 	if (argc > 1)
 		load_test_case_index = std::atoi(argv[1]) - 1;
 #endif
 
-
 	int window_width = 1500;
 	int window_height = 800;
 
-	ShellRenderInterfaceOpenGL opengl_renderer;
-	shell_renderer = &opengl_renderer;
+	// Initializes the shell which provides common functionality used by the included samples.
+	if (!Shell::Initialize())
+		return -1;
 
-	// Generic OS initialisation, creates a window and attaches OpenGL.
-	if (!Shell::Initialise() ||
-		!Shell::OpenWindow("Visual tests", shell_renderer, window_width, window_height, true))
+	// Constructs the system and render interfaces, creates a window, and attaches the renderer.
+	if (!Backend::Initialize("Visual tests", window_width, window_height, true))
 	{
 		Shell::Shutdown();
 		return -1;
 	}
 
+	// Install the custom interfaces constructed by the backend before initializing RmlUi.
+	Rml::SetSystemInterface(Backend::GetSystemInterface());
+	Rml::SetRenderInterface(Backend::GetRenderInterface());
+
 	// RmlUi initialisation.
-	Rml::SetRenderInterface(&opengl_renderer);
-	shell_renderer->SetViewport(window_width, window_height);
-
-	ShellSystemInterface system_interface;
-	Rml::SetSystemInterface(&system_interface);
-
 	Rml::Initialise();
 
-	// Create the main RmlUi context and set it on the shell's input layer.
-	context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
-	if (context == nullptr)
+	// Create the main RmlUi context.
+	Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
+	if (!context)
 	{
 		Rml::Shutdown();
 		Shell::Shutdown();
@@ -115,10 +86,7 @@ int main(int argc, char** argv)
 	}
 
 	Rml::Debugger::Initialise(context);
-	Input::SetContext(context);
-	Shell::SetContext(context);
-
-	Shell::LoadFonts("assets/");
+	Shell::LoadFonts();
 
 	{
 		const Rml::StringList directories = GetTestInputDirectories();
@@ -127,34 +95,39 @@ int main(int argc, char** argv)
 
 		for (const Rml::String& directory : directories)
 		{
-			const Rml::StringList files = Shell::ListFiles(directory, "rml");
+			const Rml::StringList files = PlatformExtensions::ListFiles(directory, "rml");
 
 			if (files.empty())
-			{
 				Rml::Log::Message(Rml::Log::LT_WARNING, "Could not find any *.rml files in directory '%s'. Ignoring.", directory.c_str());
-			}
 			else
-			{
 				test_suites.emplace_back(directory, std::move(files));
-			}
 		}
 
 		RMLUI_ASSERTMSG(!test_suites.empty(), "RML test files directory not found or empty.");
 
 		TestViewer viewer(context);
 
-		TestNavigator navigator(shell_renderer, context, &viewer, std::move(test_suites), load_test_case_index);
-		g_navigator = &navigator;
+		TestNavigator navigator(context->GetRenderInterface(), context, &viewer, std::move(test_suites), load_test_case_index);
 
-		Shell::EventLoop(GameLoop);
+		bool running = true;
+		while (running)
+		{
+			running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
 
-		g_navigator = nullptr;
+			context->Update();
+
+			Backend::BeginFrame();
+			context->Render();
+			navigator.Render();
+			Backend::PresentFrame();
+
+			navigator.Update();
+		}
 	}
 
 	Rml::Shutdown();
-
-	Shell::CloseWindow();
 	Shell::Shutdown();
+	Backend::Shutdown();
 
 	return 0;
 }

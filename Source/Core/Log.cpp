@@ -32,9 +32,7 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 
 #include <stdarg.h>
-#ifdef RMLUI_PLATFORM_WIN32
-#include <windows.h>
-#endif
+#include <stdio.h>
 
 namespace Rml {
 
@@ -66,7 +64,10 @@ void Log::Message(Log::Type type, const char* fmt, ...)
 	buffer[len] = '\0';
 	va_end(argument_list);
 
-	GetSystemInterface()->LogMessage(type, buffer);
+	if (SystemInterface* system_interface = GetSystemInterface())
+		system_interface->LogMessage(type, buffer);
+	else
+		puts(buffer);
 }
 
 // Log a parse error on the specified file and line number.
@@ -95,7 +96,14 @@ void Log::ParseError(const String& filename, int line_number, const char* fmt, .
 bool Assert(const char* msg, const char* file, int line)
 {
 	String message = CreateString(1024, "%s\n%s:%d", msg, file, line);
-	return GetSystemInterface()->LogMessage(Log::LT_ASSERT, message);
+
+	bool result = true;
+	if (SystemInterface* system_interface = GetSystemInterface())
+		result = system_interface->LogMessage(Log::LT_ASSERT, message);
+	else
+		puts(message.c_str());
+
+	return result;
 }
 
 } // namespace Rml

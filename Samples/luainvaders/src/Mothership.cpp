@@ -32,11 +32,11 @@
 #include "Game.h"
 #include "Sprite.h"
 
-static const int SPRITE_WIDTH = 64;
+const int SPRITE_WIDTH = 64;
 
-static const float APPEARANCE_PROBABILITY = 0.001f;
-static const double UPDATE_FREQ = 0.025;
-static const float MOVEMENT_SPEED = 5;
+const float APPEARANCE_PROBABILITY = 0.001f;
+const double UPDATE_FREQ = 0.025;
+const float MOVEMENT_SPEED = 5;
 
 Mothership::Mothership(Game* game, int index) : Invader(game, Invader::MOTHERSHIP, index)
 {
@@ -51,12 +51,12 @@ Mothership::~Mothership()
 {
 }
 
-void Mothership::Update()
+void Mothership::Update(double t)
 {
 	// Generic Invader update
-	Invader::Update();
+	Invader::Update(t);
 
-	if (Shell::GetElapsedTime() - update_frame_start < UPDATE_FREQ)
+	if (t - update_frame_start < UPDATE_FREQ)
 		return;
 
 	// We're alive, keep moving!
@@ -68,7 +68,7 @@ void Mothership::Update()
 			|| (direction > 0.0f && position.x > game->GetWindowDimensions().x))
 			state = DEAD;
 
-		update_frame_start = Shell::GetElapsedTime();
+		update_frame_start = t;
 	}
 	// Determine if we should come out of hiding
 	else if (Rml::Math::RandomReal(1.0f) < APPEARANCE_PROBABILITY)

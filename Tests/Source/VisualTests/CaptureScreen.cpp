@@ -28,27 +28,25 @@
 
 #include "CaptureScreen.h"
 #include "TestConfig.h"
-#include <Shell.h>
-#include <ShellRenderInterfaceOpenGL.h>
+#include <RendererExtensions.h>
+#include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/StringUtilities.h>
-#include <RmlUi/Core/GeometryUtilities.h>
+#include <Shell.h>
 #include <cmath>
 
 #define LODEPNG_NO_COMPILE_CPP
-
 #include <lodepng.h>
 
-
-bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, int clip_width)
+bool CaptureScreenshot(const Rml::String& filename, int clip_width)
 {
-	using Image = ShellRenderInterfaceOpenGL::Image;
+	using Image = RendererExtensions::Image;
 	
-	Image image_orig = shell_renderer->CaptureScreen();
+	Image image_orig = RendererExtensions::CaptureScreen();
 
 	if (!image_orig.data)
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not capture screenshot from OpenGL window.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not capture screenshot of window.");
 		return false;
 	}
 
@@ -88,17 +86,15 @@ bool CaptureScreenshot(ShellRenderInterfaceOpenGL* shell_renderer, const Rml::St
 	return true;
 }
 
-
 struct DeferFree {
 	unsigned char* ptr = nullptr;
 	~DeferFree() { free(ptr); }
 };
 
-
-ComparisonResult CompareScreenToPreviousCapture(
-	ShellRenderInterfaceOpenGL* shell_renderer, const Rml::String& filename, bool write_diff_image, TextureGeometry* out_geometry)
+ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_interface, const Rml::String& filename, bool write_diff_image,
+	TextureGeometry* out_geometry)
 {
-	using Image = ShellRenderInterfaceOpenGL::Image;
+	using Image = RendererExtensions::Image;
 
 	const Rml::String input_path = GetCompareInputDirectory() + "/" + filename;
 
@@ -120,7 +116,7 @@ ComparisonResult CompareScreenToPreviousCapture(
 	// Optionally render the previous capture to a texture.
 	if (out_geometry)
 	{
-		if (!shell_renderer->GenerateTexture(out_geometry->texture_handle, data_ref, Rml::Vector2i((int)w_ref, (int)h_ref)))
+		if (!render_interface->GenerateTexture(out_geometry->texture_handle, data_ref, Rml::Vector2i((int)w_ref, (int)h_ref)))
 		{
 			ComparisonResult result;
 			result.success = false;
@@ -136,12 +132,12 @@ ComparisonResult CompareScreenToPreviousCapture(
 			Rml::Vector2f((float)w_ref, (float)h_ref), colour, uv_top_left, uv_bottom_right, 0);
 	}
 
-	Image screen = shell_renderer->CaptureScreen();
+	Image screen = RendererExtensions::CaptureScreen();
 	if (!screen.data)
 	{
 		ComparisonResult result;
 		result.success = false;
-		result.error_msg = "Could not capture screen from OpenGL window.";
+		result.error_msg = "Could not capture screenshot of window.";
 		return result;
 	}
 	RMLUI_ASSERT(screen.num_components == 3);
@@ -216,17 +212,17 @@ ComparisonResult CompareScreenToPreviousCapture(
 	return result;
 }
 
-void RenderTextureGeometry(ShellRenderInterfaceOpenGL* shell_renderer, TextureGeometry& geometry)
+void RenderTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry)
 {
 	if (geometry.texture_handle)
-		shell_renderer->RenderGeometry(geometry.vertices, 4, geometry.indices, 6, geometry.texture_handle, Rml::Vector2f(0, 0));
+		render_interface->RenderGeometry(geometry.vertices, 4, geometry.indices, 6, geometry.texture_handle, Rml::Vector2f(0, 0));
 }
 
-void ReleaseTextureGeometry(ShellRenderInterfaceOpenGL* shell_renderer, TextureGeometry& geometry)
+void ReleaseTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry)
 {
 	if (geometry.texture_handle)
 	{
-		shell_renderer->ReleaseTexture(geometry.texture_handle);
+		render_interface->ReleaseTexture(geometry.texture_handle);
 		geometry.texture_handle = 0;
 	}
 }

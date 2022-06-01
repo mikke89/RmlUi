@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,33 +27,64 @@
  */
 
 #include "Sprite.h"
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Math.h>
-#include <ShellOpenGL.h>
+#include <RmlUi/Core/RenderInterface.h>
 
-Sprite::Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord) : dimensions(dimensions), top_left_texcoord(top_left_texcoord), bottom_right_texcoord(bottom_right_texcoord)
-{
-}
+Sprite::Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord) :
+	dimensions(dimensions), top_left_texcoord(top_left_texcoord), bottom_right_texcoord(bottom_right_texcoord)
+{}
 
-Sprite::~Sprite()
-{
-}
+Sprite::~Sprite() {}
 
-void Sprite::Render(Rml::Vector2f position, const float dp_ratio)
+void Sprite::Render(Rml::Vector2f position, const float dp_ratio, Rml::Colourb color, Rml::TextureHandle texture)
 {
-	position = (dp_ratio * position);
+	Rml::RenderInterface* render_interface = Rml::GetRenderInterface();
+	if (!render_interface)
+		return;
+
+	position = dp_ratio * position;
 	Rml::Vector2f dimensions_px = dp_ratio * dimensions;
-
 	Rml::Math::SnapToPixelGrid(position, dimensions_px);
 
-	glTexCoord2f(top_left_texcoord.x, top_left_texcoord.y);
-	glVertex2f(position.x, position.y);
+	Rml::Vertex vertices[4];
+	int indices[6];
+	Rml::GeometryUtilities::GenerateQuad(vertices, indices, Rml::Vector2f(0.f), dimensions_px, color, top_left_texcoord, bottom_right_texcoord);
 
-	glTexCoord2f(top_left_texcoord.x, bottom_right_texcoord.y);
-	glVertex2f(position.x, position.y + dimensions_px.y);
+	render_interface->RenderGeometry(vertices, 4, indices, 6, texture, position);
+}
 
-	glTexCoord2f(bottom_right_texcoord.x, bottom_right_texcoord.y);
-	glVertex2f(position.x + dimensions_px.x, position.y + dimensions_px.y);
+void DrawPoints(float point_size, const ColoredPointList& points)
+{
+	Rml::RenderInterface* render_interface = Rml::GetRenderInterface();
+	if (!render_interface)
+		return;
 
-	glTexCoord2f(bottom_right_texcoord.x, top_left_texcoord.y);
-	glVertex2f(position.x + dimensions_px.x, position.y);
+	constexpr int num_quad_vertices = 4;
+	constexpr int num_quad_indices = 6;
+
+	const int num_points = (int)points.size();
+
+	Rml::Vector<Rml::Vertex> vertices(num_points * num_quad_vertices);
+	Rml::Vector<int> indices(num_points * num_quad_indices);
+
+	int vertex_offset = 0;
+	int index_offset = 0;
+
+	for (const ColoredPoint& point : points)
+	{
+		Rml::Vector2f position = point.position;
+		Rml::Vector2f size = Rml::Vector2f(point_size);
+		Rml::GeometryUtilities::GenerateQuad(vertices.data() + vertex_offset, indices.data() + index_offset, position, size, point.color,
+			vertex_offset);
+
+		vertex_offset += num_quad_vertices;
+		index_offset += num_quad_indices;
+	}
+
+	RMLUI_ASSERT(vertex_offset == (int)vertices.size());
+	RMLUI_ASSERT(index_offset == (int)indices.size());
+
+	render_interface->RenderGeometry(vertices.data(), vertex_offset, indices.data(), index_offset, {}, Rml::Vector2f(0.f));
 }

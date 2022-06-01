@@ -78,8 +78,10 @@ public: \
 /////////////////////////////////////////////////
 PASS_THROUGH(int);
 PASS_THROUGH(unsigned int);
-PASS_THROUGH(int64_t);
-PASS_THROUGH(uint64_t);
+PASS_THROUGH(long);
+PASS_THROUGH(unsigned long);
+PASS_THROUGH(long long);
+PASS_THROUGH(unsigned long long);
 PASS_THROUGH(float);
 PASS_THROUGH(double);
 PASS_THROUGH(bool);
@@ -107,49 +109,82 @@ PASS_THROUGH(voidPtr);
 /////////////////////////////////////////////////
 BASIC_CONVERTER(bool, int);
 BASIC_CONVERTER(bool, unsigned int);
-BASIC_CONVERTER(bool, int64_t);
-BASIC_CONVERTER(bool, uint64_t);
+BASIC_CONVERTER(bool, long);
+BASIC_CONVERTER(bool, unsigned long);
+BASIC_CONVERTER(bool, long long);
+BASIC_CONVERTER(bool, unsigned long long);
 BASIC_CONVERTER(bool, float);
 BASIC_CONVERTER(bool, double);
 
 BASIC_CONVERTER_BOOL(int, bool);
 BASIC_CONVERTER(int, unsigned int);
-BASIC_CONVERTER(int, int64_t);
-BASIC_CONVERTER(int, uint64_t);
+BASIC_CONVERTER(int, long);
+BASIC_CONVERTER(int, unsigned long);
+BASIC_CONVERTER(int, long long);
+BASIC_CONVERTER(int, unsigned long long);
 BASIC_CONVERTER(int, float);
 BASIC_CONVERTER(int, double);
 
 BASIC_CONVERTER_BOOL(unsigned int, bool);
 BASIC_CONVERTER(unsigned int, int);
-BASIC_CONVERTER(unsigned int, int64_t);
-BASIC_CONVERTER(unsigned int, uint64_t);
+BASIC_CONVERTER(unsigned int, long);
+BASIC_CONVERTER(unsigned int, unsigned long);
+BASIC_CONVERTER(unsigned int, long long);
+BASIC_CONVERTER(unsigned int, unsigned long long);
 BASIC_CONVERTER(unsigned int, float);
 BASIC_CONVERTER(unsigned int, double);
 
-BASIC_CONVERTER_BOOL(int64_t, bool);
-BASIC_CONVERTER(int64_t, int);
-BASIC_CONVERTER(int64_t, float);
-BASIC_CONVERTER(int64_t, double);
-BASIC_CONVERTER(int64_t, unsigned int);
+BASIC_CONVERTER_BOOL(long, bool);
+BASIC_CONVERTER(long, int);
+BASIC_CONVERTER(long, unsigned int);
+BASIC_CONVERTER(long, unsigned long);
+BASIC_CONVERTER(long, long long);
+BASIC_CONVERTER(long, unsigned long long);
+BASIC_CONVERTER(long, float);
+BASIC_CONVERTER(long, double);
 
-BASIC_CONVERTER_BOOL(uint64_t, bool);
-BASIC_CONVERTER(uint64_t, int);
-BASIC_CONVERTER(uint64_t, float);
-BASIC_CONVERTER(uint64_t, double);
-BASIC_CONVERTER(uint64_t, unsigned int);
-BASIC_CONVERTER(uint64_t, int64_t);
+BASIC_CONVERTER_BOOL(unsigned long, bool);
+BASIC_CONVERTER(unsigned long, int);
+BASIC_CONVERTER(unsigned long, unsigned int);
+BASIC_CONVERTER(unsigned long, long);
+BASIC_CONVERTER(unsigned long, long long);
+BASIC_CONVERTER(unsigned long, unsigned long long);
+BASIC_CONVERTER(unsigned long, float);
+BASIC_CONVERTER(unsigned long, double);
+
+BASIC_CONVERTER_BOOL(long long, bool);
+BASIC_CONVERTER(long long, int);
+BASIC_CONVERTER(long long, unsigned int);
+BASIC_CONVERTER(long long, long);
+BASIC_CONVERTER(long long, unsigned long);
+BASIC_CONVERTER(long long, unsigned long long);
+BASIC_CONVERTER(long long, float);
+BASIC_CONVERTER(long long, double);
+
+BASIC_CONVERTER_BOOL(unsigned long long, bool);
+BASIC_CONVERTER(unsigned long long, int);
+BASIC_CONVERTER(unsigned long long, unsigned int);
+BASIC_CONVERTER(unsigned long long, long);
+BASIC_CONVERTER(unsigned long long, unsigned long);
+BASIC_CONVERTER(unsigned long long, long long);
+BASIC_CONVERTER(unsigned long long, float);
+BASIC_CONVERTER(unsigned long long, double);
 
 BASIC_CONVERTER_BOOL(float, bool);
 BASIC_CONVERTER(float, int);
-BASIC_CONVERTER(float, int64_t);
-BASIC_CONVERTER(float, uint64_t);
+BASIC_CONVERTER(float, long);
+BASIC_CONVERTER(float, unsigned long);
+BASIC_CONVERTER(float, long long);
+BASIC_CONVERTER(float, unsigned long long);
 BASIC_CONVERTER(float, double);
 BASIC_CONVERTER(float, unsigned int);
 
 BASIC_CONVERTER_BOOL(double, bool);
 BASIC_CONVERTER(double, int);
-BASIC_CONVERTER(double, int64_t);
-BASIC_CONVERTER(double, uint64_t);
+BASIC_CONVERTER(double, long);
+BASIC_CONVERTER(double, unsigned long);
+BASIC_CONVERTER(double, long long);
+BASIC_CONVERTER(double, unsigned long long);
 BASIC_CONVERTER(double, float);
 BASIC_CONVERTER(double, unsigned int);
 
@@ -173,59 +208,50 @@ public: \
 STRING_FLOAT_CONVERTER(float);
 STRING_FLOAT_CONVERTER(double);
 
-template<>
-class TypeConverter< String, int >
-{
+template <>
+class TypeConverter<String, int> {
 public:
-	static bool Convert(const String& src, int& dest)
-	{
-		return sscanf(src.c_str(), "%d", &dest) == 1;
-	}
+	static bool Convert(const String& src, int& dest) { return sscanf(src.c_str(), "%d", &dest) == 1; }
 };
 
-template<>
-class TypeConverter< String, unsigned int >
-{
+template <>
+class TypeConverter<String, unsigned int> {
 public:
-	static bool Convert(const String& src, unsigned int& dest)
-	{
-		return sscanf(src.c_str(), "%u", &dest) == 1;
-	}
+	static bool Convert(const String& src, unsigned int& dest) { return sscanf(src.c_str(), "%u", &dest) == 1; }
 };
 
-template<>
-class TypeConverter< String, uint64_t >
-{
+template <>
+class TypeConverter<String, long> {
 public:
-	static bool Convert(const String& src, uint64_t& dest)
-	{
-		return sscanf(src.c_str(), "%" SCNu64, &dest) == 1;
-	}
+	static bool Convert(const String& src, long& dest) { return sscanf(src.c_str(), "%ld", &dest) == 1; }
 };
 
-template<>
-class TypeConverter< String, int64_t >
-{
+template <>
+class TypeConverter<String, unsigned long> {
 public:
-	static bool Convert(const String& src, int64_t& dest)
-	{
-		return sscanf(src.c_str(), "%" SCNd64, &dest) == 1;
-	}
+	static bool Convert(const String& src, unsigned long& dest) { return sscanf(src.c_str(), "%lu", &dest) == 1; }
 };
 
-template<>
-class TypeConverter< String, byte >
-{
+template <>
+class TypeConverter<String, long long> {
 public:
-	static bool Convert(const String& src, byte& dest)
-	{
-		return sscanf(src.c_str(), "%hhu", &dest) == 1;
-	}
+	static bool Convert(const String& src, long long& dest) { return sscanf(src.c_str(), "%lld", &dest) == 1; }
 };
 
-template<>
-class TypeConverter< String, bool >
-{
+template <>
+class TypeConverter<String, unsigned long long> {
+public:
+	static bool Convert(const String& src, unsigned long long& dest) { return sscanf(src.c_str(), "%llu", &dest) == 1; }
+};
+
+template <>
+class TypeConverter<String, byte> {
+public:
+	static bool Convert(const String& src, byte& dest) { return sscanf(src.c_str(), "%hhu", &dest) == 1; }
+};
+
+template <>
+class TypeConverter<String, bool> {
 public:
 	static bool Convert(const String& src, bool& dest)
 	{
@@ -303,59 +329,50 @@ public: \
 FLOAT_STRING_CONVERTER(float);
 FLOAT_STRING_CONVERTER(double);
 
-template<>
-class TypeConverter< int, String >
-{
+template <>
+class TypeConverter<int, String> {
 public:
-	static bool Convert(const int& src, String& dest)
-	{
-		return FormatString(dest, 32, "%d", src) > 0;
-	}
+	static bool Convert(const int& src, String& dest) { return FormatString(dest, 32, "%d", src) > 0; }
 };
 
-template<>
-class TypeConverter< unsigned int, String >
-{
+template <>
+class TypeConverter<unsigned int, String> {
 public:
-	static bool Convert(const unsigned int& src, String& dest)
-	{
-		return FormatString(dest, 32, "%u", src) > 0;
-	}
+	static bool Convert(const unsigned int& src, String& dest) { return FormatString(dest, 32, "%u", src) > 0; }
 };
 
-template<>
-class TypeConverter< int64_t, String >
-{
+template <>
+class TypeConverter<long, String> {
 public:
-	static bool Convert(const int64_t& src, String& dest)
-	{
-		return FormatString(dest, 32, "%" PRId64, src) > 0;
-	}
+	static bool Convert(const long& src, String& dest) { return FormatString(dest, 32, "%ld", src) > 0; }
 };
 
-template<>
-class TypeConverter< uint64_t, String >
-{
+template <>
+class TypeConverter<unsigned long, String> {
 public:
-	static bool Convert(const uint64_t& src, String& dest)
-	{
-		return FormatString(dest, 32, "%" PRIu64, src) > 0;
-	}
+	static bool Convert(const unsigned long& src, String& dest) { return FormatString(dest, 32, "%lu", src) > 0; }
 };
 
-template<>
-class TypeConverter< byte, String >
-{
+template <>
+class TypeConverter<long long, String> {
 public:
-	static bool Convert(const byte& src, String& dest)
-	{
-		return FormatString(dest, 32, "%hhu", src) > 0;
-	}
+	static bool Convert(const long long& src, String& dest) { return FormatString(dest, 32, "%lld", src) > 0; }
 };
 
-template<>
-class TypeConverter< bool, String >
-{
+template <>
+class TypeConverter<unsigned long long, String> {
+public:
+	static bool Convert(const unsigned long long& src, String& dest) { return FormatString(dest, 32, "%llu", src) > 0; }
+};
+
+template <>
+class TypeConverter<byte, String> {
+public:
+	static bool Convert(const byte& src, String& dest) { return FormatString(dest, 32, "%hhu", src) > 0; }
+};
+
+template <>
+class TypeConverter<bool, String> {
 public:
 	static bool Convert(const bool& src, String& dest)
 	{
@@ -364,11 +381,10 @@ public:
 	}
 };
 
-template<>
-class TypeConverter< char*, String >
-{
+template <>
+class TypeConverter<char*, String> {
 public:
-	static bool Convert(char* const & src, String& dest)
+	static bool Convert(char* const& src, String& dest)
 	{
 		dest = src;
 		return true;
