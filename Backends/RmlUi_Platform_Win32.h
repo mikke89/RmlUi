@@ -39,7 +39,7 @@ class SystemInterface_Win32 : public Rml::SystemInterface {
 public:
 	SystemInterface_Win32();
 
-	// Optionally, provide or change the window to be used for setting the mouse cursors and clipboard text.
+	// Optionally, provide or change the window to be used for setting the mouse cursor, clipboard text and IME position.
 	void SetWindow(HWND window_handle);
 
 	// -- Inherited from Rml::SystemInterface  --
@@ -50,6 +50,8 @@ public:
 
 	void SetClipboardText(const Rml::String& text) override;
 	void GetClipboardText(Rml::String& text) override;
+
+	void ActivateKeyboard(Rml::Vector2f caret_position, float line_height) override;
 
 private:
 	HWND window_handle = nullptr;

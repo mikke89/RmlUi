@@ -91,10 +91,12 @@ public:
 	/// @param[out] text Retrieved text from clipboard.
 	virtual void GetClipboardText(String& text);
 
-	/// Activate keyboard (for touchscreen devices)
-	virtual void ActivateKeyboard();
+	/// Activate keyboard (for touchscreen devices).
+	/// @param[in] caret_position Position of the caret in absolute window coordinates.
+	/// @param[in] line_height Height of the current line being edited.
+	virtual void ActivateKeyboard(Rml::Vector2f caret_position, float line_height);
 	
-	/// Deactivate keyboard (for touchscreen devices)
+	/// Deactivate keyboard (for touchscreen devices).
 	virtual void DeactivateKeyboard();
 };
 

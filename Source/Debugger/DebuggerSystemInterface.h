@@ -79,10 +79,10 @@ public:
 	/// @param[out] text Retrieved text from clipboard.
 	void GetClipboardText(String& text) override;
 
-	/// Activate keyboard (for touchscreen devices)
-	void ActivateKeyboard() override;
+	/// Activate keyboard (for touchscreen devices).
+	void ActivateKeyboard(Rml::Vector2f caret_position, float line_height) override;
 	
-	/// Deactivate keyboard (for touchscreen devices)
+	/// Deactivate keyboard (for touchscreen devices).
 	void DeactivateKeyboard() override;
 private:
 	Rml::SystemInterface* application_interface;

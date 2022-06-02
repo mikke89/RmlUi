@@ -34,6 +34,11 @@
 #include <RmlUi/Core/SystemInterface.h>
 #include <string.h>
 
+// Used to interact with the input method editor (IME). Users of MinGW should manually link to this.
+#ifdef _MSC_VER
+	#pragma comment(lib, "imm32")
+#endif
+
 SystemInterface_Win32::SystemInterface_Win32()
 {
 	LARGE_INTEGER time_ticks_per_second;
@@ -138,6 +143,27 @@ void SystemInterface_Win32::GetClipboardText(Rml::String& text)
 		GlobalUnlock(clipboard_data);
 
 		CloseClipboard();
+	}
+}
+
+void SystemInterface_Win32::ActivateKeyboard(Rml::Vector2f caret_position, float /*line_height*/)
+{
+	// Adjust the position of the input method editor (IME) to the caret.
+	if (HIMC himc = ImmGetContext(window_handle))
+	{
+		COMPOSITIONFORM comp = {};
+		comp.ptCurrentPos.x = (LONG)caret_position.x;
+		comp.ptCurrentPos.y = (LONG)caret_position.y;
+		comp.dwStyle = CFS_FORCE_POSITION;
+		ImmSetCompositionWindow(himc, &comp);
+
+		CANDIDATEFORM cand = {};
+		cand.dwStyle = CFS_CANDIDATEPOS;
+		cand.ptCurrentPos.x = (LONG)caret_position.x;
+		cand.ptCurrentPos.y = (LONG)caret_position.y;
+		ImmSetCandidateWindow(himc, &cand);
+
+		ImmReleaseContext(window_handle, himc);
 	}
 }
 

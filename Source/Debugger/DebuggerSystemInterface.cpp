@@ -79,17 +79,12 @@ void DebuggerSystemInterface::GetClipboardText(String& text)
 	application_interface->GetClipboardText(text);
 }
 
-// Activate keyboard (for touchscreen devices)
-void DebuggerSystemInterface::ActivateKeyboard()
+void DebuggerSystemInterface::ActivateKeyboard(Rml::Vector2f caret_position, float line_height)
 {
-	application_interface->ActivateKeyboard();
-}
-	
-// Deactivate keyboard (for touchscreen devices)
-void DebuggerSystemInterface::DeactivateKeyboard()
-{
-	application_interface->DeactivateKeyboard();
+	application_interface->ActivateKeyboard(caret_position, line_height);
 }
 
-}
-}
+void DebuggerSystemInterface::DeactivateKeyboard() { application_interface->DeactivateKeyboard(); }
+
+} // namespace Debugger
+} // namespace Rml

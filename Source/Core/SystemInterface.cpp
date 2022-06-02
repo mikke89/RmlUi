@@ -102,7 +102,6 @@ int SystemInterface::TranslateString(String& translated, const String& input)
 	return 0;
 }
 
-// Joins the path of an RML or RCSS file with the path of a resource specified within the file.
 void SystemInterface::JoinPath(String& translated_path, const String& document_path, const String& path)
 {
 	// If the path is absolute, strip the leading / and return it.
@@ -137,15 +136,9 @@ void SystemInterface::JoinPath(String& translated_path, const String& document_p
 	URL url(Replace(translated_path, ':', '|') + Replace(path, '\\', '/'));
 	translated_path = Replace(url.GetPathedFileName(), '|', ':');
 }
-	
-// Activate keyboard (for touchscreen devices)
-void SystemInterface::ActivateKeyboard() 
-{
-}
-	
-// Deactivate keyboard (for touchscreen devices)
-void SystemInterface::DeactivateKeyboard() 
-{
-}
+
+void SystemInterface::ActivateKeyboard(Rml::Vector2f /*caret_position*/, float /*line_height*/) {}
+
+void SystemInterface::DeactivateKeyboard() {}
 
 } // namespace Rml

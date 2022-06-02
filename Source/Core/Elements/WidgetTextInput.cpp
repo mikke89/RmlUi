@@ -899,9 +899,6 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 	if (show)
 	{
 		cursor_visible = true;
-		SetKeyboardActive(true);
-		keyboard_showed = true;
-		
 		cursor_timer = CURSOR_BLINK_TIME;
 		last_update_time = GetSystemInterface()->GetElapsedTime();
 
@@ -923,6 +920,9 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 			scroll_offset.x = parent->GetScrollLeft();
 			scroll_offset.y = parent->GetScrollTop();
 		}
+
+		SetKeyboardActive(true);
+		keyboard_showed = true;
 	}
 	else
 	{
@@ -1265,16 +1265,22 @@ void WidgetTextInput::GetLineSelection(String& pre_selection, String& selection,
 
 void WidgetTextInput::SetKeyboardActive(bool active)
 {
-	SystemInterface* system = GetSystemInterface();
-	if (system) {
-		if (active) 
+	if (SystemInterface* system = GetSystemInterface())
+	{
+		if (active)
 		{
-			system->ActivateKeyboard();
-		} else 
+			// Activate the keyboard and submit the cursor position and line height to enable clients to adjust the input method editor (IME). Note
+			// that the cursor is extended by one pixel along the top and bottom, we reverse this extension here.
+			const Vector2f element_offset = parent->GetAbsoluteOffset() - scroll_offset;
+			const Vector2f absolute_cursor_position = element_offset + cursor_position + Vector2f(0, 1);
+			const float line_height = cursor_size.y - 2.f;
+			system->ActivateKeyboard(absolute_cursor_position, line_height);
+		}
+		else
 		{
 			system->DeactivateKeyboard();
 		}
 	}
 }
-	
+
 } // namespace Rml

@@ -682,7 +682,7 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 	
 	# Add OS dependencies.
 	if (WIN32)
-		target_link_libraries(shell PRIVATE shlwapi)
+		target_link_libraries(shell PRIVATE shlwapi imm32)
 	elseif(APPLE)
 		target_link_libraries(shell PRIVATE "-framework Cocoa")
 	elseif(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)

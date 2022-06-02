@@ -37,6 +37,7 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - Fixed several issues where the text cursor would be offset from the text editing operations. In particular after word wrapping, or when suppressed characters were present in the text field's value. #313
 - Fixed an issue where Windows newline endings (\r\n) would produce an excessive space character.
 - Fixed operation of page up/down numpad keys being swapped.
+- The input method editor (IME) is now positioned at the caret during text editing on the Windows backend. #303 #305 (thanks @xland)
 
 ### Lua plugin
 
@@ -52,6 +53,10 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - `<img>` element: Fix wrong dp-scaling being applied when an image is cloned through a parent element. #310
 - Win32 backend: Fix slow input handling especially with CJK input. #311
 - Logging a message without an installed system interface will now be written to cout instead of crashing the application.
+
+### Breaking changes
+
+- Changed the signature of the keyboard activation in the system interface, it now passes the caret position and line height: `SystemInterface::ActivateKeyboard(Rml::Vector2f caret_position, float line_height)`.
 
 
 ## RmlUi 4.4
