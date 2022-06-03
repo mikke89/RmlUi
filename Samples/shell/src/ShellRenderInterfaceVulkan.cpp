@@ -59,7 +59,17 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 {
 	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture);
 
-	VkDescriptorSet p_current_descriptor_set = this->Get_DescriptorSet(this->Get_CurrentDescriptorID());
+	
+	VkDescriptorSet p_current_descriptor_set = nullptr;
+
+	if (this->m_descriptor_sets.empty() == false) 
+	{
+		p_current_descriptor_set = this->Get_DescriptorSet(this->Get_CurrentDescriptorID());
+	}
+	else
+	{
+		p_current_descriptor_set = this->m_p_descriptor_set;
+	}
 
 	VK_ASSERT(p_current_descriptor_set, "you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
 										"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
@@ -161,7 +171,8 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 		this->m_memory_pool.SetDescriptorSet(1, &p_casted_compiled_geometry->m_p_shader, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, p_current_descriptor_set);
 
 		// that's a final destination where the descriptor will be not available for updating...
-		this->m_descriptor_sets.at(p_casted_compiled_geometry->m_descriptor_id).Set_Available(false);
+		if (this->m_descriptor_sets.empty() == false)
+			this->m_descriptor_sets.at(p_casted_compiled_geometry->m_descriptor_id).Set_Available(false);
 	}
 
 	uint32_t casted_offset = 0;
@@ -1062,6 +1073,11 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	}
 	this->m_descriptor_sets.clear();
 
+	if (this->m_p_descriptor_set) 
+	{
+		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &this->m_p_descriptor_set);
+	}
+
 	this->m_manager_descriptors.Shutdown(this->m_p_device);
 
 	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
@@ -1778,6 +1794,7 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 	// <= it is needed to be placed some where because before this calling you accumulate ALL geometry what you need to compile and after filled
 	// Rml::Vector<CompiledGeometryHandle> then you call once RenderCompiledGeometry, because you cached all stuff
 
+	/*
 	Rml::Vector<VkDescriptorSetLayout> layouts(kDescriptorSetsCount, this->m_p_descriptor_set_layout);
 	Rml::Vector<VkDescriptorSet> sets(kDescriptorSetsCount, nullptr);
 
@@ -1789,6 +1806,12 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 	{
 		this->m_descriptor_sets[i].Set_DescriptorSet(sets.at(i));
 	}
+	*/
+
+	VK_ASSERT(this->m_p_device, "[Vulkan] you have to initialize your VkDevice before calling this method");
+	VK_ASSERT(this->m_p_descriptor_set_layout, "[Vulkan] you have to initialize your VkDescriptorSetLayout before calling this method");
+
+	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, &this->m_p_descriptor_set_layout, &this->m_p_descriptor_set);
 }
 
 void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept
@@ -2884,6 +2907,6 @@ void ShellRenderInterfaceVulkan::MemoryPool::Free_GeometryHandle(geometry_handle
 	p_valid_geometry_handle->m_p_index_allocation = nullptr;
 
 #ifdef RMLUI_DEBUG
-	Shell::Log("[Vulkan][Debug] Geoemtry handle is deleted! [%d]", p_valid_geometry_handle->m_descriptor_id);
+	Shell::Log("[Vulkan][Debug] Geometry handle is deleted! [%d]", p_valid_geometry_handle->m_descriptor_id);
 #endif
 }
