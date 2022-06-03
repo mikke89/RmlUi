@@ -80,7 +80,7 @@ private:
 	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The table element.
 	static bool FormatElementTable(LayoutBlockBox* block_context_box, Element* element);
-
+	/// Executes any formatting for special elements.
 	/// @param[in] block_context_box The open block box to layout the element in.
 	/// @param[in] element The element to parse.
 	/// @return True if the element was parsed as a special element, false otherwise.
