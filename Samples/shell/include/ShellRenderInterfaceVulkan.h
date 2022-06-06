@@ -112,6 +112,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		bool m_is_has_texture = {false};
 		int m_num_indices = 0;
 		int m_descriptor_id = 0;
+		uint32_t m_id = 0;
 
 		VkDescriptorBufferInfo m_p_vertex{};
 		VkDescriptorBufferInfo m_p_index{};
@@ -718,11 +719,11 @@ private:
 		// choose only those ids that will not cause the collision, so you can't just do Free_DescriptorID like you can't having ++, ++, ++, --, --,
 		// ++, ++, ++, ++ <==== somewhere will cause collision, because we can't do erase for m_descriptor_sets, because we need to free them manually
 		// through Vulkan, so we can do erase for compiled_geometries
-		do
-		{
-			++this->m_current_descriptor_id;
-			this->m_current_descriptor_id = this->m_current_descriptor_id % kDescriptorSetsCount;
-		} while (this->m_compiled_geometries.find(this->m_current_descriptor_id) != this->m_compiled_geometries.end());
+		/*	do
+		    {
+		        ++this->m_current_descriptor_id;
+		        this->m_current_descriptor_id = this->m_current_descriptor_id % kDescriptorSetsCount;
+		    } while (this->m_compiled_geometries.find(this->m_current_descriptor_id) != this->m_compiled_geometries.end());*/
 
 		RMLUI_ASSERT(this->m_current_descriptor_id < this->m_descriptor_sets.size(),
 			"you can't have more than m_descriptor_sets's size, otherwise it means you want to use more descriptor sets than it is specified in "
@@ -779,6 +780,7 @@ private:
 	// Don't use this variable in raw manner like this-> or just directly access, only through Get_ and Next method because for easy debugging
 	// Especially when we say about multithreading...
 	uint32_t m_current_descriptor_id;
+	uint32_t m_current_geometry_handle_id;
 
 	VkInstance m_p_instance;
 	VkDevice m_p_device;
@@ -832,12 +834,7 @@ private:
 
 #pragma region Resources
 	Rml::Vector<VkShaderModule> m_shaders;
-
-	// this need for rendering constantly, but if we has flag m_is_draw as true we just directly pass it to vkCmdXXX commands otherwise we have to
-	// update the uniform buffer and remember commands anyway.
-	// I wanted to use Vector but a new element makes pointer to element in invalid state, so it is impossible to use pointers with Rml::Vector, so
-	// here we have a map...
-	Rml::UnorderedMap<uint32_t, geometry_handle_t> m_compiled_geometries;
+	Rml::Vector<geometry_handle_t> m_compiled_geometries;
 	Rml::UnorderedMap<uint32_t, descriptor_wrapper_t> m_descriptor_sets;
 
 	Rml::Vector<texture_data_t> m_textures;

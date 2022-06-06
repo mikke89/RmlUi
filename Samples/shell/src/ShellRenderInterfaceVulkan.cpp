@@ -31,8 +31,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 
 ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 	m_is_transform_enabled(false), m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
-	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_p_instance{}, m_p_device{},
-	m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_window_handle{}, m_p_queue_present{}, m_p_queue_graphics{},
+	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{},
+	m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_window_handle{}, m_p_queue_present{}, m_p_queue_graphics{},
 	m_p_queue_compute{}, m_p_descriptor_set_layout{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
 	m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
 {}
@@ -73,18 +73,23 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	VK_ASSERT(p_current_descriptor_set, "you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
 										"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
 
-	VK_ASSERT(this->m_compiled_geometries.size() < kGeometryForReserve,
-		"if it is greater than the constant (like assert is triggered), it means that the added element and all operations with other elements "
-		"becomes INVALID, because the "
-		"erase operation will cause invalidation for all references and pointers that used from that map. (like pointer to value of the map). So "
-		"just set the value higher than it was before...");
+	if (this->m_descriptor_sets.empty() == false)
+	{
+		VK_ASSERT(this->m_compiled_geometries.size() < kGeometryForReserve,
+			"if it is greater than the constant (like assert is triggered), it means that the added element and all operations with other elements "
+			"becomes INVALID, because the "
+			"erase operation will cause invalidation for all references and pointers that used from that map. (like pointer to value of the map). So "
+			"just set the value higher than it was before...");
 
-	VK_ASSERT(this->m_compiled_geometries.find(this->Get_CurrentDescriptorID()) == this->m_compiled_geometries.end(),
-		"you must delete the element before construct it");
+		//	VK_ASSERT(this->m_compiled_geometries.find(this->Get_CurrentDescriptorID()) == this->m_compiled_geometries.end(),
+		//	"you must delete the element before construct it");
 
-	this->m_compiled_geometries[this->Get_CurrentDescriptorID()];
+		this->m_compiled_geometries[this->Get_CurrentDescriptorID()];
 
-	auto& current_geometry_handle = this->m_compiled_geometries.at(this->Get_CurrentDescriptorID());
+		auto& current_geometry_handle = this->m_compiled_geometries.at(this->Get_CurrentDescriptorID());
+	}
+
+	auto& current_geometry_handle = this->m_compiled_geometries.at(this->m_current_geometry_handle_id);
 
 	VkDescriptorImageInfo info_descriptor_image = {};
 	if (p_texture)
@@ -127,13 +132,16 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	current_geometry_handle.m_is_has_texture = !!((texture_data_t*)(texture));
 	current_geometry_handle.m_num_indices = num_indices;
 	current_geometry_handle.m_descriptor_id = this->Get_CurrentDescriptorID();
+	current_geometry_handle.m_id = this->m_current_geometry_handle_id;
 	current_geometry_handle.m_is_cached = false;
 
 #ifdef RMLUI_DEBUG
-	Shell::Log("[Vulkan][Debug] created descriptor id:[%d]", current_geometry_handle.m_descriptor_id);
+	Shell::Log("[Vulkan][Debug] compiled geometry id:[%d]", current_geometry_handle.m_id);
 #endif
 
 	this->NextDescriptorID();
+
+	++this->m_current_geometry_handle_id;
 
 	return Rml::CompiledGeometryHandle(&current_geometry_handle);
 }
@@ -223,9 +231,9 @@ void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHa
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
 	this->m_memory_pool.Free_GeometryHandle(p_casted_geometry);
 
-	if (this->m_descriptor_sets.empty() == false) 
+	if (this->m_descriptor_sets.empty() == false)
 	{
-		this->m_compiled_geometries.erase(p_casted_geometry->m_descriptor_id);
+		//	this->m_compiled_geometries.erase(p_casted_geometry->m_descriptor_id);
 		this->NextDescriptorID();
 	}
 }
@@ -1005,7 +1013,7 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 	this->m_textures.reserve(kTexturesForReserve);
 
 	// fix for having valid pointers until we not out of bound
-	this->m_compiled_geometries.reserve(kGeometryForReserve);
+	this->m_compiled_geometries.resize(kGeometryForReserve);
 
 	auto storage = this->LoadShaders();
 
