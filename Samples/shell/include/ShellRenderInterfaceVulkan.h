@@ -373,14 +373,28 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		uint32_t m_p_allocated_memory_per_back_buffer[kSwapchainBackBufferCount];
 	};
 
+	struct MemoryPoolCreateInfo {
+		uint32_t m_number_of_back_buffers;
+
+		// @ allocate memory for 1000
+		uint32_t m_gpu_data_count = 1000;
+
+		// @ you just pass sizeof(YourDataStructureThatIdentifiesTheWholeDataPerFrame)
+		uint32_t m_gpu_data_size = -1;
+
+		// @ Real memory, how big we need to allocate (you pass the raw value it means if you want to allocate 32 Mbs you need to 32 * 1024 * 1024,
+		// but not just only pass '32', use the appropriate functions for converting values into raw representation)
+		uint32_t m_memory_total_size;
+	};
+
 	// @ main manager for "allocating" vertex, index, uniform stuff
 	class MemoryPool {
 	public:
 		MemoryPool(void);
 		~MemoryPool(void);
 
-		void Initialize(VkPhysicalDeviceProperties* p_properties, VmaAllocator p_allocator, VkDevice p_device, uint32_t number_of_back_buffers,
-			uint32_t memory_total_size) noexcept;
+		void Initialize(
+			VkPhysicalDeviceProperties* p_properties, VmaAllocator p_allocator, VkDevice p_device, const MemoryPoolCreateInfo& info) noexcept;
 		void Shutdown(void) noexcept;
 
 		bool Alloc_GeneralBuffer(uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept;
@@ -402,6 +416,8 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 	private:
 		uint32_t m_min_alignment_for_uniform_buffer;
 		uint32_t m_memory_total_size;
+		uint32_t m_memory_gpu_data_one_object;
+		uint32_t m_memory_gpu_data_total;
 		char* m_p_data;
 		VkBuffer m_p_buffer;
 		VkPhysicalDeviceProperties* m_p_physical_device_current_properties;

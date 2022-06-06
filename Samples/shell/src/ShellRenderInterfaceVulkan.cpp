@@ -59,10 +59,9 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 {
 	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture);
 
-	
 	VkDescriptorSet p_current_descriptor_set = nullptr;
 
-	if (this->m_descriptor_sets.empty() == false) 
+	if (this->m_descriptor_sets.empty() == false)
 	{
 		p_current_descriptor_set = this->Get_DescriptorSet(this->Get_CurrentDescriptorID());
 	}
@@ -168,7 +167,9 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 		p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
 		p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
 
-		this->m_memory_pool.SetDescriptorSet(1, &p_casted_compiled_geometry->m_p_shader, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, p_current_descriptor_set);
+		if (this->m_descriptor_sets.empty() == false)
+			this->m_memory_pool.SetDescriptorSet(
+				1, &p_casted_compiled_geometry->m_p_shader, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, p_current_descriptor_set);
 
 		// that's a final destination where the descriptor will be not available for updating...
 		if (this->m_descriptor_sets.empty() == false)
@@ -184,8 +185,9 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 		casted_offset = (uint32_t)p_casted_compiled_geometry->m_p_shader.offset;
 	}
 
-	vkCmdBindDescriptorSets(
-		this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, 1, &p_current_descriptor_set, 0, nullptr);
+	const uint32_t pDescriptorOffsets = static_cast<uint32_t>(p_casted_compiled_geometry->m_p_shader.offset);
+	vkCmdBindDescriptorSets(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, 1,
+		&p_current_descriptor_set, 1, &pDescriptorOffsets);
 
 	if (p_casted_compiled_geometry->m_is_has_texture)
 	{
@@ -982,8 +984,15 @@ void ShellRenderInterfaceVulkan::Initialize_SyncPrimitives(void) noexcept
 void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 {
 	this->m_command_list.Initialize(this->m_p_device, this->m_queue_index_graphics, kSwapchainBackBufferCount, 2);
-	this->m_memory_pool.Initialize(&this->m_current_physical_device_properties, this->m_p_allocator, this->m_p_device, kSwapchainBackBufferCount,
-		ShellRenderInterfaceVulkan::ConvertMegabytesToBytes(kVideoMemoryForAllocation));
+
+	MemoryPoolCreateInfo info = {};
+	info.m_number_of_back_buffers = kSwapchainBackBufferCount;
+	info.m_gpu_data_count = 100;
+	info.m_gpu_data_size = sizeof(shader_vertex_user_data_t);
+	info.m_memory_total_size = ShellRenderInterfaceVulkan::ConvertMegabytesToBytes(kVideoMemoryForAllocation);
+
+	this->m_memory_pool.Initialize(&this->m_current_physical_device_properties, this->m_p_allocator, this->m_p_device, info);
+
 	this->m_upload_manager.Initialize(this->m_p_device, this->m_p_queue_graphics, this->m_queue_index_graphics);
 	this->m_manager_descriptors.Initialize(this->m_p_device, 100, 100, 10, 10);
 
@@ -1073,7 +1082,7 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 	}
 	this->m_descriptor_sets.clear();
 
-	if (this->m_p_descriptor_set) 
+	if (this->m_p_descriptor_set)
 	{
 		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &this->m_p_descriptor_set);
 	}
@@ -1804,7 +1813,7 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 
 	for (int i = 0; i < kDescriptorSetsCount; ++i)
 	{
-		this->m_descriptor_sets[i].Set_DescriptorSet(sets.at(i));
+	    this->m_descriptor_sets[i].Set_DescriptorSet(sets.at(i));
 	}
 	*/
 
@@ -2691,18 +2700,23 @@ void ShellRenderInterfaceVulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void)
 }
 
 ShellRenderInterfaceVulkan::MemoryPool::MemoryPool(void) :
-	m_min_alignment_for_uniform_buffer{}, m_memory_total_size{}, m_p_data{}, m_p_physical_device_current_properties{}, m_p_buffer{},
-	m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}
+	m_min_alignment_for_uniform_buffer{}, m_memory_total_size{}, m_memory_gpu_data_one_object{}, m_p_data{}, m_p_physical_device_current_properties{},
+	m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}
 {}
 
 ShellRenderInterfaceVulkan::MemoryPool::~MemoryPool(void) {}
 
-void ShellRenderInterfaceVulkan::MemoryPool::Initialize(VkPhysicalDeviceProperties* p_props, VmaAllocator p_allocator, VkDevice p_device,
-	uint32_t number_of_back_buffers, uint32_t memory_total_size) noexcept
+void ShellRenderInterfaceVulkan::MemoryPool::Initialize(
+	VkPhysicalDeviceProperties* p_props, VmaAllocator p_allocator, VkDevice p_device, const MemoryPoolCreateInfo& info_creation) noexcept
 {
 	VK_ASSERT(p_device, "you must pass a valid VkDevice");
 	VK_ASSERT(p_allocator, "you must pass a valid VmaAllocator");
 	VK_ASSERT(p_props, "must be valid!");
+
+	VK_ASSERT(info_creation.m_memory_total_size > 0, "size must be valid");
+	VK_ASSERT(info_creation.m_gpu_data_size > 0, "size must be valid");
+	VK_ASSERT(info_creation.m_gpu_data_count > 0, "count must be valid");
+	VK_ASSERT(info_creation.m_number_of_back_buffers > 0, "can't be!");
 
 	this->m_p_device = p_device;
 	this->m_p_vk_allocator = p_allocator;
@@ -2713,7 +2727,9 @@ void ShellRenderInterfaceVulkan::MemoryPool::Initialize(VkPhysicalDeviceProperti
 	Shell::Log("[Vulkan][Debug] the alignment for uniform buffer is: %d", this->m_min_alignment_for_uniform_buffer);
 #endif
 
-	this->m_memory_total_size = ShellRenderInterfaceVulkan::AlignUp(memory_total_size, this->m_min_alignment_for_uniform_buffer);
+	this->m_memory_total_size = ShellRenderInterfaceVulkan::AlignUp(info_creation.m_memory_total_size, this->m_min_alignment_for_uniform_buffer);
+	this->m_memory_gpu_data_one_object = ShellRenderInterfaceVulkan::AlignUp(info_creation.m_gpu_data_size, this->m_min_alignment_for_uniform_buffer);
+	this->m_memory_gpu_data_total = this->m_memory_gpu_data_one_object * info_creation.m_gpu_data_count;
 
 	VkBufferCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
