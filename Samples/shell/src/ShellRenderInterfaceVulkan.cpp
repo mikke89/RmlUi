@@ -1769,6 +1769,8 @@ Rml::Vector<VkDescriptorSetLayoutBinding> ShellRenderInterfaceVulkan::CreateDesc
 
 			if (p_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
 				info.descriptorType = static_cast<VkDescriptorType>(SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+			else
+				info.descriptorType = static_cast<VkDescriptorType>(p_binding->descriptor_type);
 
 			info.stageFlags = static_cast<VkShaderStageFlagBits>(spv_module.shader_stage);
 
