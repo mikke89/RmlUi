@@ -147,7 +147,11 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 	this->m_user_data_for_vertex_shader.m_translate = translation;
 
 	// TODO: RmlUI team somehow but on resize I got invalid value here...
-	VkDescriptorSet p_current_descriptor_set = this->Get_DescriptorSet(p_casted_compiled_geometry->m_descriptor_id);
+	VkDescriptorSet p_current_descriptor_set = nullptr;
+	if (this->m_descriptor_sets.empty() == false)
+		p_current_descriptor_set = this->Get_DescriptorSet(p_casted_compiled_geometry->m_descriptor_id);
+	else
+		p_current_descriptor_set = this->m_p_descriptor_set;
 
 	VK_ASSERT(p_current_descriptor_set, "you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
 										"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
@@ -1762,7 +1766,10 @@ Rml::Vector<VkDescriptorSetLayoutBinding> ShellRenderInterfaceVulkan::CreateDesc
 
 			info.binding = p_binding->binding;
 			info.descriptorCount = 1;
-			info.descriptorType = static_cast<VkDescriptorType>(p_binding->descriptor_type);
+
+			if (p_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+				info.descriptorType = static_cast<VkDescriptorType>(SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+
 			info.stageFlags = static_cast<VkShaderStageFlagBits>(spv_module.shader_stage);
 
 			for (uint32_t index = 0; index < p_binding->array.dims_count; ++index)
@@ -1823,6 +1830,7 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 	VK_ASSERT(this->m_p_descriptor_set_layout, "[Vulkan] you have to initialize your VkDescriptorSetLayout before calling this method");
 
 	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, &this->m_p_descriptor_set_layout, &this->m_p_descriptor_set);
+	this->m_memory_pool.SetDescriptorSet(1, sizeof(shader_vertex_user_data_t), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, this->m_p_descriptor_set);
 }
 
 void ShellRenderInterfaceVulkan::CreateSamplers(void) noexcept
