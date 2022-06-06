@@ -219,9 +219,11 @@ void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHa
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
 	this->m_memory_pool.Free_GeometryHandle(p_casted_geometry);
 
-	this->m_compiled_geometries.erase(p_casted_geometry->m_descriptor_id);
-
-	this->NextDescriptorID();
+	if (this->m_descriptor_sets.empty() == false) 
+	{
+		this->m_compiled_geometries.erase(p_casted_geometry->m_descriptor_id);
+		this->NextDescriptorID();
+	}
 }
 
 void ShellRenderInterfaceVulkan::EnableScissorRegion(bool enable) {}
