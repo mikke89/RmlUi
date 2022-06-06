@@ -2943,6 +2943,6 @@ void ShellRenderInterfaceVulkan::MemoryPool::Free_GeometryHandle(geometry_handle
 	p_valid_geometry_handle->m_p_index_allocation = nullptr;
 
 #ifdef RMLUI_DEBUG
-	Shell::Log("[Vulkan][Debug] Geometry handle is deleted! [%d]", p_valid_geometry_handle->m_descriptor_id);
+	Shell::Log("[Vulkan][Debug] Geometry handle is deleted! [%d]", p_valid_geometry_handle->m_id);
 #endif
 }
