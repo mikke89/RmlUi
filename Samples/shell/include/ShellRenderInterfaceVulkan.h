@@ -742,6 +742,17 @@ private:
 			"kDescriptorSetsCount constant. Overflow!");
 	}
 
+	void NextGeometryHandleID(void) noexcept 
+	{
+		do
+		{
+			++this->m_current_geometry_handle_id;
+			this->m_current_geometry_handle_id = this->m_current_geometry_handle_id % kGeometryForReserve;
+		} while (this->m_compiled_geometries.find(this->m_current_geometry_handle_id) != this->m_compiled_geometries.end());
+
+		RMLUI_ASSERT(this->m_current_geometry_handle_id < kGeometryForReserve, "Overflow!");
+	}
+
 	void Free_DescriptorID(void) noexcept
 	{
 		if (this->m_descriptor_sets.empty())
@@ -851,7 +862,7 @@ private:
 
 #pragma region Resources
 	Rml::Vector<VkShaderModule> m_shaders;
-	Rml::Vector<geometry_handle_t> m_compiled_geometries;
+	Rml::UnorderedMap<uint32_t, geometry_handle_t> m_compiled_geometries;
 	Rml::UnorderedMap<uint32_t, descriptor_wrapper_t> m_descriptor_sets;
 
 	Rml::Vector<texture_data_t> m_textures;

@@ -87,7 +87,7 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 		auto& current_geometry_handle = this->m_compiled_geometries.at(this->Get_CurrentDescriptorID());
 	}
 
-	auto& current_geometry_handle = this->m_compiled_geometries.at(this->m_current_geometry_handle_id);
+	auto& current_geometry_handle = this->m_compiled_geometries[this->m_current_geometry_handle_id];
 
 	VkDescriptorImageInfo info_descriptor_image = {};
 	if (p_texture && p_texture->Get_VkDescriptorSet() == nullptr)
@@ -144,7 +144,7 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 
 	this->NextDescriptorID();
 
-	++this->m_current_geometry_handle_id;
+	this->NextGeometryHandleID();
 
 	return Rml::CompiledGeometryHandle(&current_geometry_handle);
 }
@@ -279,10 +279,11 @@ void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHa
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
 	this->m_memory_pool.Free_GeometryHandle(p_casted_geometry);
 
+	this->m_compiled_geometries.erase(p_casted_geometry->m_id);
+	this->NextGeometryHandleID();
+
 	if (this->m_descriptor_sets.empty() == false)
 	{
-		//	this->m_compiled_geometries.erase(p_casted_geometry->m_descriptor_id);
-
 		this->NextDescriptorID();
 	}
 }
@@ -291,17 +292,17 @@ void ShellRenderInterfaceVulkan::EnableScissorRegion(bool enable)
 {
 	this->m_is_use_scissor_specified = enable;
 
-	if (this->m_is_use_scissor_specified == false) 
+	if (this->m_is_use_scissor_specified == false)
 	{
 		vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor_original);
 	}
 }
 
-void ShellRenderInterfaceVulkan::SetScissorRegion(int x, int y, int width, int height) 
+void ShellRenderInterfaceVulkan::SetScissorRegion(int x, int y, int width, int height)
 {
-	if (this->m_is_use_scissor_specified) 
+	if (this->m_is_use_scissor_specified)
 	{
-		if (this->m_is_transform_enabled) 
+		if (this->m_is_transform_enabled)
 		{
 			// TODO: implement
 		}
@@ -666,7 +667,7 @@ void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void)
 
 	vkCmdBeginRenderPass(this->m_p_current_command_buffer, &info_pass, VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
 
-//	vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
+	//	vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
 	vkCmdSetViewport(this->m_p_current_command_buffer, 0, 1, &this->m_viewport);
 }
 
@@ -1086,7 +1087,7 @@ void ShellRenderInterfaceVulkan::Initialize_Resources(void) noexcept
 	this->m_textures.reserve(kTexturesForReserve);
 
 	// fix for having valid pointers until we not out of bound
-	this->m_compiled_geometries.resize(kGeometryForReserve);
+	this->m_compiled_geometries.reserve(kGeometryForReserve);
 
 	auto storage = this->LoadShaders();
 
