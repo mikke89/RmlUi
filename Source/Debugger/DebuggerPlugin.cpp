@@ -373,6 +373,13 @@ bool DebuggerPlugin::LoadLogElement()
 
 void DebuggerPlugin::ReleaseElements()
 {
+	// Erase event listeners to prevent crashes.
+	if (debug_context && info_element)
+	{
+		debug_context->RemoveEventListener("click", info_element, true);
+		debug_context->RemoveEventListener("mouseover", info_element, true);
+	}
+
 	if (host_context)
 	{
 		if (menu_element)
@@ -395,6 +402,10 @@ void DebuggerPlugin::ReleaseElements()
 			application_interface = nullptr;
 			log_interface.reset();
 		}
+
+		// Update to release documents before the plugin gets deleted.
+		// Helps avoid cleanup crashes.
+		host_context->Update();
 	}
 
 	if (debug_context)
@@ -404,6 +415,10 @@ void DebuggerPlugin::ReleaseElements()
 			debug_context->UnloadDocument(hook_element);
 			hook_element = nullptr;
 		}
+
+		// Update to release documents before the plugin gets deleted.
+		// Helps avoid cleanup crashes.
+		debug_context->Update();
 	}
 }
 

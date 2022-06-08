@@ -80,6 +80,18 @@ ElementLog::ElementLog(const String& tag) : ElementDocument(tag)
 
 ElementLog::~ElementLog()
 {
+	RemoveEventListener(EventId::Click, this);
+
+	if (beacon && beacon->GetFirstChild())
+	{
+		beacon->GetFirstChild()->RemoveEventListener(EventId::Click, this);
+		beacon->GetParentNode()->RemoveChild(beacon);
+	}
+
+	if (message_content)
+	{
+		message_content->RemoveEventListener(EventId::Resize, this);
+	}
 }
 
 // Initialises the log element.

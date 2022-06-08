@@ -59,6 +59,9 @@ ElementInfo::ElementInfo(const String& tag) : ElementDocument(tag)
 
 ElementInfo::~ElementInfo()
 {
+	RemoveEventListener(EventId::Click, this);
+	RemoveEventListener(EventId::Mouseover, this);
+	RemoveEventListener(EventId::Mouseout, this);
 }
 
 // Initialises the info element.
