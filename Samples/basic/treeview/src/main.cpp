@@ -31,6 +31,7 @@
 #include <Input.h>
 #include <Shell.h>
 #include <ShellRenderInterfaceOpenGL.h>
+#include <ShellRenderInterfaceVulkan.h>
 #include "FileBrowser.h"
 
 Rml::Context* context = nullptr;
@@ -71,7 +72,10 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	int window_height = 768;
 
 	ShellRenderInterfaceOpenGL opengl_renderer;
-	shell_renderer = &opengl_renderer;
+	ShellRenderInterfaceVulkan vulkan_renderer;
+	Rml::RenderInterface* p_renderer = &vulkan_renderer;
+	//shell_renderer = &opengl_renderer;
+	shell_renderer = &vulkan_renderer;
 
 	// Generic OS initialisation, creates a window and attaches OpenGL.
 	if (!Shell::Initialise() ||
@@ -82,8 +86,11 @@ int main(int RMLUI_UNUSED_PARAMETER(argc), char** RMLUI_UNUSED_PARAMETER(argv))
 	}
 
 	// RmlUi initialisation.
-	Rml::SetRenderInterface(&opengl_renderer);
+//	Rml::SetRenderInterface(&opengl_renderer);
+
+	Rml::SetRenderInterface(p_renderer);
 	opengl_renderer.SetViewport(window_width, window_height);
+	vulkan_renderer.SetViewport(window_width, window_height);
 
 	ShellSystemInterface system_interface;
 	Rml::SetSystemInterface(&system_interface);

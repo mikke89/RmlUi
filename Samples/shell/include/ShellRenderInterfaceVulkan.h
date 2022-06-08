@@ -425,6 +425,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 		void Free_GeometryHandle(geometry_handle_t* p_valid_geometry_handle) noexcept;
 		void Free_GeometryHandle_ShaderDataOnly(geometry_handle_t* p_valid_geometry_handle) noexcept;
+
 	private:
 		uint32_t m_min_alignment_for_uniform_buffer;
 		uint32_t m_memory_total_size;
@@ -777,6 +778,7 @@ private:
 
 private:
 	bool m_is_transform_enabled;
+	bool m_is_use_scissor_specified;
 	int m_width;
 	int m_height;
 
@@ -812,6 +814,9 @@ private:
 	VkRenderPass m_p_render_pass;
 	VkSampler m_p_sampler_nearest;
 	VkRect2D m_scissor;
+
+	// @ means it captures the window size full width and full height, offset equals both x and y to 0
+	VkRect2D m_scissor_original;
 	VkViewport m_viewport;
 #pragma endregion
 

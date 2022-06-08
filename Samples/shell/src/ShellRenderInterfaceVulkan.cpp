@@ -30,12 +30,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 }
 
 ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
-	m_is_transform_enabled(false), m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
-	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{},
-	m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_window_handle{}, m_p_queue_present{}, m_p_queue_graphics{},
-	m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{},
-	m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{},
-	m_p_current_command_buffer{}
+	m_is_transform_enabled{false}, m_is_use_scissor_specified{false}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{},
+	m_queue_index_compute{}, m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{},
+	m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_window_handle{},
+	m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{},
+	m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
+	m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
 {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
@@ -52,9 +52,6 @@ void ShellRenderInterfaceVulkan::RenderGeometry(
 	}
 }
 
-// TODO: RMLUI team it is important because it affects the architecture, when we do resize WE HAVE TO UPDATE ONLY THOSE geometry_handle_ts that need
-// to rebuild!!! So when it comes to "rebuild" our geometry on resize we need change already existed instances of geometry_handle_t otherwise we just
-// add new and old doesn't update at all. I won't change anything with resize so it is technically doesn't work. (like maximize window and vice versa)
 Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture)
 {
@@ -187,7 +184,16 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 		}
 		else
 		{
-			// it means our state is dirty and we need to update data
+			// it means our state is dirty and we need to update data, but it is not right in terms of architecture, for real better experience would
+			// be great to free all "compiled" geometries and "re-build" them in one general way, but here I got only three callings for
+			// font-face-layer textures (loaddocument example) and that shit. So better to think how to make it right, if it is fine okay, if it is
+			// not okay and like we really expect that ReleaseCompiledGeometry for all objects that needs to be rebuilt so better to implement that,
+			// but still it is a big architectural thing (or at least you need to do something big commits here to implement a such feature), so my
+			// implementation doesn't break anything what we had, but still it looks strange. If I get callings for releasing maybe I need to use it
+			// for all objects not separately????? Otherwise it is better to provide method for resizing (or some kind of "resizing" callback) for
+			// recalculating all geometry IDK, so it means you pass the existed geometry that wasn't pass to ReleaseCompiledGeometry, but from another
+			// hand you need to re-build compiled geometry again so we have two kinds of geometry one is compiled and never changes and one is dynamic
+			// and it goes through pipeline InitializationOfProgram...->Compile->Render->Release->Compile->Render->Release...
 
 			this->m_memory_pool.Free_GeometryHandle_ShaderDataOnly(p_casted_compiled_geometry);
 			bool status = this->m_memory_pool.Alloc_GeneralBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data),
@@ -195,7 +201,7 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 			VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
 		}
 
-		if (p_data) 
+		if (p_data)
 		{
 			p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
 			p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
@@ -204,7 +210,6 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 		{
 			VK_ASSERT(false, "you can't reach this zone, it means something bad");
 		}
-
 
 		p_casted_compiled_geometry->m_translation = this->m_user_data_for_vertex_shader.m_translate;
 
@@ -228,10 +233,21 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 
 	const uint32_t pDescriptorOffsets = static_cast<uint32_t>(p_casted_compiled_geometry->m_p_shader.offset);
 
-	VkDescriptorSet p_sets[] = {p_current_descriptor_set, p_casted_compiled_geometry->m_p_texture->Get_VkDescriptorSet()};
+	VkDescriptorSet p_texture_descriptor_set = nullptr;
 
-	vkCmdBindDescriptorSets(
-		this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, 2, p_sets, 1, &pDescriptorOffsets);
+	if (p_casted_compiled_geometry->m_p_texture)
+	{
+		p_texture_descriptor_set = p_casted_compiled_geometry->m_p_texture->Get_VkDescriptorSet();
+	}
+
+	VkDescriptorSet p_sets[] = {p_current_descriptor_set, p_texture_descriptor_set};
+	int real_size_of_sets = 2;
+
+	if (p_casted_compiled_geometry->m_p_texture == nullptr)
+		real_size_of_sets = 1;
+
+	vkCmdBindDescriptorSets(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, real_size_of_sets,
+		p_sets, 1, &pDescriptorOffsets);
 
 	if (p_casted_compiled_geometry->m_is_has_texture)
 	{
@@ -271,9 +287,35 @@ void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHa
 	}
 }
 
-void ShellRenderInterfaceVulkan::EnableScissorRegion(bool enable) {}
+void ShellRenderInterfaceVulkan::EnableScissorRegion(bool enable)
+{
+	this->m_is_use_scissor_specified = enable;
 
-void ShellRenderInterfaceVulkan::SetScissorRegion(int x, int y, int width, int height) {}
+	if (this->m_is_use_scissor_specified == false) 
+	{
+		vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor_original);
+	}
+}
+
+void ShellRenderInterfaceVulkan::SetScissorRegion(int x, int y, int width, int height) 
+{
+	if (this->m_is_use_scissor_specified) 
+	{
+		if (this->m_is_transform_enabled) 
+		{
+			// TODO: implement
+		}
+		else
+		{
+			this->m_scissor.extent.width = width;
+			this->m_scissor.extent.height = height;
+			this->m_scissor.offset.x = x;
+			this->m_scissor.offset.y = fabs(this->m_viewport.height) - (y + height);
+
+			vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
+		}
+	}
+}
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
 #pragma pack(1)
@@ -561,6 +603,7 @@ void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handl
 
 void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform)
 {
+	this->m_is_transform_enabled = !!(transform);
 	this->m_user_data_for_vertex_shader.m_transform = this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
 }
 
@@ -623,7 +666,7 @@ void ShellRenderInterfaceVulkan::PrepareRenderBuffer(void)
 
 	vkCmdBeginRenderPass(this->m_p_current_command_buffer, &info_pass, VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
+//	vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
 	vkCmdSetViewport(this->m_p_current_command_buffer, 0, 1, &this->m_viewport);
 }
 
@@ -2172,6 +2215,8 @@ void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->m_scissor.extent.height = this->m_height;
 	this->m_scissor.offset.x = 0;
 	this->m_scissor.offset.y = 0;
+
+	this->m_scissor_original = this->m_scissor;
 
 	this->m_projection =
 		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -20.0f, 20.0f);
