@@ -26,33 +26,59 @@
  *
  */
 
-#ifndef RMLUI_TESTS_COMMON_TESTSSHELL_H
-#define RMLUI_TESTS_COMMON_TESTSSHELL_H
+#include "../Common/TestsShell.h"
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Debugger.h>
+#include <algorithm>
+#include <doctest.h>
 
-#include <RmlUi/Core/Types.h>
-namespace Rml { class RenderInterface; }
+using namespace Rml;
 
-namespace TestsShell {
+TEST_CASE("debugger")
+{
+	Context* context = TestsShell::GetContext(false);
 
-	// Will initialize the shell and create a context on first use.
-	Rml::Context* GetContext(bool allow_debugger = true);
+	SUBCASE("no_shutdown")
+	{
+		Rml::Debugger::Initialise(context);
 
-	void BeginFrame();
-	void PresentFrame();
+		ElementDocument* document = context->LoadDocument("assets/demo.rml");
+		TestsShell::RenderLoop();
 
-	// Render the current state of the context. Press 'escape' or 'return' to break out of the loop.
-	// Useful for viewing documents while building the RML to benchmark.
-	// Applies only when compiled with the shell backend.
-	void RenderLoop();
+		document->Close();
+		TestsShell::RenderLoop();
+	}
 
-	void ShutdownShell();
+	SUBCASE("shutdown")
+	{
+		Rml::Debugger::Initialise(context);
 
-	// Set the number of expected warnings and errors logged by RmlUi until the next call to this function
-	// or until 'ShutdownShell()'.
-	void SetNumExpectedWarnings(int num_warnings);
+		ElementDocument* document = context->LoadDocument("assets/demo.rml");
+		TestsShell::RenderLoop();
 
-	// Stats only available for the dummy renderer.
-	Rml::String GetRenderStats();
+		document->Close();
+		TestsShell::RenderLoop();
+
+		Rml::Debugger::Shutdown();
+		TestsShell::RenderLoop();
+	}
+
+	SUBCASE("shutdown_early")
+	{
+		ElementDocument* document = context->LoadDocument("assets/demo.rml");
+		TestsShell::RenderLoop();
+
+		Rml::Debugger::Initialise(context);
+		TestsShell::RenderLoop();
+
+		Rml::Debugger::Shutdown();
+		TestsShell::RenderLoop();
+
+		document->Close();
+		TestsShell::RenderLoop();
+	}
+
+	TestsShell::ShutdownShell();
 }
-
-#endif

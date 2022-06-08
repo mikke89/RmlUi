@@ -38,7 +38,7 @@ file(GLOB UnitTests_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.h )
 file(GLOB UnitTests_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.cpp )
 
 add_executable(UnitTests ${UnitTests_HDR_FILES} ${UnitTests_SRC_FILES})
-target_link_libraries(UnitTests RmlCore doctest::doctest trompeloeil::trompeloeil ${sample_LIBRARIES})
+target_link_libraries(UnitTests RmlCore RmlDebugger doctest::doctest trompeloeil::trompeloeil ${sample_LIBRARIES})
 add_common_target_options(UnitTests)
 
 if(MSVC)

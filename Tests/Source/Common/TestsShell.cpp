@@ -44,6 +44,7 @@ namespace {
 	const Rml::Vector2i window_size(1500, 800);
 
 	bool shell_initialized = false;
+	bool debugger_allowed = true;
 	int num_documents_begin = 0;
 	Rml::Context* shell_context = nullptr;
 
@@ -70,12 +71,13 @@ namespace {
 #endif
 } // namespace
 
-	static void InitializeShell()
+	static void InitializeShell(bool allow_debugger)
 	{
 		// Initialize shell and create context.
 		if (!shell_initialized)
 		{
 			shell_initialized = true;
+			debugger_allowed = allow_debugger;
 			REQUIRE(Shell::Initialize());
 
 #ifdef RMLUI_TESTS_USE_SHELL
@@ -91,8 +93,11 @@ namespace {
 			shell_context = Rml::CreateContext("main", window_size);
 			Shell::LoadFonts();
 
-			Rml::Debugger::Initialise(shell_context);
-			num_documents_begin = shell_context->GetNumDocuments();
+			if (allow_debugger)
+			{
+				Rml::Debugger::Initialise(shell_context);
+				num_documents_begin = shell_context->GetNumDocuments();
+			}
 
 			shell_context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, &shell_event_listener, true);
 
@@ -109,9 +114,9 @@ namespace {
 	}
 
 
-Rml::Context* TestsShell::GetContext()
+Rml::Context* TestsShell::GetContext(bool allow_debugger)
 {
-	InitializeShell();
+	InitializeShell(allow_debugger);
 	return shell_context;
 }
 
@@ -153,8 +158,11 @@ void TestsShell::ShutdownShell()
 {
 	if (shell_initialized)
 	{
-		RMLUI_ASSERTMSG(shell_context->GetNumDocuments() == num_documents_begin, "Make sure all previously opened documents have been closed.");
-		(void)num_documents_begin;
+		if (debugger_allowed)
+		{
+			RMLUI_ASSERTMSG(shell_context->GetNumDocuments() == num_documents_begin, "Make sure all previously opened documents have been closed.");
+			(void)num_documents_begin;
+		}
 
 		tests_system_interface.SetNumExpectedWarnings(0);
 
