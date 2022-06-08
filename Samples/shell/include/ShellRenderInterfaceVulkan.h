@@ -118,6 +118,11 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		int m_descriptor_id = 0;
 		uint32_t m_id = 0;
 
+		// sadly but we need to store translation in order to be sure that we got a dirty state (where a new translation is indeed new and it is
+		// different in compare to our old translation)
+
+		Rml::Vector2f m_translation{};
+
 		texture_data_t* m_p_texture{};
 
 		VkDescriptorBufferInfo m_p_vertex{};
@@ -419,7 +424,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 			VkDescriptorSet p_set) noexcept;
 
 		void Free_GeometryHandle(geometry_handle_t* p_valid_geometry_handle) noexcept;
-
+		void Free_GeometryHandle_ShaderDataOnly(geometry_handle_t* p_valid_geometry_handle) noexcept;
 	private:
 		uint32_t m_min_alignment_for_uniform_buffer;
 		uint32_t m_memory_total_size;

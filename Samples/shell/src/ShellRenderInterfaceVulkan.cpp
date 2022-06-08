@@ -172,18 +172,41 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 
 	// we don't need to write the same commands to buffer or update descritor set somehow because it was already passed to it!!!!!
 	// don't do repetetive and pointless callings!!!!
-	if (!p_casted_compiled_geometry->m_is_cached)
+	if (!p_casted_compiled_geometry->m_is_cached || p_casted_compiled_geometry->m_translation != this->m_user_data_for_vertex_shader.m_translate)
 	{
 		uint32_t* pCopyDataToBuffer = nullptr;
 
 		shader_vertex_user_data_t* p_data = nullptr;
 
-		bool status = this->m_memory_pool.Alloc_GeneralBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data),
-			&p_casted_compiled_geometry->m_p_shader, &p_casted_compiled_geometry->m_p_shader_allocation);
-		VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
+		if (p_casted_compiled_geometry->m_p_shader_allocation == nullptr)
+		{
+			// it means it was freed in ReleaseCompiledGeometry method
+			bool status = this->m_memory_pool.Alloc_GeneralBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data),
+				&p_casted_compiled_geometry->m_p_shader, &p_casted_compiled_geometry->m_p_shader_allocation);
+			VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
+		}
+		else
+		{
+			// it means our state is dirty and we need to update data
 
-		p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
-		p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
+			this->m_memory_pool.Free_GeometryHandle_ShaderDataOnly(p_casted_compiled_geometry);
+			bool status = this->m_memory_pool.Alloc_GeneralBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data),
+				&p_casted_compiled_geometry->m_p_shader, &p_casted_compiled_geometry->m_p_shader_allocation);
+			VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
+		}
+
+		if (p_data) 
+		{
+			p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
+			p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
+		}
+		else
+		{
+			VK_ASSERT(false, "you can't reach this zone, it means something bad");
+		}
+
+
+		p_casted_compiled_geometry->m_translation = this->m_user_data_for_vertex_shader.m_translate;
 
 		if (this->m_descriptor_sets.empty() == false)
 			this->m_memory_pool.SetDescriptorSet(
@@ -534,9 +557,7 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 	return true;
 }
 
-void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
-{
-}
+void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handle) {}
 
 void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform)
 {
@@ -2985,5 +3006,22 @@ void ShellRenderInterfaceVulkan::MemoryPool::Free_GeometryHandle(geometry_handle
 
 #ifdef RMLUI_DEBUG
 	Shell::Log("[Vulkan][Debug] Geometry handle is deleted! [%d]", p_valid_geometry_handle->m_id);
+#endif
+}
+
+void ShellRenderInterfaceVulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geometry_handle_t* p_valid_geometry_handle) noexcept
+{
+	VK_ASSERT(p_valid_geometry_handle, "you must pass a VALID pointer to geometry_handle_t, otherwise something is wrong and debug your code");
+	VK_ASSERT(p_valid_geometry_handle->m_p_vertex_allocation, "you must have a VALID pointer of VmaAllocation for vertex buffer");
+	VK_ASSERT(p_valid_geometry_handle->m_p_index_allocation, "you must have a VALID pointer of VmaAllocation for index buffer");
+	VK_ASSERT(p_valid_geometry_handle->m_p_shader_allocation,
+		"you must have a VALID pointer of VmaAllocation for shader operations (like uniforms and etc)");
+	VK_ASSERT(this->m_p_block, "you have to allocate the virtual block before do this operation...");
+
+	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_shader_allocation);
+	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
+
+#ifdef RMLUI_DEBUG
+	Shell::Log("[Vulkan][Debug] Geometry handle [%d] had a dirty translation we had to clear shader data", p_valid_geometry_handle->m_id);
 #endif
 }
