@@ -243,6 +243,7 @@ void ShellRenderInterfaceVulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHa
 	if (this->m_descriptor_sets.empty() == false)
 	{
 		//	this->m_compiled_geometries.erase(p_casted_geometry->m_descriptor_id);
+
 		this->NextDescriptorID();
 	}
 }
@@ -2980,6 +2981,7 @@ void ShellRenderInterfaceVulkan::MemoryPool::Free_GeometryHandle(geometry_handle
 	p_valid_geometry_handle->m_p_vertex_allocation = nullptr;
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
 	p_valid_geometry_handle->m_p_index_allocation = nullptr;
+	p_valid_geometry_handle->m_p_texture = nullptr;
 
 #ifdef RMLUI_DEBUG
 	Shell::Log("[Vulkan][Debug] Geometry handle is deleted! [%d]", p_valid_geometry_handle->m_id);
