@@ -74,7 +74,8 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 
 	class texture_data_t {
 	public:
-		texture_data_t() : m_width{}, m_height{}, m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_sampler{}, m_p_vma_allocation{} {}
+		texture_data_t() : m_width{}, m_height{}, m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_sampler{}, m_p_vk_descriptor_set{}, m_p_vma_allocation{}
+		{}
 		~texture_data_t() {}
 
 		void Set_VkImage(VkImage p_image) noexcept { this->m_p_vk_image = p_image; }
@@ -84,11 +85,13 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		void Set_FileName(const Rml::String& filename) noexcept { this->m_filename = filename; }
 		void Set_Width(int width) noexcept { this->m_width = width; }
 		void Set_Height(int height) noexcept { this->m_height = height; }
+		void Set_VkDescriptorSet(VkDescriptorSet p_set) noexcept { this->m_p_vk_descriptor_set = p_set; }
 
 		VkImage Get_VkImage(void) const noexcept { return this->m_p_vk_image; }
 		VkImageView Get_VkImageView(void) const noexcept { return this->m_p_vk_image_view; }
 		VkSampler Get_VkSampler(void) const noexcept { return this->m_p_vk_sampler; }
 		VmaAllocation Get_VmaAllocation(void) const noexcept { return this->m_p_vma_allocation; }
+		VkDescriptorSet Get_VkDescriptorSet(void) const noexcept { return this->m_p_vk_descriptor_set; }
 		const Rml::String& Get_FileName(void) const noexcept { return this->m_filename; }
 		int Get_Width(void) const noexcept { return this->m_width; }
 		int Get_Height(void) const noexcept { return this->m_height; }
@@ -99,6 +102,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		VkImage m_p_vk_image;
 		VkImageView m_p_vk_image_view;
 		VkSampler m_p_vk_sampler;
+		VkDescriptorSet m_p_vk_descriptor_set;
 		VmaAllocation m_p_vma_allocation;
 		Rml::String m_filename;
 	};
@@ -113,6 +117,8 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		int m_num_indices = 0;
 		int m_descriptor_id = 0;
 		uint32_t m_id = 0;
+
+		texture_data_t* m_p_texture{};
 
 		VkDescriptorBufferInfo m_p_vertex{};
 		VkDescriptorBufferInfo m_p_index{};
@@ -792,7 +798,8 @@ private:
 	// @ obtained from command list see PrepareRenderBuffer method
 	VkCommandBuffer m_p_current_command_buffer;
 #pragma region Resources
-	VkDescriptorSetLayout m_p_descriptor_set_layout;
+	VkDescriptorSetLayout m_p_descriptor_set_layout_uniform_buffer_dynamic;
+	VkDescriptorSetLayout m_p_descriptor_set_layout_for_textures;
 	VkPipelineLayout m_p_pipeline_layout;
 	VkPipeline m_p_pipeline_with_textures;
 	VkPipeline m_p_pipeline_without_textures;

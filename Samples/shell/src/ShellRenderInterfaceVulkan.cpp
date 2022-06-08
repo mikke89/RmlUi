@@ -33,8 +33,9 @@ ShellRenderInterfaceVulkan::ShellRenderInterfaceVulkan() :
 	m_is_transform_enabled(false), m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
 	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{},
 	m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_window_handle{}, m_p_queue_present{}, m_p_queue_graphics{},
-	m_p_queue_compute{}, m_p_descriptor_set_layout{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
-	m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
+	m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{},
+	m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{},
+	m_p_current_command_buffer{}
 {}
 
 ShellRenderInterfaceVulkan::~ShellRenderInterfaceVulkan(void) {}
@@ -92,8 +93,11 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	auto& current_geometry_handle = this->m_compiled_geometries.at(this->m_current_geometry_handle_id);
 
 	VkDescriptorImageInfo info_descriptor_image = {};
-	if (p_texture)
+	if (p_texture && p_texture->Get_VkDescriptorSet() == nullptr)
 	{
+		VkDescriptorSet p_texture_set = nullptr;
+		this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, &this->m_p_descriptor_set_layout_for_textures, &p_texture_set);
+
 		info_descriptor_image.imageView = p_texture->Get_VkImageView();
 		info_descriptor_image.sampler = p_texture->Get_VkSampler();
 		info_descriptor_image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -101,13 +105,14 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 		VkWriteDescriptorSet info_write = {};
 
 		info_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		info_write.dstSet = p_current_descriptor_set;
+		info_write.dstSet = p_texture_set;
 		info_write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		info_write.dstBinding = 2;
 		info_write.pImageInfo = &info_descriptor_image;
 		info_write.descriptorCount = 1;
 
 		vkUpdateDescriptorSets(this->m_p_device, 1, &info_write, 0, nullptr);
+		p_texture->Set_VkDescriptorSet(p_texture_set);
 	}
 
 	uint32_t* pCopyDataToBuffer = nullptr;
@@ -134,6 +139,7 @@ Rml::CompiledGeometryHandle ShellRenderInterfaceVulkan::CompileGeometry(
 	current_geometry_handle.m_descriptor_id = this->Get_CurrentDescriptorID();
 	current_geometry_handle.m_id = this->m_current_geometry_handle_id;
 	current_geometry_handle.m_is_cached = false;
+	current_geometry_handle.m_p_texture = p_texture;
 
 #ifdef RMLUI_DEBUG
 	Shell::Log("[Vulkan][Debug] compiled geometry id:[%d]", current_geometry_handle.m_id);
@@ -198,8 +204,11 @@ void ShellRenderInterfaceVulkan::RenderCompiledGeometry(Rml::CompiledGeometryHan
 	}
 
 	const uint32_t pDescriptorOffsets = static_cast<uint32_t>(p_casted_compiled_geometry->m_p_shader.offset);
-	vkCmdBindDescriptorSets(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, 1,
-		&p_current_descriptor_set, 1, &pDescriptorOffsets);
+
+	VkDescriptorSet p_sets[] = {p_current_descriptor_set, p_casted_compiled_geometry->m_p_texture->Get_VkDescriptorSet()};
+
+	vkCmdBindDescriptorSets(
+		this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, 2, p_sets, 1, &pDescriptorOffsets);
 
 	if (p_casted_compiled_geometry->m_is_has_texture)
 	{
@@ -526,7 +535,6 @@ bool ShellRenderInterfaceVulkan::GenerateTexture(Rml::TextureHandle& texture_han
 
 void ShellRenderInterfaceVulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
-	// TODO: implement deleting textures
 }
 
 void ShellRenderInterfaceVulkan::SetTransform(const Rml::Matrix4f* transform)
@@ -1101,9 +1109,9 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &this->m_p_descriptor_set);
 	}
 
-	this->m_manager_descriptors.Shutdown(this->m_p_device);
+	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout_uniform_buffer_dynamic, nullptr);
+	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout_for_textures, nullptr);
 
-	vkDestroyDescriptorSetLayout(this->m_p_device, this->m_p_descriptor_set_layout, nullptr);
 	vkDestroyPipelineLayout(this->m_p_device, this->m_p_pipeline_layout, nullptr);
 
 	for (const auto& p_module : this->m_shaders)
@@ -1113,6 +1121,8 @@ void ShellRenderInterfaceVulkan::Destroy_Resources(void) noexcept
 
 	this->DestroySamplers();
 	this->Destroy_Textures();
+
+	this->m_manager_descriptors.Shutdown(this->m_p_device);
 }
 
 void ShellRenderInterfaceVulkan::Destroy_Allocator(void) noexcept
@@ -1722,11 +1732,25 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(Rml::Vector<shader_da
 		all_bindings.insert(all_bindings.end(), current_bindings.begin(), current_bindings.end());
 	}
 
+	// TODO: yeah... it is hardcoded, but idk how it is better to create two different layouts, because you can't update one dynamic descriptor set
+	// which is for uniform buffers... we have to have at least TWO different descriptor set, one is global and single and it is for uniform buffer
+	// with offsets, but the second one is for per texture descriptor... it will be hardcoded in anyway, but spirv just automize the process in order
+	// to not write the really long and big code for initializing information about our bindings in shaders
+	VK_ASSERT(all_bindings.size() > 1, "[Vulkan] something is wrong with SPIRV parsing and obtaining the true amount of bindings");
+
+	auto& binding_for_geometry = all_bindings[0];
+	auto& binding_for_textures = all_bindings[1];
+
+	VK_ASSERT(binding_for_geometry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+		"this binding must be uniform_buffer_dynamic don't change shaders!");
+	VK_ASSERT(
+		binding_for_textures.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, "this binding must be for textures don't change shaders!");
+
 	VkDescriptorSetLayoutCreateInfo info = {};
 
 	info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	info.pBindings = all_bindings.data();
-	info.bindingCount = all_bindings.size();
+	info.pBindings = &binding_for_geometry;
+	info.bindingCount = 1;
 
 	VkDescriptorSetLayout p_layout = nullptr;
 
@@ -1734,7 +1758,18 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSetLayout(Rml::Vector<shader_da
 
 	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreateDescriptorSetLayout");
 
-	this->m_p_descriptor_set_layout = p_layout;
+	this->m_p_descriptor_set_layout_uniform_buffer_dynamic = p_layout;
+
+	p_layout = nullptr;
+
+	info.pBindings = &binding_for_textures;
+	info.bindingCount = 1;
+
+	status = vkCreateDescriptorSetLayout(this->m_p_device, &info, nullptr, &p_layout);
+
+	VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreateDescriptorSetLayout");
+
+	this->m_p_descriptor_set_layout_for_textures = p_layout;
 }
 
 Rml::Vector<VkDescriptorSetLayoutBinding> ShellRenderInterfaceVulkan::CreateDescriptorSetLayoutBindings(shader_data_t& data) noexcept
@@ -1799,15 +1834,20 @@ Rml::Vector<VkDescriptorSetLayoutBinding> ShellRenderInterfaceVulkan::CreateDesc
 
 void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 {
-	VK_ASSERT(this->m_p_descriptor_set_layout, "[Vulkan] You must initialize VkDescriptorSetLayout before calling this method");
+	VK_ASSERT(
+		this->m_p_descriptor_set_layout_uniform_buffer_dynamic, "[Vulkan] You must initialize VkDescriptorSetLayout before calling this method");
+	VK_ASSERT(
+		this->m_p_descriptor_set_layout_for_textures, "[Vulkan] you must initialize VkDescriptorSetLayout for textures before calling this method!");
 	VK_ASSERT(this->m_p_device, "[Vulkan] you must initialize VkDevice before calling this method");
+
+	VkDescriptorSetLayout p_layouts[] = {this->m_p_descriptor_set_layout_uniform_buffer_dynamic, this->m_p_descriptor_set_layout_for_textures};
 
 	VkPipelineLayoutCreateInfo info = {};
 
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	info.pNext = nullptr;
-	info.pSetLayouts = &this->m_p_descriptor_set_layout;
-	info.setLayoutCount = 1;
+	info.pSetLayouts = p_layouts;
+	info.setLayoutCount = 2;
 
 	auto status = vkCreatePipelineLayout(this->m_p_device, &info, nullptr, &this->m_p_pipeline_layout);
 
@@ -1816,12 +1856,6 @@ void ShellRenderInterfaceVulkan::CreatePipelineLayout(void) noexcept
 
 void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 {
-	// TODO: TO ALL, but it is better to use one descriptor set, but if we accumulate drawings and compile every time our geometry to it is better to
-	// think about how to reduce descriptor sets or cache g_current_compiled_geometry for every compiled geometry and just pass them to
-	// RenderCompiledGeometry
-	// <= it is needed to be placed some where because before this calling you accumulate ALL geometry what you need to compile and after filled
-	// Rml::Vector<CompiledGeometryHandle> then you call once RenderCompiledGeometry, because you cached all stuff
-
 	/*
 	Rml::Vector<VkDescriptorSetLayout> layouts(kDescriptorSetsCount, this->m_p_descriptor_set_layout);
 	Rml::Vector<VkDescriptorSet> sets(kDescriptorSetsCount, nullptr);
@@ -1837,9 +1871,11 @@ void ShellRenderInterfaceVulkan::CreateDescriptorSets(void) noexcept
 	*/
 
 	VK_ASSERT(this->m_p_device, "[Vulkan] you have to initialize your VkDevice before calling this method");
-	VK_ASSERT(this->m_p_descriptor_set_layout, "[Vulkan] you have to initialize your VkDescriptorSetLayout before calling this method");
+	VK_ASSERT(this->m_p_descriptor_set_layout_uniform_buffer_dynamic,
+		"[Vulkan] you have to initialize your VkDescriptorSetLayout before calling this method");
 
-	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, &this->m_p_descriptor_set_layout, &this->m_p_descriptor_set);
+	this->m_manager_descriptors.Alloc_Descriptor(
+		this->m_p_device, &this->m_p_descriptor_set_layout_uniform_buffer_dynamic, &this->m_p_descriptor_set);
 	this->m_memory_pool.SetDescriptorSet(1, sizeof(shader_vertex_user_data_t), VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, this->m_p_descriptor_set);
 }
 
@@ -2181,6 +2217,9 @@ void ShellRenderInterfaceVulkan::Destroy_Textures(void) noexcept
 		{
 			vmaDestroyImage(this->m_p_allocator, texture.Get_VkImage(), texture.Get_VmaAllocation());
 			vkDestroyImageView(this->m_p_device, texture.Get_VkImageView(), nullptr);
+
+			VkDescriptorSet p_set = texture.Get_VkDescriptorSet();
+			this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
 		}
 	}
 }
