@@ -164,7 +164,7 @@ endif()
 option(BUILD_SAMPLES "Build samples" OFF)
 
 set(SAMPLES_BACKEND "auto" CACHE STRING "Backend platform and renderer used for the samples.")
-set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 X11_GL2 SDL_GL2 SDL_GL3 SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3)
+set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 Win32_VK X11_GL2 SDL_GL2 SDL_GL3 SDL_VK SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3)
 
 if(SAMPLES_BACKEND STREQUAL "auto")
 	if(EMSCRIPTEN)
@@ -711,12 +711,9 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 			set(EMSCRIPTEN_FLAGS "${EMSCRIPTEN_FLAGS} -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sSDL2_IMAGE_FORMATS='[tga]'")
 		else()
 			find_package(SDL2 REQUIRED)
-			find_package(SDL2_image REQUIRED)
 			
 			if(NOT SDL2_FOUND)
 				message(FATAL_ERROR "SDL2 not found")
-			elseif(NOT SDL2_IMAGE_FOUND)
-				message(FATAL_ERROR "SDL2_image not found")
 			endif()
 			
 			if(SAMPLES_BACKEND STREQUAL "SDL_GL2")
@@ -729,6 +726,13 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 			# Check version requirement for the SDL renderer.
 			if(SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer" AND "${SDL2_VERSION}" VERSION_LESS "2.0.20")
 				message(FATAL_ERROR "SDL2 native renderer backend (${SAMPLES_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
+			endif()
+			
+			if(SAMPLES_BACKEND STREQUAL "SDL_GL2" OR SAMPLES_BACKEND STREQUAL "SDL_GL3" OR SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer")
+				find_package(SDL2_image REQUIRED)
+				if(NOT SDL2_IMAGE_FOUND)
+					message(FATAL_ERROR "SDL2_image not found")
+				endif()
 			endif()
 			
 			target_include_directories(shell PRIVATE ${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
@@ -764,6 +768,18 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 		if(APPLE)
 			target_compile_definitions(shell PRIVATE GL_SILENCE_DEPRECATION)
 		endif()
+	endif()
+	
+	if(SAMPLES_BACKEND MATCHES "VK$")
+		message("-- Using Vulkan renderer backend.")
+		
+		option(RMLUI_VK_DEBUG "Enable debugging mode for Vulkan renderer." OFF)
+		mark_as_advanced(RMLUI_VK_DEBUG)
+		if(RMLUI_VK_DEBUG)
+		  target_compile_definitions(shell PRIVATE RMLUI_VK_DEBUG)
+		endif()
+
+		target_link_libraries(shell PRIVATE ${CMAKE_DL_LIBS})
 	endif()
 	
 	if(SAMPLES_BACKEND MATCHES "GL3$")

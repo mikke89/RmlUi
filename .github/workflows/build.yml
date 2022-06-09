@@ -18,11 +18,15 @@ jobs:
           - cc: clang
             cxx: clang++
             cmake_options: -DENABLE_PRECOMPILED_HEADERS=OFF -DSAMPLES_BACKEND=GLFW_GL2
+          - cc: clang
+            cxx: clang++
+            cmake_options: -DSAMPLES_BACKEND=SDL_VK
           - cmake_options: -DBUILD_TESTING=ON -DENABLE_PRECOMPILED_HEADERS=OFF
             enable_testing: true
           - cmake_options: -DNO_FONT_INTERFACE_DEFAULT=ON -DENABLE_LOTTIE_PLUGIN=ON -DSAMPLES_BACKEND=X11_GL2
           - cmake_options: -DDISABLE_RTTI_AND_EXCEPTIONS=ON -DSAMPLES_BACKEND=SDL_GL2
           - cmake_options: -DNO_THIRDPARTY_CONTAINERS=ON -DSAMPLES_BACKEND=SFML_GL2
+          - cmake_options: -DSAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug
 
     steps:
     - uses: actions/checkout@v2
@@ -82,6 +86,42 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/Build
       run: cmake --build . --config $BUILD_TYPE
+
+
+  Windows:
+    runs-on: windows-latest
+    
+    env:
+      BUILD_TYPE: Release
+      VCPKG_DEFAULT_TRIPLET: x64-windows
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cmake_options: -DSAMPLES_BACKEND=auto -DENABLE_PRECOMPILED_HEADERS=OFF
+          - cmake_options: -DSAMPLES_BACKEND=Win32_VK -DRMLUI_VK_DEBUG=ON
+          - cmake_options: -DSAMPLES_BACKEND=SDL_VK
+    
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Install Dependencies
+      run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan]
+      
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/Build
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: >-
+        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        ${{ matrix.cmake_options }}
+
+    - name: Build
+      working-directory: ${{github.workspace}}/Build
+      run: cmake --build . --config $env:BUILD_TYPE
 
 
   Emscripten:

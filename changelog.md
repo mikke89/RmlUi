@@ -23,9 +23,18 @@ This change is beneficial in several aspects:
 
 All samples and tests have been updated to work with the [backends interface](Backends/RmlUi_Backend.h), which is a very light abstraction over all the different backends.
 
-A new GLFW backend has been added, along with the SFML and SDL platforms ported from the old samples. The old macOS shell has been removed as it used a legacy API that is no longer working on modern Apple devices. Now the samples build again on macOS using one of the windowing libraries such as GLFW or SDL. Further, an OpenGL 3 renderer has been added (#261), and also Emscripten support so RmlUi even runs in web browsers now.
+The following new renderers and platforms are added:
 
-See the [Backends section in the readme](readme.md#rmlui-backends) for more details.
+- A new OpenGL 3 renderer. #261
+  - Including Emscripten support so RmlUi even runs in web browsers now.
+- A new Vulkan renderer. #236 #328 (thanks @wh1t3lord)
+- A new GLFW platform.
+- The OpenGL 2 and SDL native renderers are ported over from the old samples.
+- The Win32, X11, SFML, and SDL platforms are ported over from the old samples.
+
+The old macOS shell has been removed as it used a legacy API that is no longer working on modern Apple devices. Now the samples build again on macOS using one of the windowing libraries such as GLFW or SDL.
+
+See the [Backends section in the readme](readme.md#rmlui-backends) for all the combinations of renderers and platforms, and more details.
 
 ### Text editing
 

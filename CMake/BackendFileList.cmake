@@ -13,6 +13,18 @@ set(Win32_GL2_HDR_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Include_Windows.h
 )
 
+set(Win32_VK_SRC_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_Win32.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_Win32_VK.cpp
+)
+set(Win32_VK_HDR_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_Win32.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Vulkan/ShadersCompiledSPV.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Vulkan/vk_mem_alloc.h
+)
+
 set(X11_GL2_SRC_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_X11.cpp
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.cpp	
@@ -43,6 +55,18 @@ set(SDL_GL3_HDR_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.h
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL3.h
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Include_GL3.h
+)
+
+set(SDL_VK_SRC_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_SDL_VK.cpp
+)
+set(SDL_VK_HDR_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Vulkan/ShadersCompiledSPV.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Vulkan/vk_mem_alloc.h
 )
 
 set(SDL_SDLrenderer_SRC_FILES

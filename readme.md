@@ -141,6 +141,7 @@ The provided backends on the other hand are not intended to be used directly by 
 |-------------------|:---------------:|---------|:----------:|---------------------------------------------------------------------------------|
 | OpenGL 2          |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
 | OpenGL 3          |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
+| Vulkan            |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
 | SDLrenderer       |        ✔️       |    ❌    |      ❌    | Based on [SDL_image](https://www.libsdl.org/projects/SDL_image/docs/index.html) |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2d-layouts.\
@@ -164,13 +165,13 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Backends
 
-| Platform \ Renderer | OpengGL 2 | OpengGL 3 | SDLrenderer |
-|---------------------|:---------:|:---------:|:-----------:|
-| Win32               |     ✔️     |            |             |
-| X11                 |     ✔️     |            |             |
-| SFML                |     ✔️     |            |             |
-| GLFW                |     ✔️     |     ✔️      |             |
-| SDL                 |     ✔️     |     ✔️¹      |      ✔️      |
+| Platform \ Renderer | OpengGL 2 | OpengGL 3 | Vulkan | SDLrenderer |
+|---------------------|:---------:|:---------:|:---------:|:-----------:|
+| Win32               |     ✔️     |           |    ✔️     |             |
+| X11                 |     ✔️     |           |          |             |
+| SFML                |     ✔️     |           |          |             |
+| GLFW                |     ✔️     |     ✔️    |          |             |
+| SDL                 |     ✔️     |     ✔️¹   |     ✔️    |      ✔️     |
 
 ¹ Supports Emscripten compilation target.
 
@@ -420,6 +421,10 @@ See
 - [Samples/basic/bitmapfont/data/LICENSE.txt](Samples/basic/bitmapfont/data/LICENSE.txt)
 - [Samples/basic/lottie/data/LICENSE.txt](Samples/basic/lottie/data/LICENSE.txt)
 - [Samples/basic/svg/data/LICENSE.txt](Samples/basic/svg/data/LICENSE.txt)
+
+#### Library included with the Vulkan backend *(in Backends/RmlUi_Vulkan/)*
+
+See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT licensed.
 
 #### Libraries included with the test suite *(in Tests/Dependencies/)*
 
