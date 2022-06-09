@@ -164,7 +164,7 @@ endif()
 option(BUILD_SAMPLES "Build samples" OFF)
 
 set(SAMPLES_BACKEND "auto" CACHE STRING "Backend platform and renderer used for the samples.")
-set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 X11_GL2 SDL_GL2 SDL_GL3 SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3)
+set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 X11_GL2 SDL_GL2 SDL_GL3 SDL_Vulkan SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3)
 
 if(SAMPLES_BACKEND STREQUAL "auto")
 	if(EMSCRIPTEN)
@@ -764,6 +764,13 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 		if(APPLE)
 			target_compile_definitions(shell PRIVATE GL_SILENCE_DEPRECATION)
 		endif()
+	endif()
+	
+	if(SAMPLES_BACKEND MATCHES "Vulkan$")
+		message("-- Adding Vulkan renderer backend.")
+		find_package(Vulkan REQUIRED)
+		target_include_directories(shell PRIVATE ${Vulkan_INCLUDE_DIR})
+		target_link_libraries(shell PRIVATE ${Vulkan_LIBRARIES})
 	endif()
 	
 	if(SAMPLES_BACKEND MATCHES "GL3$")
