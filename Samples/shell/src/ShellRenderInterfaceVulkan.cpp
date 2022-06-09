@@ -2220,7 +2220,7 @@ void ShellRenderInterfaceVulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->m_scissor_original = this->m_scissor;
 
 	this->m_projection =
-		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -20.0f, 20.0f);
+		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -10000, 10000);
 
 	this->SetTransform(nullptr);
 

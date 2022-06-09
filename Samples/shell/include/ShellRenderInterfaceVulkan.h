@@ -493,7 +493,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		DescriptorPoolManager(void) : m_allocated_descriptor_count{}, m_p_descriptor_pool{} {}
 		~DescriptorPoolManager(void)
 		{
-			RMLUI_ASSERT(this->m_allocated_descriptor_count == 0, "something is wrong. You didn't free some VkDescriptorSet");
+			RMLUI_ASSERT(this->m_allocated_descriptor_count <= 0, "something is wrong. You didn't free some VkDescriptorSet");
 		}
 
 		void Initialize(VkDevice p_device, uint32_t count_uniform_buffer, uint32_t count_image_sampler, uint32_t count_sampler,
@@ -563,7 +563,7 @@ class ShellRenderInterfaceVulkan : public Rml::RenderInterface, public ShellRend
 		}
 
 	private:
-		uint32_t m_allocated_descriptor_count;
+		int m_allocated_descriptor_count;
 		VkDescriptorPool m_p_descriptor_pool;
 	};
 
