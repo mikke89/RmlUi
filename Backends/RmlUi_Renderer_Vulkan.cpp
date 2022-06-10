@@ -462,6 +462,10 @@ bool RenderInterface_Vulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml
     RAW_POINTER_DATA_BYTES_LITERALLY->COPY_TO->CPU->COPY_TO->GPU->Releasing_CPU <= that's how works uploading textures in Vulkan if you want to have
    efficient handling otherwise it is cpu_to_gpu visibility and it means you create only ONE buffer that is accessible for CPU and for GPU, but it
    will cause the worst performance...
+
+   TODO: implement cyclic allocating for textures by using one block with size of 32 Mbs, if we overflow or we can't allocate we allocate this chunk
+   with such size again and use it for uploading, also implement the part for releasing texture, because user could have some streaming stuff like he
+   often changes pages and thus causing deletion for textures. If you implement this feature you finished the development of Vulkan rendering.
 */
 bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
@@ -633,7 +637,11 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	return true;
 }
 
-void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle) {}
+void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
+{
+	// TODO: implement for streaming purposes. So you still need delete textures in DestroyTextures method, but this method calls and handles the
+	// situation when you need to delete/create texture often
+}
 
 void RenderInterface_Vulkan::SetTransform(const Rml::Matrix4f* transform)
 {
@@ -2825,7 +2833,7 @@ void RenderInterface_Vulkan::MemoryPool::Initialize(VkPhysicalDeviceProperties* 
 
 	this->m_memory_total_size = RenderInterface_Vulkan::AlignUp<VkDeviceSize>(static_cast<VkDeviceSize>(info_creation.m_memory_total_size),
 		this->m_min_alignment_for_uniform_buffer);
-	
+
 	this->m_memory_gpu_data_one_object = RenderInterface_Vulkan::AlignUp<VkDeviceSize>(static_cast<VkDeviceSize>(info_creation.m_gpu_data_size),
 		this->m_min_alignment_for_uniform_buffer);
 
