@@ -170,7 +170,7 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 	current_geometry_handle.m_p_texture = p_texture;
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan][Debug] compiled geometry id:[%d]", current_geometry_handle.m_id);
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] compiled geometry id:[%d]", current_geometry_handle.m_id);
 #endif
 
 	this->NextDescriptorID();
@@ -522,7 +522,7 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	VkResult status = vmaCreateImage(this->m_p_allocator, &info, &info_allocation, &p_image, &p_allocation, &info_stats);
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateImage");
 
-	Rml::Log::Message(Rml::Log::LT_WARNING, "Created image %s with size [%d bytes][%d Megabytes]", file_path, info_stats.size,
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "Created image %s with size [%d bytes][%d Megabytes]", file_path, info_stats.size,
 		TranslateBytesToMegaBytes(info_stats.size));
 
 	texture.Set_FileName(file_path);
@@ -1019,7 +1019,7 @@ void RenderInterface_Vulkan::Initialize_QueueIndecies(void) noexcept
 		}
 	}
 
-	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan] User family queues indecies: Graphics[%d] Present[%d] Compute[%d]",
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] User family queues indecies: Graphics[%d] Present[%d] Compute[%d]",
 		this->m_queue_index_graphics, this->m_queue_index_present, this->m_queue_index_compute);
 }
 
@@ -1271,7 +1271,7 @@ void RenderInterface_Vulkan::QueryInstanceExtensions(void) noexcept
 				if (status == VK_SUCCESS)
 				{
 #ifdef RMLUI_DEBUG
-					Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan] obtained extensions for layer: %s, count: %d", layer_property.layerName,
+					Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] obtained extensions for layer: %s, count: %d", layer_property.layerName,
 						props.size());
 #endif
 
@@ -1280,7 +1280,7 @@ void RenderInterface_Vulkan::QueryInstanceExtensions(void) noexcept
 						if (this->IsExtensionPresent(this->m_instance_extension_properties, extension.extensionName) == false)
 						{
 #ifdef RMLUI_DEBUG
-							Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan] new extension is added: %s", extension.extensionName);
+							Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] new extension is added: %s", extension.extensionName);
 #endif
 
 							this->m_instance_extension_properties.push_back(extension);
@@ -1352,7 +1352,7 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Instance(void) noexcept
 
 	if (is_cpu_validation)
 	{
-		Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan] CPU validation is enabled");
+		Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] CPU validation is enabled");
 
 		Rml::Vector<const char*> requested_extensions_for_gpu = {VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME};
 
@@ -1467,7 +1467,7 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Device(void) noexcept
 				{
 					if (this->IsExtensionPresent(this->m_device_extension_properties, extension.extensionName) == false)
 					{
-						Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan] obtained new device extension from layer[%s]: %s", layer.layerName,
+						Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] obtained new device extension from layer[%s]: %s", layer.layerName,
 							extension.extensionName);
 
 						this->m_device_extension_properties.push_back(extension);
@@ -1582,7 +1582,7 @@ void RenderInterface_Vulkan::PrintInformationAboutPickedPhysicalDevice(VkPhysica
 		if (p_physical_device == device.GetHandle())
 		{
 			const auto& properties = device.GetProperties();
-			Rml::Log::Message(Rml::Log::LT_WARNING, "Picked physical device: %s", properties.deviceName);
+			Rml::Log::Message(Rml::Log::LT_DEBUG, "Picked physical device: %s", properties.deviceName);
 
 			return;
 		}
@@ -2231,7 +2231,7 @@ RenderInterface_Vulkan::buffer_data_t RenderInterface_Vulkan::CreateResource_Sta
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateBuffer");
 
-	Rml::Log::Message(Rml::Log::LT_WARNING, "allocated buffer with size %d in bytes", info_stats.size);
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "allocated buffer with size %d in bytes", info_stats.size);
 
 	result.Set_VkBuffer(p_buffer);
 	result.Set_VmaAllocation(p_allocation);
@@ -2247,7 +2247,7 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 		{
 			vmaDestroyBuffer(this->m_p_allocator, data.Get_VkBuffer(), data.Get_VmaAllocation());
 
-			Rml::Log::Message(Rml::Log::LT_WARNING, "destroy buffer");
+			Rml::Log::Message(Rml::Log::LT_DEBUG, "destroy buffer");
 		}
 	}
 }
@@ -2828,7 +2828,7 @@ void RenderInterface_Vulkan::MemoryPool::Initialize(VkPhysicalDeviceProperties* 
 	this->m_min_alignment_for_uniform_buffer = this->m_p_physical_device_current_properties->limits.minUniformBufferOffsetAlignment;
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan][Debug] the alignment for uniform buffer is: %d", this->m_min_alignment_for_uniform_buffer);
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] the alignment for uniform buffer is: %d", this->m_min_alignment_for_uniform_buffer);
 #endif
 
 	this->m_memory_total_size = RenderInterface_Vulkan::AlignUp<VkDeviceSize>(static_cast<VkDeviceSize>(info_creation.m_memory_total_size),
@@ -2866,7 +2866,7 @@ void RenderInterface_Vulkan::MemoryPool::Initialize(VkPhysicalDeviceProperties* 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateVirtualBlock");
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan][Debug] allocated memory for pool: %d Mbs",
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] allocated memory for pool: %d Mbs",
 		RenderInterface_Vulkan::TranslateBytesToMegaBytes(info_stats.size));
 #endif
 
@@ -2882,7 +2882,7 @@ void RenderInterface_Vulkan::MemoryPool::Shutdown(void) noexcept
 	VK_ASSERT(this->m_p_buffer_alloc, "you must allocate VmaAllocation for deleting");
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan][Debug] Destroyed buffer with memory [%d] Mbs",
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] Destroyed buffer with memory [%d] Mbs",
 		RenderInterface_Vulkan::TranslateBytesToMegaBytes(this->m_memory_total_size));
 #endif
 
@@ -3034,7 +3034,7 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle(geometry_handle_t* 
 	p_valid_geometry_handle->m_p_texture = nullptr;
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan][Debug] Geometry handle is deleted! [%d]", p_valid_geometry_handle->m_id);
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] Geometry handle is deleted! [%d]", p_valid_geometry_handle->m_id);
 #endif
 }
 
@@ -3051,7 +3051,7 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan][Debug] Geometry handle [%d] had a dirty translation we had to clear shader data",
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] Geometry handle [%d] had a dirty translation we had to clear shader data",
 		p_valid_geometry_handle->m_id);
 #endif
 }
