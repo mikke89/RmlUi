@@ -168,13 +168,14 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		VmaVirtualAllocation m_p_shader_allocation{};
 	};
 
+	// possibly delete this class after all tests
 	class descriptor_wrapper_t {
 	public:
 		descriptor_wrapper_t(void) : m_is_available{true}, m_p_set{} {}
 		~descriptor_wrapper_t(void) {}
 
 		bool Is_Available(void) const noexcept { return this->m_is_available; }
-		void Set_Available(bool value) noexcept { this->m_is_available; }
+		void Set_Available(bool value) noexcept { this->m_is_available = value; }
 
 		VkDescriptorSet Get_DescriptorSet(void) const noexcept { return this->m_p_set; }
 		void Set_DescriptorSet(VkDescriptorSet p_set) noexcept
@@ -459,10 +460,10 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		void Free_GeometryHandle_ShaderDataOnly(geometry_handle_t* p_valid_geometry_handle) noexcept;
 
 	private:
-		uint32_t m_min_alignment_for_uniform_buffer;
 		uint32_t m_memory_total_size;
 		uint32_t m_memory_gpu_data_one_object;
 		uint32_t m_memory_gpu_data_total;
+		VkDeviceSize m_min_alignment_for_uniform_buffer;
 		char* m_p_data;
 		VkBuffer m_p_buffer;
 		VkPhysicalDeviceProperties* m_p_physical_device_current_properties;
@@ -652,10 +653,10 @@ public:
 
 	// Example: opposed function to ConvertValueToMegabytes
 	// TranslateBytesToMegaBytes(52428800) returns 52428800 / (1024 * 1024) = 50 <= value indicates that it's 50 Megabytes
-	static uint32_t TranslateBytesToMegaBytes(uint32_t raw_number) noexcept { return raw_number / (1024 * 1024); }
+	static VkDeviceSize TranslateBytesToMegaBytes(VkDeviceSize raw_number) noexcept { return raw_number / (1024 * 1024); }
 
 	// Example: ConvertValueToMegabytes(50) returns 50 * 1024 * 1024 = 52428800 BYTES!!!!
-	static uint32_t ConvertMegabytesToBytes(uint32_t value_shows_megabytes) noexcept { return value_shows_megabytes * 1024 * 1024; }
+	static VkDeviceSize ConvertMegabytesToBytes(VkDeviceSize value_shows_megabytes) noexcept { return value_shows_megabytes * 1024 * 1024; }
 
 #pragma region New Methods
 private:

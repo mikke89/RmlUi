@@ -342,8 +342,8 @@ void RenderInterface_Vulkan::SetScissorRegion(int x, int y, int width, int heigh
 		{
 			this->m_scissor.extent.width = width;
 			this->m_scissor.extent.height = height;
-			this->m_scissor.offset.x = fabs(x);
-			this->m_scissor.offset.y = fabs(y);
+			this->m_scissor.offset.x = static_cast<int32_t>(fabs(x));
+			this->m_scissor.offset.y = static_cast<int32_t>(fabs(y));
 
 			vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
 		}
@@ -784,9 +784,9 @@ void RenderInterface_Vulkan::Initialize_Instance(void) noexcept
 	info_instance.pNext = &debug_validation_features_ext;
 	info_instance.flags = 0;
 	info_instance.pApplicationInfo = &info;
-	info_instance.enabledExtensionCount = this->m_instance_extension_names.size();
+	info_instance.enabledExtensionCount = static_cast<uint32_t>(this->m_instance_extension_names.size());
 	info_instance.ppEnabledExtensionNames = this->m_instance_extension_names.data();
-	info_instance.enabledLayerCount = this->m_instance_layer_names.size();
+	info_instance.enabledLayerCount = static_cast<uint32_t>(this->m_instance_layer_names.size());
 	info_instance.ppEnabledLayerNames = this->m_instance_layer_names.data();
 
 	VkResult status = vkCreateInstance(&info_instance, nullptr, &this->m_p_instance);
@@ -849,7 +849,7 @@ void RenderInterface_Vulkan::Initialize_Device(void) noexcept
 	info_device.pNext = &features_physical_device2;
 	info_device.queueCreateInfoCount = 2;
 	info_device.pQueueCreateInfos = info_queue;
-	info_device.enabledExtensionCount = this->m_device_extension_names.size();
+	info_device.enabledExtensionCount = static_cast<uint32_t>(this->m_device_extension_names.size());
 	info_device.ppEnabledExtensionNames = info_device.enabledExtensionCount ? this->m_device_extension_names.data() : nullptr;
 	info_device.pEnabledFeatures = nullptr;
 
@@ -1288,7 +1288,7 @@ bool RenderInterface_Vulkan::AddLayerToInstance(const char* p_instance_layer_nam
 {
 	if (p_instance_layer_name == nullptr)
 	{
-		VK_ASSERT(false, "you have an invalid layer");
+		VK_ASSERT(p_instance_layer_name, "you have an invalid layer");
 		return false;
 	}
 
@@ -1307,7 +1307,7 @@ bool RenderInterface_Vulkan::AddExtensionToInstance(const char* p_instance_exten
 {
 	if (p_instance_extension_name == nullptr)
 	{
-		VK_ASSERT(false, "you have an invalid extension");
+		VK_ASSERT(p_instance_extension_name, "you have an invalid extension");
 		return false;
 	}
 
@@ -1525,8 +1525,6 @@ uint32_t RenderInterface_Vulkan::GetRequiredVersionAndValidateMachine(void) noex
 void RenderInterface_Vulkan::CollectPhysicalDevices(void) noexcept
 {
 	uint32_t gpu_count = 1;
-	const uint32_t required_count = gpu_count;
-
 	Rml::Vector<VkPhysicalDevice> temp_devices;
 
 	VkResult status = vkEnumeratePhysicalDevices(this->m_p_instance, &gpu_count, nullptr);
@@ -2010,7 +2008,7 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 	info_dynamic_state.pNext = nullptr;
 	info_dynamic_state.pDynamicStates = dynamicStateEnables.data();
-	info_dynamic_state.dynamicStateCount = dynamicStateEnables.size();
+	info_dynamic_state.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
 	info_dynamic_state.flags = 0;
 
 	Rml::Array<VkPipelineShaderStageCreateInfo, 2> shaders_that_will_be_used_in_pipeline;
@@ -2060,7 +2058,7 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_shader_vertex_attributes[2].offset = offsetof(Rml::Vertex, tex_coord);
 
 	info_vertex.pVertexAttributeDescriptions = info_shader_vertex_attributes.data();
-	info_vertex.vertexAttributeDescriptionCount = info_shader_vertex_attributes.size();
+	info_vertex.vertexAttributeDescriptionCount = static_cast<uint32_t>(info_shader_vertex_attributes.size());
 	info_vertex.pVertexBindingDescriptions = &info_vertex_input_binding;
 	info_vertex.vertexBindingDescriptionCount = 1;
 
@@ -2075,7 +2073,7 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info.pViewportState = &info_viewport;
 	info.pDepthStencilState = &info_depth;
 	info.pDynamicState = &info_dynamic_state;
-	info.stageCount = shaders_that_will_be_used_in_pipeline.size();
+	info.stageCount = static_cast<uint32_t>(shaders_that_will_be_used_in_pipeline.size());
 	info.pStages = shaders_that_will_be_used_in_pipeline.data();
 	info.pVertexInputState = &info_vertex;
 	info.layout = this->m_p_pipeline_layout;
@@ -2178,12 +2176,12 @@ void RenderInterface_Vulkan::CreateSwapchainImageViews(void) noexcept
 
 void RenderInterface_Vulkan::CreateResourcesDependentOnSize(void) noexcept
 {
-	this->m_viewport.height = -this->m_height;
-	this->m_viewport.width = this->m_width;
+	this->m_viewport.height = static_cast<float>(-this->m_height);
+	this->m_viewport.width = static_cast<float>(this->m_width);
 	this->m_viewport.minDepth = 0.0f;
 	this->m_viewport.maxDepth = 1.0f;
 	this->m_viewport.x = 0.0f;
-	this->m_viewport.y = this->m_height;
+	this->m_viewport.y = static_cast<float>(this->m_height);
 
 	this->m_scissor.extent.width = this->m_width;
 	this->m_scissor.extent.height = this->m_height;
@@ -2502,7 +2500,7 @@ const VkPhysicalDeviceLimits& RenderInterface_Vulkan::PhysicalDeviceWrapper::Get
 }
 
 RenderInterface_Vulkan::CommandListRing::CommandListRing(void) :
-	m_p_current_frame{}, m_frame_index{}, m_number_of_frames{}, m_command_lists_per_frame{}
+	m_frame_index{}, m_number_of_frames{}, m_command_lists_per_frame{}, m_p_device{}, m_p_current_frame{}
 {}
 
 RenderInterface_Vulkan::CommandListRing::~CommandListRing(void) {}
@@ -2711,6 +2709,8 @@ uint32_t RenderInterface_Vulkan::MemoryRingAllocator::GetTail(void) const noexce
 
 bool RenderInterface_Vulkan::MemoryRingAllocator::Alloc(uint32_t size, uint32_t* p_out) noexcept
 {
+	VK_ASSERT(this->m_allocated_size + size <= this->m_total_size, "overflow, rebuild your allocator with pool");
+
 	if (this->m_allocated_size + size <= this->m_total_size)
 	{
 		if (p_out)
@@ -2722,8 +2722,6 @@ bool RenderInterface_Vulkan::MemoryRingAllocator::Alloc(uint32_t size, uint32_t*
 
 		return true;
 	}
-
-	VK_ASSERT(false, "overflow, rebuild your allocator with pool");
 
 	return false;
 }
@@ -2798,7 +2796,7 @@ void RenderInterface_Vulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void) noe
 }
 
 RenderInterface_Vulkan::MemoryPool::MemoryPool(void) :
-	m_min_alignment_for_uniform_buffer{}, m_memory_total_size{}, m_memory_gpu_data_one_object{}, m_p_data{}, m_p_physical_device_current_properties{},
+	m_memory_total_size{}, m_memory_gpu_data_one_object{}, m_min_alignment_for_uniform_buffer{}, m_p_data{}, m_p_physical_device_current_properties{},
 	m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}
 {}
 
@@ -2825,8 +2823,12 @@ void RenderInterface_Vulkan::MemoryPool::Initialize(VkPhysicalDeviceProperties* 
 	Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan][Debug] the alignment for uniform buffer is: %d", this->m_min_alignment_for_uniform_buffer);
 #endif
 
-	this->m_memory_total_size = RenderInterface_Vulkan::AlignUp(info_creation.m_memory_total_size, this->m_min_alignment_for_uniform_buffer);
-	this->m_memory_gpu_data_one_object = RenderInterface_Vulkan::AlignUp(info_creation.m_gpu_data_size, this->m_min_alignment_for_uniform_buffer);
+	this->m_memory_total_size = RenderInterface_Vulkan::AlignUp<VkDeviceSize>(static_cast<VkDeviceSize>(info_creation.m_memory_total_size),
+		this->m_min_alignment_for_uniform_buffer);
+	
+	this->m_memory_gpu_data_one_object = RenderInterface_Vulkan::AlignUp<VkDeviceSize>(static_cast<VkDeviceSize>(info_creation.m_gpu_data_size),
+		this->m_min_alignment_for_uniform_buffer);
+
 	this->m_memory_gpu_data_total = this->m_memory_gpu_data_one_object * info_creation.m_gpu_data_count;
 
 	VkBufferCreateInfo info = {};
@@ -2891,7 +2893,7 @@ bool RenderInterface_Vulkan::MemoryPool::Alloc_GeneralBuffer(uint32_t size, void
 		"you can't pass a VALID object, because it is for initialization. So it means you passed the already allocated "
 		"VmaVirtualAllocation and it means you did something wrong, like you wanted to allocate into the same object...");
 
-	size = RenderInterface_Vulkan::AlignUp(size, this->m_min_alignment_for_uniform_buffer);
+	size = RenderInterface_Vulkan::AlignUp<VkDeviceSize>(size, this->m_min_alignment_for_uniform_buffer);
 
 	VkDeviceSize offset_memory{};
 
