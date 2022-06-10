@@ -343,7 +343,7 @@ void RenderInterface_Vulkan::SetScissorRegion(int x, int y, int width, int heigh
 			this->m_scissor.extent.width = width;
 			this->m_scissor.extent.height = height;
 			this->m_scissor.offset.x = fabs(x);
-			this->m_scissor.offset.y = fabs(this->m_viewport.height) - (y + height);
+			this->m_scissor.offset.y = fabs(y);
 
 			vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
 		}
