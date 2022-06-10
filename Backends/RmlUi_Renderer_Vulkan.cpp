@@ -88,35 +88,12 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture);
 
 	VkDescriptorSet p_current_descriptor_set = nullptr;
-
-	if (this->m_descriptor_sets.empty() == false)
-	{
-		p_current_descriptor_set = this->Get_DescriptorSet(this->Get_CurrentDescriptorID());
-	}
-	else
-	{
-		p_current_descriptor_set = this->m_p_descriptor_set;
-	}
+	p_current_descriptor_set = this->m_p_descriptor_set;
+	
 
 	VK_ASSERT(p_current_descriptor_set,
 		"you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
 		"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
-
-	if (this->m_descriptor_sets.empty() == false)
-	{
-		VK_ASSERT(this->m_compiled_geometries.size() < kGeometryForReserve,
-			"if it is greater than the constant (like assert is triggered), it means that the added element and all operations with other elements "
-			"becomes INVALID, because the "
-			"erase operation will cause invalidation for all references and pointers that used from that map. (like pointer to value of the map). So "
-			"just set the value higher than it was before...");
-
-		//	VK_ASSERT(this->m_compiled_geometries.find(this->Get_CurrentDescriptorID()) == this->m_compiled_geometries.end(),
-		//	"you must delete the element before construct it");
-
-		this->m_compiled_geometries[this->Get_CurrentDescriptorID()];
-
-		auto& current_geometry_handle = this->m_compiled_geometries.at(this->Get_CurrentDescriptorID());
-	}
 
 	auto& current_geometry_handle = this->m_compiled_geometries[this->m_current_geometry_handle_id];
 
@@ -158,10 +135,6 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 
 	memcpy(pCopyDataToBuffer, indices, sizeof(int) * num_indices);
 
-	// TODO: RmlUI team checks if it is right logic that if we don't have texture the handle is NULL/0 otherwise provide in places where a such
-	// (Rml::TextureHandle)(nullptr) is more obvious and strict, because it is probably important thing. Because I am not sure if it is always valid
-	// if you have callings from different places not only from this class like LoadTexture function, but GenerateTexture can be called somewhere.
-	// Keep this in mind;
 	current_geometry_handle.m_is_has_texture = !!((texture_data_t*)(texture));
 	current_geometry_handle.m_num_indices = num_indices;
 	current_geometry_handle.m_descriptor_id = this->Get_CurrentDescriptorID();
@@ -190,10 +163,7 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 
 	// TODO: RmlUI team somehow but on resize I got invalid value here...
 	VkDescriptorSet p_current_descriptor_set = nullptr;
-	if (this->m_descriptor_sets.empty() == false)
-		p_current_descriptor_set = this->Get_DescriptorSet(p_casted_compiled_geometry->m_descriptor_id);
-	else
-		p_current_descriptor_set = this->m_p_descriptor_set;
+	p_current_descriptor_set = this->m_p_descriptor_set;
 
 	VK_ASSERT(p_current_descriptor_set,
 		"you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
@@ -244,14 +214,6 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 		}
 
 		p_casted_compiled_geometry->m_translation = this->m_user_data_for_vertex_shader.m_translate;
-
-		if (this->m_descriptor_sets.empty() == false)
-			this->m_memory_pool.SetDescriptorSet(1, &p_casted_compiled_geometry->m_p_shader, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-				p_current_descriptor_set);
-
-		// that's a final destination where the descriptor will be not available for updating...
-		if (this->m_descriptor_sets.empty() == false)
-			this->m_descriptor_sets.at(p_casted_compiled_geometry->m_descriptor_id).Set_Available(false);
 	}
 
 	uint32_t casted_offset = 0;
@@ -313,11 +275,6 @@ void RenderInterface_Vulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle
 
 	this->m_compiled_geometries.erase(p_casted_geometry->m_id);
 	this->NextGeometryHandleID();
-
-	if (this->m_descriptor_sets.empty() == false)
-	{
-		this->NextDescriptorID();
-	}
 }
 
 void RenderInterface_Vulkan::EnableScissorRegion(bool enable)
@@ -1176,14 +1133,6 @@ void RenderInterface_Vulkan::Destroy_Resources(void) noexcept
 	this->m_memory_pool.Shutdown();
 	this->m_command_list.Shutdown();
 	this->m_upload_manager.Shutdown();
-
-	// TODO: put this into DestroyDescriptorSets()
-	for (auto& pair_descriptor_id_descriptor_wrapper : this->m_descriptor_sets)
-	{
-		auto p_set = pair_descriptor_id_descriptor_wrapper.second.Get_DescriptorSet();
-		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
-	}
-	this->m_descriptor_sets.clear();
 
 	if (this->m_p_descriptor_set)
 	{
