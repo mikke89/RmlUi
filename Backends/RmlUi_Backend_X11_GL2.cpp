@@ -131,7 +131,8 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	XSetWMProtocols(display, window, &delete_atom, 1);
 
 	// Capture the events we're interested in.
-	XSelectInput(display, window, KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask);
+	XSelectInput(display, window,
+		KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | LeaveWindowMask | PointerMotionMask | StructureNotifyMask);
 
 	if (!allow_resize)
 	{

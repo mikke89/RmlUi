@@ -188,6 +188,8 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 	if (!context)
 		return true;
 
+	static bool tracking_mouse_leave = false;
+
 	bool result = true;
 
 	switch (message)
@@ -215,10 +217,23 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 	case WM_MOUSEMOVE:
 		result = context->ProcessMouseMove(static_cast<int>((short)LOWORD(l_param)), static_cast<int>((short)HIWORD(l_param)),
 			RmlWin32::GetKeyModifierState());
+
+		if (!tracking_mouse_leave)
+		{
+			TRACKMOUSEEVENT tme = {};
+			tme.cbSize = sizeof(TRACKMOUSEEVENT);
+			tme.dwFlags = TME_LEAVE;
+			tme.hwndTrack = window_handle;
+			tracking_mouse_leave = TrackMouseEvent(&tme);
+		}
 		break;
 	case WM_MOUSEWHEEL:
 		result = context->ProcessMouseWheel(static_cast<float>((short)HIWORD(w_param)) / static_cast<float>(-WHEEL_DELTA),
 			RmlWin32::GetKeyModifierState());
+		break;
+	case WM_MOUSELEAVE:
+		result = context->ProcessMouseLeave();
+		tracking_mouse_leave = false;
 		break;
 	case WM_KEYDOWN:
 		result = context->ProcessKeyDown(RmlWin32::ConvertKey((int)w_param), RmlWin32::GetKeyModifierState());

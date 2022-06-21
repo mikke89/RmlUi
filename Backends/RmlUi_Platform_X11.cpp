@@ -270,6 +270,11 @@ bool RmlX11::HandleInputEvent(Rml::Context* context, Display* display, const XEv
 		return context->ProcessMouseMove(ev.xmotion.x, ev.xmotion.y, RmlX11::GetKeyModifierState(ev.xmotion.state));
 	}
 	break;
+	case LeaveNotify:
+	{
+		return context->ProcessMouseLeave();
+	}
+	break;
 	case KeyPress:
 	{
 		Rml::Input::KeyIdentifier key_identifier = RmlX11::ConvertKey(display, ev.xkey.keycode);

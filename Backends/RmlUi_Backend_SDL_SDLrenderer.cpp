@@ -153,16 +153,6 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 				break;
 		}
 		break;
-		case SDL_WINDOWEVENT:
-		{
-			switch (ev.window.event)
-			{
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				context->SetDimensions(Rml::Vector2i(ev.window.data1, ev.window.data2));
-				break;
-			}
-		}
-		break;
 		default:
 		{
 			RmlSDL::InputEventHandler(context, ev);

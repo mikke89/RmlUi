@@ -130,6 +130,22 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Event& ev)
 	case SDL_TEXTINPUT:
 		result = context->ProcessTextInput(Rml::String(&ev.text.text[0]));
 		break;
+	case SDL_WINDOWEVENT:
+	{
+		switch (ev.window.event)
+		{
+		case SDL_WINDOWEVENT_SIZE_CHANGED:
+		{
+			Rml::Vector2i dimensions(ev.window.data1, ev.window.data2);
+			context->SetDimensions(dimensions);
+		}
+		break;
+		case SDL_WINDOWEVENT_LEAVE:
+			context->ProcessMouseLeave();
+			break;
+		}
+	}
+	break;
 	default:
 		break;
 	}

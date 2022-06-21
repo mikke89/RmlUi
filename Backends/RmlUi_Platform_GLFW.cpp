@@ -123,6 +123,17 @@ bool RmlGLFW::ProcessCharCallback(Rml::Context* context, unsigned int codepoint)
 	return result;
 }
 
+bool RmlGLFW::ProcessCursorEnterCallback(Rml::Context* context, int entered)
+{
+	if (!context)
+		return true;
+
+	bool result = true;
+	if (!entered)
+		result = context->ProcessMouseLeave();
+	return result;
+}
+
 bool RmlGLFW::ProcessCursorPosCallback(Rml::Context* context, double xpos, double ypos, int mods)
 {
 	if (!context)

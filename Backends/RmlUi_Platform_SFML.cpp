@@ -109,6 +109,9 @@ bool RmlSFML::InputHandler(Rml::Context* context, sf::Event& ev)
 	case sf::Event::MouseWheelMoved:
 		result = context->ProcessMouseWheel(float(-ev.mouseWheel.delta), RmlSFML::GetKeyModifierState());
 		break;
+	case sf::Event::MouseLeft:
+		result = context->ProcessMouseLeave();
+		break;
 	case sf::Event::TextEntered:
 	{
 		Rml::Character character = Rml::Character(ev.text.unicode);
