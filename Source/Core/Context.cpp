@@ -81,8 +81,6 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	cursor_proxy_document->SetProperty(PropertyId::OverflowX, Property(Style::Overflow::Visible));
 	cursor_proxy_document->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Visible));
 		
-	enable_cursor = true;
-
 	document_focus_history.push_back(root.get());
 	focus = root.get();
 	hover = nullptr;
@@ -96,7 +94,10 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 
 	last_click_element = nullptr;
 	last_click_time = 0;
-	last_click_mouse_position = Vector2i(0, 0);
+
+	mouse_active = false;
+
+	enable_cursor = true;
 }
 
 Context::~Context()
@@ -181,8 +182,12 @@ float Context::GetDensityIndependentPixelRatio() const
 bool Context::Update()
 {
 	RMLUI_ZoneScoped;
+	
+	// Update the hover chain to detect any new or moved elements under the mouse.
+	if (mouse_active)
+		UpdateHoverChain(mouse_position);
 
-	// Update all data models first
+	// Update all the data models before updating properties and layout.
 	for (auto& data_model : data_models)
 		data_model.second->Update(true);
 
@@ -368,7 +373,7 @@ void Context::UnloadDocument(ElementDocument* _document)
 	}
 
 	// Rebuild the hover state.
-	UpdateHoverChain(Dictionary(), Dictionary(), mouse_position);
+	UpdateHoverChain(mouse_position);
 }
 
 // Unload all the currently loaded documents
@@ -591,26 +596,13 @@ bool Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 {
 	// Check whether the mouse moved since the last event came through.
 	Vector2i old_mouse_position = mouse_position;
-	bool mouse_moved = (x != mouse_position.x) || (y != mouse_position.y);
-	if (mouse_moved)
-	{
-		mouse_position.x = x;
-		mouse_position.y = y;
-	}
+	mouse_position = {x, y};
+	const bool mouse_moved = (mouse_position != old_mouse_position || !mouse_active);
+	mouse_active = true;
 
-	// Generate the parameters for the mouse events (there could be a few!).
-	Dictionary parameters;
-	GenerateMouseEventParameters(parameters, -1);
-	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
-
-	Dictionary drag_parameters;
-	GenerateMouseEventParameters(drag_parameters);
-	GenerateDragEventParameters(drag_parameters);
-	GenerateKeyModifierEventParameters(drag_parameters, key_modifier_state);
-
-	// Update the current hover chain. This will send all necessary 'onmouseout', 'onmouseover', 'ondragout' and
-	// 'ondragover' messages.
-	UpdateHoverChain(parameters, drag_parameters, old_mouse_position);
+	// Update the current hover chain. This will send all necessary 'onmouseout', 'onmouseover', 'ondragout' and 'ondragover' messages.
+	Dictionary parameters, drag_parameters;
+	UpdateHoverChain(old_mouse_position, key_modifier_state, &parameters, &drag_parameters);
 
 	// Dispatch any 'onmousemove' events.
 	if (mouse_moved)
@@ -619,15 +611,14 @@ bool Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 		{
 			hover->DispatchEvent(EventId::Mousemove, parameters);
 
-			if (drag_hover &&
-				drag_verbose)
+			if (drag_hover && drag_verbose)
 				drag_hover->DispatchEvent(EventId::Dragmove, drag_parameters);
 		}
 	}
 
 	return !IsMouseInteracting();
 }
-	
+
 static Element* FindFocusElement(Element* element)
 {
 	ElementDocument* owner_document = element->GetOwnerDocument();
@@ -758,9 +749,8 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 
 		// Unset the 'active' pseudo-class on all the elements in the active chain; because they may not necessarily
 		// have had 'onmouseup' called on them, we can't guarantee this has happened already.
-		std::for_each(active_chain.begin(), active_chain.end(), [](Element* element) {
+		for (Element* element : active_chain)
 			element->SetPseudoClass("active", false);
-		});
 		active_chain.clear();
 		active = nullptr;
 
@@ -821,6 +811,16 @@ bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 	}
 
 	return true;
+}
+
+bool Context::ProcessMouseLeave()
+{
+	mouse_active = false;
+	
+	// Update the hover chain. Now that 'mouse_active' is disabled this will remove the hover state from all elements.
+	UpdateHoverChain(mouse_position);
+	
+	return !IsMouseInteracting();
 }
 
 bool Context::IsMouseInteracting() const
@@ -1040,9 +1040,21 @@ void Context::GenerateClickEvent(Element* element)
 }
 
 // Updates the current hover elements, sending required events.
-void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& drag_parameters, const Vector2i old_mouse_position)
+void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_state, Dictionary* out_parameters, Dictionary* out_drag_parameters)
 {
 	const Vector2f position(mouse_position);
+
+	Dictionary local_parameters, local_drag_parameters;
+	Dictionary& parameters = out_parameters ? *out_parameters : local_parameters;
+	Dictionary& drag_parameters = out_drag_parameters ? *out_drag_parameters : local_drag_parameters;
+
+	// Generate the parameters for the mouse events (there could be a few!).
+	GenerateMouseEventParameters(parameters);
+	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
+	
+	GenerateMouseEventParameters(drag_parameters);
+	GenerateDragEventParameters(drag_parameters);
+	GenerateKeyModifierEventParameters(drag_parameters, key_modifier_state);
 
 	// Send out drag events.
 	if (drag)
@@ -1068,7 +1080,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 		}
 	}
 
-	hover = GetElementAtPoint(position);
+	hover = mouse_active ? GetElementAtPoint(position) : nullptr;
 
 	if(enable_cursor)
 	{
@@ -1100,7 +1112,7 @@ void Context::UpdateHoverChain(const Dictionary& parameters, const Dictionary& d
 	SendEvents(new_hover_chain, hover_chain, EventId::Mouseover, parameters);
 
 	// Send out drag events.
-	if (drag)
+	if (drag && mouse_active)
 	{
 		drag_hover = GetElementAtPoint(position, drag);
 
