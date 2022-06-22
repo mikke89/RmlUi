@@ -874,6 +874,8 @@ private:
 
 #pragma region Resources
 	Rml::Vector<VkShaderModule> m_shaders;
+
+	// TODO: replace this to Vector and use pre-allocated intsances, don't use remove/erase method, just re-use them
 	Rml::UnorderedMap<uint32_t, geometry_handle_t> m_compiled_geometries;
 	Rml::UnorderedMap<uint32_t, descriptor_wrapper_t> m_descriptor_sets;
 
