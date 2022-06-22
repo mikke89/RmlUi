@@ -32,6 +32,7 @@
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Platform.h>
+#include <RmlUi/Core/Profiling.h>
 #include <string.h>
 
 #define VK_ASSERT(statement, msg, ...)                               \
@@ -85,6 +86,8 @@ void RenderInterface_Vulkan::RenderGeometry(Rml::Vertex* vertices, int num_verti
 Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices,
 	Rml::TextureHandle texture)
 {
+	RMLUI_ZoneScopedN("Vulkan - CompileGeometry");
+
 	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture);
 
 	VkDescriptorSet p_current_descriptor_set = nullptr;
@@ -155,6 +158,8 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 
 void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation)
 {
+	RMLUI_ZoneScopedN("Vulkan - RenderCompiledGeometry");
+
 	VK_ASSERT(this->m_p_current_command_buffer, "must be valid otherwise you can't render now!!! (can't be)");
 
 	geometry_handle_t* p_casted_compiled_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
@@ -270,6 +275,8 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 
 void RenderInterface_Vulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry)
 {
+	RMLUI_ZoneScopedN("Vulkan - ReleaseCompiledGeometry");
+
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
 	this->m_memory_pool.Free_GeometryHandle(p_casted_geometry);
 
@@ -426,6 +433,8 @@ bool RenderInterface_Vulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml
 */
 bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
+	RMLUI_ZoneScopedN("Vulkan - GenerateTexture");
+
 	VK_ASSERT(source, "you pushed not valid data for copying to buffer");
 	VK_ASSERT(this->m_p_allocator, "you have to initialize Vma Allocator for this method");
 
@@ -671,6 +680,8 @@ void RenderInterface_Vulkan::EndFrame()
 
 bool RenderInterface_Vulkan::Initialize(CreateSurfaceCallback create_surface_callback)
 {
+	RMLUI_ZoneScopedN("Vulkan - Initialize");
+
 	this->Initialize_Instance();
 	this->Initialize_PhysicalDevice();
 	this->Initialize_Surface(create_surface_callback);
@@ -685,6 +696,8 @@ bool RenderInterface_Vulkan::Initialize(CreateSurfaceCallback create_surface_cal
 
 void RenderInterface_Vulkan::Shutdown()
 {
+	RMLUI_ZoneScopedN("Vulkan - Shutdown");
+
 	auto status = vkDeviceWaitIdle(this->m_p_device);
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "you must have a valid status here");
