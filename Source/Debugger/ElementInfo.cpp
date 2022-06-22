@@ -27,18 +27,19 @@
  */
 
 #include "ElementInfo.h"
+#include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
-#include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
+#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
-#include "../../Include/RmlUi/Core/PropertyDefinition.h"
-#include "Geometry.h"
 #include "CommonSource.h"
+#include "Geometry.h"
 #include "InfoSource.h"
 #include <algorithm>
 
@@ -325,9 +326,10 @@ void ElementInfo::ProcessEvent(Event& event)
 				}
 			}
 			// Otherwise we just want to focus on the clicked element (unless it's on a debug element)
-			else if (enable_element_select && owner_document != nullptr && owner_document->GetId().find("rmlui-debug-") != 0)
+			else if (enable_element_select && owner_document && owner_document->GetId().find("rmlui-debug-") != 0)
 			{
-				hover_element = target_element;
+				if (Context* context = owner_document->GetContext())
+					hover_element = context->GetHoverElement();
 			}
 		}
 		else if (event == EventId::Mouseout)
@@ -348,6 +350,12 @@ void ElementInfo::ProcessEvent(Event& event)
 				{
 					title_dirty = true;
 				}
+			}
+			else if (enable_element_select && owner_document && owner_document->GetId().find("rmlui-debug-") != 0)
+			{
+				// Update hover element also on MouseOut as we may not get a MouseOver event when moving the mouse to a parent element.
+				if (Context* context = owner_document->GetContext())
+					hover_element = context->GetHoverElement();
 			}
 		}
 	}

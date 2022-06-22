@@ -131,12 +131,14 @@ bool DebuggerPlugin::SetContext(Context* context)
 		{
 			debug_context->RemoveEventListener("click", info_element, true);
 			debug_context->RemoveEventListener("mouseover", info_element, true);
+			debug_context->RemoveEventListener("mouseout", info_element, true);
 		}
 
 		if (context)
 		{
 			context->AddEventListener("click", info_element, true);
 			context->AddEventListener("mouseover", info_element, true);
+			context->AddEventListener("mouseout", info_element, true);
 		}
 
 		info_element->Reset();
