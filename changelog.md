@@ -49,6 +49,13 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - Scroll and slider elements now use containing block's height instead of width to calculate height-relative values. #314 #321 (thanks @nimble0)
 - Generate warnings when directly nesting flexboxes and other unsupported elements in a top-level formatting context. #320
 
+### Context input
+
+- The hover state of any elements under the mouse will now automatically be updated during `Context::Update()`. #220
+- Added `Context::ProcessMouseLeave()` which ensures that the hovered state is removed from all elements and stops the context update from automatically hovering elements.
+- When `Context::ProcessMouseMove()` is called next the context update will start updating hover states again.
+- Added support for mouse leave events on all backends.
+
 ### General fixes
 
 - `<img>` element: Fix wrong dp-scaling being applied when an image is cloned through a parent element. #310
