@@ -32,6 +32,7 @@
 #include "RmlUi_Renderer_GL2.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/Profiling.h>
 
 /**
@@ -260,7 +261,6 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
 	break;
 	case WM_SIZE:
 	{
-		// Intercept sizing to set the OpenGL viewport, then submit it to the platform handler for context sizing.
 		const int width = LOWORD(l_param);
 		const int height = HIWORD(l_param);
 		data->window_dimensions.x = width;
