@@ -39,12 +39,13 @@ class RenderInterface;
 
 /*
 	Callback function for generating textures.
+	/// @param[in] render_interface The render interface to use for generating the texture.
 	/// @param[in] name The name used to set the texture.
-	/// @param[out] data The raw data of the texture, each pixel has four 8-bit channels: red-green-blue-alpha.
+	/// @param[out] handle The texture handle obtained through the render interface.
 	/// @param[out] dimensions The width and height of the generated texture.
 	/// @return True on success.
 */
-using TextureCallback = Function<bool(const String& name, UniquePtr<const byte[]>& data, Vector2i& dimensions)>;
+using TextureCallback = Function<bool(RenderInterface* render_interface, const String& name, TextureHandle& handle, Vector2i& dimensions)>;
 
 
 /**

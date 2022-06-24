@@ -27,6 +27,8 @@
  */
 
 #include "FontFaceLayer.h"
+#include "../../../Include/RmlUi/Core/Log.h"
+#include "../../../Include/RmlUi/Core/RenderInterface.h"
 #include "FontFaceHandleDefault.h"
 #include <string.h>
 
@@ -158,11 +160,16 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 		// Generate the textures.
 		for (int i = 0; i < texture_layout.GetNumTextures(); ++i)
 		{
-			int texture_id = i;
+			const int texture_id = i;
 
-			TextureCallback texture_callback = [handle, effect_ptr, texture_id, handle_version](const String& /*name*/, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
-				bool result = handle->GenerateLayerTexture(data, dimensions, effect_ptr, texture_id, handle_version);
-				return result;
+			TextureCallback texture_callback = [handle, effect_ptr, texture_id, handle_version](RenderInterface* render_interface,
+												   const String& /*name*/, TextureHandle& out_texture_handle, Vector2i& out_dimensions) -> bool {
+				UniquePtr<const byte[]> data;
+				if (!handle->GenerateLayerTexture(data, out_dimensions, effect_ptr, texture_id, handle_version) || !data)
+					return false;
+				if (!render_interface->GenerateTexture(out_texture_handle, data.get(), out_dimensions))
+					return false;
+				return true;
 			};
 
 			Texture texture;

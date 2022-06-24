@@ -34,6 +34,7 @@
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include <cmath>
 #include <lunasvg.h>
@@ -197,17 +198,14 @@ void ElementSVG::UpdateTexture()
 		return;
 
 	// Callback for generating texture.
-	auto p_callback = [this](const String& /*name*/, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
+	auto p_callback = [this](RenderInterface* render_interface, const String& /*name*/, TextureHandle& out_handle, Vector2i& out_dimensions) -> bool {
 		RMLUI_ASSERT(svg_document);
-
-		const size_t total_bytes = 4 * render_dimensions.x * render_dimensions.y;
-
 		lunasvg::Bitmap bitmap = svg_document->renderToBitmap(render_dimensions.x, render_dimensions.y);
-
-		data.reset(new byte[total_bytes]);
-		memcpy((void*)data.get(), bitmap.data(), total_bytes);
-		dimensions = render_dimensions;
-
+		if (!bitmap.valid() || !bitmap.data())
+			return false;
+		if (!render_interface->GenerateTexture(out_handle, reinterpret_cast<const Rml::byte*>(bitmap.data()), render_dimensions))
+			return false;
+		out_dimensions = render_dimensions;
 		return true;
 	};
 

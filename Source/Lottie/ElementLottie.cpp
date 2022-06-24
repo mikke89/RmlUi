@@ -34,6 +34,7 @@
 #include "../../Include/RmlUi/Core/FileInterface.h"
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include <cmath>
 #include <rlottie.h>
@@ -219,14 +220,22 @@ void ElementLottie::UpdateTexture()
 		return;
 	}
 
+	// Resize the texture buffer if necessary.
+	const size_t new_texture_data_size = 4 * render_dimensions.x * render_dimensions.y;
+	if (new_texture_data_size > texture_data_size)
+	{
+		texture_data.reset(new byte[new_texture_data_size]);
+		texture_data_size = new_texture_data_size;
+	}
+
 	// Callback for generating texture.
-	auto p_callback = [this, next_frame](const String& /*name*/, UniquePtr<const byte[]>& data, Vector2i& dimensions) -> bool {
+	auto p_callback = [this, next_frame](RenderInterface* render_interface, const String& /*name*/, TextureHandle& out_handle,
+						  Vector2i& out_dimensions) -> bool {
 		RMLUI_ASSERT(animation);
 
 		const size_t bytes_per_line = 4 * render_dimensions.x;
 		const size_t total_bytes = bytes_per_line * render_dimensions.y;
-
-		byte* p_data = new byte[total_bytes];
+		byte* p_data = texture_data.get();
 
 		rlottie::Surface surface(reinterpret_cast<std::uint32_t*>(p_data), render_dimensions.x, render_dimensions.y, bytes_per_line);
 		animation->renderSync(next_frame, surface);
@@ -237,10 +246,9 @@ void ElementLottie::UpdateTexture()
 			// Swap the RB order for correct color channels.
 			std::swap(p_data[i], p_data[i + 2]);
 
-			const byte a = p_data[i + 3];
-
 			// The RmlUi samples shell uses post-multiplied alpha, while rlottie serves pre-multiplied alpha.
 			// Here, we un-premultiply the colors.
+			const byte a = p_data[i + 3];
 			if (a > 0 && a < 255)
 			{
 				for (size_t j = 0; j < 3; j++)
@@ -248,9 +256,10 @@ void ElementLottie::UpdateTexture()
 			}
 		}
 
-		data.reset(p_data);
-		dimensions = render_dimensions;
+		if (!render_interface->GenerateTexture(out_handle, p_data, render_dimensions))
+			return false;
 
+		out_dimensions = render_dimensions;
 		return true;
 	};
 

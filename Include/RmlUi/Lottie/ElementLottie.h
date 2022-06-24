@@ -81,6 +81,9 @@ private:
 
 	// The texture this element is rendering from.
 	Texture texture;
+	// The texture data buffer.
+	size_t texture_data_size = 0;
+	UniquePtr<byte[]> texture_data;
 
 	// The animation's intrinsic dimensions.
 	Vector2f intrinsic_dimensions;

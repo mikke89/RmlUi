@@ -137,33 +137,19 @@ bool TextureResource::Load(RenderInterface* render_interface)
 	// Generate the texture from the callback function if we have one.
 	if (texture_callback)
 	{
-		Vector2i dimensions;
-		UniquePtr<const byte[]> data = nullptr;
-
 		TextureCallback& callback_fnc = *texture_callback;
+		TextureHandle handle = {};
+		Vector2i dimensions;
 
-		if (!callback_fnc(source, data, dimensions) || !data)
+		if (!callback_fnc(render_interface, source, handle, dimensions) || !handle)
 		{
 			Log::Message(Log::LT_WARNING, "Failed to generate texture from callback function %s.", source.c_str());
 			texture_data[render_interface] = TextureData(0, Vector2i(0, 0));
-
 			return false;
 		}
 
-		TextureHandle handle;
-		bool success = render_interface->GenerateTexture(handle, data.get(), dimensions);
-
-		if (success)
-		{
-			texture_data[render_interface] = TextureData(handle, dimensions);
-		}
-		else
-		{
-			Log::Message(Log::LT_WARNING, "Failed to generate internal texture %s.", source.c_str());
-			texture_data[render_interface] = TextureData(0, Vector2i(0, 0));
-		}
-
-		return success;
+		texture_data[render_interface] = TextureData(handle, dimensions);
+		return true;
 	}
 
 	// No callback function, load the texture through the render interface.
