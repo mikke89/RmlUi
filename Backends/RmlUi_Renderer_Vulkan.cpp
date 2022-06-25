@@ -97,7 +97,8 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 		"you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
 		"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
 
-	auto& current_geometry_handle = this->m_compiled_geometries[this->m_current_geometry_handle_id];
+	auto available_index = this->Get_AvailableGeometryHandleID();
+	auto& current_geometry_handle = this->m_compiled_geometries[available_index];
 
 	VkDescriptorImageInfo info_descriptor_image = {};
 	if (p_texture && p_texture->Get_VkDescriptorSet() == nullptr)
@@ -140,17 +141,13 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 	current_geometry_handle.m_is_has_texture = !!((texture_data_t*)(texture));
 	current_geometry_handle.m_num_indices = num_indices;
 	current_geometry_handle.m_descriptor_id = this->Get_CurrentDescriptorID();
-	current_geometry_handle.m_id = this->m_current_geometry_handle_id;
+	current_geometry_handle.m_id = available_index;
 	current_geometry_handle.m_is_cached = false;
 	current_geometry_handle.m_p_texture = p_texture;
 
 #ifdef RMLUI_DEBUG
 	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] compiled geometry id:[%d]", current_geometry_handle.m_id);
 #endif
-
-	this->NextDescriptorID();
-
-	this->NextGeometryHandleID();
 
 	return Rml::CompiledGeometryHandle(&current_geometry_handle);
 }
@@ -279,8 +276,7 @@ void RenderInterface_Vulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
 	this->m_memory_pool.Free_GeometryHandle(p_casted_geometry);
 
-	this->m_compiled_geometries.erase(p_casted_geometry->m_id);
-	this->NextGeometryHandleID();
+	this->m_queue_available_indexes_of_geometry_handles.push(p_casted_geometry->m_id);
 }
 
 void RenderInterface_Vulkan::EnableScissorRegion(bool enable)
@@ -2325,6 +2321,23 @@ RenderInterface_Vulkan::texture_data_t* RenderInterface_Vulkan::Get_AvailableTex
 	return p_result;
 }
 
+uint32_t RenderInterface_Vulkan::Get_AvailableGeometryHandleID(void) noexcept
+{
+	uint32_t result = 0;
+	if (this->m_queue_available_indexes_of_geometry_handles.empty() == false) 
+	{
+		result = this->m_queue_available_indexes_of_geometry_handles.front();
+		this->m_queue_available_indexes_of_geometry_handles.pop();
+		return result;
+	}
+	else
+	{
+		result = this->m_current_geometry_handle_id;
+		this->NextGeometryHandleID();
+		return result;
+	}
+}
+
 void RenderInterface_Vulkan::CreateRenderPass(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
@@ -3043,6 +3056,10 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle(geometry_handle_t* 
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
 	p_valid_geometry_handle->m_p_index_allocation = nullptr;
 	p_valid_geometry_handle->m_p_texture = nullptr;
+	p_valid_geometry_handle->m_descriptor_id = 0;
+	p_valid_geometry_handle->m_is_cached = false;
+	p_valid_geometry_handle->m_is_has_texture = false;
+	p_valid_geometry_handle->m_num_indices = 0;
 
 #ifdef RMLUI_DEBUG
 	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] Geometry handle is deleted! [%d]", p_valid_geometry_handle->m_id);

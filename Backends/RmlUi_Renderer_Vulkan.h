@@ -159,7 +159,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 	class texture_data_for_deletion_t {
 	public:
 		texture_data_for_deletion_t() : m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_descriptor_set{}, m_p_vk_vma_allocation{} {}
-		
+
 		texture_data_for_deletion_t(const texture_data_t& texture) :
 			m_p_vk_image{texture.Get_VkImage()}, m_p_vk_image_view{texture.Get_VkImageView()}, m_p_vk_descriptor_set{texture.Get_VkDescriptorSet()},
 			m_p_vk_vma_allocation{texture.Get_VmaAllocation()}
@@ -788,11 +788,13 @@ private:
 	void DestroyPipelineLayout(void) noexcept;
 	void DestroySamplers(void) noexcept;
 
-	// @ O(n) so be careful with that thing...
-	// TODO: think how to optimize and reduce the O complexity...
-	// One is possible solutions is to use queue for storing "free" element id and after pop it in this method when we call it
-	// so element stores the id for array (vector) and sent to queue where we release it
+	// TODO: think how to optimize and reduce the O complexity, because the worse case could be O(n) it is not critical when we have just 100
+	// elements, but possible situation when we fill 50 textures per frame and delete them and etc it will be not cool to have complexity that equals
+	// to O(n) would be better to have log(n) or even cooler O(1)... One is possible solutions is to use queue for storing "free" element id and after
+	// pop it in this method when we call it so element stores the id for array (vector) and sent to queue where we release it
 	texture_data_t* Get_AvailableTexture(void) noexcept;
+
+	uint32_t Get_AvailableGeometryHandleID(void) noexcept;
 
 	void Wait(void) noexcept;
 
@@ -823,13 +825,25 @@ private:
 
 	void NextGeometryHandleID(void) noexcept
 	{
+		int is_loop = 0;
+
 		do
 		{
+			if (this->m_current_geometry_handle_id == 0)
+			{
+				++is_loop;
+			}
+
+			if (is_loop > 3)
+				break;
+
 			++this->m_current_geometry_handle_id;
 			this->m_current_geometry_handle_id = this->m_current_geometry_handle_id % kGeometryForReserve;
 		} while (this->m_compiled_geometries.find(this->m_current_geometry_handle_id) != this->m_compiled_geometries.end());
 
-		RMLUI_ASSERTMSG(this->m_current_geometry_handle_id < kGeometryForReserve, "Overflow!");
+		RMLUI_ASSERTMSG(is_loop < 2,
+			"Overflow! It means while iterated more than once with full size of kGeometryForReserve, so it means we didn't find any available id for "
+			"in your map thus it is overflow!!!!!! Set higher value than kGeometryForReserve had");
 	}
 
 	void Free_DescriptorID(void) noexcept
@@ -937,8 +951,9 @@ private:
 	Rml::Vector<texture_data_t> m_textures;
 #pragma endregion
 
-#pragma region Queues for deletion
+#pragma region Queues(Not Vulkan !!!!)
 	Rml::Queue<texture_data_for_deletion_t> m_queue_pending_textures_for_deletion;
+	Rml::Queue<uint32_t> m_queue_available_indexes_of_geometry_handles;
 #pragma endregion
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
