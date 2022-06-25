@@ -92,7 +92,6 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 
 	VkDescriptorSet p_current_descriptor_set = nullptr;
 	p_current_descriptor_set = this->m_p_descriptor_set;
-	
 
 	VK_ASSERT(p_current_descriptor_set,
 		"you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
@@ -446,8 +445,6 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 
 	const char* file_path = reinterpret_cast<const char*>(texture_handle);
 
-	this->m_textures.push_back(texture_data_t());
-
 	VkDeviceSize image_size = width * height * 4;
 	VkFormat format = VkFormat::VK_FORMAT_R8G8B8A8_UNORM;
 
@@ -463,7 +460,7 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	extent_image.height = static_cast<uint32_t>(height);
 	extent_image.depth = 1;
 
-	auto& texture = this->m_textures.back();
+	auto* p_texture = this->Get_AvailableTexture();
 
 	VkImageCreateInfo info = {};
 
@@ -491,11 +488,11 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	Rml::Log::Message(Rml::Log::LT_DEBUG, "Created image %s with size [%d bytes][%d Megabytes]", file_path, info_stats.size,
 		TranslateBytesToMegaBytes(info_stats.size));
 
-	texture.Set_FileName(file_path);
-	texture.Set_VkImage(p_image);
-	texture.Set_VmaAllocation(p_allocation);
-	texture.Set_Width(width);
-	texture.Set_Height(height);
+	p_texture->Set_FileName(file_path);
+	p_texture->Set_VkImage(p_image);
+	p_texture->Set_VmaAllocation(p_allocation);
+	p_texture->Set_Width(width);
+	p_texture->Set_Height(height);
 
 	/*
 	 * So Vulkan works only through VkCommandBuffer, it is for remembering API commands what you want to call from GPU
@@ -582,7 +579,7 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 
 	info_image_view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	info_image_view.pNext = nullptr;
-	info_image_view.image = texture.Get_VkImage();
+	info_image_view.image = p_texture->Get_VkImage();
 	info_image_view.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	info_image_view.format = format;
 	info_image_view.subresourceRange.baseMipLevel = 0;
@@ -595,18 +592,24 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	status = vkCreateImageView(this->m_p_device, &info_image_view, nullptr, &p_image_view);
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateImageView");
 
-	texture.Set_VkImageView(p_image_view);
-	texture.Set_VkSampler(this->m_p_sampler_nearest);
+	p_texture->Set_VkImageView(p_image_view);
+	p_texture->Set_VkSampler(this->m_p_sampler_nearest);
 
-	texture_handle = (Rml::TextureHandle)(&texture);
+	texture_handle = reinterpret_cast<Rml::TextureHandle>(p_texture);
 
 	return true;
 }
 
 void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
-	// TODO: implement for streaming purposes. So you still need delete textures in DestroyTextures method, but this method calls and handles the
-	// situation when you need to delete/create texture often
+	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture_handle);
+
+	if (p_texture)
+	{
+		this->m_queue_pending_textures_for_deletion.push(p_texture);
+
+		p_texture->Clear_Data();
+	}
 }
 
 void RenderInterface_Vulkan::SetTransform(const Rml::Matrix4f* transform)
@@ -625,6 +628,8 @@ void RenderInterface_Vulkan::BeginFrame()
 	this->m_memory_pool.OnBeginFrame();
 	this->m_command_list.OnBeginFrame();
 	this->Wait();
+
+	this->Update_QueueForDeletion_Textures();
 
 	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
 
@@ -989,8 +994,8 @@ void RenderInterface_Vulkan::Initialize_QueueIndecies(void) noexcept
 		}
 	}
 
-	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] User family queues indecies: Graphics[%d] Present[%d] Compute[%d]",
-		this->m_queue_index_graphics, this->m_queue_index_present, this->m_queue_index_compute);
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] User family queues indecies: Graphics[%d] Present[%d] Compute[%d]", this->m_queue_index_graphics,
+		this->m_queue_index_present, this->m_queue_index_compute);
 }
 
 void RenderInterface_Vulkan::Initialize_Queues(void) noexcept
@@ -2216,19 +2221,21 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 
 void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
-	VK_ASSERT(this->m_p_device, "must exist");
-	VK_ASSERT(this->m_p_allocator, "must exist");
+	this->Update_QueueForDeletion_Textures();
+}
 
-	for (const auto& texture : this->m_textures)
+void RenderInterface_Vulkan::Destroy_Texture(const texture_data_t& texture) noexcept
+{
+	VK_ASSERT(this->m_p_allocator, "you must have initialized VmaAllocator");
+	VK_ASSERT(this->m_p_device, "you must have initialized VkDevice");
+
+	if (texture.Get_VmaAllocation())
 	{
-		if (texture.Get_VmaAllocation())
-		{
-			vmaDestroyImage(this->m_p_allocator, texture.Get_VkImage(), texture.Get_VmaAllocation());
-			vkDestroyImageView(this->m_p_device, texture.Get_VkImageView(), nullptr);
+		vmaDestroyImage(this->m_p_allocator, texture.Get_VkImage(), texture.Get_VmaAllocation());
+		vkDestroyImageView(this->m_p_device, texture.Get_VkImageView(), nullptr);
 
-			VkDescriptorSet p_set = texture.Get_VkDescriptorSet();
-			this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
-		}
+		VkDescriptorSet p_set = texture.Get_VkDescriptorSet();
+		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
 	}
 }
 
@@ -2290,6 +2297,32 @@ void RenderInterface_Vulkan::DestroySamplers(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "must exist here");
 	vkDestroySampler(this->m_p_device, this->m_p_sampler_nearest, nullptr);
+}
+
+RenderInterface_Vulkan::texture_data_t* RenderInterface_Vulkan::Get_AvailableTexture(void) noexcept
+{
+	texture_data_t* p_result = nullptr;
+
+	for (auto& texture : this->m_textures)
+	{
+		if (texture.Is_Initialized() == false)
+		{
+			p_result = &texture;
+			break;
+		}
+	}
+
+	if (p_result == nullptr)
+	{
+		this->m_textures.push_back(texture_data_t());
+
+		p_result = &this->m_textures.back();
+
+		VK_ASSERT(this->m_textures.size() <= kTexturesForReserve,
+			"overflow, your iterators are all invalid now!!!!!! Set bigger value to kTexturesForReserve constant");
+	}
+
+	return p_result;
 }
 
 void RenderInterface_Vulkan::CreateRenderPass(void) noexcept
@@ -2384,6 +2417,22 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 	status = vkResetFences(this->m_p_device, 1, &this->m_executed_fences[this->m_semaphore_index_previous]);
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkResetFences (see status)");
+}
+
+void RenderInterface_Vulkan::Update_QueueForDeletion_Textures(void) noexcept
+{
+	while (this->m_queue_pending_textures_for_deletion.empty() == false)
+	{
+		const auto& data = this->m_queue_pending_textures_for_deletion.front();
+
+		vmaDestroyImage(this->m_p_allocator, data.Get_VkImage(), data.Get_VmaAllocation());
+		vkDestroyImageView(this->m_p_device, data.Get_VkImageView(), nullptr);
+
+		VkDescriptorSet p_set = data.Get_VkDescriptorSet();
+		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
+
+		this->m_queue_pending_textures_for_deletion.pop();
+	}
 }
 
 void RenderInterface_Vulkan::Submit(void) noexcept

@@ -118,6 +118,23 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		void Set_Width(int width) noexcept { this->m_width = width; }
 		void Set_Height(int height) noexcept { this->m_height = height; }
 		void Set_VkDescriptorSet(VkDescriptorSet p_set) noexcept { this->m_p_vk_descriptor_set = p_set; }
+		void Clear_Data(void) noexcept
+		{
+			this->m_filename.clear();
+			this->m_width = 0;
+			this->m_height = 0;
+			this->m_p_vk_image = nullptr;
+			this->m_p_vk_image_view = nullptr;
+			this->m_p_vk_sampler = nullptr;
+			this->m_p_vk_descriptor_set = nullptr;
+			this->m_p_vma_allocation = nullptr;
+		}
+
+		// checks if all Vulkan instances are initiailized, it means if it doesn't (returns false) that you can re-use a such instance
+		bool Is_Initialized(void) const noexcept
+		{
+			return this->m_p_vk_image && this->m_p_vk_image_view && this->m_p_vk_sampler && this->m_p_vk_descriptor_set && this->m_p_vma_allocation;
+		}
 
 		VkImage Get_VkImage(void) const noexcept { return this->m_p_vk_image; }
 		VkImageView Get_VkImageView(void) const noexcept { return this->m_p_vk_image_view; }
@@ -137,6 +154,34 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		VkDescriptorSet m_p_vk_descriptor_set;
 		VmaAllocation m_p_vma_allocation;
 		Rml::String m_filename;
+	};
+
+	class texture_data_for_deletion_t {
+	public:
+		texture_data_for_deletion_t() : m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_descriptor_set{}, m_p_vk_vma_allocation{} {}
+		
+		texture_data_for_deletion_t(const texture_data_t& texture) :
+			m_p_vk_image{texture.Get_VkImage()}, m_p_vk_image_view{texture.Get_VkImageView()}, m_p_vk_descriptor_set{texture.Get_VkDescriptorSet()},
+			m_p_vk_vma_allocation{texture.Get_VmaAllocation()}
+		{}
+
+		texture_data_for_deletion_t(texture_data_t* p_texture) :
+			m_p_vk_image{p_texture->Get_VkImage()}, m_p_vk_image_view{p_texture->Get_VkImageView()},
+			m_p_vk_descriptor_set{p_texture->Get_VkDescriptorSet()}, m_p_vk_vma_allocation{p_texture->Get_VmaAllocation()}
+		{}
+
+		~texture_data_for_deletion_t() {}
+
+		VkImage Get_VkImage(void) const noexcept { return this->m_p_vk_image; }
+		VkImageView Get_VkImageView(void) const noexcept { return this->m_p_vk_image_view; }
+		VmaAllocation Get_VmaAllocation(void) const noexcept { return this->m_p_vk_vma_allocation; }
+		VkDescriptorSet Get_VkDescriptorSet(void) const noexcept { return this->m_p_vk_descriptor_set; }
+
+	private:
+		VkImage m_p_vk_image;
+		VkImageView m_p_vk_image_view;
+		VkDescriptorSet m_p_vk_descriptor_set;
+		VmaAllocation m_p_vk_vma_allocation;
 	};
 
 	// TODO: RMLUI team add set and get methods for this structure PLEASE
@@ -732,6 +777,7 @@ private:
 	void DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept;
 
 	void Destroy_Textures(void) noexcept;
+	void Destroy_Texture(const texture_data_t& p_texture) noexcept;
 
 	void DestroyResourcesDependentOnSize(void) noexcept;
 	void DestroySwapchainImageViews(void) noexcept;
@@ -742,7 +788,16 @@ private:
 	void DestroyPipelineLayout(void) noexcept;
 	void DestroySamplers(void) noexcept;
 
+	// @ O(n) so be careful with that thing...
+	// TODO: think how to optimize and reduce the O complexity...
+	// One is possible solutions is to use queue for storing "free" element id and after pop it in this method when we call it
+	// so element stores the id for array (vector) and sent to queue where we release it
+	texture_data_t* Get_AvailableTexture(void) noexcept;
+
 	void Wait(void) noexcept;
+
+	void Update_QueueForDeletion_Textures(void) noexcept;
+
 	void Submit(void) noexcept;
 	void Present(void) noexcept;
 
@@ -880,6 +935,10 @@ private:
 	Rml::UnorderedMap<uint32_t, descriptor_wrapper_t> m_descriptor_sets;
 
 	Rml::Vector<texture_data_t> m_textures;
+#pragma endregion
+
+#pragma region Queues for deletion
+	Rml::Queue<texture_data_for_deletion_t> m_queue_pending_textures_for_deletion;
 #pragma endregion
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
