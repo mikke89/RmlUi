@@ -1606,8 +1606,10 @@ VkExtent2D RenderInterface_Vulkan::CreateValidSwapchainExtent(void) noexcept
 	}
 	else
 	{
-		return caps.currentExtent;
+		result = caps.currentExtent;
 	}
+
+	return result;
 }
 
 VkSurfaceTransformFlagBitsKHR RenderInterface_Vulkan::CreatePretransformSwapchain(void) noexcept
