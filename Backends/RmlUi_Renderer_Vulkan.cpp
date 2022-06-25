@@ -145,10 +145,6 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 	current_geometry_handle.m_is_cached = false;
 	current_geometry_handle.m_p_texture = p_texture;
 
-#ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] compiled geometry id:[%d]", current_geometry_handle.m_id);
-#endif
-
 	return Rml::CompiledGeometryHandle(&current_geometry_handle);
 }
 
@@ -2209,8 +2205,6 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 		if (data.Get_VkBuffer() && data.Get_VmaAllocation())
 		{
 			vmaDestroyBuffer(this->m_p_allocator, data.Get_VkBuffer(), data.Get_VmaAllocation());
-
-			Rml::Log::Message(Rml::Log::LT_DEBUG, "destroy buffer");
 		}
 	}
 }
@@ -3060,10 +3054,6 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle(geometry_handle_t* 
 	p_valid_geometry_handle->m_is_cached = false;
 	p_valid_geometry_handle->m_is_has_texture = false;
 	p_valid_geometry_handle->m_num_indices = 0;
-
-#ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] Geometry handle is deleted! [%d]", p_valid_geometry_handle->m_id);
-#endif
 }
 
 void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geometry_handle_t* p_valid_geometry_handle) noexcept
@@ -3077,11 +3067,6 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 
 	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_shader_allocation);
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
-
-#ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] Geometry handle [%d] had a dirty translation we had to clear shader data",
-		p_valid_geometry_handle->m_id);
-#endif
 }
 
 #define VMA_IMPLEMENTATION

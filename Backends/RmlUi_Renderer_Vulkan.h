@@ -133,7 +133,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		// checks if all Vulkan instances are initiailized, it means if it doesn't (returns false) that you can re-use a such instance
 		bool Is_Initialized(void) const noexcept
 		{
-			return this->m_p_vk_image && this->m_p_vk_image_view && this->m_p_vk_sampler && this->m_p_vk_descriptor_set && this->m_p_vma_allocation;
+			return this->m_p_vk_image && this->m_p_vk_image_view && this->m_p_vk_sampler && this->m_p_vma_allocation;
 		}
 
 		VkImage Get_VkImage(void) const noexcept { return this->m_p_vk_image; }
