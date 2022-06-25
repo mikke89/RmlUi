@@ -368,6 +368,8 @@ bool RenderInterface_Vulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml
 	}
 
 	const char* image_src = buffer + sizeof(TGAHeader);
+
+	// TODO: RmlUI team if you want you can create an array for font-face-layer, because those textures are small and have not so many size at all.
 	unsigned char* image_dest = new unsigned char[image_size];
 
 	// Targa is BGR, swap to RGB and flip Y axis
@@ -600,7 +602,6 @@ void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 	{
 		this->m_queue_available_indexes_of_textures.push(p_texture->Get_ID());
 		this->m_queue_pending_textures_for_deletion.push(p_texture);
-
 
 		p_texture->Clear_Data();
 	}
@@ -2295,7 +2296,7 @@ RenderInterface_Vulkan::texture_data_t* RenderInterface_Vulkan::Get_AvailableTex
 {
 	texture_data_t* p_result = nullptr;
 
-	if (this->m_queue_available_indexes_of_textures.empty() == false) 
+	if (this->m_queue_available_indexes_of_textures.empty() == false)
 	{
 		int id = this->m_queue_available_indexes_of_textures.front();
 
@@ -2320,7 +2321,7 @@ RenderInterface_Vulkan::texture_data_t* RenderInterface_Vulkan::Get_AvailableTex
 uint32_t RenderInterface_Vulkan::Get_AvailableGeometryHandleID(void) noexcept
 {
 	uint32_t result = 0;
-	if (this->m_queue_available_indexes_of_geometry_handles.empty() == false) 
+	if (this->m_queue_available_indexes_of_geometry_handles.empty() == false)
 	{
 		result = this->m_queue_available_indexes_of_geometry_handles.front();
 		this->m_queue_available_indexes_of_geometry_handles.pop();
