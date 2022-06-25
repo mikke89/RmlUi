@@ -168,7 +168,7 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 
 	// we don't need to write the same commands to buffer or update descritor set somehow because it was already passed to it!!!!!
 	// don't do repetetive and pointless callings!!!!
-	if (!p_casted_compiled_geometry->m_is_cached || p_casted_compiled_geometry->m_translation != this->m_user_data_for_vertex_shader.m_translate)
+	if (!p_casted_compiled_geometry->m_is_cached || p_casted_compiled_geometry->m_translation != this->m_user_data_for_vertex_shader.m_translate || p_casted_compiled_geometry->m_transform != this->m_user_data_for_vertex_shader.m_transform)
 	{
 		uint32_t* pCopyDataToBuffer = nullptr;
 
@@ -211,6 +211,7 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 		}
 
 		p_casted_compiled_geometry->m_translation = this->m_user_data_for_vertex_shader.m_translate;
+		p_casted_compiled_geometry->m_transform = this->m_user_data_for_vertex_shader.m_transform;
 	}
 
 	uint32_t casted_offset = 0;

@@ -205,6 +205,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		// different in compare to our old translation)
 
 		Rml::Vector2f m_translation{};
+		Rml::Matrix4f m_transform{};
 
 		texture_data_t* m_p_texture{};
 
