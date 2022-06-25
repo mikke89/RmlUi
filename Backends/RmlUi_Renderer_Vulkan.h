@@ -952,8 +952,16 @@ private:
 #pragma endregion
 
 #pragma region Queues(Not Vulkan !!!!)
-	Rml::Queue<texture_data_for_deletion_t> m_queue_pending_textures_for_deletion;
-	Rml::Queue<uint32_t> m_queue_available_indexes_of_geometry_handles;
+	// I know they're dynamic and will cause the new and delete (sometimes, rarely, but will), the possible sane solution is to take circular_buffer from boost and implement it
+	// there like we use circular_buffer instead of std::deque, but still it is hard to implement fixed size std::queue in 2020 century............
+	// Also for some reasonable manner I definied for user StaticQueue in order to split the term of current queue who doesn't support any
+	// implementation from std for making it with pre-allocated storage, but still it is reasonable to have all stuff without new and delete at all.
+	// It is just useful for embedded environments and we don't consume memory for nothing, and still we think about optimizations. It is really good
+	// manner to develop applications otherwise we will get a not fine results. For simplicity std doesn't afford a such thing for static_queue =
+	// std::queue<T, std::array<T, count>>; <= you can't write like that and it is 2022!!!!!!!!!
+	// I thought Cpp standartization would support creation of any container with 'fixed-size' storage, but it doesn't and it is strange
+	Rml::StaticQueue<texture_data_for_deletion_t> m_queue_pending_textures_for_deletion;
+	Rml::StaticQueue<uint32_t> m_queue_available_indexes_of_geometry_handles;
 #pragma endregion
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
