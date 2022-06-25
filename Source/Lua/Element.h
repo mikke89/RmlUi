@@ -48,6 +48,8 @@ int ElementFocus(lua_State* L, Element* obj);
 int ElementGetAttribute(lua_State* L, Element* obj);
 int ElementGetElementById(lua_State* L, Element* obj);
 int ElementGetElementsByTagName(lua_State* L, Element* obj);
+int ElementQuerySelector(lua_State* L, Element* obj);
+int ElementQuerySelectorAll(lua_State* L, Element* obj);
 int ElementHasAttribute(lua_State* L, Element* obj);
 int ElementHasChildNodes(lua_State* L, Element* obj);
 int ElementInsertBefore(lua_State* L, Element* obj);

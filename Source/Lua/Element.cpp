@@ -189,6 +189,29 @@ int ElementGetElementsByTagName(lua_State* L, Element* obj)
     return 1;
 }
 
+int ElementQuerySelector(lua_State* L, Element* obj)
+{
+    const char* sel = luaL_checkstring(L,1);
+    Element* ele = obj->QuerySelector(sel);
+    LuaType<Element>::push(L,ele,false);
+    return 1;
+}
+
+int ElementQuerySelectorAll(lua_State* L, Element* obj)
+{
+    const char* tag = luaL_checkstring(L,1);
+    ElementList list;
+    obj->QuerySelectorAll(list,tag);
+    lua_newtable(L);
+    for(unsigned int i = 0; i < list.size(); i++)
+    {
+        PushIndex(L,i);
+        LuaType<Element>::push(L,list[i],false);
+        lua_settable(L,-3); //-3 is the table
+    }
+    return 1;
+}
+
 int ElementHasAttribute(lua_State* L, Element* obj)
 {
     const char* name = luaL_checkstring(L,1);
@@ -565,6 +588,8 @@ RegType<Element> ElementMethods[] =
     RMLUI_LUAMETHOD(Element,GetAttribute)
     RMLUI_LUAMETHOD(Element,GetElementById)
     RMLUI_LUAMETHOD(Element,GetElementsByTagName)
+    RMLUI_LUAMETHOD(Element,QuerySelector)
+    RMLUI_LUAMETHOD(Element,QuerySelectorAll)
     RMLUI_LUAMETHOD(Element,HasAttribute)
     RMLUI_LUAMETHOD(Element,HasChildNodes)
     RMLUI_LUAMETHOD(Element,InsertBefore)
