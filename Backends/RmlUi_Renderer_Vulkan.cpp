@@ -168,7 +168,11 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 
 	// we don't need to write the same commands to buffer or update descritor set somehow because it was already passed to it!!!!!
 	// don't do repetetive and pointless callings!!!!
-	if (!p_casted_compiled_geometry->m_is_cached || p_casted_compiled_geometry->m_translation != this->m_user_data_for_vertex_shader.m_translate || p_casted_compiled_geometry->m_transform != this->m_user_data_for_vertex_shader.m_transform)
+	//
+	// TODO: RmlUI team think how we need to understand that our state is dirty I mean we don't need to store m_translation and m_transform for
+	// compiled_geometry
+	if (!p_casted_compiled_geometry->m_is_cached || p_casted_compiled_geometry->m_translation != this->m_user_data_for_vertex_shader.m_translate ||
+		p_casted_compiled_geometry->m_transform != this->m_user_data_for_vertex_shader.m_transform)
 	{
 		uint32_t* pCopyDataToBuffer = nullptr;
 
