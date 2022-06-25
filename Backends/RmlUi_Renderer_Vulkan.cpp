@@ -598,7 +598,9 @@ void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 
 	if (p_texture)
 	{
+		this->m_queue_available_indexes_of_textures.push(p_texture->Get_ID());
 		this->m_queue_pending_textures_for_deletion.push(p_texture);
+
 
 		p_texture->Clear_Data();
 	}
@@ -2293,20 +2295,20 @@ RenderInterface_Vulkan::texture_data_t* RenderInterface_Vulkan::Get_AvailableTex
 {
 	texture_data_t* p_result = nullptr;
 
-	for (auto& texture : this->m_textures)
+	if (this->m_queue_available_indexes_of_textures.empty() == false) 
 	{
-		if (texture.Is_Initialized() == false)
-		{
-			p_result = &texture;
-			break;
-		}
-	}
+		int id = this->m_queue_available_indexes_of_textures.front();
 
-	if (p_result == nullptr)
+		p_result = &this->m_textures.at(id);
+
+		this->m_queue_available_indexes_of_textures.pop();
+	}
+	else
 	{
 		this->m_textures.push_back(texture_data_t());
-
 		p_result = &this->m_textures.back();
+
+		p_result->Set_ID(this->m_textures.size() - 1);
 
 		VK_ASSERT(this->m_textures.size() <= kTexturesForReserve,
 			"overflow, your iterators are all invalid now!!!!!! Set bigger value to kTexturesForReserve constant");

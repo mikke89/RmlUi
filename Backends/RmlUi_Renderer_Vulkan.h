@@ -106,8 +106,10 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 	class texture_data_t {
 	public:
-		texture_data_t() : m_width{}, m_height{}, m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_sampler{}, m_p_vk_descriptor_set{}, m_p_vma_allocation{}
+		texture_data_t() :
+			m_width{}, m_height{}, m_id{-1}, m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_sampler{}, m_p_vk_descriptor_set{}, m_p_vma_allocation{}
 		{}
+
 		~texture_data_t() {}
 
 		void Set_VkImage(VkImage p_image) noexcept { this->m_p_vk_image = p_image; }
@@ -118,6 +120,8 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		void Set_Width(int width) noexcept { this->m_width = width; }
 		void Set_Height(int height) noexcept { this->m_height = height; }
 		void Set_VkDescriptorSet(VkDescriptorSet p_set) noexcept { this->m_p_vk_descriptor_set = p_set; }
+		void Set_ID(int value) noexcept { this->m_id = value; }
+
 		void Clear_Data(void) noexcept
 		{
 			this->m_filename.clear();
@@ -144,10 +148,12 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		const Rml::String& Get_FileName(void) const noexcept { return this->m_filename; }
 		int Get_Width(void) const noexcept { return this->m_width; }
 		int Get_Height(void) const noexcept { return this->m_height; }
+		int Get_ID(void) const noexcept { return this->m_id; }
 
 	private:
 		int m_width;
 		int m_height;
+		int m_id;
 		VkImage m_p_vk_image;
 		VkImageView m_p_vk_image_view;
 		VkSampler m_p_vk_sampler;
@@ -788,12 +794,7 @@ private:
 	void DestroyPipelineLayout(void) noexcept;
 	void DestroySamplers(void) noexcept;
 
-	// TODO: think how to optimize and reduce the O complexity, because the worse case could be O(n) it is not critical when we have just 100
-	// elements, but possible situation when we fill 50 textures per frame and delete them and etc it will be not cool to have complexity that equals
-	// to O(n) would be better to have log(n) or even cooler O(1)... One is possible solutions is to use queue for storing "free" element id and after
-	// pop it in this method when we call it so element stores the id for array (vector) and sent to queue where we release it
 	texture_data_t* Get_AvailableTexture(void) noexcept;
-
 	uint32_t Get_AvailableGeometryHandleID(void) noexcept;
 
 	void Wait(void) noexcept;
@@ -952,16 +953,17 @@ private:
 #pragma endregion
 
 #pragma region Queues(Not Vulkan !!!!)
-	// I know they're dynamic and will cause the new and delete (sometimes, rarely, but will), the possible sane solution is to take circular_buffer from boost and implement it
-	// there like we use circular_buffer instead of std::deque, but still it is hard to implement fixed size std::queue in 2020 century............
-	// Also for some reasonable manner I definied for user StaticQueue in order to split the term of current queue who doesn't support any
-	// implementation from std for making it with pre-allocated storage, but still it is reasonable to have all stuff without new and delete at all.
-	// It is just useful for embedded environments and we don't consume memory for nothing, and still we think about optimizations. It is really good
-	// manner to develop applications otherwise we will get a not fine results. For simplicity std doesn't afford a such thing for static_queue =
-	// std::queue<T, std::array<T, count>>; <= you can't write like that and it is 2022!!!!!!!!!
-	// I thought Cpp standartization would support creation of any container with 'fixed-size' storage, but it doesn't and it is strange
+	// I know they're dynamic and will cause the new and delete (sometimes, rarely, but will), the possible sane solution is to take circular_buffer
+	// from boost and implement it there like we use circular_buffer instead of std::deque, but still it is hard to implement fixed size std::queue in
+	// 2020 century............ Also for some reasonable manner I definied for user StaticQueue in order to split the term of current queue who
+	// doesn't support any implementation from std for making it with pre-allocated storage, but still it is reasonable to have all stuff without new
+	// and delete at all. It is just useful for embedded environments and we don't consume memory for nothing, and still we think about optimizations.
+	// It is really good manner to develop applications otherwise we will get a not fine results. For simplicity std doesn't afford a such thing for
+	// static_queue = std::queue<T, std::array<T, count>>; <= you can't write like that and it is 2022!!!!!!!!! I thought Cpp standartization would
+	// support creation of any container with 'fixed-size' storage, but it doesn't and it is strange
 	Rml::StaticQueue<texture_data_for_deletion_t> m_queue_pending_textures_for_deletion;
 	Rml::StaticQueue<uint32_t> m_queue_available_indexes_of_geometry_handles;
+	Rml::StaticQueue<int> m_queue_available_indexes_of_textures;
 #pragma endregion
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
