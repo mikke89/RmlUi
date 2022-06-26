@@ -62,6 +62,9 @@ void LuaType<T>::Register(lua_State* L)
     lua_pushcfunction(L, tostring_T);
     lua_setfield(L, metatable, "__tostring");
 
+    lua_pushcfunction(L, eq_T);
+    lua_setfield(L, metatable, "__eq");
+
     ExtraInit<T>(L,metatable); //optionally implemented by individual types
 
     lua_newtable(L); //for method table -> [3] = this table
@@ -198,6 +201,17 @@ int LuaType<T>::tostring_T(lua_State* L)
     void* obj = static_cast<void*>(*ptrHold);
     snprintf(buff, max_pointer_string_size, "%p", obj);
     lua_pushfstring(L, "%s (%s)", GetTClassName<T>(), buff);
+    return 1;
+}
+
+template<typename T>
+int LuaType<T>::eq_T(lua_State* L)
+{
+    T* o1 = check(L,1);
+    RMLUI_CHECK_OBJ(o1);
+    T* o2 = check(L,2);
+    RMLUI_CHECK_OBJ(o2);
+    lua_pushboolean(L, o1 == o2);
     return 1;
 }
 
