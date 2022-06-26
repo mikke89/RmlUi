@@ -142,6 +142,8 @@ public:
     /** The __tostring metamethod.
     @return 1, because it pushes a string representation of the userdata on to the stack  */
     static inline int tostring_T(lua_State* L);
+    /** The __eq metamethod. Facilitates equality tests with C++-side pointers  */
+    static inline int eq_T(lua_State* L);
     /** The __index metamethod. Called whenever the user attempts to access a variable that is
     not in the immediate table. This handles the method calls and calls tofunctions in __getters    */
     static inline int index(lua_State* L);
