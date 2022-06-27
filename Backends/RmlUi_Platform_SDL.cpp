@@ -62,7 +62,9 @@ void SystemInterface_SDL::SetWindow(SDL_Window* in_window)
 
 double SystemInterface_SDL::GetElapsedTime()
 {
-	return double(SDL_GetTicks()) / 1000.0;
+	static const Uint64 start = SDL_GetPerformanceCounter();
+	static const double frequency = double(SDL_GetPerformanceFrequency());
+	return double(SDL_GetPerformanceCounter() - start) / frequency;
 }
 
 void SystemInterface_SDL::SetMouseCursor(const Rml::String& cursor_name)

@@ -56,7 +56,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 {
 	RMLUI_ASSERT(!data);
 
-	if (SDL_Init(SDL_INIT_VIDEO) != 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
 		return false;
 
 	// Submit click events when focusing the window.
