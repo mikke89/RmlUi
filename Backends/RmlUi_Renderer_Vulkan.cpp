@@ -269,9 +269,8 @@ void RenderInterface_Vulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle
 	RMLUI_ZoneScopedN("Vulkan - ReleaseCompiledGeometry");
 
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
-	this->m_memory_pool.Free_GeometryHandle(p_casted_geometry);
-
-	this->m_queue_available_indexes_of_geometry_handles.push(p_casted_geometry->m_id);
+	
+	this->m_queue_pending_geometries_for_deletion.push(p_casted_geometry);
 }
 
 void RenderInterface_Vulkan::EnableScissorRegion(bool enable)
@@ -468,7 +467,7 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 
 	VmaAllocationCreateInfo info_allocation = {};
 	info_allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-
+	
 	VkImage p_image = nullptr;
 	VmaAllocation p_allocation = nullptr;
 
@@ -482,6 +481,11 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	p_texture->Set_FileName(file_path);
 	p_texture->Set_VkImage(p_image);
 	p_texture->Set_VmaAllocation(p_allocation);
+
+#ifdef RMLUI_DEBUG
+	vmaSetAllocationName(this->m_p_allocator, p_allocation, file_path);
+#endif
+
 	p_texture->Set_Width(width);
 	p_texture->Set_Height(height);
 
@@ -622,6 +626,7 @@ void RenderInterface_Vulkan::BeginFrame()
 	this->Wait();
 
 	this->Update_QueueForDeletion_Textures();
+	this->Update_QueueForDeletion_Geometries();
 
 	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
 
@@ -1140,7 +1145,6 @@ void RenderInterface_Vulkan::Destroy_SyncPrimitives(void) noexcept
 
 void RenderInterface_Vulkan::Destroy_Resources(void) noexcept
 {
-	this->m_memory_pool.Shutdown();
 	this->m_command_list.Shutdown();
 	this->m_upload_manager.Shutdown();
 
@@ -1161,6 +1165,7 @@ void RenderInterface_Vulkan::Destroy_Resources(void) noexcept
 
 	this->DestroySamplers();
 	this->Destroy_Textures();
+	this->Destroy_Geometries();
 
 	this->m_manager_descriptors.Shutdown(this->m_p_device);
 }
@@ -2200,6 +2205,20 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
 	this->Update_QueueForDeletion_Textures();
+
+	// not all textures collect from ReleaseTexture method
+	// so we need to be sure that we freed ALL textures
+	for (const auto& texture : this->m_textures) 
+	{
+		if (texture.Get_VmaAllocation())
+			this->Destroy_Texture(texture);
+	}
+}
+
+void RenderInterface_Vulkan::Destroy_Geometries(void) noexcept 
+{
+	this->Update_QueueForDeletion_Geometries();
+	this->m_memory_pool.Shutdown();
 }
 
 void RenderInterface_Vulkan::Destroy_Texture(const texture_data_t& texture) noexcept
@@ -2427,6 +2446,19 @@ void RenderInterface_Vulkan::Update_QueueForDeletion_Textures(void) noexcept
 		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
 
 		this->m_queue_pending_textures_for_deletion.pop();
+	}
+}
+
+void RenderInterface_Vulkan::Update_QueueForDeletion_Geometries(void) noexcept 
+{
+	while (this->m_queue_pending_geometries_for_deletion.empty() == false) 
+	{
+		auto* p_geometry_handle = this->m_queue_pending_geometries_for_deletion.front();
+		
+		this->m_queue_available_indexes_of_geometry_handles.push(p_geometry_handle->m_id);
+		this->m_memory_pool.Free_GeometryHandle(p_geometry_handle);
+		
+		this->m_queue_pending_geometries_for_deletion.pop();
 	}
 }
 

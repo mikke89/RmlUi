@@ -34,10 +34,24 @@
 #ifdef RMLUI_PLATFORM_WIN32
 	#include "RmlUi_Include_Windows.h"
 	#define VK_USE_PLATFORM_WIN32_KHR
+
+	// strange but VMA_DEBUG_LOG is commented in library header...
+	// So if you need additional log about your memory leaks just uncomment this section
+	/*
+	#ifdef RMLUI_DEBUG
+	    #define VMA_DEBUG_LOG(format, ...)                        \
+	        do                                                    \
+	        {                                                     \
+	            printf(format, __VA_ARGS__);                      \
+	            char str[1024];                                   \
+	            sprintf_s(str, sizeof(str), format, __VA_ARGS__); \
+	            OutputDebugStringA("\n");                         \
+	            OutputDebugStringA(str);                          \
+	        } while (false)
+	#endif
+	*/
 #endif
 
-// TODO: add preprocessor definition in case if cmake found Vulkan package
-// TODO: think about VkDescriptorSet I have to reduce it to one
 #include "RmlUi_Vulkan/spirv_reflect.h"
 #include "RmlUi_Vulkan/vk_mem_alloc.h"
 
@@ -68,11 +82,8 @@ constexpr uint32_t kTexturesForReserve = 100;
 // m_compiled_geometries, this goes to unordered_map for reserving, for making erase and insert operations are valid otherwise if we don't do that
 // erase operation is invalid it means all pointers and ereferences what used outside of map or just points to values of map goes INVALID so it will
 // cause errors in system
+// But we don't call erase or something, just for clearify things I wrote the consequences of reserve and why we needed it
 constexpr uint32_t kGeometryForReserve = 1000;
-
-// I will finish it, so the thing is to use dynamic offset for VkDescriptorSet, but maybe next time, now we just reuse available and grow in count if
-// it is need and the assert state if we out of bound, so if 10 descriptors is enough we will use 10 while we allocated for 100
-constexpr uint32_t kDescriptorSetsCount = kGeometryForReserve;
 #pragma endregion
 
 class RenderInterface_Vulkan : public Rml::RenderInterface {
@@ -784,6 +795,8 @@ private:
 	void DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept;
 
 	void Destroy_Textures(void) noexcept;
+	void Destroy_Geometries(void) noexcept;
+
 	void Destroy_Texture(const texture_data_t& p_texture) noexcept;
 
 	void DestroyResourcesDependentOnSize(void) noexcept;
@@ -801,6 +814,7 @@ private:
 	void Wait(void) noexcept;
 
 	void Update_QueueForDeletion_Textures(void) noexcept;
+	void Update_QueueForDeletion_Geometries(void) noexcept;
 
 	void Submit(void) noexcept;
 	void Present(void) noexcept;
@@ -963,6 +977,7 @@ private:
 	// static_queue = std::queue<T, std::array<T, count>>; <= you can't write like that and it is 2022!!!!!!!!! I thought Cpp standartization would
 	// support creation of any container with 'fixed-size' storage, but it doesn't and it is strange
 	Rml::StaticQueue<texture_data_for_deletion_t> m_queue_pending_textures_for_deletion;
+	Rml::StaticQueue<geometry_handle_t*> m_queue_pending_geometries_for_deletion;
 	Rml::StaticQueue<uint32_t> m_queue_available_indexes_of_geometry_handles;
 	Rml::StaticQueue<int> m_queue_available_indexes_of_textures;
 #pragma endregion
