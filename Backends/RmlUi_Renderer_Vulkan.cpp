@@ -158,7 +158,6 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 
 	this->m_user_data_for_vertex_shader.m_translate = translation;
 
-	// TODO: RmlUI team somehow but on resize I got invalid value here...
 	VkDescriptorSet p_current_descriptor_set = nullptr;
 	p_current_descriptor_set = this->m_p_descriptor_set;
 
@@ -168,9 +167,6 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 
 	// we don't need to write the same commands to buffer or update descritor set somehow because it was already passed to it!!!!!
 	// don't do repetetive and pointless callings!!!!
-	//
-	// TODO: RmlUI team think how we need to understand that our state is dirty I mean we don't need to store m_translation and m_transform for
-	// compiled_geometry
 	if (!p_casted_compiled_geometry->m_is_cached || p_casted_compiled_geometry->m_translation != this->m_user_data_for_vertex_shader.m_translate ||
 		p_casted_compiled_geometry->m_transform != this->m_user_data_for_vertex_shader.m_transform)
 	{
@@ -254,8 +250,6 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_without_textures);
 	}
 
-	// means the size of array is one (I say about []), but it is not about indexing like my_std_vector[real_positioning_from_language_perspective]
-	// like it is intuitive 0, but it is 1
 	VkDeviceSize offsets[1] = {0};
 
 	vkCmdBindVertexBuffers(this->m_p_current_command_buffer, 0, 1, &p_casted_compiled_geometry->m_p_vertex.buffer,
@@ -373,8 +367,6 @@ bool RenderInterface_Vulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml
 	}
 
 	const char* image_src = buffer + sizeof(TGAHeader);
-
-	// TODO: RmlUI team if you want you can create an array for font-face-layer, because those textures are small and have not so many size at all.
 	unsigned char* image_dest = new unsigned char[image_size];
 
 	// Targa is BGR, swap to RGB and flip Y axis
@@ -1746,7 +1738,7 @@ void RenderInterface_Vulkan::CreateDescriptorSetLayout(Rml::Vector<shader_data_t
 		all_bindings.insert(all_bindings.end(), current_bindings.begin(), current_bindings.end());
 	}
 
-	// TODO: yeah... it is hardcoded, but idk how it is better to create two different layouts, because you can't update one dynamic descriptor set
+	// yeah... it is hardcoded, but idk how it is better to create two different layouts, because you can't update one dynamic descriptor set
 	// which is for uniform buffers... we have to have at least TWO different descriptor set, one is global and single and it is for uniform buffer
 	// with offsets, but the second one is for per texture descriptor... it will be hardcoded in anyway, but spirv just automize the process in order
 	// to not write the really long and big code for initializing information about our bindings in shaders
@@ -1870,20 +1862,6 @@ void RenderInterface_Vulkan::CreatePipelineLayout(void) noexcept
 
 void RenderInterface_Vulkan::CreateDescriptorSets(void) noexcept
 {
-	/*
-	Rml::Vector<VkDescriptorSetLayout> layouts(kDescriptorSetsCount, this->m_p_descriptor_set_layout);
-	Rml::Vector<VkDescriptorSet> sets(kDescriptorSetsCount, nullptr);
-
-	this->m_descriptor_sets.reserve(kDescriptorSetsCount);
-
-	this->m_manager_descriptors.Alloc_Descriptor(this->m_p_device, layouts.data(), sets.data(), kDescriptorSetsCount);
-
-	for (int i = 0; i < kDescriptorSetsCount; ++i)
-	{
-	    this->m_descriptor_sets[i].Set_DescriptorSet(sets.at(i));
-	}
-	*/
-
 	VK_ASSERT(this->m_p_device, "[Vulkan] you have to initialize your VkDevice before calling this method");
 	VK_ASSERT(this->m_p_descriptor_set_layout_uniform_buffer_dynamic,
 		"[Vulkan] you have to initialize your VkDescriptorSetLayout before calling this method");
