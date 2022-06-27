@@ -74,16 +74,16 @@
 constexpr uint32_t kSwapchainBackBufferCount = 3;
 
 // This value goes to function that converts to Mbs, it is like N * 1024 * 1024
-constexpr uint32_t kVideoMemoryForAllocation = 4;
+constexpr uint32_t kVideoMemoryForAllocation = 16;
 
 // m_textures.reserve()
-constexpr uint32_t kTexturesForReserve = 32;
+constexpr uint32_t kTexturesForReserve = 100;
 
 // m_compiled_geometries, this goes to unordered_map for reserving, for making erase and insert operations are valid otherwise if we don't do that
 // erase operation is invalid it means all pointers and ereferences what used outside of map or just points to values of map goes INVALID so it will
 // cause errors in system
 // But we don't call erase or something, just for clearify things I wrote the consequences of reserve and why we needed it
-constexpr uint32_t kGeometryForReserve = 256;
+constexpr uint32_t kGeometryForReserve = 1000;
 #pragma endregion
 
 class RenderInterface_Vulkan : public Rml::RenderInterface {
