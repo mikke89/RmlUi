@@ -73,17 +73,17 @@
 #pragma region System Constants for Vulkan API
 constexpr uint32_t kSwapchainBackBufferCount = 3;
 
-// This value goes to function that converts to Mbs, it is like 32 * 1024 * 1024
-constexpr uint32_t kVideoMemoryForAllocation = 32;
+// This value goes to function that converts to Mbs, it is like N * 1024 * 1024
+constexpr uint32_t kVideoMemoryForAllocation = 4;
 
 // m_textures.reserve()
-constexpr uint32_t kTexturesForReserve = 100;
+constexpr uint32_t kTexturesForReserve = 32;
 
 // m_compiled_geometries, this goes to unordered_map for reserving, for making erase and insert operations are valid otherwise if we don't do that
 // erase operation is invalid it means all pointers and ereferences what used outside of map or just points to values of map goes INVALID so it will
 // cause errors in system
 // But we don't call erase or something, just for clearify things I wrote the consequences of reserve and why we needed it
-constexpr uint32_t kGeometryForReserve = 1000;
+constexpr uint32_t kGeometryForReserve = 256;
 #pragma endregion
 
 class RenderInterface_Vulkan : public Rml::RenderInterface {
