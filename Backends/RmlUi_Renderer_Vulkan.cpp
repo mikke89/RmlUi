@@ -453,6 +453,8 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 
 	auto* p_texture = new texture_data_t();
 
+	this->m_textures.push_back(p_texture);
+
 	VkImageCreateInfo info = {};
 
 	info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -2201,7 +2203,7 @@ void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 
 	for (auto* p_texture : this->m_textures)
 	{
-		if (p_texture->Get_VmaAllocation())
+		if (p_texture)
 		{
 			this->Destroy_Texture(*p_texture);
 			delete p_texture;
@@ -2390,13 +2392,14 @@ void RenderInterface_Vulkan::Update_QueueForDeletion_Textures(void) noexcept
 	{
 		auto* data = this->m_queue_pending_for_deletion_textures.front();
 
-		vmaDestroyImage(this->m_p_allocator, data->Get_VkImage(), data->Get_VmaAllocation());
-		vkDestroyImageView(this->m_p_device, data->Get_VkImageView(), nullptr);
+		this->Destroy_Texture(*data);
 
-		VkDescriptorSet p_set = data->Get_VkDescriptorSet();
-		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
+		data->Set_VmaAllocation(nullptr);
+		data->Set_VkDescriptorSet(nullptr);
+		data->Set_VkImage(nullptr);
+		data->Set_VkImageView(nullptr);
+		data->Set_VkSampler(nullptr);
 
-		delete data;
 		this->m_queue_pending_for_deletion_textures.pop();
 	}
 }
