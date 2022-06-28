@@ -2067,7 +2067,6 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_shader.module = this->m_shaders[static_cast<int>(shader_id_t::kShaderID_Pixel_WithTextures)];
 	shaders_that_will_be_used_in_pipeline[1] = info_shader;
 
-	info_depth.back.writeMask = VK_FALSE;
 	info_depth.back.passOp = VK_STENCIL_OP_REPLACE;
 	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
 	info_depth.back.writeMask = VK_FALSE;
@@ -2075,6 +2074,8 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_depth.front = info_depth.back;
 
 	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_stencil);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
 }
 
 void RenderInterface_Vulkan::CreateSwapchainFrameBuffers(void) noexcept
