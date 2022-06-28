@@ -74,7 +74,12 @@ RenderInterface_Vulkan::RenderInterface_Vulkan() :
 	m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{},
 	m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
 	m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
-{}
+{
+	this->m_correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f),
+		Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
+
+ 
+}
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
 
@@ -612,7 +617,7 @@ void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 void RenderInterface_Vulkan::SetTransform(const Rml::Matrix4f* transform)
 {
 	this->m_is_transform_enabled = !!(transform);
-	this->m_user_data_for_vertex_shader.m_transform = this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
+	this->m_user_data_for_vertex_shader.m_transform = this->m_correction_matrix * this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
 }
 
 void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height)
@@ -783,11 +788,7 @@ void RenderInterface_Vulkan::Initialize_Device(void) noexcept
 	this->CreatePropertiesFor_Device();
 	this->AddExtensionToDevice(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	this->AddExtensionToDevice(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
-
-	// this for working with negative values for VkViewport, because check this article
-	// https://www.saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/#:~:text=The%20cause%20for%20this%20is,scene%20is%20rendered%20upside%20down.
-	this->AddExtensionToDevice(VK_KHR_MAINTENANCE_1_EXTENSION_NAME);
-
+	
 	float queue_priorities[1] = {0.0f};
 
 	VkDeviceQueueCreateInfo info_queue[2] = {};
@@ -1879,8 +1880,8 @@ void RenderInterface_Vulkan::CreateSamplers(void) noexcept
 
 	info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	info.pNext = nullptr;
-	info.magFilter = VK_FILTER_NEAREST;
-	info.minFilter = VK_FILTER_NEAREST;
+	info.magFilter = VK_FILTER_LINEAR;
+	info.minFilter = VK_FILTER_LINEAR;
 	info.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -2133,12 +2134,12 @@ void RenderInterface_Vulkan::CreateSwapchainImageViews(void) noexcept
 
 void RenderInterface_Vulkan::CreateResourcesDependentOnSize(void) noexcept
 {
-	this->m_viewport.height = static_cast<float>(-this->m_height);
+	this->m_viewport.height = static_cast<float>(this->m_height);
 	this->m_viewport.width = static_cast<float>(this->m_width);
 	this->m_viewport.minDepth = 0.0f;
 	this->m_viewport.maxDepth = 1.0f;
 	this->m_viewport.x = 0.0f;
-	this->m_viewport.y = static_cast<float>(this->m_height);
+	this->m_viewport.y = 0.0f;
 
 	this->m_scissor.extent.width = this->m_width;
 	this->m_scissor.extent.height = this->m_height;
@@ -2148,7 +2149,7 @@ void RenderInterface_Vulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->m_scissor_original = this->m_scissor;
 
 	this->m_projection =
-		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -10000, 10000);
+		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -10000, 10000); 
 
 	this->SetTransform(nullptr);
 

@@ -819,6 +819,9 @@ private:
 	VkDebugReportCallbackEXT m_debug_report_callback_instance;
 
 	Rml::Matrix4f m_projection;
+
+	// https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
+	Rml::Matrix4f m_correction_matrix;
 	Rml::Vector<PhysicalDeviceWrapper> m_physical_devices;
 	Rml::Vector<VkLayerProperties> m_instance_layer_properties;
 	Rml::Vector<VkExtensionProperties> m_instance_extension_properties;
