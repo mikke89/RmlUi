@@ -399,11 +399,11 @@ bool RenderInterface_Vulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml
 
 	texture_dimensions.x = header.width;
 	texture_dimensions.y = header.height;
-	
+
 	texture_handle = (Rml::TextureHandle)source.c_str();
-	
+
 	bool status = this->GenerateTexture(texture_handle, image_dest, texture_dimensions);
-	
+
 	delete[] image_dest;
 	delete[] buffer;
 
@@ -616,7 +616,8 @@ void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 void RenderInterface_Vulkan::SetTransform(const Rml::Matrix4f* transform)
 {
 	this->m_is_transform_enabled = !!(transform);
-	this->m_user_data_for_vertex_shader.m_transform = this->m_correction_matrix * this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
+	this->m_user_data_for_vertex_shader.m_transform =
+		this->m_correction_matrix * this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
 }
 
 void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height)
@@ -787,7 +788,7 @@ void RenderInterface_Vulkan::Initialize_Device(void) noexcept
 	this->CreatePropertiesFor_Device();
 	this->AddExtensionToDevice(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	this->AddExtensionToDevice(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
-	
+
 	float queue_priorities[1] = {0.0f};
 
 	VkDeviceQueueCreateInfo info_queue[2] = {};
@@ -2148,7 +2149,7 @@ void RenderInterface_Vulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->m_scissor_original = this->m_scissor;
 
 	this->m_projection =
-		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -10000, 10000); 
+		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -10000, 10000);
 
 	this->SetTransform(nullptr);
 
@@ -2483,7 +2484,9 @@ RenderInterface_Vulkan::PhysicalDeviceWrapper::PhysicalDeviceWrapper(VkPhysicalD
 	this->m_physical_device_limits = this->m_physical_device_properties.limits;
 }
 
-RenderInterface_Vulkan::PhysicalDeviceWrapper::PhysicalDeviceWrapper(void) {}
+RenderInterface_Vulkan::PhysicalDeviceWrapper::PhysicalDeviceWrapper(void) :
+	m_p_physical_device{}, m_physical_device_properties{}, m_physical_device_limits{}
+{}
 
 RenderInterface_Vulkan::PhysicalDeviceWrapper::~PhysicalDeviceWrapper(void) {}
 
