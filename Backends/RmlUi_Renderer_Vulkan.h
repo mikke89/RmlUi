@@ -67,6 +67,10 @@
  * With many different classes, with not trivial signatures and etc
  * And as a result we should document that library so it's just a headache for all of us
  *
+ * Reminder to users: If you want to implement your Vulkan renderer check previous commits of this work, because current system works only with new
+ * and delete operations every frame (CPU side), on GPU we implemented the pre-allocated buffer with virtual allocs (Vma) so there's no problems and
+ * all fine. I wrote all ideas and implementation for that.
+ *
  * @author wh1t3lord
  */
 
@@ -457,8 +461,6 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 			VmaVirtualAllocation* p_alloc) noexcept;
 		bool Alloc_IndexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out,
 			VmaVirtualAllocation* p_alloc) noexcept;
-
-		void OnBeginFrame(void) noexcept;
 
 		void SetDescriptorSet(uint32_t binding_index, uint32_t size, VkDescriptorType descriptor_type, VkDescriptorSet p_set) noexcept;
 		void SetDescriptorSet(uint32_t binding_index, VkDescriptorBufferInfo* p_info, VkDescriptorType descriptor_type,

@@ -170,51 +170,42 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 		"you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
 		"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
 
-	// we don't need to write the same commands to buffer or update descritor set somehow because it was already passed to it!!!!!
-	// don't do repetetive and pointless callings!!!!
-	if (!p_casted_compiled_geometry->m_is_cached || p_casted_compiled_geometry->m_translation != this->m_user_data_for_vertex_shader.m_translate ||
-		p_casted_compiled_geometry->m_transform != this->m_user_data_for_vertex_shader.m_transform)
+	shader_vertex_user_data_t* p_data = nullptr;
+
+	if (p_casted_compiled_geometry->m_p_shader_allocation == nullptr)
 	{
-		shader_vertex_user_data_t* p_data = nullptr;
+		// it means it was freed in ReleaseCompiledGeometry method
+		bool status = this->m_memory_pool.Alloc_GeneralBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data),
+			&p_casted_compiled_geometry->m_p_shader, &p_casted_compiled_geometry->m_p_shader_allocation);
+		VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
+	}
+	else
+	{
+		// it means our state is dirty and we need to update data, but it is not right in terms of architecture, for real better experience would
+		// be great to free all "compiled" geometries and "re-build" them in one general way, but here I got only three callings for
+		// font-face-layer textures (loaddocument example) and that shit. So better to think how to make it right, if it is fine okay, if it is
+		// not okay and like we really expect that ReleaseCompiledGeometry for all objects that needs to be rebuilt so better to implement that,
+		// but still it is a big architectural thing (or at least you need to do something big commits here to implement a such feature), so my
+		// implementation doesn't break anything what we had, but still it looks strange. If I get callings for releasing maybe I need to use it
+		// for all objects not separately????? Otherwise it is better to provide method for resizing (or some kind of "resizing" callback) for
+		// recalculating all geometry IDK, so it means you pass the existed geometry that wasn't pass to ReleaseCompiledGeometry, but from another
+		// hand you need to re-build compiled geometry again so we have two kinds of geometry one is compiled and never changes and one is dynamic
+		// and it goes through pipeline InitializationOfProgram...->Compile->Render->Release->Compile->Render->Release...
 
-		if (p_casted_compiled_geometry->m_p_shader_allocation == nullptr)
-		{
-			// it means it was freed in ReleaseCompiledGeometry method
-			bool status = this->m_memory_pool.Alloc_GeneralBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data),
-				&p_casted_compiled_geometry->m_p_shader, &p_casted_compiled_geometry->m_p_shader_allocation);
-			VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
-		}
-		else
-		{
-			// it means our state is dirty and we need to update data, but it is not right in terms of architecture, for real better experience would
-			// be great to free all "compiled" geometries and "re-build" them in one general way, but here I got only three callings for
-			// font-face-layer textures (loaddocument example) and that shit. So better to think how to make it right, if it is fine okay, if it is
-			// not okay and like we really expect that ReleaseCompiledGeometry for all objects that needs to be rebuilt so better to implement that,
-			// but still it is a big architectural thing (or at least you need to do something big commits here to implement a such feature), so my
-			// implementation doesn't break anything what we had, but still it looks strange. If I get callings for releasing maybe I need to use it
-			// for all objects not separately????? Otherwise it is better to provide method for resizing (or some kind of "resizing" callback) for
-			// recalculating all geometry IDK, so it means you pass the existed geometry that wasn't pass to ReleaseCompiledGeometry, but from another
-			// hand you need to re-build compiled geometry again so we have two kinds of geometry one is compiled and never changes and one is dynamic
-			// and it goes through pipeline InitializationOfProgram...->Compile->Render->Release->Compile->Render->Release...
+		this->m_memory_pool.Free_GeometryHandle_ShaderDataOnly(p_casted_compiled_geometry);
+		bool status = this->m_memory_pool.Alloc_GeneralBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data),
+			&p_casted_compiled_geometry->m_p_shader, &p_casted_compiled_geometry->m_p_shader_allocation);
+		VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
+	}
 
-			this->m_memory_pool.Free_GeometryHandle_ShaderDataOnly(p_casted_compiled_geometry);
-			bool status = this->m_memory_pool.Alloc_GeneralBuffer(sizeof(this->m_user_data_for_vertex_shader), reinterpret_cast<void**>(&p_data),
-				&p_casted_compiled_geometry->m_p_shader, &p_casted_compiled_geometry->m_p_shader_allocation);
-			VK_ASSERT(status, "failed to allocate VkDescriptorBufferInfo for uniform data to shaders");
-		}
-
-		if (p_data)
-		{
-			p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
-			p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
-		}
-		else
-		{
-			VK_ASSERT(p_data, "you can't reach this zone, it means something bad");
-		}
-
-		p_casted_compiled_geometry->m_translation = this->m_user_data_for_vertex_shader.m_translate;
-		p_casted_compiled_geometry->m_transform = this->m_user_data_for_vertex_shader.m_transform;
+	if (p_data)
+	{
+		p_data->m_transform = this->m_user_data_for_vertex_shader.m_transform;
+		p_data->m_translate = this->m_user_data_for_vertex_shader.m_translate;
+	}
+	else
+	{
+		VK_ASSERT(p_data, "you can't reach this zone, it means something bad");
 	}
 
 	uint32_t casted_offset = 0;
@@ -290,7 +281,21 @@ void RenderInterface_Vulkan::SetScissorRegion(int x, int y, int width, int heigh
 	{
 		if (this->m_is_transform_enabled)
 		{
-			// TODO: implement
+			float left = static_cast<float>(x);
+			float right = static_cast<float>(x + width);
+			float top = static_cast<float>(y);
+			float bottom = static_cast<float>(y + height);
+
+			Rml::Vertex vertices[4];
+
+			vertices[0].position = {left, top};
+			vertices[1].position = {right, top};
+			vertices[2].position = {right, bottom};
+			vertices[3].position = {left, bottom};
+
+			int indices[6] = {0, 2, 1, 0, 3, 2};
+
+			this->RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
 		}
 		else
 		{
@@ -416,10 +421,6 @@ bool RenderInterface_Vulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml
     RAW_POINTER_DATA_BYTES_LITERALLY->COPY_TO->CPU->COPY_TO->GPU->Releasing_CPU <= that's how works uploading textures in Vulkan if you want to have
    efficient handling otherwise it is cpu_to_gpu visibility and it means you create only ONE buffer that is accessible for CPU and for GPU, but it
    will cause the worst performance...
-
-   TODO: implement cyclic allocating for textures by using one block with size of 32 Mbs, if we overflow or we can't allocate we allocate this chunk
-   with such size again and use it for uploading, also implement the part for releasing texture, because user could have some streaming stuff like he
-   often changes pages and thus causing deletion for textures. If you implement this feature you finished the development of Vulkan rendering.
 */
 bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
@@ -621,7 +622,6 @@ void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height
 
 void RenderInterface_Vulkan::BeginFrame()
 {
-	this->m_memory_pool.OnBeginFrame();
 	this->m_command_list.OnBeginFrame();
 	this->Wait();
 
@@ -724,6 +724,8 @@ void RenderInterface_Vulkan::OnResize(int width, int height) noexcept
 	this->m_width = width;
 	this->m_height = height;
 
+	// TODO: prevent resize when the window is minimized. Because you will get validation error!!!!!! It can't be fixed, because developers of Vulkan
+	// strange, the error says the extent of swapchain can't be equal (0,0), BUT the driver returns extent of swapchain exactly (0,0)...s
 #if defined RMLUI_PLATFORM_WIN32 && false
 	// TODO: rmlui team try to call OnResize method only in case when the windows is shown, all other iterations (you can try to delete this if block
 	// and see the results of validation) cause validation error with invalid extent it means height with zero value and it is not acceptable
@@ -2926,9 +2928,6 @@ bool RenderInterface_Vulkan::MemoryPool::Alloc_IndexBuffer(uint32_t number_of_el
 {
 	return this->Alloc_GeneralBuffer(number_of_elements * stride_in_bytes, p_data, p_out, p_alloc);
 }
-
-// TODO: probably needs to remove because we don't use ring allocator
-void RenderInterface_Vulkan::MemoryPool::OnBeginFrame(void) noexcept {}
 
 void RenderInterface_Vulkan::MemoryPool::SetDescriptorSet(uint32_t binding_index, uint32_t size, VkDescriptorType descriptor_type,
 	VkDescriptorSet p_set) noexcept
