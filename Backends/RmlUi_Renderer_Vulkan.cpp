@@ -55,6 +55,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 		return VK_FALSE;
 	}
 
+	(flags);
+	(objectType);
+	(object);
+	(location);
+	(pLayerPrefix);
+	(pUserData);
+
 	Rml::Log::Message(Rml::Log::LT_ERROR, "[Vulkan][VALIDATION] %s ", pMessage);
 
 	return VK_FALSE;
@@ -97,8 +104,7 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 		"you can't have here an invalid pointer of VkDescriptorSet. Two reason might be. 1. - you didn't allocate it "
 		"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
 
-	auto available_index = this->Get_AvailableGeometryHandleID();
-	auto& current_geometry_handle = this->m_compiled_geometries[available_index];
+	auto* p_geometry_handle = new geometry_handle_t();
 
 	VkDescriptorImageInfo info_descriptor_image = {};
 	if (p_texture && p_texture->Get_VkDescriptorSet() == nullptr)
@@ -127,25 +133,24 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 	const void* pData = reinterpret_cast<const void*>(vertices);
 
 	bool status = this->m_memory_pool.Alloc_VertexBuffer(num_vertices, sizeof(Rml::Vertex), reinterpret_cast<void**>(&pCopyDataToBuffer),
-		&current_geometry_handle.m_p_vertex, &current_geometry_handle.m_p_vertex_allocation);
+		&p_geometry_handle->m_p_vertex, &p_geometry_handle->m_p_vertex_allocation);
 	VK_ASSERT(status, "failed to AllocVertexBuffer");
 
 	memcpy(pCopyDataToBuffer, pData, sizeof(Rml::Vertex) * num_vertices);
 
 	status = this->m_memory_pool.Alloc_IndexBuffer(num_indices, sizeof(int), reinterpret_cast<void**>(&pCopyDataToBuffer),
-		&current_geometry_handle.m_p_index, &current_geometry_handle.m_p_index_allocation);
+		&p_geometry_handle->m_p_index, &p_geometry_handle->m_p_index_allocation);
 	VK_ASSERT(status, "failed to AllocIndexBuffer");
 
 	memcpy(pCopyDataToBuffer, indices, sizeof(int) * num_indices);
 
-	current_geometry_handle.m_is_has_texture = !!((texture_data_t*)(texture));
-	current_geometry_handle.m_num_indices = num_indices;
-	current_geometry_handle.m_descriptor_id = this->Get_CurrentDescriptorID();
-	current_geometry_handle.m_id = available_index;
-	current_geometry_handle.m_is_cached = false;
-	current_geometry_handle.m_p_texture = p_texture;
+	p_geometry_handle->m_is_has_texture = !!((texture_data_t*)(texture));
+	p_geometry_handle->m_num_indices = num_indices;
+	p_geometry_handle->m_descriptor_id = this->Get_CurrentDescriptorID();
+	p_geometry_handle->m_is_cached = false;
+	p_geometry_handle->m_p_texture = p_texture;
 
-	return Rml::CompiledGeometryHandle(&current_geometry_handle);
+	return Rml::CompiledGeometryHandle(p_geometry_handle);
 }
 
 void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation)
@@ -170,8 +175,6 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 	if (!p_casted_compiled_geometry->m_is_cached || p_casted_compiled_geometry->m_translation != this->m_user_data_for_vertex_shader.m_translate ||
 		p_casted_compiled_geometry->m_transform != this->m_user_data_for_vertex_shader.m_transform)
 	{
-		uint32_t* pCopyDataToBuffer = nullptr;
-
 		shader_vertex_user_data_t* p_data = nullptr;
 
 		if (p_casted_compiled_geometry->m_p_shader_allocation == nullptr)
@@ -207,7 +210,7 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 		}
 		else
 		{
-			VK_ASSERT(false, "you can't reach this zone, it means something bad");
+			VK_ASSERT(p_data, "you can't reach this zone, it means something bad");
 		}
 
 		p_casted_compiled_geometry->m_translation = this->m_user_data_for_vertex_shader.m_translate;
@@ -250,8 +253,6 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_without_textures);
 	}
 
-	VkDeviceSize offsets[1] = {0};
-
 	vkCmdBindVertexBuffers(this->m_p_current_command_buffer, 0, 1, &p_casted_compiled_geometry->m_p_vertex.buffer,
 		&p_casted_compiled_geometry->m_p_vertex.offset);
 
@@ -269,8 +270,8 @@ void RenderInterface_Vulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle
 	RMLUI_ZoneScopedN("Vulkan - ReleaseCompiledGeometry");
 
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
-	
-	this->m_queue_pending_geometries_for_deletion.push(p_casted_geometry);
+
+	this->m_queue_pending_for_deletion_geometries.push(p_casted_geometry);
 }
 
 void RenderInterface_Vulkan::EnableScissorRegion(bool enable)
@@ -450,7 +451,7 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	extent_image.height = static_cast<uint32_t>(height);
 	extent_image.depth = 1;
 
-	auto* p_texture = this->Get_AvailableTexture();
+	auto* p_texture = new texture_data_t();
 
 	VkImageCreateInfo info = {};
 
@@ -467,7 +468,7 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 
 	VmaAllocationCreateInfo info_allocation = {};
 	info_allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-	
+
 	VkImage p_image = nullptr;
 	VmaAllocation p_allocation = nullptr;
 
@@ -601,10 +602,7 @@ void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 
 	if (p_texture)
 	{
-		this->m_queue_available_indexes_of_textures.push(p_texture->Get_ID());
-		this->m_queue_pending_textures_for_deletion.push(p_texture);
-
-		p_texture->Clear_Data();
+		this->m_queue_pending_for_deletion_textures.push(p_texture);
 	}
 }
 
@@ -1064,17 +1062,12 @@ void RenderInterface_Vulkan::Initialize_Resources(void) noexcept
 	info.m_number_of_back_buffers = kSwapchainBackBufferCount;
 	info.m_gpu_data_count = 100;
 	info.m_gpu_data_size = sizeof(shader_vertex_user_data_t);
-	info.m_memory_total_size = RenderInterface_Vulkan::ConvertMegabytesToBytes(kVideoMemoryForAllocation);
+	info.m_memory_total_size = RenderInterface_Vulkan::ConvertMegabytesToBytes(static_cast<VkDeviceSize>(kVideoMemoryForAllocation));
 
 	this->m_memory_pool.Initialize(&this->m_current_physical_device_properties, this->m_p_allocator, this->m_p_device, info);
 
 	this->m_upload_manager.Initialize(this->m_p_device, this->m_p_queue_graphics, this->m_queue_index_graphics);
 	this->m_manager_descriptors.Initialize(this->m_p_device, 100, 100, 10, 10);
-
-	this->m_textures.reserve(kTexturesForReserve);
-
-	// fix for having valid pointers until we not out of bound
-	this->m_compiled_geometries.reserve(kGeometryForReserve);
 
 	auto storage = this->LoadShaders();
 
@@ -2206,16 +2199,17 @@ void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
 	this->Update_QueueForDeletion_Textures();
 
-	// not all textures collect from ReleaseTexture method
-	// so we need to be sure that we freed ALL textures
-	for (const auto& texture : this->m_textures) 
+	for (auto* p_texture : this->m_textures)
 	{
-		if (texture.Get_VmaAllocation())
-			this->Destroy_Texture(texture);
+		if (p_texture->Get_VmaAllocation())
+		{
+			this->Destroy_Texture(*p_texture);
+			delete p_texture;
+		}
 	}
 }
 
-void RenderInterface_Vulkan::Destroy_Geometries(void) noexcept 
+void RenderInterface_Vulkan::Destroy_Geometries(void) noexcept
 {
 	this->Update_QueueForDeletion_Geometries();
 	this->m_memory_pool.Shutdown();
@@ -2294,49 +2288,6 @@ void RenderInterface_Vulkan::DestroySamplers(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "must exist here");
 	vkDestroySampler(this->m_p_device, this->m_p_sampler_nearest, nullptr);
-}
-
-RenderInterface_Vulkan::texture_data_t* RenderInterface_Vulkan::Get_AvailableTexture(void) noexcept
-{
-	texture_data_t* p_result = nullptr;
-
-	if (this->m_queue_available_indexes_of_textures.empty() == false)
-	{
-		int id = this->m_queue_available_indexes_of_textures.front();
-
-		p_result = &this->m_textures.at(id);
-
-		this->m_queue_available_indexes_of_textures.pop();
-	}
-	else
-	{
-		this->m_textures.push_back(texture_data_t());
-		p_result = &this->m_textures.back();
-
-		p_result->Set_ID(this->m_textures.size() - 1);
-
-		VK_ASSERT(this->m_textures.size() <= kTexturesForReserve,
-			"overflow, your iterators are all invalid now!!!!!! Set bigger value to kTexturesForReserve constant");
-	}
-
-	return p_result;
-}
-
-uint32_t RenderInterface_Vulkan::Get_AvailableGeometryHandleID(void) noexcept
-{
-	uint32_t result = 0;
-	if (this->m_queue_available_indexes_of_geometry_handles.empty() == false)
-	{
-		result = this->m_queue_available_indexes_of_geometry_handles.front();
-		this->m_queue_available_indexes_of_geometry_handles.pop();
-		return result;
-	}
-	else
-	{
-		result = this->m_current_geometry_handle_id;
-		this->NextGeometryHandleID();
-		return result;
-	}
 }
 
 void RenderInterface_Vulkan::CreateRenderPass(void) noexcept
@@ -2435,30 +2386,31 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 
 void RenderInterface_Vulkan::Update_QueueForDeletion_Textures(void) noexcept
 {
-	while (this->m_queue_pending_textures_for_deletion.empty() == false)
+	while (this->m_queue_pending_for_deletion_textures.empty() == false)
 	{
-		const auto& data = this->m_queue_pending_textures_for_deletion.front();
+		auto* data = this->m_queue_pending_for_deletion_textures.front();
 
-		vmaDestroyImage(this->m_p_allocator, data.Get_VkImage(), data.Get_VmaAllocation());
-		vkDestroyImageView(this->m_p_device, data.Get_VkImageView(), nullptr);
+		vmaDestroyImage(this->m_p_allocator, data->Get_VkImage(), data->Get_VmaAllocation());
+		vkDestroyImageView(this->m_p_device, data->Get_VkImageView(), nullptr);
 
-		VkDescriptorSet p_set = data.Get_VkDescriptorSet();
+		VkDescriptorSet p_set = data->Get_VkDescriptorSet();
 		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
 
-		this->m_queue_pending_textures_for_deletion.pop();
+		delete data;
+		this->m_queue_pending_for_deletion_textures.pop();
 	}
 }
 
-void RenderInterface_Vulkan::Update_QueueForDeletion_Geometries(void) noexcept 
+void RenderInterface_Vulkan::Update_QueueForDeletion_Geometries(void) noexcept
 {
-	while (this->m_queue_pending_geometries_for_deletion.empty() == false) 
+	while (this->m_queue_pending_for_deletion_geometries.empty() == false)
 	{
-		auto* p_geometry_handle = this->m_queue_pending_geometries_for_deletion.front();
-		
-		this->m_queue_available_indexes_of_geometry_handles.push(p_geometry_handle->m_id);
+		auto* p_geometry_handle = this->m_queue_pending_for_deletion_geometries.front();
+
 		this->m_memory_pool.Free_GeometryHandle(p_geometry_handle);
-		
-		this->m_queue_pending_geometries_for_deletion.pop();
+
+		delete p_geometry_handle;
+		this->m_queue_pending_for_deletion_geometries.pop();
 	}
 }
 
@@ -2842,8 +2794,8 @@ void RenderInterface_Vulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void) noe
 }
 
 RenderInterface_Vulkan::MemoryPool::MemoryPool(void) :
-	m_memory_total_size{}, m_memory_gpu_data_one_object{}, m_min_alignment_for_uniform_buffer{}, m_p_data{}, m_p_physical_device_current_properties{},
-	m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}
+	m_memory_gpu_data_total{}, m_memory_total_size{}, m_memory_gpu_data_one_object{}, m_min_alignment_for_uniform_buffer{}, m_p_data{},
+	m_p_physical_device_current_properties{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}, m_p_block{}
 {}
 
 RenderInterface_Vulkan::MemoryPool::~MemoryPool(void) {}
@@ -2929,7 +2881,7 @@ void RenderInterface_Vulkan::MemoryPool::Shutdown(void) noexcept
 	vmaDestroyBuffer(this->m_p_vk_allocator, this->m_p_buffer, this->m_p_buffer_alloc);
 }
 
-bool RenderInterface_Vulkan::MemoryPool::Alloc_GeneralBuffer(uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out,
+bool RenderInterface_Vulkan::MemoryPool::Alloc_GeneralBuffer(VkDeviceSize size, void** p_data, VkDescriptorBufferInfo* p_out,
 	VmaVirtualAllocation* p_alloc) noexcept
 {
 	VK_ASSERT(p_out, "you must pass a valid pointer");
@@ -2939,7 +2891,7 @@ bool RenderInterface_Vulkan::MemoryPool::Alloc_GeneralBuffer(uint32_t size, void
 		"you can't pass a VALID object, because it is for initialization. So it means you passed the already allocated "
 		"VmaVirtualAllocation and it means you did something wrong, like you wanted to allocate into the same object...");
 
-	size = RenderInterface_Vulkan::AlignUp<VkDeviceSize>(size, this->m_min_alignment_for_uniform_buffer);
+	size = RenderInterface_Vulkan::AlignUp<VkDeviceSize>(static_cast<VkDeviceSize>(size), this->m_min_alignment_for_uniform_buffer);
 
 	VkDeviceSize offset_memory{};
 

@@ -74,16 +74,7 @@
 constexpr uint32_t kSwapchainBackBufferCount = 3;
 
 // This value goes to function that converts to Mbs, it is like N * 1024 * 1024
-constexpr uint32_t kVideoMemoryForAllocation = 16;
-
-// m_textures.reserve()
-constexpr uint32_t kTexturesForReserve = 100;
-
-// m_compiled_geometries, this goes to unordered_map for reserving, for making erase and insert operations are valid otherwise if we don't do that
-// erase operation is invalid it means all pointers and ereferences what used outside of map or just points to values of map goes INVALID so it will
-// cause errors in system
-// But we don't call erase or something, just for clearify things I wrote the consequences of reserve and why we needed it
-constexpr uint32_t kGeometryForReserve = 1000;
+constexpr uint32_t kVideoMemoryForAllocation = 4;
 #pragma endregion
 
 class RenderInterface_Vulkan : public Rml::RenderInterface {
@@ -133,18 +124,6 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		void Set_VkDescriptorSet(VkDescriptorSet p_set) noexcept { this->m_p_vk_descriptor_set = p_set; }
 		void Set_ID(int value) noexcept { this->m_id = value; }
 
-		void Clear_Data(void) noexcept
-		{
-			this->m_filename.clear();
-			this->m_width = 0;
-			this->m_height = 0;
-			this->m_p_vk_image = nullptr;
-			this->m_p_vk_image_view = nullptr;
-			this->m_p_vk_sampler = nullptr;
-			this->m_p_vk_descriptor_set = nullptr;
-			this->m_p_vma_allocation = nullptr;
-		}
-
 		// checks if all Vulkan instances are initiailized, it means if it doesn't (returns false) that you can re-use a such instance
 		bool Is_Initialized(void) const noexcept
 		{
@@ -173,34 +152,6 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		Rml::String m_filename;
 	};
 
-	class texture_data_for_deletion_t {
-	public:
-		texture_data_for_deletion_t() : m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_descriptor_set{}, m_p_vk_vma_allocation{} {}
-
-		texture_data_for_deletion_t(const texture_data_t& texture) :
-			m_p_vk_image{texture.Get_VkImage()}, m_p_vk_image_view{texture.Get_VkImageView()}, m_p_vk_descriptor_set{texture.Get_VkDescriptorSet()},
-			m_p_vk_vma_allocation{texture.Get_VmaAllocation()}
-		{}
-
-		texture_data_for_deletion_t(texture_data_t* p_texture) :
-			m_p_vk_image{p_texture->Get_VkImage()}, m_p_vk_image_view{p_texture->Get_VkImageView()},
-			m_p_vk_descriptor_set{p_texture->Get_VkDescriptorSet()}, m_p_vk_vma_allocation{p_texture->Get_VmaAllocation()}
-		{}
-
-		~texture_data_for_deletion_t() {}
-
-		VkImage Get_VkImage(void) const noexcept { return this->m_p_vk_image; }
-		VkImageView Get_VkImageView(void) const noexcept { return this->m_p_vk_image_view; }
-		VmaAllocation Get_VmaAllocation(void) const noexcept { return this->m_p_vk_vma_allocation; }
-		VkDescriptorSet Get_VkDescriptorSet(void) const noexcept { return this->m_p_vk_descriptor_set; }
-
-	private:
-		VkImage m_p_vk_image;
-		VkImageView m_p_vk_image_view;
-		VkDescriptorSet m_p_vk_descriptor_set;
-		VmaAllocation m_p_vk_vma_allocation;
-	};
-
 	// TODO: RMLUI team add set and get methods for this structure PLEASE
 	// handle of compiled geometry
 	struct geometry_handle_t {
@@ -210,10 +161,6 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		bool m_is_has_texture = {false};
 		int m_num_indices = 0;
 		int m_descriptor_id = 0;
-		uint32_t m_id = 0;
-
-		// sadly but we need to store translation in order to be sure that we got a dirty state (where a new translation is indeed new and it is
-		// different in compare to our old translation)
 
 		Rml::Vector2f m_translation{};
 		Rml::Matrix4f m_transform{};
@@ -492,7 +439,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 		// @ Real memory, how big we need to allocate (you pass the raw value it means if you want to allocate 32 Mbs you need to 32 * 1024 * 1024,
 		// but not just only pass '32', use the appropriate functions for converting values into raw representation)
-		uint32_t m_memory_total_size;
+		VkDeviceSize m_memory_total_size;
 	};
 
 	// @ main manager for "allocating" vertex, index, uniform stuff
@@ -505,7 +452,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 			const MemoryPoolCreateInfo& info) noexcept;
 		void Shutdown(void) noexcept;
 
-		bool Alloc_GeneralBuffer(uint32_t size, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept;
+		bool Alloc_GeneralBuffer(VkDeviceSize size, void** p_data, VkDescriptorBufferInfo* p_out, VmaVirtualAllocation* p_alloc) noexcept;
 		bool Alloc_VertexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out,
 			VmaVirtualAllocation* p_alloc) noexcept;
 		bool Alloc_IndexBuffer(uint32_t number_of_elements, uint32_t stride_in_bytes, void** p_data, VkDescriptorBufferInfo* p_out,
@@ -523,9 +470,9 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		void Free_GeometryHandle_ShaderDataOnly(geometry_handle_t* p_valid_geometry_handle) noexcept;
 
 	private:
-		uint32_t m_memory_total_size;
-		uint32_t m_memory_gpu_data_one_object;
-		uint32_t m_memory_gpu_data_total;
+		VkDeviceSize m_memory_gpu_data_total;
+		VkDeviceSize m_memory_total_size;
+		VkDeviceSize m_memory_gpu_data_one_object;
 		VkDeviceSize m_min_alignment_for_uniform_buffer;
 		char* m_p_data;
 		VkBuffer m_p_buffer;
@@ -808,9 +755,6 @@ private:
 	void DestroyPipelineLayout(void) noexcept;
 	void DestroySamplers(void) noexcept;
 
-	texture_data_t* Get_AvailableTexture(void) noexcept;
-	uint32_t Get_AvailableGeometryHandleID(void) noexcept;
-
 	void Wait(void) noexcept;
 
 	void Update_QueueForDeletion_Textures(void) noexcept;
@@ -819,77 +763,7 @@ private:
 	void Submit(void) noexcept;
 	void Present(void) noexcept;
 
-	void NextDescriptorID(void) noexcept
-	{
-		// don't do anything because we don't initialize stuff
-		if (this->m_descriptor_sets.empty())
-			return;
-
-		// choose only those ids that will not cause the collision, so you can't just do Free_DescriptorID like you can't having ++, ++, ++, --, --,
-		// ++, ++, ++, ++ <==== somewhere will cause collision, because we can't do erase for m_descriptor_sets, because we need to free them manually
-		// through Vulkan, so we can do erase for compiled_geometries
-		/*	do
-		    {
-		        ++this->m_current_descriptor_id;
-		        this->m_current_descriptor_id = this->m_current_descriptor_id % kDescriptorSetsCount;
-		    } while (this->m_compiled_geometries.find(this->m_current_descriptor_id) != this->m_compiled_geometries.end());*/
-
-		RMLUI_ASSERTMSG(this->m_current_descriptor_id < this->m_descriptor_sets.size(),
-			"you can't have more than m_descriptor_sets's size, otherwise it means you want to use more descriptor sets than it is specified in "
-			"kDescriptorSetsCount constant. Overflow!");
-	}
-
-	void NextGeometryHandleID(void) noexcept
-	{
-		int is_loop = 0;
-
-		do
-		{
-			if (this->m_current_geometry_handle_id == 0)
-			{
-				++is_loop;
-			}
-
-			if (is_loop > 3)
-				break;
-
-			++this->m_current_geometry_handle_id;
-			this->m_current_geometry_handle_id = this->m_current_geometry_handle_id % kGeometryForReserve;
-		} while (this->m_compiled_geometries.find(this->m_current_geometry_handle_id) != this->m_compiled_geometries.end());
-
-		RMLUI_ASSERTMSG(is_loop < 2,
-			"Overflow! It means while iterated more than once with full size of kGeometryForReserve, so it means we didn't find any available id for "
-			"in your map thus it is overflow!!!!!! Set higher value than kGeometryForReserve had");
-	}
-
-	void Free_DescriptorID(void) noexcept
-	{
-		if (this->m_descriptor_sets.empty())
-			return;
-
-		--this->m_current_descriptor_id;
-	}
-
 	uint32_t Get_CurrentDescriptorID(void) const noexcept { return this->m_current_descriptor_id; }
-
-	VkDescriptorSet Get_DescriptorSet(uint32_t id) const noexcept
-	{
-		if (this->m_descriptor_sets.empty())
-			return static_cast<VkDescriptorSet>(nullptr);
-
-		RMLUI_ASSERTMSG(id < this->m_descriptor_sets.size(),
-			"you can't have more than m_descriptor_sets's size, otherwise it means you want to use more descriptor sets than it is specified in "
-			"kDescriptorSetsCount constant. Overflow!");
-
-		RMLUI_ASSERTMSG(this->m_descriptor_sets.find(id) != this->m_descriptor_sets.end(), "you must pass a valid id that exists in map!!!");
-
-		RMLUI_ASSERTMSG(this->m_descriptor_sets.at(id).Get_DescriptorSet(), "must exist!");
-		RMLUI_ASSERTMSG(this->m_descriptor_sets.at(id).Is_Available(),
-			"it means you refer to a descriptor that is busy and can't be used. So it means you did something wrong or NextDescriptorID method "
-			"calculated the wrong id that can't be!!!!!!!!");
-
-		return this->m_descriptor_sets.at(id).Get_DescriptorSet();
-	}
 #pragma endregion
 
 private:
@@ -959,28 +833,12 @@ private:
 
 #pragma region Resources
 	Rml::Vector<VkShaderModule> m_shaders;
-
-	// TODO: replace this to Vector and use pre-allocated intsances, don't use remove/erase method, just re-use them
-	Rml::UnorderedMap<uint32_t, geometry_handle_t> m_compiled_geometries;
-	Rml::UnorderedMap<uint32_t, descriptor_wrapper_t> m_descriptor_sets;
-
-	Rml::Vector<texture_data_t> m_textures;
 #pragma endregion
 
-#pragma region Queues(Not Vulkan !!!!)
-	// I know they're dynamic and will cause the new and delete (sometimes, rarely, but will), the possible sane solution is to take circular_buffer
-	// from boost and implement it there like we use circular_buffer instead of std::deque, but still it is hard to implement fixed size std::queue in
-	// 2020 century............ Also for some reasonable manner I definied for user StaticQueue in order to split the term of current queue who
-	// doesn't support any implementation from std for making it with pre-allocated storage, but still it is reasonable to have all stuff without new
-	// and delete at all. It is just useful for embedded environments and we don't consume memory for nothing, and still we think about optimizations.
-	// It is really good manner to develop applications otherwise we will get a not fine results. For simplicity std doesn't afford a such thing for
-	// static_queue = std::queue<T, std::array<T, count>>; <= you can't write like that and it is 2022!!!!!!!!! I thought Cpp standartization would
-	// support creation of any container with 'fixed-size' storage, but it doesn't and it is strange
-	Rml::StaticQueue<texture_data_for_deletion_t> m_queue_pending_textures_for_deletion;
-	Rml::StaticQueue<geometry_handle_t*> m_queue_pending_geometries_for_deletion;
-	Rml::StaticQueue<uint32_t> m_queue_available_indexes_of_geometry_handles;
-	Rml::StaticQueue<int> m_queue_available_indexes_of_textures;
-#pragma endregion
+	Rml::Vector<texture_data_t*> m_textures;
+
+	Rml::Queue<texture_data_t*> m_queue_pending_for_deletion_textures;
+	Rml::Queue<geometry_handle_t*> m_queue_pending_for_deletion_geometries;
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
 	VkSurfaceFormatKHR m_swapchain_format;
