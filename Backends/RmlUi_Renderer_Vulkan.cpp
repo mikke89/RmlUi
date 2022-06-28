@@ -698,15 +698,28 @@ bool RenderInterface_Vulkan::Initialize(CreateSurfaceCallback create_surface_cal
 {
 	RMLUI_ZoneScopedN("Vulkan - Initialize");
 
+	int glad_result = 0;
+	glad_result = gladLoaderLoadVulkan(VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE);
+	VK_ASSERT(glad_result != 0, "Vulkan loader failed - Global functions");
+
 	this->Initialize_Instance();
 	this->Initialize_PhysicalDevice();
+
+	glad_result = gladLoaderLoadVulkan(m_p_instance, m_p_physical_device_current, VK_NULL_HANDLE);
+	VK_ASSERT(glad_result != 0, "Vulkan loader failed - Instance functions");
+
 	this->Initialize_Surface(create_surface_callback);
 	this->Initialize_QueueIndecies();
 	this->Initialize_Device();
+
+	glad_result = gladLoaderLoadVulkan(m_p_instance, m_p_physical_device_current, m_p_device);
+	VK_ASSERT(glad_result != 0, "Vulkan loader failed - Device functions");
+
 	this->Initialize_Queues();
 	this->Initialize_SyncPrimitives();
 	this->Initialize_Allocator();
 	this->Initialize_Resources();
+
 	return true;
 }
 
@@ -727,6 +740,8 @@ void RenderInterface_Vulkan::Shutdown()
 	this->Destroy_Device();
 	this->Destroy_ReportDebugCallback();
 	this->Destroy_Instance();
+
+	gladLoaderUnloadVulkan();
 }
 
 void RenderInterface_Vulkan::OnResize(int width, int height) noexcept
@@ -1099,12 +1114,17 @@ void RenderInterface_Vulkan::Initialize_Allocator(void) noexcept
 	VK_ASSERT(this->m_p_physical_device_current, "you must have a valid VkPhysicalDevice here");
 	VK_ASSERT(this->m_p_instance, "you must have a valid VkInstance here");
 
+	VmaVulkanFunctions vulkanFunctions = {};
+	vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+	vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+
 	VmaAllocatorCreateInfo info = {};
 
 	info.vulkanApiVersion = VK_API_VERSION_1_0;
 	info.device = this->m_p_device;
 	info.instance = this->m_p_instance;
 	info.physicalDevice = this->m_p_physical_device_current;
+	info.pVulkanFunctions = &vulkanFunctions;
 
 	auto status = vmaCreateAllocator(&info, &this->m_p_allocator);
 
@@ -1485,11 +1505,12 @@ void RenderInterface_Vulkan::Destroy_ReportDebugCallback(void) noexcept
 
 uint32_t RenderInterface_Vulkan::GetUserAPIVersion(void) const noexcept
 {
-	uint32_t result = 0;
+	uint32_t result = VK_API_VERSION_1_0;
 
+#if defined VK_VERSION_1_1
 	VkResult status = vkEnumerateInstanceVersion(&result);
-
 	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceVersion, See Status");
+#endif
 
 	return result;
 }
@@ -3084,6 +3105,9 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	vmaVirtualFree(this->m_p_block, p_valid_geometry_handle->m_p_shader_allocation);
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
 }
+
+#define GLAD_VULKAN_IMPLEMENTATION
+#include "RmlUi_Vulkan/vulkan.h"
 
 #define VMA_IMPLEMENTATION
 #include "RmlUi_Vulkan/vk_mem_alloc.h"

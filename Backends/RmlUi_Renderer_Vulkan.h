@@ -52,7 +52,11 @@
 	*/
 #endif
 
+#include "RmlUi_Vulkan/vulkan.h"
 #include "RmlUi_Vulkan/spirv_reflect.h"
+
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #include "RmlUi_Vulkan/vk_mem_alloc.h"
 
 /**

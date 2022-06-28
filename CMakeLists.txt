@@ -767,10 +767,7 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 	endif()
 	
 	if(SAMPLES_BACKEND MATCHES "Vulkan$")
-		message("-- Adding Vulkan renderer backend.")
-		find_package(Vulkan REQUIRED)
-		target_include_directories(shell PRIVATE ${Vulkan_INCLUDE_DIR})
-		target_link_libraries(shell PRIVATE ${Vulkan_LIBRARIES})
+		message("-- Using Vulkan renderer backend.")
 	endif()
 	
 	if(SAMPLES_BACKEND MATCHES "GL3$")
