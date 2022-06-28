@@ -37,7 +37,7 @@
 
 	// strange but VMA_DEBUG_LOG is commented in library header...
 	// So if you need additional log about your memory leaks just uncomment this section
-	
+	/*
 	#ifdef RMLUI_DEBUG
 	    #define VMA_DEBUG_LOG(format, ...)                        \
 	        do                                                    \
@@ -49,7 +49,7 @@
 	            OutputDebugStringA(str);                          \
 	        } while (false)
 	#endif
-	
+	*/
 #endif
 
 #include "RmlUi_Vulkan/spirv_reflect.h"
