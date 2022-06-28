@@ -77,8 +77,6 @@ RenderInterface_Vulkan::RenderInterface_Vulkan() :
 {
 	this->m_correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f),
 		Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
-
- 
 }
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
@@ -401,10 +399,11 @@ bool RenderInterface_Vulkan::LoadTexture(Rml::TextureHandle& texture_handle, Rml
 
 	texture_dimensions.x = header.width;
 	texture_dimensions.y = header.height;
-
-	// TODO: RmlUI team, possibly better to pass source into generate texture too
+	
 	texture_handle = (Rml::TextureHandle)source.c_str();
+	
 	bool status = this->GenerateTexture(texture_handle, image_dest, texture_dimensions);
+	
 	delete[] image_dest;
 	delete[] buffer;
 
