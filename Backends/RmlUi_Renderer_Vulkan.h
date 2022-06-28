@@ -771,6 +771,7 @@ private:
 private:
 	bool m_is_transform_enabled;
 	bool m_is_use_scissor_specified;
+	bool m_is_use_stencil_pipeline;
 	int m_width;
 	int m_height;
 
@@ -802,6 +803,7 @@ private:
 	VkPipelineLayout m_p_pipeline_layout;
 	VkPipeline m_p_pipeline_with_textures;
 	VkPipeline m_p_pipeline_without_textures;
+	VkPipeline m_p_pipeline_stencil;
 	VkDescriptorSet m_p_descriptor_set;
 	VkRenderPass m_p_render_pass;
 	VkSampler m_p_sampler_nearest;

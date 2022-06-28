@@ -68,12 +68,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 }
 
 RenderInterface_Vulkan::RenderInterface_Vulkan() :
-	m_is_transform_enabled{false}, m_is_use_scissor_specified{false}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{},
-	m_queue_index_compute{}, m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{},
-	m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_queue_present{},
-	m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{},
-	m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
-	m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
+	m_is_transform_enabled{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false}, m_width{}, m_height{},
+	m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{}, m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{},
+	m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{},
+	m_p_swapchain{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{},
+	m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
+	m_p_pipeline_stencil{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
 {
 	this->m_correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f),
 		Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
@@ -238,13 +238,20 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 	vkCmdBindDescriptorSets(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_layout, 0, real_size_of_sets,
 		p_sets, 1, &pDescriptorOffsets);
 
-	if (p_casted_compiled_geometry->m_is_has_texture)
+	if (this->m_is_use_stencil_pipeline)
 	{
-		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_with_textures);
+		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_stencil);
 	}
 	else
 	{
-		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_without_textures);
+		if (p_casted_compiled_geometry->m_is_has_texture)
+		{
+			vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_with_textures);
+		}
+		else
+		{
+			vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_without_textures);
+		}
 	}
 
 	vkCmdBindVertexBuffers(this->m_p_current_command_buffer, 0, 1, &p_casted_compiled_geometry->m_p_vertex.buffer,
@@ -298,7 +305,11 @@ void RenderInterface_Vulkan::SetScissorRegion(int x, int y, int width, int heigh
 
 			int indices[6] = {0, 2, 1, 0, 3, 2};
 
+			this->m_is_use_stencil_pipeline = true;
+
 			this->RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
+
+			this->m_is_use_stencil_pipeline = false;
 		}
 		else
 		{
@@ -647,10 +658,12 @@ void RenderInterface_Vulkan::BeginFrame()
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkBeginCommandBuffer");
 
 	VkClearValue for_filling_back_buffer_color;
+	VkClearValue for_stencil_depth;
 
+	for_stencil_depth.depthStencil = {1.0f, 0};
 	for_filling_back_buffer_color.color = {0.0f, 0.0f, 0.0f, 1.0f};
 
-	const VkClearValue p_color_rt[] = {for_filling_back_buffer_color};
+	const VkClearValue p_color_rt[] = {for_filling_back_buffer_color, for_stencil_depth};
 
 	VkRenderPassBeginInfo info_pass = {};
 
@@ -659,15 +672,13 @@ void RenderInterface_Vulkan::BeginFrame()
 	info_pass.renderPass = this->m_p_render_pass;
 	info_pass.framebuffer = this->m_swapchain_frame_buffers.at(this->m_image_index);
 	info_pass.pClearValues = p_color_rt;
-	info_pass.clearValueCount = 1;
+	info_pass.clearValueCount = 2;
 	info_pass.renderArea.offset.x = 0;
 	info_pass.renderArea.offset.y = 0;
 	info_pass.renderArea.extent.width = this->m_width;
 	info_pass.renderArea.extent.height = this->m_height;
 
 	vkCmdBeginRenderPass(this->m_p_current_command_buffer, &info_pass, VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
-
-	//	vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
 	vkCmdSetViewport(this->m_p_current_command_buffer, 0, 1, &this->m_viewport);
 }
 
@@ -1937,8 +1948,16 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_depth.pNext = nullptr;
 	info_depth.depthTestEnable = VK_TRUE;
 	info_depth.depthWriteEnable = VK_TRUE;
+	info_depth.stencilTestEnable = VK_TRUE;
 	info_depth.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.back.compareOp = VK_COMPARE_OP_EQUAL;
+	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.writeMask = VK_TRUE;
+	info_depth.back.compareMask = VK_TRUE;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
 
 	VkPipelineViewportStateCreateInfo info_viewport = {};
 
@@ -1955,11 +1974,8 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 	info_multisample.flags = 0;
 
-	Rml::Vector<VkDynamicState> dynamicStateEnables = {
-		VK_DYNAMIC_STATE_VIEWPORT,
-		VK_DYNAMIC_STATE_SCISSOR,
-		VK_DYNAMIC_STATE_LINE_WIDTH,
-	};
+	Rml::Vector<VkDynamicState> dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH,
+		VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK, VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE};
 
 	VkPipelineDynamicStateCreateInfo info_dynamic_state = {};
 
@@ -2047,6 +2063,18 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_without_textures);
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+	info_shader.module = this->m_shaders[static_cast<int>(shader_id_t::kShaderID_Pixel_WithTextures)];
+	shaders_that_will_be_used_in_pipeline[1] = info_shader;
+
+	info_depth.back.writeMask = VK_FALSE;
+	info_depth.back.passOp = VK_STENCIL_OP_REPLACE;
+	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.back.writeMask = VK_FALSE;
+	info_depth.back.compareMask = VK_FALSE;
+	info_depth.front = info_depth.back;
+
+	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_stencil);
 }
 
 void RenderInterface_Vulkan::CreateSwapchainFrameBuffers(void) noexcept
@@ -2283,6 +2311,7 @@ void RenderInterface_Vulkan::Destroy_Pipelines(void) noexcept
 {
 	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_with_textures, nullptr);
 	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_without_textures, nullptr);
+	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_stencil, nullptr);
 }
 
 void RenderInterface_Vulkan::DestroyDescriptorSets(void) noexcept {}
