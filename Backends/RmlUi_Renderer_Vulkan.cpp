@@ -55,7 +55,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 		return VK_FALSE;
 	}
 
+#ifdef RMLUI_DEBUG
 	Rml::Log::Message(Rml::Log::LT_ERROR, "[Vulkan][VALIDATION] %s ", pMessage);
+#endif
 
 	return VK_FALSE;
 }
@@ -67,8 +69,7 @@ RenderInterface_Vulkan::RenderInterface_Vulkan() :
 	m_p_swapchain{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{},
 	m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
 	m_p_pipeline_stencil{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
-{
-}
+{}
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
 
@@ -485,8 +486,10 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	VkResult status = vmaCreateImage(this->m_p_allocator, &info, &info_allocation, &p_image, &p_allocation, &info_stats);
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateImage");
 
+#ifdef RMLUI_DEBUG
 	Rml::Log::Message(Rml::Log::LT_DEBUG, "Created image %s with size [%d bytes][%d Megabytes]", file_path, info_stats.size,
 		TranslateBytesToMegaBytes(info_stats.size));
+#endif
 
 	p_texture->Set_FileName(file_path);
 	p_texture->Set_VkImage(p_image);
@@ -619,12 +622,11 @@ void RenderInterface_Vulkan::SetTransform(const Rml::Matrix4f* transform)
 {
 	// https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
 	Rml::Matrix4f correction_matrix;
-	correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f),
-		Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
+	correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f),
+		Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
 
 	this->m_is_transform_enabled = !!(transform);
-	this->m_user_data_for_vertex_shader.m_transform =
-		correction_matrix * this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
+	this->m_user_data_for_vertex_shader.m_transform = correction_matrix * this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
 }
 
 void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height)
@@ -1000,8 +1002,10 @@ void RenderInterface_Vulkan::Initialize_QueueIndecies(void) noexcept
 		}
 	}
 
+#ifdef RMLUI_DEBUG
 	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] User family queues indecies: Graphics[%d] Present[%d] Compute[%d]", this->m_queue_index_graphics,
 		this->m_queue_index_present, this->m_queue_index_compute);
+#endif
 }
 
 void RenderInterface_Vulkan::Initialize_Queues(void) noexcept
@@ -1435,8 +1439,10 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Device(void) noexcept
 				{
 					if (this->IsExtensionPresent(this->m_device_extension_properties, extension.extensionName) == false)
 					{
+#ifdef RMLUI_DEBUG
 						Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] obtained new device extension from layer[%s]: %s", layer.layerName,
 							extension.extensionName);
+#endif
 
 						this->m_device_extension_properties.push_back(extension);
 					}
@@ -1550,7 +1556,10 @@ void RenderInterface_Vulkan::PrintInformationAboutPickedPhysicalDevice(VkPhysica
 		if (p_physical_device == device.GetHandle())
 		{
 			const auto& properties = device.GetProperties();
+
+#ifdef RMLUI_DEBUG
 			Rml::Log::Message(Rml::Log::LT_DEBUG, "Picked physical device: %s", properties.deviceName);
+#endif
 
 			return;
 		}
@@ -2205,7 +2214,9 @@ RenderInterface_Vulkan::buffer_data_t RenderInterface_Vulkan::CreateResource_Sta
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateBuffer");
 
+#ifdef RMLUI_DEBUG
 	Rml::Log::Message(Rml::Log::LT_DEBUG, "allocated buffer with size %d in bytes", info_stats.size);
+#endif
 
 	result.Set_VkBuffer(p_buffer);
 	result.Set_VmaAllocation(p_allocation);
@@ -2228,9 +2239,9 @@ void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
 	this->Update_PendingForDeletion_Textures();
 
-	for (auto* p_texture : this->m_all_textures) 
+	for (auto* p_texture : this->m_all_textures)
 	{
-		if (p_texture->Get_Width() > 0) 
+		if (p_texture->Get_Width() > 0)
 		{
 			this->Destroy_Texture(*p_texture);
 			delete p_texture;
