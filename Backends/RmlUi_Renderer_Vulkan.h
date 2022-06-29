@@ -759,8 +759,8 @@ private:
 
 	void Wait(void) noexcept;
 
-	void Update_QueueForDeletion_Textures(void) noexcept;
-	void Update_QueueForDeletion_Geometries(void) noexcept;
+	void Update_PendingForDeletion_Textures(void) noexcept;
+	void Update_PendingForDeletion_Geometries(void) noexcept;
 
 	void Submit(void) noexcept;
 	void Present(void) noexcept;
@@ -839,10 +839,8 @@ private:
 	Rml::Vector<VkShaderModule> m_shaders;
 #pragma endregion
 
-	Rml::Vector<texture_data_t*> m_textures;
-
-	Rml::Queue<texture_data_t*> m_queue_pending_for_deletion_textures;
-	Rml::Queue<geometry_handle_t*> m_queue_pending_for_deletion_geometries;
+	Rml::Vector<texture_data_t*> m_pending_for_deletion_textures;
+	Rml::Vector<geometry_handle_t*> m_pending_for_deletion_geometries;
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
 	VkSurfaceFormatKHR m_swapchain_format;

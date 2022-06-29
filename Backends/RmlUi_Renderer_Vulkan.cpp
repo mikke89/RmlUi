@@ -270,7 +270,7 @@ void RenderInterface_Vulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle
 
 	geometry_handle_t* p_casted_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
 
-	this->m_queue_pending_for_deletion_geometries.push(p_casted_geometry);
+	this->m_pending_for_deletion_geometries.push_back(p_casted_geometry);
 }
 
 void RenderInterface_Vulkan::EnableScissorRegion(bool enable)
@@ -467,8 +467,6 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 
 	auto* p_texture = new texture_data_t();
 
-	this->m_textures.push_back(p_texture);
-
 	VkImageCreateInfo info = {};
 
 	info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -618,7 +616,7 @@ void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 
 	if (p_texture)
 	{
-		this->m_queue_pending_for_deletion_textures.push(p_texture);
+		this->m_pending_for_deletion_textures.push_back(p_texture);
 	}
 }
 
@@ -644,8 +642,8 @@ void RenderInterface_Vulkan::BeginFrame()
 	this->m_command_list.OnBeginFrame();
 	this->Wait();
 
-	this->Update_QueueForDeletion_Textures();
-	this->Update_QueueForDeletion_Geometries();
+	this->Update_PendingForDeletion_Textures();
+	this->Update_PendingForDeletion_Geometries();
 
 	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
 
@@ -2234,21 +2232,12 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 
 void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
-	this->Update_QueueForDeletion_Textures();
-
-	for (auto* p_texture : this->m_textures)
-	{
-		if (p_texture)
-		{
-			this->Destroy_Texture(*p_texture);
-			delete p_texture;
-		}
-	}
+	this->Update_PendingForDeletion_Textures();
 }
 
 void RenderInterface_Vulkan::Destroy_Geometries(void) noexcept
 {
-	this->Update_QueueForDeletion_Geometries();
+	this->Update_PendingForDeletion_Geometries();
 	this->m_memory_pool.Shutdown();
 }
 
@@ -2422,35 +2411,33 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkResetFences (see status)");
 }
 
-void RenderInterface_Vulkan::Update_QueueForDeletion_Textures(void) noexcept
+void RenderInterface_Vulkan::Update_PendingForDeletion_Textures(void) noexcept
 {
-	while (this->m_queue_pending_for_deletion_textures.empty() == false)
+	for (auto* p_data : this->m_pending_for_deletion_textures)
 	{
-		auto* data = this->m_queue_pending_for_deletion_textures.front();
+		this->Destroy_Texture(*p_data);
 
-		this->Destroy_Texture(*data);
+		p_data->Set_VmaAllocation(nullptr);
+		p_data->Set_VkDescriptorSet(nullptr);
+		p_data->Set_VkImage(nullptr);
+		p_data->Set_VkImageView(nullptr);
+		p_data->Set_VkSampler(nullptr);
 
-		data->Set_VmaAllocation(nullptr);
-		data->Set_VkDescriptorSet(nullptr);
-		data->Set_VkImage(nullptr);
-		data->Set_VkImageView(nullptr);
-		data->Set_VkSampler(nullptr);
-
-		this->m_queue_pending_for_deletion_textures.pop();
+		delete p_data;
 	}
+
+	this->m_pending_for_deletion_textures.clear();
 }
 
-void RenderInterface_Vulkan::Update_QueueForDeletion_Geometries(void) noexcept
+void RenderInterface_Vulkan::Update_PendingForDeletion_Geometries(void) noexcept
 {
-	while (this->m_queue_pending_for_deletion_geometries.empty() == false)
+	for (auto* p_geometry_handle : this->m_pending_for_deletion_geometries)
 	{
-		auto* p_geometry_handle = this->m_queue_pending_for_deletion_geometries.front();
-
 		this->m_memory_pool.Free_GeometryHandle(p_geometry_handle);
-
 		delete p_geometry_handle;
-		this->m_queue_pending_for_deletion_geometries.pop();
 	}
+
+	this->m_pending_for_deletion_geometries.clear();
 }
 
 void RenderInterface_Vulkan::Submit(void) noexcept
