@@ -75,8 +75,6 @@ RenderInterface_Vulkan::RenderInterface_Vulkan() :
 	m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
 	m_p_pipeline_stencil{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
 {
-	this->m_correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f),
-		Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
 }
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
@@ -626,9 +624,14 @@ void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 
 void RenderInterface_Vulkan::SetTransform(const Rml::Matrix4f* transform)
 {
+	// https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
+	Rml::Matrix4f correction_matrix;
+	correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f),
+		Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
+
 	this->m_is_transform_enabled = !!(transform);
 	this->m_user_data_for_vertex_shader.m_transform =
-		this->m_correction_matrix * this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
+		correction_matrix * this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
 }
 
 void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height)
