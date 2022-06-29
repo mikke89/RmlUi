@@ -2260,8 +2260,6 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 
 void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
-	this->Update_PendingForDeletion_Textures();
-
 	for (auto* p_texture : this->m_all_textures)
 	{
 		if (p_texture->Get_Width() > 0)
