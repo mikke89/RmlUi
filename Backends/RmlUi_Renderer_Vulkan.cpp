@@ -46,21 +46,14 @@ VkValidationFeaturesEXT debug_validation_features_ext = {};
 VkValidationFeatureEnableEXT debug_validation_features_ext_requested[] = {VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
 	VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT, VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object,
-	size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)
+static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT /*flags*/, VkDebugReportObjectTypeEXT /*objectType*/,
+	uint64_t /*object*/, size_t /*location*/, int32_t messageCode, const char* /*pLayerPrefix*/, const char* pMessage, void* /*pUserData*/)
 {
 	if (messageCode & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_INFORMATION_BIT_EXT ||
 		messageCode & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_DEBUG_BIT_EXT)
 	{
 		return VK_FALSE;
 	}
-
-	(flags);
-	(objectType);
-	(object);
-	(location);
-	(pLayerPrefix);
-	(pUserData);
 
 	Rml::Log::Message(Rml::Log::LT_ERROR, "[Vulkan][VALIDATION] %s ", pMessage);
 
@@ -940,7 +933,6 @@ void RenderInterface_Vulkan::Initialize_QueueIndecies(void) noexcept
 	VK_ASSERT(queue_family_count >= 1, "failed to vkGetPhysicalDeviceQueueFamilyProperties (getting count)");
 
 	Rml::Vector<VkQueueFamilyProperties> queue_props;
-
 	queue_props.resize(queue_family_count);
 
 	vkGetPhysicalDeviceQueueFamilyProperties(this->m_p_physical_device_current, &queue_family_count, queue_props.data());
@@ -1330,7 +1322,7 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Instance(void) noexcept
 	{
 		Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] CPU validation is enabled");
 
-		Rml::Vector<const char*> requested_extensions_for_gpu = {VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME};
+		Rml::Array<const char*, 1> requested_extensions_for_gpu = {VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME};
 
 		for (const auto& extension_name : requested_extensions_for_gpu)
 		{
@@ -1977,7 +1969,7 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 	info_multisample.flags = 0;
 
-	Rml::Vector<VkDynamicState> dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH,
+	Rml::Array<VkDynamicState, 6> dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH,
 		VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK, VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE};
 
 	VkPipelineDynamicStateCreateInfo info_dynamic_state = {};
