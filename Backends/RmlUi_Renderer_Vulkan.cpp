@@ -620,13 +620,8 @@ void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 
 void RenderInterface_Vulkan::SetTransform(const Rml::Matrix4f* transform)
 {
-	// https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
-	Rml::Matrix4f correction_matrix;
-	correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f),
-		Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
-
 	this->m_is_transform_enabled = !!(transform);
-	this->m_user_data_for_vertex_shader.m_transform = correction_matrix * this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
+	this->m_user_data_for_vertex_shader.m_transform = this->m_projection * (transform ? *transform : Rml::Matrix4f::Identity());
 }
 
 void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height)
@@ -2204,6 +2199,13 @@ void RenderInterface_Vulkan::CreateResourcesDependentOnSize(void) noexcept
 
 	this->m_projection =
 		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -10000, 10000);
+
+		// https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
+	Rml::Matrix4f correction_matrix;
+	correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f),
+		Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
+
+	this->m_projection = correction_matrix * this->m_projection;
 
 	this->SetTransform(nullptr);
 
