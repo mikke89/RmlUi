@@ -711,12 +711,9 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 			set(EMSCRIPTEN_FLAGS "${EMSCRIPTEN_FLAGS} -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sSDL2_IMAGE_FORMATS='[tga]'")
 		else()
 			find_package(SDL2 REQUIRED)
-			find_package(SDL2_image REQUIRED)
 			
 			if(NOT SDL2_FOUND)
 				message(FATAL_ERROR "SDL2 not found")
-			elseif(NOT SDL2_IMAGE_FOUND)
-				message(FATAL_ERROR "SDL2_image not found")
 			endif()
 			
 			if(SAMPLES_BACKEND STREQUAL "SDL_GL2")
@@ -729,6 +726,13 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 			# Check version requirement for the SDL renderer.
 			if(SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer" AND "${SDL2_VERSION}" VERSION_LESS "2.0.20")
 				message(FATAL_ERROR "SDL2 native renderer backend (${SAMPLES_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
+			endif()
+			
+			if(SAMPLES_BACKEND STREQUAL "SDL_GL2" OR SAMPLES_BACKEND STREQUAL "SDL_GL3" OR SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer")
+				find_package(SDL2_image REQUIRED)
+				if(NOT SDL2_IMAGE_FOUND)
+					message(FATAL_ERROR "SDL2_image not found")
+				endif()
 			endif()
 			
 			target_include_directories(shell PRIVATE ${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
