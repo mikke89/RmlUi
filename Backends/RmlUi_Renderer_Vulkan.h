@@ -840,6 +840,7 @@ private:
 #pragma endregion
 
 	Rml::Vector<texture_data_t*> m_pending_for_deletion_textures;
+	Rml::Vector<texture_data_t*> m_all_textures;
 	Rml::Vector<geometry_handle_t*> m_pending_for_deletion_geometries;
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;

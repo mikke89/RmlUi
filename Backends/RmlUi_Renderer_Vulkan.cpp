@@ -467,6 +467,8 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 
 	auto* p_texture = new texture_data_t();
 
+	this->m_all_textures.push_back(p_texture);
+
 	VkImageCreateInfo info = {};
 
 	info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -2233,6 +2235,15 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
 	this->Update_PendingForDeletion_Textures();
+
+	for (auto* p_texture : this->m_all_textures) 
+	{
+		if (p_texture->Get_Width() > 0) 
+		{
+			this->Destroy_Texture(*p_texture);
+			delete p_texture;
+		}
+	}
 }
 
 void RenderInterface_Vulkan::Destroy_Geometries(void) noexcept
