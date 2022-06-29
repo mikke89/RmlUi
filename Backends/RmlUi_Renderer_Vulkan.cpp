@@ -39,7 +39,7 @@
 	{                                                                \
 		RMLUI_ASSERT(statement);                                     \
 		if (!!(statement) == false)                                  \
-			Rml::Log::Message(Rml::Log::LT_ERROR, msg, __VA_ARGS__); \
+			Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
 	}
 
 VkValidationFeaturesEXT debug_validation_features_ext = {};
