@@ -2438,6 +2438,9 @@ void RenderInterface_Vulkan::Update_PendingForDeletion_Textures(void) noexcept
 		p_data->Set_VkImage(nullptr);
 		p_data->Set_VkImageView(nullptr);
 		p_data->Set_VkSampler(nullptr);
+		p_data->Set_Width(-1);
+		p_data->Set_Height(-1);
+		p_data->Set_ID(-1);
 
 		delete p_data;
 	}
