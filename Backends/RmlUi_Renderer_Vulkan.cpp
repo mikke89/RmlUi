@@ -2305,6 +2305,8 @@ void RenderInterface_Vulkan::DestroyRenderPass(void) noexcept
 
 void RenderInterface_Vulkan::Destroy_Pipelines(void) noexcept
 {
+	VK_ASSERT(this->m_p_device, "must exist here");
+
 	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_with_textures, nullptr);
 	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_without_textures, nullptr);
 	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_stencil, nullptr);
