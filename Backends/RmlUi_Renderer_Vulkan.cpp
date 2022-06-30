@@ -631,11 +631,11 @@ void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height
 
 void RenderInterface_Vulkan::BeginFrame()
 {
-	this->m_command_list.OnBeginFrame();
-	this->Wait();
-
 	this->Update_PendingForDeletion_Textures();
 	this->Update_PendingForDeletion_Geometries();
+
+	this->m_command_list.OnBeginFrame();
+	this->Wait();
 
 	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
 
@@ -1966,17 +1966,17 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 
 	info_depth.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	info_depth.pNext = nullptr;
-	info_depth.depthTestEnable = VK_TRUE;
-	info_depth.depthWriteEnable = VK_TRUE;
+	info_depth.depthTestEnable = VK_FALSE;
+	info_depth.depthWriteEnable = VK_FALSE;
+	
 	info_depth.stencilTestEnable = VK_TRUE;
-	info_depth.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-	info_depth.back.compareOp = VK_COMPARE_OP_EQUAL;
-	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
-	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
-	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
-	info_depth.back.writeMask = VK_TRUE;
-	info_depth.back.compareMask = VK_TRUE;
-	info_depth.back.reference = 1;
+	info_depth.front.compareOp = VK_COMPARE_OP_EQUAL;
+	info_depth.front.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.front.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.front.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.front.writeMask = VK_TRUE;
+	info_depth.front.compareMask = VK_TRUE;
+	info_depth.front.reference = 1;
 	info_depth.front = info_depth.back;
 
 	VkPipelineViewportStateCreateInfo info_viewport = {};
@@ -2087,11 +2087,10 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_shader.module = this->m_shaders[static_cast<int>(shader_id_t::kShaderID_Pixel_WithTextures)];
 	shaders_that_will_be_used_in_pipeline[1] = info_shader;
 
-	info_depth.back.passOp = VK_STENCIL_OP_REPLACE;
-	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
-	info_depth.back.writeMask = VK_FALSE;
-	info_depth.back.compareMask = VK_FALSE;
-	info_depth.front = info_depth.back;
+	info_depth.front.passOp = VK_STENCIL_OP_REPLACE;
+	info_depth.front.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.front.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.front.compareOp = VK_COMPARE_OP_ALWAYS;
 
 	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_stencil);
 
@@ -2260,14 +2259,7 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 
 void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
-	for (auto* p_texture : this->m_all_textures)
-	{
-		if (p_texture->Get_Width() > 0)
-		{
-			this->Destroy_Texture(*p_texture);
-			delete p_texture;
-		}
-	}
+	this->Update_PendingForDeletion_Textures();
 }
 
 void RenderInterface_Vulkan::Destroy_Geometries(void) noexcept
@@ -2450,10 +2442,6 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 
 void RenderInterface_Vulkan::Update_PendingForDeletion_Textures(void) noexcept
 {
-	auto status = vkDeviceWaitIdle(this->m_p_device);
-
-	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkDeviceWaitIdle (see status)");
-
 	for (auto* p_data : this->m_pending_for_deletion_textures)
 	{
 		this->Destroy_Texture(*p_data);
