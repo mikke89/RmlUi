@@ -119,7 +119,7 @@ private:
 	Shield** shields;
 
 	// Texture that contains the sprites
-	Rml::TextureHandle texture;
+	Rml::Texture texture;
 
 	void InitialiseShields();
 	void InitialiseWave();

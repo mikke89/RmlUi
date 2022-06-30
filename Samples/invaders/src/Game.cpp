@@ -79,9 +79,7 @@ Game::Game()
 	for (int i = 0; i < NUM_SHIELDS; i++)
 		shields[i] = nullptr;
 
-	// Use the OpenGL render interface to load our texture.
-	Rml::Vector2i texture_dimensions;
-	Rml::GetRenderInterface()->LoadTexture(texture, texture_dimensions, "invaders/data/invaders.tga");
+	texture.Set("invaders/data/invaders.tga");
 
 	defender = new Defender(this);
 }
@@ -146,15 +144,17 @@ void Game::Render(double t, float dp_ratio)
 	if (defender_lives <= 0)
 		return;
 
+	Rml::TextureHandle texture_handle = texture.GetHandle(Rml::GetRenderInterface());
+
 	// Render all available shields
 	for (int i = 0; i < NUM_SHIELDS; i++)
 		shields[i]->Render(dp_ratio);
 
 	// Render all available invaders
 	for (int i = 0; i < NUM_INVADERS + 1; i++)
-		invaders[i]->Render(dp_ratio, texture);
-	
-	defender->Render(t, dp_ratio, texture);
+		invaders[i]->Render(dp_ratio, texture_handle);
+
+	defender->Render(t, dp_ratio, texture_handle);
 }
 
 Defender* Game::GetDefender()
