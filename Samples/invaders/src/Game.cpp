@@ -68,7 +68,9 @@ extern Rml::Context* context;
 Game::Game()
 {
 	initialized = false;
-	invader_frame_start = 0;
+	invader_frame_start = 0.0;
+	invader_move_freq = 0.0;
+	texture = 0;
 	defender_lives = 3;	
 	current_invader_direction = 1.0f;	
 	invaders = new Invader*[NUM_INVADERS + 1];
@@ -99,6 +101,9 @@ Game::~Game()
 		delete shields[i];
 
 	delete [] shields;
+
+	if (texture)
+		Rml::GetRenderInterface()->ReleaseTexture(texture);
 }
 
 void Game::Initialise()
