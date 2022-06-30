@@ -79,7 +79,7 @@
  */
 
 #pragma region System Constants for Vulkan API
-constexpr uint32_t kSwapchainBackBufferCount = 3;
+constexpr uint32_t kSwapchainBackBufferCount = 1;
 
 // This value goes to function that converts to Mbs, it is like N * 1024 * 1024
 constexpr uint32_t kVideoMemoryForAllocation = 4;

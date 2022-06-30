@@ -35,10 +35,10 @@
 #include <RmlUi/Core/Profiling.h>
 #include <string.h>
 
-#define VK_ASSERT(statement, msg, ...)                               \
-	{                                                                \
-		RMLUI_ASSERT(statement);                                     \
-		if (!!(statement) == false)                                  \
+#define VK_ASSERT(statement, msg, ...)                                 \
+	{                                                                  \
+		RMLUI_ASSERT(statement);                                       \
+		if (!!(statement) == false)                                    \
 			Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
 	}
 
@@ -631,11 +631,11 @@ void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height
 
 void RenderInterface_Vulkan::BeginFrame()
 {
-	this->Update_PendingForDeletion_Textures();
-	this->Update_PendingForDeletion_Geometries();
-
 	this->m_command_list.OnBeginFrame();
 	this->Wait();
+
+	this->Update_PendingForDeletion_Textures();
+	this->Update_PendingForDeletion_Geometries();
 
 	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
 
@@ -1968,7 +1968,7 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_depth.pNext = nullptr;
 	info_depth.depthTestEnable = VK_FALSE;
 	info_depth.depthWriteEnable = VK_FALSE;
-	
+
 	info_depth.stencilTestEnable = VK_TRUE;
 	info_depth.front.compareOp = VK_COMPARE_OP_EQUAL;
 	info_depth.front.passOp = VK_STENCIL_OP_KEEP;
@@ -2199,7 +2199,7 @@ void RenderInterface_Vulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->m_projection =
 		Rml::Matrix4f::ProjectOrtho(0.0f, static_cast<float>(this->m_width), static_cast<float>(this->m_height), 0.0f, -10000, 10000);
 
-		// https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
+	// https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
 	Rml::Matrix4f correction_matrix;
 	correction_matrix.SetColumns(Rml::Vector4f(1.0f, 0.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, -1.0f, 0.0f, 0.0f), Rml::Vector4f(0.0f, 0.0f, 0.5f, 0.0f),
 		Rml::Vector4f(0.0f, 0.0f, 0.5f, 1.0f));
