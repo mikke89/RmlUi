@@ -2450,6 +2450,10 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 
 void RenderInterface_Vulkan::Update_PendingForDeletion_Textures(void) noexcept
 {
+	auto status = vkDeviceWaitIdle(this->m_p_device);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkDeviceWaitIdle (see status)");
+
 	for (auto* p_data : this->m_pending_for_deletion_textures)
 	{
 		this->Destroy_Texture(*p_data);

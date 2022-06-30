@@ -52,8 +52,8 @@
 	*/
 #endif
 
-#include "RmlUi_Vulkan/vulkan.h"
 #include "RmlUi_Vulkan/spirv_reflect.h"
+#include "RmlUi_Vulkan/vulkan.h"
 
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
@@ -117,7 +117,8 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 	class texture_data_t {
 	public:
 		texture_data_t() :
-			m_width{}, m_height{}, m_id{-1}, m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_sampler{}, m_p_vk_descriptor_set{}, m_p_vma_allocation{}
+			m_width{}, m_height{}, m_id{-1}, m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_sampler{},
+			m_p_vk_descriptor_set{}, m_p_vma_allocation{}
 		{}
 
 		~texture_data_t() {}
@@ -131,12 +132,6 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		void Set_Height(int height) noexcept { this->m_height = height; }
 		void Set_VkDescriptorSet(VkDescriptorSet p_set) noexcept { this->m_p_vk_descriptor_set = p_set; }
 		void Set_ID(int value) noexcept { this->m_id = value; }
-
-		// checks if all Vulkan instances are initiailized, it means if it doesn't (returns false) that you can re-use a such instance
-		bool Is_Initialized(void) const noexcept
-		{
-			return this->m_p_vk_image && this->m_p_vk_image_view && this->m_p_vk_sampler && this->m_p_vma_allocation;
-		}
 
 		VkImage Get_VkImage(void) const noexcept { return this->m_p_vk_image; }
 		VkImageView Get_VkImageView(void) const noexcept { return this->m_p_vk_image_view; }
