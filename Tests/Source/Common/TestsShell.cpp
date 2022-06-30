@@ -217,3 +217,12 @@ Rml::String TestsShell::GetRenderStats()
 
 	return result;
 }
+
+TestsRenderInterface* TestsShell::GetTestsRenderInterface()
+{
+#if defined(RMLUI_TESTS_USE_SHELL)
+	return nullptr;
+#else
+	return &shell_render_interface;
+#endif
+}

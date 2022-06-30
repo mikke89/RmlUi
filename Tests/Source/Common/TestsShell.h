@@ -31,6 +31,7 @@
 
 #include <RmlUi/Core/Types.h>
 namespace Rml { class RenderInterface; }
+class TestsRenderInterface;
 
 namespace TestsShell {
 
@@ -53,6 +54,9 @@ namespace TestsShell {
 
 	// Stats only available for the dummy renderer.
 	Rml::String GetRenderStats();
+
+	// Returns nullptr if the dummy renderer is not being used.
+	TestsRenderInterface* GetTestsRenderInterface();
 }
 
 #endif

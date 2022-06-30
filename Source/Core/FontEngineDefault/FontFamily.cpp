@@ -75,7 +75,7 @@ FontFaceHandleDefault* FontFamily::GetFaceHandle(Style::FontStyle style, Style::
 	if (!matching_face)
 		return nullptr;
 
-	return matching_face->GetHandle(size, false);
+	return matching_face->GetHandle(size, true);
 }
 
 // Adds a new face to the family.

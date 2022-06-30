@@ -98,7 +98,7 @@ FontFaceHandleDefault* FontProvider::GetFallbackFontFace(int index, int font_siz
 	auto& faces = FontProvider::Get().fallback_font_faces;
 
 	if (index >= 0 && index < (int)faces.size())
-		return faces[index]->GetHandle(font_size, true);
+		return faces[index]->GetHandle(font_size, false);
 
 	return nullptr;
 }
