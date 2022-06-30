@@ -351,27 +351,6 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		VkQueue m_p_graphics_queue;
 	};
 
-	class StatisticsWrapper {
-	public:
-		StatisticsWrapper(void) : m_memory_allocated_for_textures{}, m_memory_allocated_for_vertex_geometry_buffer{} {}
-		~StatisticsWrapper(void) {}
-
-		uint32_t Get_MemoryTotal(void) const noexcept
-		{
-			return this->Get_MemoryAllocatedForTextures() + this->Get_MemoryAllocatedForVertexGeometryBuffer();
-		}
-
-		void AddMemoryTo_AllocatedForTextures(uint32_t value) noexcept { this->m_memory_allocated_for_textures += value; }
-		uint32_t Get_MemoryAllocatedForTextures(void) const noexcept { return this->m_memory_allocated_for_textures; }
-
-		void AddMemoryTo_AllocatedForVertexGeometryBuffer(uint32_t value) noexcept { this->m_memory_allocated_for_vertex_geometry_buffer += value; }
-		uint32_t Get_MemoryAllocatedForVertexGeometryBuffer(void) const noexcept { return this->m_memory_allocated_for_vertex_geometry_buffer; }
-
-	private:
-		uint32_t m_memory_allocated_for_textures;
-		uint32_t m_memory_allocated_for_vertex_geometry_buffer;
-	};
-
 	class PhysicalDeviceWrapper {
 	public:
 		PhysicalDeviceWrapper(VkPhysicalDevice p_physical_device);
@@ -850,7 +829,6 @@ private:
 	MemoryPool m_memory_pool;
 #pragma endregion
 
-	StatisticsWrapper m_stats;
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
 	shader_vertex_user_data_t m_user_data_for_vertex_shader;
