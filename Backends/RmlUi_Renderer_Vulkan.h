@@ -79,7 +79,7 @@
  */
 
 #pragma region System Constants for Vulkan API
-constexpr uint32_t kSwapchainBackBufferCount = 1;
+constexpr uint32_t kSwapchainBackBufferCount = 3;
 
 // This value goes to function that converts to Mbs, it is like N * 1024 * 1024
 constexpr uint32_t kVideoMemoryForAllocation = 4;
@@ -117,8 +117,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 	class texture_data_t {
 	public:
 		texture_data_t() :
-			m_width{}, m_height{}, m_id{-1}, m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_sampler{},
-			m_p_vk_descriptor_set{}, m_p_vma_allocation{}
+			m_width{}, m_height{}, m_id{-1}, m_p_vk_image{}, m_p_vk_image_view{}, m_p_vk_sampler{}, m_p_vk_descriptor_set{}, m_p_vma_allocation{}
 		{}
 
 		~texture_data_t() {}
@@ -696,6 +695,7 @@ private:
 	VkSurfaceFormatKHR ChooseSwapchainFormat(void) noexcept;
 	VkSurfaceTransformFlagBitsKHR CreatePretransformSwapchain(void) noexcept;
 	VkCompositeAlphaFlagBitsKHR ChooseSwapchainCompositeAlpha(void) noexcept;
+	int Choose_SwapchainImageCount(uint32_t user_swapchain_count_for_creation = kSwapchainBackBufferCount, bool if_failed_choose_min = true) noexcept;
 	VkPresentModeKHR GetPresentMode(VkPresentModeKHR type = VkPresentModeKHR::VK_PRESENT_MODE_FIFO_KHR) noexcept;
 	VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(void) noexcept;
 	Rml::Vector<RenderInterface_Vulkan::shader_data_t> LoadShaders(void) noexcept;
@@ -737,7 +737,7 @@ private:
 
 	void Wait(void) noexcept;
 
-	void Update_PendingForDeletion_Textures(void) noexcept;
+	void Update_PendingForDeletion_Textures_By_Frames(void) noexcept;
 	void Update_PendingForDeletion_Geometries(void) noexcept;
 
 	void Submit(void) noexcept;
@@ -817,8 +817,9 @@ private:
 	Rml::Vector<VkShaderModule> m_shaders;
 #pragma endregion
 
-	Rml::Vector<texture_data_t*> m_pending_for_deletion_textures;
-	Rml::Vector<texture_data_t*> m_all_textures;
+	Rml::Vector<Rml::Vector<texture_data_t*>> m_pending_for_deletion_textures_by_frames;
+
+	// vma handles that thing, so there's no need for frame splitting
 	Rml::Vector<geometry_handle_t*> m_pending_for_deletion_geometries;
 
 	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;

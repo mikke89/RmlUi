@@ -49,13 +49,21 @@ VkValidationFeatureEnableEXT debug_validation_features_ext_requested[] = {VK_VAL
 static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT /*objectType*/,
 	uint64_t /*object*/, size_t /*location*/, int32_t /*messageCode*/, const char* /*pLayerPrefix*/, const char* pMessage, void* /*pUserData*/)
 {
-	if (flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_INFORMATION_BIT_EXT ||
-		flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+	if (flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_INFORMATION_BIT_EXT || flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_DEBUG_BIT_EXT)
 	{
 		return VK_FALSE;
 	}
 
 #ifdef RMLUI_DEBUG
+	#ifdef RMLUI_PLATFORM_WIN32
+	if (flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_ERROR_BIT_EXT)
+	{
+		// some logs are not passed to our UI, because of early calling for explicity I put native log output
+		OutputDebugString(TEXT("\n"));
+		OutputDebugStringA(pMessage);
+	}
+	#endif
+
 	Rml::Log::Message(Rml::Log::LT_ERROR, "[Vulkan][VALIDATION] %s ", pMessage);
 #endif
 
@@ -461,8 +469,6 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 
 	auto* p_texture = new texture_data_t();
 
-	this->m_all_textures.push_back(p_texture);
-
 	VkImageCreateInfo info = {};
 
 	info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -614,7 +620,7 @@ void RenderInterface_Vulkan::ReleaseTexture(Rml::TextureHandle texture_handle)
 
 	if (p_texture)
 	{
-		this->m_pending_for_deletion_textures.push_back(p_texture);
+		this->m_pending_for_deletion_textures_by_frames[this->m_semaphore_index_previous].push_back(p_texture);
 	}
 }
 
@@ -634,7 +640,7 @@ void RenderInterface_Vulkan::BeginFrame()
 	this->m_command_list.OnBeginFrame();
 	this->Wait();
 
-	this->Update_PendingForDeletion_Textures();
+	this->Update_PendingForDeletion_Textures_By_Frames();
 	this->Update_PendingForDeletion_Geometries();
 
 	this->m_p_current_command_buffer = this->m_command_list.GetNewCommandList();
@@ -894,7 +900,7 @@ void RenderInterface_Vulkan::Initialize_Swapchain(void) noexcept
 	info.pNext = nullptr;
 	info.surface = this->m_p_surface;
 	info.imageFormat = this->m_swapchain_format.format;
-	info.minImageCount = kSwapchainBackBufferCount;
+	info.minImageCount = this->Choose_SwapchainImageCount();
 	info.imageColorSpace = this->m_swapchain_format.colorSpace;
 	info.imageExtent = this->CreateValidSwapchainExtent();
 	info.preTransform = this->CreatePretransformSwapchain();
@@ -1101,6 +1107,8 @@ void RenderInterface_Vulkan::Initialize_Resources(void) noexcept
 	this->CreatePipelineLayout();
 	this->CreateSamplers();
 	this->CreateDescriptorSets();
+
+	this->m_pending_for_deletion_textures_by_frames.resize(kSwapchainBackBufferCount);
 }
 
 void RenderInterface_Vulkan::Initialize_Allocator(void) noexcept
@@ -1324,6 +1332,7 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Instance(void) noexcept
 
 	this->AddLayerToInstance("VK_LAYER_LUNARG_monitor");
 	this->AddExtensionToInstance("VK_EXT_debug_utils");
+	this->AddExtensionToInstance(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
 #if defined(RMLUI_PLATFORM_UNIX)
 	this->AddExtensionToInstance(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
@@ -1670,6 +1679,32 @@ VkCompositeAlphaFlagBitsKHR RenderInterface_Vulkan::ChooseSwapchainCompositeAlph
 			break;
 		}
 	}
+
+	return result;
+}
+
+int RenderInterface_Vulkan::Choose_SwapchainImageCount(uint32_t user_swapchain_count_for_creation, bool if_failed_choose_min) noexcept
+{
+	auto caps = this->GetSurfaceCapabilities();
+
+	// don't worry if you get this assert just ignore it the method will fix the count ;)
+#ifdef RMLUI_DEBUG
+	VK_ASSERT(user_swapchain_count_for_creation >= caps.minImageCount,
+		"can't be, you must have a valid count that bounds from minImageCount to maxImageCount! Otherwise you will get a validation error that "
+		"specifies "
+		"that you created a swapchain with invalid image count");
+	VK_ASSERT(user_swapchain_count_for_creation <= caps.maxImageCount,
+		"can't be, you must have a valid count that bounds from minImageCount to maxImageCount! Otherwise you will get a validation error that "
+		"specifies "
+		"that you created a swapchain with invalid image count");
+#endif
+
+	int result = 0;
+
+	if (user_swapchain_count_for_creation < caps.minImageCount || user_swapchain_count_for_creation > caps.maxImageCount)
+		result = if_failed_choose_min ? caps.minImageCount : caps.maxImageCount;
+	else
+		result = user_swapchain_count_for_creation;
 
 	return result;
 }
@@ -2259,7 +2294,26 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 
 void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
-	this->Update_PendingForDeletion_Textures();
+	for (auto& textures : this->m_pending_for_deletion_textures_by_frames) 
+	{
+		for (auto* p_data : textures)
+		{
+			this->Destroy_Texture(*p_data);
+
+			p_data->Set_VmaAllocation(nullptr);
+			p_data->Set_VkDescriptorSet(nullptr);
+			p_data->Set_VkImage(nullptr);
+			p_data->Set_VkImageView(nullptr);
+			p_data->Set_VkSampler(nullptr);
+			p_data->Set_Width(-1);
+			p_data->Set_Height(-1);
+			p_data->Set_ID(-1);
+
+			delete p_data;
+		}
+
+		textures.clear();
+	}
 }
 
 void RenderInterface_Vulkan::Destroy_Geometries(void) noexcept
@@ -2440,9 +2494,11 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkResetFences (see status)");
 }
 
-void RenderInterface_Vulkan::Update_PendingForDeletion_Textures(void) noexcept
+void RenderInterface_Vulkan::Update_PendingForDeletion_Textures_By_Frames(void) noexcept 
 {
-	for (auto* p_data : this->m_pending_for_deletion_textures)
+	auto& textures_for_previous_frame = this->m_pending_for_deletion_textures_by_frames.at(this->m_semaphore_index_previous);
+
+	for (auto* p_data : textures_for_previous_frame) 
 	{
 		this->Destroy_Texture(*p_data);
 
@@ -2458,7 +2514,7 @@ void RenderInterface_Vulkan::Update_PendingForDeletion_Textures(void) noexcept
 		delete p_data;
 	}
 
-	this->m_pending_for_deletion_textures.clear();
+	textures_for_previous_frame.clear();
 }
 
 void RenderInterface_Vulkan::Update_PendingForDeletion_Geometries(void) noexcept
