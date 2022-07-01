@@ -71,12 +71,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 }
 
 RenderInterface_Vulkan::RenderInterface_Vulkan() :
-	m_is_transform_enabled{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false}, m_width{}, m_height{},
-	m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{}, m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{},
-	m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{},
-	m_p_swapchain{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{},
-	m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
-	m_p_pipeline_stencil{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{}, m_p_current_command_buffer{}
+	m_is_transform_enabled{false}, m_is_use_scissor_specified{false},
+	m_is_use_stencil_pipeline{false}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
+	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{},
+	m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
+	m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{},
+	m_p_pipeline_without_textures{}, m_p_pipeline_stencil{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{},
+	m_p_current_command_buffer{}
 {}
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
@@ -754,17 +755,6 @@ void RenderInterface_Vulkan::OnResize(int width, int height) noexcept
 	this->m_width = width;
 	this->m_height = height;
 
-	// TODO: prevent resize when the window is minimized. Because you will get validation error!!!!!! It can't be fixed, because developers of Vulkan
-	// strange, the error says the extent of swapchain can't be equal (0,0), BUT the driver returns extent of swapchain exactly (0,0)...s
-#if defined RMLUI_PLATFORM_WIN32 && false
-	// TODO: rmlui team try to call OnResize method only in case when the windows is shown, all other iterations (you can try to delete this if block
-	// and see the results of validation) cause validation error with invalid extent it means height with zero value and it is not acceptable
-	if (!IsWindowVisible(this->m_p_window_handle))
-	{
-		return;
-	}
-#endif
-
 	if (this->m_p_swapchain)
 	{
 		this->Destroy_Swapchain();
@@ -902,7 +892,7 @@ void RenderInterface_Vulkan::Initialize_Swapchain(void) noexcept
 	info.imageFormat = this->m_swapchain_format.format;
 	info.minImageCount = this->Choose_SwapchainImageCount();
 	info.imageColorSpace = this->m_swapchain_format.colorSpace;
-	info.imageExtent = this->CreateValidSwapchainExtent();
+	info.imageExtent = this->Choose_ValidSwapchainExtent();
 	info.preTransform = this->CreatePretransformSwapchain();
 	info.compositeAlpha = this->ChooseSwapchainCompositeAlpha();
 	info.imageArrayLayers = 1;
@@ -1611,7 +1601,7 @@ VkSurfaceFormatKHR RenderInterface_Vulkan::ChooseSwapchainFormat(void) noexcept
 	return formats.front();
 }
 
-VkExtent2D RenderInterface_Vulkan::CreateValidSwapchainExtent(void) noexcept
+VkExtent2D RenderInterface_Vulkan::Choose_ValidSwapchainExtent(void) noexcept
 {
 	VkSurfaceCapabilitiesKHR caps = this->GetSurfaceCapabilities();
 
@@ -2012,7 +2002,7 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_depth.front.writeMask = VK_TRUE;
 	info_depth.front.compareMask = VK_TRUE;
 	info_depth.front.reference = 1;
-	info_depth.front = info_depth.back;
+	// info_depth.front = info_depth.back;
 
 	VkPipelineViewportStateCreateInfo info_viewport = {};
 
@@ -2122,10 +2112,10 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_shader.module = this->m_shaders[static_cast<int>(shader_id_t::kShaderID_Pixel_WithTextures)];
 	shaders_that_will_be_used_in_pipeline[1] = info_shader;
 
-	info_depth.front.passOp = VK_STENCIL_OP_REPLACE;
-	info_depth.front.failOp = VK_STENCIL_OP_KEEP;
-	info_depth.front.depthFailOp = VK_STENCIL_OP_KEEP;
-	info_depth.front.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.front.passOp = VK_STENCIL_OP_INVERT;
+	info_depth.front.failOp = VK_STENCIL_OP_INVERT;
+	info_depth.front.depthFailOp = VK_STENCIL_OP_INVERT;
+	info_depth.front.compareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
 
 	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_stencil);
 
@@ -2294,7 +2284,7 @@ void RenderInterface_Vulkan::DestroyResource_StagingBuffer(const buffer_data_t& 
 
 void RenderInterface_Vulkan::Destroy_Textures(void) noexcept
 {
-	for (auto& textures : this->m_pending_for_deletion_textures_by_frames) 
+	for (auto& textures : this->m_pending_for_deletion_textures_by_frames)
 	{
 		for (auto* p_data : textures)
 		{
@@ -2494,11 +2484,11 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkResetFences (see status)");
 }
 
-void RenderInterface_Vulkan::Update_PendingForDeletion_Textures_By_Frames(void) noexcept 
+void RenderInterface_Vulkan::Update_PendingForDeletion_Textures_By_Frames(void) noexcept
 {
 	auto& textures_for_previous_frame = this->m_pending_for_deletion_textures_by_frames.at(this->m_semaphore_index_previous);
 
-	for (auto* p_data : textures_for_previous_frame) 
+	for (auto* p_data : textures_for_previous_frame)
 	{
 		this->Destroy_Texture(*p_data);
 

@@ -700,7 +700,7 @@ private:
 	VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(void) noexcept;
 	Rml::Vector<RenderInterface_Vulkan::shader_data_t> LoadShaders(void) noexcept;
 
-	VkExtent2D CreateValidSwapchainExtent(void) noexcept;
+	VkExtent2D Choose_ValidSwapchainExtent(void) noexcept;
 	void CreateShaders(const Rml::Vector<shader_data_t>& storage) noexcept;
 	void CreateDescriptorSetLayout(Rml::Vector<shader_data_t>& storage) noexcept;
 	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(shader_data_t& data) noexcept;
