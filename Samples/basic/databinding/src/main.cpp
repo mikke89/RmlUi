@@ -242,12 +242,13 @@ namespace InvadersExample {
 			}
 		);
 		// Register a transform function for formatting time
-		constructor.RegisterTransformFunc("format_time", [](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-			const double t = variant.Get<double>();
+		constructor.RegisterTransformFunc("format_time", [](const Rml::VariantList& arguments) -> Rml::Variant {
+			if (arguments.empty())
+				return {};
+			const double t = arguments[0].Get<double>();
 			const int minutes = int(t) / 60;
 			const double seconds = t - 60.0 * double(minutes);
-			variant = Rml::CreateString(10, "%02d:%05.2f", minutes, seconds);
-			return true;
+			return Rml::Variant(Rml::CreateString(10, "%02d:%05.2f", minutes, seconds));
 		});
 
 		// Structs are registered by adding all their members through the returned handle.

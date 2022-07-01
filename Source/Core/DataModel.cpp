@@ -348,10 +348,10 @@ void DataModel::DirtyAllVariables() {
 	}
 }
 
-bool DataModel::CallTransform(const String& name, Variant& inout_result, const VariantList& arguments) const
+bool DataModel::CallTransform(const String& name, const VariantList& arguments, Variant& out_result) const
 {
 	if (transform_register)
-		return transform_register->Call(name, inout_result, arguments);
+		return transform_register->Call(name, arguments, out_result);
 	return false;
 }
 

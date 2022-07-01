@@ -52,9 +52,8 @@ class DataParser;
 		L  Typically left-hand side arguments.
 		C  Typically center arguments (eg. in ternary operator).
 
-	And two stacks:
-		S  The main program stack.
-		A  The arguments stack, only used to pass arguments to an external transform function.
+	And a stack:
+		S  The program stack.
 
 	In addition, each instruction has an optional payload:
 		D  Instruction data (payload).
@@ -83,9 +82,9 @@ enum class Instruction {
 	Equal        = '=',     //       R = L == R
 	NotEqual     = 'N',     //       R = L != R
 	Ternary      = '?',     //       R = L ? C : R
-	Arguments    = 'a',     //      A+ = S-  (Repeated D times, where D gives the num. arguments)
-	TransformFnc = 'T',     //       R = DataModel.Execute( D, R, A ); A.Clear();  (D determines function name, R the input value, A the arguments)
-	EventFnc     = 'E',     //       DataModel.EventCallback(D, A); A.Clear();
+	NumArguments = '#',     //       R = D  (Contains the num. arguments currently on the stack, immediately followed by a 'T' or 'E' instruction)
+	TransformFnc = 'T',     //       R = DataModel.Execute(D, A) where A = S[TOP - R, TOP]; S -= R;  (D determines function name, input R the num. arguments, A the arguments)
+	EventFnc     = 'E',     //       DataModel.EventCallback(D, A); S -= R;
 	Assign       = 'A',     //       DataModel.SetVariable(D, R)
 };
 
@@ -201,37 +200,43 @@ public:
 
 	void Emit(Instruction instruction, Variant data = Variant())
 	{
-		RMLUI_ASSERTMSG(instruction != Instruction::Push && instruction != Instruction::Pop &&
-			instruction != Instruction::Arguments && instruction != Instruction::Variable && instruction != Instruction::Assign,
-			"Use the Push(), Pop(), Arguments(), Variable(), and Assign() procedures for stack manipulation and variable instructions.");
-		program.push_back(InstructionData{ instruction, std::move(data) });
+		RMLUI_ASSERTMSG(instruction != Instruction::Push && instruction != Instruction::Pop && instruction != Instruction::NumArguments &&
+				instruction != Instruction::TransformFnc && instruction != Instruction::EventFnc && instruction != Instruction::Variable &&
+				instruction != Instruction::Assign,
+			"Use Push(), Pop(), Function(), Variable(), and Assign() procedures for stack manipulation and variable instructions.");
+		program.push_back(InstructionData{instruction, std::move(data)});
 	}
-	void Push() {
+	void Push()
+	{
 		program_stack_size += 1;
-		program.push_back(InstructionData{ Instruction::Push, Variant() });
+		program.push_back(InstructionData{Instruction::Push, Variant()});
 	}
-	void Pop(Register destination) {
-		if (program_stack_size <= 0) {
+	void Pop(Register destination)
+	{
+		if (program_stack_size <= 0)
+		{
 			Error("Internal parser error: Tried to pop an empty stack.");
 			return;
 		}
 		program_stack_size -= 1;
-		program.push_back(InstructionData{ Instruction::Pop, Variant(int(destination)) });
+		program.push_back(InstructionData{Instruction::Pop, Variant(int(destination))});
 	}
-	void Arguments(int num_arguments) {
-		if (program_stack_size < num_arguments) {
-			Error(CreateString(128, "Internal parser error: Popping %d arguments, but the stack contains only %d elements.", num_arguments, program_stack_size));
+	void Function(Instruction instruction, int num_arguments, String&& name)
+	{
+		RMLUI_ASSERT(instruction == Instruction::TransformFnc || instruction == Instruction::EventFnc);
+		RMLUI_ASSERT(num_arguments >= 0);
+		if (program_stack_size < num_arguments)
+		{
+			Error(CreateString(128, "Internal parser error: Popping %d arguments, but the stack contains only %d elements.", num_arguments,
+				program_stack_size));
 			return;
 		}
 		program_stack_size -= num_arguments;
-		program.push_back(InstructionData{ Instruction::Arguments, Variant(int(num_arguments)) });
+		program.push_back(InstructionData{Instruction::NumArguments, Variant(int(num_arguments))});
+		program.push_back(InstructionData{instruction, Variant(std::move(name))});
 	}
-	void Variable(const String& name) {
-		VariableGetSet(name, false);
-	}
-	void Assign(const String& name) {
-		VariableGetSet(name, true);
-	}
+	void Variable(const String& name) { VariableGetSet(name, false); }
+	void Assign(const String& name) { VariableGetSet(name, true); }
 
 private:
 	void VariableGetSet(const String& name, bool is_assignment)
@@ -274,7 +279,7 @@ namespace Parse {
 
 	static void NumberLiteral(DataParser& parser);
 	static void StringLiteral(DataParser& parser);
-	static void Variable(DataParser& parser);
+	static void VariableOrFunction(DataParser& parser);
 
 	static void Add(DataParser& parser);
 	static void Subtract(DataParser& parser);
@@ -290,7 +295,7 @@ namespace Parse {
 	static void NotEqual(DataParser& parser);
 
 	static void Ternary(DataParser& parser);
-	static void Function(DataParser& parser, Instruction function_type, const String& name);
+	static void Function(DataParser& parser, Instruction function_type, String&& name, bool first_argument_piped);
 
 	// Helper functions
 	static bool IsVariableCharacter(char c, bool is_first_character)
@@ -311,10 +316,9 @@ namespace Parse {
 
 		return false;
 	}
-	static String VariableName(DataParser& parser)
+	static String VariableOrFunctionName(DataParser& parser, bool* out_valid_function_name)
 	{
 		String name;
-
 		bool is_first_character = true;
 		char c = parser.Look();
 
@@ -337,6 +341,9 @@ namespace Parse {
 		if (new_size != String::npos)
 			name.resize(new_size);
 
+		if (out_valid_function_name)
+			*out_valid_function_name = (name.find_first_of(".[] ") == String::npos);
+
 		return name;
 	}
 
@@ -348,7 +355,7 @@ namespace Parse {
 		{
 			if (parser.Look() != '\0')
 			{
-				const String variable_name = VariableName(parser);
+				String variable_name = VariableOrFunctionName(parser, nullptr);
 				if (variable_name.empty()) {
 					parser.Error("Expected a variable for assignment but got an empty name.");
 					return;
@@ -363,7 +370,7 @@ namespace Parse {
 				}
 				else if (c == '(' || c == ';' || c == '\0')
 				{
-					Function(parser, Instruction::EventFnc, variable_name);
+					Function(parser, Instruction::EventFnc, std::move(variable_name), false);
 				}
 				else
 				{
@@ -401,14 +408,22 @@ namespace Parse {
 					Or(parser);
 				else
 				{
+					parser.Push();
 					parser.SkipWhitespace();
-					const String fnc_name = VariableName(parser);
-					if (fnc_name.empty()) {
+					bool valid_function_name = true;
+					String name = VariableOrFunctionName(parser, &valid_function_name);
+					if (name.empty())
+					{
 						parser.Error("Expected a transform function name but got an empty name.");
 						return;
 					}
+					if (!valid_function_name)
+					{
+						parser.Error("Expected a transform function name but got an invalid name '" + name + "'.");
+						return;
+					}
 
-					Function(parser, Instruction::TransformFnc, fnc_name);
+					Function(parser, Instruction::TransformFnc, std::move(name), true);
 				}
 			}
 			break;
@@ -500,11 +515,11 @@ namespace Parse {
 		}
 		else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
 		{
-			Variable(parser);
+			VariableOrFunction(parser);
 			parser.SkipWhitespace();
 		}
 		else
-			parser.Expected("literal, variable name, parenthesis, or '!'");
+			parser.Expected("literal, variable name, function name, parenthesis, or '!'");
 	}
 
 	static void NumberLiteral(DataParser& parser)
@@ -562,20 +577,29 @@ namespace Parse {
 
 		parser.Emit(Instruction::Literal, Variant(str));
 	}
-	static void Variable(DataParser& parser)
+	static void VariableOrFunction(DataParser& parser)
 	{
-		String name = VariableName(parser);
+		bool valid_function_name = true;
+		String name = VariableOrFunctionName(parser, &valid_function_name);
 		if (name.empty()) {
-			parser.Error("Expected a variable but got an empty name.");
+			parser.Error("Expected a variable or function name but got an empty name.");
 			return;
 		}
 
-		// Keywords are parsed like variables, but are really literals.
-		// Check for them here.
+		// Keywords are parsed like variables, but are really literals. Check for them here.
 		if (name == "true")
 			parser.Emit(Instruction::Literal, Variant(true));
 		else if (name == "false")
 			parser.Emit(Instruction::Literal, Variant(false));
+		else if (parser.Look() == '(')
+		{
+			if (!valid_function_name)
+			{
+				parser.Error("Invalid function name '" + name + "'.");
+				return;
+			}
+			Function(parser, Instruction::TransformFnc, std::move(name), false);
+		}
 		else
 			parser.Variable(name);
 	}
@@ -700,14 +724,14 @@ namespace Parse {
 		parser.Pop(Register::L);
 		parser.Emit(Instruction::Ternary);
 	}
-	static void Function(DataParser& parser, Instruction function_type, const String& func_name)
+	static void Function(DataParser& parser, Instruction function_type, String&& func_name, bool first_argument_piped)
 	{
 		RMLUI_ASSERT(function_type == Instruction::TransformFnc || function_type == Instruction::EventFnc);
 
-		// We already matched the variable name (and '|' for transform functions)
+		// We already matched the variable name, and also pushed the first argument to the stack if it was piped using '|'.
+		int num_arguments = first_argument_piped ? 1 : 0;
 		if (parser.Look() == '(')
 		{
-			int num_arguments = 0;
 			bool looping = true;
 
 			parser.Match('(');
@@ -715,8 +739,6 @@ namespace Parse {
 				parser.Match(')');
 				looping = false;
 			}
-			else
-				parser.Push();
 
 			while (looping)
 			{
@@ -732,23 +754,26 @@ namespace Parse {
 					looping = false;
 				}
 			}
-
-			if (num_arguments > 0) {
-				parser.Arguments(num_arguments);
-				parser.Pop(Register::R);
-			}
 		}
 		else {
 			parser.SkipWhitespace();
 		}
 
-		parser.Emit(function_type, Variant(func_name));
+		parser.Function(function_type, num_arguments, std::move(func_name));
 	}
-
 
 } // </namespace Parse>
 
-
+static String DumpProgram(const Program& program)
+{
+	String str;
+	for (size_t i = 0; i < program.size(); i++)
+	{
+		String instruction_str = program[i].data.Get<String>();
+		str += CreateString(50 + instruction_str.size(), "  %4zu  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
+	}
+	return str;
+}
 
 class DataInterpreter {
 public:
@@ -778,25 +803,14 @@ public:
 		if(success && !stack.empty())
 			Log::Message(Log::LT_WARNING, "Possible data interpreter stack corruption. Stack size is %zu at end of execution (should be zero).", stack.size());
 
-		if(!success)
+		if (!success)
 		{
-			String program_str = DumpProgram();
+			String program_str = DumpProgram(program);
 			Log::Message(Log::LT_WARNING, "Failed to execute program with %zu instructions:", program.size());
 			Log::Message(Log::LT_WARNING, "%s", program_str.c_str());
 		}
 
 		return success;
-	}
-
-	String DumpProgram() const
-	{
-		String str;
-		for (size_t i = 0; i < program.size(); i++)
-		{
-			String instruction_str = program[i].data.Get<String>();
-			str += CreateString(50 + instruction_str.size(), "  %4zu  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
-		}
-		return str;
 	}
 
 	Variant Result() const {
@@ -806,8 +820,7 @@ public:
 
 private:
 	Variant R, L, C;
-	Stack<Variant> stack;
-	Vector<Variant> arguments;
+	Vector<Variant> stack;
 
 	const Program& program;
 	const AddressList& addresses;
@@ -823,7 +836,7 @@ private:
 		{
 		case Instruction::Push:
 		{
-			stack.push(std::move(R));
+			stack.push_back(std::move(R));
 			R.Clear();
 		}
 		break;
@@ -834,9 +847,9 @@ private:
 
 			Register reg = Register(data.Get<int>(-1));
 			switch (reg) {
-			case Register::R:  R = stack.top(); stack.pop(); break;
-			case Register::L:  L = stack.top(); stack.pop(); break;
-			case Register::C:  C = stack.top(); stack.pop(); break;
+			case Register::R:  R = stack.back(); stack.pop_back(); break;
+			case Register::L:  L = stack.back(); stack.pop_back(); break;
+			case Register::C:  C = stack.back(); stack.pop_back(); break;
 			default:
 				return Error(CreateString(50, "Invalid register %d.", int(reg)));
 			}
@@ -896,49 +909,23 @@ private:
 				R = C;
 		}
 		break;
-		case Instruction::Arguments:
+		case Instruction::NumArguments:
 		{
-			if (!arguments.empty())
-				return Error("Argument stack is not empty.");
-
-			int num_arguments = data.Get<int>(-1);
-			if (num_arguments < 0)
-				return Error("Invalid number of arguments.");
-			if (stack.size() < size_t(num_arguments))
-				return Error(CreateString(100, "Cannot pop %d arguments, stack contains only %zu elements.", num_arguments, stack.size()));
-
-			arguments.resize(num_arguments);
-			for (int i = num_arguments - 1; i >= 0; i--)
-			{
-				arguments[i] = std::move(stack.top());
-				stack.pop();
-			}
+			const int num_arguments = data.Get<int>(-1);
+			R = num_arguments;
 		}
 		break;
 		case Instruction::TransformFnc:
-		{
-			const String function_name = data.Get<String>();
-			
-			if (!expression_interface.CallTransform(function_name, R, arguments))
-			{
-				String arguments_str;
-				for (size_t i = 0; i < arguments.size(); i++)
-				{
-					arguments_str += arguments[i].Get<String>();
-					if (i < arguments.size() - 1)
-						arguments_str += ", ";
-				}
-				Error(CreateString(50 + function_name.size() + arguments_str.size(), "Failed to execute data function: %s(%s)", function_name.c_str(), arguments_str.c_str()));
-			}
-
-			arguments.clear();
-		}
-		break;
 		case Instruction::EventFnc:
 		{
-			const String function_name = data.Get<String>();
+			Vector<Variant> arguments;
+			if (!ExtractArgumentsFromStack(arguments))
+				return false;
 
-			if (!expression_interface.EventCallback(function_name, arguments))
+			const String function_name = data.Get<String>();
+			const bool result = (instruction == Instruction::TransformFnc ? expression_interface.CallTransform(function_name, arguments, R)
+																		  : expression_interface.EventCallback(function_name, arguments));
+			if (!result)
 			{
 				String arguments_str;
 				for (size_t i = 0; i < arguments.size(); i++)
@@ -947,10 +934,10 @@ private:
 					if (i < arguments.size() - 1)
 						arguments_str += ", ";
 				}
-				Error(CreateString(50 + function_name.size() + arguments_str.size(), "Failed to execute event callback: %s(%s)", function_name.c_str(), arguments_str.c_str()));
+				Error(CreateString(60 + function_name.size() + arguments_str.size(), "Failed to execute %s: %s(%s)",
+					instruction == Instruction::TransformFnc ? "transform function" : "event callback", function_name.c_str(),
+					arguments_str.c_str()));
 			}
-
-			arguments.clear();
 		}
 		break;
 		case Instruction::Assign:
@@ -968,6 +955,21 @@ private:
 		default:
 			RMLUI_ERRORMSG("Instruction not implemented."); break;
 		}
+		return true;
+	}
+
+	bool ExtractArgumentsFromStack(Vector<Variant>& out_arguments)
+	{
+		int num_arguments = R.Get<int>(-1);
+		if (num_arguments < 0)
+			return Error("Invalid number of arguments.");
+		if (stack.size() < size_t(num_arguments))
+			return Error(CreateString(100, "Cannot pop %d arguments, stack contains only %zu elements.", num_arguments, stack.size()));
+
+		const auto it_stack_begin_arguments = stack.end() - num_arguments;
+		out_arguments.insert(out_arguments.end(), std::make_move_iterator(it_stack_begin_arguments), std::make_move_iterator(stack.end()));
+
+		stack.erase(it_stack_begin_arguments, stack.end());
 		return true;
 	}
 };
@@ -1055,9 +1057,9 @@ bool DataExpressionInterface::SetValue(const DataAddress& address, const Variant
 	return result;
 }
 
-bool DataExpressionInterface::CallTransform(const String& name, Variant& inout_variant, const VariantList& arguments)
+bool DataExpressionInterface::CallTransform(const String& name, const VariantList& arguments, Variant& out_result)
 {
-	return data_model ? data_model->CallTransform(name, inout_variant, arguments) : false;
+	return data_model ? data_model->CallTransform(name, arguments, out_result) : false;
 }
 
 bool DataExpressionInterface::EventCallback(const String& name, const VariantList& arguments)

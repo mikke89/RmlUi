@@ -26,12 +26,9 @@
  *
  */
 
-
 #include "../../../Source/Core/DataExpression.cpp"
-
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Types.h>
-
 #include <doctest.h>
 
 using namespace Rml;
@@ -39,7 +36,6 @@ using namespace Rml;
 static DataTypeRegister type_register;
 static DataModel model(type_register.GetTransformFuncRegister());
 static DataExpressionInterface interface(&model, nullptr);
-
 
 static String TestExpression(const String& expression)
 {
@@ -57,11 +53,12 @@ static String TestExpression(const String& expression)
 		if (interpreter.Run())
 			result = interpreter.Result().Get<String>();
 		else
-			FAIL_CHECK("Could not execute expression: " << expression << "\n\n  Parsed program: \n" << interpreter.DumpProgram());
+			FAIL_CHECK("Could not execute expression: " << expression << "\n\n  Parsed program: \n" << DumpProgram(program));
 	}
 	else
 	{
-		FAIL_CHECK("Could not parse expression: " << expression);
+		Program program = parser.ReleaseProgram();
+		FAIL_CHECK("Could not parse expression: " << expression << "\n\n  Parsed result: \n" << DumpProgram(program));
 	}
 
 	return result;
@@ -80,16 +77,15 @@ static bool TestAssignment(const String& expression)
 		if (interpreter.Run())
 			result = true;
 		else
-			FAIL_CHECK("Could not execute assignment expression: " << expression << "\n\n  Parsed program: \n" << interpreter.DumpProgram());
+			FAIL_CHECK("Could not execute assignment expression: " << expression << "\n\n  Parsed program: \n" << DumpProgram(program));
 	}
 	else
 	{
-		FAIL_CHECK("Could not parse assignment expression: " << expression);
+		Program program = parser.ReleaseProgram();
+		FAIL_CHECK("Could not parse assignment expression: " << expression << "\n\n  Parsed result: \n" << DumpProgram(program));
 	}
 	return result;
 }
-
-
 
 TEST_CASE("Data expressions")
 {
@@ -97,16 +93,27 @@ TEST_CASE("Data expressions")
 	String color_name = "color";
 	Colourb color_value = Colourb(180, 100, 255);
 
-	DataModelConstructor handle(&model, &type_register);
-	handle.Bind("radius", &radius);
-	handle.Bind("color_name", &color_name);
-	handle.BindFunc("color_value", [&](Variant& variant) {
-		variant = ToString(color_value);
+	DataModelConstructor constructor(&model, &type_register);
+	constructor.Bind("radius", &radius);
+	constructor.Bind("color_name", &color_name);
+	constructor.BindFunc("color_value", [&](Variant& variant) { variant = ToString(color_value); });
+
+	constructor.RegisterTransformFunc("concatenate", [](const VariantList& arguments) -> Variant {
+		StringList list;
+		list.reserve(arguments.size());
+		for (const Variant& argument : arguments)
+			list.push_back(argument.Get<String>());
+		String result;
+		StringUtilities::JoinString(result, list);
+		return Variant(std::move(result));
 	});
 
+	CHECK(TestExpression("3.62345 | round | format(2)") == "4.00");
+
+	CHECK(TestExpression("'a' | to_upper") == "A");
 	CHECK(TestExpression("!!10 - 1 ? 'hello' : 'world' | to_upper") == "WORLD");
 	CHECK(TestExpression("(color_name) + (': rgba(' + color_value + ')')") == "color: rgba(180, 100, 255, 255)");
-	CHECK(TestExpression("'hello world' | to_upper(5 + 12 == 17 ? 'yes' : 'no', 9*2)") == "HELLO WORLD");
+	CHECK(TestExpression("'hello world' | to_upper | concatenate(5 + 12 == 17 ? 'yes' : 'no', 9*2)") == "HELLO WORLD,yes,18");
 	CHECK(TestExpression("true == false") == "0");
 	CHECK(TestExpression("true != false") == "1");
 	CHECK(TestExpression("true") == "1");
@@ -130,6 +137,11 @@ TEST_CASE("Data expressions")
 	CHECK(color_name == "image-color");
 	CHECK(TestExpression("radius == 4 && color_name == 'image-color'") == "1");
 
+	CHECK(TestAssignment("color_name = 'a' | concatenate('b')"));
+	CHECK(color_name == "a,b");
+	CHECK(TestAssignment("color_name = concatenate('c','d')"));
+	CHECK(color_name == "c,d");
+
 	CHECK(TestExpression("5 == 1 + 2*2 || 8 == 1 + 4  ? 'yes' : 'no'") == "yes");
 	CHECK(TestExpression("!!('fa' + 'lse')") == "0");
 	CHECK(TestExpression("!!('tr' + 'ue')") == "1");
@@ -143,10 +155,23 @@ TEST_CASE("Data expressions")
 	CHECK(TestExpression("3.62345 | round | format(2)") == "4.00");
 	CHECK(TestExpression("3.0001 | format(2, false)") == "3.00");
 	CHECK(TestExpression("3.0001 | format(2, true)") == "3");
+	CHECK(TestExpression("format(3.0001, 2, true)") == "3");
 
 	CHECK(TestExpression("0.2 + 3.42345 | round") == "4");
 	CHECK(TestExpression("(3.42345 | round) + 0.2") == "3.2");
 	CHECK(TestExpression("(3.42345 | format(0)) + 0.2") == "30.2"); // Here, format(0) returns a string, so the + means string concatenation.
+
+	CHECK(TestExpression("'Hi' | concatenate") == "Hi");
+	CHECK(TestExpression("'Hi' | concatenate('there')") == "Hi,there");
+	CHECK(TestExpression("'A' | concatenate('b','c', 'd','e')") == "A,b,c,d,e");
+	CHECK(TestExpression("3.6 | concatenate") == "3.6");
+
+	CHECK(TestExpression("concatenate()") == "");
+	CHECK(TestExpression("concatenate('Hi')") == "Hi");
+	CHECK(TestExpression("concatenate( 'Hi',  'there' )") == "Hi,there");
+	CHECK(TestExpression("concatenate('A', 'b'+'c', 'd','e')") == "A,bc,d,e");
+	CHECK(TestExpression("concatenate('r', 2*radius)") == "r,8");
+	CHECK(TestExpression("concatenate(3.6)") == "3.6");
+	CHECK(TestExpression("concatenate(3.6+1)") == "4.6");
+	CHECK(TestExpression("concatenate(3.6+1) | round | format(3, false)") == "5.000");
 }
-
-
