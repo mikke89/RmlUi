@@ -716,6 +716,9 @@ private:
 	void CreateSwapchainImages(void) noexcept;
 	void CreateSwapchainImageViews(void) noexcept;
 
+	void Create_DepthStencilImage(void) noexcept;
+	void Create_DepthStencilImageViews(void) noexcept;
+
 	void CreateResourcesDependentOnSize(void) noexcept;
 
 	buffer_data_t CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept;
@@ -744,6 +747,8 @@ private:
 	void Present(void) noexcept;
 
 	uint32_t Get_CurrentDescriptorID(void) const noexcept { return this->m_current_descriptor_id; }
+
+	VkFormat Get_SupportedDepthFormat(void);
 #pragma endregion
 
 private:
@@ -784,7 +789,7 @@ private:
 	VkPipeline m_p_pipeline_stencil;
 	VkDescriptorSet m_p_descriptor_set;
 	VkRenderPass m_p_render_pass;
-	VkSampler m_p_sampler_nearest;
+	VkSampler m_p_sampler_linear;
 	VkRect2D m_scissor;
 
 	// @ means it captures the window size full width and full height, offset equals both x and y to 0
@@ -833,6 +838,7 @@ private:
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
 	shader_vertex_user_data_t m_user_data_for_vertex_shader;
+	texture_data_t m_texture_depthstencil;
 };
 
 #endif

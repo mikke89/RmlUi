@@ -71,13 +71,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 }
 
 RenderInterface_Vulkan::RenderInterface_Vulkan() :
-	m_is_transform_enabled{false}, m_is_use_scissor_specified{false},
-	m_is_use_stencil_pipeline{false}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
-	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{},
-	m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
-	m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{},
-	m_p_pipeline_without_textures{}, m_p_pipeline_stencil{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_nearest{}, m_p_allocator{},
-	m_p_current_command_buffer{}
+	m_is_transform_enabled{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false}, m_width{}, m_height{},
+	m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{}, m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{},
+	m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{},
+	m_p_swapchain{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{},
+	m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
+	m_p_pipeline_stencil{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_linear{}, m_p_allocator{}, m_p_current_command_buffer{}
 {}
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
@@ -608,7 +607,7 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateImageView");
 
 	p_texture->Set_VkImageView(p_image_view);
-	p_texture->Set_VkSampler(this->m_p_sampler_nearest);
+	p_texture->Set_VkSampler(this->m_p_sampler_linear);
 
 	texture_handle = reinterpret_cast<Rml::TextureHandle>(p_texture);
 
@@ -1942,7 +1941,7 @@ void RenderInterface_Vulkan::CreateSamplers(void) noexcept
 	info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
-	vkCreateSampler(this->m_p_device, &info, nullptr, &this->m_p_sampler_nearest);
+	vkCreateSampler(this->m_p_device, &info, nullptr, &this->m_p_sampler_linear);
 }
 
 void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
@@ -1991,19 +1990,20 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 
 	info_depth.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	info_depth.pNext = nullptr;
-	info_depth.depthTestEnable = VK_FALSE;
-	info_depth.depthWriteEnable = VK_FALSE;
+	info_depth.depthTestEnable = VK_TRUE;
+	info_depth.depthWriteEnable = VK_TRUE;
+	info_depth.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
 	info_depth.stencilTestEnable = VK_TRUE;
-	info_depth.front.compareOp = VK_COMPARE_OP_EQUAL;
-	info_depth.front.passOp = VK_STENCIL_OP_KEEP;
-	info_depth.front.depthFailOp = VK_STENCIL_OP_KEEP;
-	info_depth.front.failOp = VK_STENCIL_OP_KEEP;
-	info_depth.front.writeMask = VK_TRUE;
-	info_depth.front.compareMask = VK_TRUE;
-	info_depth.front.reference = 1;
-	// info_depth.front = info_depth.back;
 
+	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.passOp = VK_STENCIL_OP_REPLACE;
+	info_depth.back.compareMask = 0xff;
+	info_depth.back.writeMask = 0xff;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
 	VkPipelineViewportStateCreateInfo info_viewport = {};
 
 	info_viewport.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -2019,8 +2019,7 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info_multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 	info_multisample.flags = 0;
 
-	Rml::Array<VkDynamicState, 6> dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_LINE_WIDTH,
-		VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK, VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE};
+	Rml::Array<VkDynamicState, 2> dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
 	VkPipelineDynamicStateCreateInfo info_dynamic_state = {};
 
@@ -2109,13 +2108,11 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
 
-	info_shader.module = this->m_shaders[static_cast<int>(shader_id_t::kShaderID_Pixel_WithTextures)];
-	shaders_that_will_be_used_in_pipeline[1] = info_shader;
-
-	info_depth.front.passOp = VK_STENCIL_OP_INVERT;
-	info_depth.front.failOp = VK_STENCIL_OP_INVERT;
-	info_depth.front.depthFailOp = VK_STENCIL_OP_INVERT;
-	info_depth.front.compareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
+	info_depth.back.passOp = VK_STENCIL_OP_REPLACE;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.front = info_depth.back;
 
 	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_stencil);
 
@@ -2128,24 +2125,32 @@ void RenderInterface_Vulkan::CreateSwapchainFrameBuffers(void) noexcept
 	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
 
 	this->CreateSwapchainImageViews();
+	this->Create_DepthStencilImage();
+	this->Create_DepthStencilImageViews();
 
 	this->m_swapchain_frame_buffers.resize(this->m_swapchain_image_views.size());
 
+	Rml::Array<VkImageView, 2> attachments;
+
 	VkFramebufferCreateInfo info = {};
+
+	info.sType = VkStructureType::VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	info.pNext = nullptr;
+	info.renderPass = this->m_p_render_pass;
+	info.attachmentCount = static_cast<uint32_t>(attachments.size());
+	info.pAttachments = attachments.data();
+	info.width = this->m_width;
+	info.height = this->m_height;
+	info.layers = 1;
+
 	int index = 0;
 	VkResult status = VkResult::VK_SUCCESS;
 
+	attachments[1] = this->m_texture_depthstencil.Get_VkImageView();
+
 	for (auto p_view : this->m_swapchain_image_views)
 	{
-		VkImageView p_attachment_image_views[] = {p_view};
-		info.sType = VkStructureType::VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		info.pNext = nullptr;
-		info.renderPass = this->m_p_render_pass;
-		info.attachmentCount = 1;
-		info.pAttachments = p_attachment_image_views;
-		info.width = this->m_width;
-		info.height = this->m_height;
-		info.layers = 1;
+		attachments[0] = p_view;	 
 
 		status = vkCreateFramebuffer(this->m_p_device, &info, nullptr, &this->m_swapchain_frame_buffers[index]);
 
@@ -2203,6 +2208,74 @@ void RenderInterface_Vulkan::CreateSwapchainImageViews(void) noexcept
 
 		VK_ASSERT(status == VK_SUCCESS, "[Vulkan] failed to vkCreateImageView (creating swapchain views)");
 	}
+}
+
+void RenderInterface_Vulkan::Create_DepthStencilImage(void) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must initialize your VkDevice here");
+	VK_ASSERT(this->m_p_allocator, "you must initialize your VMA allcator");
+	VK_ASSERT(this->m_texture_depthstencil.Get_VkImage() == nullptr, "you should delete texture before create it");
+
+	VkImageCreateInfo info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	info.imageType = VK_IMAGE_TYPE_2D;
+	info.format = this->Get_SupportedDepthFormat();
+	info.extent = {static_cast<uint32_t>(this->m_width), static_cast<uint32_t>(this->m_height), 1};
+	info.mipLevels = 1;
+	info.arrayLayers = 1;
+	info.samples = VK_SAMPLE_COUNT_1_BIT;
+	info.tiling = VK_IMAGE_TILING_OPTIMAL;
+	info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+	VmaAllocation p_allocation = {};
+	VkImage p_image = {};
+
+	VmaAllocationCreateInfo info_alloc = {};
+	auto p_commentary = "our depth stencil image";
+
+	info_alloc.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	info_alloc.flags = VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT;
+	info_alloc.pUserData = const_cast<char*>(p_commentary);
+
+	VkResult status = vmaCreateImage(this->m_p_allocator, &info, &info_alloc, &p_image, &p_allocation, nullptr);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateImage");
+
+	this->m_texture_depthstencil.Set_VkImage(p_image);
+	this->m_texture_depthstencil.Set_VmaAllocation(p_allocation);
+}
+
+void RenderInterface_Vulkan::Create_DepthStencilImageViews(void) noexcept
+{
+	VK_ASSERT(this->m_p_device, "you must initialize your VkDevice here");
+	VK_ASSERT(this->m_texture_depthstencil.Get_VkImageView() == nullptr, "you should delete it before creating");
+	VK_ASSERT(this->m_texture_depthstencil.Get_VkImage(), "you must initialize VkImage before create this");
+
+	VkImageViewCreateInfo info = {};
+
+	info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	info.image = this->m_texture_depthstencil.Get_VkImage();
+	info.format = this->Get_SupportedDepthFormat();
+	info.subresourceRange.baseMipLevel = 0;
+	info.subresourceRange.levelCount = 1;
+	info.subresourceRange.baseArrayLayer = 0;
+	info.subresourceRange.layerCount = 1;
+	info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+	if (this->Get_SupportedDepthFormat() >= VK_FORMAT_D16_UNORM_S8_UINT)
+	{
+		info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+	}
+
+	VkImageView p_image_view = {};
+
+	VkResult status = vkCreateImageView(this->m_p_device, &info, nullptr, &p_image_view);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateImageView");
+
+	this->m_texture_depthstencil.Set_VkImageView(p_image_view);
 }
 
 void RenderInterface_Vulkan::CreateResourcesDependentOnSize(void) noexcept
@@ -2323,7 +2396,11 @@ void RenderInterface_Vulkan::Destroy_Texture(const texture_data_t& texture) noex
 		vkDestroyImageView(this->m_p_device, texture.Get_VkImageView(), nullptr);
 
 		VkDescriptorSet p_set = texture.Get_VkDescriptorSet();
-		this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
+
+		if (p_set)
+		{
+			this->m_manager_descriptors.Free_Descriptors(this->m_p_device, &p_set);
+		}
 	}
 }
 
@@ -2351,6 +2428,10 @@ void RenderInterface_Vulkan::DestroySwapchainImageViews(void) noexcept
 void RenderInterface_Vulkan::DestroySwapchainFrameBuffers(void) noexcept
 {
 	this->DestroySwapchainImageViews();
+
+	this->Destroy_Texture(this->m_texture_depthstencil);
+	this->m_texture_depthstencil.Set_VkImage(nullptr);
+	this->m_texture_depthstencil.Set_VkImageView(nullptr);
 
 	for (auto p_frame_buffer : this->m_swapchain_frame_buffers)
 	{
@@ -2387,14 +2468,14 @@ void RenderInterface_Vulkan::DestroyPipelineLayout(void) noexcept {}
 void RenderInterface_Vulkan::DestroySamplers(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "must exist here");
-	vkDestroySampler(this->m_p_device, this->m_p_sampler_nearest, nullptr);
+	vkDestroySampler(this->m_p_device, this->m_p_sampler_linear, nullptr);
 }
 
 void RenderInterface_Vulkan::CreateRenderPass(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "you must have a valid VkDevice here");
 
-	VkAttachmentDescription attachments[1];
+	Rml::Array<VkAttachmentDescription, 2> attachments = {};
 
 	attachments[0].format = this->m_swapchain_format.format;
 	attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
@@ -2411,12 +2492,28 @@ void RenderInterface_Vulkan::CreateRenderPass(void) noexcept
 	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	attachments[0].flags = 0;
 
-	VkAttachmentReference swapchain_color_reference;
+	attachments[1].format = this->Get_SupportedDepthFormat();
+	attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	swapchain_color_reference.attachment = 0;
-	swapchain_color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	VK_ASSERT(attachments[1].format != VkFormat::VK_FORMAT_UNDEFINED,
+		"can't obtain depth format, your device doesn't support depth/stencil operations");
+
+	Rml::Array<VkAttachmentReference, 2> color_references;
+
+	// swapchain
+	color_references[0].attachment = 0;
+	color_references[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	// depth stencil
+	color_references[1].attachment = 1;
+	color_references[1].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription subpass = {};
 
@@ -2425,32 +2522,40 @@ void RenderInterface_Vulkan::CreateRenderPass(void) noexcept
 	subpass.inputAttachmentCount = 0;
 	subpass.pInputAttachments = nullptr;
 	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &swapchain_color_reference;
+	subpass.pColorAttachments = &color_references[0];
 	subpass.pResolveAttachments = nullptr;
-	subpass.pDepthStencilAttachment = nullptr;
+	subpass.pDepthStencilAttachment = &color_references[1];
 	subpass.preserveAttachmentCount = 0;
 	subpass.pPreserveAttachments = nullptr;
 
-	VkSubpassDependency dep = {};
+	Rml::Array<VkSubpassDependency, 2> dependencies = {};
 
-	dep.dependencyFlags = 0;
-	dep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	dep.srcAccessMask = 0;
-	dep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dep.dstSubpass = 0;
-	dep.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	dependencies[0].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+	dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+	dependencies[0].dstStageMask = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+	dependencies[0].dstSubpass = 0;
+	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+
+	dependencies[1].srcSubpass = 0;
+	dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+	dependencies[1].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+	dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 	VkRenderPassCreateInfo info = {};
 
 	info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	info.pNext = nullptr;
-	info.attachmentCount = 1;
-	info.pAttachments = attachments;
+	info.attachmentCount = static_cast<uint32_t>(attachments.size());
+	info.pAttachments = attachments.data();
 	info.subpassCount = 1;
 	info.pSubpasses = &subpass;
-	info.dependencyCount = 1;
-	info.pDependencies = &dep;
+	info.dependencyCount = static_cast<uint32_t>(dependencies.size());
+	info.pDependencies = dependencies.data();
 
 	VkResult status = vkCreateRenderPass(this->m_p_device, &info, nullptr, &this->m_p_render_pass);
 
@@ -2571,6 +2676,27 @@ void RenderInterface_Vulkan::Present(void) noexcept
 			VK_ASSERT(status == VK_SUCCESS, "failed to vkQueuePresentKHR");
 		}
 	}
+}
+
+VkFormat RenderInterface_Vulkan::Get_SupportedDepthFormat(void)
+{
+	VK_ASSERT(this->m_p_physical_device_current, "you must initialize and pick physical device for your renderer");
+
+	Rml::Array<VkFormat, 5> formats = {VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT,
+		VK_FORMAT_D16_UNORM};
+
+	VkFormatProperties properties;
+	for (const auto& format : formats)
+	{
+		vkGetPhysicalDeviceFormatProperties(this->m_p_physical_device_current, format, &properties);
+
+		if (properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+		{
+			return format;
+		}
+	}
+
+	return VkFormat::VK_FORMAT_UNDEFINED;
 }
 
 RenderInterface_Vulkan::PhysicalDeviceWrapper::PhysicalDeviceWrapper(VkPhysicalDevice p_physical_device) : m_p_physical_device(p_physical_device)

@@ -519,7 +519,7 @@ void RenderInterface_GL3::SetScissorRegion(int x, int y, int width, int height)
 	}
 	else
 	{
-	//	glScissor(x, viewport_height - (y + height), width, height);
+		glScissor(x, viewport_height - (y + height), width, height);
 	}
 }
 
