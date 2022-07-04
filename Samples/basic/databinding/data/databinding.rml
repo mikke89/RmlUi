@@ -298,6 +298,38 @@ select selectbox option.disabled {
 	<p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
 	<input type="text" data-value="animal"/>
 </panel>
+<tab>Pointers</tab>
+<panel data-model="basicptrs">
+	<h1>{{title}}</h1>
+	<p>This is null struct pointer: {{ptr_null}}</p>
+	<p>This is non-null struct pointer: {{ptr}}</p>
+	<p>This is null scalar pointer: {{i_null}}</p>
+	<p>This is non-null scalar pointer: {{i}}</p>
+	
+	<h1>+1</h1>
+	<p>This is null struct pointer: {{ptr_null + 1}}</p>
+	<p>This is non-null struct pointer: {{ptr + 1}}</p>
+	<p>This is null scalar pointer: {{i_null + 1}}</p>
+	<p>This is non-null scalar pointer: {{i + 1}}</p>
+	
+	<h1>+'a'</h1>
+	<p>This is null struct pointer: {{ptr_null + 'a'}}</p>
+	<p>This is non-null struct pointer: {{ptr + 'a'}}</p>
+	<p>This is null scalar pointer: {{i_null + 'a'}}</p>
+	<p>This is non-null scalar pointer: {{i + 'a'}}</p>
+	
+	<h1>| default('TBA')</h1>
+	<p>This is null struct pointer: {{ptr_null | default('TBA')}}</p>
+	<p>This is non-null struct pointer: {{ptr | default('TBA')}}</p>
+	<p>This is null scalar pointer: {{i_null | default('TBA')}}</p>
+	<p>This is non-null scalar pointer: {{i | default('TBA')}}</p>
+	
+	<h1>data-if</h1>
+	<p data-if="ptr_null">This is null struct pointer</p>
+	<p data-if="ptr">This is non-null struct pointer</p>
+	<p data-if="i_null">This is null scalar pointer</p>
+	<p data-if="i">This is non-null scalar pointer</p>
+</panel>
 <tab>Events</tab>
 <panel id="welcome" data-model="events">
 	<p class="title" style="margin-top: 1.8em;">{{hello_world}}<span style="color: blue;"> Rated: {{rating}}</span></p>

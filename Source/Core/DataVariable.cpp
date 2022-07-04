@@ -51,9 +51,10 @@ DataVariableType DataVariable::Type() {
 }
 
 
-bool VariableDefinition::Get(void* /*ptr*/, Variant& /*variant*/) {
-    Log::Message(Log::LT_WARNING, "Values can only be retrieved from scalar data types.");
-    return false;
+bool VariableDefinition::Get(void* ptr, Variant& variant) {
+	
+		variant = ptr;
+    return true;
 }
 bool VariableDefinition::Set(void* /*ptr*/, const Variant& /*variant*/) {
     Log::Message(Log::LT_WARNING, "Values can only be assigned to scalar data types.");
@@ -141,7 +142,9 @@ BasePointerDefinition::BasePointerDefinition(VariableDefinition* underlying_defi
 
 bool BasePointerDefinition::Get(void* ptr, Variant& variant)
 {
-    return underlying_definition->Get(DereferencePointer(ptr), variant);
+	if (void* next_ptr = DereferencePointer(ptr))
+		return underlying_definition->Get(next_ptr, variant);
+	return false;
 }
 
 bool BasePointerDefinition::Set(void* ptr, const Variant& variant)
@@ -156,7 +159,9 @@ int BasePointerDefinition::Size(void* ptr)
 
 DataVariable BasePointerDefinition::Child(void* ptr, const DataAddressEntry& address)
 {
-    return underlying_definition->Child(DereferencePointer(ptr), address);
+	if (void* next_ptr = DereferencePointer(ptr))
+		return underlying_definition->Child(next_ptr, address);
+	return DataVariable();
 }
 
 } // namespace Rml

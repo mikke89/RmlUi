@@ -58,6 +58,43 @@ namespace BasicExample {
 	}
 }
 
+namespace BasicPointersExample {
+
+Rml::DataModelHandle model_handle;
+
+struct Foo {
+	unsigned int i = 11;
+};
+
+struct MyPtrData {
+	Rml::String title = "Simple pointer data binding example";
+	Foo* ptr_null = nullptr;
+	Foo* ptr = new Foo();
+	unsigned int* i_null = nullptr;
+	unsigned int* i = new unsigned int(15);
+} my_data;
+
+bool Initialize(Rml::Context* context)
+{
+	Rml::DataModelConstructor constructor = context->CreateDataModel("basicptrs");
+	if (!constructor)
+		return false;
+
+	auto foostruct = constructor.RegisterStruct<Foo>();
+	foostruct.RegisterMember("i", &Foo::i);
+
+	constructor.Bind("title", &my_data.title);
+	constructor.Bind("ptr_null", &my_data.ptr_null);
+	constructor.Bind("ptr", &my_data.ptr);
+	constructor.Bind("i_null", &my_data.i_null);
+	constructor.Bind("i", &my_data.i);
+
+	model_handle = constructor.GetModelHandle();
+
+	return true;
+}
+} // namespace BasicPointersExample
+
 
 namespace EventsExample {
 
@@ -490,6 +527,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 	if (!context
 		|| !BasicExample::Initialize(context)
+		|| !BasicPointersExample::Initialize(context)
 		|| !EventsExample::Initialize(context)
 		|| !InvadersExample::Initialize(context)
 		|| !FormsExample::Initialize(context)

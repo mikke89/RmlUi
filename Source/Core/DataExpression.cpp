@@ -591,6 +591,8 @@ namespace Parse {
 			parser.Emit(Instruction::Literal, Variant(true));
 		else if (name == "false")
 			parser.Emit(Instruction::Literal, Variant(false));
+		else if (name == "null")
+			parser.Emit(Instruction::Literal, Variant());
 		else if (parser.Look() == '(')
 		{
 			if (!valid_function_name)
@@ -769,8 +771,8 @@ static String DumpProgram(const Program& program)
 	String str;
 	for (size_t i = 0; i < program.size(); i++)
 	{
-		String instruction_str = program[i].data.Get<String>();
-		str += CreateString(50 + instruction_str.size(), "  %4zu  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
+		String data_str = program[i].data.Get<String>();
+		str += CreateString(50 + data_str.size(), "  %4zu  '%c'  %s\n", i, char(program[i].instruction), data_str.c_str());
 	}
 	return str;
 }
@@ -872,7 +874,7 @@ private:
 		case Instruction::Add:
 		{
 			if (AnyString(L, R))
-				R = Variant(L.Get<String>() + R.Get<String>());
+				R = Variant(L.Get<String>("null") + R.Get<String>("null"));
 			else
 				R = Variant(L.Get<double>() + R.Get<double>());
 		}
@@ -890,7 +892,7 @@ private:
 		case Instruction::Equal:
 		{
 			if (AnyString(L, R))
-				R = Variant(L.Get<String>() == R.Get<String>());
+				R = Variant(L.Get<String>("null") == R.Get<String>("null"));
 			else
 				R = Variant(L.Get<double>() == R.Get<double>());
 		}
@@ -898,7 +900,7 @@ private:
 		case Instruction::NotEqual:
 		{
 			if (AnyString(L, R))
-				R = Variant(L.Get<String>() != R.Get<String>());
+				R = Variant(L.Get<String>("null") != R.Get<String>("null"));
 			else
 				R = Variant(L.Get<double>() != R.Get<double>());
 		}
@@ -930,7 +932,7 @@ private:
 				String arguments_str;
 				for (size_t i = 0; i < arguments.size(); i++)
 				{
-					arguments_str += arguments[i].Get<String>();
+					arguments_str += arguments[i].Get<String>("null");
 					if (i < arguments.size() - 1)
 						arguments_str += ", ";
 				}

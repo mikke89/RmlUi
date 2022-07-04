@@ -99,7 +99,7 @@ bool DataViewAttribute::Update(DataModel& model)
 
 	if (element && GetExpression().Run(expr_interface, variant))
 	{
-		const String value = variant.Get<String>();
+		const String value = variant.Get<String>("null");
 		const Variant* attribute = element->GetAttribute(attribute_name);
 		
 		if (!attribute || (attribute && attribute->Get<String>() != value))
@@ -196,7 +196,7 @@ bool DataViewStyle::Update(DataModel& model)
 	
 	if (element && GetExpression().Run(expr_interface, variant))
 	{
-		const String value = variant.Get<String>();
+		const String value = variant.Get<String>("null");
 		const Property* p = element->GetLocalProperty(property_name);
 		if (!p || p->Get<String>() != value)
 		{
@@ -245,7 +245,7 @@ bool DataViewRml::Update(DataModel & model)
 
 	if (element && GetExpression().Run(expr_interface, variant))
 	{
-		String new_rml = variant.Get<String>();
+		String new_rml = variant.Get<String>("null");
 		if (new_rml != previous_rml)
 		{
 			element->SetInnerRML(new_rml);
@@ -395,7 +395,7 @@ bool DataViewText::Update(DataModel& model)
 			RMLUI_ASSERT(entry.data_expression);
 			Variant variant;
 			bool result = entry.data_expression->Run(expression_interface, variant);
-			const String value = variant.Get<String>();
+			const String value = variant.Get<String>("null");
 			if (result && entry.value != value)
 			{
 				entry.value = value;

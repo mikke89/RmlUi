@@ -100,6 +100,12 @@ DataTypeRegister::DataTypeRegister()
 			return {};
 		return Variant(Math::RoundFloat(value));
 	});
+
+	transform_register.Register("default", [](const VariantList& arguments) -> Variant {
+		if (arguments.size() != 2)
+			return {};
+		return arguments[0].GetType() == Variant::NONE ? arguments[1] : arguments[0];
+	});
 }
 
 DataTypeRegister::~DataTypeRegister() {}

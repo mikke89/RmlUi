@@ -78,7 +78,7 @@ static DataAddress ParseAddress(const String& address_str)
 // Returns an error string on error, or nullptr on success.
 static const char* LegalVariableName(const String& name)
 {
-	static SmallUnorderedSet<String> reserved_names{ "it", "ev", "true", "false", "size", "literal" };
+	static SmallUnorderedSet<String> reserved_names{ "it", "ev", "true", "false", "null", "size", "literal" };
 	
 	if (name.empty())
 		return "Name cannot be empty.";
@@ -323,8 +323,9 @@ const DataEventFunc* DataModel::GetEventCallback(const String& name)
 bool DataModel::GetVariableInto(const DataAddress& address, Variant& out_value) const {
 	DataVariable variable = GetVariable(address);
 	bool result = (variable && variable.Get(out_value));
-	if (!result)
-		Log::Message(Log::LT_WARNING, "Could not get value from data variable '%s'.", DataAddressToString(address).c_str());
+	// TODO: Print warning in some situations such as with invalid struct child name, but not on nullptrs.
+	//if (!result)
+	//	Log::Message(Log::LT_WARNING, "Could not get value from data variable '%s'.", DataAddressToString(address).c_str());
 	return result;
 }
 
