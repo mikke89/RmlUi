@@ -753,6 +753,7 @@ private:
 
 private:
 	bool m_is_transform_enabled;
+	bool m_is_apply_to_regular_geometry_stencil;
 	bool m_is_use_scissor_specified;
 	bool m_is_use_stencil_pipeline;
 	int m_width;
@@ -786,7 +787,9 @@ private:
 	VkPipelineLayout m_p_pipeline_layout;
 	VkPipeline m_p_pipeline_with_textures;
 	VkPipeline m_p_pipeline_without_textures;
-	VkPipeline m_p_pipeline_stencil;
+	VkPipeline m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn;
+	VkPipeline m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures;
+	VkPipeline m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures;
 	VkDescriptorSet m_p_descriptor_set;
 	VkRenderPass m_p_render_pass;
 	VkSampler m_p_sampler_linear;

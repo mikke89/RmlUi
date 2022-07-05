@@ -71,12 +71,15 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 }
 
 RenderInterface_Vulkan::RenderInterface_Vulkan() :
-	m_is_transform_enabled{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false}, m_width{}, m_height{},
-	m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{}, m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{},
-	m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{},
-	m_p_swapchain{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{},
-	m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
-	m_p_pipeline_stencil{}, m_p_descriptor_set{}, m_p_render_pass{}, m_p_sampler_linear{}, m_p_allocator{}, m_p_current_command_buffer{}
+	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false},
+	m_is_use_stencil_pipeline{false}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
+	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{},
+	m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
+	m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{},
+	m_p_pipeline_without_textures{}, m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{},
+	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
+	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
+	m_p_sampler_linear{}, m_p_allocator{}, m_p_current_command_buffer{}
 {}
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
@@ -240,17 +243,34 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 
 	if (this->m_is_use_stencil_pipeline)
 	{
-		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_stencil);
+		vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			this->m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn);
 	}
 	else
 	{
 		if (p_casted_compiled_geometry->m_is_has_texture)
 		{
-			vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_with_textures);
+			if (this->m_is_apply_to_regular_geometry_stencil)
+			{
+				vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+					this->m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures);
+			}
+			else
+			{
+				vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_with_textures);
+			}
 		}
 		else
 		{
-			vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_without_textures);
+			if (this->m_is_apply_to_regular_geometry_stencil)
+			{
+				vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+					this->m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures);
+			}
+			else
+			{
+				vkCmdBindPipeline(this->m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_p_pipeline_without_textures);
+			}
 		}
 	}
 
@@ -277,10 +297,16 @@ void RenderInterface_Vulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle
 
 void RenderInterface_Vulkan::EnableScissorRegion(bool enable)
 {
+	if (this->m_is_transform_enabled)
+	{
+		this->m_is_apply_to_regular_geometry_stencil = true;
+	}
+	
 	this->m_is_use_scissor_specified = enable;
 
 	if (this->m_is_use_scissor_specified == false)
 	{
+		this->m_is_apply_to_regular_geometry_stencil = false;
 		vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor_original);
 	}
 }
@@ -310,6 +336,8 @@ void RenderInterface_Vulkan::SetScissorRegion(int x, int y, int width, int heigh
 			this->RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
 
 			this->m_is_use_stencil_pipeline = false;
+
+			this->m_is_apply_to_regular_geometry_stencil = true;
 		}
 		else
 		{
@@ -679,6 +707,8 @@ void RenderInterface_Vulkan::BeginFrame()
 
 	vkCmdBeginRenderPass(this->m_p_current_command_buffer, &info_pass, VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdSetViewport(this->m_p_current_command_buffer, 0, 1, &this->m_viewport);
+
+	this->m_is_apply_to_regular_geometry_stencil = false;
 }
 
 void RenderInterface_Vulkan::EndFrame()
@@ -1990,18 +2020,20 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 
 	info_depth.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	info_depth.pNext = nullptr;
-	info_depth.depthTestEnable = VK_TRUE;
+	info_depth.depthTestEnable = VK_FALSE;
 	info_depth.depthWriteEnable = VK_TRUE;
-	info_depth.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+	info_depth.depthBoundsTestEnable = VK_FALSE;
+	info_depth.maxDepthBounds = 1.0f;
+
+	info_depth.depthCompareOp = VK_COMPARE_OP_ALWAYS;
 
 	info_depth.stencilTestEnable = VK_TRUE;
-
 	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
 	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
 	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
-	info_depth.back.passOp = VK_STENCIL_OP_REPLACE;
-	info_depth.back.compareMask = 0xff;
-	info_depth.back.writeMask = 0xff;
+	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
 	info_depth.back.reference = 1;
 	info_depth.front = info_depth.back;
 	VkPipelineViewportStateCreateInfo info_viewport = {};
@@ -2096,25 +2128,67 @@ void RenderInterface_Vulkan::Create_Pipelines(void) noexcept
 	info.pVertexInputState = &info_vertex;
 	info.layout = this->m_p_pipeline_layout;
 	info.renderPass = this->m_p_render_pass;
+	info.subpass = 0;
 
 	auto status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_with_textures);
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
 
+	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareOp = VK_COMPARE_OP_EQUAL;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
+
+	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr,
+		&this->m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
 	info_shader.module = this->m_shaders[static_cast<int>(shader_id_t::kShaderID_Pixel_WithoutTextures)];
 	shaders_that_will_be_used_in_pipeline[1] = info_shader;
+	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
 
 	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_without_textures);
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
 
+	info_depth.back.passOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	info_depth.back.compareOp = VK_COMPARE_OP_EQUAL;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
+	info_depth.back.reference = 1;
+	info_depth.front = info_depth.back;
+
+	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr,
+		&this->m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures);
+
+	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+	info_color_blend_att.colorWriteMask = 0x0;
 	info_depth.back.passOp = VK_STENCIL_OP_REPLACE;
 	info_depth.back.failOp = VK_STENCIL_OP_KEEP;
 	info_depth.back.depthFailOp = VK_STENCIL_OP_KEEP;
 	info_depth.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	info_depth.back.compareMask = 1;
+	info_depth.back.writeMask = 1;
+	info_depth.back.reference = 1;
 	info_depth.front = info_depth.back;
 
-	status = vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_stencil);
+	status =
+		vkCreateGraphicsPipelines(this->m_p_device, nullptr, 1, &info, nullptr, &this->m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn);
 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
 }
@@ -2458,7 +2532,9 @@ void RenderInterface_Vulkan::Destroy_Pipelines(void) noexcept
 
 	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_with_textures, nullptr);
 	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_without_textures, nullptr);
-	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_stencil, nullptr);
+	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn, nullptr);
+	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures, nullptr);
+	vkDestroyPipeline(this->m_p_device, this->m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures, nullptr);
 }
 
 void RenderInterface_Vulkan::DestroyDescriptorSets(void) noexcept {}
