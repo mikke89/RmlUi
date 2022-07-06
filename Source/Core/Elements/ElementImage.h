@@ -119,7 +119,7 @@ private:
 
 	// The rectangle extracted from the sprite or 'rect' attribute. The rect_source will be None if
 	// these have not been specified or are invalid.
-	Rectangle rect;
+	Rectanglef rect;
 	enum class RectSource { None, Attribute, Sprite } rect_source;
 
 	// The geometry used to render this element.

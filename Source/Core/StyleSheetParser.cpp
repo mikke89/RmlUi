@@ -142,17 +142,17 @@ public:
 			if (!specification.ParseShorthandDeclaration(properties, id_rectangle, value))
 				return false;
 
-			Rectangle rectangle;
+			Vector2f position, size;
 			if (auto property = properties.GetProperty(id_rx))
-				rectangle.x = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
+				position.x = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
 			if (auto property = properties.GetProperty(id_ry))
-				rectangle.y = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
+				position.y = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
 			if (auto property = properties.GetProperty(id_rw))
-				rectangle.width = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
+				size.x = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
 			if (auto property = properties.GetProperty(id_rh))
-				rectangle.height = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
+				size.y = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
 
-			sprite_definitions.emplace_back(name, rectangle);
+			sprite_definitions.emplace_back(name, Rectanglef::FromPositionSize(position, size));
 		}
 
 		return true;

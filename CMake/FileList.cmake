@@ -189,6 +189,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyIdSet.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyParser.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertySpecification.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Rectangle.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScriptInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScrollTypes.h

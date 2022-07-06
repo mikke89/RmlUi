@@ -239,17 +239,9 @@ void ElementProgress::GenerateGeometry()
 	Vector2f texcoords[2];
 	if (rect_set)
 	{
-		Vector2f texture_dimensions((float)texture.GetDimensions(GetRenderInterface()).x, (float)texture.GetDimensions(GetRenderInterface()).y);
-		if (texture_dimensions.x == 0)
-			texture_dimensions.x = 1;
-		if (texture_dimensions.y == 0)
-			texture_dimensions.y = 1;
-
-		texcoords[0].x = rect.x / texture_dimensions.x;
-		texcoords[0].y = rect.y / texture_dimensions.y;
-
-		texcoords[1].x = (rect.x + rect.width) / texture_dimensions.x;
-		texcoords[1].y = (rect.y + rect.height) / texture_dimensions.y;
+		Vector2f texture_dimensions = Vector2f(Math::Max(texture.GetDimensions(GetRenderInterface()), Vector2i(1)));
+		texcoords[0] = rect.TopLeft() / texture_dimensions;
+		texcoords[1] = rect.BottomRight() / texture_dimensions;
 	}
 	else
 	{

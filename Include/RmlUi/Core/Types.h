@@ -52,6 +52,7 @@ enum class Character : char32_t { Null, Replacement = 0xfffd };
 #include "Vector2.h"
 #include "Vector3.h"
 #include "Vector4.h"
+#include "Rectangle.h"
 #include "Matrix4.h"
 #include "ObserverPtr.h"
 
@@ -67,6 +68,8 @@ using Vector3i = Vector3< int >;
 using Vector3f = Vector3< float >;
 using Vector4i = Vector4< int >;
 using Vector4f = Vector4< float >;
+using Rectanglei = Rectangle< int >;
+using Rectanglef = Rectangle< float >;
 using ColumnMajorMatrix4f = Matrix4< float, ColumnMajorStorage< float > >;
 using RowMajorMatrix4f = Matrix4< float, RowMajorStorage< float > >;
 using Matrix4f = RMLUI_MATRIX4_TYPE;
@@ -87,7 +90,6 @@ struct Animation;
 struct Transition;
 struct TransitionList;
 struct DecoratorDeclarationList;
-struct Rectangle;
 enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
 enum class MediaQueryId : uint8_t;

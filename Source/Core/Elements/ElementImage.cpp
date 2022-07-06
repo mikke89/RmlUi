@@ -59,11 +59,11 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 
 	// Calculate the x dimension.
 	if (HasAttribute("width"))
-		dimensions.x = GetAttribute< float >("width", -1);
+		dimensions.x = GetAttribute<float>("width", -1);
 	else if (rect_source == RectSource::None)
 		dimensions.x = (float)texture.GetDimensions(GetRenderInterface()).x;
 	else
-		dimensions.x = rect.width;
+		dimensions.x = rect.Width();
 
 	// Calculate the y dimension.
 	if (HasAttribute("height"))
@@ -71,7 +71,7 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 	else if (rect_source == RectSource::None)
 		dimensions.y = (float)texture.GetDimensions(GetRenderInterface()).y;
 	else
-		dimensions.y = rect.height;
+		dimensions.y = rect.Height();
 
 	dimensions *= dimensions_scale;
 
@@ -190,17 +190,9 @@ void ElementImage::GenerateGeometry()
 	Vector2f texcoords[2];
 	if (rect_source != RectSource::None)
 	{
-		Vector2f texture_dimensions((float) texture.GetDimensions(GetRenderInterface()).x, (float) texture.GetDimensions(GetRenderInterface()).y);
-		if (texture_dimensions.x == 0)
-			texture_dimensions.x = 1;
-		if (texture_dimensions.y == 0)
-			texture_dimensions.y = 1;
-
-		texcoords[0].x = rect.x / texture_dimensions.x;
-		texcoords[0].y = rect.y / texture_dimensions.y;
-
-		texcoords[1].x = (rect.x + rect.width) / texture_dimensions.x;
-		texcoords[1].y = (rect.y + rect.height) / texture_dimensions.y;
+		Vector2f texture_dimensions = Vector2f(Math::Max(texture.GetDimensions(GetRenderInterface()), Vector2i(1)));
+		texcoords[0] = rect.TopLeft() / texture_dimensions;
+		texcoords[1] = rect.BottomRight() / texture_dimensions;
 	}
 	else
 	{
@@ -305,10 +297,9 @@ void ElementImage::UpdateRect()
 			}
 			else
 			{
-				rect.x = (float)std::atof(coords_list[0].c_str());
-				rect.y = (float)std::atof(coords_list[1].c_str());
-				rect.width = (float)std::atof(coords_list[2].c_str());
-				rect.height = (float)std::atof(coords_list[3].c_str());
+				const Vector2f position = {FromString(coords_list[0], 0.f), FromString(coords_list[1], 0.f)};
+				const Vector2f size = {FromString(coords_list[2], 0.f), FromString(coords_list[3], 0.f)};
+				rect = Rectanglef::FromPositionSize(position, size);
 
 				// We have new, valid coordinates; force the geometry to be regenerated.
 				valid_rect = true;

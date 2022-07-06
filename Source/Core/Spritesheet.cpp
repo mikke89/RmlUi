@@ -55,7 +55,7 @@ bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_sou
 	for (auto& sprite_definition : sprite_definitions)
 	{
 		const String& sprite_name = sprite_definition.first;
-		const Rectangle& sprite_rectangle = sprite_definition.second;
+		const Rectanglef& sprite_rectangle = sprite_definition.second;
 
 		Sprite& new_sprite = sprite_map[sprite_name];
 		if (new_sprite.sprite_sheet)

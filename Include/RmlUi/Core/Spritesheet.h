@@ -35,14 +35,8 @@ namespace Rml {
 
 struct Spritesheet;
 
-
-struct Rectangle {
-	Rectangle(float x = 0, float y = 0, float width = 0, float height = 0) : x(x), y(y), width(width), height(height) {}
-	float x, y, width, height;
-};
-
 struct Sprite {
-	Rectangle rectangle; // in 'px' units
+	Rectanglef rectangle; // in 'px' units
 	const Spritesheet* sprite_sheet;
 };
 using SpriteMap = UnorderedMap<String, Sprite>; // key: sprite name (as given in @spritesheet)
@@ -63,7 +57,7 @@ struct Spritesheet {
 		int definition_line_number, float display_scale, const Texture& texture);
 };
 
-using SpriteDefinitionList = Vector<Pair<String, Rectangle>>; // Sprite name and rectangle
+using SpriteDefinitionList = Vector<Pair<String, Rectanglef>>; // Sprite name and rectangle
 
 
 /**

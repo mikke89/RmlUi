@@ -111,7 +111,7 @@ private:
 	Texture texture;
 
 	// The rectangle extracted from a sprite, 'rect_set' controls whether it is active.
-	Rectangle rect;
+	Rectanglef rect;
 	bool rect_set;
 
 	// The geometry used to render this element. Only applies if the 'fill-image' property is set.

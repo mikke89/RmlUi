@@ -43,7 +43,7 @@ DecoratorNinePatch::~DecoratorNinePatch()
 {
 }
 
-bool DecoratorNinePatch::Initialise(const Rectangle& _rect_outer, const Rectangle& _rect_inner, const Array<Property, 4>* _edges, const Texture& _texture, float _display_scale)
+bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectanglef& _rect_inner, const Array<Property, 4>* _edges, const Texture& _texture, float _display_scale)
 {
 	rect_outer = _rect_outer;
 	rect_inner = _rect_inner;
@@ -79,11 +79,12 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	/* In the following, we operate on the four diagonal vertices in the grid, as they define the whole grid. */
 
 	// Absolute texture coordinates 'px'
-	Vector2f tex_pos[4];
-	tex_pos[0] = { rect_outer.x,                    rect_outer.y };
-	tex_pos[1] = { rect_inner.x,                    rect_inner.y };
-	tex_pos[2] = { rect_inner.x + rect_inner.width, rect_inner.y + rect_inner.height };
-	tex_pos[3] = { rect_outer.x + rect_outer.width, rect_outer.y + rect_outer.height };
+	Vector2f tex_pos[4] = {
+		rect_outer.TopLeft(),
+		rect_inner.TopLeft(),
+		rect_inner.BottomRight(),
+		rect_outer.BottomRight(),
+	};
 
 	// Normalized texture coordinates [0, 1]
 	Vector2f tex_coords[4];

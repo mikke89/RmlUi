@@ -110,10 +110,8 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		// A tile is always either a sprite or an image.
 		if (const Sprite * sprite = instancer_interface.GetSprite(texture_name))
 		{
-			tile.position.x = sprite->rectangle.x;
-			tile.position.y = sprite->rectangle.y;
-			tile.size.x = sprite->rectangle.width;
-			tile.size.y = sprite->rectangle.height;
+			tile.position = sprite->rectangle.Position();
+			tile.size = sprite->rectangle.Size();
 			tile.display_scale = sprite->sprite_sheet->display_scale;
 
 			texture = sprite->sprite_sheet->texture;
