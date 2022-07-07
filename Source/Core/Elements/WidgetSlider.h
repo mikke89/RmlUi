@@ -123,11 +123,8 @@ private:
 
 	void PositionBar();
 
-	/// Clamps the new value, sets it on the slider and returns it as a number from 0 to 1, 0 being the minimum
-	/// value and 1 the maximum.
-	/// @param[in] new_value The new value to set on the slider.
-	/// @return The new parametric value of the slider.
-	float SetValueInternal(float new_value);
+	// Clamps the new value, sets it on the slider and returns it as a normalized number from 0 to 1.
+	float SetValueInternal(float new_value, bool force_submit_change_event = true);
 
     ElementFormControl* parent;
 

@@ -209,13 +209,21 @@ float WidgetSlider::GetValue() const
 // Sets the minimum value of the slider.
 void WidgetSlider::SetMinValue(float _min_value)
 {
-	min_value = _min_value;
+	if (_min_value != min_value)
+	{
+		min_value = _min_value;
+		SetBarPosition(SetValueInternal(value, false));
+	}
 }
 
 // Sets the maximum value of the slider.
 void WidgetSlider::SetMaxValue(float _max_value)
 {
-	max_value = _max_value;
+	if (_max_value != max_value)
+	{
+		max_value = _max_value;
+		SetBarPosition(SetValueInternal(value, false));
+	}
 }
 
 // Sets the slider's value increment.
@@ -569,7 +577,7 @@ void WidgetSlider::PositionBar()
 }
 
 // Clamps the new value, sets it on the slider.
-float WidgetSlider::SetValueInternal(float new_value)
+float WidgetSlider::SetValueInternal(float new_value, bool force_submit_change_event)
 {
 	if (min_value < max_value)
 	{
@@ -585,11 +593,16 @@ float WidgetSlider::SetValueInternal(float new_value)
 		return 0;
 	}
 
-	Dictionary parameters;
-	parameters["value"] = value;
-	GetParent()->DispatchEvent(EventId::Change, parameters);
+	const bool value_changed = (value != GetParent()->GetAttribute("value", 0.0f));
 
-	if (value != GetParent()->GetAttribute("value", 0.0f))
+	if (force_submit_change_event || value_changed)
+	{
+		Dictionary parameters;
+		parameters["value"] = value;
+		GetParent()->DispatchEvent(EventId::Change, parameters);
+	}
+
+	if (value_changed)
 		GetParent()->SetAttribute("value", value);
 
 	return (value - min_value) / (max_value - min_value);
