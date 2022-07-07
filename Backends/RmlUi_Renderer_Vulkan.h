@@ -701,6 +701,10 @@ private:
 	Rml::Vector<RenderInterface_Vulkan::shader_data_t> LoadShaders(void) noexcept;
 
 	VkExtent2D Choose_ValidSwapchainExtent(void) noexcept;
+
+	// true = means the extent is valid; otherwise it is invalid.
+	bool Check_IfSwapchainExtentValid(void)  noexcept;
+
 	void CreateShaders(const Rml::Vector<shader_data_t>& storage) noexcept;
 	void CreateDescriptorSetLayout(Rml::Vector<shader_data_t>& storage) noexcept;
 	Rml::Vector<VkDescriptorSetLayoutBinding> CreateDescriptorSetLayoutBindings(shader_data_t& data) noexcept;
@@ -756,6 +760,10 @@ private:
 	bool m_is_apply_to_regular_geometry_stencil;
 	bool m_is_use_scissor_specified;
 	bool m_is_use_stencil_pipeline;
+	bool m_is_can_render;
+
+	// should we rebuild them
+	bool m_is_swapchain_images_dirty;
 	int m_width;
 	int m_height;
 

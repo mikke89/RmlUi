@@ -71,13 +71,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 }
 
 RenderInterface_Vulkan::RenderInterface_Vulkan() :
-	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false},
-	m_is_use_stencil_pipeline{false}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
-	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{},
-	m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
-	m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{},
-	m_p_pipeline_without_textures{}, m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{},
-	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
+	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false},
+	m_is_can_render{true}, m_is_swapchain_images_dirty{true}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{},
+	m_queue_index_compute{}, m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{},
+	m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_queue_present{},
+	m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{},
+	m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
+	m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{}, m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
 	m_p_sampler_linear{}, m_p_allocator{}, m_p_current_command_buffer{}
 {}
@@ -162,6 +162,9 @@ Rml::CompiledGeometryHandle RenderInterface_Vulkan::CompileGeometry(Rml::Vertex*
 void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation)
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderCompiledGeometry");
+
+	if (this->m_is_can_render == false || this->m_p_current_command_buffer == nullptr)
+		return;
 
 	VK_ASSERT(this->m_p_current_command_buffer, "must be valid otherwise you can't render now!!! (can't be)");
 
@@ -297,11 +300,14 @@ void RenderInterface_Vulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle
 
 void RenderInterface_Vulkan::EnableScissorRegion(bool enable)
 {
+	if (this->m_is_can_render == false || this->m_p_current_command_buffer == nullptr)
+		return;
+
 	if (this->m_is_transform_enabled)
 	{
 		this->m_is_apply_to_regular_geometry_stencil = true;
 	}
-	
+
 	this->m_is_use_scissor_specified = enable;
 
 	if (this->m_is_use_scissor_specified == false)
@@ -660,11 +666,28 @@ void RenderInterface_Vulkan::SetTransform(const Rml::Matrix4f* transform)
 
 void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height)
 {
+	// we get a calling from outside, so it is honest resize
+	if (this->m_is_swapchain_images_dirty == false)
+		this->m_is_swapchain_images_dirty = true;
+
 	this->OnResize(viewport_width, viewport_height);
 }
 
 void RenderInterface_Vulkan::BeginFrame()
 {
+	if (this->m_is_can_render == false)
+	{
+		this->m_is_can_render = this->Check_IfSwapchainExtentValid();
+		return;
+	}
+
+	if (this->m_is_swapchain_images_dirty) 
+	{
+		// supposed that if we just minimized the size was the same
+		this->SetViewport(this->m_width, this->m_height);
+		return;
+	}
+
 	this->m_command_list.OnBeginFrame();
 	this->Wait();
 
@@ -713,6 +736,9 @@ void RenderInterface_Vulkan::BeginFrame()
 
 void RenderInterface_Vulkan::EndFrame()
 {
+	if (this->m_is_can_render == false || this->m_p_current_command_buffer == nullptr || this->m_is_swapchain_images_dirty)
+		return;
+
 	vkCmdEndRenderPass(this->m_p_current_command_buffer);
 
 	auto status = vkEndCommandBuffer(this->m_p_current_command_buffer);
@@ -784,14 +810,33 @@ void RenderInterface_Vulkan::OnResize(int width, int height) noexcept
 	this->m_width = width;
 	this->m_height = height;
 
-	if (this->m_p_swapchain)
+	auto extent = this->Choose_ValidSwapchainExtent();
+
+	if (extent.width == 0 || extent.height == 0) 
 	{
-		this->Destroy_Swapchain();
-		this->DestroyResourcesDependentOnSize();
+		this->m_is_can_render = false;
+		this->m_is_swapchain_images_dirty = true;
+	}
+	else
+	{
+		this->m_is_can_render = true;
 	}
 
-	this->Initialize_Swapchain();
-	this->CreateResourcesDependentOnSize();
+
+	if (this->m_is_can_render == false)
+		return;
+
+	if (this->m_is_swapchain_images_dirty) 
+	{
+		if (this->m_p_swapchain)
+		{
+			this->Destroy_Swapchain();
+			this->DestroyResourcesDependentOnSize();
+		}
+
+		this->Initialize_Swapchain();
+		this->CreateResourcesDependentOnSize();
+	}
 }
 
 void RenderInterface_Vulkan::Initialize_Instance(void) noexcept
@@ -1789,6 +1834,12 @@ Rml::Vector<RenderInterface_Vulkan::shader_data_t> RenderInterface_Vulkan::LoadS
 	return result;
 }
 
+bool RenderInterface_Vulkan::Check_IfSwapchainExtentValid(void) noexcept
+{
+	auto swapchain_extent = this->Choose_ValidSwapchainExtent();
+	return (swapchain_extent.width != 0 && swapchain_extent.height != 0);
+}
+
 void RenderInterface_Vulkan::CreateShaders(const Rml::Vector<shader_data_t>& storage) noexcept
 {
 	VK_ASSERT(storage.empty() == false, "[Vulkan] you must load shaders before creating resources");
@@ -2383,6 +2434,8 @@ void RenderInterface_Vulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->CreateRenderPass();
 	this->CreateSwapchainFrameBuffers();
 	this->Create_Pipelines();
+
+	this->m_is_swapchain_images_dirty = false;
 }
 
 RenderInterface_Vulkan::buffer_data_t RenderInterface_Vulkan::CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept
@@ -2643,6 +2696,9 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 	VK_ASSERT(this->m_p_device, "you must initialize device");
 	VK_ASSERT(this->m_p_swapchain, "you must initialize swapchain");
 
+	if (this->m_is_swapchain_images_dirty)
+		return;
+
 	constexpr uint64_t kMaxUint64 = std::numeric_limits<uint64_t>::max();
 
 	auto status = vkAcquireNextImageKHR(this->m_p_device, this->m_p_swapchain, kMaxUint64,
@@ -2667,6 +2723,9 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 
 void RenderInterface_Vulkan::Update_PendingForDeletion_Textures_By_Frames(void) noexcept
 {
+	if (this->m_is_can_render == false)
+		return;
+
 	auto& textures_for_previous_frame = this->m_pending_for_deletion_textures_by_frames.at(this->m_semaphore_index_previous);
 
 	for (auto* p_data : textures_for_previous_frame)
@@ -2690,6 +2749,9 @@ void RenderInterface_Vulkan::Update_PendingForDeletion_Textures_By_Frames(void) 
 
 void RenderInterface_Vulkan::Update_PendingForDeletion_Geometries(void) noexcept
 {
+	if (this->m_is_can_render == false)
+		return;
+
 	for (auto* p_geometry_handle : this->m_pending_for_deletion_geometries)
 	{
 		this->m_memory_pool.Free_GeometryHandle(p_geometry_handle);
