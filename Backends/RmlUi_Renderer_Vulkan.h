@@ -523,9 +523,13 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		{
 			RMLUI_ASSERTMSG(p_device, "you can't pass an invalid VkDevice here");
 
-			const VkDescriptorPoolSize sizes[] = {{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, count_uniform_buffer},
-				{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, count_uniform_buffer}, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count_image_sampler},
-				{VK_DESCRIPTOR_TYPE_SAMPLER, count_sampler}, {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count_storage_buffer}};
+			Rml::Array<VkDescriptorPoolSize, 5> sizes;
+
+			sizes[0] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, count_uniform_buffer};
+			sizes[1] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, count_uniform_buffer};
+			sizes[2] = {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count_image_sampler};
+			sizes[3] = {VK_DESCRIPTOR_TYPE_SAMPLER, count_sampler};
+			sizes[4] = {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count_storage_buffer};
 
 			VkDescriptorPoolCreateInfo info = {};
 
@@ -533,8 +537,8 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 			info.pNext = nullptr;
 			info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 			info.maxSets = 1000;
-			info.poolSizeCount = _countof(sizes);
-			info.pPoolSizes = sizes;
+			info.poolSizeCount = static_cast<uint32_t>(sizes.size());
+			info.pPoolSizes = sizes.data();
 
 			auto status = vkCreateDescriptorPool(p_device, &info, nullptr, &this->m_p_descriptor_pool);
 
@@ -709,7 +713,7 @@ private:
 	VkExtent2D Choose_ValidSwapchainExtent(void) noexcept;
 
 	// true = means the extent is valid; otherwise it is invalid.
-	bool Check_IfSwapchainExtentValid(void)  noexcept;
+	bool Check_IfSwapchainExtentValid(void) noexcept;
 
 	void CreateShaders(const Rml::Vector<shader_data_t>& storage) noexcept;
 	void CreateDescriptorSetLayout(Rml::Vector<shader_data_t>& storage) noexcept;
@@ -818,6 +822,11 @@ private:
 
 	VkDebugReportCallbackEXT m_debug_report_callback_instance;
 
+	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
+	VkSurfaceFormatKHR m_swapchain_format;
+	shader_vertex_user_data_t m_user_data_for_vertex_shader;
+	texture_data_t m_texture_depthstencil;
+
 	Rml::Matrix4f m_projection;
 	Rml::Vector<PhysicalDeviceWrapper> m_physical_devices;
 	Rml::Vector<VkLayerProperties> m_instance_layer_properties;
@@ -842,18 +851,12 @@ private:
 	// vma handles that thing, so there's no need for frame splitting
 	Rml::Vector<geometry_handle_t*> m_pending_for_deletion_geometries;
 
-	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
-	VkSurfaceFormatKHR m_swapchain_format;
-
-#pragma region Resources
+#pragma region Managers
 	CommandListRing m_command_list;
 	MemoryPool m_memory_pool;
-#pragma endregion
-
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
-	shader_vertex_user_data_t m_user_data_for_vertex_shader;
-	texture_data_t m_texture_depthstencil;
+#pragma endregion
 };
 
 #endif

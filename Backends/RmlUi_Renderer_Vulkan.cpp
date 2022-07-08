@@ -35,17 +35,22 @@
 #include <RmlUi/Core/Profiling.h>
 #include <string.h>
 
-#define VK_ASSERT(statement, msg, ...)                                 \
-	{                                                                  \
-		RMLUI_ASSERT(statement);                                       \
-		if (!!(statement) == false)                                    \
-			Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
-	}
+#ifdef RMLUI_DEBUG
+	#define VK_ASSERT(statement, msg, ...)                                 \
+		{                                                                  \
+			RMLUI_ASSERT(statement);                                       \
+			if (!!(statement) == false)                                    \
+				Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
+		}
+#else
+	#define VK_ASSERT(statement, msg, ...) statement;
+#endif
 
 VkValidationFeaturesEXT debug_validation_features_ext = {};
 VkValidationFeatureEnableEXT debug_validation_features_ext_requested[] = {VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
 	VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT, VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
 
+#ifdef RMLUI_DEBUG
 static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT /*objectType*/,
 	uint64_t /*object*/, size_t /*location*/, int32_t /*messageCode*/, const char* /*pLayerPrefix*/, const char* pMessage, void* /*pUserData*/)
 {
@@ -54,7 +59,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 		return VK_FALSE;
 	}
 
-#ifdef RMLUI_DEBUG
 	#ifdef RMLUI_PLATFORM_WIN32
 	if (flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_ERROR_BIT_EXT)
 	{
@@ -65,21 +69,23 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 	#endif
 
 	Rml::Log::Message(Rml::Log::LT_ERROR, "[Vulkan][VALIDATION] %s ", pMessage);
-#endif
 
 	return VK_FALSE;
 }
+#endif
 
 RenderInterface_Vulkan::RenderInterface_Vulkan() :
 	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false},
-	m_is_can_render{true}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{},
-	m_queue_index_compute{}, m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{},
-	m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_queue_present{},
-	m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{},
-	m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
-	m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{}, m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
+	m_is_can_render{true}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{}, m_semaphore_index{},
+	m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{},
+	m_p_physical_device_current{}, m_current_physical_device_properties{}, m_p_surface{}, m_p_swapchain{}, m_p_allocator{},
+	m_p_current_command_buffer{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{},
+	m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{}, m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{},
+	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
-	m_p_sampler_linear{}, m_p_allocator{}, m_p_current_command_buffer{}
+	m_p_sampler_linear{}, m_scissor{}, m_scissor_original{}, m_viewport{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
+	m_debug_report_callback_instance{}, m_physical_device_current_memory_properties{}, m_swapchain_format{}, m_user_data_for_vertex_shader{},
+	m_texture_depthstencil{}, m_projection{}
 {}
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
@@ -801,9 +807,9 @@ void RenderInterface_Vulkan::OnWindowRestored(void)
 	auto extent = this->Choose_ValidSwapchainExtent();
 
 #ifdef RMLUI_DEBUG
-	VK_ASSERT(extent.width == this->m_width,
+	VK_ASSERT(extent.width == static_cast<uint32_t>(this->m_width),
 		"So logically we just restored the window and we didn't resize at all, possible something is wrong, but just ignore this");
-	VK_ASSERT(extent.height == this->m_height,
+	VK_ASSERT(extent.height == static_cast<uint32_t>(this->m_height),
 		"So logically we just restored the window and we didn't resize at all, possible something is wrong, but just ignore this");
 #endif
 
@@ -1585,6 +1591,7 @@ void RenderInterface_Vulkan::CreateReportDebugCallback(void) noexcept
 
 void RenderInterface_Vulkan::Destroy_ReportDebugCallback(void) noexcept
 {
+#ifdef RMLUI_DEBUG
 	PFN_vkDestroyDebugReportCallbackEXT p_destroy_callback =
 		reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(this->m_p_instance, "vkDestroyDebugReportCallbackEXT"));
 
@@ -1592,6 +1599,7 @@ void RenderInterface_Vulkan::Destroy_ReportDebugCallback(void) noexcept
 	{
 		p_destroy_callback(this->m_p_instance, this->m_debug_report_callback_instance, nullptr);
 	}
+#endif
 }
 
 uint32_t RenderInterface_Vulkan::GetUserAPIVersion(void) const noexcept
@@ -3182,8 +3190,8 @@ void RenderInterface_Vulkan::MemoryRingAllocatorWithTabs::OnBeginFrame(void) noe
 }
 
 RenderInterface_Vulkan::MemoryPool::MemoryPool(void) :
-	m_memory_gpu_data_total{}, m_memory_total_size{}, m_memory_gpu_data_one_object{}, m_min_alignment_for_uniform_buffer{}, m_p_data{},
-	m_p_physical_device_current_properties{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}, m_p_block{}
+	m_memory_gpu_data_total{}, m_memory_total_size{}, m_memory_gpu_data_one_object{}, m_min_alignment_for_uniform_buffer{}, m_p_data{}, m_p_buffer{},
+	m_p_physical_device_current_properties{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{}, m_p_block{}
 {}
 
 RenderInterface_Vulkan::MemoryPool::~MemoryPool(void) {}
