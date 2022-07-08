@@ -43,7 +43,7 @@
 				Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
 		}
 #else
-	#define VK_ASSERT(statement, msg, ...) RMLUI_UNUSED(statement);
+	#define VK_ASSERT(statement, msg, ...)
 #endif
 
 VkValidationFeaturesEXT debug_validation_features_ext = {};

@@ -74,10 +74,10 @@ bool RMLUICORE_API Assert(const char* message, const char* file, int line);
 #if !defined RMLUI_DEBUG
 
 	#define RMLUI_ASSERT(x)
-	#define RMLUI_ASSERTMSG(x, m) RMLUI_UNUSED(x);
+	#define RMLUI_ASSERTMSG(x, m) x
 	#define RMLUI_ERROR
 	#define RMLUI_ERRORMSG(m)
-	#define RMLUI_VERIFY(x) RMLUI_UNUSED(x);
+	#define RMLUI_VERIFY(x) x
 	#define RMLUI_ASSERT_NONRECURSIVE
 
 #else
