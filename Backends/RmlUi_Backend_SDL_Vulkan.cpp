@@ -126,8 +126,8 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 		case SDL_QUIT:
 		{
 			result = false;
+			break;
 		}
-		break;
 		case SDL_KEYDOWN:
 		{
 			const Rml::Input::KeyIdentifier key = RmlSDL::ConvertKey(ev.key.keysym.sym);
@@ -143,8 +143,9 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
 			if (key_down_callback && !key_down_callback(context, key, key_modifier, native_dp_ratio, false))
 				break;
+
+			break;
 		}
-		break;
 		case SDL_WINDOWEVENT:
 		{
 			switch (ev.window.event)
@@ -154,16 +155,42 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 				Rml::Vector2i dimensions(ev.window.data1, ev.window.data2);
 				context->SetDimensions(dimensions);
 				data->render_interface.SetViewport(dimensions.x, dimensions.y);
+				break;
 			}
+			case SDL_WINDOWEVENT_MINIMIZED:
+			{
+				data->render_interface.OnWindowMinimize();
+				break;
+			}
+			case SDL_WINDOWEVENT_MAXIMIZED:
+			{
+				data->render_interface.OnWindowMaximize();
+				break;
+			}
+			case SDL_WINDOWEVENT_HIDDEN:
+			{
+				data->render_interface.OnWindowHidden();
+				break;
+			}
+			case SDL_WINDOWEVENT_SHOWN:
+			{
+				data->render_interface.OnWindowShown();
+				break;
+			}
+			case SDL_WINDOWEVENT_RESTORED:
+			{
+				data->render_interface.OnWindowRestored();
+				break;
+			}
+			}
+
 			break;
-			}
 		}
-		break;
 		default:
 		{
 			RmlSDL::InputEventHandler(context, ev);
+			break;
 		}
-		break;
 		}
 	}
 

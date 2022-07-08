@@ -647,6 +647,12 @@ public:
 	// Example: ConvertValueToMegabytes(50) returns 50 * 1024 * 1024 = 52428800 BYTES!!!!
 	static VkDeviceSize ConvertMegabytesToBytes(VkDeviceSize value_shows_megabytes) noexcept { return value_shows_megabytes * 1024 * 1024; }
 
+	void OnWindowMinimize(void) override;
+	void OnWindowRestored(void) override;
+	void OnWindowMaximize(void) override;
+	void OnWindowHidden(void) override;
+	void OnWindowShown(void) override;
+
 #pragma region New Methods
 private:
 	void OnResize(int width, int height) noexcept;
@@ -762,8 +768,6 @@ private:
 	bool m_is_use_stencil_pipeline;
 	bool m_is_can_render;
 
-	// should we rebuild them
-	bool m_is_swapchain_images_dirty;
 	int m_width;
 	int m_height;
 

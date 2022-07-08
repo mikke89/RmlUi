@@ -72,7 +72,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 
 RenderInterface_Vulkan::RenderInterface_Vulkan() :
 	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false},
-	m_is_can_render{true}, m_is_swapchain_images_dirty{true}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{},
+	m_is_can_render{true}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{},
 	m_queue_index_compute{}, m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{},
 	m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{}, m_p_surface{}, m_p_swapchain{}, m_p_queue_present{},
 	m_p_queue_graphics{}, m_p_queue_compute{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{},
@@ -666,27 +666,13 @@ void RenderInterface_Vulkan::SetTransform(const Rml::Matrix4f* transform)
 
 void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height)
 {
-	// we get a calling from outside, so it is honest resize
-	if (this->m_is_swapchain_images_dirty == false)
-		this->m_is_swapchain_images_dirty = true;
-
 	this->OnResize(viewport_width, viewport_height);
 }
 
 void RenderInterface_Vulkan::BeginFrame()
 {
 	if (this->m_is_can_render == false)
-	{
-		this->m_is_can_render = this->Check_IfSwapchainExtentValid();
 		return;
-	}
-
-	if (this->m_is_swapchain_images_dirty) 
-	{
-		// supposed that if we just minimized the size was the same
-		this->SetViewport(this->m_width, this->m_height);
-		return;
-	}
 
 	this->m_command_list.OnBeginFrame();
 	this->Wait();
@@ -736,7 +722,7 @@ void RenderInterface_Vulkan::BeginFrame()
 
 void RenderInterface_Vulkan::EndFrame()
 {
-	if (this->m_is_can_render == false || this->m_p_current_command_buffer == nullptr || this->m_is_swapchain_images_dirty)
+	if (this->m_is_can_render == false || this->m_p_current_command_buffer == nullptr)
 		return;
 
 	vkCmdEndRenderPass(this->m_p_current_command_buffer);
@@ -801,6 +787,48 @@ void RenderInterface_Vulkan::Shutdown()
 	gladLoaderUnloadVulkan();
 }
 
+void RenderInterface_Vulkan::OnWindowMinimize(void)
+{
+	this->m_is_can_render = false;
+}
+
+void RenderInterface_Vulkan::OnWindowRestored(void)
+{
+	// needs to resize when the driver obtained the extent for swapchain it is not right to pass this->m_width & this->m_height, because they could be
+	// invalid and can be different with extent, of course it supposed that those m_width and m_height must be the same as extent, but can't be sure
+	// that it will be always. Maybe window manager of OS will alter something, or driver will act strangely, so it is better to pass what driver
+	// wants otherwise it is just not right.
+	auto extent = this->Choose_ValidSwapchainExtent();
+
+#ifdef RMLUI_DEBUG
+	VK_ASSERT(extent.width == this->m_width,
+		"So logically we just restored the window and we didn't resize at all, possible something is wrong, but just ignore this");
+	VK_ASSERT(extent.height == this->m_height,
+		"So logically we just restored the window and we didn't resize at all, possible something is wrong, but just ignore this");
+#endif
+
+	this->SetViewport(extent.width, extent.height);
+
+	this->m_is_can_render = true;
+}
+
+void RenderInterface_Vulkan::OnWindowMaximize(void)
+{
+	// nothing but well why not...
+	// when we maximize resizing is commited and it means it goes through regular pipeline when we just resize the window
+	// so it means we don't need to handle something here, but if the user wants to alter or implement something we provide a such callbcack
+}
+
+void RenderInterface_Vulkan::OnWindowHidden(void)
+{
+	this->m_is_can_render = false;
+}
+
+void RenderInterface_Vulkan::OnWindowShown(void)
+{
+	this->m_is_can_render = true;
+}
+
 void RenderInterface_Vulkan::OnResize(int width, int height) noexcept
 {
 	auto status = vkDeviceWaitIdle(this->m_p_device);
@@ -812,31 +840,26 @@ void RenderInterface_Vulkan::OnResize(int width, int height) noexcept
 
 	auto extent = this->Choose_ValidSwapchainExtent();
 
-	if (extent.width == 0 || extent.height == 0) 
+	if (extent.width == 0 || extent.height == 0)
 	{
 		this->m_is_can_render = false;
-		this->m_is_swapchain_images_dirty = true;
 	}
 	else
 	{
 		this->m_is_can_render = true;
 	}
 
-
 	if (this->m_is_can_render == false)
 		return;
 
-	if (this->m_is_swapchain_images_dirty) 
+	if (this->m_p_swapchain)
 	{
-		if (this->m_p_swapchain)
-		{
-			this->Destroy_Swapchain();
-			this->DestroyResourcesDependentOnSize();
-		}
-
-		this->Initialize_Swapchain();
-		this->CreateResourcesDependentOnSize();
+		this->Destroy_Swapchain();
+		this->DestroyResourcesDependentOnSize();
 	}
+
+	this->Initialize_Swapchain();
+	this->CreateResourcesDependentOnSize();
 }
 
 void RenderInterface_Vulkan::Initialize_Instance(void) noexcept
@@ -2434,8 +2457,6 @@ void RenderInterface_Vulkan::CreateResourcesDependentOnSize(void) noexcept
 	this->CreateRenderPass();
 	this->CreateSwapchainFrameBuffers();
 	this->Create_Pipelines();
-
-	this->m_is_swapchain_images_dirty = false;
 }
 
 RenderInterface_Vulkan::buffer_data_t RenderInterface_Vulkan::CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept
@@ -2695,9 +2716,6 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 {
 	VK_ASSERT(this->m_p_device, "you must initialize device");
 	VK_ASSERT(this->m_p_swapchain, "you must initialize swapchain");
-
-	if (this->m_is_swapchain_images_dirty)
-		return;
 
 	constexpr uint64_t kMaxUint64 = std::numeric_limits<uint64_t>::max();
 
