@@ -3442,6 +3442,7 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 #elif __GNUC__
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wall"
+	#pragma GCC diagnostic ignored "-Wextra"
 #endif
 
 #define GLAD_VULKAN_IMPLEMENTATION
