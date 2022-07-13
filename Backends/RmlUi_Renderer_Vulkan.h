@@ -75,7 +75,7 @@
 #elif __clang__
 	#pragma clang diagnostic pop
 #elif __GNUC__
-	#pramga GCC diagnostic pop
+	#pragma GCC diagnostic pop
 #endif
 
 /**

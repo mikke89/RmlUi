@@ -3455,5 +3455,5 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 #elif __clang__
 	#pragma clang diagnostic pop
 #elif __GNUC__
-	#pramga GCC diagnostic pop
+	#pragma GCC diagnostic pop
 #endif
