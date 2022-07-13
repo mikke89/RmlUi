@@ -3433,10 +3433,27 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
 }
 
-#pragma warning(push, 0)
+#ifdef _WIN32
+	#pragma warning(push, 0)
+#elif __clang__
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Wall"
+	#pragma clang diagnostic ignored "-Wextra"
+#elif __GNUC__
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wall"
+#endif
+
 #define GLAD_VULKAN_IMPLEMENTATION
 #include "RmlUi_Vulkan/vulkan.h"
 
 #define VMA_IMPLEMENTATION
 #include "RmlUi_Vulkan/vk_mem_alloc.h"
-#pragma warning(pop)
+
+#ifdef _WIN32
+	#pragma warning(pop)
+#elif __clang__
+	#pragma clang diagnostic pop
+#elif __GNUC__
+	#pramga GCC diagnostic pop
+#endif

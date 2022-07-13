@@ -153,3 +153,13 @@ void RenderInterface_SDL::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
 	SDL_DestroyTexture((SDL_Texture*)texture_handle);
 }
+
+void RenderInterface_SDL::OnWindowMinimize(void) {}
+
+void RenderInterface_SDL::OnWindowRestored(void) {}
+
+void RenderInterface_SDL::OnWindowMaximize(void) {}
+
+void RenderInterface_SDL::OnWindowHidden(void) {}
+
+void RenderInterface_SDL::OnWindowShown(void) {}

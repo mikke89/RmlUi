@@ -52,14 +52,31 @@
 	*/
 #endif
 
-#pragma warning(push, 0)
+#ifdef _WIN32
+	#pragma warning(push, 0)
+#elif __clang__
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Wall"
+	#pragma clang diagnostic ignored "-Wextra"
+#elif __GNUC__
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wall"
+#endif
+
 #include "RmlUi_Vulkan/spirv_reflect.h"
 #include "RmlUi_Vulkan/vulkan.h"
 
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #include "RmlUi_Vulkan/vk_mem_alloc.h"
-#pragma warning(pop)
+
+#ifdef _WIN32
+	#pragma warning(pop)
+#elif __clang__
+	#pragma clang diagnostic pop
+#elif __GNUC__
+	#pramga GCC diagnostic pop
+#endif
 
 /**
  * Low level Vulkan render interface for RmlUi
@@ -80,12 +97,9 @@
  * @author wh1t3lord
  */
 
-#pragma region System Constants for Vulkan API
 constexpr uint32_t kSwapchainBackBufferCount = 3;
-
 // This value goes to function that converts to Mbs, it is like N * 1024 * 1024
 constexpr uint32_t kVideoMemoryForAllocation = 4;
-#pragma endregion
 
 class RenderInterface_Vulkan : public Rml::RenderInterface {
 	enum class shader_type_t : int { kShaderType_Vertex, kShaderType_Pixel, kShaderType_Unknown = -1 };
@@ -659,7 +673,6 @@ public:
 	void OnWindowHidden(void) override;
 	void OnWindowShown(void) override;
 
-#pragma region New Methods
 private:
 	void OnResize(int width, int height) noexcept;
 
@@ -765,7 +778,6 @@ private:
 	uint32_t Get_CurrentDescriptorID(void) const noexcept { return this->m_current_descriptor_id; }
 
 	VkFormat Get_SupportedDepthFormat(void);
-#pragma endregion
 
 private:
 	bool m_is_transform_enabled;
@@ -799,7 +811,7 @@ private:
 	VmaAllocator m_p_allocator;
 	// @ obtained from command list see PrepareRenderBuffer method
 	VkCommandBuffer m_p_current_command_buffer;
-#pragma region Resources
+
 	VkDescriptorSetLayout m_p_descriptor_set_layout_uniform_buffer_dynamic;
 	VkDescriptorSetLayout m_p_descriptor_set_layout_for_textures;
 	VkPipelineLayout m_p_pipeline_layout;
@@ -816,7 +828,6 @@ private:
 	// @ means it captures the window size full width and full height, offset equals both x and y to 0
 	VkRect2D m_scissor_original;
 	VkViewport m_viewport;
-#pragma endregion
 
 	VkQueue m_p_queue_present;
 	VkQueue m_p_queue_graphics;
@@ -843,34 +854,16 @@ private:
 	Rml::Vector<VkFramebuffer> m_swapchain_frame_buffers;
 	Rml::Vector<VkImage> m_swapchain_images;
 	Rml::Vector<VkImageView> m_swapchain_image_views;
-
-#pragma region Resources
 	Rml::Vector<VkShaderModule> m_shaders;
-#pragma endregion
-
 	Rml::Vector<Rml::Vector<texture_data_t*>> m_pending_for_deletion_textures_by_frames;
 
 	// vma handles that thing, so there's no need for frame splitting
 	Rml::Vector<geometry_handle_t*> m_pending_for_deletion_geometries;
 
-#ifdef __clang__
-#elif __GNUC__
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Werror"
-#endif
-
-#pragma region Managers
 	CommandListRing m_command_list;
 	MemoryPool m_memory_pool;
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
-#pragma endregion
-
-#ifdef __clang__
-
-#elif __GNUC__
-	#pragma GCC diagnostic pop
-#endif
 };
 
 #endif
