@@ -2297,6 +2297,8 @@ void RenderInterface_Vulkan::CreateSwapchainFrameBuffers(void) noexcept
 
 		status = vkCreateFramebuffer(this->m_p_device, &info, nullptr, &this->m_swapchain_frame_buffers[index]);
 
+		VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateFramebuffer");
+
 		++index;
 	}
 }
