@@ -3434,8 +3434,10 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
 }
 
+#pragma warning(push, 0)
 #define GLAD_VULKAN_IMPLEMENTATION
 #include "RmlUi_Vulkan/vulkan.h"
 
 #define VMA_IMPLEMENTATION
 #include "RmlUi_Vulkan/vk_mem_alloc.h"
+#pragma warning(pop)
