@@ -85,7 +85,7 @@ RenderInterface_Vulkan::RenderInterface_Vulkan() :
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
 	m_p_sampler_linear{}, m_scissor{}, m_scissor_original{}, m_viewport{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
 	m_debug_report_callback_instance{}, m_physical_device_current_memory_properties{}, m_swapchain_format{}, m_user_data_for_vertex_shader{},
-	m_texture_depthstencil{}, m_projection{}
+	m_texture_depthstencil{}
 {}
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
@@ -223,15 +223,6 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 		VK_ASSERT(p_data, "you can't reach this zone, it means something bad");
 	}
 
-	uint32_t casted_offset = 0;
-	int num_uniform_offset = 0;
-
-	if (p_casted_compiled_geometry->m_p_shader.buffer)
-	{
-		num_uniform_offset = 1;
-		casted_offset = (uint32_t)p_casted_compiled_geometry->m_p_shader.offset;
-	}
-
 	const uint32_t pDescriptorOffsets = static_cast<uint32_t>(p_casted_compiled_geometry->m_p_shader.offset);
 
 	VkDescriptorSet p_texture_descriptor_set = nullptr;
@@ -355,8 +346,8 @@ void RenderInterface_Vulkan::SetScissorRegion(int x, int y, int width, int heigh
 		{
 			this->m_scissor.extent.width = width;
 			this->m_scissor.extent.height = height;
-			this->m_scissor.offset.x = static_cast<int32_t>(fabs(x));
-			this->m_scissor.offset.y = static_cast<int32_t>(fabs(y));
+			this->m_scissor.offset.x = static_cast<int32_t>(std::abs(x));
+			this->m_scissor.offset.y = static_cast<int32_t>(std::abs(y));
 
 			vkCmdSetScissor(this->m_p_current_command_buffer, 0, 1, &this->m_scissor);
 		}
@@ -1078,7 +1069,7 @@ void RenderInterface_Vulkan::Initialize_QueueIndecies(void) noexcept
 		}
 	}
 
-	if (this->m_queue_index_present == -1)
+	if (this->m_queue_index_present == static_cast<uint32_t>(-1))
 	{
 		Rml::Log::Message(Rml::Log::LT_WARNING, "[Vulkan] User doesn't have one index for two queues, so we need to find for present queue index");
 
@@ -1651,8 +1642,6 @@ bool RenderInterface_Vulkan::ChoosePhysicalDevice(VkPhysicalDeviceType device_ty
 {
 	VK_ASSERT(this->m_physical_devices.empty() == false,
 		"you must have one videocard at least or early calling of this method, try call this after CollectPhysicalDevices");
-
-	VkPhysicalDeviceProperties props = {};
 
 	for (const auto& device : this->m_physical_devices)
 	{
@@ -3448,6 +3437,8 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 	#pragma GCC diagnostic ignored "-Wswitch"
 	#pragma GCC diagnostic ignored "-Wpedantic"
+	#pragma GCC diagnostic ignored "-Wattributes"
+	#pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #endif
 
 #define GLAD_VULKAN_IMPLEMENTATION

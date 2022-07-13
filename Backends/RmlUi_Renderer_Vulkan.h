@@ -67,6 +67,8 @@
 	#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 	#pragma GCC diagnostic ignored "-Wswitch"
 	#pragma GCC diagnostic ignored "-Wpedantic"
+	#pragma GCC diagnostic ignored "-Wattributes"
+	#pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #endif
 
 #include "RmlUi_Vulkan/spirv_reflect.h"
