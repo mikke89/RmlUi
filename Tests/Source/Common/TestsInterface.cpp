@@ -118,3 +118,13 @@ void TestsRenderInterface::SetTransform(const Rml::Matrix4f* /*transform*/)
 {
 	counters.set_transform += 1;
 }
+
+void TestsRenderInterface::OnWindowMinimize(void) {}
+
+void TestsRenderInterface::OnWindowRestored(void) {}
+
+void TestsRenderInterface::OnWindowMaximize(void) {}
+
+void TestsRenderInterface::OnWindowHidden(void) {}
+
+void TestsRenderInterface::OnWindowShown(void) {}
