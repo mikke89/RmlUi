@@ -3441,8 +3441,13 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	#pragma clang diagnostic ignored "-Wextra"
 #elif __GNUC__
 	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wall"
-	#pragma GCC diagnostic ignored "-Wextra"
+	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+	#pragma GCC diagnostic ignored "-Wunused-function"
+	#pragma GCC diagnostic ignored "-Wunused-parameter"
+	#pragma GCC diagnostic ignored "-Wunused-variable"
+	#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+	#pragma GCC diagnostic ignored "-Wswitch"
+	#pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 
 #define GLAD_VULKAN_IMPLEMENTATION
