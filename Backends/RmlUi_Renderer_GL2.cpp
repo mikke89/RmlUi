@@ -52,7 +52,7 @@
 
 #define GL_CLAMP_TO_EDGE 0x812F
 
-RenderInterface_GL2::RenderInterface_GL2() {}
+RenderInterface_GL2::RenderInterface_GL2() : viewport_width{}, viewport_height{} {}
 
 void RenderInterface_GL2::SetViewport(int in_viewport_width, int in_viewport_height)
 {
@@ -272,3 +272,13 @@ void RenderInterface_GL2::SetTransform(const Rml::Matrix4f* transform)
 	else
 		glLoadIdentity();
 }
+
+void RenderInterface_GL2::OnWindowMinimize(void) {}
+
+void RenderInterface_GL2::OnWindowRestored(void) {}
+
+void RenderInterface_GL2::OnWindowMaximize(void) {}
+
+void RenderInterface_GL2::OnWindowHidden(void) {}
+
+void RenderInterface_GL2::OnWindowShown(void) {}

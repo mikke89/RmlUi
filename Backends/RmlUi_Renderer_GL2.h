@@ -62,9 +62,15 @@ public:
 	// Can be passed to RenderGeometry() to enable texture rendering without changing the bound texture.
 	static const Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
 
+	void OnWindowMinimize(void) override;
+	void OnWindowRestored(void) override;
+	void OnWindowMaximize(void) override;
+	void OnWindowHidden(void) override;
+	void OnWindowShown(void) override;
+
 private:
-	int viewport_width = 0;
-	int viewport_height = 0;
+	int viewport_width;
+	int viewport_height;
 };
 
 #endif
