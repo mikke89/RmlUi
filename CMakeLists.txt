@@ -772,6 +772,8 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 	
 	if(SAMPLES_BACKEND MATCHES "Vulkan$")
 		message("-- Using Vulkan renderer backend.")
+
+		target_link_libraries(shell PRIVATE ${CMAKE_DL_LIBS})
 	endif()
 	
 	if(SAMPLES_BACKEND MATCHES "GL3$")
