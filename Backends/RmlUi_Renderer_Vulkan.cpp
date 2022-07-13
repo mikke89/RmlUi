@@ -43,7 +43,7 @@
 				Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
 		}
 #else
-	#define VK_ASSERT(statement, msg, ...) statement
+	#define VK_ASSERT(statement, msg, ...) static_cast<void>(statement)
 #endif
 
 VkValidationFeaturesEXT debug_validation_features_ext = {};
@@ -1675,9 +1675,8 @@ void RenderInterface_Vulkan::PrintInformationAboutPickedPhysicalDevice(VkPhysica
 	{
 		if (p_physical_device == device.GetHandle())
 		{
-			const auto& properties = device.GetProperties();
-
 #ifdef RMLUI_DEBUG
+			const auto& properties = device.GetProperties();
 			Rml::Log::Message(Rml::Log::LT_DEBUG, "Picked physical device: %s", properties.deviceName);
 #endif
 
