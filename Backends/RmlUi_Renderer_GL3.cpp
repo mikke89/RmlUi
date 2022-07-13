@@ -671,6 +671,16 @@ void RenderInterface_GL3::SetTransform(const Rml::Matrix4f* new_transform)
 	transform_dirty_state = ProgramId::All;
 }
 
+void RenderInterface_GL3::OnWindowMinimize(void) {}
+
+void RenderInterface_GL3::OnWindowRestored(void) {}
+
+void RenderInterface_GL3::OnWindowMaximize(void) {}
+
+void RenderInterface_GL3::OnWindowHidden(void) {}
+
+void RenderInterface_GL3::OnWindowShown(void) {}
+
 void RenderInterface_GL3::SubmitTransformUniform(ProgramId program_id, int uniform_location)
 {
 	if ((int)program_id & (int)transform_dirty_state)

@@ -76,6 +76,12 @@ public:
 	// Can be passed to RenderGeometry() to enable texture rendering without changing the bound texture.
 	static const Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
 
+	void OnWindowMinimize(void) override;
+	void OnWindowRestored(void) override;
+	void OnWindowMaximize(void) override;
+	void OnWindowHidden(void) override;
+	void OnWindowShown(void) override;
+
 private:
 	enum class ProgramId { None, Texture = 1, Color = 2, All = (Texture | Color) };
 	void SubmitTransformUniform(ProgramId program_id, int uniform_location);
