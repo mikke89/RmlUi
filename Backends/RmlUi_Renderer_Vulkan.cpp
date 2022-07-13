@@ -84,7 +84,7 @@ RenderInterface_Vulkan::RenderInterface_Vulkan() :
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
 	m_p_sampler_linear{}, m_scissor{}, m_scissor_original{}, m_viewport{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
-	m_debug_report_callback_instance{}, m_physical_device_current_memory_properties{}, m_swapchain_format{}, m_user_data_for_vertex_shader{},
+	m_debug_report_callback_instance{}, m_physical_device_current_memory_properties{}, m_swapchain_format{}, m_user_data_for_vertex_shader{}
 {}
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
