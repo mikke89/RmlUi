@@ -853,12 +853,24 @@ private:
 	// vma handles that thing, so there's no need for frame splitting
 	Rml::Vector<geometry_handle_t*> m_pending_for_deletion_geometries;
 
+#ifdef __clang__
+#elif __GNUC__
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Werror"
+#endif
+
 #pragma region Managers
 	CommandListRing m_command_list;
 	MemoryPool m_memory_pool;
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
 #pragma endregion
+
+#ifdef __clang__
+
+#elif __GNUC__
+	#pragma GCC diagnostic pop
+#endif
 };
 
 #endif
