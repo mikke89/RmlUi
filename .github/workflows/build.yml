@@ -18,6 +18,9 @@ jobs:
           - cc: clang
             cxx: clang++
             cmake_options: -DENABLE_PRECOMPILED_HEADERS=OFF -DSAMPLES_BACKEND=GLFW_GL2
+          - cc: clang
+            cxx: clang++
+            cmake_options: -DSAMPLES_BACKEND=SDL_Vulkan
           - cmake_options: -DBUILD_TESTING=ON -DENABLE_PRECOMPILED_HEADERS=OFF
             enable_testing: true
           - cmake_options: -DNO_FONT_INTERFACE_DEFAULT=ON -DENABLE_LOTTIE_PLUGIN=ON -DSAMPLES_BACKEND=X11_GL2
