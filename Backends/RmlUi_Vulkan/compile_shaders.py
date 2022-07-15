@@ -51,7 +51,7 @@ with open(out_path,'w') as result_file:
 			print("Success, writing output to variable '{}' in {}".format(variable_name, out_file))
 		
 			i = 0
-			result_file.write('\nstatic alignas(uint32_t) const unsigned char {}[] = {{'.format(variable_name))
+			result_file.write('\nalignas(uint32_t) static const unsigned char {}[] = {{'.format(variable_name))
 			for b in open(temp_spirv_path, 'rb').read():
 				if i % 20 == 0:
 					result_file.write('\n\t')
