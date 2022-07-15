@@ -26,7 +26,7 @@ jobs:
           - cmake_options: -DNO_FONT_INTERFACE_DEFAULT=ON -DENABLE_LOTTIE_PLUGIN=ON -DSAMPLES_BACKEND=X11_GL2
           - cmake_options: -DDISABLE_RTTI_AND_EXCEPTIONS=ON -DSAMPLES_BACKEND=SDL_GL2
           - cmake_options: -DNO_THIRDPARTY_CONTAINERS=ON -DSAMPLES_BACKEND=SFML_GL2
-          - cmake_options: -DSAMPLES_BACKEND=SDL_Vulkan
+          - cmake_options: -DSAMPLES_BACKEND=SDL_Vulkan -DCMAKE_BUILD_TYPE=Debug
 
     steps:
     - uses: actions/checkout@v2
