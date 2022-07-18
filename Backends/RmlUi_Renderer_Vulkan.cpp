@@ -43,7 +43,9 @@
 				Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
 		}
 #else
-	#define VK_ASSERT(statement, msg, ...) static_cast<void>(statement)
+	#define VK_ASSERT(statement, msg, ...) \
+		static_cast<void>(statement);      \
+		##__VA_ARGS__
 #endif
 
 VkValidationFeaturesEXT debug_validation_features_ext = {};
