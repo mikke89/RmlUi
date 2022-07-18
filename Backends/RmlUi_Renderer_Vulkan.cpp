@@ -3203,7 +3203,7 @@ void RenderInterface_Vulkan::MemoryPool::Initialize(VkPhysicalDeviceProperties* 
 	this->m_min_alignment_for_uniform_buffer = this->m_p_physical_device_current_properties->limits.minUniformBufferOffsetAlignment;
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] the alignment for uniform buffer is: %d", this->m_min_alignment_for_uniform_buffer);
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] the alignment for uniform buffer is: %zu", this->m_min_alignment_for_uniform_buffer);
 #endif
 
 	this->m_memory_total_size = RenderInterface_Vulkan::AlignUp<VkDeviceSize>(static_cast<VkDeviceSize>(info_creation.m_memory_total_size),
@@ -3241,7 +3241,7 @@ void RenderInterface_Vulkan::MemoryPool::Initialize(VkPhysicalDeviceProperties* 
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateVirtualBlock");
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] allocated memory for pool: %d Mbs",
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] allocated memory for pool: %zu Mbs",
 		RenderInterface_Vulkan::TranslateBytesToMegaBytes(info_stats.size));
 #endif
 
@@ -3257,7 +3257,7 @@ void RenderInterface_Vulkan::MemoryPool::Shutdown(void) noexcept
 	VK_ASSERT(this->m_p_buffer_alloc, "you must allocate VmaAllocation for deleting");
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] Destroyed buffer with memory [%d] Mbs",
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan][Debug] Destroyed buffer with memory [%zu] Mbs",
 		RenderInterface_Vulkan::TranslateBytesToMegaBytes(this->m_memory_total_size));
 #endif
 
@@ -3429,6 +3429,7 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	#pragma clang diagnostic push
 	#pragma clang diagnostic ignored "-Wall"
 	#pragma clang diagnostic ignored "-Wextra"
+	#pragma clang diagnostic ignored "-Wnullability-extension"
 #elif __GNUC__
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
