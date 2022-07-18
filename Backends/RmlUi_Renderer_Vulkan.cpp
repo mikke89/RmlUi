@@ -693,7 +693,7 @@ void RenderInterface_Vulkan::BeginFrame()
 	VkClearValue for_stencil_depth;
 
 	for_stencil_depth.depthStencil = {1.0f, 0};
-	for_filling_back_buffer_color.color = {0.0f, 0.0f, 0.0f, 1.0f};
+	for_filling_back_buffer_color.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
 
 	const VkClearValue p_color_rt[] = {for_filling_back_buffer_color, for_stencil_depth};
 

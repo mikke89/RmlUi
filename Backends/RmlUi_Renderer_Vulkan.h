@@ -59,6 +59,7 @@
 	#pragma clang diagnostic ignored "-Wall"
 	#pragma clang diagnostic ignored "-Wextra"
 	#pragma clang diagnostic ignored "-Wnullability-extension"
+	#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 #elif __GNUC__
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
