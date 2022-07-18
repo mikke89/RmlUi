@@ -523,7 +523,7 @@ bool RenderInterface_Vulkan::GenerateTexture(Rml::TextureHandle& texture_handle,
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateImage");
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_DEBUG, "Created image %s with size [%d bytes][%d Megabytes]", file_path, info_stats.size,
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "Created image %s with size [%zu bytes][%zu Megabytes]", file_path, info_stats.size,
 		TranslateBytesToMegaBytes(info_stats.size));
 #endif
 
@@ -1349,7 +1349,7 @@ void RenderInterface_Vulkan::QueryInstanceExtensions(void) noexcept
 				if (status == VK_SUCCESS)
 				{
 #ifdef RMLUI_DEBUG
-					Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] obtained extensions for layer: %s, count: %d", layer_property.layerName,
+					Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] obtained extensions for layer: %s, count: %zu", layer_property.layerName,
 						props.size());
 #endif
 
@@ -2480,7 +2480,7 @@ RenderInterface_Vulkan::buffer_data_t RenderInterface_Vulkan::CreateResource_Sta
 	VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vmaCreateBuffer");
 
 #ifdef RMLUI_DEBUG
-	Rml::Log::Message(Rml::Log::LT_DEBUG, "allocated buffer with size %d in bytes", info_stats.size);
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "allocated buffer with size %zu in bytes", info_stats.size);
 #endif
 
 	result.Set_VkBuffer(p_buffer);
@@ -3441,6 +3441,7 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	#pragma GCC diagnostic ignored "-Wpedantic"
 	#pragma GCC diagnostic ignored "-Wattributes"
 	#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+	#pragma GCC diagnostic ignored "-Wparentheses"
 #endif
 
 #define GLAD_VULKAN_IMPLEMENTATION

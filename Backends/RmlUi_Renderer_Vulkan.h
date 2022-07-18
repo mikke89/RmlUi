@@ -70,6 +70,7 @@
 	#pragma GCC diagnostic ignored "-Wpedantic"
 	#pragma GCC diagnostic ignored "-Wattributes"
 	#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+	#pragma GCC diagnostic ignored "-Wparentheses"
 #endif
 
 #include "RmlUi_Vulkan/spirv_reflect.h"
