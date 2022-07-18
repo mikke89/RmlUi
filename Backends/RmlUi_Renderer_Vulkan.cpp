@@ -35,6 +35,12 @@
 #include <RmlUi/Core/Profiling.h>
 #include <string.h>
 
+// probably a compiler's bug because idk how to fix it
+#ifdef __clang__
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif
+
 #ifdef RMLUI_DEBUG
 	#define VK_ASSERT(statement, msg, ...)                                 \
 		{                                                                  \
@@ -43,9 +49,7 @@
 				Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
 		}
 #else
-	#define VK_ASSERT(statement, msg, ...) \
-		static_cast<void>(statement);      \
-		##__VA_ARGS__
+	#define VK_ASSERT(statement, msg, ...) static_cast<void>(statement)
 #endif
 
 VkValidationFeaturesEXT debug_validation_features_ext = {};
@@ -3425,6 +3429,11 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
 }
 
+#ifdef __clang__
+	#pragma clang diagnostic pop
+#endif
+
+
 #ifdef _WIN32
 	#pragma warning(push, 0)
 #elif __clang__
@@ -3450,9 +3459,8 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 #include "RmlUi_Vulkan/vulkan.h"
 
 #define VMA_IMPLEMENTATION
-#include "RmlUi_Vulkan/vk_mem_alloc.h"
-
 #include "RmlUi_Vulkan/spirv_reflect.cpp"
+#include "RmlUi_Vulkan/vk_mem_alloc.h"
 
 #ifdef _WIN32
 	#pragma warning(pop)
