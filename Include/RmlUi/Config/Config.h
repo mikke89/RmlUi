@@ -84,9 +84,6 @@ template <typename T>
 using List = std::list<T>;
 template <typename T>
 using Queue = std::queue<T>;
-// Supposed to be a fixed-size queue, but it is for user re-defenition if he has a own implementation of real fixed-size queue container
-template <typename Type>
-using StaticQueue = std::queue<Type>;
 template <typename T1, typename T2>
 using Pair = std::pair<T1, T2>;
 template <typename Key, typename Value>
@@ -158,18 +155,15 @@ inline UniquePtr<T> MakeUnique(Args&&... args)
 	// The following defines should be used for inserting custom type cast operators for conversion of RmlUi types
 	// to user types. RmlUi uses template math types, therefore conversion operators to non-templated types
 	// should be done using SFINAE as in example below.
-
 	// Extra code to be inserted into RmlUi::Color<> class body. Note: be mindful of colorspaces used by different
 	// color types. RmlUi assumes that float colors are interpreted in linear colorspace while byte colors are
 	// interpreted as sRGB.
-
 	#define RMLUI_COLOUR_USER_EXTRA                                                                         \
 	    template<typename U = ColourType, typename std::enable_if_t<std::is_same_v<U, byte>>* = nullptr>    \
 	    operator MyColor() const { return MyColor(                                                          \
 	        (float)red / 255.0f, (float)green / 255.0f, (float)blue / 255.0f, (float)alpha / 255.0f); }     \
 	    template<typename U = ColourType, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>   \
 	    operator MyColor() const { return MyColor(red, green, blue, alpha); }                               \
-
 	// Extra code to be inserted into RmlUi::Vector2<> class body.
 	#define RMLUI_VECTOR2_USER_EXTRA                                                                        \
 	    template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, int>>* = nullptr>           \
@@ -180,7 +174,6 @@ inline UniquePtr<T> MakeUnique(Args&&... args)
 	    Vector2(MyIntVector2 value) : Vector2(value.x_, value.y_) { }                                       \
 	    template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>         \
 	    Vector2(MyVector2 value) : Vector2(value.x_, value.y_) { }                                          \
-
 	// Extra code to be inserted into RmlUi::Vector3<> class body.
 	#define RMLUI_VECTOR3_USER_EXTRA                                                                        \
 	    template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, int>>* = nullptr>           \
@@ -191,7 +184,6 @@ inline UniquePtr<T> MakeUnique(Args&&... args)
 	    Vector3(MyIntVector3 value) : Vector3(value.x_, value.y_, value.z_) { }                             \
 	    template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>         \
 	    Vector3(MyVector3 value) : Vector3(value.x_, value.y_, value.z_) { }                                \
-
 	// Extra code to be inserted into RmlUi::Vector4<> class body.
 	#define RMLUI_VECTOR4_USER_EXTRA                                                                        \
 	    template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, int>>* = nullptr>           \
@@ -202,7 +194,6 @@ inline UniquePtr<T> MakeUnique(Args&&... args)
 	    Vector4(MyIntVector4 value) : Vector4(value.x_, value.y_, value.z_, value.w_) { }                   \
 	    template<typename U = Type, typename std::enable_if_t<std::is_same_v<U, float>>* = nullptr>         \
 	    Vector4(MyVector4 value) : Vector4(value.x_, value.y_, value.z_, value.w_) { }                      \
-
 	// Extra code to be inserted into RmlUi::Matrix4<> class body.
 	    #define RMLUI_MATRIX4_USER_EXTRA operator MyMatrix4() const { return MyMatrix4(data()); }
 	***/
