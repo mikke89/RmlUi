@@ -97,6 +97,7 @@
 #endif
 
 #ifdef RMLUI_DEBUG
+	#include <RmlUi/Core/Log.h>
 	#define VK_ASSERT(statement, msg, ...)                                 \
 		{                                                                  \
 			RMLUI_ASSERT(statement);                                       \
