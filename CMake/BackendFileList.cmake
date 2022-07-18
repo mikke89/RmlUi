@@ -49,7 +49,6 @@ set(SDL_Vulkan_SRC_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.cpp
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_Vulkan.cpp
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_SDL_Vulkan.cpp
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Vulkan/spirv_reflect.cpp
 )
 set(SDL_Vulkan_HDR_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.h

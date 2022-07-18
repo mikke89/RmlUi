@@ -3448,6 +3448,8 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 #define VMA_IMPLEMENTATION
 #include "RmlUi_Vulkan/vk_mem_alloc.h"
 
+#include "RmlUi_Vulkan/spirv_reflect.cpp"
+
 #ifdef _WIN32
 	#pragma warning(pop)
 #elif __clang__

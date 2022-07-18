@@ -14,25 +14,6 @@
  limitations under the License.
 */
 
-#ifdef _WIN32
-	#pragma warning(push, 0)
-#elif __clang__
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Wall"
-	#pragma clang diagnostic ignored "-Wextra"
-#elif __GNUC__
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-	#pragma GCC diagnostic ignored "-Wunused-function"
-	#pragma GCC diagnostic ignored "-Wunused-parameter"
-	#pragma GCC diagnostic ignored "-Wunused-variable"
-	#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-	#pragma GCC diagnostic ignored "-Wswitch"
-	#pragma GCC diagnostic ignored "-Wpedantic"
-	#pragma GCC diagnostic ignored "-Wattributes"
-	#pragma GCC diagnostic ignored "-Wignored-qualifiers"
-#endif
-
 #include "spirv_reflect.h"
 #include <assert.h>
 #include <stdbool.h>
@@ -4917,11 +4898,3 @@ const char* spvReflectSourceLanguage(SpvSourceLanguage source_lang)
   }
   return "";
 }
-
-#ifdef _WIN32
-	#pragma warning(pop)
-#elif __clang__
-	#pragma clang diagnostic pop
-#elif __GNUC__
-	#pragma GCC diagnostic pop
-#endif
