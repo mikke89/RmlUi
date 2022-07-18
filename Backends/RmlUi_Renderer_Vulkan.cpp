@@ -41,17 +41,6 @@
 	#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 #endif
 
-#ifdef RMLUI_DEBUG
-	#define VK_ASSERT(statement, msg, ...)                                 \
-		{                                                                  \
-			RMLUI_ASSERT(statement);                                       \
-			if (!!(statement) == false)                                    \
-				Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
-		}
-#else
-	#define VK_ASSERT(statement, msg, ...) static_cast<void>(statement)
-#endif
-
 VkValidationFeaturesEXT debug_validation_features_ext = {};
 VkValidationFeatureEnableEXT debug_validation_features_ext_requested[] = {VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
 	VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT, VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
@@ -3441,6 +3430,8 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	#pragma clang diagnostic ignored "-Wall"
 	#pragma clang diagnostic ignored "-Wextra"
 	#pragma clang diagnostic ignored "-Wnullability-extension"
+	#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+	#pragma clang diagnostic ignored "-Wnullability-completeness"
 #elif __GNUC__
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"

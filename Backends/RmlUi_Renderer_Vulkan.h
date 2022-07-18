@@ -60,6 +60,7 @@
 	#pragma clang diagnostic ignored "-Wextra"
 	#pragma clang diagnostic ignored "-Wnullability-extension"
 	#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+	#pragma clang diagnostic ignored "-Wnullability-completeness"
 #elif __GNUC__
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
@@ -87,6 +88,24 @@
 	#pragma clang diagnostic pop
 #elif __GNUC__
 	#pragma GCC diagnostic pop
+#endif
+
+
+// probably a compiler's bug because idk how to fix it
+#ifdef __clang__
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif
+
+#ifdef RMLUI_DEBUG
+	#define VK_ASSERT(statement, msg, ...)                                 \
+		{                                                                  \
+			RMLUI_ASSERT(statement);                                       \
+			if (!!(statement) == false)                                    \
+				Rml::Log::Message(Rml::Log::LT_ERROR, msg, ##__VA_ARGS__); \
+		}
+#else
+	#define VK_ASSERT(statement, msg, ...) static_cast<void>(statement)
 #endif
 
 /**
@@ -219,7 +238,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		VkDescriptorSet Get_DescriptorSet(void) const noexcept { return this->m_p_set; }
 		void Set_DescriptorSet(VkDescriptorSet p_set) noexcept
 		{
-			RMLUI_ASSERTMSG(p_set, "you can't pass an invalid VkDescriptorSet");
+			VK_ASSERT(p_set, "you can't pass an invalid VkDescriptorSet");
 			this->m_p_set = p_set;
 		}
 
@@ -251,8 +270,8 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 		void Initialize(VkDevice p_device, VkQueue p_queue, uint32_t queue_family_index)
 		{
-			RMLUI_ASSERTMSG(p_queue, "you have to pass a valid VkQueue");
-			RMLUI_ASSERTMSG(p_device, "you have to pass a valid VkDevice for creation resources");
+			VK_ASSERT(p_queue, "you have to pass a valid VkQueue");
+			VK_ASSERT(p_device, "you have to pass a valid VkDevice for creation resources");
 
 			this->m_p_device = p_device;
 			this->m_p_graphics_queue = p_queue;
@@ -268,7 +287,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 		void UploadToGPU(Rml::Function<void(VkCommandBuffer p_cmd)>&& p_user_commands) noexcept
 		{
-			RMLUI_ASSERTMSG(this->m_p_command_buffer, "you didn't initialize VkCommandBuffer");
+			VK_ASSERT(this->m_p_command_buffer, "you didn't initialize VkCommandBuffer");
 
 			VkCommandBufferBeginInfo info_command = {};
 
@@ -279,13 +298,13 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 			VkResult status = vkBeginCommandBuffer(this->m_p_command_buffer, &info_command);
 
-			RMLUI_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkBeginCommandBuffer");
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkBeginCommandBuffer");
 
 			p_user_commands(this->m_p_command_buffer);
 
 			status = vkEndCommandBuffer(this->m_p_command_buffer);
 
-			RMLUI_ASSERTMSG(status == VkResult::VK_SUCCESS, "faield to vkEndCommandBuffer");
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "faield to vkEndCommandBuffer");
 
 			this->Submit();
 			this->Wait();
@@ -301,12 +320,12 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 			VkResult status = vkCreateFence(this->m_p_device, &info, nullptr, &this->m_p_fence);
 
-			RMLUI_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateFence");
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateFence");
 		}
 
 		void Create_CommandBuffer(void) noexcept
 		{
-			RMLUI_ASSERTMSG(this->m_p_command_pool, "you have to initialize VkCommandPool before calling this method!");
+			VK_ASSERT(this->m_p_command_pool, "you have to initialize VkCommandPool before calling this method!");
 
 			VkCommandBufferAllocateInfo info = {};
 			info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -317,7 +336,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 			VkResult status = vkAllocateCommandBuffers(this->m_p_device, &info, &this->m_p_command_buffer);
 
-			RMLUI_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkAllocateCommandBuffers");
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkAllocateCommandBuffers");
 		}
 
 		void Create_CommandPool(uint32_t queue_family_index) noexcept
@@ -331,7 +350,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 			VkResult status = vkCreateCommandPool(this->m_p_device, &info, nullptr, &this->m_p_command_pool);
 
-			RMLUI_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateCommandPool");
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateCommandPool");
 		}
 
 		void Create_All(uint32_t queue_family_index) noexcept
@@ -343,7 +362,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 		void Wait(void) noexcept
 		{
-			RMLUI_ASSERTMSG(this->m_p_fence, "you must initialize your VkFence");
+			VK_ASSERT(this->m_p_fence, "you must initialize your VkFence");
 
 			vkWaitForFences(this->m_p_device, 1, &this->m_p_fence, VK_TRUE, UINT64_MAX);
 			vkResetFences(this->m_p_device, 1, &this->m_p_fence);
@@ -366,7 +385,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 			auto status = vkQueueSubmit(this->m_p_graphics_queue, 1, &info, this->m_p_fence);
 
-			RMLUI_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkQueueSubmit");
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkQueueSubmit");
 		}
 
 	private:
@@ -542,13 +561,13 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		DescriptorPoolManager(void) : m_allocated_descriptor_count{}, m_p_descriptor_pool{} {}
 		~DescriptorPoolManager(void)
 		{
-			RMLUI_ASSERTMSG(this->m_allocated_descriptor_count <= 0, "something is wrong. You didn't free some VkDescriptorSet");
+			VK_ASSERT(this->m_allocated_descriptor_count <= 0, "something is wrong. You didn't free some VkDescriptorSet");
 		}
 
 		void Initialize(VkDevice p_device, uint32_t count_uniform_buffer, uint32_t count_image_sampler, uint32_t count_sampler,
 			uint32_t count_storage_buffer) noexcept
 		{
-			RMLUI_ASSERTMSG(p_device, "you can't pass an invalid VkDevice here");
+			VK_ASSERT(p_device, "you can't pass an invalid VkDevice here");
 
 			Rml::Array<VkDescriptorPoolSize, 5> sizes;
 
@@ -569,12 +588,12 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 			auto status = vkCreateDescriptorPool(p_device, &info, nullptr, &this->m_p_descriptor_pool);
 
-			RMLUI_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateDescriptorPool");
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkCreateDescriptorPool");
 		}
 
 		void Shutdown(VkDevice p_device)
 		{
-			RMLUI_ASSERTMSG(p_device, "you can't pass an invalid VkDevice here");
+			VK_ASSERT(p_device, "you can't pass an invalid VkDevice here");
 
 			vkDestroyDescriptorPool(p_device, this->m_p_descriptor_pool, nullptr);
 		}
@@ -584,8 +603,8 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		bool Alloc_Descriptor(VkDevice p_device, VkDescriptorSetLayout* p_layouts, VkDescriptorSet* p_sets,
 			uint32_t descriptor_count_for_creation = 1) noexcept
 		{
-			RMLUI_ASSERTMSG(p_layouts, "you have to pass a valid and initialized VkDescriptorSetLayout (probably you must create it)");
-			RMLUI_ASSERTMSG(p_device, "you must pass a valid VkDevice here");
+			VK_ASSERT(p_layouts, "you have to pass a valid and initialized VkDescriptorSetLayout (probably you must create it)");
+			VK_ASSERT(p_device, "you must pass a valid VkDevice here");
 
 			VkDescriptorSetAllocateInfo info = {};
 
@@ -597,7 +616,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 			auto status = vkAllocateDescriptorSets(p_device, &info, p_sets);
 
-			RMLUI_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkAllocateDescriptorSets");
+			VK_ASSERT(status == VkResult::VK_SUCCESS, "failed to vkAllocateDescriptorSets");
 
 			this->m_allocated_descriptor_count += descriptor_count_for_creation;
 
@@ -606,7 +625,7 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 
 		void Free_Descriptors(VkDevice p_device, VkDescriptorSet* p_sets, uint32_t descriptor_count = 1) noexcept
 		{
-			RMLUI_ASSERTMSG(p_device, "you must pass a valid VkDevice here");
+			VK_ASSERT(p_device, "you must pass a valid VkDevice here");
 
 			if (p_sets)
 			{
@@ -876,5 +895,9 @@ private:
 	UploadResourceManager m_upload_manager;
 	DescriptorPoolManager m_manager_descriptors;
 };
+
+#ifdef __clang__
+	#pragma clang diagnostic pop
+#endif
 
 #endif
