@@ -72,14 +72,17 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 RenderInterface_Vulkan::RenderInterface_Vulkan() :
 	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false},
 	m_is_can_render{true}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{}, m_semaphore_index{},
-	m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_current_geometry_handle_id{}, m_p_instance{}, m_p_device{},
-	m_p_physical_device_current{}, m_current_physical_device_properties{}, m_p_surface{}, m_p_swapchain{}, m_p_allocator{},
-	m_p_current_command_buffer{}, m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{},
-	m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{}, m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{},
+	m_semaphore_index_previous{}, m_image_index{}, m_current_descriptor_id{}, m_p_instance{}, m_p_device{}, m_p_physical_device_current{},
+	m_current_physical_device_properties{}, m_p_surface{}, m_p_swapchain{}, m_p_allocator{}, m_p_current_command_buffer{},
+	m_p_descriptor_set_layout_uniform_buffer_dynamic{}, m_p_descriptor_set_layout_for_textures{}, m_p_pipeline_layout{}, m_p_pipeline_with_textures{},
+	m_p_pipeline_without_textures{}, m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{},
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
 	m_p_sampler_linear{}, m_scissor{}, m_scissor_original{}, m_viewport{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
-	m_debug_report_callback_instance{}, m_physical_device_current_memory_properties{}, m_swapchain_format{}
+#ifdef RMLUI_DEBUG
+	m_debug_report_callback_instance{},
+#endif
+	m_swapchain_format{}
 {}
 
 RenderInterface_Vulkan::~RenderInterface_Vulkan(void) {}
@@ -1764,7 +1767,7 @@ int RenderInterface_Vulkan::Choose_SwapchainImageCount(uint32_t user_swapchain_c
 {
 	auto caps = this->GetSurfaceCapabilities();
 
-	// don't worry if you get this assert just ignore it the method will fix the count ;)
+// don't worry if you get this assert just ignore it the method will fix the count ;)
 #ifdef RMLUI_DEBUG
 	VK_ASSERT(user_swapchain_count_for_creation >= caps.minImageCount,
 		"can't be, you must have a valid count that bounds from minImageCount to maxImageCount! Otherwise you will get a validation error that "
@@ -3421,7 +3424,6 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 #ifdef __clang__
 	#pragma clang diagnostic pop
 #endif
-
 
 #ifdef _WIN32
 	#pragma warning(push, 0)

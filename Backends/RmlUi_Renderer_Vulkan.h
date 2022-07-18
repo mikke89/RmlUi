@@ -90,7 +90,6 @@
 	#pragma GCC diagnostic pop
 #endif
 
-
 // probably a compiler's bug because idk how to fix it
 #ifdef __clang__
 	#pragma clang diagnostic push
@@ -830,7 +829,6 @@ private:
 	// Don't use this variable in raw manner like this-> or just directly access, only through Get_ and Next method because for easy debugging
 	// Especially when we say about multithreading...
 	uint32_t m_current_descriptor_id;
-	uint32_t m_current_geometry_handle_id;
 
 	VkInstance m_p_instance;
 	VkDevice m_p_device;
@@ -863,9 +861,10 @@ private:
 	VkQueue m_p_queue_graphics;
 	VkQueue m_p_queue_compute;
 
+#ifdef RMLUI_DEBUG
 	VkDebugReportCallbackEXT m_debug_report_callback_instance;
+#endif
 
-	VkPhysicalDeviceMemoryProperties m_physical_device_current_memory_properties;
 	VkSurfaceFormatKHR m_swapchain_format;
 	shader_vertex_user_data_t m_user_data_for_vertex_shader;
 	texture_data_t m_texture_depthstencil;
