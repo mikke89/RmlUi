@@ -272,13 +272,3 @@ void RenderInterface_GL2::SetTransform(const Rml::Matrix4f* transform)
 	else
 		glLoadIdentity();
 }
-
-void RenderInterface_GL2::OnWindowMinimize(void) {}
-
-void RenderInterface_GL2::OnWindowRestored(void) {}
-
-void RenderInterface_GL2::OnWindowMaximize(void) {}
-
-void RenderInterface_GL2::OnWindowHidden(void) {}
-
-void RenderInterface_GL2::OnWindowShown(void) {}

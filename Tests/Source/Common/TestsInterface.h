@@ -78,12 +78,6 @@ public:
 
 	void ResetCounters() { counters = {}; }
 
-	void OnWindowMinimize(void) override;
-	void OnWindowRestored(void) override;
-	void OnWindowMaximize(void) override;
-	void OnWindowHidden(void) override;
-	void OnWindowShown(void) override;
-
 private:
 	Counters counters = {};
 };

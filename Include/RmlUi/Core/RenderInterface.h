@@ -117,13 +117,6 @@ public:
 	/// CompileGeometry, RenderCompiledGeometry, EnableScissorRegion and SetScissorRegion.
 	Context* GetContext() const;
 
-	// keep these as pure virtual methods as a reminder to user that he forgot to implement them
-	virtual void OnWindowMinimize(void) = 0;
-	virtual void OnWindowRestored(void) = 0;
-	virtual void OnWindowMaximize(void) = 0;
-	virtual void OnWindowHidden(void) = 0;
-	virtual void OnWindowShown(void) = 0;
-
 private:
 	Context* context;
 

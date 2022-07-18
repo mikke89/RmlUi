@@ -52,12 +52,6 @@ public:
 	bool GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override;
 	void ReleaseTexture(Rml::TextureHandle texture_handle) override;
 
-	void OnWindowMinimize(void) override;
-	void OnWindowRestored(void) override;
-	void OnWindowMaximize(void) override;
-	void OnWindowHidden(void) override;
-	void OnWindowShown(void) override;
-
 private:
 	SDL_Renderer* renderer;
 	SDL_Rect rect_scissor = {};

@@ -697,11 +697,11 @@ public:
 	// Example: ConvertValueToMegabytes(50) returns 50 * 1024 * 1024 = 52428800 BYTES!!!!
 	static VkDeviceSize ConvertMegabytesToBytes(VkDeviceSize value_shows_megabytes) noexcept { return value_shows_megabytes * 1024 * 1024; }
 
-	void OnWindowMinimize(void) override;
-	void OnWindowRestored(void) override;
-	void OnWindowMaximize(void) override;
-	void OnWindowHidden(void) override;
-	void OnWindowShown(void) override;
+	void OnWindowMinimize(void);
+	void OnWindowRestored(void);
+	void OnWindowMaximize(void);
+	void OnWindowHidden(void);
+	void OnWindowShown(void);
 
 private:
 	void OnResize(int width, int height) noexcept;
