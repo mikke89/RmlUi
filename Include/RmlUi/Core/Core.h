@@ -117,12 +117,13 @@ RMLUICORE_API Context* GetContext(int index);
 RMLUICORE_API int GetNumContexts();
 
 /// Adds a new font face to the font engine. The face's family, style and weight will be determined from the face itself.
-/// @param[in] file_name The file to load the face from.
+/// @param[in] file_path The path to the file to load the face from. The path is passed directly to the file interface which is used to load the file.
+/// The default file interface accepts both absolute paths and paths relative to the working directory.
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 /// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default it
 /// loads all found font weights.
 /// @return True if the face was loaded successfully, false otherwise.
-RMLUICORE_API bool LoadFontFace(const String& file_name, bool fallback_face = false, Style::FontWeight weight = Style::FontWeight::Auto);
+RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = false, Style::FontWeight weight = Style::FontWeight::Auto);
 /// Adds a new font face from memory to the font engine. The face's family, style and weight is given by the parameters.
 /// @param[in] data A pointer to the data.
 /// @param[in] data_size Size of the data in bytes.
