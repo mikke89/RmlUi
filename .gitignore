@@ -13,11 +13,16 @@
 # Distribution target
 /Distribution/
 
-# Ignore MacOSX directory info
+# macOS directory info file
 .DS_Store
 
-# VS user project files
-.vs/
+# Hidden folders
+.*/
+
+# Not ignore .github/
+!.github/
+
+# Visual Studio project files
 *.suo
 *.user
 *.opensdf
