@@ -152,8 +152,8 @@ case x:                                                                         
 			_Pragma("GCC diagnostic ignored \"-Wunused-function\"") _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")               \
 				_Pragma("GCC diagnostic ignored \"-Wunused-variable\"") _Pragma("GCC diagnostic ignored \"-Wmissing-field-initializers\"") \
 					_Pragma("GCC diagnostic ignored \"-Wswitch\"") _Pragma("GCC diagnostic ignored \"-Wpedantic\"")                        \
-						_Pragma("GCC diagnostic ignored \"-Wattributes\"") \ 
-							_Pragma("GCC diagnostic ignored \"-Wignored-qualifiers\"") _Pragma("GCC diagnostic ignored \"-Wparentheses\"")
+						_Pragma("GCC diagnostic ignored \"-Wattributes\"") _Pragma("GCC diagnostic ignored \"-Wignored-qualifiers\"")      \
+							_Pragma("GCC diagnostic ignored \"-Wparentheses\"")
 #else
 	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
 #endif
