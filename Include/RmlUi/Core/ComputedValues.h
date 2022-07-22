@@ -107,7 +107,7 @@ namespace Style {
 		Colourb border_top_color{255, 255, 255}, border_right_color{255, 255, 255}, border_bottom_color{255, 255, 255},
 			border_left_color{255, 255, 255};
 
-		Colourb background_color = Colourb(255, 255, 255, 0);
+		Colourb background_color = Colourb(0, 0, 0, 0);
 	};
 
 	struct InheritedValues {

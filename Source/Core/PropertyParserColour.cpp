@@ -51,7 +51,7 @@ PropertyParserColour::PropertyParserColour()
 	html_colours["blue"] =  Colourb(0, 0, 255);
 	html_colours["teal"] =  Colourb(0, 128, 128);
 	html_colours["aqua"] = Colourb(0, 255, 255);
-	html_colours["transparent"] = Colourb(255, 255, 255, 0);
+	html_colours["transparent"] = Colourb(0, 0, 0, 0);
 }
 
 PropertyParserColour::~PropertyParserColour()
