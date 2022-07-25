@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,8 +29,8 @@
 #ifndef RMLUI_INVADERS_GAME_H
 #define RMLUI_INVADERS_GAME_H
 
-#include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Texture.h>
 
 class Shield;
 class Invader;
@@ -38,14 +38,15 @@ class Defender;
 class Mothership;
 
 /**
-    Runs the game.
-    - Updates the Invader positions, animations and bombs.
-    - Updates the player position and bullets
+	Runs the game.
+	- Updates the Invader positions, animations and bombs.
+	- Updates the player position and bullets
 
-    @author Lloyd Weehuizen
+	@author Lloyd Weehuizen
  */
 
-class Game {
+class Game
+{
 public:
 	Game();
 	~Game();
@@ -91,6 +92,7 @@ public:
 	const Rml::Vector2f GetWindowDimensions();
 
 private:
+
 	bool initialized;
 	// The current invaders
 	Invader** invaders;
@@ -100,9 +102,6 @@ private:
 	double invader_frame_start;
 	// How often the invaders move
 	double invader_move_freq;
-
-	// Helper function to move the invaders
-	void MoveInvaders();
 
 	// Our current defener
 	Defender* defender;
@@ -114,11 +113,13 @@ private:
 	Shield** shields;
 
 	// Texture that contains the sprites
-	Rml::Texture texture;
+	Rml::TextureHandle texture;
 
 	void InitialiseShields();
 	void InitialiseWave();
 	void OnGameOver();
+	// Helper function to move the invaders
+	void MoveInvaders();
 };
 
 #endif
