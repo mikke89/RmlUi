@@ -138,34 +138,4 @@ case x:                                                                         
 	#define RMLUI_ATTRIBUTE_FORMAT_PRINTF(i, f)
 #endif
 
-#if (_MSC_VER > 0)
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH _Pragma("warning(push, 0)")
-#elif __clang__
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH                                                                                   \
-		_Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Wall\"") _Pragma("clang diagnostic ignored \"-Wextra\"") \
-			_Pragma("clang diagnostic ignored \"-Wnullability-extension\"")                                                            \
-				_Pragma("clang diagnostic ignored \"-Wgnu-zero-variadic-macro-arguments\"")                                            \
-					_Pragma("clang diagnostic ignored \"-Wnullability-completeness\"")
-#elif __GNUC__
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH                                                                                       \
-		_Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wimplicit-fallthrough\"")                                        \
-			_Pragma("GCC diagnostic ignored \"-Wunused-function\"") _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")               \
-				_Pragma("GCC diagnostic ignored \"-Wunused-variable\"") _Pragma("GCC diagnostic ignored \"-Wmissing-field-initializers\"") \
-					_Pragma("GCC diagnostic ignored \"-Wswitch\"") _Pragma("GCC diagnostic ignored \"-Wpedantic\"")                        \
-						_Pragma("GCC diagnostic ignored \"-Wattributes\"") _Pragma("GCC diagnostic ignored \"-Wignored-qualifiers\"")      \
-							_Pragma("GCC diagnostic ignored \"-Wparentheses\"")
-#else
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
-#endif
-
-#if (_MSC_VER > 0)
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP _Pragma("warning(pop)")
-#elif __clang__
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP _Pragma("clang diagnostic pop")
-#elif __GNUC__
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP _Pragma("GCC diagnostic pop")
-#else
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
-#endif
-
 #endif

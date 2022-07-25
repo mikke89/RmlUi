@@ -3425,28 +3425,7 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 	#pragma clang diagnostic pop
 #endif
 
-#ifdef _WIN32
-	#pragma warning(push, 0)
-#elif __clang__
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Wall"
-	#pragma clang diagnostic ignored "-Wextra"
-	#pragma clang diagnostic ignored "-Wnullability-extension"
-	#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-	#pragma clang diagnostic ignored "-Wnullability-completeness"
-#elif __GNUC__
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-	#pragma GCC diagnostic ignored "-Wunused-function"
-	#pragma GCC diagnostic ignored "-Wunused-parameter"
-	#pragma GCC diagnostic ignored "-Wunused-variable"
-	#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-	#pragma GCC diagnostic ignored "-Wswitch"
-	#pragma GCC diagnostic ignored "-Wpedantic"
-	#pragma GCC diagnostic ignored "-Wattributes"
-	#pragma GCC diagnostic ignored "-Wignored-qualifiers"
-	#pragma GCC diagnostic ignored "-Wparentheses"
-#endif
+RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
 
 #define GLAD_VULKAN_IMPLEMENTATION
 #include "RmlUi_Vulkan/vulkan.h"
@@ -3455,10 +3434,4 @@ void RenderInterface_Vulkan::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geom
 #include "RmlUi_Vulkan/spirv_reflect.cpp"
 #include "RmlUi_Vulkan/vk_mem_alloc.h"
 
-#ifdef _WIN32
-	#pragma warning(pop)
-#elif __clang__
-	#pragma clang diagnostic pop
-#elif __GNUC__
-	#pragma GCC diagnostic pop
-#endif
+RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
