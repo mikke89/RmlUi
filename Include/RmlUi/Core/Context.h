@@ -267,11 +267,15 @@ public:
 	/// @return The current documents base tag name.
 	const String& GetDocumentsBaseTag();
 
+	bool IsWindowMimized(void) const noexcept { return this->m_is_window_minimized; }
+	void SetWindowMimized(bool status) noexcept { this->m_is_window_minimized = status; }
+
 protected:
 	void Release() override;
 
 private:
 	String name;
+	bool m_is_window_minimized;
 	Vector2i dimensions;
 	float density_independent_pixel_ratio;
 	String documents_base_tag = "body";

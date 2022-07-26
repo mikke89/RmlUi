@@ -313,6 +313,9 @@ int main(int /*argc*/, char** /*argv*/)
 	{
 		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
 
+		if (context->IsWindowMimized())
+			continue;
+
 		double t = Rml::GetSystemInterface()->GetElapsedTime();
 
 		if (run_loop || single_loop)

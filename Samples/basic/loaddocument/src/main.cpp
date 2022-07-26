@@ -86,6 +86,8 @@ int main(int /*argc*/, char** /*argv*/)
 		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
 
 		// This is a good place to update your game or application.
+		if (context->IsWindowMimized())
+			continue;
 
 		// Always update the context before rendering.
 		context->Update();

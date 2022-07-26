@@ -232,6 +232,9 @@ int main(int /*argc*/, char** /*argv*/)
 	{
 		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
 
+		if (context->IsWindowMimized())
+			continue;
+
 		if (run_update || single_update)
 		{
 			single_update = false;

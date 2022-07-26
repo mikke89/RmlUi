@@ -166,7 +166,7 @@ void RenderInterface_Vulkan::RenderCompiledGeometry(Rml::CompiledGeometryHandle 
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderCompiledGeometry");
 
-	if (this->m_is_can_render == false || this->m_p_current_command_buffer == nullptr)
+	if (this->m_p_current_command_buffer == nullptr)
 		return;
 
 	VK_ASSERT(this->m_p_current_command_buffer, "must be valid otherwise you can't render now!!! (can't be)");
@@ -294,7 +294,7 @@ void RenderInterface_Vulkan::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle
 
 void RenderInterface_Vulkan::EnableScissorRegion(bool enable)
 {
-	if (this->m_is_can_render == false || this->m_p_current_command_buffer == nullptr)
+	if (this->m_p_current_command_buffer == nullptr)
 		return;
 
 	if (this->m_is_transform_enabled)
@@ -665,9 +665,6 @@ void RenderInterface_Vulkan::SetViewport(int viewport_width, int viewport_height
 
 void RenderInterface_Vulkan::BeginFrame()
 {
-	if (this->m_is_can_render == false)
-		return;
-
 	this->m_command_list.OnBeginFrame();
 	this->Wait();
 
@@ -716,7 +713,7 @@ void RenderInterface_Vulkan::BeginFrame()
 
 void RenderInterface_Vulkan::EndFrame()
 {
-	if (this->m_is_can_render == false || this->m_p_current_command_buffer == nullptr)
+	if (this->m_p_current_command_buffer == nullptr)
 		return;
 
 	vkCmdEndRenderPass(this->m_p_current_command_buffer);
@@ -836,15 +833,10 @@ void RenderInterface_Vulkan::OnResize(int width, int height) noexcept
 
 	if (extent.width == 0 || extent.height == 0)
 	{
-		this->m_is_can_render = false;
 	}
 	else
 	{
-		this->m_is_can_render = true;
 	}
-
-	if (this->m_is_can_render == false)
-		return;
 
 	if (this->m_p_swapchain)
 	{
@@ -2736,9 +2728,6 @@ void RenderInterface_Vulkan::Wait(void) noexcept
 
 void RenderInterface_Vulkan::Update_PendingForDeletion_Textures_By_Frames(void) noexcept
 {
-	if (this->m_is_can_render == false)
-		return;
-
 	auto& textures_for_previous_frame = this->m_pending_for_deletion_textures_by_frames.at(this->m_semaphore_index_previous);
 
 	for (auto* p_data : textures_for_previous_frame)
@@ -2762,9 +2751,6 @@ void RenderInterface_Vulkan::Update_PendingForDeletion_Textures_By_Frames(void) 
 
 void RenderInterface_Vulkan::Update_PendingForDeletion_Geometries(void) noexcept
 {
-	if (this->m_is_can_render == false)
-		return;
-
 	for (auto* p_geometry_handle : this->m_pending_for_deletion_geometries)
 	{
 		this->m_memory_pool.Free_GeometryHandle(p_geometry_handle);
