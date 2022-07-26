@@ -150,7 +150,7 @@ bool TextureResource::Load(RenderInterface* render_interface)
 			return false;
 		}
 
-		TextureHandle handle;
+		TextureHandle handle = (TextureHandle)this->GetSource().c_str();
 		bool success = render_interface->GenerateTexture(handle, data.get(), dimensions);
 
 		if (success)
