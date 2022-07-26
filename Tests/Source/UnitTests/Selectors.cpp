@@ -26,7 +26,7 @@
  *
  */
 
-#include "../Common/TestsInterface.h"
+#include "../Common/TestsShell.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
@@ -47,6 +47,7 @@ static const String doc_begin = R"(
 			width: 400px;
 			height: 300px;
 			margin: auto;
+			font-family: LatoLatin;
 		}
 )";
 static const String doc_end = R"(
@@ -58,9 +59,10 @@ static const String doc_end = R"(
 	<div  id="Z" class="hello world"/>
 	<div  id="P" class="parent">
 		<h1 id="A"/>
+		Some text
 		<p  id="B"/>
 		<p  id="C"/>
-		<p  id="D"> <span id="D0"/><span id="D1"/> </p>
+		<p  id="D"> <span id="D0">  </span><span id="D1">Text</span> </p>
 		<h3 id="E"/>
 		<p  id="F"> <span id="F0"/> </p>
 		<p  id="G"/>
@@ -121,9 +123,10 @@ static const Vector<QuerySelector> query_selectors =
 	{ ":last-of-type",               "Y P A D1 E F0 H I" },
 	{ ":only-child",                 "F0",              SelectorOp::RemoveElementsByIds,  "D0",    "D1 F0" },
 	{ ":only-of-type",               "Y A E F0 I" },
-	{ "span:empty",                  "Y D0 D1 F0" },
+	{ "span:empty",                  "Y D0 F0" },
 	{ ".hello.world, #P span, #I",   "Z D0 D1 F0 I",    SelectorOp::RemoveClasses,        "world", "D0 D1 F0 I" },
 	{ "body * span",                 "D0 D1 F0" },
+	{ "D1 *",                        "" },
 	{ "#E + #F",                     "F",               SelectorOp::InsertElementBefore,  "F",     "" },
 	{ "#E+#F",                       "F" },
 	{ "#E +#F",                      "F" },
@@ -226,18 +229,7 @@ static void InsertElementBefore(ElementDocument* document, const String& before_
 
 TEST_CASE("Selectors")
 {
-	const Vector2i window_size(1024, 768);
-
-	TestsSystemInterface system_interface;
-	TestsRenderInterface render_interface;
-
-	SetRenderInterface(&render_interface);
-	SetSystemInterface(&system_interface);
-
-	Initialise();
-
-	Context* context = Rml::CreateContext("main", window_size);
-	REQUIRE(context);
+	Context* context = TestsShell::GetContext();
 
 	SUBCASE("RCSS document selectors")
 	{
@@ -334,5 +326,5 @@ TEST_CASE("Selectors")
 		context->UnloadDocument(document);
 	}
 
-	Rml::Shutdown();
+	TestsShell::ShutdownShell();
 }

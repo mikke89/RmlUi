@@ -1500,6 +1500,8 @@ static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, 
 	for (int i = 0; i < num_children; i++)
 	{
 		Element* child = element->GetChild(i);
+		if (child->GetTagName() == "#text")
+			continue;
 
 		for (const StyleSheetNode* node : nodes)
 		{
@@ -1522,6 +1524,8 @@ static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const
 	for (int i = 0; i < num_children; i++)
 	{
 		Element* child = element->GetChild(i);
+		if (child->GetTagName() == "#text")
+			continue;
 
 		for (const StyleSheetNode* node : nodes)
 		{

@@ -36,6 +36,11 @@
 
 namespace Rml {
 
+static inline bool IsTextElement(const Element* element)
+{
+	return element->GetTagName() == "#text";
+}
+
 StyleSheetNode::StyleSheetNode()
 {
 	CalculateAndSetSpecificity();
@@ -224,7 +229,7 @@ const PropertyDictionary& StyleSheetNode::GetProperties() const
 	return properties;
 }
 
-inline bool StyleSheetNode::Match(const Element* element) const
+bool StyleSheetNode::Match(const Element* element) const
 {
 	if (!tag.empty() && tag != element->GetTagName())
 		return false;
@@ -269,12 +274,13 @@ inline bool StyleSheetNode::MatchStructuralSelector(const Element* element) cons
 	return true;
 }
 
-// Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
 bool StyleSheetNode::IsApplicable(const Element* const in_element) const
 {
-	// Determine whether the element matches the current node and its entire lineage. The entire hierarchy of
-	// the element's document will be considered during the match as necessary.
+	// Determine whether the element matches the current node and its entire lineage. The entire hierarchy of the element's document will be
+	// considered during the match as necessary.
 
+	// We could in principle just call Match() here and then go on with the ancestor style nodes. Instead, we test the requirements of this node in a
+	// particular order for performance reasons .
 	for (const String& name : pseudo_class_names)
 	{
 		if (!in_element->IsPseudoClassSet(name))
@@ -320,10 +326,10 @@ bool StyleSheetNode::IsApplicable(const Element* const in_element) const
 			// Try a match on every element ancestor. If it succeeds, we continue on to the next node.
 			for (element = element->GetPreviousSibling(); element; element = element->GetPreviousSibling())
 			{
-				if (node->Match(element))
+				if (node->Match(element) && !IsTextElement(in_element))
 					break;
 				// If the node has a next-sibling combinator we must match this first sibling.
-				else if (node->combinator == SelectorCombinator::NextSibling)
+				else if (node->combinator == SelectorCombinator::NextSibling && !IsTextElement(in_element))
 					return false;
 			}
 		}

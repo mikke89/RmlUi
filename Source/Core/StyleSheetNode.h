@@ -102,6 +102,8 @@ public:
 	const PropertyDictionary& GetProperties() const;
 
 	/// Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
+	/// @note For performance reasons this call does not check whether 'element' is a text element. The caller must manually check this condition and
+	/// consider any text element not applicable.
 	bool IsApplicable(const Element* element) const;
 
 	/// Returns the specificity of this node.
