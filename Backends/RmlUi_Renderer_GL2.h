@@ -63,8 +63,8 @@ public:
 	static const Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
 
 private:
-	int viewport_width;
-	int viewport_height;
+	int viewport_width = 0;
+	int viewport_height = 0;
 };
 
 #endif

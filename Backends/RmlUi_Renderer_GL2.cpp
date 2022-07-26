@@ -52,7 +52,7 @@
 
 #define GL_CLAMP_TO_EDGE 0x812F
 
-RenderInterface_GL2::RenderInterface_GL2() : viewport_width{}, viewport_height{} {}
+RenderInterface_GL2::RenderInterface_GL2() {}
 
 void RenderInterface_GL2::SetViewport(int in_viewport_width, int in_viewport_height)
 {

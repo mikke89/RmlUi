@@ -31,7 +31,6 @@
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Platform.h>
-#include <RmlUi/Core/Profiling.h>
 #include <string.h>
 
 #if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
@@ -380,8 +379,6 @@ void RenderInterface_GL3::RenderGeometry(Rml::Vertex* vertices, int num_vertices
 Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices,
 	Rml::TextureHandle texture)
 {
-	RMLUI_ZoneScopedN("OpenGL3 - CompileGeometry");
-
 	constexpr GLenum draw_usage = GL_STATIC_DRAW;
 
 	GLuint vao = 0;
@@ -426,8 +423,6 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* ve
 
 void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation)
 {
-	RMLUI_ZoneScopedN("OpenGL - RenderCompiledGeometry");
-
 	Gfx::CompiledGeometryData* geometry = (Gfx::CompiledGeometryData*)handle;
 
 	if (geometry->texture)
@@ -453,8 +448,6 @@ void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle han
 
 void RenderInterface_GL3::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle handle)
 {
-	RMLUI_ZoneScopedN("OpenGL3 - ReleaseCompiledGeometry");
-
 	Gfx::CompiledGeometryData* geometry = (Gfx::CompiledGeometryData*)handle;
 
 	glDeleteVertexArrays(1, &geometry->vao);
@@ -634,8 +627,6 @@ bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 
 bool RenderInterface_GL3::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
-	RMLUI_ZoneScopedN("OpenGL3 - GenerateTexture");
-
 	GLuint texture_id = 0;
 	glGenTextures(1, &texture_id);
 	if (texture_id == 0)

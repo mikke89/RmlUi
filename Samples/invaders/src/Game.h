@@ -103,6 +103,9 @@ private:
 	// How often the invaders move
 	double invader_move_freq;
 
+	// Helper function to move the invaders
+	void MoveInvaders();
+
 	// Our current defener
 	Defender* defender;
 
@@ -118,8 +121,6 @@ private:
 	void InitialiseShields();
 	void InitialiseWave();
 	void OnGameOver();
-	// Helper function to move the invaders
-	void MoveInvaders();
 };
 
 #endif
