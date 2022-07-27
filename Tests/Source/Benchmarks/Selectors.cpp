@@ -92,33 +92,47 @@ static int GetNumDescendentElements(Element* element)
 
 static constexpr int num_rule_iterations = 10;
 
-static String GenerateRCSS(bool with_tag, bool with_id, bool with_class, bool with_pseudo_class, bool with_child_div, String& out_rule_name)
+enum SelectorFlags {
+	NO_SELECTOR,
+	TAG = 1 << 0,
+	ID = 1 << 1,
+	CLASS = 1 << 2,
+	PSEUDO_CLASS = 1 << 3,
+	NUM_COMBINATIONS = 1 << 4,
+};
+
+static String GenerateRCSS(SelectorFlags selectors, const String& complex_selector, String& out_rule_name)
 {
 	static_assert('a' < 'z' && 'a' + 25 == 'z', "Assumes ASCII characters");
 
 	auto GenerateRule = [=](const String& name) {
 		String rule;
-		if (!with_tag && !with_id && !with_class && !with_pseudo_class)
+		if (!complex_selector.empty())
+		{
+			rule = complex_selector;
+		}
+		else if (selectors == NO_SELECTOR || name.empty())
+		{
 			rule += '*';
+		}
 		else
 		{
-			if (with_tag)
+			if (selectors & TAG)
 			{
-				if (with_id || with_class || with_pseudo_class)
-					rule += "div";
-				else
+				if (selectors == TAG)
 					rule += name;
+				else
+					rule += "div";
 			}
 
-			if (with_id)
+			if (selectors & ID)
 				rule += '#' + name;
-			if (with_class)
+			if (selectors & CLASS)
 				rule += '.' + name;
-			if (with_pseudo_class)
+			if (selectors & PSEUDO_CLASS)
 				rule += ':' + name;
 		}
-		if (with_child_div)
-			rule += " div";
+
 		return rule;
 	};
 
@@ -178,7 +192,7 @@ static String GenerateRml(const int num_rows)
 	return rml;
 }
 
-TEST_CASE("elementstyle")
+TEST_CASE("Selectors")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -193,23 +207,34 @@ TEST_CASE("elementstyle")
 	// "dummy" style rules added to the style sheet.
 
 	nanobench::Bench bench;
-	bench.title("ElementStyle (rule name)");
+	bench.title("Selector (rule name)");
 	bench.timeUnit(std::chrono::microseconds(1), "us");
 	bench.relative(true);
 
-	for (int i = 0; i <= 0b11111 + 1; i++)
+	const Vector<String> complex_selectors = {
+		"div",
+		"div div",
+		"div > div",
+		"div + div",
+		"div ~ div",
+		":empty div",
+		":only-child div",
+		":first-child div",
+		":nth-child(2n+3) div",
+		":nth-of-type(2n+3) div",
+	};
+
+	for (int i = 0; i < NUM_COMBINATIONS + (int)complex_selectors.size(); i++)
 	{
 		const bool reference = (i == 0);
-		const int flags = i - 1;
+		const SelectorFlags selector_flags = SelectorFlags(i < NUM_COMBINATIONS ? i : NO_SELECTOR);
+		const String& complex_selector = (i < NUM_COMBINATIONS ? String() : complex_selectors[i - NUM_COMBINATIONS]);
 
-		const bool with_tag = flags & (1 << 0);
-		const bool with_id = flags & (1 << 1);
-		const bool with_class = flags & (1 << 2);
-		const bool with_pseudo_class = flags & (1 << 3);
-		const bool with_child_div = flags & (1 << 4);
-
-		String name = "Reference (no style rules)";
-		const String styles = reference ? "" : GenerateRCSS(with_tag, with_id, with_class, with_pseudo_class, with_child_div, name);
+		String name, styles;
+		if (reference)
+			name = "Reference (no style rules)";
+		else
+			styles = GenerateRCSS(selector_flags, complex_selector, name);
 
 		const String compiled_document_rml = Rml::CreateString(1000 + styles.size(), document_rml_template, styles.c_str());
 
