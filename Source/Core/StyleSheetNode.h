@@ -31,36 +31,12 @@
 
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include <tuple>
+#include "StyleSheetSelector.h"
 
 namespace Rml {
 
 struct StyleSheetIndex;
 class StyleSheetNode;
-class StyleSheetNodeSelector;
-
-struct StructuralSelector {
-	StructuralSelector(StyleSheetNodeSelector* selector, int a, int b) : selector(selector), a(a), b(b) {}
-	StyleSheetNodeSelector* selector;
-	int a;
-	int b;
-};
-inline bool operator==(const StructuralSelector& a, const StructuralSelector& b)
-{
-	return a.selector == b.selector && a.a == b.a && a.b == b.b;
-}
-inline bool operator<(const StructuralSelector& a, const StructuralSelector& b)
-{
-	return std::tie(a.selector, a.a, a.b) < std::tie(b.selector, b.a, b.b);
-}
-
-enum class SelectorCombinator : byte {
-	None,
-	Child,             // The 'E > F' combinator: Matches if F is a child of E.
-	NextSibling,       // The 'E + F' combinator: Matches if F is immediately preceded by E.
-	SubsequentSibling, // The 'E ~ F' combinator: Matches if F is preceded by E.
-};
-
 using StructuralSelectorList = Vector<StructuralSelector>;
 using StyleSheetNodeList = Vector<UniquePtr<StyleSheetNode>>;
 

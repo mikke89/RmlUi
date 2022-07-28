@@ -948,7 +948,7 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 				{
 					String pseudo_class_name = identifier.substr(1);
 					StructuralSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
-					if (node_selector.selector)
+					if (node_selector.type != StructuralSelectorType::Invalid)
 						structural_pseudo_classes.push_back(node_selector);
 					else
 						pseudo_classes.push_back(pseudo_class_name);

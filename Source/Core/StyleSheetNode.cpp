@@ -31,7 +31,7 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "StyleSheetFactory.h"
-#include "StyleSheetNodeSelector.h"
+#include "StyleSheetSelector.h"
 #include <algorithm>
 
 namespace Rml {
@@ -267,7 +267,7 @@ inline bool StyleSheetNode::MatchStructuralSelector(const Element* element) cons
 {
 	for (auto& node_selector : structural_selectors)
 	{
-		if (!node_selector.selector->IsApplicable(element, node_selector.a, node_selector.b))
+		if (!IsSelectorApplicable(element, node_selector))
 			return false;
 	}
 
