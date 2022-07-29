@@ -35,6 +35,18 @@
 namespace Rml {
 
 class Element;
+class StyleSheetNode;
+struct SelectorTree;
+
+namespace SelectorSpecificity {
+	enum {
+		// Constants used to determine the specificity of a selector.
+		Tag = 10'000,
+		Class = 100'000,
+		PseudoClass = Class,
+		ID = 1'000'000,
+	};
+}
 
 enum class StructuralSelectorType {
 	Invalid,
@@ -48,24 +60,47 @@ enum class StructuralSelectorType {
 	Last_Of_Type,
 	Only_Child,
 	Only_Of_Type,
-	Empty
+	Empty,
+	Not
 };
 
 struct StructuralSelector {
 	StructuralSelector(StructuralSelectorType type, int a, int b) : type(type), a(a), b(b) {}
-	StructuralSelectorType type;
+	StructuralSelector(StructuralSelectorType type, SharedPtr<const SelectorTree> tree, int specificity) :
+		type(type), specificity(specificity), selector_tree(std::move(tree))
+	{}
+
+	StructuralSelectorType type = StructuralSelectorType::Invalid;
+
 	// For counting selectors, the following are the 'a' and 'b' variables of an + b.
-	int a;
-	int b;
+	int a = 0;
+	int b = 0;
+
+	// Specificity is usually determined like a pseudo class, but some types override this value.
+	int specificity = SelectorSpecificity::PseudoClass;
+
+	// For selectors that contain internal selectors such as :not().
+	SharedPtr<const SelectorTree> selector_tree;
 };
+
 inline bool operator==(const StructuralSelector& a, const StructuralSelector& b)
 {
-	return a.type == b.type && a.a == b.a && a.b == b.b;
+	// Currently sub-selectors (selector_tree) are only superficially compared. This mainly has the consequence that selectors with a sub-selector
+	// which are instantiated separately will never compare equal, even if they have the exact same sub-selector expression. This further results in
+	// such selectors not being de-duplicated. This should not lead to any functional differences but leads to potentially missed memory/performance
+	// optimizations. E.g. 'div a, div b' will combine the two div nodes, while ':not(div) a, :not(div) b' will not combine the two not-div nodes.
+	return a.type == b.type && a.a == b.a && a.b == b.b && a.selector_tree == b.selector_tree;
 }
 inline bool operator<(const StructuralSelector& a, const StructuralSelector& b)
 {
-	return std::tie(a.type, a.a, a.b) < std::tie(b.type, b.a, b.b);
+	return std::tie(a.type, a.a, a.b, a.selector_tree) < std::tie(b.type, b.a, b.b, b.selector_tree);
 }
+
+// A tree of unstyled style sheet nodes.
+struct SelectorTree {
+	UniquePtr<StyleSheetNode> root;
+	Vector<StyleSheetNode*> leafs; // Owned by root.
+};
 
 enum class SelectorCombinator : byte {
 	None,
@@ -77,7 +112,7 @@ enum class SelectorCombinator : byte {
 /// Returns true if the the node the given selector is discriminating for is applicable to a given element.
 /// @param element[in] The element to determine node applicability for.
 /// @param selector[in] The selector to test against the element.
-bool IsSelectorApplicable(const Element* element, StructuralSelector selector);
+bool IsSelectorApplicable(const Element* element, const StructuralSelector& selector);
 
 } // namespace Rml
 #endif

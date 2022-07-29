@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "StreamFile.h"
 #include "StyleSheetNode.h"
+#include "StyleSheetParser.h"
 #include "StyleSheetSelector.h"
 
 namespace Rml {
@@ -50,6 +51,7 @@ StyleSheetFactory::StyleSheetFactory() :
 		{"only-child", StructuralSelectorType::Only_Child},
 		{"only-of-type", StructuralSelectorType::Only_Of_Type},
 		{"empty", StructuralSelectorType::Empty},
+		{"not", StructuralSelectorType::Not},
 	}
 {}
 
@@ -107,14 +109,52 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 	if (it == instance->selectors.end())
 		return StructuralSelector(StructuralSelectorType::Invalid, 0, 0);
 
+	const StructuralSelectorType selector_type = it->second;
+
+	bool requires_parameter = false;
+	switch (selector_type)
+	{
+	case StructuralSelectorType::Nth_Child:
+	case StructuralSelectorType::Nth_Last_Child:
+	case StructuralSelectorType::Nth_Of_Type:
+	case StructuralSelectorType::Nth_Last_Of_Type:
+	case StructuralSelectorType::Not:
+		requires_parameter = true;
+		break;
+	default:
+		break;
+	}
+
+	const size_t parameter_end = name.rfind(')');
+	const bool has_parameter = (parameter_start != String::npos && parameter_end != String::npos && parameter_start < parameter_end);
+
+	if (requires_parameter != has_parameter)
+	{
+		Log::Message(Log::LT_WARNING, "Invalid selector ':%s' encountered, expected %s parameters", name.c_str(),
+			requires_parameter ? "parenthesized" : "no");
+		return StructuralSelector(StructuralSelectorType::Invalid, 0, 0);
+	}
+
 	// Parse the 'a' and 'b' values.
 	int a = 1;
 	int b = 0;
 
-	const size_t parameter_end = name.find(')', parameter_start + 1);
-	if (parameter_start != String::npos && parameter_end != String::npos)
+	if (has_parameter)
 	{
-		String parameters = StringUtilities::StripWhitespace(name.substr(parameter_start + 1, parameter_end - (parameter_start + 1)));
+		const String parameters = StringUtilities::StripWhitespace(StringView(name, parameter_start + 1, parameter_end - (parameter_start + 1)));
+
+		if (selector_type == StructuralSelectorType::Not)
+		{
+			auto list = MakeShared<SelectorTree>();
+			list->root = MakeUnique<StyleSheetNode>();
+			list->leafs = StyleSheetParser::ConstructNodes(*list->root, parameters);
+
+			int specificity = 0;
+			for (const StyleSheetNode* node : list->leafs)
+				specificity = Math::Max(specificity, node->GetSpecificity());
+
+			return StructuralSelector(selector_type, std::move(list), specificity);
+		}
 
 		// Check for 'even' or 'odd' first.
 		if (parameters == "even")
@@ -168,7 +208,7 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 		}
 	}
 
-	return StructuralSelector(it->second, a, b);
+	return StructuralSelector(selector_type, a, b);
 }
 
 UniquePtr<const StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(const String& sheet)

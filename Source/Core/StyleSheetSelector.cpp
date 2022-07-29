@@ -48,7 +48,7 @@ static bool IsNth(int a, int b, int count)
 	return (x >= 0 && x * a + b == count);
 }
 
-bool IsSelectorApplicable(const Element* element, StructuralSelector selector)
+bool IsSelectorApplicable(const Element* element, const StructuralSelector& selector)
 {
 	RMLUI_ASSERT(element);
 
@@ -311,6 +311,28 @@ bool IsSelectorApplicable(const Element* element, StructuralSelector selector)
 	case StructuralSelectorType::Empty:
 	{
 		return element->GetNumChildren() == 0;
+	}
+	break;
+	case StructuralSelectorType::Not:
+	{
+		if (!selector.selector_tree)
+		{
+			RMLUI_ERROR;
+			return false;
+		}
+
+		bool inner_selector_matches = false;
+
+		for (const StyleSheetNode* node : selector.selector_tree->leafs)
+		{
+			if (node->IsApplicable(element))
+			{
+				inner_selector_matches = true;
+				break;
+			}
+		}
+
+		return !inner_selector_matches;
 	}
 	break;
 	case StructuralSelectorType::Invalid:

@@ -36,7 +36,6 @@
 
 using namespace Rml;
 
-// clang-format off
 static const String doc_begin = R"(
 <rml>
 <head>
@@ -90,6 +89,7 @@ struct QuerySelector {
 	String expected_ids_after_operation;
 };
 
+// clang-format off
 static const Vector<QuerySelector> query_selectors =
 {
 	{ "span",                        "Y D0 D1 F0" },
@@ -141,6 +141,12 @@ static const Vector<QuerySelector> query_selectors =
 	{ "#F ~ #B",                     "" },
 	{ "div.parent > #B ~ p:empty",   "C G H",           SelectorOp::InsertElementBefore,  "H",     "C G Inserted H" },
 	{ "div.parent > #B ~ * span",    "D0 D1 F0" },
+	{ ":not(*)",                     "" },
+	{ ":not(span)",                  "X Z P A B C D E F G H I" },
+	{ "#D :not(#D0)",                "D1" },
+	{ "body > :not(:checked)",       "X Y Z P",         SelectorOp::RemoveChecked,        "I", "X Y Z P I" },
+	{ "div.hello:not(.world)",       "X" },
+	{ ":not(div,:nth-child(2),p *)", "A C D E F G H I" },
 };
 
 struct ClosestSelector {

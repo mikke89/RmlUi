@@ -355,21 +355,22 @@ bool StyleSheetNode::IsStructurallyVolatile() const
 
 void StyleSheetNode::CalculateAndSetSpecificity()
 {
-	// Calculate the specificity of just this node; tags are worth 10,000, IDs 1,000,000 and other specifiers (classes
-	// and pseudo-classes) 100,000.
+	// First calculate the specificity of this node alone.
 	specificity = 0;
 
 	if (!tag.empty())
-		specificity += 10'000;
+		specificity += SelectorSpecificity::Tag;
 
 	if (!id.empty())
-		specificity += 1'000'000;
+		specificity += SelectorSpecificity::ID;
 
-	specificity += 100'000 * (int)class_names.size();
-	specificity += 100'000 * (int)pseudo_class_names.size();
-	specificity += 100'000 * (int)structural_selectors.size();
+	specificity += SelectorSpecificity::Class * (int)class_names.size();
+	specificity += SelectorSpecificity::PseudoClass * (int)pseudo_class_names.size();
+	
+	for (const StructuralSelector& selector : structural_selectors)
+		specificity += selector.specificity; 
 
-	// Add our parent's specificity onto ours.
+	// Then add our parent's specificity onto ours.
 	if (parent)
 		specificity += parent->specificity;
 }

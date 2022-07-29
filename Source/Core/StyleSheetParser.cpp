@@ -558,7 +558,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 						continue;
 
 					StringList rule_name_list;
-					StringUtilities::ExpandString(rule_name_list, pre_token_str);
+					StringUtilities::ExpandString(rule_name_list, pre_token_str, ',', '(', ')');
 
 					// Add style nodes to the root of the tree
 					for (size_t i = 0; i < rule_name_list.size(); i++)
@@ -754,7 +754,7 @@ StyleSheetNodeListRaw StyleSheetParser::ConstructNodes(StyleSheetNode& root_node
 	const PropertyDictionary empty_properties;
 
 	StringList selector_list;
-	StringUtilities::ExpandString(selector_list, selectors);
+	StringUtilities::ExpandString(selector_list, selectors, ',', '(', ')');
 
 	StyleSheetNodeListRaw leaf_nodes;
 
