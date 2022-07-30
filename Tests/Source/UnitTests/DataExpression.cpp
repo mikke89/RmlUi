@@ -110,7 +110,7 @@ TEST_CASE("Data expressions")
 		return Variant(std::move(result));
 	});
 	constructor.RegisterTransformFunc("number_suffix", [](const VariantList& arguments) -> Variant {
-		if (arguments.size() != 1)
+		if (arguments.size() != 3)
 			return {};
 		String suffix = (arguments[0].Get<double>() == 1.0 ? arguments[1] : arguments[2]).Get<String>();
 		return Variant(arguments[0].Get<String>() + ' ' + suffix);
