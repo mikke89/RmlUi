@@ -54,6 +54,8 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 
 ### Lua plugin
 
+- Add `QuerySelector` and `QuerySelectorAll` to the Lua Element API. #329 (thanks @Dakror)
+- Lua objects representing C++ pointers now compare equal if they point to the same object. #330 (thanks @Dakror)
 - Add length to proxy for element children. #315 (thanks @nimble0)
 
 ### Layout improvements

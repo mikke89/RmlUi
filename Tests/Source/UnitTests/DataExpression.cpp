@@ -90,12 +90,14 @@ static bool TestAssignment(const String& expression)
 TEST_CASE("Data expressions")
 {
 	float radius = 8.7f;
+	int num_trolls = 1;
 	String color_name = "color";
 	Colourb color_value = Colourb(180, 100, 255);
 
 	DataModelConstructor constructor(&model, &type_register);
 	constructor.Bind("radius", &radius);
 	constructor.Bind("color_name", &color_name);
+	constructor.Bind("num_trolls", &num_trolls);
 	constructor.BindFunc("color_value", [&](Variant& variant) { variant = ToString(color_value); });
 
 	constructor.RegisterTransformFunc("concatenate", [](const VariantList& arguments) -> Variant {
@@ -107,6 +109,13 @@ TEST_CASE("Data expressions")
 		StringUtilities::JoinString(result, list);
 		return Variant(std::move(result));
 	});
+	constructor.RegisterTransformFunc("number_suffix", [](const VariantList& arguments) -> Variant {
+		if (arguments.size() != 1)
+			return {};
+		String suffix = (arguments[0].Get<double>() == 1.0 ? arguments[1] : arguments[2]).Get<String>();
+		return Variant(arguments[0].Get<String>() + ' ' + suffix);
+	});
+	DataModelHandle handle = constructor.GetModelHandle();
 
 	CHECK(TestExpression("3.62345 | round | format(2)") == "4.00");
 
@@ -174,4 +183,13 @@ TEST_CASE("Data expressions")
 	CHECK(TestExpression("concatenate(3.6)") == "3.6");
 	CHECK(TestExpression("concatenate(3.6+1)") == "4.6");
 	CHECK(TestExpression("concatenate(3.6+1) | round | format(3, false)") == "5.000");
+	CHECK(TestExpression("concatenate(3.6+1 | round, 'x')") == "5,x");
+
+	CHECK(TestExpression("num_trolls | number_suffix('troll','trolls')") == "1 troll");
+	CHECK(TestExpression("concatenate('It takes', num_trolls*3 + ' goats', 'to outsmart', num_trolls | number_suffix('troll','trolls'))") ==
+		"It takes,3 goats,to outsmart,1 troll");
+	num_trolls = 3;
+	handle.DirtyVariable("num_trolls");
+	CHECK(TestExpression("concatenate('It takes', num_trolls*3 + ' goats', 'to outsmart', num_trolls | number_suffix('troll','trolls'))") ==
+		"It takes,9 goats,to outsmart,3 trolls");
 }

@@ -934,7 +934,7 @@ private:
 					if (i < arguments.size() - 1)
 						arguments_str += ", ";
 				}
-				Error(CreateString(60 + function_name.size() + arguments_str.size(), "Failed to execute %s: %s(%s)",
+				return Error(CreateString(60 + function_name.size() + arguments_str.size(), "Failed to execute %s: %s(%s)",
 					instruction == Instruction::TransformFnc ? "transform function" : "event callback", function_name.c_str(),
 					arguments_str.c_str()));
 			}
