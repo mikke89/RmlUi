@@ -40,6 +40,18 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - The input method editor (IME) is now positioned at the caret during text editing on the Windows backend. #303 #305 (thanks @xland)
 - Fix slow input handling especially with CJK input on the Win32 backend. #311
 
+### RCSS selectors
+
+- Implemented the next-sibling `+` and subsequent-sibling `~` combinators.
+- Implemented the negation pseudo class `:not()`, including support for selector lists `E:not(s1, s2, ...)`.
+- Refactored structural pseudo classes for improved performance.
+- Selectors will no longer match any text elements, like in CSS.
+- Structural selectors are no longer affected by the element's display property, like in CSS.
+
+### Data binding
+
+- Transform functions can now be called using C-like calling conventions, in addition to the previous pipe-syntax. Thus, the data expression `3.625 | format(2)` can now be identically expressed as `format(3.625, 2)`.
+
 ### Lua plugin
 
 - Add length to proxy for element children. #315 (thanks @nimble0)
@@ -58,14 +70,19 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 
 ### General fixes
 
+- Font textures are no longer being regenerated when encountering new ascii characters, fixes a recent regression.
 - `<img>` element: Fix wrong dp-scaling being applied when an image is cloned through a parent element. #310
 - Logging a message without an installed system interface will now be written to cout instead of crashing the application.
 - Fixed a crash when the debugger plugin was shutdown manually. #322 #323 (thanks @LoneBoco)
+- Fix compilation on Emscripten CI. #335 (thanks @hobyst)
 
 ### Breaking changes
 
 - Changed the signature of the keyboard activation in the system interface, it now passes the caret position and line height: `SystemInterface::ActivateKeyboard(Rml::Vector2f caret_position, float line_height)`.
 - Removed the boolean result returned from `Rml::Debugger::Shutdown()`.
+- RCSS selectors will no longer match text elements, structural pseudo selectors are no longer affected by the element's display property.
+- Data binding: The signature of transform functions has been changed from `Variant& first_argument_and_result, const VariantList& other_arguments -> bool success` to `const VariantList& arguments -> Variant result`.
+
 
 ## RmlUi 4.4
 
