@@ -558,7 +558,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 						continue;
 
 					StringList rule_name_list;
-					StringUtilities::ExpandString(rule_name_list, pre_token_str);
+					StringUtilities::ExpandString(rule_name_list, pre_token_str, ',', '(', ')');
 
 					// Add style nodes to the root of the tree
 					for (size_t i = 0; i < rule_name_list.size(); i++)
@@ -754,7 +754,7 @@ StyleSheetNodeListRaw StyleSheetParser::ConstructNodes(StyleSheetNode& root_node
 	const PropertyDictionary empty_properties;
 
 	StringList selector_list;
-	StringUtilities::ExpandString(selector_list, selectors);
+	StringUtilities::ExpandString(selector_list, selectors, ',', '(', ')');
 
 	StyleSheetNodeListRaw leaf_nodes;
 
@@ -876,20 +876,26 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 
 	StringList nodes;
 
-	// Find child combinators, the RCSS '>' rule.
-	size_t i_child = rule_name.find('>');
-	while (i_child != String::npos)
+	// Combinator rules can be formatted several ways by users, here we ensure consistent formatting before we can continue with the parsing below.
+	// E.g. converts combinations such as "A > B", "A >B", "A>B"  to  "A> B".
+	for (const char combinator : {'>', '+', '~'})
 	{
-		// So we found one! Next, we want to format the rule such that the '>' is located at the 
-		// end of the left-hand-side node, and that there is a space to the right-hand-side. This ensures that
-		// the selector is applied to the "parent", and that parent and child are expanded properly below.
-		size_t i_begin = i_child;
-		while (i_begin > 0 && rule_name[i_begin - 1] == ' ')
-			i_begin--;
+		// Find all combinators of the given type.
+		size_t i_child = rule_name.find(combinator);
+		while (i_child != String::npos)
+		{
+			// So we found one! Next, we want to format the rule such that e.g. the '>' is located at the
+			// end of the left-hand-side node, and that there is a space to the right-hand-side. This ensures that
+			// the selector is applied to the "parent", and that parent and child are expanded properly below.
+			size_t i_begin = i_child;
+			while (i_begin > 0 && rule_name[i_begin - 1] == ' ')
+				i_begin--;
 
-		const size_t i_end = i_child + 1;
-		rule_name.replace(i_begin, i_end - i_begin, "> ");
-		i_child = rule_name.find('>', i_begin + 1);
+			const size_t i_end = i_child + 1;
+			const char replacement_str[] = {combinator, ' ', '\0'};
+			rule_name.replace(i_begin, i_end - i_begin, (const char*)replacement_str);
+			i_child = rule_name.find(combinator, i_begin + 1);
+		}
 	}
 
 	// Expand each individual node separated by spaces. Don't expand inside parenthesis because of structural selectors.
@@ -905,42 +911,62 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 		StringList classes;
 		StringList pseudo_classes;
 		StructuralSelectorList structural_pseudo_classes;
-		bool child_combinator = false;
+		SelectorCombinator combinator = SelectorCombinator::None;
 
 		size_t index = 0;
 		while (index < name.size())
 		{
 			size_t start_index = index;
 			size_t end_index = index + 1;
+			int parenthesis_count = 0;
 
 			// Read until we hit the next identifier.
-			while (end_index < name.size() &&
-				   name[end_index] != '#' &&
-				   name[end_index] != '.' &&
-				   name[end_index] != ':' &&
-				   name[end_index] != '>')
-				end_index++;
+			for (; end_index < name.size(); end_index++)
+			{
+				static const String identifiers = "#.:>+~";
+				if (parenthesis_count == 0 && identifiers.find(name[end_index]) != String::npos)
+					break;
+
+				if (name[end_index] == '(')
+					parenthesis_count += 1;
+				else if (name[end_index] == ')')
+					parenthesis_count -= 1;
+			}
 
 			String identifier = name.substr(start_index, end_index - start_index);
 			if (!identifier.empty())
 			{
 				switch (identifier[0])
 				{
-					case '#':	id = identifier.substr(1); break;
-					case '.':	classes.push_back(identifier.substr(1)); break;
-					case ':':
-					{
-						String pseudo_class_name = identifier.substr(1);
-						StructuralSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
-						if (node_selector.selector)
-							structural_pseudo_classes.push_back(node_selector);
-						else
-							pseudo_classes.push_back(pseudo_class_name);
-					}
+				case '#':
+					id = identifier.substr(1);
 					break;
-					case '>':	child_combinator = true; break;
+				case '.':
+					classes.push_back(identifier.substr(1));
+					break;
+				case ':':
+				{
+					String pseudo_class_name = identifier.substr(1);
+					StructuralSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
+					if (node_selector.type != StructuralSelectorType::Invalid)
+						structural_pseudo_classes.push_back(node_selector);
+					else
+						pseudo_classes.push_back(pseudo_class_name);
+				}
+				break;
+				case '>':
+					combinator = SelectorCombinator::Child;
+					break;
+				case '+':
+					combinator = SelectorCombinator::NextSibling;
+					break;
+				case '~':
+					combinator = SelectorCombinator::SubsequentSibling;
+					break;
 
-					default:	if(identifier != "*") tag = identifier;
+				default:
+					if (identifier != "*")
+						tag = identifier;
 				}
 			}
 
@@ -953,7 +979,7 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 		std::sort(structural_pseudo_classes.begin(), structural_pseudo_classes.end());
 
 		// Get the named child node.
-		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes), child_combinator);
+		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes), combinator);
 	}
 
 	// Merge the new properties with those already on the leaf node.

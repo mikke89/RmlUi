@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,17 +34,16 @@
 namespace Rml {
 
 class StyleSheetContainer;
-class StyleSheetNodeSelector;
+enum class StructuralSelectorType;
 struct StructuralSelector;
 
 /**
-	Creates stylesheets on the fly as needed. The factory keeps a cache of built sheets for optimisation.
+    Creates stylesheets on the fly as needed. The factory keeps a cache of built sheets for optimisation.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class StyleSheetFactory
-{
+class StyleSheetFactory {
 public:
 	~StyleSheetFactory();
 
@@ -77,7 +76,7 @@ private:
 	StyleSheets stylesheets;
 
 	// Custom complex selectors available for style sheets.
-	using SelectorMap = UnorderedMap<String, UniquePtr<StyleSheetNodeSelector>>;
+	using SelectorMap = UnorderedMap<String, StructuralSelectorType>;
 	SelectorMap selectors;
 };
 

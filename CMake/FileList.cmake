@@ -88,19 +88,8 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNode.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelector.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorEmpty.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorFirstChild.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorFirstOfType.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorLastChild.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorLastOfType.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorNthChild.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorNthLastChild.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorNthLastOfType.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorNthOfType.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorOnlyChild.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorOnlyOfType.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetParser.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetSelector.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Template.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TemplateCache.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureDatabase.h
@@ -379,19 +368,8 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetContainer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNode.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelector.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorEmpty.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorFirstChild.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorFirstOfType.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorLastChild.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorLastOfType.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorNthChild.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorNthLastChild.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorNthLastOfType.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorNthOfType.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorOnlyChild.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNodeSelectorOnlyOfType.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetParser.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetSelector.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetSpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/SystemInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Template.cpp

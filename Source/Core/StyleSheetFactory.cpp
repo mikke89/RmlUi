@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,50 +27,40 @@
  */
 
 #include "StyleSheetFactory.h"
-#include "../../Include/RmlUi/Core/StyleSheetContainer.h"
-#include "StyleSheetNode.h"
-#include "StreamFile.h"
-#include "StyleSheetNodeSelectorNthChild.h"
-#include "StyleSheetNodeSelectorNthLastChild.h"
-#include "StyleSheetNodeSelectorNthOfType.h"
-#include "StyleSheetNodeSelectorNthLastOfType.h"
-#include "StyleSheetNodeSelectorFirstChild.h"
-#include "StyleSheetNodeSelectorLastChild.h"
-#include "StyleSheetNodeSelectorFirstOfType.h"
-#include "StyleSheetNodeSelectorLastOfType.h"
-#include "StyleSheetNodeSelectorOnlyChild.h"
-#include "StyleSheetNodeSelectorOnlyOfType.h"
-#include "StyleSheetNodeSelectorEmpty.h"
 #include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/StyleSheetContainer.h"
+#include "StreamFile.h"
+#include "StyleSheetNode.h"
+#include "StyleSheetParser.h"
+#include "StyleSheetSelector.h"
 
 namespace Rml {
 
 static UniquePtr<StyleSheetFactory> instance;
 
-StyleSheetFactory::StyleSheetFactory()
+StyleSheetFactory::StyleSheetFactory() :
+	selectors{
+		{"nth-child", StructuralSelectorType::Nth_Child},
+		{"nth-last-child", StructuralSelectorType::Nth_Last_Child},
+		{"nth-of-type", StructuralSelectorType::Nth_Of_Type},
+		{"nth-last-of-type", StructuralSelectorType::Nth_Last_Of_Type},
+		{"first-child", StructuralSelectorType::First_Child},
+		{"last-child", StructuralSelectorType::Last_Child},
+		{"first-of-type", StructuralSelectorType::First_Of_Type},
+		{"last-of-type", StructuralSelectorType::Last_Of_Type},
+		{"only-child", StructuralSelectorType::Only_Child},
+		{"only-of-type", StructuralSelectorType::Only_Of_Type},
+		{"empty", StructuralSelectorType::Empty},
+		{"not", StructuralSelectorType::Not},
+	}
 {}
 
-StyleSheetFactory::~StyleSheetFactory()
-{}
+StyleSheetFactory::~StyleSheetFactory() {}
 
 bool StyleSheetFactory::Initialise()
 {
 	RMLUI_ASSERT(instance == nullptr);
-
 	instance = UniquePtr<StyleSheetFactory>(new StyleSheetFactory);
-
-	instance->selectors["nth-child"] = MakeUnique<StyleSheetNodeSelectorNthChild>();
-	instance->selectors["nth-last-child"] = MakeUnique<StyleSheetNodeSelectorNthLastChild>();
-	instance->selectors["nth-of-type"] = MakeUnique<StyleSheetNodeSelectorNthOfType>();
-	instance->selectors["nth-last-of-type"] = MakeUnique<StyleSheetNodeSelectorNthLastOfType>();
-	instance->selectors["first-child"] = MakeUnique<StyleSheetNodeSelectorFirstChild>();
-	instance->selectors["last-child"] = MakeUnique<StyleSheetNodeSelectorLastChild>();
-	instance->selectors["first-of-type"] = MakeUnique<StyleSheetNodeSelectorFirstOfType>();
-	instance->selectors["last-of-type"] = MakeUnique<StyleSheetNodeSelectorLastOfType>();
-	instance->selectors["only-child"] = MakeUnique<StyleSheetNodeSelectorOnlyChild>();
-	instance->selectors["only-of-type"] = MakeUnique<StyleSheetNodeSelectorOnlyOfType>();
-	instance->selectors["empty"] = MakeUnique<StyleSheetNodeSelectorEmpty>();
-
 	return true;
 }
 
@@ -117,17 +107,54 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 		it = instance->selectors.find(name.substr(0, parameter_start));
 
 	if (it == instance->selectors.end())
-		return StructuralSelector(nullptr, 0, 0);
+		return StructuralSelector(StructuralSelectorType::Invalid, 0, 0);
+
+	const StructuralSelectorType selector_type = it->second;
+
+	bool requires_parameter = false;
+	switch (selector_type)
+	{
+	case StructuralSelectorType::Nth_Child:
+	case StructuralSelectorType::Nth_Last_Child:
+	case StructuralSelectorType::Nth_Of_Type:
+	case StructuralSelectorType::Nth_Last_Of_Type:
+	case StructuralSelectorType::Not:
+		requires_parameter = true;
+		break;
+	default:
+		break;
+	}
+
+	const size_t parameter_end = name.rfind(')');
+	const bool has_parameter = (parameter_start != String::npos && parameter_end != String::npos && parameter_start < parameter_end);
+
+	if (requires_parameter != has_parameter)
+	{
+		Log::Message(Log::LT_WARNING, "Invalid selector ':%s' encountered, expected %s parameters", name.c_str(),
+			requires_parameter ? "parenthesized" : "no");
+		return StructuralSelector(StructuralSelectorType::Invalid, 0, 0);
+	}
 
 	// Parse the 'a' and 'b' values.
 	int a = 1;
 	int b = 0;
 
-	const size_t parameter_end = name.find(')', parameter_start + 1);
-	if (parameter_start != String::npos &&
-		parameter_end != String::npos)
+	if (has_parameter)
 	{
-		String parameters = StringUtilities::StripWhitespace(name.substr(parameter_start + 1, parameter_end - (parameter_start + 1)));
+		const String parameters = StringUtilities::StripWhitespace(StringView(name, parameter_start + 1, parameter_end - (parameter_start + 1)));
+
+		if (selector_type == StructuralSelectorType::Not)
+		{
+			auto list = MakeShared<SelectorTree>();
+			list->root = MakeUnique<StyleSheetNode>();
+			list->leafs = StyleSheetParser::ConstructNodes(*list->root, parameters);
+
+			int specificity = 0;
+			for (const StyleSheetNode* node : list->leafs)
+				specificity = Math::Max(specificity, node->GetSpecificity());
+
+			return StructuralSelector(selector_type, std::move(list), specificity);
+		}
 
 		// Check for 'even' or 'odd' first.
 		if (parameters == "even")
@@ -181,7 +208,7 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 		}
 	}
 
-	return StructuralSelector(it->second.get(), a, b);
+	return StructuralSelector(selector_type, a, b);
 }
 
 UniquePtr<const StyleSheetContainer> StyleSheetFactory::LoadStyleSheetContainer(const String& sheet)

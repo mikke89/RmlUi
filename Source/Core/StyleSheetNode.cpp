@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,24 +31,34 @@
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "StyleSheetFactory.h"
-#include "StyleSheetNodeSelector.h"
+#include "StyleSheetSelector.h"
 #include <algorithm>
 
 namespace Rml {
+
+static inline bool IsTextElement(const Element* element)
+{
+	return element->GetTagName() == "#text";
+}
 
 StyleSheetNode::StyleSheetNode()
 {
 	CalculateAndSetSpecificity();
 }
 
-StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors, bool child_combinator)
-	: parent(parent), tag(tag), id(id), class_names(classes), pseudo_class_names(pseudo_classes), structural_selectors(structural_selectors), child_combinator(child_combinator)
+StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes,
+	const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors, SelectorCombinator combinator) :
+	parent(parent),
+	tag(tag), id(id), class_names(classes), pseudo_class_names(pseudo_classes), structural_selectors(structural_selectors), combinator(combinator)
 {
 	CalculateAndSetSpecificity();
 }
 
-StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator)
-	: parent(parent), tag(std::move(tag)), id(std::move(id)), class_names(std::move(classes)), pseudo_class_names(std::move(pseudo_classes)), structural_selectors(std::move(structural_selectors)), child_combinator(child_combinator)
+StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes,
+	StructuralSelectorList&& structural_selectors, SelectorCombinator combinator) :
+	parent(parent),
+	tag(std::move(tag)), id(std::move(id)), class_names(std::move(classes)), pseudo_class_names(std::move(pseudo_classes)),
+	structural_selectors(std::move(structural_selectors)), combinator(combinator)
 {
 	CalculateAndSetSpecificity();
 }
@@ -58,12 +68,13 @@ StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(const StyleSheetNode& other
 	// See if we match the target child
 	for (const auto& child : children)
 	{
-		if (child->EqualRequirements(other.tag, other.id, other.class_names, other.pseudo_class_names, other.structural_selectors, other.child_combinator))
+		if (child->EqualRequirements(other.tag, other.id, other.class_names, other.pseudo_class_names, other.structural_selectors, other.combinator))
 			return child.get();
 	}
 
 	// We don't, so create a new child
-	auto child = MakeUnique<StyleSheetNode>(this, other.tag, other.id, other.class_names, other.pseudo_class_names, other.structural_selectors, other.child_combinator);
+	auto child = MakeUnique<StyleSheetNode>(this, other.tag, other.id, other.class_names, other.pseudo_class_names, other.structural_selectors,
+		other.combinator);
 	StyleSheetNode* result = child.get();
 
 	children.push_back(std::move(child));
@@ -71,17 +82,19 @@ StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(const StyleSheetNode& other
 	return result;
 }
 
-StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_pseudo_classes, bool child_combinator)
+StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes,
+	StructuralSelectorList&& structural_pseudo_classes, SelectorCombinator combinator)
 {
 	// See if we match an existing child
 	for (const auto& child : children)
 	{
-		if (child->EqualRequirements(tag, id, classes, pseudo_classes, structural_pseudo_classes, child_combinator))
+		if (child->EqualRequirements(tag, id, classes, pseudo_classes, structural_pseudo_classes, combinator))
 			return child.get();
 	}
 
 	// We don't, so create a new child
-	auto child = MakeUnique<StyleSheetNode>(this, std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes), child_combinator);
+	auto child = MakeUnique<StyleSheetNode>(this, std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes),
+		std::move(structural_pseudo_classes), combinator);
 	StyleSheetNode* result = child.get();
 
 	children.push_back(std::move(child));
@@ -108,11 +121,11 @@ UniquePtr<StyleSheetNode> StyleSheetNode::DeepCopy(StyleSheetNode* in_parent) co
 {
 	RMLUI_ZoneScoped;
 
-	auto node = MakeUnique<StyleSheetNode>(in_parent, tag, id, class_names, pseudo_class_names, structural_selectors, child_combinator);
+	auto node = MakeUnique<StyleSheetNode>(in_parent, tag, id, class_names, pseudo_class_names, structural_selectors, combinator);
 
 	node->properties = properties;
 	node->children.resize(children.size());
-	
+
 	for (size_t i = 0; i < children.size(); i++)
 	{
 		node->children[i] = children[i]->DeepCopy(node.get());
@@ -178,7 +191,8 @@ bool StyleSheetNode::SetStructurallyVolatileRecursive(bool ancestor_is_structura
 	return (self_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
 }
 
-bool StyleSheetNode::EqualRequirements(const String& _tag, const String& _id, const StringList& _class_names, const StringList& _pseudo_class_names, const StructuralSelectorList& _structural_selectors, bool _child_combinator) const
+bool StyleSheetNode::EqualRequirements(const String& _tag, const String& _id, const StringList& _class_names, const StringList& _pseudo_class_names,
+	const StructuralSelectorList& _structural_selectors, SelectorCombinator _combinator) const
 {
 	if (tag != _tag)
 		return false;
@@ -190,7 +204,7 @@ bool StyleSheetNode::EqualRequirements(const String& _tag, const String& _id, co
 		return false;
 	if (structural_selectors != _structural_selectors)
 		return false;
-	if (child_combinator != _child_combinator)
+	if (combinator != _combinator)
 		return false;
 
 	return true;
@@ -215,7 +229,7 @@ const PropertyDictionary& StyleSheetNode::GetProperties() const
 	return properties;
 }
 
-inline bool StyleSheetNode::Match(const Element* element) const
+bool StyleSheetNode::Match(const Element* element) const
 {
 	if (!tag.empty() && tag != element->GetTagName())
 		return false;
@@ -253,19 +267,20 @@ inline bool StyleSheetNode::MatchStructuralSelector(const Element* element) cons
 {
 	for (auto& node_selector : structural_selectors)
 	{
-		if (!node_selector.selector->IsApplicable(element, node_selector.a, node_selector.b))
+		if (!IsSelectorApplicable(element, node_selector))
 			return false;
 	}
-	
+
 	return true;
 }
 
-// Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
 bool StyleSheetNode::IsApplicable(const Element* const in_element) const
 {
-	// Determine whether the element matches the current node and its entire lineage. The entire hierarchy of
-	// the element's document will be considered during the match as necessary.
+	// Determine whether the element matches the current node and its entire lineage. The entire hierarchy of the element's document will be
+	// considered during the match as necessary.
 
+	// We could in principle just call Match() here and then go on with the ancestor style nodes. Instead, we test the requirements of this node in a
+	// particular order for performance reasons .
 	for (const String& name : pseudo_class_names)
 	{
 		if (!in_element->IsPseudoClassSet(name))
@@ -286,17 +301,39 @@ bool StyleSheetNode::IsApplicable(const Element* const in_element) const
 
 	const Element* element = in_element;
 
-	// Walk up through all our parent nodes, each one of them must be matched by some ancestor element.
-	for(const StyleSheetNode* node = parent; node && node->parent; node = node->parent)
+	// Walk up through all our parent nodes, each one of them must be matched by some ancestor or sibling element.
+	for (const StyleSheetNode* node = parent; node && node->parent; node = node->parent)
 	{
-		// Try a match on every element ancestor. If it succeeds, we continue on to the next node.
-		for(element = element->GetParentNode(); element; element = element->GetParentNode())
+		switch (node->combinator)
 		{
-			if (node->Match(element))
-				break;
-			// If we have a child combinator on the node, we must match this first ancestor.
-			else if (node->child_combinator)
-				return false;
+		case SelectorCombinator::None:
+		case SelectorCombinator::Child:
+		{
+			// Try a match on every element ancestor. If it succeeds, we continue on to the next node.
+			for (element = element->GetParentNode(); element; element = element->GetParentNode())
+			{
+				if (node->Match(element))
+					break;
+				// If the node has a child combinator we must match this first ancestor.
+				else if (node->combinator == SelectorCombinator::Child)
+					return false;
+			}
+		}
+		break;
+		case SelectorCombinator::NextSibling:
+		case SelectorCombinator::SubsequentSibling:
+		{
+			// Try a match on every element ancestor. If it succeeds, we continue on to the next node.
+			for (element = element->GetPreviousSibling(); element; element = element->GetPreviousSibling())
+			{
+				if (node->Match(element) && !IsTextElement(in_element))
+					break;
+				// If the node has a next-sibling combinator we must match this first sibling.
+				else if (node->combinator == SelectorCombinator::NextSibling && !IsTextElement(in_element))
+					return false;
+			}
+		}
+		break;
 		}
 
 		// We have run out of element ancestors before we matched every node. Bail out.
@@ -316,24 +353,24 @@ bool StyleSheetNode::IsStructurallyVolatile() const
 	return is_structurally_volatile;
 }
 
-
 void StyleSheetNode::CalculateAndSetSpecificity()
 {
-	// Calculate the specificity of just this node; tags are worth 10,000, IDs 1,000,000 and other specifiers (classes
-	// and pseudo-classes) 100,000.
+	// First calculate the specificity of this node alone.
 	specificity = 0;
 
 	if (!tag.empty())
-		specificity += 10'000;
+		specificity += SelectorSpecificity::Tag;
 
 	if (!id.empty())
-		specificity += 1'000'000;
+		specificity += SelectorSpecificity::ID;
 
-	specificity += 100'000*(int)class_names.size();
-	specificity += 100'000*(int)pseudo_class_names.size();
-	specificity += 100'000*(int)structural_selectors.size();
+	specificity += SelectorSpecificity::Class * (int)class_names.size();
+	specificity += SelectorSpecificity::PseudoClass * (int)pseudo_class_names.size();
+	
+	for (const StructuralSelector& selector : structural_selectors)
+		specificity += selector.specificity; 
 
-	// Add our parent's specificity onto ours.
+	// Then add our parent's specificity onto ours.
 	if (parent)
 		specificity += parent->specificity;
 }

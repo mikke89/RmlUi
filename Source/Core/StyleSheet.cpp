@@ -195,6 +195,10 @@ SharedPtr<const ElementDefinition> StyleSheet::GetElementDefinition(const Elemen
 	const String& id = element->GetId();
 	const StringList& class_names = element->GetStyle()->GetClassNameList();
 
+	// Text elements are never matched.
+	if (tag == "#text")
+		return nullptr;
+
 	// First, look up the indexed requirements. 
 	if (!id.empty())
 		AddApplicableNodes(styled_node_index.ids, id);

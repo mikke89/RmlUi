@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,42 +31,32 @@
 
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include <tuple>
+#include "StyleSheetSelector.h"
 
 namespace Rml {
 
 struct StyleSheetIndex;
 class StyleSheetNode;
-class StyleSheetNodeSelector;
-
-struct StructuralSelector {
-	StructuralSelector(StyleSheetNodeSelector* selector, int a, int b) : selector(selector), a(a), b(b) {}
-	StyleSheetNodeSelector* selector;
-	int a;
-	int b;
-};
-inline bool operator==(const StructuralSelector& a, const StructuralSelector& b) { return a.selector == b.selector && a.a == b.a && a.b == b.b; }
-inline bool operator<(const StructuralSelector& a, const StructuralSelector& b) { return std::tie(a.selector, a.a, a.b) < std::tie(b.selector, b.a, b.b); }
-
-using StructuralSelectorList = Vector< StructuralSelector >;
-using StyleSheetNodeList = Vector< UniquePtr<StyleSheetNode> >;
-
+using StructuralSelectorList = Vector<StructuralSelector>;
+using StyleSheetNodeList = Vector<UniquePtr<StyleSheetNode>>;
 
 /**
-	A style sheet is composed of a tree of nodes.
+    A style sheet is composed of a tree of nodes.
 
-	@author Pete / Lloyd
+    @author Pete / Lloyd
  */
 
-class StyleSheetNode
-{
+class StyleSheetNode {
 public:
 	StyleSheetNode();
-	StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_selectors, bool child_combinator);
-	StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
+	StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes,
+		const StructuralSelectorList& structural_selectors, SelectorCombinator combinator);
+	StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes,
+		StructuralSelectorList&& structural_selectors, SelectorCombinator combinator);
 
 	/// Retrieves a child node with the given requirements if they match an existing node, or else creates a new one.
-	StyleSheetNode* GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes, StructuralSelectorList&& structural_selectors, bool child_combinator);
+	StyleSheetNode* GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes,
+		StructuralSelectorList&& structural_selectors, SelectorCombinator combinator);
 	/// Retrieves or creates a child node with requirements equivalent to the 'other' node.
 	StyleSheetNode* GetOrCreateChildNode(const StyleSheetNode& other);
 
@@ -79,9 +69,8 @@ public:
 	/// Builds up a style sheet's index recursively.
 	void BuildIndex(StyleSheetIndex& styled_node_index) const;
 
-	/// Imports properties from a single rule definition into the node's properties and sets the
-	/// appropriate specificity on them. Any existing attributes sharing a key with a new attribute
-	/// will be overwritten if they are of a lower specificity.
+	/// Imports properties from a single rule definition into the node's properties and sets the appropriate specificity on them. Any existing
+	/// attributes sharing a key with a new attribute will be overwritten if they are of a lower specificity.
 	/// @param[in] properties The properties to import.
 	/// @param[in] rule_specificity The specificity of the importing rule.
 	void ImportProperties(const PropertyDictionary& properties, int rule_specificity);
@@ -89,18 +78,20 @@ public:
 	const PropertyDictionary& GetProperties() const;
 
 	/// Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
+	/// @note For performance reasons this call does not check whether 'element' is a text element. The caller must manually check this condition and
+	/// consider any text element not applicable.
 	bool IsApplicable(const Element* element) const;
 
 	/// Returns the specificity of this node.
 	int GetSpecificity() const;
-	/// Returns true if this node employs a structural selector, and therefore generates element definitions that are
-	/// sensitive to sibling changes. 
+	/// Returns true if this node employs a structural selector, and therefore generates element definitions that are sensitive to sibling changes.
 	/// @warning Result is only valid if structural volatility is set since any changes to the node tree.
 	bool IsStructurallyVolatile() const;
 
 private:
 	// Returns true if the requirements of this node equals the given arguments.
-	bool EqualRequirements(const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes, const StructuralSelectorList& structural_pseudo_classes, bool child_combinator) const;
+	bool EqualRequirements(const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes,
+		const StructuralSelectorList& structural_pseudo_classes, SelectorCombinator combinator) const;
 
 	void CalculateAndSetSpecificity();
 
@@ -118,13 +109,12 @@ private:
 	StringList class_names;
 	StringList pseudo_class_names;
 	StructuralSelectorList structural_selectors; // Represents structural pseudo classes
-	bool child_combinator = false; // The '>' combinator: This node only matches if the element is a parent of the previous matching element.
+	SelectorCombinator combinator = SelectorCombinator::None;
 
 	// True if any ancestor, descendent, or self is a structural pseudo class.
 	bool is_structurally_volatile = true;
 
-	// A measure of specificity of this node; the attribute in a node with a higher value will override those of a
-	// node with a lower value.
+	// A measure of specificity of this node; the attribute in a node with a higher value will override those of a node with a lower value.
 	int specificity = 0;
 
 	PropertyDictionary properties;
