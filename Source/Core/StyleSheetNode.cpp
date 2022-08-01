@@ -173,24 +173,6 @@ void StyleSheetNode::BuildIndex(StyleSheetIndex& styled_node_index) const
 		child->BuildIndex(styled_node_index);
 }
 
-bool StyleSheetNode::SetStructurallyVolatileRecursive(bool ancestor_is_structural_pseudo_class)
-{
-	// If any ancestor or descendant is a structural pseudo class, then we are structurally volatile.
-	bool self_is_structural_pseudo_class = (!structural_selectors.empty());
-
-	// Check our children for structural pseudo-classes.
-	bool descendant_is_structural_pseudo_class = false;
-	for (auto& child : children)
-	{
-		if (child->SetStructurallyVolatileRecursive(self_is_structural_pseudo_class || ancestor_is_structural_pseudo_class))
-			descendant_is_structural_pseudo_class = true;
-	}
-
-	is_structurally_volatile = (self_is_structural_pseudo_class || ancestor_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
-
-	return (self_is_structural_pseudo_class || descendant_is_structural_pseudo_class);
-}
-
 bool StyleSheetNode::EqualRequirements(const String& _tag, const String& _id, const StringList& _class_names, const StringList& _pseudo_class_names,
 	const StructuralSelectorList& _structural_selectors, SelectorCombinator _combinator) const
 {
@@ -348,11 +330,6 @@ bool StyleSheetNode::IsApplicable(const Element* const in_element) const
 	return true;
 }
 
-bool StyleSheetNode::IsStructurallyVolatile() const
-{
-	return is_structurally_volatile;
-}
-
 void StyleSheetNode::CalculateAndSetSpecificity()
 {
 	// First calculate the specificity of this node alone.
@@ -366,9 +343,9 @@ void StyleSheetNode::CalculateAndSetSpecificity()
 
 	specificity += SelectorSpecificity::Class * (int)class_names.size();
 	specificity += SelectorSpecificity::PseudoClass * (int)pseudo_class_names.size();
-	
+
 	for (const StructuralSelector& selector : structural_selectors)
-		specificity += selector.specificity; 
+		specificity += selector.specificity;
 
 	// Then add our parent's specificity onto ours.
 	if (parent)

@@ -64,8 +64,6 @@ public:
 	void MergeHierarchy(StyleSheetNode* node, int specificity_offset = 0);
 	/// Copy this node including all descendent nodes.
 	UniquePtr<StyleSheetNode> DeepCopy(StyleSheetNode* parent = nullptr) const;
-	/// Recursively set structural volatility.
-	bool SetStructurallyVolatileRecursive(bool ancestor_is_structurally_volatile);
 	/// Builds up a style sheet's index recursively.
 	void BuildIndex(StyleSheetIndex& styled_node_index) const;
 
@@ -84,9 +82,6 @@ public:
 
 	/// Returns the specificity of this node.
 	int GetSpecificity() const;
-	/// Returns true if this node employs a structural selector, and therefore generates element definitions that are sensitive to sibling changes.
-	/// @warning Result is only valid if structural volatility is set since any changes to the node tree.
-	bool IsStructurallyVolatile() const;
 
 private:
 	// Returns true if the requirements of this node equals the given arguments.
@@ -110,9 +105,6 @@ private:
 	StringList pseudo_class_names;
 	StructuralSelectorList structural_selectors; // Represents structural pseudo classes
 	SelectorCombinator combinator = SelectorCombinator::None;
-
-	// True if any ancestor, descendent, or self is a structural pseudo class.
-	bool is_structurally_volatile = true;
 
 	// A measure of specificity of this node; the attribute in a node with a higher value will override those of a node with a lower value.
 	int specificity = 0;

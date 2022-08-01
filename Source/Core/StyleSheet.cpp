@@ -101,7 +101,6 @@ void StyleSheet::BuildNodeIndex()
 	RMLUI_ZoneScoped;
 	styled_node_index = {};
 	root->BuildIndex(styled_node_index);
-	root->SetStructurallyVolatileRecursive(false);
 }
 
 // Returns the Keyframes of the given name, or null if it does not exist.
