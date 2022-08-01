@@ -31,7 +31,6 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Types.h>
-
 #include <doctest.h>
 #include <nanobench.h>
 
@@ -67,7 +66,6 @@ static const String document_rml = R"(
 </rml>
 )";
 
-
 static int GetNumDescendentElements(Element* element)
 {
 	const int num_children = element->GetNumChildren(true);
@@ -78,7 +76,6 @@ static int GetNumDescendentElements(Element* element)
 	}
 	return result;
 }
-
 
 static String GenerateRml(const int num_rows)
 {
@@ -108,17 +105,12 @@ static String GenerateRml(const int num_rows)
 					</div>
 				</div>
 			</div>)",
-			index,
-			route,
-			max,
-			value
-		);
+			index, route, max, value);
 		rml += rml_row;
 	}
 
 	return rml;
 }
-
 
 TEST_CASE("element.creation_and_destruction")
 {
@@ -148,17 +140,26 @@ TEST_CASE("element.creation_and_destruction")
 	bench.timeUnit(std::chrono::microseconds(1), "us");
 	bench.relative(true);
 
-	bench.run("Update (unmodified)", [&] {
+	bench.run("Update (unmodified)", [&] { context->Update(); });
+
+	bool hover_toggle = true;
+	auto child = el->GetChild(num_rows / 2);
+
+	bench.run("Update (hover child)", [&] {
+		static nanobench::Rng rng;
+		child->SetPseudoClass(":hover", hover_toggle);
+		hover_toggle = !hover_toggle;
+		context->Update();
+	});
+	bench.run("Update (hover)", [&] {
+		el->SetPseudoClass(":hover", hover_toggle);
+		hover_toggle = !hover_toggle;
 		context->Update();
 	});
 
-	bench.run("Render", [&] {
-		context->Render();
-	});
+	bench.run("Render", [&] { context->Render(); });
 
-	bench.run("SetInnerRML", [&] {
-		el->SetInnerRML(rml);
-	});
+	bench.run("SetInnerRML", [&] { el->SetInnerRML(rml); });
 
 	bench.run("SetInnerRML + Update", [&] {
 		el->SetInnerRML(rml);
@@ -174,7 +175,6 @@ TEST_CASE("element.creation_and_destruction")
 	document->Close();
 }
 
-
 TEST_CASE("element.asymptotic_complexity")
 {
 	Context* context = TestsShell::GetContext();
@@ -187,46 +187,26 @@ TEST_CASE("element.asymptotic_complexity")
 	Element* el = document->GetElementById("performance");
 	REQUIRE(el);
 
-
 	struct BenchDef {
 		const char* title;
 		Function<void(const String& rml)> run;
 	};
 
 	Vector<BenchDef> bench_list = {
-		{
-			"SetInnerRML",
-			[&](const String& rml) {
-				el->SetInnerRML(rml);
-			}
-		},
-		{
-			"Update (unmodified)",
-			[&](const String& /*rml*/) {
-				context->Update();
-			}
-		},
-		{
-			"Render",
-			[&](const String& /*rml*/) {
-				context->Render();
-			}
-		},
-		{
-			"SetInnerRML + Update",
+		{"SetInnerRML", [&](const String& rml) { el->SetInnerRML(rml); }},
+		{"Update (unmodified)", [&](const String& /*rml*/) { context->Update(); }},
+		{"Render", [&](const String& /*rml*/) { context->Render(); }},
+		{"SetInnerRML + Update",
 			[&](const String& rml) {
 				el->SetInnerRML(rml);
 				context->Update();
-			}
-		},
-		{
-			"SetInnerRML + Update + Render",
+			}},
+		{"SetInnerRML + Update + Render",
 			[&](const String& rml) {
 				el->SetInnerRML(rml);
 				context->Update();
 				context->Render();
-			}
-		},
+			}},
 	};
 
 	for (auto& bench_def : bench_list)
@@ -237,7 +217,7 @@ TEST_CASE("element.asymptotic_complexity")
 		bench.relative(true);
 
 		// Running the benchmark multiple times, with different number of rows.
-		for (const int num_rows : { 1, 2, 5, 10, 20, 50, 100, 200, 500 })
+		for (const int num_rows : {1, 2, 5, 10, 20, 50, 100, 200, 500})
 		{
 			const String rml = GenerateRml(num_rows);
 
@@ -245,9 +225,7 @@ TEST_CASE("element.asymptotic_complexity")
 			context->Update();
 			context->Render();
 
-			bench.complexityN(num_rows).run(bench_def.title, [&]() {
-				bench_def.run(rml);
-			});
+			bench.complexityN(num_rows).run(bench_def.title, [&]() { bench_def.run(rml); });
 		}
 
 #if defined(RMLUI_BENCHMARKS_SHOW_COMPLEXITY) || 0
