@@ -95,6 +95,9 @@ private:
 	inline bool MatchClassPseudoClass(const Element* element) const;
 	inline bool MatchStructuralSelector(const Element* element) const;
 
+	// Recursively traverse the nodes up towards the root to match the element and its hierarchy.
+	static bool TraverseMatch(const StyleSheetNode* node, const Element* element);
+
 	// The parent of this node; is nullptr for the root node.
 	StyleSheetNode* parent = nullptr;
 

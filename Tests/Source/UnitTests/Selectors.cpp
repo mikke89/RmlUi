@@ -102,6 +102,7 @@ static const Vector<QuerySelector> query_selectors =
 	{ ".parent *",                   "A B C D D0 D1 E F F0 G H" },
 	{ ".parent > *",                 "A B C D E F G H" },
 	{ ":checked",                    "I",               SelectorOp::RemoveChecked,        "I", "" },
+	
 	{ ".parent :nth-child(odd)",     "A C D0 E F0 G" },
 	{ ".parent > :nth-child(even)",  "B D F H",         SelectorOp::RemoveClasses,        "parent", "" },
 	{ ":first-child",                "X A D0 F0",       SelectorOp::RemoveElementsByIds,  "A F0", "X B D0" },
@@ -124,16 +125,23 @@ static const Vector<QuerySelector> query_selectors =
 	{ ":only-child",                 "F0",              SelectorOp::RemoveElementsByIds,  "D0",    "D1 F0" },
 	{ ":only-of-type",               "Y A E F0 I" },
 	{ "span:empty",                  "Y D0 F0" },
+	
 	{ ".hello.world, #P span, #I",   "Z D0 D1 F0 I",    SelectorOp::RemoveClasses,        "world", "D0 D1 F0 I" },
 	{ "body * span",                 "D0 D1 F0" },
 	{ "D1 *",                        "" },
+	
 	{ "#E + #F",                     "F",               SelectorOp::InsertElementBefore,  "F",     "" },
 	{ "#E+#F",                       "F" },
 	{ "#E +#F",                      "F" },
 	{ "#E+ #F",                      "F" },
 	{ "#F + #E",                     "" },
+	{ "#A + #B",                     "B",               SelectorOp::RemoveId,             "A", "" },
+	{ "* + #A",                      "" },
+	{ "#H + *",                      "" },
+	{ "#P + *",                      "I" },
 	{ "div.parent > #B + p",         "C" },
 	{ "div.parent > #B + div",       "" },
+	
 	{ "#B ~ #F",                     "F" },
 	{ "#B~#F",                       "F" },
 	{ "#B ~#F",                      "F" },
@@ -141,18 +149,25 @@ static const Vector<QuerySelector> query_selectors =
 	{ "#F ~ #B",                     "" },
 	{ "div.parent > #B ~ p:empty",   "C G H",           SelectorOp::InsertElementBefore,  "H",     "C G Inserted H" },
 	{ "div.parent > #B ~ * span",    "D0 D1 F0" },
+
 	{ ":not(*)",                     "" },
 	{ ":not(span)",                  "X Z P A B C D E F G H I" },
 	{ "#D :not(#D0)",                "D1" },
 	{ "body > :not(:checked)",       "X Y Z P",         SelectorOp::RemoveChecked,        "I", "X Y Z P I" },
 	{ "div.hello:not(.world)",       "X" },
 	{ ":not(div,:nth-child(2),p *)", "A C D E F G H I" },
+
 	{ ".hello + .world",             "Y",               SelectorOp::RemoveClasses,        "hello", ""  },
 	{ "#B ~ h3",                     "E",               SelectorOp::RemoveId,             "B", ""  },
 	{ "#Z + div > :nth-child(2)",    "B",               SelectorOp::RemoveId,             "Z", ""  },
 	{ ":hover + #P #D1",             "",                SelectorOp::SetHover,             "Z", "D1"  },
 	{ ":not(:hover) + #P #D1",       "D1",              SelectorOp::SetHover,             "Z", ""  },
 	{ "#X + #Y",                     "Y",               SelectorOp::RemoveId,             "X", ""  },
+
+	{ "body > * #D0",                "D0" },
+	{ "#E + * ~ *",                  "G H" },
+	{ "#B + * ~ #G",                 "G" },
+	{ "body > :nth-child(4) span:first-child",  "D0 F0", SelectorOp::RemoveElementsByIds,  "X",    "" },
 };
 
 struct ClosestSelector {

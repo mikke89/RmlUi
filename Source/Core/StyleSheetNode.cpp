@@ -256,75 +256,83 @@ inline bool StyleSheetNode::MatchStructuralSelector(const Element* element) cons
 	return true;
 }
 
-bool StyleSheetNode::IsApplicable(const Element* const in_element) const
+bool StyleSheetNode::TraverseMatch(const StyleSheetNode* node, const Element* element)
+{
+	if (!node || !node->parent)
+		return true;
+
+	switch (node->combinator)
+	{
+	case SelectorCombinator::None:
+	case SelectorCombinator::Child:
+	{
+		// Try to match the next element parent. If it succeeds we continue on to the next node, otherwise we try an alternate path through the
+		// hierarchy using the next element parent. Repeat until we run out of elements.
+		for (element = element->GetParentNode(); element; element = element->GetParentNode())
+		{
+			if (node->Match(element) && TraverseMatch(node->parent, element))
+				return true;
+			// If the node has a child combinator we must match this first ancestor.
+			else if (node->combinator == SelectorCombinator::Child)
+				return false;
+		}
+	}
+	break;
+	case SelectorCombinator::NextSibling:
+	case SelectorCombinator::SubsequentSibling:
+	{
+		// Try to match the previous sibling. If it succeeds we continue on to the next node, otherwise we try to again with its previous sibling.
+		for (element = element->GetPreviousSibling(); element; element = element->GetPreviousSibling())
+		{
+			// First check if our sibling is a text element and if so skip it. For the descendant/child combinator above we can omit this step since
+			// text elements don't have children and thus any ancestor is not a text element.
+			if (IsTextElement(element))
+				continue;
+			else if (node->Match(element) && TraverseMatch(node->parent, element))
+				return true;
+			// If the node has a next-sibling combinator we must match this first sibling.
+			else if (node->combinator == SelectorCombinator::NextSibling)
+				return false;
+		}
+	}
+	break;
+	}
+
+	// We have run out of element ancestors before we matched every node. Bail out.
+	return false;
+}
+
+bool StyleSheetNode::IsApplicable(const Element* element) const
 {
 	// Determine whether the element matches the current node and its entire lineage. The entire hierarchy of the element's document will be
 	// considered during the match as necessary.
 
 	// We could in principle just call Match() here and then go on with the ancestor style nodes. Instead, we test the requirements of this node in a
-	// particular order for performance reasons .
+	// particular order for performance reasons.
 	for (const String& name : pseudo_class_names)
 	{
-		if (!in_element->IsPseudoClassSet(name))
+		if (!element->IsPseudoClassSet(name))
 			return false;
 	}
 
-	if (!tag.empty() && tag != in_element->GetTagName())
+	if (!tag.empty() && tag != element->GetTagName())
 		return false;
 
 	for (const String& name : class_names)
 	{
-		if (!in_element->IsClassSet(name))
+		if (!element->IsClassSet(name))
 			return false;
 	}
 
-	if (!id.empty() && id != in_element->GetId())
+	if (!id.empty() && id != element->GetId())
 		return false;
 
-	const Element* element = in_element;
-
 	// Walk up through all our parent nodes, each one of them must be matched by some ancestor or sibling element.
-	for (const StyleSheetNode* node = parent; node && node->parent; node = node->parent)
-	{
-		switch (node->combinator)
-		{
-		case SelectorCombinator::None:
-		case SelectorCombinator::Child:
-		{
-			// Try a match on every element ancestor. If it succeeds, we continue on to the next node.
-			for (element = element->GetParentNode(); element; element = element->GetParentNode())
-			{
-				if (node->Match(element))
-					break;
-				// If the node has a child combinator we must match this first ancestor.
-				else if (node->combinator == SelectorCombinator::Child)
-					return false;
-			}
-		}
-		break;
-		case SelectorCombinator::NextSibling:
-		case SelectorCombinator::SubsequentSibling:
-		{
-			// Try a match on every element ancestor. If it succeeds, we continue on to the next node.
-			for (element = element->GetPreviousSibling(); element; element = element->GetPreviousSibling())
-			{
-				if (node->Match(element) && !IsTextElement(in_element))
-					break;
-				// If the node has a next-sibling combinator we must match this first sibling.
-				else if (node->combinator == SelectorCombinator::NextSibling && !IsTextElement(in_element))
-					return false;
-			}
-		}
-		break;
-		}
-
-		// We have run out of element ancestors before we matched every node. Bail out.
-		if (!element)
-			return false;
-	}
+	if (!TraverseMatch(parent, element))
+		return false;
 
 	// Finally, check the structural selector requirements last as they can be quite slow.
-	if (!MatchStructuralSelector(in_element))
+	if (!MatchStructuralSelector(element))
 		return false;
 
 	return true;
