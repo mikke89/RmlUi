@@ -72,7 +72,7 @@ static const String doc_end = R"(
 </rml>
 )";
 
-enum class SelectorOp { None, RemoveElementsByIds, InsertElementBefore, RemoveClasses, RemoveChecked };
+enum class SelectorOp { None, RemoveElementsByIds, InsertElementBefore, RemoveClasses, RemoveId, RemoveChecked, SetHover };
 
 struct QuerySelector {
 	QuerySelector(String selector, String expected_ids) : selector(std::move(selector)), expected_ids(std::move(expected_ids)) {}
@@ -147,6 +147,12 @@ static const Vector<QuerySelector> query_selectors =
 	{ "body > :not(:checked)",       "X Y Z P",         SelectorOp::RemoveChecked,        "I", "X Y Z P I" },
 	{ "div.hello:not(.world)",       "X" },
 	{ ":not(div,:nth-child(2),p *)", "A C D E F G H I" },
+	{ ".hello + .world",             "Y",               SelectorOp::RemoveClasses,        "hello", ""  },
+	{ "#B ~ h3",                     "E",               SelectorOp::RemoveId,             "B", ""  },
+	{ "#Z + div > :nth-child(2)",    "B",               SelectorOp::RemoveId,             "Z", ""  },
+	{ ":hover + #P #D1",             "",                SelectorOp::SetHover,             "Z", "D1"  },
+	{ ":not(:hover) + #P #D1",       "D1",              SelectorOp::SetHover,             "Z", ""  },
+	{ "#X + #Y",                     "Y",               SelectorOp::RemoveId,             "X", ""  },
 };
 
 struct ClosestSelector {
@@ -244,7 +250,9 @@ TEST_CASE("Selectors")
 			const String selector_css = selector.selector + " { drag: drag; } ";
 			const String document_string = doc_begin + selector_css + doc_end;
 			ElementDocument* document = context->LoadDocumentFromMemory(document_string);
-			REQUIRE(document);
+
+			// Update the context to settle any dirty state.
+			context->Update();
 
 			String matching_ids;
 			GetMatchingIds(matching_ids, document);
@@ -271,6 +279,14 @@ TEST_CASE("Selectors")
 				case SelectorOp::RemoveChecked:
 					document->GetElementById(selector.operation_argument)->RemoveAttribute("checked");
 					operation_str = "RemoveChecked";
+					break;
+				case SelectorOp::RemoveId:
+					document->GetElementById(selector.operation_argument)->SetId("");
+					operation_str = "RemoveId";
+					break;
+				case SelectorOp::SetHover:
+					document->GetElementById(selector.operation_argument)->SetPseudoClass("hover", true);
+					operation_str = "SetHover";
 					break;
 				case SelectorOp::None:
 					break;

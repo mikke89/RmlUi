@@ -239,7 +239,7 @@ void ElementDocument::DirtyMediaQueries()
 
 		if (changed_style_sheet)
 		{
-			GetStyle()->DirtyDefinition();
+			DirtyDefinition(Element::DirtyNodes::Self);
 			OnStyleSheetChangeRecursive();
 		}
 	}
