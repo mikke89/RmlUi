@@ -99,7 +99,7 @@ private:
 	// @param rule The rule name to parse
 	// @param properties The dictionary of properties
 	// @param rule_specificity The specifity of the rule
-	// @return The leaf node of the rule
+	// @return The leaf node of the rule, or nullptr on parse failure.
 	static StyleSheetNode* ImportProperties(StyleSheetNode* node, const String& rule, const PropertyDictionary& properties, int rule_specificity);
 
 	// Attempts to parse a @keyframes block

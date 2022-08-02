@@ -59,13 +59,13 @@ static const String doc_end = R"(
 	<div  id="P" class="parent">
 		<h1 id="A"/>
 		Some text
-		<p  id="B"/>
+		<p  id="B" unit="m"/>
 		<p  id="C"/>
 		<p  id="D"> <span id="D0">  </span><span id="D1">Text</span> </p>
 		<h3 id="E"/>
-		<p  id="F"> <span id="F0"/> </p>
-		<p  id="G"/>
-		<p  id="H" class="hello"/>
+		<p  id="F"> <span id="F0" class="hello-world"/> </p>
+		<p  id="G" class/>
+		<p  id="H" class="world hello"/>
 	</div>
 	<input id="I" type="checkbox" checked/>
 </body>
@@ -75,13 +75,19 @@ static const String doc_end = R"(
 enum class SelectorOp { None, RemoveElementsByIds, InsertElementBefore, RemoveClasses, RemoveId, RemoveChecked, SetHover };
 
 struct QuerySelector {
-	QuerySelector(String selector, String expected_ids) : selector(std::move(selector)), expected_ids(std::move(expected_ids)) {}
+	QuerySelector(String selector, String expected_ids, int expect_num_warnings = 0, int expect_num_query_warnings = 0) :
+		selector(std::move(selector)), expected_ids(std::move(expected_ids)), expect_num_warnings(expect_num_warnings),
+		expect_num_query_warnings(expect_num_query_warnings)
+	{}
 	QuerySelector(String selector, String expected_ids, SelectorOp operation, String operation_argument, String expected_ids_after_operation) :
 		selector(std::move(selector)), expected_ids(std::move(expected_ids)), operation(operation), operation_argument(std::move(operation_argument)),
 		expected_ids_after_operation(std::move(expected_ids_after_operation))
 	{}
 	String selector;
 	String expected_ids;
+
+	// If this rule should fail to parse or otherwise produce warnings, set these to non-zero values.
+	int expect_num_warnings = 0, expect_num_query_warnings = 0;
 
 	// Optionally also test the selector after dynamically making a structural operation on the document.
 	SelectorOp operation = SelectorOp::None;
@@ -94,7 +100,7 @@ static const Vector<QuerySelector> query_selectors =
 {
 	{ "span",                        "Y D0 D1 F0" },
 	{ ".hello",                      "X Z H" },
-	{ ".hello.world",                "Z" },
+	{ ".hello.world",                "Z H" },
 	{ "div.hello",                   "X Z" },
 	{ "body .hello",                 "X Z H" },
 	{ "body>.hello",                 "X Z" },
@@ -107,6 +113,47 @@ static const Vector<QuerySelector> query_selectors =
 	{ "*span",                       "Y D0 D1 F0" },
 	{ "*.hello",                     "X Z H" },
 	{ "*:checked",                   "I" },
+	
+	{ "p[unit=m]",                   "B" },
+	{ "p[unit='m']",                 "B" },
+	{ "p[unit=\"m\"]",               "B" },
+	{ "[class]",                     "X Y Z P F0 G H" },
+	{ "[class=hello]",               "X" },
+	{ "[class=]",                    "G" },
+	{ "[class='']",                  "G" },
+	{ "[class=\"\"]",                "G" },
+	{ "[class~=hello]",              "X Z H" },
+	{ "[class~=ello]",               "" },
+	{ "[class|=hello]",              "F0" },
+	{ "[class^=hello]",              "X Z F0" },
+	{ "[class^=]",                   "X Y Z P F0 G H" },
+	{ "[class$=hello]",              "X H" },
+	{ "[class*=hello]",              "X Z F0 H" },
+	{ "[class*=ello]",               "X Z F0 H" },
+	
+	{ "[class~=hello].world",         "Z H" },
+	{ "*[class~=hello].world",        "Z H" },
+	{ ".world[class~=hello]",         "Z H" },
+	{ "[class~=hello][class~=world]", "Z H" },
+
+	{ "[class=hello world]",          "Z" },
+	{ "[class='hello world']",        "Z" },
+	{ "[class=\"hello world\"]",      "Z" },
+
+	{ "[invalid",                     "", 1, 4 },
+	{ "[]",                           "", 1, 4 },
+	{ "[x=Rule{What}]",               "", 2, 0 },
+	{ "[x=Hello,world]",              "", 1, 2 }, 
+	// The next ones are valid in CSS but we currently don't bother handling them, just make sure we don't crash.
+	{ "[x='Rule{What}']",             "", 2, 0 },
+	{ "[x='Hello,world']",            "", 1, 2 }, 
+
+	{ "#X[class=hello]",              "X" },
+	{ "[class=hello]#X",              "X" },
+	{ "#Y[class=hello]",              "" },
+	{ "div[class=hello]",             "X" },
+	{ "[class=hello]div",             "X" },
+	{ "span[class=hello]",            "" },
 	
 	{ ".parent :nth-child(odd)",     "A C D0 E F0 G" },
 	{ ".parent > :nth-child(even)",  "B D F H",         SelectorOp::RemoveClasses,        "parent", "" },
@@ -131,7 +178,7 @@ static const Vector<QuerySelector> query_selectors =
 	{ ":only-of-type",               "Y A E F0 I" },
 	{ "span:empty",                  "Y D0 F0" },
 	
-	{ ".hello.world, #P span, #I",   "Z D0 D1 F0 I",    SelectorOp::RemoveClasses,        "world", "D0 D1 F0 I" },
+	{ ".hello.world, #P span, #I",   "Z D0 D1 F0 H I",  SelectorOp::RemoveClasses,        "world", "D0 D1 F0 I" },
 	{ "body * span",                 "D0 D1 F0" },
 	{ "D1 *",                        "" },
 	
@@ -267,6 +314,7 @@ TEST_CASE("Selectors")
 	{
 		for (const QuerySelector& selector : query_selectors)
 		{
+			TestsShell::SetNumExpectedWarnings(selector.expect_num_warnings);
 			const String selector_css = selector.selector + " { drag: drag; } ";
 			const String document_string = doc_begin + selector_css + doc_end;
 			ElementDocument* document = context->LoadDocumentFromMemory(document_string);
@@ -331,6 +379,8 @@ TEST_CASE("Selectors")
 
 		for (const QuerySelector& selector : query_selectors)
 		{
+			TestsShell::SetNumExpectedWarnings(selector.expect_num_query_warnings);
+
 			ElementList elements;
 			document->QuerySelectorAll(elements, selector.selector);
 			String matching_ids = ElementListToIds(elements);

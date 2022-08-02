@@ -98,7 +98,8 @@ enum SelectorFlags {
 	ID = 1 << 1,
 	CLASS = 1 << 2,
 	PSEUDO_CLASS = 1 << 3,
-	NUM_COMBINATIONS = 1 << 4,
+	ATTRIBUTE = 1 << 4,
+	NUM_COMBINATIONS = 1 << 5,
 };
 
 static String GenerateRCSS(SelectorFlags selectors, const String& complex_selector, String& out_rule_name)
@@ -131,6 +132,8 @@ static String GenerateRCSS(SelectorFlags selectors, const String& complex_select
 				rule += '.' + name;
 			if (selectors & PSEUDO_CLASS)
 				rule += ':' + name;
+			if (selectors & ATTRIBUTE)
+				rule += '[' + name + ']';
 		}
 
 		return rule;
@@ -221,6 +224,7 @@ TEST_CASE("Selectors")
 	bench.relative(true);
 
 	const Vector<String> complex_selectors = {
+		"*",
 		"div",
 		"div div",
 		"div > div",
@@ -232,6 +236,13 @@ TEST_CASE("Selectors")
 		":nth-child(2n+3) div",
 		":nth-of-type(2n+3) div",
 		":not(div) div",
+		"[class] div",
+		"[class=col] div",
+		"[class~=col] div",
+		"[class|=col] div",
+		"[class^=col] div",
+		"[class$=col] div",
+		"[class*=col] div",
 	};
 
 	for (int i = 0; i < NUM_COMBINATIONS + (int)complex_selectors.size(); i++)
