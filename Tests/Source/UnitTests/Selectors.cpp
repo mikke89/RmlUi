@@ -102,6 +102,11 @@ static const Vector<QuerySelector> query_selectors =
 	{ ".parent *",                   "A B C D D0 D1 E F F0 G H" },
 	{ ".parent > *",                 "A B C D E F G H" },
 	{ ":checked",                    "I",               SelectorOp::RemoveChecked,        "I", "" },
+
+	{ "*",                           "X Y Z P A B C D D0 D1 E F F0 G H I" },
+	{ "*span",                       "Y D0 D1 F0" },
+	{ "*.hello",                     "X Z H" },
+	{ "*:checked",                   "I" },
 	
 	{ ".parent :nth-child(odd)",     "A C D0 E F0 G" },
 	{ ".parent > :nth-child(even)",  "B D F H",         SelectorOp::RemoveClasses,        "parent", "" },

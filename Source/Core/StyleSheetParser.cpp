@@ -870,107 +870,87 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 	return true;
 }
 
-StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity)
+StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule, const PropertyDictionary& properties,
+	int rule_specificity)
 {
 	StyleSheetNode* leaf_node = node;
 
-	StringList nodes;
-
-	// Combinator rules can be formatted several ways by users, here we ensure consistent formatting before we can continue with the parsing below.
-	// E.g. converts combinations such as "A > B", "A >B", "A>B"  to  "A> B".
-	for (const char combinator : {'>', '+', '~'})
+	// Create each node going down the tree.
+	for (size_t index = 0; index < rule.size();)
 	{
-		// Find all combinators of the given type.
-		size_t i_child = rule_name.find(combinator);
-		while (i_child != String::npos)
+		// Determine the combinator connecting the previous node if any.
+		SelectorCombinator combinator = SelectorCombinator::Descendant;
+		for (; index > 0 && index < rule.size(); index++)
 		{
-			// So we found one! Next, we want to format the rule such that e.g. the '>' is located at the
-			// end of the left-hand-side node, and that there is a space to the right-hand-side. This ensures that
-			// the selector is applied to the "parent", and that parent and child are expanded properly below.
-			size_t i_begin = i_child;
-			while (i_begin > 0 && rule_name[i_begin - 1] == ' ')
-				i_begin--;
-
-			const size_t i_end = i_child + 1;
-			const char replacement_str[] = {combinator, ' ', '\0'};
-			rule_name.replace(i_begin, i_end - i_begin, (const char*)replacement_str);
-			i_child = rule_name.find(combinator, i_begin + 1);
+			bool reached_end_of_combinators = false;
+			switch (rule[index])
+			{
+			case ' ': break;
+			case '>': combinator = SelectorCombinator::Child; break;
+			case '+': combinator = SelectorCombinator::NextSibling; break;
+			case '~': combinator = SelectorCombinator::SubsequentSibling; break;
+			default: reached_end_of_combinators = true; break;
+			}
+			if (reached_end_of_combinators)
+				break;
 		}
-	}
-
-	// Expand each individual node separated by spaces. Don't expand inside parenthesis because of structural selectors.
-	StringUtilities::ExpandString(nodes, rule_name, ' ', '(', ')', true);
-
-	// Create each node going down the tree
-	for (size_t i = 0; i < nodes.size(); i++)
-	{
-		const String& name = nodes[i];
 
 		String tag;
 		String id;
 		StringList classes;
 		StringList pseudo_classes;
 		StructuralSelectorList structural_pseudo_classes;
-		SelectorCombinator combinator = SelectorCombinator::None;
 
-		size_t index = 0;
-		while (index < name.size())
+		// Determine the node's requirements.
+		while (index < rule.size())
 		{
 			size_t start_index = index;
 			size_t end_index = index + 1;
 			int parenthesis_count = 0;
 
-			// Read until we hit the next identifier.
-			for (; end_index < name.size(); end_index++)
+			// Read until we hit the next identifier. Don't match inside parenthesis in case of structural selectors.
+			for (; end_index < rule.size(); end_index++)
 			{
-				static const String identifiers = "#.:>+~";
-				if (parenthesis_count == 0 && identifiers.find(name[end_index]) != String::npos)
+				static const String identifiers = "#.: >+~";
+				if (parenthesis_count == 0 && identifiers.find(rule[end_index]) != String::npos)
 					break;
 
-				if (name[end_index] == '(')
+				if (rule[end_index] == '(')
 					parenthesis_count += 1;
-				else if (name[end_index] == ')')
+				else if (rule[end_index] == ')')
 					parenthesis_count -= 1;
 			}
 
-			String identifier = name.substr(start_index, end_index - start_index);
-			if (!identifier.empty())
+			if (rule[start_index] == '*')
+				start_index += 1;
+
+			StringView identifier = StringView(rule, start_index, end_index - start_index);
+			if (identifier.size() > 0)
 			{
-				switch (identifier[0])
+				switch (*identifier.begin())
 				{
-				case '#':
-					id = identifier.substr(1);
-					break;
-				case '.':
-					classes.push_back(identifier.substr(1));
-					break;
+				case '#': id = String(identifier.begin() + 1, identifier.end()); break;
+				case '.': classes.push_back(String(identifier.begin() + 1, identifier.end())); break;
 				case ':':
 				{
-					String pseudo_class_name = identifier.substr(1);
+					String pseudo_class_name = String(identifier.begin() + 1, identifier.end());
 					StructuralSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
 					if (node_selector.type != StructuralSelectorType::Invalid)
 						structural_pseudo_classes.push_back(node_selector);
 					else
-						pseudo_classes.push_back(pseudo_class_name);
+						pseudo_classes.push_back(std::move(pseudo_class_name));
 				}
 				break;
-				case '>':
-					combinator = SelectorCombinator::Child;
-					break;
-				case '+':
-					combinator = SelectorCombinator::NextSibling;
-					break;
-				case '~':
-					combinator = SelectorCombinator::SubsequentSibling;
-					break;
-
-				default:
-					if (identifier != "*")
-						tag = identifier;
+				default: tag = String(identifier);
 				}
 			}
 
 			index = end_index;
+
+			// If we reached a combinator then we submit the current node and start fresh with a new node.
+			static const String combinators(" >+~");
+			if (combinators.find(rule[index]) != String::npos)
+				break;
 		}
 
 		// Sort the classes and pseudo-classes so they are consistent across equivalent declarations that shuffle the order around.
@@ -978,8 +958,9 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 		std::sort(pseudo_classes.begin(), pseudo_classes.end());
 		std::sort(structural_pseudo_classes.begin(), structural_pseudo_classes.end());
 
-		// Get the named child node.
-		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes), combinator);
+		// Add the new child node, or retrieve the existing child if we have an exact match.
+		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes),
+			std::move(structural_pseudo_classes), combinator);
 	}
 
 	// Merge the new properties with those already on the leaf node.

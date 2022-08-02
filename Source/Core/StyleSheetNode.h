@@ -96,7 +96,7 @@ private:
 	inline bool MatchStructuralSelector(const Element* element) const;
 
 	// Recursively traverse the nodes up towards the root to match the element and its hierarchy.
-	static bool TraverseMatch(const StyleSheetNode* node, const Element* element);
+	bool TraverseMatch(const Element* element) const;
 
 	// The parent of this node; is nullptr for the root node.
 	StyleSheetNode* parent = nullptr;
@@ -106,8 +106,8 @@ private:
 	String id;
 	StringList class_names;
 	StringList pseudo_class_names;
-	StructuralSelectorList structural_selectors; // Represents structural pseudo classes
-	SelectorCombinator combinator = SelectorCombinator::None;
+	StructuralSelectorList structural_selectors;                    // Represents structural pseudo classes
+	SelectorCombinator combinator = SelectorCombinator::Descendant; // Determines how to match with our parent node.
 
 	// A measure of specificity of this node; the attribute in a node with a higher value will override those of a node with a lower value.
 	int specificity = 0;

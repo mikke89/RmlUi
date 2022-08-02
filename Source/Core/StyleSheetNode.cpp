@@ -256,24 +256,25 @@ inline bool StyleSheetNode::MatchStructuralSelector(const Element* element) cons
 	return true;
 }
 
-bool StyleSheetNode::TraverseMatch(const StyleSheetNode* node, const Element* element)
+bool StyleSheetNode::TraverseMatch(const Element* element) const
 {
-	if (!node || !node->parent)
+	RMLUI_ASSERT(parent);
+	if (!parent->parent)
 		return true;
 
-	switch (node->combinator)
+	switch (combinator)
 	{
-	case SelectorCombinator::None:
+	case SelectorCombinator::Descendant:
 	case SelectorCombinator::Child:
 	{
 		// Try to match the next element parent. If it succeeds we continue on to the next node, otherwise we try an alternate path through the
 		// hierarchy using the next element parent. Repeat until we run out of elements.
 		for (element = element->GetParentNode(); element; element = element->GetParentNode())
 		{
-			if (node->Match(element) && TraverseMatch(node->parent, element))
+			if (parent->Match(element) && parent->TraverseMatch(element))
 				return true;
 			// If the node has a child combinator we must match this first ancestor.
-			else if (node->combinator == SelectorCombinator::Child)
+			else if (combinator == SelectorCombinator::Child)
 				return false;
 		}
 	}
@@ -288,10 +289,10 @@ bool StyleSheetNode::TraverseMatch(const StyleSheetNode* node, const Element* el
 			// text elements don't have children and thus any ancestor is not a text element.
 			if (IsTextElement(element))
 				continue;
-			else if (node->Match(element) && TraverseMatch(node->parent, element))
+			else if (parent->Match(element) && parent->TraverseMatch(element))
 				return true;
 			// If the node has a next-sibling combinator we must match this first sibling.
-			else if (node->combinator == SelectorCombinator::NextSibling)
+			else if (combinator == SelectorCombinator::NextSibling)
 				return false;
 		}
 	}
@@ -328,7 +329,7 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 		return false;
 
 	// Walk up through all our parent nodes, each one of them must be matched by some ancestor or sibling element.
-	if (!TraverseMatch(parent, element))
+	if (parent && !TraverseMatch(element))
 		return false;
 
 	// Finally, check the structural selector requirements last as they can be quite slow.

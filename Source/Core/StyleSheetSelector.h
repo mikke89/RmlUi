@@ -103,7 +103,7 @@ struct SelectorTree {
 };
 
 enum class SelectorCombinator : byte {
-	None,
+	Descendant,        // The 'E F' (whitespace) combinator: Matches if F is a descendant of E.
 	Child,             // The 'E > F' combinator: Matches if F is a child of E.
 	NextSibling,       // The 'E + F' combinator: Matches if F is immediately preceded by E.
 	SubsequentSibling, // The 'E ~ F' combinator: Matches if F is preceded by E.
