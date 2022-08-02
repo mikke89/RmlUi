@@ -788,8 +788,12 @@ void Element::OverridePseudoClass(Element* element, const String& pseudo_class, 
 	element->GetStyle()->SetPseudoClass(pseudo_class, activate, true);
 }
 
-/// Get the named attribute
 Variant* Element::GetAttribute(const String& name)
+{
+	return GetIf(attributes, name);
+}
+
+const Variant* Element::GetAttribute(const String& name) const
 {
 	return GetIf(attributes, name);
 }

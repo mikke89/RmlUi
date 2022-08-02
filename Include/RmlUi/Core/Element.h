@@ -301,6 +301,8 @@ public:
 	/// @param[in] name Name of the attribute to retrieve.
 	/// @return A variant representing the attribute, or nullptr if the attribute doesn't exist.
 	Variant* GetAttribute(const String& name);
+	/// Gets the specified attribute.
+	const Variant* GetAttribute(const String& name) const;
 	/// Gets the specified attribute, with default value.
 	/// @param[in] name Name of the attribute to retrieve.
 	/// @param[in] default_value Value to return if the attribute doesn't exist.
