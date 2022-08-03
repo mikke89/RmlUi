@@ -1671,12 +1671,10 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		if (attribute == "id")
 		{
 			id = value.Get<String>();
-			DirtyDefinition(DirtyNodes::SelfAndSiblings);
 		}
 		else if (attribute == "class")
 		{
 			meta->style.SetClassNames(value.Get<String>());
-			DirtyDefinition(DirtyNodes::SelfAndSiblings);
 		}
 		else if (((attribute == "colspan" || attribute == "rowspan") && meta->computed_values.display() == Style::Display::TableCell)
 			|| (attribute == "span" && (meta->computed_values.display() == Style::Display::TableColumn || meta->computed_values.display() == Style::Display::TableColumnGroup)))
@@ -1727,6 +1725,10 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 				Log::Message(Log::LT_WARNING, "Invalid 'style' attribute, string type required. In element: %s", GetAddress().c_str());
 		}
 	}
+
+	// Any change to the attributes may affect which styles apply to the current element, in particular due to attribute selectors, ID selectors, and
+	// class selectors. This can further affect all siblings or descendants due to sibling or descendant combinators.
+	DirtyDefinition(DirtyNodes::SelfAndSiblings);
 }
 
 // Called when properties on the element are changed.

@@ -72,7 +72,7 @@ static const String doc_end = R"(
 </rml>
 )";
 
-enum class SelectorOp { None, RemoveElementsByIds, InsertElementBefore, RemoveClasses, RemoveId, RemoveChecked, SetHover };
+enum class SelectorOp { None, RemoveElementsByIds, InsertElementBefore, RemoveClasses, RemoveId, RemoveChecked, RemoveAttributeUnit, SetHover };
 
 struct QuerySelector {
 	QuerySelector(String selector, String expected_ids, int expect_num_warnings = 0, int expect_num_query_warnings = 0) :
@@ -114,7 +114,6 @@ static const Vector<QuerySelector> query_selectors =
 	{ "*.hello",                     "X Z H" },
 	{ "*:checked",                   "I" },
 	
-	{ "p[unit=m]",                   "B" },
 	{ "p[unit='m']",                 "B" },
 	{ "p[unit=\"m\"]",               "B" },
 	{ "[class]",                     "X Y Z P F0 G H" },
@@ -215,6 +214,9 @@ static const Vector<QuerySelector> query_selectors =
 	{ ":hover + #P #D1",             "",                SelectorOp::SetHover,             "Z", "D1"  },
 	{ ":not(:hover) + #P #D1",       "D1",              SelectorOp::SetHover,             "Z", ""  },
 	{ "#X + #Y",                     "Y",               SelectorOp::RemoveId,             "X", ""  },
+
+	{ "p[unit=m]",                   "B",               SelectorOp::RemoveAttributeUnit,  "B", ""  },
+	{ "p[unit=m] + *",               "C",               SelectorOp::RemoveAttributeUnit,  "B", ""  },
 
 	{ "body > * #D0",                "D0" },
 	{ "#E + * ~ *",                  "G H" },
@@ -351,6 +353,10 @@ TEST_CASE("Selectors")
 				case SelectorOp::RemoveId:
 					document->GetElementById(selector.operation_argument)->SetId("");
 					operation_str = "RemoveId";
+					break;
+				case SelectorOp::RemoveAttributeUnit:
+					document->GetElementById(selector.operation_argument)->RemoveAttribute("unit");
+					operation_str = "RemoveAttributeUnit";
 					break;
 				case SelectorOp::SetHover:
 					document->GetElementById(selector.operation_argument)->SetPseudoClass("hover", true);
