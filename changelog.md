@@ -42,10 +42,12 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 
 ### RCSS selectors
 
-- Implemented the next-sibling `+` and subsequent-sibling `~` combinators.
+- Implemented the next-sibling `+` and subsequent-sibling `~` [combinators](https://mikke89.github.io/RmlUiDoc/pages/rcss/selectors.html).
+- Implemented attribute selectors `[foo]`, `[foo=bar]`, `[foo~=bar]`, `[foo|=bar]`, `[foo^=bar]`, `[foo$=bar]`, `[foo*=bar]`. #240 (thanks @aquawicket)
 - Implemented the negation pseudo class `:not()`, including support for selector lists `E:not(s1, s2, ...)`.
 - Refactored structural pseudo classes for improved performance.
 - Selectors will no longer match any text elements, like in CSS.
+- Selectors more correctly consider all paths toward the root, not just the first greedy path.
 - Structural selectors are no longer affected by the element's display property, like in CSS.
 
 ### Data binding
@@ -57,6 +59,7 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - Add `QuerySelector` and `QuerySelectorAll` to the Lua Element API. #329 (thanks @Dakror)
 - Lua objects representing C++ pointers now compare equal if they point to the same object. #330 (thanks @Dakror)
 - Add length to proxy for element children. #315 (thanks @nimble0)
+- Fix crash in Lua plugin during garbage collection. #340 (thanks @slipher)
 
 ### Layout improvements
 
