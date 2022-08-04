@@ -92,7 +92,7 @@ int LuaType<T>::push(lua_State *L, T* obj, bool gc)
         lua_pushvalue(L, mt); // ->[3] = copy of [1]
         lua_setmetatable(L, -2); //[-2 = 2] -> [2]'s metatable = [3]; pop [3]
         char name[max_pointer_string_size];
-        tostring(name, max_pointer_string_size, obj);
+        tostring(name, max_pointer_string_size, ptrHold);
         lua_getfield(L,LUA_REGISTRYINDEX,"DO NOT TRASH"); //->[3] = value returned from function
         if(lua_isnil(L,-1) ) //if [3] hasn't been created yet, then create it
         {
@@ -174,7 +174,8 @@ int LuaType<T>::gc_T(lua_State* L)
     if(lua_istable(L,-1) ) //[-1 = 2], if it is a table
     {
         char name[max_pointer_string_size];
-        tostring(name, max_pointer_string_size, obj);
+        void* ptrHold = lua_touserdata(L,1);
+        tostring(name, max_pointer_string_size, ptrHold);
         lua_getfield(L,-1,name); //[-1 = 2] -> [3] = the value returned from if <ClassName> exists in the table to not gc
         if(lua_isnoneornil(L,-1) ) //[-1 = 3] if it doesn't exist, then we are free to garbage collect c++ side
 		{
