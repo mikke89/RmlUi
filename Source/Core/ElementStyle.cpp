@@ -65,7 +65,6 @@ inline PseudoClassState operator&(PseudoClassState lhs, PseudoClassState rhs)
 ElementStyle::ElementStyle(Element* _element)
 {
 	element = _element;
-	definition_dirty = true;
 }
 
 // Returns one of this element's properties.
@@ -169,58 +168,49 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& pr
 		}
 	}
 }
-	
+
 void ElementStyle::UpdateDefinition()
 {
-	if (definition_dirty)
+	RMLUI_ZoneScoped;
+
+	SharedPtr<const ElementDefinition> new_definition;
+
+	if (const StyleSheet* style_sheet = element->GetStyleSheet())
 	{
-		RMLUI_ZoneScoped;
+		new_definition = style_sheet->GetElementDefinition(element);
+	}
 
-		definition_dirty = false;
+	// Switch the property definitions if the definition has changed.
+	if (new_definition != definition)
+	{
+		PropertyIdSet changed_properties;
 
-		SharedPtr<const ElementDefinition> new_definition;
-		
-		if (const StyleSheet* style_sheet = element->GetStyleSheet())
+		if (definition)
+			changed_properties = definition->GetPropertyIds();
+
+		if (new_definition)
+			changed_properties |= new_definition->GetPropertyIds();
+
+		if (definition && new_definition)
 		{
-			new_definition = style_sheet->GetElementDefinition(element);
-		}
-		
-		// Switch the property definitions if the definition has changed.
-		if (new_definition != definition)
-		{
-			PropertyIdSet changed_properties;
-			
-			if (definition)
-				changed_properties = definition->GetPropertyIds();
+			// Remove properties that compare equal from the changed list.
+			const PropertyIdSet properties_in_both_definitions = (definition->GetPropertyIds() & new_definition->GetPropertyIds());
 
-			if (new_definition)
-				changed_properties |= new_definition->GetPropertyIds();
-
-			if (definition && new_definition)
+			for (PropertyId id : properties_in_both_definitions)
 			{
-				// Remove properties that compare equal from the changed list.
-				const PropertyIdSet properties_in_both_definitions = (definition->GetPropertyIds() & new_definition->GetPropertyIds());
-
-				for (PropertyId id : properties_in_both_definitions)
-				{
-					const Property* p0 = definition->GetProperty(id);
-					const Property* p1 = new_definition->GetProperty(id);
-					if (p0 && p1 && *p0 == *p1)
-						changed_properties.Erase(id);
-				}
-
-				// Transition changed properties if transition property is set
-				TransitionPropertyChanges(element, changed_properties, inline_properties, definition.get(), new_definition.get());
+				const Property* p0 = definition->GetProperty(id);
+				const Property* p1 = new_definition->GetProperty(id);
+				if (p0 && p1 && *p0 == *p1)
+					changed_properties.Erase(id);
 			}
 
-			definition = new_definition;
-			
-			DirtyProperties(changed_properties);
+			// Transition changed properties if transition property is set
+			TransitionPropertyChanges(element, changed_properties, inline_properties, definition.get(), new_definition.get());
 		}
 
-		// Even if the definition was not changed, the child definitions may have changed as a result of anything that
-		// could change the definition of this element, such as a new pseudo class.
-		DirtyChildDefinitions();
+		definition = new_definition;
+
+		DirtyProperties(changed_properties);
 	}
 }
 
@@ -250,9 +240,6 @@ bool ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate, boo
 		}
 	}
 
-	if (changed)
-		DirtyDefinition();
-
 	return changed;
 }
 
@@ -267,17 +254,17 @@ const PseudoClassMap& ElementStyle::GetActivePseudoClasses() const
 	return pseudo_classes;
 }
 
-// Sets or removes a class on the element.
-void ElementStyle::SetClass(const String& class_name, bool activate)
+bool ElementStyle::SetClass(const String& class_name, bool activate)
 {
-	StringList::iterator class_location = std::find(classes.begin(), classes.end(), class_name);
+	const auto class_location = std::find(classes.begin(), classes.end(), class_name);
 
+	bool changed = false;
 	if (activate)
 	{
 		if (class_location == classes.end())
 		{
 			classes.push_back(class_name);
-			DirtyDefinition();
+			changed = true;
 		}
 	}
 	else
@@ -285,9 +272,11 @@ void ElementStyle::SetClass(const String& class_name, bool activate)
 		if (class_location != classes.end())
 		{
 			classes.erase(class_location);
-			DirtyDefinition();
+			changed = true;
 		}
 	}
+
+	return changed;
 }
 
 // Checks if a class is set on the element.
@@ -301,7 +290,6 @@ void ElementStyle::SetClassNames(const String& class_names)
 {
 	classes.clear();
 	StringUtilities::ExpandString(classes, class_names, ' ');
-	DirtyDefinition();
 }
 
 // Returns the list of classes specified for this element.
@@ -466,20 +454,9 @@ float ElementStyle::ResolveLength(const Property* property, RelativeTarget relat
 	return base_value * scale_value;
 }
 
-void ElementStyle::DirtyDefinition()
-{
-	definition_dirty = true;
-}
-
 void ElementStyle::DirtyInheritedProperties()
 {
 	dirty_properties |= StyleSheetSpecification::GetRegisteredInheritedProperties();
-}
-
-void ElementStyle::DirtyChildDefinitions()
-{
-	for (int i = 0; i < element->GetNumChildren(true); i++)
-		element->GetChild(i)->GetStyle()->DirtyDefinition();
 }
 
 void ElementStyle::DirtyPropertiesWithUnits(Property::Unit units)

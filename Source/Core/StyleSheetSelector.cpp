@@ -29,6 +29,7 @@
 #include "StyleSheetSelector.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "StyleSheetNode.h"
+#include <tuple>
 
 namespace Rml {
 
@@ -46,6 +47,47 @@ static bool IsNth(int a, int b, int count)
 		x /= a;
 
 	return (x >= 0 && x * a + b == count);
+}
+
+bool operator==(const AttributeSelector& a, const AttributeSelector& b)
+{
+	return a.type == b.type && a.name == b.name && a.value == b.value;
+}
+bool operator<(const AttributeSelector& a, const AttributeSelector& b)
+{
+	return std::tie(a.type, a.name, a.value) < std::tie(b.type, b.name, b.value);
+}
+
+bool operator==(const StructuralSelector& a, const StructuralSelector& b)
+{
+	// Currently sub-selectors (selector_tree) are only superficially compared. This mainly has the consequence that selectors with a sub-selector
+	// which are instantiated separately will never compare equal, even if they have the exact same sub-selector expression. This further results in
+	// such selectors not being de-duplicated. This should not lead to any functional differences but leads to potentially missed memory/performance
+	// optimizations. E.g. 'div a, div b' will combine the two div nodes, while ':not(div) a, :not(div) b' will not combine the two not-div nodes.
+	return a.type == b.type && a.a == b.a && a.b == b.b && a.selector_tree == b.selector_tree;
+}
+bool operator<(const StructuralSelector& a, const StructuralSelector& b)
+{
+	return std::tie(a.type, a.a, a.b, a.selector_tree) < std::tie(b.type, b.a, b.b, b.selector_tree);
+}
+
+bool operator==(const CompoundSelector& a, const CompoundSelector& b)
+{
+	if (a.tag != b.tag)
+		return false;
+	if (a.id != b.id)
+		return false;
+	if (a.class_names != b.class_names)
+		return false;
+	if (a.pseudo_class_names != b.pseudo_class_names)
+		return false;
+	if (a.attributes != b.attributes)
+		return false;
+	if (a.structural_selectors != b.structural_selectors)
+		return false;
+	if (a.combinator != b.combinator)
+		return false;
+	return true;
 }
 
 bool IsSelectorApplicable(const Element* element, const StructuralSelector& selector)

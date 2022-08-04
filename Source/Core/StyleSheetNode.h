@@ -37,7 +37,6 @@ namespace Rml {
 
 struct StyleSheetIndex;
 class StyleSheetNode;
-using StructuralSelectorList = Vector<StructuralSelector>;
 using StyleSheetNodeList = Vector<UniquePtr<StyleSheetNode>>;
 
 /**
@@ -49,23 +48,18 @@ using StyleSheetNodeList = Vector<UniquePtr<StyleSheetNode>>;
 class StyleSheetNode {
 public:
 	StyleSheetNode();
-	StyleSheetNode(StyleSheetNode* parent, const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes,
-		const StructuralSelectorList& structural_selectors, SelectorCombinator combinator);
-	StyleSheetNode(StyleSheetNode* parent, String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes,
-		StructuralSelectorList&& structural_selectors, SelectorCombinator combinator);
+	StyleSheetNode(StyleSheetNode* parent, const CompoundSelector& selector);
+	StyleSheetNode(StyleSheetNode* parent, CompoundSelector&& selector);
 
-	/// Retrieves a child node with the given requirements if they match an existing node, or else creates a new one.
-	StyleSheetNode* GetOrCreateChildNode(String&& tag, String&& id, StringList&& classes, StringList&& pseudo_classes,
-		StructuralSelectorList&& structural_selectors, SelectorCombinator combinator);
 	/// Retrieves or creates a child node with requirements equivalent to the 'other' node.
-	StyleSheetNode* GetOrCreateChildNode(const StyleSheetNode& other);
+	StyleSheetNode* GetOrCreateChildNode(const CompoundSelector& other);
+	/// Retrieves a child node with the given requirements if they match an existing node, or else creates a new one.
+	StyleSheetNode* GetOrCreateChildNode(CompoundSelector&& other);
 
 	/// Merges an entire tree hierarchy into our hierarchy.
 	void MergeHierarchy(StyleSheetNode* node, int specificity_offset = 0);
 	/// Copy this node including all descendent nodes.
 	UniquePtr<StyleSheetNode> DeepCopy(StyleSheetNode* parent = nullptr) const;
-	/// Recursively set structural volatility.
-	bool SetStructurallyVolatileRecursive(bool ancestor_is_structurally_volatile);
 	/// Builds up a style sheet's index recursively.
 	void BuildIndex(StyleSheetIndex& styled_node_index) const;
 
@@ -84,35 +78,23 @@ public:
 
 	/// Returns the specificity of this node.
 	int GetSpecificity() const;
-	/// Returns true if this node employs a structural selector, and therefore generates element definitions that are sensitive to sibling changes.
-	/// @warning Result is only valid if structural volatility is set since any changes to the node tree.
-	bool IsStructurallyVolatile() const;
 
 private:
-	// Returns true if the requirements of this node equals the given arguments.
-	bool EqualRequirements(const String& tag, const String& id, const StringList& classes, const StringList& pseudo_classes,
-		const StructuralSelectorList& structural_pseudo_classes, SelectorCombinator combinator) const;
-
 	void CalculateAndSetSpecificity();
 
 	// Match an element to the local node requirements.
 	inline bool Match(const Element* element) const;
-	inline bool MatchClassPseudoClass(const Element* element) const;
 	inline bool MatchStructuralSelector(const Element* element) const;
+	inline bool MatchAttributes(const Element* element) const;
+
+	// Recursively traverse the nodes up towards the root to match the element and its hierarchy.
+	bool TraverseMatch(const Element* element) const;
 
 	// The parent of this node; is nullptr for the root node.
 	StyleSheetNode* parent = nullptr;
 
 	// Node requirements
-	String tag;
-	String id;
-	StringList class_names;
-	StringList pseudo_class_names;
-	StructuralSelectorList structural_selectors; // Represents structural pseudo classes
-	SelectorCombinator combinator = SelectorCombinator::None;
-
-	// True if any ancestor, descendent, or self is a structural pseudo class.
-	bool is_structurally_volatile = true;
+	CompoundSelector selector;
 
 	// A measure of specificity of this node; the attribute in a node with a higher value will override those of a node with a lower value.
 	int specificity = 0;

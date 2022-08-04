@@ -88,8 +88,8 @@ static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
-	visible(true), offset_fixed(false), absolute_offset_dirty(true), structure_dirty(false), dirty_animation(false), dirty_transition(false),
-	dirty_transform(false), dirty_perspective(false),
+	visible(true), offset_fixed(false), absolute_offset_dirty(true), dirty_definition(false), dirty_child_definitions(false), dirty_animation(false),
+	dirty_transition(false), dirty_transform(false), dirty_perspective(false),
 
 	tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0),
 	content_box(0, 0), transform_state()
@@ -145,8 +145,6 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 	OnUpdate();
 
-	UpdateStructure();
-
 	HandleTransitionProperty();
 	HandleAnimationProperty();
 	AdvanceAnimations();
@@ -171,7 +169,7 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)
 {
-	meta->style.UpdateDefinition();
+	UpdateDefinition();
 
 	if (meta->style.AnyPropertiesDirty())
 	{
@@ -276,7 +274,8 @@ ElementPtr Element::Clone() const
 // Sets or removes a class on the element.
 void Element::SetClass(const String& class_name, bool activate)
 {
-	meta->style.SetClass(class_name, activate);
+	if (meta->style.SetClass(class_name, activate))
+		DirtyDefinition(DirtyNodes::SelfAndSiblings);
 }
 
 // Checks if a class is set on the element.
@@ -747,7 +746,11 @@ PropertiesIteratorView Element::IterateLocalProperties() const
 void Element::SetPseudoClass(const String& pseudo_class, bool activate)
 {
 	if (meta->style.SetPseudoClass(pseudo_class, activate, false))
+	{
+		// Include siblings in case of RCSS presence of sibling combinators '+', '~'.
+		DirtyDefinition(DirtyNodes::SelfAndSiblings);
 		OnPseudoClassChange(pseudo_class, activate);
+	}
 }
 
 // Checks if a specific pseudo-class has been set on the element.
@@ -788,8 +791,12 @@ void Element::OverridePseudoClass(Element* element, const String& pseudo_class, 
 	element->GetStyle()->SetPseudoClass(pseudo_class, activate, true);
 }
 
-/// Get the named attribute
 Variant* Element::GetAttribute(const String& name)
+{
+	return GetIf(attributes, name);
+}
+
+const Variant* Element::GetAttribute(const String& name) const
 {
 	return GetIf(attributes, name);
 }
@@ -1310,7 +1317,10 @@ Element* Element::AppendChild(ElementPtr child, bool dom_element)
 		ancestor->OnChildAdd(child_ptr);
 
 	DirtyStackingContext();
-	DirtyStructure();
+
+	// Not only does the element definition of the newly inserted element need to be dirtied, but also our own definition and implicitly all of our
+	// children's. This ensures correct styles being applied in the presence of tree-structural selectors such as ':first-child'.
+	DirtyDefinition(DirtyNodes::Self);
 
 	if (dom_element)
 		DirtyLayout();
@@ -1359,7 +1369,7 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 			ancestor->OnChildAdd(child_ptr);
 
 		DirtyStackingContext();
-		DirtyStructure();
+		DirtyDefinition(DirtyNodes::Self);
 	}
 	else
 	{
@@ -1446,7 +1456,7 @@ ElementPtr Element::RemoveChild(Element* child)
 
 			DirtyLayout();
 			DirtyStackingContext();
-			DirtyStructure();
+			DirtyDefinition(DirtyNodes::Self);
 
 			return detached_child;
 		}
@@ -1661,7 +1671,6 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		if (attribute == "id")
 		{
 			id = value.Get<String>();
-			meta->style.DirtyDefinition();
 		}
 		else if (attribute == "class")
 		{
@@ -1716,6 +1725,10 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 				Log::Message(Log::LT_WARNING, "Invalid 'style' attribute, string type required. In element: %s", GetAddress().c_str());
 		}
 	}
+
+	// Any change to the attributes may affect which styles apply to the current element, in particular due to attribute selectors, ID selectors, and
+	// class selectors. This can further affect all siblings or descendants due to sibling or descendant combinators.
+	DirtyDefinition(DirtyNodes::SelfAndSiblings);
 }
 
 // Called when properties on the element are changed.
@@ -1756,15 +1769,6 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 			if (!visible)
 				Blur();
-		}
-
-		if (changed_properties.Contains(PropertyId::Display))
-		{
-			// Due to structural pseudo-classes, this may change the element definition in siblings and parent.
-			// However, the definitions will only be changed on the next update loop which may result in jarring behavior for one @frame.
-			// A possible workaround is to add the parent to a list of elements that need to be updated again.
-			if (parent != nullptr)
-				parent->DirtyStructure();
 		}
 	}
 
@@ -2075,7 +2079,7 @@ void Element::SetParent(Element* _parent)
 	if (parent)
 	{
 		// We need to update our definition and make sure we inherit the properties of our new parent.
-		meta->style.DirtyDefinition();
+		DirtyDefinition(DirtyNodes::Self);
 		meta->style.DirtyInheritedProperties();
 	}
 
@@ -2355,19 +2359,39 @@ void Element::DirtyStackingContext()
 		stacking_context_parent->stacking_context_dirty = true;
 }
 
-void Element::DirtyStructure()
+void Element::DirtyDefinition(DirtyNodes dirty_nodes)
 {
-	structure_dirty = true;
+	switch (dirty_nodes)
+	{
+	case DirtyNodes::Self:
+		dirty_definition = true;
+		break;
+	case DirtyNodes::SelfAndSiblings:
+		if (parent)
+			parent->dirty_child_definitions = true;
+		break;
+	}
 }
 
-void Element::UpdateStructure()
+void Element::UpdateDefinition()
 {
-	if (structure_dirty)
+	if (dirty_definition)
 	{
-		structure_dirty = false;
+		dirty_definition = false;
 
-		// If this element or its children depend on structured selectors, they may need to be updated.
-		GetStyle()->DirtyDefinition();
+		// Dirty definition implies all our descendent elements. Anything that can change the definition of this element can also change the
+		// definition of any descendants due to the presence of RCSS descendant or child combinators. In principle this also applies to sibling
+		// combinators, but those are handled during the DirtyDefinition call.
+		dirty_child_definitions = true;
+
+		GetStyle()->UpdateDefinition();
+	}
+
+	if (dirty_child_definitions)
+	{
+		dirty_child_definitions = false;
+		for (const ElementPtr& child : children)
+			child->dirty_definition = true;
 	}
 }
 

@@ -565,7 +565,11 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					{
 						auto source = MakeShared<PropertySource>(stream_file_name, rule_line_number, rule_name_list[i]);
 						properties.SetSourceOfAllProperties(source);
-						ImportProperties(current_block.stylesheet->root.get(), rule_name_list[i], properties, rule_count);
+						if (!ImportProperties(current_block.stylesheet->root.get(), rule_name_list[i], properties, rule_count))
+						{
+							Log::Message(Log::LT_WARNING, "Invalid selector '%s' encountered while parsing stylesheet at %s:%d.",
+								rule_name_list[i].c_str(), stream_file_name.c_str(), line_number);
+						}
 					}
 
 					rule_count++;
@@ -762,7 +766,9 @@ StyleSheetNodeListRaw StyleSheetParser::ConstructNodes(StyleSheetNode& root_node
 	{
 		StyleSheetNode* leaf_node = ImportProperties(&root_node, selector, empty_properties, 0);
 
-		if (leaf_node != &root_node)
+		if (!leaf_node)
+			Log::Message(Log::LT_WARNING, "Invalid selector '%s' encountered.", selector.c_str());
+		else if (leaf_node != &root_node)
 			leaf_nodes.push_back(leaf_node);
 	}
 
@@ -870,116 +876,140 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 	return true;
 }
 
-StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity)
+StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, const String& rule, const PropertyDictionary& properties,
+	int rule_specificity)
 {
 	StyleSheetNode* leaf_node = node;
 
-	StringList nodes;
-
-	// Combinator rules can be formatted several ways by users, here we ensure consistent formatting before we can continue with the parsing below.
-	// E.g. converts combinations such as "A > B", "A >B", "A>B"  to  "A> B".
-	for (const char combinator : {'>', '+', '~'})
+	// Create each node going down the tree.
+	for (size_t index = 0; index < rule.size();)
 	{
-		// Find all combinators of the given type.
-		size_t i_child = rule_name.find(combinator);
-		while (i_child != String::npos)
+		CompoundSelector selector;
+
+		// Determine the combinator connecting the previous node if any.
+		for (; index > 0 && index < rule.size(); index++)
 		{
-			// So we found one! Next, we want to format the rule such that e.g. the '>' is located at the
-			// end of the left-hand-side node, and that there is a space to the right-hand-side. This ensures that
-			// the selector is applied to the "parent", and that parent and child are expanded properly below.
-			size_t i_begin = i_child;
-			while (i_begin > 0 && rule_name[i_begin - 1] == ' ')
-				i_begin--;
-
-			const size_t i_end = i_child + 1;
-			const char replacement_str[] = {combinator, ' ', '\0'};
-			rule_name.replace(i_begin, i_end - i_begin, (const char*)replacement_str);
-			i_child = rule_name.find(combinator, i_begin + 1);
+			bool reached_end_of_combinators = false;
+			switch (rule[index])
+			{
+			case ' ': break;
+			case '>': selector.combinator = SelectorCombinator::Child; break;
+			case '+': selector.combinator = SelectorCombinator::NextSibling; break;
+			case '~': selector.combinator = SelectorCombinator::SubsequentSibling; break;
+			default: reached_end_of_combinators = true; break;
+			}
+			if (reached_end_of_combinators)
+				break;
 		}
-	}
 
-	// Expand each individual node separated by spaces. Don't expand inside parenthesis because of structural selectors.
-	StringUtilities::ExpandString(nodes, rule_name, ' ', '(', ')', true);
-
-	// Create each node going down the tree
-	for (size_t i = 0; i < nodes.size(); i++)
-	{
-		const String& name = nodes[i];
-
-		String tag;
-		String id;
-		StringList classes;
-		StringList pseudo_classes;
-		StructuralSelectorList structural_pseudo_classes;
-		SelectorCombinator combinator = SelectorCombinator::None;
-
-		size_t index = 0;
-		while (index < name.size())
+		// Determine the node's requirements.
+		while (index < rule.size())
 		{
 			size_t start_index = index;
 			size_t end_index = index + 1;
-			int parenthesis_count = 0;
 
-			// Read until we hit the next identifier.
-			for (; end_index < name.size(); end_index++)
+			if (rule[start_index] == '*')
+				start_index += 1;
+
+			if (rule[start_index] == '[')
 			{
-				static const String identifiers = "#.:>+~";
-				if (parenthesis_count == 0 && identifiers.find(name[end_index]) != String::npos)
-					break;
+				end_index = rule.find(']', start_index + 1);
+				if (end_index == String::npos)
+					return nullptr;
+				end_index += 1;
+			}
+			else
+			{
+				int parenthesis_count = 0;
 
-				if (name[end_index] == '(')
-					parenthesis_count += 1;
-				else if (name[end_index] == ')')
-					parenthesis_count -= 1;
+				// Read until we hit the next identifier. Don't match inside parenthesis in case of structural selectors.
+				for (; end_index < rule.size(); end_index++)
+				{
+					static const String identifiers = "#.:[ >+~";
+					if (parenthesis_count == 0 && identifiers.find(rule[end_index]) != String::npos)
+						break;
+
+					if (rule[end_index] == '(')
+						parenthesis_count += 1;
+					else if (rule[end_index] == ')')
+						parenthesis_count -= 1;
+				}
 			}
 
-			String identifier = name.substr(start_index, end_index - start_index);
-			if (!identifier.empty())
+			if (end_index > start_index)
 			{
-				switch (identifier[0])
+				const char* p_begin = rule.data() + start_index;
+				const char* p_end = rule.data() + end_index;
+
+				switch (rule[start_index])
 				{
-				case '#':
-					id = identifier.substr(1);
-					break;
-				case '.':
-					classes.push_back(identifier.substr(1));
-					break;
+				case '#': selector.id = String(p_begin + 1, p_end); break;
+				case '.': selector.class_names.push_back(String(p_begin + 1, p_end)); break;
 				case ':':
 				{
-					String pseudo_class_name = identifier.substr(1);
+					String pseudo_class_name = String(p_begin + 1, p_end);
 					StructuralSelector node_selector = StyleSheetFactory::GetSelector(pseudo_class_name);
 					if (node_selector.type != StructuralSelectorType::Invalid)
-						structural_pseudo_classes.push_back(node_selector);
+						selector.structural_selectors.push_back(node_selector);
 					else
-						pseudo_classes.push_back(pseudo_class_name);
+						selector.pseudo_class_names.push_back(std::move(pseudo_class_name));
 				}
 				break;
-				case '>':
-					combinator = SelectorCombinator::Child;
-					break;
-				case '+':
-					combinator = SelectorCombinator::NextSibling;
-					break;
-				case '~':
-					combinator = SelectorCombinator::SubsequentSibling;
-					break;
+				case '[':
+				{
+					const size_t i_attr_begin = start_index + 1;
+					const size_t i_attr_end = end_index - 1;
+					if (i_attr_end <= i_attr_begin)
+						return nullptr;
 
-				default:
-					if (identifier != "*")
-						tag = identifier;
+					AttributeSelector attribute;
+
+					static const String attribute_operators = "=~|^$*]";
+					size_t i_cursor = Math::Min(rule.find_first_of(attribute_operators, i_attr_begin), i_attr_end);
+					attribute.name = rule.substr(i_attr_begin, i_cursor - i_attr_begin);
+
+					if (i_cursor < i_attr_end)
+					{
+						const char c = rule[i_cursor];
+						attribute.type = AttributeSelectorType(c);
+
+						// Move cursor past operator. Non-'=' symbols are always followed by '=' so move two characters.
+						i_cursor += (c == '=' ? 1 : 2);
+
+						size_t i_value_end = i_attr_end;
+						if (i_cursor < i_attr_end && (rule[i_cursor] == '"' || rule[i_cursor] == '\''))
+						{
+							i_cursor += 1;
+							i_value_end -= 1;
+						}
+
+						if (i_cursor < i_value_end)
+							attribute.value = rule.substr(i_cursor, i_value_end - i_cursor);
+					}
+
+					selector.attributes.push_back(std::move(attribute));
+				}
+				break;
+				default: selector.tag = String(p_begin, p_end); break;
 				}
 			}
 
 			index = end_index;
+
+			// If we reached a combinator then we submit the current node and start fresh with a new node.
+			static const String combinators(" >+~");
+			if (combinators.find(rule[index]) != String::npos)
+				break;
 		}
 
 		// Sort the classes and pseudo-classes so they are consistent across equivalent declarations that shuffle the order around.
-		std::sort(classes.begin(), classes.end());
-		std::sort(pseudo_classes.begin(), pseudo_classes.end());
-		std::sort(structural_pseudo_classes.begin(), structural_pseudo_classes.end());
+		std::sort(selector.class_names.begin(), selector.class_names.end());
+		std::sort(selector.attributes.begin(), selector.attributes.end());
+		std::sort(selector.pseudo_class_names.begin(), selector.pseudo_class_names.end());
+		std::sort(selector.structural_selectors.begin(), selector.structural_selectors.end());
 
-		// Get the named child node.
-		leaf_node = leaf_node->GetOrCreateChildNode(std::move(tag), std::move(id), std::move(classes), std::move(pseudo_classes), std::move(structural_pseudo_classes), combinator);
+		// Add the new child node, or retrieve the existing child if we have an exact match.
+		leaf_node = leaf_node->GetOrCreateChildNode(std::move(selector));
 	}
 
 	// Merge the new properties with those already on the leaf node.

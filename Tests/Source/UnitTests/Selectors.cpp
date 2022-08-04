@@ -59,29 +59,35 @@ static const String doc_end = R"(
 	<div  id="P" class="parent">
 		<h1 id="A"/>
 		Some text
-		<p  id="B"/>
+		<p  id="B" unit="m"/>
 		<p  id="C"/>
 		<p  id="D"> <span id="D0">  </span><span id="D1">Text</span> </p>
 		<h3 id="E"/>
-		<p  id="F"> <span id="F0"/> </p>
-		<p  id="G"/>
-		<p  id="H" class="hello"/>
+		<p  id="F"> <span id="F0" class="hello-world"/> </p>
+		<p  id="G" class/>
+		<p  id="H" class="world hello"/>
 	</div>
 	<input id="I" type="checkbox" checked/>
 </body>
 </rml>
 )";
 
-enum class SelectorOp { None, RemoveElementsByIds, InsertElementBefore, RemoveClasses, RemoveChecked };
+enum class SelectorOp { None, RemoveElementsByIds, InsertElementBefore, RemoveClasses, RemoveId, RemoveChecked, RemoveAttributeUnit, SetHover };
 
 struct QuerySelector {
-	QuerySelector(String selector, String expected_ids) : selector(std::move(selector)), expected_ids(std::move(expected_ids)) {}
+	QuerySelector(String selector, String expected_ids, int expect_num_warnings = 0, int expect_num_query_warnings = 0) :
+		selector(std::move(selector)), expected_ids(std::move(expected_ids)), expect_num_warnings(expect_num_warnings),
+		expect_num_query_warnings(expect_num_query_warnings)
+	{}
 	QuerySelector(String selector, String expected_ids, SelectorOp operation, String operation_argument, String expected_ids_after_operation) :
 		selector(std::move(selector)), expected_ids(std::move(expected_ids)), operation(operation), operation_argument(std::move(operation_argument)),
 		expected_ids_after_operation(std::move(expected_ids_after_operation))
 	{}
 	String selector;
 	String expected_ids;
+
+	// If this rule should fail to parse or otherwise produce warnings, set these to non-zero values.
+	int expect_num_warnings = 0, expect_num_query_warnings = 0;
 
 	// Optionally also test the selector after dynamically making a structural operation on the document.
 	SelectorOp operation = SelectorOp::None;
@@ -94,7 +100,7 @@ static const Vector<QuerySelector> query_selectors =
 {
 	{ "span",                        "Y D0 D1 F0" },
 	{ ".hello",                      "X Z H" },
-	{ ".hello.world",                "Z" },
+	{ ".hello.world",                "Z H" },
 	{ "div.hello",                   "X Z" },
 	{ "body .hello",                 "X Z H" },
 	{ "body>.hello",                 "X Z" },
@@ -102,6 +108,52 @@ static const Vector<QuerySelector> query_selectors =
 	{ ".parent *",                   "A B C D D0 D1 E F F0 G H" },
 	{ ".parent > *",                 "A B C D E F G H" },
 	{ ":checked",                    "I",               SelectorOp::RemoveChecked,        "I", "" },
+
+	{ "*",                           "X Y Z P A B C D D0 D1 E F F0 G H I" },
+	{ "*span",                       "Y D0 D1 F0" },
+	{ "*.hello",                     "X Z H" },
+	{ "*:checked",                   "I" },
+	
+	{ "p[unit='m']",                 "B" },
+	{ "p[unit=\"m\"]",               "B" },
+	{ "[class]",                     "X Y Z P F0 G H" },
+	{ "[class=hello]",               "X" },
+	{ "[class=]",                    "G" },
+	{ "[class='']",                  "G" },
+	{ "[class=\"\"]",                "G" },
+	{ "[class~=hello]",              "X Z H" },
+	{ "[class~=ello]",               "" },
+	{ "[class|=hello]",              "F0" },
+	{ "[class^=hello]",              "X Z F0" },
+	{ "[class^=]",                   "X Y Z P F0 G H" },
+	{ "[class$=hello]",              "X H" },
+	{ "[class*=hello]",              "X Z F0 H" },
+	{ "[class*=ello]",               "X Z F0 H" },
+	
+	{ "[class~=hello].world",         "Z H" },
+	{ "*[class~=hello].world",        "Z H" },
+	{ ".world[class~=hello]",         "Z H" },
+	{ "[class~=hello][class~=world]", "Z H" },
+
+	{ "[class=hello world]",          "Z" },
+	{ "[class='hello world']",        "Z" },
+	{ "[class=\"hello world\"]",      "Z" },
+
+	{ "[invalid",                     "", 1, 4 },
+	{ "[]",                           "", 1, 4 },
+	{ "[x=Rule{What}]",               "", 2, 0 },
+	{ "[x=Hello,world]",              "", 1, 2 }, 
+	// The next ones are valid in CSS but we currently don't bother handling them, just make sure we don't crash.
+	{ "[x='Rule{What}']",             "", 2, 0 },
+	{ "[x='Hello,world']",            "", 1, 2 }, 
+
+	{ "#X[class=hello]",              "X" },
+	{ "[class=hello]#X",              "X" },
+	{ "#Y[class=hello]",              "" },
+	{ "div[class=hello]",             "X" },
+	{ "[class=hello]div",             "X" },
+	{ "span[class=hello]",            "" },
+	
 	{ ".parent :nth-child(odd)",     "A C D0 E F0 G" },
 	{ ".parent > :nth-child(even)",  "B D F H",         SelectorOp::RemoveClasses,        "parent", "" },
 	{ ":first-child",                "X A D0 F0",       SelectorOp::RemoveElementsByIds,  "A F0", "X B D0" },
@@ -124,16 +176,23 @@ static const Vector<QuerySelector> query_selectors =
 	{ ":only-child",                 "F0",              SelectorOp::RemoveElementsByIds,  "D0",    "D1 F0" },
 	{ ":only-of-type",               "Y A E F0 I" },
 	{ "span:empty",                  "Y D0 F0" },
-	{ ".hello.world, #P span, #I",   "Z D0 D1 F0 I",    SelectorOp::RemoveClasses,        "world", "D0 D1 F0 I" },
+	
+	{ ".hello.world, #P span, #I",   "Z D0 D1 F0 H I",  SelectorOp::RemoveClasses,        "world", "D0 D1 F0 I" },
 	{ "body * span",                 "D0 D1 F0" },
 	{ "D1 *",                        "" },
+	
 	{ "#E + #F",                     "F",               SelectorOp::InsertElementBefore,  "F",     "" },
 	{ "#E+#F",                       "F" },
 	{ "#E +#F",                      "F" },
 	{ "#E+ #F",                      "F" },
 	{ "#F + #E",                     "" },
+	{ "#A + #B",                     "B",               SelectorOp::RemoveId,             "A", "" },
+	{ "* + #A",                      "" },
+	{ "#H + *",                      "" },
+	{ "#P + *",                      "I" },
 	{ "div.parent > #B + p",         "C" },
 	{ "div.parent > #B + div",       "" },
+	
 	{ "#B ~ #F",                     "F" },
 	{ "#B~#F",                       "F" },
 	{ "#B ~#F",                      "F" },
@@ -141,12 +200,28 @@ static const Vector<QuerySelector> query_selectors =
 	{ "#F ~ #B",                     "" },
 	{ "div.parent > #B ~ p:empty",   "C G H",           SelectorOp::InsertElementBefore,  "H",     "C G Inserted H" },
 	{ "div.parent > #B ~ * span",    "D0 D1 F0" },
+
 	{ ":not(*)",                     "" },
 	{ ":not(span)",                  "X Z P A B C D E F G H I" },
 	{ "#D :not(#D0)",                "D1" },
 	{ "body > :not(:checked)",       "X Y Z P",         SelectorOp::RemoveChecked,        "I", "X Y Z P I" },
 	{ "div.hello:not(.world)",       "X" },
 	{ ":not(div,:nth-child(2),p *)", "A C D E F G H I" },
+
+	{ ".hello + .world",             "Y",               SelectorOp::RemoveClasses,        "hello", ""  },
+	{ "#B ~ h3",                     "E",               SelectorOp::RemoveId,             "B", ""  },
+	{ "#Z + div > :nth-child(2)",    "B",               SelectorOp::RemoveId,             "Z", ""  },
+	{ ":hover + #P #D1",             "",                SelectorOp::SetHover,             "Z", "D1"  },
+	{ ":not(:hover) + #P #D1",       "D1",              SelectorOp::SetHover,             "Z", ""  },
+	{ "#X + #Y",                     "Y",               SelectorOp::RemoveId,             "X", ""  },
+
+	{ "p[unit=m]",                   "B",               SelectorOp::RemoveAttributeUnit,  "B", ""  },
+	{ "p[unit=m] + *",               "C",               SelectorOp::RemoveAttributeUnit,  "B", ""  },
+
+	{ "body > * #D0",                "D0" },
+	{ "#E + * ~ *",                  "G H" },
+	{ "#B + * ~ #G",                 "G" },
+	{ "body > :nth-child(4) span:first-child",  "D0 F0", SelectorOp::RemoveElementsByIds,  "X",    "" },
 };
 
 struct ClosestSelector {
@@ -241,10 +316,13 @@ TEST_CASE("Selectors")
 	{
 		for (const QuerySelector& selector : query_selectors)
 		{
+			TestsShell::SetNumExpectedWarnings(selector.expect_num_warnings);
 			const String selector_css = selector.selector + " { drag: drag; } ";
 			const String document_string = doc_begin + selector_css + doc_end;
 			ElementDocument* document = context->LoadDocumentFromMemory(document_string);
-			REQUIRE(document);
+
+			// Update the context to settle any dirty state.
+			context->Update();
 
 			String matching_ids;
 			GetMatchingIds(matching_ids, document);
@@ -272,6 +350,18 @@ TEST_CASE("Selectors")
 					document->GetElementById(selector.operation_argument)->RemoveAttribute("checked");
 					operation_str = "RemoveChecked";
 					break;
+				case SelectorOp::RemoveId:
+					document->GetElementById(selector.operation_argument)->SetId("");
+					operation_str = "RemoveId";
+					break;
+				case SelectorOp::RemoveAttributeUnit:
+					document->GetElementById(selector.operation_argument)->RemoveAttribute("unit");
+					operation_str = "RemoveAttributeUnit";
+					break;
+				case SelectorOp::SetHover:
+					document->GetElementById(selector.operation_argument)->SetPseudoClass("hover", true);
+					operation_str = "SetHover";
+					break;
 				case SelectorOp::None:
 					break;
 				}
@@ -295,6 +385,8 @@ TEST_CASE("Selectors")
 
 		for (const QuerySelector& selector : query_selectors)
 		{
+			TestsShell::SetNumExpectedWarnings(selector.expect_num_query_warnings);
+
 			ElementList elements;
 			document->QuerySelectorAll(elements, selector.selector);
 			String matching_ids = ElementListToIds(elements);

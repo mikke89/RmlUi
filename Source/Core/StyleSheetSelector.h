@@ -30,24 +30,71 @@
 #define RMLUI_CORE_STYLESHEETSELECTOR_H
 
 #include "../../Include/RmlUi/Core/Types.h"
-#include <tuple>
 
 namespace Rml {
 
 class Element;
 class StyleSheetNode;
-struct SelectorTree;
 
+/**
+    Constants used to determine the specificity of a selector.
+ */
 namespace SelectorSpecificity {
 	enum {
-		// Constants used to determine the specificity of a selector.
 		Tag = 10'000,
 		Class = 100'000,
+		Attribute = Class,
 		PseudoClass = Class,
 		ID = 1'000'000,
 	};
 }
 
+/**
+    Combinator determines how two connected compound selectors are matched against the element hierarchy.
+ */
+enum class SelectorCombinator {
+	Descendant,        // The 'E F' (whitespace) combinator: Matches if F is a descendant of E.
+	Child,             // The 'E > F' combinator: Matches if F is a child of E.
+	NextSibling,       // The 'E + F' combinator: Matches if F is immediately preceded by E.
+	SubsequentSibling, // The 'E ~ F' combinator: Matches if F is preceded by E.
+};
+
+/**
+    Attribute selector.
+
+    Such as [unit], [unit=meter], [href^=http]
+ */
+enum class AttributeSelectorType {
+	Always,
+	Equal = '=',
+	InList = '~',
+	BeginsWithThenHyphen = '|',
+	BeginsWith = '^',
+	EndsWith = '$',
+	Contains = '*',
+};
+struct AttributeSelector {
+	AttributeSelectorType type = AttributeSelectorType::Always;
+	String name;
+	String value;
+};
+bool operator==(const AttributeSelector& a, const AttributeSelector& b);
+bool operator<(const AttributeSelector& a, const AttributeSelector& b);
+using AttributeSelectorList = Vector<AttributeSelector>;
+
+/**
+    A tree of unstyled style sheet nodes.
+ */
+struct SelectorTree {
+	UniquePtr<StyleSheetNode> root;
+	Vector<StyleSheetNode*> leafs; // Owned by root.
+};
+
+/**
+    Tree-structural selector.
+
+    Such as :nth-child(2n+1), :empty(), :not(div)
+ */
 enum class StructuralSelectorType {
 	Invalid,
 	Nth_Child,
@@ -63,7 +110,6 @@ enum class StructuralSelectorType {
 	Empty,
 	Not
 };
-
 struct StructuralSelector {
 	StructuralSelector(StructuralSelectorType type, int a, int b) : type(type), a(a), b(b) {}
 	StructuralSelector(StructuralSelectorType type, SharedPtr<const SelectorTree> tree, int specificity) :
@@ -82,32 +128,25 @@ struct StructuralSelector {
 	// For selectors that contain internal selectors such as :not().
 	SharedPtr<const SelectorTree> selector_tree;
 };
+bool operator==(const StructuralSelector& a, const StructuralSelector& b);
+bool operator<(const StructuralSelector& a, const StructuralSelector& b);
+using StructuralSelectorList = Vector<StructuralSelector>;
 
-inline bool operator==(const StructuralSelector& a, const StructuralSelector& b)
-{
-	// Currently sub-selectors (selector_tree) are only superficially compared. This mainly has the consequence that selectors with a sub-selector
-	// which are instantiated separately will never compare equal, even if they have the exact same sub-selector expression. This further results in
-	// such selectors not being de-duplicated. This should not lead to any functional differences but leads to potentially missed memory/performance
-	// optimizations. E.g. 'div a, div b' will combine the two div nodes, while ':not(div) a, :not(div) b' will not combine the two not-div nodes.
-	return a.type == b.type && a.a == b.a && a.b == b.b && a.selector_tree == b.selector_tree;
-}
-inline bool operator<(const StructuralSelector& a, const StructuralSelector& b)
-{
-	return std::tie(a.type, a.a, a.b, a.selector_tree) < std::tie(b.type, b.a, b.b, b.selector_tree);
-}
+/**
+    Compound selector contains all the basic selectors for a single node.
 
-// A tree of unstyled style sheet nodes.
-struct SelectorTree {
-	UniquePtr<StyleSheetNode> root;
-	Vector<StyleSheetNode*> leafs; // Owned by root.
+    Such as div#foo.bar:nth-child(2)
+ */
+struct CompoundSelector {
+	String tag;
+	String id;
+	StringList class_names;
+	StringList pseudo_class_names;
+	AttributeSelectorList attributes;
+	StructuralSelectorList structural_selectors;
+	SelectorCombinator combinator = SelectorCombinator::Descendant; // Determines how to match with our parent node.
 };
-
-enum class SelectorCombinator : byte {
-	None,
-	Child,             // The 'E > F' combinator: Matches if F is a child of E.
-	NextSibling,       // The 'E + F' combinator: Matches if F is immediately preceded by E.
-	SubsequentSibling, // The 'E ~ F' combinator: Matches if F is preceded by E.
-};
+bool operator==(const CompoundSelector& a, const CompoundSelector& b);
 
 /// Returns true if the the node the given selector is discriminating for is applicable to a given element.
 /// @param element[in] The element to determine node applicability for.

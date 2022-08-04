@@ -191,6 +191,12 @@ bool Context::Update()
 	for (auto& data_model : data_models)
 		data_model.second->Update(true);
 
+	// The style definition of each document should be independent of each other. By manually resetting these flags we avoid unnecessary definition
+	// lookups in unrelated documents, such as when adding a new document. Adding an element dirties the parent definition, which in this case is the
+	// root. By extension the definition of all the other documents are also dirtied, unnecessarily.
+	root->dirty_definition = false;
+	root->dirty_child_definitions = false;
+
 	root->Update(density_independent_pixel_ratio, Vector2f(dimensions));
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
