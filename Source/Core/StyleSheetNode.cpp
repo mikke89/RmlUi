@@ -277,7 +277,8 @@ bool StyleSheetNode::MatchAttributes(const Element* element) const
 		}
 		break;
 		case AttributeSelectorType::BeginsWithThenHyphen:
-			if (!BeginsWith(element_value, css_value) || element_value[css_value.size()] != '-')
+			// Begins with 'css_value' followed by a hyphen, or matches exactly.
+			if (!BeginsWith(element_value, css_value) || (element_value.size() != css_value.size() && element_value[css_value.size()] != '-'))
 				return false;
 			break;
 		case AttributeSelectorType::BeginsWith:
