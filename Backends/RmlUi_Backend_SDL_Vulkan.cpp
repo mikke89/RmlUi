@@ -119,6 +119,8 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	bool result = data->running;
 	SDL_Event ev;
 
+	bool is_window_valid_for_rendering = true;
+
 	while (SDL_PollEvent(&ev))
 	{
 		switch (ev.type)
@@ -159,7 +161,9 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			}
 			case SDL_WINDOWEVENT_MINIMIZED:
 			{
+				is_window_valid_for_rendering = false;
 				data->render_interface.OnWindowMinimize();
+				SDL_FlushEvent(SDL_WINDOWEVENT);
 				break;
 			}
 			case SDL_WINDOWEVENT_MAXIMIZED:
@@ -179,6 +183,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			}
 			case SDL_WINDOWEVENT_RESTORED:
 			{
+				is_window_valid_for_rendering = true;
 				data->render_interface.OnWindowRestored();
 				break;
 			}
@@ -191,6 +196,36 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			RmlSDL::InputEventHandler(context, ev);
 			break;
 		}
+		}
+	}
+
+	// if we don't provide additional looping after SDL_PollEvent from main loop you will be stuck in SDL_WINDOWEVENT_MINIMIZED event
+	while (!is_window_valid_for_rendering)
+	{
+		while (SDL_PollEvent(&ev))
+		{
+			switch (ev.type)
+			{
+			case SDL_WINDOWEVENT:
+			{
+				switch (ev.window.event)
+				{
+				case SDL_WINDOWEVENT_RESTORED:
+				{
+					is_window_valid_for_rendering = true;
+					data->render_interface.OnWindowRestored();
+					break;
+				}
+				}
+
+				break;
+			}
+			default:
+			{
+				RmlSDL::InputEventHandler(context, ev);
+				break;
+			}
+			}
 		}
 	}
 
