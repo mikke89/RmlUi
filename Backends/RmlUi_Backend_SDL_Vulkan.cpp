@@ -159,7 +159,6 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			}
 			case SDL_WINDOWEVENT_MINIMIZED:
 			{
-				context->SetWindowMimized(true);
 				data->render_interface.OnWindowMinimize();
 				break;
 			}
@@ -180,7 +179,6 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			}
 			case SDL_WINDOWEVENT_RESTORED:
 			{
-				context->SetWindowMimized(false);
 				data->render_interface.OnWindowRestored();
 				break;
 			}

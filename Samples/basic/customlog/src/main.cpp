@@ -98,9 +98,6 @@ int main(int /*argc*/, char** /*argv*/)
 	{
 		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
 
-		if (context->IsWindowMimized())
-			continue;
-
 		context->Update();
 
 		Backend::BeginFrame();
