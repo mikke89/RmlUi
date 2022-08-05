@@ -168,16 +168,19 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 			}
 			case SDL_WINDOWEVENT_MAXIMIZED:
 			{
+				is_window_valid_for_rendering = true;
 				data->render_interface.OnWindowMaximize();
 				break;
 			}
 			case SDL_WINDOWEVENT_HIDDEN:
 			{
+				is_window_valid_for_rendering = false;
 				data->render_interface.OnWindowHidden();
 				break;
 			}
 			case SDL_WINDOWEVENT_SHOWN:
 			{
+				is_window_valid_for_rendering = true;
 				data->render_interface.OnWindowShown();
 				break;
 			}
@@ -214,6 +217,18 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 				{
 					is_window_valid_for_rendering = true;
 					data->render_interface.OnWindowRestored();
+					break;
+				}
+				case SDL_WINDOWEVENT_MAXIMIZED:
+				{
+					is_window_valid_for_rendering = true;
+					data->render_interface.OnWindowMaximize();
+					break;
+				}
+				case SDL_WINDOWEVENT_SHOWN:
+				{
+					is_window_valid_for_rendering = true;
+					data->render_interface.OnWindowShown();
 					break;
 				}
 				}
