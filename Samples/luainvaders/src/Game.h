@@ -58,7 +58,7 @@ public:
 	void Update(double t);
 
 	/// Render the game
-	void Render(double t, float dp_ratio);
+	void Render(float dp_ratio);
 
 	/// Access the defender
 	Defender* GetDefender();

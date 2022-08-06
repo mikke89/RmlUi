@@ -139,7 +139,7 @@ void Game::Update(double t)
 	}
 }
 
-void Game::Render(double t, float dp_ratio)
+void Game::Render(float dp_ratio)
 {	
 	if (defender_lives <= 0)
 		return;
@@ -154,7 +154,7 @@ void Game::Render(double t, float dp_ratio)
 	for (int i = 0; i < NUM_INVADERS + 1; i++)
 		invaders[i]->Render(dp_ratio, texture_handle);
 
-	defender->Render(t, dp_ratio, texture_handle);
+	defender->Render(dp_ratio, texture_handle);
 }
 
 Defender* Game::GetDefender()

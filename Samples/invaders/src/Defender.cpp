@@ -79,14 +79,7 @@ void Defender::Update(double t)
 	else if (position.x > (game->GetWindowDimensions().x - SPRITE_WIDTH - 5))
 		position.x = game->GetWindowDimensions().x - SPRITE_WIDTH - 5;
 
-	// Update the bullet
-	if (bullet_in_flight)
-	{
-		// Move it up and mark it dead if it flies off the top of the screen
-		bullet_position.y -= BULLET_SPEED;
-		if (bullet_position.y < 0)
-			bullet_in_flight = false;
-	}
+	UpdateBullet(t);
 
 	if (state == RESPAWN)
 	{	
@@ -102,7 +95,7 @@ void Defender::Update(double t)
 	}
 }
 
-void Defender::Render(double t, float dp_ratio, Rml::TextureHandle texture)
+void Defender::Render(float dp_ratio, Rml::TextureHandle texture)
 {
 	Rml::Colourb color = GameDetails::GetDefenderColour();
 
@@ -110,33 +103,9 @@ void Defender::Render(double t, float dp_ratio, Rml::TextureHandle texture)
 	if (render)
 		defender_sprite.Render(position, dp_ratio, color, texture);
 
-	// Update the bullet, doing collision detection
+	// Render the bullet
 	if (bullet_in_flight)
-	{
 		bullet_sprite.Render(bullet_position, dp_ratio, color, texture);
-
-		// Check if we hit the shields
-		for (int i = 0; i < game->GetNumShields(); i++)
-		{
-			if (game->GetShield(i)->CheckHit(bullet_position))
-			{
-				bullet_in_flight = false;
-				break;
-			}
-		}
-
-		if (bullet_in_flight)
-		{
-			for (int i = 0; i < game->GetNumInvaders(); i++)
-			{
-				if (game->GetInvader(i)->CheckHit(t, bullet_position))
-				{
-					bullet_in_flight = false;
-					break;
-				}
-			}
-		}
-	}
 }
 
 void Defender::StartMove(float direction)
@@ -181,4 +150,38 @@ bool Defender::CheckHit(double t, const Rml::Vector2f& check_position)
 	}	
 
 	return false;
+}
+
+void Defender::UpdateBullet(double t)
+{
+	if (bullet_in_flight)
+	{
+		// Move the bullet up and mark it dead if it flies off the top of the screen
+		bullet_position.y -= BULLET_SPEED;
+		if (bullet_position.y < 0)
+		{
+			bullet_in_flight = false;
+			return;
+		}
+
+		// Check if we hit the shields
+		for (int i = 0; i < game->GetNumShields(); i++)
+		{
+			if (game->GetShield(i)->CheckHit(bullet_position))
+			{
+				bullet_in_flight = false;
+				return;
+			}
+		}
+
+		// Check if we hit any invaders
+		for (int i = 0; i < game->GetNumInvaders(); i++)
+		{
+			if (game->GetInvader(i)->CheckHit(t, bullet_position))
+			{
+				bullet_in_flight = false;
+				return;
+			}
+		}
+	}
 }

@@ -92,7 +92,7 @@ void ElementGame::OnUpdate()
 // Renders the game.
 void ElementGame::OnRender()
 {
-	game->Render(Rml::GetSystemInterface()->GetElapsedTime(), GetContext()->GetDensityIndependentPixelRatio());
+	game->Render(GetContext()->GetDensityIndependentPixelRatio());
 }
 
 void ElementGame::OnChildAdd(Rml::Element* element)
