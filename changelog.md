@@ -65,6 +65,7 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 
 - Scroll and slider elements now use containing block's height instead of width to calculate height-relative values. #314 #321 (thanks @nimble0)
 - Generate warnings when directly nesting flexboxes and other unsupported elements in a top-level formatting context. #320
+- In some situations, changing the `top`/`right`/`bottom`/`left` properties may affect the element's size. These situations are now correctly handled and the layout is updated when needed.
 
 ### Context input
 

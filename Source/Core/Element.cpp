@@ -1735,24 +1735,49 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	RMLUI_ZoneScoped;
+	const bool top_right_bottom_left_changed = (
+		changed_properties.Contains(PropertyId::Top) ||
+		changed_properties.Contains(PropertyId::Right) ||
+		changed_properties.Contains(PropertyId::Bottom) ||
+		changed_properties.Contains(PropertyId::Left)
+	);
 
+	// See if the document layout needs to be updated.
 	if (!IsLayoutDirty())
 	{
 		// Force a relayout if any of the changed properties require it.
-		const PropertyIdSet changed_properties_forcing_layout = (changed_properties & StyleSheetSpecification::GetRegisteredPropertiesForcingLayout());
-		
-		if(!changed_properties_forcing_layout.Empty())
+		const PropertyIdSet changed_properties_forcing_layout =
+			(changed_properties & StyleSheetSpecification::GetRegisteredPropertiesForcingLayout());
+
+		if (!changed_properties_forcing_layout.Empty())
+		{
 			DirtyLayout();
+		}
+		else if (top_right_bottom_left_changed)
+		{
+			// Normally, the position properties only affect the position of the element and not the layout. Thus, these properties are not registered
+			// as affecting layout. However, when absolutely positioned elements with both left & right, or top & bottom are set to definite values,
+			// they affect the size of the element and thereby also the layout. This layout-dirtying condition needs to be registered manually.
+			using namespace Style;
+			const ComputedValues& computed = GetComputedValues();
+			const bool absolutely_positioned = (computed.position() == Position::Absolute || computed.position() == Position::Fixed);
+			const bool sized_width =
+				(computed.width().type == Width::Auto && computed.left().type != Left::Auto && computed.right().type != Right::Auto);
+			const bool sized_height =
+				(computed.height().type == Height::Auto && computed.top().type != Top::Auto && computed.bottom().type != Bottom::Auto);
+
+			if (absolutely_positioned && (sized_width || sized_height))
+				DirtyLayout();
+		}
 	}
 
-	const bool border_radius_changed = (
-		changed_properties.Contains(PropertyId::BorderTopLeftRadius) ||
-		changed_properties.Contains(PropertyId::BorderTopRightRadius) ||
-		changed_properties.Contains(PropertyId::BorderBottomRightRadius) ||
-		changed_properties.Contains(PropertyId::BorderBottomLeftRadius)
-	);
-
-
+	// Update the position.
+	if (top_right_bottom_left_changed)
+	{
+		UpdateOffset();
+		DirtyAbsoluteOffset();
+	}
+	
 	// Update the visibility.
 	if (changed_properties.Contains(PropertyId::Visibility) ||
 		changed_properties.Contains(PropertyId::Display))
@@ -1770,16 +1795,6 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 			if (!visible)
 				Blur();
 		}
-	}
-
-	// Update the position.
-	if (changed_properties.Contains(PropertyId::Left) ||
-		changed_properties.Contains(PropertyId::Right) ||
-		changed_properties.Contains(PropertyId::Top) ||
-		changed_properties.Contains(PropertyId::Bottom))
-	{
-		UpdateOffset();
-		DirtyAbsoluteOffset();
 	}
 
 	// Update the z-index.
@@ -1825,6 +1840,13 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 			}
 		}
 	}
+	
+	const bool border_radius_changed = (
+		changed_properties.Contains(PropertyId::BorderTopLeftRadius) ||
+		changed_properties.Contains(PropertyId::BorderTopRightRadius) ||
+		changed_properties.Contains(PropertyId::BorderBottomRightRadius) ||
+		changed_properties.Contains(PropertyId::BorderBottomLeftRadius)
+	);
 
 	// Dirty the background if it's changed.
     if (border_radius_changed ||
@@ -1907,19 +1929,15 @@ void Element::OnChildRemove(Element* /*child*/)
 {
 }
 
-// Forces a re-layout of this element, and any other children required.
 void Element::DirtyLayout()
 {
-	Element* document = GetOwnerDocument();
-	if (document != nullptr)
+	if (Element* document = GetOwnerDocument())
 		document->DirtyLayout();
 }
 
-// Forces a re-layout of this element, and any other children required.
 bool Element::IsLayoutDirty()
 {
-	Element* document = GetOwnerDocument();
-	if (document != nullptr)
+	if (Element* document = GetOwnerDocument())
 		return document->IsLayoutDirty();
 	return false;
 }
