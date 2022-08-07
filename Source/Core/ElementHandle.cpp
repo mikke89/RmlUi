@@ -83,6 +83,10 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			initialised = true;
 		}
 
+		auto GetSize = [](Element* element, const ComputedValues& computed) {
+			return element->GetBox().GetSize((computed.box_sizing() == Style::BoxSizing::BorderBox) ? Box::BORDER : Box::CONTENT);
+		};
+
 		if (event == EventId::Dragstart)
 		{
 			// Store the drag starting position
@@ -95,10 +99,9 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 				move_original_position.y = move_target->GetOffsetTop();
 			}
 			if (size_target)
-				size_original_size = size_target->GetBox().GetSize(
-					(size_target->GetComputedValues().box_sizing() == Style::BoxSizing::BorderBox)
-					? Box::BORDER
-					: Box::CONTENT);
+			{
+				size_original_size = GetSize(size_target, size_target->GetComputedValues());
+			}
 		}
 		else if (event == EventId::Drag)
 		{
@@ -108,30 +111,42 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			// Update the move and size objects
 			if (move_target)
 			{
-				move_target->SetProperty(PropertyId::Left, Property(Math::RoundFloat(move_original_position.x + delta.x), Property::PX));
-				move_target->SetProperty(PropertyId::Top, Property(Math::RoundFloat(move_original_position.y + delta.y), Property::PX));
+				using namespace Style;
+				const auto& computed = move_target->GetComputedValues();
+
+				// Check if we have auto-size together with definite right/bottom; if so, the size needs to be fixed to the current size.
+				if (computed.width().type == Width::Auto && computed.right().type != Top::Auto)
+					move_target->SetProperty(PropertyId::Width, Property(Math::RoundFloat(GetSize(move_target, computed).x), Property::PX));
+				if (computed.height().type == Width::Auto && computed.bottom().type != Top::Auto)
+					move_target->SetProperty(PropertyId::Height, Property(Math::RoundFloat(GetSize(move_target, computed).y), Property::PX));
+
+				const Vector2f new_position = (move_original_position + delta).Round();
+				move_target->SetProperty(PropertyId::Left, Property(new_position.x, Property::PX));
+				move_target->SetProperty(PropertyId::Top, Property(new_position.y, Property::PX));
 			}
 
 			if (size_target)
 			{
+				auto SetDefiniteMargin = [](Element* element, PropertyId margin_id, Box::Edge edge) {
+					element->SetProperty(margin_id, Property(Math::RoundFloat(element->GetBox().GetEdge(Box::MARGIN, edge)), Property::PX));
+				};
+
 				using namespace Style;
 				const auto& computed = size_target->GetComputedValues();
 
 				// Check if we have auto-margins; if so, they have to be set to the current margins.
 				if (computed.margin_top().type == Margin::Auto)
-					size_target->SetProperty(PropertyId::MarginTop, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::TOP)), Property::PX));
+					SetDefiniteMargin(size_target, PropertyId::MarginTop, Box::TOP);
 				if (computed.margin_right().type == Margin::Auto)
-					size_target->SetProperty(PropertyId::MarginRight, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::RIGHT)), Property::PX));
+					SetDefiniteMargin(size_target, PropertyId::MarginRight, Box::RIGHT);
 				if (computed.margin_bottom().type == Margin::Auto)
-					size_target->SetProperty(PropertyId::MarginBottom, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM)), Property::PX));
+					SetDefiniteMargin(size_target, PropertyId::MarginBottom, Box::BOTTOM);
 				if (computed.margin_left().type == Margin::Auto)
-					size_target->SetProperty(PropertyId::MarginLeft, Property((float) Math::RealToInteger(size_target->GetBox().GetEdge(Box::MARGIN, Box::LEFT)), Property::PX));
+					SetDefiniteMargin(size_target, PropertyId::MarginLeft, Box::LEFT);
 
-				float new_x = Math::RoundFloat(size_original_size.x + delta.x);
-				float new_y = Math::RoundFloat(size_original_size.y + delta.y);
-
-				size_target->SetProperty(PropertyId::Width, Property(Math::Max< float >(new_x, 0.f), Property::PX));
-				size_target->SetProperty(PropertyId::Height, Property(Math::Max< float >(new_y, 0.f), Property::PX));
+				const Vector2f new_size = Math::Max((size_original_size + delta).Round(), Vector2f(0.f));
+				size_target->SetProperty(PropertyId::Width, Property(new_size.x, Property::PX));
+				size_target->SetProperty(PropertyId::Height, Property(new_size.y, Property::PX));
 			}
 
 			Dictionary parameters;
