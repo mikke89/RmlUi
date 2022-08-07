@@ -1851,7 +1851,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 	
 	// Dirty the decoration if it's changed.
-	if (changed_properties.Contains(PropertyId::Decorator))
+	if (border_radius_changed || changed_properties.Contains(PropertyId::Decorator))
 	{
 		meta->decoration.DirtyDecorators();
 	}
