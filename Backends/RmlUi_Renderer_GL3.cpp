@@ -27,6 +27,7 @@
  */
 
 #include "RmlUi_Renderer_GL3.h"
+#include "flat_handle_map.h"
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
@@ -94,6 +95,10 @@ void main() {
 }
 )";
 
+using Quad = Rml::Array<Rml::Vertex, 4>;
+using QuadHandle = flat_handle_map<Quad>::handle;
+static const QuadHandle InvalidQuadHandle = QuadHandle(-1);
+
 namespace Gfx {
 
 enum class ProgramUniform { Translate, Transform, Tex, Count };
@@ -108,6 +113,7 @@ struct CompiledGeometryData {
 	GLuint vbo;
 	GLuint ibo;
 	GLsizei draw_count;
+	QuadHandle quad_handle;
 };
 
 struct ProgramData {
@@ -312,16 +318,113 @@ static void DestroyShaders(ShadersData& shaders)
 
 } // namespace Gfx
 
+class QuadMap {
+public:
+	bool Initialize()
+	{
+		quads.reserve(reserved_quads);
+
+		const int num_indices = 6;
+		static const int quad_indices[] = {0, 3, 1, 1, 3, 2};
+
+		glGenVertexArrays(1, &vao);
+		glGenBuffers(1, &vbo);
+		glGenBuffers(1, &ibo);
+		glBindVertexArray(vao);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Quad) * reserved_quads, nullptr, GL_DYNAMIC_DRAW);
+
+		glEnableVertexAttribArray((GLuint)Gfx::VertexAttribute::Position);
+		glVertexAttribPointer((GLuint)Gfx::VertexAttribute::Position, 2, GL_FLOAT, GL_FALSE, sizeof(Rml::Vertex),
+			(const GLvoid*)(offsetof(Rml::Vertex, position)));
+
+		glEnableVertexAttribArray((GLuint)Gfx::VertexAttribute::Color0);
+		glVertexAttribPointer((GLuint)Gfx::VertexAttribute::Color0, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Rml::Vertex),
+			(const GLvoid*)(offsetof(Rml::Vertex, colour)));
+
+		glEnableVertexAttribArray((GLuint)Gfx::VertexAttribute::TexCoord0);
+		glVertexAttribPointer((GLuint)Gfx::VertexAttribute::TexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(Rml::Vertex),
+			(const GLvoid*)(offsetof(Rml::Vertex, tex_coord)));
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * num_indices, (const void*)quad_indices, GL_STATIC_DRAW);
+		glBindVertexArray(0);
+
+		Gfx::CheckGLError("QuadInitialize");
+		return true;
+	}
+
+	void Shutdown()
+	{
+		glDeleteVertexArrays(1, &vao);
+		glDeleteBuffers(1, &vbo);
+		glDeleteBuffers(1, &ibo);
+	}
+
+	QuadHandle Insert(const Quad& quad)
+	{
+		QuadHandle handle = quads.insert(quad);
+
+		if ((int)handle >= reserved_quads)
+		{
+			reserved_quads = reserved_quads * 2;
+			quads.reserve(reserved_quads);
+
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(Quad) * reserved_quads, (const void*)quads.data(), GL_DYNAMIC_DRAW);
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferSubData(GL_ARRAY_BUFFER, sizeof(Quad) * GLintptr(handle), sizeof(Quad), (const void*)(quads.data() + int(handle)));
+
+		Gfx::CheckGLError("QuadInsert");
+
+		return handle;
+	}
+
+	void Render(QuadHandle handle) const
+	{
+		const int num_vertices = 4;
+		const int num_indices = 6;
+
+		glBindVertexArray(vao);
+		glDrawElementsBaseVertex(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, (const GLvoid*)0, num_vertices * int(handle));
+
+		Gfx::CheckGLError("QuadRender");
+	}
+
+	void Erase(QuadHandle handle) { quads.erase(handle); }
+
+private:
+	flat_handle_map<Quad> quads;
+	int reserved_quads = 64;
+
+	GLuint vao = 0;
+	GLuint vbo = 0;
+	GLuint ibo = 0;
+
+} quad_map;
+
+size_t num_quads = 0;
+size_t num_non_quads = 0;
+
 RenderInterface_GL3::RenderInterface_GL3()
 {
 	shaders = Rml::MakeUnique<Gfx::ShadersData>();
 
 	if (!Gfx::CreateShaders(*shaders))
 		shaders.reset();
+
+	quad_map.Initialize();
 }
 
 RenderInterface_GL3::~RenderInterface_GL3()
 {
+	Rml::Log::Message(Rml::Log::LT_INFO, "Quads: %zu   Not quads: %zu", num_quads, num_non_quads);
+	
+	quad_map.Shutdown();
+
 	if (shaders)
 		Gfx::DestroyShaders(*shaders);
 }
@@ -376,9 +479,66 @@ void RenderInterface_GL3::RenderGeometry(Rml::Vertex* vertices, int num_vertices
 	}
 }
 
+#if 0
+struct QuadMap {
+	Rml::Vector<Quad> quads;
+	Rml::Vector<int> handle_lookup;
+	bool is_dirty = false;
+
+	QuadHandle Insert()
+	{
+		QuadHandle result = QuadHandle(handle_lookup.size());
+		auto it_handle = std::find(handle_lookup.begin(), handle_lookup.end(), -1);
+		if (it_handle == handle_lookup.end())
+			handle_lookup.
+
+
+		handle_lookup.push_back(int(quads.size()));
+		quads.push_back({});
+		return result;
+	}
+
+	
+	int GetIndex(QuadHandle handle) const
+	{
+		return handle_lookup[handle];
+	}
+
+	void Erase(QuadHandle handle)
+	{
+		const int erase_index = handle_lookup[handle];
+		handle_lookup[handle] = -1;
+
+		quads.erase(quads.begin() + erase_index);
+
+		for (int& index : handle_lookup)
+			if (index >= erase_index)
+				index -= 1;
+	}
+
+} quad_map;
+#endif
+
 Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices,
 	Rml::TextureHandle texture)
 {
+	static const int quad_indices[] = {0, 3, 1, 1, 3, 2};
+	if (num_vertices == 4 && num_indices == 6 && std::equal(std::begin(quad_indices), std::end(quad_indices), indices))
+	{
+		Quad quad = {vertices[0], vertices[1], vertices[2], vertices[3]};
+		QuadHandle handle = quad_map.Insert(quad);
+
+		Gfx::CompiledGeometryData* geometry = new Gfx::CompiledGeometryData{};
+		geometry->texture = (GLuint)texture;
+		geometry->quad_handle = handle;
+
+		num_quads += 1;
+
+		return (Rml::CompiledGeometryHandle)geometry;
+	}
+
+	num_non_quads += 1;
+
 	constexpr GLenum draw_usage = GL_STATIC_DRAW;
 
 	GLuint vao = 0;
@@ -412,6 +572,7 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* ve
 	Gfx::CheckGLError("CompileGeometry");
 
 	Gfx::CompiledGeometryData* geometry = new Gfx::CompiledGeometryData;
+	geometry->quad_handle = InvalidQuadHandle;
 	geometry->texture = (GLuint)texture;
 	geometry->vao = vao;
 	geometry->vbo = vbo;
@@ -440,8 +601,15 @@ void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle han
 		glUniform2fv(shaders->program_color.uniform_locations[(size_t)Gfx::ProgramUniform::Translate], 1, &translation.x);
 	}
 
-	glBindVertexArray(geometry->vao);
-	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+	if (geometry->quad_handle == InvalidQuadHandle)
+	{
+		glBindVertexArray(geometry->vao);
+		glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+	}
+	else
+	{
+		quad_map.Render(geometry->quad_handle);
+	}
 
 	Gfx::CheckGLError("RenderCompiledGeometry");
 }
@@ -450,9 +618,16 @@ void RenderInterface_GL3::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle ha
 {
 	Gfx::CompiledGeometryData* geometry = (Gfx::CompiledGeometryData*)handle;
 
-	glDeleteVertexArrays(1, &geometry->vao);
-	glDeleteBuffers(1, &geometry->vbo);
-	glDeleteBuffers(1, &geometry->ibo);
+	if (geometry->quad_handle == InvalidQuadHandle)
+	{
+		glDeleteVertexArrays(1, &geometry->vao);
+		glDeleteBuffers(1, &geometry->vbo);
+		glDeleteBuffers(1, &geometry->ibo);
+	}
+	else
+	{
+		quad_map.Erase(geometry->quad_handle);
+	}
 
 	delete geometry;
 }
