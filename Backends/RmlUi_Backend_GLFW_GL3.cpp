@@ -89,7 +89,7 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 		return false;
 
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	// Load the OpenGL functions.
 	Rml::String renderer_message;
