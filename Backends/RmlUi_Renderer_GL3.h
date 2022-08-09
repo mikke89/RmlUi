@@ -77,7 +77,7 @@ public:
 	static const Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
 
 private:
-	enum class ProgramId { None, Texture = 1, Color = 2, All = (Texture | Color) };
+	enum class ProgramId { None, Texture = 1,  All = (Texture) };
 	void SubmitTransformUniform(ProgramId program_id, int uniform_location);
 
 	Rml::Matrix4f transform, projection;
@@ -86,6 +86,11 @@ private:
 
 	enum class ScissoringState { Disable, Scissor, Stencil };
 	ScissoringState scissoring_state = ScissoringState::Disable;
+
+	Rml::TextureHandle texture_white = {};
+
+	Rml::TextureHandle active_texture = {};
+	unsigned int active_vao = {};
 
 	int viewport_width = 0;
 	int viewport_height = 0;

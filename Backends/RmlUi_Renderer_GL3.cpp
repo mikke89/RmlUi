@@ -84,16 +84,7 @@ void main() {
 	finalColor = fragColor * texColor;
 }
 )";
-static const char* shader_main_fragment_color = RMLUI_SHADER_HEADER R"(
-in vec2 fragTexCoord;
-in vec4 fragColor;
 
-out vec4 finalColor;
-
-void main() {
-	finalColor = fragColor;
-}
-)";
 
 using Quad = Rml::Array<Rml::Vertex, 4>;
 using QuadHandle = flat_handle_map<Quad>::handle;
@@ -122,10 +113,8 @@ struct ProgramData {
 };
 
 struct ShadersData {
-	ProgramData program_color;
 	ProgramData program_texture;
 	GLuint shader_main_vertex;
-	GLuint shader_main_fragment_color;
 	GLuint shader_main_fragment_texture;
 };
 
@@ -268,19 +257,12 @@ static bool CreateShaders(ShadersData& out_shaders)
 {
 	out_shaders = {};
 	GLuint& main_vertex = out_shaders.shader_main_vertex;
-	GLuint& main_fragment_color = out_shaders.shader_main_fragment_color;
 	GLuint& main_fragment_texture = out_shaders.shader_main_fragment_texture;
 
 	main_vertex = CreateShader(GL_VERTEX_SHADER, shader_main_vertex);
 	if (!main_vertex)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not create OpenGL shader: 'shader_main_vertex'.");
-		return false;
-	}
-	main_fragment_color = CreateShader(GL_FRAGMENT_SHADER, shader_main_fragment_color);
-	if (!main_fragment_color)
-	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not create OpenGL shader: 'shader_main_fragment_color'.");
 		return false;
 	}
 	main_fragment_texture = CreateShader(GL_FRAGMENT_SHADER, shader_main_fragment_texture);
@@ -290,11 +272,6 @@ static bool CreateShaders(ShadersData& out_shaders)
 		return false;
 	}
 
-	if (!CreateProgram(main_vertex, main_fragment_color, out_shaders.program_color))
-	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not create OpenGL program: 'program_color'.");
-		return false;
-	}
 	if (!CreateProgram(main_vertex, main_fragment_texture, out_shaders.program_texture))
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not create OpenGL program: 'program_texture'.");
@@ -306,11 +283,9 @@ static bool CreateShaders(ShadersData& out_shaders)
 
 static void DestroyShaders(ShadersData& shaders)
 {
-	glDeleteProgram(shaders.program_color.id);
 	glDeleteProgram(shaders.program_texture.id);
 
 	glDeleteShader(shaders.shader_main_vertex);
-	glDeleteShader(shaders.shader_main_fragment_color);
 	glDeleteShader(shaders.shader_main_fragment_texture);
 
 	shaders = {};
@@ -383,18 +358,9 @@ public:
 		return handle;
 	}
 
-	void Render(QuadHandle handle) const
-	{
-		const int num_vertices = 4;
-		const int num_indices = 6;
-
-		glBindVertexArray(vao);
-		glDrawElementsBaseVertex(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, (const GLvoid*)0, num_vertices * int(handle));
-
-		Gfx::CheckGLError("QuadRender");
-	}
-
 	void Erase(QuadHandle handle) { quads.erase(handle); }
+
+	GLuint GetVao() const { return vao; }
 
 private:
 	flat_handle_map<Quad> quads;
@@ -417,11 +383,17 @@ RenderInterface_GL3::RenderInterface_GL3()
 		shaders.reset();
 
 	quad_map.Initialize();
+
+	const Rml::byte white_pixel[] = {0xff, 0xff, 0xff, 0xff};
+	RenderInterface_GL3::GenerateTexture(texture_white, white_pixel, Rml::Vector2i(1, 1));
 }
 
 RenderInterface_GL3::~RenderInterface_GL3()
 {
 	Rml::Log::Message(Rml::Log::LT_INFO, "Quads: %zu   Not quads: %zu", num_quads, num_non_quads);
+
+	RenderInterface_GL3::ReleaseTexture(texture_white);
+	texture_white = {};
 	
 	quad_map.Shutdown();
 
@@ -456,6 +428,10 @@ void RenderInterface_GL3::BeginFrame()
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 
 	SetTransform(nullptr);
+
+	glUseProgram(shaders->program_texture.id);
+	active_texture = {};
+	active_vao = {};
 }
 
 void RenderInterface_GL3::EndFrame() {}
@@ -522,6 +498,11 @@ struct QuadMap {
 Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices,
 	Rml::TextureHandle texture)
 {
+	if (!texture)
+	{
+		texture = texture_white;
+	}
+
 	static const int quad_indices[] = {0, 3, 1, 1, 3, 2};
 	if (num_vertices == 4 && num_indices == 6 && std::equal(std::begin(quad_indices), std::end(quad_indices), indices))
 	{
@@ -531,6 +512,7 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* ve
 		Gfx::CompiledGeometryData* geometry = new Gfx::CompiledGeometryData{};
 		geometry->texture = (GLuint)texture;
 		geometry->quad_handle = handle;
+		geometry->vao = quad_map.GetVao();
 
 		num_quads += 1;
 
@@ -586,29 +568,30 @@ void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle han
 {
 	Gfx::CompiledGeometryData* geometry = (Gfx::CompiledGeometryData*)handle;
 
-	if (geometry->texture)
+	if (geometry->texture != active_texture)
 	{
-		glUseProgram(shaders->program_texture.id);
 		glBindTexture(GL_TEXTURE_2D, geometry->texture);
-		SubmitTransformUniform(ProgramId::Texture, shaders->program_texture.uniform_locations[(size_t)Gfx::ProgramUniform::Transform]);
-		glUniform2fv(shaders->program_texture.uniform_locations[(size_t)Gfx::ProgramUniform::Translate], 1, &translation.x);
+		active_texture = geometry->texture;
 	}
-	else
+
+	SubmitTransformUniform(ProgramId::Texture, shaders->program_texture.uniform_locations[(size_t)Gfx::ProgramUniform::Transform]);
+	glUniform2fv(shaders->program_texture.uniform_locations[(size_t)Gfx::ProgramUniform::Translate], 1, &translation.x);
+
+	if (geometry->vao != active_vao)
 	{
-		glUseProgram(shaders->program_color.id);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		SubmitTransformUniform(ProgramId::Color, shaders->program_color.uniform_locations[(size_t)Gfx::ProgramUniform::Transform]);
-		glUniform2fv(shaders->program_color.uniform_locations[(size_t)Gfx::ProgramUniform::Translate], 1, &translation.x);
+		glBindVertexArray(geometry->vao);
+		active_vao = geometry->vao;
 	}
 
 	if (geometry->quad_handle == InvalidQuadHandle)
 	{
-		glBindVertexArray(geometry->vao);
 		glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
 	}
 	else
 	{
-		quad_map.Render(geometry->quad_handle);
+		const int num_vertices = 4;
+		const int num_indices = 6;
+		glDrawElementsBaseVertex(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, (const GLvoid*)0, num_vertices * int(geometry->quad_handle));
 	}
 
 	Gfx::CheckGLError("RenderCompiledGeometry");
