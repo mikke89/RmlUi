@@ -112,6 +112,9 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 					continue;
 			}
 
+			if (glyph_dimensions == Vector2i(0, 0))
+				continue;
+
 			TextureBox box;
 			box.origin = Vector2f(float(glyph_origin.x + glyph.bearing.x), float(glyph_origin.y - glyph.bearing.y));
 			box.dimensions = Vector2f(glyph_dimensions);
