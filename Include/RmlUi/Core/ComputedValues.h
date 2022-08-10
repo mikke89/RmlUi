@@ -32,7 +32,7 @@
 #include "Element.h"
 #include "StyleTypes.h"
 #include "Types.h"
-#include <climits>
+#include <cfloat>
 
 namespace Rml {
 namespace Style {
