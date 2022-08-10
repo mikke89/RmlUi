@@ -16,7 +16,7 @@ border: .5em black;
 padding: 0;
 width: 48em;
 background-color: white;
-min-height: -1px;
+min-height: 0;
 bottom: auto;
 }
 

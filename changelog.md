@@ -50,6 +50,10 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - Selectors more correctly consider all paths toward the root, not just the first greedy path.
 - Structural selectors are no longer affected by the element's display property, like in CSS.
 
+### RCSS properties
+
+- `max-width` and `max-height` properties now support the `none` keyword.
+
 ### Data binding
 
 - Transform functions can now be called using C-like calling conventions, in addition to the previous pipe-syntax. Thus, the data expression `3.625 | format(2)` can now be identically expressed as `format(3.625, 2)`.

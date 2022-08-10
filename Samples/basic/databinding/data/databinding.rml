@@ -11,8 +11,8 @@ body.window
 	bottom: 50dp;
 	min-width: 1040dp;
 	min-height: 300dp;
-	max-width: -1px;
-	max-height: -1px;
+	max-width: none;
+	max-height: none;
 }
 div#title_bar div#icon
 {

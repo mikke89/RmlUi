@@ -8,7 +8,7 @@
 			background: #ddd;
 			color: #444;
 			right: 440dp;
-			width: -1px;
+			width: auto;
 			left: 0;
 		}
 		icon {

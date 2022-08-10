@@ -52,8 +52,8 @@ static const String document_rml = R"(
 			right: 50px;
 			top: 30px;
 			bottom: 30px;
-			max-width: -1px;
-			max-height: -1px;
+			max-width: none;
+			max-height: none;
 		}
 		div#content
 		{

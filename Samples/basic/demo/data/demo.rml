@@ -44,8 +44,8 @@ body.window
 	bottom: 50dp;
 	min-width: 1040dp;
 	min-height: 300dp;
-	max-width: -1px;
-	max-height: -1px;
+	max-width: none;
+	max-height: none;
 }
 div#title_bar div#icon
 {
@@ -532,7 +532,7 @@ progress {
 	bottom: 20dp;
 	left: 30dp;
 	padding: 0;
-	max-width: -1px;
+	max-width: none;
 }
 #sandbox table
 {
@@ -579,6 +579,8 @@ progress {
 	height: 100%;
 	background: #3332;
 	cursor: move;
+	box-sizing: border-box;
+	border: 4dp transparent;
 }
 .slider:hover, .slider:active
 {
@@ -586,13 +588,13 @@ progress {
 }
 #vertical_slider
 {	
-	width: 5dp;
-	margin-left: 2dp;
+	width: 12dp;
+	margin-left: 3dp;
 	padding-top: 5dp;
 }
 #horizontal_slider
 {
-	height: 5dp;
+	height: 12dp;
 }
 </style>
 </head>
