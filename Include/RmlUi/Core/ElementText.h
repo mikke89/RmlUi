@@ -111,16 +111,20 @@ private:
 	using LineList = Vector< Line >;
 	LineList lines;
 
-	bool dirty_layout_on_change;
-
 	GeometryList geometry;
-	bool geometry_dirty;
+
+	// The decoration geometry we've generated for this string.
+	UniquePtr<Geometry> decoration;
 
 	Colourb colour;
 	float opacity;
 
-	// The decoration geometry we've generated for this string.
-	Geometry decoration;
+	int font_handle_version;
+
+	bool geometry_dirty : 1;
+
+	bool dirty_layout_on_change : 1;
+	
 	// What the decoration type is that we have generated.
 	Style::TextDecoration generated_decoration;
 	// What the element's actual text-decoration property is; this may be different from the generated decoration
@@ -128,10 +132,8 @@ private:
 	// it isn't being changed.
 	Style::TextDecoration decoration_property;
 
-	FontEffectsHandle font_effects_handle;
 	bool font_effects_dirty;
-
-	int font_handle_version;
+	FontEffectsHandle font_effects_handle;
 };
 
 } // namespace Rml
