@@ -14,7 +14,7 @@
 		}
 		#fps 
 		{
-			position: absolute;
+			position: fixed;
 			top: 55dp;
 			left: 20dp;
 			font-size: 0.85em;
