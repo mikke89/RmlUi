@@ -413,6 +413,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			{
 				CopySelection();
 				DeleteSelection();
+				DispatchChangeEvent();
 				ShowCursor(true);
 			}
 		}
@@ -561,8 +562,6 @@ bool WidgetTextInput::DeleteCharacters(CursorMovement direction)
 	{
 		DeleteSelection();
 		DispatchChangeEvent();
-
-		UpdateSelection(false);
 
 		return true;
 	}
@@ -1227,9 +1226,9 @@ void WidgetTextInput::DeleteSelection()
 	if (selection_length > 0)
 	{
 		String new_value = GetAttributeValue();
-		const size_t selection_end = std::min(size_t(selection_begin_index + selection_length), (size_t)new_value.size()) ;
+		const size_t selection_begin = std::min((size_t)selection_begin_index, (size_t)new_value.size());
+		new_value.erase(selection_begin, (size_t)selection_length);
 		
-		new_value = new_value.substr(0, selection_begin_index) + new_value.substr(selection_end);
 		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
@@ -1238,7 +1237,7 @@ void WidgetTextInput::DeleteSelection()
 		UpdateCursorPosition(true);
 
 		// Erase our record of the selection.
-		ClearSelection();
+		UpdateSelection(false);
 	}
 }
 
