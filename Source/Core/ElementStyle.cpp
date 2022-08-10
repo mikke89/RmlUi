@@ -724,7 +724,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.min_width(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MaxWidth:
-			values.max_width(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.max_width(ComputeMaxSize(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Height:
@@ -734,7 +734,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.min_height(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MaxHeight:
-			values.max_height(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.max_height(ComputeMaxSize(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::LineHeight:

@@ -411,7 +411,7 @@ void TracksSizing::InitializeSize(TrackMetric& metric, float& margin_a, float& m
 
 	// Find the min/max size.
 	metric.min_size = ResolveValue(computed.min_size, table_initial_content_size);
-	metric.max_size = (computed.max_size.value < 0.f ? FLT_MAX : ResolveValue(computed.max_size, table_initial_content_size));
+	metric.max_size = ResolveValue(computed.max_size, table_initial_content_size);
 
 	if (target_box == Style::BoxSizing::ContentBox && computed.box_sizing == Style::BoxSizing::BorderBox)
 	{

@@ -329,8 +329,7 @@ void WidgetScroll::FormatBar(float bar_length)
 
 				// Check for 'max-height' restrictions.
 				float max_track_length = ResolveValue(computed.max_height(), track_length);
-				if (max_track_length > 0)
-					bar_box_content.y = Math::Min(max_track_length, bar_box_content.y);
+				bar_box_content.y = Math::Min(max_track_length, bar_box_content.y);
 			}
 
 			// Make sure we haven't gone further than we're allowed to (min-height may have made us too big).
@@ -350,8 +349,7 @@ void WidgetScroll::FormatBar(float bar_length)
 
 				// Check for 'max-width' restrictions.
 				float max_track_length = ResolveValue(computed.max_width(), track_length);
-				if (max_track_length > 0)
-					bar_box_content.x = Math::Min(max_track_length, bar_box_content.x);
+				bar_box_content.x = Math::Min(max_track_length, bar_box_content.x);
 			}
 
 			// Make sure we haven't gone further than we're allowed to (min-width may have made us too big).

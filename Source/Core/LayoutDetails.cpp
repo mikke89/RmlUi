@@ -95,8 +95,8 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 			ResolveValue(computed.min_height(), containing_block.y)
 		);
 		max_size = Vector2f(
-			(computed.max_width().value < 0.f ? FLT_MAX : ResolveValue(computed.max_width(), containing_block.x)),
-			(computed.max_height().value < 0.f ? FLT_MAX : ResolveValue(computed.max_height(), containing_block.y))
+			ResolveValue(computed.max_width(), containing_block.x),
+			ResolveValue(computed.max_height(), containing_block.y)
 		);
 
 		// Adjust sizes for the given box sizing model.
@@ -146,7 +146,7 @@ void LayoutDetails::BuildBox(Box& box, float& min_height, float& max_height, Lay
 void LayoutDetails::GetMinMaxWidth(float& min_width, float& max_width, const ComputedValues& computed, const Box& box, float containing_block_width)
 {
 	min_width = ResolveValue(computed.min_width(), containing_block_width);
-	max_width = (computed.max_width().value < 0.f ? FLT_MAX : ResolveValue(computed.max_width(), containing_block_width));
+	max_width = ResolveValue(computed.max_width(), containing_block_width);
 
 	if (computed.box_sizing() == Style::BoxSizing::BorderBox)
 	{
@@ -156,11 +156,10 @@ void LayoutDetails::GetMinMaxWidth(float& min_width, float& max_width, const Com
 	}
 }
 
-
 void LayoutDetails::GetMinMaxHeight(float& min_height, float& max_height, const ComputedValues& computed, const Box& box, float containing_block_height)
 {
 	min_height = ResolveValue(computed.min_height(), containing_block_height);
-	max_height = (computed.max_height().value < 0.f ? FLT_MAX : ResolveValue(computed.max_height(), containing_block_height));
+	max_height = ResolveValue(computed.max_height(), containing_block_height);
 
 	if (computed.box_sizing() == Style::BoxSizing::BorderBox)
 	{

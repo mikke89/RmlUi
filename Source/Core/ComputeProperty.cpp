@@ -290,6 +290,18 @@ Style::LengthPercentage ComputeOrigin(const Property* property, float font_size,
 	return LengthPercentage(LengthPercentage::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, vp_dimensions));
 }
 
+Style::LengthPercentage ComputeMaxSize(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
+{
+	using namespace Style;
+	if (property->unit & Property::KEYWORD)
+		return LengthPercentage(LengthPercentage::Length, FLT_MAX);
+	else if (property->unit & Property::PERCENT)
+		return LengthPercentage(LengthPercentage::Percentage, property->Get<float>());
+
+	const float length = ComputeLength(property, font_size, document_font_size, dp_ratio, vp_dimensions);
+	return LengthPercentage(LengthPercentage::Length, length < 0.f ? FLT_MAX : length);
+}
+
 uint16_t ComputeBorderWidth(float computed_length)
 {
 	if (computed_length <= 0.f)

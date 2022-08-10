@@ -58,6 +58,8 @@ Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property
 
 Style::LengthPercentage ComputeOrigin(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions);
 
+Style::LengthPercentage ComputeMaxSize(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions);
+
 uint16_t ComputeBorderWidth(float computed_length);
 
 extern const Style::ComputedValues DefaultComputedValues;

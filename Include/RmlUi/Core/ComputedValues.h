@@ -32,6 +32,7 @@
 #include "Element.h"
 #include "StyleTypes.h"
 #include "Types.h"
+#include <climits>
 
 namespace Rml {
 namespace Style {
@@ -171,8 +172,8 @@ namespace Style {
 
 		Clip clip;
 
-		float min_width = 0, max_width = -1;
-		float min_height = 0, max_height = -1;
+		float min_width = 0, max_width = FLT_MAX;
+		float min_height = 0, max_height = FLT_MAX;
 		float vertical_align_length = 0;
 
 		float perspective = 0;

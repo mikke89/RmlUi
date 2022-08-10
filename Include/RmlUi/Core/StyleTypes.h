@@ -73,11 +73,11 @@ namespace Style {
 
 	using Width = LengthPercentageAuto;
 	using MinWidth = LengthPercentage;
-	using MaxWidth = LengthPercentage;
+	using MaxWidth = LengthPercentage; // 'none' keyword converted to FLT_MAX length.
 
 	using Height = LengthPercentageAuto;
 	using MinHeight = LengthPercentage;
-	using MaxHeight = LengthPercentage;
+	using MaxHeight = LengthPercentage; // 'none' keyword converted to FLT_MAX length.
 
 	struct LineHeight {
 		float value = 12.f * 1.2f; // The computed value (length)

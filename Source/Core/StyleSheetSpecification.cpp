@@ -343,17 +343,13 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 		.AddParser("keyword", "auto")
 		.AddParser("number");
 
-	RegisterProperty(PropertyId::Width, "width", "auto", false, true)
-		.AddParser("keyword", "auto")
-		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::Width, "width", "auto", false, true).AddParser("keyword", "auto").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 	RegisterProperty(PropertyId::MinWidth, "min-width", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::MaxWidth, "max-width", "-1px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::MaxWidth, "max-width", "none", false, true).AddParser("keyword", "none").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 
-	RegisterProperty(PropertyId::Height, "height", "auto", false, true)
-		.AddParser("keyword", "auto")
-		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::Height, "height", "auto", false, true).AddParser("keyword", "auto").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
 	RegisterProperty(PropertyId::MinHeight, "min-height", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(PropertyId::MaxHeight, "max-height", "-1px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::MaxHeight, "max-height", "none", false, true).AddParser("keyword", "none").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
 
 	RegisterProperty(PropertyId::LineHeight, "line-height", "1.2", true, true).AddParser("number_length_percent").SetRelativeTarget(RelativeTarget::FontSize);
 	RegisterProperty(PropertyId::VerticalAlign, "vertical-align", "baseline", false, true)

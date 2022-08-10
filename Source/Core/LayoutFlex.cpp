@@ -157,7 +157,7 @@ static void GetItemSizing(FlexItem::Size& destination, const ComputedAxisSize& c
 	destination.sum_edges_a = (direction_reverse ? padding_border_b + margin_b : padding_border_a + margin_a);
 
 	destination.min_size = ResolveValue(computed_size.min_size, base_value);
-	destination.max_size = (computed_size.max_size.value < 0.f ? FLT_MAX : ResolveValue(computed_size.max_size, base_value));
+	destination.max_size = ResolveValue(computed_size.max_size, base_value);
 
 	if (computed_size.box_sizing == Style::BoxSizing::BorderBox)
 	{
