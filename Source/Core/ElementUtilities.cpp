@@ -275,6 +275,35 @@ bool ElementUtilities::SetClippingRegion(Element* element, Context* context)
 		ApplyActiveClipRegion(context, render_interface);
 	}
 
+	if (element)
+	{
+		if (!clip)
+		{
+			clip_origin = Vector2i(0);
+			clip_dimensions = context->GetDimensions();
+		}
+
+		float clip_top = (float)clip_origin.y;
+		float clip_left = (float)clip_origin.x;
+		float clip_right = (float)(clip_origin.x + clip_dimensions.x);
+		float clip_bottom = (float)(clip_origin.y + clip_dimensions.y);
+
+		const Vector2f offset = element->GetAbsoluteOffset(Box::BORDER);
+		const Vector2f size = element->GetBox().GetSize(Box::BORDER);
+
+		float x = offset.x;
+		float y = offset.y;
+
+		bool render_element = !(x > clip_right);
+		render_element &= !(x + size.x < clip_left);
+
+		render_element &= !(y > clip_bottom);
+		render_element &= !(y + size.y < clip_top);
+
+		if (!render_element)
+			return false;
+	}
+
 	return true;
 }
 
