@@ -204,6 +204,8 @@ def process_file(in_file):
 		
 		if in_style:
 			line = re.sub(r'(^|[^<])html', r'\1body', line, flags = re.IGNORECASE)
+			line = re.sub(r'<!--', r'/*', line, flags = re.IGNORECASE)
+			line = re.sub(r'-->', r'*/', line, flags = re.IGNORECASE)
 
 		reference_link_search_candidates = [
 			r'(<link href="(reference/[^"]+))\.xht(" rel="match" ?/>)',
@@ -327,7 +329,7 @@ def process_file(in_file):
 
 file_block_filters = ['charset','font','list','text-decoration','text-indent','text-transform','bidi','cursor',
 					'uri','stylesheet','word-spacing','table-anonymous','outline','at-rule','at-import','attribute',
-					'style','quote','rtl','ltr','first-line','first-letter','first-page','import','border',
+					'style','quote','rtl','ltr','first-line','first-letter','first-page','import','border','toc',
 					'chapter','character-encoding','escape','media','contain-','grid','case-insensitive',
 					'containing-block-initial','multicol','system-colors']
 
