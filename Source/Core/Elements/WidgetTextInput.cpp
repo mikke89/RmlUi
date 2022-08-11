@@ -945,38 +945,31 @@ void WidgetTextInput::FormatElement()
 	else
 		scroll->DisableScrollbar(ElementScroll::VERTICAL);
 
+	// If the formatting produces scrollbars we need to format again later, this constraint enables early exit for the first formatting round.
+	const float formatting_height_constraint = (y_overflow_property == Overflow::Auto ? parent->GetClientHeight() : FLT_MAX);
+
 	// Format the text and determine its total area.
-	Vector2f content_area = FormatText();
+	Vector2f content_area = FormatText(formatting_height_constraint);
 
 	// If we're set to automatically generate horizontal scrollbars, check for that now.
-	if (x_overflow_property == Overflow::Auto)
-	{
-		if (parent->GetClientWidth() < content_area.x)
-			scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
-	}
+	if (x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
+		scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 
 	// Now check for vertical overflow. If we do turn on the scrollbar, this will cause a reflow.
-	if (y_overflow_property == Overflow::Auto)
+	if (y_overflow_property == Overflow::Auto && content_area.y > parent->GetClientHeight())
 	{
-		if (parent->GetClientHeight() < content_area.y)
-		{
-			scroll->EnableScrollbar(ElementScroll::VERTICAL, width);
-			content_area = FormatText();
+		scroll->EnableScrollbar(ElementScroll::VERTICAL, width);
+		content_area = FormatText();
 
-			if (x_overflow_property == Overflow::Auto &&
-				parent->GetClientWidth() < content_area.x)
-			{
-				scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
-			}
-		}
+		if (x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
+			scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 	}
 
 	parent->SetContentBox(Vector2f(0, 0), content_area);
 	scroll->FormatScrollbars();
 }
 
-// Formats the input element's text field.
-Vector2f WidgetTextInput::FormatText()
+Vector2f WidgetTextInput::FormatText(float height_constraint)
 {
 	Vector2f content_area(0, 0);
 
@@ -1114,8 +1107,8 @@ Vector2f WidgetTextInput::FormatText()
 
 		// Finally, push the new line into our array of lines.
 		lines.push_back(std::move(line));
-	}
-	while (!last_line);
+
+	} while (!last_line && content_area.y < height_constraint);
 
 	// Clamp the cursor to a valid range.
 	absolute_cursor_index = Math::Min(absolute_cursor_index, (int)GetValue().size());

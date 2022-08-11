@@ -156,8 +156,9 @@ private:
 	/// Formats the element, laying out the text and inserting scrollbars as appropriate.
 	void FormatElement();
 	/// Formats the input element's text field.
+	/// @param[in] height_constraint Abort formatting when the formatted size grows larger than this height.
 	/// @return The content area of the element.
-	Vector2f FormatText();
+	Vector2f FormatText(float height_constraint = FLT_MAX);
 
 	/// Updates the position to render the cursor.
 	/// @param[in] update_ideal_cursor_position Generally should be true on horizontal movement and false on vertical movement.
