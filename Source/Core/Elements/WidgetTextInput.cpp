@@ -990,6 +990,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// When the selection contains endlines we expand the selection area by this width.
 	const int endline_selection_width = int(0.4f * parent->GetComputedValues().font_size());
 
+	const float client_width = parent->GetClientWidth();
 	int line_begin = 0;
 	Vector2f line_position(0, 0);
 	bool last_line = false;
@@ -997,13 +998,19 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// Keep generating lines until all the text content is placed.
 	do
 	{
+		if (client_width <= 0.f)
+		{
+			lines.push_back(Line{});
+			break;
+		}
+
 		Line line = {};
 		line.value_offset = line_begin;
 		float line_width;
 		String line_content;
 
 		// Generate the next line.
-		last_line = text_element->GenerateLine(line_content, line.size, line_width, line_begin, parent->GetClientWidth() - cursor_size.x, 0, false, false);
+		last_line = text_element->GenerateLine(line_content, line.size, line_width, line_begin, client_width - cursor_size.x, 0, false, false);
 
 		// If this line terminates in a soft-return (word wrap), then the line may be leaving a space or two behind as an orphan. If so, we must
 		// append the orphan onto the line even though it will push the line outside of the input field's bounds.
@@ -1014,7 +1021,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			for (int i = 1; i >= 0; --i)
 			{
 				int index = line_begin + line.size + i;
-				if (index >= (int) text.size())
+				if (index >= (int)text.size())
 					continue;
 
 				if (text[index] != ' ')
@@ -1024,9 +1031,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 				}
 
 				int next_index = index + 1;
-				if (!orphan.empty() ||
-					next_index >= (int) text.size() ||
-					text[next_index] != ' ')
+				if (!orphan.empty() || next_index >= (int)text.size() || text[next_index] != ' ')
 					orphan += ' ';
 			}
 
@@ -1056,10 +1061,11 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		auto GetKerningBetween = [this](const String& left, const String& right) -> float {
 			if (left.empty() || right.empty())
 				return 0.0f;
-			// We could join the whole string, and compare the result of the joined width to the individual widths of each string. Instead, we just take the
-			// two neighboring characters from each string and compare the string width with and without kerning, which should be much faster.
+			// We could join the whole string, and compare the result of the joined width to the individual widths of each string. Instead, we take
+			// the two neighboring characters from each string and compare the string width with and without kerning, which should be much faster.
 			const Character left_back = StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(&left.back(), &left.front()));
-			const String right_front_u8 = right.substr(0, size_t(StringUtilities::SeekForwardUTF8(right.c_str() + 1, right.c_str() + right.size()) - right.c_str()));
+			const String right_front_u8 =
+				right.substr(0, size_t(StringUtilities::SeekForwardUTF8(right.c_str() + 1, right.c_str() + right.size()) - right.c_str()));
 			const int width_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, left_back);
 			const int width_no_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, Character::Null);
 			return float(width_kerning - width_no_kerning);
@@ -1076,7 +1082,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		{
 			line_position.x += GetKerningBetween(pre_selection, selection);
 			selected_text_element->AddLine(line_position, selection);
-			
+
 			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
 			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + line.editable_length);
 			const Vector2f selection_size(float(selection_width + (selection_contains_endline ? endline_selection_width : 0)), line_height);
