@@ -38,20 +38,12 @@ namespace Rml {
 InputTypeText::InputTypeText(ElementFormControlInput* element, Visibility visibility) : InputType(element)
 {
 	if (visibility == VISIBLE)
-		widget = new WidgetTextInputSingleLine(element);
+		widget = MakeUnique<WidgetTextInputSingleLine>(element);
 	else
-		widget = new WidgetTextInputSingleLinePassword(element);
-
-	widget->SetMaxLength(element->GetAttribute< int >("maxlength", -1));
-	widget->SetValue(element->GetAttribute< String >("value", ""));
-
-	size = element->GetAttribute< int >("size", 20);
+		widget = MakeUnique<WidgetTextInputSingleLinePassword>(element);
 }
 
-InputTypeText::~InputTypeText()
-{
-	delete widget;
-}
+InputTypeText::~InputTypeText() {}
 
 // Called every update from the host element.
 void InputTypeText::OnUpdate()

@@ -82,9 +82,9 @@ public:
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 private:
-	int size;
+	int size = 20;
 
-	WidgetTextInput* widget;
+	UniquePtr<WidgetTextInput> widget;
 };
 
 } // namespace Rml

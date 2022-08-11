@@ -259,15 +259,6 @@ void WidgetTextInput::OnResize()
 	Vector2f text_position = parent->GetBox().GetPosition(Box::CONTENT);
 	text_element->SetOffset(text_position, parent);
 	selected_text_element->SetOffset(text_position, parent);
-
-	Vector2f new_internal_dimensions = parent->GetBox().GetSize(Box::CONTENT);
-	if (new_internal_dimensions != internal_dimensions)
-	{
-		internal_dimensions = new_internal_dimensions;
-
-		FormatElement();
-		UpdateCursorPosition(true);
-	}
 }
 
 // Renders the cursor, if it is visible.
@@ -289,6 +280,14 @@ void WidgetTextInput::OnRender()
 void WidgetTextInput::OnLayout()
 {
 	FormatElement();
+
+	Vector2f new_internal_dimensions = parent->GetBox().GetSize(Box::CONTENT);
+	if (new_internal_dimensions != internal_dimensions)
+	{
+		internal_dimensions = new_internal_dimensions;
+		UpdateCursorPosition(true);
+	}
+
 	parent->SetScrollLeft(scroll_offset.x);
 	parent->SetScrollTop(scroll_offset.y);
 }
