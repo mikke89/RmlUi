@@ -27,10 +27,11 @@
  */
 
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControlTextArea.h"
-#include "../../../Include/RmlUi/Core/Math.h"
-#include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/ElementText.h"
+#include "../../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "WidgetTextInputMultiLine.h"
 
 namespace Rml {
@@ -181,8 +182,14 @@ void ElementFormControlTextArea::OnPropertyChange(const PropertyIdSet& changed_p
 {
 	ElementFormControl::OnPropertyChange(changed_properties);
 
-	if (changed_properties.Contains(PropertyId::Color) ||
-		changed_properties.Contains(PropertyId::BackgroundColor))
+	// Some inherited properties require text formatting update, mainly font and line-height properties.
+	const PropertyIdSet changed_inherited_layout_properties = changed_properties &
+		(StyleSheetSpecification::GetRegisteredInheritedProperties() & StyleSheetSpecification::GetRegisteredPropertiesForcingLayout());
+
+	if (!changed_inherited_layout_properties.Empty())
+		widget->ForceFormattingOnNextLayout();
+
+	if (changed_properties.Contains(PropertyId::Color) || changed_properties.Contains(PropertyId::BackgroundColor))
 		widget->UpdateSelectionColours();
 
 	if (changed_properties.Contains(PropertyId::CaretColor))

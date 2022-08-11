@@ -106,6 +106,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	cursor_wrap_down = false;
 	ideal_cursor_position_to_the_right_of_cursor = true;
 	cancel_next_drag = false;
+	force_formatting_on_next_layout = false;
 
 	ideal_cursor_position = 0;
 
@@ -259,6 +260,8 @@ void WidgetTextInput::OnResize()
 	Vector2f text_position = parent->GetBox().GetPosition(Box::CONTENT);
 	text_element->SetOffset(text_position, parent);
 	selected_text_element->SetOffset(text_position, parent);
+
+	ForceFormattingOnNextLayout();
 }
 
 // Renders the cursor, if it is visible.
@@ -279,29 +282,16 @@ void WidgetTextInput::OnRender()
 // Formats the widget's internal content.
 void WidgetTextInput::OnLayout()
 {
-	FormatElement();
-
-	Vector2f new_internal_dimensions = parent->GetBox().GetSize(Box::CONTENT);
-	if (new_internal_dimensions != internal_dimensions)
+	if (force_formatting_on_next_layout)
 	{
-		internal_dimensions = new_internal_dimensions;
+		internal_dimensions = parent->GetBox().GetSize(Box::CONTENT);
+		FormatElement();
 		UpdateCursorPosition(true);
+		force_formatting_on_next_layout = false;
 	}
 
 	parent->SetScrollLeft(scroll_offset.x);
 	parent->SetScrollTop(scroll_offset.y);
-}
-
-// Returns the input element's underlying text element.
-ElementText* WidgetTextInput::GetTextElement()
-{
-	return text_element;
-}
-
-// Returns the input element's maximum allowed text dimensions.
-Vector2f WidgetTextInput::GetTextDimensions() const
-{
-	return internal_dimensions;
 }
 
 // Gets the parent element containing the widget.
@@ -1157,6 +1147,11 @@ void WidgetTextInput::GenerateCursor()
 	}
 
 	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), cursor_size, color);
+}
+
+void WidgetTextInput::ForceFormattingOnNextLayout()
+{
+	force_formatting_on_next_layout = true;
 }
 
 void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)

@@ -32,6 +32,7 @@
 #include "../../../Include/RmlUi/Core/EventListener.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
 #include "../../../Include/RmlUi/Core/Vertex.h"
+#include <float.h>
 
 namespace Rml {
 
@@ -68,6 +69,8 @@ public:
 	void UpdateSelectionColours();
 	/// Generates the text cursor.
 	void GenerateCursor();
+	/// Force text formatting on the next layout update.
+	void ForceFormattingOnNextLayout();
 
 	/// Updates the cursor, if necessary.
 	void OnUpdate();
@@ -77,11 +80,6 @@ public:
 	void OnLayout();
 	/// Called when the parent element's size changes.
 	void OnResize();
-
-	/// Returns the input element's underlying text element.
-	ElementText* GetTextElement();
-	/// Returns the input element's maximum allowed text dimensions.
-	Vector2f GetTextDimensions() const;
 
 protected:
 	enum class CursorMovement { Begin = -4, BeginLine = -3, PreviousWord = -2, Left = -1, Right = 1, NextWord = 2, EndLine = 3, End = 4 };
@@ -216,6 +214,7 @@ private:
 
 	bool ideal_cursor_position_to_the_right_of_cursor;
 	bool cancel_next_drag;
+	bool force_formatting_on_next_layout;
 
 	// Selection. The start and end indices of the selection are in absolute coordinates.
 	Element* selection_element;
