@@ -92,7 +92,8 @@ public:
 	/// @return The new document, or nullptr if no document could be created.
 	ElementDocument* CreateDocument(const String& instancer_name = "body");
 	/// Load a document into the context.
-	/// @param[in] document_path The path to the document to load.
+	/// @param[in] document_path The path to the document to load. The path is passed directly to the file interface which is used to load the file.
+	/// The default file interface accepts both absolute paths and paths relative to the working directory.
 	/// @return The loaded document, or nullptr if no document was loaded.
 	ElementDocument* LoadDocument(const String& document_path);
 	/// Load a document into the context.
