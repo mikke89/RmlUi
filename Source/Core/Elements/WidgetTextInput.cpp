@@ -70,6 +70,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensi
 	parent->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Hidden));
 	parent->SetProperty(PropertyId::Drag, Property(Style::Drag::Drag));
 	parent->SetProperty(PropertyId::WordBreak, Property(Style::WordBreak::BreakWord));
+	parent->SetProperty(PropertyId::TextTransform, Property(Style::TextTransform::None));
 	parent->SetClientArea(Box::CONTENT);
 
 	parent->AddEventListener(EventId::Keydown, this, true);
