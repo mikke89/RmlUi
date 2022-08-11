@@ -121,11 +121,13 @@ private:
 	/// Moves the cursor along the current line.
 	/// @param[in] movement Cursor movement operation.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
-	void MoveCursorHorizontal(CursorMovement movement, bool select);
+	/// @return True if selection was changed.
+	bool MoveCursorHorizontal(CursorMovement movement, bool select);
 	/// Moves the cursor up and down the text field.
 	/// @param[in] x How far to move the cursor.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
-	void MoveCursorVertical(int distance, bool select);
+	/// @return True if selection was changed.
+	bool MoveCursorVertical(int distance, bool select);
 	// Move the cursor to utf-8 boundaries, in case it was moved into the middle of a multibyte character.
 	/// @param[in] forward True to seek forward, else back.
 	void MoveCursorToCharacterBoundaries(bool forward);
@@ -166,9 +168,11 @@ private:
 
 	/// Expand or shrink the text selection to the position of the cursor.
 	/// @param[in] selecting True if the new position of the cursor should expand / contract the selection area, false if it should only set the anchor for future selections.
-	void UpdateSelection(bool selecting);
+	/// @return True if selection was changed.
+	bool UpdateSelection(bool selecting);
 	/// Removes the selection of text.
-	void ClearSelection();
+	/// @return True if selection was changed.
+	bool ClearSelection();
 	/// Deletes all selected text and removes the selection.
 	void DeleteSelection();
 	/// Copies the selection (if any) to the clipboard.

@@ -325,39 +325,39 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		bool numlock = event.GetParameter< int >("num_lock_key", 0) > 0;
 		bool shift = event.GetParameter< int >("shift_key", 0) > 0;
 		bool ctrl = event.GetParameter< int >("ctrl_key", 0) > 0;
+		bool selection_changed = false;
 
 		switch (key_identifier)
 		{
+		// clang-format off
 		case Input::KI_NUMPAD4: if (numlock) break; //-fallthrough
-		case Input::KI_LEFT:    MoveCursorHorizontal(ctrl ? CursorMovement::PreviousWord : CursorMovement::Left, shift); break;
+		case Input::KI_LEFT:    selection_changed = MoveCursorHorizontal(ctrl ? CursorMovement::PreviousWord : CursorMovement::Left, shift); break;
 
 		case Input::KI_NUMPAD6: if (numlock) break; //-fallthrough
-		case Input::KI_RIGHT:   MoveCursorHorizontal(ctrl ? CursorMovement::NextWord : CursorMovement::Right, shift); break;
+		case Input::KI_RIGHT:   selection_changed = MoveCursorHorizontal(ctrl ? CursorMovement::NextWord : CursorMovement::Right, shift); break;
 
 		case Input::KI_NUMPAD8: if (numlock) break; //-fallthrough
-		case Input::KI_UP:      MoveCursorVertical(-1, shift); break;
+		case Input::KI_UP:      selection_changed = MoveCursorVertical(-1, shift); break;
 
 		case Input::KI_NUMPAD2: if (numlock) break; //-fallthrough
-		case Input::KI_DOWN:    MoveCursorVertical(1, shift); break;
+		case Input::KI_DOWN:    selection_changed = MoveCursorVertical(1, shift); break;
 
 		case Input::KI_NUMPAD7: if (numlock) break; //-fallthrough
-		case Input::KI_HOME:    MoveCursorHorizontal(ctrl ? CursorMovement::Begin : CursorMovement::BeginLine, shift); break;
+		case Input::KI_HOME:    selection_changed = MoveCursorHorizontal(ctrl ? CursorMovement::Begin : CursorMovement::BeginLine, shift); break;
 
 		case Input::KI_NUMPAD1: if (numlock) break; //-fallthrough
-		case Input::KI_END:     MoveCursorHorizontal(ctrl ? CursorMovement::End : CursorMovement::EndLine, shift); break;
+		case Input::KI_END:     selection_changed = MoveCursorHorizontal(ctrl ? CursorMovement::End : CursorMovement::EndLine, shift); break;
 
 		case Input::KI_NUMPAD9: if (numlock) break; //-fallthrough
-		case Input::KI_PRIOR:   MoveCursorVertical(-int(internal_dimensions.y / parent->GetLineHeight()) + 1, shift); break;
+		case Input::KI_PRIOR:   selection_changed = MoveCursorVertical(-int(internal_dimensions.y / parent->GetLineHeight()) + 1, shift); break;
 
 		case Input::KI_NUMPAD3: if (numlock) break; //-fallthrough
-		case Input::KI_NEXT:    MoveCursorVertical(int(internal_dimensions.y / parent->GetLineHeight()) - 1, shift); break;
+		case Input::KI_NEXT:    selection_changed = MoveCursorVertical(int(internal_dimensions.y / parent->GetLineHeight()) - 1, shift); break;
 
 		case Input::KI_BACK:
 		{
 			CursorMovement direction = (ctrl ? CursorMovement::PreviousWord : CursorMovement::Left);
-			if (DeleteCharacters(direction))
-				FormatElement();
-
+			DeleteCharacters(direction);
 			ShowCursor(true);
 		}
 		break;
@@ -366,12 +366,11 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		case Input::KI_DELETE:
 		{
 			CursorMovement direction = (ctrl ? CursorMovement::NextWord : CursorMovement::Right);
-			if (DeleteCharacters(direction))
-				FormatElement();
-
+			DeleteCharacters(direction);
 			ShowCursor(true);
 		}
 		break;
+		// clang-format on
 
 		case Input::KI_NUMPADENTER:
 		case Input::KI_RETURN:
@@ -384,8 +383,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		{
 			if (ctrl)
 			{
-				MoveCursorHorizontal(CursorMovement::Begin, false);
-				MoveCursorHorizontal(CursorMovement::End, true);
+				selection_changed = MoveCursorHorizontal(CursorMovement::Begin, false);
+				selection_changed |= MoveCursorHorizontal(CursorMovement::End, true);
 			}
 		}
 		break;
@@ -431,6 +430,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		}
 
 		event.StopPropagation();
+		if (selection_changed)
+			FormatText();
 	}
 	break;
 
@@ -453,7 +454,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 	{
 		if (event.GetTargetElement() == parent)
 		{
-			UpdateSelection(false);
+			if (UpdateSelection(false))
+				FormatElement();
 			ShowCursor(true, false);
 		}
 	}
@@ -462,7 +464,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 	{
 		if (event.GetTargetElement() == parent)
 		{
-			ClearSelection();
+			if (ClearSelection())
+				FormatElement();
 			ShowCursor(false, false);
 		}
 	}
@@ -490,9 +493,10 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			MoveCursorToCharacterBoundaries(false);
 			UpdateCursorPosition(true);
 
-			UpdateSelection(event == EventId::Drag || event.GetParameter< int >("shift_key", 0) > 0);
+			if (UpdateSelection(event == EventId::Drag || event.GetParameter<int>("shift_key", 0) > 0))
+				FormatText();
 
-			ShowCursor(true); 
+			ShowCursor(true);
 			cancel_next_drag = false;
 		}
 	}
@@ -532,11 +536,11 @@ bool WidgetTextInput::AddCharacters(String string)
 	parent->SetAttribute("value", value);
 	absolute_cursor_index += (int)string.size();
 
-	DispatchChangeEvent();
-
 	UpdateCursorPosition(true);
-	UpdateSelection(false);
+	if (UpdateSelection(false))
+		FormatText();
 
+	DispatchChangeEvent();
 	return true;
 }
 
@@ -568,7 +572,7 @@ void WidgetTextInput::CopySelection()
 }
 
 // Moves the cursor along the current line.
-void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
+bool WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 {
 	const String& value = GetValue();
 
@@ -664,12 +668,14 @@ void WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 	MoveCursorToCharacterBoundaries(seek_forward);
 	UpdateCursorPosition(true);
 
-	UpdateSelection(select);
+	bool selection_changed = UpdateSelection(select);
 	ShowCursor(true);
+
+	return selection_changed;
 }
 
 // Moves the cursor up and down the text field.
-void WidgetTextInput::MoveCursorVertical(int distance, bool select)
+bool WidgetTextInput::MoveCursorVertical(int distance, bool select)
 {
 	int cursor_line_index = 0, cursor_character_index = 0;
 	GetRelativeCursorIndices(cursor_line_index, cursor_character_index);
@@ -694,8 +700,10 @@ void WidgetTextInput::MoveCursorVertical(int distance, bool select)
 	MoveCursorToCharacterBoundaries(false);
 	UpdateCursorPosition(false);
 
-	UpdateSelection(select);
+	bool selection_changed = UpdateSelection(select);
 	ShowCursor(true);
+
+	return selection_changed;
 }
 
 void WidgetTextInput::MoveCursorToCharacterBoundaries(bool forward)
@@ -768,11 +776,14 @@ void WidgetTextInput::ExpandSelection()
 	cursor_wrap_down = true;
 	absolute_cursor_index -= int(p_index - p_left);
 	MoveCursorToCharacterBoundaries(false);
-	UpdateSelection(false);
+	bool selection_changed = UpdateSelection(false);
 
 	absolute_cursor_index += int(p_right - p_left);
 	MoveCursorToCharacterBoundaries(true);
-	UpdateSelection(true);
+	selection_changed |= UpdateSelection(true);
+
+	if (selection_changed)
+		FormatText();
 
 	UpdateCursorPosition(true);
 }
@@ -1170,12 +1181,13 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 }
 
 // Expand the text selection to the position of the cursor.
-void WidgetTextInput::UpdateSelection(bool selecting)
+bool WidgetTextInput::UpdateSelection(bool selecting)
 {
+	bool selection_changed = false;
 	if (!selecting)
 	{
 		selection_anchor_index = absolute_cursor_index;
-		ClearSelection();
+		selection_changed = ClearSelection();
 	}
 	else
 	{
@@ -1199,19 +1211,22 @@ void WidgetTextInput::UpdateSelection(bool selecting)
 			selection_begin_index = new_begin_index;
 			selection_length = new_end_index - new_begin_index;
 
-			FormatText();
+			selection_changed = true; 
 		}
 	}
+	
+	return selection_changed;
 }
 
 // Removes the selection of text.
-void WidgetTextInput::ClearSelection()
+bool WidgetTextInput::ClearSelection()
 {
 	if (selection_length > 0)
 	{
 		selection_length = 0;
-		FormatElement();
+		return true;
 	}
+	return false;
 }
 
 // Deletes all selected text and removes the selection.
@@ -1231,7 +1246,8 @@ void WidgetTextInput::DeleteSelection()
 		UpdateCursorPosition(true);
 
 		// Erase our record of the selection.
-		UpdateSelection(false);
+		if (UpdateSelection(false))
+			FormatText();
 	}
 }
 
