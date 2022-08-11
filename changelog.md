@@ -39,6 +39,7 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - Fixed operation of page up/down numpad keys being swapped.
 - The input method editor (IME) is now positioned at the caret during text editing on the Windows backend. #303 #305 (thanks @xland)
 - Fix slow input handling especially with CJK input on the Win32 backend. #311
+- Improve performance on construction and during text editing.
 
 ### RCSS selectors
 
