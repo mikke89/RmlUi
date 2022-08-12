@@ -26,19 +26,19 @@
  *
  */
 
-#include "EventInstancer.h"
-#include "Event.h"
+#include "EventListenerInstancer.h"
+#include "EventListener.h"
 
-EventInstancer::EventInstancer()
+EventListenerInstancer::EventListenerInstancer()
 {
 }
 
-EventInstancer::~EventInstancer()
+EventListenerInstancer::~EventListenerInstancer()
 {
 }
 
 // Instances a new event handle for Invaders.
-Rml::EventListener* EventInstancer::InstanceEventListener(const Rml::String& value, Rml::Element* /*element*/)
+Rml::EventListener* EventListenerInstancer::InstanceEventListener(const Rml::String& value, Rml::Element* /*element*/)
 {
-	return new Event(value);
+	return new EventListener(value);
 }

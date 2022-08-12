@@ -32,7 +32,7 @@
 #include "EventHandlerHighScore.h"
 #include "EventHandlerOptions.h"
 #include "EventHandlerStartGame.h"
-#include "EventInstancer.h"
+#include "EventListenerInstancer.h"
 #include "EventManager.h"
 #include "HighScores.h"
 #include <RmlUi/Core.h>
@@ -98,13 +98,13 @@ int main(int /*argc*/, char** /*argv*/)
 	// Construct the game singletons.
 	HighScores::Initialise(context);
 
-	// Initialise the event instancer and handlers.
-	EventInstancer event_listener_instancer;
+	// Initialise the event listener instancer and handlers.
+	EventListenerInstancer event_listener_instancer;
 	Rml::Factory::RegisterEventListenerInstancer(&event_listener_instancer);
 
-	EventManager::RegisterEventHandler("start_game", new EventHandlerStartGame());
-	EventManager::RegisterEventHandler("high_score", new EventHandlerHighScore());
-	EventManager::RegisterEventHandler("options", new EventHandlerOptions());
+	EventManager::RegisterEventHandler("start_game", Rml::MakeUnique<EventHandlerStartGame>());
+	EventManager::RegisterEventHandler("high_score", Rml::MakeUnique<EventHandlerHighScore>());
+	EventManager::RegisterEventHandler("options", Rml::MakeUnique<EventHandlerOptions>());
 
 	// Start the game.
 	bool running = (EventManager::LoadWindow("background") && EventManager::LoadWindow("main_menu"));

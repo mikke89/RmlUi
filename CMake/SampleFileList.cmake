@@ -161,12 +161,12 @@ set(invaders_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorStarfield.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Defender.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/ElementGame.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Event.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandler.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerHighScore.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerOptions.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerStartGame.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventInstancer.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventListener.h
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventListenerInstancer.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventManager.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Game.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/GameDetails.h
@@ -184,12 +184,12 @@ set(invaders_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorStarfield.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Defender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/ElementGame.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Event.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandler.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerHighScore.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerOptions.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventHandlerStartGame.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventInstancer.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventListener.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventListenerInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/EventManager.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Game.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/GameDetails.cpp

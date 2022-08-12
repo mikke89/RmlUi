@@ -26,24 +26,27 @@
  *
  */
 
-#ifndef RMLUI_INVADERS_EVENTINSTANCER_H
-#define RMLUI_INVADERS_EVENTINSTANCER_H
+#include "EventListener.h"
+#include "EventManager.h"
 
-#include <RmlUi/Core/EventListenerInstancer.h>
-
-/**
-	@author Peter Curry
- */
-
-class EventInstancer : public Rml::EventListenerInstancer
+EventListener::EventListener(const Rml::String& value) : value(value)
 {
-public:
-	EventInstancer();
-	virtual ~EventInstancer();
+}
 
-	/// Instances a new event handle for Invaders.
-	Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* element) override;
+EventListener::~EventListener()
+{
+}
 
-};
+// Sends the event value through to Invader's event processing system.
+void EventListener::ProcessEvent(Rml::Event& event)
+{
+	EventManager::ProcessEvent(event, value);
+}
 
-#endif
+// Destroys the event.
+void EventListener::OnDetach(Rml::Element* RMLUI_UNUSED_PARAMETER(element))
+{
+	RMLUI_UNUSED(element);
+
+	delete this;
+}

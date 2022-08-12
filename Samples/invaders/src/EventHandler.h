@@ -31,14 +31,6 @@
 
 #include <RmlUi/Core/Types.h>
 
-namespace Rml {
-namespace Core {
-
-class Event;
-
-}
-}
-
 /**
 	@author Peter Curry
  */
