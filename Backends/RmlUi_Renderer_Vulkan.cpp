@@ -1286,7 +1286,7 @@ void RenderInterface_Vulkan::Destroy_Allocator(void) noexcept
 	this->m_p_allocator = nullptr;
 }
 
-void RenderInterface_Vulkan::QueryInstanceLayers(void) noexcept
+void RenderInterface_Vulkan::QueryInstanceLayers(Rml::Vector<VkLayerProperties>& result) noexcept
 {
 	uint32_t instance_layer_properties_count = 0;
 
@@ -1296,15 +1296,16 @@ void RenderInterface_Vulkan::QueryInstanceLayers(void) noexcept
 
 	if (instance_layer_properties_count)
 	{
-		this->m_instance_layer_properties.resize(instance_layer_properties_count);
+		result.resize(instance_layer_properties_count);
 
-		status = vkEnumerateInstanceLayerProperties(&instance_layer_properties_count, this->m_instance_layer_properties.data());
+		status = vkEnumerateInstanceLayerProperties(&instance_layer_properties_count, result.data());
 
 		VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateInstanceLayerProperties (filling vector of VkLayerProperties)");
 	}
 }
 
-void RenderInterface_Vulkan::QueryInstanceExtensions(Rml::Vector<VkExtensionProperties>& result) noexcept
+void RenderInterface_Vulkan::QueryInstanceExtensions(Rml::Vector<VkExtensionProperties>& result,
+	const Rml::Vector<VkLayerProperties>& instance_layer_properties) noexcept
 {
 	uint32_t instance_extension_property_count = 0;
 
@@ -1325,7 +1326,7 @@ void RenderInterface_Vulkan::QueryInstanceExtensions(Rml::Vector<VkExtensionProp
 	// without first argument in vkEnumerateInstanceExtensionProperties
 	// it doesn't collect information well so we need brute-force
 	// and pass through everything what use has
-	for (const auto& layer_property : this->m_instance_layer_properties)
+	for (const auto& layer_property : instance_layer_properties)
 	{
 		status = vkEnumerateInstanceExtensionProperties(layer_property.layerName, &count, nullptr);
 
@@ -1363,7 +1364,8 @@ void RenderInterface_Vulkan::QueryInstanceExtensions(Rml::Vector<VkExtensionProp
 	}
 }
 
-bool RenderInterface_Vulkan::AddLayerToInstance(Rml::Vector<const char*>& result, const char* p_instance_layer_name) noexcept
+bool RenderInterface_Vulkan::AddLayerToInstance(Rml::Vector<const char*>& result, const Rml::Vector<VkLayerProperties>& instance_layer_properties,
+	const char* p_instance_layer_name) noexcept
 {
 	if (p_instance_layer_name == nullptr)
 	{
@@ -1371,7 +1373,7 @@ bool RenderInterface_Vulkan::AddLayerToInstance(Rml::Vector<const char*>& result
 		return false;
 	}
 
-	if (this->IsLayerPresent(this->m_instance_layer_properties, p_instance_layer_name))
+	if (this->IsLayerPresent(instance_layer_properties, p_instance_layer_name))
 	{
 		result.push_back(p_instance_layer_name);
 		return true;
@@ -1406,10 +1408,12 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Instance(Rml::Vector<const char
 	Rml::Vector<const char*>& instance_extension_names) noexcept
 {
 	Rml::Vector<VkExtensionProperties> instance_extension_properties;
-	this->QueryInstanceLayers();
-	this->QueryInstanceExtensions(instance_extension_properties);
+	Rml::Vector<VkLayerProperties> instance_layer_properties;
 
-	this->AddLayerToInstance(instance_layer_names, "VK_LAYER_LUNARG_monitor");
+	this->QueryInstanceLayers(instance_layer_properties);
+	this->QueryInstanceExtensions(instance_extension_properties, instance_layer_properties);
+
+	this->AddLayerToInstance(instance_layer_names, instance_layer_properties, "VK_LAYER_LUNARG_monitor");
 
 	this->AddExtensionToInstance(instance_extension_names, instance_extension_properties, "VK_EXT_debug_utils");
 	this->AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
@@ -1423,7 +1427,7 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Instance(Rml::Vector<const char
 	this->AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_SURFACE_EXTENSION_NAME);
 
 #ifdef RMLUI_DEBUG
-	bool is_cpu_validation = this->AddLayerToInstance(instance_layer_names, "VK_LAYER_KHRONOS_validation") &&
+	bool is_cpu_validation = this->AddLayerToInstance(instance_layer_names, instance_layer_properties, "VK_LAYER_KHRONOS_validation") &&
 		this->AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
 	if (is_cpu_validation)
