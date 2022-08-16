@@ -731,14 +731,14 @@ private:
 
 	void QueryInstanceLayers(void) noexcept;
 	void QueryInstanceExtensions(void) noexcept;
-	bool AddLayerToInstance(const char* p_instance_layer_name) noexcept;
-	bool AddExtensionToInstance(const char* p_instance_extension_name) noexcept;
-	void CreatePropertiesFor_Instance(void) noexcept;
+	bool AddLayerToInstance(Rml::Vector<const char*>& result, const char* p_instance_layer_name) noexcept;
+	bool AddExtensionToInstance(Rml::Vector<const char*>& result, const char* p_instance_extension_name) noexcept;
+	void CreatePropertiesFor_Instance(Rml::Vector<const char*>& instance_layer_names, Rml::Vector<const char*>& instance_extension_names) noexcept;
 
 	bool IsLayerPresent(const Rml::Vector<VkLayerProperties>& properties, const char* p_layer_name) noexcept;
 	bool IsExtensionPresent(const Rml::Vector<VkExtensionProperties>& properties, const char* p_extension_name) noexcept;
 
-	bool AddExtensionToDevice(const char* p_device_extension_name) noexcept;
+	bool AddExtensionToDevice(Rml::Vector<const char*>& result, const char* p_device_extension_name) noexcept;
 	void CreatePropertiesFor_Device(void) noexcept;
 
 	void CreateReportDebugCallback(void) noexcept;
@@ -879,9 +879,6 @@ private:
 	Rml::Vector<VkLayerProperties> m_instance_layer_properties;
 	Rml::Vector<VkExtensionProperties> m_instance_extension_properties;
 	Rml::Vector<VkExtensionProperties> m_device_extension_properties;
-	Rml::Vector<const char*> m_instance_layer_names;
-	Rml::Vector<const char*> m_instance_extension_names;
-	Rml::Vector<const char*> m_device_extension_names;
 	Rml::Vector<VkFence> m_executed_fences;
 	Rml::Vector<VkSemaphore> m_semaphores_image_available;
 	Rml::Vector<VkSemaphore> m_semaphores_finished_render;

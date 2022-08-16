@@ -832,11 +832,9 @@ void RenderInterface_Vulkan::OnResize(int width, int height) noexcept
 	auto extent = this->Choose_ValidSwapchainExtent();
 
 	if (extent.width == 0 || extent.height == 0)
-	{
-	}
+	{}
 	else
-	{
-	}
+	{}
 
 	if (this->m_p_swapchain)
 	{
@@ -861,7 +859,9 @@ void RenderInterface_Vulkan::Initialize_Instance(void) noexcept
 	info.pEngineName = "RmlUi";
 	info.apiVersion = required_version;
 
-	this->CreatePropertiesFor_Instance();
+	Rml::Vector<const char*> instance_layer_names;
+	Rml::Vector<const char*> instance_extension_names;
+	this->CreatePropertiesFor_Instance(instance_layer_names, instance_extension_names);
 
 	VkInstanceCreateInfo info_instance = {};
 
@@ -869,10 +869,10 @@ void RenderInterface_Vulkan::Initialize_Instance(void) noexcept
 	info_instance.pNext = &debug_validation_features_ext;
 	info_instance.flags = 0;
 	info_instance.pApplicationInfo = &info;
-	info_instance.enabledExtensionCount = static_cast<uint32_t>(this->m_instance_extension_names.size());
-	info_instance.ppEnabledExtensionNames = this->m_instance_extension_names.data();
-	info_instance.enabledLayerCount = static_cast<uint32_t>(this->m_instance_layer_names.size());
-	info_instance.ppEnabledLayerNames = this->m_instance_layer_names.data();
+	info_instance.enabledExtensionCount = static_cast<uint32_t>(instance_extension_names.size());
+	info_instance.ppEnabledExtensionNames = instance_extension_names.data();
+	info_instance.enabledLayerCount = static_cast<uint32_t>(instance_layer_names.size());
+	info_instance.ppEnabledLayerNames = instance_layer_names.data();
 
 	VkResult status = vkCreateInstance(&info_instance, nullptr, &this->m_p_instance);
 
@@ -884,8 +884,10 @@ void RenderInterface_Vulkan::Initialize_Instance(void) noexcept
 void RenderInterface_Vulkan::Initialize_Device(void) noexcept
 {
 	this->CreatePropertiesFor_Device();
-	this->AddExtensionToDevice(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	this->AddExtensionToDevice(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
+
+	Rml::Vector<const char*> device_extension_names;
+	this->AddExtensionToDevice(device_extension_names, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	this->AddExtensionToDevice(device_extension_names, VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
 
 	float queue_priorities[1] = {0.0f};
 
@@ -930,8 +932,8 @@ void RenderInterface_Vulkan::Initialize_Device(void) noexcept
 	info_device.pNext = &features_physical_device2;
 	info_device.queueCreateInfoCount = 2;
 	info_device.pQueueCreateInfos = info_queue;
-	info_device.enabledExtensionCount = static_cast<uint32_t>(this->m_device_extension_names.size());
-	info_device.ppEnabledExtensionNames = info_device.enabledExtensionCount ? this->m_device_extension_names.data() : nullptr;
+	info_device.enabledExtensionCount = static_cast<uint32_t>(device_extension_names.size());
+	info_device.ppEnabledExtensionNames = info_device.enabledExtensionCount ? device_extension_names.data() : nullptr;
 	info_device.pEnabledFeatures = nullptr;
 
 	VkResult status = vkCreateDevice(this->m_p_physical_device_current, &info_device, nullptr, &this->m_p_device);
@@ -1360,7 +1362,7 @@ void RenderInterface_Vulkan::QueryInstanceExtensions(void) noexcept
 	}
 }
 
-bool RenderInterface_Vulkan::AddLayerToInstance(const char* p_instance_layer_name) noexcept
+bool RenderInterface_Vulkan::AddLayerToInstance(Rml::Vector<const char*>& result, const char* p_instance_layer_name) noexcept
 {
 	if (p_instance_layer_name == nullptr)
 	{
@@ -1370,7 +1372,7 @@ bool RenderInterface_Vulkan::AddLayerToInstance(const char* p_instance_layer_nam
 
 	if (this->IsLayerPresent(this->m_instance_layer_properties, p_instance_layer_name))
 	{
-		this->m_instance_layer_names.push_back(p_instance_layer_name);
+		result.push_back(p_instance_layer_name);
 		return true;
 	}
 
@@ -1379,7 +1381,7 @@ bool RenderInterface_Vulkan::AddLayerToInstance(const char* p_instance_layer_nam
 	return false;
 }
 
-bool RenderInterface_Vulkan::AddExtensionToInstance(const char* p_instance_extension_name) noexcept
+bool RenderInterface_Vulkan::AddExtensionToInstance(Rml::Vector<const char*>& result, const char* p_instance_extension_name) noexcept
 {
 	if (p_instance_extension_name == nullptr)
 	{
@@ -1389,7 +1391,7 @@ bool RenderInterface_Vulkan::AddExtensionToInstance(const char* p_instance_exten
 
 	if (this->IsExtensionPresent(this->m_instance_extension_properties, p_instance_extension_name))
 	{
-		this->m_instance_extension_names.push_back(p_instance_extension_name);
+		result.push_back(p_instance_extension_name);
 		return true;
 	}
 
@@ -1398,26 +1400,28 @@ bool RenderInterface_Vulkan::AddExtensionToInstance(const char* p_instance_exten
 	return false;
 }
 
-void RenderInterface_Vulkan::CreatePropertiesFor_Instance(void) noexcept
+void RenderInterface_Vulkan::CreatePropertiesFor_Instance(Rml::Vector<const char*>& instance_layer_names,
+	Rml::Vector<const char*>& instance_extension_names) noexcept
 {
 	this->QueryInstanceLayers();
 	this->QueryInstanceExtensions();
 
-	this->AddLayerToInstance("VK_LAYER_LUNARG_monitor");
-	this->AddExtensionToInstance("VK_EXT_debug_utils");
-	this->AddExtensionToInstance(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+	this->AddLayerToInstance(instance_layer_names, "VK_LAYER_LUNARG_monitor");
+
+	this->AddExtensionToInstance(instance_extension_names, "VK_EXT_debug_utils");
+	this->AddExtensionToInstance(instance_extension_names, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
 #if defined(RMLUI_PLATFORM_UNIX)
 	// TODO: add x11 headers for linux system this->AddExtensionToInstance(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 #elif defined(RMLUI_PLATFORM_WIN32)
-	this->AddExtensionToInstance(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+	this->AddExtensionToInstance(instance_extension_names, VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
 
-	this->AddExtensionToInstance(VK_KHR_SURFACE_EXTENSION_NAME);
+	this->AddExtensionToInstance(instance_extension_names, VK_KHR_SURFACE_EXTENSION_NAME);
 
 #ifdef RMLUI_DEBUG
-	bool is_cpu_validation =
-		this->AddLayerToInstance("VK_LAYER_KHRONOS_validation") && this->AddExtensionToInstance(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+	bool is_cpu_validation = this->AddLayerToInstance(instance_layer_names, "VK_LAYER_KHRONOS_validation") &&
+		this->AddExtensionToInstance(instance_extension_names, VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
 	if (is_cpu_validation)
 	{
@@ -1427,7 +1431,7 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Instance(void) noexcept
 
 		for (const auto& extension_name : requested_extensions_for_gpu)
 		{
-			this->AddExtensionToInstance(extension_name);
+			this->AddExtensionToInstance(instance_extension_names, extension_name);
 		}
 
 		debug_validation_features_ext.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
@@ -1464,11 +1468,11 @@ bool RenderInterface_Vulkan::IsExtensionPresent(const Rml::Vector<VkExtensionPro
 	}) != properties.cend();
 }
 
-bool RenderInterface_Vulkan::AddExtensionToDevice(const char* p_device_extension_name) noexcept
+bool RenderInterface_Vulkan::AddExtensionToDevice(Rml::Vector<const char*>& result, const char* p_device_extension_name) noexcept
 {
 	if (this->IsExtensionPresent(this->m_device_extension_properties, p_device_extension_name))
 	{
-		this->m_device_extension_names.push_back(p_device_extension_name);
+		result.push_back(p_device_extension_name);
 		return true;
 	}
 
