@@ -355,7 +355,12 @@ static float ComputeLength(NumericValue value, Element* element)
 	switch (value.unit)
 	{
 	case Unit::EM: font_size = element->GetComputedValues().font_size(); break;
-	case Unit::REM: doc_font_size = DefaultComputedValues.font_size(); break;
+	case Unit::REM:
+		if (ElementDocument* document = element->GetOwnerDocument())
+			doc_font_size = document->GetComputedValues().font_size();
+		else
+			doc_font_size = DefaultComputedValues.font_size();
+		break;
 	case Unit::DP:
 		if (Context* context = element->GetContext())
 			dp_ratio = context->GetDensityIndependentPixelRatio();
