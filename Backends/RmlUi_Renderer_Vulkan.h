@@ -879,7 +879,6 @@ private:
 	Rml::Vector<PhysicalDeviceWrapper> m_physical_devices;
 	Rml::Vector<VkLayerProperties> m_instance_layer_properties;
 	Rml::Vector<VkExtensionProperties> m_instance_extension_properties;
-	//Rml::Vector<VkExtensionProperties> m_device_extension_properties;
 	Rml::Vector<VkFence> m_executed_fences;
 	Rml::Vector<VkSemaphore> m_semaphores_image_available;
 	Rml::Vector<VkSemaphore> m_semaphores_finished_render;
