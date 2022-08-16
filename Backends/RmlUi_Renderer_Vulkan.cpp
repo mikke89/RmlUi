@@ -883,11 +883,12 @@ void RenderInterface_Vulkan::Initialize_Instance(void) noexcept
 
 void RenderInterface_Vulkan::Initialize_Device(void) noexcept
 {
-	this->CreatePropertiesFor_Device();
+	Rml::Vector<VkExtensionProperties> device_extension_properties;
+	this->CreatePropertiesFor_Device(device_extension_properties);
 
 	Rml::Vector<const char*> device_extension_names;
-	this->AddExtensionToDevice(device_extension_names, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	this->AddExtensionToDevice(device_extension_names, VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
+	this->AddExtensionToDevice(device_extension_names, device_extension_properties, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	this->AddExtensionToDevice(device_extension_names, device_extension_properties, VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
 
 	float queue_priorities[1] = {0.0f};
 
@@ -1468,9 +1469,10 @@ bool RenderInterface_Vulkan::IsExtensionPresent(const Rml::Vector<VkExtensionPro
 	}) != properties.cend();
 }
 
-bool RenderInterface_Vulkan::AddExtensionToDevice(Rml::Vector<const char*>& result, const char* p_device_extension_name) noexcept
+bool RenderInterface_Vulkan::AddExtensionToDevice(Rml::Vector<const char*>& result,
+	const Rml::Vector<VkExtensionProperties>& device_extension_properties, const char* p_device_extension_name) noexcept
 {
-	if (this->IsExtensionPresent(this->m_device_extension_properties, p_device_extension_name))
+	if (this->IsExtensionPresent(device_extension_properties, p_device_extension_name))
 	{
 		result.push_back(p_device_extension_name);
 		return true;
@@ -1479,7 +1481,7 @@ bool RenderInterface_Vulkan::AddExtensionToDevice(Rml::Vector<const char*>& resu
 	return false;
 }
 
-void RenderInterface_Vulkan::CreatePropertiesFor_Device(void) noexcept
+void RenderInterface_Vulkan::CreatePropertiesFor_Device(Rml::Vector<VkExtensionProperties>& result) noexcept
 {
 	VK_ASSERT(this->m_p_physical_device_current, "you must initialize your physical device. Call InitializePhysicalDevice first");
 
@@ -1489,10 +1491,9 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Device(void) noexcept
 
 	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateDeviceExtensionProperties (getting count)");
 
-	this->m_device_extension_properties.resize(extension_count);
+	result.resize(extension_count);
 
-	status = vkEnumerateDeviceExtensionProperties(this->m_p_physical_device_current, nullptr, &extension_count,
-		this->m_device_extension_properties.data());
+	status = vkEnumerateDeviceExtensionProperties(this->m_p_physical_device_current, nullptr, &extension_count, result.data());
 
 	VK_ASSERT(status == VK_SUCCESS, "failed to vkEnumerateDeviceExtensionProperties (filling vector of VkExtensionProperties)");
 
@@ -1538,14 +1539,14 @@ void RenderInterface_Vulkan::CreatePropertiesFor_Device(void) noexcept
 
 				for (const auto& extension : new_extensions)
 				{
-					if (this->IsExtensionPresent(this->m_device_extension_properties, extension.extensionName) == false)
+					if (this->IsExtensionPresent(result, extension.extensionName) == false)
 					{
 #ifdef RMLUI_DEBUG
 						Rml::Log::Message(Rml::Log::LT_DEBUG, "[Vulkan] obtained new device extension from layer[%s]: %s", layer.layerName,
 							extension.extensionName);
 #endif
 
-						this->m_device_extension_properties.push_back(extension);
+						result.push_back(extension);
 					}
 				}
 			}

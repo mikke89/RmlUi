@@ -738,8 +738,9 @@ private:
 	bool IsLayerPresent(const Rml::Vector<VkLayerProperties>& properties, const char* p_layer_name) noexcept;
 	bool IsExtensionPresent(const Rml::Vector<VkExtensionProperties>& properties, const char* p_extension_name) noexcept;
 
-	bool AddExtensionToDevice(Rml::Vector<const char*>& result, const char* p_device_extension_name) noexcept;
-	void CreatePropertiesFor_Device(void) noexcept;
+	bool AddExtensionToDevice(Rml::Vector<const char*>& result,
+		const Rml::Vector<VkExtensionProperties>& device_extension_properties, const char* p_device_extension_name) noexcept;
+	void CreatePropertiesFor_Device(Rml::Vector<VkExtensionProperties>& result) noexcept;
 
 	void CreateReportDebugCallback(void) noexcept;
 	void Destroy_ReportDebugCallback(void) noexcept;
@@ -878,7 +879,7 @@ private:
 	Rml::Vector<PhysicalDeviceWrapper> m_physical_devices;
 	Rml::Vector<VkLayerProperties> m_instance_layer_properties;
 	Rml::Vector<VkExtensionProperties> m_instance_extension_properties;
-	Rml::Vector<VkExtensionProperties> m_device_extension_properties;
+	//Rml::Vector<VkExtensionProperties> m_device_extension_properties;
 	Rml::Vector<VkFence> m_executed_fences;
 	Rml::Vector<VkSemaphore> m_semaphores_image_available;
 	Rml::Vector<VkSemaphore> m_semaphores_finished_render;
