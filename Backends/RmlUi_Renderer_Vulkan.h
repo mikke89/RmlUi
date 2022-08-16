@@ -415,49 +415,6 @@ class RenderInterface_Vulkan : public Rml::RenderInterface {
 		VkPhysicalDeviceLimits m_physical_device_limits;
 	};
 
-	class MemoryRingAllocator {
-	public:
-		MemoryRingAllocator(void);
-		~MemoryRingAllocator(void);
-
-		void Initialize(uint32_t total_size) noexcept;
-		uint32_t MakePaddingToAvoidCrossover(uint32_t size) const noexcept;
-
-		uint32_t GetSize(void) const noexcept;
-		uint32_t GetHead(void) const noexcept;
-		uint32_t GetTail(void) const noexcept;
-
-		bool Alloc(uint32_t size, uint32_t* p_out) noexcept;
-		bool Free(uint32_t size);
-
-	private:
-		uint32_t m_head;
-		uint32_t m_total_size;
-		uint32_t m_allocated_size;
-	};
-
-	// Be careful frame buffer doesn't refer to Vulkan's object!
-	// It means current buffer of current frame (logical abstraction)
-	// @ this allocator is simple and doesn't support deletion operation, so you can't free memory from it, so we use VMA allocator that is enough
-	class MemoryRingAllocatorWithTabs {
-	public:
-		MemoryRingAllocatorWithTabs(void);
-		~MemoryRingAllocatorWithTabs(void);
-
-		void Initialize(uint32_t number_of_frames, uint32_t total_size_memory) noexcept;
-		void Shutdown(void) noexcept;
-		bool Alloc(uint32_t size, uint32_t* p_out) noexcept;
-		void OnBeginFrame(void) noexcept;
-
-	private:
-		uint32_t m_frame_buffer_index;
-		uint32_t m_frame_buffer_number;
-		uint32_t m_memory_allocated_in_frame;
-		MemoryRingAllocator m_allocator;
-
-		uint32_t m_p_allocated_memory_per_back_buffer[kSwapchainBackBufferCount];
-	};
-
 	struct MemoryPoolCreateInfo {
 		uint32_t m_number_of_back_buffers;
 
