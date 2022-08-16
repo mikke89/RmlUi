@@ -730,9 +730,9 @@ private:
 	void Destroy_Allocator(void) noexcept;
 
 	void QueryInstanceLayers(void) noexcept;
-	void QueryInstanceExtensions(void) noexcept;
+	void QueryInstanceExtensions(Rml::Vector<VkExtensionProperties>& result) noexcept;
 	bool AddLayerToInstance(Rml::Vector<const char*>& result, const char* p_instance_layer_name) noexcept;
-	bool AddExtensionToInstance(Rml::Vector<const char*>& result, const char* p_instance_extension_name) noexcept;
+	bool AddExtensionToInstance(Rml::Vector<const char*>& result, const Rml::Vector<VkExtensionProperties>& instance_extension_properties, const char* p_instance_extension_name) noexcept;
 	void CreatePropertiesFor_Instance(Rml::Vector<const char*>& instance_layer_names, Rml::Vector<const char*>& instance_extension_names) noexcept;
 
 	bool IsLayerPresent(const Rml::Vector<VkLayerProperties>& properties, const char* p_layer_name) noexcept;
@@ -878,7 +878,6 @@ private:
 	Rml::Matrix4f m_projection;
 	Rml::Vector<PhysicalDeviceWrapper> m_physical_devices;
 	Rml::Vector<VkLayerProperties> m_instance_layer_properties;
-	Rml::Vector<VkExtensionProperties> m_instance_extension_properties;
 	Rml::Vector<VkFence> m_executed_fences;
 	Rml::Vector<VkSemaphore> m_semaphores_image_available;
 	Rml::Vector<VkSemaphore> m_semaphores_finished_render;
