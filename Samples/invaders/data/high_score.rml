@@ -72,10 +72,9 @@
 					{{score.score}}
 				</td>
 			</tr>
-			<tr data-if="scores.size == 0">
-				<td colspan="4" style="vertical-align: middle"><em>No scores recorded. Play a game!</em></td>
+			<tr>
+				<td data-if="scores.size == 0" colspan="4" style="vertical-align: middle"><em>No scores recorded. Play a game!</em></td>
 			</tr>
-			<tr data-if="scores.size > 0"/>
 		</tbody>
 	</table>
 	<button onclick="check_name; goto main_menu; close game_window">Main Menu</button>
