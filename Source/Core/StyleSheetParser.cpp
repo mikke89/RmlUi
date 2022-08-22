@@ -965,7 +965,7 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, const S
 					AttributeSelector attribute;
 
 					static const String attribute_operators = "=~|^$*]";
-					size_t i_cursor = Math::Min(rule.find_first_of(attribute_operators, i_attr_begin), i_attr_end);
+					size_t i_cursor = Math::Min(static_cast<size_t>(rule.find_first_of(attribute_operators, i_attr_begin)), i_attr_end);
 					attribute.name = rule.substr(i_attr_begin, i_cursor - i_attr_begin);
 
 					if (i_cursor < i_attr_end)
