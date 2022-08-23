@@ -53,7 +53,7 @@ private:
 
 	TestSuite& CurrentSuite() { return test_suites[suite_index]; }
 
-	void LoadActiveTest();
+	void LoadActiveTest(bool keep_scroll_position = false);
 
 	ComparisonResult CompareCurrentView();
 

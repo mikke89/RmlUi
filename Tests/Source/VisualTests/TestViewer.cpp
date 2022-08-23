@@ -191,10 +191,13 @@ bool TestViewer::IsHelpVisible() const
 
 
 
-bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filename, int test_index, int number_of_tests, int filtered_test_index, int filtered_number_of_tests, int suite_index, int number_of_suites)
+bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filename, int test_index, int number_of_tests, int filtered_test_index,
+	int filtered_number_of_tests, int suite_index, int number_of_suites, bool keep_scroll_position)
 {
+	float scroll_position = 0.f;
 	if (document_test)
 	{
+		scroll_position = document_test->GetScrollTop();
 		document_test->Close();
 		document_test = nullptr;
 	}
@@ -225,6 +228,8 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 			return false;
 
 		document_test->Show(ModalFlag::None, FocusFlag::None);
+		if (keep_scroll_position)
+			document_test->SetScrollTop(scroll_position);
 
 		for (const LinkItem& item : link_handler->GetLinkList())
 		{
