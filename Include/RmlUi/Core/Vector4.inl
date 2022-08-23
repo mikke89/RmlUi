@@ -32,7 +32,7 @@ namespace Rml {
 
 // Default constructor.
 template <typename Type>
-Vector4<Type>::Vector4() : x{0}, y{0}, z{0}, w{0}
+Vector4<Type>::Vector4() : x{}, y{}, z{}, w{}
 {}
 
 // Initialising constructor.
