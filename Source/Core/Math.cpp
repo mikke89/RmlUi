@@ -36,8 +36,6 @@ namespace Rml {
 
 namespace Math {
 
-const float RMLUI_PI = 3.141592653f;
-
 static constexpr float FZERO = 0.0001f;
 
 // Evaluates if a number is, or close to, zero.
