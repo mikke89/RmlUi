@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,7 +26,7 @@
  *
  */
 
-  
+
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
@@ -70,6 +70,35 @@ namespace Rml {
 // Determines how many levels up in the hierarchy the OnChildAdd and OnChildRemove are called (starting at the child itself)
 static constexpr int ChildNotifyLevels = 2;
 
+// Helper function to select scroll offset delta
+static float GetScrollOffsetDelta(ScrollIntoViewOptions::Alignment alignment, float begin_offset, float end_offset)
+{
+	switch (alignment)
+	{
+	case ScrollIntoViewOptions::START:
+		return begin_offset;
+
+	case ScrollIntoViewOptions::CENTER:
+		return (begin_offset + end_offset) / 2.0f;
+
+	case ScrollIntoViewOptions::END:
+		return end_offset;
+
+	case ScrollIntoViewOptions::NEAREST:
+		if (begin_offset >= 0.0 && end_offset <= 0.0)
+			return 0.0f; // Element is already visible, don't scroll
+		else if (begin_offset < 0.0 && end_offset < 0.0)
+			return Math::Max(begin_offset, end_offset);
+		else if (begin_offset > 0.0 && end_offset > 0.0)
+			return Math::Min(begin_offset, end_offset);
+		else
+			return 0.0f; // Shouldn't happen
+
+	default:
+		return 0;
+	}
+}
+
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta
 {
@@ -85,6 +114,20 @@ struct ElementMeta
 
 static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 
+ScrollIntoViewOptions::ScrollIntoViewOptions() :
+	vertical(Alignment::START), horizontal(Alignment::NEAREST)
+{
+}
+
+ScrollIntoViewOptions::ScrollIntoViewOptions(Alignment alignment) :
+	vertical(alignment), horizontal(alignment)
+{
+}
+
+ScrollIntoViewOptions::ScrollIntoViewOptions(Alignment vertical, Alignment horizontal) :
+	vertical(vertical), horizontal(horizontal)
+{
+}
 
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
@@ -115,7 +158,7 @@ Element::Element(const String& tag) :
 
 Element::~Element()
 {
-	RMLUI_ASSERT(parent == nullptr);	
+	RMLUI_ASSERT(parent == nullptr);
 
 	PluginRegistry::NotifyElementDestroy(this);
 
@@ -485,7 +528,7 @@ const Box& Element::GetBox(int index, Vector2f& offset)
 
 	if (index < 1)
 		return main_box;
-	
+
 	const int additional_box_index = index - 1;
 	if (additional_box_index >= (int)additional_boxes.size())
 		return main_box;
@@ -640,7 +683,7 @@ float Element::ResolveNumericProperty(const String& property_name)
 		relative_target = property->definition->GetRelativeTarget();
 
 	float result = meta->style.ResolveLength(property, relative_target);
-	
+
 	return result;
 }
 
@@ -663,7 +706,7 @@ Vector2f Element::GetContainingBlock()
 			containing_block = parent_box.GetSize(Box::PADDING);
 		}
 	}
-	
+
 	return containing_block;
 }
 
@@ -1051,7 +1094,7 @@ Element* Element::Closest(const String& selectors) const
 				return parent;
 			}
 		}
-		
+
 		parent = parent->GetParentNode();
 	}
 
@@ -1257,11 +1300,9 @@ bool Element::DispatchEvent(EventId id, const Dictionary& parameters)
 }
 
 // Scrolls the parent element's contents so that this element is visible.
-void Element::ScrollIntoView(bool align_with_top)
+void Element::ScrollIntoView(const ScrollIntoViewOptions& options)
 {
-	Vector2f size(0, 0);
-	if (!align_with_top)
-		size.y = main_box.GetSize(Box::BORDER).y;
+	const Vector2f size = main_box.GetSize(Box::BORDER);
 
 	Element* scroll_parent = parent;
 	while (scroll_parent != nullptr)
@@ -1279,22 +1320,32 @@ void Element::ScrollIntoView(bool align_with_top)
 		{
 			const Vector2f relative_offset = scroll_parent->GetAbsoluteOffset(Box::BORDER) - GetAbsoluteOffset(Box::BORDER);
 
-			Vector2f scroll_offset(scroll_parent->GetScrollLeft(), scroll_parent->GetScrollTop());
-			scroll_offset -= relative_offset;
-			scroll_offset.x += scroll_parent->GetClientLeft();
-			scroll_offset.y += scroll_parent->GetClientTop();
+			const Vector2f old_scroll_offset(scroll_parent->GetScrollLeft(), scroll_parent->GetScrollTop());
+			const Vector2f parent_client_offset(scroll_parent->GetClientLeft(), scroll_parent->GetClientTop());
 
-			if (!align_with_top)
-				scroll_offset.y -= (parent_client_size.y - size.y);
+			const Vector2f delta_scroll_offset_start = parent_client_offset - relative_offset;
+			const Vector2f delta_scroll_offset_end = delta_scroll_offset_start + size - parent_client_size;
+
+			Vector2f new_scroll_offset = old_scroll_offset;
+			new_scroll_offset.x += GetScrollOffsetDelta(options.horizontal, delta_scroll_offset_start.x, delta_scroll_offset_end.x);
+			new_scroll_offset.y += GetScrollOffsetDelta(options.vertical, delta_scroll_offset_start.y, delta_scroll_offset_end.y);
 
 			if (scrollable_box_x)
-				scroll_parent->SetScrollLeft(scroll_offset.x);
+				scroll_parent->SetScrollLeft(new_scroll_offset.x);
 			if (scrollable_box_y)
-				scroll_parent->SetScrollTop(scroll_offset.y);
+				scroll_parent->SetScrollTop(new_scroll_offset.y);
 		}
 
 		scroll_parent = scroll_parent->GetParentNode();
 	}
+}
+
+void Element::ScrollIntoView(bool align_with_top)
+{
+	ScrollIntoViewOptions options;
+	options.horizontal = ScrollIntoViewOptions::START;
+	options.vertical = align_with_top ? ScrollIntoViewOptions::START : ScrollIntoViewOptions::END;
+	ScrollIntoView(options);
 }
 
 // Appends a child to this element
@@ -1374,7 +1425,7 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 	else
 	{
 		child_ptr = AppendChild(std::move(child));
-	}	
+	}
 
 	return child_ptr;
 }
@@ -1777,14 +1828,14 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		UpdateOffset();
 		DirtyAbsoluteOffset();
 	}
-	
+
 	// Update the visibility.
 	if (changed_properties.Contains(PropertyId::Visibility) ||
 		changed_properties.Contains(PropertyId::Display))
 	{
 		bool new_visibility =
 			(meta->computed_values.display() != Style::Display::None && meta->computed_values.visibility() == Style::Visibility::Visible);
-			
+
 		if (visible != new_visibility)
 		{
 			visible = new_visibility;
@@ -1840,7 +1891,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 			}
 		}
 	}
-	
+
 	const bool border_radius_changed = (
 		changed_properties.Contains(PropertyId::BorderTopLeftRadius) ||
 		changed_properties.Contains(PropertyId::BorderTopRightRadius) ||
@@ -1871,7 +1922,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	{
 		meta->background_border.DirtyBorder();
 	}
-	
+
 	// Dirty the decoration if it's changed.
 	if (border_radius_changed || changed_properties.Contains(PropertyId::Decorator))
 	{
@@ -2060,7 +2111,7 @@ void Element::SetOwnerDocument(ElementDocument* document)
 	}
 }
 
-void Element::SetDataModel(DataModel* new_data_model) 
+void Element::SetDataModel(DataModel* new_data_model)
 {
 	RMLUI_ASSERTMSG(!data_model || !new_data_model, "We must either attach a new data model, or detach the old one.");
 
@@ -2088,7 +2139,7 @@ void Element::Release()
 }
 
 void Element::SetParent(Element* _parent)
-{	
+{
 	// Assumes we are already detached from the hierarchy or we are detaching now.
 	RMLUI_ASSERT(!parent || !_parent);
 
@@ -2112,7 +2163,7 @@ void Element::SetParent(Element* _parent)
 		if (data_model)
 			SetDataModel(nullptr);
 	}
-	else 
+	else
 	{
 		auto it = attributes.find("data-model");
 		if (it == attributes.end())
@@ -2473,7 +2524,7 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 		value = *start_value;
 		if (!value.definition)
 			if(auto default_value = GetProperty(property_id))
-				value.definition = default_value->definition;	
+				value.definition = default_value->definition;
 	}
 	else if (auto default_value = GetProperty(property_id))
 	{
@@ -2486,7 +2537,7 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 		double start_time = Clock::GetElapsedTime() + (double)delay;
 		*it = ElementAnimation{ property_id, origin, value, *this, start_time, 0.0f, num_iterations, alternate_direction };
 	}
-	
+
 	if(!it->IsInitalized())
 	{
 		animations.erase(it);
@@ -2628,7 +2679,7 @@ void Element::HandleAnimationProperty()
 			// Remove existing animations
 			{
 				// We only touch the animations that originate from the 'animation' property.
-				auto it_remove = std::partition(animations.begin(), animations.end(), 
+				auto it_remove = std::partition(animations.begin(), animations.end(),
 					[](const ElementAnimation & animation) { return animation.GetOrigin() != ElementAnimationOrigin::Animation; }
 				);
 
@@ -2740,12 +2791,12 @@ void Element::UpdateTransformState()
 
 	const Vector2f pos = GetAbsoluteOffset(Box::BORDER);
 	const Vector2f size = GetBox().GetSize(Box::BORDER);
-	
+
 	bool perspective_or_transform_changed = false;
 
 	if (dirty_perspective)
 	{
-		// If perspective is set on this element, then it applies to our children. We just calculate it here, 
+		// If perspective is set on this element, then it applies to our children. We just calculate it here,
 		// and let the children's transform update merge it with their transform.
 		bool had_perspective = (transform_state && transform_state->GetLocalPerspective());
 
