@@ -66,6 +66,23 @@ class TransformState;
 struct ElementMeta;
 struct StackingOrderedChild;
 
+enum class ScrollAlignment {
+	Start,   // Align to the top or left edge of the parent element.
+	Center,  // Align to the center of the parent element.
+	End,     // Align to the bottom or right edge of the parent element.
+	Nearest, // Align with minimal scroll change.
+};
+/**
+	Defines behavior of Element::ScrollIntoView.
+ */
+struct ScrollIntoViewOptions {
+	ScrollIntoViewOptions(ScrollAlignment vertical = ScrollAlignment::Start, ScrollAlignment horizontal = ScrollAlignment::Nearest) :
+		vertical(vertical), horizontal(horizontal)
+	{}
+	ScrollAlignment vertical;
+	ScrollAlignment horizontal;
+};
+
 /**
 	A generic element in the DOM tree.
 
@@ -499,6 +516,9 @@ public:
 	/// Sends an event to this element by event id.
 	bool DispatchEvent(EventId id, const Dictionary& parameters);
 
+	/// Scrolls the parent element's contents so that this element is visible.
+	/// @param[in] options Scroll parameters that control desired element alignment relative to the parent.
+	void ScrollIntoView(ScrollIntoViewOptions options);
 	/// Scrolls the parent element's contents so that this element is visible.
 	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be aligned to the bottom of the parent element's window.
 	void ScrollIntoView(bool align_with_top = true);

@@ -70,6 +70,86 @@ static const String document_clone_rml = R"(
 </rml>
 )";
 
+static const String document_scroll_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<style>
+		body {
+			left: 0;
+			top: 0;
+			width: 100px;
+			height: 100px;
+			padding: 0;
+			margin: 0;
+			overflow: scroll;
+		}
+		div {
+			display: block;
+			width: 200px;
+			height: 50px;
+			padding: 0;
+			margin: 0;
+		}
+		#row0 { background: #3a3; }
+		#row1 { background: #aa3; }
+		#row2 { background: #3aa; }
+		#row3 { background: #aaa; }
+		span {
+			display: inline-block;
+			box-sizing: border-box;
+			width: 50px;
+			height: 50px;
+			padding: 0;
+			margin: 0;
+			border: 1px #333;
+		}
+		span:nth-child(even) { border-color: #fff; }
+		scrollbarvertical,
+		scrollbarhorizontal {
+			width: 0;
+			height: 0;
+		}
+	</style>
+</head>
+
+<body id="scrollable">
+<div id="row0">
+	<span id="cell00"></span>
+	<span id="cell01"></span>
+	<span id="cell02"></span>
+	<span id="cell03"></span>
+</div>
+<div id="row1">
+	<span id="cell10"></span>
+	<span id="cell11"></span>
+	<span id="cell12"></span>
+	<span id="cell13"></span>
+</div>
+<div id="row2">
+	<span id="cell20"></span>
+	<span id="cell21"></span>
+	<span id="cell22"></span>
+	<span id="cell23"></span>
+</div>
+<div id="row3">
+	<span id="cell30"></span>
+	<span id="cell31"></span>
+	<span id="cell32"></span>
+	<span id="cell33"></span>
+</div>
+</body>
+</rml>
+)";
+
+void Run(Context* context)
+{
+	context->Update();
+	context->Render();
+
+	TestsShell::RenderLoop();
+}
+
 TEST_CASE("Element")
 {
 	Context* context = TestsShell::GetContext();
@@ -209,6 +289,106 @@ TEST_CASE("Element")
 		CHECK(element_ptr->GetInnerRML() == "");
 		element_ptr->SetInnerRML("text");
 		CHECK(element_ptr->GetInnerRML() == "text");
+	}
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("Element.ScrollIntoView")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_scroll_rml);
+	REQUIRE(document);
+	document->Show();
+
+	Run(context);
+
+	Element* scrollable = document->GetElementById("scrollable");
+	REQUIRE(scrollable);
+	Element* cells[4][4]{};
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			cells[i][j] = document->GetElementById(CreateString(8, "cell%d%d", i, j));
+			REQUIRE(cells[i][j]);
+		}
+	}
+
+	REQUIRE(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(0, 0));
+	REQUIRE(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(100, 100));
+	REQUIRE(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(150, 150));
+	REQUIRE(scrollable->GetScrollLeft() == 0);
+	REQUIRE(scrollable->GetScrollTop() == 0);
+
+	SUBCASE("LegacyScroll")
+	{
+		cells[2][2]->ScrollIntoView(true);
+
+		Run(context);
+
+		REQUIRE(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-100, -100));
+		REQUIRE(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(0, 0));
+		REQUIRE(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 50));
+		REQUIRE(scrollable->GetScrollLeft() == 100);
+		REQUIRE(scrollable->GetScrollTop() == 100);
+
+		cells[2][2]->ScrollIntoView(false);
+
+		Run(context);
+
+		REQUIRE(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-100, -50));
+		REQUIRE(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(0, 50));
+		REQUIRE(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 100));
+		REQUIRE(scrollable->GetScrollLeft() == 100);
+		REQUIRE(scrollable->GetScrollTop() == 50);
+	}
+
+	SUBCASE("AdvancedScroll")
+	{
+		cells[2][2]->ScrollIntoView({ScrollAlignment::Center, ScrollAlignment::Center});
+
+		Run(context);
+
+		REQUIRE(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-75, -75));
+		REQUIRE(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(25, 25));
+		REQUIRE(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(75, 75));
+
+		SUBCASE("NearestAlready")
+		{
+			cells[2][2]->ScrollIntoView(ScrollAlignment::Nearest);
+
+			Run(context);
+
+			REQUIRE(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-75, -75));
+			REQUIRE(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(25, 25));
+			REQUIRE(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(75, 75));
+		}
+
+		SUBCASE("NearestBefore")
+		{
+			cells[1][1]->ScrollIntoView(ScrollAlignment::Nearest);
+
+			Run(context);
+
+			REQUIRE(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-50, -50));
+			REQUIRE(cells[1][1]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(0, 0));
+			REQUIRE(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 50));
+		}
+
+		SUBCASE("NearestAfter")
+		{
+			cells[3][3]->ScrollIntoView(ScrollAlignment::Nearest);
+
+			Run(context);
+
+			REQUIRE(cells[1][1]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-50, -50));
+			REQUIRE(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(0, 0));
+			REQUIRE(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 50));
+		}
 	}
 
 	document->Close();

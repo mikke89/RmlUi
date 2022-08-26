@@ -70,6 +70,27 @@ namespace Rml {
 // Determines how many levels up in the hierarchy the OnChildAdd and OnChildRemove are called (starting at the child itself)
 static constexpr int ChildNotifyLevels = 2;
 
+// Helper function to select scroll offset delta
+static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset, float end_offset)
+{
+	switch (alignment)
+	{
+	case ScrollAlignment::Start: return begin_offset;
+	case ScrollAlignment::Center: return (begin_offset + end_offset) / 2.0f;
+	case ScrollAlignment::End: return end_offset;
+	case ScrollAlignment::Nearest:
+		if (begin_offset >= 0.0 && end_offset <= 0.0)
+			return 0.0f; // Element is already visible, don't scroll
+		else if (begin_offset < 0.0 && end_offset < 0.0)
+			return Math::Max(begin_offset, end_offset);
+		else if (begin_offset > 0.0 && end_offset > 0.0)
+			return Math::Min(begin_offset, end_offset);
+		else
+			return 0.0f; // Shouldn't happen
+	}
+	return 0.f;
+}
+
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta
 {
@@ -84,7 +105,6 @@ struct ElementMeta
 };
 
 static Pool< ElementMeta > element_meta_chunk_pool(200, true);
-
 
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
@@ -1257,11 +1277,9 @@ bool Element::DispatchEvent(EventId id, const Dictionary& parameters)
 }
 
 // Scrolls the parent element's contents so that this element is visible.
-void Element::ScrollIntoView(bool align_with_top)
+void Element::ScrollIntoView(const ScrollIntoViewOptions options)
 {
-	Vector2f size(0, 0);
-	if (!align_with_top)
-		size.y = main_box.GetSize(Box::BORDER).y;
+	const Vector2f size = main_box.GetSize(Box::BORDER);
 
 	Element* scroll_parent = parent;
 	while (scroll_parent != nullptr)
@@ -1271,30 +1289,39 @@ void Element::ScrollIntoView(bool align_with_top)
 		const bool scrollable_box_x = (computed.overflow_x() != Overflow::Visible && computed.overflow_x() != Overflow::Hidden);
 		const bool scrollable_box_y = (computed.overflow_y() != Overflow::Visible && computed.overflow_y() != Overflow::Hidden);
 
-		const Vector2f parent_scroll_size = { scroll_parent->GetScrollWidth(), scroll_parent->GetScrollHeight() };
-		const Vector2f parent_client_size = { scroll_parent->GetClientWidth(), scroll_parent->GetClientHeight() };
+		const Vector2f parent_scroll_size = {scroll_parent->GetScrollWidth(), scroll_parent->GetScrollHeight()};
+		const Vector2f parent_client_size = {scroll_parent->GetClientWidth(), scroll_parent->GetClientHeight()};
 
-		if ((scrollable_box_x && parent_scroll_size.x > parent_client_size.x) ||
-			(scrollable_box_y && parent_scroll_size.y > parent_client_size.y))
+		if ((scrollable_box_x && parent_scroll_size.x > parent_client_size.x) || (scrollable_box_y && parent_scroll_size.y > parent_client_size.y))
 		{
 			const Vector2f relative_offset = scroll_parent->GetAbsoluteOffset(Box::BORDER) - GetAbsoluteOffset(Box::BORDER);
 
-			Vector2f scroll_offset(scroll_parent->GetScrollLeft(), scroll_parent->GetScrollTop());
-			scroll_offset -= relative_offset;
-			scroll_offset.x += scroll_parent->GetClientLeft();
-			scroll_offset.y += scroll_parent->GetClientTop();
+			const Vector2f old_scroll_offset = {scroll_parent->GetScrollLeft(), scroll_parent->GetScrollTop()};
+			const Vector2f parent_client_offset = {scroll_parent->GetClientLeft(), scroll_parent->GetClientTop()};
 
-			if (!align_with_top)
-				scroll_offset.y -= (parent_client_size.y - size.y);
+			const Vector2f delta_scroll_offset_start = parent_client_offset - relative_offset;
+			const Vector2f delta_scroll_offset_end = delta_scroll_offset_start + size - parent_client_size;
+
+			Vector2f new_scroll_offset = old_scroll_offset;
+			new_scroll_offset.x += GetScrollOffsetDelta(options.horizontal, delta_scroll_offset_start.x, delta_scroll_offset_end.x);
+			new_scroll_offset.y += GetScrollOffsetDelta(options.vertical, delta_scroll_offset_start.y, delta_scroll_offset_end.y);
 
 			if (scrollable_box_x)
-				scroll_parent->SetScrollLeft(scroll_offset.x);
+				scroll_parent->SetScrollLeft(new_scroll_offset.x);
 			if (scrollable_box_y)
-				scroll_parent->SetScrollTop(scroll_offset.y);
+				scroll_parent->SetScrollTop(new_scroll_offset.y);
 		}
 
 		scroll_parent = scroll_parent->GetParentNode();
 	}
+}
+
+void Element::ScrollIntoView(bool align_with_top)
+{
+	ScrollIntoViewOptions options;
+	options.vertical = (align_with_top ? ScrollAlignment::Start : ScrollAlignment::End);
+	options.horizontal = ScrollAlignment::Nearest;
+	ScrollIntoView(options);
 }
 
 // Appends a child to this element
