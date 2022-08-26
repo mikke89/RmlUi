@@ -218,7 +218,9 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->context = nullptr;
 	data->key_down_callback = nullptr;
 
-	return data->running;
+	const bool result = data->running;
+	data->running = true;
+	return result;
 }
 
 void Backend::RequestExit()

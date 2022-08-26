@@ -195,8 +195,9 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 
 	// The contents of this function is intended to be copied directly into your main loop.
 	bool result = data->running;
-	sf::Event ev;
+	data->running = true;
 
+	sf::Event ev;
 	while (data->window.pollEvent(ev))
 	{
 		switch (ev.type)

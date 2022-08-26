@@ -211,6 +211,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 
 	Display* display = data->display;
 	bool result = data->running;
+	data->running = true;
 
 	while (XPending(display) > 0)
 	{

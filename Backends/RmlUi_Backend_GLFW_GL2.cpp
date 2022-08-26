@@ -150,7 +150,9 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->context = nullptr;
 	data->key_down_callback = nullptr;
 
-	return !glfwWindowShouldClose(data->window);
+	const bool result = !glfwWindowShouldClose(data->window);
+	glfwSetWindowShouldClose(data->window, GLFW_FALSE);
+	return result;
 }
 
 void Backend::RequestExit()

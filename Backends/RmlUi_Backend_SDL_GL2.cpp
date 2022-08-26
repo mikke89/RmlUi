@@ -252,8 +252,9 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	RMLUI_ASSERT(data && context);
 
 	bool result = data->running;
-	SDL_Event ev;
+	data->running = true;
 
+	SDL_Event ev;
 	while (SDL_PollEvent(&ev))
 	{
 		switch (ev.type)
