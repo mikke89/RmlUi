@@ -87,11 +87,11 @@ public:
 	/// Equality operator.
 	/// @param[in] rhs The colour to compare this against.
 	/// @return True if the two colours are equal, false otherwise.
-	inline bool operator==(Colour rhs) { return red == rhs.red && green == rhs.green && blue == rhs.blue && alpha == rhs.alpha; }
+	inline bool operator==(Colour rhs) const { return red == rhs.red && green == rhs.green && blue == rhs.blue && alpha == rhs.alpha; }
 	/// Inequality operator.
 	/// @param[in] rhs The colour to compare this against.
 	/// @return True if the two colours are not equal, false otherwise.
-	inline bool operator!=(Colour rhs) { return !(*this == rhs); }
+	inline bool operator!=(Colour rhs) const { return !(*this == rhs); }
 
 	/// Auto-cast operator.
 	/// @return A pointer to the first value.
