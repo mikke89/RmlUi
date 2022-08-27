@@ -28,6 +28,7 @@
 
 #include "../Common/Mocks.h"
 #include "../Common/TestsShell.h"
+#include "../Common/TypesToString.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
