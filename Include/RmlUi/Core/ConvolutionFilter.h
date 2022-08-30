@@ -39,8 +39,6 @@ enum class FilterOperation {
 	Sum,
 	// The result is the largest value of all filtered pixels.
 	Dilation,
-	// The result is the smallest value of all the filtered pixels.
-	Erosion
 };
 
 /**
