@@ -109,3 +109,13 @@ set(GLFW_GL3_HDR_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL3.h
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Include_GL3.h
 )
+
+set(GLFW_VK_SRC_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_GLFW_VK.cpp
+)
+set(GLFW_VK_HDR_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.h
+)
