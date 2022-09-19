@@ -140,27 +140,8 @@ static bool WaitForValidSwapchain()
 	// calls. Since we don't have full control over the main loop here we may risk calls to Context::Render if we were to return. Instead, we keep the
 	// application inside this loop until we are able to recreate the swapchain and render again.
 
-	/*
 	while (!data->render_interface.IsSwapchainValid())
 	{
-		SDL_Event ev;
-		while (SDL_PollEvent(&ev))
-		{
-			if (ev.type == SDL_QUIT)
-			{
-				// Restore the window so that we can recreate the swapchain, and then properly release all resource and shutdown cleanly.
-				SDL_RestoreWindow(data->window);
-				result = false;
-			}
-		}
-		SDL_Delay(10);
-		data->render_interface.RecreateSwapchain();
-	}
-	*/
-
-	while (!data->render_interface.IsSwapchainValid())
-	{
-		// probably it is the one crossplatform variant to replace SDL_Delay
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 		if (glfwWindowShouldClose(data->window))
