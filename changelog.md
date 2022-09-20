@@ -27,7 +27,7 @@ The following new renderers and platforms are added:
 
 - A new OpenGL 3 renderer. #261
   - Including Emscripten support so RmlUi even runs in web browsers now.
-- A new Vulkan renderer. #236 #328 (thanks @wh1t3lord)
+- A new Vulkan renderer. #236 #328 #360 (thanks @wh1t3lord)
 - A new GLFW platform.
 - The OpenGL 2 and SDL native renderers are ported over from the old samples.
 - The Win32, X11, SFML, and SDL platforms are ported over from the old samples.
