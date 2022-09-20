@@ -1127,7 +1127,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		// Finally, push the new line into our array of lines.
 		lines.push_back(std::move(line));
 
-	} while (!last_line && content_area.y < height_constraint);
+	} while (!last_line && content_area.y <= height_constraint);
 
 	// Clamp the cursor to a valid range.
 	absolute_cursor_index = Math::Min(absolute_cursor_index, (int)GetValue().size());
