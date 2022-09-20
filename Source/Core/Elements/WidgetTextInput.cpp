@@ -943,10 +943,11 @@ void WidgetTextInput::FormatElement()
 {
 	using namespace Style;
 	ElementScroll* scroll = parent->GetElementScroll();
-	float width = parent->GetBox().GetSize(Box::PADDING).x;
+	const float width = parent->GetBox().GetSize(Box::PADDING).x;
 
-	Overflow x_overflow_property = parent->GetComputedValues().overflow_x();
-	Overflow y_overflow_property = parent->GetComputedValues().overflow_y();
+	const Overflow x_overflow_property = parent->GetComputedValues().overflow_x();
+	const Overflow y_overflow_property = parent->GetComputedValues().overflow_y();
+	const bool word_wrap = (parent->GetComputedValues().white_space() == WhiteSpace::Prewrap);
 
 	if (x_overflow_property == Overflow::Scroll)
 		scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
@@ -965,7 +966,7 @@ void WidgetTextInput::FormatElement()
 	Vector2f content_area = FormatText(formatting_height_constraint);
 
 	// If we're set to automatically generate horizontal scrollbars, check for that now.
-	if (x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
+	if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
 		scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 
 	// Now check for vertical overflow. If we do turn on the scrollbar, this will cause a reflow.
@@ -974,7 +975,7 @@ void WidgetTextInput::FormatElement()
 		scroll->EnableScrollbar(ElementScroll::VERTICAL, width);
 		content_area = FormatText();
 
-		if (x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
+		if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
 			scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 	}
 
