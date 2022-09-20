@@ -154,7 +154,9 @@ void WidgetTextInput::SetValue(String value)
 		RMLUI_ASSERTMSG(value.size() == initial_size, "TransformValue must not change the text length.");
 
 		text_element->SetText(value);
+
 		FormatElement();
+		UpdateCursorPosition(true);
 	}
 }
 
@@ -533,10 +535,9 @@ bool WidgetTextInput::AddCharacters(String string)
 	String value = GetAttributeValue();
 	value.insert(std::min<size_t>((size_t)absolute_cursor_index, value.size()), string);
 
-	parent->SetAttribute("value", value);
 	absolute_cursor_index += (int)string.size();
+	parent->SetAttribute("value", value);
 
-	UpdateCursorPosition(true);
 	if (UpdateSelection(false))
 		FormatText();
 
@@ -1167,7 +1168,7 @@ void WidgetTextInput::ForceFormattingOnNextLayout()
 
 void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 {
-	if (text_element->GetFontFaceHandle() == 0)
+	if (text_element->GetFontFaceHandle() == 0 || lines.empty())
 		return;
 
 	int cursor_line_index = 0, cursor_character_index = 0;
@@ -1237,13 +1238,11 @@ void WidgetTextInput::DeleteSelection()
 		String new_value = GetAttributeValue();
 		const size_t selection_begin = std::min((size_t)selection_begin_index, (size_t)new_value.size());
 		new_value.erase(selection_begin, (size_t)selection_length);
-		
-		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
 		absolute_cursor_index = selection_begin_index;
 
-		UpdateCursorPosition(true);
+		GetElement()->SetAttribute("value", new_value);
 
 		// Erase our record of the selection.
 		if (UpdateSelection(false))
