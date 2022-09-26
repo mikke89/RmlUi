@@ -79,14 +79,14 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 	case ScrollAlignment::Center: return (begin_offset + end_offset) / 2.0f;
 	case ScrollAlignment::End: return end_offset;
 	case ScrollAlignment::Nearest:
-		if (begin_offset >= 0.0 && end_offset <= 0.0)
-			return 0.0f; // Element is already visible, don't scroll
-		else if (begin_offset < 0.0 && end_offset < 0.0)
+		if (begin_offset >= 0.f && end_offset <= 0.f)
+			return 0.f; // Element is already visible, don't scroll
+		else if (begin_offset < 0.f && end_offset < 0.f)
 			return Math::Max(begin_offset, end_offset);
-		else if (begin_offset > 0.0 && end_offset > 0.0)
+		else if (begin_offset > 0.f && end_offset > 0.f)
 			return Math::Min(begin_offset, end_offset);
 		else
-			return 0.0f; // Shouldn't happen
+			return 0.f; // Shouldn't happen
 	}
 	return 0.f;
 }
