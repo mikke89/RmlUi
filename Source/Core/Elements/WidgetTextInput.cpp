@@ -660,8 +660,6 @@ bool WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 	case CursorMovement::End:
 		absolute_cursor_index = INT_MAX;
 		break;
-	default:
-		break;
 	}
 
 	absolute_cursor_index = Math::Clamp(absolute_cursor_index, 0, (int)GetValue().size());

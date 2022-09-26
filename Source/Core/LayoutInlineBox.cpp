@@ -233,17 +233,11 @@ void LayoutInlineBox::CalculateBaseline(float& ascender, float& descender)
 
 		// This box is aligned with the line box, not an inline box, so we can't position it yet.
 		case VerticalAlign::Top:
-		case VerticalAlign::Bottom:
-			break;
+		case VerticalAlign::Bottom: break;
 
 		// The baseline of this box is offset by a fixed amount from its parent's baseline.
-		case VerticalAlign::Length:
-		default:
-		{
-			SetVerticalPosition(-1.f * vertical_align_property.value);
+		case VerticalAlign::Length: SetVerticalPosition(-1.f * vertical_align_property.value); break;
 		}
-		break;
-	}
 
 	// Set the ascender and descender relative to this element. If we're an unsized element (span, em, etc) then we
 	// have no dimensions ourselves.

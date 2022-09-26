@@ -432,8 +432,6 @@ float ElementStyle::ResolveLength(const Property* property, RelativeTarget relat
 	case RelativeTarget::LineHeight:
 		base_value = element->GetLineHeight();
 		break;
-	default:
-		break;
 	}
 
 	float scale_value = 0.0f;
