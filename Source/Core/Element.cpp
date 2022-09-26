@@ -2050,7 +2050,13 @@ void Element::GetRML(String& content)
 		auto& variant = pair.second;
 		String value;
 		if (variant.GetInto(value))
-			content += " " + name + "=\"" + value + "\"";
+		{
+			content += ' ';
+			content += name;
+			content += "=\"";
+			content += value;
+			content += "\"";
+		}
 	}
 
 	if (HasChildNodes())

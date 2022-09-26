@@ -139,7 +139,7 @@ public:
 			c = Next();
 	}
 
-	void Error(const String message)
+	void Error(const String& message)
 	{
 		parse_error = true;
 		Log::Message(Log::LT_WARNING, "Error in data expression at %zu. %s", index, message.c_str());
@@ -149,7 +149,7 @@ public:
 		const String cursor_string = String(cursor_offset, ' ') + '^';
 		Log::Message(Log::LT_WARNING, "%s", cursor_string.c_str());
 	}
-	void Expected(String expected_symbols) {
+	void Expected(const String& expected_symbols) {
 		const char c = Look();
 		if (c == '\0')
 			Error(CreateString(expected_symbols.size() + 50, "Expected %s but found end of string.", expected_symbols.c_str()));
@@ -780,10 +780,9 @@ public:
 	DataInterpreter(const Program& program, const AddressList& addresses, DataExpressionInterface expression_interface)
 		: program(program), addresses(addresses), expression_interface(expression_interface) {}
 
-	bool Error(String message) const
+	bool Error(const String& message) const
 	{
-		message = "Error during execution. " + message;
-		Log::Message(Log::LT_WARNING, "%s", message.c_str());
+		Log::Message(Log::LT_WARNING, "Error during execution. %s", message.c_str());
 		RMLUI_ERROR;
 		return false;
 	}
@@ -975,7 +974,7 @@ private:
 };
 
 
-DataExpression::DataExpression(String expression) : expression(expression)
+DataExpression::DataExpression(String expression) : expression(std::move(expression))
 {}
 
 DataExpression::~DataExpression()

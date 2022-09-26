@@ -414,7 +414,7 @@ bool BaseXMLParser::ReadCDATA(const char* tag_terminator)
 				{
 					size_t slash_pos = tag.find('/');
 					String tag_name = StringUtilities::StripWhitespace(slash_pos == String::npos ? tag : tag.substr(slash_pos + 1));
-					if (StringUtilities::ToLower(tag_name) == tag_terminator)
+					if (StringUtilities::ToLower(std::move(tag_name)) == tag_terminator)
 					{
 						data += cdata;
 						return true;

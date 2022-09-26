@@ -42,7 +42,7 @@ DataTypeRegister::DataTypeRegister()
 		String value;
 		if (!arguments[0].GetInto(value))
 			return {};
-		return Variant(StringUtilities::ToLower(value));
+		return Variant(StringUtilities::ToLower(std::move(value)));
 	});
 
 	transform_register.Register("to_upper", [](const VariantList& arguments) -> Variant {

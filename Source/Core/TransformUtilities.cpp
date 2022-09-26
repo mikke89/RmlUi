@@ -701,7 +701,9 @@ bool TransformUtilities::InterpolateWith(TransformPrimitive& target, const Trans
 
 
 template<size_t N>
-static inline String ToString(const Transforms::ResolvedPrimitive<N>& p, String unit, bool rad_to_deg = false, bool only_unit_on_last_value = false) noexcept {
+static String ToString(const Transforms::ResolvedPrimitive<N>& p, const String& unit, bool rad_to_deg = false,
+	bool only_unit_on_last_value = false) noexcept
+{
 	float multiplier = 1.0f;
 	String tmp;
 	String result = "(";

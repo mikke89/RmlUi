@@ -93,7 +93,7 @@ private:
 	// Used to store the position and length of each line we have geometry for.
 	struct Line
 	{
-		Line(const String& text, Vector2f position) : text(text), position(position), width(0) {}
+		Line(String text, Vector2f position) : text(std::move(text)), position(position), width(0) {}
 		String text;
 		Vector2f position;
 		int width;
