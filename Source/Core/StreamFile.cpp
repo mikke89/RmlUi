@@ -42,7 +42,7 @@ StreamFile::StreamFile()
 StreamFile::~StreamFile()
 {
 	if (file_handle)
-		Close();
+		StreamFile::Close();
 }
 
 /// Attempts to open the stream pointing at a given URL.
@@ -78,6 +78,7 @@ void StreamFile::Close()
 	}
 
 	length = 0;
+	Stream::Close();
 }
 
 /// Returns the size of this stream (in bytes).

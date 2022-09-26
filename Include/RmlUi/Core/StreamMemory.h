@@ -39,7 +39,7 @@ namespace Rml {
 	@author Lloyd Weehuizen
  */
 
-class RMLUICORE_API StreamMemory : public Stream
+class RMLUICORE_API StreamMemory final : public Stream
 {
 public:
 	/// Empty memory stream with default size buffer

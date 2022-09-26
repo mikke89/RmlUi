@@ -38,7 +38,7 @@ namespace Rml {
 	@author Peter Curry
  */
 
-class StreamFile : public Stream
+class StreamFile final : public Stream
 {
 public:
 	StreamFile();
