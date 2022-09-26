@@ -162,7 +162,7 @@ public:
     {}
 
     flat_map(const flat_map& x) = default;
-    flat_map(flat_map&& x) = default;
+    flat_map(flat_map&& x) noexcept = default;
 
     flat_map(std::initializer_list<value_type> ilist) : pair_compare_t(Compare())
     {
@@ -177,7 +177,7 @@ public:
         m_container = x.m_container;
         return *this;
     }
-    flat_map& operator=(flat_map&& x)
+    flat_map& operator=(flat_map&& x) noexcept
     {
         get_cmp() = std::move(x.get_cmp());
         m_container = std::move(x.m_container);
@@ -330,7 +330,7 @@ public:
         return i->second;
     }
 
-    void swap(flat_map& x)
+    void swap(flat_map& x) noexcept
     {
         std::swap(get_cmp(), x.get_cmp());
         m_container.swap(x.m_container);

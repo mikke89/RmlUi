@@ -48,20 +48,20 @@ Geometry::Geometry(Context* host_context) : host_context(host_context)
 	database_handle = GeometryDatabase::Insert(this);
 }
 
-Geometry::Geometry(Geometry&& other)
+Geometry::Geometry(Geometry&& other) noexcept
 {
 	MoveFrom(other);
 	database_handle = GeometryDatabase::Insert(this);
 }
 
-Geometry& Geometry::operator=(Geometry&& other)
+Geometry& Geometry::operator=(Geometry&& other) noexcept
 {
 	MoveFrom(other);
 	// Keep the database handles from construction unchanged, they are tied to the *this* pointer and should not change.
 	return *this;
 }
 
-void Geometry::MoveFrom(Geometry& other)
+void Geometry::MoveFrom(Geometry& other) noexcept
 {
 	host_context = std::exchange(other.host_context, nullptr);
 	host_element = std::exchange(other.host_element, nullptr);
