@@ -142,16 +142,16 @@ using DataControllerPtr = UniqueReleaserPtr<DataController>;
 namespace std {
 // Hash specialization for enum class types (required on some older compilers)
 template <> struct hash<::Rml::PropertyId> {
-	using utype = typename ::std::underlying_type<::Rml::PropertyId>::type;
-	size_t operator() (const ::Rml::PropertyId& t) const { ::Rml::Hash<utype> h; return h(static_cast<utype>(t)); }
+	using utype = ::std::underlying_type_t<::Rml::PropertyId>;
+	size_t operator() (const ::Rml::PropertyId& t) const noexcept { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
 };
 template <> struct hash<::Rml::Character> {
-	using utype = typename ::std::underlying_type<::Rml::Character>::type;
-	size_t operator() (const ::Rml::Character& t) const { ::Rml::Hash<utype> h; return h(static_cast<utype>(t)); }
+	using utype = ::std::underlying_type_t<::Rml::Character>;
+	size_t operator() (const ::Rml::Character& t) const noexcept { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
 };
 template <> struct hash<::Rml::FamilyId> {
-	using utype = typename ::std::underlying_type<::Rml::FamilyId>::type;
-	size_t operator() (const ::Rml::FamilyId& t) const { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
+	using utype = ::std::underlying_type_t<::Rml::FamilyId>;
+	size_t operator() (const ::Rml::FamilyId& t) const noexcept { ::std::hash<utype> h; return h(static_cast<utype>(t)); }
 };
 }
 

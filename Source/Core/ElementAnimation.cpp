@@ -393,9 +393,11 @@ static bool PrepareTransforms(Vector<AnimationKey>& keys, Element& element, int 
 }
 
 
-ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, Element& element, double start_world_time, float duration, int num_iterations, bool alternate_direction)
-	: property_id(property_id), duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction), last_update_world_time(start_world_time),
-	time_since_iteration_start(0.0f), current_iteration(0), reverse_direction(false), animation_complete(false), origin(origin)
+ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, Element& element,
+	double start_world_time, float duration, int num_iterations, bool alternate_direction) :
+	property_id(property_id),
+	duration(duration), num_iterations(num_iterations), alternate_direction(alternate_direction), last_update_world_time(start_world_time),
+	origin(origin)
 {
 	if (!current_value.definition)
 	{

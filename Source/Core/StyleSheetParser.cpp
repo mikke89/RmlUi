@@ -45,7 +45,10 @@
 
 namespace Rml {
 
-class AbstractPropertyParser {
+class AbstractPropertyParser : NonCopyMoveable {
+protected:
+	~AbstractPropertyParser() = default;
+
 public:
 	virtual bool Parse(const String& name, const String& value) = 0;
 };
@@ -166,10 +169,10 @@ static UniquePtr<SpritesheetPropertyParser> spritesheet_property_parser;
 class MediaQueryPropertyParser final : public AbstractPropertyParser {
 private:
 	// The dictionary to store the properties in.
-	PropertyDictionary* properties;
+	PropertyDictionary* properties = nullptr;
 	PropertySpecification specification;
 
-	static inline PropertyId CastId(MediaQueryId id)
+	static PropertyId CastId(MediaQueryId id)
 	{
 		return static_cast<PropertyId>(id);
 	}

@@ -31,14 +31,9 @@
 
 namespace Rml {
 
-FontEffect::FontEffect() : colour(255, 255, 255)
-{
-	layer = Layer::Back;
-}
+FontEffect::FontEffect() : layer(Layer::Back), colour(255, 255, 255), fingerprint(0) {}
 
-FontEffect::~FontEffect()
-{
-}
+FontEffect::~FontEffect() {}
 
 bool FontEffect::HasUniqueTexture() const
 {

@@ -57,10 +57,6 @@ public:
 	/// Releases a context previously created by this context.
 	/// @param[in] context The context to release.
 	virtual void ReleaseContext(Context* context) = 0;
-
-protected:
-	/// Releases this context instancer
-	virtual void Release() = 0;
 };
 
 } // namespace Rml

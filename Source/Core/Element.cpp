@@ -112,7 +112,7 @@ Element::Element(const String& tag) :
 	dirty_transition(false), dirty_transform(false), dirty_perspective(false),
 
 	tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0),
-	content_box(0, 0), transform_state()
+	content_box(0, 0)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;

@@ -163,9 +163,8 @@ bool ElementText::GenerateToken(float& token_width, int line_begin)
 
 	// Bail if we don't have a valid font face.
 	FontFaceHandle font_face_handle = GetFontFaceHandle();
-	if (font_face_handle == 0 ||
-		line_begin >= (int) text.size())
-		return 0;
+	if (font_face_handle == 0 || line_begin >= (int)text.size())
+		return false;
 
 	// Determine how we are processing white-space while formatting the text.
 	using namespace Style;
@@ -261,7 +260,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 						token.clear();
 						next_token_begin = token_begin;
 						const char* partial_string_end = StringUtilities::SeekBackwardUTF8(token_begin + i, token_begin);
-						break_line = BuildToken(token, next_token_begin, partial_string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property, decode_escape_characters);
+						BuildToken(token, next_token_begin, partial_string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property, decode_escape_characters);
 						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, previous_codepoint);
 
 						if (force_loop_break_after_next || token_width <= max_token_width)

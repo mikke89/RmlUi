@@ -390,7 +390,6 @@ Character StringUtilities::ToCharacter(const char* p)
 		if ((byte & 0b1100'0000) != 0b1000'0000)
 		{
 			// Invalid continuation byte
-			++p;
 			return Character::Null;
 		}
 
