@@ -33,13 +33,13 @@ inline Variant::Type Variant::GetType() const
 	return type;
 }
 
-template< typename T >
-Variant::Variant(T&& t) : type(NONE)
+template <typename T, typename>
+Variant::Variant(T&& t)
 {
 	Set(std::forward<T>(t));
 }
 
-template< typename T >
+template <typename T, typename>
 Variant& Variant::operator=(T&& t)
 {
 	Clear();
@@ -81,7 +81,6 @@ bool Variant::GetInto(T& value) const
 	return false;
 }
 
-// Templatised data accessor.
 template< typename T >
 T Variant::Get(T default_value) const
 {
@@ -90,9 +89,9 @@ T Variant::Get(T default_value) const
 }
 
 template<typename T>
-inline const T& Variant::GetReference() const
+const T& Variant::GetReference() const
 {
-	return *(T*)data;
+	return *reinterpret_cast<const T*>(&data);
 }
 
 } // namespace Rml

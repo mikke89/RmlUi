@@ -79,6 +79,8 @@ public:
 			block->num_observers += 1;
 	}
 	ObserverPtr<T>& operator=(const ObserverPtr<T>& other) noexcept {
+		if(this == &other)
+			return *this;
 		reset();
 		block = other.block;
 		if (block)
@@ -89,6 +91,8 @@ public:
 	// Move
 	ObserverPtr(ObserverPtr<T>&& other) noexcept : block(std::exchange(other.block, nullptr)) {}
 	ObserverPtr<T>& operator=(ObserverPtr<T>&& other) noexcept {
+		if(this == &other)
+			return *this;
 		reset();
 		block = std::exchange(other.block, nullptr);
 		return *this;

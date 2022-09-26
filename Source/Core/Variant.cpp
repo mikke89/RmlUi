@@ -31,7 +31,7 @@
 
 namespace Rml {
 
-Variant::Variant() : type(NONE)
+Variant::Variant()
 {
 	// Make sure our object size assumptions fit inside the static buffer
 	static_assert(sizeof(Colourb) <= LOCAL_DATA_SIZE, "Local data too small for Colourb");
@@ -45,12 +45,12 @@ Variant::Variant() : type(NONE)
 	static_assert(sizeof(FontEffectsPtr) <= LOCAL_DATA_SIZE, "Local data too small for FontEffectsPtr");
 }
 
-Variant::Variant(const Variant& copy) : type(NONE)
+Variant::Variant(const Variant& copy)
 {
 	Set(copy);
 }
 
-Variant::Variant(Variant&& other) noexcept : type(NONE)
+Variant::Variant(Variant&& other) noexcept
 {
 	Set(std::move(other));
 }
@@ -409,6 +409,8 @@ void Variant::Set(FontEffectsPtr&& value)
 
 Variant& Variant::operator=(const Variant& copy)
 {
+	if (this == &copy)
+		return *this;
 	if (copy.type != type)
 		Clear();
 	Set(copy);
@@ -417,6 +419,8 @@ Variant& Variant::operator=(const Variant& copy)
 
 Variant& Variant::operator=(Variant&& other) noexcept
 {
+	if (this == &other)
+		return *this;
 	if (other.type != type)
 		Clear();
 	Set(std::move(other));
