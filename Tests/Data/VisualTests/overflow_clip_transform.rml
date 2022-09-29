@@ -1,0 +1,191 @@
+<rml>
+<head>
+	<title>Overflow clipping with transform</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Test clipping behavior with nested overflow and transform applied. The four windows should all look and behave the same." />
+	<style>
+		body {
+			color: #fff;
+			font-size: 11dp;
+			background: #111;
+			overflow: visible;
+		}
+		.window {
+			position: absolute;
+			top: 100dp;
+			left: 0dp;
+			width: 400dp;
+			height: 200dp;
+			background: #ccc;
+			padding: 8dp;
+			overflow: auto;
+		}
+		#window4 {
+			left: 50dp;
+		}
+		#window3 {
+			left: 550dp;
+			transform: translate(0dp, 0dp);
+		}
+		#window2 {
+			left: 50dp;
+			top: 400dp;
+			transform: translate(0dp, 50dp);
+		}
+		#window1 {
+			left: 550dp;
+			top: 500dp;
+			transform: translate(0dp, -50dp);
+		}
+		.container {
+			width: 146dp;
+			height: 140dp;
+			overflow: hidden auto;
+		}
+		.empty {
+			width: 50dp;
+			height: 120dp;
+		}
+		p {
+			height: 20dp;
+			white-space: nowrap;
+			line-height: 20dp;
+			background-color: #999;
+			padding-left: 5dp;
+			margin: 0;
+		}
+		.move {
+			top: -20px;
+			right: 0;
+			left: 0;
+			bottom: auto;
+			height: 20px;
+			width: auto;
+			cursor: move;
+		}
+	</style>
+</head>
+
+<body>
+<div id="window1" class="window">
+	<handle class="move" move_target="window1"/>
+	<div class="container">
+		<p>text 1</p>
+		<p>text 2</p>
+		<p>text 3</p>
+		<p>text 4</p>
+		<p>text 5</p>
+		<p>text 6</p>
+		<p>text 7</p>
+		<p>text 8</p>
+		<p>text 8</p>
+		<p>text 8 text 9 text 10 text 11 text 12 text 13 text 14 text 15</p>
+		<p>text 16 text 17 text 18 text 19 text 20 text 21 text 22 text 23</p>
+		<p>text 24</p>
+		<p>text 25</p>
+		<p>text 26</p>
+		<p>text 27</p>
+		<p>text 28</p>
+		<p>text 29</p>
+		<p>text 30</p>
+		<p>text 31</p>
+		<p>text 32</p>
+		<p>text 33</p>
+		<p>text 34</p>
+		<p>text 35</p>
+	</div>
+	<div class="empty"/>
+	<handle size_target="window1"/>
+</div>
+<div id="window2" class="window">
+	<handle class="move" move_target="window2"/>
+	<div class="container">
+		<p>text 1</p>
+		<p>text 2</p>
+		<p>text 3</p>
+		<p>text 4</p>
+		<p>text 5</p>
+		<p>text 6</p>
+		<p>text 7</p>
+		<p>text 8</p>
+		<p>text 8</p>
+		<p>text 8 text 9 text 10 text 11 text 12 text 13 text 14 text 15</p>
+		<p>text 16 text 17 text 18 text 19 text 20 text 21 text 22 text 23</p>
+		<p>text 24</p>
+		<p>text 25</p>
+		<p>text 26</p>
+		<p>text 27</p>
+		<p>text 28</p>
+		<p>text 29</p>
+		<p>text 30</p>
+		<p>text 31</p>
+		<p>text 32</p>
+		<p>text 33</p>
+		<p>text 34</p>
+		<p>text 35</p>
+	</div>
+	<div class="empty"/>
+	<handle size_target="window2"/>
+</div>
+<div id="window3" class="window">
+	<handle class="move" move_target="window3"/>
+	<div class="container">
+		<p>text 1</p>
+		<p>text 2</p>
+		<p>text 3</p>
+		<p>text 4</p>
+		<p>text 5</p>
+		<p>text 6</p>
+		<p>text 7</p>
+		<p>text 8</p>
+		<p>text 8</p>
+		<p>text 8 text 9 text 10 text 11 text 12 text 13 text 14 text 15</p>
+		<p>text 16 text 17 text 18 text 19 text 20 text 21 text 22 text 23</p>
+		<p>text 24</p>
+		<p>text 25</p>
+		<p>text 26</p>
+		<p>text 27</p>
+		<p>text 28</p>
+		<p>text 29</p>
+		<p>text 30</p>
+		<p>text 31</p>
+		<p>text 32</p>
+		<p>text 33</p>
+		<p>text 34</p>
+		<p>text 35</p>
+	</div>
+	<div class="empty"/>
+	<handle size_target="window3"/>
+</div>
+<div id="window4" class="window">
+	<handle class="move" move_target="window4"/>
+	<div class="container">
+		<p>text 1</p>
+		<p>text 2</p>
+		<p>text 3</p>
+		<p>text 4</p>
+		<p>text 5</p>
+		<p>text 6</p>
+		<p>text 7</p>
+		<p>text 8</p>
+		<p>text 8</p>
+		<p>text 8 text 9 text 10 text 11 text 12 text 13 text 14 text 15</p>
+		<p>text 16 text 17 text 18 text 19 text 20 text 21 text 22 text 23</p>
+		<p>text 24</p>
+		<p>text 25</p>
+		<p>text 26</p>
+		<p>text 27</p>
+		<p>text 28</p>
+		<p>text 29</p>
+		<p>text 30</p>
+		<p>text 31</p>
+		<p>text 32</p>
+		<p>text 33</p>
+		<p>text 34</p>
+		<p>text 35</p>
+	</div>
+	<div class="empty"/>
+	<handle size_target="window4"/>
+</div>
+</body>
+</rml>
