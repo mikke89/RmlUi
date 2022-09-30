@@ -2418,6 +2418,7 @@ void Element::DirtyDefinition(DirtyNodes dirty_nodes)
 		dirty_definition = true;
 		break;
 	case DirtyNodes::SelfAndSiblings:
+		dirty_definition = true;
 		if (parent)
 			parent->dirty_child_definitions = true;
 		break;
