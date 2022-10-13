@@ -91,7 +91,7 @@ public:
 	template <class U>constexpr GlobalStackAllocator(const GlobalStackAllocator<U>&) noexcept {}
 
 	T* allocate(size_t num_objects) {
-		return reinterpret_cast<T*>(Detail::GetGlobalBasicStackAllocator().allocate(alignof(T), num_objects * sizeof(T)));
+		return static_cast<T*>(Detail::GetGlobalBasicStackAllocator().allocate(alignof(T), num_objects * sizeof(T)));
 	}
 
 	void deallocate(T* ptr, size_t) noexcept { 

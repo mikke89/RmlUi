@@ -58,7 +58,7 @@ template<typename Object, typename AssignType> using MemberSetterFunc = void(Obj
 using DirtyVariables = SmallUnorderedSet<String>;
 
 struct DataAddressEntry {
-	DataAddressEntry(String name) : name(name), index(-1) { }
+	DataAddressEntry(String name) : name(std::move(name)), index(-1) { }
 	DataAddressEntry(int index) : index(index) { }
 	String name;
 	int index;

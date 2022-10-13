@@ -85,7 +85,7 @@ void ElementSVG::OnRender()
 void ElementSVG::OnResize()
 {
 	geometry_dirty = true;
-	texture_size_dirty = true;
+	texture_dirty = true;
 }
 
 void ElementSVG::OnAttributeChange(const ElementAttributes& changed_attributes)
@@ -148,6 +148,7 @@ void ElementSVG::GenerateGeometry()
 bool ElementSVG::LoadSource()
 {
 	source_dirty = false;
+	texture_dirty = true;
 	intrinsic_dimensions = Vector2f{};
 	geometry.SetTexture(nullptr);
 	svg_document.reset();
@@ -192,7 +193,7 @@ bool ElementSVG::LoadSource()
 
 void ElementSVG::UpdateTexture()
 {
-	if (!svg_document || !texture_size_dirty)
+	if (!svg_document || !texture_dirty)
 		return;
 
 	// Callback for generating texture.
@@ -212,7 +213,7 @@ void ElementSVG::UpdateTexture()
 
 	texture.Set("svg", p_callback);
 	geometry.SetTexture(&texture);
-	texture_size_dirty = false;
+	texture_dirty = false;
 }
 
 } // namespace Rml

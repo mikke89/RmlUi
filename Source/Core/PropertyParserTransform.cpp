@@ -190,7 +190,7 @@ bool PropertyParserTransform::Scan(int& out_bytes_read, const char* str, const c
 	int total_bytes_read = 0, bytes_read = 0;
 
 	/* use the quicker stack-based argument buffer, if possible */
-	char *arg = 0;
+	char* arg = nullptr;
 	char arg_stack[1024];
 	String arg_heap;
 	if (strlen(str) < sizeof(arg_stack))

@@ -86,22 +86,20 @@ static inline char CharToLower(char c) {
 	return c;
 }
 
-String StringUtilities::ToLower(const String& string) {
-	String str_lower = string;
-	std::transform(str_lower.begin(), str_lower.end(), str_lower.begin(), &CharToLower);
-	return str_lower;
+String StringUtilities::ToLower(String string) {
+	std::transform(string.begin(), string.end(), string.begin(), &CharToLower);
+	return string;
 }
 
-String StringUtilities::ToUpper(const String& string)
+String StringUtilities::ToUpper(String string)
 {
-	String str_upper = string;
-	std::transform(str_upper.begin(), str_upper.end(), str_upper.begin(), [](char c) {
+	std::transform(string.begin(), string.end(), string.begin(), [](char c) {
 		if (c >= 'a' && c <= 'z')
 			c -= char('a' - 'A');
 		return c;
 		}
 	);
-	return str_upper;
+	return string;
 }
 
 RMLUICORE_API String StringUtilities::EncodeRml(const String& string)
@@ -392,7 +390,6 @@ Character StringUtilities::ToCharacter(const char* p)
 		if ((byte & 0b1100'0000) != 0b1000'0000)
 		{
 			// Invalid continuation byte
-			++p;
 			return Character::Null;
 		}
 

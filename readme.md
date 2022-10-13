@@ -170,7 +170,7 @@ The provided backends on the other hand are not intended to be used directly by 
 | Win32               |     ✔️     |           |    ✔️     |             |
 | X11                 |     ✔️     |           |          |             |
 | SFML                |     ✔️     |           |          |             |
-| GLFW                |     ✔️     |     ✔️    |          |             |
+| GLFW                |     ✔️     |     ✔️    |     ✔️    |             |
 | SDL                 |     ✔️     |     ✔️¹   |     ✔️    |      ✔️     |
 
 ¹ Supports Emscripten compilation target.

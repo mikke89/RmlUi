@@ -79,14 +79,14 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 	case ScrollAlignment::Center: return (begin_offset + end_offset) / 2.0f;
 	case ScrollAlignment::End: return end_offset;
 	case ScrollAlignment::Nearest:
-		if (begin_offset >= 0.0 && end_offset <= 0.0)
-			return 0.0f; // Element is already visible, don't scroll
-		else if (begin_offset < 0.0 && end_offset < 0.0)
+		if (begin_offset >= 0.f && end_offset <= 0.f)
+			return 0.f; // Element is already visible, don't scroll
+		else if (begin_offset < 0.f && end_offset < 0.f)
 			return Math::Max(begin_offset, end_offset);
-		else if (begin_offset > 0.0 && end_offset > 0.0)
+		else if (begin_offset > 0.f && end_offset > 0.f)
 			return Math::Min(begin_offset, end_offset);
 		else
-			return 0.0f; // Shouldn't happen
+			return 0.f; // Shouldn't happen
 	}
 	return 0.f;
 }
@@ -112,7 +112,7 @@ Element::Element(const String& tag) :
 	dirty_transition(false), dirty_transform(false), dirty_perspective(false),
 
 	tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0),
-	content_box(0, 0), transform_state()
+	content_box(0, 0)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;
@@ -2050,7 +2050,13 @@ void Element::GetRML(String& content)
 		auto& variant = pair.second;
 		String value;
 		if (variant.GetInto(value))
-			content += " " + name + "=\"" + value + "\"";
+		{
+			content += ' ';
+			content += name;
+			content += "=\"";
+			content += value;
+			content += "\"";
+		}
 	}
 
 	if (HasChildNodes())
@@ -2412,6 +2418,7 @@ void Element::DirtyDefinition(DirtyNodes dirty_nodes)
 		dirty_definition = true;
 		break;
 	case DirtyNodes::SelfAndSiblings:
+		dirty_definition = true;
 		if (parent)
 			parent->dirty_child_definitions = true;
 		break;

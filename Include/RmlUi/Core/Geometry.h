@@ -56,8 +56,8 @@ public:
 	Geometry(const Geometry&) = delete;
 	Geometry& operator=(const Geometry&) = delete;
 
-	Geometry(Geometry&& other);
-	Geometry& operator=(Geometry&& other);
+	Geometry(Geometry&& other) noexcept;
+	Geometry& operator=(Geometry&& other) noexcept;
 
 	~Geometry();
 
@@ -91,7 +91,7 @@ public:
 
 private:
 	// Move members from another geometry.
-	void MoveFrom(Geometry& other);
+	void MoveFrom(Geometry& other) noexcept;
 
 	// Returns the host context's render interface.
 	RenderInterface* GetRenderInterface();

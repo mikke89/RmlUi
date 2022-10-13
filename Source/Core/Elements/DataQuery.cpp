@@ -67,6 +67,7 @@ DataQuery::DataQuery()
 	table = "";
 	offset = -1;
 	limit = -1;
+	current_row = -1;
 }
 
 

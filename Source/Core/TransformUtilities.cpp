@@ -189,9 +189,6 @@ struct SetIdentityVisitor
 		case TransformPrimitive::SKEW2D: this->operator()(primitive.skew_2d); break;
 		case TransformPrimitive::PERSPECTIVE: this->operator()(primitive.perspective); break;
 		case TransformPrimitive::DECOMPOSEDMATRIX4: this->operator()(primitive.decomposed_matrix_4); break;
-		default:
-			RMLUI_ASSERT(false);
-			break;
 		}
 	}
 };
@@ -471,8 +468,6 @@ struct PrepareVisitor
 		case TransformPrimitive::SKEW2D: return this->operator()(primitive.skew_2d);
 		case TransformPrimitive::PERSPECTIVE: return this->operator()(primitive.perspective);
 		case TransformPrimitive::DECOMPOSEDMATRIX4: return this->operator()(primitive.decomposed_matrix_4);
-		default:
-			break;
 		}
 		RMLUI_ASSERT(false);
 		return false;
@@ -495,24 +490,33 @@ struct GetGenericTypeVisitor
 	{
 		switch (primitive.type)
 		{
-		case TransformPrimitive::TRANSLATEX:  return GenericType::Translate3D;
-		case TransformPrimitive::TRANSLATEY:  return GenericType::Translate3D;
-		case TransformPrimitive::TRANSLATEZ:  return GenericType::Translate3D;
-		case TransformPrimitive::TRANSLATE2D: return GenericType::Translate3D;
+		case TransformPrimitive::TRANSLATEX:
+		case TransformPrimitive::TRANSLATEY:
+		case TransformPrimitive::TRANSLATEZ:
+		case TransformPrimitive::TRANSLATE2D:
 		case TransformPrimitive::TRANSLATE3D: return GenericType::Translate3D;
-		case TransformPrimitive::SCALEX:      return GenericType::Scale3D;
-		case TransformPrimitive::SCALEY:      return GenericType::Scale3D;
-		case TransformPrimitive::SCALEZ:      return GenericType::Scale3D;
-		case TransformPrimitive::SCALE2D:     return GenericType::Scale3D;
-		case TransformPrimitive::SCALE3D:     return GenericType::Scale3D;
-		case TransformPrimitive::ROTATEX:     return GenericType::Rotate3D;
-		case TransformPrimitive::ROTATEY:     return GenericType::Rotate3D;
-		case TransformPrimitive::ROTATEZ:     return GenericType::Rotate3D;
-		case TransformPrimitive::ROTATE2D:    return GenericType::Rotate3D;
-		case TransformPrimitive::ROTATE3D:    return GenericType::Rotate3D;
-		default:
-			break;
+
+		case TransformPrimitive::SCALEX:
+		case TransformPrimitive::SCALEY:
+		case TransformPrimitive::SCALEZ:
+		case TransformPrimitive::SCALE2D:
+		case TransformPrimitive::SCALE3D: return GenericType::Scale3D;
+
+		case TransformPrimitive::ROTATEX:
+		case TransformPrimitive::ROTATEY:
+		case TransformPrimitive::ROTATEZ:
+		case TransformPrimitive::ROTATE2D:
+		case TransformPrimitive::ROTATE3D: return GenericType::Rotate3D;
+
+		case TransformPrimitive::MATRIX2D:
+		case TransformPrimitive::MATRIX3D:
+		case TransformPrimitive::SKEWX:
+		case TransformPrimitive::SKEWY:
+		case TransformPrimitive::SKEW2D:
+		case TransformPrimitive::PERSPECTIVE:
+		case TransformPrimitive::DECOMPOSEDMATRIX4: return GenericType::None;
 		}
+		RMLUI_ASSERT(false);
 		return GenericType::None;
 	}
 };
@@ -697,7 +701,9 @@ bool TransformUtilities::InterpolateWith(TransformPrimitive& target, const Trans
 
 
 template<size_t N>
-static inline String ToString(const Transforms::ResolvedPrimitive<N>& p, String unit, bool rad_to_deg = false, bool only_unit_on_last_value = false) noexcept {
+static String ToString(const Transforms::ResolvedPrimitive<N>& p, const String& unit, bool rad_to_deg = false,
+	bool only_unit_on_last_value = false) noexcept
+{
 	float multiplier = 1.0f;
 	String tmp;
 	String result = "(";
@@ -814,8 +820,6 @@ struct ToStringVisitor
 		case TransformPrimitive::SKEW2D: return ToString(variant.skew_2d);
 		case TransformPrimitive::PERSPECTIVE: return ToString(variant.perspective);
 		case TransformPrimitive::DECOMPOSEDMATRIX4: return ToString(variant.decomposed_matrix_4);
-		default:
-			break;
 		}
 		RMLUI_ASSERT(false);
 		return String();

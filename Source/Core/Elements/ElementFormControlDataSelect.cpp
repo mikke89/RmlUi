@@ -175,7 +175,7 @@ void ElementFormControlDataSelect::BuildOptions()
 
 	if (valuefield_attribute.empty())
 	{
-		valuefield_attribute = fields_attribute.substr(0, fields_attribute.find(","));
+		valuefield_attribute = fields_attribute.substr(0, fields_attribute.find(','));
 	}
 
 	if (!data_formatter_attribute.empty())

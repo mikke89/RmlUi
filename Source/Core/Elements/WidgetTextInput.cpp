@@ -154,7 +154,9 @@ void WidgetTextInput::SetValue(String value)
 		RMLUI_ASSERTMSG(value.size() == initial_size, "TransformValue must not change the text length.");
 
 		text_element->SetText(value);
+
 		FormatElement();
+		UpdateCursorPosition(true);
 	}
 }
 
@@ -533,10 +535,9 @@ bool WidgetTextInput::AddCharacters(String string)
 	String value = GetAttributeValue();
 	value.insert(std::min<size_t>((size_t)absolute_cursor_index, value.size()), string);
 
-	parent->SetAttribute("value", value);
 	absolute_cursor_index += (int)string.size();
+	parent->SetAttribute("value", value);
 
-	UpdateCursorPosition(true);
 	if (UpdateSelection(false))
 		FormatText();
 
@@ -658,8 +659,6 @@ bool WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select)
 		break;
 	case CursorMovement::End:
 		absolute_cursor_index = INT_MAX;
-		break;
-	default:
 		break;
 	}
 
@@ -942,10 +941,11 @@ void WidgetTextInput::FormatElement()
 {
 	using namespace Style;
 	ElementScroll* scroll = parent->GetElementScroll();
-	float width = parent->GetBox().GetSize(Box::PADDING).x;
+	const float width = parent->GetBox().GetSize(Box::PADDING).x;
 
-	Overflow x_overflow_property = parent->GetComputedValues().overflow_x();
-	Overflow y_overflow_property = parent->GetComputedValues().overflow_y();
+	const Overflow x_overflow_property = parent->GetComputedValues().overflow_x();
+	const Overflow y_overflow_property = parent->GetComputedValues().overflow_y();
+	const bool word_wrap = (parent->GetComputedValues().white_space() == WhiteSpace::Prewrap);
 
 	if (x_overflow_property == Overflow::Scroll)
 		scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
@@ -964,7 +964,7 @@ void WidgetTextInput::FormatElement()
 	Vector2f content_area = FormatText(formatting_height_constraint);
 
 	// If we're set to automatically generate horizontal scrollbars, check for that now.
-	if (x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
+	if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
 		scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 
 	// Now check for vertical overflow. If we do turn on the scrollbar, this will cause a reflow.
@@ -973,7 +973,7 @@ void WidgetTextInput::FormatElement()
 		scroll->EnableScrollbar(ElementScroll::VERTICAL, width);
 		content_area = FormatText();
 
-		if (x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
+		if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
 			scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 	}
 
@@ -1126,7 +1126,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		// Finally, push the new line into our array of lines.
 		lines.push_back(std::move(line));
 
-	} while (!last_line && content_area.y < height_constraint);
+	} while (!last_line && content_area.y <= height_constraint);
 
 	// Clamp the cursor to a valid range.
 	absolute_cursor_index = Math::Min(absolute_cursor_index, (int)GetValue().size());
@@ -1167,7 +1167,7 @@ void WidgetTextInput::ForceFormattingOnNextLayout()
 
 void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 {
-	if (text_element->GetFontFaceHandle() == 0)
+	if (text_element->GetFontFaceHandle() == 0 || lines.empty())
 		return;
 
 	int cursor_line_index = 0, cursor_character_index = 0;
@@ -1237,13 +1237,11 @@ void WidgetTextInput::DeleteSelection()
 		String new_value = GetAttributeValue();
 		const size_t selection_begin = std::min((size_t)selection_begin_index, (size_t)new_value.size());
 		new_value.erase(selection_begin, (size_t)selection_length);
-		
-		GetElement()->SetAttribute("value", new_value);
 
 		// Move the cursor to the beginning of the old selection.
 		absolute_cursor_index = selection_begin_index;
 
-		UpdateCursorPosition(true);
+		GetElement()->SetAttribute("value", new_value);
 
 		// Erase our record of the selection.
 		if (UpdateSelection(false))

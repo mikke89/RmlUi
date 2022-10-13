@@ -197,15 +197,19 @@ Vector2f LayoutDetails::GetContainingBlock(const LayoutBlockBox* containing_box)
 	while ((containing_block.y = containing_box->GetBox().GetSize(Box::CONTENT).y) < 0)
 	{
 		containing_box = containing_box->GetParent();
-		if (containing_box == nullptr)
+		if (!containing_box)
 		{
 			RMLUI_ERROR;
 			containing_block.y = 0;
+			break;
 		}
 	}
-	if (containing_box != nullptr &&
-		containing_box->GetElement() != nullptr)
-		containing_block.y -= containing_box->GetElement()->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
+
+	if (containing_box)
+	{
+	    if (Element* element = containing_box->GetElement())
+	        containing_block.y -= element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
+	}
 
 	containing_block.x = Math::Max(0.0f, containing_block.x);
 	containing_block.y = Math::Max(0.0f, containing_block.y);

@@ -84,11 +84,11 @@ public:
 	~Variant();
 
 	// Construct by variant type
-	template< typename T >
+	template <typename T, typename = std::enable_if_t<!std::is_same<Variant, std::decay_t<T>>::value>>
 	explicit Variant(T&& t);
 
 	// Assign by variant type
-	template<typename T>
+	template <typename T, typename = std::enable_if_t<!std::is_same<Variant, std::decay_t<T>>::value>>
 	Variant& operator=(T&& t);
 
 	void Clear();
@@ -157,7 +157,7 @@ private:
 	
 	static constexpr size_t LOCAL_DATA_SIZE = (sizeof(TransitionList) > sizeof(String) ? sizeof(TransitionList) : sizeof(String));
 
-	Type type;
+	Type type = NONE;
 	alignas(TransitionList) char data[LOCAL_DATA_SIZE];
 };
 

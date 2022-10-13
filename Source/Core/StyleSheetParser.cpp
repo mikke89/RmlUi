@@ -45,7 +45,10 @@
 
 namespace Rml {
 
-class AbstractPropertyParser {
+class AbstractPropertyParser : NonCopyMoveable {
+protected:
+	~AbstractPropertyParser() = default;
+
 public:
 	virtual bool Parse(const String& name, const String& value) = 0;
 };
@@ -166,10 +169,10 @@ static UniquePtr<SpritesheetPropertyParser> spritesheet_property_parser;
 class MediaQueryPropertyParser final : public AbstractPropertyParser {
 private:
 	// The dictionary to store the properties in.
-	PropertyDictionary* properties;
+	PropertyDictionary* properties = nullptr;
 	PropertySpecification specification;
 
-	static inline PropertyId CastId(MediaQueryId id)
+	static PropertyId CastId(MediaQueryId id)
 	{
 		return static_cast<PropertyId>(id);
 	}
@@ -311,7 +314,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	{
 		float value = 0.0f;
 		int count = 0;
-		rule = StringUtilities::ToLower(rule);
+		rule = StringUtilities::ToLower(std::move(rule));
 		if (rule == "from")
 			rule_values.push_back(0.0f);
 		else if (rule == "to")
@@ -445,7 +448,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 				return false;
 			}
 
-			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(current_string));
+			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
 
 			if (current_string != "and")
 			{
@@ -482,7 +485,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 				return false;
 			}
 
-			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(current_string));
+			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
 
 			if (!IsValidIdentifier(current_string))
 			{

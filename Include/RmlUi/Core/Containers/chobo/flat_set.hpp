@@ -138,7 +138,7 @@ public:
     {}
 
     flat_set(const flat_set& x) = default;
-    flat_set(flat_set&& x) = default;
+    flat_set(flat_set&& x) noexcept = default;
 
 
     flat_set(std::initializer_list<value_type> ilist)
@@ -259,7 +259,7 @@ public:
         return 1;
     }
 
-    void swap(flat_set& x)
+    void swap(flat_set& x) noexcept
     {
         std::swap(get_cmp(), x.get_cmp());
         m_container.swap(x.m_container);

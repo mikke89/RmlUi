@@ -70,7 +70,7 @@ public:
 	/// Initialises a zero-sized box.
 	Box();
 	/// Initialises a box with a default content area and no padding, borders and margins.
-	Box(Vector2f content);
+	explicit Box(Vector2f content);
 	~Box();
 
 	/// Returns the top-left position of one of the box's areas, relative to the top-left of the border area. This
@@ -122,7 +122,7 @@ public:
 
 private:
 	Vector2f content;
-	float area_edges[NUM_AREAS][NUM_EDGES];
+	float area_edges[NUM_AREAS][NUM_EDGES] = {};
 };
 
 } // namespace Rml

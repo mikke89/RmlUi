@@ -286,15 +286,10 @@ bool LayoutEngine::FormatElementBlock(LayoutBlockBox* block_context_box, Element
 		}
 		//-fallthrough
 		// We caused our parent to add a vertical scrollbar; bail out!
-		case LayoutBlockBox::LAYOUT_PARENT:
-		{
-			return false;
-		}
-		break;
+		case LayoutBlockBox::LAYOUT_PARENT: return false;
 
-		default:
-			element->OnLayout();
-	}
+		default: element->OnLayout(); break;
+		}
 
 	return true;
 }

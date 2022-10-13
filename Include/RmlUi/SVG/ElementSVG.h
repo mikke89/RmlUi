@@ -74,7 +74,7 @@ private:
 
 	bool source_dirty = false;
 	bool geometry_dirty = false;
-	bool texture_size_dirty = false;
+	bool texture_dirty = false;
 
 	// The texture this element is rendering from.
 	Texture texture;

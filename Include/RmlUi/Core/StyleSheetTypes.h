@@ -97,7 +97,7 @@ namespace std {
 // Hash specialization for the node list, so it can be used as key in UnorderedMap.
 template <>
 struct hash<::Rml::StyleSheetIndex::NodeList> {
-	std::size_t operator()(const ::Rml::StyleSheetIndex::NodeList& nodes) const
+	std::size_t operator()(const ::Rml::StyleSheetIndex::NodeList& nodes) const noexcept
 	{
 		std::size_t seed = 0;
 		for (const ::Rml::StyleSheetNode* node : nodes)

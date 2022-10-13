@@ -51,7 +51,7 @@ public:
 	void RenderElement(Element* element, DecoratorDataHandle element_data) const override;
 
 private:
-	Direction dir;
+	Direction dir = {};
 	Colourb start, stop;
 };
 

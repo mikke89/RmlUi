@@ -41,7 +41,7 @@ Stream::Stream()
 
 Stream::~Stream()
 {
-	Close();
+	Stream::Close();
 }
 
 void Stream::Close()

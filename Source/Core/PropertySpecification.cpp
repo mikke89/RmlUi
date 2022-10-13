@@ -108,13 +108,13 @@ const PropertyDefinition* PropertySpecification::GetProperty(const String& prope
 }
 
 // Fetches a list of the names of all registered property definitions.
-const PropertyIdSet& PropertySpecification::GetRegisteredProperties(void) const
+const PropertyIdSet& PropertySpecification::GetRegisteredProperties() const
 {
 	return property_ids;
 }
 
 // Fetches a list of the names of all registered property definitions.
-const PropertyIdSet& PropertySpecification::GetRegisteredInheritedProperties(void) const
+const PropertyIdSet& PropertySpecification::GetRegisteredInheritedProperties() const
 {
 	return property_ids_inherited;
 }

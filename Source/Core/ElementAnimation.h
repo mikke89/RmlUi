@@ -53,9 +53,9 @@ class ElementAnimation
 private:
 	PropertyId property_id = PropertyId::Invalid;
 
-	float duration = 0;           // for a single iteration
-	int num_iterations = 0;       // -1 for infinity
-	bool alternate_direction = 0; // between iterations
+	float duration = 0;               // for a single iteration
+	int num_iterations = 0;           // -1 for infinity
+	bool alternate_direction = false; // between iterations
 
 	Vector<AnimationKey> keys;
 
@@ -64,7 +64,7 @@ private:
 	int current_iteration = 0;
 	bool reverse_direction = false;
 
-	bool animation_complete = true;
+	bool animation_complete = false;
 	ElementAnimationOrigin origin = ElementAnimationOrigin::User;
 
 	bool InternalAddKey(float time, const Property& property, Element& element, Tween tween);

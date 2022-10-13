@@ -31,7 +31,7 @@
 
 namespace Rml {
 
-Variant::Variant() : type(NONE)
+Variant::Variant()
 {
 	// Make sure our object size assumptions fit inside the static buffer
 	static_assert(sizeof(Colourb) <= LOCAL_DATA_SIZE, "Local data too small for Colourb");
@@ -45,12 +45,12 @@ Variant::Variant() : type(NONE)
 	static_assert(sizeof(FontEffectsPtr) <= LOCAL_DATA_SIZE, "Local data too small for FontEffectsPtr");
 }
 
-Variant::Variant(const Variant& copy) : type(NONE)
+Variant::Variant(const Variant& copy)
 {
 	Set(copy);
 }
 
-Variant::Variant(Variant&& other) noexcept : type(NONE)
+Variant::Variant(Variant&& other) noexcept
 {
 	Set(std::move(other));
 }
@@ -123,30 +123,12 @@ void Variant::Set(const Variant& copy)
 {
 	switch (copy.type)
 	{
-	case STRING:
-		Set(*(String*)copy.data);
-		break;
-
-	case TRANSFORMPTR:
-		Set(*(TransformPtr*)copy.data);
-		break;
-
-	case TRANSITIONLIST:
-		Set(*(TransitionList*)copy.data);
-		break;
-
-	case ANIMATIONLIST:
-		Set(*(AnimationList*)copy.data);
-		break;
-
-	case DECORATORSPTR:
-		Set(*(DecoratorsPtr*)copy.data);
-		break;
-
-	case FONTEFFECTSPTR:
-		Set(*(FontEffectsPtr*)copy.data);
-		break;
-
+	case STRING: Set(*reinterpret_cast<const String*>(copy.data)); break;
+	case TRANSFORMPTR: Set(*reinterpret_cast<const TransformPtr*>(copy.data)); break;
+	case TRANSITIONLIST: Set(*reinterpret_cast<const TransitionList*>(copy.data)); break;
+	case ANIMATIONLIST: Set(*reinterpret_cast<const AnimationList*>(copy.data)); break;
+	case DECORATORSPTR: Set(*reinterpret_cast<const DecoratorsPtr*>(copy.data)); break;
+	case FONTEFFECTSPTR: Set(*reinterpret_cast<const FontEffectsPtr*>(copy.data)); break;
 	default:
 		memcpy(data, copy.data, LOCAL_DATA_SIZE);
 		type = copy.type;
@@ -159,30 +141,12 @@ void Variant::Set(Variant&& other)
 {
 	switch (other.type)
 	{
-	case STRING:
-		Set(std::move(*(String*)other.data));
-		break;
-
-	case TRANSFORMPTR:
-		Set(std::move(*(TransformPtr*)other.data));
-		break;
-
-	case TRANSITIONLIST:
-		Set(std::move(*(TransitionList*)other.data));
-		break;
-
-	case ANIMATIONLIST:
-		Set(std::move(*(AnimationList*)other.data));
-		break;
-
-	case DECORATORSPTR:
-		Set(std::move(*(DecoratorsPtr*)other.data));
-		break;
-
-	case FONTEFFECTSPTR:
-		Set(std::move(*(FontEffectsPtr*)other.data));
-		break;
-
+	case STRING: Set(std::move(*reinterpret_cast<String*>(other.data))); break;
+	case TRANSFORMPTR: Set(std::move(*reinterpret_cast<TransformPtr*>(other.data))); break;
+	case TRANSITIONLIST: Set(std::move(*reinterpret_cast<TransitionList*>(other.data))); break;
+	case ANIMATIONLIST: Set(std::move(*reinterpret_cast<AnimationList*>(other.data))); break;
+	case DECORATORSPTR: Set(std::move(*reinterpret_cast<DecoratorsPtr*>(other.data))); break;
+	case FONTEFFECTSPTR: Set(std::move(*reinterpret_cast<FontEffectsPtr*>(other.data))); break;
 	default:
 		memcpy(data, other.data, LOCAL_DATA_SIZE);
 		type = other.type;
@@ -445,6 +409,8 @@ void Variant::Set(FontEffectsPtr&& value)
 
 Variant& Variant::operator=(const Variant& copy)
 {
+	if (this == &copy)
+		return *this;
 	if (copy.type != type)
 		Clear();
 	Set(copy);
@@ -453,6 +419,8 @@ Variant& Variant::operator=(const Variant& copy)
 
 Variant& Variant::operator=(Variant&& other) noexcept
 {
+	if (this == &other)
+		return *this;
 	if (other.type != type)
 		Clear();
 	Set(std::move(other));
@@ -468,53 +436,29 @@ bool Variant::operator==(const Variant & other) const
 
 	switch (type)
 	{
-	case BOOL:
-		return DEFAULT_VARIANT_COMPARE(bool);
-	case BYTE:
-		return DEFAULT_VARIANT_COMPARE(byte);
-	case CHAR:
-		return DEFAULT_VARIANT_COMPARE(char);
-	case FLOAT:
-		return DEFAULT_VARIANT_COMPARE(float);
-	case DOUBLE:
-		return DEFAULT_VARIANT_COMPARE(double);
-	case INT:
-		return DEFAULT_VARIANT_COMPARE(int);
-	case INT64:
-		return DEFAULT_VARIANT_COMPARE(int64_t);
-	case UINT:
-		return DEFAULT_VARIANT_COMPARE(unsigned int);
-	case UINT64:
-		return DEFAULT_VARIANT_COMPARE(uint64_t);
-	case STRING:
-		return DEFAULT_VARIANT_COMPARE(String);
-	case VECTOR2:
-		return DEFAULT_VARIANT_COMPARE(Vector2f);
-	case VECTOR3:
-		return DEFAULT_VARIANT_COMPARE(Vector3f);
-	case VECTOR4:
-		return DEFAULT_VARIANT_COMPARE(Vector4f);
-	case COLOURF:
-		return DEFAULT_VARIANT_COMPARE(Colourf);
-	case COLOURB:
-		return DEFAULT_VARIANT_COMPARE(Colourb);
-	case SCRIPTINTERFACE:
-		return DEFAULT_VARIANT_COMPARE(ScriptInterface*);
-	case VOIDPTR:
-		return DEFAULT_VARIANT_COMPARE(void*);
-	case TRANSFORMPTR:
-		return DEFAULT_VARIANT_COMPARE(TransformPtr);
-	case TRANSITIONLIST:
-		return DEFAULT_VARIANT_COMPARE(TransitionList);
-	case ANIMATIONLIST:
-		return DEFAULT_VARIANT_COMPARE(AnimationList);
-	case DECORATORSPTR:
-		return DEFAULT_VARIANT_COMPARE(DecoratorsPtr);
-	case FONTEFFECTSPTR:
-		return DEFAULT_VARIANT_COMPARE(FontEffectsPtr);
-	case NONE:
-		return true;
-		break;
+	case BOOL: return DEFAULT_VARIANT_COMPARE(bool);
+	case BYTE: return DEFAULT_VARIANT_COMPARE(byte);
+	case CHAR: return DEFAULT_VARIANT_COMPARE(char);
+	case FLOAT: return DEFAULT_VARIANT_COMPARE(float);
+	case DOUBLE: return DEFAULT_VARIANT_COMPARE(double);
+	case INT: return DEFAULT_VARIANT_COMPARE(int);
+	case INT64: return DEFAULT_VARIANT_COMPARE(int64_t);
+	case UINT: return DEFAULT_VARIANT_COMPARE(unsigned int);
+	case UINT64: return DEFAULT_VARIANT_COMPARE(uint64_t);
+	case STRING: return DEFAULT_VARIANT_COMPARE(String);
+	case VECTOR2: return DEFAULT_VARIANT_COMPARE(Vector2f);
+	case VECTOR3: return DEFAULT_VARIANT_COMPARE(Vector3f);
+	case VECTOR4: return DEFAULT_VARIANT_COMPARE(Vector4f);
+	case COLOURF: return DEFAULT_VARIANT_COMPARE(Colourf);
+	case COLOURB: return DEFAULT_VARIANT_COMPARE(Colourb);
+	case SCRIPTINTERFACE: return DEFAULT_VARIANT_COMPARE(ScriptInterface*);
+	case VOIDPTR: return DEFAULT_VARIANT_COMPARE(void*);
+	case TRANSFORMPTR: return DEFAULT_VARIANT_COMPARE(TransformPtr);
+	case TRANSITIONLIST: return DEFAULT_VARIANT_COMPARE(TransitionList);
+	case ANIMATIONLIST: return DEFAULT_VARIANT_COMPARE(AnimationList);
+	case DECORATORSPTR: return DEFAULT_VARIANT_COMPARE(DecoratorsPtr);
+	case FONTEFFECTSPTR: return DEFAULT_VARIANT_COMPARE(FontEffectsPtr);
+	case NONE: return true;
 	}
 	RMLUI_ERRORMSG("Variant comparison not implemented for this type.");
 	return false;

@@ -86,7 +86,7 @@ public:
 
 	// Iterate over every item in the database, skipping free slots.
 	template<typename Func>
-	void for_each(Func func)
+	void for_each(Func&& func)
 	{
 		std::sort(free_list.begin(), free_list.end());
 
@@ -149,11 +149,13 @@ bool PrepareForTests()
 
 bool ListMatchesDatabase(const Vector<Geometry>& geometry_list)
 {
-	int i = 0;
-	bool result = true;
-	geometry_database.for_each([&geometry_list, &i, &result](Geometry* geometry) {
-		result &= (geometry == &geometry_list[i++]);
-		});
+	Vector<const Geometry*> geometry_list_ptrs;
+	std::for_each(geometry_list.begin(), geometry_list.end(), [&](const Geometry& geometry) { geometry_list_ptrs.push_back(&geometry); });
+
+	Vector<const Geometry*> database_ptrs;
+	geometry_database.for_each([&](const Geometry* geometry) { database_ptrs.push_back(geometry); });
+
+	const bool result = std::is_permutation(geometry_list_ptrs.begin(), geometry_list_ptrs.end(), database_ptrs.begin(), database_ptrs.end());
 	return result;
 }
 
