@@ -107,6 +107,10 @@ public:
 	template<typename T>
 	StructHandle<T> RegisterStruct();
 
+	// Register a user-declared VariableDefinition to describe a custom type behaviour.
+	template<typename T>
+	bool RegisterCustomDataVariableDefinition(UniquePtr<VariableDefinition> definition);
+
 	// Register an array type.
 	// @note The type applies to every data model associated with the current Context.
 	// @note If 'Container::value_type' represents a non-scalar type, that type must already have been registered with the appropriate 'Register...()' functions.
@@ -143,6 +147,21 @@ inline bool DataModelConstructor::RegisterScalar(DataTypeGetFunc<T> get_func, Da
 	if (!inserted)
 	{
 		RMLUI_LOG_TYPE_ERROR(T, "Scalar function type already registered.");
+		return false;
+	}
+
+	return true;
+}
+
+template<typename T>
+inline bool DataModelConstructor::RegisterCustomDataVariableDefinition(UniquePtr<VariableDefinition> definition)
+{
+	const FamilyId id = Family<T>::Id();
+
+	const bool inserted = type_register->RegisterDefinition(id, std::move(definition));
+	if (!inserted)
+	{
+		RMLUI_LOG_TYPE_ERROR(T, "Custom data type already registered.");
 		return false;
 	}
 
