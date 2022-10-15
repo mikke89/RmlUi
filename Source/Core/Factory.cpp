@@ -436,7 +436,7 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 
 		// If we have curly brackets in the text, we tag the element so that the appropriate data view (DataViewText) is constructed.
 		if (has_data_expression)
-			attributes.emplace("data-text", in_text);
+			attributes.emplace("data-text", Variant());
 
 		ElementPtr element = Factory::InstanceElement(parent, "#text", "#text", attributes);
 		if (!element)
