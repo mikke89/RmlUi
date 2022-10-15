@@ -312,7 +312,9 @@ bool DataViewVisible::Update(DataModel& model)
 
 
 DataViewText::DataViewText(Element* element) : DataView(element, 0)
-{}
+{
+	int i = 0;
+}
 
 bool DataViewText::Initialize(DataModel& model, Element* element, const String& RMLUI_UNUSED_PARAMETER(expression), const String& RMLUI_UNUSED_PARAMETER(modifier))
 {
@@ -379,6 +381,9 @@ bool DataViewText::Initialize(DataModel& model, Element* element, const String& 
 
 	if (data_entries.empty())
 		return false;
+
+	// Save sucessfully parsed expression in attribute for restoring after element removal
+	element->SetAttribute("data-text", in_text);
 
 	return true;
 }
@@ -450,6 +455,14 @@ StringList DataViewText::GetVariableNameList() const
 
 void DataViewText::Release()
 {
+	ElementText* element_text = rmlui_dynamic_cast<ElementText*>(GetElement());
+	if (element_text) 
+	{
+		if(auto attr = element_text->GetAttribute("data-text")) 
+		{
+			element_text->SetText(attr->Get<std::string>());
+		}
+	}
 	delete this;
 }
 
