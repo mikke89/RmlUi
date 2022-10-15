@@ -313,7 +313,6 @@ bool DataViewVisible::Update(DataModel& model)
 
 DataViewText::DataViewText(Element* element) : DataView(element, 0)
 {
-	int i = 0;
 }
 
 bool DataViewText::Initialize(DataModel& model, Element* element, const String& RMLUI_UNUSED_PARAMETER(expression), const String& RMLUI_UNUSED_PARAMETER(modifier))
