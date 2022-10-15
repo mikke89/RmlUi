@@ -314,18 +314,15 @@ bool DataViewVisible::Update(DataModel& model)
 DataViewText::DataViewText(Element* element) : DataView(element, 0)
 {}
 
-bool DataViewText::Initialize(DataModel& model, Element* element, const String& RMLUI_UNUSED_PARAMETER(expression), const String& RMLUI_UNUSED_PARAMETER(modifier))
+bool DataViewText::Initialize(DataModel& model, Element* element, const String& expression, const String& RMLUI_UNUSED_PARAMETER(modifier))
 {
-	RMLUI_UNUSED(expression);
 	RMLUI_UNUSED(modifier);
 
 	ElementText* element_text = rmlui_dynamic_cast<ElementText*>(element);
 	if (!element_text)
 		return false;
 
-	const String& in_text = element_text->GetText();
-	
-	text.reserve(in_text.size());
+	text.reserve(expression.size());
 
 	DataExpressionInterface expression_interface(&model, element);
 
@@ -336,13 +333,13 @@ bool DataViewText::Initialize(DataModel& model, Element* element, const String& 
 	bool in_brackets = false;
 	bool in_string = false;
 
-	for(char c : in_text) {
+	for(char c : expression) {
 		was_in_brackets = in_brackets;
 
 		const char* error_str = XMLParseTools::ParseDataBrackets(in_brackets, in_string, c, previous);
 		if (error_str)
 		{
-			Log::Message(Log::LT_WARNING, "Failed to parse data view text '%s'. %s", in_text.c_str(), error_str);
+			Log::Message(Log::LT_WARNING, "Failed to parse data view text '%s'. %s", expression.c_str(), error_str);
 			return false;
 		}
 
@@ -354,7 +351,7 @@ bool DataViewText::Initialize(DataModel& model, Element* element, const String& 
 		{
 			DataEntry entry;
 			entry.index = text.size();
-			entry.data_expression = MakeUnique<DataExpression>(String(in_text.begin() + begin_brackets + 1, in_text.begin() + cur - 1));
+			entry.data_expression = MakeUnique<DataExpression>(String(expression.begin() + begin_brackets + 1, expression.begin() + cur - 1));
 			entry.value = "#rmlui#"; // A random value that the user string will not be initialized with.
 
 			if (entry.data_expression->Parse(expression_interface, false))
