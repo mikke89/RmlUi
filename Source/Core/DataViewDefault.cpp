@@ -454,12 +454,15 @@ StringList DataViewText::GetVariableNameList() const
 
 void DataViewText::Release()
 {
-	ElementText* element_text = rmlui_dynamic_cast<ElementText*>(GetElement());
-	if (element_text) 
+	if(IsValid()) 
 	{
-		if(auto attr = element_text->GetAttribute("data-text")) 
+		ElementText* element_text = rmlui_dynamic_cast<ElementText*>(GetElement());
+		if (element_text) 
 		{
-			element_text->SetText(attr->Get<std::string>());
+			if(auto attr = element_text->GetAttribute("data-text")) 
+			{
+				element_text->SetText(attr->Get<std::string>());
+			}
 		}
 	}
 	delete this;
