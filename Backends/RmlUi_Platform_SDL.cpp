@@ -295,18 +295,24 @@ int RmlSDL::ConvertMouseButton(int button)
 
 int RmlSDL::GetKeyModifierState()
 {
-	SDL_Keymod sdlMods = SDL_GetModState();
+	SDL_Keymod sdl_mods = SDL_GetModState();
 
 	int retval = 0;
 
-	if (sdlMods & KMOD_CTRL)
+	if (sdl_mods & KMOD_CTRL)
 		retval |= Rml::Input::KM_CTRL;
 
-	if (sdlMods & KMOD_SHIFT)
+	if (sdl_mods & KMOD_SHIFT)
 		retval |= Rml::Input::KM_SHIFT;
 
-	if (sdlMods & KMOD_ALT)
+	if (sdl_mods & KMOD_ALT)
 		retval |= Rml::Input::KM_ALT;
+
+	if (sdl_mods & KMOD_NUM)
+		retval |= Rml::Input::KM_NUMLOCK;
+
+	if (sdl_mods & KMOD_CAPS)
+		retval |= Rml::Input::KM_CAPSLOCK;
 
 	return retval;
 }

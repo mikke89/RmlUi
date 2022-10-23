@@ -109,6 +109,9 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 	glfwGetFramebufferSize(window, &width, &height);
 	data->render_interface.SetViewport(width, height);
 
+	// Receive num lock and caps lock modifiers for proper handling of numpad inputs in text fields.
+	glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
+
 	// Setup the input and window event callback functions.
 	SetupCallbacks(window);
 
