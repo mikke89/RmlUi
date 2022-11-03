@@ -450,3 +450,34 @@ TEST_CASE("databinding.inside_string")
 
 	TestsShell::ShutdownShell();
 }
+
+TEST_CASE("databinding.remove_element_and_restore_data_expression")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	REQUIRE(InitializeDataBindings(context));
+
+	ElementDocument* document = context->LoadDocumentFromMemory(inside_string_rml);
+	REQUIRE(document);
+	document->Show();
+
+	context->Update();
+	context->Render();
+
+	TestsShell::RenderLoop();
+
+	auto pointer = document->QuerySelector("p:nth-child(1)");
+	auto parent = pointer->GetParentNode();
+	auto element = parent->RemoveChild(pointer);
+	REQUIRE(element);
+
+	TestsShell::RenderLoop();
+
+	pointer = parent->InsertBefore(std::move(element), parent->GetFirstChild());
+	REQUIRE(pointer);
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
