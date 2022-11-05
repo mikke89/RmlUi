@@ -148,6 +148,40 @@ static const String inside_string_rml = R"(
 </rml>	
 )";
 
+static const String data_text_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<link type="text/template" href="/assets/window.rml"/>
+	<style>
+		body.window
+		{
+			left: 50px;
+			right: 50px;
+			top: 30px;
+			bottom: 30px;
+			max-width: none;
+			max-height: none;
+		}
+		div#content
+		{
+			text-align: left;
+			padding: 50px;
+			box-sizing: border-box;
+		}
+	</style>
+</head>
+
+<body template="window">
+	<div data-model="basics">
+		<p>{{ i0 }}</p>
+		<p><span data-for="arrays.a">{{ it }} </span></p>
+	</div>
+</body>
+</rml>
+)";
+
 struct StringWrap
 {
 	StringWrap(String val = "wrap_default") : val(val) {}
@@ -451,14 +485,14 @@ TEST_CASE("databinding.inside_string")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("databinding.remove_element_and_restore_data_expression")
+TEST_CASE("databinding.restore_data_text")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
 	REQUIRE(InitializeDataBindings(context));
 
-	ElementDocument* document = context->LoadDocumentFromMemory(inside_string_rml);
+	ElementDocument* document = context->LoadDocumentFromMemory(data_text_rml);
 	REQUIRE(document);
 	document->Show();
 
@@ -467,15 +501,35 @@ TEST_CASE("databinding.remove_element_and_restore_data_expression")
 
 	TestsShell::RenderLoop();
 
-	auto pointer = document->QuerySelector("p:nth-child(1)");
-	auto parent = pointer->GetParentNode();
-	auto element = parent->RemoveChild(pointer);
-	REQUIRE(element);
+	SUBCASE("single-element") {
+		auto pointer = document->QuerySelector("p:nth-child(1)");
+		REQUIRE(pointer);
+		auto parent = pointer->GetParentNode();
+		auto element = parent->RemoveChild(pointer);
+		REQUIRE(element);
 
-	TestsShell::RenderLoop();
+		TestsShell::RenderLoop();
 
-	pointer = parent->InsertBefore(std::move(element), parent->GetFirstChild());
-	REQUIRE(pointer);
+		pointer = parent->InsertBefore(std::move(element), parent->GetChild(0));
+		REQUIRE(pointer);
+		
+		TestsShell::RenderLoop();
+	}
+
+	SUBCASE("data-for") {
+		auto pointer = document->QuerySelector("p:nth-child(2)");
+		REQUIRE(pointer);
+		auto parent = pointer->GetParentNode();
+		auto element = parent->RemoveChild(pointer);
+		REQUIRE(element);
+
+		TestsShell::RenderLoop();
+
+		pointer = parent->InsertBefore(std::move(element), parent->GetChild(1));
+		REQUIRE(pointer);
+		
+		TestsShell::RenderLoop();
+	}
 
 	document->Close();
 
