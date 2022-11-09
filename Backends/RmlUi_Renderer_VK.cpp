@@ -341,6 +341,18 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 
 			m_is_use_stencil_pipeline = true;
 
+#ifdef RMLUI_DEBUG
+			VkDebugUtilsLabelEXT info{};
+			info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+			info.color[0] = 1.0f;
+			info.color[1] = 1.0f;
+			info.color[2] = 0.0f;
+			info.color[3] = 1.0f;
+			info.pLabelName = "SetScissorRegion (generated region)";
+
+			vkCmdInsertDebugUtilsLabelEXT(m_p_current_command_buffer, &info);
+#endif
+
 			RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
 
 			m_is_use_stencil_pipeline = false;
@@ -353,6 +365,18 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 			m_scissor.extent.height = height;
 			m_scissor.offset.x = static_cast<int32_t>(std::abs(x));
 			m_scissor.offset.y = static_cast<int32_t>(std::abs(y));
+
+#ifdef RMLUI_DEBUG
+			VkDebugUtilsLabelEXT info{};
+			info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+			info.color[0] = 1.0f;
+			info.color[1] = 0.0f;
+			info.color[2] = 0.0f;
+			info.color[3] = 1.0f;
+			info.pLabelName = "SetScissorRegion (offset)";
+
+			vkCmdInsertDebugUtilsLabelEXT(m_p_current_command_buffer, &info);
+#endif
 
 			vkCmdSetScissor(m_p_current_command_buffer, 0, 1, &m_scissor);
 		}
@@ -852,6 +876,10 @@ void RenderInterface_VK::Initialize_Device() noexcept
 	Rml::Vector<const char*> device_extension_names;
 	AddExtensionToDevice(device_extension_names, device_extension_properties, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	AddExtensionToDevice(device_extension_names, device_extension_properties, VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
+
+#ifdef RMLUI_DEBUG
+	AddExtensionToDevice(device_extension_names, device_extension_properties, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
 
 	float queue_priorities[1] = {0.0f};
 
