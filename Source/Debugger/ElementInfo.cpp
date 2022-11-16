@@ -599,7 +599,11 @@ void ElementInfo::UpdateSourceElement()
 				if (IsDebuggerElement(child))
 					continue;
 
-				const String child_name = child->GetAddress(false, false);
+				String child_name = child->GetAddress(false, false);
+				auto document = rmlui_dynamic_cast<ElementDocument*>(child);
+				if (document && !document->GetTitle().empty())
+					child_name += " (" + document->GetTitle() + ')';
+
 				const char* non_dom_string = (i >= num_dom_children ? " class=\"non_dom\"" : "");
 
 				children += CreateString(child_name.size() + 40, "<p id=\"c %d\"%s>%s</p>", i, non_dom_string, child_name.c_str());
