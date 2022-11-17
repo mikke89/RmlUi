@@ -2069,6 +2069,37 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 
 	status = vkCreateGraphicsPipelines(m_p_device, nullptr, 1, &info, nullptr, &m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn);
 	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+#ifdef RMLUI_DEBUG
+	VkDebugUtilsObjectNameInfoEXT info_debug = {};
+
+	info_debug.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	info_debug.pObjectName = "pipeline_stencil for region where geometry will be drawn";
+	info_debug.objectType = VkObjectType::VK_OBJECT_TYPE_PIPELINE;
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_without_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_without_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_with_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_with_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+#endif
 }
 
 void RenderInterface_VK::CreateSwapchainFrameBuffers() noexcept
