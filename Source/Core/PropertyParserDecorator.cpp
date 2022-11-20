@@ -100,7 +100,9 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 			PropertyDictionary properties;
 			if (!specification.ParsePropertyDeclaration(properties, "decorator", shorthand))
 			{
-				return false;
+				// Empty values are allowed in decorators, if the value is not empty we must have encountered a parser error.
+				if (!StringUtilities::StripWhitespace(shorthand).empty())
+					return false;
 			}
 
 			// Set unspecified values to their defaults

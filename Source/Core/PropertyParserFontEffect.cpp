@@ -101,8 +101,12 @@ bool PropertyParserFontEffect::ParseValue(Property& property, const String& font
 			PropertyDictionary properties;
 			if (!specification.ParsePropertyDeclaration(properties, "font-effect", shorthand))
 			{
-				Log::Message(Log::LT_WARNING, "Could not parse font-effect value '%s'.", font_effect_string.c_str());
-				return false;
+				// Empty values are allowed in font-effects, if the value is not empty we must have encountered a parser error.
+				if (!StringUtilities::StripWhitespace(shorthand).empty())
+				{
+					Log::Message(Log::LT_WARNING, "Could not parse font-effect value '%s'.", font_effect_string.c_str());
+					return false;
+				}
 			}
 
 			// Set unspecified values to their defaults
