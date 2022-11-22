@@ -162,6 +162,8 @@ int BasePointerDefinition::Size(void* ptr)
 
 DataVariable BasePointerDefinition::Child(void* ptr, const DataAddressEntry& address)
 {
+    if(!ptr)
+        return DataVariable();
     return underlying_definition->Child(DereferencePointer(ptr), address);
 }
 
