@@ -62,7 +62,7 @@ void RenderInterface_GL2::SetViewport(int in_viewport_width, int in_viewport_hei
 
 void RenderInterface_GL2::BeginFrame()
 {
-	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
+	RMLUI_ASSERT(viewport_width >= 0 && viewport_height >= 0);
 	glViewport(0, 0, viewport_width, viewport_height);
 
 	glEnableClientState(GL_VERTEX_ARRAY);

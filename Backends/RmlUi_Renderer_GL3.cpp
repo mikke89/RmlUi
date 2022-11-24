@@ -334,7 +334,7 @@ void RenderInterface_GL3::SetViewport(int width, int height)
 
 void RenderInterface_GL3::BeginFrame()
 {
-	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
+	RMLUI_ASSERT(viewport_width >= 0 && viewport_height >= 0);
 	glViewport(0, 0, viewport_width, viewport_height);
 
 	glClearStencil(0);
