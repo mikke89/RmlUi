@@ -141,21 +141,29 @@ BasePointerDefinition::BasePointerDefinition(VariableDefinition* underlying_defi
 
 bool BasePointerDefinition::Get(void* ptr, Variant& variant)
 {
+    if(!ptr) 
+        return false;
     return underlying_definition->Get(DereferencePointer(ptr), variant);
 }
 
 bool BasePointerDefinition::Set(void* ptr, const Variant& variant)
 {
+    if(!ptr) 
+        return false;
     return underlying_definition->Set(DereferencePointer(ptr), variant);
 }
 
 int BasePointerDefinition::Size(void* ptr)
 {
+    if(!ptr) 
+        return 0;
     return underlying_definition->Size(DereferencePointer(ptr));
 }
 
 DataVariable BasePointerDefinition::Child(void* ptr, const DataAddressEntry& address)
 {
+    if(!ptr)
+        return DataVariable();
     return underlying_definition->Child(DereferencePointer(ptr), address);
 }
 
