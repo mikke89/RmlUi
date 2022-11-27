@@ -196,12 +196,13 @@ int ContextProcessTextInput(lua_State *L, Context *obj)
 {
     const char *text = NULL;
     int character = -1;
-    if (lua_isinteger(L, 1))
+
+    if (lua_isstring(L, 1))
     {
-        character = luaL_checkinteger(L, 1);
+        text = lua_tostring(L, 1);
     } else
     {
-        text = luaL_checkstring(L, 1);
+        character = luaL_checkinteger(L, 1);
     }
     if (character > 0)
     {
