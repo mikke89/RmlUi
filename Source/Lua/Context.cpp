@@ -131,6 +131,90 @@ int ContextOpenDataModel(lua_State *L, Context *obj)
 	return 1;
 }
 
+//input
+int ContextProcessMouseMove(lua_State *L, Context *obj)
+{
+	int x = luaL_checkinteger(L, 1);
+	int y = luaL_checkinteger(L, 2);
+	int flags = luaL_checkinteger(L, 3);
+	lua_pushboolean(L, obj->ProcessMouseMove(x, y, flags));
+	return 1;
+}
+
+int ContextProcessMouseButtonDown(lua_State *L, Context *obj)
+{
+    int button_index = luaL_checkinteger(L, 1);
+    int key_modifier_state = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, obj->ProcessMouseButtonDown(button_index, key_modifier_state));
+    return 1;
+}
+
+int ContextProcessMouseButtonUp(lua_State *L, Context *obj)
+{
+    int button_index = luaL_checkinteger(L, 1);
+    int key_modifier_state = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, obj->ProcessMouseButtonUp(button_index, key_modifier_state));
+    return 1;
+}
+
+int ContextProcessMouseWheel(lua_State *L, Context *obj)
+{
+    float wheel_delta = (float)luaL_checknumber(L, 1);
+    int key_modifier_state = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, obj->ProcessMouseWheel(wheel_delta, key_modifier_state));
+    return 1;
+}
+
+int ContextProcessMouseLeave(lua_State *L, Context *obj)
+{
+    lua_pushboolean(L, obj->ProcessMouseLeave());
+    return 1;
+}
+
+int ContextIsMouseInteracting(lua_State *L, Context *obj)
+{
+    lua_pushboolean(L, obj->IsMouseInteracting());
+    return 1;
+}
+
+int ContextProcessKeyDown(lua_State *L, Context *obj)
+{
+    Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)luaL_checkinteger(L, 1);
+    int key_modifier_state = luaL_checkinteger( L, 2 );
+    lua_pushboolean(L, obj->ProcessKeyDown(key_identifier, key_modifier_state));
+    return 1;
+}
+
+int ContextProcessKeyUp(lua_State *L, Context *obj) {
+    Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)luaL_checkinteger(L, 1);
+    int key_modifier_state = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, obj->ProcessKeyUp(key_identifier, key_modifier_state));
+    return 1;
+}
+
+int ContextProcessTextInput(lua_State *L, Context *obj)
+{
+    const char *text = NULL;
+    int character = -1;
+
+    if (lua_isstring(L, 1))
+    {
+        text = lua_tostring(L, 1);
+    } else
+    {
+        character = luaL_checkinteger(L, 1);
+    }
+    if (character > 0)
+    {
+        lua_pushboolean(L, obj->ProcessTextInput((char)character));
+    } 
+    if (text != NULL)
+    {
+        lua_pushboolean(L, obj->ProcessTextInput(text));
+    }
+    return 1;
+}
+
 //getters
 int ContextGetAttrdimensions(lua_State* L)
 {
@@ -206,7 +290,16 @@ RegType<Context> ContextMethods[] =
     RMLUI_LUAMETHOD(Context,Update)
 	RMLUI_LUAMETHOD(Context,OpenDataModel)
 	// todo: CloseDataModel
-    { nullptr, nullptr },
+    RMLUI_LUAMETHOD(Context,ProcessMouseMove)
+    RMLUI_LUAMETHOD(Context,ProcessMouseButtonDown)
+    RMLUI_LUAMETHOD(Context,ProcessMouseButtonUp)
+    RMLUI_LUAMETHOD(Context,ProcessMouseWheel)
+    RMLUI_LUAMETHOD(Context,ProcessMouseLeave)
+    RMLUI_LUAMETHOD(Context,IsMouseInteracting)
+    RMLUI_LUAMETHOD(Context,ProcessKeyDown)
+    RMLUI_LUAMETHOD(Context,ProcessKeyUp)
+    RMLUI_LUAMETHOD(Context,ProcessTextInput)
+{ nullptr, nullptr },
 };
 
 luaL_Reg ContextGetters[] =
