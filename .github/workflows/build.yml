@@ -107,7 +107,7 @@ jobs:
     - uses: actions/checkout@v2
       
     - name: Install Dependencies
-      run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan]
+      run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan] lua[core]
       
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
@@ -115,7 +115,7 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/Build
       run: >-
-        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
         -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
         ${{ matrix.cmake_options }}
 
