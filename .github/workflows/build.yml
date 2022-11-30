@@ -146,7 +146,7 @@ jobs:
       run: |-
         source emsdk-master/emsdk_env.sh
         cd Build
-        emcmake cmake $GITHUB_WORKSPACE -DBUILD_SAMPLES=ON -DBUILD_SHARED_LIBS=OFF -DWARNINGS_AS_ERRORS=ON
+        emcmake cmake $GITHUB_WORKSPACE -DBUILD_SAMPLES=ON -DBUILD_SHARED_LIBS=OFF -DWARNINGS_AS_ERRORS=ON -DEMSCRIPTEN_EXE_FLAGS="-O1"
 
     - name: Build
       run: |-
