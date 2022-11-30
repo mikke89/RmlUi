@@ -29,7 +29,7 @@ jobs:
           - cmake_options: -DSAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       
     - name: Install Dependencies
       run: |-
@@ -69,7 +69,7 @@ jobs:
           - cmake_options: -DSAMPLES_BACKEND=GLFW_GL2
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       
     - name: Install Dependencies
       run: brew install lua sdl2 sdl2_image glfw
@@ -104,7 +104,7 @@ jobs:
           - cmake_options: -DSAMPLES_BACKEND=SDL_VK
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       
     - name: Install Dependencies
       run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan] lua[core]
@@ -127,7 +127,7 @@ jobs:
   Emscripten:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install Dependencies
       run: |-
