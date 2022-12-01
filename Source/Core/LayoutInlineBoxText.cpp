@@ -79,14 +79,14 @@ bool LayoutInlineBoxText::CanOverflow() const
 }
 
 // Flows the inline box's content into its parent line.
-UniquePtr<LayoutInlineBox> LayoutInlineBoxText::FlowContent(bool first_box, float available_width, float right_spacing_width)
+UniquePtr<LayoutInlineBox> LayoutInlineBoxText::FlowContent(bool first_box, bool last_box, float available_width, float right_spacing_width)
 {
 	ElementText* text_element = GetTextElement();
 	RMLUI_ASSERT(text_element != nullptr);
 
 	int line_length;
 	float line_width;
-	bool overflow = !text_element->GenerateLine(line_contents, line_length, line_width, line_begin, available_width, right_spacing_width, first_box, true);
+	bool overflow = !text_element->GenerateLine(line_contents, line_length, line_width, line_begin, available_width, right_spacing_width, first_box, last_box, true);
 
 	Vector2f content_area;
 	content_area.x = line_width;
@@ -94,7 +94,7 @@ UniquePtr<LayoutInlineBox> LayoutInlineBoxText::FlowContent(bool first_box, floa
 	box.SetContent(content_area);
 
 	// Call the base-class's FlowContent() to increment the width of our parent's box.
-	LayoutInlineBox::FlowContent(first_box, available_width, right_spacing_width);
+	LayoutInlineBox::FlowContent(first_box, last_box, available_width, right_spacing_width);
 
 	if (overflow)
 		return MakeUnique<LayoutInlineBoxText>(GetTextElement(), line_begin + line_length);

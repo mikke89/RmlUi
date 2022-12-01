@@ -146,12 +146,9 @@ bool LayoutInlineBox::IsLastChild() const
 }
 
 // Flows the inline box's content into its parent line.
-UniquePtr<LayoutInlineBox> LayoutInlineBox::FlowContent(bool RMLUI_UNUSED_PARAMETER(first_box), float RMLUI_UNUSED_PARAMETER(available_width), float RMLUI_UNUSED_PARAMETER(right_spacing_width))
+UniquePtr<LayoutInlineBox> LayoutInlineBox::FlowContent(bool /*first_box*/, bool /*last_box*/, float /*available_width*/,
+	float /*right_spacing_width*/)
 {
-	RMLUI_UNUSED(first_box);
-	RMLUI_UNUSED(available_width);
-	RMLUI_UNUSED(right_spacing_width);
-
 	// If we're representing a sized element, then add our element's width onto our parent's.
 	if (parent != nullptr &&
 		box.GetSize().x > 0)

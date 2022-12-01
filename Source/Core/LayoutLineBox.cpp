@@ -210,6 +210,9 @@ LayoutInlineBox* LayoutLineBox::AddBox(UniquePtr<LayoutInlineBox> box_ptr)
 
 	// Set to true if we're flowing the first box (with content) on the line.
 	bool first_box = false;
+	// Set to true for the last box in the line so that we can trim end spacing.
+	bool last_box = false;
+
 	// The spacing this element must leave on the right of the line, to account not only for its margins and padding,
 	// but also for its parents which will close immediately after it.
 	float right_spacing;
@@ -250,6 +253,7 @@ LayoutInlineBox* LayoutLineBox::AddBox(UniquePtr<LayoutInlineBox> box_ptr)
 			dimensions.y = minimum_dimensions.y;
 
 			first_box = true;
+			last_box = box->IsLastChild();
 			position_set = true;
 		}
 		else
@@ -286,18 +290,16 @@ LayoutInlineBox* LayoutLineBox::AddBox(UniquePtr<LayoutInlineBox> box_ptr)
 		if (box->GetBox().GetSize().x >= 0)
 			element_width += box->GetBox().GetSize().x;
 
-		if (wrap_content &&
-			box_cursor + element_width > dimensions.x)
+		if (wrap_content && box_cursor + element_width > dimensions.x)
 		{
 			// We can't fit the new inline element into this box! So we'll close this line box, and send the inline box
 			// onto the next line.
 			return Close(std::move(box_ptr));
 		}
-		else
-		{
-			// We can fit the new inline element into this box.
-			AppendBox(std::move(box_ptr));
-		}
+
+		// We can fit the new inline element into this box.
+		AppendBox(std::move(box_ptr));
+		last_box = box->IsLastChild();
 	}
 
 	float available_width = -1;
@@ -305,7 +307,7 @@ LayoutInlineBox* LayoutLineBox::AddBox(UniquePtr<LayoutInlineBox> box_ptr)
 		available_width = Math::RoundUpFloat(dimensions.x - (open_inline_box->GetPosition().x + open_inline_box->GetBox().GetPosition(Box::CONTENT).x));
 
 	// Flow the box's content into the line.
-	UniquePtr<LayoutInlineBox> overflow_box = open_inline_box->FlowContent(first_box, available_width, right_spacing);
+	UniquePtr<LayoutInlineBox> overflow_box = open_inline_box->FlowContent(first_box, last_box, available_width, right_spacing);
 	box_cursor += open_inline_box->GetBox().GetSize().x;
 
 	// If our box overflowed, then we'll close this line (as no more content will fit onto it) and tell our block box

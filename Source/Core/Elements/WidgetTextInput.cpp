@@ -1021,7 +1021,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		String line_content;
 
 		// Generate the next line.
-		last_line = text_element->GenerateLine(line_content, line.size, line_width, line_begin, client_width - cursor_size.x, 0, false, false);
+		last_line = text_element->GenerateLine(line_content, line.size, line_width, line_begin, client_width - cursor_size.x, 0, false, false, false);
 
 		// If this line terminates in a soft-return (word wrap), then the line may be leaving a space or two behind as an orphan. If so, we must
 		// append the orphan onto the line even though it will push the line outside of the input field's bounds.
