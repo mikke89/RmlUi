@@ -1,0 +1,54 @@
+<rml>
+<head>
+	<title>White space collapsing</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help (css2)" href="https://drafts.csswg.org/css2/#white-space-prop" />
+	<link rel="help (css3)" href="https://www.w3.org/TR/css-text-3/#white-space-rules" />
+	<link rel="Issue #383" href="https://github.com/mikke89/RmlUi/issues/383" />
+	<meta name="Assert" content="The 'I' and 'ABC' lines should be horizontally centered, intersecting the vertical guideline." />
+	<meta name="Assert" content="Each 'hello world' text should have the same spacing." />
+	<meta name="Assert" content="Each 'duck' should have spacing to the next one." />
+	<style>
+		.center {
+			margin: 10dp auto;
+			width: 120dp;
+			height: 50dp;
+			background-color: #252526;
+			text-align: center;
+			text-transform: uppercase;
+			color: white;
+			padding: 0;
+			font-size: 50dp;
+		}
+		.autoheight { height: auto; }
+		.guideline {
+			position: absolute;
+			left: 50%;
+			top: 0;
+			width: 1dp;
+			height: 100%;
+			background-color: #f2a;
+		}
+	</style>
+</head>
+<body>
+<div class="center" id="none">I</div>
+<div class="center" id="left"> I</div>
+<div class="center" id="right">I </div>
+<div class="center" id="both"> I </div>
+<div class="center" id="newlines">
+ I
+</div>
+
+<div class="center autoheight" id="wrap"> ABC ABC ABC ABC </div>
+<div class="guideline"/>
+
+<h1>Hello World!</h1>
+<h1>   Hello 
+				<span> World!</span>	  </h1>
+
+<p><span>Duck!</span> <span>Duck!</span> <span>Duck!</span></p>
+<p><span>Duck! </span><span>Duck! </span><span>Duck! </span></p>
+<p>Duck! Duck! Duck!</p>
+</body>
+</rml>
