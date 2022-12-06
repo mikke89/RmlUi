@@ -50,6 +50,7 @@ int ContextUpdate(lua_State* L, Context* obj);
 //getters
 int ContextGetAttrdimensions(lua_State* L);
 int ContextGetAttrdocuments(lua_State* L);
+int ContextGetAttrdp_ratio(lua_State* L);
 int ContextGetAttrfocus_element(lua_State* L);
 int ContextGetAttrhover_element(lua_State* L);
 int ContextGetAttrname(lua_State* L);
@@ -57,6 +58,7 @@ int ContextGetAttrroot_element(lua_State* L);
 
 //setters
 int ContextSetAttrdimensions(lua_State* L);
+int ContextSetAttrdp_ratio(lua_State* L);
 
 
 extern RegType<Context> ContextMethods[];

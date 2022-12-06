@@ -235,6 +235,14 @@ int ContextGetAttrdocuments(lua_State* L)
     return 1;
 }
 
+int ContextGetAttrdp_ratio(lua_State* L)
+{
+    Context* cont = LuaType<Context>::check(L,1);
+    float dp_ratio = cont->GetDensityIndependentPixelRatio();
+    lua_pushnumber(L, dp_ratio);
+    return 1;
+}
+
 int ContextGetAttrfocus_element(lua_State* L)
 {
     Context* cont = LuaType<Context>::check(L,1);
@@ -278,6 +286,15 @@ int ContextSetAttrdimensions(lua_State* L)
     return 0;
 }
 
+int ContextSetAttrdp_ratio(lua_State* L)
+{
+    Context* cont = LuaType<Context>::check(L,1);
+    RMLUI_CHECK_OBJ(cont);
+    lua_Number dp_ratio = luaL_checknumber(L,2);
+    cont->SetDensityIndependentPixelRatio((float)dp_ratio);
+    return 0;
+}
+
 
 RegType<Context> ContextMethods[] =
 {
@@ -306,6 +323,7 @@ luaL_Reg ContextGetters[] =
 {
     RMLUI_LUAGETTER(Context,dimensions)
     RMLUI_LUAGETTER(Context,documents)
+    RMLUI_LUAGETTER(Context,dp_ratio)
     RMLUI_LUAGETTER(Context,focus_element)
     RMLUI_LUAGETTER(Context,hover_element)
     RMLUI_LUAGETTER(Context,name)
@@ -316,6 +334,7 @@ luaL_Reg ContextGetters[] =
 luaL_Reg ContextSetters[] =
 {
     RMLUI_LUASETTER(Context,dimensions)
+    RMLUI_LUASETTER(Context,dp_ratio)
     { nullptr, nullptr },
 };
 
