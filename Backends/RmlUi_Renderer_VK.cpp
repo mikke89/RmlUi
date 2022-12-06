@@ -353,6 +353,20 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 			vkCmdInsertDebugUtilsLabelEXT(m_p_current_command_buffer, &info);
 #endif
 
+			VkClearDepthStencilValue info_clear_color{};
+
+			info_clear_color.depth = 1.0f;
+			info_clear_color.stencil = 0.0f;
+
+			VkImageSubresourceRange info_range{};
+			info_range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+			info_range.baseMipLevel = 0;
+			info_range.baseArrayLayer = 0;
+			info_range.levelCount = 1;
+			info_range.layerCount = 1;
+
+			vkCmdClearDepthStencilImage(m_p_current_command_buffer, m_texture_depthstencil.m_p_vk_image, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &info_clear_color, 1, &info_range);
+
 			RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
 
 			m_is_use_stencil_pipeline = false;
