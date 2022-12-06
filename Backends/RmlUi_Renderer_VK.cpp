@@ -356,7 +356,7 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 			VkClearDepthStencilValue info_clear_color{};
 
 			info_clear_color.depth = 1.0f;
-			info_clear_color.stencil = 0.0f;
+			info_clear_color.stencil = 0;
 
 			VkImageSubresourceRange info_range{};
 			info_range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
