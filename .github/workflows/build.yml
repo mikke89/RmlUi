@@ -29,7 +29,7 @@ jobs:
           - cmake_options: -DSAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       
     - name: Install Dependencies
       run: |-
@@ -69,7 +69,7 @@ jobs:
           - cmake_options: -DSAMPLES_BACKEND=GLFW_GL2
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       
     - name: Install Dependencies
       run: brew install lua sdl2 sdl2_image glfw
@@ -104,10 +104,10 @@ jobs:
           - cmake_options: -DSAMPLES_BACKEND=SDL_VK
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       
     - name: Install Dependencies
-      run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan]
+      run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan] lua[core]
       
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
@@ -115,7 +115,7 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/Build
       run: >-
-        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
         -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
         ${{ matrix.cmake_options }}
 
@@ -127,7 +127,7 @@ jobs:
   Emscripten:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install Dependencies
       run: |-
@@ -146,7 +146,7 @@ jobs:
       run: |-
         source emsdk-master/emsdk_env.sh
         cd Build
-        emcmake cmake $GITHUB_WORKSPACE -DBUILD_SAMPLES=ON -DBUILD_SHARED_LIBS=OFF -DWARNINGS_AS_ERRORS=ON
+        emcmake cmake $GITHUB_WORKSPACE -DBUILD_SAMPLES=ON -DBUILD_SHARED_LIBS=OFF -DWARNINGS_AS_ERRORS=ON -DEMSCRIPTEN_EXE_FLAGS="-O1"
 
     - name: Build
       run: |-

@@ -132,87 +132,85 @@ int ContextOpenDataModel(lua_State *L, Context *obj)
 }
 
 //input
-int ContextProcessMouseMove(lua_State *L, Context *obj)
+int ContextProcessMouseMove(lua_State* L, Context* obj)
 {
-	int x = luaL_checkinteger(L, 1);
-	int y = luaL_checkinteger(L, 2);
-	int flags = luaL_checkinteger(L, 3);
+	int x = (int)luaL_checkinteger(L, 1);
+	int y = (int)luaL_checkinteger(L, 2);
+	int flags = (int)luaL_checkinteger(L, 3);
 	lua_pushboolean(L, obj->ProcessMouseMove(x, y, flags));
 	return 1;
 }
 
-int ContextProcessMouseButtonDown(lua_State *L, Context *obj)
+int ContextProcessMouseButtonDown(lua_State* L, Context* obj)
 {
-    int button_index = luaL_checkinteger(L, 1);
-    int key_modifier_state = luaL_checkinteger(L, 2);
-    lua_pushboolean(L, obj->ProcessMouseButtonDown(button_index, key_modifier_state));
-    return 1;
+	int button_index = (int)luaL_checkinteger(L, 1);
+	int key_modifier_state = (int)luaL_checkinteger(L, 2);
+	lua_pushboolean(L, obj->ProcessMouseButtonDown(button_index, key_modifier_state));
+	return 1;
 }
 
-int ContextProcessMouseButtonUp(lua_State *L, Context *obj)
+int ContextProcessMouseButtonUp(lua_State* L, Context* obj)
 {
-    int button_index = luaL_checkinteger(L, 1);
-    int key_modifier_state = luaL_checkinteger(L, 2);
-    lua_pushboolean(L, obj->ProcessMouseButtonUp(button_index, key_modifier_state));
-    return 1;
+	int button_index = (int)luaL_checkinteger(L, 1);
+	int key_modifier_state = (int)luaL_checkinteger(L, 2);
+	lua_pushboolean(L, obj->ProcessMouseButtonUp(button_index, key_modifier_state));
+	return 1;
 }
 
-int ContextProcessMouseWheel(lua_State *L, Context *obj)
+int ContextProcessMouseWheel(lua_State* L, Context* obj)
 {
-    float wheel_delta = (float)luaL_checknumber(L, 1);
-    int key_modifier_state = luaL_checkinteger(L, 2);
-    lua_pushboolean(L, obj->ProcessMouseWheel(wheel_delta, key_modifier_state));
-    return 1;
+	float wheel_delta = (float)luaL_checknumber(L, 1);
+	int key_modifier_state = (int)luaL_checkinteger(L, 2);
+	lua_pushboolean(L, obj->ProcessMouseWheel(wheel_delta, key_modifier_state));
+	return 1;
 }
 
-int ContextProcessMouseLeave(lua_State *L, Context *obj)
+int ContextProcessMouseLeave(lua_State* L, Context* obj)
 {
-    lua_pushboolean(L, obj->ProcessMouseLeave());
-    return 1;
+	lua_pushboolean(L, obj->ProcessMouseLeave());
+	return 1;
 }
 
-int ContextIsMouseInteracting(lua_State *L, Context *obj)
+int ContextIsMouseInteracting(lua_State* L, Context* obj)
 {
-    lua_pushboolean(L, obj->IsMouseInteracting());
-    return 1;
+	lua_pushboolean(L, obj->IsMouseInteracting());
+	return 1;
 }
 
-int ContextProcessKeyDown(lua_State *L, Context *obj)
+int ContextProcessKeyDown(lua_State* L, Context* obj)
 {
-    Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)luaL_checkinteger(L, 1);
-    int key_modifier_state = luaL_checkinteger( L, 2 );
-    lua_pushboolean(L, obj->ProcessKeyDown(key_identifier, key_modifier_state));
-    return 1;
+	Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)luaL_checkinteger(L, 1);
+	int key_modifier_state = (int)luaL_checkinteger(L, 2);
+	lua_pushboolean(L, obj->ProcessKeyDown(key_identifier, key_modifier_state));
+	return 1;
 }
 
-int ContextProcessKeyUp(lua_State *L, Context *obj) {
-    Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)luaL_checkinteger(L, 1);
-    int key_modifier_state = luaL_checkinteger(L, 2);
-    lua_pushboolean(L, obj->ProcessKeyUp(key_identifier, key_modifier_state));
-    return 1;
+int ContextProcessKeyUp(lua_State* L, Context* obj)
+{
+	Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)luaL_checkinteger(L, 1);
+	int key_modifier_state = (int)luaL_checkinteger(L, 2);
+	lua_pushboolean(L, obj->ProcessKeyUp(key_identifier, key_modifier_state));
+	return 1;
 }
 
-int ContextProcessTextInput(lua_State *L, Context *obj)
+int ContextProcessTextInput(lua_State* L, Context* obj)
 {
-    const char *text = NULL;
-    int character = -1;
+	const char* text = NULL;
+	int character = -1;
 
-    if (lua_isstring(L, 1))
-    {
-        text = lua_tostring(L, 1);
-    } else
-    {
-        character = luaL_checkinteger(L, 1);
-    }
-    if (character > 0)
-    {
-        lua_pushboolean(L, obj->ProcessTextInput((char)character));
-    } 
-    if (text != NULL)
-    {
-        lua_pushboolean(L, obj->ProcessTextInput(text));
-    }
-    return 1;
+	if (lua_isstring(L, 1))
+		text = lua_tostring(L, 1);
+	else
+		character = (int)luaL_checkinteger(L, 1);
+
+	if (character > 0)
+		lua_pushboolean(L, obj->ProcessTextInput((char)character));
+	else if (text != NULL)
+		lua_pushboolean(L, obj->ProcessTextInput(text));
+	else
+		Log::Message(Log::LT_WARNING, "Could not process text input on context '%s'.", obj->GetName().c_str());
+
+	return 1;
 }
 
 //getters
