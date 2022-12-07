@@ -32,6 +32,39 @@
 namespace Rml {
 namespace Lua {
 
+#if LUA_VERSION_NUM < 502
+void lua_len (lua_State *L, int i) {
+  switch (lua_type(L, i)) {
+    case LUA_TSTRING:
+      lua_pushnumber(L, (lua_Number)lua_objlen(L, i));
+      break;
+    case LUA_TTABLE:
+      if (!luaL_callmeta(L, i, "__len"))
+        lua_pushnumber(L, (lua_Number)lua_objlen(L, i));
+      break;
+    case LUA_TUSERDATA:
+      if (luaL_callmeta(L, i, "__len"))
+        break;
+      /* FALLTHROUGH */
+    default:
+      luaL_error(L, "attempt to get length of a %s value",
+                 lua_typename(L, lua_type(L, i)));
+  }
+}
+
+lua_Integer luaL_len(lua_State *L, int i) {
+  lua_Integer res = 0;
+  int isnum = 0;
+  luaL_checkstack(L, 1, "not enough stack slots");
+  lua_len(L, i);
+  res = lua_tointegerx(L, -1, &isnum);
+  lua_pop(L, 1);
+  if (!isnum)
+    luaL_error(L, "object length is not an integer");
+  return res;
+}
+#endif
+
 void PushVariant(lua_State* L, const Variant* var)
 {
 	if (!var)
