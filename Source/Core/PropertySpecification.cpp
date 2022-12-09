@@ -226,6 +226,10 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 {
 	RMLUI_ZoneScoped;
 
+    // If matches the shape of a variable declaration, try to handle as such
+    if(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-')
+        return ParseVariableDeclaration(dictionary, property_name, property_value);
+
 	// Try as a property first
 	PropertyId property_id = property_map->GetId(property_name);
 	if (property_id != PropertyId::Invalid)
@@ -419,7 +423,25 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		}
 	}
 
-	return true;
+    return true;
+}
+
+bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &dictionary, const String &property_name, const String &property_value) const
+{
+    if(!(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-'))
+        return false;
+
+    StringList property_values;
+    if (!ParsePropertyValues(property_values, property_value, true) || property_values.size() == 0)
+        return false;
+
+    String name = property_name.substr(2);
+
+    // join value list back into single string for storage
+    String joined;
+    StringUtilities::JoinString(joined, property_values, ' ');
+    dictionary.SetVariable(name, Property(joined, Property::STRING));
+    return true;
 }
 
 // Sets all undefined properties in the dictionary to their defaults.

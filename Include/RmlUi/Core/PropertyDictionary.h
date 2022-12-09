@@ -45,17 +45,29 @@ class RMLUICORE_API PropertyDictionary
 public:
 	PropertyDictionary();
 
-	/// Sets a property on the dictionary. Any existing property with the same id will be overwritten.
-	void SetProperty(PropertyId id, const Property& property);
-	/// Removes a property from the dictionary, if it exists.
-	void RemoveProperty(PropertyId id);
-	/// Returns the value of the property with the requested id, if one exists.
-	const Property* GetProperty(PropertyId id) const;
+    /// Sets a property on the dictionary. Any existing property with the same id will be overwritten.
+    void SetProperty(PropertyId id, const Property& property);
+    /// Removes a property from the dictionary, if it exists.
+    void RemoveProperty(PropertyId id);
+    /// Returns the value of the property with the requested id, if one exists.
+    const Property* GetProperty(PropertyId id) const;
 
-	/// Returns the number of properties in the dictionary.
-	int GetNumProperties() const;
-	/// Returns the map of properties in the dictionary.
-	const PropertyMap& GetProperties() const;
+    /// Returns the number of properties in the dictionary.
+    int GetNumProperties() const;
+    /// Returns the map of properties in the dictionary.
+    const PropertyMap& GetProperties() const;
+
+    /// Sets a variable on the dictionary. Any existing variable with the same name will be overwritten.
+    void SetVariable(String const& name, const Property& property);
+    /// Removes a variable from the dictionary, if it exists.
+    void RemoveVariable(String const& name);
+    /// Returns the value of the variable with the requested name, if one exists.
+    const Property* GetVariable(String const& name) const;
+
+    /// Returns the number of variables in the dictionary.
+    int GetNumVariables() const;
+    /// Returns the map of properties in the dictionary.
+    const VariableMap& GetVariables() const;
 
 	/// Imports into the dictionary, and optionally defines the specificity of, potentially
 	/// un-specified properties. In the case of id conflicts, the incoming properties will
@@ -82,6 +94,7 @@ private:
 	void SetProperty(PropertyId id, const Property& property, int specificity);
 
 	PropertyMap properties;
+    VariableMap variables;
 };
 
 } // namespace Rml

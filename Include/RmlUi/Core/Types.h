@@ -113,6 +113,7 @@ using ElementAnimationList = Vector< ElementAnimation >;
 
 using AttributeNameList = SmallUnorderedSet< String >;
 using PropertyMap = UnorderedMap< PropertyId, Property >;
+using VariableMap = UnorderedMap< String, Property >;
 
 using Dictionary = SmallUnorderedMap< String, Variant >;
 using ElementAttributes = Dictionary;
@@ -135,6 +136,12 @@ class DataView;
 using DataViewPtr = UniqueReleaserPtr<DataView>;
 class DataController;
 using DataControllerPtr = UniqueReleaserPtr<DataController>;
+
+struct VariableUsage {
+    String variable;
+    String fallback;
+};
+using VariableUsagePtr = SharedPtr<const VariableUsage>;
 
 } // namespace Rml
 

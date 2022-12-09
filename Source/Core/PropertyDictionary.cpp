@@ -68,18 +68,54 @@ int PropertyDictionary::GetNumProperties() const
 // Returns the map of properties in the dictionary.
 const PropertyMap& PropertyDictionary::GetProperties() const
 {
-	return properties;
+    return properties;
+}
+
+void PropertyDictionary::SetVariable(const String &name, const Property &property)
+{
+    RMLUI_ASSERT(!name.empty());
+    variables.insert_or_assign(name, property);
+}
+
+void PropertyDictionary::RemoveVariable(const String &name)
+{
+    RMLUI_ASSERT(!name.empty());
+    variables.erase(name);
+}
+
+const Property *PropertyDictionary::GetVariable(const String &name) const
+{
+    VariableMap::const_iterator iterator = variables.find(name);
+    if (iterator == variables.end())
+        return nullptr;
+
+    return &(*iterator).second;
+}
+
+int PropertyDictionary::GetNumVariables() const
+{
+    return (int)variables.size();
+}
+
+const VariableMap &PropertyDictionary::GetVariables() const
+{
+    return variables;
 }
 
 // Imports potentially un-specified properties into the dictionary.
 void PropertyDictionary::Import(const PropertyDictionary& other, int property_specificity)
 {
-	for (const auto& pair : other.properties)
-	{
-		const PropertyId id = pair.first;
-		const Property& property = pair.second;
-		SetProperty(id, property, property_specificity > 0 ? property_specificity : property.specificity);
-	}
+    for (const auto& pair : other.properties)
+    {
+        const PropertyId id = pair.first;
+        const Property& property = pair.second;
+        SetProperty(id, property, property_specificity > 0 ? property_specificity : property.specificity);
+    }
+
+    for (const auto& pair : other.variables)
+    {
+        SetVariable(pair.first, pair.second);
+    }
 }
 
 // Merges the contents of another fully-specified property dictionary with this one.
@@ -91,12 +127,19 @@ void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_
 		const Property& property = pair.second;
 		SetProperty(id, property, property.specificity + specificity_offset);
 	}
+
+    for (const auto& pair : other.variables)
+    {
+        SetVariable(pair.first, pair.second);
+    }
 }
 
 void PropertyDictionary::SetSourceOfAllProperties(const SharedPtr<const PropertySource>& property_source)
 {
-	for (auto& p : properties)
-		p.second.source = property_source;
+    for (auto& p : properties)
+        p.second.source = property_source;
+    for (auto& p : variables)
+        p.second.source = property_source;
 }
 
 // Sets a property on the dictionary and its specificity.

@@ -26,6 +26,7 @@
  *
  */
 
+#include "../Common/TestsShell.h"
 #include "../Common/TestsInterface.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
@@ -89,4 +90,50 @@ TEST_CASE("Properties")
 	}
 
 	Rml::Shutdown();
+}
+
+static const String document_rml = R"(
+<rml>
+<head>
+    <style>
+        body {
+            --color-var: #ffffff;
+            --font-var: 20px bold serif;
+            --padding-var: 4px 5px;
+            --recursive-border-var: 5px var(--color-var);
+        }
+
+        div {
+            border: var(--recursive-border-var);
+            width: var(--missing-var, 500px);
+            background: var(--color-var);
+            padding: var(--padding-var);
+            font: var(--font-var);
+        }
+    </style>
+</head>
+
+<body>
+<div></div>
+</body>
+</rml>
+)";
+
+TEST_CASE("Variables")
+{
+    Context* context = TestsShell::GetContext();
+    REQUIRE(context);
+
+    ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+    REQUIRE(document);
+    document->Show();
+
+    context->Update();
+    context->Render();
+
+    TestsShell::RenderLoop();
+
+    document->Close();
+
+    TestsShell::ShutdownShell();
 }
