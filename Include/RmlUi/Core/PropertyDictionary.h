@@ -92,6 +92,7 @@ private:
 	// specificity (given by the parameter, not read from the property itself) is at least equal to
 	// the specificity of the conflicting property.
 	void SetProperty(PropertyId id, const Property& property, int specificity);
+    void SetVariable(String const& name, const Property& property, int specificity);
 
 	PropertyMap properties;
     VariableMap variables;

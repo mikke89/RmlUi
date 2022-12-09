@@ -114,7 +114,7 @@ void PropertyDictionary::Import(const PropertyDictionary& other, int property_sp
 
     for (const auto& pair : other.variables)
     {
-        SetVariable(pair.first, pair.second);
+        SetVariable(pair.first, pair.second, property_specificity > 0 ? property_specificity : pair.second.specificity);
     }
 }
 
@@ -130,7 +130,7 @@ void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_
 
     for (const auto& pair : other.variables)
     {
-        SetVariable(pair.first, pair.second);
+        SetVariable(pair.first, pair.second, pair.second.specificity + specificity_offset);
     }
 }
 
@@ -151,7 +151,18 @@ void PropertyDictionary::SetProperty(PropertyId id, const Property& property, in
 		return;
 
 	Property& new_property = (properties[id] = property);
-	new_property.specificity = specificity;
+    new_property.specificity = specificity;
+}
+
+void PropertyDictionary::SetVariable(const String &name, const Property &property, int specificity)
+{
+    VariableMap::iterator iterator = variables.find(name);
+    if (iterator != variables.end() &&
+        iterator->second.specificity > specificity)
+        return;
+
+    Property& new_property = (variables[name] = property);
+    new_property.specificity = specificity;
 }
 
 } // namespace Rml
