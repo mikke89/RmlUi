@@ -60,14 +60,6 @@ enum class ShorthandType
 	Flex
 };
 
-// Variable names are hashed into IDs to speed up comparison
-inline VariableId MakeVariableId(String const& variable_name) {
-	auto id = Hash<String>{}(variable_name);
-	// Empty id is reserved
-	RMLUI_ASSERT(id != 0);
-	return static_cast<VariableId>(id);
-}
-
 /**
 	A property specification stores a group of property definitions.
 
@@ -121,8 +113,8 @@ public:
 	/// Parses a shorthand declaration, setting any parsed and validated properties on the given dictionary.
 	/// @return True if all properties were parsed successfully, false otherwise.
 	bool ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value) const;
-    /// Parse variable declaration by name.
-    bool ParseVariableDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const;
+	/// Parse variable declaration by name.
+	bool ParseVariableDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const;
 
 	/// Sets all undefined properties in the dictionary to their defaults.
 	/// @param dictionary[in-out] The dictionary to set the default values on.

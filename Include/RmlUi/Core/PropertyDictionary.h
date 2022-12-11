@@ -41,6 +41,28 @@ namespace Rml {
 	@author Peter Curry
  */
 
+extern UnorderedMap<VariableId, String> VariableNames;
+
+// Variable names are hashed into IDs to speed up comparison
+inline VariableId MakeVariableId(String const& variable_name)
+{
+	auto id = Hash<String>{}(variable_name);
+	// Empty id is reserved
+	RMLUI_ASSERT(id != 0);
+	auto variable_id = static_cast<VariableId>(id);
+	VariableNames[variable_id] = variable_name;
+	return variable_id;
+}
+
+inline String GetVariableName(VariableId id)
+{
+	auto it = VariableNames.find(id);
+	if (it != VariableNames.end())
+		return it->second;
+	return "Unknown variable";
+}
+
+
 class RMLUICORE_API PropertyDictionary
 {
 public:

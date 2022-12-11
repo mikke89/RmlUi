@@ -95,22 +95,22 @@ TEST_CASE("Properties")
 static const String document_rml = R"(
 <rml>
 <head>
-    <style>
-        body {
-            --color-var: #ffffff;
-            --font-var: 20px bold serif;
-            --padding-var: 4px 5px;
-            --recursive-border-var: 5px var(--color-var);
-        }
+	<style>
+		body {
+			--color-var: #ffffff;
+			--font-var: 20px bold serif;
+			--padding-var: 4px 5px;
+			--recursive-border-var: 5px var(--color-var);
+		}
 
-        div {
-            border: var(--recursive-border-var);
-            width: var(--missing-var, 500px);
-            background: var(--color-var);
-            padding: var(--padding-var);
-            font: var(--font-var);
-        }
-    </style>
+		div {
+			border: var(--recursive-border-var);
+			width: var(--missing-var, 500px);
+			background: var(--color-var);
+			padding: var(--padding-var);
+			font: var(--font-var);
+		}
+	</style>
 </head>
 
 <body>
@@ -121,19 +121,19 @@ static const String document_rml = R"(
 
 TEST_CASE("Variables")
 {
-    Context* context = TestsShell::GetContext();
-    REQUIRE(context);
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
 
-    ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
-    REQUIRE(document);
-    document->Show();
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	REQUIRE(document);
+	document->Show();
 
-    context->Update();
-    context->Render();
+	context->Update();
+	context->Render();
 
-    TestsShell::RenderLoop();
+	TestsShell::RenderLoop();
 
-    document->Close();
+	document->Close();
 
-    TestsShell::ShutdownShell();
+	TestsShell::ShutdownShell();
 }

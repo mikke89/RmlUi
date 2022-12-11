@@ -149,6 +149,31 @@ bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, S
 	return true;
 }
 
+bool Rml::TypeConverter<VariableTerm, VariableTerm>::Convert(const VariableTerm &src, VariableTerm &dest)
+{
+	dest = src;
+	return true;
+}
+
+bool Rml::TypeConverter<VariableTerm, String>::Convert(const VariableTerm &src, String &dest)
+{
+	StringList parts;
+	for (auto const& it : src)
+	{
+		if (it.variable != static_cast<VariableId>(0))
+		{
+			parts.push_back("var(--"+ GetVariableName(it.variable) +")");
+		}
+		else
+		{
+			parts.push_back(it.constant);
+		}
+	}
+	
+	StringUtilities::JoinString(dest, parts, ' ');
+	return true;
+}
+
 
 
 

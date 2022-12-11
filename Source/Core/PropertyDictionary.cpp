@@ -32,6 +32,8 @@
 
 namespace Rml {
 
+UnorderedMap<VariableId, String> VariableNames;
+
 PropertyDictionary::PropertyDictionary()
 {
 }
@@ -41,6 +43,8 @@ void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 {
 	RMLUI_ASSERT(id != PropertyId::Invalid);
 	
+	properties[id] = property;
+
 	if (property.unit == Property::VARIABLETERM)
 	{
 		dependentProperties.Insert(id);
@@ -54,8 +58,6 @@ void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 			RebuildDependencies();			
 		}
 	}
-	
-	properties[id] = property;
 }
 
 // Removes a property from the dictionary, if it exists.
@@ -206,16 +208,33 @@ void PropertyDictionary::RebuildDependencies()
 {
 	dependencies.clear();
 	
-	for (auto id : dependentProperties)
+	for (auto iter = dependentProperties.begin(); iter != dependentProperties.end();)
 	{
-		auto const& term = properties.at(id).Get<VariableTerm>();
+		auto prop = properties.find(*iter);
+		if (prop == properties.end())
+		{
+			RMLUI_ERRORMSG("Dependent property was not found");
+			iter = dependentProperties.Erase(iter);
+			continue;
+		}
+
+		if (prop->second.unit != Property::VARIABLETERM)
+		{
+			RMLUI_ERRORMSG("Dependent property was not of type VariableTerm");
+			iter = dependentProperties.Erase(iter);
+			continue;
+		}
+		
+		auto const& term = prop->second.Get<VariableTerm>();
 		for (auto const& atom : term)
 		{
 			if (atom.variable != static_cast<VariableId>(0))
 			{
-				dependencies.insert(std::make_pair(atom.variable, DependentId(id)));
+				dependencies.insert(std::make_pair(atom.variable, DependentId(*iter)));
 			}
 		}
+
+		++iter;
 	}
 }
 

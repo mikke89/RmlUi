@@ -117,6 +117,15 @@ public:
 	RMLUICORE_API static bool Convert(const FontEffectsPtr& src, String& dest);
 };
 
+template<> class TypeConverter< VariableTerm, VariableTerm> {
+public:
+	RMLUICORE_API static bool Convert(const VariableTerm& src, VariableTerm& dest);
+};
+template<> class TypeConverter< VariableTerm, String > {
+public:
+	RMLUICORE_API static bool Convert(const VariableTerm& src, String& dest);
+};
+
 } // namespace Rml
 
 #include "TypeConverter.inl"

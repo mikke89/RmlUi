@@ -258,13 +258,15 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 		return false;
 
 	VariableTerm term;
+	Property new_property;
 	if (DetectVariableTerm(term, property_values))
 	{
-		dictionary.SetProperty(property_id, Property(term, Property::VARIABLETERM));
+		new_property = Property(term, Property::VARIABLETERM);
+		new_property.definition = property_definition;
+		dictionary.SetProperty(property_id, new_property);
 		return true;
 	}
 
-	Property new_property;
 	if (!property_definition->ParseValue(new_property, property_values[0]))
 		return false;
 	
