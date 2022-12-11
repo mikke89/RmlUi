@@ -43,7 +43,7 @@ Variant::Variant()
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
 	static_assert(sizeof(DecoratorsPtr) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorsPtr");
 	static_assert(sizeof(FontEffectsPtr) <= LOCAL_DATA_SIZE, "Local data too small for FontEffectsPtr");
-    static_assert(sizeof(VariableTerm) <= LOCAL_DATA_SIZE, "Local data too small for VariableTerm");
+	static_assert(sizeof(VariableTerm) <= LOCAL_DATA_SIZE, "Local data too small for VariableTerm");
 }
 
 Variant::Variant(const Variant& copy)
@@ -65,7 +65,7 @@ void Variant::Clear()
 {
 	// Free any allocated types.
 	switch (type) 
-	{      
+	{	  
 		case STRING:
 		{
 			// Clean up the string.
@@ -99,19 +99,19 @@ void Variant::Clear()
 			DecoratorsPtr* decorators = (DecoratorsPtr*)data;
 			decorators->~DecoratorsPtr();
 		}
-        break;
-        case FONTEFFECTSPTR:
-        {
-            FontEffectsPtr* font_effects = (FontEffectsPtr*)data;
-            font_effects->~shared_ptr();
-        }
-        break;
-        case VARIABLETERM:
-        {
-            VariableTerm* var_usage = (VariableTerm*)data;
-            var_usage->~VariableTerm();
-        }
-    break;
+		break;
+		case FONTEFFECTSPTR:
+		{
+			FontEffectsPtr* font_effects = (FontEffectsPtr*)data;
+			font_effects->~shared_ptr();
+		}
+		break;
+		case VARIABLETERM:
+		{
+			VariableTerm* var_usage = (VariableTerm*)data;
+			var_usage->~VariableTerm();
+		}
+	break;
 		default:
 		break;
 	}
@@ -136,7 +136,7 @@ void Variant::Set(const Variant& copy)
 	case ANIMATIONLIST: Set(*reinterpret_cast<const AnimationList*>(copy.data)); break;
 	case DECORATORSPTR: Set(*reinterpret_cast<const DecoratorsPtr*>(copy.data)); break;
 	case FONTEFFECTSPTR: Set(*reinterpret_cast<const FontEffectsPtr*>(copy.data)); break;
-    case VARIABLETERM: Set(*reinterpret_cast<const VariableTerm*>(copy.data)); break;
+	case VARIABLETERM: Set(*reinterpret_cast<const VariableTerm*>(copy.data)); break;
 	default:
 		memcpy(data, copy.data, LOCAL_DATA_SIZE);
 		type = copy.type;
@@ -155,7 +155,7 @@ void Variant::Set(Variant&& other)
 	case ANIMATIONLIST: Set(std::move(*reinterpret_cast<AnimationList*>(other.data))); break;
 	case DECORATORSPTR: Set(std::move(*reinterpret_cast<DecoratorsPtr*>(other.data))); break;
 	case FONTEFFECTSPTR: Set(std::move(*reinterpret_cast<FontEffectsPtr*>(other.data))); break;
-    case VARIABLETERM: Set(std::move(*reinterpret_cast<VariableTerm*>(other.data))); break;
+	case VARIABLETERM: Set(std::move(*reinterpret_cast<VariableTerm*>(other.data))); break;
 	default:
 		memcpy(data, other.data, LOCAL_DATA_SIZE);
 		type = other.type;
@@ -413,33 +413,33 @@ void Variant::Set(FontEffectsPtr&& value)
 	{
 		type = FONTEFFECTSPTR;
 		new(data) FontEffectsPtr(std::move(value));
-    }
+	}
 }
 
 void Variant::Set(const VariableTerm &value)
 {
-    if (type == VARIABLETERM)
-    {
-        *(VariableTerm*)data = value;
-    }
-    else
-    {
-        type = VARIABLETERM;
-        new(data) VariableTerm(value);
-    }
+	if (type == VARIABLETERM)
+	{
+		*(VariableTerm*)data = value;
+	}
+	else
+	{
+		type = VARIABLETERM;
+		new(data) VariableTerm(value);
+	}
 }
 
 void Variant::Set(VariableTerm &&value)
 {
-    if (type == VARIABLETERM)
-    {
-        (*(VariableTerm*)data) = std::move(value);
-    }
-    else
-    {
-        type = VARIABLETERM;
-        new(data) VariableTerm(std::move(value));
-    }
+	if (type == VARIABLETERM)
+	{
+		(*(VariableTerm*)data) = std::move(value);
+	}
+	else
+	{
+		type = VARIABLETERM;
+		new(data) VariableTerm(std::move(value));
+	}
 }
 
 Variant& Variant::operator=(const Variant& copy)
@@ -493,7 +493,7 @@ bool Variant::operator==(const Variant & other) const
 	case ANIMATIONLIST: return DEFAULT_VARIANT_COMPARE(AnimationList);
 	case DECORATORSPTR: return DEFAULT_VARIANT_COMPARE(DecoratorsPtr);
 	case FONTEFFECTSPTR: return DEFAULT_VARIANT_COMPARE(FontEffectsPtr);
-    case VARIABLETERM: return DEFAULT_VARIANT_COMPARE(VariableTerm);
+	case VARIABLETERM: return DEFAULT_VARIANT_COMPARE(VariableTerm);
 	case NONE: return true;
 	}
 	RMLUI_ERRORMSG("Variant comparison not implemented for this type.");
