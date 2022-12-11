@@ -35,7 +35,9 @@ Lua version of the invaders sample. Only installed with the Lua plugin.
 
 #### `shell`
 
-The shell is mainly a wrapper around the [backends](../Backends/), used by all the samples to initialize the interfaces and open windows for rendering on the selected backend.
+The shell provides some common functionality that are specific to the included samples and tests, such as loading fonts and handling global keyboard shortcuts.
+
+Note that, the code for rendering, opening and closing windows, and providing inputs, is instead located in the [backends](../Backends/), however some extensions to these backends are found in the shell.
 
 #### `tutorial`
 
