@@ -442,27 +442,27 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		}
 	}
 
-    return true;
+	return true;
 }
 
 bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &dictionary, const String &property_name, const String &property_value) const
 {
-    if(!(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-'))
-        return false;
+	if(!(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-'))
+		return false;
 
-    StringList property_values;
-    if (!ParsePropertyValues(property_values, property_value, true) || property_values.size() == 0)
-        return false;
+	StringList property_values;
+	if (!ParsePropertyValues(property_values, property_value, true) || property_values.size() == 0)
+		return false;
 
-    auto id = MakeVariableId(property_name.substr(2));
+	auto id = MakeVariableId(property_name.substr(2));
 
 	VariableTerm term;
 	if (!ParseVariableTerm(term, property_values))
 		return false;
 
-    dictionary.SetVariable(id, Property(term, Property::VARIABLETERM));
+	dictionary.SetVariable(id, Property(term, Property::VARIABLETERM));
 
-    return true;
+	return true;
 }
 
 // Sets all undefined properties in the dictionary to their defaults.
