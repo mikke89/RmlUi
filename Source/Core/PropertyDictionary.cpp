@@ -95,7 +95,7 @@ const PropertyMap& PropertyDictionary::GetProperties() const
 
 void PropertyDictionary::SetVariable(VariableId id, const Property &property)
 {
-	variables.insert_or_assign(id, property);
+	variables[id] = property;
 	
 	// TODO: variables with dependencies
 }
