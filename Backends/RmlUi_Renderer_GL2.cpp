@@ -79,6 +79,8 @@ void RenderInterface_GL2::BeginFrame()
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	transform_enabled = false;
 }
 
 void RenderInterface_GL2::EndFrame() {}
@@ -123,14 +125,62 @@ void RenderInterface_GL2::RenderGeometry(Rml::Vertex* vertices, int /*num_vertic
 void RenderInterface_GL2::EnableScissorRegion(bool enable)
 {
 	if (enable)
-		glEnable(GL_SCISSOR_TEST);
+	{
+		if (!transform_enabled)
+		{
+			glEnable(GL_SCISSOR_TEST);
+			glDisable(GL_STENCIL_TEST);
+		}
+		else
+		{
+			glDisable(GL_SCISSOR_TEST);
+			glEnable(GL_STENCIL_TEST);
+		}
+	}
 	else
+	{
 		glDisable(GL_SCISSOR_TEST);
+		glDisable(GL_STENCIL_TEST);
+	}
 }
 
 void RenderInterface_GL2::SetScissorRegion(int x, int y, int width, int height)
 {
-	glScissor(x, viewport_height - (y + height), width, height);
+	if (!transform_enabled)
+	{
+		glScissor(x, viewport_height - (y + height), width, height);
+	}
+	else
+	{
+		// clear the stencil buffer
+		glStencilMask(GLuint(-1));
+		glClear(GL_STENCIL_BUFFER_BIT);
+
+		// fill the stencil buffer
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glDepthMask(GL_FALSE);
+		glStencilFunc(GL_NEVER, 1, GLuint(-1));
+		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+
+		float fx = (float)x;
+		float fy = (float)y;
+		float fwidth = (float)width;
+		float fheight = (float)height;
+
+		// draw transformed quad
+		GLfloat vertices[] = {fx, fy, 0, fx, fy + fheight, 0, fx + fwidth, fy + fheight, 0, fx + fwidth, fy, 0};
+		glDisableClientState(GL_COLOR_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, vertices);
+		GLushort indices[] = {1, 2, 0, 3};
+		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, indices);
+		glEnableClientState(GL_COLOR_ARRAY);
+
+		// prepare for drawing the real thing
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glDepthMask(GL_TRUE);
+		glStencilMask(0);
+		glStencilFunc(GL_EQUAL, 1, GLuint(-1));
+	}
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
@@ -262,6 +312,8 @@ void RenderInterface_GL2::ReleaseTexture(Rml::TextureHandle texture_handle)
 
 void RenderInterface_GL2::SetTransform(const Rml::Matrix4f* transform)
 {
+	transform_enabled = (transform != nullptr);
+
 	if (transform)
 	{
 		if (std::is_same<Rml::Matrix4f, Rml::ColumnMajorMatrix4f>::value)
