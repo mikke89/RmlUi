@@ -360,6 +360,9 @@ Users can now edit the text field to change the animal. The data bindings ensure
 **Sandbox from the 'demo' sample, try it yourself!**\
 ![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png)
 
+**Visual testing framework**\
+![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png)
+
 **Transitions on mouse hover (entirely in RCSS)**\
 ![Transition](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transition.gif)  
 
