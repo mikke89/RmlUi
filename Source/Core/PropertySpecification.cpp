@@ -670,7 +670,7 @@ bool PropertySpecification::DetectVariableTerm(VariableTerm& term, const StringL
 }
 
 bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList const& values_list) const {
-	static std::regex format_expression("var\\(\\s*--([\\S+])\\s*(?:,\\s*([^;]+?)\\s*)?\\)");
+	static std::regex format_expression("var\\(\\s*--(\\S+)\\s*(?:,\\s*([^;]+?)\\s*)?\\)");
 
 	for(auto const& it : values_list) {
 		std::smatch m;
@@ -679,8 +679,8 @@ bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList con
 		{
 			if (std::regex_match(it, m, format_expression))
 			{
-				a.constant = m[2];
-				a.variable = MakeVariableId(m[1]);
+				a.constant = m[2].matched ? m[2].str() : "";
+				a.variable = MakeVariableId(m[1].str());
 			} 
 			else 
 			{
