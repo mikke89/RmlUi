@@ -116,13 +116,16 @@ const Property *PropertyDictionary::GetVariable(VariableId id) const
 	return &(*iterator).second;
 }
 
-void PropertyDictionary::SetDependent(ShorthandId shorthand_id, const VariableTerm &term)
+void PropertyDictionary::SetDependent(ShorthandId RMLUI_UNUSED_PARAMETER(shorthand_id), const VariableTerm &RMLUI_UNUSED_PARAMETER(term))
 {
+	RMLUI_UNUSED(shorthand_id);
+	RMLUI_UNUSED(term);
   // TODO shorthands with depenencies
 }
 
-void PropertyDictionary::RemoveDependent(ShorthandId shorthand_id)
+void PropertyDictionary::RemoveDependent(ShorthandId RMLUI_UNUSED_PARAMETER(shorthand_id))
 {
+	RMLUI_UNUSED(shorthand_id);
 	// TODO shorthands with depenencies
 }
 
