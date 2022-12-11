@@ -36,6 +36,7 @@
 #include "IdNameMap.h"
 #include <limits.h>
 #include <stdint.h>
+#include <regex>
 
 namespace Rml {
 
@@ -226,9 +227,11 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 {
 	RMLUI_ZoneScoped;
 
-    // If matches the shape of a variable declaration, try to handle as such
-    if(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-')
-        return ParseVariableDeclaration(dictionary, property_name, property_value);
+	// If matches the shape of a variable declaration, try to handle as such
+	if(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-') 
+	{
+		return ParseVariableDeclaration(dictionary, property_name, property_value);
+	}
 
 	// Try as a property first
 	PropertyId property_id = property_map->GetId(property_name);
@@ -254,6 +257,13 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 	if (!ParsePropertyValues(property_values, property_value, false) || property_values.size() == 0)
 		return false;
 
+	VariableTerm term;
+	if (DetectVariableTerm(term, property_values))
+	{
+		dictionary.SetProperty(property_id, Property(term, Property::VARIABLETERM));
+		return true;
+	}
+
 	Property new_property;
 	if (!property_definition->ParseValue(new_property, property_values[0]))
 		return false;
@@ -268,6 +278,13 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 	StringList property_values;
 	if (!ParsePropertyValues(property_values, property_value, true) || property_values.size() == 0)
 		return false;
+
+	VariableTerm term;
+	if (DetectVariableTerm(term, property_values))
+	{
+		dictionary.SetDependent(shorthand_id, term);
+		return true;
+	}
 
 	// Parse as a shorthand.
 	const ShorthandDefinition* shorthand_definition = GetShorthand(shorthand_id);
@@ -435,12 +452,14 @@ bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &diction
     if (!ParsePropertyValues(property_values, property_value, true) || property_values.size() == 0)
         return false;
 
-    String name = property_name.substr(2);
+    auto id = MakeVariableId(property_name.substr(2));
 
-    // join value list back into single string for storage
-    String joined;
-    StringUtilities::JoinString(joined, property_values, ' ');
-    dictionary.SetVariable(name, Property(joined, Property::STRING));
+	VariableTerm term;
+	if (!ParseVariableTerm(term, property_values))
+		return false;
+
+    dictionary.SetVariable(id, Property(term, Property::VARIABLETERM));
+
     return true;
 }
 
@@ -631,6 +650,55 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 		value = StringUtilities::StripWhitespace(value);
 		if (value.size() > 0)
 			values_list.push_back(value);
+	}
+	
+	return true;
+}
+
+bool PropertySpecification::DetectVariableTerm(VariableTerm& term, const StringList &values_list) const
+{
+	for(auto const& it : values_list) {
+		// not the prettiest condition, but the fastest, considering every property parameter token will pass through this
+		// checking for the pattern "var(...)"
+		if(it.length() > 4 && it[0] == 'v' && it[1] == 'a' && it[2] == 'r' && it[3] == '(' && it.back() == ')') {
+			ParseVariableTerm(term, values_list);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList const& values_list) const {
+	static std::regex format_expression("var\\(\\s*--([\\S+])\\s*(?:,\\s*([^;]+?)\\s*)?\\)");
+
+	for(auto const& it : values_list) {
+		std::smatch m;
+		VariableTermAtom a;
+		if(it.substr(0,3) == "var") 
+		{
+			if (std::regex_match(it, m, format_expression))
+			{
+				a.constant = m[2];
+				a.variable = MakeVariableId(m[1]);
+			} 
+			else 
+			{
+				Log::Message(Log::LT_ERROR, "Invalid syntax for variable usage: '%s'.", it.c_str());
+
+				// Bail out with empty variable term property value
+				term.clear();
+
+				return false;
+			}
+		}
+		else 
+		{
+			a.constant = it;
+			a.variable = static_cast<VariableId>(0);
+		}
+
+		term.push_back(a);
 	}
 
 	return true;

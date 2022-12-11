@@ -43,7 +43,7 @@ Variant::Variant()
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
 	static_assert(sizeof(DecoratorsPtr) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorsPtr");
 	static_assert(sizeof(FontEffectsPtr) <= LOCAL_DATA_SIZE, "Local data too small for FontEffectsPtr");
-    static_assert(sizeof(VariableUsagePtr) <= LOCAL_DATA_SIZE, "Local data too small for VariableUsagePtr");
+    static_assert(sizeof(VariableTerm) <= LOCAL_DATA_SIZE, "Local data too small for VariableTerm");
 }
 
 Variant::Variant(const Variant& copy)
@@ -106,10 +106,10 @@ void Variant::Clear()
             font_effects->~shared_ptr();
         }
         break;
-        case VARIABLEUSAGE:
+        case VARIABLETERM:
         {
-            VariableUsagePtr* var_usage = (VariableUsagePtr*)data;
-            var_usage->~shared_ptr();
+            VariableTerm* var_usage = (VariableTerm*)data;
+            var_usage->~VariableTerm();
         }
     break;
 		default:
@@ -136,7 +136,7 @@ void Variant::Set(const Variant& copy)
 	case ANIMATIONLIST: Set(*reinterpret_cast<const AnimationList*>(copy.data)); break;
 	case DECORATORSPTR: Set(*reinterpret_cast<const DecoratorsPtr*>(copy.data)); break;
 	case FONTEFFECTSPTR: Set(*reinterpret_cast<const FontEffectsPtr*>(copy.data)); break;
-    case VARIABLEUSAGE: Set(*reinterpret_cast<const VariableUsagePtr*>(copy.data)); break;
+    case VARIABLETERM: Set(*reinterpret_cast<const VariableTerm*>(copy.data)); break;
 	default:
 		memcpy(data, copy.data, LOCAL_DATA_SIZE);
 		type = copy.type;
@@ -155,7 +155,7 @@ void Variant::Set(Variant&& other)
 	case ANIMATIONLIST: Set(std::move(*reinterpret_cast<AnimationList*>(other.data))); break;
 	case DECORATORSPTR: Set(std::move(*reinterpret_cast<DecoratorsPtr*>(other.data))); break;
 	case FONTEFFECTSPTR: Set(std::move(*reinterpret_cast<FontEffectsPtr*>(other.data))); break;
-    case VARIABLEUSAGE: Set(std::move(*reinterpret_cast<VariableUsagePtr*>(other.data))); break;
+    case VARIABLETERM: Set(std::move(*reinterpret_cast<VariableTerm*>(other.data))); break;
 	default:
 		memcpy(data, other.data, LOCAL_DATA_SIZE);
 		type = other.type;
@@ -416,29 +416,29 @@ void Variant::Set(FontEffectsPtr&& value)
     }
 }
 
-void Variant::Set(const VariableUsagePtr &value)
+void Variant::Set(const VariableTerm &value)
 {
-    if (type == VARIABLEUSAGE)
+    if (type == VARIABLETERM)
     {
-        *(VariableUsagePtr*)data = value;
+        *(VariableTerm*)data = value;
     }
     else
     {
-        type = VARIABLEUSAGE;
-        new(data) VariableUsagePtr(value);
+        type = VARIABLETERM;
+        new(data) VariableTerm(value);
     }
 }
 
-void Variant::Set(VariableUsagePtr &&value)
+void Variant::Set(VariableTerm &&value)
 {
-    if (type == VARIABLEUSAGE)
+    if (type == VARIABLETERM)
     {
-        (*(VariableUsagePtr*)data) = std::move(value);
+        (*(VariableTerm*)data) = std::move(value);
     }
     else
     {
-        type = VARIABLEUSAGE;
-        new(data) VariableUsagePtr(std::move(value));
+        type = VARIABLETERM;
+        new(data) VariableTerm(std::move(value));
     }
 }
 
@@ -493,7 +493,7 @@ bool Variant::operator==(const Variant & other) const
 	case ANIMATIONLIST: return DEFAULT_VARIANT_COMPARE(AnimationList);
 	case DECORATORSPTR: return DEFAULT_VARIANT_COMPARE(DecoratorsPtr);
 	case FONTEFFECTSPTR: return DEFAULT_VARIANT_COMPARE(FontEffectsPtr);
-    case VARIABLEUSAGE: return DEFAULT_VARIANT_COMPARE(VariableUsagePtr);
+    case VARIABLETERM: return DEFAULT_VARIANT_COMPARE(VariableTerm);
 	case NONE: return true;
 	}
 	RMLUI_ERRORMSG("Variant comparison not implemented for this type.");

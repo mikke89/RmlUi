@@ -60,6 +60,13 @@ enum class ShorthandType
 	Flex
 };
 
+// Variable names are hashed into IDs to speed up comparison
+inline VariableId MakeVariableId(String const& variable_name) {
+	auto id = Hash<String>{}(variable_name);
+	// Empty id is reserved
+	RMLUI_ASSERT(id != 0);
+	return static_cast<VariableId>(id);
+}
 
 /**
 	A property specification stores a group of property definitions.
@@ -137,8 +144,11 @@ private:
 	PropertyIdSet property_ids;
 	PropertyIdSet property_ids_inherited;
 	PropertyIdSet property_ids_forcing_layout;
-
+	
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
+	// Check values for occurrence of variable term, in which case property parsing will be deferred to variable resolution time.
+	bool DetectVariableTerm(VariableTerm& term, StringList const& values_list) const;
+	bool ParseVariableTerm(VariableTerm& term, StringList const& values_list) const;
 
 	friend class Rml::StyleSheetSpecification;
 };

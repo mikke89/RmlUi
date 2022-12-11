@@ -73,7 +73,7 @@ public:
 		ANIMATIONLIST = 'A',
 		DECORATORSPTR = 'D',
 		FONTEFFECTSPTR = 'F',
-        VARIABLEUSAGE = 'V',
+		VARIABLETERM = 'V',
 		VOIDPTR = '*',
 	};
 
@@ -152,11 +152,11 @@ private:
 	void Set(const AnimationList& value);
 	void Set(AnimationList&& value);
 	void Set(const DecoratorsPtr& value);
-    void Set(DecoratorsPtr&& value);
-    void Set(const FontEffectsPtr& value);
-    void Set(FontEffectsPtr&& value);
-    void Set(const VariableUsagePtr& value);
-    void Set(VariableUsagePtr&& value);
+	void Set(DecoratorsPtr&& value);
+	void Set(const FontEffectsPtr& value);
+	void Set(FontEffectsPtr&& value);
+	void Set(const VariableTerm& value);
+	void Set(VariableTerm&& value);
 	
 	static constexpr size_t LOCAL_DATA_SIZE = (sizeof(TransitionList) > sizeof(String) ? sizeof(TransitionList) : sizeof(String));
 

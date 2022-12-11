@@ -93,7 +93,7 @@ public:
 		DECORATOR = 1 << 23,        // decorator; fetch as < DecoratorsPtr >
 		FONTEFFECT = 1 << 24,       // font-effect; fetch as < FontEffectsPtr >
 		RATIO = 1 << 25,            // ratio defined as x/y; fetch as < Vector2f >
-        VARIABLE = 1 << 26,         // variable usage; fetch as < VariableUsagePtr >
+		VARIABLETERM = 1 << 26,     // variable term; fetch as < VariableTerm >
 
 		LENGTH = PX | DP | PPI_UNIT | EM | REM | VW | VH | X,
 		LENGTH_PERCENT = LENGTH | PERCENT,

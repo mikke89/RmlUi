@@ -75,7 +75,7 @@ bool Variant::GetInto(T& value) const
 	case ANIMATIONLIST: return TypeConverter<AnimationList, T>::Convert(*reinterpret_cast<const AnimationList*>(data), value);
 	case DECORATORSPTR: return TypeConverter<DecoratorsPtr, T>::Convert(*reinterpret_cast<const DecoratorsPtr*>(data), value);
 	case FONTEFFECTSPTR: return TypeConverter<FontEffectsPtr, T>::Convert(*reinterpret_cast<const FontEffectsPtr*>(data), value);
-    case VARIABLEUSAGE: return TypeConverter<VariableUsagePtr, T>::Convert(*reinterpret_cast<const VariableUsagePtr*>(data), value);
+    case VARIABLETERM: return TypeConverter<VariableTerm, T>::Convert(*reinterpret_cast<const VariableTerm*>(data), value);
 	case NONE: break;
 	}
 

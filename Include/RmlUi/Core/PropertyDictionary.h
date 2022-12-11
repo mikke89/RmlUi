@@ -31,6 +31,7 @@
 
 #include "Header.h"
 #include "Property.h"
+#include "PropertyIdSet.h"
 
 namespace Rml {
 
@@ -45,29 +46,33 @@ class RMLUICORE_API PropertyDictionary
 public:
 	PropertyDictionary();
 
-    /// Sets a property on the dictionary. Any existing property with the same id will be overwritten.
-    void SetProperty(PropertyId id, const Property& property);
-    /// Removes a property from the dictionary, if it exists.
-    void RemoveProperty(PropertyId id);
-    /// Returns the value of the property with the requested id, if one exists.
-    const Property* GetProperty(PropertyId id) const;
+	/// Sets a property on the dictionary. Any existing property with the same id will be overwritten.
+	void SetProperty(PropertyId id, const Property& property);
+	/// Removes a property from the dictionary, if it exists.
+	void RemoveProperty(PropertyId id);
+	/// Returns the value of the property with the requested id, if one exists.
+	const Property* GetProperty(PropertyId id) const;
 
-    /// Returns the number of properties in the dictionary.
-    int GetNumProperties() const;
-    /// Returns the map of properties in the dictionary.
-    const PropertyMap& GetProperties() const;
+	/// Returns the number of properties in the dictionary.
+	int GetNumProperties() const;
+	/// Returns the map of properties in the dictionary.
+	const PropertyMap& GetProperties() const;
 
-    /// Sets a variable on the dictionary. Any existing variable with the same name will be overwritten.
-    void SetVariable(String const& name, const Property& property);
-    /// Removes a variable from the dictionary, if it exists.
-    void RemoveVariable(String const& name);
-    /// Returns the value of the variable with the requested name, if one exists.
-    const Property* GetVariable(String const& name) const;
+	/// Sets a variable on the dictionary. Any existing variable with the same id will be overwritten.
+	void SetVariable(VariableId id, const Property& variable);
+	/// Removes a variable from the dictionary, if it exists.
+	void RemoveVariable(VariableId id);
+	/// Returns the value of the variable with the requested id, if one exists.
+	const Property* GetVariable(VariableId id) const;
 
-    /// Returns the number of variables in the dictionary.
-    int GetNumVariables() const;
-    /// Returns the map of properties in the dictionary.
-    const VariableMap& GetVariables() const;
+	// Register shorthand as dependent on variables
+	void SetDependent(ShorthandId shorthand_id, VariableTerm const& term);
+	void RemoveDependent(ShorthandId shorthand_id);
+
+	/// Returns the number of variables in the dictionary.
+	int GetNumVariables() const;
+	/// Returns the map of properties in the dictionary.
+	const VariableMap& GetVariables() const;
 
 	/// Imports into the dictionary, and optionally defines the specificity of, potentially
 	/// un-specified properties. In the case of id conflicts, the incoming properties will
@@ -88,14 +93,41 @@ public:
 	void SetSourceOfAllProperties(const SharedPtr<const PropertySource>& property_source);
 
 private:
+	struct DependentId
+	{
+		enum class Type : uint8_t {
+			Property,
+			Shorthand,
+			Variable
+		} type;
+		union {
+			PropertyId property;
+			ShorthandId shorthand;
+			VariableId variable;
+		} id;
+		
+		DependentId(PropertyId property_id);
+		DependentId(ShorthandId shorthand_id);		
+		DependentId(VariableId variable_id);
+	};
+	
 	// Sets a property on the dictionary and its specificity if there is no name conflict, or its
 	// specificity (given by the parameter, not read from the property itself) is at least equal to
 	// the specificity of the conflicting property.
 	void SetProperty(PropertyId id, const Property& property, int specificity);
-    void SetVariable(String const& name, const Property& property, int specificity);
+	void SetVariable(VariableId id, const Property& property, int specificity);
+	
+	// Rebuilds the variable dependency map from the dependent value lists
+	void RebuildDependencies();
 
 	PropertyMap properties;
-    VariableMap variables;
+	VariableMap variables;
+	
+	PropertyIdSet dependentProperties;
+	UnorderedSet<VariableId> dependentVariables;
+	UnorderedMap<ShorthandId, VariableTerm> dependentShorthands;
+	
+	UnorderedMultimap<VariableId, DependentId> dependencies;
 };
 
 } // namespace Rml

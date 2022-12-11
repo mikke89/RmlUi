@@ -92,6 +92,7 @@ enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
 enum class MediaQueryId : uint8_t;
 enum class FamilyId : int;
+enum class VariableId : Hash<String>::result_type;
 
 // Types for external interfaces.
 using FileHandle = uintptr_t;
@@ -113,7 +114,6 @@ using ElementAnimationList = Vector< ElementAnimation >;
 
 using AttributeNameList = SmallUnorderedSet< String >;
 using PropertyMap = UnorderedMap< PropertyId, Property >;
-using VariableMap = UnorderedMap< String, Property >;
 
 using Dictionary = SmallUnorderedMap< String, Variant >;
 using ElementAttributes = Dictionary;
@@ -137,11 +137,18 @@ using DataViewPtr = UniqueReleaserPtr<DataView>;
 class DataController;
 using DataControllerPtr = UniqueReleaserPtr<DataController>;
 
-struct VariableUsage {
-    String variable;
-    String fallback;
+struct VariableTermAtom {
+	VariableId variable;
+	String constant;
+	
+	bool operator==(VariableTermAtom const& o) const {
+		return variable == o.variable && o.constant == constant;
+	}
 };
-using VariableUsagePtr = SharedPtr<const VariableUsage>;
+
+using VariableTerm = Vector<VariableTermAtom>;
+using VariableMap = UnorderedMap< VariableId, Property >;
+using VariableDependentValuesMap = UnorderedMap< VariableId, Property >;
 
 } // namespace Rml
 

@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/ID.h"
 
 namespace Rml {
@@ -39,6 +40,21 @@ PropertyDictionary::PropertyDictionary()
 void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 {
 	RMLUI_ASSERT(id != PropertyId::Invalid);
+	
+	if (property.unit == Property::VARIABLETERM)
+	{
+		dependentProperties.Insert(id);
+		RebuildDependencies();			
+	}
+	else
+	{
+		if (dependentProperties.Contains(id))
+		{
+			dependentProperties.Erase(id);
+			RebuildDependencies();			
+		}
+	}
+	
 	properties[id] = property;
 }
 
@@ -47,6 +63,12 @@ void PropertyDictionary::RemoveProperty(PropertyId id)
 {
 	RMLUI_ASSERT(id != PropertyId::Invalid);
 	properties.erase(id);
+	
+	if (dependentProperties.Contains(id))
+	{
+		dependentProperties.Erase(id);
+		RebuildDependencies();
+	}
 }
 
 // Returns the value of the property with the requested name, if one exists.
@@ -68,54 +90,66 @@ int PropertyDictionary::GetNumProperties() const
 // Returns the map of properties in the dictionary.
 const PropertyMap& PropertyDictionary::GetProperties() const
 {
-    return properties;
+	return properties;
 }
 
-void PropertyDictionary::SetVariable(const String &name, const Property &property)
+void PropertyDictionary::SetVariable(VariableId id, const Property &property)
 {
-    RMLUI_ASSERT(!name.empty());
-    variables.insert_or_assign(name, property);
+	variables.insert_or_assign(id, property);
+	
+	// TODO: variables with dependencies
 }
 
-void PropertyDictionary::RemoveVariable(const String &name)
+void PropertyDictionary::RemoveVariable(VariableId id)
 {
-    RMLUI_ASSERT(!name.empty());
-    variables.erase(name);
+	variables.erase(id);
+	
+	// TODO: variables with dependencies
 }
 
-const Property *PropertyDictionary::GetVariable(const String &name) const
+const Property *PropertyDictionary::GetVariable(VariableId id) const
 {
-    VariableMap::const_iterator iterator = variables.find(name);
-    if (iterator == variables.end())
-        return nullptr;
+	VariableMap::const_iterator iterator = variables.find(id);
+	if (iterator == variables.end())
+		return nullptr;
+	
+	return &(*iterator).second;
+}
 
-    return &(*iterator).second;
+void PropertyDictionary::SetDependent(ShorthandId shorthand_id, const VariableTerm &term)
+{
+  // TODO shorthands with depenencies
+}
+
+void PropertyDictionary::RemoveDependent(ShorthandId shorthand_id)
+{
+	// TODO shorthands with depenencies
 }
 
 int PropertyDictionary::GetNumVariables() const
 {
-    return (int)variables.size();
+	return (int)variables.size();
 }
 
 const VariableMap &PropertyDictionary::GetVariables() const
 {
-    return variables;
+	return variables;
 }
 
 // Imports potentially un-specified properties into the dictionary.
 void PropertyDictionary::Import(const PropertyDictionary& other, int property_specificity)
 {
-    for (const auto& pair : other.properties)
-    {
-        const PropertyId id = pair.first;
-        const Property& property = pair.second;
-        SetProperty(id, property, property_specificity > 0 ? property_specificity : property.specificity);
-    }
+	for (const auto& pair : other.properties)
+	{
+		const PropertyId id = pair.first;
+		const Property& property = pair.second;
+		SetProperty(id, property, property_specificity > 0 ? property_specificity : property.specificity);
+	}
 
-    for (const auto& pair : other.variables)
-    {
-        SetVariable(pair.first, pair.second, property_specificity > 0 ? property_specificity : pair.second.specificity);
-    }
+	for (const auto& pair : other.variables)
+	{
+		SetVariable(pair.first, pair.second, property_specificity > 0 ? property_specificity : pair.second.specificity);
+	}
 }
 
 // Merges the contents of another fully-specified property dictionary with this one.
@@ -128,18 +162,18 @@ void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_
 		SetProperty(id, property, property.specificity + specificity_offset);
 	}
 
-    for (const auto& pair : other.variables)
-    {
-        SetVariable(pair.first, pair.second, pair.second.specificity + specificity_offset);
-    }
+	for (const auto& pair : other.variables)
+	{
+		SetVariable(pair.first, pair.second, pair.second.specificity + specificity_offset);
+	}
 }
 
 void PropertyDictionary::SetSourceOfAllProperties(const SharedPtr<const PropertySource>& property_source)
 {
-    for (auto& p : properties)
-        p.second.source = property_source;
-    for (auto& p : variables)
-        p.second.source = property_source;
+	for (auto& p : properties)
+		p.second.source = property_source;
+	for (auto& p : variables)
+		p.second.source = property_source;
 }
 
 // Sets a property on the dictionary and its specificity.
@@ -151,18 +185,47 @@ void PropertyDictionary::SetProperty(PropertyId id, const Property& property, in
 		return;
 
 	Property& new_property = (properties[id] = property);
-    new_property.specificity = specificity;
+	new_property.specificity = specificity;
 }
 
-void PropertyDictionary::SetVariable(const String &name, const Property &property, int specificity)
+void PropertyDictionary::SetVariable(VariableId id, const Property &variable, int specificity)
 {
-    VariableMap::iterator iterator = variables.find(name);
-    if (iterator != variables.end() &&
-        iterator->second.specificity > specificity)
-        return;
+	VariableMap::iterator iterator = variables.find(id);
+	if (iterator != variables.end() &&
+		iterator->second.specificity > specificity)
+		return;
 
-    Property& new_property = (variables[name] = property);
-    new_property.specificity = specificity;
+	Property& new_property = (variables[id] = variable);
+	new_property.specificity = specificity;
+}
+
+void PropertyDictionary::RebuildDependencies()
+{
+	dependencies.clear();
+	
+	for (auto id : dependentProperties)
+	{
+		auto const& term = properties.at(id).Get<VariableTerm>();
+		for (auto const& atom : term)
+		{
+			if (atom.variable != static_cast<VariableId>(0))
+			{
+				dependencies.insert(std::make_pair(atom.variable, DependentId(id)));
+			}
+		}
+	}
+}
+
+PropertyDictionary::DependentId::DependentId(PropertyId property_id) : type(Type::Property) {
+	id.property = property_id;
+}
+
+PropertyDictionary::DependentId::DependentId(ShorthandId shorthand_id) : type(Type::Shorthand) {
+	id.shorthand = shorthand_id;
+}
+
+PropertyDictionary::DependentId::DependentId(VariableId variable_id) : type(Type::Variable) {
+	id.variable = variable_id;
 }
 
 } // namespace Rml

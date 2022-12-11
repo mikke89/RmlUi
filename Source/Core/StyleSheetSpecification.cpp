@@ -38,7 +38,6 @@
 #include "PropertyParserKeyword.h"
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
-#include "PropertyParserVariable.h"
 #include "PropertyShorthandDefinition.h"
 #include "IdNameMap.h"
 
@@ -63,7 +62,6 @@ struct DefaultStyleSheetParsers {
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserRatio ratio = PropertyParserRatio();
 	PropertyParserNumber resolution = PropertyParserNumber(Property::X);
-	PropertyParserVariable variable = PropertyParserVariable();
 };
 
 StyleSheetSpecification::StyleSheetSpecification() : 
@@ -260,7 +258,6 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("transform", &default_parsers->transform);
 	RegisterParser("ratio", &default_parsers->ratio);
 	RegisterParser("resolution", &default_parsers->resolution);
-	RegisterParser("variable", &default_parsers->variable);
 }
 
 
