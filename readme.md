@@ -140,7 +140,7 @@ The provided backends on the other hand are not intended to be used directly by 
 | OpenGL 2 (GL2)    |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
 | OpenGL 3 (GL3)    |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
 | Vulkan (VK)       |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
-| SDLrenderer       |        ✔️       |    ❌    |      ❌    | Based on [SDL_image](https://www.libsdl.org/projects/SDL_image/docs/index.html) |
+| SDLrenderer       |        ✔️       |    ❌    |      ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2d-layouts.\
 **Stencil**: Enables proper clipping when transforms are enabled.\
