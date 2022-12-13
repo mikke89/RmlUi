@@ -155,6 +155,8 @@ void PropertyDictionary::Import(const PropertyDictionary& other, int property_sp
 	{
 		SetVariable(pair.first, pair.second, property_specificity > 0 ? property_specificity : pair.second.specificity);
 	}
+	
+	RebuildDependencies();
 }
 
 // Merges the contents of another fully-specified property dictionary with this one.
@@ -171,6 +173,8 @@ void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_
 	{
 		SetVariable(pair.first, pair.second, pair.second.specificity + specificity_offset);
 	}
+
+	RebuildDependencies();
 }
 
 void PropertyDictionary::SetSourceOfAllProperties(const SharedPtr<const PropertySource>& property_source)
@@ -191,6 +195,20 @@ void PropertyDictionary::SetProperty(PropertyId id, const Property& property, in
 
 	Property& new_property = (properties[id] = property);
 	new_property.specificity = specificity;
+	
+	if (new_property.unit == Property::VARIABLETERM)
+	{
+		dependentProperties.Insert(id);
+		RebuildDependencies();			
+	}
+	else
+	{
+		if (dependentProperties.Contains(id))
+		{
+			dependentProperties.Erase(id);
+			RebuildDependencies();			
+		}
+	}
 }
 
 void PropertyDictionary::SetVariable(VariableId id, const Property &variable, int specificity)
@@ -202,6 +220,8 @@ void PropertyDictionary::SetVariable(VariableId id, const Property &variable, in
 
 	Property& new_property = (variables[id] = variable);
 	new_property.specificity = specificity;
+	
+	// TODO: variables with dependencies
 }
 
 void PropertyDictionary::RebuildDependencies()
