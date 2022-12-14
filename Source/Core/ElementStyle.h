@@ -43,6 +43,24 @@ enum class RelativeTarget;
 enum class PseudoClassState : std::uint8_t { Clear = 0, Set = 1, Override = 2 };
 using PseudoClassMap = SmallUnorderedMap< String, PseudoClassState >;
 
+// Union helper type for value type ids
+struct DependentId
+{
+	enum class Type : uint8_t {
+		Property,
+		Shorthand,
+		Variable
+	} type;
+	union {
+		PropertyId property;
+		ShorthandId shorthand;
+		VariableId variable;
+	} id;
+	
+	DependentId(PropertyId property_id);
+	DependentId(ShorthandId shorthand_id);		
+	DependentId(VariableId variable_id);
+};
 
 /**
 	Manages an element's style and property information.
@@ -148,10 +166,10 @@ private:
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
 
-	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary & inline_properties, const ElementDefinition * definition);
-	static const Property* GetProperty(PropertyId id, const Element * element, const PropertyDictionary & inline_properties, const ElementDefinition * definition);
-	static void TransitionPropertyChanges(Element * element, PropertyIdSet & properties, const PropertyDictionary & inline_properties, const ElementDefinition * old_definition, const ElementDefinition * new_definition);
-
+	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary & inline_properties, const ElementDefinition * definition, const PropertyMap * resolved_properties);
+	static const Property* GetProperty(PropertyId id, const Element * element, const PropertyDictionary & inline_properties, const ElementDefinition * definition, const PropertyMap * resolved_properties);
+	static void TransitionPropertyChanges(Element * element, PropertyIdSet & properties, const PropertyDictionary & inline_properties, const ElementDefinition * old_definition, const ElementDefinition * new_definition, const PropertyMap * resolved_properties);
+		
 	// Element these properties belong to
 	Element* element;
 
@@ -160,12 +178,18 @@ private:
 	// This element's current pseudo-classes.
 	PseudoClassMap pseudo_classes;
 
+	PropertyMap resolved_properties;
+
+	PropertyIdSet dependent_properties;
+	UnorderedMultimap<VariableId, DependentId> dependencies;
+
 	// Any properties that have been overridden in this element.
 	PropertyDictionary inline_properties;
 	// The definition of this element, provides applicable properties from the stylesheet.
 	SharedPtr<const ElementDefinition> definition;
 
 	PropertyIdSet dirty_properties;
+	UnorderedSet<VariableId> dirty_variables;
 };
 
 } // namespace Rml

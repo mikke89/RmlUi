@@ -287,7 +287,10 @@ namespace Style {
 		LengthPercentage  row_gap()                    const { return LengthPercentage(rare.row_gap_type, rare.row_gap); }
 		LengthPercentage  column_gap()                 const { return LengthPercentage(rare.column_gap_type, rare.column_gap); }
 		float             scrollbar_margin()           const { return rare.scrollbar_margin; }
-		
+
+		// -- Variables --
+		VariableMap const& variables() const { return vars; }
+
 		// -- Assignment --
 		// Common
 		void width              (LengthPercentageAuto value) { common.width_type          = value.type; common.width_value          = value.value; }
@@ -364,6 +367,9 @@ namespace Style {
 		void image_color               (Colourb value)           { rare.image_color                = value; }
 		void scrollbar_margin          (float value)             { rare.scrollbar_margin           = value; }
 
+		// -- Variables --
+		VariableMap& variables() { return vars; }
+
 		// clang-format on
 
 		// -- Management --
@@ -395,6 +401,7 @@ namespace Style {
 		CommonValues common;
 		InheritedValues inherited;
 		RareValues rare;
+		VariableMap vars;
 	};
 
 } // namespace Style

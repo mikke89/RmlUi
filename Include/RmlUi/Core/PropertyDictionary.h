@@ -115,41 +115,14 @@ public:
 	void SetSourceOfAllProperties(const SharedPtr<const PropertySource>& property_source);
 
 private:
-	struct DependentId
-	{
-		enum class Type : uint8_t {
-			Property,
-			Shorthand,
-			Variable
-		} type;
-		union {
-			PropertyId property;
-			ShorthandId shorthand;
-			VariableId variable;
-		} id;
-		
-		DependentId(PropertyId property_id);
-		DependentId(ShorthandId shorthand_id);		
-		DependentId(VariableId variable_id);
-	};
-	
 	// Sets a property on the dictionary and its specificity if there is no name conflict, or its
 	// specificity (given by the parameter, not read from the property itself) is at least equal to
 	// the specificity of the conflicting property.
 	void SetProperty(PropertyId id, const Property& property, int specificity);
 	void SetVariable(VariableId id, const Property& property, int specificity);
 	
-	// Rebuilds the variable dependency map from the dependent value lists
-	void RebuildDependencies();
-
 	PropertyMap properties;
 	VariableMap variables;
-	
-	PropertyIdSet dependentProperties;
-	UnorderedSet<VariableId> dependentVariables;
-	UnorderedMap<ShorthandId, VariableTerm> dependentShorthands;
-	
-	UnorderedMultimap<VariableId, DependentId> dependencies;
 };
 
 } // namespace Rml

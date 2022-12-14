@@ -129,7 +129,7 @@ UniquePtr<StyleSheetNode> StyleSheetNode::DeepCopy(StyleSheetNode* in_parent) co
 void StyleSheetNode::BuildIndex(StyleSheetIndex& styled_node_index) const
 {
 	// If this has properties defined, then we insert it into the styled node index.
-	if (properties.GetNumProperties() > 0)
+	if (properties.GetNumProperties() > 0 || properties.GetNumVariables() > 0)
 	{
 		auto IndexInsertNode = [](StyleSheetIndex::NodeIndex& node_index, const String& key, const StyleSheetNode* node) {
 			StyleSheetIndex::NodeList& nodes = node_index[Hash<String>()(key)];

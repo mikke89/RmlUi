@@ -162,7 +162,7 @@ bool Rml::TypeConverter<VariableTerm, String>::Convert(const VariableTerm &src, 
 	{
 		if (it.variable != static_cast<VariableId>(0))
 		{
-	 		parts.push_back("var(--"+ GetVariableName(it.variable) +")");
+			parts.push_back("var(--"+ GetVariableName(it.variable) +")");
 		}
 		else
 		{

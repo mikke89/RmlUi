@@ -38,26 +38,11 @@ PropertyDictionary::PropertyDictionary()
 {
 }
 
-// Sets a property on the dictionary. Any existing property with a similar name will be overwritten.
+// Sets a property on the dictionary. Any existing property with the same id will be overwritten.
 void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 {
 	RMLUI_ASSERT(id != PropertyId::Invalid);
-	
 	properties[id] = property;
-
-	if (property.unit == Property::VARIABLETERM)
-	{
-		dependentProperties.Insert(id);
-		RebuildDependencies();			
-	}
-	else
-	{
-		if (dependentProperties.Contains(id))
-		{
-			dependentProperties.Erase(id);
-			RebuildDependencies();			
-		}
-	}
 }
 
 // Removes a property from the dictionary, if it exists.
@@ -65,12 +50,6 @@ void PropertyDictionary::RemoveProperty(PropertyId id)
 {
 	RMLUI_ASSERT(id != PropertyId::Invalid);
 	properties.erase(id);
-	
-	if (dependentProperties.Contains(id))
-	{
-		dependentProperties.Erase(id);
-		RebuildDependencies();
-	}
 }
 
 // Returns the value of the property with the requested name, if one exists.
@@ -155,8 +134,6 @@ void PropertyDictionary::Import(const PropertyDictionary& other, int property_sp
 	{
 		SetVariable(pair.first, pair.second, property_specificity > 0 ? property_specificity : pair.second.specificity);
 	}
-	
-	RebuildDependencies();
 }
 
 // Merges the contents of another fully-specified property dictionary with this one.
@@ -173,8 +150,6 @@ void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_
 	{
 		SetVariable(pair.first, pair.second, pair.second.specificity + specificity_offset);
 	}
-
-	RebuildDependencies();
 }
 
 void PropertyDictionary::SetSourceOfAllProperties(const SharedPtr<const PropertySource>& property_source)
@@ -195,20 +170,6 @@ void PropertyDictionary::SetProperty(PropertyId id, const Property& property, in
 
 	Property& new_property = (properties[id] = property);
 	new_property.specificity = specificity;
-	
-	if (new_property.unit == Property::VARIABLETERM)
-	{
-		dependentProperties.Insert(id);
-		RebuildDependencies();			
-	}
-	else
-	{
-		if (dependentProperties.Contains(id))
-		{
-			dependentProperties.Erase(id);
-			RebuildDependencies();			
-		}
-	}
 }
 
 void PropertyDictionary::SetVariable(VariableId id, const Property &variable, int specificity)
@@ -222,52 +183,6 @@ void PropertyDictionary::SetVariable(VariableId id, const Property &variable, in
 	new_property.specificity = specificity;
 	
 	// TODO: variables with dependencies
-}
-
-void PropertyDictionary::RebuildDependencies()
-{
-	dependencies.clear();
-	
-	for (auto iter = dependentProperties.begin(); iter != dependentProperties.end();)
-	{
-		auto prop = properties.find(*iter);
-		if (prop == properties.end())
-		{
-			RMLUI_ERRORMSG("Dependent property was not found");
-			iter = dependentProperties.Erase(iter);
-			continue;
-		}
-
-		if (prop->second.unit != Property::VARIABLETERM)
-		{
-			RMLUI_ERRORMSG("Dependent property was not of type VariableTerm");
-			iter = dependentProperties.Erase(iter);
-			continue;
-		}
-		
-		auto const& term = prop->second.Get<VariableTerm>();
-		for (auto const& atom : term)
-		{
-			if (atom.variable != static_cast<VariableId>(0))
-			{
-				dependencies.insert(std::make_pair(atom.variable, DependentId(*iter)));
-			}
-		}
-
-		++iter;
-	}
-}
-
-PropertyDictionary::DependentId::DependentId(PropertyId property_id) : type(Type::Property) {
-	id.property = property_id;
-}
-
-PropertyDictionary::DependentId::DependentId(ShorthandId shorthand_id) : type(Type::Shorthand) {
-	id.shorthand = shorthand_id;
-}
-
-PropertyDictionary::DependentId::DependentId(VariableId variable_id) : type(Type::Variable) {
-	id.variable = variable_id;
 }
 
 } // namespace Rml

@@ -96,7 +96,14 @@ static const String document_rml = R"(
 <rml>
 <head>
 	<style>
-		body {
+	body {
+		--color-var: #ffffff;
+	}
+	div {
+		
+			background-color: var(--color-var);
+	}
+		/*body {
 			--color-var: #ffffff;
 			--font-var: 20px bold serif;
 			--padding-var: 4px 5px;
@@ -104,12 +111,15 @@ static const String document_rml = R"(
 		}
 
 		div {
-			border: var(--recursive-border-var);
 			width: var(--missing-var, 500px);
-			background: var(--color-var);
+			background-color: var(--color-var);
 			padding: var(--padding-var);
 			font: var(--font-var);
 		}
+
+		p {
+			border: var(--recursive-border-var);
+		}*/
 	</style>
 </head>
 
