@@ -68,22 +68,22 @@ String Style::ComputedValues::cursor() const
 	return String();
 }
 
-float ResolveValue(Style::LengthPercentageAuto length, float base_value)
+float ResolveValueOr(Style::LengthPercentageAuto length, float base_value, float default_value)
 {
 	if (length.type == Style::LengthPercentageAuto::Length)
 		return length.value;
-	else if (length.type == Style::LengthPercentageAuto::Percentage)
+	else if (length.type == Style::LengthPercentageAuto::Percentage && base_value >= 0.f)
 		return length.value * 0.01f * base_value;
-	return 0.0f;
+	return default_value;
 }
 
-float ResolveValue(Style::LengthPercentage length, float base_value)
+float ResolveValueOr(Style::LengthPercentage length, float base_value, float default_value)
 {
 	if (length.type == Style::LengthPercentage::Length)
 		return length.value;
-	else if (length.type == Style::LengthPercentage::Percentage)
+	else if (length.type == Style::LengthPercentage::Percentage && base_value >= 0.f)
 		return length.value * 0.01f * base_value;
-	return 0.0f;
+	return default_value;
 }
 
 } // namespace Rml

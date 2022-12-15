@@ -33,7 +33,7 @@
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "Clock.h"
-#include "LayoutDetails.h"
+#include "Layout/LayoutDetails.h"
 
 namespace Rml {
 

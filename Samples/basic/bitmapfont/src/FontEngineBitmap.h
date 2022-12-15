@@ -51,14 +51,6 @@ struct BitmapGlyph {
 	Vector2f dimension = { 0, 0 };
 };
 
-struct FontMetrics {
-	int size = 0;
-	int x_height = 0;
-	int line_height = 0;
-	int baseline = 0;
-	float underline_position = 0, underline_thickness = 0;
-};
-
 // A mapping of characters to their glyphs.
 using FontGlyphs = Rml::UnorderedMap<Character, BitmapGlyph>;
 
@@ -68,7 +60,8 @@ using FontKerning = Rml::UnorderedMap<std::uint64_t, int>;
 
 class FontFaceBitmap {
 public:
-	FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, Texture texture, Vector2f texture_dimensions, FontGlyphs&& glyphs, FontKerning&& kerning);
+	FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, Texture texture, Vector2f texture_dimensions,
+		FontGlyphs&& glyphs, FontKerning&& kerning);
 
 	// Get width of string.
 	int GetStringWidth(const String& string, Character prior_character);
@@ -124,7 +117,7 @@ public:
 	String texture_name;
 	Vector2f texture_dimensions = { 0, 0 };
 
-	FontMetrics metrics;
+	FontMetrics metrics = {};
 	FontGlyphs glyphs;
 	FontKerning kerning;
 };

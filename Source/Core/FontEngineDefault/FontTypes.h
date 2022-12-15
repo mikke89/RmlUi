@@ -37,16 +37,6 @@ namespace Rml {
 
 using FontFaceHandleFreetype = uintptr_t;
 
-struct FontMetrics {
-	int size;
-	int x_height;
-	int line_height;
-	int baseline;
-
-	float underline_position;
-	float underline_thickness;
-};
-
 struct FaceVariation {
 	Style::FontWeight weight;
 	uint16_t width;

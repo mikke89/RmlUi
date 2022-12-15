@@ -27,15 +27,15 @@
  */
 
 #include "FontProvider.h"
-#include "FontFace.h"
-#include "FontFamily.h"
-#include "FreeTypeInterface.h"
-#include "../LayoutInlineBoxText.h"
 #include "../../../Include/RmlUi/Core/Core.h"
 #include "../../../Include/RmlUi/Core/FileInterface.h"
 #include "../../../Include/RmlUi/Core/Log.h"
 #include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
+#include "../ComputeProperty.h"
+#include "FontFace.h"
+#include "FontFamily.h"
+#include "FreeTypeInterface.h"
 #include <algorithm>
 
 namespace Rml {
@@ -217,7 +217,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 			FreeType::GetFaceStyle(ft_face, nullptr, nullptr, &weight);
 
 		const FontWeight variation_weight = (variation.weight == FontWeight::Auto ? weight : variation.weight);
-		const String font_face_description = FontFaceDescription(font_family, style, variation_weight);
+		const String font_face_description = GetFontFaceDescription(font_family, style, variation_weight);
 
 		if (!AddFace(ft_face, font_family, style, variation_weight, fallback_face, std::move(face_memory)))
 		{

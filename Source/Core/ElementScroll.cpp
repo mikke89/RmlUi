@@ -33,7 +33,7 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Factory.h"
-#include "LayoutDetails.h"
+#include "Layout/LayoutDetails.h"
 #include "WidgetScroll.h"
 
 namespace Rml {
@@ -91,6 +91,9 @@ void ElementScroll::DisableScrollbar(Orientation orientation)
 	{
 		scrollbars[orientation].element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 		scrollbars[orientation].enabled = false;
+
+		if (corner)
+			corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	}
 }
 
@@ -190,8 +193,7 @@ void ElementScroll::FormatScrollbars()
 	}
 
 	// Format the corner, if it is necessary.
-	if (scrollbars[0].enabled &&
-		scrollbars[1].enabled)
+	if (scrollbars[0].enabled && scrollbars[1].enabled)
 	{
 		CreateCorner();
 
@@ -202,11 +204,6 @@ void ElementScroll::FormatScrollbars()
 		corner->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
 		corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
-	}
-	else
-	{
-		if (corner != nullptr)
-			corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	}
 }
 

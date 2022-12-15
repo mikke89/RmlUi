@@ -1,0 +1,51 @@
+<rml>
+<head>
+	<title>CSS Display: Block box within inline</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css2/#box-gen" />
+	<meta name="description" content='"When an inline box contains an in-flow block-level box, the inline box (and its inline ancestors within the same line box) is broken around the block-level box (and any block-level siblings that are consecutive or separated only by collapsible whitespace and/or out-of-flow elements), splitting the inline box into two boxes (even if either side is empty), one on each side of the block-level box(es). The line boxes before the break and after the break are enclosed in anonymous block boxes, and the block-level box becomes a sibling of those anonymous boxes. When such an inline box is affected by relative positioning, any resulting translation also affects the block-level box contained in the inline box."' />
+	<style>
+
+	</style>
+</head>
+<body rmlui-debug-layout>
+
+<span id="wrap">
+	<span id="a">
+		<div id="block">Y</div>
+	</span>
+	<span id="b">Z</span>
+</span>
+
+<!--
+
+<span id="span">
+A
+<div id="div">B</div>
+C
+</span>
+
+<span id="span" style="text-align: center; border: 1px #000; background: #f00;">
+A<br/>B
+<div id="div">C LONG</div>
+D
+</span>
+
+<span id="wrap">
+	<span id="a">
+		<span id="block">Y</span>
+	</span>
+	<span id="b">Z</span>
+</span>
+
+<span id="wrap">
+This is anonymous text before the SPAN.
+<p id="p">This is the content of SPAN.</p>
+This is anonymous text after the SPAN.
+</span>
+
+<div id="outer">A<span id="inner">B</span>C</div>
+
+-->
+</body>
+</rml>

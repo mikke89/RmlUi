@@ -53,7 +53,7 @@
 #include "EventDispatcher.h"
 #include "EventSpecification.h"
 #include "ElementDecoration.h"
-#include "LayoutEngine.h"
+#include "Layout/LayoutEngine.h"
 #include "PluginRegistry.h"
 #include "PropertiesIterator.h"
 #include "Pool.h"
@@ -109,10 +109,8 @@ static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
 	visible(true), offset_fixed(false), absolute_offset_dirty(true), dirty_definition(false), dirty_child_definitions(false), dirty_animation(false),
-	dirty_transition(false), dirty_transform(false), dirty_perspective(false),
-
-	tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0),
-	content_box(0, 0)
+	dirty_transition(false), dirty_transform(false), dirty_perspective(false), tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0),
+	absolute_offset(0, 0), scroll_offset(0, 0)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;
@@ -410,23 +408,22 @@ Vector2f Element::GetAbsoluteOffset(Box::Area area)
 	{
 		absolute_offset_dirty = false;
 
-		if (offset_parent != nullptr)
+		if (offset_parent)
 			absolute_offset = offset_parent->GetAbsoluteOffset(Box::BORDER) + relative_offset_base + relative_offset_position;
 		else
 			absolute_offset = relative_offset_base + relative_offset_position;
 
-		// Add any parent scrolling onto our position as well. Could cache this if required.
 		if (!offset_fixed)
 		{
-			Element* scroll_parent = parent;
-			while (scroll_parent != nullptr)
-			{
-				absolute_offset -= (scroll_parent->scroll_offset + scroll_parent->content_offset);
-				if (scroll_parent == offset_parent)
-					break;
-				else
-					scroll_parent = scroll_parent->parent;
-			}
+			// Add any parent scrolling onto our position as well.
+			if (offset_parent)
+				absolute_offset -= offset_parent->scroll_offset;
+
+			// Finally, there may be relatively positioned elements between ourself and our containing block, add their relative offsets as well.
+			// TODO: Uhm, this doesn't really make sense for absolutely positioned boxes. But then again, if we have a
+			// relative parent, then that should be our containing block. So I guess its fine?
+			for (Element* relative_parent = parent; relative_parent && relative_parent != offset_parent; relative_parent = relative_parent->parent)
+				absolute_offset += relative_parent->relative_offset_position;
 		}
 	}
 
@@ -446,17 +443,11 @@ Box::Area Element::GetClientArea() const
 }
 
 // Sets the dimensions of the element's internal content.
-void Element::SetContentBox(Vector2f _content_offset, Vector2f _content_box)
+void Element::SetScrollableOverflowRectangle(Vector2f _scrollable_overflow_rectangle)
 {
-	if (content_offset != _content_offset ||
-		content_box != _content_box)
+	if (scrollable_overflow_rectangle != _scrollable_overflow_rectangle)
 	{
-		// Seems to be jittering a wee bit; might need to be looked at.
-		scroll_offset.x += (content_offset.x - _content_offset.x);
-		scroll_offset.y += (content_offset.y - _content_offset.y);
-
-		content_offset = _content_offset;
-		content_box = _content_box;
+		scrollable_overflow_rectangle = _scrollable_overflow_rectangle;
 
 		scroll_offset.x = Math::Min(scroll_offset.x, GetScrollWidth() - GetClientWidth());
 		scroll_offset.y = Math::Min(scroll_offset.y, GetScrollHeight() - GetClientHeight());
@@ -1011,13 +1002,13 @@ void Element::SetScrollTop(float scroll_top)
 // Gets the width of the scrollable content of the element; it includes the element padding but not its margin.
 float Element::GetScrollWidth()
 {
-	return Math::Max(content_box.x, GetClientWidth());
+	return Math::Max(scrollable_overflow_rectangle.x, GetClientWidth());
 }
 
 // Gets the height of the scrollable content of the element; it includes the element padding but not its margin.
 float Element::GetScrollHeight()
 {
-	return Math::Max(content_box.y, GetClientHeight());
+	return Math::Max(scrollable_overflow_rectangle.y, GetClientHeight());
 }
 
 // Gets the object representing the declarations of an element's style attributes.

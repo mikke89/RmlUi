@@ -84,7 +84,7 @@
 	<div class="clip-none">
 		Don't clip within a clipping parent using 'clip: none'.
 		LONG_WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORD
-		<div class="absolute close green">Should be visible</div>
+		<div class="absolute close green clip-none">Should be visible</div>
 	</div>
 </div>
 <div class="overflow relative clip-always">

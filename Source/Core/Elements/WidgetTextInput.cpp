@@ -34,6 +34,7 @@
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControl.h"
 #include "../../../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../../Include/RmlUi/Core/Input.h"
 #include "../../../Include/RmlUi/Core/Math.h"
@@ -977,13 +978,17 @@ void WidgetTextInput::FormatElement()
 			scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 	}
 
-	parent->SetContentBox(Vector2f(0, 0), content_area);
+	parent->SetScrollableOverflowRectangle(content_area);
 	scroll->FormatScrollbars();
 }
 
 Vector2f WidgetTextInput::FormatText(float height_constraint)
 {
 	Vector2f content_area(0, 0);
+
+	const FontFaceHandle font_handle = parent->GetFontFaceHandle();
+	if (!font_handle)
+		return content_area;
 
 	// Clear the old lines, and all the lines in the text elements.
 	lines.clear();
@@ -998,12 +1003,13 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 	// Determine the line-height of the text element.
 	const float line_height = parent->GetLineHeight();
+	const float font_baseline = GetFontEngineInterface()->GetFontMetrics(font_handle).ascent;
 	// When the selection contains endlines we expand the selection area by this width.
 	const int endline_selection_width = int(0.4f * parent->GetComputedValues().font_size());
 
 	const float client_width = parent->GetClientWidth();
 	int line_begin = 0;
-	Vector2f line_position(0, 0);
+	Vector2f line_position(0, font_baseline);
 	bool last_line = false;
 
 	// Keep generating lines until all the text content is placed.
@@ -1021,7 +1027,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		String line_content;
 
 		// Generate the next line.
-		last_line = text_element->GenerateLine(line_content, line.size, line_width, line_begin, client_width - cursor_size.x, 0, false, false);
+		last_line = text_element->GenerateLine(line_content, line.size, line_width, line_begin, client_width - cursor_size.x, 0, false, false, false);
 
 		// If this line terminates in a soft-return (word wrap), then the line may be leaving a space or two behind as an orphan. If so, we must
 		// append the orphan onto the line even though it will push the line outside of the input field's bounds.
@@ -1101,7 +1107,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			selection_vertices.resize(selection_vertices.size() + 4);
 			selection_indices.resize(selection_indices.size() + 6);
 			GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6],
-				line_position, selection_size, selection_colour, (int)selection_vertices.size() - 4);
+				line_position - Vector2f(0.f, font_baseline), selection_size, selection_colour, (int)selection_vertices.size() - 4);
 
 			line_position.x += selection_width;
 		}

@@ -28,8 +28,9 @@
 #ifndef RMLUI_CORE_FONTENGINEINTERFACE_H
 #define RMLUI_CORE_FONTENGINEINTERFACE_H
 
-#include "Header.h"
+#include "FontMetrics.h"
 #include "Geometry.h"
+#include "Header.h"
 #include "StyleTypes.h"
 #include "Types.h"
 
@@ -82,29 +83,10 @@ public:
 	/// @return A handle to the prepared font effects which will be used when generating geometry for a string.
 	virtual FontEffectsHandle PrepareFontEffects(FontFaceHandle handle, const FontEffectList &font_effects);
 
-	/// Should return the point size of this font face.
+	/// Should return the font metrics of the given font face.
 	/// @param[in] handle The font handle.
-	/// @return The face's point size.
-	virtual int GetSize(FontFaceHandle handle);
-	/// Should return the pixel height of a lower-case x in this font face.
-	/// @param[in] handle The font handle.
-	/// @return The height of a lower-case x.
-	virtual int GetXHeight(FontFaceHandle handle);
-	/// Should return the default height between this font face's baselines.
-	/// @param[in] handle The font handle.
-	/// @return The default line height.
-	virtual int GetLineHeight(FontFaceHandle handle);
-
-	/// Should return the font's baseline, as a pixel offset from the bottom of the font.
-	/// @param[in] handle The font handle.
-	/// @return The font's baseline.
-	virtual int GetBaseline(FontFaceHandle handle);
-
-	/// Should return the font's underline, as a pixel offset from the bottom of the font.
-	/// @param[in] handle The font handle.
-	/// @param[out] thickness The font's underline thickness in pixels.
-	/// @return The underline pixel offset.
-	virtual float GetUnderline(FontFaceHandle handle, float &thickness);
+	/// @return The face's metrics.
+	virtual const FontMetrics& GetFontMetrics(FontFaceHandle handle);
 
 	/// Called by RmlUi when it wants to retrieve the width of a string when rendered with this handle.
 	/// @param[in] handle The font handle.

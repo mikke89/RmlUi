@@ -30,6 +30,7 @@
 #define RMLUI_CORE_FONTENGINEDEFAULT_FREETYPEINTERFACE_H
 
 #include "FontTypes.h"
+#include "../../../Include/RmlUi/Core/FontMetrics.h"
 
 namespace Rml {
 

@@ -37,7 +37,7 @@
 #include "DocumentHeader.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
-#include "LayoutEngine.h"
+#include "Layout/LayoutEngine.h"
 #include "StreamFile.h"
 #include "StyleSheetFactory.h"
 #include "Template.h"

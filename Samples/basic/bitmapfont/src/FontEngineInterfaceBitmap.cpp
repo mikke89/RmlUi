@@ -67,35 +67,10 @@ FontEffectsHandle FontEngineInterfaceBitmap::PrepareFontEffects(FontFaceHandle /
 	return 0;
 }
 
-int FontEngineInterfaceBitmap::GetSize(FontFaceHandle handle)
+const FontMetrics& FontEngineInterfaceBitmap::GetFontMetrics(FontFaceHandle handle)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	return handle_bitmap->GetMetrics().size;
-}
-
-int FontEngineInterfaceBitmap::GetXHeight(FontFaceHandle handle)
-{
-	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	return handle_bitmap->GetMetrics().x_height;
-}
-
-int FontEngineInterfaceBitmap::GetLineHeight(FontFaceHandle handle)
-{
-	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	return handle_bitmap->GetMetrics().line_height;
-}
-
-int FontEngineInterfaceBitmap::GetBaseline(FontFaceHandle handle)
-{
-	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	return handle_bitmap->GetMetrics().baseline;
-}
-
-float FontEngineInterfaceBitmap::GetUnderline(FontFaceHandle handle, float& thickness)
-{
-	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	thickness = handle_bitmap->GetMetrics().underline_thickness;
-	return handle_bitmap->GetMetrics().underline_position;
+	return handle_bitmap->GetMetrics();
 }
 
 int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const String& string, Character prior_character)

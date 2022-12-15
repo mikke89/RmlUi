@@ -52,18 +52,8 @@ public:
 	/// Prepares for font effects by configuring a new, or returning an existing, layer configuration.
 	FontEffectsHandle PrepareFontEffects(FontFaceHandle, const FontEffectList& font_effects) override;
 
-	/// Returns the point size of this font face.
-	int GetSize(FontFaceHandle) override;
-	/// Returns the pixel height of a lower-case x in this font face.
-	int GetXHeight(FontFaceHandle) override;
-	/// Returns the default height between this font face's baselines.
-	int GetLineHeight(FontFaceHandle) override;
-
-	/// Returns the font's baseline, as a pixel offset from the bottom of the font.
-	int GetBaseline(FontFaceHandle) override;
-
-	/// Returns the font's underline, as a pixel offset from the bottom of the font.
-	float GetUnderline(FontFaceHandle, float& thickness) override;
+	/// Returns the font metrics of the given font face.
+	const FontMetrics& GetFontMetrics(FontFaceHandle handle) override;
 
 	/// Returns the width a string will take up if rendered with this handle.
 	int GetStringWidth(FontFaceHandle, const String& string, Character prior_character) override;

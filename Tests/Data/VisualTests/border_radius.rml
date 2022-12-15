@@ -40,6 +40,7 @@
 			border-color: #55f #f57 #55f #afa;
 			border-width: 5dp;
 			border-radius: 8dp;
+			padding: 8dp 0;
 		}
 	</style>
 </head>

@@ -62,6 +62,8 @@ Style::LengthPercentage ComputeMaxSize(const Property* property, float font_size
 
 uint16_t ComputeBorderWidth(float computed_length);
 
+String GetFontFaceDescription(const String& font_family, Style::FontStyle style, Style::FontWeight weight);
+
 extern const Style::ComputedValues DefaultComputedValues;
 
 } // namespace Rml

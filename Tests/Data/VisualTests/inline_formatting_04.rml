@@ -1,0 +1,66 @@
+<rml>
+<head>
+	<title>Inline formatting 04</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/css-inline-3/#line-boxes" />
+	<meta name="Description" content="Split line boxes." />
+	<style>
+		body {
+			padding: 0;
+			border: 12px #ddd;
+		}
+		hr {
+			clear: both;
+			margin: 15px;
+			display: block;
+		}
+		span { color: red; }
+		.wrap {
+			border: 8px #ee0;
+			background: #ada;
+			line-height: 3em;
+		}
+		.inner {
+			color: blue;
+			border: 15px #f663;
+			border-width: 5px 30px;
+		}
+	</style>
+</head>
+
+<body rmlui-debug-layout>
+
+<span><br/></span>
+
+<span class="wrap">
+	Before<span class="inner"> Inner </span>After
+</span>
+
+<hr/>
+
+<span class="wrap">
+	<span class="inner"><span class="inner">
+		<span class="inner">
+			<div>Y</div>
+		</span>
+		<span>Z</span>
+	</span></span>
+</span>
+
+<hr/>
+
+<span class="wrap">
+	<span class="inner"><br/></span>
+	<span>Z</span>
+</span>
+
+<hr/>
+
+<span class="wrap">
+	<span class="inner"><br/>Y</span>
+	<span>Z</span>
+</span>
+
+<handle size_target="#document"/>
+</body>
+</rml>
