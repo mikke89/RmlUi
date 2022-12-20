@@ -431,6 +431,7 @@ foreach(library ${LIBRARIES})
 		${MASTER_${library}_PUB_HDR_FILES}
 		${${library}_SRC_FILES}
 	)
+	add_library(RmlUi::${library} ALIAS ${NAME})
 
 	set_target_properties(${NAME} PROPERTIES
 	   VERSION ${PROJECT_VERSION}
