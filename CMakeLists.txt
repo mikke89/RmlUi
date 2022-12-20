@@ -1015,8 +1015,10 @@ if(PkgHelpers_AVAILABLE)
 		${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfig.cmake
 		INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
 		PATH_VARS INCLUDE_DIR CMAKE_CURRENT_BINARY_DIR)
-	export(TARGETS ${RMLUI_EXPORTED_TARGETS}
-		FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake")
+	if(NOT ${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
+		export(TARGETS ${RMLUI_EXPORTED_TARGETS}
+			FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake")
+	endif()
 	write_basic_package_version_file(
 		${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfigVersion.cmake
 		VERSION ${PROJECT_VERSION}
@@ -1027,3 +1029,4 @@ else()
 		" please update cmake to version which provides CMakePackageConfighelpers module"
 		" or write generators for RmlUiConfig.cmake by yourself.")
 endif()
+
