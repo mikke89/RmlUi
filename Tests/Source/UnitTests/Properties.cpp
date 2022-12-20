@@ -124,7 +124,7 @@ static const String document_rml = R"(
 </head>
 
 <body>
-<div></div>
+<div id="div"></div>
 </body>
 </rml>
 )";
@@ -138,10 +138,16 @@ TEST_CASE("Variables")
 	REQUIRE(document);
 	document->Show();
 
-	context->Update();
-	context->Render();
+	TestsShell::RenderLoop();
+
+	Element* element = document->GetElementById("div");
+	CHECK(element->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
+
+	document->SetVariable("color-var", "#000000");
 
 	TestsShell::RenderLoop();
+
+	CHECK(element->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,0,0,255)");
 
 	document->Close();
 

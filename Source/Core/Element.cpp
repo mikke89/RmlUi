@@ -761,6 +761,60 @@ PropertiesIteratorView Element::IterateLocalProperties() const
 	return PropertiesIteratorView(MakeUnique<PropertiesIterator>(meta->style.Iterate()));
 }
 
+bool Element::SetVariable(const String& name, const String& value)
+{
+	PropertyDictionary properties;
+	if (!StyleSheetSpecification::ParseVariableDeclaration(properties, "--" + name, value))
+	{
+		Log::Message(Log::LT_WARNING, "Syntax error parsing inline variable declaration '%s: %s;'.", name.c_str(), value.c_str());
+		return false;
+	}
+
+	for (auto const& it : properties.GetVariables())
+	{
+		return meta->style.SetVariable(it.first, it.second);
+	}
+}
+
+bool Element::SetVariable(VariableId id, const Property& variable)
+{
+	return meta->style.SetVariable(id, variable);
+}
+
+void Element::RemoveVariable(const String& name)
+{
+	meta->style.RemoveVariable(MakeVariableId(name));
+}
+
+void Element::RemoveVariable(VariableId id)
+{
+	meta->style.RemoveVariable(id);
+}
+
+const Property* Element::GetVariable(const String& name)
+{
+	return meta->style.GetVariable(MakeVariableId(name));
+}
+
+const Property* Element::GetVariable(VariableId id)
+{
+	return meta->style.GetVariable(id);
+}
+
+const Property* Element::GetLocalVariable(const String& name)
+{
+	return meta->style.GetLocalVariable(MakeVariableId(name));
+}
+
+const Property* Element::GetLocalVariable(VariableId id)
+{
+	return meta->style.GetLocalVariable(id);
+}
+
+const VariableMap& Element::GetLocalStyleVariables()
+{
+	return meta->style.GetLocalStyleVariables();
+}
 
 // Sets or removes a pseudo-class on the element.
 void Element::SetPseudoClass(const String& pseudo_class, bool activate)

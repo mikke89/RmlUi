@@ -113,22 +113,42 @@ public:
 	/// @param[in] name The name of the new property.
 	/// @param[in] property The parsed property to set.
 	bool SetProperty(PropertyId id, const Property& property);
+	/// Sets a local variable override on the element to a pre-parsed value.
+	/// @param[in] name The name of the new variable.
+	/// @param[in] property The parsed variable to set.
+	bool SetVariable(VariableId id, const Property& variable);
 	/// Removes a local property override on the element; its value will revert to that defined in
 	/// the style sheet.
-	/// @param[in] name The name of the local property definition to remove.
+	/// @param[in] id The id of the local property definition to remove.
 	void RemoveProperty(PropertyId id);
-	/// Returns one of this element's properties. If this element is not defined this property, or a parent cannot
+	/// Removes a local variable override on the element; its value will revert to that defined in
+	/// the style sheet.
+	/// @param[in] id The id of the local variable definition to remove.
+	void RemoveVariable(VariableId id);
+	/// Returns one of this element's properties. If this element is not defining this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
 	const Property* GetProperty(PropertyId id) const;
+	/// Returns one of this element's variables. If this element is not defining this variable, or a parent cannot
+	/// be found that we can inherit the variable from, the default value will be returned.
+	/// @param[in] name The id of the variable to fetch the value for.
+	/// @return The value of this variable for this element, or nullptr if no variable exists with the given id.
+	const Property* GetVariable(VariableId id) const;
 	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
 	/// returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(PropertyId id) const;
+	/// Returns one of this element's variables. If this element is not defined this property, nullptr will be
+	/// returned.
+	/// @param[in] name The id of the variable to fetch the value for.
+	/// @return The value of this variable for this element, or nullptr if this variable has not been explicitly defined for this element.
+	const Property* GetLocalVariable(VariableId id) const;
 	/// Returns the local style properties, excluding any properties from local class.
 	const PropertyMap& GetLocalStyleProperties() const;
+	/// Returns the local style variables, excluding any variables from local class.
+	const VariableMap& GetLocalStyleVariables() const;
 
 	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
 	/// @param[in] property The property to resolve the value for.
@@ -166,10 +186,17 @@ private:
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
 
-	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary & inline_properties, const ElementDefinition * definition, const PropertyMap * resolved_properties);
-	static const Property* GetProperty(PropertyId id, const Element * element, const PropertyDictionary & inline_properties, const ElementDefinition * definition, const PropertyMap * resolved_properties);
-	static void TransitionPropertyChanges(Element * element, PropertyIdSet & properties, const PropertyDictionary & inline_properties, const ElementDefinition * old_definition, const ElementDefinition * new_definition, const PropertyMap * resolved_properties);
-		
+	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary& local_properties, const ElementDefinition* definition);
+	static const Property* GetProperty(PropertyId id, const Element* element, const PropertyDictionary& local_properties,
+		const ElementDefinition* definition);
+
+	static const Property* GetLocalVariable(VariableId id, const PropertyDictionary& local_properties, const ElementDefinition* definition);
+	static const Property* GetVariable(VariableId id, const Element* element, const PropertyDictionary& local_properties,
+		const ElementDefinition* definition);
+
+	static void TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& local_properties,
+		const ElementDefinition* old_definition, const ElementDefinition* new_definition);
+
 	// Element these properties belong to
 	Element* element;
 
@@ -177,8 +204,9 @@ private:
 	StringList classes;
 	// This element's current pseudo-classes.
 	PseudoClassMap pseudo_classes;
-
-	PropertyMap resolved_properties;
+	
+	// Copy of all static inline properties as well as all computed dependent properties and variables
+	PropertyDictionary local_properties;
 
 	PropertyIdSet dependent_properties;
 	UnorderedMultimap<VariableId, DependentId> dependencies;

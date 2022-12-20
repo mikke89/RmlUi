@@ -261,7 +261,7 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 	Property new_property;
 	if (DetectVariableTerm(term, property_values))
 	{
-		new_property = Property(term, Property::VARIABLETERM);
+		new_property = Property(std::move(term), Property::VARIABLETERM);
 		new_property.definition = property_definition;
 		dictionary.SetProperty(property_id, new_property);
 		return true;
@@ -457,11 +457,23 @@ bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &diction
 	auto id = MakeVariableId(property_name.substr(2));
 
 	VariableTerm term;
-	if (!ParseVariableTerm(term, property_values))
+	bool any_variable;
+	if (!ParseVariableTerm(term, property_values, any_variable))
 		return false;
-
-	dictionary.SetVariable(id, Property(term, Property::VARIABLETERM));
-
+	
+	// Only store original variable term when there is another variable inside that needs resolving
+	if (any_variable)
+	{
+		dictionary.SetVariable(id, Property(std::move(term), Property::VARIABLETERM));
+	}
+	else
+	{
+		String joined;
+		for (int i = 0; i < term.size(); ++i)
+			joined += term[i].constant + " ";
+		
+		dictionary.SetVariable(id, Property(joined.substr(0, joined.size() - 1), Property::STRING));		
+	}		
 	return true;
 }
 
@@ -663,7 +675,8 @@ bool PropertySpecification::DetectVariableTerm(VariableTerm& term, const StringL
 		// not the prettiest condition, but the fastest, considering every property parameter token will pass through this
 		// checking for the pattern "var(...)"
 		if(it.length() > 4 && it[0] == 'v' && it[1] == 'a' && it[2] == 'r' && it[3] == '(' && it.back() == ')') {
-			ParseVariableTerm(term, values_list);
+			bool unused;
+			ParseVariableTerm(term, values_list, unused);
 			return true;
 		}
 	}
@@ -671,9 +684,10 @@ bool PropertySpecification::DetectVariableTerm(VariableTerm& term, const StringL
 	return false;
 }
 
-bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList const& values_list) const {
+bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList const& values_list, bool& any_variable) const {
 	static std::regex format_expression("var\\(\\s*--(\\S+)\\s*(?:,\\s*([^;]+?)\\s*)?\\)");
-
+	
+	any_variable = false;
 	for(auto const& it : values_list) {
 		std::smatch m;
 		VariableTermAtom a;
@@ -683,6 +697,7 @@ bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList con
 			{
 				a.constant = m[2].matched ? m[2].str() : "";
 				a.variable = MakeVariableId(m[1].str());
+				any_variable = true;
 			} 
 			else 
 			{
@@ -690,6 +705,7 @@ bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList con
 
 				// Bail out with empty variable term property value
 				term.clear();
+				any_variable = false;
 
 				return false;
 			}

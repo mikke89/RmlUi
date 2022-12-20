@@ -140,7 +140,7 @@ private:
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
 	// Check values for occurrence of variable term, in which case property parsing will be deferred to variable resolution time.
 	bool DetectVariableTerm(VariableTerm& term, StringList const& values_list) const;
-	bool ParseVariableTerm(VariableTerm& term, StringList const& values_list) const;
+	bool ParseVariableTerm(VariableTerm& term, StringList const& values_list, bool& any_variable) const;
 
 	friend class Rml::StyleSheetSpecification;
 };

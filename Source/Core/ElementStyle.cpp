@@ -83,18 +83,10 @@ ElementStyle::ElementStyle(Element* _element)
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition, const PropertyMap * resolved_properties)
+const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDictionary& local_properties, const ElementDefinition* definition)
 {
-	// Check for resolved local properties.
-	if(resolved_properties)
-	{
-		auto it = resolved_properties->find(id);
-		if (it != resolved_properties->end())
-			return &it->second;
-	}
-
 	// Check for overriding local properties.
-	const Property* property = inline_properties.GetProperty(id);
+	const Property* property = local_properties.GetProperty(id);
 	if (property)
 		return property;
 
@@ -106,9 +98,10 @@ const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDict
 }
 
 // Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(PropertyId id, const Element* element, const PropertyDictionary& inline_properties, const ElementDefinition* definition, const PropertyMap * resolved_properties)
+const Property* ElementStyle::GetProperty(PropertyId id, const Element* element, const PropertyDictionary& local_properties,
+	const ElementDefinition* definition)
 {
-	const Property* local_property = GetLocalProperty(id, inline_properties, definition, resolved_properties);
+	const Property* local_property = GetLocalProperty(id, local_properties, definition);
 	if (local_property)
 		return local_property;
 
@@ -135,9 +128,42 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 	return property->GetDefaultValue();
 }
 
+const Property* ElementStyle::GetLocalVariable(VariableId id, const PropertyDictionary& local_properties, const ElementDefinition* definition)
+{
+	// Check for overriding local variables.
+	const Property* variable = local_properties.GetVariable(id);
+	if (variable)
+		return variable;
+
+	// Check for a variable defined in an RCSS rule.
+	if (definition)
+		return definition->GetProperties().GetVariable(id);
+
+	return nullptr;
+}
+
+const Property* ElementStyle::GetVariable(VariableId id, const Element* element, const PropertyDictionary& local_properties,
+	const ElementDefinition* definition)
+{
+	const Property* local_variable = GetLocalVariable(id, local_properties, definition);
+	if (local_variable)
+		return local_variable;
+
+	Element* parent = element->GetParentNode();
+	while (parent)
+	{
+		const Property* parent_variable = parent->GetStyle()->GetLocalVariable(id);
+		if (parent_variable)
+			return parent_variable;
+
+		parent = parent->GetParentNode();
+	}
+}
+
 // Apply transition to relevant properties if a transition is defined on element.
 // Properties that are part of a transition are removed from the properties list.
-void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& inline_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition, const PropertyMap * resolved_properties)
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& local_properties,
+	const ElementDefinition* old_definition, const ElementDefinition* new_definition)
 {
 	RMLUI_ASSERT(element);
 	if (!old_definition || !new_definition || properties.Empty())
@@ -145,7 +171,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& pr
 
 	// We get the local property instead of the computed value here, because we want to intercept property changes even before the computed values are ready.
 	// Now that we have the concept of computed values, we may want do this operation directly on them instead.
-	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, inline_properties, new_definition, resolved_properties))
+	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, local_properties, new_definition))
 	{
 		if (transition_property->value.GetType() != Variant::TRANSITIONLIST)
 			return;
@@ -158,8 +184,8 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& pr
 
 			auto add_transition = [&](const Transition& transition) {
 				bool transition_added = false;
-				const Property* start_value = GetProperty(transition.id, element, inline_properties, old_definition, resolved_properties);
-				const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition, resolved_properties);
+				const Property* start_value = GetProperty(transition.id, element, local_properties, old_definition);
+				const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition);
 				if (start_value && target_value && (*start_value != *target_value))
 					transition_added = element->StartTransition(transition, *start_value, *target_value);
 				return transition_added;
@@ -228,7 +254,7 @@ void ElementStyle::UpdateDefinition()
 			}
 
 			// Transition changed properties if transition property is set
-			TransitionPropertyChanges(element, changed_properties, inline_properties, definition.get(), new_definition.get(), &resolved_properties);
+			TransitionPropertyChanges(element, changed_properties, local_properties, definition.get(), new_definition.get());
 		}
 
 		definition = new_definition;
@@ -356,6 +382,14 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 	return true;
 }
 
+bool ElementStyle::SetVariable(VariableId id, const Property& variable)
+{
+	inline_properties.SetVariable(id, variable);
+	dirty_variables.insert(id);
+
+	return true;
+}
+
 // Removes a local property override on the element.
 void ElementStyle::RemoveProperty(PropertyId id)
 {
@@ -366,23 +400,45 @@ void ElementStyle::RemoveProperty(PropertyId id)
 		DirtyProperty(id);
 }
 
+void ElementStyle::RemoveVariable(VariableId id)
+{
+	int size_before = inline_properties.GetNumVariables();
+	inline_properties.RemoveVariable(id);
 
+	if (inline_properties.GetNumVariables() != size_before)
+		dirty_variables.insert(id);
+}
 
 // Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(PropertyId id) const
 {
-	return GetProperty(id, element, inline_properties, definition.get(), &resolved_properties);
+	return GetProperty(id, element, local_properties, definition.get());
+}
+
+const Property* ElementStyle::GetVariable(VariableId id) const
+{
+	return GetVariable(id, element, local_properties, definition.get());
 }
 
 // Returns one of this element's properties.
 const Property* ElementStyle::GetLocalProperty(PropertyId id) const
 {
-	return GetLocalProperty(id, inline_properties, definition.get(), &resolved_properties);
+	return GetLocalProperty(id, local_properties, definition.get());
+}
+
+const Property* ElementStyle::GetLocalVariable(VariableId id) const
+{
+	return GetLocalVariable(id, local_properties, definition.get());
 }
 
 const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 {
-	return inline_properties.GetProperties();
+	return local_properties.GetProperties();
+}
+
+const VariableMap& ElementStyle::GetLocalStyleVariables() const
+{
+	return local_properties.GetVariables();
 }
 
 static float ComputeLength(const Property* property, Element* element)
@@ -522,7 +578,7 @@ PropertiesIterator ElementStyle::Iterate() const {
 	static_assert(__cplusplus >= 201402L, "C++14 or higher required, see comment.");
 #endif
 
-	const PropertyMap& property_map = inline_properties.GetProperties();
+	const PropertyMap& property_map = local_properties.GetProperties();
 	auto it_style_begin = property_map.begin();
 	auto it_style_end = property_map.end();
 
@@ -554,59 +610,35 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	for(auto id : dirty_properties)
 	{
 		// Exclude lookup of resolved values
-		if (auto value = GetLocalProperty(id, inline_properties, definition.get(), nullptr))
+		auto value = GetLocalProperty(id, local_properties, definition.get());
+		if (value && value->unit == Property::VARIABLETERM)
 		{
-			if (value->unit == Property::VARIABLETERM)
+			dependent_properties.Insert(id);
+			auto term = value->Get<VariableTerm>();
+			for (auto const& atom : term)
 			{
-				dependent_properties.Insert(id);
-				auto term = value->Get<VariableTerm>();
-				for(auto const& atom : term)
-				{
-					if(atom.variable != static_cast<VariableId>(0))
-						dependencies.insert(std::make_pair(atom.variable, id));
-				}
+				if (atom.variable != static_cast<VariableId>(0))
+					dependencies.insert(std::make_pair(atom.variable, id));
 			}
+
+			continue;
+		}
+
+		// fallthrough if property is either non-existant or non-dependent
+		dependent_properties.Erase(id);
+		for (auto iter = dependencies.begin(); iter != dependencies.end();)
+		{
+			if (iter->second.type == DependentId::Type::Property && iter->second.id.property == id)
+				iter = dependencies.erase(iter);
 			else
-			{
-				dependent_properties.Erase(id);
-				for(auto iter = dependencies.begin(); iter != dependencies.end();)
-				{
-					if (iter->second.type == DependentId::Type::Property && iter->second.id.property == id)
-						iter = dependencies.erase(iter);
-					else
-					 	++iter;
-				}
-			}
+				++iter;
 		}
 	}
 
 	if (!dirty_variables.empty())
 	{
-		// Inherit variables
-		auto& vars = values.variables();
-		// Variable inheritance order:
-		//  1. parent
-		//  2. own definition
-		//  3. own inline
-		for(auto const& id : dirty_variables) {
-			if (parent_values)
-			{
-				auto var = parent_values->variables().find(id);
-				if (var != parent_values->variables().end())
-					vars.insert_or_assign(id, var->second);
-			}
-
-			if (definition)
-			{
-				if (auto var = definition->GetProperties().GetVariable(id))
-					vars.insert_or_assign(id, *var);
-			}
-
-			if (auto var = inline_properties.GetVariable(id))
-				vars.insert_or_assign(id, *var);
-
-			// TODO: resolve variable values depending on other variables
-
+		for (auto const& id : dirty_variables)
+		{
 			// Mark affected properties as dirty
 			auto range = dependencies.equal_range(id);
 			for(auto iter = range.first; iter != range.second; ++iter)
@@ -625,7 +657,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 		dirty_variables.clear();
 	}
-	
+
 	if (dirty_properties.Empty())
 		return PropertyIdSet();
 
@@ -638,45 +670,56 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	//   4. Assign any local properties (from inline style or stylesheet)
 	//   5. Dirty properties in children that are inherited
 
-	auto const& vars = values.variables();
 	for (auto id : dirty_properties)
 	{
 		if (dependent_properties.Contains(id))
 		{
-			auto prop = GetLocalProperty(id, inline_properties, definition.get(), nullptr);
-			if (prop && prop->unit == Property::VARIABLETERM)
+			// explicitly uses inline_properties instead of local_properties to not retrieve computed values
+			auto prop = GetLocalProperty(id, inline_properties, definition.get());
+			if (prop)
 			{
-				StringList atoms;
-				auto term = prop->Get<VariableTerm>();
-				for(auto const& atom : term)
+				if (prop->unit == Property::VARIABLETERM)
 				{
-					auto var = (atom.variable == static_cast<VariableId>(0)) ? vars.end() : vars.find(atom.variable);
-					if (var != vars.end())
+					StringList atoms;
+					auto term = prop->Get<VariableTerm>();
+					for (auto const& atom : term)
 					{
-						RMLUI_ASSERTMSG(var->second.unit != Property::VARIABLETERM, "Variable has not been resolved");
-						atoms.push_back(var->second.ToString());
+						auto var = atom.variable == static_cast<VariableId>(0) ? nullptr : GetVariable(atom.variable);
+						if (var)
+						{
+							RMLUI_ASSERTMSG(var->unit != Property::VARIABLETERM, "Variable has not been resolved");
+							atoms.push_back(var->ToString());
+						}
+						else
+						{
+							atoms.push_back(atom.constant);
+						}
 					}
-					else
+
+					String value;
+					StringUtilities::JoinString(value, atoms);
+					const PropertyDefinition* definition = StyleSheetSpecification::GetProperty(id);
+					if (!definition)
+						continue;
+
+					Property result;
+					if (!definition->ParseValue(result, value))
 					{
-						atoms.push_back(atom.constant);
+						Log::Message(Log::LT_ERROR, "Invalid variable-resolved value for property '%s': '%s'",
+							StyleSheetSpecification::GetPropertyName(id).c_str(), value.c_str());
+						continue;
 					}
+
+					local_properties.SetProperty(id, result);
 				}
-
-				String value;
-				StringUtilities::JoinString(value, atoms);
-				const PropertyDefinition* definition = StyleSheetSpecification::GetProperty(id);
-				if (!definition)
-					continue;
-
-				Property result;
-				if (!definition->ParseValue(result, value))
+				else
 				{
-					Log::Message(Log::LT_ERROR, "Invalid variable-resolved value for property '%s': '%s'", 
-								 StyleSheetSpecification::GetPropertyName(id).c_str(), value.c_str());
-					continue;
+					local_properties.SetProperty(id, *prop);
 				}
-
-				resolved_properties[id] = result;
+			}
+			else
+			{
+				local_properties.RemoveProperty(id);
 			}
 		}
 	}

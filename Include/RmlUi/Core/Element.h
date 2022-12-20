@@ -220,16 +220,16 @@ public:
 	/// @param[in] name The name of the local property definition to remove.
 	void RemoveProperty(const String& name);
 	void RemoveProperty(PropertyId id);
-	/// Returns one of this element's properties. If the property is not defined for this element and not inherited 
+	/// Returns one of this element's properties. If the property is not defined for this element and not inherited
 	/// from an ancestor, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
-	const Property* GetProperty(const String& name);		
-	const Property* GetProperty(PropertyId id);		
-	/// Returns the values of one of this element's properties.		
+	const Property* GetProperty(const String& name);
+	const Property* GetProperty(PropertyId id);
+	/// Returns the values of one of this element's properties.
 	/// @param[in] name The name of the property to get.
 	/// @return The value of this property.
-	template < typename T >
+	template <typename T>
 	T GetProperty(const String& name);
 	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
 	/// returned.
@@ -246,7 +246,7 @@ public:
 	/// @param[in] property The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the number or percentage value, if applicable.
 	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
-	float ResolveNumericProperty(const Property *property, float base_value);
+	float ResolveNumericProperty(const Property* property, float base_value);
 	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
 	/// Numbers and percentages are scaled according to the relative target of the property definition.
 	/// @param[in] name The property to resolve the value for.
@@ -273,17 +273,57 @@ public:
 	/// If an animation of the same property name exists, it will be replaced.
 	/// If start_value is null, the current property value on this element is used.
 	/// @return True if a new animation was added.
-	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
+	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1,
+		bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
 
 	/// Add a key to an animation, extending its duration.
 	/// If no animation exists for the given property name, the call will be ignored.
 	/// @return True if a new animation key was added.
 	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
-	
+
 	/// Iterator for the local (non-inherited) properties defined on this element.
 	/// @warning Modifying the element's properties or classes invalidates the iterator.
 	/// @return Iterator to the first property defined on this element.
 	PropertiesIteratorView IterateLocalProperties() const;
+	///@}
+
+	/** @name Variables
+	 */
+	//@{
+	/// Sets a local variable override on the element.
+	/// @param[in] name The name of the new variable.
+	/// @param[in] value The new variable to set.
+	/// @return True if the variable parsed successfully, false otherwise.
+	bool SetVariable(const String& name, const String& value);
+	/// Sets a local variable override on the element to a pre-parsed value.
+	/// @param[in] name The name of the new variable.
+	/// @param[in] variable The parsed variable to set.
+	/// @return True if the variable was set successfully, false otherwise.
+	bool SetVariable(VariableId id, const Property& variable);
+	/// Removes a local variable override on the element; its value will revert to that defined in the style sheet.
+	/// @param[in] name The name of the local variable definition to remove.
+	void RemoveVariable(const String& name);
+	void RemoveVariable(VariableId id);
+	/// Returns one of this element's variables. If the variable is not defined for this element and not inherited
+	/// from an ancestor, the default value will be returned.
+	/// @param[in] name The name of the variable to fetch the value for.
+	/// @return The value of this variable for this element, or nullptr if no variable exists with the given name.
+	const Property* GetVariable(const String& name);
+	const Property* GetVariable(VariableId id);
+	/// Returns the values of one of this element's variables.
+	/// @param[in] name The name of the variable to get.
+	/// @return The value of this variable.
+	template <typename T>
+	T GetVariable(const String& name);
+	/// Returns one of this element's variables. If this element is not defined this variable, nullptr will be
+	/// returned.
+	/// @param[in] name The name of the variable to fetch the value for.
+	/// @return The value of this variable for this element, or nullptr if this variable has not been explicitly defined for this element.
+	const Property* GetLocalVariable(const String& name);
+	const Property* GetLocalVariable(VariableId id);
+	/// Returns the local style variables, excluding any variables from local class.
+	/// @return The local variables for this element, or nullptr if no variables defined
+	const VariableMap& GetLocalStyleVariables();
 	///@}
 
 	/** @name Pseudo-classes

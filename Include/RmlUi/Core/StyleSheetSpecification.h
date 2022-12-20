@@ -98,10 +98,9 @@ public:
 	/// @param[in] dictionary The property dictionary which will hold all declared properties.
 	/// @param[in] property_name The name of the declared property.
 	/// @param[in] property_value The values the property is being set to.
-	/// @param[in] source_file The file where this property was declared. Used for error reporting, debugging and relative paths for referenced assets.
-	/// @param[in] line_number The location of the source file where this property was declared. Used for error reporting and debugging.
 	/// @return True if all properties were parsed successfully, false otherwise.
 	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value);
+	static bool ParseVariableDeclaration(PropertyDictionary& dictionary, const String& variable_name, const String& variable_value);
 
 	static PropertyId GetPropertyId(const String& property_name);
 	static ShorthandId GetShorthandId(const String& shorthand_name);
