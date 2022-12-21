@@ -158,6 +158,8 @@ const Property* ElementStyle::GetVariable(VariableId id, const Element* element,
 
 		parent = parent->GetParentNode();
 	}
+
+	return nullptr;
 }
 
 // Apply transition to relevant properties if a transition is defined on element.
