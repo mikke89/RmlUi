@@ -469,7 +469,7 @@ bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &diction
 	else
 	{
 		String joined;
-		for (int i = 0; i < term.size(); ++i)
+		for (int i = 0; i < (int)term.size(); ++i)
 			joined += term[i].constant + " ";
 		
 		dictionary.SetVariable(id, Property(joined.substr(0, joined.size() - 1), Property::STRING));		
