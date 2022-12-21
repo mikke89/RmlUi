@@ -43,6 +43,9 @@
 #if defined RMLUI_PLATFORM_EMSCRIPTEN
 	#define RMLUI_SHADER_HEADER "#version 300 es\nprecision highp float;\n"
 	#include <GLES3/gl3.h>
+#elif defined RMLUI_GL3_CUSTOM_LOADER
+	#define RMLUI_SHADER_HEADER "#version 330\n"
+	#include RMLUI_GL3_CUSTOM_LOADER
 #else
 	#define RMLUI_SHADER_HEADER "#version 330\n"
 	#define GLAD_GL_IMPLEMENTATION
@@ -103,7 +106,7 @@ enum class VertexAttribute { Position, Color0, TexCoord0, Count };
 static const char* const vertex_attribute_names[(size_t)VertexAttribute::Count] = {"inPosition", "inColor0", "inTexCoord0"};
 
 struct CompiledGeometryData {
-	GLuint texture;
+	Rml::TextureHandle texture;
 	GLuint vao;
 	GLuint vbo;
 	GLuint ibo;
@@ -412,7 +415,7 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* ve
 	Gfx::CheckGLError("CompileGeometry");
 
 	Gfx::CompiledGeometryData* geometry = new Gfx::CompiledGeometryData;
-	geometry->texture = (GLuint)texture;
+	geometry->texture = texture;
 	geometry->vao = vao;
 	geometry->vbo = vbo;
 	geometry->ibo = ibo;
@@ -428,7 +431,8 @@ void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle han
 	if (geometry->texture)
 	{
 		glUseProgram(shaders->program_texture.id);
-		glBindTexture(GL_TEXTURE_2D, geometry->texture);
+		if (geometry->texture != TextureEnableWithoutBinding)
+			glBindTexture(GL_TEXTURE_2D, (GLuint)geometry->texture);
 		SubmitTransformUniform(ProgramId::Texture, shaders->program_texture.uniform_locations[(size_t)Gfx::ProgramUniform::Transform]);
 		glUniform2fv(shaders->program_texture.uniform_locations[(size_t)Gfx::ProgramUniform::Translate], 1, &translation.x);
 	}
@@ -676,7 +680,7 @@ bool RmlGL3::Initialize(Rml::String* out_message)
 #if defined RMLUI_PLATFORM_EMSCRIPTEN
 	if (out_message)
 		*out_message = "Started Emscripten WebGL renderer.";
-#else
+#elif !defined RMLUI_GL3_CUSTOM_LOADER
 	const int gl_version = gladLoaderLoadGL();
 	if (gl_version == 0)
 	{
@@ -694,7 +698,7 @@ bool RmlGL3::Initialize(Rml::String* out_message)
 
 void RmlGL3::Shutdown()
 {
-#if !defined RMLUI_PLATFORM_EMSCRIPTEN
+#if !defined RMLUI_PLATFORM_EMSCRIPTEN && !defined RMLUI_GL3_CUSTOM_LOADER
 	gladLoaderUnloadGL();
 #endif
 }

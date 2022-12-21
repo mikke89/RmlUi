@@ -1,3 +1,4 @@
+* [RmlUi 5.0](#rmlui-50)
 * [RmlUi 4.4](#rmlui-44)
 * [RmlUi 4.3](#rmlui-43)
 * [RmlUi 4.2](#rmlui-42)
@@ -9,32 +10,46 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
-## RmlUi 5.0 (WIP)
+## RmlUi 5.0
 
 ### Backends
 
-RmlUi 5.0 introduces the backends concept. This is a complete refactoring of the old sample shell, replacing most of it with a multitude of backends. A backend is a combination of a renderer and a platform. The shell is now only used for common functions specific to the included samples.
+RmlUi 5.0 introduces the backends concept. This is a complete refactoring of the old sample shell, replacing most of it with a multitude of backends. A backend is a combination of a renderer and a platform, and a light interface tying them together. The shell is now only used for common functions specific to the included samples.
 
 This change is beneficial in several aspects:
 
-- Makes it easier to integrate RmlUi as users can directly use the renderer and platform suited for their setup.
+- Makes it easier to integrate RmlUi, as users can directly use the renderer and platform suited for their setup.
 - Makes it a lot easier to add new backends and maintain existing ones.
 - Allows all the samples to run on any backend by choosing the desired backend during CMake configuration.
 
 All samples and tests have been updated to work with the [backends interface](Backends/RmlUi_Backend.h), which is a very light abstraction over all the different backends.
 
-The following new renderers and platforms are added:
+The following renderers and platforms are included:
 
 - A new OpenGL 3 renderer. #261
   - Including Emscripten support so RmlUi even runs in web browsers now.
-- A new Vulkan renderer. #236 #328 #360 (thanks @wh1t3lord)
+- A new Vulkan renderer. #236 #328 #360 #385 (thanks @wh1t3lord)
 - A new GLFW platform.
-- The OpenGL 2 and SDL native renderers are ported over from the old samples.
-- The Win32, X11, SFML, and SDL platforms are ported over from the old samples.
+- The OpenGL 2 and SDL native renderers ported from the old samples.
+- The Win32, X11, SFML, and SDL platforms ported from the old samples.
 
 The old macOS shell has been removed as it used a legacy API that is no longer working on modern Apple devices. Now the samples build again on macOS using one of the windowing libraries such as GLFW or SDL.
 
-See the [Backends section in the readme](readme.md#rmlui-backends) for all the combinations of renderers and platforms, and more details.
+See the [Backends section in the readme](readme.md#rmlui-backends) for all the combinations of renderers and platforms, and more details. The backend used for running the samples can be selected by setting the CMake option `SAMPLES_BACKEND` to any of the [supported backends](readme.md#rmlui-backends).
+
+### RCSS selectors
+
+- Implemented the next-sibling `+` and subsequent-sibling `~` [combinators](https://mikke89.github.io/RmlUiDoc/pages/rcss/selectors.html).
+- Implemented attribute selectors `[foo]`, `[foo=bar]`, `[foo~=bar]`, `[foo|=bar]`, `[foo^=bar]`, `[foo$=bar]`, `[foo*=bar]`. #240 (thanks @aquawicket)
+- Implemented the negation pseudo class `:not()`, including support for selector lists `E:not(s1, s2, ...)`.
+- Refactored structural pseudo classes for improved performance.
+- Selectors will no longer match any text elements, like in CSS.
+- Selectors now correctly consider all paths toward the root, not just the first greedy path.
+- Structural selectors are no longer affected by the element's display property, like in CSS.
+
+### RCSS properties
+
+- `max-width` and `max-height` properties now support the `none` keyword.
 
 ### Text editing
 
@@ -48,38 +63,19 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - Fixed operation of page up/down numpad keys being swapped.
 - The input method editor (IME) is now positioned at the caret during text editing on the Windows backend. #303 #305 (thanks @xland)
 - Fix slow input handling especially with CJK input on the Win32 backend. #311
-- Improve performance on construction and during text editing.
+- Improve performance on document load and during text editing.
 
-### RCSS selectors
+### Elements
 
-- Implemented the next-sibling `+` and subsequent-sibling `~` [combinators](https://mikke89.github.io/RmlUiDoc/pages/rcss/selectors.html).
-- Implemented attribute selectors `[foo]`, `[foo=bar]`, `[foo~=bar]`, `[foo|=bar]`, `[foo^=bar]`, `[foo$=bar]`, `[foo*=bar]`. #240 (thanks @aquawicket)
-- Implemented the negation pseudo class `:not()`, including support for selector lists `E:not(s1, s2, ...)`.
-- Refactored structural pseudo classes for improved performance.
-- Selectors will no longer match any text elements, like in CSS.
-- Selectors more correctly consider all paths toward the root, not just the first greedy path.
-- Structural selectors are no longer affected by the element's display property, like in CSS.
-
-### RCSS properties
-
-- `max-width` and `max-height` properties now support the `none` keyword.
+- Extend the functionality of `Element::ScrollIntoView`. #353 (thanks @eugeneko)
+- `<img>` element: Fix wrong dp-scaling being applied when an image is cloned through a parent element. #310
+- `<handle>` element: Fix move targets changing size when placed using the `top`/`right`/`bottom`/`left` properties.
 
 ### Data binding
 
 - Transform functions can now be called using C-like calling conventions, in addition to the previous pipe-syntax. Thus, the data expression `3.625 | format(2)` can now be identically expressed as `format(3.625, 2)`.
-
-### Lua plugin
-
-- Add `QuerySelector` and `QuerySelectorAll` to the Lua Element API. #329 (thanks @Dakror)
-- Lua objects representing C++ pointers now compare equal if they point to the same object. #330 (thanks @Dakror)
-- Add length to proxy for element children. #315 (thanks @nimble0)
-- Fix crash in Lua plugin during garbage collection. #340 (thanks @slipher)
-
-### Layout improvements
-
-- Scroll and slider elements now use containing block's height instead of width to calculate height-relative values. #314 #321 (thanks @nimble0)
-- Generate warnings when directly nesting flexboxes and other unsupported elements in a top-level formatting context. #320
-- In some situations, changing the `top`/`right`/`bottom`/`left` properties may affect the element's size. These situations are now correctly handled and the layout is updated when needed.
+- Handle null pointers when trying to access data variables. #377 (thanks @Dakror)
+- Enable registering a custom data variable definition. #367 (thanks @Dakror)
 
 ### Context input
 
@@ -88,19 +84,56 @@ The `<textarea>` and `<input type="text">` elements have been improved in severa
 - When `Context::ProcessMouseMove()` is called next the context update will start updating hover states again.
 - Added support for mouse leave events on all backends.
 
+### Layout improvements
+
+- Scroll and slider elements now use containing block's height instead of width to calculate height-relative values. #314 #321 (thanks @nimble0)
+- Generate warnings when directly nesting flexboxes and other unsupported elements in a top-level formatting context. #320
+- In some situations, changing the `top`/`right`/`bottom`/`left` properties may affect the element's size. These situations are now correctly handled so that the layout is updated when needed.
+
+### Lua plugin
+
+- Add `QuerySelector` and `QuerySelectorAll` to the Lua Element API. #329 (thanks @Dakror)
+- Add input-related methods and `dp_ratio` to the Lua Context API. #381 #386 (thanks @shubin)
+- Lua objects representing C++ pointers now compare equal if they point to the same object. #330 (thanks @Dakror)
+- Add length to proxy for element children. #315 (thanks @nimble0)
+- Fix a crash in the Lua plugin during garbage collection. #340 (thanks @slipher)
+
+### Debugger plugin
+
+- Show a more descriptive name for children in the element info window.
+- Fixed a crash when the debugger plugin was shutdown manually. #322 #323 (thanks @LoneBoco)
+
+### SVG plugin
+
+- Update texture when the `src` attribute changes. #361
+
+### General improvements
+
+- Small performance improvement when generating font effects.
+- Allow empty values in decorators and font-effects.
+- RCSS located within document `<style>` tags can now take comments containing xml tags. #341
+- Improve in-source function documentation. #334 (thanks @hobyst)
+- Invader sample: Rename event listener and instancer for clarity.
+
 ### General fixes
 
 - Font textures are no longer being regenerated when encountering new ascii characters, fixes a recent regression.
-- `<img>` element: Fix wrong dp-scaling being applied when an image is cloned through a parent element. #310
 - Logging a message without an installed system interface will now be written to cout instead of crashing the application.
-- Fixed a crash when the debugger plugin was shutdown manually. #322 #323 (thanks @LoneBoco)
+- Fix several static analyzer warnings and one possible case of undefined behavior.
+- SDL renderer: Fix images with no alpha channel not rendering. #239
+
+### Build fixes
+
 - Fix compilation on Emscripten CI. #335 (thanks @hobyst)
+- Fix compilation with EASTL. #350 (thanks @eugeneko)
 
 ### Breaking changes
 
 - Changed the signature of the keyboard activation in the system interface, it now passes the caret position and line height: `SystemInterface::ActivateKeyboard(Rml::Vector2f caret_position, float line_height)`.
+- Mouse and hover behavior may change in some situations as a result of the hover state automatically being updated on `Context::Update()`, even if the mouse is not moved. See above changes to context input.
 - Removed the boolean result returned from `Rml::Debugger::Shutdown()`.
-- RCSS selectors will no longer match text elements, structural pseudo selectors are no longer affected by the element's display property.
+- RCSS selectors will no longer match text elements.
+- RCSS structural pseudo selectors are no longer affected by the element's display property.
 - Data binding: The signature of transform functions has been changed from `Variant& first_argument_and_result, const VariantList& other_arguments -> bool success` to `const VariantList& arguments -> Variant result`.
 
 

@@ -341,6 +341,32 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 
 			m_is_use_stencil_pipeline = true;
 
+#ifdef RMLUI_DEBUG
+			VkDebugUtilsLabelEXT info{};
+			info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+			info.color[0] = 1.0f;
+			info.color[1] = 1.0f;
+			info.color[2] = 0.0f;
+			info.color[3] = 1.0f;
+			info.pLabelName = "SetScissorRegion (generated region)";
+
+			vkCmdInsertDebugUtilsLabelEXT(m_p_current_command_buffer, &info);
+#endif
+
+			VkClearDepthStencilValue info_clear_color{};
+
+			info_clear_color.depth = 1.0f;
+			info_clear_color.stencil = 0;
+
+			VkImageSubresourceRange info_range{};
+			info_range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+			info_range.baseMipLevel = 0;
+			info_range.baseArrayLayer = 0;
+			info_range.levelCount = 1;
+			info_range.layerCount = 1;
+
+			vkCmdClearDepthStencilImage(m_p_current_command_buffer, m_texture_depthstencil.m_p_vk_image, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &info_clear_color, 1, &info_range);
+
 			RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
 
 			m_is_use_stencil_pipeline = false;
@@ -353,6 +379,18 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 			m_scissor.extent.height = height;
 			m_scissor.offset.x = static_cast<int32_t>(std::abs(x));
 			m_scissor.offset.y = static_cast<int32_t>(std::abs(y));
+
+#ifdef RMLUI_DEBUG
+			VkDebugUtilsLabelEXT info{};
+			info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+			info.color[0] = 1.0f;
+			info.color[1] = 0.0f;
+			info.color[2] = 0.0f;
+			info.color[3] = 1.0f;
+			info.pLabelName = "SetScissorRegion (offset)";
+
+			vkCmdInsertDebugUtilsLabelEXT(m_p_current_command_buffer, &info);
+#endif
 
 			vkCmdSetScissor(m_p_current_command_buffer, 0, 1, &m_scissor);
 		}
@@ -852,6 +890,10 @@ void RenderInterface_VK::Initialize_Device() noexcept
 	Rml::Vector<const char*> device_extension_names;
 	AddExtensionToDevice(device_extension_names, device_extension_properties, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	AddExtensionToDevice(device_extension_names, device_extension_properties, VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
+
+#ifdef RMLUI_DEBUG
+	AddExtensionToDevice(device_extension_names, device_extension_properties, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
 
 	float queue_priorities[1] = {0.0f};
 
@@ -2041,6 +2083,37 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 
 	status = vkCreateGraphicsPipelines(m_p_device, nullptr, 1, &info, nullptr, &m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn);
 	RMLUI_VK_ASSERTMSG(status == VkResult::VK_SUCCESS, "failed to vkCreateGraphicsPipelines");
+
+#ifdef RMLUI_DEBUG
+	VkDebugUtilsObjectNameInfoEXT info_debug = {};
+
+	info_debug.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	info_debug.pObjectName = "pipeline_stencil for region where geometry will be drawn";
+	info_debug.objectType = VkObjectType::VK_OBJECT_TYPE_PIPELINE;
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_without_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_without_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+
+	info_debug.pObjectName = "pipeline_with_textures";
+	info_debug.objectHandle = (uint64_t)m_p_pipeline_with_textures;
+
+	vkSetDebugUtilsObjectNameEXT(m_p_device, &info_debug);
+#endif
 }
 
 void RenderInterface_VK::CreateSwapchainFrameBuffers() noexcept

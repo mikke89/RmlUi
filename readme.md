@@ -1,6 +1,6 @@
 ﻿# RmlUi - The HTML/CSS User Interface Library Evolved
 
-![RmlUi](https://github.com/mikke89/RmlUiDoc/raw/cc01edd834b003df6c649967bfd552bb0acc3d1e/assets/rmlui.png)
+![RmlUi logo](https://github.com/mikke89/RmlUiDoc/raw/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/rmlui.png)
 
 RmlUi - now with added boosters taking control of the rocket, targeting *your* games and applications.
 
@@ -12,7 +12,7 @@ RmlUi - now with added boosters taking control of the rocket, targeting *your* g
 
 RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements. 
 
-RmlUi aims at being a light-weight and performant library with its own layouting engine and few dependencies. In essence, RmlUi takes your HTML/CSS-like source files and turns them into vertices, indices and draw commands, and then you bring your own renderer to draw them. And of course there is full access to the element hierarchy/DOM, event handling, and all the interactivity and customizability you would expect. All of this directly from C++, or optionally from scripting languages using plugins. The core library compiles down to fractions of the size it takes to integrate a fully fledged web browser as other libraries do in this space. 
+RmlUi aims at being a light-weight and performant library with its own layouting engine and few dependencies. In essence, RmlUi takes your HTML/CSS-like source files and turns them into vertices, indices and draw commands, and then you bring your own renderer to draw them. And of course there is full access to the element hierarchy/DOM, event handling, and all the interactivity and customizability you would expect. All of this directly from C++, or optionally from scripting languages using plugins. The core library compiles down to fractions of the size it takes to integrate a fully fledged web browser. 
 
 RmlUi is based around the XHTML1 and CSS2 standards while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Take a look at the [conformance](#conformance) and [enhancements](#enhancements) sections below for details.
 
@@ -101,7 +101,7 @@ cd RmlUi
 cmake -B Build -S . -DBUILD_SAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake"
 cmake --build Build
 ```
-Make sure to replace the path to vcpkg.
+Make sure to replace the path to vcpkg. When this completes, feel free to test the freshly built samples, such as the `invader` sample, and enjoy! The executables should be located somewhere in the `Build` directory.
 
 #### Conan
 
@@ -110,10 +110,10 @@ RmlUi is readily available from [ConanCenter](https://conan.io/center/rmlui).
 
 ## Integrating RmlUi
 
-Here are the general steps to integrate the library into a C++ application, have a look at the [documentation](https://mikke89.github.io/RmlUiDoc/) for details.
+Here are the general steps to integrate the library into a C++ application, have a look at the [integration documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/integrating.html) for details.
 
-1. Build RmlUi as above or fetch the binaries, and [link it up](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/integrating.html) to your application.
-2. Implement the abstract [system interface](Include/RmlUi/Core/SystemInterface.h) and [render interface](Include/RmlUi/Core/RenderInterface.h).
+1. Build RmlUi as above or fetch the binaries, and [link it up](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/integrating.html#setting-up-the-build-environment) to your application.
+2. Implement the abstract [system interface](Include/RmlUi/Core/SystemInterface.h) and [render interface](Include/RmlUi/Core/RenderInterface.h), or fetch one of the backends listed below.
 3. Initialize RmlUi with the interfaces, create a context, provide font files, and load a document.
 4. Call into the context's update and render methods in a loop, and submit input events.
 5. Compile and run!
@@ -123,29 +123,27 @@ Several [samples](Samples/) demonstrate everything from basic integration to mor
 
 ## RmlUi Backends
 
-***Note: The backends concept is work-in-progress for RmlUi 5.0, everything here is subject to change and documentation is being worked on.***
-
-RmlUi comes with [many backends](Backends/) adding support for several renderers and platforms. The following terms are used here:
+To ease the integration of RmlUi, the library includes [many backends](Backends/) adding support for common renderers and platforms. The following terms are used here:
 
 - ***Renderer***: Implements the [render interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/render) for a given rendering API, and provides initialization code when necessary.
 - ***Platform***: Implements the [system interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/system.html) for a given platform (operating system or window library), and adds procedures for providing input to RmlUi contexts.
-- ***Backend***: Combines a renderer and a platform for a complete solution sample, implementing the basic [Backend interface](Backends/RmlUi_Backend.h).
+- ***Backend***: Combines a renderer and a platform for a complete windowing framework sample, implementing the basic [Backend interface](Backends/RmlUi_Backend.h).
 
-The provided renderers and platforms are intended to be usable as-is by client projects without modifications. We encourage users to only make changes here when they are useful to all users, and then contribute back to the project. Feedback is welcome, and finding the proper abstraction level is a work-in-progress. The provided system and render interfaces are designed such that they can be derived from and further customized by the backend or end user.
+The provided renderers and platforms are intended to be usable as-is by client projects without modifications, thereby circumventing the need to write custom interfaces. We encourage users to only make changes here when they are useful to all users, and then contribute back to the project. However, if they do not meet your needs it is also possible to copy them into your project for modifications. Feedback is welcome to find the proper abstraction level. The provided system and render interfaces are designed such that they can be derived from and further customized by the backend or end user.
 
-The provided backends on the other hand are not intended to be used directly by client projects, but rather copied and modified as needed. They are intentionally light-weight and implement just enough functionality to make the [included samples](Samples/) run, while being simple to understand and build upon by users.
+The provided backends on the other hand are not intended to be used directly by client projects, but rather copied and modified as needed. They are intentionally light-weight and implement just enough functionality to make the [included samples](Samples/) run, while being simple to understand and build upon by users. See the manual for [backend integration details](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/integrating.html#backends).
 
 ### Renderers
 
 | Renderer features | Basic rendering | Stencil | Transforms | Built-in image support                                                          |
 |-------------------|:---------------:|---------|:----------:|---------------------------------------------------------------------------------|
-| OpenGL 2          |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
-| OpenGL 3          |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
-| Vulkan            |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
+| OpenGL 2 (GL2)    |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
+| OpenGL 3 (GL3)    |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
+| Vulkan (VK)       |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
 | SDLrenderer       |        ✔️       |    ❌    |      ❌    | Based on [SDL_image](https://www.libsdl.org/projects/SDL_image/docs/index.html) |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2d-layouts.\
-**Stencil**: Enables proper clipping when the `border-radius` property is set, and when transforms are enabled.\
+**Stencil**: Enables proper clipping when transforms are enabled.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
 **Built-in image support**: This only shows the supported formats built-in to the renderer, users are encouraged to derive from and extend the render interface to add support for their desired image formats.
 
@@ -171,9 +169,13 @@ The provided backends on the other hand are not intended to be used directly by 
 | X11                 |     ✔️     |           |          |             |
 | SFML                |     ✔️     |           |          |             |
 | GLFW                |     ✔️     |     ✔️    |     ✔️    |             |
-| SDL                 |     ✔️     |     ✔️¹   |     ✔️    |      ✔️     |
+| SDL¹                |     ✔️     |     ✔️²   |     ✔️    |      ✔️     |
 
-¹ Supports Emscripten compilation target.
+¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
+² Supports Emscripten compilation target.
+
+When building the samples, the backend can be selected by setting the CMake option `SAMPLES_BACKEND` to `<Platform>_<RendererShorthand>` for any of the above supported combinations of platforms and renderers, such as `SDL_GL3`.
+
 
 ## Example document
 
@@ -357,6 +359,9 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 **Sandbox from the 'demo' sample, try it yourself!**\
 ![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png)
+
+**Visual testing framework**\
+![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png)
 
 **Transitions on mouse hover (entirely in RCSS)**\
 ![Transition](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transition.gif)  

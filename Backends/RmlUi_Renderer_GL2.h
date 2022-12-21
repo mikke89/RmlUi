@@ -65,6 +65,7 @@ public:
 private:
 	int viewport_width = 0;
 	int viewport_height = 0;
+	bool transform_enabled = false;
 };
 
 #endif

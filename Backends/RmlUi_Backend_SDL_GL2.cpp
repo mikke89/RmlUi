@@ -79,35 +79,41 @@ public:
 		size_t buffer_size = file_interface->Tell(file_handle);
 		file_interface->Seek(file_handle, 0, SEEK_SET);
 
-		char* buffer = new char[buffer_size];
-		file_interface->Read(buffer, buffer_size, file_handle);
+		Rml::UniquePtr<char[]> buffer(new char[buffer_size]);
+		file_interface->Read(buffer.get(), buffer_size, file_handle);
 		file_interface->Close(file_handle);
 
 		const size_t i = source.rfind('.');
 		Rml::String extension = (i == Rml::String::npos ? Rml::String() : source.substr(i + 1));
 
-		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer, int(buffer_size)), 1, extension.c_str());
+		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
+		if (!surface)
+			return false;
 
-		bool success = false;
-
-		if (surface)
+		if (surface->format->Amask == 0)
 		{
-			SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-			if (texture)
-			{
-				texture_handle = (Rml::TextureHandle)texture;
-				texture_dimensions = Rml::Vector2i(surface->w, surface->h);
-				success = true;
-			}
-
+			// Fix for rendering images with no alpha channel, see https://github.com/mikke89/RmlUi/issues/239
+			SDL_Surface* converted_surface = SDL_ConvertSurfaceFormat(surface, SDL_PixelFormatEnum::SDL_PIXELFORMAT_RGBA32, 0);
 			SDL_FreeSurface(surface);
+
+			if (!converted_surface)
+				return false;
+
+			surface = converted_surface;
 		}
 
-		delete[] buffer;
+		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+		if (texture)
+		{
+			texture_handle = (Rml::TextureHandle)texture;
+			texture_dimensions = Rml::Vector2i(surface->w, surface->h);
+		}
 
-		return success;
+		SDL_FreeSurface(surface);
+
+		return true;
 	}
+
 	bool GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override
 	{
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
