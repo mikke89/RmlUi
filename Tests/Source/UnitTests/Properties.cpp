@@ -143,11 +143,13 @@ TEST_CASE("Variables")
 	Element* element = document->GetElementById("div");
 	CHECK(element->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
 
-	document->SetVariable("color-var", "#000000");
+	element->SetVariable("color-var", "#000000");
 
 	TestsShell::RenderLoop();
 
 	CHECK(element->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,0,0,255)");
+	CHECK(element->GetVariable("color-var")->ToString() == "#000000");
+	CHECK(document->GetVariable("color-var")->ToString() == "#ffffff");
 
 	document->Close();
 

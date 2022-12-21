@@ -610,7 +610,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	for(auto id : dirty_properties)
 	{
 		// Exclude lookup of resolved values
-		auto value = GetLocalProperty(id, local_properties, definition.get());
+		auto value = GetLocalProperty(id, inline_properties, definition.get());
 		if (value && value->unit == Property::VARIABLETERM)
 		{
 			dependent_properties.Insert(id);
@@ -645,6 +645,23 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			{
 				if (iter->second.type == DependentId::Type::Property)
 					dirty_properties.Insert(iter->second.id.property);
+			}
+
+			auto value = GetLocalVariable(id, inline_properties, definition.get());
+			if (value)
+			{
+				if (value->unit == Property::VARIABLETERM)
+				{
+					RMLUI_ASSERTMSG(value->unit != Property::VARIABLETERM, "Dependent variables not supported yet");
+				}
+				else
+				{
+					local_properties.SetVariable(id, *value);
+				}
+			}
+			else
+			{
+				local_properties.RemoveVariable(id);
 			}
 		}
 
