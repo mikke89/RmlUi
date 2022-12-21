@@ -264,8 +264,12 @@ void ElementStyle::UpdateDefinition()
 		DirtyProperties(changed_properties);
 
 		// Dirty all variables
-		for(auto const& it : new_definition->GetProperties().GetVariables()) {
-			dirty_variables.insert(it.first);
+		if (new_definition) 
+		{
+			for(auto const& it : new_definition->GetProperties().GetVariables()) 
+			{
+				dirty_variables.insert(it.first);
+			}
 		}
 	}
 }
@@ -379,6 +383,8 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 		return false;
 
 	inline_properties.SetProperty(id, new_property);
+
+	UpdateLocalProperty(id);
 	DirtyProperty(id);
 
 	return true;
@@ -397,6 +403,7 @@ void ElementStyle::RemoveProperty(PropertyId id)
 {
 	int size_before = inline_properties.GetNumProperties();
 	inline_properties.RemoveProperty(id);
+	UpdateLocalProperty(id);
 
 	if(inline_properties.GetNumProperties() != size_before)
 		DirtyProperty(id);
@@ -580,7 +587,7 @@ PropertiesIterator ElementStyle::Iterate() const {
 	static_assert(__cplusplus >= 201402L, "C++14 or higher required, see comment.");
 #endif
 
-	const PropertyMap& property_map = local_properties.GetProperties();
+	const PropertyMap& property_map = inline_properties.GetProperties();
 	auto it_style_begin = property_map.begin();
 	auto it_style_end = property_map.end();
 
@@ -592,6 +599,44 @@ PropertiesIterator ElementStyle::Iterate() const {
 		it_definition_end = definition_properties.end();
 	}
 	return PropertiesIterator(it_style_begin, it_style_end, it_definition, it_definition_end);
+}
+
+void ElementStyle::UpdateLocalProperty(PropertyId id)
+{
+	auto property = GetLocalProperty(id);
+	if (property)
+	{
+		if (property->unit == Property::VARIABLETERM)
+		{
+			local_properties.RemoveProperty(id);
+			dependent_properties.Insert(id);
+			auto term = property->Get<VariableTerm>();
+			for (auto const& atom : term)
+			{
+				if (atom.variable != static_cast<VariableId>(0))
+					dependencies.insert(std::make_pair(atom.variable, id));
+			}
+
+			return;
+		}
+		else
+		{
+			local_properties.SetProperty(id, *property);
+		}
+	}
+
+	// fallthrough if property is either non-existant or non-dependent
+	if (dependent_properties.Contains(id))
+	{
+		dependent_properties.Erase(id);
+		for (auto iter = dependencies.begin(); iter != dependencies.end();)
+		{
+			if (iter->second.type == DependentId::Type::Property && iter->second.id.property == id)
+				iter = dependencies.erase(iter);
+			else
+				++iter;
+		}
+	}
 }
 
 // Sets a single property as dirty.
@@ -608,35 +653,6 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 
 PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions)
 {
-	// check dirty properties for being dependent on variables, update dependencies map
-	for(auto id : dirty_properties)
-	{
-		// Exclude lookup of resolved values
-		auto value = GetLocalProperty(id, inline_properties, definition.get());
-		if (value && value->unit == Property::VARIABLETERM)
-		{
-			dependent_properties.Insert(id);
-			auto term = value->Get<VariableTerm>();
-			for (auto const& atom : term)
-			{
-				if (atom.variable != static_cast<VariableId>(0))
-					dependencies.insert(std::make_pair(atom.variable, id));
-			}
-
-			continue;
-		}
-
-		// fallthrough if property is either non-existant or non-dependent
-		dependent_properties.Erase(id);
-		for (auto iter = dependencies.begin(); iter != dependencies.end();)
-		{
-			if (iter->second.type == DependentId::Type::Property && iter->second.id.property == id)
-				iter = dependencies.erase(iter);
-			else
-				++iter;
-		}
-	}
-
 	if (!dirty_variables.empty())
 	{
 		for (auto const& id : dirty_variables)

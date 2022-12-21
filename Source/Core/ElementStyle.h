@@ -183,6 +183,7 @@ public:
 	PropertiesIterator Iterate() const;
 
 private:
+	void UpdateLocalProperty(PropertyId id);
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
 
