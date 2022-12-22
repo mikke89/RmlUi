@@ -52,6 +52,20 @@
 
 namespace Rml {
 
+#ifndef NDEBUG
+static inline void verifyEquality(PropertyDictionary const& inline_properties, PropertyDictionary const& local_properties)
+{
+	for (auto const& it : inline_properties.GetProperties())
+	{
+		auto other = local_properties.GetProperty(it.first);
+		RMLUI_ASSERTMSG(other, "Missing property");
+	}
+}
+	#define VERIFY_PROPERTYMAP_EQUALITY verifyEquality(inline_properties, local_properties)
+#else
+	#define VERIFY_PROPERTYMAP_EQUALITY
+#endif
+
 // Bitwise operations on the PseudoClassState.
 inline PseudoClassState operator|(PseudoClassState lhs, PseudoClassState rhs)
 {
@@ -60,21 +74,6 @@ inline PseudoClassState operator|(PseudoClassState lhs, PseudoClassState rhs)
 inline PseudoClassState operator&(PseudoClassState lhs, PseudoClassState rhs)
 {
 	return PseudoClassState(int(lhs) & int(rhs));
-}
-
-DependentId::DependentId(PropertyId property_id) : type(Type::Property)
-{
-	id.property = property_id;
-}
-
-DependentId::DependentId(ShorthandId shorthand_id) : type(Type::Shorthand) 
-{
-	id.shorthand = shorthand_id;
-}
-
-DependentId::DependentId(VariableId variable_id) : type(Type::Variable) 
-{
-	id.variable = variable_id;
 }
 
 ElementStyle::ElementStyle(Element* _element)
@@ -384,8 +383,10 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 
 	inline_properties.SetProperty(id, new_property);
 
-	UpdateLocalProperty(id);
+	UpdateLocalProperty(id, true);
 	DirtyProperty(id);
+
+	VERIFY_PROPERTYMAP_EQUALITY;
 
 	return true;
 }
@@ -403,10 +404,12 @@ void ElementStyle::RemoveProperty(PropertyId id)
 {
 	int size_before = inline_properties.GetNumProperties();
 	inline_properties.RemoveProperty(id);
-	UpdateLocalProperty(id);
+	UpdateLocalProperty(id, true);
 
 	if(inline_properties.GetNumProperties() != size_before)
 		DirtyProperty(id);
+
+	VERIFY_PROPERTYMAP_EQUALITY;
 }
 
 void ElementStyle::RemoveVariable(VariableId id)
@@ -587,7 +590,7 @@ PropertiesIterator ElementStyle::Iterate() const {
 	static_assert(__cplusplus >= 201402L, "C++14 or higher required, see comment.");
 #endif
 
-	const PropertyMap& property_map = inline_properties.GetProperties();
+	const PropertyMap& property_map = local_properties.GetProperties();
 	auto it_style_begin = property_map.begin();
 	auto it_style_end = property_map.end();
 
@@ -601,9 +604,9 @@ PropertiesIterator ElementStyle::Iterate() const {
 	return PropertiesIterator(it_style_begin, it_style_end, it_definition, it_definition_end);
 }
 
-void ElementStyle::UpdateLocalProperty(PropertyId id)
+void ElementStyle::UpdateLocalProperty(PropertyId id, bool inline_only)
 {
-	auto property = GetLocalProperty(id);
+	auto property = inline_only ? inline_properties.GetProperty(id) : GetLocalProperty(id, inline_properties, definition.get());
 	if (property)
 	{
 		if (property->unit == Property::VARIABLETERM)
@@ -623,6 +626,10 @@ void ElementStyle::UpdateLocalProperty(PropertyId id)
 		{
 			local_properties.SetProperty(id, *property);
 		}
+	}
+	else
+	{
+		local_properties.RemoveProperty(id);
 	}
 
 	// fallthrough if property is either non-existant or non-dependent
@@ -653,6 +660,11 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 
 PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions)
 {
+	for (auto id : dirty_properties)
+	{
+		UpdateLocalProperty(id, false);
+	}
+
 	if (!dirty_variables.empty())
 	{
 		for (auto const& id : dirty_variables)

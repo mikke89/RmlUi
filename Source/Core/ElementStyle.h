@@ -56,9 +56,9 @@ struct DependentId
 		ShorthandId shorthand;
 		VariableId variable;
 	} id;
-	
+
 	DependentId(PropertyId property_id);
-	DependentId(ShorthandId shorthand_id);		
+	DependentId(ShorthandId shorthand_id);
 	DependentId(VariableId variable_id);
 };
 
@@ -183,7 +183,7 @@ public:
 	PropertiesIterator Iterate() const;
 
 private:
-	void UpdateLocalProperty(PropertyId id);
+	void UpdateLocalProperty(PropertyId id, bool inline_only);
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
 
