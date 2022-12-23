@@ -30,9 +30,10 @@
 #define RMLUI_CORE_ELEMENTSTYLE_H
 
 #include "../../Include/RmlUi/Core/ComputedValues.h"
-#include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../Include/RmlUi/Core/Types.h"
+#include "ResolvedPropertiesDictionary.h"
 
 namespace Rml {
 
@@ -42,25 +43,6 @@ enum class RelativeTarget;
 
 enum class PseudoClassState : std::uint8_t { Clear = 0, Set = 1, Override = 2 };
 using PseudoClassMap = SmallUnorderedMap< String, PseudoClassState >;
-
-// Union helper type for value type ids
-struct DependentId
-{
-	enum class Type : uint8_t {
-		Property,
-		Shorthand,
-		Variable
-	} type;
-	union {
-		PropertyId property;
-		ShorthandId shorthand;
-		VariableId variable;
-	} id;
-
-	DependentId(PropertyId property_id);
-	DependentId(ShorthandId shorthand_id);
-	DependentId(VariableId variable_id);
-};
 
 /**
 	Manages an element's style and property information.
@@ -183,20 +165,21 @@ public:
 	PropertiesIterator Iterate() const;
 
 private:
-	void UpdateLocalProperty(PropertyId id, bool inline_only);
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
 
-	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary& local_properties, const ElementDefinition* definition);
-	static const Property* GetProperty(PropertyId id, const Element* element, const PropertyDictionary& local_properties,
-		const ElementDefinition* definition);
+	static const Property* GetLocalProperty(PropertyId id, const ResolvedPropertiesDictionary& inline_properties,
+		const ResolvedPropertiesDictionary& definition_properties);
+	static const Property* GetProperty(PropertyId id, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
+		const ResolvedPropertiesDictionary& definition_properties);
 
-	static const Property* GetLocalVariable(VariableId id, const PropertyDictionary& local_properties, const ElementDefinition* definition);
-	static const Property* GetVariable(VariableId id, const Element* element, const PropertyDictionary& local_properties,
-		const ElementDefinition* definition);
+	static const Property* GetLocalVariable(VariableId id, const ResolvedPropertiesDictionary& inline_properties,
+		const ResolvedPropertiesDictionary& definition_properties);
+	static const Property* GetVariable(VariableId id, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
+		const ResolvedPropertiesDictionary& definition_properties);
 
-	static void TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& local_properties,
-		const ElementDefinition* old_definition, const ElementDefinition* new_definition);
+	static void TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const ResolvedPropertiesDictionary& local_properties,
+		const ResolvedPropertiesDictionary& old_definition_properties, const ResolvedPropertiesDictionary& new_definition_properties);
 
 	// Element these properties belong to
 	Element* element;
@@ -205,20 +188,15 @@ private:
 	StringList classes;
 	// This element's current pseudo-classes.
 	PseudoClassMap pseudo_classes;
-	
-	// Copy of all static inline properties as well as all computed dependent properties and variables
-	PropertyDictionary local_properties;
-
-	PropertyIdSet dependent_properties;
-	UnorderedMultimap<VariableId, DependentId> dependencies;
 
 	// Any properties that have been overridden in this element.
-	PropertyDictionary inline_properties;
+	ResolvedPropertiesDictionary inline_properties;
+
 	// The definition of this element, provides applicable properties from the stylesheet.
 	SharedPtr<const ElementDefinition> definition;
+	ResolvedPropertiesDictionary definition_properties;
 
 	PropertyIdSet dirty_properties;
-	UnorderedSet<VariableId> dirty_variables;
 };
 
 } // namespace Rml

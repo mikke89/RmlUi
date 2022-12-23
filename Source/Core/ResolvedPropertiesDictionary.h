@@ -42,16 +42,16 @@ namespace Rml {
 class ResolvedPropertiesDictionary {
 public:
 	ResolvedPropertiesDictionary();
-	ResolvedPropertiesDictionary(const ElementDefinition* source);
+	explicit ResolvedPropertiesDictionary(const ElementDefinition* source);
 
-	const Property* GetProperty(PropertyId id);
-	const Property* GetVariable(VariableId id);
+	const Property* GetProperty(PropertyId id) const;
+	const Property* GetVariable(VariableId id) const;
 
 	void SetProperty(PropertyId id, const Property& value);
 	void SetVariable(VariableId id, const Property& value);
 
-	void RemoveProperty(PropertyId id);
-	void RemoveVariable(VariableId id);
+	bool RemoveProperty(PropertyId id);
+	bool RemoveVariable(VariableId id);
 
 	const PropertyDictionary& GetProperties() const;
 

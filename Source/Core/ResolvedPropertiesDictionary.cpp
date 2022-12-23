@@ -15,12 +15,12 @@ ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(const ElementDefiniti
 		SetVariable(it.first, it.second);
 }
 
-const Property* ResolvedPropertiesDictionary::GetProperty(PropertyId id)
+const Property* ResolvedPropertiesDictionary::GetProperty(PropertyId id) const
 {
 	return resolved_properties.GetProperty(id);
 }
 
-const Property* ResolvedPropertiesDictionary::GetVariable(VariableId id)
+const Property* ResolvedPropertiesDictionary::GetVariable(VariableId id) const
 {
 	return resolved_properties.GetVariable(id);
 }
@@ -73,22 +73,30 @@ void ResolvedPropertiesDictionary::SetVariable(VariableId id, const Property& va
 	}
 }
 
-void ResolvedPropertiesDictionary::RemoveProperty(PropertyId id)
+bool ResolvedPropertiesDictionary::RemoveProperty(PropertyId id)
 {
+	auto size_before = resolved_properties.GetNumProperties();
+
 	resolved_properties.RemoveProperty(id);
 	if (mutable_source)
 		source_properties.RemoveProperty(id);
 
 	UpdatePropertyDependencies(id);
+
+	return resolved_properties.GetNumProperties() != size_before;
 }
 
-void ResolvedPropertiesDictionary::RemoveVariable(VariableId id)
+bool ResolvedPropertiesDictionary::RemoveVariable(VariableId id)
 {
+	auto size_before = resolved_properties.GetNumVariables();
+
 	resolved_properties.RemoveVariable(id);
 	if (mutable_source)
 		source_properties.RemoveVariable(id);
 
 	UpdateVariableDependencies(id);
+
+	return resolved_properties.GetNumVariables() != size_before;
 }
 
 const PropertyDictionary& ResolvedPropertiesDictionary::GetProperties() const
