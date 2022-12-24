@@ -60,6 +60,7 @@ enum class ShorthandType
 	Flex
 };
 
+
 /**
 	A property specification stores a group of property definitions.
 

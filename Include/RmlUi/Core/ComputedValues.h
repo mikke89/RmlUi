@@ -287,7 +287,7 @@ namespace Style {
 		LengthPercentage  row_gap()                    const { return LengthPercentage(rare.row_gap_type, rare.row_gap); }
 		LengthPercentage  column_gap()                 const { return LengthPercentage(rare.column_gap_type, rare.column_gap); }
 		float             scrollbar_margin()           const { return rare.scrollbar_margin; }
-
+		
 		// -- Assignment --
 		// Common
 		void width              (LengthPercentageAuto value) { common.width_type          = value.type; common.width_value          = value.value; }
