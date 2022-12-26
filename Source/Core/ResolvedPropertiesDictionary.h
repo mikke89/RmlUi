@@ -60,11 +60,12 @@ public:
 
 private:
 	void ResolveVariableTerm(String& result, const VariableTerm& term);
+	void ResolveProperty(PropertyId id);
+	void ResolveVariable(VariableId id);
 	void UpdatePropertyDependencies(PropertyId id);
 	void UpdateVariableDependencies(VariableId id);
 
 	ElementStyle* parent;
-	bool mutable_source;
 
 	PropertyDictionary source_properties;
 	PropertyDictionary resolved_properties;

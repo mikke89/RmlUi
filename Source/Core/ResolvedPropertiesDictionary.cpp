@@ -7,10 +7,10 @@
 
 namespace Rml {
 
-ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent) : parent(parent), mutable_source(true) {}
+ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent) : parent(parent) {}
 
 ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent, const ElementDefinition* source) :
-	parent(parent), mutable_source(false)
+	parent(parent)
 {
 	auto const& props = source->GetProperties();
 
@@ -36,50 +36,20 @@ const Property* ResolvedPropertiesDictionary::GetVariable(VariableId id) const
 
 void ResolvedPropertiesDictionary::SetProperty(PropertyId id, const Property& value)
 {
-	if (mutable_source)
-		source_properties.SetProperty(id, value);
-
+	source_properties.SetProperty(id, value);
+	
+	ResolveProperty(id);
+	
 	UpdatePropertyDependencies(id);
-	if (value.unit == Property::VARIABLETERM)
-	{
-		// try to resolve value
-		String string_value;
-		auto term = value.Get<VariableTerm>();
-		ResolveVariableTerm(string_value, term);
-
-		auto definition = StyleSheetSpecification::GetProperty(id);
-		if (definition)
-		{
-			Property parsed_value;
-			if (definition->ParseValue(parsed_value, string_value))
-				resolved_properties.SetProperty(id, value);
-		}
-	}
-	else
-	{
-		resolved_properties.SetProperty(id, value);
-	}
 }
 
 void ResolvedPropertiesDictionary::SetVariable(VariableId id, const Property& value)
 {
-	if (mutable_source)
-		source_properties.SetVariable(id, value);
-
-	// Resolve value
+	source_properties.SetVariable(id, value);
+	
+	ResolveVariable(id);
+	
 	UpdateVariableDependencies(id);
-
-	if (value.unit == Property::VARIABLETERM)
-	{
-		String string_value;
-		auto term = value.Get<VariableTerm>();
-		ResolveVariableTerm(string_value, term);
-		resolved_properties.SetVariable(id, Property(string_value, Property::STRING));
-	}
-	else
-	{
-		resolved_properties.SetVariable(id, value);
-	}
 }
 
 bool ResolvedPropertiesDictionary::RemoveProperty(PropertyId id)
@@ -87,8 +57,7 @@ bool ResolvedPropertiesDictionary::RemoveProperty(PropertyId id)
 	auto size_before = resolved_properties.GetNumProperties();
 
 	resolved_properties.RemoveProperty(id);
-	if (mutable_source)
-		source_properties.RemoveProperty(id);
+	source_properties.RemoveProperty(id);
 
 	UpdatePropertyDependencies(id);
 
@@ -100,8 +69,7 @@ bool ResolvedPropertiesDictionary::RemoveVariable(VariableId id)
 	auto size_before = resolved_properties.GetNumVariables();
 
 	resolved_properties.RemoveVariable(id);
-	if (mutable_source)
-		source_properties.RemoveVariable(id);
+	source_properties.RemoveVariable(id);
 
 	UpdateVariableDependencies(id);
 
@@ -135,8 +103,60 @@ void ResolvedPropertiesDictionary::ResolveVariableTerm(String& result, const Var
 		else
 			atoms.push_back(atom.constant);
 	}
-
+	
 	StringUtilities::JoinString(result, atoms, ' ');
+}
+
+void ResolvedPropertiesDictionary::ResolveProperty(PropertyId id)
+{
+	auto value = source_properties.GetProperty(id);
+	if (value)
+	{
+		if (value->unit == Property::VARIABLETERM)
+		{
+			// try to resolve value
+			String string_value;
+			ResolveVariableTerm(string_value, value->Get<VariableTerm>());
+			
+			auto definition = StyleSheetSpecification::GetProperty(id);
+			if (definition)
+			{
+				Property parsed_value;
+				if (definition->ParseValue(parsed_value, string_value))
+					resolved_properties.SetProperty(id, parsed_value);
+			}
+		}
+		else
+		{
+			resolved_properties.SetProperty(id, *value);
+		}
+	}
+	else
+	{
+		resolved_properties.RemoveProperty(id);
+	}
+}
+
+void ResolvedPropertiesDictionary::ResolveVariable(VariableId id)
+{
+	auto var = source_properties.GetVariable(id);
+	if (var)
+	{
+		if (var->unit == Property::VARIABLETERM)
+		{
+			String string_value;
+			ResolveVariableTerm(string_value, var->Get<VariableTerm>());
+			resolved_properties.SetVariable(id, Property(string_value, Property::STRING));
+		}
+		else
+		{
+			resolved_properties.SetVariable(id, *var);
+		}
+	}
+	else
+	{
+		resolved_properties.RemoveVariable(id);
+	}
 }
 
 void ResolvedPropertiesDictionary::UpdatePropertyDependencies(PropertyId id)
@@ -187,6 +207,13 @@ void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
 	if (!variable)
 	{
 		// Variable removed, remove resolved dependent values
+		
+		auto dependent_variables = variable_dependencies.equal_range(id);
+		for (auto iter = dependent_variables.first; iter != dependent_variables.second;)
+		{
+			resolved_properties.RemoveVariable(iter->second);
+			iter = variable_dependencies.erase(iter);
+		}
 
 		auto dependent_properties = property_dependencies.equal_range(id);
 		for (auto iter = dependent_properties.first; iter != dependent_properties.second;)
@@ -194,13 +221,14 @@ void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
 			resolved_properties.RemoveProperty(iter->second);
 			iter = property_dependencies.erase(iter);
 		}
-
+	} else {
 		auto dependent_variables = variable_dependencies.equal_range(id);
-		for (auto iter = dependent_variables.first; iter != dependent_variables.second;)
-		{
-			resolved_properties.RemoveVariable(iter->second);
-			iter = variable_dependencies.erase(iter);
-		}
+		for (auto iter = dependent_variables.first; iter != dependent_variables.second; ++iter)
+			ResolveVariable(iter->second);
+		
+		auto dependent_properties = property_dependencies.equal_range(id);
+		for (auto iter = dependent_properties.first; iter != dependent_properties.second; ++iter)
+			ResolveProperty(iter->second);
 	}
 }
 
