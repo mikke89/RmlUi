@@ -39,10 +39,13 @@ namespace Rml {
     @author Maximilian Stark
  */
 
+class ElementStyle;
+class ElementDefinition;
+
 class ResolvedPropertiesDictionary {
 public:
-	ResolvedPropertiesDictionary();
-	explicit ResolvedPropertiesDictionary(const ElementDefinition* source);
+	ResolvedPropertiesDictionary(ElementStyle* parent);
+	ResolvedPropertiesDictionary(ElementStyle* parent, const ElementDefinition* source);
 
 	const Property* GetProperty(PropertyId id) const;
 	const Property* GetVariable(VariableId id) const;
@@ -60,7 +63,9 @@ private:
 	void UpdatePropertyDependencies(PropertyId id);
 	void UpdateVariableDependencies(VariableId id);
 
+	ElementStyle* parent;
 	bool mutable_source;
+
 	PropertyDictionary source_properties;
 	PropertyDictionary resolved_properties;
 

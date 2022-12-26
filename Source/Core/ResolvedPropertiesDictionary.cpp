@@ -1,18 +1,27 @@
+#include "../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../Include/RmlUi/Core/PropertyDefinition.h"
+
 #include "ResolvedPropertiesDictionary.h"
 #include "ElementDefinition.h"
+#include "ElementStyle.h"
 
 namespace Rml {
 
-ResolvedPropertiesDictionary::ResolvedPropertiesDictionary() : mutable_source(true) {}
+ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent) : parent(parent), mutable_source(true) {}
 
-ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(const ElementDefinition* source) : mutable_source(false)
+ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent, const ElementDefinition* source) :
+	parent(parent), mutable_source(false)
 {
 	auto const& props = source->GetProperties();
-	for (auto const& it : props.GetProperties())
-		SetProperty(it.first, it.second);
 
-	for (auto const& it : props.GetVariables())
-		SetVariable(it.first, it.second);
+	if (source) 
+	{
+		for (auto const& it : props.GetProperties())
+			SetProperty(it.first, it.second);
+
+		for (auto const& it : props.GetVariables())
+			SetVariable(it.first, it.second);
+	}
 }
 
 const Property* ResolvedPropertiesDictionary::GetProperty(PropertyId id) const
@@ -111,7 +120,13 @@ void ResolvedPropertiesDictionary::ResolveVariableTerm(String& result, const Var
 	{
 		if (atom.variable != static_cast<VariableId>(0))
 		{
-			auto var = resolved_properties.GetVariable(atom.variable);
+			const Property* var = nullptr;
+			
+			if (parent)
+				var = parent->GetVariable(atom.variable);
+			else
+				var = resolved_properties.GetVariable(atom.variable);
+			
 			if (var)
 				atoms.push_back(var->ToString());
 			else

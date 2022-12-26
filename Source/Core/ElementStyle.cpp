@@ -61,7 +61,7 @@ inline PseudoClassState operator&(PseudoClassState lhs, PseudoClassState rhs)
 	return PseudoClassState(int(lhs) & int(rhs));
 }
 
-ElementStyle::ElementStyle(Element* _element)
+ElementStyle::ElementStyle(Element* _element) : inline_properties(this), definition_properties(this)
 {
 	element = _element;
 }
@@ -162,7 +162,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& pr
 
 		if (!transition_list.none)
 		{
-			static const ResolvedPropertiesDictionary empty_properties;
+			static const ResolvedPropertiesDictionary empty_properties(nullptr);
 
 			auto add_transition = [&](const Transition& transition) {
 				bool transition_added = false;
@@ -237,14 +237,14 @@ void ElementStyle::UpdateDefinition()
 
 			// Transition changed properties if transition property is set
 			TransitionPropertyChanges(element, changed_properties, inline_properties, definition_properties,
-				ResolvedPropertiesDictionary(new_definition.get()));
+				ResolvedPropertiesDictionary(this, new_definition.get()));
 		}
 
 		definition = new_definition;
 		if (definition)
-			definition_properties = ResolvedPropertiesDictionary(definition.get());
+			definition_properties = ResolvedPropertiesDictionary(this, definition.get());
 		else
-			definition_properties = ResolvedPropertiesDictionary();
+			definition_properties = ResolvedPropertiesDictionary(this, nullptr);
 
 		DirtyProperties(changed_properties);
 	}
@@ -560,9 +560,9 @@ PropertiesIterator ElementStyle::Iterate() const {
 	PropertyMap::const_iterator it_definition{}, it_definition_end{};
 	if (definition)
 	{
-		const PropertyMap& definition_properties = definition->GetProperties().GetProperties();
-		it_definition = definition_properties.begin();
-		it_definition_end = definition_properties.end();
+		const PropertyMap& definition_props = definition_properties.GetProperties().GetProperties();
+		it_definition = definition_props.begin();
+		it_definition_end = definition_props.end();
 	}
 	return PropertiesIterator(it_style_begin, it_style_end, it_definition, it_definition_end);
 }
