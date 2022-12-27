@@ -782,6 +782,8 @@ bool Element::SetVariable(const String& name, const String& value)
 	{
 		return meta->style.SetVariable(it.first, it.second);
 	}
+	
+	return false;
 }
 
 bool Element::SetVariable(VariableId id, const Property& variable)
