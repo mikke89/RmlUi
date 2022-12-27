@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/ID.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 
 namespace Rml {
 
@@ -77,15 +78,11 @@ const PropertyMap& PropertyDictionary::GetProperties() const
 void PropertyDictionary::SetVariable(VariableId id, const Property &property)
 {
 	variables[id] = property;
-	
-	// TODO: variables with dependencies
 }
 
 void PropertyDictionary::RemoveVariable(VariableId id)
 {
 	variables.erase(id);
-	
-	// TODO: variables with dependencies
 }
 
 const Property *PropertyDictionary::GetVariable(VariableId id) const
@@ -97,17 +94,18 @@ const Property *PropertyDictionary::GetVariable(VariableId id) const
 	return &(*iterator).second;
 }
 
-void PropertyDictionary::SetDependent(ShorthandId RMLUI_UNUSED_PARAMETER(shorthand_id), const VariableTerm &RMLUI_UNUSED_PARAMETER(term))
+void PropertyDictionary::SetDependent(ShorthandId shorthand_id, const VariableTerm &term)
 {
-	RMLUI_UNUSED(shorthand_id);
-	RMLUI_UNUSED(term);
-  // TODO shorthands with depenencies
+	dependent_shorthands.insert_or_assign(shorthand_id, term);
+	
+	// Mark dependent properties as pending
+	for (auto id : StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand_id))
+		properties[id] = Property();
 }
 
-void PropertyDictionary::RemoveDependent(ShorthandId RMLUI_UNUSED_PARAMETER(shorthand_id))
+void PropertyDictionary::RemoveDependent(ShorthandId shorthand_id)
 {
-	RMLUI_UNUSED(shorthand_id);
-	// TODO shorthands with depenencies
+	dependent_shorthands.erase(shorthand_id);
 }
 
 int PropertyDictionary::GetNumVariables() const
@@ -118,6 +116,11 @@ int PropertyDictionary::GetNumVariables() const
 const VariableMap &PropertyDictionary::GetVariables() const
 {
 	return variables;
+}
+
+const DependentShorthandMap &PropertyDictionary::GetDependentShorthands() const
+{
+	return dependent_shorthands;
 }
 
 // Imports potentially un-specified properties into the dictionary.
@@ -131,9 +134,10 @@ void PropertyDictionary::Import(const PropertyDictionary& other, int property_sp
 	}
 
 	for (const auto& pair : other.variables)
-	{
 		SetVariable(pair.first, pair.second, property_specificity > 0 ? property_specificity : pair.second.specificity);
-	}
+
+	for (const auto& pair : other.dependent_shorthands)
+		SetDependent(pair.first, pair.second);
 }
 
 // Merges the contents of another fully-specified property dictionary with this one.
@@ -147,9 +151,10 @@ void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_
 	}
 
 	for (const auto& pair : other.variables)
-	{
 		SetVariable(pair.first, pair.second, pair.second.specificity + specificity_offset);
-	}
+		
+	for (const auto& pair : other.dependent_shorthands)
+		SetDependent(pair.first, pair.second);
 }
 
 void PropertyDictionary::SetSourceOfAllProperties(const SharedPtr<const PropertySource>& property_source)
@@ -181,8 +186,6 @@ void PropertyDictionary::SetVariable(VariableId id, const Property &variable, in
 
 	Property& new_property = (variables[id] = variable);
 	new_property.specificity = specificity;
-	
-	// TODO: variables with dependencies
 }
 
 } // namespace Rml

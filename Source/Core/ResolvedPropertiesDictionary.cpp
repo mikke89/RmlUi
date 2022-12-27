@@ -1,6 +1,7 @@
 #include "../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../Include/RmlUi/Core/PropertyDefinition.h"
 
+#include "PropertyShorthandDefinition.h"
 #include "ResolvedPropertiesDictionary.h"
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
@@ -21,6 +22,9 @@ ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent,
 
 		for (auto const& it : props.GetVariables())
 			SetVariable(it.first, it.second);
+		
+		for (auto const& it : props.GetDependentShorthands())
+			SetDependentShorthand(it.first, it.second);
 	}
 }
 
@@ -49,7 +53,16 @@ void ResolvedPropertiesDictionary::SetVariable(VariableId id, const Property& va
 	
 	ResolveVariable(id);
 	
-	UpdateVariableDependencies(id);
+	UpdateVariableDependencies(id, true);
+}
+
+void ResolvedPropertiesDictionary::SetDependentShorthand(ShorthandId id, const VariableTerm &value)
+{
+	source_properties.SetDependent(id, value);
+	
+	ResolveShorthand(id);
+	
+	UpdateShorthandDependencies(id);
 }
 
 bool ResolvedPropertiesDictionary::RemoveProperty(PropertyId id)
@@ -71,7 +84,7 @@ bool ResolvedPropertiesDictionary::RemoveVariable(VariableId id)
 	resolved_properties.RemoveVariable(id);
 	source_properties.RemoveVariable(id);
 
-	UpdateVariableDependencies(id);
+	UpdateVariableDependencies(id, true);
 
 	return resolved_properties.GetNumVariables() != size_before;
 }
@@ -79,6 +92,17 @@ bool ResolvedPropertiesDictionary::RemoveVariable(VariableId id)
 const PropertyDictionary& ResolvedPropertiesDictionary::GetProperties() const
 {
 	return resolved_properties;
+}
+
+void ResolvedPropertiesDictionary::ApplyDirtyVariables()
+{
+	if (!parent)
+		return;
+	
+	for(auto const& id : parent->GetDirtyVariables())
+	{
+		UpdateVariableDependencies(id, false);
+	}
 }
 
 void ResolvedPropertiesDictionary::ResolveVariableTerm(String& result, const VariableTerm& term)
@@ -126,14 +150,45 @@ void ResolvedPropertiesDictionary::ResolveProperty(PropertyId id)
 					resolved_properties.SetProperty(id, parsed_value);
 			}
 		}
-		else
+		else if (value->unit != Property::UNKNOWN)
 		{
+			// Ignore dependent-shorthand pending values
 			resolved_properties.SetProperty(id, *value);
 		}
 	}
 	else
 	{
 		resolved_properties.RemoveProperty(id);
+	}
+	
+	if (parent)
+		parent->DirtyProperty(id);
+}
+
+void ResolvedPropertiesDictionary::ResolveShorthand(ShorthandId id)
+{
+	auto const& shorthands = source_properties.GetDependentShorthands();
+	auto var = shorthands.find(id);
+	if (var != shorthands.end())
+	{
+		String string_value;
+		ResolveVariableTerm(string_value, var->second);
+		
+		// clear underlying properties
+		auto properties = StyleSheetSpecification::GetShorthandUnderlyingProperties(id);
+		for (auto const& it : properties)
+		{
+			resolved_properties.RemoveProperty(it);
+			
+			// Even remove the source_properties definition, which would otherwise copy over the "pending" value
+			source_properties.RemoveProperty(it);
+		}
+		
+		StyleSheetSpecification::ParseShorthandDeclaration(resolved_properties, id, string_value);
+		
+		if (parent)
+			for (auto const& it : properties)
+				parent->DirtyProperty(it);
 	}
 }
 
@@ -182,7 +237,29 @@ void ResolvedPropertiesDictionary::UpdatePropertyDependencies(PropertyId id)
 	}
 }
 
-void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
+void ResolvedPropertiesDictionary::UpdateShorthandDependencies(ShorthandId id)
+{
+	for (auto iter = shorthand_dependencies.begin(); iter != shorthand_dependencies.end();)
+	{
+		if (iter->second == id)
+			iter = shorthand_dependencies.erase(iter);
+		else
+			++iter;
+	}
+	
+	auto const& shorthands = source_properties.GetDependentShorthands();
+	auto shorthand = shorthands.find(id);
+	if (shorthand != shorthands.end())
+	{
+		for (auto const& atom : shorthand->second)
+		{
+			if (atom.variable != static_cast<VariableId>(0))
+				shorthand_dependencies.insert(std::make_pair(atom.variable, id));
+		}
+	}
+}
+
+void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id, bool local_change)
 {
 	for (auto iter = variable_dependencies.begin(); iter != variable_dependencies.end();)
 	{
@@ -191,16 +268,21 @@ void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
 		else
 			++iter;
 	}
-
-	auto variable = source_properties.GetVariable(id);
-
-	if (variable && variable->unit == Property::VARIABLETERM)
+	
+	auto variable = parent->GetVariable(id);
+	
+	if (local_change)
 	{
-		auto term = variable->Get<VariableTerm>();
-		for (auto const& atom : term)
+		auto local_variable = source_properties.GetVariable(id);
+	
+		if (local_variable && local_variable->unit == Property::VARIABLETERM)
 		{
-			if (atom.variable != static_cast<VariableId>(0))
-				variable_dependencies.insert(std::make_pair(atom.variable, id));
+			auto term = local_variable->Get<VariableTerm>();
+			for (auto const& atom : term)
+			{
+				if (atom.variable != static_cast<VariableId>(0))
+					variable_dependencies.insert(std::make_pair(atom.variable, id));
+			}
 		}
 	}
 
@@ -214,7 +296,13 @@ void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
 			resolved_properties.RemoveVariable(iter->second);
 			iter = variable_dependencies.erase(iter);
 		}
-
+		
+		auto dependent_shorthands = shorthand_dependencies.equal_range(id);
+		for (auto iter = dependent_shorthands.first; iter != dependent_shorthands.second;)
+		{
+			iter = shorthand_dependencies.erase(iter);
+		}
+		
 		auto dependent_properties = property_dependencies.equal_range(id);
 		for (auto iter = dependent_properties.first; iter != dependent_properties.second;)
 		{
@@ -223,12 +311,28 @@ void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
 		}
 	} else {
 		auto dependent_variables = variable_dependencies.equal_range(id);
+
+		UnorderedSet<VariableId> dirty_variables;
 		for (auto iter = dependent_variables.first; iter != dependent_variables.second; ++iter)
+		{
 			ResolveVariable(iter->second);
+			dirty_variables.insert(iter->second);
+		}
+		
+		for(auto const& it : dirty_variables)
+			UpdateVariableDependencies(it, true);
+
+		auto dependent_shorthands = shorthand_dependencies.equal_range(id);
+		for (auto iter = dependent_shorthands.first; iter != dependent_shorthands.second; ++iter)
+		{
+			ResolveShorthand(iter->second);
+		}
 		
 		auto dependent_properties = property_dependencies.equal_range(id);
 		for (auto iter = dependent_properties.first; iter != dependent_properties.second; ++iter)
+		{
 			ResolveProperty(iter->second);
+		}
 	}
 }
 

@@ -92,66 +92,141 @@ TEST_CASE("Properties")
 	Rml::Shutdown();
 }
 
-static const String document_rml = R"(
+static const String basic_rml = R"(
 <rml>
 <head>
 	<style>
+	* {
+		color: #00ff00;
+	}
 	body {
 		--color-var: #ffffff;
 	}
 	div {
-		
-			background-color: var(--color-var);
+		background-color: var(--color-var);
+		--color2-var: var(--color-var);
 	}
-		/*body {
-			--color-var: #ffffff;
-			--font-var: 20px bold serif;
-			--padding-var: 4px 5px;
-			--recursive-border-var: 5px var(--color-var);
-		}
+	p {
+		background-color: var(--color2-var);
+		color: var(--missing-var, #ff0000);
+	}
+	</style>
+</head>
 
-		div {
-			width: var(--missing-var, 500px);
-			background-color: var(--color-var);
-			padding: var(--padding-var);
-			font: var(--font-var);
-		}
+<body>
+<div id="div"><p id="p"></p></div>
+</body>
+</rml>
+)";
 
-		p {
-			border: var(--recursive-border-var);
-		}*/
+static const String shorthand_rml = R"(
+<rml>
+<head>
+	<style>
+	body {
+		--padding-var: 20px 5px;
+		--v-padding-var: 3px;
+		--h-padding-var: 7px;
+	}
+	div {
+		padding: var(--padding-var);
+	}
+	p {
+		padding: var(--v-padding-var) var(--h-padding-var);
+	}
 	</style>
 </head>
 
 <body>
 <div id="div"></div>
+<p id="p"></p>
 </body>
 </rml>
 )";
 
-TEST_CASE("Variables")
+TEST_CASE("variables.basic")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-
-	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	
+	ElementDocument* document = context->LoadDocumentFromMemory(basic_rml);
 	REQUIRE(document);
 	document->Show();
-
+	
 	TestsShell::RenderLoop();
-
-	Element* element = document->GetElementById("div");
-	CHECK(element->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
-
-	element->SetVariable("color-var", "#000000");
-
+	
+	// basic variable
+	Element* div = document->GetElementById("div");
+	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
+	
+	// recursive variable
+	Element* p = document->GetElementById("p");
+	CHECK(p->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
+	
+	// variable fallback
+	CHECK(p->GetProperty(PropertyId::Color)->ToString() == "rgba(255,0,0,255)");
+	
+	// variable modification
+	div->SetVariable("color-var", "#000000");
+	
 	TestsShell::RenderLoop();
+	
+	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,0,0,255)");
 
-	CHECK(element->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,0,0,255)");
-	CHECK(element->GetVariable("color-var")->ToString() == "#000000");
+	// inheritance validation
+	CHECK(div->GetVariable("color-var")->ToString() == "#000000");
 	CHECK(document->GetVariable("color-var")->ToString() == "#ffffff");
+	
+	TestsShell::RenderLoop();
+	
+	document->Close();
+	
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("variables.shorthands")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+	
+	ElementDocument* document = context->LoadDocumentFromMemory(shorthand_rml);
+	REQUIRE(document);
+	document->Show();
+	
+	TestsShell::RenderLoop();
+
+	Element* div = document->GetElementById("div");
+	CHECK(div->GetProperty(PropertyId::PaddingTop)->ToString() == "20px");
+	CHECK(div->GetProperty(PropertyId::PaddingRight)->ToString() == "5px");
+
+	// variable modification and shorthand override
+	div->SetProperty(PropertyId::PaddingTop, Property(6, Property::PX));
+	
+	TestsShell::RenderLoop();
+	
+	CHECK(div->GetProperty(PropertyId::PaddingTop)->ToString() == "6px");
+
+	// Change shorthand
+	div->SetVariable("padding-var", "15px 0px");
+	div->RemoveProperty(PropertyId::PaddingTop);
+
+	TestsShell::RenderLoop();
+	
+	CHECK(div->GetProperty(PropertyId::PaddingTop)->ToString() == "15px");
+
+	// Multi-var shorthand
+	Element* p = document->GetElementById("p");
+	CHECK(p->GetProperty(PropertyId::PaddingBottom)->ToString() == "3px");
+	CHECK(p->GetProperty(PropertyId::PaddingLeft)->ToString() == "7px");
+	
+	document->SetVariable("v-padding-var", "1px");
+	
+	TestsShell::RenderLoop();
+
+	CHECK(p->GetProperty(PropertyId::PaddingBottom)->ToString() == "1px");
+	CHECK(p->GetProperty(PropertyId::PaddingLeft)->ToString() == "7px");
 
 	document->Close();
-
+	
 	TestsShell::ShutdownShell();
 }

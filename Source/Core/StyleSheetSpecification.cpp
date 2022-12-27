@@ -198,6 +198,11 @@ bool StyleSheetSpecification::ParseVariableDeclaration(PropertyDictionary& dicti
 	return instance->properties.ParseVariableDeclaration(dictionary, variable_name, variable_value);
 }
 
+bool StyleSheetSpecification::ParseShorthandDeclaration(PropertyDictionary &dictionary, ShorthandId shorthand_id, const String &property_value)
+{
+	return instance->properties.ParseShorthandDeclaration(dictionary, shorthand_id, property_value);
+}
+
 PropertyId StyleSheetSpecification::GetPropertyId(const String& property_name)
 {
 	return instance->properties.property_map->GetId(property_name);

@@ -52,18 +52,22 @@ public:
 
 	void SetProperty(PropertyId id, const Property& value);
 	void SetVariable(VariableId id, const Property& value);
+	void SetDependentShorthand(ShorthandId id, const VariableTerm& value);
 
 	bool RemoveProperty(PropertyId id);
 	bool RemoveVariable(VariableId id);
 
 	const PropertyDictionary& GetProperties() const;
+	void ApplyDirtyVariables();
 
 private:
 	void ResolveVariableTerm(String& result, const VariableTerm& term);
 	void ResolveProperty(PropertyId id);
+	void ResolveShorthand(ShorthandId id);
 	void ResolveVariable(VariableId id);
 	void UpdatePropertyDependencies(PropertyId id);
-	void UpdateVariableDependencies(VariableId id);
+	void UpdateShorthandDependencies(ShorthandId id);
+	void UpdateVariableDependencies(VariableId id, bool local_change);
 
 	ElementStyle* parent;
 
@@ -71,6 +75,7 @@ private:
 	PropertyDictionary resolved_properties;
 
 	UnorderedMultimap<VariableId, PropertyId> property_dependencies;
+	UnorderedMultimap<VariableId, ShorthandId> shorthand_dependencies;
 	UnorderedMultimap<VariableId, VariableId> variable_dependencies;
 };
 

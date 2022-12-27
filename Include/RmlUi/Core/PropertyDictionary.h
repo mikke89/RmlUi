@@ -31,7 +31,8 @@
 
 #include "Header.h"
 #include "Property.h"
-#include "PropertyIdSet.h"
+#include "ID.h"
+#include "Types.h"
 
 namespace Rml {
 
@@ -93,8 +94,11 @@ public:
 
 	/// Returns the number of variables in the dictionary.
 	int GetNumVariables() const;
-	/// Returns the map of properties in the dictionary.
+	/// Returns the map of variables in the dictionary.
 	const VariableMap& GetVariables() const;
+	
+	/// Returns the map of variable-dependent shorthands in the dictionary.
+	const DependentShorthandMap& GetDependentShorthands() const;
 
 	/// Imports into the dictionary, and optionally defines the specificity of, potentially
 	/// un-specified properties. In the case of id conflicts, the incoming properties will
@@ -123,6 +127,7 @@ private:
 	
 	PropertyMap properties;
 	VariableMap variables;
+	DependentShorthandMap dependent_shorthands;
 };
 
 } // namespace Rml

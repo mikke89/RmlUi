@@ -90,11 +90,15 @@ public:
 	String GetClassNames() const;
 	/// Return the active class list.
 	const StringList& GetClassNameList() const;
-
-	/// Sets a local property override on the element to a pre-parsed value.
-	/// @param[in] name The name of the new property.
-	/// @param[in] property The parsed property to set.
+	
+   /// Sets a local property override on the element to a pre-parsed value.
+   /// @param[in] name The id of the new property.
+   /// @param[in] property The parsed property to set.
 	bool SetProperty(PropertyId id, const Property& property);
+	/// Sets a local shorthand override on the element to a variable-dependent value.
+	/// @param[in] name The id of the new shorthand.
+	/// @param[in] property The raw property to set.
+	bool SetDependentShorthand(ShorthandId id, const VariableTerm& property);
 	/// Sets a local variable override on the element to a pre-parsed value.
 	/// @param[in] name The name of the new variable.
 	/// @param[in] property The parsed variable to set.
@@ -163,7 +167,8 @@ public:
 	/// Returns an iterator for iterating the local properties of this element.
 	/// Note: Modifying the element's style invalidates its iterator.
 	PropertiesIterator Iterate() const;
-
+	
+	UnorderedSet<VariableId> GetDirtyVariables() const;
 private:
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
@@ -197,6 +202,7 @@ private:
 	ResolvedPropertiesDictionary definition_properties;
 
 	PropertyIdSet dirty_properties;
+	UnorderedSet<VariableId> dirty_variables;
 };
 
 } // namespace Rml

@@ -101,6 +101,7 @@ public:
 	/// @return True if all properties were parsed successfully, false otherwise.
 	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value);
 	static bool ParseVariableDeclaration(PropertyDictionary& dictionary, const String& variable_name, const String& variable_value);
+	static bool ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value);
 
 	static PropertyId GetPropertyId(const String& property_name);
 	static ShorthandId GetShorthandId(const String& shorthand_name);

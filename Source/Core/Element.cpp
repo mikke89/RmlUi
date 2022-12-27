@@ -276,9 +276,12 @@ ElementPtr Element::Clone() const
 		clone_attributes.erase("style");
 		clone_attributes.erase("class");
 		clone->SetAttributes(clone_attributes);
-
+		
 		for (auto& id_property : GetStyle()->GetLocalStyleProperties())
 			clone->SetProperty(id_property.first, id_property.second);
+		
+		for (auto& var : GetStyle()->GetLocalStyleVariables())
+			clone->SetVariable(var.first, var.second);
 
 		clone->GetStyle()->SetClassNames(GetStyle()->GetClassNames());
 
@@ -592,6 +595,11 @@ bool Element::SetProperty(const String& name, const String& value)
 		if (!meta->style.SetProperty(property.first, property.second))
 			return false;
 	}
+	for (auto& shorthand : properties.GetDependentShorthands())
+	{
+		if (!meta->style.SetDependentShorthand(shorthand.first, shorthand.second))
+			return false;
+	}
 	return true;
 }
 
@@ -774,8 +782,6 @@ bool Element::SetVariable(const String& name, const String& value)
 	{
 		return meta->style.SetVariable(it.first, it.second);
 	}
-
-	return false;
 }
 
 bool Element::SetVariable(VariableId id, const Property& variable)

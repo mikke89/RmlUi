@@ -361,7 +361,14 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 	inline_properties.SetProperty(id, new_property);
 
 	DirtyProperty(id);
+	
+	return true;
+}
 
+bool ElementStyle::SetDependentShorthand(ShorthandId id, const VariableTerm &property)
+{
+	inline_properties.SetDependentShorthand(id, property);
+	
 	return true;
 }
 
@@ -369,6 +376,9 @@ bool ElementStyle::SetVariable(VariableId id, const Property& variable)
 {
 	inline_properties.SetVariable(id, variable);
 	definition_properties.SetVariable(id, variable);
+	
+	dirty_variables.insert(id);
+	
 	return true;
 }
 
@@ -382,6 +392,7 @@ void ElementStyle::RemoveProperty(PropertyId id)
 void ElementStyle::RemoveVariable(VariableId id)
 {
 	inline_properties.RemoveVariable(id);
+	dirty_variables.insert(id);
 }
 
 // Returns one of this element's properties.
@@ -541,7 +552,7 @@ void ElementStyle::DirtyPropertiesWithUnitsRecursive(Property::Unit units)
 
 bool ElementStyle::AnyPropertiesDirty() const 
 {
-	return !dirty_properties.Empty();
+	return !dirty_properties.Empty() || !dirty_variables.empty();
 }
 
 PropertiesIterator ElementStyle::Iterate() const {
@@ -567,6 +578,11 @@ PropertiesIterator ElementStyle::Iterate() const {
 	return PropertiesIterator(it_style_begin, it_style_end, it_definition, it_definition_end);
 }
 
+UnorderedSet<VariableId> ElementStyle::GetDirtyVariables() const
+{
+	return dirty_variables;
+}
+
 // Sets a single property as dirty.
 void ElementStyle::DirtyProperty(PropertyId id)
 {
@@ -581,6 +597,21 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 
 PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions)
 {
+	// propagate dirty variables
+	if (!dirty_variables.empty())
+	{
+		inline_properties.ApplyDirtyVariables();
+		definition_properties.ApplyDirtyVariables();
+		
+		for (int i = 0; i < element->GetNumChildren(true); i++)
+		{
+			auto child = element->GetChild(i);
+			child->GetStyle()->dirty_variables.insert(dirty_variables.begin(), dirty_variables.end());
+		}
+		
+		dirty_variables.clear();
+	}
+	
 	if (dirty_properties.Empty())
 		return PropertyIdSet();
 

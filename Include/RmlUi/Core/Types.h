@@ -90,6 +90,7 @@ struct DecoratorDeclarationList;
 struct Rectangle;
 enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
+enum class ShorthandId : uint8_t;
 enum class MediaQueryId : uint8_t;
 enum class FamilyId : int;
 enum class VariableId : Hash<String>::result_type;
@@ -148,7 +149,7 @@ struct VariableTermAtom {
 
 using VariableTerm = Vector<VariableTermAtom>;
 using VariableMap = UnorderedMap< VariableId, Property >;
-using VariableDependentValuesMap = UnorderedMap< VariableId, Property >;
+using DependentShorthandMap = UnorderedMap< ShorthandId, VariableTerm >;
 
 } // namespace Rml
 
