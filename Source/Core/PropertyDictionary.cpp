@@ -96,7 +96,7 @@ const Property *PropertyDictionary::GetVariable(VariableId id) const
 
 void PropertyDictionary::SetDependent(ShorthandId shorthand_id, const VariableTerm &term)
 {
-	dependent_shorthands.insert_or_assign(shorthand_id, term);
+	dependent_shorthands[shorthand_id] = term;
 	
 	// Mark dependent properties as pending
 	for (auto id : StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand_id))
