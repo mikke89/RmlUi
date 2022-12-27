@@ -93,7 +93,7 @@ enum class PropertyId : uint8_t;
 enum class ShorthandId : uint8_t;
 enum class MediaQueryId : uint8_t;
 enum class FamilyId : int;
-enum class VariableId : Hash<String>::result_type;
+enum class VariableId : size_t;
 
 // Types for external interfaces.
 using FileHandle = uintptr_t;
