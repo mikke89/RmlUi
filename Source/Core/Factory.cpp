@@ -284,7 +284,7 @@ bool Factory::Initialise()
 	RegisterDataControllerInstancer(&default_instancers->data_controller_event, "event");
 	RegisterDataControllerInstancer(&default_instancers->data_controller_value, "value");
 
-	// XML node handlersr
+	// XML node handlers
 	XMLParser::RegisterNodeHandler("", MakeShared<XMLNodeHandlerDefault>());
 	XMLParser::RegisterNodeHandler("body", MakeShared<XMLNodeHandlerBody>());
 	XMLParser::RegisterNodeHandler("head", MakeShared<XMLNodeHandlerHead>());
