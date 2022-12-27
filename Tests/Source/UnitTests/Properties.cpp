@@ -161,6 +161,55 @@ static const String datamodel_rml = R"(
 </rml>
 )";
 
+static const String inheritance_rml = R"(
+<rml>
+<head>
+	<style>
+	body {
+		--bg-color: #ffffff;
+	}
+	div {
+		--bg-color: #00ff00
+	}
+	p {
+		background-color: var(--bg-color);
+	}
+	</style>
+</head>
+
+<body>
+<div><p id="p1"></p></div>
+<p id="p2"></p>
+</body>
+</rml>
+)";
+
+static const String media_query_rml = R"(
+<rml>
+<head>
+	<style>
+	@media (min-width: 600px) {
+		body {
+			--bg-color: #ffffff;
+		}
+	}
+	@media (min-width: 800px) {
+		body {
+			--bg-color: #00ff00;
+		}
+	}
+	div {
+		background-color: var(--bg-color);
+	}
+	</style>
+</head>
+
+<body>
+<div id="div"></div>
+</body>
+</rml>
+)";
+
 TEST_CASE("variables.basic")
 {
 	Context* context = TestsShell::GetContext();
@@ -272,6 +321,53 @@ TEST_CASE("variables.datamodel")
 	
 	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");		
 	
+	document->Close();
+	
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("variables.inheritance")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+	
+	ElementDocument* document = context->LoadDocumentFromMemory(inheritance_rml);
+	REQUIRE(document);
+	document->Show();
+	
+	TestsShell::RenderLoop();
+	
+	CHECK(document->GetElementById("p1")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,255,0,255)");
+	CHECK(document->GetElementById("p2")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
+
+	document->Close();
+	
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("variables.mediaquery")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+	
+	ElementDocument* document = context->LoadDocumentFromMemory(media_query_rml);
+	REQUIRE(document);
+	document->Show();
+	
+	TestsShell::RenderLoop();
+
+	context->SetDimensions(Vector2i(800, 320));
+	
+	TestsShell::RenderLoop();
+	
+	CHECK(document->GetElementById("div")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,255,0,255)");
+	
+	context->SetDimensions(Vector2i(600, 320));
+	
+	TestsShell::RenderLoop();
+
+	CHECK(document->GetElementById("div")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
+
 	document->Close();
 	
 	TestsShell::ShutdownShell();
