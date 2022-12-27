@@ -208,6 +208,31 @@ bool DataViewStyle::Update(DataModel& model)
 }
 
 
+DataViewStyleVariable::DataViewStyleVariable(Element* element) : DataViewCommon(element)
+{}
+
+bool DataViewStyleVariable::Update(DataModel& model)
+{
+	const String& variable_name = GetModifier();
+	bool result = false;
+	Variant variant;
+	Element* element = GetElement();
+	DataExpressionInterface expr_interface(&model, element);
+	
+	if (element && GetExpression().Run(expr_interface, variant))
+	{
+		const String value = variant.Get<String>();
+		const Property* p = element->GetLocalVariable(variable_name);
+		if (!p || p->Get<String>() != value)
+		{
+			element->SetVariable(variable_name, value);
+			result = true;
+		}
+	}
+	return result;
+}
+
+
 DataViewClass::DataViewClass(Element* element) : DataViewCommon(element)
 {}
 

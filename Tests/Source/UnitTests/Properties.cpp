@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/DataModelHandle.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -144,6 +145,22 @@ static const String shorthand_rml = R"(
 </rml>
 )";
 
+static const String datamodel_rml = R"(
+<rml>
+<head>
+	<style>
+	div {
+		background-color: var(--bg-var, #000000);
+	}
+	</style>
+</head>
+
+<body data-model="vars">
+<div id="div" data-var-bg-var="bgcolor"></div>
+</body>
+</rml>
+)";
+
 TEST_CASE("variables.basic")
 {
 	Context* context = TestsShell::GetContext();
@@ -226,6 +243,35 @@ TEST_CASE("variables.shorthands")
 	CHECK(p->GetProperty(PropertyId::PaddingBottom)->ToString() == "1px");
 	CHECK(p->GetProperty(PropertyId::PaddingLeft)->ToString() == "7px");
 
+	document->Close();
+	
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("variables.datamodel")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+	
+	auto model = context->CreateDataModel("vars");
+	String bgcolor;
+	model.Bind("bgcolor", &bgcolor);
+	
+	ElementDocument* document = context->LoadDocumentFromMemory(datamodel_rml);
+	REQUIRE(document);
+	document->Show();
+	
+	TestsShell::RenderLoop();
+	
+	Element* div = document->GetElementById("div");
+	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,0,0,255)");
+	bgcolor = "#ffffff";
+	model.GetModelHandle().DirtyVariable("bgcolor");
+	
+	TestsShell::RenderLoop();
+	
+	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");		
+	
 	document->Close();
 	
 	TestsShell::ShutdownShell();

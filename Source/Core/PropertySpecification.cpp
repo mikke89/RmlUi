@@ -451,9 +451,12 @@ bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &diction
 		return false;
 
 	StringList property_values;
-	if (!ParsePropertyValues(property_values, property_value, true) || property_values.size() == 0)
+	if (!ParsePropertyValues(property_values, property_value, true))
 		return false;
-
+	
+	if (property_values.empty())
+		return true;
+	
 	auto id = MakeVariableId(property_name.substr(2));
 
 	VariableTerm term;

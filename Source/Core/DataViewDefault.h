@@ -92,10 +92,16 @@ public:
 class DataViewStyle final : public DataViewCommon {
 public:
 	DataViewStyle(Element* element);
-
+	
 	bool Update(DataModel& model) override;
 };
 
+class DataViewStyleVariable final : public DataViewCommon {
+public:
+	DataViewStyleVariable(Element* element);
+	
+	bool Update(DataModel& model) override;
+};
 
 class DataViewClass final : public DataViewCommon {
 public:
