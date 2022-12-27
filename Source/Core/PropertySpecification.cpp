@@ -675,9 +675,7 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 bool PropertySpecification::DetectVariableTerm(VariableTerm& term, const StringList &values_list) const
 {
 	for(auto const& it : values_list) {
-		// not the prettiest condition, but the fastest, considering every property parameter token will pass through this
-		// checking for the pattern "var(...)"
-		if(it.length() > 4 && it[0] == 'v' && it[1] == 'a' && it[2] == 'r' && it[3] == '(' && it.back() == ')') {
+		if(it.find("var(") != String::npos) {
 			bool unused;
 			ParseVariableTerm(term, values_list, unused);
 			return true;
@@ -688,38 +686,49 @@ bool PropertySpecification::DetectVariableTerm(VariableTerm& term, const StringL
 }
 
 bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList const& values_list, bool& any_variable) const {
-	static std::regex format_expression("var\\(\\s*--(\\S+)\\s*(?:,\\s*([^;]+?)\\s*)?\\)");
+	static std::regex format_expression("var\\(\\s*--([\\w-]+)\\s*(?:,\\s*([^;]+?)\\s*)?\\)");
 	
 	any_variable = false;
-	for(auto const& it : values_list) {
-		std::smatch m;
-		VariableTermAtom a;
-		if(it.substr(0,3) == "var") 
+	for(auto const& it : values_list)
+	{
+		auto iter = std::sregex_iterator(it.begin(), it.end(), format_expression);
+		auto end = std::sregex_iterator();
+		size_t end_cursor = 0;
+		for(; iter != end; ++iter)
 		{
-			if (std::regex_match(it, m, format_expression))
+			String prefix = iter->prefix();
+			if (!prefix.empty())
 			{
-				a.constant = m[2].matched ? m[2].str() : "";
-				a.variable = MakeVariableId(m[1].str());
-				any_variable = true;
-			} 
-			else 
-			{
-				Log::Message(Log::LT_ERROR, "Invalid syntax for variable usage: '%s'.", it.c_str());
-
-				// Bail out with empty variable term property value
-				term.clear();
-				any_variable = false;
-
-				return false;
+				VariableTermAtom a;
+				a.variable = static_cast<VariableId>(0);
+				a.constant = prefix;
+				term.push_back(a);
 			}
+			
+			auto m = *iter;
+			VariableTermAtom a;
+			a.constant = m[2].matched ? m[2].str() : "";
+			a.variable = MakeVariableId(m[1].str());
+			any_variable = true;
+			term.push_back(a);
+			
+			end_cursor = m.position() + m[0].length();
 		}
-		else 
+			
 		{
-			a.constant = it;
+			// last suffix + value separating space
+			auto suffix = it.substr(end_cursor) + " ";
+			VariableTermAtom a;
 			a.variable = static_cast<VariableId>(0);
+			a.constant = suffix;
+			term.push_back(a);
 		}
-
-		term.push_back(a);
+	}
+	
+	// remove trailing space
+	if (!term.empty() && !term.back().constant.empty())
+	{
+		term.back().constant = StringUtilities::StripWhitespace(term.back().constant);
 	}
 
 	return true;

@@ -190,16 +190,16 @@ static const String media_query_rml = R"(
 	<style>
 	@media (min-width: 600px) {
 		body {
-			--bg-color: #ffffff;
+			--bg-color: 255,255,255;
 		}
 	}
 	@media (min-width: 800px) {
 		body {
-			--bg-color: #00ff00;
+			--bg-color: 0,255,0;
 		}
 	}
 	div {
-		background-color: var(--bg-color);
+		background-color: rgba(var(--bg-color), 127);
 	}
 	</style>
 </head>
@@ -360,13 +360,13 @@ TEST_CASE("variables.mediaquery")
 	
 	TestsShell::RenderLoop();
 	
-	CHECK(document->GetElementById("div")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,255,0,255)");
+	CHECK(document->GetElementById("div")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,255,0,127)");
 	
 	context->SetDimensions(Vector2i(600, 320));
 	
 	TestsShell::RenderLoop();
 
-	CHECK(document->GetElementById("div")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
+	CHECK(document->GetElementById("div")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,127)");
 
 	document->Close();
 	
