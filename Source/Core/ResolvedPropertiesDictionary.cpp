@@ -122,13 +122,18 @@ void ResolvedPropertiesDictionary::ResolveVariableTerm(String& result, const Var
 			if (var)
 				atoms.push_back(var->ToString());
 			else
+			{
+				if (atom.constant.empty())
+					Log::Message(Log::LT_ERROR, "Failed to resolve RCSS variable '%s'. No fallback was provided.", GetVariableName(atom.variable).c_str());
+					
 				atoms.push_back(atom.constant);
+			}
 		}
 		else
 			atoms.push_back(atom.constant);
 	}
 	
-	StringUtilities::JoinString(result, atoms, ' ');
+	StringUtilities::JoinString(result, atoms, '\0');
 }
 
 void ResolvedPropertiesDictionary::ResolveProperty(PropertyId id)
@@ -148,6 +153,9 @@ void ResolvedPropertiesDictionary::ResolveProperty(PropertyId id)
 				Property parsed_value;
 				if (definition->ParseValue(parsed_value, string_value))
 					resolved_properties.SetProperty(id, parsed_value);
+				else
+					Log::Message(Log::LT_ERROR, "Failed to parse RCSS variable-dependent property '%s' with value '%s'.",
+						StyleSheetSpecification::GetPropertyName(id).c_str(), string_value.c_str());
 			}
 		}
 		else if (value->unit != Property::UNKNOWN)
