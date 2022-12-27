@@ -780,10 +780,10 @@ bool Element::SetVariable(const String& name, const String& value)
 
 	for (auto const& it : properties.GetVariables())
 	{
-		return meta->style.SetVariable(it.first, it.second);
+		meta->style.SetVariable(it.first, it.second);
 	}
 	
-	return false;
+	return true;
 }
 
 bool Element::SetVariable(VariableId id, const Property& variable)
