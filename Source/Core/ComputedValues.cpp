@@ -52,6 +52,16 @@ const TransitionList* Style::ComputedValues::transition() const
 	return nullptr;
 }
 
+const String* ComputedValues::content() const
+{
+	if (auto p = element->GetLocalProperty(PropertyId::Content))
+	{
+		if (p->unit == Property::STRING)
+			return &(p->value.GetReference<String>());
+	}
+	return nullptr;
+}
+
 String Style::ComputedValues::font_family() const
 {
 	if (auto p = element->GetProperty(PropertyId::FontFamily))

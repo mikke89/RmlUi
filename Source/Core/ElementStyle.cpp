@@ -855,6 +855,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		// Fetched from element's properties.
+		case PropertyId::Content:
 		case PropertyId::Cursor:
 		case PropertyId::Transform:
 		case PropertyId::Transition:

@@ -170,6 +170,7 @@ enum class PropertyId : uint8_t
 	FlexShrink,
 	FlexWrap,
 	JustifyContent,
+	Content,
 
 	NumDefinedIds,
 	FirstCustomId = NumDefinedIds,
