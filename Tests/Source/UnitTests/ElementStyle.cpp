@@ -82,11 +82,15 @@ static const String document_content_rml = R"(
 		div {
 			content: "Content from RCSS";
 		}
+		p {
+			content: "\2193"; /* unicode arrow pointing down (↓) */
+		}
 	</style>
 </head>
 
 <body>
 <div id="div" />
+<p id="p" />
 </body>
 </rml>
 )";
@@ -121,16 +125,19 @@ TEST_CASE("elementstyle.content")
 	REQUIRE(document);
 	document->Show();
 	
-	auto element = document->GetElementById("div");
-	CHECK(element->GetProperty(PropertyId::Content)->ToString() == "Content from RCSS");
-	element->SetProperty(PropertyId::Content, Property("Different content", Property::STRING));
+	auto p = document->GetElementById("p");
+	CHECK(p->GetProperty(PropertyId::Content)->ToString() == "↓");
+	
+	auto div = document->GetElementById("div");
+	CHECK(div->GetProperty(PropertyId::Content)->ToString() == "Content from RCSS");
+	div->SetProperty(PropertyId::Content, Property("Different content", Property::STRING));
 	
 	context->Update();
 	context->Render();
 	
 	TestsShell::RenderLoop();
 	
-	CHECK(element->GetProperty(PropertyId::Content)->ToString() == "Different content");
+	CHECK(div->GetProperty(PropertyId::Content)->ToString() == "Different content");
 		
 	document->Close();
 	
