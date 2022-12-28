@@ -37,7 +37,7 @@ namespace Rml {
 
 struct StyleSheetIndex;
 class StyleSheetNode;
-using StyleSheetNodeList = Vector<UniquePtr<StyleSheetNode>>;
+using StyleSheetNodeList = OrderedSet<UniquePtr<StyleSheetNode>>;
 
 /**
     A style sheet is composed of a tree of nodes.
@@ -78,7 +78,9 @@ public:
 
 	/// Returns the specificity of this node.
 	int GetSpecificity() const;
-
+	
+	bool operator<(StyleSheetNode const& other) const;
+	
 private:
 	void CalculateAndSetSpecificity();
 
@@ -104,5 +106,9 @@ private:
 	StyleSheetNodeList children;
 };
 
+inline bool operator<(UniquePtr<StyleSheetNode> const& ptr1, UniquePtr<StyleSheetNode> const& ptr2)
+{
+	return (*ptr1) < (*ptr2);
+}
 } // namespace Rml
 #endif

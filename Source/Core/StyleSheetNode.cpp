@@ -59,38 +59,42 @@ StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, CompoundSelector&& select
 
 StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(const CompoundSelector& other)
 {
-	// See if we match an existing child
-	for (const auto& child : children)
+	static auto scratch = MakeUnique<StyleSheetNode>(this, CompoundSelector{});
+	
+	scratch->selector = other;
+	
+	auto existing = children.find(scratch);
+	if (existing != children.end())
 	{
-		if (child->selector == other)
-			return child.get();
+		return existing->get();
 	}
-
-	// We don't, so create a new child
-	auto child = MakeUnique<StyleSheetNode>(this, other);
-	StyleSheetNode* result = child.get();
-
-	children.push_back(std::move(child));
-
-	return result;
+	else
+	{
+		auto child = MakeUnique<StyleSheetNode>(this, other);
+		StyleSheetNode* result = child.get();
+		children.insert(std::move(child));
+		return result;
+	}
 }
 
 StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(CompoundSelector&& other)
 {
-	// See if we match an existing child
-	for (const auto& child : children)
+	static auto scratch = MakeUnique<StyleSheetNode>(this, CompoundSelector{});
+	
+	scratch->selector = std::move(other);
+	
+	auto existing = children.find(scratch);
+	if (existing != children.end())
 	{
-		if (child->selector == other)
-			return child.get();
+		return existing->get();
 	}
-
-	// We don't, so create a new child
-	auto child = MakeUnique<StyleSheetNode>(this, std::move(other));
-	StyleSheetNode* result = child.get();
-
-	children.push_back(std::move(child));
-
-	return result;
+	else
+	{
+		auto child = MakeUnique<StyleSheetNode>(this, std::move(scratch->selector));
+		StyleSheetNode* result = child.get();
+		children.insert(std::move(child));
+		return result;
+	}
 }
 
 // Merges an entire tree hierarchy into our hierarchy.
@@ -115,12 +119,9 @@ UniquePtr<StyleSheetNode> StyleSheetNode::DeepCopy(StyleSheetNode* in_parent) co
 	auto node = MakeUnique<StyleSheetNode>(in_parent, selector);
 
 	node->properties = properties;
-	node->children.resize(children.size());
 
-	for (size_t i = 0; i < children.size(); i++)
-	{
-		node->children[i] = children[i]->DeepCopy(node.get());
-	}
+	for (auto const& it : children)
+		node->children.insert(it->DeepCopy(node.get()));
 
 	return node;
 }
@@ -168,6 +169,11 @@ void StyleSheetNode::BuildIndex(StyleSheetIndex& styled_node_index) const
 int StyleSheetNode::GetSpecificity() const
 {
 	return specificity;
+}
+
+bool StyleSheetNode::operator<(const StyleSheetNode& other) const
+{
+	return selector < other.selector;
 }
 
 // Imports properties from a single rule definition (ie, with a shared specificity) into the node's

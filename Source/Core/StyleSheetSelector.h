@@ -147,6 +147,7 @@ struct CompoundSelector {
 	SelectorCombinator combinator = SelectorCombinator::Descendant; // Determines how to match with our parent node.
 };
 bool operator==(const CompoundSelector& a, const CompoundSelector& b);
+bool operator<(const CompoundSelector& a, const CompoundSelector& b);
 
 /// Returns true if the the node the given selector is discriminating for is applicable to a given element.
 /// @param element[in] The element to determine node applicability for.

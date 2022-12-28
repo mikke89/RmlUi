@@ -90,6 +90,26 @@ bool operator==(const CompoundSelector& a, const CompoundSelector& b)
 	return true;
 }
 
+bool operator<(const CompoundSelector& a, const CompoundSelector& b)
+{
+	if (a.tag != b.tag)
+		return a.tag < b.tag;
+	if (a.id != b.id)
+		return a.id < b.id;
+	if (a.class_names != b.class_names)
+		return a.class_names < b.class_names;
+	if (a.pseudo_class_names != b.pseudo_class_names)
+		return a.pseudo_class_names < b.pseudo_class_names;
+	if (a.attributes != b.attributes)
+		return a.attributes < b.attributes;
+	if (a.structural_selectors != b.structural_selectors)
+		return a.structural_selectors < b.structural_selectors;
+	if (a.combinator != b.combinator)
+		return a.combinator < b.combinator;
+
+	return false;
+}
+
 bool IsSelectorApplicable(const Element* element, const StructuralSelector& selector)
 {
 	RMLUI_ASSERT(element);

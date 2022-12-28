@@ -50,9 +50,9 @@
 #include <array>
 #include <unordered_map>
 #include <memory>
-
-#ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
 #include <set>
+	
+#ifdef RMLUI_NO_THIRDPARTY_CONTAINERS
 #include <unordered_set>
 #else
 #include "../Core/Containers/chobo/flat_map.hpp"
@@ -96,6 +96,8 @@ using SmallUnorderedMap = UnorderedMap< Key, Value >;
 template <typename T>
 using UnorderedSet = std::unordered_set< T >;
 template <typename T>
+using OrderedSet = std::set< T >;
+template <typename T>
 using SmallUnorderedSet = std::unordered_set< T >;
 template <typename T>
 using SmallOrderedSet = std::set< T >;
@@ -106,6 +108,8 @@ template <typename Key, typename Value>
 using SmallUnorderedMap = chobo::flat_map< Key, Value >;
 template <typename T>
 using UnorderedSet = robin_hood::unordered_flat_set< T >;
+template <typename T>
+using OrderedSet = std::set< T >;
 template <typename T>
 using SmallUnorderedSet = chobo::flat_set< T >;
 template <typename T>
