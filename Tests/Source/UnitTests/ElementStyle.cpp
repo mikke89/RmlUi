@@ -69,7 +69,6 @@ static const String document_content_rml = R"(
 <rml>
 <head>
 	<title>Test</title>
-	<link type="text/rcss" href="/assets/rml.rcss"/>
 	<style>
 		body
 		{
