@@ -84,12 +84,16 @@ static const String document_content_rml = R"(
 		p {
 			content: "\2193"; /* unicode arrow pointing down (↓) */
 		}
+		span {
+			content: "A \ B"; /* sanity check against unescape logic */
+		}
 	</style>
 </head>
 
 <body>
 <div id="div" />
 <p id="p" />
+<span id="span" />
 </body>
 </rml>
 )";
@@ -126,6 +130,9 @@ TEST_CASE("elementstyle.content")
 	
 	auto p = document->GetElementById("p");
 	CHECK(p->GetProperty(PropertyId::Content)->ToString() == "↓");
+
+	auto span = document->GetElementById("span");
+	CHECK(span->GetProperty(PropertyId::Content)->ToString() == "A \\ B");
 	
 	auto div = document->GetElementById("div");
 	CHECK(div->GetProperty(PropertyId::Content)->ToString() == "Content from RCSS");
