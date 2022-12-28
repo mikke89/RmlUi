@@ -59,7 +59,7 @@ StyleSheetNode::StyleSheetNode(StyleSheetNode* parent, CompoundSelector&& select
 
 StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(const CompoundSelector& other)
 {
-	static auto scratch = MakeUnique<StyleSheetNode>(this, CompoundSelector{});
+	static auto scratch = MakeUnique<StyleSheetNode>(nullptr, CompoundSelector{});
 	
 	scratch->selector = other;
 	
@@ -79,7 +79,7 @@ StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(const CompoundSelector& oth
 
 StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(CompoundSelector&& other)
 {
-	static auto scratch = MakeUnique<StyleSheetNode>(this, CompoundSelector{});
+	static auto scratch = MakeUnique<StyleSheetNode>(nullptr, CompoundSelector{});
 	
 	scratch->selector = std::move(other);
 	
