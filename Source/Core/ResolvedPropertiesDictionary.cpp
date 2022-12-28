@@ -145,7 +145,7 @@ void ResolvedPropertiesDictionary::ResolveProperty(PropertyId id)
 		{
 			// try to resolve value
 			String string_value;
-			ResolveVariableTerm(string_value, value->Get<VariableTerm>());
+			ResolveVariableTerm(string_value, value->value.GetReference<VariableTerm>());
 			
 			auto definition = StyleSheetSpecification::GetProperty(id);
 			if (definition)
@@ -208,7 +208,7 @@ void ResolvedPropertiesDictionary::ResolveVariable(VariableId id)
 		if (var->unit == Property::VARIABLETERM)
 		{
 			String string_value;
-			ResolveVariableTerm(string_value, var->Get<VariableTerm>());
+			ResolveVariableTerm(string_value, var->value.GetReference<VariableTerm>());
 			resolved_properties.SetVariable(id, Property(string_value, Property::STRING));
 		}
 		else
@@ -236,7 +236,7 @@ void ResolvedPropertiesDictionary::UpdatePropertyDependencies(PropertyId id)
 
 	if (property && property->unit == Property::VARIABLETERM)
 	{
-		auto term = property->Get<VariableTerm>();
+		auto term = property->value.GetReference<VariableTerm>();
 		for (auto const& atom : term)
 		{
 			if (atom.variable != static_cast<VariableId>(0))
@@ -285,7 +285,7 @@ void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id, boo
 	
 		if (local_variable && local_variable->unit == Property::VARIABLETERM)
 		{
-			auto term = local_variable->Get<VariableTerm>();
+			auto term = local_variable->value.GetReference<VariableTerm>();
 			for (auto const& atom : term)
 			{
 				if (atom.variable != static_cast<VariableId>(0))
