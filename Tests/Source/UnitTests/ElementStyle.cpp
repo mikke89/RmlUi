@@ -65,6 +65,32 @@ static const String document_decorator_rml = R"(
 </rml>
 )";
 
+static const String document_content_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body
+		{
+			font-family: LatoLatin;
+			font-weight: normal;
+			font-style: normal;
+			font-size: 15dp;
+			color: white;
+		}
+		div {
+			content: "Content from RCSS";
+		}
+	</style>
+</head>
+
+<body>
+<div id="div" />
+</body>
+</rml>
+)";
+
 
 TEST_CASE("elementstyle.inline_decorator_images")
 {
@@ -72,7 +98,7 @@ TEST_CASE("elementstyle.inline_decorator_images")
 	REQUIRE(context);
 
 	// There should be no warnings loading this document. There should be three images visible.
-	ElementDocument* document = context->LoadDocumentFromMemory(document_decorator_rml, "assets/");
+	ElementDocument* document = context->LoadDocumentFromMemory(document_decorator_rml);
 	REQUIRE(document);
 	document->Show();
 
@@ -83,5 +109,30 @@ TEST_CASE("elementstyle.inline_decorator_images")
 
 	document->Close();
 
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("elementstyle.content")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+	
+	ElementDocument* document = context->LoadDocumentFromMemory(document_content_rml, "assets/");
+	REQUIRE(document);
+	document->Show();
+	
+	auto element = document->GetElementById("div");
+	CHECK(element->GetProperty(PropertyId::Content)->ToString() == "Content from RCSS");
+	element->SetProperty(PropertyId::Content, Property("Different content", Property::STRING));
+	
+	context->Update();
+	context->Render();
+	
+	TestsShell::RenderLoop();
+	
+	CHECK(element->GetProperty(PropertyId::Content)->ToString() == "Different content");
+		
+	document->Close();
+	
 	TestsShell::ShutdownShell();
 }

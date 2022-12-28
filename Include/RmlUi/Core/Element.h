@@ -707,9 +707,12 @@ private:
 
 	/// Removes all transitions that are no longer part of the element's 'transition' property.
 	void HandleTransitionProperty();
-
+	
 	/// Starts new animations and removes animations no longer part of the element's 'animation' property.
 	void HandleAnimationProperty();
+	
+	/// Updates the elements inner content according to the element's 'content' property.
+	void HandleContentProperty();
 
 	/// Advances the animations (including transitions) forward in time.
 	void AdvanceAnimations();
@@ -732,6 +735,7 @@ private:
 	bool dirty_transition : 1;
 	bool dirty_transform : 1;
 	bool dirty_perspective : 1;
+	bool dirty_content : 1;
 
 	OwnedElementList children;
 	int num_non_dom_children;

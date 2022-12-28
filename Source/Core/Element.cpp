@@ -107,11 +107,26 @@ struct ElementMeta
 static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 
 Element::Element(const String& tag) :
-	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
-	visible(true), offset_fixed(false), absolute_offset_dirty(true), dirty_definition(false), dirty_child_definitions(false), dirty_animation(false),
-	dirty_transition(false), dirty_transform(false), dirty_perspective(false),
-
-	tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0),
+	local_stacking_context(false),
+	local_stacking_context_forced(false),
+	stacking_context_dirty(false),
+	computed_values_are_default_initialized(true),
+	visible(true),
+	offset_fixed(false),
+	absolute_offset_dirty(true),
+	dirty_definition(false),
+	dirty_child_definitions(false),
+	dirty_animation(false),
+	dirty_transition(false),
+	dirty_transform(false),
+	dirty_perspective(false),
+	dirty_content(false),
+	tag(tag),
+	relative_offset_base(0, 0),
+	relative_offset_position(0, 0),
+	absolute_offset(0, 0),
+	scroll_offset(0, 0),
+	content_offset(0, 0),
 	content_box(0, 0)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
@@ -164,7 +179,8 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 #endif
 
 	OnUpdate();
-
+	
+	HandleContentProperty();
 	HandleTransitionProperty();
 	HandleAnimationProperty();
 	AdvanceAnimations();
@@ -1940,6 +1956,11 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	{
 		dirty_transition = true;
 	}
+	// Check for `content' changes
+	if (changed_properties.Contains(PropertyId::Content))
+	{
+		dirty_content = true;
+	}
 }
 
 void Element::OnPseudoClassChange(const String& /*pseudo_class*/, bool /*activate*/)
@@ -2710,6 +2731,16 @@ void Element::HandleAnimationProperty()
 				}
 			}
 		}
+	}
+}
+
+void Element::HandleContentProperty()
+{
+	if (dirty_content)
+	{
+		auto content = GetComputedValues().content();
+		SetInnerRML(content ? *content : "");
+		dirty_content = false;
 	}
 }
 
