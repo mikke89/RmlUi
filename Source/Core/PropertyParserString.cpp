@@ -39,41 +39,41 @@ PropertyParserString::PropertyParserString()
 PropertyParserString::~PropertyParserString()
 {
 }
-
+	
 std::string to_utf8(uint32_t cp)
 {
 	// from https://stackoverflow.com/a/28553727/4882174
-    std::string result;
-
-    int count;
-    if (cp <= 0x007F)
-        count = 1;
-    else if (cp <= 0x07FF)
-        count = 2;
-    else if (cp <= 0xFFFF)
-        count = 3;
-    else if (cp <= 0x10FFFF)
-        count = 4;
-    else
-        return result; // or throw an exception
-
-    result.resize(count);
-
-    if (count > 1)
-    {
-        for (int i = count - 1; i > 0; --i)
-        {
-            result[i] = (char) (0x80 | (cp & 0x3F));
-            cp >>= 6;
-        }
-
-        for (int i = 0; i < count; ++i)
-            cp |= (1 << (7-i));
-    }
-
-    result[0] = (char) cp;
-
-    return result;
+	std::string result;
+	
+	int count;
+	if (cp <= 0x007F)
+		count = 1;
+	else if (cp <= 0x07FF)
+		count = 2;
+	else if (cp <= 0xFFFF)
+		count = 3;
+	else if (cp <= 0x10FFFF)
+		count = 4;
+	else
+		return result; // or throw an exception
+	
+	result.resize(count);
+	
+	if (count > 1)
+	{
+		for (int i = count - 1; i > 0; --i)
+		{
+			result[i] = (char) (0x80 | (cp & 0x3F));
+			cp >>= 6;
+		}
+		
+		for (int i = 0; i < count; ++i)
+			cp |= (1 << (7 - i));
+	}
+	
+	result[0] = (char) cp;
+	
+	return result;
 }
 
 // Called to parse a RCSS string declaration.
