@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,53 +26,41 @@
  *
  */
 
-#include <sstream>
-
 #include "PropertyParserString.h"
+#include <sstream>
 
 namespace Rml {
 
-PropertyParserString::PropertyParserString()
-{
-}
+PropertyParserString::PropertyParserString() {}
 
-PropertyParserString::~PropertyParserString()
+PropertyParserString::~PropertyParserString() {}
+
+std::string unicode_to_utf8(int charcode)
 {
-}
-	
-std::string to_utf8(uint32_t cp)
-{
-	// from https://stackoverflow.com/a/28553727/4882174
 	std::string result;
-	
-	int count;
-	if (cp <= 0x007F)
-		count = 1;
-	else if (cp <= 0x07FF)
-		count = 2;
-	else if (cp <= 0xFFFF)
-		count = 3;
-	else if (cp <= 0x10FFFF)
-		count = 4;
-	else
-		return result; // or throw an exception
-	
-	result.resize(count);
-	
-	if (count > 1)
+	if (charcode < 128)
 	{
-		for (int i = count - 1; i > 0; --i)
-		{
-			result[i] = (char) (0x80 | (cp & 0x3F));
-			cp >>= 6;
-		}
-		
-		for (int i = 0; i < count; ++i)
-			cp |= (1 << (7 - i));
+		result.push_back(charcode);
 	}
-	
-	result[0] = (char) cp;
-	
+	else
+	{
+		int first_bits = 6;
+		const int other_bits = 6;
+		int first_val = 0xC0;
+		int t = 0;
+		while (charcode >= (1 << first_bits))
+		{
+			{
+				t = 128 | (charcode & ((1 << other_bits) - 1));
+				charcode >>= other_bits;
+				first_val |= 1 << (first_bits);
+				first_bits--;
+			}
+			result.insert(0, 1, t);
+		}
+		t = first_val | charcode;
+		result.insert(0, 1, t);
+	}
 	return result;
 }
 
@@ -80,7 +68,7 @@ std::string to_utf8(uint32_t cp)
 bool PropertyParserString::ParseValue(Property& property, const String& value, const ParameterMap& RMLUI_UNUSED_PARAMETER(parameters)) const
 {
 	RMLUI_UNUSED(parameters);
-	
+
 	// parse escaped unicode literals according to https://www.w3.org/TR/CSS2/syndata.html#characters
 
 	std::string str = value;
@@ -88,11 +76,11 @@ bool PropertyParserString::ParseValue(Property& property, const String& value, c
 	do
 	{
 		startIdx = str.find("\\", startIdx);
-		if (startIdx == std::string::npos) 
+		if (startIdx == std::string::npos)
 			break;
 
 		std::string::size_type endIdx = str.find_first_not_of("0123456789abcdefABCDEF", startIdx + 1);
-		if (endIdx == std::string::npos) 
+		if (endIdx == std::string::npos)
 			endIdx = str.length();
 
 		std::string tmpStr = str.substr(startIdx + 1, endIdx - (startIdx + 1));
@@ -101,7 +89,7 @@ bool PropertyParserString::ParseValue(Property& property, const String& value, c
 		uint32_t cp;
 		if (iss >> std::hex >> cp)
 		{
-			std::string utf8 = to_utf8(cp);
+			std::string utf8 = unicode_to_utf8(cp);
 			str.replace(startIdx, 1 + tmpStr.length(), utf8);
 			startIdx += utf8.length();
 		}
