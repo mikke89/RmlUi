@@ -550,9 +550,14 @@ void ElementStyle::DirtyPropertiesWithUnitsRecursive(Property::Unit units)
 		element->GetChild(i)->GetStyle()->DirtyPropertiesWithUnitsRecursive(units);
 }
 
+void ElementStyle::DirtyVariable(VariableId id)
+{
+	dirty_variables.insert(id);
+}
+
 bool ElementStyle::AnyPropertiesDirty() const 
 {
-	return !dirty_properties.Empty() || !dirty_variables.empty();
+	return !dirty_properties.Empty() || !dirty_variables.empty() || inline_properties.AnyPropertiesDirty() || definition_properties.AnyPropertiesDirty();
 }
 
 PropertiesIterator ElementStyle::Iterate() const {
@@ -597,12 +602,13 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 
 PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions)
 {
+	// update resolved property dictionaries
+	inline_properties.ResolveDirtyValues();
+	definition_properties.ResolveDirtyValues();
+	
 	// propagate dirty variables
 	if (!dirty_variables.empty())
 	{
-		inline_properties.ApplyDirtyVariables();
-		definition_properties.ApplyDirtyVariables();
-		
 		for (int i = 0; i < element->GetNumChildren(true); i++)
 		{
 			auto child = element->GetChild(i);

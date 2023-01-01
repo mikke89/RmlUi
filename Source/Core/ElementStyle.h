@@ -149,14 +149,17 @@ public:
 	/// Inherited properties will automatically be set when parent inherited properties are changed. However,
 	/// some operations may require to dirty these manually, such as when moving an element into another.
 	void DirtyInheritedProperties();
-
+	
 	// Sets a single property as dirty.
 	void DirtyProperty(PropertyId id);
 	/// Dirties all properties with any of the given units (OR-ed together) on the current element (*not* recursive).
 	void DirtyPropertiesWithUnits(Property::Unit units);
 	/// Dirties all properties with any of the given units (OR-ed together) on the current element and recursively on all children.
 	void DirtyPropertiesWithUnitsRecursive(Property::Unit units);
-
+	
+	// Sets a single variable as dirty.
+	void DirtyVariable(VariableId id);
+	
 	/// Returns true if any properties are dirty such that computed values need to be recomputed
 	bool AnyPropertiesDirty() const;
 
