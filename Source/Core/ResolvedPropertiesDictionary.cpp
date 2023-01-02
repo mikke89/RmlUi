@@ -1,7 +1,6 @@
 #include "../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../Include/RmlUi/Core/PropertyDefinition.h"
 
-#include "PropertyShorthandDefinition.h"
 #include "ResolvedPropertiesDictionary.h"
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
@@ -41,13 +40,21 @@ const Property* ResolvedPropertiesDictionary::GetVariable(VariableId id) const
 void ResolvedPropertiesDictionary::SetProperty(PropertyId id, const Property& value)
 {
 	source_properties.SetProperty(id, value);
-	dirty_properties.Insert(id);
+	UpdatePropertyDependencies(id);
+	if (value.unit == Property::VARIABLETERM)
+		dirty_properties.Insert(id);
+	else
+		resolved_properties.SetProperty(id, value);
 }
 
 void ResolvedPropertiesDictionary::SetVariable(VariableId id, const Property& value)
 {
 	source_properties.SetVariable(id, value);
-	dirty_variables.insert(id);
+	UpdateVariableDependencies(id);
+	if (value.unit == Property::VARIABLETERM)
+		dirty_variables.insert(id);
+	else
+		resolved_properties.SetVariable(id, value);
 }
 
 void ResolvedPropertiesDictionary::SetDependentShorthand(ShorthandId id, const VariableTerm &value)
@@ -61,7 +68,8 @@ bool ResolvedPropertiesDictionary::RemoveProperty(PropertyId id)
 	auto size_before = source_properties.GetNumProperties();
 
 	source_properties.RemoveProperty(id);
-	dirty_properties.Insert(id);	
+	resolved_properties.RemoveProperty(id);
+	dirty_properties.Insert(id);
 
 	return source_properties.GetNumProperties() != size_before;
 }
@@ -71,6 +79,7 @@ bool ResolvedPropertiesDictionary::RemoveVariable(VariableId id)
 	auto size_before = source_properties.GetNumVariables();
 
 	source_properties.RemoveVariable(id);
+	resolved_properties.RemoveVariable(id);
 	dirty_variables.insert(id);
 	
 	return source_properties.GetNumVariables() != size_before;
@@ -189,7 +198,7 @@ void ResolvedPropertiesDictionary::ResolveDirtyValues()
 	// resolve dirty properties
 	for (auto const& it : dirty_shorthands)
 		ResolveShorthand(it);
-	
+
 	for (auto const& it : dirty_properties)
 		ResolveProperty(it);
 	
