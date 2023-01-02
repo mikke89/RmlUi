@@ -288,7 +288,10 @@ void ResolvedPropertiesDictionary::ResolveShorthand(ShorthandId id)
 		
 		if (parent)
 			for (auto const& it : properties)
+			{
 				parent->DirtyProperty(it);
+				dirty_properties.Erase(it);
+			}
 	}
 }
 

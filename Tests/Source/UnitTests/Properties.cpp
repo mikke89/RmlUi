@@ -210,6 +210,23 @@ static const String media_query_rml = R"(
 </rml>
 )";
 
+static const String circular_rml = R"(
+<rml>
+<head>
+	<style>
+	body {
+		--bg-color: var(--bg2-color);
+		--bg2-color: var(--bg-color);
+	}
+	</style>
+</head>
+
+<body>
+<div></div>
+</body>
+</rml>
+)";
+
 TEST_CASE("variables.basic")
 {
 	Context* context = TestsShell::GetContext();
@@ -370,5 +387,22 @@ TEST_CASE("variables.mediaquery")
 
 	document->Close();
 	
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("variables.circular")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+	
+	// Should get two errors, one for circular dependency, one for resolution failure of the other variable
+	TestsShell::SetNumExpectedWarnings(2);
+	
+	ElementDocument* document = context->LoadDocumentFromMemory(circular_rml);
+	REQUIRE(document);
+	document->Show();
+	TestsShell::RenderLoop();
+	document->Close();
+
 	TestsShell::ShutdownShell();
 }
