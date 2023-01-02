@@ -9,8 +9,7 @@ namespace Rml {
 
 ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent) : parent(parent) {}
 
-ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent, const ElementDefinition* source) :
-	parent(parent)
+ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent, const ElementDefinition* source) : parent(parent)
 {
 	auto const& props = source->GetProperties();
 
@@ -113,17 +112,20 @@ void ResolvedPropertiesDictionary::ResolveDirtyValues()
 	// apply externally dirtied variables (from parent style or tree ancestors)
 	for(auto const& id : parent->GetDirtyVariables())
 	{
-		auto dependent_variables = variable_dependencies.equal_range(id);
-		for (auto iter = dependent_variables.first; iter != dependent_variables.second; ++iter)
-			dirty_variables.insert(iter->second);
+		auto dependent_variables = variable_dependencies.find(id);
+		if (dependent_variables != variable_dependencies.end())
+			for (auto const& it : dependent_variables->second)
+				dirty_variables.insert(it);
 		
-		auto dependent_shorthands = shorthand_dependencies.equal_range(id);
-		for (auto iter = dependent_shorthands.first; iter != dependent_shorthands.second; ++iter)
-			dirty_shorthands.insert(iter->second);
+		auto dependent_shorthands = shorthand_dependencies.find(id);
+		if (dependent_shorthands != shorthand_dependencies.end())
+			for (auto const& it : dependent_shorthands->second)
+				dirty_shorthands.insert(it);
 		
-		auto dependent_properties = property_dependencies.equal_range(id);
-		for (auto iter = dependent_properties.first; iter != dependent_properties.second; ++iter)
-			dirty_properties.Insert(iter->second);
+		auto dependent_properties = property_dependencies.find(id);
+		if (dependent_properties != property_dependencies.end())
+			for (auto const& it : dependent_properties->second)
+				dirty_properties.Insert(it);
 	}
 
 	// resolve dirty variables using iterative depth-first-search with graph coloring for dependency graph navigation and cycle detection
@@ -329,7 +331,8 @@ void ResolvedPropertiesDictionary::UpdatePropertyDependencies(PropertyId id)
 {
 	for (auto iter = property_dependencies.begin(); iter != property_dependencies.end();)
 	{
-		if (iter->second == id)
+		iter->second.Erase(id);
+		if (iter->second.Empty())
 			iter = property_dependencies.erase(iter);
 		else
 			++iter;
@@ -341,10 +344,8 @@ void ResolvedPropertiesDictionary::UpdatePropertyDependencies(PropertyId id)
 	{
 		auto term = property->value.GetReference<VariableTerm>();
 		for (auto const& atom : term)
-		{
 			if (atom.variable != static_cast<VariableId>(0))
-				property_dependencies.insert(std::make_pair(atom.variable, id));
-		}
+				property_dependencies[atom.variable].Insert(id);
 	}
 }
 
@@ -352,7 +353,8 @@ void ResolvedPropertiesDictionary::UpdateShorthandDependencies(ShorthandId id)
 {
 	for (auto iter = shorthand_dependencies.begin(); iter != shorthand_dependencies.end();)
 	{
-		if (iter->second == id)
+		iter->second.erase(id);
+		if (iter->second.empty())
 			iter = shorthand_dependencies.erase(iter);
 		else
 			++iter;
@@ -361,13 +363,9 @@ void ResolvedPropertiesDictionary::UpdateShorthandDependencies(ShorthandId id)
 	auto const& shorthands = source_properties.GetDependentShorthands();
 	auto shorthand = shorthands.find(id);
 	if (shorthand != shorthands.end())
-	{
 		for (auto const& atom : shorthand->second)
-		{
 			if (atom.variable != static_cast<VariableId>(0))
-				shorthand_dependencies.insert(std::make_pair(atom.variable, id));
-		}
-	}
+				shorthand_dependencies[atom.variable].insert(id);
 }
 
 void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
@@ -375,7 +373,8 @@ void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
 	// sanitize dependencies on local variable
 	for (auto iter = variable_dependencies.begin(); iter != variable_dependencies.end();)
 	{
-		if (iter->second == id)
+		iter->second.erase(id);
+		if (iter->second.empty())
 			iter = variable_dependencies.erase(iter);
 		else
 			++iter;
@@ -387,10 +386,8 @@ void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
 	{
 		auto term = local_variable->value.GetReference<VariableTerm>();
 		for (auto const& atom : term)
-		{
 			if (atom.variable != static_cast<VariableId>(0))
-				variable_dependencies.insert(std::make_pair(atom.variable, id));
-		}
+				variable_dependencies[atom.variable].insert(id);
 	}
 }
 

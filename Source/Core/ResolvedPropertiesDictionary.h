@@ -81,9 +81,9 @@ private:
 	UnorderedSet<ShorthandId> dirty_shorthands;
 	
 	// key: dependency variable id, value: dependent value id
-	UnorderedMultimap<VariableId, PropertyId> property_dependencies;
-	UnorderedMultimap<VariableId, ShorthandId> shorthand_dependencies;
-	UnorderedMultimap<VariableId, VariableId> variable_dependencies;
+	UnorderedMap<VariableId, PropertyIdSet> property_dependencies;
+	UnorderedMap<VariableId, SmallUnorderedSet<ShorthandId>> shorthand_dependencies;
+	UnorderedMap<VariableId, SmallUnorderedSet<VariableId>> variable_dependencies;
 };
 
 } // namespace Rml
