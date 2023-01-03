@@ -142,7 +142,7 @@ void ResolvedPropertiesDictionary::ResolveDirtyValues()
 		
 		for(auto const& id : dirty_variables)
 		{
-			if (colors.contains(id))
+			if (colors.find(id) != colors.end())
 				continue;
 			
 			std::stack<VariableId> stack;
@@ -191,7 +191,7 @@ void ResolvedPropertiesDictionary::ResolveDirtyValues()
 		}
 		
 		for (auto const& it : sorted_variables)
-			if (dirty_variables.contains(it))
+			if (dirty_variables.find(it) != dirty_variables.end())
 				ResolveVariable(it);
 		
 		dirty_variables.clear();
