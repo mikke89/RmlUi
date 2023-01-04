@@ -15,14 +15,14 @@ ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent,
 
 	if (source) 
 	{
-		for (auto const& it : props.GetProperties())
-			SetProperty(it.first, it.second);
-
 		for (auto const& it : props.GetVariables())
 			SetVariable(it.first, it.second);
 		
 		for (auto const& it : props.GetDependentShorthands())
 			SetDependentShorthand(it.first, it.second);
+		
+		for (auto const& it : props.GetProperties())
+			SetProperty(it.first, it.second);
 	}
 }
 
@@ -38,28 +38,40 @@ const Property* ResolvedPropertiesDictionary::GetVariable(VariableId id) const
 
 void ResolvedPropertiesDictionary::SetProperty(PropertyId id, const Property& value)
 {
-	source_properties.SetProperty(id, value);
-	UpdatePropertyDependencies(id);
+	// ignore pending values
+	if (value.unit == Property::UNKNOWN)
+		return;
+	
 	if (value.unit == Property::VARIABLETERM)
-		dirty_properties.Insert(id);
+		source_properties.SetProperty(id, value);
 	else
 		resolved_properties.SetProperty(id, value);
+	
+	// if is or was a dependent property, update dependent data store
+	if (value.unit == Property::VARIABLETERM || source_properties.GetProperty(id) != nullptr) {
+		dirty_values.insert(id);
+		UpdatePropertyDependencies(id);
+	}
 }
 
 void ResolvedPropertiesDictionary::SetVariable(VariableId id, const Property& value)
 {
-	source_properties.SetVariable(id, value);
-	UpdateVariableDependencies(id);
 	if (value.unit == Property::VARIABLETERM)
-		dirty_variables.insert(id);
+		source_properties.SetVariable(id, value);
 	else
 		resolved_properties.SetVariable(id, value);
+	
+	// if is or was a dependent variable, update dependent data store
+	if (value.unit == Property::VARIABLETERM || source_properties.GetVariable(id) != nullptr) {
+		dirty_values.insert(id);
+		UpdateVariableDependencies(id);
+	}
 }
 
 void ResolvedPropertiesDictionary::SetDependentShorthand(ShorthandId id, const VariableTerm &value)
 {
 	source_properties.SetDependent(id, value);
-	dirty_shorthands.insert(id);
+	dirty_values.insert(id);
 }
 
 bool ResolvedPropertiesDictionary::RemoveProperty(PropertyId id)
@@ -68,7 +80,7 @@ bool ResolvedPropertiesDictionary::RemoveProperty(PropertyId id)
 
 	source_properties.RemoveProperty(id);
 	resolved_properties.RemoveProperty(id);
-	dirty_properties.Insert(id);
+	dirty_values.insert(id);
 
 	return source_properties.GetNumProperties() != size_before;
 }
@@ -79,14 +91,14 @@ bool ResolvedPropertiesDictionary::RemoveVariable(VariableId id)
 
 	source_properties.RemoveVariable(id);
 	resolved_properties.RemoveVariable(id);
-	dirty_variables.insert(id);
+	dirty_values.insert(id);
 	
 	return source_properties.GetNumVariables() != size_before;
 }
 
 bool ResolvedPropertiesDictionary::AnyPropertiesDirty() const
 {
-	return !dirty_properties.Empty() || !dirty_variables.empty() || !dirty_shorthands.empty();
+	return !dirty_values.empty();
 }
 
 const PropertyDictionary& ResolvedPropertiesDictionary::GetProperties() const
@@ -99,113 +111,112 @@ void ResolvedPropertiesDictionary::ResolveDirtyValues()
 	if (!parent)
 		return;
 	
-	// update dirty value variable dependencies	
-	for (auto const& it : dirty_variables)
-		UpdateVariableDependencies(it);
-
-	for (auto const& it : dirty_shorthands)
-		UpdateShorthandDependencies(it);
-	
-	for (auto const& it : dirty_properties)
-		UpdatePropertyDependencies(it);
+	// update dirty value variable dependencies
+	for (auto const& it : dirty_values) {
+		switch(it.type) {
+		case IdWrapper::Variable:
+			UpdateVariableDependencies(it.get<VariableId>());
+			break;
+		case IdWrapper::Shorthand:
+			UpdateShorthandDependencies(it.get<ShorthandId>());
+			break;
+		case IdWrapper::Property:
+			UpdatePropertyDependencies(it.get<PropertyId>());
+			break;
+		}
+	}
 
 	// apply externally dirtied variables (from parent style or tree ancestors)
 	for(auto const& id : parent->GetDirtyVariables())
 	{
-		auto dependent_variables = variable_dependencies.find(id);
-		if (dependent_variables != variable_dependencies.end())
-			for (auto const& it : dependent_variables->second)
-				dirty_variables.insert(it);
-		
-		auto dependent_shorthands = shorthand_dependencies.find(id);
-		if (dependent_shorthands != shorthand_dependencies.end())
-			for (auto const& it : dependent_shorthands->second)
-				dirty_shorthands.insert(it);
-		
-		auto dependent_properties = property_dependencies.find(id);
-		if (dependent_properties != property_dependencies.end())
-			for (auto const& it : dependent_properties->second)
-				dirty_properties.Insert(it);
+		auto dependents = dependencies.find(id);
+		if (dependents != dependencies.end())
+			for (auto const& it : dependents->second)
+				dirty_values.insert(it);
 	}
 
 	// resolve dirty variables using iterative depth-first-search with graph coloring for dependency graph navigation and cycle detection
-	if (!dirty_variables.empty())
+	// 3 colors:
+	// not in map: unknown
+	//      false: known, in progress
+	//       true: completed
+	UnorderedMap<VariableId, bool> colors;
+	
+	std::list<VariableId> sorted_variables;
+	PropertyDictionary variable_cache;
+	
+	for(auto const& it : dirty_values)
 	{
-		// 3 colors:
-		// not in map: unknown
-		//      false: known, in progress
-		//       true: completed
-		UnorderedMap<VariableId, bool> colors;
+		if (it.type != IdWrapper::Variable)
+			continue;
 		
-		std::list<VariableId> sorted_variables;
-		PropertyDictionary variable_cache;
+		auto const& id = it.get<VariableId>();
 		
-		for(auto const& id : dirty_variables)
+		if (colors.find(id) != colors.end())
+			continue;
+		
+		std::stack<VariableId> stack;
+		stack.push(id);
+		
+		while(!stack.empty())
 		{
-			if (colors.find(id) != colors.end())
-				continue;
+			auto top = stack.top();
 			
-			std::stack<VariableId> stack;
-			stack.push(id);
-			
-			while(!stack.empty())
 			{
-				auto top = stack.top();
-				
+				auto color = colors.find(top);
+				if (color != colors.end())
 				{
-					auto color = colors.find(top);
-					if (color != colors.end())
+					if (!color->second)
 					{
-						if (!color->second)
-						{
-							color->second = true;
-							sorted_variables.push_front(top);
-						}
-						
-						stack.pop();
-						continue;
+						color->second = true;
+						sorted_variables.push_front(top);
 					}
 					
-					colors[top] = false;
+					stack.pop();
+					continue;
 				}
 				
-				auto value = source_properties.GetVariable(top);
-				if (!value)
-					value = parent->GetVariable(top);
+				colors[top] = false;
+			}
+			
+			auto value = source_properties.GetVariable(top);
+			if (!value)
+				value = parent->GetVariable(top);
 
-				if (!value || value->unit != Property::VARIABLETERM)
-					continue;
-				
-				for (auto const& atom : value->value.GetReference<VariableTerm>())
+			if (!value || value->unit != Property::VARIABLETERM)
+				continue;
+			
+			for (auto const& atom : value->value.GetReference<VariableTerm>())
+			{
+				if (atom.variable != static_cast<VariableId>(0))
 				{
-					if (atom.variable != static_cast<VariableId>(0))
-					{
-						auto color = colors.find(atom.variable);
-						if (color == colors.end())
-							stack.push(atom.variable);
-						else if (!color->second)
-							Log::Message(Log::LT_ERROR, "Cycle detected during RCSS variable resolution for '%s'. Replacing with empty value.", GetVariableName(atom.variable).c_str());
-					}
+					auto color = colors.find(atom.variable);
+					if (color == colors.end())
+						stack.push(atom.variable);
+					else if (!color->second)
+						Log::Message(Log::LT_ERROR, "Cycle detected during RCSS variable resolution for '%s'. Replacing with empty value.", GetVariableName(atom.variable).c_str());
 				}
 			}
 		}
-		
-		for (auto const& it : sorted_variables)
-			if (dirty_variables.find(it) != dirty_variables.end())
-				ResolveVariable(it);
-		
-		dirty_variables.clear();
+	}
+	
+	for (auto const& it : sorted_variables){
+		if (dirty_values.find(it) != dirty_values.end()){
+			ResolveVariable(it);
+			dirty_values.erase(it);
+		}
 	}
 	
 	// resolve dirty properties
-	for (auto const& it : dirty_shorthands)
-		ResolveShorthand(it);
+	for (auto const& it : dirty_values)
+		if (it.type == IdWrapper::Shorthand)
+			ResolveShorthand(it.get<ShorthandId>());
 
-	for (auto const& it : dirty_properties)
-		ResolveProperty(it);
+	for (auto const& it : dirty_values)
+		if (it.type == IdWrapper::Property)
+			ResolveProperty(it.get<PropertyId>());
 	
-	dirty_shorthands.clear();
-	dirty_properties.Clear();
+	dirty_values.clear();
 }
 
 void ResolvedPropertiesDictionary::ResolveVariableTerm(String& result, const VariableTerm& term)
@@ -287,13 +298,6 @@ void ResolvedPropertiesDictionary::ResolveShorthand(ShorthandId id)
 		
 		// clear underlying properties
 		auto properties = StyleSheetSpecification::GetShorthandUnderlyingProperties(id);
-		for (auto const& it : properties)
-		{
-			resolved_properties.RemoveProperty(it);
-			
-			// Even remove the source_properties definition, which would otherwise copy over the "pending" value
-			source_properties.RemoveProperty(it);
-		}
 		
 		StyleSheetSpecification::ParseShorthandDeclaration(resolved_properties, id, string_value);
 		
@@ -301,7 +305,7 @@ void ResolvedPropertiesDictionary::ResolveShorthand(ShorthandId id)
 			for (auto const& it : properties)
 			{
 				parent->DirtyProperty(it);
-				dirty_properties.Erase(it);
+				dirty_values.erase(it);
 			}
 	}
 }
@@ -329,33 +333,37 @@ void ResolvedPropertiesDictionary::ResolveVariable(VariableId id)
 
 void ResolvedPropertiesDictionary::UpdatePropertyDependencies(PropertyId id)
 {
-	for (auto iter = property_dependencies.begin(); iter != property_dependencies.end();)
+	for (auto iter = dependencies.begin(); iter != dependencies.end();)
 	{
-		iter->second.Erase(id);
-		if (iter->second.Empty())
-			iter = property_dependencies.erase(iter);
+		iter->second.erase(id);
+		if (iter->second.empty())
+			iter = dependencies.erase(iter);
 		else
 			++iter;
 	}
 
 	auto property = source_properties.GetProperty(id);
 
-	if (property && property->unit == Property::VARIABLETERM)
+	if (property)
 	{
-		auto term = property->value.GetReference<VariableTerm>();
-		for (auto const& atom : term)
-			if (atom.variable != static_cast<VariableId>(0))
-				property_dependencies[atom.variable].Insert(id);
+		if (property->unit == Property::VARIABLETERM) {
+			auto term = property->value.GetReference<VariableTerm>();
+			for (auto const& atom : term)
+				if (atom.variable != static_cast<VariableId>(0))
+					dependencies[atom.variable].insert(id);
+		}
+		else
+			source_properties.RemoveProperty(id);
 	}
 }
 
 void ResolvedPropertiesDictionary::UpdateShorthandDependencies(ShorthandId id)
 {
-	for (auto iter = shorthand_dependencies.begin(); iter != shorthand_dependencies.end();)
+	for (auto iter = dependencies.begin(); iter != dependencies.end();)
 	{
 		iter->second.erase(id);
 		if (iter->second.empty())
-			iter = shorthand_dependencies.erase(iter);
+			iter = dependencies.erase(iter);
 		else
 			++iter;
 	}
@@ -365,29 +373,34 @@ void ResolvedPropertiesDictionary::UpdateShorthandDependencies(ShorthandId id)
 	if (shorthand != shorthands.end())
 		for (auto const& atom : shorthand->second)
 			if (atom.variable != static_cast<VariableId>(0))
-				shorthand_dependencies[atom.variable].insert(id);
+				dependencies[atom.variable].insert(id);
 }
 
 void ResolvedPropertiesDictionary::UpdateVariableDependencies(VariableId id)
 {
 	// sanitize dependencies on local variable
-	for (auto iter = variable_dependencies.begin(); iter != variable_dependencies.end();)
+	for (auto iter = dependencies.begin(); iter != dependencies.end();)
 	{
 		iter->second.erase(id);
 		if (iter->second.empty())
-			iter = variable_dependencies.erase(iter);
+			iter = dependencies.erase(iter);
 		else
 			++iter;
 	}
 	
 	auto local_variable = source_properties.GetVariable(id);
 
-	if (local_variable && local_variable->unit == Property::VARIABLETERM)
+	if (local_variable)
 	{
-		auto term = local_variable->value.GetReference<VariableTerm>();
-		for (auto const& atom : term)
-			if (atom.variable != static_cast<VariableId>(0))
-				variable_dependencies[atom.variable].insert(id);
+		if (local_variable->unit == Property::VARIABLETERM)
+		{
+			auto term = local_variable->value.GetReference<VariableTerm>();
+			for (auto const& atom : term)
+				if (atom.variable != static_cast<VariableId>(0))
+					dependencies[atom.variable].insert(id);
+		}
+		else
+			source_properties.RemoveVariable(id);
 	}
 }
 

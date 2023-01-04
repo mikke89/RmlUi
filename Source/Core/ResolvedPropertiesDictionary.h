@@ -34,6 +34,63 @@
 
 namespace Rml {
 
+struct IdWrapper {
+	enum Type : uint8_t {
+		Variable, Shorthand, Property
+	} type;
+	
+	union {
+		VariableId variable;
+		PropertyId property;
+		ShorthandId shorthand;
+	};
+	
+	IdWrapper() {}
+	IdWrapper(VariableId   variable_id) : type(Variable), variable(variable_id) {}
+	IdWrapper(ShorthandId shorthand_id) : type(Shorthand), shorthand(shorthand_id) {}
+	IdWrapper(PropertyId   property_id) : type(Property), property(property_id) {}
+	
+	template<typename T> T const& get() const;
+	template<>  VariableId const& get() const { return variable; }
+	template<> ShorthandId const& get() const { return shorthand; }
+	template<>  PropertyId const& get() const { return property; }
+	
+	bool operator==(IdWrapper const& o) const {
+		if (type != o.type) return false;
+		switch(type) {
+		case Variable: return variable == o.variable;
+		case Shorthand: return shorthand == o.shorthand;
+		case Property: return property == o.property;
+		}
+		return false;
+	}
+	bool operator<(IdWrapper const& o) const {
+		if (type != o.type) return type < o.type;
+		switch(type) {
+		case Variable: return variable < o.variable;
+		case Shorthand: return shorthand < o.shorthand;
+		case Property: return property < o.property;
+		}
+		return false;
+	}
+};
+
+} // namespace Rml
+
+namespace std {
+// Hash specialization for the node list, so it can be used as key in UnorderedMap.
+template <>
+struct hash<::Rml::IdWrapper> {
+	std::size_t operator()(const ::Rml::IdWrapper& v) const noexcept
+	{
+		return static_cast<size_t>(v.variable);
+	}
+};
+} // namespace std
+
+
+namespace Rml {
+
 /**
     Wrapper around a property dictionary computing variable-dependent values
     @author Maximilian Stark
@@ -41,6 +98,7 @@ namespace Rml {
 
 class ElementStyle;
 class ElementDefinition;
+
 
 class ResolvedPropertiesDictionary {
 public:
@@ -76,15 +134,11 @@ private:
 	PropertyDictionary source_properties;
 	PropertyDictionary resolved_properties;
 	
-	PropertyIdSet dirty_properties;
-	UnorderedSet<VariableId> dirty_variables;
-	UnorderedSet<ShorthandId> dirty_shorthands;
-	
+	UnorderedSet<IdWrapper> dirty_values;
 	// key: dependency variable id, value: dependent value id
-	UnorderedMap<VariableId, PropertyIdSet> property_dependencies;
-	UnorderedMap<VariableId, SmallUnorderedSet<ShorthandId>> shorthand_dependencies;
-	UnorderedMap<VariableId, SmallUnorderedSet<VariableId>> variable_dependencies;
+	UnorderedMap<VariableId, SmallUnorderedSet<IdWrapper>> dependencies;
 };
 
 } // namespace Rml
+
 #endif
