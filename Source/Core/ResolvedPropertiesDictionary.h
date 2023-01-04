@@ -51,9 +51,6 @@ struct IdWrapper {
 	IdWrapper(PropertyId   property_id) : type(Property), property(property_id) {}
 	
 	template<typename T> T const& get() const;
-	template<>  VariableId const& get() const { return variable; }
-	template<> ShorthandId const& get() const { return shorthand; }
-	template<>  PropertyId const& get() const { return property; }
 	
 	bool operator==(IdWrapper const& o) const {
 		if (type != o.type) return false;
@@ -74,6 +71,11 @@ struct IdWrapper {
 		return false;
 	}
 };
+
+template<> inline  VariableId const& IdWrapper::get() const { return variable; }
+template<> inline ShorthandId const& IdWrapper::get() const { return shorthand; }
+template<> inline  PropertyId const& IdWrapper::get() const { return property; }
+
 
 } // namespace Rml
 
