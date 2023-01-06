@@ -54,9 +54,11 @@ ElementText::~ElementText() {}
 
 void ElementText::SetText(const String& _text)
 {
-	if (text != _text)
+	auto unescaped_text = StringUtilities::DecodeRml(_text);
+	
+	if (text != unescaped_text)
 	{
-		text = _text;
+		text = unescaped_text;
 
 		if (dirty_layout_on_change)
 			DirtyLayout();

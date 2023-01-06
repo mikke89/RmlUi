@@ -53,6 +53,21 @@ static const String document_xml_tags_in_css = R"(
 </rml>
 )";
 
+static const String document_escaping = R"(
+<rml>
+    <head>
+	<style>
+	p { 
+		font-family: LatoLatin;
+	}
+	</style>
+    </head>
+    <body>
+	<p id="p">&#x20AC;&#8364;</p>
+    </body>
+</rml>
+)";
+
 TEST_CASE("XMLParser")
 {
 	Context* context = TestsShell::GetContext();
@@ -71,6 +86,28 @@ TEST_CASE("XMLParser")
 	CHECK(background.green == 0xff);
 	CHECK(background.blue == 0);
 	CHECK(background.alpha == 0xff);
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("XMLParser.escaping")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	// Style nodes should accept XML reserved characters, see https://github.com/mikke89/RmlUi/issues/341
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_escaping);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	auto element = document->GetElementById("p");
+	REQUIRE(element);
+
+	CHECK(element->GetInnerRML() == "€€");
 
 	document->Close();
 	TestsShell::ShutdownShell();

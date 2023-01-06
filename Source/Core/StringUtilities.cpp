@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sstream>
 
 namespace Rml {
 
@@ -151,6 +152,58 @@ String StringUtilities::DecodeRml(const String& s)
 				result += "\"";
 				i += 6;
 				continue;
+			}
+			else if (s[i+1] == '#')
+			{
+				size_t start = i + 2;
+				if (s[i+2] == 'x')
+				{
+					start++;
+					size_t j = 0;
+					for(; j < 8; j++)
+					{
+						auto const& c = s[start + j];
+						if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
+							break;
+					}
+					
+					if (j > 0 && s[start + j] == ';')
+					{
+						String tmp = s.substr(start, j);
+						std::istringstream iss(tmp);
+						uint32_t code_point;
+						if (iss >> std::hex >> code_point)
+						{
+							result += ToUTF8(static_cast<Character>(code_point));
+							i = start + j + 1;
+							continue;
+						}
+					}
+				}
+				else
+				{
+					size_t j = 0;
+					for(; j < 8; j++)
+					{
+						auto const& c = s[start + j];
+						if (!(c >= '0' && c <= '9'))
+							break;
+					}
+					
+					if (j > 0 && s[start + j] == ';')
+					{
+						String tmp = s.substr(start, j);
+						std::istringstream iss(tmp);
+						uint32_t code_point;
+						if (iss >> code_point)
+						{
+							result += ToUTF8(static_cast<Character>(code_point));
+							i = start + j + 1;
+							continue;
+						}
+					}
+				}
+				
 			}
 		}
 		result += s[i];
