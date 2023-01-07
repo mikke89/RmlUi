@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -95,20 +95,31 @@ float Box::GetCumulativeEdge(Area area, Edge edge) const
 	return size;
 }
 
-float Box::GetSizeAcross(Direction direction, Area area, Area area_end) const
+float Box::GetSizeAcross(Direction direction, Area area_outer, Area area_inner) const
 {
 	static_assert(HORIZONTAL == 1 && VERTICAL == 0, "");
-	RMLUI_ASSERT(area <= area_end && direction <= 1);
+	RMLUI_ASSERT(area_outer <= area_inner && direction <= 1);
 
 	float size = 0.0f;
 
-	if (area_end == CONTENT)
+	if (area_inner == CONTENT)
 		size = (direction == HORIZONTAL ? content.x : content.y);
-	
-	for (int i = area; i <= area_end && i < CONTENT; i++)
+
+	for (int i = area_outer; i <= area_inner && i < CONTENT; i++)
 		size += (area_edges[i][TOP + (int)direction] + area_edges[i][BOTTOM + (int)direction]);
 
 	return size;
+}
+
+Vector2f Box::GetFrameSize(Area area) const
+{
+	if (area == CONTENT)
+		return content;
+
+	return {
+		area_edges[area][RIGHT] + area_edges[area][LEFT],
+		area_edges[area][TOP] + area_edges[area][BOTTOM],
+	};
 }
 
 // Compares the size of the content area and the other area edges.

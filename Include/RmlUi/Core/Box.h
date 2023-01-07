@@ -106,12 +106,16 @@ public:
 	/// @return The cumulative size of the edge.
 	float GetCumulativeEdge(Area area, Edge edge) const;
 
-	/// Returns the size along a single direction of the given 'area', including all inner areas up-to and including 'area_end'.
+	/// Returns the size along a single direction starting at 'area_outer', up-to and including 'area_inner'.
 	/// @example GetSizeAcross(HORIZONTAL, BORDER, PADDING) returns the total width of the horizontal borders and paddings.
 	/// @param direction The desired direction.
-	/// @param area The widest area to include.
-	/// @param area_end The last area to include, anything inside this is excluded.
-	float GetSizeAcross(Direction direction, Area area, Area area_end = Area::CONTENT) const;
+	/// @param area_outer The widest area to include.
+	/// @param area_inner The last area to include, anything inside this is excluded.
+	float GetSizeAcross(Direction direction, Area area_outer, Area area_inner = Area::CONTENT) const;
+
+	/// Returns the size of the frame defined by the given area, not including inner areas.
+	/// @param area The area to use.
+	Vector2f GetFrameSize(Area area) const;
 
 	/// Compares the size of the content area and the other area edges.
 	/// @return True if the boxes represent the same area.
