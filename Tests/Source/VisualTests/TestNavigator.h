@@ -37,7 +37,8 @@
 
 class TestNavigator : public Rml::EventListener {
 public:
-	TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites, int start_index);
+	TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites, int start_suite,
+		int start_case);
 	~TestNavigator();
 
 	void Update();
