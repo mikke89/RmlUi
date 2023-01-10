@@ -105,7 +105,7 @@ TEST_CASE("XMLParser.escaping")
 	auto element = document->GetElementById("p");
 	REQUIRE(element);
 	
-	CHECK(element->GetInnerRML() == std::string(u8"€€"));
+	CHECK(element->GetInnerRML() == "\xe2\x82\xac\xe2\x82\xac");
 
 	document->Close();
 	TestsShell::ShutdownShell();
