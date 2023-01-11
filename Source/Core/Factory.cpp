@@ -387,9 +387,6 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 	if (only_white_space)
 		return true;
 	
-	// Unescape any escaped entities or unicode symbols
-	text = StringUtilities::DecodeRml(text);
-	
 	// See if we need to parse it as RML, and whether the text contains data expressions (curly brackets).
 	bool parse_as_rml = false;
 	bool has_data_expression = false;
@@ -456,6 +453,9 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 			return false;
 		}
 
+		// Unescape any escaped entities or unicode symbols
+		text = StringUtilities::DecodeRml(text);
+	
 		text_element->SetText(text);
 
 		// Add to active node.

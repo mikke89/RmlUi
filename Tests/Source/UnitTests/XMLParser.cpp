@@ -68,6 +68,21 @@ static const String document_escaping = R"(
 </rml>
 )";
 
+static const String document_escaping_tags = R"(
+<rml>
+    <head>
+	<style>
+	* { 
+		font-family: LatoLatin;
+	}
+	</style>
+    </head>
+    <body>
+	&lt;p&gt;&amp;lt;span/&amp;gt;&lt;/p&gt;
+    </body>
+</rml>
+)";
+
 TEST_CASE("XMLParser")
 {
 	Context* context = TestsShell::GetContext();
@@ -95,18 +110,37 @@ TEST_CASE("XMLParser.escaping")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-
+	
 	ElementDocument* document = context->LoadDocumentFromMemory(document_escaping);
 	REQUIRE(document);
 	document->Show();
-
+	
 	TestsShell::RenderLoop();
-
+	
 	auto element = document->GetElementById("p");
 	REQUIRE(element);
 	
 	CHECK(element->GetInnerRML() == "\xe2\x82\xac\xe2\x82\xac");
+	
+	document->Close();
+	TestsShell::ShutdownShell();
+}
 
+TEST_CASE("XMLParser.escaping_tags")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+	
+	ElementDocument* document = context->LoadDocumentFromMemory(document_escaping_tags);
+	REQUIRE(document);
+	document->Show();
+	
+	TestsShell::RenderLoop();
+	
+	CHECK(document->GetNumChildren() == 1);
+	CHECK(document->GetFirstChild()->GetTagName() == "#text");
+	CHECK(StringUtilities::StripWhitespace(document->GetInnerRML()) == "<p>&lt;span/&gt;</p>");
+	
 	document->Close();
 	TestsShell::ShutdownShell();
 }
