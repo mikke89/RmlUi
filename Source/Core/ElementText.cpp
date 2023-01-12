@@ -424,7 +424,7 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 // Returns the RML of this element
 void ElementText::GetRML(String& content)
 {
-	content += text;
+	content += StringUtilities::EncodeRml(text);
 }
 
 // Updates the configuration this element uses for its font.
