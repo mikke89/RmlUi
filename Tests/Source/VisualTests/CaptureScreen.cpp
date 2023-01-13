@@ -91,8 +91,7 @@ struct DeferFree {
 	~DeferFree() { free(ptr); }
 };
 
-ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_interface, const Rml::String& filename, bool write_diff_image,
-	TextureGeometry* out_geometry)
+ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_interface, const Rml::String& filename, TextureGeometry* out_geometry)
 {
 	using Image = RendererExtensions::Image;
 
@@ -190,24 +189,6 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 
 	const size_t max_diff = size_t(c * 255) * size_t(w_ref) * size_t(h_ref);
 	result.similarity_score = (sum_diff == 0 ? 1.0 : 1.0 - std::log(double(sum_diff)) / std::log(double(max_diff)));
-
-	// Write the diff image to file if they are not equal.
-	if (write_diff_image && !result.is_equal)
-	{
-		Rml::String out_filename = filename;
-		size_t offset = filename.rfind('.');
-		if (offset == Rml::String::npos)
-			offset = filename.size();
-		out_filename.insert(offset, "-diff");
-
-		const Rml::String output_path = GetCaptureOutputDirectory() + '/' + out_filename;
-		lodepng_result = lodepng_encode24_file(output_path.c_str(), diff.data.get(), diff.width, diff.height);
-		if (lodepng_result)
-		{
-			// We still report it as a success.
-			result.error_msg = "Could not write output diff image to " + output_path + Rml::String(": ") + lodepng_error_text(lodepng_result);
-		}
-	}
 
 	return result;
 }

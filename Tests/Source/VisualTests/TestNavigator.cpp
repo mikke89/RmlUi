@@ -372,7 +372,7 @@ ComparisonResult TestNavigator::CompareCurrentView()
 {
 	const Rml::String filename = GetImageFilenameFromCurrentTest();
 
-	ComparisonResult result = CompareScreenToPreviousCapture(render_interface, filename, true, nullptr);
+	ComparisonResult result = CompareScreenToPreviousCapture(render_interface, filename, nullptr);
 
 	return result;
 }
@@ -574,7 +574,7 @@ void TestNavigator::ShowReference(bool show, bool clear)
 	Rml::String error_msg;
 	if (show && !reference_geometry.texture_handle)
 	{
-		reference_comparison = CompareScreenToPreviousCapture(render_interface, GetImageFilenameFromCurrentTest(), false, &reference_geometry);
+		reference_comparison = CompareScreenToPreviousCapture(render_interface, GetImageFilenameFromCurrentTest(), &reference_geometry);
 
 		if (!reference_comparison.success)
 			error_msg = reference_comparison.error_msg;
