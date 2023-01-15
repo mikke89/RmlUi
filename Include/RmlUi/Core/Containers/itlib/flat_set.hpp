@@ -1,10 +1,10 @@
-// itlib-flat-set v1.05
+// itlib-flat-set v1.06
 //
 // std::set-like class with an underlying vector
 //
 // SPDX-License-Identifier: MIT
 // MIT License:
-// Copyright(c) 2021-2022 Borislav Stanimirov
+// Copyright(c) 2021-2023 Borislav Stanimirov
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files(the
@@ -28,6 +28,9 @@
 //
 //                  VERSION HISTORY
 //
+//  1.06 (2023-01-14) Fixed initialization with custom Compare when equivalence
+//                    is not the same as `==`.
+//                    Inherit from Compare to enable empty base optimization
 //  1.05 (2022-09-17) upper_bound and equal_range
 //  1.04 (2022-06-23) Transparent lookups (C++14 style)
 //  1.03 (2022-04-14) Noxcept move construct and assign
@@ -97,8 +100,11 @@ struct less // so as not to clash with map_less
 }
 
 template <typename Key, typename Compare = fsimpl::less, typename Container = std::vector<Key>>
-class flat_set
+class flat_set : private /*EBO*/ Compare
 {
+    Container m_container;
+    Compare& cmp() { return *this; }
+    const Compare& cmp() const { return *this; }
 public:
     using key_type = Key;
     using value_type = Key;
@@ -120,16 +126,18 @@ public:
     {}
 
     explicit flat_set(const key_compare& comp, const allocator_type& alloc = allocator_type())
-        : m_cmp(comp)
+        : Compare(comp)
         , m_container(alloc)
     {}
 
     explicit flat_set(container_type container, const key_compare& comp = key_compare())
-        : m_cmp(comp)
+        : Compare(comp)
         , m_container(std::move(container))
     {
-        std::sort(m_container.begin(), m_container.end(), m_cmp);
-        auto new_end = std::unique(m_container.begin(), m_container.end());
+        std::sort(m_container.begin(), m_container.end(), cmp());
+        auto new_end = std::unique(m_container.begin(), m_container.end(), [this](const value_type& a, const value_type& b) -> bool {
+            return !cmp()(a, b) && !cmp()(b, a);
+        });
         m_container.erase(new_end, m_container.end());
     }
 
@@ -146,6 +154,8 @@ public:
 
     flat_set(flat_set&& x) noexcept = default;
     flat_set& operator=(flat_set&& x) noexcept = default;
+
+    key_compare key_comp() const { return *this; }
 
     iterator begin() noexcept { return m_container.begin(); }
     const_iterator begin() const noexcept { return m_container.begin(); }
@@ -170,44 +180,44 @@ public:
     template <typename F>
     iterator lower_bound(const F& k)
     {
-        return std::lower_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::lower_bound(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename F>
     const_iterator lower_bound(const F& k) const
     {
-        return std::lower_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::lower_bound(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     iterator upper_bound(const K& k)
     {
-        return std::upper_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::upper_bound(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     const_iterator upper_bound(const K& k) const
     {
-        return std::upper_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::upper_bound(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     std::pair<iterator, iterator> equal_range(const K& k)
     {
-        return std::equal_range(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::equal_range(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     std::pair<const_iterator, const_iterator> equal_range(const K& k) const
     {
-        return std::equal_range(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::equal_range(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename F>
     iterator find(const F& k)
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !cmp()(k, *i))
             return i;
 
         return end();
@@ -217,7 +227,7 @@ public:
     const_iterator find(const F& k) const
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !cmp()(k, *i))
             return i;
 
         return end();
@@ -233,7 +243,7 @@ public:
     std::pair<iterator, bool> insert(P&& val)
     {
         auto i = lower_bound(val);
-        if (i != end() && !m_cmp(val, *i))
+        if (i != end() && !cmp()(val, *i))
         {
             return { i, false };
         }
@@ -244,7 +254,7 @@ public:
     std::pair<iterator, bool> insert(const value_type& val)
     {
         auto i = lower_bound(val);
-        if (i != end() && !m_cmp(val, *i))
+        if (i != end() && !cmp()(val, *i))
         {
             return { i, false };
         }
@@ -284,7 +294,7 @@ public:
 
     void swap(flat_set& x)
     {
-        std::swap(m_cmp, x.m_cmp);
+        std::swap(cmp(), x.cmp());
         m_container.swap(x.m_container);
     }
 
@@ -298,10 +308,6 @@ public:
     {
         return m_container;
     }
-
-private:
-    key_compare m_cmp;
-    container_type m_container;
 };
 
 template <typename Key, typename Compare, typename Container>

@@ -1,4 +1,4 @@
-// itlib-flat-map v1.06
+// itlib-flat-map v1.07
 //
 // std::map-like class with an underlying vector
 //
@@ -29,6 +29,7 @@
 //
 //                  VERSION HISTORY
 //
+//  1.07 (2023-01-14) Inherit from Compare to enable empty base optimization
 //  1.06 (2023-01-09) Fixed transparency for std::string_view
 //  1.05 (2022-09-17) upper_bound and equal_range
 //  1.04 (2022-07-07) Transparent lookups (C++14 style)
@@ -116,11 +117,26 @@ struct less
         return t < u;
     }
 };
+
+template <typename Key, typename T, typename Compare>
+struct pair_compare : public Compare
+{
+    using value_type = std::pair<Key, T>;
+    pair_compare() = default;
+    pair_compare(const Compare& kc) : Compare(kc) {}
+    bool operator()(const value_type& a, const value_type& b) const { return Compare::operator()(a.first, b.first); }
+    template <typename K> bool operator()(const value_type& a, const K& b) const { return Compare::operator()(a.first, b); }
+    template <typename K> bool operator()(const K& a, const value_type& b) const { return Compare::operator()(a, b.first); }
+};
 }
 
 template <typename Key, typename T, typename Compare = fmimpl::less, typename Container = std::vector<std::pair<Key, T>>>
-class flat_map
+class flat_map : private fmimpl::pair_compare<Key, T, Compare>
 {
+    Container m_container;
+    using pair_compare = fmimpl::pair_compare<Key, T, Compare>;
+    pair_compare& cmp() { return *this; }
+    const pair_compare& cmp() const { return *this; }
 public:
     typedef Key key_type;
     typedef T mapped_type;
@@ -139,21 +155,20 @@ public:
     typedef typename container_type::difference_type difference_type;
     typedef typename container_type::size_type size_type;
 
-    flat_map()
-    {}
+    flat_map() = default;
 
     explicit flat_map(const key_compare& comp, const allocator_type& alloc = allocator_type())
-        : m_cmp(comp)
+        : pair_compare(comp)
         , m_container(alloc)
     {}
 
     flat_map(std::initializer_list<value_type> init, const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type())
-        : m_cmp(comp)
+        : pair_compare(comp)
         , m_container(std::move(init), alloc)
     {
-        std::sort(m_container.begin(), m_container.end(), m_cmp);
+        std::sort(m_container.begin(), m_container.end(), cmp());
         auto new_end = std::unique(m_container.begin(), m_container.end(), [this](const value_type& a, const value_type& b) {
-            return !m_cmp(a, b) && !m_cmp(b, a);
+            return !cmp()(a, b) && !cmp()(b, a);
         });
         m_container.erase(new_end, m_container.end());
     }
@@ -191,44 +206,44 @@ public:
     template <typename K>
     iterator lower_bound(const K& k)
     {
-        return std::lower_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::lower_bound(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     const_iterator lower_bound(const K& k) const
     {
-        return std::lower_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::lower_bound(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     iterator upper_bound(const K& k)
     {
-        return std::upper_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::upper_bound(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     const_iterator upper_bound(const K& k) const
     {
-        return std::upper_bound(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::upper_bound(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     std::pair<iterator, iterator> equal_range(const K& k)
     {
-        return std::equal_range(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::equal_range(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     std::pair<const_iterator, const_iterator> equal_range(const K& k) const
     {
-        return std::equal_range(m_container.begin(), m_container.end(), k, m_cmp);
+        return std::equal_range(m_container.begin(), m_container.end(), k, cmp());
     }
 
     template <typename K>
     iterator find(const K& k)
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !cmp()(k, *i))
             return i;
 
         return end();
@@ -238,7 +253,7 @@ public:
     const_iterator find(const K& k) const
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !cmp()(k, *i))
             return i;
 
         return end();
@@ -254,7 +269,7 @@ public:
     std::pair<iterator, bool> insert(P&& val)
     {
         auto i = lower_bound(val.first);
-        if (i != end() && !m_cmp(val.first, *i))
+        if (i != end() && !cmp()(val.first, *i))
         {
             return { i, false };
         }
@@ -265,7 +280,7 @@ public:
     std::pair<iterator, bool> insert(const value_type& val)
     {
         auto i = lower_bound(val.first);
-        if (i != end() && !m_cmp(val.first, *i))
+        if (i != end() && !cmp()(val.first, *i))
         {
             return { i, false };
         }
@@ -308,7 +323,7 @@ public:
     mapped_type&>::type operator[](K&& k)
     {
         auto i = lower_bound(k);
-        if (i != end() && !m_cmp(k, *i))
+        if (i != end() && !cmp()(k, *i))
         {
             return i->second;
         }
@@ -320,7 +335,7 @@ public:
     mapped_type& at(const key_type& k)
     {
         auto i = lower_bound(k);
-        if (i == end() || m_cmp(*i, k))
+        if (i == end() || cmp()(*i, k))
         {
             I_ITLIB_THROW_FLAT_MAP_OUT_OF_RANGE();
         }
@@ -331,7 +346,7 @@ public:
     const mapped_type& at(const key_type& k) const
     {
         auto i = lower_bound(k);
-        if (i == end() || m_cmp(*i, k))
+        if (i == end() || cmp()(*i, k))
         {
             I_ITLIB_THROW_FLAT_MAP_OUT_OF_RANGE();
         }
@@ -341,7 +356,7 @@ public:
 
     void swap(flat_map& x)
     {
-        std::swap(m_cmp, x.m_cmp);
+        std::swap(cmp(), x.cmp());
         m_container.swap(x.m_container);
     }
 
@@ -355,20 +370,6 @@ public:
     {
         return m_container;
     }
-
-private:
-    struct pair_compare
-    {
-        pair_compare() = default;
-        pair_compare(const key_compare& kc) : kcmp(kc) {}
-        bool operator()(const value_type& a, const value_type& b) const { return kcmp(a.first, b.first); }
-        template <typename K> bool operator()(const value_type& a, const K& b) const { return kcmp(a.first, b); }
-        template <typename K> bool operator()(const K& a, const value_type& b) const { return kcmp(a, b.first); }
-
-        key_compare kcmp;
-    };
-    pair_compare m_cmp;
-    container_type m_container;
 };
 
 template <typename Key, typename T, typename Compare, typename Container>
