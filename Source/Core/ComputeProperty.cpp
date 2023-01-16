@@ -238,7 +238,7 @@ Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_h
 	}
 	else if (property->unit & Property::PERCENT)
 	{
-		return Style::VerticalAlign(property->Get<float>() * line_height);
+		return Style::VerticalAlign(property->Get<float>() * line_height * 0.01f);
 	}
 
 	RMLUI_ASSERT(property->unit & Property::KEYWORD);
