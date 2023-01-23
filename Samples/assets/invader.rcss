@@ -197,6 +197,7 @@ div#title_bar span
 div#window
 {
 	width: auto;
+	height: 100%;
 	padding: 10dp 15dp;
 	
 	decorator: tiled-box(
@@ -261,9 +262,7 @@ input.submit
 
 	width: 159dp;
 	height: 33dp;
-
 	padding-top: 12dp;
-	vertical-align: -18dp;
 
 	font-size: 16dp;
 	text-align: center;
