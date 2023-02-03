@@ -30,6 +30,7 @@
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/URL.h"
 #include <string.h>
+#include <stdio.h>
 
 namespace Rml {
 
@@ -506,8 +507,9 @@ void URL::ConstructURL() const
 		if (port > 0)
 		{
 			RMLUI_ASSERTMSG( !host.empty(), "Can't have a port without a host!" );
-			char port_string[16];
-			sprintf(port_string, ":%d/", port);
+			constexpr size_t port_buffer_size = 16;
+			char port_string[port_buffer_size];
+			snprintf(port_string, port_buffer_size, ":%d/", port);
 			url += port_string;
 		}
 		else
@@ -545,7 +547,8 @@ void URL::ConstructURL() const
 String URL::UrlEncode(const String &value)
 {
 	String encoded;
-	char hex[4] = {0,0,0,0};
+	constexpr size_t hex_buffer_size = 4;
+	char hex[hex_buffer_size] = {0, 0, 0, 0};
 
 	encoded.clear();
 
@@ -557,7 +560,7 @@ String URL::UrlEncode(const String &value)
 			encoded += c;
 		else
 		{
-			sprintf(hex, "%%%02X", c);
+			snprintf(hex, hex_buffer_size, "%%%02X", c);
 			encoded += hex;
 		}
 	}
