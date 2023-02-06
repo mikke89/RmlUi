@@ -232,7 +232,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 				UpdateGoToText();
 			}
 		}
-		else if (key_identifier == Rml::Input::KI_RETURN)
+		else if (key_identifier == Rml::Input::KI_RETURN || key_identifier == Rml::Input::KI_NUMPADENTER)
 		{
 			element_filter_input->Blur();
 		}
