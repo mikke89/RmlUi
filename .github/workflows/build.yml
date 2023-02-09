@@ -101,13 +101,13 @@ jobs:
         include:
           - cmake_options: -DSAMPLES_BACKEND=auto -DENABLE_PRECOMPILED_HEADERS=OFF
           - cmake_options: -DSAMPLES_BACKEND=Win32_VK -DRMLUI_VK_DEBUG=ON
-          - cmake_options: -DSAMPLES_BACKEND=SDL_VK
+          - cmake_options: -DSAMPLES_BACKEND=SDL_VK -DBUILD_LUA_BINDINGS_FOR_LUAJIT=ON
     
     steps:
     - uses: actions/checkout@v3
       
     - name: Install Dependencies
-      run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan] lua[core]
+      run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan] lua[core] luajit
       
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build

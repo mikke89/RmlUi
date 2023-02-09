@@ -157,6 +157,10 @@ endif(NOT IOS)
 
 option(BUILD_LUA_BINDINGS "Build Lua bindings" OFF)
 
+if (BUILD_LUA_BINDINGS)
+	option(BUILD_LUA_BINDINGS_FOR_LUAJIT "Build Lua bindings using luajit" OFF)
+endif()
+
 if(APPLE)
 	option(BUILD_FRAMEWORK "Build Framework bundle for OSX" OFF)
 endif()
@@ -356,9 +360,15 @@ endif()
 
 # Lua
 if(BUILD_LUA_BINDINGS)
-	find_package(Lua REQUIRED)
-	list(APPEND LUA_BINDINGS_INCLUDE_DIRS ${LUA_INCLUDE_DIR})
-	list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
+	if(BUILD_LUA_BINDINGS_FOR_LUAJIT)
+		find_package(LuaJIT REQUIRED)
+		list(APPEND LUA_BINDINGS_INCLUDE_DIRS ${LUAJIT_INCLUDE_DIR})
+		list(APPEND LUA_BINDINGS_LINK_LIBS ${LUAJIT_LIBRARY})
+	else()
+		find_package(Lua REQUIRED)
+		list(APPEND LUA_BINDINGS_INCLUDE_DIRS ${LUA_INCLUDE_DIR})
+		list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
+	endif()
 endif()
 
 # rlottie
