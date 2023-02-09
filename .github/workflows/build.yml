@@ -101,7 +101,7 @@ jobs:
         include:
           - cmake_options: -DSAMPLES_BACKEND=auto -DENABLE_PRECOMPILED_HEADERS=OFF
           - cmake_options: -DSAMPLES_BACKEND=Win32_VK -DRMLUI_VK_DEBUG=ON
-          - cmake_options: -DSAMPLES_BACKEND=SDL_VK
+          - cmake_options: -DSAMPLES_BACKEND=SDL_VK -DBUILD_LUA_BINDINGS_FOR_LUAJIT=ON
     
     steps:
     - uses: actions/checkout@v3
@@ -118,20 +118,9 @@ jobs:
         cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
         -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
         ${{ matrix.cmake_options }}
-        
-    - name: Configure luajit CMake
-      working-directory: ${{github.workspace}}/BuildLuajit
-      run: >-
-        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON -DBUILD_USE_LUAJITBUILD_LUA_BINDINGS_FOR_LUAJIT=ON
-        -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        ${{ matrix.cmake_options }}
 
     - name: Build
       working-directory: ${{github.workspace}}/Build
-      run: cmake --build . --config $env:BUILD_TYPE
-      
-    - name: BuildLuajit
-      working-directory: ${{github.workspace}}/BuildLuajit
       run: cmake --build . --config $env:BUILD_TYPE
 
 
