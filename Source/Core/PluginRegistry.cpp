@@ -72,6 +72,13 @@ void PluginRegistry::NotifyInitialise()
 		basic_plugins[i]->OnInitialise();
 }
 
+// Calls OnPreShutdown() on all plugins.
+void PluginRegistry::NotifyPreShutdown()
+{
+	for (size_t i = 0; i < basic_plugins.size(); ++i)
+		basic_plugins[i]->OnPreShutdown();
+}
+
 // Calls OnShutdown() on all plugins.
 void PluginRegistry::NotifyShutdown()
 {

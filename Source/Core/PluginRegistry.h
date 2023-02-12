@@ -50,6 +50,8 @@ public:
 
 	/// Calls OnInitialise() on all plugins.
 	static void NotifyInitialise();
+	/// Calls OnPreShutdown() on all plugins.
+	static void NotifyPreShutdown();
 	/// Calls OnShutdown() on all plugins.
 	static void NotifyShutdown();
 

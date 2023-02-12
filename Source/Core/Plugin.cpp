@@ -43,6 +43,10 @@ void Plugin::OnInitialise()
 {
 }
 
+void Plugin::OnPreShutdown()
+{
+}
+
 void Plugin::OnShutdown()
 {
 }

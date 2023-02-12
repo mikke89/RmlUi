@@ -162,6 +162,7 @@ void Shutdown()
 	contexts.clear();
 
 	// Notify all plugins we're being shutdown.
+	PluginRegistry::NotifyPreShutdown();
 	PluginRegistry::NotifyShutdown();
 
 	Factory::Shutdown();
@@ -357,7 +358,10 @@ void UnregisterPlugin(Plugin* plugin)
 	PluginRegistry::UnregisterPlugin(plugin);
 
 	if(initialised)
+	{
+		plugin->OnPreShutdown();
 		plugin->OnShutdown();
+	}
 }
 
 EventId RegisterEventType(const String& type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase)
