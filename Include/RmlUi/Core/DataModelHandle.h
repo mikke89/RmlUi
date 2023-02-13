@@ -125,6 +125,10 @@ public:
 		type_register->GetTransformFuncRegister()->Register(name, std::move(transform_func));
 	}
 
+	// Returns the type register.
+	// The type register contains VariableDefinitions of all the data types registered to this data model's owning context.
+	DataTypeRegister* GetDataTypeRegister() const { return type_register; }
+
 	explicit operator bool() { return model && type_register; }
 
 private:
