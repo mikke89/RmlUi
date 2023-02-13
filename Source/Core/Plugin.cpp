@@ -43,10 +43,6 @@ void Plugin::OnInitialise()
 {
 }
 
-void Plugin::OnPreShutdown()
-{
-}
-
 void Plugin::OnShutdown()
 {
 }
@@ -93,6 +89,10 @@ void Plugin::OnElementCreate(Element* RMLUI_UNUSED_PARAMETER(element))
 void Plugin::OnElementDestroy(Element* RMLUI_UNUSED_PARAMETER(element))
 {
 	RMLUI_UNUSED(element);
+}
+
+void Plugin::OnPreShutdown()
+{
 }
 
 } // namespace Rml

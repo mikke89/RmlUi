@@ -64,8 +64,6 @@ public:
 	/// Called when RmlUi is initialised, or immediately when the plugin registers itself if 
 	/// RmlUi has already been initialised.
 	virtual void OnInitialise();
-	/// Called before RmlUi starts to shut down.
-	virtual void OnPreShutdown();
 	/// Called when RmlUi shuts down.
 	virtual void OnShutdown();
 
@@ -87,6 +85,9 @@ public:
 	virtual void OnElementCreate(Element* element);
 	/// Called when an element is destroyed.
 	virtual void OnElementDestroy(Element* element);
+
+	/// Called before RmlUi starts to shut down.
+	virtual void OnPreShutdown();
 };
 
 } // namespace Rml
