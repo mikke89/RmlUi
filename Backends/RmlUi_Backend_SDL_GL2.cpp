@@ -166,6 +166,9 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 		return false;
 
+	// Submit click events when focusing the window.
+	SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+
 	// Request stencil buffer of at least 8-bit size to supporting clipping on transformed elements.
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

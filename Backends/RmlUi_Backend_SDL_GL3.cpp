@@ -126,6 +126,9 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 		return false;
 
+	// Submit click events when focusing the window.
+	SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+
 #if defined RMLUI_PLATFORM_EMSCRIPTEN
 	// GLES 3.0 (WebGL 2.0)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
