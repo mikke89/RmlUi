@@ -151,7 +151,7 @@ bool StructHandle<Object>::CreateMemberObjectDefinition(const String& name, Memb
 		return false;
 	struct_definition->AddMember(
 		name,
-		MakeUnique<MemberObjectDefinition<Object, MemberType>>(underlying_definition, member_ptr)
+		Rml::MakeUnique<MemberObjectDefinition<Object, MemberType>>(underlying_definition, member_ptr)
 	);
 	return true;
 }
@@ -168,7 +168,7 @@ bool StructHandle<Object>::CreateMemberGetFuncDefinition(const String& name, Mem
 
 	struct_definition->AddMember(
 		name,
-		MakeUnique<MemberGetFuncDefinition<Object, MemberType, BasicReturnType>>(underlying_definition, member_get_func_ptr)
+		Rml::MakeUnique<MemberGetFuncDefinition<Object, MemberType, BasicReturnType>>(underlying_definition, member_get_func_ptr)
 	);
 	return true;
 }
@@ -201,7 +201,7 @@ bool StructHandle<Object>::CreateMemberScalarGetSetFuncDefinition(const String& 
 
 	struct_definition->AddMember(
 		name,
-		MakeUnique<MemberScalarGetSetFuncDefinition<Object, MemberGetType, MemberSetType, UnderlyingType>>(underlying_definition, member_get_func_ptr, member_set_func_ptr)
+		Rml::MakeUnique<MemberScalarGetSetFuncDefinition<Object, MemberGetType, MemberSetType, UnderlyingType>>(underlying_definition, member_get_func_ptr, member_set_func_ptr)
 	);
 	return true;
 }
