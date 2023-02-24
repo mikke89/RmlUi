@@ -225,11 +225,6 @@ void Element::Render()
 
 	UpdateTransformState();
 
-	// Render all elements in our local stacking context that have a z-index beneath our local index of 0.
-	size_t i = 0;
-	for (; i < stacking_context.size() && stacking_context[i]->z_index < 0; ++i)
-		stacking_context[i]->Render();
-
 	// Apply our transform
 	ElementUtilities::ApplyTransform(*this);
 
@@ -246,9 +241,9 @@ void Element::Render()
 		}
 	}
 
-	// Render the rest of the elements in the stacking context.
-	for (; i < stacking_context.size(); ++i)
-		stacking_context[i]->Render();
+	// Render all elements in our local stacking context.
+	for (Element* element : stacking_context)
+		element->Render();
 }
 
 // Clones this element, returning a new, unparented element.
