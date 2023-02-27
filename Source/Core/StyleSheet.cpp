@@ -112,22 +112,26 @@ const Keyframes * StyleSheet::GetKeyframes(const String & name) const
 	return nullptr;
 }
 
-const Vector<SharedPtr<const Decorator>>& StyleSheet::InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* source) const
+void StyleSheet::InstanceDecorators(Vector<SharedPtr<const Decorator>>& decorator_list, const DecoratorDeclarationList& declaration_list, const PropertySource* source) const
 {
 	// Generate the cache key. Relative paths of textures may be affected by the source path, and ultimately
 	// which texture should be displayed. Thus, we need to include this path in the cache key.
-	String key;
-	key.reserve(declaration_list.value.size() + 1 + (source ? source->path.size() : 0));
-	key = declaration_list.value;
-	key += ';';
-	if (source)
-		key += source->path;
+	String cache_key;
+	if (declaration_list.caching)
+	{
+		cache_key.reserve(declaration_list.value.size() + 1 + (source ? source->path.size() : 0));
+		cache_key = declaration_list.value;
+		cache_key += ';';
+		if (source)
+			cache_key += source->path;
 
-	auto it_cache = decorator_cache.find(key);
-	if (it_cache != decorator_cache.end())
-		return it_cache->second;
-
-	Vector<SharedPtr<const Decorator>>& decorators = decorator_cache[key];
+		auto it_cache = decorator_cache.find(cache_key);
+		if (it_cache != decorator_cache.end())
+		{
+			decorator_list = it_cache->second;
+			return;
+		}
+	}
 
 	for (const DecoratorDeclaration& declaration : declaration_list.list)
 	{
@@ -136,7 +140,7 @@ const Vector<SharedPtr<const Decorator>>& StyleSheet::InstanceDecorators(const D
 			RMLUI_ZoneScopedN("InstanceDecorator");
 			
 			if (SharedPtr<Decorator> decorator = declaration.instancer->InstanceDecorator(declaration.type, declaration.properties, DecoratorInstancerInterface(*this, source)))
-				decorators.push_back(std::move(decorator));
+				decorator_list.push_back(std::move(decorator));
 			else
 				Log::Message(Log::LT_WARNING, "Decorator '%s' in '%s' could not be instanced, declared at %s:%d", declaration.type.c_str(), declaration_list.value.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
 		}
@@ -149,13 +153,16 @@ const Vector<SharedPtr<const Decorator>>& StyleSheet::InstanceDecorators(const D
 				decorator = it_map->second.decorator;
 
 			if (decorator)
-				decorators.push_back(std::move(decorator));
+				decorator_list.push_back(std::move(decorator));
 			else
 				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", declaration.type.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
 		}
 	}
 
-	return decorators;
+	if (declaration_list.caching)
+	{
+		decorator_cache[cache_key].insert(decorator_cache[cache_key].end(), decorator_list.begin(), decorator_list.end());
+	}
 }
 
 const Sprite* StyleSheet::GetSprite(const String& name) const

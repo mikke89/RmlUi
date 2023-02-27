@@ -65,6 +65,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 	StringList decorator_string_list;
 	StringUtilities::ExpandString(decorator_string_list, decorator_string_value, ',', '(', ')');
 
+	decorators.caching = true;
 	decorators.value = decorator_string_value;
 	decorators.list.reserve(decorator_string_list.size());
 
