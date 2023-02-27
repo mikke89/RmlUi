@@ -90,7 +90,7 @@ private:
 		UniquePtr<VariableDefinition>& definition = result.first->second;
 
 		if (inserted)
-			definition = MakeUnique<ScalarDefinition<T>>();
+			definition = Rml::MakeUnique<ScalarDefinition<T>>();
 
 		return definition.get();
 	}
@@ -138,7 +138,7 @@ private:
 		UniquePtr<VariableDefinition>& definition = result.first->second;
 
 		if (inserted)
-			definition = MakeUnique<PointerDefinition<T>>(underlying_definition);
+			definition = Rml::MakeUnique<PointerDefinition<T>>(underlying_definition);
 
 		return definition.get();
 	}
