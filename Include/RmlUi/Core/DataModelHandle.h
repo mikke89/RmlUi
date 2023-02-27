@@ -145,7 +145,7 @@ inline bool DataModelConstructor::RegisterScalar(DataTypeGetFunc<T> get_func, Da
 	static_assert(!is_builtin_data_scalar<T>::value, "Cannot register scalar data type function. Arithmetic types and String are handled internally and does not need to be registered.");
 	const FamilyId id = Family<T>::Id();
 
-	auto scalar_func_definition = MakeUnique<ScalarFuncDefinition<T>>(get_func, set_func);
+	auto scalar_func_definition = Rml::MakeUnique<ScalarFuncDefinition<T>>(get_func, set_func);
 
 	const bool inserted = type_register->RegisterDefinition(id, std::move(scalar_func_definition));
 	if (!inserted)
@@ -178,7 +178,7 @@ inline StructHandle<T> DataModelConstructor::RegisterStruct()
 	static_assert(std::is_class<T>::value, "Type must be a struct or class type.");
 	const FamilyId id = Family<T>::Id();
 
-	auto struct_definition = MakeUnique<StructDefinition>();
+	auto struct_definition = Rml::MakeUnique<StructDefinition>();
 	StructDefinition* struct_variable_raw = struct_definition.get();
 
 	const bool inserted = type_register->RegisterDefinition(id, std::move(struct_definition));
@@ -201,7 +201,7 @@ inline bool DataModelConstructor::RegisterArray()
 		return false;
 
 	const FamilyId container_id = Family<Container>::Id();
-	auto array_definition = MakeUnique<ArrayDefinition<Container>>(value_variable);
+	auto array_definition = Rml::MakeUnique<ArrayDefinition<Container>>(value_variable);
 
 	const bool inserted = type_register->RegisterDefinition(container_id, std::move(array_definition));
 	if (!inserted)
