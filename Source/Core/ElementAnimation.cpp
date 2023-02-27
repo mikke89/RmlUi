@@ -165,6 +165,53 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		return Property{ TransformPtr(std::move(t)), Property::TRANSFORM };
 	}
 
+	if (p0.unit == Property::DECORATOR && p1.unit == Property::DECORATOR)
+	{
+		auto& d0 = p0.value.GetReference<DecoratorsPtr>();
+		auto& d1 = p1.value.GetReference<DecoratorsPtr>();
+
+		if (d0->list.size() != d1->list.size())
+		{
+			RMLUI_ERRORMSG("The number of decorators should be the same.");
+			return Property{ d0, Property::DECORATOR };
+		}
+
+		UniquePtr<DecoratorDeclarationList> decorators(new DecoratorDeclarationList);
+
+		for(int i = 0; i < d0->list.size(); i++) {
+			const DecoratorDeclaration& declaration1 = d0->list[i];
+			const DecoratorDeclaration& declaration2 = d1->list[i];
+			
+			if (declaration1.type != declaration2.type)
+			{
+				RMLUI_ERRORMSG("The types of decorators should be the same.");
+				return Property{ d0, Property::DECORATOR };
+			}
+
+			if (declaration1.instancer != declaration2.instancer)
+			{
+				RMLUI_ERRORMSG("The instancers of decorators should be the same.");
+				return Property{ d0, Property::DECORATOR };
+			}
+
+			decorators->value.append(declaration1.type).append(" ");
+
+			PropertyDictionary result_roperties;
+			declaration1.instancer->GetPropertySpecification().SetPropertyDefaults(result_roperties);
+			
+			const PropertyMap& properties1 = declaration1.properties.GetProperties();
+			const PropertyMap& properties2 = declaration2.properties.GetProperties();
+			for (auto it1 = properties1.begin(), it2 = properties2.begin(); it1 != properties1.end() || it2 != properties2.end(); it1++, it2++)
+			{
+				result_roperties.SetProperty(it1->first, InterpolateProperties(it1->second, it2->second, alpha, element, it1->second.definition));
+				decorators->value.append(result_roperties.GetProperty(it1->first)->Get<std::string>()).append(" ");
+			}
+			decorators->list.push_back(DecoratorDeclaration{declaration1.type, declaration1.instancer, result_roperties});
+		}
+
+		return Property{ DecoratorsPtr(std::move(decorators)), Property::DECORATOR };
+	}
+
 	// Fall back to discrete interpolation for incompatible units.
 	return alpha < 0.5f ? p0 : p1;
 }
@@ -409,7 +456,7 @@ ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigi
 
 bool ElementAnimation::InternalAddKey(float time, const Property& in_property, Element& element, Tween tween)
 {
-	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM | Property::KEYWORD);
+	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM | Property::KEYWORD | Property::DECORATOR);
 
 	if (!(in_property.unit & valid_properties))
 	{
