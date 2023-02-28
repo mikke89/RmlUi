@@ -170,6 +170,10 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		auto& d0 = p0.value.GetReference<DecoratorsPtr>();
 		auto& d1 = p1.value.GetReference<DecoratorsPtr>();
 
+		const StyleSheet* style_sheet = element.GetStyleSheet();
+		if (!style_sheet)
+			return Property{ d0, Property::DECORATOR };
+
 		if (d0->list.size() != d1->list.size())
 		{
 			RMLUI_ERRORMSG("The number of decorators should be the same");
@@ -182,28 +186,56 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		for (int i = 0; i < d0->list.size(); i++) {
 			const DecoratorDeclaration& declaration1 = d0->list[i];
 			const DecoratorDeclaration& declaration2 = d1->list[i];
-			
-			if (declaration1.type != declaration2.type)
+			DecoratorDeclaration new_declaration;
+
+			PropertyMap properties1;
+			if (!declaration1.instancer)
 			{
-				RMLUI_ERRORMSG("The types of decorators should be the same");
-				return Property{ d0, Property::DECORATOR };
+				const DecoratorSpecification* decorator_specification = style_sheet->GetDecoratorSpecification(declaration1.type);
+				if (!decorator_specification)
+				{
+					RMLUI_ERRORMSG("@decorator rule not found");
+					return Property{ d0, Property::DECORATOR };
+				}
+
+				properties1 = decorator_specification->properties.GetProperties();
+				
+				new_declaration.type = decorator_specification->decorator_type;
+				new_declaration.instancer = Factory::GetDecoratorInstancer(new_declaration.type);
+			}
+			else
+			{
+				properties1 = declaration1.properties.GetProperties();
+
+				new_declaration.instancer = declaration1.instancer;
+				new_declaration.type = declaration1.type;
 			}
 
-			if (declaration1.instancer != declaration2.instancer)
-			{
-				RMLUI_ERRORMSG("The instancers of decorators should be the same");
-				return Property{ d0, Property::DECORATOR };
-			}
-			PropertyDictionary result_roperties;
-			declaration1.instancer->GetPropertySpecification().SetPropertyDefaults(result_roperties);
+			new_declaration.instancer->GetPropertySpecification().SetPropertyDefaults(new_declaration.properties);
 
-			const PropertyMap& properties1 = declaration1.properties.GetProperties();
-			const PropertyMap& properties2 = declaration2.properties.GetProperties();
+			PropertyMap properties2;
+			if (!declaration2.instancer)
+			{
+				const DecoratorSpecification* decorator_specification = style_sheet->GetDecoratorSpecification(declaration2.type);
+				if (!decorator_specification)
+				{
+					RMLUI_ERRORMSG("@decorator rule not found");
+					return Property{ d0, Property::DECORATOR };
+				}
+
+				properties2 = decorator_specification->properties.GetProperties();
+			}
+			else
+			{
+				properties2 = declaration2.properties.GetProperties();
+			}
+
 			for (auto it1 = properties1.begin(), it2 = properties2.begin(); it1 != properties1.end() || it2 != properties2.end(); it1++, it2++)
 			{
-				result_roperties.SetProperty(it1->first, InterpolateProperties(it1->second, it2->second, alpha, element, it1->second.definition));
+				new_declaration.properties.SetProperty(it1->first, InterpolateProperties(it1->second, it2->second, alpha, element, it1->second.definition));
 			}
-			declaration_list->list.push_back(DecoratorDeclaration{ declaration1.type, declaration1.instancer, result_roperties });
+
+			declaration_list->list.push_back(std::move(new_declaration));
 		}
 
 		return Property{ DecoratorsPtr(std::move(declaration_list)), Property::DECORATOR };

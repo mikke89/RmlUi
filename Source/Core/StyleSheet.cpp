@@ -103,8 +103,16 @@ void StyleSheet::BuildNodeIndex()
 	root->BuildIndex(styled_node_index);
 }
 
+const DecoratorSpecification* StyleSheet::GetDecoratorSpecification(const String& name) const
+{
+	auto it = decorator_map.find(name);
+	if (it != decorator_map.end())
+		return &(it->second);
+	return nullptr;
+}
+
 // Returns the Keyframes of the given name, or null if it does not exist.
-const Keyframes * StyleSheet::GetKeyframes(const String & name) const
+const Keyframes* StyleSheet::GetKeyframes(const String & name) const
 {
 	auto it = keyframes.find(name);
 	if (it != keyframes.end())
