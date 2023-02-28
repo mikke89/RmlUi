@@ -187,8 +187,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 				return declaration;
 			}
 
-			return DecoratorDeclaration{ specification->decorator_type, Factory::GetDecoratorInstancer(specification->decorator_type),
-				specification->properties, declaration.paint_area };
+			return DecoratorDeclaration{ specification->decorator_type, Factory::GetDecoratorInstancer(specification->decorator_type), specification->properties };
 		};
 
 		auto& ptr0 = p0.value.GetReference<DecoratorsPtr>();
@@ -217,14 +216,14 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 				return DiscreteInterpolation();
 			}
 
-			if (d0.instancer != d1.instancer || d0.paint_area != d1.paint_area || d0.type != d1.type ||
+			if (d0.instancer != d1.instancer || d0.type != d1.type ||
 				d0.properties.GetNumProperties() != d1.properties.GetNumProperties())
 			{
 				// Incompatible decorators, fall back to discrete interpolation.
 				return DiscreteInterpolation();
 			}
 
-			decorator->list.push_back(DecoratorDeclaration{d0.type, d0.instancer, PropertyDictionary(), d0.paint_area});
+			decorator->list.push_back(DecoratorDeclaration{ d0.type, d0.instancer, PropertyDictionary() });
 			PropertyDictionary& props = decorator->list.back().properties;
 
 			const auto& props0 = d0.properties.GetProperties();
@@ -254,7 +253,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		{
 			const DecoratorDeclaration& d_big = PrepareDeclaration(big[i]);
 
-			decorator->list.push_back(DecoratorDeclaration{ d_big.type, d_big.instancer, PropertyDictionary(), d_big.paint_area });
+			decorator->list.push_back(DecoratorDeclaration{ d_big.type, d_big.instancer, PropertyDictionary() });
 			DecoratorDeclaration& d_new = decorator->list.back();
 
 			const PropertySpecification& specification = d_new.instancer->GetPropertySpecification();
@@ -278,7 +277,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 			}
 		}
 
-		return Property{ DecoratorsPtr(std::move(decorator)), Unit::DECORATOR };
+		return Property{ DecoratorsPtr(std::move(decorator)), Property::DECORATOR };
 	}
 
 	// Fall back to discrete interpolation for incompatible units.

@@ -88,8 +88,7 @@ bool ElementDecoration::ReloadDecorators()
 		}
 	}
 
-	Vector<SharedPtr<const Decorator>> decorator_list;
-	style_sheet->InstanceDecorators(decorator_list, *decorators_ptr, source);
+	const DecoratorPtrList& decorator_list = style_sheet->InstanceDecorators(*decorators_ptr, source);
 
 	for (const SharedPtr<const Decorator>& decorator : decorator_list)
 	{

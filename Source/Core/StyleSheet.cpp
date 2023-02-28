@@ -120,57 +120,74 @@ const Keyframes* StyleSheet::GetKeyframes(const String & name) const
 	return nullptr;
 }
 
-void StyleSheet::InstanceDecorators(Vector<SharedPtr<const Decorator>>& decorator_list, const DecoratorDeclarationList& declaration_list, const PropertySource* source) const
+const DecoratorPtrList& StyleSheet::InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* source) const
 {
+	RMLUI_ASSERT_NONRECURSIVE; // Since we may return a reference to the below static variable.
+	static DecoratorPtrList non_cached_decorator_list;
+
+	// Empty declaration values are used for interpolated values which we don't want to cache.
+	const bool enable_cache = !declaration_list.value.empty();
+
 	// Generate the cache key. Relative paths of textures may be affected by the source path, and ultimately
 	// which texture should be displayed. Thus, we need to include this path in the cache key.
-	String cache_key;
-	if (declaration_list.caching)
-	{
-		cache_key.reserve(declaration_list.value.size() + 1 + (source ? source->path.size() : 0));
-		cache_key = declaration_list.value;
-		cache_key += ';';
-		if (source)
-			cache_key += source->path;
+	String key;
 
-		auto it_cache = decorator_cache.find(cache_key);
+	if (enable_cache)
+	{
+		key.reserve(declaration_list.value.size() + 1 + (source ? source->path.size() : 0));
+		key = declaration_list.value;
+		key += ';';
+		if (source)
+			key += source->path;
+
+		auto it_cache = decorator_cache.find(key);
 		if (it_cache != decorator_cache.end())
-		{
-			decorator_list = it_cache->second;
-			return;
-		}
+			return it_cache->second;
 	}
+	else
+	{
+		non_cached_decorator_list.clear();
+	}
+
+	DecoratorPtrList& decorators = enable_cache ? decorator_cache[key] : non_cached_decorator_list;
+	decorators.reserve(declaration_list.list.size());
 
 	for (const DecoratorDeclaration& declaration : declaration_list.list)
 	{
+		SharedPtr<Decorator> decorator;
+
 		if (declaration.instancer)
 		{
 			RMLUI_ZoneScopedN("InstanceDecorator");
-			
-			if (SharedPtr<Decorator> decorator = declaration.instancer->InstanceDecorator(declaration.type, declaration.properties, DecoratorInstancerInterface(*this, source)))
-				decorator_list.push_back(std::move(decorator));
-			else
-				Log::Message(Log::LT_WARNING, "Decorator '%s' in '%s' could not be instanced, declared at %s:%d", declaration.type.c_str(), declaration_list.value.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
+			decorator =
+				declaration.instancer->InstanceDecorator(declaration.type, declaration.properties, DecoratorInstancerInterface(*this, source));
+
+			if (!decorator)
+				Log::Message(Log::LT_WARNING, "Decorator '%s' in '%s' could not be instanced, declared at %s:%d", declaration.type.c_str(),
+					declaration_list.value.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
 		}
 		else
 		{
 			// If we have no instancer, this means the type is the name of an @decorator rule.
-			SharedPtr<Decorator> decorator;
 			auto it_map = decorator_map.find(declaration.type);
 			if (it_map != decorator_map.end())
 				decorator = it_map->second.decorator;
 
-			if (decorator)
-				decorator_list.push_back(std::move(decorator));
-			else
-				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d", declaration.type.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
+			if (!decorator)
+				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d",
+					declaration.type.c_str(), source ? source->path.c_str() : "", source ? source->line_number : -1);
 		}
+
+		if (!decorator)
+		{
+			decorators.clear();
+			break;
+		}
+
+		decorators.push_back(std::move(decorator));
 	}
 
-	if (declaration_list.caching)
-	{
-		decorator_cache[cache_key].insert(decorator_cache[cache_key].end(), decorator_list.begin(), decorator_list.end());
-	}
+	return decorators;
 }
 
 const Sprite* StyleSheet::GetSprite(const String& name) const

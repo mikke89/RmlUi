@@ -66,7 +66,6 @@ struct DecoratorDeclaration {
 struct DecoratorDeclarationList {
 	Vector<DecoratorDeclaration> list;
 	String value;
-	bool caching;
 };
 
 struct MediaBlock {
