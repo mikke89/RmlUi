@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef RMLUI_CORE_LAYOUT_TABLEDETAILS_H
-#define RMLUI_CORE_LAYOUT_TABLEDETAILS_H
+#ifndef RMLUI_CORE_LAYOUT_TABLEFORMATTINGDETAILS_H
+#define RMLUI_CORE_LAYOUT_TABLEFORMATTINGDETAILS_H
 
 #include "../../../Include/RmlUi/Core/StyleTypes.h"
 #include "../../../Include/RmlUi/Core/Types.h"
@@ -39,8 +39,8 @@ class TableWrapper;
 struct ComputedAxisSize;
 
 /*
-TableGrid builds the structure of the table, that is a list of rows, columns, and cells, taking
-spanning attributes into account to position cells.
+    TableGrid builds the structure of the table, that is a list of rows, columns, and cells, taking
+    spanning attributes into account to position cells.
 */
 class TableGrid {
 public:

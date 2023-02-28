@@ -420,10 +420,8 @@ Vector2f Element::GetAbsoluteOffset(Box::Area area)
 				absolute_offset -= offset_parent->scroll_offset;
 
 			// Finally, there may be relatively positioned elements between ourself and our containing block, add their relative offsets as well.
-			// TODO: Uhm, this doesn't really make sense for absolutely positioned boxes. But then again, if we have a
-			// relative parent, then that should be our containing block. So I guess its fine?
-			for (Element* relative_parent = parent; relative_parent && relative_parent != offset_parent; relative_parent = relative_parent->parent)
-				absolute_offset += relative_parent->relative_offset_position;
+			for (Element* ancestor = parent; ancestor && ancestor != offset_parent; ancestor = ancestor->parent)
+				absolute_offset += ancestor->relative_offset_position;
 		}
 	}
 

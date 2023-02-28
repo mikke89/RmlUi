@@ -286,18 +286,27 @@ void TableGrid::PushRow(Element* element_row, ElementList cell_elements, TableWr
 			break;
 		}
 
-		// Add the new cell to our list.
-		open_cells.emplace_back();
-		Cell& cell = open_cells.back();
+		const Style::Position cell_position = element_cell->GetPosition();
+		if (cell_position == Style::Position::Absolute || cell_position == Style::Position::Fixed)
+		{
+			ContainerBox* containing_box = LayoutDetails::GetContainingBlock(&table_wrapper, cell_position).container;
+			containing_box->AddAbsoluteElement(element_cell, {}, table_wrapper.GetElement());
+		}
+		else
+		{
+			// Add the new cell to our list.
+			open_cells.emplace_back();
+			Cell& cell = open_cells.back();
 
-		cell.element_cell = element_cell;
-		cell.row_begin = row_index;
-		cell.row_last = row_index + row_span - 1;
-		cell.column_begin = column;
-		cell.column_last = column_last;
+			cell.element_cell = element_cell;
+			cell.row_begin = row_index;
+			cell.row_last = row_index + row_span - 1;
+			cell.column_begin = column;
+			cell.column_last = column_last;
 
-		if (element_cell->GetPosition() == Style::Position::Relative)
-			table_wrapper.AddRelativeElement(element_cell);
+			if (cell_position == Style::Position::Relative)
+				table_wrapper.AddRelativeElement(element_cell);
+		}
 
 		column += col_span;
 	}
