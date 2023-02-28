@@ -167,78 +167,118 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 
 	if (p0.unit == Property::DECORATOR && p1.unit == Property::DECORATOR)
 	{
-		auto& d0 = p0.value.GetReference<DecoratorsPtr>();
-		auto& d1 = p1.value.GetReference<DecoratorsPtr>();
+		auto DiscreteInterpolation = [&]() { return alpha < 0.5f ? p0 : p1; };
+		auto PrepareDeclaration = [&](const DecoratorDeclaration& declaration) {
+			if (declaration.instancer)
+				return declaration;
 
-		const StyleSheet* style_sheet = element.GetStyleSheet();
-		if (!style_sheet)
-			return Property{ d0, Property::DECORATOR };
+			// Maybe it needs to be taken out of the lambda?
+			const StyleSheet* style_sheet = element.GetStyleSheet();
+			if (!style_sheet)
+			{
+				RMLUI_ERRORMSG("style_sheet is empty.");
+				return declaration;
+			}
 
-		if (d0->list.size() != d1->list.size())
+			const DecoratorSpecification* specification = style_sheet->GetDecoratorSpecification(declaration.type);
+			if (!specification)
+			{
+				RMLUI_ERRORMSG("Invalid DecoratorSpecification pointer.");
+				return declaration;
+			}
+
+			return DecoratorDeclaration{ specification->decorator_type, Factory::GetDecoratorInstancer(specification->decorator_type),
+				specification->properties, declaration.paint_area };
+		};
+
+		auto& ptr0 = p0.value.GetReference<DecoratorsPtr>();
+		auto& ptr1 = p1.value.GetReference<DecoratorsPtr>();
+		if (!ptr0 || !ptr1)
 		{
-			RMLUI_ERRORMSG("The number of decorators should be the same");
-			return Property{ d0, Property::DECORATOR };
+			RMLUI_ERRORMSG("Invalid decorator pointer, were the decorator keys properly prepared?");
+			return DiscreteInterpolation();
 		}
 
-		UniquePtr<DecoratorDeclarationList> declaration_list(new DecoratorDeclarationList);
-		declaration_list->caching = false;
+		const bool p0_smaller = (ptr0->list.size() < ptr1->list.size());
+		auto& small = (p0_smaller ? ptr0->list : ptr1->list);
+		auto& big = (p0_smaller ? ptr1->list : ptr0->list);
 
-		for (size_t i = 0; i < d0->list.size(); i++) {
-			const DecoratorDeclaration& declaration1 = d0->list[i];
-			const DecoratorDeclaration& declaration2 = d1->list[i];
-			DecoratorDeclaration new_declaration;
+		// Build the new, interpolated decorator.
+		UniquePtr<DecoratorDeclarationList> decorator(new DecoratorDeclarationList);
+		decorator->list.reserve(ptr0->list.size());
 
-			PropertyMap properties1;
-			if (!declaration1.instancer)
+		// Interpolate decorators that have common types.
+		for (size_t i = 0; i < small.size(); i++)
+		{
+			const DecoratorDeclaration& d0 = PrepareDeclaration(ptr0->list[i]);
+			const DecoratorDeclaration& d1 = PrepareDeclaration(ptr1->list[i]);
+			if(!d0.instancer || !d1.instancer)
 			{
-				const DecoratorSpecification* decorator_specification = style_sheet->GetDecoratorSpecification(declaration1.type);
-				if (!decorator_specification)
+				return DiscreteInterpolation();
+			}
+
+			if (d0.instancer != d1.instancer || d0.paint_area != d1.paint_area || d0.type != d1.type ||
+				d0.properties.GetNumProperties() != d1.properties.GetNumProperties())
+			{
+				// Incompatible decorators, fall back to discrete interpolation.
+				return DiscreteInterpolation();
+			}
+
+			decorator->list.push_back(DecoratorDeclaration{d0.type, d0.instancer, PropertyDictionary(), d0.paint_area});
+			PropertyDictionary& props = decorator->list.back().properties;
+
+			const auto& props0 = d0.properties.GetProperties();
+			const auto& props1 = d1.properties.GetProperties();
+
+			for (const auto& pair0 : props0)
+			{
+				const PropertyId id = pair0.first;
+				const Property& prop0 = pair0.second;
+
+				auto it = props1.find(id);
+				if (it == props1.end())
 				{
-					RMLUI_ERRORMSG("@decorator rule not found");
-					return Property{ d0, Property::DECORATOR };
+					RMLUI_ERRORMSG("Incompatible decorator properties.");
+					return DiscreteInterpolation();
 				}
+				const Property& prop1 = it->second;
 
-				properties1 = decorator_specification->properties.GetProperties();
-				
-				new_declaration.type = decorator_specification->decorator_type;
-				new_declaration.instancer = Factory::GetDecoratorInstancer(new_declaration.type);
+				Property p = InterpolateProperties(prop0, prop1, alpha, element, prop0.definition);
+				p.definition = prop0.definition;
+				props.SetProperty(id, p);
 			}
-			else
-			{
-				properties1 = declaration1.properties.GetProperties();
-
-				new_declaration.instancer = declaration1.instancer;
-				new_declaration.type = declaration1.type;
-			}
-
-			new_declaration.instancer->GetPropertySpecification().SetPropertyDefaults(new_declaration.properties);
-
-			PropertyMap properties2;
-			if (!declaration2.instancer)
-			{
-				const DecoratorSpecification* decorator_specification = style_sheet->GetDecoratorSpecification(declaration2.type);
-				if (!decorator_specification)
-				{
-					RMLUI_ERRORMSG("@decorator rule not found");
-					return Property{ d0, Property::DECORATOR };
-				}
-
-				properties2 = decorator_specification->properties.GetProperties();
-			}
-			else
-			{
-				properties2 = declaration2.properties.GetProperties();
-			}
-
-			for (auto it1 = properties1.begin(), it2 = properties2.begin(); it1 != properties1.end() || it2 != properties2.end(); it1++, it2++)
-			{
-				new_declaration.properties.SetProperty(it1->first, InterpolateProperties(it1->second, it2->second, alpha, element, it1->second.definition));
-			}
-
-			declaration_list->list.push_back(std::move(new_declaration));
 		}
 
-		return Property{ DecoratorsPtr(std::move(declaration_list)), Property::DECORATOR };
+		// Append any trailing decorators from the largest list and interpolate against the default values of its type.
+		for (size_t i = small.size(); i < big.size(); i++)
+		{
+			const DecoratorDeclaration& d_big = PrepareDeclaration(big[i]);
+
+			decorator->list.push_back(DecoratorDeclaration{ d_big.type, d_big.instancer, PropertyDictionary(), d_big.paint_area });
+			DecoratorDeclaration& d_new = decorator->list.back();
+
+			const PropertySpecification& specification = d_new.instancer->GetPropertySpecification();
+
+			const PropertyMap& props_big = d_big.properties.GetProperties();
+			for (const auto& pair_big : props_big)
+			{
+				const PropertyId id = pair_big.first;
+				const PropertyDefinition* underlying_definition = specification.GetProperty(id);
+				if (!underlying_definition)
+					return DiscreteInterpolation();
+
+				const Property& p_big = pair_big.second;
+				const Property& p_small = *underlying_definition->GetDefaultValue();
+				const Property& p_interp0 = (p0_smaller ? p_small : p_big);
+				const Property& p_interp1 = (p0_smaller ? p_big : p_small);
+
+				Property p = InterpolateProperties(p_interp0, p_interp1, alpha, element, p_big.definition);
+				p.definition = p_big.definition;
+				d_new.properties.SetProperty(id, p);
+			}
+		}
+
+		return Property{ DecoratorsPtr(std::move(decorator)), Unit::DECORATOR };
 	}
 
 	// Fall back to discrete interpolation for incompatible units.
