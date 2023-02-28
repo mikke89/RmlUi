@@ -183,7 +183,7 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		UniquePtr<DecoratorDeclarationList> declaration_list(new DecoratorDeclarationList);
 		declaration_list->caching = false;
 
-		for (int i = 0; i < d0->list.size(); i++) {
+		for (size_t i = 0; i < d0->list.size(); i++) {
 			const DecoratorDeclaration& declaration1 = d0->list[i];
 			const DecoratorDeclaration& declaration2 = d1->list[i];
 			DecoratorDeclaration new_declaration;
