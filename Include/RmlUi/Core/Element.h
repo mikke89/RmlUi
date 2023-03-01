@@ -672,6 +672,8 @@ protected:
 	void Release() override;
 
 private:
+	bool Scroll(float scroll_delta);
+
 	void SetParent(Element* parent);
 	
 	void SetDataModel(DataModel* new_data_model);
@@ -766,6 +768,11 @@ private:
 	Vector2f relative_offset_position;	// the offset of a relatively positioned element
 
 	Vector2f absolute_offset;
+
+	// Scrolling element with scroll button controller.
+	bool scrolling_started;
+	Vector2f started_scroll_position;
+	Vector2f scroll_delta;
 
 	// The offset this element adds to its logical children due to scrolling content.
 	Vector2f scroll_offset;

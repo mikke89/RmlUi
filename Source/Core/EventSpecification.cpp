@@ -63,7 +63,7 @@ void Initialize()
 		{EventId::Unload        , "unload"        , false , false , DefaultActionPhase::None},
 		{EventId::Show          , "show"          , false , false , DefaultActionPhase::None},
 		{EventId::Hide          , "hide"          , false , false , DefaultActionPhase::None},
-		{EventId::Mousemove     , "mousemove"     , true  , true  , DefaultActionPhase::None},
+		{EventId::Mousemove     , "mousemove"     , true  , true  , DefaultActionPhase::TargetAndBubble},
 		{EventId::Dragmove      , "dragmove"      , true  , true  , DefaultActionPhase::None},
 		{EventId::Drag          , "drag"          , false , true  , DefaultActionPhase::Target},
 		{EventId::Dragstart     , "dragstart"     , false , true  , DefaultActionPhase::Target},
