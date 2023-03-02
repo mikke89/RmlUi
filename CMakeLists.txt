@@ -372,7 +372,10 @@ if(BUILD_LUA_BINDINGS)
 endif()
 
 # rlottie
-if( ENABLE_LOTTIE_PLUGIN )
+if( ENABLE_LOTTIE_PLUGIN AND TARGET rlottie::rlottie )
+	list(APPEND CORE_LINK_LIBS rlottie::rlottie)
+	list(APPEND CORE_INCLUDE_DIRS rlottie::rlottie)
+elseif( ENABLE_LOTTIE_PLUGIN )
 	# Try to find the rlottie library.
 	if(NOT DEFINED rlottie_DIR)
 		set(rlottie_DIR $ENV{RLOTTIE_DIR})
@@ -1008,6 +1011,7 @@ endif()
 include(CMakePackageConfigHelpers OPTIONAL RESULT_VARIABLE PkgHelpers_AVAILABLE)
 
 # guard against older versions of cmake which do not provide it
+if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
 if(PkgHelpers_AVAILABLE)
 	set (INCLUDE_INSTALL_DIR "include")
 	set (LIB_INSTALL_DIR "lib")
@@ -1046,5 +1050,6 @@ else()
 	message("If you wish to use find_package(RmlUi) in your own project to find RmlUi library"
 		" please update cmake to version which provides CMakePackageConfighelpers module"
 		" or write generators for RmlUiConfig.cmake by yourself.")
+endif()
 endif()
 
