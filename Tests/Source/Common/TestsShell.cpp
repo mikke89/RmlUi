@@ -226,3 +226,8 @@ TestsRenderInterface* TestsShell::GetTestsRenderInterface()
 	return &shell_render_interface;
 #endif
 }
+
+TestsSystemInterface* TestsShell::GetTestsSystemInterface()
+{
+	return &tests_system_interface;
+}

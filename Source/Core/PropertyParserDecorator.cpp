@@ -52,8 +52,8 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 
 	if (decorator_string_value.empty() || decorator_string_value == "none")
 	{
-		property.value = Variant();
-		property.unit = Property::UNKNOWN;
+		property.value = Variant(DecoratorsPtr());
+		property.unit = Property::DECORATOR;
 		return true;
 	}
 

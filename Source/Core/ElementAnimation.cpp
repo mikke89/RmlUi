@@ -27,13 +27,16 @@
  */
 
 #include "ElementAnimation.h"
-#include "ElementStyle.h"
-#include "TransformUtilities.h"
+#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "ElementStyle.h"
+#include "TransformUtilities.h"
 
 namespace Rml {
 
@@ -507,6 +510,15 @@ static bool PrepareTransforms(Vector<AnimationKey>& keys, Element& element, int 
 	return (count_iterations < max_iterations);
 }
 
+static void PrepareDecorator(AnimationKey& key)
+{
+	Property& property = key.property;
+	RMLUI_ASSERT(property.value.GetType() == Variant::DECORATORSPTR);
+
+	if (!property.value.GetReference<DecoratorsPtr>())
+		property.value = MakeShared<DecoratorDeclarationList>();
+}
+
 
 ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, Element& element,
 	double start_world_time, float duration, int num_iterations, bool alternate_direction) :
@@ -538,6 +550,10 @@ bool ElementAnimation::InternalAddKey(float time, const Property& in_property, E
 	if (keys.back().property.unit == Property::TRANSFORM)
 	{
 		result = PrepareTransforms(keys, element, (int)keys.size() - 1);
+	}
+	else if (keys.back().property.unit == Property::DECORATOR)
+	{
+		PrepareDecorator(keys.back());
 	}
 
 	if (!result)

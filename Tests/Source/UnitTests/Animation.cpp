@@ -47,6 +47,10 @@ static const String document_decorator_rml = R"(
 			right: 0;
 			bottom: 0;
 		}
+		
+		@decorator from_rule : gradient { %s }
+		@decorator to_rule: gradient{ %s }		
+
 		@keyframes mix {
 			from { decorator: %s; }
 			to   { decorator: %s; }
@@ -69,32 +73,121 @@ static const String document_decorator_rml = R"(
 TEST_CASE("animation.decorator")
 {
 	struct Test {
+		String from_rule;
+		String to_rule;
 		String from;
 		String to;
 		String expected_25p; // expected interpolated value at 25% progression
 	};
 
 	Vector<Test> tests{
+		// Only standard declaration
 		{
+			"", "",
+			
 			"gradient(horizontal transparent transparent)",
 			"gradient(horizontal white white)",
-			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
+			
+			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63))",
 		},
 		{
+			"", "",
+			
 			"none",
 			"gradient(horizontal transparent transparent)",
-			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			
+			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
 		},
 		{
+			"", "",
+			
 			"none",
 			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
-			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			
+			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191)), gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
 		},
 		{
-			"gradient(horizontal white white), gradient(vertical transparent transparent)",
-			"gradient(horizontal transparent transparent)",
-			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), gradient(vertical rgba(127,127,127,63) rgba(127,127,127,63))",
-		}
+			"", "",
+			
+			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
+			"none",
+			
+			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63)), gradient(vertical rgba(255,255,255,63) rgba(255,255,255,63))",
+		},
+
+		/// Only rule declaration
+		{
+			"direction: horizontal; start-color: transparent; stop-color: transparent;",
+			"direction: horizontal; start-color: white; stop-color: white;",
+			
+			"from_rule",
+			"to_rule",
+			
+			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63))",
+		},
+		{
+			"",
+			"direction: horizontal; start-color: transparent; stop-color: transparent;",
+			
+			"from_rule",
+			"to_rule",
+			
+			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
+		},
+		{
+			"direction: vertical; start-color: transparent; stop-color: transparent;",
+			"",
+			
+			"from_rule",
+			"to_rule",
+			
+			"gradient(vertical rgba(255,255,255,63) rgba(255,255,255,63))",
+		},
+
+		/// Mix rule and standard declaration
+		{
+			"direction: horizontal; start-color: transparent; stop-color: transparent;",
+			"",
+
+			"from_rule",
+			"gradient(horizontal white white)",
+
+			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63))",
+		},
+		{
+			"",
+			"direction: horizontal; start-color: transparent; stop-color: transparent;",
+
+			"none",
+			"to_rule",
+
+			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
+		},
+		{
+			"direction: vertical; start-color: transparent; stop-color: transparent;",
+			"",
+
+			"from_rule",
+			"none",
+
+			"gradient(vertical rgba(255,255,255,63) rgba(255,255,255,63))",
+		},
+		{
+			"", "",
+
+			"from_rule, to_rule",
+			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
+
+			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191)), gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
+		},
+		{
+			"", "",
+
+			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
+			"from_rule, to_rule",
+
+			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63)), gradient(vertical rgba(255,255,255,63) rgba(255,255,255,63))",
+		},
 	};
 
 	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
@@ -106,8 +199,8 @@ TEST_CASE("animation.decorator")
 		const double t_final = 0.1;
 
 		system_interface->SetTime(0.0);
-		String document_rml =
-			Rml::CreateString(document_decorator_rml.size() + 512, document_decorator_rml.c_str(), test.from.c_str(), test.to.c_str());
+		String document_rml = Rml::CreateString(document_decorator_rml.size() + 512, document_decorator_rml.c_str(), test.from_rule.c_str(),
+			test.to_rule.c_str(), test.from.c_str(), test.to.c_str());
 
 		ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
 		Element* element = document->GetChild(0);
