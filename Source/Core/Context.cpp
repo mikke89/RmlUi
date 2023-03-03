@@ -725,16 +725,22 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	}
 	else
 	{
-		if (button_index == 2)
-		{
-			scrolling_started = true;
-			scroll_delta = Vector2i(0, 0);
-			started_scroll_position = mouse_position;
-		}
-
 		// Not the primary mouse button, so we're not doing any special processing.
 		if (hover)
 			hover->DispatchEvent(EventId::Mousedown, parameters);
+	}
+
+	if (scrolling_started)
+	{
+		scrolling_started = false;
+		scroll_delta = Vector2i(0, 0);
+		started_scroll_position = Vector2i(0, 0);
+	}
+	else if (button_index == 2)
+	{
+		scrolling_started = true;
+		scroll_delta = Vector2i(0, 0);
+		started_scroll_position = mouse_position;
 	}
 
 	return !IsMouseInteracting();
@@ -807,10 +813,6 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 	}
 	else
 	{
-		scrolling_started = false;
-		scroll_delta = Vector2i(0, 0);
-		started_scroll_position = Vector2i(0, 0);
-
 		// Not the left mouse button, so we're not doing any special processing.
 		if (hover)
 			hover->DispatchEvent(EventId::Mouseup, parameters);
