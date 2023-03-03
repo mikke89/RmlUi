@@ -35,6 +35,7 @@
 #include "InlineBox.h"
 #include "InlineContainer.h"
 #include "LineBox.h"
+#include "ReplacedFormattingContext.h"
 #include <algorithm>
 #include <cstddef>
 
@@ -49,7 +50,7 @@ static constexpr std::size_t ChunkSizeBig = std::max({sizeof(BlockContainer)});
 static constexpr std::size_t ChunkSizeMedium =
 	std::max({sizeof(InlineContainer), sizeof(InlineBox), sizeof(RootBox), sizeof(FlexContainer), sizeof(TableWrapper)});
 static constexpr std::size_t ChunkSizeSmall =
-	std::max({sizeof(InlineLevelBox_Text), sizeof(InlineLevelBox_Atomic), sizeof(LineBox), sizeof(FloatedBoxSpace)});
+	std::max({sizeof(ReplacedBox), sizeof(InlineLevelBox_Text), sizeof(InlineLevelBox_Atomic), sizeof(LineBox), sizeof(FloatedBoxSpace)});
 
 static Pool<LayoutChunk<ChunkSizeBig>> layout_chunk_pool_big(50, true);
 static Pool<LayoutChunk<ChunkSizeMedium>> layout_chunk_pool_medium(50, true);

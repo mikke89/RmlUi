@@ -75,6 +75,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutEngine.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutPools.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LineBox.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/ReplacedFormattingContext.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingContext.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingDetails.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Memory.h
@@ -349,6 +350,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutEngine.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutPools.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LineBox.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/ReplacedFormattingContext.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingContext.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingDetails.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Log.cpp

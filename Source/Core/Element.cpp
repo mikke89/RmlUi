@@ -519,6 +519,13 @@ bool Element::GetIntrinsicDimensions(Vector2f& RMLUI_UNUSED_PARAMETER(dimensions
 	return false;
 }
 
+bool Element::IsReplaced()
+{
+	Vector2f unused_dimensions;
+	float unused_ratio = 0.f;
+	return GetIntrinsicDimensions(unused_dimensions, unused_ratio);
+}
+
 // Checks if a given point in screen coordinates lies within the bordered area of this element.
 bool Element::IsPointWithinElement(const Vector2f point)
 {

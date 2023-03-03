@@ -54,9 +54,9 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
-class FormattingContext;
-class InlineLevelBox;
 class ContainerBox;
+class InlineLevelBox;
+class ReplacedBox;
 class PropertiesIteratorView;
 class PropertyDictionary;
 class RenderInterface;
@@ -179,12 +179,15 @@ public:
 	/// Returns the baseline of the element, in pixel offset from the element's bottom margin edge (positive up).
 	/// @return The element's baseline. The default element will return 0.
 	virtual float GetBaseline() const;
-	/// Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size. This size will
+	/// Gets the intrinsic dimensions of this element, if it is a replaced element with an inherent size. This size will
 	/// only be overriden by a styled width or height.
 	/// @param[out] dimensions The dimensions to size, if appropriate.
 	/// @param[out] ratio The intrinsic ratio (width/height), if appropriate.
-	/// @return True if the element has intrinsic dimensions, false otherwise. The default element will return false.
+	/// @return True if the element is a replaced element with intrinsic dimensions, false otherwise.
 	virtual bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio);
+	/// Returns true if the element is replaced, thereby handling its own rendering.
+	/// @return True if the element is a replaced element.
+	bool IsReplaced();
 
 	/// Checks if a given point in screen coordinates lies within the bordered area of this element.
 	/// @param[in] point The point to test.
@@ -796,6 +799,7 @@ private:
 	friend class Rml::ElementStyle;
 	friend class Rml::ContainerBox;
 	friend class Rml::InlineLevelBox;
+	friend class Rml::ReplacedBox;
 	friend class Rml::ElementScroll;
 	friend RMLUICORE_API void Rml::ReleaseFontResources();
 };

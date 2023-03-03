@@ -32,6 +32,7 @@
 #include "BlockFormattingContext.h"
 #include "FlexFormattingContext.h"
 #include "LayoutBox.h"
+#include "ReplacedFormattingContext.h"
 #include "TableFormattingContext.h"
 
 namespace Rml {
@@ -40,12 +41,14 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	FormattingContextType backup_context)
 {
 	using namespace Style;
-	auto& computed = element->GetComputedValues();
 
-	const Display display = computed.display();
+	if (element->IsReplaced())
+		return ReplacedFormattingContext::Format(parent_container, element, override_initial_box);
 
 	FormattingContextType type = backup_context;
 
+	auto& computed = element->GetComputedValues();
+	const Display display = computed.display();
 	if (display == Display::Flex)
 	{
 		type = FormattingContextType::Flex;

@@ -111,6 +111,7 @@ private:
 class RootBox final : public ContainerBox {
 public:
 	RootBox(Vector2f containing_block) : ContainerBox(Type::Root, nullptr, nullptr), box(containing_block) {}
+	RootBox(const Box& box) : ContainerBox(Type::Root, nullptr, nullptr), box(box) {}
 
 	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;

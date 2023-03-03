@@ -39,18 +39,18 @@ namespace Rml {
 */
 class LayoutBox {
 public:
-	enum class Type { Root, BlockContainer, InlineContainer, FlexContainer, TableWrapper };
+	enum class Type { Root, BlockContainer, InlineContainer, FlexContainer, TableWrapper, Replaced };
 
 	virtual ~LayoutBox() = default;
 
 	Type GetType() const { return type; }
 	Vector2f GetVisibleOverflowSize() const { return visible_overflow_size; }
 
-	// Return a pointer to the dimensions box if this layout box has one.
+	// Returns a pointer to the dimensions box if this layout box has one.
 	virtual const Box* GetIfBox() const;
-	// Return the baseline of the last line of this box, if any. Returns true if a baseline was found, otherwise false.
+	// Returns the baseline of the last line of this box, if any. Returns true if a baseline was found, otherwise false.
 	virtual bool GetBaselineOfLastLine(float& out_baseline) const;
-	// Calculate the box's inner content width, i.e. the size used to calculate the shrink-to-fit width.
+	// Calculates the box's inner content width, i.e. the size used to calculate the shrink-to-fit width.
 	virtual float GetShrinkToFitWidth() const;
 
 	// Debug dump layout tree.
