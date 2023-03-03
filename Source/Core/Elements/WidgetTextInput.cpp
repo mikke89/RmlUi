@@ -1127,7 +1127,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 		// Grow the content area width-wise if this line is the longest so far, and push the height out.
 		content_area.x = Math::Max(content_area.x, line_width + cursor_size.x);
-		content_area.y = line_position.y;
+		content_area.y = line_position.y - font_baseline;
 
 		// Finally, push the new line into our array of lines.
 		lines.push_back(std::move(line));
