@@ -109,10 +109,10 @@ static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
 	visible(true), offset_fixed(false), absolute_offset_dirty(true), dirty_definition(false), dirty_child_definitions(false), dirty_animation(false),
-	dirty_transition(false), dirty_transform(false), dirty_perspective(false), scrolling_started(false),
+	dirty_transition(false), dirty_transform(false), dirty_perspective(false),
 
 	tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0),
-	content_box(0, 0), started_scroll_position(0, 0), scroll_delta(0, 0)
+	content_box(0, 0)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;
@@ -162,9 +162,6 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 	RMLUI_ZoneScoped;
 	RMLUI_ZoneText(name.c_str(), name.size());
 #endif
-
-	if (scrolling_started)
-		Scroll(scroll_delta.y * 0.001f);
 
 	OnUpdate();
 
@@ -1977,33 +1974,9 @@ void Element::ProcessDefaultAction(Event& event)
 	if (event == EventId::Mousedown)
 	{
 		const Vector2f mouse_pos(event.GetParameter("mouse_x", 0.f), event.GetParameter("mouse_y", 0.f));
-		const int mouse_button_index = event.GetParameter("button", 0);
 
-		if (IsPointWithinElement(mouse_pos) && mouse_button_index == 0)
+		if (IsPointWithinElement(mouse_pos) && event.GetParameter("button", 0) == 0)
 			SetPseudoClass("active", true);
-
-		if (mouse_button_index == 2)
-		{
-			scrolling_started = true;
-			scroll_delta = Vector2f(0, 0);
-			started_scroll_position = mouse_pos;
-		}
-	}
-
-	if (event == EventId::Mouseup)
-	{
-		scrolling_started = false;
-		scroll_delta = Vector2f(0, 0);
-		started_scroll_position = Vector2f(0, 0);
-	}
-
-	if (event == EventId::Mousemove)
-	{
-		if (scrolling_started)
-		{
-			const Vector2f mouse_pos(event.GetParameter("mouse_x", 0.f), event.GetParameter("mouse_y", 0.f));
-			scroll_delta = mouse_pos - started_scroll_position;
-		}
 	}
 
 	if (event == EventId::Mousescroll)
@@ -2969,7 +2942,7 @@ void Element::DirtyFontFaceRecursive()
 		GetChild(i)->DirtyFontFaceRecursive();
 }
 
-bool Element::Scroll(float scroll_delta)
+bool Element::Scroll(float distance)
 {
 	if (GetScrollHeight() > GetClientHeight())
 	{
@@ -2977,18 +2950,18 @@ bool Element::Scroll(float scroll_delta)
 		if (overflow_property == Style::Overflow::Auto ||
 			overflow_property == Style::Overflow::Scroll)
 		{
-			if ((scroll_delta < 0 && GetScrollTop() > 0) ||
-				(scroll_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
+			if ((distance < 0 && GetScrollTop() > 0) ||
+				(distance > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
 			{
 				// Defined as three times the default line-height, multiplied by the dp ratio.
 				float default_scroll_length = 3.f * DefaultComputedValues.line_height().value;
 				if (const Context* context = GetContext())
 					default_scroll_length *= context->GetDensityIndependentPixelRatio();
 
-				SetScrollTop(GetScrollTop() + scroll_delta * default_scroll_length);
-			}
+				SetScrollTop(GetScrollTop() + distance * default_scroll_length);
 
-			return true;
+				return true;
+			}
 		}
 	}
 

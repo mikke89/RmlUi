@@ -317,6 +317,11 @@ private:
 	Vector2i mouse_position;
 	bool mouse_active;
 
+	// Scrolling element with scroll button controller.
+	bool scrolling_started;
+	Vector2i started_scroll_position;
+	Vector2i scroll_delta;
+
 	// Enables cursor handling.
 	bool enable_cursor;
 	String cursor_name;
