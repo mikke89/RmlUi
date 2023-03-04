@@ -380,6 +380,9 @@ private:
 	// Returns the scrolling cursor based on scroll direction.
 	String GetScrollCursor() const;
 
+	// Reset mouse scrolling parameters.
+	void ResetScrollParameters();
+
 	// Builds the parameters for a generic key event.
 	void GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier);
 	// Builds the parameters for a generic mouse event.

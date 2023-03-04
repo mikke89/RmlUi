@@ -753,9 +753,7 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 
 	if (scroll_hover)
 	{
-		scroll_hover = nullptr;
-		holding_scroll = false;
-		started_scroll_position = Vector2i(0, 0);
+		ResetScrollParameters();
 	}
 	else if (button_index == 2)
 	{
@@ -840,11 +838,7 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 	}
 
 	if (scroll_hover && holding_scroll)
-	{
-		scroll_hover = nullptr;
-		holding_scroll = false;
-		started_scroll_position = Vector2i(0, 0);
-	}
+		ResetScrollParameters();
 
 	return result;
 }
@@ -1346,6 +1340,14 @@ String Context::GetScrollCursor() const
 		return "rmlui-scroll-idle";
 
 	return scroll_direction > 0 ? "rmlui-scroll-up" : "rmlui-scroll-down";
+}
+
+// Reset mouse scrolling parameters.
+void Context::ResetScrollParameters()
+{
+	scroll_hover = nullptr;
+	holding_scroll = false;
+	started_scroll_position = Vector2i(0, 0);
 }
 
 // Builds the parameters for a generic key event.
