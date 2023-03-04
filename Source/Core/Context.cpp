@@ -199,7 +199,9 @@ bool Context::Update()
 		GenerateMouseEventParameters(scroll_parameters);
 		scroll_parameters["wheel_delta"] = scroll_speed;
 
-		scroll_hover->DispatchEvent(EventId::Mousescroll, scroll_parameters);
+		// Scroll event was not handled by any element, it means that we don't have anything to scroll.
+		if (scroll_hover->DispatchEvent(EventId::Mousescroll, scroll_parameters))
+			ResetScrollParameters();
 	}
 
 	// Update the hover chain to detect any new or moved elements under the mouse.
