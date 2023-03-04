@@ -51,9 +51,10 @@ namespace Rml {
 
 static constexpr float DOUBLE_CLICK_TIME = 0.5f;     // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f;  // [dp]
+static constexpr float SCROLL_MIDDLE_MOUSE_SPEED_FACTOR = 0.000075f;
 
 Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1),
-	scrolling_started(false), started_scroll_position(0, 0), scroll_delta(0, 0)
+	scrolling_started(false), started_scroll_position(0, 0)
 {
 	instancer = nullptr;
 
@@ -614,9 +615,6 @@ bool Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 	// Dispatch any 'onmousemove' events.
 	if (mouse_moved)
 	{
-		if (scrolling_started)
-			scroll_delta = mouse_position - started_scroll_position;
-
 		if (hover)
 		{
 			hover->DispatchEvent(EventId::Mousemove, parameters);
@@ -733,13 +731,11 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	if (scrolling_started)
 	{
 		scrolling_started = false;
-		scroll_delta = Vector2i(0, 0);
 		started_scroll_position = Vector2i(0, 0);
 	}
 	else if (button_index == 2)
 	{
 		scrolling_started = true;
-		scroll_delta = Vector2i(0, 0);
 		started_scroll_position = mouse_position;
 	}
 
@@ -1127,7 +1123,12 @@ void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_sta
 	while (element != nullptr)
 	{
 		if (scrolling_started)
-			element->Scroll(scroll_delta.y * 0.001f);
+		{
+			const Vector2i scroll_delta = mouse_position - started_scroll_position;
+			const float scroll_speed = scroll_delta.y * SCROLL_MIDDLE_MOUSE_SPEED_FACTOR * float(GetSystemInterface()->GetElapsedTime());
+
+			element->Scroll(scroll_speed);
+		}
 
 		new_hover_chain.insert(element);
 		element = element->GetParentNode();
