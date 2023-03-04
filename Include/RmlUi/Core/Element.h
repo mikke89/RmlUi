@@ -672,8 +672,6 @@ protected:
 	void Release() override;
 
 private:
-	bool Scroll(float distance);
-
 	void SetParent(Element* parent);
 	
 	void SetDataModel(DataModel* new_data_model);

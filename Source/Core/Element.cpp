@@ -1983,14 +1983,27 @@ void Element::ProcessDefaultAction(Event& event)
 	{
 		if (GetScrollHeight() > GetClientHeight())
 		{
-			const float wheel_delta = event.GetParameter< float >("wheel_delta", 0.f);
-
-			if (Scroll(wheel_delta))
+			Style::Overflow overflow_property = meta->computed_values.overflow_y();
+			if (overflow_property == Style::Overflow::Auto ||
+				overflow_property == Style::Overflow::Scroll)
 			{
 				// Stop the propagation if the current element has scrollbars.
 				// This prevents scrolling in parent elements, which is often unintended. If instead desired behavior is
 				// to scroll in parent elements when reaching top/bottom, move StopPropagation inside the next if statement.
 				event.StopPropagation();
+
+				const float wheel_delta = event.GetParameter< float >("wheel_delta", 0.f);
+
+				if ((wheel_delta < 0 && GetScrollTop() > 0) ||
+					(wheel_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
+				{
+					// Defined as three times the default line-height, multiplied by the dp ratio.
+					float default_scroll_length = 3.f * DefaultComputedValues.line_height().value;
+					if (const Context* context = GetContext())
+						default_scroll_length *= context->GetDensityIndependentPixelRatio();
+
+					SetScrollTop(GetScrollTop() + wheel_delta * default_scroll_length);
+				}
 			}
 		}
 
@@ -2940,32 +2953,6 @@ void Element::DirtyFontFaceRecursive()
 	const int num_children = GetNumChildren(true);
 	for (int i = 0; i < num_children; ++i)
 		GetChild(i)->DirtyFontFaceRecursive();
-}
-
-bool Element::Scroll(float distance)
-{
-	if (GetScrollHeight() > GetClientHeight())
-	{
-		Style::Overflow overflow_property = meta->computed_values.overflow_y();
-		if (overflow_property == Style::Overflow::Auto ||
-			overflow_property == Style::Overflow::Scroll)
-		{
-			if ((distance < 0 && GetScrollTop() > 0) ||
-				(distance > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
-			{
-				// Defined as three times the default line-height, multiplied by the dp ratio.
-				float default_scroll_length = 3.f * DefaultComputedValues.line_height().value;
-				if (const Context* context = GetContext())
-					default_scroll_length *= context->GetDensityIndependentPixelRatio();
-
-				SetScrollTop(GetScrollTop() + distance * default_scroll_length);
-
-				return true;
-			}
-		}
-	}
-
-	return false;
 }
 
 } // namespace Rml

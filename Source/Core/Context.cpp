@@ -185,7 +185,7 @@ float Context::GetDensityIndependentPixelRatio() const
 bool Context::Update()
 {
 	RMLUI_ZoneScoped;
-	
+
 	if (scroll_hover && scrolling_started)
 	{
 		const Vector2i scroll_delta = mouse_position - started_scroll_position;
