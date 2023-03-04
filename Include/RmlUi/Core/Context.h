@@ -320,6 +320,7 @@ private:
 	// Scrolling element with scroll button controller.
 	bool scrolling_started;
 	Vector2i started_scroll_position;
+	Element* scroll_hover;
 
 	// Enables cursor handling.
 	bool enable_cursor;

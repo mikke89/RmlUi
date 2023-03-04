@@ -88,6 +88,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	hover = nullptr;
 	active = nullptr;
 	drag = nullptr;
+	scroll_hover = nullptr;
 
 	drag_started = false;
 	drag_verbose = false;
@@ -185,6 +186,18 @@ bool Context::Update()
 {
 	RMLUI_ZoneScoped;
 	
+	if (scroll_hover && scrolling_started)
+	{
+		const Vector2i scroll_delta = mouse_position - started_scroll_position;
+		const float scroll_speed = scroll_delta.y * SCROLL_MIDDLE_MOUSE_SPEED_FACTOR * float(GetSystemInterface()->GetElapsedTime());
+
+		Dictionary scroll_parameters;
+		GenerateMouseEventParameters(scroll_parameters);
+		scroll_parameters["wheel_delta"] = scroll_speed;
+
+		scroll_hover->DispatchEvent(EventId::Mousescroll, scroll_parameters);
+	}
+
 	// Update the hover chain to detect any new or moved elements under the mouse.
 	if (mouse_active)
 		UpdateHoverChain(mouse_position);
@@ -731,11 +744,13 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	if (scrolling_started)
 	{
 		scrolling_started = false;
+		scroll_hover = nullptr;
 		started_scroll_position = Vector2i(0, 0);
 	}
 	else if (button_index == 2)
 	{
 		scrolling_started = true;
+		scroll_hover = hover;
 		started_scroll_position = mouse_position;
 	}
 
@@ -1122,14 +1137,6 @@ void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_sta
 	Element* element = hover;
 	while (element != nullptr)
 	{
-		if (scrolling_started)
-		{
-			const Vector2i scroll_delta = mouse_position - started_scroll_position;
-			const float scroll_speed = scroll_delta.y * SCROLL_MIDDLE_MOUSE_SPEED_FACTOR * float(GetSystemInterface()->GetElapsedTime());
-
-			element->Scroll(scroll_speed);
-		}
-
 		new_hover_chain.insert(element);
 		element = element->GetParentNode();
 	}
