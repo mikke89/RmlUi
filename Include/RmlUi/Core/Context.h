@@ -318,7 +318,6 @@ private:
 	bool mouse_active;
 
 	// Scrolling element with scroll button controller.
-	bool scrolling_started;
 	Vector2i started_scroll_position;
 	Element* scroll_hover;
 
@@ -373,6 +372,9 @@ private:
 
 	// Returns the data model with the provided name, or nullptr if it does not exist.
 	DataModel* GetDataModelPtr(const String& name) const;
+
+	// Returns the scrolling cursor based on scroll direction.
+	String GetScrollCursor() const;
 
 	// Builds the parameters for a generic key event.
 	void GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier);

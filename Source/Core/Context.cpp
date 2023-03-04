@@ -53,8 +53,7 @@ static constexpr float DOUBLE_CLICK_TIME = 0.5f;     // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f;  // [dp]
 static constexpr float SCROLL_MIDDLE_MOUSE_SPEED_FACTOR = 0.000075f;
 
-Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1),
-	scrolling_started(false), started_scroll_position(0, 0)
+Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1), started_scroll_position(0, 0)
 {
 	instancer = nullptr;
 
@@ -186,7 +185,7 @@ bool Context::Update()
 {
 	RMLUI_ZoneScoped;
 
-	if (scroll_hover && scrolling_started)
+	if (scroll_hover)
 	{
 		const Vector2i scroll_delta = mouse_position - started_scroll_position;
 		const float scroll_speed = scroll_delta.y * SCROLL_MIDDLE_MOUSE_SPEED_FACTOR * float(GetSystemInterface()->GetElapsedTime());
@@ -741,15 +740,13 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 			hover->DispatchEvent(EventId::Mousedown, parameters);
 	}
 
-	if (scrolling_started)
+	if (scroll_hover)
 	{
-		scrolling_started = false;
 		scroll_hover = nullptr;
 		started_scroll_position = Vector2i(0, 0);
 	}
 	else if (button_index == 2)
 	{
-		scrolling_started = true;
 		scroll_hover = hover;
 		started_scroll_position = mouse_position;
 	}
@@ -1120,7 +1117,9 @@ void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_sta
 	{
 		String new_cursor_name;
 
-		if(drag)
+		if (scroll_hover)
+			new_cursor_name = GetScrollCursor();
+		else if(drag)
 			new_cursor_name = drag->GetComputedValues().cursor();
 		else if (hover)
 			new_cursor_name = hover->GetComputedValues().cursor();
@@ -1316,6 +1315,17 @@ DataModel* Context::GetDataModelPtr(const String& name) const
 	if (it != data_models.end())
 		return it->second.get();
 	return nullptr;
+}
+
+// Returns the scrolling cursor based on scroll direction.
+String Context::GetScrollCursor() const
+{
+	const int scroll_direction = started_scroll_position.y - mouse_position.y;
+
+	if (scroll_direction == 0)
+		return "rmlui-scroll-idle";
+
+	return scroll_direction > 0 ? "rmlui-scroll-up" : "rmlui-scroll-down";
 }
 
 // Builds the parameters for a generic key event.
