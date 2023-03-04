@@ -98,6 +98,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	last_click_time = 0;
 	last_update_time = 0;
 
+	holding_scroll = false;
 	mouse_active = false;
 
 	enable_cursor = true;
@@ -641,6 +642,9 @@ bool Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 			if (drag_hover && drag_verbose)
 				drag_hover->DispatchEvent(EventId::Dragmove, drag_parameters);
 		}
+
+		if (scroll_hover)
+			holding_scroll = true;
 	}
 
 	return !IsMouseInteracting();
@@ -750,11 +754,13 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	if (scroll_hover)
 	{
 		scroll_hover = nullptr;
+		holding_scroll = false;
 		started_scroll_position = Vector2i(0, 0);
 	}
 	else if (button_index == 2)
 	{
 		scroll_hover = hover;
+		holding_scroll = false;
 		started_scroll_position = mouse_position;
 	}
 
@@ -831,6 +837,13 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 		// Not the left mouse button, so we're not doing any special processing.
 		if (hover)
 			hover->DispatchEvent(EventId::Mouseup, parameters);
+	}
+
+	if (scroll_hover && holding_scroll)
+	{
+		scroll_hover = nullptr;
+		holding_scroll = false;
+		started_scroll_position = Vector2i(0, 0);
 	}
 
 	return result;

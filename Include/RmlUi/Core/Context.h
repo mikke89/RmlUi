@@ -308,7 +308,7 @@ private:
 
 	// The element that was clicked on last.
 	Element* last_click_element;
-	// The time the last click occured.
+	// The time the last click occurred.
 	double last_click_time;
 	// Mouse position during the last mouse_down event.
 	Vector2i last_click_mouse_position;
@@ -320,6 +320,9 @@ private:
 	// Scrolling element with scroll button controller.
 	Vector2i started_scroll_position;
 	Element* scroll_hover;
+	bool holding_scroll;
+
+	// The time the last update occurred.
 	double last_update_time;
 
 	// Enables cursor handling.
