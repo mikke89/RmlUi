@@ -173,26 +173,22 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 	if (p0.unit == Property::DECORATOR && p1.unit == Property::DECORATOR)
 	{
 		auto DiscreteInterpolation = [&]() { return alpha < 0.5f ? p0 : p1; };
-		auto PrepareDeclaration = [&](const DecoratorDeclaration& declaration) {
-			if (declaration.instancer)
-				return declaration;
-
-			// Maybe it needs to be taken out of the lambda?
+		auto FindDecoratorSpecification = [&](const String* type) -> const DecoratorSpecification* {
 			const StyleSheet* style_sheet = element.GetStyleSheet();
 			if (!style_sheet)
 			{
-				RMLUI_ERRORMSG("style_sheet is empty.");
-				return declaration;
+				Log::Message(Log::LT_WARNING, "Failed to get element stylesheet for '%s' decorator rule.", type->c_str());
+				return nullptr;
 			}
 
-			const DecoratorSpecification* specification = style_sheet->GetDecoratorSpecification(declaration.type);
+			const DecoratorSpecification* specification = style_sheet->GetDecoratorSpecification(*type);
 			if (!specification)
 			{
-				RMLUI_ERRORMSG("Invalid DecoratorSpecification pointer.");
-				return declaration;
+				Log::Message(Log::LT_WARNING, "Could not find DecoratorSpecification for '%s' decorator rule.", type->c_str());
+				return nullptr;
 			}
 
-			return DecoratorDeclaration{ specification->decorator_type, Factory::GetDecoratorInstancer(specification->decorator_type), specification->properties };
+			return specification;
 		};
 
 		auto& ptr0 = p0.value.GetReference<DecoratorsPtr>();
@@ -214,25 +210,50 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		// Interpolate decorators that have common types.
 		for (size_t i = 0; i < small.size(); i++)
 		{
-			const DecoratorDeclaration& d0 = PrepareDeclaration(ptr0->list[i]);
-			const DecoratorDeclaration& d1 = PrepareDeclaration(ptr1->list[i]);
-			if(!d0.instancer || !d1.instancer)
+			const String* d0_type = &ptr0->list[i].type;
+			DecoratorInstancer* d0_instancer = ptr0->list[i].instancer;
+			const PropertyDictionary* d0_properties = &ptr0->list[i].properties;
+
+			const String* d1_type = &ptr1->list[i].type;
+			DecoratorInstancer* d1_instancer = ptr1->list[i].instancer;
+			const PropertyDictionary* d1_properties = &ptr1->list[i].properties;
+
+			// If d0 is decorator rule, we take its type, instancer and properties from the found rule
+			if (!d0_instancer)
 			{
-				return DiscreteInterpolation();
+				const DecoratorSpecification* d0_spec = FindDecoratorSpecification(d0_type);
+				if (!d0_spec)
+					return DiscreteInterpolation();
+
+				d0_type = &d0_spec->decorator_type;
+				d0_instancer = Factory::GetDecoratorInstancer(d0_spec->decorator_type);
+				d0_properties = &d0_spec->properties;
 			}
 
-			if (d0.instancer != d1.instancer || d0.type != d1.type ||
-				d0.properties.GetNumProperties() != d1.properties.GetNumProperties())
+			// We repeat the fix of d1 fields
+			if (!d1_instancer)
+			{
+				const DecoratorSpecification* d1_spec = FindDecoratorSpecification(d1_type);
+				if (!d1_spec)
+					return DiscreteInterpolation();
+
+				d1_type = &d1_spec->decorator_type;
+				d1_instancer = Factory::GetDecoratorInstancer(d1_spec->decorator_type);
+				d1_properties = &d1_spec->properties;
+			}
+
+			if (d0_instancer != d1_instancer || *d0_type != *d1_type ||
+				d0_properties->GetNumProperties() != d1_properties->GetNumProperties())
 			{
 				// Incompatible decorators, fall back to discrete interpolation.
 				return DiscreteInterpolation();
 			}
 
-			decorator->list.push_back(DecoratorDeclaration{ d0.type, d0.instancer, PropertyDictionary() });
+			decorator->list.push_back(DecoratorDeclaration{ *d0_type, d0_instancer, PropertyDictionary() });
 			PropertyDictionary& props = decorator->list.back().properties;
 
-			const auto& props0 = d0.properties.GetProperties();
-			const auto& props1 = d1.properties.GetProperties();
+			const auto& props0 = d0_properties->GetProperties();
+			const auto& props1 = d1_properties->GetProperties();
 
 			for (const auto& pair0 : props0)
 			{
@@ -256,14 +277,27 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		// Append any trailing decorators from the largest list and interpolate against the default values of its type.
 		for (size_t i = small.size(); i < big.size(); i++)
 		{
-			const DecoratorDeclaration& d_big = PrepareDeclaration(big[i]);
+			const String* dbig_type = &big[i].type;
+			DecoratorInstancer* dbig_instancer = big[i].instancer;
+			const PropertyDictionary* dbig_properties = &big[i].properties;
 
-			decorator->list.push_back(DecoratorDeclaration{ d_big.type, d_big.instancer, PropertyDictionary() });
+			if (!dbig_instancer)
+			{
+				const DecoratorSpecification* dbig_spec = FindDecoratorSpecification(dbig_type);
+				if (!dbig_spec)
+					return DiscreteInterpolation();
+
+				dbig_type = &dbig_spec->decorator_type;
+				dbig_instancer = Factory::GetDecoratorInstancer(dbig_spec->decorator_type);
+				dbig_properties = &dbig_spec->properties;
+			}
+
+			decorator->list.push_back(DecoratorDeclaration{ *dbig_type, dbig_instancer, PropertyDictionary() });
 			DecoratorDeclaration& d_new = decorator->list.back();
 
 			const PropertySpecification& specification = d_new.instancer->GetPropertySpecification();
 
-			const PropertyMap& props_big = d_big.properties.GetProperties();
+			const PropertyMap& props_big = dbig_properties->GetProperties();
 			for (const auto& pair_big : props_big)
 			{
 				const PropertyId id = pair_big.first;
