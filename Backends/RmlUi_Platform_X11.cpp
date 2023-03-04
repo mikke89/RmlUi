@@ -116,6 +116,12 @@ void SystemInterface_X11::SetMouseCursor(const Rml::String& cursor_name)
 			cursor_handle = cursor_cross;
 		else if (cursor_name == "text")
 			cursor_handle = cursor_text;
+		else if (cursor_name == "rmlui-scroll-idle")
+			cursor_handle = cursor_move;
+		else if (cursor_name == "rmlui-scroll-up")
+			cursor_handle = cursor_move;
+		else if (cursor_name == "rmlui-scroll-down")
+			cursor_handle = cursor_move;
 		else if (cursor_name == "unavailable")
 			cursor_handle = cursor_unavailable;
 
