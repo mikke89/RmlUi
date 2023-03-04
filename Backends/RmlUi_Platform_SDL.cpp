@@ -81,11 +81,11 @@ void SystemInterface_SDL::SetMouseCursor(const Rml::String& cursor_name)
 	else if (cursor_name == "text")
 		cursor = cursor_text;
 	else if (cursor_name == "rmlui-scroll-idle")
-		cursor = cursor_pointer;
+		cursor = cursor_move;
 	else if (cursor_name == "rmlui-scroll-up")
-		cursor = cursor_pointer;
+		cursor = cursor_move;
 	else if (cursor_name == "rmlui-scroll-down")
-		cursor = cursor_pointer;
+		cursor = cursor_move;
 	else if (cursor_name == "unavailable")
 		cursor = cursor_unavailable;
 

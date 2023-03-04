@@ -320,6 +320,7 @@ private:
 	// Scrolling element with scroll button controller.
 	Vector2i started_scroll_position;
 	Element* scroll_hover;
+	double last_update_time;
 
 	// Enables cursor handling.
 	bool enable_cursor;

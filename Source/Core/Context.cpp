@@ -51,7 +51,7 @@ namespace Rml {
 
 static constexpr float DOUBLE_CLICK_TIME = 0.5f;     // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f;  // [dp]
-static constexpr float SCROLL_MIDDLE_MOUSE_SPEED_FACTOR = 0.000075f;
+static constexpr float SCROLL_MIDDLE_MOUSE_SPEED_FACTOR = 0.5f;
 
 Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), started_scroll_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
 {
@@ -96,6 +96,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 
 	last_click_element = nullptr;
 	last_click_time = 0;
+	last_update_time = 0;
 
 	mouse_active = false;
 
@@ -185,10 +186,13 @@ bool Context::Update()
 {
 	RMLUI_ZoneScoped;
 
+	double current_time = GetSystemInterface()->GetElapsedTime();
+
 	if (scroll_hover)
 	{
 		const Vector2i scroll_delta = mouse_position - started_scroll_position;
-		const float scroll_speed = scroll_delta.y * SCROLL_MIDDLE_MOUSE_SPEED_FACTOR * float(GetSystemInterface()->GetElapsedTime());
+		const float delta_time = float(current_time - last_update_time);
+		const float scroll_speed = scroll_delta.y * SCROLL_MIDDLE_MOUSE_SPEED_FACTOR * delta_time;
 
 		Dictionary scroll_parameters;
 		GenerateMouseEventParameters(scroll_parameters);
@@ -222,6 +226,9 @@ bool Context::Update()
 
 	// Release any documents that were unloaded during the update.
 	ReleaseUnloadedDocuments();
+
+	// Last update time used to calculate delta time posteriorly.
+	last_update_time = current_time;
 
 	return true;
 }
