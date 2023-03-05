@@ -64,7 +64,7 @@ class StyleSheet;
 class StyleSheetContainer;
 class TransformState;
 struct ElementMeta;
-struct StackingOrderedChild;
+struct StackingContextChild;
 
 enum class ScrollAlignment {
 	Start,   // Align to the top or left edge of the parent element.
@@ -684,8 +684,8 @@ private:
 	void SetBaseline(float baseline);
 
 	void BuildLocalStackingContext();
-	void BuildStackingContext(ElementList* stacking_context);
-	static void BuildStackingContextForTable(Vector<StackingOrderedChild>& ordered_children, Element* child);
+	void AddChildrenToStackingContext(Vector<StackingContextChild>& stacking_children);
+	void AddToStackingContext(Vector<StackingContextChild>& stacking_children, bool is_flex_item, bool is_non_dom_element);
 	void DirtyStackingContext();
 
 	void UpdateDefinition();
