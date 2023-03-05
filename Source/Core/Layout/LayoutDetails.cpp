@@ -428,35 +428,30 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		}
 	}
 
+	const bool absolutely_positioned = (computed.position() == Style::Position::Absolute || computed.position() == Style::Position::Fixed);
+	const bool inset_auto = (computed.left().type == Style::Left::Auto || computed.right().type == Style::Right::Auto);
 	const bool width_auto = (content_area.x < 0);
 
-	// If the width is set to auto, we need to calculate the width
+	auto GetInsetWidth = [&] {
+		// For absolutely positioned elements (and only those), the 'left' and 'right' values are part of the box's width constraint.
+		if (absolutely_positioned)
+			return ResolveValue(computed.left(), containing_block.x) + ResolveValue(computed.right(), containing_block.x);
+		return 0.f;
+	};
+
+	// If the width is set to auto, we need to calculate the width.
 	if (width_auto)
 	{
 		// Apply the shrink-to-fit algorithm here to find the width of the element.
 		// See CSS 2.1 section 10.3.7 for when this should be applied.
 		const bool shrink_to_fit = !replaced_element &&
-			((computed.float_() != Style::Float::None) ||
-				((computed.position() == Style::Position::Absolute || computed.position() == Style::Position::Fixed) &&
-					(computed.left().type == Style::Left::Auto || computed.right().type == Style::Right::Auto)) ||
+			((computed.float_() != Style::Float::None) || (absolutely_positioned && inset_auto) ||
 				(computed.display() == Style::Display::InlineBlock));
 
 		if (!shrink_to_fit)
 		{
-			float left = 0.0f, right = 0.0f;
-			// If we are dealing with an absolutely positioned element we need to
-			// consider if the left and right properties are set, since the width can be affected.
-			if (computed.position() == Style::Position::Absolute || computed.position() == Style::Position::Fixed)
-			{
-				if (computed.left().type != Style::Left::Auto)
-					left = ResolveValue(computed.left(), containing_block.x);
-				if (computed.right().type != Style::Right::Auto)
-					right = ResolveValue(computed.right(), containing_block.x);
-			}
-
-			// We resolve any auto margins to 0 and the width is set to whatever is left of the containing block.
-			content_area.x = containing_block.x -
-				(left + box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT) + right);
+			// The width is set to whatever remains of the containing block.
+			content_area.x = containing_block.x - (GetInsetWidth() + box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN, Box::PADDING));
 			content_area.x = Math::Max(0.0f, content_area.x);
 		}
 		else if (override_shrink_to_fit_width >= 0)
@@ -472,7 +467,7 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 	// Otherwise, the margins that are set to auto will pick up the remaining width of the containing block.
 	else if (num_auto_margins > 0)
 	{
-		const float margin = (containing_block.x - box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN)) / float(num_auto_margins);
+		const float margin = (containing_block.x - (GetInsetWidth() + box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN))) / float(num_auto_margins);
 
 		if (margins_auto[0])
 			box.SetEdge(Box::MARGIN, Box::LEFT, margin);
@@ -522,38 +517,36 @@ void LayoutDetails::BuildBoxHeight(Box& box, const ComputedValues& computed, flo
 		}
 	}
 
+	const bool absolutely_positioned = (computed.position() == Style::Position::Absolute || computed.position() == Style::Position::Fixed);
+	const bool inset_auto = (computed.top().type == Style::Top::Auto || computed.bottom().type == Style::Bottom::Auto);
 	const bool height_auto = (content_area.y < 0);
 
-	// If the height is set to auto, we need to calculate the height
+	auto GetInsetHeight = [&] {
+		// For absolutely positioned elements (and only those), the 'top' and 'bottom' values are part of the box's height constraint.
+		if (absolutely_positioned)
+			return ResolveValue(computed.top(), containing_block_height) + ResolveValue(computed.bottom(), containing_block_height);
+		return 0.f;
+	};
+
+	// If the height is set to auto, we need to calculate the height.
 	if (height_auto)
 	{
 		// If the height is set to auto for a box in normal flow, the height is set to -1.
 		content_area.y = -1;
 
-		// But if we are dealing with an absolutely positioned element we need to
-		// consider if the top and bottom properties are set, since the height can be affected.
-		if (computed.position() == Style::Position::Absolute || computed.position() == Style::Position::Fixed)
+		// But if we are dealing with an absolutely positioned element we need to consider if the top and bottom
+		// properties are set, since the height can be affected.
+		if (absolutely_positioned && !inset_auto)
 		{
-			float top = 0.0f, bottom = 0.0f;
-
-			if (computed.top().type != Style::Top::Auto && computed.bottom().type != Style::Bottom::Auto)
-			{
-				top = ResolveValue(computed.top(), containing_block_height);
-				bottom = ResolveValue(computed.bottom(), containing_block_height);
-
-				// The height gets resolved to whatever is left of the containing block
-				content_area.y = containing_block_height -
-					(top + box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM) + bottom);
-				content_area.y = Math::Max(0.0f, content_area.y);
-			}
+			// The height is set to whatever remains of the containing block.
+			content_area.y = containing_block_height - (GetInsetHeight() + box.GetSizeAcross(Box::VERTICAL, Box::MARGIN, Box::PADDING));
+			content_area.y = Math::Max(0.0f, content_area.y);
 		}
 	}
-	// Otherwise, the margins that are set to auto will pick up the remaining width of the containing block.
+	// Otherwise, the margins that are set to auto will pick up the remaining height of the containing block.
 	else if (num_auto_margins > 0)
 	{
-		float margin = 0;
-		if (content_area.y >= 0)
-			margin = (containing_block_height - box.GetSizeAcross(Box::VERTICAL, Box::MARGIN)) / num_auto_margins;
+		const float margin = (containing_block_height - (GetInsetHeight() + box.GetSizeAcross(Box::VERTICAL, Box::MARGIN))) / float(num_auto_margins);
 
 		if (margins_auto[0])
 			box.SetEdge(Box::MARGIN, Box::TOP, margin);
