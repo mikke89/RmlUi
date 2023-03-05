@@ -83,8 +83,24 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			initialised = true;
 		}
 
-		auto GetSize = [](Element* element, const ComputedValues& computed) {
-			return element->GetBox().GetSize((computed.box_sizing() == Style::BoxSizing::BorderBox) ? Box::BORDER : Box::CONTENT);
+		auto GetSize = [](const Box& box, const ComputedValues& computed) {
+			return box.GetSize((computed.box_sizing() == Style::BoxSizing::BorderBox) ? Box::BORDER : Box::CONTENT);
+		};
+
+		// Set any auto margins to their current value, since auto-margins may affect the size and position of an element.
+		auto SetDefiniteMargins = [](Element* element, const ComputedValues& computed) {
+			auto SetDefiniteMargin = [](Element* element, PropertyId margin_id, Box::Edge edge) {
+				element->SetProperty(margin_id, Property(Math::RoundFloat(element->GetBox().GetEdge(Box::MARGIN, edge)), Property::PX));
+			};
+			using Style::Margin;
+			if (computed.margin_top().type == Margin::Auto)
+				SetDefiniteMargin(element, PropertyId::MarginTop, Box::TOP);
+			if (computed.margin_right().type == Margin::Auto)
+				SetDefiniteMargin(element, PropertyId::MarginRight, Box::RIGHT);
+			if (computed.margin_bottom().type == Margin::Auto)
+				SetDefiniteMargin(element, PropertyId::MarginBottom, Box::BOTTOM);
+			if (computed.margin_left().type == Margin::Auto)
+				SetDefiniteMargin(element, PropertyId::MarginLeft, Box::LEFT);
 		};
 
 		if (event == EventId::Dragstart)
@@ -95,31 +111,39 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			// Store current element position and size
 			if (move_target)
 			{
-				move_original_position.x = move_target->GetOffsetLeft();
-				move_original_position.y = move_target->GetOffsetTop();
+				using namespace Style;
+				const Box& box = move_target->GetBox();
+				const auto& computed = move_target->GetComputedValues();
+
+				// Store the initial margin edge position, since top/left properties determine the margin position.
+				move_original_position.x = move_target->GetOffsetLeft() - box.GetEdge(Box::MARGIN, Box::LEFT);
+				move_original_position.y = move_target->GetOffsetTop() - box.GetEdge(Box::MARGIN, Box::TOP);
+
+				// Check if we have auto-size together with definite right/bottom; if so, the size needs to be fixed to the current size.
+				if (computed.width().type == Width::Auto && computed.right().type != Right::Auto)
+					move_target->SetProperty(PropertyId::Width, Property(Math::RoundFloat(GetSize(box, computed).x), Property::PX));
+				if (computed.height().type == Height::Auto && computed.bottom().type != Bottom::Auto)
+					move_target->SetProperty(PropertyId::Height, Property(Math::RoundFloat(GetSize(box, computed).y), Property::PX));
+
+				SetDefiniteMargins(move_target, computed);
 			}
 			if (size_target)
 			{
-				size_original_size = GetSize(size_target, size_target->GetComputedValues());
+				using namespace Style;
+				const Box& box = size_target->GetBox();
+				const auto& computed = size_target->GetComputedValues();
+
+				size_original_size = GetSize(box, computed);
+
+				SetDefiniteMargins(size_target, computed);
 			}
 		}
 		else if (event == EventId::Drag)
 		{
-			// Work out the delta
-			Vector2f delta = event.GetUnprojectedMouseScreenPos() - drag_start;
+			const Vector2f delta = event.GetUnprojectedMouseScreenPos() - drag_start;
 
-			// Update the move and size objects
 			if (move_target)
 			{
-				using namespace Style;
-				const auto& computed = move_target->GetComputedValues();
-
-				// Check if we have auto-size together with definite right/bottom; if so, the size needs to be fixed to the current size.
-				if (computed.width().type == Width::Auto && computed.right().type != Top::Auto)
-					move_target->SetProperty(PropertyId::Width, Property(Math::RoundFloat(GetSize(move_target, computed).x), Property::PX));
-				if (computed.height().type == Width::Auto && computed.bottom().type != Top::Auto)
-					move_target->SetProperty(PropertyId::Height, Property(Math::RoundFloat(GetSize(move_target, computed).y), Property::PX));
-
 				const Vector2f new_position = (move_original_position + delta).Round();
 				move_target->SetProperty(PropertyId::Left, Property(new_position.x, Property::PX));
 				move_target->SetProperty(PropertyId::Top, Property(new_position.y, Property::PX));
@@ -127,23 +151,6 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 
 			if (size_target)
 			{
-				auto SetDefiniteMargin = [](Element* element, PropertyId margin_id, Box::Edge edge) {
-					element->SetProperty(margin_id, Property(Math::RoundFloat(element->GetBox().GetEdge(Box::MARGIN, edge)), Property::PX));
-				};
-
-				using namespace Style;
-				const auto& computed = size_target->GetComputedValues();
-
-				// Check if we have auto-margins; if so, they have to be set to the current margins.
-				if (computed.margin_top().type == Margin::Auto)
-					SetDefiniteMargin(size_target, PropertyId::MarginTop, Box::TOP);
-				if (computed.margin_right().type == Margin::Auto)
-					SetDefiniteMargin(size_target, PropertyId::MarginRight, Box::RIGHT);
-				if (computed.margin_bottom().type == Margin::Auto)
-					SetDefiniteMargin(size_target, PropertyId::MarginBottom, Box::BOTTOM);
-				if (computed.margin_left().type == Margin::Auto)
-					SetDefiniteMargin(size_target, PropertyId::MarginLeft, Box::LEFT);
-
 				const Vector2f new_size = Math::Max((size_original_size + delta).Round(), Vector2f(0.f));
 				size_target->SetProperty(PropertyId::Width, Property(new_size.x, Property::PX));
 				size_target->SetProperty(PropertyId::Height, Property(new_size.y, Property::PX));
