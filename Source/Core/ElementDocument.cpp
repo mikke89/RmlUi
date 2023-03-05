@@ -440,7 +440,7 @@ void ElementDocument::UpdateLayout()
 // Updates the position of the document based on the style properties.
 void ElementDocument::UpdatePosition()
 {
-	if(position_dirty)
+	if (position_dirty)
 	{
 		RMLUI_ZoneScoped;
 
@@ -448,29 +448,32 @@ void ElementDocument::UpdatePosition()
 
 		Element* root = GetParentNode();
 
-		// We only position ourselves if we are a child of our context's root element. That is, we don't want to proceed if we are unparented or an iframe document.
+		// We only position ourselves if we are a child of our context's root element. That is, we don't want to proceed
+		// if we are unparented or an iframe document.
 		if (!root || !context || (root != context->GetRootElement()))
 			return;
 
-		Vector2f position;
 		// Work out our containing block; relative offsets are calculated against it.
-		Vector2f containing_block = root->GetBox().GetSize(Box::CONTENT);
-
+		const Vector2f containing_block = root->GetBox().GetSize();
 		auto& computed = GetComputedValues();
+		const Box& box = GetBox();
+
+		Vector2f position;
 
 		if (computed.left().type != Style::Left::Auto)
 			position.x = ResolveValue(computed.left(), containing_block.x);
 		else if (computed.right().type != Style::Right::Auto)
-			position.x = (containing_block.x - GetBox().GetSize(Box::MARGIN).x) - ResolveValue(computed.right(), containing_block.x);
-		else
-			position.x = GetBox().GetEdge(Box::MARGIN, Box::LEFT);
+			position.x = containing_block.x - (box.GetSize(Box::MARGIN).x + ResolveValue(computed.right(), containing_block.x));
 
 		if (computed.top().type != Style::Top::Auto)
 			position.y = ResolveValue(computed.top(), containing_block.y);
 		else if (computed.bottom().type != Style::Bottom::Auto)
-			position.y = (containing_block.y - GetBox().GetSize(Box::MARGIN).y) - ResolveValue(computed.bottom(), containing_block.y);
-		else
-			position.y = GetBox().GetEdge(Box::MARGIN, Box::TOP);
+			position.y = containing_block.y - (box.GetSize(Box::MARGIN).y + ResolveValue(computed.bottom(), containing_block.y));
+
+		// Add the margin edge to the position, since inset properties (top/right/bottom/left) set the margin edge
+		// position, while offsets use the border edge.
+		position.x += box.GetEdge(Box::MARGIN, Box::LEFT);
+		position.y += box.GetEdge(Box::MARGIN, Box::TOP);
 
 		SetOffset(position, nullptr);
 	}
