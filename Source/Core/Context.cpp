@@ -51,8 +51,9 @@ namespace Rml {
 
 static constexpr float DOUBLE_CLICK_TIME = 0.5f;     // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f;  // [dp]
+static constexpr float SCROLL_MIDDLE_MOUSE_SPEED_FACTOR = 0.5f;
 
-Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
+Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), started_scroll_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
 {
 	instancer = nullptr;
 
@@ -86,6 +87,7 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	hover = nullptr;
 	active = nullptr;
 	drag = nullptr;
+	scroll_hover = nullptr;
 
 	drag_started = false;
 	drag_verbose = false;
@@ -94,7 +96,9 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 
 	last_click_element = nullptr;
 	last_click_time = 0;
+	last_update_time = 0;
 
+	holding_scroll = false;
 	mouse_active = false;
 
 	enable_cursor = true;
@@ -182,7 +186,24 @@ float Context::GetDensityIndependentPixelRatio() const
 bool Context::Update()
 {
 	RMLUI_ZoneScoped;
-	
+
+	double current_time = GetSystemInterface()->GetElapsedTime();
+
+	if (scroll_hover)
+	{
+		const Vector2i scroll_delta = mouse_position - started_scroll_position;
+		const float delta_time = float(current_time - last_update_time);
+		const float scroll_speed = scroll_delta.y * SCROLL_MIDDLE_MOUSE_SPEED_FACTOR * delta_time;
+
+		Dictionary scroll_parameters;
+		GenerateMouseEventParameters(scroll_parameters);
+		scroll_parameters["wheel_delta"] = scroll_speed;
+
+		// Scroll event was not handled by any element, it means that we don't have anything to scroll.
+		if (scroll_hover->DispatchEvent(EventId::Mousescroll, scroll_parameters))
+			ResetScrollParameters();
+	}
+
 	// Update the hover chain to detect any new or moved elements under the mouse.
 	if (mouse_active)
 		UpdateHoverChain(mouse_position);
@@ -208,6 +229,9 @@ bool Context::Update()
 
 	// Release any documents that were unloaded during the update.
 	ReleaseUnloadedDocuments();
+
+	// Last update time used to calculate delta time posteriorly.
+	last_update_time = current_time;
 
 	return true;
 }
@@ -620,6 +644,9 @@ bool Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 			if (drag_hover && drag_verbose)
 				drag_hover->DispatchEvent(EventId::Dragmove, drag_parameters);
 		}
+
+		if (scroll_hover)
+			holding_scroll = true;
 	}
 
 	return !IsMouseInteracting();
@@ -726,6 +753,17 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 			hover->DispatchEvent(EventId::Mousedown, parameters);
 	}
 
+	if (scroll_hover)
+	{
+		ResetScrollParameters();
+	}
+	else if (button_index == 2)
+	{
+		scroll_hover = hover;
+		holding_scroll = false;
+		started_scroll_position = mouse_position;
+	}
+
 	return !IsMouseInteracting();
 }
 
@@ -800,6 +838,9 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 		if (hover)
 			hover->DispatchEvent(EventId::Mouseup, parameters);
 	}
+
+	if (scroll_hover && holding_scroll)
+		ResetScrollParameters();
 
 	return result;
 }
@@ -1092,7 +1133,9 @@ void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_sta
 	{
 		String new_cursor_name;
 
-		if(drag)
+		if (scroll_hover)
+			new_cursor_name = GetScrollCursor();
+		else if(drag)
 			new_cursor_name = drag->GetComputedValues().cursor();
 		else if (hover)
 			new_cursor_name = hover->GetComputedValues().cursor();
@@ -1288,6 +1331,25 @@ DataModel* Context::GetDataModelPtr(const String& name) const
 	if (it != data_models.end())
 		return it->second.get();
 	return nullptr;
+}
+
+// Returns the scrolling cursor based on scroll direction.
+String Context::GetScrollCursor() const
+{
+	const int scroll_direction = started_scroll_position.y - mouse_position.y;
+
+	if (scroll_direction == 0)
+		return "rmlui-scroll-idle";
+
+	return scroll_direction > 0 ? "rmlui-scroll-up" : "rmlui-scroll-down";
+}
+
+// Reset mouse scrolling parameters.
+void Context::ResetScrollParameters()
+{
+	scroll_hover = nullptr;
+	holding_scroll = false;
+	started_scroll_position = Vector2i(0, 0);
 }
 
 // Builds the parameters for a generic key event.
