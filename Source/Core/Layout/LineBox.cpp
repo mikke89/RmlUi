@@ -269,11 +269,24 @@ UniquePtr<LineBox> LineBox::DetermineVerticalPositioning(const InlineBoxRoot* ro
 				VerticallyAlignSubtree(subtree_root_index, fragment.children_end_index, fragment.max_ascent, fragment.max_descent);
 			}
 
+			const float subtree_height = fragment.max_ascent + fragment.max_descent;
+
 			// Increase the line box size to fit all line-relative aligned fragments.
 			switch (fragment.vertical_align)
 			{
-			case VerticalAlignType::Top: max_descent = Math::Max(max_descent, fragment.max_ascent + fragment.max_descent - max_ascent); break;
-			case VerticalAlignType::Bottom: max_ascent = Math::Max(max_ascent, fragment.max_ascent + fragment.max_descent - max_descent); break;
+			case VerticalAlignType::Top: max_descent = Math::Max(max_descent, subtree_height - max_ascent); break;
+			case VerticalAlignType::Bottom: max_ascent = Math::Max(max_ascent, subtree_height - max_descent); break;
+			case VerticalAlignType::Center:
+			{
+				// Distribute the subtree's height equally to the ascent and descent.
+				const float distribute_height = 0.5f * (subtree_height - (max_ascent + max_descent));
+				if (distribute_height > 0.f)
+				{
+					max_ascent += distribute_height;
+					max_descent += distribute_height;
+				}
+			}
+			break;
 			default: RMLUI_ERROR; break;
 			}
 		}
@@ -290,6 +303,7 @@ UniquePtr<LineBox> LineBox::DetermineVerticalPositioning(const InlineBoxRoot* ro
 		{
 		case VerticalAlignType::Top: fragment.position.y = fragment.max_ascent; break;
 		case VerticalAlignType::Bottom: fragment.position.y = out_height_of_line - fragment.max_descent; break;
+		case VerticalAlignType::Center: fragment.position.y = 0.5f * (fragment.max_ascent - fragment.max_descent + out_height_of_line); break;
 		default:
 		{
 			RMLUI_ASSERT(!IsAlignedSubtreeRoot(fragment));

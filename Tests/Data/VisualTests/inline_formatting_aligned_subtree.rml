@@ -3,7 +3,7 @@
     <title>Inline formatting - Aligned subtree</title>
     <link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://drafts.csswg.org/css2/#aligned-subtree" />
-	<meta name="Description" content="Children of an inline element whose 'vertical-align' property is 'top' or 'bottom' is aligned relative to it." />
+	<meta name="Description" content="Children of an inline element whose 'vertical-align' property is 'top', 'center', or 'bottom', is aligned relative to it." />
 	<style>
 		body {
 			background: #ddd;
@@ -31,6 +31,7 @@
 		.small  { line-height: 1.2em; }
 		
 		.top     { vertical-align: top; }
+		.center  { vertical-align: center; }
 		.bottom  { vertical-align: bottom; }
 		.line-up { vertical-align: -100%; }
 		
@@ -83,6 +84,22 @@
 				<span class="line-up">
 					D
 					<span class="top">E</span>
+				</span>
+			</span>
+		</span>
+	</span>
+	<span class="tall block">F</span>
+</div>
+<div class="wrapper">
+	<span class="small bottom">
+		A
+		<span class="medium block center">
+			B
+			<span class="bottom yellow">
+				C
+				<span class="line-up">
+					D
+					<span class="center">E</span>
 				</span>
 			</span>
 		</span>

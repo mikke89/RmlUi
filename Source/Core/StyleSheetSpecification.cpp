@@ -354,7 +354,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	RegisterProperty(PropertyId::LineHeight, "line-height", "1.2", true, true).AddParser("number_length_percent").SetRelativeTarget(RelativeTarget::FontSize);
 	RegisterProperty(PropertyId::VerticalAlign, "vertical-align", "baseline", false, true)
-		.AddParser("keyword", "baseline, middle, sub, super, text-top, text-bottom, top, bottom")
+		.AddParser("keyword", "baseline, middle, sub, super, text-top, text-bottom, top, center, bottom")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::LineHeight);
 
 	RegisterProperty(PropertyId::OverflowX, "overflow-x", "visible", false, true).AddParser("keyword", "visible, hidden, auto, scroll");

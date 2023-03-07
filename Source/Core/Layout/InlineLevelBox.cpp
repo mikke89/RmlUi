@@ -104,6 +104,7 @@ void InlineLevelBox::SetHeightAndVerticalAlignment(float _height_above_baseline,
 		self_baseline_offset = 0.5f * (height_above_baseline - depth_below_baseline);
 		break;
 	case VerticalAlign::Top:
+	case VerticalAlign::Center:
 	case VerticalAlign::Bottom:
 		// These are relative to the line box and handled later.
 		break;

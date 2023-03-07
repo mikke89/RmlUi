@@ -155,7 +155,8 @@ private:
 	// Returns true if the fragment establishes an aligned subtree.
 	static bool IsAlignedSubtreeRoot(const Fragment& fragment)
 	{
-		return (fragment.vertical_align == VerticalAlignType::Top || fragment.vertical_align == VerticalAlignType::Bottom);
+		return (fragment.vertical_align == VerticalAlignType::Top || fragment.vertical_align == VerticalAlignType::Center ||
+			fragment.vertical_align == VerticalAlignType::Bottom);
 	}
 	// Returns the aligned subtree root for a given fragment, based on its ancestors.
 	FragmentIndex DetermineAlignedSubtreeRoot(FragmentIndex index) const

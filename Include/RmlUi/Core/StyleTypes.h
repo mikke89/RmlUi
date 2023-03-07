@@ -104,7 +104,7 @@ namespace Style {
 		{}
 	};
 	struct VerticalAlign {
-		enum Type : uint8_t { Baseline, Middle, Sub, Super, TextTop, TextBottom, Top, Bottom, Length } type;
+		enum Type : uint8_t { Baseline, Middle, Sub, Super, TextTop, TextBottom, Top, Center, Bottom, Length } type;
 		float value; // For length type
 		VerticalAlign(Type type = Baseline) : type(type), value(0) {}
 		VerticalAlign(float value) : type(Length), value(value) {}

@@ -6,12 +6,19 @@
 	<meta name="Description" content="Line height with inline-blocks." />
 	<meta name="Assert" content="The baseline of an inline-block is the baseline of its last line box in the normal flow, unless it has either no in-flow line boxes or if its overflow property has a computed value other than visible, in which case the baseline is the bottom margin edge." />
 	<style>
-		p.value { color: #45e; margin: -0.5em 0 0.2em 1em; }
+		p.value {
+			position: absolute;
+			margin: 0.4em 0.6em;
+			top: 0;
+			right: 0;
+			color: #45e;
+		}
 		.wrapper {
 			background-color: #eee;
 			border: 3px #bbb;
 			padding: 8px;
-			margin-bottom: 1.5em;
+			position: relative;
+			margin-top: -0.3em;
 		}
 		.wrapper > div {
 			display: inline-block;
@@ -25,11 +32,12 @@
 		}
 		.scroll-container > div { overflow: auto; }
 		.offset-up > div { vertical-align: -12px; }
+		.vertical-center > div { vertical-align: center; }
 	</style>
 </head>
 
 <body>
-<p>Normally, the baseline of an inline-block is set to its last line, nicely aligning up with its neighboring text.</p>
+<p>Normally, the baseline of an inline-block is set to its last line, nicely aligning with its neighboring text.</p>
 <div class="wrapper">
 	X <div>Start Game</div><br/>
 	X <div>High Scores</div><br/>
@@ -37,16 +45,24 @@
 </div>
 
 <p>However, after making the inline-block a scroll container (such as by setting a non-visible overflow value), it is instead aligned to its bottom edge. Due to the line's text descent, there is additional spacing appearing below the box.</p>
-<p class="value">overflow: auto;</p>
 <div class="wrapper scroll-container">
+	<p class="value">overflow: auto;</p>
 	X <div>Start Game</div><br/>
 	X <div>High Scores</div><br/>
 	X <div>Options</div>
 </div>
 
 <p>We can manually adjust the vertical alignment to make sure we remove that additional space. However, it won't perfectly line up the baselines anymore.</p>
-<p class="value">overflow: auto;<br/>vertical-align: -12px</p>
 <div class="wrapper scroll-container offset-up">
+	<p class="value">overflow: auto;<br/>vertical-align: -12px;</p>
+	X <div>Start Game</div><br/>
+	X <div>High Scores</div><br/>
+	X <div>Options</div>
+</div>
+
+<p>Instead of manually adjusting the vertical alignment, we can use 'center' for perfect centering. Note that baselines will still not line up.</p>
+<div class="wrapper scroll-container vertical-center">
+	<p class="value">overflow: auto;<br/>vertical-align: center;</p>
 	X <div>Start Game</div><br/>
 	X <div>High Scores</div><br/>
 	X <div>Options</div>
