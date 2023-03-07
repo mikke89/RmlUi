@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Types.h>
 namespace Rml { class RenderInterface; }
 class TestsRenderInterface;
+class TestsSystemInterface;
 
 namespace TestsShell {
 
@@ -52,11 +53,14 @@ namespace TestsShell {
 	// or until 'ShutdownShell()'.
 	void SetNumExpectedWarnings(int num_warnings);
 
+	void SetTime(double t);
+
 	// Stats only available for the dummy renderer.
 	Rml::String GetRenderStats();
 
 	// Returns nullptr if the dummy renderer is not being used.
 	TestsRenderInterface* GetTestsRenderInterface();
+	TestsSystemInterface* GetTestsSystemInterface();
 }
 
 #endif

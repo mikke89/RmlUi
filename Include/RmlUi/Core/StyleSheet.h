@@ -46,6 +46,8 @@ class StyleSheetParser;
 struct PropertySource;
 struct Sprite;
 
+using DecoratorPtrList = Vector<SharedPtr<const Decorator>>;
+
 /**
 	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
 	a new, merged stylesheet.
@@ -66,6 +68,9 @@ public:
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
 
+	/// Returns the DecoratorSpecification of the given name, or null if it does not exist.
+	const DecoratorSpecification* GetDecoratorSpecification(const String& name) const;
+
 	/// Returns the Keyframes of the given name, or null if it does not exist.
 	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to subobjects around.
 	const Keyframes* GetKeyframes(const String& name) const;
@@ -78,7 +83,7 @@ public:
 	SharedPtr<const ElementDefinition> GetElementDefinition(const Element* element) const;
 
 	/// Returns a list of instanced decorators from the declarations. The instances are cached for faster future retrieval.
-	const Vector<SharedPtr<const Decorator>>& InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* decorator_source) const;
+	const DecoratorPtrList& InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* decorator_source) const;
 
 private:
 	StyleSheet();
