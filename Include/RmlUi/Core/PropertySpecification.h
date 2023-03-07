@@ -120,7 +120,7 @@ public:
 	void SetPropertyDefaults(PropertyDictionary& dictionary) const;
 
 	/// Returns the properties of dictionary converted to a string.
-	String PropertiesToString(const PropertyDictionary& dictionary) const;
+	String PropertiesToString(const PropertyDictionary& dictionary, bool include_name, char delimiter) const;
 
 private:
 	using Properties = Vector< UniquePtr<PropertyDefinition> >;

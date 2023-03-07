@@ -27,13 +27,18 @@
  */
 
 #include "ElementAnimation.h"
-#include "ElementStyle.h"
-#include "TransformUtilities.h"
+#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/StyleSheetTypes.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "ElementStyle.h"
+#include "TransformUtilities.h"
 
 namespace Rml {
 
@@ -163,6 +168,124 @@ static Property InterpolateProperties(const Property & p0, const Property& p1, f
 		}
 
 		return Property{ TransformPtr(std::move(t)), Property::TRANSFORM };
+	}
+
+	if (p0.unit == Property::DECORATOR && p1.unit == Property::DECORATOR)
+	{
+		auto DiscreteInterpolation = [&]() { return alpha < 0.5f ? p0 : p1; };
+		
+		// We construct DecoratorDeclarationView from declaration if it has instancer, otherwise we look for DecoratorSpecification and return DecoratorDeclarationView from it
+		auto GetDecoratorDeclarationView = [&](const DecoratorDeclaration& declaration) -> DecoratorDeclarationView {
+			if (declaration.instancer)
+				return DecoratorDeclarationView{ declaration };
+
+			const StyleSheet* style_sheet = element.GetStyleSheet();
+			if (!style_sheet)
+			{
+				Log::Message(Log::LT_WARNING, "Failed to get element stylesheet for '%s' decorator rule.", declaration.type.c_str());
+				return DecoratorDeclarationView{ declaration };
+			}
+
+			const DecoratorSpecification* specification = style_sheet->GetDecoratorSpecification(declaration.type);
+			if (!specification)
+			{
+				Log::Message(Log::LT_WARNING, "Could not find DecoratorSpecification for '%s' decorator rule.", declaration.type.c_str());
+				return DecoratorDeclarationView{ declaration };
+			}
+
+			return DecoratorDeclarationView{ specification };
+		};
+
+		auto& ptr0 = p0.value.GetReference<DecoratorsPtr>();
+		auto& ptr1 = p1.value.GetReference<DecoratorsPtr>();
+		if (!ptr0 || !ptr1)
+		{
+			RMLUI_ERRORMSG("Invalid decorator pointer, were the decorator keys properly prepared?");
+			return DiscreteInterpolation();
+		}
+
+		const bool p0_smaller = (ptr0->list.size() < ptr1->list.size());
+		auto& small = (p0_smaller ? ptr0->list : ptr1->list);
+		auto& big = (p0_smaller ? ptr1->list : ptr0->list);
+
+		// Build the new, interpolated decorator.
+		UniquePtr<DecoratorDeclarationList> decorator(new DecoratorDeclarationList);
+		decorator->list.reserve(ptr0->list.size());
+
+		// Interpolate decorators that have common types.
+		for (size_t i = 0; i < small.size(); i++)
+		{
+			DecoratorDeclarationView d0_view{ GetDecoratorDeclarationView(ptr0->list[i]) };
+			DecoratorDeclarationView d1_view{ GetDecoratorDeclarationView(ptr1->list[i]) };
+
+			if (!d0_view.instancer || !d1_view.instancer)
+				return DiscreteInterpolation();
+
+			if (d0_view.instancer != d1_view.instancer || d0_view.type != d1_view.type ||
+				d0_view.properties.GetNumProperties() != d1_view.properties.GetNumProperties())
+			{
+				// Incompatible decorators, fall back to discrete interpolation.
+				return DiscreteInterpolation();
+			}
+
+			decorator->list.push_back(DecoratorDeclaration{ d0_view.type, d0_view.instancer, PropertyDictionary() });
+			PropertyDictionary& props = decorator->list.back().properties;
+
+			const auto& props0 = d0_view.properties.GetProperties();
+			const auto& props1 = d1_view.properties.GetProperties();
+
+			for (const auto& pair0 : props0)
+			{
+				const PropertyId id = pair0.first;
+				const Property& prop0 = pair0.second;
+
+				auto it = props1.find(id);
+				if (it == props1.end())
+				{
+					RMLUI_ERRORMSG("Incompatible decorator properties.");
+					return DiscreteInterpolation();
+				}
+				const Property& prop1 = it->second;
+
+				Property p = InterpolateProperties(prop0, prop1, alpha, element, prop0.definition);
+				p.definition = prop0.definition;
+				props.SetProperty(id, p);
+			}
+		}
+
+		// Append any trailing decorators from the largest list and interpolate against the default values of its type.
+		for (size_t i = small.size(); i < big.size(); i++)
+		{
+			DecoratorDeclarationView dbig_view{ GetDecoratorDeclarationView(big[i]) };
+
+			if (!dbig_view.instancer)
+				return DiscreteInterpolation();
+
+			decorator->list.push_back(DecoratorDeclaration{ dbig_view.type, dbig_view.instancer, PropertyDictionary() });
+			DecoratorDeclaration& d_new = decorator->list.back();
+
+			const PropertySpecification& specification = d_new.instancer->GetPropertySpecification();
+
+			const PropertyMap& props_big = dbig_view.properties.GetProperties();
+			for (const auto& pair_big : props_big)
+			{
+				const PropertyId id = pair_big.first;
+				const PropertyDefinition* underlying_definition = specification.GetProperty(id);
+				if (!underlying_definition)
+					return DiscreteInterpolation();
+
+				const Property& p_big = pair_big.second;
+				const Property& p_small = *underlying_definition->GetDefaultValue();
+				const Property& p_interp0 = (p0_smaller ? p_small : p_big);
+				const Property& p_interp1 = (p0_smaller ? p_big : p_small);
+
+				Property p = InterpolateProperties(p_interp0, p_interp1, alpha, element, p_big.definition);
+				p.definition = p_big.definition;
+				d_new.properties.SetProperty(id, p);
+			}
+		}
+
+		return Property{ DecoratorsPtr(std::move(decorator)), Property::DECORATOR };
 	}
 
 	// Fall back to discrete interpolation for incompatible units.
@@ -392,6 +515,15 @@ static bool PrepareTransforms(Vector<AnimationKey>& keys, Element& element, int 
 	return (count_iterations < max_iterations);
 }
 
+static void PrepareDecorator(AnimationKey& key)
+{
+	Property& property = key.property;
+	RMLUI_ASSERT(property.value.GetType() == Variant::DECORATORSPTR);
+
+	if (!property.value.GetReference<DecoratorsPtr>())
+		property.value = MakeShared<DecoratorDeclarationList>();
+}
+
 
 ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, Element& element,
 	double start_world_time, float duration, int num_iterations, bool alternate_direction) :
@@ -409,7 +541,7 @@ ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigi
 
 bool ElementAnimation::InternalAddKey(float time, const Property& in_property, Element& element, Tween tween)
 {
-	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM | Property::KEYWORD);
+	int valid_properties = (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE | Property::COLOUR | Property::TRANSFORM | Property::KEYWORD | Property::DECORATOR);
 
 	if (!(in_property.unit & valid_properties))
 	{
@@ -423,6 +555,10 @@ bool ElementAnimation::InternalAddKey(float time, const Property& in_property, E
 	if (keys.back().property.unit == Property::TRANSFORM)
 	{
 		result = PrepareTransforms(keys, element, (int)keys.size() - 1);
+	}
+	else if (keys.back().property.unit == Property::DECORATOR)
+	{
+		PrepareDecorator(keys.back());
 	}
 
 	if (!result)

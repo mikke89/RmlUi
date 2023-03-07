@@ -29,11 +29,12 @@
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/Debug.h"
 #include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
-#include "../../Include/RmlUi/Core/Profiling.h"
-#include "PropertyShorthandDefinition.h"
 #include "IdNameMap.h"
+#include "PropertyShorthandDefinition.h"
+#include <algorithm>
 #include <limits.h>
 #include <stdint.h>
 
@@ -432,13 +433,30 @@ void PropertySpecification::SetPropertyDefaults(PropertyDictionary& dictionary) 
 	}
 }
 
-String PropertySpecification::PropertiesToString(const PropertyDictionary& dictionary) const
+String PropertySpecification::PropertiesToString(const PropertyDictionary& dictionary, bool include_name, char delimiter) const
 {
+	const PropertyMap& properties = dictionary.GetProperties();
+
+	// For determinism we print the strings in order of increasing property ids.
+	Vector<PropertyId> ids;
+	ids.reserve(properties.size());
+	for (auto& pair : properties)
+		ids.push_back(pair.first);
+
+	std::sort(ids.begin(), ids.end());
+
 	String result;
-	for (auto& pair : dictionary.GetProperties())
+	for (PropertyId id : ids)
 	{
-		result += property_map->GetName(pair.first) + ": " + pair.second.ToString() + '\n';
+		const Property& p = properties.find(id)->second;
+		if (include_name)
+			result += property_map->GetName(id) + ": ";
+		result += p.ToString() + delimiter;
 	}
+
+	if (!result.empty())
+		result.pop_back();
+
 	return result;
 }
 

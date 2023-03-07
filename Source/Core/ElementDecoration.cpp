@@ -88,7 +88,7 @@ bool ElementDecoration::ReloadDecorators()
 		}
 	}
 
-	const auto& decorator_list = style_sheet->InstanceDecorators(*decorators_ptr, source);
+	const DecoratorPtrList& decorator_list = style_sheet->InstanceDecorators(*decorators_ptr, source);
 
 	for (const SharedPtr<const Decorator>& decorator : decorator_list)
 	{
