@@ -615,6 +615,7 @@ void WidgetDropDown::ShowSelectBox(bool show)
 	if (show)
 	{
 		selection_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+		selection_element->SetPseudoClass("checked", true);
 		value_element->SetPseudoClass("checked", true);
 		button_element->SetPseudoClass("checked", true);
 		box_layout_dirty = true;
@@ -624,6 +625,7 @@ void WidgetDropDown::ShowSelectBox(bool show)
 	{
 		selection_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 		selection_element->RemoveProperty(PropertyId::Height);
+		selection_element->SetPseudoClass("checked", false);
 		value_element->SetPseudoClass("checked", false);
 		button_element->SetPseudoClass("checked", false);
 		DetachScrollEvent();
