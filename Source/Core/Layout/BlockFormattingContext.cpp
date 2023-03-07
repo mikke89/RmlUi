@@ -91,12 +91,15 @@ static OuterDisplayType GetOuterDisplayType(Style::Display display)
 {
 	switch (display)
 	{
+	case Style::Display::Block:
+	case Style::Display::FlowRoot:
 	case Style::Display::Flex:
-	case Style::Display::Table:
-	case Style::Display::Block: return OuterDisplayType::BlockLevel;
+	case Style::Display::Table: return OuterDisplayType::BlockLevel;
 
+	case Style::Display::Inline:
 	case Style::Display::InlineBlock:
-	case Style::Display::Inline: return OuterDisplayType::InlineLevel;
+	case Style::Display::InlineFlex:
+	case Style::Display::InlineTable: return OuterDisplayType::InlineLevel;
 
 	case Style::Display::TableRow:
 	case Style::Display::TableRowGroup:
@@ -277,16 +280,9 @@ bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_co
 	{
 	case Style::Display::Block: return FormatBlockBox(parent_container, element);
 	case Style::Display::Inline: return FormatInlineBox(parent_container, element);
-
-	case Style::Display::TableRow:
-	case Style::Display::TableRowGroup:
-	case Style::Display::TableColumn:
-	case Style::Display::TableColumnGroup:
-	case Style::Display::TableCell:
-	case Style::Display::InlineBlock:
-	case Style::Display::Flex:
-	case Style::Display::Table:
-	case Style::Display::None: /* handled above */ RMLUI_ERROR; break;
+	default:
+		RMLUI_ERROR; // Should have been handled above.
+		break;
 	}
 
 	return true;

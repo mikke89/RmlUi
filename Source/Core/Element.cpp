@@ -2378,6 +2378,7 @@ void Element::AddToStackingContext(Vector<StackingContextChild>& stacking_childr
 		switch (display)
 		{
 		case Display::Block:
+		case Display::FlowRoot:
 		case Display::Table:
 		case Display::Flex:
 			order = RenderOrder::Block;
@@ -2386,8 +2387,10 @@ void Element::AddToStackingContext(Vector<StackingContextChild>& stacking_childr
 
 		case Display::Inline:
 		case Display::InlineBlock:
+		case Display::InlineFlex:
+		case Display::InlineTable:
 			order = RenderOrder::Inline;
-			render_as_atomic_unit = (display == Display::InlineBlock || is_flex_item);
+			render_as_atomic_unit = (display != Display::Inline || is_flex_item);
 			break;
 
 		case Display::TableCell:
@@ -2399,7 +2402,7 @@ void Element::AddToStackingContext(Vector<StackingContextChild>& stacking_childr
 		case Display::TableRowGroup:
 		case Display::TableColumn:
 		case Display::TableColumnGroup:
-		case Display::None: RMLUI_ERROR; break; /* Handled above */
+		case Display::None: RMLUI_ERROR; break; // Handled above.
 		}
 	}
 

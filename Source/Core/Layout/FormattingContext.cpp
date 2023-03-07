@@ -49,16 +49,16 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 
 	auto& computed = element->GetComputedValues();
 	const Display display = computed.display();
-	if (display == Display::Flex)
+	if (display == Display::Flex || display == Display::InlineFlex)
 	{
 		type = FormattingContextType::Flex;
 	}
-	else if (display == Display::Table)
+	else if (display == Display::Table || display == Display::InlineTable)
 	{
 		type = FormattingContextType::Table;
 	}
-	else if (computed.float_() != Float::None || computed.position() == Position::Absolute || computed.position() == Position::Fixed ||
-		computed.display() == Display::InlineBlock || computed.display() == Display::TableCell || computed.overflow_x() != Overflow::Visible ||
+	else if (display == Display::InlineBlock || display == Display::FlowRoot || display == Display::TableCell || computed.float_() != Float::None ||
+		computed.position() == Position::Absolute || computed.position() == Position::Fixed || computed.overflow_x() != Overflow::Visible ||
 		computed.overflow_y() != Overflow::Visible || !element->GetParentNode() || element->GetParentNode()->GetDisplay() == Display::Flex)
 	{
 		type = FormattingContextType::Block;

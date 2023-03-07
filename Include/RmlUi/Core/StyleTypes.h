@@ -56,7 +56,22 @@ namespace Style {
 	using Margin = LengthPercentageAuto;
 	using Padding = LengthPercentage;
 
-	enum class Display : uint8_t { None, Block, Inline, InlineBlock, Flex, Table, TableRow, TableRowGroup, TableColumn, TableColumnGroup, TableCell };
+	enum class Display : uint8_t {
+		None,
+		Block,
+		Inline,
+		InlineBlock,
+		FlowRoot,
+		Flex,
+		InlineFlex,
+		Table,
+		InlineTable,
+		TableRow,
+		TableRowGroup,
+		TableColumn,
+		TableColumnGroup,
+		TableCell
+	};
 	enum class Position : uint8_t { Static, Relative, Absolute, Fixed };
 
 	using Top = LengthPercentageAuto;

@@ -87,9 +87,10 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 	context.grid.Build(element_table, *table_wrapper_box);
 
 	Vector2f table_content_size, table_overflow_size;
+	float table_baseline = 0.f;
 
 	// Format the table and its children.
-	context.FormatTable(table_content_size, table_overflow_size);
+	context.FormatTable(table_content_size, table_overflow_size, table_baseline);
 
 	RMLUI_ASSERT(table_content_size.y >= 0);
 
@@ -103,12 +104,15 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 			BuildBoxMode::Block, true);
 	}
 
-	table_wrapper_box->Close(table_overflow_size, box);
+	// Change the table baseline coordinates to the element baseline, which is defined as the distance from the element's bottom margin edge.
+	const float element_baseline = box.GetSizeAcross(Box::VERTICAL, Box::BORDER) + box.GetEdge(Box::MARGIN, Box::BOTTOM) - table_baseline;
+
+	table_wrapper_box->Close(table_overflow_size, box, element_baseline);
 
 	return table_wrapper_box;
 }
 
-void TableFormattingContext::FormatTable(Vector2f& table_content_size, Vector2f& table_overflow_size) const
+void TableFormattingContext::FormatTable(Vector2f& table_content_size, Vector2f& table_overflow_size, float& table_baseline) const
 {
 	// Defines the boxes for all columns in this table, one entry per table column (spanning columns will add multiple entries).
 	TrackBoxList columns;
@@ -127,7 +131,7 @@ void TableFormattingContext::FormatTable(Vector2f& table_content_size, Vector2f&
 
 	FormatColumns(columns, table_content_size.y);
 
-	FormatCells(cells, table_overflow_size, rows, columns);
+	FormatCells(cells, table_overflow_size, rows, columns, table_baseline);
 }
 
 void TableFormattingContext::DetermineColumnWidths(TrackBoxList& columns, float& table_content_width) const
@@ -395,9 +399,12 @@ void TableFormattingContext::FormatColumns(const TrackBoxList& columns, float ta
 	}
 }
 
-void TableFormattingContext::FormatCells(BoxList& cells, Vector2f& table_overflow_size, const TrackBoxList& rows, const TrackBoxList& columns) const
+void TableFormattingContext::FormatCells(BoxList& cells, Vector2f& table_overflow_size, const TrackBoxList& rows, const TrackBoxList& columns,
+	float& table_baseline) const
 {
 	RMLUI_ASSERT(cells.size() == grid.cells.size());
+
+	bool baseline_set = false;
 
 	for (int cell_index = 0; cell_index < (int)cells.size(); cell_index++)
 	{
@@ -467,6 +474,13 @@ void TableFormattingContext::FormatCells(BoxList& cells, Vector2f& table_overflo
 
 		// Set the position of the element within the the table container
 		element_cell->SetOffset(cell_offset, element_table);
+
+		// The table baseline is simply set to the first cell that has a baseline.
+		if (!baseline_set && cell_box->GetBaselineOfLastLine(table_baseline))
+		{
+			table_baseline += cell_offset.y;
+			baseline_set = true;
+		}
 
 		// The cell contents may overflow, propagate this to the table.
 		table_overflow_size.x = Math::Max(table_overflow_size.x, cell_offset.x - table_content_offset.x + cell_visible_overflow_size.x);

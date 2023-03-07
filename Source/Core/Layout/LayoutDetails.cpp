@@ -258,7 +258,8 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 
 	// Currently we don't support shrink-to-fit width for flexboxes or tables. Just return a zero-sized width.
 	const Style::Display display = element->GetDisplay();
-	if (display == Style::Display::Flex || display == Style::Display::Table)
+	if (display == Style::Display::Flex || display == Style::Display::InlineFlex || display == Style::Display::Table ||
+		display == Style::Display::InlineTable)
 		return 0.f;
 
 	// Use a large size for the box content width, so that it is practically unconstrained. This makes the formatting

@@ -93,7 +93,8 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 
 		// Format the flexbox and all its children.
 		Vector2f flex_resulting_content_size, content_overflow_size;
-		context.Format(flex_resulting_content_size, content_overflow_size);
+		float flex_baseline = 0.f;
+		context.Format(flex_resulting_content_size, content_overflow_size, flex_baseline);
 
 		// Output the size of the formatted flexbox. The width is determined as a normal block box so we don't need to change that.
 		Vector2f formatted_content_size = box_content_size;
@@ -103,8 +104,12 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 		Box sized_box = box;
 		sized_box.SetContent(formatted_content_size);
 
+		// Change the flex baseline coordinates to the element baseline, which is defined as the distance from the element's bottom margin edge.
+		const float element_baseline =
+			sized_box.GetSizeAcross(Box::VERTICAL, Box::BORDER) + sized_box.GetEdge(Box::MARGIN, Box::BOTTOM) - flex_baseline;
+
 		// Close the box, and break out of the loop if it did not produce any new scrollbars, otherwise continue to format the flexbox again.
-		if (flex_container_box->Close(content_overflow_size, sized_box))
+		if (flex_container_box->Close(content_overflow_size, sized_box, element_baseline))
 			break;
 	}
 
@@ -200,7 +205,7 @@ static void GetItemSizing(FlexItem::Size& destination, const ComputedAxisSize& c
 	}
 }
 
-void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_content_overflow_size) const
+void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_content_overflow_size, float& flex_baseline) const
 {
 	// The following procedure is based on the CSS flexible box layout algorithm.
 	// For details, see https://drafts.csswg.org/css-flexbox/#layout-algorithm
@@ -838,6 +843,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		return main_axis_horizontal ? Vector2f(v_main, v_cross) : Vector2f(v_cross, v_main);
 	};
 
+	bool baseline_set = false;
+
 	// -- Format items --
 	for (FlexLine& line : container.lines)
 	{
@@ -854,11 +861,17 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			// Set the position of the element within the the flex container
 			item.element->SetOffset(flex_content_offset + item_offset, element_flex);
 
+			// The flex container baseline is simply set to the first flex item that has a baseline.
+			if (!baseline_set && item_layout_box->GetBaselineOfLastLine(flex_baseline))
+			{
+				flex_baseline += flex_content_offset.y + item_offset.y;
+				baseline_set = true;
+			}
+
 			// The cell contents may overflow, propagate this to the flex container.
 			const Vector2f overflow_size = item_offset + item_layout_box->GetVisibleOverflowSize();
 
-			flex_content_overflow_size.x = Math::Max(flex_content_overflow_size.x, overflow_size.x);
-			flex_content_overflow_size.y = Math::Max(flex_content_overflow_size.y, overflow_size.y);
+			flex_content_overflow_size = Math::Max(flex_content_overflow_size, overflow_size);
 		}
 	}
 

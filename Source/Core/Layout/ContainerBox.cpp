@@ -255,13 +255,15 @@ FlexContainer::FlexContainer(Element* element, ContainerBox* parent_container) :
 	RMLUI_ASSERT(element);
 }
 
-bool FlexContainer::Close(const Vector2f content_overflow_size, const Box& box)
+bool FlexContainer::Close(const Vector2f content_overflow_size, const Box& box, float element_baseline)
 {
 	if (!SubmitBox(content_overflow_size, box, -1.f))
 		return false;
 
 	ClosePositionedElements();
+
 	SubmitElementLayout();
+	SetElementBaseline(element_baseline);
 	return true;
 }
 
@@ -275,7 +277,7 @@ TableWrapper::TableWrapper(Element* element, ContainerBox* parent_container) : C
 	RMLUI_ASSERT(element);
 }
 
-void TableWrapper::Close(const Vector2f content_overflow_size, const Box& box)
+void TableWrapper::Close(const Vector2f content_overflow_size, const Box& box, float element_baseline)
 {
 	bool result = SubmitBox(content_overflow_size, box, -1.f);
 
@@ -284,7 +286,9 @@ void TableWrapper::Close(const Vector2f content_overflow_size, const Box& box)
 	(void)result;
 
 	ClosePositionedElements();
+
 	SubmitElementLayout();
+	SetElementBaseline(element_baseline);
 }
 
 String TableWrapper::DebugDumpTree(int depth) const

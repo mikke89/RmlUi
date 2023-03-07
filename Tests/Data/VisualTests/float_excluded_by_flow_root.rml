@@ -27,8 +27,7 @@
 			border: 5px #663399;
 		}
 		.box.flow-root {
-			/*display: flow-root;*/  /* Not yet implemented */
-			overflow: hidden;        /* Use this instead to establish a BFC */
+			display: flow-root;
 			background-color: #f0f8ff;
 			border-color: #4682b4;
 		}
