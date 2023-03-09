@@ -129,8 +129,8 @@ void StyleSheetNode::BuildIndex(StyleSheetIndex& styled_node_index) const
 	// If this has properties defined, then we insert it into the styled node index.
 	if (properties.GetNumProperties() > 0)
 	{
-		auto IndexInsertNode = [](StyleSheetIndex::NodeIndex& node_index, const String& key, const StyleSheetNode* node) {
-			StyleSheetIndex::NodeList& nodes = node_index[Hash<String>()(key)];
+		auto IndexInsertNode = [](StyleSheetIndex::StyleSheetNodeIndex& node_index, const String& key, const StyleSheetNode* node) {
+			StyleSheetIndex::StyleSheetNodeListRawConst& nodes = node_index[Hash<String>()(key)];
 			auto it = std::find(nodes.begin(), nodes.end(), node);
 			if (it == nodes.end())
 				nodes.push_back(node);

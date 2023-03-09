@@ -101,20 +101,20 @@ using MediaBlockList = Vector<MediaBlock>;
    element.
  */
 struct StyleSheetIndex {
-	using NodeList = Vector<const StyleSheetNode*>;
-	using NodeIndex = UnorderedMap<size_t, NodeList>;
+	using StyleSheetNodeListRawConst = Vector<const StyleSheetNode*>;
+	using StyleSheetNodeIndex = UnorderedMap<size_t, StyleSheetNodeListRawConst>;
 
 	// The following objects are given in prioritized order. Any nodes in the first object will not be contained in the next one and so on.
-	NodeIndex ids, classes, tags;
-	NodeList other;
+	StyleSheetNodeIndex ids, classes, tags;
+	StyleSheetNodeListRawConst other;
 };
 } // namespace Rml
 
 namespace std {
 // Hash specialization for the node list, so it can be used as key in UnorderedMap.
 template <>
-struct hash<::Rml::StyleSheetIndex::NodeList> {
-	size_t operator()(const ::Rml::StyleSheetIndex::NodeList& nodes) const noexcept
+struct hash<::Rml::StyleSheetIndex::StyleSheetNodeListRawConst> {
+	size_t operator()(const ::Rml::StyleSheetIndex::StyleSheetNodeListRawConst& nodes) const noexcept
 	{
 		size_t seed = 0;
 		for (const ::Rml::StyleSheetNode* node : nodes)
