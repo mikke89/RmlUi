@@ -114,7 +114,7 @@ private:
 	StyleSheetIndex styled_node_index;
 
 	// Index of node sets to element definitions.
-	using ElementDefinitionCache = UnorderedMap<StyleSheetIndex::NodeList, SharedPtr<const ElementDefinition>>;
+	using ElementDefinitionCache = UnorderedMap<StyleSheetIndex::StyleSheetNodeListRawConst, SharedPtr<const ElementDefinition>>;
 	mutable ElementDefinitionCache node_cache;
 
 	// Cached decorator instances.
