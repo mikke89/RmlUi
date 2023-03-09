@@ -198,11 +198,11 @@ SharedPtr<const ElementDefinition> StyleSheet::GetElementDefinition(const Elemen
 	static Vector<const StyleSheetNode*> applicable_nodes;
 	applicable_nodes.clear();
 
-	auto AddApplicableNodes = [element](const StyleSheetIndex::NodeIndex& node_index, const String& key) {
+	auto AddApplicableNodes = [element](const StyleSheetIndex::StyleSheetNodeIndex& node_index, const String& key) {
 		auto it_nodes = node_index.find(Hash<String>()(key));
 		if (it_nodes != node_index.end())
 		{
-			const StyleSheetIndex::NodeList& nodes = it_nodes->second;
+			const StyleSheetIndex::StyleSheetNodeListRawConst& nodes = it_nodes->second;
 
 			for (const StyleSheetNode* node : nodes)
 			{
