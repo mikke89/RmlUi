@@ -368,8 +368,7 @@ private:
 	bool mouse_active;
 
 	// The current state of Touches, required to implement proper inertia scrolling.
-	struct TouchState
-	{
+	struct TouchState {
 		bool scrolling_right = false;
 		bool scrolling_down = false;
 		Vector2f start_position;
@@ -474,6 +473,7 @@ private:
 	// Sends the specified event to all elements in new_items that don't appear in old_items.
 	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
 
+	friend class Rml::Node;
 	friend class Rml::Element;
 };
 
