@@ -99,17 +99,13 @@ Element::Element(const String& tag) :
 	relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
-	parent = nullptr;
 	focus = nullptr;
 	instancer = nullptr;
-	owner_document = nullptr;
 	offset_parent = nullptr;
 
 	clip_area = BoxArea::Padding;
 
 	baseline = 0.0f;
-
-	num_non_dom_children = 0;
 
 	z_index = 0;
 
@@ -119,22 +115,15 @@ Element::Element(const String& tag) :
 
 Element::~Element()
 {
-	RMLUI_ASSERT(parent == nullptr);
-
+	RMLUI_ASSERT(GetParentNode() == nullptr);
 	PluginRegistry::NotifyElementDestroy(this);
 
-	// A simplified version of RemoveChild() for destruction.
-	for (ElementPtr& child : children)
+	for (Element* child : IterateChildren<Element>(true))
 	{
-		Element* child_ancestor = child.get();
-		for (int i = 0; i <= ChildNotifyLevels && child_ancestor; i++, child_ancestor = child_ancestor->GetParentNode())
-			child_ancestor->OnChildRemove(child.get());
-
-		child->SetParent(nullptr);
+		Element* child_ancestor = child;
+		for (int i = 0; i <= ChildNotifyLevels && child_ancestor; i++, child_ancestor = child_ancestor->GetParentElement())
+			child_ancestor->OnChildRemove(child);
 	}
-
-	children.clear();
-	num_non_dom_children = 0;
 
 	ElementMetaPool::element_meta_pool->pool.DestroyAndDeallocate(meta);
 }
@@ -167,8 +156,8 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 	meta->effects.InstanceEffects();
 
-	for (size_t i = 0; i < children.size(); i++)
-		children[i]->Update(dp_ratio, vp_dimensions);
+	for (Element* child : IterateChildren<Element>(true))
+		child->Update(dp_ratio, vp_dimensions);
 
 	if (!animations.empty() && IsVisible(true))
 	{
@@ -183,7 +172,9 @@ void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimension
 
 	if (meta->style.AnyPropertiesDirty())
 	{
+		Element* parent = GetParentElement();
 		const ComputedValues* parent_values = parent ? &parent->GetComputedValues() : nullptr;
+		ElementDocument* owner_document = GetOwnerDocument();
 		const ComputedValues* document_values = owner_document ? &owner_document->GetComputedValues() : nullptr;
 
 		// Compute values and clear dirty properties
@@ -335,10 +326,10 @@ String Element::GetAddress(bool include_pseudo_classes, bool include_parents) co
 		}
 	}
 
-	if (include_parents && parent)
+	if (include_parents && GetParentElement())
 	{
 		address += " < ";
-		return address + parent->GetAddress(include_pseudo_classes, true);
+		return address + GetParentElement()->GetAddress(include_pseudo_classes, true);
 	}
 	else
 		return address;
@@ -402,7 +393,7 @@ void Element::UpdateAbsoluteOffsetAndRenderBoxData()
 				offset_from_ancestors -= offset_parent->scroll_offset;
 
 			// Finally, there may be relatively positioned elements between ourself and our containing block, add their relative offsets as well.
-			for (Element* ancestor = parent; ancestor && ancestor != offset_parent; ancestor = ancestor->parent)
+			for (Element* ancestor = GetParentElement(); ancestor && ancestor != offset_parent; ancestor = ancestor->GetParentElement())
 				offset_from_ancestors += ancestor->relative_offset_position;
 		}
 
@@ -592,7 +583,7 @@ bool Element::IsVisible(bool include_ancestors) const
 	{
 		if (!element->visible)
 			return false;
-		element = element->parent;
+		element = element->GetParentElement();
 	}
 	return true;
 }
@@ -879,22 +870,6 @@ Element* Element::GetFocusLeafNode()
 	return focus_element;
 }
 
-Context* Element::GetContext() const
-{
-	ElementDocument* document = GetOwnerDocument();
-	if (document != nullptr)
-		return document->GetContext();
-
-	return nullptr;
-}
-
-RenderManager* Element::GetRenderManager() const
-{
-	if (Context* context = GetContext())
-		return &context->GetRenderManager();
-	return nullptr;
-}
-
 void Element::SetAttributes(const ElementAttributes& _attributes)
 {
 	attributes.reserve(attributes.size() + _attributes.size());
@@ -1030,26 +1005,6 @@ ElementStyle* Element::GetStyle() const
 	return &meta->style;
 }
 
-ElementDocument* Element::GetOwnerDocument() const
-{
-#ifdef RMLUI_DEBUG
-	if (parent && !owner_document)
-	{
-		// Since we have a parent but no owner_document, then we must be a 'loose' element -- that is, constructed
-		// outside of a document and not attached to a child of any element in the hierarchy of a document.
-		// This check ensures that we didn't just forget to set the owner document.
-		RMLUI_ASSERT(!parent->GetOwnerDocument());
-	}
-#endif
-
-	return owner_document;
-}
-
-Element* Element::GetParentNode() const
-{
-	return parent;
-}
-
 Element* Element::Closest(const String& selectors) const
 {
 	StyleSheetNode root_node;
@@ -1079,68 +1034,109 @@ Element* Element::Closest(const String& selectors) const
 	return nullptr;
 }
 
-Element* Element::GetNextSibling() const
+Element* Element::GetNextElementSibling() const
 {
-	if (parent == nullptr)
+	Element* parent = GetParentElement();
+	if (!parent)
 		return nullptr;
 
-	for (size_t i = 0; i < parent->children.size() - (parent->num_non_dom_children + 1); i++)
+	bool return_next = false;
+	for (Element* sibling : parent->IterateChildren<Element>())
 	{
-		if (parent->children[i].get() == this)
-			return parent->children[i + 1].get();
+		if (return_next)
+			return sibling;
+		if (sibling == this)
+			return_next = true;
 	}
 
 	return nullptr;
+}
+
+Element* Element::GetPreviousElementSibling() const
+{
+	Element* parent = GetParentElement();
+	if (!parent)
+		return nullptr;
+
+	Element* previous_sibling = nullptr;
+	for (Element* sibling : parent->IterateChildren<Element>())
+	{
+		if (sibling == this)
+			return previous_sibling;
+		previous_sibling = sibling;
+	}
+
+	return nullptr;
+}
+
+Element* Element::GetNextSibling() const
+{
+	return GetNextElementSibling();
 }
 
 Element* Element::GetPreviousSibling() const
 {
-	if (parent == nullptr)
+	return GetPreviousElementSibling();
+}
+Element* Element::GetFirstElementChild() const
+{
+	auto range = IterateChildren<Element>();
+	auto it = range.begin();
+	if (it == range.end())
 		return nullptr;
-
-	for (size_t i = 1; i < parent->children.size() - parent->num_non_dom_children; i++)
-	{
-		if (parent->children[i].get() == this)
-			return parent->children[i - 1].get();
-	}
-
-	return nullptr;
+	return *it;
 }
 
 Element* Element::GetFirstChild() const
 {
-	if (GetNumChildren() > 0)
-		return children[0].get();
+	return GetFirstElementChild();
+}
 
-	return nullptr;
+Element* Element::GetLastElementChild() const
+{
+	auto range = IterateChildrenReverse<Element>();
+	auto it = range.begin();
+	if (it == range.end())
+		return nullptr;
+	return *it;
 }
 
 Element* Element::GetLastChild() const
 {
-	if (GetNumChildren() > 0)
-		return (children.end() - (num_non_dom_children + 1))->get();
-
-	return nullptr;
+	return GetLastElementChild();
 }
 
 Element* Element::GetChild(int index) const
 {
-	if (index < 0 || index >= (int)children.size())
-		return nullptr;
-
-	return children[index].get();
+	int i_element = 0;
+	for (Element* child : IterateChildren<Element>(true))
+	{
+		if (i_element == index)
+			return child;
+		i_element += 1;
+	}
+	return nullptr;
 }
 
 int Element::GetNumChildren(bool include_non_dom_elements) const
 {
-	return (int)children.size() - (include_non_dom_elements ? 0 : num_non_dom_children);
+	int num_elements = 0;
+	for (Element* child : IterateChildren<Element>(include_non_dom_elements))
+	{
+		num_elements += 1;
+		(void)child;
+	}
+	return num_elements;
 }
 
 void Element::GetInnerRML(String& content) const
 {
-	for (int i = 0; i < GetNumChildren(); i++)
+	for (Node* child : IterateChildren<Node>())
 	{
-		children[i]->GetRML(content);
+		if (Element* element = AsIf<Element*>(child))
+			element->GetRML(content);
+		else if (ElementText* text = AsIf<ElementText*>(child))
+			content += StringUtilities::EncodeRml(text->GetText());
 	}
 }
 
@@ -1156,8 +1152,8 @@ void Element::SetInnerRML(const String& rml)
 	RMLUI_ZoneScopedC(0x6495ED);
 
 	// Remove all DOM children.
-	while ((int)children.size() > num_non_dom_children)
-		RemoveChild(children.front().get());
+	while (GetNumChildNodes() > 0)
+		RemoveChild(GetChildNode(0));
 
 	if (!rml.empty())
 		Factory::InstanceElementText(this, rml);
@@ -1194,7 +1190,7 @@ bool Element::Focus(bool focus_visible)
 
 void Element::Blur()
 {
-	if (parent)
+	if (Element* parent = GetParentElement())
 	{
 		Context* context = GetContext();
 		if (context == nullptr)
@@ -1267,7 +1263,7 @@ void Element::ScrollIntoView(const ScrollIntoViewOptions options)
 	const Vector2f size = main_box.GetSize(BoxArea::Border);
 	ScrollBehavior scroll_behavior = options.behavior;
 
-	for (Element* scroll_parent = parent; scroll_parent; scroll_parent = scroll_parent->GetParentNode())
+	for (Element* scroll_parent = GetParentElement(); scroll_parent; scroll_parent = scroll_parent->GetParentNode())
 	{
 		using Style::Overflow;
 		const ComputedValues& computed = scroll_parent->GetComputedValues();
@@ -1326,176 +1322,6 @@ void Element::ScrollTo(Vector2f offset, ScrollBehavior behavior)
 	SetScrollTop(offset.y);
 }
 
-Element* Element::AppendChild(ElementPtr child, bool dom_element)
-{
-	RMLUI_ASSERT(child);
-	Element* child_ptr = child.get();
-	if (dom_element)
-		children.insert(children.end() - num_non_dom_children, std::move(child));
-	else
-	{
-		children.push_back(std::move(child));
-		num_non_dom_children++;
-	}
-	// Set parent just after inserting into children. This allows us to eg. get our previous sibling in SetParent.
-	child_ptr->SetParent(this);
-
-	Element* ancestor = child_ptr;
-	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
-		ancestor->OnChildAdd(child_ptr);
-
-	DirtyStackingContext();
-
-	// Not only does the element definition of the newly inserted element need to be dirtied, but also our own definition and implicitly all of our
-	// children's. This ensures correct styles being applied in the presence of tree-structural selectors such as ':first-child'.
-	DirtyDefinition(DirtyNodes::Self);
-
-	if (dom_element)
-		DirtyLayout();
-
-	return child_ptr;
-}
-
-Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
-{
-	RMLUI_ASSERT(child);
-	// Find the position in the list of children of the adjacent element. If
-	// it's nullptr or we can't find it, then we insert it at the end of the dom
-	// children, as a dom element.
-	size_t child_index = 0;
-	bool found_child = false;
-	if (adjacent_element)
-	{
-		for (child_index = 0; child_index < children.size(); child_index++)
-		{
-			if (children[child_index].get() == adjacent_element)
-			{
-				found_child = true;
-				break;
-			}
-		}
-	}
-
-	Element* child_ptr = nullptr;
-
-	if (found_child)
-	{
-		child_ptr = child.get();
-
-		if ((int)child_index >= GetNumChildren())
-			num_non_dom_children++;
-		else
-			DirtyLayout();
-
-		children.insert(children.begin() + child_index, std::move(child));
-		child_ptr->SetParent(this);
-
-		Element* ancestor = child_ptr;
-		for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
-			ancestor->OnChildAdd(child_ptr);
-
-		DirtyStackingContext();
-		DirtyDefinition(DirtyNodes::Self);
-	}
-	else
-	{
-		child_ptr = AppendChild(std::move(child));
-	}
-
-	return child_ptr;
-}
-
-ElementPtr Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_element)
-{
-	RMLUI_ASSERT(inserted_element);
-	auto insertion_point = children.begin();
-	while (insertion_point != children.end() && insertion_point->get() != replaced_element)
-	{
-		++insertion_point;
-	}
-
-	Element* inserted_element_ptr = inserted_element.get();
-
-	if (insertion_point == children.end())
-	{
-		AppendChild(std::move(inserted_element));
-		return nullptr;
-	}
-
-	children.insert(insertion_point, std::move(inserted_element));
-	inserted_element_ptr->SetParent(this);
-
-	ElementPtr result = RemoveChild(replaced_element);
-
-	Element* ancestor = inserted_element_ptr;
-	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
-		ancestor->OnChildAdd(inserted_element_ptr);
-
-	return result;
-}
-
-ElementPtr Element::RemoveChild(Element* child)
-{
-	size_t child_index = 0;
-
-	for (auto itr = children.begin(); itr != children.end(); ++itr)
-	{
-		// Add the element to the delete list
-		if (itr->get() == child)
-		{
-			Element* ancestor = child;
-			for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentNode())
-				ancestor->OnChildRemove(child);
-
-			if (child_index >= children.size() - num_non_dom_children)
-				num_non_dom_children--;
-
-			ElementPtr detached_child = std::move(*itr);
-			children.erase(itr);
-
-			// Remove the child element as the focused child of this element.
-			if (child == focus)
-			{
-				focus = nullptr;
-
-				// If this child (or a descendant of this child) is the context's currently
-				// focused element, set the focus to us instead.
-				if (Context* context = GetContext())
-				{
-					Element* focus_element = context->GetFocusElement();
-					while (focus_element)
-					{
-						if (focus_element == child)
-						{
-							Focus();
-							break;
-						}
-
-						focus_element = focus_element->GetParentNode();
-					}
-				}
-			}
-
-			detached_child->SetParent(nullptr);
-
-			DirtyLayout();
-			DirtyStackingContext();
-			DirtyDefinition(DirtyNodes::Self);
-
-			return detached_child;
-		}
-
-		child_index++;
-	}
-
-	return nullptr;
-}
-
-bool Element::HasChildNodes() const
-{
-	return (int)children.size() > num_non_dom_children;
-}
-
 Element* Element::GetElementById(const String& id)
 {
 	// Check for special-case tokens.
@@ -1504,7 +1330,7 @@ Element* Element::GetElementById(const String& id)
 	else if (id == "#document")
 		return GetOwnerDocument();
 	else if (id == "#parent")
-		return this->parent;
+		return GetParentElement();
 	else
 	{
 		Element* search_root = GetOwnerDocument();
@@ -1841,7 +1667,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		{
 			visible = new_visibility;
 
-			if (parent != nullptr)
+			if (Element* parent = GetParentElement())
 				parent->DirtyStackingContext();
 
 			if (!visible)
@@ -1882,7 +1708,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 			}
 
 			// When our z-index or local stacking context changes, then we must dirty our parent stacking context so we are re-indexed.
-			if (parent)
+			if (Element* parent = GetParentElement())
 				parent->DirtyStackingContext();
 		}
 	}
@@ -1994,7 +1820,7 @@ Element* Element::GetClosestScrollableContainer()
 
 	if (scrollable_x || scrollable_y || meta->computed_values.overscroll_behavior() == OverscrollBehavior::Contain)
 		return this;
-	else if (parent)
+	else if (Element* parent = GetParentElement())
 		return parent->GetClosestScrollableContainer();
 
 	return nullptr;
@@ -2094,24 +1920,6 @@ void Element::GetRML(String& content)
 	}
 }
 
-void Element::SetOwnerDocument(ElementDocument* document)
-{
-	if (owner_document && !document)
-	{
-		// We are detaching from the document and thereby also the context.
-		if (Context* context = owner_document->GetContext())
-			context->OnElementDetach(this);
-	}
-
-	// If this element is a document, then never change owner_document.
-	if (owner_document != this && owner_document != document)
-	{
-		owner_document = document;
-		for (ElementPtr& child : children)
-			child->SetOwnerDocument(document);
-	}
-}
-
 void Element::SetDataModel(DataModel* new_data_model)
 {
 	RMLUI_ASSERTMSG(!data_model || !new_data_model, "We must either attach a new data model, or detach the old one.");
@@ -2131,7 +1939,7 @@ void Element::SetDataModel(DataModel* new_data_model)
 	if (data_model)
 		ElementUtilities::ApplyDataViewsControllers(this);
 
-	for (ElementPtr& child : children)
+	for (Element* child : IterateChildren<Element>(true))
 		child->SetDataModel(new_data_model);
 }
 
@@ -2143,50 +1951,99 @@ void Element::Release()
 		Log::Message(Log::LT_WARNING, "Leak detected: element %s not instanced via RmlUi Factory. Unable to release.", GetAddress().c_str());
 }
 
-void Element::SetParent(Element* _parent)
+void Element::OnChildNodeAdd(Node* child_node, bool dom_node)
 {
-	// Assumes we are already detached from the hierarchy or we are detaching now.
-	RMLUI_ASSERT(!parent || !_parent);
+	Element* child = AsIf<Element*>(child_node);
+	Element* ancestor = child;
+	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentElement())
+		ancestor->OnChildAdd(child);
 
-	parent = _parent;
+	DirtyStackingContext();
 
-	if (parent)
+	// Not only does the element definition of the newly inserted element need to be dirtied, but also our own definition and implicitly all of our
+	// children's. This ensures correct styles being applied in the presence of tree-structural selectors such as ':first-child'.
+	DirtyDefinition(DirtyNodes::Self);
+
+	if (dom_node)
+		DirtyLayout();
+}
+
+void Element::OnChildNodeRemove(Node* child_node, bool dom_node)
+{
+	Element* child = AsIf<Element*>(child_node);
+	Element* ancestor = child;
+	for (int i = 0; i <= ChildNotifyLevels && ancestor; i++, ancestor = ancestor->GetParentElement())
+		ancestor->OnChildRemove(child);
+
+	// Remove the child element as the focused child of this element.
+	if (child && child == focus)
 	{
-		// We need to update our definition and make sure we inherit the properties of our new parent.
-		DirtyDefinition(DirtyNodes::Self);
-		meta->style.DirtyInheritedProperties();
+		focus = nullptr;
+
+		// If this child (or a descendant of this child) is the context's currently
+		// focused element, set the focus to us instead.
+		if (Context* context = GetContext())
+		{
+			Element* focus_element = context->GetFocusElement();
+			while (focus_element)
+			{
+				if (focus_element == child)
+				{
+					Focus();
+					break;
+				}
+
+				focus_element = focus_element->GetParentElement();
+			}
+		}
 	}
 
-	// The transform state may require recalculation.
-	if (transform_state || (parent && parent->transform_state))
-		DirtyTransformState(true, true);
+	DirtyStackingContext();
+	DirtyDefinition(DirtyNodes::Self);
+	if (dom_node)
+		DirtyLayout();
+}
 
-	SetOwnerDocument(parent ? parent->GetOwnerDocument() : nullptr);
-
-	if (!parent)
+void Element::OnParentChange(Node* parent_node)
+{
+	if (!parent_node)
 	{
 		if (data_model)
 			SetDataModel(nullptr);
-	}
-	else
-	{
-		auto it = attributes.find("data-model");
-		if (it == attributes.end())
-		{
-			SetDataModel(parent->data_model);
-		}
-		else if (Context* context = GetContext())
-		{
-			String name = it->second.Get<String>();
 
-			if (DataModel* model = context->GetDataModelPtr(name))
-			{
-				model->AttachModelRootElement(this);
-				SetDataModel(model);
-			}
-			else
-				Log::Message(Log::LT_ERROR, "Could not locate data model '%s' in element %s.", name.c_str(), GetAddress().c_str());
+		return;
+	}
+
+	Element* parent = As<Element*>(parent_node);
+	if (!parent)
+	{
+		// New parent is a non-element node.
+		return;
+	}
+
+	// We need to update our definition and make sure we inherit the properties of our new parent.
+	DirtyDefinition(DirtyNodes::Self);
+	meta->style.DirtyInheritedProperties();
+
+	// The transform state may require recalculation.
+	DirtyTransformState(true, true);
+
+	auto it = attributes.find("data-model");
+	if (it == attributes.end())
+	{
+		SetDataModel(parent->data_model);
+	}
+	else if (Context* context = GetContext())
+	{
+		String name = it->second.Get<String>();
+
+		if (DataModel* model = context->GetDataModelPtr(name))
+		{
+			model->AttachModelRootElement(this);
+			SetDataModel(model);
 		}
+		else
+			Log::Message(Log::LT_ERROR, "Could not locate data model '%s' in element %s.", name.c_str(), GetAddress().c_str());
 	}
 }
 
@@ -2206,8 +2063,8 @@ void Element::DirtyAbsoluteOffsetRecursive()
 			DirtyTransformState(true, true);
 	}
 
-	for (size_t i = 0; i < children.size(); i++)
-		children[i]->DirtyAbsoluteOffsetRecursive();
+	for (Element* child : IterateChildren<Element>(true))
+		child->DirtyAbsoluteOffsetRecursive();
 }
 
 void Element::UpdateOffset()
@@ -2345,11 +2202,15 @@ void Element::BuildLocalStackingContext()
 void Element::AddChildrenToStackingContext(Vector<StackingContextChild>& stacking_children)
 {
 	bool is_flex_container = (GetDisplay() == Style::Display::Flex);
-	const int num_children = (int)children.size();
-	for (int i = 0; i < num_children; ++i)
+	const int num_children_dom = GetNumChildNodes();
+	const int num_children_all = GetNumChildNodes(true);
+	for (int i = 0; i < num_children_all; ++i)
 	{
-		const bool is_non_dom_element = (i >= num_children - num_non_dom_children);
-		children[i]->AddToStackingContext(stacking_children, is_flex_container, is_non_dom_element);
+		if (Element* child = AsIf<Element*>(GetChildNode(i)))
+		{
+			const bool is_non_dom_element = (i >= num_children_dom);
+			child->AddToStackingContext(stacking_children, is_flex_container, is_non_dom_element);
+		}
 	}
 }
 
@@ -2438,7 +2299,7 @@ void Element::AddToStackingContext(Vector<StackingContextChild>& stacking_childr
 
 	stacking_children.push_back(StackingContextChild{this, order});
 
-	if (include_children && !children.empty())
+	if (include_children && GetNumChildNodes(true) > 0)
 	{
 		const size_t index_child_begin = stacking_children.size();
 
@@ -2469,7 +2330,7 @@ void Element::DirtyDefinition(DirtyNodes dirty_nodes)
 	case DirtyNodes::Self: dirty_definition = true; break;
 	case DirtyNodes::SelfAndSiblings:
 		dirty_definition = true;
-		if (parent)
+		if (Element* parent = GetParentElement())
 			parent->dirty_child_definitions = true;
 		break;
 	}
@@ -2492,7 +2353,7 @@ void Element::UpdateDefinition()
 	if (dirty_child_definitions)
 	{
 		dirty_child_definitions = false;
-		for (const ElementPtr& child : children)
+		for (Element* child : IterateChildren<Element>(true))
 			child->dirty_definition = true;
 	}
 }
@@ -2932,7 +2793,7 @@ void Element::UpdateTransformState()
 			// believe the motivation is. Then we would need to subtract the absolute zero-offsets during geometry submit whenever we have transforms.
 		}
 
-		if (parent && parent->transform_state)
+		if (Element* parent = GetParentElement(); parent && parent->transform_state)
 		{
 			// Apply the parent's local perspective and transform.
 			// @performance: If we have no local transform and no parent perspective, we can effectively just point to the parent transform instead of
@@ -2968,8 +2829,8 @@ void Element::UpdateTransformState()
 	// A change in perspective or transform will require an update to children transforms as well.
 	if (perspective_or_transform_changed)
 	{
-		for (size_t i = 0; i < children.size(); i++)
-			children[i]->DirtyTransformState(false, true);
+		for (Element* child : IterateChildren<Element>(true))
+			child->DirtyTransformState(false, true);
 	}
 
 	// No reason to keep the transform state around if transform and perspective have been removed.

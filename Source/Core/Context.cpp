@@ -498,9 +498,9 @@ void Context::PullDocumentToFront(ElementDocument* document)
 		{
 			if (root->GetChild(i) == document)
 			{
-				ElementPtr element = std::move(root->children[i]);
+				NodePtr node = std::move(root->children[i]);
 				root->children.erase(root->children.begin() + i);
-				root->children.insert(root->children.begin() + root->GetNumChildren(), std::move(element));
+				root->children.insert(root->children.begin() + root->GetNumChildren(), std::move(node));
 
 				root->DirtyStackingContext();
 			}
@@ -517,9 +517,9 @@ void Context::PushDocumentToBack(ElementDocument* document)
 		{
 			if (root->GetChild(i) == document)
 			{
-				ElementPtr element = std::move(root->children[i]);
+				NodePtr node = std::move(root->children[i]);
 				root->children.erase(root->children.begin() + i);
-				root->children.insert(root->children.begin(), std::move(element));
+				root->children.insert(root->children.begin(), std::move(node));
 
 				root->DirtyStackingContext();
 			}
@@ -919,7 +919,7 @@ bool Context::ProcessTouchCancel(const TouchList& touches)
 
 bool Context::ProcessTouchStart(const Touch& touch, int key_modifier_state)
 {
-	TouchState * state = LookupTouch(touch.identifier);
+	TouchState* state = LookupTouch(touch.identifier);
 	RMLUI_ASSERTMSG(state == nullptr, "Receiving touch start event for an already started touch.");
 	if (!state)
 	{
@@ -972,7 +972,8 @@ bool Context::ProcessTouchMove(const Touch& touch, int key_modifier_state)
 
 				// If the user changes direction, reset the start time and position.
 				bool going_right = (delta.x > 0);
-				if (delta.x != 0 && (going_right != state->scrolling_right ||
+				if (delta.x != 0 &&
+					(going_right != state->scrolling_right ||
 						state->scrolling_start_time_x == 0)) // time set to 0 means no touch move events happened before and direction is unclear
 				{
 					state->start_position.x = touch.position.x;
@@ -981,7 +982,7 @@ bool Context::ProcessTouchMove(const Touch& touch, int key_modifier_state)
 				}
 				else
 				{
-					// move starting position towards end position with a weight of e^-kt to better capture 
+					// move starting position towards end position with a weight of e^-kt to better capture
 					// and calculate velocity of the very last touch movements before touch release
 					float elapsed_time_x = static_cast<float>(current_time - state->scrolling_start_time_x);
 					float weight = Math::Exp(-elapsed_time_x * TOUCH_MOVEMENT_DECAY_RATE);
@@ -991,7 +992,8 @@ bool Context::ProcessTouchMove(const Touch& touch, int key_modifier_state)
 				}
 
 				bool going_down = (delta.y > 0);
-				if (delta.y != 0 && (going_down != state->scrolling_down ||
+				if (delta.y != 0 &&
+					(going_down != state->scrolling_down ||
 						state->scrolling_start_time_y == 0)) // time set to 0 means no touch move events happened before and direction is unclear
 				{
 					state->start_position.y = touch.position.y;
@@ -1007,7 +1009,7 @@ bool Context::ProcessTouchMove(const Touch& touch, int key_modifier_state)
 
 					state->start_position.y = touch.position.y - (touch.position.y - state->start_position.y) * weight;
 					state->scrolling_start_time_y = current_time - (current_time - state->scrolling_start_time_y) * weight;
-				}	
+				}
 			}
 		}
 	}

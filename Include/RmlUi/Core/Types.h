@@ -76,6 +76,7 @@ using RowMajorMatrix4f = Matrix4<float, RowMajorStorage<float>>;
 using Matrix4f = RMLUI_MATRIX4_TYPE;
 
 // Common classes
+class Node;
 class Element;
 class ElementInstancer;
 class ElementAnimation;
@@ -114,6 +115,7 @@ using FontFaceHandle = uintptr_t;
 using FontEffectsHandle = uintptr_t;
 using LayerHandle = uintptr_t;
 
+using NodePtr = UniqueReleaserPtr<Node>;
 using ElementPtr = UniqueReleaserPtr<Element>;
 using ContextPtr = UniqueReleaserPtr<Context>;
 using EventPtr = UniqueReleaserPtr<Event>;
@@ -194,5 +196,32 @@ struct hash<::Rml::FamilyId> {
 	}
 };
 } // namespace std
+
+namespace Rml {
+
+template <typename T, typename U>
+inline T As(U base_instance)
+{
+	if constexpr (std::is_same<T, NodePtr>::value && std::is_same<U, ElementPtr>::value)
+	{
+		return NodePtr(static_cast<Node*>(base_instance.release()));
+	}
+	else if constexpr (std::is_same<T, ElementPtr>::value && std::is_same<U, NodePtr>::value)
+	{
+		return ElementPtr(rmlui_static_cast<Element*>(base_instance.release()));
+	}
+	else
+	{
+		return rmlui_static_cast<T>(base_instance);
+	}
+}
+
+template <typename T, typename U>
+inline T AsIf(U base_instance)
+{
+	return rmlui_dynamic_cast<T>(base_instance);
+}
+
+} // namespace Rml
 
 #endif

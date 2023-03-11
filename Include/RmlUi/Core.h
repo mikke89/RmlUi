@@ -70,6 +70,7 @@
 #include "Core/Math.h"
 #include "Core/Mesh.h"
 #include "Core/MeshUtilities.h"
+#include "Core/Node.h"
 #include "Core/NumericValue.h"
 #include "Core/Plugin.h"
 #include "Core/PropertiesIteratorView.h"

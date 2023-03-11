@@ -124,6 +124,7 @@ add_library(rmlui_core
 	Memory.cpp
 	Memory.h
 	MeshUtilities.cpp
+	Node.cpp
 	ObserverPtr.cpp
 	Plugin.cpp
 	PluginRegistry.cpp
@@ -295,6 +296,7 @@ target_sources(rmlui_core PRIVATE
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.inl"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Mesh.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/MeshUtilities.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Node.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/NumericValue.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ObserverPtr.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Platform.h"
