@@ -471,9 +471,9 @@ void Context::PullDocumentToFront(ElementDocument* document)
 		{
 			if (root->GetChild(i) == document)
 			{
-				ElementPtr element = std::move(root->children[i]);
+				NodePtr node = std::move(root->children[i]);
 				root->children.erase(root->children.begin() + i);
-				root->children.insert(root->children.begin() + root->GetNumChildren(), std::move(element));
+				root->children.insert(root->children.begin() + root->GetNumChildren(), std::move(node));
 
 				root->DirtyStackingContext();
 			}
@@ -490,9 +490,9 @@ void Context::PushDocumentToBack(ElementDocument* document)
 		{
 			if (root->GetChild(i) == document)
 			{
-				ElementPtr element = std::move(root->children[i]);
+				NodePtr node = std::move(root->children[i]);
 				root->children.erase(root->children.begin() + i);
-				root->children.insert(root->children.begin(), std::move(element));
+				root->children.insert(root->children.begin(), std::move(node));
 
 				root->DirtyStackingContext();
 			}

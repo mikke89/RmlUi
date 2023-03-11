@@ -4,6 +4,7 @@
 #include "Core.h"
 #include "Event.h"
 #include "Header.h"
+#include "Node.h"
 #include "ObserverPtr.h"
 #include "Property.h"
 #include "RenderBox.h"
@@ -44,9 +45,9 @@ struct StackingContextChild;
     A generic element in the DOM tree.
  */
 
-class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element> {
+class RMLUICORE_API Element : public Node, public EnableObserverPtr<Element> {
 public:
-	RMLUI_RTTI_DefineWithParent(Element, ScriptInterface)
+	RMLUI_RTTI_DefineWithParent(Element, Node)
 
 	/// Constructs a new RmlUi element. This should not be called directly; use the Factory instead.
 	/// @param[in] tag The tag the element was declared as in RML.
@@ -315,13 +316,6 @@ public:
 	/// @return Outermost focus element.
 	Element* GetFocusLeafNode();
 
-	/// Returns the element's context.
-	/// @return The context this element's document exists within.
-	Context* GetContext() const;
-	/// Returns the element's render manager.
-	/// @return The render manager responsible for this element.
-	RenderManager* GetRenderManager() const;
-
 	/** @name DOM Properties
 	 */
 	//@{
@@ -398,13 +392,6 @@ public:
 	/// @return The element's style.
 	ElementStyle* GetStyle() const;
 
-	/// Gets the document this element belongs to.
-	/// @return This element's document.
-	ElementDocument* GetOwnerDocument() const;
-
-	/// Gets this element's parent node.
-	/// @return This element's parent.
-	Element* GetParentNode() const;
 	/// Recursively search for the first ancestor of this node matching the given selector.
 	/// @param[in] selectors The selector or comma-separated selectors to match against.
 	/// @return The ancestor if found, or nullptr if no ancestor could be matched.
@@ -413,17 +400,21 @@ public:
 
 	/// Gets the element immediately following this one in the tree.
 	/// @return This element's next sibling element, or nullptr if there is no sibling element.
-	Element* GetNextSibling() const;
+	Element* GetNextElementSibling() const;
+	[[deprecated("Use GetNextElementSibling")]] Element* GetNextSibling() const;
 	/// Gets the element immediately preceding this one in the tree.
 	/// @return This element's previous sibling element, or nullptr if there is no sibling element.
-	Element* GetPreviousSibling() const;
+	Element* GetPreviousElementSibling() const;
+	[[deprecated("Use GetPreviousElementSibling")]] Element* GetPreviousSibling() const;
 
 	/// Returns the first child of this element.
 	/// @return This element's first child, or nullptr if it contains no children.
-	Element* GetFirstChild() const;
+	Element* GetFirstElementChild() const;
+	[[deprecated("Use GetFirstElementChild")]] Element* GetFirstChild() const;
 	/// Gets the last child of this element.
 	/// @return This element's last child, or nullptr if it contains no children.
-	Element* GetLastChild() const;
+	Element* GetLastElementChild() const;
+	[[deprecated("Use GetLastElementChild")]] Element* GetLastChild() const;
 	/// Get the child element at the given index.
 	/// @param[in] index Index of child to get.
 	/// @return The child element at the given index.
@@ -499,28 +490,6 @@ public:
 	/// @param[in] behavior Smooth scrolling behavior.
 	/// @note Smooth scrolling can only be applied to a single element at a time, any active smooth scrolls will be canceled.
 	void ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Instant);
-
-	/// Append a child to this element.
-	/// @param[in] element The element to append as a child.
-	/// @param[in] dom_element True if the element is to be part of the DOM, false otherwise. Only set this to false if you know what you're doing!
-	Element* AppendChild(ElementPtr element, bool dom_element = true);
-	/// Adds a child to this element directly before the adjacent element. The new element inherits the DOM/non-DOM
-	/// status from the adjacent element.
-	/// @param[in] element Element to be inserted.
-	/// @param[in] adjacent_element The reference element which the new element will be inserted before.
-	Element* InsertBefore(ElementPtr element, Element* adjacent_element);
-	/// Replaces the second node with the first node.
-	/// @param[in] inserted_element The element that will be inserted and replace the other element.
-	/// @param[in] replaced_element The existing element that will be replaced. If this doesn't exist, inserted_element will be appended.
-	/// @return A unique pointer to the replaced element if found, discard the result to immediately destroy.
-	ElementPtr ReplaceChild(ElementPtr inserted_element, Element* replaced_element);
-	/// Remove a child element from this element.
-	/// @param[in] element The element to remove.
-	/// @returns A unique pointer to the element if found, discard the result to immediately destroy.
-	ElementPtr RemoveChild(Element* element);
-	/// Returns whether or not this element has any DOM children.
-	/// @return True if the element has at least one DOM child, false otherwise.
-	bool HasChildNodes() const;
 
 	/// Get a child element by its ID.
 	/// @param[in] id The ID of the child element.
@@ -647,14 +616,14 @@ protected:
 	// Dirty the element style definition, including all descendants of the specified nodes.
 	void DirtyDefinition(DirtyNodes dirty_nodes);
 
-	void SetOwnerDocument(ElementDocument* document);
-
 	void OnStyleSheetChangeRecursive();
 
 	void Release() override;
 
 private:
-	void SetParent(Element* parent);
+	void OnChildNodeAdd(Node* child, bool dom_node) override;
+	void OnChildNodeRemove(Node* child, bool dom_node) override;
+	void OnParentChange(Node* parent_node) override;
 
 	void SetDataModel(DataModel* new_data_model);
 
@@ -721,9 +690,6 @@ private:
 	bool dirty_transform : 1;
 	bool dirty_perspective : 1;
 
-	OwnedElementList children;
-	int num_non_dom_children;
-
 	// Defines which box area to use for clipping; this is usually padding, but may be content.
 	BoxArea clip_area;
 
@@ -736,12 +702,8 @@ private:
 	// Instancer that created us, used for destruction.
 	ElementInstancer* instancer;
 
-	// Parent element.
-	Element* parent;
 	// Currently focused child object
 	Element* focus;
-	// The owning document
-	ElementDocument* owner_document;
 
 	// Active data model for this element.
 	DataModel* data_model;
@@ -784,6 +746,7 @@ private:
 
 	friend class Rml::Context;
 	friend class Rml::ElementStyle;
+	friend class Rml::Node;
 	friend class Rml::ContainerBox;
 	friend class Rml::InlineLevelBox;
 	friend class Rml::ReplacedBox;
