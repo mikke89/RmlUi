@@ -60,6 +60,25 @@ static CharacterClass GetCharacterClass(char c)
 	return CharacterClass::Whitespace;
 }
 
+// Clamps the value to the given maximum number of unicode code points. Returns true if the value was changed.
+static bool ClampValue(String& value, int max_length)
+{
+	if (max_length >= 0)
+	{
+		int num_characters = 0;
+		for (auto it = StringIteratorU8(value); it; ++it)
+		{
+			num_characters += 1;
+			if (num_characters > max_length)
+			{
+				value.erase(size_t(it.offset()));
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
 {
 	keyboard_showed = false;
@@ -168,29 +187,10 @@ void WidgetTextInput::SetMaxLength(int _max_length)
 	if (max_length != _max_length)
 	{
 		max_length = _max_length;
-		if (max_length >= 0)
-		{
-			String value = GetValue();
 
-			int num_characters = 0;
-			size_t i_erase = value.size();
-
-			for (auto it = StringIteratorU8(value); it; ++it)
-			{
-				num_characters += 1;
-				if (num_characters > max_length)
-				{
-					i_erase = size_t(it.offset());
-					break;
-				}
-			}
-
-			if(i_erase < value.size())
-			{
-				value.erase(i_erase);
-				GetElement()->SetAttribute("value", value);
-			}
-		}
+		String value = GetValue();
+		if (ClampValue(value, max_length))
+			GetElement()->SetAttribute("value", value);
 	}
 }
 
@@ -523,13 +523,13 @@ bool WidgetTextInput::AddCharacters(String string)
 {
 	SanitizeValue(string);
 
-	if (string.empty())
-		return false;
-
 	if (selection_length > 0)
 		DeleteSelection();
 
-	if (max_length >= 0 && GetLength() >= max_length)
+	if (max_length >= 0)
+		ClampValue(string, Math::Max(max_length - GetLength(), 0));
+
+	if (string.empty())
 		return false;
 
 	String value = GetAttributeValue();
