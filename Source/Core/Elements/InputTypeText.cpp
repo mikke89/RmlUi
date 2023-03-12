@@ -126,4 +126,14 @@ bool InputTypeText::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*
 	return true;
 }
 
+void InputTypeText::Select()
+{
+	widget->Select();
+}
+
+void InputTypeText::SetSelectionRange(int selection_start, int selection_end)
+{
+	widget->SetSelectionRange(selection_start, selection_end);
+}
+
 } // namespace Rml

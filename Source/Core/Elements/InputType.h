@@ -88,6 +88,11 @@ public:
 	/// Sizes the dimensions to the element's inherent size.
 	virtual bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) = 0;
 
+	/// Select all text.
+	virtual void Select();
+	/// Select the text in the given character range.
+	virtual void SetSelectionRange(int selection_start, int selection_end);
+
 protected:
 	ElementFormControlInput* element;
 };

@@ -81,6 +81,11 @@ public:
 	/// @return True.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
+	/// Select all text.
+	void Select() override;
+	/// Select the text in the given character range.
+	void SetSelectionRange(int selection_start, int selection_end) override;
+
 private:
 	int size = 20;
 

@@ -68,6 +68,18 @@ bool ElementFormControlInput::IsSubmitted()
 	return type->IsSubmitted();
 }
 
+void ElementFormControlInput::Select()
+{
+	RMLUI_ASSERT(type);
+	type->Select();
+}
+
+void ElementFormControlInput::SetSelectionRange(int selection_start, int selection_end)
+{
+	RMLUI_ASSERT(type);
+	type->SetSelectionRange(selection_start, selection_end);
+}
+
 // Updates the element's underlying type.
 void ElementFormControlInput::OnUpdate()
 {

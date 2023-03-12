@@ -65,6 +65,13 @@ public:
 	/// Returns the current length (in characters) of this text field.
 	int GetLength() const;
 
+	/// Select all text.
+	void Select();
+	/// Select the text in the given character range.
+	/// @param[in] selection_start The first character to be selected.
+	/// @param[in] selection_end The first character *after* the selection.
+	void SetSelectionRange(int selection_start, int selection_end);
+
 	/// Update the colours of the selected text.
 	void UpdateSelectionColours();
 	/// Generates the text cursor.

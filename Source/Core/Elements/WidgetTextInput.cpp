@@ -60,20 +60,31 @@ static CharacterClass GetCharacterClass(char c)
 	return CharacterClass::Whitespace;
 }
 
+static int ConvertCharacterOffsetToByteOffset(const String& value, int character_offset)
+{
+	if (character_offset >= (int)value.size())
+		return (int)value.size();
+
+	int character_count = 0;
+	for (auto it = StringIteratorU8(value); it; ++it)
+	{
+		character_count += 1;
+		if (character_count > character_offset)
+			return (int)it.offset();
+	}
+	return (int)value.size();
+}
+
 // Clamps the value to the given maximum number of unicode code points. Returns true if the value was changed.
 static bool ClampValue(String& value, int max_length)
 {
 	if (max_length >= 0)
 	{
-		int num_characters = 0;
-		for (auto it = StringIteratorU8(value); it; ++it)
+		int max_byte_length = ConvertCharacterOffsetToByteOffset(value, max_length);
+		if (max_byte_length < (int)value.size())
 		{
-			num_characters += 1;
-			if (num_characters > max_length)
-			{
-				value.erase(size_t(it.offset()));
-				return true;
-			}
+			value.erase((size_t)max_byte_length);
+			return true;
 		}
 	}
 	return false;
@@ -204,6 +215,38 @@ int WidgetTextInput::GetLength() const
 {
 	size_t result = StringUtilities::LengthUTF8(GetValue());
 	return (int)result;
+}
+
+void WidgetTextInput::Select()
+{
+	SetSelectionRange(0, INT_MAX);
+}
+
+void WidgetTextInput::SetSelectionRange(int selection_start, int selection_end)
+{
+	const String& value = GetValue();
+	const int byte_start = ConvertCharacterOffsetToByteOffset(value, selection_start);
+	const int byte_end = ConvertCharacterOffsetToByteOffset(value, selection_end);
+	const bool is_selecting = (byte_start != byte_end);
+	
+	cursor_wrap_down = true;
+	absolute_cursor_index = byte_end;
+
+	bool selection_changed = false;
+	if (is_selecting)
+	{
+		selection_anchor_index = byte_start;
+		selection_changed = UpdateSelection(true);
+	}
+	else
+	{
+		selection_changed = UpdateSelection(false);
+	}
+
+	UpdateCursorPosition(true);
+
+	if (selection_changed)
+		FormatText();
 }
 
 // Update the colours of the selected text.
@@ -384,10 +427,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		case Input::KI_A:
 		{
 			if (ctrl)
-			{
-				selection_changed = MoveCursorHorizontal(CursorMovement::Begin, false);
-				selection_changed |= MoveCursorHorizontal(CursorMovement::End, true);
-			}
+				Select();
 		}
 		break;
 
@@ -1180,7 +1220,6 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 		ideal_cursor_position = cursor_position.x;
 }
 
-// Expand the text selection to the position of the cursor.
 bool WidgetTextInput::UpdateSelection(bool selecting)
 {
 	bool selection_changed = false;

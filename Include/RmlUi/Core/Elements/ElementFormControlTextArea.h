@@ -34,7 +34,7 @@
 
 namespace Rml {
 
-class WidgetTextInput;
+class WidgetTextInputMultiLine;
 
 /**
 	Default RmlUi implemention of a text area.
@@ -91,6 +91,13 @@ public:
 	/// @return True if the text area is word-wrapping, false otherwise.
 	bool GetWordWrap();
 
+	/// Select all text.
+	void Select();
+	/// Select the text in the given character range.
+	/// @param[in] selection_start The first character to be selected.
+	/// @param[in] selection_end The first character *after* the selection.
+	void SetSelectionRange(int selection_start, int selection_end);
+
 	/// Returns the control's inherent size, based on the length of the input field and the current font size.
 	/// @return True.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
@@ -116,7 +123,7 @@ protected:
 	void GetInnerRML(String& content) const override;
 
 private:
-	WidgetTextInput* widget;		
+	UniquePtr<WidgetTextInputMultiLine> widget;
 };
 
 } // namespace Rml
