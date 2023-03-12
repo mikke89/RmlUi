@@ -62,13 +62,13 @@ const FontMetrics& FontEngineInterface::GetFontMetrics(FontFaceHandle /*handle*/
 	return metrics;
 }
 
-int FontEngineInterface::GetStringWidth(FontFaceHandle /*handle*/, const String& /*string*/, Character /*prior_character*/)
+int FontEngineInterface::GetStringWidth(FontFaceHandle /*handle*/, const String& /*string*/, float /*letter_spacing*/, Character /*prior_character*/)
 {
 	return 0;
 }
 
 int FontEngineInterface::GenerateString(FontFaceHandle /*face_handle*/, FontEffectsHandle /*font_effects_handle*/, const String& /*string*/,
-	const Vector2f& /*position*/, const Colourb& /*colour*/, float /*opacity*/, GeometryList& /*geometry*/)
+	const Vector2f& /*position*/, const Colourb& /*colour*/, float /*opacity*/, float /*letter_spacing*/, GeometryList& /*geometry*/)
 {
 	return 0;
 }

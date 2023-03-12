@@ -65,7 +65,7 @@ void LogMissingFontFace(Element* element)
 }
 
 ElementText::ElementText(const String& tag) :
-	Element(tag), colour(255, 255, 255), opacity(1), font_handle_version(0), geometry_dirty(true), dirty_layout_on_change(true),
+	Element(tag), colour(255, 255, 255), opacity(1), letter_spacing(0.f), font_handle_version(0), geometry_dirty(true), dirty_layout_on_change(true),
 	generated_decoration(Style::TextDecoration::None), decoration_property(Style::TextDecoration::None), font_effects_dirty(true),
 	font_effects_handle(0)
 {}
@@ -208,6 +208,8 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 							white_space_property == WhiteSpace::Prewrap ||
 							white_space_property == WhiteSpace::Preline;
 
+	float letter_spacing = computed.letter_spacing();
+
 	TextTransform text_transform_property = computed.text_transform();
 	WordBreak word_break = computed.word_break();
 
@@ -228,7 +230,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property, decode_escape_characters);
-		int token_width = font_engine_interface->GetStringWidth(font_face_handle, token, previous_codepoint);
+		int token_width = font_engine_interface->GetStringWidth(font_face_handle, token, letter_spacing, previous_codepoint);
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
 		if (break_at_line)
@@ -252,7 +254,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 						next_token_begin = token_begin;
 						const char* partial_string_end = StringUtilities::SeekBackwardUTF8(token_begin + i, token_begin);
 						BuildToken(token, next_token_begin, partial_string_end, line.empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property, decode_escape_characters);
-						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, previous_codepoint);
+						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, letter_spacing, previous_codepoint);
 
 						if (force_loop_break_after_next || token_width <= max_token_width)
 						{
@@ -335,7 +337,8 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 	auto& computed = GetComputedValues();
 
 	if (changed_properties.Contains(PropertyId::Color) ||
-		changed_properties.Contains(PropertyId::Opacity))
+		changed_properties.Contains(PropertyId::Opacity) ||
+		changed_properties.Contains(PropertyId::LetterSpacing))
 	{
 		const float new_opacity = computed.opacity();
 		const bool opacity_changed = opacity != new_opacity;
@@ -359,7 +362,8 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 	if (changed_properties.Contains(PropertyId::FontFamily) ||
 		changed_properties.Contains(PropertyId::FontWeight) ||
 		changed_properties.Contains(PropertyId::FontStyle) ||
-		changed_properties.Contains(PropertyId::FontSize))
+		changed_properties.Contains(PropertyId::FontSize) ||
+		changed_properties.Contains(PropertyId::LetterSpacing))
 	{
 		font_face_changed = true;
 
@@ -369,6 +373,8 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		font_effects_handle = 0;
 		font_effects_dirty = true;
 		font_handle_version = 0;
+
+		letter_spacing = computed.letter_spacing();
 	}
 
 	if (changed_properties.Contains(PropertyId::FontEffect))
@@ -465,7 +471,7 @@ void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle)
 
 void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle, Line& line)
 {
-	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, opacity, geometry);
+	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, opacity, letter_spacing, geometry);
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].SetHostElement(this);
 }
