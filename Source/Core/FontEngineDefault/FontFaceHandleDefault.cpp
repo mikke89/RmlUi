@@ -82,7 +82,7 @@ const FontGlyphMap& FontFaceHandleDefault::GetGlyphs() const
 }
 
 // Returns the width a string will take up if rendered with this handle.
-int FontFaceHandleDefault::GetStringWidth(const String& string, Character prior_character)
+int FontFaceHandleDefault::GetStringWidth(const String& string, float letter_spacing, Character prior_character)
 {
 	int width = 0;
 	for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
@@ -98,6 +98,7 @@ int FontFaceHandleDefault::GetStringWidth(const String& string, Character prior_
 
 		// Adjust the cursor for this character's advance.
 		width += glyph->advance;
+		width += (int)letter_spacing;
 
 		prior_character = character;
 	}
@@ -191,7 +192,7 @@ bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& textur
 
 // Generates the geometry required to render a single line of text.
 int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& string, const Vector2f position, const Colourb colour,
-	const float opacity, const int layer_configuration_index)
+	const float opacity, const float letter_spacing, const int layer_configuration_index)
 {
 	int geometry_index = 0;
 	int line_width = 0;
@@ -262,6 +263,7 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), glyph_color);
 
 			line_width += glyph->advance;
+			line_width += (int)letter_spacing;
 			prior_character = character;
 		}
 

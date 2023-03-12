@@ -73,7 +73,7 @@ const FontMetrics& FontEngineInterfaceBitmap::GetFontMetrics(FontFaceHandle hand
 	return handle_bitmap->GetMetrics();
 }
 
-int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const String& string, Character prior_character)
+int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const String& string, float letter_spacing, Character prior_character)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
 	return handle_bitmap->GetStringWidth(string, prior_character);

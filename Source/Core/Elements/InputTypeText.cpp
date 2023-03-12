@@ -120,7 +120,7 @@ void InputTypeText::ProcessDefaultAction(Event& RMLUI_UNUSED_PARAMETER(event))
 // Sizes the dimensions to the element's inherent size.
 bool InputTypeText::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
-	dimensions.x = (float) (size * ElementUtilities::GetStringWidth(element, "m"));
+	dimensions.x = (float) (size * ElementUtilities::GetStringWidth(element, "m", 0.f));
 	dimensions.y = element->GetLineHeight() + 2.0f;
 
 	return true;

@@ -784,6 +784,10 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			// (font-size computed above)
 			dirty_font_face_handle = true;
 			break;
+		case PropertyId::LetterSpacing:
+			values.letter_spacing(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			dirty_font_face_handle = true;
+			break;
 
 		case PropertyId::TextAlign:
 			values.text_align((TextAlign)p->Get<int>());

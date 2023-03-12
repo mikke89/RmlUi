@@ -872,7 +872,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 		++it;
 		const int offset = (int)it.offset();
 
-		const float line_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, (size_t)offset));
+		const float line_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, (size_t)offset), 0.f);  // TODO: Get letter spacing value properly
 		if (line_width > position)
 		{
 			if (position - prev_line_width < line_width - position)
@@ -1056,7 +1056,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			{
 				line_content += orphan;
 				line.size += (int)orphan.size();
-				line_width += ElementUtilities::GetStringWidth(text_element, orphan);
+				line_width += ElementUtilities::GetStringWidth(text_element, orphan, 0.f);  // TODO: Get letter spacing value properly
 			}
 		}
 
@@ -1071,7 +1071,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!pre_selection.empty())
 		{
 			text_element->AddLine(line_position, pre_selection);
-			line_position.x += ElementUtilities::GetStringWidth(text_element, pre_selection);
+			line_position.x += ElementUtilities::GetStringWidth(text_element, pre_selection, 0.f);  // TODO: Get letter spacing value properly
 		}
 
 		// Return the extra kerning that would result in joining two strings.
@@ -1083,8 +1083,8 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			const Character left_back = StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(&left.back(), &left.front()));
 			const String right_front_u8 =
 				right.substr(0, size_t(StringUtilities::SeekForwardUTF8(right.c_str() + 1, right.c_str() + right.size()) - right.c_str()));
-			const int width_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, left_back);
-			const int width_no_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, Character::Null);
+			const int width_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, 0.f, left_back);  // TODO: Get letter spacing value properly
+			const int width_no_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, 0.f, Character::Null);  // TODO: Get letter spacing value properly
 			return float(width_kerning - width_no_kerning);
 		};
 
@@ -1100,7 +1100,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			line_position.x += GetKerningBetween(pre_selection, selection);
 			selected_text_element->AddLine(line_position, selection);
 
-			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
+			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection, 0.f);  // TODO: Get letter spacing value properly
 			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + line.editable_length);
 			const Vector2f selection_size(float(selection_width + (selection_contains_endline ? endline_selection_width : 0)), line_height);
 
@@ -1179,7 +1179,7 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 	int cursor_line_index = 0, cursor_character_index = 0;
 	GetRelativeCursorIndices(cursor_line_index, cursor_character_index);
 
-	cursor_position.x = (float)ElementUtilities::GetStringWidth(text_element, GetValue().substr(lines[cursor_line_index].value_offset, cursor_character_index));
+	cursor_position.x = (float)ElementUtilities::GetStringWidth(text_element, GetValue().substr(lines[cursor_line_index].value_offset, cursor_character_index), 0.f); // TODO: Get letter spacing value properly
 	cursor_position.y = -1.f + (float)cursor_line_index * text_element->GetLineHeight();
 
 	if (update_ideal_cursor_position)

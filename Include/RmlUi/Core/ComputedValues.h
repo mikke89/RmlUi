@@ -122,6 +122,7 @@ namespace Style {
 		FontFaceHandle font_face_handle = 0;
 
 		float font_size = 12.f;
+		float letter_spacing = 0.f;
 
 		float opacity = 1;
 		Colourb color = Colourb(255, 255, 255);
@@ -240,6 +241,7 @@ namespace Style {
 		String         cursor()           const;
 		FontFaceHandle font_face_handle() const { return inherited.font_face_handle; }
 		float          font_size()        const { return inherited.font_size; }
+		float          letter_spacing()   const { return inherited.letter_spacing; }
 		bool           has_font_effect()  const { return inherited.has_font_effect; }
 		FontStyle      font_style()       const { return inherited.font_style; }
 		FontWeight     font_weight()      const { return inherited.font_weight; }
@@ -330,6 +332,7 @@ namespace Style {
 		// Inherited
 		void font_face_handle(FontFaceHandle value) { inherited.font_face_handle = value; }
 		void font_size       (float value)          { inherited.font_size        = value; }
+		void letter_spacing  (float value)          { inherited.letter_spacing   = value; }
 		void has_font_effect (bool value)           { inherited.has_font_effect  = value; }
 		void font_style      (FontStyle value)      { inherited.font_style       = value; }
 		void font_weight     (FontWeight value)     { inherited.font_weight      = value; }
