@@ -33,7 +33,7 @@
 
 double TestsSystemInterface::GetElapsedTime()
 {
-	return 0.0;
+	return elapsed_time;
 }
 
 bool TestsSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)
@@ -76,6 +76,11 @@ void TestsSystemInterface::SetNumExpectedWarnings(int in_num_expected_warnings)
 		warnings.clear();
 	}
 	num_expected_warnings = in_num_expected_warnings;
+}
+
+void TestsSystemInterface::SetTime(double t)
+{
+	elapsed_time = t;
 }
 
 void TestsRenderInterface::RenderGeometry(Rml::Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/, const Rml::TextureHandle /*texture*/, const Rml::Vector2f& /*translation*/)

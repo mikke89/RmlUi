@@ -446,6 +446,7 @@ void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle han
 
 	glBindVertexArray(geometry->vao);
 	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+	glBindVertexArray(0);
 
 	Gfx::CheckGLError("RenderCompiledGeometry");
 }

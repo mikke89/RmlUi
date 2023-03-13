@@ -33,7 +33,7 @@
  * This file provides the means to configure various types used across RmlUi. It is possible to override container
  * types with your own, provided they are compatible with STL, or customize STL containers, for example by setting
  * custom allocators. This file may be edited directly, or can be copied to an alternate location, modified, and
- * included by setting the CMake option CUSTOM_CONFIGURATION_FILE (RMLUI_CUSTOM_CONFIGURATION_FILE preprocessor 
+ * included by setting the CMake option CUSTOM_CONFIGURATION_FILE (RMLUI_CUSTOM_CONFIGURATION_FILE preprocessor
  * define) to the path of that file.
  */
 
@@ -55,8 +55,8 @@
 #include <set>
 #include <unordered_set>
 #else
-#include "../Core/Containers/chobo/flat_map.hpp"
-#include "../Core/Containers/chobo/flat_set.hpp"
+#include "../Core/Containers/itlib/flat_map.hpp"
+#include "../Core/Containers/itlib/flat_set.hpp"
 #include "../Core/Containers/robin_hood.h"
 #endif	// RMLUI_NO_THIRDPARTY_CONTAINERS
 
@@ -103,13 +103,13 @@ using SmallOrderedSet = std::set< T >;
 template < typename Key, typename Value>
 using UnorderedMap = robin_hood::unordered_flat_map< Key, Value >;
 template <typename Key, typename Value>
-using SmallUnorderedMap = chobo::flat_map< Key, Value >;
+using SmallUnorderedMap = itlib::flat_map< Key, Value >;
 template <typename T>
 using UnorderedSet = robin_hood::unordered_flat_set< T >;
 template <typename T>
-using SmallUnorderedSet = chobo::flat_set< T >;
+using SmallUnorderedSet = itlib::flat_set< T >;
 template <typename T>
-using SmallOrderedSet = chobo::flat_set< T >;
+using SmallOrderedSet = itlib::flat_set< T >;
 #endif	// RMLUI_NO_THIRDPARTY_CONTAINERS
 template<typename Iterator>
 inline std::move_iterator<Iterator> MakeMoveIterator(Iterator it) { return std::make_move_iterator(it); }
@@ -149,7 +149,7 @@ inline UniquePtr<T> MakeUnique(Args&&... args) { return std::make_unique<T, Args
 // should be done using SFINAE as in example below.
 
 // Extra code to be inserted into RmlUi::Color<> class body. Note: be mindful of colorspaces used by different
-// color types. RmlUi assumes that float colors are interpreted in linear colorspace while byte colors are 
+// color types. RmlUi assumes that float colors are interpreted in linear colorspace while byte colors are
 // interpreted as sRGB.
 
 #define RMLUI_COLOUR_USER_EXTRA                                                                         \

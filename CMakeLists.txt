@@ -53,9 +53,9 @@ if(POLICY CMP0074)
 	cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
 
-project(RmlUi LANGUAGES C CXX VERSION 5.0)
+project(RmlUi LANGUAGES C CXX VERSION 5.1)
 
-set(RMLUI_VERSION_RELEASE true)
+set(RMLUI_VERSION_RELEASE false)
 
 if(RMLUI_VERSION_RELEASE)
 	set(RMLUI_VERSION_SUFFIX "")
@@ -156,6 +156,10 @@ if(NOT IOS)
 endif(NOT IOS)
 
 option(BUILD_LUA_BINDINGS "Build Lua bindings" OFF)
+
+if (BUILD_LUA_BINDINGS)
+	option(BUILD_LUA_BINDINGS_FOR_LUAJIT "Build Lua bindings using luajit" OFF)
+endif()
 
 if(APPLE)
 	option(BUILD_FRAMEWORK "Build Framework bundle for OSX" OFF)
@@ -356,13 +360,22 @@ endif()
 
 # Lua
 if(BUILD_LUA_BINDINGS)
-	find_package(Lua REQUIRED)
-	list(APPEND LUA_BINDINGS_INCLUDE_DIRS ${LUA_INCLUDE_DIR})
-	list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
+	if(BUILD_LUA_BINDINGS_FOR_LUAJIT)
+		find_package(LuaJIT REQUIRED)
+		list(APPEND LUA_BINDINGS_INCLUDE_DIRS ${LUAJIT_INCLUDE_DIR})
+		list(APPEND LUA_BINDINGS_LINK_LIBS ${LUAJIT_LIBRARY})
+	else()
+		find_package(Lua REQUIRED)
+		list(APPEND LUA_BINDINGS_INCLUDE_DIRS ${LUA_INCLUDE_DIR})
+		list(APPEND LUA_BINDINGS_LINK_LIBS ${LUA_LIBRARIES})
+	endif()
 endif()
 
 # rlottie
-if( ENABLE_LOTTIE_PLUGIN )
+if( ENABLE_LOTTIE_PLUGIN AND TARGET rlottie::rlottie )
+	list(APPEND CORE_LINK_LIBS rlottie::rlottie)
+	list(APPEND CORE_INCLUDE_DIRS rlottie::rlottie)
+elseif( ENABLE_LOTTIE_PLUGIN )
 	# Try to find the rlottie library.
 	if(NOT DEFINED rlottie_DIR)
 		set(rlottie_DIR $ENV{RLOTTIE_DIR})
@@ -431,6 +444,7 @@ foreach(library ${LIBRARIES})
 		${MASTER_${library}_PUB_HDR_FILES}
 		${${library}_SRC_FILES}
 	)
+	add_library(RmlUi::${library} ALIAS ${NAME})
 
 	set_target_properties(${NAME} PROPERTIES
 	   VERSION ${PROJECT_VERSION}
@@ -989,6 +1003,7 @@ endif()
 include(CMakePackageConfigHelpers OPTIONAL RESULT_VARIABLE PkgHelpers_AVAILABLE)
 
 # guard against older versions of cmake which do not provide it
+if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
 if(PkgHelpers_AVAILABLE)
 	set (INCLUDE_INSTALL_DIR "include")
 	set (LIB_INSTALL_DIR "lib")
@@ -1014,8 +1029,10 @@ if(PkgHelpers_AVAILABLE)
 		${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfig.cmake
 		INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
 		PATH_VARS INCLUDE_DIR CMAKE_CURRENT_BINARY_DIR)
-	export(TARGETS ${RMLUI_EXPORTED_TARGETS}
-		FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake")
+	if(NOT ${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
+		export(TARGETS ${RMLUI_EXPORTED_TARGETS}
+			FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake")
+	endif()
 	write_basic_package_version_file(
 		${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfigVersion.cmake
 		VERSION ${PROJECT_VERSION}
@@ -1026,3 +1043,5 @@ else()
 		" please update cmake to version which provides CMakePackageConfighelpers module"
 		" or write generators for RmlUiConfig.cmake by yourself.")
 endif()
+endif()
+

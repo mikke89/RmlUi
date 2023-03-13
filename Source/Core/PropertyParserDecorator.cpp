@@ -52,19 +52,18 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 
 	if (decorator_string_value.empty() || decorator_string_value == "none")
 	{
-		property.value = Variant();
-		property.unit = Property::UNKNOWN;
+		property.value = Variant(DecoratorsPtr());
+		property.unit = Property::DECORATOR;
 		return true;
 	}
 
 	RMLUI_ZoneScoped;
 
-	DecoratorDeclarationList decorators;
-
 	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
 	StringList decorator_string_list;
 	StringUtilities::ExpandString(decorator_string_list, decorator_string_value, ',', '(', ')');
 
+	DecoratorDeclarationList decorators;
 	decorators.value = decorator_string_value;
 	decorators.list.reserve(decorator_string_list.size());
 

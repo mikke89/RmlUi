@@ -30,7 +30,9 @@
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 #include "../../Include/RmlUi/Core/Animation.h"
+#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Transform.h"
+#include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "TransformUtilities.h"
@@ -127,8 +129,23 @@ bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, Str
 {
 	if (!src || src->list.empty())
 		dest = "none";
-	else
+	else if (!src->value.empty())
 		dest += src->value;
+	else
+	{
+		dest.clear();
+		for (const DecoratorDeclaration& declaration : src->list)
+		{
+			dest += declaration.type;
+			if (auto instancer = declaration.instancer)
+			{
+				dest += '(' + instancer->GetPropertySpecification().PropertiesToString(declaration.properties, false, ' ') + ')';
+			}
+			dest += ", ";
+		}
+		if (dest.size() > 2)
+			dest.resize(dest.size() - 2);
+	}
 	return true;
 }
 

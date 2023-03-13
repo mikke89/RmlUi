@@ -44,7 +44,7 @@ PluginRegistry::PluginRegistry()
 void PluginRegistry::RegisterPlugin(Plugin* plugin)
 {
 	int event_classes = plugin->GetEventClasses();
-	
+
 	if (event_classes & Plugin::EVT_BASIC)
 		basic_plugins.push_back(plugin);
 	if (event_classes & Plugin::EVT_DOCUMENT)
@@ -77,8 +77,9 @@ void PluginRegistry::NotifyShutdown()
 {
 	while (!basic_plugins.empty())
 	{
-		basic_plugins.back()->OnShutdown();
-		basic_plugins.pop_back();
+		Plugin* plugin = basic_plugins.back();
+		PluginRegistry::UnregisterPlugin(plugin);
+		plugin->OnShutdown();
 	}
 	document_plugins.clear();
 	element_plugins.clear();
