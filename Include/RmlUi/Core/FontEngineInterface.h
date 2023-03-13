@@ -91,6 +91,7 @@ public:
 	/// Called by RmlUi when it wants to retrieve the width of a string when rendered with this handle.
 	/// @param[in] handle The font handle.
 	/// @param[in] string The string to measure.
+	/// @param[in] letter_spacing The letter spacing size in pixels.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
 	virtual int GetStringWidth(FontFaceHandle handle, const String& string, float letter_spacing, Character prior_character = Character::Null);
@@ -102,6 +103,7 @@ public:
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text. Colour alpha is premultiplied with opacity.
 	/// @param[in] opacity The opacity of the text, should be applied to font effects.
+	/// @param[in] letter_spacing The letter spacing size in pixels.
 	/// @param[out] geometry An array of geometries to generate the geometry into.
 	/// @return The width, in pixels, of the string geometry.
 	virtual int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position,

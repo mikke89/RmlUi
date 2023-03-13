@@ -65,7 +65,7 @@ void LogMissingFontFace(Element* element)
 }
 
 ElementText::ElementText(const String& tag) :
-	Element(tag), colour(255, 255, 255), opacity(1), letter_spacing(0.f), font_handle_version(0), geometry_dirty(true), dirty_layout_on_change(true),
+	Element(tag), colour(255, 255, 255), opacity(1), font_handle_version(0), geometry_dirty(true), dirty_layout_on_change(true),
 	generated_decoration(Style::TextDecoration::None), decoration_property(Style::TextDecoration::None), font_effects_dirty(true),
 	font_effects_handle(0)
 {}
@@ -373,8 +373,6 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		font_effects_handle = 0;
 		font_effects_dirty = true;
 		font_handle_version = 0;
-
-		letter_spacing = computed.letter_spacing();
 	}
 
 	if (changed_properties.Contains(PropertyId::FontEffect))
@@ -471,6 +469,8 @@ void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle)
 
 void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle, Line& line)
 {
+	const float letter_spacing = GetComputedValues().letter_spacing();
+
 	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, opacity, letter_spacing, geometry);
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].SetHostElement(this);

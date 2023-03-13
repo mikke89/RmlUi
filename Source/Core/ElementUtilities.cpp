@@ -154,8 +154,10 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 }
 
 // Returns the width of a string rendered within the context of the given element.
-int ElementUtilities::GetStringWidth(Element* element, const String& string, float letter_spacing, Character prior_character)
+int ElementUtilities::GetStringWidth(Element* element, const String& string, Character prior_character)
 {
+	const float letter_spacing = element->GetComputedValues().letter_spacing();
+
 	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
 	if (font_face_handle == 0)
 		return 0;

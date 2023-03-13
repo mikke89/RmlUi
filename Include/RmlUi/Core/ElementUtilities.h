@@ -85,7 +85,7 @@ public:
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The character placed just before this string, used for kerning.
 	/// @return The string width, in pixels.
-	static int GetStringWidth(Element* element, const String& string, float letter_spacing, Character prior_character = Character::Null);
+	static int GetStringWidth(Element* element, const String& string, Character prior_character = Character::Null);
 
 	/// Generates the clipping region for an element.
 	/// @param[out] clip_origin The origin, in context coordinates, of the origin of the element's clipping window.

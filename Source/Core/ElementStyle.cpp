@@ -785,7 +785,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			dirty_font_face_handle = true;
 			break;
 		case PropertyId::LetterSpacing:
-			values.letter_spacing(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.letter_spacing(p->unit == Property::KEYWORD ? 0.f : ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			dirty_font_face_handle = true;
 			break;
 

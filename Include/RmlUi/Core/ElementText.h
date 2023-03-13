@@ -115,7 +115,6 @@ private:
 
 	Colourb colour;
 	float opacity;
-	float letter_spacing;
 
 	int font_handle_version;
 
