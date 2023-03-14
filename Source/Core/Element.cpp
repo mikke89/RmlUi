@@ -1981,27 +1981,25 @@ void Element::ProcessDefaultAction(Event& event)
 
 	if (event == EventId::Mousescroll)
 	{
-		if (GetScrollHeight() > GetClientHeight() || GetScrollWidth() > GetClientWidth())
+		Style::Overflow overflow_x = meta->computed_values.overflow_x();
+		Style::Overflow overflow_y = meta->computed_values.overflow_y();
+		bool scrollable_x = (overflow_x == Style::Overflow::Auto || overflow_x == Style::Overflow::Scroll);
+		bool scrollable_y = (overflow_y == Style::Overflow::Auto || overflow_y == Style::Overflow::Scroll);
+
+		scrollable_x = (scrollable_x && GetScrollWidth() > GetClientWidth());
+		scrollable_y = (scrollable_y && GetScrollHeight() > GetClientHeight());
+
+		if (scrollable_x || scrollable_y)
 		{
-			Style::Overflow overflow_x_property = meta->computed_values.overflow_x();
-			Style::Overflow overflow_y_property = meta->computed_values.overflow_y();
-			if (overflow_x_property == Style::Overflow::Auto || overflow_x_property == Style::Overflow::Scroll ||
-				overflow_y_property == Style::Overflow::Auto || overflow_y_property == Style::Overflow::Scroll)
-			{
-				// Stop the propagation to prevent scrolling in parent elements.
-				event.StopPropagation();
+			// Stop the propagation to prevent scrolling in parent elements.
+			event.StopPropagation();
 
-				const Vector2f scroll_delta = {event.GetParameter("delta_x", 0.f), event.GetParameter("delta_y", 0.f)};
+			const Vector2f scroll_delta = {event.GetParameter("delta_x", 0.f), event.GetParameter("delta_y", 0.f)};
 
-				if ((scroll_delta.y < 0 && GetScrollTop() > 0) || (scroll_delta.y > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
-				{
-					SetScrollTop(GetScrollTop() + scroll_delta.y);
-				}
-				if ((scroll_delta.x < 0 && GetScrollLeft() > 0) || (scroll_delta.x > 0 && GetScrollWidth() > GetScrollLeft() + GetClientWidth()))
-				{
-					SetScrollLeft(GetScrollLeft() + scroll_delta.x);
-				}
-			}
+			if (scrollable_x)
+				SetScrollLeft(GetScrollLeft() + scroll_delta.x);
+			if (scrollable_y)
+				SetScrollTop(GetScrollTop() + scroll_delta.y);
 		}
 
 		return;
