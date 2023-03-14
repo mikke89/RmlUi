@@ -390,6 +390,15 @@ void StringUtilities::TrimTrailingDotZeros(String& string)
 		string.resize(new_size);
 }
 
+bool StringUtilities::StartsWith(StringView string, StringView start)
+{
+	if (string.size() < start.size())
+		return false;
+
+	StringView substring(string.begin(), string.begin() + start.size());
+	return substring == start;
+}
+
 bool StringUtilities::StringCompareCaseInsensitive(const StringView lhs, const StringView rhs)
 {
 	if (lhs.size() != rhs.size())

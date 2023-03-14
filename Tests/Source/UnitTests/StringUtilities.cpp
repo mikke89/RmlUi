@@ -64,4 +64,42 @@ TEST_CASE("StringUtilities::TrimTrailingDotZeros")
 	WARN(RunTrimTrailingDotZeros("11") == "11");
 }
 
+TEST_CASE("StringUtilities::StartsWith")
+{
+	using namespace Rml::StringUtilities;
 
+	CHECK(StartsWith("abc", "abc"));
+	CHECK(StartsWith("abc", "ab"));
+	CHECK(StartsWith("abc", "a"));
+	CHECK(StartsWith("abc", ""));
+	
+	CHECK(!StartsWith("abc", "abcd"));
+	CHECK(!StartsWith("abc", "abd"));
+	CHECK(!StartsWith("abc", "bbc"));
+	CHECK(!StartsWith("abc", "bc"));
+	CHECK(!StartsWith("abc", "x"));
+}
+
+TEST_CASE("StringView")
+{
+	const char abc[] = "abc";
+	const String str_abc = abc;
+
+	CHECK(StringView("abc") == StringView("abc"));
+	CHECK(StringView("abc") == String("abc"));
+	CHECK(StringView("abc") == "abc");
+	CHECK(StringView("abc") == abc);
+
+	CHECK(StringView(String(abc)) == abc);
+	CHECK(StringView(abc) == abc);
+	CHECK(StringView(abc, abc + 3) == abc);
+	CHECK(StringView(str_abc, 1) == "bc");
+	CHECK(StringView(str_abc, 1, 1) == "b");
+
+	CHECK(StringView("abcd") != abc);
+	CHECK(StringView("ab") != abc);
+	CHECK(StringView() != abc);
+
+	CHECK(StringView() == String());
+	CHECK(StringView() == "");
+}
