@@ -189,6 +189,11 @@ RMLUICORE_API int RoundUpToInteger(float value);
 /// @return The rounded integer.
 RMLUICORE_API int RoundDownToInteger(float value);
 
+/// Decompose floating-point value to its fractional and integral parts.
+/// @param[in] value The value to decompose.
+/// @param[out] integral The integral part of the value.
+/// @return The fractional part of the value.
+RMLUICORE_API float DecomposeFractionalIntegral(float value, float* integral);
 /// Efficiently truncates a floating-point value into an integer.
 /// @param[in] value The value to truncate.
 /// @return The truncated value as a signed integer.

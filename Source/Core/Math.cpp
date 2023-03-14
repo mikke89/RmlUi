@@ -173,6 +173,11 @@ RMLUICORE_API int RoundDownToInteger(float value)
 	return RealToInteger(floorf(value));
 }
 
+RMLUICORE_API float DecomposeFractionalIntegral(float value, float* integral)
+{
+	return modff(value, integral);
+}
+
 // Efficiently truncates a floating-point value into an integer.
 RMLUICORE_API int RealToInteger(float value)
 {
