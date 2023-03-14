@@ -671,6 +671,8 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	GenerateMouseEventParameters(parameters, button_index);
 	GenerateKeyModifierEventParameters(parameters, key_modifier_state);
 
+	bool propagate = true;
+
 	if (button_index == 0)
 	{
 		Element* new_focus = hover;
@@ -689,8 +691,6 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 		// Save the just-pressed-on element as the pressed element.
 		active = new_focus;
 
-		bool propagate = true;
-		
 		// Call 'onmousedown' on every item in the hover chain, and copy the hover chain to the active chain.
 		if (hover)
 			propagate = hover->DispatchEvent(EventId::Mousedown, parameters);
@@ -748,19 +748,25 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 	{
 		// Not the primary mouse button, so we're not doing any special processing.
 		if (hover)
-			hover->DispatchEvent(EventId::Mousedown, parameters);
+			propagate = hover->DispatchEvent(EventId::Mousedown, parameters);
 	}
 
 	if (autoscroll_target)
 	{
 		ResetAutoscroll();
 	}
-	else if (button_index == 2)
+	else if (button_index == 2 && hover && propagate)
 	{
-		autoscroll_target = hover;
-		autoscroll_holding = false;
-		autoscroll_start_position = mouse_position;
-		autoscroll_previous_update_time = GetSystemInterface()->GetElapsedTime();
+		Dictionary scroll_parameters;
+		GenerateMouseEventParameters(scroll_parameters);
+
+		// Dispatch an event without any scrolling distance, just to see if anyone captures it. If so, we can initiate autoscroll here.
+		if (!hover->DispatchEvent(EventId::Mousescroll, scroll_parameters))
+		{
+			autoscroll_target = hover;
+			autoscroll_start_position = mouse_position;
+			autoscroll_previous_update_time = GetSystemInterface()->GetElapsedTime();
+		}
 	}
 
 	return !IsMouseInteracting();
@@ -880,7 +886,7 @@ bool Context::ProcessMouseLeave()
 
 bool Context::IsMouseInteracting() const
 {
-	return (hover && hover != root.get()) || (active && active != root.get());
+	return (hover && hover != root.get()) || (active && active != root.get()) || autoscroll_target;
 }
 
 // Gets the context's render interface.
