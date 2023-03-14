@@ -87,14 +87,10 @@ void SystemInterface_Win32::SetMouseCursor(const Rml::String& cursor_name)
 			cursor_handle = cursor_cross;
 		else if (cursor_name == "text")
 			cursor_handle = cursor_text;
-		else if (cursor_name == "rmlui-scroll-idle")
-			cursor_handle = cursor_move;
-		else if (cursor_name == "rmlui-scroll-up")
-			cursor_handle = cursor_move;
-		else if (cursor_name == "rmlui-scroll-down")
-			cursor_handle = cursor_move;
 		else if (cursor_name == "unavailable")
 			cursor_handle = cursor_unavailable;
+		else if (Rml::StringUtilities::StartsWith(cursor_name, "rmlui-scroll"))
+			cursor_handle = cursor_move;
 
 		if (cursor_handle)
 		{

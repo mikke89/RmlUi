@@ -1981,28 +1981,25 @@ void Element::ProcessDefaultAction(Event& event)
 
 	if (event == EventId::Mousescroll)
 	{
-		if (GetScrollHeight() > GetClientHeight())
+		if (GetScrollHeight() > GetClientHeight() || GetScrollWidth() > GetClientWidth())
 		{
-			Style::Overflow overflow_property = meta->computed_values.overflow_y();
-			if (overflow_property == Style::Overflow::Auto ||
-				overflow_property == Style::Overflow::Scroll)
+			Style::Overflow overflow_x_property = meta->computed_values.overflow_x();
+			Style::Overflow overflow_y_property = meta->computed_values.overflow_y();
+			if (overflow_x_property == Style::Overflow::Auto || overflow_x_property == Style::Overflow::Scroll ||
+				overflow_y_property == Style::Overflow::Auto || overflow_y_property == Style::Overflow::Scroll)
 			{
-				// Stop the propagation if the current element has scrollbars.
-				// This prevents scrolling in parent elements, which is often unintended. If instead desired behavior is
-				// to scroll in parent elements when reaching top/bottom, move StopPropagation inside the next if statement.
+				// Stop the propagation to prevent scrolling in parent elements.
 				event.StopPropagation();
 
-				const float wheel_delta = event.GetParameter< float >("wheel_delta", 0.f);
+				const Vector2f scroll_delta = {event.GetParameter("delta_x", 0.f), event.GetParameter("delta_y", 0.f)};
 
-				if ((wheel_delta < 0 && GetScrollTop() > 0) ||
-					(wheel_delta > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
+				if ((scroll_delta.y < 0 && GetScrollTop() > 0) || (scroll_delta.y > 0 && GetScrollHeight() > GetScrollTop() + GetClientHeight()))
 				{
-					// Defined as three times the default line-height, multiplied by the dp ratio.
-					float default_scroll_length = 3.f * DefaultComputedValues.line_height().value;
-					if (const Context* context = GetContext())
-						default_scroll_length *= context->GetDensityIndependentPixelRatio();
-
-					SetScrollTop(GetScrollTop() + wheel_delta * default_scroll_length);
+					SetScrollTop(GetScrollTop() + scroll_delta.y);
+				}
+				if ((scroll_delta.x < 0 && GetScrollLeft() > 0) || (scroll_delta.x > 0 && GetScrollWidth() > GetScrollLeft() + GetClientWidth()))
+				{
+					SetScrollLeft(GetScrollLeft() + scroll_delta.x);
 				}
 			}
 		}

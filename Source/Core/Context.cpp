@@ -39,6 +39,7 @@
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
+#include "ComputeProperty.h"
 #include "DataModel.h"
 #include "EventDispatcher.h"
 #include "PluginRegistry.h"
@@ -51,9 +52,28 @@ namespace Rml {
 
 static constexpr float DOUBLE_CLICK_TIME = 0.5f;     // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f;  // [dp]
-static constexpr float SCROLL_MIDDLE_MOUSE_SPEED_FACTOR = 0.5f;
+static constexpr float AUTOSCROLL_SPEED_FACTOR = 0.09f;
+static constexpr float AUTOSCROLL_DEADZONE = 10.0f; // [dp]
 
-Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), started_scroll_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
+// Determines the autoscroll velocity based on the distance from the scroll-start mouse position. [px/s]
+static Vector2f CalculateAutoscrollVelocity(Vector2f scroll_delta, float dp_ratio)
+{
+	auto DeadzoneShift = [](Vector2f value, float deadzone) -> Vector2f {
+		return Vector2f{
+			Math::AbsoluteValue(value.x) < deadzone ? 0.f : value.x,
+			Math::AbsoluteValue(value.y) < deadzone ? 0.f : value.y,
+		};
+	};
+
+	scroll_delta = scroll_delta / dp_ratio;
+	scroll_delta = DeadzoneShift(scroll_delta, AUTOSCROLL_DEADZONE);
+	const Vector2f scroll_delta_abs = {Math::AbsoluteValue(scroll_delta.x), Math::AbsoluteValue(scroll_delta.y)};
+
+	// We use a signed square model for the velocity, which seems to work quite well. This is mostly about feeling and tuning.
+	return AUTOSCROLL_SPEED_FACTOR * scroll_delta * scroll_delta_abs;
+}
+
+Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), autoscroll_start_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
 {
 	instancer = nullptr;
 
@@ -81,27 +101,26 @@ Context::Context(const String& name) : name(name), dimensions(0, 0), density_ind
 	cursor_proxy_document->SetProperty(PropertyId::Decorator, Property());
 	cursor_proxy_document->SetProperty(PropertyId::OverflowX, Property(Style::Overflow::Visible));
 	cursor_proxy_document->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Visible));
-		
+
 	document_focus_history.push_back(root.get());
 	focus = root.get();
 	hover = nullptr;
 	active = nullptr;
 	drag = nullptr;
-	scroll_hover = nullptr;
 
 	drag_started = false;
 	drag_verbose = false;
 	drag_clone = nullptr;
 	drag_hover = nullptr;
-
 	last_click_element = nullptr;
 	last_click_time = 0;
-	last_update_time = 0;
 
-	holding_scroll = false;
 	mouse_active = false;
-
 	enable_cursor = true;
+
+	autoscroll_target = nullptr;
+	autoscroll_previous_update_time = 0;
+	autoscroll_holding = false;
 }
 
 Context::~Context()
@@ -182,27 +201,12 @@ float Context::GetDensityIndependentPixelRatio() const
 	return density_independent_pixel_ratio;
 }
 
-// Updates all elements in the element tree.
 bool Context::Update()
 {
 	RMLUI_ZoneScoped;
 
-	double current_time = GetSystemInterface()->GetElapsedTime();
-
-	if (scroll_hover)
-	{
-		const Vector2i scroll_delta = mouse_position - started_scroll_position;
-		const float delta_time = float(current_time - last_update_time);
-		const float scroll_speed = scroll_delta.y * SCROLL_MIDDLE_MOUSE_SPEED_FACTOR * delta_time;
-
-		Dictionary scroll_parameters;
-		GenerateMouseEventParameters(scroll_parameters);
-		scroll_parameters["wheel_delta"] = scroll_speed;
-
-		// Scroll event was not handled by any element, it means that we don't have anything to scroll.
-		if (scroll_hover->DispatchEvent(EventId::Mousescroll, scroll_parameters))
-			ResetScrollParameters();
-	}
+	if (autoscroll_target)
+		UpdateAutoscroll();
 
 	// Update the hover chain to detect any new or moved elements under the mouse.
 	if (mouse_active)
@@ -229,9 +233,6 @@ bool Context::Update()
 
 	// Release any documents that were unloaded during the update.
 	ReleaseUnloadedDocuments();
-
-	// Last update time used to calculate delta time posteriorly.
-	last_update_time = current_time;
 
 	return true;
 }
@@ -644,9 +645,6 @@ bool Context::ProcessMouseMove(int x, int y, int key_modifier_state)
 			if (drag_hover && drag_verbose)
 				drag_hover->DispatchEvent(EventId::Dragmove, drag_parameters);
 		}
-
-		if (scroll_hover)
-			holding_scroll = true;
 	}
 
 	return !IsMouseInteracting();
@@ -753,15 +751,16 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 			hover->DispatchEvent(EventId::Mousedown, parameters);
 	}
 
-	if (scroll_hover)
+	if (autoscroll_target)
 	{
-		ResetScrollParameters();
+		ResetAutoscroll();
 	}
 	else if (button_index == 2)
 	{
-		scroll_hover = hover;
-		holding_scroll = false;
-		started_scroll_position = mouse_position;
+		autoscroll_target = hover;
+		autoscroll_holding = false;
+		autoscroll_start_position = mouse_position;
+		autoscroll_previous_update_time = GetSystemInterface()->GetElapsedTime();
 	}
 
 	return !IsMouseInteracting();
@@ -839,8 +838,8 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 			hover->DispatchEvent(EventId::Mouseup, parameters);
 	}
 
-	if (scroll_hover && holding_scroll)
-		ResetScrollParameters();
+	if (autoscroll_target && autoscroll_holding)
+		ResetAutoscroll();
 
 	return result;
 }
@@ -848,11 +847,20 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 // Sends a mouse-wheel movement event into RmlUi.
 bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 {
-	if (hover)
+	if (autoscroll_target)
 	{
+		ResetAutoscroll();
+		return false;
+	}
+	else if (hover)
+	{
+		// The scroll length for a single unit of wheel delta is defined as three default sized lines.
+		const float default_scroll_length = 3.f * DefaultComputedValues.line_height().value * density_independent_pixel_ratio;
+
 		Dictionary scroll_parameters;
 		GenerateKeyModifierEventParameters(scroll_parameters, key_modifier_state);
 		scroll_parameters["wheel_delta"] = wheel_delta;
+		scroll_parameters["delta_y"] = wheel_delta * default_scroll_length;
 
 		return hover->DispatchEvent(EventId::Mousescroll, scroll_parameters);
 	}
@@ -1011,6 +1019,9 @@ void Context::OnElementDetach(Element* element)
 		if (it != document_focus_history.end())
 			document_focus_history.erase(it);
 	}
+
+	if (element == autoscroll_target)
+		ResetAutoscroll();
 }
 
 // Internal callback for when a new element gains focus
@@ -1133,7 +1144,7 @@ void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_sta
 	{
 		String new_cursor_name;
 
-		if (scroll_hover)
+		if (autoscroll_target)
 			new_cursor_name = GetScrollCursor();
 		else if(drag)
 			new_cursor_name = drag->GetComputedValues().cursor();
@@ -1333,23 +1344,69 @@ DataModel* Context::GetDataModelPtr(const String& name) const
 	return nullptr;
 }
 
-// Returns the scrolling cursor based on scroll direction.
 String Context::GetScrollCursor() const
 {
-	const int scroll_direction = started_scroll_position.y - mouse_position.y;
+	const Vector2f scroll_delta = Vector2f(mouse_position - autoscroll_start_position);
+	const Vector2f scroll_velocity = CalculateAutoscrollVelocity(scroll_delta, density_independent_pixel_ratio);
 
-	if (scroll_direction == 0)
+	if (scroll_velocity == Vector2f(0.f))
 		return "rmlui-scroll-idle";
 
-	return scroll_direction > 0 ? "rmlui-scroll-up" : "rmlui-scroll-down";
+	String result = "rmlui-scroll";
+
+	if (scroll_velocity.y > 0.f)
+		result += "-up";
+	else if (scroll_velocity.y < 0.f)
+		result += "-down";
+
+	if (scroll_velocity.x > 0.f)
+		result += "-right";
+	else if (scroll_velocity.x < 0.f)
+		result += "-left";
+
+	return result;
 }
 
-// Reset mouse scrolling parameters.
-void Context::ResetScrollParameters()
+void Context::UpdateAutoscroll()
 {
-	scroll_hover = nullptr;
-	holding_scroll = false;
-	started_scroll_position = Vector2i(0, 0);
+	RMLUI_ASSERT(autoscroll_target);
+
+	double current_time = GetSystemInterface()->GetElapsedTime();
+	const float dt = float(current_time - autoscroll_previous_update_time);
+	autoscroll_previous_update_time = current_time;
+
+	const Vector2f scroll_delta = Vector2f(mouse_position - autoscroll_start_position);
+	const Vector2f scroll_velocity = CalculateAutoscrollVelocity(scroll_delta, density_independent_pixel_ratio);
+
+	autoscroll_accumulated_length += scroll_velocity * dt;
+
+	// Only submit the integer part of the scroll length, accumulate and store fractional parts to enable sub-pixel-per-frame scrolling speeds.
+	Vector2f scroll_length_integral = autoscroll_accumulated_length;
+	autoscroll_accumulated_length.x = Math::DecomposeFractionalIntegral(autoscroll_accumulated_length.x, &scroll_length_integral.x);
+	autoscroll_accumulated_length.y = Math::DecomposeFractionalIntegral(autoscroll_accumulated_length.y, &scroll_length_integral.y);
+
+	if (scroll_velocity != Vector2f(0.f))
+		autoscroll_holding = true;
+
+	if (scroll_length_integral != Vector2f(0.f))
+	{
+		Dictionary scroll_parameters;
+		GenerateMouseEventParameters(scroll_parameters);
+		scroll_parameters["delta_x"] = scroll_length_integral.x;
+		scroll_parameters["delta_y"] = scroll_length_integral.y;
+
+		if (autoscroll_target->DispatchEvent(EventId::Mousescroll, scroll_parameters))
+			ResetAutoscroll(); // Scroll event was not handled by any element, meaning that we don't have anything to scroll.
+	}
+}
+
+void Context::ResetAutoscroll()
+{
+	autoscroll_target = nullptr;
+	autoscroll_holding = false;
+	autoscroll_start_position = Vector2i{};
+	autoscroll_accumulated_length = Vector2f{};
+	autoscroll_previous_update_time = 0;
 }
 
 // Builds the parameters for a generic key event.

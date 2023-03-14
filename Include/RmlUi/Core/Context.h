@@ -317,13 +317,12 @@ private:
 	Vector2i mouse_position;
 	bool mouse_active;
 
-	// Scrolling element with scroll button controller.
-	Vector2i started_scroll_position;
-	Element* scroll_hover;
-	bool holding_scroll;
-
-	// The time the last update occurred.
-	double last_update_time;
+	// Autoscroll state (scrolling with middle mouse button). Autoscroll enabled when target is non-null.
+	Element* autoscroll_target;
+	Vector2i autoscroll_start_position;
+	Vector2f autoscroll_accumulated_length;
+	double autoscroll_previous_update_time;
+	bool autoscroll_holding;
 
 	// Enables cursor handling.
 	bool enable_cursor;
@@ -380,8 +379,10 @@ private:
 	// Returns the scrolling cursor based on scroll direction.
 	String GetScrollCursor() const;
 
-	// Reset mouse scrolling parameters.
-	void ResetScrollParameters();
+	// Update autoscroll state (scrolling with middle mouse button), and submit scroll events as necessary.
+	void UpdateAutoscroll();
+	// Reset autoscroll state, disabling the mode.
+	void ResetAutoscroll();
 
 	// Builds the parameters for a generic key event.
 	void GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier);

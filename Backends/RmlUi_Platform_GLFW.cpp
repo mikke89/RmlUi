@@ -30,6 +30,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Core/SystemInterface.h>
 #include <GLFW/glfw3.h>
 
@@ -73,14 +74,10 @@ void SystemInterface_GLFW::SetMouseCursor(const Rml::String& cursor_name)
 		cursor = cursor_cross;
 	else if (cursor_name == "text")
 		cursor = cursor_text;
-	else if (cursor_name == "rmlui-scroll-idle")
-		cursor = cursor_pointer;
-	else if (cursor_name == "rmlui-scroll-up")
-		cursor = cursor_pointer;
-	else if (cursor_name == "rmlui-scroll-down")
-		cursor = cursor_pointer;
 	else if (cursor_name == "unavailable")
 		cursor = nullptr;
+	else if (Rml::StringUtilities::StartsWith(cursor_name, "rmlui-scroll"))
+		cursor = cursor_pointer;
 
 	if (window)
 		glfwSetCursor(window, cursor);
