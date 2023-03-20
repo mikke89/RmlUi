@@ -1410,7 +1410,7 @@ void RenderInterface_VK::CreatePropertiesFor_Instance(Rml::Vector<const char*>& 
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
 #if defined(RMLUI_PLATFORM_UNIX)
-	// TODO: add x11 headers for linux system AddExtensionToInstance(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 #elif defined(RMLUI_PLATFORM_WIN32)
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
