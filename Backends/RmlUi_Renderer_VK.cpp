@@ -936,7 +936,7 @@ void RenderInterface_VK::Initialize_Device() noexcept
 
 	info_device.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	info_device.pNext = &features_physical_device2;
-	info_device.queueCreateInfoCount = 2;
+	info_device.queueCreateInfoCount = m_queue_index_compute != m_queue_index_graphics ? 2 : 1;
 	info_device.pQueueCreateInfos = info_queue;
 	info_device.enabledExtensionCount = static_cast<uint32_t>(device_extension_names.size());
 	info_device.ppEnabledExtensionNames = info_device.enabledExtensionCount ? device_extension_names.data() : nullptr;
