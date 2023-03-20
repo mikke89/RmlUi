@@ -65,7 +65,9 @@
 
 RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
 
+#if defined(RMLUI_PLATFORM_UNIX)
 #define VK_USE_PLATFORM_XCB_KHR 1
+#endif
 #include "RmlUi_Vulkan/vulkan.h"
 
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
