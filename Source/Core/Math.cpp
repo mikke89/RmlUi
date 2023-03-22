@@ -64,6 +64,11 @@ RMLUICORE_API int AbsoluteValue(int value)
 	return abs(value);
 }
 
+RMLUICORE_API Vector2f AbsoluteValue(Vector2f value)
+{
+	return {fabsf(value.x), fabsf(value.y)};
+}
+
 // Calculates the cosine of an angle.
 RMLUICORE_API float Cos(float angle)
 {

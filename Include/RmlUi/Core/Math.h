@@ -111,6 +111,10 @@ RMLUICORE_API float AbsoluteValue(float value);
 /// @param[in] value The number of get the absolute value of.
 /// @return The absolute value of the number.
 RMLUICORE_API int AbsoluteValue(int value);
+/// Calculates the component-wise absolute value of a vector.
+/// @param[in] value The vector of get the absolute value of.
+/// @return The absolute value of the vector.
+RMLUICORE_API Vector2f AbsoluteValue(Vector2f value);
 
 /// Calculates the cosine of an angle.
 /// @param[in] angle The angle to calculate the cosine of, in radians.
