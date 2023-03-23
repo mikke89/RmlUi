@@ -34,6 +34,7 @@
 namespace Rml {
 
 class Element;
+enum class ScrollBehavior;
 
 /**
 	A widget for incorporating scrolling functionality into an element.
@@ -78,18 +79,12 @@ public:
 	/// Sets the length of the entire track in scrollable units (usually lines or characters). This affects the
 	/// length of the bar element and the speed of scrolling using the mouse-wheel or arrows.
 	/// @param[in] track_length The length of the track.
-	/// @param[in] force_resize True to resize the bar immediately, false to wait until the next format.
-	void SetTrackLength(float track_length, bool force_resize = true);
+	void SetTrackLength(float track_length);
 	/// Sets the length the bar represents in scrollable units (usually lines or characters), relative to the track
 	/// length. For example, for a scroll bar, this would represent how big each visible 'page' is compared to the
 	/// whole document (which would be set as the track length).
 	/// @param[in] bar_length The length of the slider's bar.
-	/// @param[in] force_resize True to resize the bar immediately, false to wait until the next format.
-	void SetBarLength(float bar_length, bool force_resize = true);
-
-	/// Sets the line height of the parent element; this is used for scrolling speeds.
-	/// @param[in] line_height The line height of the parent element.
-	void SetLineHeight(float line_height);
+	void SetBarLength(float bar_length);
 
 	/// Lays out and resizes the internal elements.
 	/// @param[in] containing_block The padded box containing the slider. This is used to resolve relative properties.
@@ -110,28 +105,16 @@ private:
 	/// @param[in] bar_length The total length of the bar, as a proportion of the track length. If this is -1, the intrinsic length will be used.
 	void FormatBar(float bar_length = -1);
 
-	// Set the offset on 'bar' from its position.
+	// Set the offset on 'bar' based on its position.
 	void PositionBar();
 
-	/// Called when the slider is incremented by one 'line', either by the down / right key or a mouse-click on the
-	/// increment arrow.
-	/// @return The new position of the bar.
-	float OnLineIncrement();
-	/// Called when the slider is decremented by one 'line', either by the up / left key or a mouse-click on the
-	/// decrement arrow.
-	/// @return The new position of the bar.
-	float OnLineDecrement();
-	/// Called when the slider is incremented by one 'page', either by the page-up key or a mouse-click on the
-	/// track below / right of the bar.
-	/// @return The new position of the bar.
-	float OnPageIncrement();
-	/// Called when the slider is incremented by one 'page', either by the page-down key or a mouse-click on the
-	/// track above / left of the bar.
-	/// @return The new position of the bar.
-	float OnPageDecrement();
+	void ScrollLineDown();
+	void ScrollLineUp();
+	void ScrollPageDown();
+	void ScrollPageUp();
 
-	// Returns the bar position after scrolling for a number of pixels.
-	float Scroll(float distance);
+	// Scrolls the parent element by the given distance.
+	void Scroll(float distance, ScrollBehavior behavior);
 
 	Element* parent;
 
@@ -147,7 +130,7 @@ private:
 	// A number from 0 to 1, indicating how far along the track the bar is.
 	float bar_position;
 	// If the bar is being dragged, this is the pixel offset from the start of the bar to where it was picked up.
-	int bar_drag_anchor;
+	float bar_drag_anchor;
 
 	// Set to the auto-repeat timer if either of the arrow buttons have been pressed, -1 if they haven't.
 	float arrow_timers[2];
@@ -155,7 +138,6 @@ private:
 
 	float track_length;
 	float bar_length;
-	float line_height;
 };
 
 } // namespace Rml
