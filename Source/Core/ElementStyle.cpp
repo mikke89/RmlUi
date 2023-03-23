@@ -820,6 +820,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::ScrollbarMargin:
 			values.scrollbar_margin(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
+		case PropertyId::OverscrollBehavior:
+			values.overscroll_behavior((OverscrollBehavior)p->Get<int>());
+			break;
 		case PropertyId::PointerEvents:
 			values.pointer_events((PointerEvents)p->Get<int>());
 			break;

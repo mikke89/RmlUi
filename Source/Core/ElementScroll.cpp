@@ -179,7 +179,6 @@ void ElementScroll::FormatScrollbars()
 		slider_length -= Math::Max(user_scrollbar_margin, min_scrollbar_margin);
 
 		scrollbars[i].widget->FormatElements(containing_block, slider_length);
-		scrollbars[i].widget->SetLineHeight(element->GetLineHeight());
 
 		int variable_axis = i == VERTICAL ? 0 : 1;
 		Vector2f offset = element_box.GetPosition(Box::PADDING);

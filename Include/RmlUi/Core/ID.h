@@ -140,6 +140,7 @@ enum class PropertyId : uint8_t
 	Drag,
 	TabIndex,
 	ScrollbarMargin,
+	OverscrollBehavior,
 
 	Perspective,
 	PerspectiveOriginX,
