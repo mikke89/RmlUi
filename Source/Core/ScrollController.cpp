@@ -27,7 +27,6 @@
  */
 
 #include "ScrollController.h"
-#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
@@ -40,6 +39,10 @@ static constexpr float AUTOSCROLL_DEADZONE = 10.0f; // [dp]
 static constexpr float SMOOTHSCROLL_WINDOW_SIZE = 50.f;        // The window where smoothing is applied, as a distance from scroll start and end. [dp]
 static constexpr float SMOOTHSCROLL_VELOCITY_CONSTANT = 800.f; // The constant velocity, any smoothing is applied on top of this. [dp/s]
 static constexpr float SMOOTHSCROLL_VELOCITY_SQUARE_FACTOR = 0.05f;
+
+// Clamp the delta time to some reasonable FPS range, to avoid large steps in case of stuttering or freezing.
+static constexpr float DELTA_TIME_CLAMP_LOW = 1.f / 500.f; // [s]
+static constexpr float DELTA_TIME_CLAMP_HIGH = 1.f / 15.f; // [s]
 
 // Determines the autoscroll velocity based on the distance from the scroll-start mouse position. [px/s]
 static Vector2f CalculateAutoscrollVelocity(Vector2f target_delta, float dp_ratio)
@@ -82,14 +85,33 @@ static Vector2f CalculateSmoothscrollVelocity(Vector2f target_delta, Vector2f sc
 	return dp_ratio * target_delta_signum * (smooth_window * velocity_constant + velocity_square);
 }
 
-float ScrollController::UpdateTime()
+void ScrollController::ActivateAutoscroll(Element* in_target, Vector2i start_position)
 {
-	const double previous_tick = previous_update_time;
-	previous_update_time = GetSystemInterface()->GetElapsedTime();
+	Reset();
+	if (!in_target)
+		return;
+	target = in_target;
+	mode = Mode::Autoscroll;
+	autoscroll_start_position = start_position;
+	UpdateTime();
+}
 
-	const float dt = float(previous_update_time - previous_tick);
-	// Clamp the delta time to some reasonable FPS range, to avoid large steps in case of stuttering or freezing.
-	return Math::Clamp(dt, 1.f / 500.f, 1.f / 15.f);
+void ScrollController::ActivateSmoothscroll(Element* in_target)
+{
+	Reset();
+	if (!in_target)
+		return;
+	target = in_target;
+	mode = Mode::Smoothscroll;
+	UpdateTime();
+}
+
+void ScrollController::Update(Vector2i mouse_position, float dp_ratio)
+{
+	if (mode == Mode::Autoscroll)
+		UpdateAutoscroll(mouse_position, dp_ratio);
+	else if (mode == Mode::Smoothscroll)
+		UpdateSmoothscroll(dp_ratio);
 }
 
 void ScrollController::UpdateAutoscroll(Vector2i mouse_position, float dp_ratio)
@@ -109,21 +131,12 @@ void ScrollController::UpdateAutoscroll(Vector2i mouse_position, float dp_ratio)
 	autoscroll_accumulated_length.y = Math::DecomposeFractionalIntegral(autoscroll_accumulated_length.y, &scroll_length_integral.y);
 
 	if (scroll_velocity != Vector2f(0.f))
-		autoscroll_holding = true;
+		autoscroll_moved = true;
 
-	if (scroll_length_integral != Vector2f(0.f))
-	{
-		Dictionary scroll_parameters;
-		// GenerateMouseEventParameters(scroll_parameters); // TODO
-		scroll_parameters["delta_x"] = scroll_length_integral.x;
-		scroll_parameters["delta_y"] = scroll_length_integral.y;
-
-		if (target->DispatchEvent(EventId::Mousescroll, scroll_parameters))
-			Reset(); // Scroll event was not handled by any element, meaning that we don't have anything to scroll.
-	}
+	PerformScrollOnTarget(scroll_length_integral);
 }
 
-void ScrollController::UpdateSmoothscroll(Vector2i /*mouse_position*/, float dp_ratio)
+void ScrollController::UpdateSmoothscroll(float dp_ratio)
 {
 	RMLUI_ASSERT(mode == Mode::Smoothscroll && target);
 
@@ -145,77 +158,43 @@ void ScrollController::UpdateSmoothscroll(Vector2i /*mouse_position*/, float dp_
 			scroll_distance[i] = 0.f;
 	}
 
-	if (scroll_distance != Vector2f(0.f))
-	{
-		smoothscroll_scrolled_distance += scroll_distance;
-
-		Dictionary scroll_parameters;
-		// GenerateMouseEventParameters(scroll_parameters); // TODO
-		scroll_parameters["delta_x"] = scroll_distance.x;
-		scroll_parameters["delta_y"] = scroll_distance.y;
-
-		if (target->DispatchEvent(EventId::Mousescroll, scroll_parameters))
-			Reset(); // Scroll event was not handled by any element, meaning that we don't have anything to scroll.
-	}
+	smoothscroll_scrolled_distance += scroll_distance;
+	PerformScrollOnTarget(scroll_distance);
 
 	if (scroll_distance == target_delta)
 		Reset();
 }
 
-void ScrollController::ActivateAutoscroll(Element* in_target, Vector2i start_position)
+void ScrollController::PerformScrollOnTarget(Vector2f delta_distance)
 {
-	Reset();
-	mode = Mode::Autoscroll;
-	target = in_target;
-	autoscroll_start_position = start_position;
-	// TODO: Determine the element to scroll first. Only target that directly, don't do scroll event.
-	UpdateTime();
+	RMLUI_ASSERT(target);
+	if (delta_distance.x != 0.f)
+		target->SetScrollLeft(target->GetScrollLeft() + delta_distance.x);
+	if (delta_distance.y != 0.f)
+		target->SetScrollTop(target->GetScrollTop() + delta_distance.y);
 }
 
-bool ScrollController::ProcessMouseWheel(Vector2f wheel_delta, Element* hover, float dp_ratio)
+void ScrollController::IncrementSmoothscrollTarget(Vector2f delta_distance)
 {
-	if (mode == Mode::Autoscroll)
+	auto OppositeDirection = [](float a, float b) { return (a < 0.f && b > 0.f) || (a > 0.f && b < 0.f); };
+	Vector2f delta = smoothscroll_target_distance - smoothscroll_scrolled_distance;
+
+	// Reset movement state if we start scrolling in the opposite direction.
+	for (int i = 0; i < 2; i++)
 	{
-		Reset();
-		return false;
-	}
-	else if (!hover)
-	{
-		Reset();
-	}
-	else
-	{
-		RMLUI_ASSERT(hover);
-
-		if (mode != Mode::Smoothscroll)
-			ActivateSmoothscroll(hover);
-
-		auto OppositeDirection = [](float a, float b) { return (a < 0.f && b > 0.f) || (a > 0.f && b < 0.f); };
-
-		// The scroll length for a single unit of wheel delta is defined as three default sized lines.
-		const float default_scroll_length = 100.f * dp_ratio;
-
-		Vector2f delta = smoothscroll_target_distance - smoothscroll_scrolled_distance;
-
-		if (OppositeDirection(wheel_delta.x, delta.x))
+		if (OppositeDirection(delta_distance[i], delta[i]))
 		{
-			smoothscroll_target_distance.x = 0.f;
-			smoothscroll_scrolled_distance.x = 0.f;
+			smoothscroll_target_distance[i] = 0.f;
+			smoothscroll_scrolled_distance[i] = 0.f;
 		}
-		if (OppositeDirection(wheel_delta.y, delta.y))
-		{
-			smoothscroll_target_distance.y = 0.f;
-			smoothscroll_scrolled_distance.y = 0.f;
-		}
-
-		smoothscroll_target_distance += wheel_delta * default_scroll_length;
-
-		// TODO test if we can scroll here first!
-
-		return false;
 	}
 
-	return true;
+	smoothscroll_target_distance += delta_distance;
+}
+
+void ScrollController::Reset()
+{
+	*this = ScrollController{};
 }
 
 String ScrollController::GetAutoscrollCursor(Vector2i mouse_position, float dp_ratio) const
@@ -242,4 +221,19 @@ String ScrollController::GetAutoscrollCursor(Vector2i mouse_position, float dp_r
 
 	return result;
 }
+
+bool ScrollController::HasAutoscrollMoved() const
+{
+	return mode == Mode::Autoscroll && autoscroll_moved;
+}
+
+float ScrollController::UpdateTime()
+{
+	const double previous_tick = previous_update_time;
+	previous_update_time = GetSystemInterface()->GetElapsedTime();
+
+	const float dt = float(previous_update_time - previous_tick);
+	return Math::Clamp(dt, DELTA_TIME_CLAMP_LOW, DELTA_TIME_CLAMP_HIGH);
+}
+
 } // namespace Rml

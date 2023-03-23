@@ -49,8 +49,9 @@
 
 namespace Rml {
 
-static constexpr float DOUBLE_CLICK_TIME = 0.5f;     // [s]
-static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f;  // [dp]
+static constexpr float DOUBLE_CLICK_TIME = 0.5f;    // [s]
+static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
+static constexpr float UNIT_SCROLL_LENGTH = 100.f;  // [dp]
 
 Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
 {
@@ -727,21 +728,20 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 			propagate = hover->DispatchEvent(EventId::Mousedown, parameters);
 	}
 
-	if (*scroll_controller == ScrollController::Mode::Autoscroll)
+	if (scroll_controller->GetMode() == ScrollController::Mode::Autoscroll)
 	{
 		scroll_controller->Reset();
 	}
 	else if (button_index == 2 && hover && propagate)
 	{
-		if (*scroll_controller == ScrollController::Mode::Smoothscroll)
-			scroll_controller->Reset();
-
 		Dictionary scroll_parameters;
 		GenerateMouseEventParameters(scroll_parameters);
+		GenerateKeyModifierEventParameters(scroll_parameters, key_modifier_state);
+		scroll_parameters["autoscroll"] = true;
 
-		// Dispatch an event without any scrolling distance, just to see if anyone captures it. If so, we can initiate autoscroll here.
-		if (!hover->DispatchEvent(EventId::Mousescroll, scroll_parameters))
-			scroll_controller->ActivateAutoscroll(hover, mouse_position);
+		// Dispatch a mouse scroll event, this gives elements an opportunity to block autoscroll from being initialized.
+		if (hover->DispatchEvent(EventId::Mousescroll, scroll_parameters))
+			scroll_controller->ActivateAutoscroll(hover->GetClosestScrollableContainer(), mouse_position);
 	}
 
 	return !IsMouseInteracting();
@@ -819,14 +819,43 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 			hover->DispatchEvent(EventId::Mouseup, parameters);
 	}
 
-	scroll_controller->ProcessMouseButtonUp();
+	// If we have autoscrolled while holding the middle mouse button, release the autoscroll mode now.
+	if (scroll_controller->HasAutoscrollMoved())
+		scroll_controller->Reset();
 
 	return result;
 }
 
-bool Context::ProcessMouseWheel(float wheel_delta, int /*key_modifier_state*/)
+bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 {
-	return scroll_controller->ProcessMouseWheel(Vector2f{0.f, wheel_delta}, hover, density_independent_pixel_ratio);
+	if (scroll_controller->GetMode() == ScrollController::Mode::Autoscroll)
+	{
+		scroll_controller->Reset();
+		return false;
+	}
+	else if (!hover)
+	{
+		scroll_controller->Reset();
+		return true;
+	}
+
+	Dictionary scroll_parameters;
+	GenerateMouseEventParameters(scroll_parameters);
+	GenerateKeyModifierEventParameters(scroll_parameters, key_modifier_state);
+	scroll_parameters["wheel_delta"] = wheel_delta;
+
+	// Dispatch a mouse scroll event, this gives elements an opportunity to block scrolling from being performed.
+	if (!hover->DispatchEvent(EventId::Mousescroll, scroll_parameters))
+		return false;
+
+	if (scroll_controller->GetMode() != ScrollController::Mode::Smoothscroll)
+		scroll_controller->ActivateSmoothscroll(hover->GetClosestScrollableContainer());
+
+	const float unit_scroll_length = UNIT_SCROLL_LENGTH * density_independent_pixel_ratio;
+	const Vector2f scroll_length = {0.f, wheel_delta * unit_scroll_length};
+
+	scroll_controller->IncrementSmoothscrollTarget(scroll_length);
+	return false;
 }
 
 bool Context::ProcessMouseLeave()
@@ -841,7 +870,7 @@ bool Context::ProcessMouseLeave()
 
 bool Context::IsMouseInteracting() const
 {
-	return (hover && hover != root.get()) || (active && active != root.get()) || *scroll_controller == ScrollController::Mode::Autoscroll;
+	return (hover && hover != root.get()) || (active && active != root.get()) || scroll_controller->GetMode() == ScrollController::Mode::Autoscroll;
 }
 
 // Gets the context's render interface.
@@ -981,7 +1010,8 @@ void Context::OnElementDetach(Element* element)
 			document_focus_history.erase(it);
 	}
 
-	scroll_controller->OnElementDetach(element);
+	if (scroll_controller->GetTarget() == element)
+		scroll_controller->Reset();
 }
 
 // Internal callback for when a new element gains focus
@@ -1104,7 +1134,7 @@ void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_sta
 	{
 		String new_cursor_name;
 
-		if (*scroll_controller == ScrollController::Mode::Autoscroll)
+		if (scroll_controller->GetMode() == ScrollController::Mode::Autoscroll)
 			new_cursor_name = scroll_controller->GetAutoscrollCursor(mouse_position, density_independent_pixel_ratio);
 		else if(drag)
 			new_cursor_name = drag->GetComputedValues().cursor();

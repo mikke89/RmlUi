@@ -1969,6 +1969,28 @@ bool Element::IsLayoutDirty()
 	return false;
 }
 
+Element* Element::GetClosestScrollableContainer()
+{
+	using namespace Style;
+
+	Overflow overflow_x = meta->computed_values.overflow_x();
+	Overflow overflow_y = meta->computed_values.overflow_y();
+	bool scrollable_x = (overflow_x == Overflow::Auto || overflow_x == Overflow::Scroll);
+	bool scrollable_y = (overflow_y == Overflow::Auto || overflow_y == Overflow::Scroll);
+
+	scrollable_x = (scrollable_x && GetScrollWidth() > GetClientWidth());
+	scrollable_y = (scrollable_y && GetScrollHeight() > GetClientHeight());
+
+	if (scrollable_x || scrollable_y)
+		return this;
+	else if (meta->computed_values.overscroll_behavior() == OverscrollBehavior::Contain)
+		return nullptr;
+	else if (parent)
+		return parent->GetClosestScrollableContainer();
+
+	return nullptr;
+}
+
 void Element::ProcessDefaultAction(Event& event)
 {
 	if (event == EventId::Mousedown)
@@ -1977,32 +1999,6 @@ void Element::ProcessDefaultAction(Event& event)
 
 		if (IsPointWithinElement(mouse_pos) && event.GetParameter("button", 0) == 0)
 			SetPseudoClass("active", true);
-	}
-
-	if (event == EventId::Mousescroll)
-	{
-		Style::Overflow overflow_x = meta->computed_values.overflow_x();
-		Style::Overflow overflow_y = meta->computed_values.overflow_y();
-		bool scrollable_x = (overflow_x == Style::Overflow::Auto || overflow_x == Style::Overflow::Scroll);
-		bool scrollable_y = (overflow_y == Style::Overflow::Auto || overflow_y == Style::Overflow::Scroll);
-
-		scrollable_x = (scrollable_x && GetScrollWidth() > GetClientWidth());
-		scrollable_y = (scrollable_y && GetScrollHeight() > GetClientHeight());
-
-		if (scrollable_x || scrollable_y)
-		{
-			// Stop the propagation to prevent scrolling in parent elements.
-			event.StopPropagation();
-
-			const Vector2f scroll_delta = {event.GetParameter("delta_x", 0.f), event.GetParameter("delta_y", 0.f)};
-
-			if (scrollable_x)
-				SetScrollLeft(GetScrollLeft() + scroll_delta.x);
-			if (scrollable_y)
-				SetScrollTop(GetScrollTop() + scroll_delta.y);
-		}
-
-		return;
 	}
 
 	if (event.GetPhase() == EventPhase::Target)
