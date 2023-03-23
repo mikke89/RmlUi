@@ -62,7 +62,7 @@ public:
 	using DataEventMemberFunc = void(T::*)(DataModelHandle, Event&, const VariantList&);
 
 	DataModelConstructor();
-	DataModelConstructor(DataModel* model, DataTypeRegister* type_register);
+	explicit DataModelConstructor(DataModel* model);
 
 	// Return a handle to the data model being constructed, which can later be used to synchronize variables and update the model.
 	DataModelHandle GetModelHandle() const;

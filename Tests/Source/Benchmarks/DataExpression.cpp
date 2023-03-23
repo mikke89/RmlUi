@@ -37,7 +37,7 @@ using namespace Rml;
 using namespace ankerl;
 
 static DataTypeRegister type_register;
-static DataModel model(type_register.GetTransformFuncRegister());
+static DataModel model(&type_register);
 static DataExpressionInterface interface(&model, nullptr);
 
 
@@ -47,7 +47,7 @@ TEST_CASE("data_expressions")
 	String color_name = "color";
 	Colourb color_value = Colourb(180, 100, 255);
 
-	DataModelConstructor constructor(&model, &type_register);
+	DataModelConstructor constructor(&model);
 	constructor.Bind("radius", &radius);
 	constructor.Bind("color_name", &color_name);
 	constructor.BindFunc("color_value", [&](Variant& variant) {

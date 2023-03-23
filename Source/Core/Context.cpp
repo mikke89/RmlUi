@@ -921,15 +921,19 @@ void Context::SetInstancer(ContextInstancer* _instancer)
 	instancer = _instancer;
 }
 
-DataModelConstructor Context::CreateDataModel(const String& name)
+DataModelConstructor Context::CreateDataModel(const String& name, DataTypeRegister* data_type_register)
 {
 	if (!data_type_register)
-		data_type_register = MakeUnique<DataTypeRegister>();
+	{
+		if (!default_data_type_register)
+			default_data_type_register = MakeUnique<DataTypeRegister>();
+		data_type_register = default_data_type_register.get();
+	}
 
-	auto result = data_models.emplace(name, MakeUnique<DataModel>(data_type_register->GetTransformFuncRegister()));
+	auto result = data_models.emplace(name, MakeUnique<DataModel>(data_type_register));
 	bool inserted = result.second;
 	if (inserted)
-		return DataModelConstructor(result.first->second.get(), data_type_register.get());
+		return DataModelConstructor(result.first->second.get());
 
 	Log::Message(Log::LT_ERROR, "Data model name '%s' already exists.", name.c_str());
 	return DataModelConstructor();
@@ -937,11 +941,8 @@ DataModelConstructor Context::CreateDataModel(const String& name)
 
 DataModelConstructor Context::GetDataModel(const String& name)
 {
-	if (data_type_register)
-	{
-		if (DataModel* model = GetDataModelPtr(name))
-			return DataModelConstructor(model, data_type_register.get());
-	}
+	if (DataModel* model = GetDataModelPtr(name))
+		return DataModelConstructor(model);
 
 	Log::Message(Log::LT_ERROR, "Data model name '%s' could not be found.", name.c_str());
 	return DataModelConstructor();

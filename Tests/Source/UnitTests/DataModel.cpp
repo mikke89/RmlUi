@@ -51,10 +51,10 @@ TEST_CASE("Data variables")
 		FunArray more_fun;
 	};
 
-	DataModel model;
 	DataTypeRegister types;
+	DataModel model(&types);
 
-	DataModelConstructor handle(&model, &types);
+	DataModelConstructor handle(&model);
 
 	// Setup data type register
 	{
