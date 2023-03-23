@@ -27,6 +27,7 @@
  */
 
 #include "../Common/Mocks.h"
+#include "../Common/TestsInterface.h"
 #include "../Common/TestsShell.h"
 #include "../Common/TypesToString.h"
 #include <RmlUi/Core/Context.h>
@@ -390,6 +391,32 @@ TEST_CASE("Element.ScrollIntoView")
 
 			CHECK(cells[1][1]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-50, -50));
 			CHECK(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(0, 0));
+			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 50));
+		}
+
+		SUBCASE("Smoothscroll")
+		{
+			TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+			system_interface->SetTime(0);
+			cells[3][3]->ScrollIntoView({ScrollAlignment::Nearest, ScrollAlignment::Nearest, ScrollBehavior::Smooth});
+
+			constexpr double dt = 1.0 / 15.0;
+			system_interface->SetTime(dt);
+			Run(context);
+
+			// We don't define the exact offset at this time step, but it should be somewhere between the start and end offsets.
+			Vector2f offset = cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER);
+			CHECK(offset.x > 50.f);
+			CHECK(offset.y > 50.f);
+			CHECK(offset.x < 75.f);
+			CHECK(offset.y < 75.f);
+
+			// After one second it should be at the destination offset.
+			for (double t = 2.0 * dt; t < 1.0; t += dt)
+			{
+				system_interface->SetTime(t);
+				Run(context);
+			}
 			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 50));
 		}
 	}

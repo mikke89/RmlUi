@@ -81,11 +81,12 @@ enum class ScrollAlignment {
 	Defines behavior of Element::ScrollIntoView.
  */
 struct ScrollIntoViewOptions {
-	ScrollIntoViewOptions(ScrollAlignment vertical = ScrollAlignment::Start, ScrollAlignment horizontal = ScrollAlignment::Nearest) :
-		vertical(vertical), horizontal(horizontal)
+	ScrollIntoViewOptions(ScrollAlignment vertical = ScrollAlignment::Start, ScrollAlignment horizontal = ScrollAlignment::Nearest,
+		ScrollBehavior behavior = ScrollBehavior::Auto) : vertical(vertical), horizontal(horizontal), behavior(behavior)
 	{}
 	ScrollAlignment vertical;
 	ScrollAlignment horizontal;
+	ScrollBehavior behavior;
 };
 
 /**
