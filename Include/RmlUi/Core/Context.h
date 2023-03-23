@@ -318,7 +318,7 @@ private:
 	Vector2i mouse_position;
 	bool mouse_active;
 
-	// Autoscroll state (scrolling with middle mouse button). Autoscroll enabled when target is non-null.
+	// Controller for various scroll behavior modes.
 	UniquePtr<ScrollController> scroll_controller; // [not-null]
 
 	// Enables cursor handling.
@@ -369,6 +369,9 @@ private:
 	void CreateDragClone(Element* element);
 	// Releases the drag clone, if one exists.
 	void ReleaseDragClone();
+
+	// Scroll the target by the given amount, using smooth scrolling.
+	void PerformSmoothscrollOnTarget(Element* target, Vector2f delta_offset);
 
 	// Returns the data model with the provided name, or nullptr if it does not exist.
 	DataModel* GetDataModelPtr(const String& name) const;

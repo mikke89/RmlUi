@@ -1324,6 +1324,21 @@ void Element::ScrollIntoView(bool align_with_top)
 	ScrollIntoView(options);
 }
 
+void Element::ScrollTo(Vector2f offset, ScrollBehavior behavior)
+{
+	if (behavior == ScrollBehavior::Smooth)
+	{
+		if (Context* context = GetContext())
+		{
+			context->PerformSmoothscrollOnTarget(this, offset - scroll_offset);
+			return;
+		}
+	}
+
+	SetScrollLeft(offset.x);
+	SetScrollTop(offset.y);
+}
+
 // Appends a child to this element
 Element* Element::AppendChild(ElementPtr child, bool dom_element)
 {

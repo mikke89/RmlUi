@@ -1326,6 +1326,12 @@ void Context::ReleaseDragClone()
 	}
 }
 
+void Context::PerformSmoothscrollOnTarget(Element* target, Vector2f delta_offset)
+{
+	scroll_controller->ActivateSmoothscroll(target);
+	scroll_controller->IncrementSmoothscrollTarget(delta_offset);
+}
+
 DataModel* Context::GetDataModelPtr(const String& name) const
 {
 	auto it = data_models.find(name);

@@ -66,6 +66,11 @@ class TransformState;
 struct ElementMeta;
 struct StackingOrderedChild;
 
+enum class ScrollBehavior {
+	Auto,    // Same as Instant.
+	Smooth,  // Scroll to the destination using a smooth animation.
+	Instant, // Scroll to the destination instantly.
+};
 enum class ScrollAlignment {
 	Start,   // Align to the top or left edge of the parent element.
 	Center,  // Align to the center of the parent element.
@@ -522,6 +527,11 @@ public:
 	/// Scrolls the parent element's contents so that this element is visible.
 	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be aligned to the bottom of the parent element's window.
 	void ScrollIntoView(bool align_with_top = true);
+	/// Sets the scroll offset of this element to the given coordinates.
+	/// @param[in] position The scroll destination coordinates.
+	/// @param[in] behavior Smooth scrolling behavior.
+	/// @note Smooth scrolling can only be applied to a single element at a time, any active smooth scrolls will be cancelled.
+	void ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Auto);
 
 	/// Append a child to this element.
 	/// @param[in] element The element to append as a child.
