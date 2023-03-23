@@ -97,4 +97,6 @@ void InputType::Select() {}
 
 void InputType::SetSelectionRange(int /*selection_start*/, int /*selection_end*/) {}
 
+void InputType::GetSelection(int* /*selection_start*/, int* /*selection_end*/, String* /*selected_text*/) const {}
+
 } // namespace Rml

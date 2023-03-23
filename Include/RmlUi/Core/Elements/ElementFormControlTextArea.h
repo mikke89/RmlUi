@@ -91,12 +91,17 @@ public:
 	/// @return True if the text area is word-wrapping, false otherwise.
 	bool GetWordWrap();
 
-	/// Select all text.
+	/// Selects all text.
 	void Select();
-	/// Select the text in the given character range.
+	/// Selects the text in the given character range.
 	/// @param[in] selection_start The first character to be selected.
 	/// @param[in] selection_end The first character *after* the selection.
 	void SetSelectionRange(int selection_start, int selection_end);
+	/// Retrieves the selection range and text.
+	/// @param[out] selection_start The first character selected.
+	/// @param[out] selection_end The first character *after* the selection.
+	/// @param[out] selected_text The selected text.
+	void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
 
 	/// Returns the control's inherent size, based on the length of the input field and the current font size.
 	/// @return True.

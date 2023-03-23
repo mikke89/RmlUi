@@ -126,6 +126,11 @@ void ElementFormControlTextArea::SetSelectionRange(int selection_start, int sele
 	widget->SetSelectionRange(selection_start, selection_end);
 }
 
+void ElementFormControlTextArea::GetSelection(int* selection_start, int* selection_end, String* selected_text) const
+{
+	widget->GetSelection(selection_start, selection_end, selected_text);
+}
+
 // Returns the control's inherent size, based on the length of the input field and the current font size.
 bool ElementFormControlTextArea::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {

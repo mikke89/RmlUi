@@ -80,6 +80,12 @@ void ElementFormControlInput::SetSelectionRange(int selection_start, int selecti
 	type->SetSelectionRange(selection_start, selection_end);
 }
 
+void ElementFormControlInput::GetSelection(int* selection_start, int* selection_end, String* selected_text) const
+{
+	RMLUI_ASSERT(type);
+	type->GetSelection(selection_start, selection_end, selected_text);
+}
+
 // Updates the element's underlying type.
 void ElementFormControlInput::OnUpdate()
 {

@@ -65,3 +65,49 @@ TEST_CASE("StringUtilities::TrimTrailingDotZeros")
 }
 
 
+
+#include "../../../Source/Core/Elements/WidgetTextInput.cpp"
+
+TEST_CASE("ConvertByteOffsetToCharacterOffset")
+{
+	// clang-format off
+	CHECK(ConvertByteOffsetToCharacterOffset("", 0) == 0);
+	CHECK(ConvertByteOffsetToCharacterOffset("", 1) == 0);
+    CHECK(ConvertByteOffsetToCharacterOffset("a", 0) == 0);
+    CHECK(ConvertByteOffsetToCharacterOffset("a", 1) == 1);
+	CHECK(ConvertByteOffsetToCharacterOffset("ab", 1) == 1);
+	CHECK(ConvertByteOffsetToCharacterOffset("ab", 2) == 2);
+
+	CHECK(ConvertByteOffsetToCharacterOffset("a\xC2\xA3" "b", 1) == 1);
+	CHECK(ConvertByteOffsetToCharacterOffset("a\xC2\xA3" "b", 2) == 2);
+	CHECK(ConvertByteOffsetToCharacterOffset("a\xC2\xA3" "b", 3) == 2);
+	CHECK(ConvertByteOffsetToCharacterOffset("a\xC2\xA3" "b", 4) == 3);
+
+	CHECK(ConvertByteOffsetToCharacterOffset("a\xE2\x82\xAC" "b", 2) == 2);
+	CHECK(ConvertByteOffsetToCharacterOffset("a\xE2\x82\xAC" "b", 3) == 2);
+	CHECK(ConvertByteOffsetToCharacterOffset("a\xE2\x82\xAC" "b", 4) == 2);
+	CHECK(ConvertByteOffsetToCharacterOffset("a\xE2\x82\xAC" "b", 5) == 3);
+	// clang-format on
+}
+
+TEST_CASE("ConvertCharacterOffsetToByteOffset")
+{
+	// clang-format off
+	CHECK(ConvertCharacterOffsetToByteOffset("", 0) == 0);
+	CHECK(ConvertCharacterOffsetToByteOffset("", 1) == 0);
+    CHECK(ConvertCharacterOffsetToByteOffset("a", 0) == 0);
+    CHECK(ConvertCharacterOffsetToByteOffset("a", 1) == 1);
+	CHECK(ConvertCharacterOffsetToByteOffset("ab", 1) == 1);
+	CHECK(ConvertCharacterOffsetToByteOffset("ab", 2) == 2);
+
+	CHECK(ConvertCharacterOffsetToByteOffset("a\xC2\xA3" "b", 1) == 1);
+	CHECK(ConvertCharacterOffsetToByteOffset("a\xC2\xA3" "b", 2) == 3);
+	CHECK(ConvertCharacterOffsetToByteOffset("a\xC2\xA3" "b", 3) == 4);
+	CHECK(ConvertCharacterOffsetToByteOffset("a\xC2\xA3" "b", 4) == 4);
+
+	CHECK(ConvertCharacterOffsetToByteOffset("a\xE2\x82\xAC" "b", 1) == 1);
+	CHECK(ConvertCharacterOffsetToByteOffset("a\xE2\x82\xAC" "b", 2) == 4);
+	CHECK(ConvertCharacterOffsetToByteOffset("a\xE2\x82\xAC" "b", 3) == 5);
+	CHECK(ConvertCharacterOffsetToByteOffset("a\xE2\x82\xAC" "b", 4) == 5);
+	// clang-format on
+}

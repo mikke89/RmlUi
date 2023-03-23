@@ -75,6 +75,18 @@ static int ConvertCharacterOffsetToByteOffset(const String& value, int character
 	return (int)value.size();
 }
 
+static int ConvertByteOffsetToCharacterOffset(const String& value, int byte_offset)
+{
+	int character_count = 0;
+	for (auto it = StringIteratorU8(value); it; ++it)
+	{
+		if (it.offset() >= byte_offset)
+			break;
+		character_count += 1;
+	}
+	return character_count;
+}
+
 // Clamps the value to the given maximum number of unicode code points. Returns true if the value was changed.
 static bool ClampValue(String& value, int max_length)
 {
@@ -247,6 +259,17 @@ void WidgetTextInput::SetSelectionRange(int selection_start, int selection_end)
 
 	if (selection_changed)
 		FormatText();
+}
+
+void WidgetTextInput::GetSelection(int* selection_start, int* selection_end, String* selected_text) const
+{
+	const String& value = GetValue();
+	if (selection_start)
+		*selection_start = ConvertByteOffsetToCharacterOffset(value, selection_begin_index);
+	if (selection_end)
+		*selection_end = ConvertByteOffsetToCharacterOffset(value, selection_begin_index + selection_length);
+	if (selected_text)
+		*selected_text = value.substr(Math::Min((size_t)selection_begin_index, (size_t)value.size()), (size_t)selection_length);
 }
 
 // Update the colours of the selected text.
@@ -608,7 +631,7 @@ bool WidgetTextInput::DeleteCharacters(CursorMovement direction)
 void WidgetTextInput::CopySelection()
 {
 	const String& value = GetValue();
-	const String snippet = value.substr(std::min((size_t)selection_begin_index, (size_t)value.size()), (size_t)selection_length);
+	const String snippet = value.substr(Math::Min((size_t)selection_begin_index, (size_t)value.size()), (size_t)selection_length);
 	GetSystemInterface()->SetClipboardText(snippet);
 }
 

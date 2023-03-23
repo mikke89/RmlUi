@@ -136,4 +136,9 @@ void InputTypeText::SetSelectionRange(int selection_start, int selection_end)
 	widget->SetSelectionRange(selection_start, selection_end);
 }
 
+void InputTypeText::GetSelection(int* selection_start, int* selection_end, String* selected_text) const
+{
+	widget->GetSelection(selection_start, selection_end, selected_text);
+}
+
 } // namespace Rml
