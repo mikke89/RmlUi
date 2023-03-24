@@ -181,17 +181,12 @@ private:
 	ElementList elements;
 };
 
-class DataViewAlias final : public DataView {
+class DataViewAlias final : public DataViewCommon {
 public:
 	DataViewAlias(Element* element);
 
 	bool Update(DataModel& model) override;
-	StringList GetVariableNameList() const override;
 	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
-
-protected:
-	// Delete this
-	void Release() override;
 };
 
 } // namespace Rml
