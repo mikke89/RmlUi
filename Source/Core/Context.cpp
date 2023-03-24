@@ -828,6 +828,11 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 
 bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 {
+	return ProcessMouseWheel(Vector2f{0.f, wheel_delta}, key_modifier_state);
+}
+
+bool Context::ProcessMouseWheel(Vector2f wheel_delta, int key_modifier_state)
+{
 	if (scroll_controller->GetMode() == ScrollController::Mode::Autoscroll)
 	{
 		scroll_controller->Reset();
@@ -842,14 +847,15 @@ bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 	Dictionary scroll_parameters;
 	GenerateMouseEventParameters(scroll_parameters);
 	GenerateKeyModifierEventParameters(scroll_parameters, key_modifier_state);
-	scroll_parameters["wheel_delta"] = wheel_delta;
+	scroll_parameters["wheel_delta_x"] = wheel_delta.x;
+	scroll_parameters["wheel_delta_y"] = wheel_delta.y;
 
 	// Dispatch a mouse scroll event, this gives elements an opportunity to block scrolling from being performed.
 	if (!hover->DispatchEvent(EventId::Mousescroll, scroll_parameters))
 		return false;
 
 	const float unit_scroll_length = UNIT_SCROLL_LENGTH * density_independent_pixel_ratio;
-	const Vector2f scroll_length = {0.f, wheel_delta * unit_scroll_length};
+	const Vector2f scroll_length = wheel_delta * unit_scroll_length;
 	Element* target = hover->GetClosestScrollableContainer();
 
 	if (scroll_controller->GetMode() == ScrollController::Mode::Smoothscroll && scroll_controller->GetTarget() == target)
