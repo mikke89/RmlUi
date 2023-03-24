@@ -490,22 +490,22 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, float slider_
 
 void WidgetScroll::ScrollLineDown()
 {
-	Scroll(SCROLL_LINE_LENGTH * ElementUtilities::GetDensityIndependentPixelRatio(parent), ScrollBehavior::Smooth);
+	Scroll(SCROLL_LINE_LENGTH * ElementUtilities::GetDensityIndependentPixelRatio(parent), ScrollBehavior::Auto);
 }
 
 void WidgetScroll::ScrollLineUp()
 {
-	Scroll(-SCROLL_LINE_LENGTH * ElementUtilities::GetDensityIndependentPixelRatio(parent), ScrollBehavior::Smooth);
+	Scroll(-SCROLL_LINE_LENGTH * ElementUtilities::GetDensityIndependentPixelRatio(parent), ScrollBehavior::Auto);
 }
 
 void WidgetScroll::ScrollPageDown()
 {
-	Scroll(SCROLL_PAGE_FACTOR * bar_length, ScrollBehavior::Smooth);
+	Scroll(SCROLL_PAGE_FACTOR * bar_length, ScrollBehavior::Auto);
 }
 
 void WidgetScroll::ScrollPageUp()
 {
-	Scroll(-SCROLL_PAGE_FACTOR * bar_length, ScrollBehavior::Smooth);
+	Scroll(-SCROLL_PAGE_FACTOR * bar_length, ScrollBehavior::Auto);
 }
 
 void WidgetScroll::Scroll(float distance, ScrollBehavior behavior)

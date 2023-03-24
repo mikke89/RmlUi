@@ -192,6 +192,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertySpecification.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScriptInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScrollTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Spritesheet.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Stream.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StreamMemory.h

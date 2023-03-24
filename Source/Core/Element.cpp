@@ -1325,13 +1325,13 @@ void Element::ScrollIntoView(bool align_with_top)
 
 void Element::ScrollTo(Vector2f offset, ScrollBehavior behavior)
 {
-	if (behavior == ScrollBehavior::Smooth)
+	if (behavior != ScrollBehavior::Instant)
 	{
 		if (Context* context = GetContext())
 		{
 			const Vector2f max_offset = {GetScrollWidth() - GetClientWidth(), GetScrollHeight() - GetClientHeight()};
 			offset = Math::Min(Math::Max(offset, Vector2f(0.0f)), max_offset);
-			context->PerformSmoothscrollOnTarget(this, offset - scroll_offset);
+			context->PerformSmoothscrollOnTarget(this, offset - scroll_offset, behavior);
 			return;
 		}
 	}

@@ -36,6 +36,7 @@
 #include "ObserverPtr.h"
 #include "Property.h"
 #include "ScriptInterface.h"
+#include "ScrollTypes.h"
 #include "StyleTypes.h"
 #include "Transform.h"
 #include "Tween.h"
@@ -65,29 +66,6 @@ class StyleSheetContainer;
 class TransformState;
 struct ElementMeta;
 struct StackingOrderedChild;
-
-enum class ScrollBehavior {
-	Auto,    // Same as Instant.
-	Smooth,  // Scroll to the destination using a smooth animation.
-	Instant, // Scroll to the destination instantly.
-};
-enum class ScrollAlignment {
-	Start,   // Align to the top or left edge of the parent element.
-	Center,  // Align to the center of the parent element.
-	End,     // Align to the bottom or right edge of the parent element.
-	Nearest, // Align with minimal scroll change.
-};
-/**
-	Defines behavior of Element::ScrollIntoView.
- */
-struct ScrollIntoViewOptions {
-	ScrollIntoViewOptions(ScrollAlignment vertical = ScrollAlignment::Start, ScrollAlignment horizontal = ScrollAlignment::Nearest,
-		ScrollBehavior behavior = ScrollBehavior::Auto) : vertical(vertical), horizontal(horizontal), behavior(behavior)
-	{}
-	ScrollAlignment vertical;
-	ScrollAlignment horizontal;
-	ScrollBehavior behavior;
-};
 
 /**
 	A generic element in the DOM tree.
@@ -532,7 +510,7 @@ public:
 	/// @param[in] position The scroll destination coordinates.
 	/// @param[in] behavior Smooth scrolling behavior.
 	/// @note Smooth scrolling can only be applied to a single element at a time, any active smooth scrolls will be cancelled.
-	void ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Auto);
+	void ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Instant);
 
 	/// Append a child to this element.
 	/// @param[in] element The element to append as a child.

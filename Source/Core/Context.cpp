@@ -848,13 +848,15 @@ bool Context::ProcessMouseWheel(float wheel_delta, int key_modifier_state)
 	if (!hover->DispatchEvent(EventId::Mousescroll, scroll_parameters))
 		return false;
 
-	if (scroll_controller->GetMode() != ScrollController::Mode::Smoothscroll)
-		scroll_controller->ActivateSmoothscroll(hover->GetClosestScrollableContainer());
-
 	const float unit_scroll_length = UNIT_SCROLL_LENGTH * density_independent_pixel_ratio;
 	const Vector2f scroll_length = {0.f, wheel_delta * unit_scroll_length};
+	Element* target = hover->GetClosestScrollableContainer();
 
-	scroll_controller->IncrementSmoothscrollTarget(scroll_length);
+	if (scroll_controller->GetMode() == ScrollController::Mode::Smoothscroll && scroll_controller->GetTarget() == target)
+		scroll_controller->IncrementSmoothscrollTarget(scroll_length);
+	else
+		scroll_controller->ActivateSmoothscroll(target, scroll_length, ScrollBehavior::Auto);
+
 	return false;
 }
 
@@ -871,6 +873,11 @@ bool Context::ProcessMouseLeave()
 bool Context::IsMouseInteracting() const
 {
 	return (hover && hover != root.get()) || (active && active != root.get()) || scroll_controller->GetMode() == ScrollController::Mode::Autoscroll;
+}
+
+void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor)
+{
+	scroll_controller->SetDefaultScrollBehavior(scroll_behavior, speed_factor);
 }
 
 // Gets the context's render interface.
@@ -1327,10 +1334,9 @@ void Context::ReleaseDragClone()
 	}
 }
 
-void Context::PerformSmoothscrollOnTarget(Element* target, Vector2f delta_offset)
+void Context::PerformSmoothscrollOnTarget(Element* target, Vector2f delta_offset, ScrollBehavior scroll_behavior)
 {
-	scroll_controller->ActivateSmoothscroll(target);
-	scroll_controller->IncrementSmoothscrollTarget(delta_offset);
+	scroll_controller->ActivateSmoothscroll(target, delta_offset, scroll_behavior);
 }
 
 DataModel* Context::GetDataModelPtr(const String& name) const

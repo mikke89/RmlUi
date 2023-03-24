@@ -97,14 +97,25 @@ void ScrollController::ActivateAutoscroll(Element* in_target, Vector2i start_pos
 	UpdateTime();
 }
 
-void ScrollController::ActivateSmoothscroll(Element* in_target)
+void ScrollController::ActivateSmoothscroll(Element* in_target, Vector2f delta_distance, ScrollBehavior scroll_behavior)
 {
 	Reset();
 	if (!in_target)
 		return;
+
 	target = in_target;
+
+	// Do instant scroll if preferred.
+	if (smoothscroll_prefer_instant && scroll_behavior != ScrollBehavior::Smooth)
+	{
+		PerformScrollOnTarget(delta_distance);
+		target = nullptr;
+		return;
+	}
+
 	mode = Mode::Smoothscroll;
 	UpdateTime();
+	IncrementSmoothscrollTarget(delta_distance);
 }
 
 void ScrollController::Update(Vector2i mouse_position, float dp_ratio)
@@ -145,7 +156,7 @@ void ScrollController::UpdateSmoothscroll(float dp_ratio)
 	const Vector2f velocity = CalculateSmoothscrollVelocity(target_delta, smoothscroll_scrolled_distance, dp_ratio);
 
 	const float dt = UpdateTime();
-	Vector2f scroll_distance = (velocity * dt).Round();
+	Vector2f scroll_distance = (smoothscroll_speed_factor * velocity * dt).Round();
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -201,7 +212,22 @@ void ScrollController::IncrementSmoothscrollTarget(Vector2f delta_distance)
 
 void ScrollController::Reset()
 {
-	*this = ScrollController{};
+	mode = Mode::None;
+	target = nullptr;
+
+	autoscroll_start_position = Vector2i{};
+	autoscroll_accumulated_length = Vector2f{};
+	autoscroll_moved = false;
+
+	smoothscroll_target_distance = Vector2f{};
+	smoothscroll_scrolled_distance = Vector2f{};
+	// Keep smoothscroll configuration parameters.
+}
+
+void ScrollController::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor)
+{
+	smoothscroll_prefer_instant = (scroll_behavior == ScrollBehavior::Instant);
+	smoothscroll_speed_factor = speed_factor;
 }
 
 String ScrollController::GetAutoscrollCursor(Vector2i mouse_position, float dp_ratio) const

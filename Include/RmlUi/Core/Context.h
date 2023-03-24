@@ -34,6 +34,7 @@
 #include "Traits.h"
 #include "Input.h"
 #include "ScriptInterface.h"
+#include "ScrollTypes.h"
 
 namespace Rml {
 
@@ -230,6 +231,11 @@ public:
 	/// @return True if the mouse hovers over or has activated an element in this context, otherwise false.
 	bool IsMouseInteracting() const;
 
+	/// Sets the default scroll behavior, such as for mouse wheel processing and scrollbar interaction.
+	/// @param[in] scroll_behavior The default smooth scroll behavior, set to instant to disable smooth scrolling.
+	/// @param[in] speed_factor A factor for adjusting the final smooth scrolling speed, must be strictly positive, defaults to 1.0.
+	void SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor);
+
 	/// Gets the context's render interface.
 	/// @return The render interface the context renders through.
 	RenderInterface* GetRenderInterface() const;
@@ -372,7 +378,7 @@ private:
 	void ReleaseDragClone();
 
 	// Scroll the target by the given amount, using smooth scrolling.
-	void PerformSmoothscrollOnTarget(Element* target, Vector2f delta_offset);
+	void PerformSmoothscrollOnTarget(Element* target, Vector2f delta_offset, ScrollBehavior scroll_behavior);
 
 	// Returns the data model with the provided name, or nullptr if it does not exist.
 	DataModel* GetDataModelPtr(const String& name) const;
