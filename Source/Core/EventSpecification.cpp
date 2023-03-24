@@ -48,7 +48,7 @@ void Initialize()
 		//      id                 type      interruptible  bubbles     default_action
 		{EventId::Invalid       , "invalid"       , false , false , DefaultActionPhase::None},
 		{EventId::Mousedown     , "mousedown"     , true  , true  , DefaultActionPhase::TargetAndBubble},
-		{EventId::Mousescroll   , "mousescroll"   , true  , true  , DefaultActionPhase::TargetAndBubble},
+		{EventId::Mousescroll   , "mousescroll"   , true  , true  , DefaultActionPhase::None},
 		{EventId::Mouseover     , "mouseover"     , true  , true  , DefaultActionPhase::Target},
 		{EventId::Mouseout      , "mouseout"      , true  , true  , DefaultActionPhase::Target},
 		{EventId::Focus         , "focus"         , false , false , DefaultActionPhase::Target},

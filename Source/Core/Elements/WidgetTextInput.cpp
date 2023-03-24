@@ -498,7 +498,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			if (UpdateSelection(event == EventId::Drag || event.GetParameter<int>("shift_key", 0) > 0))
 				FormatText();
 
-			ShowCursor(true);
+			const bool move_to_cursor = (event == EventId::Drag);
+			ShowCursor(true, move_to_cursor);
 			cancel_next_drag = false;
 		}
 	}

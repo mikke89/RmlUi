@@ -102,6 +102,9 @@ namespace StringUtilities
 	/// @warning If the string does not represent a number _with_ a decimal point, the result is ill-defined.
 	RMLUICORE_API void TrimTrailingDotZeros(String& string);
 
+	/// Returns true if the string starts with the given value.
+	RMLUICORE_API bool StartsWith(StringView string, StringView start);
+
 	/// Case insensitive string comparison. Returns true if they compare equal.
 	RMLUICORE_API bool StringCompareCaseInsensitive(StringView lhs, StringView rhs);
 
@@ -147,6 +150,13 @@ public:
 	StringView(const String& string);
 	StringView(const String& string, size_t offset);
 	StringView(const String& string, size_t offset, size_t count);
+
+	// Constructor for null-terminated string literals.
+	template <size_t N>
+	StringView(const char (&string)[N]) : p_begin(string), p_end(string + (N - 1))
+	{
+		static_assert(N >= 1, "");
+	}
 
 	// String comparison to another view
 	bool operator==(const StringView& other) const;

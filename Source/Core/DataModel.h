@@ -46,7 +46,7 @@ class FuncDefinition;
 
 class DataModel : NonCopyMoveable {
 public:
-	DataModel(const TransformFuncRegister* transform_register = nullptr);
+	DataModel(DataTypeRegister* data_type_register = nullptr);
 	~DataModel();
 
 	void AddView(DataViewPtr view);
@@ -80,6 +80,10 @@ public:
 
 	bool Update(bool clear_dirty_variables);
 
+	inline DataTypeRegister* GetDataTypeRegister() const {
+		return data_type_register;
+	}
+
 private:
 	UniquePtr<DataViews> views;
 	UniquePtr<DataControllers> controllers;
@@ -93,7 +97,7 @@ private:
 	using ScopedAliases = UnorderedMap<Element*, SmallUnorderedMap<String, DataAddress>>;
 	ScopedAliases aliases;
 
-	const TransformFuncRegister* transform_register;
+	DataTypeRegister* data_type_register;
 
 	SmallUnorderedSet<Element*> attached_elements;
 };
