@@ -63,6 +63,21 @@ public:
 	/// @return True if the form control is to be submitted, false otherwise.
 	bool IsSubmitted() override;
 
+	/// Selects all text.
+	/// @note Only applies to text and password input types.
+	void Select();
+	/// Selects the text in the given character range.
+	/// @param[in] selection_start The first character to be selected.
+	/// @param[in] selection_end The first character *after* the selection.
+	/// @note Only applies to text and password input types.
+	void SetSelectionRange(int selection_start, int selection_end);
+	/// Retrieves the selection range and text.
+	/// @param[out] selection_start The first character selected.
+	/// @param[out] selection_end The first character *after* the selection.
+	/// @param[out] selected_text The selected text.
+	/// @note Only applies to text and password input types.
+	void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
+
 protected:
 	/// Updates the element's underlying type.
 	void OnUpdate() override;

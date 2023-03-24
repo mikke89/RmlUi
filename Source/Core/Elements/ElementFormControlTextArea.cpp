@@ -39,17 +39,14 @@ namespace Rml {
 // Constructs a new ElementFormControlTextArea.
 ElementFormControlTextArea::ElementFormControlTextArea(const String& tag) : ElementFormControl(tag)
 {
-	widget = new WidgetTextInputMultiLine(this);
+	widget = MakeUnique<WidgetTextInputMultiLine>(this);
 
 	SetProperty(PropertyId::OverflowX, Property(Style::Overflow::Auto));
 	SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Auto));
 	SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Prewrap));
 }
 
-ElementFormControlTextArea::~ElementFormControlTextArea()
-{
-	delete widget;
-}
+ElementFormControlTextArea::~ElementFormControlTextArea() {}
 
 // Returns a string representation of the current value of the form control.
 String ElementFormControlTextArea::GetValue() const
@@ -117,6 +114,21 @@ bool ElementFormControlTextArea::GetWordWrap()
 {
 	String attribute = GetAttribute< String >("wrap", "");
 	return attribute != "nowrap";
+}
+
+void ElementFormControlTextArea::Select()
+{
+	widget->Select();
+}
+
+void ElementFormControlTextArea::SetSelectionRange(int selection_start, int selection_end)
+{
+	widget->SetSelectionRange(selection_start, selection_end);
+}
+
+void ElementFormControlTextArea::GetSelection(int* selection_start, int* selection_end, String* selected_text) const
+{
+	widget->GetSelection(selection_start, selection_end, selected_text);
 }
 
 // Returns the control's inherent size, based on the length of the input field and the current font size.
