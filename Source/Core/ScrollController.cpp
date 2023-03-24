@@ -37,7 +37,8 @@ static constexpr float AUTOSCROLL_SPEED_FACTOR = 0.09f;
 static constexpr float AUTOSCROLL_DEADZONE = 10.0f; // [dp]
 
 static constexpr float SMOOTHSCROLL_WINDOW_SIZE = 50.f;        // The window where smoothing is applied, as a distance from scroll start and end. [dp]
-static constexpr float SMOOTHSCROLL_VELOCITY_CONSTANT = 800.f; // The constant velocity, any smoothing is applied on top of this. [dp/s]
+static constexpr float SMOOTHSCROLL_MAX_VELOCITY = 10'000.f;   // [dp/s]
+static constexpr float SMOOTHSCROLL_VELOCITY_CONSTANT = 800.f; // [dp/s]
 static constexpr float SMOOTHSCROLL_VELOCITY_SQUARE_FACTOR = 0.05f;
 
 // Clamp the delta time to some reasonable FPS range, to avoid large steps in case of stuttering or freezing.
@@ -74,15 +75,15 @@ static Vector2f CalculateSmoothscrollVelocity(Vector2f target_delta, Vector2f sc
 	const Vector2f alpha_in = Math::Min(scrolled_distance / SMOOTHSCROLL_WINDOW_SIZE, Vector2f(1.f));
 	const Vector2f alpha_out = Math::Min(target_delta_abs / SMOOTHSCROLL_WINDOW_SIZE, Vector2f(1.f));
 	const Vector2f smooth_window = {
-		tween(alpha_in.x) * tween(alpha_out.x),
-		tween(alpha_in.y) * tween(alpha_out.y),
+		0.2f + 0.8f * tween(alpha_in.x) * tween(alpha_out.x),
+		0.2f + 0.8f * tween(alpha_in.y) * tween(alpha_out.y),
 	};
 
 	const Vector2f velocity_constant = Vector2f(SMOOTHSCROLL_VELOCITY_CONSTANT);
 	const Vector2f velocity_square = SMOOTHSCROLL_VELOCITY_SQUARE_FACTOR * target_delta_abs * target_delta_abs;
 
 	// Short scrolls are dominated by the smoothed constant velocity, while the square term is added for quick longer scrolls.
-	return dp_ratio * target_delta_signum * (smooth_window * velocity_constant + velocity_square);
+	return dp_ratio * target_delta_signum * smooth_window * Math::Min(velocity_constant + velocity_square, Vector2f(SMOOTHSCROLL_MAX_VELOCITY));
 }
 
 void ScrollController::ActivateAutoscroll(Element* in_target, Vector2i start_position)
@@ -157,6 +158,12 @@ void ScrollController::UpdateSmoothscroll(float dp_ratio)
 		else
 			scroll_distance[i] = 0.f;
 	}
+
+#if 0
+	// Useful debugging output for velocity model tuning.
+	Log::Message(Log::LT_INFO, "Scroll  y0 %8.2f   y1 %8.2f   v %8.2f   d %8.2f", smoothscroll_scrolled_distance.y, target_delta.y, velocity.y,
+		scroll_distance.y);
+#endif
 
 	smoothscroll_scrolled_distance += scroll_distance;
 	PerformScrollOnTarget(scroll_distance);

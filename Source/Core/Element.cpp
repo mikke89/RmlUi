@@ -1329,6 +1329,8 @@ void Element::ScrollTo(Vector2f offset, ScrollBehavior behavior)
 	{
 		if (Context* context = GetContext())
 		{
+			const Vector2f max_offset = {GetScrollWidth() - GetClientWidth(), GetScrollHeight() - GetClientHeight()};
+			offset = Math::Min(Math::Max(offset, Vector2f(0.0f)), max_offset);
 			context->PerformSmoothscrollOnTarget(this, offset - scroll_offset);
 			return;
 		}
