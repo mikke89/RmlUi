@@ -50,8 +50,8 @@ enum class ScrollAlignment {
 struct ScrollIntoViewOptions {
 	ScrollIntoViewOptions(ScrollAlignment vertical = ScrollAlignment::Start, ScrollAlignment horizontal = ScrollAlignment::Nearest,
 		ScrollBehavior behavior = ScrollBehavior::Instant) :
-		horizontal(horizontal),
-		vertical(vertical), behavior(behavior)
+		vertical(vertical),
+		horizontal(horizontal), behavior(behavior)
 	{}
 	ScrollAlignment vertical;
 	ScrollAlignment horizontal;
