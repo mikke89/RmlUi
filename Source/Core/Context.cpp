@@ -863,7 +863,7 @@ bool Context::ProcessMouseWheel(Vector2f wheel_delta, int key_modifier_state)
 	else
 		scroll_controller->ActivateSmoothscroll(target, scroll_length, ScrollBehavior::Auto);
 
-	return false;
+	return target == nullptr;
 }
 
 bool Context::ProcessMouseLeave()

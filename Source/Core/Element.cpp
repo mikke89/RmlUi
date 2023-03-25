@@ -1997,10 +1997,8 @@ Element* Element::GetClosestScrollableContainer()
 	scrollable_x = (scrollable_x && GetScrollWidth() > GetClientWidth());
 	scrollable_y = (scrollable_y && GetScrollHeight() > GetClientHeight());
 
-	if (scrollable_x || scrollable_y)
+	if (scrollable_x || scrollable_y || meta->computed_values.overscroll_behavior() == OverscrollBehavior::Contain)
 		return this;
-	else if (meta->computed_values.overscroll_behavior() == OverscrollBehavior::Contain)
-		return nullptr;
 	else if (parent)
 		return parent->GetClosestScrollableContainer();
 
