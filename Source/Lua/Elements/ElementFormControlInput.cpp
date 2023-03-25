@@ -34,6 +34,31 @@
 namespace Rml {
 namespace Lua {
 
+//methods
+int ElementFormControlInputSelect(lua_State* /*L*/, ElementFormControlInput* obj)
+{
+    obj->Select();
+    return 0;
+}
+
+int ElementFormControlInputSetSelection(lua_State* L, ElementFormControlInput* obj)
+{
+    int start = (int)luaL_checkinteger(L, 1);
+    int end = (int)luaL_checkinteger(L, 2);
+    obj->SetSelectionRange(start, end);
+    return 0;
+}
+
+int ElementFormControlInputGetSelection(lua_State* L, ElementFormControlInput* obj)
+{
+    int selection_start = 0, selection_end = 0;
+    String selected_text;
+    obj->GetSelection(&selection_start, &selection_end, &selected_text);
+    lua_pushinteger(L, selection_start);
+    lua_pushinteger(L, selection_end);
+    lua_pushstring(L, selected_text.c_str());
+    return 3;
+}
 
 //getters
 int ElementFormControlInputGetAttrchecked(lua_State* L)
@@ -146,6 +171,9 @@ int ElementFormControlInputSetAttrstep(lua_State* L)
 
 RegType<ElementFormControlInput> ElementFormControlInputMethods[] = 
 {
+    RMLUI_LUAMETHOD(ElementFormControlInput,Select)
+    RMLUI_LUAMETHOD(ElementFormControlInput,SetSelection)
+    RMLUI_LUAMETHOD(ElementFormControlInput,GetSelection)
     {nullptr,nullptr},
 };
 

@@ -36,6 +36,11 @@
 namespace Rml {
 namespace Lua {
 
+//methods
+int ElementFormControlTextAreaSelect(lua_State* L, ElementFormControlTextArea* obj);
+int ElementFormControlTextAreaSetSelection(lua_State* L, ElementFormControlTextArea* obj);
+int ElementFormControlTextAreaGetSelection(lua_State* L, ElementFormControlTextArea* obj);
+
 //getters
 int ElementFormControlTextAreaGetAttrcols(lua_State* L);
 int ElementFormControlTextAreaGetAttrmaxlength(lua_State* L);
