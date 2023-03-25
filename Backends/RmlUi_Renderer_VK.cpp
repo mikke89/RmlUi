@@ -2525,14 +2525,7 @@ void RenderInterface_VK::CreateRenderPass() noexcept
 
 	attachments[0].format = m_swapchain_format.format;
 	attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-
-	// @ in order to be sure that pClearValues and rendering are working properly
-#ifdef RMLUI_VK_DEBUG
 	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-#else
-	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-#endif
-
 	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
