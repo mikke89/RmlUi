@@ -43,8 +43,8 @@ int ElementFormControlInputSelect(lua_State* /*L*/, ElementFormControlInput* obj
 
 int ElementFormControlInputSetSelection(lua_State* L, ElementFormControlInput* obj)
 {
-    int start = (int)luaL_checkinteger(L, 1);
-    int end = (int)luaL_checkinteger(L, 2);
+    int start = (int)GetIndex(L, 1);
+    int end = (int)GetIndex(L, 2);
     obj->SetSelectionRange(start, end);
     return 0;
 }
@@ -54,8 +54,8 @@ int ElementFormControlInputGetSelection(lua_State* L, ElementFormControlInput* o
     int selection_start = 0, selection_end = 0;
     String selected_text;
     obj->GetSelection(&selection_start, &selection_end, &selected_text);
-    lua_pushinteger(L, selection_start);
-    lua_pushinteger(L, selection_end);
+    PushIndex(L, selection_start);
+    PushIndex(L, selection_end);
     lua_pushstring(L, selected_text.c_str());
     return 3;
 }
