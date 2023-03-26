@@ -936,7 +936,7 @@ void RenderInterface_VK::Initialize_Device() noexcept
 
 	info_device.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	info_device.pNext = &features_physical_device2;
-	info_device.queueCreateInfoCount = 2;
+	info_device.queueCreateInfoCount = m_queue_index_compute != m_queue_index_graphics ? 2 : 1;
 	info_device.pQueueCreateInfos = info_queue;
 	info_device.enabledExtensionCount = static_cast<uint32_t>(device_extension_names.size());
 	info_device.ppEnabledExtensionNames = info_device.enabledExtensionCount ? device_extension_names.data() : nullptr;
@@ -1410,7 +1410,7 @@ void RenderInterface_VK::CreatePropertiesFor_Instance(Rml::Vector<const char*>& 
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
 #if defined(RMLUI_PLATFORM_UNIX)
-	// TODO: add x11 headers for linux system AddExtensionToInstance(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 #elif defined(RMLUI_PLATFORM_WIN32)
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #endif
@@ -1635,6 +1635,60 @@ const RenderInterface_VK::PhysicalDeviceWrapper* RenderInterface_VK::ChoosePhysi
 
 VkSurfaceFormatKHR RenderInterface_VK::ChooseSwapchainFormat() noexcept
 {
+	static constexpr VkFormat UNORM_FORMATS[] = {
+		VK_FORMAT_R4G4_UNORM_PACK8,
+		VK_FORMAT_R4G4B4A4_UNORM_PACK16,
+		VK_FORMAT_B4G4R4A4_UNORM_PACK16,
+		VK_FORMAT_R5G6B5_UNORM_PACK16,
+		VK_FORMAT_B5G6R5_UNORM_PACK16,
+		VK_FORMAT_R5G5B5A1_UNORM_PACK16,
+		VK_FORMAT_B5G5R5A1_UNORM_PACK16,
+		VK_FORMAT_A1R5G5B5_UNORM_PACK16,
+		VK_FORMAT_R8_UNORM,
+		VK_FORMAT_R8G8_UNORM,
+		VK_FORMAT_R8G8B8_UNORM,
+		VK_FORMAT_B8G8R8_UNORM,
+		VK_FORMAT_R8G8B8A8_UNORM,
+		VK_FORMAT_B8G8R8A8_UNORM,
+		VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+		VK_FORMAT_A2R10G10B10_UNORM_PACK32,
+		VK_FORMAT_A2B10G10R10_UNORM_PACK32,
+		VK_FORMAT_R16_UNORM,
+		VK_FORMAT_R16G16_UNORM,
+		VK_FORMAT_R16G16B16_UNORM,
+		VK_FORMAT_R16G16B16A16_UNORM,
+		VK_FORMAT_D16_UNORM,
+		VK_FORMAT_X8_D24_UNORM_PACK32,
+		VK_FORMAT_D16_UNORM_S8_UINT,
+		VK_FORMAT_D24_UNORM_S8_UINT,
+		VK_FORMAT_BC1_RGB_UNORM_BLOCK,
+		VK_FORMAT_BC1_RGBA_UNORM_BLOCK,
+		VK_FORMAT_BC2_UNORM_BLOCK,
+		VK_FORMAT_BC3_UNORM_BLOCK,
+		VK_FORMAT_BC4_UNORM_BLOCK,
+		VK_FORMAT_BC5_UNORM_BLOCK,
+		VK_FORMAT_BC7_UNORM_BLOCK,
+		VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK,
+		VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK,
+		VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK,
+		VK_FORMAT_EAC_R11_UNORM_BLOCK,
+		VK_FORMAT_EAC_R11G11_UNORM_BLOCK,
+		VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
+		VK_FORMAT_ASTC_5x4_UNORM_BLOCK,
+		VK_FORMAT_ASTC_5x5_UNORM_BLOCK,
+		VK_FORMAT_ASTC_6x5_UNORM_BLOCK,
+		VK_FORMAT_ASTC_6x6_UNORM_BLOCK,
+		VK_FORMAT_ASTC_8x5_UNORM_BLOCK,
+		VK_FORMAT_ASTC_8x6_UNORM_BLOCK,
+		VK_FORMAT_ASTC_8x8_UNORM_BLOCK,
+		VK_FORMAT_ASTC_10x5_UNORM_BLOCK,
+		VK_FORMAT_ASTC_10x6_UNORM_BLOCK,
+		VK_FORMAT_ASTC_10x8_UNORM_BLOCK,
+		VK_FORMAT_ASTC_10x10_UNORM_BLOCK,
+		VK_FORMAT_ASTC_12x10_UNORM_BLOCK,
+		VK_FORMAT_ASTC_12x12_UNORM_BLOCK,
+	};
+
 	RMLUI_VK_ASSERTMSG(m_p_physical_device, "you must initialize your physical device, before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_surface, "you must initialize your surface, before calling this method");
 
@@ -1645,6 +1699,13 @@ VkSurfaceFormatKHR RenderInterface_VK::ChooseSwapchainFormat() noexcept
 	Rml::Vector<VkSurfaceFormatKHR> formats(surface_count);
 	status = vkGetPhysicalDeviceSurfaceFormatsKHR(m_p_physical_device, m_p_surface, &surface_count, formats.data());
 	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfaceFormatsKHR (filling vector of VkSurfaceFormatKHR)");
+
+	// Prefer UNORM formats
+	for(auto& format : formats) {
+		for(auto ufmt : UNORM_FORMATS) {
+			if(ufmt == format.format) return format;
+		}
+	}
 
 	return formats.front();
 }
@@ -2464,14 +2525,7 @@ void RenderInterface_VK::CreateRenderPass() noexcept
 
 	attachments[0].format = m_swapchain_format.format;
 	attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-
-	// @ in order to be sure that pClearValues and rendering are working properly
-#ifdef RMLUI_VK_DEBUG
 	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-#else
-	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-#endif
-
 	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
