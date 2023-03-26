@@ -10,6 +10,112 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
+## RmlUi 5.1 (WIP)
+
+### New scrolling features
+
+#### Autoscroll mode
+Autoscroll mode, or scrolling with the middle mouse button, is now featured in RmlUi. #422 #423 (thanks @igorsegallafa)
+
+This mode is automatically enabled by the context whenever a middle mouse button press is detected, and there is an element to scroll under the mouse. This can effectively be disabled by simply not submitting middle mouse button presses, or by using another button index when submitting the button to the context.
+
+When autoscroll mode is active, a cursor name is submitted to clients which indicates the state of the autoscroll, so that clients can display an appropriate cursor to the user. These cursor names all start with `rmlui-cursor-`, and take priority over any active `cursor` property. See the new [documentation section on scrolling](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/contexts.html#scrolling) for details.
+
+#### Smooth scrolling
+Smooth scrolling is now supported in RmlUi, and enabled by default. This makes a given scroll action animate smoothly towards its destination. Smooth scrolling can be activated in several situations, including:
+
+- During a call to `Context::ProcessMouseWheel()`.
+- When clicking a scrollbar's arrow keys or track.
+- When calling any of the `Element::Scroll...()` methods with the `ScrollBehavior::Smooth` enum value.
+
+The default smooth scroll behavior is enabled by default. This can be disabled or tweaked on the context as described below.
+
+#### Context interface
+Smooth scrolling can be disabled, or tweaked, by calling the following method on a given context:
+```cpp
+void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor);
+```
+Here, smooth scrolling can be disabled by submitting the `ScrollBehavior::Instant` enum value. The scrolling speed can also be tweaked by adjusting the speed factor.
+
+The function signature of `Context::ProcessMouseWheel` has been replaced with the following, to enable scrolling in both dimensions:
+```cpp
+bool Context::ProcessMouseWheel(Vector2f wheel_delta, int key_modifier_state);
+```
+The old single axis version is still available for backward compatibility, but considered deprecated and may be removed in the future.
+
+#### Element interface
+Added
+```cpp
+void Element::ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Instant);
+```
+which scrolls the element to the given coordinates, with the ability to use smooth scrolling. Similarly, `Element::ScrollIntoView` has been updated with the ability to perform smooth scrolling (instant by default).
+
+#### Scroll events
+The `mousescroll` event no longer performs scrolling on an element, and no longer requires a default action. Instead, the responsibility for mouse scrolling has been moved to the context and its scroll controller. However, the `mousescroll` event is still submitted during a mouse wheel action, with the option to cancel the scroll by stopping its propagation. The event is now also submitted before initiating autoscroll mode, with the possibility to cancel it.
+
+### New RCSS features
+
+- New [`overscroll-behavior` property](https://mikke89.github.io/RmlUiDoc/pages/rcss/user_interface.html#overscroll-behavior). An element's closest scrollable ancestor is decided by scroll chaining, which can be controlled using this property. The `contain` value can be used to ensure that mouse wheel scrolling is not propagated outside a given element, regardless of whether its scrollbars are visible.
+- Added animation support for decorators. #421 (thanks @0suddenly0)
+
+### Text selection interface
+
+Added the ability to set or retrieve the text selection on text fields. #419
+
+In particular, the following methods are now available on `ElementFormControlInput` (`<input>` elements) and `ElementFormControlTextArea` (`<textarea>` elements):
+
+```cpp
+// Selects all text.
+void Select();
+// Selects the text in the given character range.
+void SetSelectionRange(int selection_start, int selection_end);
+// Retrieves the selection range and text.
+void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
+```
+
+See the [form controls documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/element_packages/form.html#text-selection) for details.
+
+### RML and form element improvements
+
+- Add RML support for numeric character reference (Unicode escape sequences). #401 (thanks @dakror)
+- Make the `:checked` pseudo class active on the `<select>` element whenever its options list is open, for better styling capabilities.
+- Fix max length in text input fields not always clamping the value, such as when pasting text.
+- The slider input now only responds to the primary mouse button.
+
+### Bug fixes
+
+- Fix a potential crash during plugin shutdown. #415 (thanks @LoneBoco)
+
+### Data bindings
+
+- Add method to retrieve the `DataTypeRegister` during model construction. #412 #413 (thanks @LoneBoco)
+- Add ability to provide a separate data type register to use when constructing a new data model. Can be useful to provide a distinct type register for each shared library accessing the same context. Alternatively, allows different contexts to share a single type register. #409 (thanks @eugeneko)
+
+### Lua plugin
+
+- Make the Lua plugin compatible with Lua 5.1+ and LuaJIT. #387 (thanks @mrianura)
+- Updated to include the new text selection API. #434 #435 (thanks @ShawnCZek)
+
+### Backends
+
+- Vulkan renderer: Fix various Vulkan issues on Linux. #430 (thanks @Thalhammer)
+- GL3 renderer: Unbind the vertex array after use to avoid possible crash. #411
+
+### Build improvements
+
+- Improve CMake to better support RmlUi included as a subdirectory of a parent project. #394 #395 #397 (thanks @cathaysia)
+- Fix possible name clashes causing build failures during argument-dependent lookup (ADL). #418 #420 (thanks @mwl4)
+
+### Built-in containers
+
+- Replaced custom containers based on chobo-shl with equivalent ones from [itlib](https://github.com/iboB/itlib). #402 (thanks @iboB)
+
+### Breaking changes
+
+- The `mousewheel` event no longer scrolls an element, see scrolling changes above.
+- The signature of `Context::ProcessMouseWheel` has been changed, the old signature is still available but deprecated.
+
+
 ## RmlUi 5.0
 
 ### Backends
