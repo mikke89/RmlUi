@@ -51,7 +51,7 @@ namespace Rml {
 
 static constexpr float DOUBLE_CLICK_TIME = 0.5f;    // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
-static constexpr float UNIT_SCROLL_LENGTH = 100.f;  // [dp]
+static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
 
 Context::Context(const String& name) : name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1)
 {

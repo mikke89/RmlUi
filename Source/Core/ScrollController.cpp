@@ -116,6 +116,10 @@ void ScrollController::ActivateSmoothscroll(Element* in_target, Vector2f delta_d
 	mode = Mode::Smoothscroll;
 	UpdateTime();
 	IncrementSmoothscrollTarget(delta_distance);
+
+	// If the target is scrolled to its edge already, simply cancel the smoothscroll operation.
+	if (HasSmoothscrollReachedTarget())
+		Reset();
 }
 
 void ScrollController::Update(Vector2i mouse_position, float dp_ratio)
@@ -179,8 +183,14 @@ void ScrollController::UpdateSmoothscroll(float dp_ratio)
 	smoothscroll_scrolled_distance += scroll_distance;
 	PerformScrollOnTarget(scroll_distance);
 
-	if (scroll_distance == target_delta)
+	if (HasSmoothscrollReachedTarget())
 		Reset();
+}
+
+bool ScrollController::HasSmoothscrollReachedTarget() const
+{
+	constexpr float epsilon = 0.1f;
+	return (smoothscroll_target_distance - smoothscroll_scrolled_distance).SquaredMagnitude() < epsilon;
 }
 
 void ScrollController::PerformScrollOnTarget(Vector2f delta_distance)
@@ -207,7 +217,14 @@ void ScrollController::IncrementSmoothscrollTarget(Vector2f delta_distance)
 		}
 	}
 
-	smoothscroll_target_distance += delta_distance;
+	// Clamp the delta distance to the scrollable area.
+	const Vector2f scroll_offset = {target->GetScrollLeft(), target->GetScrollTop()};
+	const Vector2f max_offset = {target->GetScrollWidth() - target->GetClientWidth(), target->GetScrollHeight() - target->GetClientHeight()};
+
+	const Vector2f target_offset = scroll_offset + smoothscroll_target_distance - smoothscroll_scrolled_distance;
+	const Vector2f clamped_delta = Math::Clamp(delta_distance + target_offset, Vector2f(0.f), max_offset) - target_offset;
+
+	smoothscroll_target_distance += clamped_delta;
 }
 
 void ScrollController::Reset()

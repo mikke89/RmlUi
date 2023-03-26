@@ -79,6 +79,8 @@ private:
 
 	void UpdateSmoothscroll(float dp_ratio);
 
+	bool HasSmoothscrollReachedTarget() const;
+
 	void PerformScrollOnTarget(Vector2f delta_distance);
 
 	Mode mode = Mode::None;
