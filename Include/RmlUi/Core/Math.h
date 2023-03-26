@@ -88,6 +88,9 @@ RMLUICORE_API Vector2f Max<Vector2f>(Vector2f a, Vector2f b);
 /// Element-wise minimum.
 template <>
 RMLUICORE_API Vector2f Min<Vector2f>(Vector2f a, Vector2f b);
+/// Element-wise clamp.
+template <>
+RMLUICORE_API Vector2f Clamp<Vector2f>(Vector2f value, Vector2f min, Vector2f max);
 
 /// Color interpolation.
 RMLUICORE_API Colourb RoundedLerp(float t, Colourb c0, Colourb c1);

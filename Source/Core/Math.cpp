@@ -275,6 +275,12 @@ Vector2f Min<Vector2f>(Vector2f a, Vector2f b)
 	return Vector2f(Min(a.x, b.x), Min(a.y, b.y));
 }
 
+template <>
+Vector2f Clamp(Vector2f value, Vector2f min, Vector2f max)
+{
+	return Vector2f(Clamp(value.x, min.x, max.x), Clamp(value.y, min.y, max.y));
+}
+
 Colourb RoundedLerp(float t, Colourb v0, Colourb v1)
 {
 	return Colourb{
