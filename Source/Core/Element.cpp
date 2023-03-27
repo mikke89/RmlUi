@@ -186,7 +186,7 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio, vp_dimensions);
 
-	if(!animations.empty() && IsVisible()) {
+	if(!animations.empty() && IsVisible(true)) {
 		Context* ctx = GetContext();
 		if(ctx) ctx->RequestNextUpdate(0);
 	}
@@ -565,9 +565,18 @@ bool Element::IsPointWithinElement(const Vector2f point)
 }
 
 // Returns the visibility of the element.
-bool Element::IsVisible() const
+bool Element::IsVisible(bool recursive) const
 {
-	return visible;
+	if (!recursive)
+		return visible;
+	const Element* element = this;
+	while (element)
+	{
+		if (!element->visible)
+			return false;
+		element = element->parent;
+	}
+	return true;
 }
 
 // Returns the z-index of the element.

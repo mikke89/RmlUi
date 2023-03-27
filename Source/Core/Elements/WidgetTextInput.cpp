@@ -321,7 +321,7 @@ void WidgetTextInput::OnUpdate()
 			cursor_visible = !cursor_visible;
 		}
 
-		if(parent->IsVisible()) {
+		if(parent->IsVisible(true)) {
 			Context* ctx = parent->GetContext();
 			if(ctx) ctx->RequestNextUpdate(cursor_timer);
 		}

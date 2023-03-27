@@ -74,9 +74,11 @@ void ElementLottie::OnUpdate()
 	double _unused;
 	const auto frameDuration = 1.0 / animation->frameRate();
 	const auto delay = std::modf((t - time_animation_start) / frameDuration, &_unused) * frameDuration;
-	Context* ctx = GetContext();
-	if (ctx)
-		ctx->RequestNextUpdate(delay);
+	if(IsVisible(true)) {
+		Context* ctx = GetContext();
+		if (ctx)
+			ctx->RequestNextUpdate(delay);
+	}
 }
 
 void ElementLottie::OnRender()
