@@ -33,6 +33,7 @@
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/Context.h"
 #include "Clock.h"
 #include "LayoutDetails.h"
 
@@ -169,6 +170,9 @@ void WidgetScroll::Update()
 				else
 					ScrollLineDown();
 			}
+
+			Context* ctx = parent->GetContext();
+			if(ctx) ctx->RequestNextUpdate(arrow_timers[i]);
 		}
 	}
 }

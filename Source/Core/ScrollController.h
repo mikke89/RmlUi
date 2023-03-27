@@ -53,7 +53,7 @@ public:
 
 	void ActivateSmoothscroll(Element* target, Vector2f delta_distance, ScrollBehavior scroll_behavior);
 
-	void Update(Vector2i mouse_position, float dp_ratio);
+	bool Update(Vector2i mouse_position, float dp_ratio);
 
 	void IncrementSmoothscrollTarget(Vector2f delta_distance);
 

@@ -185,6 +185,11 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio, vp_dimensions);
+
+	if(!animations.empty() && IsVisible()) {
+		Context* ctx = GetContext();
+		if(ctx) ctx->RequestNextUpdate(0);
+	}
 }
 
 void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)

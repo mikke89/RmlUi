@@ -45,6 +45,7 @@
 #include "StreamFile.h"
 #include <algorithm>
 #include <iterator>
+#include <limits>
 
 
 namespace Rml {
@@ -183,7 +184,10 @@ bool Context::Update()
 {
 	RMLUI_ZoneScoped;
 
-	scroll_controller->Update(mouse_position, density_independent_pixel_ratio);
+	next_update_timeout = std::numeric_limits<double>::infinity();
+
+	if(scroll_controller->Update(mouse_position, density_independent_pixel_ratio))
+		RequestNextUpdate(0);
 
 	// Update the hover chain to detect any new or moved elements under the mouse.
 	if (mouse_active)
@@ -202,11 +206,13 @@ bool Context::Update()
 	root->Update(density_independent_pixel_ratio, Vector2f(dimensions));
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
+	{
 		if (auto doc = root->GetChild(i)->GetOwnerDocument())
 		{
 			doc->UpdateLayout();
 			doc->UpdatePosition();
 		}
+	}
 
 	// Release any documents that were unloaded during the update.
 	ReleaseUnloadedDocuments();
@@ -1460,6 +1466,14 @@ void Context::SetDocumentsBaseTag(const String& tag)
 const String& Context::GetDocumentsBaseTag()
 {
 	return documents_base_tag;
+}
+
+void Context::RequestNextUpdate(double delay) {
+	next_update_timeout = std::min(next_update_timeout, delay);
+}
+
+double Context::NextUpdateRequested() const {
+	return next_update_timeout;
 }
 
 } // namespace Rml

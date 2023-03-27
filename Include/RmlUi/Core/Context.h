@@ -280,6 +280,20 @@ public:
 	/// @return The current documents base tag name.
 	const String& GetDocumentsBaseTag();
 
+	/// Updates the time until Update should get called again. This can be used by elements
+	/// and the app to implement on demand rendering. The context stores the lowest requested
+	/// timestamp, which can later retrieved using NextUpdateRequested().
+	/// @param[in] delay Maximum time until next update
+	void RequestNextUpdate(double delay);
+
+	/// Get the max delay until update and render should get called again. An application can choose
+	/// to only call update and render once the time has elapsed, but theres no harm in doing so
+	/// more often. The returned value can be infinity, in which case update should be invoked after
+	/// user input was received. A value of 0 means "render as fast as possible", for example if
+	/// an animation is playing.
+	/// @return Time until next update is expected.
+	double NextUpdateRequested() const;
+
 protected:
 	void Release() override;
 
@@ -359,6 +373,10 @@ private:
 	DataModels data_models;
 
 	UniquePtr<DataTypeRegister> default_data_type_register;
+
+	// Time in seconds until Update and Render should be called again. This allows applications to only redraw the ui if needed.
+	// See RequestNextUpdate() and NextUpdateRequested() for details.
+	double next_update_timeout;
 
 	// Internal callback for when an element is detached or removed from the hierarchy.
 	void OnElementDetach(Element* element);
