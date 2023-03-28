@@ -78,7 +78,7 @@ static DataAddress ParseAddress(const String& address_str)
 // Returns an error string on error, or nullptr on success.
 static const char* LegalVariableName(const String& name)
 {
-	static SmallUnorderedSet<String> reserved_names{ "it", "ev", "true", "false", "size", "literal" };
+	static SmallUnorderedSet<String> reserved_names{"it", "it_index", "ev", "true", "false", "size", "literal"};
 	
 	if (name.empty())
 		return "Name cannot be empty.";
