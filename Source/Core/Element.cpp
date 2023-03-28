@@ -187,8 +187,8 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 		children[i]->Update(dp_ratio, vp_dimensions);
 
 	if(!animations.empty() && IsVisible(true)) {
-		Context* ctx = GetContext();
-		if(ctx) ctx->RequestNextUpdate(0);
+		if(Context* ctx = GetContext())
+			ctx->RequestNextUpdate(0);
 	}
 }
 
@@ -565,9 +565,9 @@ bool Element::IsPointWithinElement(const Vector2f point)
 }
 
 // Returns the visibility of the element.
-bool Element::IsVisible(bool recursive) const
+bool Element::IsVisible(bool include_ancestors) const
 {
-	if (!recursive)
+	if (!include_ancestors)
 		return visible;
 	const Element* element = this;
 	while (element)

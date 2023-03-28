@@ -161,8 +161,8 @@ void WidgetSlider::Update()
 				SetBarPosition(i == 0 ? OnLineDecrement() : OnLineIncrement());
 			}
 
-			Context* ctx = parent->GetContext();
-			if(ctx) ctx->RequestNextUpdate(arrow_timers[i]);
+			if(Context* ctx = parent->GetContext())
+				ctx->RequestNextUpdate(arrow_timers[i]);
 		}
 	}
 }

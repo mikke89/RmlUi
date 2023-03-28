@@ -281,8 +281,9 @@ public:
 	const String& GetDocumentsBaseTag();
 
 	/// Updates the time until Update should get called again. This can be used by elements
-	/// and the app to implement on demand rendering. The context stores the lowest requested
-	/// timestamp, which can later retrieved using NextUpdateRequested().
+	/// and the app to implement on demand rendering and thus drastically save CPU/GPU and
+	/// reduce power consumption during inactivity. The context stores the lowest requested
+	/// timestamp, which can later retrieved using GetNextUpdateDelay().
 	/// @param[in] delay Maximum time until next update
 	void RequestNextUpdate(double delay);
 
@@ -292,7 +293,7 @@ public:
 	/// user input was received. A value of 0 means "render as fast as possible", for example if
 	/// an animation is playing.
 	/// @return Time until next update is expected.
-	double NextUpdateRequested() const;
+	double GetNextUpdateDelay() const;
 
 protected:
 	void Release() override;

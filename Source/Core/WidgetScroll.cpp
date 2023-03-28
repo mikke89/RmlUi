@@ -171,8 +171,8 @@ void WidgetScroll::Update()
 					ScrollLineDown();
 			}
 
-			Context* ctx = parent->GetContext();
-			if(ctx) ctx->RequestNextUpdate(arrow_timers[i]);
+			if(Context* ctx = parent->GetContext())
+				ctx->RequestNextUpdate(arrow_timers[i]);
 		}
 	}
 }

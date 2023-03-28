@@ -182,7 +182,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->context = context;
 	data->key_down_callback = key_down_callback;
 
-	glfwWaitEventsTimeout(std::min(context->NextUpdateRequested(), 10.0));
+	glfwWaitEventsTimeout(std::min(context->GetNextUpdateDelay(), 10.0));
 
 	if (!WaitForValidSwapchain())
 		result = false;
