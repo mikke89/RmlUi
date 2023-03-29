@@ -189,9 +189,12 @@ Rml::RenderInterface* Backend::GetRenderInterface()
 	return &data->render_interface;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
+
+	// SFML does not seem to provide a way to wait for events with a timeout.
+	(void)power_save;
 
 	// The contents of this function is intended to be copied directly into your main loop.
 	bool result = data->running;

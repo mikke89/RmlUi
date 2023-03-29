@@ -187,7 +187,20 @@ Rml::RenderInterface* Backend::GetRenderInterface()
 	return &data->render_interface;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+static bool NextEvent(MSG& message, UINT timeout)
+{
+	if(timeout != 0)
+	{
+		UINT_PTR timer_id = SetTimer(nullptr, nullptr, timeout, nullptr);
+		BOOL res = GetMessage(&message);
+		KillTimer(nullptr, timer_id);
+		if(message.message != WM_TIMER || message.hwnd != nullptr || message.wParam != timer_id)
+			return res;
+	}
+	return PeekMessage(&message, nullptr, 0, 0, PM_REMOVE);
+}
+
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
 
@@ -204,21 +217,24 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->key_down_callback = key_down_callback;
 
 	MSG message;
-
 	// Process events.
-	while (PeekMessage(&message, nullptr, 0, 0, PM_NOREMOVE) || !data->render_interface.IsSwapchainValid())
+	bool has_message = NextEvent(message, power_save ? Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000 : 0);
+	while (has_message || !data->render_interface.IsSwapchainValid())
 	{
-		GetMessage(&message, nullptr, 0, 0);
-
-		// Dispatch the message to our local event handler below.
-		TranslateMessage(&message);
-		DispatchMessage(&message);
+		if(has_message)
+		{
+			// Dispatch the message to our local event handler below.
+			TranslateMessage(&message);
+			DispatchMessage(&message);
+		}
 
 		// In some situations the swapchain may become invalid, such as when the window is minimized. In this state the renderer cannot accept any
 		// render calls. Since we don't have full control over the main loop here we may risk calls to Context::Render if we were to return. Instead,
 		// we trap the application inside this loop until we are able to recreate the swapchain and render again.
 		if (!data->render_interface.IsSwapchainValid())
 			data->render_interface.RecreateSwapchain();
+		
+		has_message = NextEvent(message, 0);
 	}
 
 	data->context = nullptr;

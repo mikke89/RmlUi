@@ -33,6 +33,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
 
+#include <GLFW/glfw3.h>
 #include <thread>
 #include <chrono>
 
@@ -160,7 +161,7 @@ static bool WaitForValidSwapchain()
 	return result;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
 
@@ -182,7 +183,9 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->context = context;
 	data->key_down_callback = key_down_callback;
 
-	glfwWaitEventsTimeout(std::min(context->GetNextUpdateDelay(), 10.0));
+	if(power_save)
+		glfwWaitEventsTimeout(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0));
+	else glfwPollEvents();
 
 	if (!WaitForValidSwapchain())
 		result = false;

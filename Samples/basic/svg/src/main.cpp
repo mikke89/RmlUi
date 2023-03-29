@@ -82,7 +82,7 @@ int main(int /*argc*/, char** /*argv*/)
 	bool running = true;
 	while (running)
 	{
-		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
+		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts, true);
 
 		context->Update();
 

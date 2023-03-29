@@ -83,7 +83,7 @@ int main(int /*argc*/, char** /*argv*/)
 	while (running)
 	{
 		// Handle input and window events.
-		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts);
+		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts, true);
 
 		// This is a good place to update your game or application.
 

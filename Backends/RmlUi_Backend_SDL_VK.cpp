@@ -138,14 +138,18 @@ static bool WaitForValidSwapchain()
 	return result;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
 
 	bool result = data->running;
 	SDL_Event ev;
 
-	while (SDL_PollEvent(&ev))
+	int has_event = 0;
+	if(power_save)
+		has_event = SDL_WaitEventTimeout(&ev, Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000);
+	else has_event = SDL_PollEvent(&ev);
+	while (has_event)
 	{
 		switch (ev.type)
 		{
@@ -188,6 +192,9 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 		}
 		break;
 		}
+		if(power_save)
+			has_event = SDL_WaitEventTimeout(&ev, Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000);
+		else has_event = SDL_PollEvent(&ev);
 	}
 
 	if (!WaitForValidSwapchain())
