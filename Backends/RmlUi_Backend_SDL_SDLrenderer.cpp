@@ -163,9 +163,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 		}
 		break;
 		}
-		if(power_save)
-			has_event = SDL_WaitEventTimeout(&ev, Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000);
-		else has_event = SDL_PollEvent(&ev);
+		has_event = SDL_PollEvent(&ev);
 	}
 
 	return result;

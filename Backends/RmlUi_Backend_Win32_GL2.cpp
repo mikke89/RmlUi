@@ -219,7 +219,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->key_down_callback = key_down_callback;
 
 	MSG message;
-	bool has_message = NextEvent(message, power_save ? static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0))*1000 : 0);
+	bool has_message = NextEvent(message, power_save ? static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000.0) : 0);
 	while (has_message)
 	{
 		// Dispatch the message to our local event handler below.

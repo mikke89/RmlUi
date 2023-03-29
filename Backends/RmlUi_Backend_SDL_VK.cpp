@@ -73,7 +73,25 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	data = Rml::MakeUnique<BackendData>();
 	data->window = window;
 
-	if (!data->render_interface.Initialize(
+	Rml::Vector<const char*> extensions;
+	{
+		unsigned int count;
+		if(!SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr))
+		{
+			data.reset();
+			fprintf(stderr, "Could not get required vulkan extensions");
+			return false;
+		}
+		extensions.resize(count);
+		if(!SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()))
+		{
+			data.reset();
+			fprintf(stderr, "Could not get required vulkan extensions");
+			return false;
+		}
+	}
+
+	if (!data->render_interface.Initialize(std::move(extensions),
 			[](VkInstance instance, VkSurfaceKHR* out_surface) { return (bool)SDL_Vulkan_CreateSurface(data->window, instance, out_surface); }))
 	{
 		data.reset();
@@ -192,9 +210,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 		}
 		break;
 		}
-		if(power_save)
-			has_event = SDL_WaitEventTimeout(&ev, Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000);
-		else has_event = SDL_PollEvent(&ev);
+		has_event = SDL_PollEvent(&ev);
 	}
 
 	if (!WaitForValidSwapchain())

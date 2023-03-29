@@ -26,6 +26,7 @@
  *
  */
 
+#include "RmlUi/Config/Config.h"
 #include "RmlUi_Backend.h"
 #include "RmlUi_Include_Windows.h"
 #include "RmlUi_Platform_Win32.h"
@@ -144,7 +145,10 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	data->window_handle = window_handle;
 
-	if (!data->render_interface.Initialize(CreateVulkanSurface))
+	Rml::Vector<const char*> extensions;
+	extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+	extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+	if (!data->render_interface.Initialize(std::move(extensions), CreateVulkanSurface))
 	{
 		DisplayError(window_handle, "Could not initialize Vulkan render interface.");
 		::CloseWindow(window_handle);
@@ -218,7 +222,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 
 	MSG message;
 	// Process events.
-	bool has_message = NextEvent(message, power_save ? static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0))*1000 : 0);
+	bool has_message = NextEvent(message, power_save ? static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000.0) : 0);
 	while (has_message || !data->render_interface.IsSwapchainValid())
 	{
 		if(has_message)
