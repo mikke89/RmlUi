@@ -523,10 +523,10 @@ input.range sliderbar {
 	height: 23dp;
 	decorator: image( range-bar );
 }
-input.range:hover sliderbar {
+input.range sliderbar:hover, input.range slidertrack:hover + sliderbar  {
 	image-color: #cc0;
 }
-input.range sliderbar:active {
+input.range sliderbar:active, input.range slidertrack:active + sliderbar  {
 	image-color: #c80;
 }
 input.range sliderarrowdec, input.range sliderarrowinc {
