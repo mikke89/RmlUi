@@ -174,6 +174,15 @@ WidgetTextInput::~WidgetTextInput()
 	parent->RemoveEventListener(EventId::Dblclick, this, true);
 	parent->RemoveEventListener(EventId::Drag, this, true);
 
+	// This widget might be parented by an input element, which may now be constructing a completely different type.
+	// Thus, remove all properties set by this widget so they don't affect the new type.
+	parent->RemoveProperty(PropertyId::WhiteSpace);
+	parent->RemoveProperty(PropertyId::OverflowX);
+	parent->RemoveProperty(PropertyId::OverflowY);
+	parent->RemoveProperty(PropertyId::Drag);
+	parent->RemoveProperty(PropertyId::WordBreak);
+	parent->RemoveProperty(PropertyId::TextTransform);
+
 	// Remove all the children added by the text widget.
 	parent->RemoveChild(text_element);
 	parent->RemoveChild(selected_text_element);

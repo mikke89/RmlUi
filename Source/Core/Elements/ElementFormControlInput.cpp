@@ -127,6 +127,10 @@ void ElementFormControlInput::OnAttributeChange(const ElementAttributes& changed
 
 	if (!type || (!new_type_name.empty() && new_type_name != type_name))
 	{
+		// Reset the existing type before constructing a new one. This ensures the old type removes properties and event
+		// listeners attached to this element, so it does not interfere with new ones being attached by the new type.
+		type.reset();
+
 		if (new_type_name == "password")
 			type = MakeUnique<InputTypeText>(this, InputTypeText::OBSCURED);
 		else if (new_type_name == "radio")
