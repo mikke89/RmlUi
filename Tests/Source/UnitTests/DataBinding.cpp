@@ -159,7 +159,11 @@ static const String aliasing_rml = R"(
 <body data-model="basics">
 <p>{{ i0 }}</p>
 <p data-alias-differentname="i0">{{ differentname }}</p>
-<div data-alias-title="s0">
+<div data-alias-title="s0" id="w1">
+	<template src="data-window"></template>
+</div>
+
+<div data-alias-title="s1" id="w2">
 	<template src="data-window"></template>
 </div>
 </body>
@@ -485,7 +489,10 @@ TEST_CASE("databinding.aliasing")
 	TestsShell::RenderLoop();
 
 	CHECK(document->QuerySelector("p:nth-child(1)")->GetInnerRML() == document->QuerySelector("p:nth-child(2)")->GetInnerRML());
-	CHECK(document->QuerySelector("#title")->GetInnerRML() == "s0");
+	REQUIRE(document->QuerySelector("#w1 .title"));
+	REQUIRE(document->QuerySelector("#w2 .title"));
+	CHECK(document->QuerySelector("#w1 .title")->GetInnerRML() == "s0");
+	CHECK(document->QuerySelector("#w2 .title")->GetInnerRML() == "s1");
 
 	document->Close();
 
