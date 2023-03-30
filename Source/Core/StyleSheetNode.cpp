@@ -324,9 +324,25 @@ bool StyleSheetNode::TraverseMatch(const Element* element) const
 	case SelectorCombinator::NextSibling:
 	case SelectorCombinator::SubsequentSibling:
 	{
+		Element* parent_element = element->GetParentNode();
+		if (!parent_element)
+			return false;
+
+		const int preceding_sibling_index = [element, parent_element] {
+			const int num_children = parent_element->GetNumChildren(true);
+			for (int i = 0; i < num_children; i++)
+			{
+				if (parent_element->GetChild(i) == element)
+					return i - 1;
+			}
+			return -1;
+		}();
+
 		// Try to match the previous sibling. If it succeeds we continue on to the next node, otherwise we try to again with its previous sibling.
-		for (element = element->GetPreviousSibling(); element; element = element->GetPreviousSibling())
+		for (int i = preceding_sibling_index; i >= 0; i--)
 		{
+			element = parent_element->GetChild(i);
+
 			// First check if our sibling is a text element and if so skip it. For the descendant/child combinator above we can omit this step since
 			// text elements don't have children and thus any ancestor is not a text element.
 			if (IsTextElement(element))
