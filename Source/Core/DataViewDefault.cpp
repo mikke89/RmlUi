@@ -605,7 +605,12 @@ void DataViewFor::Release()
 	delete this;
 }
 
-DataViewAlias::DataViewAlias(Element* element) : DataViewCommon(element) {}
+DataViewAlias::DataViewAlias(Element* element) : DataView(element, 0) {}
+
+StringList DataViewAlias::GetVariableNameList() const
+{
+	return variables;
+}
 
 bool DataViewAlias::Update(DataModel&)
 {
@@ -614,15 +619,18 @@ bool DataViewAlias::Update(DataModel&)
 
 bool DataViewAlias::Initialize(DataModel& model, Element* element, const String& expression, const String& modifier)
 {
-	if (!DataViewCommon::Initialize(model, element, expression, modifier))
-		return false;
-
 	auto address = model.ResolveAddress(expression, element);
 	if (address.empty())
 		return false;
 
+	variables.push_back(modifier);
 	model.InsertAlias(element, modifier, address);
 	return true;
+}
+
+void DataViewAlias::Release()
+{
+	delete this;
 }
 
 } // namespace Rml
