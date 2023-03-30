@@ -182,6 +182,7 @@ struct DefaultInstancers {
 	DataViewInstancerDefault<DataViewText> data_view_text;
 	DataViewInstancerDefault<DataViewValue> data_view_value;
 	DataViewInstancerDefault<DataViewChecked> data_view_checked;
+	DataViewInstancerDefault<DataViewAlias> data_view_alias;
 
 	DataViewInstancerDefault<DataViewFor> structural_data_view_for;
 
@@ -275,6 +276,7 @@ bool Factory::Initialise()
 	RegisterDataViewInstancer(&default_instancers->data_view_text,           "text",    false);
 	RegisterDataViewInstancer(&default_instancers->data_view_value,          "value",   false);
 	RegisterDataViewInstancer(&default_instancers->data_view_checked,        "checked", false);
+	RegisterDataViewInstancer(&default_instancers->data_view_alias,          "alias",   false);
 	RegisterDataViewInstancer(&default_instancers->structural_data_view_for, "for",     true );
 
 	// Data binding controllers

@@ -148,6 +148,28 @@ static const String inside_string_rml = R"(
 </rml>	
 )";
 
+static const String aliasing_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<link type="text/template" href="/assets/data-window.rml"/>
+</head>
+
+<body data-model="basics">
+<p>{{ i0 }}</p>
+<p data-alias-differentname="i0">{{ differentname }}</p>
+<div data-alias-title="s0" id="w1">
+	<template src="data-window"></template>
+</div>
+
+<div data-alias-title="s1" id="w2">
+	<template src="data-window"></template>
+</div>
+</body>
+</rml>	
+)";
+
 struct StringWrap
 {
 	StringWrap(String val = "wrap_default") : val(val) {}
@@ -445,6 +467,32 @@ TEST_CASE("databinding.inside_string")
 
 	CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "before i{{test}}23 test");
 	CHECK(document->QuerySelector("p:nth-child(5)")->GetInnerRML() == "a i b j c");
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+TEST_CASE("databinding.aliasing")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	REQUIRE(InitializeDataBindings(context));
+
+	ElementDocument* document = context->LoadDocumentFromMemory(aliasing_rml);
+	REQUIRE(document);
+	document->Show();
+
+	context->Update();
+	context->Render();
+
+	TestsShell::RenderLoop();
+
+	CHECK(document->QuerySelector("p:nth-child(1)")->GetInnerRML() == document->QuerySelector("p:nth-child(2)")->GetInnerRML());
+	REQUIRE(document->QuerySelector("#w1 .title"));
+	REQUIRE(document->QuerySelector("#w2 .title"));
+	CHECK(document->QuerySelector("#w1 .title")->GetInnerRML() == "s0");
+	CHECK(document->QuerySelector("#w2 .title")->GetInnerRML() == "s1");
 
 	document->Close();
 
