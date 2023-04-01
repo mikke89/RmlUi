@@ -114,7 +114,7 @@ public:
 
 	using CreateSurfaceCallback = bool (*)(VkInstance instance, VkSurfaceKHR* out_surface);
 
-	bool Initialize(CreateSurfaceCallback create_surface_callback);
+	bool Initialize(Rml::Vector<const char*> required_extensions, CreateSurfaceCallback create_surface_callback);
 	void Shutdown();
 
 	void BeginFrame();
@@ -485,7 +485,7 @@ private:
 private:
 	bool CreateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& dimensions, const Rml::String& name);
 
-	void Initialize_Instance() noexcept;
+	void Initialize_Instance(Rml::Vector<const char*> required_extensions) noexcept;
 	void Initialize_Device() noexcept;
 	void Initialize_PhysicalDevice(VkPhysicalDeviceProperties& out_physical_device_properties) noexcept;
 	void Initialize_Swapchain(VkExtent2D window_extent) noexcept;

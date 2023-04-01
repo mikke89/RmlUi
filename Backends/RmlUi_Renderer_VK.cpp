@@ -798,7 +798,7 @@ void RenderInterface_VK::RecreateSwapchain()
 	SetViewport(m_width, m_height);
 }
 
-bool RenderInterface_VK::Initialize(CreateSurfaceCallback create_surface_callback)
+bool RenderInterface_VK::Initialize(Rml::Vector<const char*> required_extensions, CreateSurfaceCallback create_surface_callback)
 {
 	RMLUI_ZoneScopedN("Vulkan - Initialize");
 
@@ -806,7 +806,7 @@ bool RenderInterface_VK::Initialize(CreateSurfaceCallback create_surface_callbac
 	glad_result = gladLoaderLoadVulkan(VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE);
 	RMLUI_VK_ASSERTMSG(glad_result != 0, "Vulkan loader failed - Global functions");
 
-	Initialize_Instance();
+	Initialize_Instance(std::move(required_extensions));
 
 	VkPhysicalDeviceProperties physical_device_properties = {};
 	Initialize_PhysicalDevice(physical_device_properties);
@@ -850,7 +850,7 @@ void RenderInterface_VK::Shutdown()
 	gladLoaderUnloadVulkan();
 }
 
-void RenderInterface_VK::Initialize_Instance() noexcept
+void RenderInterface_VK::Initialize_Instance(Rml::Vector<const char*> required_extensions) noexcept
 {
 	uint32_t required_version = GetRequiredVersionAndValidateMachine();
 
@@ -863,7 +863,7 @@ void RenderInterface_VK::Initialize_Instance() noexcept
 	info.apiVersion = required_version;
 
 	Rml::Vector<const char*> instance_layer_names;
-	Rml::Vector<const char*> instance_extension_names;
+	Rml::Vector<const char*> instance_extension_names = std::move(required_extensions);
 	CreatePropertiesFor_Instance(instance_layer_names, instance_extension_names);
 
 	VkInstanceCreateInfo info_instance = {};
@@ -1023,7 +1023,7 @@ void RenderInterface_VK::Initialize_Surface(CreateSurfaceCallback create_surface
 	RMLUI_VK_ASSERTMSG(m_p_instance, "you must initialize your VkInstance");
 
 	bool result = create_surface_callback(m_p_instance, &m_p_surface);
-	RMLUI_VK_ASSERTMSG(result && m_p_surface, "failed to vkCreateWin32SurfaceKHR");
+	RMLUI_VK_ASSERTMSG(result && m_p_surface, "failed to call create_surface_callback");
 }
 
 void RenderInterface_VK::Initialize_QueueIndecies() noexcept
@@ -1408,14 +1408,6 @@ void RenderInterface_VK::CreatePropertiesFor_Instance(Rml::Vector<const char*>& 
 
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, "VK_EXT_debug_utils");
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-
-#if defined(RMLUI_PLATFORM_UNIX)
-	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-#elif defined(RMLUI_PLATFORM_WIN32)
-	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#endif
-
-	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_SURFACE_EXTENSION_NAME);
 
 #ifdef RMLUI_VK_DEBUG
 	AddLayerToInstance(instance_layer_names, instance_layer_properties, "VK_LAYER_LUNARG_monitor");

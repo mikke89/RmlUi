@@ -122,12 +122,14 @@ void ScrollController::ActivateSmoothscroll(Element* in_target, Vector2f delta_d
 		Reset();
 }
 
-void ScrollController::Update(Vector2i mouse_position, float dp_ratio)
+bool ScrollController::Update(Vector2i mouse_position, float dp_ratio)
 {
 	if (mode == Mode::Autoscroll)
 		UpdateAutoscroll(mouse_position, dp_ratio);
 	else if (mode == Mode::Smoothscroll)
 		UpdateSmoothscroll(dp_ratio);
+	
+	return mode != Mode::None;
 }
 
 void ScrollController::UpdateAutoscroll(Vector2i mouse_position, float dp_ratio)

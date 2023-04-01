@@ -50,6 +50,9 @@ public:
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
 protected:
+	/// Updates the animation.
+	void OnUpdate() override;
+
 	/// Renders the animation.
 	void OnRender() override;
 

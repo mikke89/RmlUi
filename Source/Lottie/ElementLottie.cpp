@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Lottie/ElementLottie.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
@@ -58,6 +59,28 @@ bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 		ratio = dimensions.x / dimensions.y;
 
 	return true;
+}
+
+void ElementLottie::OnUpdate()
+{
+	if (animation_dirty)
+		LoadAnimation();
+
+	if (!animation)
+		return;
+
+	const auto t = GetSystemInterface()->GetElapsedTime();
+
+	if (time_animation_start < 0.0)
+		time_animation_start = t;
+
+	double _unused;
+	const double frame_duration = 1.0 / animation->frameRate();
+	const double delay = std::modf((t - time_animation_start) / frame_duration, &_unused) * frame_duration;
+	if(IsVisible(true)) {
+		if (Context* ctx = GetContext())
+			ctx->RequestNextUpdate(delay);
+	}
 }
 
 void ElementLottie::OnRender()
@@ -182,9 +205,6 @@ void ElementLottie::UpdateTexture()
 		return;
 
 	const double t = GetSystemInterface()->GetElapsedTime();
-
-	if (time_animation_start < 0.0)
-		time_animation_start = t;
 
 	// Find the next animation frame to display.
 	// Here it is possible to add more logic to control playback speed, pause/resume, and more.

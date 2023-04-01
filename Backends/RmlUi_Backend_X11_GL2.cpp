@@ -26,6 +26,7 @@
  *
  */
 
+#include "RmlUi/Core/Debug.h"
 #include "RmlUi_Backend.h"
 #include "RmlUi_Include_Xlib.h"
 #include "RmlUi_Platform_X11.h"
@@ -47,6 +48,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <cmath>
 
 // Attach the OpenGL context to the window.
 static bool AttachToNative(GLXContext& out_gl_context, Display* display, Window window, XVisualInfo* visual_info)
@@ -205,13 +207,33 @@ Rml::RenderInterface* Backend::GetRenderInterface()
 	return &data->render_interface;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
 
 	Display* display = data->display;
 	bool result = data->running;
 	data->running = true;
+
+	if(power_save && XPending(display) == 0) {
+		int display_fd = ConnectionNumber(display);
+		fd_set fds{};
+		FD_ZERO(&fds);
+        FD_SET(display_fd, &fds);
+
+		double timeout = Rml::Math::Min(context->GetNextUpdateDelay(), 10.0);
+		struct timeval tv{};
+		double seconds;
+        tv.tv_usec = std::modf(timeout, &seconds)*1000000.0;
+        tv.tv_sec = seconds;
+
+		int ready_fd_count;
+		do {
+			ready_fd_count = select(display_fd + 1, &fds, NULL, NULL, &tv);
+			// We don't care about the return value as long as select didn't error out
+			RMLUI_ASSERT(ready_fd_count >= 0);
+		} while(XPending(display) == 0 && ready_fd_count != 0);
+	}
 
 	while (XPending(display) > 0)
 	{

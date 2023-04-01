@@ -185,6 +185,11 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio, vp_dimensions);
+
+	if(!animations.empty() && IsVisible(true)) {
+		if(Context* ctx = GetContext())
+			ctx->RequestNextUpdate(0);
+	}
 }
 
 void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)
@@ -560,9 +565,18 @@ bool Element::IsPointWithinElement(const Vector2f point)
 }
 
 // Returns the visibility of the element.
-bool Element::IsVisible() const
+bool Element::IsVisible(bool include_ancestors) const
 {
-	return visible;
+	if (!include_ancestors)
+		return visible;
+	const Element* element = this;
+	while (element)
+	{
+		if (!element->visible)
+			return false;
+		element = element->parent;
+	}
+	return true;
 }
 
 // Returns the z-index of the element.

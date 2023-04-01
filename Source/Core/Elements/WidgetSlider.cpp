@@ -34,6 +34,7 @@
 #include "../../../Include/RmlUi/Core/Input.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../Clock.h"
+#include "../../../Include/RmlUi/Core/Context.h"
 
 namespace Rml {
 
@@ -148,6 +149,9 @@ void WidgetSlider::Update()
 				arrow_timers[i] += DEFAULT_REPEAT_PERIOD;
 				SetBarPosition(i == 0 ? OnLineDecrement() : OnLineIncrement());
 			}
+
+			if(Context* ctx = parent->GetContext())
+				ctx->RequestNextUpdate(arrow_timers[i]);
 		}
 	}
 }

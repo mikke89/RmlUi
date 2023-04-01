@@ -39,6 +39,7 @@
 #include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../../Include/RmlUi/Core/Context.h"
 #include "../Clock.h"
 #include "ElementTextSelection.h"
 #include <algorithm>
@@ -327,6 +328,11 @@ void WidgetTextInput::OnUpdate()
 		{
 			cursor_timer += CURSOR_BLINK_TIME;
 			cursor_visible = !cursor_visible;
+		}
+
+		if(parent->IsVisible(true)) {
+			if(Context* ctx = parent->GetContext())
+				ctx->RequestNextUpdate(cursor_timer);
 		}
 	}
 }

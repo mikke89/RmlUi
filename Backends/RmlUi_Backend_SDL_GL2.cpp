@@ -253,7 +253,7 @@ Rml::RenderInterface* Backend::GetRenderInterface()
 	return &data->render_interface;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
 
@@ -261,7 +261,11 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->running = true;
 
 	SDL_Event ev;
-	while (SDL_PollEvent(&ev))
+	int has_event = 0;
+	if(power_save)
+		has_event = SDL_WaitEventTimeout(&ev, static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000));
+	else has_event = SDL_PollEvent(&ev);
+	while (has_event)
 	{
 		switch (ev.type)
 		{
@@ -307,6 +311,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 		}
 		break;
 		}
+		has_event = SDL_PollEvent(&ev);
 	}
 
 	return result;

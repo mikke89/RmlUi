@@ -189,7 +189,20 @@ Rml::RenderInterface* Backend::GetRenderInterface()
 	return &data->render_interface;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+static bool NextEvent(MSG& message, UINT timeout)
+{
+	if(timeout != 0)
+	{
+		UINT_PTR timer_id = SetTimer(NULL, NULL, timeout, NULL);
+		BOOL res = GetMessage(&message, NULL, 0, 0);
+		KillTimer(NULL, timer_id);
+		if(message.message != WM_TIMER || message.hwnd != nullptr || message.wParam != timer_id)
+			return res;
+	}
+	return PeekMessage(&message, nullptr, 0, 0, PM_REMOVE);
+}
+
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
 
@@ -206,13 +219,14 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->key_down_callback = key_down_callback;
 
 	MSG message;
-	while (PeekMessage(&message, nullptr, 0, 0, PM_NOREMOVE))
+	bool has_message = NextEvent(message, power_save ? static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000.0) : 0);
+	while (has_message)
 	{
-		GetMessage(&message, nullptr, 0, 0);
-
 		// Dispatch the message to our local event handler below.
 		TranslateMessage(&message);
 		DispatchMessage(&message);
+
+		has_message = NextEvent(message, 0);
 	}
 
 	data->context = nullptr;

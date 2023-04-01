@@ -177,8 +177,9 @@ public:
 	virtual bool IsPointWithinElement(Vector2f point);
 
 	/// Returns the visibility of the element.
+	/// @param[in] include_ancestors Check parent elements for visibility
 	/// @return True if the element is visible, false otherwise.
-	bool IsVisible() const;
+	bool IsVisible(bool include_ancestors = false) const;
 	/// Returns the z-index of the element.
 	/// @return The element's z-index.
 	float GetZIndex() const;

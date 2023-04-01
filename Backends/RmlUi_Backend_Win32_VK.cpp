@@ -26,6 +26,7 @@
  *
  */
 
+#include "RmlUi/Config/Config.h"
 #include "RmlUi_Backend.h"
 #include "RmlUi_Include_Windows.h"
 #include "RmlUi_Platform_Win32.h"
@@ -144,7 +145,10 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	data->window_handle = window_handle;
 
-	if (!data->render_interface.Initialize(CreateVulkanSurface))
+	Rml::Vector<const char*> extensions;
+	extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+	extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+	if (!data->render_interface.Initialize(std::move(extensions), CreateVulkanSurface))
 	{
 		DisplayError(window_handle, "Could not initialize Vulkan render interface.");
 		::CloseWindow(window_handle);
@@ -187,7 +191,20 @@ Rml::RenderInterface* Backend::GetRenderInterface()
 	return &data->render_interface;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+static bool NextEvent(MSG& message, UINT timeout)
+{
+	if(timeout != 0)
+	{
+		UINT_PTR timer_id = SetTimer(NULL, NULL, timeout, NULL);
+		BOOL res = GetMessage(&message, NULL, 0, 0);
+		KillTimer(NULL, timer_id);
+		if(message.message != WM_TIMER || message.hwnd != nullptr || message.wParam != timer_id)
+			return res;
+	}
+	return PeekMessage(&message, nullptr, 0, 0, PM_REMOVE);
+}
+
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
 
@@ -204,21 +221,24 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->key_down_callback = key_down_callback;
 
 	MSG message;
-
 	// Process events.
-	while (PeekMessage(&message, nullptr, 0, 0, PM_NOREMOVE) || !data->render_interface.IsSwapchainValid())
+	bool has_message = NextEvent(message, power_save ? static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0)*1000.0) : 0);
+	while (has_message || !data->render_interface.IsSwapchainValid())
 	{
-		GetMessage(&message, nullptr, 0, 0);
-
-		// Dispatch the message to our local event handler below.
-		TranslateMessage(&message);
-		DispatchMessage(&message);
+		if(has_message)
+		{
+			// Dispatch the message to our local event handler below.
+			TranslateMessage(&message);
+			DispatchMessage(&message);
+		}
 
 		// In some situations the swapchain may become invalid, such as when the window is minimized. In this state the renderer cannot accept any
 		// render calls. Since we don't have full control over the main loop here we may risk calls to Context::Render if we were to return. Instead,
 		// we trap the application inside this loop until we are able to recreate the swapchain and render again.
 		if (!data->render_interface.IsSwapchainValid())
 			data->render_interface.RecreateSwapchain();
+		
+		has_message = NextEvent(message, 0);
 	}
 
 	data->context = nullptr;
