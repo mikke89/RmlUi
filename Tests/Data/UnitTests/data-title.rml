@@ -1,0 +1,11 @@
+<template name="data-title">
+<head></head>
+<body>
+<div class="title-wrapper">
+	<handle move_target="#document">
+		<div class="icon" data-attr-icon="icon"></div>
+		<span class="title">{{ title }}</span>
+	</handle>
+</div>
+</body>
+</template>

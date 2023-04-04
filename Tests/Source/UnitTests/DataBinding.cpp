@@ -43,7 +43,6 @@ static const String document_rml = R"(
 <rml>
 <head>
 	<title>Test</title>
-	<link type="text/rcss" href="/assets/rml.rcss"/>
 	<link type="text/template" href="/assets/window.rml"/>
 	<style>
 		body.window
@@ -118,7 +117,6 @@ static const String inside_string_rml = R"(
 <rml>
 <head>
 	<title>Test</title>
-	<link type="text/rcss" href="/assets/rml.rcss"/>
 	<link type="text/template" href="/assets/window.rml"/>
 	<style>
 		body.window
@@ -153,21 +151,33 @@ static const String aliasing_rml = R"(
 <head>
 	<title>Test</title>
 	<link type="text/rcss" href="/assets/rml.rcss"/>
-	<link type="text/template" href="/assets/data-window.rml"/>
+	<link type="text/rcss" href="/assets/invader.rcss"/>
+	<link type="text/template" href="/../Tests/Data/UnitTests/data-title.rml"/>
+	<style>
+		body {
+			width: 600px;
+			height: 400px;
+			background: #ccc;
+			color: #333;
+		}
+		.title-wrapper { border: 1dp red; }
+		.icon { width: 64dp; height: 64dp; display: inline-block; }
+		.icon[icon="a"] { decorator: image("/assets/high_scores_alien_1.tga"); }
+		.icon[icon="b"] { decorator: image("/assets/high_scores_alien_2.tga"); }
+	</style>
 </head>
 
 <body data-model="basics">
 <p>{{ i0 }}</p>
 <p data-alias-differentname="i0">{{ differentname }}</p>
-<div data-alias-title="s0" id="w1">
-	<template src="data-window"></template>
+<div data-alias-title="s0" data-alias-icon="wrapped.a.val" id="w1">
+	<template src="data-title"/>
 </div>
-
-<div data-alias-title="s1" id="w2">
-	<template src="data-window"></template>
+<div data-alias-title="s1" data-alias-icon="wrapped.b.val" id="w2">
+	<template src="data-title"/>
 </div>
 </body>
-</rml>	
+</rml>
 )";
 
 struct StringWrap
@@ -439,9 +449,6 @@ TEST_CASE("databinding")
 	REQUIRE(document);
 	document->Show();
 
-	context->Update();
-	context->Render();
-
 	TestsShell::RenderLoop();
 
 	document->Close();
@@ -459,9 +466,6 @@ TEST_CASE("databinding.inside_string")
 	ElementDocument* document = context->LoadDocumentFromMemory(inside_string_rml);
 	REQUIRE(document);
 	document->Show();
-
-	context->Update();
-	context->Render();
 
 	TestsShell::RenderLoop();
 
@@ -483,16 +487,13 @@ TEST_CASE("databinding.aliasing")
 	REQUIRE(document);
 	document->Show();
 
-	context->Update();
-	context->Render();
-
 	TestsShell::RenderLoop();
 
 	CHECK(document->QuerySelector("p:nth-child(1)")->GetInnerRML() == document->QuerySelector("p:nth-child(2)")->GetInnerRML());
-	REQUIRE(document->QuerySelector("#w1 .title"));
-	REQUIRE(document->QuerySelector("#w2 .title"));
 	CHECK(document->QuerySelector("#w1 .title")->GetInnerRML() == "s0");
+	CHECK(document->QuerySelector("#w1 .icon")->GetAttribute("icon", String()) == "a");
 	CHECK(document->QuerySelector("#w2 .title")->GetInnerRML() == "s1");
+	CHECK(document->QuerySelector("#w2 .icon")->GetAttribute("icon", String()) == "b");
 
 	document->Close();
 
