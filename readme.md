@@ -351,8 +351,20 @@ Users can now edit the text field to change the animal. The data bindings ensure
 **Game interface from the 'invader' sample**\
 ![Game interface](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/invader.png)
 
-**Game menu**
+**Game menu**\
 ![Game menu](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/menu_screen.png)
+
+**Simple game from the 'databinding' sample**\
+![Databinding sample](https://raw.githubusercontent.com/mikke89/RmlUiDoc/df1651db94e69f2977bc0344864ec061b56b104e/assets/gallery/data_binding.png)
+
+**[alt:V](https://altv.mp/) installer - a multiplayer client for GTA:V**\
+![alt:V installer collage](https://user-images.githubusercontent.com/5490330/230487770-275fe98f-753f-4b35-b2e1-1e20a798f5e8.png)
+
+**[Unvanquished](https://unvanquished.net/) - a first-person shooter game with real-time strategy elements**\
+![Unvanquished 0.54 collage](https://user-images.githubusercontent.com/5490330/230487771-5108a273-8b76-4216-8324-d9e5af102622.jpg)
+
+**Installer software by [@xland](https://github.com/xland)**\
+![xland installer collage](https://user-images.githubusercontent.com/5490330/230487763-ec4d28e7-7ec6-44af-89f2-d2cbad8f44c1.png)
 
 **Form controls from the 'demo' sample**\
 ![Form controls](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/forms.png)
@@ -360,17 +372,33 @@ Users can now edit the text field to change the animal. The data bindings ensure
 **Sandbox from the 'demo' sample, try it yourself!**\
 ![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png)
 
-**Visual testing framework**\
-![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png)
+**Visual testing framework - for built-in automated layout tests**\
+![Visual testing framework](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png)
 
+**Flexbox layout**\
+![Flexbox](https://github.com/mikke89/RmlUiDoc/blob/4cf0c6ac23b822174e69e5f1413b71254230c619/assets/images/flexbox-example.png)  
+
+
+**Animations and transitions from the 'animation' sample**
+
+[Animation sample](https://user-images.githubusercontent.com/5490330/230486839-de3ca062-6641-48e0-aa6a-ef2b26c3aad5.webm)
+
+\
+**Transitions and transforms on a game menu**
+
+[Game main menu](https://user-images.githubusercontent.com/5490330/230487193-cd07b565-2e9b-4570-aa37-7dd7746dd9c9.webm)
+
+\
+**Camera movement in a game menu**
+
+[Transforms applied to game menu](https://user-images.githubusercontent.com/5490330/230487217-f499dfca-5304-4b99-896d-07791926da2b.webm)
+
+\
 **Transitions on mouse hover (entirely in RCSS)**\
 ![Transition](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transition.gif)  
 
 **Animated transforms (entirely in RCSS)**\
 ![Transform](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transform.gif)  
-
-**Flexbox layout**\
-![Flexbox](https://github.com/mikke89/RmlUiDoc/blob/4cf0c6ac23b822174e69e5f1413b71254230c619/assets/images/flexbox-example.png)  
 
 **Vector animations with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)**\
 ![Lottie animation](https://github.com/mikke89/RmlUiDoc/blob/086385e119f0fc6e196229b785e91ee0252fe4b4/assets/gallery/lottie.gif)  

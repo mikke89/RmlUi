@@ -17,18 +17,20 @@
 #### Autoscroll mode
 Autoscroll mode, or scrolling with the middle mouse button, is now featured in RmlUi. #422 #423 (thanks @igorsegallafa)
 
-This mode is automatically enabled by the context whenever a middle mouse button press is detected, and there is an element to scroll under the mouse. This can effectively be disabled by simply not submitting middle mouse button presses, or by using another button index when submitting the button to the context.
+This mode is automatically enabled by the context whenever a middle mouse button press is detected, and there is an element to scroll under the mouse. There is also support for holding the middle mouse button to scroll. 
 
-When autoscroll mode is active, a cursor name is submitted to clients which indicates the state of the autoscroll, so that clients can display an appropriate cursor to the user. These cursor names all start with `rmlui-cursor-`, and take priority over any active `cursor` property. See the new [documentation section on scrolling](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/contexts.html#scrolling) for details.
+When autoscroll mode is active, a cursor name is submitted to clients which indicates the state of the autoscroll, so that clients can display an appropriate cursor to the user. These cursor names all start with `rmlui-scroll-`, and take priority over any active `cursor` property. If desired, autoscroll mode can be disabled entirely by simply not submitting middle mouse button presses, or by using another button index when submitting the button to the context. 
+
+See the new [documentation section on scrolling](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/contexts.html#scrolling) for details.
 
 #### Smooth scrolling
-Smooth scrolling is now supported in RmlUi, and enabled by default. This makes a given scroll action animate smoothly towards its destination. Smooth scrolling can be activated in several situations, including:
+Smooth scrolling is now supported in RmlUi, and enabled by default. This makes a some scroll actions animate smoothly towards its destination. Smooth scrolling may become active in the following situations:
 
 - During a call to `Context::ProcessMouseWheel()`.
 - When clicking a scrollbar's arrow keys or track.
 - When calling any of the `Element::Scroll...()` methods with the `ScrollBehavior::Smooth` enum value.
 
-The default smooth scroll behavior is enabled by default. This can be disabled or tweaked on the context as described below.
+Smooth scrolling can be disabled or tweaked on the context, as described below.
 
 #### Context interface
 Smooth scrolling can be disabled, or tweaked, by calling the following method on a given context:
@@ -57,6 +59,15 @@ The `mousescroll` event no longer performs scrolling on an element, and no longe
 
 - New [`overscroll-behavior` property](https://mikke89.github.io/RmlUiDoc/pages/rcss/user_interface.html#overscroll-behavior). An element's closest scrollable ancestor is decided by scroll chaining, which can be controlled using this property. The `contain` value can be used to ensure that mouse wheel scrolling is not propagated outside a given element, regardless of whether its scrollbars are visible.
 - Added animation support for decorators. #421 (thanks @0suddenly0)
+- Sibling selectors will now also match hidden elements.
+
+### On-demand rendering (power saving mode)
+
+In games, the update and render loop normally run as fast as possible. However, in some applications it is desirable to reduce CPU usage and power consumption when the application is idle. RmlUi now provides the necessary utilities to achieve this. Implemented in #436 (thanks @Thalhammer), see also #331 #417 #430.
+
+Users of RmlUi control their own update loop, however, this feature requires some support from the library side, because the application needs to know e.g. when animations are happening or when a text cursor should blink. In short, to implement this, users can now query the context for `Context::GetNextUpdateDelay()`, which returns the time until the next update loop should be run again.
+
+See the [on-demand rendering documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/contexts.html#on-demand-rendering) for details and examples.
 
 ### Text selection interface
 
@@ -81,13 +92,16 @@ See the [form controls documentation](https://mikke89.github.io/RmlUiDoc/pages/c
 - Make the `:checked` pseudo class active on the `<select>` element whenever its options list is open, for better styling capabilities.
 - Fix max length in text input fields not always clamping the value, such as when pasting text.
 - The slider input now only responds to the primary mouse button.
+- The slider input is now only draggable from the track or bar, instead of the whole element.
+- Fixed input elements not always being correctly setup when changing types.
 
-### Bug fixes
+### Stability improvements
 
 - Fix a potential crash during plugin shutdown. #415 (thanks @LoneBoco)
 
 ### Data bindings
 
+- Add new [data-alias attribute](https://mikke89.github.io/RmlUiDoc/pages/data_bindings/views_and_controllers.html#data-alias) to make templates work with outside variables. #432 (thanks @dakror)
 - Add method to retrieve the `DataTypeRegister` during model construction. #412 #413 (thanks @LoneBoco)
 - Add ability to provide a separate data type register to use when constructing a new data model. Can be useful to provide a distinct type register for each shared library accessing the same context. Alternatively, allows different contexts to share a single type register. #409 (thanks @eugeneko)
 
@@ -112,7 +126,7 @@ See the [form controls documentation](https://mikke89.github.io/RmlUiDoc/pages/c
 
 ### Breaking changes
 
-- The `mousewheel` event no longer scrolls an element, see scrolling changes above.
+- The `mousescroll` event no longer scrolls an element, see scrolling changes above. Its `wheel_delta` parameter has been renamed to `wheel_delta_y`.
 - The signature of `Context::ProcessMouseWheel` has been changed, the old signature is still available but deprecated.
 
 
