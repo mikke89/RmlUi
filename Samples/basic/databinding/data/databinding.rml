@@ -47,7 +47,7 @@ tab
 	color: #ddd;
 	text-align: center;
 	
-	decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
+	decorator: tiled-horizontal( tableheader-l, tableheader-c, tableheader-r );
 	image-color: #cffc;
 }
 tab:hover

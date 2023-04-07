@@ -80,16 +80,16 @@
 	checkbox-checked-hover: 437px 90px 30px 30px;
 	checkbox-checked-active: 467px 90px 30px 30px;
 	
-	datagridheader-l: 127px 192px 16px 31px;
-	datagridheader-c: 143px 192px 2px 31px;
-	datagridheader-r: 145px 192px 15px 31px;
+	tableheader-l: 127px 192px 16px 31px;
+	tableheader-c: 143px 192px 2px 31px;
+	tableheader-r: 145px 192px 15px 31px;
 	
-	datagridexpand: 3px 232px 17px 17px;
-	datagridexpand-hover: 21px 232px 17px 17px;
-	datagridexpand-active: 39px 232px 17px 17px;
-	datagridexpand-collapsed: 3px 250px 17px 17px;
-	datagridexpand-collapsed-hover: 21px 250px 17px 17px;
-	datagridexpand-collapsed-active: 39px 250px 17px 17px;
+	expand: 3px 232px 17px 17px;
+	expand-hover: 21px 232px 17px 17px;
+	expand-active: 39px 232px 17px 17px;
+	expand-collapsed: 3px 250px 17px 17px;
+	expand-collapsed-hover: 21px 250px 17px 17px;
+	expand-collapsed-active: 39px 250px 17px 17px;
 	
 	slidertrack-t: 70px 199px 27px 2px;
 	slidertrack-c: 70px 201px 27px 1px;
@@ -241,8 +241,7 @@ h1
 
 
 input,
-select,
-dataselect
+select
 {
 	margin-left: 20dp;
 }
@@ -316,14 +315,13 @@ textarea
 input.text,
 input.password,
 select,
-dataselect,
 textarea
 {
 	color: #333;
 	font-size: 13dp;
 }
 
-datagrid input.text, table input.text
+table input.text
 {
 	box-sizing: border-box;
 	width: 100%;
@@ -343,15 +341,13 @@ datagrid input.text, table input.text
 
 
 
-select,
-dataselect
+select
 {
 	width: 175dp;
 	height: 37dp;
 }
 
-select selectvalue,
-dataselect selectvalue
+select selectvalue
 {
 	width: auto;
 	margin-right: 30dp;
@@ -362,8 +358,7 @@ dataselect selectvalue
 	decorator: image( selectvalue  );
 }
 
-select selectarrow,
-dataselect selectarrow
+select selectarrow
 {
 	width: 30dp;
 	height: 37dp;
@@ -371,22 +366,18 @@ dataselect selectarrow
 	decorator: image( selectarrow );
 }
 
-select:hover selectarrow,
-dataselect:hover selectarrow
+select:hover selectarrow
 {
 	decorator: image( selectarrow-hover );
 }
 
 select:active selectarrow,
-select selectarrow:checked,
-dataselect:active selectarrow,
-dataselect selectarrow:checked
+select selectarrow:checked
 {
 	decorator: image( selectarrow-active );
 }
 
-select selectbox,
-dataselect selectbox
+select selectbox
 {
 	margin-left: 1dp;
 	margin-top: -7dp;
@@ -396,8 +387,6 @@ dataselect selectbox
 }
 
 select selectbox,
-dataselect selectbox,
-datagrid datagridbody,
 tbody
 {
 	decorator: tiled-box(
@@ -407,8 +396,7 @@ tbody
 	);
 }
 
-select selectbox option,
-dataselect selectbox option
+select selectbox option
 {
 	width: auto;
 	padding: 3dp 0 3dp 6dp;
@@ -416,19 +404,15 @@ dataselect selectbox option
 }
 
 select selectbox option:nth-child(even),
-dataselect selectbox option:nth-child(even),
-datagrid datagridrow:nth-child(even),
 tr:nth-child(even)
 {
 	background: #FFFFFFA0;
 }
-select selectbox option:checked,
-dataselect selectbox option:checked
+select selectbox option:checked
 {
 	font-weight: bold;
 }
-select selectbox option:hover,
-dataselect selectbox option:hover
+select selectbox option:hover
 {
 	background: #FF5D5D;
 }
@@ -543,7 +527,7 @@ input.range sliderarrowinc:active { decorator: image( range-inc-active ); }
 
 thead tr {
 	height: 35dp;
-	decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
+	decorator: tiled-horizontal( tableheader-l, tableheader-c, tableheader-r );
 }
 thead td {
 	padding-top: 11dp;
@@ -563,27 +547,8 @@ tbody tr {
 	color: black;
 }
 
-datagrid datagridheader
-{
-	width: auto;
-	height: 25dp;
-	padding: 5dp 10dp 0 10dp;
 
-	decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
-}
-
-datagrid datagridbody
-{
-	color: black;
-
-	margin-left: 4dp;
-	margin-right: 3dp;
-	padding: 0 4dp 4dp 4dp;
-}
-
-
-
-datagridexpand, expand
+expand
 {
 	display: block;
 	
@@ -591,32 +556,32 @@ datagridexpand, expand
 	height: 17dp;
 	width: 17dp;
 	
-	decorator: image( datagridexpand );
+	decorator: image( expand );
 }
 
-datagridexpand:hover, expand:hover
+expand:hover
 {
-	decorator: image( datagridexpand-hover );
+	decorator: image( expand-hover );
 }
 
-datagridexpand:active, expand:active
+expand:active
 {
-	decorator: image( datagridexpand-active  );
+	decorator: image( expand-active  );
 }
 
-datagridexpand.collapsed, expand.collapsed
+expand.collapsed
 {
-	decorator: image( datagridexpand-collapsed );
+	decorator: image( expand-collapsed );
 }
 
-datagridexpand.collapsed:hover, expand.collapsed:hover
+expand.collapsed:hover
 {
-	decorator: image( datagridexpand-collapsed-hover );
+	decorator: image( expand-collapsed-hover );
 }
 
-datagridexpand.collapsed:active, expand.collapsed:active
+expand.collapsed:active
 {
-	decorator: image( datagridexpand-collapsed-active  );
+	decorator: image( expand-collapsed-active  );
 }
 
 

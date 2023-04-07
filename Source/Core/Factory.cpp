@@ -42,16 +42,11 @@
 
 #include "../../Include/RmlUi/Core/Elements/ElementForm.h"
 #include "../../Include/RmlUi/Core/Elements/ElementFormControlInput.h"
-#include "../../Include/RmlUi/Core/Elements/ElementFormControlDataSelect.h"
 #include "../../Include/RmlUi/Core/Elements/ElementFormControlSelect.h"
 #include "../../Include/RmlUi/Core/Elements/ElementFormControlSelect.h"
 #include "../../Include/RmlUi/Core/Elements/ElementFormControlTextArea.h"
 #include "../../Include/RmlUi/Core/Elements/ElementTabSet.h"
 #include "../../Include/RmlUi/Core/Elements/ElementProgress.h"
-#include "../../Include/RmlUi/Core/Elements/ElementDataGrid.h"
-#include "../../Include/RmlUi/Core/Elements/ElementDataGridExpandButton.h"
-#include "../../Include/RmlUi/Core/Elements/ElementDataGridCell.h"
-#include "../../Include/RmlUi/Core/Elements/ElementDataGridRow.h"
 
 #include "ContextInstancerDefault.h"
 #include "DataControllerDefault.h"
@@ -81,7 +76,6 @@
 #include "Elements/ElementImage.h"
 #include "Elements/ElementLabel.h"
 #include "Elements/ElementTextSelection.h"
-#include "Elements/XMLNodeHandlerDataGrid.h"
 #include "Elements/XMLNodeHandlerSelect.h"
 #include "Elements/XMLNodeHandlerTabSet.h"
 #include "Elements/XMLNodeHandlerTextArea.h"
@@ -142,7 +136,6 @@ struct DefaultInstancers {
 	// Control elements
 	ElementInstancerGeneric<ElementForm> form;
 	ElementInstancerGeneric<ElementFormControlInput> input;
-	ElementInstancerGeneric<ElementFormControlDataSelect> dataselect;
 	ElementInstancerGeneric<ElementFormControlSelect> select;
 	ElementInstancerGeneric<ElementLabel> element_label;
 
@@ -151,11 +144,6 @@ struct DefaultInstancers {
 	ElementInstancerGeneric<ElementTabSet> tabset;
 
 	ElementInstancerGeneric<ElementProgress> progress;
-
-	ElementInstancerGeneric<ElementDataGrid> datagrid;
-	ElementInstancerGeneric<ElementDataGridExpandButton> datagrid_expand;
-	ElementInstancerGeneric<ElementDataGridCell> datagrid_cell;
-	ElementInstancerGeneric<ElementDataGridRow> datagrid_row;
 
 	// Decorators
 	DecoratorTiledHorizontalInstancer decorator_tiled_horizontal;
@@ -235,7 +223,6 @@ bool Factory::Initialise()
 	// Control element instancers
 	RegisterElementInstancer("form", &default_instancers->form);
 	RegisterElementInstancer("input", &default_instancers->input);
-	RegisterElementInstancer("dataselect", &default_instancers->dataselect);
 	RegisterElementInstancer("select", &default_instancers->select);
 	RegisterElementInstancer("label", &default_instancers->element_label);
 
@@ -245,11 +232,6 @@ bool Factory::Initialise()
 
 	RegisterElementInstancer("progress", &default_instancers->progress);
 	RegisterElementInstancer("progressbar", &default_instancers->progress);
-
-	RegisterElementInstancer("datagrid", &default_instancers->datagrid);
-	RegisterElementInstancer("datagridexpand", &default_instancers->datagrid_expand);
-	RegisterElementInstancer("#rmlctl_datagridcell", &default_instancers->datagrid_cell);
-	RegisterElementInstancer("#rmlctl_datagridrow", &default_instancers->datagrid_row);
 
 	// Decorator instancers
 	RegisterDecoratorInstancer("tiled-horizontal", &default_instancers->decorator_tiled_horizontal);
@@ -291,7 +273,6 @@ bool Factory::Initialise()
 	XMLParser::RegisterNodeHandler("template", MakeShared<XMLNodeHandlerTemplate>());
 
 	// XML node handlers for control elements
-	XMLParser::RegisterNodeHandler("datagrid", MakeShared<XMLNodeHandlerDataGrid>());
 	XMLParser::RegisterNodeHandler("tabset", MakeShared<XMLNodeHandlerTabSet>());
 	XMLParser::RegisterNodeHandler("textarea", MakeShared<XMLNodeHandlerTextArea>());
 	XMLParser::RegisterNodeHandler("select", MakeShared<XMLNodeHandlerSelect>());

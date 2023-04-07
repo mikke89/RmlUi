@@ -57,16 +57,11 @@
 #include "RmlUiContextsProxy.h"
 // Control types
 #include "Elements/SelectOptionsProxy.h"
-#include "Elements/DataFormatter.h"
-#include "Elements/DataSource.h"
 #include "Elements/ElementForm.h"
 #include "Elements/ElementFormControl.h"
 #include "Elements/ElementFormControlSelect.h"
-#include "Elements/ElementFormControlDataSelect.h"
 #include "Elements/ElementFormControlInput.h"
 #include "Elements/ElementFormControlTextArea.h"
-#include "Elements/ElementDataGrid.h"
-#include "Elements/ElementDataGridRow.h"
 #include "Elements/ElementTabSet.h"
 
 namespace Rml {
@@ -164,13 +159,8 @@ static void RegisterTypes()
     LuaType<ElementFormControl>::Register(L);
     //Inherits from ElementFormControl
     LuaType<ElementFormControlSelect>::Register(L);
-    LuaType<ElementFormControlDataSelect>::Register(L);
     LuaType<ElementFormControlInput>::Register(L);
     LuaType<ElementFormControlTextArea>::Register(L);
-    LuaType<DataFormatter>::Register(L);
-    LuaType<DataSource>::Register(L);
-    LuaType<ElementDataGrid>::Register(L);
-    LuaType<ElementDataGridRow>::Register(L);
     LuaType<ElementTabSet>::Register(L);
     //proxy tables
     LuaType<SelectOptionsProxy>::Register(L);

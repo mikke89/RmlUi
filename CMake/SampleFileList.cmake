@@ -117,34 +117,6 @@ set(tutorial_template_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/template/src/main.cpp
 )
 
-set(tutorial_datagrid_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorInstancerDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/HighScores.h
-)
-
-set(tutorial_datagrid_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/DecoratorInstancerDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/HighScores.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/src/main.cpp
-)
-
-set(tutorial_datagrid_tree_HDR_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorInstancerDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScores.h
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScoresShipFormatter.h
-)
-
-set(tutorial_datagrid_tree_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/DecoratorInstancerDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScores.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/HighScoresShipFormatter.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/src/main.cpp
-)
-
 set(tutorial_drag_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/tutorial/drag/src/Inventory.h
 )

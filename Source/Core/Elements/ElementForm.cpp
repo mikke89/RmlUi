@@ -55,7 +55,6 @@ void ElementForm::Submit(const String& name, const String& submit_value)
 	ElementUtilities::GetElementsByTagName(form_controls, this, "input");
 	ElementUtilities::GetElementsByTagName(form_controls, this, "textarea");
 	ElementUtilities::GetElementsByTagName(form_controls, this, "select");
-	ElementUtilities::GetElementsByTagName(form_controls, this, "dataselect");
 
 	for (size_t i = 0; i < form_controls.size(); i++)
 	{

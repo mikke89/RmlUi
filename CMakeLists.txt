@@ -815,7 +815,7 @@ endif()
 
 if(BUILD_SAMPLES)
 	set(samples treeview customlog drag loaddocument transform bitmapfont animation benchmark demo databinding)
-	set(tutorials template datagrid datagrid_tree drag)
+	set(tutorials template drag)
 
 	if(ENABLE_LOTTIE_PLUGIN)
 		list(APPEND samples "lottie")
@@ -936,12 +936,6 @@ if(BUILD_SAMPLES)
 
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/template/data
 			DESTINATION ${SAMPLES_DIR}/tutorial/template
-	)
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid/data
-			DESTINATION ${SAMPLES_DIR}/tutorial/datagrid
-	)
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/datagrid_tree/data
-			DESTINATION ${SAMPLES_DIR}/tutorial/datagrid_tree
 	)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/tutorial/drag/data
 			DESTINATION ${SAMPLES_DIR}/tutorial/drag
