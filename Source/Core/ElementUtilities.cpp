@@ -38,8 +38,8 @@
 #include "DataModel.h"
 #include "DataView.h"
 #include "ElementStyle.h"
-#include "LayoutDetails.h"
-#include "LayoutEngine.h"
+#include "Layout/LayoutDetails.h"
+#include "Layout/LayoutEngine.h"
 #include "TransformState.h"
 #include <limits>
 
@@ -179,7 +179,7 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 	// Search through the element's ancestors, finding all elements that clip their overflow and have overflow to clip.
 	// For each that we find, we combine their clipping region with the existing clipping region, and so build up a
 	// complete clipping region for the element.
-	Element* clipping_element = element->GetParentNode();
+	Element* clipping_element = element->GetOffsetParent();
 
 	while (clipping_element != nullptr)
 	{
@@ -236,7 +236,7 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 			break;
 
 		// Climb the tree to this region's parent.
-		clipping_element = clipping_element->GetParentNode();
+		clipping_element = clipping_element->GetOffsetParent();
 	}
 	
 	return clip_dimensions.x >= 0 && clip_dimensions.y >= 0;
@@ -303,7 +303,7 @@ void ElementUtilities::FormatElement(Element* element, Vector2f containing_block
 // Generates the box for an element.
 void ElementUtilities::BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element)
 {
-	LayoutDetails::BuildBox(box, containing_block, element, inline_element ? BoxContext::Inline : BoxContext::Block);
+	LayoutDetails::BuildBox(box, containing_block, element, inline_element ? BuildBoxMode::Inline : BuildBoxMode::Block);
 }
 
 // Sizes an element, and positions it within its parent offset from the borders of its content area.

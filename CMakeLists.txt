@@ -891,6 +891,14 @@ if(BUILD_SAMPLES)
 endif()
 
 #===================================
+# Source grouping for IDEs =========
+#===================================
+
+source_group("Core\\Layout" REGULAR_EXPRESSION "/Core/Layout/")
+source_group("Core\\Elements" REGULAR_EXPRESSION "/Core/Elements/")
+source_group("Core\\FontEngineDefault" REGULAR_EXPRESSION "/Core/FontEngineDefault/")
+
+#===================================
 # Add global options ===============
 #===================================
 

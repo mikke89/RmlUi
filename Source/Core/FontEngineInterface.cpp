@@ -56,29 +56,10 @@ FontEffectsHandle FontEngineInterface::PrepareFontEffects(FontFaceHandle /*handl
 	return 0;
 }
 
-int FontEngineInterface::GetSize(FontFaceHandle /*handle*/)
+const FontMetrics& FontEngineInterface::GetFontMetrics(FontFaceHandle /*handle*/)
 {
-	return 0;
-}
-
-int FontEngineInterface::GetXHeight(FontFaceHandle /*handle*/)
-{
-	return 0;
-}
-
-int FontEngineInterface::GetLineHeight(FontFaceHandle /*handle*/)
-{
-	return 0;
-}
-
-int FontEngineInterface::GetBaseline(FontFaceHandle /*handle*/)
-{
-	return 0;
-}
-
-float FontEngineInterface::GetUnderline(FontFaceHandle /*handle*/, float& /*thickness*/)
-{
-	return 0;
+	static const FontMetrics metrics = {};
+	return metrics;
 }
 
 int FontEngineInterface::GetStringWidth(FontFaceHandle /*handle*/, const String& /*string*/, Character /*prior_character*/)

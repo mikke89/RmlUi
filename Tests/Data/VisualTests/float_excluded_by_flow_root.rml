@@ -1,0 +1,58 @@
+<rml>
+<head>
+	<title>Floats excluded by new block formatting context</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help (CSS2)" href="https://drafts.csswg.org/css2/#floats" />
+	<link rel="help (flow-root)" href="https://www.w3.org/TR/css-display-3/#valdef-display-flow-root" />
+	<link rel="source" href="https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Block_formatting_context#exclude_external_floats" />
+	<meta name="Description" content="The bottom block box should be placed next to its float (not overlap it), as it establishes a new block formatting context that prevent it from being affected by external floats." />
+	<style>
+		body {
+			padding: 10px;
+			border: 12px #ddd;
+			border-left: 25px;
+			width: 500px; /* outer width 557px */
+		}
+		section {
+			display: block;
+			min-height: 150px;
+		}
+		p {
+			border: 2px #fff;
+			/*white-space: nowrap;*/
+			/*text-align: right;*/
+		}
+		.box {
+			background-color: #e0cef7;
+			border: 5px #663399;
+		}
+		.box.flow-root {
+			display: flow-root;
+			background-color: #f0f8ff;
+			border-color: #4682b4;
+		}
+		.float {
+			float: left;
+			margin-right: 25px;
+			width: 200px;
+			height: 100px;
+			background-color: #fffa;
+			border: 1px black;
+			padding: 10px;
+			position: relative;
+		}
+	</style>
+</head>
+
+<body>
+<section>
+	<div class="float">Try to resize this outer float<handle size_target="#parent"/></div>
+	<div class="box"><p id="p">Normal text</p></div>
+</section>
+<section>
+	<div class="float">Try to resize this outer float<handle size_target="#parent"/></div>
+	<div class="box flow-root"><p><code>display: flow-root</code></p></div>
+</section>
+<handle size_target="#document"/>
+</body>
+</rml>

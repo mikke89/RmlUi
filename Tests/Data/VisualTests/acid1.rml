@@ -9,118 +9,118 @@
 <style type="text/css">
 /* RmlUi does not accept styling of the html/rml element, they have been moved into body. */
 body {
-font-size: 10dp;
-color: white;
-margin: 1.5em;
-border: .5em black;
-padding: 0;
-width: 48em;
-background-color: white;
-min-height: 0;
-bottom: auto;
+	font-size: 10dp;
+	line-height: 1;
+	color: white;
+	margin: 1.5em;
+	border: .5em black;
+	padding: 0;
+	width: 48em;
+	background-color: white;
+	bottom: auto;
 }
 
 dl {
-margin: 0;
-border: 0;
-padding: .5em;
+	margin: 0;
+	border: 0;
+	padding: .5em;
 }
 
-dt { 
-background-color: rgb(204,0,0);
-margin: 0; 
-padding: 1em;
-width: 10.638%; /* refers to parent element's width of 47em. = 5em or 50dp */
-height: 28em;
-border: .5em black;
-float: left;
+dt {
+	background-color: rgb(204, 0, 0);
+	margin: 0;
+	padding: 1em;
+	width: 10.638%; /* refers to parent element's width of 47em. = 5em or 50dp */
+	height: 28em;
+	border: .5em black;
+	float: left;
 }
 
 dd {
-float: right;
-margin: 0 0 0 1em;
-border: 1em black;
-padding: 1em;
-width: 34em;
-height: 27em;
+	float: right;
+	margin: 0 0 0 1em;
+	border: 1em black;
+	padding: 1em;
+	width: 34em;
+	height: 27em;
 }
 
 ul {
-margin: 0;
-border: 0;
-padding: 0;
+	margin: 0;
+	border: 0;
+	padding: 0;
 }
 
 li {
-display: block; /* i.e., suppress marker */
-color: black;
-height: 9em;
-width: 5em;
-margin: 0;
-border: .5em black;
-padding: 1em;
-float: left;
-background-color: #FC0;
+	display: block; /* i.e., suppress marker */
+	color: black;
+	height: 9em;
+	width: 5em;
+	margin: 0;
+	border: .5em black;
+	padding: 1em;
+	float: left;
+	background-color: #FC0;
 }
 
 #bar {
-background-color: black;
-color: white;
-width: 41.17%; /* = 14em */
-border: 0;
-margin: 0 1em;
+	background-color: black;
+	color: white;
+	width: 41.17%; /* = 14em */
+	border: 0;
+	margin: 0 1em;
 }
 
 #baz {
-margin: 1em 0;
-border: 0;
-padding: 1em;
-width: 10em;
-height: 10em;
-background-color: black;
-color: white;
+	margin: 1em 0;
+	border: 0;
+	padding: 1em;
+	width: 10em;
+	height: 10em;
+	background-color: black;
+	color: white;
 }
 
-form { 
-margin: 0;
-display: inline;
+form {
+	margin: 0;
+	display: inline;
 }
 
-p { 
-margin: 0;
+p {
+	margin: 0;
 }
 
 form p {
-line-height: 1.9;
+	line-height: 1.9;
 }
 
 blockquote {
-margin: 1em 1em 1em 2em;
-border-width: 1em 1.5em 2em .5em;
-border-color: black;
-padding: 1em 0;
-width: 5em;
-height: 9em;
-float: left;
-background-color: #FC0;
-color: black;
+	margin: 1em 1em 1em 2em;
+	border-width: 1em 1.5em 2em .5em;
+	border-color: black;
+	padding: 1em 0;
+	width: 5em;
+	height: 9em;
+	float: left;
+	background-color: #FC0;
+	color: black;
 }
 
 address {
-font-style: normal;
+	font-style: normal;
 }
 
 h1 {
-background-color: black;
-color: white;
-float: left;
-margin: 1em 0;
-border: 0;
-padding: 1em;
-width: 10em;
-height: 10em;
-font-weight: normal;
-font-size: 1em;
+	background-color: black;
+	color: white;
+	float: left;
+	margin: 1em 0;
+	border: 0;
+	padding: 1em;
+	width: 10em;
+	height: 10em;
+	font-weight: normal;
+	font-size: 1em;
 }
 </style>
 </head>

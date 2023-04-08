@@ -829,6 +829,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 		case PropertyId::Perspective:
 			values.perspective(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.has_local_perspective(values.perspective() > 0.f);
 			break;
 		case PropertyId::PerspectiveOriginX:
 			values.perspective_origin_x(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
@@ -837,6 +838,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.perspective_origin_y(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
+		case PropertyId::Transform:
+			values.has_local_transform(p->Get<TransformPtr>() != nullptr);
+			break;
 		case PropertyId::TransformOriginX:
 			values.transform_origin_x(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
@@ -859,7 +863,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 		// Fetched from element's properties.
 		case PropertyId::Cursor:
-		case PropertyId::Transform:
 		case PropertyId::Transition:
 		case PropertyId::Animation:
 		case PropertyId::AlignContent:

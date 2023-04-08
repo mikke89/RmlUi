@@ -28,6 +28,11 @@
 
 namespace Rml {
 
+// Default constructor.
+template <typename Type>
+Vector2<Type>::Vector2() : x{0}, y{0}
+{}
+
 // Initialising constructor.
 template < typename Type >
 Vector2< Type >::Vector2(Type v) : x(v), y(v)

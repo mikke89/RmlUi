@@ -127,7 +127,7 @@ namespace Style {
 		Colourb color = Colourb(255, 255, 255);
 
 		FontWeight font_weight;
-		
+
 		FontStyle font_style : 1;
 		bool has_font_effect : 1;
 		PointerEvents pointer_events : 1;
@@ -150,7 +150,8 @@ namespace Style {
 			max_height_type(LengthPercentage::Length),
 
 			perspective_origin_x_type(LengthPercentage::Percentage), perspective_origin_y_type(LengthPercentage::Percentage),
-			transform_origin_x_type(LengthPercentage::Percentage), transform_origin_y_type(LengthPercentage::Percentage),
+			transform_origin_x_type(LengthPercentage::Percentage), transform_origin_y_type(LengthPercentage::Percentage), has_local_transform(false),
+			has_local_perspective(false),
 
 			flex_basis_type(LengthPercentageAuto::Auto), row_gap_type(LengthPercentage::Length), column_gap_type(LengthPercentage::Length),
 
@@ -162,6 +163,7 @@ namespace Style {
 
 		LengthPercentage::Type perspective_origin_x_type : 1, perspective_origin_y_type : 1;
 		LengthPercentage::Type transform_origin_x_type : 1, transform_origin_y_type : 1;
+		bool has_local_transform : 1, has_local_perspective : 1;
 
 		LengthPercentageAuto::Type flex_basis_type : 2;
 		LengthPercentage::Type row_gap_type : 1, column_gap_type : 1;
@@ -268,6 +270,8 @@ namespace Style {
 		TransformOrigin   transform_origin_x()         const { return LengthPercentage(rare.transform_origin_x_type, rare.transform_origin_x); }
 		TransformOrigin   transform_origin_y()         const { return LengthPercentage(rare.transform_origin_y_type, rare.transform_origin_y); }
 		float             transform_origin_z()         const { return rare.transform_origin_z; }
+		bool              has_local_transform()        const { return rare.has_local_transform; }
+		bool              has_local_perspective()      const { return rare.has_local_perspective; }
 		AlignContent      align_content()              const { return GetLocalPropertyKeyword(PropertyId::AlignContent, AlignContent::Stretch); }
 		AlignItems        align_items()                const { return GetLocalPropertyKeyword(PropertyId::AlignItems, AlignItems::Stretch); }
 		AlignSelf         align_self()                 const { return GetLocalPropertyKeyword(PropertyId::AlignSelf, AlignSelf::Auto); }
@@ -356,6 +360,8 @@ namespace Style {
 		void flex_basis                (FlexBasis value)         { rare.flex_basis_type            = value.type; rare.flex_basis                 = value.value; }
 		void transform_origin_z        (float value)             { rare.transform_origin_z         = value; }
 		void perspective               (float value)             { rare.perspective                = value; }
+		void has_local_perspective     (bool value)              { rare.has_local_perspective      = value; }
+		void has_local_transform       (bool value)              { rare.has_local_transform        = value; }
 		void border_top_left_radius    (float value)             { rare.border_top_left_radius     = (int16_t)value; }
 		void border_top_right_radius   (float value)             { rare.border_top_right_radius    = (int16_t)value; }
 		void border_bottom_right_radius(float value)             { rare.border_bottom_right_radius = (int16_t)value; }
@@ -402,11 +408,20 @@ namespace Style {
 
 } // namespace Style
 
-// Resolves a computed LengthPercentage value to the base unit 'px'.
-// Percentages are scaled by the base_value.
-// Note: Auto must be manually handled during layout, here it returns zero.
-RMLUICORE_API float ResolveValue(Style::LengthPercentageAuto length, float base_value);
-RMLUICORE_API float ResolveValue(Style::LengthPercentage length, float base_value);
+// Resolves a computed LengthPercentage(Auto) value to the base unit 'px'.
+// Percentages are scaled by the base value, if definite (>= 0), otherwise return the default value.
+// Auto lengths always return the default value.
+RMLUICORE_API float ResolveValueOr(Style::LengthPercentageAuto length, float base_value, float default_value);
+RMLUICORE_API float ResolveValueOr(Style::LengthPercentage length, float base_value, float default_value);
+
+RMLUICORE_API_INLINE float ResolveValue(Style::LengthPercentageAuto length, float base_value)
+{
+	return ResolveValueOr(length, base_value, 0.f);
+}
+RMLUICORE_API_INLINE float ResolveValue(Style::LengthPercentage length, float base_value)
+{
+	return ResolveValueOr(length, base_value, 0.f);
+}
 
 using ComputedValues = Style::ComputedValues;
 

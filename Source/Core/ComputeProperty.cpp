@@ -29,6 +29,7 @@
 #include "ComputeProperty.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 
 namespace Rml {
 
@@ -238,7 +239,7 @@ Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_h
 	}
 	else if (property->unit & Property::PERCENT)
 	{
-		return Style::VerticalAlign(property->Get<float>() * line_height);
+		return Style::VerticalAlign(property->Get<float>() * line_height * 0.01f);
 	}
 
 	RMLUI_ASSERT(property->unit & Property::KEYWORD);
@@ -311,6 +312,25 @@ uint16_t ComputeBorderWidth(float computed_length)
 		return 1;
 	
 	return uint16_t(computed_length + 0.5f);
+}
+
+String GetFontFaceDescription(const String& font_family, Style::FontStyle style, Style::FontWeight weight)
+{
+	String font_attributes;
+
+	if (style == Style::FontStyle::Italic)
+		font_attributes += "italic, ";
+	if (weight == Style::FontWeight::Bold)
+		font_attributes += "bold, ";
+	else if (weight != Style::FontWeight::Auto && weight != Style::FontWeight::Normal)
+		font_attributes += "weight=" + ToString((int)weight) + ", ";
+
+	if (font_attributes.empty())
+		font_attributes = "regular";
+	else
+		font_attributes.resize(font_attributes.size() - 2);
+
+	return CreateString(font_attributes.size() + font_family.size() + 8, "'%s' [%s]", font_family.c_str(), font_attributes.c_str());
 }
 
 } // namespace Rml

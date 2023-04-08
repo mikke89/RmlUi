@@ -67,14 +67,12 @@ public:
 	/// @param[in] index_offset The offset to be added to the generated indices; this should be the number of vertices already in the array.
 	static void GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, Vector2f top_left_texcoord, Vector2f bottom_right_texcoord, int index_offset = 0);
 
-	/// Generates the geometry required to render a line above, below or through a line of text.
-	/// @param[in] font_face_handle The font face handle to derive the line's metrics from.
+	/// Generates the geometry required to render a line.
 	/// @param[out] geometry The geometry to append the newly created geometry into.
-	/// @param[in] position The position of the baseline of the lined text.
-	/// @param[in] width The width of the string to line.
-	/// @param[in] decoration_type The type for vertical positioning of line.
-	/// @param[in] colour The colour to draw the line in.
-	static void GenerateLine(FontFaceHandle font_face_handle, Geometry* geometry, Vector2f position, int width, Style::TextDecoration decoration_type, Colourb colour);
+	/// @param[in] position The top-left position the line.
+	/// @param[in] position The size of the line.
+	/// @param[in] color The color to draw the line in.
+	static void GenerateLine(Geometry* geometry, Vector2f position, Vector2f size, Colourb color);
 
 	/// Generates a geometry in the same way as element backgrounds and borders are generated, with support for the border-radius property.
 	/// Vertex positions are relative to the border-box, vertex texture coordinates are default initialized.

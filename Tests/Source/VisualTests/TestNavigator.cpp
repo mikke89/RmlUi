@@ -27,12 +27,13 @@
  */
 
 #include "TestNavigator.h"
-#include "TestSuite.h"
-#include "TestConfig.h"
 #include "CaptureScreen.h"
+#include "TestConfig.h"
+#include "TestSuite.h"
 #include "TestViewer.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/Math.h>
 #include <Shell.h>
 #include <cstdio>
 
@@ -41,19 +42,22 @@
 constexpr int iteration_wait_frame_count = 2;
 
 
-TestNavigator::TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites,
-	int start_index) :
+TestNavigator::TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList _test_suites,
+	int start_suite, int start_case) :
 	render_interface(render_interface),
-	context(context), viewer(viewer), test_suites(std::move(test_suites))
+	context(context), viewer(viewer), test_suites(std::move(_test_suites))
 {
 	RMLUI_ASSERT(context);
-	RMLUI_ASSERTMSG(!this->test_suites.empty(), "At least one test suite is required.");
+	RMLUI_ASSERTMSG(!test_suites.empty(), "At least one test suite is required.");
 	context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, this, true);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Textinput, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Change, this);
-	if (start_index > 0)
-		CurrentSuite().SetIndex(start_index);
+
+	suite_index = Rml::Math::Clamp(start_suite, 0, (int)test_suites.size() - 1);
+
+	if (start_case > 0)
+		CurrentSuite().SetIndex(start_case);
 	LoadActiveTest();
 }
 
@@ -232,7 +236,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 				UpdateGoToText();
 			}
 		}
-		else if (key_identifier == Rml::Input::KI_RETURN)
+		else if (key_identifier == Rml::Input::KI_RETURN || key_identifier == Rml::Input::KI_NUMPADENTER)
 		{
 			element_filter_input->Blur();
 		}
@@ -368,7 +372,7 @@ ComparisonResult TestNavigator::CompareCurrentView()
 {
 	const Rml::String filename = GetImageFilenameFromCurrentTest();
 
-	ComparisonResult result = CompareScreenToPreviousCapture(render_interface, filename, true, nullptr);
+	ComparisonResult result = CompareScreenToPreviousCapture(render_interface, filename, nullptr);
 
 	return result;
 }
@@ -570,7 +574,7 @@ void TestNavigator::ShowReference(bool show, bool clear)
 	Rml::String error_msg;
 	if (show && !reference_geometry.texture_handle)
 	{
-		reference_comparison = CompareScreenToPreviousCapture(render_interface, GetImageFilenameFromCurrentTest(), false, &reference_geometry);
+		reference_comparison = CompareScreenToPreviousCapture(render_interface, GetImageFilenameFromCurrentTest(), &reference_geometry);
 
 		if (!reference_comparison.success)
 			error_msg = reference_comparison.error_msg;

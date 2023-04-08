@@ -71,40 +71,14 @@ bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_siz
 	return true;
 }
 
-// Returns the point size of this font face.
-int FontFaceHandleDefault::GetSize() const
+const FontMetrics& FontFaceHandleDefault::GetFontMetrics() const
 {
-	return metrics.size;
+	return metrics;
 }
 
-// Returns the pixel height of a lower-case x in this font face.
-int FontFaceHandleDefault::GetXHeight() const
-{
-	return metrics.x_height;
-}
-
-// Returns the default height between this font face's baselines.
-int FontFaceHandleDefault::GetLineHeight() const
-{
-	return metrics.line_height;
-}
-
-// Returns the font's baseline.
-int FontFaceHandleDefault::GetBaseline() const
-{
-	return metrics.baseline;
-}
-
-// Returns the font's glyphs.
 const FontGlyphMap& FontFaceHandleDefault::GetGlyphs() const
 {
 	return glyphs;
-}
-
-float FontFaceHandleDefault::GetUnderline(float& thickness) const
-{
-	thickness = metrics.underline_thickness;
-	return metrics.underline_position;
 }
 
 // Returns the width a string will take up if rendered with this handle.

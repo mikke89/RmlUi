@@ -32,6 +32,7 @@
 #include "../../../Include/RmlUi/Core/Traits.h"
 #include "../../../Include/RmlUi/Core/FontEffect.h"
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
+#include "../../../Include/RmlUi/Core/FontMetrics.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
 #include "../../../Include/RmlUi/Core/Texture.h"
 #include "FontTypes.h"
@@ -53,20 +54,8 @@ public:
 
 	bool Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs);
 
-	/// Returns the point size of this font face.
-	int GetSize() const;
-	/// Returns the pixel height of a lower-case x in this font face.
-	int GetXHeight() const;
-	/// Returns the default height between this font face's baselines.
-	int GetLineHeight() const;
-
-	/// Returns the font's baseline, as a pixel offset from the bottom of the font.
-	int GetBaseline() const;
-
-	/// Returns the font's underline, as a pixel offset from the bottom of the font.
-	float GetUnderline(float& thickness) const;
-
-	/// Returns the font's glyphs.
+	const FontMetrics& GetFontMetrics() const;
+	
 	const FontGlyphMap& GetGlyphs() const;
 
 	/// Returns the width a string will take up if rendered with this handle.

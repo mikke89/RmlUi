@@ -28,6 +28,7 @@
 
 #include "FreeTypeInterface.h"
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../../Include/RmlUi/Core/FontMetrics.h"
 #include "../../../Include/RmlUi/Core/Log.h"
 #include <algorithm>
 #include <string.h>
@@ -484,26 +485,20 @@ static bool BuildGlyph(FT_Face ft_face, const Character character, FontGlyphMap&
 
 static void GenerateMetrics(FT_Face ft_face, FontMetrics& metrics, float bitmap_scaling_factor)
 {
-	metrics.line_height = ft_face->size->metrics.height >> 6;
-	metrics.baseline = metrics.line_height - (ft_face->size->metrics.ascender >> 6);
+	metrics.ascent = ft_face->size->metrics.ascender * bitmap_scaling_factor / float(1 << 6);
+	metrics.descent = -ft_face->size->metrics.descender * bitmap_scaling_factor / float(1 << 6);
+	metrics.line_spacing = ft_face->size->metrics.height * bitmap_scaling_factor / float(1 << 6);
 
-	metrics.underline_position = FT_MulFix(ft_face->underline_position, ft_face->size->metrics.y_scale) * bitmap_scaling_factor / float(1 << 6);
+	metrics.underline_position = FT_MulFix(-ft_face->underline_position, ft_face->size->metrics.y_scale) * bitmap_scaling_factor / float(1 << 6);
 	metrics.underline_thickness = FT_MulFix(ft_face->underline_thickness, ft_face->size->metrics.y_scale) * bitmap_scaling_factor / float(1 << 6);
 	metrics.underline_thickness = Math::Max(metrics.underline_thickness, 1.0f);
 
 	// Determine the x-height of this font face.
 	FT_UInt index = FT_Get_Char_Index(ft_face, 'x');
 	if (index != 0 && FT_Load_Glyph(ft_face, index, 0) == 0)
-		metrics.x_height = ft_face->glyph->metrics.height >> 6;
+		metrics.x_height = ft_face->glyph->metrics.height * bitmap_scaling_factor / float(1 << 6);
 	else
-		metrics.x_height = metrics.line_height / 2;
-
-	if (bitmap_scaling_factor != 1.f)
-	{
-		metrics.line_height = int(float(metrics.line_height) * bitmap_scaling_factor);
-		metrics.baseline = int(float(metrics.baseline) * bitmap_scaling_factor);
-		metrics.x_height = int(float(metrics.x_height) * bitmap_scaling_factor);
-	}
+		metrics.x_height = 0.5f * metrics.line_spacing;
 }
 
 static bool SetFontSize(FT_Face ft_face, int font_size, float& out_bitmap_scaling_factor)

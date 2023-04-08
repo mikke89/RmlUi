@@ -56,7 +56,22 @@ namespace Style {
 	using Margin = LengthPercentageAuto;
 	using Padding = LengthPercentage;
 
-	enum class Display : uint8_t { None, Block, Inline, InlineBlock, Flex, Table, TableRow, TableRowGroup, TableColumn, TableColumnGroup, TableCell };
+	enum class Display : uint8_t {
+		None,
+		Block,
+		Inline,
+		InlineBlock,
+		FlowRoot,
+		Flex,
+		InlineFlex,
+		Table,
+		InlineTable,
+		TableRow,
+		TableRowGroup,
+		TableColumn,
+		TableColumnGroup,
+		TableCell
+	};
 	enum class Position : uint8_t { Static, Relative, Absolute, Fixed };
 
 	using Top = LengthPercentageAuto;
@@ -89,7 +104,7 @@ namespace Style {
 		{}
 	};
 	struct VerticalAlign {
-		enum Type : uint8_t { Baseline, Middle, Sub, Super, TextTop, TextBottom, Top, Bottom, Length } type;
+		enum Type : uint8_t { Baseline, Middle, Sub, Super, TextTop, TextBottom, Top, Center, Bottom, Length } type;
 		float value; // For length type
 		VerticalAlign(Type type = Baseline) : type(type), value(0) {}
 		VerticalAlign(float value) : type(Length), value(value) {}

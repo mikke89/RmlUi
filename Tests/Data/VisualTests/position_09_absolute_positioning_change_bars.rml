@@ -22,5 +22,6 @@
 	  <span style="position: absolute; top: auto; left: -1em; color: red;">--</span>
 	  word.
 	</p>
+<handle size_target="#document"/>
 </body>
 </rml>

@@ -64,34 +64,10 @@ FontEffectsHandle FontEngineInterfaceDefault::PrepareFontEffects(FontFaceHandle 
 	return (FontEffectsHandle)handle_default->GenerateLayerConfiguration(font_effects);
 }
 
-int FontEngineInterfaceDefault::GetSize(FontFaceHandle handle)
+const FontMetrics& FontEngineInterfaceDefault::GetFontMetrics(FontFaceHandle handle)
 {
-	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
-	return handle_default->GetSize();
-}
-
-int FontEngineInterfaceDefault::GetXHeight(FontFaceHandle handle)
-{
-	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
-	return handle_default->GetXHeight();
-}
-
-int FontEngineInterfaceDefault::GetLineHeight(FontFaceHandle handle)
-{
-	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
-	return handle_default->GetLineHeight();
-}
-
-int FontEngineInterfaceDefault::GetBaseline(FontFaceHandle handle)
-{
-	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
-	return handle_default->GetBaseline();
-}
-
-float FontEngineInterfaceDefault::GetUnderline(FontFaceHandle handle, float& thickness)
-{
-	auto handle_default = reinterpret_cast<FontFaceHandleDefault *>(handle);
-	return handle_default->GetUnderline(thickness);
+	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
+	return handle_default->GetFontMetrics();
 }
 
 int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const String& string, Character prior_character)

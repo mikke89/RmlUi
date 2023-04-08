@@ -82,7 +82,7 @@ namespace FontProviderBitmap
 				return false;
 
 			// Fill the remaining metrics
-			parser.metrics.underline_position = -parser.metrics.baseline - 1.f;
+			parser.metrics.underline_position = 3.f;
 			parser.metrics.underline_thickness = 1.f;
 		}
 
@@ -130,8 +130,11 @@ namespace FontProviderBitmap
 }
 
 
-FontFaceBitmap::FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, Texture texture, Vector2f texture_dimensions, FontGlyphs&& glyphs, FontKerning&& kerning)
-	: family(family), style(style), weight(weight), metrics(metrics), texture(texture), texture_dimensions(texture_dimensions), glyphs(std::move(glyphs)), kerning(std::move(kerning)) 
+FontFaceBitmap::FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, Texture texture, Vector2f texture_dimensions,
+	FontGlyphs&& glyphs, FontKerning&& kerning) :
+	family(family),
+	style(style), weight(weight), metrics(metrics), texture(texture), texture_dimensions(texture_dimensions), glyphs(std::move(glyphs)),
+	kerning(std::move(kerning))
 {}
 
 int FontFaceBitmap::GetStringWidth(const String& string, Character previous_character)
@@ -249,8 +252,9 @@ void FontParserBitmap::HandleElementStart(const String& name, const Rml::XMLAttr
 	}
 	else if (name == "common")
 	{
-		metrics.line_height = Get(attributes, "lineHeight", 0);
-		metrics.baseline = metrics.line_height - Get(attributes, "base", 0);
+		metrics.line_spacing = Get(attributes, "lineHeight", 0.f);
+		metrics.ascent = Get(attributes, "base", 0.f);
+		metrics.descent = metrics.line_spacing - metrics.ascent;
 
 		texture_dimensions.x = Get(attributes, "scaleW", 0.f);
 		texture_dimensions.y = Get(attributes, "scaleH", 0.f);
@@ -273,21 +277,17 @@ void FontParserBitmap::HandleElementStart(const String& name, const Rml::XMLAttr
 
 		BitmapGlyph& glyph = glyphs[character];
 
-		glyph.advance = Get(attributes, "xadvance", 0);
-
-		// Shift y-origin from top to baseline
-		float origin_shift_y = float(metrics.baseline - metrics.line_height);
-
 		glyph.offset.x = Get(attributes, "xoffset", 0.f);
-		glyph.offset.y = Get(attributes, "yoffset", 0.f) + origin_shift_y;
-		
+		glyph.offset.y = Get(attributes, "yoffset", 0.f) - metrics.ascent; // Shift y-origin from top to baseline
+
+		glyph.advance = Get(attributes, "xadvance", 0);
 		glyph.position.x = Get(attributes, "x", 0.f);
 		glyph.position.y = Get(attributes, "y", 0.f);
 		glyph.dimension.x = Get(attributes, "width", 0.f);
 		glyph.dimension.y = Get(attributes, "height", 0.f);
 
 		if (character == (Character)'x')
-			metrics.x_height = (int)glyph.dimension.y;
+			metrics.x_height = glyph.dimension.y;
 	}
 	else if (name == "kerning")
 	{

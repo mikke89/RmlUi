@@ -22,6 +22,7 @@
 
 			div
 			{
+				position: relative;
 				height: 43dp;
 				padding: 12dp 0 0 72dp;
 				margin: 0 20dp;

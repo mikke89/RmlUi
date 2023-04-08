@@ -22,6 +22,9 @@
 		}
 		col {
 			background: #3d3;
+			
+			/* Used to test the paint order of positioned columns, should not affect the order. */
+			position: relative;
 		}
 		col:first-child {
 			background: #6df;

@@ -59,16 +59,24 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryBackgroundBorder.h
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.h
     ${PROJECT_SOURCE_DIR}/Source/Core/IdNameMap.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutDetails.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutEngine.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutFlex.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBox.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBoxText.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutLineBox.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutTable.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutTableDetails.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/BlockContainer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/BlockFormattingContext.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/ContainerBox.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/FlexFormattingContext.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/FloatedBoxSpace.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/FormattingContext.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/InlineBox.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/InlineContainer.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/InlineLevelBox.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/InlineTypes.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutBox.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutDetails.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutEngine.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutPools.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LineBox.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/ReplacedFormattingContext.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingContext.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingDetails.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Memory.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Pool.h
@@ -160,6 +168,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffectInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEngineInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontGlyph.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontMetrics.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Geometry.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/GeometryUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Header.h
@@ -309,16 +318,23 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryBackgroundBorder.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBox.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutBlockBoxSpace.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutDetails.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutEngine.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutFlex.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBox.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutInlineBoxText.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutLineBox.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutTable.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/LayoutTableDetails.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/BlockContainer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/BlockFormattingContext.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/ContainerBox.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/FlexFormattingContext.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/FloatedBoxSpace.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/FormattingContext.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/InlineBox.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/InlineContainer.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/InlineLevelBox.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutBox.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutDetails.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutEngine.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LayoutPools.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/LineBox.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/ReplacedFormattingContext.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingContext.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingDetails.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Log.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Math.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Memory.cpp

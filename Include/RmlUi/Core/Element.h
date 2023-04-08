@@ -55,9 +55,9 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
-class LayoutEngine;
-class LayoutInlineBox;
-class LayoutBlockBox;
+class ContainerBox;
+class InlineLevelBox;
+class ReplacedBox;
 class PropertiesIteratorView;
 class PropertyDictionary;
 class RenderInterface;
@@ -65,7 +65,7 @@ class StyleSheet;
 class StyleSheetContainer;
 class TransformState;
 struct ElementMeta;
-struct StackingOrderedChild;
+struct StackingContextChild;
 
 /**
 	A generic element in the DOM tree.
@@ -137,11 +137,10 @@ public:
 	/// @return The box area used as the element's client area.
 	Box::Area GetClientArea() const;
 
-	/// Sets the dimensions of the element's internal content. This is the tightest fitting box surrounding all of
-	/// this element's logical children, plus the element's padding.
-	/// @param[in] content_offset The offset of the box's internal content.
-	/// @param[in] content_box The dimensions of the box's internal content.
-	void SetContentBox(Vector2f content_offset, Vector2f content_box);
+	/// Sets the dimensions of the element's scrollable overflow rectangle. This is the tightest fitting box surrounding
+	/// all of this element's logical children, and the element's padding box.
+	/// @param[in] scrollable_overflow_rectangle The dimensions of the box's scrollable content.
+	void SetScrollableOverflowRectangle(Vector2f scrollable_overflow_rectangle);
 	/// Sets the box describing the size of the element, and removes all others.
 	/// @param[in] box The new dimensions box for the element.
 	void SetBox(const Box& box);
@@ -161,15 +160,18 @@ public:
 	/// @return the number of boxes making up this element's geometry.
 	int GetNumBoxes();
 
-	/// Returns the baseline of the element, in pixels offset from the bottom of the element's content area.
-	/// @return The element's baseline. A negative baseline will be further 'up' the element, a positive on further 'down'. The default element will return 0.
+	/// Returns the baseline of the element, in pixel offset from the element's bottom margin edge (positive up).
+	/// @return The element's baseline. The default element will return 0.
 	virtual float GetBaseline() const;
-	/// Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size. This size will
+	/// Gets the intrinsic dimensions of this element, if it is a replaced element with an inherent size. This size will
 	/// only be overriden by a styled width or height.
 	/// @param[out] dimensions The dimensions to size, if appropriate.
 	/// @param[out] ratio The intrinsic ratio (width/height), if appropriate.
-	/// @return True if the element has intrinsic dimensions, false otherwise. The default element will return false.
+	/// @return True if the element is a replaced element with intrinsic dimensions, false otherwise.
 	virtual bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio);
+	/// Returns true if the element is replaced, thereby handling its own rendering.
+	/// @return True if the element is a replaced element.
+	bool IsReplaced();
 
 	/// Checks if a given point in screen coordinates lies within the bordered area of this element.
 	/// @param[in] point The point to test.
@@ -674,8 +676,8 @@ private:
 	void SetBaseline(float baseline);
 
 	void BuildLocalStackingContext();
-	void BuildStackingContext(ElementList* stacking_context);
-	static void BuildStackingContextForTable(Vector<StackingOrderedChild>& ordered_children, Element* child);
+	void AddChildrenToStackingContext(Vector<StackingContextChild>& stacking_children);
+	void AddToStackingContext(Vector<StackingContextChild>& stacking_children, bool is_flex_item, bool is_non_dom_element);
 	void DirtyStackingContext();
 
 	void UpdateDefinition();
@@ -771,9 +773,8 @@ private:
 	Box main_box;
 	PositionedBoxList additional_boxes;
 
-	// And of the element's internal content.
-	Vector2f content_offset;
-	Vector2f content_box;
+	// And of the element's scrollable content.
+	Vector2f scrollable_overflow_rectangle;
 
 	float baseline;
 	float z_index;
@@ -788,9 +789,9 @@ private:
 
 	friend class Rml::Context;
 	friend class Rml::ElementStyle;
-	friend class Rml::LayoutEngine;
-	friend class Rml::LayoutBlockBox;
-	friend class Rml::LayoutInlineBox;
+	friend class Rml::ContainerBox;
+	friend class Rml::InlineLevelBox;
+	friend class Rml::ReplacedBox;
 	friend class Rml::ElementScroll;
 	friend RMLUICORE_API void Rml::ReleaseFontResources();
 };

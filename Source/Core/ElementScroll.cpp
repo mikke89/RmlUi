@@ -33,7 +33,7 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Factory.h"
-#include "LayoutDetails.h"
+#include "Layout/LayoutDetails.h"
 #include "WidgetScroll.h"
 
 namespace Rml {
@@ -91,6 +91,9 @@ void ElementScroll::DisableScrollbar(Orientation orientation)
 	{
 		scrollbars[orientation].element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 		scrollbars[orientation].enabled = false;
+
+		if (corner)
+			corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	}
 }
 
@@ -189,8 +192,7 @@ void ElementScroll::FormatScrollbars()
 	}
 
 	// Format the corner, if it is necessary.
-	if (scrollbars[0].enabled &&
-		scrollbars[1].enabled)
+	if (scrollbars[0].enabled && scrollbars[1].enabled)
 	{
 		CreateCorner();
 
@@ -198,14 +200,8 @@ void ElementScroll::FormatScrollbars()
 		corner_box.SetContent(Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size));
 		corner->SetBox(corner_box);
 		corner->SetOffset(containing_block + element_box.GetPosition(Box::PADDING) - Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size), element, true);
-		corner->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
 		corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
-	}
-	else
-	{
-		if (corner != nullptr)
-			corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	}
 }
 
@@ -215,7 +211,7 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 	if (scrollbars[orientation].element &&
 		scrollbars[orientation].widget)
 		return true;
-
+	
 	ElementPtr scrollbar_element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
 	scrollbars[orientation].element = scrollbar_element.get();
 	scrollbars[orientation].element->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
@@ -238,8 +234,9 @@ bool ElementScroll::CreateCorner()
 
 	ElementPtr corner_element = Factory::InstanceElement(element, "*", "scrollbarcorner", XMLAttributes());
 	corner = corner_element.get();
-	Element* child = element->AppendChild(std::move(corner_element), false);
+	corner->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
+	Element* child = element->AppendChild(std::move(corner_element), false);
 	UpdateScrollElementProperties(child);
 
 	return true;

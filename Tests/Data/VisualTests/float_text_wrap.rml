@@ -1,0 +1,42 @@
+<rml>
+<head>
+	<title>Text wrapping around floats</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css2/#floats" />
+	<meta name="Description" content="Ensure the words wrap correctly around the float." />
+	<style>
+		section {
+			display: block;
+			min-height: 150px;
+		}
+		p {
+			border: 2px #fff;
+			/*white-space: nowrap;*/
+			/*text-align: right;*/
+		}
+		.box {
+			background-color: #f0f8ff;
+			border: 5px #4682b4;
+			font-size: 30dp;
+		}
+		.float {
+			float: left;
+			margin-right: 25px;
+			width: 380px;
+			height: 100px;
+			background-color: #fffa;
+			border: 1px black;
+			padding: 10px;
+			position: relative;
+		}
+	</style>
+</head>
+
+<body>
+<section>
+	<div class="float">Try to resize this outer float<handle size_target="#parent"/></div>
+	<div class="box"><p>AA B CCC</p></div>
+</section>
+<handle size_target="#document"/>
+</body>
+</rml>

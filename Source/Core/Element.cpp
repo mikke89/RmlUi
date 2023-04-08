@@ -53,7 +53,7 @@
 #include "EventDispatcher.h"
 #include "EventSpecification.h"
 #include "ElementDecoration.h"
-#include "LayoutEngine.h"
+#include "Layout/LayoutEngine.h"
 #include "PluginRegistry.h"
 #include "PropertiesIterator.h"
 #include "Pool.h"
@@ -109,10 +109,8 @@ static Pool< ElementMeta > element_meta_chunk_pool(200, true);
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
 	visible(true), offset_fixed(false), absolute_offset_dirty(true), dirty_definition(false), dirty_child_definitions(false), dirty_animation(false),
-	dirty_transition(false), dirty_transform(false), dirty_perspective(false),
-
-	tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0), content_offset(0, 0),
-	content_box(0, 0)
+	dirty_transition(false), dirty_transform(false), dirty_perspective(false), tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0),
+	absolute_offset(0, 0), scroll_offset(0, 0)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;
@@ -232,11 +230,6 @@ void Element::Render()
 
 	UpdateTransformState();
 
-	// Render all elements in our local stacking context that have a z-index beneath our local index of 0.
-	size_t i = 0;
-	for (; i < stacking_context.size() && stacking_context[i]->z_index < 0; ++i)
-		stacking_context[i]->Render();
-
 	// Apply our transform
 	ElementUtilities::ApplyTransform(*this);
 
@@ -253,9 +246,9 @@ void Element::Render()
 		}
 	}
 
-	// Render the rest of the elements in the stacking context.
-	for (; i < stacking_context.size(); ++i)
-		stacking_context[i]->Render();
+	// Render all elements in our local stacking context.
+	for (Element* element : stacking_context)
+		element->Render();
 }
 
 // Clones this element, returning a new, unparented element.
@@ -415,23 +408,20 @@ Vector2f Element::GetAbsoluteOffset(Box::Area area)
 	{
 		absolute_offset_dirty = false;
 
-		if (offset_parent != nullptr)
+		if (offset_parent)
 			absolute_offset = offset_parent->GetAbsoluteOffset(Box::BORDER) + relative_offset_base + relative_offset_position;
 		else
 			absolute_offset = relative_offset_base + relative_offset_position;
 
-		// Add any parent scrolling onto our position as well. Could cache this if required.
 		if (!offset_fixed)
 		{
-			Element* scroll_parent = parent;
-			while (scroll_parent != nullptr)
-			{
-				absolute_offset -= (scroll_parent->scroll_offset + scroll_parent->content_offset);
-				if (scroll_parent == offset_parent)
-					break;
-				else
-					scroll_parent = scroll_parent->parent;
-			}
+			// Add any parent scrolling onto our position as well.
+			if (offset_parent)
+				absolute_offset -= offset_parent->scroll_offset;
+
+			// Finally, there may be relatively positioned elements between ourself and our containing block, add their relative offsets as well.
+			for (Element* ancestor = parent; ancestor && ancestor != offset_parent; ancestor = ancestor->parent)
+				absolute_offset += ancestor->relative_offset_position;
 		}
 	}
 
@@ -451,17 +441,11 @@ Box::Area Element::GetClientArea() const
 }
 
 // Sets the dimensions of the element's internal content.
-void Element::SetContentBox(Vector2f _content_offset, Vector2f _content_box)
+void Element::SetScrollableOverflowRectangle(Vector2f _scrollable_overflow_rectangle)
 {
-	if (content_offset != _content_offset ||
-		content_box != _content_box)
+	if (scrollable_overflow_rectangle != _scrollable_overflow_rectangle)
 	{
-		// Seems to be jittering a wee bit; might need to be looked at.
-		scroll_offset.x += (content_offset.x - _content_offset.x);
-		scroll_offset.y += (content_offset.y - _content_offset.y);
-
-		content_offset = _content_offset;
-		content_box = _content_box;
+		scrollable_overflow_rectangle = _scrollable_overflow_rectangle;
 
 		scroll_offset.x = Math::Min(scroll_offset.x, GetScrollWidth() - GetClientWidth());
 		scroll_offset.y = Math::Min(scroll_offset.y, GetScrollHeight() - GetClientHeight());
@@ -538,6 +522,13 @@ bool Element::GetIntrinsicDimensions(Vector2f& RMLUI_UNUSED_PARAMETER(dimensions
 	RMLUI_UNUSED(dimensions);
 	RMLUI_UNUSED(ratio);
 	return false;
+}
+
+bool Element::IsReplaced()
+{
+	Vector2f unused_dimensions;
+	float unused_ratio = 0.f;
+	return GetIntrinsicDimensions(unused_dimensions, unused_ratio);
 }
 
 // Checks if a given point in screen coordinates lies within the bordered area of this element.
@@ -1025,13 +1016,13 @@ void Element::SetScrollTop(float scroll_top)
 // Gets the width of the scrollable content of the element; it includes the element padding but not its margin.
 float Element::GetScrollWidth()
 {
-	return Math::Max(content_box.x, GetClientWidth());
+	return Math::Max(scrollable_overflow_rectangle.x, GetClientWidth());
 }
 
 // Gets the height of the scrollable content of the element; it includes the element padding but not its margin.
 float Element::GetScrollHeight()
 {
-	return Math::Max(content_box.y, GetClientHeight());
+	return Math::Max(scrollable_overflow_rectangle.y, GetClientHeight());
 }
 
 // Gets the object representing the declarations of an element's style attributes.
@@ -2289,128 +2280,162 @@ void Element::SetBaseline(float in_baseline)
 	baseline = in_baseline;
 }
 
+enum class RenderOrder {
+	StackNegative, // Local stacking context with z < 0.
+	Block,
+	TableColumnGroup,
+	TableColumn,
+	TableRowGroup,
+	TableRow,
+	TableCell,
+	Floating,
+	Inline,
+	Positioned,    // Positioned element, or local stacking context with z == 0.
+	StackPositive, // Local stacking context with z > 0.
+};
+struct StackingContextChild {
+	Element* element = nullptr;
+	RenderOrder order = {};
+};
+static bool operator<(const StackingContextChild& lhs, const StackingContextChild& rhs)
+{
+	if (int(lhs.order) == int(rhs.order))
+		return lhs.element->GetZIndex() < rhs.element->GetZIndex();
+	return int(lhs.order) < int(rhs.order);
+}
+
+// Treat all children in the range [index_begin, end) as if the parent created a new stacking context, by sorting them
+// separately and then assigning their parent's paint order. However, positioned and descendants which create a new
+// stacking context should be considered part of the parent stacking context. See CSS 2, Appendix E.
+static void StackingContext_MakeAtomicRange(Vector<StackingContextChild>& stacking_children, size_t index_begin, RenderOrder parent_render_order)
+{
+	std::stable_sort(stacking_children.begin() + index_begin, stacking_children.end());
+
+	for (auto it = stacking_children.begin() + index_begin; it != stacking_children.end(); ++it)
+	{
+		auto order = it->order;
+		if (order != RenderOrder::StackNegative && order != RenderOrder::Positioned && order != RenderOrder::StackPositive)
+			it->order = parent_render_order;
+	}
+}
+
 void Element::BuildLocalStackingContext()
 {
 	stacking_context_dirty = false;
-	stacking_context.clear();
 
-	BuildStackingContext(&stacking_context);
-	std::stable_sort(stacking_context.begin(), stacking_context.end(), [](const Element* lhs, const Element* rhs) { return lhs->GetZIndex() < rhs->GetZIndex(); });
+	Vector<StackingContextChild> stacking_children;
+	AddChildrenToStackingContext(stacking_children);
+	std::stable_sort(stacking_children.begin(), stacking_children.end());
+
+	stacking_context.resize(stacking_children.size());
+	for (size_t i = 0; i < stacking_children.size(); i++)
+		stacking_context[i] = stacking_children[i].element;
 }
 
-enum class RenderOrder { Block, TableColumnGroup, TableColumn, TableRowGroup, TableRow, TableCell, Inline, Floating, Positioned };
-struct StackingOrderedChild {
-	Element* element;
-	RenderOrder order;
-	bool include_children;
-};
-
-void Element::BuildStackingContext(ElementList* new_stacking_context)
+void Element::AddChildrenToStackingContext(Vector<StackingContextChild>& stacking_children)
 {
-	RMLUI_ZoneScoped;
-
-	// Build the list of ordered children. Our child list is sorted within the stacking context so stacked elements
-	// will render in the right order; ie, positioned elements will render on top of inline elements, which will render
-	// on top of floated elements, which will render on top of block elements.
-	Vector< StackingOrderedChild > ordered_children;
-
-	const size_t num_children = children.size();
-	ordered_children.reserve(num_children);
-
-	if (GetDisplay() == Style::Display::Table)
+	bool is_flex_container = (GetDisplay() == Style::Display::Flex);
+	const int num_children = (int)children.size();
+	for (int i = 0; i < num_children; ++i)
 	{
-		BuildStackingContextForTable(ordered_children, this);
+		const bool is_non_dom_element = (i >= num_children - num_non_dom_children);
+		children[i]->AddToStackingContext(stacking_children, is_flex_container, is_non_dom_element);
+	}
+}
+
+void Element::AddToStackingContext(Vector<StackingContextChild>& stacking_children, bool is_flex_item, bool is_non_dom_element)
+{
+	using Style::Display;
+
+	if (!IsVisible())
+		return;
+
+	const Display display = GetDisplay();
+
+	RenderOrder order = RenderOrder::Inline;
+	bool include_children = true;
+	bool render_as_atomic_unit = false;
+
+	if (local_stacking_context)
+	{
+		if (z_index > 0.f)
+			order = RenderOrder::StackPositive;
+		else if (z_index < 0.f)
+			order = RenderOrder::StackNegative;
+		else
+			order = RenderOrder::Positioned;
+
+		include_children = false;
+	}
+	else if (display == Display::TableRow || display == Display::TableRowGroup || display == Display::TableColumn ||
+		display == Display::TableColumnGroup)
+	{
+		// Handle internal display values taking priority over position and float.
+		switch (display)
+		{
+		case Display::TableRow: order = RenderOrder::TableRow; break;
+		case Display::TableRowGroup: order = RenderOrder::TableRowGroup; break;
+		case Display::TableColumn: order = RenderOrder::TableColumn; break;
+		case Display::TableColumnGroup: order = RenderOrder::TableColumnGroup; break;
+		default: break;
+		}
+	}
+	else if (GetPosition() != Style::Position::Static)
+	{
+		order = RenderOrder::Positioned;
+		render_as_atomic_unit = true;
+	}
+	else if (GetFloat() != Style::Float::None)
+	{
+		order = RenderOrder::Floating;
+		render_as_atomic_unit = true;
 	}
 	else
 	{
-		for (size_t i = 0; i < num_children; ++i)
+		switch (display)
 		{
-			Element* child = children[i].get();
+		case Display::Block:
+		case Display::FlowRoot:
+		case Display::Table:
+		case Display::Flex:
+			order = RenderOrder::Block;
+			render_as_atomic_unit = (display == Display::Table || is_flex_item);
+			break;
 
-			if (!child->IsVisible())
-				continue;
+		case Display::Inline:
+		case Display::InlineBlock:
+		case Display::InlineFlex:
+		case Display::InlineTable:
+			order = RenderOrder::Inline;
+			render_as_atomic_unit = (display != Display::Inline || is_flex_item);
+			break;
 
-			ordered_children.emplace_back();
-			StackingOrderedChild& ordered_child = ordered_children.back();
+		case Display::TableCell:
+			order = RenderOrder::TableCell;
+			render_as_atomic_unit = true;
+			break;
 
-			ordered_child.element = child;
-			ordered_child.order = RenderOrder::Inline;
-			ordered_child.include_children = !child->local_stacking_context;
-
-			const Style::Display child_display = child->GetDisplay();
-
-			if (child->GetPosition() != Style::Position::Static)
-				ordered_child.order = RenderOrder::Positioned;
-			else if (child->GetFloat() != Style::Float::None)
-				ordered_child.order = RenderOrder::Floating;
-			else if (child_display == Style::Display::Block || child_display == Style::Display::Table || child_display == Style::Display::Flex)
-				ordered_child.order = RenderOrder::Block;
-			else
-				ordered_child.order = RenderOrder::Inline;
+		case Display::TableRow:
+		case Display::TableRowGroup:
+		case Display::TableColumn:
+		case Display::TableColumnGroup:
+		case Display::None: RMLUI_ERROR; break; // Handled above.
 		}
 	}
 
-	// Sort the list!
-	std::stable_sort(ordered_children.begin(), ordered_children.end(), [](const StackingOrderedChild& lhs, const StackingOrderedChild& rhs) { return int(lhs.order) < int(rhs.order); });
+	if (is_non_dom_element)
+		render_as_atomic_unit = true;
 
-	// Add the list of ordered children into the stacking context in order.
-	for (size_t i = 0; i < ordered_children.size(); ++i)
+	stacking_children.push_back(StackingContextChild{this, order});
+
+	if (include_children && !children.empty())
 	{
-		new_stacking_context->push_back(ordered_children[i].element);
+		const size_t index_child_begin = stacking_children.size();
 
-		if (ordered_children[i].include_children)
-			ordered_children[i].element->BuildStackingContext(new_stacking_context);
-	}
-}
+		AddChildrenToStackingContext(stacking_children);
 
-void Element::BuildStackingContextForTable(Vector<StackingOrderedChild>& ordered_children, Element* parent)
-{
-	const size_t num_children = parent->children.size();
-
-	for (size_t i = 0; i < num_children; ++i)
-	{
-		Element* child = parent->children[i].get();
-
-		if (!child->IsVisible())
-			continue;
-
-		ordered_children.emplace_back();
-		StackingOrderedChild& ordered_child = ordered_children.back();
-		ordered_child.element = child;
-		ordered_child.order = RenderOrder::Inline;
-		ordered_child.include_children = false;
-
-		bool recurse_into_children = false;
-
-		switch (child->GetDisplay())
-		{
-		case Style::Display::TableRow:
-			ordered_child.order = RenderOrder::TableRow;
-			recurse_into_children = true;
-			break;
-		case Style::Display::TableRowGroup:
-			ordered_child.order = RenderOrder::TableRowGroup;
-			recurse_into_children = true;
-			break;
-		case Style::Display::TableColumn:
-			ordered_child.order = RenderOrder::TableColumn;
-			break;
-		case Style::Display::TableColumnGroup:
-			ordered_child.order = RenderOrder::TableColumnGroup;
-			recurse_into_children = true;
-			break;
-		case Style::Display::TableCell:
-			ordered_child.order = RenderOrder::TableCell;
-			ordered_child.include_children = !child->local_stacking_context;
-			break;
-		default:
-			ordered_child.order = RenderOrder::Positioned;
-			ordered_child.include_children = !child->local_stacking_context;
-			break;
-		}
-
-		if (recurse_into_children)
-			BuildStackingContextForTable(ordered_children, child);
+		if (render_as_atomic_unit)
+			StackingContext_MakeAtomicRange(stacking_children, index_child_begin, order);
 	}
 }
 

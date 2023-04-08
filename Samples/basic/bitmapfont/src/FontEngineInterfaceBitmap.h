@@ -48,6 +48,7 @@ using Rml::byte;
 
 using Rml::FontEffectList;
 using Rml::GeometryList;
+using Rml::FontMetrics;
 
 
 class FontEngineInterfaceBitmap : public Rml::FontEngineInterface
@@ -70,18 +71,8 @@ public:
 	/// Called by RmlUi when a list of font effects is resolved for an element with a given font face.
 	FontEffectsHandle PrepareFontEffects(FontFaceHandle handle, const FontEffectList& font_effects) override;
 
-	/// Should return the point size of this font face.
-	int GetSize(FontFaceHandle handle) override;
-	/// Should return the pixel height of a lower-case x in this font face.
-	int GetXHeight(FontFaceHandle handle) override;
-	/// Should return the default height between this font face's baselines.
-	int GetLineHeight(FontFaceHandle handle) override;
-
-	/// Should return the font's baseline, as a pixel offset from the bottom of the font.
-	int GetBaseline(FontFaceHandle handle) override;
-
-	/// Should return the font's underline, as a pixel offset from the bottom of the font.
-	float GetUnderline(FontFaceHandle handle, float& thickness) override;
+	/// Should return the font metrics of the given font face.
+	const FontMetrics& GetFontMetrics(FontFaceHandle handle) override;
 
 	/// Called by RmlUi when it wants to retrieve the width of a string when rendered with this handle.
 	int GetStringWidth(FontFaceHandle handle, const String& string, Character prior_character = Character::Null) override;

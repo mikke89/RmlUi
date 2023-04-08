@@ -59,6 +59,9 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 		return false;
 
+	// Submit click events when focusing the window.
+	SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+
 	const Uint32 window_flags = (allow_resize ? SDL_WINDOW_RESIZABLE : 0);
 	SDL_Window* window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
 	if (!window)
