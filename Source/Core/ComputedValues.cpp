@@ -68,6 +68,11 @@ String Style::ComputedValues::cursor() const
 	return String();
 }
 
+float Style::ComputedValues::letter_spacing() const
+{
+	return inherited.has_letter_spacing ? element->ResolveNumericProperty(element->GetProperty(PropertyId::LetterSpacing), 0.f) : 0.f;
+}
+
 float ResolveValueOr(Style::LengthPercentageAuto length, float base_value, float default_value)
 {
 	if (length.type == Style::LengthPercentageAuto::Length)

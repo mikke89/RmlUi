@@ -112,9 +112,10 @@ namespace Style {
 
 	struct InheritedValues {
 		InheritedValues() :
-			font_weight(FontWeight::Normal), font_style(FontStyle::Normal), has_font_effect(false), pointer_events(PointerEvents::Auto),
-			focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None), text_transform(TextTransform::None),
-			white_space(WhiteSpace::Normal), word_break(WordBreak::Normal), line_height_inherit_type(LineHeight::Number)
+			font_weight(FontWeight::Normal), has_letter_spacing(0), font_style(FontStyle::Normal), has_font_effect(false),
+			pointer_events(PointerEvents::Auto), focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None),
+			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal),
+			line_height_inherit_type(LineHeight::Number)
 		{}
 
 		// Font face used to render text and resolve ex properties. Does not represent a true property
@@ -122,12 +123,12 @@ namespace Style {
 		FontFaceHandle font_face_handle = 0;
 
 		float font_size = 12.f;
-		float letter_spacing = 0.f;
 
 		float opacity = 1;
 		Colourb color = Colourb(255, 255, 255);
 
-		FontWeight font_weight;
+		FontWeight font_weight : 10;
+		uint16_t has_letter_spacing : 1;
 
 		FontStyle font_style : 1;
 		bool has_font_effect : 1;
@@ -242,7 +243,7 @@ namespace Style {
 		String         cursor()           const;
 		FontFaceHandle font_face_handle() const { return inherited.font_face_handle; }
 		float          font_size()        const { return inherited.font_size; }
-		float          letter_spacing()   const { return inherited.letter_spacing; }
+		float          letter_spacing()   const;
 		bool           has_font_effect()  const { return inherited.has_font_effect; }
 		FontStyle      font_style()       const { return inherited.font_style; }
 		FontWeight     font_weight()      const { return inherited.font_weight; }
@@ -332,22 +333,22 @@ namespace Style {
 		void border_left_color  (Colourb value)              { common.border_left_color   = value; }
 		void has_decorator      (bool value)                 { common.has_decorator       = value; }
 		// Inherited
-		void font_face_handle(FontFaceHandle value) { inherited.font_face_handle = value; }
-		void font_size       (float value)          { inherited.font_size        = value; }
-		void letter_spacing  (float value)          { inherited.letter_spacing   = value; }
-		void has_font_effect (bool value)           { inherited.has_font_effect  = value; }
-		void font_style      (FontStyle value)      { inherited.font_style       = value; }
-		void font_weight     (FontWeight value)     { inherited.font_weight      = value; }
-		void pointer_events  (PointerEvents value)  { inherited.pointer_events   = value; }
-		void focus           (Focus value)          { inherited.focus            = value; }
-		void text_align      (TextAlign value)      { inherited.text_align       = value; }
-		void text_decoration (TextDecoration value) { inherited.text_decoration  = value; }
-		void text_transform  (TextTransform value)  { inherited.text_transform   = value; }
-		void white_space     (WhiteSpace value)     { inherited.white_space      = value; }
-		void word_break      (WordBreak value)      { inherited.word_break       = value; }
-		void color           (Colourb value)        { inherited.color            = value; }
-		void opacity         (float value)          { inherited.opacity          = value; }
-		void line_height     (LineHeight value)     { inherited.line_height = value.value; inherited.line_height_inherit_type = value.inherit_type; inherited.line_height_inherit = value.inherit_value;  }
+		void font_face_handle  (FontFaceHandle value) { inherited.font_face_handle   = value; }
+		void font_size         (float value)          { inherited.font_size          = value; }
+		void has_letter_spacing(bool value)           { inherited.has_letter_spacing = value; }
+		void has_font_effect   (bool value)           { inherited.has_font_effect    = value; }
+		void font_style        (FontStyle value)      { inherited.font_style         = value; }
+		void font_weight       (FontWeight value)     { inherited.font_weight        = value; }
+		void pointer_events    (PointerEvents value)  { inherited.pointer_events     = value; }
+		void focus             (Focus value)          { inherited.focus              = value; }
+		void text_align        (TextAlign value)      { inherited.text_align         = value; }
+		void text_decoration   (TextDecoration value) { inherited.text_decoration    = value; }
+		void text_transform    (TextTransform value)  { inherited.text_transform     = value; }
+		void white_space       (WhiteSpace value)     { inherited.white_space        = value; }
+		void word_break        (WordBreak value)      { inherited.word_break         = value; }
+		void color             (Colourb value)        { inherited.color              = value; }
+		void opacity           (float value)          { inherited.opacity            = value; }
+		void line_height       (LineHeight value)     { inherited.line_height = value.value; inherited.line_height_inherit_type = value.inherit_type; inherited.line_height_inherit = value.inherit_value;  }
 		// Rare
 		void min_width                 (MinWidth value)          { rare.min_width_type             = value.type; rare.min_width                  = value.value; }
 		void max_width                 (MaxWidth value)          { rare.max_width_type             = value.type; rare.max_width                  = value.value; }
