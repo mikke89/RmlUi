@@ -337,8 +337,7 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 	auto& computed = GetComputedValues();
 
 	if (changed_properties.Contains(PropertyId::Color) ||
-		changed_properties.Contains(PropertyId::Opacity) ||
-		changed_properties.Contains(PropertyId::LetterSpacing))
+		changed_properties.Contains(PropertyId::Opacity))
 	{
 		const float new_opacity = computed.opacity();
 		const bool opacity_changed = opacity != new_opacity;
