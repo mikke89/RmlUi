@@ -156,11 +156,13 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element * element)
 // Returns the width of a string rendered within the context of the given element.
 int ElementUtilities::GetStringWidth(Element* element, const String& string, Character prior_character)
 {
+	const float letter_spacing = element->GetComputedValues().letter_spacing();
+
 	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
 	if (font_face_handle == 0)
 		return 0;
 
-	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string, prior_character);
+	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string, letter_spacing, prior_character);
 }
 
 // Generates the clipping region for an element.

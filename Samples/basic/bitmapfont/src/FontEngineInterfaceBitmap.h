@@ -75,11 +75,11 @@ public:
 	const FontMetrics& GetFontMetrics(FontFaceHandle handle) override;
 
 	/// Called by RmlUi when it wants to retrieve the width of a string when rendered with this handle.
-	int GetStringWidth(FontFaceHandle handle, const String& string, Character prior_character = Character::Null) override;
+	int GetStringWidth(FontFaceHandle handle, const String& string, float letter_spacing, Character prior_character = Character::Null) override;
 
 	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
 	int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position,
-		const Colourb& colour, float opacity, GeometryList& geometry) override;
+		const Colourb& colour, float opacity, float letter_spacing, GeometryList& geometry) override;
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated.eometry.
 	int GetVersion(FontFaceHandle handle) override;
