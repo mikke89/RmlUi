@@ -103,7 +103,7 @@ int FontFaceHandleDefault::GetStringWidth(const String& string, float letter_spa
 		prior_character = character;
 	}
 
-	return width;
+	return Math::Max(width, 0);
 }
 
 // Generates, if required, the layer configuration for a given array of font effects.
@@ -273,7 +273,7 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 	// Cull any excess geometry from a previous generation.
 	geometry.resize(geometry_index);
 
-	return line_width;
+	return Math::Max(line_width, 0);
 }
 
 bool FontFaceHandleDefault::UpdateLayersOnDirty()
