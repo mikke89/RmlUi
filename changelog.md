@@ -34,11 +34,12 @@ More details to be posted later. Expect some possible layout shifts in existing 
 
 - New `display` property values: `flow-root`, `inline-flex`, `inline-table`.
 - New `vertical-align` property value: `center`.
+- Added support for `letter-spacing` property. #429 (thanks @igorsegallafa)
 
 ### Breaking changes
 
 - Possible layout changes, usually due to better CSS conformance.
-- Reworked font engine interface, in particular in terms of font metrics.
+- Reworked font engine interface, in particular in terms of font metrics and letter-spacing.
 
 Removed deprecated functionality:
 - Removed the `<datagrid>` and `<dataselect>` elements, related utilities, and associated tutorials. Users are encouraged to replace this functionality by [tables](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html), [select boxes](https://mikke89.github.io/RmlUiDoc/pages/rml/forms.html#select), and [data bindings](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html).

@@ -360,7 +360,7 @@ Users can now edit the text field to change the animal. The data bindings ensure
 **[alt:V](https://altv.mp/) installer - a multiplayer client for GTA:V**\
 ![alt:V installer collage](https://user-images.githubusercontent.com/5490330/230487770-275fe98f-753f-4b35-b2e1-1e20a798f5e8.png)
 
-**[Unvanquished](https://unvanquished.net/) - a first-person shooter game with real-time strategy elements**\
+**[Unvanquished](https://unvanquished.net/) - a first-person shooter game with real-time strategy elements - menus and HUD in RmlUi**\
 ![Unvanquished 0.54 collage](https://user-images.githubusercontent.com/5490330/230487771-5108a273-8b76-4216-8324-d9e5af102622.jpg)
 
 **Installer software by [@xland](https://github.com/xland)**\
