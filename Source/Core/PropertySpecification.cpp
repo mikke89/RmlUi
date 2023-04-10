@@ -458,7 +458,7 @@ bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &diction
 	if (property_values.empty())
 		return true;
 	
-	auto id = MakeVariableId(property_name.substr(2));
+	auto name = property_name.substr(2);
 
 	PropertyVariableTerm term;
 	bool any_variable;
@@ -467,7 +467,7 @@ bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &diction
 	// Only store original variable term when there is another variable inside that needs resolving
 	if (any_variable)
 	{
-		dictionary.SetVariable(id, Property(std::move(term), Property::VARIABLETERM));
+		dictionary.SetPropertyVariable(name, Property(std::move(term), Property::VARIABLETERM));
 	}
 	else
 	{
@@ -475,7 +475,7 @@ bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &diction
 		for (int i = 0; i < (int)term.size(); ++i)
 			joined += term[i].constant + " ";
 		
-		dictionary.SetVariable(id, Property(joined.substr(0, joined.size() - 1), Property::STRING));		
+		dictionary.SetPropertyVariable(name, Property(joined.substr(0, joined.size() - 1), Property::STRING));		
 	}		
 	return true;
 }
@@ -717,7 +717,7 @@ void PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, String
 			if (!prefix.empty())
 			{
 				PropertyVariableTermAtom a;
-				a.variable = static_cast<VariableId>(0);
+				a.variable = String();
 				a.constant = prefix;
 				term.push_back(a);
 			}
@@ -725,7 +725,7 @@ void PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, String
 			auto m = *iter;
 			PropertyVariableTermAtom a;
 			a.constant = m[2].matched ? m[2].str() : "";
-			a.variable = MakeVariableId(m[1].str());
+			a.variable = m[1].str();
 			any_variable = true;
 			term.push_back(a);
 			
@@ -736,7 +736,7 @@ void PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, String
 			// last suffix + value separating space
 			auto suffix = it.substr(end_cursor) + " ";
 			PropertyVariableTermAtom a;
-			a.variable = static_cast<VariableId>(0);
+			a.variable = String();
 			a.constant = suffix;
 			term.push_back(a);
 		}

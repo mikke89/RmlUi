@@ -93,7 +93,6 @@ enum class PropertyId : uint8_t;
 enum class ShorthandId : uint8_t;
 enum class MediaQueryId : uint8_t;
 enum class FamilyId : int;
-enum class VariableId : size_t;
 
 // Types for external interfaces.
 using FileHandle = uintptr_t;
@@ -139,7 +138,7 @@ class DataController;
 using DataControllerPtr = UniqueReleaserPtr<DataController>;
 
 struct PropertyVariableTermAtom {
-	VariableId variable;
+	String variable;
 	String constant;
 	
 	bool operator==(PropertyVariableTermAtom const& o) const {
@@ -148,7 +147,7 @@ struct PropertyVariableTermAtom {
 };
 
 using PropertyVariableTerm = Vector<PropertyVariableTermAtom>;
-using PropertyVariableMap = UnorderedMap< VariableId, Property >;
+using PropertyVariableMap = UnorderedMap< String, Property >;
 using DependentShorthandMap = UnorderedMap< ShorthandId, PropertyVariableTerm >;
 
 } // namespace Rml

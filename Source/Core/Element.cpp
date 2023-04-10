@@ -778,7 +778,7 @@ bool Element::SetPropertyVariable(const String& name, const String& value)
 		return false;
 	}
 
-	for (auto const& it : properties.GetVariables())
+	for (auto const& it : properties.GetPropertyVariables())
 	{
 		meta->style.SetPropertyVariable(it.first, it.second);
 	}
@@ -786,39 +786,24 @@ bool Element::SetPropertyVariable(const String& name, const String& value)
 	return true;
 }
 
-bool Element::SetPropertyVariable(VariableId id, const Property& variable)
+bool Element::SetPropertyVariable(const String& name, const Property& variable)
 {
-	return meta->style.SetPropertyVariable(id, variable);
+	return meta->style.SetPropertyVariable(name, variable);
 }
 
 void Element::RemovePropertyVariable(const String& name)
 {
-	meta->style.RemoveVariable(MakeVariableId(name));
+	meta->style.RemoveVariable(name);
 }
 
-void Element::RemovePropertyVariable(VariableId id)
+const Property* Element::GetPropertyVariable(String const& name)
 {
-	meta->style.RemoveVariable(id);
+	return meta->style.GetPropertyVariable(name);
 }
 
-const Property* Element::GetPropertyVariable(const String& name)
+const Property* Element::GetLocalPropertyVariable(String const& name)
 {
-	return meta->style.GetPropertyVariable(MakeVariableId(name));
-}
-
-const Property* Element::GetPropertyVariable(VariableId id)
-{
-	return meta->style.GetPropertyVariable(id);
-}
-
-const Property* Element::GetLocalPropertyVariable(const String& name)
-{
-	return meta->style.GetLocalPropertyVariable(MakeVariableId(name));
-}
-
-const Property* Element::GetLocalPropertyVariable(VariableId id)
-{
-	return meta->style.GetLocalPropertyVariable(id);
+	return meta->style.GetLocalPropertyVariable(name);
 }
 
 const PropertyVariableMap& Element::GetLocalStylePropertyVariables()

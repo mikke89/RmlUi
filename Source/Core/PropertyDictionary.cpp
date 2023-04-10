@@ -33,8 +33,6 @@
 
 namespace Rml {
 
-UnorderedMap<VariableId, String> VariableNames;
-
 PropertyDictionary::PropertyDictionary()
 {
 }
@@ -75,19 +73,19 @@ const PropertyMap& PropertyDictionary::GetProperties() const
 	return properties;
 }
 
-void PropertyDictionary::SetVariable(VariableId id, const Property &property)
+void PropertyDictionary::SetPropertyVariable(String const& name, const Property &property)
 {
-	variables[id] = property;
+	variables[name] = property;
 }
 
-void PropertyDictionary::RemoveVariable(VariableId id)
+void PropertyDictionary::RemovePropertyVariable(String const& name)
 {
-	variables.erase(id);
+	variables.erase(name);
 }
 
-const Property *PropertyDictionary::GetVariable(VariableId id) const
+const Property *PropertyDictionary::GetPropertyVariable(String const& name) const
 {
-	PropertyVariableMap::const_iterator iterator = variables.find(id);
+	PropertyVariableMap::const_iterator iterator = variables.find(name);
 	if (iterator == variables.end())
 		return nullptr;
 	
@@ -108,12 +106,12 @@ void PropertyDictionary::RemoveDependent(ShorthandId shorthand_id)
 	dependent_shorthands.erase(shorthand_id);
 }
 
-int PropertyDictionary::GetNumVariables() const
+int PropertyDictionary::GetNumPropertyVariables() const
 {
 	return (int)variables.size();
 }
 
-const PropertyVariableMap &PropertyDictionary::GetVariables() const
+const PropertyVariableMap &PropertyDictionary::GetPropertyVariables() const
 {
 	return variables;
 }
@@ -134,7 +132,7 @@ void PropertyDictionary::Import(const PropertyDictionary& other, int property_sp
 	}
 
 	for (const auto& pair : other.variables)
-		SetVariable(pair.first, pair.second, property_specificity > 0 ? property_specificity : pair.second.specificity);
+		SetPropertyVariable(pair.first, pair.second, property_specificity > 0 ? property_specificity : pair.second.specificity);
 
 	for (const auto& pair : other.dependent_shorthands)
 		SetDependent(pair.first, pair.second);
@@ -151,7 +149,7 @@ void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_
 	}
 
 	for (const auto& pair : other.variables)
-		SetVariable(pair.first, pair.second, pair.second.specificity + specificity_offset);
+		SetPropertyVariable(pair.first, pair.second, pair.second.specificity + specificity_offset);
 		
 	for (const auto& pair : other.dependent_shorthands)
 		SetDependent(pair.first, pair.second);
@@ -177,14 +175,14 @@ void PropertyDictionary::SetProperty(PropertyId id, const Property& property, in
 	new_property.specificity = specificity;
 }
 
-void PropertyDictionary::SetVariable(VariableId id, const Property &variable, int specificity)
+void PropertyDictionary::SetPropertyVariable(String const& name, const Property &variable, int specificity)
 {
-	PropertyVariableMap::iterator iterator = variables.find(id);
+	PropertyVariableMap::iterator iterator = variables.find(name);
 	if (iterator != variables.end() &&
 		iterator->second.specificity > specificity)
 		return;
 
-	Property& new_property = (variables[id] = variable);
+	Property& new_property = (variables[name] = variable);
 	new_property.specificity = specificity;
 }
 

@@ -110,29 +110,29 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 	return property->GetDefaultValue();
 }
 
-const Property* ElementStyle::GetLocalVariable(VariableId id, const ResolvedPropertiesDictionary& inline_properties,
+const Property* ElementStyle::GetLocalPropertyVariable(String const& name, const ResolvedPropertiesDictionary& inline_properties,
 	const ResolvedPropertiesDictionary& definition_properties)
 {
 	// Check for overriding local variables.
-	const Property* variable = inline_properties.GetVariable(id);
+	const Property* variable = inline_properties.GetPropertyVariable(name);
 	if (variable)
 		return variable;
 
 	// Check for a variable defined in an RCSS rule.
-	return definition_properties.GetVariable(id);
+	return definition_properties.GetPropertyVariable(name);
 }
 
-const Property* ElementStyle::GetPropertyVariable(VariableId id, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
+const Property* ElementStyle::GetPropertyVariable(String const& name, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
 	const ResolvedPropertiesDictionary& definition_properties)
 {
-	const Property* local_variable = GetLocalVariable(id, inline_properties, definition_properties);
+	const Property* local_variable = GetLocalPropertyVariable(name, inline_properties, definition_properties);
 	if (local_variable)
 		return local_variable;
 
 	Element* parent = element->GetParentNode();
 	while (parent)
 	{
-		const Property* parent_variable = parent->GetStyle()->GetLocalPropertyVariable(id);
+		const Property* parent_variable = parent->GetStyle()->GetLocalPropertyVariable(name);
 		if (parent_variable)
 			return parent_variable;
 
@@ -372,12 +372,12 @@ bool ElementStyle::SetDependentShorthand(ShorthandId id, const PropertyVariableT
 	return true;
 }
 
-bool ElementStyle::SetPropertyVariable(VariableId id, const Property& variable)
+bool ElementStyle::SetPropertyVariable(String const& name, const Property& variable)
 {
-	inline_properties.SetVariable(id, variable);
-	definition_properties.SetVariable(id, variable);
+	inline_properties.SetPropertyVariable(name, variable);
+	definition_properties.SetPropertyVariable(name, variable);
 	
-	dirty_variables.insert(id);
+	dirty_variables.insert(name);
 	
 	return true;
 }
@@ -389,10 +389,10 @@ void ElementStyle::RemoveProperty(PropertyId id)
 		DirtyProperty(id);
 }
 
-void ElementStyle::RemoveVariable(VariableId id)
+void ElementStyle::RemoveVariable(String const& name)
 {
-	inline_properties.RemoveVariable(id);
-	dirty_variables.insert(id);
+	inline_properties.RemovePropertyVariable(name);
+	dirty_variables.insert(name);
 }
 
 // Returns one of this element's properties.
@@ -401,9 +401,9 @@ const Property* ElementStyle::GetProperty(PropertyId id) const
 	return GetProperty(id, element, inline_properties, definition_properties);
 }
 
-const Property* ElementStyle::GetPropertyVariable(VariableId id) const
+const Property* ElementStyle::GetPropertyVariable(String const& name) const
 {
-	return GetPropertyVariable(id, element, inline_properties, definition_properties);
+	return GetPropertyVariable(name, element, inline_properties, definition_properties);
 }
 
 // Returns one of this element's properties.
@@ -412,9 +412,9 @@ const Property* ElementStyle::GetLocalProperty(PropertyId id) const
 	return GetLocalProperty(id, inline_properties, definition_properties);
 }
 
-const Property* ElementStyle::GetLocalPropertyVariable(VariableId id) const
+const Property* ElementStyle::GetLocalPropertyVariable(String const& name) const
 {
-	return GetLocalVariable(id, inline_properties, definition_properties);
+	return GetLocalPropertyVariable(name, inline_properties, definition_properties);
 }
 
 const PropertyMap& ElementStyle::GetLocalStyleProperties() const
@@ -424,7 +424,7 @@ const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 
 const PropertyVariableMap& ElementStyle::GetLocalStylePropertyVariables() const
 {
-	return inline_properties.GetProperties().GetVariables();
+	return inline_properties.GetProperties().GetPropertyVariables();
 }
 
 static float ComputeLength(const Property* property, Element* element)
@@ -550,9 +550,9 @@ void ElementStyle::DirtyPropertiesWithUnitsRecursive(Property::Unit units)
 		element->GetChild(i)->GetStyle()->DirtyPropertiesWithUnitsRecursive(units);
 }
 
-void ElementStyle::DirtyVariable(VariableId id)
+void ElementStyle::DirtyVariable(String const& name)
 {
-	dirty_variables.insert(id);
+	dirty_variables.insert(name);
 }
 
 bool ElementStyle::AnyPropertiesDirty() const 
@@ -583,7 +583,7 @@ PropertiesIterator ElementStyle::Iterate() const {
 	return PropertiesIterator(it_style_begin, it_style_end, it_definition, it_definition_end);
 }
 
-UnorderedSet<VariableId> ElementStyle::GetDirtyVariables() const
+UnorderedSet<String> ElementStyle::GetDirtyVariables() const
 {
 	return dirty_variables;
 }

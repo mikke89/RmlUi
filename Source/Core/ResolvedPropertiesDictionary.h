@@ -39,14 +39,12 @@ struct IdWrapper {
 		Variable, Shorthand, Property
 	} type;
 	
-	union {
-		VariableId variable;
-		PropertyId property;
-		ShorthandId shorthand;
-	};
+	String variable;
+	PropertyId property;
+	ShorthandId shorthand;
 	
 	IdWrapper() {}
-	IdWrapper(VariableId   variable_id) : type(Variable), variable(variable_id) {}
+	IdWrapper(String     variable_name) : type(Variable), variable(variable_name) {}
 	IdWrapper(ShorthandId shorthand_id) : type(Shorthand), shorthand(shorthand_id) {}
 	IdWrapper(PropertyId   property_id) : type(Property), property(property_id) {}
 	
@@ -72,7 +70,7 @@ struct IdWrapper {
 	}
 };
 
-template<> inline  VariableId const& IdWrapper::get() const { return variable; }
+template<> inline      String const& IdWrapper::get() const { return variable; }
 template<> inline ShorthandId const& IdWrapper::get() const { return shorthand; }
 template<> inline  PropertyId const& IdWrapper::get() const { return property; }
 
@@ -85,7 +83,12 @@ template <>
 struct hash<::Rml::IdWrapper> {
 	std::size_t operator()(const ::Rml::IdWrapper& v) const noexcept
 	{
-		return static_cast<size_t>(v.variable);
+		switch(v.type) {
+		case ::Rml::IdWrapper::Variable: return std::hash<::Rml::String>()(v.variable);
+		case ::Rml::IdWrapper::Property: return static_cast<size_t>(v.property);
+		case ::Rml::IdWrapper::Shorthand: return static_cast<size_t>(v.shorthand);
+		default: return 0;
+		}
 	}
 };
 } // namespace std
@@ -108,14 +111,14 @@ public:
 	ResolvedPropertiesDictionary(ElementStyle* parent, const ElementDefinition* source);
 
 	const Property* GetProperty(PropertyId id) const;
-	const Property* GetVariable(VariableId id) const;
+	const Property* GetPropertyVariable(String const& name) const;
 
 	void SetProperty(PropertyId id, const Property& value);
-	void SetVariable(VariableId id, const Property& value);
+	void SetPropertyVariable(String const& name, const Property& value);
 	void SetDependentShorthand(ShorthandId id, const PropertyVariableTerm& value);
 
 	bool RemoveProperty(PropertyId id);
-	bool RemoveVariable(VariableId id);
+	bool RemovePropertyVariable(String const& name);
 	
 	bool AnyPropertiesDirty() const;
 	
@@ -126,10 +129,10 @@ private:
 	void ResolveVariableTerm(String& result, const PropertyVariableTerm& term);
 	void ResolveProperty(PropertyId id);
 	void ResolveShorthand(ShorthandId id);
-	void ResolveVariable(VariableId id);
+	void ResolvePropertyVariable(String const& name);
 	void UpdatePropertyDependencies(PropertyId id);
 	void UpdateShorthandDependencies(ShorthandId id);
-	void UpdateVariableDependencies(VariableId id);
+	void UpdatePropertyVariableDependencies(String const& name);
 
 	ElementStyle* parent;
 
@@ -137,8 +140,8 @@ private:
 	PropertyDictionary resolved_properties;
 	
 	UnorderedSet<IdWrapper> dirty_values;
-	// key: dependency variable id, value: dependent value id
-	UnorderedMap<VariableId, SmallUnorderedSet<IdWrapper>> dependencies;
+	// key: dependency variable name, value: dependent value
+	UnorderedMap<String, SmallUnorderedSet<IdWrapper>> dependencies;
 };
 
 } // namespace Rml

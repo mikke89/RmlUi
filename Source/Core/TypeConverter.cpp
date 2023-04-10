@@ -177,9 +177,9 @@ bool Rml::TypeConverter<PropertyVariableTerm, String>::Convert(const PropertyVar
 	StringList parts;
 	for (auto const& it : src)
 	{
-		if (it.variable != static_cast<VariableId>(0))
+		if (!it.variable.empty())
 		{
-			parts.push_back("var(--"+ GetVariableName(it.variable) +")");
+			parts.push_back("var(--" + it.variable + ")");
 		}
 		else
 		{

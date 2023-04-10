@@ -41,29 +41,6 @@ namespace Rml {
 
 	@author Peter Curry
  */
-
-extern UnorderedMap<VariableId, String> VariableNames;
-
-// Variable names are hashed into IDs to speed up comparison
-inline VariableId MakeVariableId(String const& variable_name)
-{
-	auto id = Hash<String>{}(variable_name);
-	// Empty id is reserved
-	RMLUI_ASSERT(id != 0);
-	auto variable_id = static_cast<VariableId>(id);
-	VariableNames[variable_id] = variable_name;
-	return variable_id;
-}
-
-inline String GetVariableName(VariableId id)
-{
-	auto it = VariableNames.find(id);
-	if (it != VariableNames.end())
-		return it->second;
-	return "Unknown variable";
-}
-
-
 class RMLUICORE_API PropertyDictionary
 {
 public:
@@ -82,20 +59,20 @@ public:
 	const PropertyMap& GetProperties() const;
 
 	/// Sets a variable on the dictionary. Any existing variable with the same id will be overwritten.
-	void SetVariable(VariableId id, const Property& variable);
+	void SetPropertyVariable(String const& name, const Property& variable);
 	/// Removes a variable from the dictionary, if it exists.
-	void RemoveVariable(VariableId id);
+	void RemovePropertyVariable(String const& name);
 	/// Returns the value of the variable with the requested id, if one exists.
-	const Property* GetVariable(VariableId id) const;
+	const Property* GetPropertyVariable(String const& name) const;
 
 	// Register shorthand as dependent on variables
 	void SetDependent(ShorthandId shorthand_id, PropertyVariableTerm const& term);
 	void RemoveDependent(ShorthandId shorthand_id);
 
 	/// Returns the number of variables in the dictionary.
-	int GetNumVariables() const;
+	int GetNumPropertyVariables() const;
 	/// Returns the map of variables in the dictionary.
-	const PropertyVariableMap& GetVariables() const;
+	const PropertyVariableMap& GetPropertyVariables() const;
 	
 	/// Returns the map of variable-dependent shorthands in the dictionary.
 	const DependentShorthandMap& GetDependentShorthands() const;
@@ -123,7 +100,7 @@ private:
 	// specificity (given by the parameter, not read from the property itself) is at least equal to
 	// the specificity of the conflicting property.
 	void SetProperty(PropertyId id, const Property& property, int specificity);
-	void SetVariable(VariableId id, const Property& property, int specificity);
+	void SetPropertyVariable(String const& name, const Property& property, int specificity);
 	
 	PropertyMap properties;
 	PropertyVariableMap variables;
