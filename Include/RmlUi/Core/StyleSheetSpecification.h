@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,11 +39,10 @@ class PropertyParser;
 struct DefaultStyleSheetParsers;
 
 /**
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API StyleSheetSpecification
-{
+class RMLUICORE_API StyleSheetSpecification {
 public:
 	/// Starts up the specification structure and registers default properties and type parsers.
 	/// @return True if the specification started up successfully, false if not.
@@ -84,7 +83,8 @@ public:
 
 	/// Registers a custom shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
-	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
+	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is
+	/// the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
 	static ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
@@ -98,7 +98,8 @@ public:
 	/// @param[in] dictionary The property dictionary which will hold all declared properties.
 	/// @param[in] property_name The name of the declared property.
 	/// @param[in] property_value The values the property is being set to.
-	/// @param[in] source_file The file where this property was declared. Used for error reporting, debugging and relative paths for referenced assets.
+	/// @param[in] source_file The file where this property was declared. Used for error reporting, debugging and relative paths for referenced
+	/// assets.
 	/// @param[in] line_number The location of the source file where this property was declared. Used for error reporting and debugging.
 	/// @return True if all properties were parsed successfully, false otherwise.
 	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value);
@@ -117,7 +118,8 @@ private:
 	StyleSheetSpecification();
 	~StyleSheetSpecification();
 
-	PropertyDefinition& RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout = false);
+	PropertyDefinition& RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited,
+		bool forces_layout = false);
 	ShorthandId RegisterShorthand(ShorthandId id, const String& shorthand_name, const String& property_names, ShorthandType type);
 
 	// Registers RmlUi's default parsers.
@@ -126,7 +128,7 @@ private:
 	void RegisterDefaultProperties();
 
 	// Parsers used by all property definitions.
-	typedef UnorderedMap< String, PropertyParser* > ParserMap;
+	typedef UnorderedMap<String, PropertyParser*> ParserMap;
 	ParserMap parsers;
 
 	// The properties defined in the style sheet specification.

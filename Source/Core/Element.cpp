@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,20 +26,19 @@
  *
  */
 
-  
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/Dictionary.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
-#include "../../Include/RmlUi/Core/Dictionary.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
-#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
@@ -48,17 +47,17 @@
 #include "DataModel.h"
 #include "ElementAnimation.h"
 #include "ElementBackgroundBorder.h"
+#include "ElementDecoration.h"
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
 #include "EventSpecification.h"
-#include "ElementDecoration.h"
 #include "Layout/LayoutEngine.h"
 #include "PluginRegistry.h"
-#include "PropertiesIterator.h"
 #include "Pool.h"
-#include "StyleSheetParser.h"
+#include "PropertiesIterator.h"
 #include "StyleSheetNode.h"
+#include "StyleSheetParser.h"
 #include "TransformState.h"
 #include "TransformUtilities.h"
 #include "XMLParseTools.h"
@@ -92,8 +91,7 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 }
 
 // Meta objects for element collected in a single struct to reduce memory allocations
-struct ElementMeta
-{
+struct ElementMeta {
 	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(el), decoration(el), scroll(el), computed_values(el) {}
 	SmallUnorderedMap<EventId, EventListener*> attribute_event_listeners;
 	EventDispatcher event_dispatcher;
@@ -104,7 +102,7 @@ struct ElementMeta
 	Style::ComputedValues computed_values;
 };
 
-static Pool< ElementMeta > element_meta_chunk_pool(200, true);
+static Pool<ElementMeta> element_meta_chunk_pool(200, true);
 
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
@@ -133,7 +131,7 @@ Element::Element(const String& tag) :
 
 Element::~Element()
 {
-	RMLUI_ASSERT(parent == nullptr);	
+	RMLUI_ASSERT(parent == nullptr);
 
 	PluginRegistry::NotifyElementDestroy(this);
 
@@ -184,8 +182,9 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio, vp_dimensions);
 
-	if(!animations.empty() && IsVisible(true)) {
-		if(Context* ctx = GetContext())
+	if (!animations.empty() && IsVisible(true))
+	{
+		if (Context* ctx = GetContext())
 			ctx->RequestNextUpdate(0);
 	}
 }
@@ -200,7 +199,8 @@ void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimension
 		const ComputedValues* document_values = owner_document ? &owner_document->GetComputedValues() : nullptr;
 
 		// Compute values and clear dirty properties
-		PropertyIdSet dirty_properties = meta->style.ComputeValues(meta->computed_values, parent_values, document_values, computed_values_are_default_initialized, dp_ratio, vp_dimensions);
+		PropertyIdSet dirty_properties = meta->style.ComputeValues(meta->computed_values, parent_values, document_values,
+			computed_values_are_default_initialized, dp_ratio, vp_dimensions);
 
 		computed_values_are_default_initialized = false;
 
@@ -251,7 +251,6 @@ void Element::Render()
 		element->Render();
 }
 
-// Clones this element, returning a new, unparented element.
 ElementPtr Element::Clone() const
 {
 	ElementPtr clone;
@@ -289,40 +288,34 @@ ElementPtr Element::Clone() const
 	return clone;
 }
 
-// Sets or removes a class on the element.
 void Element::SetClass(const String& class_name, bool activate)
 {
 	if (meta->style.SetClass(class_name, activate))
 		DirtyDefinition(DirtyNodes::SelfAndSiblings);
 }
 
-// Checks if a class is set on the element.
 bool Element::IsClassSet(const String& class_name) const
 {
 	return meta->style.IsClassSet(class_name);
 }
 
-// Specifies the entire list of classes for this element. This will replace any others specified.
 void Element::SetClassNames(const String& class_names)
 {
 	SetAttribute("class", class_names);
 }
 
-/// Return the active class list
 String Element::GetClassNames() const
 {
 	return meta->style.GetClassNames();
 }
 
-// Returns the active style sheet for this element. This may be nullptr.
 const StyleSheet* Element::GetStyleSheet() const
 {
-	if (ElementDocument * document = GetOwnerDocument())
+	if (ElementDocument* document = GetOwnerDocument())
 		return document->GetStyleSheet();
 	return nullptr;
 }
 
-// Fills an String with the full address of this element.
 String Element::GetAddress(bool include_pseudo_classes, bool include_parents) const
 {
 	// Add the tag name onto the address.
@@ -362,16 +355,13 @@ String Element::GetAddress(bool include_pseudo_classes, bool include_parents) co
 		return address;
 }
 
-// Sets the position of this element, as a two-dimensional offset from another element.
 void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_fixed)
 {
 	_offset_fixed |= GetPosition() == Style::Position::Fixed;
 
 	// If our offset has definitely changed, or any of our parenting has, then these are set and
 	// updated based on our left / right / top / bottom properties.
-	if (relative_offset_base != offset ||
-		offset_parent != _offset_parent ||
-		offset_fixed != _offset_fixed)
+	if (relative_offset_base != offset || offset_parent != _offset_parent || offset_fixed != _offset_fixed)
 	{
 		relative_offset_base = offset;
 		offset_fixed = _offset_fixed;
@@ -389,19 +379,16 @@ void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_f
 
 		UpdateOffset();
 
-		if (old_base != relative_offset_base ||
-			old_position != relative_offset_position)
+		if (old_base != relative_offset_base || old_position != relative_offset_position)
 			DirtyAbsoluteOffset();
 	}
 }
 
-// Returns the position of the top-left corner of one of the areas of this element's primary box.
 Vector2f Element::GetRelativeOffset(Box::Area area)
 {
 	return relative_offset_base + relative_offset_position + GetBox().GetPosition(area);
 }
 
-// Returns the position of the top-left corner of one of the areas of this element's primary box.
 Vector2f Element::GetAbsoluteOffset(Box::Area area)
 {
 	if (absolute_offset_dirty)
@@ -428,19 +415,16 @@ Vector2f Element::GetAbsoluteOffset(Box::Area area)
 	return absolute_offset + GetBox().GetPosition(area);
 }
 
-// Sets an alternate area to use as the client area.
 void Element::SetClientArea(Box::Area _client_area)
 {
 	client_area = _client_area;
 }
 
-// Returns the area the element uses as its client area.
 Box::Area Element::GetClientArea() const
 {
 	return client_area;
 }
 
-// Sets the dimensions of the element's internal content.
 void Element::SetScrollableOverflowRectangle(Vector2f _scrollable_overflow_rectangle)
 {
 	if (scrollable_overflow_rectangle != _scrollable_overflow_rectangle)
@@ -453,7 +437,6 @@ void Element::SetScrollableOverflowRectangle(Vector2f _scrollable_overflow_recta
 	}
 }
 
-// Sets the box describing the size of the element.
 void Element::SetBox(const Box& box)
 {
 	if (box != main_box || additional_boxes.size() > 0)
@@ -469,10 +452,9 @@ void Element::SetBox(const Box& box)
 	}
 }
 
-// Adds a box to the end of the list describing this element's geometry.
 void Element::AddBox(const Box& box, Vector2f offset)
 {
-	additional_boxes.emplace_back(PositionedBox{ box, offset });
+	additional_boxes.emplace_back(PositionedBox{box, offset});
 
 	OnResize();
 
@@ -481,20 +463,18 @@ void Element::AddBox(const Box& box, Vector2f offset)
 	meta->decoration.DirtyDecoratorsData();
 }
 
-// Returns one of the boxes describing the size of the element.
 const Box& Element::GetBox()
 {
 	return main_box;
 }
 
-// Returns one of the boxes describing the size of the element.
 const Box& Element::GetBox(int index, Vector2f& offset)
 {
 	offset = Vector2f(0);
 
 	if (index < 1)
 		return main_box;
-	
+
 	const int additional_box_index = index - 1;
 	if (additional_box_index >= (int)additional_boxes.size())
 		return main_box;
@@ -504,23 +484,18 @@ const Box& Element::GetBox(int index, Vector2f& offset)
 	return additional_boxes[additional_box_index].box;
 }
 
-// Returns the number of boxes making up this element's geometry.
 int Element::GetNumBoxes()
 {
 	return 1 + (int)additional_boxes.size();
 }
 
-// Returns the baseline of the element, in pixels offset from the bottom of the element's content area.
 float Element::GetBaseline() const
 {
 	return baseline;
 }
 
-// Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size.
-bool Element::GetIntrinsicDimensions(Vector2f& RMLUI_UNUSED_PARAMETER(dimensions), float& RMLUI_UNUSED_PARAMETER(ratio))
+bool Element::GetIntrinsicDimensions(Vector2f& /*dimensions*/, float& /*ratio*/)
 {
-	RMLUI_UNUSED(dimensions);
-	RMLUI_UNUSED(ratio);
 	return false;
 }
 
@@ -531,7 +506,6 @@ bool Element::IsReplaced()
 	return GetIntrinsicDimensions(unused_dimensions, unused_ratio);
 }
 
-// Checks if a given point in screen coordinates lies within the bordered area of this element.
 bool Element::IsPointWithinElement(const Vector2f point)
 {
 	const Vector2f position = GetAbsoluteOffset(Box::BORDER);
@@ -543,9 +517,7 @@ bool Element::IsPointWithinElement(const Vector2f point)
 
 		const Vector2f box_position = position + box_offset;
 		const Vector2f box_dimensions = box.GetSize(Box::BORDER);
-		if (point.x >= box_position.x &&
-			point.x <= (box_position.x + box_dimensions.x) &&
-			point.y >= box_position.y &&
+		if (point.x >= box_position.x && point.x <= (box_position.x + box_dimensions.x) && point.y >= box_position.y &&
 			point.y <= (box_position.y + box_dimensions.y))
 		{
 			return true;
@@ -555,7 +527,6 @@ bool Element::IsPointWithinElement(const Vector2f point)
 	return false;
 }
 
-// Returns the visibility of the element.
 bool Element::IsVisible(bool include_ancestors) const
 {
 	if (!include_ancestors)
@@ -570,19 +541,16 @@ bool Element::IsVisible(bool include_ancestors) const
 	return true;
 }
 
-// Returns the z-index of the element.
 float Element::GetZIndex() const
 {
 	return z_index;
 }
 
-// Returns the element's font face handle.
 FontFaceHandle Element::GetFontFaceHandle() const
 {
 	return meta->computed_values.font_face_handle();
 }
 
-// Sets a local property override on the element.
 bool Element::SetProperty(const String& name, const String& value)
 {
 	// The name may be a shorthand giving us multiple underlying properties
@@ -600,37 +568,31 @@ bool Element::SetProperty(const String& name, const String& value)
 	return true;
 }
 
-// Sets a local property override on the element to a pre-parsed value.
 bool Element::SetProperty(PropertyId id, const Property& property)
 {
 	return meta->style.SetProperty(id, property);
 }
 
-// Removes a local property override on the element.
 void Element::RemoveProperty(const String& name)
 {
 	meta->style.RemoveProperty(StyleSheetSpecification::GetPropertyId(name));
 }
 
-// Removes a local property override on the element.
 void Element::RemoveProperty(PropertyId id)
 {
 	meta->style.RemoveProperty(id);
 }
 
-// Returns one of this element's properties.
 const Property* Element::GetProperty(const String& name)
 {
 	return meta->style.GetProperty(StyleSheetSpecification::GetPropertyId(name));
 }
 
-// Returns one of this element's properties.
 const Property* Element::GetProperty(PropertyId id)
 {
 	return meta->style.GetProperty(id);
 }
 
-// Returns one of this element's properties.
 const Property* Element::GetLocalProperty(const String& name)
 {
 	return meta->style.GetLocalProperty(StyleSheetSpecification::GetPropertyId(name));
@@ -646,7 +608,7 @@ const PropertyMap& Element::GetLocalStyleProperties()
 	return meta->style.GetLocalStyleProperties();
 }
 
-float Element::ResolveNumericProperty(const Property *property, float base_value)
+float Element::ResolveNumericProperty(const Property* property, float base_value)
 {
 	return meta->style.ResolveNumericProperty(property, base_value);
 }
@@ -665,7 +627,7 @@ float Element::ResolveNumericProperty(const String& property_name)
 		relative_target = property->definition->GetRelativeTarget();
 
 	float result = meta->style.ResolveLength(property, relative_target);
-	
+
 	return result;
 }
 
@@ -683,12 +645,12 @@ Vector2f Element::GetContainingBlock()
 		{
 			containing_block = parent_box.GetSize();
 		}
-		else if(position_property == Position::Absolute || position_property == Position::Fixed)
+		else if (position_property == Position::Absolute || position_property == Position::Fixed)
 		{
 			containing_block = parent_box.GetSize(Box::PADDING);
 		}
 	}
-	
+
 	return containing_block;
 }
 
@@ -712,16 +674,14 @@ float Element::GetLineHeight()
 	return meta->computed_values.line_height().value;
 }
 
-// Returns this element's TransformState
-const TransformState *Element::GetTransformState() const noexcept
+const TransformState* Element::GetTransformState() const noexcept
 {
 	return transform_state.get();
 }
 
-// Project a 2D point in pixel coordinates onto the element's plane.
 bool Element::Project(Vector2f& point) const noexcept
 {
-	if(!transform_state || !transform_state->GetTransform())
+	if (!transform_state || !transform_state->GetTransform())
 		return true;
 
 	// The input point is in window coordinates. Need to find the projection of the point onto the current element plane,
@@ -730,23 +690,20 @@ bool Element::Project(Vector2f& point) const noexcept
 	if (const Matrix4f* inv_transform = transform_state->GetInverseTransform())
 	{
 		// Pick two points forming a line segment perpendicular to the window.
-		Vector4f window_points[2] = {{ point.x, point.y, -10, 1}, { point.x, point.y, 10, 1 }};
+		Vector4f window_points[2] = {{point.x, point.y, -10, 1}, {point.x, point.y, 10, 1}};
 
 		// Project them into the local element space.
 		window_points[0] = *inv_transform * window_points[0];
 		window_points[1] = *inv_transform * window_points[1];
 
-		Vector3f local_points[2] = {
-			window_points[0].PerspectiveDivide(),
-			window_points[1].PerspectiveDivide()
-		};
+		Vector3f local_points[2] = {window_points[0].PerspectiveDivide(), window_points[1].PerspectiveDivide()};
 
 		// Construct a ray from the two projected points in the local space of the current element.
 		// Find the intersection with the z=0 plane to produce our destination point.
 		Vector3f ray = local_points[1] - local_points[0];
 
 		// Only continue if we are not close to parallel with the plane.
-		if(std::fabs(ray.z) > 1.0f)
+		if (std::fabs(ray.z) > 1.0f)
 		{
 			// Solving the line equation p = p0 + t*ray for t, knowing that p.z = 0, produces the following.
 			float t = -local_points[0].z / ray.z;
@@ -766,8 +723,6 @@ PropertiesIteratorView Element::IterateLocalProperties() const
 	return PropertiesIteratorView(MakeUnique<PropertiesIterator>(meta->style.Iterate()));
 }
 
-
-// Sets or removes a pseudo-class on the element.
 void Element::SetPseudoClass(const String& pseudo_class, bool activate)
 {
 	if (meta->style.SetPseudoClass(pseudo_class, activate, false))
@@ -778,13 +733,11 @@ void Element::SetPseudoClass(const String& pseudo_class, bool activate)
 	}
 }
 
-// Checks if a specific pseudo-class has been set on the element.
 bool Element::IsPseudoClassSet(const String& pseudo_class) const
 {
 	return meta->style.IsPseudoClassSet(pseudo_class);
 }
 
-// Checks if a complete set of pseudo-classes are set on the element.
 bool Element::ArePseudoClassesSet(const StringList& pseudo_classes) const
 {
 	for (const String& pseudo_class : pseudo_classes)
@@ -796,7 +749,6 @@ bool Element::ArePseudoClassesSet(const StringList& pseudo_classes) const
 	return true;
 }
 
-// Gets a list of the current active pseudo classes
 StringList Element::GetActivePseudoClasses() const
 {
 	const PseudoClassMap& pseudo_classes = meta->style.GetActivePseudoClasses();
@@ -826,13 +778,11 @@ const Variant* Element::GetAttribute(const String& name) const
 	return GetIf(attributes, name);
 }
 
-// Checks if the element has a certain attribute.
 bool Element::HasAttribute(const String& name) const
 {
 	return attributes.find(name) != attributes.end();
 }
 
-// Removes an attribute from the element
 void Element::RemoveAttribute(const String& name)
 {
 	auto it = attributes.find(name);
@@ -846,7 +796,6 @@ void Element::RemoveAttribute(const String& name)
 	}
 }
 
-// Gets the outer most focus element down the tree from this node
 Element* Element::GetFocusLeafNode()
 {
 	// If there isn't a focus, then we are the leaf.
@@ -863,7 +812,6 @@ Element* Element::GetFocusLeafNode()
 	return focus_element;
 }
 
-// Returns the element's context.
 Context* Element::GetContext() const
 {
 	ElementDocument* document = GetOwnerDocument();
@@ -873,7 +821,6 @@ Context* Element::GetContext() const
 	return nullptr;
 }
 
-// Set a group of attributes
 void Element::SetAttributes(const ElementAttributes& _attributes)
 {
 	attributes.reserve(attributes.size() + _attributes.size());
@@ -883,103 +830,86 @@ void Element::SetAttributes(const ElementAttributes& _attributes)
 	OnAttributeChange(_attributes);
 }
 
-// Returns the number of attributes on the element.
 int Element::GetNumAttributes() const
 {
 	return (int)attributes.size();
 }
 
-// Gets the name of the element.
 const String& Element::GetTagName() const
 {
 	return tag;
 }
 
-// Gets the ID of the element.
 const String& Element::GetId() const
 {
 	return id;
 }
 
-// Sets the ID of the element.
 void Element::SetId(const String& _id)
 {
 	SetAttribute("id", _id);
 }
 
-// Gets the horizontal offset from the context's left edge to element's left border edge.
 float Element::GetAbsoluteLeft()
 {
 	return GetAbsoluteOffset(Box::BORDER).x;
 }
 
-// Gets the vertical offset from the context's top edge to element's top border edge.
 float Element::GetAbsoluteTop()
 {
 	return GetAbsoluteOffset(Box::BORDER).y;
 }
 
-// Gets the width of the left border of an element.
 float Element::GetClientLeft()
 {
 	return GetBox().GetPosition(client_area).x;
 }
 
-// Gets the height of the top border of an element.
 float Element::GetClientTop()
 {
 	return GetBox().GetPosition(client_area).y;
 }
 
-// Gets the inner width of the element.
 float Element::GetClientWidth()
 {
 	return GetBox().GetSize(client_area).x - meta->scroll.GetScrollbarSize(ElementScroll::VERTICAL);
 }
 
-// Gets the inner height of the element.
 float Element::GetClientHeight()
 {
 	return GetBox().GetSize(client_area).y - meta->scroll.GetScrollbarSize(ElementScroll::HORIZONTAL);
 }
 
-// Returns the element from which all offset calculations are currently computed.
 Element* Element::GetOffsetParent()
 {
 	return offset_parent;
 }
 
-// Gets the distance from this element's left border to its offset parent's left border.
 float Element::GetOffsetLeft()
 {
 	return relative_offset_base.x + relative_offset_position.x;
 }
 
-// Gets the distance from this element's top border to its offset parent's top border.
 float Element::GetOffsetTop()
 {
 	return relative_offset_base.y + relative_offset_position.y;
 }
 
-// Gets the width of the element, including the client area, padding, borders and scrollbars, but not margins.
 float Element::GetOffsetWidth()
 {
 	return GetBox().GetSize(Box::BORDER).x;
 }
 
-// Gets the height of the element, including the client area, padding, borders and scrollbars, but not margins.
 float Element::GetOffsetHeight()
 {
 	return GetBox().GetSize(Box::BORDER).y;
 }
 
-// Gets the left scroll offset of the element.
 float Element::GetScrollLeft()
 {
 	return scroll_offset.x;
 }
 
-// Sets the left scroll offset of the element.
 void Element::SetScrollLeft(float scroll_left)
 {
 	const float new_offset = Math::Clamp(Math::RoundFloat(scroll_left), 0.0f, GetScrollWidth() - GetClientWidth());
@@ -993,17 +923,15 @@ void Element::SetScrollLeft(float scroll_left)
 	}
 }
 
-// Gets the top scroll offset of the element.
 float Element::GetScrollTop()
 {
 	return scroll_offset.y;
 }
 
-// Sets the top scroll offset of the element.
 void Element::SetScrollTop(float scroll_top)
 {
 	const float new_offset = Math::Clamp(Math::RoundFloat(scroll_top), 0.0f, GetScrollHeight() - GetClientHeight());
-	if(new_offset != scroll_offset.y)
+	if (new_offset != scroll_offset.y)
 	{
 		scroll_offset.y = new_offset;
 		meta->scroll.UpdateScrollbar(ElementScroll::VERTICAL);
@@ -1013,25 +941,21 @@ void Element::SetScrollTop(float scroll_top)
 	}
 }
 
-// Gets the width of the scrollable content of the element; it includes the element padding but not its margin.
 float Element::GetScrollWidth()
 {
 	return Math::Max(scrollable_overflow_rectangle.x, GetClientWidth());
 }
 
-// Gets the height of the scrollable content of the element; it includes the element padding but not its margin.
 float Element::GetScrollHeight()
 {
 	return Math::Max(scrollable_overflow_rectangle.y, GetClientHeight());
 }
 
-// Gets the object representing the declarations of an element's style attributes.
 ElementStyle* Element::GetStyle() const
 {
 	return &meta->style;
 }
 
-// Gets the document this element belongs to.
 ElementDocument* Element::GetOwnerDocument() const
 {
 #ifdef RMLUI_DEBUG
@@ -1047,13 +971,11 @@ ElementDocument* Element::GetOwnerDocument() const
 	return owner_document;
 }
 
-// Gets this element's parent node.
 Element* Element::GetParentNode() const
 {
 	return parent;
 }
 
-// Recursively search for a ancestor of this node matching the given selector.
 Element* Element::Closest(const String& selectors) const
 {
 	StyleSheetNode root_node;
@@ -1067,7 +989,7 @@ Element* Element::Closest(const String& selectors) const
 
 	Element* parent = GetParentNode();
 
-	while(parent)
+	while (parent)
 	{
 		for (const StyleSheetNode* node : leaf_nodes)
 		{
@@ -1076,14 +998,13 @@ Element* Element::Closest(const String& selectors) const
 				return parent;
 			}
 		}
-		
+
 		parent = parent->GetParentNode();
 	}
 
 	return nullptr;
 }
 
-// Gets the element immediately following this one in the tree.
 Element* Element::GetNextSibling() const
 {
 	if (parent == nullptr)
@@ -1098,7 +1019,6 @@ Element* Element::GetNextSibling() const
 	return nullptr;
 }
 
-// Gets the element immediately preceding this one in the tree.
 Element* Element::GetPreviousSibling() const
 {
 	if (parent == nullptr)
@@ -1113,7 +1033,6 @@ Element* Element::GetPreviousSibling() const
 	return nullptr;
 }
 
-// Returns the first child of this element.
 Element* Element::GetFirstChild() const
 {
 	if (GetNumChildren() > 0)
@@ -1122,7 +1041,6 @@ Element* Element::GetFirstChild() const
 	return nullptr;
 }
 
-// Gets the last child of this element.
 Element* Element::GetLastChild() const
 {
 	if (GetNumChildren() > 0)
@@ -1133,7 +1051,7 @@ Element* Element::GetLastChild() const
 
 Element* Element::GetChild(int index) const
 {
-	if (index < 0 || index >= (int) children.size())
+	if (index < 0 || index >= (int)children.size())
 		return nullptr;
 
 	return children[index].get();
@@ -1141,10 +1059,9 @@ Element* Element::GetChild(int index) const
 
 int Element::GetNumChildren(bool include_non_dom_elements) const
 {
-	return (int) children.size() - (include_non_dom_elements ? 0 : num_non_dom_children);
+	return (int)children.size() - (include_non_dom_elements ? 0 : num_non_dom_children);
 }
 
-// Gets the markup and content of the element.
 void Element::GetInnerRML(String& content) const
 {
 	for (int i = 0; i < GetNumChildren(); i++)
@@ -1153,27 +1070,25 @@ void Element::GetInnerRML(String& content) const
 	}
 }
 
-// Gets the markup and content of the element.
-String Element::GetInnerRML() const {
+String Element::GetInnerRML() const
+{
 	String result;
 	GetInnerRML(result);
 	return result;
 }
 
-// Sets the markup and content of the element. All existing children will be replaced.
 void Element::SetInnerRML(const String& rml)
 {
 	RMLUI_ZoneScopedC(0x6495ED);
 
 	// Remove all DOM children.
-	while ((int) children.size() > num_non_dom_children)
+	while ((int)children.size() > num_non_dom_children)
 		RemoveChild(children.front().get());
 
-	if(!rml.empty())
+	if (!rml.empty())
 		Factory::InstanceElementText(this, rml);
 }
 
-// Sets the current element as the focus object.
 bool Element::Focus()
 {
 	// Are we allowed focus?
@@ -1203,7 +1118,6 @@ bool Element::Focus()
 	return true;
 }
 
-// Removes focus from from this element.
 void Element::Blur()
 {
 	if (parent)
@@ -1223,7 +1137,6 @@ void Element::Blur()
 	}
 }
 
-// Fakes a mouse click on this element.
 void Element::Click()
 {
 	Context* context = GetContext();
@@ -1233,55 +1146,48 @@ void Element::Click()
 	context->GenerateClickEvent(this);
 }
 
-// Adds an event listener
 void Element::AddEventListener(const String& event, EventListener* listener, const bool in_capture_phase)
 {
 	const EventId id = EventSpecificationInterface::GetIdOrInsert(event);
 	meta->event_dispatcher.AttachEvent(id, listener, in_capture_phase);
 }
 
-// Adds an event listener
 void Element::AddEventListener(const EventId id, EventListener* listener, const bool in_capture_phase)
 {
 	meta->event_dispatcher.AttachEvent(id, listener, in_capture_phase);
 }
 
-// Removes an event listener from this element.
 void Element::RemoveEventListener(const String& event, EventListener* listener, bool in_capture_phase)
 {
 	EventId id = EventSpecificationInterface::GetIdOrInsert(event);
 	meta->event_dispatcher.DetachEvent(id, listener, in_capture_phase);
 }
 
-// Removes an event listener from this element.
 void Element::RemoveEventListener(EventId id, EventListener* listener, bool in_capture_phase)
 {
 	meta->event_dispatcher.DetachEvent(id, listener, in_capture_phase);
 }
 
-
-// Dispatches the specified event
 bool Element::DispatchEvent(const String& type, const Dictionary& parameters)
 {
 	const EventSpecification& specification = EventSpecificationInterface::GetOrInsert(type);
-	return EventDispatcher::DispatchEvent(this, specification.id, type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
+	return EventDispatcher::DispatchEvent(this, specification.id, type, parameters, specification.interruptible, specification.bubbles,
+		specification.default_action_phase);
 }
 
-// Dispatches the specified event
 bool Element::DispatchEvent(const String& type, const Dictionary& parameters, bool interruptible, bool bubbles)
 {
 	const EventSpecification& specification = EventSpecificationInterface::GetOrInsert(type);
 	return EventDispatcher::DispatchEvent(this, specification.id, type, parameters, interruptible, bubbles, specification.default_action_phase);
 }
 
-// Dispatches the specified event
 bool Element::DispatchEvent(EventId id, const Dictionary& parameters)
 {
 	const EventSpecification& specification = EventSpecificationInterface::Get(id);
-	return EventDispatcher::DispatchEvent(this, specification.id, specification.type, parameters, specification.interruptible, specification.bubbles, specification.default_action_phase);
+	return EventDispatcher::DispatchEvent(this, specification.id, specification.type, parameters, specification.interruptible, specification.bubbles,
+		specification.default_action_phase);
 }
 
-// Scrolls the parent element's contents so that this element is visible.
 void Element::ScrollIntoView(const ScrollIntoViewOptions options)
 {
 	const Vector2f size = main_box.GetSize(Box::BORDER);
@@ -1343,7 +1249,6 @@ void Element::ScrollTo(Vector2f offset, ScrollBehavior behavior)
 	SetScrollTop(offset.y);
 }
 
-// Appends a child to this element
 Element* Element::AppendChild(ElementPtr child, bool dom_element)
 {
 	RMLUI_ASSERT(child);
@@ -1374,8 +1279,6 @@ Element* Element::AppendChild(ElementPtr child, bool dom_element)
 	return child_ptr;
 }
 
-// Adds a child to this element, directly after the adjacent element. Inherits
-// the dom/non-dom status from the adjacent element.
 Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 {
 	RMLUI_ASSERT(child);
@@ -1402,7 +1305,7 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 	{
 		child_ptr = child.get();
 
-		if ((int) child_index >= GetNumChildren())
+		if ((int)child_index >= GetNumChildren())
 			num_non_dom_children++;
 		else
 			DirtyLayout();
@@ -1420,12 +1323,11 @@ Element* Element::InsertBefore(ElementPtr child, Element* adjacent_element)
 	else
 	{
 		child_ptr = AppendChild(std::move(child));
-	}	
+	}
 
 	return child_ptr;
 }
 
-// Replaces the second node with the first node.
 ElementPtr Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_element)
 {
 	RMLUI_ASSERT(inserted_element);
@@ -1455,7 +1357,6 @@ ElementPtr Element::ReplaceChild(ElementPtr inserted_element, Element* replaced_
 	return result;
 }
 
-// Removes the specified child
 ElementPtr Element::RemoveChild(Element* child)
 {
 	size_t child_index = 0;
@@ -1482,7 +1383,7 @@ ElementPtr Element::RemoveChild(Element* child)
 
 				// If this child (or a descendant of this child) is the context's currently
 				// focused element, set the focus to us instead.
-				if (Context * context = GetContext())
+				if (Context* context = GetContext())
 				{
 					Element* focus_element = context->GetFocusElement();
 					while (focus_element)
@@ -1513,10 +1414,9 @@ ElementPtr Element::RemoveChild(Element* child)
 	return nullptr;
 }
 
-
 bool Element::HasChildNodes() const
 {
-	return (int) children.size() > num_non_dom_children;
+	return (int)children.size() > num_non_dom_children;
 }
 
 Element* Element::GetElementById(const String& id)
@@ -1537,13 +1437,11 @@ Element* Element::GetElementById(const String& id)
 	}
 }
 
-// Get all elements with the given tag.
 void Element::GetElementsByTagName(ElementList& elements, const String& tag)
 {
 	return ElementUtilities::GetElementsByTagName(elements, this, tag);
 }
 
-// Get all elements with the given class set on them.
 void Element::GetElementsByClassName(ElementList& elements, const String& class_name)
 {
 	return ElementUtilities::GetElementsByClassName(elements, this, class_name);
@@ -1624,7 +1522,6 @@ void Element::QuerySelectorAll(ElementList& elements, const String& selectors)
 	QuerySelectorAllMatchRecursive(elements, leaf_nodes, this);
 }
 
-// Access the event dispatcher
 EventDispatcher* Element::GetEventDispatcher() const
 {
 	return &meta->event_dispatcher;
@@ -1635,13 +1532,11 @@ String Element::GetEventDispatcherSummary() const
 	return meta->event_dispatcher.ToString();
 }
 
-// Access the element decorators
 ElementDecoration* Element::GetElementDecoration() const
 {
 	return &meta->decoration;
 }
 
-// Returns the element's scrollbar functionality.
 ElementScroll* Element::GetElementScroll() const
 {
 	return &meta->scroll;
@@ -1652,7 +1547,6 @@ DataModel* Element::GetDataModel() const
 	return data_model;
 }
 
-// Gets the render interface owned by this element's context.
 RenderInterface* Element::GetRenderInterface()
 {
 	if (Context* context = GetContext())
@@ -1671,7 +1565,6 @@ void Element::SetInstancer(ElementInstancer* _instancer)
 	}
 }
 
-// Forces the element to generate a local stacking context, regardless of the value of its z-index property.
 void Element::ForceLocalStackingContext()
 {
 	local_stacking_context_forced = true;
@@ -1680,34 +1573,18 @@ void Element::ForceLocalStackingContext()
 	DirtyStackingContext();
 }
 
-// Called during the update loop after children are rendered.
-void Element::OnUpdate()
-{
-}
+void Element::OnUpdate() {}
 
-// Called during render after backgrounds, borders, decorators, but before children, are rendered.
-void Element::OnRender()
-{
-}
+void Element::OnRender() {}
 
-void Element::OnResize()
-{
-}
+void Element::OnResize() {}
 
-// Called during a layout operation, when the element is being positioned and sized.
-void Element::OnLayout()
-{
-}
+void Element::OnLayout() {}
 
-void Element::OnDpRatioChange()
-{
-}
+void Element::OnDpRatioChange() {}
 
-void Element::OnStyleSheetChange()
-{
-}
+void Element::OnStyleSheetChange() {}
 
-// Called when attributes on the element are changed.
 void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	for (const auto& element_attribute : changed_attributes)
@@ -1722,8 +1599,10 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		{
 			meta->style.SetClassNames(value.Get<String>());
 		}
-		else if (((attribute == "colspan" || attribute == "rowspan") && meta->computed_values.display() == Style::Display::TableCell)
-			|| (attribute == "span" && (meta->computed_values.display() == Style::Display::TableColumn || meta->computed_values.display() == Style::Display::TableColumnGroup)))
+		else if (((attribute == "colspan" || attribute == "rowspan") && meta->computed_values.display() == Style::Display::TableCell) ||
+			(attribute == "span" &&
+				(meta->computed_values.display() == Style::Display::TableColumn ||
+					meta->computed_values.display() == Style::Display::TableColumnGroup)))
 		{
 			DirtyLayout();
 		}
@@ -1734,8 +1613,7 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 			auto& attribute_event_listeners = meta->attribute_event_listeners;
 			auto& event_dispatcher = meta->event_dispatcher;
 			const auto event_id = EventSpecificationInterface::GetIdOrInsert(attribute.substr(2));
-			const auto remove_event_listener_if_exists = [&attribute_event_listeners, &event_dispatcher, event_id]()
-			{
+			const auto remove_event_listener_if_exists = [&attribute_event_listeners, &event_dispatcher, event_id]() {
 				const auto listener_it = attribute_event_listeners.find(event_id);
 				if (listener_it != attribute_event_listeners.cend())
 				{
@@ -1777,15 +1655,14 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 	DirtyDefinition(DirtyNodes::SelfAndSiblings);
 }
 
-// Called when properties on the element are changed.
 void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	RMLUI_ZoneScoped;
-	const bool top_right_bottom_left_changed = (
-		changed_properties.Contains(PropertyId::Top) ||
-		changed_properties.Contains(PropertyId::Right) ||
-		changed_properties.Contains(PropertyId::Bottom) ||
-		changed_properties.Contains(PropertyId::Left)
+	const bool top_right_bottom_left_changed = (           //
+		changed_properties.Contains(PropertyId::Top) ||    //
+		changed_properties.Contains(PropertyId::Right) ||  //
+		changed_properties.Contains(PropertyId::Bottom) || //
+		changed_properties.Contains(PropertyId::Left)      //
 	);
 
 	// See if the document layout needs to be updated.
@@ -1823,14 +1700,13 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		UpdateOffset();
 		DirtyAbsoluteOffset();
 	}
-	
+
 	// Update the visibility.
-	if (changed_properties.Contains(PropertyId::Visibility) ||
-		changed_properties.Contains(PropertyId::Display))
+	if (changed_properties.Contains(PropertyId::Visibility) || changed_properties.Contains(PropertyId::Display))
 	{
 		bool new_visibility =
 			(meta->computed_values.display() != Style::Display::None && meta->computed_values.visibility() == Style::Visibility::Visible);
-			
+
 		if (visible != new_visibility)
 		{
 			visible = new_visibility;
@@ -1850,8 +1726,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 		if (z_index_property.type == Style::ZIndex::Auto)
 		{
-			if (local_stacking_context &&
-				!local_stacking_context_forced)
+			if (local_stacking_context && !local_stacking_context_forced)
 			{
 				// We're no longer acting as a stacking context.
 				local_stacking_context = false;
@@ -1886,38 +1761,38 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 			}
 		}
 	}
-	
-	const bool border_radius_changed = (
-		changed_properties.Contains(PropertyId::BorderTopLeftRadius) ||
-		changed_properties.Contains(PropertyId::BorderTopRightRadius) ||
-		changed_properties.Contains(PropertyId::BorderBottomRightRadius) ||
-		changed_properties.Contains(PropertyId::BorderBottomLeftRadius)
+
+	const bool border_radius_changed = (                                    //
+		changed_properties.Contains(PropertyId::BorderTopLeftRadius) ||     //
+		changed_properties.Contains(PropertyId::BorderTopRightRadius) ||    //
+		changed_properties.Contains(PropertyId::BorderBottomRightRadius) || //
+		changed_properties.Contains(PropertyId::BorderBottomLeftRadius)     //
 	);
 
 	// Dirty the background if it's changed.
-    if (border_radius_changed ||
-		changed_properties.Contains(PropertyId::BackgroundColor) ||
-		changed_properties.Contains(PropertyId::Opacity) ||
-		changed_properties.Contains(PropertyId::ImageColor))
+	if (border_radius_changed ||                                    //
+		changed_properties.Contains(PropertyId::BackgroundColor) || //
+		changed_properties.Contains(PropertyId::Opacity) ||         //
+		changed_properties.Contains(PropertyId::ImageColor))        //
 	{
 		meta->background_border.DirtyBackground();
-    }
+	}
 
 	// Dirty the border if it's changed.
-	if (border_radius_changed ||
-		changed_properties.Contains(PropertyId::BorderTopWidth) ||
-		changed_properties.Contains(PropertyId::BorderRightWidth) ||
-		changed_properties.Contains(PropertyId::BorderBottomWidth) ||
-		changed_properties.Contains(PropertyId::BorderLeftWidth) ||
-		changed_properties.Contains(PropertyId::BorderTopColor) ||
-		changed_properties.Contains(PropertyId::BorderRightColor) ||
-		changed_properties.Contains(PropertyId::BorderBottomColor) ||
-		changed_properties.Contains(PropertyId::BorderLeftColor) ||
+	if (border_radius_changed ||                                      //
+		changed_properties.Contains(PropertyId::BorderTopWidth) ||    //
+		changed_properties.Contains(PropertyId::BorderRightWidth) ||  //
+		changed_properties.Contains(PropertyId::BorderBottomWidth) || //
+		changed_properties.Contains(PropertyId::BorderLeftWidth) ||   //
+		changed_properties.Contains(PropertyId::BorderTopColor) ||    //
+		changed_properties.Contains(PropertyId::BorderRightColor) ||  //
+		changed_properties.Contains(PropertyId::BorderBottomColor) || //
+		changed_properties.Contains(PropertyId::BorderLeftColor) ||   //
 		changed_properties.Contains(PropertyId::Opacity))
 	{
 		meta->background_border.DirtyBorder();
 	}
-	
+
 	// Dirty the decoration if it's changed.
 	if (border_radius_changed || changed_properties.Contains(PropertyId::Decorator))
 	{
@@ -1925,25 +1800,25 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 
 	// Dirty the decoration data when its visual looks may have changed.
-	if (border_radius_changed ||
-		changed_properties.Contains(PropertyId::Opacity) ||
+	if (border_radius_changed ||                            //
+		changed_properties.Contains(PropertyId::Opacity) || //
 		changed_properties.Contains(PropertyId::ImageColor))
 	{
 		meta->decoration.DirtyDecoratorsData();
 	}
 
 	// Check for `perspective' and `perspective-origin' changes
-	if (changed_properties.Contains(PropertyId::Perspective) ||
-		changed_properties.Contains(PropertyId::PerspectiveOriginX) ||
+	if (changed_properties.Contains(PropertyId::Perspective) ||        //
+		changed_properties.Contains(PropertyId::PerspectiveOriginX) || //
 		changed_properties.Contains(PropertyId::PerspectiveOriginY))
 	{
 		DirtyTransformState(true, false);
 	}
 
 	// Check for `transform' and `transform-origin' changes
-	if (changed_properties.Contains(PropertyId::Transform) ||
-		changed_properties.Contains(PropertyId::TransformOriginX) ||
-		changed_properties.Contains(PropertyId::TransformOriginY) ||
+	if (changed_properties.Contains(PropertyId::Transform) ||        //
+		changed_properties.Contains(PropertyId::TransformOriginX) || //
+		changed_properties.Contains(PropertyId::TransformOriginY) || //
 		changed_properties.Contains(PropertyId::TransformOriginZ))
 	{
 		DirtyTransformState(false, true);
@@ -1961,19 +1836,11 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 }
 
-void Element::OnPseudoClassChange(const String& /*pseudo_class*/, bool /*activate*/)
-{
-}
+void Element::OnPseudoClassChange(const String& /*pseudo_class*/, bool /*activate*/) {}
 
-// Called when a child node has been added somewhere in the hierarchy
-void Element::OnChildAdd(Element* /*child*/)
-{
-}
+void Element::OnChildAdd(Element* /*child*/) {}
 
-// Called when a child node has been removed somewhere in the hierarchy
-void Element::OnChildRemove(Element* /*child*/)
-{
-}
+void Element::OnChildRemove(Element* /*child*/) {}
 
 void Element::DirtyLayout()
 {
@@ -2022,20 +1889,11 @@ void Element::ProcessDefaultAction(Event& event)
 	{
 		switch (event.GetId())
 		{
-		case EventId::Mouseover:
-			SetPseudoClass("hover", true);
-			break;
-		case EventId::Mouseout:
-			SetPseudoClass("hover", false);
-			break;
-		case EventId::Focus:
-			SetPseudoClass("focus", true);
-			break;
-		case EventId::Blur:
-			SetPseudoClass("focus", false);
-			break;
-		default:
-			break;
+		case EventId::Mouseover: SetPseudoClass("hover", true); break;
+		case EventId::Mouseout: SetPseudoClass("hover", false); break;
+		case EventId::Focus: SetPseudoClass("focus", true); break;
+		case EventId::Blur: SetPseudoClass("focus", false); break;
+		default: break;
 		}
 	}
 }
@@ -2101,7 +1959,7 @@ void Element::SetOwnerDocument(ElementDocument* document)
 	}
 }
 
-void Element::SetDataModel(DataModel* new_data_model) 
+void Element::SetDataModel(DataModel* new_data_model)
 {
 	RMLUI_ASSERTMSG(!data_model || !new_data_model, "We must either attach a new data model, or detach the old one.");
 
@@ -2129,7 +1987,7 @@ void Element::Release()
 }
 
 void Element::SetParent(Element* _parent)
-{	
+{
 	// Assumes we are already detached from the hierarchy or we are detaching now.
 	RMLUI_ASSERT(!parent || !_parent);
 
@@ -2153,7 +2011,7 @@ void Element::SetParent(Element* _parent)
 		if (data_model)
 			SetDataModel(nullptr);
 	}
-	else 
+	else
 	{
 		auto it = attributes.find("data-model");
 		if (it == attributes.end())
@@ -2163,7 +2021,8 @@ void Element::SetParent(Element* _parent)
 		else if (parent->data_model)
 		{
 			String name = it->second.Get<String>();
-			Log::Message(Log::LT_ERROR, "Nested data models are not allowed. Data model '%s' given in element %s.", name.c_str(), GetAddress().c_str());
+			Log::Message(Log::LT_ERROR, "Nested data models are not allowed. Data model '%s' given in element %s.", name.c_str(),
+				GetAddress().c_str());
 		}
 		else if (Context* context = GetContext())
 		{
@@ -2205,8 +2064,7 @@ void Element::UpdateOffset()
 	const auto& computed = meta->computed_values;
 	Position position_property = computed.position();
 
-	if (position_property == Position::Absolute ||
-		position_property == Position::Fixed)
+	if (position_property == Position::Absolute || position_property == Position::Fixed)
 	{
 		if (offset_parent != nullptr)
 		{
@@ -2456,9 +2314,7 @@ void Element::DirtyDefinition(DirtyNodes dirty_nodes)
 {
 	switch (dirty_nodes)
 	{
-	case DirtyNodes::Self:
-		dirty_definition = true;
-		break;
+	case DirtyNodes::Self: dirty_definition = true; break;
 	case DirtyNodes::SelfAndSiblings:
 		dirty_definition = true;
 		if (parent)
@@ -2489,8 +2345,8 @@ void Element::UpdateDefinition()
 	}
 }
 
-
-bool Element::Animate(const String & property_name, const Property & target_value, float duration, Tween tween, int num_iterations, bool alternate_direction, float delay, const Property* start_value)
+bool Element::Animate(const String& property_name, const Property& target_value, float duration, Tween tween, int num_iterations,
+	bool alternate_direction, float delay, const Property* start_value)
 {
 	bool result = false;
 	PropertyId property_id = StyleSheetSpecification::GetPropertyId(property_name);
@@ -2506,15 +2362,16 @@ bool Element::Animate(const String & property_name, const Property & target_valu
 	return result;
 }
 
-
-bool Element::AddAnimationKey(const String & property_name, const Property & target_value, float duration, Tween tween)
+bool Element::AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween)
 {
 	ElementAnimation* animation = nullptr;
 
 	PropertyId property_id = StyleSheetSpecification::GetPropertyId(property_name);
 
-	for (auto& existing_animation : animations) {
-		if (existing_animation.GetPropertyId() == property_id) {
+	for (auto& existing_animation : animations)
+	{
+		if (existing_animation.GetPropertyId() == property_id)
+		{
 			animation = &existing_animation;
 			break;
 		}
@@ -2527,8 +2384,8 @@ bool Element::AddAnimationKey(const String & property_name, const Property & tar
 	return result;
 }
 
-
-ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction, float delay, bool initiated_by_animation_property)
+ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations,
+	bool alternate_direction, float delay, bool initiated_by_animation_property)
 {
 	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyId() == property_id; });
 
@@ -2548,8 +2405,8 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 	{
 		value = *start_value;
 		if (!value.definition)
-			if(auto default_value = GetProperty(property_id))
-				value.definition = default_value->definition;	
+			if (auto default_value = GetProperty(property_id))
+				value.definition = default_value->definition;
 	}
 	else if (auto default_value = GetProperty(property_id))
 	{
@@ -2560,10 +2417,10 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 	{
 		ElementAnimationOrigin origin = (initiated_by_animation_property ? ElementAnimationOrigin::Animation : ElementAnimationOrigin::User);
 		double start_time = Clock::GetElapsedTime() + (double)delay;
-		*it = ElementAnimation{ property_id, origin, value, *this, start_time, 0.0f, num_iterations, alternate_direction };
+		*it = ElementAnimation{property_id, origin, value, *this, start_time, 0.0f, num_iterations, alternate_direction};
 	}
-	
-	if(!it->IsInitalized())
+
+	if (!it->IsInitalized())
 	{
 		animations.erase(it);
 		it = animations.end();
@@ -2571,7 +2428,6 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 
 	return it;
 }
-
 
 bool Element::AddAnimationKeyTime(PropertyId property_id, const Property* target_value, float time, Tween tween)
 {
@@ -2582,8 +2438,10 @@ bool Element::AddAnimationKeyTime(PropertyId property_id, const Property* target
 
 	ElementAnimation* animation = nullptr;
 
-	for (auto& existing_animation : animations) {
-		if (existing_animation.GetPropertyId() == property_id) {
+	for (auto& existing_animation : animations)
+	{
+		if (existing_animation.GetPropertyId() == property_id)
+		{
 			animation = &existing_animation;
 			break;
 		}
@@ -2596,7 +2454,7 @@ bool Element::AddAnimationKeyTime(PropertyId property_id, const Property* target
 	return result;
 }
 
-bool Element::StartTransition(const Transition & transition, const Property& start_value, const Property & target_value)
+bool Element::StartTransition(const Transition& transition, const Property& start_value, const Property& target_value)
 {
 	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyId() == transition.id; });
 
@@ -2609,19 +2467,17 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 	if (it == animations.end())
 	{
 		// Add transition as new animation
-		animations.push_back(
-			ElementAnimation{ transition.id, ElementAnimationOrigin::Transition, start_value, *this, start_time, 0.0f, 1, false }
-		);
+		animations.push_back(ElementAnimation{transition.id, ElementAnimationOrigin::Transition, start_value, *this, start_time, 0.0f, 1, false});
 		it = (animations.end() - 1);
 	}
 	else
 	{
 		// Compress the duration based on the progress of the current animation
 		float f = it->GetInterpolationFactor();
-		f = 1.0f - (1.0f - f)*transition.reverse_adjustment_factor;
+		f = 1.0f - (1.0f - f) * transition.reverse_adjustment_factor;
 		duration = duration * f;
 		// Replace old transition
-		*it = ElementAnimation{ transition.id, ElementAnimationOrigin::Transition, start_value, *this, start_time, 0.0f, 1, false };
+		*it = ElementAnimation{transition.id, ElementAnimationOrigin::Transition, start_value, *this, start_time, 0.0f, 1, false};
 	}
 
 	bool result = it->AddKey(duration, target_value, *this, transition.tween, true);
@@ -2636,7 +2492,7 @@ bool Element::StartTransition(const Transition & transition, const Property& sta
 
 void Element::HandleTransitionProperty()
 {
-	if(dirty_transition)
+	if (dirty_transition)
 	{
 		dirty_transition = false;
 
@@ -2653,8 +2509,7 @@ void Element::HandleTransitionProperty()
 			// All transitions should be removed, but only touch the animations that originate from the 'transition' property.
 			// Move all animations to be erased in a valid state at the end of the list, and erase later.
 			it_remove = std::partition(animations.begin(), animations.end(),
-				[](const ElementAnimation& animation) -> bool { return !animation.IsTransition(); }
-			);
+				[](const ElementAnimation& animation) -> bool { return !animation.IsTransition(); });
 		}
 		else
 		{
@@ -2663,17 +2518,14 @@ void Element::HandleTransitionProperty()
 			// Only remove the transitions that are not in our keep list.
 			const auto& keep_transitions_list = keep_transitions->transitions;
 
-			it_remove = std::partition(animations.begin(), animations.end(),
-				[&keep_transitions_list](const ElementAnimation& animation) -> bool {
-					if (!animation.IsTransition())
-						return true;
-					auto it = std::find_if(keep_transitions_list.begin(), keep_transitions_list.end(),
-						[&animation](const Transition& transition) { return animation.GetPropertyId() == transition.id; }
-					);
-					bool keep_animation = (it != keep_transitions_list.end());
-					return keep_animation;
-				}
-			);
+			it_remove = std::partition(animations.begin(), animations.end(), [&keep_transitions_list](const ElementAnimation& animation) -> bool {
+				if (!animation.IsTransition())
+					return true;
+				auto it = std::find_if(keep_transitions_list.begin(), keep_transitions_list.end(),
+					[&animation](const Transition& transition) { return animation.GetPropertyId() == transition.id; });
+				bool keep_animation = (it != keep_transitions_list.end());
+				return keep_animation;
+			});
 		}
 
 		// We can decide what to do with cancelled transitions here.
@@ -2704,9 +2556,8 @@ void Element::HandleAnimationProperty()
 			// Remove existing animations
 			{
 				// We only touch the animations that originate from the 'animation' property.
-				auto it_remove = std::partition(animations.begin(), animations.end(), 
-					[](const ElementAnimation & animation) { return animation.GetOrigin() != ElementAnimationOrigin::Animation; }
-				);
+				auto it_remove = std::partition(animations.begin(), animations.end(),
+					[](const ElementAnimation& animation) { return animation.GetOrigin() != ElementAnimationOrigin::Animation; });
 
 				// We can decide what to do with cancelled animations here.
 				for (auto it = it_remove; it != animations.end(); ++it)
@@ -2769,7 +2620,8 @@ void Element::AdvanceAnimations()
 		}
 
 		// Move all completed animations to the end of the list
-		auto it_completed = std::partition(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return !animation.IsComplete(); });
+		auto it_completed =
+			std::partition(animations.begin(), animations.end(), [](const ElementAnimation& animation) { return !animation.IsComplete(); });
 
 		Vector<Dictionary> dictionary_list;
 		Vector<bool> is_transition;
@@ -2798,14 +2650,11 @@ void Element::AdvanceAnimations()
 	}
 }
 
-
-
 void Element::DirtyTransformState(bool perspective_dirty, bool transform_dirty)
 {
 	dirty_perspective |= perspective_dirty;
 	dirty_transform |= transform_dirty;
 }
-
 
 void Element::UpdateTransformState()
 {
@@ -2816,12 +2665,12 @@ void Element::UpdateTransformState()
 
 	const Vector2f pos = GetAbsoluteOffset(Box::BORDER);
 	const Vector2f size = GetBox().GetSize(Box::BORDER);
-	
+
 	bool perspective_or_transform_changed = false;
 
 	if (dirty_perspective)
 	{
-		// If perspective is set on this element, then it applies to our children. We just calculate it here, 
+		// If perspective is set on this element, then it applies to our children. We just calculate it here,
 		// and let the children's transform update merge it with their transform.
 		bool had_perspective = (transform_state && transform_state->GetLocalPerspective());
 
@@ -2848,11 +2697,11 @@ void Element::UpdateTransformState()
 		if (have_perspective)
 		{
 			// Equivalent to: Translate(x,y,0) * Perspective(distance) * Translate(-x,-y,0)
-			Matrix4f perspective = Matrix4f::FromRows(
-				{ 1, 0, -vanish.x / distance, 0 },
-				{ 0, 1, -vanish.y / distance, 0 },
-				{ 0, 0, 1, 0 },
-				{ 0, 0, -1 / distance, 1 }
+			Matrix4f perspective = Matrix4f::FromRows( //
+				{1, 0, -vanish.x / distance, 0},       //
+				{0, 1, -vanish.y / distance, 0},       //
+				{0, 0, 1, 0},                          //
+				{0, 0, -1 / distance, 1}               //
 			);
 
 			if (!transform_state)
@@ -2867,7 +2716,6 @@ void Element::UpdateTransformState()
 
 		dirty_perspective = false;
 	}
-
 
 	if (dirty_transform)
 	{
@@ -2890,7 +2738,7 @@ void Element::UpdateTransformState()
 				have_transform = true;
 			}
 
-			if(have_transform)
+			if (have_transform)
 			{
 				// Compute the transform origin
 				Vector3f transform_origin(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f, 0);
@@ -2911,14 +2759,15 @@ void Element::UpdateTransformState()
 				transform = Matrix4f::Translate(transform_origin) * transform * Matrix4f::Translate(-transform_origin);
 			}
 
-			// We may want to include the local offsets here, as suggested by the CSS specs, so that the local transform is applied after the offset I believe
-			// the motivation is. Then we would need to subtract the absolute zero-offsets during geometry submit whenever we have transforms.
+			// We may want to include the local offsets here, as suggested by the CSS specs, so that the local transform is applied after the offset I
+			// believe the motivation is. Then we would need to subtract the absolute zero-offsets during geometry submit whenever we have transforms.
 		}
 
 		if (parent && parent->transform_state)
 		{
 			// Apply the parent's local perspective and transform.
-			// @performance: If we have no local transform and no parent perspective, we can effectively just point to the parent transform instead of copying it.
+			// @performance: If we have no local transform and no parent perspective, we can effectively just point to the parent transform instead of
+			// copying it.
 			const TransformState& parent_state = *parent->transform_state;
 
 			if (auto parent_perspective = parent_state.GetLocalPerspective())

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,30 +30,26 @@
 #define RMLUI_CORE_DATACONTROLLER_H
 
 #include "../../Include/RmlUi/Core/Header.h"
-#include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/Traits.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
 class Element;
 class DataModel;
 
-
 class DataControllerInstancer : public NonCopyMoveable {
 public:
-    DataControllerInstancer() {}
-    virtual ~DataControllerInstancer() {}
-    virtual DataControllerPtr InstanceController(Element* element) = 0;
+	DataControllerInstancer() {}
+	virtual ~DataControllerInstancer() {}
+	virtual DataControllerPtr InstanceController(Element* element) = 0;
 };
 
-template<typename T>
+template <typename T>
 class DataControllerInstancerDefault final : public DataControllerInstancer {
 public:
-    DataControllerPtr InstanceController(Element* element) override {
-        return DataControllerPtr(new T(element));
-    }
+	DataControllerPtr InstanceController(Element* element) override { return DataControllerPtr(new T(element)); }
 };
-
 
 /**
     Data controller.
@@ -78,19 +74,19 @@ class DataController : public Releasable {
 public:
 	virtual ~DataController();
 
-    // Initialize the data controller.
-    // @param[in] model The data model the controller will be attached to.
-    // @param[in] element The element which spawned the controller.
-    // @param[in] expression The value of the element's 'data-' attribute which spawned the controller (see above).
-    // @param[in] modifier The modifier for the given controller type (see above).
-    // @return True on success.
-    virtual bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) = 0;
+	// Initialize the data controller.
+	// @param[in] model The data model the controller will be attached to.
+	// @param[in] element The element which spawned the controller.
+	// @param[in] expression The value of the element's 'data-' attribute which spawned the controller (see above).
+	// @param[in] modifier The modifier for the given controller type (see above).
+	// @return True on success.
+	virtual bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) = 0;
 
-    // Returns the attached element if it still exists.
-    Element* GetElement() const;
+	// Returns the attached element if it still exists.
+	Element* GetElement() const;
 
-    // Returns true if the element still exists.
-    bool IsValid() const;
+	// Returns true if the element still exists.
+	bool IsValid() const;
 
 protected:
 	DataController(Element* element);
@@ -99,21 +95,19 @@ private:
 	ObserverPtr<Element> attached_element;
 };
 
-
 class DataControllers : NonCopyMoveable {
 public:
-    DataControllers();
-    ~DataControllers();
+	DataControllers();
+	~DataControllers();
 
 	void Add(DataControllerPtr controller);
 
-    void OnElementRemove(Element* element);
+	void OnElementRemove(Element* element);
 
 private:
-    using ElementControllersMap = UnorderedMultimap<Element*, DataControllerPtr>;
-    ElementControllersMap controllers;
+	using ElementControllersMap = UnorderedMultimap<Element*, DataControllerPtr>;
+	ElementControllersMap controllers;
 };
-
 
 } // namespace Rml
 #endif

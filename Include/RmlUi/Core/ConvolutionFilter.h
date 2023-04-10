@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,14 +42,13 @@ enum class FilterOperation {
 };
 
 /**
-	A programmable convolution filter, designed to aid in the generation of texture data by custom
-	FontEffect types.
+    A programmable convolution filter, designed to aid in the generation of texture data by custom
+    FontEffect types.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API ConvolutionFilter
-{
+class RMLUICORE_API ConvolutionFilter {
 public:
 	ConvolutionFilter();
 	~ConvolutionFilter();
@@ -58,7 +57,8 @@ public:
 	bool Initialise(int kernel_radius, FilterOperation operation);
 
 	/// Initialises the filter. A filter must be initialised and populated with values before use.
-	/// @param[in] kernel_radii The size of the filter's kernel on each side of the origin along both axes. So, for example, a filter initialised with radii (1,1) will store 9 values.
+	/// @param[in] kernel_radii The size of the filter's kernel on each side of the origin along both axes. So, for example, a filter initialised with
+	/// radii (1,1) will store 9 values.
 	/// @param[in] operation The operation the filter conducts to determine the result.
 	bool Initialise(Vector2i kernel_radii, FilterOperation operation);
 
@@ -73,7 +73,8 @@ public:
 	/// @param[in] destination The RGBA-encoded destination buffer.
 	/// @param[in] destination_dimensions The size of the destination region (in pixels).
 	/// @param[in] destination_stride The stride (in bytes) of the destination region.
-	/// @param[in] destination_color_format Determines the representation of the bytes in the destination texture, only the alpha channel will be written to.
+	/// @param[in] destination_color_format Determines the representation of the bytes in the destination texture, only the alpha channel will be
+	/// written to.
 	/// @param[in] source The opacity information for the source buffer.
 	/// @param[in] source_dimensions The size of the source region (in pixels). The stride is assumed to be equivalent to the horizontal width.
 	/// @param[in] source_offset The offset of the source region from the destination region. This is usually the same as the kernel size.
@@ -90,4 +91,3 @@ private:
 
 } // namespace Rml
 #endif
-

@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Overflow: hidden</title>
-    <link type="text/rcss" href="../../style.rcss"/>
+	<title>Overflow: hidden</title>
+	<link type="text/rcss" href="../../style.rcss"/>
 	<style>
 		body {
 			display: block;

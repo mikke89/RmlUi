@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,13 +27,13 @@
  */
 
 #include "Defender.h"
-#include <Shell.h>
 #include "Game.h"
 #include "GameDetails.h"
 #include "Invader.h"
 #include "Mothership.h"
 #include "Shield.h"
 #include "Sprite.h"
+#include <Shell.h>
 
 const float UPDATE_FREQ = 0.01f;
 const float MOVEMENT_SPEED = 300;
@@ -57,20 +57,18 @@ Defender::Defender(Game* _game)
 	state = ALIVE;
 	render = true;
 }
-	
-Defender::~Defender()
-{
-}
+
+Defender::~Defender() {}
 
 void Defender::Update(double t)
 {
 	float dt = float(t - defender_frame_start);
 	if (dt < UPDATE_FREQ)
 		return;
-	
+
 	dt = Rml::Math::Min(dt, 0.1f);
 
-	defender_frame_start = t;	
+	defender_frame_start = t;
 
 	position.x += (move_direction * dt * MOVEMENT_SPEED);
 
@@ -82,7 +80,7 @@ void Defender::Update(double t)
 	UpdateBullet(t);
 
 	if (state == RESPAWN)
-	{	
+	{
 		// Switch the render flag so the defender "flickers"
 		render = !render;
 
@@ -91,7 +89,7 @@ void Defender::Update(double t)
 		{
 			state = ALIVE;
 			render = true;
-		}		
+		}
 	}
 }
 
@@ -124,30 +122,27 @@ void Defender::Fire()
 {
 	if (!bullet_in_flight)
 	{
-		bullet_position = position + Rml::Vector2f((SPRITE_WIDTH/2) - 4, 0);
+		bullet_position = position + Rml::Vector2f((SPRITE_WIDTH / 2) - 4, 0);
 		bullet_in_flight = true;
 	}
 }
 
 bool Defender::CheckHit(double t, const Rml::Vector2f& check_position)
-{	
+{
 	float sprite_width = defender_sprite.dimensions.x;
 	float sprite_height = defender_sprite.dimensions.y;
 
 	// If the position is within our bounds, set ourselves
 	// as exploding and return a valid hit.
-	if (state == ALIVE
-		&& check_position.x >= position.x
-		&& check_position.x <= position.x + sprite_width
-		&& check_position.y >= position.y
-		&& check_position.y <= position.y + sprite_height)
+	if (state == ALIVE && check_position.x >= position.x && check_position.x <= position.x + sprite_width && check_position.y >= position.y &&
+		check_position.y <= position.y + sprite_height)
 	{
 		game->RemoveLife();
 		state = RESPAWN;
 		respawn_start = t;
 
 		return true;
-	}	
+	}
 
 	return false;
 }

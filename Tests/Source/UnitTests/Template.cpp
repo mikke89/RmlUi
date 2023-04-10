@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
-#include <doctest.h>
 #include <algorithm>
+#include <doctest.h>
 
 using namespace Rml;
 
@@ -85,7 +85,6 @@ static const String document_inline_template_rml = R"(
 )";
 
 static const String p_address_inline_template = "p#p < div#content < div#window < div#template_parent < body#body.inline < #root#main";
-
 
 TEST_CASE("template")
 {

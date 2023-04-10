@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Nested overflow</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Nested overflow</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<meta name="Description" content="The deepest element in the tree, whose overflow property is not visible, should catch the overflow." />
 	<style>
 		body {

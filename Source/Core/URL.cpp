@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,43 +26,36 @@
  *
  */
 
+#include "../../Include/RmlUi/Core/URL.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
-#include "../../Include/RmlUi/Core/URL.h"
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 namespace Rml {
 
 const char* DEFAULT_PROTOCOL = "file";
 
-// Constructs an Empty URL.
 URL::URL()
 {
 	port = 0;
 	url_dirty = false;
 }
 
-// Constructs a new URL from the given string.
 URL::URL(const String& _url)
 {
 	port = 0;
 	RMLUI_VERIFY(SetURL(_url));
 }
 
-// Constructs a new URL from the given string.
 URL::URL(const char* _url)
 {
 	port = 0;
 	RMLUI_VERIFY(SetURL(_url));
 }
 
-// Destroys the URL.
-URL::~URL()
-{
-}
+URL::~URL() {}
 
-// Assigns a new URL to the object.
 bool URL::SetURL(const String& _url)
 {
 	url_dirty = false;
@@ -93,7 +86,8 @@ bool URL::SetURL(const String& _url)
 		{
 			char malformed_terminator[4] = {0, 0, 0, 0};
 			strncpy(malformed_terminator, host_begin, 3);
-			Log::Message(Log::LT_ERROR, "Malformed protocol identifier found in URL %s; expected %s://, found %s%s.\n", _url.c_str(), protocol.c_str(), protocol.c_str(), malformed_terminator);
+			Log::Message(Log::LT_ERROR, "Malformed protocol identifier found in URL %s; expected %s://, found %s%s.\n", _url.c_str(),
+				protocol.c_str(), protocol.c_str(), malformed_terminator);
 
 			return false;
 		}
@@ -105,28 +99,27 @@ bool URL::SetURL(const String& _url)
 		host_begin = _url.c_str();
 	}
 
-
 	// We only want to look for a host if a protocol was specified.
 	const char* path_begin;
 	if (host_begin != _url.c_str())
 	{
 		// Find the host. This is the string appearing after the protocol or after
-		// the username:password combination, and terminated either with a colon, 
+		// the username:password combination, and terminated either with a colon,
 		// if a port is specified, or a forward slash if there is no port.
 
 		// Check for a login pair
-		const char* at_symbol = strchr( host_begin, '@' );
-		if ( at_symbol )
+		const char* at_symbol = strchr(host_begin, '@');
+		if (at_symbol)
 		{
 			String login_password;
-			login_password = String( host_begin, at_symbol );			
+			login_password = String(host_begin, at_symbol);
 			host_begin = at_symbol + 1;
 
-			const char* password_ptr = strchr( login_password.c_str(), ':' );
-			if ( password_ptr )
+			const char* password_ptr = strchr(login_password.c_str(), ':');
+			if (password_ptr)
 			{
-				login = String( login_password.c_str(), password_ptr );
-				password = String( password_ptr + 1 );
+				login = String(login_password.c_str(), password_ptr);
+				password = String(password_ptr + 1);
 			}
 			else
 			{
@@ -179,33 +172,32 @@ bool URL::SetURL(const String& _url)
 	{
 		path_begin = _url.c_str();
 	}
-	
+
 	// Check for parameters
 	String path_segment;
 	const char* parameters = strchr(path_begin, '?');
-	if ( parameters )
+	if (parameters)
 	{
 		// Pull the path segment out, so further processing doesn't read the parameters
 		path_segment = String(path_begin, parameters);
 		path_begin = path_segment.c_str();
-		
+
 		// Loop through all parameters, loading them
 		StringList parameter_list;
-		StringUtilities::ExpandString( parameter_list, parameters + 1, '&' );
-		for ( size_t i = 0; i < parameter_list.size(); i++ )
+		StringUtilities::ExpandString(parameter_list, parameters + 1, '&');
+		for (size_t i = 0; i < parameter_list.size(); i++)
 		{
 			// Split into key and value
 			StringList key_value;
-			StringUtilities::ExpandString( key_value, parameter_list[i], '=' );
+			StringUtilities::ExpandString(key_value, parameter_list[i], '=');
 
 			key_value[0] = UrlDecode(key_value[0]);
-			if ( key_value.size() == 2 )
+			if (key_value.size() == 2)
 				this->parameters[key_value[0]] = UrlDecode(key_value[1]);
 			else
 				this->parameters[key_value[0]] = "";
 		}
 	}
-
 
 	// Find the path. This is the string appearing after the host, terminated
 	// by the last forward slash.
@@ -240,7 +232,6 @@ bool URL::SetURL(const String& _url)
 		}
 	}
 
-
 	// Find the file name. This is the string after the trailing slash of the
 	// path, and just before the extension.
 	const char* extension_begin = strrchr(file_name_begin, '.');
@@ -254,20 +245,18 @@ bool URL::SetURL(const String& _url)
 		file_name = String(file_name_begin, extension_begin);
 		extension = extension_begin + 1;
 	}
-	
+
 	return true;
 }
 
-// Returns the entire URL.
 const String& URL::GetURL() const
 {
 	if (url_dirty)
 		ConstructURL();
-	
+
 	return url;
 }
 
-// Sets the URL's protocol.
 bool URL::SetProtocol(const String& _protocol)
 {
 	protocol = _protocol;
@@ -276,27 +265,23 @@ bool URL::SetProtocol(const String& _protocol)
 	return true;
 }
 
-// Returns the protocol this URL is utilising.
 const String& URL::GetProtocol() const
 {
 	return protocol;
 }
 
-/// Sets the URL's login
-bool URL::SetLogin( const String& _login )
+bool URL::SetLogin(const String& _login)
 {
 	login = _login;
 	url_dirty = true;
 	return true;
 }
 
-/// Returns the URL's login
 const String& URL::GetLogin() const
 {
 	return login;
 }
 
-/// Sets the URL's password
 bool URL::SetPassword(const String& _password)
 {
 	password = _password;
@@ -304,13 +289,11 @@ bool URL::SetPassword(const String& _password)
 	return true;
 }
 
-/// Returns the URL's password
 const String& URL::GetPassword() const
 {
 	return password;
 }
 
-// Sets the URL's host.
 bool URL::SetHost(const String& _host)
 {
 	host = _host;
@@ -319,13 +302,11 @@ bool URL::SetHost(const String& _host)
 	return true;
 }
 
-// Returns the URL's host.
 const String& URL::GetHost() const
 {
 	return host;
 }
 
-// Sets the URL's port number.
 bool URL::SetPort(int _port)
 {
 	port = _port;
@@ -334,13 +315,11 @@ bool URL::SetPort(int _port)
 	return true;
 }
 
-// Returns the URL's port number.
 int URL::GetPort() const
 {
 	return port;
 }
 
-// Sets the URL's path.
 bool URL::SetPath(const String& _path)
 {
 	path = _path;
@@ -349,12 +328,10 @@ bool URL::SetPath(const String& _path)
 	return true;
 }
 
-// Prefixes the URL's existing path with the given prefix.
 bool URL::PrefixPath(const String& prefix)
 {
 	// If there's no trailing slash on the end of the prefix, add one.
-	if (!prefix.empty() &&
-		prefix[prefix.size() - 1] != '/')
+	if (!prefix.empty() && prefix[prefix.size() - 1] != '/')
 		path = prefix + "/" + path;
 	else
 		path = prefix + path;
@@ -364,13 +341,11 @@ bool URL::PrefixPath(const String& prefix)
 	return true;
 }
 
-// Returns the URL's path.
 const String& URL::GetPath() const
 {
 	return path;
 }
 
-// Sets the URL's file name.
 bool URL::SetFileName(const String& _file_name)
 {
 	file_name = _file_name;
@@ -379,13 +354,11 @@ bool URL::SetFileName(const String& _file_name)
 	return true;
 }
 
-// Returns the URL's file name.
 const String& URL::GetFileName() const
 {
 	return file_name;
 }
 
-// Sets the URL's file extension.
 bool URL::SetExtension(const String& _extension)
 {
 	extension = _extension;
@@ -394,83 +367,76 @@ bool URL::SetExtension(const String& _extension)
 	return true;
 }
 
-// Returns the URL's file extension.
 const String& URL::GetExtension() const
 {
 	return extension;
 }
 
-// Gets the current parameters
 const URL::Parameters& URL::GetParameters() const
 {
 	return parameters;
 }
 
-// Set an individual parameter
 void URL::SetParameter(const String& key, const String& value)
 {
 	parameters[key] = value;
 	url_dirty = true;
 }
 
-// Set all parameters
 void URL::SetParameters(const Parameters& _parameters)
 {
 	parameters = _parameters;
 	url_dirty = true;
 }
 
-// Clear the parameters
 void URL::ClearParameters()
 {
 	parameters.clear();
 }
 
-// Returns the URL's path, file name and extension.
 String URL::GetPathedFileName() const
 {
 	String pathed_file_name = path;
-	
+
 	// Append the file name.
 	pathed_file_name += file_name;
-	
+
 	// Append the extension.
 	if (!extension.empty())
 	{
 		pathed_file_name += ".";
 		pathed_file_name += extension;
 	}
-	
+
 	return pathed_file_name;
 }
 
 String URL::GetQueryString() const
 {
 	String query_string;
-	
+
 	int count = 0;
-	for ( Parameters::const_iterator itr = parameters.begin(); itr != parameters.end(); ++itr )
+	for (Parameters::const_iterator itr = parameters.begin(); itr != parameters.end(); ++itr)
 	{
-		query_string += ( count == 0 ) ? "" : "&";
-		
+		query_string += (count == 0) ? "" : "&";
+
 		query_string += UrlEncode((*itr).first);
 		query_string += "=";
 		query_string += UrlEncode((*itr).second);
-		
+
 		count++;
 	}
-	
+
 	return query_string;
 }
 
-// Less-than operator for use as a key in STL containers.
 bool URL::operator<(const URL& rhs) const
 {
 	if (url_dirty)
 		ConstructURL();
 	if (rhs.url_dirty)
 		rhs.ConstructURL();
-	
+
 	return url < rhs.url;
 }
 
@@ -479,7 +445,7 @@ void URL::ConstructURL() const
 	url = "";
 
 	// Append the protocol.
-	if (!protocol.empty() && !host.empty())	
+	if (!protocol.empty() && !host.empty())
 	{
 		url = protocol;
 		url += "://";
@@ -488,25 +454,25 @@ void URL::ConstructURL() const
 	// Append login and password
 	if (!login.empty())
 	{
-		url +=  login ;
+		url += login;
 		if (!password.empty())
-		{		
-			url +=  ":" ;
-			url +=  password ;
+		{
+			url += ":";
+			url += password;
 		}
-		url +=  "@" ;
+		url += "@";
 	}
-	RMLUI_ASSERTMSG( password.empty() || ( !password.empty() && !login.empty() ), "Can't have a password without a login!" );
+	RMLUI_ASSERTMSG(password.empty() || (!password.empty() && !login.empty()), "Can't have a password without a login!");
 
 	// Append the host.
 	url += host;
-	
+
 	// Only check ports if there is some host/protocol part
-	if ( !url.empty() )
-	{		
+	if (!url.empty())
+	{
 		if (port > 0)
 		{
-			RMLUI_ASSERTMSG( !host.empty(), "Can't have a port without a host!" );
+			RMLUI_ASSERTMSG(!host.empty(), "Can't have a port without a host!");
 			constexpr size_t port_buffer_size = 16;
 			char port_string[port_buffer_size];
 			snprintf(port_string, port_buffer_size, ":%d/", port);
@@ -533,18 +499,18 @@ void URL::ConstructURL() const
 		url += ".";
 		url += extension;
 	}
-	
+
 	// Append parameters
 	if (!parameters.empty())
 	{
 		url += "?";
-		url += GetQueryString();		
+		url += GetQueryString();
 	}
-	
+
 	url_dirty = false;
 }
 
-String URL::UrlEncode(const String &value)
+String URL::UrlEncode(const String& value)
 {
 	String encoded;
 	constexpr size_t hex_buffer_size = 4;
@@ -552,8 +518,8 @@ String URL::UrlEncode(const String &value)
 
 	encoded.clear();
 
-	const char *value_c = value.c_str();
-	for (String::size_type i = 0; value_c[i]; i++) 
+	const char* value_c = value.c_str();
+	for (String::size_type i = 0; value_c[i]; i++)
 	{
 		char c = value_c[i];
 		if (IsUnreservedChar(c))
@@ -568,15 +534,15 @@ String URL::UrlEncode(const String &value)
 	return encoded;
 }
 
-String URL::UrlDecode(const String &value)
+String URL::UrlDecode(const String& value)
 {
 	String decoded;
 
 	decoded.clear();
 
-	const char *value_c = value.c_str();
+	const char* value_c = value.c_str();
 	String::size_type value_len = value.size();
-	for (String::size_type i = 0; i < value_len; i++) 
+	for (String::size_type i = 0; i < value_len; i++)
 	{
 		char c = value_c[i];
 		if (c == '+')
@@ -585,8 +551,8 @@ String URL::UrlDecode(const String &value)
 		}
 		else if (c == '%')
 		{
-			char *endp;
-			String t = value.substr(i+1, 2);
+			char* endp;
+			String t = value.substr(i + 1, 2);
 			int ch = strtol(t.c_str(), &endp, 16);
 			if (*endp == '\0')
 				decoded += char(ch);
@@ -607,22 +573,73 @@ bool URL::IsUnreservedChar(const char in)
 {
 	switch (in)
 	{
-		case '0': case '1': case '2': case '3': case '4':
-		case '5': case '6': case '7': case '8': case '9':
-		case 'a': case 'b': case 'c': case 'd': case 'e':
-		case 'f': case 'g': case 'h': case 'i': case 'j':
-		case 'k': case 'l': case 'm': case 'n': case 'o':
-		case 'p': case 'q': case 'r': case 's': case 't':
-		case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
-		case 'A': case 'B': case 'C': case 'D': case 'E':
-		case 'F': case 'G': case 'H': case 'I': case 'J':
-		case 'K': case 'L': case 'M': case 'N': case 'O':
-		case 'P': case 'Q': case 'R': case 'S': case 'T':
-		case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
-		case '-': case '.': case '_': case '~':
-			return true;
-		default:
-			break;
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'a':
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+	case 'A':
+	case 'B':
+	case 'C':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'H':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'O':
+	case 'P':
+	case 'Q':
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+	case 'V':
+	case 'W':
+	case 'X':
+	case 'Y':
+	case 'Z':
+	case '-':
+	case '.':
+	case '_':
+	case '~': return true;
+	default: break;
 	}
 	return false;
 }

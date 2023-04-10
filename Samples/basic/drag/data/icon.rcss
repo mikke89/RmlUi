@@ -1,22 +1,22 @@
 icon
 {
-    /* The icons are floated left so they appear left-to-right. */
-    float: left;
-    
-    /* The padding is added to push the text down to the bottom of the element.  */
+	/* The icons are floated left so they appear left-to-right. */
+	float: left;
+
+	/* The padding is added to push the text down to the bottom of the element.  */
 	box-sizing: border-box;
-    width: 100dp;
-    height: 100dp;
-    padding: 60dp 10dp 0 10dp;
-    margin: 10dp;
-    
-    decorator: image( ../../../assets/present.tga );
-    
-    font-size: 12dp;
-    text-align: center;
-    font-effect: shadow(1dp 1dp black);
-	
+	width: 100dp;
+	height: 100dp;
+	padding: 60dp 10dp 0 10dp;
+	margin: 10dp;
+
+	decorator: image( ../../../assets/present.tga );
+
+	font-size: 12dp;
+	text-align: center;
+	font-effect: shadow(1dp 1dp black);
+
 	cursor: move;
-    
-    drag: clone;
+
+	drag: clone;
 }

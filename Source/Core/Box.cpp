@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,6 @@ Box::Box(Vector2f content) : content(content) {}
 
 Box::~Box() {}
 
-// Returns the top-left position of one of the areas.
 Vector2f Box::GetPosition(Area area) const
 {
 	Vector2f area_position(-area_edges[MARGIN][LEFT], -area_edges[MARGIN][TOP]);
@@ -66,25 +65,21 @@ Vector2f Box::GetSize(Area area) const
 	return area_size;
 }
 
-// Sets the size of the content area.
 void Box::SetContent(Vector2f _content)
 {
 	content = _content;
 }
 
-// Sets the size of one of the segments of one of the box's outer areas.
 void Box::SetEdge(Area area, Edge edge, float size)
 {
 	area_edges[area][edge] = size;
 }
 
-// Returns the size of one of the area segments.
 float Box::GetEdge(Area area, Edge edge) const
 {
 	return area_edges[area][edge];
 }
 
-// Returns the cumulative size of one edge up to one of the box's areas.
 float Box::GetCumulativeEdge(Area area, Edge edge) const
 {
 	float size = 0;

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,8 +42,12 @@ enum class ShorthandItemType { Invalid, Property, Shorthand };
 // Each entry in a shorthand points either to another shorthand or a property
 struct ShorthandItem {
 	ShorthandItem() : type(ShorthandItemType::Invalid), property_id(PropertyId::Invalid), property_definition(nullptr), optional(false) {}
-	ShorthandItem(PropertyId id, const PropertyDefinition* definition, bool optional) : type(ShorthandItemType::Property), property_id(id), property_definition(definition), optional(optional) {}
-	ShorthandItem(ShorthandId id, const ShorthandDefinition* definition, bool optional) : type(ShorthandItemType::Shorthand), shorthand_id(id), shorthand_definition(definition), optional(optional) {}
+	ShorthandItem(PropertyId id, const PropertyDefinition* definition, bool optional) :
+		type(ShorthandItemType::Property), property_id(id), property_definition(definition), optional(optional)
+	{}
+	ShorthandItem(ShorthandId id, const ShorthandDefinition* definition, bool optional) :
+		type(ShorthandItemType::Shorthand), shorthand_id(id), shorthand_definition(definition), optional(optional)
+	{}
 
 	ShorthandItemType type;
 	union {
@@ -58,12 +62,11 @@ struct ShorthandItem {
 };
 
 // A list of shorthands or properties
-using ShorthandItemList = Vector< ShorthandItem >;
+using ShorthandItemList = Vector<ShorthandItem>;
 
-struct ShorthandDefinition
-{
+struct ShorthandDefinition {
 	ShorthandId id;
-	ShorthandItemList items; 
+	ShorthandItemList items;
 	ShorthandType type;
 };
 

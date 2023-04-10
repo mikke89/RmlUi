@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2018 Michael R. P. Ragazzon
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,14 +26,12 @@
  *
  */
 
-
 #include "PropertyParserAnimation.h"
-#include "PropertyShorthandDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
-
+#include "PropertyShorthandDefinition.h"
 
 namespace Rml {
 
@@ -53,68 +51,61 @@ struct Keyword {
 	}
 };
 
-
 static const UnorderedMap<String, Keyword> keywords = {
-		{"none", {KeywordType::None} },
-		{"all", {KeywordType::All}},
-		{"alternate", {KeywordType::Alternate}},
-		{"infinite", {KeywordType::Infinite}},
-		{"paused", {KeywordType::Paused}},
+	{"none", {KeywordType::None}},
+	{"all", {KeywordType::All}},
+	{"alternate", {KeywordType::Alternate}},
+	{"infinite", {KeywordType::Infinite}},
+	{"paused", {KeywordType::Paused}},
 
-		{"back-in", {Tween{Tween::Back, Tween::In}}},
-		{"back-out", {Tween{Tween::Back, Tween::Out}}},
-		{"back-in-out", {Tween{Tween::Back, Tween::InOut}}},
+	{"back-in", {Tween{Tween::Back, Tween::In}}},
+	{"back-out", {Tween{Tween::Back, Tween::Out}}},
+	{"back-in-out", {Tween{Tween::Back, Tween::InOut}}},
 
-		{"bounce-in", {Tween{Tween::Bounce, Tween::In}}},
-		{"bounce-out", {Tween{Tween::Bounce, Tween::Out}}},
-		{"bounce-in-out", {Tween{Tween::Bounce, Tween::InOut}}},
+	{"bounce-in", {Tween{Tween::Bounce, Tween::In}}},
+	{"bounce-out", {Tween{Tween::Bounce, Tween::Out}}},
+	{"bounce-in-out", {Tween{Tween::Bounce, Tween::InOut}}},
 
-		{"circular-in", {Tween{Tween::Circular, Tween::In}}},
-		{"circular-out", {Tween{Tween::Circular, Tween::Out}}},
-		{"circular-in-out", {Tween{Tween::Circular, Tween::InOut}}},
+	{"circular-in", {Tween{Tween::Circular, Tween::In}}},
+	{"circular-out", {Tween{Tween::Circular, Tween::Out}}},
+	{"circular-in-out", {Tween{Tween::Circular, Tween::InOut}}},
 
-		{"cubic-in", {Tween{Tween::Cubic, Tween::In}}},
-		{"cubic-out", {Tween{Tween::Cubic, Tween::Out}}},
-		{"cubic-in-out", {Tween{Tween::Cubic, Tween::InOut}}},
+	{"cubic-in", {Tween{Tween::Cubic, Tween::In}}},
+	{"cubic-out", {Tween{Tween::Cubic, Tween::Out}}},
+	{"cubic-in-out", {Tween{Tween::Cubic, Tween::InOut}}},
 
-		{"elastic-in", {Tween{Tween::Elastic, Tween::In}}},
-		{"elastic-out", {Tween{Tween::Elastic, Tween::Out}}},
-		{"elastic-in-out", {Tween{Tween::Elastic, Tween::InOut}}},
+	{"elastic-in", {Tween{Tween::Elastic, Tween::In}}},
+	{"elastic-out", {Tween{Tween::Elastic, Tween::Out}}},
+	{"elastic-in-out", {Tween{Tween::Elastic, Tween::InOut}}},
 
-		{"exponential-in", {Tween{Tween::Exponential, Tween::In}}},
-		{"exponential-out", {Tween{Tween::Exponential, Tween::Out}}},
-		{"exponential-in-out", {Tween{Tween::Exponential, Tween::InOut}}},
+	{"exponential-in", {Tween{Tween::Exponential, Tween::In}}},
+	{"exponential-out", {Tween{Tween::Exponential, Tween::Out}}},
+	{"exponential-in-out", {Tween{Tween::Exponential, Tween::InOut}}},
 
-		{"linear-in", {Tween{Tween::Linear, Tween::In}}},
-		{"linear-out", {Tween{Tween::Linear, Tween::Out}}},
-		{"linear-in-out", {Tween{Tween::Linear, Tween::InOut}}},
+	{"linear-in", {Tween{Tween::Linear, Tween::In}}},
+	{"linear-out", {Tween{Tween::Linear, Tween::Out}}},
+	{"linear-in-out", {Tween{Tween::Linear, Tween::InOut}}},
 
-		{"quadratic-in", {Tween{Tween::Quadratic, Tween::In}}},
-		{"quadratic-out", {Tween{Tween::Quadratic, Tween::Out}}},
-		{"quadratic-in-out", {Tween{Tween::Quadratic, Tween::InOut}}},
+	{"quadratic-in", {Tween{Tween::Quadratic, Tween::In}}},
+	{"quadratic-out", {Tween{Tween::Quadratic, Tween::Out}}},
+	{"quadratic-in-out", {Tween{Tween::Quadratic, Tween::InOut}}},
 
-		{"quartic-in", {Tween{Tween::Quartic, Tween::In}}},
-		{"quartic-out", {Tween{Tween::Quartic, Tween::Out}}},
-		{"quartic-in-out", {Tween{Tween::Quartic, Tween::InOut}}},
+	{"quartic-in", {Tween{Tween::Quartic, Tween::In}}},
+	{"quartic-out", {Tween{Tween::Quartic, Tween::Out}}},
+	{"quartic-in-out", {Tween{Tween::Quartic, Tween::InOut}}},
 
-		{"quintic-in", {Tween{Tween::Quintic, Tween::In}}},
-		{"quintic-out", {Tween{Tween::Quintic, Tween::Out}}},
-		{"quintic-in-out", {Tween{Tween::Quintic, Tween::InOut}}},
+	{"quintic-in", {Tween{Tween::Quintic, Tween::In}}},
+	{"quintic-out", {Tween{Tween::Quintic, Tween::Out}}},
+	{"quintic-in-out", {Tween{Tween::Quintic, Tween::InOut}}},
 
-		{"sine-in", {Tween{Tween::Sine, Tween::In}}},
-		{"sine-out", {Tween{Tween::Sine, Tween::Out}}},
-		{"sine-in-out", {Tween{Tween::Sine, Tween::InOut}}},
+	{"sine-in", {Tween{Tween::Sine, Tween::In}}},
+	{"sine-out", {Tween{Tween::Sine, Tween::Out}}},
+	{"sine-in-out", {Tween{Tween::Sine, Tween::InOut}}},
 };
 
+PropertyParserAnimation::PropertyParserAnimation(Type type) : type(type) {}
 
-
-
-PropertyParserAnimation::PropertyParserAnimation(Type type) : type(type)
-{
-}
-
-
-static bool ParseAnimation(Property & property, const StringList& animation_values)
+static bool ParseAnimation(Property& property, const StringList& animation_values)
 {
 	AnimationList animation_list;
 
@@ -135,7 +126,7 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 				continue;
 
 			// See if we have a <keyword> or <tween> specifier as defined in keywords
-			auto it = keywords.find(argument); 
+			auto it = keywords.find(argument);
 			if (it != keywords.end() && it->second.ValidAnimation())
 			{
 				switch (it->second.type)
@@ -144,27 +135,20 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 				{
 					if (animation_list.size() > 0) // The none keyword can not be part of multiple definitions
 						return false;
-					property = Property{ AnimationList{}, Property::ANIMATION };
+					property = Property{AnimationList{}, Property::ANIMATION};
 					return true;
 				}
 				break;
-				case KeywordType::Tween:
-					animation.tween = it->second.tween;
-					break;
-				case KeywordType::Alternate:
-					animation.alternate = true;
-					break;
+				case KeywordType::Tween: animation.tween = it->second.tween; break;
+				case KeywordType::Alternate: animation.alternate = true; break;
 				case KeywordType::Infinite:
 					if (num_iterations_found)
 						return false;
 					animation.num_iterations = -1;
 					num_iterations_found = true;
 					break;
-				case KeywordType::Paused:
-					animation.paused = true;
-					break;
-				default:
-					break;
+				case KeywordType::Paused: animation.paused = true; break;
+				default: break;
 				}
 			}
 			else
@@ -227,20 +211,17 @@ static bool ParseAnimation(Property & property, const StringList& animation_valu
 	return true;
 }
 
-
-static bool ParseTransition(Property & property, const StringList& transition_values)
+static bool ParseTransition(Property& property, const StringList& transition_values)
 {
-	TransitionList transition_list{ false, false, {} };
+	TransitionList transition_list{false, false, {}};
 
 	for (const String& single_transition_value : transition_values)
 	{
-
 		Transition transition;
 		PropertyIdSet target_property_ids;
 
 		StringList arguments;
 		StringUtilities::ExpandString(arguments, single_transition_value, ' ');
-
 
 		bool duration_found = false;
 		bool delay_found = false;
@@ -259,7 +240,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 				{
 					if (transition_list.transitions.size() > 0) // The none keyword can not be part of multiple definitions
 						return false;
-					property = Property{ TransitionList{true, false, {}}, Property::TRANSITION };
+					property = Property{TransitionList{true, false, {}}, Property::TRANSITION};
 					return true;
 				}
 				else if (it->second.type == KeywordType::All)
@@ -333,12 +314,12 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 		}
 
 		// Validate the parsed transition
-		if ((transition_list.all && !target_property_ids.Empty())
-			|| (!transition_list.all && target_property_ids.Empty())
-			|| transition.duration <= 0.0f
-			|| transition.reverse_adjustment_factor < 0.0f
-			|| transition.reverse_adjustment_factor > 1.0f
-			)
+		if ((transition_list.all && !target_property_ids.Empty())    //
+			|| (!transition_list.all && target_property_ids.Empty()) //
+			|| transition.duration <= 0.0f                           //
+			|| transition.reverse_adjustment_factor < 0.0f           //
+			|| transition.reverse_adjustment_factor > 1.0f           //
+		)
 		{
 			return false;
 		}
@@ -364,8 +345,7 @@ static bool ParseTransition(Property & property, const StringList& transition_va
 	return true;
 }
 
-
-bool PropertyParserAnimation::ParseValue(Property & property, const String & value, const ParameterMap & /*parameters*/) const
+bool PropertyParserAnimation::ParseValue(Property& property, const String& value, const ParameterMap& /*parameters*/) const
 {
 	StringList list_of_values;
 	{

@@ -1,16 +1,16 @@
 body {
-    display: block;
-    width: 10px;
-    height: 100px;
+	display: block;
+	width: 10px;
+	height: 100px;
 	background: #ccc;
 }
 
 .a {
-    width: 80px;
+	width: 80px;
 }
 .b {
-    width: 90px;
+	width: 90px;
 }
 .c {
-    width: 100px;
+	width: 100px;
 }

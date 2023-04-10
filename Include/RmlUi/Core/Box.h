@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,38 +34,25 @@
 namespace Rml {
 
 /**
-	Stores a box with four sized areas; content, padding, a border and margin. See
-	http://www.w3.org/TR/REC-CSS2/box.html#box-dimensions for a diagram.
+    Stores a box with four sized areas; content, padding, a border and margin. See
+    http://www.w3.org/TR/REC-CSS2/box.html#box-dimensions for a diagram.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API Box
-{
+class RMLUICORE_API Box {
 public:
-	enum Area
-	{
+	enum Area {
 		MARGIN = 0,
 		BORDER = 1,
 		PADDING = 2,
 		CONTENT = 3,
-		NUM_AREAS = 3,		// ignores CONTENT
+		NUM_AREAS = 3, // ignores CONTENT
 	};
 
-	enum Edge
-	{
-		TOP = 0,
-		RIGHT = 1,
-		BOTTOM = 2,
-		LEFT = 3,
-		NUM_EDGES = 4
-	};
+	enum Edge { TOP = 0, RIGHT = 1, BOTTOM = 2, LEFT = 3, NUM_EDGES = 4 };
 
-	enum Direction
-	{
-		VERTICAL = 0,
-		HORIZONTAL = 1
-	};
+	enum Direction { VERTICAL = 0, HORIZONTAL = 1 };
 
 	/// Initialises a zero-sized box.
 	Box();
@@ -101,7 +88,8 @@ public:
 	/// @return The size of the requested area edge.
 	float GetEdge(Area area, Edge edge) const;
 	/// Returns the cumulative size of one edge up to one of the box's areas.
-	/// @param area[in] The area to measure up to (and including). So, MARGIN will return the width of the margin, and PADDING will be the sum of the margin, border and padding.
+	/// @param area[in] The area to measure up to (and including). So, MARGIN will return the width of the margin, and PADDING will be the sum of the
+	/// margin, border and padding.
 	/// @param edge[in] The desired edge.
 	/// @return The cumulative size of the edge.
 	float GetCumulativeEdge(Area area, Edge edge) const;

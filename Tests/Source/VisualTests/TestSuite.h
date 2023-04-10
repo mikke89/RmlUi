@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@
 #include <RmlUi/Core/Types.h>
 #include <algorithm>
 
-
 class TestSuite {
 public:
 	enum class Direction { None, Forward, Backward, Any };
@@ -42,23 +41,11 @@ public:
 		RMLUI_ASSERTMSG(!this->files.empty(), "At least one file in the test suite is required.");
 	}
 
-	const Rml::String& GetDirectory() const
-	{
-		return directory;
-	}
-	const Rml::String& GetFilename() const
-	{
-		return files[index];
-	}
-	Rml::String GetPath() const
-	{
-		return directory + '/' + files[index];
-	}
+	const Rml::String& GetDirectory() const { return directory; }
+	const Rml::String& GetFilename() const { return files[index]; }
+	Rml::String GetPath() const { return directory + '/' + files[index]; }
 
-	const Rml::String& GetFilter() const
-	{
-		return filter;
-	}
+	const Rml::String& GetFilter() const { return filter; }
 	void SetFilter(Rml::String new_filter)
 	{
 		filter = new_filter;
@@ -75,19 +62,10 @@ public:
 		return true;
 	}
 
-	bool Next()
-	{
-		return SetIndex(index + 1, Direction::Forward);
-	}
-	bool Previous()
-	{
-		return SetIndex(index - 1, Direction::Backward);
-	}
+	bool Next() { return SetIndex(index + 1, Direction::Forward); }
+	bool Previous() { return SetIndex(index - 1, Direction::Backward); }
 
-	int GetIndex() const
-	{
-		return index;
-	}
+	int GetIndex() const { return index; }
 
 	int GetFilterIndex() const
 	{
@@ -97,16 +75,9 @@ public:
 		return int(it - filtered_tests_indices.begin());
 	}
 
-	int GetNumTests() const
-	{
-		return (int)files.size();
-	}
+	int GetNumTests() const { return (int)files.size(); }
 
-	int GetNumFilteredTests() const
-	{
-		return filter.empty() ? GetNumTests() : (int)filtered_tests_indices.size();
-	}
-
+	int GetNumFilteredTests() const { return filter.empty() ? GetNumTests() : (int)filtered_tests_indices.size(); }
 
 private:
 	int GetIndexFiltered(int new_index, Direction filter_direction) const
@@ -115,7 +86,7 @@ private:
 			return new_index;
 
 		auto it = std::lower_bound(filtered_tests_indices.begin(), filtered_tests_indices.end(), new_index);
-		
+
 		// Exact match
 		if (it != filtered_tests_indices.end() && *it == new_index)
 			return *it;
@@ -166,6 +137,5 @@ private:
 };
 
 using TestSuiteList = Rml::Vector<TestSuite>;
-
 
 #endif

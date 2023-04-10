@@ -1,11 +1,11 @@
 <rml>
 <head>
-    <title>Display of replaced elements</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Display of replaced elements</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width" />
 	<meta name="Description" content="Replaced elements should be correctly rendered when placed out-of-flow and in different formatting contexts." />
 	<style>
-		@spritesheet theme 
+		@spritesheet theme
 		{
 			src: /assets/invader.tga;
 			invader: 179px 152px 50px 40px;
@@ -16,7 +16,7 @@
 			margin: 10dp 5dp;
 			vertical-align: bottom;
 		}
-		progress { 
+		progress {
 			decorator: image( progress );
 			width: 80dp;
 			height: 34dp;
@@ -44,12 +44,12 @@
 		.flex {
 			display: flex;
 			justify-content: center;
-			
+
 			/* If we decide to support flex layout inside replaced elements, test
 			with the below line uncommented. Then we know flex layout occurred if
 			the text is still centered inside the element. */
-			
-			/*text-align: right;*/ 
+
+			/*text-align: right;*/
 		}
 		.absolute { position: absolute; }
 	</style>

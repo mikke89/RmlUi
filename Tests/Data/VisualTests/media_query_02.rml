@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Media query: Sprite sheets</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Media query: Sprite sheets</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<meta name="Description" content="Spritesheets located within media blocks.<br/><br/>Try reducing the width of the window to see the icon and image change, and adjust the dp-ratio with Ctrl +/-/0." />
 	<style>
 		body {

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,13 +27,13 @@
  */
 
 #include "Invader.h"
-#include <RmlUi/Core/Math.h>
-#include <Shell.h>
 #include "Defender.h"
 #include "Game.h"
 #include "GameDetails.h"
 #include "Shield.h"
 #include "Sprite.h"
+#include <RmlUi/Core/Math.h>
+#include <Shell.h>
 
 const float BOMB_UPDATE_FREQ = 0.04f;
 const float BOMB_RAY_SPEED = 10;
@@ -43,8 +43,7 @@ const float BOMB_PROBABILITY_HARD = 0.005f;
 const float EXPLOSION_TIME = 0.25f;
 const Rml::Colourb MOTHERSHIP_COLOUR = Rml::Colourb(255, 0, 0, 255);
 
-Sprite invader_sprites[] =
-{
+Sprite invader_sprites[] = {
 	// Rank 1
 	Sprite(Rml::Vector2f(48, 32), Rml::Vector2f(0.609375f, 0), Rml::Vector2f(0.796875f, 0.5f)),
 	Sprite(Rml::Vector2f(48, 32), Rml::Vector2f(0.80078125f, 0), Rml::Vector2f(0.98828125f, 0.5f)),
@@ -57,21 +56,18 @@ Sprite invader_sprites[] =
 	// Mothership
 	Sprite(Rml::Vector2f(64, 28), Rml::Vector2f(0.23828125f, 0.515625f), Rml::Vector2f(0.48828125f, 0.953125f)),
 	// Explosion
-	Sprite(Rml::Vector2f(52, 28), Rml::Vector2f(0.71484375f, 0.51562500f), Rml::Vector2f(0.91796875f, 0.95312500f))	
-};
+	Sprite(Rml::Vector2f(52, 28), Rml::Vector2f(0.71484375f, 0.51562500f), Rml::Vector2f(0.91796875f, 0.95312500f))};
 
-Sprite bomb_sprites[] =
-{
+Sprite bomb_sprites[] = {
 	// Ray
 	Sprite(Rml::Vector2f(12, 20), Rml::Vector2f(0.51171875f, 0.51562500f), Rml::Vector2f(0.55859375f, 0.82812500f)),
 	Sprite(Rml::Vector2f(12, 20), Rml::Vector2f(0.56250000, 0.51562500), Rml::Vector2f(0.60937500, 0.82812500)),
 	Sprite(Rml::Vector2f(12, 20), Rml::Vector2f(0.61328125, 0.51562500), Rml::Vector2f(0.66015625, 0.82812500)),
 	Sprite(Rml::Vector2f(12, 20), Rml::Vector2f(0.66406250, 0.51562500), Rml::Vector2f(0.71093750, 0.82812500)),
 	// Missile
-	Sprite(Rml::Vector2f(12, 20), Rml::Vector2f(0.92578125, 0.51562500), Rml::Vector2f(0.97265625, 0.82812500))
-};
+	Sprite(Rml::Vector2f(12, 20), Rml::Vector2f(0.92578125, 0.51562500), Rml::Vector2f(0.97265625, 0.82812500))};
 
-Invader::Invader(Game* _game, InvaderType _type, int _index) : position(0,0)
+Invader::Invader(Game* _game, InvaderType _type, int _index) : position(0, 0)
 {
 	type = UNKNOWN;
 	animation_frame = 0;
@@ -89,9 +85,7 @@ Invader::Invader(Game* _game, InvaderType _type, int _index) : position(0,0)
 	bomb_probability *= float(type);
 }
 
-Invader::~Invader()
-{
-}
+Invader::~Invader() {}
 
 void Invader::SetPosition(const Rml::Vector2f& _position)
 {
@@ -107,8 +101,7 @@ void Invader::Update(double t)
 {
 	// Update the bombs
 	if (float(t - bomb_frame_start) > BOMB_UPDATE_FREQ)
-	{	
-
+	{
 		// Update the bomb position if its in flight, or check if we should drop one
 		if (bomb != NONE)
 		{
@@ -124,7 +117,7 @@ void Invader::Update(double t)
 			{
 				bomb_position.y += BOMB_MISSILE_SPEED;
 			}
-			
+
 			if (bomb_position.y > game->GetWindowDimensions().y)
 				bomb = NONE;
 
@@ -145,9 +138,7 @@ void Invader::Update(double t)
 					bomb = NONE;
 			}
 		}
-		else if ( state == ALIVE
-				&& Rml::Math::RandomReal(1.0f) < bomb_probability 
-				&& game->CanDropBomb(invader_index))
+		else if (state == ALIVE && Rml::Math::RandomReal(1.0f) < bomb_probability && game->CanDropBomb(invader_index))
 		{
 			bomb = Rml::Math::RandomInteger(2) == 0 ? RAY : MISSILE;
 			bomb_position = position;
@@ -157,7 +148,7 @@ void Invader::Update(double t)
 				bomb_animation_frame = 0;
 			else
 				bomb_animation_frame = 4;
-		}	
+		}
 
 		bomb_frame_start = t;
 	}
@@ -176,8 +167,7 @@ void Invader::UpdateAnimation()
 			animation_frame = 0;
 		break;
 
-	default:
-		break;
+	default: break;
 	}
 }
 
@@ -193,7 +183,7 @@ void Invader::Render(float dp_ratio, Rml::TextureHandle texture)
 
 	if (state != DEAD)
 		invader_sprites[sprite_index].Render(Rml::Vector2f(position.x - sprite_offset, position.y), dp_ratio, color, texture);
-	
+
 	if (bomb != NONE)
 		bomb_sprites[bomb_animation_frame].Render(bomb_position, dp_ratio, color, texture);
 }
@@ -213,20 +203,17 @@ bool Invader::CheckHit(double t, const Rml::Vector2f& check_position)
 
 	// If we're alive and the position is within our bounds, set ourselves
 	// as exploding and return a valid hit
-	if (state == ALIVE
-		&& check_position.x >= position.x - sprite_offset
-		&& check_position.x <= position.x - sprite_offset + sprite_width
-		&& check_position.y >= position.y
-		&& check_position.y <= position.y + sprite_height)
+	if (state == ALIVE && check_position.x >= position.x - sprite_offset && check_position.x <= position.x - sprite_offset + sprite_width &&
+		check_position.y >= position.y && check_position.y <= position.y + sprite_height)
 	{
 		int score = 0;
 		switch (type)
 		{
-			RMLUI_UNUSED_SWITCH_ENUM(UNKNOWN);
-			case MOTHERSHIP: score = (Rml::Math::RandomInteger(6) + 1) * 50; break;	// 50 -> 300
-			case RANK3: score = 40; break;
-			case RANK2: score = 20; break;
-			case RANK1: score = 10; break;
+		case MOTHERSHIP: score = (Rml::Math::RandomInteger(6) + 1) * 50; break; // 50 -> 300
+		case RANK3: score = 40; break;
+		case RANK2: score = 20; break;
+		case RANK1: score = 10; break;
+		case UNKNOWN: break;
 		}
 
 		// Add the number of points
@@ -234,7 +221,7 @@ bool Invader::CheckHit(double t, const Rml::Vector2f& check_position)
 
 		// Set our state to exploding and start the timer to our doom
 		state = EXPLODING;
-		death_time = t + EXPLOSION_TIME;	
+		death_time = t + EXPLOSION_TIME;
 
 		return true;
 	}
@@ -248,11 +235,11 @@ int Invader::GetSpriteIndex() const
 	int index = animation_frame;
 	switch (type)
 	{
-		RMLUI_UNUSED_SWITCH_ENUM(UNKNOWN);
-		case RANK1: break;	// animation_frame is the right index already
-		case RANK2:	index += 2; break;
-		case RANK3:	index += 4; break;
-		case MOTHERSHIP: index = 6; break;
+	case RANK1: break; // animation_frame is the right index already
+	case RANK2: index += 2; break;
+	case RANK3: index += 4; break;
+	case MOTHERSHIP: index = 6; break;
+	case UNKNOWN: break;
 	}
 
 	// If we're in exploding state, use the exploding sprite

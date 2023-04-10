@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,8 +41,7 @@ FontFaceLayer::FontFaceLayer(const SharedPtr<const FontEffect>& _effect) : colou
 		colour = effect->GetColour();
 }
 
-FontFaceLayer::~FontFaceLayer()
-{}
+FontFaceLayer::~FontFaceLayer() {}
 
 bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFaceLayer* clone, bool clone_glyph_origins)
 {
@@ -117,7 +116,7 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 			TextureBox box;
 			box.origin = Vector2f(float(glyph_origin.x + glyph.bearing.x), float(glyph_origin.y - glyph.bearing.y));
 			box.dimensions = Vector2f(glyph_dimensions);
-			
+
 			RMLUI_ASSERT(box.dimensions.x >= 0 && box.dimensions.y >= 0);
 
 			character_boxes[character] = box;
@@ -132,7 +131,6 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 		// allocate the texture data ready for writing.
 		if (!texture_layout.GenerateLayout(max_texture_dimensions))
 			return false;
-
 
 		// Iterate over each rectangle in the layout, copying the glyph data into the rectangle as
 		// appropriate and generating geometry.
@@ -181,11 +179,9 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 	return true;
 }
 
-// Generates the texture data for a layer (for the texture database).
 bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs)
 {
-	if (texture_id < 0 ||
-		texture_id > texture_layout.GetNumTextures())
+	if (texture_id < 0 || texture_id > texture_layout.GetNumTextures())
 		return false;
 
 	// Generate the texture data.
@@ -249,13 +245,11 @@ bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vecto
 	return true;
 }
 
-// Returns the effect used to generate the layer.
 const FontEffect* FontFaceLayer::GetFontEffect() const
 {
 	return effect.get();
 }
 
-// Returns on the layer's textures.
 const Texture* FontFaceLayer::GetTexture(int index)
 {
 	RMLUI_ASSERT(index >= 0);
@@ -264,13 +258,11 @@ const Texture* FontFaceLayer::GetTexture(int index)
 	return &(textures[index]);
 }
 
-// Returns the number of textures employed by this layer.
 int FontFaceLayer::GetNumTextures() const
 {
 	return (int)textures.size();
 }
 
-// Returns the layer's colour.
 Colourb FontFaceLayer::GetColour() const
 {
 	return colour;

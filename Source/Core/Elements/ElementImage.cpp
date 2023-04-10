@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,7 +38,6 @@
 
 namespace Rml {
 
-// Constructs a new ElementImage.
 ElementImage::ElementImage(const String& tag) : Element(tag), dimensions(-1, -1), rect_source(RectSource::None), geometry(this)
 {
 	dimensions_scale = 1.0f;
@@ -46,11 +45,8 @@ ElementImage::ElementImage(const String& tag) : Element(tag), dimensions(-1, -1)
 	texture_dirty = true;
 }
 
-ElementImage::~ElementImage()
-{
-}
+ElementImage::~ElementImage() {}
 
-// Sizes the box to the element's inherent size.
 bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 {
 	// Check if we need to reload the texture.
@@ -67,7 +63,7 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 
 	// Calculate the y dimension.
 	if (HasAttribute("height"))
-		dimensions.y = GetAttribute< float >("height", -1);
+		dimensions.y = GetAttribute<float>("height", -1);
 	else if (rect_source == RectSource::None)
 		dimensions.y = (float)texture.GetDimensions(GetRenderInterface()).y;
 	else
@@ -83,7 +79,6 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 	return true;
 }
 
-// Renders the element.
 void ElementImage::OnRender()
 {
 	// Regenerate the geometry if required (this will be set if 'rect' changes but does not result in a resize).
@@ -94,7 +89,6 @@ void ElementImage::OnRender()
 	geometry.Render(GetAbsoluteOffset(Box::CONTENT));
 }
 
-// Called when attributes on the element are changed.
 void ElementImage::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	// Call through to the base element's OnAttributeChange().
@@ -104,8 +98,7 @@ void ElementImage::OnAttributeChange(const ElementAttributes& changed_attributes
 
 	// Check for a changed 'src' attribute. If this changes, the old texture handle is released,
 	// forcing a reload when the layout is regenerated.
-	if (changed_attributes.find("src") != changed_attributes.end() ||
-		changed_attributes.find("sprite") != changed_attributes.end())
+	if (changed_attributes.find("src") != changed_attributes.end() || changed_attributes.find("sprite") != changed_attributes.end())
 	{
 		texture_dirty = true;
 		dirty_layout = true;
@@ -113,8 +106,7 @@ void ElementImage::OnAttributeChange(const ElementAttributes& changed_attributes
 
 	// Check for a changed 'width' attribute. If this changes, a layout is forced which will
 	// recalculate the dimensions.
-	if (changed_attributes.find("width") != changed_attributes.end() ||
-		changed_attributes.find("height") != changed_attributes.end())
+	if (changed_attributes.find("width") != changed_attributes.end() || changed_attributes.find("height") != changed_attributes.end())
 	{
 		dirty_layout = true;
 	}
@@ -135,12 +127,12 @@ void ElementImage::OnAttributeChange(const ElementAttributes& changed_attributes
 
 void ElementImage::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
-    Element::OnPropertyChange(changed_properties);
+	Element::OnPropertyChange(changed_properties);
 
-    if (changed_properties.Contains(PropertyId::ImageColor) ||
-        changed_properties.Contains(PropertyId::Opacity)) {
-        GenerateGeometry();
-    }
+	if (changed_properties.Contains(PropertyId::ImageColor) || changed_properties.Contains(PropertyId::Opacity))
+	{
+		GenerateGeometry();
+	}
 }
 
 void ElementImage::OnChildAdd(Element* child)
@@ -154,7 +146,6 @@ void ElementImage::OnChildAdd(Element* child)
 	}
 }
 
-// Regenerates the element's geometry.
 void ElementImage::OnResize()
 {
 	GenerateGeometry();
@@ -180,8 +171,8 @@ void ElementImage::GenerateGeometry()
 	// Release the old geometry before specifying the new vertices.
 	geometry.Release(true);
 
-	Vector< Vertex >& vertices = geometry.GetVertices();
-	Vector< int >& indices = geometry.GetIndices();
+	Vector<Vertex>& vertices = geometry.GetVertices();
+	Vector<int>& indices = geometry.GetIndices();
 
 	vertices.resize(4);
 	indices.resize(6);
@@ -204,8 +195,8 @@ void ElementImage::GenerateGeometry()
 
 	float opacity = computed.opacity();
 	Colourb quad_colour = computed.image_color();
-    quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
-	
+	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+
 	Vector2f quad_size = GetBox().GetSize(Box::CONTENT).Round();
 
 	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), quad_size, quad_colour, texcoords[0], texcoords[1]);
@@ -222,7 +213,7 @@ bool ElementImage::LoadTexture()
 	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(this);
 
 	// Check for a sprite first, this takes precedence.
-	const String sprite_name = GetAttribute< String >("sprite", "");
+	const String sprite_name = GetAttribute<String>("sprite", "");
 	if (!sprite_name.empty())
 	{
 		// Load sprite.
@@ -255,7 +246,7 @@ bool ElementImage::LoadTexture()
 	else
 	{
 		// Load image from source URL.
-		const String source_name = GetAttribute< String >("src", "");
+		const String source_name = GetAttribute<String>("src", "");
 		if (source_name.empty())
 		{
 			texture = Texture();
@@ -281,11 +272,11 @@ bool ElementImage::LoadTexture()
 
 void ElementImage::UpdateRect()
 {
-	if(rect_source != RectSource::Sprite)
+	if (rect_source != RectSource::Sprite)
 	{
 		bool valid_rect = false;
 
-		String rect_string = GetAttribute< String >("rect", "");
+		String rect_string = GetAttribute<String>("rect", "");
 		if (!rect_string.empty())
 		{
 			StringList coords_list;
@@ -293,7 +284,8 @@ void ElementImage::UpdateRect()
 
 			if (coords_list.size() != 4)
 			{
-				Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'rect' attribute; rect requires 4 space-separated values, found %zu.", GetAddress().c_str(), coords_list.size());
+				Log::Message(Log::LT_WARNING, "Element '%s' has an invalid 'rect' attribute; rect requires 4 space-separated values, found %zu.",
+					GetAddress().c_str(), coords_list.size());
 			}
 			else
 			{

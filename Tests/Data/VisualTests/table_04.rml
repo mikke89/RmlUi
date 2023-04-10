@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Table 04 - Table height algorithm</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Table 04 - Table height algorithm</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html" />
 	<meta name="Description" content="Flexible row heights mixed with 'auto' row height and minimum/maximum constraints." />
 	<meta name="Assert (initial size)" content="Row 1 should be formatted according to its content height. Row 2 should be twice as high as Row 3." />

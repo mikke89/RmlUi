@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@
 
 #include "CaptureScreen.h"
 #include "TestConfig.h"
-#include <RendererExtensions.h>
 #include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/StringUtilities.h>
+#include <RendererExtensions.h>
 #include <Shell.h>
 #include <cmath>
 
@@ -41,7 +41,7 @@
 bool CaptureScreenshot(const Rml::String& filename, int clip_width)
 {
 	using Image = RendererExtensions::Image;
-	
+
 	Image image_orig = RendererExtensions::CaptureScreen();
 
 	if (!image_orig.data)
@@ -79,7 +79,8 @@ bool CaptureScreenshot(const Rml::String& filename, int clip_width)
 	unsigned int lodepng_result = lodepng_encode24_file(output_path.c_str(), image.data.get(), image.width, image.height);
 	if (lodepng_result)
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not write the captured screenshot to %s: %s", output_path.c_str(), lodepng_error_text(lodepng_result));
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Could not write the captured screenshot to %s: %s", output_path.c_str(),
+			lodepng_error_text(lodepng_result));
 		return false;
 	}
 
@@ -101,17 +102,18 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 	unsigned int w_ref = 0, h_ref = 0;
 
 	unsigned int lodepng_result = lodepng_decode32_file(&data_ref, &w_ref, &h_ref, input_path.c_str());
-	DeferFree defer_free{ data_ref };
+	DeferFree defer_free{data_ref};
 
 	if (lodepng_result)
 	{
 		ComparisonResult result;
 		result.success = false;
-		result.error_msg = Rml::CreateString(1024, "Could not read the captured screenshot from %s: %s", input_path.c_str(), lodepng_error_text(lodepng_result));
+		result.error_msg =
+			Rml::CreateString(1024, "Could not read the captured screenshot from %s: %s", input_path.c_str(), lodepng_error_text(lodepng_result));
 		return result;
 	}
 	RMLUI_ASSERT(w_ref > 0 && h_ref > 0 && data_ref);
-	
+
 	// Optionally render the previous capture to a texture.
 	if (out_geometry)
 	{
@@ -210,8 +212,8 @@ void ReleaseTextureGeometry(Rml::RenderInterface* render_interface, TextureGeome
 
 // Suppress warnings emitted by lodepng
 #if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
-#pragma warning(disable : 4334)
-#pragma warning(disable : 4267)
+	#pragma warning(disable : 4334)
+	#pragma warning(disable : 4267)
 #endif
 
 #include <lodepng.cpp>

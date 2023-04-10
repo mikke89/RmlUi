@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ public:
 
 	// Optionally, provide or change the window to be used for setting the mouse cursors.
 	// @lifetime Any window provided here must be destroyed before the system interface.
-	// @lifetime The currently active window must stay alive until after the call to Rml::Shutdown. 
+	// @lifetime The currently active window must stay alive until after the call to Rml::Shutdown.
 	void SetWindow(sf::RenderWindow* window);
 
 	// -- Inherited from Rml::SystemInterface  --

@@ -9,12 +9,12 @@
 				height: 70%;
 				margin: auto;
 			}
-			
+
 			div#content
 			{
 				overflow-y: scroll;
 			}
-			
+
 			div#title_bar div#icon
 			{
 				decorator: image( icon-help );

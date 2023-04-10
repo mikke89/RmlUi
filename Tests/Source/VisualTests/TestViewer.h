@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,17 +32,18 @@
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/Types.h>
 
-namespace Rml { class Context; class ElementDocument; }
+namespace Rml {
+class Context;
+class ElementDocument;
+} // namespace Rml
 
 enum class SourceType { None, Test, Reference };
 
-
-class TestViewer
-{
+class TestViewer {
 public:
 	TestViewer(Rml::Context* context);
 	~TestViewer();
-	
+
 	void ShowSource(SourceType type);
 	void ShowHelp(bool show);
 	bool IsHelpVisible() const;
@@ -68,6 +69,5 @@ private:
 
 	Rml::String reference_filename;
 };
-
 
 #endif

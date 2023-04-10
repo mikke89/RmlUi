@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,8 +31,7 @@
 
 namespace Rml {
 
-static const UnorderedMap<String, Property::Unit> g_property_unit_string_map =
-{
+static const UnorderedMap<String, Property::Unit> g_property_unit_string_map = {
 	{"", Property::NUMBER},
 	{"%", Property::PERCENT},
 	{"px", Property::PX},
@@ -51,18 +50,12 @@ static const UnorderedMap<String, Property::Unit> g_property_unit_string_map =
 	{"rad", Property::RAD},
 };
 
-PropertyParserNumber::PropertyParserNumber(int units, Property::Unit zero_unit)
-	: units(units), zero_unit(zero_unit)
-{}
+PropertyParserNumber::PropertyParserNumber(int units, Property::Unit zero_unit) : units(units), zero_unit(zero_unit) {}
 
-PropertyParserNumber::~PropertyParserNumber()
-{}
+PropertyParserNumber::~PropertyParserNumber() {}
 
-// Called to parse a RCSS number declaration.
-bool PropertyParserNumber::ParseValue(Property& property, const String& value, const ParameterMap& RMLUI_UNUSED_PARAMETER(parameters)) const
+bool PropertyParserNumber::ParseValue(Property& property, const String& value, const ParameterMap& /*parameters*/) const
 {
-	RMLUI_UNUSED(parameters);
-
 	// Find the beginning of the unit string in 'value'.
 	size_t unit_pos = 0;
 	for (size_t i = value.size(); i--;)

@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Flex 04 - Flex shorthand</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Flex 04 - Flex shorthand</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://drafts.csswg.org/css-flexbox/#flex-property" />
 	<meta name="Description" content="The default value of flex should allow the items to shrink but not grow. With 'flex: auto' the items should fill the container and also allow shrinking. With 'flex: none' the items neither shrink nor grow with the container size. Finally, with 'flex: &amp;lt;number&amp;gt;' each item should be given that proportion of the available space." />
 	<meta name="Instructions" content="Resize the document to see the resizing behavior of the flexboxes." />

@@ -44,7 +44,7 @@
 		<div class="tall"></div>
 		<div class="absolute">Absolute child</div>
 	</div>
-  <div class="tall"></div>
+	<div class="tall"></div>
 </div>
 
 <div class="container">
@@ -53,7 +53,7 @@
 		<div class="tall"></div>
 		<div class="absolute" style="position: fixed">Fixed child</div>
 	</div>
-  <div class="tall"></div>
+	<div class="tall"></div>
 </div>
 
 <handle size_target="#document"/>

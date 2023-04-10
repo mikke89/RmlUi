@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.1)
 
 if(APPLE)
-	# This has to be before most other options so CMake properly handles the 
+	# This has to be before most other options so CMake properly handles the
 	# compiler variables, it MUST bebefore the project() definition
 	if(IOS_PLATFORM)
 		set(CMAKE_TOOLCHAIN_FILE CMake/Platform/iOS.cmake)
@@ -14,7 +14,7 @@ if(APPLE)
 	option(BUILD_UNIVERSAL_BINARIES "Build universal binaries for all architectures supported" ON)
 	if (NOT CMAKE_OSX_ARCHITECTURES AND BUILD_UNIVERSAL_BINARIES)
 		if(IOS)
-			# set the architecture for iOS 
+			# set the architecture for iOS
 			if (${IOS_PLATFORM} STREQUAL "OS")
 				set (IOS_ARCH armv6 armv7 armv7s arm64)
 				set (CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE STRING  "Build architecture for iOS")
@@ -35,12 +35,12 @@ if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0015 NEW)
 endif(COMMAND cmake_policy)
 
-# Enable the use of MACOSX_RPATH by default for CMake v3.0+; this effectively 
-# allows plug 'n' play functionality, so to speak -- the resulting shared 
-# library files can simply be copied over into the end-user's application 
+# Enable the use of MACOSX_RPATH by default for CMake v3.0+; this effectively
+# allows plug 'n' play functionality, so to speak -- the resulting shared
+# library files can simply be copied over into the end-user's application
 # bundle or framework bundle. No mucking around with install_name_tool.
 #
-# 	See also: 
+# 	See also:
 # cmake --help-policy cmp0042
 # http://www.kitware.com/blog/home/post/510
 if(POLICY CMP0042)
@@ -70,7 +70,7 @@ list(APPEND CORE_PRIVATE_DEFS RMLUI_VERSION="${RMLUI_VERSION_SHORT}")
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	option(BUILD_TESTING "" OFF)
 	include(CTest)
-	
+
 	if(BUILD_TESTING)
 		set(RMLUI_TESTS_ENABLED ON)
 		set(VISUAL_TESTS_RML_DIRECTORIES "" CACHE PATH "Specify additional directories containing *.rml test documents for VisualTests. Separate multiple directories by comma.")
@@ -248,7 +248,7 @@ if( CUSTOM_CONFIGURATION )
 	mark_as_advanced( CLEAR CUSTOM_CONFIGURATION_FILE CUSTOM_INCLUDE_DIRS CUSTOM_LINK_LIBRARIES )
 else()
 	mark_as_advanced( FORCE CUSTOM_CONFIGURATION_FILE CUSTOM_INCLUDE_DIRS CUSTOM_LINK_LIBRARIES )
-	
+
 	if( CUSTOM_CONFIGURATION_FILE OR CUSTOM_INCLUDE_DIRS OR CUSTOM_LINK_LIBRARIES )
 		message("-- CUSTOM_CONFIGURATION disabled, but custom configuration variables are set. They will have no effect.")
 	endif()
@@ -302,7 +302,7 @@ mark_as_advanced(WARNINGS_AS_ERRORS)
 macro(add_common_target_options NAME)
 	# C++ language version
 	if(CMAKE_VERSION VERSION_LESS 3.8.0)
-		set_target_properties(${NAME} PROPERTIES 
+		set_target_properties(${NAME} PROPERTIES
 			CXX_STANDARD 14
 			CXX_STANDARD_REQUIRED YES
 		)
@@ -310,18 +310,18 @@ macro(add_common_target_options NAME)
 		target_compile_features(${NAME} PUBLIC cxx_std_14)
 	endif()
 	set_target_properties(${NAME} PROPERTIES CXX_EXTENSIONS OFF)
-	
+
 	# Compiler warnings
 	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 		target_compile_options(${NAME} PRIVATE -Wall -pedantic -Wextra)
-		
+
 		if(WARNINGS_AS_ERRORS)
 			target_compile_options(${NAME} PRIVATE -Werror)
 		endif()
 	elseif(MSVC)
 		target_compile_options(${NAME} PRIVATE /MP /W4 /w44062 /permissive-)
 		target_compile_definitions(${NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
-		
+
 		if(WARNINGS_AS_ERRORS)
 			target_compile_options(${NAME} PRIVATE /WX)
 		endif()
@@ -352,7 +352,7 @@ if(NOT NO_FONT_INTERFACE_DEFAULT)
 		if(MSVC AND FREETYPE_VERSION_STRING STREQUAL "2.11.0")
 			message(WARNING "You are using FreeType version 2.11.0 which introduced an issue that causes a crash on startup on some of the samples. Please avoid this version specifically.")
 		endif()
-		
+
 		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARIES})
 		list(APPEND CORE_INCLUDE_DIRS ${FREETYPE_INCLUDE_DIRS})
 	endif()
@@ -384,14 +384,14 @@ elseif( ENABLE_LOTTIE_PLUGIN )
 	list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/rlottie/build)
 	find_package(rlottie CONFIG)
 	find_path(rlottie_INCLUDE_DIR rlottie.h HINTS ${rlottie_DIR} $ENV{rlottie_DIR} PATH_SUFFIXES inc rlottie/inc )
-	
+
 	if(rlottie_FOUND AND rlottie_INCLUDE_DIR)
 		message("-- Can Lottie plugin be added to RmlCore - yes - rlottie library found")
-		
+
 		list(APPEND CORE_LINK_LIBS rlottie::rlottie)
 		list(APPEND CORE_INCLUDE_DIRS ${rlottie_INCLUDE_DIR})
 		list(APPEND CORE_PRIVATE_DEFS RMLUI_ENABLE_LOTTIE_PLUGIN)
-		
+
 		list(APPEND Core_HDR_FILES ${Lottie_HDR_FILES})
 		list(APPEND Core_PUB_HDR_FILES ${Lottie_PUB_HDR_FILES})
 		list(APPEND Core_SRC_FILES ${Lottie_SRC_FILES})
@@ -411,15 +411,15 @@ if( ENABLE_SVG_PLUGIN )
 	if(NOT DEFINED LUNASVG_DIR)
 		set(LUNASVG_DIR $ENV{LUNASVG_DIR})
 	endif()
-	
+
 	message("-- Can SVG plugin be enabled - looking for lunasvg library")
 
 	find_package(lunasvg REQUIRED)
-	
+
 	list(APPEND CORE_LINK_LIBS ${LUNASVG_LIBRARIES})
 	list(APPEND CORE_INCLUDE_DIRS ${LUNASVG_INCLUDE_DIR})
 	list(APPEND CORE_PRIVATE_DEFS RMLUI_ENABLE_SVG_PLUGIN)
-	
+
 	list(APPEND Core_HDR_FILES ${SVG_HDR_FILES})
 	list(APPEND Core_PUB_HDR_FILES ${SVG_PUB_HDR_FILES})
 	list(APPEND Core_SRC_FILES ${SVG_SRC_FILES})
@@ -447,10 +447,10 @@ foreach(library ${LIBRARIES})
 	add_library(RmlUi::${library} ALIAS ${NAME})
 
 	set_target_properties(${NAME} PROPERTIES
-	   VERSION ${PROJECT_VERSION}
-	   SOVERSION ${PROJECT_VERSION_MAJOR}
+		VERSION ${PROJECT_VERSION}
+		SOVERSION ${PROJECT_VERSION_MAJOR}
 	)
-	
+
 	add_common_target_options(${NAME})
 
 	install(TARGETS ${NAME}
@@ -556,10 +556,10 @@ if(BUILD_LUA_BINDINGS)
 	)
 
 	set_target_properties(${NAME} PROPERTIES
-	   VERSION ${PROJECT_VERSION}
-	   SOVERSION ${PROJECT_VERSION_MAJOR}
+		VERSION ${PROJECT_VERSION}
+		SOVERSION ${PROJECT_VERSION_MAJOR}
 	)
-	
+
 	add_common_target_options(${NAME})
 
 	install(TARGETS ${NAME}
@@ -568,7 +568,7 @@ if(BUILD_LUA_BINDINGS)
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	)
-	
+
 	set(RMLUI_EXPORTED_TARGETS ${RMLUI_EXPORTED_TARGETS} ${NAME})
 endif()
 
@@ -642,7 +642,7 @@ macro(bl_sample NAME)
 	else()
 		add_executable(${NAME} ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
 	endif()
-	
+
 	add_common_target_options(${NAME})
 
 	target_link_libraries(${NAME} ${ARGN})
@@ -651,10 +651,10 @@ endmacro()
 # Build shell
 if(BUILD_SAMPLES OR BUILD_TESTING)
 	message("-- Adding shell with '${SAMPLES_BACKEND}' backend.")
-	
+
 	include(SampleFileList)
 	include(BackendFileList)
-	
+
 	if(NOT BUILD_FRAMEWORK)
 		set(sample_LIBRARIES
 			shell
@@ -672,28 +672,28 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 	if(WIN32)
 		mark_as_advanced(SAMPLES_DIR)
 	endif()
-	
+
 
 	set(BACKEND_SRC_FILES "${${SAMPLES_BACKEND}_SRC_FILES}")
 	set(BACKEND_HDR_FILES "${${SAMPLES_BACKEND}_HDR_FILES}")
-	
+
 	if("${BACKEND_SRC_FILES}" STREQUAL "" OR "${BACKEND_HDR_FILES}" STREQUAL "")
 		message(FATAL_ERROR "Unknown samples backend '${SAMPLES_BACKEND}'.")
 	endif()
-	
+
 	list(APPEND shell_SRC_FILES ${BACKEND_SRC_FILES})
 	list(APPEND shell_HDR_FILES ${BACKEND_HDR_FILES} ${BACKEND_COMMON_HDR_FILES})
-	
+
 	add_library(shell STATIC ${shell_SRC_FILES} ${shell_HDR_FILES})
-	
+
 	target_include_directories(shell PUBLIC
 		${PROJECT_SOURCE_DIR}/Backends
 		${PROJECT_SOURCE_DIR}/Samples/shell/include
 	)
-	
+
 	add_common_target_options(shell)
 	target_link_libraries(shell PUBLIC RmlCore RmlDebugger)
-	
+
 	# Add OS dependencies.
 	if (WIN32)
 		target_link_libraries(shell PRIVATE shlwapi imm32)
@@ -711,49 +711,49 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 			endif()
 		endif()
 	endif()
-	
+
 	# Add platform dependencies.
-	if(SAMPLES_BACKEND MATCHES "^X11")		
+	if(SAMPLES_BACKEND MATCHES "^X11")
 		if(NOT X11_FOUND)
 			message(FATAL_ERROR "X11 not found or not supported on this platform, select a different sample backend.")
 		endif()
 	endif()
-	
+
 	if(SAMPLES_BACKEND MATCHES "^SDL")
 		message("-- Looking for SDL2 library for samples backend.")
 		if(EMSCRIPTEN)
 			set(EMSCRIPTEN_FLAGS "${EMSCRIPTEN_FLAGS} -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sSDL2_IMAGE_FORMATS='[tga]'")
 		else()
 			find_package(SDL2 REQUIRED)
-			
+
 			if(NOT SDL2_FOUND)
 				message(FATAL_ERROR "SDL2 not found")
 			endif()
-			
+
 			if(SAMPLES_BACKEND STREQUAL "SDL_GL2")
 				find_package(GLEW REQUIRED)
 				if(NOT GLEW_FOUND)
 					message(FATAL_ERROR "GLEW not found")
 				endif()
 			endif()
-			
+
 			# Check version requirement for the SDL renderer.
 			if(SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer" AND "${SDL2_VERSION}" VERSION_LESS "2.0.20")
 				message(FATAL_ERROR "SDL2 native renderer backend (${SAMPLES_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
 			endif()
-			
+
 			if(SAMPLES_BACKEND STREQUAL "SDL_GL2" OR SAMPLES_BACKEND STREQUAL "SDL_GL3" OR SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer")
 				find_package(SDL2_image REQUIRED)
 				if(NOT SDL2_IMAGE_FOUND)
 					message(FATAL_ERROR "SDL2_image not found")
 				endif()
 			endif()
-			
+
 			target_include_directories(shell PRIVATE ${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${GLEW_INCLUDE_DIR})
 			target_link_libraries(shell PRIVATE ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARIES})
 		endif()
 	endif()
-	
+
 	if(SAMPLES_BACKEND MATCHES "^SFML")
 		message("-- Looking for SFML 2.x library for samples backend.")
 		if (WIN32)
@@ -764,14 +764,14 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 		target_include_directories(shell PRIVATE ${SFML_INCLUDE_DIR})
 		target_link_libraries(shell PRIVATE ${SFML_LIBRARIES})
 	endif()
-	
+
 	if(SAMPLES_BACKEND MATCHES "^GLFW")
 		message("-- Looking for GLFW3 library for samples backend.")
 		find_package(glfw3 3.3 CONFIG REQUIRED)
 		target_link_libraries(shell PRIVATE glfw)
 		message("-- Found GLFW version ${glfw3_VERSION}.")
 	endif()
-	
+
 	# Add renderer dependencies.
 	if(SAMPLES_BACKEND MATCHES "GL2$")
 		message("-- Adding OpenGL 2 renderer backend.")
@@ -783,19 +783,19 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 			target_compile_definitions(shell PRIVATE GL_SILENCE_DEPRECATION)
 		endif()
 	endif()
-	
+
 	if(SAMPLES_BACKEND MATCHES "VK$")
 		message("-- Using Vulkan renderer backend.")
-		
+
 		option(RMLUI_VK_DEBUG "Enable debugging mode for Vulkan renderer." OFF)
 		mark_as_advanced(RMLUI_VK_DEBUG)
 		if(RMLUI_VK_DEBUG)
-		  target_compile_definitions(shell PRIVATE RMLUI_VK_DEBUG)
+			target_compile_definitions(shell PRIVATE RMLUI_VK_DEBUG)
 		endif()
 
 		target_link_libraries(shell PRIVATE ${CMAKE_DL_LIBS})
 	endif()
-	
+
 	if(SAMPLES_BACKEND MATCHES "GL3$")
 		message("-- Adding OpenGL 3 renderer backend.")
 		if(EMSCRIPTEN)
@@ -830,7 +830,7 @@ if(BUILD_SAMPLES)
 
 		# The samples always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
-		install(TARGETS ${sample} 
+		install(TARGETS ${sample}
 			RUNTIME DESTINATION ${SAMPLES_DIR}/${sample}
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endforeach()
@@ -839,7 +839,7 @@ if(BUILD_SAMPLES)
 	foreach(tutorial ${tutorials})
 		set(tutorial_fullname tutorial_${tutorial})
 		bl_sample(${tutorial_fullname} ${sample_LIBRARIES})
-		
+
 		# The tutorials always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
 		install(TARGETS ${tutorial_fullname}
@@ -850,22 +850,22 @@ if(BUILD_SAMPLES)
 	# Build and install invaders sample
 	bl_sample(invaders ${sample_LIBRARIES})
 	install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
-	install(TARGETS invaders 
+	install(TARGETS invaders
 		RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
 		BUNDLE DESTINATION ${SAMPLES_DIR})
 
 	if(BUILD_LUA_BINDINGS)
 		bl_sample(luainvaders RmlLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
-		install(TARGETS luainvaders 
+		install(TARGETS luainvaders
 			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endif()
-	
+
 	# Add assets to emscripten binaries
 	if(EMSCRIPTEN)
 		message("-- Preloading emscipten sample assets")
-		
+
 		set(COMMON_ASSET_FOLDER "Samples/assets/")
 		set(EMSCRIPTEN_EXE_FLAGS "${EMSCRIPTEN_EXE_FLAGS} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/${COMMON_ASSET_FOLDER}@/${COMMON_ASSET_FOLDER}")
 
@@ -876,7 +876,7 @@ if(BUILD_SAMPLES)
 				target_link_libraries(${sample} "--preload-file ${ABS_SAMPLE_DATA_FOLDER}@/${SAMPLE_DATA_FOLDER}")
 			endif()
 		endforeach()
-		
+
 		foreach(tutorial ${tutorials})
 			set(TUTORIAL_DATA_FOLDER "Samples/tutorial/${tutorial}/data/")
 			set(ABS_TUTORIAL_DATA_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/${TUTORIAL_DATA_FOLDER}")
@@ -884,7 +884,7 @@ if(BUILD_SAMPLES)
 				target_link_libraries("tutorial_${tutorial}" "--preload-file ${ABS_TUTORIAL_DATA_FOLDER}@/${TUTORIAL_DATA_FOLDER}")
 			endif()
 		endforeach()
-		
+
 		set(INVADER_DATA_FOLDER "Samples/invaders/data/")
 		target_link_libraries(invaders "-sALLOW_MEMORY_GROWTH --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/${INVADER_DATA_FOLDER}@/${INVADER_DATA_FOLDER}")
 	endif()
@@ -906,7 +906,7 @@ if(EMSCRIPTEN)
 	# Enables Asyncify which we only need since the backend doesn't control the main loop. This enables us to yield to the browser during the backend call to
 	# Backend::ProcessEvents(). Asyncify results in larger and slower code, users are instead encouraged to use 'emscripten_set_main_loop()' and family.
 	set(EMSCRIPTEN_EXE_FLAGS "${EMSCRIPTEN_EXE_FLAGS} -sASYNCIFY")
-	
+
 	message(STATUS "Compiling for Emscripten.\n\t- Flags:${EMSCRIPTEN_FLAGS}\n\t- ExeFlags:${EMSCRIPTEN_EXE_FLAGS}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EMSCRIPTEN_FLAGS}")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMSCRIPTEN_FLAGS}")
@@ -975,7 +975,7 @@ if(BUILD_SAMPLES)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
 			DESTINATION ${SAMPLES_DIR}/invaders
 	)
-	
+
 	if(TARGET lottie)
 		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/data
 				DESTINATION ${SAMPLES_DIR}/basic/lottie
@@ -988,10 +988,10 @@ if(BUILD_SAMPLES)
 	endif()
 
 	if(BUILD_LUA_BINDINGS)
-		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data 
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/data
 				DESTINATION ${SAMPLES_DIR}/luainvaders
 		)
-		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/lua 
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/luainvaders/lua
 				DESTINATION ${SAMPLES_DIR}/luainvaders
 		)
 	endif()
@@ -1046,4 +1046,3 @@ else()
 		" or write generators for RmlUiConfig.cmake by yourself.")
 endif()
 endif()
-

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,16 +27,14 @@
  */
 
 #include "TextureResource.h"
-#include "TextureDatabase.h"
 #include "../../Include/RmlUi/Core/Log.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "TextureDatabase.h"
 
 namespace Rml {
 
-TextureResource::TextureResource()
-{
-}
+TextureResource::TextureResource() {}
 
 TextureResource::~TextureResource()
 {
@@ -70,7 +68,6 @@ void TextureResource::Reset()
 	source.clear();
 }
 
-// Returns the resource's underlying texture.
 TextureHandle TextureResource::GetHandle(RenderInterface* render_interface)
 {
 	auto texture_iterator = texture_data.find(render_interface);
@@ -83,7 +80,6 @@ TextureHandle TextureResource::GetHandle(RenderInterface* render_interface)
 	return texture_iterator->second.first;
 }
 
-// Returns the dimensions of the resource's texture.
 Vector2i TextureResource::GetDimensions(RenderInterface* render_interface)
 {
 	auto texture_iterator = texture_data.find(render_interface);
@@ -96,13 +92,11 @@ Vector2i TextureResource::GetDimensions(RenderInterface* render_interface)
 	return texture_iterator->second.second;
 }
 
-// Returns the resource's source.
 const String& TextureResource::GetSource() const
 {
 	return source;
 }
 
-// Releases the texture's handle.
 void TextureResource::Release(RenderInterface* render_interface)
 {
 	if (!render_interface)

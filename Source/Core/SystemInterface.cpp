@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,37 +32,33 @@
 #include "../../Include/RmlUi/Core/URL.h"
 
 #ifdef RMLUI_PLATFORM_WIN32
-#include <windows.h>
+	#include <windows.h>
 #else
-#include <stdio.h>
+	#include <stdio.h>
 #endif
 
 namespace Rml {
 
 static String clipboard_text;
 
-SystemInterface::SystemInterface()
-{
-}
+SystemInterface::SystemInterface() {}
 
-SystemInterface::~SystemInterface()
-{
-}
+SystemInterface::~SystemInterface() {}
 
 #ifdef RMLUI_PLATFORM_WIN32
 bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 {
 	// By default we just send a platform message
-#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
+	#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
 	if (logtype == Log::LT_ASSERT)
 	{
-		String message_user = CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());	
+		String message_user = CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());
 
 		// Return TRUE if the user presses NO (continue execution)
 		return (IDNO == MessageBoxA(nullptr, message_user.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL));
 	}
 	else
-#endif
+	#endif
 	{
 		OutputDebugStringA(message.c_str());
 		OutputDebugStringA("\r\n");
@@ -72,18 +68,16 @@ bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
 #else
 bool SystemInterface::LogMessage(Log::Type /*logtype*/, const String& message)
 {
-#ifdef RMLUI_PLATFORM_EMSCRIPTEN
+	#ifdef RMLUI_PLATFORM_EMSCRIPTEN
 	puts(message.c_str());
-#else
+	#else
 	fprintf(stderr, "%s\n", message.c_str());
-#endif
+	#endif
 	return true;
 }
-#endif	
+#endif
 
-void SystemInterface::SetMouseCursor(const String& /*cursor_name*/)
-{
-}
+void SystemInterface::SetMouseCursor(const String& /*cursor_name*/) {}
 
 void SystemInterface::SetClipboardText(const String& text)
 {
@@ -114,8 +108,7 @@ void SystemInterface::JoinPath(String& translated_path, const String& document_p
 	// If the path is a Windows-style absolute path, return it directly.
 	size_t drive_pos = path.find(':');
 	size_t slash_pos = Math::Min(path.find('/'), path.find('\\'));
-	if (drive_pos != String::npos &&
-		drive_pos < slash_pos)
+	if (drive_pos != String::npos && drive_pos < slash_pos)
 	{
 		translated_path = path;
 		return;

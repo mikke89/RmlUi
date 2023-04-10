@@ -6,7 +6,7 @@
 <link rel="help" href="http://www.w3.org/TR/REC-CSS1#clear"/>
 <meta name="description" content="Basic CSS1 test of the 'clear' property." />
 <style type="text/css">
-@spritesheet theme 
+@spritesheet theme
 {
 	src: /assets/invader.tga;
 	vblank.gif: 68px 158px  9px 30px;
@@ -27,18 +27,18 @@ This text should be flowing past a tall orange rectangle on the left side of the
 <hr/>
 <img sprite="vblank.gif" height="50" style="float: left" alt="[Image]"/>
 <p class="one">
-This paragraph should appear below the tall orange rectangle above and to the left, and not flow past it. 
+This paragraph should appear below the tall orange rectangle above and to the left, and not flow past it.
 </p>
 <hr/>
 <img sprite="vblank.gif" height="50" style="float: right" alt="[Image]"/>
 <p class="two">
-This paragraph should appear below the tall orange rectangle above and to the right, and not flow past it. 
+This paragraph should appear below the tall orange rectangle above and to the right, and not flow past it.
 </p>
 <hr/>
 <img sprite="vblank.gif" height="50" style="float: left" alt="[Image]"/>
 <img sprite="vblank.gif" height="50" style="float: right" alt="[Image]"/>
 <p class="three">
-This paragraph should appear below the two tall orange rectangles, and not flow between them. 
+This paragraph should appear below the two tall orange rectangles, and not flow between them.
 </p>
 <img sprite="vblank.gif" height="50" style="float: left" alt="[Image]"/>
 <img sprite="vblank.gif" height="50" style="float: right" alt="[Image]"/>

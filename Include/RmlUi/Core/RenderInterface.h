@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,25 +29,24 @@
 #ifndef RMLUI_CORE_RENDERINTERFACE_H
 #define RMLUI_CORE_RENDERINTERFACE_H
 
-#include "Traits.h"
 #include "Header.h"
 #include "Texture.h"
-#include "Vertex.h"
+#include "Traits.h"
 #include "Types.h"
+#include "Vertex.h"
 
 namespace Rml {
 
 class Context;
 
 /**
-	The abstract base class for application-specific rendering implementation. Your application must provide a concrete
-	implementation of this class and install it through Rml::SetRenderInterface() in order for anything to be rendered.
+    The abstract base class for application-specific rendering implementation. Your application must provide a concrete
+    implementation of this class and install it through Rml::SetRenderInterface() in order for anything to be rendered.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API RenderInterface : public NonCopyMoveable
-{
+class RMLUICORE_API RenderInterface : public NonCopyMoveable {
 public:
 	RenderInterface();
 	virtual ~RenderInterface();
@@ -60,7 +59,8 @@ public:
 	/// @param[in] num_indices The number of indices passed to the function. This will always be a multiple of three.
 	/// @param[in] texture The texture to be applied to the geometry. This may be nullptr, in which case the geometry is untextured.
 	/// @param[in] translation The translation to apply to the geometry.
-	virtual void RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture, const Vector2f& translation) = 0;
+	virtual void RenderGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture,
+		const Vector2f& translation) = 0;
 
 	/// Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
 	/// If supported, this should return a handle to an optimised, application-specific version of the data. If
@@ -70,7 +70,8 @@ public:
 	/// @param[in] indices The geometry's index data.
 	/// @param[in] num_indices The number of indices passed to the function. This will always be a multiple of three.
 	/// @param[in] texture The texture to be applied to the geometry. This may be nullptr, in which case the geometry is untextured.
-	/// @return The application-specific compiled geometry. Compiled geometry will be stored and rendered using RenderCompiledGeometry() in future calls, and released with ReleaseCompiledGeometry() when it is no longer needed.
+	/// @return The application-specific compiled geometry. Compiled geometry will be stored and rendered using RenderCompiledGeometry() in future
+	/// calls, and released with ReleaseCompiledGeometry() when it is no longer needed.
 	virtual CompiledGeometryHandle CompileGeometry(Vertex* vertices, int num_vertices, int* indices, int num_indices, TextureHandle texture);
 	/// Called by RmlUi when it wants to render application-compiled geometry.
 	/// @param[in] geometry The application-specific compiled geometry to render.

@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Floats: placement</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Floats: placement</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="http://www.w3.org/TR/CSS21/visuren.html#floats" />
 	<meta name="Description" content="Floating boxes" />
 	<style>
@@ -19,13 +19,13 @@
 			margin: 15px 0;
 		}
 		.box {
-		  float: left;
-		  margin-right: 15px;
-		  width: 150px;
-		  height: 70px;
-		  border-radius: 5px;
-		  background-color: rgb(207, 232, 220);
-		  padding: 1em;
+			float: left;
+			margin-right: 15px;
+			width: 150px;
+			height: 70px;
+			border-radius: 5px;
+			background-color: rgb(207, 232, 220);
+			padding: 1em;
 		}
 	</style>
 </head>

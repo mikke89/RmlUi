@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,8 +30,8 @@
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
-#include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/Event.h"
+#include "../../Include/RmlUi/Core/Property.h"
 
 namespace Rml {
 
@@ -45,17 +45,14 @@ ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
 	initialised = false;
 }
 
-ElementHandle::~ElementHandle()
-{
-}
+ElementHandle::~ElementHandle() {}
 
 void ElementHandle::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	Element::OnAttributeChange(changed_attributes);
 
 	// Reset initialised state if the move or size targets have changed.
-	if (changed_attributes.find("move_target") != changed_attributes.end() ||
-		changed_attributes.find("size_target") != changed_attributes.end())
+	if (changed_attributes.find("move_target") != changed_attributes.end() || changed_attributes.find("size_target") != changed_attributes.end())
 	{
 		initialised = false;
 		move_target = nullptr;

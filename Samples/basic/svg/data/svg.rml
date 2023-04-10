@@ -7,10 +7,10 @@
 			{
 				width: 300px;
 				height: 225px;
-				
+
 				margin: auto;
 			}
-			
+
 			svg {
 				display: block;
 				max-width: 80%;

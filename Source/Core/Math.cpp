@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,298 +28,266 @@
 
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include <time.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 
 namespace Rml {
 
 namespace Math {
 
-static constexpr float FZERO = 0.0001f;
+	static constexpr float FZERO = 0.0001f;
 
-// Evaluates if a number is, or close to, zero.
-RMLUICORE_API bool IsZero(float value)
-{
-	return AbsoluteValue(value) < FZERO;
-}
-
-// Evaluates if two floating-point numbers are equal, or so similar that they could be considered
-// so.
-RMLUICORE_API bool AreEqual(float value_0, float value_1)
-{
-	return IsZero(value_1 - value_0);
-}
-
-// Calculates the absolute value of a number.
-RMLUICORE_API float AbsoluteValue(float value)
-{
-	return fabsf(value);
-}
-
-RMLUICORE_API int AbsoluteValue(int value)
-{
-	return abs(value);
-}
-
-RMLUICORE_API Vector2f AbsoluteValue(Vector2f value)
-{
-	return {fabsf(value.x), fabsf(value.y)};
-}
-
-// Calculates the cosine of an angle.
-RMLUICORE_API float Cos(float angle)
-{
-	return cosf(angle);
-}
-
-// Calculates the arc-cosine of an value.
-RMLUICORE_API float ACos(float value)
-{
-	return acosf(value);
-}
-
-// Calculates the sine of an angle.
-RMLUICORE_API float Sin(float angle)
-{
-	return sinf(angle);
-}
-
-// Calculates the arc-sine of an value.
-RMLUICORE_API float ASin(float angle)
-{
-	return asinf(angle);
-}
-
-// Calculates the tangent of an angle.
-RMLUICORE_API float Tan(float angle)
-{
-	return tanf(angle);
-}
-
-// Calculates the angle of a two-dimensional line.
-RMLUICORE_API float ATan2(float y, float x)
-{
-	return atan2f(y, x);
-}
-
-// Evaluates the natural exponential function on a value.
-RMLUICORE_API float Exp(float value)
-{
-	return expf(value);
-}
-
-// Evaluates the base-2 logarithm of an integer.
-RMLUICORE_API int Log2(int value)
-{
-	int result = 0;
-	while (value > 1)
+	RMLUICORE_API bool IsZero(float value)
 	{
-		value >>= 1;
-		result++;
+		return AbsoluteValue(value) < FZERO;
 	}
-	return result;
-}
 
-// Converts an angle from radians to degrees.
-RMLUICORE_API float RadiansToDegrees(float angle)
-{
-	return angle * (180.0f / RMLUI_PI);
-}
-
-// Converts an angle from degrees to radians.
-RMLUICORE_API float DegreesToRadians(float angle)
-{
-	return angle * (RMLUI_PI / 180.0f);
-}
-
-// Normalises an angle in radians
-RMLUICORE_API float NormaliseAngle(float angle)
-{
-	return fmodf(angle, RMLUI_PI * 2.0f);
-}
-
-// Calculates the square root of a value.
-RMLUICORE_API float SquareRoot(float value)
-{
-	return sqrtf(value);
-}
-
-// Rounds a floating-point value to the nearest integer.
-RMLUICORE_API float RoundFloat(float value)
-{
-	return roundf(value);
-}
-
-// Rounds a floating-point value to the nearest integer.
-RMLUICORE_API double RoundFloat(double value)
-{
-	return round(value);
-}
-
-RMLUICORE_API float RoundUpFloat(float value)
-{
-	return ceilf(value);
-}
-
-RMLUICORE_API float RoundDownFloat(float value)
-{
-	return floorf(value);
-}
-
-// Rounds a floating-point value to the nearest integer.
-RMLUICORE_API int RoundToInteger(float value)
-{
-	if (value > 0.0f)
-		return RealToInteger(value + 0.5f);
-
-	return RealToInteger(value - 0.5f);
-}
-
-// Rounds a floating-point value up to the nearest integer.
-RMLUICORE_API int RoundUpToInteger(float value)
-{
-	return RealToInteger(ceilf(value));
-}
-
-// Rounds a floating-point value down to the nearest integer.
-RMLUICORE_API int RoundDownToInteger(float value)
-{
-	return RealToInteger(floorf(value));
-}
-
-RMLUICORE_API float DecomposeFractionalIntegral(float value, float* integral)
-{
-	return modff(value, integral);
-}
-
-// Efficiently truncates a floating-point value into an integer.
-RMLUICORE_API int RealToInteger(float value)
-{
-	return int(value);
-}
-
-RMLUICORE_API void SnapToPixelGrid(float& offset, float& width)
-{
-	const float right_edge = offset + width;
-	offset = Math::RoundFloat(offset);
-	width = Math::RoundFloat(right_edge) - offset;
-}
-
-RMLUICORE_API void SnapToPixelGrid(Vector2f& position, Vector2f& size)
-{
-	const Vector2f bottom_right = position + size;
-	position = position.Round();
-	size = bottom_right.Round() - position;
-}
-
-RMLUICORE_API void ExpandToPixelGrid(Vector2f& position, Vector2f& size)
-{
-	const Vector2f bottom_right = position + size;
-	position = Vector2f(std::floor(position.x), std::floor(position.y));
-	size = Vector2f(std::ceil(bottom_right.x), std::ceil(bottom_right.y)) - position;
-}
-
-// Converts the given number to a power of two, rounding up if necessary.
-RMLUICORE_API int ToPowerOfTwo(int number)
-{
-	// Check if the number is already a power of two.
-	if ((number & (number - 1)) == 0)
-		return number;
-
-	// Assuming 31 useful bits in an int here ... !
-	for (int i = 31; i >= 0; i--)
+	RMLUICORE_API bool AreEqual(float value_0, float value_1)
 	{
-		if (number & (1 << i))
+		return IsZero(value_1 - value_0);
+	}
+
+	RMLUICORE_API float AbsoluteValue(float value)
+	{
+		return fabsf(value);
+	}
+
+	RMLUICORE_API int AbsoluteValue(int value)
+	{
+		return abs(value);
+	}
+
+	RMLUICORE_API Vector2f AbsoluteValue(Vector2f value)
+	{
+		return {fabsf(value.x), fabsf(value.y)};
+	}
+
+	RMLUICORE_API float Cos(float angle)
+	{
+		return cosf(angle);
+	}
+
+	RMLUICORE_API float ACos(float value)
+	{
+		return acosf(value);
+	}
+
+	RMLUICORE_API float Sin(float angle)
+	{
+		return sinf(angle);
+	}
+
+	RMLUICORE_API float ASin(float angle)
+	{
+		return asinf(angle);
+	}
+
+	RMLUICORE_API float Tan(float angle)
+	{
+		return tanf(angle);
+	}
+
+	RMLUICORE_API float ATan2(float y, float x)
+	{
+		return atan2f(y, x);
+	}
+
+	RMLUICORE_API float Exp(float value)
+	{
+		return expf(value);
+	}
+
+	RMLUICORE_API int Log2(int value)
+	{
+		int result = 0;
+		while (value > 1)
 		{
-			if (i == 31)
-				return 1 << 31;
-			else
-				return 1 << (i + 1);
+			value >>= 1;
+			result++;
 		}
+		return result;
 	}
 
-	return 0;
-}
+	RMLUICORE_API float RadiansToDegrees(float angle)
+	{
+		return angle * (180.0f / RMLUI_PI);
+	}
 
-// Converts from a hexadecimal digit to decimal.
-RMLUICORE_API int HexToDecimal(char hex_digit)
-{
-	if (hex_digit >= '0' && hex_digit <= '9')
-		return hex_digit - '0';
-	else if (hex_digit >= 'a' && hex_digit <= 'f')
-		return 10 + (hex_digit - 'a');
-	else if (hex_digit >= 'A' && hex_digit <= 'F')
-		return 10 + (hex_digit - 'A');
+	RMLUICORE_API float DegreesToRadians(float angle)
+	{
+		return angle * (RMLUI_PI / 180.0f);
+	}
 
-	return -1;
-}
+	RMLUICORE_API float NormaliseAngle(float angle)
+	{
+		return fmodf(angle, RMLUI_PI * 2.0f);
+	}
 
-// Generates a random floating-point value between 0 and a user-specified value.
-RMLUICORE_API float RandomReal(float max_value)
-{
-	return (rand() / (float) RAND_MAX) * max_value;
-}
+	RMLUICORE_API float SquareRoot(float value)
+	{
+		return sqrtf(value);
+	}
 
-// Generates a random integer value between 0 and a user-specified value.
-RMLUICORE_API int RandomInteger(int max_value)
-{
-	return (rand() % max_value);
-}
+	RMLUICORE_API float RoundFloat(float value)
+	{
+		return roundf(value);
+	}
 
-// Generates a random boolean value, with equal chance of true or false.
-RMLUICORE_API bool RandomBool()
-{
-	return RandomInteger(2) == 1;
-}
+	RMLUICORE_API double RoundFloat(double value)
+	{
+		return round(value);
+	}
 
-template <>
-Vector2f Max<Vector2f>(Vector2f a, Vector2f b)
-{
-	return Vector2f(Max(a.x, b.x), Max(a.y, b.y));
-}
-template <>
-Vector2i Max<Vector2i>(Vector2i a, Vector2i b)
-{
-	return Vector2i(Max(a.x, b.x), Max(a.y, b.y));
-}
+	RMLUICORE_API float RoundUpFloat(float value)
+	{
+		return ceilf(value);
+	}
 
-template <>
-Vector2f Min<Vector2f>(Vector2f a, Vector2f b)
-{
-	return Vector2f(Min(a.x, b.x), Min(a.y, b.y));
-}
-template <>
-Vector2i Min<Vector2i>(Vector2i a, Vector2i b)
-{
-	return Vector2i(Min(a.x, b.x), Min(a.y, b.y));
-}
+	RMLUICORE_API float RoundDownFloat(float value)
+	{
+		return floorf(value);
+	}
 
-template <>
-Vector2f Clamp(Vector2f value, Vector2f min, Vector2f max)
-{
-	return Vector2f(Clamp(value.x, min.x, max.x), Clamp(value.y, min.y, max.y));
-}
-template <>
-Vector2i Clamp(Vector2i value, Vector2i min, Vector2i max)
-{
-	return Vector2i(Clamp(value.x, min.x, max.x), Clamp(value.y, min.y, max.y));
-}
+	RMLUICORE_API int RoundToInteger(float value)
+	{
+		if (value > 0.0f)
+			return RealToInteger(value + 0.5f);
 
+		return RealToInteger(value - 0.5f);
+	}
 
-Colourb RoundedLerp(float t, Colourb v0, Colourb v1)
-{
-	return Colourb{
-		static_cast<unsigned char>(RoundToInteger(Lerp(t, 
-			static_cast<float>(v0[0]), static_cast<float>(v1[0])))),
-		static_cast<unsigned char>(RoundToInteger(Lerp(t, 
-			static_cast<float>(v0[1]), static_cast<float>(v1[1])))),
-		static_cast<unsigned char>(RoundToInteger(Lerp(t, 
-			static_cast<float>(v0[2]), static_cast<float>(v1[2])))),
-		static_cast<unsigned char>(RoundToInteger(Lerp(t, 
-			static_cast<float>(v0[3]), static_cast<float>(v1[3]))))
-	};
-}
+	RMLUICORE_API int RoundUpToInteger(float value)
+	{
+		return RealToInteger(ceilf(value));
+	}
 
-}
+	RMLUICORE_API int RoundDownToInteger(float value)
+	{
+		return RealToInteger(floorf(value));
+	}
+
+	RMLUICORE_API float DecomposeFractionalIntegral(float value, float* integral)
+	{
+		return modff(value, integral);
+	}
+
+	RMLUICORE_API int RealToInteger(float value)
+	{
+		return int(value);
+	}
+
+	RMLUICORE_API void SnapToPixelGrid(float& offset, float& width)
+	{
+		const float right_edge = offset + width;
+		offset = Math::RoundFloat(offset);
+		width = Math::RoundFloat(right_edge) - offset;
+	}
+
+	RMLUICORE_API void SnapToPixelGrid(Vector2f& position, Vector2f& size)
+	{
+		const Vector2f bottom_right = position + size;
+		position = position.Round();
+		size = bottom_right.Round() - position;
+	}
+
+	RMLUICORE_API void ExpandToPixelGrid(Vector2f& position, Vector2f& size)
+	{
+		const Vector2f bottom_right = position + size;
+		position = Vector2f(std::floor(position.x), std::floor(position.y));
+		size = Vector2f(std::ceil(bottom_right.x), std::ceil(bottom_right.y)) - position;
+	}
+
+	RMLUICORE_API int ToPowerOfTwo(int number)
+	{
+		// Check if the number is already a power of two.
+		if ((number & (number - 1)) == 0)
+			return number;
+
+		// Assuming 31 useful bits in an int here ... !
+		for (int i = 31; i >= 0; i--)
+		{
+			if (number & (1 << i))
+			{
+				if (i == 31)
+					return 1 << 31;
+				else
+					return 1 << (i + 1);
+			}
+		}
+
+		return 0;
+	}
+
+	RMLUICORE_API int HexToDecimal(char hex_digit)
+	{
+		if (hex_digit >= '0' && hex_digit <= '9')
+			return hex_digit - '0';
+		else if (hex_digit >= 'a' && hex_digit <= 'f')
+			return 10 + (hex_digit - 'a');
+		else if (hex_digit >= 'A' && hex_digit <= 'F')
+			return 10 + (hex_digit - 'A');
+
+		return -1;
+	}
+
+	RMLUICORE_API float RandomReal(float max_value)
+	{
+		return (rand() / (float)RAND_MAX) * max_value;
+	}
+
+	RMLUICORE_API int RandomInteger(int max_value)
+	{
+		return (rand() % max_value);
+	}
+
+	RMLUICORE_API bool RandomBool()
+	{
+		return RandomInteger(2) == 1;
+	}
+
+	template <>
+	Vector2f Max<Vector2f>(Vector2f a, Vector2f b)
+	{
+		return Vector2f(Max(a.x, b.x), Max(a.y, b.y));
+	}
+	template <>
+	Vector2i Max<Vector2i>(Vector2i a, Vector2i b)
+	{
+		return Vector2i(Max(a.x, b.x), Max(a.y, b.y));
+	}
+
+	template <>
+	Vector2f Min<Vector2f>(Vector2f a, Vector2f b)
+	{
+		return Vector2f(Min(a.x, b.x), Min(a.y, b.y));
+	}
+	template <>
+	Vector2i Min<Vector2i>(Vector2i a, Vector2i b)
+	{
+		return Vector2i(Min(a.x, b.x), Min(a.y, b.y));
+	}
+
+	template <>
+	Vector2f Clamp(Vector2f value, Vector2f min, Vector2f max)
+	{
+		return Vector2f(Clamp(value.x, min.x, max.x), Clamp(value.y, min.y, max.y));
+	}
+	template <>
+	Vector2i Clamp(Vector2i value, Vector2i min, Vector2i max)
+	{
+		return Vector2i(Clamp(value.x, min.x, max.x), Clamp(value.y, min.y, max.y));
+	}
+
+	Colourb RoundedLerp(float t, Colourb v0, Colourb v1)
+	{
+		return Colourb{
+			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[0]), static_cast<float>(v1[0])))),
+			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[1]), static_cast<float>(v1[1])))),
+			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[2]), static_cast<float>(v1[2])))),
+			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[3]), static_cast<float>(v1[3])))),
+		};
+	}
+
+} // namespace Math
 } // namespace Rml

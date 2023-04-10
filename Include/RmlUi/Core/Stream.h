@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,16 +39,14 @@ namespace Rml {
 class StreamListener;
 
 /**
-	Abstract class for a media-independent byte stream.
-	@author Lloyd Weehuizen
+    Abstract class for a media-independent byte stream.
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API Stream : public NonCopyMoveable
-{
+class RMLUICORE_API Stream : public NonCopyMoveable {
 public:
 	// Stream modes.
-	enum StreamMode
-	{
+	enum StreamMode {
 		MODE_WRITE = 1 << 0,
 		MODE_APPEND = 1 << 1,
 		MODE_READ = 1 << 2,
@@ -122,7 +120,7 @@ public:
 
 protected:
 	/// Sets the mode on the stream; should be called by a stream when it is opened.
-	void SetStreamDetails(const URL& url, int stream_mode);		
+	void SetStreamDetails(const URL& url, int stream_mode);
 
 private:
 	URL url;

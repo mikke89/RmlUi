@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Flex nested ref</title>
-    <link type="text/rcss" href="../../style.rcss"/>
+	<title>Flex nested ref</title>
+	<link type="text/rcss" href="../../style.rcss"/>
 	<meta name="Reference" content="Reference implemented by wrapping the nested flex box in an extra div." />
 	<style>
 		#window {

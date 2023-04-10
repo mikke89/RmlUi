@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,24 +27,23 @@
  */
 
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
-#include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
-#include "PropertyParserNumber.h"
+#include "../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "IdNameMap.h"
 #include "PropertyParserAnimation.h"
-#include "PropertyParserRatio.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserDecorator.h"
 #include "PropertyParserFontEffect.h"
 #include "PropertyParserKeyword.h"
+#include "PropertyParserNumber.h"
+#include "PropertyParserRatio.h"
 #include "PropertyParserString.h"
 #include "PropertyParserTransform.h"
 #include "PropertyShorthandDefinition.h"
-#include "IdNameMap.h"
 
 namespace Rml {
 
 static StyleSheetSpecification* instance = nullptr;
-
 
 struct DefaultStyleSheetParsers {
 	PropertyParserNumber number = PropertyParserNumber(Property::NUMBER);
@@ -64,7 +63,7 @@ struct DefaultStyleSheetParsers {
 	PropertyParserNumber resolution = PropertyParserNumber(Property::X);
 };
 
-StyleSheetSpecification::StyleSheetSpecification() : 
+StyleSheetSpecification::StyleSheetSpecification() :
 	// Reserve space for all defined ids and some more for custom properties
 	properties((size_t)PropertyId::MaxNumIds, 2 * (size_t)ShorthandId::NumDefinedIds)
 {
@@ -80,7 +79,8 @@ StyleSheetSpecification::~StyleSheetSpecification()
 	instance = nullptr;
 }
 
-PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited, bool forces_layout)
+PropertyDefinition& StyleSheetSpecification::RegisterProperty(PropertyId id, const String& property_name, const String& default_value, bool inherited,
+	bool forces_layout)
 {
 	return properties.RegisterProperty(property_name, default_value, inherited, forces_layout, id);
 }
@@ -111,7 +111,6 @@ void StyleSheetSpecification::Shutdown()
 	}
 }
 
-// Registers a parser for use in property definitions.
 bool StyleSheetSpecification::RegisterParser(const String& parser_name, PropertyParser* parser)
 {
 	ParserMap::iterator iterator = instance->parsers.find(parser_name);
@@ -125,7 +124,6 @@ bool StyleSheetSpecification::RegisterParser(const String& parser_name, Property
 	return true;
 }
 
-// Returns the parser registered with a specific name.
 PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 {
 	ParserMap::iterator iterator = instance->parsers.find(parser_name);
@@ -135,14 +133,14 @@ PropertyParser* StyleSheetSpecification::GetParser(const String& parser_name)
 	return (*iterator).second;
 }
 
-// Registers a property with a new definition.
-PropertyDefinition& StyleSheetSpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited, bool forces_layout)
+PropertyDefinition& StyleSheetSpecification::RegisterProperty(const String& property_name, const String& default_value, bool inherited,
+	bool forces_layout)
 {
-	RMLUI_ASSERTMSG((size_t)instance->properties.property_map->GetId(property_name) < (size_t)PropertyId::FirstCustomId, "Custom property name matches an internal property, please make a unique name for the given property.");
-	return instance->RegisterProperty(PropertyId::Invalid, property_name, default_value, inherited, forces_layout); 
+	RMLUI_ASSERTMSG((size_t)instance->properties.property_map->GetId(property_name) < (size_t)PropertyId::FirstCustomId,
+		"Custom property name matches an internal property, please make a unique name for the given property.");
+	return instance->RegisterProperty(PropertyId::Invalid, property_name, default_value, inherited, forces_layout);
 }
 
-// Returns a property definition.
 const PropertyDefinition* StyleSheetSpecification::GetProperty(const String& property_name)
 {
 	return instance->properties.GetProperty(property_name);
@@ -158,7 +156,7 @@ const PropertyIdSet& StyleSheetSpecification::GetRegisteredProperties()
 	return instance->properties.GetRegisteredProperties();
 }
 
-const PropertyIdSet & StyleSheetSpecification::GetRegisteredInheritedProperties()
+const PropertyIdSet& StyleSheetSpecification::GetRegisteredInheritedProperties()
 {
 	return instance->properties.GetRegisteredInheritedProperties();
 }
@@ -168,15 +166,15 @@ const PropertyIdSet& StyleSheetSpecification::GetRegisteredPropertiesForcingLayo
 	return instance->properties.GetRegisteredPropertiesForcingLayout();
 }
 
-// Registers a shorthand property definition.
 ShorthandId StyleSheetSpecification::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
 {
-	RMLUI_ASSERTMSG(instance->properties.property_map->GetId(shorthand_name) == PropertyId::Invalid, "Custom shorthand name matches a property name, please make a unique name.");
-	RMLUI_ASSERTMSG((size_t)instance->properties.shorthand_map->GetId(shorthand_name) < (size_t)ShorthandId::FirstCustomId, "Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");
+	RMLUI_ASSERTMSG(instance->properties.property_map->GetId(shorthand_name) == PropertyId::Invalid,
+		"Custom shorthand name matches a property name, please make a unique name.");
+	RMLUI_ASSERTMSG((size_t)instance->properties.shorthand_map->GetId(shorthand_name) < (size_t)ShorthandId::FirstCustomId,
+		"Custom shorthand name matches an internal shorthand, please make a unique name for the given shorthand property.");
 	return instance->properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
-// Returns a shorthand definition.
 const ShorthandDefinition* StyleSheetSpecification::GetShorthand(const String& shorthand_name)
 {
 	return instance->properties.GetShorthand(shorthand_name);
@@ -187,7 +185,6 @@ const ShorthandDefinition* StyleSheetSpecification::GetShorthand(ShorthandId id)
 	return instance->properties.GetShorthand(id);
 }
 
-// Parses a property declaration, setting any parsed and validated properties on the given dictionary.
 bool StyleSheetSpecification::ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value)
 {
 	return instance->properties.ParsePropertyDeclaration(dictionary, property_name, property_value);
@@ -240,7 +237,6 @@ const PropertySpecification& StyleSheetSpecification::GetPropertySpecification()
 	return instance->properties;
 }
 
-// Registers RmlUi's default parsers.
 void StyleSheetSpecification::RegisterDefaultParsers()
 {
 	RegisterParser("number", &default_parsers->number);
@@ -260,21 +256,20 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("resolution", &default_parsers->resolution);
 }
 
-
-// Registers RmlUi's default style properties.
 void StyleSheetSpecification::RegisterDefaultProperties()
 {
-	/* 
-		Style property specifications (ala RCSS).
+	/*
+	    Style property specifications (ala RCSS).
 
-		Note: Whenever keywords or default values are changed, make sure its computed value is
-		changed correspondingly, see `ComputedValues.h`.
+	    Note: Whenever keywords or default values are changed, make sure its computed value is
+	    changed correspondingly, see `ComputedValues.h`.
 
-		When adding new properties, it may be desirable to add it to the computed values as well.
-		Then, make sure to resolve it as appropriate in `ElementStyle.cpp`.
+	    When adding new properties, it may be desirable to add it to the computed values as well.
+	    Then, make sure to resolve it as appropriate in `ElementStyle.cpp`.
 
 	*/
 
+	// clang-format off
 	RegisterProperty(PropertyId::MarginTop, "margin-top", "0px", false, true)
 		.AddParser("keyword", "auto")
 		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
@@ -322,27 +317,17 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Display, "display", "inline", false, true)
 		.AddParser("keyword", "none, block, inline, inline-block, flow-root, flex, inline-flex, table, inline-table, table-row, table-row-group, table-column, table-column-group, table-cell");
 	RegisterProperty(PropertyId::Position, "position", "static", false, true).AddParser("keyword", "static, relative, absolute, fixed");
-	RegisterProperty(PropertyId::Top, "top", "auto", false, false)
-		.AddParser("keyword", "auto")
-		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(PropertyId::Right, "right", "auto", false, false)
-		.AddParser("keyword", "auto")
-		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
-	RegisterProperty(PropertyId::Bottom, "bottom", "auto", false, false)
-		.AddParser("keyword", "auto")
-		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
-	RegisterProperty(PropertyId::Left, "left", "auto", false, false)
-		.AddParser("keyword", "auto")
-		.AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::Top, "top", "auto", false, false).AddParser("keyword", "auto").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::Right, "right", "auto", false, false).AddParser("keyword", "auto").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
+	RegisterProperty(PropertyId::Bottom, "bottom", "auto", false, false).AddParser("keyword", "auto").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockHeight);
+	RegisterProperty(PropertyId::Left, "left", "auto", false, false).AddParser("keyword", "auto").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 
 	RegisterProperty(PropertyId::Float, "float", "none", false, true).AddParser("keyword", "none, left, right");
 	RegisterProperty(PropertyId::Clear, "clear", "none", false, true).AddParser("keyword", "none, left, right, both");
 
 	RegisterProperty(PropertyId::BoxSizing, "box-sizing", "content-box", false, true).AddParser("keyword", "content-box, border-box");
 
-	RegisterProperty(PropertyId::ZIndex, "z-index", "auto", false, false)
-		.AddParser("keyword", "auto")
-		.AddParser("number");
+	RegisterProperty(PropertyId::ZIndex, "z-index", "auto", false, false).AddParser("keyword", "auto").AddParser("number");
 
 	RegisterProperty(PropertyId::Width, "width", "auto", false, true).AddParser("keyword", "auto").AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
 	RegisterProperty(PropertyId::MinWidth, "min-width", "0px", false, true).AddParser("length_percent").SetRelativeTarget(RelativeTarget::ContainingBlockWidth);
@@ -440,6 +425,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");
 	RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");
+	// clang-format on
 }
 
 } // namespace Rml

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -68,13 +68,12 @@ struct ElementMeta;
 struct StackingContextChild;
 
 /**
-	A generic element in the DOM tree.
+    A generic element in the DOM tree.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element>
-{
+class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element> {
 public:
 	RMLUI_RTTI_DefineWithParent(Element, ScriptInterface)
 
@@ -207,16 +206,16 @@ public:
 	/// @param[in] name The name of the local property definition to remove.
 	void RemoveProperty(const String& name);
 	void RemoveProperty(PropertyId id);
-	/// Returns one of this element's properties. If the property is not defined for this element and not inherited 
+	/// Returns one of this element's properties. If the property is not defined for this element and not inherited
 	/// from an ancestor, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
-	const Property* GetProperty(const String& name);		
-	const Property* GetProperty(PropertyId id);		
-	/// Returns the values of one of this element's properties.		
+	const Property* GetProperty(const String& name);
+	const Property* GetProperty(PropertyId id);
+	/// Returns the values of one of this element's properties.
 	/// @param[in] name The name of the property to get.
 	/// @return The value of this property.
-	template < typename T >
+	template <typename T>
 	T GetProperty(const String& name);
 	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
 	/// returned.
@@ -233,7 +232,7 @@ public:
 	/// @param[in] property The property to resolve the value for.
 	/// @param[in] base_value The value that is scaled by the number or percentage value, if applicable.
 	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
-	float ResolveNumericProperty(const Property *property, float base_value);
+	float ResolveNumericProperty(const Property* property, float base_value);
 	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
 	/// Numbers and percentages are scaled according to the relative target of the property definition.
 	/// @param[in] name The property to resolve the value for.
@@ -260,13 +259,14 @@ public:
 	/// If an animation of the same property name exists, it will be replaced.
 	/// If start_value is null, the current property value on this element is used.
 	/// @return True if a new animation was added.
-	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1, bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
+	bool Animate(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{}, int num_iterations = 1,
+		bool alternate_direction = true, float delay = 0.0f, const Property* start_value = nullptr);
 
 	/// Add a key to an animation, extending its duration.
 	/// If no animation exists for the given property name, the call will be ignored.
 	/// @return True if a new animation key was added.
 	bool AddAnimationKey(const String& property_name, const Property& target_value, float duration, Tween tween = Tween{});
-	
+
 	/// Iterator for the local (non-inherited) properties defined on this element.
 	/// @warning Modifying the element's properties or classes invalidates the iterator.
 	/// @return Iterator to the first property defined on this element.
@@ -299,7 +299,7 @@ public:
 	/// Sets an attribute on the element.
 	/// @param[in] name Name of the attribute.
 	/// @param[in] value Value of the attribute.
-	template< typename T >
+	template <typename T>
 	void SetAttribute(const String& name, const T& value);
 	/// Gets the specified attribute.
 	/// @param[in] name Name of the attribute to retrieve.
@@ -310,7 +310,7 @@ public:
 	/// Gets the specified attribute, with default value.
 	/// @param[in] name Name of the attribute to retrieve.
 	/// @param[in] default_value Value to return if the attribute doesn't exist.
-	template< typename T >
+	template <typename T>
 	T GetAttribute(const String& name, const T& default_value) const;
 	/// Checks if the element has a certain attribute.
 	/// @param[in] name The name of the attribute to check for.
@@ -447,7 +447,8 @@ public:
 	/// @return The child element at the given index.
 	Element* GetChild(int index) const;
 	/// Get the current number of children in this element
-	/// @param[in] include_non_dom_elements True if the caller wants to include the non DOM children. Only set this to true if you know what you're doing!
+	/// @param[in] include_non_dom_elements True if the caller wants to include the non DOM children. Only set this to true if you know what you're
+	/// doing!
 	/// @return The number of children.
 	int GetNumChildren(bool include_non_dom_elements = false) const;
 
@@ -507,7 +508,8 @@ public:
 	/// @param[in] options Scroll parameters that control desired element alignment relative to the parent.
 	void ScrollIntoView(ScrollIntoViewOptions options);
 	/// Scrolls the parent element's contents so that this element is visible.
-	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be aligned to the bottom of the parent element's window.
+	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be
+	/// aligned to the bottom of the parent element's window.
 	void ScrollIntoView(bool align_with_top = true);
 	/// Sets the scroll offset of this element to the given coordinates.
 	/// @param[in] position The scroll destination coordinates.
@@ -560,11 +562,10 @@ public:
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
 	void QuerySelectorAll(ElementList& elements, const String& selectors);
 
-
 	//@}
 
 	/**
-		@name Internal Functions
+	    @name Internal Functions
 	 */
 	//@{
 	/// Access the event dispatcher for this element.
@@ -582,7 +583,7 @@ public:
 	/// Returns the data model of this element.
 	DataModel* GetDataModel() const;
 	//@}
-	
+
 	/// Gets the render interface owned by this element's context.
 	/// @return The element's context's render interface.
 	RenderInterface* GetRenderInterface();
@@ -667,7 +668,7 @@ protected:
 
 private:
 	void SetParent(Element* parent);
-	
+
 	void SetDataModel(DataModel* new_data_model);
 
 	void DirtyAbsoluteOffset();
@@ -689,10 +690,11 @@ private:
 	void DirtyFontFaceRecursive();
 
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
-	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool initiated_by_animation_property);
+	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction,
+		float delay, bool initiated_by_animation_property);
 
 	/// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
-	bool AddAnimationKeyTime(PropertyId property_id, const Property * target_value, float time, Tween tween);
+	bool AddAnimationKeyTime(PropertyId property_id, const Property* target_value, float time, Tween tween);
 
 	/// Start a transition of the given property on this element.
 	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
@@ -756,8 +758,8 @@ private:
 
 	// The offset of the element, and the element it is offset from.
 	Element* offset_parent;
-	Vector2f relative_offset_base;		// the base offset from the parent
-	Vector2f relative_offset_position;	// the offset of a relatively positioned element
+	Vector2f relative_offset_base;     // the base offset from the parent
+	Vector2f relative_offset_position; // the offset of a relatively positioned element
 
 	Vector2f absolute_offset;
 
@@ -769,7 +771,7 @@ private:
 		Box box;
 		Vector2f offset;
 	};
-	using PositionedBoxList = Vector< PositionedBox >;
+	using PositionedBoxList = Vector<PositionedBox>;
 	Box main_box;
 	PositionedBoxList additional_boxes;
 
@@ -780,8 +782,8 @@ private:
 	float z_index;
 
 	ElementList stacking_context;
-	
-	UniquePtr< TransformState > transform_state;
+
+	UniquePtr<TransformState> transform_state;
 
 	ElementAnimationList animations;
 

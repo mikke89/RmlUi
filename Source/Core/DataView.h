@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,16 +29,15 @@
 #ifndef RMLUI_CORE_DATAVIEW_H
 #define RMLUI_CORE_DATAVIEW_H
 
-#include "../../Include/RmlUi/Core/Header.h"
-#include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/Traits.h"
 #include "../../Include/RmlUi/Core/DataTypes.h"
+#include "../../Include/RmlUi/Core/Header.h"
+#include "../../Include/RmlUi/Core/Traits.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
 class Element;
 class DataModel;
-
 
 class DataViewInstancer : public NonCopyMoveable {
 public:
@@ -47,23 +46,21 @@ public:
 	virtual DataViewPtr InstanceView(Element* element) = 0;
 };
 
-template<typename T>
+template <typename T>
 class DataViewInstancerDefault final : public DataViewInstancer {
 public:
-	DataViewPtr InstanceView(Element* element) override {
-		return DataViewPtr(new T(element));
-	}
+	DataViewPtr InstanceView(Element* element) override { return DataViewPtr(new T(element)); }
 };
 
 /**
-	Data view.
+    Data view.
 
-	Data views are used to present a data variable in the document by different means.
-	A data view is declared in the document by the element attribute:
-	
-	    data-[type]-[modifier]="[expression]"
+    Data views are used to present a data variable in the document by different means.
+    A data view is declared in the document by the element attribute:
 
-	The modifier may or may not be required depending on the data view.
+        data-[type]-[modifier]="[expression]"
+
+    The modifier may or may not be required depending on the data view.
  */
 
 class DataView : public Releasable {
@@ -91,10 +88,10 @@ public:
 	// Data views are first sorted by the depth of the attached element in the
 	// document tree, then optionally by an offset specified for each data view.
 	int GetSortOrder() const;
-	
+
 	// Returns true if the element still exists.
 	bool IsValid() const;
-	
+
 protected:
 	// @param[in] element The element this data view is attached to.
 	// @param[in] sort_offset A number [-1000, 999] specifying the update order of this
@@ -105,8 +102,6 @@ private:
 	ObserverPtr<Element> attached_element;
 	int sort_order;
 };
-
-
 
 class DataViews : NonCopyMoveable {
 public:
@@ -123,7 +118,7 @@ private:
 	using DataViewList = Vector<DataViewPtr>;
 
 	DataViewList views;
-	
+
 	DataViewList views_to_add;
 	DataViewList views_to_remove;
 

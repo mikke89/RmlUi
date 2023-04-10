@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,67 +31,38 @@
 
 namespace Rml {
 
-InputType::InputType(ElementFormControlInput* element) : element(element)
-{
-}
+InputType::InputType(ElementFormControlInput* element) : element(element) {}
 
-InputType::~InputType()
-{
-}
+InputType::~InputType() {}
 
-// Returns a string representation of the current value of the form control.
 String InputType::GetValue() const
 {
-	return element->GetAttribute< String >("value", "");
+	return element->GetAttribute<String>("value", "");
 }
 
-// Returns if this value should be submitted with the form.
 bool InputType::IsSubmitted()
 {
 	return true;
 }
 
-// Called every update from the host element.
-void InputType::OnUpdate()
-{
-}
+void InputType::OnUpdate() {}
 
-// Called every render from the host element.
-void InputType::OnRender()
-{
-}
+void InputType::OnRender() {}
 
-void InputType::OnResize()
-{
-}
+void InputType::OnResize() {}
 
-void InputType::OnLayout()
-{
-}
+void InputType::OnLayout() {}
 
-// Checks for necessary functional changes in the control as a result of changed attributes.
-bool InputType::OnAttributeChange(const ElementAttributes& RMLUI_UNUSED_PARAMETER(changed_attributes))
+bool InputType::OnAttributeChange(const ElementAttributes& /*changed_attributes*/)
 {
-	RMLUI_UNUSED(changed_attributes);
-
 	return true;
 }
 
-// Called when properties on the control are changed.
-void InputType::OnPropertyChange(const PropertyIdSet& RMLUI_UNUSED_PARAMETER(changed_properties))
-{
-	RMLUI_UNUSED(changed_properties);
-}
+void InputType::OnPropertyChange(const PropertyIdSet& /*changed_properties*/) {}
 
-// Called when the element is added into a hierarchy.
-void InputType::OnChildAdd()
-{
-}
+void InputType::OnChildAdd() {}
 
-// Called when the element is removed from a hierarchy.
-void InputType::OnChildRemove()
-{
-}
+void InputType::OnChildRemove() {}
 
 void InputType::Select() {}
 

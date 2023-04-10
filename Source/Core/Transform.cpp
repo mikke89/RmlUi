@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,21 +27,15 @@
  */
 
 #include "../../Include/RmlUi/Core/Transform.h"
+#include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
-#include "../../Include/RmlUi/Core/Property.h"
 
 namespace Rml {
 
-// Default constructor, initializes an identity transform
-Transform::Transform()
-{
-}
+Transform::Transform() {}
 
-Transform::Transform(PrimitiveList primitives) 
-	: primitives(std::move(primitives))
-{
-}
+Transform::Transform(PrimitiveList primitives) : primitives(std::move(primitives)) {}
 
 Property Transform::MakeProperty(PrimitiveList primitives)
 {
@@ -50,22 +44,22 @@ Property Transform::MakeProperty(PrimitiveList primitives)
 	return p;
 }
 
-void Transform::ClearPrimitives() 
+void Transform::ClearPrimitives()
 {
 	primitives.clear();
 }
 
-void Transform::AddPrimitive(const TransformPrimitive & p)
+void Transform::AddPrimitive(const TransformPrimitive& p)
 {
 	primitives.push_back(p);
 }
 
-int Transform::GetNumPrimitives() const noexcept 
+int Transform::GetNumPrimitives() const noexcept
 {
 	return (int)primitives.size();
 }
 
-const TransformPrimitive & Transform::GetPrimitive(int i) const noexcept 
+const TransformPrimitive& Transform::GetPrimitive(int i) const noexcept
 {
 	return primitives[i];
 }

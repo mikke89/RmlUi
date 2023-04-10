@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,15 +32,13 @@
 namespace Rml {
 
 /*
-	Enumerants for sending input events into RmlUi.
+    Enumerants for sending input events into RmlUi.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-namespace Input
-{
-	enum KeyIdentifier : unsigned char
-	{
+namespace Input {
+	enum KeyIdentifier : unsigned char {
 		KI_UNKNOWN = 0,
 
 		KI_SPACE = 1,
@@ -83,21 +81,21 @@ namespace Input
 		KI_Y = 36,
 		KI_Z = 37,
 
-		KI_OEM_1 = 38,				// US standard keyboard; the ';:' key.
-		KI_OEM_PLUS = 39,			// Any region; the '=+' key.
-		KI_OEM_COMMA = 40,			// Any region; the ',<' key.
-		KI_OEM_MINUS = 41,			// Any region; the '-_' key.
-		KI_OEM_PERIOD = 42,			// Any region; the '.>' key.
-		KI_OEM_2 = 43,				// Any region; the '/?' key.
-		KI_OEM_3 = 44,				// Any region; the '`~' key.
+		KI_OEM_1 = 38,      // US standard keyboard; the ';:' key.
+		KI_OEM_PLUS = 39,   // Any region; the '=+' key.
+		KI_OEM_COMMA = 40,  // Any region; the ',<' key.
+		KI_OEM_MINUS = 41,  // Any region; the '-_' key.
+		KI_OEM_PERIOD = 42, // Any region; the '.>' key.
+		KI_OEM_2 = 43,      // Any region; the '/?' key.
+		KI_OEM_3 = 44,      // Any region; the '`~' key.
 
-		KI_OEM_4 = 45,				// US standard keyboard; the '[{' key.
-		KI_OEM_5 = 46,				// US standard keyboard; the '\|' key.
-		KI_OEM_6 = 47,				// US standard keyboard; the ']}' key.
-		KI_OEM_7 = 48,				// US standard keyboard; the ''"' key.
+		KI_OEM_4 = 45,      // US standard keyboard; the '[{' key.
+		KI_OEM_5 = 46,      // US standard keyboard; the '\|' key.
+		KI_OEM_6 = 47,      // US standard keyboard; the ']}' key.
+		KI_OEM_7 = 48,      // US standard keyboard; the ''"' key.
 		KI_OEM_8 = 49,
 
-		KI_OEM_102 = 50,			// RT 102-key keyboard; the '<>' or '\|' key.
+		KI_OEM_102 = 50, // RT 102-key keyboard; the '<>' or '\|' key.
 
 		KI_NUMPAD0 = 51,
 		KI_NUMPAD1 = 52,
@@ -110,60 +108,60 @@ namespace Input
 		KI_NUMPAD8 = 59,
 		KI_NUMPAD9 = 60,
 		KI_NUMPADENTER = 61,
-		KI_MULTIPLY = 62,			// Asterisk on the numeric keypad.
-		KI_ADD = 63,				// Plus on the numeric keypad.
+		KI_MULTIPLY = 62, // Asterisk on the numeric keypad.
+		KI_ADD = 63,      // Plus on the numeric keypad.
 		KI_SEPARATOR = 64,
-		KI_SUBTRACT = 65,			// Minus on the numeric keypad.
-		KI_DECIMAL = 66,			// Period on the numeric keypad.
-		KI_DIVIDE = 67,				// Forward Slash on the numeric keypad.
+		KI_SUBTRACT = 65, // Minus on the numeric keypad.
+		KI_DECIMAL = 66,  // Period on the numeric keypad.
+		KI_DIVIDE = 67,   // Forward Slash on the numeric keypad.
 
 		/*
 		 * NEC PC-9800 kbd definitions
 		 */
-		KI_OEM_NEC_EQUAL = 68,		// Equals key on the numeric keypad.
+		KI_OEM_NEC_EQUAL = 68, // Equals key on the numeric keypad.
 
-		KI_BACK = 69,				// Backspace key.
-		KI_TAB = 70,				// Tab key.
+		KI_BACK = 69,          // Backspace key.
+		KI_TAB = 70,           // Tab key.
 
 		KI_CLEAR = 71,
 		KI_RETURN = 72,
 
 		KI_PAUSE = 73,
-		KI_CAPITAL = 74,			// Capslock key.
+		KI_CAPITAL = 74,    // Capslock key.
 
-		KI_KANA = 75,				// IME Kana mode.
-		KI_HANGUL = 76,				// IME Hangul mode.
-		KI_JUNJA = 77,				// IME Junja mode.
-		KI_FINAL = 78,				// IME final mode.
-		KI_HANJA = 79,				// IME Hanja mode.
-		KI_KANJI = 80,				// IME Kanji mode.
+		KI_KANA = 75,       // IME Kana mode.
+		KI_HANGUL = 76,     // IME Hangul mode.
+		KI_JUNJA = 77,      // IME Junja mode.
+		KI_FINAL = 78,      // IME final mode.
+		KI_HANJA = 79,      // IME Hanja mode.
+		KI_KANJI = 80,      // IME Kanji mode.
 
-		KI_ESCAPE = 81,				// Escape key.
+		KI_ESCAPE = 81,     // Escape key.
 
-		KI_CONVERT = 82,			// IME convert.
-		KI_NONCONVERT = 83,			// IME nonconvert.
-		KI_ACCEPT = 84,				// IME accept.
-		KI_MODECHANGE = 85,			// IME mode change request.
+		KI_CONVERT = 82,    // IME convert.
+		KI_NONCONVERT = 83, // IME nonconvert.
+		KI_ACCEPT = 84,     // IME accept.
+		KI_MODECHANGE = 85, // IME mode change request.
 
-		KI_PRIOR = 86,				// Page Up key.
-		KI_NEXT = 87,				// Page Down key.
+		KI_PRIOR = 86,      // Page Up key.
+		KI_NEXT = 87,       // Page Down key.
 		KI_END = 88,
 		KI_HOME = 89,
-		KI_LEFT = 90,				// Left Arrow key.
-		KI_UP = 91,					// Up Arrow key.
-		KI_RIGHT = 92,				// Right Arrow key.
-		KI_DOWN = 93,				// Down Arrow key.
+		KI_LEFT = 90,  // Left Arrow key.
+		KI_UP = 91,    // Up Arrow key.
+		KI_RIGHT = 92, // Right Arrow key.
+		KI_DOWN = 93,  // Down Arrow key.
 		KI_SELECT = 94,
 		KI_PRINT = 95,
 		KI_EXECUTE = 96,
-		KI_SNAPSHOT = 97,			// Print Screen key.
+		KI_SNAPSHOT = 97, // Print Screen key.
 		KI_INSERT = 98,
 		KI_DELETE = 99,
 		KI_HELP = 100,
 
-		KI_LWIN = 101,				// Left Windows key.
-		KI_RWIN = 102,				// Right Windows key.
-		KI_APPS = 103,				// Applications key.
+		KI_LWIN = 101, // Left Windows key.
+		KI_RWIN = 102, // Right Windows key.
+		KI_APPS = 103, // Applications key.
 
 		KI_POWER = 104,
 		KI_SLEEP = 105,
@@ -194,17 +192,17 @@ namespace Input
 		KI_F23 = 129,
 		KI_F24 = 130,
 
-		KI_NUMLOCK = 131,			// Numlock key.
-		KI_SCROLL = 132,			// Scroll Lock key.
+		KI_NUMLOCK = 131, // Numlock key.
+		KI_SCROLL = 132,  // Scroll Lock key.
 
 		/*
 		 * Fujitsu/OASYS kbd definitions
 		 */
-		KI_OEM_FJ_JISHO = 133,		// 'Dictionary' key.
-		KI_OEM_FJ_MASSHOU = 134,	// 'Unregister word' key.
-		KI_OEM_FJ_TOUROKU = 135,	// 'Register word' key.
-		KI_OEM_FJ_LOYA = 136,		// 'Left OYAYUBI' key.
-		KI_OEM_FJ_ROYA = 137,		// 'Right OYAYUBI' key.
+		KI_OEM_FJ_JISHO = 133,   // 'Dictionary' key.
+		KI_OEM_FJ_MASSHOU = 134, // 'Unregister word' key.
+		KI_OEM_FJ_TOUROKU = 135, // 'Register word' key.
+		KI_OEM_FJ_LOYA = 136,    // 'Left OYAYUBI' key.
+		KI_OEM_FJ_ROYA = 137,    // 'Right OYAYUBI' key.
 
 		KI_LSHIFT = 138,
 		KI_RSHIFT = 139,
@@ -240,7 +238,7 @@ namespace Input
 		KI_ICO_HELP = 163,
 		KI_ICO_00 = 164,
 
-		KI_PROCESSKEY = 165,		// IME Process key.
+		KI_PROCESSKEY = 165, // IME Process key.
 
 		KI_ICO_CLEAR = 166,
 
@@ -257,17 +255,16 @@ namespace Input
 		KI_RMETA = 176
 	};
 
-	enum KeyModifier : unsigned char
-	{
-		KM_CTRL = 1 << 0,		// Set if at least one Ctrl key is depressed.
-		KM_SHIFT = 1 << 1,		// Set if at least one Shift key is depressed.
-		KM_ALT = 1 << 2,		// Set if at least one Alt key is depressed.
-		KM_META = 1 << 3,		// Set if at least one Meta key (the command key) is depressed.
-		KM_CAPSLOCK = 1 << 4,	// Set if caps lock is enabled.
-		KM_NUMLOCK = 1 << 5,	// Set if num lock is enabled.
-		KM_SCROLLLOCK = 1 << 6	// Set if scroll lock is enabled.
+	enum KeyModifier : unsigned char {
+		KM_CTRL = 1 << 0,      // Set if at least one Ctrl key is depressed.
+		KM_SHIFT = 1 << 1,     // Set if at least one Shift key is depressed.
+		KM_ALT = 1 << 2,       // Set if at least one Alt key is depressed.
+		KM_META = 1 << 3,      // Set if at least one Meta key (the command key) is depressed.
+		KM_CAPSLOCK = 1 << 4,  // Set if caps lock is enabled.
+		KM_NUMLOCK = 1 << 5,   // Set if num lock is enabled.
+		KM_SCROLLLOCK = 1 << 6 // Set if scroll lock is enabled.
 	};
-}
+} // namespace Input
 
 } // namespace Rml
 #endif

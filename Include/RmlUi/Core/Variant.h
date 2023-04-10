@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,28 +29,26 @@
 #ifndef RMLUIVARIANT_H
 #define RMLUIVARIANT_H
 
-#include "Header.h"
-#include "Types.h"
-#include "TypeConverter.h"
 #include "Animation.h"
+#include "Header.h"
+#include "TypeConverter.h"
+#include "Types.h"
 
 namespace Rml {
 
 /**
-	Variant is a container that can store a selection of basic types. The variant will store the
-	value in the native form corresponding to the version of Set that was called.
+    Variant is a container that can store a selection of basic types. The variant will store the
+    value in the native form corresponding to the version of Set that was called.
 
-	Get is templated to convert from the stored form to the requested form by using a TypeConverter.
+    Get is templated to convert from the stored form to the requested form by using a TypeConverter.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API Variant
-{
+class RMLUICORE_API Variant {
 public:
 	/// Type of data stored in the variant. We use size_t as base to avoid 'padding due to alignment specifier' warning.
-	enum Type : size_t
-	{
+	enum Type : size_t {
 		NONE = '-',
 		BOOL = 'B',
 		BYTE = 'b',
@@ -99,26 +97,25 @@ public:
 	/// internal representation to the requested representation.
 	/// @param[in] default_value The value returned if the conversion failed.
 	/// @return Data in the requested type.
-	template< typename T >
+	template <typename T>
 	T Get(T default_value = T()) const;
 
 	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
 	/// internal representation to the requested representation.
 	/// @param[out] value Data in the requested type.
 	/// @return True if the value was converted and returned, false if no data was stored in the variant.
-	template< typename T >
+	template <typename T>
 	bool GetInto(T& value) const;
 
 	/// Returns a reference to the variant's underlying type.
 	/// @warning: Undefined behavior if T does not represent the underlying type of the variant.
-	template< typename T>
+	template <typename T>
 	const T& GetReference() const;
 
 	bool operator==(const Variant& other) const;
 	bool operator!=(const Variant& other) const { return !(*this == other); }
 
 private:
-
 	/// Copy another variant's data to this variant.
 	/// @warning Does not clear existing data.
 	void Set(const Variant& copy);
@@ -154,7 +151,7 @@ private:
 	void Set(DecoratorsPtr&& value);
 	void Set(const FontEffectsPtr& value);
 	void Set(FontEffectsPtr&& value);
-	
+
 	static constexpr size_t LOCAL_DATA_SIZE = (sizeof(TransitionList) > sizeof(String) ? sizeof(TransitionList) : sizeof(String));
 
 	Type type = NONE;

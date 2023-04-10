@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,65 +30,29 @@
 
 namespace Rml {
 
-Plugin::~Plugin()
-{
-}
+Plugin::~Plugin() {}
 
 int Plugin::GetEventClasses()
 {
 	return EVT_ALL;
 }
 
-void Plugin::OnInitialise()
-{
-}
+void Plugin::OnInitialise() {}
 
-void Plugin::OnShutdown()
-{
-}
+void Plugin::OnShutdown() {}
 
-// Called when a new context is created.
-void Plugin::OnContextCreate(Context* RMLUI_UNUSED_PARAMETER(context))
-{
-	RMLUI_UNUSED(context);
-}
+void Plugin::OnContextCreate(Context* /*context*/) {}
 
-// Called when a context is destroyed.
-void Plugin::OnContextDestroy(Context* RMLUI_UNUSED_PARAMETER(context))
-{
-	RMLUI_UNUSED(context);
-}
+void Plugin::OnContextDestroy(Context* /*context*/) {}
 
-// Called when a document load request occurs, before the document's file is opened.
-void Plugin::OnDocumentOpen(Context* RMLUI_UNUSED_PARAMETER(context), const String& RMLUI_UNUSED_PARAMETER(document_path))
-{
-	RMLUI_UNUSED(context);
-	RMLUI_UNUSED(document_path);
-}
+void Plugin::OnDocumentOpen(Context* /*context*/, const String& /*document_path*/) {}
 
-// Called when a document is successfully loaded from file or instanced, initialised and added to
-// its context.
-void Plugin::OnDocumentLoad(ElementDocument* RMLUI_UNUSED_PARAMETER(document))
-{
-	RMLUI_UNUSED(document);
-}
+void Plugin::OnDocumentLoad(ElementDocument* /*document*/) {}
 
-// Called when a document is unloaded from its context.
-void Plugin::OnDocumentUnload(ElementDocument* RMLUI_UNUSED_PARAMETER(document))
-{
-	RMLUI_UNUSED(document);
-}
+void Plugin::OnDocumentUnload(ElementDocument* /*document*/) {}
 
-// Called when a new element is created.
-void Plugin::OnElementCreate(Element* RMLUI_UNUSED_PARAMETER(element))
-{
-	RMLUI_UNUSED(element);
-}
+void Plugin::OnElementCreate(Element* /*element*/) {}
 
-// Called when an element is destroyed.
-void Plugin::OnElementDestroy(Element* RMLUI_UNUSED_PARAMETER(element))
-{
-	RMLUI_UNUSED(element);
-}
+void Plugin::OnElementDestroy(Element* /*element*/) {}
 
 } // namespace Rml

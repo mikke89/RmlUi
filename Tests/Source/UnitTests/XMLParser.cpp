@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -109,18 +109,18 @@ TEST_CASE("XMLParser.escaping")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-	
+
 	ElementDocument* document = context->LoadDocumentFromMemory(document_escaping);
 	REQUIRE(document);
 	document->Show();
-	
+
 	TestsShell::RenderLoop();
-	
+
 	auto element = document->GetElementById("p");
 	REQUIRE(element);
-	
+
 	CHECK(element->GetInnerRML() == "\xe2\x82\xac\xe2\x82\xac");
-	
+
 	document->Close();
 	TestsShell::ShutdownShell();
 }
@@ -129,19 +129,19 @@ TEST_CASE("XMLParser.escaping_tags")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-	
+
 	ElementDocument* document = context->LoadDocumentFromMemory(document_escaping_tags);
 	REQUIRE(document);
 	document->Show();
-	
+
 	TestsShell::RenderLoop();
-	
-	CHECK(document->GetNumChildren() == 1); 
+
+	CHECK(document->GetNumChildren() == 1);
 	CHECK(document->GetFirstChild()->GetTagName() == "#text");
 	// Text-access should yield decoded value, while RML-access should yield encoded value
 	CHECK(static_cast<ElementText*>(document->GetFirstChild())->GetText() == "<p>&lt;span/&gt;</p>");
 	CHECK(document->GetInnerRML() == "&lt;p&gt;&amp;lt;span/&amp;gt;&lt;/p&gt;");
-	
+
 	document->Close();
 	TestsShell::ShutdownShell();
 }

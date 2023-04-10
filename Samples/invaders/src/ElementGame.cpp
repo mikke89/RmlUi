@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,21 +42,18 @@ ElementGame::ElementGame(const Rml::String& tag) : Rml::Element(tag)
 }
 
 ElementGame::~ElementGame()
-{		
+{
 	delete game;
 }
 
-// Intercepts and handles key events.
 void ElementGame::ProcessEvent(Rml::Event& event)
 {
-	if (event == Rml::EventId::Keydown ||
-		event == Rml::EventId::Keyup)
+	if (event == Rml::EventId::Keydown || event == Rml::EventId::Keyup)
 	{
 		bool key_down = (event == Rml::EventId::Keydown);
-		Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+		Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
 
-		if (key_identifier == Rml::Input::KI_ESCAPE &&
-			!key_down)
+		if (key_identifier == Rml::Input::KI_ESCAPE && !key_down)
 		{
 			EventManager::LoadWindow("pause");
 		}
@@ -70,13 +67,13 @@ void ElementGame::ProcessEvent(Rml::Event& event)
 				game->GetDefender()->StartMove(1.0f);
 			if (key_identifier == Rml::Input::KI_SPACE)
 				game->GetDefender()->Fire();
-		}		
+		}
 		else if (!key_down)
 		{
 			if (key_identifier == Rml::Input::KI_LEFT)
 				game->GetDefender()->StopMove(-1.0f);
 			if (key_identifier == Rml::Input::KI_RIGHT)
-				game->GetDefender()->StopMove(1.0f);				
+				game->GetDefender()->StopMove(1.0f);
 		}
 	}
 
@@ -86,13 +83,11 @@ void ElementGame::ProcessEvent(Rml::Event& event)
 	}
 }
 
-// Updates the game.
 void ElementGame::OnUpdate()
 {
 	game->Update(Rml::GetSystemInterface()->GetElapsedTime());
 }
 
-// Renders the game.
 void ElementGame::OnRender()
 {
 	game->Render(GetContext()->GetDensityIndependentPixelRatio());

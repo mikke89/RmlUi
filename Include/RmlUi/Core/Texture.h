@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,24 +38,22 @@ class TextureResource;
 class RenderInterface;
 
 /*
-	Callback function for generating textures.
-	/// @param[in] render_interface The render interface to use for generating the texture.
-	/// @param[in] name The name used to set the texture.
-	/// @param[out] handle The texture handle obtained through the render interface.
-	/// @param[out] dimensions The width and height of the generated texture.
-	/// @return True on success.
+    Callback function for generating textures.
+    /// @param[in] render_interface The render interface to use for generating the texture.
+    /// @param[in] name The name used to set the texture.
+    /// @param[out] handle The texture handle obtained through the render interface.
+    /// @param[out] dimensions The width and height of the generated texture.
+    /// @return True on success.
 */
 using TextureCallback = Function<bool(RenderInterface* render_interface, const String& name, TextureHandle& handle, Vector2i& dimensions)>;
 
-
 /**
-	Abstraction of a two-dimensional texture image, with an application-specific texture handle.
+    Abstraction of a two-dimensional texture image, with an application-specific texture handle.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-struct RMLUICORE_API Texture
-{
+struct RMLUICORE_API Texture {
 public:
 	/// Set the texture source and path. The texture is added to the global cache and only loaded on first use.
 	/// @param[in] source The source of the texture.

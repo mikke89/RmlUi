@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,30 +29,28 @@
 #ifndef FONTENGINEINTERFACEBITMAP_H
 #define FONTENGINEINTERFACEBITMAP_H
 
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/FontEngineInterface.h>
+#include <RmlUi/Core/Types.h>
 
-using Rml::FontFaceHandle;
 using Rml::FontEffectsHandle;
+using Rml::FontFaceHandle;
 
-using Rml::Vector2i;
-using Rml::Vector2f;
-using Rml::Colourb;
-using Rml::Texture;
-using Rml::String;
+using Rml::byte;
 using Rml::Character;
+using Rml::Colourb;
+using Rml::String;
+using Rml::Texture;
+using Rml::Vector2f;
+using Rml::Vector2i;
 using Rml::Style::FontStyle;
 using Rml::Style::FontWeight;
-using Rml::byte;
 
 using Rml::FontEffectList;
-using Rml::GeometryList;
 using Rml::FontMetrics;
+using Rml::GeometryList;
 
-
-class FontEngineInterfaceBitmap : public Rml::FontEngineInterface
-{
+class FontEngineInterfaceBitmap : public Rml::FontEngineInterface {
 public:
 	FontEngineInterfaceBitmap();
 	virtual ~FontEngineInterfaceBitmap();
@@ -64,7 +62,7 @@ public:
 	/// @param[in] data A pointer to the data.
 	bool LoadFontFace(const byte* data, int data_size, const String& family, FontStyle style, FontWeight weight, bool fallback_face) override;
 
-	/// Called by RmlUi when a font configuration is resolved for an element. Should return a handle that 
+	/// Called by RmlUi when a font configuration is resolved for an element. Should return a handle that
 	/// can later be used to resolve properties of the face, and generate string geometry to be rendered.
 	FontFaceHandle GetFontFaceHandle(const String& family, FontStyle style, FontWeight weight, int size) override;
 
@@ -84,7 +82,5 @@ public:
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated.eometry.
 	int GetVersion(FontFaceHandle handle) override;
 };
-
-
 
 #endif

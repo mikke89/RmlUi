@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,13 +36,13 @@
 
 namespace Rml {
 
-class DecoratorNinePatch : public Decorator
-{
+class DecoratorNinePatch : public Decorator {
 public:
 	DecoratorNinePatch();
 	virtual ~DecoratorNinePatch();
 
-	bool Initialise(const Rectanglef& rect_outer, const Rectanglef& rect_inner, const Array<Property, 4>* _edges, const Texture& texture, float display_scale);
+	bool Initialise(const Rectanglef& rect_outer, const Rectanglef& rect_inner, const Array<Property, 4>* _edges, const Texture& texture,
+		float display_scale);
 
 	DecoratorDataHandle GenerateElementData(Element* element) const override;
 	void ReleaseElementData(DecoratorDataHandle element_data) const override;
@@ -52,23 +52,20 @@ public:
 private:
 	Rectanglef rect_outer, rect_inner;
 	float display_scale = 1;
-	UniquePtr<Array<Property,4>> edges;
+	UniquePtr<Array<Property, 4>> edges;
 };
 
-
-
-class DecoratorNinePatchInstancer : public DecoratorInstancer
-{
+class DecoratorNinePatchInstancer : public DecoratorInstancer {
 public:
 	DecoratorNinePatchInstancer();
 	~DecoratorNinePatchInstancer();
 
-	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface) override;
+	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) override;
 
 private:
 	PropertyId sprite_outer_id, sprite_inner_id;
 	PropertyId edge_ids[4];
-
 };
 
 } // namespace Rml

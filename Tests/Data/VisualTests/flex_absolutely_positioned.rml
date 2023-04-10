@@ -11,11 +11,11 @@
 			text-align: center;
 			flex-direction: row;
 		}
-		
+
 		.flex > :nth-child(1) { width: 20%; background: red; }
 		.flex > :nth-child(2) { width: 60%; background: green; }
 		.flex > :nth-child(3) { width: 20%; background: blue; }
-		
+
 		.absolute {
 			position: absolute;
 			left: 20dp;

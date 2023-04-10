@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,8 +27,8 @@
  */
 
 #include "FontEffectGlow.h"
-#include "Memory.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "Memory.h"
 
 namespace Rml {
 
@@ -40,9 +40,7 @@ FontEffectGlow::FontEffectGlow()
 	SetLayer(Layer::Back);
 }
 
-FontEffectGlow::~FontEffectGlow()
-{
-}
+FontEffectGlow::~FontEffectGlow() {}
 
 bool FontEffectGlow::HasUniqueTexture() const
 {
@@ -78,7 +76,6 @@ bool FontEffectGlow::Initialise(int _width_outline, int _width_blur, Vector2i _o
 		}
 	}
 
-
 	// Gaussian blur filter
 	const float std_dev = (width_blur == 0 ? 1.f : .4f * float(width_blur));
 	const float two_variance = 2.f * std_dev * std_dev;
@@ -109,10 +106,8 @@ bool FontEffectGlow::Initialise(int _width_outline, int _width_blur, Vector2i _o
 	return true;
 }
 
-bool FontEffectGlow::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
+bool FontEffectGlow::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& /*glyph*/) const
 {
-	RMLUI_UNUSED(glyph);
-
 	if (dimensions.x * dimensions.y > 0)
 	{
 		origin.x += offset.x - combined_width;
@@ -127,7 +122,8 @@ bool FontEffectGlow::GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, con
 	return false;
 }
 
-void FontEffectGlow::GenerateGlyphTexture(byte* destination_data, const Vector2i destination_dimensions, int destination_stride, const FontGlyph& glyph) const
+void FontEffectGlow::GenerateGlyphTexture(byte* destination_data, const Vector2i destination_dimensions, int destination_stride,
+	const FontGlyph& glyph) const
 {
 	const Vector2i buf_dimensions = destination_dimensions;
 	const int buf_stride = buf_dimensions.x;
@@ -138,7 +134,7 @@ void FontEffectGlow::GenerateGlyphTexture(byte* destination_data, const Vector2i
 
 	filter_outline.Run(outline_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, glyph.bitmap_data, glyph.bitmap_dimensions,
 		Vector2i(combined_width), glyph.color_format);
-	
+
 	filter_blur_x.Run(blur_x_output.data(), buf_dimensions, buf_stride, ColorFormat::A8, outline_output.data(), buf_dimensions, Vector2i(0),
 		ColorFormat::A8);
 
@@ -146,9 +142,8 @@ void FontEffectGlow::GenerateGlyphTexture(byte* destination_data, const Vector2i
 		Vector2i(0), ColorFormat::A8);
 }
 
-
-
-FontEffectGlowInstancer::FontEffectGlowInstancer() : id_width_outline(PropertyId::Invalid), id_width_blur(PropertyId::Invalid),id_color(PropertyId::Invalid)
+FontEffectGlowInstancer::FontEffectGlowInstancer() :
+	id_width_outline(PropertyId::Invalid), id_width_blur(PropertyId::Invalid), id_color(PropertyId::Invalid)
 {
 	id_width_outline = RegisterProperty("width-outline", "1px", true).AddParser("length").GetId();
 	id_width_blur = RegisterProperty("width-blur", "-1px", true).AddParser("length").GetId();
@@ -158,20 +153,16 @@ FontEffectGlowInstancer::FontEffectGlowInstancer() : id_width_outline(PropertyId
 	RegisterShorthand("font-effect", "width-outline, width-blur, offset-x, offset-y, color", ShorthandType::FallThrough);
 }
 
-FontEffectGlowInstancer::~FontEffectGlowInstancer()
-{
-}
+FontEffectGlowInstancer::~FontEffectGlowInstancer() {}
 
-SharedPtr<FontEffect> FontEffectGlowInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+SharedPtr<FontEffect> FontEffectGlowInstancer::InstanceFontEffect(const String& /*name*/, const PropertyDictionary& properties)
 {
-	RMLUI_UNUSED(name);
-
 	Vector2i offset;
-	int width_outline = properties.GetProperty(id_width_outline)->Get< int >();
-	int width_blur = properties.GetProperty(id_width_blur)->Get< int >();
-	offset.x = properties.GetProperty(id_offset_x)->Get< int >();
-	offset.y = properties.GetProperty(id_offset_y)->Get< int >();
-	Colourb color = properties.GetProperty(id_color)->Get< Colourb >();
+	int width_outline = properties.GetProperty(id_width_outline)->Get<int>();
+	int width_blur = properties.GetProperty(id_width_blur)->Get<int>();
+	offset.x = properties.GetProperty(id_offset_x)->Get<int>();
+	offset.y = properties.GetProperty(id_offset_y)->Get<int>();
+	Colourb color = properties.GetProperty(id_color)->Get<Colourb>();
 
 	if (width_blur < 0)
 		width_blur = width_outline;

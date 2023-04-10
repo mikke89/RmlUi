@@ -1,8 +1,8 @@
 <rml>
 <head>
-    <title>Flex 05 - Height constraints</title>
-    <link type="text/rcss" href="../style.rcss"/>
-    <link rel="match" href="reference/flex_05-ref.rml"/>
+	<title>Flex 05 - Height constraints</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="match" href="reference/flex_05-ref.rml"/>
 	<link rel="help" href="https://drafts.csswg.org/css-flexbox/" />
 	<meta name="Description" content="The flex container should always respect (min-/max-) height constraints." />
 	<style>

@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Inline formatting - Aligned subtree</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Inline formatting - Aligned subtree</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://drafts.csswg.org/css2/#aligned-subtree" />
 	<meta name="Description" content="Children of an inline element whose 'vertical-align' property is 'top', 'center', or 'bottom', is aligned relative to it." />
 	<style>
@@ -24,17 +24,17 @@
 			background: #fdf;
 			display: inline-block;
 		}
-		
+
 		.tall   { line-height: 5em; }
 		.large  { line-height: 3em; }
 		.medium { line-height: 1.5em; }
 		.small  { line-height: 1.2em; }
-		
+
 		.top     { vertical-align: top; }
 		.center  { vertical-align: center; }
 		.bottom  { vertical-align: bottom; }
 		.line-up { vertical-align: -100%; }
-		
+
 		.split { line-height: 2em; }
 		.split span {
 			line-height: 4em;

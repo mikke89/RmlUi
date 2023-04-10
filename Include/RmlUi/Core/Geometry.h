@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,13 +42,12 @@ struct Texture;
 using GeometryDatabaseHandle = uint32_t;
 
 /**
-	A helper object for holding an array of vertices and indices, and compiling it as necessary when rendered.
+    A helper object for holding an array of vertices and indices, and compiling it as necessary when rendered.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API Geometry
-{
+class RMLUICORE_API Geometry {
 public:
 	Geometry(Element* host_element = nullptr);
 	Geometry(Context* host_context);
@@ -71,10 +70,10 @@ public:
 
 	/// Returns the geometry's vertices. If these are written to, Release() should be called to force a recompile.
 	/// @return The geometry's vertex array.
-	Vector< Vertex >& GetVertices();
+	Vector<Vertex>& GetVertices();
 	/// Returns the geometry's indices. If these are written to, Release() should be called to force a recompile.
 	/// @return The geometry's index array.
-	Vector< int >& GetIndices();
+	Vector<int>& GetIndices();
 
 	/// Gets the geometry's texture.
 	/// @return The geometry's texture.
@@ -99,8 +98,8 @@ private:
 	Context* host_context = nullptr;
 	Element* host_element = nullptr;
 
-	Vector< Vertex > vertices;
-	Vector< int > indices;
+	Vector<Vertex> vertices;
+	Vector<int> indices;
 	const Texture* texture = nullptr;
 
 	CompiledGeometryHandle compiled_geometry = 0;
@@ -109,7 +108,7 @@ private:
 	GeometryDatabaseHandle database_handle;
 };
 
-using GeometryList = Vector< Geometry >;
+using GeometryList = Vector<Geometry>;
 
 } // namespace Rml
 #endif

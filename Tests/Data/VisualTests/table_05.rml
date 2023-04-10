@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Table 05</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Table 05</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html" />
 	<meta name="Description" content="Non-parented table cells form a new row." />
 	<style>

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@
 
 #include "../../Include/RmlUi/Lottie/ElementLottie.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
-#include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Context.h"
+#include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
@@ -41,14 +41,9 @@
 
 namespace Rml {
 
+ElementLottie::ElementLottie(const String& tag) : Element(tag), geometry(this) {}
 
-ElementLottie::ElementLottie(const String& tag) : Element(tag), geometry(this)
-{
-}
-
-ElementLottie::~ElementLottie()
-{
-}
+ElementLottie::~ElementLottie() {}
 
 bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
@@ -78,7 +73,8 @@ void ElementLottie::OnUpdate()
 	double _unused;
 	const double frame_duration = 1.0 / animation->frameRate();
 	const double delay = std::modf((t - time_animation_start) / frame_duration, &_unused) * frame_duration;
-	if(IsVisible(true)) {
+	if (IsVisible(true))
+	{
 		if (Context* ctx = GetContext())
 			ctx->RequestNextUpdate(delay);
 	}
@@ -117,8 +113,8 @@ void ElementLottie::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 
-	if (changed_properties.Contains(PropertyId::ImageColor) ||
-		changed_properties.Contains(PropertyId::Opacity)) {
+	if (changed_properties.Contains(PropertyId::ImageColor) || changed_properties.Contains(PropertyId::Opacity))
+	{
 		geometry_dirty = true;
 	}
 }
@@ -127,15 +123,15 @@ void ElementLottie::GenerateGeometry()
 {
 	geometry.Release(true);
 
-	Vector< Vertex >& vertices = geometry.GetVertices();
-	Vector< int >& indices = geometry.GetIndices();
+	Vector<Vertex>& vertices = geometry.GetVertices();
+	Vector<int>& indices = geometry.GetIndices();
 
 	vertices.resize(4);
 	indices.resize(6);
 
 	Vector2f texcoords[2] = {
 		{0.0f, 0.0f},
-		{1.0f, 1.0f}
+		{1.0f, 1.0f},
 	};
 
 	const ComputedValues& computed = GetComputedValues();

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,35 +36,28 @@ ElementFormControl::ElementFormControl(const String& tag) : Element(tag)
 	SetProperty(PropertyId::TabIndex, Property(Style::TabIndex::Auto));
 }
 
-ElementFormControl::~ElementFormControl()
-{
-}
+ElementFormControl::~ElementFormControl() {}
 
-// Returns the name of the form control.
 String ElementFormControl::GetName() const
 {
-	return GetAttribute<String>("name", "");	
+	return GetAttribute<String>("name", "");
 }
 
-// Sets the name of the form control.
 void ElementFormControl::SetName(const String& name)
 {
 	SetAttribute("name", name);
 }
 
-// Returns if this value should be submitted with the form
 bool ElementFormControl::IsSubmitted()
 {
 	return true;
 }
 
-// Returns the disabled status of the form control.
 bool ElementFormControl::IsDisabled() const
 {
 	return HasAttribute("disabled");
 }
 
-// Sets the disabled status of the form control.
 void ElementFormControl::SetDisabled(bool disable)
 {
 	if (disable)
@@ -73,7 +66,6 @@ void ElementFormControl::SetDisabled(bool disable)
 		RemoveAttribute("disabled");
 }
 
-// Checks for changes to the 'disabled' attribute.
 void ElementFormControl::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	Element::OnAttributeChange(changed_attributes);

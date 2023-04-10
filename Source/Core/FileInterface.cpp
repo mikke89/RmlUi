@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,22 +31,17 @@
 
 namespace Rml {
 
-FileInterface::FileInterface()
-{
-}
+FileInterface::FileInterface() {}
 
-FileInterface::~FileInterface()
-{
-}
+FileInterface::~FileInterface() {}
 
-// Returns the length of the file.
 size_t FileInterface::Length(FileHandle file)
 {
-    size_t current_position = Tell(file);
-    Seek( file, 0, SEEK_END);
-    size_t length = Tell( file);
-    Seek( file, (long)current_position, SEEK_SET);
-    return length;
+	size_t current_position = Tell(file);
+	Seek(file, 0, SEEK_END);
+	size_t length = Tell(file);
+	Seek(file, (long)current_position, SEEK_SET);
+	return length;
 }
 
 bool FileInterface::LoadFile(const String& path, String& out_data)
@@ -60,7 +55,7 @@ bool FileInterface::LoadFile(const String& path, String& out_data)
 	out_data = String(length, 0);
 
 	const size_t read_length = Read(&out_data[0], length, handle);
-	
+
 	if (length != read_length)
 	{
 		Log::Message(Log::LT_WARNING, "Could only read %zu of %zu bytes from file %s", read_length, length, path.c_str());

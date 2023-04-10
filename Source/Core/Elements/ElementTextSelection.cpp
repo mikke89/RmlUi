@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,8 +27,8 @@
  */
 
 #include "ElementTextSelection.h"
-#include "WidgetTextInput.h"
 #include "../../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "WidgetTextInput.h"
 
 namespace Rml {
 
@@ -37,17 +37,13 @@ ElementTextSelection::ElementTextSelection(const String& tag) : Element(tag)
 	widget = nullptr;
 }
 
-ElementTextSelection::~ElementTextSelection()
-{
-}
+ElementTextSelection::~ElementTextSelection() {}
 
-// Set the widget that this selection element was created for.
 void ElementTextSelection::SetWidget(WidgetTextInput* _widget)
 {
 	widget = _widget;
 }
 
-// Processes 'color' and 'background-color' property changes.
 void ElementTextSelection::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
@@ -55,8 +51,7 @@ void ElementTextSelection::OnPropertyChange(const PropertyIdSet& changed_propert
 	if (widget == nullptr)
 		return;
 
-	if (changed_properties.Contains(PropertyId::Color) ||
-		changed_properties.Contains(PropertyId::BackgroundColor))
+	if (changed_properties.Contains(PropertyId::Color) || changed_properties.Contains(PropertyId::BackgroundColor))
 	{
 		widget->UpdateSelectionColours();
 	}

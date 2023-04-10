@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,19 +27,17 @@
  */
 
 #include "XMLParseTools.h"
-#include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
+#include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include "TemplateCache.h"
 #include "Template.h"
+#include "TemplateCache.h"
 #include <ctype.h>
 #include <string.h>
 
 namespace Rml {
 
-// Searchs a string for the specified tag
-// NOTE: tag *MUST* be in lowercase
 const char* XMLParseTools::FindTag(const char* tag, const char* string, bool closing_tag)
 {
 	const size_t length = strlen(tag);
@@ -78,8 +76,8 @@ const char* XMLParseTools::FindTag(const char* tag, const char* string, bool clo
 	return nullptr;
 }
 
-bool XMLParseTools::ReadAttribute(const char* &string, String& name, String& value)
-{		
+bool XMLParseTools::ReadAttribute(const char*& string, String& name, String& value)
+{
 	const char* ptr = string;
 
 	name = "";
@@ -96,16 +94,15 @@ bool XMLParseTools::ReadAttribute(const char* &string, String& name, String& val
 		if (StringUtilities::IsWhitespace(*ptr))
 			found_whitespace = true;
 		else
-			name += *ptr;	
+			name += *ptr;
 		ptr++;
 	}
 	if (*ptr == '>')
 		return false;
-	
+
 	// If we stopped on an equals, parse the value
 	if (*ptr == '=')
 	{
-
 		// Skip over white space, ='s and quotes
 		bool quoted = false;
 		while (StringUtilities::IsWhitespace(*ptr) || *ptr == '\'' || *ptr == '"' || *ptr == '=')
@@ -121,7 +118,7 @@ bool XMLParseTools::ReadAttribute(const char* &string, String& name, String& val
 		while (*ptr != '\'' && *ptr != '"' && *ptr != '>' && (*ptr != ' ' || quoted))
 		{
 			value += *ptr++;
-		}	
+		}
 		if (*ptr == '>')
 			return false;
 
@@ -141,7 +138,7 @@ bool XMLParseTools::ReadAttribute(const char* &string, String& name, String& val
 }
 
 Element* XMLParseTools::ParseTemplate(Element* element, const String& template_name)
-{	
+{
 	// Load the template, and parse it
 	Template* parse_template = TemplateCache::GetTemplate(template_name);
 	if (!parse_template)
@@ -160,7 +157,7 @@ const char* XMLParseTools::ParseDataBrackets(bool& inside_brackets, bool& inside
 		if (c == '\'')
 			inside_string = !inside_string;
 
-		if(!inside_string)
+		if (!inside_string)
 		{
 			if (c == '}' && previous == '}')
 				inside_brackets = false;

@@ -8,12 +8,12 @@
 			height: 400dp;
 			margin: auto;
 		}
-		
+
 		/* Hide the window icon. */
 		div#title_bar div#icon {
 			display: none;
 		}
-		
+
 		spacer {
 			display: inline-block;
 		}

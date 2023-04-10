@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -110,9 +110,7 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Event& ev)
 
 	switch (ev.type)
 	{
-	case SDL_MOUSEMOTION:
-		result = context->ProcessMouseMove(ev.motion.x, ev.motion.y, GetKeyModifierState());
-		break;
+	case SDL_MOUSEMOTION: result = context->ProcessMouseMove(ev.motion.x, ev.motion.y, GetKeyModifierState()); break;
 	case SDL_MOUSEBUTTONDOWN:
 		result = context->ProcessMouseButtonDown(ConvertMouseButton(ev.button.button), GetKeyModifierState());
 		SDL_CaptureMouse(SDL_TRUE);
@@ -121,20 +119,14 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Event& ev)
 		SDL_CaptureMouse(SDL_FALSE);
 		result = context->ProcessMouseButtonUp(ConvertMouseButton(ev.button.button), GetKeyModifierState());
 		break;
-	case SDL_MOUSEWHEEL:
-		result = context->ProcessMouseWheel(float(-ev.wheel.y), GetKeyModifierState());
-		break;
+	case SDL_MOUSEWHEEL: result = context->ProcessMouseWheel(float(-ev.wheel.y), GetKeyModifierState()); break;
 	case SDL_KEYDOWN:
 		result = context->ProcessKeyDown(ConvertKey(ev.key.keysym.sym), GetKeyModifierState());
 		if (ev.key.keysym.sym == SDLK_RETURN || ev.key.keysym.sym == SDLK_KP_ENTER)
 			result &= context->ProcessTextInput('\n');
 		break;
-	case SDL_KEYUP:
-		result = context->ProcessKeyUp(ConvertKey(ev.key.keysym.sym), GetKeyModifierState());
-		break;
-	case SDL_TEXTINPUT:
-		result = context->ProcessTextInput(Rml::String(&ev.text.text[0]));
-		break;
+	case SDL_KEYUP: result = context->ProcessKeyUp(ConvertKey(ev.key.keysym.sym), GetKeyModifierState()); break;
+	case SDL_TEXTINPUT: result = context->ProcessTextInput(Rml::String(&ev.text.text[0])); break;
 	case SDL_WINDOWEVENT:
 	{
 		switch (ev.window.event)
@@ -145,14 +137,11 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Event& ev)
 			context->SetDimensions(dimensions);
 		}
 		break;
-		case SDL_WINDOWEVENT_LEAVE:
-			context->ProcessMouseLeave();
-			break;
+		case SDL_WINDOWEVENT_LEAVE: context->ProcessMouseLeave(); break;
 		}
 	}
 	break;
-	default:
-		break;
+	default: break;
 	}
 
 	return result;
@@ -287,14 +276,10 @@ int RmlSDL::ConvertMouseButton(int button)
 {
 	switch (button)
 	{
-	case SDL_BUTTON_LEFT:
-		return 0;
-	case SDL_BUTTON_RIGHT:
-		return 1;
-	case SDL_BUTTON_MIDDLE:
-		return 2;
-	default:
-		return 3;
+	case SDL_BUTTON_LEFT: return 0;
+	case SDL_BUTTON_RIGHT: return 1;
+	case SDL_BUTTON_MIDDLE: return 2;
+	default: return 3;
 	}
 }
 

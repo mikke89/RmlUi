@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,6 @@ static inline float BorderSizeToContentSize(float border_size, float border_padd
 	return Math::Max(0.0f, border_size - border_padding_edges_size);
 }
 
-// Generates the box for an element.
 void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* element, BuildBoxMode box_context)
 {
 	if (!element)
@@ -401,7 +400,6 @@ Vector2f LayoutDetails::CalculateSizeForReplacedElement(const Vector2f specified
 	return content_size;
 }
 
-// Builds the block-specific width and horizontal margins of a Box.
 void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, float min_width, float max_width, Vector2f containing_block,
 	Element* element, bool replaced_element, float override_shrink_to_fit_width)
 {
@@ -491,7 +489,6 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		box.SetContent(content_area);
 }
 
-// Builds the block-specific height and vertical margins of a Box.
 void LayoutDetails::BuildBoxHeight(Box& box, const ComputedValues& computed, float min_height, float max_height, float containing_block_height)
 {
 	RMLUI_ZoneScoped;

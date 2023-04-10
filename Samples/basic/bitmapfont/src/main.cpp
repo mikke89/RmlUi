@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,10 +34,10 @@
 
 /*
 
-	This demo shows how to create a custom bitmap font engine implementation. 
-	
-	It should work even when RmlUi is compiled without the default font engine (see CMake flag 'NO_FONT_INTERFACE_DEFAULT').
-	See the interface in 'FontEngineInterfaceBitmap.h' and the implementation in 'FontEngineBitmap.h'.
+    This demo shows how to create a custom bitmap font engine implementation.
+
+    It should work even when RmlUi is compiled without the default font engine (see CMake flag 'NO_FONT_INTERFACE_DEFAULT').
+    See the interface in 'FontEngineInterfaceBitmap.h' and the implementation in 'FontEngineBitmap.h'.
 
 */
 
@@ -48,7 +48,7 @@ int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instanc
 int main(int /*argc*/, char** /*argv*/)
 #endif
 {
-    int window_width = 1024;
+	int window_width = 1024;
 	int window_height = 768;
 
 	// Initializes the shell which provides common functionality used by the included samples.
@@ -85,7 +85,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 	Rml::Debugger::Initialise(context);
 
-    // Load bitmap font
+	// Load bitmap font
 	if (!Rml::LoadFontFace("basic/bitmapfont/data/Comfortaa_Regular_22.fnt"))
 	{
 		Rml::Shutdown();
@@ -95,7 +95,7 @@ int main(int /*argc*/, char** /*argv*/)
 	}
 
 	// Load and show the demo document.
-	if (Rml::ElementDocument * document = context->LoadDocument("basic/bitmapfont/data/bitmapfont.rml"))
+	if (Rml::ElementDocument* document = context->LoadDocument("basic/bitmapfont/data/bitmapfont.rml"))
 	{
 		if (auto el = document->GetElementById("title"))
 			el->SetInnerRML("Bitmap font");

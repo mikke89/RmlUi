@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -247,14 +247,10 @@ bool RmlX11::HandleInputEvent(Rml::Context* context, Display* display, const XEv
 		{
 		case Button1:
 		case Button2:
-		case Button3:
-			return context->ProcessMouseButtonDown(ConvertMouseButton(ev.xbutton.button), RmlX11::GetKeyModifierState(ev.xbutton.state));
-		case Button4:
-			return context->ProcessMouseWheel(-1, RmlX11::GetKeyModifierState(ev.xbutton.state));
-		case Button5:
-			return context->ProcessMouseWheel(1, RmlX11::GetKeyModifierState(ev.xbutton.state));
-		default:
-			return true;
+		case Button3: return context->ProcessMouseButtonDown(ConvertMouseButton(ev.xbutton.button), RmlX11::GetKeyModifierState(ev.xbutton.state));
+		case Button4: return context->ProcessMouseWheel(-1, RmlX11::GetKeyModifierState(ev.xbutton.state));
+		case Button5: return context->ProcessMouseWheel(1, RmlX11::GetKeyModifierState(ev.xbutton.state));
+		default: return true;
 		}
 	}
 	break;
@@ -264,10 +260,8 @@ bool RmlX11::HandleInputEvent(Rml::Context* context, Display* display, const XEv
 		{
 		case Button1:
 		case Button2:
-		case Button3:
-			return context->ProcessMouseButtonUp(ConvertMouseButton(ev.xbutton.button), RmlX11::GetKeyModifierState(ev.xbutton.state));
-		default:
-			return true;
+		case Button3: return context->ProcessMouseButtonUp(ConvertMouseButton(ev.xbutton.button), RmlX11::GetKeyModifierState(ev.xbutton.state));
+		default: return true;
 		}
 	}
 	break;
@@ -311,8 +305,7 @@ bool RmlX11::HandleInputEvent(Rml::Context* context, Display* display, const XEv
 		return propagates;
 	}
 	break;
-	default:
-		break;
+	default: break;
 	}
 
 	return true;
@@ -391,7 +384,7 @@ Rml::Input::KeyIdentifier RmlX11::ConvertKey(Display* display, unsigned int x11_
 {
 	RMLUI_ASSERT(display);
 	const XKeyData& key_data = GetXKeyData(display);
-	
+
 	const int group_index = 0; // this is always 0 for our limited example
 	KeySym sym = {};
 
@@ -573,14 +566,10 @@ int RmlX11::ConvertMouseButton(unsigned int x11_mouse_button)
 {
 	switch (x11_mouse_button)
 	{
-	case Button1:
-		return 0;
-	case Button2:
-		return 2;
-	case Button3:
-		return 1;
-	default:
-		break;
+	case Button1: return 0;
+	case Button2: return 2;
+	case Button3: return 1;
+	default: break;
 	}
 	return 0;
 }

@@ -12,7 +12,7 @@
 			max-width: 2000dp;
 			max-height: 2000dp;
 		}
-		#fps 
+		#fps
 		{
 			position: absolute;
 			top: 55dp;
@@ -20,7 +20,7 @@
 			font-size: 0.85em;
 			text-align: left;
 		}
-		#performance 
+		#performance
 		{
 			width: 800dp;
 			height: 300dp;

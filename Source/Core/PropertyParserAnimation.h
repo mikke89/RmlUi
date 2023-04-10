@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2018 Michael R. P. Ragazzon
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,8 @@
  *
  */
 
-
-
 #ifndef RMLUI_CORE_PROPERTYPARSERANIMATION_H
 #define RMLUI_CORE_PROPERTYPARSERANIMATION_H
-
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
 
@@ -40,14 +37,12 @@ namespace Rml {
 Parses the RCSS 'animation' and 'transition' property specifications.
 */
 
-class PropertyParserAnimation : public PropertyParser
-{
+class PropertyParserAnimation : public PropertyParser {
 public:
 	enum Type { ANIMATION_PARSER, TRANSITION_PARSER } type;
 
 	/// Constructs the parser for either the animation or the transition type.
 	PropertyParserAnimation(Type type);
-
 
 	/// Called to parse a RCSS animation or transition declaration.
 	/// @param[out] property The property to set the parsed value on.
@@ -56,8 +51,6 @@ public:
 	/// @return True if the value was validated successfully, false otherwise.
 	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 };
-
-
 
 } // namespace Rml
 #endif

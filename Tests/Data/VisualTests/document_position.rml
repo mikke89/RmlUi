@@ -22,13 +22,13 @@
 			text-align: center;
 			z-index: 100;
 			box-sizing: border-box;
-			
+
 			height: 400dp;
 			bottom: 0;
 			top: 0;
 			margin-top: auto;
 			margin-bottom: auto;
-			
+
 			width: 600dp;
 			/* left: auto; */
 			left: 0;
@@ -40,13 +40,13 @@
 			position: absolute;
 			z-index: 1;
 			background: #eee;
-			
+
 			min-height: 50dp;
 			bottom: 120dp;
 			top: 0;
 			margin-top: 120dp;
 			margin-bottom: auto;
-			
+
 			left: 50%;
 			right: 0;
 			width: 150dp;

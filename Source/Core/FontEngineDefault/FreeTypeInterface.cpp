@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +31,9 @@
 #include "../../../Include/RmlUi/Core/FontMetrics.h"
 #include "../../../Include/RmlUi/Core/Log.h"
 #include <algorithm>
-#include <string.h>
-#include <limits.h>
-
 #include <ft2build.h>
+#include <limits.h>
+#include <string.h>
 #include FT_FREETYPE_H
 #include FT_MULTIPLE_MASTERS_H
 #include FT_TRUETYPE_TABLES_H
@@ -118,13 +117,8 @@ bool FreeType::GetFaceVariations(const byte* data, int data_length, Vector<FaceV
 			uint16_t width = (axis_index_width < num_axis ? (uint16_t)ConvertFixed16_16ToInt(var->namedstyle[i].coords[axis_index_width]) : 0);
 			int named_instance_index = (i + 1);
 
-			out_face_variations.push_back(
-				FaceVariation{
-					weight == 0 ? Style::FontWeight::Normal : (Style::FontWeight)weight,
-					width == 0 ? (uint16_t)100 : width,
-					named_instance_index
-				}
-			);
+			out_face_variations.push_back(FaceVariation{weight == 0 ? Style::FontWeight::Normal : (Style::FontWeight)weight,
+				width == 0 ? (uint16_t)100 : width, named_instance_index});
 		}
 	}
 
@@ -193,7 +187,6 @@ void FreeType::GetFaceStyle(FontFaceHandleFreetype in_face, String* font_family,
 	}
 }
 
-// Initialises the handle so it is able to render text.
 bool FreeType::InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics, bool load_default_glyphs)
 {
 	FT_Face ft_face = (FT_Face)face;
@@ -231,7 +224,6 @@ bool FreeType::AppendGlyph(FontFaceHandleFreetype face, int font_size, Character
 	return true;
 }
 
-
 int FreeType::GetKerning(FontFaceHandleFreetype face, int font_size, Character lhs, Character rhs)
 {
 	FT_Face ft_face = (FT_Face)face;
@@ -249,13 +241,8 @@ int FreeType::GetKerning(FontFaceHandleFreetype face, int font_size, Character l
 
 	FT_Vector ft_kerning;
 
-	FT_Error ft_error = FT_Get_Kerning(
-		ft_face,
-		FT_Get_Char_Index(ft_face, (FT_ULong)lhs),
-		FT_Get_Char_Index(ft_face, (FT_ULong)rhs),
-		FT_KERNING_DEFAULT,
-		&ft_kerning
-	);
+	FT_Error ft_error = FT_Get_Kerning(ft_face, FT_Get_Char_Index(ft_face, (FT_ULong)lhs), FT_Get_Char_Index(ft_face, (FT_ULong)rhs),
+		FT_KERNING_DEFAULT, &ft_kerning);
 
 	if (ft_error)
 		return 0;
@@ -270,8 +257,6 @@ bool FreeType::HasKerning(FontFaceHandleFreetype face)
 
 	return FT_HAS_KERNING(ft_face);
 }
-
-
 
 static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const float bitmap_scaling_factor, const bool load_default_glyphs)
 {
@@ -293,10 +278,10 @@ static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const
 	if (it == glyphs.end())
 	{
 		FontGlyph glyph;
-		glyph.dimensions = { size / 3, (size * 2) / 3 };
+		glyph.dimensions = {size / 3, (size * 2) / 3};
 		glyph.bitmap_dimensions = glyph.dimensions;
 		glyph.advance = glyph.dimensions.x + 2;
-		glyph.bearing = { 1, glyph.dimensions.y };
+		glyph.bearing = {1, glyph.dimensions.y};
 
 		glyph.bitmap_owned_data.reset(new byte[glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y]);
 		glyph.bitmap_data = glyph.bitmap_owned_data.get();
@@ -325,21 +310,24 @@ static bool BuildGlyph(FT_Face ft_face, const Character character, FontGlyphMap&
 	FT_Error error = FT_Load_Glyph(ft_face, index, FT_LOAD_COLOR);
 	if (error != 0)
 	{
-		Log::Message(Log::LT_WARNING, "Unable to load glyph for character '%u' on the font face '%s %s'; error code: %d.", (unsigned int)character, ft_face->family_name, ft_face->style_name, error);
+		Log::Message(Log::LT_WARNING, "Unable to load glyph for character '%u' on the font face '%s %s'; error code: %d.", (unsigned int)character,
+			ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
 	error = FT_Render_Glyph(ft_face->glyph, FT_RENDER_MODE_NORMAL);
 	if (error != 0)
 	{
-		Log::Message(Log::LT_WARNING, "Unable to render glyph for character '%u' on the font face '%s %s'; error code: %d.", (unsigned int)character, ft_face->family_name, ft_face->style_name, error);
+		Log::Message(Log::LT_WARNING, "Unable to render glyph for character '%u' on the font face '%s %s'; error code: %d.", (unsigned int)character,
+			ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
 	auto result = glyphs.emplace(character, FontGlyph{});
 	if (!result.second)
 	{
-		Log::Message(Log::LT_WARNING, "Glyph character '%u' is already loaded in the font face '%s %s'.", (unsigned int)character, ft_face->family_name, ft_face->style_name);
+		Log::Message(Log::LT_WARNING, "Glyph character '%u' is already loaded in the font face '%s %s'.", (unsigned int)character,
+			ft_face->family_name, ft_face->style_name);
 		return false;
 	}
 

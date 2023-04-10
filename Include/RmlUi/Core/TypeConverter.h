@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,90 +29,100 @@
 #ifndef RMLUI_CORE_TYPECONVERTER_H
 #define RMLUI_CORE_TYPECONVERTER_H
 
-#include "Platform.h"
-#include "Types.h"
 #include "Log.h"
+#include "Platform.h"
 #include "StringUtilities.h"
-#include <stdlib.h>
+#include "Types.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 namespace Rml {
 
 /**
-	Templatised TypeConverters with Template Specialisation.
+    Templatised TypeConverters with Template Specialisation.
 
-	These converters convert from source types to destination types.
-	They're mainly useful in things like dictionaries and serialisers.
+    These converters convert from source types to destination types.
+    They're mainly useful in things like dictionaries and serialisers.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
 template <typename SourceType, typename DestType>
-class TypeConverter
-{
+class TypeConverter {
 public:
 	static bool Convert(const SourceType& src, DestType& dest);
 };
 
-template<typename T>
-inline String ToString(const T& value, String default_value = String()) {
+template <typename T>
+inline String ToString(const T& value, String default_value = String())
+{
 	String result = default_value;
 	TypeConverter<T, String>::Convert(value, result);
 	return result;
 }
 
-template<typename T>
-inline T FromString(const String& string, T default_value = T()) {
+template <typename T>
+inline T FromString(const String& string, T default_value = T())
+{
 	T result = default_value;
 	TypeConverter<String, T>::Convert(string, result);
 	return result;
 }
 
-
 // Some more complex types are defined in cpp-file
 
-template<> class TypeConverter< TransformPtr, TransformPtr > {
+template <>
+class TypeConverter<TransformPtr, TransformPtr> {
 public:
 	RMLUICORE_API static bool Convert(const TransformPtr& src, TransformPtr& dest);
 };
 
-template<> class TypeConverter< TransformPtr, String > {
+template <>
+class TypeConverter<TransformPtr, String> {
 public:
 	RMLUICORE_API static bool Convert(const TransformPtr& src, String& dest);
 };
 
-template<> class TypeConverter< TransitionList, TransitionList > {
+template <>
+class TypeConverter<TransitionList, TransitionList> {
 public:
 	RMLUICORE_API static bool Convert(const TransitionList& src, TransitionList& dest);
 };
-template<> class TypeConverter< TransitionList, String > {
+template <>
+class TypeConverter<TransitionList, String> {
 public:
 	RMLUICORE_API static bool Convert(const TransitionList& src, String& dest);
 };
 
-template<> class TypeConverter< AnimationList, AnimationList > {
+template <>
+class TypeConverter<AnimationList, AnimationList> {
 public:
 	RMLUICORE_API static bool Convert(const AnimationList& src, AnimationList& dest);
 };
-template<> class TypeConverter< AnimationList, String > {
+template <>
+class TypeConverter<AnimationList, String> {
 public:
 	RMLUICORE_API static bool Convert(const AnimationList& src, String& dest);
 };
 
-template<> class TypeConverter< DecoratorsPtr, DecoratorsPtr > {
+template <>
+class TypeConverter<DecoratorsPtr, DecoratorsPtr> {
 public:
 	RMLUICORE_API static bool Convert(const DecoratorsPtr& src, DecoratorsPtr& dest);
 };
-template<> class TypeConverter< DecoratorsPtr, String > {
+template <>
+class TypeConverter<DecoratorsPtr, String> {
 public:
 	RMLUICORE_API static bool Convert(const DecoratorsPtr& src, String& dest);
 };
 
-template<> class TypeConverter< FontEffectsPtr, FontEffectsPtr> {
+template <>
+class TypeConverter<FontEffectsPtr, FontEffectsPtr> {
 public:
 	RMLUICORE_API static bool Convert(const FontEffectsPtr& src, FontEffectsPtr& dest);
 };
-template<> class TypeConverter< FontEffectsPtr, String > {
+template <>
+class TypeConverter<FontEffectsPtr, String> {
 public:
 	RMLUICORE_API static bool Convert(const FontEffectsPtr& src, String& dest);
 };

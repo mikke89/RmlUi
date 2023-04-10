@@ -16,7 +16,7 @@
 			position: relative;
 			overflow: auto;
 			border: 2px #aaa;
-			height: 90%; top: 5% 
+			height: 90%; top: 5%
 		}
 		div, td {
 			width: 70dp;
@@ -40,7 +40,7 @@
 		}
 		.float { float: left; }
 		flex { display: flex; }
-		
+
 		.white { background: #f0f0f0; }
 		.purple { background: #88c; }
 		.green { background: #6c6; }

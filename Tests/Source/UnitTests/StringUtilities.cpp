@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,14 +26,11 @@
  *
  */
 
-
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/StringUtilities.h>
-
+#include <RmlUi/Core/Types.h>
 #include <doctest.h>
 
 using namespace Rml;
-
 
 TEST_CASE("StringUtilities::TrimTrailingDotZeros")
 {
@@ -72,7 +69,7 @@ TEST_CASE("StringUtilities::StartsWith")
 	CHECK(StartsWith("abc", "ab"));
 	CHECK(StartsWith("abc", "a"));
 	CHECK(StartsWith("abc", ""));
-	
+
 	CHECK(!StartsWith("abc", "abcd"));
 	CHECK(!StartsWith("abc", "abd"));
 	CHECK(!StartsWith("abc", "bbc"));
@@ -103,7 +100,6 @@ TEST_CASE("StringView")
 	CHECK(StringView() == String());
 	CHECK(StringView() == "");
 }
-
 
 #include "../../../Source/Core/Elements/WidgetTextInput.cpp"
 
@@ -150,4 +146,3 @@ TEST_CASE("ConvertCharacterOffsetToByteOffset")
 	CHECK(ConvertCharacterOffsetToByteOffset("a\xE2\x82\xAC" "b", 4) == 5);
 	// clang-format on
 }
-

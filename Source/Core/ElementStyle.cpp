@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,24 +35,22 @@
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
-#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "ComputeProperty.h"
 #include "ElementDecoration.h"
 #include "ElementDefinition.h"
-#include "ComputeProperty.h"
 #include "PropertiesIterator.h"
 #include <algorithm>
 
-
 namespace Rml {
 
-// Bitwise operations on the PseudoClassState.
 inline PseudoClassState operator|(PseudoClassState lhs, PseudoClassState rhs)
 {
 	return PseudoClassState(int(lhs) | int(rhs));
@@ -67,7 +65,6 @@ ElementStyle::ElementStyle(Element* _element)
 	element = _element;
 }
 
-// Returns one of this element's properties.
 const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition)
 {
 	// Check for overriding local properties.
@@ -82,8 +79,8 @@ const Property* ElementStyle::GetLocalProperty(PropertyId id, const PropertyDict
 	return nullptr;
 }
 
-// Returns one of this element's properties.
-const Property* ElementStyle::GetProperty(PropertyId id, const Element* element, const PropertyDictionary& inline_properties, const ElementDefinition* definition)
+const Property* ElementStyle::GetProperty(PropertyId id, const Element* element, const PropertyDictionary& inline_properties,
+	const ElementDefinition* definition)
 {
 	const Property* local_property = GetLocalProperty(id, inline_properties, definition);
 	if (local_property)
@@ -112,16 +109,18 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 	return property->GetDefaultValue();
 }
 
-// Apply transition to relevant properties if a transition is defined on element.
-// Properties that are part of a transition are removed from the properties list.
-void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& inline_properties, const ElementDefinition* old_definition, const ElementDefinition* new_definition)
+void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& inline_properties,
+	const ElementDefinition* old_definition, const ElementDefinition* new_definition)
 {
+	// Apply transition to relevant properties if a transition is defined on element.
+	// Properties that are part of a transition are removed from the properties list.
+
 	RMLUI_ASSERT(element);
 	if (!old_definition || !new_definition || properties.Empty())
 		return;
 
-	// We get the local property instead of the computed value here, because we want to intercept property changes even before the computed values are ready.
-	// Now that we have the concept of computed values, we may want do this operation directly on them instead.
+	// We get the local property instead of the computed value here, because we want to intercept property changes even before the computed values are
+	// ready. Now that we have the concept of computed values, we may want do this operation directly on them instead.
 	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, inline_properties, new_definition))
 	{
 		if (transition_property->value.GetType() != Variant::TRANSITIONLIST)
@@ -145,7 +144,7 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& pr
 			if (transition_list.all)
 			{
 				Transition transition = transition_list.transitions[0];
-				for (auto it = properties.begin(); it != properties.end(); )
+				for (auto it = properties.begin(); it != properties.end();)
 				{
 					transition.id = *it;
 					if (add_transition(transition))
@@ -214,7 +213,6 @@ void ElementStyle::UpdateDefinition()
 	}
 }
 
-// Sets or removes a pseudo-class on the element.
 bool ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate, bool override_class)
 {
 	bool changed = false;
@@ -243,7 +241,6 @@ bool ElementStyle::SetPseudoClass(const String& pseudo_class, bool activate, boo
 	return changed;
 }
 
-// Checks if a specific pseudo-class has been set on the element.
 bool ElementStyle::IsPseudoClassSet(const String& pseudo_class) const
 {
 	return (pseudo_classes.count(pseudo_class) == 1);
@@ -279,20 +276,17 @@ bool ElementStyle::SetClass(const String& class_name, bool activate)
 	return changed;
 }
 
-// Checks if a class is set on the element.
 bool ElementStyle::IsClassSet(const String& class_name) const
 {
 	return std::find(classes.begin(), classes.end(), class_name) != classes.end();
 }
 
-// Specifies the entire list of classes for this element. This will replace any others specified.
 void ElementStyle::SetClassNames(const String& class_names)
 {
 	classes.clear();
 	StringUtilities::ExpandString(classes, class_names, ' ');
 }
 
-// Returns the list of classes specified for this element.
 String ElementStyle::GetClassNames() const
 {
 	String class_names;
@@ -313,7 +307,6 @@ const StringList& ElementStyle::GetClassNameList() const
 	return classes;
 }
 
-// Sets a local property override on the element to a pre-parsed value.
 bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 {
 	Property new_property = property;
@@ -328,25 +321,20 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 	return true;
 }
 
-// Removes a local property override on the element.
 void ElementStyle::RemoveProperty(PropertyId id)
 {
 	int size_before = inline_properties.GetNumProperties();
 	inline_properties.RemoveProperty(id);
 
-	if(inline_properties.GetNumProperties() != size_before)
+	if (inline_properties.GetNumProperties() != size_before)
 		DirtyProperty(id);
 }
 
-
-
-// Returns one of this element's properties.
 const Property* ElementStyle::GetProperty(PropertyId id) const
 {
 	return GetProperty(id, element, inline_properties, definition.get());
 }
 
-// Returns one of this element's properties.
 const Property* ElementStyle::GetLocalProperty(PropertyId id) const
 {
 	return GetLocalProperty(id, inline_properties, definition.get());
@@ -411,27 +399,17 @@ float ElementStyle::ResolveLength(const Property* property, RelativeTarget relat
 
 	switch (relative_target)
 	{
-	case RelativeTarget::None:
-		base_value = 1.0f;
-		break;
-	case RelativeTarget::ContainingBlockWidth:
-		base_value = element->GetContainingBlock().x;
-		break;
-	case RelativeTarget::ContainingBlockHeight:
-		base_value = element->GetContainingBlock().y;
-		break;
-	case RelativeTarget::FontSize:
-		base_value = element->GetComputedValues().font_size();
-		break;
+	case RelativeTarget::None: base_value = 1.0f; break;
+	case RelativeTarget::ContainingBlockWidth: base_value = element->GetContainingBlock().x; break;
+	case RelativeTarget::ContainingBlockHeight: base_value = element->GetContainingBlock().y; break;
+	case RelativeTarget::FontSize: base_value = element->GetComputedValues().font_size(); break;
 	case RelativeTarget::ParentFontSize:
 	{
 		auto p = element->GetParentNode();
 		base_value = (p ? p->GetComputedValues().font_size() : DefaultComputedValues.font_size());
 	}
-		break;
-	case RelativeTarget::LineHeight:
-		base_value = element->GetLineHeight();
-		break;
+	break;
+	case RelativeTarget::LineHeight: base_value = element->GetLineHeight(); break;
 	}
 
 	float scale_value = 0.0f;
@@ -439,14 +417,9 @@ float ElementStyle::ResolveLength(const Property* property, RelativeTarget relat
 	switch (property->unit)
 	{
 	case Property::EM:
-	case Property::NUMBER:
-		scale_value = property->value.Get< float >();
-		break;
-	case Property::PERCENT:
-		scale_value = property->value.Get< float >() * 0.01f;
-		break;
-	default:
-		break;
+	case Property::NUMBER: scale_value = property->value.Get<float>(); break;
+	case Property::PERCENT: scale_value = property->value.Get<float>() * 0.01f; break;
+	default: break;
 	}
 
 	return base_value * scale_value;
@@ -480,13 +453,15 @@ void ElementStyle::DirtyPropertiesWithUnitsRecursive(Property::Unit units)
 		element->GetChild(i)->GetStyle()->DirtyPropertiesWithUnitsRecursive(units);
 }
 
-bool ElementStyle::AnyPropertiesDirty() const 
+bool ElementStyle::AnyPropertiesDirty() const
 {
-	return !dirty_properties.Empty(); 
+	return !dirty_properties.Empty();
 }
 
-PropertiesIterator ElementStyle::Iterate() const {
-	// Note: Value initialized iterators are only guaranteed to compare equal in C++14, and only for iterators satisfying the ForwardIterator requirements.
+PropertiesIterator ElementStyle::Iterate() const
+{
+	// Note: Value initialized iterators are only guaranteed to compare equal in C++14, and only for iterators
+	// satisfying the ForwardIterator requirements.
 #ifdef _MSC_VER
 	// Null forward iterator supported since VS 2015
 	static_assert(_MSC_VER >= 1900, "Visual Studio 2015 or higher required, see comment.");
@@ -508,19 +483,18 @@ PropertiesIterator ElementStyle::Iterate() const {
 	return PropertiesIterator(it_style_begin, it_style_end, it_definition, it_definition_end);
 }
 
-// Sets a single property as dirty.
 void ElementStyle::DirtyProperty(PropertyId id)
 {
 	dirty_properties.Insert(id);
 }
 
-// Sets a list of properties as dirty.
 void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 {
 	dirty_properties |= properties;
 }
 
-PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions)
+PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values,
+	const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions)
 {
 	if (dirty_properties.Empty())
 		return PropertyIdSet();
@@ -554,13 +528,13 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	bool dirty_em_properties = false;
 
 	// Always do font-size first if dirty, because of em-relative values
-	if(dirty_properties.Contains(PropertyId::FontSize))
+	if (dirty_properties.Contains(PropertyId::FontSize))
 	{
 		if (auto p = GetLocalProperty(PropertyId::FontSize))
 			values.font_size(ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, vp_dimensions));
 		else if (parent_values)
 			values.font_size(parent_values->font_size());
-		
+
 		if (font_size_before != values.font_size())
 		{
 			dirty_em_properties = true;
@@ -614,6 +588,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 
 		using namespace Style;
 
+		// clang-format off
 		switch (id)
 		{
 		case PropertyId::MarginTop:
@@ -888,6 +863,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::MaxNumIds:
 			break;
 		}
+		// clang-format on
 	}
 
 	// The font-face handle is nulled when local font properties are set. In that case we need to retrieve a new handle.
@@ -909,7 +885,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			child->GetStyle()->dirty_properties |= dirty_inherited_properties;
 		}
 	}
-	
+
 	PropertyIdSet result(std::move(dirty_properties));
 	dirty_properties.Clear();
 	return result;

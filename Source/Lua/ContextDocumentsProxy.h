@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,20 +25,23 @@
  * THE SOFTWARE.
  *
  */
- 
+
 #ifndef RMLUI_LUA_CONTEXTDOCUMENTSPROXY_H
 #define RMLUI_LUA_CONTEXTDOCUMENTSPROXY_H
 
-#include <RmlUi/Lua/LuaType.h>
-#include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Core/Context.h>
+#include <RmlUi/Lua/IncludeLua.h>
+#include <RmlUi/Lua/LuaType.h>
 
 namespace Rml {
 namespace Lua {
-//where owner is the context that we should look information from
-struct ContextDocumentsProxy { Context* owner;  };
+// where owner is the context that we should look information from
+struct ContextDocumentsProxy {
+	Context* owner;
+};
 
-template<> void ExtraInit<ContextDocumentsProxy>(lua_State* L, int metatable_index);
+template <>
+void ExtraInit<ContextDocumentsProxy>(lua_State* L, int metatable_index);
 int ContextDocumentsProxy__index(lua_State* L);
 int ContextDocumentsProxy__pairs(lua_State* L);
 

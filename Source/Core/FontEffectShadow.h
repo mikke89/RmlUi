@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,13 +35,12 @@
 namespace Rml {
 
 /**
-	A concrete font effect for rendering text shadows.
+    A concrete font effect for rendering text shadows.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class FontEffectShadow : public FontEffect
-{
+class FontEffectShadow : public FontEffect {
 public:
 	FontEffectShadow();
 	virtual ~FontEffectShadow();
@@ -56,16 +55,13 @@ private:
 	Vector2i offset;
 };
 
-
-
 /**
-	A concrete font effect instancer for the shadow effect.
+    A concrete font effect instancer for the shadow effect.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class FontEffectShadowInstancer : public FontEffectInstancer
-{
+class FontEffectShadowInstancer : public FontEffectInstancer {
 public:
 	FontEffectShadowInstancer();
 	virtual ~FontEffectShadowInstancer();
@@ -75,7 +71,6 @@ public:
 private:
 	PropertyId id_offset_x, id_offset_y, id_color;
 };
-
 
 } // namespace Rml
 #endif

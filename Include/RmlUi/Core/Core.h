@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,10 +29,10 @@
 #ifndef RMLUI_CORE_CORE_H
 #define RMLUI_CORE_CORE_H
 
-#include "Header.h"
-#include "Types.h"
 #include "Event.h"
+#include "Header.h"
 #include "StyleTypes.h"
+#include "Types.h"
 
 namespace Rml {
 
@@ -44,11 +44,10 @@ class RenderInterface;
 class SystemInterface;
 enum class DefaultActionPhase;
 
-
 /**
-	RmlUi library core API.
+    RmlUi library core API.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
 /// Initialises RmlUi.
@@ -91,7 +90,7 @@ RMLUICORE_API FileInterface* GetFileInterface();
 RMLUICORE_API void SetFontEngineInterface(FontEngineInterface* font_interface);
 /// Returns RmlUi's font interface.
 RMLUICORE_API FontEngineInterface* GetFontEngineInterface();
-	
+
 /// Creates a new element context.
 /// @param[in] name The new name of the context. This must be unique.
 /// @param[in] dimensions The initial dimensions of the new context.
@@ -149,7 +148,8 @@ RMLUICORE_API void UnregisterPlugin(Plugin* plugin);
 /// @param[in] bubbles Whether the event executes the bubble phase. If false, only capture and target phase is executed.
 /// @param[in] default_action_phase Defines during which phase(s) the 'Element::ProcessDefaultAction' method is called.
 /// @return The EventId of the newly created type, or existing type if 'type' is an internal type.
-RMLUICORE_API EventId RegisterEventType(const String& type, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase = DefaultActionPhase::None);
+RMLUICORE_API EventId RegisterEventType(const String& type, bool interruptible, bool bubbles,
+	DefaultActionPhase default_action_phase = DefaultActionPhase::None);
 
 /// Returns a list of source URLs to textures in all loaded documents.
 RMLUICORE_API StringList GetTextureSourceList();

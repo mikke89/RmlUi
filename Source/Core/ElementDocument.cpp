@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -61,9 +61,7 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 	SetProperty(PropertyId::Position, Property(Style::Position::Absolute));
 }
 
-ElementDocument::~ElementDocument()
-{
-}
+ElementDocument::~ElementDocument() {}
 
 void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 {
@@ -79,7 +77,7 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	// Merge in any templates, note a merge may cause more templates to merge
 	for (size_t i = 0; i < header.template_resources.size(); i++)
 	{
-		Template* merge_template = TemplateCache::LoadTemplate(URL(header.template_resources[i]).GetURL());	
+		Template* merge_template = TemplateCache::LoadTemplate(URL(header.template_resources[i]).GetURL());
 
 		if (merge_template)
 			header.MergeHeader(*merge_template->GetHeader());
@@ -158,13 +156,11 @@ void ElementDocument::ProcessHeader(const DocumentHeader* document_header)
 	UpdateProperties(dp_ratio, vp_dimensions);
 }
 
-// Returns the document's context.
 Context* ElementDocument::GetContext()
 {
 	return context;
 }
 
-// Sets the document's title.
 void ElementDocument::SetTitle(const String& _title)
 {
 	title = _title;
@@ -180,7 +176,6 @@ const String& ElementDocument::GetSourceURL() const
 	return source_url;
 }
 
-// Returns the document's style sheet.
 const StyleSheet* ElementDocument::GetStyleSheet() const
 {
 	if (style_sheet_container)
@@ -188,13 +183,11 @@ const StyleSheet* ElementDocument::GetStyleSheet() const
 	return nullptr;
 }
 
-// Returns the document's style sheet container.
 const StyleSheetContainer* ElementDocument::GetStyleSheetContainer() const
 {
 	return style_sheet_container.get();
 }
 
-// Sets the style sheet this document, and all of its children, uses.
 void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _style_sheet_container)
 {
 	RMLUI_ZoneScoped;
@@ -207,7 +200,6 @@ void ElementDocument::SetStyleSheetContainer(SharedPtr<StyleSheetContainer> _sty
 	DirtyMediaQueries();
 }
 
-// Reload the document's style sheet from source files.
 void ElementDocument::ReloadStyleSheet()
 {
 	if (!context)
@@ -223,7 +215,8 @@ void ElementDocument::ReloadStyleSheet()
 	Factory::ClearStyleSheetCache();
 	Factory::ClearTemplateCache();
 	ElementPtr temp_doc = Factory::InstanceDocumentStream(nullptr, stream.get(), context->GetDocumentsBaseTag());
-	if (!temp_doc) {
+	if (!temp_doc)
+	{
 		Log::Message(Log::LT_WARNING, "Failed to reload style sheet, could not instance document: %s", source_url.c_str());
 		return;
 	}
@@ -245,14 +238,12 @@ void ElementDocument::DirtyMediaQueries()
 	}
 }
 
-// Brings the document to the front of the document stack.
 void ElementDocument::PullToFront()
 {
 	if (context != nullptr)
 		context->PullDocumentToFront(this);
 }
 
-// Sends the document to the back of the document stack.
 void ElementDocument::PushToBack()
 {
 	if (context != nullptr)
@@ -263,8 +254,8 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 {
 	switch (modal_flag)
 	{
-	case ModalFlag::None:     modal = false; break;
-	case ModalFlag::Modal:    modal = true;  break;
+	case ModalFlag::None: modal = false; break;
+	case ModalFlag::Modal: modal = true; break;
 	case ModalFlag::Keep: break;
 	}
 
@@ -274,11 +265,8 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 
 	switch (focus_flag)
 	{
-	case FocusFlag::None:
-		break;
-	case FocusFlag::Document:
-		focus = true;
-		break;
+	case FocusFlag::None: break;
+	case FocusFlag::Document: focus = true; break;
 	case FocusFlag::Keep:
 		focus = true;
 		focus_previous = true;
@@ -291,7 +279,7 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 
 	// Set to visible and switch focus if necessary
 	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
-	
+
 	// We should update the document now, otherwise the focusing methods below do not think we are visible
 	// If this turns out to be slow, the more performant approach is just to compute the new visibility property
 	UpdateDocument();
@@ -341,14 +329,13 @@ void ElementDocument::Hide()
 	UpdateDocument();
 
 	DispatchEvent(EventId::Hide, Dictionary());
-	
+
 	if (context)
 	{
 		context->UnfocusDocument(this);
 	}
 }
 
-// Close this document
 void ElementDocument::Close()
 {
 	if (context != nullptr)
@@ -360,7 +347,6 @@ ElementPtr ElementDocument::CreateElement(const String& name)
 	return Factory::InstanceElement(nullptr, name, name, XMLAttributes());
 }
 
-// Create a text element.
 ElementPtr ElementDocument::CreateTextNode(const String& text)
 {
 	// Create the element.
@@ -372,40 +358,28 @@ ElementPtr ElementDocument::CreateTextNode(const String& text)
 	}
 
 	// Cast up
-	ElementText* element_text = rmlui_dynamic_cast< ElementText* >(element.get());
+	ElementText* element_text = rmlui_dynamic_cast<ElementText*>(element.get());
 	if (!element_text)
 	{
 		Log::Message(Log::LT_ERROR, "Failed to create text element, instancer didn't return a derivative of ElementText.");
 		return nullptr;
 	}
-	
+
 	// Set the text
 	element_text->SetText(text);
 
 	return element;
 }
 
-// Is the current document modal
 bool ElementDocument::IsModal() const
 {
 	return modal && IsVisible();
 }
 
-// Default load inline script implementation
-void ElementDocument::LoadInlineScript(const String& RMLUI_UNUSED_PARAMETER(content), const String& RMLUI_UNUSED_PARAMETER(source_path), int RMLUI_UNUSED_PARAMETER(line))
-{
-	RMLUI_UNUSED(content);
-	RMLUI_UNUSED(source_path);
-	RMLUI_UNUSED(line);
-}
+void ElementDocument::LoadInlineScript(const String& /*content*/, const String& /*source_path*/, int /*line*/) {}
 
-// Default load external script implementation
-void ElementDocument::LoadExternalScript(const String& RMLUI_UNUSED_PARAMETER(source_path))
-{
-	RMLUI_UNUSED(source_path);
-}
+void ElementDocument::LoadExternalScript(const String& /*source_path*/) {}
 
-// Updates the document, including its layout
 void ElementDocument::UpdateDocument()
 {
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
@@ -415,12 +389,11 @@ void ElementDocument::UpdateDocument()
 	UpdatePosition();
 }
 
-// Updates the layout if necessary.
 void ElementDocument::UpdateLayout()
 {
 	// Note: Carefully consider when to call this function for performance reasons.
 	// Ideally, only called once per update loop.
-	if(layout_dirty)
+	if (layout_dirty)
 	{
 		RMLUI_ZoneScoped;
 		RMLUI_ZoneText(source_url.c_str(), source_url.size());
@@ -437,7 +410,6 @@ void ElementDocument::UpdateLayout()
 	}
 }
 
-// Updates the position of the document based on the style properties.
 void ElementDocument::UpdatePosition()
 {
 	if (position_dirty)
@@ -499,7 +471,6 @@ void ElementDocument::DirtyVwAndVhProperties()
 	GetStyle()->DirtyPropertiesWithUnitsRecursive(Property::VW | Property::VH);
 }
 
-// Repositions the document if necessary.
 void ElementDocument::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
@@ -508,14 +479,13 @@ void ElementDocument::OnPropertyChange(const PropertyIdSet& changed_properties)
 	if (changed_properties.Contains(PropertyId::FontSize))
 		GetStyle()->DirtyPropertiesWithUnitsRecursive(Property::REM);
 
-	if (changed_properties.Contains(PropertyId::Top) ||
-		changed_properties.Contains(PropertyId::Right) ||
-		changed_properties.Contains(PropertyId::Bottom) ||
+	if (changed_properties.Contains(PropertyId::Top) ||    //
+		changed_properties.Contains(PropertyId::Right) ||  //
+		changed_properties.Contains(PropertyId::Bottom) || //
 		changed_properties.Contains(PropertyId::Left))
 		DirtyPosition();
 }
 
-// Processes the 'onpropertychange' event, checking for a change in position or size.
 void ElementDocument::ProcessDefaultAction(Event& event)
 {
 	Element::ProcessDefaultAction(event);
@@ -530,7 +500,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 		{
 			if (Element* element = FindNextTabElement(event.GetTargetElement(), !event.GetParameter<bool>("shift_key", false)))
 			{
-				if(element->Focus())
+				if (element->Focus())
 				{
 					element->ScrollIntoView(false);
 					event.StopPropagation();
@@ -538,8 +508,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			}
 		}
 		// Process ENTER being pressed on a focusable object (emulate click)
-		else if (key_identifier == Input::KI_RETURN ||
-				 key_identifier == Input::KI_NUMPADENTER)
+		else if (key_identifier == Input::KI_RETURN || key_identifier == Input::KI_NUMPADENTER)
 		{
 			Element* focus_node = GetFocusLeafNode();
 
@@ -574,14 +543,12 @@ static CanFocus CanFocusElement(Element* element)
 	return CanFocus::No;
 }
 
-// Find the next element to focus, starting at the current element
-//
-// This algorithm is quite sneaky, I originally thought a depth first search would
-// work, but it appears not. What is required is to cut the tree in half along the nodes
-// from current_element up the root and then either traverse the tree in a clockwise or
-// anticlock wise direction depending if you're searching forward or backward respectively
 Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward)
 {
+	// This algorithm is quite sneaky, I originally thought a depth first search would work, but it appears not. What is
+	// required is to cut the tree in half along the nodes from current_element up the root and then either traverse the
+	// tree in a clockwise or anticlock wise direction depending if you're searching forward or backward respectively.
+
 	// If we're searching forward, check the immediate children of this node first off.
 	if (forward)
 	{
@@ -608,7 +575,7 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 
 			// Do a search if its enabled
 			if (search_enabled)
-				if(Element* result = SearchFocusSubtree(search_child, forward))
+				if (Element* result = SearchFocusSubtree(search_child, forward))
 					return result;
 
 			// Enable searching when we reach the child.
@@ -654,7 +621,7 @@ Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 		int child_index = i;
 		if (!forward)
 			child_index = element->GetNumChildren() - i - 1;
-		if (Element * result = SearchFocusSubtree(element->GetChild(child_index), forward))
+		if (Element* result = SearchFocusSubtree(element->GetChild(child_index), forward))
 			return result;
 	}
 

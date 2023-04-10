@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,29 +36,23 @@ Vector4<Type>::Vector4() : x{}, y{}, z{}, w{}
 {}
 
 // Initialising constructor.
-template < typename Type >
-Vector4< Type >::Vector4(Type v) 
-	: x(v), y(v), z(v), w(v)
-{
-}
+template <typename Type>
+Vector4<Type>::Vector4(Type v) : x(v), y(v), z(v), w(v)
+{}
 
 // Initialising constructor.
-template < typename Type >
-Vector4< Type >::Vector4(Type x, Type y, Type z, Type w)
-	: x(x), y(y), z(z), w(w)
-{
-}
+template <typename Type>
+Vector4<Type>::Vector4(Type x, Type y, Type z, Type w) : x(x), y(y), z(z), w(w)
+{}
 
 // Implicit conversion from a 3D Vector.
-template < typename Type >
-Vector4< Type >::Vector4(Vector3< Type > const& v, Type w)
-	: x(v.x), y(v.y), z(v.z), w(w)
-{
-}
+template <typename Type>
+Vector4<Type>::Vector4(Vector3<Type> const& v, Type w) : x(v.x), y(v.y), z(v.z), w(w)
+{}
 
 // Returns the magnitude of the vector.
-template < typename Type >
-float Vector4< Type >::Magnitude() const
+template <typename Type>
+float Vector4<Type>::Magnitude() const
 {
 	float squared_magnitude = (float)SquaredMagnitude();
 	if (Math::IsZero(squared_magnitude))
@@ -68,22 +62,22 @@ float Vector4< Type >::Magnitude() const
 }
 
 // Returns the squared magnitude of the vector.
-template < typename Type >
-Type Vector4< Type >::SquaredMagnitude() const
+template <typename Type>
+Type Vector4<Type>::SquaredMagnitude() const
 {
 	return x * x + y * y + z * z + w * w;
 }
 
 // Generates a normalised vector from this vector.
-template < typename Type >
-inline Vector4< Type > Vector4< Type >::Normalise() const
+template <typename Type>
+inline Vector4<Type> Vector4<Type>::Normalise() const
 {
 	static_assert(std::is_same<Type, float>::value, "Normalise only implemented for Vector<float>.");
 	return *this;
 }
 
 template <>
-inline Vector4< float > Vector4< float >::Normalise() const
+inline Vector4<float> Vector4<float>::Normalise() const
 {
 	const float magnitude = Magnitude();
 	if (Math::IsZero(magnitude))
@@ -93,56 +87,56 @@ inline Vector4< float > Vector4< float >::Normalise() const
 }
 
 // Computes the dot-product between this vector and another.
-template < typename Type >
-Type Vector4< Type >::DotProduct(const Vector4< Type >& rhs) const
+template <typename Type>
+Type Vector4<Type>::DotProduct(const Vector4<Type>& rhs) const
 {
 	return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w;
 }
 
-template < typename Type >
-Vector3< Type > Vector4< Type >::PerspectiveDivide() const
+template <typename Type>
+Vector3<Type> Vector4<Type>::PerspectiveDivide() const
 {
-	return Vector3< Type >(x / w, y / w, z / w);
+	return Vector3<Type>(x / w, y / w, z / w);
 }
 
 // Returns the negation of this vector.
-template < typename Type >
-Vector4< Type > Vector4< Type >::operator-() const
+template <typename Type>
+Vector4<Type> Vector4<Type>::operator-() const
 {
 	return Vector4(-x, -y, -z, -w);
 }
 
 // Returns the sum of this vector and another.
-template < typename Type >
-Vector4< Type > Vector4< Type >::operator+(const Vector4< Type > & rhs) const
+template <typename Type>
+Vector4<Type> Vector4<Type>::operator+(const Vector4<Type>& rhs) const
 {
-	return Vector4< Type >(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
+	return Vector4<Type>(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
 }
 
 // Returns the result of subtracting another vector from this vector.
-template < typename Type >
-Vector4< Type > Vector4< Type >::operator-(const Vector4< Type > & rhs) const
+template <typename Type>
+Vector4<Type> Vector4<Type>::operator-(const Vector4<Type>& rhs) const
 {
 	return Vector4(x - rhs.x, y - rhs.y, z - rhs.z, w - rhs.w);
 }
 
 // Returns the result of multiplying this vector by a scalar.
-template < typename Type >
-Vector4< Type > Vector4< Type >::operator*(Type rhs) const
+template <typename Type>
+Vector4<Type> Vector4<Type>::operator*(Type rhs) const
 {
 	return Vector4(x * rhs, y * rhs, z * rhs, w * rhs);
 }
 
 // Returns the result of dividing this vector by a scalar.
-template < typename Type >
-Vector4< Type > Vector4< Type >::operator/(Type rhs) const
+template <typename Type>
+Vector4<Type> Vector4<Type>::operator/(Type rhs) const
 {
 	return Vector4(x / rhs, y / rhs, z / rhs, w / rhs);
 }
 
 // Adds another vector to this in-place.
-template < typename Type >
-Vector4< Type >& Vector4< Type >::operator+=(const Vector4 & rhs)
+template <typename Type>
+Vector4<Type>& Vector4<Type>::operator+=(const Vector4& rhs)
 {
 	x += rhs.x;
 	y += rhs.y;
@@ -153,8 +147,8 @@ Vector4< Type >& Vector4< Type >::operator+=(const Vector4 & rhs)
 }
 
 // Subtracts another vector from this in-place.
-template < typename Type >
-Vector4< Type >& Vector4< Type >::operator-=(const Vector4 & rhs)
+template <typename Type>
+Vector4<Type>& Vector4<Type>::operator-=(const Vector4& rhs)
 {
 	x -= rhs.x;
 	y -= rhs.y;
@@ -165,8 +159,8 @@ Vector4< Type >& Vector4< Type >::operator-=(const Vector4 & rhs)
 }
 
 // Scales this vector in-place.
-template < typename Type >
-Vector4< Type >& Vector4< Type >::operator*=(const Type & rhs)
+template <typename Type>
+Vector4<Type>& Vector4<Type>::operator*=(const Type& rhs)
 {
 	x *= rhs;
 	y *= rhs;
@@ -177,8 +171,8 @@ Vector4< Type >& Vector4< Type >::operator*=(const Type & rhs)
 }
 
 // Scales this vector in-place by the inverse of a value.
-template < typename Type >
-Vector4< Type >& Vector4< Type >::operator/=(const Type & rhs)
+template <typename Type>
+Vector4<Type>& Vector4<Type>::operator/=(const Type& rhs)
 {
 	x /= rhs;
 	y /= rhs;
@@ -189,57 +183,56 @@ Vector4< Type >& Vector4< Type >::operator/=(const Type & rhs)
 }
 
 // Equality operator.
-template < typename Type >
-bool Vector4< Type >::operator==(const Vector4 & rhs) const
+template <typename Type>
+bool Vector4<Type>::operator==(const Vector4& rhs) const
 {
 	return (x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w);
 }
 
 // Inequality operator.
-template < typename Type >
-bool Vector4< Type >::operator!=(const Vector4 & rhs) const
+template <typename Type>
+bool Vector4<Type>::operator!=(const Vector4& rhs) const
 {
 	return (x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w);
 }
 
 // Auto-cast operator.
-template < typename Type >
-Vector4< Type >::operator const Type* () const
+template <typename Type>
+Vector4<Type>::operator const Type*() const
 {
 	return &x;
 }
 
 // Constant auto-cast operator.
-template < typename Type >
-Vector4< Type >::operator Type* ()
+template <typename Type>
+Vector4<Type>::operator Type*()
 {
 	return &x;
 }
 
 // Underlying type-cast operator.
-template < typename Type >
-template < typename U >
-inline Vector4< Type >::operator Vector4<U>() const
+template <typename Type>
+template <typename U>
+inline Vector4<Type>::operator Vector4<U>() const
 {
 	return Vector4<U>(static_cast<U>(x), static_cast<U>(y), static_cast<U>(z), static_cast<U>(w));
 }
 
-
-template < typename Type >
-Vector4< Type >::operator Vector3< Type >() const
+template <typename Type>
+Vector4<Type>::operator Vector3<Type>() const
 {
-	return Vector3< Type >(x, y, z);
+	return Vector3<Type>(x, y, z);
 }
 
-template < typename Type >
-Vector4< Type >::operator Vector2< Type >() const
+template <typename Type>
+Vector4<Type>::operator Vector2<Type>() const
 {
-	return Vector2< Type >(x, y);
+	return Vector2<Type>(x, y);
 }
 
 // Multiply by scalar operator.
-template < typename Type >
-inline Vector4< Type > operator*(Type lhs, Vector4< Type > rhs)
+template <typename Type>
+inline Vector4<Type> operator*(Type lhs, Vector4<Type> rhs)
 {
 	return rhs * lhs;
 }

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,14 +42,9 @@
 
 namespace Rml {
 
+ElementSVG::ElementSVG(const String& tag) : Element(tag), geometry(this) {}
 
-ElementSVG::ElementSVG(const String& tag) : Element(tag), geometry(this)
-{
-}
-
-ElementSVG::~ElementSVG()
-{
-}
+ElementSVG::~ElementSVG() {}
 
 bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
@@ -58,11 +53,13 @@ bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 
 	dimensions = intrinsic_dimensions;
 
-	if (HasAttribute("width")) {
-		dimensions.x = GetAttribute< float >("width", -1);
+	if (HasAttribute("width"))
+	{
+		dimensions.x = GetAttribute<float>("width", -1);
 	}
-	if (HasAttribute("height")) {
-		dimensions.y = GetAttribute< float >("height", -1);
+	if (HasAttribute("height"))
+	{
+		dimensions.y = GetAttribute<float>("height", -1);
 	}
 
 	if (dimensions.y > 0)
@@ -99,8 +96,7 @@ void ElementSVG::OnAttributeChange(const ElementAttributes& changed_attributes)
 		DirtyLayout();
 	}
 
-	if (changed_attributes.find("width") != changed_attributes.end() ||
-		changed_attributes.find("height") != changed_attributes.end())
+	if (changed_attributes.find("width") != changed_attributes.end() || changed_attributes.find("height") != changed_attributes.end())
 	{
 		DirtyLayout();
 	}
@@ -110,8 +106,8 @@ void ElementSVG::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 
-	if (changed_properties.Contains(PropertyId::ImageColor) ||
-		changed_properties.Contains(PropertyId::Opacity)) {
+	if (changed_properties.Contains(PropertyId::ImageColor) || changed_properties.Contains(PropertyId::Opacity))
+	{
 		geometry_dirty = true;
 	}
 }
@@ -120,15 +116,15 @@ void ElementSVG::GenerateGeometry()
 {
 	geometry.Release(true);
 
-	Vector< Vertex >& vertices = geometry.GetVertices();
-	Vector< int >& indices = geometry.GetIndices();
+	Vector<Vertex>& vertices = geometry.GetVertices();
+	Vector<int>& indices = geometry.GetIndices();
 
 	vertices.resize(4);
 	indices.resize(6);
 
 	Vector2f texcoords[2] = {
 		{0.0f, 0.0f},
-		{1.0f, 1.0f}
+		{1.0f, 1.0f},
 	};
 
 	const ComputedValues& computed = GetComputedValues();

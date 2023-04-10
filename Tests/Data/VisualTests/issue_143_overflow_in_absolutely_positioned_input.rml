@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Overflow in absolutely positioned input</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Overflow in absolutely positioned input</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="GitHub issue #143" href="https://github.com/mikke89/RmlUi/issues/143" />
 	<meta name="Description" content="The contents of input text element (purple) should always be clipped and never overflow. The also applies when hovering the mouse cursor over the designated area." />
 	<style>

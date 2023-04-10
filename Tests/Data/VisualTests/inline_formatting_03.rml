@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Inline formatting 03</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Inline formatting 03</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/css-inline-3/#model" />
 	<meta name="Description" content="Testing inline box split by resizing the document." />
 	<style>

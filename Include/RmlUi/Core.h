@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,17 +29,13 @@
 #ifndef RMLUI_CORE_H
 #define RMLUI_CORE_H
 
-#include "Core/Core.h"
-
-#include "Core/Types.h"
-#include "Core/Math.h"
-#include "Core/Header.h"
 #include "Core/Animation.h"
 #include "Core/Box.h"
 #include "Core/ComputedValues.h"
 #include "Core/Context.h"
 #include "Core/ContextInstancer.h"
 #include "Core/ConvolutionFilter.h"
+#include "Core/Core.h"
 #include "Core/DataModelHandle.h"
 #include "Core/DataTypeRegister.h"
 #include "Core/DataTypes.h"
@@ -64,9 +60,11 @@
 #include "Core/FontGlyph.h"
 #include "Core/Geometry.h"
 #include "Core/GeometryUtilities.h"
+#include "Core/Header.h"
 #include "Core/ID.h"
 #include "Core/Input.h"
 #include "Core/Log.h"
+#include "Core/Math.h"
 #include "Core/Plugin.h"
 #include "Core/PropertiesIteratorView.h"
 #include "Core/Property.h"
@@ -88,10 +86,12 @@
 #include "Core/TransformPrimitive.h"
 #include "Core/Tween.h"
 #include "Core/TypeConverter.h"
+#include "Core/Types.h"
 #include "Core/Vertex.h"
 #include "Core/XMLNodeHandler.h"
 #include "Core/XMLParser.h"
 
+// Elements
 #include "Core/Elements/ElementForm.h"
 #include "Core/Elements/ElementFormControl.h"
 #include "Core/Elements/ElementFormControlInput.h"

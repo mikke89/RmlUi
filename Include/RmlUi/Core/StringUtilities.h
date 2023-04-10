@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,21 +35,19 @@
 namespace Rml {
 
 /**
-	Helper functions for string manipulation.
-	@author Lloyd Weehuizen
+    Helper functions for string manipulation.
+    @author Lloyd Weehuizen
  */
 
 class StringView;
 
 /// Construct a string using sprintf-style syntax.
-RMLUICORE_API String CreateString(size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(2,3);
+RMLUICORE_API String CreateString(size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(2, 3);
 
 /// Format to a string using sprintf-style syntax.
-RMLUICORE_API int FormatString(String& string, size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(3,4);
+RMLUICORE_API int FormatString(String& string, size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(3, 4);
 
-
-namespace StringUtilities
-{
+namespace StringUtilities {
 	/// Expands character-delimited list of values in a single string to a whitespace-trimmed list
 	/// of values.
 	/// @param[out] string_list Resulting list of values.
@@ -63,7 +61,8 @@ namespace StringUtilities
 	/// @param[in] quote_character Begin quote
 	/// @param[in] unquote_character End quote
 	/// @param[in] ignore_repeated_delimiters If true, repeated values of the delimiter will not add additional entries to the list.
-	RMLUICORE_API void ExpandString(StringList& string_list, const String& string, const char delimiter, char quote_character, char unquote_character, bool ignore_repeated_delimiters = false);
+	RMLUICORE_API void ExpandString(StringList& string_list, const String& string, const char delimiter, char quote_character, char unquote_character,
+		bool ignore_repeated_delimiters = false);
 	/// Joins a list of string values into a single string separated by a character delimiter.
 	/// @param[out] string Resulting concatenated string.
 	/// @param[in] string_list Input list of string values.
@@ -134,13 +133,12 @@ namespace StringUtilities
 			--p;
 		return p;
 	}
-}
-
+} // namespace StringUtilities
 
 /*
-	A poor man's string view. 
-	
-	The string view is agnostic to the underlying encoding, any operation will strictly operate on bytes.
+    A poor man's string view.
+
+    The string view is agnostic to the underlying encoding, any operation will strictly operate on bytes.
 */
 
 class RMLUICORE_API StringView {
@@ -167,21 +165,18 @@ public:
 
 	inline size_t size() const { return size_t(p_end - p_begin); }
 
-	explicit inline operator String() const {
-		return String(p_begin, p_end);
-	}
+	explicit inline operator String() const { return String(p_begin, p_end); }
 
 private:
 	const char* p_begin;
 	const char* p_end;
 };
 
-
 /*
-	An iterator for UTF-8 strings. 
+    An iterator for UTF-8 strings.
 
-	The increment and decrement operations will move to the beginning of the next or the previous
-	UTF-8 character, respectively. The dereference operator will resolve the current code point.
+    The increment and decrement operations will move to the beginning of the next or the previous
+    UTF-8 character, respectively. The dereference operator will resolve the current code point.
 
 */
 
@@ -220,9 +215,6 @@ private:
 	inline void SeekForward();
 	inline void SeekBack();
 };
-
-
-
 
 } // namespace Rml
 #endif

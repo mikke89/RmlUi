@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,14 +27,14 @@
  */
 
 #include "../../Include/RmlUi/Core/TypeConverter.h"
-#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
-#include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 #include "../../Include/RmlUi/Core/Animation.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
-#include "../../Include/RmlUi/Core/Transform.h"
-#include "../../Include/RmlUi/Core/PropertySpecification.h"
-#include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
+#include "../../Include/RmlUi/Core/PropertySpecification.h"
+#include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
+#include "../../Include/RmlUi/Core/StyleSheetTypes.h"
+#include "../../Include/RmlUi/Core/Transform.h"
+#include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "TransformUtilities.h"
 
 namespace Rml {
@@ -54,11 +54,11 @@ bool TypeConverter<TransformPtr, String>::Convert(const TransformPtr& src, Strin
 		for (size_t i = 0; i < primitives.size(); i++)
 		{
 			dest += TransformUtilities::ToString(primitives[i]);
-			if (i != primitives.size() - 1) 
+			if (i != primitives.size() - 1)
 				dest += ' ';
 		}
 	}
-	else 
+	else
 	{
 		dest = "none";
 	}
@@ -84,11 +84,16 @@ bool TypeConverter<TransitionList, String>::Convert(const TransitionList& src, S
 		const Transition& t = src.transitions[i];
 		dest += StyleSheetSpecification::GetPropertyName(t.id) + ' ';
 		dest += t.tween.to_string() + ' ';
-		if (TypeConverter< float, String >::Convert(t.duration, tmp)) dest += tmp + "s ";
-		if (t.delay > 0.0f && TypeConverter< float, String >::Convert(t.delay, tmp)) dest += tmp + "s ";
-		if (t.reverse_adjustment_factor > 0.0f && TypeConverter< float, String >::Convert(t.reverse_adjustment_factor, tmp)) dest += tmp + ' ';
-		if (dest.size() > 0) dest.resize(dest.size() - 1);
-		if (i != src.transitions.size() - 1) dest += ", ";
+		if (TypeConverter<float, String>::Convert(t.duration, tmp))
+			dest += tmp + "s ";
+		if (t.delay > 0.0f && TypeConverter<float, String>::Convert(t.delay, tmp))
+			dest += tmp + "s ";
+		if (t.reverse_adjustment_factor > 0.0f && TypeConverter<float, String>::Convert(t.reverse_adjustment_factor, tmp))
+			dest += tmp + ' ';
+		if (dest.size() > 0)
+			dest.resize(dest.size() - 1);
+		if (i != src.transitions.size() - 1)
+			dest += ", ";
 	}
 	return true;
 }
@@ -105,15 +110,22 @@ bool TypeConverter<AnimationList, String>::Convert(const AnimationList& src, Str
 	for (size_t i = 0; i < src.size(); i++)
 	{
 		const Animation& a = src[i];
-		if (TypeConverter< float, String >::Convert(a.duration, tmp)) dest += tmp + "s ";
+		if (TypeConverter<float, String>::Convert(a.duration, tmp))
+			dest += tmp + "s ";
 		dest += a.tween.to_string() + " ";
-		if (a.delay > 0.0f && TypeConverter< float, String >::Convert(a.delay, tmp)) dest += tmp + "s ";
-		if (a.alternate) dest += "alternate ";
-		if (a.paused) dest += "paused ";
-		if (a.num_iterations == -1) dest += "infinite ";
-		else if (TypeConverter< int, String >::Convert(a.num_iterations, tmp)) dest += tmp + " ";
+		if (a.delay > 0.0f && TypeConverter<float, String>::Convert(a.delay, tmp))
+			dest += tmp + "s ";
+		if (a.alternate)
+			dest += "alternate ";
+		if (a.paused)
+			dest += "paused ";
+		if (a.num_iterations == -1)
+			dest += "infinite ";
+		else if (TypeConverter<int, String>::Convert(a.num_iterations, tmp))
+			dest += tmp + " ";
 		dest += a.name;
-		if (i != src.size() - 1) dest += ", ";
+		if (i != src.size() - 1)
+			dest += ", ";
 	}
 	return true;
 }
@@ -123,7 +135,6 @@ bool TypeConverter<DecoratorsPtr, DecoratorsPtr>::Convert(const DecoratorsPtr& s
 	dest = src;
 	return true;
 }
-
 
 bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, String& dest)
 {
@@ -149,13 +160,11 @@ bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, Str
 	return true;
 }
 
-
 bool TypeConverter<FontEffectsPtr, FontEffectsPtr>::Convert(const FontEffectsPtr& src, FontEffectsPtr& dest)
 {
 	dest = src;
 	return true;
 }
-
 
 bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, String& dest)
 {
@@ -165,8 +174,5 @@ bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, S
 		dest += src->value;
 	return true;
 }
-
-
-
 
 } // namespace Rml

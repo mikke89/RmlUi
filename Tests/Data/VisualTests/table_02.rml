@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Table 02</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Table 02</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#fixed-table-layout" />
 	<meta name="Description" content="Test table column sizing algorithm." />
 	<style>
@@ -34,7 +34,7 @@
 			background: #33b;
 			border: 5dp #66f;
 		}
-		.color tr { 
+		.color tr {
 			height: auto;
 		}
 		.color td {
@@ -50,7 +50,7 @@
 			margin: 20dp 0;
 			height: 40dp;
 			width: 305dp; /* 2*col width + 8*td margin + 4*col margin + 4*colgroup padding + 4*colgroup border +
-			                 4*colgroup margin + 3*column-gap + 2*table padding */
+							4*colgroup margin + 3*column-gap + 2*table padding */
 		}
 	</style>
 </head>

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2018 Michael R. P. Ragazzon
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -49,10 +49,9 @@ scrollbarhorizontal sliderbar:hover { background: #888; }
 scrollbarhorizontal sliderbar:active { background: #666; }
 )";
 
-class DemoWindow : public Rml::EventListener
-{
+class DemoWindow : public Rml::EventListener {
 public:
-	DemoWindow(const Rml::String &title, Rml::Context *context)
+	DemoWindow(const Rml::String& title, Rml::Context* context)
 	{
 		using namespace Rml;
 		document = context->LoadDocument("basic/demo/data/demo.rml");
@@ -84,7 +83,7 @@ public:
 					// Load file into string
 					auto file_interface = Rml::GetFileInterface();
 					Rml::FileHandle handle = file_interface->Open("assets/rml.rcss");
-					
+
 					size_t length = file_interface->Length(handle);
 					style_sheet_content.resize(length);
 					file_interface->Read((void*)style_sheet_content.data(), length, handle);
@@ -110,12 +109,13 @@ public:
 
 			gauge = document->GetElementById("gauge");
 			progress_horizontal = document->GetElementById("progress_horizontal");
-			
+
 			document->Show();
 		}
 	}
 
-	void Update() {
+	void Update()
+	{
 		if (iframe)
 		{
 			iframe->UpdateDocument();
@@ -169,7 +169,8 @@ public:
 		}
 	}
 
-	void Shutdown() {
+	void Shutdown()
+	{
 		if (document)
 		{
 			document->Close();
@@ -185,23 +186,20 @@ public:
 		{
 		case EventId::Keydown:
 		{
-			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
 
 			if (key_identifier == Rml::Input::KI_ESCAPE)
 				Backend::RequestExit();
 		}
 		break;
 
-		default:
-			break;
+		default: break;
 		}
 	}
 
-	Rml::ElementDocument * GetDocument() {
-		return document;
-	}
+	Rml::ElementDocument* GetDocument() { return document; }
 
-	void SubmitForm(Rml::String in_submit_message) 
+	void SubmitForm(Rml::String in_submit_message)
 	{
 		submitting = true;
 		submitting_start_time = Rml::GetSystemInterface()->GetElapsedTime();
@@ -235,8 +233,8 @@ public:
 	}
 
 private:
-	Rml::ElementDocument *document = nullptr;
-	Rml::ElementDocument *iframe = nullptr;
+	Rml::ElementDocument* document = nullptr;
+	Rml::ElementDocument* iframe = nullptr;
 	Rml::Element *gauge = nullptr, *progress_horizontal = nullptr;
 	Rml::SharedPtr<Rml::StyleSheetContainer> rml_basic_style_sheet;
 
@@ -244,7 +242,6 @@ private:
 	double submitting_start_time = 0;
 	Rml::String submit_message;
 };
-
 
 Rml::UniquePtr<DemoWindow> demo_window;
 
@@ -254,8 +251,7 @@ struct TweeningParameters {
 	float duration = 0.5f;
 } tweening_parameters;
 
-class DemoEventListener : public Rml::EventListener
-{
+class DemoEventListener : public Rml::EventListener {
 public:
 	DemoEventListener(const Rml::String& value, Rml::Element* element) : value(value), element(element) {}
 
@@ -279,38 +275,37 @@ public:
 		}
 		else if (value == "cancel_exit")
 		{
-			if(Element* parent = element->GetParentNode())
+			if (Element* parent = element->GetParentNode())
 				parent->SetInnerRML("<button id='exit' onclick='exit'>Exit</button>");
 		}
 		else if (value == "change_color")
 		{
 			Colourb color((byte)Math::RandomInteger(255), (byte)Math::RandomInteger(255), (byte)Math::RandomInteger(255));
-			element->Animate("image-color", Property(color, Property::COLOUR), tweening_parameters.duration, Tween(tweening_parameters.type, tweening_parameters.direction));
+			element->Animate("image-color", Property(color, Property::COLOUR), tweening_parameters.duration,
+				Tween(tweening_parameters.type, tweening_parameters.direction));
 			event.StopPropagation();
 		}
 		else if (value == "move_child")
 		{
-			Vector2f mouse_pos( event.GetParameter("mouse_x", 0.0f), event.GetParameter("mouse_y", 0.0f) );
+			Vector2f mouse_pos(event.GetParameter("mouse_x", 0.0f), event.GetParameter("mouse_y", 0.0f));
 			if (Element* child = element->GetFirstChild())
 			{
-				Vector2f new_pos = mouse_pos - element->GetAbsoluteOffset() - Vector2f(0.35f * child->GetClientWidth(), 0.9f * child->GetClientHeight());
-				Property destination = Transform::MakeProperty({ Transforms::Translate2D(new_pos.x, new_pos.y) });
-				if(tweening_parameters.duration <= 0)
+				Vector2f new_pos =
+					mouse_pos - element->GetAbsoluteOffset() - Vector2f(0.35f * child->GetClientWidth(), 0.9f * child->GetClientHeight());
+				Property destination = Transform::MakeProperty({Transforms::Translate2D(new_pos.x, new_pos.y)});
+				if (tweening_parameters.duration <= 0)
 					child->SetProperty(PropertyId::Transform, destination);
 				else
-					child->Animate("transform", destination, tweening_parameters.duration, Tween(tweening_parameters.type, tweening_parameters.direction));
+					child->Animate("transform", destination, tweening_parameters.duration,
+						Tween(tweening_parameters.type, tweening_parameters.direction));
 			}
 		}
 		else if (value == "tween_function")
 		{
-			static const SmallUnorderedMap<String, Tween::Type> tweening_functions = {
-				{"back", Tween::Back}, {"bounce", Tween::Bounce},
-				{"circular", Tween::Circular}, {"cubic", Tween::Cubic},
-				{"elastic", Tween::Elastic}, {"exponential", Tween::Exponential},
-				{"linear", Tween::Linear}, {"quadratic", Tween::Quadratic},
-				{"quartic", Tween::Quartic}, {"quintic", Tween::Quintic},
-				{"sine", Tween::Sine}
-			};
+			static const SmallUnorderedMap<String, Tween::Type> tweening_functions = {{"back", Tween::Back}, {"bounce", Tween::Bounce},
+				{"circular", Tween::Circular}, {"cubic", Tween::Cubic}, {"elastic", Tween::Elastic}, {"exponential", Tween::Exponential},
+				{"linear", Tween::Linear}, {"quadratic", Tween::Quadratic}, {"quartic", Tween::Quartic}, {"quintic", Tween::Quintic},
+				{"sine", Tween::Sine}};
 
 			String value = event.GetParameter("value", String());
 			auto it = tweening_functions.find(value);
@@ -326,9 +321,9 @@ public:
 			String value = event.GetParameter("value", String());
 			if (value == "in")
 				tweening_parameters.direction = Tween::In;
-			else if(value == "out")
+			else if (value == "out")
 				tweening_parameters.direction = Tween::Out;
-			else if(value == "in-out")
+			else if (value == "in-out")
 				tweening_parameters.direction = Tween::InOut;
 			else
 			{
@@ -349,16 +344,14 @@ public:
 			if (el_rating && el_rating_emoji)
 			{
 				enum { Sad, Mediocre, Exciting, Celebrate, Champion, CountEmojis };
-				static const Rml::String emojis[CountEmojis] = { 
-					(const char*)u8"😢", (const char*)u8"😐", (const char*)u8"😮",
-					(const char*)u8"😎", (const char*)u8"🏆"
-				};
+				static const Rml::String emojis[CountEmojis] = {(const char*)u8"😢", (const char*)u8"😐", (const char*)u8"😮", (const char*)u8"😎",
+					(const char*)u8"🏆"};
 				int value = event.GetParameter("value", 50);
-				
+
 				Rml::String emoji;
 				if (value <= 0)
 					emoji = emojis[Sad];
-				else if(value < 50)
+				else if (value < 50)
 					emoji = emojis[Mediocre];
 				else if (value < 75)
 					emoji = emojis[Exciting];
@@ -411,17 +404,13 @@ private:
 	Rml::Element* element;
 };
 
-
-
-class DemoEventListenerInstancer : public Rml::EventListenerInstancer
-{
+class DemoEventListenerInstancer : public Rml::EventListenerInstancer {
 public:
 	Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* element) override
 	{
 		return new DemoEventListener(value, element);
 	}
 };
-
 
 #if defined RMLUI_PLATFORM_WIN32
 	#include <RmlUi_Include_Windows.h>

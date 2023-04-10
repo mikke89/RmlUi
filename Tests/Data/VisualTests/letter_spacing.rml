@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>'letter-spacing' property</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>'letter-spacing' property</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://w3c.github.io/csswg-drafts/css-text/#letter-spacing-property" />
 	<meta name="Description" content="Test 'letter-spacing' property at different lengths. Negative string widths should not crash the library." />
 	<style>

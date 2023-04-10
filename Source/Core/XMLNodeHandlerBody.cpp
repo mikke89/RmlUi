@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,25 +27,19 @@
  */
 
 #include "XMLNodeHandlerBody.h"
-#include "XMLParseTools.h"
-#include "../../Include/RmlUi/Core/XMLParser.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/XMLParser.h"
+#include "XMLParseTools.h"
 
 namespace Rml {
 
-XMLNodeHandlerBody::XMLNodeHandlerBody()
-{
-}
+XMLNodeHandlerBody::XMLNodeHandlerBody() {}
 
-XMLNodeHandlerBody::~XMLNodeHandlerBody()
-{
-}
+XMLNodeHandlerBody::~XMLNodeHandlerBody() {}
 
-Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI_UNUSED_PARAMETER(name), const XMLAttributes& attributes)
+Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& /*name*/, const XMLAttributes& attributes)
 {
-	RMLUI_UNUSED(name);
-
 	Element* element = parser->GetParseFrame()->element;
 
 	// Apply any attributes to the document, but only if the current element is the root of the current document,
@@ -58,7 +52,8 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 			Variant* attribute = document->GetAttribute(pair.first);
 			if (attribute && *attribute != pair.second && pair.first != "template")
 			{
-				Log::Message(Log::LT_WARNING, "Overriding attribute '%s' in element %s during template injection.", pair.first.c_str(), element->GetAddress().c_str());
+				Log::Message(Log::LT_WARNING, "Overriding attribute '%s' in element %s during template injection.", pair.first.c_str(),
+					element->GetAddress().c_str());
 			}
 		}
 
@@ -74,21 +69,17 @@ Element* XMLNodeHandlerBody::ElementStart(XMLParser* parser, const String& RMLUI
 
 	// Tell the parser to use the element handler for all children
 	parser->PushDefaultHandler();
-	
+
 	return element;
 }
 
-bool XMLNodeHandlerBody::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))
+bool XMLNodeHandlerBody::ElementEnd(XMLParser* /*parser*/, const String& /*name*/)
 {
-	RMLUI_UNUSED(parser);
-	RMLUI_UNUSED(name);
-
 	return true;
 }
 
-bool XMLNodeHandlerBody::ElementData(XMLParser* parser, const String& data, XMLDataType RMLUI_UNUSED_PARAMETER(type))
+bool XMLNodeHandlerBody::ElementData(XMLParser* parser, const String& data, XMLDataType /*type*/)
 {
-	RMLUI_UNUSED(type);
 	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }
 

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,10 +85,10 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 #endif
 
 RenderInterface_VK::RenderInterface_VK() :
-	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false},
-	m_is_use_stencil_pipeline{false}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
-	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_p_instance{}, m_p_device{}, m_p_physical_device{}, m_p_surface{},
-	m_p_swapchain{}, m_p_allocator{}, m_p_current_command_buffer{}, m_p_descriptor_set_layout_vertex_transform{}, m_p_descriptor_set_layout_texture{},
+	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false},
+	m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{}, m_semaphore_index{},
+	m_semaphore_index_previous{}, m_image_index{}, m_p_instance{}, m_p_device{}, m_p_physical_device{}, m_p_surface{}, m_p_swapchain{},
+	m_p_allocator{}, m_p_current_command_buffer{}, m_p_descriptor_set_layout_vertex_transform{}, m_p_descriptor_set_layout_texture{},
 	m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
 	m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{}, m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
@@ -365,7 +365,8 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 			info_range.levelCount = 1;
 			info_range.layerCount = 1;
 
-			vkCmdClearDepthStencilImage(m_p_current_command_buffer, m_texture_depthstencil.m_p_vk_image, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &info_clear_color, 1, &info_range);
+			vkCmdClearDepthStencilImage(m_p_current_command_buffer, m_texture_depthstencil.m_p_vk_image,
+				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &info_clear_color, 1, &info_range);
 
 			RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
 
@@ -1693,9 +1694,12 @@ VkSurfaceFormatKHR RenderInterface_VK::ChooseSwapchainFormat() noexcept
 	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfaceFormatsKHR (filling vector of VkSurfaceFormatKHR)");
 
 	// Prefer UNORM formats
-	for(auto& format : formats) {
-		for(auto ufmt : UNORM_FORMATS) {
-			if(ufmt == format.format) return format;
+	for (auto& format : formats)
+	{
+		for (auto ufmt : UNORM_FORMATS)
+		{
+			if (ufmt == format.format)
+				return format;
 		}
 	}
 
@@ -2799,8 +2803,8 @@ VkCommandBuffer RenderInterface_VK::CommandBufferRing::GetCommandBufferForActive
 }
 
 RenderInterface_VK::MemoryPool::MemoryPool() :
-	m_memory_total_size{}, m_device_min_uniform_alignment{}, m_p_data{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{},
-	m_p_vk_allocator{}, m_p_block{}
+	m_memory_total_size{}, m_device_min_uniform_alignment{}, m_p_data{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{},
+	m_p_block{}
 {}
 
 RenderInterface_VK::MemoryPool::~MemoryPool() {}

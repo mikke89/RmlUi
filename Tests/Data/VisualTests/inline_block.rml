@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Inline-block</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Inline-block</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inlineblock-width" />
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#leading" />
 	<meta name="Description" content="Elements with 'display: inline-block' should shrink-to-fit when no width is specified. The baseline of the element should be the baseline of its last line." />
@@ -38,7 +38,7 @@
 <hr/>
 <div>Left filler text. <div class="iblock">An inline-block. <div class="float right">Float right</div><div class="float left">Float left</div> Filler text.</div> Right filler text.</div>
 <hr/>
-<div class="iblock">Nesting inline-blocks: 
+<div class="iblock">Nesting inline-blocks:
 	<div class="iblock">A<div class="iblock">B<div class="iblock">C</div></div></div>
 	<div class="iblock">D<div class="iblock">E<div class="iblock">F</div></div></div>
 </div>

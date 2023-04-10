@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,8 @@
  */
 
 #include "../../../Source/Core/DataModel.cpp"
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/DataModelHandle.h>
+#include <RmlUi/Core/Types.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -40,7 +40,7 @@ TEST_CASE("Data variables")
 	struct FunData {
 		int i = 99;
 		String x = "hello";
-		IntVector magic = { 3, 5, 7, 11, 13 };
+		IntVector magic = {3, 5, 7, 11, 13};
 	};
 
 	using FunArray = Array<FunData, 3>;
@@ -84,8 +84,9 @@ TEST_CASE("Data variables")
 
 	// Test data addresses, setters, and assignments
 	{
-		Vector<String> test_addresses = { "data.more_fun[1].magic[3]", "data.more_fun[1].magic.size", "data.fun.x", "data.valid" };
-		Vector<String> expected_results = { ToString(data.more_fun[1].magic[3]), ToString(int(data.more_fun[1].magic.size())), ToString(data.fun.x), ToString(data.valid) };
+		Vector<String> test_addresses = {"data.more_fun[1].magic[3]", "data.more_fun[1].magic.size", "data.fun.x", "data.valid"};
+		Vector<String> expected_results = {ToString(data.more_fun[1].magic[3]), ToString(int(data.more_fun[1].magic.size())), ToString(data.fun.x),
+			ToString(data.valid)};
 
 		Vector<String> results;
 
@@ -103,7 +104,7 @@ TEST_CASE("Data variables")
 		REQUIRE(model.GetVariable(ParseAddress("data.more_fun[1].magic[1]")).Set(Variant(String("199"))));
 		CHECK(data.more_fun[1].magic[1] == 199);
 
-		data.fun.magic = { 99, 190, 55, 2000, 50, 60, 70, 80, 90 };
+		data.fun.magic = {99, 190, 55, 2000, 50, 60, 70, 80, 90};
 
 		Variant get_result;
 

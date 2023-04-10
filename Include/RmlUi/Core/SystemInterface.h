@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,30 +29,29 @@
 #ifndef RMLUI_CORE_SYSTEMINTERFACE_H
 #define RMLUI_CORE_SYSTEMINTERFACE_H
 
-#include "Types.h"
+#include "Header.h"
 #include "Log.h"
 #include "Traits.h"
-#include "Header.h"
+#include "Types.h"
 
 namespace Rml {
 
 /**
-	RmlUi's System Interface.
+    RmlUi's System Interface.
 
-	This class provides interfaces for Time, Translation and Logging.
+    This class provides interfaces for Time, Translation and Logging.
 
-	Time is the only required implementation.
+    Time is the only required implementation.
 
-	The default implemention of Translation doesn't translate anything
+    The default implemention of Translation doesn't translate anything
 
-	The default implementation of logging logs Windows Debug Console,
-	or Standard Error, depending on what platform you're using.
+    The default implementation of logging logs Windows Debug Console,
+    or Standard Error, depending on what platform you're using.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API SystemInterface : public NonCopyMoveable
-{
+class RMLUICORE_API SystemInterface : public NonCopyMoveable {
 public:
 	SystemInterface();
 	virtual ~SystemInterface();
@@ -95,7 +94,7 @@ public:
 	/// @param[in] caret_position Position of the caret in absolute window coordinates.
 	/// @param[in] line_height Height of the current line being edited.
 	virtual void ActivateKeyboard(Rml::Vector2f caret_position, float line_height);
-	
+
 	/// Deactivate keyboard (for touchscreen devices).
 	virtual void DeactivateKeyboard();
 };

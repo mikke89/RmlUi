@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,11 +36,8 @@ TextureLayoutRow::TextureLayoutRow()
 	height = 0;
 }
 
-TextureLayoutRow::~TextureLayoutRow()
-{
-}
+TextureLayoutRow::~TextureLayoutRow() {}
 
-// Attempts to position unplaced rectangles from the layout into this row.
 int TextureLayoutRow::Generate(TextureLayout& layout, int max_width, int y)
 {
 	int width = 1;
@@ -85,20 +82,17 @@ int TextureLayoutRow::Generate(TextureLayout& layout, int max_width, int y)
 	return placed_rectangles;
 }
 
-// Assigns allocated texture data to all rectangles in this row.
 void TextureLayoutRow::Allocate(byte* texture_data, int stride)
 {
 	for (size_t i = 0; i < rectangles.size(); ++i)
 		rectangles[i]->Allocate(texture_data, stride);
 }
 
-// Returns the height of the row.
 int TextureLayoutRow::GetHeight() const
 {
 	return height;
 }
 
-// Resets the placed status for all of the rectangles within this row.
 void TextureLayoutRow::Unplace()
 {
 	for (size_t i = 0; i < rectangles.size(); ++i)

@@ -27,7 +27,7 @@
 <div class="lines">
 	First line<br/>
 	Second line ABC DEF
-	<div class="small right">X</div><div class="small right">Y</div> 
+	<div class="small right">X</div><div class="small right">Y</div>
 	GHI JKL MNO PQRS TUV
 </div>
 
@@ -47,7 +47,7 @@
 <div class="lines">
 	First line<br/>
 	Second line ABC DEF GHI JKL MNO PQRS TUV<div class="small right">X</div><div class="small right">Y</div><div class="small left">Z</div>
-	ABC DEF GHI JKL MNO PQRS TUV ABC DEF GHI JKL MNO PQRS TUV  ABC DEF GHI JKL MNO PQRS TUV <div class="inline tall">Z</div> 
+	ABC DEF GHI JKL MNO PQRS TUV ABC DEF GHI JKL MNO PQRS TUV  ABC DEF GHI JKL MNO PQRS TUV <div class="inline tall">Z</div>
 </div>
 
 <handle size_target="#document"/>

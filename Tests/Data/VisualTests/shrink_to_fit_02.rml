@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Shrink-to-fit 2</title>
-    <link type="text/rcss" href="../style.rcss"/>
+		<title>Shrink-to-fit 2</title>
+		<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/CSS21/visudet.html#shrink-to-fit-float" />
 	<meta name="Description" content="Shrink-to-fit width with differently positioned and floated boxes." />
 	<style>
@@ -49,49 +49,49 @@
 
 <body>
 <div>
-  Some text
-  <div>Block</div>
-  Text after
+	Some text
+	<div>Block</div>
+	Text after
 </div>
 <hr/>
 <div>
-  Some text
-  <div class="absolute">Absolute</div>
-  Text after
+	Some text
+	<div class="absolute">Absolute</div>
+	Text after
 </div>
 <hr style="margin-top: 55dp;"/>
 <div>
-  Some text
-  <div class="relative">Relative</div>
-  Text after
+	Some text
+	<div class="relative">Relative</div>
+	Text after
 </div>
 <hr/>
 <div>
-  Some text
-  <div class="float-left">Float left</div>
-  Text after
+	Some text
+	<div class="float-left">Float left</div>
+	Text after
 </div>
 <hr/>
 <div>
-  Some text
-  <div class="float-right">Float right</div>
-  Text after
+	Some text
+	<div class="float-right">Float right</div>
+	Text after
 </div>
 <hr/>
 <div>
-  <div class="float-left">Float left</div>
-  Text after
+	<div class="float-left">Float left</div>
+	Text after
 </div>
 <hr/>
 <div>
-  <div class="float-right">Float right</div>
-  Text after
+	<div class="float-right">Float right</div>
+	Text after
 </div>
 <hr/>
 <div>
-  Some text
-  <div class="float-left relative">Float relative</div>
-  Text after
+	Some text
+	<div class="float-left relative">Float relative</div>
+	Text after
 </div>
 </body>
 </rml>

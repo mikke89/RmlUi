@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,29 +29,26 @@
 #include "DecoratorNinePatch.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
 
-DecoratorNinePatch::DecoratorNinePatch()
-{
-}
+DecoratorNinePatch::DecoratorNinePatch() {}
 
-DecoratorNinePatch::~DecoratorNinePatch()
-{
-}
+DecoratorNinePatch::~DecoratorNinePatch() {}
 
-bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectanglef& _rect_inner, const Array<Property, 4>* _edges, const Texture& _texture, float _display_scale)
+bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectanglef& _rect_inner, const Array<Property, 4>* _edges,
+	const Texture& _texture, float _display_scale)
 {
 	rect_outer = _rect_outer;
 	rect_inner = _rect_inner;
-	
+
 	display_scale = _display_scale;
 
 	if (_edges)
-		edges = MakeUnique< Array<Property, 4> >(*_edges);
+		edges = MakeUnique<Array<Property, 4>>(*_edges);
 
 	int texture_index = AddTexture(_texture);
 	return (texture_index >= 0);
@@ -75,7 +72,6 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 
 	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 
-
 	/* In the following, we operate on the four diagonal vertices in the grid, as they define the whole grid. */
 
 	// Absolute texture coordinates 'px'
@@ -98,7 +94,7 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	// Surface position in pixels [0, surface_dimensions]
 	// Need to keep the corner patches at their natural size, but stretch the inner patches.
 	Vector2f surface_pos[4];
-	surface_pos[0] = { 0, 0 };
+	surface_pos[0] = {0, 0};
 	surface_pos[1] = (tex_pos[1] - tex_pos[0]) * scale_raw_to_natural_dimensions;
 	surface_pos[2] = surface_dimensions - (tex_pos[3] - tex_pos[2]) * scale_raw_to_natural_dimensions;
 	surface_pos[3] = surface_dimensions;
@@ -148,8 +144,8 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 		{
 			Vertex& vertex = vertices[y * 4 + x];
 			vertex.colour = quad_colour;
-			vertex.position = { surface_pos[x].x, surface_pos[y].y };
-			vertex.tex_coord = { tex_coords[x].x, tex_coords[y].y };
+			vertex.position = {surface_pos[x].x, surface_pos[y].y};
+			vertex.tex_coord = {tex_coords[x].x, tex_coords[y].y};
 		}
 	}
 
@@ -157,12 +153,12 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	indices.resize(9 * 2 * 3);
 
 	// Fill in the indices one rectangle at a time.
-	const int top_left_indices[9] = { 0, 1, 2, 4, 5, 6, 8, 9, 10 };
+	const int top_left_indices[9] = {0, 1, 2, 4, 5, 6, 8, 9, 10};
 	for (int rectangle = 0; rectangle < 9; rectangle++)
 	{
 		int i = rectangle * 6;
 		int top_left_index = top_left_indices[rectangle];
-		indices[i]     = top_left_index;
+		indices[i] = top_left_index;
 		indices[i + 1] = top_left_index + 4;
 		indices[i + 2] = top_left_index + 1;
 		indices[i + 3] = top_left_index + 1;
@@ -175,16 +171,14 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 
 void DecoratorNinePatch::ReleaseElementData(DecoratorDataHandle element_data) const
 {
-	delete reinterpret_cast< Geometry* >(element_data);
+	delete reinterpret_cast<Geometry*>(element_data);
 }
 
 void DecoratorNinePatch::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
-	Geometry* data = reinterpret_cast< Geometry* >(element_data);
+	Geometry* data = reinterpret_cast<Geometry*>(element_data);
 	data->Render(element->GetAbsoluteOffset(Box::PADDING));
 }
-
-
 
 DecoratorNinePatchInstancer::DecoratorNinePatchInstancer()
 {
@@ -196,22 +190,19 @@ DecoratorNinePatchInstancer::DecoratorNinePatchInstancer()
 	edge_ids[3] = RegisterProperty("edge-left", "0px").AddParser("number_length_percent").GetId();
 
 	RegisterShorthand("edge", "edge-top, edge-right, edge-bottom, edge-left", ShorthandType::Box);
-	
+
 	RMLUI_ASSERT(sprite_outer_id != PropertyId::Invalid && sprite_inner_id != PropertyId::Invalid);
 
 	RegisterShorthand("decorator", "outer, inner, edge?", ShorthandType::RecursiveCommaSeparated);
 }
 
-DecoratorNinePatchInstancer::~DecoratorNinePatchInstancer()
-{
-}
+DecoratorNinePatchInstancer::~DecoratorNinePatchInstancer() {}
 
-SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface)
+SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String& /*name*/, const PropertyDictionary& properties,
+	const DecoratorInstancerInterface& instancer_interface)
 {
-	RMLUI_UNUSED(name);
-
 	bool edges_set = false;
-	Array<Property,4> edges;
+	Array<Property, 4> edges;
 	for (int i = 0; i < 4; i++)
 	{
 		edges[i] = *properties.GetProperty(edge_ids[i]);
@@ -225,7 +216,7 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 	const Sprite* sprite_inner = nullptr;
 
 	{
-		const String sprite_name = properties.GetProperty(sprite_outer_id)->Get< String >();
+		const String sprite_name = properties.GetProperty(sprite_outer_id)->Get<String>();
 		sprite_outer = instancer_interface.GetSprite(sprite_name);
 		if (!sprite_outer)
 		{
@@ -234,7 +225,7 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 		}
 	}
 	{
-		const String sprite_name = properties.GetProperty(sprite_inner_id)->Get< String >();
+		const String sprite_name = properties.GetProperty(sprite_inner_id)->Get<String>();
 		sprite_inner = instancer_interface.GetSprite(sprite_name);
 		if (!sprite_inner)
 		{
@@ -251,8 +242,8 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 
 	auto decorator = MakeShared<DecoratorNinePatch>();
 
-	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, (edges_set ? &edges : nullptr),
-		sprite_outer->sprite_sheet->texture, sprite_outer->sprite_sheet->display_scale))
+	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, (edges_set ? &edges : nullptr), sprite_outer->sprite_sheet->texture,
+			sprite_outer->sprite_sheet->display_scale))
 	{
 		return nullptr;
 	}

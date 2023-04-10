@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,30 +29,27 @@
 #ifndef RMLUI_CORE_POOL_H
 #define RMLUI_CORE_POOL_H
 
-#include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Debug.h"
+#include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Traits.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
-template < typename PoolType >
-class Pool
-{
+template <typename PoolType>
+class Pool {
 private:
 	static constexpr size_t N = sizeof(PoolType);
 	static constexpr size_t A = alignof(PoolType);
 
-	class PoolNode : public NonCopyMoveable
-	{
+	class PoolNode : public NonCopyMoveable {
 	public:
 		alignas(A) unsigned char object[N];
 		PoolNode* previous;
 		PoolNode* next;
 	};
 
-	class PoolChunk : public NonCopyMoveable
-	{
+	class PoolChunk : public NonCopyMoveable {
 	public:
 		PoolNode* chunk;
 		PoolChunk* next;
@@ -60,14 +57,13 @@ private:
 
 public:
 	/**
-		Iterator objects are used for safe traversal of the allocated
-		members of a pool.
+	    Iterator objects are used for safe traversal of the allocated
+	    members of a pool.
 	 */
-	class Iterator
-	{
-		friend class Rml::Pool< PoolType >;
+	class Iterator {
+		friend class Rml::Pool<PoolType>;
 
-	public :
+	public:
 		/// Increments the iterator to reference the next node in the
 		/// linked list. It is an error to call this function if the
 		/// node this iterator references is invalid.
@@ -78,30 +74,18 @@ public:
 		}
 		/// Returns true if it is OK to deference or increment this
 		/// iterator.
-		explicit inline operator bool()
-		{
-			return (node != nullptr);
-		}
+		explicit inline operator bool() { return (node != nullptr); }
 
 		/// Returns the object referenced by the iterator's current
 		/// node.
-		inline PoolType& operator*()
-		{
-			return *reinterpret_cast<PoolType*>(node->object);
-		}
+		inline PoolType& operator*() { return *reinterpret_cast<PoolType*>(node->object); }
 		/// Returns a pointer to the object referenced by the
 		/// iterator's current node.
-		inline PoolType* operator->()
-		{
-			return reinterpret_cast<PoolType*>(node->object);
-		}
+		inline PoolType* operator->() { return reinterpret_cast<PoolType*>(node->object); }
 
 	private:
 		// Constructs an iterator referencing the given node.
-		inline Iterator(PoolNode* node)
-		{
-			this->node = node;
-		}
+		inline Iterator(PoolNode* node) { this->node = node; }
 
 		PoolNode* node;
 	};
@@ -118,7 +102,7 @@ public:
 	/// Attempts to allocate an object into a free slot in the memory pool and construct it using the given arguments.
 	/// If the process is successful, the newly constructed object is returned. Otherwise, if the process fails due to
 	/// no free objects being available, nullptr is returned.
-	template<typename... Args>
+	template <typename... Args>
 	inline PoolType* AllocateAndConstruct(Args&&... args);
 
 	/// Deallocates the object pointed to by the given iterator.

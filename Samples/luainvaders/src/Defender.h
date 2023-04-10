@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,12 +35,11 @@ class Game;
 class Sprite;
 
 /**
-	Represents the Earth defender. Stores position and performs the update of the bullet position and collision detection.
-	@author Lloyd Weehuizen
+    Represents the Earth defender. Stores position and performs the update of the bullet position and collision detection.
+    @author Lloyd Weehuizen
  */
 
-class Defender
-{
+class Defender {
 public:
 	Defender(Game* game);
 	~Defender();
@@ -51,7 +50,7 @@ public:
 	void Render(float dp_ratio, Rml::TextureHandle texture);
 
 	/// Move the defender left.
-	void StartMove(float direction);	
+	void StartMove(float direction);
 	/// Stop the movement.
 	void StopMove(float direction);
 	/// Fire a bullet (if one isn't already in flight).
@@ -65,10 +64,10 @@ private:
 	void UpdateBullet(double t);
 
 	Game* game;
-	Rml::Vector2f position;	
-	
+	Rml::Vector2f position;
+
 	float move_direction;
-	
+
 	bool bullet_in_flight;
 	Rml::Vector2f bullet_position;
 
@@ -80,6 +79,5 @@ private:
 	enum State { ALIVE, RESPAWN };
 	State state;
 };
-
 
 #endif

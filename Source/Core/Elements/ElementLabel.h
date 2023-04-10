@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,26 +29,24 @@
 #ifndef RMLUI_CORE_ELEMENTS_ELEMENTLABEL_H
 #define RMLUI_CORE_ELEMENTS_ELEMENTLABEL_H
 
-#include "../../../Include/RmlUi/Core/Header.h"
 #include "../../../Include/RmlUi/Core/Element.h"
 #include "../../../Include/RmlUi/Core/EventListener.h"
-
+#include "../../../Include/RmlUi/Core/Header.h"
 
 namespace Rml {
 
 /**
-	A specialisation of the generic Core::Element representing a label element.
-	
+    A specialisation of the generic Core::Element representing a label element.
+
  */
 
-class ElementLabel : public Element, public EventListener
-{
+class ElementLabel : public Element, public EventListener {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementLabel, Element)
 
 	ElementLabel(const String& tag);
 	virtual ~ElementLabel();
-	
+
 protected:
 	void OnPseudoClassChange(const String& pseudo_class, bool activate) override;
 

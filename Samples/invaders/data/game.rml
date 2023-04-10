@@ -13,14 +13,14 @@
 
 				z-index: -1;
 			}
-			
+
 			game
 			{
 				display: block;
 				width: 100%;
 				height: 100%;
 			}
-			
+
 			div
 			{
 				position: relative;
@@ -56,7 +56,7 @@
 				float: right;
 				width: 80dp;
 			}
-			
+
 			icon
 			{
 				display: block;

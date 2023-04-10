@@ -7,15 +7,15 @@
 			{
 				width: 300dp;
 				height: 225dp;
-				
+
 				margin: auto;
 			}
-			
+
 			div#title_bar div#icon
 			{
 				decorator: image( icon-game );
 			}
-			
+
 			form div
 			{
 				width: 200dp;

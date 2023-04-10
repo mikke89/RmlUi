@@ -3,7 +3,7 @@
  *
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,12 @@
  * THE SOFTWARE.
  *
  */
- 
+
 #ifndef RMLUI_CORE_TWEEN_H
 #define RMLUI_CORE_TWEEN_H
 
-#include "Types.h"
 #include "Header.h"
+#include "Types.h"
 
 namespace Rml {
 
@@ -37,7 +37,7 @@ class RMLUICORE_API Tween {
 public:
 	enum Type { None, Back, Bounce, Circular, Cubic, Elastic, Exponential, Linear, Quadratic, Quartic, Quintic, Sine, Callback, Count };
 	enum Direction { In = 1, Out = 2, InOut = 3 };
-	using CallbackFnc = float(*)(float);
+	using CallbackFnc = float (*)(float);
 
 	Tween(Type type = Linear, Direction direction = Out);
 	Tween(Type type_in, Type type_out);
@@ -50,7 +50,7 @@ public:
 	void reverse();
 
 	bool operator==(const Tween& other) const;
-    bool operator!=(const Tween& other) const;
+	bool operator!=(const Tween& other) const;
 
 	String to_string() const;
 
@@ -64,7 +64,6 @@ private:
 	Type type_out = None;
 	CallbackFnc callback = nullptr;
 };
-
 
 } // namespace Rml
 #endif

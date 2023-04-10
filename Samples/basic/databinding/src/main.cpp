@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2018 Michael R. P. Ragazzon
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,6 +32,7 @@
 #include <Shell.h>
 #include <numeric>
 
+namespace {
 namespace BasicExample {
 
 	Rml::DataModelHandle model_handle;
@@ -56,8 +57,7 @@ namespace BasicExample {
 
 		return true;
 	}
-}
-
+} // namespace BasicExample
 
 namespace EventsExample {
 
@@ -68,7 +68,7 @@ namespace EventsExample {
 		Rml::String mouse_detector = "Mouse-move <em>Detector</em>.";
 		int rating = 99;
 
-		Rml::Vector<float> list = { 1, 2, 3, 4, 5 };
+		Rml::Vector<float> list = {1, 2, 3, 4, 5};
 
 		Rml::Vector<Rml::Vector2f> positions;
 
@@ -80,7 +80,6 @@ namespace EventsExample {
 
 	} my_data;
 
-
 	void ClearPositions(Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& /*arguments*/)
 	{
 		my_data.positions.clear();
@@ -91,7 +90,6 @@ namespace EventsExample {
 	{
 		variant = int(my_data.rating > 50);
 	}
-
 
 	bool Initialize(Rml::Context* context)
 	{
@@ -115,9 +113,7 @@ namespace EventsExample {
 		constructor.Bind("mouse_detector", &my_data.mouse_detector);
 		constructor.Bind("rating", &my_data.rating);
 		constructor.BindFunc("good_rating", &HasGoodRating);
-		constructor.BindFunc("great_rating", [](Variant& variant) {
-			variant = int(my_data.rating > 80);
-		});
+		constructor.BindFunc("great_rating", [](Variant& variant) { variant = int(my_data.rating > 80); });
 
 		constructor.Bind("list", &my_data.list);
 
@@ -125,7 +121,6 @@ namespace EventsExample {
 
 		constructor.BindEventCallback("clear_positions", &ClearPositions);
 		constructor.BindEventCallback("add_mouse_pos", &MyData::AddMousePos, &my_data);
-
 
 		model_handle = constructor.GetModelHandle();
 
@@ -148,9 +143,7 @@ namespace EventsExample {
 			}
 		}
 	}
-}
-
-
+} // namespace EventsExample
 
 namespace InvadersExample {
 
@@ -162,7 +155,7 @@ namespace InvadersExample {
 	struct Invader {
 		Rml::String name;
 		Rml::String sprite;
-		Rml::Colourb color{ 255, 255, 255 };
+		Rml::Colourb color{255, 255, 255};
 		float max_health = 0;
 		float charge_rate = 0;
 		float health = 0;
@@ -173,7 +166,7 @@ namespace InvadersExample {
 		float health = 0;
 		float charge = 0;
 		int score = 0;
-		
+
 		double elapsed_time = 0;
 		double next_invader_spawn_time = 0;
 
@@ -237,10 +230,7 @@ namespace InvadersExample {
 
 		// Register a custom getter for the Colourb type.
 		constructor.RegisterScalar<Rml::Colourb>(
-			[](const Rml::Colourb& color, Rml::Variant& variant) {
-				variant = "rgba(" + Rml::ToString(color) + ')';
-			}
-		);
+			[](const Rml::Colourb& color, Rml::Variant& variant) { variant = "rgba(" + Rml::ToString(color) + ')'; });
 		// Register a transform function for formatting time
 		constructor.RegisterTransformFunc("format_time", [](const Rml::VariantList& arguments) -> Rml::Variant {
 			if (arguments.empty())
@@ -288,7 +278,7 @@ namespace InvadersExample {
 	void Update(const double dt)
 	{
 		using namespace Rml;
-		
+
 		if (data.health == 0)
 			return;
 
@@ -303,9 +293,9 @@ namespace InvadersExample {
 		if (data.elapsed_time >= data.next_invader_spawn_time)
 		{
 			constexpr int num_items = 4;
-			static Array<String, num_items> names = { "Angry invader", "Harmless invader", "Deceitful invader", "Cute invader" };
-			static Array<String, num_items> sprites = { "icon-invader", "icon-flag", "icon-game", "icon-waves" };
-			static Array<Colourb, num_items> colors = { { { 255, 40, 30 }, {20, 40, 255}, {255, 255, 30}, {230, 230, 230} } };
+			static Array<String, num_items> names = {"Angry invader", "Harmless invader", "Deceitful invader", "Cute invader"};
+			static Array<String, num_items> sprites = {"icon-invader", "icon-flag", "icon-game", "icon-waves"};
+			static Array<Colourb, num_items> colors = {{{255, 40, 30}, {20, 40, 255}, {255, 255, 30}, {230, 230, 230}}};
 
 			Invader new_invader;
 			new_invader.name = names[Math::RandomInteger(num_items)];
@@ -346,7 +336,7 @@ namespace InvadersExample {
 					data.health = Math::Max(data.health - float(10.0 * dt), 0.0f);
 					model_handle.DirtyVariable("health");
 				}
-				
+
 				if (invader.charge >= 120)
 					invader.charge = 0;
 
@@ -354,7 +344,7 @@ namespace InvadersExample {
 			}
 		}
 	}
-}
+} // namespace InvadersExample
 
 namespace FormsExample {
 
@@ -366,7 +356,7 @@ namespace FormsExample {
 		bool pasta = false;
 		bool lasagne = false;
 		Rml::String animal = "dog";
-		Rml::Vector<Rml::String> subjects = { "Choose your subject", "Feature request", "Bug report", "Praise", "Criticism" };
+		Rml::Vector<Rml::String> subjects = {"Choose your subject", "Feature request", "Bug report", "Praise", "Criticism"};
 		int selected_subject = 0;
 		Rml::String new_subject = "New subject";
 	} my_data;
@@ -390,7 +380,8 @@ namespace FormsExample {
 
 		constructor.BindEventCallback("add_subject", [](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			Rml::String name = (arguments.size() == 1 ? arguments[0].Get<Rml::String>() : "");
-			if (!name.empty()) {
+			if (!name.empty())
+			{
 				my_data.subjects.push_back(std::move(name));
 				model.DirtyVariable("subjects");
 			}
@@ -410,8 +401,8 @@ namespace FormsExample {
 
 		return true;
 	}
-}
-
+} // namespace FormsExample
+} // namespace
 
 class DemoWindow : public Rml::EventListener {
 public:
@@ -446,8 +437,7 @@ public:
 				Backend::RequestExit();
 		}
 		break;
-		default:
-			break;
+		default: break;
 		}
 	}
 
@@ -488,12 +478,12 @@ int main(int /*argc*/, char** /*argv*/)
 	// Create the main RmlUi context.
 	Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(width, height));
 
-	if (!context
-		|| !BasicExample::Initialize(context)
-		|| !EventsExample::Initialize(context)
-		|| !InvadersExample::Initialize(context)
-		|| !FormsExample::Initialize(context)
-		)
+	if (!context                                 //
+		|| !BasicExample::Initialize(context)    //
+		|| !EventsExample::Initialize(context)   //
+		|| !InvadersExample::Initialize(context) //
+		|| !FormsExample::Initialize(context)    //
+	)
 	{
 		Rml::Shutdown();
 		Backend::Shutdown();

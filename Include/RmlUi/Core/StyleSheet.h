@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -49,14 +49,13 @@ struct Sprite;
 using DecoratorPtrList = Vector<SharedPtr<const Decorator>>;
 
 /**
-	StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
-	a new, merged stylesheet.
+    StyleSheet maintains a single stylesheet definition. A stylesheet can be combined with another stylesheet to create
+    a new, merged stylesheet.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API StyleSheet final : public NonCopyMoveable
-{
+class RMLUICORE_API StyleSheet final : public NonCopyMoveable {
 public:
 	~StyleSheet();
 
@@ -72,11 +71,13 @@ public:
 	const DecoratorSpecification* GetDecoratorSpecification(const String& name) const;
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
-	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to subobjects around.
+	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to
+	/// subobjects around.
 	const Keyframes* GetKeyframes(const String& name) const;
 
 	/// Get sprite located in any spritesheet within this stylesheet.
-	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to subobjects around.
+	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to
+	/// subobjects around.
 	const Sprite* GetSprite(const String& name) const;
 
 	/// Returns the compiled element definition for a given element and its hierarchy.

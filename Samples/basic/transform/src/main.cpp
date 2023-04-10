@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,10 +35,9 @@
 
 static bool run_rotate = true;
 
-class DemoWindow : public Rml::EventListener
-{
+class DemoWindow : public Rml::EventListener {
 public:
-	DemoWindow(const Rml::String &title, const Rml::Vector2f &position, Rml::Context *context)
+	DemoWindow(const Rml::String& title, const Rml::Vector2f& position, Rml::Context* context)
 	{
 		document = context->LoadDocument("basic/transform/data/transform.rml");
 		if (document)
@@ -70,7 +69,7 @@ public:
 
 	void SetRotation(float degrees)
 	{
-		if(document)
+		if (document)
 		{
 			std::stringstream s;
 			if (perspective > 0)
@@ -84,7 +83,7 @@ public:
 	{
 		if (ev == Rml::EventId::Keydown)
 		{
-			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier) ev.GetParameter< int >("key_identifier", 0);
+			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)ev.GetParameter<int>("key_identifier", 0);
 
 			if (key_identifier == Rml::Input::KI_SPACE)
 			{
@@ -99,7 +98,7 @@ public:
 
 private:
 	float perspective = 0;
-	Rml::ElementDocument *document;
+	Rml::ElementDocument* document;
 };
 
 #if defined RMLUI_PLATFORM_WIN32
@@ -186,7 +185,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 	// Shutdown RmlUi.
 	Rml::Shutdown();
-	
+
 	Backend::Shutdown();
 	Shell::Shutdown();
 

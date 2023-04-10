@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Types.h>
-
 #include <doctest.h>
 #include <nanobench.h>
 
@@ -131,7 +130,6 @@ static const String rml_table_element = R"(
 	</tfoot>
 </table>
 )";
-
 
 static const String rml_inlineblock_document = R"(
 <rml>
@@ -236,7 +234,6 @@ static const String rml_inline_block_element = R"(
 </table>
 )";
 
-
 TEST_CASE("table_basic")
 {
 	Context* context = TestsShell::GetContext();
@@ -258,17 +255,11 @@ TEST_CASE("table_basic")
 	const String msg = TestsShell::GetRenderStats();
 	MESSAGE(msg);
 
-	bench.run("Update (unmodified)", [&] {
-		context->Update();
-	});
+	bench.run("Update (unmodified)", [&] { context->Update(); });
 
-	bench.run("Render", [&] {
-		context->Render();
-	});
+	bench.run("Render", [&] { context->Render(); });
 
-	bench.run("SetInnerRML", [&] {
-		document->SetInnerRML(rml_table_element);
-	});
+	bench.run("SetInnerRML", [&] { document->SetInnerRML(rml_table_element); });
 
 	bench.run("SetInnerRML + Update", [&] {
 		document->SetInnerRML(rml_table_element);
@@ -283,7 +274,6 @@ TEST_CASE("table_basic")
 
 	document->Close();
 }
-
 
 TEST_CASE("table_inline-block")
 {
@@ -306,17 +296,11 @@ TEST_CASE("table_inline-block")
 	const String msg = TestsShell::GetRenderStats();
 	MESSAGE(msg);
 
-	bench.run("Update (unmodified)", [&] {
-		context->Update();
-	});
+	bench.run("Update (unmodified)", [&] { context->Update(); });
 
-	bench.run("Render", [&] {
-		context->Render();
-	});
+	bench.run("Render", [&] { context->Render(); });
 
-	bench.run("SetInnerRML", [&] {
-		document->SetInnerRML(rml_inline_block_element);
-	});
+	bench.run("SetInnerRML", [&] { document->SetInnerRML(rml_inline_block_element); });
 
 	bench.run("SetInnerRML + Update", [&] {
 		document->SetInnerRML(rml_inline_block_element);

@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Floats, block formatting contexts</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Floats, block formatting contexts</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://drafts.csswg.org/css2/#bfc-next-to-float" />
 	<meta name="Description" content="Floated elements should only interact with elements in the same block formatting context. The margin box of floated elements must not overlap with the border box of elements that establish an independent formatting context." />
 	<style>

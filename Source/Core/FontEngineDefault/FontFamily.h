@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,11 +37,10 @@ class FontFace;
 class FontFaceHandleDefault;
 
 /**
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class FontFamily
-{
+class FontFamily {
 public:
 	FontFamily(const String& name);
 	~FontFamily();
@@ -60,7 +59,7 @@ public:
 	/// @param[in] face_memory Optionally pass ownership of the face's memory to the face itself, automatically releasing it on destruction.
 	/// @return True if the face was loaded successfully, false otherwise.
 	FontFace* AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]> face_memory);
-	
+
 	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
 	void ReleaseFontResources();
 

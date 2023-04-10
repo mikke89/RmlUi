@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Shrink-to-fit</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Shrink-to-fit</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/CSS21/visudet.html#shrink-to-fit-float" />
 	<meta name="Description" content="Floating elements, absolutely positioned elements, and inline-block elements should shrink-to-fit when their width is auto." />
 	<style>
