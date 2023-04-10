@@ -94,10 +94,10 @@ private:
 
 		return definition.get();
 	}
-
-	// Get definition for types that are not a built-in scalar.
-	// These must already have been registered by the user.
-	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_builtin_data_scalar<T>::value, int>::type = 0>
+	
+	       // Get definition for types that are not a built-in scalar.
+	       // These must already have been registered by the user.
+	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_builtin_data_scalar<T>::value && !std::is_enum<T>::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
 		FamilyId id = Family<T>::Id();
@@ -107,8 +107,24 @@ private:
 			RMLUI_LOG_TYPE_ERROR(T, "Desired data type T not registered with the type register, please use the 'Register...()' functions before binding values, adding members, or registering arrays of non-scalar types.");
 			return nullptr;
 		}
-
+		
 		return it->second.get();
+	}
+	
+	// Get definition for enum types.
+	template<typename T, typename std::enable_if<std::is_enum<T>::value, int>::type = 0>
+	VariableDefinition* GetDefinitionDetail()
+	{
+		FamilyId id = Family<T>::Id();
+		
+		auto result = type_register.emplace(id, nullptr);
+		bool inserted = result.second;
+		UniquePtr<VariableDefinition>& definition = result.first->second;
+		
+		if (inserted)
+			definition = Rml::MakeUnique<EnumDefinition<T>>();
+		
+		return definition.get();
 	}
 
 	// Get definition for pointer types, or create one as needed.

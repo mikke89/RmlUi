@@ -98,7 +98,7 @@ template<typename T>
 class ScalarDefinition final : public VariableDefinition {
 public:
 	ScalarDefinition() : VariableDefinition(DataVariableType::Scalar) {}
-
+	
 	bool Get(void* ptr, Variant& variant) override
 	{
 		variant = *static_cast<const T*>(ptr);
@@ -107,6 +107,24 @@ public:
 	bool Set(void* ptr, const Variant& variant) override
 	{
 		return variant.GetInto<T>(*static_cast<T*>(ptr));
+	}
+};
+
+
+template<typename T>
+class EnumDefinition final : public VariableDefinition {
+	using ActualType = typename std::underlying_type<T>::type;
+public:
+	EnumDefinition() : VariableDefinition(DataVariableType::Scalar) {}
+	
+	bool Get(void* ptr, Variant& variant) override
+	{
+		variant = *static_cast<const ActualType*>(ptr);
+		return true;
+	}
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		return variant.GetInto<ActualType>(*static_cast<ActualType*>(ptr));
 	}
 };
 
