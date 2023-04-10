@@ -138,18 +138,18 @@ using DataViewPtr = UniqueReleaserPtr<DataView>;
 class DataController;
 using DataControllerPtr = UniqueReleaserPtr<DataController>;
 
-struct VariableTermAtom {
+struct PropertyVariableTermAtom {
 	VariableId variable;
 	String constant;
 	
-	bool operator==(VariableTermAtom const& o) const {
+	bool operator==(PropertyVariableTermAtom const& o) const {
 		return variable == o.variable && o.constant == constant;
 	}
 };
 
-using VariableTerm = Vector<VariableTermAtom>;
-using VariableMap = UnorderedMap< VariableId, Property >;
-using DependentShorthandMap = UnorderedMap< ShorthandId, VariableTerm >;
+using PropertyVariableTerm = Vector<PropertyVariableTermAtom>;
+using PropertyVariableMap = UnorderedMap< VariableId, Property >;
+using DependentShorthandMap = UnorderedMap< ShorthandId, PropertyVariableTerm >;
 
 } // namespace Rml
 

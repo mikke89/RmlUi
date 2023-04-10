@@ -258,7 +258,7 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 	if (!ParsePropertyValues(property_values, property_value, false) || property_values.size() == 0)
 		return false;
 
-	VariableTerm term;
+	PropertyVariableTerm term;
 	Property new_property;
 	if (DetectVariableTerm(term, property_values))
 	{
@@ -282,7 +282,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 	if (!ParsePropertyValues(property_values, property_value, true) || property_values.size() == 0)
 		return false;
 
-	VariableTerm term;
+	PropertyVariableTerm term;
 	if (DetectVariableTerm(term, property_values))
 	{
 		dictionary.SetDependent(shorthand_id, term);
@@ -460,10 +460,9 @@ bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &diction
 	
 	auto id = MakeVariableId(property_name.substr(2));
 
-	VariableTerm term;
+	PropertyVariableTerm term;
 	bool any_variable;
-	if (!ParseVariableTerm(term, property_values, any_variable))
-		return false;
+	ParseVariableTerm(term, property_values, any_variable);
 	
 	// Only store original variable term when there is another variable inside that needs resolving
 	if (any_variable)
@@ -690,7 +689,7 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 	return true;
 }
 
-bool PropertySpecification::DetectVariableTerm(VariableTerm& term, const StringList &values_list) const
+bool PropertySpecification::DetectVariableTerm(PropertyVariableTerm& term, const StringList &values_list) const
 {
 	for(auto const& it : values_list) {
 		if(it.find("var(") != String::npos) {
@@ -703,7 +702,7 @@ bool PropertySpecification::DetectVariableTerm(VariableTerm& term, const StringL
 	return false;
 }
 
-bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList const& values_list, bool& any_variable) const {
+void PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, StringList const& values_list, bool& any_variable) const {
 	static std::regex format_expression("var\\(\\s*--([\\w-]+)\\s*(?:,\\s*([^;]+?)\\s*)?\\)");
 	
 	any_variable = false;
@@ -717,14 +716,14 @@ bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList con
 			String prefix = iter->prefix();
 			if (!prefix.empty())
 			{
-				VariableTermAtom a;
+				PropertyVariableTermAtom a;
 				a.variable = static_cast<VariableId>(0);
 				a.constant = prefix;
 				term.push_back(a);
 			}
 			
 			auto m = *iter;
-			VariableTermAtom a;
+			PropertyVariableTermAtom a;
 			a.constant = m[2].matched ? m[2].str() : "";
 			a.variable = MakeVariableId(m[1].str());
 			any_variable = true;
@@ -736,7 +735,7 @@ bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList con
 		{
 			// last suffix + value separating space
 			auto suffix = it.substr(end_cursor) + " ";
-			VariableTermAtom a;
+			PropertyVariableTermAtom a;
 			a.variable = static_cast<VariableId>(0);
 			a.constant = suffix;
 			term.push_back(a);
@@ -748,8 +747,6 @@ bool PropertySpecification::ParseVariableTerm(VariableTerm& term, StringList con
 	{
 		term.back().constant = StringUtilities::StripWhitespace(term.back().constant);
 	}
-
-	return true;
 }
 
 } // namespace Rml

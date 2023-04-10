@@ -287,43 +287,38 @@ public:
 	PropertiesIteratorView IterateLocalProperties() const;
 	///@}
 
-	/** @name Variables
+	/** @name Property Variables
 	 */
 	//@{
-	/// Sets a local variable override on the element.
-	/// @param[in] name The name of the new variable.
-	/// @param[in] value The new variable to set.
-	/// @return True if the variable parsed successfully, false otherwise.
-	bool SetVariable(const String& name, const String& value);
-	/// Sets a local variable override on the element to a pre-parsed value.
-	/// @param[in] name The name of the new variable.
-	/// @param[in] variable The parsed variable to set.
+	/// Sets a local property variable override on the element.
+	/// @param[in] name The name of the new property variable.
+	/// @param[in] value The new property variable to set.
+	/// @return True if the property variable parsed successfully, false otherwise.
+	bool SetPropertyVariable(const String& name, const String& value);
+	/// Sets a local property variable override on the element to a pre-parsed value.
+	/// @param[in] name The name of the new property variable.
+	/// @param[in] property variable The parsed property variable to set.
 	/// @return True if the variable was set successfully, false otherwise.
-	bool SetVariable(VariableId id, const Property& variable);
+	bool SetPropertyVariable(VariableId id, const Property& variable);
 	/// Removes a local variable override on the element; its value will revert to that defined in the style sheet.
-	/// @param[in] name The name of the local variable definition to remove.
-	void RemoveVariable(const String& name);
-	void RemoveVariable(VariableId id);
-	/// Returns one of this element's variables. If the variable is not defined for this element and not inherited
+	/// @param[in] name The name of the local property variable definition to remove.
+	void RemovePropertyVariable(const String& name);
+	void RemovePropertyVariable(VariableId id);
+	/// Returns one of this element's property variables. If the property variable is not defined for this element and not inherited
 	/// from an ancestor, the default value will be returned.
-	/// @param[in] name The name of the variable to fetch the value for.
-	/// @return The value of this variable for this element, or nullptr if no variable exists with the given name.
-	const Property* GetVariable(const String& name);
-	const Property* GetVariable(VariableId id);
-	/// Returns the values of one of this element's variables.
-	/// @param[in] name The name of the variable to get.
-	/// @return The value of this variable.
-	template <typename T>
-	T GetVariable(const String& name);
-	/// Returns one of this element's variables. If this element is not defined this variable, nullptr will be
+	/// @param[in] name The name of the property variable to fetch the value for.
+	/// @return The value of this property variable for this element, or nullptr if no property variable exists with the given name.
+	const Property* GetPropertyVariable(const String& name);
+	const Property* GetPropertyVariable(VariableId id);
+	/// Returns one of this element's property variables. If this element is not defined this property variable, nullptr will be
 	/// returned.
-	/// @param[in] name The name of the variable to fetch the value for.
-	/// @return The value of this variable for this element, or nullptr if this variable has not been explicitly defined for this element.
-	const Property* GetLocalVariable(const String& name);
-	const Property* GetLocalVariable(VariableId id);
-	/// Returns the local style variables, excluding any variables from local class.
-	/// @return The local variables for this element, or nullptr if no variables defined
-	const VariableMap& GetLocalStyleVariables();
+	/// @param[in] name The name of the property variable to fetch the value for.
+	/// @return The value of this property variable for this element, or nullptr if this property variable has not been explicitly defined for this element.
+	const Property* GetLocalPropertyVariable(const String& name);
+	const Property* GetLocalPropertyVariable(VariableId id);
+	/// Returns the local style property variables, excluding any property variables from local class.
+	/// @return The local property variables for this element, or nullptr if no property variables defined
+	const PropertyVariableMap& GetLocalStylePropertyVariables();
 	///@}
 
 	/** @name Pseudo-classes

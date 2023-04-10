@@ -280,8 +280,8 @@ ElementPtr Element::Clone() const
 		for (auto& id_property : GetStyle()->GetLocalStyleProperties())
 			clone->SetProperty(id_property.first, id_property.second);
 		
-		for (auto& var : GetStyle()->GetLocalStyleVariables())
-			clone->SetVariable(var.first, var.second);
+		for (auto& var : GetStyle()->GetLocalStylePropertyVariables())
+			clone->SetPropertyVariable(var.first, var.second);
 
 		clone->GetStyle()->SetClassNames(GetStyle()->GetClassNames());
 
@@ -769,7 +769,7 @@ PropertiesIteratorView Element::IterateLocalProperties() const
 	return PropertiesIteratorView(MakeUnique<PropertiesIterator>(meta->style.Iterate()));
 }
 
-bool Element::SetVariable(const String& name, const String& value)
+bool Element::SetPropertyVariable(const String& name, const String& value)
 {
 	PropertyDictionary properties;
 	if (!StyleSheetSpecification::ParseVariableDeclaration(properties, "--" + name, value))
@@ -780,50 +780,50 @@ bool Element::SetVariable(const String& name, const String& value)
 
 	for (auto const& it : properties.GetVariables())
 	{
-		meta->style.SetVariable(it.first, it.second);
+		meta->style.SetPropertyVariable(it.first, it.second);
 	}
 	
 	return true;
 }
 
-bool Element::SetVariable(VariableId id, const Property& variable)
+bool Element::SetPropertyVariable(VariableId id, const Property& variable)
 {
-	return meta->style.SetVariable(id, variable);
+	return meta->style.SetPropertyVariable(id, variable);
 }
 
-void Element::RemoveVariable(const String& name)
+void Element::RemovePropertyVariable(const String& name)
 {
 	meta->style.RemoveVariable(MakeVariableId(name));
 }
 
-void Element::RemoveVariable(VariableId id)
+void Element::RemovePropertyVariable(VariableId id)
 {
 	meta->style.RemoveVariable(id);
 }
 
-const Property* Element::GetVariable(const String& name)
+const Property* Element::GetPropertyVariable(const String& name)
 {
-	return meta->style.GetVariable(MakeVariableId(name));
+	return meta->style.GetPropertyVariable(MakeVariableId(name));
 }
 
-const Property* Element::GetVariable(VariableId id)
+const Property* Element::GetPropertyVariable(VariableId id)
 {
-	return meta->style.GetVariable(id);
+	return meta->style.GetPropertyVariable(id);
 }
 
-const Property* Element::GetLocalVariable(const String& name)
+const Property* Element::GetLocalPropertyVariable(const String& name)
 {
-	return meta->style.GetLocalVariable(MakeVariableId(name));
+	return meta->style.GetLocalPropertyVariable(MakeVariableId(name));
 }
 
-const Property* Element::GetLocalVariable(VariableId id)
+const Property* Element::GetLocalPropertyVariable(VariableId id)
 {
-	return meta->style.GetLocalVariable(id);
+	return meta->style.GetLocalPropertyVariable(id);
 }
 
-const VariableMap& Element::GetLocalStyleVariables()
+const PropertyVariableMap& Element::GetLocalStylePropertyVariables()
 {
-	return meta->style.GetLocalStyleVariables();
+	return meta->style.GetLocalStylePropertyVariables();
 }
 
 // Sets or removes a pseudo-class on the element.

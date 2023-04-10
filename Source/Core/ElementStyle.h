@@ -98,11 +98,11 @@ public:
 	/// Sets a local shorthand override on the element to a variable-dependent value.
 	/// @param[in] name The id of the new shorthand.
 	/// @param[in] property The raw property to set.
-	bool SetDependentShorthand(ShorthandId id, const VariableTerm& property);
+	bool SetDependentShorthand(ShorthandId id, const PropertyVariableTerm& property);
 	/// Sets a local variable override on the element to a pre-parsed value.
 	/// @param[in] name The name of the new variable.
 	/// @param[in] property The parsed variable to set.
-	bool SetVariable(VariableId id, const Property& variable);
+	bool SetPropertyVariable(VariableId id, const Property& variable);
 	/// Removes a local property override on the element; its value will revert to that defined in
 	/// the style sheet.
 	/// @param[in] id The id of the local property definition to remove.
@@ -120,7 +120,7 @@ public:
 	/// be found that we can inherit the variable from, the default value will be returned.
 	/// @param[in] name The id of the variable to fetch the value for.
 	/// @return The value of this variable for this element, or nullptr if no variable exists with the given id.
-	const Property* GetVariable(VariableId id) const;
+	const Property* GetPropertyVariable(VariableId id) const;
 	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
 	/// returned.
 	/// @param[in] name The name of the property to fetch the value for.
@@ -130,11 +130,11 @@ public:
 	/// returned.
 	/// @param[in] name The id of the variable to fetch the value for.
 	/// @return The value of this variable for this element, or nullptr if this variable has not been explicitly defined for this element.
-	const Property* GetLocalVariable(VariableId id) const;
+	const Property* GetLocalPropertyVariable(VariableId id) const;
 	/// Returns the local style properties, excluding any properties from local class.
 	const PropertyMap& GetLocalStyleProperties() const;
 	/// Returns the local style variables, excluding any variables from local class.
-	const VariableMap& GetLocalStyleVariables() const;
+	const PropertyVariableMap& GetLocalStylePropertyVariables() const;
 
 	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
 	/// @param[in] property The property to resolve the value for.
@@ -183,7 +183,7 @@ private:
 
 	static const Property* GetLocalVariable(VariableId id, const ResolvedPropertiesDictionary& inline_properties,
 		const ResolvedPropertiesDictionary& definition_properties);
-	static const Property* GetVariable(VariableId id, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
+	static const Property* GetPropertyVariable(VariableId id, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
 		const ResolvedPropertiesDictionary& definition_properties);
 
 	static void TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const ResolvedPropertiesDictionary& local_properties,

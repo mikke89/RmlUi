@@ -112,7 +112,7 @@ public:
 
 	void SetProperty(PropertyId id, const Property& value);
 	void SetVariable(VariableId id, const Property& value);
-	void SetDependentShorthand(ShorthandId id, const VariableTerm& value);
+	void SetDependentShorthand(ShorthandId id, const PropertyVariableTerm& value);
 
 	bool RemoveProperty(PropertyId id);
 	bool RemoveVariable(VariableId id);
@@ -123,7 +123,7 @@ public:
 	void ResolveDirtyValues();
 
 private:
-	void ResolveVariableTerm(String& result, const VariableTerm& term);
+	void ResolveVariableTerm(String& result, const PropertyVariableTerm& term);
 	void ResolveProperty(PropertyId id);
 	void ResolveShorthand(ShorthandId id);
 	void ResolveVariable(VariableId id);

@@ -87,14 +87,14 @@ void PropertyDictionary::RemoveVariable(VariableId id)
 
 const Property *PropertyDictionary::GetVariable(VariableId id) const
 {
-	VariableMap::const_iterator iterator = variables.find(id);
+	PropertyVariableMap::const_iterator iterator = variables.find(id);
 	if (iterator == variables.end())
 		return nullptr;
 	
 	return &(*iterator).second;
 }
 
-void PropertyDictionary::SetDependent(ShorthandId shorthand_id, const VariableTerm &term)
+void PropertyDictionary::SetDependent(ShorthandId shorthand_id, const PropertyVariableTerm &term)
 {
 	dependent_shorthands[shorthand_id] = term;
 	
@@ -113,7 +113,7 @@ int PropertyDictionary::GetNumVariables() const
 	return (int)variables.size();
 }
 
-const VariableMap &PropertyDictionary::GetVariables() const
+const PropertyVariableMap &PropertyDictionary::GetVariables() const
 {
 	return variables;
 }
@@ -179,7 +179,7 @@ void PropertyDictionary::SetProperty(PropertyId id, const Property& property, in
 
 void PropertyDictionary::SetVariable(VariableId id, const Property &variable, int specificity)
 {
-	VariableMap::iterator iterator = variables.find(id);
+	PropertyVariableMap::iterator iterator = variables.find(id);
 	if (iterator != variables.end() &&
 		iterator->second.specificity > specificity)
 		return;

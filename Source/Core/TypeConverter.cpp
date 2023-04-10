@@ -166,13 +166,13 @@ bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, S
 	return true;
 }
 
-bool Rml::TypeConverter<VariableTerm, VariableTerm>::Convert(const VariableTerm &src, VariableTerm &dest)
+bool Rml::TypeConverter<PropertyVariableTerm, PropertyVariableTerm>::Convert(const PropertyVariableTerm &src, PropertyVariableTerm &dest)
 {
 	dest = src;
 	return true;
 }
 
-bool Rml::TypeConverter<VariableTerm, String>::Convert(const VariableTerm &src, String &dest)
+bool Rml::TypeConverter<PropertyVariableTerm, String>::Convert(const PropertyVariableTerm &src, String &dest)
 {
 	StringList parts;
 	for (auto const& it : src)

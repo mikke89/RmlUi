@@ -89,13 +89,13 @@ public:
 	const Property* GetVariable(VariableId id) const;
 
 	// Register shorthand as dependent on variables
-	void SetDependent(ShorthandId shorthand_id, VariableTerm const& term);
+	void SetDependent(ShorthandId shorthand_id, PropertyVariableTerm const& term);
 	void RemoveDependent(ShorthandId shorthand_id);
 
 	/// Returns the number of variables in the dictionary.
 	int GetNumVariables() const;
 	/// Returns the map of variables in the dictionary.
-	const VariableMap& GetVariables() const;
+	const PropertyVariableMap& GetVariables() const;
 	
 	/// Returns the map of variable-dependent shorthands in the dictionary.
 	const DependentShorthandMap& GetDependentShorthands() const;
@@ -126,7 +126,7 @@ private:
 	void SetVariable(VariableId id, const Property& property, int specificity);
 	
 	PropertyMap properties;
-	VariableMap variables;
+	PropertyVariableMap variables;
 	DependentShorthandMap dependent_shorthands;
 };
 

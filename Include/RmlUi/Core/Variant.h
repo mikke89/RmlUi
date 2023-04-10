@@ -155,8 +155,8 @@ private:
 	void Set(DecoratorsPtr&& value);
 	void Set(const FontEffectsPtr& value);
 	void Set(FontEffectsPtr&& value);
-	void Set(const VariableTerm& value);
-	void Set(VariableTerm&& value);
+	void Set(const PropertyVariableTerm& value);
+	void Set(PropertyVariableTerm&& value);
 	
 	static constexpr size_t LOCAL_DATA_SIZE = (sizeof(TransitionList) > sizeof(String) ? sizeof(TransitionList) : sizeof(String));
 

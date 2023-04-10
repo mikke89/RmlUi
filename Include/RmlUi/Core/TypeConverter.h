@@ -117,13 +117,13 @@ public:
 	RMLUICORE_API static bool Convert(const FontEffectsPtr& src, String& dest);
 };
 
-template<> class TypeConverter< VariableTerm, VariableTerm> {
+template<> class TypeConverter< PropertyVariableTerm, PropertyVariableTerm> {
 public:
-	RMLUICORE_API static bool Convert(const VariableTerm& src, VariableTerm& dest);
+	RMLUICORE_API static bool Convert(const PropertyVariableTerm& src, PropertyVariableTerm& dest);
 };
-template<> class TypeConverter< VariableTerm, String > {
+template<> class TypeConverter< PropertyVariableTerm, String > {
 public:
-	RMLUICORE_API static bool Convert(const VariableTerm& src, String& dest);
+	RMLUICORE_API static bool Convert(const PropertyVariableTerm& src, String& dest);
 };
 
 } // namespace Rml

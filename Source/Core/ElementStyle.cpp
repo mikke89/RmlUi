@@ -122,7 +122,7 @@ const Property* ElementStyle::GetLocalVariable(VariableId id, const ResolvedProp
 	return definition_properties.GetVariable(id);
 }
 
-const Property* ElementStyle::GetVariable(VariableId id, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
+const Property* ElementStyle::GetPropertyVariable(VariableId id, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
 	const ResolvedPropertiesDictionary& definition_properties)
 {
 	const Property* local_variable = GetLocalVariable(id, inline_properties, definition_properties);
@@ -132,7 +132,7 @@ const Property* ElementStyle::GetVariable(VariableId id, const Element* element,
 	Element* parent = element->GetParentNode();
 	while (parent)
 	{
-		const Property* parent_variable = parent->GetStyle()->GetLocalVariable(id);
+		const Property* parent_variable = parent->GetStyle()->GetLocalPropertyVariable(id);
 		if (parent_variable)
 			return parent_variable;
 
@@ -365,14 +365,14 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 	return true;
 }
 
-bool ElementStyle::SetDependentShorthand(ShorthandId id, const VariableTerm &property)
+bool ElementStyle::SetDependentShorthand(ShorthandId id, const PropertyVariableTerm &property)
 {
 	inline_properties.SetDependentShorthand(id, property);
 	
 	return true;
 }
 
-bool ElementStyle::SetVariable(VariableId id, const Property& variable)
+bool ElementStyle::SetPropertyVariable(VariableId id, const Property& variable)
 {
 	inline_properties.SetVariable(id, variable);
 	definition_properties.SetVariable(id, variable);
@@ -401,9 +401,9 @@ const Property* ElementStyle::GetProperty(PropertyId id) const
 	return GetProperty(id, element, inline_properties, definition_properties);
 }
 
-const Property* ElementStyle::GetVariable(VariableId id) const
+const Property* ElementStyle::GetPropertyVariable(VariableId id) const
 {
-	return GetVariable(id, element, inline_properties, definition_properties);
+	return GetPropertyVariable(id, element, inline_properties, definition_properties);
 }
 
 // Returns one of this element's properties.
@@ -412,7 +412,7 @@ const Property* ElementStyle::GetLocalProperty(PropertyId id) const
 	return GetLocalProperty(id, inline_properties, definition_properties);
 }
 
-const Property* ElementStyle::GetLocalVariable(VariableId id) const
+const Property* ElementStyle::GetLocalPropertyVariable(VariableId id) const
 {
 	return GetLocalVariable(id, inline_properties, definition_properties);
 }
@@ -422,7 +422,7 @@ const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 	return inline_properties.GetProperties().GetProperties();
 }
 
-const VariableMap& ElementStyle::GetLocalStyleVariables() const
+const PropertyVariableMap& ElementStyle::GetLocalStylePropertyVariables() const
 {
 	return inline_properties.GetProperties().GetVariables();
 }
