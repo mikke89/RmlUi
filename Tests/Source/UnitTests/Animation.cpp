@@ -88,7 +88,7 @@ TEST_CASE("animation.decorator")
 			"gradient(horizontal transparent transparent)",
 			"gradient(horizontal white white)",
 			
-			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63))",
+			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 		{
 			"", "",
@@ -96,7 +96,7 @@ TEST_CASE("animation.decorator")
 			"none",
 			"gradient(horizontal transparent transparent)",
 			
-			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
+			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
 		},
 		{
 			"", "",
@@ -104,7 +104,7 @@ TEST_CASE("animation.decorator")
 			"none",
 			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
 			
-			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191)), gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
+			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
 		},
 		{
 			"", "",
@@ -112,7 +112,7 @@ TEST_CASE("animation.decorator")
 			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
 			"none",
 			
-			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63)), gradient(vertical rgba(255,255,255,63) rgba(255,255,255,63))",
+			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)), gradient(vertical rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 
 		/// Only rule declaration
@@ -123,7 +123,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"to_rule",
 			
-			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63))",
+			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 		{
 			"",
@@ -132,7 +132,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"to_rule",
 			
-			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
+			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
 		},
 		{
 			"direction: vertical; start-color: transparent; stop-color: transparent;",
@@ -141,7 +141,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"to_rule",
 			
-			"gradient(vertical rgba(255,255,255,63) rgba(255,255,255,63))",
+			"gradient(vertical rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 
 		/// Mix rule and standard declaration
@@ -152,7 +152,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"gradient(horizontal white white)",
 
-			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63))",
+			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 		{
 			"",
@@ -161,7 +161,7 @@ TEST_CASE("animation.decorator")
 			"none",
 			"to_rule",
 
-			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
+			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
 		},
 		{
 			"direction: vertical; start-color: transparent; stop-color: transparent;",
@@ -170,7 +170,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"none",
 
-			"gradient(vertical rgba(255,255,255,63) rgba(255,255,255,63))",
+			"gradient(vertical rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 		{
 			"", "",
@@ -178,7 +178,7 @@ TEST_CASE("animation.decorator")
 			"from_rule, to_rule",
 			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
 
-			"gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191)), gradient(horizontal rgba(255,255,255,191) rgba(255,255,255,191))",
+			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
 		},
 		{
 			"", "",
@@ -186,7 +186,7 @@ TEST_CASE("animation.decorator")
 			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
 			"from_rule, to_rule",
 
-			"gradient(horizontal rgba(255,255,255,63) rgba(255,255,255,63)), gradient(vertical rgba(255,255,255,63) rgba(255,255,255,63))",
+			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)), gradient(vertical rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 	};
 

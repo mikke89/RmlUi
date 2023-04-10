@@ -32,7 +32,7 @@
 
 using namespace Rml;
 
-TEST_CASE("Math")
+TEST_CASE("Math.RoundedLerp")
 {
 	const Colourb c0(0, 0, 0, 255);
 	const Colourb c1(255, 0, 0, 255);
@@ -102,4 +102,55 @@ TEST_CASE("Math")
 		REQUIRE(r1 == c1.red);
 		REQUIRE(r2 == c2.red);
 	}
+}
+
+TEST_CASE("Math.Clamp")
+{
+	// Clamp(Value, Min, Max)
+	CHECK(Math::Clamp(1, 1, 2) == 1);
+	CHECK(Math::Clamp(0, 1, 2) == 1);
+	CHECK(Math::Clamp(3, 1, 2) == 2);
+
+	CHECK(Math::Clamp(0, 2, 1) == 2);
+	CHECK(Math::Clamp(3, 2, 1) == 1);
+
+	CHECK(Math::Clamp<Vector2i>({1, 1}, {1, 1}, {2, 2}) == Vector2i(1, 1));
+	CHECK(Math::Clamp<Vector2i>({0, 0}, {1, 1}, {2, 2}) == Vector2i(1, 1));
+	CHECK(Math::Clamp<Vector2i>({3, 3}, {1, 1}, {2, 2}) == Vector2i(2, 2));
+	CHECK(Math::Clamp<Vector2i>({1, 3}, {1, 1}, {2, 2}) == Vector2i(1, 2));
+	CHECK(Math::Clamp<Vector2i>({1, 1}, {2, 0}, {2, 0}) == Vector2i(2, 0));
+
+	CHECK(Math::Clamp<Vector2f>({1, 1}, {1, 1}, {2, 2}) == Vector2f(1, 1));
+	CHECK(Math::Clamp<Vector2f>({0, 0}, {1, 1}, {2, 2}) == Vector2f(1, 1));
+	CHECK(Math::Clamp<Vector2f>({3, 3}, {1, 1}, {2, 2}) == Vector2f(2, 2));
+	CHECK(Math::Clamp<Vector2f>({1, 3}, {1, 1}, {2, 2}) == Vector2f(1, 2));
+	CHECK(Math::Clamp<Vector2f>({1, 1}, {2, 0}, {2, 0}) == Vector2f(2, 0));
+}
+
+TEST_CASE("Math.Min")
+{
+	CHECK(Math::Min(1, 2) == 1);
+	CHECK(Math::Min(2, 1) == 1);
+
+	CHECK(Math::Min<Vector2i>({1, 1}, {2, 2}) == Vector2i(1, 1));
+	CHECK(Math::Min<Vector2i>({2, 2}, {1, 1}) == Vector2i(1, 1));
+	CHECK(Math::Min<Vector2i>({2, 1}, {1, 2}) == Vector2i(1, 1));
+
+	CHECK(Math::Min<Vector2f>({1, 1}, {2, 2}) == Vector2f(1, 1));
+	CHECK(Math::Min<Vector2f>({2, 2}, {1, 1}) == Vector2f(1, 1));
+	CHECK(Math::Min<Vector2f>({2, 1}, {1, 2}) == Vector2f(1, 1));
+}
+
+TEST_CASE("Math.Max")
+{
+	CHECK(Math::Max(1, 2) == 2);
+	CHECK(Math::Max(2, 1) == 2);
+
+	CHECK(Math::Max<Vector2i>({1, 1}, {2, 2}) == Vector2i(2, 2));
+	CHECK(Math::Max<Vector2i>({2, 2}, {1, 1}) == Vector2i(2, 2));
+	CHECK(Math::Max<Vector2i>({2, 1}, {1, 2}) == Vector2i(2, 2));
+
+	CHECK(Math::Max<Vector2f>({1, 1}, {2, 2}) == Vector2f(2, 2));
+	CHECK(Math::Max<Vector2f>({2, 2}, {1, 1}) == Vector2f(2, 2));
+	CHECK(Math::Max<Vector2f>({2, 1}, {1, 2}) == Vector2f(2, 2));
 }
