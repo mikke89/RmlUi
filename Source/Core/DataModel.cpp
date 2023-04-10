@@ -120,7 +120,8 @@ static String DataAddressToString(const DataAddress& address)
 	return result;
 }
 
-DataModel::DataModel(const TransformFuncRegister* transform_register) : transform_register(transform_register)
+DataModel::DataModel(DataTypeRegister* data_type_register) :
+	data_type_register(data_type_register)
 {
 	views = MakeUnique<DataViews>();
 	controllers = MakeUnique<DataControllers>();
@@ -350,7 +351,7 @@ void DataModel::DirtyAllVariables() {
 
 bool DataModel::CallTransform(const String& name, const VariantList& arguments, Variant& out_result) const
 {
-	if (transform_register)
+	if (const auto transform_register = data_type_register->GetTransformFuncRegister())
 		return transform_register->Call(name, arguments, out_result);
 	return false;
 }

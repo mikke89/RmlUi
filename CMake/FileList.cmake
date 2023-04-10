@@ -86,6 +86,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyShorthandDefinition.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ResolvedPropertiesDictionary.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/ScrollController.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetNode.h
@@ -361,6 +362,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertySpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ResolvedPropertiesDictionary.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/ScrollController.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Spritesheet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Stream.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.cpp

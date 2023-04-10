@@ -45,6 +45,7 @@ class RenderInterface;
 class DataModel;
 class DataModelConstructor;
 class DataTypeRegister;
+class ScrollController;
 enum class EventId : uint16_t;
 
 /**
@@ -248,8 +249,9 @@ public:
 	/// Creates a data model.
 	/// The returned constructor can be used to bind data variables. Elements can bind to the model using the attribute 'data-model="name"'.
 	/// @param[in] name The name of the data model.
+	/// @param[in] data_type_register The data type register to use for the data model, or null to use the default register.
 	/// @return A constructor for the data model, or empty if it could not be created.
-	DataModelConstructor CreateDataModel(const String& name);
+	DataModelConstructor CreateDataModel(const String& name, DataTypeRegister* data_type_register = nullptr);
 
 	/// Retrieves the constructor for an existing data model.
 	/// The returned constructor can be used to add additional bindings to an existing model.
@@ -317,13 +319,8 @@ private:
 	Vector2i mouse_position;
 	bool mouse_active;
 
-	// Scrolling element with scroll button controller.
-	Vector2i started_scroll_position;
-	Element* scroll_hover;
-	bool holding_scroll;
-
-	// The time the last update occurred.
-	double last_update_time;
+	// Controller for various scroll behavior modes.
+	UniquePtr<ScrollController> scroll_controller; // [not-null]
 
 	// Enables cursor handling.
 	bool enable_cursor;
@@ -355,7 +352,7 @@ private:
 	using DataModels = UnorderedMap<String, UniquePtr<DataModel>>;
 	DataModels data_models;
 
-	UniquePtr<DataTypeRegister> data_type_register;
+	UniquePtr<DataTypeRegister> default_data_type_register;
 
 	// Internal callback for when an element is detached or removed from the hierarchy.
 	void OnElementDetach(Element* element);
@@ -374,14 +371,11 @@ private:
 	// Releases the drag clone, if one exists.
 	void ReleaseDragClone();
 
+	// Scroll the target by the given amount, using smooth scrolling.
+	void PerformSmoothscrollOnTarget(Element* target, Vector2f delta_offset);
+
 	// Returns the data model with the provided name, or nullptr if it does not exist.
 	DataModel* GetDataModelPtr(const String& name) const;
-
-	// Returns the scrolling cursor based on scroll direction.
-	String GetScrollCursor() const;
-
-	// Reset mouse scrolling parameters.
-	void ResetScrollParameters();
 
 	// Builds the parameters for a generic key event.
 	void GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier);

@@ -370,6 +370,10 @@ void WidgetSlider::ProcessEvent(Event& event)
 	{
 	case EventId::Mousedown:
 	{
+		// Only respond to primary mouse button.
+		if (event.GetParameter("button", -1) != 0)
+			break;
+
 		if (event.GetTargetElement() == parent || event.GetTargetElement() == track)
 		{
 			float mouse_position, bar_halfsize;

@@ -65,12 +65,13 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	selection_element->SetProperty(PropertyId::Clip, Property(Style::Clip::Type::None));
 	selection_element->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Auto));
 
+	// Prevent scrolling in the parent document when the mouse is inside the selection box.
+	selection_element->SetProperty(PropertyId::OverscrollBehavior, Property(Style::OverscrollBehavior::Contain));
+
 	parent_element->AddEventListener(EventId::Click, this, true);
 	parent_element->AddEventListener(EventId::Blur, this);
 	parent_element->AddEventListener(EventId::Focus, this);
 	parent_element->AddEventListener(EventId::Keydown, this, true);
-
-	selection_element->AddEventListener(EventId::Mousescroll, this);
 }
 
 WidgetDropDown::~WidgetDropDown()
@@ -85,8 +86,6 @@ WidgetDropDown::~WidgetDropDown()
 	parent_element->RemoveEventListener(EventId::Blur, this);
 	parent_element->RemoveEventListener(EventId::Focus, this);
 	parent_element->RemoveEventListener(EventId::Keydown, this, true);
-	
-	selection_element->RemoveEventListener(EventId::Mousescroll, this);
 
 	DetachScrollEvent();
 }
@@ -568,18 +567,6 @@ void WidgetDropDown::ProcessEvent(Event& event)
 			break;
 		default:
 			break;
-		}
-	}
-	break;
-	case EventId::Mousescroll:
-	{
-		if (event.GetCurrentElement() == selection_element)
-		{
-			// Prevent scrolling in the parent window when mouse is inside the selection box.
-			event.StopPropagation();
-			// Stopping propagation also stops all default scrolling actions. However, we still want to be able
-			// to scroll in the selection box, so call the default action manually.
-			selection_element->ProcessDefaultAction(event);
 		}
 	}
 	break;
