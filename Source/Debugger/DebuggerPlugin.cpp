@@ -127,20 +127,7 @@ bool DebuggerPlugin::SetContext(Context* context)
 	// Attach the info element to the new context.
 	if (info_element)
 	{
-		if (debug_context)
-		{
-			debug_context->RemoveEventListener("click", info_element, true);
-			debug_context->RemoveEventListener("mouseover", info_element, true);
-			debug_context->RemoveEventListener("mouseout", info_element, true);
-		}
-
-		if (context)
-		{
-			context->AddEventListener("click", info_element, true);
-			context->AddEventListener("mouseover", info_element, true);
-			context->AddEventListener("mouseout", info_element, true);
-		}
-
+		SetupInfoListeners(context);
 		info_element->Reset();
 	}
 
@@ -373,14 +360,30 @@ bool DebuggerPlugin::LoadLogElement()
 	return true;
 }
 
-void DebuggerPlugin::ReleaseElements()
+void DebuggerPlugin::SetupInfoListeners(Rml::Context* new_context)
 {
-	// Erase event listeners to prevent crashes.
-	if (debug_context && info_element)
+	RMLUI_ASSERT(info_element);
+
+	if (debug_context)
 	{
 		debug_context->RemoveEventListener("click", info_element, true);
 		debug_context->RemoveEventListener("mouseover", info_element, true);
+		debug_context->RemoveEventListener("mouseout", info_element, true);
 	}
+
+	if (new_context)
+	{
+		new_context->AddEventListener("click", info_element, true);
+		new_context->AddEventListener("mouseover", info_element, true);
+		new_context->AddEventListener("mouseout", info_element, true);
+	}
+}
+
+void DebuggerPlugin::ReleaseElements()
+{
+	// Erase event listeners to prevent crashes.
+	if (info_element)
+		SetupInfoListeners(nullptr);
 
 	if (host_context)
 	{

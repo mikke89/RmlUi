@@ -101,6 +101,8 @@ private:
 	bool LoadInfoElement();
 	bool LoadLogElement();
 
+	void SetupInfoListeners(Rml::Context* new_context);
+
 	// Release all loaded elements
 	void ReleaseElements();
 
