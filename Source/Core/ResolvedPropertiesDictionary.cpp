@@ -6,14 +6,12 @@
 
 namespace Rml {
 
-ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent) : parent(parent) {}
-
 ResolvedPropertiesDictionary::ResolvedPropertiesDictionary(ElementStyle* parent, const ElementDefinition* source) : parent(parent)
 {
-	auto const& props = source->GetProperties();
-
 	if (source)
 	{
+		auto const& props = source->GetProperties();
+
 		for (auto const& it : props.GetPropertyVariables())
 			SetPropertyVariable(it.first, it.second);
 

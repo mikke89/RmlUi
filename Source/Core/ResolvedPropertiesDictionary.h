@@ -107,8 +107,7 @@ class ElementDefinition;
 
 class ResolvedPropertiesDictionary {
 public:
-	ResolvedPropertiesDictionary(ElementStyle* parent);
-	ResolvedPropertiesDictionary(ElementStyle* parent, const ElementDefinition* source);
+	ResolvedPropertiesDictionary(ElementStyle* parent, const ElementDefinition* source = nullptr);
 
 	const Property* GetProperty(PropertyId id) const;
 	const Property* GetPropertyVariable(String const& name) const;
