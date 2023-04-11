@@ -37,6 +37,11 @@ PropertyDictionary::PropertyDictionary()
 {
 }
 
+bool PropertyDictionary::Empty() const
+{
+	return properties.empty() && variables.empty();
+}
+
 // Sets a property on the dictionary. Any existing property with the same id will be overwritten.
 void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 {

@@ -45,7 +45,9 @@ class RMLUICORE_API PropertyDictionary
 {
 public:
 	PropertyDictionary();
-
+	
+	bool Empty() const;
+	
 	/// Sets a property on the dictionary. Any existing property with the same id will be overwritten.
 	void SetProperty(PropertyId id, const Property& property);
 	/// Removes a property from the dictionary, if it exists.
