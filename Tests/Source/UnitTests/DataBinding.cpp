@@ -80,6 +80,8 @@ static const String document_rml = R"(
 <p>{{ s3.val }}</p>
 <p>{{ s4.val }}</p>
 <p>{{ s5.val }}</p>
+<p>{{ simple }}</p>
+<p>{{ scoped }}</p>
 
 <h1>Basic</h1>
 <p>{{ basic.a }}</p>
@@ -88,6 +90,8 @@ static const String document_rml = R"(
 <p>{{ basic.d }}</p>
 <p>{{ basic.e }}</p>
 <p>{{ basic.f }}</p>
+<p>{{ basic.simple }}</p>
+<p>{{ basic.scoped }}</p>
 
 <h1>Wrapped</h1>
 <p>{{ wrapped.a.val }}</p>
@@ -186,13 +190,28 @@ struct StringWrap
 	String val;
 };
 
+enum SimpleEnum {
+	Simple_Zero = 0,
+	Simple_One,
+	Simple_Two
+};
+
+enum class ScopedEnum {
+	Zero = 0,
+	One,
+	Two
+};
+
 struct Globals
 {
 	int i0 = 0;
 	int* i1 = new int(1);
 	UniquePtr<int> i2 = MakeUnique<int>(2);
 	SharedPtr<int> i3 = MakeShared<int>(3);
-
+	
+	SimpleEnum simple = Simple_One;
+	ScopedEnum scoped = ScopedEnum::One;
+	
 	String s0 = "s0";
 	String* s1 = new String("s1");
 	StringWrap s2 = StringWrap("s2");
@@ -212,6 +231,9 @@ struct Basic
 {
 	int a = 1;
 	int* b = new int(2);
+	
+	SimpleEnum simple = Simple_One;
+	ScopedEnum scoped = ScopedEnum::One;
 
 	int GetC() {
 		static int v = 5;
@@ -356,7 +378,9 @@ bool InitializeDataBindings(Context* context)
 		constructor.Bind("s3", &globals.s3);
 		constructor.Bind("s4", &globals.s4);
 		constructor.Bind("s5", &globals.s5);
-
+		
+		constructor.Bind("simple", &globals.simple);
+		constructor.Bind("scoped", &globals.scoped);
 		// Invalid: Each of the following should give a compile-time failure.
 		//constructor.Bind("x0", &globals.x0);
 		//constructor.Bind("x1", &globals.x1);
@@ -373,6 +397,8 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("d", &Basic::GetD);
 		handle.RegisterMember("e", &Basic::GetE);
 		handle.RegisterMember("f", &Basic::GetF);
+		handle.RegisterMember("simple", &Basic::simple);
+		handle.RegisterMember("scoped", &Basic::scoped);
 
 		//handle.RegisterMember("x0", &Basic::x0);
 		//handle.RegisterMember("x1", &Basic::x1);

@@ -94,4 +94,14 @@ const T& Variant::GetReference() const
 	return *reinterpret_cast<const T*>(&data);
 }
 
+template<typename T, typename>
+void Variant::Set(const T& value) {
+	Set(std::forward<std::underlying_type_t<T>>(static_cast<std::underlying_type_t<T>>(value)));
+}
+
+template<typename T, typename>
+void Variant::Set(T&& value) {
+	Set(std::forward<std::underlying_type_t<T>>(static_cast<std::underlying_type_t<T>>(value)));
+}
+
 } // namespace Rml

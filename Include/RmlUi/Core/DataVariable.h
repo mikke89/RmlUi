@@ -111,24 +111,6 @@ public:
 };
 
 
-template<typename T>
-class EnumDefinition final : public VariableDefinition {
-	using ActualType = typename std::underlying_type<T>::type;
-public:
-	EnumDefinition() : VariableDefinition(DataVariableType::Scalar) {}
-	
-	bool Get(void* ptr, Variant& variant) override
-	{
-		variant = *static_cast<const ActualType*>(ptr);
-		return true;
-	}
-	bool Set(void* ptr, const Variant& variant) override
-	{
-		return variant.GetInto<ActualType>(*static_cast<ActualType*>(ptr));
-	}
-};
-
-
 class RMLUICORE_API FuncDefinition final : public VariableDefinition {
 public:
 	FuncDefinition(DataGetFunc get, DataSetFunc set);
