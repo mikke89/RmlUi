@@ -734,7 +734,7 @@ PropertiesIteratorView Element::IterateLocalProperties() const
 bool Element::SetPropertyVariable(const String& name, const String& value)
 {
 	PropertyDictionary properties;
-	if (!StyleSheetSpecification::ParseVariableDeclaration(properties, "--" + name, value))
+	if (!StyleSheetSpecification::ParseVariableDeclaration(properties, name, value))
 	{
 		Log::Message(Log::LT_WARNING, "Syntax error parsing inline variable declaration '%s: %s;'.", name.c_str(), value.c_str());
 		return false;

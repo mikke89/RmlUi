@@ -250,18 +250,18 @@ TEST_CASE("variables.basic")
 	CHECK(p->GetProperty(PropertyId::Color)->ToString() == "rgba(255,0,0,255)");
 	
 	// variable modification
-	div->SetPropertyVariable("color-var", "#000000");
-	
+	div->SetPropertyVariable("--color-var", "#000000");
+
 	TestsShell::RenderLoop();
-	
+
 	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,0,0,255)");
 
 	// inheritance validation
-	CHECK(div->GetPropertyVariable("color-var")->ToString() == "#000000");
-	CHECK(document->GetPropertyVariable("color-var")->ToString() == "#ffffff");
-	
+	CHECK(div->GetPropertyVariable("--color-var")->ToString() == "#000000");
+	CHECK(document->GetPropertyVariable("--color-var")->ToString() == "#ffffff");
+
 	TestsShell::RenderLoop();
-	
+
 	document->Close();
 	
 	TestsShell::ShutdownShell();
@@ -290,7 +290,7 @@ TEST_CASE("variables.shorthands")
 	CHECK(div->GetProperty(PropertyId::PaddingTop)->ToString() == "6px");
 
 	// Change shorthand
-	div->SetPropertyVariable("padding-var", "15px 0px");
+	div->SetPropertyVariable("--padding-var", "15px 0px");
 	div->RemoveProperty(PropertyId::PaddingTop);
 
 	TestsShell::RenderLoop();
@@ -301,9 +301,9 @@ TEST_CASE("variables.shorthands")
 	Element* p = document->GetElementById("p");
 	CHECK(p->GetProperty(PropertyId::PaddingBottom)->ToString() == "3px");
 	CHECK(p->GetProperty(PropertyId::PaddingLeft)->ToString() == "7px");
-	
-	document->SetPropertyVariable("v-padding-var", "1px");
-	
+
+	document->SetPropertyVariable("--v-padding-var", "1px");
+
 	TestsShell::RenderLoop();
 
 	CHECK(p->GetProperty(PropertyId::PaddingBottom)->ToString() == "1px");

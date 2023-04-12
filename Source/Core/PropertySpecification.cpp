@@ -37,7 +37,6 @@
 #include <algorithm>
 #include <limits.h>
 #include <stdint.h>
-#include <regex>
 
 namespace Rml {
 
@@ -223,7 +222,7 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 	RMLUI_ZoneScoped;
 
 	// If matches the shape of a variable declaration, try to handle as such
-	if(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-') 
+	if (property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-')
 	{
 		return ParseVariableDeclaration(dictionary, property_name, property_value);
 	}
@@ -435,37 +434,33 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 	return true;
 }
 
-bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary &dictionary, const String &property_name, const String &property_value) const
+bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const
 {
-	if(!(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-'))
+	if (!(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-'))
 		return false;
 
 	StringList property_values;
 	if (!ParsePropertyValues(property_values, property_value, true))
 		return false;
-	
+
 	if (property_values.empty())
 		return true;
-	
-	auto name = property_name.substr(2);
 
 	PropertyVariableTerm term;
-	bool any_variable;
-	ParseVariableTerm(term, property_values, any_variable);
-	
+	bool any_variable = ParseVariableTerm(term, property_values);
+
 	// Only store original variable term when there is another variable inside that needs resolving
 	if (any_variable)
 	{
-		dictionary.SetPropertyVariable(name, Property(std::move(term), Property::VARIABLETERM));
+		dictionary.SetPropertyVariable(property_name, Property(std::move(term), Property::VARIABLETERM));
 	}
 	else
 	{
 		String joined;
-		for (int i = 0; i < (int)term.size(); ++i)
-			joined += term[i].constant + " ";
-		
-		dictionary.SetPropertyVariable(name, Property(joined.substr(0, joined.size() - 1), Property::STRING));		
-	}		
+		StringUtilities::JoinString(joined, property_values, ' ');
+
+		dictionary.SetPropertyVariable(property_name, Property(joined, Property::STRING));
+	}
 	return true;
 }
 
@@ -673,16 +668,17 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 		if (value.size() > 0)
 			values_list.push_back(value);
 	}
-	
+
 	return true;
 }
 
-bool PropertySpecification::DetectVariableTerm(PropertyVariableTerm& term, const StringList &values_list) const
+bool PropertySpecification::DetectVariableTerm(PropertyVariableTerm& term, const StringList& values_list) const
 {
-	for(auto const& it : values_list) {
-		if(it.find("var(") != String::npos) {
-			bool unused;
-			ParseVariableTerm(term, values_list, unused);
+	for (auto const& it : values_list)
+	{
+		if (it.size() > 4 && it[0] == 'v' && it[1] == 'a' && it[2] == 'r' && it[3] == '(')
+		{
+			ParseVariableTerm(term, values_list);
 			return true;
 		}
 	}
@@ -690,51 +686,72 @@ bool PropertySpecification::DetectVariableTerm(PropertyVariableTerm& term, const
 	return false;
 }
 
-void PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, StringList const& values_list, bool& any_variable) const {
-	static std::regex format_expression("var\\(\\s*--([\\w-]+)\\s*(?:,\\s*([^;]+?)\\s*)?\\)");
-	
-	any_variable = false;
-	for(auto const& it : values_list)
+bool PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, StringList const& values_list) const
+{
+	bool any_var = false;
+	for (auto const& it : values_list)
 	{
-		auto iter = std::sregex_iterator(it.begin(), it.end(), format_expression);
-		auto end = std::sregex_iterator();
-		size_t end_cursor = 0;
-		for(; iter != end; ++iter)
+		size_t cursor = 0;
+		size_t len = it.size();
+		auto Consume = [&](char letter) {
+			if (cursor >= len || it[cursor] != letter)
+				return false;
+			cursor++;
+			return true;
+		};
+
+		if (Consume('v') && Consume('a') && Consume('r') && Consume('(') && Consume('-') && Consume('-'))
 		{
-			String prefix = iter->prefix();
-			if (!prefix.empty())
+			size_t nameStart = cursor - 2;
+			while (cursor != len && it[cursor] != ',' && it[cursor] != ')')
+				cursor++;
+			size_t nameEnd = cursor;
+
+			if (it[cursor] == ',')
+			{
+				cursor++;
+
+				size_t fallbackStart = cursor;
+				while (cursor != len && it[cursor] != ')')
+					cursor++;
+				size_t fallbackEnd = cursor;
+
+				if (it[cursor] == ')')
+				{
+					PropertyVariableTermAtom a;
+					a.variable = StringUtilities::StripWhitespace(it.substr(nameStart, nameEnd - nameStart));
+					a.constant = StringUtilities::StripWhitespace(it.substr(fallbackStart, fallbackEnd - fallbackStart));
+					term.push_back(a);
+					any_var = true;
+				}
+				else
+				{
+					// parse error
+				}
+			}
+			else if (it[cursor] == ')')
 			{
 				PropertyVariableTermAtom a;
-				a.variable = String();
-				a.constant = prefix;
+				a.variable = StringUtilities::StripWhitespace(it.substr(nameStart, nameEnd - nameStart));
+				a.constant = String();
 				term.push_back(a);
+				any_var = true;
 			}
-			
-			auto m = *iter;
-			PropertyVariableTermAtom a;
-			a.constant = m[2].matched ? m[2].str() : "";
-			a.variable = m[1].str();
-			any_variable = true;
-			term.push_back(a);
-			
-			end_cursor = m.position() + m[0].length();
+			else
+			{
+				// parse error
+			}
 		}
-			
+		else
 		{
-			// last suffix + value separating space
-			auto suffix = it.substr(end_cursor) + " ";
 			PropertyVariableTermAtom a;
 			a.variable = String();
-			a.constant = suffix;
+			a.constant = it;
 			term.push_back(a);
 		}
 	}
-	
-	// remove trailing space
-	if (!term.empty() && !term.back().constant.empty())
-	{
-		term.back().constant = StringUtilities::StripWhitespace(term.back().constant);
-	}
+
+	return any_var;
 }
 
 } // namespace Rml
