@@ -4,12 +4,13 @@ on: [push, pull_request]
 
 jobs:
   Linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     
     env:
       BUILD_TYPE: Release
-      CC: ${{ matrix.cc }}
-      CXX: ${{ matrix.cxx }}
+      CC: "${{ matrix.cc }}"
+      CXX: "${{ matrix.cxx }}"
+      CMAKE_PREFIX_PATH: "/usr"
   
     strategy:
       fail-fast: false
@@ -17,24 +18,24 @@ jobs:
         include:
           - cc: clang
             cxx: clang++
-            cmake_options: -DENABLE_PRECOMPILED_HEADERS=OFF -DSAMPLES_BACKEND=GLFW_GL2
+            cmake_options: -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DRMLUI_SAMPLES_BACKEND=GLFW_GL2
           - cc: clang
             cxx: clang++
-            cmake_options: -DSAMPLES_BACKEND=SDL_VK
-          - cmake_options: -DBUILD_TESTING=ON -DENABLE_PRECOMPILED_HEADERS=OFF
+            cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK -DSDL_LIBRARY=SDL2 -DSDL_INCLUDE_DIR=/usr/include/SDL2
+          - cmake_options: -DRMLUI_BUILD_TESTING=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF
             enable_testing: true
-          - cmake_options: -DNO_FONT_INTERFACE_DEFAULT=ON -DENABLE_LOTTIE_PLUGIN=ON -DSAMPLES_BACKEND=X11_GL2
-          - cmake_options: -DDISABLE_RTTI_AND_EXCEPTIONS=ON -DSAMPLES_BACKEND=SDL_GL2
-          - cmake_options: -DNO_THIRDPARTY_CONTAINERS=ON -DSAMPLES_BACKEND=SFML_GL2
-          - cmake_options: -DSAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug
+          - cmake_options: -DRMLUI_ENABLE_LOTTIE_PLUGIN=ON -DRMLUI_SAMPLES_BACKEND=X11_GL2
+          - cmake_options: -DRMLUI_DISABLE_RTTI_AND_EXCEPTIONS=ON -DRMLUI_SAMPLES_BACKEND=SDL_GL2 -DSDL_LIBRARY=SDL2 -DSDL_INCLUDE_DIR=/usr/include/SDL2 -DSDL_IMAGE_LIBRARY=/usr/lib/x86_64-linux-gnu/libSDL2_image-2.0.so.0 -DSDL_IMAGE_INCLUDE_DIR=/usr/include/SDL2
+          - cmake_options: -DRMLUI_NO_THIRDPARTY_CONTAINERS=ON -DRMLUI_SAMPLES_BACKEND=SFML_GL2 
+          - cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug -DSDL_LIBRARY=SDL2 -DSDL_INCLUDE_DIR=/usr/include/SDL2
 
     steps:
     - uses: actions/checkout@v3
       
     - name: Install Dependencies
       run: |-
-        sudo apt-get update
-        sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev libglfw3-dev
+        sudo apt update -yq
+        sudo apt install -yq cmake ninja-build clang libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev libglfw3-dev
       
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
@@ -42,7 +43,7 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/Build
       run: >-
-        cmake $GITHUB_WORKSPACE -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        cmake $GITHUB_WORKSPACE -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_BUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
         ${{ matrix.cmake_options }}
 
     - name: Build
@@ -65,8 +66,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - cmake_options: -DSAMPLES_BACKEND=auto
-          - cmake_options: -DSAMPLES_BACKEND=GLFW_GL2
+          # - cmake_options: -DRMLUI_SAMPLES_BACKEND=auto
+          - cmake_options: -DRMLUI_SAMPLES_BACKEND=GLFW_GL2
     
     steps:
     - uses: actions/checkout@v3
@@ -80,7 +81,7 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/Build
       run: >-
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_BUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
         ${{ matrix.cmake_options }}
 
     - name: Build
@@ -99,15 +100,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - cmake_options: -DSAMPLES_BACKEND=auto -DENABLE_PRECOMPILED_HEADERS=OFF
-          - cmake_options: -DSAMPLES_BACKEND=Win32_VK -DRMLUI_VK_DEBUG=ON
-          - cmake_options: -DSAMPLES_BACKEND=SDL_VK -DBUILD_LUA_BINDINGS_FOR_LUAJIT=ON
+          # - cmake_options: -DRMLUI_SAMPLES_BACKEND=auto -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF
+          # After upgrading minimum CMake to >= 3.18, CMake should automatically find Vulkan using the VULKAN_SDK environment variable
+          - cmake_options: -DRMLUI_SAMPLES_BACKEND=Win32_VK -DRMLUI_VK_DEBUG=ON -DVulkan_LIBRARY="C:\VulkanSDK\1.3.250.1\Lib\vulkan-1.lib" -DVulkan_INCLUDE_DIR="C:\VulkanSDK\1.3.250.1\Include\vulkan"
+          - cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK -DRMLUI_BUILD_LUA_BINDINGS_FOR_LUAJIT=ON -DVulkan_LIBRARY="C:\VulkanSDK\1.3.250.1\Lib\vulkan-1.lib" -DVulkan_INCLUDE_DIR="C:\VulkanSDK\1.3.250.1\Include\vulkan"
     
     steps:
     - uses: actions/checkout@v3
       
+    - name: Enable Developer Command Prompt
+      uses: ilammy/msvc-dev-cmd@v1.12.1
+
     - name: Install Dependencies
-      run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan] lua[core] luajit
+      run: |-
+        Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.3.250.1/windows/VulkanSDK-1.3.250.1-Installer.exe -OutFile vulkansdk.exe
+        .\vulkansdk.exe --confirm-command --accept-licenses --default-answer in com.lunarg.vulkan
+        C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan] lua[core] luajit
       
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
@@ -115,9 +123,8 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/Build
       run: >-
-        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
-        -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        ${{ matrix.cmake_options }}
+        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_BUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ${{ matrix.cmake_options }} -DRMLUI_USING_VCPKG=TRUE
 
     - name: Build
       working-directory: ${{github.workspace}}/Build
@@ -125,31 +132,36 @@ jobs:
 
 
   Emscripten:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
     - name: Install Dependencies
       run: |-
-        sudo apt-get update
-        sudo apt-get install cmake
-        wget -q https://github.com/emscripten-core/emsdk/archive/master.tar.gz
-        tar -xvf master.tar.gz
-        emsdk-master/emsdk update
-        emsdk-master/emsdk install latest
-        emsdk-master/emsdk activate latest
-              
+        sudo apt update -yq
+        sudo apt install -yq cmake
+
+    - name: Install Emscripten SDK
+      run: |-
+        cd ~
+        git clone https://github.com/emscripten-core/emsdk.git --depth 1
+        cd emsdk
+        ./emsdk install latest
+        ./emsdk activate latest
+
     - name: Create Build Environment
       run: cmake -E make_directory Build
       
     - name: Configure CMake
       run: |-
-        source emsdk-master/emsdk_env.sh
-        cd Build
-        emcmake cmake $GITHUB_WORKSPACE -DBUILD_SAMPLES=ON -DBUILD_SHARED_LIBS=OFF -DWARNINGS_AS_ERRORS=ON -DEMSCRIPTEN_EXE_FLAGS="-O1"
+        source ~/emsdk/emsdk_env.sh
+        cmake -S . -B Build -DCMAKE_BUILD_TYPE=Debug -DRMLUI_BUILD_SAMPLES=ON -DRMLUI_SAMPLES_BACKEND=SDL_GL3 \
+        -DBUILD_SHARED_LIBS=OFF -DWARNINGS_AS_ERRORS=ON -DRMLUI_EMSCRIPTEN_EXE_FLAGS="-O1" \
+        -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
+        -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/CMake/Modules/Emscripten
 
     - name: Build
+      working-directory: ${{github.workspace}}/Build
       run: |-
-        source emsdk-master/emsdk_env.sh
-        cd Build
-        emmake make -j4
+        source ~/emsdk/emsdk_env.sh
+        cmake --build . --config $env:BUILD_TYPE
