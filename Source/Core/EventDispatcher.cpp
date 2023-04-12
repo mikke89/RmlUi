@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,22 +37,26 @@
 
 namespace Rml {
 
-bool operator==(EventListenerEntry a, EventListenerEntry b) { return a.id == b.id && a.in_capture_phase == b.in_capture_phase && a.listener == b.listener; }
-bool operator!=(EventListenerEntry a, EventListenerEntry b) { return !(a == b); }
+bool operator==(EventListenerEntry a, EventListenerEntry b)
+{
+	return a.id == b.id && a.in_capture_phase == b.in_capture_phase && a.listener == b.listener;
+}
+bool operator!=(EventListenerEntry a, EventListenerEntry b)
+{
+	return !(a == b);
+}
 
 struct CompareId {
 	bool operator()(EventListenerEntry a, EventListenerEntry b) const { return a.id < b.id; }
-}; 
+};
 struct CompareIdPhase {
-	bool operator()(EventListenerEntry a, EventListenerEntry b) const { return std::tie(a.id, a.in_capture_phase) < std::tie(b.id, b.in_capture_phase); }
+	bool operator()(EventListenerEntry a, EventListenerEntry b) const
+	{
+		return std::tie(a.id, a.in_capture_phase) < std::tie(b.id, b.in_capture_phase);
+	}
 };
 
-
-
-EventDispatcher::EventDispatcher(Element* _element)
-	: element(_element)
-{
-}
+EventDispatcher::EventDispatcher(Element* _element) : element(_element) {}
 
 EventDispatcher::~EventDispatcher()
 {
@@ -75,7 +79,6 @@ void EventDispatcher::AttachEvent(const EventId id, EventListener* listener, con
 	}
 }
 
-
 void EventDispatcher::DetachEvent(const EventId id, EventListener* listener, const bool in_capture_phase)
 {
 	const auto listenerIt = std::find(listeners.cbegin(), listeners.cend(), EventListenerEntry(id, listener, in_capture_phase));
@@ -86,7 +89,6 @@ void EventDispatcher::DetachEvent(const EventId id, EventListener* listener, con
 	}
 }
 
-// Detaches all events from this dispatcher and all child dispatchers.
 void EventDispatcher::DetachAllEvents()
 {
 	for (const auto& event : listeners)
@@ -99,14 +101,14 @@ void EventDispatcher::DetachAllEvents()
 }
 
 /*
-	CollectedListener
+    CollectedListener
 
-	When dispatching an event we collect all possible event listeners to execute.
-	They are stored in observer pointers, so that we can safely check if they have been destroyed since the previous listener execution.
+    When dispatching an event we collect all possible event listeners to execute.
+    They are stored in observer pointers, so that we can safely check if they have been destroyed since the previous listener execution.
 */
 struct CollectedListener {
-
-	CollectedListener(Element* _element, EventListener* _listener, int dom_distance_from_target, bool in_capture_phase) : element(_element->GetObserverPtr()), listener(_listener->GetObserverPtr())
+	CollectedListener(Element* _element, EventListener* _listener, int dom_distance_from_target, bool in_capture_phase) :
+		element(_element->GetObserverPtr()), listener(_listener->GetObserverPtr())
 	{
 		sort = dom_distance_from_target * (in_capture_phase ? -1 : 1);
 	}
@@ -121,21 +123,20 @@ struct CollectedListener {
 	// Default actions are returned by EventPhase::None.
 	EventPhase GetPhase() const { return sort < 0 ? EventPhase::Capture : (sort == 0 ? EventPhase::Target : EventPhase::Bubble); }
 
-	bool operator<(const CollectedListener& other) const {
-		return sort < other.sort;
-	}
+	bool operator<(const CollectedListener& other) const { return sort < other.sort; }
 };
 
-
-bool EventDispatcher::DispatchEvent(Element* target_element, const EventId id, const String& type, const Dictionary& parameters, const bool interruptible, const bool bubbles, const DefaultActionPhase default_action_phase)
+bool EventDispatcher::DispatchEvent(Element* target_element, const EventId id, const String& type, const Dictionary& parameters,
+	const bool interruptible, const bool bubbles, const DefaultActionPhase default_action_phase)
 {
-	RMLUI_ASSERTMSG(!((int)default_action_phase & (int)EventPhase::Capture), "We assume here that the default action phases cannot include capture phase.");
+	RMLUI_ASSERTMSG(!((int)default_action_phase & (int)EventPhase::Capture),
+		"We assume here that the default action phases cannot include capture phase.");
 
 	Vector<CollectedListener> listeners;
 	Vector<ObserverPtr<Element>> default_action_elements;
 
 	const EventPhase phases_to_execute = EventPhase((int)EventPhase::Capture | (int)EventPhase::Target | (bubbles ? (int)EventPhase::Bubble : 0));
-	
+
 	// Walk the DOM tree from target to root, collecting all possible listeners and elements with default actions in the process.
 	int dom_distance_from_target = 0;
 	Element* walk_element = target_element;
@@ -144,12 +145,12 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const EventId id, c
 		EventDispatcher* dispatcher = walk_element->GetEventDispatcher();
 		dispatcher->CollectListeners(dom_distance_from_target, id, phases_to_execute, listeners);
 
-		if(dom_distance_from_target == 0)
+		if (dom_distance_from_target == 0)
 		{
 			if ((int)default_action_phase & (int)EventPhase::Target)
 				default_action_elements.push_back(walk_element->GetObserverPtr());
 		}
-		else if((int)default_action_phase & (int)EventPhase::Bubble)
+		else if ((int)default_action_phase & (int)EventPhase::Bubble)
 		{
 			default_action_elements.push_back(walk_element->GetObserverPtr());
 		}
@@ -216,8 +217,8 @@ bool EventDispatcher::DispatchEvent(Element* target_element, const EventId id, c
 	return propagating;
 }
 
-
-void EventDispatcher::CollectListeners(int dom_distance_from_target, const EventId event_id, const EventPhase event_executes_in_phases, Vector<CollectedListener>& collect_listeners)
+void EventDispatcher::CollectListeners(int dom_distance_from_target, const EventId event_id, const EventPhase event_executes_in_phases,
+	Vector<CollectedListener>& collect_listeners)
 {
 	// Find all the entries with a matching id, given that listeners are sorted by id first.
 	Listeners::iterator begin, end;
@@ -246,7 +247,6 @@ void EventDispatcher::CollectListeners(int dom_distance_from_target, const Event
 		}
 	}
 }
-
 
 String EventDispatcher::ToString() const
 {
@@ -281,6 +281,5 @@ String EventDispatcher::ToString() const
 
 	return result;
 }
-
 
 } // namespace Rml

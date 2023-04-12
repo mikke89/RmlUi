@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,37 +30,40 @@
 #define RMLUI_TESTS_COMMON_TESTSSHELL_H
 
 #include <RmlUi/Core/Types.h>
-namespace Rml { class RenderInterface; }
+namespace Rml {
+class RenderInterface;
+}
 class TestsRenderInterface;
 class TestsSystemInterface;
 
 namespace TestsShell {
 
-	// Will initialize the shell and create a context on first use.
-	Rml::Context* GetContext(bool allow_debugger = true);
+// Will initialize the shell and create a context on first use.
+Rml::Context* GetContext(bool allow_debugger = true);
 
-	void BeginFrame();
-	void PresentFrame();
+void BeginFrame();
+void PresentFrame();
 
-	// Render the current state of the context. Press 'escape' or 'return' to break out of the loop.
-	// Useful for viewing documents while building the RML to benchmark.
-	// Applies only when compiled with the shell backend.
-	void RenderLoop();
+// Render the current state of the context. Press 'escape' or 'return' to break out of the loop.
+// Useful for viewing documents while building the RML to benchmark.
+// Applies only when compiled with the shell backend.
+void RenderLoop();
 
-	void ShutdownShell();
+void ShutdownShell();
 
-	// Set the number of expected warnings and errors logged by RmlUi until the next call to this function
-	// or until 'ShutdownShell()'.
-	void SetNumExpectedWarnings(int num_warnings);
+// Set the number of expected warnings and errors logged by RmlUi until the next call to this function
+// or until 'ShutdownShell()'.
+void SetNumExpectedWarnings(int num_warnings);
 
-	void SetTime(double t);
+void SetTime(double t);
 
-	// Stats only available for the dummy renderer.
-	Rml::String GetRenderStats();
+// Stats only available for the dummy renderer.
+Rml::String GetRenderStats();
 
-	// Returns nullptr if the dummy renderer is not being used.
-	TestsRenderInterface* GetTestsRenderInterface();
-	TestsSystemInterface* GetTestsSystemInterface();
-}
+// Returns nullptr if the dummy renderer is not being used.
+TestsRenderInterface* GetTestsRenderInterface();
+TestsSystemInterface* GetTestsSystemInterface();
+
+} // namespace TestsShell
 
 #endif

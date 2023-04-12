@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,44 +36,42 @@ bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, Des
 }
 
 #if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat"
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-extra-args"
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wformat"
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wformat-extra-args"
 #endif
 
 ///
 /// Full Specialisations
 ///
 
-#define BASIC_CONVERTER(s, d) \
-template<>	\
-class TypeConverter< s, d > \
-{ \
-public: \
-	static bool Convert(const s& src, d& dest) \
-	{ \
-		dest = (d)src; \
-		return true; \
-	} \
-}
+#define BASIC_CONVERTER(s, d)                      \
+	template <>                                    \
+	class TypeConverter<s, d> {                    \
+	public:                                        \
+		static bool Convert(const s& src, d& dest) \
+		{                                          \
+			dest = (d)src;                         \
+			return true;                           \
+		}                                          \
+	}
 
-#define BASIC_CONVERTER_BOOL(s, d) \
-template<>	\
-class TypeConverter< s, d > \
-{ \
-public: \
-	static bool Convert(const s& src, d& dest) \
-	{ \
-		dest = src != 0; \
-		return true; \
-	} \
-}
+#define BASIC_CONVERTER_BOOL(s, d)                 \
+	template <>                                    \
+	class TypeConverter<s, d> {                    \
+	public:                                        \
+		static bool Convert(const s& src, d& dest) \
+		{                                          \
+			dest = src != 0;                       \
+			return true;                           \
+		}                                          \
+	}
 
-#define PASS_THROUGH(t)	BASIC_CONVERTER(t, t)
+#define PASS_THROUGH(t) BASIC_CONVERTER(t, t)
 
 /////////////////////////////////////////////////
-// Simple pass through definitions for converting 
+// Simple pass through definitions for converting
 // to the same type (direct copy)
 /////////////////////////////////////////////////
 PASS_THROUGH(int);
@@ -194,17 +192,16 @@ BASIC_CONVERTER(char, Character);
 // From string converters
 /////////////////////////////////////////////////
 
-#define STRING_FLOAT_CONVERTER(type) \
-template<> \
-class TypeConverter< String, type > \
-{ \
-public: \
-	static bool Convert(const String& src, type& dest) \
-	{ \
-		dest = (type) atof(src.c_str()); \
-		return true; \
-	} \
-}
+#define STRING_FLOAT_CONVERTER(type)                       \
+	template <>                                            \
+	class TypeConverter<String, type> {                    \
+	public:                                                \
+		static bool Convert(const String& src, type& dest) \
+		{                                                  \
+			dest = (type)atof(src.c_str());                \
+			return true;                                   \
+		}                                                  \
+	}
 STRING_FLOAT_CONVERTER(float);
 STRING_FLOAT_CONVERTER(double);
 
@@ -270,9 +267,8 @@ public:
 	}
 };
 
-template< typename DestType, typename InternalType, int count >
-class TypeConverterStringVector
-{
+template <typename DestType, typename InternalType, int count>
+class TypeConverterStringVector {
 public:
 	static bool Convert(const String& src, DestType& dest)
 	{
@@ -282,23 +278,22 @@ public:
 			return false;
 		for (int i = 0; i < count; i++)
 		{
-			if (!TypeConverter< String, InternalType >::Convert(string_list[i], dest[i]))
+			if (!TypeConverter<String, InternalType>::Convert(string_list[i], dest[i]))
 				return false;
 		}
 		return true;
 	}
 };
 
-#define STRING_VECTOR_CONVERTER(type, internal_type, count) \
-template<> \
-class TypeConverter< String, type > \
-{ \
-public: \
-	static bool Convert(const String& src, type& dest) \
-	{ \
-		return TypeConverterStringVector< type, internal_type, count >::Convert(src, dest); \
-	} \
-}
+#define STRING_VECTOR_CONVERTER(type, internal_type, count)                                   \
+	template <>                                                                               \
+	class TypeConverter<String, type> {                                                       \
+	public:                                                                                   \
+		static bool Convert(const String& src, type& dest)                                    \
+		{                                                                                     \
+			return TypeConverterStringVector<type, internal_type, count>::Convert(src, dest); \
+		}                                                                                     \
+	}
 
 STRING_VECTOR_CONVERTER(Vector2i, int, 2);
 STRING_VECTOR_CONVERTER(Vector2f, float, 2);
@@ -313,19 +308,18 @@ STRING_VECTOR_CONVERTER(Colourb, byte, 4);
 // To String Converters
 /////////////////////////////////////////////////
 
-#define FLOAT_STRING_CONVERTER(type) \
-template<> \
-class TypeConverter< type, String > \
-{ \
-public: \
-	static bool Convert(const type& src, String& dest) \
-	{ \
-		if(FormatString(dest, 32, "%.3f", src) == 0) \
-			return false; \
-		StringUtilities::TrimTrailingDotZeros(dest); \
-		return true; \
-	} \
-}
+#define FLOAT_STRING_CONVERTER(type)                       \
+	template <>                                            \
+	class TypeConverter<type, String> {                    \
+	public:                                                \
+		static bool Convert(const type& src, String& dest) \
+		{                                                  \
+			if (FormatString(dest, 32, "%.3f", src) == 0)  \
+				return false;                              \
+			StringUtilities::TrimTrailingDotZeros(dest);   \
+			return true;                                   \
+		}                                                  \
+	}
 FLOAT_STRING_CONVERTER(float);
 FLOAT_STRING_CONVERTER(double);
 
@@ -391,9 +385,8 @@ public:
 	}
 };
 
-template< typename SourceType, typename InternalType, int count >
-class TypeConverterVectorString
-{
+template <typename SourceType, typename InternalType, int count>
+class TypeConverterVectorString {
 public:
 	static bool Convert(const SourceType& src, String& dest)
 	{
@@ -401,9 +394,9 @@ public:
 		for (int i = 0; i < count; i++)
 		{
 			String value;
-			if (!TypeConverter< InternalType, String >::Convert(src[i], value))
+			if (!TypeConverter<InternalType, String>::Convert(src[i], value))
 				return false;
-			
+
 			dest += value;
 			if (i < count - 1)
 				dest += ", ";
@@ -412,16 +405,15 @@ public:
 	}
 };
 
-#define VECTOR_STRING_CONVERTER(type, internal_type, count) \
-template<> \
-class TypeConverter< type, String > \
-{ \
-public: \
-	static bool Convert(const type& src, String& dest) \
-	{ \
-		return TypeConverterVectorString< type, internal_type, count >::Convert(src, dest); \
-	} \
-}
+#define VECTOR_STRING_CONVERTER(type, internal_type, count)                                   \
+	template <>                                                                               \
+	class TypeConverter<type, String> {                                                       \
+	public:                                                                                   \
+		static bool Convert(const type& src, String& dest)                                    \
+		{                                                                                     \
+			return TypeConverterVectorString<type, internal_type, count>::Convert(src, dest); \
+		}                                                                                     \
+	}
 
 VECTOR_STRING_CONVERTER(Vector2i, int, 2);
 VECTOR_STRING_CONVERTER(Vector2f, float, 2);
@@ -440,8 +432,8 @@ VECTOR_STRING_CONVERTER(Colourb, byte, 4);
 #undef VECTOR_STRING_CONVERTER
 
 #if defined(RMLUI_PLATFORM_WIN32) && defined(__MINGW32__)
-#pragma GCC diagnostic pop
-#pragma GCC diagnostic pop
+	#pragma GCC diagnostic pop
+	#pragma GCC diagnostic pop
 #endif
 
 } // namespace Rml

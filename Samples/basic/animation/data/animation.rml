@@ -39,8 +39,8 @@
 			display: inline-block;
 			width: 25dp;
 		}
-		
-		#start_game 
+
+		#start_game
 		{
 			opacity: 0.8;
 			transform: rotate(370deg) translateX(100dp) scale(1.2);
@@ -62,7 +62,7 @@
 		#high_scores {
 			margin-left: -100dp;
 		}
-		
+
 		@keyframes fadeout {
 			from {
 				opacity: 1;
@@ -98,12 +98,12 @@
 		.textalign {
 			animation: 1.4s textalign;
 		}
-		
+
 		#exit {
 			transform: rotate(45deg);
 			transform-origin: 50% 50% 0;
 		}
-		
+
 		div.container
 		{
 			margin-top: 15dp;
@@ -121,8 +121,8 @@
 			background-color: #c66;
 		}
 		div.plain:hover { background-color: #ddb700; }
-		
-		
+
+
 		/* -- TRANSFORM TESTS */
 		#generic {
 			/* Note the translateX vs translateY in animation target, and rotateZ vs rotate3d, scaleX vs scaleY.
@@ -134,11 +134,11 @@
 			transform: rotate(45deg);
 		}
 		#decomposition {
-			/* To interpolate the rotate3d transforms, we need to decompose the matrix, 
+			/* To interpolate the rotate3d transforms, we need to decompose the matrix,
 			   see the element info in the debugger for the resulting matrix. */
 			transform: translateX(100dp) rotate3d(1.0, 0, 1.0, 0deg);
 		}
-		
+
 		/* -- MIXED UNITS TESTS */
 		#abs_rel {
 			margin: 0;
@@ -161,7 +161,7 @@
 			/*transition: padding-left background-color transform 0.8s quadratic-out 1.0;*/
 			padding-left: 60dp;
 			transform: scale(1.5);
-		} 
+		}
 		#transition_class {
 			margin-left: 50dp;
 			transition: all 0.5s cubic-out;
@@ -171,9 +171,9 @@
 			margin-left: -50dp;
 			background-color: #dd3;
 		}
-		
+
 		/* -- KEYFRAMES TESTS */
-		@keyframes hello-world 
+		@keyframes hello-world
 		{
 			25% {
 				transform: rotate(180deg);
@@ -205,7 +205,7 @@
 			50% {
 				background-color: #9d9;
 			}
-			to { 
+			to {
 				background-color: #f9f;
 				width: 100%;
 			}
@@ -225,11 +225,11 @@
 			top: 110dp; left: 0;
 			height: 55dp;
 		}
-		#performance 
+		#performance
 		{
 			position: absolute;
-			bottom: 0; 
-			height: 30%; 
+			bottom: 0;
+			height: 30%;
 			width: 20%;
 			left: -100dp;
 			transform: scale(0.5) rotate(-90deg);

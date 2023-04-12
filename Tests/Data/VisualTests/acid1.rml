@@ -9,167 +9,167 @@
 <style type="text/css">
 /* RmlUi does not accept styling of the html/rml element, they have been moved into body. */
 body {
-font-size: 10dp;
-color: white;
-margin: 1.5em;
-border: .5em black;
-padding: 0;
-width: 48em;
-background-color: white;
-min-height: 0;
-bottom: auto;
+	font-size: 10dp;
+	line-height: 1;
+	color: white;
+	margin: 1.5em;
+	border: .5em black;
+	padding: 0;
+	width: 48em;
+	background-color: white;
+	bottom: auto;
 }
 
 dl {
-margin: 0;
-border: 0;
-padding: .5em;
+	margin: 0;
+	border: 0;
+	padding: .5em;
 }
 
-dt { 
-background-color: rgb(204,0,0);
-margin: 0; 
-padding: 1em;
-width: 10.638%; /* refers to parent element's width of 47em. = 5em or 50dp */
-height: 28em;
-border: .5em black;
-float: left;
+dt {
+	background-color: rgb(204, 0, 0);
+	margin: 0;
+	padding: 1em;
+	width: 10.638%; /* refers to parent element's width of 47em. = 5em or 50dp */
+	height: 28em;
+	border: .5em black;
+	float: left;
 }
 
 dd {
-float: right;
-margin: 0 0 0 1em;
-border: 1em black;
-padding: 1em;
-width: 34em;
-height: 27em;
+	float: right;
+	margin: 0 0 0 1em;
+	border: 1em black;
+	padding: 1em;
+	width: 34em;
+	height: 27em;
 }
 
 ul {
-margin: 0;
-border: 0;
-padding: 0;
+	margin: 0;
+	border: 0;
+	padding: 0;
 }
 
 li {
-display: block; /* i.e., suppress marker */
-color: black;
-height: 9em;
-width: 5em;
-margin: 0;
-border: .5em black;
-padding: 1em;
-float: left;
-background-color: #FC0;
+	display: block; /* i.e., suppress marker */
+	color: black;
+	height: 9em;
+	width: 5em;
+	margin: 0;
+	border: .5em black;
+	padding: 1em;
+	float: left;
+	background-color: #FC0;
 }
 
 #bar {
-background-color: black;
-color: white;
-width: 41.17%; /* = 14em */
-border: 0;
-margin: 0 1em;
+	background-color: black;
+	color: white;
+	width: 41.17%; /* = 14em */
+	border: 0;
+	margin: 0 1em;
 }
 
 #baz {
-margin: 1em 0;
-border: 0;
-padding: 1em;
-width: 10em;
-height: 10em;
-background-color: black;
-color: white;
+	margin: 1em 0;
+	border: 0;
+	padding: 1em;
+	width: 10em;
+	height: 10em;
+	background-color: black;
+	color: white;
 }
 
-form { 
-margin: 0;
-display: inline;
+form {
+	margin: 0;
+	display: inline;
 }
 
-p { 
-margin: 0;
+p {
+	margin: 0;
 }
 
 form p {
-line-height: 1.9;
+	line-height: 1.9;
 }
 
 blockquote {
-margin: 1em 1em 1em 2em;
-border-width: 1em 1.5em 2em .5em;
-border-color: black;
-padding: 1em 0;
-width: 5em;
-height: 9em;
-float: left;
-background-color: #FC0;
-color: black;
+	margin: 1em 1em 1em 2em;
+	border-width: 1em 1.5em 2em .5em;
+	border-color: black;
+	padding: 1em 0;
+	width: 5em;
+	height: 9em;
+	float: left;
+	background-color: #FC0;
+	color: black;
 }
 
 address {
-font-style: normal;
+	font-style: normal;
 }
 
 h1 {
-background-color: black;
-color: white;
-float: left;
-margin: 1em 0;
-border: 0;
-padding: 1em;
-width: 10em;
-height: 10em;
-font-weight: normal;
-font-size: 1em;
+	background-color: black;
+	color: white;
+	float: left;
+	margin: 1em 0;
+	border: 0;
+	padding: 1em;
+	width: 10em;
+	height: 10em;
+	font-weight: normal;
+	font-size: 1em;
 }
 </style>
 </head>
 <body>
 	<dl>
 		<dt>
-		 toggle 
+			toggle
 		</dt>
 		<dd>
 		<ul>
 			<li>
-			 the way 
+				the way
 			</li>
 			<li id="bar">
 			<p>
-			 the world ends 
+				the world ends
 			</p>
 			<form action="./" method="get">
 				<p>
-				 bang 
+					bang
 				<input type="radio" name="foo" value="off"/>
 				</p>
 				<p>
-				 whimper 
+					whimper
 				<input type="radio" name="foo2" value="on"/>
 				</p>
 			</form>
 			</li>
 			<li>
-			 i grow old 
+				i grow old
 			</li>
 			<li id="baz">
-			 pluot? 
+				pluot?
 			</li>
 		</ul>
 		<blockquote>
 			<address>
-				 bar maids, 
+				bar maids,
 			</address>
 		</blockquote>
 		<h1>
-			 sing to me, erbarme dich 
+			sing to me, erbarme dich
 		</h1>
 		</dd>
 	</dl>
 	<p style="color: black; font-size: 1em; line-height: 1.3em; clear: both">
-	 This is a nonsensical document, but syntactically valid HTML 4.0. All 100%-conformant CSS1 agents should be able to render the document elements above this paragraph indistinguishably (to the pixel) from this 
+		This is a nonsensical document, but syntactically valid HTML 4.0. All 100%-conformant CSS1 agents should be able to render the document elements above this paragraph indistinguishably (to the pixel) from this
 		<a href="sec5526c.gif">reference rendering,</a>
-	 (except font rasterization and form widgets). All discrepancies should be traceable to CSS1 implementation shortcomings. Once you have finished evaluating this test, you can return to the <a href="sec5526c.htm">parent page</a>. 
+		(except font rasterization and form widgets). All discrepancies should be traceable to CSS1 implementation shortcomings. Once you have finished evaluating this test, you can return to the <a href="sec5526c.htm">parent page</a>.
 	</p>
 </body>
 </rml>

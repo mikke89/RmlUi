@@ -1,4 +1,4 @@
-@spritesheet theme 
+@spritesheet theme
 {
 	src: /assets/invader.tga;
 
@@ -25,7 +25,7 @@ body
 body.window
 {
 	decorator: tiled-box(
-		window-tl, window-t, window-tr, 
+		window-tl, window-t, window-tr,
 		window-l, window-c, window-r,
 		window-bl, window-b, window-br
 	);
@@ -33,5 +33,5 @@ body.window
 
 div
 {
-    display: block;
+	display: block;
 }

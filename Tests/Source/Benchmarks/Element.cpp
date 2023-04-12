@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -112,10 +112,10 @@ static const char* LongTextRow = R"(
 static String GenerateRml(const int num_rows, const char* row)
 {
 	static nanobench::Rng rng;
-	
+
 	Rml::String rml;
 	rml.reserve(10000 * num_rows);
-	
+
 	for (int i = 0; i < num_rows; i++)
 	{
 		int index = rng() % 1000;
@@ -125,7 +125,7 @@ static String GenerateRml(const int num_rows, const char* row)
 		Rml::String rml_row = Rml::CreateString(10000, row, index, route, max, value);
 		rml += rml_row;
 	}
-	
+
 	return rml;
 }
 
@@ -196,35 +196,35 @@ TEST_CASE("element.long_texts")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-	
+
 	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
 	REQUIRE(document);
 	document->Show();
-	
+
 	Element* el = document->GetElementById("performance");
 	REQUIRE(el);
 	constexpr int num_rows = 50;
 	const String rml = GenerateRml(num_rows, LongTextRow);
-	
+
 	el->SetInnerRML(rml);
 	context->Update();
 	context->Render();
 	TestsShell::RenderLoop();
-	
+
 	String msg = Rml::CreateString(128, "\nElement construction and destruction of %d total very long elements.\n", GetNumDescendentElements(el));
 	msg += TestsShell::GetRenderStats();
 	MESSAGE(msg);
-	
+
 	nanobench::Bench bench;
 	bench.title("Element");
 	bench.timeUnit(std::chrono::microseconds(1), "us");
 	bench.relative(true);
-	
+
 	bench.run("Update (unmodified)", [&] { context->Update(); });
-	
+
 	bool hover_toggle = true;
 	auto child = el->GetChild(num_rows / 2);
-	
+
 	bench.run("Update (hover child)", [&] {
 		static nanobench::Rng rng;
 		child->SetPseudoClass(":hover", hover_toggle);
@@ -236,22 +236,22 @@ TEST_CASE("element.long_texts")
 		hover_toggle = !hover_toggle;
 		context->Update();
 	});
-	
+
 	bench.run("Render", [&] { context->Render(); });
-	
+
 	bench.run("SetInnerRML", [&] { el->SetInnerRML(rml); });
-	
+
 	bench.run("SetInnerRML + Update", [&] {
 		el->SetInnerRML(rml);
 		context->Update();
 	});
-	
+
 	bench.run("SetInnerRML + Update + Render", [&] {
 		el->SetInnerRML(rml);
 		context->Update();
 		context->Render();
 	});
-	
+
 	document->Close();
 }
 

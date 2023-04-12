@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,14 +30,14 @@
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/Context.h"
 #include "../../../Include/RmlUi/Core/ElementDocument.h"
-#include "../../../Include/RmlUi/Core/Math.h"
-#include "../../../Include/RmlUi/Core/Factory.h"
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
-#include "../../../Include/RmlUi/Core/Event.h"
-#include "../../../Include/RmlUi/Core/Input.h"
-#include "../../../Include/RmlUi/Core/Property.h"
-#include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControl.h"
+#include "../../../Include/RmlUi/Core/Event.h"
+#include "../../../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/Input.h"
+#include "../../../Include/RmlUi/Core/Math.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
+#include "../../../Include/RmlUi/Core/Property.h"
 
 namespace Rml {
 
@@ -144,7 +144,7 @@ void WidgetDropDown::OnRender()
 {
 	if (box_visible && box_layout_dirty)
 	{
-		// Layout the selection box. 
+		// Layout the selection box.
 		// The following procedure should ensure that the selection box is never (partly) outside of the context's window.
 		// This is achieved by positioning the box either above or below the 'select' element, and possibly shrinking
 		// the element's height.
@@ -152,7 +152,7 @@ void WidgetDropDown::OnRender()
 		// we will override the 'height' property.
 
 		// Previously set 'height' property from this procedure must be removed for the calculations below to work as intended.
-		if(selection_element->GetLocalStyleProperties().count(PropertyId::Height) == 1)
+		if (selection_element->GetLocalStyleProperties().count(PropertyId::Height) == 1)
 		{
 			selection_element->RemoveProperty(PropertyId::Height);
 			selection_element->GetOwnerDocument()->UpdateDocument();
@@ -191,11 +191,10 @@ void WidgetDropDown::OnRender()
 			// Position box above
 			selection_element->SetOffset(Vector2f(offset_x, -content_height + offset_y_above), parent_element);
 		}
-		else 
+		else
 		{
 			// Shrink box and position either below or above
-			const float padding_border_size =
-				box.GetEdge(Box::BORDER, Box::TOP) + box.GetEdge(Box::BORDER, Box::BOTTOM) +
+			const float padding_border_size = box.GetEdge(Box::BORDER, Box::TOP) + box.GetEdge(Box::BORDER, Box::BOTTOM) +
 				box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM);
 
 			float height = 0.f;
@@ -238,7 +237,7 @@ void WidgetDropDown::OnLayout()
 {
 	RMLUI_ZoneScopedNC("DropDownLayout", 0x7FFF00);
 
-	if(parent_element->IsDisabled())
+	if (parent_element->IsDisabled())
 	{
 		// Propagate disabled state to selectvalue and selectarrow
 		value_element->SetPseudoClass("disabled", true);
@@ -263,7 +262,6 @@ void WidgetDropDown::OnLayout()
 	value_layout_dirty = true;
 }
 
-// Sets the value of the widget.
 void WidgetDropDown::OnValueChange(const String& value)
 {
 	if (!lock_selection)
@@ -347,7 +345,6 @@ void WidgetDropDown::SeekSelection(bool seek_forward)
 	// No valid option found, leave selection unchanged.
 }
 
-// Returns the index of the currently selected item.
 int WidgetDropDown::GetSelection() const
 {
 	const int num_options = selection_element->GetNumChildren();
@@ -360,7 +357,6 @@ int WidgetDropDown::GetSelection() const
 	return -1;
 }
 
-// Adds a new option to the select control.
 int WidgetDropDown::AddOption(const String& rml, const String& option_value, int before, bool select, bool selectable)
 {
 	ElementPtr element = Factory::InstanceElement(selection_element, "*", "option", XMLAttributes());
@@ -382,7 +378,8 @@ int WidgetDropDown::AddOption(ElementPtr element, int before)
 {
 	if (element->GetTagName() != "option")
 	{
-		Log::Message(Log::LT_WARNING, "A child of '%s' must be of type 'option' but '%s' was given. See element '%s'.", parent_element->GetTagName().c_str(), element->GetTagName().c_str(), parent_element->GetAddress().c_str());
+		Log::Message(Log::LT_WARNING, "A child of '%s' must be of type 'option' but '%s' was given. See element '%s'.",
+			parent_element->GetTagName().c_str(), element->GetTagName().c_str(), parent_element->GetAddress().c_str());
 		return -1;
 	}
 
@@ -402,7 +399,6 @@ int WidgetDropDown::AddOption(ElementPtr element, int before)
 	return option_index;
 }
 
-// Removes an option from the select control.
 void WidgetDropDown::RemoveOption(int index)
 {
 	Element* element = selection_element->GetChild(index);
@@ -412,20 +408,17 @@ void WidgetDropDown::RemoveOption(int index)
 	selection_element->RemoveChild(element);
 }
 
-// Removes all options from the list.
 void WidgetDropDown::ClearOptions()
 {
 	while (Element* element = selection_element->GetLastChild())
 		selection_element->RemoveChild(element);
 }
 
-// Returns on of the widget's options.
 Element* WidgetDropDown::GetOption(int index)
 {
 	return selection_element->GetChild(index);
 }
 
-// Returns the number of options in the widget.
 int WidgetDropDown::GetNumOptions() const
 {
 	return selection_element->GetNumChildren();
@@ -478,7 +471,7 @@ void WidgetDropDown::DetachScrollEvent()
 
 void WidgetDropDown::ProcessEvent(Event& event)
 {
-	if (parent_element->IsDisabled()) 
+	if (parent_element->IsDisabled())
 		return;
 
 	// Process the button onclick
@@ -548,7 +541,7 @@ void WidgetDropDown::ProcessEvent(Event& event)
 	break;
 	case EventId::Keydown:
 	{
-		Input::KeyIdentifier key_identifier = (Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+		Input::KeyIdentifier key_identifier = (Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
 
 		switch (key_identifier)
 		{
@@ -565,8 +558,7 @@ void WidgetDropDown::ProcessEvent(Event& event)
 			parent_element->Click();
 			event.StopPropagation();
 			break;
-		default:
-			break;
+		default: break;
 		}
 	}
 	break;
@@ -591,12 +583,10 @@ void WidgetDropDown::ProcessEvent(Event& event)
 		}
 	}
 	break;
-	default:
-		break;
+	default: break;
 	}
 }
 
-// Shows or hides the selection box.
 void WidgetDropDown::ShowSelectBox(bool show)
 {
 	if (show)

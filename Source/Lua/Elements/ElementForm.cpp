@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  *
  */
- 
+
 #include "ElementForm.h"
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/Elements/ElementForm.h>
@@ -34,45 +34,42 @@
 namespace Rml {
 namespace Lua {
 
-//method
+// method
 int ElementFormSubmit(lua_State* L, ElementForm* obj)
 {
-    int top = lua_gettop(L);
-    const char* name = "";
-    const char* value = "";
-    if(top > 0)
-    {
-        name = luaL_checkstring(L,1);
-        if(top > 1)
-            value = luaL_checkstring(L,2);
-    }
-    obj->Submit(name,value);
-    return 0;
+	int top = lua_gettop(L);
+	const char* name = "";
+	const char* value = "";
+	if (top > 0)
+	{
+		name = luaL_checkstring(L, 1);
+		if (top > 1)
+			value = luaL_checkstring(L, 2);
+	}
+	obj->Submit(name, value);
+	return 0;
 }
 
-RegType<ElementForm> ElementFormMethods[] =
-{
-    RMLUI_LUAMETHOD(ElementForm,Submit)
-    { nullptr, nullptr },
+RegType<ElementForm> ElementFormMethods[] = {
+	RMLUI_LUAMETHOD(ElementForm, Submit),
+	{nullptr, nullptr},
 };
 
-luaL_Reg ElementFormGetters[] =
-{
-    { nullptr, nullptr },
+luaL_Reg ElementFormGetters[] = {
+	{nullptr, nullptr},
 };
 
-luaL_Reg ElementFormSetters[] =
-{
-    { nullptr, nullptr },
+luaL_Reg ElementFormSetters[] = {
+	{nullptr, nullptr},
 };
 
-
-template<> void ExtraInit<ElementForm>(lua_State* L, int metatable_index)
+template <>
+void ExtraInit<ElementForm>(lua_State* L, int metatable_index)
 {
-    //inherit from Element
-    ExtraInit<Element>(L,metatable_index);
-    LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    AddTypeToElementAsTable<ElementForm>(L);
+	// inherit from Element
+	ExtraInit<Element>(L, metatable_index);
+	LuaType<Element>::_regfunctions(L, metatable_index, metatable_index - 1);
+	AddTypeToElementAsTable<ElementForm>(L);
 }
 RMLUI_LUATYPE_DEFINE(ElementForm)
 } // namespace Lua

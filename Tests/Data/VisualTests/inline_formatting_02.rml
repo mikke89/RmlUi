@@ -1,0 +1,27 @@
+<rml>
+<head>
+	<title>Inline formatting 02</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/css-inline-3/#model" />
+	<meta name="Description" content="Inline formatting context" />
+	<style>
+		body {
+			width: 70dp;
+			padding: 0;
+			border: 20dp #ddd;
+		}
+		span {
+			padding: 5px;
+			border: 4px #ee0;
+			margin: 5px 50px;
+		}
+	</style>
+</head>
+
+<body rmlui-debug-layout>
+
+<span>A B C D</span>
+
+<handle size_target="#document"/>
+</body>
+</rml>

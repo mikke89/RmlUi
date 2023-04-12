@@ -1,11 +1,11 @@
 <rml>
 <head>
-    <title>Replaced elements</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Replaced elements</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width" />
 	<meta name="Description" content="Sizing of replaced elements." />
 	<style>
-		@spritesheet theme 
+		@spritesheet theme
 		{
 			src: /assets/invader.tga;
 			invader: 179px 152px 50px 40px;

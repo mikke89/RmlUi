@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,38 +32,31 @@
 
 namespace Rml {
 
-FileInterfaceDefault::~FileInterfaceDefault()
-{
-}
+FileInterfaceDefault::~FileInterfaceDefault() {}
 
-// Opens a file.
 FileHandle FileInterfaceDefault::Open(const String& path)
 {
-	return (FileHandle)fopen(path.c_str(), "rb");	
+	return (FileHandle)fopen(path.c_str(), "rb");
 }
 
-// Closes a previously opened file.
 void FileInterfaceDefault::Close(FileHandle file)
 {
-	fclose((FILE*) file);
+	fclose((FILE*)file);
 }
 
-// Reads data from a previously opened file.
 size_t FileInterfaceDefault::Read(void* buffer, size_t size, FileHandle file)
 {
-	return fread(buffer, 1, size, (FILE*) file);
+	return fread(buffer, 1, size, (FILE*)file);
 }
 
-// Seeks to a point in a previously opened file.
 bool FileInterfaceDefault::Seek(FileHandle file, long offset, int origin)
 {
-	return fseek((FILE*) file, offset, origin) == 0;
+	return fseek((FILE*)file, offset, origin) == 0;
 }
 
-// Returns the current position of the file pointer.
 size_t FileInterfaceDefault::Tell(FileHandle file)
 {
-	return ftell((FILE*) file);
+	return ftell((FILE*)file);
 }
 
 } // namespace Rml

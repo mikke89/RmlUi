@@ -1,10 +1,9 @@
 <rml>
 <head>
-    <title>Floats, block formatting contexts</title>
-    <link type="text/rcss" href="../style.rcss"/>
-	<link rel="help" href="https://www.w3.org/TR/CSS21/visufx.html#propdef-overflow" />
-	<meta name="Description" content="Nesting divs should still hide overflow. Elements whose containing block is located above the 'overflow: hidden' element should be visible." />
-	<meta name="See also" content="CSS 2.1 'clipping-' and 'overflow-' tests." />
+	<title>Floats, block formatting contexts</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css2/#bfc-next-to-float" />
+	<meta name="Description" content="Floated elements should only interact with elements in the same block formatting context. The margin box of floated elements must not overlap with the border box of elements that establish an independent formatting context." />
 	<style>
 		body {
 			background: #ddd;
@@ -46,7 +45,7 @@
 	<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.
 	<div class="float">float: left</div>
 	<span class="red">This</span> is the first word after the float and should flow next to the float.</p>
-	<p style="overflow: auto;">This paragraph should establish a new block formatting context. This element's size and position should not overlap with the float, but still be located next to it.</p>
+	<p style="overflow: auto;">This paragraph establishes a new block formatting context. This paragraph should therefore be placed below the preceding float to avoid overlapping it, but may be placed adjacent to the float if there is sufficient space.</p>
 </div>
 </body>
 </rml>

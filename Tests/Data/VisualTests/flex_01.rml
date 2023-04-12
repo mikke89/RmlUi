@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Flex 01 - Basic flexbox layout</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Flex 01 - Basic flexbox layout</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://drafts.csswg.org/css-flexbox/" />
 	<meta name="Description" content="Basic flexible box layout." />
 	<meta name="Animation" content="Hover over the articles to animate their size." />
@@ -9,7 +9,7 @@
 		header, article { display: block; }
 		h1 { font-size: 1.5em; }
 		h2 { font-size: 1.3em; }
-		
+
 		header {
 			background-color: #9777d9;
 			border: 5dp #666;

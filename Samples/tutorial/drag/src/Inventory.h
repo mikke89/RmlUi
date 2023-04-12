@@ -1,16 +1,15 @@
 #ifndef INVENTORY_H
 #define INVENTORY_H
 
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/Types.h>
 
 /**
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class Inventory
-{
+class Inventory {
 public:
 	/// Constructs a new inventory and opens its window.
 	/// @param[in] title The title of the new inventory.

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,14 +27,14 @@
  */
 
 #include "Shield.h"
-#include <RmlUi/Core/Math.h>
 #include "Game.h"
 #include "GameDetails.h"
 #include "Sprite.h"
+#include <RmlUi/Core/Math.h>
 
 const int MAX_HEALTH = 4;
 
-Shield::Shield(Game* _game, ShieldType _type) : position(0,0)
+Shield::Shield(Game* _game, ShieldType _type) : position(0, 0)
 {
 	game = _game;
 	type = _type;
@@ -43,9 +43,7 @@ Shield::Shield(Game* _game, ShieldType _type) : position(0,0)
 	InitialiseCells();
 }
 
-Shield::~Shield()
-{
-}
+Shield::~Shield() {}
 
 void Shield::InitialiseCells()
 {
@@ -151,11 +149,8 @@ bool Shield::CheckHit(const Rml::Vector2f& check_position)
 
 	// If we're alive and the position is within our bounds, set ourselves
 	// as exploding and return a valid hit
-	if (health > 0
-		&& check_position.x >= position.x
-		&& check_position.x <= position.x + sprite_size
-		&& check_position.y >= position.y
-		&& check_position.y <= position.y + sprite_size)
+	if (health > 0 && check_position.x >= position.x && check_position.x <= position.x + sprite_size && check_position.y >= position.y &&
+		check_position.y <= position.y + sprite_size)
 	{
 		// Take damage.
 		SustainDamage();

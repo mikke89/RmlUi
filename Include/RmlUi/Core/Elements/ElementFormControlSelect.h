@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,13 +37,12 @@ namespace Rml {
 class WidgetDropDown;
 
 /**
-	A drop-down select form control.
+    A drop-down select form control.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API ElementFormControlSelect : public ElementFormControl
-{
+class RMLUICORE_API ElementFormControlSelect : public ElementFormControl {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementFormControlSelect, ElementFormControl)
 
@@ -78,7 +77,8 @@ public:
 	/// Adds a new option to the select control.
 	/// @param[in] rml The RML content used to represent the option. This is usually a simple string, but can include RML tags.
 	/// @param[in] value The value of the option. This is used to identify the option, but does not necessarily need to be unique.
-	/// @param[in] before The index of the element to insert the new option before. If out of bounds of the control's option list (the default) the new option will be added at the end of the list.
+	/// @param[in] before The index of the element to insert the new option before. If out of bounds of the control's option list (the default) the
+	/// new option will be added at the end of the list.
 	/// @param[in] selectable If true this option can be selected. If false, this option is not selectable.
 	/// @return The index of the new option.
 	int Add(const String& rml, const String& value, int before = -1, bool selectable = true);
@@ -104,11 +104,12 @@ protected:
 	void OnLayout() override;
 
 	void OnChildAdd(Element* child) override;
-	
+
 	void OnChildRemove(Element* child) override;
 
 	/// Returns true to mark this element as replaced.
-	/// @param[out] intrinsic_dimensions Set to the arbitrary dimensions of 128 x 16 just to give this element a size. Resize with the 'width' and 'height' properties.
+	/// @param[out] intrinsic_dimensions Set to the arbitrary dimensions of 128 x 16 just to give this element a size. Resize with the 'width' and
+	/// 'height' properties.
 	/// @param[out] intrinsic_ratio Ignored.
 	/// @return True.
 	bool GetIntrinsicDimensions(Vector2f& intrinsic_dimensions, float& intrinsic_ratio) override;

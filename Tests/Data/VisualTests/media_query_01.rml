@@ -1,10 +1,10 @@
 <rml>
 <head>
-    <title>Media query: Collapsing menu</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Media query: Collapsing menu</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<meta name="Description" content="A basic responsive design for a collapsing menu." />
 	<style>
-		@spritesheet theme 
+		@spritesheet theme
 		{
 			src: /assets/invader.tga;
 			selectarrow: 307px 192px 30px 37px;
@@ -31,7 +31,7 @@
 		item:active {
 			background: #e0e0e0;
 		}
-		
+
 		@media (min-width: 1000dp)
 		{
 			menu {

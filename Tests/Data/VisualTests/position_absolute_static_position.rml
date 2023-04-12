@@ -1,0 +1,59 @@
+<rml>
+<head>
+	<title>Static position of absolutely positioned elements</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="CSS 2" href="https://drafts.csswg.org/css2/#static-position" />
+	<link rel="CSS 3" href="https://drafts.csswg.org/css-position-3/#static-position" />
+	<link rel="match" href="reference/position_absolute_static_position-ref.rml"/>
+	<meta name="description" content='Auto-positioned absolute elements should be placed at their static position.' />
+	<meta name="Assert" content='The absolute box should be positioned over the highlighted word when the scrollbox is scrolled to the top.' />
+	<meta name="Assert" content='The absolute box should not move when scrolling the article box, because its containing block is the wrapper box.' />
+	<style>
+		.wrapper {
+			display: block;
+			overflow: auto;
+			border: 5px #bdbdbd;
+			padding: 20px;
+			height: 80%;
+			position: relative;
+		}
+		.article {
+			height: 300px;
+			border: 3px #aaa;
+			padding: 10px;
+			margin-top: 50px;
+			margin-left: 70px;
+		}
+		.absolute {
+			position: absolute;
+			box-sizing: border-box;
+			width: 70px;
+			height: 70px;
+			padding-top: 1.2em;
+			border: 2px #c33;
+			background: #fffa;
+			text-align: center;
+		}
+		.paragraph { margin: 0.7em 0; }
+		.overflow { overflow: auto; }
+		.red { color: #c33; }
+	</style>
+</head>
+<body>
+
+<div class="wrapper">
+Wrapper box.
+	<div class="article overflow">
+		<div class="paragraph">Article box. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vehicula scelerisque congue. Morbi vel leo ut urna elementum cursus id sed justo. In hac habitasse platea dictumst. Curabitur convallis dui ac erat cursus consequat. Phasellus ornare vitae dolor ac semper. Donec finibus, nulla a porta venenatis, metus risus interdum nunc, ac cursus elit mi et orci. Maecenas tincidunt felis vitae est vulputate porta.</div>
+
+		<div class="absolute">Absolute box</div>
+
+		<div class="paragraph"><span class="red">Interdum</span> et malesuada fames ac ante ipsum primis in faucibus. Vestibulum sed elit dui. Interdum et malesuada fames ac ante ipsum primis in faucibus. Integer commodo porttitor luctus. Donec hendrerit ultrices turpis, sed sodales felis auctor a. Aliquam a ipsum nec mauris lacinia consequat at sit amet mi. Nullam sodales enim magna, eget semper libero facilisis sollicitudin.</div>
+
+		<div class="paragraph">Nulla rhoncus, quam quis rutrum egestas, elit velit porta justo, eget dictum mi sapien non nisi. Phasellus ac tortor sed nibh egestas vestibulum. In lobortis eros ante, vel pellentesque leo mattis non. Vivamus non turpis dui. Proin erat tortor, egestas pharetra erat at, iaculis ultricies dolor. Pellentesque et venenatis ligula. Phasellus feugiat ut diam id placerat. Aliquam erat volutpat. Sed at ex lacus. Quisque vestibulum, ante ut elementum blandit, nisl ex laoreet ante, sed accumsan arcu nulla at nibh. Nunc volutpat nibh eget mollis semper. Maecenas lacus augue, venenatis varius nibh consectetur, ornare fringilla libero. Proin sagittis tellus dolor, ac facilisis lorem scelerisque vel.</div>
+	</div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

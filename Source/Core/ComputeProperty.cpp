@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,6 +29,7 @@
 #include "ComputeProperty.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/StringUtilities.h"
 
 namespace Rml {
 
@@ -39,31 +40,23 @@ static constexpr float PixelsPerInch = 96.0f;
 float ComputeLength(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
 {
 	RMLUI_ASSERT(property);
-	
+
 	float value = property->value.Get<float>();
 
 	switch (property->unit)
 	{
 	case Property::NUMBER:
 	case Property::PX:
-	case Property::RAD:
-		return value;
+	case Property::RAD: return value;
 
-	case Property::EM:
-		return value * font_size;
-	case Property::REM:
-		return value * document_font_size;
-	case Property::DP:
-		return value * dp_ratio;
-	case Property::VW:
-		return value * vp_dimensions.x * 0.01f;
-	case Property::VH:
-		return value * vp_dimensions.y * 0.01f;
+	case Property::EM: return value * font_size;
+	case Property::REM: return value * document_font_size;
+	case Property::DP: return value * dp_ratio;
+	case Property::VW: return value * vp_dimensions.x * 0.01f;
+	case Property::VH: return value * vp_dimensions.y * 0.01f;
 
-	case Property::DEG:
-		return Math::DegreesToRadians(value);
-	default: 
-		break;
+	case Property::DEG: return Math::DegreesToRadians(value);
+	default: break;
 	}
 
 	// Values based on pixels-per-inch.
@@ -73,18 +66,12 @@ float ComputeLength(const Property* property, float font_size, float document_fo
 
 		switch (property->unit)
 		{
-		case Property::INCH: // inch
-			return inch;
-		case Property::CM: // centimeter
-			return inch * (1.0f / 2.54f);
-		case Property::MM: // millimeter
-			return inch * (1.0f / 25.4f);
-		case Property::PT: // point
-			return inch * (1.0f / 72.0f);
-		case Property::PC: // pica
-			return inch * (1.0f / 6.0f);
-		default:
-			break;
+		case Property::INCH: return inch;                // inch
+		case Property::CM: return inch * (1.0f / 2.54f); // centimeter
+		case Property::MM: return inch * (1.0f / 25.4f); // millimeter
+		case Property::PT: return inch * (1.0f / 72.0f); // point
+		case Property::PC: return inch * (1.0f / 6.0f);  // pica
+		default: break;
 		}
 	}
 
@@ -98,34 +85,24 @@ float ComputeAbsoluteLength(const Property& property, float dp_ratio, Vector2f v
 
 	switch (property.unit)
 	{
-	case Property::PX:
-		return property.value.Get< float >();
-	case Property::DP:
-		return property.value.Get< float >() * dp_ratio;
-	case Property::VW:
-		return property.value.Get< float >() * vp_dimensions.x * 0.01f;
-	case Property::VH:
-		return property.value.Get< float >() * vp_dimensions.y * 0.01f;
+	case Property::PX: return property.value.Get<float>();
+	case Property::DP: return property.value.Get<float>() * dp_ratio;
+	case Property::VW: return property.value.Get<float>() * vp_dimensions.x * 0.01f;
+	case Property::VH: return property.value.Get<float>() * vp_dimensions.y * 0.01f;
 	default:
 		// Values based on pixels-per-inch.
 		if (property.unit & Property::PPI_UNIT)
 		{
-			float inch = property.value.Get< float >() * PixelsPerInch;
+			float inch = property.value.Get<float>() * PixelsPerInch;
 
 			switch (property.unit)
 			{
-			case Property::INCH: // inch
-				return inch;
-			case Property::CM: // centimeter
-				return inch * (1.0f / 2.54f);
-			case Property::MM: // millimeter
-				return inch * (1.0f / 25.4f);
-			case Property::PT: // point
-				return inch * (1.0f / 72.0f);
-			case Property::PC: // pica
-				return inch * (1.0f / 6.0f);
-			default:
-				break;
+			case Property::INCH: return inch;                // inch
+			case Property::CM: return inch * (1.0f / 2.54f); // centimeter
+			case Property::MM: return inch * (1.0f / 25.4f); // millimeter
+			case Property::PT: return inch * (1.0f / 72.0f); // point
+			case Property::PC: return inch * (1.0f / 6.0f);  // pica
+			default: break;
 			}
 		}
 	}
@@ -141,13 +118,10 @@ float ComputeAngle(const Property& property)
 	switch (property.unit)
 	{
 	case Property::NUMBER:
-	case Property::RAD:
-		return value;
+	case Property::RAD: return value;
 
-	case Property::DEG:
-		return Math::DegreesToRadians(value);
-	default:
-		break;
+	case Property::DEG: return Math::DegreesToRadians(value);
+	default: break;
 	}
 
 	return 0.0f;
@@ -158,7 +132,8 @@ String ComputeFontFamily(String font_family)
 	return StringUtilities::ToLower(std::move(font_family));
 }
 
-float ComputeFontsize(const Property& property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, float dp_ratio, Vector2f vp_dimensions)
+float ComputeFontsize(const Property& property, const Style::ComputedValues& values, const Style::ComputedValues* parent_values,
+	const Style::ComputedValues* document_values, float dp_ratio, Vector2f vp_dimensions)
 {
 	// The calculated value of the font-size property is inherited, so we need to check if this
 	// is an inherited property. If so, then we return our parent's font size instead.
@@ -180,12 +155,11 @@ float ComputeFontsize(const Property& property, const Style::ComputedValues& val
 			if (!document_values)
 				return 0;
 			// If the current element is a document, the rem unit is relative to the default size
-			if(&values == document_values)
+			if (&values == document_values)
 				return property.value.Get<float>() * DefaultComputedValues.font_size();
 			// Otherwise it is relative to the document font size
 			return property.value.Get<float>() * document_values->font_size();
-		default:
-			RMLUI_ERRORMSG("A relative unit must be percentage, em or rem.");
+		default: RMLUI_ERRORMSG("A relative unit must be percentage, em or rem.");
 		}
 	}
 
@@ -215,21 +189,17 @@ Style::LineHeight ComputeLineHeight(const Property* property, float font_size, f
 
 	switch (property->unit)
 	{
-	case Property::NUMBER:
-		scale_factor = property->value.Get< float >();
-		break;
-	case Property::PERCENT:
-		scale_factor = property->value.Get< float >() * 0.01f;
-		break;
-	default:
-		RMLUI_ERRORMSG("Invalid unit for line-height");
+	case Property::NUMBER: scale_factor = property->value.Get<float>(); break;
+	case Property::PERCENT: scale_factor = property->value.Get<float>() * 0.01f; break;
+	default: RMLUI_ERRORMSG("Invalid unit for line-height");
 	}
 
 	float value = font_size * scale_factor;
 	return Style::LineHeight(value, Style::LineHeight::Number, scale_factor);
 }
 
-Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_height, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
+Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_height, float font_size, float document_font_size, float dp_ratio,
+	Vector2f vp_dimensions)
 {
 	if (property->unit & Property::LENGTH)
 	{
@@ -238,14 +208,15 @@ Style::VerticalAlign ComputeVerticalAlign(const Property* property, float line_h
 	}
 	else if (property->unit & Property::PERCENT)
 	{
-		return Style::VerticalAlign(property->Get<float>() * line_height);
+		return Style::VerticalAlign(property->Get<float>() * line_height * 0.01f);
 	}
 
 	RMLUI_ASSERT(property->unit & Property::KEYWORD);
 	return Style::VerticalAlign((Style::VerticalAlign::Type)property->Get<int>());
 }
 
-Style::LengthPercentage ComputeLengthPercentage(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
+Style::LengthPercentage ComputeLengthPercentage(const Property* property, float font_size, float document_font_size, float dp_ratio,
+	Vector2f vp_dimensions)
 {
 	using namespace Style;
 	if (property->unit & Property::PERCENT)
@@ -254,8 +225,8 @@ Style::LengthPercentage ComputeLengthPercentage(const Property* property, float 
 	return LengthPercentage(LengthPercentage::Length, ComputeLength(property, font_size, document_font_size, dp_ratio, vp_dimensions));
 }
 
-
-Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
+Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property, float font_size, float document_font_size, float dp_ratio,
+	Vector2f vp_dimensions)
 {
 	using namespace Style;
 	// Assuming here that 'auto' is the only possible keyword
@@ -270,7 +241,8 @@ Style::LengthPercentageAuto ComputeLengthPercentageAuto(const Property* property
 Style::LengthPercentage ComputeOrigin(const Property* property, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
 {
 	using namespace Style;
-	static_assert((int)OriginX::Left == (int)OriginY::Top && (int)OriginX::Center == (int)OriginY::Center && (int)OriginX::Right == (int)OriginY::Bottom, "");
+	static_assert(
+		(int)OriginX::Left == (int)OriginY::Top && (int)OriginX::Center == (int)OriginY::Center && (int)OriginX::Right == (int)OriginY::Bottom, "");
 
 	if (property->unit & Property::KEYWORD)
 	{
@@ -309,8 +281,27 @@ uint16_t ComputeBorderWidth(float computed_length)
 
 	if (computed_length <= 1.f)
 		return 1;
-	
+
 	return uint16_t(computed_length + 0.5f);
+}
+
+String GetFontFaceDescription(const String& font_family, Style::FontStyle style, Style::FontWeight weight)
+{
+	String font_attributes;
+
+	if (style == Style::FontStyle::Italic)
+		font_attributes += "italic, ";
+	if (weight == Style::FontWeight::Bold)
+		font_attributes += "bold, ";
+	else if (weight != Style::FontWeight::Auto && weight != Style::FontWeight::Normal)
+		font_attributes += "weight=" + ToString((int)weight) + ", ";
+
+	if (font_attributes.empty())
+		font_attributes = "regular";
+	else
+		font_attributes.resize(font_attributes.size() - 2);
+
+	return CreateString(font_attributes.size() + font_family.size() + 8, "'%s' [%s]", font_family.c_str(), font_attributes.c_str());
 }
 
 } // namespace Rml

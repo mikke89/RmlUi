@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,8 +34,8 @@
 #include <stack>
 
 #ifdef _MSC_VER
-#pragma warning(default : 4061)
-#pragma warning(default : 4062)
+	#pragma warning(default : 4061)
+	#pragma warning(default : 4062)
 #endif
 
 namespace Rml {
@@ -43,27 +43,28 @@ namespace Rml {
 class DataParser;
 
 /*
-	The abstract machine for RmlUi data expressions.
+    The abstract machine for RmlUi data expressions.
 
-	The machine can execute a program which contains a list of instructions listed below.
+    The machine can execute a program which contains a list of instructions listed below.
 
-	The abstract machine has three registers:
-		R  Typically results and right-hand side arguments.
-		L  Typically left-hand side arguments.
-		C  Typically center arguments (eg. in ternary operator).
+    The abstract machine has three registers:
+        R  Typically results and right-hand side arguments.
+        L  Typically left-hand side arguments.
+        C  Typically center arguments (eg. in ternary operator).
 
-	And a stack:
-		S  The program stack.
+    And a stack:
+        S  The program stack.
 
-	In addition, each instruction has an optional payload:
-		D  Instruction data (payload).
+    In addition, each instruction has an optional payload:
+        D  Instruction data (payload).
 
-	Notation used in the instruction list below:
-		S+  Push to stack S.
-		S-  Pop stack S (returns the popped value).
+    Notation used in the instruction list below:
+        S+  Push to stack S.
+        S-  Pop stack S (returns the popped value).
 */
-enum class Instruction {    
-	                        // Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
+enum class Instruction {
+	// clang-format off
+	// Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
 	Push         = 'P',     //      S+ = R
 	Pop          = 'o',     // <R/L/C> = S-  (D determines R/L/C)
 	Literal      = 'D',     //       R = D
@@ -86,12 +87,13 @@ enum class Instruction {
 	TransformFnc = 'T',     //       R = DataModel.Execute(D, A) where A = S[TOP - R, TOP]; S -= R;  (D determines function name, input R the num. arguments, A the arguments)
 	EventFnc     = 'E',     //       DataModel.EventCallback(D, A); S -= R;
 	Assign       = 'A',     //       DataModel.SetVariable(D, R)
+	// clang-format on
 };
 
 enum class Register {
 	R,
 	L,
-	C
+	C,
 };
 
 struct InstructionData {
@@ -102,21 +104,25 @@ struct InstructionData {
 namespace Parse {
 	static void Assignment(DataParser& parser);
 	static void Expression(DataParser& parser);
-}
-
+} // namespace Parse
 
 class DataParser {
 public:
-	DataParser(String expression, DataExpressionInterface expression_interface) : expression(std::move(expression)), expression_interface(expression_interface) {}
+	DataParser(String expression, DataExpressionInterface expression_interface) :
+		expression(std::move(expression)), expression_interface(expression_interface)
+	{}
 
-	char Look() {
+	char Look()
+	{
 		if (reached_end)
 			return '\0';
 		return expression[index];
 	}
 
-	bool Match(char c, bool skip_whitespace = true) {
-		if (c == Look()) {
+	bool Match(char c, bool skip_whitespace = true)
+	{
+		if (c == Look())
+		{
 			Next();
 			if (skip_whitespace)
 				SkipWhitespace();
@@ -126,14 +132,16 @@ public:
 		return false;
 	}
 
-	char Next() {
+	char Next()
+	{
 		++index;
 		if (index >= expression.size())
 			reached_end = true;
 		return Look();
 	}
 
-	void SkipWhitespace() {
+	void SkipWhitespace()
+	{
 		char c = Look();
 		while (StringUtilities::IsWhitespace(c))
 			c = Next();
@@ -144,21 +152,20 @@ public:
 		parse_error = true;
 		Log::Message(Log::LT_WARNING, "Error in data expression at %zu. %s", index, message.c_str());
 		Log::Message(Log::LT_WARNING, "  \"%s\"", expression.c_str());
-		
+
 		const size_t cursor_offset = size_t(index) + 3;
 		const String cursor_string = String(cursor_offset, ' ') + '^';
 		Log::Message(Log::LT_WARNING, "%s", cursor_string.c_str());
 	}
-	void Expected(const String& expected_symbols) {
+	void Expected(const String& expected_symbols)
+	{
 		const char c = Look();
 		if (c == '\0')
 			Error(CreateString(expected_symbols.size() + 50, "Expected %s but found end of string.", expected_symbols.c_str()));
 		else
 			Error(CreateString(expected_symbols.size() + 50, "Expected %s but found character '%c'.", expected_symbols.c_str(), c));
 	}
-	void Expected(char expected) {
-		Expected(String(1, '\'') + expected + '\'');
-	}
+	void Expected(char expected) { Expected(String(1, '\'') + expected + '\''); }
 
 	bool Parse(bool is_assignment_expression)
 	{
@@ -176,12 +183,14 @@ public:
 			Parse::Assignment(*this);
 		else
 			Parse::Expression(*this);
-		
-		if (!reached_end) {
+
+		if (!reached_end)
+		{
 			parse_error = true;
 			Error(CreateString(50, "Unexpected character '%c' encountered.", Look()));
 		}
-		if (!parse_error && program_stack_size != 0) {
+		if (!parse_error && program_stack_size != 0)
+		{
 			parse_error = true;
 			Error(CreateString(120, "Internal parser error, inconsistent stack operations. Stack size is %d at parse end.", program_stack_size));
 		}
@@ -189,11 +198,13 @@ public:
 		return !parse_error;
 	}
 
-	Program ReleaseProgram() {
+	Program ReleaseProgram()
+	{
 		RMLUI_ASSERT(!parse_error);
 		return std::move(program);
 	}
-	AddressList ReleaseAddresses() {
+	AddressList ReleaseAddresses()
+	{
 		RMLUI_ASSERT(!parse_error);
 		return std::move(variable_addresses);
 	}
@@ -242,13 +253,14 @@ private:
 	void VariableGetSet(const String& name, bool is_assignment)
 	{
 		DataAddress address = expression_interface.ParseAddress(name);
-		if (address.empty()) {
+		if (address.empty())
+		{
 			Error(CreateString(name.size() + 50, "Could not find data variable with name '%s'.", name.c_str()));
 			return;
 		}
 		int index = int(variable_addresses.size());
 		variable_addresses.push_back(std::move(address));
-		program.push_back(InstructionData{ is_assignment ? Instruction::Assign : Instruction::Variable, Variant(int(index)) });
+		program.push_back(InstructionData{is_assignment ? Instruction::Assign : Instruction::Variable, Variant(int(index))});
 	}
 
 	const String expression;
@@ -260,10 +272,9 @@ private:
 	int program_stack_size = 0;
 
 	Program program;
-	
+
 	AddressList variable_addresses;
 };
-
 
 namespace Parse {
 
@@ -356,7 +367,8 @@ namespace Parse {
 			if (parser.Look() != '\0')
 			{
 				String variable_name = VariableOrFunctionName(parser, nullptr);
-				if (variable_name.empty()) {
+				if (variable_name.empty())
+				{
 					parser.Error("Expected a variable for assignment but got an empty name.");
 					return;
 				}
@@ -428,8 +440,7 @@ namespace Parse {
 			}
 			break;
 			case '?': Ternary(parser); break;
-			default:
-				looping = false;
+			default: looping = false;
 			}
 		}
 	}
@@ -447,12 +458,11 @@ namespace Parse {
 			case '!': NotEqual(parser); break;
 			case '<': Less(parser); break;
 			case '>': Greater(parser); break;
-			default:
-				looping = false;
+			default: looping = false;
 			}
 		}
 	}
-	
+
 	static void Additive(DataParser& parser)
 	{
 		Term(parser);
@@ -464,12 +474,10 @@ namespace Parse {
 			{
 			case '+': Add(parser); break;
 			case '-': Subtract(parser); break;
-			default:
-				looping = false;
+			default: looping = false;
 			}
 		}
 	}
-
 
 	static void Term(DataParser& parser)
 	{
@@ -482,8 +490,7 @@ namespace Parse {
 			{
 			case '*': Multiply(parser); break;
 			case '/': Divide(parser); break;
-			default:
-				looping = false;
+			default: looping = false;
 			}
 		}
 	}
@@ -563,11 +570,13 @@ namespace Parse {
 
 		while (c != '\0' && (c != '\'' || c_prev == '\\'))
 		{
-			if (c_prev == '\\' && (c == '\\' || c == '\'')) {
+			if (c_prev == '\\' && (c == '\\' || c == '\''))
+			{
 				str.pop_back();
 				c_prev = '\0';
 			}
-			else {
+			else
+			{
 				c_prev = c;
 			}
 
@@ -581,7 +590,8 @@ namespace Parse {
 	{
 		bool valid_function_name = true;
 		String name = VariableOrFunctionName(parser, &valid_function_name);
-		if (name.empty()) {
+		if (name.empty())
+		{
 			parser.Error("Expected a variable or function name but got an empty name.");
 			return;
 		}
@@ -665,11 +675,13 @@ namespace Parse {
 	{
 		Instruction instruction = Instruction::Less;
 		parser.Match('<', false);
-		if (parser.Look() == '=') {
+		if (parser.Look() == '=')
+		{
 			parser.Match('=');
 			instruction = Instruction::LessEq;
 		}
-		else {
+		else
+		{
 			parser.SkipWhitespace();
 		}
 		parser.Push();
@@ -681,11 +693,13 @@ namespace Parse {
 	{
 		Instruction instruction = Instruction::Greater;
 		parser.Match('>', false);
-		if (parser.Look() == '=') {
+		if (parser.Look() == '=')
+		{
 			parser.Match('=');
 			instruction = Instruction::GreaterEq;
 		}
-		else {
+		else
+		{
 			parser.SkipWhitespace();
 		}
 		parser.Push();
@@ -735,7 +749,8 @@ namespace Parse {
 			bool looping = true;
 
 			parser.Match('(');
-			if (parser.Look() == ')') {
+			if (parser.Look() == ')')
+			{
 				parser.Match(')');
 				looping = false;
 			}
@@ -746,23 +761,29 @@ namespace Parse {
 				Expression(parser);
 				parser.Push();
 
-				switch (parser.Look()) {
-				case ')': parser.Match(')'); looping = false; break;
+				switch (parser.Look())
+				{
+				case ')':
+					parser.Match(')');
+					looping = false;
+					break;
 				case ',': parser.Match(','); break;
 				default:
 					parser.Expected("one of ')' or ','");
 					looping = false;
+					break;
 				}
 			}
 		}
-		else {
+		else
+		{
 			parser.SkipWhitespace();
 		}
 
 		parser.Function(function_type, num_arguments, std::move(func_name));
 	}
 
-} // </namespace Parse>
+} // namespace Parse
 
 static String DumpProgram(const Program& program)
 {
@@ -777,8 +798,9 @@ static String DumpProgram(const Program& program)
 
 class DataInterpreter {
 public:
-	DataInterpreter(const Program& program, const AddressList& addresses, DataExpressionInterface expression_interface)
-		: program(program), addresses(addresses), expression_interface(expression_interface) {}
+	DataInterpreter(const Program& program, const AddressList& addresses, DataExpressionInterface expression_interface) :
+		program(program), addresses(addresses), expression_interface(expression_interface)
+	{}
 
 	bool Error(const String& message) const
 	{
@@ -799,8 +821,9 @@ public:
 			}
 		}
 
-		if(success && !stack.empty())
-			Log::Message(Log::LT_WARNING, "Possible data interpreter stack corruption. Stack size is %zu at end of execution (should be zero).", stack.size());
+		if (success && !stack.empty())
+			Log::Message(Log::LT_WARNING, "Possible data interpreter stack corruption. Stack size is %zu at end of execution (should be zero).",
+				stack.size());
 
 		if (!success)
 		{
@@ -812,10 +835,7 @@ public:
 		return success;
 	}
 
-	Variant Result() const {
-		return R;
-	}
-
+	Variant Result() const { return R; }
 
 private:
 	Variant R, L, C;
@@ -827,9 +847,7 @@ private:
 
 	bool Execute(const Instruction instruction, const Variant& data)
 	{
-		auto AnyString = [](const Variant& v1, const Variant& v2) {
-			return v1.GetType() == Variant::STRING || v2.GetType() == Variant::STRING;
-		};
+		auto AnyString = [](const Variant& v1, const Variant& v2) { return v1.GetType() == Variant::STRING || v2.GetType() == Variant::STRING; };
 
 		switch (instruction)
 		{
@@ -845,12 +863,14 @@ private:
 				return Error("Cannot pop stack, it is empty.");
 
 			Register reg = Register(data.Get<int>(-1));
-			switch (reg) {
+			switch (reg)
+			{
+				// clang-format off
 			case Register::R:  R = stack.back(); stack.pop_back(); break;
 			case Register::L:  L = stack.back(); stack.pop_back(); break;
 			case Register::C:  C = stack.back(); stack.pop_back(); break;
-			default:
-				return Error(CreateString(50, "Invalid register %d.", int(reg)));
+				// clang-format on
+			default: return Error(CreateString(50, "Invalid register %d.", int(reg)));
 			}
 		}
 		break;
@@ -876,6 +896,7 @@ private:
 				R = Variant(L.Get<double>() + R.Get<double>());
 		}
 		break;
+			// clang-format off
 		case Instruction::Subtract:  R = Variant(L.Get<double>() - R.Get<double>());  break;
 		case Instruction::Multiply:  R = Variant(L.Get<double>() * R.Get<double>());  break;
 		case Instruction::Divide:    R = Variant(L.Get<double>() / R.Get<double>());  break;
@@ -886,6 +907,7 @@ private:
 		case Instruction::LessEq:    R = Variant(L.Get<double>() <= R.Get<double>()); break;
 		case Instruction::Greater:   R = Variant(L.Get<double>() > R.Get<double>());  break;
 		case Instruction::GreaterEq: R = Variant(L.Get<double>() >= R.Get<double>()); break;
+			// clang-format on
 		case Instruction::Equal:
 		{
 			if (AnyString(L, R))
@@ -951,8 +973,7 @@ private:
 				return Error("Variable address not found.");
 		}
 		break;
-		default:
-			RMLUI_ERRORMSG("Instruction not implemented."); break;
+		default: RMLUI_ERRORMSG("Instruction not implemented."); break;
 		}
 		return true;
 	}
@@ -973,12 +994,9 @@ private:
 	}
 };
 
+DataExpression::DataExpression(String expression) : expression(std::move(expression)) {}
 
-DataExpression::DataExpression(String expression) : expression(std::move(expression))
-{}
-
-DataExpression::~DataExpression()
-{}
+DataExpression::~DataExpression() {}
 
 bool DataExpression::Parse(const DataExpressionInterface& expression_interface, bool is_assignment_expression)
 {
@@ -995,7 +1013,7 @@ bool DataExpression::Parse(const DataExpressionInterface& expression_interface, 
 bool DataExpression::Run(const DataExpressionInterface& expression_interface, Variant& out_value)
 {
 	DataInterpreter interpreter(program, addresses, expression_interface);
-	
+
 	if (!interpreter.Run())
 		return false;
 
@@ -1015,20 +1033,21 @@ StringList DataExpression::GetVariableNameList() const
 	return list;
 }
 
-DataExpressionInterface::DataExpressionInterface(DataModel* data_model, Element* element, Event* event) : data_model(data_model), element(element), event(event)
+DataExpressionInterface::DataExpressionInterface(DataModel* data_model, Element* element, Event* event) :
+	data_model(data_model), element(element), event(event)
 {}
 
 DataAddress DataExpressionInterface::ParseAddress(const String& address_str) const
 {
 	if (address_str.size() >= 4 && address_str[0] == 'e' && address_str[1] == 'v' && address_str[2] == '.')
-		return DataAddress{ DataAddressEntry("ev"), DataAddressEntry(address_str.substr(3)) };
+		return DataAddress{DataAddressEntry("ev"), DataAddressEntry(address_str.substr(3))};
 
 	return data_model ? data_model->ResolveAddress(address_str, element) : DataAddress();
 }
 Variant DataExpressionInterface::GetValue(const DataAddress& address) const
 {
 	Variant result;
-	if(event && address.size() == 2 && address.front().name == "ev")
+	if (event && address.size() == 2 && address.front().name == "ev")
 	{
 		auto& parameters = event->GetParameters();
 		auto it = parameters.find(address.back().name);

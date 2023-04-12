@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,23 +28,22 @@
 #ifndef RMLUI_CORE_FONTENGINEINTERFACE_H
 #define RMLUI_CORE_FONTENGINEINTERFACE_H
 
-#include "Header.h"
+#include "FontMetrics.h"
 #include "Geometry.h"
+#include "Header.h"
 #include "StyleTypes.h"
 #include "Types.h"
 
 namespace Rml {
 
 /**
-	The abstract base class for an application-specific font engine implementation.
-	
-	By default, RmlUi will use its own font engine with characters rendered through FreeType. To use your own engine,
-	provide a concrete implementation of this class and install it through Rml::SetFontEngineInterface().
+    The abstract base class for an application-specific font engine implementation.
+
+    By default, RmlUi will use its own font engine with characters rendered through FreeType. To use your own engine,
+    provide a concrete implementation of this class and install it through Rml::SetFontEngineInterface().
  */
 
-
-class RMLUICORE_API FontEngineInterface
-{
+class RMLUICORE_API FontEngineInterface {
 public:
 	FontEngineInterface();
 	virtual ~FontEngineInterface();
@@ -65,9 +64,10 @@ public:
 	/// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 	/// @return True if the face was loaded successfully, false otherwise.
 	/// Note: The debugger plugin will load its embedded font faces through this method using the family name 'rmlui-debugger-font'.
-	virtual bool LoadFontFace(const byte* data, int data_size, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+	virtual bool LoadFontFace(const byte* data, int data_size, const String& family, Style::FontStyle style, Style::FontWeight weight,
+		bool fallback_face);
 
-	/// Called by RmlUi when a font configuration is resolved for an element. Should return a handle that 
+	/// Called by RmlUi when a font configuration is resolved for an element. Should return a handle that
 	/// can later be used to resolve properties of the face, and generate string geometry to be rendered.
 	/// @param[in] family The family of the desired font handle.
 	/// @param[in] style The style of the desired font handle.
@@ -80,38 +80,21 @@ public:
 	/// @param[in] handle The font handle.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
 	/// @return A handle to the prepared font effects which will be used when generating geometry for a string.
-	virtual FontEffectsHandle PrepareFontEffects(FontFaceHandle handle, const FontEffectList &font_effects);
+	virtual FontEffectsHandle PrepareFontEffects(FontFaceHandle handle, const FontEffectList& font_effects);
 
-	/// Should return the point size of this font face.
+	/// Should return the font metrics of the given font face.
 	/// @param[in] handle The font handle.
-	/// @return The face's point size.
-	virtual int GetSize(FontFaceHandle handle);
-	/// Should return the pixel height of a lower-case x in this font face.
-	/// @param[in] handle The font handle.
-	/// @return The height of a lower-case x.
-	virtual int GetXHeight(FontFaceHandle handle);
-	/// Should return the default height between this font face's baselines.
-	/// @param[in] handle The font handle.
-	/// @return The default line height.
-	virtual int GetLineHeight(FontFaceHandle handle);
-
-	/// Should return the font's baseline, as a pixel offset from the bottom of the font.
-	/// @param[in] handle The font handle.
-	/// @return The font's baseline.
-	virtual int GetBaseline(FontFaceHandle handle);
-
-	/// Should return the font's underline, as a pixel offset from the bottom of the font.
-	/// @param[in] handle The font handle.
-	/// @param[out] thickness The font's underline thickness in pixels.
-	/// @return The underline pixel offset.
-	virtual float GetUnderline(FontFaceHandle handle, float &thickness);
+	/// @return The face's metrics.
+	virtual const FontMetrics& GetFontMetrics(FontFaceHandle handle);
 
 	/// Called by RmlUi when it wants to retrieve the width of a string when rendered with this handle.
 	/// @param[in] handle The font handle.
 	/// @param[in] string The string to measure.
-	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
+	/// @param[in] letter_spacing The letter spacing size in pixels.
+	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string
+	/// width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	virtual int GetStringWidth(FontFaceHandle handle, const String& string, Character prior_character = Character::Null);
+	virtual int GetStringWidth(FontFaceHandle handle, const String& string, float letter_spacing, Character prior_character = Character::Null);
 
 	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
 	/// @param[in] face_handle The font handle.
@@ -120,10 +103,11 @@ public:
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text. Colour alpha is premultiplied with opacity.
 	/// @param[in] opacity The opacity of the text, should be applied to font effects.
+	/// @param[in] letter_spacing The letter spacing size in pixels.
 	/// @param[out] geometry An array of geometries to generate the geometry into.
 	/// @return The width, in pixels, of the string geometry.
 	virtual int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position,
-		const Colourb& colour, float opacity, GeometryList& geometry);
+		const Colourb& colour, float opacity, float letter_spacing, GeometryList& geometry);
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated. Whenever the returned version
 	/// is changed, all geometry belonging to the given face handle will be re-generated.

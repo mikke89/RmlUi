@@ -7,14 +7,14 @@ Window = Window or {} --namespace
 function Window.OnWindowLoad(document)
 	document:GetElementById('title').inner_rml = document.title
 end
-	
+
 function Window.LoadMenu(name,document)
 	local doc = document.context:LoadDocument('luainvaders/data/' .. name .. '.rml')
 	if doc then
 		doc:Show()
 		document:Close()
-    end
-	
+	end
+
 	return doc
 end
 	</script>

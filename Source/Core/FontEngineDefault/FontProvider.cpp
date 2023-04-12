@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,15 +27,15 @@
  */
 
 #include "FontProvider.h"
-#include "FontFace.h"
-#include "FontFamily.h"
-#include "FreeTypeInterface.h"
-#include "../LayoutInlineBoxText.h"
 #include "../../../Include/RmlUi/Core/Core.h"
 #include "../../../Include/RmlUi/Core/FileInterface.h"
 #include "../../../Include/RmlUi/Core/Log.h"
 #include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
+#include "../ComputeProperty.h"
+#include "FontFace.h"
+#include "FontFamily.h"
+#include "FreeTypeInterface.h"
 #include <algorithm>
 
 namespace Rml {
@@ -133,17 +133,15 @@ bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face, Sty
 	return result;
 }
 
-
 bool FontProvider::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
 	bool fallback_face)
 {
 	const String source = "memory";
-	
+
 	bool result = Get().LoadFontFace(data, data_size, fallback_face, nullptr, source, font_family, style, weight);
-	
+
 	return result;
 }
-
 
 bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source,
 	String font_family, Style::FontStyle style, Style::FontWeight weight)
@@ -180,7 +178,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 
 			int best_width_distance = Math::AbsoluteValue((int)it->width - search_width);
 			auto it_best_width = it;
-			
+
 			// Search forward to find the best 'width' with the same weight.
 			for (++it; it != face_variations.end(); ++it)
 			{
@@ -217,7 +215,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 			FreeType::GetFaceStyle(ft_face, nullptr, nullptr, &weight);
 
 		const FontWeight variation_weight = (variation.weight == FontWeight::Auto ? weight : variation.weight);
-		const String font_face_description = FontFaceDescription(font_family, style, variation_weight);
+		const String font_face_description = GetFontFaceDescription(font_family, style, variation_weight);
 
 		if (!AddFace(ft_face, font_family, style, variation_weight, fallback_face, std::move(face_memory)))
 		{
@@ -264,6 +262,5 @@ bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, St
 
 	return static_cast<bool>(font_face_result);
 }
-
 
 } // namespace Rml

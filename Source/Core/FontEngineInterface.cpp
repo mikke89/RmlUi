@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,38 +56,19 @@ FontEffectsHandle FontEngineInterface::PrepareFontEffects(FontFaceHandle /*handl
 	return 0;
 }
 
-int FontEngineInterface::GetSize(FontFaceHandle /*handle*/)
+const FontMetrics& FontEngineInterface::GetFontMetrics(FontFaceHandle /*handle*/)
 {
-	return 0;
+	static const FontMetrics metrics = {};
+	return metrics;
 }
 
-int FontEngineInterface::GetXHeight(FontFaceHandle /*handle*/)
-{
-	return 0;
-}
-
-int FontEngineInterface::GetLineHeight(FontFaceHandle /*handle*/)
-{
-	return 0;
-}
-
-int FontEngineInterface::GetBaseline(FontFaceHandle /*handle*/)
-{
-	return 0;
-}
-
-float FontEngineInterface::GetUnderline(FontFaceHandle /*handle*/, float& /*thickness*/)
-{
-	return 0;
-}
-
-int FontEngineInterface::GetStringWidth(FontFaceHandle /*handle*/, const String& /*string*/, Character /*prior_character*/)
+int FontEngineInterface::GetStringWidth(FontFaceHandle /*handle*/, const String& /*string*/, float /*letter_spacing*/, Character /*prior_character*/)
 {
 	return 0;
 }
 
 int FontEngineInterface::GenerateString(FontFaceHandle /*face_handle*/, FontEffectsHandle /*font_effects_handle*/, const String& /*string*/,
-	const Vector2f& /*position*/, const Colourb& /*colour*/, float /*opacity*/, GeometryList& /*geometry*/)
+	const Vector2f& /*position*/, const Colourb& /*colour*/, float /*opacity*/, float /*letter_spacing*/, GeometryList& /*geometry*/)
 {
 	return 0;
 }

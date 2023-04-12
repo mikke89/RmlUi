@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,13 +36,12 @@
 namespace Rml {
 
 /**
-	A concrete font effect for rendering outlines around text.
+    A concrete font effect for rendering outlines around text.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class FontEffectOutline : public FontEffect
-{
+class FontEffectOutline : public FontEffect {
 public:
 	FontEffectOutline();
 	virtual ~FontEffectOutline();
@@ -60,16 +59,13 @@ private:
 	ConvolutionFilter filter;
 };
 
-
-
 /**
-	A concrete font effect instancer for the outline effect.
+    A concrete font effect instancer for the outline effect.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class FontEffectOutlineInstancer : public FontEffectInstancer
-{
+class FontEffectOutlineInstancer : public FontEffectInstancer {
 public:
 	FontEffectOutlineInstancer();
 	virtual ~FontEffectOutlineInstancer();
@@ -79,7 +75,6 @@ public:
 private:
 	PropertyId id_width, id_color;
 };
-
 
 } // namespace Rml
 #endif

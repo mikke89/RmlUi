@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -46,13 +46,11 @@ InputTypeText::InputTypeText(ElementFormControlInput* element, Visibility visibi
 
 InputTypeText::~InputTypeText() {}
 
-// Called every update from the host element.
 void InputTypeText::OnUpdate()
 {
 	widget->OnUpdate();
 }
 
-// Called every render from the host element.
 void InputTypeText::OnRender()
 {
 	widget->OnRender();
@@ -68,7 +66,6 @@ void InputTypeText::OnLayout()
 	widget->OnLayout();
 }
 
-// Checks for necessary functional changes in the control as a result of changed attributes.
 bool InputTypeText::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	bool dirty_layout = false;
@@ -94,7 +91,6 @@ bool InputTypeText::OnAttributeChange(const ElementAttributes& changed_attribute
 	return !dirty_layout;
 }
 
-// Called when properties on the control are changed.
 void InputTypeText::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	// Some inherited properties require text formatting update, mainly font and line-height properties.
@@ -111,16 +107,11 @@ void InputTypeText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		widget->GenerateCursor();
 }
 
-// Checks for necessary functional changes in the control as a result of the event.
-void InputTypeText::ProcessDefaultAction(Event& RMLUI_UNUSED_PARAMETER(event))
-{
-	RMLUI_UNUSED(event);
-}
+void InputTypeText::ProcessDefaultAction(Event& /*event*/) {}
 
-// Sizes the dimensions to the element's inherent size.
 bool InputTypeText::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
-	dimensions.x = (float) (size * ElementUtilities::GetStringWidth(element, "m"));
+	dimensions.x = (float)(size * ElementUtilities::GetStringWidth(element, "m"));
 	dimensions.y = element->GetLineHeight() + 2.0f;
 
 	return true;

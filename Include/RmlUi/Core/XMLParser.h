@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,9 +29,9 @@
 #ifndef RMLUI_CORE_XMLPARSER_H
 #define RMLUI_CORE_XMLPARSER_H
 
-#include <stack>
-#include "Header.h"
 #include "BaseXMLParser.h"
+#include "Header.h"
+#include <stack>
 
 namespace Rml {
 
@@ -41,13 +41,12 @@ class XMLNodeHandler;
 class URL;
 
 /**
-	RmlUi's XML parsing engine. The factory creates an instance of this class for each RML parse.
+    RmlUi's XML parsing engine. The factory creates an instance of this class for each RML parse.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API XMLParser : public BaseXMLParser
-{
+class RMLUICORE_API XMLParser : public BaseXMLParser {
 public:
 	XMLParser(Element* root);
 	~XMLParser();
@@ -69,8 +68,7 @@ public:
 	DocumentHeader* GetDocumentHeader();
 
 	// The parse stack.
-	struct ParseFrame
-	{
+	struct ParseFrame {
 		// Tag being parsed.
 		String tag;
 
@@ -113,7 +111,7 @@ private:
 	XMLNodeHandler* active_handler;
 
 	// The parser stack.
-	using ParserStack = Stack< ParseFrame >;
+	using ParserStack = Stack<ParseFrame>;
 	ParserStack stack;
 };
 

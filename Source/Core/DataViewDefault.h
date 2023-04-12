@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,6 @@ class Element;
 class DataExpression;
 using DataExpressionPtr = UniquePtr<DataExpression>;
 
-
 class DataViewCommon : public DataView {
 public:
 	DataViewCommon(Element* element, String override_modifier = String(), int sort_offset = 0);
@@ -60,7 +59,6 @@ private:
 	String modifier;
 	DataExpressionPtr expression;
 };
-
 
 class DataViewAttribute : public DataViewCommon {
 public:
@@ -96,14 +94,12 @@ public:
 	bool Update(DataModel& model) override;
 };
 
-
 class DataViewClass final : public DataViewCommon {
 public:
 	DataViewClass(Element* element);
 
 	bool Update(DataModel& model) override;
 };
-
 
 class DataViewRml final : public DataViewCommon {
 public:
@@ -115,7 +111,6 @@ private:
 	String previous_rml;
 };
 
-
 class DataViewIf final : public DataViewCommon {
 public:
 	DataViewIf(Element* element);
@@ -123,14 +118,12 @@ public:
 	bool Update(DataModel& model) override;
 };
 
-
 class DataViewVisible final : public DataViewCommon {
 public:
 	DataViewVisible(Element* element);
 
 	bool Update(DataModel& model) override;
 };
-
 
 class DataViewText final : public DataView {
 public:
@@ -156,7 +149,6 @@ private:
 	String text;
 	Vector<DataEntry> data_entries;
 };
-
 
 class DataViewFor final : public DataView {
 public:

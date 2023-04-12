@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,14 +28,14 @@
 
 #include "WidgetScroll.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Property.h"
-#include "../../Include/RmlUi/Core/Context.h"
 #include "Clock.h"
-#include "LayoutDetails.h"
+#include "Layout/LayoutDetails.h"
 
 namespace Rml {
 
@@ -89,7 +89,6 @@ WidgetScroll::~WidgetScroll()
 	}
 }
 
-// Initialises the slider to a given orientation.
 bool WidgetScroll::Initialise(Orientation _orientation)
 {
 	// Check that we haven't already been successfully initialised.
@@ -100,8 +99,7 @@ bool WidgetScroll::Initialise(Orientation _orientation)
 	}
 
 	// Check that a valid orientation has been passed in.
-	if (_orientation != HORIZONTAL &&
-		_orientation != VERTICAL)
+	if (_orientation != HORIZONTAL && _orientation != VERTICAL)
 	{
 		RMLUI_ERROR;
 		return false;
@@ -144,7 +142,6 @@ bool WidgetScroll::Initialise(Orientation _orientation)
 	return true;
 }
 
-// Updates the key repeats for the increment / decrement arrows.
 void WidgetScroll::Update()
 {
 	for (int i = 0; i < 2; i++)
@@ -171,43 +168,44 @@ void WidgetScroll::Update()
 					ScrollLineDown();
 			}
 
-			if(Context* ctx = parent->GetContext())
+			if (Context* ctx = parent->GetContext())
 				ctx->RequestNextUpdate(arrow_timers[i]);
 		}
 	}
 }
 
-// Sets the position of the bar.
 void WidgetScroll::SetBarPosition(float _bar_position)
 {
 	bar_position = Math::Clamp(_bar_position, 0.0f, 1.0f);
 	PositionBar();
 }
 
-// Returns the current position of the bar.
 float WidgetScroll::GetBarPosition() const
 {
 	return bar_position;
 }
 
-// Returns the slider's orientation.
 WidgetScroll::Orientation WidgetScroll::GetOrientation() const
 {
 	return orientation;
 }
 
-// Sets the dimensions to the size of the slider.
 void WidgetScroll::GetDimensions(Vector2f& dimensions) const
 {
 	switch (orientation)
 	{
-		RMLUI_UNUSED_SWITCH_ENUM(UNKNOWN);
-		case VERTICAL:   dimensions.x = 16; dimensions.y = 256; break;
-		case HORIZONTAL: dimensions.x = 256; dimensions.y = 16; break;
+	case VERTICAL:
+		dimensions.x = 16;
+		dimensions.y = 256;
+		break;
+	case HORIZONTAL:
+		dimensions.x = 256;
+		dimensions.y = 16;
+		break;
+	case UNKNOWN: break;
 	}
 }
 
-// Lays out and resizes the internal elements.
 void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_element, float slider_length, float bar_length)
 {
 	int length_axis = orientation == VERTICAL ? 1 : 0;
@@ -215,8 +213,9 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 	// Build the box for the containing slider element.
 	Box parent_box;
 	LayoutDetails::BuildBox(parent_box, containing_block, parent);
-	slider_length -= orientation == VERTICAL ? (parent_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM)) :
-											   (parent_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
+	slider_length -= orientation == VERTICAL
+		? (parent_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM))
+		: (parent_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
 
 	// Set the length of the slider.
 	Vector2f content = parent_box.GetSize();
@@ -230,12 +229,12 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 	Box track_box;
 	LayoutDetails::BuildBox(track_box, parent_box.GetSize(), track);
 	content = track_box.GetSize();
-	content[length_axis] = slider_length -= orientation == VERTICAL ? (track_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + track_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM)) :
-																	  (track_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + track_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
+	content[length_axis] = slider_length -= orientation == VERTICAL
+		? (track_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + track_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM))
+		: (track_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + track_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
 	// If no height has been explicitly specified for the track, it'll be initialised to -1 as per normal block
 	// elements. We'll fix that up here.
-	if (orientation == HORIZONTAL &&
-		content.y < 0)
+	if (orientation == HORIZONTAL && content.y < 0)
 		content.y = parent_box.GetSize().y;
 
 	// Now we size the arrows.
@@ -246,8 +245,7 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 
 		// Clamp the size to (0, 0).
 		Vector2f arrow_size = arrow_box.GetSize();
-		if (arrow_size.x < 0 ||
-			arrow_size.y < 0)
+		if (arrow_size.x < 0 || arrow_size.y < 0)
 			arrow_box.SetContent(Vector2f(0, 0));
 
 		arrows[i]->SetBox(arrow_box);
@@ -266,11 +264,13 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 		arrows[0]->SetOffset(offset, parent);
 
 		offset.x = track->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y += arrows[0]->GetBox().GetSize(Box::BORDER).y + arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM) + track->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.y += arrows[0]->GetBox().GetSize(Box::BORDER).y + arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM) +
+			track->GetBox().GetEdge(Box::MARGIN, Box::TOP);
 		track->SetOffset(offset, parent);
 
 		offset.x = arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y += track->GetBox().GetSize(Box::BORDER).y + track->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM) + arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.y += track->GetBox().GetSize(Box::BORDER).y + track->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM) +
+			arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::TOP);
 		arrows[1]->SetOffset(offset, parent);
 	}
 	else
@@ -278,11 +278,13 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 		Vector2f offset(arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::LEFT), arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::TOP));
 		arrows[0]->SetOffset(offset, parent);
 
-		offset.x += arrows[0]->GetBox().GetSize(Box::BORDER).x + arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::RIGHT) + track->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
+		offset.x += arrows[0]->GetBox().GetSize(Box::BORDER).x + arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::RIGHT) +
+			track->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
 		offset.y = track->GetBox().GetEdge(Box::MARGIN, Box::TOP);
 		track->SetOffset(offset, parent);
 
-		offset.x += track->GetBox().GetSize(Box::BORDER).x + track->GetBox().GetEdge(Box::MARGIN, Box::RIGHT) + arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
+		offset.x += track->GetBox().GetSize(Box::BORDER).x + track->GetBox().GetEdge(Box::MARGIN, Box::RIGHT) +
+			arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
 		offset.y = arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::TOP);
 		arrows[1]->SetOffset(offset, parent);
 	}
@@ -290,7 +292,6 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 	FormatBar(bar_length);
 }
 
-// Lays out and positions the bar element.
 void WidgetScroll::FormatBar(float bar_length)
 {
 	Box bar_box;
@@ -314,7 +315,8 @@ void WidgetScroll::FormatBar(float bar_length)
 
 		if (orientation == VERTICAL)
 		{
-			float track_length = track_size.y - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM));
+			float track_length =
+				track_size.y - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM));
 
 			if (height.type == height.Auto)
 			{
@@ -334,7 +336,8 @@ void WidgetScroll::FormatBar(float bar_length)
 		}
 		else
 		{
-			float track_length = track_size.x - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
+			float track_length =
+				track_size.x - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
 
 			if (width.type == width.Auto)
 			{
@@ -362,7 +365,6 @@ void WidgetScroll::FormatBar(float bar_length)
 	PositionBar();
 }
 
-// Handles events coming through from the slider's components.
 void WidgetScroll::ProcessEvent(Event& event)
 {
 	if (event.GetTargetElement() == bar)
@@ -438,8 +440,7 @@ void WidgetScroll::ProcessEvent(Event& event)
 			ScrollLineDown();
 		}
 	}
-	else if (event == EventId::Mouseup ||
-			 event == EventId::Mouseout)
+	else if (event == EventId::Mouseup || event == EventId::Mouseout)
 	{
 		if (event.GetTargetElement() == arrows[0])
 			arrow_timers[0] = -1;
@@ -456,28 +457,27 @@ void WidgetScroll::PositionBar()
 	if (orientation == VERTICAL)
 	{
 		float traversable_track_length = track_dimensions.y - bar_dimensions.y;
-		bar->SetOffset(Vector2f(bar->GetBox().GetEdge(Box::MARGIN, Box::LEFT), track->GetRelativeOffset().y + traversable_track_length * bar_position), parent);
+		bar->SetOffset(
+			Vector2f(bar->GetBox().GetEdge(Box::MARGIN, Box::LEFT), track->GetRelativeOffset().y + traversable_track_length * bar_position), parent);
 	}
 	else
 	{
 		float traversable_track_length = track_dimensions.x - bar_dimensions.x;
-		bar->SetOffset(Vector2f(track->GetRelativeOffset().x + traversable_track_length * bar_position, bar->GetBox().GetEdge(Box::MARGIN, Box::TOP)), parent);
+		bar->SetOffset(Vector2f(track->GetRelativeOffset().x + traversable_track_length * bar_position, bar->GetBox().GetEdge(Box::MARGIN, Box::TOP)),
+			parent);
 	}
 }
 
-// Sets the length of the entire track in some arbitrary unit.
 void WidgetScroll::SetTrackLength(float _track_length)
 {
 	track_length = _track_length;
 }
 
-// Sets the length the bar represents in some arbitrary unit, relative to the track length.
 void WidgetScroll::SetBarLength(float _bar_length)
 {
 	bar_length = _bar_length;
 }
 
-// Lays out and resizes the internal elements.
 void WidgetScroll::FormatElements(const Vector2f containing_block, float slider_length)
 {
 	float relative_bar_length;

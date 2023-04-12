@@ -1,0 +1,71 @@
+<rml>
+<head>
+	<title>Inline flexboxes</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/css-flexbox-1/#flex-baselines" />
+	<meta name="Description" content="Inline flexboxes. The baseline of a flex container is simply set to its first flex item that has a baseline." />
+	<style>
+		.flex {
+			display: inline-flex;
+			background-color: #555;
+			margin: 1em 0.5em;
+			border: 2dp #333;
+			justify-content: space-between;
+			color: #d44fff;
+			width: 170dp;
+		}
+		.flex div {
+			flex: 0 1 auto;
+			width: 35dp;
+			height: 30dp;
+			margin: 5dp 8dp;
+			background-color: #eee;
+			line-height: 30dp;
+			text-align: center;
+		}
+		.wrap {
+			flex-wrap: wrap;
+			width: 115dp;
+		}
+		.column {
+			flex-direction: column;
+			width: 70dp;
+			align-items: center;
+		}
+	</style>
+</head>
+
+<body>
+<p>
+Can we
+<div class="flex">
+	<div>A</div>
+	<div>B</div>
+	<div>C</div>
+</div>
+play
+<div class="flex wrap">
+	<div>A</div>
+	<div>B</div>
+	<div>C</div>
+</div>
+Tetris
+<div class="flex column">
+	<div>A</div>
+	<div>B</div>
+	<div>C</div>
+</div>
+
+with flexboxes
+<div class="flex">
+	<div>A</div>
+	<div>B</div>
+	<div>C</div>
+</div>
+?
+
+</p>
+
+<handle size_target="#document"/>
+</body>
+</rml>

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,18 +28,15 @@
 
 #include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
-#include "XMLParseTools.h"
 #include "Pool.h"
+#include "XMLParseTools.h"
 
 namespace Rml {
 
-ElementInstancer::~ElementInstancer()
-{
-}
+ElementInstancer::~ElementInstancer() {}
 
-static Pool< Element > pool_element(200, true);
-static Pool< ElementText > pool_text_default(200, true);
-
+static Pool<Element> pool_element(200, true);
+static Pool<ElementText> pool_text_default(200, true);
 
 ElementPtr ElementInstancerElement::InstanceElement(Element* /*parent*/, const String& tag, const XMLAttributes& /*attributes*/)
 {

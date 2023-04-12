@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,7 @@
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
 #include <X11/extensions/xf86vmode.h>
+#include <cmath>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -48,7 +49,6 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-#include <cmath>
 
 // Attach the OpenGL context to the window.
 static bool AttachToNative(GLXContext& out_gl_context, Display* display, Window window, XVisualInfo* visual_info)
@@ -215,24 +215,26 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	bool result = data->running;
 	data->running = true;
 
-	if(power_save && XPending(display) == 0) {
+	if (power_save && XPending(display) == 0)
+	{
 		int display_fd = ConnectionNumber(display);
 		fd_set fds{};
 		FD_ZERO(&fds);
-        FD_SET(display_fd, &fds);
+		FD_SET(display_fd, &fds);
 
 		double timeout = Rml::Math::Min(context->GetNextUpdateDelay(), 10.0);
-		struct timeval tv{};
+		struct timeval tv {};
 		double seconds;
-        tv.tv_usec = std::modf(timeout, &seconds)*1000000.0;
-        tv.tv_sec = seconds;
+		tv.tv_usec = std::modf(timeout, &seconds) * 1000000.0;
+		tv.tv_sec = seconds;
 
 		int ready_fd_count;
-		do {
+		do
+		{
 			ready_fd_count = select(display_fd + 1, &fds, NULL, NULL, &tv);
 			// We don't care about the return value as long as select didn't error out
 			RMLUI_ASSERT(ready_fd_count >= 0);
-		} while(XPending(display) == 0 && ready_fd_count != 0);
+		} while (XPending(display) == 0 && ready_fd_count != 0);
 	}
 
 	while (XPending(display) > 0)

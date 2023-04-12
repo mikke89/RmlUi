@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,9 +35,9 @@
 using namespace Rml;
 
 /*
-*	Here we are testing that properties with the same specificty, but declared at 
-*	different locations, are merged such that the last declared property is used.
-*/
+ *	Here we are testing that properties with the same specificty, but declared at
+ *	different locations, are merged such that the last declared property is used.
+ */
 
 static const String simple_doc1_rml = R"(
 <rml>
@@ -248,7 +248,6 @@ static const String simple_doc14_rml = R"(
 <body class="a b c"/>
 </rml>
 )";
-
 
 TEST_CASE("specificity.basic")
 {

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@
 #include <chrono>
 #include <stdio.h>
 #ifdef RMLUI_PLATFORM_WIN32
-#include <RmlUi_Include_Windows.h>
+	#include <RmlUi_Include_Windows.h>
 #endif
 
 SystemInterface::SystemInterface()
@@ -47,7 +47,6 @@ SystemInterface::~SystemInterface()
 		fclose(fp);
 }
 
-// Get the number of seconds elapsed since the start of the application.
 double SystemInterface::GetElapsedTime()
 {
 	static const auto start = std::chrono::steady_clock::now();
@@ -64,18 +63,12 @@ bool SystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message
 		const char* prefix;
 		switch (type)
 		{
-			case Rml::Log::LT_ERROR:
-			case Rml::Log::LT_ASSERT:
-				prefix = "-!-";
-				break;
+		case Rml::Log::LT_ERROR:
+		case Rml::Log::LT_ASSERT: prefix = "-!-"; break;
 
-			case Rml::Log::LT_WARNING:
-				prefix = "-*-";
-				break;
+		case Rml::Log::LT_WARNING: prefix = "-*-"; break;
 
-			default:
-				prefix = "---";
-				break;
+		default: prefix = "---"; break;
 		}
 
 		// Print the message and timestamp to file, and force a write in case of a crash.

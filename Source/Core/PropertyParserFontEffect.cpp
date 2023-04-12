@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,18 +30,16 @@
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FontEffect.h"
 #include "../../Include/RmlUi/Core/FontEffectInstancer.h"
-#include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/Utilities.h"
 #include <algorithm>
 
 namespace Rml {
 
-PropertyParserFontEffect::PropertyParserFontEffect()
-{}
+PropertyParserFontEffect::PropertyParserFontEffect() {}
 
-PropertyParserFontEffect::~PropertyParserFontEffect()
-{}
+PropertyParserFontEffect::~PropertyParserFontEffect() {}
 
 bool PropertyParserFontEffect::ParseValue(Property& property, const String& font_effect_string_value, const ParameterMap& /*parameters*/) const
 {
@@ -138,8 +136,7 @@ bool PropertyParserFontEffect::ParseValue(Property& property, const String& font
 
 	// Partition the list such that the back layer effects appear before the front layer effects
 	std::stable_partition(font_effects.list.begin(), font_effects.list.end(),
-		[](const SharedPtr<const FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; }
-	);
+		[](const SharedPtr<const FontEffect>& effect) { return effect->GetLayer() == FontEffect::Layer::Back; });
 
 	property.value = Variant(MakeShared<FontEffects>(std::move(font_effects)));
 	property.unit = Property::FONTEFFECT;

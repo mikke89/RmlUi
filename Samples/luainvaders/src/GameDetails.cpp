@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,111 +38,90 @@ static GameDetails::GraphicsQuality graphics_quality = GameDetails::OK;
 static bool reverb = true;
 static bool spatialisation = false;
 
-GameDetails::GameDetails()
-{
-}
+GameDetails::GameDetails() {}
 
-GameDetails::~GameDetails()
-{
-}
+GameDetails::~GameDetails() {}
 
-// Sets the game difficulty.
 void GameDetails::SetDifficulty(Difficulty _difficulty)
 {
 	difficulty = _difficulty;
 }
 
-// Returns the game difficulty.
 GameDetails::Difficulty GameDetails::GetDifficulty()
 {
 	return difficulty;
 }
 
-// Sets the colour of the player's ship.
 void GameDetails::SetDefenderColour(const Rml::Colourb& _colour)
 {
 	colour = _colour;
 }
 
-// Returns the player's ship colour.
 const Rml::Colourb& GameDetails::GetDefenderColour()
 {
 	return colour;
 }
 
-// Sets the score the player achieved in the last game.
 void GameDetails::SetScore(int _score)
 {
 	score = _score;
 }
 
-// Resets the player's score.
 void GameDetails::ResetScore()
 {
 	score = -1;
 }
 
-// Returns the score the player achieved in the last game.
 int GameDetails::GetScore()
 {
 	return score;
 }
 
-// Set the current wave number
 void GameDetails::SetWave(int _wave)
 {
 	wave = _wave;
 }
 
-// Get the current wave number
 int GameDetails::GetWave()
 {
 	return wave;
 }
 
-// Sets the pauses state of the game
 void GameDetails::SetPaused(bool _paused)
 {
 	paused = _paused;
 }
 
-// Gets if the game is paused or not
 bool GameDetails::GetPaused()
 {
 	return paused;
 }
 
-// Sets the quality of the graphics used in-game.
 void GameDetails::SetGraphicsQuality(GraphicsQuality quality)
 {
 	graphics_quality = quality;
 }
 
-// Returns the quality of the graphics to use in-game.
 GameDetails::GraphicsQuality GameDetails::GetGraphicsQuality()
 {
 	return graphics_quality;
 }
 
-// Enables or disables reverb.
 void GameDetails::SetReverb(bool enabled)
 {
 	reverb = enabled;
 }
 
-// Returns the current state of reverb.
 bool GameDetails::GetReverb()
 {
 	return reverb;
 }
 
-// Enables or disables 3D spatialisation in the audio engine.
 void GameDetails::Set3DSpatialisation(bool enabled)
 {
 	spatialisation = enabled;
 }
 
-// Returns the current state of audio spatialisation.
 bool GameDetails::Get3DSpatialisation()
 {
 	return spatialisation;

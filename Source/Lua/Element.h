@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,20 +25,21 @@
  * THE SOFTWARE.
  *
  */
- 
+
 #ifndef RMLUI_LUA_ELEMENT_H
 #define RMLUI_LUA_ELEMENT_H
 
-#include <RmlUi/Lua/LuaType.h>
-#include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Core/Element.h>
+#include <RmlUi/Lua/IncludeLua.h>
+#include <RmlUi/Lua/LuaType.h>
 
 namespace Rml {
 namespace Lua {
-template<> RMLUILUA_API void ExtraInit<Element>(lua_State* L, int metatable_index);
+template <>
+RMLUILUA_API void ExtraInit<Element>(lua_State* L, int metatable_index);
 
 int Elementnew(lua_State* L);
-//methods
+// methods
 int ElementAddEventListener(lua_State* L, Element* obj);
 int ElementAppendChild(lua_State* L, Element* obj);
 int ElementBlur(lua_State* L, Element* obj);
@@ -61,7 +62,7 @@ int ElementScrollIntoView(lua_State* L, Element* obj);
 int ElementSetAttribute(lua_State* L, Element* obj);
 int ElementSetClass(lua_State* L, Element* obj);
 
-//getters
+// getters
 int ElementGetAttrattributes(lua_State* L);
 int ElementGetAttrchild_nodes(lua_State* L);
 int ElementGetAttrclass_name(lua_State* L);
@@ -89,13 +90,12 @@ int ElementGetAttrscroll_width(lua_State* L);
 int ElementGetAttrstyle(lua_State* L);
 int ElementGetAttrtag_name(lua_State* L);
 
-//setters
+// setters
 int ElementSetAttrclass_name(lua_State* L);
 int ElementSetAttrid(lua_State* L);
 int ElementSetAttrinner_rml(lua_State* L);
 int ElementSetAttrscroll_left(lua_State* L);
 int ElementSetAttrscroll_top(lua_State* L);
-
 
 extern RegType<Element> ElementMethods[];
 extern luaL_Reg ElementGetters[];
@@ -103,8 +103,8 @@ extern luaL_Reg ElementSetters[];
 
 RMLUI_LUATYPE_DECLARE(Element)
 
-
-template<> void ExtraInit<ElementPtr>(lua_State* L, int metatable_index);
+template <>
+void ExtraInit<ElementPtr>(lua_State* L, int metatable_index);
 int LogMessage(lua_State* L);
 
 extern RegType<ElementPtr> ElementPtrMethods[];

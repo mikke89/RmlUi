@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,39 +26,32 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 
 namespace Rml {
 
-DecoratorInstancer::DecoratorInstancer() : properties(10, 10)
-{
-}
+DecoratorInstancer::DecoratorInstancer() : properties(10, 10) {}
 
-DecoratorInstancer::~DecoratorInstancer()
-{
-}
+DecoratorInstancer::~DecoratorInstancer() {}
 
-// Returns the property specification associated with the instancer.
 const PropertySpecification& DecoratorInstancer::GetPropertySpecification() const
 {
 	return properties;
 }
 
-// Registers a property for the decorator.
 PropertyDefinition& DecoratorInstancer::RegisterProperty(const String& property_name, const String& default_value)
 {
 	return properties.RegisterProperty(property_name, default_value, false, false);
 }
 
-// Registers a shorthand property definition.
 ShorthandId DecoratorInstancer::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
 {
 	return properties.RegisterShorthand(shorthand_name, property_names, type);
 }
 
-
-const Sprite* DecoratorInstancerInterface::GetSprite(const String& name) const {
+const Sprite* DecoratorInstancerInterface::GetSprite(const String& name) const
+{
 	return style_sheet.GetSprite(name);
 }
 

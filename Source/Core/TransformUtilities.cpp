@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,7 +42,6 @@ static Vector3f Combine(const Vector3f a, const Vector3f b, float a_scale, float
 	result.z = a_scale * a.z + b_scale * b.z;
 	return result;
 }
-
 
 // Interpolate two quaternions a, b with weight alpha [0, 1]
 static Vector4f QuaternionSlerp(const Vector4f a, const Vector4f b, float alpha)
@@ -82,21 +81,24 @@ static inline float ResolveLengthPercentage(NumericValue value, Element& e, floa
 /// Resolve a numeric property value with the element's width as relative base value.
 static inline float ResolveWidth(NumericValue value, Element& e) noexcept
 {
-	if (value.unit & (Property::PX | Property::NUMBER)) return value.number;
+	if (value.unit & (Property::PX | Property::NUMBER))
+		return value.number;
 	return ResolveLengthPercentage(value, e, e.GetBox().GetSize(Box::BORDER).x);
 }
 
 /// Resolve a numeric property value with the element's height as relative base value.
 static inline float ResolveHeight(NumericValue value, Element& e) noexcept
 {
-	if (value.unit & (Property::PX | Property::NUMBER)) return value.number;
+	if (value.unit & (Property::PX | Property::NUMBER))
+		return value.number;
 	return ResolveLengthPercentage(value, e, e.GetBox().GetSize(Box::BORDER).y);
 }
 
 /// Resolve a numeric property value with the element's depth as relative base value.
 static inline float ResolveDepth(NumericValue value, Element& e) noexcept
 {
-	if (value.unit & (Property::PX | Property::NUMBER)) return value.number;
+	if (value.unit & (Property::PX | Property::NUMBER))
+		return value.number;
 	Vector2f size = e.GetBox().GetSize(Box::BORDER);
 	return ResolveLengthPercentage(value, e, Math::Max(size.x, size.y));
 }
@@ -109,8 +111,7 @@ static inline String ToString(NumericValue value) noexcept
 	return prop.ToString();
 }
 
-struct SetIdentityVisitor
-{
+struct SetIdentityVisitor {
 	template <size_t N>
 	void operator()(Transforms::ResolvedPrimitive<N>& p)
 	{
@@ -133,26 +134,11 @@ struct SetIdentityVisitor
 		for (int i = 0; i < 16; i++)
 			p.values[i] = ((i % 5) == 0 ? 1.0f : 0.0f);
 	}
-	void operator()(Transforms::ScaleX& p)
-	{
-		p.values[0] = 1;
-	}
-	void operator()(Transforms::ScaleY& p)
-	{
-		p.values[0] = 1;
-	}
-	void operator()(Transforms::ScaleZ& p)
-	{
-		p.values[0] = 1;
-	}
-	void operator()(Transforms::Scale2D& p)
-	{
-		p.values[0] = p.values[1] = 1;
-	}
-	void operator()(Transforms::Scale3D& p)
-	{
-		p.values[0] = p.values[1] = p.values[2] = 1;
-	}
+	void operator()(Transforms::ScaleX& p) { p.values[0] = 1; }
+	void operator()(Transforms::ScaleY& p) { p.values[0] = 1; }
+	void operator()(Transforms::ScaleZ& p) { p.values[0] = 1; }
+	void operator()(Transforms::Scale2D& p) { p.values[0] = p.values[1] = 1; }
+	void operator()(Transforms::Scale3D& p) { p.values[0] = p.values[1] = p.values[2] = 1; }
 	void operator()(Transforms::DecomposedMatrix4& p)
 	{
 		p.perspective = Vector4f(0, 0, 0, 1);
@@ -161,7 +147,6 @@ struct SetIdentityVisitor
 		p.scale = Vector3f(1, 1, 1);
 		p.skew = Vector3f(0, 0, 0);
 	}
-
 
 	void run(TransformPrimitive& primitive)
 	{
@@ -198,139 +183,49 @@ void TransformUtilities::SetIdentity(TransformPrimitive& p) noexcept
 	SetIdentityVisitor{}.run(p);
 }
 
-
-struct ResolveTransformVisitor
-{
+struct ResolveTransformVisitor {
 	Matrix4f& m;
 	Element& e;
 
 	void operator()(const Transforms::Matrix2D& p)
 	{
-		m = Matrix4f::FromRows(
-			Vector4f(p.values[0], p.values[2], 0, p.values[4]),
-			Vector4f(p.values[1], p.values[3], 0, p.values[5]),
-			Vector4f(0, 0, 1, 0),
-			Vector4f(0, 0, 0, 1)
-		);
+		m = Matrix4f::FromRows(Vector4f(p.values[0], p.values[2], 0, p.values[4]), Vector4f(p.values[1], p.values[3], 0, p.values[5]),
+			Vector4f(0, 0, 1, 0), Vector4f(0, 0, 0, 1));
 	}
-
 	void operator()(const Transforms::Matrix3D& p)
 	{
-		m = Matrix4f::FromColumns(
-			Vector4f(p.values[0], p.values[1], p.values[2], p.values[3]),
-			Vector4f(p.values[4], p.values[5], p.values[6], p.values[7]),
-			Vector4f(p.values[8], p.values[9], p.values[10], p.values[11]),
-			Vector4f(p.values[12], p.values[13], p.values[14], p.values[15])
-		);
+		m = Matrix4f::FromColumns(Vector4f(p.values[0], p.values[1], p.values[2], p.values[3]),
+			Vector4f(p.values[4], p.values[5], p.values[6], p.values[7]), Vector4f(p.values[8], p.values[9], p.values[10], p.values[11]),
+			Vector4f(p.values[12], p.values[13], p.values[14], p.values[15]));
 	}
 
-	void operator()(const Transforms::TranslateX& p)
-	{
-		m = Matrix4f::TranslateX(ResolveWidth(p.values[0], e));
-	}
-
-	void operator()(const Transforms::TranslateY& p)
-	{
-		m = Matrix4f::TranslateY(ResolveHeight(p.values[0], e));
-	}
-
-	void operator()(const Transforms::TranslateZ& p)
-	{
-		m = Matrix4f::TranslateZ(ResolveDepth(p.values[0], e));
-	}
-
-	void operator()(const Transforms::Translate2D& p)
-	{
-		m = Matrix4f::Translate(
-			ResolveWidth(p.values[0], e),
-			ResolveHeight(p.values[1], e),
-			0
-		);
-	}
-
+	void operator()(const Transforms::TranslateX& p) { m = Matrix4f::TranslateX(ResolveWidth(p.values[0], e)); }
+	void operator()(const Transforms::TranslateY& p) { m = Matrix4f::TranslateY(ResolveHeight(p.values[0], e)); }
+	void operator()(const Transforms::TranslateZ& p) { m = Matrix4f::TranslateZ(ResolveDepth(p.values[0], e)); }
+	void operator()(const Transforms::Translate2D& p) { m = Matrix4f::Translate(ResolveWidth(p.values[0], e), ResolveHeight(p.values[1], e), 0); }
 	void operator()(const Transforms::Translate3D& p)
 	{
-		m = Matrix4f::Translate(
-			ResolveWidth(p.values[0], e),
-			ResolveHeight(p.values[1], e),
-			ResolveDepth(p.values[2], e)
-		);
+		m = Matrix4f::Translate(ResolveWidth(p.values[0], e), ResolveHeight(p.values[1], e), ResolveDepth(p.values[2], e));
 	}
 
-	void operator()(const Transforms::ScaleX& p)
-	{
-		m = Matrix4f::ScaleX(p.values[0]);
-	}
+	void operator()(const Transforms::ScaleX& p) { m = Matrix4f::ScaleX(p.values[0]); }
+	void operator()(const Transforms::ScaleY& p) { m = Matrix4f::ScaleY(p.values[0]); }
+	void operator()(const Transforms::ScaleZ& p) { m = Matrix4f::ScaleZ(p.values[0]); }
+	void operator()(const Transforms::Scale2D& p) { m = Matrix4f::Scale(p.values[0], p.values[1], 1); }
+	void operator()(const Transforms::Scale3D& p) { m = Matrix4f::Scale(p.values[0], p.values[1], p.values[2]); }
 
-	void operator()(const Transforms::ScaleY& p)
-	{
-		m = Matrix4f::ScaleY(p.values[0]);
-	}
+	void operator()(const Transforms::RotateX& p) { m = Matrix4f::RotateX(p.values[0]); }
+	void operator()(const Transforms::RotateY& p) { m = Matrix4f::RotateY(p.values[0]); }
+	void operator()(const Transforms::RotateZ& p) { m = Matrix4f::RotateZ(p.values[0]); }
+	void operator()(const Transforms::Rotate2D& p) { m = Matrix4f::RotateZ(p.values[0]); }
+	void operator()(const Transforms::Rotate3D& p) { m = Matrix4f::Rotate(Vector3f(p.values[0], p.values[1], p.values[2]), p.values[3]); }
 
-	void operator()(const Transforms::ScaleZ& p)
-	{
-		m = Matrix4f::ScaleZ(p.values[0]);
-	}
+	void operator()(const Transforms::SkewX& p) { m = Matrix4f::SkewX(p.values[0]); }
+	void operator()(const Transforms::SkewY& p) { m = Matrix4f::SkewY(p.values[0]); }
+	void operator()(const Transforms::Skew2D& p) { m = Matrix4f::Skew(p.values[0], p.values[1]); }
 
-	void operator()(const Transforms::Scale2D& p)
-	{
-		m = Matrix4f::Scale(p.values[0], p.values[1], 1);
-	}
-
-	void operator()(const Transforms::Scale3D& p)
-	{
-		m = Matrix4f::Scale(p.values[0], p.values[1], p.values[2]);
-	}
-
-	void operator()(const Transforms::RotateX& p)
-	{
-		m = Matrix4f::RotateX(p.values[0]);
-	}
-
-	void operator()(const Transforms::RotateY& p)
-	{
-		m = Matrix4f::RotateY(p.values[0]);
-	}
-
-	void operator()(const Transforms::RotateZ& p)
-	{
-		m = Matrix4f::RotateZ(p.values[0]);
-	}
-
-	void operator()(const Transforms::Rotate2D& p)
-	{
-		m = Matrix4f::RotateZ(p.values[0]);
-	}
-
-	void operator()(const Transforms::Rotate3D& p)
-	{
-		m = Matrix4f::Rotate(Vector3f(p.values[0], p.values[1], p.values[2]), p.values[3]);
-	}
-
-	void operator()(const Transforms::SkewX& p)
-	{
-		m = Matrix4f::SkewX(p.values[0]);
-	}
-
-	void operator()(const Transforms::SkewY& p)
-	{
-		m = Matrix4f::SkewY(p.values[0]);
-	}
-
-	void operator()(const Transforms::Skew2D& p)
-	{
-		m = Matrix4f::Skew(p.values[0], p.values[1]);
-	}
-
-	void operator()(const Transforms::DecomposedMatrix4& p)
-	{
-		m = Matrix4f::Compose(p.translation, p.scale, p.skew, p.perspective, p.quaternion);
-	}
-	void operator()(const Transforms::Perspective& p)
-	{
-		m = Matrix4f::Perspective(ResolveDepth(p.values[0], e));
-	}
-
+	void operator()(const Transforms::DecomposedMatrix4& p) { m = Matrix4f::Compose(p.translation, p.scale, p.skew, p.perspective, p.quaternion); }
+	void operator()(const Transforms::Perspective& p) { m = Matrix4f::Perspective(ResolveDepth(p.values[0], e)); }
 
 	void run(const TransformPrimitive& primitive)
 	{
@@ -365,44 +260,40 @@ struct ResolveTransformVisitor
 Matrix4f TransformUtilities::ResolveTransform(const TransformPrimitive& p, Element& e) noexcept
 {
 	Matrix4f m;
-	ResolveTransformVisitor visitor{ m, e };
+	ResolveTransformVisitor visitor{m, e};
 	visitor.run(p);
 	return m;
 }
 
-
-
-
-struct PrepareVisitor
-{
+struct PrepareVisitor {
 	Element& e;
 
 	bool operator()(TranslateX& p)
 	{
-		p.values[0] = NumericValue{ ResolveWidth(p.values[0], e), Property::PX };
+		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Property::PX};
 		return true;
 	}
 	bool operator()(TranslateY& p)
 	{
-		p.values[0] = NumericValue{ ResolveHeight(p.values[0], e), Property::PX };
+		p.values[0] = NumericValue{ResolveHeight(p.values[0], e), Property::PX};
 		return true;
 	}
 	bool operator()(TranslateZ& p)
 	{
-		p.values[0] = NumericValue{ ResolveDepth(p.values[0], e), Property::PX };
+		p.values[0] = NumericValue{ResolveDepth(p.values[0], e), Property::PX};
 		return true;
 	}
 	bool operator()(Translate2D& p)
 	{
-		p.values[0] = NumericValue{ ResolveWidth(p.values[0], e), Property::PX };
-		p.values[1] = NumericValue{ ResolveHeight(p.values[1], e), Property::PX };
+		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Property::PX};
+		p.values[1] = NumericValue{ResolveHeight(p.values[1], e), Property::PX};
 		return true;
 	}
 	bool operator()(Translate3D& p)
 	{
-		p.values[0] = NumericValue{ ResolveWidth(p.values[0], e), Property::PX };
-		p.values[1] = NumericValue{ ResolveHeight(p.values[1], e), Property::PX };
-		p.values[2] = NumericValue{ ResolveDepth(p.values[2], e), Property::PX };
+		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Property::PX};
+		p.values[1] = NumericValue{ResolveHeight(p.values[1], e), Property::PX};
+		p.values[2] = NumericValue{ResolveDepth(p.values[2], e), Property::PX};
 		return true;
 	}
 	template <size_t N>
@@ -411,10 +302,7 @@ struct PrepareVisitor
 		// No conversion needed for resolved transforms (with some exceptions below)
 		return true;
 	}
-	bool operator()(DecomposedMatrix4& /*p*/)
-	{
-		return true;
-	}
+	bool operator()(DecomposedMatrix4& /*p*/) { return true; }
 	bool operator()(Rotate3D& p)
 	{
 		// Rotate3D can be interpolated if and only if their rotation axes point in the same direction.
@@ -476,16 +364,12 @@ struct PrepareVisitor
 
 bool TransformUtilities::PrepareForInterpolation(TransformPrimitive& p, Element& e) noexcept
 {
-	return PrepareVisitor{ e }.run(p);
+	return PrepareVisitor{e}.run(p);
 }
-
-
-
 
 enum class GenericType { None, Scale3D, Translate3D, Rotate3D };
 
-struct GetGenericTypeVisitor
-{
+struct GetGenericTypeVisitor {
 	GenericType run(const TransformPrimitive& primitive)
 	{
 		switch (primitive.type)
@@ -521,28 +405,31 @@ struct GetGenericTypeVisitor
 	}
 };
 
-
-struct ConvertToGenericTypeVisitor
-{
-	Translate3D operator()(const TranslateX& p) { return Translate3D{ p.values[0], {0.0f, Property::PX}, {0.0f, Property::PX} }; }
-	Translate3D operator()(const TranslateY& p) { return Translate3D{ {0.0f, Property::PX}, p.values[0], {0.0f, Property::PX} }; }
-	Translate3D operator()(const TranslateZ& p) { return Translate3D{ {0.0f, Property::PX}, {0.0f, Property::PX}, p.values[0] }; }
-	Translate3D operator()(const Translate2D& p) { return Translate3D{ p.values[0], p.values[1], {0.0f, Property::PX} }; }
-	Scale3D operator()(const ScaleX& p) { return Scale3D{ p.values[0], 1.0f, 1.0f }; }
-	Scale3D operator()(const ScaleY& p) { return Scale3D{ 1.0f, p.values[0], 1.0f }; }
-	Scale3D operator()(const ScaleZ& p) { return Scale3D{ 1.0f, 1.0f, p.values[0] }; }
-	Scale3D operator()(const Scale2D& p) { return Scale3D{ p.values[0], p.values[1], 1.0f }; }
-	Rotate3D operator()(const RotateX& p) { return Rotate3D{ 1, 0, 0, p.values[0], Property::RAD }; }
-	Rotate3D operator()(const RotateY& p) { return Rotate3D{ 0, 1, 0, p.values[0], Property::RAD }; }
-	Rotate3D operator()(const RotateZ& p) { return Rotate3D{ 0, 0, 1, p.values[0], Property::RAD }; }
-	Rotate3D operator()(const Rotate2D& p) { return Rotate3D{ 0, 0, 1, p.values[0], Property::RAD }; }
+struct ConvertToGenericTypeVisitor {
+	Translate3D operator()(const TranslateX& p) { return Translate3D{p.values[0], {0.0f, Property::PX}, {0.0f, Property::PX}}; }
+	Translate3D operator()(const TranslateY& p) { return Translate3D{{0.0f, Property::PX}, p.values[0], {0.0f, Property::PX}}; }
+	Translate3D operator()(const TranslateZ& p) { return Translate3D{{0.0f, Property::PX}, {0.0f, Property::PX}, p.values[0]}; }
+	Translate3D operator()(const Translate2D& p) { return Translate3D{p.values[0], p.values[1], {0.0f, Property::PX}}; }
+	Scale3D operator()(const ScaleX& p) { return Scale3D{p.values[0], 1.0f, 1.0f}; }
+	Scale3D operator()(const ScaleY& p) { return Scale3D{1.0f, p.values[0], 1.0f}; }
+	Scale3D operator()(const ScaleZ& p) { return Scale3D{1.0f, 1.0f, p.values[0]}; }
+	Scale3D operator()(const Scale2D& p) { return Scale3D{p.values[0], p.values[1], 1.0f}; }
+	Rotate3D operator()(const RotateX& p) { return Rotate3D{1, 0, 0, p.values[0], Property::RAD}; }
+	Rotate3D operator()(const RotateY& p) { return Rotate3D{0, 1, 0, p.values[0], Property::RAD}; }
+	Rotate3D operator()(const RotateZ& p) { return Rotate3D{0, 0, 1, p.values[0], Property::RAD}; }
+	Rotate3D operator()(const Rotate2D& p) { return Rotate3D{0, 0, 1, p.values[0], Property::RAD}; }
 
 	template <typename T>
-	TransformPrimitive operator()(const T& p) { RMLUI_ERROR; return p; }
+	TransformPrimitive operator()(const T& p)
+	{
+		RMLUI_ERROR;
+		return p;
+	}
 
 	TransformPrimitive run(const TransformPrimitive& primitive)
 	{
 		TransformPrimitive result = primitive;
+		// clang-format off
 		switch (primitive.type)
 		{
 		case TransformPrimitive::TRANSLATEX:  result.type = TransformPrimitive::TRANSLATE3D; result.translate_3d = this->operator()(primitive.translate_x);  break;
@@ -560,10 +447,9 @@ struct ConvertToGenericTypeVisitor
 		case TransformPrimitive::ROTATEZ:     result.type = TransformPrimitive::ROTATE3D;    result.rotate_3d = this->operator()(primitive.rotate_z);     break;
 		case TransformPrimitive::ROTATE2D:    result.type = TransformPrimitive::ROTATE3D;    result.rotate_3d = this->operator()(primitive.rotate_2d);    break;
 		case TransformPrimitive::ROTATE3D:    break;
-		default:
-			RMLUI_ASSERT(false);
-			break;
+		default: RMLUI_ASSERT(false); break;
 		}
+		// clang-format on
 		return result;
 	}
 };
@@ -576,7 +462,6 @@ static bool CanInterpolateRotate3D(const Rotate3D& p0, const Rotate3D& p1)
 	auto& v1 = p1.values;
 	return v0[0] == v1[0] && v0[1] == v1[1] && v0[2] == v1[2];
 }
-
 
 bool TransformUtilities::TryConvertToMatchingGenericType(TransformPrimitive& p0, TransformPrimitive& p1) noexcept
 {
@@ -610,12 +495,7 @@ bool TransformUtilities::TryConvertToMatchingGenericType(TransformPrimitive& p0,
 	return false;
 }
 
-
-
-
-
-struct InterpolateVisitor
-{
+struct InterpolateVisitor {
 	const TransformPrimitive& other_variant;
 	float alpha;
 
@@ -637,15 +517,27 @@ struct InterpolateVisitor
 	bool Interpolate(Rotate3D& p0, const Rotate3D& p1)
 	{
 		RMLUI_ASSERT(CanInterpolateRotate3D(p0, p1));
-		// We can only interpolate rotate3d if their rotation axes align. That should be the case if we get here, 
+		// We can only interpolate rotate3d if their rotation axes align. That should be the case if we get here,
 		// otherwise the generic type matching should decompose them. Thus, we only need to interpolate
 		// the angle value here.
 		p0.values[3] = p0.values[3] * (1.0f - alpha) + p1.values[3] * alpha;
 		return true;
 	}
-	bool Interpolate(Matrix2D& /*p0*/, const Matrix2D& /*p1*/) { RMLUI_ERROR; return false; /* Error if we get here, see PrepareForInterpolation() */ }
-	bool Interpolate(Matrix3D& /*p0*/, const Matrix3D& /*p1*/) { RMLUI_ERROR; return false; /* Error if we get here, see PrepareForInterpolation() */ }
-	bool Interpolate(Perspective& /*p0*/, const Perspective& /*p1*/) { RMLUI_ERROR; return false; /* Error if we get here, see PrepareForInterpolation() */ }
+	bool Interpolate(Matrix2D& /*p0*/, const Matrix2D& /*p1*/)
+	{
+		RMLUI_ERROR;
+		return false; /* Error if we get here, see PrepareForInterpolation() */
+	}
+	bool Interpolate(Matrix3D& /*p0*/, const Matrix3D& /*p1*/)
+	{
+		RMLUI_ERROR;
+		return false; /* Error if we get here, see PrepareForInterpolation() */
+	}
+	bool Interpolate(Perspective& /*p0*/, const Perspective& /*p1*/)
+	{
+		RMLUI_ERROR;
+		return false; /* Error if we get here, see PrepareForInterpolation() */
+	}
 
 	bool Interpolate(DecomposedMatrix4& p0, const DecomposedMatrix4& p1)
 	{
@@ -695,12 +587,11 @@ bool TransformUtilities::InterpolateWith(TransformPrimitive& target, const Trans
 	if (target.type != other.type)
 		return false;
 
-	bool result = InterpolateVisitor{ other, alpha }.run(target);
+	bool result = InterpolateVisitor{other, alpha}.run(target);
 	return result;
 }
 
-
-template<size_t N>
+template <size_t N>
 static String ToString(const Transforms::ResolvedPrimitive<N>& p, const String& unit, bool rad_to_deg = false,
 	bool only_unit_on_last_value = false) noexcept
 {
@@ -727,8 +618,9 @@ static String ToString(const Transforms::ResolvedPrimitive<N>& p, const String& 
 	return result;
 }
 
-template<size_t N>
-static inline String ToString(const Transforms::UnresolvedPrimitive<N>& p) noexcept {
+template <size_t N>
+static inline String ToString(const Transforms::UnresolvedPrimitive<N>& p) noexcept
+{
 	String result = "(";
 	for (size_t i = 0; i < N; i++)
 	{
@@ -740,26 +632,21 @@ static inline String ToString(const Transforms::UnresolvedPrimitive<N>& p) noexc
 	return result;
 }
 
-static inline String ToString(const Transforms::DecomposedMatrix4& p) noexcept {
-	static const Transforms::DecomposedMatrix4 d{
-		Vector4f(0, 0, 0, 1),
-		Vector4f(0, 0, 0, 1),
-		Vector3f(0, 0, 0),
-		Vector3f(1, 1, 1),
-		Vector3f(0, 0, 0)
-	};
+static inline String ToString(const Transforms::DecomposedMatrix4& p) noexcept
+{
+	static const Transforms::DecomposedMatrix4 d{Vector4f(0, 0, 0, 1), Vector4f(0, 0, 0, 1), Vector3f(0, 0, 0), Vector3f(1, 1, 1), Vector3f(0, 0, 0)};
 	String tmp;
 	String result;
 
-	if (p.perspective != d.perspective && TypeConverter< Vector4f, String >::Convert(p.perspective, tmp))
+	if (p.perspective != d.perspective && TypeConverter<Vector4f, String>::Convert(p.perspective, tmp))
 		result += "perspective(" + tmp + "), ";
-	if (p.quaternion != d.quaternion && TypeConverter< Vector4f, String >::Convert(p.quaternion, tmp))
+	if (p.quaternion != d.quaternion && TypeConverter<Vector4f, String>::Convert(p.quaternion, tmp))
 		result += "quaternion(" + tmp + "), ";
-	if (p.translation != d.translation && TypeConverter< Vector3f, String >::Convert(p.translation, tmp))
+	if (p.translation != d.translation && TypeConverter<Vector3f, String>::Convert(p.translation, tmp))
 		result += "translation(" + tmp + "), ";
-	if (p.scale != d.scale && TypeConverter< Vector3f, String >::Convert(p.scale, tmp))
+	if (p.scale != d.scale && TypeConverter<Vector3f, String>::Convert(p.scale, tmp))
 		result += "scale(" + tmp + "), ";
-	if (p.skew != d.skew && TypeConverter< Vector3f, String >::Convert(p.skew, tmp))
+	if (p.skew != d.skew && TypeConverter<Vector3f, String>::Convert(p.skew, tmp))
 		result += "skew(" + tmp + "), ";
 
 	if (result.size() > 2)
@@ -770,30 +657,31 @@ static inline String ToString(const Transforms::DecomposedMatrix4& p) noexcept {
 	return result;
 }
 
-static inline String ToString(const Transforms::Matrix2D& p) noexcept { return "matrix" + ToString(static_cast<const Transforms::ResolvedPrimitive< 6 >&>(p), ""); }
-static inline String ToString(const Transforms::Matrix3D& p) noexcept { return "matrix3d" + ToString(static_cast<const Transforms::ResolvedPrimitive< 16 >&>(p), ""); }
-static inline String ToString(const Transforms::TranslateX& p) noexcept { return "translateX" + ToString(static_cast<const Transforms::UnresolvedPrimitive< 1 >&>(p)); }
-static inline String ToString(const Transforms::TranslateY& p) noexcept { return "translateY" + ToString(static_cast<const Transforms::UnresolvedPrimitive< 1 >&>(p)); }
-static inline String ToString(const Transforms::TranslateZ& p) noexcept { return "translateZ" + ToString(static_cast<const Transforms::UnresolvedPrimitive< 1 >&>(p)); }
-static inline String ToString(const Transforms::Translate2D& p) noexcept { return "translate" + ToString(static_cast<const Transforms::UnresolvedPrimitive< 2 >&>(p)); }
+// clang-format off
+static inline String ToString(const Transforms::Matrix2D& p)    noexcept { return "matrix"      + ToString(static_cast<const Transforms::ResolvedPrimitive< 6 >&>(p), ""); }
+static inline String ToString(const Transforms::Matrix3D& p)    noexcept { return "matrix3d"    + ToString(static_cast<const Transforms::ResolvedPrimitive< 16 >&>(p), ""); }
+static inline String ToString(const Transforms::TranslateX& p)  noexcept { return "translateX"  + ToString(static_cast<const Transforms::UnresolvedPrimitive< 1 >&>(p)); }
+static inline String ToString(const Transforms::TranslateY& p)  noexcept { return "translateY"  + ToString(static_cast<const Transforms::UnresolvedPrimitive< 1 >&>(p)); }
+static inline String ToString(const Transforms::TranslateZ& p)  noexcept { return "translateZ"  + ToString(static_cast<const Transforms::UnresolvedPrimitive< 1 >&>(p)); }
+static inline String ToString(const Transforms::Translate2D& p) noexcept { return "translate"   + ToString(static_cast<const Transforms::UnresolvedPrimitive< 2 >&>(p)); }
 static inline String ToString(const Transforms::Translate3D& p) noexcept { return "translate3d" + ToString(static_cast<const Transforms::UnresolvedPrimitive< 3 >&>(p)); }
-static inline String ToString(const Transforms::ScaleX& p) noexcept { return "scaleX" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), ""); }
-static inline String ToString(const Transforms::ScaleY& p) noexcept { return "scaleY" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), ""); }
-static inline String ToString(const Transforms::ScaleZ& p) noexcept { return "scaleZ" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), ""); }
-static inline String ToString(const Transforms::Scale2D& p) noexcept { return "scale" + ToString(static_cast<const Transforms::ResolvedPrimitive< 2 >&>(p), ""); }
-static inline String ToString(const Transforms::Scale3D& p) noexcept { return "scale3d" + ToString(static_cast<const Transforms::ResolvedPrimitive< 3 >&>(p), ""); }
-static inline String ToString(const Transforms::RotateX& p) noexcept { return "rotateX" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
-static inline String ToString(const Transforms::RotateY& p) noexcept { return "rotateY" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
-static inline String ToString(const Transforms::RotateZ& p) noexcept { return "rotateZ" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
-static inline String ToString(const Transforms::Rotate2D& p) noexcept { return "rotate" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
-static inline String ToString(const Transforms::Rotate3D& p) noexcept { return "rotate3d" + ToString(static_cast<const Transforms::ResolvedPrimitive< 4 >&>(p), "deg", true, true); }
-static inline String ToString(const Transforms::SkewX& p) noexcept { return "skewX" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
-static inline String ToString(const Transforms::SkewY& p) noexcept { return "skewY" + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
-static inline String ToString(const Transforms::Skew2D& p) noexcept { return "skew" + ToString(static_cast<const Transforms::ResolvedPrimitive< 2 >&>(p), "deg", true); }
+static inline String ToString(const Transforms::ScaleX& p)      noexcept { return "scaleX"      + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), ""); }
+static inline String ToString(const Transforms::ScaleY& p)      noexcept { return "scaleY"      + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), ""); }
+static inline String ToString(const Transforms::ScaleZ& p)      noexcept { return "scaleZ"      + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), ""); }
+static inline String ToString(const Transforms::Scale2D& p)     noexcept { return "scale"       + ToString(static_cast<const Transforms::ResolvedPrimitive< 2 >&>(p), ""); }
+static inline String ToString(const Transforms::Scale3D& p)     noexcept { return "scale3d"     + ToString(static_cast<const Transforms::ResolvedPrimitive< 3 >&>(p), ""); }
+static inline String ToString(const Transforms::RotateX& p)     noexcept { return "rotateX"     + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
+static inline String ToString(const Transforms::RotateY& p)     noexcept { return "rotateY"     + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
+static inline String ToString(const Transforms::RotateZ& p)     noexcept { return "rotateZ"     + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
+static inline String ToString(const Transforms::Rotate2D& p)    noexcept { return "rotate"      + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
+static inline String ToString(const Transforms::Rotate3D& p)    noexcept { return "rotate3d"    + ToString(static_cast<const Transforms::ResolvedPrimitive< 4 >&>(p), "deg", true, true); }
+static inline String ToString(const Transforms::SkewX& p)       noexcept { return "skewX"       + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
+static inline String ToString(const Transforms::SkewY& p)       noexcept { return "skewY"       + ToString(static_cast<const Transforms::ResolvedPrimitive< 1 >&>(p), "deg", true); }
+static inline String ToString(const Transforms::Skew2D& p)      noexcept { return "skew"        + ToString(static_cast<const Transforms::ResolvedPrimitive< 2 >&>(p), "deg", true); }
 static inline String ToString(const Transforms::Perspective& p) noexcept { return "perspective" + ToString(static_cast<const Transforms::UnresolvedPrimitive< 1 >&>(p)); }
+// clang-format on
 
-struct ToStringVisitor
-{
+struct ToStringVisitor {
 	String run(const TransformPrimitive& variant)
 	{
 		switch (variant.type)
@@ -832,7 +720,6 @@ String TransformUtilities::ToString(const TransformPrimitive& p) noexcept
 	return result;
 }
 
-
 bool TransformUtilities::Decompose(Transforms::DecomposedMatrix4& d, const Matrix4f& m) noexcept
 {
 	// Follows the procedure given in https://drafts.csswg.org/css-transforms-2/#interpolation-of-3d-matrices
@@ -841,7 +728,6 @@ bool TransformUtilities::Decompose(Transforms::DecomposedMatrix4& d, const Matri
 
 	if (Math::AbsoluteValue(m[3][3]) < eps)
 		return false;
-
 
 	// Perspective matrix
 	Matrix4f p = m;

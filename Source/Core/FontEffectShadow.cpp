@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,9 +36,7 @@ FontEffectShadow::FontEffectShadow() : offset(0, 0)
 	SetLayer(Layer::Back);
 }
 
-FontEffectShadow::~FontEffectShadow()
-{
-}
+FontEffectShadow::~FontEffectShadow() {}
 
 bool FontEffectShadow::Initialise(const Vector2i _offset)
 {
@@ -51,10 +49,8 @@ bool FontEffectShadow::HasUniqueTexture() const
 	return false;
 }
 
-bool FontEffectShadow::GetGlyphMetrics(Vector2i& origin, Vector2i& RMLUI_UNUSED_PARAMETER(dimensions), const FontGlyph& glyph) const
+bool FontEffectShadow::GetGlyphMetrics(Vector2i& origin, Vector2i& /*dimensions*/, const FontGlyph& glyph) const
 {
-	RMLUI_UNUSED(dimensions);
-
 	if (glyph.color_format == ColorFormat::RGBA8)
 		return false;
 
@@ -62,9 +58,8 @@ bool FontEffectShadow::GetGlyphMetrics(Vector2i& origin, Vector2i& RMLUI_UNUSED_
 	return true;
 }
 
-
-
-FontEffectShadowInstancer::FontEffectShadowInstancer() : id_offset_x(PropertyId::Invalid), id_offset_y(PropertyId::Invalid), id_color(PropertyId::Invalid)
+FontEffectShadowInstancer::FontEffectShadowInstancer() :
+	id_offset_x(PropertyId::Invalid), id_offset_y(PropertyId::Invalid), id_color(PropertyId::Invalid)
 {
 	id_offset_x = RegisterProperty("offset-x", "0px", true).AddParser("length").GetId();
 	id_offset_y = RegisterProperty("offset-y", "0px", true).AddParser("length").GetId();
@@ -73,18 +68,14 @@ FontEffectShadowInstancer::FontEffectShadowInstancer() : id_offset_x(PropertyId:
 	RegisterShorthand("font-effect", "offset-x, offset-y, color", ShorthandType::FallThrough);
 }
 
-FontEffectShadowInstancer::~FontEffectShadowInstancer()
-{
-}
+FontEffectShadowInstancer::~FontEffectShadowInstancer() {}
 
-SharedPtr<FontEffect> FontEffectShadowInstancer::InstanceFontEffect(const String& RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties)
+SharedPtr<FontEffect> FontEffectShadowInstancer::InstanceFontEffect(const String& /*name*/, const PropertyDictionary& properties)
 {
-	RMLUI_UNUSED(name);
-
 	Vector2i offset;
-	offset.x = Math::RealToInteger(properties.GetProperty(id_offset_x)->Get< float >());
-	offset.y = Math::RealToInteger(properties.GetProperty(id_offset_y)->Get< float >());
-	Colourb color = properties.GetProperty(id_color)->Get< Colourb >();
+	offset.x = Math::RealToInteger(properties.GetProperty(id_offset_x)->Get<float>());
+	offset.y = Math::RealToInteger(properties.GetProperty(id_offset_y)->Get<float>());
+	Colourb color = properties.GetProperty(id_color)->Get<Colourb>();
 
 	auto font_effect = MakeShared<FontEffectShadow>();
 	if (font_effect->Initialise(offset))

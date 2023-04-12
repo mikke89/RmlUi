@@ -12,7 +12,7 @@
 
 				z-index: -1;
 			}
-			
+
 			game
 			{
 				display: block;
@@ -22,6 +22,7 @@
 
 			div
 			{
+				position: relative;
 				height: 43dp;
 				padding: 12dp 0 0 72dp;
 				margin: 0 20dp;
@@ -92,7 +93,7 @@ Game = Game or {} --namespace for functions
 function Game.OnKeyDown(event, document)
 	if event.parameters['key_identifier'] == rmlui.key_identifier.ESCAPE then
 		document.context:LoadDocument('luainvaders/data/pause.rml'):Show()
-    end
+	end
 end
 		</script>
 	</head>

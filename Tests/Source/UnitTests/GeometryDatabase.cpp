@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,9 @@
  *
  */
 
-
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Geometry.h>
 #include "../../../Source/Core/GeometryDatabase.h"
+#include <RmlUi/Core/Geometry.h>
+#include <RmlUi/Core/Types.h>
 #include <doctest.h>
 
 using namespace Rml;

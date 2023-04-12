@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  *
  */
- 
+
 #ifndef RMLUI_LUA_LUAEVENTLISTENER_H
 #define RMLUI_LUA_LUAEVENTLISTENER_H
 
@@ -38,20 +38,19 @@ class ElementDocument;
 
 namespace Lua {
 
-class LuaEventListener : public ::Rml::EventListener
-{
+class LuaEventListener : public ::Rml::EventListener {
 public:
-    //The plan is to wrap the code in an anonymous function so that we can have named parameters to use,
-    //rather than putting them in global variables
-    LuaEventListener(const String& code, Element* element);
+	// The plan is to wrap the code in an anonymous function so that we can have named parameters to use,
+	// rather than putting them in global variables
+	LuaEventListener(const String& code, Element* element);
 
-    //This is called from a Lua Element if in element:AddEventListener it passes a function in as the 2nd
-    //parameter rather than a string. We don't wrap the function in an anonymous function, so the user
-    //should take care to have the proper order. The order is event,element,document.
-	//narg is the position on the stack
-    LuaEventListener(lua_State* L, int narg, Element* element);
+	// This is called from a Lua Element if in element:AddEventListener it passes a function in as the 2nd
+	// parameter rather than a string. We don't wrap the function in an anonymous function, so the user
+	// should take care to have the proper order. The order is event,element,document.
+	// narg is the position on the stack
+	LuaEventListener(lua_State* L, int narg, Element* element);
 
-    virtual ~LuaEventListener();
+	virtual ~LuaEventListener();
 
 	// Deletes itself, which also unreferences the Lua function.
 	void OnDetach(Element* element) override;
@@ -60,12 +59,12 @@ public:
 	void ProcessEvent(Event& event) override;
 
 private:
-    //the lua-side function to call when ProcessEvent is called
-    int luaFuncRef = -1;
+	// the lua-side function to call when ProcessEvent is called
+	int luaFuncRef = -1;
 
-    Element* attached = nullptr;
-    ElementDocument* owner_document = nullptr;
-    String strFunc; //for debugging purposes
+	Element* attached = nullptr;
+	ElementDocument* owner_document = nullptr;
+	String strFunc; // for debugging purposes
 };
 
 } // namespace Lua

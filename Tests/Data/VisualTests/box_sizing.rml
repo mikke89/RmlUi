@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Box-sizing property</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Box-sizing property</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://drafts.csswg.org/css-ui-3/#box-sizing" />
 	<meta name="Description" content="Box-sizing property." />
 	<style>

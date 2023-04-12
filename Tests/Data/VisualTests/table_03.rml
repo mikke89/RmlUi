@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Table 03</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Table 03</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html" />
 	<meta name="Description" content="Test various table features." />
 	<style>
@@ -45,10 +45,9 @@
 		}
 		.bottom-right {
 			position: absolute;
-			bottom: 0;
-			right: 0;
-			width: 15dp;
+			display: inline;
 			height: 15dp;
+			right: 20dp;
 		}
 	</style>
 </head>
@@ -69,7 +68,7 @@
 	</tr>
 	<tr>
 		<td style="height: 50%;">Cat<div class="bottom-right">X</div></td>
-		<td style="padding-left: 30dp; padding-top: 50dp;" colspan="2">Mouse<div class="bottom-right">X</div></td>
+		<td style="padding-left: 30dp; padding-top: 50dp; position: relative" colspan="2">Mouse<div class="bottom-right">Y</div></td>
 		<td style="border-left: 5dp green; border-right-width: 2dp; vertical-align: bottom" rowspan="2">RatTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT</td>
 	</tr>
 	<tr>

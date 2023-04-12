@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,22 +40,14 @@ bool FontEffect::HasUniqueTexture() const
 	return false;
 }
 
-bool FontEffect::GetGlyphMetrics(Vector2i& RMLUI_UNUSED_PARAMETER(origin), Vector2i& RMLUI_UNUSED_PARAMETER(dimensions), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
+bool FontEffect::GetGlyphMetrics(Vector2i& /*origin*/, Vector2i& /*dimensions*/, const FontGlyph& /*glyph*/) const
 {
-	RMLUI_UNUSED(origin);
-	RMLUI_UNUSED(dimensions);
-	RMLUI_UNUSED(glyph);
-
 	return false;
 }
 
-void FontEffect::GenerateGlyphTexture(byte* RMLUI_UNUSED_PARAMETER(destination_data), Vector2i RMLUI_UNUSED_PARAMETER(destination_dimensions), int RMLUI_UNUSED_PARAMETER(destination_stride), const FontGlyph& RMLUI_UNUSED_PARAMETER(glyph)) const
-{
-	RMLUI_UNUSED(destination_data);
-	RMLUI_UNUSED(destination_dimensions);
-	RMLUI_UNUSED(destination_stride);
-	RMLUI_UNUSED(glyph);
-}
+void FontEffect::GenerateGlyphTexture(byte* /*destination_data*/, Vector2i /*destination_dimensions*/, int /*destination_stride*/,
+	const FontGlyph& /*glyph*/) const
+{}
 
 void FontEffect::SetColour(const Colourb _colour)
 {

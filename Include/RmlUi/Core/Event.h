@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,10 +29,10 @@
 #ifndef RMLUI_CORE_EVENT_H
 #define RMLUI_CORE_EVENT_H
 
-#include "Header.h"
 #include "Dictionary.h"
-#include "ScriptInterface.h"
+#include "Header.h"
 #include "ID.h"
+#include "ScriptInterface.h"
 
 namespace Rml {
 
@@ -45,14 +45,13 @@ enum class EventPhase { None, Capture = 1, Target = 2, Bubble = 4 };
 enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, TargetAndBubble = ((int)Target | (int)EventPhase::Bubble) };
 
 /**
-	An event that propogates through the element hierarchy. Events follow the DOM3 event specification. See
-	http://www.w3.org/TR/DOM-Level-3-Events/events.html.
+    An event that propogates through the element hierarchy. Events follow the DOM3 event specification. See
+    http://www.w3.org/TR/DOM-Level-3-Events/events.html.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API Event : public ScriptInterface
-{
+class RMLUICORE_API Event : public ScriptInterface {
 public:
 	/// Constructor
 	Event();
@@ -104,7 +103,7 @@ public:
 	/// Returns the value of one of the event's parameters.
 	/// @param key[in] The name of the desired parameter.
 	/// @return The value of the requested parameter.
-	template < typename T >
+	template <typename T>
 	T GetParameter(const String& key, const T& default_value) const
 	{
 		return Get(parameters, key, default_value);
@@ -134,7 +133,7 @@ private:
 	String type;
 	EventId id = EventId::Invalid;
 	bool interruptible = false;
-	
+
 	bool interrupted = false;
 	bool interrupted_immediate = false;
 
@@ -147,7 +146,6 @@ private:
 
 	friend class Rml::Factory;
 };
-
 
 } // namespace Rml
 #endif

@@ -44,7 +44,7 @@
 <div class="guideline"/>
 
 <h1>Hello World!</h1>
-<h1>   Hello 
+<h1>   Hello
 				<span> World!</span>	  </h1>
 
 <p><span>Duck!</span> <span>Duck!</span> <span>Duck!</span></p>

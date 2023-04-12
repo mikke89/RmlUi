@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,16 +29,15 @@
 #include "ElementDecoration.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
+#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 
 namespace Rml {
 
-ElementDecoration::ElementDecoration(Element* _element) : element(_element)
-{}
+ElementDecoration::ElementDecoration(Element* _element) : element(_element) {}
 
 ElementDecoration::~ElementDecoration()
 {
@@ -55,7 +54,6 @@ void ElementDecoration::InstanceDecorators()
 	}
 }
 
-// Releases existing decorators and loads all decorators required by the element's definition.
 bool ElementDecoration::ReloadDecorators()
 {
 	RMLUI_ZoneScopedC(0xB22222);
@@ -105,7 +103,6 @@ bool ElementDecoration::ReloadDecorators()
 	return true;
 }
 
-// Loads a single decorator and adds it to the list of loaded decorators for this element.
 void ElementDecoration::ReloadDecoratorsData()
 {
 	if (decorators_data_dirty)
@@ -122,7 +119,6 @@ void ElementDecoration::ReloadDecoratorsData()
 	}
 }
 
-// Releases all existing decorators and frees their data.
 void ElementDecoration::ReleaseDecorators()
 {
 	for (DecoratorHandle& decorator : decorators)
@@ -133,7 +129,6 @@ void ElementDecoration::ReleaseDecorators()
 
 	decorators.clear();
 }
-
 
 void ElementDecoration::RenderDecorators()
 {

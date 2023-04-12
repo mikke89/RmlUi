@@ -6,33 +6,33 @@
 @spritesheet demo-sheet
 {
 	src: /assets/invader.tga;
-	
+
 	window-outer: 0px 0px 144px 151px;
-	
+
 	demo-radio-t: 407px  0px 30px 14px;
 	demo-radio-c: 407px 14px 30px  2px;
 	demo-radio-b: 407px 16px 30px 14px;
-	
+
 	demo-radio-l: 407px 0px 14px 30px;
 	demo-radio-m: 421px 0px  2px 30px;
 	demo-radio-r: 423px 0px 14px 30px;
-	
+
 	demo-checkbox-t: 407px 60px 30px 14px;
 	demo-checkbox-c: 407px 74px 30px  2px;
 	demo-checkbox-b: 407px 76px 30px 14px;
-	
+
 	demo-checkbox-l: 407px 60px 14px 30px;
 	demo-checkbox-m: 421px 60px  2px 30px;
 	demo-checkbox-r: 423px 60px 14px 30px;
-	
+
 	demo-checked-t: 407px  90px 30px  8px;
 	demo-checked-c: 407px  98px 30px 14px;
 	demo-checked-b: 407px 112px 30px  8px;
-	
+
 	demo-help-t:    128px 152px 51px  6px;
 	demo-help-c:    128px 158px 51px 21px;
 	demo-help-b:    128px 179px 51px 12px;
-	
+
 	demo-title-bar: 147px 0px 96px 85px;
 }
 
@@ -52,8 +52,8 @@ div#title_bar div#icon
 	display: none;
 }
 div#content
-{ 
-	position: relative; 
+{
+	position: relative;
 	/* background-color: #bbb; */
 }
 tabset
@@ -62,7 +62,7 @@ tabset
 }
 tabs
 {
-    display: block;
+	display: block;
 	position: fixed;
 	clip: none;
 	text-align: right;
@@ -76,12 +76,12 @@ tab
 	padding: 0 20dp;
 	line-height: 40dp;
 	display: inline-block;
-	
+
 	font-size: 15dp;
 	color: #ddd;
 	text-align: center;
-	
-	decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
+
+	decorator: tiled-horizontal( tableheader-l, tableheader-c, tableheader-r );
 	image-color: #cffc;
 }
 tab:hover
@@ -96,11 +96,11 @@ tab:active, tab:selected
 }
 panels
 {
-    display: block;
+	display: block;
 }
 panel
 {
-    display: block;
+	display: block;
 	padding: 30dp;
 	margin-left: auto;
 	margin-right: auto;
@@ -125,7 +125,7 @@ p.title
 	text-align: center;
 }
 .clickable
-{ 
+{
 	cursor: pointer;
 }
 
@@ -178,7 +178,7 @@ p.title
 {
 	height: 200dp;
 	decorator: tiled-box(
-		window-tl, window-t, window-tr, 
+		window-tl, window-t, window-tr,
 		window-l, window-c, window-r,
 		window-bl, window-b, window-br
 	);
@@ -230,7 +230,7 @@ p.title
 
 /***  Font effects  ***/
 
-#font_effects div 
+#font_effects div
 {
 	display: inline-block;
 	width: 180dp;
@@ -239,7 +239,7 @@ p.title
 	font-size: 35dp;
 	color: #b33;
 }
-#font_effects h1 
+#font_effects h1
 {
 	margin: 15dp 0 10dp 0;
 }
@@ -338,14 +338,14 @@ p.title
 #transition:hover .alien1 { left: 30%; top: 75dp; }
 #transition:hover .alien3 { left: 70%; top: 75dp; }
 #transition .defender
-{ 
+{
 	transition: image-color 0.3s 0.0s quadratic-out;
 	position: absolute;
 	left: -44dp;
-	top: 150dp; opacity: 1; 
+	top: 150dp; opacity: 1;
 }
 #transition:hover .defender { image-color: #acf;  }
-#transition .ray { 
+#transition .ray {
 	transition: top 0.4s back-out, opacity 0.4s cubic-in;
 	position: absolute;
 	top: -130dp;
@@ -448,7 +448,7 @@ form h2 {
 	width: 40dp;
 	padding-left: 1em;
 }
-#rating_emoji { 
+#rating_emoji {
 	color: #ffd40f;
 	font-size: 1.7em;
 }
@@ -457,13 +457,13 @@ progress {
 	display: inline-block;
 	vertical-align: middle;
 }
-#gauge { 
+#gauge {
 	decorator: image( gauge );
 	width: 100dp;
 	height: 86dp;
 	fill-image: gauge-fill;
 }
-#progress_horizontal { 
+#progress_horizontal {
 	decorator: tiled-horizontal( progress-l, progress-c, progress-r );
 	width: 150dp;
 	height: 34dp;
@@ -489,13 +489,13 @@ progress {
 #gauge_value {
 	margin: 34dp 0 0 18dp;
 }
-#progress_value { 
+#progress_value {
 	margin-left: -20dp;
 	display: inline-block;
 }
 
 
-#form_output 
+#form_output
 {
 	border: 1dp #666;
 	font-size: 0.9em;
@@ -508,7 +508,7 @@ progress {
 	overflow: hidden auto;
 }
 
-#controls textarea 
+#controls textarea
 {
 	font-size: 18dp;
 	font-effect: outline(2dp #060);
@@ -552,7 +552,7 @@ progress {
 	width: 100%;
 	height: 100%;
 }
-#sandbox_target 
+#sandbox_target
 {
 	box-sizing: border-box;
 	background-color: #fff;
@@ -587,7 +587,7 @@ progress {
 	background: #dda;
 }
 #vertical_slider
-{	
+{
 	width: 12dp;
 	margin-left: 3dp;
 	padding-top: 5dp;
@@ -617,7 +617,7 @@ progress {
 		<button class="gradient">Gradient</button>
 		<button class="gradient horizontal">Gradient</button>
 	</div>
-	
+
 	<h1>Image decorator</h1>
 	<p>The 'image' decorator applies an image to the background of an element. By default it stretches the image to the size of the element, but this behavior can be controlled as seen later on.</p>
 	<div class="center">
@@ -631,7 +631,7 @@ progress {
 			<button>Button</button>
 		</div>
 	</div>
-	
+
 	<h1>Tiled-horizontal decorator</h1>
 	<p>The 'tiled-horizontal' decorator separates an image into three parts, with the edges displayed at their native size while the middle part is stretched to cover the remaining width of the element. In each of the following examples an image is displayed at its native size first, and then the decorator is applied to it with its element stretched horizontally.</p>
 	<div class="side-by-side">
@@ -647,7 +647,7 @@ progress {
 		<div style="width: 250dp; height: 85dp; decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );"/>
 	</div>
 	<p>In the third example we show the same title bar that is used to style the sample windows.</p>
-	
+
 
 	<h1>Tiled-vertical decorator</h1>
 	<p>The 'tiled-vertical' decorator behaves like tiled-horizontal, but this time it is stretched vertically.</p>
@@ -668,31 +668,31 @@ progress {
 		<div style="width: 51dp; height: 80dp; decorator: tiled-vertical( demo-help-t, demo-help-c, demo-help-b );"/>
 	</div>
 	<p>Clearly, not all images are designed to stretch like this. However, one can certainly envision a usage for the first two examples.</p>
-	
+
 	<h1>Tiled-box decorator</h1>
 	<p>The 'tiled-box' decorator lays out a 3x3 grid within the element, each of the nine parts being filled with a separate sprite or image. The corners stay fixed in size, while the center and edges are stretched to fill the remaining size of the element.</p>
 	<p>The following image displays the region used to define the background of the window in this sample.</p>
 	<img sprite="window-outer"/>
 	<p>The decorator's element can then gracefully be sized in any direction, keeping the corners and edges at a proper size.</p>
 	<div class="tiled-box"/>
-	
+
 	<h1>Ninepatch decorator</h1>
 	<p>The 'ninepatch' decorator is similar to the tiled-box decorator in that it splits the image into nine parts. However, only two sprites are used to define all nine tiles, an outer sprite and an inner sprite.</p>
-	
+
 	<p>Let us define the outer sprite by the following image, and the inner sprite as the part within the displayed border.</p>
 	<div style="position: relative; text-align: left; width: 145dp;">
 		<img sprite="textarea"/><img sprite="textarea-inner" style="position: absolute; left: 10dp; top: 13dp; border: 1dp #f0f;"/>
 	</div>
-	
+
 	<p>When the ninepatch decorator is applied and the element is stretched, the following is rendered.</p>
 	<div style="width: 240dp; height: 50dp; decorator: ninepatch(textarea, textarea-inner, 1.0);"/>
 	<p>Notice that the corners stay fixed, and the inner sprite is stretched. We can also control the rendered size of the edges, here the left edge is displayed at its native size and the others at half their size.</p>
 	<div style="width: 240dp; height: 50dp; decorator: ninepatch(textarea, textarea-inner, .5 .5 .5 1);"/>
-	
+
 	<p>If we instead compare this to the image decorator, we see the following.</p>
 	<div style="width: 240dp; height: 50dp; decorator: image(textarea);"/>
 	<p>With the image decorator it looks blurry and its borders are stretched.</p>
-	
+
 	<div style="width: 850dp; margin-left: -175dp;">
 		<h1>Image decorator fit modes</h1>
 		<div class="image-mode">
@@ -735,7 +735,7 @@ progress {
 		<img src="../../../assets/high_scores_defender.tga" style="image-color: #9c5;" rect="64 0 64 64"/>
 	</div>
 	<p>The 'img' elements are separate from decorators, but we describe them here for completeness. They can be declared as in html. Additionally, a 'rect' attribute can be used to crop the image. The element can also display sprites declared in a sprite sheet.</p>
-	
+
 	<h1>Sprite sheets</h1>
 	<p>Sprite sheets are defined by an image source and a collection of sprites, and can be declared in RCSS. Sprites are essentially rectangles into the given image. For example, the following image</p>
 	<img src="../../../assets/invader.tga" rect="0 0 500 435" style="margin-top: 10dp; margin-bottom: 10dp;"/>
@@ -762,7 +762,7 @@ progress {
 </panel>
 <tab>Animations</tab>
 <panel id="animations">
-	
+
 	<h1>Transitions</h1>
 	<p>Hover over the following to see an animation performed by the transition property in RCSS.</p>
 	<div id="transition">
@@ -772,7 +772,7 @@ progress {
 		<div class="ray"><img class="defender" src="../../../assets/high_scores_defender.tga"/></div>
 		<div style="height: 110%;"/>
 	</div>
-	
+
 	<h1>Tweening functions</h1>
 	<p>Set animation parameters below and click on the background or the flag.</p>
 	<div id="tweening_area" onclick="move_child">
@@ -799,10 +799,10 @@ progress {
 		<option value="in-out">In-Out</option>
 	</select>
 	<div>
-		<input type="range" style="width: 150dp; margin-right: 1em;" min="0" max="2" step="0.05" value="0.5" onchange="tween_duration"/> 
+		<input type="range" style="width: 150dp; margin-right: 1em;" min="0" max="2" step="0.05" value="0.5" onchange="tween_duration"/>
 		Duration <span id="duration">0.50</span> s
 	</div>
-	
+
 	<h1>Cube</h1>
 	<p>The cube is transformed and animated entirely in RCSS using the @keyframes at-rule.</p>
 	<div class="cube_container">

@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Drag</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Drag</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="Issue #269" href="https://github.com/mikke89/RmlUi/issues/269" />
 	<meta name="Description" content="Clone dragging should respect parent transforms when determining starting location. However, parent transforms themselves are not applied to the clone." />
 	<meta name="Assert" content="When the upper button is dragged, it should generate a clone at the same location and orientation." />

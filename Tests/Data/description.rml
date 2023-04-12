@@ -25,7 +25,7 @@
 	}
 	h1   { color: white; font-size: 1.3em; }
 	h3   { color: white; font-size: 1.15em; }
-	
+
 	p.links a { margin: 0 0.7em; }
 	#header {
 		color: #ddb;
@@ -54,7 +54,7 @@
 		color: #ffc;
 	}
 	#content {
-		overflow: hidden auto;	
+		overflow: hidden auto;
 	}
 	#goto {
 		margin: 0 20dp 10dp 20dp;

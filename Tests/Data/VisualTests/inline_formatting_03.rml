@@ -1,0 +1,31 @@
+<rml>
+<head>
+	<title>Inline formatting 03</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/css-inline-3/#model" />
+	<meta name="Description" content="Testing inline box split by resizing the document." />
+	<style>
+		body {
+			width: 280px;
+			padding: 0;
+			border: 20dp #ddd;
+		}
+		span {
+			color: red;
+			padding: 5px;
+			border: 4px #ee0;
+			margin: 5px 50px;
+		}
+		.paragraph {
+			margin: 15px 0;
+		}
+	</style>
+</head>
+
+<body rmlui-debug-layout>
+
+<div class="paragraph">In consectetur<span class="outer">A metus</span> Quisque maximus urna in congue placerat. In hac habitasse platea dictumst. Mauris a fringilla augue.</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

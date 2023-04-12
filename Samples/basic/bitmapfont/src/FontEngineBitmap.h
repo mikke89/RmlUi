@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,34 +29,26 @@
 #ifndef FONTENGINEBITMAP_H
 #define FONTENGINEBITMAP_H
 
-#include <cstdint>
-#include <RmlUi/Core/Types.h>
 #include "FontEngineInterfaceBitmap.h"
+#include <RmlUi/Core/BaseXMLParser.h>
+#include <RmlUi/Core/Texture.h>
+#include <RmlUi/Core/Types.h>
+#include <cstdint>
 
 class FontFaceBitmap;
 
-namespace FontProviderBitmap
-{
-	void Initialise();
-	void Shutdown();
-	bool LoadFontFace(const String& file_name);
-	FontFaceBitmap* GetFontFaceHandle(const String& family, FontStyle style, FontWeight weight, int size);
-}
-
+namespace FontProviderBitmap {
+void Initialise();
+void Shutdown();
+bool LoadFontFace(const String& file_name);
+FontFaceBitmap* GetFontFaceHandle(const String& family, FontStyle style, FontWeight weight, int size);
+} // namespace FontProviderBitmap
 
 struct BitmapGlyph {
 	int advance = 0;
-	Vector2f offset = { 0, 0 };
-	Vector2f position = { 0, 0 };
-	Vector2f dimension = { 0, 0 };
-};
-
-struct FontMetrics {
-	int size = 0;
-	int x_height = 0;
-	int line_height = 0;
-	int baseline = 0;
-	float underline_position = 0, underline_thickness = 0;
+	Vector2f offset = {0, 0};
+	Vector2f position = {0, 0};
+	Vector2f dimension = {0, 0};
 };
 
 // A mapping of characters to their glyphs.
@@ -65,10 +57,10 @@ using FontGlyphs = Rml::UnorderedMap<Character, BitmapGlyph>;
 // Mapping of combined (left, right) character to kerning in pixels.
 using FontKerning = Rml::UnorderedMap<std::uint64_t, int>;
 
-
 class FontFaceBitmap {
 public:
-	FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, Texture texture, Vector2f texture_dimensions, FontGlyphs&& glyphs, FontKerning&& kerning);
+	FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, Texture texture, Vector2f texture_dimensions,
+		FontGlyphs&& glyphs, FontKerning&& kerning);
 
 	// Get width of string.
 	int GetStringWidth(const String& string, Character prior_character);
@@ -76,9 +68,8 @@ public:
 	// Generate the string geometry, returning its width.
 	int GenerateString(const String& string, const Vector2f& position, const Colourb& colour, GeometryList& geometry);
 
-
 	const FontMetrics& GetMetrics() const { return metrics; }
-	
+
 	const String& GetFamily() const { return family; }
 	FontStyle GetStyle() const { return style; }
 	FontWeight GetWeight() const { return weight; }
@@ -99,13 +90,11 @@ private:
 	FontKerning kerning;
 };
 
-
 /*
-	Parses the font meta data from an xml file.
+    Parses the font meta data from an xml file.
 */
 
-class FontParserBitmap : public Rml::BaseXMLParser
-{
+class FontParserBitmap : public Rml::BaseXMLParser {
 public:
 	FontParserBitmap() {}
 	virtual ~FontParserBitmap();
@@ -122,12 +111,11 @@ public:
 	FontWeight weight = FontWeight::Normal;
 
 	String texture_name;
-	Vector2f texture_dimensions = { 0, 0 };
+	Vector2f texture_dimensions = {0, 0};
 
-	FontMetrics metrics;
+	FontMetrics metrics = {};
 	FontGlyphs glyphs;
 	FontKerning kerning;
 };
-
 
 #endif

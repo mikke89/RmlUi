@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,20 +27,16 @@
  */
 
 #include "EventHandlerOptions.h"
-#include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/ElementUtilities.h>
-#include <RmlUi/Core/Event.h>
-#include <RmlUi/Core/Elements/ElementFormControlInput.h>
 #include "EventManager.h"
 #include "GameDetails.h"
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementUtilities.h>
+#include <RmlUi/Core/Elements/ElementFormControlInput.h>
+#include <RmlUi/Core/Event.h>
 
-EventHandlerOptions::EventHandlerOptions()
-{
-}
+EventHandlerOptions::EventHandlerOptions() {}
 
-EventHandlerOptions::~EventHandlerOptions()
-{
-}
+EventHandlerOptions::~EventHandlerOptions() {}
 
 void EventHandlerOptions::ProcessEvent(Rml::Event& event, const Rml::String& value)
 {
@@ -58,21 +54,22 @@ void EventHandlerOptions::ProcessEvent(Rml::Event& event, const Rml::String& val
 		Rml::String graphics_option_id;
 		switch (GameDetails::GetGraphicsQuality())
 		{
-			case GameDetails::GOOD:		graphics_option_id = "good"; break;
-			case GameDetails::OK:		graphics_option_id = "ok"; break;
-			case GameDetails::BAD:		graphics_option_id = "bad"; break;
-			default:					break;
+		case GameDetails::GOOD: graphics_option_id = "good"; break;
+		case GameDetails::OK: graphics_option_id = "ok"; break;
+		case GameDetails::BAD: graphics_option_id = "bad"; break;
+		default: break;
 		}
 
 		// Fetch the radio button from the document by ID, cast it to a radio button interface and set it as checked.
 		// This will automatically pop the other radio buttons in the set. Note that we could have not cast and called
 		// the 'Click()' function instead, but this method will avoid event overhead.
-		Rml::ElementFormControlInput* graphics_option = rmlui_dynamic_cast< Rml::ElementFormControlInput* >(options_body->GetElementById(graphics_option_id));
+		Rml::ElementFormControlInput* graphics_option =
+			rmlui_dynamic_cast<Rml::ElementFormControlInput*>(options_body->GetElementById(graphics_option_id));
 		if (graphics_option != nullptr)
 			graphics_option->SetAttribute("checked", "");
 
 		// Fetch the reverb option by ID and set its checked status from the game options.
-		Rml::ElementFormControlInput* reverb_option = rmlui_dynamic_cast< Rml::ElementFormControlInput* >(options_body->GetElementById("reverb"));
+		Rml::ElementFormControlInput* reverb_option = rmlui_dynamic_cast<Rml::ElementFormControlInput*>(options_body->GetElementById("reverb"));
 		if (reverb_option != nullptr)
 		{
 			if (GameDetails::GetReverb())
@@ -82,7 +79,7 @@ void EventHandlerOptions::ProcessEvent(Rml::Event& event, const Rml::String& val
 		}
 
 		// Similarly, fetch the 3D spatialisation option by ID and set its checked status.
-		Rml::ElementFormControlInput* spatialisation_option = rmlui_dynamic_cast< Rml::ElementFormControlInput* >(options_body->GetElementById("3d"));
+		Rml::ElementFormControlInput* spatialisation_option = rmlui_dynamic_cast<Rml::ElementFormControlInput*>(options_body->GetElementById("3d"));
 		if (spatialisation_option != nullptr)
 		{
 			if (GameDetails::Get3DSpatialisation())
@@ -105,15 +102,15 @@ void EventHandlerOptions::ProcessEvent(Rml::Event& event, const Rml::String& val
 	{
 		// First check which button was clicked to submit the form; if it was 'cancel', then we don't want to
 		// propagate the changes.
-		if (event.GetParameter< Rml::String >("submit", "cancel") == "accept")
+		if (event.GetParameter<Rml::String>("submit", "cancel") == "accept")
 		{
 			// Fetch the results of the form submission. These are stored as parameters directly on the event itself.
 			// Like HTML form events, the name of the parameter is the 'name' attribute of the control, and the value
 			// is whatever was put into the 'value' attribute. Checkbox values are only sent through if the box was
 			// clicked. Radio buttons send through one value for the active button.
-			Rml::String graphics = event.GetParameter< Rml::String >("graphics", "ok");
-			bool reverb = event.GetParameter< Rml::String >("reverb", "") == "true";
-			bool spatialisation = event.GetParameter< Rml::String >("3d", "") == "true";
+			Rml::String graphics = event.GetParameter<Rml::String>("graphics", "ok");
+			bool reverb = event.GetParameter<Rml::String>("reverb", "") == "true";
+			bool spatialisation = event.GetParameter<Rml::String>("3d", "") == "true";
 
 			if (graphics == "good")
 				GameDetails::SetGraphicsQuality(GameDetails::GOOD);
@@ -141,7 +138,7 @@ void EventHandlerOptions::ProcessEvent(Rml::Event& event, const Rml::String& val
 		{
 			// The 'value' parameter of an onchange event is set to the value the control would send if it was
 			// submitted; so, the empty string if it is clear or to the 'value' attribute of the control if it is set.
-			if (event.GetParameter< String >("value", "").empty())
+			if (event.GetParameter<String>("value", "").empty())
 				bad_warning->SetProperty(PropertyId::Display, Property(Style::Display::None));
 			else
 				bad_warning->SetProperty(PropertyId::Display, Property(Style::Display::Block));

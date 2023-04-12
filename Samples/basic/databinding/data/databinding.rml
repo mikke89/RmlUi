@@ -19,8 +19,8 @@ div#title_bar div#icon
 	display: none;
 }
 div#content
-{ 
-	position: relative; 
+{
+	position: relative;
 }
 tabset
 {
@@ -42,12 +42,12 @@ tab
 	width: 100dp;
 	padding: 0 20dp;
 	line-height: 40dp;
-	
+
 	font-size: 16dp;
 	color: #ddd;
 	text-align: center;
-	
-	decorator: tiled-horizontal( datagridheader-l, datagridheader-c, datagridheader-r );
+
+	decorator: tiled-horizontal( tableheader-l, tableheader-c, tableheader-r );
 	image-color: #cffc;
 }
 tab:hover
@@ -87,7 +87,7 @@ p.title
 	text-align: center;
 }
 .clickable
-{ 
+{
 	cursor: pointer;
 }
 .red {
@@ -379,8 +379,8 @@ select selectbox option.disabled {
 		<h2>Subject</h2>
 		<div>
 			<select id="select" name="subject" data-value="selected_subject">
-                <option data-for="s : subjects" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
-            </select>
+				<option data-for="s : subjects" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+			</select>
 			<br/>
 			<p>
 				Select subject by index<br/>

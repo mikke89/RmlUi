@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,22 +35,17 @@
 
 namespace Rml {
 
-GeometryUtilities::GeometryUtilities()
-{
-}
+GeometryUtilities::GeometryUtilities() {}
 
-GeometryUtilities::~GeometryUtilities()
-{
-}
+GeometryUtilities::~GeometryUtilities() {}
 
-// Generates a quad from a position, size and colour.
 void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, int index_offset)
 {
 	GenerateQuad(vertices, indices, origin, dimensions, colour, Vector2f(0, 0), Vector2f(1, 1), index_offset);
 }
 
-// Generates a quad from a position, size, colour and texture coordinates.
-void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, Vector2f top_left_texcoord, Vector2f bottom_right_texcoord, int index_offset)
+void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, Vector2f top_left_texcoord,
+	Vector2f bottom_right_texcoord, int index_offset)
 {
 	vertices[0].position = origin;
 	vertices[0].colour = colour;
@@ -77,43 +72,29 @@ void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f or
 	indices[5] = index_offset + 2;
 }
 
-// Generates the geometry required to render a line above, below or through a line of text.
-void GeometryUtilities::GenerateLine(FontFaceHandle font_face_handle, Geometry* geometry, Vector2f position, int width, Style::TextDecoration height, Colourb colour)
+void GeometryUtilities::GenerateLine(Geometry* geometry, Vector2f position, Vector2f size, Colourb color)
 {
-	Vector< Vertex >& line_vertices = geometry->GetVertices();
-	Vector< int >& line_indices = geometry->GetIndices();
-	float underline_thickness = 0;
-	float underline_position = GetFontEngineInterface()->GetUnderline(font_face_handle, underline_thickness);
-	int size = GetFontEngineInterface()->GetSize(font_face_handle);
-	int x_height = GetFontEngineInterface()->GetXHeight(font_face_handle);
+	Math::SnapToPixelGrid(position, size);
 
-	float offset;
-	switch (height)
-	{
-		case Style::TextDecoration::Underline:       offset = -underline_position; break;
-		case Style::TextDecoration::Overline:        offset = -underline_position - (float)size; break;
-		case Style::TextDecoration::LineThrough:     offset = -0.65f * (float)x_height; break;
-		default: return;
-	}
+	Vector<Vertex>& line_vertices = geometry->GetVertices();
+	Vector<int>& line_indices = geometry->GetIndices();
+
+	const int vertices_i0 = (int)line_vertices.size();
+	const int indices_i0 = (int)line_indices.size();
 
 	line_vertices.resize(line_vertices.size() + 4);
 	line_indices.resize(line_indices.size() + 6);
-	GeometryUtilities::GenerateQuad(
-									&line_vertices[0] + ((int)line_vertices.size() - 4),
-									&line_indices[0] + ((int)line_indices.size() - 6),
-									Vector2f(position.x, position.y + offset).Round(),
-									Vector2f((float) width, underline_thickness),
-									colour,
-									(int)line_vertices.size() - 4
-									);
+
+	GeometryUtilities::GenerateQuad(line_vertices.data() + vertices_i0, line_indices.data() + indices_i0, position, size, color, vertices_i0);
 }
 
-void GeometryUtilities::GenerateBackgroundBorder(Geometry* geometry, const Box& box, Vector2f offset, Vector4f border_radius, Colourb background_colour, const Colourb* border_colours)
+void GeometryUtilities::GenerateBackgroundBorder(Geometry* geometry, const Box& box, Vector2f offset, Vector4f border_radius,
+	Colourb background_colour, const Colourb* border_colours)
 {
 	Vector<Vertex>& vertices = geometry->GetVertices();
 	Vector<int>& indices = geometry->GetIndices();
 
-	CornerSizes corner_sizes{ border_radius.x, border_radius.y, border_radius.z, border_radius.w };
+	CornerSizes corner_sizes{border_radius.x, border_radius.y, border_radius.z, border_radius.w};
 	GeometryBackgroundBorder::Draw(vertices, indices, corner_sizes, box, offset, background_colour, border_colours);
 }
 

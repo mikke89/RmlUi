@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -89,13 +89,11 @@ const StyleSheetContainer* StyleSheetFactory::GetStyleSheetContainer(const Strin
 	return result;
 }
 
-// Clear the style sheet cache.
 void StyleSheetFactory::ClearStyleSheetCache()
 {
 	instance->stylesheets.clear();
 }
 
-// Returns one of the available node selectors.
 StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 {
 	SelectorMap::const_iterator it;
@@ -118,11 +116,8 @@ StructuralSelector StyleSheetFactory::GetSelector(const String& name)
 	case StructuralSelectorType::Nth_Last_Child:
 	case StructuralSelectorType::Nth_Of_Type:
 	case StructuralSelectorType::Nth_Last_Of_Type:
-	case StructuralSelectorType::Not:
-		requires_parameter = true;
-		break;
-	default:
-		break;
+	case StructuralSelectorType::Not: requires_parameter = true; break;
+	default: break;
 	}
 
 	const size_t parameter_end = name.rfind(')');

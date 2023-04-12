@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -93,7 +93,6 @@ StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(CompoundSelector&& other)
 	return result;
 }
 
-// Merges an entire tree hierarchy into our hierarchy.
 void StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset)
 {
 	RMLUI_ZoneScoped;
@@ -125,7 +124,6 @@ UniquePtr<StyleSheetNode> StyleSheetNode::DeepCopy(StyleSheetNode* in_parent) co
 	return node;
 }
 
-// Builds up a style sheet's index recursively.
 void StyleSheetNode::BuildIndex(StyleSheetIndex& styled_node_index) const
 {
 	// If this has properties defined, then we insert it into the styled node index.
@@ -164,20 +162,16 @@ void StyleSheetNode::BuildIndex(StyleSheetIndex& styled_node_index) const
 		child->BuildIndex(styled_node_index);
 }
 
-// Returns the specificity of this node.
 int StyleSheetNode::GetSpecificity() const
 {
 	return specificity;
 }
 
-// Imports properties from a single rule definition (ie, with a shared specificity) into the node's
-// properties.
 void StyleSheetNode::ImportProperties(const PropertyDictionary& _properties, int rule_specificity)
 {
 	properties.Import(_properties, specificity + rule_specificity);
 }
 
-// Returns the node's default properties.
 const PropertyDictionary& StyleSheetNode::GetProperties() const
 {
 	return properties;

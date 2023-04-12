@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,10 +27,9 @@
  */
 
 #include "Inventory.h"
-#include <RmlUi/Core/Factory.h>
 #include "DragListener.h"
+#include <RmlUi/Core/Factory.h>
 
-// Constructs a new inventory and opens its window.
 Inventory::Inventory(const Rml::String& title, const Rml::Vector2f& position, Rml::Context* context)
 {
 	document = context->LoadDocument("basic/drag/data/inventory.rml");
@@ -46,7 +45,6 @@ Inventory::Inventory(const Rml::String& title, const Rml::Vector2f& position, Rm
 	DragListener::RegisterDraggableContainer(document->GetElementById("content"));
 }
 
-// Destroys the inventory and closes its window.
 Inventory::~Inventory()
 {
 	if (document != nullptr)
@@ -55,7 +53,6 @@ Inventory::~Inventory()
 	}
 }
 
-// Adds a brand-new item into this inventory.
 void Inventory::AddItem(const Rml::String& name)
 {
 	if (document == nullptr)

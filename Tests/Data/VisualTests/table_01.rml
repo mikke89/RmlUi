@@ -1,9 +1,9 @@
 <rml>
 <head>
-    <title>Table 01</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Table 01</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html" />
-    <link rel="match" href="reference/table_01-ref.rml"/>
+	<link rel="match" href="reference/table_01-ref.rml"/>
 	<meta name="Description" content="Basic table layout." />
 	<style>
 		table {
@@ -22,6 +22,9 @@
 		}
 		col {
 			background: #3d3;
+
+			/* Used to test the paint order of positioned columns, should not affect the order. */
+			position: relative;
 		}
 		col:first-child {
 			background: #6df;

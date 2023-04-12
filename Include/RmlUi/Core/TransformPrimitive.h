@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,224 +30,214 @@
 #define RMLUI_CORE_TRANSFORMPRIMITIVE_H
 
 #include "Header.h"
-#include "Types.h"
 #include "Property.h"
+#include "Types.h"
 
 namespace Rml {
 namespace Transforms {
 
-struct RMLUICORE_API NumericValue {
-	NumericValue() noexcept : number(0.f), unit(Property::UNKNOWN) {}
-	NumericValue(float number, Property::Unit unit) noexcept : number(number), unit(unit) {}
+	struct RMLUICORE_API NumericValue {
+		NumericValue() noexcept : number(0.f), unit(Property::UNKNOWN) {}
+		NumericValue(float number, Property::Unit unit) noexcept : number(number), unit(unit) {}
 
-	float number;
-	Property::Unit unit;
-};
+		float number;
+		Property::Unit unit;
+	};
 
-// A resolved primitive has values that are always independent of an element's properties or layout.
-template< size_t N >
-struct RMLUICORE_API ResolvedPrimitive
-{
-	Array<float, N> values;
+	// A resolved primitive has values that are always independent of an element's properties or layout.
+	template <size_t N>
+	struct RMLUICORE_API ResolvedPrimitive {
+		Array<float, N> values;
 
-protected:
-	ResolvedPrimitive(const float* values) noexcept;
-	ResolvedPrimitive(const NumericValue* values) noexcept;
-	ResolvedPrimitive(const NumericValue* values, Array<Property::Unit, N> base_units) noexcept;
-	ResolvedPrimitive(Array<NumericValue, N> values, Array<Property::Unit, N> base_units) noexcept;
-	ResolvedPrimitive(Array<float, N> values) noexcept;
-};
+	protected:
+		ResolvedPrimitive(const float* values) noexcept;
+		ResolvedPrimitive(const NumericValue* values) noexcept;
+		ResolvedPrimitive(const NumericValue* values, Array<Property::Unit, N> base_units) noexcept;
+		ResolvedPrimitive(Array<NumericValue, N> values, Array<Property::Unit, N> base_units) noexcept;
+		ResolvedPrimitive(Array<float, N> values) noexcept;
+	};
 
-// An unresolved primitive may have values that depend on the final layout of a given element, such as its width.
-template< size_t N >
-struct RMLUICORE_API UnresolvedPrimitive
-{
-	Array<NumericValue, N> values;
+	// An unresolved primitive may have values that depend on the final layout of a given element, such as its width.
+	template <size_t N>
+	struct RMLUICORE_API UnresolvedPrimitive {
+		Array<NumericValue, N> values;
 
-protected:
-	UnresolvedPrimitive(const NumericValue* values) noexcept;
-	UnresolvedPrimitive(Array<NumericValue, N> values) noexcept;
-};
+	protected:
+		UnresolvedPrimitive(const NumericValue* values) noexcept;
+		UnresolvedPrimitive(Array<NumericValue, N> values) noexcept;
+	};
 
+	struct RMLUICORE_API Matrix2D : public ResolvedPrimitive<6> {
+		Matrix2D(const NumericValue* values) noexcept;
+	};
 
-struct RMLUICORE_API Matrix2D : public ResolvedPrimitive< 6 >
-{
-	Matrix2D(const NumericValue* values) noexcept;
-};
+	struct RMLUICORE_API Matrix3D : public ResolvedPrimitive<16> {
+		Matrix3D(const NumericValue* values) noexcept;
+		Matrix3D(const Matrix4f& matrix) noexcept;
+	};
 
-struct RMLUICORE_API Matrix3D : public ResolvedPrimitive< 16 >
-{
-	Matrix3D(const NumericValue* values) noexcept;
-	Matrix3D(const Matrix4f& matrix) noexcept;
-};
+	struct RMLUICORE_API TranslateX : public UnresolvedPrimitive<1> {
+		TranslateX(const NumericValue* values) noexcept;
+		TranslateX(float x, Property::Unit unit = Property::PX) noexcept;
+	};
 
-struct RMLUICORE_API TranslateX : public UnresolvedPrimitive< 1 >
-{
-	TranslateX(const NumericValue* values) noexcept;
-	TranslateX(float x, Property::Unit unit = Property::PX) noexcept;
-};
+	struct RMLUICORE_API TranslateY : public UnresolvedPrimitive<1> {
+		TranslateY(const NumericValue* values) noexcept;
+		TranslateY(float y, Property::Unit unit = Property::PX) noexcept;
+	};
 
-struct RMLUICORE_API TranslateY : public UnresolvedPrimitive< 1 >
-{
-	TranslateY(const NumericValue* values) noexcept;
-	TranslateY(float y, Property::Unit unit = Property::PX) noexcept;
-};
+	struct RMLUICORE_API TranslateZ : public UnresolvedPrimitive<1> {
+		TranslateZ(const NumericValue* values) noexcept;
+		TranslateZ(float z, Property::Unit unit = Property::PX) noexcept;
+	};
 
-struct RMLUICORE_API TranslateZ : public UnresolvedPrimitive< 1 >
-{
-	TranslateZ(const NumericValue* values) noexcept;
-	TranslateZ(float z, Property::Unit unit = Property::PX) noexcept;
-};
+	struct RMLUICORE_API Translate2D : public UnresolvedPrimitive<2> {
+		Translate2D(const NumericValue* values) noexcept;
+		Translate2D(float x, float y, Property::Unit units = Property::PX) noexcept;
+	};
 
-struct RMLUICORE_API Translate2D : public UnresolvedPrimitive< 2 >
-{
-	Translate2D(const NumericValue* values) noexcept;
-	Translate2D(float x, float y, Property::Unit units = Property::PX) noexcept;
-};
+	struct RMLUICORE_API Translate3D : public UnresolvedPrimitive<3> {
+		Translate3D(const NumericValue* values) noexcept;
+		Translate3D(NumericValue x, NumericValue y, NumericValue z) noexcept;
+		Translate3D(float x, float y, float z, Property::Unit units = Property::PX) noexcept;
+	};
 
-struct RMLUICORE_API Translate3D : public UnresolvedPrimitive< 3 >
-{
-	Translate3D(const NumericValue* values) noexcept;
-	Translate3D(NumericValue x, NumericValue y, NumericValue z) noexcept;
-	Translate3D(float x, float y, float z, Property::Unit units = Property::PX) noexcept;
-};
+	struct RMLUICORE_API ScaleX : public ResolvedPrimitive<1> {
+		ScaleX(const NumericValue* values) noexcept;
+		ScaleX(float value) noexcept;
+	};
 
-struct RMLUICORE_API ScaleX : public ResolvedPrimitive< 1 >
-{
-	ScaleX(const NumericValue* values) noexcept;
-	ScaleX(float value) noexcept;
-};
+	struct RMLUICORE_API ScaleY : public ResolvedPrimitive<1> {
+		ScaleY(const NumericValue* values) noexcept;
+		ScaleY(float value) noexcept;
+	};
 
-struct RMLUICORE_API ScaleY : public ResolvedPrimitive< 1 >
-{
-	ScaleY(const NumericValue* values) noexcept;
-	ScaleY(float value) noexcept;
-};
+	struct RMLUICORE_API ScaleZ : public ResolvedPrimitive<1> {
+		ScaleZ(const NumericValue* values) noexcept;
+		ScaleZ(float value) noexcept;
+	};
 
-struct RMLUICORE_API ScaleZ : public ResolvedPrimitive< 1 >
-{
-	ScaleZ(const NumericValue* values) noexcept;
-	ScaleZ(float value) noexcept;
-};
+	struct RMLUICORE_API Scale2D : public ResolvedPrimitive<2> {
+		Scale2D(const NumericValue* values) noexcept;
+		Scale2D(float xy) noexcept;
+		Scale2D(float x, float y) noexcept;
+	};
 
-struct RMLUICORE_API Scale2D : public ResolvedPrimitive< 2 >
-{
-	Scale2D(const NumericValue* values) noexcept;
-	Scale2D(float xy) noexcept;
-	Scale2D(float x, float y) noexcept;
-};
+	struct RMLUICORE_API Scale3D : public ResolvedPrimitive<3> {
+		Scale3D(const NumericValue* values) noexcept;
+		Scale3D(float xyz) noexcept;
+		Scale3D(float x, float y, float z) noexcept;
+	};
 
-struct RMLUICORE_API Scale3D : public ResolvedPrimitive< 3 >
-{
-	Scale3D(const NumericValue* values) noexcept;
-	Scale3D(float xyz) noexcept;
-	Scale3D(float x, float y, float z) noexcept;
-};
+	struct RMLUICORE_API RotateX : public ResolvedPrimitive<1> {
+		RotateX(const NumericValue* values) noexcept;
+		RotateX(float angle, Property::Unit unit = Property::DEG) noexcept;
+	};
 
-struct RMLUICORE_API RotateX : public ResolvedPrimitive< 1 >
-{
-	RotateX(const NumericValue* values) noexcept;
-	RotateX(float angle, Property::Unit unit = Property::DEG) noexcept;
-};
+	struct RMLUICORE_API RotateY : public ResolvedPrimitive<1> {
+		RotateY(const NumericValue* values) noexcept;
+		RotateY(float angle, Property::Unit unit = Property::DEG) noexcept;
+	};
 
-struct RMLUICORE_API RotateY : public ResolvedPrimitive< 1 >
-{
-	RotateY(const NumericValue* values) noexcept;
-	RotateY(float angle, Property::Unit unit = Property::DEG) noexcept;
-};
+	struct RMLUICORE_API RotateZ : public ResolvedPrimitive<1> {
+		RotateZ(const NumericValue* values) noexcept;
+		RotateZ(float angle, Property::Unit unit = Property::DEG) noexcept;
+	};
 
-struct RMLUICORE_API RotateZ : public ResolvedPrimitive< 1 >
-{
-	RotateZ(const NumericValue* values) noexcept;
-	RotateZ(float angle, Property::Unit unit = Property::DEG) noexcept;
-};
+	struct RMLUICORE_API Rotate2D : public ResolvedPrimitive<1> {
+		Rotate2D(const NumericValue* values) noexcept;
+		Rotate2D(float angle, Property::Unit unit = Property::DEG) noexcept;
+	};
 
-struct RMLUICORE_API Rotate2D : public ResolvedPrimitive< 1 >
-{
-	Rotate2D(const NumericValue* values) noexcept;
-	Rotate2D(float angle, Property::Unit unit = Property::DEG) noexcept;
-};
+	struct RMLUICORE_API Rotate3D : public ResolvedPrimitive<4> {
+		Rotate3D(const NumericValue* values) noexcept;
+		Rotate3D(float x, float y, float z, float angle, Property::Unit angle_unit = Property::DEG) noexcept;
+	};
 
-struct RMLUICORE_API Rotate3D : public ResolvedPrimitive< 4 >
-{
-	Rotate3D(const NumericValue* values) noexcept;
-	Rotate3D(float x, float y, float z, float angle, Property::Unit angle_unit = Property::DEG) noexcept;
-};
+	struct RMLUICORE_API SkewX : public ResolvedPrimitive<1> {
+		SkewX(const NumericValue* values) noexcept;
+		SkewX(float angle, Property::Unit unit = Property::DEG) noexcept;
+	};
 
-struct RMLUICORE_API SkewX : public ResolvedPrimitive< 1 >
-{
-	SkewX(const NumericValue* values) noexcept;
-	SkewX(float angle, Property::Unit unit = Property::DEG) noexcept;
-};
+	struct RMLUICORE_API SkewY : public ResolvedPrimitive<1> {
+		SkewY(const NumericValue* values) noexcept;
+		SkewY(float angle, Property::Unit unit = Property::DEG) noexcept;
+	};
 
-struct RMLUICORE_API SkewY : public ResolvedPrimitive< 1 >
-{
-	SkewY(const NumericValue* values) noexcept;
-	SkewY(float angle, Property::Unit unit = Property::DEG) noexcept;
-};
+	struct RMLUICORE_API Skew2D : public ResolvedPrimitive<2> {
+		Skew2D(const NumericValue* values) noexcept;
+		Skew2D(float x, float y, Property::Unit unit = Property::DEG) noexcept;
+	};
 
-struct RMLUICORE_API Skew2D : public ResolvedPrimitive< 2 >
-{
-	Skew2D(const NumericValue* values) noexcept;
-	Skew2D(float x, float y, Property::Unit unit = Property::DEG) noexcept;
-};
+	struct RMLUICORE_API Perspective : public UnresolvedPrimitive<1> {
+		Perspective(const NumericValue* values) noexcept;
+	};
 
-struct RMLUICORE_API Perspective : public UnresolvedPrimitive< 1 >
-{
-	Perspective(const NumericValue* values) noexcept;
-};
-
-struct RMLUICORE_API DecomposedMatrix4 {
-	Vector4f perspective;
-	Vector4f quaternion;
-	Vector3f translation;
-	Vector3f scale;
-	Vector3f skew;
-};
+	struct RMLUICORE_API DecomposedMatrix4 {
+		Vector4f perspective;
+		Vector4f quaternion;
+		Vector3f translation;
+		Vector3f scale;
+		Vector3f skew;
+	};
 
 } // namespace Transforms
 
-
 /**
-	The TransformPrimitive struct is the base struct of geometric transforms such as rotations, scalings and translations.
-	Instances of this struct are added to Rml::Transform during parsing of the 'transform' property.
+    The TransformPrimitive struct is the base struct of geometric transforms such as rotations, scalings and translations.
+    Instances of this struct are added to Rml::Transform during parsing of the 'transform' property.
 
-	@author Markus Schöngart
-	@see Rml::Transform
-	@see Rml::PropertyParserTransform
+    @author Markus Schöngart
+    @see Rml::Transform
+    @see Rml::PropertyParserTransform
  */
 struct RMLUICORE_API TransformPrimitive {
-
 	enum Type {
-		MATRIX2D, MATRIX3D,
-		TRANSLATEX, TRANSLATEY, TRANSLATEZ, TRANSLATE2D, TRANSLATE3D,
-		SCALEX, SCALEY, SCALEZ, SCALE2D, SCALE3D,
-		ROTATEX, ROTATEY, ROTATEZ, ROTATE2D, ROTATE3D,
-		SKEWX, SKEWY, SKEW2D,
-		PERSPECTIVE, DECOMPOSEDMATRIX4
+		MATRIX2D,
+		MATRIX3D,
+		TRANSLATEX,
+		TRANSLATEY,
+		TRANSLATEZ,
+		TRANSLATE2D,
+		TRANSLATE3D,
+		SCALEX,
+		SCALEY,
+		SCALEZ,
+		SCALE2D,
+		SCALE3D,
+		ROTATEX,
+		ROTATEY,
+		ROTATEZ,
+		ROTATE2D,
+		ROTATE3D,
+		SKEWX,
+		SKEWY,
+		SKEW2D,
+		PERSPECTIVE,
+		DECOMPOSEDMATRIX4
 	};
 
-	TransformPrimitive(Transforms::Matrix2D          p) : type(MATRIX2D) { matrix_2d = p; }
-	TransformPrimitive(Transforms::Matrix3D          p) : type(MATRIX3D) { matrix_3d = p; }
-	TransformPrimitive(Transforms::TranslateX        p) : type(TRANSLATEX) { translate_x = p; }
-	TransformPrimitive(Transforms::TranslateY        p) : type(TRANSLATEY) { translate_y = p; }
-	TransformPrimitive(Transforms::TranslateZ        p) : type(TRANSLATEZ) { translate_z = p; }
-	TransformPrimitive(Transforms::Translate2D       p) : type(TRANSLATE2D) { translate_2d = p; }
-	TransformPrimitive(Transforms::Translate3D       p) : type(TRANSLATE3D) { translate_3d = p; }
-	TransformPrimitive(Transforms::ScaleX            p) : type(SCALEX) { scale_x = p; }
-	TransformPrimitive(Transforms::ScaleY            p) : type(SCALEY) { scale_y = p; }
-	TransformPrimitive(Transforms::ScaleZ            p) : type(SCALEZ) { scale_z = p; }
-	TransformPrimitive(Transforms::Scale2D           p) : type(SCALE2D) { scale_2d = p; }
-	TransformPrimitive(Transforms::Scale3D           p) : type(SCALE3D) { scale_3d = p; }
-	TransformPrimitive(Transforms::RotateX           p) : type(ROTATEX) { rotate_x = p; }
-	TransformPrimitive(Transforms::RotateY           p) : type(ROTATEY) { rotate_y = p; }
-	TransformPrimitive(Transforms::RotateZ           p) : type(ROTATEZ) { rotate_z = p; }
-	TransformPrimitive(Transforms::Rotate2D          p) : type(ROTATE2D) { rotate_2d = p; }
-	TransformPrimitive(Transforms::Rotate3D          p) : type(ROTATE3D) { rotate_3d = p; }
-	TransformPrimitive(Transforms::SkewX             p) : type(SKEWX) { skew_x = p; }
-	TransformPrimitive(Transforms::SkewY             p) : type(SKEWY) { skew_y = p; }
-	TransformPrimitive(Transforms::Skew2D            p) : type(SKEW2D) { skew_2d = p; }
-	TransformPrimitive(Transforms::Perspective       p) : type(PERSPECTIVE) { perspective = p; }
+	TransformPrimitive(Transforms::Matrix2D p) : type(MATRIX2D) { matrix_2d = p; }
+	TransformPrimitive(Transforms::Matrix3D p) : type(MATRIX3D) { matrix_3d = p; }
+	TransformPrimitive(Transforms::TranslateX p) : type(TRANSLATEX) { translate_x = p; }
+	TransformPrimitive(Transforms::TranslateY p) : type(TRANSLATEY) { translate_y = p; }
+	TransformPrimitive(Transforms::TranslateZ p) : type(TRANSLATEZ) { translate_z = p; }
+	TransformPrimitive(Transforms::Translate2D p) : type(TRANSLATE2D) { translate_2d = p; }
+	TransformPrimitive(Transforms::Translate3D p) : type(TRANSLATE3D) { translate_3d = p; }
+	TransformPrimitive(Transforms::ScaleX p) : type(SCALEX) { scale_x = p; }
+	TransformPrimitive(Transforms::ScaleY p) : type(SCALEY) { scale_y = p; }
+	TransformPrimitive(Transforms::ScaleZ p) : type(SCALEZ) { scale_z = p; }
+	TransformPrimitive(Transforms::Scale2D p) : type(SCALE2D) { scale_2d = p; }
+	TransformPrimitive(Transforms::Scale3D p) : type(SCALE3D) { scale_3d = p; }
+	TransformPrimitive(Transforms::RotateX p) : type(ROTATEX) { rotate_x = p; }
+	TransformPrimitive(Transforms::RotateY p) : type(ROTATEY) { rotate_y = p; }
+	TransformPrimitive(Transforms::RotateZ p) : type(ROTATEZ) { rotate_z = p; }
+	TransformPrimitive(Transforms::Rotate2D p) : type(ROTATE2D) { rotate_2d = p; }
+	TransformPrimitive(Transforms::Rotate3D p) : type(ROTATE3D) { rotate_3d = p; }
+	TransformPrimitive(Transforms::SkewX p) : type(SKEWX) { skew_x = p; }
+	TransformPrimitive(Transforms::SkewY p) : type(SKEWY) { skew_y = p; }
+	TransformPrimitive(Transforms::Skew2D p) : type(SKEW2D) { skew_2d = p; }
+	TransformPrimitive(Transforms::Perspective p) : type(PERSPECTIVE) { perspective = p; }
 	TransformPrimitive(Transforms::DecomposedMatrix4 p) : type(DECOMPOSEDMATRIX4) { decomposed_matrix_4 = p; }
 
 	Type type;
@@ -277,7 +267,6 @@ struct RMLUICORE_API TransformPrimitive {
 		Transforms::DecomposedMatrix4 decomposed_matrix_4;
 	};
 };
-
 
 } // namespace Rml
 #endif

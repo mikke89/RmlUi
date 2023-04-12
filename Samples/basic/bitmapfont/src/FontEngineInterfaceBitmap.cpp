@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,9 +26,9 @@
  *
  */
 
-#include <RmlUi/Core.h>
 #include "FontEngineInterfaceBitmap.h"
 #include "FontEngineBitmap.h"
+#include <RmlUi/Core.h>
 
 FontEngineInterfaceBitmap::FontEngineInterfaceBitmap()
 {
@@ -45,7 +45,8 @@ bool FontEngineInterfaceBitmap::LoadFontFace(const String& file_name, bool /*fal
 	return FontProviderBitmap::LoadFontFace(file_name);
 }
 
-bool FontEngineInterfaceBitmap::LoadFontFace(const byte* /*data*/, int /*data_size*/, const String& font_family, FontStyle /*style*/, FontWeight /*weight*/, bool /*fallback_face*/)
+bool FontEngineInterfaceBitmap::LoadFontFace(const byte* /*data*/, int /*data_size*/, const String& font_family, FontStyle /*style*/,
+	FontWeight /*weight*/, bool /*fallback_face*/)
 {
 	// We return 'true' here to allow the debugger to continue loading, but we will use our own fonts when it asks for a handle.
 	// The debugger might look a bit off with our own fonts, but hey it works.
@@ -67,45 +68,20 @@ FontEffectsHandle FontEngineInterfaceBitmap::PrepareFontEffects(FontFaceHandle /
 	return 0;
 }
 
-int FontEngineInterfaceBitmap::GetSize(FontFaceHandle handle)
+const FontMetrics& FontEngineInterfaceBitmap::GetFontMetrics(FontFaceHandle handle)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	return handle_bitmap->GetMetrics().size;
+	return handle_bitmap->GetMetrics();
 }
 
-int FontEngineInterfaceBitmap::GetXHeight(FontFaceHandle handle)
-{
-	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	return handle_bitmap->GetMetrics().x_height;
-}
-
-int FontEngineInterfaceBitmap::GetLineHeight(FontFaceHandle handle)
-{
-	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	return handle_bitmap->GetMetrics().line_height;
-}
-
-int FontEngineInterfaceBitmap::GetBaseline(FontFaceHandle handle)
-{
-	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	return handle_bitmap->GetMetrics().baseline;
-}
-
-float FontEngineInterfaceBitmap::GetUnderline(FontFaceHandle handle, float& thickness)
-{
-	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	thickness = handle_bitmap->GetMetrics().underline_thickness;
-	return handle_bitmap->GetMetrics().underline_position;
-}
-
-int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const String& string, Character prior_character)
+int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const String& string, float /*letter_spacing*/, Character prior_character)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
 	return handle_bitmap->GetStringWidth(string, prior_character);
 }
 
 int FontEngineInterfaceBitmap::GenerateString(FontFaceHandle handle, FontEffectsHandle /*font_effects_handle*/, const String& string,
-	const Vector2f& position, const Colourb& colour, float /*opacity*/, GeometryList& geometry)
+	const Vector2f& position, const Colourb& colour, float /*opacity*/, float /*letter_spacing*/, GeometryList& geometry)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
 	return handle_bitmap->GenerateString(string, position, colour, geometry);

@@ -1,3 +1,4 @@
+* [RmlUi 5.1](#rmlui-51)
 * [RmlUi 5.0](#rmlui-50)
 * [RmlUi 4.4](#rmlui-44)
 * [RmlUi 4.3](#rmlui-43)
@@ -10,7 +11,41 @@
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
 
-## RmlUi 5.1 (WIP)
+
+## RmlUi 6.0 (WIP)
+
+### Major layout engine improvements
+
+- Make layout more conformant to CSS specification.
+  - Rewritten inline layouting.
+  - Fixed more than a hundred CSS tests, including ACID1.
+- Improve readability and maintainability:
+  - Better separation of classes, reduce available state.
+  - Make classes better conform to CSS terminology.
+  - Improve call-graph, flow from parent to child, avoid mutable calls into ancestors.
+- Fix long-standing issues.
+  - Allow tables and flexboxes to be absolutely positioned or floated.
+  - Allow nested flexboxes: Flex items can now be flex containers themselves. #320
+  - Better handling of block-level boxes in inline formatting contexts. #392
+
+More details to be posted later. Expect some possible layout shifts in existing documents, usually due to better CSS conformance. Some new issues are expected during development, please report bugs, and layout changes that are not in compliance with CSS.
+
+### RCSS Properties
+
+- New `display` property values: `flow-root`, `inline-flex`, `inline-table`.
+- New `vertical-align` property value: `center`.
+- Added support for `letter-spacing` property. #429 (thanks @igorsegallafa)
+
+### Breaking changes
+
+- Possible layout changes, usually due to better CSS conformance.
+- Reworked font engine interface, in particular in terms of font metrics and letter-spacing.
+
+Removed deprecated functionality:
+- Removed the `<datagrid>` and `<dataselect>` elements, related utilities, and associated tutorials. Users are encouraged to replace this functionality by [tables](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html), [select boxes](https://mikke89.github.io/RmlUiDoc/pages/rml/forms.html#select), and [data bindings](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html).
+
+
+## RmlUi 5.1
 
 ### New scrolling features
 
@@ -24,7 +59,7 @@ When autoscroll mode is active, a cursor name is submitted to clients which indi
 See the new [documentation section on scrolling](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/contexts.html#scrolling) for details.
 
 #### Smooth scrolling
-Smooth scrolling is now supported in RmlUi, and enabled by default. This makes a some scroll actions animate smoothly towards its destination. Smooth scrolling may become active in the following situations:
+Smooth scrolling is now supported in RmlUi, and enabled by default. This makes certain scroll actions animate smoothly towards its destination. Smooth scrolling may become active in the following situations:
 
 - During a call to `Context::ProcessMouseWheel()`.
 - When clicking a scrollbar's arrow keys or track.
@@ -95,10 +130,6 @@ See the [form controls documentation](https://mikke89.github.io/RmlUiDoc/pages/c
 - The slider input is now only draggable from the track or bar, instead of the whole element.
 - Fixed input elements not always being correctly setup when changing types.
 
-### Stability improvements
-
-- Fix a potential crash during plugin shutdown. #415 (thanks @LoneBoco)
-
 ### Data bindings
 
 - Add new [data-alias attribute](https://mikke89.github.io/RmlUiDoc/pages/data_bindings/views_and_controllers.html#data-alias) to make templates work with outside variables. #432 (thanks @dakror)
@@ -115,6 +146,10 @@ See the [form controls documentation](https://mikke89.github.io/RmlUiDoc/pages/c
 - Vulkan renderer: Fix various Vulkan issues on Linux. #430 (thanks @Thalhammer)
 - GL3 renderer: Unbind the vertex array after use to avoid possible crash. #411
 
+### Stability improvements
+
+- Fix a potential crash during plugin shutdown. #415 (thanks @LoneBoco)
+
 ### Build improvements
 
 - Improve CMake to better support RmlUi included as a subdirectory of a parent project. #394 #395 #397 (thanks @cathaysia)
@@ -126,7 +161,8 @@ See the [form controls documentation](https://mikke89.github.io/RmlUiDoc/pages/c
 
 ### Breaking changes
 
-- The `mousescroll` event no longer scrolls an element, see scrolling changes above. Its `wheel_delta` parameter has been renamed to `wheel_delta_y`.
+- Scrolling behavior changed, increased default mouse wheel scroll length, and enabled smooth scrolling by default. See notes above.
+- The `mousescroll` event no longer scrolls an element. Its `wheel_delta` parameter has been renamed to `wheel_delta_y`.
 - The signature of `Context::ProcessMouseWheel` has been changed, the old signature is still available but deprecated.
 
 

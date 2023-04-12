@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,30 +39,27 @@ class ElementDocument;
 class Context;
 
 /**
-	Generic Interface for plugins to RmlUi.
+    Generic Interface for plugins to RmlUi.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API Plugin
-{
+class RMLUICORE_API Plugin {
 public:
 	virtual ~Plugin();
 
-	enum EventClasses
-	{
-		EVT_BASIC		= (1 << 0),		// Initialise, Shutdown, ContextCreate, ContextDestroy
-		EVT_DOCUMENT	= (1 << 1),		// DocumentOpen, DocumentLoad, DocumentUnload
-		EVT_ELEMENT		= (1 << 2),		// ElementCreate, ElementDestroy
+	enum EventClasses {
+		EVT_BASIC = (1 << 0),    // Initialise, Shutdown, ContextCreate, ContextDestroy
+		EVT_DOCUMENT = (1 << 1), // DocumentOpen, DocumentLoad, DocumentUnload
+		EVT_ELEMENT = (1 << 2),  // ElementCreate, ElementDestroy
 
-		EVT_ALL			= EVT_BASIC | EVT_DOCUMENT | EVT_ELEMENT
+		EVT_ALL = EVT_BASIC | EVT_DOCUMENT | EVT_ELEMENT
 	};
-	/// Called when the plugin is registered to determine
-	/// which of the above event types the plugin is interested in
+	/// Called when the plugin is registered to determine which of the above event types the plugin is interested in.
 	virtual int GetEventClasses();
 
-	/// Called when RmlUi is initialised, or immediately when the plugin registers itself if 
-	/// RmlUi has already been initialised.
+	/// Called when RmlUi is initialised, or immediately when the plugin registers itself if RmlUi has already been
+	/// initialised.
 	virtual void OnInitialise();
 	/// Called when RmlUi shuts down.
 	virtual void OnShutdown();

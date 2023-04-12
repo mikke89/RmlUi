@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,13 +36,12 @@ namespace Rml {
 class Element;
 
 /**
-	Tools for aiding in parsing XML documents.
+    Tools for aiding in parsing XML documents.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class XMLParseTools
-{
+class XMLParseTools {
 public:
 	/// Searchs a string for the specified tag
 	/// @param tag Tag to find, *must* be in lower case
@@ -53,7 +52,7 @@ public:
 	/// @param[in,out] string String to read the attribute from, pointer will be advanced passed the read
 	/// @param[out] name Name of the attribute read
 	/// @param[out] value Value of the attribute read
-	static bool ReadAttribute(const char* &string, String& name, String& value);
+	static bool ReadAttribute(const char*& string, String& name, String& value);
 
 	/// Applies the named template to the specified element
 	/// @param element Element to apply the template to
@@ -61,12 +60,12 @@ public:
 	/// @returns Element to continue the parse from
 	static Element* ParseTemplate(Element* element, const String& template_name);
 
-    /// Determine the presence of data expression brackets inside XML data.
-    /// Call this for each iteration through the data string.
-    /// 'inside_brackets' should be initialized to false.
-    /// 'inside_string' should be initialized to false.
-    /// Returns nullptr on success, or an error string on failure.
-    static const char* ParseDataBrackets(bool& inside_brackets, bool& inside_string, char c, char previous);
+	/// Determine the presence of data expression brackets inside XML data.
+	/// Call this for each iteration through the data string.
+	/// 'inside_brackets' should be initialized to false.
+	/// 'inside_string' should be initialized to false.
+	/// Returns nullptr on success, or an error string on failure.
+	static const char* ParseDataBrackets(bool& inside_brackets, bool& inside_string, char c, char previous);
 };
 
 } // namespace Rml

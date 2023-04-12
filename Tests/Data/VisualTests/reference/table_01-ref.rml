@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Table 01 ref</title>
-    <link type="text/rcss" href="../../style.rcss"/>
+	<title>Table 01 ref</title>
+	<link type="text/rcss" href="../../style.rcss"/>
 	<meta name="Reference" content="Reference implemented using 'inline-blocks' instead. Row coloring does not work here. Might not be pixel accurate." />
 	<style>
 		table {

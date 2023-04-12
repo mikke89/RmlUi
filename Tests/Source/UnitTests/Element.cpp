@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -180,20 +180,17 @@ TEST_CASE("Element")
 			std::vector<UniquePtr<tl::expectation>> expectations;
 
 			UniquePtr<MockEventListener> mockEventListener;
-			const auto configureMockEventListener = [&]()
-			{
+			const auto configureMockEventListener = [&]() {
 				mockEventListener.reset(new MockEventListener());
 				expectations.emplace_back(NAMED_ALLOW_CALL(*mockEventListener, OnAttach(button)));
-				expectations.emplace_back(NAMED_ALLOW_CALL(*mockEventListener, OnDetach(button))
-					.LR_SIDE_EFFECT(mockEventListener.reset()));
+				expectations.emplace_back(NAMED_ALLOW_CALL(*mockEventListener, OnDetach(button)).LR_SIDE_EFFECT(mockEventListener.reset()));
 			};
 
 			MockEventListenerInstancer mockEventListenerInstancer;
-			const auto configureMockEventListenerInstancer = [&](const auto value)
-			{
+			const auto configureMockEventListenerInstancer = [&](const auto value) {
 				expectations.emplace_back(NAMED_REQUIRE_CALL(mockEventListenerInstancer, InstanceEventListener(value, button))
-					.LR_SIDE_EFFECT(configureMockEventListener())
-					.LR_RETURN(mockEventListener.get()));
+											  .LR_SIDE_EFFECT(configureMockEventListener())
+											  .LR_RETURN(mockEventListener.get()));
 			};
 
 			Factory::RegisterEventListenerInstancer(&mockEventListenerInstancer);

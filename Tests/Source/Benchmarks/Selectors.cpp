@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -153,7 +153,6 @@ static String GenerateRCSS(SelectorFlags selectors, const String& complex_select
 			// Set a property that does not require a layout change
 			result += CreateString(64, " { scrollbar-margin: %dpx; }\n", int(c - 'a') + 1);
 
-			
 #if 1
 			// This conditions ensures that only a single version of the complex selector is included. This can be disabled to test how well the rules
 			// are de-duplicated, since then a lot more selectors will be tested per update call. Rules that contain sub-selectors are currently not

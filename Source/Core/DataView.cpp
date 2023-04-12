@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,8 +32,7 @@
 
 namespace Rml {
 
-DataView::~DataView()
-{}
+DataView::~DataView() {}
 
 Element* DataView::GetElement() const
 {
@@ -43,15 +42,18 @@ Element* DataView::GetElement() const
 	return result;
 }
 
-int DataView::GetSortOrder() const {
+int DataView::GetSortOrder() const
+{
 	return sort_order;
 }
 
-bool DataView::IsValid() const {
+bool DataView::IsValid() const
+{
 	return static_cast<bool>(attached_element);
 }
 
-DataView::DataView(Element* element, int bias) : attached_element(element->GetObserverPtr()), sort_order(bias + 1000) {
+DataView::DataView(Element* element, int bias) : attached_element(element->GetObserverPtr()), sort_order(bias + 1000)
+{
 	RMLUI_ASSERT(bias >= -1000 && bias <= 999);
 
 	if (element)
@@ -61,18 +63,16 @@ DataView::DataView(Element* element, int bias) : attached_element(element->GetOb
 	}
 }
 
+DataViews::DataViews() {}
 
-DataViews::DataViews()
-{}
+DataViews::~DataViews() {}
 
-DataViews::~DataViews()
-{}
-
-void DataViews::Add(DataViewPtr view) {
+void DataViews::Add(DataViewPtr view)
+{
 	views_to_add.push_back(std::move(view));
 }
 
-void DataViews::OnElementRemove(Element* element) 
+void DataViews::OnElementRemove(Element* element)
 {
 	for (auto it = views.begin(); it != views.end();)
 	{
@@ -95,7 +95,7 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 	// View updates may result in newly added views, or even new dirty variables. Thus, we do the
 	// update recursively but with an upper limit. Without the loop, newly added views won't be
 	// updated until the next Update() call.
-	for(int i = 0; (i == 0 || !views_to_add.empty() || num_dirty_variables_prev != dirty_variables.size()) && i < 10; i++)
+	for (int i = 0; (i == 0 || !views_to_add.empty() || num_dirty_variables_prev != dirty_variables.size()) && i < 10; i++)
 	{
 		num_dirty_variables_prev = dirty_variables.size();
 
@@ -127,8 +127,8 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 		auto it_remove = std::unique(dirty_views.begin(), dirty_views.end());
 		dirty_views.erase(it_remove, dirty_views.end());
 
-		// Sort by the element's depth in the document tree so that any structural changes due to a changed variable are reflected in the element's children.
-		// Eg. the 'data-for' view will remove children if any of its data variable array size is reduced.
+		// Sort by the element's depth in the document tree so that any structural changes due to a changed variable are reflected in the element's
+		// children. Eg. the 'data-for' view will remove children if any of its data variable array size is reduced.
 		std::sort(dirty_views.begin(), dirty_views.end(), [](auto&& left, auto&& right) { return left->GetSortOrder() < right->GetSortOrder(); });
 
 		for (DataView* view : dirty_views)
@@ -147,7 +147,7 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 		{
 			for (const auto& view : views_to_remove)
 			{
-				for (auto it = name_view_map.begin(); it != name_view_map.end(); )
+				for (auto it = name_view_map.begin(); it != name_view_map.end();)
 				{
 					if (it->second == view.get())
 						it = name_view_map.erase(it);

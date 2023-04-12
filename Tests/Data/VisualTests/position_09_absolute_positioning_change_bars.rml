@@ -17,10 +17,11 @@
 </head>
 <body>
 	<p style="position: relative; margin-right: 10dp; left: 10dp;">
-	  I used two red hyphens to serve as a change bar. They
-	  will "float" to the left of the line containing THIS
-	  <span style="position: absolute; top: auto; left: -1em; color: red;">--</span>
-	  word.
+		I used two red hyphens to serve as a change bar. They
+		will "float" to the left of the line containing THIS
+		<span style="position: absolute; top: auto; left: -1em; color: red;">--</span>
+		word.
 	</p>
+<handle size_target="#document"/>
 </body>
 </rml>

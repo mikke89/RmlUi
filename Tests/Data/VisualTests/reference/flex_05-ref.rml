@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Flex 05 ref</title>
-    <link type="text/rcss" href="../../style.rcss"/>
+	<title>Flex 05 ref</title>
+	<link type="text/rcss" href="../../style.rcss"/>
 	<meta name="Reference" content="The size of the flex containers should match the size of the block boxes in the reference." />
 	<style>
 		h1 {

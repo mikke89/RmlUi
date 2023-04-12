@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,19 +36,14 @@ namespace Rml {
 class ElementFormControl;
 
 /**
-	A generic widget for incorporating sliding functionality into an element.
+    A generic widget for incorporating sliding functionality into an element.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class WidgetSlider final : public EventListener
-{
+class WidgetSlider final : public EventListener {
 public:
-	enum Orientation
-	{
-		VERTICAL,
-		HORIZONTAL
-	};
+	enum Orientation { VERTICAL, HORIZONTAL };
 
 	WidgetSlider(ElementFormControl* parent);
 	virtual ~WidgetSlider();
@@ -123,13 +118,10 @@ private:
 
 	void PositionBar();
 
-	/// Clamps the new value, sets it on the slider and returns it as a number from 0 to 1, 0 being the minimum
-	/// value and 1 the maximum.
-	/// @param[in] new_value The new value to set on the slider.
-	/// @return The new parametric value of the slider.
-	float SetValueInternal(float new_value);
+	// Clamps the new value, sets it on the slider and returns it as a normalized number from 0 to 1.
+	float SetValueInternal(float new_value, bool force_submit_change_event = true);
 
-    ElementFormControl* parent;
+	ElementFormControl* parent;
 
 	Orientation orientation;
 

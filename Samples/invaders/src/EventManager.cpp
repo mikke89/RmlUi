@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -45,29 +45,22 @@ static EventHandler* event_handler = nullptr;
 using EventHandlerMap = Rml::SmallUnorderedMap<Rml::String, Rml::UniquePtr<EventHandler>>;
 EventHandlerMap event_handlers;
 
-EventManager::EventManager()
-{
-}
+EventManager::EventManager() {}
 
-EventManager::~EventManager()
-{
-}
+EventManager::~EventManager() {}
 
-// Releases all event handlers registered with the manager.
 void EventManager::Shutdown()
 {
 	event_handlers.clear();
 	event_handler = nullptr;
 }
 
-// Registers a new event handler with the manager.
 void EventManager::RegisterEventHandler(const Rml::String& handler_name, Rml::UniquePtr<EventHandler> handler)
 {
 	// Any handler bound under the same name will be released.
 	event_handlers[handler_name] = std::move(handler);
 }
 
-// Processes an event coming through from RmlUi.
 void EventManager::ProcessEvent(Rml::Event& event, const Rml::String& value)
 {
 	Rml::StringList commands;
@@ -81,15 +74,13 @@ void EventManager::ProcessEvent(Rml::Event& event, const Rml::String& value)
 		if (values.empty())
 			return;
 
-		if (values[0] == "goto" &&
- 			values.size() > 1)
+		if (values[0] == "goto" && values.size() > 1)
 		{
 			// Load the window, and if successful close the old window.
 			if (LoadWindow(values[1]))
 				event.GetTargetElement()->GetOwnerDocument()->Close();
 		}
-		else if (values[0] == "load" &&
- 			values.size() > 1)
+		else if (values[0] == "load" && values.size() > 1)
 		{
 			// Load the window.
 			LoadWindow(values[1]);
@@ -126,7 +117,6 @@ void EventManager::ProcessEvent(Rml::Event& event, const Rml::String& value)
 	}
 }
 
-// Loads a window and binds the event handler for it.
 Rml::ElementDocument* EventManager::LoadWindow(const Rml::String& window_name)
 {
 	// Set the event handler for the new screen, if one has been registered.

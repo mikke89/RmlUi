@@ -1,0 +1,99 @@
+<rml>
+<head>
+	<title>Shrink-to-fit 3</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/CSS21/visudet.html#shrink-to-fit-float" />
+	<meta name="Description" content="Shrink-to-fit width in various situations. Boxes in the same section should look the same." />
+	<style>
+		body > div {
+			border: 2dp #888;
+			margin: 10dp 0;
+		}
+		div > div { background: #bbf;  }
+		div * { border-color: #ddf; }
+		div p { border-width: 1px; }
+
+		.assymetric_edges {
+			padding: 0 5px 0 10px;
+			border-width: 0 2px 0 5px;
+			margin: 0 5px 0 10px;
+		}
+
+		.clear { clear: both; margin-top: 0; }
+		.left { float: left; }
+		.right { float: right; }
+		.overflow { overflow: auto; }
+		.height { height: 100px; }
+	</style>
+</head>
+
+<body>
+
+<div class="left">
+	Some text.
+</div>
+
+<hr/>
+
+<div class="left">
+	<p>Some text.</p>
+</div>
+
+<hr/>
+
+
+<div class="left">
+	<div class="left">
+		Some text.
+	</div>
+</div>
+
+<hr/>
+
+<div class="left">
+	<div class="left">
+		<p>Some text.</p>
+	</div>
+</div>
+
+<div class="left clear">
+	<div class="right">
+		<p>Some text.</p>
+	</div>
+</div>
+
+<hr/>
+
+<div class="left">
+	<div class="assymetric_edges">
+		<p>Some text.</p>
+	</div>
+</div>
+
+<div class="left clear">
+	<div class="left assymetric_edges">
+		<p>Some text.</p>
+	</div>
+</div>
+
+<div class="left clear">
+	<div class="right assymetric_edges">
+		<p>Some text.</p>
+	</div>
+</div>
+
+<hr/>
+
+<div class="left">
+In consectetur, neque dignissim tincidunt dapibus,<br/> leo metus molestie erat.
+</div>
+
+<hr/>
+
+<div class="left">
+In consectetur, neque dignissim tincidunt dapibus, leo metus molestie erat, eu pharetra velit nunc in ipsum. Donec aliquet malesuada iaculis. Quisque maximus urna in congue placerat. In hac habitasse platea dictumst. Mauris a fringilla augue. Donec posuere ante at orci efficitur porttitor vitae ac tellus. Nunc nec sapien orci.<br/> Sed rhoncus et dui sed sagittis. Nullam venenatis quis elit vel mattis. In mattis erat et blandit aliquam. Aliquam erat volutpat.
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

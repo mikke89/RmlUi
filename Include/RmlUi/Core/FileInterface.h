@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,23 +30,22 @@
 #define RMLUI_CORE_FILEINTERFACE_H
 
 #include "Header.h"
-#include "Types.h"
 #include "Traits.h"
+#include "Types.h"
 
 namespace Rml {
 
 /**
-	The abstract base class for application-specific file I/O.
+    The abstract base class for application-specific file I/O.
 
-	By default, RmlUi will use a file interface implementing the standard C file functions. If this is not sufficient,
-	or your application wants more control over file I/O, this class should be derived, instanced, and installed
-	through Rml::SetFileInterface() before you initialise RmlUi.
+    By default, RmlUi will use a file interface implementing the standard C file functions. If this is not sufficient,
+    or your application wants more control over file I/O, this class should be derived, instanced, and installed
+    through Rml::SetFileInterface() before you initialise RmlUi.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API FileInterface : public NonCopyMoveable
-{
+class RMLUICORE_API FileInterface : public NonCopyMoveable {
 public:
 	FileInterface();
 	virtual ~FileInterface();
@@ -68,7 +67,8 @@ public:
 	/// Seeks to a point in a previously opened file.
 	/// @param file The handle of the file to seek.
 	/// @param offset The number of bytes to seek.
-	/// @param origin One of either SEEK_SET (seek from the beginning of the file), SEEK_END (seek from the end of the file) or SEEK_CUR (seek from the current file position).
+	/// @param origin One of either SEEK_SET (seek from the beginning of the file), SEEK_END (seek from the end of the file) or SEEK_CUR (seek from
+	/// the current file position).
 	/// @return True if the operation completed successfully, false otherwise.
 	virtual bool Seek(FileHandle file, long offset, int origin) = 0;
 	/// Returns the current position of the file pointer.

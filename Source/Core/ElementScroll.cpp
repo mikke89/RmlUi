@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Factory.h"
-#include "LayoutDetails.h"
+#include "Layout/LayoutDetails.h"
 #include "WidgetScroll.h"
 
 namespace Rml {
@@ -44,10 +44,8 @@ ElementScroll::ElementScroll(Element* _element)
 	corner = nullptr;
 }
 
-ElementScroll::~ElementScroll()
-{}
+ElementScroll::~ElementScroll() {}
 
-// Updates the increment / decrement arrows.
 void ElementScroll::Update()
 {
 	for (int i = 0; i < 2; i++)
@@ -57,7 +55,6 @@ void ElementScroll::Update()
 	}
 }
 
-// Enables and sizes one of the scrollbars.
 void ElementScroll::EnableScrollbar(Orientation orientation, float element_width)
 {
 	if (!scrollbars[orientation].enabled)
@@ -76,25 +73,25 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 	if (orientation == HORIZONTAL)
 	{
 		if (box.GetSize().y < 0)
-			scrollbars[orientation].size = box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) +
-										   box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT) +
-										   ResolveValue(scrollbars[orientation].element->GetComputedValues().height(), element_width);
+			scrollbars[orientation].size = box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT) +
+				ResolveValue(scrollbars[orientation].element->GetComputedValues().height(), element_width);
 		else
 			scrollbars[orientation].size = box.GetSize(Box::MARGIN).y;
 	}
 }
 
-// Disables and hides one of the scrollbars.
 void ElementScroll::DisableScrollbar(Orientation orientation)
 {
 	if (scrollbars[orientation].enabled)
 	{
 		scrollbars[orientation].element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 		scrollbars[orientation].enabled = false;
+
+		if (corner)
+			corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	}
 }
 
-// Updates the position of the scrollbar.
 void ElementScroll::UpdateScrollbar(Orientation orientation)
 {
 	float bar_position;
@@ -124,13 +121,11 @@ void ElementScroll::UpdateScrollbar(Orientation orientation)
 	}
 }
 
-// Returns one of the scrollbar elements.
 Element* ElementScroll::GetScrollbar(Orientation orientation)
 {
 	return scrollbars[orientation].element;
 }
 
-// Returns the size, in pixels, of one of the scrollbars; for a vertical scrollbar, this is width, for a horizontal scrollbar, this is height.
 float ElementScroll::GetScrollbarSize(Orientation orientation)
 {
 	if (!scrollbars[orientation].enabled)
@@ -139,7 +134,6 @@ float ElementScroll::GetScrollbarSize(Orientation orientation)
 	return scrollbars[orientation].size;
 }
 
-// Formats the enabled scrollbars based on the current size of the host element.
 void ElementScroll::FormatScrollbars()
 {
 	const Box& element_box = element->GetBox();
@@ -182,41 +176,36 @@ void ElementScroll::FormatScrollbars()
 
 		int variable_axis = i == VERTICAL ? 0 : 1;
 		Vector2f offset = element_box.GetPosition(Box::PADDING);
-		offset[variable_axis] += containing_block[variable_axis] - (scrollbars[i].element->GetBox().GetSize(Box::BORDER)[variable_axis] + scrollbars[i].element->GetBox().GetEdge(Box::MARGIN, i == VERTICAL ? Box::RIGHT : Box::BOTTOM));
+		offset[variable_axis] += containing_block[variable_axis] -
+			(scrollbars[i].element->GetBox().GetSize(Box::BORDER)[variable_axis] +
+				scrollbars[i].element->GetBox().GetEdge(Box::MARGIN, i == VERTICAL ? Box::RIGHT : Box::BOTTOM));
 		// Add the top or left margin (as appropriate) onto the scrollbar's position.
 		offset[1 - variable_axis] += scrollbars[i].element->GetBox().GetEdge(Box::MARGIN, i == VERTICAL ? Box::TOP : Box::LEFT);
 		scrollbars[i].element->SetOffset(offset, element, true);
 	}
 
 	// Format the corner, if it is necessary.
-	if (scrollbars[0].enabled &&
-		scrollbars[1].enabled)
+	if (scrollbars[0].enabled && scrollbars[1].enabled)
 	{
 		CreateCorner();
 
 		Box corner_box;
 		corner_box.SetContent(Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size));
 		corner->SetBox(corner_box);
-		corner->SetOffset(containing_block + element_box.GetPosition(Box::PADDING) - Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size), element, true);
-		corner->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
+		corner->SetOffset(containing_block + element_box.GetPosition(Box::PADDING) - Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size),
+			element, true);
 
 		corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 	}
-	else
-	{
-		if (corner != nullptr)
-			corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
-	}
 }
 
-// Creates one of the scroll component's scrollbar.
 bool ElementScroll::CreateScrollbar(Orientation orientation)
 {
-	if (scrollbars[orientation].element &&
-		scrollbars[orientation].widget)
+	if (scrollbars[orientation].element && scrollbars[orientation].widget)
 		return true;
 
-	ElementPtr scrollbar_element = Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
+	ElementPtr scrollbar_element =
+		Factory::InstanceElement(element, "*", orientation == VERTICAL ? "scrollbarvertical" : "scrollbarhorizontal", XMLAttributes());
 	scrollbars[orientation].element = scrollbar_element.get();
 	scrollbars[orientation].element->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
@@ -230,7 +219,6 @@ bool ElementScroll::CreateScrollbar(Orientation orientation)
 	return true;
 }
 
-// Creates the scrollbar corner.
 bool ElementScroll::CreateCorner()
 {
 	if (corner != nullptr)
@@ -238,8 +226,9 @@ bool ElementScroll::CreateCorner()
 
 	ElementPtr corner_element = Factory::InstanceElement(element, "*", "scrollbarcorner", XMLAttributes());
 	corner = corner_element.get();
-	Element* child = element->AppendChild(std::move(corner_element), false);
+	corner->SetProperty(PropertyId::Clip, Property(1, Property::NUMBER));
 
+	Element* child = element->AppendChild(std::move(corner_element), false);
 	UpdateScrollElementProperties(child);
 
 	return true;
@@ -258,10 +247,8 @@ void ElementScroll::UpdateScrollElementProperties(Element* scroll_element)
 	scroll_element->Update(dp_ratio, vp_dimensions);
 }
 
-ElementScroll::Scrollbar::Scrollbar()
-{}
+ElementScroll::Scrollbar::Scrollbar() {}
 
-ElementScroll::Scrollbar::~Scrollbar()
-{}
+ElementScroll::Scrollbar::~Scrollbar() {}
 
 } // namespace Rml

@@ -1,9 +1,9 @@
 <rml>
 <head>
-    <title>Floats: overflow</title>
-    <link type="text/rcss" href="../style.rcss"/>
-	<link rel="help" href="http://www.w3.org/TR/CSS21/visuren.html#floats" />
-	<meta name="Description" content="Floating boxes" />
+	<title>Floats: overflow</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://w3c.github.io/csswg-drafts/css2/#root-height" />
+	<meta name="Description" content="Height of block formatting context roots with floated boxes inside." />
 	<style>
 		body {
 			background: #ddd;
@@ -25,7 +25,6 @@
 			height: 130dp;
 			margin: 5dp;
 		}
-		
 	</style>
 </head>
 
@@ -35,9 +34,15 @@
 	<p>The float to the left should extend past the background of the containing '.box' element.</p>
 </div>
 <hr/>
-<div class="box" style="overflow:auto">
+<div class="box" style="overflow: auto">
 	<div class="float">float: left</div>
 	<p>Using 'overflow: auto' on the containing '.box' element. This should establish a new block formatting context (thereby resolving all floats) so that the background wraps around the entire float.</p>
 </div>
+<hr/>
+<div class="box" style="display: flow-root">
+	<div class="float">float: left</div>
+	<p>Using 'display: flow-root' on the containing '.box' element. This also establishes a new block formatting context, and should be equivalent to the previous box.</p>
+</div>
+<handle size_target="#document"/>
 </body>
 </rml>

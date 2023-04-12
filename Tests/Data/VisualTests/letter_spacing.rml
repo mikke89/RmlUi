@@ -1,0 +1,44 @@
+<rml>
+<head>
+	<title>'letter-spacing' property</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://w3c.github.io/csswg-drafts/css-text/#letter-spacing-property" />
+	<meta name="Description" content="Test 'letter-spacing' property at different lengths. Negative string widths should not crash the library." />
+	<style>
+		body {
+			font-size: 14px;
+			padding: 0;
+			border: 8dp #ddd;
+		}
+		h1 {
+			color: blue;
+			margin-bottom: 0;
+		}
+		hr { margin: 1em 0; }
+		p { margin-top: 0; }
+		.color { color: #a33; }
+		.normal { letter-spacing: normal; color: green; }
+	</style>
+</head>
+
+<body>
+<h1>normal</h1>        <p style="letter-spacing: normal">In consectetur, neque <span class="normal">dignissim tincidunt</span> dapibus, leo <span class="color">metus molestie</span> erat.</p>
+<h1>1px</h1>           <p style="letter-spacing:    1px">In consectetur, neque <span class="normal">dignissim tincidunt</span> dapibus, leo <span class="color">metus molestie</span> erat.</p>
+<h1>-1px</h1>          <p style="letter-spacing:   -1px">In consectetur, neque <span class="normal">dignissim tincidunt</span> dapibus, leo <span class="color">metus molestie</span> erat.</p>
+<h1>5x</h1>            <p style="letter-spacing:    5px">In consectetur, neque <span class="normal">dignissim tincidunt</span> dapibus, leo <span class="color">metus molestie</span> erat.</p>
+<h1>0.4em (5.6px)</h1> <p style="letter-spacing:  0.4em">In consectetur, neque <span class="normal">dignissim tincidunt</span> dapibus, leo <span class="color">metus molestie</span> erat.</p>
+<h1>-5px</h1>          <p style="letter-spacing:   -5px">In consectetur, neque <span class="normal">dignissim tincidunt</span> dapibus, leo <span class="color">metus molestie</span> erat.</p>
+<h1>20px</h1>          <p style="letter-spacing:   20px">In consectetur, neque <span class="normal">dignissim tincidunt</span> dapibus, leo <span class="color">metus molestie</span> erat.</p>
+<h1>-20px</h1>         <p style="letter-spacing:  -20px">In consectetur, neque <span class="normal">dignissim tincidunt</span> dapibus, leo <span class="color">metus molestie</span> erat.</p>
+
+<hr/>
+<h1>20px (left-aligned)</h1>     <p style="letter-spacing:  20px; text-align: left;  ">abc</p>
+<h1>20px (centered)</h1>         <p style="letter-spacing:  20px; text-align: center;">abc</p>
+<h1>20px (right-aligned)</h1>    <p style="letter-spacing:  20px; text-align: right; ">abc</p>
+
+<hr/>
+<h1>letter-spacing on inner element</h1>    <p style="letter-spacing:  0.5em;">a<span style="letter-spacing: 2em; background: #eee">bb</span>c</p>
+
+<handle size_target="#document"/>
+</body>
+</rml>

@@ -1,7 +1,6 @@
 #include "Inventory.h"
 #include <RmlUi/Core/Factory.h>
 
-// Constructs a new inventory and opens its window.
 Inventory::Inventory(const Rml::String& title, const Rml::Vector2f& position, Rml::Context* context)
 {
 	document = context->LoadDocument("tutorial/drag/data/inventory.rml");
@@ -14,14 +13,12 @@ Inventory::Inventory(const Rml::String& title, const Rml::Vector2f& position, Rm
 	}
 }
 
-// Destroys the inventory and closes its window.
 Inventory::~Inventory()
 {
 	if (document)
 		document->Close();
 }
 
-// Adds a brand-new item into this inventory.
 void Inventory::AddItem(const Rml::String& name)
 {
 	if (!document)

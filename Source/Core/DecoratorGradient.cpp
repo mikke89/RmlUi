@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,15 +47,9 @@ stop-color: #00ff00;
 
 namespace Rml {
 
-//=======================================================
+DecoratorGradient::DecoratorGradient() {}
 
-DecoratorGradient::DecoratorGradient()
-{
-}
-
-DecoratorGradient::~DecoratorGradient()
-{
-}
+DecoratorGradient::~DecoratorGradient() {}
 
 bool DecoratorGradient::Initialise(const Direction dir_, const Colourb start_, const Colourb stop_)
 {
@@ -123,8 +117,6 @@ void DecoratorGradient::RenderElement(Element* element, DecoratorDataHandle elem
 	data->Render(element->GetAbsoluteOffset(Box::BORDER));
 }
 
-//=======================================================
-
 DecoratorGradientInstancer::DecoratorGradientInstancer()
 {
 	// register properties for the decorator
@@ -134,22 +126,18 @@ DecoratorGradientInstancer::DecoratorGradientInstancer()
 	RegisterShorthand("decorator", "direction, start-color, stop-color", ShorthandType::FallThrough);
 }
 
-DecoratorGradientInstancer::~DecoratorGradientInstancer()
-{
-}
+DecoratorGradientInstancer::~DecoratorGradientInstancer() {}
 
-SharedPtr<Decorator> DecoratorGradientInstancer::InstanceDecorator(const String & RMLUI_UNUSED_PARAMETER(name), const PropertyDictionary& properties_,
-	const DecoratorInstancerInterface& RMLUI_UNUSED_PARAMETER(interface_))
+SharedPtr<Decorator> DecoratorGradientInstancer::InstanceDecorator(const String& /*name*/, const PropertyDictionary& properties_,
+	const DecoratorInstancerInterface& /*interface_*/)
 {
-	RMLUI_UNUSED(name);
-	RMLUI_UNUSED(interface_);
-
-	DecoratorGradient::Direction dir = (DecoratorGradient::Direction)properties_.GetProperty(ids.direction)->Get< int >();
+	DecoratorGradient::Direction dir = (DecoratorGradient::Direction)properties_.GetProperty(ids.direction)->Get<int>();
 	Colourb start = properties_.GetProperty(ids.start)->Get<Colourb>();
 	Colourb stop = properties_.GetProperty(ids.stop)->Get<Colourb>();
 
 	auto decorator = MakeShared<DecoratorGradient>();
-	if (decorator->Initialise(dir, start, stop)) {
+	if (decorator->Initialise(dir, start, stop))
+	{
 		return decorator;
 	}
 

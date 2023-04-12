@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,25 +35,23 @@
 namespace Rml {
 
 /**
-	RmlUi logging API.
+    RmlUi logging API.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API Log
-{
+class RMLUICORE_API Log {
 public:
-	enum Type
-	{
+	enum Type {
 		LT_ALWAYS = 0,
 		LT_ERROR,
 		LT_ASSERT,
 		LT_WARNING,
 		LT_INFO,
 		LT_DEBUG,
-		LT_MAX
+		LT_MAX,
 	};
-	
+
 public:
 	/// Initialises the logging interface.
 	/// @return True if the logging interface was successful, false if not.

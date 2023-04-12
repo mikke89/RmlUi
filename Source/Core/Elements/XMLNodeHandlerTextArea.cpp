@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,25 +27,21 @@
  */
 
 #include "XMLNodeHandlerTextArea.h"
-#include "../../../Include/RmlUi/Core/Elements/ElementFormControlTextArea.h"
 #include "../../../Include/RmlUi/Core/Core.h"
+#include "../../../Include/RmlUi/Core/Elements/ElementFormControlTextArea.h"
 #include "../../../Include/RmlUi/Core/Factory.h"
 #include "../../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../../Include/RmlUi/Core/XMLParser.h"
 
 namespace Rml {
 
-XMLNodeHandlerTextArea::XMLNodeHandlerTextArea()
-{
-}
+XMLNodeHandlerTextArea::XMLNodeHandlerTextArea() {}
 
-XMLNodeHandlerTextArea::~XMLNodeHandlerTextArea()
-{
-}
+XMLNodeHandlerTextArea::~XMLNodeHandlerTextArea() {}
 
 Element* XMLNodeHandlerTextArea::ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes)
 {
-	ElementFormControlTextArea* text_area = rmlui_dynamic_cast< ElementFormControlTextArea* >(parser->GetParseFrame()->element);
+	ElementFormControlTextArea* text_area = rmlui_dynamic_cast<ElementFormControlTextArea*>(parser->GetParseFrame()->element);
 	if (!text_area)
 	{
 		ElementPtr new_element = Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);
@@ -60,19 +56,14 @@ Element* XMLNodeHandlerTextArea::ElementStart(XMLParser* parser, const String& n
 	return nullptr;
 }
 
-bool XMLNodeHandlerTextArea::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))
+bool XMLNodeHandlerTextArea::ElementEnd(XMLParser* /*parser*/, const String& /*name*/)
 {
-	RMLUI_UNUSED(parser);
-	RMLUI_UNUSED(name);
-
 	return true;
 }
 
-bool XMLNodeHandlerTextArea::ElementData(XMLParser* parser, const String& data, XMLDataType RMLUI_UNUSED_PARAMETER(type))
+bool XMLNodeHandlerTextArea::ElementData(XMLParser* parser, const String& data, XMLDataType /*type*/)
 {
-	RMLUI_UNUSED(type);
-
-	ElementFormControlTextArea* text_area = rmlui_dynamic_cast< ElementFormControlTextArea* >(parser->GetParseFrame()->element);
+	ElementFormControlTextArea* text_area = rmlui_dynamic_cast<ElementFormControlTextArea*>(parser->GetParseFrame()->element);
 	if (text_area != nullptr)
 	{
 		// Do any necessary translation.

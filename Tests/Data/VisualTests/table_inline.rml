@@ -1,0 +1,74 @@
+<rml>
+<head>
+	<title>Inline tables</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css2/#value-def-inline-table" />
+	<meta name="Description" content="Inline tables. The baseline of a table wrapper is simply set its first table cell that has a baseline." />
+	<style>
+		table {
+			line-height: 1.2;
+			display: inline-table;
+			margin: 1em 0.5em;
+			border: 2dp #666;
+			gap: 5dp;
+			text-align: center;
+		}
+		td {
+			background: #bbb;
+			vertical-align: middle;
+			padding: 5dp;
+		}
+		td { width: 25dp; }
+		td:first-child, td:last-child { width: 40dp; }
+	</style>
+</head>
+
+<body>
+<p>
+Inline tables
+<table>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+		<td>C</td>
+	</tr>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+		<td>C</td>
+	</tr>
+</table>
+can be located
+<table>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+		<td>C</td>
+	</tr>
+</table>
+in-between
+<table>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td>A</td>
+		<td>B</td>
+	</tr>
+</table>
+text
+<table>
+	<tr>
+		<td>A<br/>B</td>
+	</tr>
+</table>
+.
+</p>
+<handle size_target="#document"/>
+</body>
+</rml>

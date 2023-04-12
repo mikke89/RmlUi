@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,11 +27,11 @@
  */
 
 #include "HighScores.h"
-#include <RmlUi/Core/TypeConverter.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
-#include <stdio.h>
+#include <RmlUi/Core/TypeConverter.h>
 #include <algorithm>
+#include <stdio.h>
 
 HighScores* HighScores::instance = nullptr;
 
@@ -99,7 +99,6 @@ void HighScores::SubmitScore(const Rml::Colourb& colour, int wave, int score)
 	instance->SubmitScore("", colour, wave, score, true);
 }
 
-// Sets the name of the last player to submit their score.
 void HighScores::SubmitName(const Rml::String& name)
 {
 	for (Score& score : instance->scores)
@@ -153,9 +152,9 @@ void HighScores::LoadScores()
 				int wave;
 				int score;
 
-				if (Rml::TypeConverter< Rml::String, Rml::Colourb >::Convert(score_parts[1], colour) &&
-					Rml::TypeConverter< Rml::String, int >::Convert(score_parts[2], wave) &&
-					Rml::TypeConverter< Rml::String, int >::Convert(score_parts[3], score))
+				if (Rml::TypeConverter<Rml::String, Rml::Colourb>::Convert(score_parts[1], colour) &&
+					Rml::TypeConverter<Rml::String, int>::Convert(score_parts[2], wave) &&
+					Rml::TypeConverter<Rml::String, int>::Convert(score_parts[3], score))
 				{
 					SubmitScore(score_parts[0], colour, wave, score);
 				}
@@ -175,7 +174,7 @@ void HighScores::SaveScores()
 		for (const Score& score : scores)
 		{
 			Rml::String colour_string;
-			Rml::TypeConverter< Rml::Colourb, Rml::String >::Convert(score.colour, colour_string);
+			Rml::TypeConverter<Rml::Colourb, Rml::String>::Convert(score.colour, colour_string);
 
 			Rml::String score_str = Rml::CreateString(1024, "%s\t%s\t%d\t%d\n", score.name.c_str(), colour_string.c_str(), score.wave, score.score);
 			fputs(score_str.c_str(), scores_file);

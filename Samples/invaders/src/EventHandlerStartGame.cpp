@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,30 +27,26 @@
  */
 
 #include "EventHandlerStartGame.h"
+#include "EventManager.h"
+#include "GameDetails.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/ElementUtilities.h>
 #include <RmlUi/Core/Event.h>
-#include "EventManager.h"
-#include "GameDetails.h"
 
 // The game's element context (declared in main.cpp).
 extern Rml::Context* context;
 
-EventHandlerStartGame::EventHandlerStartGame()
-{
-}
+EventHandlerStartGame::EventHandlerStartGame() {}
 
-EventHandlerStartGame::~EventHandlerStartGame()
-{
-}
+EventHandlerStartGame::~EventHandlerStartGame() {}
 
 void EventHandlerStartGame::ProcessEvent(Rml::Event& event, const Rml::String& value)
 {
 	if (value == "start")
 	{
 		// Set the difficulty.
-		Rml::String difficulty = event.GetParameter< Rml::String >("difficulty", "easy");
+		Rml::String difficulty = event.GetParameter<Rml::String>("difficulty", "easy");
 		if (difficulty == "hard")
 			GameDetails::SetDifficulty(GameDetails::HARD);
 		else
@@ -58,7 +54,7 @@ void EventHandlerStartGame::ProcessEvent(Rml::Event& event, const Rml::String& v
 
 		// Set the defender colour.
 		Rml::StringList colour_components;
-		Rml::StringUtilities::ExpandString(colour_components, event.GetParameter< Rml::String >("colour", "255,255,255"));
+		Rml::StringUtilities::ExpandString(colour_components, event.GetParameter<Rml::String>("colour", "255,255,255"));
 
 		Rml::Colourb colour(255, 255, 255);
 		for (size_t i = 0; i < colour_components.size() && i < 3; ++i)
@@ -69,7 +65,7 @@ void EventHandlerStartGame::ProcessEvent(Rml::Event& event, const Rml::String& v
 			if (colour_component > 255)
 				colour_component = 255;
 
-			colour[i] = (Rml::byte) colour_component;
+			colour[i] = (Rml::byte)colour_component;
 		}
 
 		GameDetails::SetDefenderColour(colour);

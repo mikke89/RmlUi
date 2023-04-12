@@ -2,12 +2,12 @@
 <head>
 	<title>Flex - Nested flex boxes</title>
 	<link type="text/rcss" href="../style.rcss"/>
-    <link rel="match" href="reference/flex_nested-ref.rml"/>
+	<link rel="match" href="reference/flex_nested-ref.rml"/>
 	<link rel="GitHub issue #320" href="https://github.com/mikke89/RmlUi/issues/320" />
 	<meta name="Description" content="Flex items should support flex layout." />
 	<meta name="Assert" content="All items should be located on a single line, and there should be no holes between them." />
 	<style>
-		#window  
+		#window
 		{
 			display: flex;
 			width: 100%;

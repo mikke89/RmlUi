@@ -1,0 +1,72 @@
+<rml>
+<head>
+	<title>Document position</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css2/#abs-non-replaced-width" />
+	<meta name="Description" content="Documents are positioned like absolutely positioned elements. The document should be centered. Moving and sizing the document and block should work as expected." />
+	<style>
+		handle[move_target] {
+			top: 0;
+			right: 0;
+			left: 0;
+			bottom: auto;
+			height: 20px;
+			width: auto;
+			cursor: move;
+		}
+		body, div {
+			border: 5dp #fff;
+			padding-top: 2em;
+		}
+		body {
+			text-align: center;
+			z-index: 100;
+			box-sizing: border-box;
+
+			height: 400dp;
+			bottom: 0;
+			top: 0;
+			margin-top: auto;
+			margin-bottom: auto;
+
+			width: 600dp;
+			/* left: auto; */
+			left: 0;
+			right: 440dp;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		div {
+			position: absolute;
+			z-index: 1;
+			background: #eee;
+
+			min-height: 50dp;
+			bottom: 120dp;
+			top: 0;
+			margin-top: 120dp;
+			margin-bottom: auto;
+
+			left: 50%;
+			right: 0;
+			width: 150dp;
+			margin-left: auto;
+			margin-right: auto;
+		}
+	</style>
+</head>
+
+<body>
+<p>Document</p>
+
+<div>
+	<p>Block</p>
+
+	<handle move_target="#parent"/>
+	<handle size_target="#parent"/>
+</div>
+
+<handle move_target="#parent"/>
+<handle size_target="#parent"/>
+</body>
+</rml>

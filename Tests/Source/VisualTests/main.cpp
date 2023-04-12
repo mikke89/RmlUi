@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,22 +38,42 @@
 #include <PlatformExtensions.h>
 #include <RmlUi_Backend.h>
 #include <Shell.h>
+#include <stdio.h>
 
 #if defined RMLUI_PLATFORM_WIN32
 	#include <RmlUi_Include_Windows.h>
-int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* command_line, int /*command_show*/)
+int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* win_command_line, int /*command_show*/)
 #else
 int main(int argc, char** argv)
 #endif
 {
-	int load_test_case_index = -1;
+	const char* command_line = nullptr;
 
 #ifdef RMLUI_PLATFORM_WIN32
-	load_test_case_index = std::atoi(command_line) - 1;
+	command_line = win_command_line;
 #else
 	if (argc > 1)
-		load_test_case_index = std::atoi(argv[1]) - 1;
+		command_line = argv[1];
 #endif
+	int load_suite_index = -1;
+	int load_case_index = -1;
+
+	// Parse command line as <case_index> *or* <suite_index>:<case_index>.
+	if (command_line)
+	{
+		int first_argument = -1;
+		int second_argument = -1;
+		const int num_arguments = sscanf(command_line, "%d:%d", &first_argument, &second_argument);
+
+		switch (num_arguments)
+		{
+		case 1: load_case_index = first_argument - 1; break;
+		case 2:
+			load_suite_index = first_argument - 1;
+			load_case_index = second_argument - 1;
+			break;
+		}
+	}
 
 	int window_width = 1500;
 	int window_height = 800;
@@ -107,7 +127,7 @@ int main(int argc, char** argv)
 
 		TestViewer viewer(context);
 
-		TestNavigator navigator(context->GetRenderInterface(), context, &viewer, std::move(test_suites), load_test_case_index);
+		TestNavigator navigator(context->GetRenderInterface(), context, &viewer, std::move(test_suites), load_suite_index, load_case_index);
 
 		bool running = true;
 		while (running)

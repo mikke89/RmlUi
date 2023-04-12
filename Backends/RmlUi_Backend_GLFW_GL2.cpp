@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -148,9 +148,10 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	data->context = context;
 	data->key_down_callback = key_down_callback;
 
-	if(power_save)
+	if (power_save)
 		glfwWaitEventsTimeout(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0));
-	else glfwPollEvents();
+	else
+		glfwPollEvents();
 
 	data->context = nullptr;
 	data->key_down_callback = nullptr;
@@ -220,9 +221,7 @@ static void SetupCallbacks(GLFWwindow* window)
 				break;
 		}
 		break;
-		case GLFW_RELEASE:
-			RmlGLFW::ProcessKeyCallback(context, glfw_key, glfw_action, glfw_mods);
-			break;
+		case GLFW_RELEASE: RmlGLFW::ProcessKeyCallback(context, glfw_key, glfw_action, glfw_mods); break;
 		}
 	});
 

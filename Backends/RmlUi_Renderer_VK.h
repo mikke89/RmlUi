@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,7 @@
 RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
 
 #if defined(RMLUI_PLATFORM_UNIX)
-#define VK_USE_PLATFORM_XCB_KHR 1
+	#define VK_USE_PLATFORM_XCB_KHR 1
 #endif
 #include "RmlUi_Vulkan/vulkan.h"
 
@@ -80,7 +80,7 @@ RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
 	#define RMLUI_VK_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(statement, msg)
 
 	// Uncomment the following line to enable additional Vulkan debugging.
-	//#define RMLUI_VK_DEBUG
+	// #define RMLUI_VK_DEBUG
 #else
 	#define RMLUI_VK_ASSERTMSG(statement, msg) static_cast<void>(statement)
 #endif

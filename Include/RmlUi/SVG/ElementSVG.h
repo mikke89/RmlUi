@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,17 +29,18 @@
 #ifndef RMLUI_SVG_ELEMENT_SVG_H
 #define RMLUI_SVG_ELEMENT_SVG_H
 
-#include "../Core/Header.h"
 #include "../Core/Element.h"
 #include "../Core/Geometry.h"
+#include "../Core/Header.h"
 #include "../Core/Texture.h"
 
-namespace lunasvg { class Document; }
+namespace lunasvg {
+class Document;
+}
 
 namespace Rml {
 
-class RMLUICORE_API ElementSVG : public Element
-{
+class RMLUICORE_API ElementSVG : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
 

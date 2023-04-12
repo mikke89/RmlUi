@@ -1,0 +1,75 @@
+<rml>
+<head>
+	<title>Relative position</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="source" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<link rel="help" href="https://drafts.csswg.org/css-position-3/#comparison" />
+	<meta name="description" content='Relative positioning with percent offset in different formatting contexts.' />
+	<meta name="assert" content='The green box should be positioned immediately below the purple box, and together they should be vertically centered in the document.' />
+	<meta name="assert" content='The colored boxes should be vertically ordered (with horizontal groups) as follows: white, yellow, purple, green, (orange, red), (blue, pink).' />
+	<style>
+		body {
+			font-size: 16dp;
+		}
+		block {
+			display: block;
+			position: relative;
+			overflow: auto;
+			border: 2px #aaa;
+			height: 90%; top: 5%
+		}
+		div, td {
+			width: 70dp;
+			height: 70dp;
+		}
+		table, flex { width: 70dp; }
+		.absolute {
+			position: absolute;
+			bottom: 50%;
+			left: 50%;
+		}
+		.relative {
+			position: relative;
+			top: 50%;
+			left: 50%;
+		}
+		.over {
+			position: relative;
+			bottom: 200%;
+			left: 100%;
+		}
+		.float { float: left; }
+		flex { display: flex; }
+
+		.white { background: #f0f0f0; }
+		.purple { background: #88c; }
+		.green { background: #6c6; }
+		.yellow { background: #dd4; }
+		.orange { background: #da2; }
+		.red { background: #e77; }
+		.blue { background: #5fc4dd; }
+		.pink { background: #cb70e0; }
+	</style>
+</head>
+<body>
+
+<block>
+
+<div class="absolute purple">Absolute</div>
+<div class="relative green">Relative</div>
+
+<p>
+<p class="relative"><span class="white">First line</span></p>
+Start<span id="x" class="relative yellow">Inline</span><span class="relative float yellow">Float</span>After
+</p>
+
+<table class="relative orange"><td>Table container</td></table>
+<flex class="relative blue"><div>Flex container</div></flex>
+
+<table class="relative"><td class="over red">Table cell</td></table>
+<flex class="relative"><div class="over pink">Flex item</div></flex>
+
+</block>
+<handle size_target="#document"/>
+</body>
+</rml>

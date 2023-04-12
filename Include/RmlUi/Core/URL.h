@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,11 +35,10 @@
 namespace Rml {
 
 /**
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API URL
-{
+class RMLUICORE_API URL {
 public:
 	/// Constructs an empty URL.
 	URL();
@@ -63,12 +62,12 @@ public:
 	const String& GetProtocol() const;
 
 	/// Sets the URL's login
-	bool SetLogin( const String& login );
+	bool SetLogin(const String& login);
 	/// Returns the URL's login
 	const String& GetLogin() const;
 
 	/// Sets the URL's password
-	bool SetPassword( const String& password );
+	bool SetPassword(const String& password);
 	/// Returns the URL's password
 	const String& GetPassword() const;
 
@@ -98,26 +97,26 @@ public:
 	bool SetExtension(const String& extension);
 	/// Returns the URL's file extension.
 	const String& GetExtension() const;
-	
+
 	/// Access the url parameters
-	typedef UnorderedMap< String, String > Parameters;
+	typedef UnorderedMap<String, String> Parameters;
 	const Parameters& GetParameters() const;
 	void SetParameter(const String& name, const String& value);
-	void SetParameters( const Parameters& parameters );
+	void SetParameters(const Parameters& parameters);
 	void ClearParameters();
-	
+
 	/// Returns the URL's path, file name and extension.
 	String GetPathedFileName() const;
-	/// Builds and returns a url query string ( key=value&key2=value2 )		
+	/// Builds and returns a url query string ( key=value&key2=value2 )
 	String GetQueryString() const;
 
 	/// Less-than operator for use as a key in STL containers.
 	bool operator<(const URL& rhs) const;
 
-	/// Since URLs often contain characters outside the ASCII set, 
+	/// Since URLs often contain characters outside the ASCII set,
 	/// the URL has to be converted into a valid ASCII format and back.
-	static String UrlEncode(const String &value);
-	static String UrlDecode(const String &value);
+	static String UrlEncode(const String& value);
+	static String UrlDecode(const String& value);
 
 private:
 	void ConstructURL() const;
@@ -132,7 +131,7 @@ private:
 	String protocol;
 	String login;
 	String password;
-	String host;		
+	String host;
 	String path;
 	String file_name;
 	String extension;

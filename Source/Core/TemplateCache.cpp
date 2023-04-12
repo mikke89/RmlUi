@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,9 +27,9 @@
  */
 
 #include "TemplateCache.h"
+#include "../../Include/RmlUi/Core/Log.h"
 #include "StreamFile.h"
 #include "Template.h"
-#include "../../Include/RmlUi/Core/Log.h"
 
 namespace Rml {
 
@@ -96,7 +96,7 @@ Template* TemplateCache::LoadTemplate(const String& name)
 	}
 	else
 	{
-		Log::Message(Log::LT_ERROR, "Failed to open template file %s.", name.c_str());		
+		Log::Message(Log::LT_ERROR, "Failed to open template file %s.", name.c_str());
 	}
 
 	return new_template;
