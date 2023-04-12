@@ -1,0 +1,118 @@
+<rml>
+<head>
+	<title>Display of replaced elements</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width" />
+	<meta name="Description" content="Replaced elements should be correctly rendered when placed out-of-flow and in different formatting contexts." />
+	<style>
+		@spritesheet theme
+		{
+			src: /assets/invader.tga;
+			invader: 179px 152px 50px 40px;
+			progress:      103px 267px 80px 34px;
+			progress-fill: 103px 302px 80px 34px;
+		}
+		img {
+			margin: 10dp 5dp;
+			vertical-align: bottom;
+		}
+		progress {
+			decorator: image( progress );
+			width: 80dp;
+			height: 34dp;
+			line-height: 32dp;
+			fill-image: progress-fill;
+			text-align: center;
+		}
+		textarea {
+			background: #fff;
+			border: 5dp #999;
+			border-right: 17dp;
+			padding: 2dp;
+			height: 35dp;
+			width: 100dp;
+			cursor: text;
+			vertical-align: bottom;
+		}
+		textarea scrollbarvertical {
+			width: 12dp;
+			margin-right: -12dp;
+			cursor: arrow;
+		}
+		.float { float: left; }
+		.block { display: block; }
+		.flex {
+			display: flex;
+			justify-content: center;
+
+			/* If we decide to support flex layout inside replaced elements, test
+			with the below line uncommented. Then we know flex layout occurred if
+			the text is still centered inside the element. */
+
+			/*text-align: right;*/
+		}
+		.absolute { position: absolute; }
+	</style>
+</head>
+
+<body>
+<div>
+	<img style="float: right" sprite="invader"/>
+	<img style="position: absolute; margin-left: auto; margin-right: auto;" sprite="invader"/>
+	<table style="float: left; width: 60dp;"><td>
+		<img sprite="invader"/>
+	</td></table>
+</div>
+
+<hr/>
+
+<p>Replaced element with internal content.</p>
+
+<progress direction="right" value="0.6">60%</progress><br/>
+<progress direction="right" value="0.6" class="float">60%</progress>
+<progress direction="right" value="0.6" class="block">60%</progress>
+<progress direction="right" value="0.6" class="flex"><div>60%</div></progress>
+<table><td>
+	<progress direction="right" value="0.6">60%</progress>
+</td></table>
+<progress direction="right" value="0.6" class="absolute">60%</progress>
+
+<hr style="margin-top: 40dp;"/>
+
+<p>Overflowing textarea.</p>
+
+<textarea>A
+B
+C</textarea>
+<br/>
+<textarea class="float">A
+B
+C</textarea>
+
+<textarea class="block">A
+B
+C</textarea>
+
+<textarea class="flex">A
+B
+C</textarea>
+
+<table><td>
+<textarea>A
+B
+C</textarea>
+</td></table>
+
+<textarea class="absolute">A
+B
+C</textarea>
+
+<hr style="margin-top: 80dp;"/>
+
+<p>Force overflow with the empty space below, to ensure that this does not trigger any clipping issues in the above elements.</p>
+
+<div style="height:300dp"/>
+
+<handle size_target="#parent"/>
+</body>
+</rml>

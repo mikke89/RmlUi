@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,15 +42,14 @@ class PropertiesIterator;
 enum class RelativeTarget;
 
 enum class PseudoClassState : std::uint8_t { Clear = 0, Set = 1, Override = 2 };
-using PseudoClassMap = SmallUnorderedMap< String, PseudoClassState >;
+using PseudoClassMap = SmallUnorderedMap<String, PseudoClassState>;
 
 /**
-	Manages an element's style and property information.
-	@author Lloyd Weehuizen
+    Manages an element's style and property information.
+    @author Lloyd Weehuizen
  */
 
-class ElementStyle
-{
+class ElementStyle {
 public:
 	/// Constructor
 	/// @param[in] element The element this structure belongs to.
@@ -165,7 +164,8 @@ public:
 
 	/// Turns the local and inherited properties into computed values for this element. These values can in turn be used during the layout procedure.
 	/// Must be called in correct order, always parent before its children.
-	PropertyIdSet ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values, const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions);
+	PropertyIdSet ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values,
+		const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions);
 
 	/// Returns an iterator for iterating the local properties of this element.
 	/// Note: Modifying the element's style invalidates its iterator.

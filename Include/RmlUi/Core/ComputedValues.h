@@ -3,7 +3,7 @@
  *
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -107,14 +107,15 @@ namespace Style {
 		Colourb border_top_color{255, 255, 255}, border_right_color{255, 255, 255}, border_bottom_color{255, 255, 255},
 			border_left_color{255, 255, 255};
 
-		Colourb background_color = Colourb(255, 255, 255, 0);
+		Colourb background_color = Colourb(0, 0, 0, 0);
 	};
 
 	struct InheritedValues {
 		InheritedValues() :
-			font_weight(FontWeight::Normal), font_style(FontStyle::Normal), has_font_effect(false), pointer_events(PointerEvents::Auto),
-			focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None), text_transform(TextTransform::None),
-			white_space(WhiteSpace::Normal), word_break(WordBreak::Normal), line_height_inherit_type(LineHeight::Number)
+			font_weight(FontWeight::Normal), has_letter_spacing(0), font_style(FontStyle::Normal), has_font_effect(false),
+			pointer_events(PointerEvents::Auto), focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None),
+			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal),
+			line_height_inherit_type(LineHeight::Number)
 		{}
 
 		// Font face used to render text and resolve ex properties. Does not represent a true property
@@ -126,8 +127,9 @@ namespace Style {
 		float opacity = 1;
 		Colourb color = Colourb(255, 255, 255);
 
-		FontWeight font_weight;
-		
+		FontWeight font_weight : 10;
+		uint16_t has_letter_spacing : 1;
+
 		FontStyle font_style : 1;
 		bool has_font_effect : 1;
 		PointerEvents pointer_events : 1;
@@ -150,7 +152,8 @@ namespace Style {
 			max_height_type(LengthPercentage::Length),
 
 			perspective_origin_x_type(LengthPercentage::Percentage), perspective_origin_y_type(LengthPercentage::Percentage),
-			transform_origin_x_type(LengthPercentage::Percentage), transform_origin_y_type(LengthPercentage::Percentage),
+			transform_origin_x_type(LengthPercentage::Percentage), transform_origin_y_type(LengthPercentage::Percentage), has_local_transform(false),
+			has_local_perspective(false),
 
 			flex_basis_type(LengthPercentageAuto::Auto), row_gap_type(LengthPercentage::Length), column_gap_type(LengthPercentage::Length),
 
@@ -162,6 +165,7 @@ namespace Style {
 
 		LengthPercentage::Type perspective_origin_x_type : 1, perspective_origin_y_type : 1;
 		LengthPercentage::Type transform_origin_x_type : 1, transform_origin_y_type : 1;
+		bool has_local_transform : 1, has_local_perspective : 1;
 
 		LengthPercentageAuto::Type flex_basis_type : 2;
 		LengthPercentage::Type row_gap_type : 1, column_gap_type : 1;
@@ -239,6 +243,7 @@ namespace Style {
 		String         cursor()           const;
 		FontFaceHandle font_face_handle() const { return inherited.font_face_handle; }
 		float          font_size()        const { return inherited.font_size; }
+		float          letter_spacing()   const;
 		bool           has_font_effect()  const { return inherited.has_font_effect; }
 		FontStyle      font_style()       const { return inherited.font_style; }
 		FontWeight     font_weight()      const { return inherited.font_weight; }
@@ -268,6 +273,8 @@ namespace Style {
 		TransformOrigin   transform_origin_x()         const { return LengthPercentage(rare.transform_origin_x_type, rare.transform_origin_x); }
 		TransformOrigin   transform_origin_y()         const { return LengthPercentage(rare.transform_origin_y_type, rare.transform_origin_y); }
 		float             transform_origin_z()         const { return rare.transform_origin_z; }
+		bool              has_local_transform()        const { return rare.has_local_transform; }
+		bool              has_local_perspective()      const { return rare.has_local_perspective; }
 		AlignContent      align_content()              const { return GetLocalPropertyKeyword(PropertyId::AlignContent, AlignContent::Stretch); }
 		AlignItems        align_items()                const { return GetLocalPropertyKeyword(PropertyId::AlignItems, AlignItems::Stretch); }
 		AlignSelf         align_self()                 const { return GetLocalPropertyKeyword(PropertyId::AlignSelf, AlignSelf::Auto); }
@@ -326,21 +333,22 @@ namespace Style {
 		void border_left_color  (Colourb value)              { common.border_left_color   = value; }
 		void has_decorator      (bool value)                 { common.has_decorator       = value; }
 		// Inherited
-		void font_face_handle(FontFaceHandle value) { inherited.font_face_handle = value; }
-		void font_size       (float value)          { inherited.font_size        = value; }
-		void has_font_effect (bool value)           { inherited.has_font_effect  = value; }
-		void font_style      (FontStyle value)      { inherited.font_style       = value; }
-		void font_weight     (FontWeight value)     { inherited.font_weight      = value; }
-		void pointer_events  (PointerEvents value)  { inherited.pointer_events   = value; }
-		void focus           (Focus value)          { inherited.focus            = value; }
-		void text_align      (TextAlign value)      { inherited.text_align       = value; }
-		void text_decoration (TextDecoration value) { inherited.text_decoration  = value; }
-		void text_transform  (TextTransform value)  { inherited.text_transform   = value; }
-		void white_space     (WhiteSpace value)     { inherited.white_space      = value; }
-		void word_break      (WordBreak value)      { inherited.word_break       = value; }
-		void color           (Colourb value)        { inherited.color            = value; }
-		void opacity         (float value)          { inherited.opacity          = value; }
-		void line_height     (LineHeight value)     { inherited.line_height = value.value; inherited.line_height_inherit_type = value.inherit_type; inherited.line_height_inherit = value.inherit_value;  }
+		void font_face_handle  (FontFaceHandle value) { inherited.font_face_handle   = value; }
+		void font_size         (float value)          { inherited.font_size          = value; }
+		void has_letter_spacing(bool value)           { inherited.has_letter_spacing = value; }
+		void has_font_effect   (bool value)           { inherited.has_font_effect    = value; }
+		void font_style        (FontStyle value)      { inherited.font_style         = value; }
+		void font_weight       (FontWeight value)     { inherited.font_weight        = value; }
+		void pointer_events    (PointerEvents value)  { inherited.pointer_events     = value; }
+		void focus             (Focus value)          { inherited.focus              = value; }
+		void text_align        (TextAlign value)      { inherited.text_align         = value; }
+		void text_decoration   (TextDecoration value) { inherited.text_decoration    = value; }
+		void text_transform    (TextTransform value)  { inherited.text_transform     = value; }
+		void white_space       (WhiteSpace value)     { inherited.white_space        = value; }
+		void word_break        (WordBreak value)      { inherited.word_break         = value; }
+		void color             (Colourb value)        { inherited.color              = value; }
+		void opacity           (float value)          { inherited.opacity            = value; }
+		void line_height       (LineHeight value)     { inherited.line_height = value.value; inherited.line_height_inherit_type = value.inherit_type; inherited.line_height_inherit = value.inherit_value;  }
 		// Rare
 		void min_width                 (MinWidth value)          { rare.min_width_type             = value.type; rare.min_width                  = value.value; }
 		void max_width                 (MaxWidth value)          { rare.max_width_type             = value.type; rare.max_width                  = value.value; }
@@ -356,6 +364,8 @@ namespace Style {
 		void flex_basis                (FlexBasis value)         { rare.flex_basis_type            = value.type; rare.flex_basis                 = value.value; }
 		void transform_origin_z        (float value)             { rare.transform_origin_z         = value; }
 		void perspective               (float value)             { rare.perspective                = value; }
+		void has_local_perspective     (bool value)              { rare.has_local_perspective      = value; }
+		void has_local_transform       (bool value)              { rare.has_local_transform        = value; }
 		void border_top_left_radius    (float value)             { rare.border_top_left_radius     = (int16_t)value; }
 		void border_top_right_radius   (float value)             { rare.border_top_right_radius    = (int16_t)value; }
 		void border_bottom_right_radius(float value)             { rare.border_bottom_right_radius = (int16_t)value; }
@@ -402,11 +412,20 @@ namespace Style {
 
 } // namespace Style
 
-// Resolves a computed LengthPercentage value to the base unit 'px'.
-// Percentages are scaled by the base_value.
-// Note: Auto must be manually handled during layout, here it returns zero.
-RMLUICORE_API float ResolveValue(Style::LengthPercentageAuto length, float base_value);
-RMLUICORE_API float ResolveValue(Style::LengthPercentage length, float base_value);
+// Resolves a computed LengthPercentage(Auto) value to the base unit 'px'.
+// Percentages are scaled by the base value, if definite (>= 0), otherwise return the default value.
+// Auto lengths always return the default value.
+RMLUICORE_API float ResolveValueOr(Style::LengthPercentageAuto length, float base_value, float default_value);
+RMLUICORE_API float ResolveValueOr(Style::LengthPercentage length, float base_value, float default_value);
+
+RMLUICORE_API_INLINE float ResolveValue(Style::LengthPercentageAuto length, float base_value)
+{
+	return ResolveValueOr(length, base_value, 0.f);
+}
+RMLUICORE_API_INLINE float ResolveValue(Style::LengthPercentage length, float base_value)
+{
+	return ResolveValueOr(length, base_value, 0.f);
+}
 
 using ComputedValues = Style::ComputedValues;
 

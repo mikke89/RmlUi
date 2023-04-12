@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -93,7 +93,6 @@ StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(CompoundSelector&& other)
 	return result;
 }
 
-// Merges an entire tree hierarchy into our hierarchy.
 void StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset)
 {
 	RMLUI_ZoneScoped;
@@ -125,7 +124,6 @@ UniquePtr<StyleSheetNode> StyleSheetNode::DeepCopy(StyleSheetNode* in_parent) co
 	return node;
 }
 
-// Builds up a style sheet's index recursively.
 void StyleSheetNode::BuildIndex(StyleSheetIndex& styled_node_index) const
 {
 	// If this has properties defined, then we insert it into the styled node index.
@@ -164,20 +162,16 @@ void StyleSheetNode::BuildIndex(StyleSheetIndex& styled_node_index) const
 		child->BuildIndex(styled_node_index);
 }
 
-// Returns the specificity of this node.
 int StyleSheetNode::GetSpecificity() const
 {
 	return specificity;
 }
 
-// Imports properties from a single rule definition (ie, with a shared specificity) into the node's
-// properties.
 void StyleSheetNode::ImportProperties(const PropertyDictionary& _properties, int rule_specificity)
 {
 	properties.Import(_properties, specificity + rule_specificity);
 }
 
-// Returns the node's default properties.
 const PropertyDictionary& StyleSheetNode::GetProperties() const
 {
 	return properties;
@@ -324,9 +318,25 @@ bool StyleSheetNode::TraverseMatch(const Element* element) const
 	case SelectorCombinator::NextSibling:
 	case SelectorCombinator::SubsequentSibling:
 	{
+		Element* parent_element = element->GetParentNode();
+		if (!parent_element)
+			return false;
+
+		const int preceding_sibling_index = [element, parent_element] {
+			const int num_children = parent_element->GetNumChildren(true);
+			for (int i = 0; i < num_children; i++)
+			{
+				if (parent_element->GetChild(i) == element)
+					return i - 1;
+			}
+			return -1;
+		}();
+
 		// Try to match the previous sibling. If it succeeds we continue on to the next node, otherwise we try to again with its previous sibling.
-		for (element = element->GetPreviousSibling(); element; element = element->GetPreviousSibling())
+		for (int i = preceding_sibling_index; i >= 0; i--)
 		{
+			element = parent_element->GetChild(i);
+
 			// First check if our sibling is a text element and if so skip it. For the descendant/child combinator above we can omit this step since
 			// text elements don't have children and thus any ancestor is not a text element.
 			if (IsTextElement(element))

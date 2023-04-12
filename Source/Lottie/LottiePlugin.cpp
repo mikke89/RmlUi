@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,48 +26,39 @@
  *
  */
 
-
-#include "../../Include/RmlUi/Lottie/ElementLottie.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
+#include "../../Include/RmlUi/Lottie/ElementLottie.h"
 
 namespace Rml {
 namespace Lottie {
 
+	class LottiePlugin : public Plugin {
+	public:
+		void OnInitialise() override
+		{
+			instancer = MakeUnique<ElementInstancerGeneric<ElementLottie>>();
 
-class LottiePlugin : public Plugin {
-public:
-	void OnInitialise() override
+			Factory::RegisterElementInstancer("lottie", instancer.get());
+
+			Log::Message(Log::LT_INFO, "Lottie plugin initialised.");
+		}
+
+		void OnShutdown() override { delete this; }
+
+		int GetEventClasses() override { return Plugin::EVT_BASIC; }
+
+	private:
+		UniquePtr<ElementInstancerGeneric<ElementLottie>> instancer;
+	};
+
+	void Initialise()
 	{
-		instancer = MakeUnique<ElementInstancerGeneric<ElementLottie> >();
-		
-		Factory::RegisterElementInstancer("lottie", instancer.get());
-
-		Log::Message(Log::LT_INFO, "Lottie plugin initialised.");
+		RegisterPlugin(new LottiePlugin);
 	}
-
-	void OnShutdown() override
-	{
-		delete this;
-	}
-
-	int GetEventClasses() override
-	{
-		return Plugin::EVT_BASIC;
-	}
-
-private:
-	UniquePtr<ElementInstancerGeneric<ElementLottie>> instancer;
-};
-
-
-void Initialise()
-{
-	RegisterPlugin(new LottiePlugin);
-}
 
 } // namespace Lottie
 } // namespace Rml

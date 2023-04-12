@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,11 +29,11 @@
 #ifndef RMLUI_CORE_DATAMODEL_H
 #define RMLUI_CORE_DATAMODEL_H
 
-#include "../../Include/RmlUi/Core/Header.h"
-#include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/Traits.h"
 #include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/DataTypes.h"
+#include "../../Include/RmlUi/Core/Header.h"
+#include "../../Include/RmlUi/Core/Traits.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
@@ -42,7 +42,6 @@ class DataControllers;
 class DataVariable;
 class Element;
 class FuncDefinition;
-
 
 class DataModel : NonCopyMoveable {
 public:
@@ -80,9 +79,7 @@ public:
 
 	bool Update(bool clear_dirty_variables);
 
-	inline DataTypeRegister* GetDataTypeRegister() const {
-		return data_type_register;
-	}
+	inline DataTypeRegister* GetDataTypeRegister() const { return data_type_register; }
 
 private:
 	UniquePtr<DataViews> views;
@@ -101,7 +98,6 @@ private:
 
 	SmallUnorderedSet<Element*> attached_elements;
 };
-
 
 } // namespace Rml
 #endif

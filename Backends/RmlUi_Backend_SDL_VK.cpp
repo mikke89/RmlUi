@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,9 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
 		return false;
 
+	// Submit click events when focusing the window.
+	SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+
 	const Uint32 window_flags = (SDL_WINDOW_VULKAN | (allow_resize ? SDL_WINDOW_RESIZABLE : 0));
 
 	SDL_Window* window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
@@ -73,7 +76,25 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	data = Rml::MakeUnique<BackendData>();
 	data->window = window;
 
-	if (!data->render_interface.Initialize(
+	Rml::Vector<const char*> extensions;
+	{
+		unsigned int count;
+		if (!SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr))
+		{
+			data.reset();
+			fprintf(stderr, "Could not get required vulkan extensions");
+			return false;
+		}
+		extensions.resize(count);
+		if (!SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()))
+		{
+			data.reset();
+			fprintf(stderr, "Could not get required vulkan extensions");
+			return false;
+		}
+	}
+
+	if (!data->render_interface.Initialize(std::move(extensions),
 			[](VkInstance instance, VkSurfaceKHR* out_surface) { return (bool)SDL_Vulkan_CreateSurface(data->window, instance, out_surface); }))
 	{
 		data.reset();
@@ -138,14 +159,19 @@ static bool WaitForValidSwapchain()
 	return result;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
 
 	bool result = data->running;
 	SDL_Event ev;
 
-	while (SDL_PollEvent(&ev))
+	int has_event = 0;
+	if (power_save)
+		has_event = SDL_WaitEventTimeout(&ev, static_cast<int>(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0) * 1000));
+	else
+		has_event = SDL_PollEvent(&ev);
+	while (has_event)
 	{
 		switch (ev.type)
 		{
@@ -188,6 +214,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 		}
 		break;
 		}
+		has_event = SDL_PollEvent(&ev);
 	}
 
 	if (!WaitForValidSwapchain())

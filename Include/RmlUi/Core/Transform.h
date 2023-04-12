@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,29 +30,28 @@
 #define RMLUI_CORE_TRANSFORM_H
 
 #include "Header.h"
-#include "Types.h"
 #include "TransformPrimitive.h"
+#include "Types.h"
 
 namespace Rml {
 
 class Property;
 
 /**
-	The Transform class holds the information parsed from an element's `transform' property.
-	
-	The class holds a list of transform primitives making up a complete transformation specification
-	of an element. Each transform instance is relative to the element's parent coordinate system.
-	During the Context::Render call the transforms of the current element and its ancestors will be
-	used to find the final transformation matrix for the global coordinate system.
+    The Transform class holds the information parsed from an element's `transform' property.
 
-	@author Markus Schöngart
-	@see Rml::Variant
+    The class holds a list of transform primitives making up a complete transformation specification
+    of an element. Each transform instance is relative to the element's parent coordinate system.
+    During the Context::Render call the transforms of the current element and its ancestors will be
+    used to find the final transformation matrix for the global coordinate system.
+
+    @author Markus Schöngart
+    @see Rml::Variant
  */
 
-class RMLUICORE_API Transform
-{
+class RMLUICORE_API Transform {
 public:
-	using PrimitiveList = Vector< TransformPrimitive >;
+	using PrimitiveList = Vector<TransformPrimitive>;
 
 	/// Default constructor, initializes an identity transform
 	Transform();
@@ -81,8 +80,6 @@ public:
 private:
 	PrimitiveList primitives;
 };
-
-
 
 } // namespace Rml
 #endif

@@ -1,0 +1,58 @@
+<rml>
+<head>
+	<title>Inline formatting 05</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css2/#propdef-vertical-align" />
+	<link rel="help" href="https://drafts.csswg.org/css2/#inline-box-height" />
+	<meta name="Description" content="Vertical alignment. Stated 'vertical-align' value applies to the blue box." />
+	<style>
+		p { color: #45e; }
+		span {
+			border-top: 1px #3332;
+			border-bottom: 1px #3332;
+		}
+		sub {
+			font-size: 10px;
+			background: #ffd;
+			vertical-align: sub;
+		}
+		.wrapper {
+			background-color: #eee;
+			border: 3px #bbb;
+			margin-bottom: 2em;
+		}
+		.line {
+			background: #fdd;
+		}
+		.outer {
+			font-size: 30px;
+			background: #ddf;
+		}
+		.inner {
+			font-size: 50px;
+			background: #dfd;
+		}
+		.middle { vertical-align: middle; }
+		.text-top { vertical-align: text-top; }
+	</style>
+</head>
+
+<body>
+<p>vertical-align: baseline</p>
+<div class="wrapper">
+	<span class="line">A <span class="outer"> B<span class="inner">C<sub>d</sub>E</span>F</span> G</span>
+</div>
+
+<p>vertical-align: middle</p>
+<div class="wrapper">
+	<span class="line">A <span class="outer middle"> B<span class="inner">C<sub>d</sub>E</span>F</span> G</span>
+</div>
+
+<p>vertical-align: text-top</p>
+<div class="wrapper">
+	<span class="line">A <span class="outer text-top"> B<span class="inner">C<sub>d</sub>E</span>F</span> G</span>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2014 Markus Schöngart
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,17 +35,17 @@
 namespace Rml {
 
 struct TransformPrimitive;
-namespace Transforms { struct DecomposedMatrix4; }
+namespace Transforms {
+	struct DecomposedMatrix4;
+}
 
-
-namespace TransformUtilities
-{
+namespace TransformUtilities {
 	// Set the primitive to its identity value.
 	void SetIdentity(TransformPrimitive& primitive) noexcept;
 
 	// Resolve the primitive into a transformation matrix, given the current element properties and layout.
 	Matrix4f ResolveTransform(const TransformPrimitive& primitive, Element& e) noexcept;
-	
+
 	// Prepares the primitive for interpolation. This must be done before calling InterpolateWith().
 	// Promote units to basic types which can be interpolated, that is, convert 'length -> pixel' for unresolved primitives.
 	// Returns false if the owning transform must to be converted to a DecomposedMatrix4 primitive.
@@ -64,8 +64,7 @@ namespace TransformUtilities
 	bool Decompose(Transforms::DecomposedMatrix4& decomposed_matrix, const Matrix4f& matrix) noexcept;
 
 	String ToString(const TransformPrimitive& primitive) noexcept;
-}
-
+} // namespace TransformUtilities
 
 } // namespace Rml
 #endif

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2018 Michael R. P. Ragazzon
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@
 
 class DemoWindow {
 public:
-	DemoWindow(const Rml::String &title, Rml::Context *context)
+	DemoWindow(const Rml::String& title, Rml::Context* context)
 	{
 		using namespace Rml;
 		document = context->LoadDocument("basic/animation/data/animation.rml");
@@ -46,15 +46,15 @@ public:
 			// Button fun
 			{
 				auto el = document->GetElementById("start_game");
-				auto p1 = Transform::MakeProperty({ Transforms::Rotate2D{10.f}, Transforms::TranslateX{100.f} });
-				auto p2 = Transform::MakeProperty({ Transforms::Scale2D{3.f} });
-				el->Animate("transform", p1, 1.8f, Tween{ Tween::Elastic, Tween::InOut }, -1, true);
-				el->AddAnimationKey("transform", p2, 1.3f, Tween{ Tween::Elastic, Tween::InOut });
+				auto p1 = Transform::MakeProperty({Transforms::Rotate2D{10.f}, Transforms::TranslateX{100.f}});
+				auto p2 = Transform::MakeProperty({Transforms::Scale2D{3.f}});
+				el->Animate("transform", p1, 1.8f, Tween{Tween::Elastic, Tween::InOut}, -1, true);
+				el->AddAnimationKey("transform", p2, 1.3f, Tween{Tween::Elastic, Tween::InOut});
 			}
 			{
 				auto el = document->GetElementById("high_scores");
-				el->Animate("margin-left", Property(0.f, Property::PX), 0.3f, Tween{ Tween::Sine, Tween::In }, 10, true, 1.f);
-				el->AddAnimationKey("margin-left", Property(100.f, Property::PX), 3.0f, Tween{ Tween::Circular, Tween::Out });
+				el->Animate("margin-left", Property(0.f, Property::PX), 0.3f, Tween{Tween::Sine, Tween::In}, 10, true, 1.f);
+				el->AddAnimationKey("margin-left", Property(100.f, Property::PX), 3.0f, Tween{Tween::Circular, Tween::Out});
 			}
 			{
 				auto el = document->GetElementById("options");
@@ -68,24 +68,25 @@ public:
 				auto el = document->GetElementById("exit");
 				PropertyDictionary pd;
 				StyleSheetSpecification::ParsePropertyDeclaration(pd, "transform", "translate(200px, 200px) rotate(1215deg)");
-				el->Animate("transform", *pd.GetProperty(PropertyId::Transform), 3.f, Tween{ Tween::Bounce, Tween::Out }, -1);
+				el->Animate("transform", *pd.GetProperty(PropertyId::Transform), 3.f, Tween{Tween::Bounce, Tween::Out}, -1);
 			}
 
 			// Transform tests
 			{
 				auto el = document->GetElementById("generic");
-				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0, 0, 1, -90, Property::DEG}, Transforms::ScaleY{0.8f} });
+				auto p = Transform::MakeProperty(
+					{Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0, 0, 1, -90, Property::DEG}, Transforms::ScaleY{0.8f}});
 				el->Animate("transform", p, 1.5f, Tween{Tween::Sine, Tween::InOut}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("combine");
-				auto p = Transform::MakeProperty({ Transforms::Translate2D{50, 50, Property::PX}, Transforms::Rotate2D(1215) });
+				auto p = Transform::MakeProperty({Transforms::Translate2D{50, 50, Property::PX}, Transforms::Rotate2D(1215)});
 				el->Animate("transform", p, 8.0f, Tween{}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("decomposition");
-				auto p = Transform::MakeProperty({ Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0.8f, 0, 1, 110, Property::DEG} });
-				el->Animate("transform", p, 1.3f, Tween{ Tween::Quadratic, Tween::InOut }, -1, true);
+				auto p = Transform::MakeProperty({Transforms::TranslateY{50, Property::PX}, Transforms::Rotate3D{0.8f, 0, 1, 110, Property::DEG}});
+				el->Animate("transform", p, 1.3f, Tween{Tween::Quadratic, Tween::InOut}, -1, true);
 			}
 
 			// Mixed units tests
@@ -95,13 +96,13 @@ public:
 			}
 			{
 				auto el = document->GetElementById("abs_rel_transform");
-				auto p = Transform::MakeProperty({ Transforms::TranslateX{0, Property::PX} });
+				auto p = Transform::MakeProperty({Transforms::TranslateX{0, Property::PX}});
 				el->Animate("transform", p, 1.5f, Tween{}, -1, true);
 			}
 			{
 				auto el = document->GetElementById("animation_event");
-				el->Animate("top", Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{ Tween::Cubic, Tween::InOut });
-				el->Animate("left", Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{ Tween::Cubic, Tween::InOut });
+				el->Animate("top", Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{Tween::Cubic, Tween::InOut});
+				el->Animate("left", Property(Math::RandomReal(250.f), Property::PX), 1.5f, Tween{Tween::Cubic, Tween::InOut});
 			}
 
 			document->Show();
@@ -144,12 +145,10 @@ public:
 		}
 	}
 
-	Rml::ElementDocument * GetDocument() {
-		return document;
-	}
+	Rml::ElementDocument* GetDocument() { return document; }
 
 private:
-	Rml::ElementDocument *document;
+	Rml::ElementDocument* document;
 	double t_prev_fade = 0;
 };
 
@@ -158,8 +157,7 @@ bool run_loop = true;
 bool single_loop = false;
 int nudge = 0;
 
-class Event : public Rml::EventListener
-{
+class Event : public Rml::EventListener {
 public:
 	Event(const Rml::String& value) : value(value) {}
 
@@ -174,7 +172,7 @@ public:
 		{
 		case EventId::Keydown:
 		{
-			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier) event.GetParameter< int >("key_identifier", 0);
+			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
 
 			if (key_identifier == Rml::Input::KI_SPACE)
 			{
@@ -200,23 +198,27 @@ public:
 			else if (key_identifier == Rml::Input::KI_LEFT)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				if (el) el->Animate("left", Property{ -200.f, Property::DP }, 0.5, Tween{ Tween::Cubic });
+				if (el)
+					el->Animate("left", Property{-200.f, Property::DP}, 0.5, Tween{Tween::Cubic});
 			}
 			else if (key_identifier == Rml::Input::KI_RIGHT)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				if (el) el->Animate("left", Property{ 200.f, Property::DP }, 0.5, Tween{ Tween::Cubic });
+				if (el)
+					el->Animate("left", Property{200.f, Property::DP}, 0.5, Tween{Tween::Cubic});
 			}
 			else if (key_identifier == Rml::Input::KI_UP)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				auto offset_right = Property{ 200.f, Property::DP };
-				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic }, 1, true, 0, &offset_right);
+				auto offset_right = Property{200.f, Property::DP};
+				if (el)
+					el->Animate("left", Property{0.f, Property::PX}, 0.5, Tween{Tween::Cubic}, 1, true, 0, &offset_right);
 			}
 			else if (key_identifier == Rml::Input::KI_DOWN)
 			{
 				auto el = context->GetRootElement()->GetElementById("keyevent_response");
-				if (el) el->Animate("left", Property{ 0.f, Property::PX }, 0.5, Tween{ Tween::Cubic });
+				if (el)
+					el->Animate("left", Property{0.f, Property::PX}, 0.5, Tween{Tween::Cubic});
 			}
 		}
 		break;
@@ -236,14 +238,13 @@ public:
 			auto el = event.GetTargetElement();
 			if (el->GetId() == "animation_event")
 			{
-				el->Animate("top", Property(Math::RandomReal(200.f), Property::PX), 1.2f, Tween{ Tween::Cubic, Tween::InOut });
-				el->Animate("left", Property(Math::RandomReal(100.f), Property::PERCENT), 0.8f, Tween{ Tween::Cubic, Tween::InOut });
+				el->Animate("top", Property(Math::RandomReal(200.f), Property::PX), 1.2f, Tween{Tween::Cubic, Tween::InOut});
+				el->Animate("left", Property(Math::RandomReal(100.f), Property::PERCENT), 0.8f, Tween{Tween::Cubic, Tween::InOut});
 			}
 		}
 		break;
 
-		default:
-			break;
+		default: break;
 		}
 	}
 

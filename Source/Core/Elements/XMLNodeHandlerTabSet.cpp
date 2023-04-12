@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,28 +27,20 @@
  */
 
 #include "XMLNodeHandlerTabSet.h"
-#include "../../../Include/RmlUi/Core/Log.h"
-#include "../../../Include/RmlUi/Core/Factory.h"
-#include "../../../Include/RmlUi/Core/XMLParser.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementTabSet.h"
+#include "../../../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/Log.h"
+#include "../../../Include/RmlUi/Core/XMLParser.h"
 
 namespace Rml {
 
-XMLNodeHandlerTabSet::XMLNodeHandlerTabSet()
-{
-}
+XMLNodeHandlerTabSet::XMLNodeHandlerTabSet() {}
 
-XMLNodeHandlerTabSet::~XMLNodeHandlerTabSet()
-{
-}
+XMLNodeHandlerTabSet::~XMLNodeHandlerTabSet() {}
 
 Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& name, const XMLAttributes& attributes)
 {
-	RMLUI_ASSERT(name == "tabset" ||
-			   name == "tabs" ||
-			   name == "tab" ||
-			   name == "panels" ||
-			   name == "panel");
+	RMLUI_ASSERT(name == "tabset" || name == "tabs" || name == "tab" || name == "panels" || name == "panel");
 
 	if (name == "tabset")
 	{
@@ -56,8 +48,8 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 		parser->PushHandler("tabset");
 
 		// Attempt to instance the tabset
-		ElementPtr element = Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);		
-		ElementTabSet* tabset = rmlui_dynamic_cast< ElementTabSet* >(element.get());
+		ElementPtr element = Factory::InstanceElement(parser->GetParseFrame()->element, name, name, attributes);
+		ElementTabSet* tabset = rmlui_dynamic_cast<ElementTabSet*>(element.get());
 		if (!tabset)
 		{
 			Log::Message(Log::LT_ERROR, "Instancer failed to create element for tag %s.", name.c_str());
@@ -68,7 +60,7 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 		Element* result = parser->GetParseFrame()->element->AppendChild(std::move(element));
 
 		return result;
-	}	
+	}
 	else if (name == "tab")
 	{
 		// Call default element handler for all children.
@@ -77,7 +69,7 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 		ElementPtr tab_element = Factory::InstanceElement(parser->GetParseFrame()->element, "*", "tab", attributes);
 		Element* result = nullptr;
 
-		ElementTabSet* tabset = rmlui_dynamic_cast< ElementTabSet* >(parser->GetParseFrame()->element);
+		ElementTabSet* tabset = rmlui_dynamic_cast<ElementTabSet*>(parser->GetParseFrame()->element);
 		if (tabset)
 		{
 			result = tab_element.get();
@@ -85,7 +77,6 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 		}
 
 		return result;
-
 	}
 	else if (name == "panel")
 	{
@@ -95,7 +86,7 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 		ElementPtr panel_element = Factory::InstanceElement(parser->GetParseFrame()->element, "*", "panel", attributes);
 		Element* result = nullptr;
 
-		ElementTabSet* tabset = rmlui_dynamic_cast< ElementTabSet* >(parser->GetParseFrame()->element);
+		ElementTabSet* tabset = rmlui_dynamic_cast<ElementTabSet*>(parser->GetParseFrame()->element);
 		if (tabset)
 		{
 			result = panel_element.get();
@@ -105,7 +96,7 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 		return result;
 	}
 	else if (name == "tabs" || name == "panels")
-	{	
+	{
 		// Use the element handler to add the tabs and panels elements to the the tabset (this allows users to
 		// style them nicely), but don't return the new element, as we still want the tabset to be the top of the
 		// parser's node stack.
@@ -127,17 +118,13 @@ Element* XMLNodeHandlerTabSet::ElementStart(XMLParser* parser, const String& nam
 	return nullptr;
 }
 
-bool XMLNodeHandlerTabSet::ElementEnd(XMLParser* RMLUI_UNUSED_PARAMETER(parser), const String& RMLUI_UNUSED_PARAMETER(name))
+bool XMLNodeHandlerTabSet::ElementEnd(XMLParser* /*parser*/, const String& /*name*/)
 {
-	RMLUI_UNUSED(parser);
-	RMLUI_UNUSED(name);
-
 	return true;
 }
 
-bool XMLNodeHandlerTabSet::ElementData(XMLParser* parser, const String& data, XMLDataType RMLUI_UNUSED_PARAMETER(type))
-{	
-	RMLUI_UNUSED(type);
+bool XMLNodeHandlerTabSet::ElementData(XMLParser* parser, const String& data, XMLDataType /*type*/)
+{
 	return Factory::InstanceElementText(parser->GetParseFrame()->element, data);
 }
 

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,8 +27,8 @@
  */
 
 #include "InputTypeRange.h"
-#include "WidgetSlider.h"
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControlInput.h"
+#include "WidgetSlider.h"
 
 namespace Rml {
 
@@ -43,13 +43,11 @@ InputTypeRange::~InputTypeRange()
 	delete widget;
 }
 
-// Returns a string representation of the current value of the form control.
 String InputTypeRange::GetValue() const
 {
 	return CreateString(32, "%f", widget->GetValue());
 }
 
-// Called every update from the host element.
 void InputTypeRange::OnUpdate()
 {
 	widget->Update();
@@ -60,7 +58,6 @@ void InputTypeRange::OnResize()
 	widget->FormatElements();
 }
 
-// Checks for necessary functional changes in the control as a result of changed attributes.
 bool InputTypeRange::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	bool dirty_layout = false;
@@ -92,12 +89,8 @@ bool InputTypeRange::OnAttributeChange(const ElementAttributes& changed_attribut
 	return !dirty_layout;
 }
 
-// Checks for necessary functional changes in the control as a result of the event.
-void InputTypeRange::ProcessDefaultAction(Event& /*event*/)
-{
-}
+void InputTypeRange::ProcessDefaultAction(Event& /*event*/) {}
 
-// Sizes the dimensions to the element's inherent size.
 bool InputTypeRange::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
 	widget->GetDimensions(dimensions);

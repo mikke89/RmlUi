@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,13 +40,12 @@ class ElementText;
 class ElementFormControl;
 
 /**
-	An abstract widget for editing and navigating around a text field.
+    An abstract widget for editing and navigating around a text field.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class WidgetTextInput : public EventListener
-{
+class WidgetTextInput : public EventListener {
 public:
 	WidgetTextInput(ElementFormControl* parent);
 	virtual ~WidgetTextInput();
@@ -64,6 +63,18 @@ public:
 	int GetMaxLength() const;
 	/// Returns the current length (in characters) of this text field.
 	int GetLength() const;
+
+	/// Selects all text.
+	void Select();
+	/// Selects the text in the given character range.
+	/// @param[in] selection_start The first character to be selected.
+	/// @param[in] selection_end The first character *after* the selection.
+	void SetSelectionRange(int selection_start, int selection_end);
+	/// Retrieves the selection range and text.
+	/// @param[out] selection_start The first character selected.
+	/// @param[out] selection_end The first character *after* the selection.
+	/// @param[out] selected_text The selected text.
+	void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
 
 	/// Update the colours of the selected text.
 	void UpdateSelectionColours();
@@ -167,7 +178,8 @@ private:
 	void UpdateCursorPosition(bool update_ideal_cursor_position);
 
 	/// Expand or shrink the text selection to the position of the cursor.
-	/// @param[in] selecting True if the new position of the cursor should expand / contract the selection area, false if it should only set the anchor for future selections.
+	/// @param[in] selecting True if the new position of the cursor should expand / contract the selection area, false if it should only set the
+	/// anchor for future selections.
 	/// @return True if selection was changed.
 	bool UpdateSelection(bool selecting);
 	/// Removes the selection of text.
@@ -181,13 +193,13 @@ private:
 	/// Split one line of text into three parts, based on the current selection.
 	/// @param[out] pre_selection The section of unselected text before any selected text on the line.
 	/// @param[out] selection The section of selected text on the line.
-	/// @param[out] post_selection The section of unselected text after any selected text on the line. If there is no selection on the line, then this will be empty.
+	/// @param[out] post_selection The section of unselected text after any selected text on the line. If there is no selection on the line, then this
+	/// will be empty.
 	/// @param[in] line The text making up the line.
 	/// @param[in] line_begin The absolute index at the beginning of the line.
 	void GetLineSelection(String& pre_selection, String& selection, String& post_selection, const String& line, int line_begin) const;
 
-	struct Line
-	{
+	struct Line {
 		// Offset into the text field's value.
 		int value_offset;
 		// The size of the contents of the line (including the trailing endline, if that terminated the line).

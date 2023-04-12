@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,8 +29,8 @@
 #ifndef RMLUI_CORE_EVENTDISPATCHER_H
 #define RMLUI_CORE_EVENTDISPATCHER_H
 
-#include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/Event.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
@@ -39,23 +39,23 @@ class EventListener;
 struct CollectedListener;
 
 struct EventListenerEntry {
-	EventListenerEntry(const EventId id, EventListener* listener, const bool in_capture_phase) : id(id), in_capture_phase(in_capture_phase), listener(listener) {}
+	EventListenerEntry(const EventId id, EventListener* listener, const bool in_capture_phase) :
+		id(id), in_capture_phase(in_capture_phase), listener(listener)
+	{}
 
 	EventId id;
 	bool in_capture_phase;
 	EventListener* listener;
 };
 
-
 /**
-	The Event Dispatcher manages a list of event listeners and triggers the events via EventHandlers
-	whenever requested.
+    The Event Dispatcher manages a list of event listeners and triggers the events via EventHandlers
+    whenever requested.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
 */
 
-class EventDispatcher 
-{
+class EventDispatcher {
 public:
 	/// Constructor
 	/// @param element Element this dispatcher acts on
@@ -88,7 +88,8 @@ public:
 	/// @param[in] bubbles True if the event should execute the bubble phase
 	/// @param[in] default_action_phase The phases to execute default actions in
 	/// @return True if the event was not consumed (ie, was prevented from propagating by an element), false if it was.
-	static bool DispatchEvent(Element* target_element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles, DefaultActionPhase default_action_phase);
+	static bool DispatchEvent(Element* target_element, EventId id, const String& type, const Dictionary& parameters, bool interruptible, bool bubbles,
+		DefaultActionPhase default_action_phase);
 
 	/// Returns event types with number of listeners for debugging.
 	/// @return Summary of attached listeners.
@@ -99,14 +100,12 @@ private:
 
 	// Listeners are sorted first by (id, phase) and then by the order in which the listener was inserted.
 	// All listeners added are unique.
-	typedef Vector< EventListenerEntry > Listeners;
+	typedef Vector<EventListenerEntry> Listeners;
 	Listeners listeners;
 
 	// Collect all the listeners from this dispatcher that are allowed to execute given the input arguments.
 	void CollectListeners(int dom_distance_from_target, EventId event_id, EventPhase phases_to_execute, Vector<CollectedListener>& collect_listeners);
 };
-
-
 
 } // namespace Rml
 #endif

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,13 +33,13 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Types.h"
+#include "DebuggerSystemInterface.h"
 #include "ElementContextHook.h"
 #include "ElementInfo.h"
 #include "ElementLog.h"
 #include "FontSource.h"
 #include "Geometry.h"
 #include "MenuSource.h"
-#include "DebuggerSystemInterface.h"
 #include <stack>
 
 namespace Rml {
@@ -70,7 +70,6 @@ DebuggerPlugin::~DebuggerPlugin()
 	instance = nullptr;
 }
 
-// Initialises the debugging tools into the given context.
 bool DebuggerPlugin::Initialise(Context* context)
 {
 	host_context = context;
@@ -82,21 +81,18 @@ bool DebuggerPlugin::Initialise(Context* context)
 		return false;
 	}
 
-	if (!LoadMenuElement() ||
-		!LoadInfoElement() ||
-		!LoadLogElement())
+	if (!LoadMenuElement() || !LoadInfoElement() || !LoadLogElement())
 	{
 		Log::Message(Log::LT_ERROR, "Failed to initialise debugger, error while load debugger elements.");
 		return false;
 	}
 
-	hook_element_instancer = MakeUnique< ElementInstancerGeneric<ElementContextHook> >();
+	hook_element_instancer = MakeUnique<ElementInstancerGeneric<ElementContextHook>>();
 	Factory::RegisterElementInstancer("debug-hook", hook_element_instancer.get());
 
 	return true;
 }
 
-// Sets the context to be debugged.
 bool DebuggerPlugin::SetContext(Context* context)
 {
 	// Remove the debug hook from the old context.
@@ -114,7 +110,7 @@ bool DebuggerPlugin::SetContext(Context* context)
 			return false;
 
 		RMLUI_ASSERT(!hook_element);
-		hook_element = rmlui_dynamic_cast< ElementContextHook* >(element);
+		hook_element = rmlui_dynamic_cast<ElementContextHook*>(element);
 		if (!hook_element)
 		{
 			context->UnloadDocument(element);
@@ -127,18 +123,7 @@ bool DebuggerPlugin::SetContext(Context* context)
 	// Attach the info element to the new context.
 	if (info_element)
 	{
-		if (debug_context)
-		{
-			debug_context->RemoveEventListener("click", info_element, true);
-			debug_context->RemoveEventListener("mouseover", info_element, true);
-		}
-
-		if (context)
-		{
-			context->AddEventListener("click", info_element, true);
-			context->AddEventListener("mouseover", info_element, true);
-		}
-
+		SetupInfoListeners(context);
 		info_element->Reset();
 	}
 
@@ -146,7 +131,6 @@ bool DebuggerPlugin::SetContext(Context* context)
 	return true;
 }
 
-// Sets the visibility of the debugger.
 void DebuggerPlugin::SetVisible(bool visibility)
 {
 	if (visibility)
@@ -155,13 +139,11 @@ void DebuggerPlugin::SetVisible(bool visibility)
 		menu_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 }
 
-// Returns the visibility of the debugger.
 bool DebuggerPlugin::IsVisible()
 {
 	return menu_element->IsVisible();
 }
 
-// Renders any debug elements in the debug context.
 void DebuggerPlugin::Render()
 {
 	// Render the outlines of the debug context's elements.
@@ -173,7 +155,7 @@ void DebuggerPlugin::Render()
 			if (document->GetId().find("rmlui-debug-") == 0)
 				continue;
 
-			Stack< Element* > element_stack;
+			Stack<Element*> element_stack;
 			element_stack.push(document);
 
 			while (!element_stack.empty())
@@ -187,12 +169,8 @@ void DebuggerPlugin::Render()
 					{
 						Vector2f box_offset;
 						const Box& box = element->GetBox(j, box_offset);
-						Geometry::RenderOutline(
-							element->GetAbsoluteOffset(Box::BORDER) + box_offset,
-							box.GetSize(Box::BORDER), 
-							Colourb(255, 0, 0, 128), 
-							1
-						);
+						Geometry::RenderOutline(element->GetAbsoluteOffset(Box::BORDER) + box_offset, box.GetSize(Box::BORDER),
+							Colourb(255, 0, 0, 128), 1);
 					}
 
 					for (int j = 0; j < element->GetNumChildren(); ++j)
@@ -210,7 +188,6 @@ void DebuggerPlugin::Render()
 	}
 }
 
-// Called when RmlUi shuts down.
 void DebuggerPlugin::OnShutdown()
 {
 	// Release the elements before we leak track, this ensures the debugger hook has been cleared
@@ -222,7 +199,6 @@ void DebuggerPlugin::OnShutdown()
 	delete this;
 }
 
-// Called whenever a RmlUi context is destroyed.
 void DebuggerPlugin::OnContextDestroy(Context* context)
 {
 	if (context == debug_context)
@@ -242,14 +218,12 @@ void DebuggerPlugin::OnContextDestroy(Context* context)
 	}
 }
 
-// Called whenever an element is destroyed.
 void DebuggerPlugin::OnElementDestroy(Element* element)
 {
 	if (info_element)
 		info_element->OnElementDestroy(element);
 }
 
-// Event handler for events from the debugger elements.
 void DebuggerPlugin::ProcessEvent(Event& event)
 {
 	if (event == EventId::Click)
@@ -284,8 +258,10 @@ bool DebuggerPlugin::LoadFont()
 {
 	const String font_family_name = "rmlui-debugger-font";
 
-	return (LoadFontFace(courier_prime_code, sizeof(courier_prime_code)/sizeof(courier_prime_code[0]), font_family_name, Style::FontStyle::Normal, Style::FontWeight::Normal) &&
-	        LoadFontFace(courier_prime_code_italic, sizeof(courier_prime_code_italic)/sizeof(courier_prime_code_italic[0]), font_family_name, Style::FontStyle::Italic, Style::FontWeight::Normal));
+	return (LoadFontFace(courier_prime_code, sizeof(courier_prime_code) / sizeof(courier_prime_code[0]), font_family_name, Style::FontStyle::Normal,
+				Style::FontWeight::Normal) &&
+		LoadFontFace(courier_prime_code_italic, sizeof(courier_prime_code_italic) / sizeof(courier_prime_code_italic[0]), font_family_name,
+			Style::FontStyle::Italic, Style::FontWeight::Normal));
 }
 
 bool DebuggerPlugin::LoadMenuElement()
@@ -326,9 +302,9 @@ bool DebuggerPlugin::LoadMenuElement()
 
 bool DebuggerPlugin::LoadInfoElement()
 {
-	info_element_instancer = MakeUnique< ElementInstancerGeneric<ElementInfo> >();
+	info_element_instancer = MakeUnique<ElementInstancerGeneric<ElementInfo>>();
 	Factory::RegisterElementInstancer("debug-info", info_element_instancer.get());
-	info_element = rmlui_dynamic_cast< ElementInfo* >(host_context->CreateDocument("debug-info"));
+	info_element = rmlui_dynamic_cast<ElementInfo*>(host_context->CreateDocument("debug-info"));
 	if (!info_element)
 		return false;
 
@@ -347,9 +323,9 @@ bool DebuggerPlugin::LoadInfoElement()
 
 bool DebuggerPlugin::LoadLogElement()
 {
-	log_element_instancer = MakeUnique< ElementInstancerGeneric<ElementLog> >();
+	log_element_instancer = MakeUnique<ElementInstancerGeneric<ElementLog>>();
 	Factory::RegisterElementInstancer("debug-log", log_element_instancer.get());
-	log_element = rmlui_dynamic_cast< ElementLog* >(host_context->CreateDocument("debug-log"));
+	log_element = rmlui_dynamic_cast<ElementLog*>(host_context->CreateDocument("debug-log"));
 	if (!log_element)
 		return false;
 
@@ -371,14 +347,30 @@ bool DebuggerPlugin::LoadLogElement()
 	return true;
 }
 
-void DebuggerPlugin::ReleaseElements()
+void DebuggerPlugin::SetupInfoListeners(Rml::Context* new_context)
 {
-	// Erase event listeners to prevent crashes.
-	if (debug_context && info_element)
+	RMLUI_ASSERT(info_element);
+
+	if (debug_context)
 	{
 		debug_context->RemoveEventListener("click", info_element, true);
 		debug_context->RemoveEventListener("mouseover", info_element, true);
+		debug_context->RemoveEventListener("mouseout", info_element, true);
 	}
+
+	if (new_context)
+	{
+		new_context->AddEventListener("click", info_element, true);
+		new_context->AddEventListener("mouseover", info_element, true);
+		new_context->AddEventListener("mouseout", info_element, true);
+	}
+}
+
+void DebuggerPlugin::ReleaseElements()
+{
+	// Erase event listeners to prevent crashes.
+	if (info_element)
+		SetupInfoListeners(nullptr);
 
 	if (host_context)
 	{
@@ -422,5 +414,5 @@ void DebuggerPlugin::ReleaseElements()
 	}
 }
 
-}
-}
+} // namespace Debugger
+} // namespace Rml

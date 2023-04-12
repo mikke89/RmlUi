@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,14 +37,13 @@ namespace Rml {
 class ElementFormControlInput;
 
 /**
-	An interface for a input type handler used by ElementFormControlInput. A concrete InputType object handles the
-	functionality of an input element.
+    An interface for a input type handler used by ElementFormControlInput. A concrete InputType object handles the
+    functionality of an input element.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class InputType
-{
+class InputType {
 public:
 	InputType(ElementFormControlInput* element);
 	virtual ~InputType();
@@ -87,6 +86,13 @@ public:
 
 	/// Sizes the dimensions to the element's inherent size.
 	virtual bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) = 0;
+
+	/// Selects all text.
+	virtual void Select();
+	/// Selects the text in the given character range.
+	virtual void SetSelectionRange(int selection_start, int selection_end);
+	/// Retrieves the selection range and text.
+	virtual void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
 
 protected:
 	ElementFormControlInput* element;

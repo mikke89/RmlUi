@@ -1,11 +1,11 @@
 <rml>
 <head>
-    <title>Element &lt;label&gt;</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Element &lt;label&gt;</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://html.spec.whatwg.org/multipage/forms.html#the-label-element" />
 	<meta name="Description" content="The label element. Pay attention to the hover and active states, and that the target is clicked when its label is clicked." />
 	<style>
-		@spritesheet theme 
+		@spritesheet theme
 		{
 			src: /assets/invader.tga;
 			invader: 179px 152px 50px 40px;
@@ -48,7 +48,7 @@
 			display: inline-block;
 			float: left;
 			background-color: #ddd;
-			border-radius: 1em; 
+			border-radius: 1em;
 			padding: 0.5em;
 		}
 	</style>
@@ -79,7 +79,7 @@
 </p>
 
 <label class="float">
-	<button id="submit">Submit</button> 
+	<button id="submit">Submit</button>
 	<p>
 		Press button from many places.<img sprite="invader"/><br/>
 		Even here...

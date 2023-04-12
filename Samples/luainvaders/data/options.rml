@@ -7,7 +7,7 @@
 			{
 				width: 350dp;
 				height: 350dp;
-				
+
 				margin: auto;
 			}
 
@@ -39,61 +39,61 @@ if Options.datamodel == nil then
 end
 
 function Options.Serialize(filename,options)
-    local file,message = io.open(filename,'w+') --w+ will erase the previous data
-    if file == nil then Log.Message(Log.logtype.error, "Error saving options in options.rml: " .. message) return end
-    --cache the function
-    local format = string.format
-    
-    for key,value in pairs(options) do
-        file:write(tostring(key)..'='..tostring(value)..'\n')
-    end
-    file:close()
+	local file,message = io.open(filename,'w+') --w+ will erase the previous data
+	if file == nil then Log.Message(Log.logtype.error, "Error saving options in options.rml: " .. message) return end
+	--cache the function
+	local format = string.format
+
+	for key,value in pairs(options) do
+		file:write(tostring(key)..'='..tostring(value)..'\n')
+	end
+	file:close()
 end
 
 function Options.Deserialize(filename)
-    local ret = {} --table to return
-    --cache functions that are used a lot for faster lookup
-    local gmatch = string.gmatch
-    
-    local f = io.open(filename)
-    if f then
-        for line in f:lines() do
-            for k,v in gmatch(line, '(%w+)=(%w+)') do ret[k] = v end
-        end 
-        f:close()
-    else
-        return nil
-    end
-    
-    return ret
+	local ret = {} --table to return
+	--cache functions that are used a lot for faster lookup
+	local gmatch = string.gmatch
+
+	local f = io.open(filename)
+	if f then
+		for line in f:lines() do
+			for k,v in gmatch(line, '(%w+)=(%w+)') do ret[k] = v end
+		end
+		f:close()
+	else
+		return nil
+	end
+
+	return ret
 end
 
 function Options.LoadOptions(document)
-    local options = Options.Deserialize('options.dat')
-    if options == nil then return end --short circuit if the file doesn't exist
-	
-    --because everything is loaded as a string, we have to fool around with the boolean variables
+	local options = Options.Deserialize('options.dat')
+	if options == nil then return end --short circuit if the file doesn't exist
+
+	--because everything is loaded as a string, we have to fool around with the boolean variables
 	Options.datamodel.audios[1].checked = (options['reverb'] == 'true')
 	Options.datamodel.audios[2].checked = (options['3d'] == 'true')
-	
+
 	Options.datamodel.graphics = options['graphics']
 	Options.datamodel.options_changed = false
 end
 
 function Options.SaveOptions(event)
-    if event.parameters['button'] == 'cancel' then
-        return
-    end
-		
-    local options = {}
-    local params = event.parameters
-    options['graphics'] = params['graphics']
-    --because of how checkboxes won't be in the event params if they aren't checked,
-    --we return false if they don't exist. This is Lua's ternary operator.
-    options['reverb'] = params['reverb'] and true or false
-    options['3d'] = params['3d'] and true or false
-    
-    Options.Serialize('options.dat',options)
+	if event.parameters['button'] == 'cancel' then
+		return
+	end
+
+	local options = {}
+	local params = event.parameters
+	options['graphics'] = params['graphics']
+	--because of how checkboxes won't be in the event params if they aren't checked,
+	--we return false if they don't exist. This is Lua's ternary operator.
+	options['reverb'] = params['reverb'] and true or false
+	options['3d'] = params['3d'] and true or false
+
+	Options.Serialize('options.dat',options)
 end
 	</script>
 	</head>

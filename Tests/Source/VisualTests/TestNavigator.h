@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,15 +29,16 @@
 #ifndef RMLUI_TESTS_VISUALTESTS_TESTNAVIGATOR_H
 #define RMLUI_TESTS_VISUALTESTS_TESTNAVIGATOR_H
 
-#include "TestSuite.h"
 #include "CaptureScreen.h"
+#include "TestSuite.h"
 #include "TestViewer.h"
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/EventListener.h>
+#include <RmlUi/Core/Types.h>
 
 class TestNavigator : public Rml::EventListener {
 public:
-	TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites, int start_index);
+	TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList test_suites, int start_suite,
+		int start_case);
 	~TestNavigator();
 
 	void Update();
@@ -52,7 +53,7 @@ private:
 
 	TestSuite& CurrentSuite() { return test_suites[suite_index]; }
 
-	void LoadActiveTest();
+	void LoadActiveTest(bool keep_scroll_position = false);
 
 	ComparisonResult CompareCurrentView();
 
@@ -90,6 +91,5 @@ private:
 
 	Rml::Vector<ComparisonResult> comparison_results;
 };
-
 
 #endif

@@ -9,12 +9,12 @@
 			width: 400dp;
 			height: 300dp;
 		}
-		
+
 		/* Hide the window icon. */
-        div#title_bar div#icon
-        {
-            display: none;
-        }
+		div#title_bar div#icon
+		{
+			display: none;
+		}
 	</style>
 </head>
 <body template="window">

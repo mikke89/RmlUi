@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,9 +33,7 @@
 
 namespace Rml {
 
-PropertyDictionary::PropertyDictionary()
-{
-}
+PropertyDictionary::PropertyDictionary() {}
 
 bool PropertyDictionary::Empty() const
 {
@@ -49,14 +47,12 @@ void PropertyDictionary::SetProperty(PropertyId id, const Property& property)
 	properties[id] = property;
 }
 
-// Removes a property from the dictionary, if it exists.
 void PropertyDictionary::RemoveProperty(PropertyId id)
 {
 	RMLUI_ASSERT(id != PropertyId::Invalid);
 	properties.erase(id);
 }
 
-// Returns the value of the property with the requested name, if one exists.
 const Property* PropertyDictionary::GetProperty(PropertyId id) const
 {
 	PropertyMap::const_iterator iterator = properties.find(id);
@@ -66,13 +62,11 @@ const Property* PropertyDictionary::GetProperty(PropertyId id) const
 	return &(*iterator).second;
 }
 
-// Returns the number of properties in the dictionary.
 int PropertyDictionary::GetNumProperties() const
 {
 	return (int)properties.size();
 }
 
-// Returns the map of properties in the dictionary.
 const PropertyMap& PropertyDictionary::GetProperties() const
 {
 	return properties;
@@ -143,7 +137,6 @@ void PropertyDictionary::Import(const PropertyDictionary& other, int property_sp
 		SetDependent(pair.first, pair.second);
 }
 
-// Merges the contents of another fully-specified property dictionary with this one.
 void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_offset)
 {
 	for (const auto& pair : other.properties)
@@ -168,12 +161,10 @@ void PropertyDictionary::SetSourceOfAllProperties(const SharedPtr<const Property
 		p.second.source = property_source;
 }
 
-// Sets a property on the dictionary and its specificity.
 void PropertyDictionary::SetProperty(PropertyId id, const Property& property, int specificity)
 {
 	PropertyMap::iterator iterator = properties.find(id);
-	if (iterator != properties.end() &&
-		iterator->second.specificity > specificity)
+	if (iterator != properties.end() && iterator->second.specificity > specificity)
 		return;
 
 	Property& new_property = (properties[id] = property);

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,29 +33,22 @@
 
 namespace Rml {
 
-struct RectangleSort
-{
+struct RectangleSort {
 	bool operator()(const TextureLayoutRectangle& lhs, const TextureLayoutRectangle& rhs) const
 	{
 		return lhs.GetDimensions().y > rhs.GetDimensions().y;
 	}
 };
 
-TextureLayout::TextureLayout()
-{
-}
+TextureLayout::TextureLayout() {}
 
-TextureLayout::~TextureLayout()
-{
-}
+TextureLayout::~TextureLayout() {}
 
-// Adds a rectangle to the list of rectangles to be laid out.
 void TextureLayout::AddRectangle(int id, Vector2i dimensions)
 {
 	rectangles.push_back(TextureLayoutRectangle(id, dimensions));
 }
 
-// Returns one of the layout's rectangles.
 TextureLayoutRectangle& TextureLayout::GetRectangle(int index)
 {
 	RMLUI_ASSERT(index >= 0);
@@ -64,13 +57,11 @@ TextureLayoutRectangle& TextureLayout::GetRectangle(int index)
 	return rectangles[index];
 }
 
-// Returns the number of rectangles in the layout.
 int TextureLayout::GetNumRectangles() const
 {
-	return (int) rectangles.size();
+	return (int)rectangles.size();
 }
 
-// Returns one of the layout's textures.
 TextureLayoutTexture& TextureLayout::GetTexture(int index)
 {
 	RMLUI_ASSERT(index >= 0);
@@ -79,13 +70,11 @@ TextureLayoutTexture& TextureLayout::GetTexture(int index)
 	return textures[index];
 }
 
-// Returns the number of textures in the layout.
 int TextureLayout::GetNumTextures() const
 {
-	return (int) textures.size();
+	return (int)textures.size();
 }
 
-// Attempts to generate an efficient texture layout for the rectangles.
 bool TextureLayout::GenerateLayout(int max_texture_dimensions)
 {
 	// Sort the rectangles by height.

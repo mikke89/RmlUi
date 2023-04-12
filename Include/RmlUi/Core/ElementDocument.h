@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,29 +41,27 @@ class StyleSheet;
 class StyleSheetContainer;
 
 /**
-	 ModalFlag used for controlling the modal state of the document.
-		None:  Remove modal state.
-		Modal: Set modal state, other documents cannot receive focus.
-		Keep:  Modal state unchanged.
+     ModalFlag used for controlling the modal state of the document.
+        None:  Remove modal state.
+        Modal: Set modal state, other documents cannot receive focus.
+        Keep:  Modal state unchanged.
 
-	FocusFlag used for displaying the document.
-		None:     No focus.
-		Document: Focus the document.
-		Keep:     Focus the element in the document which last had focus.
-		Auto:     Focus the first tab element with the 'autofocus' attribute or else the document.
+    FocusFlag used for displaying the document.
+        None:     No focus.
+        Document: Focus the document.
+        Keep:     Focus the element in the document which last had focus.
+        Auto:     Focus the first tab element with the 'autofocus' attribute or else the document.
 */
 enum class ModalFlag { None, Modal, Keep };
 enum class FocusFlag { None, Document, Keep, Auto };
 
-
 /**
-	Represents a document in the dom tree.
+    Represents a document in the dom tree.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API ElementDocument : public Element
-{
+class RMLUICORE_API ElementDocument : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementDocument, Element)
 
@@ -135,11 +133,11 @@ public:
 	/// @param[in] source_path The script file path.
 	virtual void LoadExternalScript(const String& source_path);
 
-	/// Updates the document, including its layout. Users must call this manually before requesting information such as 
+	/// Updates the document, including its layout. Users must call this manually before requesting information such as
 	/// size or position of an element if any element in the document was recently changed, unless Context::Update has
 	/// already been called after the change. This has a perfomance penalty, only call when necessary.
 	void UpdateDocument();
-	
+
 protected:
 	/// Repositions the document if necessary.
 	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
@@ -196,7 +194,6 @@ private:
 
 	friend class Rml::Context;
 	friend class Rml::Factory;
-
 };
 
 } // namespace Rml

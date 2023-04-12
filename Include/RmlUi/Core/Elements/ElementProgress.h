@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,36 +29,35 @@
 #ifndef RMLUI_CORE_ELEMENTS_ELEMENTPROGRESS_H
 #define RMLUI_CORE_ELEMENTS_ELEMENTPROGRESS_H
 
-#include "../Header.h"
 #include "../Element.h"
 #include "../Geometry.h"
-#include "../Texture.h"
+#include "../Header.h"
 #include "../Spritesheet.h"
+#include "../Texture.h"
 
 namespace Rml {
 
 /**
-	The 'progress' element.
+    The 'progress' element.
 
-	The 'value' attribute should be a number [0, 1] where 1 means completely filled.
+    The 'value' attribute should be a number [0, 1] where 1 means completely filled.
 
-	The 'direction' attribute should be one of:
-		top | right (default) | bottom | left | clockwise | counter-clockwise
+    The 'direction' attribute should be one of:
+        top | right (default) | bottom | left | clockwise | counter-clockwise
 
-	The 'start-edge' attribute should be one of:
-		top (default) | right | bottom | left
-	Only applies to 'clockwise' or 'counter-clockwise' directions. Defines which edge the
-	circle should start expanding from.
+    The 'start-edge' attribute should be one of:
+        top (default) | right | bottom | left
+    Only applies to 'clockwise' or 'counter-clockwise' directions. Defines which edge the
+    circle should start expanding from.
 
-	The progress element generates a non-dom 'fill' element beneath it which can be used to 
-	style the filled part of the bar. The 'fill' element can use the 'fill-image'-property
-	to set an image which will be clipped according to the progress value. This property is
-	the only way to style a 'clockwise' or 'counter-clockwise' progress element.
+    The progress element generates a non-dom 'fill' element beneath it which can be used to
+    style the filled part of the bar. The 'fill' element can use the 'fill-image'-property
+    to set an image which will be clipped according to the progress value. This property is
+    the only way to style a 'clockwise' or 'counter-clockwise' progress element.
 
  */
 
-class RMLUICORE_API ElementProgress : public Element
-{
+class RMLUICORE_API ElementProgress : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementProgress, Element)
 
@@ -111,7 +110,7 @@ private:
 	Texture texture;
 
 	// The rectangle extracted from a sprite, 'rect_set' controls whether it is active.
-	Rectangle rect;
+	Rectanglef rect;
 	bool rect_set;
 
 	// The geometry used to render this element. Only applies if the 'fill-image' property is set.

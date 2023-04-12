@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,20 +27,16 @@
  */
 
 #include "EventHandlerHighScore.h"
-#include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/ElementUtilities.h>
-#include <RmlUi/Core/Input.h>
 #include "EventManager.h"
 #include "GameDetails.h"
 #include "HighScores.h"
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementUtilities.h>
+#include <RmlUi/Core/Input.h>
 
-EventHandlerHighScore::EventHandlerHighScore()
-{
-}
+EventHandlerHighScore::EventHandlerHighScore() {}
 
-EventHandlerHighScore::~EventHandlerHighScore()
-{
-}
+EventHandlerHighScore::~EventHandlerHighScore() {}
 
 void EventHandlerHighScore::ProcessEvent(Rml::Event& event, const Rml::String& value)
 {
@@ -57,18 +53,18 @@ void EventHandlerHighScore::ProcessEvent(Rml::Event& event, const Rml::String& v
 	}
 	else if (value == "enter_name")
 	{
-		if (event.GetParameter< int >("key_identifier", Rml::Input::KI_UNKNOWN) == Rml::Input::KI_RETURN)
+		if (event.GetParameter<int>("key_identifier", Rml::Input::KI_UNKNOWN) == Rml::Input::KI_RETURN)
 		{
-			Rml::String name = event.GetCurrentElement()->GetAttribute< Rml::String >("value", "Anon.");
+			Rml::String name = event.GetCurrentElement()->GetAttribute<Rml::String>("value", "Anon.");
 			HighScores::SubmitName(name);
 		}
 	}
 	else if (value == "check_name")
 	{
 		Rml::String name = "Anon.";
-		
+
 		// Submit the name the user started typing
-		if(auto element = event.GetCurrentElement()->GetOwnerDocument()->GetElementById("player_input"))
+		if (auto element = event.GetCurrentElement()->GetOwnerDocument()->GetElementById("player_input"))
 			name = element->GetAttribute<Rml::String>("value", name);
 
 		HighScores::SubmitName(name);

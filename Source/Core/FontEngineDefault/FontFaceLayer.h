@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,14 +41,13 @@ class FontEffect;
 class FontFaceHandleDefault;
 
 /**
-	A textured layer stored as part of a font face handle. Each handle will have at least a base
-	layer for the standard font. Further layers can be added to allow rendering of text effects.
+    A textured layer stored as part of a font face handle. Each handle will have at least a base
+    layer for the standard font. Further layers can be added to allow rendering of text effects.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class FontFaceLayer
-{
+class FontFaceLayer {
 public:
 	FontFaceLayer(const SharedPtr<const FontEffect>& _effect);
 	~FontFaceLayer();
@@ -84,21 +83,14 @@ public:
 			return;
 
 		// Generate the geometry for the character.
-		Vector< Vertex >& character_vertices = geometry[box.texture_index].GetVertices();
-		Vector< int >& character_indices = geometry[box.texture_index].GetIndices();
+		Vector<Vertex>& character_vertices = geometry[box.texture_index].GetVertices();
+		Vector<int>& character_indices = geometry[box.texture_index].GetIndices();
 
 		character_vertices.resize(character_vertices.size() + 4);
 		character_indices.resize(character_indices.size() + 6);
-		GeometryUtilities::GenerateQuad(
-			&character_vertices[0] + (character_vertices.size() - 4),
-			&character_indices[0] + (character_indices.size() - 6),
-			Vector2f(position.x + box.origin.x, position.y + box.origin.y).Round(),
-			box.dimensions,
-			colour,
-			box.texcoords[0],
-			box.texcoords[1],
-			(int)character_vertices.size() - 4
-		);
+		GeometryUtilities::GenerateQuad(&character_vertices[0] + (character_vertices.size() - 4),
+			&character_indices[0] + (character_indices.size() - 6), Vector2f(position.x + box.origin.x, position.y + box.origin.y).Round(),
+			box.dimensions, colour, box.texcoords[0], box.texcoords[1], (int)character_vertices.size() - 4);
 	}
 
 	/// Returns the effect used to generate the layer.
@@ -113,11 +105,8 @@ public:
 	Colourb GetColour() const;
 
 private:
-
-
-	struct TextureBox
-	{
-		TextureBox() : texture_index(-1) { }
+	struct TextureBox {
+		TextureBox() : texture_index(-1) {}
 
 		// The offset, in pixels, of the baseline from the start of this character's geometry.
 		Vector2f origin;

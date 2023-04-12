@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,19 +38,14 @@ class Element;
 class WidgetScroll;
 
 /**
-	Manages an element's scrollbars and scrolling state.
+    Manages an element's scrollbars and scrolling state.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API ElementScroll
-{
+class RMLUICORE_API ElementScroll {
 public:
-	enum Orientation
-	{
-		VERTICAL = 0,
-		HORIZONTAL = 1
-	};
+	enum Orientation { VERTICAL = 0, HORIZONTAL = 1 };
 
 	ElementScroll(Element* element);
 	~ElementScroll();
@@ -83,8 +78,7 @@ public:
 	void FormatScrollbars();
 
 private:
-	struct Scrollbar
-	{
+	struct Scrollbar {
 		Scrollbar();
 		~Scrollbar();
 

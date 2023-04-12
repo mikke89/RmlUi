@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,10 +27,10 @@
  */
 
 #include "DecoratorInstancerDefender.h"
+#include "DecoratorDefender.h"
 #include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/PropertyDefinition.h>
 #include <RmlUi/Core/Types.h>
-#include "DecoratorDefender.h"
 
 DecoratorInstancerDefender::DecoratorInstancerDefender()
 {
@@ -38,16 +38,13 @@ DecoratorInstancerDefender::DecoratorInstancerDefender()
 	RegisterShorthand("decorator", "image-src", Rml::ShorthandType::FallThrough);
 }
 
-DecoratorInstancerDefender::~DecoratorInstancerDefender()
-{
-}
+DecoratorInstancerDefender::~DecoratorInstancerDefender() {}
 
-// Instances a decorator given the property tag and attributes from the RCSS file.
-Rml::SharedPtr<Rml::Decorator> DecoratorInstancerDefender::InstanceDecorator(const Rml::String& /*name*/,
-	const Rml::PropertyDictionary& properties, const Rml::DecoratorInstancerInterface& instancer_interface)
+Rml::SharedPtr<Rml::Decorator> DecoratorInstancerDefender::InstanceDecorator(const Rml::String& /*name*/, const Rml::PropertyDictionary& properties,
+	const Rml::DecoratorInstancerInterface& instancer_interface)
 {
 	const Rml::Property* image_source_property = properties.GetProperty(id_image_src);
-	Rml::String image_source = image_source_property->Get< Rml::String >();
+	Rml::String image_source = image_source_property->Get<Rml::String>();
 	Rml::Texture texture = instancer_interface.GetTexture(image_source);
 
 	auto decorator = Rml::MakeShared<DecoratorDefender>();

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +34,11 @@
 namespace Rml {
 
 static constexpr float AUTOSCROLL_SPEED_FACTOR = 0.09f;
-static constexpr float AUTOSCROLL_DEADZONE = 10.0f; // [dp]
+static constexpr float AUTOSCROLL_DEADZONE = 10.0f;            // [dp]
 
 static constexpr float SMOOTHSCROLL_WINDOW_SIZE = 50.f;        // The window where smoothing is applied, as a distance from scroll start and end. [dp]
-static constexpr float SMOOTHSCROLL_VELOCITY_CONSTANT = 800.f; // The constant velocity, any smoothing is applied on top of this. [dp/s]
+static constexpr float SMOOTHSCROLL_MAX_VELOCITY = 10'000.f;   // [dp/s]
+static constexpr float SMOOTHSCROLL_VELOCITY_CONSTANT = 800.f; // [dp/s]
 static constexpr float SMOOTHSCROLL_VELOCITY_SQUARE_FACTOR = 0.05f;
 
 // Clamp the delta time to some reasonable FPS range, to avoid large steps in case of stuttering or freezing.
@@ -74,15 +75,15 @@ static Vector2f CalculateSmoothscrollVelocity(Vector2f target_delta, Vector2f sc
 	const Vector2f alpha_in = Math::Min(scrolled_distance / SMOOTHSCROLL_WINDOW_SIZE, Vector2f(1.f));
 	const Vector2f alpha_out = Math::Min(target_delta_abs / SMOOTHSCROLL_WINDOW_SIZE, Vector2f(1.f));
 	const Vector2f smooth_window = {
-		tween(alpha_in.x) * tween(alpha_out.x),
-		tween(alpha_in.y) * tween(alpha_out.y),
+		0.2f + 0.8f * tween(alpha_in.x) * tween(alpha_out.x),
+		0.2f + 0.8f * tween(alpha_in.y) * tween(alpha_out.y),
 	};
 
 	const Vector2f velocity_constant = Vector2f(SMOOTHSCROLL_VELOCITY_CONSTANT);
 	const Vector2f velocity_square = SMOOTHSCROLL_VELOCITY_SQUARE_FACTOR * target_delta_abs * target_delta_abs;
 
 	// Short scrolls are dominated by the smoothed constant velocity, while the square term is added for quick longer scrolls.
-	return dp_ratio * target_delta_signum * (smooth_window * velocity_constant + velocity_square);
+	return dp_ratio * target_delta_signum * smooth_window * Math::Min(velocity_constant + velocity_square, Vector2f(SMOOTHSCROLL_MAX_VELOCITY));
 }
 
 void ScrollController::ActivateAutoscroll(Element* in_target, Vector2i start_position)
@@ -96,22 +97,39 @@ void ScrollController::ActivateAutoscroll(Element* in_target, Vector2i start_pos
 	UpdateTime();
 }
 
-void ScrollController::ActivateSmoothscroll(Element* in_target)
+void ScrollController::ActivateSmoothscroll(Element* in_target, Vector2f delta_distance, ScrollBehavior scroll_behavior)
 {
 	Reset();
 	if (!in_target)
 		return;
+
 	target = in_target;
+
+	// Do instant scroll if preferred.
+	if (smoothscroll_prefer_instant && scroll_behavior != ScrollBehavior::Smooth)
+	{
+		PerformScrollOnTarget(delta_distance);
+		target = nullptr;
+		return;
+	}
+
 	mode = Mode::Smoothscroll;
 	UpdateTime();
+	IncrementSmoothscrollTarget(delta_distance);
+
+	// If the target is scrolled to its edge already, simply cancel the smoothscroll operation.
+	if (HasSmoothscrollReachedTarget())
+		Reset();
 }
 
-void ScrollController::Update(Vector2i mouse_position, float dp_ratio)
+bool ScrollController::Update(Vector2i mouse_position, float dp_ratio)
 {
 	if (mode == Mode::Autoscroll)
 		UpdateAutoscroll(mouse_position, dp_ratio);
 	else if (mode == Mode::Smoothscroll)
 		UpdateSmoothscroll(dp_ratio);
+
+	return mode != Mode::None;
 }
 
 void ScrollController::UpdateAutoscroll(Vector2i mouse_position, float dp_ratio)
@@ -144,7 +162,7 @@ void ScrollController::UpdateSmoothscroll(float dp_ratio)
 	const Vector2f velocity = CalculateSmoothscrollVelocity(target_delta, smoothscroll_scrolled_distance, dp_ratio);
 
 	const float dt = UpdateTime();
-	Vector2f scroll_distance = (velocity * dt).Round();
+	Vector2f scroll_distance = (smoothscroll_speed_factor * velocity * dt).Round();
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -158,11 +176,23 @@ void ScrollController::UpdateSmoothscroll(float dp_ratio)
 			scroll_distance[i] = 0.f;
 	}
 
+#if 0
+	// Useful debugging output for velocity model tuning.
+	Log::Message(Log::LT_INFO, "Scroll  y0 %8.2f   y1 %8.2f   v %8.2f   d %8.2f", smoothscroll_scrolled_distance.y, target_delta.y, velocity.y,
+		scroll_distance.y);
+#endif
+
 	smoothscroll_scrolled_distance += scroll_distance;
 	PerformScrollOnTarget(scroll_distance);
 
-	if (scroll_distance == target_delta)
+	if (HasSmoothscrollReachedTarget())
 		Reset();
+}
+
+bool ScrollController::HasSmoothscrollReachedTarget() const
+{
+	constexpr float epsilon = 0.1f;
+	return (smoothscroll_target_distance - smoothscroll_scrolled_distance).SquaredMagnitude() < epsilon;
 }
 
 void ScrollController::PerformScrollOnTarget(Vector2f delta_distance)
@@ -189,12 +219,34 @@ void ScrollController::IncrementSmoothscrollTarget(Vector2f delta_distance)
 		}
 	}
 
-	smoothscroll_target_distance += delta_distance;
+	// Clamp the delta distance to the scrollable area.
+	const Vector2f scroll_offset = {target->GetScrollLeft(), target->GetScrollTop()};
+	const Vector2f max_offset = {target->GetScrollWidth() - target->GetClientWidth(), target->GetScrollHeight() - target->GetClientHeight()};
+
+	const Vector2f target_offset = scroll_offset + smoothscroll_target_distance - smoothscroll_scrolled_distance;
+	const Vector2f clamped_delta = Math::Clamp(delta_distance + target_offset, Vector2f(0.f), max_offset) - target_offset;
+
+	smoothscroll_target_distance += clamped_delta;
 }
 
 void ScrollController::Reset()
 {
-	*this = ScrollController{};
+	mode = Mode::None;
+	target = nullptr;
+
+	autoscroll_start_position = Vector2i{};
+	autoscroll_accumulated_length = Vector2f{};
+	autoscroll_moved = false;
+
+	smoothscroll_target_distance = Vector2f{};
+	smoothscroll_scrolled_distance = Vector2f{};
+	// Keep smoothscroll configuration parameters.
+}
+
+void ScrollController::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor)
+{
+	smoothscroll_prefer_instant = (scroll_behavior == ScrollBehavior::Instant);
+	smoothscroll_speed_factor = speed_factor;
 }
 
 String ScrollController::GetAutoscrollCursor(Vector2i mouse_position, float dp_ratio) const

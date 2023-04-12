@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,8 +27,8 @@
  */
 
 #include "../../../Include/RmlUi/Core/Elements/ElementTabSet.h"
-#include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/Factory.h"
+#include "../../../Include/RmlUi/Core/Math.h"
 
 namespace Rml {
 
@@ -37,11 +37,8 @@ ElementTabSet::ElementTabSet(const String& tag) : Element(tag)
 	active_tab = 0;
 }
 
-ElementTabSet::~ElementTabSet()
-{
-}
+ElementTabSet::~ElementTabSet() {}
 
-// Sets the specifed tab index's tab title RML.
 void ElementTabSet::SetTab(int tab_index, const String& rml)
 {
 	ElementPtr element = Factory::InstanceElement(nullptr, "*", "tab", XMLAttributes());
@@ -49,7 +46,6 @@ void ElementTabSet::SetTab(int tab_index, const String& rml)
 	SetTab(tab_index, std::move(element));
 }
 
-// Sets the specifed tab index's tab panel RML.
 void ElementTabSet::SetPanel(int tab_index, const String& rml)
 {
 	ElementPtr element = Factory::InstanceElement(nullptr, "*", "panel", XMLAttributes());
@@ -57,30 +53,25 @@ void ElementTabSet::SetPanel(int tab_index, const String& rml)
 	SetPanel(tab_index, std::move(element));
 }
 
-// Set the specifed tab index's title element.
 void ElementTabSet::SetTab(int tab_index, ElementPtr element)
-{	
+{
 	Element* tabs = GetChildByTag("tabs");
-	if (tab_index >= 0 &&
-		tab_index < tabs->GetNumChildren())
+	if (tab_index >= 0 && tab_index < tabs->GetNumChildren())
 		tabs->ReplaceChild(std::move(element), tabs->GetChild(tab_index));
 	else
 		tabs->AppendChild(std::move(element));
 }
 
-// Set the specified tab index's body element.
 void ElementTabSet::SetPanel(int tab_index, ElementPtr element)
-{	
+{
 	// append the window
 	Element* windows = GetChildByTag("panels");
-	if (tab_index >= 0 &&
-		tab_index < windows->GetNumChildren())
+	if (tab_index >= 0 && tab_index < windows->GetNumChildren())
 		windows->ReplaceChild(std::move(element), windows->GetChild(tab_index));
 	else
 		windows->AppendChild(std::move(element));
 }
 
-// Remove one of the tab set's panels and its corresponding tab.
 void ElementTabSet::RemoveTab(int tab_index)
 {
 	if (tab_index < 0)
@@ -89,15 +80,13 @@ void ElementTabSet::RemoveTab(int tab_index)
 	Element* panels = GetChildByTag("panels");
 	Element* tabs = GetChildByTag("tabs");
 
-	if (panels->GetNumChildren() > tab_index &&
-		tabs->GetNumChildren() > tab_index)
+	if (panels->GetNumChildren() > tab_index && tabs->GetNumChildren() > tab_index)
 	{
 		panels->RemoveChild(panels->GetChild(tab_index));
 		tabs->RemoveChild(tabs->GetChild(tab_index));
 	}
 }
 
-// Retrieve the number of tabs in the tabset.
 int ElementTabSet::GetNumTabs()
 {
 	return GetChildByTag("tabs")->GetNumChildren();
@@ -187,7 +176,7 @@ void ElementTabSet::OnChildAdd(Element* child)
 	{
 		// Hide the new tab window
 		child->SetProperty(PropertyId::Display, Property(Style::Display::None));
-		
+
 		// Make the new element visible if its the active tab
 		if (child->GetParentNode()->GetChild(active_tab) == child)
 			child->RemoveProperty(PropertyId::Display);
@@ -208,6 +197,5 @@ Element* ElementTabSet::GetChildByTag(const String& tag)
 	Element* result = AppendChild(std::move(element));
 	return result;
 }
-
 
 } // namespace Rml

@@ -32,8 +32,7 @@
 
 namespace Rml {
 
-class RMLUICORE_API FontEngineInterfaceDefault : public FontEngineInterface
-{
+class RMLUICORE_API FontEngineInterfaceDefault : public FontEngineInterface {
 public:
 	FontEngineInterfaceDefault();
 	virtual ~FontEngineInterfaceDefault();
@@ -42,7 +41,8 @@ public:
 	bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight) override;
 
 	/// Adds a new font face to the database using the provided family, style and weight.
-	bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face) override;
+	bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+		bool fallback_face) override;
 
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, NULL will be returned instead of a
@@ -52,25 +52,15 @@ public:
 	/// Prepares for font effects by configuring a new, or returning an existing, layer configuration.
 	FontEffectsHandle PrepareFontEffects(FontFaceHandle, const FontEffectList& font_effects) override;
 
-	/// Returns the point size of this font face.
-	int GetSize(FontFaceHandle) override;
-	/// Returns the pixel height of a lower-case x in this font face.
-	int GetXHeight(FontFaceHandle) override;
-	/// Returns the default height between this font face's baselines.
-	int GetLineHeight(FontFaceHandle) override;
-
-	/// Returns the font's baseline, as a pixel offset from the bottom of the font.
-	int GetBaseline(FontFaceHandle) override;
-
-	/// Returns the font's underline, as a pixel offset from the bottom of the font.
-	float GetUnderline(FontFaceHandle, float& thickness) override;
+	/// Returns the font metrics of the given font face.
+	const FontMetrics& GetFontMetrics(FontFaceHandle handle) override;
 
 	/// Returns the width a string will take up if rendered with this handle.
-	int GetStringWidth(FontFaceHandle, const String& string, Character prior_character) override;
+	int GetStringWidth(FontFaceHandle, const String& string, float letter_spacing, Character prior_character) override;
 
 	/// Generates the geometry required to render a single line of text.
 	int GenerateString(FontFaceHandle, FontEffectsHandle, const String& string, const Vector2f& position, const Colourb& colour, float opacity,
-		GeometryList& geometry) override;
+		float letter_spacing, GeometryList& geometry) override;
 
 	/// Returns the current version of the font face.
 	int GetVersion(FontFaceHandle handle) override;

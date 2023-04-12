@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,22 +34,21 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include <doctest.h>
 
+int main(int argc, char** argv)
+{
+	// Initialize and run doctest
+	doctest::Context doctest_context;
 
-int main(int argc, char** argv) {
+	doctest_context.applyCommandLine(argc, argv);
 
-    // Initialize and run doctest
-    doctest::Context doctest_context;
+	int doctest_result = doctest_context.run();
 
-    doctest_context.applyCommandLine(argc, argv);
+	if (doctest_context.shouldExit())
+		return doctest_result;
 
-    int doctest_result = doctest_context.run();
+	// RmlUi is initialized during doctest run above as necessary.
+	// Clean everything up here.
+	TestsShell::ShutdownShell();
 
-    if (doctest_context.shouldExit())
-        return doctest_result;
-
-    // RmlUi is initialized during doctest run above as necessary.
-    // Clean everything up here.
-    TestsShell::ShutdownShell();
-
-    return doctest_result;
+	return doctest_result;
 }

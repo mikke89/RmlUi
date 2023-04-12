@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,35 +25,35 @@
  * THE SOFTWARE.
  *
  */
- 
+
 #ifndef RMLUI_LUA_ELEMENTS_ELEMENTFORMCONTROLSELECT_H
 #define RMLUI_LUA_ELEMENTS_ELEMENTFORMCONTROLSELECT_H
 
+#include <RmlUi/Core/Elements/ElementFormControlSelect.h>
 #include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Lua/LuaType.h>
-#include <RmlUi/Core/Elements/ElementFormControlSelect.h>
 
 namespace Rml {
 namespace Lua {
 
-//methods
+// methods
 int ElementFormControlSelectAdd(lua_State* L, ElementFormControlSelect* obj);
 int ElementFormControlSelectRemove(lua_State* L, ElementFormControlSelect* obj);
 
-//getters
+// getters
 int ElementFormControlSelectGetAttroptions(lua_State* L);
 int ElementFormControlSelectGetAttrselection(lua_State* L);
 
-//setter
+// setter
 int ElementFormControlSelectSetAttrselection(lua_State* L);
 
 extern RegType<ElementFormControlSelect> ElementFormControlSelectMethods[];
 extern luaL_Reg ElementFormControlSelectGetters[];
 extern luaL_Reg ElementFormControlSelectSetters[];
 
-
-//inherits from ElementFormControl which inherits from Element
-template<> void ExtraInit<ElementFormControlSelect>(lua_State* L, int metatable_index);
+// inherits from ElementFormControl which inherits from Element
+template <>
+void ExtraInit<ElementFormControlSelect>(lua_State* L, int metatable_index);
 RMLUI_LUATYPE_DECLARE(ElementFormControlSelect)
 } // namespace Lua
 } // namespace Rml

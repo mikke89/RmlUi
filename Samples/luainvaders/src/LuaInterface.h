@@ -1,5 +1,5 @@
 #ifndef RMLUI_LUAINVADERS_LUAINTERFACE_H
-#define RMLUI_LUAINVADERS_LUAINTERFACE_H 
+#define RMLUI_LUAINVADERS_LUAINTERFACE_H
 /*
     This will define the "Game" global table in Lua and some functions with it.
 
@@ -17,11 +17,10 @@
 
 struct lua_State;
 class Game;
-class LuaInterface
-{
+class LuaInterface {
 public:
-    static void Initialise(lua_State* L);
-    static void InitGame(lua_State* L);
+	static void Initialise(lua_State* L);
+	static void InitGame(lua_State* L);
 };
 
 #endif

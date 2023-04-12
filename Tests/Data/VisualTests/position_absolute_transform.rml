@@ -1,0 +1,61 @@
+<rml>
+<head>
+	<title>Absolutely positioned box with transformed parent</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/css-transforms-1/#containing-block-for-all-descendants" />
+	<meta name="Description" content="Elements with a local transform or perspective should act as the containing block for absolutely positioned children. "/>
+	<meta name="Assert" content="The child boxes should fit nicely at the bottom right corner of their parent elements."/>
+	<style>
+		.container {
+			margin: 15dp 0;
+			height: 250dp;
+			background-color: #ddd;
+			border: 3px #888;
+			overflow: auto;
+		}
+		.tall { height: 1000px; }
+		.transform {
+			width: 150dp;
+			height: 120dp;
+			padding: 10dp;
+			margin: auto;
+			background-color: #f0f8ff;
+			border: 5px #4682b4;
+			font-size: 1.2em;
+			transform: translate(15dp,5dp) rotate3d(0.8, 0, 1, 30deg);
+		}
+		.transform:hover { background-color: #fcffff; }
+		.absolute {
+			position: absolute;
+			width: 50%;
+			height: 50%;
+			background-color: #e0cef7;
+			border: 5px #663399;
+			right: 0;
+			bottom: 0;
+		}
+	</style>
+</head>
+
+<body>
+<div class="container">
+	<div class="transform">
+		Transformed element
+		<div class="tall"></div>
+		<div class="absolute">Absolute child</div>
+	</div>
+	<div class="tall"></div>
+</div>
+
+<div class="container">
+	<div class="transform">
+		Transformed element
+		<div class="tall"></div>
+		<div class="absolute" style="position: fixed">Fixed child</div>
+	</div>
+	<div class="tall"></div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

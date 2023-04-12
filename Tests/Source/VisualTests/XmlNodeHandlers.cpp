@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,15 +33,9 @@
 
 using namespace Rml;
 
+XMLNodeHandlerMeta::XMLNodeHandlerMeta() {}
+XMLNodeHandlerMeta::~XMLNodeHandlerMeta() {}
 
-
-
-XMLNodeHandlerMeta::XMLNodeHandlerMeta()
-{}
-XMLNodeHandlerMeta::~XMLNodeHandlerMeta()
-{}
-
-/// Called when a new element start is opened
 Element* XMLNodeHandlerMeta::ElementStart(XMLParser* /*parser*/, const String& /*name*/, const XMLAttributes& attributes)
 {
 	MetaItem item;
@@ -60,17 +54,14 @@ Element* XMLNodeHandlerMeta::ElementStart(XMLParser* /*parser*/, const String& /
 	return nullptr;
 }
 
-/// Called when an element is closed
 bool XMLNodeHandlerMeta::ElementEnd(XMLParser* /*parser*/, const String& /*name*/)
 {
 	return true;
 }
-/// Called for element data
 bool XMLNodeHandlerMeta::ElementData(XMLParser* /*parser*/, const String& /*data*/, XMLDataType /*type*/)
 {
 	return true;
 }
-
 
 XMLNodeHandlerLink::XMLNodeHandlerLink()
 {
@@ -96,7 +87,7 @@ Element* XMLNodeHandlerLink::ElementStart(XMLParser* parser, const String& name,
 		}
 	}
 
-	link_list.push_back(LinkItem{ rel, href });
+	link_list.push_back(LinkItem{rel, href});
 
 	return nullptr;
 }
@@ -109,4 +100,3 @@ bool XMLNodeHandlerLink::ElementData(XMLParser* parser, const String& data, XMLD
 {
 	return node_handler_head->ElementData(parser, data, type);
 }
-

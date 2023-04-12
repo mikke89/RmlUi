@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,16 +43,15 @@ class DecoratorInstancerInterface;
 class PropertyDefinition;
 
 /**
-	An element instancer provides a method for allocating and deallocating decorators.
+    An element instancer provides a method for allocating and deallocating decorators.
 
-	It is important at the same instancer that allocated a decorator releases it. This ensures there are no issues with
-	memory from different DLLs getting mixed up.
+    It is important at the same instancer that allocated a decorator releases it. This ensures there are no issues with
+    memory from different DLLs getting mixed up.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API DecoratorInstancer
-{
+class RMLUICORE_API DecoratorInstancer {
 public:
 	DecoratorInstancer();
 	virtual ~DecoratorInstancer();
@@ -62,7 +61,8 @@ public:
 	/// @param[in] properties All RCSS properties associated with the decorator.
 	/// @param[in] instancer_interface An interface for querying the active style sheet.
 	/// @return A shared_ptr to the decorator if it was instanced successfully.
-	virtual SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface) = 0;
+	virtual SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) = 0;
 
 	/// Returns the property specification associated with the instancer.
 	const PropertySpecification& GetPropertySpecification() const;
@@ -75,7 +75,8 @@ protected:
 	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value);
 	/// Registers a shorthand property definition. Specify a shorthand name of 'decorator' to parse anonymous decorators.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
-	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is the order in which the values will be processed.
+	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is
+	/// the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
 	/// @param True if all the property names exist, false otherwise.
 	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
@@ -84,10 +85,11 @@ private:
 	PropertySpecification properties;
 };
 
-
 class RMLUICORE_API DecoratorInstancerInterface {
 public:
-	DecoratorInstancerInterface(const StyleSheet& style_sheet, const PropertySource* property_source) : style_sheet(style_sheet), property_source(property_source) {}
+	DecoratorInstancerInterface(const StyleSheet& style_sheet, const PropertySource* property_source) :
+		style_sheet(style_sheet), property_source(property_source)
+	{}
 
 	/// Get a sprite from any @spritesheet in the style sheet the decorator is being instanced on.
 	const Sprite* GetSprite(const String& name) const;

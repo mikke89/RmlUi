@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,7 +29,7 @@
 namespace Rml {
 
 // Returns the values of one of this element's properties.
-template < typename T >
+template <typename T>
 T Element::GetProperty(const String& name)
 {
 	const Property* property = GetProperty(name);
@@ -38,22 +38,22 @@ T Element::GetProperty(const String& name)
 		Log::Message(Log::LT_WARNING, "Invalid property name %s.", name.c_str());
 		return T{};
 	}
-	return property->Get< T >();
+	return property->Get<T>();
 }
 
 // Sets an attribute on the element.
-template< typename T >
+template <typename T>
 void Element::SetAttribute(const String& name, const T& value)
 {
 	Variant variant(value);
 	attributes[name] = variant;
-    ElementAttributes changed_attributes;
-    changed_attributes.emplace(name, std::move(variant));
+	ElementAttributes changed_attributes;
+	changed_attributes.emplace(name, std::move(variant));
 	OnAttributeChange(changed_attributes);
 }
 
 // Gets the specified attribute, with default value.
-template< typename T >
+template <typename T>
 T Element::GetAttribute(const String& name, const T& default_value) const
 {
 	return Get(attributes, name, default_value);

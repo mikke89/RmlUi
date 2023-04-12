@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,10 @@
 #ifndef RMLUI_CORE_DATACONTROLLERDEFAULT_H
 #define RMLUI_CORE_DATACONTROLLERDEFAULT_H
 
+#include "../../Include/RmlUi/Core/DataVariable.h"
+#include "../../Include/RmlUi/Core/EventListener.h"
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/EventListener.h"
-#include "../../Include/RmlUi/Core/DataVariable.h"
 #include "DataController.h"
 
 namespace Rml {
@@ -44,39 +44,38 @@ using DataExpressionPtr = UniquePtr<DataExpression>;
 
 class DataControllerValue : public DataController, private EventListener {
 public:
-    DataControllerValue(Element* element);
-    ~DataControllerValue();
+	DataControllerValue(Element* element);
+	~DataControllerValue();
 
-    bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
+	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
 private:
-    // Responds to 'Change' events.
-    void ProcessEvent(Event& event) override;
-    
-    // Delete this.
-    void Release() override;
+	// Responds to 'Change' events.
+	void ProcessEvent(Event& event) override;
 
-    DataAddress address;
+	// Delete this.
+	void Release() override;
+
+	DataAddress address;
 };
-
 
 class DataControllerEvent final : public DataController, private EventListener {
 public:
-    DataControllerEvent(Element* element);
-    ~DataControllerEvent();
+	DataControllerEvent(Element* element);
+	~DataControllerEvent();
 
-    bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
+	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
 
 protected:
-    // Responds to the event type specified in the attribute modifier.
-    void ProcessEvent(Event& event) override;
+	// Responds to the event type specified in the attribute modifier.
+	void ProcessEvent(Event& event) override;
 
-    // Delete this.
-    void Release() override;
+	// Delete this.
+	void Release() override;
 
 private:
-    EventId id = EventId::Invalid;
-    DataExpressionPtr expression;
+	EventId id = EventId::Invalid;
+	DataExpressionPtr expression;
 };
 
 } // namespace Rml

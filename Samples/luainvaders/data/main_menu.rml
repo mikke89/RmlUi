@@ -10,7 +10,7 @@
 
 				margin: auto;
 			}
-			
+
 			div#title_bar div#icon
 			{
 				decorator: image( icon-invader );
@@ -21,9 +21,9 @@ MainMenu = MainMenu or {}
 
 function MainMenu.CloseLogo(document)
 	if document.context then
-        local logo = document.context.documents['logo']
-        if logo then logo:Close() end
-    end
+		local logo = document.context.documents['logo']
+		if logo then logo:Close() end
+	end
 end
 		</script>
 	</head>

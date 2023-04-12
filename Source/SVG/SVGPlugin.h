@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +29,12 @@
 #ifndef RMLUI_SVG_SVG_PLUGIN_H
 #define RMLUI_SVG_SVG_PLUGIN_H
 
-
 namespace Rml {
 namespace SVG {
 
-void Initialise();
+	void Initialise();
 
 }
-}
+} // namespace Rml
 
 #endif

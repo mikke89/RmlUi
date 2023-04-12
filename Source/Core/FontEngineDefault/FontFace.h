@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,11 +37,10 @@ namespace Rml {
 class FontFaceHandleDefault;
 
 /**
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class FontFace
-{
+class FontFace {
 public:
 	FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight);
 	~FontFace();
@@ -63,7 +62,7 @@ private:
 	Style::FontWeight weight;
 
 	// Key is font size
-	using HandleMap = UnorderedMap< int, UniquePtr<FontFaceHandleDefault> >;
+	using HandleMap = UnorderedMap<int, UniquePtr<FontFaceHandleDefault>>;
 	HandleMap handles;
 
 	FontFaceHandleFreetype face;

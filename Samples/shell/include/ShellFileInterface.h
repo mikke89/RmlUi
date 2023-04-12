@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,33 +29,32 @@
 #ifndef RMLUI_SHELL_SHELLFILEINTERFACE_H
 #define RMLUI_SHELL_SHELLFILEINTERFACE_H
 
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/Types.h>
 
 /**
-	RmlUi file interface for the shell examples.
-	@author Lloyd Weehuizen
+    RmlUi file interface for the shell examples.
+    @author Lloyd Weehuizen
  */
 
-class ShellFileInterface : public Rml::FileInterface
-{
+class ShellFileInterface : public Rml::FileInterface {
 public:
 	ShellFileInterface(const Rml::String& root);
 	virtual ~ShellFileInterface();
 
-	/// Opens a file.		
+	/// Opens a file.
 	Rml::FileHandle Open(const Rml::String& path) override;
 
-	/// Closes a previously opened file.		
+	/// Closes a previously opened file.
 	void Close(Rml::FileHandle file) override;
 
-	/// Reads data from a previously opened file.		
+	/// Reads data from a previously opened file.
 	size_t Read(void* buffer, size_t size, Rml::FileHandle file) override;
 
-	/// Seeks to a point in a previously opened file.		
+	/// Seeks to a point in a previously opened file.
 	bool Seek(Rml::FileHandle file, long offset, int origin) override;
 
-	/// Returns the current position of the file pointer.		
+	/// Returns the current position of the file pointer.
 	size_t Tell(Rml::FileHandle file) override;
 
 private:

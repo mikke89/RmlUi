@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -189,9 +189,12 @@ Rml::RenderInterface* Backend::GetRenderInterface()
 	return &data->render_interface;
 }
 
-bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback)
+bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
 {
 	RMLUI_ASSERT(data && context);
+
+	// SFML does not seem to provide a way to wait for events with a timeout.
+	(void)power_save;
 
 	// The contents of this function is intended to be copied directly into your main loop.
 	bool result = data->running;
@@ -202,9 +205,7 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 	{
 		switch (ev.type)
 		{
-		case sf::Event::Resized:
-			UpdateWindowDimensions(data->window, data->render_interface, context);
-			break;
+		case sf::Event::Resized: UpdateWindowDimensions(data->window, data->render_interface, context); break;
 		case sf::Event::KeyPressed:
 		{
 			const Rml::Input::KeyIdentifier key = RmlSFML::ConvertKey(ev.key.code);
@@ -222,12 +223,8 @@ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_call
 				break;
 		}
 		break;
-		case sf::Event::Closed:
-			result = false;
-			break;
-		default:
-			RmlSFML::InputHandler(context, ev);
-			break;
+		case sf::Event::Closed: result = false; break;
+		default: RmlSFML::InputHandler(context, ev); break;
 		}
 	}
 

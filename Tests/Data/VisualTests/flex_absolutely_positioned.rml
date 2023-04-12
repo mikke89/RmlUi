@@ -1,0 +1,50 @@
+<rml>
+<head>
+	<title>Flex - Absolutely positioned</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Test absolutely positioned and floated flex containers." />
+	<style>
+		.flex {
+			display: flex;
+			height: 100dp;
+			width: 40%;
+			text-align: center;
+			flex-direction: row;
+		}
+
+		.flex > :nth-child(1) { width: 20%; background: red; }
+		.flex > :nth-child(2) { width: 60%; background: green; }
+		.flex > :nth-child(3) { width: 20%; background: blue; }
+
+		.absolute {
+			position: absolute;
+			left: 20dp;
+			bottom: 20dp;
+		}
+		.float {
+			float: right;
+		}
+	</style>
+</head>
+
+<body>
+<div class="flex">
+	<div>1</div>
+	<div>2</div>
+	<div>3</div>
+</div>
+<hr/>
+<div id="absolute" class="flex absolute">
+	<div>1</div>
+	<div>2</div>
+	<div>3</div>
+</div>
+<hr/>
+<div id="float" class="flex float">
+	<div>1</div>
+	<div>2</div>
+	<div>3</div>
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>

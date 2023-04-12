@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,17 +29,15 @@
 #include "PropertyParserDecorator.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
-#include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
+#include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 
 namespace Rml {
 
-PropertyParserDecorator::PropertyParserDecorator()
-{}
+PropertyParserDecorator::PropertyParserDecorator() {}
 
-PropertyParserDecorator::~PropertyParserDecorator()
-{}
+PropertyParserDecorator::~PropertyParserDecorator() {}
 
 bool PropertyParserDecorator::ParseValue(Property& property, const String& decorator_string_value, const ParameterMap& /*parameters*/) const
 {
@@ -77,7 +75,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 		if (invalid_parenthesis)
 		{
 			// We found no parenthesis, that means the value must be a name of a @decorator rule.
-			decorators.list.emplace_back(DecoratorDeclaration{ decorator_string, nullptr, {} });
+			decorators.list.emplace_back(DecoratorDeclaration{decorator_string, nullptr, {}});
 		}
 		else
 		{
@@ -107,7 +105,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 			// Set unspecified values to their defaults
 			specification.SetPropertyDefaults(properties);
 
-			decorators.list.emplace_back(DecoratorDeclaration{ type, instancer, std::move(properties) });
+			decorators.list.emplace_back(DecoratorDeclaration{type, instancer, std::move(properties)});
 		}
 	}
 

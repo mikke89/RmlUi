@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,6 @@ ShellFileInterface::ShellFileInterface(const Rml::String& root) : root(root) {}
 
 ShellFileInterface::~ShellFileInterface() {}
 
-// Opens a file.
 Rml::FileHandle ShellFileInterface::Open(const Rml::String& path)
 {
 	// Attempt to open the file relative to the application's root.
@@ -46,25 +45,21 @@ Rml::FileHandle ShellFileInterface::Open(const Rml::String& path)
 	return (Rml::FileHandle)fp;
 }
 
-// Closes a previously opened file.
 void ShellFileInterface::Close(Rml::FileHandle file)
 {
 	fclose((FILE*)file);
 }
 
-// Reads data from a previously opened file.
 size_t ShellFileInterface::Read(void* buffer, size_t size, Rml::FileHandle file)
 {
 	return fread(buffer, 1, size, (FILE*)file);
 }
 
-// Seeks to a point in a previously opened file.
 bool ShellFileInterface::Seek(Rml::FileHandle file, long offset, int origin)
 {
 	return fseek((FILE*)file, offset, origin) == 0;
 }
 
-// Returns the current position of the file pointer.
 size_t ShellFileInterface::Tell(Rml::FileHandle file)
 {
 	return ftell((FILE*)file);

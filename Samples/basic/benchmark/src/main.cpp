@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,10 +31,9 @@
 #include <RmlUi_Backend.h>
 #include <Shell.h>
 
-class DemoWindow
-{
+class DemoWindow {
 public:
-	DemoWindow(const Rml::String &title, Rml::Context *context)
+	DemoWindow(const Rml::String& title, Rml::Context* context)
 	{
 		using namespace Rml;
 		document = context->LoadDocument("basic/benchmark/data/benchmark.rml");
@@ -78,11 +77,7 @@ public:
 					</div>
 				</div>
 			</div>)",
-				index, 
-				route,
-				max,
-				value
-			);
+				index, route, max, value);
 			rml += rml_row;
 		}
 
@@ -92,7 +87,8 @@ public:
 
 	class SimpleEventListener : public Rml::EventListener {
 	public:
-		void ProcessEvent(Rml::Event& event) override {
+		void ProcessEvent(Rml::Event& event) override
+		{
 			static int i = 0;
 			event.GetTargetElement()->SetProperty("background-color", i++ % 2 == 0 ? "green" : "orange");
 		}
@@ -106,12 +102,10 @@ public:
 		}
 	}
 
-	Rml::ElementDocument * GetDocument() {
-		return document;
-	}
+	Rml::ElementDocument* GetDocument() { return document; }
 
 private:
-	Rml::ElementDocument *document;
+	Rml::ElementDocument* document;
 };
 
 bool run_loop = true;
@@ -119,8 +113,7 @@ bool single_loop = true;
 bool run_update = true;
 bool single_update = true;
 
-class Event : public Rml::EventListener
-{
+class Event : public Rml::EventListener {
 public:
 	Event(const Rml::String& value) : value(value) {}
 
@@ -128,12 +121,12 @@ public:
 	{
 		using namespace Rml;
 
-		if(value == "exit")
+		if (value == "exit")
 			Backend::RequestExit();
 
 		if (event == "keydown")
 		{
-			auto key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter< int >("key_identifier", 0);
+			auto key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
 
 			if (key_identifier == Rml::Input::KI_SPACE)
 			{
@@ -166,15 +159,10 @@ private:
 	Rml::String value;
 };
 
-class EventInstancer : public Rml::EventListenerInstancer
-{
+class EventInstancer : public Rml::EventListenerInstancer {
 public:
-
 	/// Instances a new event handle for Invaders.
-	Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* /*element*/) override
-	{
-		return new Event(value);
-	}
+	Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* /*element*/) override { return new Event(value); }
 };
 
 #if defined RMLUI_PLATFORM_WIN32

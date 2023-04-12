@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,10 @@
  */
 
 #include "TestConfig.h"
-#include <Shell.h>
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/StringUtilities.h>
+#include <RmlUi/Core/Types.h>
 #include <PlatformExtensions.h>
+#include <Shell.h>
 
 Rml::String GetCompareInputDirectory()
 {
@@ -56,7 +56,7 @@ Rml::StringList GetTestInputDirectories()
 {
 	const Rml::String samples_root = PlatformExtensions::FindSamplesRoot();
 
-	Rml::StringList directories = { samples_root + "../Tests/Data/VisualTests" };
+	Rml::StringList directories = {samples_root + "../Tests/Data/VisualTests"};
 
 #ifdef RMLUI_VISUAL_TESTS_RML_DIRECTORIES
 	Rml::StringUtilities::ExpandString(directories, RMLUI_VISUAL_TESTS_RML_DIRECTORIES, ',');

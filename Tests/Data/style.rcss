@@ -117,7 +117,6 @@ handle {
 	height: 16dp;
 	bottom: 0;
 	right: 0;
-	clip: 1;
 	cursor: resize;
 }
 

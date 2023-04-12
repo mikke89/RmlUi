@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,12 +35,11 @@
 namespace Rml {
 
 /**
-	Memory Byte Stream Class 
-	@author Lloyd Weehuizen
+    Memory Byte Stream Class
+    @author Lloyd Weehuizen
  */
 
-class RMLUICORE_API StreamMemory final : public Stream
-{
+class RMLUICORE_API StreamMemory final : public Stream {
 public:
 	/// Empty memory stream with default size buffer
 	StreamMemory();
@@ -51,7 +50,7 @@ public:
 	virtual ~StreamMemory();
 
 	/// Close the stream
-	void Close() override;	
+	void Close() override;
 
 	/// Are we at the end of the stream
 	bool IsEOS() const override;
@@ -70,7 +69,7 @@ public:
 	size_t Read(void* buffer, size_t bytes) const override;
 
 	/// Peek into the stream
-	size_t Peek(void *buffer, size_t bytes) const override;
+	size_t Peek(void* buffer, size_t bytes) const override;
 
 	/// Write to the stream
 	using Stream::Write;
@@ -102,13 +101,12 @@ public:
 	void SetSourceURL(const URL& url);
 
 private:
-
 	byte* buffer;
 	mutable byte* buffer_ptr;
 	size_t buffer_size;
 	size_t buffer_used;
 	bool owns_buffer;
-	
+
 	bool Reallocate(size_t size);
 };
 

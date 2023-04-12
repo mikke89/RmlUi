@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -45,17 +45,14 @@ StyleSheet::StyleSheet()
 	specificity_offset = 0;
 }
 
-StyleSheet::~StyleSheet()
-{
-}
+StyleSheet::~StyleSheet() {}
 
-/// Combines this style sheet with another one, producing a new sheet
 UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_sheet) const
 {
 	RMLUI_ZoneScoped;
 
 	UniquePtr<StyleSheet> new_sheet = UniquePtr<StyleSheet>(new StyleSheet());
-	
+
 	new_sheet->root = root->DeepCopy();
 	new_sheet->specificity_offset = specificity_offset;
 	new_sheet->keyframes = keyframes;
@@ -88,14 +85,11 @@ void StyleSheet::MergeStyleSheet(const StyleSheet& other_sheet)
 		decorator_map[other_decorator.first] = other_decorator.second;
 	}
 
-	spritesheet_list.Reserve(
-		spritesheet_list.NumSpriteSheets() + other_sheet.spritesheet_list.NumSpriteSheets(),
-		spritesheet_list.NumSprites() + other_sheet.spritesheet_list.NumSprites()
-	);
+	spritesheet_list.Reserve(spritesheet_list.NumSpriteSheets() + other_sheet.spritesheet_list.NumSpriteSheets(),
+		spritesheet_list.NumSprites() + other_sheet.spritesheet_list.NumSprites());
 	spritesheet_list.Merge(other_sheet.spritesheet_list);
 }
 
-// Builds the node index for a combined style sheet.
 void StyleSheet::BuildNodeIndex()
 {
 	RMLUI_ZoneScoped;
@@ -111,8 +105,7 @@ const DecoratorSpecification* StyleSheet::GetDecoratorSpecification(const String
 	return nullptr;
 }
 
-// Returns the Keyframes of the given name, or null if it does not exist.
-const Keyframes* StyleSheet::GetKeyframes(const String & name) const
+const Keyframes* StyleSheet::GetKeyframes(const String& name) const
 {
 	auto it = keyframes.find(name);
 	if (it != keyframes.end())
@@ -195,13 +188,12 @@ const Sprite* StyleSheet::GetSprite(const String& name) const
 	return spritesheet_list.GetSprite(name);
 }
 
-// Returns the compiled element definition for a given element hierarchy.
 SharedPtr<const ElementDefinition> StyleSheet::GetElementDefinition(const Element* element) const
 {
 	RMLUI_ASSERT_NONRECURSIVE;
 
 	// Using static to avoid allocations. Make sure we don't call this function recursively.
-	static Vector< const StyleSheetNode* > applicable_nodes;
+	static Vector<const StyleSheetNode*> applicable_nodes;
 	applicable_nodes.clear();
 
 	auto AddApplicableNodes = [element](const StyleSheetIndex::NodeIndex& node_index, const String& key) {
@@ -230,7 +222,7 @@ SharedPtr<const ElementDefinition> StyleSheet::GetElementDefinition(const Elemen
 	if (tag == "#text")
 		return nullptr;
 
-	// First, look up the indexed requirements. 
+	// First, look up the indexed requirements.
 	if (!id.empty())
 		AddApplicableNodes(styled_node_index.ids, id);
 

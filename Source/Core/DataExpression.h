@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,9 @@
 #ifndef RMLUI_CORE_DATAEXPRESSION_H
 #define RMLUI_CORE_DATAEXPRESSION_H
 
+#include "../../Include/RmlUi/Core/DataTypes.h"
 #include "../../Include/RmlUi/Core/Header.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/DataTypes.h"
 
 namespace Rml {
 
@@ -43,39 +43,38 @@ using AddressList = Vector<DataAddress>;
 
 class DataExpressionInterface {
 public:
-    DataExpressionInterface() = default;
-    DataExpressionInterface(DataModel* data_model, Element* element, Event* event = nullptr);
+	DataExpressionInterface() = default;
+	DataExpressionInterface(DataModel* data_model, Element* element, Event* event = nullptr);
 
-    DataAddress ParseAddress(const String& address_str) const;
-    Variant GetValue(const DataAddress& address) const;
-    bool SetValue(const DataAddress& address, const Variant& value) const;
-    bool CallTransform(const String& name, const VariantList& arguments, Variant& out_result);
-    bool EventCallback(const String& name, const VariantList& arguments);
+	DataAddress ParseAddress(const String& address_str) const;
+	Variant GetValue(const DataAddress& address) const;
+	bool SetValue(const DataAddress& address, const Variant& value) const;
+	bool CallTransform(const String& name, const VariantList& arguments, Variant& out_result);
+	bool EventCallback(const String& name, const VariantList& arguments);
 
 private:
-    DataModel* data_model = nullptr;
-    Element* element = nullptr;
-    Event* event = nullptr;
+	DataModel* data_model = nullptr;
+	Element* element = nullptr;
+	Event* event = nullptr;
 };
-
 
 class DataExpression {
 public:
-    DataExpression(String expression);
-    ~DataExpression();
+	DataExpression(String expression);
+	~DataExpression();
 
-    bool Parse(const DataExpressionInterface& expression_interface, bool is_assignment_expression);
+	bool Parse(const DataExpressionInterface& expression_interface, bool is_assignment_expression);
 
-    bool Run(const DataExpressionInterface& expression_interface, Variant& out_value);
+	bool Run(const DataExpressionInterface& expression_interface, Variant& out_value);
 
-    // Available after Parse()
-    StringList GetVariableNameList() const;
+	// Available after Parse()
+	StringList GetVariableNameList() const;
 
 private:
-    String expression;
-    
-    Program program;
-    AddressList addresses;
+	String expression;
+
+	Program program;
+	AddressList addresses;
 };
 
 } // namespace Rml

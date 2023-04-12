@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,23 +25,23 @@
  * THE SOFTWARE.
  *
  */
- 
+
 #ifndef RMLUI_LUA_ELEMENTS_ELEMENTFORMCONTROL_H
 #define RMLUI_LUA_ELEMENTS_ELEMENTFORMCONTROL_H
 
+#include <RmlUi/Core/Elements/ElementFormControl.h>
 #include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Lua/LuaType.h>
-#include <RmlUi/Core/Elements/ElementFormControl.h>
 
 namespace Rml {
 namespace Lua {
 
-//getters
+// getters
 int ElementFormControlGetAttrdisabled(lua_State* L);
 int ElementFormControlGetAttrname(lua_State* L);
 int ElementFormControlGetAttrvalue(lua_State* L);
 
-//setters
+// setters
 int ElementFormControlSetAttrdisabled(lua_State* L);
 int ElementFormControlSetAttrname(lua_State* L);
 int ElementFormControlSetAttrvalue(lua_State* L);
@@ -50,8 +50,8 @@ extern RegType<ElementFormControl> ElementFormControlMethods[];
 extern luaL_Reg ElementFormControlGetters[];
 extern luaL_Reg ElementFormControlSetters[];
 
-
-template<> void ExtraInit<ElementFormControl>(lua_State* L, int metatable_index);
+template <>
+void ExtraInit<ElementFormControl>(lua_State* L, int metatable_index);
 RMLUI_LUATYPE_DECLARE(ElementFormControl)
 } // namespace Lua
 } // namespace Rml

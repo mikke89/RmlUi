@@ -1,7 +1,7 @@
 <rml>
 <head>
-    <title>Word-break property</title>
-    <link type="text/rcss" href="../style.rcss"/>
+	<title>Word-break property</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://drafts.csswg.org/css-text-3/#word-break-property" />
 	<meta name="Description" content="Word-break property." />
 	<style>
@@ -29,7 +29,7 @@
 		.break-word {
 			word-break: break-word;
 		}
-		
+
 	</style>
 </head>
 

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,20 +27,16 @@
  */
 
 #include "../../Include/RmlUi/Core/Decorator.h"
-#include "TextureDatabase.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/Texture.h"
+#include "TextureDatabase.h"
 #include <algorithm>
 
 namespace Rml {
 
-Decorator::Decorator()
-{
-}
+Decorator::Decorator() {}
 
-Decorator::~Decorator()
-{
-}
+Decorator::~Decorator() {}
 
 int Decorator::AddTexture(const Texture& texture)
 {
@@ -68,18 +64,16 @@ int Decorator::GetNumTextures() const
 	return result;
 }
 
-// Returns one of the decorator's previously loaded textures.
 const Texture* Decorator::GetTexture(int index) const
 {
 	if (index == 0)
 		return &first_texture;
-	
+
 	index -= 1;
 	if (index < 0 || index >= (int)additional_textures.size())
 		return nullptr;
 
 	return &(additional_textures[index]);
 }
-
 
 } // namespace Rml

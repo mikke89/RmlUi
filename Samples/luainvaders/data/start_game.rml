@@ -7,15 +7,15 @@
 			{
 				width: 300dp;
 				height: 225dp;
-				
+
 				margin: auto;
 			}
-			
+
 			div#title_bar div#icon
 			{
 				decorator: image( icon-game );
 			}
-			
+
 			form div
 			{
 				width: 200dp;
@@ -38,14 +38,14 @@ function StartGame.SetupGame(event,document)
 		Game.SetDifficulty(Game.difficulty.HARD)
 	else
 		Game.SetDifficulty(Game.difficulty.EASY)
-    end
-	
-    --some lua trickery coming up. Compiling a string at runtime that will return the values,
-    --because they are comma separated. For example, if the user chose "Denim", then the
-    --compiled string would look like "return 21,96,189"
-    local red,green,blue = load('return '..event.parameters['colour']) ()
+	end
+
+	--some lua trickery coming up. Compiling a string at runtime that will return the values,
+	--because they are comma separated. For example, if the user chose "Denim", then the
+	--compiled string would look like "return 21,96,189"
+	local red,green,blue = load('return '..event.parameters['colour']) ()
 	Game.SetDefenderColour(Colourb.new(red,green,blue,255))
-	
+
 	local elem = Window.LoadMenu('game',document):GetElementById('game')
 	elem:Focus()
 end

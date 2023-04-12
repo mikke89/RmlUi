@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,14 +36,13 @@
 namespace Rml {
 
 /**
-	A font effect for rendering glow around text.
+    A font effect for rendering glow around text.
 
-	Glow consists of an outline pass followed by a Gaussian blur pass.
+    Glow consists of an outline pass followed by a Gaussian blur pass.
 
  */
 
-class FontEffectGlow : public FontEffect
-{
+class FontEffectGlow : public FontEffect {
 public:
 	FontEffectGlow();
 	virtual ~FontEffectGlow();
@@ -62,14 +61,11 @@ private:
 	ConvolutionFilter filter_outline, filter_blur_x, filter_blur_y;
 };
 
-
-
 /**
-	A concrete font effect instancer for the glow effect.
+    A concrete font effect instancer for the glow effect.
  */
 
-class FontEffectGlowInstancer : public FontEffectInstancer
-{
+class FontEffectGlowInstancer : public FontEffectInstancer {
 public:
 	FontEffectGlowInstancer();
 	virtual ~FontEffectGlowInstancer();
@@ -79,7 +75,6 @@ public:
 private:
 	PropertyId id_width_outline, id_width_blur, id_offset_x, id_offset_y, id_color;
 };
-
 
 } // namespace Rml
 #endif

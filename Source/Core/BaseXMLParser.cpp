@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,13 +34,10 @@
 
 namespace Rml {
 
-BaseXMLParser::BaseXMLParser()
-{}
+BaseXMLParser::BaseXMLParser() {}
 
-BaseXMLParser::~BaseXMLParser()
-{}
+BaseXMLParser::~BaseXMLParser() {}
 
-// Registers a tag as containing general character data.
 void BaseXMLParser::RegisterCDATATag(const String& tag)
 {
 	if (!tag.empty())
@@ -52,8 +49,6 @@ void BaseXMLParser::RegisterInnerXMLAttribute(const String& attribute_name)
 	attributes_for_inner_xml_data.insert(attribute_name);
 }
 
-// Parses the given stream as an XML file, and calls the handlers when
-// interesting phenomenon are encountered.
 void BaseXMLParser::Parse(Stream* stream)
 {
 	source_url = &stream->GetSourceURL();
@@ -84,7 +79,6 @@ void BaseXMLParser::Parse(Stream* stream)
 	source_url = nullptr;
 }
 
-// Get the current file line number
 int BaseXMLParser::GetLineNumber() const
 {
 	return line_number;
@@ -95,42 +89,29 @@ int BaseXMLParser::GetLineNumberOpenTag() const
 	return line_number_open_tag;
 }
 
-// Called when the parser finds the beginning of an element tag.
-void BaseXMLParser::HandleElementStart(const String& RMLUI_UNUSED_PARAMETER(name), const XMLAttributes& RMLUI_UNUSED_PARAMETER(attributes))
-{
-	RMLUI_UNUSED(name);
-	RMLUI_UNUSED(attributes);
-}
+void BaseXMLParser::HandleElementStart(const String& /*name*/, const XMLAttributes& /*attributes*/) {}
 
-// Called when the parser finds the end of an element tag.
-void BaseXMLParser::HandleElementEnd(const String& RMLUI_UNUSED_PARAMETER(name))
-{
-	RMLUI_UNUSED(name);
-}
+void BaseXMLParser::HandleElementEnd(const String& /*name*/) {}
 
-// Called when the parser encounters data.
-void BaseXMLParser::HandleData(const String& RMLUI_UNUSED_PARAMETER(data), XMLDataType RMLUI_UNUSED_PARAMETER(type))
-{
-	RMLUI_UNUSED(data);
-	RMLUI_UNUSED(type);
-}
-
-/// Returns the source URL of this parse. Only valid during parsing.
+void BaseXMLParser::HandleData(const String& /*data*/, XMLDataType /*type*/) {}
 
 const URL* BaseXMLParser::GetSourceURLPtr() const
 {
 	return source_url;
 }
 
-void BaseXMLParser::Next() {
+void BaseXMLParser::Next()
+{
 	xml_index += 1;
 }
 
-bool BaseXMLParser::AtEnd() const {
+bool BaseXMLParser::AtEnd() const
+{
 	return xml_index >= xml_source.size();
 }
 
-char BaseXMLParser::Look() const {
+char BaseXMLParser::Look() const
+{
 	RMLUI_ASSERT(!AtEnd());
 	return xml_source[xml_index];
 }
@@ -170,7 +151,7 @@ void BaseXMLParser::ReadBody()
 	open_tag_depth = 0;
 	line_number_open_tag = 0;
 
-	for(;;)
+	for (;;)
 	{
 		// Find the next open tag.
 		if (!FindString("<", data, true))
@@ -240,8 +221,7 @@ bool BaseXMLParser::ReadOpenTag()
 		HandleElementStartInternal(tag_name, XMLAttributes());
 		section_opened = true;
 	}
-	else if (PeekString("/") &&
-			 PeekString(">"))
+	else if (PeekString("/") && PeekString(">"))
 	{
 		// Empty open tag.
 		HandleElementStartInternal(tag_name, XMLAttributes());
@@ -263,8 +243,7 @@ bool BaseXMLParser::ReadOpenTag()
 			HandleElementStartInternal(tag_name, attributes);
 			section_opened = true;
 		}
-		else if (PeekString("/") &&
-				 PeekString(">"))
+		else if (PeekString("/") && PeekString(">"))
 		{
 			HandleElementStartInternal(tag_name, attributes);
 			HandleElementEndInternal(tag_name);
@@ -339,10 +318,8 @@ bool BaseXMLParser::ReadCloseTag(const size_t xml_index_tag)
 
 	HandleElementEndInternal(StringUtilities::StripWhitespace(tag_name));
 
-
 	// Tag closed, reduce count
 	open_tag_depth--;
-
 
 	return true;
 }
@@ -354,12 +331,12 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes, bool& parse_raw_xm
 		String attribute;
 		String value;
 
-		// Get the attribute name		
+		// Get the attribute name
 		if (!FindWord(attribute, "=/>"))
-		{			
+		{
 			return false;
 		}
-		
+
 		// Check if theres an assigned value
 		if (PeekString("="))
 		{
@@ -382,7 +359,7 @@ bool BaseXMLParser::ReadAttributes(XMLAttributes& attributes, bool& parse_raw_xm
 		if (attributes_for_inner_xml_data.count(attribute) == 1)
 			parse_raw_xml_content = true;
 
- 		attributes[attribute] = StringUtilities::DecodeRml(value);
+		attributes[attribute] = StringUtilities::DecodeRml(value);
 
 		// Check for the end of the tag.
 		if (PeekString("/", false) || PeekString(">", false))
@@ -433,7 +410,6 @@ bool BaseXMLParser::ReadCDATA(const char* tag_terminator)
 	}
 }
 
-// Reads from the stream until a complete word is found.
 bool BaseXMLParser::FindWord(String& word, const char* terminators)
 {
 	while (!AtEnd())
@@ -471,7 +447,6 @@ bool BaseXMLParser::FindWord(String& word, const char* terminators)
 	return false;
 }
 
-// Reads from the stream until the given character set is found.
 bool BaseXMLParser::FindString(const char* string, String& data, bool escape_brackets)
 {
 	int index = 0;
@@ -492,7 +467,7 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 			line_number++;
 		}
 
-		if(escape_brackets)
+		if (escape_brackets)
 		{
 			const char* error_str = XMLParseTools::ParseDataBrackets(in_brackets, in_string, c, previous);
 			if (error_str)
@@ -524,8 +499,6 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 	return true;
 }
 
-// Returns true if the next sequence of characters in the stream matches the
-// given string.
 bool BaseXMLParser::PeekString(const char* string, bool consume)
 {
 	const size_t start_index = xml_index;

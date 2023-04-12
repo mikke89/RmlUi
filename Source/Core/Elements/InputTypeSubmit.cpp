@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,33 +32,27 @@
 
 namespace Rml {
 
-InputTypeSubmit::InputTypeSubmit(ElementFormControlInput* element) : InputType(element)
-{
-}
+InputTypeSubmit::InputTypeSubmit(ElementFormControlInput* element) : InputType(element) {}
 
-InputTypeSubmit::~InputTypeSubmit()
-{
-}
+InputTypeSubmit::~InputTypeSubmit() {}
 
-// Submit buttons are never submitted; they submit themselves if appropriate.
 bool InputTypeSubmit::IsSubmitted()
 {
+	// Submit buttons are never submitted; they submit themselves if appropriate.
 	return false;
 }
 
-// Checks for necessary functional changes in the control as a result of the event.
 void InputTypeSubmit::ProcessDefaultAction(Event& event)
 {
-	if (event == EventId::Click &&
-		!element->IsDisabled())
+	if (event == EventId::Click && !element->IsDisabled())
 	{
 		Element* parent = element->GetParentNode();
 		while (parent)
 		{
-			ElementForm* form = rmlui_dynamic_cast< ElementForm* >(parent);
+			ElementForm* form = rmlui_dynamic_cast<ElementForm*>(parent);
 			if (form != nullptr)
 			{
-				form->Submit(element->GetAttribute< String >("name", ""), element->GetAttribute< String >("value", ""));
+				form->Submit(element->GetAttribute<String>("name", ""), element->GetAttribute<String>("value", ""));
 				return;
 			}
 			else
@@ -69,7 +63,6 @@ void InputTypeSubmit::ProcessDefaultAction(Event& event)
 	}
 }
 
-// Sizes the dimensions to the element's inherent size.
 bool InputTypeSubmit::GetIntrinsicDimensions(Vector2f& /*dimensions*/, float& /*ratio*/)
 {
 	return false;

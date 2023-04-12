@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -204,18 +204,10 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 		ReleaseCapture();
 		result = context->ProcessMouseButtonUp(0, RmlWin32::GetKeyModifierState());
 		break;
-	case WM_RBUTTONDOWN:
-		result = context->ProcessMouseButtonDown(1, RmlWin32::GetKeyModifierState());
-		break;
-	case WM_RBUTTONUP:
-		result = context->ProcessMouseButtonUp(1, RmlWin32::GetKeyModifierState());
-		break;
-	case WM_MBUTTONDOWN:
-		result = context->ProcessMouseButtonDown(2, RmlWin32::GetKeyModifierState());
-		break;
-	case WM_MBUTTONUP:
-		result = context->ProcessMouseButtonUp(2, RmlWin32::GetKeyModifierState());
-		break;
+	case WM_RBUTTONDOWN: result = context->ProcessMouseButtonDown(1, RmlWin32::GetKeyModifierState()); break;
+	case WM_RBUTTONUP: result = context->ProcessMouseButtonUp(1, RmlWin32::GetKeyModifierState()); break;
+	case WM_MBUTTONDOWN: result = context->ProcessMouseButtonDown(2, RmlWin32::GetKeyModifierState()); break;
+	case WM_MBUTTONUP: result = context->ProcessMouseButtonUp(2, RmlWin32::GetKeyModifierState()); break;
 	case WM_MOUSEMOVE:
 		result = context->ProcessMouseMove(static_cast<int>((short)LOWORD(l_param)), static_cast<int>((short)HIWORD(l_param)),
 			RmlWin32::GetKeyModifierState());
@@ -237,12 +229,8 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 		result = context->ProcessMouseLeave();
 		tracking_mouse_leave = false;
 		break;
-	case WM_KEYDOWN:
-		result = context->ProcessKeyDown(RmlWin32::ConvertKey((int)w_param), RmlWin32::GetKeyModifierState());
-		break;
-	case WM_KEYUP:
-		result = context->ProcessKeyUp(RmlWin32::ConvertKey((int)w_param), RmlWin32::GetKeyModifierState());
-		break;
+	case WM_KEYDOWN: result = context->ProcessKeyDown(RmlWin32::ConvertKey((int)w_param), RmlWin32::GetKeyModifierState()); break;
+	case WM_KEYUP: result = context->ProcessKeyUp(RmlWin32::ConvertKey((int)w_param), RmlWin32::GetKeyModifierState()); break;
 	case WM_CHAR:
 	{
 		static wchar_t first_u16_code_unit = 0;
@@ -278,8 +266,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 		}
 	}
 	break;
-	default:
-		break;
+	default: break;
 	}
 
 	return result;

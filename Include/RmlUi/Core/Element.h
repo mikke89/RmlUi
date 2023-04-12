@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,6 +36,7 @@
 #include "ObserverPtr.h"
 #include "Property.h"
 #include "ScriptInterface.h"
+#include "ScrollTypes.h"
 #include "StyleTypes.h"
 #include "Transform.h"
 #include "Tween.h"
@@ -54,9 +55,9 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
-class LayoutEngine;
-class LayoutInlineBox;
-class LayoutBlockBox;
+class ContainerBox;
+class InlineLevelBox;
+class ReplacedBox;
 class PropertiesIteratorView;
 class PropertyDictionary;
 class RenderInterface;
@@ -64,39 +65,15 @@ class StyleSheet;
 class StyleSheetContainer;
 class TransformState;
 struct ElementMeta;
-struct StackingOrderedChild;
-
-enum class ScrollBehavior {
-	Auto,    // Same as Instant.
-	Smooth,  // Scroll to the destination using a smooth animation.
-	Instant, // Scroll to the destination instantly.
-};
-enum class ScrollAlignment {
-	Start,   // Align to the top or left edge of the parent element.
-	Center,  // Align to the center of the parent element.
-	End,     // Align to the bottom or right edge of the parent element.
-	Nearest, // Align with minimal scroll change.
-};
-/**
-	Defines behavior of Element::ScrollIntoView.
- */
-struct ScrollIntoViewOptions {
-	ScrollIntoViewOptions(ScrollAlignment vertical = ScrollAlignment::Start, ScrollAlignment horizontal = ScrollAlignment::Nearest,
-		ScrollBehavior behavior = ScrollBehavior::Auto) : vertical(vertical), horizontal(horizontal), behavior(behavior)
-	{}
-	ScrollAlignment vertical;
-	ScrollAlignment horizontal;
-	ScrollBehavior behavior;
-};
+struct StackingContextChild;
 
 /**
-	A generic element in the DOM tree.
+    A generic element in the DOM tree.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element>
-{
+class RMLUICORE_API Element : public ScriptInterface, public EnableObserverPtr<Element> {
 public:
 	RMLUI_RTTI_DefineWithParent(Element, ScriptInterface)
 
@@ -159,11 +136,10 @@ public:
 	/// @return The box area used as the element's client area.
 	Box::Area GetClientArea() const;
 
-	/// Sets the dimensions of the element's internal content. This is the tightest fitting box surrounding all of
-	/// this element's logical children, plus the element's padding.
-	/// @param[in] content_offset The offset of the box's internal content.
-	/// @param[in] content_box The dimensions of the box's internal content.
-	void SetContentBox(Vector2f content_offset, Vector2f content_box);
+	/// Sets the dimensions of the element's scrollable overflow rectangle. This is the tightest fitting box surrounding
+	/// all of this element's logical children, and the element's padding box.
+	/// @param[in] scrollable_overflow_rectangle The dimensions of the box's scrollable content.
+	void SetScrollableOverflowRectangle(Vector2f scrollable_overflow_rectangle);
 	/// Sets the box describing the size of the element, and removes all others.
 	/// @param[in] box The new dimensions box for the element.
 	void SetBox(const Box& box);
@@ -183,15 +159,18 @@ public:
 	/// @return the number of boxes making up this element's geometry.
 	int GetNumBoxes();
 
-	/// Returns the baseline of the element, in pixels offset from the bottom of the element's content area.
-	/// @return The element's baseline. A negative baseline will be further 'up' the element, a positive on further 'down'. The default element will return 0.
+	/// Returns the baseline of the element, in pixel offset from the element's bottom margin edge (positive up).
+	/// @return The element's baseline. The default element will return 0.
 	virtual float GetBaseline() const;
-	/// Gets the intrinsic dimensions of this element, if it is of a type that has an inherent size. This size will
+	/// Gets the intrinsic dimensions of this element, if it is a replaced element with an inherent size. This size will
 	/// only be overriden by a styled width or height.
 	/// @param[out] dimensions The dimensions to size, if appropriate.
 	/// @param[out] ratio The intrinsic ratio (width/height), if appropriate.
-	/// @return True if the element has intrinsic dimensions, false otherwise. The default element will return false.
+	/// @return True if the element is a replaced element with intrinsic dimensions, false otherwise.
 	virtual bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio);
+	/// Returns true if the element is replaced, thereby handling its own rendering.
+	/// @return True if the element is a replaced element.
+	bool IsReplaced();
 
 	/// Checks if a given point in screen coordinates lies within the bordered area of this element.
 	/// @param[in] point The point to test.
@@ -199,8 +178,9 @@ public:
 	virtual bool IsPointWithinElement(Vector2f point);
 
 	/// Returns the visibility of the element.
+	/// @param[in] include_ancestors Check parent elements for visibility
 	/// @return True if the element is visible, false otherwise.
-	bool IsVisible() const;
+	bool IsVisible(bool include_ancestors = false) const;
 	/// Returns the z-index of the element.
 	/// @return The element's z-index.
 	float GetZIndex() const;
@@ -350,7 +330,7 @@ public:
 	/// Sets an attribute on the element.
 	/// @param[in] name Name of the attribute.
 	/// @param[in] value Value of the attribute.
-	template< typename T >
+	template <typename T>
 	void SetAttribute(const String& name, const T& value);
 	/// Gets the specified attribute.
 	/// @param[in] name Name of the attribute to retrieve.
@@ -361,7 +341,7 @@ public:
 	/// Gets the specified attribute, with default value.
 	/// @param[in] name Name of the attribute to retrieve.
 	/// @param[in] default_value Value to return if the attribute doesn't exist.
-	template< typename T >
+	template <typename T>
 	T GetAttribute(const String& name, const T& default_value) const;
 	/// Checks if the element has a certain attribute.
 	/// @param[in] name The name of the attribute to check for.
@@ -498,7 +478,8 @@ public:
 	/// @return The child element at the given index.
 	Element* GetChild(int index) const;
 	/// Get the current number of children in this element
-	/// @param[in] include_non_dom_elements True if the caller wants to include the non DOM children. Only set this to true if you know what you're doing!
+	/// @param[in] include_non_dom_elements True if the caller wants to include the non DOM children. Only set this to true if you know what you're
+	/// doing!
 	/// @return The number of children.
 	int GetNumChildren(bool include_non_dom_elements = false) const;
 
@@ -558,13 +539,14 @@ public:
 	/// @param[in] options Scroll parameters that control desired element alignment relative to the parent.
 	void ScrollIntoView(ScrollIntoViewOptions options);
 	/// Scrolls the parent element's contents so that this element is visible.
-	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be aligned to the bottom of the parent element's window.
+	/// @param[in] align_with_top If true, the element will align itself to the top of the parent element's window. If false, the element will be
+	/// aligned to the bottom of the parent element's window.
 	void ScrollIntoView(bool align_with_top = true);
 	/// Sets the scroll offset of this element to the given coordinates.
 	/// @param[in] position The scroll destination coordinates.
 	/// @param[in] behavior Smooth scrolling behavior.
 	/// @note Smooth scrolling can only be applied to a single element at a time, any active smooth scrolls will be cancelled.
-	void ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Auto);
+	void ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Instant);
 
 	/// Append a child to this element.
 	/// @param[in] element The element to append as a child.
@@ -611,11 +593,10 @@ public:
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
 	void QuerySelectorAll(ElementList& elements, const String& selectors);
 
-
 	//@}
 
 	/**
-		@name Internal Functions
+	    @name Internal Functions
 	 */
 	//@{
 	/// Access the event dispatcher for this element.
@@ -633,7 +614,7 @@ public:
 	/// Returns the data model of this element.
 	DataModel* GetDataModel() const;
 	//@}
-	
+
 	/// Gets the render interface owned by this element's context.
 	/// @return The element's context's render interface.
 	RenderInterface* GetRenderInterface();
@@ -718,7 +699,7 @@ protected:
 
 private:
 	void SetParent(Element* parent);
-	
+
 	void SetDataModel(DataModel* new_data_model);
 
 	void DirtyAbsoluteOffset();
@@ -727,8 +708,8 @@ private:
 	void SetBaseline(float baseline);
 
 	void BuildLocalStackingContext();
-	void BuildStackingContext(ElementList* stacking_context);
-	static void BuildStackingContextForTable(Vector<StackingOrderedChild>& ordered_children, Element* child);
+	void AddChildrenToStackingContext(Vector<StackingContextChild>& stacking_children);
+	void AddToStackingContext(Vector<StackingContextChild>& stacking_children, bool is_flex_item, bool is_non_dom_element);
 	void DirtyStackingContext();
 
 	void UpdateDefinition();
@@ -740,10 +721,11 @@ private:
 	void DirtyFontFaceRecursive();
 
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
-	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property * start_value, int num_iterations, bool alternate_direction, float delay, bool initiated_by_animation_property);
+	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction,
+		float delay, bool initiated_by_animation_property);
 
 	/// Add a key to an animation, extending its duration. If target_value is null, the element's current value is used.
-	bool AddAnimationKeyTime(PropertyId property_id, const Property * target_value, float time, Tween tween);
+	bool AddAnimationKeyTime(PropertyId property_id, const Property* target_value, float time, Tween tween);
 
 	/// Start a transition of the given property on this element.
 	/// If an animation exists for the property, the call will be ignored. If a transition exists for this property, it will be replaced.
@@ -807,8 +789,8 @@ private:
 
 	// The offset of the element, and the element it is offset from.
 	Element* offset_parent;
-	Vector2f relative_offset_base;		// the base offset from the parent
-	Vector2f relative_offset_position;	// the offset of a relatively positioned element
+	Vector2f relative_offset_base;     // the base offset from the parent
+	Vector2f relative_offset_position; // the offset of a relatively positioned element
 
 	Vector2f absolute_offset;
 
@@ -820,20 +802,19 @@ private:
 		Box box;
 		Vector2f offset;
 	};
-	using PositionedBoxList = Vector< PositionedBox >;
+	using PositionedBoxList = Vector<PositionedBox>;
 	Box main_box;
 	PositionedBoxList additional_boxes;
 
-	// And of the element's internal content.
-	Vector2f content_offset;
-	Vector2f content_box;
+	// And of the element's scrollable content.
+	Vector2f scrollable_overflow_rectangle;
 
 	float baseline;
 	float z_index;
 
 	ElementList stacking_context;
-	
-	UniquePtr< TransformState > transform_state;
+
+	UniquePtr<TransformState> transform_state;
 
 	ElementAnimationList animations;
 
@@ -841,9 +822,9 @@ private:
 
 	friend class Rml::Context;
 	friend class Rml::ElementStyle;
-	friend class Rml::LayoutEngine;
-	friend class Rml::LayoutBlockBox;
-	friend class Rml::LayoutInlineBox;
+	friend class Rml::ContainerBox;
+	friend class Rml::InlineLevelBox;
+	friend class Rml::ReplacedBox;
 	friend class Rml::ElementScroll;
 	friend RMLUICORE_API void Rml::ReleaseFontResources();
 };

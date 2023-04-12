@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,14 +38,13 @@ class TextureLayout;
 class TextureResource;
 
 /**
-	A texture layout texture is a single rectangular area which sub-rectangles are placed on within
-	a complete texture layout.
+    A texture layout texture is a single rectangular area which sub-rectangles are placed on within
+    a complete texture layout.
 
-	@author Peter
+    @author Peter
  */
 
-class TextureLayoutTexture
-{
+class TextureLayoutTexture {
 public:
 	TextureLayoutTexture();
 	~TextureLayoutTexture();
@@ -57,7 +56,8 @@ public:
 	/// Attempts to position unplaced rectangles from the layout into this texture. The size of
 	/// this texture will be determined by its contents.
 	/// @param[in] layout The layout to position rectangles from.
-	/// @param[in] maximum_dimensions The maximum dimensions of this texture. If this is not big enough to place all the rectangles, then as many will be placed as possible.
+	/// @param[in] maximum_dimensions The maximum dimensions of this texture. If this is not big enough to place all the rectangles, then as many will
+	/// be placed as possible.
 	/// @return The number of placed rectangles.
 	int Generate(TextureLayout& layout, int maximum_dimensions);
 
@@ -66,7 +66,7 @@ public:
 	UniquePtr<byte[]> AllocateTexture();
 
 private:
-	using RowList = Vector< TextureLayoutRow >;
+	using RowList = Vector<TextureLayoutRow>;
 
 	Vector2i dimensions;
 	RowList rows;

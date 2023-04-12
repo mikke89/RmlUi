@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,27 +36,26 @@ namespace Rml {
 using LineNumberList = Vector<int>;
 
 /**
-	The document header struct contains the
-	header details gathered from an XML document parse.
+    The document header struct contains the
+    header details gathered from an XML document parse.
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class DocumentHeader
-{
+class DocumentHeader {
 public:
 	/// Path and filename this document was loaded from
 	String source;
 	/// The title of the document
-	String title;	
+	String title;
 	/// A list of template resources that can used while parsing the document
 	StringList template_resources;
 
 	struct Resource {
-		String path; // Content path for inline resources, source path for external resources.
+		String path;    // Content path for inline resources, source path for external resources.
 		String content; // Only set for inline resources.
 		bool is_inline = false;
-		int line = 0;           // Only set for inline resources.
+		int line = 0;   // Only set for inline resources.
 	};
 	using ResourceList = Vector<Resource>;
 

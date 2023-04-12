@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,19 +26,19 @@
  *
  */
 
-#include "DocumentHeader.h"
+#include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Stream.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include "../../Include/RmlUi/Core/XMLNodeHandler.h"
 #include "../../Include/RmlUi/Core/URL.h"
-#include "../../Include/RmlUi/Core/XMLParser.h"
-#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/XMLNodeHandler.h"
+#include "DocumentHeader.h"
 
 namespace Rml {
 
-using NodeHandlers = UnorderedMap< String, SharedPtr<XMLNodeHandler> >;
+using NodeHandlers = UnorderedMap<String, SharedPtr<XMLNodeHandler>>;
 static NodeHandlers node_handlers;
 static SharedPtr<XMLNodeHandler> default_node_handler;
 
@@ -60,10 +60,8 @@ XMLParser::XMLParser(Element* root)
 	header = MakeUnique<DocumentHeader>();
 }
 
-XMLParser::~XMLParser()
-{}
+XMLParser::~XMLParser() {}
 
-// Registers a custom node handler to be used to a given tag.
 XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XMLNodeHandler> handler)
 {
 	String tag = StringUtilities::ToLower(_tag);
@@ -85,11 +83,10 @@ XMLNodeHandler* XMLParser::GetNodeHandler(const String& tag)
 	auto it = node_handlers.find(tag);
 	if (it != node_handlers.end())
 		return it->second.get();
-	
+
 	return nullptr;
 }
 
-// Releases all registered node handlers. This is called internally.
 void XMLParser::ReleaseHandlers()
 {
 	default_node_handler.reset();
@@ -101,7 +98,6 @@ DocumentHeader* XMLParser::GetDocumentHeader()
 	return header.get();
 }
 
-// Pushes the default element handler onto the parse stack.
 void XMLParser::PushDefaultHandler()
 {
 	active_handler = default_node_handler.get();
@@ -117,7 +113,6 @@ bool XMLParser::PushHandler(const String& tag)
 	return true;
 }
 
-/// Access the current parse frame
 const XMLParser::ParseFrame* XMLParser::GetParseFrame() const
 {
 	return &stack.top();
@@ -129,7 +124,6 @@ const URL& XMLParser::GetSourceURL() const
 	return *GetSourceURLPtr();
 }
 
-/// Called when the parser finds the beginning of an element tag.
 void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& attributes)
 {
 	RMLUI_ZoneScoped;
@@ -160,7 +154,6 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 	stack.push(frame);
 }
 
-/// Called when the parser finds the end of an element tag.
 void XMLParser::HandleElementEnd(const String& _name)
 {
 	RMLUI_ZoneScoped;
@@ -171,22 +164,22 @@ void XMLParser::HandleElementEnd(const String& _name)
 	// Pop the frame
 	stack.pop();
 	// Restore active handler to the previous frame's child handler
-	active_handler = stack.top().child_handler;	
+	active_handler = stack.top().child_handler;
 
 	// Check frame names
 	if (name != frame.tag)
 	{
-		Log::Message(Log::LT_ERROR, "Closing tag '%s' mismatched on %s:%d was expecting '%s'.", name.c_str(), GetSourceURL().GetURL().c_str(), GetLineNumber(), frame.tag.c_str());
+		Log::Message(Log::LT_ERROR, "Closing tag '%s' mismatched on %s:%d was expecting '%s'.", name.c_str(), GetSourceURL().GetURL().c_str(),
+			GetLineNumber(), frame.tag.c_str());
 	}
 
 	// Call element end handler
 	if (frame.node_handler)
 	{
 		frame.node_handler->ElementEnd(this, name);
-	}	
+	}
 }
 
-/// Called when the parser encounters data.
 void XMLParser::HandleData(const String& data, XMLDataType type)
 {
 	RMLUI_ZoneScoped;

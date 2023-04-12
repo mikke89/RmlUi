@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,12 +25,12 @@
  * THE SOFTWARE.
  *
  */
- 
-#ifndef RMLUI_LUA_LUAPLUGIN_H
-#define RMLUI_LUA_LUAPLUGIN_H 
 
-#include <RmlUi/Lua/Header.h>
+#ifndef RMLUI_LUA_LUAPLUGIN_H
+#define RMLUI_LUA_LUAPLUGIN_H
+
 #include <RmlUi/Core/Plugin.h>
+#include <RmlUi/Lua/Header.h>
 
 typedef struct lua_State lua_State;
 
@@ -46,18 +46,17 @@ class LuaEventListenerInstancer;
 
     @author Nathan Starkey
 */
-class RMLUILUA_API LuaPlugin : public Plugin
-{
+class RMLUILUA_API LuaPlugin : public Plugin {
 public:
-    LuaPlugin(lua_State* lua_state);
+	LuaPlugin(lua_State* lua_state);
 
-    static lua_State* GetLuaState();
+	static lua_State* GetLuaState();
 
 private:
-    int GetEventClasses() override;
-    
+	int GetEventClasses() override;
+
 	void OnInitialise() override;
-    
+
 	void OnShutdown() override;
 
 	LuaDocumentElementInstancer* lua_document_element_instancer = nullptr;

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,16 +33,10 @@
 
 namespace Rml {
 
-// Constructs a new ElementForm. This should not be called directly; use the Factory instead.
-ElementForm::ElementForm(const String& tag) : Element(tag)
-{
-}
+ElementForm::ElementForm(const String& tag) : Element(tag) {}
 
-ElementForm::~ElementForm()
-{
-}
+ElementForm::~ElementForm() {}
 
-// Submits the form.
 void ElementForm::Submit(const String& name, const String& submit_value)
 {
 	Dictionary values;
@@ -55,11 +49,10 @@ void ElementForm::Submit(const String& name, const String& submit_value)
 	ElementUtilities::GetElementsByTagName(form_controls, this, "input");
 	ElementUtilities::GetElementsByTagName(form_controls, this, "textarea");
 	ElementUtilities::GetElementsByTagName(form_controls, this, "select");
-	ElementUtilities::GetElementsByTagName(form_controls, this, "dataselect");
 
 	for (size_t i = 0; i < form_controls.size(); i++)
 	{
-		ElementFormControl* control = rmlui_dynamic_cast< ElementFormControl* >(form_controls[i]);
+		ElementFormControl* control = rmlui_dynamic_cast<ElementFormControl*>(form_controls[i]);
 		if (!control)
 			continue;
 
@@ -81,7 +74,7 @@ void ElementForm::Submit(const String& name, const String& submit_value)
 		// If the item already exists, append to it.
 		Variant* value = GetIf(values, control_name);
 		if (value != nullptr)
-			*value = value->Get< String >() + ", " + control_value;
+			*value = value->Get<String>() + ", " + control_value;
 		else
 			values[control_name] = control_value;
 	}

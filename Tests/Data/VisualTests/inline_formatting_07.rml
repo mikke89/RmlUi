@@ -1,0 +1,55 @@
+<rml>
+<head>
+	<title>Inline formatting 07</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css2/#floats" />
+	<meta name="Description" content="Floats placed within line boxes." />
+	<style>
+		hr { clear: both; margin: 0.5em 0; }
+		div { border: 2px #666; }
+
+		.right { float: right; }
+		.left { float: left; }
+		.clear { clear: both; }
+
+		.lines { line-height: 50px; background: #cca; }
+
+		.big { width: 300px; height: 190px; background: #ada; }
+		.small { width: 30px; height: 15px; background: #eaa; line-height: 15px; }
+		.tall { width: 30px; height: 100px; background: #aae; }
+
+		.inline { display: inline-block; overflow: hidden; }
+	</style>
+</head>
+
+<body>
+<div class="big right"> Big </div>
+<div class="lines">
+	First line<br/>
+	Second line ABC DEF
+	<div class="small right">X</div><div class="small right">Y</div>
+	GHI JKL MNO PQRS TUV
+</div>
+
+<hr/>
+
+<div class="big right"> Big </div>
+<div class="lines">
+	First line<br/>
+	Second line
+	<div class="small left">X</div><div class="small left" style="clear:left;">Y</div><div class="small right">Z</div>
+	ABC DEF  GHI JKL MNO PQRS TUV
+</div>
+
+<hr/>
+
+<div class="big right" style="height: 140px"> Big </div>
+<div class="lines">
+	First line<br/>
+	Second line ABC DEF GHI JKL MNO PQRS TUV<div class="small right">X</div><div class="small right">Y</div><div class="small left">Z</div>
+	ABC DEF GHI JKL MNO PQRS TUV ABC DEF GHI JKL MNO PQRS TUV  ABC DEF GHI JKL MNO PQRS TUV <div class="inline tall">Z</div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

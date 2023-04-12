@@ -1,0 +1,59 @@
+<rml>
+<head>
+	<title>Floats: placement</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="http://www.w3.org/TR/CSS21/visuren.html#floats" />
+	<meta name="Description" content="Floating boxes" />
+	<style>
+		body {
+		}
+		hr {
+			clear: both;
+			margin: 15px;
+			display: block;
+		}
+		span {
+			color: red;
+		}
+		.paragraph {
+			margin: 15px 0;
+		}
+		.box {
+			float: left;
+			margin-right: 15px;
+			width: 150px;
+			height: 70px;
+			border-radius: 5px;
+			background-color: rgb(207, 232, 220);
+			padding: 1em;
+		}
+	</style>
+</head>
+
+<body>
+
+<div class="paragraph">In consectetur, neque dignissim tincidunt dapibus, leo metus molestie erat, eu pharetra velit nunc in ipsum. Donec aliquet malesuada iaculis. Quisque maximus urna in congue placerat. In hac habitasse platea dictumst. Mauris a fringilla augue. Donec posuere ante at orci efficitur porttitor vitae ac tellus. Nunc nec sapien orci. Sed rhoncus et dui sed sagittis. Nullam venenatis quis elit vel mattis. In mattis erat et blandit aliquam. Aliquam erat volutpat.</div>
+
+<hr/>
+
+<div class="box">Float</div><div class="paragraph"><span>In</span> consectetur, neque dignissim tincidunt dapibus, leo metus molestie erat, eu pharetra velit nunc in ipsum. Donec aliquet malesuada iaculis. Quisque maximus urna in congue placerat. In hac habitasse platea dictumst. Mauris a fringilla augue. Donec posuere ante at orci efficitur porttitor vitae ac tellus. Nunc nec sapien orci. Sed rhoncus et dui sed sagittis. Nullam venenatis quis elit vel mattis. In mattis erat et blandit aliquam. Aliquam erat volutpat.</div>
+
+<hr/>
+
+<div class="paragraph"><div class="box">Float</div><span>In</span> consectetur, neque dignissim tincidunt dapibus, leo metus molestie erat, eu pharetra velit nunc in ipsum. Donec aliquet malesuada iaculis. Quisque maximus urna in congue placerat. In hac habitasse platea dictumst. Mauris a fringilla augue. Donec posuere ante at orci efficitur porttitor vitae ac tellus. Nunc nec sapien orci. Sed rhoncus et dui sed sagittis. Nullam venenatis quis elit vel mattis. In mattis erat et blandit aliquam. Aliquam erat volutpat.</div>
+
+<hr/>
+
+<div class="paragraph">In consectetur, neque <div class="box">Float</div> <span>dignissim</span> tincidunt dapibus, leo metus molestie erat, eu pharetra velit nunc in ipsum. Donec aliquet malesuada iaculis . Quisque maximus  urna in congue placerat. In hac habitasse platea dictumst. Mauris a fringilla augue. Donec posuere ante at orci efficitur porttitor vitae ac tellus. Nunc nec sapien orci. Sed rhoncus et dui sed sagittis. Nullam venenatis quis elit vel mattis. In mattis erat et blandit aliquam. Aliquam erat volutpat.</div>
+
+<hr/>
+
+<div class="paragraph">In consectetur, neque dignissim tincidunt dapibus, leo metus <div class="box">Float</div> <span>molestie</span> erat, eu pharetra velit nunc in ipsum. Donec aliquet malesuada iaculis. Quisque maximus urna in congue placerat. In hac habitasse platea dictumst. Mauris a fringilla augue. Donec posuere ante at orci efficitur porttitor vitae ac tellus. Nunc nec sapien orci. Sed rhoncus et dui sed sagittis. Nullam venenatis quis elit vel mattis. In mattis erat et blandit aliquam. Aliquam erat volutpat.</div>
+
+<hr/>
+
+<div class="paragraph">In consectetur, neque dignissim tincidunt dapibus, leo metus molestie erat, eu pharetra velit nunc in ipsum. Donec aliquet malesuada iaculis. Quisque maximus urna in congue <div class="box">Float</div> <span>placerat</span>. In hac habitasse platea dictumst. Mauris a fringilla augue. Donec posuere ante at orci efficitur porttitor vitae ac tellus. Nunc nec sapien orci. Sed rhoncus et dui sed sagittis. Nullam venenatis quis elit vel mattis. In mattis erat et blandit aliquam. Aliquam erat volutpat.</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

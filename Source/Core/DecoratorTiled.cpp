@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,26 +29,21 @@
 #include "DecoratorTiled.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
-#include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
-#include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/Math.h"
 #include <algorithm>
 
 namespace Rml {
 
-DecoratorTiled::DecoratorTiled()
-{
-}
+DecoratorTiled::DecoratorTiled() {}
 
-DecoratorTiled::~DecoratorTiled()
-{
-}
+DecoratorTiled::~DecoratorTiled() {}
 
 static const Vector2f oriented_texcoords[4][2] = {
-	{Vector2f(0, 0), Vector2f(1, 1)},   // ORIENTATION_NONE
-	{Vector2f(1, 0), Vector2f(0, 1)},   // FLIP_HORIZONTAL
-	{Vector2f(0, 1), Vector2f(1, 0)},   // FLIP_VERTICAL
-	{Vector2f(1, 1), Vector2f(0, 0)}    // ROTATE_180
+	{Vector2f(0, 0), Vector2f(1, 1)}, // ORIENTATION_NONE
+	{Vector2f(1, 0), Vector2f(0, 1)}, // FLIP_HORIZONTAL
+	{Vector2f(0, 1), Vector2f(1, 0)}, // FLIP_VERTICAL
+	{Vector2f(1, 1), Vector2f(0, 0)}  // ROTATE_180
 };
 
 DecoratorTiled::Tile::Tile() : display_scale(1), position(0, 0), size(0, 0)
@@ -58,8 +53,6 @@ DecoratorTiled::Tile::Tile() : display_scale(1), position(0, 0), size(0, 0)
 	orientation = ORIENTATION_NONE;
 }
 
-
-// Calculates the tile's dimensions from the texture and texture coordinates.
 void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& texture) const
 {
 	RenderInterface* render_interface = element->GetRenderInterface();
@@ -82,7 +75,7 @@ void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& 
 				new_data.size = texture_dimensions;
 			else
 				new_data.size = size;
-			
+
 			const Vector2f size_relative = new_data.size / texture_dimensions;
 
 			new_data.size = Vector2f(Math::AbsoluteValue(new_data.size.x), Math::AbsoluteValue(new_data.size.y));
@@ -91,11 +84,10 @@ void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& 
 			new_data.texcoords[1] = size_relative + new_data.texcoords[0];
 		}
 
-		data.emplace( render_interface, new_data );
+		data.emplace(render_interface, new_data);
 	}
 }
 
-// Get this tile's dimensions.
 Vector2f DecoratorTiled::Tile::GetNaturalDimensions(Element* element) const
 {
 	RenderInterface* render_interface = element->GetRenderInterface();
@@ -109,8 +101,8 @@ Vector2f DecoratorTiled::Tile::GetNaturalDimensions(Element* element) const
 	return raw_dimensions * scale_raw_to_natural_dimensions;
 }
 
-// Generates geometry to render this tile across a surface.
-void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< int >& indices, Element* element, const Vector2f surface_origin, const Vector2f surface_dimensions, const Vector2f tile_dimensions) const
+void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int>& indices, Element* element, const Vector2f surface_origin,
+	const Vector2f surface_dimensions, const Vector2f tile_dimensions) const
 {
 	if (surface_dimensions.x <= 0 || surface_dimensions.y <= 0)
 		return;
@@ -121,8 +113,8 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< 
 	float opacity = computed.opacity();
 	Colourb quad_colour = computed.image_color();
 
-    // Apply opacity
-    quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+	// Apply opacity
+	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 
 	auto data_iterator = data.find(render_interface);
 	if (data_iterator == data.end())
@@ -168,7 +160,7 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< 
 	case SCALE_NONE:
 	{
 		final_tile_dimensions = tile_dimensions;
-		
+
 		offset_and_clip_tile = true;
 	}
 	break;
@@ -186,29 +178,31 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< 
 	break;
 	}
 
-
 	Vector2f tile_offset(0, 0);
 
 	if (offset_and_clip_tile)
 	{
 		// Offset tile along each dimension.
-		for(int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; i++)
 		{
-			switch (align[i].type) {
-			case Style::LengthPercentage::Length:      tile_offset[i] = align[i].value;  break;
-			case Style::LengthPercentage::Percentage:  tile_offset[i] = (surface_dimensions[i] - final_tile_dimensions[i]) * align[i].value * 0.01f;  break;
+			switch (align[i].type)
+			{
+			case Style::LengthPercentage::Length: tile_offset[i] = align[i].value; break;
+			case Style::LengthPercentage::Percentage:
+				tile_offset[i] = (surface_dimensions[i] - final_tile_dimensions[i]) * align[i].value * 0.01f;
+				break;
 			}
 		}
 		tile_offset = tile_offset.Round();
 
 		// Clip tile. See if our tile extends outside the boundary at either side, along each dimension.
-		for(int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			// Left/right acts as top/bottom during the second iteration.
 			float overshoot_left = std::max(-tile_offset[i], 0.0f);
 			float overshoot_right = std::max(tile_offset[i] + final_tile_dimensions[i] - surface_dimensions[i], 0.0f);
 
-			if(overshoot_left > 0.f || overshoot_right > 0.f)
+			if (overshoot_left > 0.f || overshoot_right > 0.f)
 			{
 				float& left = scaled_texcoords[0][i];
 				float& right = scaled_texcoords[1][i];
@@ -223,9 +217,8 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< 
 		}
 	}
 
-
 	// Resize the vertex and index arrays to fit the new geometry.
-	int index_offset = (int) vertices.size();
+	int index_offset = (int)vertices.size();
 	vertices.resize(vertices.size() + 4);
 	Vertex* new_vertices = &vertices[0] + index_offset;
 
@@ -238,10 +231,10 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector< Vertex >& vertices, Vector< 
 
 	Math::SnapToPixelGrid(tile_position, final_tile_dimensions);
 
-	GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, final_tile_dimensions, quad_colour, scaled_texcoords[0], scaled_texcoords[1], index_offset);
+	GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, final_tile_dimensions, quad_colour, scaled_texcoords[0],
+		scaled_texcoords[1], index_offset);
 }
 
-// Scales a tile dimensions by a fixed value along one axis.
 void DecoratorTiled::ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, Axis axis_enum) const
 {
 	int axis = static_cast<int>(axis_enum);

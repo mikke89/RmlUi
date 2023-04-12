@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,16 +34,15 @@
 
 namespace Rml {
 
-class WidgetTextInput;
+class WidgetTextInputMultiLine;
 
 /**
-	Default RmlUi implemention of a text area.
+    Default RmlUi implemention of a text area.
 
-	@author Peter Curry
+    @author Peter Curry
  */
 
-class RMLUICORE_API ElementFormControlTextArea : public ElementFormControl
-{
+class RMLUICORE_API ElementFormControlTextArea : public ElementFormControl {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementFormControlTextArea, ElementFormControl)
 
@@ -91,6 +90,18 @@ public:
 	/// @return True if the text area is word-wrapping, false otherwise.
 	bool GetWordWrap();
 
+	/// Selects all text.
+	void Select();
+	/// Selects the text in the given character range.
+	/// @param[in] selection_start The first character to be selected.
+	/// @param[in] selection_end The first character *after* the selection.
+	void SetSelectionRange(int selection_start, int selection_end);
+	/// Retrieves the selection range and text.
+	/// @param[out] selection_start The first character selected.
+	/// @param[out] selection_end The first character *after* the selection.
+	/// @param[out] selected_text The selected text.
+	void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
+
 	/// Returns the control's inherent size, based on the length of the input field and the current font size.
 	/// @return True.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
@@ -116,7 +127,7 @@ protected:
 	void GetInnerRML(String& content) const override;
 
 private:
-	WidgetTextInput* widget;		
+	UniquePtr<WidgetTextInputMultiLine> widget;
 };
 
 } // namespace Rml

@@ -27,7 +27,7 @@ set(Win32_VK_HDR_FILES
 
 set(X11_GL2_SRC_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_X11.cpp
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.cpp	
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.cpp
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_X11_GL2.cpp
 )
 set(X11_GL2_HDR_FILES

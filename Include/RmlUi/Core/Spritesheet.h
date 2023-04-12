@@ -3,7 +3,7 @@
  *
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,7 +14,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,28 +28,21 @@
 #ifndef RMLUISPRITESHEET_H
 #define RMLUISPRITESHEET_H
 
-#include "Types.h"
 #include "Texture.h"
+#include "Types.h"
 
 namespace Rml {
 
 struct Spritesheet;
 
-
-struct Rectangle {
-	Rectangle(float x = 0, float y = 0, float width = 0, float height = 0) : x(x), y(y), width(width), height(height) {}
-	float x, y, width, height;
-};
-
 struct Sprite {
-	Rectangle rectangle; // in 'px' units
+	Rectanglef rectangle; // in 'px' units
 	const Spritesheet* sprite_sheet;
 };
 using SpriteMap = UnorderedMap<String, Sprite>; // key: sprite name (as given in @spritesheet)
 
-
 /**
-	Spritesheet holds a list of sprite names given in the @spritesheet at-rule in RCSS.
+    Spritesheet holds a list of sprite names given in the @spritesheet at-rule in RCSS.
  */
 struct Spritesheet {
 	String name;
@@ -59,20 +52,20 @@ struct Spritesheet {
 	float display_scale; // The inverse of the 'resolution' spritesheet property.
 	Texture texture;
 
-	Spritesheet(const String& name, const String& image_source, const String& definition_source,
-		int definition_line_number, float display_scale, const Texture& texture);
+	Spritesheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, float display_scale,
+		const Texture& texture);
 };
 
-using SpriteDefinitionList = Vector<Pair<String, Rectangle>>; // Sprite name and rectangle
-
+using SpriteDefinitionList = Vector<Pair<String, Rectanglef>>; // Sprite name and rectangle
 
 /**
-	SpritesheetList holds all the spritesheets and sprites given in a style sheet.
+    SpritesheetList holds all the spritesheets and sprites given in a style sheet.
  */
 class SpritesheetList {
 public:
 	/// Adds a new sprite sheet to the list and inserts all sprites with unique names into the global list.
-	bool AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, float display_scale, const SpriteDefinitionList& sprite_definitions);
+	bool AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number,
+		float display_scale, const SpriteDefinitionList& sprite_definitions);
 
 	/// Get a sprite from its name if it exists.
 	/// Note: The pointer is invalidated whenever another sprite is added. Do not store it around.
@@ -85,14 +78,12 @@ public:
 	size_t NumSpriteSheets() const;
 	size_t NumSprites() const;
 
-
 private:
 	using Spritesheets = Vector<SharedPtr<const Spritesheet>>;
 
 	Spritesheets spritesheets;
 	SpriteMap sprite_map;
 };
-
 
 } // namespace Rml
 #endif

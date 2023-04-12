@@ -1,0 +1,114 @@
+<rml>
+<head>
+	<title>Inline formatting - Aligned subtree</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css2/#aligned-subtree" />
+	<meta name="Description" content="Children of an inline element whose 'vertical-align' property is 'top', 'center', or 'bottom', is aligned relative to it." />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		.wrapper {
+			border: 8px #bbb;
+			margin-bottom: 2em;
+			line-height: 2em;
+		}
+		span {
+			border-color: #3332;
+			border-width: 1px;
+			background: #dfd;
+			padding: 0.5em;
+		}
+		span.block {
+			background: #fdf;
+			display: inline-block;
+		}
+
+		.tall   { line-height: 5em; }
+		.large  { line-height: 3em; }
+		.medium { line-height: 1.5em; }
+		.small  { line-height: 1.2em; }
+
+		.top     { vertical-align: top; }
+		.center  { vertical-align: center; }
+		.bottom  { vertical-align: bottom; }
+		.line-up { vertical-align: -100%; }
+
+		.split { line-height: 2em; }
+		.split span {
+			line-height: 4em;
+			border-width: 3px;
+			padding: 0;
+			vertical-align: top;
+		}
+		span.yellow, .yellow span { background-color: #ffd; }
+	</style>
+</head>
+
+<body>
+<div class="wrapper">
+	<span class="tall block">A</span>
+	<span class="small top">
+		B
+		<span class="medium block bottom">C</span>
+		D
+	</span>
+	<span class="large">
+		E
+		<span class="medium block">F</span>
+		G
+	</span>
+</div>
+<div class="wrapper">
+	<span class="small top">
+		A
+		<span class="medium block bottom">B</span>
+		<span class="bottom yellow">
+			C
+			<span class="line-up">
+				D
+				<span class="top">E</span>
+			</span>
+		</span>
+	</span>
+	<span class="tall block">F</span>
+</div>
+<div class="wrapper">
+	<span class="small top">
+		A
+		<span class="medium block bottom">
+			B
+			<span class="bottom yellow">
+				C
+				<span class="line-up">
+					D
+					<span class="top">E</span>
+				</span>
+			</span>
+		</span>
+	</span>
+	<span class="tall block">F</span>
+</div>
+<div class="wrapper">
+	<span class="small bottom">
+		A
+		<span class="medium block center">
+			B
+			<span class="bottom yellow">
+				C
+				<span class="line-up">
+					D
+					<span class="center">E</span>
+				</span>
+			</span>
+		</span>
+	</span>
+	<span class="tall block">F</span>
+</div>
+<div class="wrapper split">
+	The following text <span>should wrap down to the<br/> next line</span> and produce borders on each line.
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>

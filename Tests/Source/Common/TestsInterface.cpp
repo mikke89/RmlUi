@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ double TestsSystemInterface::GetElapsedTime()
 
 bool TestsSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)
 {
-	static const char* message_type_str[Rml::Log::Type::LT_MAX] = { "Always", "Error", "Assert", "Warning", "Info", "Debug" };
+	static const char* message_type_str[Rml::Log::Type::LT_MAX] = {"Always", "Error", "Assert", "Warning", "Info", "Debug"};
 	const bool result = Rml::SystemInterface::LogMessage(type, message);
 
 	if (type <= Rml::Log::Type::LT_WARNING)
@@ -83,7 +83,8 @@ void TestsSystemInterface::SetTime(double t)
 	elapsed_time = t;
 }
 
-void TestsRenderInterface::RenderGeometry(Rml::Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/, const Rml::TextureHandle /*texture*/, const Rml::Vector2f& /*translation*/)
+void TestsRenderInterface::RenderGeometry(Rml::Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/,
+	const Rml::TextureHandle /*texture*/, const Rml::Vector2f& /*translation*/)
 {
 	counters.render_calls += 1;
 }
@@ -107,7 +108,8 @@ bool TestsRenderInterface::LoadTexture(Rml::TextureHandle& texture_handle, Rml::
 	return true;
 }
 
-bool TestsRenderInterface::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* /*source*/, const Rml::Vector2i& /*source_dimensions*/)
+bool TestsRenderInterface::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* /*source*/,
+	const Rml::Vector2i& /*source_dimensions*/)
 {
 	counters.generate_texture += 1;
 	texture_handle = 1;

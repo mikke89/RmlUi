@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,7 +34,6 @@
 #include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "GeometryDatabase.h"
 #include <utility>
-
 
 namespace Rml {
 
@@ -82,7 +81,6 @@ Geometry::~Geometry()
 	Release();
 }
 
-// Set the host element for this geometry; this should be passed in the constructor if possible.
 void Geometry::SetHostElement(Element* _host_element)
 {
 	if (host_element == _host_element)
@@ -115,8 +113,7 @@ void Geometry::Render(Vector2f translation)
 	// immediate mode.
 	else
 	{
-		if (vertices.empty() ||
-			indices.empty())
+		if (vertices.empty() || indices.empty())
 			return;
 
 		RMLUI_ZoneScopedN("RenderGeometry");
@@ -124,12 +121,13 @@ void Geometry::Render(Vector2f translation)
 		if (!compile_attempted)
 		{
 			compile_attempted = true;
-			compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size(), texture ? texture->GetHandle(render_interface) : 0);
+			compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size(),
+				texture ? texture->GetHandle(render_interface) : 0);
 
 			// If we managed to compile the geometry, we can clear the local copy of vertices and indices and
 			// immediately render the compiled version.
 			if (compiled_geometry)
-			{	
+			{
 				render_interface->RenderCompiledGeometry(compiled_geometry, translation);
 				return;
 			}
@@ -137,29 +135,26 @@ void Geometry::Render(Vector2f translation)
 
 		// Either we've attempted to compile before (and failed), or the compile we just attempted failed; either way,
 		// render the uncompiled version.
-		render_interface->RenderGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size(), texture ? texture->GetHandle(GetRenderInterface()) : 0, translation);
+		render_interface->RenderGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size(),
+			texture ? texture->GetHandle(GetRenderInterface()) : 0, translation);
 	}
 }
 
-// Returns the geometry's vertices. If these are written to, Release() should be called to force a recompile.
-Vector< Vertex >& Geometry::GetVertices()
+Vector<Vertex>& Geometry::GetVertices()
 {
 	return vertices;
 }
 
-// Returns the geometry's indices. If these are written to, Release() should be called to force a recompile.
-Vector< int >& Geometry::GetIndices()
+Vector<int>& Geometry::GetIndices()
 {
 	return indices;
 }
 
-// Gets the geometry's texture.
 const Texture* Geometry::GetTexture() const
 {
 	return texture;
 }
 
-// Sets the geometry's texture.
 void Geometry::SetTexture(const Texture* _texture)
 {
 	texture = _texture;
@@ -188,7 +183,6 @@ Geometry::operator bool() const
 	return !indices.empty();
 }
 
-// Returns the host context's render interface.
 RenderInterface* Geometry::GetRenderInterface()
 {
 	if (!host_context)

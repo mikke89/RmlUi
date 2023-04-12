@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,8 +29,8 @@
 #include "FontFaceHandleDefault.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "../TextureLayout.h"
-#include "FontProvider.h"
 #include "FontFaceLayer.h"
+#include "FontProvider.h"
 #include "FreeTypeInterface.h"
 #include <algorithm>
 
@@ -66,49 +66,22 @@ bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_siz
 
 	// Generate the default layer and layer configuration.
 	base_layer = GetOrCreateLayer(nullptr);
-	layer_configurations.push_back(LayerConfiguration{ base_layer });
+	layer_configurations.push_back(LayerConfiguration{base_layer});
 
 	return true;
 }
 
-// Returns the point size of this font face.
-int FontFaceHandleDefault::GetSize() const
+const FontMetrics& FontFaceHandleDefault::GetFontMetrics() const
 {
-	return metrics.size;
+	return metrics;
 }
 
-// Returns the pixel height of a lower-case x in this font face.
-int FontFaceHandleDefault::GetXHeight() const
-{
-	return metrics.x_height;
-}
-
-// Returns the default height between this font face's baselines.
-int FontFaceHandleDefault::GetLineHeight() const
-{
-	return metrics.line_height;
-}
-
-// Returns the font's baseline.
-int FontFaceHandleDefault::GetBaseline() const
-{
-	return metrics.baseline;
-}
-
-// Returns the font's glyphs.
 const FontGlyphMap& FontFaceHandleDefault::GetGlyphs() const
 {
 	return glyphs;
 }
 
-float FontFaceHandleDefault::GetUnderline(float& thickness) const
-{
-	thickness = metrics.underline_thickness;
-	return metrics.underline_position;
-}
-
-// Returns the width a string will take up if rendered with this handle.
-int FontFaceHandleDefault::GetStringWidth(const String& string, Character prior_character)
+int FontFaceHandleDefault::GetStringWidth(const String& string, float letter_spacing, Character prior_character)
 {
 	int width = 0;
 	for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
@@ -124,14 +97,14 @@ int FontFaceHandleDefault::GetStringWidth(const String& string, Character prior_
 
 		// Adjust the cursor for this character's advance.
 		width += glyph->advance;
+		width += (int)letter_spacing;
 
 		prior_character = character;
 	}
 
-	return width;
+	return Math::Max(width, 0);
 }
 
-// Generates, if required, the layer configuration for a given array of font effects.
 int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font_effects)
 {
 	if (font_effects.empty())
@@ -139,7 +112,7 @@ int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font
 
 	// Check each existing configuration for a match with this arrangement of effects.
 	int configuration_index = 1;
-	for (; configuration_index < (int) layer_configurations.size(); ++configuration_index)
+	for (; configuration_index < (int)layer_configurations.size(); ++configuration_index)
 	{
 		const LayerConfiguration& configuration = layer_configurations[configuration_index];
 
@@ -192,11 +165,11 @@ int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font
 	if (!added_base_layer)
 		layer_configuration.push_back(base_layer);
 
-	return (int) (layer_configurations.size() - 1);
+	return (int)(layer_configurations.size() - 1);
 }
 
-// Generates the texture data for a layer (for the texture database).
-bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, const FontEffect* font_effect, int texture_id, int handle_version) const
+bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, const FontEffect* font_effect,
+	int texture_id, int handle_version) const
 {
 	if (handle_version != version)
 	{
@@ -215,15 +188,14 @@ bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& textur
 	return it->layer->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs);
 }
 
-// Generates the geometry required to render a single line of text.
 int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& string, const Vector2f position, const Colourb colour,
-	const float opacity, const int layer_configuration_index)
+	const float opacity, const float letter_spacing, const int layer_configuration_index)
 {
 	int geometry_index = 0;
 	int line_width = 0;
 
 	RMLUI_ASSERT(layer_configuration_index >= 0);
-	RMLUI_ASSERT(layer_configuration_index < (int) layer_configurations.size());
+	RMLUI_ASSERT(layer_configuration_index < (int)layer_configurations.size());
 
 	UpdateLayersOnDirty();
 
@@ -288,6 +260,7 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 			layer->GenerateGeometry(&geometry[geometry_index], character, Vector2f(position.x + line_width, position.y), glyph_color);
 
 			line_width += glyph->advance;
+			line_width += (int)letter_spacing;
 			prior_character = character;
 		}
 
@@ -297,7 +270,7 @@ int FontFaceHandleDefault::GenerateString(GeometryList& geometry, const String& 
 	// Cull any excess geometry from a previous generation.
 	geometry.resize(geometry_index);
 
-	return line_width;
+	return Math::Max(line_width, 0);
 }
 
 bool FontFaceHandleDefault::UpdateLayersOnDirty()
@@ -305,7 +278,7 @@ bool FontFaceHandleDefault::UpdateLayersOnDirty()
 	bool result = false;
 
 	// If we are dirty, regenerate all the layers and increment the version
-	if(is_layers_dirty && base_layer)
+	if (is_layers_dirty && base_layer)
 	{
 		is_layers_dirty = false;
 		++version;
@@ -324,7 +297,7 @@ bool FontFaceHandleDefault::UpdateLayersOnDirty()
 	return result;
 }
 
-int FontFaceHandleDefault::GetVersion() const 
+int FontFaceHandleDefault::GetVersion() const
 {
 	return version;
 }
@@ -422,14 +395,14 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, b
 					// Insert the new glyph into our own set of glyphs
 					auto pair = glyphs.emplace(character, glyph->WeakCopy());
 					it_glyph = pair.first;
-					if(pair.second)
+					if (pair.second)
 						is_layers_dirty = true;
 					break;
 				}
 			}
 
 			// If we still have not found a glyph, use the replacement character.
-			if(it_glyph == glyphs.end())
+			if (it_glyph == glyphs.end())
 			{
 				character = Character::Replacement;
 				it_glyph = glyphs.find(character);
@@ -447,20 +420,20 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, b
 	return glyph;
 }
 
-// Generates (or shares) a layer derived from a font effect.
 FontFaceLayer* FontFaceHandleDefault::GetOrCreateLayer(const SharedPtr<const FontEffect>& font_effect)
 {
 	// Search for the font effect layer first, it may have been instanced before as part of a different configuration.
 	const FontEffect* font_effect_ptr = font_effect.get();
-	auto it = std::find_if(layers.begin(), layers.end(), [font_effect_ptr](const EffectLayerPair& pair) { return pair.font_effect == font_effect_ptr; });
+	auto it =
+		std::find_if(layers.begin(), layers.end(), [font_effect_ptr](const EffectLayerPair& pair) { return pair.font_effect == font_effect_ptr; });
 
 	if (it != layers.end())
 		return it->layer.get();
 
 	// No existing effect matches, generate a new layer for the effect.
-	layers.push_back(EffectLayerPair{ font_effect_ptr, nullptr });
+	layers.push_back(EffectLayerPair{font_effect_ptr, nullptr});
 	auto& layer = layers.back().layer;
-	
+
 	layer = MakeUnique<FontFaceLayer>(font_effect);
 	GenerateLayer(layer.get());
 

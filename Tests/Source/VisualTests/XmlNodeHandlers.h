@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,17 +39,13 @@ struct MetaItem {
 };
 using MetaList = Rml::Vector<MetaItem>;
 
-
 struct LinkItem {
 	Rml::String rel;
 	Rml::String href;
 };
 using LinkList = Rml::Vector<LinkItem>;
 
-
-
-class XMLNodeHandlerMeta : public Rml::XMLNodeHandler
-{
+class XMLNodeHandlerMeta : public Rml::XMLNodeHandler {
 public:
 	XMLNodeHandlerMeta();
 	~XMLNodeHandlerMeta();
@@ -61,20 +57,14 @@ public:
 	/// Called for element data
 	bool ElementData(Rml::XMLParser* parser, const Rml::String& data, Rml::XMLDataType type) override;
 
-	const MetaList& GetMetaList() const {
-		return meta_list;
-	}
-	void ClearMetaList() {
-		meta_list.clear();
-	}
+	const MetaList& GetMetaList() const { return meta_list; }
+	void ClearMetaList() { meta_list.clear(); }
 
 private:
 	MetaList meta_list;
 };
 
-
-class XMLNodeHandlerLink : public Rml::XMLNodeHandler
-{
+class XMLNodeHandlerLink : public Rml::XMLNodeHandler {
 public:
 	XMLNodeHandlerLink();
 	~XMLNodeHandlerLink();
@@ -86,17 +76,12 @@ public:
 	/// Called for element data
 	bool ElementData(Rml::XMLParser* parser, const Rml::String& data, Rml::XMLDataType type) override;
 
-	const LinkList& GetLinkList() const {
-		return link_list;
-	}
-	void ClearLinkList() {
-		link_list.clear();
-	}
+	const LinkList& GetLinkList() const { return link_list; }
+	void ClearLinkList() { link_list.clear(); }
 
 private:
 	LinkList link_list;
 	Rml::XMLNodeHandler* node_handler_head;
 };
-
 
 #endif

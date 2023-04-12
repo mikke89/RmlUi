@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,42 +31,47 @@
 
 namespace Rml {
 
+DataModelHandle::DataModelHandle(DataModel* model) : model(model) {}
 
-DataModelHandle::DataModelHandle(DataModel* model) : model(model)
-{}
-
-bool DataModelHandle::IsVariableDirty(const String& variable_name) {
+bool DataModelHandle::IsVariableDirty(const String& variable_name)
+{
 	return model->IsVariableDirty(variable_name);
 }
 
-void DataModelHandle::DirtyVariable(const String& variable_name) {
+void DataModelHandle::DirtyVariable(const String& variable_name)
+{
 	model->DirtyVariable(variable_name);
 }
 
-void DataModelHandle::DirtyAllVariables() {
+void DataModelHandle::DirtyAllVariables()
+{
 	model->DirtyAllVariables();
 }
 
-
 DataModelConstructor::DataModelConstructor() : model(nullptr), type_register(nullptr) {}
 
-DataModelConstructor::DataModelConstructor(DataModel* model) : model(model), type_register(model->GetDataTypeRegister()) {
+DataModelConstructor::DataModelConstructor(DataModel* model) : model(model), type_register(model->GetDataTypeRegister())
+{
 	RMLUI_ASSERT(model);
 }
 
-DataModelHandle DataModelConstructor::GetModelHandle() const {
+DataModelHandle DataModelConstructor::GetModelHandle() const
+{
 	return DataModelHandle(model);
 }
 
-bool DataModelConstructor::BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func) {
+bool DataModelConstructor::BindFunc(const String& name, DataGetFunc get_func, DataSetFunc set_func)
+{
 	return model->BindFunc(name, std::move(get_func), std::move(set_func));
 }
 
-bool DataModelConstructor::BindEventCallback(const String& name, DataEventFunc event_func) {
+bool DataModelConstructor::BindEventCallback(const String& name, DataEventFunc event_func)
+{
 	return model->BindEventCallback(name, std::move(event_func));
 }
 
-bool DataModelConstructor::BindVariable(const String& name, DataVariable data_variable) {
+bool DataModelConstructor::BindVariable(const String& name, DataVariable data_variable)
+{
 	return model->BindVariable(name, data_variable);
 }
 

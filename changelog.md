@@ -1,3 +1,4 @@
+* [RmlUi 5.1](#rmlui-51)
 * [RmlUi 5.0](#rmlui-50)
 * [RmlUi 4.4](#rmlui-44)
 * [RmlUi 4.3](#rmlui-43)
@@ -9,6 +10,161 @@
 * [RmlUi 3.1](#rmlui-31)
 * [RmlUi 3.0](#rmlui-30)
 * [RmlUi 2.0](#rmlui-20)
+
+
+## RmlUi 6.0 (WIP)
+
+### Major layout engine improvements
+
+- Make layout more conformant to CSS specification.
+  - Rewritten inline layouting.
+  - Fixed more than a hundred CSS tests, including ACID1.
+- Improve readability and maintainability:
+  - Better separation of classes, reduce available state.
+  - Make classes better conform to CSS terminology.
+  - Improve call-graph, flow from parent to child, avoid mutable calls into ancestors.
+- Fix long-standing issues.
+  - Allow tables and flexboxes to be absolutely positioned or floated.
+  - Allow nested flexboxes: Flex items can now be flex containers themselves. #320
+  - Better handling of block-level boxes in inline formatting contexts. #392
+
+More details to be posted later. Expect some possible layout shifts in existing documents, usually due to better CSS conformance. Some new issues are expected during development, please report bugs, and layout changes that are not in compliance with CSS.
+
+### RCSS Properties
+
+- New `display` property values: `flow-root`, `inline-flex`, `inline-table`.
+- New `vertical-align` property value: `center`.
+- Added support for `letter-spacing` property. #429 (thanks @igorsegallafa)
+
+### Breaking changes
+
+- Possible layout changes, usually due to better CSS conformance.
+- Reworked font engine interface, in particular in terms of font metrics and letter-spacing.
+
+Removed deprecated functionality:
+- Removed the `<datagrid>` and `<dataselect>` elements, related utilities, and associated tutorials. Users are encouraged to replace this functionality by [tables](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html), [select boxes](https://mikke89.github.io/RmlUiDoc/pages/rml/forms.html#select), and [data bindings](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html).
+
+
+## RmlUi 5.1
+
+### New scrolling features
+
+#### Autoscroll mode
+Autoscroll mode, or scrolling with the middle mouse button, is now featured in RmlUi. #422 #423 (thanks @igorsegallafa)
+
+This mode is automatically enabled by the context whenever a middle mouse button press is detected, and there is an element to scroll under the mouse. There is also support for holding the middle mouse button to scroll. 
+
+When autoscroll mode is active, a cursor name is submitted to clients which indicates the state of the autoscroll, so that clients can display an appropriate cursor to the user. These cursor names all start with `rmlui-scroll-`, and take priority over any active `cursor` property. If desired, autoscroll mode can be disabled entirely by simply not submitting middle mouse button presses, or by using another button index when submitting the button to the context. 
+
+See the new [documentation section on scrolling](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/contexts.html#scrolling) for details.
+
+#### Smooth scrolling
+Smooth scrolling is now supported in RmlUi, and enabled by default. This makes certain scroll actions animate smoothly towards its destination. Smooth scrolling may become active in the following situations:
+
+- During a call to `Context::ProcessMouseWheel()`.
+- When clicking a scrollbar's arrow keys or track.
+- When calling any of the `Element::Scroll...()` methods with the `ScrollBehavior::Smooth` enum value.
+
+Smooth scrolling can be disabled or tweaked on the context, as described below.
+
+#### Context interface
+Smooth scrolling can be disabled, or tweaked, by calling the following method on a given context:
+```cpp
+void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor);
+```
+Here, smooth scrolling can be disabled by submitting the `ScrollBehavior::Instant` enum value. The scrolling speed can also be tweaked by adjusting the speed factor.
+
+The function signature of `Context::ProcessMouseWheel` has been replaced with the following, to enable scrolling in both dimensions:
+```cpp
+bool Context::ProcessMouseWheel(Vector2f wheel_delta, int key_modifier_state);
+```
+The old single axis version is still available for backward compatibility, but considered deprecated and may be removed in the future.
+
+#### Element interface
+Added
+```cpp
+void Element::ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Instant);
+```
+which scrolls the element to the given coordinates, with the ability to use smooth scrolling. Similarly, `Element::ScrollIntoView` has been updated with the ability to perform smooth scrolling (instant by default).
+
+#### Scroll events
+The `mousescroll` event no longer performs scrolling on an element, and no longer requires a default action. Instead, the responsibility for mouse scrolling has been moved to the context and its scroll controller. However, the `mousescroll` event is still submitted during a mouse wheel action, with the option to cancel the scroll by stopping its propagation. The event is now also submitted before initiating autoscroll mode, with the possibility to cancel it.
+
+### New RCSS features
+
+- New [`overscroll-behavior` property](https://mikke89.github.io/RmlUiDoc/pages/rcss/user_interface.html#overscroll-behavior). An element's closest scrollable ancestor is decided by scroll chaining, which can be controlled using this property. The `contain` value can be used to ensure that mouse wheel scrolling is not propagated outside a given element, regardless of whether its scrollbars are visible.
+- Added animation support for decorators. #421 (thanks @0suddenly0)
+- Sibling selectors will now also match hidden elements.
+
+### On-demand rendering (power saving mode)
+
+In games, the update and render loop normally run as fast as possible. However, in some applications it is desirable to reduce CPU usage and power consumption when the application is idle. RmlUi now provides the necessary utilities to achieve this. Implemented in #436 (thanks @Thalhammer), see also #331 #417 #430.
+
+Users of RmlUi control their own update loop, however, this feature requires some support from the library side, because the application needs to know e.g. when animations are happening or when a text cursor should blink. In short, to implement this, users can now query the context for `Context::GetNextUpdateDelay()`, which returns the time until the next update loop should be run again.
+
+See the [on-demand rendering documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/contexts.html#on-demand-rendering) for details and examples.
+
+### Text selection interface
+
+Added the ability to set or retrieve the text selection on text fields. #419
+
+In particular, the following methods are now available on `ElementFormControlInput` (`<input>` elements) and `ElementFormControlTextArea` (`<textarea>` elements):
+
+```cpp
+// Selects all text.
+void Select();
+// Selects the text in the given character range.
+void SetSelectionRange(int selection_start, int selection_end);
+// Retrieves the selection range and text.
+void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
+```
+
+See the [form controls documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/element_packages/form.html#text-selection) for details.
+
+### RML and form element improvements
+
+- Add RML support for numeric character reference (Unicode escape sequences). #401 (thanks @dakror)
+- Make the `:checked` pseudo class active on the `<select>` element whenever its options list is open, for better styling capabilities.
+- Fix max length in text input fields not always clamping the value, such as when pasting text.
+- The slider input now only responds to the primary mouse button.
+- The slider input is now only draggable from the track or bar, instead of the whole element.
+- Fixed input elements not always being correctly setup when changing types.
+
+### Data bindings
+
+- Add new [data-alias attribute](https://mikke89.github.io/RmlUiDoc/pages/data_bindings/views_and_controllers.html#data-alias) to make templates work with outside variables. #432 (thanks @dakror)
+- Add method to retrieve the `DataTypeRegister` during model construction. #412 #413 (thanks @LoneBoco)
+- Add ability to provide a separate data type register to use when constructing a new data model. Can be useful to provide a distinct type register for each shared library accessing the same context. Alternatively, allows different contexts to share a single type register. #409 (thanks @eugeneko)
+
+### Lua plugin
+
+- Make the Lua plugin compatible with Lua 5.1+ and LuaJIT. #387 (thanks @mrianura)
+- Updated to include the new text selection API. #434 #435 (thanks @ShawnCZek)
+
+### Backends
+
+- Vulkan renderer: Fix various Vulkan issues on Linux. #430 (thanks @Thalhammer)
+- GL3 renderer: Unbind the vertex array after use to avoid possible crash. #411
+
+### Stability improvements
+
+- Fix a potential crash during plugin shutdown. #415 (thanks @LoneBoco)
+
+### Build improvements
+
+- Improve CMake to better support RmlUi included as a subdirectory of a parent project. #394 #395 #397 (thanks @cathaysia)
+- Fix possible name clashes causing build failures during argument-dependent lookup (ADL). #418 #420 (thanks @mwl4)
+
+### Built-in containers
+
+- Replaced custom containers based on chobo-shl with equivalent ones from [itlib](https://github.com/iboB/itlib). #402 (thanks @iboB)
+
+### Breaking changes
+
+- Scrolling behavior changed, increased default mouse wheel scroll length, and enabled smooth scrolling by default. See notes above.
+- The `mousescroll` event no longer scrolls an element. Its `wheel_delta` parameter has been renamed to `wheel_delta_y`.
+- The signature of `Context::ProcessMouseWheel` has been changed, the old signature is still available but deprecated.
+
 
 ## RmlUi 5.0
 

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,8 +29,8 @@
 #ifndef RMLUI_LUAINVADERS_GAME_H
 #define RMLUI_LUAINVADERS_GAME_H
 
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Texture.h>
+#include <RmlUi/Core/Types.h>
 
 class Shield;
 class Invader;
@@ -38,15 +38,14 @@ class Defender;
 class Mothership;
 
 /**
-	Runs the game.
-	- Updates the Invader positions, animations and bombs.
-	- Updates the player position and bullets
+    Runs the game.
+    - Updates the Invader positions, animations and bombs.
+    - Updates the player position and bullets
 
-	@author Lloyd Weehuizen
+    @author Lloyd Weehuizen
  */
 
-class Game
-{
+class Game {
 public:
 	Game();
 	~Game();
@@ -94,7 +93,6 @@ public:
 	const Rml::Vector2f GetWindowDimensions();
 
 private:
-
 	// The current invaders
 	Invader** invaders;
 	// The direction they're moving

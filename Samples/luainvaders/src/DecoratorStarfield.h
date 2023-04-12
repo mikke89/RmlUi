@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,15 +29,15 @@
 #ifndef RMLUI_LUAINVADERS_DECORATORSTARFIELD_H
 #define RMLUI_LUAINVADERS_DECORATORSTARFIELD_H
 
-#include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Decorator.h>
+#include <RmlUi/Core/Types.h>
 
-class DecoratorStarfield : public Rml::Decorator
-{
+class DecoratorStarfield : public Rml::Decorator {
 public:
 	virtual ~DecoratorStarfield();
 
-	bool Initialise(int num_layers, const Rml::Colourb& top_colour, const Rml::Colourb& bottom_colour, float top_speed, float bottom_speed, int top_density, int bottom_density);
+	bool Initialise(int num_layers, const Rml::Colourb& top_colour, const Rml::Colourb& bottom_colour, float top_speed, float bottom_speed,
+		int top_density, int bottom_density);
 
 	/// Called on a decorator to generate any required per-element data for a newly decorated element.
 	/// @param[in] element The newly decorated element.
@@ -61,21 +61,19 @@ private:
 	int top_density;
 	int bottom_density;
 
-	struct StarLayer
-	{
-		typedef Rml::Vector< Rml::Vector2f > StarList;
+	struct StarLayer {
+		typedef Rml::Vector<Rml::Vector2f> StarList;
 		StarList stars;
 		Rml::Colourb colour;
 		float speed;
 	};
 
-	struct StarField
-	{
+	struct StarField {
 		void Update(double t);
 		double last_update;
 		Rml::Vector2f dimensions;
 
-		typedef Rml::Vector< StarLayer > StarLayerList;
+		typedef Rml::Vector<StarLayer> StarLayerList;
 		StarLayerList star_layers;
 	};
 };

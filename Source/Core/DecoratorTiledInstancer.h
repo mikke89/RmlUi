@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,12 +37,10 @@ namespace Rml {
 class StyleSheet;
 
 /**
-	@author Peter Curry
+    @author Peter Curry
  */
 
-
-class DecoratorTiledInstancer : public DecoratorInstancer
-{
+class DecoratorTiledInstancer : public DecoratorInstancer {
 public:
 	DecoratorTiledInstancer(size_t num_tiles);
 
@@ -57,7 +55,8 @@ protected:
 	/// @param[out] textures Holds the textures declared for the tile.
 	/// @param[in] properties The user-defined list of parameters for the decorator.
 	/// @param[in] instancer_interface An interface for querying the active style sheet.
-	bool GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties, const DecoratorInstancerInterface& instancer_interface) const;
+	bool GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) const;
 
 private:
 	struct TilePropertyIds {

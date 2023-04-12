@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,24 +25,29 @@
  * THE SOFTWARE.
  *
  */
- 
+
 #ifndef RMLUI_LUA_ELEMENTS_ELEMENTFORMCONTROLTEXTAREA_H
 #define RMLUI_LUA_ELEMENTS_ELEMENTFORMCONTROLTEXTAREA_H
 
+#include <RmlUi/Core/Elements/ElementFormControlTextArea.h>
 #include <RmlUi/Lua/IncludeLua.h>
 #include <RmlUi/Lua/LuaType.h>
-#include <RmlUi/Core/Elements/ElementFormControlTextArea.h>
 
 namespace Rml {
 namespace Lua {
 
-//getters
+// methods
+int ElementFormControlTextAreaSelect(lua_State* L, ElementFormControlTextArea* obj);
+int ElementFormControlTextAreaSetSelection(lua_State* L, ElementFormControlTextArea* obj);
+int ElementFormControlTextAreaGetSelection(lua_State* L, ElementFormControlTextArea* obj);
+
+// getters
 int ElementFormControlTextAreaGetAttrcols(lua_State* L);
 int ElementFormControlTextAreaGetAttrmaxlength(lua_State* L);
 int ElementFormControlTextAreaGetAttrrows(lua_State* L);
 int ElementFormControlTextAreaGetAttrwordwrap(lua_State* L);
 
-//setters
+// setters
 int ElementFormControlTextAreaSetAttrcols(lua_State* L);
 int ElementFormControlTextAreaSetAttrmaxlength(lua_State* L);
 int ElementFormControlTextAreaSetAttrrows(lua_State* L);
@@ -52,9 +57,9 @@ extern RegType<ElementFormControlTextArea> ElementFormControlTextAreaMethods[];
 extern luaL_Reg ElementFormControlTextAreaGetters[];
 extern luaL_Reg ElementFormControlTextAreaSetters[];
 
-
-//inherits from ElementFormControl which inherits from Element
-template<> void ExtraInit<ElementFormControlTextArea>(lua_State* L, int metatable_index);
+// inherits from ElementFormControl which inherits from Element
+template <>
+void ExtraInit<ElementFormControlTextArea>(lua_State* L, int metatable_index);
 RMLUI_LUATYPE_DECLARE(ElementFormControlTextArea)
 } // namespace Lua
 } // namespace Rml

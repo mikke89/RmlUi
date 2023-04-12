@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,10 +85,10 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEX
 #endif
 
 RenderInterface_VK::RenderInterface_VK() :
-	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false},
-	m_is_use_stencil_pipeline{false}, m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{},
-	m_semaphore_index{}, m_semaphore_index_previous{}, m_image_index{}, m_p_instance{}, m_p_device{}, m_p_physical_device{}, m_p_surface{},
-	m_p_swapchain{}, m_p_allocator{}, m_p_current_command_buffer{}, m_p_descriptor_set_layout_vertex_transform{}, m_p_descriptor_set_layout_texture{},
+	m_is_transform_enabled{false}, m_is_apply_to_regular_geometry_stencil{false}, m_is_use_scissor_specified{false}, m_is_use_stencil_pipeline{false},
+	m_width{}, m_height{}, m_queue_index_present{}, m_queue_index_graphics{}, m_queue_index_compute{}, m_semaphore_index{},
+	m_semaphore_index_previous{}, m_image_index{}, m_p_instance{}, m_p_device{}, m_p_physical_device{}, m_p_surface{}, m_p_swapchain{},
+	m_p_allocator{}, m_p_current_command_buffer{}, m_p_descriptor_set_layout_vertex_transform{}, m_p_descriptor_set_layout_texture{},
 	m_p_pipeline_layout{}, m_p_pipeline_with_textures{}, m_p_pipeline_without_textures{},
 	m_p_pipeline_stencil_for_region_where_geometry_will_be_drawn{}, m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_with_textures{},
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
@@ -365,7 +365,8 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 			info_range.levelCount = 1;
 			info_range.layerCount = 1;
 
-			vkCmdClearDepthStencilImage(m_p_current_command_buffer, m_texture_depthstencil.m_p_vk_image, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &info_clear_color, 1, &info_range);
+			vkCmdClearDepthStencilImage(m_p_current_command_buffer, m_texture_depthstencil.m_p_vk_image,
+				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &info_clear_color, 1, &info_range);
 
 			RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
 
@@ -798,7 +799,7 @@ void RenderInterface_VK::RecreateSwapchain()
 	SetViewport(m_width, m_height);
 }
 
-bool RenderInterface_VK::Initialize(CreateSurfaceCallback create_surface_callback)
+bool RenderInterface_VK::Initialize(Rml::Vector<const char*> required_extensions, CreateSurfaceCallback create_surface_callback)
 {
 	RMLUI_ZoneScopedN("Vulkan - Initialize");
 
@@ -806,7 +807,7 @@ bool RenderInterface_VK::Initialize(CreateSurfaceCallback create_surface_callbac
 	glad_result = gladLoaderLoadVulkan(VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE);
 	RMLUI_VK_ASSERTMSG(glad_result != 0, "Vulkan loader failed - Global functions");
 
-	Initialize_Instance();
+	Initialize_Instance(std::move(required_extensions));
 
 	VkPhysicalDeviceProperties physical_device_properties = {};
 	Initialize_PhysicalDevice(physical_device_properties);
@@ -850,7 +851,7 @@ void RenderInterface_VK::Shutdown()
 	gladLoaderUnloadVulkan();
 }
 
-void RenderInterface_VK::Initialize_Instance() noexcept
+void RenderInterface_VK::Initialize_Instance(Rml::Vector<const char*> required_extensions) noexcept
 {
 	uint32_t required_version = GetRequiredVersionAndValidateMachine();
 
@@ -863,7 +864,7 @@ void RenderInterface_VK::Initialize_Instance() noexcept
 	info.apiVersion = required_version;
 
 	Rml::Vector<const char*> instance_layer_names;
-	Rml::Vector<const char*> instance_extension_names;
+	Rml::Vector<const char*> instance_extension_names = std::move(required_extensions);
 	CreatePropertiesFor_Instance(instance_layer_names, instance_extension_names);
 
 	VkInstanceCreateInfo info_instance = {};
@@ -936,7 +937,7 @@ void RenderInterface_VK::Initialize_Device() noexcept
 
 	info_device.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	info_device.pNext = &features_physical_device2;
-	info_device.queueCreateInfoCount = 2;
+	info_device.queueCreateInfoCount = m_queue_index_compute != m_queue_index_graphics ? 2 : 1;
 	info_device.pQueueCreateInfos = info_queue;
 	info_device.enabledExtensionCount = static_cast<uint32_t>(device_extension_names.size());
 	info_device.ppEnabledExtensionNames = info_device.enabledExtensionCount ? device_extension_names.data() : nullptr;
@@ -1023,7 +1024,7 @@ void RenderInterface_VK::Initialize_Surface(CreateSurfaceCallback create_surface
 	RMLUI_VK_ASSERTMSG(m_p_instance, "you must initialize your VkInstance");
 
 	bool result = create_surface_callback(m_p_instance, &m_p_surface);
-	RMLUI_VK_ASSERTMSG(result && m_p_surface, "failed to vkCreateWin32SurfaceKHR");
+	RMLUI_VK_ASSERTMSG(result && m_p_surface, "failed to call create_surface_callback");
 }
 
 void RenderInterface_VK::Initialize_QueueIndecies() noexcept
@@ -1409,14 +1410,6 @@ void RenderInterface_VK::CreatePropertiesFor_Instance(Rml::Vector<const char*>& 
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, "VK_EXT_debug_utils");
 	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
-#if defined(RMLUI_PLATFORM_UNIX)
-	// TODO: add x11 headers for linux system AddExtensionToInstance(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-#elif defined(RMLUI_PLATFORM_WIN32)
-	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#endif
-
-	AddExtensionToInstance(instance_extension_names, instance_extension_properties, VK_KHR_SURFACE_EXTENSION_NAME);
-
 #ifdef RMLUI_VK_DEBUG
 	AddLayerToInstance(instance_layer_names, instance_layer_properties, "VK_LAYER_LUNARG_monitor");
 
@@ -1635,6 +1628,60 @@ const RenderInterface_VK::PhysicalDeviceWrapper* RenderInterface_VK::ChoosePhysi
 
 VkSurfaceFormatKHR RenderInterface_VK::ChooseSwapchainFormat() noexcept
 {
+	static constexpr VkFormat UNORM_FORMATS[] = {
+		VK_FORMAT_R4G4_UNORM_PACK8,
+		VK_FORMAT_R4G4B4A4_UNORM_PACK16,
+		VK_FORMAT_B4G4R4A4_UNORM_PACK16,
+		VK_FORMAT_R5G6B5_UNORM_PACK16,
+		VK_FORMAT_B5G6R5_UNORM_PACK16,
+		VK_FORMAT_R5G5B5A1_UNORM_PACK16,
+		VK_FORMAT_B5G5R5A1_UNORM_PACK16,
+		VK_FORMAT_A1R5G5B5_UNORM_PACK16,
+		VK_FORMAT_R8_UNORM,
+		VK_FORMAT_R8G8_UNORM,
+		VK_FORMAT_R8G8B8_UNORM,
+		VK_FORMAT_B8G8R8_UNORM,
+		VK_FORMAT_R8G8B8A8_UNORM,
+		VK_FORMAT_B8G8R8A8_UNORM,
+		VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+		VK_FORMAT_A2R10G10B10_UNORM_PACK32,
+		VK_FORMAT_A2B10G10R10_UNORM_PACK32,
+		VK_FORMAT_R16_UNORM,
+		VK_FORMAT_R16G16_UNORM,
+		VK_FORMAT_R16G16B16_UNORM,
+		VK_FORMAT_R16G16B16A16_UNORM,
+		VK_FORMAT_D16_UNORM,
+		VK_FORMAT_X8_D24_UNORM_PACK32,
+		VK_FORMAT_D16_UNORM_S8_UINT,
+		VK_FORMAT_D24_UNORM_S8_UINT,
+		VK_FORMAT_BC1_RGB_UNORM_BLOCK,
+		VK_FORMAT_BC1_RGBA_UNORM_BLOCK,
+		VK_FORMAT_BC2_UNORM_BLOCK,
+		VK_FORMAT_BC3_UNORM_BLOCK,
+		VK_FORMAT_BC4_UNORM_BLOCK,
+		VK_FORMAT_BC5_UNORM_BLOCK,
+		VK_FORMAT_BC7_UNORM_BLOCK,
+		VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK,
+		VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK,
+		VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK,
+		VK_FORMAT_EAC_R11_UNORM_BLOCK,
+		VK_FORMAT_EAC_R11G11_UNORM_BLOCK,
+		VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
+		VK_FORMAT_ASTC_5x4_UNORM_BLOCK,
+		VK_FORMAT_ASTC_5x5_UNORM_BLOCK,
+		VK_FORMAT_ASTC_6x5_UNORM_BLOCK,
+		VK_FORMAT_ASTC_6x6_UNORM_BLOCK,
+		VK_FORMAT_ASTC_8x5_UNORM_BLOCK,
+		VK_FORMAT_ASTC_8x6_UNORM_BLOCK,
+		VK_FORMAT_ASTC_8x8_UNORM_BLOCK,
+		VK_FORMAT_ASTC_10x5_UNORM_BLOCK,
+		VK_FORMAT_ASTC_10x6_UNORM_BLOCK,
+		VK_FORMAT_ASTC_10x8_UNORM_BLOCK,
+		VK_FORMAT_ASTC_10x10_UNORM_BLOCK,
+		VK_FORMAT_ASTC_12x10_UNORM_BLOCK,
+		VK_FORMAT_ASTC_12x12_UNORM_BLOCK,
+	};
+
 	RMLUI_VK_ASSERTMSG(m_p_physical_device, "you must initialize your physical device, before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_surface, "you must initialize your surface, before calling this method");
 
@@ -1645,6 +1692,16 @@ VkSurfaceFormatKHR RenderInterface_VK::ChooseSwapchainFormat() noexcept
 	Rml::Vector<VkSurfaceFormatKHR> formats(surface_count);
 	status = vkGetPhysicalDeviceSurfaceFormatsKHR(m_p_physical_device, m_p_surface, &surface_count, formats.data());
 	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "failed to vkGetPhysicalDeviceSurfaceFormatsKHR (filling vector of VkSurfaceFormatKHR)");
+
+	// Prefer UNORM formats
+	for (auto& format : formats)
+	{
+		for (auto ufmt : UNORM_FORMATS)
+		{
+			if (ufmt == format.format)
+				return format;
+		}
+	}
 
 	return formats.front();
 }
@@ -2464,14 +2521,7 @@ void RenderInterface_VK::CreateRenderPass() noexcept
 
 	attachments[0].format = m_swapchain_format.format;
 	attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-
-	// @ in order to be sure that pClearValues and rendering are working properly
-#ifdef RMLUI_VK_DEBUG
 	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-#else
-	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-#endif
-
 	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -2753,8 +2803,8 @@ VkCommandBuffer RenderInterface_VK::CommandBufferRing::GetCommandBufferForActive
 }
 
 RenderInterface_VK::MemoryPool::MemoryPool() :
-	m_memory_total_size{}, m_device_min_uniform_alignment{}, m_p_data{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{},
-	m_p_vk_allocator{}, m_p_block{}
+	m_memory_total_size{}, m_device_min_uniform_alignment{}, m_p_data{}, m_p_buffer{}, m_p_buffer_alloc{}, m_p_device{}, m_p_vk_allocator{},
+	m_p_block{}
 {}
 
 RenderInterface_VK::MemoryPool::~MemoryPool() {}

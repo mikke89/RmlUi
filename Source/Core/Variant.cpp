@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -56,7 +56,7 @@ Variant::Variant(Variant&& other) noexcept
 	Set(std::move(other));
 }
 
-Variant::~Variant() 
+Variant::~Variant()
 {
 	Clear();
 }
@@ -64,65 +64,52 @@ Variant::~Variant()
 void Variant::Clear()
 {
 	// Free any allocated types.
-	switch (type) 
-	{	  
-		case STRING:
-		{
-			// Clean up the string.
-			String* string = (String*)data;
-			string->~String();
-		}
-		break;
-		case TRANSFORMPTR:
-		{
-			// Clean up the transform.
-			TransformPtr* transform = (TransformPtr*)data;
-			transform->~TransformPtr();
-		}
-		break;
-		case TRANSITIONLIST:
-		{
-			// Clean up the transition list.
-			TransitionList* transition_list = (TransitionList*)data;
-			transition_list->~TransitionList();
-		}
-		break;
-		case ANIMATIONLIST:
-		{
-			// Clean up the transition list.
-			AnimationList* animation_list = (AnimationList*)data;
-			animation_list->~AnimationList();
-		}
-		break;
-		case DECORATORSPTR:
-		{
-			DecoratorsPtr* decorators = (DecoratorsPtr*)data;
-			decorators->~DecoratorsPtr();
-		}
-		break;
-		case FONTEFFECTSPTR:
-		{
-			FontEffectsPtr* font_effects = (FontEffectsPtr*)data;
-			font_effects->~shared_ptr();
-		}
-		break;
-		case VARIABLETERM:
-		{
-			PropertyVariableTerm* var_usage = (PropertyVariableTerm*)data;
-			var_usage->~PropertyVariableTerm();
-		}
+	switch (type)
+	{
+	case STRING:
+	{
+		// Clean up the string.
+		String* string = (String*)data;
+		string->~String();
+	}
 	break;
-		default:
-		break;
+	case TRANSFORMPTR:
+	{
+		// Clean up the transform.
+		TransformPtr* transform = (TransformPtr*)data;
+		transform->~TransformPtr();
+	}
+	break;
+	case TRANSITIONLIST:
+	{
+		// Clean up the transition list.
+		TransitionList* transition_list = (TransitionList*)data;
+		transition_list->~TransitionList();
+	}
+	break;
+	case ANIMATIONLIST:
+	{
+		// Clean up the transition list.
+		AnimationList* animation_list = (AnimationList*)data;
+		animation_list->~AnimationList();
+	}
+	break;
+	case DECORATORSPTR:
+	{
+		DecoratorsPtr* decorators = (DecoratorsPtr*)data;
+		decorators->~DecoratorsPtr();
+	}
+	break;
+	case FONTEFFECTSPTR:
+	{
+		FontEffectsPtr* font_effects = (FontEffectsPtr*)data;
+		font_effects->~shared_ptr();
+	}
+	break;
+	default: break;
 	}
 	type = NONE;
 }
-
-
-
-//////////////////////////////////////////////////
-// Set methods
-//////////////////////////////////////////////////
 
 #define SET_VARIANT(type) *((type*)data) = value;
 
@@ -218,12 +205,12 @@ void Variant::Set(const uint64_t value)
 	SET_VARIANT(uint64_t);
 }
 
-void Variant::Set(const char* value) 
+void Variant::Set(const char* value)
 {
 	Set(String(value));
 }
 
-void Variant::Set(void* voidptr) 
+void Variant::Set(void* voidptr)
 {
 	type = VOIDPTR;
 	memcpy(data, &voidptr, sizeof(void*));
@@ -265,7 +252,6 @@ void Variant::Set(ScriptInterface* value)
 	memcpy(data, &value, sizeof(ScriptInterface*));
 }
 
-
 void Variant::Set(const String& value)
 {
 	if (type == STRING)
@@ -275,7 +261,7 @@ void Variant::Set(const String& value)
 	else
 	{
 		type = STRING;
-		new(data) String(value);
+		new (data) String(value);
 	}
 }
 void Variant::Set(String&& value)
@@ -287,10 +273,9 @@ void Variant::Set(String&& value)
 	else
 	{
 		type = STRING;
-		new(data) String(std::move(value));
+		new (data) String(std::move(value));
 	}
 }
-
 
 void Variant::Set(const TransformPtr& value)
 {
@@ -301,7 +286,7 @@ void Variant::Set(const TransformPtr& value)
 	else
 	{
 		type = TRANSFORMPTR;
-		new(data) TransformPtr(value);
+		new (data) TransformPtr(value);
 	}
 }
 void Variant::Set(TransformPtr&& value)
@@ -313,7 +298,7 @@ void Variant::Set(TransformPtr&& value)
 	else
 	{
 		type = TRANSFORMPTR;
-		new(data) TransformPtr(std::move(value));
+		new (data) TransformPtr(std::move(value));
 	}
 }
 
@@ -326,7 +311,7 @@ void Variant::Set(const TransitionList& value)
 	else
 	{
 		type = TRANSITIONLIST;
-		new(data) TransitionList(value);
+		new (data) TransitionList(value);
 	}
 }
 void Variant::Set(TransitionList&& value)
@@ -338,7 +323,7 @@ void Variant::Set(TransitionList&& value)
 	else
 	{
 		type = TRANSITIONLIST;
-		new(data) TransitionList(std::move(value));
+		new (data) TransitionList(std::move(value));
 	}
 }
 
@@ -351,7 +336,7 @@ void Variant::Set(const AnimationList& value)
 	else
 	{
 		type = ANIMATIONLIST;
-		new(data) AnimationList(value);
+		new (data) AnimationList(value);
 	}
 }
 void Variant::Set(AnimationList&& value)
@@ -363,7 +348,7 @@ void Variant::Set(AnimationList&& value)
 	else
 	{
 		type = ANIMATIONLIST;
-		new(data) AnimationList(std::move(value));
+		new (data) AnimationList(std::move(value));
 	}
 }
 
@@ -376,7 +361,7 @@ void Variant::Set(const DecoratorsPtr& value)
 	else
 	{
 		type = DECORATORSPTR;
-		new(data) DecoratorsPtr(value);
+		new (data) DecoratorsPtr(value);
 	}
 }
 void Variant::Set(DecoratorsPtr&& value)
@@ -388,7 +373,7 @@ void Variant::Set(DecoratorsPtr&& value)
 	else
 	{
 		type = DECORATORSPTR;
-		new(data) DecoratorsPtr(std::move(value));
+		new (data) DecoratorsPtr(std::move(value));
 	}
 }
 void Variant::Set(const FontEffectsPtr& value)
@@ -400,7 +385,7 @@ void Variant::Set(const FontEffectsPtr& value)
 	else
 	{
 		type = FONTEFFECTSPTR;
-		new(data) FontEffectsPtr(value);
+		new (data) FontEffectsPtr(value);
 	}
 }
 void Variant::Set(FontEffectsPtr&& value)
@@ -412,11 +397,11 @@ void Variant::Set(FontEffectsPtr&& value)
 	else
 	{
 		type = FONTEFFECTSPTR;
-		new(data) FontEffectsPtr(std::move(value));
+		new (data) FontEffectsPtr(std::move(value));
 	}
 }
 
-void Variant::Set(const PropertyVariableTerm &value)
+void Variant::Set(const PropertyVariableTerm& value)
 {
 	if (type == VARIABLETERM)
 	{
@@ -425,11 +410,11 @@ void Variant::Set(const PropertyVariableTerm &value)
 	else
 	{
 		type = VARIABLETERM;
-		new(data) PropertyVariableTerm(value);
+		new (data) PropertyVariableTerm(value);
 	}
 }
 
-void Variant::Set(PropertyVariableTerm &&value)
+void Variant::Set(PropertyVariableTerm&& value)
 {
 	if (type == VARIABLETERM)
 	{
@@ -438,7 +423,7 @@ void Variant::Set(PropertyVariableTerm &&value)
 	else
 	{
 		type = VARIABLETERM;
-		new(data) PropertyVariableTerm(std::move(value));
+		new (data) PropertyVariableTerm(std::move(value));
 	}
 }
 
@@ -464,7 +449,7 @@ Variant& Variant::operator=(Variant&& other) noexcept
 
 #define DEFAULT_VARIANT_COMPARE(TYPE) static_cast<TYPE>(*(TYPE*)data) == static_cast<TYPE>(*(TYPE*)other.data)
 
-bool Variant::operator==(const Variant & other) const
+bool Variant::operator==(const Variant& other) const
 {
 	if (type != other.type)
 		return false;

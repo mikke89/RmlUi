@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,9 +29,9 @@
 #ifndef RMLUIOBSERVERPTR_H
 #define RMLUIOBSERVERPTR_H
 
-#include <utility>
-#include <type_traits>
 #include "Header.h"
+#include <type_traits>
+#include <utility>
 
 namespace Rml {
 
@@ -42,44 +42,43 @@ struct RMLUICORE_API ObserverPtrBlock {
 RMLUICORE_API ObserverPtrBlock* AllocateObserverPtrBlock();
 RMLUICORE_API void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block);
 
-template<typename T>
+template <typename T>
 class EnableObserverPtr;
 
-
 /**
-	Observer pointer.
+    Observer pointer.
 
-	Holds a weak reference to an object owned by someone else. Can tell whether or not the pointed to object has been destroyed.
+    Holds a weak reference to an object owned by someone else. Can tell whether or not the pointed to object has been destroyed.
 
-	Usage: Given a class T, derive from EnableObserverPtr<T>. Then, we can use the observer pointer as follows:
+    Usage: Given a class T, derive from EnableObserverPtr<T>. Then, we can use the observer pointer as follows:
 
-		auto object = MakeUnique<T>();
-		ObserverPtr<T> observer_ptr = object->GetObserverPtr();
-		// ...
-		if(obserer_ptr) { 
-			// Will only enter if object is still alive.
-			observer_ptr->do_a_thing(); 
-		} 
+        auto object = MakeUnique<T>();
+        ObserverPtr<T> observer_ptr = object->GetObserverPtr();
+        // ...
+        if(obserer_ptr) {
+            // Will only enter if object is still alive.
+            observer_ptr->do_a_thing();
+        }
 
-	Note: Not thread safe.
+    Note: Not thread safe.
  */
 
-template<typename T>
+template <typename T>
 class RMLUICORE_API ObserverPtr {
 public:
 	ObserverPtr() noexcept : block(nullptr) {}
 	ObserverPtr(std::nullptr_t) noexcept : block(nullptr) {}
-	~ObserverPtr() noexcept {
-		reset(); 
-	}
+	~ObserverPtr() noexcept { reset(); }
 
 	// Copy
-	ObserverPtr(const ObserverPtr<T>& other) noexcept : block(other.block) {
+	ObserverPtr(const ObserverPtr<T>& other) noexcept : block(other.block)
+	{
 		if (block)
 			block->num_observers += 1;
 	}
-	ObserverPtr<T>& operator=(const ObserverPtr<T>& other) noexcept {
-		if(this == &other)
+	ObserverPtr<T>& operator=(const ObserverPtr<T>& other) noexcept
+	{
+		if (this == &other)
 			return *this;
 		reset();
 		block = other.block;
@@ -90,8 +89,9 @@ public:
 
 	// Move
 	ObserverPtr(ObserverPtr<T>&& other) noexcept : block(std::exchange(other.block, nullptr)) {}
-	ObserverPtr<T>& operator=(ObserverPtr<T>&& other) noexcept {
-		if(this == &other)
+	ObserverPtr<T>& operator=(ObserverPtr<T>&& other) noexcept
+	{
+		if (this == &other)
 			return *this;
 		reset();
 		block = std::exchange(other.block, nullptr);
@@ -106,17 +106,14 @@ public:
 	bool operator==(const ObserverPtr<T>& other) const noexcept { return get() == other.get(); }
 
 	// Retrieve the pointer to the observed object if we have one and it's still alive.
-	T* get() const noexcept {
-		return block ? static_cast<T*>(block->pointed_to_object) : nullptr;
-	}
+	T* get() const noexcept { return block ? static_cast<T*>(block->pointed_to_object) : nullptr; }
 	// Dereference the pointed to object.
-	T* operator->() const noexcept {
-		return static_cast<T*>(block->pointed_to_object);
-	}
+	T* operator->() const noexcept { return static_cast<T*>(block->pointed_to_object); }
 
 	// Reset the pointer so that it does not point to anything.
 	// When the pointed to object and all observer pointers to it have been destroyed, it will deallocate the block.
-	void reset() noexcept {
+	void reset() noexcept
+	{
 		if (block)
 		{
 			block->num_observers -= 1;
@@ -128,7 +125,8 @@ public:
 private:
 	friend class Rml::EnableObserverPtr<T>;
 
-	explicit ObserverPtr(ObserverPtrBlock* block) noexcept : block(block) {
+	explicit ObserverPtr(ObserverPtrBlock* block) noexcept : block(block)
+	{
 		if (block)
 			block->num_observers += 1;
 	}
@@ -136,23 +134,20 @@ private:
 	ObserverPtrBlock* block;
 };
 
-
-
-template<typename T>
+template <typename T>
 class RMLUICORE_API EnableObserverPtr {
 public:
-
-	ObserverPtr<T> GetObserverPtr() {
+	ObserverPtr<T> GetObserverPtr()
+	{
 		InitializeBlock();
 		return ObserverPtr<T>(block);
 	}
 
 protected:
-	EnableObserverPtr() noexcept {
-		static_assert(std::is_base_of<EnableObserverPtr<T>, T>::value, "T must derive from EnableObserverPtr<T>.");
-	}
+	EnableObserverPtr() noexcept { static_assert(std::is_base_of<EnableObserverPtr<T>, T>::value, "T must derive from EnableObserverPtr<T>."); }
 
-	~EnableObserverPtr() noexcept {
+	~EnableObserverPtr() noexcept
+	{
 		if (block)
 		{
 			block->pointed_to_object = nullptr;
@@ -160,24 +155,27 @@ protected:
 		}
 	}
 
-	EnableObserverPtr(const EnableObserverPtr<T>&) noexcept {
+	EnableObserverPtr(const EnableObserverPtr<T>&) noexcept
+	{
 		// Do not copy or modify the block, it should always point to the same object.
 	}
-	EnableObserverPtr<T>& operator=(const EnableObserverPtr<T>&) noexcept { 
+	EnableObserverPtr<T>& operator=(const EnableObserverPtr<T>&) noexcept
+	{
 		// Assignment should not do anything, the block must point to the initially constructed object.
-		return *this; 
+		return *this;
 	}
 
-	EnableObserverPtr(EnableObserverPtr<T>&&) noexcept {
+	EnableObserverPtr(EnableObserverPtr<T>&&) noexcept
+	{
 		// Do not move or modify the block, it should always point to the same object.
 	}
-	EnableObserverPtr<T>& operator=(EnableObserverPtr<T>&&) noexcept {
+	EnableObserverPtr<T>& operator=(EnableObserverPtr<T>&&) noexcept
+	{
 		// Assignment should not do anything, the block must point to the initially constructed object.
 		return *this;
 	}
 
 private:
-
 	inline void InitializeBlock()
 	{
 		if (!block)
@@ -190,7 +188,6 @@ private:
 
 	ObserverPtrBlock* block = nullptr;
 };
-
 
 } // namespace Rml
 #endif

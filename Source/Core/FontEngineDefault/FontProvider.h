@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,8 @@
 #ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTPROVIDER_H
 #define RMLUI_CORE_FONTENGINEDEFAULT_FONTPROVIDER_H
 
-#include "../../../Include/RmlUi/Core/Types.h"
 #include "../../../Include/RmlUi/Core/StyleTypes.h"
+#include "../../../Include/RmlUi/Core/Types.h"
 #include "FontTypes.h"
 
 namespace Rml {
@@ -40,12 +40,11 @@ class FontFamily;
 class FontFaceHandleDefault;
 
 /**
-	The font provider contains all font families currently in use by RmlUi.
-	@author Peter Curry
+    The font provider contains all font families currently in use by RmlUi.
+    @author Peter Curry
  */
 
-class FontProvider
-{
+class FontProvider {
 public:
 	static bool Initialise();
 	static void Shutdown();
@@ -64,7 +63,8 @@ public:
 	static bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight = Style::FontWeight::Auto);
 
 	/// Adds a new font face from memory.
-	static bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+	static bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+		bool fallback_face);
 
 	/// Return the number of fallback font faces.
 	static int CountFallbackFontFaces();
@@ -81,20 +81,19 @@ private:
 
 	static FontProvider& Get();
 
-	bool LoadFontFace(const byte* data, int data_size, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source,
-		String font_family, Style::FontStyle style, Style::FontWeight weight);
+	bool LoadFontFace(const byte* data, int data_size, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source, String font_family,
+		Style::FontStyle style, Style::FontWeight weight);
 
 	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face,
 		UniquePtr<byte[]> face_memory);
 
 	using FontFaceList = Vector<FontFace*>;
-	using FontFamilyMap = UnorderedMap< String, UniquePtr<FontFamily>>;
+	using FontFamilyMap = UnorderedMap<String, UniquePtr<FontFamily>>;
 
 	FontFamilyMap font_families;
 	FontFaceList fallback_font_faces;
 
 	static const String debugger_font_family_name;
-	
 };
 
 } // namespace Rml

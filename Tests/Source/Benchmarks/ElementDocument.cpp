@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,14 +26,13 @@
  *
  */
 
-#include "../Common/TestsShell.h"
 #include "../Common/TestsInterface.h"
+#include "../Common/TestsShell.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/Types.h>
-
 #include <doctest.h>
 #include <nanobench.h>
 
@@ -188,7 +187,6 @@ void benchmark(String const& doc)
 			context->Update();
 		});
 	}
-
 
 	{
 		nanobench::Bench bench;

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,11 +49,19 @@
 		#include <GL/glx.h>
 	#endif
 
+#elif defined RMLUI_RENDERER_GL3 && !defined RMLUI_PLATFORM_EMSCRIPTEN
+
+	#include <RmlUi_Include_GL3.h>
+
+#elif defined RMLUI_RENDERER_GL3 && defined RMLUI_PLATFORM_EMSCRIPTEN
+
+	#include <GLES3/gl3.h>
+
 #endif
 
 RendererExtensions::Image RendererExtensions::CaptureScreen()
 {
-#if defined RMLUI_RENDERER_GL2
+#if defined RMLUI_RENDERER_GL2 || defined RMLUI_RENDERER_GL3
 
 	int viewport[4] = {}; // x, y, width, height
 	glGetIntegerv(GL_VIEWPORT, viewport);

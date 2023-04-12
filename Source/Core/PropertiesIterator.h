@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,8 +28,8 @@
 #ifndef RMLUI_CORE_PROPERTIESITERATOR_H
 #define RMLUI_CORE_PROPERTIESITERATOR_H
 
-#include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
@@ -40,13 +40,14 @@ public:
 	using ValueType = Pair<PropertyId, const Property&>;
 	using PropertyIt = PropertyMap::const_iterator;
 
-	PropertiesIterator(PropertyIt it_style, PropertyIt it_style_end, PropertyIt it_definition, PropertyIt it_definition_end)
-		: it_style(it_style), it_style_end(it_style_end), it_definition(it_definition), it_definition_end(it_definition_end)
+	PropertiesIterator(PropertyIt it_style, PropertyIt it_style_end, PropertyIt it_definition, PropertyIt it_definition_end) :
+		it_style(it_style), it_style_end(it_style_end), it_definition(it_definition), it_definition_end(it_definition_end)
 	{
 		ProceedToNextValid();
 	}
 
-	PropertiesIterator& operator++() {
+	PropertiesIterator& operator++()
+	{
 		if (it_style != it_style_end)
 			// We iterate over the local style properties first
 			++it_style;
@@ -61,13 +62,11 @@ public:
 	ValueType operator*() const
 	{
 		if (it_style != it_style_end)
-			return { it_style->first, it_style->second };
-		return { it_definition->first, it_definition->second };
+			return {it_style->first, it_style->second};
+		return {it_definition->first, it_definition->second};
 	}
 
-	bool AtEnd() const {
-		return at_end;
-	}
+	bool AtEnd() const { return at_end; }
 
 private:
 	PropertyIdSet iterated_properties;
@@ -85,7 +84,7 @@ private:
 		return false;
 	}
 
-	inline void ProceedToNextValid() 
+	inline void ProceedToNextValid()
 	{
 		for (; it_style != it_style_end; ++it_style)
 		{
@@ -103,7 +102,6 @@ private:
 		at_end = true;
 	}
 };
-
 
 } // namespace Rml
 #endif

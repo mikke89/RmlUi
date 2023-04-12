@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,98 +25,92 @@
  * THE SOFTWARE.
  *
  */
- 
-#include "../Element.h"
-#include "ElementFormControl.h"
-#include <RmlUi/Core/Elements/ElementFormControl.h>
-#include <RmlUi/Core/Element.h>
-#include <RmlUi/Lua/Utilities.h>
 
+#include "ElementFormControl.h"
+#include "../Element.h"
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/Elements/ElementFormControl.h>
+#include <RmlUi/Lua/Utilities.h>
 
 namespace Rml {
 namespace Lua {
 
-//getters
+// getters
 int ElementFormControlGetAttrdisabled(lua_State* L)
 {
-    ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
-    RMLUI_CHECK_OBJ(efc);
-    lua_pushboolean(L,efc->IsDisabled());
-    return 1;
+	ElementFormControl* efc = LuaType<ElementFormControl>::check(L, 1);
+	RMLUI_CHECK_OBJ(efc);
+	lua_pushboolean(L, efc->IsDisabled());
+	return 1;
 }
 
 int ElementFormControlGetAttrname(lua_State* L)
 {
-    ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
-    RMLUI_CHECK_OBJ(efc);
-    lua_pushstring(L,efc->GetName().c_str());
-    return 1;
+	ElementFormControl* efc = LuaType<ElementFormControl>::check(L, 1);
+	RMLUI_CHECK_OBJ(efc);
+	lua_pushstring(L, efc->GetName().c_str());
+	return 1;
 }
 
 int ElementFormControlGetAttrvalue(lua_State* L)
 {
-    ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
-    RMLUI_CHECK_OBJ(efc);
-    lua_pushstring(L,efc->GetValue().c_str());
-    return 1;
+	ElementFormControl* efc = LuaType<ElementFormControl>::check(L, 1);
+	RMLUI_CHECK_OBJ(efc);
+	lua_pushstring(L, efc->GetValue().c_str());
+	return 1;
 }
 
-
-//setters
+// setters
 int ElementFormControlSetAttrdisabled(lua_State* L)
 {
-    ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
-    RMLUI_CHECK_OBJ(efc);
-    efc->SetDisabled(RMLUI_CHECK_BOOL(L,2));
-    return 0;
+	ElementFormControl* efc = LuaType<ElementFormControl>::check(L, 1);
+	RMLUI_CHECK_OBJ(efc);
+	efc->SetDisabled(RMLUI_CHECK_BOOL(L, 2));
+	return 0;
 }
 
 int ElementFormControlSetAttrname(lua_State* L)
 {
-    ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
-    RMLUI_CHECK_OBJ(efc);
-    const char* name = luaL_checkstring(L,2);
-    efc->SetName(name);
-    return 0;
+	ElementFormControl* efc = LuaType<ElementFormControl>::check(L, 1);
+	RMLUI_CHECK_OBJ(efc);
+	const char* name = luaL_checkstring(L, 2);
+	efc->SetName(name);
+	return 0;
 }
 
 int ElementFormControlSetAttrvalue(lua_State* L)
 {
-    ElementFormControl* efc = LuaType<ElementFormControl>::check(L,1);
-    RMLUI_CHECK_OBJ(efc);
-    const char* value = luaL_checkstring(L,2);
-    efc->SetValue(value);
-    return 0;
+	ElementFormControl* efc = LuaType<ElementFormControl>::check(L, 1);
+	RMLUI_CHECK_OBJ(efc);
+	const char* value = luaL_checkstring(L, 2);
+	efc->SetValue(value);
+	return 0;
 }
 
-
-RegType<ElementFormControl> ElementFormControlMethods[] = 
-{
-    { nullptr, nullptr },
+RegType<ElementFormControl> ElementFormControlMethods[] = {
+	{nullptr, nullptr},
 };
 
-luaL_Reg ElementFormControlGetters[] = 
-{
-    RMLUI_LUAGETTER(ElementFormControl,disabled)
-    RMLUI_LUAGETTER(ElementFormControl,name)
-    RMLUI_LUAGETTER(ElementFormControl,value)
-    { nullptr, nullptr },
+luaL_Reg ElementFormControlGetters[] = {
+	RMLUI_LUAGETTER(ElementFormControl, disabled),
+	RMLUI_LUAGETTER(ElementFormControl, name),
+	RMLUI_LUAGETTER(ElementFormControl, value),
+	{nullptr, nullptr},
 };
 
-luaL_Reg ElementFormControlSetters[] = 
-{
-    RMLUI_LUASETTER(ElementFormControl,disabled)
-    RMLUI_LUASETTER(ElementFormControl,name)
-    RMLUI_LUASETTER(ElementFormControl,value)
-    { nullptr, nullptr },
+luaL_Reg ElementFormControlSetters[] = {
+	RMLUI_LUASETTER(ElementFormControl, disabled),
+	RMLUI_LUASETTER(ElementFormControl, name),
+	RMLUI_LUASETTER(ElementFormControl, value),
+	{nullptr, nullptr},
 };
 
-
-template<> void ExtraInit<ElementFormControl>(lua_State* L, int metatable_index)
+template <>
+void ExtraInit<ElementFormControl>(lua_State* L, int metatable_index)
 {
-    ExtraInit<Element>(L,metatable_index);
-    LuaType<Element>::_regfunctions(L,metatable_index,metatable_index-1);
-    AddTypeToElementAsTable<ElementFormControl>(L);
+	ExtraInit<Element>(L, metatable_index);
+	LuaType<Element>::_regfunctions(L, metatable_index, metatable_index - 1);
+	AddTypeToElementAsTable<ElementFormControl>(L);
 }
 RMLUI_LUATYPE_DEFINE(ElementFormControl)
 } // namespace Lua

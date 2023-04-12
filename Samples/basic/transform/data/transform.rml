@@ -34,7 +34,7 @@ scrollbarvertical sliderbar:hover,scrollbarvertical sliderbar:active
 
 
 /* Perspective cubes based on:
-   https://developer.mozilla.org/en-US/docs/Web/CSS/perspective */
+	https://developer.mozilla.org/en-US/docs/Web/CSS/perspective */
 
 .pers250 {
 	perspective: 250dp;

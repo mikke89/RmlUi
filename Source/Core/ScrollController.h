@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@
 #define RMLUI_CORE_SCROLLCONTROLLER_H
 
 #include "../../Include/RmlUi/Core/Header.h"
+#include "../../Include/RmlUi/Core/ScrollTypes.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
@@ -50,13 +51,17 @@ public:
 
 	void ActivateAutoscroll(Element* target, Vector2i start_position);
 
-	void ActivateSmoothscroll(Element* target);
+	void ActivateSmoothscroll(Element* target, Vector2f delta_distance, ScrollBehavior scroll_behavior);
 
-	void Update(Vector2i mouse_position, float dp_ratio);
+	bool Update(Vector2i mouse_position, float dp_ratio);
 
 	void IncrementSmoothscrollTarget(Vector2f delta_distance);
 
+	// Resets any active mode and its state.
 	void Reset();
+
+	// Sets the scroll behavior for mouse wheel processing and scrollbar interaction.
+	void SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor);
 
 	// Returns the autoscroll cursor based on the active scroll velocity.
 	String GetAutoscrollCursor(Vector2i mouse_position, float dp_ratio) const;
@@ -74,6 +79,8 @@ private:
 
 	void UpdateSmoothscroll(float dp_ratio);
 
+	bool HasSmoothscrollReachedTarget() const;
+
 	void PerformScrollOnTarget(Vector2f delta_distance);
 
 	Mode mode = Mode::None;
@@ -84,6 +91,9 @@ private:
 	Vector2i autoscroll_start_position;
 	Vector2f autoscroll_accumulated_length;
 	bool autoscroll_moved = false;
+
+	bool smoothscroll_prefer_instant = false;
+	float smoothscroll_speed_factor = 1.f;
 
 	Vector2f smoothscroll_target_distance;
 	Vector2f smoothscroll_scrolled_distance;
