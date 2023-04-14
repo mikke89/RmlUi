@@ -137,10 +137,8 @@ private:
 	PropertyIdSet property_ids;
 	PropertyIdSet property_ids_inherited;
 	PropertyIdSet property_ids_forcing_layout;
-	
+
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
-	// Check values for occurrence of variable term, in which case property parsing will be deferred to variable resolution time.
-	bool DetectVariableTerm(PropertyVariableTerm& term, StringList const& values_list) const;
 	// Returns true if a variable usage was encoutered, false if not (=plain values)
 	bool ParseVariableTerm(PropertyVariableTerm& term, StringList const& values_list) const;
 

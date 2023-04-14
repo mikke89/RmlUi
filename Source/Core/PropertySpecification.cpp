@@ -253,7 +253,7 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 
 	PropertyVariableTerm term;
 	Property new_property;
-	if (DetectVariableTerm(term, property_values))
+	if (ParseVariableTerm(term, property_values))
 	{
 		new_property = Property(std::move(term), Property::VARIABLETERM);
 		new_property.definition = property_definition;
@@ -275,7 +275,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		return false;
 
 	PropertyVariableTerm term;
-	if (DetectVariableTerm(term, property_values))
+	if (ParseVariableTerm(term, property_values))
 	{
 		dictionary.SetDependent(shorthand_id, term);
 		return true;
@@ -672,20 +672,6 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 	return true;
 }
 
-bool PropertySpecification::DetectVariableTerm(PropertyVariableTerm& term, const StringList& values_list) const
-{
-	for (auto const& it : values_list)
-	{
-		if (it.size() > 4 && it[0] == 'v' && it[1] == 'a' && it[2] == 'r' && it[3] == '(')
-		{
-			ParseVariableTerm(term, values_list);
-			return true;
-		}
-	}
-
-	return false;
-}
-
 bool PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, StringList const& values_list) const
 {
 	bool any_var = false;
@@ -700,27 +686,56 @@ bool PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, String
 			return true;
 		};
 
-		if (Consume('v') && Consume('a') && Consume('r') && Consume('(') && Consume('-') && Consume('-'))
+		size_t prev = 0;
+
+		while (cursor < len)
 		{
-			size_t nameStart = cursor - 2;
-			while (cursor != len && it[cursor] != ',' && it[cursor] != ')')
-				cursor++;
-			size_t nameEnd = cursor;
-
-			if (it[cursor] == ',')
+			if ((cursor == 0 || Consume(' ') || Consume('(') || Consume(',')) && Consume('v') && Consume('a') && Consume('r') && Consume('(') &&
+				Consume('-') && Consume('-'))
 			{
-				cursor++;
-
-				size_t fallbackStart = cursor;
-				while (cursor != len && it[cursor] != ')')
-					cursor++;
-				size_t fallbackEnd = cursor;
-
-				if (it[cursor] == ')')
+				// add prefix
+				if (cursor >= 6 && (cursor - 6) - prev > 0)
 				{
 					PropertyVariableTermAtom a;
+					a.variable = String();
+					a.constant = it.substr(prev, (cursor - 6) - prev);
+					term.push_back(a);
+				}
+
+				size_t nameStart = cursor - 2;
+				while (cursor != len && it[cursor] != ',' && it[cursor] != ')')
+					cursor++;
+				size_t nameEnd = cursor;
+
+				if (it[cursor] == ',')
+				{
+					cursor++;
+
+					size_t fallbackStart = cursor;
+					while (cursor != len && it[cursor] != ')')
+						cursor++;
+					size_t fallbackEnd = cursor;
+
+					if (it[cursor] == ')')
+					{
+						cursor++;
+						PropertyVariableTermAtom a;
+						a.variable = StringUtilities::StripWhitespace(it.substr(nameStart, nameEnd - nameStart));
+						a.constant = StringUtilities::StripWhitespace(it.substr(fallbackStart, fallbackEnd - fallbackStart));
+						term.push_back(a);
+						any_var = true;
+					}
+					else
+					{
+						// parse error
+					}
+				}
+				else if (it[cursor] == ')')
+				{
+					cursor++;
+					PropertyVariableTermAtom a;
 					a.variable = StringUtilities::StripWhitespace(it.substr(nameStart, nameEnd - nameStart));
-					a.constant = StringUtilities::StripWhitespace(it.substr(fallbackStart, fallbackEnd - fallbackStart));
+					a.constant = String();
 					term.push_back(a);
 					any_var = true;
 				}
@@ -728,27 +743,35 @@ bool PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, String
 				{
 					// parse error
 				}
-			}
-			else if (it[cursor] == ')')
-			{
-				PropertyVariableTermAtom a;
-				a.variable = StringUtilities::StripWhitespace(it.substr(nameStart, nameEnd - nameStart));
-				a.constant = String();
-				term.push_back(a);
-				any_var = true;
+
+				prev = cursor;
 			}
 			else
 			{
-				// parse error
+				++cursor;
 			}
 		}
-		else
+
+		// add leftover characters
+		if (prev < len)
 		{
 			PropertyVariableTermAtom a;
 			a.variable = String();
-			a.constant = it;
+			a.constant = it.substr(prev);
 			term.push_back(a);
 		}
+
+		// add space between values
+		PropertyVariableTermAtom a;
+		a.variable = String();
+		a.constant = ' ';
+		term.push_back(a);
+	}
+
+	// remove space behind last value
+	if (!term.empty())
+	{
+		term.pop_back();
 	}
 
 	return any_var;

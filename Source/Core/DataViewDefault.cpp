@@ -202,17 +202,16 @@ bool DataViewStyle::Update(DataModel& model)
 	return result;
 }
 
-DataViewStyleVariable::DataViewStyleVariable(Element* element) : DataViewCommon(element)
-{}
+DataViewStyleVariable::DataViewStyleVariable(Element* element) : DataViewCommon(element) {}
 
 bool DataViewStyleVariable::Update(DataModel& model)
 {
-	const String& variable_name = GetModifier();
+	const String& variable_name = "--" + GetModifier();
 	bool result = false;
 	Variant variant;
 	Element* element = GetElement();
 	DataExpressionInterface expr_interface(&model, element);
-	
+
 	if (element && GetExpression().Run(expr_interface, variant))
 	{
 		const String value = variant.Get<String>();

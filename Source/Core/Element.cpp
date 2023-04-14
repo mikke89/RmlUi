@@ -273,10 +273,10 @@ ElementPtr Element::Clone() const
 		clone_attributes.erase("style");
 		clone_attributes.erase("class");
 		clone->SetAttributes(clone_attributes);
-		
+
 		for (auto& id_property : GetStyle()->GetLocalStyleProperties())
 			clone->SetProperty(id_property.first, id_property.second);
-		
+
 		for (auto& var : GetStyle()->GetLocalStylePropertyVariables())
 			clone->SetPropertyVariable(var.first, var.second);
 
@@ -744,7 +744,7 @@ bool Element::SetPropertyVariable(const String& name, const String& value)
 	{
 		meta->style.SetPropertyVariable(it.first, it.second);
 	}
-	
+
 	return true;
 }
 
