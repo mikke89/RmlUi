@@ -47,7 +47,6 @@ Variant& Variant::operator=(T&& t)
 	return *this;
 }
 
-// Templatised data accessor.
 template <typename T>
 bool Variant::GetInto(T& value) const
 {

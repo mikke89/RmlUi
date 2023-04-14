@@ -28,22 +28,18 @@
 
 namespace Rml {
 
-// Default constructor.
 template <typename Type>
 Vector2<Type>::Vector2() : x{}, y{}
 {}
 
-// Initialising constructor.
 template <typename Type>
 Vector2<Type>::Vector2(Type v) : x(v), y(v)
 {}
 
-// Initialising constructor.
 template <typename Type>
 Vector2<Type>::Vector2(Type x, Type y) : x(x), y(y)
 {}
 
-// Returns the magnitude of the vector.
 template <typename Type>
 float Vector2<Type>::Magnitude() const
 {
@@ -54,14 +50,12 @@ float Vector2<Type>::Magnitude() const
 	return Math::SquareRoot(squared_magnitude);
 }
 
-// Returns the squared magnitude of the vector.
 template <typename Type>
 Type Vector2<Type>::SquaredMagnitude() const
 {
 	return x * x + y * y;
 }
 
-// Generates a normalised vector from this vector.
 template <typename Type>
 inline Vector2<Type> Vector2<Type>::Normalise() const
 {
@@ -79,7 +73,6 @@ inline Vector2<float> Vector2<float>::Normalise() const
 	return *this / magnitude;
 }
 
-// Generates a rounded vector from this vector.
 template <>
 inline Vector2<float> Vector2<float>::Round() const
 {
@@ -89,21 +82,18 @@ inline Vector2<float> Vector2<float>::Round() const
 	return result;
 }
 
-// Generates a rounded vector from this vector.
 template <>
 inline Vector2<int> Vector2<int>::Round() const
 {
 	return *this;
 }
 
-// Computes the dot-product between this vector and another.
 template <typename Type>
 Type Vector2<Type>::DotProduct(Vector2 rhs) const
 {
 	return x * rhs.x + y * rhs.y;
 }
 
-// Returns this vector rotated around the origin.
 template <typename Type>
 Vector2<Type> Vector2<Type>::Rotate(float theta) const
 {
@@ -113,28 +103,24 @@ Vector2<Type> Vector2<Type>::Rotate(float theta) const
 	return Vector2<Type>(((Type)(cos_theta * x - sin_theta * y)), ((Type)(sin_theta * x + cos_theta * y)));
 }
 
-// Returns the negation of this vector.
 template <typename Type>
 Vector2<Type> Vector2<Type>::operator-() const
 {
 	return Vector2(-x, -y);
 }
 
-// Returns the sum of this vector and another.
 template <typename Type>
 Vector2<Type> Vector2<Type>::operator+(Vector2 rhs) const
 {
 	return Vector2<Type>(x + rhs.x, y + rhs.y);
 }
 
-// Returns the result of subtracting another vector from this vector.
 template <typename Type>
 Vector2<Type> Vector2<Type>::operator-(Vector2 rhs) const
 {
 	return Vector2(x - rhs.x, y - rhs.y);
 }
 
-// Returns the result of multiplying this vector by a scalar.
 template <typename Type>
 Vector2<Type> Vector2<Type>::operator*(Type rhs) const
 {
@@ -147,7 +133,6 @@ Vector2<Type> Vector2<Type>::operator*(Vector2 rhs) const
 	return Vector2(x * rhs.x, y * rhs.y);
 }
 
-// Returns the result of dividing this vector by a scalar.
 template <typename Type>
 Vector2<Type> Vector2<Type>::operator/(Type rhs) const
 {
@@ -160,7 +145,6 @@ Vector2<Type> Vector2<Type>::operator/(Vector2 rhs) const
 	return Vector2(x / rhs.x, y / rhs.y);
 }
 
-// Adds another vector to this in-place.
 template <typename Type>
 Vector2<Type>& Vector2<Type>::operator+=(Vector2 rhs)
 {
@@ -170,7 +154,6 @@ Vector2<Type>& Vector2<Type>::operator+=(Vector2 rhs)
 	return *this;
 }
 
-// Subtracts another vector from this in-place.
 template <typename Type>
 Vector2<Type>& Vector2<Type>::operator-=(Vector2 rhs)
 {
@@ -180,7 +163,6 @@ Vector2<Type>& Vector2<Type>::operator-=(Vector2 rhs)
 	return *this;
 }
 
-// Scales this vector in-place.
 template <typename Type>
 Vector2<Type>& Vector2<Type>::operator*=(Type rhs)
 {
@@ -199,7 +181,6 @@ Vector2<Type>& Vector2<Type>::operator*=(Vector2 rhs)
 	return *this;
 }
 
-// Scales this vector in-place by the inverse of a value.
 template <typename Type>
 Vector2<Type>& Vector2<Type>::operator/=(Type rhs)
 {
@@ -217,35 +198,30 @@ Vector2<Type>& Vector2<Type>::operator/=(Vector2 rhs)
 	return *this;
 }
 
-// Equality operator.
 template <typename Type>
 bool Vector2<Type>::operator==(Vector2 rhs) const
 {
 	return (x == rhs.x && y == rhs.y);
 }
 
-// Inequality operator.
 template <typename Type>
 bool Vector2<Type>::operator!=(Vector2 rhs) const
 {
 	return (x != rhs.x || y != rhs.y);
 }
 
-// Auto-cast operator.
 template <typename Type>
 Vector2<Type>::operator const Type*() const
 {
 	return &x;
 }
 
-// Constant auto-cast operator.
 template <typename Type>
 Vector2<Type>::operator Type*()
 {
 	return &x;
 }
 
-// Underlying type-cast operator.
 template <typename Type>
 template <typename U>
 inline Vector2<Type>::operator Vector2<U>() const
@@ -253,7 +229,6 @@ inline Vector2<Type>::operator Vector2<U>() const
 	return Vector2<U>(static_cast<U>(x), static_cast<U>(y));
 }
 
-// Multiply by scalar operator.
 template <typename Type>
 inline Vector2<Type> operator*(Type lhs, Vector2<Type> rhs)
 {
