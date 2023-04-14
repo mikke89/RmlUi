@@ -60,18 +60,6 @@ namespace Math {
 	}
 
 	template <typename Type>
-	Type ClampLower(Type value, Type min)
-	{
-		return (value < min) ? min : value;
-	}
-
-	template <typename Type>
-	Type ClampUpper(Type value, Type max)
-	{
-		return (value > max) ? max : value;
-	}
-
-	template <typename Type>
 	Type Clamp(Type value, Type min, Type max)
 	{
 		return (value < min) ? min : (value > max) ? max : value;
@@ -106,26 +94,20 @@ namespace Math {
 	/// Evaluates if a number is, or close to, zero.
 	/// @param[in] value The number to compare to zero.
 	/// @return True if the number if zero or close to it, false otherwise.
-	RMLUICORE_API bool IsZero(float value);
-	/// Evaluates if two floating-point numbers are equal, or so similar that they could be considered
-	/// so.
-	/// @param[in] value_0 The first number to compare.
-	/// @param[in] value_1 The second number to compare.
-	/// @return True if the numbers are similar or equal.
-	RMLUICORE_API bool AreEqual(float value_0, float value_1);
+	RMLUICORE_API bool IsCloseToZero(float value);
 
 	/// Calculates the absolute value of a number.
 	/// @param[in] value The number of get the absolute value of.
 	/// @return The absolute value of the number.
-	RMLUICORE_API float AbsoluteValue(float value);
+	RMLUICORE_API float Absolute(float value);
 	/// Calculates the absolute value of a number.
 	/// @param[in] value The number of get the absolute value of.
 	/// @return The absolute value of the number.
-	RMLUICORE_API int AbsoluteValue(int value);
+	RMLUICORE_API int Absolute(int value);
 	/// Calculates the component-wise absolute value of a vector.
 	/// @param[in] value The vector of get the absolute value of.
 	/// @return The absolute value of the vector.
-	RMLUICORE_API Vector2f AbsoluteValue(Vector2f value);
+	RMLUICORE_API Vector2f Absolute(Vector2f value);
 
 	/// Calculates the cosine of an angle.
 	/// @param[in] angle The angle to calculate the cosine of, in radians.
@@ -182,19 +164,19 @@ namespace Math {
 	/// Rounds a floating-point value to the nearest integer.
 	/// @param[in] value The value to round.
 	/// @return The rounded integer as float.
-	RMLUICORE_API float RoundFloat(float value);
+	RMLUICORE_API float Round(float value);
 	/// Rounds a floating-point value to the nearest integer.
 	/// @param[in] value The value to round.
 	/// @return The rounded integer as double.
-	RMLUICORE_API double RoundFloat(double value);
+	RMLUICORE_API double Round(double value);
 	/// Rounds a floating-point value up to the nearest integer.
 	/// @param[in] value The value to round.
 	/// @return The rounded integer as float.
-	RMLUICORE_API float RoundUpFloat(float value);
+	RMLUICORE_API float RoundUp(float value);
 	/// Rounds a floating-point value down to the nearest integer.
 	/// @param[in] value The value to round.
 	/// @return The rounded integer as float.
-	RMLUICORE_API float RoundDownFloat(float value);
+	RMLUICORE_API float RoundDown(float value);
 	/// Rounds a floating-point value to the nearest integer.
 	/// @param[in] value The value to round.
 	/// @return The rounded integer.
@@ -213,10 +195,6 @@ namespace Math {
 	/// @param[out] integral The integral part of the value.
 	/// @return The fractional part of the value.
 	RMLUICORE_API float DecomposeFractionalIntegral(float value, float* integral);
-	/// Efficiently truncates a floating-point value into an integer.
-	/// @param[in] value The value to truncate.
-	/// @return The truncated value as a signed integer.
-	RMLUICORE_API int RealToInteger(float value);
 
 	/// Round the position and width of a line segment to the pixel grid while minimizing movement of the edges.
 	/// @param[inout] x The position, which will use normal rounding.

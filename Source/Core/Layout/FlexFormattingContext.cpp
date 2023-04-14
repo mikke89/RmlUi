@@ -426,7 +426,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			if (flex_factor_sum < 1.f)
 			{
 				const float scaled_initial_free_space = initial_free_space * flex_factor_sum;
-				if (Math::AbsoluteValue(scaled_initial_free_space) < Math::AbsoluteValue(remaining_free_space))
+				if (Math::Absolute(scaled_initial_free_space) < Math::Absolute(remaining_free_space))
 					remaining_free_space = scaled_initial_free_space;
 			}
 
@@ -458,7 +458,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 						{
 							const float scaled_flex_shrink_factor = item.flex_shrink_factor * item.inner_flex_base_size;
 							const float distribute_ratio = scaled_flex_shrink_factor / scaled_flex_shrink_factor_sum_nonzero;
-							item.target_main_size = item.flex_base_size - distribute_ratio * Math::AbsoluteValue(remaining_free_space);
+							item.target_main_size = item.flex_base_size - distribute_ratio * Math::Absolute(remaining_free_space);
 						}
 					}
 				}
@@ -636,7 +636,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				})->hypothetical_cross_size;
 
 			// Currently, we don't handle the case where baseline alignment could extend the line's cross size, see CSS specs 9.4.8.
-			line.cross_size = Math::Max(0.0f, Math::RoundFloat(largest_hypothetical_cross_size));
+			line.cross_size = Math::Max(0.0f, Math::Round(largest_hypothetical_cross_size));
 
 			if (flex_single_line)
 				line.cross_size = Math::Clamp(line.cross_size, cross_min_size, cross_max_size);

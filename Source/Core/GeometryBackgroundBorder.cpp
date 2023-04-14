@@ -42,10 +42,10 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 	using Edge = Box::Edge;
 
 	EdgeSizes border_widths = {
-		Math::RoundFloat(box.GetEdge(Box::BORDER, Edge::TOP)),
-		Math::RoundFloat(box.GetEdge(Box::BORDER, Edge::RIGHT)),
-		Math::RoundFloat(box.GetEdge(Box::BORDER, Edge::BOTTOM)),
-		Math::RoundFloat(box.GetEdge(Box::BORDER, Edge::LEFT)),
+		Math::Round(box.GetEdge(Box::BORDER, Edge::TOP)),
+		Math::Round(box.GetEdge(Box::BORDER, Edge::RIGHT)),
+		Math::Round(box.GetEdge(Box::BORDER, Edge::BOTTOM)),
+		Math::Round(box.GetEdge(Box::BORDER, Edge::LEFT)),
 	};
 
 	int num_borders = 0;
@@ -113,7 +113,7 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 		scale_factor = Math::Min(1.0f, scale_factor);
 
 		for (float& radius : radii)
-			radius = Math::RoundFloat(radius * scale_factor);
+			radius = Math::Round(radius * scale_factor);
 
 		// Place the circle/ellipse centers
 		positions_circle_center = {

@@ -43,11 +43,7 @@ Vector2<Type>::Vector2(Type x, Type y) : x(x), y(y)
 template <typename Type>
 float Vector2<Type>::Magnitude() const
 {
-	float squared_magnitude = (float)SquaredMagnitude();
-	if (Math::IsZero(squared_magnitude))
-		return 0;
-
-	return Math::SquareRoot(squared_magnitude);
+	return Math::SquareRoot(static_cast<float>(SquaredMagnitude()));
 }
 
 template <typename Type>
@@ -66,8 +62,8 @@ inline Vector2<Type> Vector2<Type>::Normalise() const
 template <>
 inline Vector2<float> Vector2<float>::Normalise() const
 {
-	float magnitude = Magnitude();
-	if (Math::IsZero(magnitude))
+	const float magnitude = Magnitude();
+	if (Math::IsCloseToZero(magnitude))
 		return *this;
 
 	return *this / magnitude;
@@ -77,8 +73,8 @@ template <>
 inline Vector2<float> Vector2<float>::Round() const
 {
 	Vector2<float> result;
-	result.x = Math::RoundFloat(x);
-	result.y = Math::RoundFloat(y);
+	result.x = Math::Round(x);
+	result.y = Math::Round(y);
 	return result;
 }
 

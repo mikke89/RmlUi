@@ -137,7 +137,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 
 			// We're parsing a percentage value.
 			if (values[i].size() > 0 && values[i][values[i].size() - 1] == '%')
-				component = Math::RealToInteger((float)(atof(values[i].substr(0, values[i].size() - 1).c_str()) / 100.0f) * 255.0f);
+				component = int((float)atof(values[i].substr(0, values[i].size() - 1).c_str()) * (255.0f / 100.0f));
 			// We're parsing a 0 -> 255 integer value.
 			else
 				component = atoi(values[i].c_str());

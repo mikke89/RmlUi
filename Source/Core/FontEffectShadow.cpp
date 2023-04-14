@@ -73,8 +73,8 @@ FontEffectShadowInstancer::~FontEffectShadowInstancer() {}
 SharedPtr<FontEffect> FontEffectShadowInstancer::InstanceFontEffect(const String& /*name*/, const PropertyDictionary& properties)
 {
 	Vector2i offset;
-	offset.x = Math::RealToInteger(properties.GetProperty(id_offset_x)->Get<float>());
-	offset.y = Math::RealToInteger(properties.GetProperty(id_offset_y)->Get<float>());
+	offset.x = properties.GetProperty(id_offset_x)->Get<int>();
+	offset.y = properties.GetProperty(id_offset_y)->Get<int>();
 	Colourb color = properties.GetProperty(id_color)->Get<Colourb>();
 
 	auto font_effect = MakeShared<FontEffectShadow>();

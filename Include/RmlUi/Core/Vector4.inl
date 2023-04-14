@@ -49,11 +49,7 @@ Vector4<Type>::Vector4(Vector3<Type> const& v, Type w) : x(v.x), y(v.y), z(v.z),
 template <typename Type>
 float Vector4<Type>::Magnitude() const
 {
-	float squared_magnitude = (float)SquaredMagnitude();
-	if (Math::IsZero(squared_magnitude))
-		return 0;
-
-	return Math::SquareRoot(squared_magnitude);
+	return Math::SquareRoot(static_cast<float>(SquaredMagnitude()));
 }
 
 template <typename Type>
@@ -73,7 +69,7 @@ template <>
 inline Vector4<float> Vector4<float>::Normalise() const
 {
 	const float magnitude = Magnitude();
-	if (Math::IsZero(magnitude))
+	if (Math::IsCloseToZero(magnitude))
 		return *this;
 
 	return *this / magnitude;

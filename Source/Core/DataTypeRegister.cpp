@@ -98,7 +98,7 @@ DataTypeRegister::DataTypeRegister()
 		double value;
 		if (!arguments[0].GetInto(value))
 			return {};
-		return Variant(Math::RoundFloat(value));
+		return Variant(Math::Round(value));
 	});
 }
 

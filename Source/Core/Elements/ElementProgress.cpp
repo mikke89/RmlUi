@@ -302,7 +302,7 @@ void ElementProgress::GenerateGeometry()
 			const float angle = angle_offset + (cw ? 1.f : -1.f) * normalized_value * 2.f * RMLUI_PI;
 			Vector2f pos(Sin(angle), -Cos(angle));
 			// Project it from the circle towards the surrounding unit square.
-			pos = pos / Max(AbsoluteValue(pos.x), AbsoluteValue(pos.y));
+			pos = pos / Max(Absolute(pos.x), Absolute(pos.y));
 			vertices[num_octants].position = pos;
 		}
 

@@ -45,11 +45,7 @@ Vector3<Type>::Vector3(Type x, Type y, Type z) : x(x), y(y), z(z)
 template <typename Type>
 float Vector3<Type>::Magnitude() const
 {
-	float squared_magnitude = (float)SquaredMagnitude();
-	if (Math::IsZero(squared_magnitude))
-		return 0;
-
-	return Math::SquareRoot(squared_magnitude);
+	return Math::SquareRoot(static_cast<float>(SquaredMagnitude()));
 }
 
 template <typename Type>
@@ -69,7 +65,7 @@ template <>
 inline Vector3<float> Vector3<float>::Normalise() const
 {
 	const float magnitude = Magnitude();
-	if (Math::IsZero(magnitude))
+	if (Math::IsCloseToZero(magnitude))
 		return *this;
 
 	return *this / magnitude;

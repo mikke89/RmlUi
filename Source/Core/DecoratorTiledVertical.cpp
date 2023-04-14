@@ -102,8 +102,8 @@ DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element
 	ScaleTileDimensions(centre_dimensions, padded_size.x, Axis::Horizontal);
 
 	// Round the outer tile heights now so that we don't get gaps when rounding again in GenerateGeometry.
-	top_dimensions.y = Math::RoundFloat(top_dimensions.y);
-	bottom_dimensions.y = Math::RoundFloat(bottom_dimensions.y);
+	top_dimensions.y = Math::Round(top_dimensions.y);
+	bottom_dimensions.y = Math::Round(bottom_dimensions.y);
 
 	// Shrink the y-sizes on the left and right tiles if necessary.
 	if (padded_size.y < top_dimensions.y + bottom_dimensions.y)

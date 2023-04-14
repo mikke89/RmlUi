@@ -162,7 +162,7 @@ void InlineContainer::Close(UniquePtr<LineBox>* out_open_line_box, Vector2f& out
 		visible_overflow_size.x = Math::Max(visible_overflow_size.x, line_box->GetPosition().x - position.x + line_box->GetExtentRight());
 	}
 
-	visible_overflow_size.x = Math::RoundDownFloat(visible_overflow_size.x);
+	visible_overflow_size.x = Math::RoundDown(visible_overflow_size.x);
 	SetVisibleOverflowSize(visible_overflow_size);
 
 	out_position = position;

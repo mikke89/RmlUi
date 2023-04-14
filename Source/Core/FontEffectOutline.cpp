@@ -110,7 +110,7 @@ SharedPtr<FontEffect> FontEffectOutlineInstancer::InstanceFontEffect(const Strin
 	Colourb color = properties.GetProperty(id_color)->Get<Colourb>();
 
 	auto font_effect = MakeShared<FontEffectOutline>();
-	if (font_effect->Initialise(Math::RealToInteger(width)))
+	if (font_effect->Initialise(int(width)))
 	{
 		font_effect->SetColour(color);
 		return font_effect;
