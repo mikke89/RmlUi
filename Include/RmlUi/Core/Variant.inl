@@ -47,8 +47,15 @@ Variant& Variant::operator=(T&& t)
 	return *this;
 }
 
+template <typename T, typename std::enable_if_t<std::is_enum_v<T>, int>>
+bool Variant::GetInto(T& value) const
+{
+	static_assert(sizeof(T) <= sizeof(uint64_t), "Enum underlying type exceeds maximum supported integer type size");
+	return GetInto<std::underlying_type<T>>(static_cast<std::underlying_type<T>>(value));
+}
+
 // Templatised data accessor.
-template <typename T>
+template <typename T, typename std::enable_if_t<!std::is_enum_v<T>, int>>
 bool Variant::GetInto(T& value) const
 {
 	switch (type)
@@ -97,12 +104,14 @@ const T& Variant::GetReference() const
 template <typename T, typename>
 void Variant::Set(const T& value)
 {
+	static_assert(sizeof(T) <= sizeof(uint64_t), "Enum underlying type exceeds maximum supported integer type size");
 	Set(std::forward<std::underlying_type_t<T>>(static_cast<std::underlying_type_t<T>>(value)));
 }
 
 template <typename T, typename>
 void Variant::Set(T&& value)
 {
+	static_assert(sizeof(T) <= sizeof(uint64_t), "Enum underlying type exceeds maximum supported integer type size");
 	Set(std::forward<std::underlying_type_t<T>>(static_cast<std::underlying_type_t<T>>(value)));
 }
 
