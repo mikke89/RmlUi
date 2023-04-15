@@ -48,7 +48,20 @@ Variant& Variant::operator=(T&& t)
 }
 
 // Templatised data accessor.
-template <typename T>
+template <typename T, typename std::enable_if<std::is_enum<T>::value, int>::type>
+bool Variant::GetInto(T& value) const
+{
+	static_assert(sizeof(T) <= sizeof(int64_t), "Enum underlying type exceeds maximum supported integer type size");
+	int64_t stored_value = 0;
+	if (GetInto(stored_value))
+	{
+		value = static_cast<T>(stored_value);
+		return true;
+	}
+	return false;
+}
+
+template <typename T, typename std::enable_if<!std::is_enum<T>::value, int>::type>
 bool Variant::GetInto(T& value) const
 {
 	switch (type)
@@ -97,15 +110,17 @@ const T& Variant::GetReference() const
 template <typename T, typename>
 void Variant::Set(const T& value)
 {
-	static_assert(sizeof(T) <= sizeof(uint64_t), "Enum underlying type exceeds maximum supported integer type size");
-	Set(std::forward<std::underlying_type_t<T>>(static_cast<std::underlying_type_t<T>>(value)));
+	static_assert(sizeof(T) <= sizeof(int64_t), "Enum underlying type exceeds maximum supported integer type size");
+	type = INT64;
+	*(reinterpret_cast<int64_t*>(data)) = static_cast<int64_t>(value);
 }
 
 template <typename T, typename>
 void Variant::Set(T&& value)
 {
-	static_assert(sizeof(T) <= sizeof(uint64_t), "Enum underlying type exceeds maximum supported integer type size");
-	Set(std::forward<std::underlying_type_t<T>>(static_cast<std::underlying_type_t<T>>(value)));
+	static_assert(sizeof(T) <= sizeof(int64_t), "Enum underlying type exceeds maximum supported integer type size");
+	type = INT64;
+	*(reinterpret_cast<int64_t*>(data)) = static_cast<int64_t>(value);
 }
 
 } // namespace Rml
