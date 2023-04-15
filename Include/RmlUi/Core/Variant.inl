@@ -47,19 +47,6 @@ Variant& Variant::operator=(T&& t)
 	return *this;
 }
 
-template <typename T, typename std::enable_if<std::is_enum<T>::value, int>::type>
-bool Variant::GetInto(T& value) const
-{
-	static_assert(sizeof(T) <= sizeof(int64_t), "Enum underlying type exceeds maximum supported integer type size");
-	int64_t stored_value = 0;
-	if (GetInto(stored_value))
-	{
-		value = static_cast<T>(stored_value);
-		return true;
-	}
-	return false;
-}
-
 template <typename T, typename std::enable_if<!std::is_enum<T>::value, int>::type>
 bool Variant::GetInto(T& value) const
 {
@@ -90,6 +77,19 @@ bool Variant::GetInto(T& value) const
 	case NONE: break;
 	}
 
+	return false;
+}
+
+template <typename T, typename std::enable_if<std::is_enum<T>::value, int>::type>
+bool Variant::GetInto(T& value) const
+{
+	static_assert(sizeof(T) <= sizeof(int64_t), "Enum underlying type exceeds maximum supported integer type size");
+	int64_t stored_value = 0;
+	if (GetInto(stored_value))
+	{
+		value = static_cast<T>(stored_value);
+		return true;
+	}
 	return false;
 }
 
