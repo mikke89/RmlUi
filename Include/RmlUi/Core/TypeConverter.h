@@ -47,7 +47,7 @@ namespace Rml {
     @author Lloyd Weehuizen
  */
 
-template <typename SourceType, typename DestType, typename Enable = void>
+template <typename SourceType, typename DestType>
 class TypeConverter {
 public:
 	static bool Convert(const SourceType& src, DestType& dest);
@@ -121,7 +121,6 @@ class TypeConverter<FontEffectsPtr, FontEffectsPtr> {
 public:
 	RMLUICORE_API static bool Convert(const FontEffectsPtr& src, FontEffectsPtr& dest);
 };
-
 template <>
 class TypeConverter<FontEffectsPtr, String> {
 public:

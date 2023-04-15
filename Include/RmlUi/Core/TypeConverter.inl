@@ -28,8 +28,8 @@
 
 namespace Rml {
 
-template <typename SourceType, typename DestType, typename Enable>
-bool TypeConverter<SourceType, DestType, Enable>::Convert(const SourceType& /*src*/, DestType& /*dest*/)
+template <typename SourceType, typename DestType>
+bool TypeConverter<SourceType, DestType>::Convert(const SourceType& /*src*/, DestType& /*dest*/)
 {
 	RMLUI_ERRORMSG("No converter specified.");
 	return false;
@@ -187,14 +187,6 @@ BASIC_CONVERTER(double, float);
 BASIC_CONVERTER(double, unsigned int);
 
 BASIC_CONVERTER(char, Character);
-
-template <typename SrcType, typename DestType>
-struct TypeConverter<SrcType, DestType, std::enable_if_t<std::is_enum<DestType>::value>> {
-	static bool Convert(const SrcType& src, DestType& dest)
-	{
-		return TypeConverter<SrcType, std::underlying_type_t<DestType>>::Convert(src, *reinterpret_cast<std::underlying_type_t<DestType>*>(&dest));
-	}
-};
 
 /////////////////////////////////////////////////
 // From string converters

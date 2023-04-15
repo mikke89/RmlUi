@@ -39,9 +39,8 @@ namespace Rml {
 
 template <typename T>
 struct is_builtin_data_scalar {
-	static constexpr bool value = std::is_arithmetic<T>::value	
-        || std::is_enum<T>::value
-        || std::is_same<typename std::remove_const<T>::type, String>::value;
+	static constexpr bool value =
+		std::is_arithmetic<T>::value || std::is_enum<T>::value || std::is_same<typename std::remove_const<T>::type, String>::value;
 };
 
 class RMLUICORE_API TransformFuncRegister {
@@ -90,7 +89,7 @@ private:
 
 		return definition.get();
 	}
-	
+
 	// Get definition for types that are not a built-in scalar.
 	// These must already have been registered by the user.
 	template <typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_builtin_data_scalar<T>::value, int>::type = 0>
@@ -105,10 +104,10 @@ private:
 				"members, or registering arrays of non-scalar types.");
 			return nullptr;
 		}
-		
+
 		return it->second.get();
 	}
-	
+
 	// Get definition for pointer types, or create one as needed.
 	// This will create a wrapper definition that forwards the call to the definition of the underlying type.
 	template <typename T, typename std::enable_if<PointerTraits<T>::is_pointer::value, int>::type = 0>

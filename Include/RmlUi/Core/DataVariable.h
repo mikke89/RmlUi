@@ -95,7 +95,7 @@ template <typename T>
 class ScalarDefinition final : public VariableDefinition {
 public:
 	ScalarDefinition() : VariableDefinition(DataVariableType::Scalar) {}
-	
+
 	bool Get(void* ptr, Variant& variant) override
 	{
 		variant = *static_cast<const T*>(ptr);
