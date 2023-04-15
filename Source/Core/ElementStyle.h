@@ -109,7 +109,7 @@ public:
 	/// Removes a local variable override on the element; its value will revert to that defined in
 	/// the style sheet.
 	/// @param[in] name The name of the local variable definition to remove.
-	void RemoveVariable(String const& name);
+	void RemovePropertyVariable(String const& name);
 	/// Returns one of this element's properties. If this element is not defining this property, or a parent cannot
 	/// be found that we can inherit the property from, the default value will be returned.
 	/// @param[in] name The name of the property to fetch the value for.

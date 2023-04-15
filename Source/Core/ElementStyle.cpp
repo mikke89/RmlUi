@@ -370,8 +370,8 @@ bool ElementStyle::SetDependentShorthand(ShorthandId id, const PropertyVariableT
 bool ElementStyle::SetPropertyVariable(String const& name, const Property& variable)
 {
 	inline_properties.SetPropertyVariable(name, variable);
-	definition_properties.SetPropertyVariable(name, variable);
-	
+	// removed definition_properties.SetPropertyVariable(name, variable);
+
 	dirty_variables.insert(name);
 	
 	return true;
@@ -384,7 +384,7 @@ void ElementStyle::RemoveProperty(PropertyId id)
 		DirtyProperty(id);
 }
 
-void ElementStyle::RemoveVariable(String const& name)
+void ElementStyle::RemovePropertyVariable(String const& name)
 {
 	inline_properties.RemovePropertyVariable(name);
 	dirty_variables.insert(name);

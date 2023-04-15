@@ -215,10 +215,10 @@ bool DataViewStyleVariable::Update(DataModel& model)
 	if (element && GetExpression().Run(expr_interface, variant))
 	{
 		const String value = variant.Get<String>();
-		const Property* p = element->GetLocalPropertyVariable(variable_name);
+		const Property* p = element->GetLocalProperty(variable_name);
 		if (!p || p->Get<String>() != value)
 		{
-			element->SetPropertyVariable(variable_name, value);
+			element->SetProperty(variable_name, value);
 			result = true;
 		}
 	}

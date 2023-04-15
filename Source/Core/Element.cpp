@@ -278,7 +278,7 @@ ElementPtr Element::Clone() const
 			clone->SetProperty(id_property.first, id_property.second);
 
 		for (auto& var : GetStyle()->GetLocalStylePropertyVariables())
-			clone->SetPropertyVariable(var.first, var.second);
+			clone->SetProperty(var.first, var.second);
 
 		clone->GetStyle()->SetClassNames(GetStyle()->GetClassNames());
 
@@ -568,12 +568,26 @@ bool Element::SetProperty(const String& name, const String& value)
 		if (!meta->style.SetProperty(property.first, property.second))
 			return false;
 	}
+	for (auto& variable : properties.GetPropertyVariables())
+	{
+		if (!meta->style.SetPropertyVariable(variable.first, variable.second))
+			return false;
+	}
 	for (auto& shorthand : properties.GetDependentShorthands())
 	{
 		if (!meta->style.SetDependentShorthand(shorthand.first, shorthand.second))
 			return false;
 	}
 	return true;
+}
+
+bool Element::SetProperty(const String& name, const Property& property)
+{
+	auto id = StyleSheetSpecification::GetPropertyId(name);
+	if (id == PropertyId::Invalid)
+		return meta->style.SetPropertyVariable(name, property);
+	else
+		return meta->style.SetProperty(id, property);
 }
 
 bool Element::SetProperty(PropertyId id, const Property& property)
@@ -583,7 +597,11 @@ bool Element::SetProperty(PropertyId id, const Property& property)
 
 void Element::RemoveProperty(const String& name)
 {
-	meta->style.RemoveProperty(StyleSheetSpecification::GetPropertyId(name));
+	auto id = StyleSheetSpecification::GetPropertyId(name);
+	if (id == PropertyId::Invalid)
+		return meta->style.RemovePropertyVariable(name);
+	else
+		return meta->style.RemoveProperty(id);
 }
 
 void Element::RemoveProperty(PropertyId id)
@@ -593,7 +611,11 @@ void Element::RemoveProperty(PropertyId id)
 
 const Property* Element::GetProperty(const String& name)
 {
-	return meta->style.GetProperty(StyleSheetSpecification::GetPropertyId(name));
+	auto id = StyleSheetSpecification::GetPropertyId(name);
+	if (id == PropertyId::Invalid)
+		return meta->style.GetPropertyVariable(name);
+	else
+		return meta->style.GetProperty(id);
 }
 
 const Property* Element::GetProperty(PropertyId id)
@@ -603,7 +625,11 @@ const Property* Element::GetProperty(PropertyId id)
 
 const Property* Element::GetLocalProperty(const String& name)
 {
-	return meta->style.GetLocalProperty(StyleSheetSpecification::GetPropertyId(name));
+	auto id = StyleSheetSpecification::GetPropertyId(name);
+	if (id == PropertyId::Invalid)
+		return meta->style.GetLocalPropertyVariable(name);
+	else
+		return meta->style.GetLocalProperty(id);
 }
 
 const Property* Element::GetLocalProperty(PropertyId id)
@@ -730,44 +756,44 @@ PropertiesIteratorView Element::IterateLocalProperties() const
 {
 	return PropertiesIteratorView(MakeUnique<PropertiesIterator>(meta->style.Iterate()));
 }
-
+/*
 bool Element::SetPropertyVariable(const String& name, const String& value)
 {
-	PropertyDictionary properties;
-	if (!StyleSheetSpecification::ParseVariableDeclaration(properties, name, value))
-	{
-		Log::Message(Log::LT_WARNING, "Syntax error parsing inline variable declaration '%s: %s;'.", name.c_str(), value.c_str());
-		return false;
-	}
+    PropertyDictionary properties;
+    if (!StyleSheetSpecification::ParseVariableDeclaration(properties, name, value))
+    {
+        Log::Message(Log::LT_WARNING, "Syntax error parsing inline variable declaration '%s: %s;'.", name.c_str(), value.c_str());
+        return false;
+    }
 
-	for (auto const& it : properties.GetPropertyVariables())
-	{
-		meta->style.SetPropertyVariable(it.first, it.second);
-	}
+    for (auto const& it : properties.GetPropertyVariables())
+    {
+        meta->style.SetPropertyVariable(it.first, it.second);
+    }
 
-	return true;
+    return true;
 }
 
 bool Element::SetPropertyVariable(const String& name, const Property& variable)
 {
-	return meta->style.SetPropertyVariable(name, variable);
+    return meta->style.SetPropertyVariable(name, variable);
 }
 
 void Element::RemovePropertyVariable(const String& name)
 {
-	meta->style.RemoveVariable(name);
+    meta->style.RemoveVariable(name);
 }
 
 const Property* Element::GetPropertyVariable(String const& name)
 {
-	return meta->style.GetPropertyVariable(name);
+    return meta->style.GetPropertyVariable(name);
 }
 
 const Property* Element::GetLocalPropertyVariable(String const& name)
 {
-	return meta->style.GetLocalPropertyVariable(name);
+    return meta->style.GetLocalPropertyVariable(name);
 }
-
+*/
 const PropertyVariableMap& Element::GetLocalStylePropertyVariables()
 {
 	return meta->style.GetLocalStylePropertyVariables();

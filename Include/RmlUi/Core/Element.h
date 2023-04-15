@@ -201,6 +201,11 @@ public:
 	/// @param[in] name The name of the new property.
 	/// @param[in] property The parsed property to set.
 	/// @return True if the property was set successfully, false otherwise.
+	bool SetProperty(const String& name, const Property& property);
+	/// Sets a local property override on the element to a pre-parsed value.
+	/// @param[in] name The name of the new property.
+	/// @param[in] property The parsed property to set.
+	/// @return True if the property was set successfully, false otherwise.
 	bool SetProperty(PropertyId id, const Property& property);
 	/// Removes a local property override on the element; its value will revert to that defined in the style sheet.
 	/// @param[in] name The name of the local property definition to remove.
@@ -276,29 +281,6 @@ public:
 	/** @name Property Variables
 	 */
 	//@{
-	/// Sets a local property variable override on the element.
-	/// @param[in] name The name of the new property variable.
-	/// @param[in] value The new property variable to set.
-	/// @return True if the property variable parsed successfully, false otherwise.
-	bool SetPropertyVariable(const String& name, const String& value);
-	/// Sets a local property variable override on the element to a pre-parsed value.
-	/// @param[in] name The name of the new property variable.
-	/// @param[in] property variable The parsed property variable to set.
-	/// @return True if the variable was set successfully, false otherwise.
-	bool SetPropertyVariable(String const& name, const Property& variable);
-	/// Removes a local variable override on the element; its value will revert to that defined in the style sheet.
-	/// @param[in] name The name of the local property variable definition to remove.
-	void RemovePropertyVariable(const String& name);
-	/// Returns one of this element's property variables. If the property variable is not defined for this element and not inherited
-	/// from an ancestor, the default value will be returned.
-	/// @param[in] name The name of the property variable to fetch the value for.
-	/// @return The value of this property variable for this element, or nullptr if no property variable exists with the given name.
-	const Property* GetPropertyVariable(const String& name);
-	/// Returns one of this element's property variables. If this element is not defined this property variable, nullptr will be
-	/// returned.
-	/// @param[in] name The name of the property variable to fetch the value for.
-	/// @return The value of this property variable for this element, or nullptr if this property variable has not been explicitly defined for this element.
-	const Property* GetLocalPropertyVariable(const String& name);
 	/// Returns the local style property variables, excluding any property variables from local class.
 	/// @return The local property variables for this element, or nullptr if no property variables defined
 	const PropertyVariableMap& GetLocalStylePropertyVariables();
