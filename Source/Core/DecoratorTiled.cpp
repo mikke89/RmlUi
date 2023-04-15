@@ -78,7 +78,7 @@ void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& 
 
 			const Vector2f size_relative = new_data.size / texture_dimensions;
 
-			new_data.size = Vector2f(Math::AbsoluteValue(new_data.size.x), Math::AbsoluteValue(new_data.size.y));
+			new_data.size = Vector2f(Math::Absolute(new_data.size.x), Math::Absolute(new_data.size.y));
 
 			new_data.texcoords[0] = position / texture_dimensions;
 			new_data.texcoords[1] = size_relative + new_data.texcoords[0];

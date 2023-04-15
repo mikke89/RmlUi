@@ -176,7 +176,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 			constexpr int search_width = 100;
 			const FontWeight current_weight = it->weight;
 
-			int best_width_distance = Math::AbsoluteValue((int)it->width - search_width);
+			int best_width_distance = Math::Absolute((int)it->width - search_width);
 			auto it_best_width = it;
 
 			// Search forward to find the best 'width' with the same weight.
@@ -185,7 +185,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 				if (it->weight != current_weight)
 					break;
 
-				const int width_distance = Math::AbsoluteValue((int)it->width - search_width);
+				const int width_distance = Math::Absolute((int)it->width - search_width);
 				if (width_distance < best_width_distance)
 				{
 					best_width_distance = width_distance;

@@ -726,7 +726,7 @@ bool TransformUtilities::Decompose(Transforms::DecomposedMatrix4& d, const Matri
 
 	const float eps = 0.0005f;
 
-	if (Math::AbsoluteValue(m[3][3]) < eps)
+	if (Math::Absolute(m[3][3]) < eps)
 		return false;
 
 	// Perspective matrix
@@ -736,7 +736,7 @@ bool TransformUtilities::Decompose(Transforms::DecomposedMatrix4& d, const Matri
 		p[i][3] = 0;
 	p[3][3] = 1;
 
-	if (Math::AbsoluteValue(p.Determinant()) < eps)
+	if (Math::Absolute(p.Determinant()) < eps)
 		return false;
 
 	if (m[0][3] != 0 || m[1][3] != 0 || m[2][3] != 0)

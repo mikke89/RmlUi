@@ -38,27 +38,22 @@ namespace Math {
 
 	static constexpr float FZERO = 0.0001f;
 
-	RMLUICORE_API bool IsZero(float value)
+	RMLUICORE_API bool IsCloseToZero(float value)
 	{
-		return AbsoluteValue(value) < FZERO;
+		return Absolute(value) < FZERO;
 	}
 
-	RMLUICORE_API bool AreEqual(float value_0, float value_1)
-	{
-		return IsZero(value_1 - value_0);
-	}
-
-	RMLUICORE_API float AbsoluteValue(float value)
+	RMLUICORE_API float Absolute(float value)
 	{
 		return fabsf(value);
 	}
 
-	RMLUICORE_API int AbsoluteValue(int value)
+	RMLUICORE_API int Absolute(int value)
 	{
 		return abs(value);
 	}
 
-	RMLUICORE_API Vector2f AbsoluteValue(Vector2f value)
+	RMLUICORE_API Vector2f Absolute(Vector2f value)
 	{
 		return {fabsf(value.x), fabsf(value.y)};
 	}
@@ -129,22 +124,22 @@ namespace Math {
 		return sqrtf(value);
 	}
 
-	RMLUICORE_API float RoundFloat(float value)
+	RMLUICORE_API float Round(float value)
 	{
 		return roundf(value);
 	}
 
-	RMLUICORE_API double RoundFloat(double value)
+	RMLUICORE_API double Round(double value)
 	{
 		return round(value);
 	}
 
-	RMLUICORE_API float RoundUpFloat(float value)
+	RMLUICORE_API float RoundUp(float value)
 	{
 		return ceilf(value);
 	}
 
-	RMLUICORE_API float RoundDownFloat(float value)
+	RMLUICORE_API float RoundDown(float value)
 	{
 		return floorf(value);
 	}
@@ -152,19 +147,19 @@ namespace Math {
 	RMLUICORE_API int RoundToInteger(float value)
 	{
 		if (value > 0.0f)
-			return RealToInteger(value + 0.5f);
+			return int(value + 0.5f);
 
-		return RealToInteger(value - 0.5f);
+		return int(value - 0.5f);
 	}
 
 	RMLUICORE_API int RoundUpToInteger(float value)
 	{
-		return RealToInteger(ceilf(value));
+		return int(ceilf(value));
 	}
 
 	RMLUICORE_API int RoundDownToInteger(float value)
 	{
-		return RealToInteger(floorf(value));
+		return int(floorf(value));
 	}
 
 	RMLUICORE_API float DecomposeFractionalIntegral(float value, float* integral)
@@ -172,16 +167,11 @@ namespace Math {
 		return modff(value, integral);
 	}
 
-	RMLUICORE_API int RealToInteger(float value)
-	{
-		return int(value);
-	}
-
 	RMLUICORE_API void SnapToPixelGrid(float& offset, float& width)
 	{
 		const float right_edge = offset + width;
-		offset = Math::RoundFloat(offset);
-		width = Math::RoundFloat(right_edge) - offset;
+		offset = Math::Round(offset);
+		width = Math::Round(right_edge) - offset;
 	}
 
 	RMLUICORE_API void SnapToPixelGrid(Vector2f& position, Vector2f& size)

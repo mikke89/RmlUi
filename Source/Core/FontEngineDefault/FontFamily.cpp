@@ -54,7 +54,7 @@ FontFaceHandleDefault* FontFamily::GetFaceHandle(Style::FontStyle style, Style::
 
 		if (face->GetStyle() == style)
 		{
-			const int dist = Math::AbsoluteValue((int)face->GetWeight() - (int)weight);
+			const int dist = Math::Absolute((int)face->GetWeight() - (int)weight);
 			if (dist == 0)
 			{
 				// Direct match for weight, break the loop early.

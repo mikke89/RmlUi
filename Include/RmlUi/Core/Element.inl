@@ -28,7 +28,6 @@
 
 namespace Rml {
 
-// Returns the values of one of this element's properties.
 template <typename T>
 T Element::GetProperty(const String& name)
 {
@@ -41,7 +40,6 @@ T Element::GetProperty(const String& name)
 	return property->Get<T>();
 }
 
-// Sets an attribute on the element.
 template <typename T>
 void Element::SetAttribute(const String& name, const T& value)
 {
@@ -52,7 +50,6 @@ void Element::SetAttribute(const String& name, const T& value)
 	OnAttributeChange(changed_attributes);
 }
 
-// Gets the specified attribute, with default value.
 template <typename T>
 T Element::GetAttribute(const String& name, const T& default_value) const
 {

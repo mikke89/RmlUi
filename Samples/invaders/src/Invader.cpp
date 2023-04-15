@@ -179,7 +179,7 @@ void Invader::Render(float dp_ratio, Rml::TextureHandle texture)
 		color = MOTHERSHIP_COLOUR;
 
 	int sprite_index = GetSpriteIndex();
-	int sprite_offset = Rml::Math::RealToInteger((invader_sprites[sprite_index].dimensions.x - 48) / 2);
+	int sprite_offset = int((invader_sprites[sprite_index].dimensions.x - 48) / 2);
 
 	if (state != DEAD)
 		invader_sprites[sprite_index].Render(Rml::Vector2f(position.x - sprite_offset, position.y), dp_ratio, color, texture);
@@ -197,7 +197,7 @@ bool Invader::CheckHit(double t, const Rml::Vector2f& check_position)
 {
 	// Get the sprite index we're currently using for collision detection
 	int sprite_index = GetSpriteIndex();
-	int sprite_offset = Rml::Math::RealToInteger((invader_sprites[sprite_index].dimensions.x - 48) / 2);
+	int sprite_offset = int((invader_sprites[sprite_index].dimensions.x - 48) / 2);
 	float sprite_width = invader_sprites[sprite_index].dimensions.x;
 	float sprite_height = invader_sprites[sprite_index].dimensions.y;
 

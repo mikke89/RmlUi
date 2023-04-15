@@ -47,7 +47,6 @@ Variant& Variant::operator=(T&& t)
 	return *this;
 }
 
-// Templatised data accessor.
 template <typename T, typename std::enable_if<std::is_enum<T>::value, int>::type>
 bool Variant::GetInto(T& value) const
 {

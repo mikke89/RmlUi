@@ -28,7 +28,6 @@
 
 namespace Rml {
 
-// Initialising constructor.
 template <typename Component, class Storage>
 Matrix4<Component, Storage>::Matrix4(const typename Matrix4<Component, Storage>::VectorType& vec0,
 	const typename Matrix4<Component, Storage>::VectorType& vec1, const typename Matrix4<Component, Storage>::VectorType& vec2,
@@ -40,12 +39,10 @@ Matrix4<Component, Storage>::Matrix4(const typename Matrix4<Component, Storage>:
 	vectors[3] = vec3;
 }
 
-// Default constructor.
 template <typename Component, class Storage>
 Matrix4<Component, Storage>::Matrix4() noexcept : vectors{VectorType{0}, VectorType{0}, VectorType{0}, VectorType{0}}
 {}
 
-// Initialising, copy constructor.
 template <typename Component, class Storage>
 Matrix4<Component, Storage>::Matrix4(const typename Matrix4<Component, Storage>::ThisType& other) noexcept
 {
@@ -66,7 +63,6 @@ Matrix4<Component, Storage>::Matrix4(const typename Matrix4<Component, Storage>:
 	}
 }
 
-// Assignment operator
 template <typename Component, class Storage>
 const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage>::operator=(
 	const typename Matrix4<Component, Storage>::ThisType& other) noexcept
@@ -91,7 +87,6 @@ const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage
 	return *this;
 }
 
-// Construct from row vectors.
 template <typename Component, class Storage>
 const typename Matrix4<Component, Storage>::ThisType Matrix4<Component, Storage>::FromRows(
 	const typename Matrix4<Component, Storage>::VectorType& vec0, const typename Matrix4<Component, Storage>::VectorType& vec1,
@@ -102,7 +97,6 @@ const typename Matrix4<Component, Storage>::ThisType Matrix4<Component, Storage>
 	return result;
 }
 
-// Construct from column vectors.
 template <typename Component, class Storage>
 const typename Matrix4<Component, Storage>::ThisType Matrix4<Component, Storage>::FromColumns(
 	const typename Matrix4<Component, Storage>::VectorType& vec0, const typename Matrix4<Component, Storage>::VectorType& vec1,
@@ -113,7 +107,6 @@ const typename Matrix4<Component, Storage>::ThisType Matrix4<Component, Storage>
 	return result;
 }
 
-// Construct from components
 template <typename Component, class Storage>
 const typename Matrix4<Component, Storage>::ThisType Matrix4<Component, Storage>::FromRowMajor(const Component* components) noexcept
 {
@@ -143,7 +136,6 @@ const typename Matrix4<Component, Storage>::ThisType Matrix4<Component, Storage>
 	return result;
 }
 
-// Set all rows
 template <typename Component, class Storage>
 void Matrix4<Component, Storage>::SetRows(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) noexcept
 {
@@ -154,7 +146,6 @@ void Matrix4<Component, Storage>::SetRows(const VectorType& vec0, const VectorTy
 	rows[3] = vec3;
 }
 
-// Set all columns
 template <typename Component, class Storage>
 void Matrix4<Component, Storage>::SetColumns(const VectorType& vec0, const VectorType& vec1, const VectorType& vec2, const VectorType& vec3) noexcept
 {
@@ -165,11 +156,10 @@ void Matrix4<Component, Storage>::SetColumns(const VectorType& vec0, const Vecto
 	columns[3] = vec3;
 }
 
-// Inverts this matrix in place.
-// This is from the MESA implementation of the GLU library.
 template <typename Component, class Storage>
 bool Matrix4<Component, Storage>::Invert() noexcept
 {
+	// This is from the MESA implementation of the GLU library.
 	Matrix4<Component, Storage>::ThisType result;
 	Component* dst = result.data();
 	const Component* src = data();
@@ -256,14 +246,12 @@ inline float Matrix4<Component, Storage>::Determinant() const noexcept
 	return det;
 }
 
-// Returns the negation of this matrix.
 template <typename Component, class Storage>
 typename Matrix4<Component, Storage>::ThisType Matrix4<Component, Storage>::operator-() const noexcept
 {
 	return typename Matrix4<Component, Storage>::ThisType(-vectors[0], -vectors[1], -vectors[2], -vectors[3]);
 }
 
-// Adds another matrix to this in-place.
 template <typename Component, class Storage>
 const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage>::operator+=(
 	const typename Matrix4<Component, Storage>::ThisType& other) noexcept
@@ -287,7 +275,6 @@ const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage
 	return *this;
 }
 
-// Subtracts another matrix from this in-place.
 template <typename Component, class Storage>
 const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage>::operator-=(
 	const typename Matrix4<Component, Storage>::ThisType& other) noexcept
@@ -311,7 +298,6 @@ const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage
 	return *this;
 }
 
-// Scales this matrix in-place.
 template <typename Component, class Storage>
 const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage>::operator*=(Component s) noexcept
 {
@@ -322,7 +308,6 @@ const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage
 	return *this;
 }
 
-// Scales this matrix in-place by the inverse of a value.
 template <typename Component, class Storage>
 const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage>::operator/=(Component s) noexcept
 {
@@ -333,7 +318,6 @@ const typename Matrix4<Component, Storage>::ThisType& Matrix4<Component, Storage
 	return *this;
 }
 
-// Equality operator.
 template <typename Component, class Storage>
 bool Matrix4<Component, Storage>::operator==(const typename Matrix4<Component, Storage>::ThisType& other) const noexcept
 {
@@ -349,7 +333,6 @@ bool Matrix4<Component, Storage>::operator==(const typename Matrix4<Component, S
 	return rows[0] == other_rows[0] && rows[1] == other_rows[1] && rows[2] == other_rows[2] && rows[3] == other_rows[3];
 }
 
-// Inequality operator.
 template <typename Component, class Storage>
 bool Matrix4<Component, Storage>::operator!=(const typename Matrix4<Component, Storage>::ThisType& other) const noexcept
 {
@@ -363,7 +346,6 @@ bool Matrix4<Component, Storage>::operator!=(const typename Matrix4<Component, S
 	return rows[0] != other_rows[0] || rows[1] != other_rows[1] || rows[2] != other_rows[2] || rows[3] != other_rows[3];
 }
 
-// Return the identity matrix.
 template <typename Component, class Storage>
 const Matrix4<Component, Storage>& Matrix4<Component, Storage>::Identity() noexcept
 {
@@ -371,7 +353,6 @@ const Matrix4<Component, Storage>& Matrix4<Component, Storage>::Identity() noexc
 	return identity;
 }
 
-// Return a diagonal matrix.
 template <typename Component, class Storage>
 Matrix4<Component, Storage> Matrix4<Component, Storage>::Diag(Component a, Component b, Component c, Component d) noexcept
 {
@@ -380,7 +361,6 @@ Matrix4<Component, Storage> Matrix4<Component, Storage>::Diag(Component a, Compo
 		Matrix4<Component, Storage>::VectorType(0, 0, 0, d));
 }
 
-// Create an orthographic projection matrix
 template <typename Component, class Storage>
 Matrix4<Component, Storage> Matrix4<Component, Storage>::ProjectOrtho(Component l, Component r, Component b, Component t, Component n,
 	Component f) noexcept
@@ -390,7 +370,6 @@ Matrix4<Component, Storage> Matrix4<Component, Storage>::ProjectOrtho(Component 
 		Matrix4<Component, Storage>::VectorType(0, 0, 2 / (f - n), -(f + n) / (f - n)), Matrix4<Component, Storage>::VectorType(0, 0, 0, 1));
 }
 
-// Create a perspective projection matrix
 template <typename Component, class Storage>
 Matrix4<Component, Storage> Matrix4<Component, Storage>::ProjectPerspective(Component l, Component r, Component b, Component t, Component n,
 	Component f) noexcept
@@ -401,7 +380,6 @@ Matrix4<Component, Storage> Matrix4<Component, Storage>::ProjectPerspective(Comp
 		Matrix4<Component, Storage>::VectorType(0, 0, -1, 0));
 }
 
-// Create a perspective projection matrix
 template <typename Component, class Storage>
 Matrix4<Component, Storage> Matrix4<Component, Storage>::Perspective(Component d) noexcept
 {
@@ -410,7 +388,6 @@ Matrix4<Component, Storage> Matrix4<Component, Storage>::Perspective(Component d
 		Matrix4<Component, Storage>::VectorType(0, 0, -static_cast<Component>(1) / d, 1));
 }
 
-// Return a translation matrix.
 template <typename Component, class Storage>
 Matrix4<Component, Storage> Matrix4<Component, Storage>::Translate(const Vector3<Component>& v) noexcept
 {
@@ -443,7 +420,6 @@ Matrix4<Component, Storage> Matrix4<Component, Storage>::TranslateZ(Component z)
 	return Translate(Vector3<Component>(0, 0, z));
 }
 
-// Return a scaling matrix.
 template <typename Component, class Storage>
 Matrix4<Component, Storage> Matrix4<Component, Storage>::Scale(Component x, Component y, Component z) noexcept
 {
@@ -468,7 +444,6 @@ Matrix4<Component, Storage> Matrix4<Component, Storage>::ScaleZ(Component z) noe
 	return Scale(1, 1, z);
 }
 
-// Return a rotation matrix.
 template <typename Component, class Storage>
 Matrix4<Component, Storage> Matrix4<Component, Storage>::Rotate(const Vector3<Component>& v, Component angle) noexcept
 {
@@ -511,8 +486,7 @@ Matrix4<Component, Storage> Matrix4<Component, Storage>::RotateZ(Component angle
 		Matrix4<Component, Storage>::VectorType(Sin, Cos, 0, 0), Matrix4<Component, Storage>::VectorType(0, 0, 1, 0),
 		Matrix4<Component, Storage>::VectorType(0, 0, 0, 1));
 }
-// Return a skew/shearing matrix.
-// @return A skew matrix.
+
 template <typename Component, class Storage>
 Matrix4<Component, Storage> Matrix4<Component, Storage>::Skew(Component angle_x, Component angle_y) noexcept
 {

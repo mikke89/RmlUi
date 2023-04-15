@@ -28,46 +28,39 @@
 
 namespace Rml {
 
-// Lightweight, non-initialising constructor.
 template <typename ColourType, int AlphaDefault>
 Colour<ColourType, AlphaDefault>::Colour(ColourType rgb, ColourType alpha) : red(rgb), green(rgb), blue(rgb), alpha(alpha)
 {}
 
-// Initialising constructor.
 template <typename ColourType, int AlphaDefault>
 Colour<ColourType, AlphaDefault>::Colour(ColourType red, ColourType green, ColourType blue, ColourType alpha) :
 	red(red), green(green), blue(blue), alpha(alpha)
 {}
 
-// Returns the sum of this colour and another. This does not saturate the channels.
 template <typename ColourType, int AlphaDefault>
 Colour<ColourType, AlphaDefault> Colour<ColourType, AlphaDefault>::operator+(const Colour<ColourType, AlphaDefault> rhs) const
 {
 	return Colour<ColourType, AlphaDefault>(red + rhs.red, green + rhs.green, blue + rhs.blue, alpha + rhs.alpha);
 }
 
-// Returns the result of subtracting another colour from this colour.
 template <typename ColourType, int AlphaDefault>
 Colour<ColourType, AlphaDefault> Colour<ColourType, AlphaDefault>::operator-(const Colour<ColourType, AlphaDefault> rhs) const
 {
 	return Colour<ColourType, AlphaDefault>(red - rhs.red, green - rhs.green, blue - rhs.blue, alpha - rhs.alpha);
 }
 
-// Returns the result of multiplying this colour component-wise by a scalar.
 template <typename ColourType, int AlphaDefault>
 Colour<ColourType, AlphaDefault> Colour<ColourType, AlphaDefault>::operator*(float rhs) const
 {
 	return Colour((ColourType)(red * rhs), (ColourType)(green * rhs), (ColourType)(blue * rhs), (ColourType)(alpha * rhs));
 }
 
-// Returns the result of dividing this colour component-wise by a scalar.
 template <typename ColourType, int AlphaDefault>
 Colour<ColourType, AlphaDefault> Colour<ColourType, AlphaDefault>::operator/(float rhs) const
 {
 	return Colour((ColourType)(red / rhs), (ColourType)(green / rhs), (ColourType)(blue / rhs), (ColourType)(alpha / rhs));
 }
 
-// Adds another colour to this in-place. This does not saturate the channels.
 template <typename ColourType, int AlphaDefault>
 void Colour<ColourType, AlphaDefault>::operator+=(const Colour rhs)
 {
@@ -77,7 +70,6 @@ void Colour<ColourType, AlphaDefault>::operator+=(const Colour rhs)
 	alpha += rhs.alpha;
 }
 
-// Subtracts another colour from this in-place.
 template <typename ColourType, int AlphaDefault>
 void Colour<ColourType, AlphaDefault>::operator-=(const Colour rhs)
 {
@@ -87,7 +79,6 @@ void Colour<ColourType, AlphaDefault>::operator-=(const Colour rhs)
 	alpha -= rhs.alpha;
 }
 
-// Scales this colour component-wise in-place.
 template <typename ColourType, int AlphaDefault>
 void Colour<ColourType, AlphaDefault>::operator*=(float rhs)
 {
@@ -97,7 +88,6 @@ void Colour<ColourType, AlphaDefault>::operator*=(float rhs)
 	alpha = (ColourType)(alpha * rhs);
 }
 
-// Scales this colour component-wise in-place by the inverse of a value.
 template <typename ColourType, int AlphaDefault>
 void Colour<ColourType, AlphaDefault>::operator/=(float rhs)
 {

@@ -127,7 +127,7 @@ SharedPtr<FontEffect> FontEffectBlurInstancer::InstanceFontEffect(const String& 
 	Colourb color = properties.GetProperty(id_color)->Get<Colourb>();
 
 	auto font_effect = MakeShared<FontEffectBlur>();
-	if (font_effect->Initialise(Math::RealToInteger(width)))
+	if (font_effect->Initialise(int(width)))
 	{
 		font_effect->SetColour(color);
 		return font_effect;

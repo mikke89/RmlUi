@@ -66,7 +66,7 @@ int TextureLayoutTexture::Generate(TextureLayout& layout, int maximum_dimensions
 		}
 	}
 
-	int texture_width = Math::RealToInteger(Math::SquareRoot((float)square_pixels));
+	int texture_width = int(Math::SquareRoot((float)square_pixels));
 
 	dimensions.y = Math::ToPowerOfTwo(texture_width);
 	dimensions.x = dimensions.y >> 1;
