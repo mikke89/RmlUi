@@ -55,12 +55,16 @@ TEST_CASE("Variant.ScopedEnum")
 	CHECK(v1.Get<X>() == X::A);
 	CHECK(v2.Get<X>() == X::B);
 	CHECK(v3.Get<X>() == X::C);
+
 	CHECK(v4.Get<X>() == X::A);
 	CHECK(v5.Get<X>() == X::B);
 	CHECK(v6.Get<X>() == X::A);
 
 	CHECK(v1 != v2);
 	CHECK(v1 == v4);
+
+	Variant v7 = v5;
+	CHECK(v7.Get<X>() == X::B);
 
 	CHECK(v1.Get<int>() == 1);
 	CHECK(v2.Get<int>() == 5);
@@ -91,12 +95,16 @@ TEST_CASE("Variant.UnscopedEnum")
 	CHECK(v1.Get<X>() == X::A);
 	CHECK(v2.Get<X>() == X::B);
 	CHECK(v3.Get<X>() == X::C);
+
 	CHECK(v4.Get<X>() == X::A);
 	CHECK(v5.Get<X>() == X::B);
 	CHECK(v6.Get<X>() == X::A);
 
 	CHECK(v1 != v2);
 	CHECK(v1 == v4);
+
+	Variant v7 = v5;
+	CHECK(v7.Get<X>() == X::B);
 
 	CHECK(v1.Get<int>() == 1);
 	CHECK(v2.Get<int>() == 5);
