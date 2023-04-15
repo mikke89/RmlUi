@@ -156,9 +156,7 @@ private:
 	void Set(FontEffectsPtr&& value);
 
 	template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
-	void Set(const T& value);
-	template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
-	void Set(T&& value);
+	void Set(const T value);
 
 	static constexpr size_t LOCAL_DATA_SIZE = (sizeof(TransitionList) > sizeof(String) ? sizeof(TransitionList) : sizeof(String));
 
