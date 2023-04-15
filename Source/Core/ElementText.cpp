@@ -125,7 +125,7 @@ void ElementText::OnRender()
 			if (decoration)
 				decoration->Release(true);
 			else
-				decoration = MakeUnique<Geometry>(this);
+				decoration = MakeUnique<Geometry>();
 
 			GenerateDecoration(font_face_handle);
 		}
@@ -464,8 +464,6 @@ void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle, Line& 
 
 	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, opacity,
 		letter_spacing, geometry);
-	for (size_t i = 0; i < geometry.size(); ++i)
-		geometry[i].SetHostElement(this);
 }
 
 void ElementText::GenerateDecoration(const FontFaceHandle font_face_handle)

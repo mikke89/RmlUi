@@ -142,7 +142,7 @@ void Game::Render(float dp_ratio)
 	if (defender_lives <= 0)
 		return;
 
-	Rml::TextureHandle texture_handle = texture.GetHandle(Rml::GetRenderInterface());
+	Rml::TextureHandle texture_handle = texture.GetHandle();
 
 	// Render all available shields
 	for (int i = 0; i < NUM_SHIELDS; i++)

@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 
 		TestViewer viewer(context);
 
-		TestNavigator navigator(context->GetRenderInterface(), context, &viewer, std::move(test_suites), load_suite_index, load_case_index);
+		TestNavigator navigator(Backend::GetRenderInterface(), context, &viewer, std::move(test_suites), load_suite_index, load_case_index);
 
 		bool running = true;
 		while (running)

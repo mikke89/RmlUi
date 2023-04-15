@@ -36,7 +36,6 @@ namespace Rml {
 
 class Box;
 class Context;
-class RenderInterface;
 namespace Style {
 	class ComputedValues;
 }
@@ -100,8 +99,7 @@ public:
 	static bool SetClippingRegion(Element* element, Context* context = nullptr);
 	/// Applies the clip region from the render interface to the renderer
 	/// @param[in] context The context to read the clip region from
-	/// @param[in] render_interface The render interface to update.
-	static void ApplyActiveClipRegion(Context* context, RenderInterface* render_interface);
+	static void ApplyActiveClipRegion(Context* context);
 
 	/// Formats the contents of an element. This does not need to be called for ordinary elements, but can be useful
 	/// for non-DOM elements of custom elements.
@@ -124,9 +122,9 @@ public:
 	static bool PositionElement(Element* element, Vector2f offset, PositionAnchor anchor);
 
 	/// Applies an element's accumulated transform matrix, determined from its and ancestor's `perspective' and `transform' properties.
-	/// Note: All calls to RenderInterface::SetTransform must go through here.
-	/// @param[in] element		The element whose transform to apply.
+	/// @param[in] element The element whose transform to apply.
 	/// @return true if a render interface is available to set the transform.
+	/// @note All calls to RenderInterface::SetTransform must go through here.
 	static bool ApplyTransform(Element& element);
 
 	/// Creates data views and data controllers if a data model applies to the element.

@@ -34,7 +34,7 @@
 
 namespace Rml {
 
-ElementBackgroundBorder::ElementBackgroundBorder(Element* element) : geometry(element) {}
+ElementBackgroundBorder::ElementBackgroundBorder() {}
 
 void ElementBackgroundBorder::Render(Element* element)
 {

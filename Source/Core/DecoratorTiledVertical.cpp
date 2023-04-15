@@ -35,12 +35,7 @@
 namespace Rml {
 
 struct DecoratorTiledVerticalData {
-	DecoratorTiledVerticalData(Element* host_element, int num_textures) : num_textures(num_textures)
-	{
-		geometry = new Geometry[num_textures];
-		for (int i = 0; i < num_textures; i++)
-			geometry[i].SetHostElement(host_element);
-	}
+	DecoratorTiledVerticalData(int num_textures) : num_textures(num_textures) { geometry = new Geometry[num_textures]; }
 
 	~DecoratorTiledVerticalData() { delete[] geometry; }
 
@@ -85,10 +80,10 @@ DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element
 {
 	// Initialise the tile for this element.
 	for (int i = 0; i < 3; i++)
-		tiles[i].CalculateDimensions(element, *GetTexture(tiles[i].texture_index));
+		tiles[i].CalculateDimensions(*GetTexture(tiles[i].texture_index));
 
 	const int num_textures = GetNumTextures();
-	DecoratorTiledVerticalData* data = new DecoratorTiledVerticalData(element, num_textures);
+	DecoratorTiledVerticalData* data = new DecoratorTiledVerticalData(num_textures);
 
 	Vector2f padded_size = element->GetBox().GetSize(Box::PADDING);
 
@@ -113,16 +108,18 @@ DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element
 		bottom_dimensions.y = padded_size.y * (bottom_dimensions.y / minimum_height);
 	}
 
+	const ComputedValues& computed = element->GetComputedValues();
+
 	// Generate the geometry for the left tile.
 	tiles[TOP].GenerateGeometry(data->geometry[tiles[TOP].texture_index].GetVertices(), data->geometry[tiles[TOP].texture_index].GetIndices(),
-		element, Vector2f(0, 0), top_dimensions, top_dimensions);
+		computed, Vector2f(0, 0), top_dimensions, top_dimensions);
 	// Generate the geometry for the centre tiles.
 	tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index].GetVertices(),
-		data->geometry[tiles[CENTRE].texture_index].GetIndices(), element, Vector2f(0, top_dimensions.y),
+		data->geometry[tiles[CENTRE].texture_index].GetIndices(), computed, Vector2f(0, top_dimensions.y),
 		Vector2f(centre_dimensions.x, padded_size.y - (top_dimensions.y + bottom_dimensions.y)), centre_dimensions);
 	// Generate the geometry for the right tile.
 	tiles[BOTTOM].GenerateGeometry(data->geometry[tiles[BOTTOM].texture_index].GetVertices(),
-		data->geometry[tiles[BOTTOM].texture_index].GetIndices(), element, Vector2f(0, padded_size.y - bottom_dimensions.y), bottom_dimensions,
+		data->geometry[tiles[BOTTOM].texture_index].GetIndices(), computed, Vector2f(0, padded_size.y - bottom_dimensions.y), bottom_dimensions,
 		bottom_dimensions);
 
 	// Set the textures on the geometry.

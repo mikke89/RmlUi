@@ -92,7 +92,7 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta {
-	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(el), decoration(el), scroll(el), computed_values(el) {}
+	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(), decoration(el), scroll(el), computed_values(el) {}
 	SmallUnorderedMap<EventId, EventListener*> attribute_event_listeners;
 	EventDispatcher event_dispatcher;
 	ElementStyle style;
@@ -1545,14 +1545,6 @@ ElementScroll* Element::GetElementScroll() const
 DataModel* Element::GetDataModel() const
 {
 	return data_model;
-}
-
-RenderInterface* Element::GetRenderInterface()
-{
-	if (Context* context = GetContext())
-		return context->GetRenderInterface();
-
-	return ::Rml::GetRenderInterface();
 }
 
 void Element::SetInstancer(ElementInstancer* _instancer)

@@ -60,9 +60,6 @@ Context::Context(const String& name) :
 {
 	instancer = nullptr;
 
-	// Initialise this to nullptr; this will be set in Rml::CreateContext().
-	render_interface = nullptr;
-
 	root = Factory::InstanceElement(nullptr, "*", "#root", XMLAttributes());
 	root->SetId(name);
 	root->SetOffset(Vector2f(0, 0), nullptr);
@@ -117,8 +114,6 @@ Context::~Context()
 	cursor_proxy.reset();
 
 	instancer = nullptr;
-
-	render_interface = nullptr;
 }
 
 const String& Context::GetName() const
@@ -223,12 +218,7 @@ bool Context::Render()
 {
 	RMLUI_ZoneScoped;
 
-	RenderInterface* render_interface = GetRenderInterface();
-	if (render_interface == nullptr)
-		return false;
-
-	render_interface->context = this;
-	ElementUtilities::ApplyActiveClipRegion(this, render_interface);
+	ElementUtilities::ApplyActiveClipRegion(this);
 
 	root->Render();
 
@@ -242,8 +232,6 @@ bool Context::Render()
 			Vector2f((float)Math::Clamp(mouse_position.x, 0, dimensions.x), (float)Math::Clamp(mouse_position.y, 0, dimensions.y)), nullptr);
 		cursor_proxy->Render();
 	}
-
-	render_interface->context = nullptr;
 
 	return true;
 }
@@ -865,11 +853,6 @@ bool Context::IsMouseInteracting() const
 void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor)
 {
 	scroll_controller->SetDefaultScrollBehavior(scroll_behavior, speed_factor);
-}
-
-RenderInterface* Context::GetRenderInterface() const
-{
-	return render_interface;
 }
 
 bool Context::GetActiveClipRegion(Vector2i& origin, Vector2i& dimensions) const

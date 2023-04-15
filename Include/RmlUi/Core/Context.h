@@ -42,7 +42,6 @@ class Stream;
 class ContextInstancer;
 class ElementDocument;
 class EventListener;
-class RenderInterface;
 class DataModel;
 class DataModelConstructor;
 class DataTypeRegister;
@@ -247,9 +246,6 @@ public:
 	/// @param[in] speed_factor A factor for adjusting the final smooth scrolling speed, must be strictly positive, defaults to 1.0.
 	void SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor);
 
-	/// Gets the context's render interface.
-	/// @return The render interface the context renders through.
-	RenderInterface* GetRenderInterface() const;
 	/// Gets the current clipping region for the render traversal
 	/// @param[out] origin The clipping origin
 	/// @param[out] dimensions The clipping dimensions
@@ -373,8 +369,6 @@ private:
 	// itself can't be part of it.
 	ElementSet drag_hover_chain;
 
-	// The render interface this context renders through.
-	RenderInterface* render_interface;
 	Vector2i clip_origin;
 	Vector2i clip_dimensions;
 
@@ -426,7 +420,6 @@ private:
 	static void SendEvents(const ElementSet& old_items, const ElementSet& new_items, EventId id, const Dictionary& parameters);
 
 	friend class Rml::Element;
-	friend RMLUICORE_API Context* CreateContext(const String&, Vector2i, RenderInterface*);
 };
 
 } // namespace Rml

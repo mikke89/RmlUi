@@ -52,20 +52,20 @@ const String& Texture::GetSource() const
 	return resource->GetSource();
 }
 
-TextureHandle Texture::GetHandle(RenderInterface* render_interface) const
+TextureHandle Texture::GetHandle() const
 {
 	if (!resource)
 		return 0;
 
-	return resource->GetHandle(render_interface);
+	return resource->GetHandle();
 }
 
-Vector2i Texture::GetDimensions(RenderInterface* render_interface) const
+Vector2i Texture::GetDimensions() const
 {
 	if (!resource)
-		return Vector2i(0, 0);
+		return {};
 
-	return resource->GetDimensions(render_interface);
+	return resource->GetDimensions();
 }
 
 bool Texture::operator==(const Texture& other) const

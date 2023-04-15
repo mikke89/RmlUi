@@ -37,8 +37,6 @@
 
 namespace Rml {
 
-class Context;
-
 /**
     The abstract base class for application-specific rendering implementation. Your application must provide a concrete
     implementation of this class and install it through Rml::SetRenderInterface() in order for anything to be rendered.
@@ -112,15 +110,6 @@ public:
 	/// is submitted. Then it expects the renderer to use an identity matrix or otherwise omit the multiplication with the transform.
 	/// @param[in] transform The new transform to apply, or nullptr if no transform applies to the current element.
 	virtual void SetTransform(const Matrix4f* transform);
-
-	/// Get the context currently being rendered. This is only valid during RenderGeometry,
-	/// CompileGeometry, RenderCompiledGeometry, EnableScissorRegion and SetScissorRegion.
-	Context* GetContext() const;
-
-private:
-	Context* context;
-
-	friend class Rml::Context;
 };
 
 } // namespace Rml

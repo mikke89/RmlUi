@@ -79,7 +79,7 @@ public:
 		Tile();
 
 		/// Calculates the tile's dimensions from the texture and texture coordinates.
-		void CalculateDimensions(Element* element, const Texture& texture) const;
+		void CalculateDimensions(const Texture& texture) const;
 		/// Get the dimensions (in px) that this tile is ideally displayed as.
 		/// Uses the dp-ratio of the current element and 'display_scale' to calculate the dimensions.
 		Vector2f GetNaturalDimensions(Element* element) const;
@@ -87,19 +87,17 @@ public:
 		/// Generates geometry to render this tile across a surface.
 		/// @param[out] vertices The array to store the generated vertex data.
 		/// @param[out] indices The array to store the generated index data.
-		/// @param[in] element The element hosting the decorator.
+		/// @param[in] computed_values The computed values of the element being decorated.
 		/// @param[in] surface_origin The starting point of the first tile to generate.
 		/// @param[in] surface_dimensions The dimensions of the surface to be tiled.
 		/// @param[in] tile_dimensions The dimensions to render this tile at.
-		void GenerateGeometry(Vector<Vertex>& vertices, Vector<int>& indices, Element* element, Vector2f surface_origin, Vector2f surface_dimensions,
-			Vector2f tile_dimensions) const;
+		void GenerateGeometry(Vector<Vertex>& vertices, Vector<int>& indices, const ComputedValues& computed_values, Vector2f surface_origin,
+			Vector2f surface_dimensions, Vector2f tile_dimensions) const;
 
 		struct TileData {
 			Vector2f size;         // 'px' units
 			Vector2f texcoords[2]; // relative units
 		};
-
-		using TileDataMap = SmallUnorderedMap<RenderInterface*, TileData>;
 
 		int texture_index;
 
@@ -109,7 +107,8 @@ public:
 		// Position and size within the texture, absolute units (px)
 		Vector2f position, size;
 
-		mutable TileDataMap data;
+		mutable TileData tile_data;
+		mutable bool tile_data_calculated = false;
 
 		TileOrientation orientation;
 

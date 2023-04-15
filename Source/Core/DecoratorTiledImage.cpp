@@ -47,13 +47,15 @@ bool DecoratorTiledImage::Initialise(const Tile& _tile, const Texture& _texture)
 DecoratorDataHandle DecoratorTiledImage::GenerateElementData(Element* element) const
 {
 	// Calculate the tile's dimensions for this element.
-	tile.CalculateDimensions(element, *GetTexture(tile.texture_index));
+	tile.CalculateDimensions(*GetTexture(tile.texture_index));
 
-	Geometry* data = new Geometry(element);
+	Geometry* data = new Geometry();
 	data->SetTexture(GetTexture());
 
+	const ComputedValues& computed = element->GetComputedValues();
+
 	// Generate the geometry for the tile.
-	tile.GenerateGeometry(data->GetVertices(), data->GetIndices(), element, Vector2f(0, 0), element->GetBox().GetSize(Box::PADDING),
+	tile.GenerateGeometry(data->GetVertices(), data->GetIndices(), computed, Vector2f(0, 0), element->GetBox().GetSize(Box::PADDING),
 		tile.GetNaturalDimensions(element));
 
 	return reinterpret_cast<DecoratorDataHandle>(data);

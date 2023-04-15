@@ -38,7 +38,7 @@
 
 namespace Rml {
 
-ElementImage::ElementImage(const String& tag) : Element(tag), dimensions(-1, -1), rect_source(RectSource::None), geometry(this)
+ElementImage::ElementImage(const String& tag) : Element(tag), dimensions(-1, -1), rect_source(RectSource::None)
 {
 	dimensions_scale = 1.0f;
 	geometry_dirty = false;
@@ -57,7 +57,7 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 	if (HasAttribute("width"))
 		dimensions.x = GetAttribute<float>("width", -1);
 	else if (rect_source == RectSource::None)
-		dimensions.x = (float)texture.GetDimensions(GetRenderInterface()).x;
+		dimensions.x = (float)texture.GetDimensions().x;
 	else
 		dimensions.x = rect.Width();
 
@@ -65,7 +65,7 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 	if (HasAttribute("height"))
 		dimensions.y = GetAttribute<float>("height", -1);
 	else if (rect_source == RectSource::None)
-		dimensions.y = (float)texture.GetDimensions(GetRenderInterface()).y;
+		dimensions.y = (float)texture.GetDimensions().y;
 	else
 		dimensions.y = rect.Height();
 
@@ -181,7 +181,7 @@ void ElementImage::GenerateGeometry()
 	Vector2f texcoords[2];
 	if (rect_source != RectSource::None)
 	{
-		Vector2f texture_dimensions = Vector2f(Math::Max(texture.GetDimensions(GetRenderInterface()), Vector2i(1)));
+		Vector2f texture_dimensions = Vector2f(Math::Max(texture.GetDimensions(), Vector2i(1)));
 		texcoords[0] = rect.TopLeft() / texture_dimensions;
 		texcoords[1] = rect.BottomRight() / texture_dimensions;
 	}
