@@ -504,3 +504,51 @@ TEST_CASE("databinding.aliasing")
 
 	TestsShell::ShutdownShell();
 }
+
+static const String set_enum_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/template" href="/assets/window.rml"/>
+	<style>
+		body.window {
+			width: 500px;
+			height: 400px;
+		}
+	</style>
+</head>
+<body template="window">
+<div data-model="basics">
+<p id="simple" data-event-click="simple = 2">{{ simple }}</p>
+</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("databinding.set_enum")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	globals.simple = Simple_One;
+
+	REQUIRE(InitializeDataBindings(context));
+
+	ElementDocument* document = context->LoadDocumentFromMemory(set_enum_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	Element* element = document->GetElementById("simple");
+	CHECK(element->GetInnerRML() == "1");
+
+	element->DispatchEvent(EventId::Click, Dictionary());
+	TestsShell::RenderLoop();
+
+	CHECK(globals.simple == Simple_Two);
+	CHECK(element->GetInnerRML() == "2");
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
