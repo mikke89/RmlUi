@@ -129,7 +129,7 @@ public:
 };
 
 template <typename SrcType, typename DestType>
-class TypeConverter<SrcType, DestType, std::enable_if_t<std::is_enum_v<DestType>>> {
+class TypeConverter<SrcType, DestType, std::enable_if_t<std::is_enum<DestType>::value>> {
 public:
 	RMLUICORE_API static bool Convert(const SrcType& src, DestType& dest);
 };
