@@ -189,10 +189,12 @@ BASIC_CONVERTER(double, unsigned int);
 BASIC_CONVERTER(char, Character);
 
 template <typename SrcType, typename DestType>
-bool TypeConverter<SrcType, DestType, std::enable_if_t<std::is_enum<DestType>::value>>::Convert(const SrcType& src, DestType& dest)
-{
-	return TypeConverter<SrcType, std::underlying_type_t<DestType>>::Convert(src, *reinterpret_cast<std::underlying_type_t<DestType>*>(&dest));
-}
+struct TypeConverter<SrcType, DestType, std::enable_if_t<std::is_enum<DestType>::value>> {
+	static bool Convert(const SrcType& src, DestType& dest)
+	{
+		return TypeConverter<SrcType, std::underlying_type_t<DestType>>::Convert(src, *reinterpret_cast<std::underlying_type_t<DestType>*>(&dest));
+	}
+};
 
 /////////////////////////////////////////////////
 // From string converters
