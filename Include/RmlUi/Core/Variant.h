@@ -104,9 +104,7 @@ public:
 	/// internal representation to the requested representation.
 	/// @param[out] value Data in the requested type.
 	/// @return True if the value was converted and returned, false if no data was stored in the variant.
-	template <typename T, typename std::enable_if_t<std::is_enum_v<T>, int> = 0>
-	bool GetInto(T& value) const;
-	template <typename T, typename std::enable_if_t<!std::is_enum_v<T>, int> = 0>
+	template <typename T>
 	bool GetInto(T& value) const;
 
 	/// Returns a reference to the variant's underlying type.

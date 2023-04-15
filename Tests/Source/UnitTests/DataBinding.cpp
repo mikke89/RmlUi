@@ -89,7 +89,7 @@ static const String document_rml = R"(
 <p>{{ basic.d }}</p>
 <p>{{ basic.e }}</p>
 <p>{{ basic.f }}</p>
-<p>{{ basic.simple }}</p>
+<p id="simple" data-event-click="basic.simple = 2">{{ basic.simple }}</p>
 <p>{{ basic.scoped }}</p>
 
 <h1>Wrapped</h1>
@@ -111,6 +111,38 @@ static const String document_rml = R"(
 <p><span data-for="arrays.d">{{ it.val }} </span></p>
 <p><span data-for="arrays.e">{{ it.val }} </span></p>
 
+</div>
+</body>
+</rml>
+)";
+
+static const String enum_set_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/template" href="/assets/window.rml"/>
+	<style>
+		body.window
+		{
+			left: 50px;
+			right: 50px;
+			top: 30px;
+			bottom: 30px;
+			max-width: none;
+			max-height: none;
+		}
+		div#content
+		{
+			text-align: left;
+			padding: 50px;
+			box-sizing: border-box;
+		}
+	</style>
+</head>
+
+<body template="window">
+<div data-model="basics">
+<p id="simple" data-event-click="basic.simple = '2'">{{ basic.simple }}</p>
 </div>
 </body>
 </rml>
@@ -453,6 +485,28 @@ TEST_CASE("databinding")
 	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
 	REQUIRE(document);
 	document->Show();
+
+	TestsShell::RenderLoop();
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("databinding.set_enum")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	REQUIRE(InitializeDataBindings(context));
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	document->GetElementById("simple")->DispatchEvent(EventId::Click, Dictionary());
 
 	TestsShell::RenderLoop();
 
