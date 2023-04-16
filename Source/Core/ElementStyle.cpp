@@ -377,7 +377,7 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 	source_inline_properties.SetProperty(id, new_property);
 
 	// directly copy to resolved values if not variable-dependent
-	if (property.value.GetType() != Variant::VARIABLETERM)
+	if (property.unit != Property::PROPERTYVARIABLETERM)
 		inline_properties.SetProperty(id, new_property);
 
 	UpdatePropertyDependencies(id);
@@ -399,7 +399,7 @@ bool ElementStyle::SetPropertyVariable(const String& name, const Property& varia
 {
 	source_inline_properties.SetPropertyVariable(name, variable);
 	// directly copy to resolved values if not variable-dependent
-	if (variable.unit != Property::VARIABLETERM)
+	if (variable.unit != Property::PROPERTYVARIABLETERM)
 		inline_properties.SetPropertyVariable(name, variable);
 
 	DirtyPropertyVariable(name);
@@ -625,7 +625,7 @@ void ElementStyle::ResolvePropertyVariable(const String& name, UnorderedSet<Stri
 	{
 		inline_properties.RemovePropertyVariable(name);
 	}
-	else if (var->unit == Property::VARIABLETERM)
+	else if (var->unit == Property::PROPERTYVARIABLETERM)
 	{
 		// resolve dirty variable dependencies first
 		auto const& term = var->value.GetReference<PropertyVariableTerm>();
@@ -652,7 +652,7 @@ void ElementStyle::ResolvePropertyVariableTerm(String& result, const PropertyVar
 			const Property* var = GetPropertyVariable(atom.variable);
 			if (var)
 			{
-				if (var->unit == Property::VARIABLETERM)
+				if (var->unit == Property::PROPERTYVARIABLETERM)
 				{
 					if (atom.constant.empty())
 						Log::Message(Log::LT_ERROR, "Failed to resolve RCSS variable '%s'. Has not been resolved yet.", atom.variable.c_str());
@@ -690,7 +690,7 @@ void ElementStyle::UpdatePropertyDependencies(PropertyId id)
 
 	auto property = GetProperty(id);
 
-	if (property && property->unit == Property::VARIABLETERM)
+	if (property && property->unit == Property::PROPERTYVARIABLETERM)
 	{
 		auto term = property->value.GetReference<PropertyVariableTerm>();
 		for (auto const& atom : term)
@@ -781,7 +781,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 				inline_properties.RemoveProperty(id);
 				continue;
 			}
-			else if (prop->unit == Property::VARIABLETERM)
+			else if (prop->unit == Property::PROPERTYVARIABLETERM)
 			{
 				String string_value;
 				ResolvePropertyVariableTerm(string_value, prop->value.GetReference<PropertyVariableTerm>());

@@ -43,7 +43,7 @@ Variant::Variant()
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
 	static_assert(sizeof(DecoratorsPtr) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorsPtr");
 	static_assert(sizeof(FontEffectsPtr) <= LOCAL_DATA_SIZE, "Local data too small for FontEffectsPtr");
-	static_assert(sizeof(PropertyVariableTerm) <= LOCAL_DATA_SIZE, "Local data too small for VariableTerm");
+	static_assert(sizeof(PropertyVariableTerm) <= LOCAL_DATA_SIZE, "Local data too small for PropertyVariableTerm");
 }
 
 Variant::Variant(const Variant& copy)
@@ -123,7 +123,7 @@ void Variant::Set(const Variant& copy)
 	case ANIMATIONLIST: Set(*reinterpret_cast<const AnimationList*>(copy.data)); break;
 	case DECORATORSPTR: Set(*reinterpret_cast<const DecoratorsPtr*>(copy.data)); break;
 	case FONTEFFECTSPTR: Set(*reinterpret_cast<const FontEffectsPtr*>(copy.data)); break;
-	case VARIABLETERM: Set(*reinterpret_cast<const PropertyVariableTerm*>(copy.data)); break;
+	case PROPERTYVARIABLETERM: Set(*reinterpret_cast<const PropertyVariableTerm*>(copy.data)); break;
 	default:
 		memcpy(data, copy.data, LOCAL_DATA_SIZE);
 		type = copy.type;
@@ -142,7 +142,7 @@ void Variant::Set(Variant&& other)
 	case ANIMATIONLIST: Set(std::move(*reinterpret_cast<AnimationList*>(other.data))); break;
 	case DECORATORSPTR: Set(std::move(*reinterpret_cast<DecoratorsPtr*>(other.data))); break;
 	case FONTEFFECTSPTR: Set(std::move(*reinterpret_cast<FontEffectsPtr*>(other.data))); break;
-	case VARIABLETERM: Set(std::move(*reinterpret_cast<PropertyVariableTerm*>(other.data))); break;
+	case PROPERTYVARIABLETERM: Set(std::move(*reinterpret_cast<PropertyVariableTerm*>(other.data))); break;
 	default:
 		memcpy(data, other.data, LOCAL_DATA_SIZE);
 		type = other.type;
@@ -403,26 +403,26 @@ void Variant::Set(FontEffectsPtr&& value)
 
 void Variant::Set(const PropertyVariableTerm& value)
 {
-	if (type == VARIABLETERM)
+	if (type == PROPERTYVARIABLETERM)
 	{
 		*(PropertyVariableTerm*)data = value;
 	}
 	else
 	{
-		type = VARIABLETERM;
+		type = PROPERTYVARIABLETERM;
 		new (data) PropertyVariableTerm(value);
 	}
 }
 
 void Variant::Set(PropertyVariableTerm&& value)
 {
-	if (type == VARIABLETERM)
+	if (type == PROPERTYVARIABLETERM)
 	{
 		(*(PropertyVariableTerm*)data) = std::move(value);
 	}
 	else
 	{
-		type = VARIABLETERM;
+		type = PROPERTYVARIABLETERM;
 		new (data) PropertyVariableTerm(std::move(value));
 	}
 }
@@ -478,7 +478,7 @@ bool Variant::operator==(const Variant& other) const
 	case ANIMATIONLIST: return DEFAULT_VARIANT_COMPARE(AnimationList);
 	case DECORATORSPTR: return DEFAULT_VARIANT_COMPARE(DecoratorsPtr);
 	case FONTEFFECTSPTR: return DEFAULT_VARIANT_COMPARE(FontEffectsPtr);
-	case VARIABLETERM: return DEFAULT_VARIANT_COMPARE(PropertyVariableTerm);
+	case PROPERTYVARIABLETERM: return DEFAULT_VARIANT_COMPARE(PropertyVariableTerm);
 	case NONE: return true;
 	}
 	RMLUI_ERRORMSG("Variant comparison not implemented for this type.");

@@ -224,7 +224,7 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 	// If matches the shape of a variable declaration, try to handle as such
 	if (property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-')
 	{
-		return ParseVariableDeclaration(dictionary, property_name, property_value);
+		return ParsePropertyVariableDeclaration(dictionary, property_name, property_value);
 	}
 
 	// Try as a property first
@@ -253,9 +253,9 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 
 	PropertyVariableTerm term;
 	Property new_property;
-	if (ParseVariableTerm(term, property_values))
+	if (ParsePropertyVariableTerm(term, property_values))
 	{
-		new_property = Property(std::move(term), Property::VARIABLETERM);
+		new_property = Property(std::move(term), Property::PROPERTYVARIABLETERM);
 		new_property.definition = property_definition;
 		dictionary.SetProperty(property_id, new_property);
 		return true;
@@ -275,7 +275,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		return false;
 
 	PropertyVariableTerm term;
-	if (ParseVariableTerm(term, property_values))
+	if (ParsePropertyVariableTerm(term, property_values))
 	{
 		dictionary.SetDependent(shorthand_id, term);
 		return true;
@@ -434,7 +434,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 	return true;
 }
 
-bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const
+bool PropertySpecification::ParsePropertyVariableDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const
 {
 	if (!(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-'))
 		return false;
@@ -447,12 +447,12 @@ bool PropertySpecification::ParseVariableDeclaration(PropertyDictionary& diction
 		return true;
 
 	PropertyVariableTerm term;
-	bool any_variable = ParseVariableTerm(term, property_values);
+	bool any_variable = ParsePropertyVariableTerm(term, property_values);
 
 	// Only store original variable term when there is another variable inside that needs resolving
 	if (any_variable)
 	{
-		dictionary.SetPropertyVariable(property_name, Property(std::move(term), Property::VARIABLETERM));
+		dictionary.SetPropertyVariable(property_name, Property(std::move(term), Property::PROPERTYVARIABLETERM));
 	}
 	else
 	{
@@ -672,7 +672,7 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 	return true;
 }
 
-bool PropertySpecification::ParseVariableTerm(PropertyVariableTerm& term, StringList const& values_list) const
+bool PropertySpecification::ParsePropertyVariableTerm(PropertyVariableTerm& term, StringList const& values_list) const
 {
 	bool any_var = false;
 	for (auto const& it : values_list)

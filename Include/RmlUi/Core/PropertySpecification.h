@@ -115,7 +115,7 @@ public:
 	/// @return True if all properties were parsed successfully, false otherwise.
 	bool ParseShorthandDeclaration(PropertyDictionary& dictionary, ShorthandId shorthand_id, const String& property_value) const;
 	/// Parse variable declaration by name.
-	bool ParseVariableDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const;
+	bool ParsePropertyVariableDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const;
 
 	/// Sets all undefined properties in the dictionary to their defaults.
 	/// @param dictionary[in-out] The dictionary to set the default values on.
@@ -140,7 +140,7 @@ private:
 
 	bool ParsePropertyValues(StringList& values_list, const String& values, bool split_values) const;
 	// Returns true if a variable usage was encoutered, false if not (=plain values)
-	bool ParseVariableTerm(PropertyVariableTerm& term, StringList const& values_list) const;
+	bool ParsePropertyVariableTerm(PropertyVariableTerm& term, StringList const& values_list) const;
 
 	friend class Rml::StyleSheetSpecification;
 };
