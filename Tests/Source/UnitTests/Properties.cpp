@@ -413,8 +413,8 @@ TEST_CASE("variables.circular")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	// Should get two errors, one for circular dependency, one for resolution failure of the other variable
-	TestsShell::SetNumExpectedWarnings(2);
+	// Should get error for resolution failure of the second variable
+	TestsShell::SetNumExpectedWarnings(1);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(circular_rml);
 	REQUIRE(document);
