@@ -93,18 +93,22 @@ public:
 
 	inline Type GetType() const;
 
-	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
-	/// internal representation to the requested representation.
+	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the internal representation to
+	/// the requested representation.
 	/// @param[in] default_value The value returned if the conversion failed.
 	/// @return Data in the requested type.
 	template <typename T>
 	T Get(T default_value = T()) const;
 
-	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the
-	/// internal representation to the requested representation.
+	/// Templatised data accessor. TypeConverters will be used to attempt to convert from the internal representation to
+	/// the requested representation.
 	/// @param[out] value Data in the requested type.
 	/// @return True if the value was converted and returned, false if no data was stored in the variant.
-	template <typename T>
+	template <typename T, typename std::enable_if_t<!std::is_enum<T>::value, int> = 0>
+	bool GetInto(T& value) const;
+
+	/// Enum overload for the data accessor, will convert any stored integral value to the requested enum type.
+	template <typename T, typename std::enable_if_t<std::is_enum<T>::value, int> = 0>
 	bool GetInto(T& value) const;
 
 	/// Returns a reference to the variant's underlying type.
@@ -151,6 +155,9 @@ private:
 	void Set(DecoratorsPtr&& value);
 	void Set(const FontEffectsPtr& value);
 	void Set(FontEffectsPtr&& value);
+
+	template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
+	void Set(const T value);
 
 	static constexpr size_t LOCAL_DATA_SIZE = (sizeof(TransitionList) > sizeof(String) ? sizeof(TransitionList) : sizeof(String));
 

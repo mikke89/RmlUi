@@ -39,7 +39,8 @@ namespace Rml {
 
 template <typename T>
 struct is_builtin_data_scalar {
-	static constexpr bool value = std::is_arithmetic<T>::value || std::is_same<typename std::remove_const<T>::type, String>::value;
+	static constexpr bool value =
+		std::is_arithmetic<T>::value || std::is_enum<T>::value || std::is_same<typename std::remove_const<T>::type, String>::value;
 };
 
 class RMLUICORE_API TransformFuncRegister {

@@ -47,7 +47,7 @@ Variant& Variant::operator=(T&& t)
 	return *this;
 }
 
-template <typename T>
+template <typename T, typename std::enable_if<!std::is_enum<T>::value, int>::type>
 bool Variant::GetInto(T& value) const
 {
 	switch (type)
@@ -80,6 +80,19 @@ bool Variant::GetInto(T& value) const
 	return false;
 }
 
+template <typename T, typename std::enable_if<std::is_enum<T>::value, int>::type>
+bool Variant::GetInto(T& value) const
+{
+	static_assert(sizeof(T) <= sizeof(int64_t), "Enum underlying type exceeds maximum supported integer type size");
+	int64_t stored_value = 0;
+	if (GetInto(stored_value))
+	{
+		value = static_cast<T>(stored_value);
+		return true;
+	}
+	return false;
+}
+
 template <typename T>
 T Variant::Get(T default_value) const
 {
@@ -91,6 +104,14 @@ template <typename T>
 const T& Variant::GetReference() const
 {
 	return *reinterpret_cast<const T*>(&data);
+}
+
+template <typename T, typename>
+void Variant::Set(const T value)
+{
+	static_assert(sizeof(T) <= sizeof(int64_t), "Enum underlying type exceeds maximum supported integer type size");
+	type = INT64;
+	*(reinterpret_cast<int64_t*>(data)) = static_cast<int64_t>(value);
 }
 
 } // namespace Rml
