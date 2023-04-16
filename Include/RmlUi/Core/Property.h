@@ -56,7 +56,7 @@ public:
 
 		KEYWORD = 1 << 1, // generic keyword; fetch as < int >
 
-		STRING = 1 << 2,  // generic string; fetch as < String >
+		STRING = 1 << 2, // generic string; fetch as < String >
 
 		// Absolute values.
 		NUMBER = 1 << 3, // number unsuffixed; fetch as < float >
@@ -84,13 +84,13 @@ public:
 		PC = 1 << 19,   // number suffixed by 'pc'; fetch as < float >
 		PPI_UNIT = INCH | CM | MM | PT | PC,
 
-		TRANSFORM = 1 << 20,  // transform; fetch as < TransformPtr >, may be empty
-		TRANSITION = 1 << 21, // transition; fetch as < TransitionList >
-		ANIMATION = 1 << 22,  // animation; fetch as < AnimationList >
-		DECORATOR = 1 << 23,  // decorator; fetch as < DecoratorsPtr >
-		FONTEFFECT = 1 << 24, // font-effect; fetch as < FontEffectsPtr >
-		RATIO = 1 << 25,      // ratio defined as x/y; fetch as < Vector2f >
-		VARIABLETERM = 1 << 26,     // variable term; fetch as < VariableTerm >
+		TRANSFORM = 1 << 20,    // transform; fetch as < TransformPtr >, may be empty
+		TRANSITION = 1 << 21,   // transition; fetch as < TransitionList >
+		ANIMATION = 1 << 22,    // animation; fetch as < AnimationList >
+		DECORATOR = 1 << 23,    // decorator; fetch as < DecoratorsPtr >
+		FONTEFFECT = 1 << 24,   // font-effect; fetch as < FontEffectsPtr >
+		RATIO = 1 << 25,        // ratio defined as x/y; fetch as < Vector2f >
+		VARIABLETERM = 1 << 26, // variable term; fetch as < VariableTerm >
 
 		LENGTH = PX | DP | PPI_UNIT | EM | REM | VW | VH | X,
 		LENGTH_PERCENT = LENGTH | PERCENT,

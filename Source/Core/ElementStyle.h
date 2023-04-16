@@ -175,6 +175,9 @@ public:
 private:
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
+
+	void UpdatePropertyDependencies(PropertyId id);
+
 	void ResolvePropertyVariable(String const& name, UnorderedSet<String>& resolved_set);
 	void ResolvePropertyVariableTerm(String& result, const PropertyVariableTerm& term);
 
@@ -207,6 +210,8 @@ private:
 	PropertyIdSet dirty_properties;
 	UnorderedSet<String> dirty_variables;
 	UnorderedSet<ShorthandId> dirty_shorthands;
+
+	UnorderedMultimap<String, PropertyId> property_dependencies;
 };
 
 } // namespace Rml

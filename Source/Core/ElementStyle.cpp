@@ -253,8 +253,12 @@ void ElementStyle::UpdateDefinition()
 
 		definition = new_definition;
 
-		dirty_variables.insert(changed_variables.begin(), changed_variables.end());
+		for (auto const& name : changed_variables)
+			DirtyPropertyVariable(name);
+
 		DirtyProperties(changed_properties);
+		for (auto const& id : changed_properties)
+			UpdatePropertyDependencies(id);
 	}
 }
 
@@ -366,6 +370,8 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 	if (property.value.GetType() != Variant::VARIABLETERM)
 		inline_properties.SetProperty(id, new_property);
 
+	UpdatePropertyDependencies(id);
+
 	DirtyProperty(id);
 
 	return true;
@@ -382,7 +388,7 @@ bool ElementStyle::SetPropertyVariable(const String& name, const Property& varia
 {
 	source_inline_properties.SetPropertyVariable(name, variable);
 	// directly copy to resolved values if not variable-dependent
-	if (variable.value.GetType() != Variant::VARIABLETERM)
+	if (variable.unit != Property::VARIABLETERM)
 		inline_properties.SetPropertyVariable(name, variable);
 
 	DirtyPropertyVariable(name);
@@ -395,6 +401,7 @@ void ElementStyle::RemoveProperty(PropertyId id)
 	int size_before = source_inline_properties.GetNumProperties();
 	source_inline_properties.RemoveProperty(id);
 	inline_properties.RemoveProperty(id);
+	UpdatePropertyDependencies(id);
 
 	if (source_inline_properties.GetNumProperties() != size_before)
 		DirtyProperty(id);
@@ -607,7 +614,7 @@ void ElementStyle::ResolvePropertyVariable(const String& name, UnorderedSet<Stri
 	{
 		inline_properties.RemovePropertyVariable(name);
 	}
-	else if (var->value.GetType() == Variant::VARIABLETERM)
+	else if (var->unit == Property::VARIABLETERM)
 	{
 		// resolve dirty variable dependencies first
 		auto const& term = var->value.GetReference<PropertyVariableTerm>();
@@ -634,7 +641,7 @@ void ElementStyle::ResolvePropertyVariableTerm(String& result, const PropertyVar
 			const Property* var = GetPropertyVariable(atom.variable);
 			if (var)
 			{
-				if (var->value.GetType() == Variant::VARIABLETERM)
+				if (var->unit == Property::VARIABLETERM)
 				{
 					if (atom.constant.empty())
 						Log::Message(Log::LT_ERROR, "Failed to resolve RCSS variable '%s'. Has not been resolved yet.", atom.variable.c_str());
@@ -660,6 +667,27 @@ void ElementStyle::ResolvePropertyVariableTerm(String& result, const PropertyVar
 	StringUtilities::JoinString(result, atoms, '\0');
 }
 
+void ElementStyle::UpdatePropertyDependencies(PropertyId id)
+{
+	for (auto iter = property_dependencies.begin(); iter != property_dependencies.end();)
+	{
+		if (iter->second == id)
+			iter = property_dependencies.erase(iter);
+		else
+			++iter;
+	}
+
+	auto property = GetProperty(id);
+
+	if (property && property->unit == Property::VARIABLETERM)
+	{
+		auto term = property->value.GetReference<PropertyVariableTerm>();
+		for (auto const& atom : term)
+			if (!atom.variable.empty())
+				property_dependencies.insert(std::make_pair(atom.variable, id));
+	}
+}
+
 PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values,
 	const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions)
 {
@@ -668,7 +696,13 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	{
 		UnorderedSet<String> resolved_set;
 		for (auto const& name : dirty_variables)
+		{
 			ResolvePropertyVariable(name, resolved_set);
+
+			auto dependents = property_dependencies.equal_range(name);
+			for (auto it = dependents.first; it != dependents.second; ++it)
+				DirtyProperty(it->second);
+		}
 	}
 
 	if (!dirty_properties.Empty())
@@ -684,7 +718,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 				inline_properties.RemoveProperty(id);
 				continue;
 			}
-			else if (prop->value.GetType() == Variant::VARIABLETERM)
+			else if (prop->unit == Property::VARIABLETERM)
 			{
 				String string_value;
 				ResolvePropertyVariableTerm(string_value, prop->value.GetReference<PropertyVariableTerm>());
