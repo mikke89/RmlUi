@@ -756,44 +756,7 @@ PropertiesIteratorView Element::IterateLocalProperties() const
 {
 	return PropertiesIteratorView(MakeUnique<PropertiesIterator>(meta->style.Iterate()));
 }
-/*
-bool Element::SetPropertyVariable(const String& name, const String& value)
-{
-    PropertyDictionary properties;
-    if (!StyleSheetSpecification::ParseVariableDeclaration(properties, name, value))
-    {
-        Log::Message(Log::LT_WARNING, "Syntax error parsing inline variable declaration '%s: %s;'.", name.c_str(), value.c_str());
-        return false;
-    }
 
-    for (auto const& it : properties.GetPropertyVariables())
-    {
-        meta->style.SetPropertyVariable(it.first, it.second);
-    }
-
-    return true;
-}
-
-bool Element::SetPropertyVariable(const String& name, const Property& variable)
-{
-    return meta->style.SetPropertyVariable(name, variable);
-}
-
-void Element::RemovePropertyVariable(const String& name)
-{
-    meta->style.RemoveVariable(name);
-}
-
-const Property* Element::GetPropertyVariable(String const& name)
-{
-    return meta->style.GetPropertyVariable(name);
-}
-
-const Property* Element::GetLocalPropertyVariable(String const& name)
-{
-    return meta->style.GetLocalPropertyVariable(name);
-}
-*/
 const PropertyVariableMap& Element::GetLocalStylePropertyVariables()
 {
 	return meta->style.GetLocalStylePropertyVariables();
