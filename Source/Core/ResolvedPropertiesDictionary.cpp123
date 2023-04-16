@@ -328,7 +328,7 @@ void ResolvedPropertiesDictionary::ResolvePropertyVariable(String const& name)
 		resolved_properties.RemovePropertyVariable(name);
 
 	if (parent)
-		parent->DirtyVariable(name);
+		parent->DirtyPropertyVariable(name);
 }
 
 void ResolvedPropertiesDictionary::UpdatePropertyDependencies(PropertyId id)

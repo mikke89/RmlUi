@@ -33,7 +33,6 @@
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../Include/RmlUi/Core/Types.h"
-#include "ResolvedPropertiesDictionary.h"
 
 namespace Rml {
 
@@ -89,10 +88,10 @@ public:
 	String GetClassNames() const;
 	/// Return the active class list.
 	const StringList& GetClassNameList() const;
-	
-   /// Sets a local property override on the element to a pre-parsed value.
-   /// @param[in] name The id of the new property.
-   /// @param[in] property The parsed property to set.
+
+	/// Sets a local property override on the element to a pre-parsed value.
+	/// @param[in] name The id of the new property.
+	/// @param[in] property The parsed property to set.
 	bool SetProperty(PropertyId id, const Property& property);
 	/// Sets a local shorthand override on the element to a variable-dependent value.
 	/// @param[in] name The id of the new shorthand.
@@ -148,17 +147,17 @@ public:
 	/// Inherited properties will automatically be set when parent inherited properties are changed. However,
 	/// some operations may require to dirty these manually, such as when moving an element into another.
 	void DirtyInheritedProperties();
-	
+
 	// Sets a single property as dirty.
 	void DirtyProperty(PropertyId id);
 	/// Dirties all properties with any of the given units (OR-ed together) on the current element (*not* recursive).
 	void DirtyPropertiesWithUnits(Property::Unit units);
 	/// Dirties all properties with any of the given units (OR-ed together) on the current element and recursively on all children.
 	void DirtyPropertiesWithUnitsRecursive(Property::Unit units);
-	
+
 	// Sets a single variable as dirty.
-	void DirtyVariable(String const& name);
-	
+	void DirtyPropertyVariable(String const& name);
+
 	/// Returns true if any properties are dirty such that computed values need to be recomputed
 	bool AnyPropertiesDirty() const;
 
@@ -170,24 +169,24 @@ public:
 	/// Returns an iterator for iterating the local properties of this element.
 	/// Note: Modifying the element's style invalidates its iterator.
 	PropertiesIterator Iterate() const;
-	
-	UnorderedSet<String> GetDirtyVariables() const;
+
+	UnorderedSet<String> GetDirtyPropertyVariables() const;
+
 private:
 	// Sets a list of properties as dirty.
 	void DirtyProperties(const PropertyIdSet& properties);
+	void ResolvePropertyVariable(String const& name, UnorderedSet<String>& resolved_set);
+	void ResolvePropertyVariableTerm(String& result, const PropertyVariableTerm& term);
 
-	static const Property* GetLocalProperty(PropertyId id, const ResolvedPropertiesDictionary& inline_properties,
-		const ResolvedPropertiesDictionary& definition_properties);
-	static const Property* GetProperty(PropertyId id, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
-		const ResolvedPropertiesDictionary& definition_properties);
-
-	static const Property* GetLocalPropertyVariable(String const& name, const ResolvedPropertiesDictionary& inline_properties,
-		const ResolvedPropertiesDictionary& definition_properties);
-	static const Property* GetPropertyVariable(String const& name, const Element* element, const ResolvedPropertiesDictionary& inline_properties,
-		const ResolvedPropertiesDictionary& definition_properties);
-
-	static void TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const ResolvedPropertiesDictionary& local_properties,
-		const ResolvedPropertiesDictionary& old_definition_properties, const ResolvedPropertiesDictionary& new_definition_properties);
+	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition);
+	static const Property* GetProperty(PropertyId id, const Element* element, const PropertyDictionary& inline_properties,
+		const ElementDefinition* definition);
+	static const Property* GetLocalPropertyVariable(String const& name, const PropertyDictionary& inline_properties,
+		const ElementDefinition* definition);
+	static const Property* GetPropertyVariable(String const& name, const Element* element, const PropertyDictionary& inline_properties,
+		const ElementDefinition* definition);
+	static void TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& inline_properties,
+		const ElementDefinition* old_definition, const ElementDefinition* new_definition);
 
 	// Element these properties belong to
 	Element* element;
@@ -197,15 +196,17 @@ private:
 	// This element's current pseudo-classes.
 	PseudoClassMap pseudo_classes;
 
-	// Any properties that have been overridden in this element.
-	ResolvedPropertiesDictionary inline_properties;
+	// Any properties that have been manually overridden in this element.
+	PropertyDictionary source_inline_properties;
+	// All manually overridden properties and resolved variable-depdendent values.
+	PropertyDictionary inline_properties;
 
 	// The definition of this element, provides applicable properties from the stylesheet.
 	SharedPtr<const ElementDefinition> definition;
-	ResolvedPropertiesDictionary definition_properties;
 
 	PropertyIdSet dirty_properties;
 	UnorderedSet<String> dirty_variables;
+	UnorderedSet<ShorthandId> dirty_shorthands;
 };
 
 } // namespace Rml

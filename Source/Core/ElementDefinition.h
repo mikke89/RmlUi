@@ -53,14 +53,23 @@ public:
 	/// @return The property defined against the give name, or nullptr if no such property was found.
 	const Property* GetProperty(PropertyId id) const;
 
+	/// Returns a specific property variable from the element definition.
+	/// @param[in] name The name of the property to return.
+	/// @return The property defined against the give name, or nullptr if no such property was found.
+	const Property* GetPropertyVariable(String const& name) const;
+
 	/// Returns the list of property ids this element definition defines.
-	const PropertyIdSet& GetPropertyIds() const;
+	const PropertyIdSet& GetPropertyIds() const { return property_ids; }
+
+	/// Returns the list of property variable names this element definition defines.
+	const UnorderedSet<String>& GetPropertyVariableNames() const { return property_variable_names; }
 
 	const PropertyDictionary& GetProperties() const { return properties; }
 
 private:
 	PropertyDictionary properties;
 	PropertyIdSet property_ids;
+	UnorderedSet<String> property_variable_names;
 };
 
 } // namespace Rml

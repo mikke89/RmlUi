@@ -359,7 +359,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertySpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterface.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ResolvedPropertiesDictionary.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ScrollController.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Spritesheet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Stream.cpp

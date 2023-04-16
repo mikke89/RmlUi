@@ -26,13 +26,13 @@
  *
  */
 
-#include "../Common/TestsShell.h"
 #include "../Common/TestsInterface.h"
+#include "../Common/TestsShell.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/DataModelHandle.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -227,28 +227,46 @@ static const String circular_rml = R"(
 </rml>
 )";
 
+static const String order_rml = R"(
+<rml>
+<head>
+	<style>
+	body {
+		--bg1-color: var(--bg2-color);
+		--bg2-color: var(--bg3-color);
+		--bg3-color: "#ffffff";
+	}
+	</style>
+</head>
+
+<body>
+<div></div>
+</body>
+</rml>
+)";
+
 TEST_CASE("variables.basic")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-	
+
 	ElementDocument* document = context->LoadDocumentFromMemory(basic_rml);
 	REQUIRE(document);
 	document->Show();
-	
+
 	TestsShell::RenderLoop();
-	
+
 	// basic variable
 	Element* div = document->GetElementById("div");
 	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
-	
+
 	// recursive variable
 	Element* p = document->GetElementById("p");
 	CHECK(p->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
-	
+
 	// variable fallback
 	CHECK(p->GetProperty(PropertyId::Color)->ToString() == "rgba(255,0,0,255)");
-	
+
 	// variable modification
 	div->SetProperty("--color-var", "#000000");
 
@@ -263,7 +281,7 @@ TEST_CASE("variables.basic")
 	TestsShell::RenderLoop();
 
 	document->Close();
-	
+
 	TestsShell::ShutdownShell();
 }
 
@@ -271,11 +289,11 @@ TEST_CASE("variables.shorthands")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-	
+
 	ElementDocument* document = context->LoadDocumentFromMemory(shorthand_rml);
 	REQUIRE(document);
 	document->Show();
-	
+
 	TestsShell::RenderLoop();
 
 	Element* div = document->GetElementById("div");
@@ -284,9 +302,9 @@ TEST_CASE("variables.shorthands")
 
 	// variable modification and shorthand override
 	div->SetProperty(PropertyId::PaddingTop, Property(6, Property::PX));
-	
+
 	TestsShell::RenderLoop();
-	
+
 	CHECK(div->GetProperty(PropertyId::PaddingTop)->ToString() == "6px");
 
 	// Change shorthand
@@ -294,7 +312,7 @@ TEST_CASE("variables.shorthands")
 	div->RemoveProperty(PropertyId::PaddingTop);
 
 	TestsShell::RenderLoop();
-	
+
 	CHECK(div->GetProperty(PropertyId::PaddingTop)->ToString() == "15px");
 
 	// Multi-var shorthand
@@ -310,7 +328,7 @@ TEST_CASE("variables.shorthands")
 	CHECK(p->GetProperty(PropertyId::PaddingLeft)->ToString() == "7px");
 
 	document->Close();
-	
+
 	TestsShell::ShutdownShell();
 }
 
@@ -318,28 +336,28 @@ TEST_CASE("variables.datamodel")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-	
+
 	auto model = context->CreateDataModel("vars");
 	String bgcolor;
 	model.Bind("bgcolor", &bgcolor);
-	
+
 	ElementDocument* document = context->LoadDocumentFromMemory(datamodel_rml);
 	REQUIRE(document);
 	document->Show();
-	
+
 	TestsShell::RenderLoop();
-	
+
 	Element* div = document->GetElementById("div");
 	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,0,0,255)");
 	bgcolor = "#ffffff";
 	model.GetModelHandle().DirtyVariable("bgcolor");
-	
+
 	TestsShell::RenderLoop();
-	
-	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");		
-	
+
+	CHECK(div->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
+
 	document->Close();
-	
+
 	TestsShell::ShutdownShell();
 }
 
@@ -347,18 +365,18 @@ TEST_CASE("variables.inheritance")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-	
+
 	ElementDocument* document = context->LoadDocumentFromMemory(inheritance_rml);
 	REQUIRE(document);
 	document->Show();
-	
+
 	TestsShell::RenderLoop();
-	
+
 	CHECK(document->GetElementById("p1")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,255,0,255)");
 	CHECK(document->GetElementById("p2")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,255)");
 
 	document->Close();
-	
+
 	TestsShell::ShutdownShell();
 }
 
@@ -366,27 +384,27 @@ TEST_CASE("variables.mediaquery")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-	
+
 	ElementDocument* document = context->LoadDocumentFromMemory(media_query_rml);
 	REQUIRE(document);
 	document->Show();
-	
+
 	TestsShell::RenderLoop();
 
 	context->SetDimensions(Vector2i(800, 320));
-	
+
 	TestsShell::RenderLoop();
-	
+
 	CHECK(document->GetElementById("div")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(0,255,0,127)");
-	
+
 	context->SetDimensions(Vector2i(600, 320));
-	
+
 	TestsShell::RenderLoop();
 
 	CHECK(document->GetElementById("div")->GetProperty(PropertyId::BackgroundColor)->ToString() == "rgba(255,255,255,127)");
 
 	document->Close();
-	
+
 	TestsShell::ShutdownShell();
 }
 
@@ -394,11 +412,26 @@ TEST_CASE("variables.circular")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
-	
+
 	// Should get two errors, one for circular dependency, one for resolution failure of the other variable
 	TestsShell::SetNumExpectedWarnings(2);
-	
+
 	ElementDocument* document = context->LoadDocumentFromMemory(circular_rml);
+	REQUIRE(document);
+	document->Show();
+	TestsShell::RenderLoop();
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("variables.order")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	// Should succeed showcasing order-independence of variable definition and usage
+	ElementDocument* document = context->LoadDocumentFromMemory(order_rml);
 	REQUIRE(document);
 	document->Show();
 	TestsShell::RenderLoop();

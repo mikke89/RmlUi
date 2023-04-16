@@ -40,6 +40,9 @@ ElementDefinition::ElementDefinition(const Vector<const StyleSheetNode*>& style_
 
 	for (auto& property : properties.GetProperties())
 		property_ids.Insert(property.first);
+
+	for (auto& property : properties.GetPropertyVariables())
+		property_variable_names.insert(property.first);
 }
 
 const Property* ElementDefinition::GetProperty(PropertyId id) const
@@ -47,9 +50,9 @@ const Property* ElementDefinition::GetProperty(PropertyId id) const
 	return properties.GetProperty(id);
 }
 
-const PropertyIdSet& ElementDefinition::GetPropertyIds() const
+const Property* ElementDefinition::GetPropertyVariable(const String& name) const
 {
-	return property_ids;
+	return properties.GetPropertyVariable(name);
 }
 
 } // namespace Rml
