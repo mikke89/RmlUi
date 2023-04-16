@@ -212,17 +212,20 @@ public:
 	void RemoveProperty(PropertyId id);
 	/// Returns one of this element's properties. If the property is not defined for this element and not inherited
 	/// from an ancestor, the default value will be returned.
+	/// If the property depends on RCSS property variables, this will return the resolved literal value.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if no property exists with the given name.
 	const Property* GetProperty(const String& name);
 	const Property* GetProperty(PropertyId id);
 	/// Returns the values of one of this element's properties.
+	/// If the property depends on RCSS property variables, this will return the resolved literal value.
 	/// @param[in] name The name of the property to get.
 	/// @return The value of this property.
 	template <typename T>
 	T GetProperty(const String& name);
 	/// Returns one of this element's properties. If this element is not defined this property, nullptr will be
 	/// returned.
+	/// If the property depends on RCSS property variables, this will return the resolved literal value.
 	/// @param[in] name The name of the property to fetch the value for.
 	/// @return The value of this property for this element, or nullptr if this property has not been explicitly defined for this element.
 	const Property* GetLocalProperty(const String& name);

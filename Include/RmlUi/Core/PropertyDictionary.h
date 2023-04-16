@@ -66,6 +66,9 @@ public:
 	/// Returns the value of the variable with the requested id, if one exists.
 	const Property* GetPropertyVariable(String const& name) const;
 
+	/// Returns the value of the dependent shorthand with the requested id, if one exists.
+	const PropertyVariableTerm* GetDependentShorthand(ShorthandId id) const;
+
 	// Register shorthand as dependent on variables
 	void SetDependent(ShorthandId shorthand_id, PropertyVariableTerm const& term);
 	void RemoveDependent(ShorthandId shorthand_id);

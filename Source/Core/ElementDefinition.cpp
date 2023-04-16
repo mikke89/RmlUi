@@ -43,6 +43,9 @@ ElementDefinition::ElementDefinition(const Vector<const StyleSheetNode*>& style_
 
 	for (auto& property : properties.GetPropertyVariables())
 		property_variable_names.insert(property.first);
+
+	for (auto& property : properties.GetDependentShorthands())
+		dependent_shorthand_ids.insert(property.first);
 }
 
 const Property* ElementDefinition::GetProperty(PropertyId id) const
@@ -53,6 +56,11 @@ const Property* ElementDefinition::GetProperty(PropertyId id) const
 const Property* ElementDefinition::GetPropertyVariable(const String& name) const
 {
 	return properties.GetPropertyVariable(name);
+}
+
+const PropertyVariableTerm* ElementDefinition::GetDependentShorthand(ShorthandId id) const
+{
+	return properties.GetDependentShorthand(id);
 }
 
 } // namespace Rml

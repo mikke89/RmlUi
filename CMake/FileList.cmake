@@ -92,7 +92,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserString.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyShorthandDefinition.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/ResolvedPropertiesDictionary.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ScrollController.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.h

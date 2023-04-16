@@ -58,17 +58,26 @@ public:
 	/// @return The property defined against the give name, or nullptr if no such property was found.
 	const Property* GetPropertyVariable(String const& name) const;
 
+	/// Returns a specific dependent shorthand from the element definition.
+	/// @param[in] id The id of the shorthand to return.
+	/// @return The shorthand defined against the give name, or nullptr if no such dependent shorthand was found.
+	const PropertyVariableTerm* GetDependentShorthand(ShorthandId id) const;
+
 	/// Returns the list of property ids this element definition defines.
 	const PropertyIdSet& GetPropertyIds() const { return property_ids; }
 
 	/// Returns the list of property variable names this element definition defines.
 	const UnorderedSet<String>& GetPropertyVariableNames() const { return property_variable_names; }
 
+	/// Returns the list of dependent shorthand ids this element definition defines.
+	const UnorderedSet<ShorthandId>& GetDependentShorthandIds() const { return dependent_shorthand_ids; }
+
 	const PropertyDictionary& GetProperties() const { return properties; }
 
 private:
 	PropertyDictionary properties;
 	PropertyIdSet property_ids;
+	UnorderedSet<ShorthandId> dependent_shorthand_ids;
 	UnorderedSet<String> property_variable_names;
 };
 

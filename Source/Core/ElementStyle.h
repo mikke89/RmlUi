@@ -177,6 +177,7 @@ private:
 	void DirtyProperties(const PropertyIdSet& properties);
 
 	void UpdatePropertyDependencies(PropertyId id);
+	void UpdateShorthandDependencies(ShorthandId id);
 
 	void ResolvePropertyVariable(String const& name, UnorderedSet<String>& resolved_set);
 	void ResolvePropertyVariableTerm(String& result, const PropertyVariableTerm& term);
@@ -212,6 +213,7 @@ private:
 	UnorderedSet<ShorthandId> dirty_shorthands;
 
 	UnorderedMultimap<String, PropertyId> property_dependencies;
+	UnorderedMultimap<String, ShorthandId> shorthand_dependencies;
 };
 
 } // namespace Rml

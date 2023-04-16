@@ -219,11 +219,13 @@ void ElementStyle::UpdateDefinition()
 	if (new_definition != definition)
 	{
 		PropertyIdSet changed_properties;
+		UnorderedSet<ShorthandId> changed_dependent_shorthands;
 		UnorderedSet<String> changed_variables;
 
 		if (definition)
 		{
 			changed_properties = definition->GetPropertyIds();
+			changed_dependent_shorthands = definition->GetDependentShorthandIds();
 			changed_variables = definition->GetPropertyVariableNames();
 		}
 
@@ -232,6 +234,8 @@ void ElementStyle::UpdateDefinition()
 			changed_properties |= new_definition->GetPropertyIds();
 			auto const& new_vars = new_definition->GetPropertyVariableNames();
 			changed_variables.insert(new_vars.begin(), new_vars.end());
+			auto const& new_deps = new_definition->GetDependentShorthandIds();
+			changed_dependent_shorthands.insert(new_deps.begin(), new_deps.end());
 		}
 
 		if (definition && new_definition)
@@ -255,6 +259,12 @@ void ElementStyle::UpdateDefinition()
 
 		for (auto const& name : changed_variables)
 			DirtyPropertyVariable(name);
+
+		for (auto const& id : changed_dependent_shorthands)
+		{
+			dirty_shorthands.insert(id);
+			UpdateShorthandDependencies(id);
+		}
 
 		DirtyProperties(changed_properties);
 		for (auto const& id : changed_properties)
@@ -380,6 +390,7 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 bool ElementStyle::SetDependentShorthand(ShorthandId id, const PropertyVariableTerm& property)
 {
 	source_inline_properties.SetDependent(id, property);
+	UpdateShorthandDependencies(id);
 	dirty_shorthands.insert(id);
 	return true;
 }
@@ -688,6 +699,26 @@ void ElementStyle::UpdatePropertyDependencies(PropertyId id)
 	}
 }
 
+void ElementStyle::UpdateShorthandDependencies(ShorthandId id)
+{
+	for (auto iter = shorthand_dependencies.begin(); iter != shorthand_dependencies.end();)
+	{
+		if (iter->second == id)
+			iter = shorthand_dependencies.erase(iter);
+		else
+			++iter;
+	}
+
+	auto shorthand = source_inline_properties.GetDependentShorthand(id);
+	if (definition && !shorthand)
+		shorthand = definition->GetDependentShorthand(id);
+
+	if (shorthand)
+		for (auto const& atom : *shorthand)
+			if (!atom.variable.empty())
+				shorthand_dependencies.insert(std::make_pair(atom.variable, id));
+}
+
 PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values,
 	const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions)
 {
@@ -699,10 +730,42 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		{
 			ResolvePropertyVariable(name, resolved_set);
 
-			auto dependents = property_dependencies.equal_range(name);
-			for (auto it = dependents.first; it != dependents.second; ++it)
+			auto dependent_properties = property_dependencies.equal_range(name);
+			for (auto it = dependent_properties.first; it != dependent_properties.second; ++it)
 				DirtyProperty(it->second);
+
+			auto dependent_shorthands = shorthand_dependencies.equal_range(name);
+			for (auto it = dependent_shorthands.first; it != dependent_shorthands.second; ++it)
+				dirty_shorthands.insert(it->second);
 		}
+	}
+
+	if (!dirty_shorthands.empty())
+	{
+		for (auto const& id : dirty_shorthands)
+		{
+			auto shorthand = source_inline_properties.GetDependentShorthand(id);
+			if (definition && !shorthand)
+				shorthand = definition->GetDependentShorthand(id);
+
+			auto underlying = StyleSheetSpecification::GetShorthandUnderlyingProperties(id);
+
+			if (!shorthand)
+			{
+				// clear out old values
+				for (auto const& prop : underlying)
+					inline_properties.RemoveProperty(prop);
+				continue;
+			}
+
+			String string_value;
+			ResolvePropertyVariableTerm(string_value, *shorthand);
+
+			StyleSheetSpecification::ParseShorthandDeclaration(inline_properties, id, string_value);
+			DirtyProperties(underlying);
+		}
+
+		dirty_shorthands.clear();
 	}
 
 	if (!dirty_properties.Empty())

@@ -91,6 +91,14 @@ const Property *PropertyDictionary::GetPropertyVariable(String const& name) cons
 	return &(*iterator).second;
 }
 
+const PropertyVariableTerm* PropertyDictionary::GetDependentShorthand(ShorthandId id) const
+{
+	DependentShorthandMap::const_iterator iter = dependent_shorthands.find(id);
+	if (iter == dependent_shorthands.end())
+		return nullptr;
+	return &iter->second;
+}
+
 void PropertyDictionary::SetDependent(ShorthandId shorthand_id, const PropertyVariableTerm &term)
 {
 	dependent_shorthands[shorthand_id] = term;
