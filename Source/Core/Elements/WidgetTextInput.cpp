@@ -105,7 +105,7 @@ static bool ClampValue(String& value, int max_length)
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
-	internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
+	internal_dimensions(0, 0), scroll_offset(0, 0), cursor_position(0, 0), cursor_size(0, 0)
 {
 	keyboard_showed = false;
 
@@ -904,7 +904,7 @@ void WidgetTextInput::SetCursorFromRelativeIndices(int cursor_line_index, int cu
 int WidgetTextInput::CalculateLineIndex(float position) const
 {
 	float line_height = parent->GetLineHeight();
-	int line_index = Math::RealToInteger(position / line_height);
+	int line_index = int(position / line_height);
 	return Math::Clamp(line_index, 0, (int)(lines.size() - 1));
 }
 
@@ -1199,7 +1199,7 @@ void WidgetTextInput::GenerateCursor()
 	Vector<int>& indices = cursor_geometry.GetIndices();
 	indices.resize(6);
 
-	cursor_size.x = Math::RoundFloat(ElementUtilities::GetDensityIndependentPixelRatio(text_element));
+	cursor_size.x = Math::Round(ElementUtilities::GetDensityIndependentPixelRatio(text_element));
 	cursor_size.y = text_element->GetLineHeight() + 2.0f;
 
 	Colourb color = parent->GetComputedValues().color();

@@ -31,19 +31,15 @@
 
 namespace Rml {
 
-RenderInterface::RenderInterface()
-{
-	context = nullptr;
-}
+RenderInterface::RenderInterface() {}
 
 RenderInterface::~RenderInterface()
 {
 	// Note: We cannot automatically release the textures from the database here, because that involves a virtual call to this interface during its
 	// destruction which is illegal.
-	RMLUI_ASSERTMSG(!TextureDatabase::HoldsReferenceToRenderInterface(this),
-		"RenderInterface is being destroyed, but there are still active textures referencing it in the texture database. Ensure either that (1) the "
-		"render interface is destroyed *after* the call to Rml::Shutdown, or that (2) all the contexts the render interface belongs to has been "
-		"destroyed and a subsequent call has been made to Rml::ReleaseTextures before the render interface is destroyed.");
+	RMLUI_ASSERTMSG(TextureDatabase::AllTexturesReleased(),
+		"RenderInterface is being destroyed, but there are still active textures in the texture database. This may lead to use-after-free or nullptr "
+		"dereference when releasing the textures. Ensure that the render interface is destroyed *after* the call to Rml::Shutdown.");
 }
 
 CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/,
@@ -69,10 +65,5 @@ bool RenderInterface::GenerateTexture(TextureHandle& /*texture_handle*/, const b
 void RenderInterface::ReleaseTexture(TextureHandle /*texture*/) {}
 
 void RenderInterface::SetTransform(const Matrix4f* /*transform*/) {}
-
-Context* RenderInterface::GetContext() const
-{
-	return context;
-}
 
 } // namespace Rml

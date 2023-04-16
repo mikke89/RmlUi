@@ -60,7 +60,7 @@ bool LineBox::AddBox(InlineLevelBox* box, InlineLayoutMode layout_mode, LayoutOv
 	float available_width = FLT_MAX;
 	if (layout_mode != InlineLayoutMode::Nowrap)
 	{
-		available_width = Math::RoundUpFloat(line_width - box_placement_cursor);
+		available_width = Math::RoundUp(line_width - box_placement_cursor);
 		if (available_width < 0.f)
 		{
 			if (layout_mode == InlineLayoutMode::WrapAny)

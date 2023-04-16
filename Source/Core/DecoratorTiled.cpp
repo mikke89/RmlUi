@@ -53,62 +53,54 @@ DecoratorTiled::Tile::Tile() : display_scale(1), position(0, 0), size(0, 0)
 	orientation = ORIENTATION_NONE;
 }
 
-void DecoratorTiled::Tile::CalculateDimensions(Element* element, const Texture& texture) const
+void DecoratorTiled::Tile::CalculateDimensions(const Texture& texture) const
 {
-	RenderInterface* render_interface = element->GetRenderInterface();
-	auto data_iterator = data.find(render_interface);
-	if (data_iterator == data.end())
+	if (!tile_data_calculated)
 	{
-		TileData new_data;
-		const Vector2f texture_dimensions(texture.GetDimensions(render_interface));
+		tile_data_calculated = true;
+		tile_data = {};
 
+		const Vector2f texture_dimensions(texture.GetDimensions());
 		if (texture_dimensions.x == 0 || texture_dimensions.y == 0)
 		{
-			new_data.size = Vector2f(0, 0);
-			new_data.texcoords[0] = Vector2f(0, 0);
-			new_data.texcoords[1] = Vector2f(0, 0);
+			tile_data.size = Vector2f(0, 0);
+			tile_data.texcoords[0] = Vector2f(0, 0);
+			tile_data.texcoords[1] = Vector2f(0, 0);
 		}
 		else
 		{
 			// Need to scale the coordinates to normalized units and 'size' to absolute size (pixels)
 			if (size.x == 0 && size.y == 0 && position.x == 0 && position.y == 0)
-				new_data.size = texture_dimensions;
+				tile_data.size = texture_dimensions;
 			else
-				new_data.size = size;
+				tile_data.size = size;
 
-			const Vector2f size_relative = new_data.size / texture_dimensions;
+			const Vector2f size_relative = tile_data.size / texture_dimensions;
 
-			new_data.size = Vector2f(Math::AbsoluteValue(new_data.size.x), Math::AbsoluteValue(new_data.size.y));
+			tile_data.size = Vector2f(Math::Absolute(tile_data.size.x), Math::Absolute(tile_data.size.y));
 
-			new_data.texcoords[0] = position / texture_dimensions;
-			new_data.texcoords[1] = size_relative + new_data.texcoords[0];
+			tile_data.texcoords[0] = position / texture_dimensions;
+			tile_data.texcoords[1] = size_relative + tile_data.texcoords[0];
 		}
-
-		data.emplace(render_interface, new_data);
 	}
 }
 
 Vector2f DecoratorTiled::Tile::GetNaturalDimensions(Element* element) const
 {
-	RenderInterface* render_interface = element->GetRenderInterface();
-	auto data_iterator = data.find(render_interface);
-	if (data_iterator == data.end())
+	if (!tile_data_calculated)
 		return Vector2f(0, 0);
 
 	const float scale_raw_to_natural_dimensions = ElementUtilities::GetDensityIndependentPixelRatio(element) * display_scale;
-	const Vector2f raw_dimensions = data_iterator->second.size;
+	const Vector2f raw_dimensions = tile_data.size;
 
 	return raw_dimensions * scale_raw_to_natural_dimensions;
 }
 
-void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int>& indices, Element* element, const Vector2f surface_origin,
-	const Vector2f surface_dimensions, const Vector2f tile_dimensions) const
+void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int>& indices, const ComputedValues& computed,
+	const Vector2f surface_origin, const Vector2f surface_dimensions, const Vector2f tile_dimensions) const
 {
 	if (surface_dimensions.x <= 0 || surface_dimensions.y <= 0)
 		return;
-
-	RenderInterface* render_interface = element->GetRenderInterface();
-	const auto& computed = element->GetComputedValues();
 
 	float opacity = computed.opacity();
 	Colourb quad_colour = computed.image_color();
@@ -116,17 +108,14 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int
 	// Apply opacity
 	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 
-	auto data_iterator = data.find(render_interface);
-	if (data_iterator == data.end())
+	if (!tile_data_calculated)
 		return;
-
-	const TileData& data = data_iterator->second;
 
 	// Generate the oriented texture coordinates for the tiles.
 	Vector2f scaled_texcoords[2];
 	for (int i = 0; i < 2; i++)
 	{
-		scaled_texcoords[i] = data.texcoords[0] + oriented_texcoords[orientation][i] * (data.texcoords[1] - data.texcoords[0]);
+		scaled_texcoords[i] = tile_data.texcoords[0] + oriented_texcoords[orientation][i] * (tile_data.texcoords[1] - tile_data.texcoords[0]);
 	}
 
 	Vector2f final_tile_dimensions;

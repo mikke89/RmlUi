@@ -50,21 +50,21 @@ static Vector2f CalculateAutoscrollVelocity(Vector2f target_delta, float dp_rati
 {
 	target_delta = target_delta / dp_ratio;
 	target_delta = {
-		Math::AbsoluteValue(target_delta.x) < AUTOSCROLL_DEADZONE ? 0.f : target_delta.x,
-		Math::AbsoluteValue(target_delta.y) < AUTOSCROLL_DEADZONE ? 0.f : target_delta.y,
+		Math::Absolute(target_delta.x) < AUTOSCROLL_DEADZONE ? 0.f : target_delta.x,
+		Math::Absolute(target_delta.y) < AUTOSCROLL_DEADZONE ? 0.f : target_delta.y,
 	};
 
 	// We use a signed square model for the velocity, which seems to work quite well. This is mostly about feeling and tuning.
-	return AUTOSCROLL_SPEED_FACTOR * target_delta * Math::AbsoluteValue(target_delta);
+	return AUTOSCROLL_SPEED_FACTOR * target_delta * Math::Absolute(target_delta);
 }
 
 // Determines the smoothscroll velocity based on the distance to the target, and the distance scrolled so far. [px/s]
 static Vector2f CalculateSmoothscrollVelocity(Vector2f target_delta, Vector2f scrolled_distance, float dp_ratio)
 {
-	scrolled_distance = Math::AbsoluteValue(scrolled_distance) / dp_ratio;
+	scrolled_distance = Math::Absolute(scrolled_distance) / dp_ratio;
 	target_delta = target_delta / dp_ratio;
 
-	const Vector2f target_delta_abs = Math::AbsoluteValue(target_delta);
+	const Vector2f target_delta_abs = Math::Absolute(target_delta);
 	Vector2f target_delta_signum = {
 		target_delta.x > 0.f ? 1.f : (target_delta.x < 0.f ? -1.f : 0.f),
 		target_delta.y > 0.f ? 1.f : (target_delta.y < 0.f ? -1.f : 0.f),

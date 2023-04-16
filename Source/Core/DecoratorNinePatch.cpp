@@ -56,14 +56,13 @@ bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectang
 
 DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) const
 {
-	RenderInterface* render_interface = element->GetRenderInterface();
 	const auto& computed = element->GetComputedValues();
 
-	Geometry* data = new Geometry(element);
+	Geometry* data = new Geometry();
 
 	const Texture* texture = GetTexture();
 	data->SetTexture(texture);
-	const Vector2f texture_dimensions(texture->GetDimensions(render_interface));
+	const Vector2f texture_dimensions(texture->GetDimensions());
 
 	const Vector2f surface_dimensions = element->GetBox().GetSize(Box::PADDING).Round();
 

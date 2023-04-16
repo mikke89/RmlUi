@@ -41,7 +41,7 @@
 
 namespace Rml {
 
-ElementLottie::ElementLottie(const String& tag) : Element(tag), geometry(this) {}
+ElementLottie::ElementLottie(const String& tag) : Element(tag) {}
 
 ElementLottie::~ElementLottie() {}
 

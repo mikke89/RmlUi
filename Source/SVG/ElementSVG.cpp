@@ -42,7 +42,7 @@
 
 namespace Rml {
 
-ElementSVG::ElementSVG(const String& tag) : Element(tag), geometry(this) {}
+ElementSVG::ElementSVG(const String& tag) : Element(tag) {}
 
 ElementSVG::~ElementSVG() {}
 

@@ -307,7 +307,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	for (float selector : rule_values)
 	{
 		auto it = std::find_if(keyframes.blocks.begin(), keyframes.blocks.end(),
-			[selector](const KeyframeBlock& keyframe_block) { return Math::AbsoluteValue(keyframe_block.normalized_time - selector) < 0.0001f; });
+			[selector](const KeyframeBlock& keyframe_block) { return Math::Absolute(keyframe_block.normalized_time - selector) < 0.0001f; });
 		if (it == keyframes.blocks.end())
 		{
 			keyframes.blocks.emplace_back(selector);

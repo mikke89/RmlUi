@@ -199,7 +199,7 @@ namespace Style {
 
 	class ComputedValues : NonCopyMoveable {
 	public:
-		ComputedValues(Element* element) : element(element) {}
+		explicit ComputedValues(Element* element) : element(element) {}
 
 		// clang-format off
 		

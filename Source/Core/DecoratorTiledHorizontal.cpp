@@ -34,12 +34,7 @@
 namespace Rml {
 
 struct DecoratorTiledHorizontalData {
-	DecoratorTiledHorizontalData(Element* host_element, int num_textures) : num_textures(num_textures)
-	{
-		geometry = new Geometry[num_textures];
-		for (int i = 0; i < num_textures; i++)
-			geometry[i].SetHostElement(host_element);
-	}
+	DecoratorTiledHorizontalData(int num_textures) : num_textures(num_textures) { geometry = new Geometry[num_textures]; }
 
 	~DecoratorTiledHorizontalData() { delete[] geometry; }
 
@@ -84,10 +79,10 @@ DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* eleme
 {
 	// Initialise the tiles for this element.
 	for (int i = 0; i < 3; i++)
-		tiles[i].CalculateDimensions(element, *(GetTexture(tiles[i].texture_index)));
+		tiles[i].CalculateDimensions(*GetTexture(tiles[i].texture_index));
 
 	const int num_textures = GetNumTextures();
-	DecoratorTiledHorizontalData* data = new DecoratorTiledHorizontalData(element, num_textures);
+	DecoratorTiledHorizontalData* data = new DecoratorTiledHorizontalData(num_textures);
 
 	Vector2f padded_size = element->GetBox().GetSize(Box::PADDING);
 
@@ -101,8 +96,8 @@ DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* eleme
 	ScaleTileDimensions(centre_dimensions, padded_size.y, Axis::Vertical);
 
 	// Round the outer tile widths now so that we don't get gaps when rounding again in GenerateGeometry.
-	left_dimensions.x = Math::RoundFloat(left_dimensions.x);
-	right_dimensions.x = Math::RoundFloat(right_dimensions.x);
+	left_dimensions.x = Math::Round(left_dimensions.x);
+	right_dimensions.x = Math::Round(right_dimensions.x);
 
 	// Shrink the x-sizes on the left and right tiles if necessary.
 	if (padded_size.x < left_dimensions.x + right_dimensions.x)
@@ -112,16 +107,18 @@ DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* eleme
 		right_dimensions.x = padded_size.x * (right_dimensions.x / minimum_width);
 	}
 
+	const ComputedValues& computed = element->GetComputedValues();
+
 	// Generate the geometry for the left tile.
 	tiles[LEFT].GenerateGeometry(data->geometry[tiles[LEFT].texture_index].GetVertices(), data->geometry[tiles[LEFT].texture_index].GetIndices(),
-		element, Vector2f(0, 0), left_dimensions, left_dimensions);
+		computed, Vector2f(0, 0), left_dimensions, left_dimensions);
 	// Generate the geometry for the centre tiles.
 	tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index].GetVertices(),
-		data->geometry[tiles[CENTRE].texture_index].GetIndices(), element, Vector2f(left_dimensions.x, 0),
+		data->geometry[tiles[CENTRE].texture_index].GetIndices(), computed, Vector2f(left_dimensions.x, 0),
 		Vector2f(padded_size.x - (left_dimensions.x + right_dimensions.x), centre_dimensions.y), centre_dimensions);
 	// Generate the geometry for the right tile.
 	tiles[RIGHT].GenerateGeometry(data->geometry[tiles[RIGHT].texture_index].GetVertices(), data->geometry[tiles[RIGHT].texture_index].GetIndices(),
-		element, Vector2f(padded_size.x - right_dimensions.x, 0), right_dimensions, right_dimensions);
+		computed, Vector2f(padded_size.x - right_dimensions.x, 0), right_dimensions, right_dimensions);
 
 	// Set the textures on the geometry.
 	const Texture* texture = nullptr;

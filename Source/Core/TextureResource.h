@@ -55,30 +55,30 @@ public:
 	void Set(const String& name, const TextureCallback& callback);
 
 	/// Returns the resource's underlying texture handle.
-	TextureHandle GetHandle(RenderInterface* render_interface);
+	TextureHandle GetHandle();
 	/// Returns the dimensions of the resource's texture.
-	Vector2i GetDimensions(RenderInterface* render_interface);
+	Vector2i GetDimensions();
 
 	/// Returns the resource's source.
 	const String& GetSource() const;
 
 	/// Releases the texture's handle.
-	void Release(RenderInterface* render_interface = nullptr);
+	void Release();
 
-	/// For debugging. Returns true if the texture holds a reference to the given render interface, otherwise false.
-	inline bool HoldsRenderInterface(RenderInterface* render_interface) const { return texture_data.count(render_interface); }
+	/// Returns true if the texture has been loaded through the render interface, and not yet released.
+	bool IsLoaded() const;
 
 private:
 	void Reset();
 
 	/// Attempts to load the texture from the source, or the callback function if set.
-	bool Load(RenderInterface* render_interface);
+	bool Load();
 
 	String source;
 
-	using TextureData = Pair<TextureHandle, Vector2i>;
-	using TextureDataMap = SmallUnorderedMap<RenderInterface*, TextureData>;
-	TextureDataMap texture_data;
+	TextureHandle handle = {};
+	Vector2i dimensions;
+	bool loaded = false;
 
 	UniquePtr<TextureCallback> texture_callback;
 };

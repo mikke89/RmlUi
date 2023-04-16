@@ -92,7 +92,7 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta {
-	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(el), decoration(el), scroll(el), computed_values(el) {}
+	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(), decoration(el), scroll(el), computed_values(el) {}
 	SmallUnorderedMap<EventId, EventListener*> attribute_event_listeners;
 	EventDispatcher event_dispatcher;
 	ElementStyle style;
@@ -989,7 +989,7 @@ float Element::GetScrollLeft()
 
 void Element::SetScrollLeft(float scroll_left)
 {
-	const float new_offset = Math::Clamp(Math::RoundFloat(scroll_left), 0.0f, GetScrollWidth() - GetClientWidth());
+	const float new_offset = Math::Clamp(Math::Round(scroll_left), 0.0f, GetScrollWidth() - GetClientWidth());
 	if (new_offset != scroll_offset.x)
 	{
 		scroll_offset.x = new_offset;
@@ -1007,7 +1007,7 @@ float Element::GetScrollTop()
 
 void Element::SetScrollTop(float scroll_top)
 {
-	const float new_offset = Math::Clamp(Math::RoundFloat(scroll_top), 0.0f, GetScrollHeight() - GetClientHeight());
+	const float new_offset = Math::Clamp(Math::Round(scroll_top), 0.0f, GetScrollHeight() - GetClientHeight());
 	if (new_offset != scroll_offset.y)
 	{
 		scroll_offset.y = new_offset;
@@ -1622,14 +1622,6 @@ ElementScroll* Element::GetElementScroll() const
 DataModel* Element::GetDataModel() const
 {
 	return data_model;
-}
-
-RenderInterface* Element::GetRenderInterface()
-{
-	if (Context* context = GetContext())
-		return context->GetRenderInterface();
-
-	return ::Rml::GetRenderInterface();
 }
 
 void Element::SetInstancer(ElementInstancer* _instancer)

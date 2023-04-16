@@ -193,7 +193,7 @@ void WidgetSlider::GetDimensions(Vector2f& dimensions) const
 void WidgetSlider::SetValue(float target_value)
 {
 	float num_steps = (target_value - min_value) / step;
-	float new_value = min_value + Math::RoundFloat(num_steps) * step;
+	float new_value = min_value + Math::Round(num_steps) * step;
 
 	if (new_value != value)
 		SetBarPosition(SetValueInternal(new_value));

@@ -60,7 +60,6 @@ class InlineLevelBox;
 class ReplacedBox;
 class PropertiesIteratorView;
 class PropertyDictionary;
-class RenderInterface;
 class StyleSheet;
 class StyleSheetContainer;
 class TransformState;
@@ -596,10 +595,6 @@ public:
 	/// Returns the data model of this element.
 	DataModel* GetDataModel() const;
 	//@}
-
-	/// Gets the render interface owned by this element's context.
-	/// @return The element's context's render interface.
-	RenderInterface* GetRenderInterface();
 
 	/// Sets the instancer to use for releasing this element.
 	/// @param[in] instancer Instancer to set on this element.

@@ -36,7 +36,7 @@ namespace Rml {
 
 class ElementBackgroundBorder {
 public:
-	ElementBackgroundBorder(Element* element);
+	ElementBackgroundBorder();
 
 	void Render(Element* element);
 

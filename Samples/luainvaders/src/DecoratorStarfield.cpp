@@ -65,7 +65,7 @@ Rml::DecoratorDataHandle DecoratorStarfield::GenerateElementData(Rml::Element* e
 	{
 		float layer_depth = i / (float)num_layers;
 
-		int density = Rml::Math::RealToInteger((top_density * layer_depth) + (bottom_density * (1.0f - layer_depth)));
+		int density = int((top_density * layer_depth) + (bottom_density * (1.0f - layer_depth)));
 		star_field->star_layers[i].stars.resize(density);
 
 		Rml::Colourb colour = (top_colour * layer_depth) + (bottom_colour * (1.0f - layer_depth));
@@ -104,11 +104,7 @@ void DecoratorStarfield::RenderElement(Rml::Element* element, Rml::DecoratorData
 	star_field->Update(t);
 
 	const float dp_ratio = Rml::ElementUtilities::GetDensityIndependentPixelRatio(element);
-	const float point_size = Rml::Math::RoundUpFloat(2.f * dp_ratio);
-
-	Rml::RenderInterface* render_interface = element->GetRenderInterface();
-	if (!render_interface)
-		return;
+	const float point_size = Rml::Math::RoundUp(2.f * dp_ratio);
 
 	int num_stars = 0;
 

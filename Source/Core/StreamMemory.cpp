@@ -92,7 +92,7 @@ size_t StreamMemory::Length() const
 
 size_t StreamMemory::Read(void* _buffer, size_t bytes) const
 {
-	bytes = Math::ClampUpper(bytes, (size_t)(buffer + buffer_used - buffer_ptr));
+	bytes = Math::Min(bytes, (size_t)(buffer + buffer_used - buffer_ptr));
 
 	memcpy(_buffer, buffer_ptr, bytes);
 
@@ -103,7 +103,7 @@ size_t StreamMemory::Read(void* _buffer, size_t bytes) const
 
 size_t StreamMemory::Peek(void* _buffer, size_t bytes) const
 {
-	bytes = Math::ClampUpper(bytes, (size_t)(buffer + buffer_used - buffer_ptr));
+	bytes = Math::Min(bytes, (size_t)(buffer + buffer_used - buffer_ptr));
 
 	memcpy(_buffer, buffer_ptr, bytes);
 
@@ -172,7 +172,7 @@ size_t StreamMemory::PopFront(size_t bytes)
 {
 	Erase(0, bytes);
 	buffer_ptr -= bytes;
-	buffer_ptr = Math::ClampLower(buffer_ptr, buffer);
+	buffer_ptr = Math::Max(buffer_ptr, buffer);
 	return bytes;
 }
 
@@ -183,7 +183,7 @@ const byte* StreamMemory::RawStream() const
 
 void StreamMemory::Erase(size_t offset, size_t bytes)
 {
-	bytes = Math::ClampUpper(bytes, buffer_used - offset);
+	bytes = Math::Min(bytes, buffer_used - offset);
 	memmove(&buffer[offset], &buffer[offset + bytes], buffer_used - offset - bytes);
 	buffer_used -= bytes;
 }

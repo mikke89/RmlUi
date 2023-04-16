@@ -68,14 +68,12 @@ public:
 	/// Returns the texture's source name. This is usually the name of the file the texture was loaded from.
 	/// @return The name of the this texture's source. This will be the empty string if this texture is not loaded.
 	const String& GetSource() const;
-	/// Returns the texture's handle.
-	/// @param[in] The render interface that is requesting the handle.
-	/// @return The texture's handle. This will be nullptr if the texture isn't loaded.
-	TextureHandle GetHandle(RenderInterface* render_interface) const;
-	/// Returns the texture's dimensions.
-	/// @param[in] The render interface that is requesting the dimensions.
-	/// @return The texture's dimensions. This will be (0, 0) if the texture isn't loaded.
-	Vector2i GetDimensions(RenderInterface* render_interface) const;
+	/// Returns the texture's handle, will attempt to load the texture as necessary.
+	/// @return The texture's handle. This will be 0 if the texture cannot be loaded.
+	TextureHandle GetHandle() const;
+	/// Returns the texture's dimensions, will attempt to load the texture as necessary.
+	/// @return The texture's dimensions. This will be (0, 0) if the texture cannot be loaded.
+	Vector2i GetDimensions() const;
 
 	/// Returns true if the texture points to the same underlying resource.
 	bool operator==(const Texture&) const;

@@ -41,7 +41,7 @@
 namespace Rml {
 
 ElementProgress::ElementProgress(const String& tag) :
-	Element(tag), direction(DefaultDirection), start_edge(DefaultStartEdge), fill(nullptr), rect_set(false), geometry(this)
+	Element(tag), direction(DefaultDirection), start_edge(DefaultStartEdge), fill(nullptr), rect_set(false)
 {
 	if (tag == "progressbar")
 		Log::Message(Log::LT_WARNING, "Deprecation notice: Element '<progressbar>' renamed to '<progress>', please adjust RML tags accordingly.");
@@ -233,7 +233,7 @@ void ElementProgress::GenerateGeometry()
 	Vector2f texcoords[2];
 	if (rect_set)
 	{
-		Vector2f texture_dimensions = Vector2f(Math::Max(texture.GetDimensions(GetRenderInterface()), Vector2i(1)));
+		Vector2f texture_dimensions = Vector2f(Math::Max(texture.GetDimensions(), Vector2i(1)));
 		texcoords[0] = rect.TopLeft() / texture_dimensions;
 		texcoords[1] = rect.BottomRight() / texture_dimensions;
 	}
@@ -302,7 +302,7 @@ void ElementProgress::GenerateGeometry()
 			const float angle = angle_offset + (cw ? 1.f : -1.f) * normalized_value * 2.f * RMLUI_PI;
 			Vector2f pos(Sin(angle), -Cos(angle));
 			// Project it from the circle towards the surrounding unit square.
-			pos = pos / Max(AbsoluteValue(pos.x), AbsoluteValue(pos.y));
+			pos = pos / Max(Absolute(pos.x), Absolute(pos.y));
 			vertices[num_octants].position = pos;
 		}
 
