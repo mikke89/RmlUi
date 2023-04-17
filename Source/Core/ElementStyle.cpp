@@ -779,7 +779,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			if (!prop)
 			{
 				inline_properties.RemoveProperty(id);
-				continue;
 			}
 			else if (prop->unit == Property::PROPERTYVARIABLETERM)
 			{
@@ -795,6 +794,11 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 						Log::Message(Log::LT_ERROR, "Failed to parse RCSS variable-dependent property '%s' with value '%s'.",
 							StyleSheetSpecification::GetPropertyName(id).c_str(), string_value.c_str());
 				}
+			}
+			else if (!source_inline_properties.GetProperty(id))
+			{
+				// remove from resolved if not dependent local
+				inline_properties.RemoveProperty(id);
 			}
 		}
 
