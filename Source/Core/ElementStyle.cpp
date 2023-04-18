@@ -269,6 +269,22 @@ void ElementStyle::UpdateDefinition()
 		DirtyProperties(changed_properties);
 		for (auto const& id : changed_properties)
 			UpdatePropertyDependencies(id);
+
+		// cleanup resolved properties
+		auto props = inline_properties.GetProperties();
+		for (auto const& it : props)
+		{
+			auto prop = source_inline_properties.GetProperty(it.first);
+			if (!prop || prop->unit == Property::PROPERTYVARIABLETERM)
+				inline_properties.RemoveProperty(it.first);
+		}
+		auto vars = inline_properties.GetPropertyVariables();
+		for (auto const& it : vars)
+		{
+			auto var = source_inline_properties.GetPropertyVariable(it.first);
+			if (!var || var->unit == Property::PROPERTYVARIABLETERM)
+				inline_properties.RemovePropertyVariable(it.first);
+		}
 	}
 }
 
@@ -794,11 +810,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 						Log::Message(Log::LT_ERROR, "Failed to parse RCSS variable-dependent property '%s' with value '%s'.",
 							StyleSheetSpecification::GetPropertyName(id).c_str(), string_value.c_str());
 				}
-			}
-			else if (!source_inline_properties.GetProperty(id))
-			{
-				// remove from resolved if not dependent local
-				inline_properties.RemoveProperty(id);
 			}
 		}
 
