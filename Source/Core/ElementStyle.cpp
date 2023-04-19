@@ -276,14 +276,20 @@ void ElementStyle::UpdateDefinition()
 		{
 			auto prop = source_inline_properties.GetProperty(it.first);
 			if (!prop || prop->unit == Property::PROPERTYVARIABLETERM)
+			{
 				inline_properties.RemoveProperty(it.first);
+				DirtyProperty(it.first);
+			}
 		}
 		auto vars = inline_properties.GetPropertyVariables();
 		for (auto const& it : vars)
 		{
 			auto var = source_inline_properties.GetPropertyVariable(it.first);
 			if (!var || var->unit == Property::PROPERTYVARIABLETERM)
+			{
 				inline_properties.RemovePropertyVariable(it.first);
+				dirty_variables.insert(it.first);
+			}
 		}
 	}
 }
