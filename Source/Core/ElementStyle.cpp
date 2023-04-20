@@ -637,15 +637,65 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 	dirty_properties |= properties;
 }
 
-void ElementStyle::ResolvePropertyVariable(const String& name, UnorderedSet<String>& resolved_set)
+void ElementStyle::ResolveProperty(PropertyDictionary& output, PropertyId id, const Element* element, const PropertyDictionary& inline_properties,
+	const ElementDefinition* definition)
+{
+	auto prop = GetLocalProperty(id, inline_properties, definition);
+	if (!prop)
+	{
+		output.RemoveProperty(id);
+	}
+	else if (prop->unit == Property::PROPERTYVARIABLETERM)
+	{
+		String string_value;
+		ResolvePropertyVariableTerm(string_value, prop->value.GetReference<PropertyVariableTerm>(), element, inline_properties, definition);
+		auto definition = StyleSheetSpecification::GetProperty(id);
+		if (definition)
+		{
+			Property parsed_value;
+			if (definition->ParseValue(parsed_value, string_value))
+				output.SetProperty(id, parsed_value);
+			else
+				Log::Message(Log::LT_ERROR, "Failed to parse RCSS variable-dependent property '%s' with value '%s'.",
+					StyleSheetSpecification::GetPropertyName(id).c_str(), string_value.c_str());
+		}
+	}
+}
+
+void ElementStyle::ResolveShorthand(PropertyDictionary& output, ShorthandId id, PropertyIdSet& dirty_properties, const Element* element,
+	const PropertyDictionary& inline_properties, const ElementDefinition* definition)
+{
+	auto shorthand = inline_properties.GetDependentShorthand(id);
+	if (definition && !shorthand)
+		shorthand = definition->GetDependentShorthand(id);
+
+	auto underlying = StyleSheetSpecification::GetShorthandUnderlyingProperties(id);
+
+	if (!shorthand)
+	{
+		// clear out old values
+		for (auto const& prop : underlying)
+			output.RemoveProperty(prop);
+		return;
+	}
+
+	String string_value;
+	ResolvePropertyVariableTerm(string_value, *shorthand, element, inline_properties, definition);
+
+	StyleSheetSpecification::ParseShorthandDeclaration(output, id, string_value);
+	dirty_properties |= underlying;
+}
+
+void ElementStyle::ResolvePropertyVariable(PropertyDictionary& output, const String& name, UnorderedSet<String>& resolved_set,
+	const UnorderedSet<String>& dirty_set, const Element* element, const PropertyDictionary& inline_properties, const ElementDefinition* definition)
 {
 	if (!resolved_set.insert(name).second)
 		return;
 
-	auto var = GetLocalPropertyVariable(name, source_inline_properties, definition.get());
+	auto var = GetLocalPropertyVariable(name, inline_properties, definition);
 	if (!var)
 	{
-		inline_properties.RemovePropertyVariable(name);
+		output.RemovePropertyVariable(name);
 	}
 	else if (var->unit == Property::PROPERTYVARIABLETERM)
 	{
@@ -653,25 +703,26 @@ void ElementStyle::ResolvePropertyVariable(const String& name, UnorderedSet<Stri
 		auto const& term = var->value.GetReference<PropertyVariableTerm>();
 		for (auto const& atom : term)
 		{
-			if (!atom.variable.empty() && dirty_variables.find(atom.variable) != dirty_variables.end())
-				ResolvePropertyVariable(atom.variable, resolved_set);
+			if (!atom.variable.empty() && dirty_set.find(atom.variable) != dirty_set.end())
+				ResolvePropertyVariable(output, atom.variable, resolved_set, dirty_set, element, inline_properties, definition);
 		}
 
-		// resolve actual variable
+		// resolve actual variable using output dictionary as inline source!
 		String string_value;
-		ResolvePropertyVariableTerm(string_value, term);
-		inline_properties.SetPropertyVariable(name, Property(string_value, Property::STRING));
+		ResolvePropertyVariableTerm(string_value, term, element, output, definition);
+		output.SetPropertyVariable(name, Property(string_value, Property::STRING));
 	}
 }
 
-void ElementStyle::ResolvePropertyVariableTerm(String& result, const PropertyVariableTerm& term)
+void ElementStyle::ResolvePropertyVariableTerm(String& output, const PropertyVariableTerm& term, const Element* element,
+	const PropertyDictionary& inline_properties, const ElementDefinition* definition)
 {
 	StringList atoms;
 	for (auto const& atom : term)
 	{
 		if (!atom.variable.empty())
 		{
-			const Property* var = GetPropertyVariable(atom.variable);
+			const Property* var = GetPropertyVariable(atom.variable, element, inline_properties, definition);
 			if (var)
 			{
 				if (var->unit == Property::PROPERTYVARIABLETERM)
@@ -697,7 +748,7 @@ void ElementStyle::ResolvePropertyVariableTerm(String& result, const PropertyVar
 	}
 
 	// Join without any actual delimiter, thus \0
-	StringUtilities::JoinString(result, atoms, '\0');
+	StringUtilities::JoinString(output, atoms, '\0');
 }
 
 void ElementStyle::UpdatePropertyDependencies(PropertyId id)
@@ -750,7 +801,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		UnorderedSet<String> resolved_set;
 		for (auto const& name : dirty_variables)
 		{
-			ResolvePropertyVariable(name, resolved_set);
+			ResolvePropertyVariable(inline_properties, name, resolved_set, dirty_variables, element, source_inline_properties, definition.get());
 
 			auto dependent_properties = property_dependencies.equal_range(name);
 			for (auto it = dependent_properties.first; it != dependent_properties.second; ++it)
@@ -765,27 +816,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	if (!dirty_shorthands.empty())
 	{
 		for (auto const& id : dirty_shorthands)
-		{
-			auto shorthand = source_inline_properties.GetDependentShorthand(id);
-			if (definition && !shorthand)
-				shorthand = definition->GetDependentShorthand(id);
-
-			auto underlying = StyleSheetSpecification::GetShorthandUnderlyingProperties(id);
-
-			if (!shorthand)
-			{
-				// clear out old values
-				for (auto const& prop : underlying)
-					inline_properties.RemoveProperty(prop);
-				continue;
-			}
-
-			String string_value;
-			ResolvePropertyVariableTerm(string_value, *shorthand);
-
-			StyleSheetSpecification::ParseShorthandDeclaration(inline_properties, id, string_value);
-			DirtyProperties(underlying);
-		}
+			ResolveShorthand(inline_properties, id, dirty_properties, element, source_inline_properties, definition.get());
 
 		dirty_shorthands.clear();
 	}
@@ -794,30 +825,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	{
 		RMLUI_ZoneScopedC(0xFF7F50);
 
-		// resolve variable-dependent properties
+		// resolve potentially variable-dependent properties
 		for (auto const& id : dirty_properties)
-		{
-			auto prop = GetLocalProperty(id, source_inline_properties, definition.get());
-			if (!prop)
-			{
-				inline_properties.RemoveProperty(id);
-			}
-			else if (prop->unit == Property::PROPERTYVARIABLETERM)
-			{
-				String string_value;
-				ResolvePropertyVariableTerm(string_value, prop->value.GetReference<PropertyVariableTerm>());
-				auto definition = StyleSheetSpecification::GetProperty(id);
-				if (definition)
-				{
-					Property parsed_value;
-					if (definition->ParseValue(parsed_value, string_value))
-						inline_properties.SetProperty(id, parsed_value);
-					else
-						Log::Message(Log::LT_ERROR, "Failed to parse RCSS variable-dependent property '%s' with value '%s'.",
-							StyleSheetSpecification::GetPropertyName(id).c_str(), string_value.c_str());
-				}
-			}
-		}
+			ResolveProperty(inline_properties, id, element, source_inline_properties, definition.get());
 
 		// Generally, this is how it works:
 		//   1. Assign default values (clears any removed properties)

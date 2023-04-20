@@ -179,9 +179,6 @@ private:
 	void UpdatePropertyDependencies(PropertyId id);
 	void UpdateShorthandDependencies(ShorthandId id);
 
-	void ResolvePropertyVariable(String const& name, UnorderedSet<String>& resolved_set);
-	void ResolvePropertyVariableTerm(String& result, const PropertyVariableTerm& term);
-
 	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition);
 	static const Property* GetProperty(PropertyId id, const Element* element, const PropertyDictionary& inline_properties,
 		const ElementDefinition* definition);
@@ -191,6 +188,16 @@ private:
 		const ElementDefinition* definition);
 	static void TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& inline_properties,
 		const ElementDefinition* old_definition, const ElementDefinition* new_definition);
+
+	static void ResolveProperty(PropertyDictionary& output, PropertyId id, const Element* element, const PropertyDictionary& inline_properties,
+		const ElementDefinition* definition);
+	static void ResolveShorthand(PropertyDictionary& output, ShorthandId id, PropertyIdSet& dirty_properties, const Element* element,
+		const PropertyDictionary& inline_properties, const ElementDefinition* definition);
+	static void ResolvePropertyVariable(PropertyDictionary& output, String const& name, UnorderedSet<String>& resolved_set,
+		const UnorderedSet<String>& dirty_set, const Element* element, const PropertyDictionary& inline_properties,
+		const ElementDefinition* definition);
+	static void ResolvePropertyVariableTerm(String& output, const PropertyVariableTerm& term, const Element* element,
+		const PropertyDictionary& inline_properties, const ElementDefinition* definition);
 
 	// Element these properties belong to
 	Element* element;
