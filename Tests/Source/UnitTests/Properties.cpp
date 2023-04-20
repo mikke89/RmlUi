@@ -267,6 +267,28 @@ static const String transition_rml = R"(
 </rml>
 )";
 
+static const String shorthand_transition_rml = R"(
+<rml>
+<head>
+	<style>
+		div {
+			padding: 10px;
+			transition: all 0.2s;
+		}
+		
+		div.active {
+			--padding: 20px;
+			padding: var(--padding);
+		}
+	</style>
+</head>
+
+<body>
+<div></div>
+</body>
+</rml>
+)";
+
 TEST_CASE("variables.basic")
 {
 	Context* context = TestsShell::GetContext();
@@ -468,6 +490,25 @@ TEST_CASE("variables.transition")
 	REQUIRE(context);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(transition_rml);
+	REQUIRE(document);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	document->QuerySelector("div")->SetClass("active", true);
+
+	TestsShell::RenderLoop();
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("variables.shorthand_transition")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(shorthand_transition_rml);
 	REQUIRE(document);
 	document->Show();
 	TestsShell::RenderLoop();
