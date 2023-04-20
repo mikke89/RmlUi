@@ -663,11 +663,11 @@ void ElementStyle::ResolveProperty(PropertyDictionary& output, PropertyId id, co
 	{
 		String string_value;
 		ResolvePropertyVariableTerm(string_value, prop->value.GetReference<PropertyVariableTerm>(), element, inline_properties, definition);
-		auto definition = StyleSheetSpecification::GetProperty(id);
-		if (definition)
+		auto property_def = StyleSheetSpecification::GetProperty(id);
+		if (property_def)
 		{
 			Property parsed_value;
-			if (definition->ParseValue(parsed_value, string_value))
+			if (property_def->ParseValue(parsed_value, string_value))
 				output.SetProperty(id, parsed_value);
 			else
 				Log::Message(Log::LT_ERROR, "Failed to parse RCSS variable-dependent property '%s' with value '%s'.",
