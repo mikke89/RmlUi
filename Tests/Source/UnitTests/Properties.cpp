@@ -245,6 +245,28 @@ static const String order_rml = R"(
 </rml>
 )";
 
+static const String transition_rml = R"(
+<rml>
+<head>
+	<style>
+		div {
+			background-color: red;
+			transition: all 0.2s;
+		}
+		
+		div.active {
+			--color: blue;
+			background-color: var(--color);
+		}
+	</style>
+</head>
+
+<body>
+<div></div>
+</body>
+</rml>
+)";
+
 TEST_CASE("variables.basic")
 {
 	Context* context = TestsShell::GetContext();
@@ -435,6 +457,25 @@ TEST_CASE("variables.order")
 	REQUIRE(document);
 	document->Show();
 	TestsShell::RenderLoop();
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("variables.transition")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(transition_rml);
+	REQUIRE(document);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	document->QuerySelector("div")->SetClass("active", true);
+
+	TestsShell::RenderLoop();
+
 	document->Close();
 
 	TestsShell::ShutdownShell();
