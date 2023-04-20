@@ -167,11 +167,25 @@ void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& pr
 		if (!transition_list.none)
 		{
 			static const PropertyDictionary empty_properties;
+			PropertyDictionary new_inline_properties;
+
+			// resolve all variables and dependent shorthands in the new definition
+			UnorderedSet<String> resolved;
+			auto dirty = new_definition->GetPropertyVariableNames();
+			for (auto const& it : dirty)
+				ResolvePropertyVariable(new_inline_properties, it, resolved, dirty, element, empty_properties, new_definition);
+
+			PropertyIdSet dirty_properties;
+			for (auto const& it : new_definition->GetDependentShorthandIds())
+				ResolveShorthand(new_inline_properties, it, dirty_properties, element, new_inline_properties, new_definition);
 
 			auto add_transition = [&](const Transition& transition) {
 				bool transition_added = false;
 				const Property* start_value = GetProperty(transition.id, element, inline_properties, old_definition);
-				const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition);
+
+				ResolveProperty(new_inline_properties, transition.id, element, new_inline_properties, new_definition);
+				const Property* target_value = GetProperty(transition.id, element, new_inline_properties, new_definition);
+
 				if (start_value && target_value && (*start_value != *target_value))
 					transition_added = element->StartTransition(transition, *start_value, *target_value);
 				return transition_added;

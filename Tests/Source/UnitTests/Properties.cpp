@@ -267,6 +267,29 @@ static const String transition_rml = R"(
 </rml>
 )";
 
+static const String transition_deep_rml = R"(
+<rml>
+<head>
+	<style>
+		div {
+			background-color: red;
+			transition: all 0.2s;
+		}
+		
+		div.active {
+			--new-color: blue;
+			--color: var(--new-color);
+			background-color: var(--color);
+		}
+	</style>
+</head>
+
+<body>
+<div></div>
+</body>
+</rml>
+)";
+
 static const String shorthand_transition_rml = R"(
 <rml>
 <head>
@@ -490,6 +513,25 @@ TEST_CASE("variables.transition")
 	REQUIRE(context);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(transition_rml);
+	REQUIRE(document);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	document->QuerySelector("div")->SetClass("active", true);
+
+	TestsShell::RenderLoop();
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("variables.transition_deep")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(transition_deep_rml);
 	REQUIRE(document);
 	document->Show();
 	TestsShell::RenderLoop();
