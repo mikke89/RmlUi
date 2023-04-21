@@ -26,6 +26,9 @@
  *
  */
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "RmlUi_Renderer_VK.h"
 #include "RmlUi_Vulkan/ShadersCompiledSPV.h"
 #include <RmlUi/Core/Core.h>
@@ -398,29 +401,10 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 	}
 }
 
-// Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
-#pragma pack(1)
-struct TGAHeader {
-	char idLength;
-	char colourMapType;
-	char dataType;
-	short int colourMapOrigin;
-	short int colourMapLength;
-	char colourMapDepth;
-	short int xOrigin;
-	short int yOrigin;
-	short int width;
-	short int height;
-	char bitsPerPixel;
-	char imageDescriptor;
-};
-// Restore packing
-#pragma pack()
-
 bool RenderInterface_VK::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
 	Rml::FileInterface* file_interface = Rml::GetFileInterface();
-	Rml::FileHandle file_handle = file_interface->Open(source);
+	Rml::FileHandle file_handle        = file_interface->Open(source);
 	if (!file_handle)
 	{
 		return false;
@@ -430,68 +414,29 @@ bool RenderInterface_VK::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Ve
 	size_t buffer_size = file_interface->Tell(file_handle);
 	file_interface->Seek(file_handle, 0, SEEK_SET);
 
-	RMLUI_ASSERTMSG(buffer_size > sizeof(TGAHeader), "Texture file size is smaller than TGAHeader, file must be corrupt or otherwise invalid");
-	if (buffer_size <= sizeof(TGAHeader))
-	{
-		file_interface->Close(file_handle);
-		return false;
-	}
-
-	char* buffer = new char[buffer_size];
+	unsigned char* buffer = new unsigned char[buffer_size];
 	file_interface->Read(buffer, buffer_size, file_handle);
 	file_interface->Close(file_handle);
 
-	TGAHeader header;
-	memcpy(&header, buffer, sizeof(TGAHeader));
+	stbi_set_flip_vertically_on_load(false);
+	unsigned char* data = stbi_load_from_memory(buffer, buffer_size, &texture_dimensions.x, &texture_dimensions.y, nullptr, STBI_rgb_alpha);
 
-	int color_mode = header.bitsPerPixel / 8;
-	int image_size = header.width * header.height * 4; // We always make 32bit textures
-
-	if (header.dataType != 2)
+	bool success = true;
+	if (data)
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
-		return false;
+		success = CreateTexture(texture_handle, data, texture_dimensions, source);
+	}
+	else
+	{
+		success = false;
 	}
 
-	// Ensure we have at least 3 colors
-	if (color_mode < 3)
-	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported");
-		return false;
-	}
+	stbi_image_free(data);
+	stbi_set_flip_vertically_on_load(true);
 
-	const char* image_src = buffer + sizeof(TGAHeader);
-	unsigned char* image_dest = new unsigned char[image_size];
-
-	// Targa is BGR, swap to RGB and flip Y axis
-	for (long y = 0; y < header.height; y++)
-	{
-		long read_index = y * header.width * color_mode;
-		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * color_mode;
-		for (long x = 0; x < header.width; x++)
-		{
-			image_dest[write_index] = image_src[read_index + 2];
-			image_dest[write_index + 1] = image_src[read_index + 1];
-			image_dest[write_index + 2] = image_src[read_index];
-			if (color_mode == 4)
-				image_dest[write_index + 3] = image_src[read_index + 3];
-			else
-				image_dest[write_index + 3] = 255;
-
-			write_index += 4;
-			read_index += color_mode;
-		}
-	}
-
-	texture_dimensions.x = header.width;
-	texture_dimensions.y = header.height;
-
-	bool status = CreateTexture(texture_handle, image_dest, texture_dimensions, source);
-
-	delete[] image_dest;
 	delete[] buffer;
 
-	return status;
+	return success;
 }
 
 bool RenderInterface_VK::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)

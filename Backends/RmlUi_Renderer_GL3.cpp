@@ -26,6 +26,9 @@
  *
  */
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "RmlUi_Renderer_GL3.h"
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
@@ -96,6 +99,11 @@ void main() {
 	finalColor = fragColor;
 }
 )";
+
+static int viewport_backup[4] = {0, 0, 0, 0};
+static bool is_culling_enabled;
+static bool is_scissor_enabled;
+static bool is_blending_enabled;
 
 namespace Gfx {
 
@@ -337,19 +345,37 @@ void RenderInterface_GL3::SetViewport(int width, int height)
 
 void RenderInterface_GL3::BeginFrame()
 {
+	glGetIntegerv(GL_VIEWPORT, viewport_backup);
+
 	RMLUI_ASSERT(viewport_width >= 0 && viewport_height >= 0);
 	glViewport(0, 0, viewport_width, viewport_height);
 
 	glClearStencil(0);
 	glClearColor(0, 0, 0, 1);
 
-	glDisable(GL_CULL_FACE);
+	is_culling_enabled = glIsEnabled(GL_CULL_FACE);
+	if (is_culling_enabled)
+	{
+		glDisable(GL_CULL_FACE);
+	}
 
-	glEnable(GL_STENCIL_TEST);
+	is_scissor_enabled = glIsEnabled(GL_STENCIL_TEST);
+	if (!is_scissor_enabled)
+	{
+		glEnable(GL_STENCIL_TEST);
+	}
+	
+	// TODO: Query and backup these?
 	glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-	glEnable(GL_BLEND);
+	is_blending_enabled = glIsEnabled(GL_STENCIL_TEST);
+	if (!is_blending_enabled)
+	{
+		glEnable(GL_BLEND);	
+	}
+	
+	// TODO: Query and backup these?
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -358,7 +384,38 @@ void RenderInterface_GL3::BeginFrame()
 	SetTransform(nullptr);
 }
 
-void RenderInterface_GL3::EndFrame() {}
+void RenderInterface_GL3::EndFrame()
+{
+	// Restore previous settings.
+	glViewport(viewport_backup[0], viewport_backup[1], viewport_backup[2], viewport_backup[3]);
+
+	if (is_culling_enabled)
+	{
+		glEnable(GL_CULL_FACE);
+	}
+	else
+	{
+		glDisable(GL_CULL_FACE);
+	}
+
+	if (is_scissor_enabled)
+	{
+		glEnable(GL_STENCIL_TEST);
+	}
+	else
+	{
+		glDisable(GL_STENCIL_TEST);
+	}
+
+	if (is_blending_enabled)
+	{
+		glEnable(GL_BLEND);
+	}
+	else
+	{
+		glDisable(GL_BLEND);
+	}
+}
 
 void RenderInterface_GL3::Clear()
 {
@@ -410,7 +467,9 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* ve
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * num_indices, (const void*)indices, draw_usage);
+	
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	Gfx::CheckGLError("CompileGeometry");
 
@@ -446,7 +505,10 @@ void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle han
 
 	glBindVertexArray(geometry->vao);
 	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+	
 	glBindVertexArray(0);
+	glUseProgram(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	Gfx::CheckGLError("RenderCompiledGeometry");
 }
@@ -464,6 +526,8 @@ void RenderInterface_GL3::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle ha
 
 void RenderInterface_GL3::EnableScissorRegion(bool enable)
 {
+	// TODO, make sure this respects existing settings, but requires internal RMLUI checks.
+
 	ScissoringState new_state = ScissoringState::Disable;
 
 	if (enable)
@@ -521,29 +585,10 @@ void RenderInterface_GL3::SetScissorRegion(int x, int y, int width, int height)
 	}
 }
 
-// Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
-#pragma pack(1)
-struct TGAHeader {
-	char idLength;
-	char colourMapType;
-	char dataType;
-	short int colourMapOrigin;
-	short int colourMapLength;
-	char colourMapDepth;
-	short int xOrigin;
-	short int yOrigin;
-	short int width;
-	short int height;
-	char bitsPerPixel;
-	char imageDescriptor;
-};
-// Restore packing
-#pragma pack()
-
 bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
 	Rml::FileInterface* file_interface = Rml::GetFileInterface();
-	Rml::FileHandle file_handle = file_interface->Open(source);
+	Rml::FileHandle file_handle        = file_interface->Open(source);
 	if (!file_handle)
 	{
 		return false;
@@ -553,78 +598,26 @@ bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	size_t buffer_size = file_interface->Tell(file_handle);
 	file_interface->Seek(file_handle, 0, SEEK_SET);
 
-	if (buffer_size <= sizeof(TGAHeader))
-	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Texture file size is smaller than TGAHeader, file is not a valid TGA image.");
-		file_interface->Close(file_handle);
-		return false;
-	}
-
-	using Rml::byte;
-	byte* buffer = new byte[buffer_size];
+	unsigned char* buffer = new unsigned char[buffer_size];
 	file_interface->Read(buffer, buffer_size, file_handle);
 	file_interface->Close(file_handle);
 
-	TGAHeader header;
-	memcpy(&header, buffer, sizeof(TGAHeader));
+	stbi_set_flip_vertically_on_load(false);
+	unsigned char* data = stbi_load_from_memory(buffer, buffer_size, &texture_dimensions.x, &texture_dimensions.y, nullptr, STBI_rgb_alpha);
 
-	int color_mode = header.bitsPerPixel / 8;
-	int image_size = header.width * header.height * 4; // We always make 32bit textures
-
-	if (header.dataType != 2)
+	bool success = true;
+	if (data)
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
-		delete[] buffer;
-		return false;
+		success = GenerateTexture(texture_handle, data, texture_dimensions);
+	}
+	else
+	{
+		success = false;
 	}
 
-	// Ensure we have at least 3 colors
-	if (color_mode < 3)
-	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported.");
-		delete[] buffer;
-		return false;
-	}
+	stbi_image_free(data);
+	stbi_set_flip_vertically_on_load(true);
 
-	const byte* image_src = buffer + sizeof(TGAHeader);
-	byte* image_dest = new byte[image_size];
-
-	// Targa is BGR, swap to RGB and flip Y axis
-	for (long y = 0; y < header.height; y++)
-	{
-		long read_index = y * header.width * color_mode;
-		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * 4;
-		for (long x = 0; x < header.width; x++)
-		{
-			image_dest[write_index] = image_src[read_index + 2];
-			image_dest[write_index + 1] = image_src[read_index + 1];
-			image_dest[write_index + 2] = image_src[read_index];
-			if (color_mode == 4)
-			{
-				const int alpha = image_src[read_index + 3];
-#ifdef RMLUI_SRGB_PREMULTIPLIED_ALPHA
-				image_dest[write_index + 0] = (image_dest[write_index + 0] * alpha) / 255;
-				image_dest[write_index + 1] = (image_dest[write_index + 1] * alpha) / 255;
-				image_dest[write_index + 2] = (image_dest[write_index + 2] * alpha) / 255;
-#endif
-				image_dest[write_index + 3] = (byte)alpha;
-			}
-			else
-			{
-				image_dest[write_index + 3] = 255;
-			}
-
-			write_index += 4;
-			read_index += color_mode;
-		}
-	}
-
-	texture_dimensions.x = header.width;
-	texture_dimensions.y = header.height;
-
-	bool success = GenerateTexture(texture_handle, image_dest, texture_dimensions);
-
-	delete[] image_dest;
 	delete[] buffer;
 
 	return success;
@@ -651,6 +644,8 @@ bool RenderInterface_GL3::GenerateTexture(Rml::TextureHandle& texture_handle, co
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	texture_handle = (Rml::TextureHandle)texture_id;
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return true;
 }
