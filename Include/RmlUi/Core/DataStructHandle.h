@@ -60,6 +60,19 @@ public:
 		return CreateMemberObjectDefinition(name, member_object_ptr);
 	}
 
+	template <typename CastType>
+	bool RegisterDowncast(const String& name)
+	{
+		static_assert(std::is_base_of<Object, CastType>::value, "Provided class must be child class of base type.");
+		return CreateCastDefinition<CastType>(name);
+	}
+	template <typename CastType>
+	bool RegisterUpcast(const String& name)
+	{
+		static_assert(std::is_base_of<CastType, Object>::value, "Provided class must be parent class of base type.");
+		return CreateCastDefinition<CastType>(name);
+	}
+
 	/// Register a member getter function.
 	/// @note Underlying type must be registered before it is used as a member.
 	/// @note Getter functions can return by reference, raw pointer, or by value. If returned by value,
@@ -125,6 +138,9 @@ private:
 		return CreateMemberScalarGetSetFuncDefinition<ReturnType>(name, member_get_func_ptr, SetType{});
 	}
 
+	template <typename CastType>
+	bool CreateCastDefinition(const String& name);
+
 	template <typename MemberType>
 	bool CreateMemberObjectDefinition(const String& name, MemberType Object::*member_ptr);
 
@@ -138,6 +154,17 @@ private:
 	DataTypeRegister* type_register;
 	StructDefinition* struct_definition;
 };
+
+template <typename Object>
+template <typename CastType>
+bool StructHandle<Object>::CreateCastDefinition(const String& name)
+{
+	VariableDefinition* underlying_definition = type_register->GetDefinition<CastType>();
+	if (!underlying_definition)
+		return false;
+	struct_definition->AddMember("As" + name, Rml::MakeUnique<DynamicPointerDefinition<Object, CastType>>(underlying_definition));
+	return true;
+}
 
 template <typename Object>
 template <typename MemberType>

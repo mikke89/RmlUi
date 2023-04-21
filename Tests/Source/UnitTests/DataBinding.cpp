@@ -183,6 +183,56 @@ static const String aliasing_rml = R"(
 </rml>
 )";
 
+static const String casting_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<link type="text/rcss" href="/assets/invader.rcss"/>
+	<style>
+		body {
+			width: 600px;
+			height: 400px;
+			background: #ccc;
+			color: #333;
+		}
+	</style>
+</head>
+
+<body data-model="basics">
+<div id="value">
+	<p>{{Inheritance.base.value}}</p>
+	<p>{{Inheritance.derived.AsBase.value}}</p>
+
+	<p>{{Inheritance.basePointer.value}}</p>
+	<p>{{Inheritance.derivedPointer.value}}</p>
+	<p>{{Inheritance.derivedPointer2.value}}</p>
+
+	<p>{{Inheritance.baseUnique.value}}</p>
+	<p>{{Inheritance.derivedUnique.value}}</p>
+	<p>{{Inheritance.derivedUnique2.AsBase.value}}</p>
+</div>
+
+<div id="number">
+	<p>{{Inheritance.derived.number}}</p>
+	<p>{{Inheritance.derivedPointer.AsDerivedA.number}}</p>
+	<p>{{Inheritance.derivedUnique.AsDerivedA.number}}</p>
+	<p>{{Inheritance.derivedUnique2.number}}</p>
+</div>
+
+<div id="invalid">
+	<p>{{Inheritance.base.AsDerivedA.number}}</p>
+	<p>{{Inheritance.base.AsDerivedB.number}}</p>
+
+	<p>{{Inheritance.derived.AsBase.AsDerivedB.number}}</p>
+	<p>{{Inheritance.derivedPointer.AsDerivedB.number}}</p>
+	<p>{{Inheritance.derivedPointer2.AsDerivedA.number}}</p>
+	<p>{{Inheritance.baseUnique.AsDerivedA.number}}</p>
+</div>
+</body>
+</rml>
+)";
+
 struct StringWrap {
 	StringWrap(String val = "wrap_default") : val(val) {}
 	String val;
@@ -332,6 +382,33 @@ struct Arrays {
 	}
 };
 
+struct Base {
+	int value = 0;
+
+	virtual ~Base() {}
+};
+
+struct DerivedA : Base {
+	int number = 2;
+};
+
+struct DerivedB : Base {
+	int prop = 3;
+};
+
+struct Inheritance {
+	Base base = Base();
+	DerivedA derived = DerivedA();
+
+	Base* basePointer = new Base();
+	Base* derivedPointer = new DerivedA();
+	Base* derivedPointer2 = new DerivedB();
+
+	UniquePtr<Base> baseUnique = MakeUnique<Base>();
+	UniquePtr<Base> derivedUnique = MakeUnique<DerivedA>();
+	UniquePtr<DerivedA> derivedUnique2 = MakeUnique<DerivedA>();
+};
+
 DataModelHandle model_handle;
 
 bool InitializeDataBindings(Context* context)
@@ -435,6 +512,33 @@ bool InitializeDataBindings(Context* context)
 		// handle.RegisterMember("x1", &Arrays::x1);
 	}
 	constructor.Bind("arrays", new Arrays);
+
+	auto base = constructor.RegisterStruct<Base>();
+	base.RegisterMember("value", &Base::value);
+
+	auto derivedA = constructor.RegisterStruct<DerivedA>();
+	derivedA.RegisterMember("number", &DerivedA::number);
+	derivedA.RegisterUpcast<Base>("Base");
+	base.RegisterDowncast<DerivedA>("DerivedA");
+
+	auto derivedB = constructor.RegisterStruct<DerivedB>();
+	derivedB.RegisterMember("number", &DerivedB::prop);
+	derivedB.RegisterUpcast<Base>("Base");
+	base.RegisterDowncast<DerivedB>("DerivedB");
+
+	if (auto handle = constructor.RegisterStruct<Inheritance>())
+	{
+		handle.RegisterMember("base", &Inheritance::base);
+		handle.RegisterMember("derived", &Inheritance::derived);
+		handle.RegisterMember("basePointer", &Inheritance::basePointer);
+		handle.RegisterMember("derivedPointer", &Inheritance::derivedPointer);
+		handle.RegisterMember("derivedPointer2", &Inheritance::derivedPointer2);
+		handle.RegisterMember("baseUnique", &Inheritance::baseUnique);
+		handle.RegisterMember("derivedUnique", &Inheritance::derivedUnique);
+		handle.RegisterMember("derivedUnique2", &Inheritance::derivedUnique2);
+	}
+
+	constructor.Bind("Inheritance", new Inheritance);
 
 	model_handle = constructor.GetModelHandle();
 
@@ -548,6 +652,40 @@ TEST_CASE("databinding.set_enum")
 
 	CHECK(globals.simple == Simple_Two);
 	CHECK(element->GetInnerRML() == "2");
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("databinding.casting")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	REQUIRE(InitializeDataBindings(context));
+
+	TestsShell::SetNumExpectedWarnings(6);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(casting_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	{
+		ElementList list;
+		document->QuerySelectorAll(list, "#value > p");
+		const auto baseValue = std::to_string(Base().value);
+		for (auto const& it : list)
+			CHECK(it->GetInnerRML() == baseValue);
+	}
+	{
+		ElementList list;
+		document->QuerySelectorAll(list, "#number > p");
+		const auto derivedNumber = std::to_string(DerivedA().number);
+		for (auto const& it : list)
+			CHECK(it->GetInnerRML() == derivedNumber);
+	}
 
 	document->Close();
 	TestsShell::ShutdownShell();

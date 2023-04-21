@@ -214,6 +214,18 @@ protected:
 	void* DereferencePointer(void* ptr) override { return PointerTraits<T>::Dereference(ptr); }
 };
 
+template <typename SourceType, typename TargetType>
+class DynamicPointerDefinition final : public BasePointerDefinition {
+public:
+	DynamicPointerDefinition(VariableDefinition* underlying_definition) : BasePointerDefinition(underlying_definition) {}
+
+protected:
+	void* DereferencePointer(void* ptr) override
+	{
+		return dynamic_cast<TargetType*>(static_cast<SourceType*>(PointerTraits<TargetType>::Dereference(ptr)));
+	}
+};
+
 template <typename Object, typename MemberType>
 class MemberObjectDefinition final : public BasePointerDefinition {
 public:
