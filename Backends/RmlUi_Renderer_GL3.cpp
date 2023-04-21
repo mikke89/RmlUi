@@ -97,6 +97,11 @@ void main() {
 }
 )";
 
+static int viewport_backup[4] = {0, 0, 0, 0};
+static bool is_culling_enabled;
+static bool is_scissor_enabled;
+static bool is_blending_enabled;
+
 namespace Gfx {
 
 enum class ProgramUniform { Translate, Transform, Tex, Count };
@@ -337,19 +342,37 @@ void RenderInterface_GL3::SetViewport(int width, int height)
 
 void RenderInterface_GL3::BeginFrame()
 {
+	glGetIntegerv(GL_VIEWPORT, viewport_backup);
+
 	RMLUI_ASSERT(viewport_width >= 0 && viewport_height >= 0);
 	glViewport(0, 0, viewport_width, viewport_height);
 
 	glClearStencil(0);
 	glClearColor(0, 0, 0, 1);
 
-	glDisable(GL_CULL_FACE);
+	is_culling_enabled = glIsEnabled(GL_CULL_FACE);
+	if (is_culling_enabled)
+	{
+		glDisable(GL_CULL_FACE);
+	}
 
-	glEnable(GL_STENCIL_TEST);
+	is_scissor_enabled = glIsEnabled(GL_STENCIL_TEST);
+	if (!is_scissor_enabled)
+	{
+		glEnable(GL_STENCIL_TEST);
+	}
+	
+	// TODO: Query and backup these?
 	glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-	glEnable(GL_BLEND);
+	is_blending_enabled = glIsEnabled(GL_STENCIL_TEST);
+	if (!is_blending_enabled)
+	{
+		glEnable(GL_BLEND);	
+	}
+	
+	// TODO: Query and backup these?
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -358,7 +381,38 @@ void RenderInterface_GL3::BeginFrame()
 	SetTransform(nullptr);
 }
 
-void RenderInterface_GL3::EndFrame() {}
+void RenderInterface_GL3::EndFrame()
+{
+	// Restore previous settings.
+	glViewport(viewport_backup[0], viewport_backup[1], viewport_backup[2], viewport_backup[3]);
+
+	if (is_culling_enabled)
+	{
+		glEnable(GL_CULL_FACE);
+	}
+	else
+	{
+		glDisable(GL_CULL_FACE);
+	}
+
+	if (is_scissor_enabled)
+	{
+		glEnable(GL_STENCIL_TEST);
+	}
+	else
+	{
+		glDisable(GL_STENCIL_TEST);
+	}
+
+	if (is_blending_enabled)
+	{
+		glEnable(GL_BLEND);
+	}
+	else
+	{
+		glDisable(GL_BLEND);
+	}
+}
 
 void RenderInterface_GL3::Clear()
 {
@@ -410,7 +464,9 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* ve
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * num_indices, (const void*)indices, draw_usage);
+	
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	Gfx::CheckGLError("CompileGeometry");
 
@@ -446,7 +502,10 @@ void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle han
 
 	glBindVertexArray(geometry->vao);
 	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+	
 	glBindVertexArray(0);
+	glUseProgram(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	Gfx::CheckGLError("RenderCompiledGeometry");
 }
@@ -464,6 +523,8 @@ void RenderInterface_GL3::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle ha
 
 void RenderInterface_GL3::EnableScissorRegion(bool enable)
 {
+	// TODO, make sure this respects existing settings, but requires internal RMLUI checks.
+
 	ScissoringState new_state = ScissoringState::Disable;
 
 	if (enable)
@@ -651,6 +712,8 @@ bool RenderInterface_GL3::GenerateTexture(Rml::TextureHandle& texture_handle, co
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	texture_handle = (Rml::TextureHandle)texture_id;
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return true;
 }
