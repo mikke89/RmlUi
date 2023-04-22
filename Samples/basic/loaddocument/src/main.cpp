@@ -34,10 +34,13 @@
 #if defined RMLUI_PLATFORM_WIN32
 	#include <RmlUi_Include_Windows.h>
 int APIENTRY WinMain(HINSTANCE /*instance_handle*/, HINSTANCE /*previous_instance_handle*/, char* /*command_line*/, int /*command_show*/)
-#else
-int main(int /*argc*/, char** /*argv*/)
-#endif
 {
+	auto argc = __argc;
+	auto argv = __argv;
+#else
+int main(int argc, char** argv)
+{
+#endif
 	const int window_width = 1024;
 	const int window_height = 768;
 
@@ -75,9 +78,18 @@ int main(int /*argc*/, char** /*argv*/)
 	// Fonts should be loaded before any documents are loaded.
 	Shell::LoadFonts();
 
-	// Load and show the demo document.
-	if (Rml::ElementDocument* document = context->LoadDocument("assets/demo.rml"))
+	// Load and show the document.
+	Rml::String path = "assets/demo.rml";
+	if (argc >= 2)
+		path = argv[1];
+
+	if (Rml::ElementDocument* document = context->LoadDocument(path))
 		document->Show();
+	else
+	{
+		Rml::Log::Message(Rml::Log::Type::LT_ERROR, "Document could not be loaded: %s. Exiting.", path.c_str());
+		return -1;
+	}
 
 	bool running = true;
 	while (running)
