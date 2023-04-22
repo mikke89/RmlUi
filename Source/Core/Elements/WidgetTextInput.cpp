@@ -917,6 +917,18 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 
 	const char* p_begin = GetValue().data() + lines[line_index].value_offset;
 
+	const float client_width = parent->GetClientWidth();
+	const float total_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, lines[line_index].editable_length));
+	auto text_align = GetElement()->GetComputedValues().text_align();
+
+	// offset position depending on text align
+	switch (text_align)
+	{
+	case Style::TextAlign::Right: position -= client_width - total_width; break;
+	case Style::TextAlign::Center: position -= (client_width - total_width) / 2; break;
+	default: break;
+	}
+
 	for (auto it = StringIteratorU8(p_begin, p_begin, p_begin + lines[line_index].editable_length); it;)
 	{
 		++it;
@@ -1060,6 +1072,21 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	Vector2f line_position(0, font_baseline);
 	bool last_line = false;
 
+	auto text_align = GetElement()->GetComputedValues().text_align();
+
+	struct Segment {
+		Vector2f position;
+		int width;
+		String content;
+		int selection_vertex_base;
+		int line_index;
+	};
+
+	const int InvalidSelectionVertexBase = -1;
+
+	Vector<Segment> segments;
+	Vector<float> line_widths;
+
 	// Keep generating lines until all the text content is placed.
 	do
 	{
@@ -1079,10 +1106,10 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 		// If this line terminates in a soft-return (word wrap), then the line may be leaving a space or two behind as an orphan. If so, we must
 		// append the orphan onto the line even though it will push the line outside of the input field's bounds.
+		String orphan;
 		if (!last_line && (line_content.empty() || line_content.back() != '\n'))
 		{
 			const String& text = GetValue();
-			String orphan;
 			for (int i = 1; i >= 0; --i)
 			{
 				int index = line_begin + line.size + i;
@@ -1099,13 +1126,18 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 				if (!orphan.empty() || next_index >= (int)text.size() || text[next_index] != ' ')
 					orphan += ' ';
 			}
+		}
+		else if (last_line && text_align == Style::TextAlign::Right && lines.size() > 0)
+		{
+			// append single orphan to last line to properly align it with other lines when right aligned
+			orphan = ' ';
+		}
 
-			if (!orphan.empty())
-			{
-				line_content += orphan;
-				line.size += (int)orphan.size();
-				line_width += ElementUtilities::GetStringWidth(text_element, orphan);
-			}
+		if (!orphan.empty())
+		{
+			line_content += orphan;
+			line.size += (int)orphan.size();
+			line_width += ElementUtilities::GetStringWidth(text_element, orphan);
 		}
 
 		// Now that we have the string of characters appearing on the new line, we split it into
@@ -1118,8 +1150,9 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		// the beginning of this line, then this will be empty).
 		if (!pre_selection.empty())
 		{
-			text_element->AddLine(line_position, pre_selection);
-			line_position.x += ElementUtilities::GetStringWidth(text_element, pre_selection);
+			const int width = ElementUtilities::GetStringWidth(text_element, pre_selection);
+			segments.push_back({line_position, width, pre_selection, InvalidSelectionVertexBase, (int)line_widths.size()});
+			line_position.x += width;
 		}
 
 		// Return the extra kerning that would result in joining two strings.
@@ -1146,9 +1179,9 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!selection.empty())
 		{
 			line_position.x += GetKerningBetween(pre_selection, selection);
-			selected_text_element->AddLine(line_position, selection);
-
 			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
+			segments.push_back({line_position, selection_width, selection, (int)selection_vertices.size(), (int)line_widths.size()});
+
 			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + line.editable_length);
 			const Vector2f selection_size(float(selection_width + (selection_contains_endline ? endline_selection_width : 0)), line_height);
 
@@ -1165,7 +1198,8 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!post_selection.empty())
 		{
 			line_position.x += GetKerningBetween(selection, post_selection);
-			text_element->AddLine(line_position, post_selection);
+			const int width = ElementUtilities::GetStringWidth(text_element, post_selection);
+			segments.push_back({line_position, width, post_selection, InvalidSelectionVertexBase, (int)line_widths.size()});
 		}
 
 		// Update variables for the next line.
@@ -1177,6 +1211,8 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		content_area.x = Math::Max(content_area.x, line_width + cursor_size.x);
 		content_area.y = line_position.y - font_baseline;
 
+		line_widths.push_back(line_width);
+
 		// Finally, push the new line into our array of lines.
 		lines.push_back(std::move(line));
 
@@ -1184,6 +1220,30 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 	// Clamp the cursor to a valid range.
 	absolute_cursor_index = Math::Min(absolute_cursor_index, (int)GetValue().size());
+
+	// Transform segments according to text alignment
+
+	float offset_factor;
+	switch (text_align)
+	{
+	case Style::TextAlign::Right: offset_factor = 1; break;
+	case Style::TextAlign::Center: offset_factor = 0.5; break;
+	default: offset_factor = 0; break;
+	}
+
+	for (auto& it : segments)
+	{
+		float offset = (client_width - line_widths[it.line_index]) * offset_factor;
+		it.position.x += offset;
+		if (it.selection_vertex_base != InvalidSelectionVertexBase)
+		{
+			for (int i = 0; i < 4; ++i)
+				selection_vertices[it.selection_vertex_base + i].position.x += offset;
+			selected_text_element->AddLine(it.position, it.content);
+		}
+		else
+			text_element->AddLine(it.position, it.content);
+	}
 
 	return content_area;
 }
@@ -1226,9 +1286,23 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 	int cursor_line_index = 0, cursor_character_index = 0;
 	GetRelativeCursorIndices(cursor_line_index, cursor_character_index);
 
-	cursor_position.x =
-		(float)ElementUtilities::GetStringWidth(text_element, GetValue().substr(lines[cursor_line_index].value_offset, cursor_character_index));
+	auto const& line = lines[cursor_line_index];
+	const char* p_begin = GetValue().data() + line.value_offset;
+
+	cursor_position.x = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, cursor_character_index));
 	cursor_position.y = -1.f + (float)cursor_line_index * text_element->GetLineHeight();
+
+	const float client_width = parent->GetClientWidth();
+	const float total_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, line.editable_length));
+	auto text_align = GetElement()->GetComputedValues().text_align();
+
+	// offset position depending on text align
+	switch (text_align)
+	{
+	case Style::TextAlign::Right: cursor_position.x += client_width - total_width; break;
+	case Style::TextAlign::Center: cursor_position.x += (client_width - total_width) / 2; break;
+	default: break;
+	}
 
 	if (update_ideal_cursor_position)
 		ideal_cursor_position = cursor_position.x;
