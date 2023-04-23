@@ -38,6 +38,8 @@
 
 namespace Rml {
 
+enum class Unit;
+
 /**
     Templatised TypeConverters with Template Specialisation.
 
@@ -45,7 +47,7 @@ namespace Rml {
     They're mainly useful in things like dictionaries and serialisers.
 
     @author Lloyd Weehuizen
- */
+*/
 
 template <typename SourceType, typename DestType>
 class TypeConverter {
@@ -70,6 +72,12 @@ inline T FromString(const String& string, T default_value = T())
 }
 
 // Some more complex types are defined in cpp-file
+
+template <>
+class TypeConverter<Unit, String> {
+public:
+	RMLUICORE_API static bool Convert(const Unit& src, String& dest);
+};
 
 template <>
 class TypeConverter<TransformPtr, TransformPtr> {

@@ -39,13 +39,11 @@ GeometryBackgroundBorder::GeometryBackgroundBorder(Vector<Vertex>& vertices, Vec
 void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indices, CornerSizes radii, const Box& box, const Vector2f offset,
 	const Colourb background_color, const Colourb* border_colors)
 {
-	using Edge = Box::Edge;
-
 	EdgeSizes border_widths = {
-		Math::Round(box.GetEdge(Box::BORDER, Edge::TOP)),
-		Math::Round(box.GetEdge(Box::BORDER, Edge::RIGHT)),
-		Math::Round(box.GetEdge(Box::BORDER, Edge::BOTTOM)),
-		Math::Round(box.GetEdge(Box::BORDER, Edge::LEFT)),
+		Math::Round(box.GetEdge(BoxArea::Border, BoxEdge::Top)),
+		Math::Round(box.GetEdge(BoxArea::Border, BoxEdge::Right)),
+		Math::Round(box.GetEdge(BoxArea::Border, BoxEdge::Bottom)),
+		Math::Round(box.GetEdge(BoxArea::Border, BoxEdge::Left)),
 	};
 
 	int num_borders = 0;
@@ -57,7 +55,7 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 				num_borders += 1;
 	}
 
-	const Vector2f padding_size = box.GetSize(Box::PADDING).Round();
+	const Vector2f padding_size = box.GetSize(BoxArea::Padding).Round();
 
 	const bool has_background = (background_color.alpha > 0 && padding_size.x > 0 && padding_size.y > 0);
 	const bool has_border = (num_borders > 0);
@@ -159,7 +157,6 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 	// Draw the border
 	if (has_border)
 	{
-		using Edge = Box::Edge;
 		const int offset_vertices = (int)vertices.size();
 
 		const bool draw_edge[4] = {

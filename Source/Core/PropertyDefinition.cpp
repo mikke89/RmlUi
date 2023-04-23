@@ -33,7 +33,7 @@
 namespace Rml {
 
 PropertyDefinition::PropertyDefinition(PropertyId id, const String& _default_value, bool _inherited, bool _forces_layout) :
-	id(id), default_value(_default_value, Property::UNKNOWN), relative_target(RelativeTarget::None)
+	id(id), default_value(_default_value, Unit::UNKNOWN), relative_target(RelativeTarget::None)
 {
 	inherited = _inherited;
 	forces_layout = _forces_layout;
@@ -83,7 +83,7 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 	parsers.push_back(new_parser);
 
 	// If the default value has not been parsed successfully yet, run it through the new parser.
-	if (default_value.unit == Property::UNKNOWN)
+	if (default_value.unit == Unit::UNKNOWN)
 	{
 		String unparsed_value = default_value.value.Get<String>();
 		if (new_parser.parser->ParseValue(default_value, unparsed_value, new_parser.parameters))
@@ -93,7 +93,7 @@ PropertyDefinition& PropertyDefinition::AddParser(const String& parser_name, con
 		else
 		{
 			default_value.value = unparsed_value;
-			default_value.unit = Property::UNKNOWN;
+			default_value.unit = Unit::UNKNOWN;
 		}
 	}
 
@@ -112,7 +112,7 @@ bool PropertyDefinition::ParseValue(Property& property, const String& value) con
 		}
 	}
 
-	property.unit = Property::UNKNOWN;
+	property.unit = Unit::UNKNOWN;
 	return false;
 }
 
@@ -122,7 +122,7 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 
 	switch (property.unit)
 	{
-	case Property::KEYWORD:
+	case Unit::KEYWORD:
 	{
 		int parser_index = property.parser_index;
 		if (parser_index < 0 || parser_index >= (int)parsers.size())
@@ -156,30 +156,14 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 	}
 	break;
 
-	case Property::COLOUR:
+	case Unit::COLOUR:
 	{
 		Colourb colour = property.value.Get<Colourb>();
 		value = CreateString(32, "rgba(%d,%d,%d,%d)", colour.red, colour.green, colour.blue, colour.alpha);
 	}
 	break;
 
-	// clang-format off
-	case Property::PX:      value += "px";  break;
-	case Property::VW:      value += "vw";  break;
-	case Property::VH:      value += "vh";  break;
-	case Property::DEG:     value += "deg"; break;
-	case Property::RAD:     value += "rad"; break;
-	case Property::DP:      value += "dp";  break;
-	case Property::EM:      value += "em";  break;
-	case Property::REM:     value += "rem"; break;
-	case Property::PERCENT: value += "%";   break;
-	case Property::INCH:    value += "in";  break;
-	case Property::CM:      value += "cm";  break;
-	case Property::MM:      value += "mm";  break;
-	case Property::PT:      value += "pt";  break;
-	case Property::PC:      value += "pc";  break;
-	// clang-format on
-	default: break;
+	default: value += ToString(property.unit); break;
 	}
 
 	return true;

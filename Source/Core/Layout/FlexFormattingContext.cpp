@@ -106,7 +106,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 
 		// Change the flex baseline coordinates to the element baseline, which is defined as the distance from the element's bottom margin edge.
 		const float element_baseline =
-			sized_box.GetSizeAcross(Box::VERTICAL, Box::BORDER) + sized_box.GetEdge(Box::MARGIN, Box::BOTTOM) - flex_baseline;
+			sized_box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border) + sized_box.GetEdge(BoxArea::Margin, BoxEdge::Bottom) - flex_baseline;
 
 		// Close the box, and break out of the loop if it did not produce any new scrollbars, otherwise continue to format the flexbox again.
 		if (flex_container_box->Close(content_overflow_size, sized_box, element_baseline))

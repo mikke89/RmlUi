@@ -124,7 +124,7 @@ public:
 
 			if (const Property* property = properties.GetProperty(id_resolution))
 			{
-				if (property->unit == Property::X)
+				if (property->unit == Unit::X)
 					image_resolution_factor = property->Get<float>();
 			}
 		}
@@ -134,14 +134,14 @@ public:
 				return false;
 
 			Vector2f position, size;
-			if (auto property = properties.GetProperty(id_rx))
-				position.x = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
-			if (auto property = properties.GetProperty(id_ry))
-				position.y = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
-			if (auto property = properties.GetProperty(id_rw))
-				size.x = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
-			if (auto property = properties.GetProperty(id_rh))
-				size.y = ComputeAbsoluteLength(*property, 1.f, Vector2f(1.f));
+			if (auto p = properties.GetProperty(id_rx))
+				position.x = p->Get<float>();
+			if (auto p = properties.GetProperty(id_ry))
+				position.y = p->Get<float>();
+			if (auto p = properties.GetProperty(id_rw))
+				size.x = p->Get<float>();
+			if (auto p = properties.GetProperty(id_rh))
+				size.y = p->Get<float>();
 
 			sprite_definitions.emplace_back(name, Rectanglef::FromPositionSize(position, size));
 		}

@@ -31,7 +31,7 @@
 
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/DecoratorInstancer.h"
-#include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/ID.h"
 #include "../../Include/RmlUi/Core/Spritesheet.h"
 
 namespace Rml {
@@ -41,7 +41,7 @@ public:
 	DecoratorNinePatch();
 	virtual ~DecoratorNinePatch();
 
-	bool Initialise(const Rectanglef& rect_outer, const Rectanglef& rect_inner, const Array<Property, 4>* _edges, const Texture& texture,
+	bool Initialise(const Rectanglef& rect_outer, const Rectanglef& rect_inner, const Array<NumericValue, 4>* _edges, const Texture& texture,
 		float display_scale);
 
 	DecoratorDataHandle GenerateElementData(Element* element) const override;
@@ -52,7 +52,7 @@ public:
 private:
 	Rectanglef rect_outer, rect_inner;
 	float display_scale = 1;
-	UniquePtr<Array<Property, 4>> edges;
+	UniquePtr<Array<NumericValue, 4>> edges;
 };
 
 class DecoratorNinePatchInstancer : public DecoratorInstancer {

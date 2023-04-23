@@ -169,7 +169,7 @@ void DebuggerPlugin::Render()
 					{
 						Vector2f box_offset;
 						const Box& box = element->GetBox(j, box_offset);
-						Geometry::RenderOutline(element->GetAbsoluteOffset(Box::BORDER) + box_offset, box.GetSize(Box::BORDER),
+						Geometry::RenderOutline(element->GetAbsoluteOffset(BoxArea::Border) + box_offset, box.GetSize(BoxArea::Border),
 							Colourb(255, 0, 0, 128), 1);
 					}
 

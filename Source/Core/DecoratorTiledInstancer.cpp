@@ -142,7 +142,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 
 				LengthPercentage& align = tile.align[dimension];
 				const Property& property = *align_properties[dimension];
-				if (property.unit == Property::KEYWORD)
+				if (property.unit == Unit::KEYWORD)
 				{
 					enum { TOP_LEFT, CENTER, BOTTOM_RIGHT };
 					switch (property.Get<int>())
@@ -152,11 +152,11 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 					case BOTTOM_RIGHT: align = LengthPercentage(LengthPercentage::Percentage, 100.0f); break;
 					}
 				}
-				else if (property.unit == Property::PERCENT)
+				else if (property.unit == Unit::PERCENT)
 				{
 					align = LengthPercentage(LengthPercentage::Percentage, property.Get<float>());
 				}
-				else if (property.unit == Property::PX)
+				else if (property.unit == Unit::PX)
 				{
 					align = LengthPercentage(LengthPercentage::Length, property.Get<float>());
 				}

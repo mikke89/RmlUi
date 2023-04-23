@@ -69,38 +69,29 @@ static Vector4f QuaternionSlerp(const Vector4f a, const Vector4f b, float alpha)
 	return result;
 }
 
-/// Resolve a numeric property value for an element.
-static inline float ResolveLengthPercentage(NumericValue value, Element& e, float base) noexcept
-{
-	Property prop;
-	prop.value = Variant(value.number);
-	prop.unit = value.unit;
-	return e.ResolveNumericProperty(&prop, base);
-}
-
-/// Resolve a numeric property value with the element's width as relative base value.
+// Resolve a numeric property value with the element's width as relative base value.
 static inline float ResolveWidth(NumericValue value, Element& e) noexcept
 {
-	if (value.unit & (Property::PX | Property::NUMBER))
+	if (value.unit == Unit::PX || value.unit == Unit::NUMBER)
 		return value.number;
-	return ResolveLengthPercentage(value, e, e.GetBox().GetSize(Box::BORDER).x);
+	return e.ResolveNumericValue(value, e.GetBox().GetSize(BoxArea::Border).x);
 }
 
-/// Resolve a numeric property value with the element's height as relative base value.
+// Resolve a numeric property value with the element's height as relative base value.
 static inline float ResolveHeight(NumericValue value, Element& e) noexcept
 {
-	if (value.unit & (Property::PX | Property::NUMBER))
+	if (value.unit == Unit::PX || value.unit == Unit::NUMBER)
 		return value.number;
-	return ResolveLengthPercentage(value, e, e.GetBox().GetSize(Box::BORDER).y);
+	return e.ResolveNumericValue(value, e.GetBox().GetSize(BoxArea::Border).y);
 }
 
-/// Resolve a numeric property value with the element's depth as relative base value.
+// Resolve a numeric property value with the element's depth as relative base value.
 static inline float ResolveDepth(NumericValue value, Element& e) noexcept
 {
-	if (value.unit & (Property::PX | Property::NUMBER))
+	if (value.unit == Unit::PX || value.unit == Unit::NUMBER)
 		return value.number;
-	Vector2f size = e.GetBox().GetSize(Box::BORDER);
-	return ResolveLengthPercentage(value, e, Math::Max(size.x, size.y));
+	Vector2f size = e.GetBox().GetSize(BoxArea::Border);
+	return e.ResolveNumericValue(value, Math::Max(size.x, size.y));
 }
 
 static inline String ToString(NumericValue value) noexcept
@@ -270,30 +261,30 @@ struct PrepareVisitor {
 
 	bool operator()(TranslateX& p)
 	{
-		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Property::PX};
+		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Unit::PX};
 		return true;
 	}
 	bool operator()(TranslateY& p)
 	{
-		p.values[0] = NumericValue{ResolveHeight(p.values[0], e), Property::PX};
+		p.values[0] = NumericValue{ResolveHeight(p.values[0], e), Unit::PX};
 		return true;
 	}
 	bool operator()(TranslateZ& p)
 	{
-		p.values[0] = NumericValue{ResolveDepth(p.values[0], e), Property::PX};
+		p.values[0] = NumericValue{ResolveDepth(p.values[0], e), Unit::PX};
 		return true;
 	}
 	bool operator()(Translate2D& p)
 	{
-		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Property::PX};
-		p.values[1] = NumericValue{ResolveHeight(p.values[1], e), Property::PX};
+		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Unit::PX};
+		p.values[1] = NumericValue{ResolveHeight(p.values[1], e), Unit::PX};
 		return true;
 	}
 	bool operator()(Translate3D& p)
 	{
-		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Property::PX};
-		p.values[1] = NumericValue{ResolveHeight(p.values[1], e), Property::PX};
-		p.values[2] = NumericValue{ResolveDepth(p.values[2], e), Property::PX};
+		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Unit::PX};
+		p.values[1] = NumericValue{ResolveHeight(p.values[1], e), Unit::PX};
+		p.values[2] = NumericValue{ResolveDepth(p.values[2], e), Unit::PX};
 		return true;
 	}
 	template <size_t N>
@@ -406,18 +397,18 @@ struct GetGenericTypeVisitor {
 };
 
 struct ConvertToGenericTypeVisitor {
-	Translate3D operator()(const TranslateX& p) { return Translate3D{p.values[0], {0.0f, Property::PX}, {0.0f, Property::PX}}; }
-	Translate3D operator()(const TranslateY& p) { return Translate3D{{0.0f, Property::PX}, p.values[0], {0.0f, Property::PX}}; }
-	Translate3D operator()(const TranslateZ& p) { return Translate3D{{0.0f, Property::PX}, {0.0f, Property::PX}, p.values[0]}; }
-	Translate3D operator()(const Translate2D& p) { return Translate3D{p.values[0], p.values[1], {0.0f, Property::PX}}; }
+	Translate3D operator()(const TranslateX& p) { return Translate3D{p.values[0], {0.0f, Unit::PX}, {0.0f, Unit::PX}}; }
+	Translate3D operator()(const TranslateY& p) { return Translate3D{{0.0f, Unit::PX}, p.values[0], {0.0f, Unit::PX}}; }
+	Translate3D operator()(const TranslateZ& p) { return Translate3D{{0.0f, Unit::PX}, {0.0f, Unit::PX}, p.values[0]}; }
+	Translate3D operator()(const Translate2D& p) { return Translate3D{p.values[0], p.values[1], {0.0f, Unit::PX}}; }
 	Scale3D operator()(const ScaleX& p) { return Scale3D{p.values[0], 1.0f, 1.0f}; }
 	Scale3D operator()(const ScaleY& p) { return Scale3D{1.0f, p.values[0], 1.0f}; }
 	Scale3D operator()(const ScaleZ& p) { return Scale3D{1.0f, 1.0f, p.values[0]}; }
 	Scale3D operator()(const Scale2D& p) { return Scale3D{p.values[0], p.values[1], 1.0f}; }
-	Rotate3D operator()(const RotateX& p) { return Rotate3D{1, 0, 0, p.values[0], Property::RAD}; }
-	Rotate3D operator()(const RotateY& p) { return Rotate3D{0, 1, 0, p.values[0], Property::RAD}; }
-	Rotate3D operator()(const RotateZ& p) { return Rotate3D{0, 0, 1, p.values[0], Property::RAD}; }
-	Rotate3D operator()(const Rotate2D& p) { return Rotate3D{0, 0, 1, p.values[0], Property::RAD}; }
+	Rotate3D operator()(const RotateX& p) { return Rotate3D{1, 0, 0, p.values[0], Unit::RAD}; }
+	Rotate3D operator()(const RotateY& p) { return Rotate3D{0, 1, 0, p.values[0], Unit::RAD}; }
+	Rotate3D operator()(const RotateZ& p) { return Rotate3D{0, 0, 1, p.values[0], Unit::RAD}; }
+	Rotate3D operator()(const Rotate2D& p) { return Rotate3D{0, 0, 1, p.values[0], Unit::RAD}; }
 
 	template <typename T>
 	TransformPrimitive operator()(const T& p)

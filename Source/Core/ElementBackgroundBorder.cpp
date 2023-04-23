@@ -47,7 +47,7 @@ void ElementBackgroundBorder::Render(Element* element)
 	}
 
 	if (geometry)
-		geometry.Render(element->GetAbsoluteOffset(Box::BORDER));
+		geometry.Render(element->GetAbsoluteOffset(BoxArea::Border));
 }
 
 void ElementBackgroundBorder::DirtyBackground()

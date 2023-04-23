@@ -63,7 +63,7 @@ bool ElementDecoration::ReloadDecorators()
 		return true;
 
 	const Property* property = element->GetLocalProperty(PropertyId::Decorator);
-	if (!property || property->unit != Property::DECORATOR)
+	if (!property || property->unit != Unit::DECORATOR)
 		return false;
 
 	DecoratorsPtr decorators_ptr = property->Get<DecoratorsPtr>();

@@ -76,7 +76,7 @@ void ElementSVG::OnRender()
 			GenerateGeometry();
 
 		UpdateTexture();
-		geometry.Render(GetAbsoluteOffset(Box::CONTENT));
+		geometry.Render(GetAbsoluteOffset(BoxArea::Content));
 	}
 }
 
@@ -133,7 +133,7 @@ void ElementSVG::GenerateGeometry()
 	Colourb quad_colour = computed.image_color();
 	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 
-	const Vector2f render_dimensions_f = GetBox().GetSize(Box::CONTENT).Round();
+	const Vector2f render_dimensions_f = GetBox().GetSize(BoxArea::Content).Round();
 	render_dimensions.x = int(render_dimensions_f.x);
 	render_dimensions.y = int(render_dimensions_f.y);
 

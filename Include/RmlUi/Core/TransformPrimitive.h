@@ -30,19 +30,12 @@
 #define RMLUI_CORE_TRANSFORMPRIMITIVE_H
 
 #include "Header.h"
-#include "Property.h"
+#include "NumericValue.h"
 #include "Types.h"
+#include "Unit.h"
 
 namespace Rml {
 namespace Transforms {
-
-	struct RMLUICORE_API NumericValue {
-		NumericValue() noexcept : number(0.f), unit(Property::UNKNOWN) {}
-		NumericValue(float number, Property::Unit unit) noexcept : number(number), unit(unit) {}
-
-		float number;
-		Property::Unit unit;
-	};
 
 	// A resolved primitive has values that are always independent of an element's properties or layout.
 	template <size_t N>
@@ -52,8 +45,8 @@ namespace Transforms {
 	protected:
 		ResolvedPrimitive(const float* values) noexcept;
 		ResolvedPrimitive(const NumericValue* values) noexcept;
-		ResolvedPrimitive(const NumericValue* values, Array<Property::Unit, N> base_units) noexcept;
-		ResolvedPrimitive(Array<NumericValue, N> values, Array<Property::Unit, N> base_units) noexcept;
+		ResolvedPrimitive(const NumericValue* values, Array<Unit, N> base_units) noexcept;
+		ResolvedPrimitive(Array<NumericValue, N> values, Array<Unit, N> base_units) noexcept;
 		ResolvedPrimitive(Array<float, N> values) noexcept;
 	};
 
@@ -78,28 +71,28 @@ namespace Transforms {
 
 	struct RMLUICORE_API TranslateX : public UnresolvedPrimitive<1> {
 		TranslateX(const NumericValue* values) noexcept;
-		TranslateX(float x, Property::Unit unit = Property::PX) noexcept;
+		TranslateX(float x, Unit unit = Unit::PX) noexcept;
 	};
 
 	struct RMLUICORE_API TranslateY : public UnresolvedPrimitive<1> {
 		TranslateY(const NumericValue* values) noexcept;
-		TranslateY(float y, Property::Unit unit = Property::PX) noexcept;
+		TranslateY(float y, Unit unit = Unit::PX) noexcept;
 	};
 
 	struct RMLUICORE_API TranslateZ : public UnresolvedPrimitive<1> {
 		TranslateZ(const NumericValue* values) noexcept;
-		TranslateZ(float z, Property::Unit unit = Property::PX) noexcept;
+		TranslateZ(float z, Unit unit = Unit::PX) noexcept;
 	};
 
 	struct RMLUICORE_API Translate2D : public UnresolvedPrimitive<2> {
 		Translate2D(const NumericValue* values) noexcept;
-		Translate2D(float x, float y, Property::Unit units = Property::PX) noexcept;
+		Translate2D(float x, float y, Unit units = Unit::PX) noexcept;
 	};
 
 	struct RMLUICORE_API Translate3D : public UnresolvedPrimitive<3> {
 		Translate3D(const NumericValue* values) noexcept;
 		Translate3D(NumericValue x, NumericValue y, NumericValue z) noexcept;
-		Translate3D(float x, float y, float z, Property::Unit units = Property::PX) noexcept;
+		Translate3D(float x, float y, float z, Unit units = Unit::PX) noexcept;
 	};
 
 	struct RMLUICORE_API ScaleX : public ResolvedPrimitive<1> {
@@ -131,42 +124,42 @@ namespace Transforms {
 
 	struct RMLUICORE_API RotateX : public ResolvedPrimitive<1> {
 		RotateX(const NumericValue* values) noexcept;
-		RotateX(float angle, Property::Unit unit = Property::DEG) noexcept;
+		RotateX(float angle, Unit unit = Unit::DEG) noexcept;
 	};
 
 	struct RMLUICORE_API RotateY : public ResolvedPrimitive<1> {
 		RotateY(const NumericValue* values) noexcept;
-		RotateY(float angle, Property::Unit unit = Property::DEG) noexcept;
+		RotateY(float angle, Unit unit = Unit::DEG) noexcept;
 	};
 
 	struct RMLUICORE_API RotateZ : public ResolvedPrimitive<1> {
 		RotateZ(const NumericValue* values) noexcept;
-		RotateZ(float angle, Property::Unit unit = Property::DEG) noexcept;
+		RotateZ(float angle, Unit unit = Unit::DEG) noexcept;
 	};
 
 	struct RMLUICORE_API Rotate2D : public ResolvedPrimitive<1> {
 		Rotate2D(const NumericValue* values) noexcept;
-		Rotate2D(float angle, Property::Unit unit = Property::DEG) noexcept;
+		Rotate2D(float angle, Unit unit = Unit::DEG) noexcept;
 	};
 
 	struct RMLUICORE_API Rotate3D : public ResolvedPrimitive<4> {
 		Rotate3D(const NumericValue* values) noexcept;
-		Rotate3D(float x, float y, float z, float angle, Property::Unit angle_unit = Property::DEG) noexcept;
+		Rotate3D(float x, float y, float z, float angle, Unit angle_unit = Unit::DEG) noexcept;
 	};
 
 	struct RMLUICORE_API SkewX : public ResolvedPrimitive<1> {
 		SkewX(const NumericValue* values) noexcept;
-		SkewX(float angle, Property::Unit unit = Property::DEG) noexcept;
+		SkewX(float angle, Unit unit = Unit::DEG) noexcept;
 	};
 
 	struct RMLUICORE_API SkewY : public ResolvedPrimitive<1> {
 		SkewY(const NumericValue* values) noexcept;
-		SkewY(float angle, Property::Unit unit = Property::DEG) noexcept;
+		SkewY(float angle, Unit unit = Unit::DEG) noexcept;
 	};
 
 	struct RMLUICORE_API Skew2D : public ResolvedPrimitive<2> {
 		Skew2D(const NumericValue* values) noexcept;
-		Skew2D(float x, float y, Property::Unit unit = Property::DEG) noexcept;
+		Skew2D(float x, float y, Unit unit = Unit::DEG) noexcept;
 	};
 
 	struct RMLUICORE_API Perspective : public UnresolvedPrimitive<1> {

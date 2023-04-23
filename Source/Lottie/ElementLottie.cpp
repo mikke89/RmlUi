@@ -88,7 +88,7 @@ void ElementLottie::OnRender()
 			GenerateGeometry();
 
 		UpdateTexture();
-		geometry.Render(GetAbsoluteOffset(Box::CONTENT).Round());
+		geometry.Render(GetAbsoluteOffset(BoxArea::Content).Round());
 	}
 }
 
@@ -140,7 +140,7 @@ void ElementLottie::GenerateGeometry()
 	Colourb quad_colour = computed.image_color();
 	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
 
-	const Vector2f render_dimensions_f = GetBox().GetSize(Box::CONTENT).Round();
+	const Vector2f render_dimensions_f = GetBox().GetSize(BoxArea::Content).Round();
 	render_dimensions = Vector2i(render_dimensions_f);
 
 	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), render_dimensions_f, quad_colour, texcoords[0], texcoords[1]);

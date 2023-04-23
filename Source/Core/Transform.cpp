@@ -39,7 +39,7 @@ Transform::Transform(PrimitiveList primitives) : primitives(std::move(primitives
 
 Property Transform::MakeProperty(PrimitiveList primitives)
 {
-	Property p(MakeShared<Transform>(std::move(primitives)), Property::TRANSFORM);
+	Property p(MakeShared<Transform>(std::move(primitives)), Unit::TRANSFORM);
 	p.definition = StyleSheetSpecification::GetProperty(PropertyId::Transform);
 	return p;
 }

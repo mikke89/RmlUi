@@ -39,7 +39,7 @@ DecoratorNinePatch::DecoratorNinePatch() {}
 
 DecoratorNinePatch::~DecoratorNinePatch() {}
 
-bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectanglef& _rect_inner, const Array<Property, 4>* _edges,
+bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectanglef& _rect_inner, const Array<NumericValue, 4>* _edges,
 	const Texture& _texture, float _display_scale)
 {
 	rect_outer = _rect_outer;
@@ -48,7 +48,7 @@ bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectang
 	display_scale = _display_scale;
 
 	if (_edges)
-		edges = MakeUnique<Array<Property, 4>>(*_edges);
+		edges = MakeUnique<Array<NumericValue, 4>>(*_edges);
 
 	int texture_index = AddTexture(_texture);
 	return (texture_index >= 0);
@@ -64,7 +64,7 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	data->SetTexture(texture);
 	const Vector2f texture_dimensions(texture->GetDimensions());
 
-	const Vector2f surface_dimensions = element->GetBox().GetSize(Box::PADDING).Round();
+	const Vector2f surface_dimensions = element->GetBox().GetSize(BoxArea::Padding).Round();
 
 	const float opacity = computed.opacity();
 	Colourb quad_colour = computed.image_color();
@@ -102,10 +102,10 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	if (edges)
 	{
 		float lengths[4]; // top, right, bottom, left
-		lengths[0] = element->ResolveNumericProperty(&(*edges)[0], (surface_pos[1].y - surface_pos[0].y));
-		lengths[1] = element->ResolveNumericProperty(&(*edges)[1], (surface_pos[3].x - surface_pos[2].x));
-		lengths[2] = element->ResolveNumericProperty(&(*edges)[2], (surface_pos[3].y - surface_pos[2].y));
-		lengths[3] = element->ResolveNumericProperty(&(*edges)[3], (surface_pos[1].x - surface_pos[0].x));
+		lengths[0] = element->ResolveNumericValue((*edges)[0], (surface_pos[1].y - surface_pos[0].y));
+		lengths[1] = element->ResolveNumericValue((*edges)[1], (surface_pos[3].x - surface_pos[2].x));
+		lengths[2] = element->ResolveNumericValue((*edges)[2], (surface_pos[3].y - surface_pos[2].y));
+		lengths[3] = element->ResolveNumericValue((*edges)[3], (surface_pos[1].x - surface_pos[0].x));
 
 		surface_pos[1].y = lengths[0];
 		surface_pos[2].x = surface_dimensions.x - lengths[1];
@@ -176,7 +176,7 @@ void DecoratorNinePatch::ReleaseElementData(DecoratorDataHandle element_data) co
 void DecoratorNinePatch::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	Geometry* data = reinterpret_cast<Geometry*>(element_data);
-	data->Render(element->GetAbsoluteOffset(Box::PADDING));
+	data->Render(element->GetAbsoluteOffset(BoxArea::Padding));
 }
 
 DecoratorNinePatchInstancer::DecoratorNinePatchInstancer()
@@ -201,11 +201,11 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 	const DecoratorInstancerInterface& instancer_interface)
 {
 	bool edges_set = false;
-	Array<Property, 4> edges;
+	Array<NumericValue, 4> edges;
 	for (int i = 0; i < 4; i++)
 	{
-		edges[i] = *properties.GetProperty(edge_ids[i]);
-		if (edges[i].value.Get(0.0f) != 0.0f)
+		edges[i] = properties.GetProperty(edge_ids[i])->GetNumericValue();
+		if (edges[i].number != 0.0f)
 		{
 			edges_set = true;
 		}

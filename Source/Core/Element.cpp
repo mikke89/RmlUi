@@ -117,7 +117,7 @@ Element::Element(const String& tag) :
 	owner_document = nullptr;
 	offset_parent = nullptr;
 
-	client_area = Box::PADDING;
+	client_area = BoxArea::Padding;
 
 	baseline = 0.0f;
 
@@ -222,7 +222,7 @@ void Element::Render()
 	// TODO: This is a work-around for the dirty offset not being properly updated when used by containing block children. This results
 	// in scrolling not working properly. We don't care about the return value, the call is only used to force the absolute offset to update.
 	if (absolute_offset_dirty)
-		GetAbsoluteOffset(Box::BORDER);
+		GetAbsoluteOffset(BoxArea::Border);
 
 	// Rebuild our stacking context if necessary.
 	if (stacking_context_dirty)
@@ -384,19 +384,19 @@ void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_f
 	}
 }
 
-Vector2f Element::GetRelativeOffset(Box::Area area)
+Vector2f Element::GetRelativeOffset(BoxArea area)
 {
 	return relative_offset_base + relative_offset_position + GetBox().GetPosition(area);
 }
 
-Vector2f Element::GetAbsoluteOffset(Box::Area area)
+Vector2f Element::GetAbsoluteOffset(BoxArea area)
 {
 	if (absolute_offset_dirty)
 	{
 		absolute_offset_dirty = false;
 
 		if (offset_parent)
-			absolute_offset = offset_parent->GetAbsoluteOffset(Box::BORDER) + relative_offset_base + relative_offset_position;
+			absolute_offset = offset_parent->GetAbsoluteOffset(BoxArea::Border) + relative_offset_base + relative_offset_position;
 		else
 			absolute_offset = relative_offset_base + relative_offset_position;
 
@@ -415,12 +415,12 @@ Vector2f Element::GetAbsoluteOffset(Box::Area area)
 	return absolute_offset + GetBox().GetPosition(area);
 }
 
-void Element::SetClientArea(Box::Area _client_area)
+void Element::SetClientArea(BoxArea _client_area)
 {
 	client_area = _client_area;
 }
 
-Box::Area Element::GetClientArea() const
+BoxArea Element::GetClientArea() const
 {
 	return client_area;
 }
@@ -508,7 +508,7 @@ bool Element::IsReplaced()
 
 bool Element::IsPointWithinElement(const Vector2f point)
 {
-	const Vector2f position = GetAbsoluteOffset(Box::BORDER);
+	const Vector2f position = GetAbsoluteOffset(BoxArea::Border);
 
 	for (int i = 0; i < GetNumBoxes(); ++i)
 	{
@@ -516,7 +516,7 @@ bool Element::IsPointWithinElement(const Vector2f point)
 		const Box& box = GetBox(i, box_offset);
 
 		const Vector2f box_position = position + box_offset;
-		const Vector2f box_dimensions = box.GetSize(Box::BORDER);
+		const Vector2f box_dimensions = box.GetSize(BoxArea::Border);
 		if (point.x >= box_position.x && point.x <= (box_position.x + box_dimensions.x) && point.y >= box_position.y &&
 			point.y <= (box_position.y + box_dimensions.y))
 		{
@@ -608,26 +608,19 @@ const PropertyMap& Element::GetLocalStyleProperties()
 	return meta->style.GetLocalStyleProperties();
 }
 
-float Element::ResolveNumericProperty(const Property* property, float base_value)
+float Element::ResolveLength(NumericValue value)
 {
-	return meta->style.ResolveNumericProperty(property, base_value);
+	float result = 0.f;
+	if (Any(value.unit & Unit::LENGTH))
+		result = meta->style.ResolveNumericValue(value, 0.f);
+	return result;
 }
 
-float Element::ResolveNumericProperty(const String& property_name)
+float Element::ResolveNumericValue(NumericValue value, float base_value)
 {
-	auto property = meta->style.GetProperty(StyleSheetSpecification::GetPropertyId(property_name));
-	if (!property)
-		return 0.0f;
-
-	if (property->unit & Property::ANGLE)
-		return ComputeAngle(*property);
-
-	RelativeTarget relative_target = RelativeTarget::None;
-	if (property->definition)
-		relative_target = property->definition->GetRelativeTarget();
-
-	float result = meta->style.ResolveLength(property, relative_target);
-
+	float result = 0.f;
+	if (Any(value.unit & Unit::NUMERIC))
+		result = meta->style.ResolveNumericValue(value, base_value);
 	return result;
 }
 
@@ -647,7 +640,7 @@ Vector2f Element::GetContainingBlock()
 		}
 		else if (position_property == Position::Absolute || position_property == Position::Fixed)
 		{
-			containing_block = parent_box.GetSize(Box::PADDING);
+			containing_block = parent_box.GetSize(BoxArea::Padding);
 		}
 	}
 
@@ -852,12 +845,12 @@ void Element::SetId(const String& _id)
 
 float Element::GetAbsoluteLeft()
 {
-	return GetAbsoluteOffset(Box::BORDER).x;
+	return GetAbsoluteOffset(BoxArea::Border).x;
 }
 
 float Element::GetAbsoluteTop()
 {
-	return GetAbsoluteOffset(Box::BORDER).y;
+	return GetAbsoluteOffset(BoxArea::Border).y;
 }
 
 float Element::GetClientLeft()
@@ -897,12 +890,12 @@ float Element::GetOffsetTop()
 
 float Element::GetOffsetWidth()
 {
-	return GetBox().GetSize(Box::BORDER).x;
+	return GetBox().GetSize(BoxArea::Border).x;
 }
 
 float Element::GetOffsetHeight()
 {
-	return GetBox().GetSize(Box::BORDER).y;
+	return GetBox().GetSize(BoxArea::Border).y;
 }
 
 float Element::GetScrollLeft()
@@ -1190,7 +1183,7 @@ bool Element::DispatchEvent(EventId id, const Dictionary& parameters)
 
 void Element::ScrollIntoView(const ScrollIntoViewOptions options)
 {
-	const Vector2f size = main_box.GetSize(Box::BORDER);
+	const Vector2f size = main_box.GetSize(BoxArea::Border);
 	ScrollBehavior scroll_behavior = options.behavior;
 
 	for (Element* scroll_parent = parent; scroll_parent; scroll_parent = scroll_parent->GetParentNode())
@@ -1205,7 +1198,7 @@ void Element::ScrollIntoView(const ScrollIntoViewOptions options)
 
 		if ((scrollable_box_x && parent_scroll_size.x > parent_client_size.x) || (scrollable_box_y && parent_scroll_size.y > parent_client_size.y))
 		{
-			const Vector2f relative_offset = scroll_parent->GetAbsoluteOffset(Box::BORDER) - GetAbsoluteOffset(Box::BORDER);
+			const Vector2f relative_offset = scroll_parent->GetAbsoluteOffset(BoxArea::Border) - GetAbsoluteOffset(BoxArea::Border);
 
 			const Vector2f old_scroll_offset = {scroll_parent->GetScrollLeft(), scroll_parent->GetScrollTop()};
 			const Vector2f parent_client_offset = {scroll_parent->GetClientLeft(), scroll_parent->GetClientTop()};
@@ -2061,28 +2054,28 @@ void Element::UpdateOffset()
 		if (offset_parent != nullptr)
 		{
 			const Box& parent_box = offset_parent->GetBox();
-			Vector2f containing_block = parent_box.GetSize(Box::PADDING);
+			Vector2f containing_block = parent_box.GetSize(BoxArea::Padding);
 
 			// If the element is anchored left, then the position is offset by that resolved value.
 			if (computed.left().type != Left::Auto)
-				relative_offset_base.x = parent_box.GetEdge(Box::BORDER, Box::LEFT) +
-					(ResolveValue(computed.left(), containing_block.x) + GetBox().GetEdge(Box::MARGIN, Box::LEFT));
+				relative_offset_base.x = parent_box.GetEdge(BoxArea::Border, BoxEdge::Left) +
+					(ResolveValue(computed.left(), containing_block.x) + GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left));
 
 			// If the element is anchored right, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
 			// offset by the resolved value.
 			else if (computed.right().type != Right::Auto)
 			{
-				relative_offset_base.x = containing_block.x + parent_box.GetEdge(Box::BORDER, Box::LEFT) -
-					(ResolveValue(computed.right(), containing_block.x) + GetBox().GetSize(Box::BORDER).x +
-						GetBox().GetEdge(Box::MARGIN, Box::RIGHT));
+				relative_offset_base.x = containing_block.x + parent_box.GetEdge(BoxArea::Border, BoxEdge::Left) -
+					(ResolveValue(computed.right(), containing_block.x) + GetBox().GetSize(BoxArea::Border).x +
+						GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right));
 			}
 
 			// If the element is anchored top, then the position is offset by that resolved value.
 			if (computed.top().type != Top::Auto)
 			{
-				relative_offset_base.y = parent_box.GetEdge(Box::BORDER, Box::TOP) +
-					(ResolveValue(computed.top(), containing_block.y) + GetBox().GetEdge(Box::MARGIN, Box::TOP));
+				relative_offset_base.y = parent_box.GetEdge(BoxArea::Border, BoxEdge::Top) +
+					(ResolveValue(computed.top(), containing_block.y) + GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top));
 			}
 
 			// If the element is anchored bottom, then the position is set first so the element's right-most edge
@@ -2090,9 +2083,9 @@ void Element::UpdateOffset()
 			// offset by the resolved value.
 			else if (computed.bottom().type != Bottom::Auto)
 			{
-				relative_offset_base.y = containing_block.y + parent_box.GetEdge(Box::BORDER, Box::TOP) -
-					(ResolveValue(computed.bottom(), containing_block.y) + GetBox().GetSize(Box::BORDER).y +
-						GetBox().GetEdge(Box::MARGIN, Box::BOTTOM));
+				relative_offset_base.y = containing_block.y + parent_box.GetEdge(BoxArea::Border, BoxEdge::Top) -
+					(ResolveValue(computed.bottom(), containing_block.y) + GetBox().GetSize(BoxArea::Border).y +
+						GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom));
 			}
 		}
 	}
@@ -2607,7 +2600,7 @@ void Element::AdvanceAnimations()
 		for (auto& animation : animations)
 		{
 			Property property = animation.UpdateAndGetProperty(time, *this);
-			if (property.unit != Property::UNKNOWN)
+			if (property.unit != Unit::UNKNOWN)
 				SetProperty(animation.GetPropertyId(), property);
 		}
 
@@ -2655,8 +2648,8 @@ void Element::UpdateTransformState()
 
 	const ComputedValues& computed = meta->computed_values;
 
-	const Vector2f pos = GetAbsoluteOffset(Box::BORDER);
-	const Vector2f size = GetBox().GetSize(Box::BORDER);
+	const Vector2f pos = GetAbsoluteOffset(BoxArea::Border);
+	const Vector2f size = GetBox().GetSize(BoxArea::Border);
 
 	bool perspective_or_transform_changed = false;
 
@@ -2817,7 +2810,7 @@ void Element::OnStyleSheetChangeRecursive()
 void Element::OnDpRatioChangeRecursive()
 {
 	GetElementDecoration()->DirtyDecorators();
-	GetStyle()->DirtyPropertiesWithUnits(Property::DP);
+	GetStyle()->DirtyPropertiesWithUnits(Unit::DP);
 
 	OnDpRatioChange();
 

@@ -56,8 +56,8 @@ void DecoratorDefender::ReleaseElementData(Rml::DecoratorDataHandle /*element_da
 
 void DecoratorDefender::RenderElement(Rml::Element* element, Rml::DecoratorDataHandle /*element_data*/) const
 {
-	Rml::Vector2f position = element->GetAbsoluteOffset(Rml::Box::PADDING);
-	Rml::Vector2f size = element->GetBox().GetSize(Rml::Box::PADDING);
+	Rml::Vector2f position = element->GetAbsoluteOffset(Rml::BoxArea::Padding);
+	Rml::Vector2f size = element->GetBox().GetSize(Rml::BoxArea::Padding);
 	Rml::Math::SnapToPixelGrid(position, size);
 
 	if (Rml::RenderInterface* render_interface = ::Rml::GetRenderInterface())

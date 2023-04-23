@@ -435,17 +435,17 @@ void ElementDocument::UpdatePosition()
 		if (computed.left().type != Style::Left::Auto)
 			position.x = ResolveValue(computed.left(), containing_block.x);
 		else if (computed.right().type != Style::Right::Auto)
-			position.x = containing_block.x - (box.GetSize(Box::MARGIN).x + ResolveValue(computed.right(), containing_block.x));
+			position.x = containing_block.x - (box.GetSize(BoxArea::Margin).x + ResolveValue(computed.right(), containing_block.x));
 
 		if (computed.top().type != Style::Top::Auto)
 			position.y = ResolveValue(computed.top(), containing_block.y);
 		else if (computed.bottom().type != Style::Bottom::Auto)
-			position.y = containing_block.y - (box.GetSize(Box::MARGIN).y + ResolveValue(computed.bottom(), containing_block.y));
+			position.y = containing_block.y - (box.GetSize(BoxArea::Margin).y + ResolveValue(computed.bottom(), containing_block.y));
 
 		// Add the margin edge to the position, since inset properties (top/right/bottom/left) set the margin edge
 		// position, while offsets use the border edge.
-		position.x += box.GetEdge(Box::MARGIN, Box::LEFT);
-		position.y += box.GetEdge(Box::MARGIN, Box::TOP);
+		position.x += box.GetEdge(BoxArea::Margin, BoxEdge::Left);
+		position.y += box.GetEdge(BoxArea::Margin, BoxEdge::Top);
 
 		SetOffset(position, nullptr);
 	}
@@ -468,7 +468,7 @@ bool ElementDocument::IsLayoutDirty()
 
 void ElementDocument::DirtyVwAndVhProperties()
 {
-	GetStyle()->DirtyPropertiesWithUnitsRecursive(Property::VW | Property::VH);
+	GetStyle()->DirtyPropertiesWithUnitsRecursive(Unit::VW | Unit::VH);
 }
 
 void ElementDocument::OnPropertyChange(const PropertyIdSet& changed_properties)
@@ -477,7 +477,7 @@ void ElementDocument::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 	// If the document's font-size has been changed, we need to dirty all rem properties.
 	if (changed_properties.Contains(PropertyId::FontSize))
-		GetStyle()->DirtyPropertiesWithUnitsRecursive(Property::REM);
+		GetStyle()->DirtyPropertiesWithUnitsRecursive(Unit::REM);
 
 	if (changed_properties.Contains(PropertyId::Top) ||    //
 		changed_properties.Contains(PropertyId::Right) ||  //

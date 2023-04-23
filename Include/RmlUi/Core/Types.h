@@ -41,8 +41,8 @@ using byte = unsigned char;
 using ScriptObject = void*;
 using std::size_t;
 
-// Unicode code point
-enum class Character : char32_t { Null, Replacement = 0xfffd };
+enum class Character : char32_t { Null, Replacement = 0xfffd }; // Unicode code point
+enum class BoxArea { Margin, Border, Padding, Content, Auto };
 
 } // namespace Rml
 

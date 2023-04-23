@@ -39,6 +39,37 @@
 
 namespace Rml {
 
+bool TypeConverter<Unit, String>::Convert(const Unit& src, String& dest)
+{
+	switch (src)
+	{
+	// clang-format off
+	case Unit::NUMBER:  dest = "";    return true;
+	case Unit::PERCENT: dest = "%";   return true;
+
+	case Unit::PX:      dest = "px";  return true;
+	case Unit::DP:      dest = "dp";  return true;
+	case Unit::VW:      dest = "vw";  return true;
+	case Unit::VH:      dest = "vh";  return true;
+	case Unit::X:       dest = "x";   return true;
+	case Unit::EM:      dest = "em";  return true;
+	case Unit::REM:     dest = "rem"; return true;
+
+	case Unit::INCH:    dest = "in";  return true;
+	case Unit::CM:      dest = "cm";  return true;
+	case Unit::MM:      dest = "mm";  return true;
+	case Unit::PT:      dest = "pt";  return true;
+	case Unit::PC:      dest = "pc";  return true;
+
+	case Unit::DEG:     dest = "deg"; return true;
+	case Unit::RAD:     dest = "rad"; return true;
+	// clang-format on
+	default: break;
+	}
+
+	return false;
+}
+
 bool TypeConverter<TransformPtr, TransformPtr>::Convert(const TransformPtr& src, TransformPtr& dest)
 {
 	dest = src;

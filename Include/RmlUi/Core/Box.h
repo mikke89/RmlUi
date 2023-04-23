@@ -33,6 +33,9 @@
 
 namespace Rml {
 
+enum class BoxEdge { Top, Right, Bottom, Left };
+enum class BoxDirection { Vertical, Horizontal };
+
 /**
     Stores a box with four sized areas; content, padding, a border and margin. See
     http://www.w3.org/TR/REC-CSS2/box.html#box-dimensions for a diagram.
@@ -42,17 +45,8 @@ namespace Rml {
 
 class RMLUICORE_API Box {
 public:
-	enum Area {
-		MARGIN = 0,
-		BORDER = 1,
-		PADDING = 2,
-		CONTENT = 3,
-		NUM_AREAS = 3, // ignores CONTENT
-	};
-
-	enum Edge { TOP = 0, RIGHT = 1, BOTTOM = 2, LEFT = 3, NUM_EDGES = 4 };
-
-	enum Direction { VERTICAL = 0, HORIZONTAL = 1 };
+	static constexpr int num_areas = 3; // ignores content box
+	static constexpr int num_edges = 4;
 
 	/// Initialises a zero-sized box.
 	Box();
@@ -64,14 +58,14 @@ public:
 	/// means the position of the margin area is likely to be negative.
 	/// @param area[in] The desired area.
 	/// @return The position of the area.
-	Vector2f GetPosition(Area area = Box::CONTENT) const;
+	Vector2f GetPosition(BoxArea area = BoxArea::Content) const;
 	/// Returns the size of the box's content area.
 	/// @return The size of the content area.
 	Vector2f GetSize() const;
 	/// Returns the size of one of the box's areas. This will include all inner areas.
 	/// @param area[in] The desired area.
 	/// @return The size of the requested area.
-	Vector2f GetSize(Area area) const;
+	Vector2f GetSize(BoxArea area) const;
 
 	/// Sets the size of the content area.
 	/// @param content[in] The size of the new content area.
@@ -80,30 +74,30 @@ public:
 	/// @param area[in] The area to change.
 	/// @param edge[in] The area edge to change.
 	/// @param size[in] The new size of the area segment.
-	void SetEdge(Area area, Edge edge, float size);
+	void SetEdge(BoxArea area, BoxEdge edge, float size);
 
 	/// Returns the size of one of the area edges.
 	/// @param area[in] The desired area.
 	/// @param edge[in] The desired edge.
 	/// @return The size of the requested area edge.
-	float GetEdge(Area area, Edge edge) const;
+	float GetEdge(BoxArea area, BoxEdge edge) const;
 	/// Returns the cumulative size of one edge up to one of the box's areas.
-	/// @param area[in] The area to measure up to (and including). So, MARGIN will return the width of the margin, and PADDING will be the sum of the
+	/// @param area[in] The area to measure up to (and including). So, Margin will return the width of the margin, and Padding will be the sum of the
 	/// margin, border and padding.
 	/// @param edge[in] The desired edge.
 	/// @return The cumulative size of the edge.
-	float GetCumulativeEdge(Area area, Edge edge) const;
+	float GetCumulativeEdge(BoxArea area, BoxEdge edge) const;
 
-	/// Returns the size along a single direction starting at 'area_outer', up-to and including 'area_inner'.
-	/// @example GetSizeAcross(HORIZONTAL, BORDER, PADDING) returns the total width of the horizontal borders and paddings.
+	/// Returns the size along a single direction of the given 'area', including all inner areas up-to and including 'area_end'.
+	/// @example GetSizeAcross(Horizontal, Border, Padding) returns the total width of the horizontal borders and paddings.
 	/// @param direction The desired direction.
-	/// @param area_outer The widest area to include.
-	/// @param area_inner The last area to include, anything inside this is excluded.
-	float GetSizeAcross(Direction direction, Area area_outer, Area area_inner = Area::CONTENT) const;
+	/// @param area The widest area to include.
+	/// @param area_end The last area to include, anything inside this is excluded.
+	float GetSizeAcross(BoxDirection direction, BoxArea area, BoxArea area_end = BoxArea::Content) const;
 
 	/// Returns the size of the frame defined by the given area, not including inner areas.
 	/// @param area The area to use.
-	Vector2f GetFrameSize(Area area) const;
+	Vector2f GetFrameSize(BoxArea area) const;
 
 	/// Compares the size of the content area and the other area edges.
 	/// @return True if the boxes represent the same area.
@@ -114,7 +108,7 @@ public:
 
 private:
 	Vector2f content;
-	float area_edges[NUM_AREAS][NUM_EDGES] = {};
+	float area_edges[num_areas][num_edges] = {};
 };
 
 } // namespace Rml

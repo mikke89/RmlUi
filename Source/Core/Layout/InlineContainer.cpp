@@ -81,7 +81,8 @@ InlineBox* InlineContainer::AddInlineElement(Element* element, const Box& box)
 		inline_level_box = parent_box->AddChild(std::move(inline_box_ptr));
 	}
 
-	const float minimum_line_height = Math::Max(element_line_height, (box.GetSize().y >= 0.f ? box.GetSizeAcross(Box::VERTICAL, Box::MARGIN) : 0.f));
+	const float minimum_line_height =
+		Math::Max(element_line_height, (box.GetSize().y >= 0.f ? box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Margin) : 0.f));
 
 	LayoutOverflowHandle overflow_handle = {};
 	float minimum_width_next = 0.f;

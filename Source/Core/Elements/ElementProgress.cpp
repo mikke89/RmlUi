@@ -165,8 +165,8 @@ void ElementProgress::OnResize()
 
 	ElementUtilities::BuildBox(fill_box, element_size, fill);
 
-	const Vector2f margin_top_left(fill_box.GetEdge(Box::MARGIN, Box::LEFT), fill_box.GetEdge(Box::MARGIN, Box::TOP));
-	const Vector2f edge_size = fill_box.GetSize(Box::MARGIN) - fill_box.GetSize(Box::CONTENT);
+	const Vector2f margin_top_left(fill_box.GetEdge(BoxArea::Margin, BoxEdge::Left), fill_box.GetEdge(BoxArea::Margin, BoxEdge::Top));
+	const Vector2f edge_size = fill_box.GetSize(BoxArea::Margin) - fill_box.GetSize(BoxArea::Content);
 
 	fill_offset = GetBox().GetPosition() + margin_top_left;
 	fill_size = element_size - edge_size;

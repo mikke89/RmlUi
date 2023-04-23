@@ -345,53 +345,60 @@ const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 	return inline_properties.GetProperties();
 }
 
-static float ComputeLength(const Property* property, Element* element)
+static float ComputeLength(NumericValue value, Element* element)
 {
-	const float font_size = element->GetComputedValues().font_size();
-	float doc_font_size = DefaultComputedValues.font_size();
+	float font_size = 0.f;
+	float doc_font_size = 0.f;
 	float dp_ratio = 1.0f;
 	Vector2f vp_dimensions(1.0f);
 
-	if (ElementDocument* document = element->GetOwnerDocument())
+	switch (value.unit)
 	{
-		doc_font_size = document->GetComputedValues().font_size();
-
-		if (Context* context = document->GetContext())
-		{
+	case Unit::EM: font_size = element->GetComputedValues().font_size(); break;
+	case Unit::REM: doc_font_size = DefaultComputedValues.font_size(); break;
+	case Unit::DP:
+		if (Context* context = element->GetContext())
 			dp_ratio = context->GetDensityIndependentPixelRatio();
+		break;
+	case Unit::VW:
+	case Unit::VH:
+		if (Context* context = element->GetContext())
 			vp_dimensions = Vector2f(context->GetDimensions());
-		}
+		break;
+	default: break;
 	}
 
-	const float result = ComputeLength(property, font_size, doc_font_size, dp_ratio, vp_dimensions);
+	const float result = ComputeLength(value, font_size, doc_font_size, dp_ratio, vp_dimensions);
 	return result;
 }
 
-float ElementStyle::ResolveNumericProperty(const Property* property, float base_value) const
+float ElementStyle::ResolveNumericValue(NumericValue value, float base_value) const
 {
-	if (!property || !(property->unit & (Property::NUMBER_LENGTH_PERCENT | Property::ANGLE)))
-		return 0.0f;
+	if (Any(value.unit & Unit::ABSOLUTE_LENGTH))
+		return ComputeAbsoluteLength(value);
+	else if (Any(value.unit & Unit::LENGTH))
+		return ComputeLength(value, element);
 
-	if (property->unit & Property::NUMBER)
-		return property->Get<float>() * base_value;
-	else if (property->unit & Property::PERCENT)
-		return property->Get<float>() * base_value * 0.01f;
-	else if (property->unit & Property::ANGLE)
-		return ComputeAngle(*property);
-
-	const float result = ComputeLength(property, element);
-
-	return result;
-}
-
-float ElementStyle::ResolveLength(const Property* property, RelativeTarget relative_target) const
-{
-	RMLUI_ASSERT(property);
-
-	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
-	if ((property->unit & Property::LENGTH) && !(property->unit == Property::EM && relative_target == RelativeTarget::ParentFontSize))
+	switch (value.unit)
 	{
-		const float result = ComputeLength(property, element);
+	case Unit::NUMBER: return value.number * base_value;
+	case Unit::PERCENT: return value.number * base_value * 0.01f;
+	case Unit::X: return value.number;
+	case Unit::DEG:
+	case Unit::RAD: return ComputeAngle(value);
+	default: break;
+	}
+
+	RMLUI_ERROR;
+	return 0.f;
+}
+
+float ElementStyle::ResolveRelativeLength(NumericValue value, RelativeTarget relative_target) const
+{
+	// There is an exception on font-size properties, as 'em' units here refer to parent font size instead
+	if (Any(value.unit & Unit::LENGTH) && !(value.unit == Unit::EM && relative_target == RelativeTarget::ParentFontSize))
+	{
+		const float result = ComputeLength(value, element);
 		return result;
 	}
 
@@ -414,11 +421,11 @@ float ElementStyle::ResolveLength(const Property* property, RelativeTarget relat
 
 	float scale_value = 0.0f;
 
-	switch (property->unit)
+	switch (value.unit)
 	{
-	case Property::EM:
-	case Property::NUMBER: scale_value = property->value.Get<float>(); break;
-	case Property::PERCENT: scale_value = property->value.Get<float>() * 0.01f; break;
+	case Unit::EM:
+	case Unit::NUMBER: scale_value = value.number; break;
+	case Unit::PERCENT: scale_value = value.number * 0.01f; break;
 	default: break;
 	}
 
@@ -430,7 +437,7 @@ void ElementStyle::DirtyInheritedProperties()
 	dirty_properties |= StyleSheetSpecification::GetRegisteredInheritedProperties();
 }
 
-void ElementStyle::DirtyPropertiesWithUnits(Property::Unit units)
+void ElementStyle::DirtyPropertiesWithUnits(Units units)
 {
 	// Dirty all the properties of this element that use the unit(s).
 	for (auto it = Iterate(); !it.AtEnd(); ++it)
@@ -438,12 +445,12 @@ void ElementStyle::DirtyPropertiesWithUnits(Property::Unit units)
 		auto name_property_pair = *it;
 		PropertyId id = name_property_pair.first;
 		const Property& property = name_property_pair.second;
-		if (property.unit & units)
+		if (Any(property.unit & units))
 			DirtyProperty(id);
 	}
 }
 
-void ElementStyle::DirtyPropertiesWithUnitsRecursive(Property::Unit units)
+void ElementStyle::DirtyPropertiesWithUnitsRecursive(Units units)
 {
 	DirtyPropertiesWithUnits(units);
 
@@ -531,7 +538,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	if (dirty_properties.Contains(PropertyId::FontSize))
 	{
 		if (auto p = GetLocalProperty(PropertyId::FontSize))
-			values.font_size(ComputeFontsize(*p, values, parent_values, document_values, dp_ratio, vp_dimensions));
+			values.font_size(ComputeFontsize(p->GetNumericValue(), values, parent_values, document_values, dp_ratio, vp_dimensions));
 		else if (parent_values)
 			values.font_size(parent_values->font_size());
 
@@ -583,7 +590,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		const PropertyId id = name_property_pair.first;
 		const Property* p = &name_property_pair.second;
 
-		if (dirty_em_properties && p->unit == Property::EM)
+		if (dirty_em_properties && p->unit == Unit::EM)
 			dirty_properties.Insert(id);
 
 		using namespace Style;
@@ -618,16 +625,18 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::BorderTopWidth:
-			values.border_top_width(ComputeBorderWidth(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions)));
+			values.border_top_width(ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
 			break;
 		case PropertyId::BorderRightWidth:
-			values.border_right_width(ComputeBorderWidth(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions)));
+			values.border_right_width(
+				ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
 			break;
 		case PropertyId::BorderBottomWidth:
-			values.border_bottom_width(ComputeBorderWidth(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions)));
+			values.border_bottom_width(
+				ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
 			break;
 		case PropertyId::BorderLeftWidth:
-			values.border_left_width(ComputeBorderWidth(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions)));
+			values.border_left_width(ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
 			break;
 
 		case PropertyId::BorderTopColor:
@@ -644,16 +653,16 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::BorderTopLeftRadius:
-			values.border_top_left_radius(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.border_top_left_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::BorderTopRightRadius:
-			values.border_top_right_radius(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.border_top_right_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::BorderBottomRightRadius:
-			values.border_bottom_right_radius(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.border_bottom_right_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::BorderBottomLeftRadius:
-			values.border_bottom_left_radius(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.border_bottom_left_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Display:
@@ -687,7 +696,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::ZIndex:
-			values.z_index((p->unit == Property::KEYWORD ? ZIndex(ZIndex::Auto) : ZIndex(ZIndex::Number, p->Get<float>())));
+			values.z_index((p->unit == Unit::KEYWORD ? ZIndex(ZIndex::Auto) : ZIndex(ZIndex::Number, p->Get<float>())));
 			break;
 
 		case PropertyId::Width:
@@ -760,7 +769,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			dirty_font_face_handle = true;
 			break;
 		case PropertyId::LetterSpacing:
-			values.has_letter_spacing(p->unit != Property::KEYWORD);
+			values.has_letter_spacing(p->unit != Unit::KEYWORD);
 			dirty_font_face_handle = true;
 			break;
 
@@ -797,7 +806,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.focus((Focus)p->Get<int>());
 			break;
 		case PropertyId::ScrollbarMargin:
-			values.scrollbar_margin(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.scrollbar_margin(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::OverscrollBehavior:
 			values.overscroll_behavior((OverscrollBehavior)p->Get<int>());
@@ -807,7 +816,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::Perspective:
-			values.perspective(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.perspective(p->unit == Unit::KEYWORD ? 0.f : ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
 			values.has_local_perspective(values.perspective() > 0.f);
 			break;
 		case PropertyId::PerspectiveOriginX:
@@ -827,14 +836,14 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.transform_origin_y(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::TransformOriginZ:
-			values.transform_origin_z(ComputeLength(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.transform_origin_z(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Decorator:
-			values.has_decorator(p->unit == Property::DECORATOR);
+			values.has_decorator(p->unit == Unit::DECORATOR);
 			break;
 		case PropertyId::FontEffect:
-			values.has_font_effect((p->unit == Property::FONTEFFECT));
+			values.has_font_effect((p->unit == Unit::FONTEFFECT));
 			break;
 		case PropertyId::FlexBasis:
 			values.flex_basis(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));

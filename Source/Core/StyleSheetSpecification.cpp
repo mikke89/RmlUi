@@ -46,11 +46,11 @@ namespace Rml {
 static StyleSheetSpecification* instance = nullptr;
 
 struct DefaultStyleSheetParsers {
-	PropertyParserNumber number = PropertyParserNumber(Property::NUMBER);
-	PropertyParserNumber length = PropertyParserNumber(Property::LENGTH, Property::PX);
-	PropertyParserNumber length_percent = PropertyParserNumber(Property::LENGTH_PERCENT, Property::PX);
-	PropertyParserNumber number_length_percent = PropertyParserNumber(Property::NUMBER_LENGTH_PERCENT, Property::PX);
-	PropertyParserNumber angle = PropertyParserNumber(Property::ANGLE, Property::RAD);
+	PropertyParserNumber number = PropertyParserNumber(Unit::NUMBER);
+	PropertyParserNumber length = PropertyParserNumber(Unit::LENGTH, Unit::PX);
+	PropertyParserNumber length_percent = PropertyParserNumber(Unit::LENGTH_PERCENT, Unit::PX);
+	PropertyParserNumber number_length_percent = PropertyParserNumber(Unit::NUMBER_LENGTH_PERCENT, Unit::PX);
+	PropertyParserNumber angle = PropertyParserNumber(Unit::ANGLE, Unit::RAD);
 	PropertyParserKeyword keyword = PropertyParserKeyword();
 	PropertyParserString string = PropertyParserString();
 	PropertyParserAnimation animation = PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER);
@@ -60,7 +60,7 @@ struct DefaultStyleSheetParsers {
 	PropertyParserFontEffect font_effect = PropertyParserFontEffect();
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserRatio ratio = PropertyParserRatio();
-	PropertyParserNumber resolution = PropertyParserNumber(Property::X);
+	PropertyParserNumber resolution = PropertyParserNumber(Unit::X);
 };
 
 StyleSheetSpecification::StyleSheetSpecification() :
