@@ -90,6 +90,19 @@ private:
 	int viewport_width = 0;
 	int viewport_height = 0;
 
+	int viewport_backup[4] = {0, 0, 0, 0};
+	bool is_culling_enabled;
+	bool is_scissor_enabled;
+	bool is_stencil_enabled;
+	bool is_blending_enabled;
+
+	int blend_equation_rgb;
+	int blend_equation_alpha;
+	int last_blend_src_rgb;
+	int last_blend_dst_rgb;
+	int last_blend_src_alpha;
+	int last_blend_dst_alpha;
+
 	Rml::UniquePtr<Gfx::ShadersData> shaders;
 };
 

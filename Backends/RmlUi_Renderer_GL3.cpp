@@ -97,11 +97,6 @@ void main() {
 }
 )";
 
-static int viewport_backup[4] = {0, 0, 0, 0};
-static bool is_culling_enabled;
-static bool is_scissor_enabled;
-static bool is_blending_enabled;
-
 namespace Gfx {
 
 enum class ProgramUniform { Translate, Transform, Tex, Count };
@@ -356,25 +351,32 @@ void RenderInterface_GL3::BeginFrame()
 		glDisable(GL_CULL_FACE);
 	}
 
-	is_scissor_enabled = glIsEnabled(GL_STENCIL_TEST);
-	if (!is_scissor_enabled)
+	is_stencil_enabled = glIsEnabled(GL_STENCIL_TEST);
+	if (!is_stencil_enabled)
 	{
 		glEnable(GL_STENCIL_TEST);
 	}
-	
-	// TODO: Query and backup these?
-	glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-	is_blending_enabled = glIsEnabled(GL_STENCIL_TEST);
+	is_blending_enabled = glIsEnabled(GL_BLEND);
 	if (!is_blending_enabled)
 	{
-		glEnable(GL_BLEND);	
+		glEnable(GL_BLEND);
 	}
-	
-	// TODO: Query and backup these?
+
+	is_scissor_enabled = glIsEnabled(GL_SCISSOR_TEST);
+
+	glGetIntegerv(GL_BLEND_EQUATION_RGB, &blend_equation_rgb);
+	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &blend_equation_alpha);
+	glGetIntegerv(GL_BLEND_SRC_RGB, &last_blend_src_rgb);
+	glGetIntegerv(GL_BLEND_DST_RGB, &last_blend_dst_rgb);
+	glGetIntegerv(GL_BLEND_SRC_ALPHA, &last_blend_src_alpha);
+	glGetIntegerv(GL_BLEND_DST_ALPHA, &last_blend_dst_alpha);
+
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 
@@ -395,7 +397,7 @@ void RenderInterface_GL3::EndFrame()
 		glDisable(GL_CULL_FACE);
 	}
 
-	if (is_scissor_enabled)
+	if (is_stencil_enabled)
 	{
 		glEnable(GL_STENCIL_TEST);
 	}
@@ -412,6 +414,21 @@ void RenderInterface_GL3::EndFrame()
 	{
 		glDisable(GL_BLEND);
 	}
+
+	if (is_scissor_enabled)
+	{
+		glEnable(GL_SCISSOR_TEST);
+	}
+	else
+	{
+		glDisable(GL_SCISSOR_TEST);
+	}
+
+	glBlendEquationSeparate(blend_equation_rgb, blend_equation_alpha);
+	glBlendFuncSeparate(last_blend_src_rgb, last_blend_dst_rgb, last_blend_src_alpha, last_blend_dst_alpha);
+
+	glStencilFunc(GL_ALWAYS, 0, GLuint(1));
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 }
 
 void RenderInterface_GL3::Clear()
@@ -523,7 +540,7 @@ void RenderInterface_GL3::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle ha
 
 void RenderInterface_GL3::EnableScissorRegion(bool enable)
 {
-	// TODO, make sure this respects existing settings, but requires internal RMLUI checks.
+	// Called after BeginFrame(), where we have already backed up existing OpenGL state.
 
 	ScissoringState new_state = ScissoringState::Disable;
 
@@ -550,6 +567,8 @@ void RenderInterface_GL3::EnableScissorRegion(bool enable)
 
 void RenderInterface_GL3::SetScissorRegion(int x, int y, int width, int height)
 {
+	// Called after BeginFrame(), where we have already backed up existing OpenGL state.
+
 	if (transform_active)
 	{
 		const float left = float(x);
