@@ -107,6 +107,7 @@ int main(int argc, char** argv)
 
 	Rml::Debugger::Initialise(context);
 	Shell::LoadFonts();
+	context->SetDefaultScrollBehavior(Rml::ScrollBehavior::Instant, 1.f);
 
 	{
 		const Rml::StringList directories = GetTestInputDirectories();
