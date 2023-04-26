@@ -1,0 +1,116 @@
+<rml>
+<head>
+	<title>Layout update and scrollbar resets</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="Issue #452" href="https://github.com/mikke89/RmlUi/issues/452" />
+	<meta name="Description" content="Layout updates should not reset scrollbar positions in unrelated elements. The issue only seems to occur with scroll containers inside of flex boxes. Additionally the error is different depending on if the list is in a tabset or not." />
+	<meta name="Issue A" content="Left side is tabset: hovering the button jumps the scrollbar to the top." />
+	<meta name="Issue B" content="Right side is flex only: hovering the button resets the scrollbar from the very bottom back up the amount of padding on the container." />
+	<meta name="Assert" content="Hovering over the red button should not affect any of the scrollbar positions." />
+	<style>
+
+		scrollbarvertical {
+			width: 15px;
+		}
+
+		scrollbarvertical sliderbar {
+			width: 15px;
+			background-color: white;
+		}
+
+		.outer {
+			display: flex;
+			height: 200px;
+		}
+
+		.container {
+			width: 50%;
+			display: flex;
+			flex-direction: column;
+			padding: 15px;
+			border: 1px white;
+		}
+
+		.list {
+			display: block;
+			height: 100%;
+			overflow-y: auto;
+		}
+
+		.list > div {
+			background-color: blue;
+			display: block;
+		}
+
+		p {
+			line-height: 40px;
+		}
+
+		button {
+			display: block;
+			padding: 10px;
+			background-color: red;
+		}
+
+		button:hover {
+			padding: 20px;
+		}
+	</style>
+</head>
+
+<body>
+<div class="outer">
+	<div class="container">
+		<tabset>
+			<tab></tab>
+			<panel>
+				<div class="list">
+					<div>
+						<p>elem1</p>
+					</div>
+					<div>
+						<p>elem2</p>
+					</div>
+					<div>
+						<p>elem3</p>
+					</div>
+					<div>
+						<p>elem4</p>
+					</div>
+					<div>
+						<p>elem5</p>
+					</div>
+					<div>
+						<p>elem6</p>
+					</div>
+				</div>
+			</panel>
+		</tabset>
+	</div>
+	<div class="container">
+		<div class="list">
+			<div>
+				<p>elem1</p>
+			</div>
+			<div>
+				<p>elem2</p>
+			</div>
+			<div>
+				<p>elem3</p>
+			</div>
+			<div>
+				<p>elem4</p>
+			</div>
+			<div>
+				<p>elem5</p>
+			</div>
+			<div>
+				<p>elem6</p>
+			</div>
+		</div>
+	</div>
+</div>
+<button>hover me</button>
+<handle size_target="#document"/>
+</body>
+</rml>
