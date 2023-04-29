@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/TypeConverter.h"
 #include "../../Include/RmlUi/Core/Animation.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
+#include "../../Include/RmlUi/Core/Filter.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
@@ -161,13 +162,8 @@ bool TypeConverter<AnimationList, String>::Convert(const AnimationList& src, Str
 	return true;
 }
 
-bool TypeConverter<DecoratorsPtr, DecoratorsPtr>::Convert(const DecoratorsPtr& src, DecoratorsPtr& dest)
-{
-	dest = src;
-	return true;
-}
-
-bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, String& dest)
+template <typename EffectsPtr>
+static bool ConvertEffectToString(const EffectsPtr& src, String& dest, const String& separator)
 {
 	if (!src || src->list.empty())
 		dest = "none";
@@ -176,19 +172,40 @@ bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, Str
 	else
 	{
 		dest.clear();
-		for (const DecoratorDeclaration& declaration : src->list)
+		for (const auto& declaration : src->list)
 		{
 			dest += declaration.type;
 			if (auto instancer = declaration.instancer)
 			{
 				dest += '(' + instancer->GetPropertySpecification().PropertiesToString(declaration.properties, false, ' ') + ')';
 			}
-			dest += ", ";
+			if (&declaration != &src->list.back())
+				dest += separator;
 		}
-		if (dest.size() > 2)
-			dest.resize(dest.size() - 2);
 	}
 	return true;
+}
+
+bool TypeConverter<DecoratorsPtr, DecoratorsPtr>::Convert(const DecoratorsPtr& src, DecoratorsPtr& dest)
+{
+	dest = src;
+	return true;
+}
+
+bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, String& dest)
+{
+	return ConvertEffectToString(src, dest, ", ");
+}
+
+bool TypeConverter<FiltersPtr, FiltersPtr>::Convert(const FiltersPtr& src, FiltersPtr& dest)
+{
+	dest = src;
+	return true;
+}
+
+bool TypeConverter<FiltersPtr, String>::Convert(const FiltersPtr& src, String& dest)
+{
+	return ConvertEffectToString(src, dest, " ");
 }
 
 bool TypeConverter<FontEffectsPtr, FontEffectsPtr>::Convert(const FontEffectsPtr& src, FontEffectsPtr& dest)

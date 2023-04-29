@@ -75,9 +75,10 @@ enum class Unit {
 	TRANSITION = 1 << 21,    // transition; fetch as <TransitionList>
 	ANIMATION = 1 << 22,     // animation; fetch as <AnimationList>
 	DECORATOR = 1 << 23,     // decorator; fetch as <DecoratorsPtr>
-	FONTEFFECT = 1 << 24,    // font-effect; fetch as <FontEffectsPtr>
-	COLORSTOPLIST = 1 << 25, // color stop list; fetch as <ColorStopList>
-	SHADOWLIST = 1 << 26,    // shadow list; fetch as <ShadowList>
+	FILTER = 1 << 24,        // decorator; fetch as <FiltersPtr>
+	FONTEFFECT = 1 << 25,    // font-effect; fetch as <FontEffectsPtr>
+	COLORSTOPLIST = 1 << 26, // color stop list; fetch as <ColorStopList>
+	SHADOWLIST = 1 << 27,    // shadow list; fetch as <ShadowList>
 
 	LENGTH = PX | DP | VW | VH | EM | REM | PPI_UNIT,
 	LENGTH_PERCENT = LENGTH | PERCENT,

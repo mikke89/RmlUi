@@ -87,6 +87,10 @@ static ElementInstancerMap element_instancers;
 using DecoratorInstancerMap = UnorderedMap<String, DecoratorInstancer*>;
 static DecoratorInstancerMap decorator_instancers;
 
+// Filter instancers.
+using FilterInstancerMap = UnorderedMap<String, FilterInstancer*>;
+static FilterInstancerMap filter_instancers;
+
 // Font effect instancers.
 using FontEffectInstancerMap = UnorderedMap<String, FontEffectInstancer*>;
 static FontEffectInstancerMap font_effect_instancers;
@@ -478,6 +482,21 @@ DecoratorInstancer* Factory::GetDecoratorInstancer(const String& name)
 {
 	auto iterator = decorator_instancers.find(name);
 	if (iterator == decorator_instancers.end())
+		return nullptr;
+
+	return iterator->second;
+}
+
+void Factory::RegisterFilterInstancer(const String& name, FilterInstancer* instancer)
+{
+	RMLUI_ASSERT(instancer);
+	filter_instancers[StringUtilities::ToLower(name)] = instancer;
+}
+
+FilterInstancer* Factory::GetFilterInstancer(const String& name)
+{
+	auto iterator = filter_instancers.find(name);
+	if (iterator == filter_instancers.end())
 		return nullptr;
 
 	return iterator->second;

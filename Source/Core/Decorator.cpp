@@ -30,7 +30,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/Texture.h"
-#include "TextureDatabase.h"
 #include <algorithm>
 
 namespace Rml {
@@ -77,24 +76,9 @@ const Texture* Decorator::GetTexture(int index) const
 	return &(additional_textures[index]);
 }
 
-DecoratorInstancer::DecoratorInstancer() : properties(10, 10) {}
+DecoratorInstancer::DecoratorInstancer() {}
 
 DecoratorInstancer::~DecoratorInstancer() {}
-
-const PropertySpecification& DecoratorInstancer::GetPropertySpecification() const
-{
-	return properties;
-}
-
-PropertyDefinition& DecoratorInstancer::RegisterProperty(const String& property_name, const String& default_value)
-{
-	return properties.RegisterProperty(property_name, default_value, false, false);
-}
-
-ShorthandId DecoratorInstancer::RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type)
-{
-	return properties.RegisterShorthand(shorthand_name, property_names, type);
-}
 
 const Sprite* DecoratorInstancerInterface::GetSprite(const String& name) const
 {

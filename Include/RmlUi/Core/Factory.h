@@ -49,6 +49,8 @@ class EventListener;
 class EventListenerInstancer;
 class FontEffect;
 class FontEffectInstancer;
+class Filter;
+class FilterInstancer;
 class StyleSheetContainer;
 class PropertyDictionary;
 class PropertySpecification;
@@ -125,6 +127,17 @@ public:
 	/// @param[in] name The name of the desired decorator type.
 	/// @return The decorator instancer it it exists, nullptr otherwise.
 	static DecoratorInstancer* GetDecoratorInstancer(const String& name);
+
+	/// Registers a non-owning pointer to an instancer that will be used to instance filters.
+	/// @param[in] name The name of the filter the instancer will be called for.
+	/// @param[in] instancer The instancer to call when the filter name is encountered.
+	/// @lifetime The instancer must be kept alive until after the call to Rml::Shutdown.
+	/// @return The added instancer if the registration was successful, nullptr otherwise.
+	static void RegisterFilterInstancer(const String& name, FilterInstancer* instancer);
+	/// Retrieves a filter instancer registered with the factory.
+	/// @param[in] name The name of the desired filter type.
+	/// @return The filter instancer it it exists, nullptr otherwise.
+	static FilterInstancer* GetFilterInstancer(const String& name);
 
 	/// Registers a non-owning pointer to an instancer that will be used to instance font effects.
 	/// @param[in] name The name of the font effect the instancer will be called for.

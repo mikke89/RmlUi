@@ -33,6 +33,7 @@
 #include "PropertyParserAnimation.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserDecorator.h"
+#include "PropertyParserFilter.h"
 #include "PropertyParserFontEffect.h"
 #include "PropertyParserKeyword.h"
 #include "PropertyParserNumber.h"
@@ -58,6 +59,7 @@ struct DefaultStyleSheetParsers : NonCopyMoveable {
 	PropertyParserAnimation transition = PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER);
 	PropertyParserColour color = PropertyParserColour();
 	PropertyParserDecorator decorator = PropertyParserDecorator();
+	PropertyParserFilter filter = PropertyParserFilter();
 	PropertyParserFontEffect font_effect = PropertyParserFontEffect();
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserRatio ratio = PropertyParserRatio();
@@ -252,6 +254,7 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("transition", &default_parsers->transition);
 	RegisterParser("color", &default_parsers->color);
 	RegisterParser("decorator", &default_parsers->decorator);
+	RegisterParser("filter", &default_parsers->filter);
 	RegisterParser("font_effect", &default_parsers->font_effect);
 	RegisterParser("transform", &default_parsers->transform);
 	RegisterParser("ratio", &default_parsers->ratio);
@@ -403,8 +406,12 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Transition, "transition", "none", false, false).AddParser("transition");
 	RegisterProperty(PropertyId::Animation, "animation", "none", false, false).AddParser("animation");
 
+	// Decorators and effects
 	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("decorator");
 	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("font_effect");
+		
+	RegisterProperty(PropertyId::Filter, "filter", "", false, false).AddParser("filter", "filter");
+	RegisterProperty(PropertyId::BackdropFilter, "backdrop-filter", "", false, false).AddParser("filter");
 
 	// Rare properties (not added to computed values)
 	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");

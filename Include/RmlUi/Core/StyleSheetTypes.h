@@ -68,6 +68,15 @@ struct DecoratorDeclarationList {
 	Vector<DecoratorDeclaration> list;
 	String value;
 };
+struct FilterDeclaration {
+	String type;
+	FilterInstancer* instancer;
+	PropertyDictionary properties;
+};
+struct FilterDeclarationList {
+	Vector<FilterDeclaration> list;
+	String value;
+};
 
 struct MediaBlock {
 	MediaBlock() {}

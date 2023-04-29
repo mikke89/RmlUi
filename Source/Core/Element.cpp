@@ -233,11 +233,13 @@ void Element::Render()
 	// Apply our transform
 	ElementUtilities::ApplyTransform(*this);
 
+	meta->decoration.RenderDecorators(RenderStage::Enter);
+
 	// Set up the clipping region for this element.
 	if (ElementUtilities::SetClippingRegion(this))
 	{
 		meta->background_border.Render(this);
-		meta->decoration.RenderDecorators();
+		meta->decoration.RenderDecorators(RenderStage::Decoration);
 
 		{
 			RMLUI_ZoneScopedNC("OnRender", 0x228B22);
@@ -249,6 +251,8 @@ void Element::Render()
 	// Render all elements in our local stacking context.
 	for (Element* element : stacking_context)
 		element->Render();
+
+	meta->decoration.RenderDecorators(RenderStage::Exit);
 }
 
 ElementPtr Element::Clone() const
@@ -1765,6 +1769,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		changed_properties.Contains(PropertyId::BorderBottomRightRadius) || //
 		changed_properties.Contains(PropertyId::BorderBottomLeftRadius)     //
 	);
+	const bool filter_changed = (changed_properties.Contains(PropertyId::Filter) || changed_properties.Contains(PropertyId::BackdropFilter));
 
 	// Dirty the background if it's changed.
 	if (border_radius_changed ||                                    //
@@ -1791,7 +1796,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	}
 
 	// Dirty the decoration if it's changed.
-	if (border_radius_changed || changed_properties.Contains(PropertyId::Decorator))
+	if (border_radius_changed || filter_changed || changed_properties.Contains(PropertyId::Decorator))
 	{
 		meta->decoration.DirtyDecorators();
 	}

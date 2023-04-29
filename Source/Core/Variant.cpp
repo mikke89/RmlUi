@@ -42,6 +42,7 @@ Variant::Variant()
 	static_assert(sizeof(TransitionList) <= LOCAL_DATA_SIZE, "Local data too small for TransitionList");
 	static_assert(sizeof(AnimationList) <= LOCAL_DATA_SIZE, "Local data too small for AnimationList");
 	static_assert(sizeof(DecoratorsPtr) <= LOCAL_DATA_SIZE, "Local data too small for DecoratorsPtr");
+	static_assert(sizeof(FiltersPtr) <= LOCAL_DATA_SIZE, "Local data too small for FiltersPtr");
 	static_assert(sizeof(FontEffectsPtr) <= LOCAL_DATA_SIZE, "Local data too small for FontEffectsPtr");
 }
 
@@ -99,6 +100,12 @@ void Variant::Clear()
 		decorators->~DecoratorsPtr();
 	}
 	break;
+	case FILTERSPTR:
+	{
+		FiltersPtr* decorators = (FiltersPtr*)data;
+		decorators->~FiltersPtr();
+	}
+	break;
 	case FONTEFFECTSPTR:
 	{
 		FontEffectsPtr* font_effects = (FontEffectsPtr*)data;
@@ -121,6 +128,7 @@ void Variant::Set(const Variant& copy)
 	case TRANSITIONLIST: Set(*reinterpret_cast<const TransitionList*>(copy.data)); break;
 	case ANIMATIONLIST: Set(*reinterpret_cast<const AnimationList*>(copy.data)); break;
 	case DECORATORSPTR: Set(*reinterpret_cast<const DecoratorsPtr*>(copy.data)); break;
+	case FILTERSPTR: Set(*reinterpret_cast<const FiltersPtr*>(copy.data)); break;
 	case FONTEFFECTSPTR: Set(*reinterpret_cast<const FontEffectsPtr*>(copy.data)); break;
 	default:
 		memcpy(data, copy.data, LOCAL_DATA_SIZE);
@@ -139,6 +147,7 @@ void Variant::Set(Variant&& other)
 	case TRANSITIONLIST: Set(std::move(*reinterpret_cast<TransitionList*>(other.data))); break;
 	case ANIMATIONLIST: Set(std::move(*reinterpret_cast<AnimationList*>(other.data))); break;
 	case DECORATORSPTR: Set(std::move(*reinterpret_cast<DecoratorsPtr*>(other.data))); break;
+	case FILTERSPTR: Set(std::move(*reinterpret_cast<FiltersPtr*>(other.data))); break;
 	case FONTEFFECTSPTR: Set(std::move(*reinterpret_cast<FontEffectsPtr*>(other.data))); break;
 	default:
 		memcpy(data, other.data, LOCAL_DATA_SIZE);
@@ -373,6 +382,30 @@ void Variant::Set(DecoratorsPtr&& value)
 		new (data) DecoratorsPtr(std::move(value));
 	}
 }
+void Variant::Set(const FiltersPtr& value)
+{
+	if (type == FILTERSPTR)
+	{
+		*(FiltersPtr*)data = value;
+	}
+	else
+	{
+		type = FILTERSPTR;
+		new (data) FiltersPtr(value);
+	}
+}
+void Variant::Set(FiltersPtr&& value)
+{
+	if (type == FILTERSPTR)
+	{
+		(*(FiltersPtr*)data) = std::move(value);
+	}
+	else
+	{
+		type = FILTERSPTR;
+		new (data) FiltersPtr(std::move(value));
+	}
+}
 void Variant::Set(const FontEffectsPtr& value)
 {
 	if (type == FONTEFFECTSPTR)
@@ -448,6 +481,7 @@ bool Variant::operator==(const Variant& other) const
 	case TRANSITIONLIST: return DEFAULT_VARIANT_COMPARE(TransitionList);
 	case ANIMATIONLIST: return DEFAULT_VARIANT_COMPARE(AnimationList);
 	case DECORATORSPTR: return DEFAULT_VARIANT_COMPARE(DecoratorsPtr);
+	case FILTERSPTR: return DEFAULT_VARIANT_COMPARE(FiltersPtr);
 	case FONTEFFECTSPTR: return DEFAULT_VARIANT_COMPARE(FontEffectsPtr);
 	case NONE: return true;
 	}

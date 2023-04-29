@@ -123,6 +123,16 @@ class TypeConverter<DecoratorsPtr, String> {
 public:
 	RMLUICORE_API static bool Convert(const DecoratorsPtr& src, String& dest);
 };
+template <>
+class TypeConverter<FiltersPtr, FiltersPtr> {
+public:
+	RMLUICORE_API static bool Convert(const FiltersPtr& src, FiltersPtr& dest);
+};
+template <>
+class TypeConverter<FiltersPtr, String> {
+public:
+	RMLUICORE_API static bool Convert(const FiltersPtr& src, String& dest);
+};
 
 template <>
 class TypeConverter<FontEffectsPtr, FontEffectsPtr> {

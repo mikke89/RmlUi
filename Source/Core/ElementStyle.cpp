@@ -850,8 +850,15 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.has_decorator(p->unit == Unit::DECORATOR);
 			break;
 		case PropertyId::FontEffect:
-			values.has_font_effect((p->unit == Unit::FONTEFFECT));
+			values.has_font_effect(p->unit == Unit::FONTEFFECT);
 			break;
+		case PropertyId::Filter:
+			values.has_filter(p->unit == Unit::FILTER);
+			break;
+		case PropertyId::BackdropFilter:
+			values.has_backdrop_filter(p->unit == Unit::FILTER);
+			break;
+
 		case PropertyId::FlexBasis:
 			values.flex_basis(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;

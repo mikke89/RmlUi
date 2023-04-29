@@ -29,6 +29,7 @@
 #ifndef RMLUI_CORE_DECORATOR_H
 #define RMLUI_CORE_DECORATOR_H
 
+#include "EffectSpecification.h"
 #include "Header.h"
 #include "PropertyDictionary.h"
 #include "PropertySpecification.h"
@@ -37,22 +38,18 @@
 
 namespace Rml {
 
-class DecoratorInstancer;
 class Element;
 class PropertyDictionary;
-
 struct Sprite;
 struct Texture;
 class StyleSheet;
 class DecoratorInstancerInterface;
-class PropertyDefinition;
 
 /**
     The abstract base class for any visual object that can be attached to any element.
 
     @author Peter Curry
  */
-
 class RMLUICORE_API Decorator {
 public:
 	Decorator();
@@ -94,15 +91,9 @@ private:
 };
 
 /**
-    An element instancer provides a method for allocating and deallocating decorators.
-
-    It is important at the same instancer that allocated a decorator releases it. This ensures there are no issues with
-    memory from different DLLs getting mixed up.
-
-    @author Peter Curry
+    A decorator instancer, which can be inherited from to instance new decorators when encountered in the style sheet.
  */
-
-class RMLUICORE_API DecoratorInstancer {
+class RMLUICORE_API DecoratorInstancer : public EffectSpecification {
 public:
 	DecoratorInstancer();
 	virtual ~DecoratorInstancer();
@@ -114,26 +105,6 @@ public:
 	/// @return A shared_ptr to the decorator if it was instanced successfully.
 	virtual SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
 		const DecoratorInstancerInterface& instancer_interface) = 0;
-
-	/// Returns the property specification associated with the instancer.
-	const PropertySpecification& GetPropertySpecification() const;
-
-protected:
-	/// Registers a property for the decorator.
-	/// @param[in] property_name The name of the new property (how it is specified through RCSS).
-	/// @param[in] default_value The default value to be used.
-	/// @return The new property definition, ready to have parsers attached.
-	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value);
-	/// Registers a shorthand property definition. Specify a shorthand name of 'decorator' to parse anonymous decorators.
-	/// @param[in] shorthand_name The name to register the new shorthand property under.
-	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is
-	/// the order in which the values will be processed.
-	/// @param[in] type The type of shorthand to declare.
-	/// @param True if all the property names exist, false otherwise.
-	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
-
-private:
-	PropertySpecification properties;
 };
 
 class RMLUICORE_API DecoratorInstancerInterface {

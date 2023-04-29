@@ -80,6 +80,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserDecorator.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFilter.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFontEffect.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.h
@@ -138,6 +139,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Dictionary.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EffectSpecification.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementDocument.h
@@ -158,6 +160,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListenerInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Factory.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FileInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Filter.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffect.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffectInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEngineInterface.h
@@ -251,6 +254,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledImage.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/EffectSpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Element.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackgroundBorder.cpp
@@ -298,6 +302,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Factory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Filter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectBlur.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectGlow.cpp
@@ -340,6 +345,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserDecorator.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFilter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFontEffect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.cpp
