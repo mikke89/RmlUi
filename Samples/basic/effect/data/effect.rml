@@ -1,0 +1,112 @@
+<rml>
+<head>
+<link type="text/rcss" href="/assets/rml.rcss"/>
+<link type="text/rcss" href="effect_style.rcss"/>
+<title>Effect Sample</title>
+<style>
+@spritesheet effect-sheet
+{
+	src: /assets/invader.tga;
+	icon-invader: 179px 152px 51px 39px;
+}
+
+.filter {
+	transform-origin: 50% 0;
+}
+
+.box {
+	color: black;
+	font-size: 18dp;
+	width: 280dp;
+	height: 70dp;
+	background: #fff8;
+	border: 2dp #def6f7;
+	margin: 10dp auto;
+	padding: 15dp;
+	border-radius: 30dp 8dp;
+	box-sizing: border-box;
+	position: relative;
+}
+.box img, .box .placeholder {
+	float: left;
+	margin-right: 8dp;
+}
+.box .placeholder {
+	width: 51dp;
+	height: 39dp;
+}
+.box .label {
+	color: #bbba;
+	position: absolute;
+	font-size: 0.75em;
+	bottom: 0.1em;
+	right: 1.5em;
+}
+
+.box.window {
+	position: absolute;
+	bottom: 50dp;
+	left: 50dp;
+	margin: 0;
+	cursor: move;
+}
+.box.window handle {
+	position: absolute;
+	top: 0; right: 0; bottom: 0; left: 0;
+	display: block;
+}
+.box.big {
+	width: 500dp;
+	height: 260dp;
+	max-width: 100%;
+	border-color: #333;
+}
+
+.transform, .filter.transform_all > .box { transform: rotate3d(0.2, 0.4, 0.1, 15deg); }
+
+</style>
+</head>
+<body
+	data-model="effects"
+	data-style-perspective="perspective >= 3000 ? 'none' : perspective + 'dp'"
+	data-style-perspective-origin-x="perspective_origin_x + '%'"
+	data-style-perspective-origin-y="perspective_origin_y + '%'"
+>
+<handle move_target="#document"><h1>Effect Sample</h1></handle>
+<handle class="size" size_target="#document"/>
+<div id="menu_button" data-class-open="show_menu" data-event-click="show_menu = !show_menu">—<br/>—<br/>—</div>
+<div id="menu" data-if="show_menu">
+	<div id="submenu">
+		<div data-event-click="submenu = 'filter'" data-class-selected="submenu == 'filter'">Filter</div>
+		<div data-event-click="submenu = 'transform'" data-class-selected="submenu == 'transform'">Transform</div>
+	</div>
+	<table>
+		<col style="width: 200%"/><col style="width: 300%"/><col style="width: 100%"/>
+		<tbody data-if="submenu == 'filter'">
+			<tr><td>Opacity</td><td><input type="range" min="0" max="1" step="0.01" data-value="opacity"/></td><td>{{ opacity }}</td></tr>
+		</tbody>
+		<tbody data-if="submenu == 'transform'">
+			<tr><td>Scale</td><td><input type="range" min="0.1" max="2.0" step="0.1" data-value="scale"/></td><td>{{ scale | format(1) }}x</td></tr>
+			<tr><td>Rotate X</td><td><input type="range" min="-90" max="90" step="5" data-value="rotate_x"/></td><td>{{ rotate_x }} deg</td></tr>
+			<tr><td>Rotate Y</td><td><input type="range" min="-90" max="90" step="5" data-value="rotate_y"/></td><td>{{ rotate_y }} deg</td></tr>
+			<tr><td>Rotate Z</td><td><input type="range" min="-90" max="90" step="5" data-value="rotate_z"/></td><td>{{ rotate_z }} deg</td></tr>
+			<tr><td>Perspective</td><td><input type="range" min="100" max="3000" step="25" data-value="perspective"/></td><td>{{ perspective >= 3000 ? 'none' : perspective + ' dp' }}</td></tr>
+			<tr><td>Perspective X</td><td><input type="range" min="-100" max="200" step="5" data-value="perspective_origin_x" data-attrif-disabled="perspective >= 3000"/></td><td>{{ perspective_origin_x }} %</td></tr>
+			<tr><td>Perspective Y</td><td><input type="range" min="-100" max="200" step="5" data-value="perspective_origin_y" data-attrif-disabled="perspective >= 3000"/></td><td>{{ perspective_origin_y }} %</td></tr>
+			<tr><td><label for="transform_all">Transform all</label></td><td colspan="2"><input id="transform_all" type="checkbox" data-checked="transform_all"/></td></tr>
+		</tbody>
+	</table>
+	<button data-event-click="reset()">Reset</button>
+</div>
+<div class="filter"
+	data-style-transform="'scale(' + scale + ') rotateX(' + rotate_x + 'deg) rotateY(' + rotate_y + 'deg) rotateZ(' + rotate_z + 'deg)'"
+	data-style-opacity="opacity"
+	data-class-transform_all="transform_all"
+>
+
+<div class="box"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box big"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+
+</div>
+</body>
+</rml>

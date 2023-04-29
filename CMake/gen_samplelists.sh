@@ -7,7 +7,7 @@ hdr='set(sample_HDR_FILES'
 srcdir='${PROJECT_SOURCE_DIR}'
 srcpath=Samples
 samples=( 'shell'
-	'basic/animation' 'basic/benchmark' 'basic/bitmapfont' 'basic/customlog' 'basic/databinding' 'basic/demo' 'basic/drag' 'basic/loaddocument' 'basic/treeview' 'basic/transform'
+	'basic/animation' 'basic/benchmark' 'basic/bitmapfont' 'basic/customlog' 'basic/databinding' 'basic/demo' 'basic/drag' 'basic/effect' 'basic/loaddocument' 'basic/treeview' 'basic/transform'
 	'basic/lottie' 'basic/svg'
 	'tutorial/template' 'tutorial/drag'
 	'invaders' 'luainvaders'
