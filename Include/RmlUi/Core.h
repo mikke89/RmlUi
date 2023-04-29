@@ -41,7 +41,6 @@
 #include "Core/DataTypes.h"
 #include "Core/DataVariable.h"
 #include "Core/Decorator.h"
-#include "Core/DecoratorInstancer.h"
 #include "Core/Element.h"
 #include "Core/ElementDocument.h"
 #include "Core/ElementInstancer.h"

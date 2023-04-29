@@ -60,5 +60,15 @@ private:
 	Tile tile;
 };
 
+class DecoratorTiledImageInstancer : public DecoratorTiledInstancer {
+public:
+	DecoratorTiledImageInstancer();
+	~DecoratorTiledImageInstancer();
+
+	/// Instances an image decorator.
+	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) override;
+};
+
 } // namespace Rml
 #endif

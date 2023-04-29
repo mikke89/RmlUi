@@ -135,8 +135,6 @@ set(tutorial_drag_SRC_FILES
 
 set(invaders_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorInstancerDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorInstancerStarfield.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorStarfield.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Defender.h
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/ElementGame.h
@@ -158,8 +156,6 @@ set(invaders_HDR_FILES
 
 set(invaders_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorInstancerDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorInstancerStarfield.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/DecoratorStarfield.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/Defender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/invaders/src/ElementGame.cpp
@@ -182,8 +178,6 @@ set(invaders_SRC_FILES
 
 set(luainvaders_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerDefender.h
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerStarfield.h
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorStarfield.h
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Defender.h
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGame.h
@@ -200,8 +194,6 @@ set(luainvaders_HDR_FILES
 
 set(luainvaders_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerDefender.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorInstancerStarfield.cpp
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/DecoratorStarfield.cpp
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/Defender.cpp
     ${PROJECT_SOURCE_DIR}/Samples/luainvaders/src/ElementGame.cpp

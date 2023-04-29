@@ -31,8 +31,10 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/PropertyDefinition.h>
 #include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/Texture.h>
+#include <RmlUi/Core/Types.h>
 
 DecoratorDefender::~DecoratorDefender() {}
 
@@ -71,4 +73,26 @@ void DecoratorDefender::RenderElement(Rml::Element* element, Rml::DecoratorDataH
 
 		render_interface->RenderGeometry(vertices, 4, indices, 6, texture, position);
 	}
+}
+
+DecoratorInstancerDefender::DecoratorInstancerDefender()
+{
+	id_image_src = RegisterProperty("image-src", "").AddParser("string").GetId();
+	RegisterShorthand("decorator", "image-src", Rml::ShorthandType::FallThrough);
+}
+
+DecoratorInstancerDefender::~DecoratorInstancerDefender() {}
+
+Rml::SharedPtr<Rml::Decorator> DecoratorInstancerDefender::InstanceDecorator(const Rml::String& /*name*/, const Rml::PropertyDictionary& properties,
+	const Rml::DecoratorInstancerInterface& instancer_interface)
+{
+	const Rml::Property* image_source_property = properties.GetProperty(id_image_src);
+	Rml::String image_source = image_source_property->Get<Rml::String>();
+	Rml::Texture texture = instancer_interface.GetTexture(image_source);
+
+	auto decorator = Rml::MakeShared<DecoratorDefender>();
+	if (decorator->Initialise(texture))
+		return decorator;
+
+	return nullptr;
 }

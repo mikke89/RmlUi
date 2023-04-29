@@ -143,4 +143,31 @@ void DecoratorTiledHorizontal::RenderElement(Element* element, DecoratorDataHand
 		data->geometry[i].Render(translation);
 }
 
+DecoratorTiledHorizontalInstancer::DecoratorTiledHorizontalInstancer() : DecoratorTiledInstancer(3)
+{
+	RegisterTileProperty("left-image");
+	RegisterTileProperty("right-image");
+	RegisterTileProperty("center-image");
+	RegisterShorthand("decorator", "left-image, center-image, right-image", ShorthandType::RecursiveCommaSeparated);
+}
+
+DecoratorTiledHorizontalInstancer::~DecoratorTiledHorizontalInstancer() {}
+
+SharedPtr<Decorator> DecoratorTiledHorizontalInstancer::InstanceDecorator(const String& /*name*/, const PropertyDictionary& properties,
+	const DecoratorInstancerInterface& instancer_interface)
+{
+	constexpr size_t num_tiles = 3;
+
+	DecoratorTiled::Tile tiles[num_tiles];
+	Texture textures[num_tiles];
+
+	if (!GetTileProperties(tiles, textures, num_tiles, properties, instancer_interface))
+		return nullptr;
+
+	auto decorator = MakeShared<DecoratorTiledHorizontal>();
+	if (!decorator->Initialise(tiles, textures))
+		return nullptr;
+
+	return decorator;
+}
 } // namespace Rml

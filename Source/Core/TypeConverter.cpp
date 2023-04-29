@@ -28,7 +28,7 @@
 
 #include "../../Include/RmlUi/Core/TypeConverter.h"
 #include "../../Include/RmlUi/Core/Animation.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"

@@ -78,4 +78,17 @@ private:
 	};
 };
 
+class DecoratorInstancerStarfield : public Rml::DecoratorInstancer {
+public:
+	DecoratorInstancerStarfield();
+	~DecoratorInstancerStarfield();
+
+	/// Instances a decorator given the property tag and attributes from the RCSS file.
+	Rml::SharedPtr<Rml::Decorator> InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& properties,
+		const Rml::DecoratorInstancerInterface& instancer_interface) override;
+
+private:
+	Rml::PropertyId id_num_layers, id_top_colour, id_bottom_colour, id_top_speed, id_bottom_speed, id_top_density, id_bottom_density;
+};
+
 #endif

@@ -72,5 +72,15 @@ private:
 	Tile tiles[9];
 };
 
+class DecoratorTiledBoxInstancer : public DecoratorTiledInstancer {
+public:
+	DecoratorTiledBoxInstancer();
+	~DecoratorTiledBoxInstancer();
+
+	/// Instances a box decorator.
+	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) override;
+};
+
 } // namespace Rml
 #endif

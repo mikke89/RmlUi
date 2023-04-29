@@ -258,4 +258,43 @@ void DecoratorTiledBox::RenderElement(Element* element, DecoratorDataHandle elem
 		data->geometry[i].Render(translation);
 }
 
+DecoratorTiledBoxInstancer::DecoratorTiledBoxInstancer() : DecoratorTiledInstancer(9)
+{
+	RegisterTileProperty("top-left-image");
+	RegisterTileProperty("top-right-image");
+	RegisterTileProperty("bottom-left-image");
+	RegisterTileProperty("bottom-right-image");
+
+	RegisterTileProperty("left-image");
+	RegisterTileProperty("right-image");
+	RegisterTileProperty("top-image");
+	RegisterTileProperty("bottom-image");
+
+	RegisterTileProperty("center-image");
+
+	RegisterShorthand("decorator",
+		"top-left-image, top-image, top-right-image, left-image, center-image, right-image, bottom-left-image, bottom-image, bottom-right-image",
+		ShorthandType::RecursiveCommaSeparated);
+}
+
+DecoratorTiledBoxInstancer::~DecoratorTiledBoxInstancer() {}
+
+SharedPtr<Decorator> DecoratorTiledBoxInstancer::InstanceDecorator(const String& /*name*/, const PropertyDictionary& properties,
+	const DecoratorInstancerInterface& instancer_interface)
+{
+	constexpr size_t num_tiles = 9;
+
+	DecoratorTiled::Tile tiles[num_tiles];
+	Texture textures[num_tiles];
+
+	if (!GetTileProperties(tiles, textures, num_tiles, properties, instancer_interface))
+		return nullptr;
+
+	auto decorator = MakeShared<DecoratorTiledBox>();
+	if (!decorator->Initialise(tiles, textures))
+		return nullptr;
+
+	return decorator;
+}
+
 } // namespace Rml

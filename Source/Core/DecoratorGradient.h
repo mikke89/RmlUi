@@ -30,7 +30,6 @@
 #define RMLUI_CORE_DECORATORGRADIENT_H
 
 #include "../../Include/RmlUi/Core/Decorator.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
 #include "../../Include/RmlUi/Core/ID.h"
 
 namespace Rml {

@@ -14,14 +14,9 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNinePatch.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBox.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBoxInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledHorizontal.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledHorizontalInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledImage.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledImageInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackgroundBorder.h
@@ -142,7 +137,6 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataVariable.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DecoratorInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Dictionary.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl
@@ -250,18 +244,12 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DataViewDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Decorator.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorGradient.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNinePatch.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBox.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBoxInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledHorizontal.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledHorizontalInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledImage.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledImageInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Element.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.cpp

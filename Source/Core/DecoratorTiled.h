@@ -126,5 +126,31 @@ protected:
 	void ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, Axis axis) const;
 };
 
+class DecoratorTiledInstancer : public DecoratorInstancer {
+public:
+	DecoratorTiledInstancer(size_t num_tiles);
+
+protected:
+	/// Adds the property declarations for a tile.
+	/// @param[in] name The name of the tile property.
+	/// @param[in] register_fit_modes If true, the tile will have the fit modes registered.
+	void RegisterTileProperty(const String& name, bool register_fit_modes = false);
+
+	/// Retrieves all the properties for a tile from the property dictionary.
+	/// @param[out] tile The tile structure for storing the tile properties.
+	/// @param[out] textures Holds the textures declared for the tile.
+	/// @param[in] properties The user-defined list of parameters for the decorator.
+	/// @param[in] instancer_interface An interface for querying the active style sheet.
+	bool GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) const;
+
+private:
+	struct TilePropertyIds {
+		PropertyId src, fit, align_x, align_y, orientation;
+	};
+
+	Vector<TilePropertyIds> tile_property_ids;
+};
+
 } // namespace Rml
 #endif

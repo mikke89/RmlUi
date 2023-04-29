@@ -145,4 +145,32 @@ void DecoratorTiledVertical::RenderElement(Element* element, DecoratorDataHandle
 		data->geometry[i].Render(translation);
 }
 
+DecoratorTiledVerticalInstancer::DecoratorTiledVerticalInstancer() : DecoratorTiledInstancer(3)
+{
+	RegisterTileProperty("top-image");
+	RegisterTileProperty("bottom-image");
+	RegisterTileProperty("center-image");
+	RegisterShorthand("decorator", "top-image, center-image, bottom-image", ShorthandType::RecursiveCommaSeparated);
+}
+
+DecoratorTiledVerticalInstancer::~DecoratorTiledVerticalInstancer() {}
+
+SharedPtr<Decorator> DecoratorTiledVerticalInstancer::InstanceDecorator(const String& /*name*/, const PropertyDictionary& properties,
+	const DecoratorInstancerInterface& instancer_interface)
+{
+	constexpr size_t num_tiles = 3;
+
+	DecoratorTiled::Tile tiles[num_tiles];
+	Texture textures[num_tiles];
+
+	if (!GetTileProperties(tiles, textures, num_tiles, properties, instancer_interface))
+		return nullptr;
+
+	auto decorator = MakeShared<DecoratorTiledVertical>();
+	if (!decorator->Initialise(tiles, textures))
+		return nullptr;
+
+	return decorator;
+}
+
 } // namespace Rml

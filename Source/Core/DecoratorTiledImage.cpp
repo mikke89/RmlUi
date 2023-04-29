@@ -72,4 +72,29 @@ void DecoratorTiledImage::RenderElement(Element* element, DecoratorDataHandle el
 	data->Render(element->GetAbsoluteOffset(BoxArea::Padding).Round());
 }
 
+DecoratorTiledImageInstancer::DecoratorTiledImageInstancer() : DecoratorTiledInstancer(1)
+{
+	RegisterTileProperty("image", true);
+	RegisterShorthand("decorator", "image", ShorthandType::RecursiveRepeat);
+}
+
+DecoratorTiledImageInstancer::~DecoratorTiledImageInstancer() {}
+
+SharedPtr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const String& /*name*/, const PropertyDictionary& properties,
+	const DecoratorInstancerInterface& instancer_interface)
+{
+	DecoratorTiled::Tile tile;
+	Texture texture;
+
+	if (!GetTileProperties(&tile, &texture, 1, properties, instancer_interface))
+		return nullptr;
+
+	auto decorator = MakeShared<DecoratorTiledImage>();
+
+	if (!decorator->Initialise(tile, texture))
+		return nullptr;
+
+	return decorator;
+}
+
 } // namespace Rml
