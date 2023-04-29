@@ -325,7 +325,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	return true;
 }
 
-bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet,
+bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, NamedDecoratorMap& decorator_map, const StyleSheet& style_sheet,
 	const SharedPtr<const PropertySource>& source)
 {
 	StringList name_type;
@@ -360,9 +360,9 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 		if (it != decorator_map.end())
 		{
 			// Yes, try to retrieve the instancer from the parent type, and add its property values.
-			decorator_instancer = Factory::GetDecoratorInstancer(it->second.decorator_type);
+			decorator_instancer = Factory::GetDecoratorInstancer(it->second.type);
 			properties = it->second.properties;
-			decorator_type = it->second.decorator_type;
+			decorator_type = it->second.type;
 		}
 
 		// If we still don't have an instancer, we cannot continue.
@@ -393,7 +393,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 		return false;
 	}
 
-	decorator_map.emplace(name, DecoratorSpecification{std::move(decorator_type), std::move(properties), std::move(decorator)});
+	decorator_map.emplace(name, NamedDecorator{std::move(decorator_type), std::move(properties), std::move(decorator)});
 
 	return true;
 }

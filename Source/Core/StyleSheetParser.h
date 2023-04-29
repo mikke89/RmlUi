@@ -105,7 +105,7 @@ private:
 	bool ParseKeyframeBlock(KeyframesMap& keyframes_map, const String& identifier, const String& rules, const PropertyDictionary& properties);
 
 	// Attempts to parse a @decorator block
-	bool ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet,
+	bool ParseDecoratorBlock(const String& at_name, NamedDecoratorMap& decorator_map, const StyleSheet& style_sheet,
 		const SharedPtr<const PropertySource>& source);
 
 	// Attempts to parse the properties of a @media query

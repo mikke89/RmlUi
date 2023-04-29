@@ -97,7 +97,7 @@ void StyleSheet::BuildNodeIndex()
 	root->BuildIndex(styled_node_index);
 }
 
-const DecoratorSpecification* StyleSheet::GetDecoratorSpecification(const String& name) const
+const NamedDecorator* StyleSheet::GetNamedDecorator(const String& name) const
 {
 	auto it = decorator_map.find(name);
 	if (it != decorator_map.end())

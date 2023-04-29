@@ -169,31 +169,39 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 		return Property{TransformPtr(std::move(t)), Unit::TRANSFORM};
 	}
 
+	struct DecoratorDeclarationView {
+		DecoratorDeclarationView(const DecoratorDeclaration& declaration) :
+			type(declaration.type), instancer(declaration.instancer), properties(declaration.properties)
+		{}
+		DecoratorDeclarationView(const NamedDecorator* specification) :
+			type(specification->type), instancer(Factory::GetDecoratorInstancer(specification->type)), properties(specification->properties)
+		{}
+		const String& type;
+		DecoratorInstancer* instancer;
+		const PropertyDictionary& properties;
+	};
+
 	if (p0.unit == Unit::DECORATOR && p1.unit == Unit::DECORATOR)
 	{
 		auto DiscreteInterpolation = [&]() { return alpha < 0.5f ? p0 : p1; };
 
-		// We construct DecoratorDeclarationView from declaration if it has instancer, otherwise we look for DecoratorSpecification and return
-		// DecoratorDeclarationView from it
+		// If we have an instancer we pass that directly to the declaration view, otherwise look for a named @decorator.
 		auto GetDecoratorDeclarationView = [&](const DecoratorDeclaration& declaration) -> DecoratorDeclarationView {
 			if (declaration.instancer)
 				return DecoratorDeclarationView{declaration};
 
 			const StyleSheet* style_sheet = element.GetStyleSheet();
 			if (!style_sheet)
+				return DecoratorDeclarationView{declaration};
+
+			const NamedDecorator* named_decorator = style_sheet->GetNamedDecorator(declaration.type);
+			if (!named_decorator)
 			{
-				Log::Message(Log::LT_WARNING, "Failed to get element stylesheet for '%s' decorator rule.", declaration.type.c_str());
+				Log::Message(Log::LT_WARNING, "Could not find a named @decorator '%s'.", declaration.type.c_str());
 				return DecoratorDeclarationView{declaration};
 			}
 
-			const DecoratorSpecification* specification = style_sheet->GetDecoratorSpecification(declaration.type);
-			if (!specification)
-			{
-				Log::Message(Log::LT_WARNING, "Could not find DecoratorSpecification for '%s' decorator rule.", declaration.type.c_str());
-				return DecoratorDeclarationView{declaration};
-			}
-
-			return DecoratorDeclarationView{specification};
+			return DecoratorDeclarationView{named_decorator};
 		};
 
 		auto& ptr0 = p0.value.GetReference<DecoratorsPtr>();

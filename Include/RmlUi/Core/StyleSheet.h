@@ -67,8 +67,8 @@ public:
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
 
-	/// Returns the DecoratorSpecification of the given name, or null if it does not exist.
-	const DecoratorSpecification* GetDecoratorSpecification(const String& name) const;
+	/// Returns the named @decorator, or null if it does not exist.
+	const NamedDecorator* GetNamedDecorator(const String& name) const;
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
 	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to
@@ -103,7 +103,7 @@ private:
 	KeyframesMap keyframes;
 
 	// Name of every @decorator mapped to their specification
-	DecoratorSpecificationMap decorator_map;
+	NamedDecoratorMap decorator_map;
 
 	// Name of every @spritesheet and underlying sprites mapped to their values
 	SpritesheetList spritesheet_list;
