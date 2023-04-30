@@ -45,10 +45,11 @@ namespace Rml {
 
 static StyleSheetSpecification* instance = nullptr;
 
-struct DefaultStyleSheetParsers {
+struct DefaultStyleSheetParsers : NonCopyMoveable {
 	PropertyParserNumber number = PropertyParserNumber(Unit::NUMBER);
 	PropertyParserNumber length = PropertyParserNumber(Unit::LENGTH, Unit::PX);
 	PropertyParserNumber length_percent = PropertyParserNumber(Unit::LENGTH_PERCENT, Unit::PX);
+	PropertyParserNumber number_percent = PropertyParserNumber(Unit::NUMBER_PERCENT);
 	PropertyParserNumber number_length_percent = PropertyParserNumber(Unit::NUMBER_LENGTH_PERCENT, Unit::PX);
 	PropertyParserNumber angle = PropertyParserNumber(Unit::ANGLE, Unit::RAD);
 	PropertyParserKeyword keyword = PropertyParserKeyword();
@@ -242,6 +243,7 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("number", &default_parsers->number);
 	RegisterParser("length", &default_parsers->length);
 	RegisterParser("length_percent", &default_parsers->length_percent);
+	RegisterParser("number_percent", &default_parsers->number_percent);
 	RegisterParser("number_length_percent", &default_parsers->number_length_percent);
 	RegisterParser("angle", &default_parsers->angle);
 	RegisterParser("keyword", &default_parsers->keyword);
