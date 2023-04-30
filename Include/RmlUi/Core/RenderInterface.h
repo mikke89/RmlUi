@@ -37,6 +37,19 @@
 
 namespace Rml {
 
+enum class LayerFill {
+	None,  // No operation necessary, does not care about the layer color.
+	Clear, // Clear the layer to transparent black.
+	Clone, // Copy the color data from the previous layer.
+};
+enum class BlendMode {
+	Blend,   // Normal alpha blending.
+	Replace, // Replace the destination colors from the source.
+	Discard, // Leave the destination colors unaltered.
+};
+
+using FilterHandleList = Vector<CompiledFilterHandle>;
+
 /**
     The abstract base class for application-specific rendering implementation. Your application must provide a concrete
     implementation of this class and install it through Rml::SetRenderInterface() in order for anything to be rendered.
@@ -110,6 +123,22 @@ public:
 	/// is submitted. Then it expects the renderer to use an identity matrix or otherwise omit the multiplication with the transform.
 	/// @param[in] transform The new transform to apply, or nullptr if no transform applies to the current element.
 	virtual void SetTransform(const Matrix4f* transform);
+
+	/// Called by RmlUi when it wants to push a new layer onto the render stack.
+	/// @param[in] layer_fill Specifies how the color data of the new layer should be filled.
+	virtual void PushLayer(LayerFill layer_fill);
+	/// Called by RmlUi when it wants to pop the render layer stack, after applying filters to the top layer and blending it into the layer below.
+	/// @param[in] blend_mode The mode used to blend the top layer into the one below.
+	/// @param[in] filters A list of compiled filters which should be applied to the top layer before blending.
+	virtual void PopLayer(BlendMode blend_mode, const FilterHandleList& filters);
+
+	/// Called by RmlUi when it wants to compile a new filter.
+	/// @param[in] name The name of the filter.
+	/// @param[in] parameters The list of name-value parameters specified for the filter.
+	virtual CompiledFilterHandle CompileFilter(const String& name, const Dictionary& parameters);
+	/// Called by RmlUi when it no longer needs a previously compiled filter.
+	/// @param[in] filter The handle to a previously compiled filter.
+	virtual void ReleaseCompiledFilter(CompiledFilterHandle filter);
 };
 
 } // namespace Rml

@@ -89,6 +89,7 @@ struct Animation;
 struct Transition;
 struct TransitionList;
 struct DecoratorDeclarationList;
+struct FilterDeclarationList;
 enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
 enum class MediaQueryId : uint8_t;
@@ -98,6 +99,7 @@ enum class FamilyId : int;
 using FileHandle = uintptr_t;
 using TextureHandle = uintptr_t;
 using CompiledGeometryHandle = uintptr_t;
+using CompiledFilterHandle = uintptr_t;
 using DecoratorDataHandle = uintptr_t;
 using FontFaceHandle = uintptr_t;
 using FontEffectsHandle = uintptr_t;
@@ -129,6 +131,7 @@ struct FontEffects {
 // Additional smart pointers
 using TransformPtr = SharedPtr<Transform>;
 using DecoratorsPtr = SharedPtr<const DecoratorDeclarationList>;
+using FiltersPtr = SharedPtr<const FilterDeclarationList>;
 using FontEffectsPtr = SharedPtr<const FontEffects>;
 
 // Data binding types

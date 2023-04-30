@@ -66,4 +66,15 @@ void RenderInterface::ReleaseTexture(TextureHandle /*texture*/) {}
 
 void RenderInterface::SetTransform(const Matrix4f* /*transform*/) {}
 
+void RenderInterface::PushLayer(LayerFill /*layer_fill*/) {}
+
+void RenderInterface::PopLayer(BlendMode /*blend_mode*/, const FilterHandleList& /*filters*/) {}
+
+CompiledFilterHandle RenderInterface::CompileFilter(const String& /*name*/, const Dictionary& /*parameters*/)
+{
+	return CompiledFilterHandle{};
+}
+
+void RenderInterface::ReleaseCompiledFilter(CompiledFilterHandle /*filter*/) {}
+
 } // namespace Rml
