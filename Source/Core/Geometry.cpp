@@ -84,7 +84,7 @@ void Geometry::Render(Vector2f translation)
 	if (compiled_geometry)
 	{
 		RMLUI_ZoneScopedN("RenderCompiled");
-		render_interface->RenderCompiledGeometry(compiled_geometry, translation);
+		render_interface->RenderCompiledGeometry(compiled_geometry, translation, texture ? texture->GetHandle() : 0);
 	}
 	// Otherwise, if we actually have geometry, try to compile it if we haven't already done so, otherwise render it in
 	// immediate mode.
@@ -98,14 +98,13 @@ void Geometry::Render(Vector2f translation)
 		if (!compile_attempted)
 		{
 			compile_attempted = true;
-			compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size(),
-				texture ? texture->GetHandle() : 0);
+			compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size());
 
 			// If we managed to compile the geometry, we can clear the local copy of vertices and indices and
 			// immediately render the compiled version.
 			if (compiled_geometry)
 			{
-				render_interface->RenderCompiledGeometry(compiled_geometry, translation);
+				render_interface->RenderCompiledGeometry(compiled_geometry, translation, texture ? texture->GetHandle() : 0);
 				return;
 			}
 		}

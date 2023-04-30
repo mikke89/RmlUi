@@ -59,9 +59,8 @@ public:
 	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
 		const Rml::Vector2f& translation) override;
 
-	Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices,
-		Rml::TextureHandle texture) override;
-	void RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) override;
+	Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices) override;
+	void RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation, Rml::TextureHandle texture) override;
 	void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) override;
 
 	void EnableScissorRegion(bool enable) override;

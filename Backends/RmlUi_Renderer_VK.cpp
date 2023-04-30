@@ -104,21 +104,18 @@ RenderInterface_VK::~RenderInterface_VK() {}
 void RenderInterface_VK::RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
 	const Rml::Vector2f& translation)
 {
-	Rml::CompiledGeometryHandle handle = CompileGeometry(vertices, num_vertices, indices, num_indices, texture);
+	Rml::CompiledGeometryHandle handle = CompileGeometry(vertices, num_vertices, indices, num_indices);
 
 	if (handle)
 	{
-		RenderCompiledGeometry(handle, translation);
+		RenderCompiledGeometry(handle, translation, texture);
 		ReleaseCompiledGeometry(handle);
 	}
 }
 
-Rml::CompiledGeometryHandle RenderInterface_VK::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices,
-	Rml::TextureHandle texture)
+Rml::CompiledGeometryHandle RenderInterface_VK::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices)
 {
 	RMLUI_ZoneScopedN("Vulkan - CompileGeometry");
-
-	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture);
 
 	VkDescriptorSet p_current_descriptor_set = nullptr;
 	p_current_descriptor_set = m_p_descriptor_set;
@@ -128,6 +125,37 @@ Rml::CompiledGeometryHandle RenderInterface_VK::CompileGeometry(Rml::Vertex* ver
 		"at all or 2. - Somehing is wrong with allocation and somehow it was corrupted by something.");
 
 	auto* p_geometry_handle = new geometry_handle_t{};
+
+	uint32_t* pCopyDataToBuffer = nullptr;
+	const void* pData = reinterpret_cast<const void*>(vertices);
+
+	bool status = m_memory_pool.Alloc_VertexBuffer(num_vertices, sizeof(Rml::Vertex), reinterpret_cast<void**>(&pCopyDataToBuffer),
+		&p_geometry_handle->m_p_vertex, &p_geometry_handle->m_p_vertex_allocation);
+	RMLUI_VK_ASSERTMSG(status, "failed to AllocVertexBuffer");
+
+	memcpy(pCopyDataToBuffer, pData, sizeof(Rml::Vertex) * num_vertices);
+
+	status = m_memory_pool.Alloc_IndexBuffer(num_indices, sizeof(int), reinterpret_cast<void**>(&pCopyDataToBuffer), &p_geometry_handle->m_p_index,
+		&p_geometry_handle->m_p_index_allocation);
+	RMLUI_VK_ASSERTMSG(status, "failed to AllocIndexBuffer");
+
+	memcpy(pCopyDataToBuffer, indices, sizeof(int) * num_indices);
+
+	p_geometry_handle->m_num_indices = num_indices;
+
+	return Rml::CompiledGeometryHandle(p_geometry_handle);
+}
+
+void RenderInterface_VK::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation, Rml::TextureHandle texture)
+{
+	RMLUI_ZoneScopedN("Vulkan - RenderCompiledGeometry");
+
+	if (m_p_current_command_buffer == nullptr)
+		return;
+
+	RMLUI_VK_ASSERTMSG(m_p_current_command_buffer, "must be valid otherwise you can't render now!!! (can't be)");
+
+	texture_data_t* p_texture = reinterpret_cast<texture_data_t*>(texture);
 
 	VkDescriptorImageInfo info_descriptor_image = {};
 	if (p_texture && p_texture->m_p_vk_descriptor_set == nullptr)
@@ -151,37 +179,6 @@ Rml::CompiledGeometryHandle RenderInterface_VK::CompileGeometry(Rml::Vertex* ver
 		vkUpdateDescriptorSets(m_p_device, 1, &info_write, 0, nullptr);
 		p_texture->m_p_vk_descriptor_set = p_texture_set;
 	}
-
-	uint32_t* pCopyDataToBuffer = nullptr;
-	const void* pData = reinterpret_cast<const void*>(vertices);
-
-	bool status = m_memory_pool.Alloc_VertexBuffer(num_vertices, sizeof(Rml::Vertex), reinterpret_cast<void**>(&pCopyDataToBuffer),
-		&p_geometry_handle->m_p_vertex, &p_geometry_handle->m_p_vertex_allocation);
-	RMLUI_VK_ASSERTMSG(status, "failed to AllocVertexBuffer");
-
-	memcpy(pCopyDataToBuffer, pData, sizeof(Rml::Vertex) * num_vertices);
-
-	status = m_memory_pool.Alloc_IndexBuffer(num_indices, sizeof(int), reinterpret_cast<void**>(&pCopyDataToBuffer), &p_geometry_handle->m_p_index,
-		&p_geometry_handle->m_p_index_allocation);
-	RMLUI_VK_ASSERTMSG(status, "failed to AllocIndexBuffer");
-
-	memcpy(pCopyDataToBuffer, indices, sizeof(int) * num_indices);
-
-	p_geometry_handle->m_has_texture = static_cast<bool>(texture);
-	p_geometry_handle->m_num_indices = num_indices;
-	p_geometry_handle->m_p_texture = p_texture;
-
-	return Rml::CompiledGeometryHandle(p_geometry_handle);
-}
-
-void RenderInterface_VK::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation)
-{
-	RMLUI_ZoneScopedN("Vulkan - RenderCompiledGeometry");
-
-	if (m_p_current_command_buffer == nullptr)
-		return;
-
-	RMLUI_VK_ASSERTMSG(m_p_current_command_buffer, "must be valid otherwise you can't render now!!! (can't be)");
 
 	geometry_handle_t* p_casted_compiled_geometry = reinterpret_cast<geometry_handle_t*>(geometry);
 
@@ -236,15 +233,15 @@ void RenderInterface_VK::RenderCompiledGeometry(Rml::CompiledGeometryHandle geom
 
 	VkDescriptorSet p_texture_descriptor_set = nullptr;
 
-	if (p_casted_compiled_geometry->m_p_texture)
+	if (p_texture)
 	{
-		p_texture_descriptor_set = p_casted_compiled_geometry->m_p_texture->m_p_vk_descriptor_set;
+		p_texture_descriptor_set = p_texture->m_p_vk_descriptor_set;
 	}
 
 	VkDescriptorSet p_sets[] = {p_current_descriptor_set, p_texture_descriptor_set};
 	int real_size_of_sets = 2;
 
-	if (p_casted_compiled_geometry->m_p_texture == nullptr)
+	if (p_texture == nullptr)
 		real_size_of_sets = 1;
 
 	vkCmdBindDescriptorSets(m_p_current_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_p_pipeline_layout, 0, real_size_of_sets, p_sets, 1,
@@ -256,7 +253,7 @@ void RenderInterface_VK::RenderCompiledGeometry(Rml::CompiledGeometryHandle geom
 	}
 	else
 	{
-		if (p_casted_compiled_geometry->m_has_texture)
+		if (p_texture)
 		{
 			if (m_is_apply_to_regular_geometry_stencil)
 			{
@@ -3015,8 +3012,6 @@ void RenderInterface_VK::MemoryPool::Free_GeometryHandle(geometry_handle_t* p_va
 	p_valid_geometry_handle->m_p_vertex_allocation = nullptr;
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
 	p_valid_geometry_handle->m_p_index_allocation = nullptr;
-	p_valid_geometry_handle->m_p_texture = nullptr;
-	p_valid_geometry_handle->m_has_texture = false;
 	p_valid_geometry_handle->m_num_indices = 0;
 }
 

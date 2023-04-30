@@ -42,13 +42,12 @@ RenderInterface::~RenderInterface()
 		"dereference when releasing the textures. Ensure that the render interface is destroyed *after* the call to Rml::Shutdown.");
 }
 
-CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/,
-	TextureHandle /*texture*/)
+CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/)
 {
 	return 0;
 }
 
-void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle /*geometry*/, const Vector2f& /*translation*/) {}
+void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle /*geometry*/, const Vector2f& /*translation*/, TextureHandle /*texture*/) {}
 
 void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle /*geometry*/) {}
 

@@ -131,11 +131,10 @@ public:
 		const Rml::Vector2f& translation) override;
 
 	/// Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
-	Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices,
-		Rml::TextureHandle texture) override;
+	Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices) override;
 
 	/// Called by RmlUi when it wants to render application-compiled geometry.
-	void RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) override;
+	void RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation, Rml::TextureHandle texture) override;
 
 	/// Called by RmlUi when it wants to release application-compiled geometry.
 	void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) override;
@@ -175,10 +174,7 @@ private:
 	};
 
 	struct geometry_handle_t {
-		bool m_has_texture;
 		int m_num_indices;
-
-		texture_data_t* m_p_texture;
 
 		VkDescriptorBufferInfo m_p_vertex;
 		VkDescriptorBufferInfo m_p_index;
