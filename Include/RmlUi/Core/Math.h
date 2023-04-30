@@ -42,6 +42,9 @@ template <typename Type>
 class Vector2;
 using Vector2f = Vector2<float>;
 using Vector2i = Vector2<int>;
+template <typename Type>
+class Rectangle;
+using Rectanglef = Rectangle<float>;
 
 namespace Math {
 
@@ -208,6 +211,9 @@ namespace Math {
 	/// @param[inout] position The position, which will be rounded down.
 	/// @param[inout] size The size, which is rounded such that the right and bottom edges are rounded up.
 	RMLUICORE_API void ExpandToPixelGrid(Vector2f& position, Vector2f& size);
+	/// Round the rectangle to the pixel grid such that it fully covers the original rectangle.
+	/// @param[inout] position The rectangle to round.
+	RMLUICORE_API void ExpandToPixelGrid(Rectanglef& rectangle);
 
 	/// Converts a number to the nearest power of two, rounding up if necessary.
 	/// @param[in] value The value to convert to a power-of-two.

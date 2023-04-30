@@ -188,6 +188,13 @@ namespace Math {
 		size = Vector2f(std::ceil(bottom_right.x), std::ceil(bottom_right.y)) - position;
 	}
 
+	RMLUICORE_API void ExpandToPixelGrid(Rectanglef& rectangle)
+	{
+		const Vector2f top_left = {std::floor(rectangle.Left()), std::floor(rectangle.Top())};
+		const Vector2f bottom_right = {std::ceil(rectangle.Right()), std::ceil(rectangle.Bottom())};
+		rectangle = Rectanglef::FromCorners(top_left, bottom_right);
+	}
+
 	RMLUICORE_API int ToPowerOfTwo(int number)
 	{
 		// Check if the number is already a power of two.

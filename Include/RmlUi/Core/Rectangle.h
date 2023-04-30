@@ -54,7 +54,9 @@ public:
 	Vector2Type Size() const { return p1 - p0; }
 
 	Vector2Type TopLeft() const { return p0; }
+	Vector2Type TopRight() const { return {p1.x, p0.y}; }
 	Vector2Type BottomRight() const { return p1; }
+	Vector2Type BottomLeft() const { return {p0.x, p1.y}; }
 
 	Vector2Type Center() const { return (p0 + p1) / Type(2); }
 
