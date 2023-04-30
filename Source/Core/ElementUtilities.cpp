@@ -279,6 +279,68 @@ void ElementUtilities::ApplyActiveClipRegion(Context* context)
 	}
 }
 
+bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* element, BoxArea box_area)
+{
+	RMLUI_ASSERT(element);
+
+	if (box_area == BoxArea::Auto)
+		box_area = BoxArea::Border;
+
+	// Element bounds in non-transformed space.
+	const Rectanglef bounds = Rectanglef::FromPositionSize(element->GetAbsoluteOffset(box_area), element->GetBox().GetSize(box_area));
+
+	const TransformState* transform_state = element->GetTransformState();
+	const Matrix4f* transform = (transform_state ? transform_state->GetTransform() : nullptr);
+
+	// Early exit in the common case of no transform.
+	if (!transform)
+	{
+		out_rectangle = bounds;
+		return true;
+	}
+
+	Context* context = element->GetContext();
+	if (!context)
+		return false;
+
+	constexpr int num_corners = 4;
+	Vector2f corners[num_corners] = {
+		bounds.TopLeft(),
+		bounds.TopRight(),
+		bounds.BottomRight(),
+		bounds.BottomLeft(),
+	};
+
+	// Transform and project corners to window coordinates.
+	constexpr float z_clip = 10'000.f;
+	const Vector2f window_size = Vector2f(context->GetDimensions());
+	const Matrix4f project = Matrix4f::ProjectOrtho(0.f, window_size.x, 0.f, window_size.y, -z_clip, z_clip);
+	const Matrix4f project_transform = project * (*transform);
+	bool any_vertex_depth_clipped = false;
+
+	for (int i = 0; i < num_corners; i++)
+	{
+		const Vector4f pos_clip_space = project_transform * Vector4f(corners[i].x, corners[i].y, 0, 1);
+		const Vector2f pos_ndc = Vector2f(pos_clip_space.x, pos_clip_space.y) / pos_clip_space.w;
+		const Vector2f pos_viewport = 0.5f * window_size * (pos_ndc + Vector2f(1));
+		corners[i] = pos_viewport;
+		any_vertex_depth_clipped |= !(-pos_clip_space.w <= pos_clip_space.z && pos_clip_space.z <= pos_clip_space.w);
+	}
+
+	// If any part of the box area is outside the depth clip planes we give up finding the bounding box. In this situation a renderer would normally
+	// clip the underlying triangles against the clip planes. We could in principle do the same, but the added complexity does not seem worthwhile for
+	// our use cases.
+	if (any_vertex_depth_clipped)
+		return false;
+
+	// Find the rectangle covering the projected corners.
+	out_rectangle = Rectanglef::FromPosition(corners[0]);
+	for (int i = 1; i < num_corners; i++)
+		out_rectangle.Join(corners[i]);
+
+	return true;
+}
+
 void ElementUtilities::FormatElement(Element* element, Vector2f containing_block)
 {
 	LayoutEngine::FormatElement(element, containing_block);
