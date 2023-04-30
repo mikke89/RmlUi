@@ -62,6 +62,7 @@
 #include "Elements/XMLNodeHandlerTabSet.h"
 #include "Elements/XMLNodeHandlerTextArea.h"
 #include "EventInstancerDefault.h"
+#include "FilterBasic.h"
 #include "FontEffectBlur.h"
 #include "FontEffectGlow.h"
 #include "FontEffectOutline.h"
@@ -151,6 +152,11 @@ struct DefaultInstancers {
 	DecoratorNinePatchInstancer decorator_ninepatch;
 	DecoratorGradientInstancer decorator_gradient;
 
+	// Filters
+	FilterBasicInstancer filter_hue_rotate = {FilterBasicInstancer::ValueType::Angle, "0rad"};
+	FilterBasicInstancer filter_basic_d0 = {FilterBasicInstancer::ValueType::NumberPercent, "0"};
+	FilterBasicInstancer filter_basic_d1 = {FilterBasicInstancer::ValueType::NumberPercent, "1"};
+
 	// Font effects
 	FontEffectBlurInstancer font_effect_blur;
 	FontEffectGlowInstancer font_effect_glow;
@@ -232,6 +238,16 @@ bool Factory::Initialise()
 	RegisterDecoratorInstancer("image", &default_instancers->decorator_image);
 	RegisterDecoratorInstancer("ninepatch", &default_instancers->decorator_ninepatch);
 	RegisterDecoratorInstancer("gradient", &default_instancers->decorator_gradient);
+
+	// Filter instancers
+	RegisterFilterInstancer("hue-rotate", &default_instancers->filter_hue_rotate);
+	RegisterFilterInstancer("brightness", &default_instancers->filter_basic_d1);
+	RegisterFilterInstancer("contrast", &default_instancers->filter_basic_d1);
+	RegisterFilterInstancer("grayscale", &default_instancers->filter_basic_d0);
+	RegisterFilterInstancer("invert", &default_instancers->filter_basic_d0);
+	RegisterFilterInstancer("opacity", &default_instancers->filter_basic_d1);
+	RegisterFilterInstancer("saturate", &default_instancers->filter_basic_d1);
+	RegisterFilterInstancer("sepia", &default_instancers->filter_basic_d0);
 
 	// Font effect instancers
 	RegisterFontEffectInstancer("blur", &default_instancers->font_effect_blur);
