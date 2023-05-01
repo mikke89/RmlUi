@@ -89,7 +89,7 @@ public:
 
 	/// Returns the containing block for a box.
 	/// @param[in] parent_container The parent container of the current box.
-	/// @param[in] child_position The position property of the current box.
+	/// @param[in] position The position property of the current box.
 	/// @return The containing block box and size, possibly indefinite along one or both axes.
 	static ContainingBlock GetContainingBlock(ContainerBox* parent_container, Style::Position position);
 
