@@ -502,19 +502,13 @@ void TestNavigator::StopTestSuiteIteration()
 		log += "\n\nNot Equal:\n";
 
 		if (!not_equal.empty())
-			log += "Percentages are similarity scores. Difference images written to " + GetCaptureOutputDirectory() + "/*-diff.png\n\n";
+			log += "Percentages are similarity scores.\n\n";
 		for (int i : not_equal)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %5.1f%%   %s\n", i + 1, comparison_results[i].similarity_score * 100.0, suite.GetFilename().c_str());
+			log += Rml::CreateString(512, "%5d   %5.1f%%   %s\n", i + 1, comparison_results[i].similarity_score * 100.0, suite.GetFilename().c_str());
 			if (!comparison_results[i].error_msg.empty())
 				log += "          " + comparison_results[i].error_msg + "\n";
-		}
-		log += "\nEqual:\n";
-		for (int i : equal)
-		{
-			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
 		log += "\nFailed:\n";
 		for (int i : failed)
@@ -527,7 +521,13 @@ void TestNavigator::StopTestSuiteIteration()
 		for (int i : skipped)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+			log += Rml::CreateString(512, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+		}
+		log += "\nEqual:\n";
+		for (int i : equal)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString(512, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
 
 		const Rml::String log_path = GetCaptureOutputDirectory() + "/comparison.log";
