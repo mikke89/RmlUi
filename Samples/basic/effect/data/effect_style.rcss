@@ -32,6 +32,7 @@ h1 {
 }
 handle.size {
 	position: fixed;
+	z-index: 100;
 	bottom: 0;
 	right: 0;
 	width: 18dp;
@@ -128,6 +129,7 @@ handle.size:hover, handle.size:active {
 }
 
 scrollbarvertical {
+	z-index: 100;
 	margin-top: 75dp;
 	margin-bottom: 20dp;
 	margin-right: 0dp;

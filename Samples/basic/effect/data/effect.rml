@@ -64,6 +64,16 @@
 
 .transform, .filter.transform_all > .box { transform: rotate3d(0.2, 0.4, 0.1, 15deg); }
 
+.brightness { filter: brightness(0.5); }
+.contrast { filter: contrast(0.5); }
+.sepia { filter: sepia(80%); }
+.grayscale { filter: grayscale(0.9); }
+
+.saturate { filter: saturate(200%); }
+.hue_rotate { filter: hue-rotate(260deg); }
+.invert { filter: invert(100%); }
+.opacity_low { filter: opacity(0.2); }
+
 </style>
 </head>
 <body
@@ -84,6 +94,13 @@
 		<col style="width: 200%"/><col style="width: 300%"/><col style="width: 100%"/>
 		<tbody data-if="submenu == 'filter'">
 			<tr><td>Opacity</td><td><input type="range" min="0" max="1" step="0.01" data-value="opacity"/></td><td>{{ opacity }}</td></tr>
+			<tr><td>Sepia</td><td><input type="range" min="0" max="1" step="0.01" data-value="sepia"/></td><td>{{ sepia*100 }} %</td></tr>
+			<tr><td>Grayscale</td><td><input type="range" min="0" max="1" step="0.01" data-value="grayscale"/></td><td>{{ grayscale*100 }} %</td></tr>
+			<tr><td>Saturate</td><td><input type="range" min="0" max="2" step="0.01" data-value="saturate"/></td><td>{{ saturate*100 }} %</td></tr>
+			<tr><td>Brightness</td><td><input type="range" min="0" max="2" step="0.02" data-value="brightness"/></td><td>{{ brightness*100 }} %</td></tr>
+			<tr><td>Contrast</td><td><input type="range" min="0" max="2" step="0.02" data-value="contrast"/></td><td>{{ contrast*100 }} %</td></tr>
+			<tr><td>Hue</td><td><input type="range" min="0" max="360" step="1" data-value="hue_rotate"/></td><td>{{ hue_rotate }} deg</td></tr>
+			<tr><td>Invert</td><td><input type="range" min="0" max="1" step="0.01" data-value="invert"/></td><td>{{ invert*100 }} %</td></tr>
 		</tbody>
 		<tbody data-if="submenu == 'transform'">
 			<tr><td>Scale</td><td><input type="range" min="0.1" max="2.0" step="0.1" data-value="scale"/></td><td>{{ scale | format(1) }}x</td></tr>
@@ -100,13 +117,26 @@
 </div>
 <div class="filter"
 	data-style-transform="'scale(' + scale + ') rotateX(' + rotate_x + 'deg) rotateY(' + rotate_y + 'deg) rotateZ(' + rotate_z + 'deg)'"
-	data-style-opacity="opacity"
+	data-style-filter="'opacity(' + opacity + ') sepia(' + sepia + ') grayscale(' + grayscale + ') saturate(' + saturate + ') brightness(' + brightness + ') contrast(' + contrast + ') hue-rotate(' + hue_rotate + 'deg) invert(' + invert + ')'"
 	data-class-transform_all="transform_all"
 >
 
 <div class="box"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 <div class="box big"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 
+<div class="box hue_rotate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+
+<div class="box saturate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box invert"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+
+<div class="box brightness"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box contrast"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box dropshadow"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+
+<div class="box window sepia" id="sepia" style="bottom: 150dp"><handle move_target="sepia"/><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+
+<div class="box grayscale"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box opacity_low"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 </div>
 </body>
 </rml>

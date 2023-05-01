@@ -80,6 +80,13 @@ int main(int /*argc*/, char** /*argv*/)
 
 		struct Filter {
 			float opacity = 1.0f;
+			float sepia = 0.0f;
+			float grayscale = 0.0f;
+			float saturate = 1.0f;
+			float brightness = 1.0f;
+			float contrast = 1.0f;
+			float hue_rotate = 0.0f;
+			float invert = 0.0f;
 		} filter;
 
 		struct Transform {
@@ -97,6 +104,13 @@ int main(int /*argc*/, char** /*argv*/)
 		constructor.Bind("submenu", &data.submenu);
 
 		constructor.Bind("opacity", &data.filter.opacity);
+		constructor.Bind("sepia", &data.filter.sepia);
+		constructor.Bind("grayscale", &data.filter.grayscale);
+		constructor.Bind("saturate", &data.filter.saturate);
+		constructor.Bind("brightness", &data.filter.brightness);
+		constructor.Bind("contrast", &data.filter.contrast);
+		constructor.Bind("hue_rotate", &data.filter.hue_rotate);
+		constructor.Bind("invert", &data.filter.invert);
 
 		constructor.Bind("scale", &data.transform.scale);
 		constructor.Bind("rotate_x", &data.transform.rotate.x);
