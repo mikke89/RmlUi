@@ -1,7 +1,7 @@
 <rml>
 <head>
-		<title>Stacking context and paint order</title>
-		<link type="text/rcss" href="../style.rcss"/>
+	<title>Stacking context and paint order</title>
+	<link type="text/rcss" href="../style.rcss"/>
 	<link rel="help" href="https://drafts.csswg.org/css2/#painting-order" />
 	<meta name="Description" content="Stacking contexts are formed by 'z-index' and possibly other properties." />
 	<style>
