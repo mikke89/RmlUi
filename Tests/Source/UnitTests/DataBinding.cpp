@@ -143,6 +143,7 @@ static const String inside_string_rml = R"(
 <p>before {{ 'i{{test}}23' }} test</p>
 <p>a {{ 'i' }} b {{ 'j' }} c</p>
 <p>{{i0}}</p>
+<p>{{ 'i{}' }}</p>
 
 </div>
 </body>

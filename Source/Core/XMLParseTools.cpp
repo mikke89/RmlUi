@@ -165,7 +165,7 @@ const char* XMLParseTools::ParseDataBrackets(bool& inside_brackets, bool& inside
 			else if (c == '{' && previous == '{')
 				return "Nested double curly brackets are illegal.";
 
-			else if (previous == '}' && c != '}')
+			else if (previous == '}' && c != '}' && c != '\'')
 				return "Single closing curly bracket encountered, use double curly brackets to close an expression.";
 
 			else if (previous == '/' && c == '>')
