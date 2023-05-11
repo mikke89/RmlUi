@@ -53,7 +53,12 @@
 	#include "RmlUi_Include_GL3.h"
 #endif
 
+// Determines the anti-aliasing quality when creating layers. Enables better-looking visuals, especially when transforms are applied.
+static constexpr int NUM_MSAA_SAMPLES = 2;
+
 #define RMLUI_PREMULTIPLIED_ALPHA 1
+#define BLUR_SIZE 7
+#define BLUR_NUM_WEIGHTS ((BLUR_SIZE + 1) / 2)
 
 #define RMLUI_STRINGIFY_IMPL(x) #x
 #define RMLUI_STRINGIFY(x) RMLUI_STRINGIFY_IMPL(x)
@@ -61,9 +66,6 @@
 #define RMLUI_SHADER_HEADER     \
 	RMLUI_SHADER_HEADER_VERSION \
 	"#define RMLUI_PREMULTIPLIED_ALPHA " RMLUI_STRINGIFY(RMLUI_PREMULTIPLIED_ALPHA) "\n"
-
-// Determines the anti-aliasing quality when creating layers. Enables better-looking visuals, especially when transforms are applied.
-static constexpr int NUM_MSAA_SAMPLES = 2;
 
 static const char* shader_vert_main = RMLUI_SHADER_HEADER R"(
 uniform vec2 _translate;
@@ -147,17 +149,53 @@ void main() {
 }
 )";
 
+#define RMLUI_SHADER_BLUR_HEADER \
+	RMLUI_SHADER_HEADER "\n#define BLUR_SIZE " RMLUI_STRINGIFY(BLUR_SIZE) "\n#define BLUR_NUM_WEIGHTS " RMLUI_STRINGIFY(BLUR_NUM_WEIGHTS)
+
+static const char* shader_vert_blur = RMLUI_SHADER_BLUR_HEADER R"(
+uniform vec2 _texelOffset;
+
+in vec3 inPosition;
+in vec2 inTexCoord0;
+
+out vec2 fragTexCoord[BLUR_SIZE];
+
+void main() {
+	for(int i = 0; i < BLUR_SIZE; i++)
+		fragTexCoord[i] = inTexCoord0 - float(i - BLUR_NUM_WEIGHTS + 1) * _texelOffset;
+    gl_Position = vec4(inPosition, 1.0);
+}
+)";
+static const char* shader_frag_blur = RMLUI_SHADER_BLUR_HEADER R"(
+uniform sampler2D _tex;
+uniform float _weights[BLUR_NUM_WEIGHTS];
+uniform vec2 _texCoordMin;
+uniform vec2 _texCoordMax;
+
+in vec2 fragTexCoord[BLUR_SIZE];
+out vec4 finalColor;
+
+void main() {    
+	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+	for(int i = 0; i < BLUR_SIZE; i++)
+		color += texture(_tex, clamp(fragTexCoord[i], _texCoordMin, _texCoordMax)) * _weights[abs(i - BLUR_NUM_WEIGHTS + 1)];
+	finalColor = color;
+}
+)";
+
 enum class ProgramId {
 	None,
 	Color,
 	Texture,
 	Passthrough,
 	ColorMatrix,
+	Blur,
 	Count,
 };
 enum class VertShaderId {
 	Main,
 	Passthrough,
+	Blur,
 	Count,
 };
 enum class FragShaderId {
@@ -165,6 +203,7 @@ enum class FragShaderId {
 	Texture,
 	Passthrough,
 	ColorMatrix,
+	Blur,
 	Count,
 };
 enum class UniformId {
@@ -172,12 +211,17 @@ enum class UniformId {
 	Transform,
 	Tex,
 	ColorMatrix,
+	TexelOffset,
+	TexCoordMin,
+	TexCoordMax,
+	Weights,
 	Count,
 };
 
 namespace Gfx {
 
-static const char* const program_uniform_names[(size_t)UniformId::Count] = {"_translate", "_transform", "_tex", "_color_matrix"};
+static const char* const program_uniform_names[(size_t)UniformId::Count] = {"_translate", "_transform", "_tex", "_color_matrix", "_texelOffset",
+	"_texCoordMin", "_texCoordMax", "_weights[0]"};
 
 enum class VertexAttribute { Position, Color0, TexCoord0, Count };
 static const char* const vertex_attribute_names[(size_t)VertexAttribute::Count] = {"inPosition", "inColor0", "inTexCoord0"};
@@ -203,18 +247,21 @@ struct ProgramDefinition {
 static const VertShaderDefinition vert_shader_definitions[] = {
 	{VertShaderId::Main,        "main",         shader_vert_main},
 	{VertShaderId::Passthrough, "passthrough",  shader_vert_passthrough},
+	{VertShaderId::Blur,        "blur",         shader_vert_blur},
 };
 static const FragShaderDefinition frag_shader_definitions[] = {
 	{FragShaderId::Color,       "color",        shader_frag_color},
 	{FragShaderId::Texture,     "texture",      shader_frag_texture},
 	{FragShaderId::Passthrough, "passthrough",  shader_frag_passthrough},
 	{FragShaderId::ColorMatrix, "color_matrix", shader_frag_color_matrix},
+	{FragShaderId::Blur,        "blur",         shader_frag_blur},
 };
 static const ProgramDefinition program_definitions[] = {
 	{ProgramId::Color,       "color",        VertShaderId::Main,        FragShaderId::Color},
 	{ProgramId::Texture,     "texture",      VertShaderId::Main,        FragShaderId::Texture},
 	{ProgramId::Passthrough, "passthrough",  VertShaderId::Passthrough, FragShaderId::Passthrough},
 	{ProgramId::ColorMatrix, "color_matrix", VertShaderId::Passthrough, FragShaderId::ColorMatrix},
+	{ProgramId::Blur,        "blur",         VertShaderId::Blur,        FragShaderId::Blur},
 };
 // clang-format on
 
@@ -1063,6 +1110,164 @@ void RenderInterface_GL3::DrawFullscreenQuad()
 	RenderCompiledGeometry(fullscreen_quad_geometry, {}, RenderInterface_GL3::TexturePostprocess);
 }
 
+void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling)
+{
+	Rml::Vertex vertices[4];
+	int indices[6];
+	Rml::GeometryUtilities::GenerateQuad(vertices, indices, Rml::Vector2f(-1), Rml::Vector2f(2), {});
+	if (uv_offset != Rml::Vector2f() || uv_scaling != Rml::Vector2f(1.f))
+	{
+		for (Rml::Vertex& vertex : vertices)
+			vertex.tex_coord = (vertex.tex_coord * uv_scaling) + uv_offset;
+	}
+	RenderGeometry(vertices, 4, indices, 6, RenderInterface_GL3::TexturePostprocess, {});
+}
+
+static void SigmaToParameters(const float desired_sigma, int& out_pass_level, float& out_sigma)
+{
+	constexpr int max_num_passes = 10;
+	static_assert(max_num_passes < 31, "");
+	constexpr float max_single_pass_sigma = 3.0f;
+	out_pass_level = Rml::Math::Clamp(Rml::Math::Log2(int(desired_sigma * (2.f / max_single_pass_sigma))), 0, max_num_passes);
+	out_sigma = Rml::Math::Clamp(desired_sigma / float(1 << out_pass_level), 0.0f, max_single_pass_sigma);
+}
+
+static void SetTexCoordLimits(GLint tex_coord_min_location, GLint tex_coord_max_location, Rml::Rectanglei rectangle_flipped,
+	Rml::Vector2i framebuffer_size)
+{
+	// Offset by half-texel values so that texture lookups are clamped to fragment centers, thereby avoiding color
+	// bleeding from neighboring texels due to bilinear interpolation.
+	const Rml::Vector2f min = (Rml::Vector2f(rectangle_flipped.p0) + Rml::Vector2f(0.5f)) / Rml::Vector2f(framebuffer_size);
+	const Rml::Vector2f max = (Rml::Vector2f(rectangle_flipped.p1) - Rml::Vector2f(0.5f)) / Rml::Vector2f(framebuffer_size);
+
+	glUniform2f(tex_coord_min_location, min.x, min.y);
+	glUniform2f(tex_coord_max_location, max.x, max.y);
+}
+
+static void SetBlurWeights(GLint weights_location, float sigma)
+{
+	constexpr int num_weights = BLUR_NUM_WEIGHTS;
+	float weights[num_weights];
+	float normalization = 0.0f;
+	for (int i = 0; i < num_weights; i++)
+	{
+		if (Rml::Math::Absolute(sigma) < 0.1f)
+			weights[i] = float(i == 0);
+		else
+			weights[i] = Rml::Math::Exp(-float(i * i) / (2.0f * sigma * sigma)) / (Rml::Math::SquareRoot(2.f * Rml::Math::RMLUI_PI) * sigma);
+
+		normalization += (i == 0 ? 1.f : 2.0f) * weights[i];
+	}
+	for (int i = 0; i < num_weights; i++)
+		weights[i] /= normalization;
+
+	glUniform1fv(weights_location, (GLsizei)num_weights, &weights[0]);
+}
+
+void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp,
+	const Rml::Rectanglei window_flipped)
+{
+	RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
+	RMLUI_ASSERT(window_flipped.Valid());
+
+	int pass_level = 0;
+	SigmaToParameters(sigma, pass_level, sigma);
+
+	const Rml::Rectanglei original_scissor = scissor_state;
+
+	// Begin by downscaling so that the blur pass can be done at a reduced resolution for large sigma.
+	Rml::Rectanglei scissor = window_flipped;
+
+	UseProgram(ProgramId::Passthrough);
+	SetScissor(scissor, true);
+
+	// Downscale by iterative half-scaling with bilinear filtering, to reduce aliasing.
+	glViewport(0, 0, source_destination.width / 2, source_destination.height / 2);
+
+	// Scale UVs if we have even dimensions, such that texture fetches align perfectly between texels, thereby producing a 50% blend of
+	// neighboring texels.
+	const Rml::Vector2f uv_scaling = {(source_destination.width % 2 == 1) ? (1.f - 1.f / float(source_destination.width)) : 1.f,
+		(source_destination.height % 2 == 1) ? (1.f - 1.f / float(source_destination.height)) : 1.f};
+
+	for (int i = 0; i < pass_level; i++)
+	{
+		scissor.p0 = (scissor.p0 + Rml::Vector2i(1)) / 2;
+		scissor.p1 = Rml::Math::Max(scissor.p1 / 2, scissor.p0);
+		const bool from_source = (i % 2 == 0);
+		Gfx::BindTexture(from_source ? source_destination : temp);
+		glBindFramebuffer(GL_FRAMEBUFFER, (from_source ? temp : source_destination).framebuffer);
+		SetScissor(scissor, true);
+
+		DrawFullscreenQuad({}, uv_scaling);
+	}
+
+	glViewport(0, 0, source_destination.width, source_destination.height);
+
+	// Ensure texture data end up in the temp buffer. Depending on the last downscaling, we might need to move it from the source_destination buffer.
+	const bool transfer_to_temp_buffer = (pass_level % 2 == 0);
+	if (transfer_to_temp_buffer)
+	{
+		Gfx::BindTexture(source_destination);
+		glBindFramebuffer(GL_FRAMEBUFFER, temp.framebuffer);
+		DrawFullscreenQuad();
+	}
+
+	// Set up uniforms.
+	UseProgram(ProgramId::Blur);
+	SetBlurWeights(GetUniformLocation(UniformId::Weights), sigma);
+	SetTexCoordLimits(GetUniformLocation(UniformId::TexCoordMin), GetUniformLocation(UniformId::TexCoordMax), scissor,
+		{source_destination.width, source_destination.height});
+
+	const GLint texel_offset_location = GetUniformLocation(UniformId::TexelOffset);
+	auto SetTexelOffset = [texel_offset_location](Rml::Vector2f blur_direction, int texture_dimension) {
+		const Rml::Vector2f texel_offset = blur_direction * (1.0f / float(texture_dimension));
+		glUniform2f(texel_offset_location, texel_offset.x, texel_offset.y);
+	};
+
+	// Blur render pass - vertical.
+	Gfx::BindTexture(temp);
+	glBindFramebuffer(GL_FRAMEBUFFER, source_destination.framebuffer);
+
+	SetTexelOffset({0.f, 1.f}, temp.height);
+	DrawFullscreenQuad();
+
+	// Blur render pass - horizontal.
+	Gfx::BindTexture(source_destination);
+	glBindFramebuffer(GL_FRAMEBUFFER, temp.framebuffer);
+
+	SetTexelOffset({1.f, 0.f}, source_destination.width);
+	DrawFullscreenQuad();
+
+	// Blit the blurred image to the scissor region with upscaling.
+	SetScissor(window_flipped, true);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, temp.framebuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, source_destination.framebuffer);
+
+	const Rml::Vector2i src_min = scissor.p0;
+	const Rml::Vector2i src_max = scissor.p1;
+	const Rml::Vector2i dst_min = window_flipped.p0;
+	const Rml::Vector2i dst_max = window_flipped.p1;
+	glBlitFramebuffer(src_min.x, src_min.y, src_max.x, src_max.y, dst_min.x, dst_min.y, dst_max.x, dst_max.y, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	// The above upscale blit might be jittery at low resolutions (large pass levels). This is especially noticable when moving an element with
+	// backdrop blur around or when trying to click/hover an element within a blurred region since it may be rendered at an offset. For more stable
+	// and accurate rendering we next upscale the blur image by an exact power-of-two. However, this may not fill the edges completely so we need to
+	// do the above first. Note that this strategy may sometimes result in visible seams. Alternatively, we could try to enlargen the window to the
+	// next power-of-two size and then downsample and blur that.
+	const Rml::Vector2i target_min = src_min * (1 << pass_level);
+	const Rml::Vector2i target_max = src_max * (1 << pass_level);
+	if (target_min != dst_min || target_max != dst_max)
+	{
+		glBlitFramebuffer(src_min.x, src_min.y, src_max.x, src_max.y, target_min.x, target_min.y, target_max.x, target_max.y, GL_COLOR_BUFFER_BIT,
+			GL_LINEAR);
+	}
+
+	// Restore render state.
+	SetScissor(original_scissor);
+
+	Gfx::CheckGLError("Blur");
+}
+
 void RenderInterface_GL3::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
 	glDeleteTextures(1, (GLuint*)&texture_handle);
@@ -1074,12 +1279,15 @@ void RenderInterface_GL3::SetTransform(const Rml::Matrix4f* new_transform)
 	program_transform_dirty.set();
 }
 
-enum class FilterType { Invalid = 0, Passthrough, ColorMatrix };
+enum class FilterType { Invalid = 0, Passthrough, Blur, ColorMatrix };
 struct CompiledFilter {
 	FilterType type;
 
 	// Passthrough
 	float blend_factor;
+
+	// Blur
+	float sigma;
 
 	// ColorMatrix
 	Rml::Matrix4f color_matrix;
@@ -1093,6 +1301,11 @@ Rml::CompiledFilterHandle RenderInterface_GL3::CompileFilter(const Rml::String& 
 	{
 		filter.type = FilterType::Passthrough;
 		filter.blend_factor = Rml::Get(parameters, "value", 1.0f);
+	}
+	else if (name == "blur")
+	{
+		filter.type = FilterType::Blur;
+		filter.sigma = 0.5f * Rml::Get(parameters, "radius", 1.0f);
 	}
 	else if (name == "brightness")
 	{
@@ -1227,6 +1440,19 @@ void RenderInterface_GL3::RenderFilters(const Rml::FilterHandleList& filter_hand
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		}
 		break;
+		case FilterType::Blur:
+		{
+			glDisable(GL_BLEND);
+
+			const Gfx::FramebufferData& source_destination = render_layers.GetPostprocessPrimary();
+			const Gfx::FramebufferData& temp = render_layers.GetPostprocessSecondary();
+
+			const Rml::Rectanglei window_flipped = VerticallyFlipped(scissor_state, viewport_height);
+			RenderBlur(filter.sigma, source_destination, temp, window_flipped);
+
+			glEnable(GL_BLEND);
+		}
+		break;
 		case FilterType::ColorMatrix:
 		{
 			UseProgram(ProgramId::ColorMatrix);
@@ -1321,6 +1547,11 @@ void RenderInterface_GL3::UseProgram(ProgramId program_id)
 	}
 }
 
+int RenderInterface_GL3::GetUniformLocation(UniformId uniform_id) const
+{
+	return program_data->uniforms.Get(active_program, uniform_id);
+}
+
 void RenderInterface_GL3::SubmitTransformUniform(Rml::Vector2f translation)
 {
 	static_assert((size_t)ProgramId::Count < MaxNumPrograms, "Maximum number of programs exceeded.");
@@ -1328,11 +1559,11 @@ void RenderInterface_GL3::SubmitTransformUniform(Rml::Vector2f translation)
 
 	if (program_transform_dirty.test(program_index))
 	{
-		glUniformMatrix4fv(program_data->uniforms.Get(active_program, UniformId::Transform), 1, false, transform.data());
+		glUniformMatrix4fv(GetUniformLocation(UniformId::Transform), 1, false, transform.data());
 		program_transform_dirty.set(program_index, false);
 	}
 
-	glUniform2fv(program_data->uniforms.Get(active_program, UniformId::Translate), 1, &translation.x);
+	glUniform2fv(GetUniformLocation(UniformId::Translate), 1, &translation.x);
 
 	Gfx::CheckGLError("SubmitTransformUniform");
 }

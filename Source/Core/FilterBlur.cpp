@@ -26,58 +26,54 @@
  *
  */
 
-#include "FilterBasic.h"
-#include "../../Include/RmlUi/Core/Core.h"
+#include "FilterBlur.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
 
 namespace Rml {
 
-bool FilterBasic::Initialise(const String& in_name, float in_value)
+bool FilterBlur::Initialise(NumericValue in_radius)
 {
-	name = in_name;
-	value = in_value;
-	return true;
+	radius_value = in_radius;
+	return Any(in_radius.unit & Unit::LENGTH);
 }
 
-CompiledFilterHandle FilterBasic::CompileFilter(Element* /*element*/) const
+CompiledFilterHandle FilterBlur::CompileFilter(Element* element) const
 {
-	CompiledFilterHandle handle = GetRenderInterface()->CompileFilter(name, Dictionary{{"value", Variant(value)}});
+	const float radius = element->ResolveLength(radius_value);
+	CompiledFilterHandle handle = GetRenderInterface()->CompileFilter("blur", Dictionary{{"radius", Variant(radius)}});
 	return handle;
 }
 
-void FilterBasic::ReleaseCompiledFilter(Element* /*element*/, CompiledFilterHandle filter_handle) const
+void FilterBlur::ReleaseCompiledFilter(Element* /*element*/, CompiledFilterHandle filter_handle) const
 {
 	GetRenderInterface()->ReleaseCompiledFilter(filter_handle);
 }
 
-FilterBasicInstancer::FilterBasicInstancer(ValueType value_type, const char* default_value)
+void FilterBlur::ExtendInkOverflow(Element* element, Rectanglef& scissor_region) const
 {
-	switch (value_type)
-	{
-	case ValueType::NumberPercent: ids.value = RegisterProperty("value", default_value).AddParser("number_percent").GetId(); break;
-	case ValueType::Angle: ids.value = RegisterProperty("value", default_value).AddParser("angle").GetId(); break;
-	}
-
-	RegisterShorthand("filter", "value", ShorthandType::FallThrough);
+	const float radius = element->ResolveLength(radius_value);
+	const float blur_extent = 1.5f * Math::Max(radius, 1.f);
+	scissor_region.Extend(blur_extent);
 }
 
-SharedPtr<Filter> FilterBasicInstancer::InstanceFilter(const String& name, const PropertyDictionary& properties)
+FilterBlurInstancer::FilterBlurInstancer()
 {
-	const Property* p_value = properties.GetProperty(ids.value);
-	if (!p_value)
+	ids.radius = RegisterProperty("radius", "0px").AddParser("length").GetId();
+	RegisterShorthand("filter", "radius", ShorthandType::FallThrough);
+}
+
+SharedPtr<Filter> FilterBlurInstancer::InstanceFilter(const String& /*name*/, const PropertyDictionary& properties)
+{
+	const Property* p_radius = properties.GetProperty(ids.radius);
+	if (!p_radius)
 		return nullptr;
 
-	float value = p_value->Get<float>();
-	if (p_value->unit == Unit::PERCENT)
-		value *= 0.01f;
-	else if (p_value->unit == Unit::DEG)
-		value = Rml::Math::DegreesToRadians(value);
-
-	auto filter = MakeShared<FilterBasic>();
-	if (filter->Initialise(name, value))
-		return filter;
+	auto decorator = MakeShared<FilterBlur>();
+	if (decorator->Initialise(p_radius->GetNumericValue()))
+		return decorator;
 
 	return nullptr;
 }

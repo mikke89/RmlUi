@@ -81,7 +81,7 @@ handle.size:hover, handle.size:active {
 	right: 25dp;
 	box-sizing: border-box;
 	width: 400dp;
-	height: 415dp;
+	height: 440dp;
 	overflow: auto;
 
 	background: #fffc;

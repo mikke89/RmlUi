@@ -87,6 +87,7 @@ int main(int /*argc*/, char** /*argv*/)
 			float contrast = 1.0f;
 			float hue_rotate = 0.0f;
 			float invert = 0.0f;
+			float blur = 0.0f;
 		} filter;
 
 		struct Transform {
@@ -111,6 +112,7 @@ int main(int /*argc*/, char** /*argv*/)
 		constructor.Bind("contrast", &data.filter.contrast);
 		constructor.Bind("hue_rotate", &data.filter.hue_rotate);
 		constructor.Bind("invert", &data.filter.invert);
+		constructor.Bind("blur", &data.filter.blur);
 
 		constructor.Bind("scale", &data.transform.scale);
 		constructor.Bind("rotate_x", &data.transform.rotate.x);

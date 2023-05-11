@@ -34,6 +34,7 @@
 #include <bitset>
 
 enum class ProgramId;
+enum class UniformId;
 class RenderLayerStack;
 namespace Gfx {
 struct ProgramData;
@@ -90,6 +91,7 @@ public:
 
 private:
 	void UseProgram(ProgramId program_id);
+	int GetUniformLocation(UniformId uniform_id) const;
 	void SubmitTransformUniform(Rml::Vector2f translation);
 
 	void BlitTopLayerToPostprocessPrimary();
@@ -98,6 +100,9 @@ private:
 	void SetScissor(Rml::Rectanglei region, bool vertically_flip = false);
 
 	void DrawFullscreenQuad();
+	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling);
+
+	void RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp, Rml::Rectanglei window_flipped);
 
 	static constexpr size_t MaxNumPrograms = 32;
 	std::bitset<MaxNumPrograms> program_transform_dirty;

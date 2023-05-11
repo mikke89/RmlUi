@@ -63,6 +63,7 @@
 #include "Elements/XMLNodeHandlerTextArea.h"
 #include "EventInstancerDefault.h"
 #include "FilterBasic.h"
+#include "FilterBlur.h"
 #include "FontEffectBlur.h"
 #include "FontEffectGlow.h"
 #include "FontEffectOutline.h"
@@ -156,6 +157,7 @@ struct DefaultInstancers {
 	FilterBasicInstancer filter_hue_rotate = {FilterBasicInstancer::ValueType::Angle, "0rad"};
 	FilterBasicInstancer filter_basic_d0 = {FilterBasicInstancer::ValueType::NumberPercent, "0"};
 	FilterBasicInstancer filter_basic_d1 = {FilterBasicInstancer::ValueType::NumberPercent, "1"};
+	FilterBlurInstancer filter_blur;
 
 	// Font effects
 	FontEffectBlurInstancer font_effect_blur;
@@ -248,6 +250,8 @@ bool Factory::Initialise()
 	RegisterFilterInstancer("opacity", &default_instancers->filter_basic_d1);
 	RegisterFilterInstancer("saturate", &default_instancers->filter_basic_d1);
 	RegisterFilterInstancer("sepia", &default_instancers->filter_basic_d0);
+
+	RegisterFilterInstancer("blur", &default_instancers->filter_blur);
 
 	// Font effect instancers
 	RegisterFontEffectInstancer("blur", &default_instancers->font_effect_blur);
