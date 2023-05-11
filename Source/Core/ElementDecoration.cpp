@@ -107,11 +107,11 @@ void ElementDecoration::InstanceDecorators()
 		{
 			const Property* property = element->GetLocalProperty(id);
 			if (!property || property->unit != Unit::FILTER)
-				return;
+				continue;
 
 			FiltersPtr filters_ptr = property->Get<FiltersPtr>();
 			if (!filters_ptr)
-				return;
+				continue;
 
 			FilterEntryList& list = (id == PropertyId::Filter ? filters : backdrop_filters);
 			list.reserve(filters_ptr->list.size());
