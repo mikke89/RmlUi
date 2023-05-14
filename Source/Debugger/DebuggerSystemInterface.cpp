@@ -53,6 +53,11 @@ int DebuggerSystemInterface::TranslateString(String& translated, const String& i
 	return application_interface->TranslateString(translated, input);
 }
 
+void DebuggerSystemInterface::JoinPath(String& translated_path, const String& document_path, const String& path)
+{
+	application_interface->JoinPath(translated_path, document_path, path);
+}
+
 bool DebuggerSystemInterface::LogMessage(Log::Type type, const String& message)
 {
 	log->AddLogMessage(type, message);
