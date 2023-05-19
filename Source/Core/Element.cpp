@@ -575,7 +575,19 @@ bool Element::SetProperty(PropertyId id, const Property& property)
 
 void Element::RemoveProperty(const String& name)
 {
-	meta->style.RemoveProperty(StyleSheetSpecification::GetPropertyId(name));
+	auto property_id = StyleSheetSpecification::GetPropertyId(name);
+    if (property_id != PropertyId::Invalid)
+        meta->style.RemoveProperty(property_id);
+    else
+    {
+        auto shorthand_id = StyleSheetSpecification::GetShorthandId(name);
+        if (shorthand_id != ShorthandId::Invalid)
+        {
+            auto property_id_set = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand_id);
+            for (auto it = property_id_set.begin(); it != property_id_set.end(); ++it)
+                meta->style.RemoveProperty(*it);
+        }
+    }
 }
 
 void Element::RemoveProperty(PropertyId id)
