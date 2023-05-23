@@ -36,8 +36,9 @@ namespace Rml {
 namespace Lua {
 template <>
 void ExtraInit<Event>(lua_State* L, int metatable_index);
-// method
+// methods
 int EventStopPropagation(lua_State* L, Event* obj);
+int EventStopImmediatePropagation(lua_State* L, Event* obj);
 
 // getters
 int EventGetAttrcurrent_element(lua_State* L);
