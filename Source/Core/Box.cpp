@@ -36,13 +36,14 @@ Box::Box(Vector2f content) : content(content) {}
 
 Box::~Box() {}
 
-Vector2f Box::GetPosition(Area area) const
+Vector2f Box::GetPosition(BoxArea area) const
 {
-	Vector2f area_position(-area_edges[MARGIN][LEFT], -area_edges[MARGIN][TOP]);
-	for (int i = 0; i < area; i++)
+	RMLUI_ASSERT(area != BoxArea::Auto);
+	Vector2f area_position(-GetEdge(BoxArea::Margin, BoxEdge::Left), -GetEdge(BoxArea::Margin, BoxEdge::Top));
+	for (int i = 0; i < (int)area; i++)
 	{
-		area_position.x += area_edges[i][LEFT];
-		area_position.y += area_edges[i][TOP];
+		area_position.x += area_edges[i][(int)BoxEdge::Left];
+		area_position.y += area_edges[i][(int)BoxEdge::Top];
 	}
 
 	return area_position;
@@ -53,13 +54,14 @@ Vector2f Box::GetSize() const
 	return content;
 }
 
-Vector2f Box::GetSize(Area area) const
+Vector2f Box::GetSize(BoxArea area) const
 {
+	RMLUI_ASSERT(area != BoxArea::Auto);
 	Vector2f area_size(content);
-	for (int i = area; i <= PADDING; i++)
+	for (int i = (int)area; i <= (int)BoxArea::Padding; i++)
 	{
-		area_size.x += (area_edges[i][LEFT] + area_edges[i][RIGHT]);
-		area_size.y += (area_edges[i][TOP] + area_edges[i][BOTTOM]);
+		area_size.x += (area_edges[i][(int)BoxEdge::Left] + area_edges[i][(int)BoxEdge::Right]);
+		area_size.y += (area_edges[i][(int)BoxEdge::Top] + area_edges[i][(int)BoxEdge::Bottom]);
 	}
 
 	return area_size;
@@ -70,60 +72,61 @@ void Box::SetContent(Vector2f _content)
 	content = _content;
 }
 
-void Box::SetEdge(Area area, Edge edge, float size)
+void Box::SetEdge(BoxArea area, BoxEdge edge, float size)
 {
-	area_edges[area][edge] = size;
+	RMLUI_ASSERT(area != BoxArea::Auto);
+	area_edges[(int)area][(int)edge] = size;
 }
 
-float Box::GetEdge(Area area, Edge edge) const
+float Box::GetEdge(BoxArea area, BoxEdge edge) const
 {
-	return area_edges[area][edge];
+	RMLUI_ASSERT(area != BoxArea::Auto);
+	return area_edges[(int)area][(int)edge];
 }
 
-float Box::GetCumulativeEdge(Area area, Edge edge) const
+float Box::GetCumulativeEdge(BoxArea area, BoxEdge edge) const
 {
+	RMLUI_ASSERT(area != BoxArea::Auto);
 	float size = 0;
-	int max_area = Math::Min((int)area, (int)PADDING);
+	int max_area = Math::Min((int)area, (int)BoxArea::Padding);
 	for (int i = 0; i <= max_area; i++)
-		size += area_edges[i][edge];
+		size += area_edges[i][(int)edge];
 
 	return size;
 }
 
-float Box::GetSizeAcross(Direction direction, Area area_outer, Area area_inner) const
+float Box::GetSizeAcross(BoxDirection direction, BoxArea area_outer, BoxArea area_inner) const
 {
-	static_assert(HORIZONTAL == 1 && VERTICAL == 0, "");
-	RMLUI_ASSERT(area_outer <= area_inner && direction <= 1);
+	static_assert((int)BoxDirection::Horizontal == 1 && (int)BoxDirection::Vertical == 0, "");
+	RMLUI_ASSERT((int)area_outer <= (int)area_inner && (int)direction <= 1 && area_inner != BoxArea::Auto);
 
 	float size = 0.0f;
 
-	if (area_inner == CONTENT)
-		size = (direction == HORIZONTAL ? content.x : content.y);
+	if (area_inner == BoxArea::Content)
+		size = (direction == BoxDirection::Horizontal ? content.x : content.y);
 
-	for (int i = area_outer; i <= area_inner && i < CONTENT; i++)
-		size += (area_edges[i][TOP + (int)direction] + area_edges[i][BOTTOM + (int)direction]);
+	for (int i = (int)area_outer; i <= (int)area_inner && i < (int)BoxArea::Content; i++)
+		size += (area_edges[i][(int)BoxEdge::Top + (int)direction] + area_edges[i][(int)BoxEdge::Bottom + (int)direction]);
 
 	return size;
 }
 
-Vector2f Box::GetFrameSize(Area area) const
+Vector2f Box::GetFrameSize(BoxArea area) const
 {
-	if (area == CONTENT)
+	if (area == BoxArea::Content)
 		return content;
 
 	return {
-		area_edges[area][RIGHT] + area_edges[area][LEFT],
-		area_edges[area][TOP] + area_edges[area][BOTTOM],
+		area_edges[(int)area][(int)BoxEdge::Right] + area_edges[(int)area][(int)BoxEdge::Left],
+		area_edges[(int)area][(int)BoxEdge::Top] + area_edges[(int)area][(int)BoxEdge::Bottom],
 	};
 }
 
-// Compares the size of the content area and the other area edges.
 bool Box::operator==(const Box& rhs) const
 {
 	return content == rhs.content && memcmp(area_edges, rhs.area_edges, sizeof(area_edges)) == 0;
 }
 
-// Compares the size of the content area and the other area edges.
 bool Box::operator!=(const Box& rhs) const
 {
 	return !(*this == rhs);

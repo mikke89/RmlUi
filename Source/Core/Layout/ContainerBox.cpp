@@ -42,12 +42,12 @@ void ContainerBox::ResetScrollbars(const Box& box)
 {
 	RMLUI_ASSERT(element);
 	if (overflow_x == Style::Overflow::Scroll)
-		element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSizeAcross(Box::HORIZONTAL, Box::PADDING));
+		element->GetElementScroll()->EnableScrollbar(ElementScroll::HORIZONTAL, box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Padding));
 	else
 		element->GetElementScroll()->DisableScrollbar(ElementScroll::HORIZONTAL);
 
 	if (overflow_y == Style::Overflow::Scroll)
-		element->GetElementScroll()->EnableScrollbar(ElementScroll::VERTICAL, box.GetSizeAcross(Box::HORIZONTAL, Box::PADDING));
+		element->GetElementScroll()->EnableScrollbar(ElementScroll::VERTICAL, box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Padding));
 	else
 		element->GetElementScroll()->DisableScrollbar(ElementScroll::VERTICAL);
 }
@@ -93,7 +93,7 @@ void ContainerBox::ClosePositionedElements()
 			// chain of the static position offset parent, and (2) that all offsets in this chain has been set already.
 			Vector2f relative_position;
 			for (Element* ancestor = static_position_offset_parent; ancestor && ancestor != element; ancestor = ancestor->GetOffsetParent())
-				relative_position += ancestor->GetRelativeOffset(Box::BORDER);
+				relative_position += ancestor->GetRelativeOffset(BoxArea::Border);
 
 			// Now simply add the result to the stored static position to get the static position in our local space.
 			Vector2f offset = relative_position + static_position;
@@ -104,8 +104,8 @@ void ContainerBox::ClosePositionedElements()
 			// Now that the element's box has been built, we can offset the position we determined was appropriate for
 			// it by the element's margin. This is necessary because the coordinate system for the box begins at the
 			// border, not the margin.
-			offset.x += absolute_element->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-			offset.y += absolute_element->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+			offset.x += absolute_element->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+			offset.y += absolute_element->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 
 			// Set the offset of the element; the element itself will take care of any RCSS-defined positional offsets.
 			absolute_element->SetOffset(offset, element);
@@ -141,8 +141,8 @@ bool ContainerBox::CatchOverflow(const Vector2f content_overflow_size, const Box
 	if (!IsScrollContainer())
 		return true;
 
-	const Vector2f padding_bottom_right = {box.GetEdge(Box::PADDING, Box::RIGHT), box.GetEdge(Box::PADDING, Box::BOTTOM)};
-	const float padding_width = box.GetSizeAcross(Box::HORIZONTAL, Box::PADDING);
+	const Vector2f padding_bottom_right = {box.GetEdge(BoxArea::Padding, BoxEdge::Right), box.GetEdge(BoxArea::Padding, BoxEdge::Bottom)};
+	const float padding_width = box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Padding);
 
 	Vector2f available_space = box.GetSize();
 	if (available_space.y < 0.f)
@@ -205,8 +205,8 @@ bool ContainerBox::SubmitBox(const Vector2f content_overflow_size, const Box& bo
 		if (!CatchOverflow(content_overflow_size, box, max_height))
 			return false;
 
-		const Vector2f padding_top_left = {box.GetEdge(Box::PADDING, Box::LEFT), box.GetEdge(Box::PADDING, Box::TOP)};
-		const Vector2f padding_bottom_right = {box.GetEdge(Box::PADDING, Box::RIGHT), box.GetEdge(Box::PADDING, Box::BOTTOM)};
+		const Vector2f padding_top_left = {box.GetEdge(BoxArea::Padding, BoxEdge::Left), box.GetEdge(BoxArea::Padding, BoxEdge::Top)};
+		const Vector2f padding_bottom_right = {box.GetEdge(BoxArea::Padding, BoxEdge::Right), box.GetEdge(BoxArea::Padding, BoxEdge::Bottom)};
 		const Vector2f padding_size = box.GetSize() + padding_top_left + padding_bottom_right;
 
 		const bool is_scroll_container = IsScrollContainer();
@@ -221,7 +221,7 @@ bool ContainerBox::SubmitBox(const Vector2f content_overflow_size, const Box& bo
 		element->SetBox(box);
 		element->SetScrollableOverflowRectangle(scrollable_overflow_size);
 
-		const Vector2f border_size = padding_size + box.GetFrameSize(Box::BORDER);
+		const Vector2f border_size = padding_size + box.GetFrameSize(BoxArea::Border);
 
 		// Set the visible overflow size so that ancestors can catch any overflow produced by us. That is, hiding it or
 		// providing a scrolling mechanism. If this box is a scroll container, we catch our own overflow here; then,
@@ -235,7 +235,7 @@ bool ContainerBox::SubmitBox(const Vector2f content_overflow_size, const Box& bo
 		}
 		else
 		{
-			const Vector2f border_top_left = {box.GetEdge(Box::BORDER, Box::LEFT), box.GetEdge(Box::BORDER, Box::TOP)};
+			const Vector2f border_top_left = {box.GetEdge(BoxArea::Border, BoxEdge::Left), box.GetEdge(BoxArea::Border, BoxEdge::Top)};
 			visible_overflow_size = Math::Max(border_size, content_overflow_size + border_top_left + padding_top_left);
 		}
 	}

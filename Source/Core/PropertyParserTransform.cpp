@@ -27,15 +27,14 @@
  */
 
 #include "PropertyParserTransform.h"
+#include "../../Include/RmlUi/Core/NumericValue.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include <string.h>
 
 namespace Rml {
 
-PropertyParserTransform::PropertyParserTransform() :
-	number(Property::NUMBER), length(Property::LENGTH_PERCENT, Property::PX), angle(Property::ANGLE, Property::RAD)
-{}
+PropertyParserTransform::PropertyParserTransform() : number(Unit::NUMBER), length(Unit::LENGTH_PERCENT, Unit::PX), angle(Unit::ANGLE, Unit::RAD) {}
 
 PropertyParserTransform::~PropertyParserTransform() {}
 
@@ -44,7 +43,7 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 	if (value == "none")
 	{
 		property.value = Variant(TransformPtr());
-		property.unit = Property::TRANSFORM;
+		property.unit = Unit::TRANSFORM;
 		return true;
 	}
 
@@ -52,7 +51,7 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 
 	char const* next = value.c_str();
 
-	Transforms::NumericValue args[16];
+	NumericValue args[16];
 
 	const PropertyParser* angle1[] = {&angle};
 	const PropertyParser* angle2[] = {&angle, &angle};
@@ -173,13 +172,13 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 	}
 
 	property.value = Variant(std::move(transform));
-	property.unit = Property::TRANSFORM;
+	property.unit = Unit::TRANSFORM;
 
 	return true;
 }
 
-bool PropertyParserTransform::Scan(int& out_bytes_read, const char* str, const char* keyword, const PropertyParser** parsers,
-	Transforms::NumericValue* args, int nargs) const
+bool PropertyParserTransform::Scan(int& out_bytes_read, const char* str, const char* keyword, const PropertyParser** parsers, NumericValue* args,
+	int nargs) const
 {
 	out_bytes_read = 0;
 	int total_bytes_read = 0, bytes_read = 0;

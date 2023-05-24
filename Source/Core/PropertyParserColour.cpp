@@ -156,7 +156,7 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 	}
 
 	property.value = Variant(colour);
-	property.unit = Property::COLOUR;
+	property.unit = Unit::COLOUR;
 
 	return true;
 }

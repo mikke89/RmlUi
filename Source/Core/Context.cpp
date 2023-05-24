@@ -63,7 +63,7 @@ Context::Context(const String& name) :
 	root = Factory::InstanceElement(nullptr, "*", "#root", XMLAttributes());
 	root->SetId(name);
 	root->SetOffset(Vector2f(0, 0), nullptr);
-	root->SetProperty(PropertyId::ZIndex, Property(0, Property::NUMBER));
+	root->SetProperty(PropertyId::ZIndex, Property(0, Unit::NUMBER));
 
 	cursor_proxy = Factory::InstanceElement(nullptr, documents_base_tag, documents_base_tag, XMLAttributes());
 	ElementDocument* cursor_proxy_document = rmlui_dynamic_cast<ElementDocument*>(cursor_proxy.get());
@@ -73,11 +73,11 @@ Context::Context(const String& name) :
 	// The cursor proxy takes the style from its cloned element's document. The latter may define style rules for `<body>` which we don't want on the
 	// proxy. Thus, we override some properties here that we in particular don't want to inherit from the client document, especially those that
 	// result in decoration of the body element.
-	cursor_proxy_document->SetProperty(PropertyId::BackgroundColor, Property(Colourb(255, 255, 255, 0), Property::COLOUR));
-	cursor_proxy_document->SetProperty(PropertyId::BorderTopWidth, Property(0, Property::PX));
-	cursor_proxy_document->SetProperty(PropertyId::BorderRightWidth, Property(0, Property::PX));
-	cursor_proxy_document->SetProperty(PropertyId::BorderBottomWidth, Property(0, Property::PX));
-	cursor_proxy_document->SetProperty(PropertyId::BorderLeftWidth, Property(0, Property::PX));
+	cursor_proxy_document->SetProperty(PropertyId::BackgroundColor, Property(Colourb(255, 255, 255, 0), Unit::COLOUR));
+	cursor_proxy_document->SetProperty(PropertyId::BorderTopWidth, Property(0, Unit::PX));
+	cursor_proxy_document->SetProperty(PropertyId::BorderRightWidth, Property(0, Unit::PX));
+	cursor_proxy_document->SetProperty(PropertyId::BorderBottomWidth, Property(0, Unit::PX));
+	cursor_proxy_document->SetProperty(PropertyId::BorderLeftWidth, Property(0, Unit::PX));
 	cursor_proxy_document->SetProperty(PropertyId::Decorator, Property());
 	cursor_proxy_document->SetProperty(PropertyId::OverflowX, Property(Style::Overflow::Visible));
 	cursor_proxy_document->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Visible));
@@ -1264,17 +1264,17 @@ void Context::CreateDragClone(Element* element)
 	cursor_proxy->AppendChild(std::move(element_drag_clone));
 
 	// Position the clone. Use projected mouse coordinates to handle any ancestor transforms.
-	const Vector2f absolute_pos = element->GetAbsoluteOffset(Box::BORDER);
+	const Vector2f absolute_pos = element->GetAbsoluteOffset(BoxArea::Border);
 	Vector2f projected_mouse_position = Vector2f(mouse_position);
 	if (Element* parent = element->GetParentNode())
 		parent->Project(projected_mouse_position);
 
 	drag_clone->SetProperty(PropertyId::Position, Property(Style::Position::Absolute));
-	drag_clone->SetProperty(PropertyId::Left, Property(absolute_pos.x - projected_mouse_position.x, Property::PX));
-	drag_clone->SetProperty(PropertyId::Top, Property(absolute_pos.y - projected_mouse_position.y, Property::PX));
+	drag_clone->SetProperty(PropertyId::Left, Property(absolute_pos.x - projected_mouse_position.x, Unit::PX));
+	drag_clone->SetProperty(PropertyId::Top, Property(absolute_pos.y - projected_mouse_position.y, Unit::PX));
 	// We remove margins so that percentage- and auto-margins are evaluated correctly.
-	drag_clone->SetProperty(PropertyId::MarginLeft, Property(0.f, Property::PX));
-	drag_clone->SetProperty(PropertyId::MarginTop, Property(0.f, Property::PX));
+	drag_clone->SetProperty(PropertyId::MarginLeft, Property(0.f, Unit::PX));
+	drag_clone->SetProperty(PropertyId::MarginTop, Property(0.f, Unit::PX));
 	drag_clone->SetPseudoClass("drag", true);
 }
 

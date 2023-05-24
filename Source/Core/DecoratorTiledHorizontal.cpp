@@ -84,7 +84,7 @@ DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* eleme
 	const int num_textures = GetNumTextures();
 	DecoratorTiledHorizontalData* data = new DecoratorTiledHorizontalData(num_textures);
 
-	Vector2f padded_size = element->GetBox().GetSize(Box::PADDING);
+	Vector2f padded_size = element->GetBox().GetSize(BoxArea::Padding);
 
 	Vector2f left_dimensions = tiles[LEFT].GetNaturalDimensions(element);
 	Vector2f right_dimensions = tiles[RIGHT].GetNaturalDimensions(element);
@@ -136,7 +136,7 @@ void DecoratorTiledHorizontal::ReleaseElementData(DecoratorDataHandle element_da
 
 void DecoratorTiledHorizontal::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
-	Vector2f translation = element->GetAbsoluteOffset(Box::PADDING).Round();
+	Vector2f translation = element->GetAbsoluteOffset(BoxArea::Padding).Round();
 	DecoratorTiledHorizontalData* data = reinterpret_cast<DecoratorTiledHorizontalData*>(element_data);
 
 	for (int i = 0; i < data->num_textures; i++)

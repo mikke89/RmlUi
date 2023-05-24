@@ -41,6 +41,13 @@ More details to be posted later. Expect some possible layout shifts in existing 
 - Possible layout changes, usually due to better CSS conformance.
 - Reworked font engine interface, in particular in terms of font metrics and letter-spacing.
 
+Changed `Box` enums and `Property` units as follows:
+- `Box::Area` -> `BoxArea` (e.g. `Box::BORDER` -> `BoxArea::Border`, values now in titlecase).
+- `Box::Edge` -> `BoxEdge` (e.g. `Box::TOP` -> `BoxEdge::Top`, values now in titlecase).
+- `Box::Direction` -> `BoxDirection` (e.g. `Box::VERTICAL` -> `BoxDirection::Vertical`, values now in titlecase).
+- `Property::Unit` -> `Unit` (e.g. `Property::PX` -> `Unit::PX`).
+- Replaced `Element::ResolveNumericProperty` with `Element::ResolveLength` and `Element::ResolveNumericValue`. Can be used together with `Property::GetNumericValue`.
+
 Removed deprecated functionality:
 - Removed the `<datagrid>` and `<dataselect>` elements, related utilities, and associated tutorials. Users are encouraged to replace this functionality by [tables](https://mikke89.github.io/RmlUiDoc/pages/rcss/tables.html), [select boxes](https://mikke89.github.io/RmlUiDoc/pages/rml/forms.html#select), and [data bindings](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html).
 

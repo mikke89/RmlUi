@@ -214,8 +214,8 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 	Box parent_box;
 	LayoutDetails::BuildBox(parent_box, containing_block, parent);
 	slider_length -= orientation == VERTICAL
-		? (parent_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM))
-		: (parent_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + parent_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
+		? (parent_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Top) + parent_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Bottom))
+		: (parent_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Left) + parent_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Right));
 
 	// Set the length of the slider.
 	Vector2f content = parent_box.GetSize();
@@ -230,8 +230,8 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 	LayoutDetails::BuildBox(track_box, parent_box.GetSize(), track);
 	content = track_box.GetSize();
 	content[length_axis] = slider_length -= orientation == VERTICAL
-		? (track_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + track_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM))
-		: (track_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + track_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
+		? (track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Top) + track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Bottom))
+		: (track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Left) + track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Right));
 	// If no height has been explicitly specified for the track, it'll be initialised to -1 as per normal block
 	// elements. We'll fix that up here.
 	if (orientation == HORIZONTAL && content.y < 0)
@@ -251,7 +251,7 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 		arrows[i]->SetBox(arrow_box);
 
 		// Shrink the track length by the arrow size.
-		content[length_axis] -= arrow_box.GetSize(Box::MARGIN)[length_axis];
+		content[length_axis] -= arrow_box.GetSize(BoxArea::Margin)[length_axis];
 	}
 
 	// Now the track has been sized, we can fix everything into position.
@@ -260,32 +260,32 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, bool resize_e
 
 	if (orientation == VERTICAL)
 	{
-		Vector2f offset(arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::LEFT), arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::TOP));
+		Vector2f offset(arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left), arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top));
 		arrows[0]->SetOffset(offset, parent);
 
-		offset.x = track->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y += arrows[0]->GetBox().GetSize(Box::BORDER).y + arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM) +
-			track->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.x = track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		offset.y += arrows[0]->GetBox().GetSize(BoxArea::Border).y + arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom) +
+			track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		track->SetOffset(offset, parent);
 
-		offset.x = arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y += track->GetBox().GetSize(Box::BORDER).y + track->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM) +
-			arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.x = arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		offset.y += track->GetBox().GetSize(BoxArea::Border).y + track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom) +
+			arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		arrows[1]->SetOffset(offset, parent);
 	}
 	else
 	{
-		Vector2f offset(arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::LEFT), arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::TOP));
+		Vector2f offset(arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left), arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top));
 		arrows[0]->SetOffset(offset, parent);
 
-		offset.x += arrows[0]->GetBox().GetSize(Box::BORDER).x + arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::RIGHT) +
-			track->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y = track->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.x += arrows[0]->GetBox().GetSize(BoxArea::Border).x + arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right) +
+			track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		offset.y = track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		track->SetOffset(offset, parent);
 
-		offset.x += track->GetBox().GetSize(Box::BORDER).x + track->GetBox().GetEdge(Box::MARGIN, Box::RIGHT) +
-			arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y = arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.x += track->GetBox().GetSize(BoxArea::Border).x + track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right) +
+			arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		offset.y = arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		arrows[1]->SetOffset(offset, parent);
 	}
 
@@ -315,8 +315,8 @@ void WidgetScroll::FormatBar(float bar_length)
 
 		if (orientation == VERTICAL)
 		{
-			float track_length =
-				track_size.y - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM));
+			float track_length = track_size.y -
+				(bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Top) + bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Bottom));
 
 			if (height.type == height.Auto)
 			{
@@ -336,8 +336,8 @@ void WidgetScroll::FormatBar(float bar_length)
 		}
 		else
 		{
-			float track_length =
-				track_size.x - (bar_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + bar_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
+			float track_length = track_size.x -
+				(bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Left) + bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Right));
 
 			if (width.type == width.Auto)
 			{
@@ -452,18 +452,20 @@ void WidgetScroll::ProcessEvent(Event& event)
 void WidgetScroll::PositionBar()
 {
 	const Vector2f track_dimensions = track->GetBox().GetSize();
-	const Vector2f bar_dimensions = bar->GetBox().GetSize(Box::BORDER);
+	const Vector2f bar_dimensions = bar->GetBox().GetSize(BoxArea::Border);
 
 	if (orientation == VERTICAL)
 	{
 		float traversable_track_length = track_dimensions.y - bar_dimensions.y;
 		bar->SetOffset(
-			Vector2f(bar->GetBox().GetEdge(Box::MARGIN, Box::LEFT), track->GetRelativeOffset().y + traversable_track_length * bar_position), parent);
+			Vector2f(bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left), track->GetRelativeOffset().y + traversable_track_length * bar_position),
+			parent);
 	}
 	else
 	{
 		float traversable_track_length = track_dimensions.x - bar_dimensions.x;
-		bar->SetOffset(Vector2f(track->GetRelativeOffset().x + traversable_track_length * bar_position, bar->GetBox().GetEdge(Box::MARGIN, Box::TOP)),
+		bar->SetOffset(
+			Vector2f(track->GetRelativeOffset().x + traversable_track_length * bar_position, bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top)),
 			parent);
 	}
 }

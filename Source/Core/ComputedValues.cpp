@@ -36,7 +36,7 @@ const AnimationList* Style::ComputedValues::animation() const
 {
 	if (auto p = element->GetLocalProperty(PropertyId::Animation))
 	{
-		if (p->unit == Property::ANIMATION)
+		if (p->unit == Unit::ANIMATION)
 			return &(p->value.GetReference<AnimationList>());
 	}
 	return nullptr;
@@ -46,7 +46,7 @@ const TransitionList* Style::ComputedValues::transition() const
 {
 	if (auto p = element->GetLocalProperty(PropertyId::Transition))
 	{
-		if (p->unit == Property::TRANSITION)
+		if (p->unit == Unit::TRANSITION)
 			return &(p->value.GetReference<TransitionList>());
 	}
 	return nullptr;
@@ -70,7 +70,12 @@ String Style::ComputedValues::cursor() const
 
 float Style::ComputedValues::letter_spacing() const
 {
-	return inherited.has_letter_spacing ? element->ResolveNumericProperty(element->GetProperty(PropertyId::LetterSpacing), 0.f) : 0.f;
+	if (inherited.has_letter_spacing)
+	{
+		if (auto p = element->GetProperty(PropertyId::LetterSpacing))
+			return element->ResolveLength(p->GetNumericValue());
+	}
+	return 0.f;
 }
 
 float ResolveValueOr(Style::LengthPercentageAuto length, float base_value, float default_value)

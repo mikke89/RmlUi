@@ -136,7 +136,7 @@ InlineLevelBox_Atomic::InlineLevelBox_Atomic(const InlineLevelBox* parent, Eleme
 	RMLUI_ASSERT(parent && element);
 	RMLUI_ASSERT(box.GetSize().x >= 0.f && box.GetSize().y >= 0.f);
 
-	const float outer_height = box.GetSizeAcross(Box::VERTICAL, Box::MARGIN);
+	const float outer_height = box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Margin);
 
 	const float descent = GetElement()->GetBaseline();
 	const float ascent = outer_height - descent;
@@ -146,7 +146,7 @@ InlineLevelBox_Atomic::InlineLevelBox_Atomic(const InlineLevelBox* parent, Eleme
 FragmentConstructor InlineLevelBox_Atomic::CreateFragment(InlineLayoutMode mode, float available_width, float right_spacing_width, bool /*first_box*/,
 	LayoutOverflowHandle /*overflow_handle*/)
 {
-	const float outer_width = box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN);
+	const float outer_width = box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin);
 
 	if (mode != InlineLayoutMode::WrapAny || outer_width + right_spacing_width <= available_width)
 		return FragmentConstructor{FragmentType::SizedBox, outer_width, {}, {}};
@@ -157,7 +157,7 @@ FragmentConstructor InlineLevelBox_Atomic::CreateFragment(InlineLayoutMode mode,
 void InlineLevelBox_Atomic::Submit(const PlacedFragment& placed_fragment)
 {
 	const Vector2f margin_position = {placed_fragment.position.x, placed_fragment.position.y - GetHeightAboveBaseline()};
-	const Vector2f margin_edge = {box.GetEdge(Box::MARGIN, Box::LEFT), box.GetEdge(Box::MARGIN, Box::TOP)};
+	const Vector2f margin_edge = {box.GetEdge(BoxArea::Margin, BoxEdge::Left), box.GetEdge(BoxArea::Margin, BoxEdge::Top)};
 	const Vector2f border_position = margin_position + margin_edge;
 
 	GetElement()->SetOffset(border_position, placed_fragment.offset_parent);

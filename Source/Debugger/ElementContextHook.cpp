@@ -42,7 +42,7 @@ ElementContextHook::~ElementContextHook() {}
 void ElementContextHook::Initialise(DebuggerPlugin* _debugger)
 {
 	SetId("rmlui-debug-hook");
-	SetProperty(PropertyId::ZIndex, Property(999'999, Property::NUMBER));
+	SetProperty(PropertyId::ZIndex, Property(999'999, Unit::NUMBER));
 	debugger = _debugger;
 }
 

@@ -73,27 +73,27 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 			switch (id)
 			{
 			case MediaQueryId::Width:
-				if (vp_dimensions.x != ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.x != ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::MinWidth:
-				if (vp_dimensions.x < ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.x < ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::MaxWidth:
-				if (vp_dimensions.x > ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.x > ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::Height:
-				if (vp_dimensions.y != ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.y != ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::MinHeight:
-				if (vp_dimensions.y < ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.y < ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::MaxHeight:
-				if (vp_dimensions.y > ComputeLength(&property.second, font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.y > ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::AspectRatio:

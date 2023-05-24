@@ -257,8 +257,8 @@ void WidgetSlider::FormatElements(const Vector2f containing_block, float slider_
 	ElementUtilities::BuildBox(track_box, parent_box.GetSize(), track);
 	content = track_box.GetSize();
 	content[length_axis] = slider_length -= orientation == VERTICAL
-		? (track_box.GetCumulativeEdge(Box::CONTENT, Box::TOP) + track_box.GetCumulativeEdge(Box::CONTENT, Box::BOTTOM))
-		: (track_box.GetCumulativeEdge(Box::CONTENT, Box::LEFT) + track_box.GetCumulativeEdge(Box::CONTENT, Box::RIGHT));
+		? (track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Top) + track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Bottom))
+		: (track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Left) + track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Right));
 	// If no height has been explicitly specified for the track, it'll be initialised to -1 as per normal block
 	// elements. We'll fix that up here.
 	if (orientation == HORIZONTAL && content.y < 0)
@@ -278,7 +278,7 @@ void WidgetSlider::FormatElements(const Vector2f containing_block, float slider_
 		arrows[i]->SetBox(arrow_box);
 
 		// Shrink the track length by the arrow size.
-		content[length_axis] -= arrow_box.GetSize(Box::MARGIN)[length_axis];
+		content[length_axis] -= arrow_box.GetSize(BoxArea::Margin)[length_axis];
 	}
 
 	// Now the track has been sized, we can fix everything into position.
@@ -287,32 +287,32 @@ void WidgetSlider::FormatElements(const Vector2f containing_block, float slider_
 
 	if (orientation == VERTICAL)
 	{
-		Vector2f offset(arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::LEFT), arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::TOP));
+		Vector2f offset(arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left), arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top));
 		arrows[0]->SetOffset(offset, parent);
 
-		offset.x = track->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y += arrows[0]->GetBox().GetSize(Box::BORDER).y + arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM) +
-			track->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.x = track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		offset.y += arrows[0]->GetBox().GetSize(BoxArea::Border).y + arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom) +
+			track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		track->SetOffset(offset, parent);
 
-		offset.x = arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y += track->GetBox().GetSize(Box::BORDER).y + track->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM) +
-			arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.x = arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		offset.y += track->GetBox().GetSize(BoxArea::Border).y + track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom) +
+			arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		arrows[1]->SetOffset(offset, parent);
 	}
 	else
 	{
-		Vector2f offset(arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::LEFT), arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::TOP));
+		Vector2f offset(arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left), arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top));
 		arrows[0]->SetOffset(offset, parent);
 
-		offset.x += arrows[0]->GetBox().GetSize(Box::BORDER).x + arrows[0]->GetBox().GetEdge(Box::MARGIN, Box::RIGHT) +
-			track->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y = track->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.x += arrows[0]->GetBox().GetSize(BoxArea::Border).x + arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right) +
+			track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		offset.y = track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		track->SetOffset(offset, parent);
 
-		offset.x += track->GetBox().GetSize(Box::BORDER).x + track->GetBox().GetEdge(Box::MARGIN, Box::RIGHT) +
-			arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		offset.y = arrows[1]->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+		offset.x += track->GetBox().GetSize(BoxArea::Border).x + track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right) +
+			arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		offset.y = arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		arrows[1]->SetOffset(offset, parent);
 	}
 
@@ -374,12 +374,12 @@ void WidgetSlider::ProcessEvent(Event& event)
 			if (orientation == HORIZONTAL)
 			{
 				mouse_position = event.GetParameter<float>("mouse_x", 0);
-				bar_halfsize = 0.5f * bar->GetBox().GetSize(Box::BORDER).x;
+				bar_halfsize = 0.5f * bar->GetBox().GetSize(BoxArea::Border).x;
 			}
 			else
 			{
 				mouse_position = event.GetParameter<float>("mouse_y", 0);
-				bar_halfsize = 0.5f * bar->GetBox().GetSize(Box::BORDER).y;
+				bar_halfsize = 0.5f * bar->GetBox().GetSize(BoxArea::Border).y;
 			}
 
 			float new_bar_position = AbsolutePositionToBarPosition(mouse_position - bar_halfsize);
@@ -501,10 +501,11 @@ float WidgetSlider::AbsolutePositionToBarPosition(float absolute_position) const
 
 	if (orientation == HORIZONTAL)
 	{
-		const float edge_left = bar->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		const float edge_right = bar->GetBox().GetEdge(Box::MARGIN, Box::RIGHT);
+		const float edge_left = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		const float edge_right = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right);
 
-		float traversable_track_length = track->GetBox().GetSize(Box::CONTENT).x - bar->GetBox().GetSize(Box::BORDER).x - edge_left - edge_right;
+		float traversable_track_length =
+			track->GetBox().GetSize(BoxArea::Content).x - bar->GetBox().GetSize(BoxArea::Border).x - edge_left - edge_right;
 		if (traversable_track_length > 0)
 		{
 			float traversable_track_origin = track->GetAbsoluteOffset().x + edge_left;
@@ -514,10 +515,11 @@ float WidgetSlider::AbsolutePositionToBarPosition(float absolute_position) const
 	}
 	else
 	{
-		const float edge_top = bar->GetBox().GetEdge(Box::MARGIN, Box::TOP);
-		const float edge_bottom = bar->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM);
+		const float edge_top = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
+		const float edge_bottom = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom);
 
-		float traversable_track_length = track->GetBox().GetSize(Box::CONTENT).y - bar->GetBox().GetSize(Box::BORDER).y - edge_top - edge_bottom;
+		float traversable_track_length =
+			track->GetBox().GetSize(BoxArea::Content).y - bar->GetBox().GetSize(BoxArea::Border).y - edge_top - edge_bottom;
 		if (traversable_track_length > 0)
 		{
 			float traversable_track_origin = track->GetAbsoluteOffset().y + edge_top;
@@ -532,26 +534,32 @@ float WidgetSlider::AbsolutePositionToBarPosition(float absolute_position) const
 void WidgetSlider::PositionBar()
 {
 	const Vector2f track_dimensions = track->GetBox().GetSize();
-	const Vector2f bar_dimensions = bar->GetBox().GetSize(Box::BORDER);
+	const Vector2f bar_dimensions = bar->GetBox().GetSize(BoxArea::Border);
 
 	if (orientation == VERTICAL)
 	{
-		const float edge_top = bar->GetBox().GetEdge(Box::MARGIN, Box::TOP);
-		const float edge_bottom = bar->GetBox().GetEdge(Box::MARGIN, Box::BOTTOM);
+		const float edge_top = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
+		const float edge_bottom = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom);
 
 		float traversable_track_length = track_dimensions.y - bar_dimensions.y - edge_top - edge_bottom;
-		bar->SetOffset(Vector2f(bar->GetBox().GetEdge(Box::MARGIN, Box::LEFT),
-						   track->GetRelativeOffset().y + edge_top + traversable_track_length * bar_position),
+		bar->SetOffset(
+			Vector2f{
+				bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left),
+				track->GetRelativeOffset().y + edge_top + traversable_track_length * bar_position,
+			},
 			parent);
 	}
 	else
 	{
-		const float edge_left = bar->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-		const float edge_right = bar->GetBox().GetEdge(Box::MARGIN, Box::RIGHT);
+		const float edge_left = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+		const float edge_right = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right);
 
 		float traversable_track_length = track_dimensions.x - bar_dimensions.x - edge_left - edge_right;
-		bar->SetOffset(Vector2f(track->GetRelativeOffset().x + edge_left + traversable_track_length * bar_position,
-						   bar->GetBox().GetEdge(Box::MARGIN, Box::TOP)),
+		bar->SetOffset(
+			Vector2f{
+				track->GetRelativeOffset().x + edge_left + traversable_track_length * bar_position,
+				bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top),
+			},
 			parent);
 	}
 }

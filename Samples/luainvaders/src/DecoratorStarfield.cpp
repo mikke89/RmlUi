@@ -74,7 +74,7 @@ Rml::DecoratorDataHandle DecoratorStarfield::GenerateElementData(Rml::Element* e
 		float speed = (top_speed * layer_depth) + (bottom_speed * (1.0f - layer_depth));
 		star_field->star_layers[i].speed = speed;
 
-		star_field->dimensions = element->GetBox().GetSize(Rml::Box::PADDING);
+		star_field->dimensions = element->GetBox().GetSize(Rml::BoxArea::Padding);
 
 		if (star_field->dimensions.x > 0)
 		{

@@ -33,11 +33,11 @@
 
 namespace Rml {
 
-static void ZeroBoxEdge(Box& box, Box::Edge edge)
+static void ZeroBoxEdge(Box& box, BoxEdge edge)
 {
-	box.SetEdge(Box::PADDING, edge, 0.f);
-	box.SetEdge(Box::BORDER, edge, 0.f);
-	box.SetEdge(Box::MARGIN, edge, 0.f);
+	box.SetEdge(BoxArea::Padding, edge, 0.f);
+	box.SetEdge(BoxArea::Border, edge, 0.f);
+	box.SetEdge(BoxArea::Margin, edge, 0.f);
 }
 
 InlineLevelBox* InlineBoxBase::AddChild(UniquePtr<InlineLevelBox> child)
@@ -101,13 +101,14 @@ InlineBox::InlineBox(const InlineLevelBox* parent, Element* element, const Box& 
 	GetStrut(height_above_baseline, depth_below_baseline);
 	SetHeightAndVerticalAlignment(height_above_baseline, depth_below_baseline, parent);
 
-	const float edge_left = box.GetCumulativeEdge(Box::PADDING, Box::LEFT);
-	const float edge_right = box.GetCumulativeEdge(Box::PADDING, Box::RIGHT);
+	const float edge_left = box.GetCumulativeEdge(BoxArea::Padding, BoxEdge::Left);
+	const float edge_right = box.GetCumulativeEdge(BoxArea::Padding, BoxEdge::Right);
 	SetInlineBoxSpacing(edge_left, edge_right);
 
 	// Vertically position the box so that its content box is equally spaced around its font ascent and descent metrics.
 	const float half_leading = 0.5f * (inner_height - (font_metrics.ascent + font_metrics.descent));
-	baseline_to_border_height = font_metrics.ascent + half_leading + box.GetEdge(Box::BORDER, Box::TOP) + box.GetEdge(Box::PADDING, Box::TOP);
+	baseline_to_border_height =
+		font_metrics.ascent + half_leading + box.GetEdge(BoxArea::Border, BoxEdge::Top) + box.GetEdge(BoxArea::Padding, BoxEdge::Top);
 }
 
 FragmentConstructor InlineBox::CreateFragment(InlineLayoutMode mode, float available_width, float right_spacing_width, bool /*first_box*/,
@@ -128,13 +129,14 @@ void InlineBox::Submit(const PlacedFragment& placed_fragment)
 	element_box.SetContent({placed_fragment.layout_width, element_box.GetSize().y});
 
 	if (placed_fragment.split_left)
-		ZeroBoxEdge(element_box, Box::LEFT);
+		ZeroBoxEdge(element_box, BoxEdge::Left);
 	if (placed_fragment.split_right)
-		ZeroBoxEdge(element_box, Box::RIGHT);
+		ZeroBoxEdge(element_box, BoxEdge::Right);
 
 	// In inline layout, fragments are positioned in terms of (x: margin edge, y: baseline), while element offsets are
 	// specified relative to their border box. Thus, find the offset from the fragment position to the border edge.
-	const Vector2f border_position = placed_fragment.position + Vector2f{element_box.GetEdge(Box::MARGIN, Box::LEFT), -baseline_to_border_height};
+	const Vector2f border_position =
+		placed_fragment.position + Vector2f{element_box.GetEdge(BoxArea::Margin, BoxEdge::Left), -baseline_to_border_height};
 
 	// We can determine the principal fragment based on its left split: Only the principal one has its left side intact,
 	// subsequent fragments have their left side split.

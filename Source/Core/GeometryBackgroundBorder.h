@@ -58,6 +58,7 @@ public:
 		const Colourb* border_colors);
 
 private:
+	enum Edge { TOP, RIGHT, BOTTOM, LEFT };
 	enum Corner { TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT };
 
 	GeometryBackgroundBorder(Vector<Vertex>& vertices, Vector<int>& indices);

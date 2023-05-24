@@ -61,7 +61,7 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 	value_element->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Hidden));
 
 	selection_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
-	selection_element->SetProperty(PropertyId::ZIndex, Property(1.0f, Property::NUMBER));
+	selection_element->SetProperty(PropertyId::ZIndex, Property(1.0f, Unit::NUMBER));
 	selection_element->SetProperty(PropertyId::Clip, Property(Style::Clip::Type::None));
 	selection_element->SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Auto));
 
@@ -163,22 +163,22 @@ void WidgetDropDown::OnRender()
 
 		// The user can use 'margin-left/top/bottom' to offset the box away from the 'select' element, respectively
 		// horizontally, vertically when box below, and vertically when box above.
-		const float offset_x = box.GetEdge(Box::MARGIN, Box::LEFT);
-		const float offset_y_below = parent_element->GetBox().GetSize(Box::BORDER).y + box.GetEdge(Box::MARGIN, Box::TOP);
-		const float offset_y_above = -box.GetEdge(Box::MARGIN, Box::BOTTOM);
+		const float offset_x = box.GetEdge(BoxArea::Margin, BoxEdge::Left);
+		const float offset_y_below = parent_element->GetBox().GetSize(BoxArea::Border).y + box.GetEdge(BoxArea::Margin, BoxEdge::Top);
+		const float offset_y_above = -box.GetEdge(BoxArea::Margin, BoxEdge::Bottom);
 
 		float window_height = 100'000.f;
 		if (Context* context = parent_element->GetContext())
 			window_height = float(context->GetDimensions().y);
 
-		const float absolute_y = parent_element->GetAbsoluteOffset(Box::BORDER).y;
+		const float absolute_y = parent_element->GetAbsoluteOffset(BoxArea::Border).y;
 
 		const float height_below = window_height - absolute_y - offset_y_below;
 		const float height_above = absolute_y + offset_y_above;
 
 		// Format the selection box and retrieve the 'native' height occupied by all the options, while respecting
 		// the 'min/max-height' properties.
-		ElementUtilities::FormatElement(selection_element, parent_element->GetBox().GetSize(Box::BORDER));
+		ElementUtilities::FormatElement(selection_element, parent_element->GetBox().GetSize(BoxArea::Border));
 		const float content_height = selection_element->GetOffsetHeight();
 
 		if (content_height < height_below)
@@ -194,8 +194,8 @@ void WidgetDropDown::OnRender()
 		else
 		{
 			// Shrink box and position either below or above
-			const float padding_border_size = box.GetEdge(Box::BORDER, Box::TOP) + box.GetEdge(Box::BORDER, Box::BOTTOM) +
-				box.GetEdge(Box::PADDING, Box::TOP) + box.GetEdge(Box::PADDING, Box::BOTTOM);
+			const float padding_border_size = box.GetEdge(BoxArea::Border, BoxEdge::Top) + box.GetEdge(BoxArea::Border, BoxEdge::Bottom) +
+				box.GetEdge(BoxArea::Padding, BoxEdge::Top) + box.GetEdge(BoxArea::Padding, BoxEdge::Bottom);
 
 			float height = 0.f;
 			float offset_y = 0.f;
@@ -214,9 +214,9 @@ void WidgetDropDown::OnRender()
 			}
 
 			// Set the height and re-format the selection box.
-			selection_element->SetProperty(PropertyId::Height, Property(height, Property::PX));
+			selection_element->SetProperty(PropertyId::Height, Property(height, Unit::PX));
 			selection_element->GetOwnerDocument()->UpdateDocument();
-			ElementUtilities::FormatElement(selection_element, parent_element->GetBox().GetSize(Box::BORDER));
+			ElementUtilities::FormatElement(selection_element, parent_element->GetBox().GetSize(BoxArea::Border));
 
 			selection_element->SetOffset(Vector2f(offset_x, offset_y), parent_element);
 		}
@@ -226,8 +226,8 @@ void WidgetDropDown::OnRender()
 
 	if (value_layout_dirty)
 	{
-		ElementUtilities::FormatElement(value_element, parent_element->GetBox().GetSize(Box::BORDER));
-		value_element->SetOffset(parent_element->GetBox().GetPosition(Box::CONTENT), parent_element);
+		ElementUtilities::FormatElement(value_element, parent_element->GetBox().GetSize(BoxArea::Border));
+		value_element->SetOffset(parent_element->GetBox().GetPosition(BoxArea::Content), parent_element);
 
 		value_layout_dirty = false;
 	}
@@ -252,10 +252,10 @@ void WidgetDropDown::OnLayout()
 
 	// Calculate the value element position and size.
 	Vector2f size;
-	size.x = parent_element->GetBox().GetSize(Box::CONTENT).x - button_element->GetBox().GetSize(Box::MARGIN).x;
-	size.y = parent_element->GetBox().GetSize(Box::CONTENT).y;
+	size.x = parent_element->GetBox().GetSize(BoxArea::Content).x - button_element->GetBox().GetSize(BoxArea::Margin).x;
+	size.y = parent_element->GetBox().GetSize(BoxArea::Content).y;
 
-	value_element->SetOffset(parent_element->GetBox().GetPosition(Box::CONTENT), parent_element);
+	value_element->SetOffset(parent_element->GetBox().GetPosition(BoxArea::Content), parent_element);
 	value_element->SetBox(Box(size));
 
 	box_layout_dirty = true;

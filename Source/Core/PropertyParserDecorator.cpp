@@ -51,7 +51,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 	if (decorator_string_value.empty() || decorator_string_value == "none")
 	{
 		property.value = Variant(DecoratorsPtr());
-		property.unit = Property::DECORATOR;
+		property.unit = Unit::DECORATOR;
 		return true;
 	}
 
@@ -113,7 +113,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 		return false;
 
 	property.value = Variant(MakeShared<DecoratorDeclarationList>(std::move(decorators)));
-	property.unit = Property::DECORATOR;
+	property.unit = Unit::DECORATOR;
 
 	return true;
 }

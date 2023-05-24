@@ -87,8 +87,8 @@ bool BlockContainer::Close(BlockContainer* parent_block_container)
 		RMLUI_ASSERTMSG(GetParent() == parent_block_container, "Mismatched parent box.");
 
 		// If this close fails, it means this block box has caused our parent box to generate an automatic vertical scrollbar.
-		if (!parent_block_container->EncloseChildBox(this, position, box.GetSizeAcross(Box::VERTICAL, Box::BORDER),
-				box.GetEdge(Box::MARGIN, Box::BOTTOM)))
+		if (!parent_block_container->EncloseChildBox(this, position, box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border),
+				box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)))
 			return false;
 	}
 
@@ -109,7 +109,8 @@ bool BlockContainer::Close(BlockContainer* parent_block_container)
 		// local block formatting context), convert it to the element's local coordinates.
 		if (found_baseline)
 		{
-			const float bottom_position = position.y + box.GetSizeAcross(Box::VERTICAL, Box::BORDER) + box.GetEdge(Box::MARGIN, Box::BOTTOM);
+			const float bottom_position =
+				position.y + box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border) + box.GetEdge(BoxArea::Margin, BoxEdge::Bottom);
 			element_baseline = bottom_position - baseline;
 		}
 	}
@@ -181,8 +182,8 @@ LayoutBox* BlockContainer::AddBlockLevelBox(UniquePtr<LayoutBox> block_level_box
 	LayoutBox* block_level_box = block_level_box_ptr.get();
 	child_boxes.push_back(std::move(block_level_box_ptr));
 
-	if (!EncloseChildBox(block_level_box, child_position, child_box.GetSizeAcross(Box::VERTICAL, Box::BORDER),
-			child_box.GetEdge(Box::MARGIN, Box::BOTTOM)))
+	if (!EncloseChildBox(block_level_box, child_position, child_box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border),
+			child_box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)))
 		return nullptr;
 
 	return block_level_box;
@@ -241,7 +242,7 @@ void BlockContainer::AddFloatElement(Element* element, Vector2f visible_overflow
 		Vector2f line_size;
 		if (queued_float_elements.empty() && inline_container->GetOpenLineBoxDimensions(line_position_top, line_size))
 		{
-			const Vector2f margin_size = element->GetBox().GetSize(Box::MARGIN);
+			const Vector2f margin_size = element->GetBox().GetSize(BoxArea::Margin);
 			const Style::Float float_property = element->GetComputedValues().float_();
 			const Style::Clear clear_property = element->GetComputedValues().clear();
 
@@ -299,11 +300,11 @@ Vector2f BlockContainer::NextBoxPosition() const
 
 Vector2f BlockContainer::NextBoxPosition(const Box& child_box, Style::Clear clear_property) const
 {
-	const float child_top_margin = child_box.GetEdge(Box::MARGIN, Box::TOP);
+	const float child_top_margin = child_box.GetEdge(BoxArea::Margin, BoxEdge::Top);
 
 	Vector2f box_position = NextBoxPosition();
 
-	box_position.x += child_box.GetEdge(Box::MARGIN, Box::LEFT);
+	box_position.x += child_box.GetEdge(BoxArea::Margin, BoxEdge::Left);
 	box_position.y += child_top_margin;
 
 	float clear_margin = space->DetermineClearPosition(box_position.y, clear_property) - box_position.y;
@@ -316,7 +317,7 @@ Vector2f BlockContainer::NextBoxPosition(const Box& child_box, Style::Clear clea
 		// Check for a collapsing vertical margin with our last child, which will be vertically adjacent to the new box.
 		if (const Box* open_box = block_box->GetIfBox())
 		{
-			const float open_bottom_margin = open_box->GetEdge(Box::MARGIN, Box::BOTTOM);
+			const float open_bottom_margin = open_box->GetEdge(BoxArea::Margin, BoxEdge::Bottom);
 			const float margin_sum = open_bottom_margin + child_top_margin;
 
 			// The collapsed margin size depends on the sign of each margin, according to CSS behavior. The margins have
@@ -372,7 +373,7 @@ float BlockContainer::GetShrinkToFitWidth() const
 			const float child_inner_width = block_box->GetShrinkToFitWidth();
 			float child_edges_width = 0.f;
 			if (const Box* child_box = block_box->GetIfBox())
-				child_edges_width = child_box->GetSizeAcross(Box::HORIZONTAL, Box::MARGIN, Box::PADDING);
+				child_edges_width = child_box->GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding);
 
 			content_width = Math::Max(content_width, child_edges_width + child_inner_width);
 		}
@@ -526,11 +527,12 @@ void BlockContainer::PlaceFloat(Element* element, float vertical_position, Vecto
 {
 	const Box& element_box = element->GetBox();
 
-	const Vector2f border_size = element_box.GetSize(Box::BORDER);
+	const Vector2f border_size = element_box.GetSize(BoxArea::Border);
 	visible_overflow_size = Math::Max(border_size, visible_overflow_size);
 
-	const Vector2f margin_top_left = {element_box.GetEdge(Box::MARGIN, Box::LEFT), element_box.GetEdge(Box::MARGIN, Box::TOP)};
-	const Vector2f margin_bottom_right = {element_box.GetEdge(Box::MARGIN, Box::RIGHT), element_box.GetEdge(Box::MARGIN, Box::BOTTOM)};
+	const Vector2f margin_top_left = {element_box.GetEdge(BoxArea::Margin, BoxEdge::Left), element_box.GetEdge(BoxArea::Margin, BoxEdge::Top)};
+	const Vector2f margin_bottom_right = {element_box.GetEdge(BoxArea::Margin, BoxEdge::Right),
+		element_box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)};
 	const Vector2f margin_size = border_size + margin_top_left + margin_bottom_right;
 
 	Style::Float float_property = element->GetComputedValues().float_();

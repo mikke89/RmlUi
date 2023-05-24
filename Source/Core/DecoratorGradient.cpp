@@ -81,8 +81,8 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 	Colourb colour_stop = stop;
 	colour_stop.alpha = (byte)(opacity * (float)colour_stop.alpha);
 
-	const Vector2f padding_offset = box.GetPosition(Box::PADDING);
-	const Vector2f padding_size = box.GetSize(Box::PADDING);
+	const Vector2f padding_offset = box.GetPosition(BoxArea::Padding);
+	const Vector2f padding_size = box.GetSize(BoxArea::Padding);
 
 	Vector<Vertex>& vertices = geometry->GetVertices();
 
@@ -114,7 +114,7 @@ void DecoratorGradient::ReleaseElementData(DecoratorDataHandle element_data) con
 void DecoratorGradient::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	auto* data = reinterpret_cast<Geometry*>(element_data);
-	data->Render(element->GetAbsoluteOffset(Box::BORDER));
+	data->Render(element->GetAbsoluteOffset(BoxArea::Border));
 }
 
 DecoratorGradientInstancer::DecoratorGradientInstancer()

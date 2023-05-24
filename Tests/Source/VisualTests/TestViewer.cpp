@@ -242,7 +242,7 @@ bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filen
 				document_reference = context->LoadDocumentFromMemory(source_reference, Rml::StringUtilities::Replace(reference_path, ':', '|'));
 				if (document_reference)
 				{
-					document_reference->SetProperty(PropertyId::Left, Property(510.f, Property::DP));
+					document_reference->SetProperty(PropertyId::Left, Property(510.f, Unit::DP));
 					document_reference->Show(ModalFlag::None, FocusFlag::None);
 				}
 			}
@@ -335,7 +335,7 @@ void TestViewer::SetGoToText(const Rml::String& rml)
 void TestViewer::SetAttention(bool active)
 {
 	if (active)
-		document_description->SetProperty(Rml::PropertyId::BackgroundColor, Rml::Property(Rml::Colourb(100, 100, 30), Rml::Property::COLOUR));
+		document_description->SetProperty(Rml::PropertyId::BackgroundColor, Rml::Property(Rml::Colourb(100, 100, 30), Rml::Unit::COLOUR));
 	else
 		document_description->RemoveProperty(Rml::PropertyId::BackgroundColor);
 }

@@ -319,9 +319,9 @@ TEST_CASE("Element.ScrollIntoView")
 		}
 	}
 
-	REQUIRE(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(0, 0));
-	REQUIRE(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(100, 100));
-	REQUIRE(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(150, 150));
+	REQUIRE(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(0, 0));
+	REQUIRE(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(100, 100));
+	REQUIRE(cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(150, 150));
 	REQUIRE(scrollable->GetScrollLeft() == 0);
 	REQUIRE(scrollable->GetScrollTop() == 0);
 
@@ -331,9 +331,9 @@ TEST_CASE("Element.ScrollIntoView")
 
 		Run(context);
 
-		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-50, -100));
-		CHECK(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 0));
-		CHECK(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(100, 50));
+		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -100));
+		CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(50, 0));
+		CHECK(cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(100, 50));
 		CHECK(scrollable->GetScrollLeft() == 50);
 		CHECK(scrollable->GetScrollTop() == 100);
 
@@ -341,9 +341,9 @@ TEST_CASE("Element.ScrollIntoView")
 
 		Run(context);
 
-		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-50, -50));
-		CHECK(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 50));
-		CHECK(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(100, 100));
+		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -50));
+		CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(50, 50));
+		CHECK(cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(100, 100));
 		CHECK(scrollable->GetScrollLeft() == 50);
 		CHECK(scrollable->GetScrollTop() == 50);
 	}
@@ -354,9 +354,9 @@ TEST_CASE("Element.ScrollIntoView")
 
 		Run(context);
 
-		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-75, -75));
-		CHECK(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(25, 25));
-		CHECK(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(75, 75));
+		CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-75, -75));
+		CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(25, 25));
+		CHECK(cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(75, 75));
 
 		SUBCASE("NearestAlready")
 		{
@@ -364,9 +364,9 @@ TEST_CASE("Element.ScrollIntoView")
 
 			Run(context);
 
-			CHECK(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-75, -75));
-			CHECK(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(25, 25));
-			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(75, 75));
+			CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-75, -75));
+			CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(25, 25));
+			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(75, 75));
 		}
 
 		SUBCASE("NearestBefore")
@@ -375,9 +375,9 @@ TEST_CASE("Element.ScrollIntoView")
 
 			Run(context);
 
-			CHECK(cells[0][0]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-50, -50));
-			CHECK(cells[1][1]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(0, 0));
-			CHECK(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 50));
+			CHECK(cells[0][0]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -50));
+			CHECK(cells[1][1]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(0, 0));
+			CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(50, 50));
 		}
 
 		SUBCASE("NearestAfter")
@@ -386,9 +386,9 @@ TEST_CASE("Element.ScrollIntoView")
 
 			Run(context);
 
-			CHECK(cells[1][1]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(-50, -50));
-			CHECK(cells[2][2]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(0, 0));
-			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 50));
+			CHECK(cells[1][1]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(-50, -50));
+			CHECK(cells[2][2]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(0, 0));
+			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(50, 50));
 		}
 
 		SUBCASE("Smoothscroll")
@@ -402,7 +402,7 @@ TEST_CASE("Element.ScrollIntoView")
 			Run(context);
 
 			// We don't define the exact offset at this time step, but it should be somewhere between the start and end offsets.
-			Vector2f offset = cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER);
+			Vector2f offset = cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border);
 			CHECK(offset.x > 50.f);
 			CHECK(offset.y > 50.f);
 			CHECK(offset.x < 75.f);
@@ -414,7 +414,7 @@ TEST_CASE("Element.ScrollIntoView")
 				system_interface->SetTime(t);
 				Run(context);
 			}
-			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::Box::Area::BORDER) == Vector2f(50, 50));
+			CHECK(cells[3][3]->GetAbsoluteOffset(Rml::BoxArea::Border) == Vector2f(50, 50));
 		}
 	}
 

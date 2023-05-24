@@ -134,14 +134,14 @@ public:
 	/// Returns the local style variables, excluding any variables from local class.
 	const PropertyVariableMap& GetLocalStylePropertyVariables() const;
 
-	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
-	/// @param[in] property The property to resolve the value for.
+	/// Resolves a numeric value with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
+	/// @param[in] value The value to be resolved.
 	/// @param[in] base_value The value that is scaled by the number or percentage value, if applicable.
 	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
-	float ResolveNumericProperty(const Property* property, float base_value) const;
+	float ResolveNumericValue(NumericValue value, float base_value) const;
 	/// Resolves a property with units of number, length, or percentage to a length in 'px' units.
 	/// Numbers and percentages are resolved by scaling the size of the specified target.
-	float ResolveLength(const Property* property, RelativeTarget relative_target) const;
+	float ResolveRelativeLength(NumericValue value, RelativeTarget relative_target) const;
 
 	/// Mark inherited properties dirty.
 	/// Inherited properties will automatically be set when parent inherited properties are changed. However,
@@ -151,9 +151,9 @@ public:
 	// Sets a single property as dirty.
 	void DirtyProperty(PropertyId id);
 	/// Dirties all properties with any of the given units (OR-ed together) on the current element (*not* recursive).
-	void DirtyPropertiesWithUnits(Property::Unit units);
+	void DirtyPropertiesWithUnits(Units units);
 	/// Dirties all properties with any of the given units (OR-ed together) on the current element and recursively on all children.
-	void DirtyPropertiesWithUnitsRecursive(Property::Unit units);
+	void DirtyPropertiesWithUnitsRecursive(Units units);
 
 	// Sets a single variable as dirty.
 	void DirtyPropertyVariable(String const& name);

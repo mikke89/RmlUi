@@ -67,10 +67,10 @@ static void SetBox(Element* element)
 // Positions an element relative to an offset parent.
 static void SetElementOffset(Element* element, Vector2f offset)
 {
-	Vector2f relative_offset = element->GetParentNode()->GetBox().GetPosition(Box::CONTENT);
+	Vector2f relative_offset = element->GetParentNode()->GetBox().GetPosition(BoxArea::Content);
 	relative_offset += offset;
-	relative_offset.x += element->GetBox().GetEdge(Box::MARGIN, Box::LEFT);
-	relative_offset.y += element->GetBox().GetEdge(Box::MARGIN, Box::TOP);
+	relative_offset.x += element->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+	relative_offset.y += element->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 
 	element->SetOffset(relative_offset, element->GetParentNode());
 }
@@ -196,7 +196,7 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 			if (clip_always || clipping_element->GetClientWidth() < clipping_element->GetScrollWidth() - 0.5f ||
 				clipping_element->GetClientHeight() < clipping_element->GetScrollHeight() - 0.5f)
 			{
-				const Box::Area client_area = clipping_element->GetClientArea();
+				const BoxArea client_area = clipping_element->GetClientArea();
 				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(client_area);
 				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(client_area);
 				Math::SnapToPixelGrid(element_origin_f, element_dimensions_f);
@@ -297,8 +297,8 @@ bool ElementUtilities::PositionElement(Element* element, Vector2f offset, Positi
 
 	SetBox(element);
 
-	Vector2f containing_block = element->GetParentNode()->GetBox().GetSize(Box::CONTENT);
-	Vector2f element_block = element->GetBox().GetSize(Box::MARGIN);
+	Vector2f containing_block = element->GetParentNode()->GetBox().GetSize(BoxArea::Content);
+	Vector2f element_block = element->GetBox().GetSize(BoxArea::Margin);
 
 	Vector2f resolved_offset = offset;
 

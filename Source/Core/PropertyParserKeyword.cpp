@@ -41,7 +41,7 @@ bool PropertyParserKeyword::ParseValue(Property& property, const String& value, 
 		return false;
 
 	property.value = Variant((*iterator).second);
-	property.unit = Property::KEYWORD;
+	property.unit = Unit::KEYWORD;
 
 	return true;
 }

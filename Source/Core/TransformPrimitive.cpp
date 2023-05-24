@@ -36,21 +36,21 @@ namespace Transforms {
 	/// Returns the numeric value converted to 'base_unit'. Only accepts base units of 'Number' or 'Rad':
 	///   'Number' will pass-through the provided value.
 	///   'Rad' will convert {Rad, Deg, %} -> Rad.
-	static float ResolvePrimitiveAbsoluteValue(NumericValue value, Property::Unit base_unit) noexcept
+	static float ResolvePrimitiveAbsoluteValue(NumericValue value, Unit base_unit) noexcept
 	{
-		RMLUI_ASSERT(base_unit == Property::RAD || base_unit == Property::NUMBER);
+		RMLUI_ASSERT(base_unit == Unit::RAD || base_unit == Unit::NUMBER);
 
-		if (base_unit == Property::RAD)
+		if (base_unit == Unit::RAD)
 		{
 			switch (value.unit)
 			{
-			case Property::RAD: return value.number;
-			case Property::DEG: return Math::DegreesToRadians(value.number);
-			case Property::PERCENT: return value.number * 0.01f * 2.0f * Math::RMLUI_PI;
+			case Unit::RAD: return value.number;
+			case Unit::DEG: return Math::DegreesToRadians(value.number);
+			case Unit::PERCENT: return value.number * 0.01f * 2.0f * Math::RMLUI_PI;
 			default: Log::Message(Log::LT_WARNING, "Trying to pass a non-angle unit to a property expecting an angle.");
 			}
 		}
-		else if (base_unit == Property::NUMBER && value.unit != Property::NUMBER)
+		else if (base_unit == Unit::NUMBER && value.unit != Unit::NUMBER)
 		{
 			Log::Message(Log::LT_WARNING, "A unit was passed to a property which expected a unit-less number.");
 		}
@@ -73,14 +73,14 @@ namespace Transforms {
 	}
 
 	template <size_t N>
-	inline ResolvedPrimitive<N>::ResolvedPrimitive(const NumericValue* values, Array<Property::Unit, N> base_units) noexcept
+	inline ResolvedPrimitive<N>::ResolvedPrimitive(const NumericValue* values, Array<Unit, N> base_units) noexcept
 	{
 		for (size_t i = 0; i < N; ++i)
 			this->values[i] = ResolvePrimitiveAbsoluteValue(values[i], base_units[i]);
 	}
 
 	template <size_t N>
-	inline ResolvedPrimitive<N>::ResolvedPrimitive(Array<NumericValue, N> values, Array<Property::Unit, N> base_units) noexcept
+	inline ResolvedPrimitive<N>::ResolvedPrimitive(Array<NumericValue, N> values, Array<Unit, N> base_units) noexcept
 	{
 		for (size_t i = 0; i < N; ++i)
 			this->values[i] = ResolvePrimitiveAbsoluteValue(values[i], base_units[i]);
@@ -107,21 +107,20 @@ namespace Transforms {
 	Matrix3D::Matrix3D(const Matrix4f& matrix) noexcept : ResolvedPrimitive(matrix.data()) {}
 
 	TranslateX::TranslateX(const NumericValue* values) noexcept : UnresolvedPrimitive(values) {}
-	TranslateX::TranslateX(float x, Property::Unit unit) noexcept : UnresolvedPrimitive({NumericValue(x, unit)}) {}
+	TranslateX::TranslateX(float x, Unit unit) noexcept : UnresolvedPrimitive({NumericValue(x, unit)}) {}
 
 	TranslateY::TranslateY(const NumericValue* values) noexcept : UnresolvedPrimitive(values) {}
-	TranslateY::TranslateY(float y, Property::Unit unit) noexcept : UnresolvedPrimitive({NumericValue(y, unit)}) {}
+	TranslateY::TranslateY(float y, Unit unit) noexcept : UnresolvedPrimitive({NumericValue(y, unit)}) {}
 
 	TranslateZ::TranslateZ(const NumericValue* values) noexcept : UnresolvedPrimitive(values) {}
-	TranslateZ::TranslateZ(float z, Property::Unit unit) noexcept : UnresolvedPrimitive({NumericValue(z, unit)}) {}
+	TranslateZ::TranslateZ(float z, Unit unit) noexcept : UnresolvedPrimitive({NumericValue(z, unit)}) {}
 
 	Translate2D::Translate2D(const NumericValue* values) noexcept : UnresolvedPrimitive(values) {}
-	Translate2D::Translate2D(float x, float y, Property::Unit units) noexcept : UnresolvedPrimitive({NumericValue(x, units), NumericValue(y, units)})
-	{}
+	Translate2D::Translate2D(float x, float y, Unit units) noexcept : UnresolvedPrimitive({NumericValue(x, units), NumericValue(y, units)}) {}
 
 	Translate3D::Translate3D(const NumericValue* values) noexcept : UnresolvedPrimitive(values) {}
 	Translate3D::Translate3D(NumericValue x, NumericValue y, NumericValue z) noexcept : UnresolvedPrimitive({x, y, z}) {}
-	Translate3D::Translate3D(float x, float y, float z, Property::Unit units) noexcept :
+	Translate3D::Translate3D(float x, float y, float z, Unit units) noexcept :
 		UnresolvedPrimitive({NumericValue(x, units), NumericValue(y, units), NumericValue(z, units)})
 	{}
 
@@ -142,36 +141,33 @@ namespace Transforms {
 	Scale3D::Scale3D(float xyz) noexcept : ResolvedPrimitive({xyz, xyz, xyz}) {}
 	Scale3D::Scale3D(float x, float y, float z) noexcept : ResolvedPrimitive({x, y, z}) {}
 
-	RotateX::RotateX(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Property::RAD}) {}
-	RotateX::RotateX(float angle, Property::Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Property::RAD}) {}
+	RotateX::RotateX(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Unit::RAD}) {}
+	RotateX::RotateX(float angle, Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Unit::RAD}) {}
 
-	RotateY::RotateY(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Property::RAD}) {}
-	RotateY::RotateY(float angle, Property::Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Property::RAD}) {}
+	RotateY::RotateY(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Unit::RAD}) {}
+	RotateY::RotateY(float angle, Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Unit::RAD}) {}
 
-	RotateZ::RotateZ(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Property::RAD}) {}
-	RotateZ::RotateZ(float angle, Property::Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Property::RAD}) {}
+	RotateZ::RotateZ(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Unit::RAD}) {}
+	RotateZ::RotateZ(float angle, Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Unit::RAD}) {}
 
-	Rotate2D::Rotate2D(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Property::RAD}) {}
-	Rotate2D::Rotate2D(float angle, Property::Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Property::RAD}) {}
+	Rotate2D::Rotate2D(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Unit::RAD}) {}
+	Rotate2D::Rotate2D(float angle, Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Unit::RAD}) {}
 
-	Rotate3D::Rotate3D(const NumericValue* values) noexcept :
-		ResolvedPrimitive(values, {Property::NUMBER, Property::NUMBER, Property::NUMBER, Property::RAD})
-	{}
-	Rotate3D::Rotate3D(float x, float y, float z, float angle, Property::Unit angle_unit) noexcept :
-		ResolvedPrimitive({NumericValue{x, Property::NUMBER}, NumericValue{y, Property::NUMBER}, NumericValue{z, Property::NUMBER},
-							  NumericValue{angle, angle_unit}},
-			{Property::NUMBER, Property::NUMBER, Property::NUMBER, Property::RAD})
+	Rotate3D::Rotate3D(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Unit::NUMBER, Unit::NUMBER, Unit::NUMBER, Unit::RAD}) {}
+	Rotate3D::Rotate3D(float x, float y, float z, float angle, Unit angle_unit) noexcept :
+		ResolvedPrimitive(
+			{NumericValue{x, Unit::NUMBER}, NumericValue{y, Unit::NUMBER}, NumericValue{z, Unit::NUMBER}, NumericValue{angle, angle_unit}},
+			{Unit::NUMBER, Unit::NUMBER, Unit::NUMBER, Unit::RAD})
 	{}
 
-	SkewX::SkewX(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Property::RAD}) {}
-	SkewX::SkewX(float angle, Property::Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Property::RAD}) {}
+	SkewX::SkewX(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Unit::RAD}) {}
+	SkewX::SkewX(float angle, Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Unit::RAD}) {}
 
-	SkewY::SkewY(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Property::RAD}) {}
-	SkewY::SkewY(float angle, Property::Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Property::RAD}) {}
+	SkewY::SkewY(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Unit::RAD}) {}
+	SkewY::SkewY(float angle, Unit unit) noexcept : ResolvedPrimitive({NumericValue{angle, unit}}, {Unit::RAD}) {}
 
-	Skew2D::Skew2D(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Property::RAD, Property::RAD}) {}
-	Skew2D::Skew2D(float x, float y, Property::Unit unit) noexcept :
-		ResolvedPrimitive({NumericValue{x, unit}, {NumericValue{y, unit}}}, {Property::RAD, Property::RAD})
+	Skew2D::Skew2D(const NumericValue* values) noexcept : ResolvedPrimitive(values, {Unit::RAD, Unit::RAD}) {}
+	Skew2D::Skew2D(float x, float y, Unit unit) noexcept : ResolvedPrimitive({NumericValue{x, unit}, {NumericValue{y, unit}}}, {Unit::RAD, Unit::RAD})
 	{}
 
 	Perspective::Perspective(const NumericValue* values) noexcept : UnresolvedPrimitive(values) {}

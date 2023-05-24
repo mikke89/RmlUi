@@ -110,7 +110,7 @@ TEST_CASE("backgrounds_and_borders")
 		bench.run("Background all", [&] {
 			// Force regeneration of backgrounds without changing layout
 			for (auto& element : elements)
-				element->SetProperty(Rml::PropertyId::BackgroundColor, Rml::Property(Colourb(), Property::COLOUR));
+				element->SetProperty(Rml::PropertyId::BackgroundColor, Rml::Property(Colourb(), Unit::COLOUR));
 			context->Update();
 			context->Render();
 		});
@@ -118,7 +118,7 @@ TEST_CASE("backgrounds_and_borders")
 		bench.run("Border all", [&] {
 			// Force regeneration of borders without changing layout
 			for (auto& element : elements)
-				element->SetProperty(Rml::PropertyId::BorderLeftColor, Rml::Property(Colourb(), Property::COLOUR));
+				element->SetProperty(Rml::PropertyId::BorderLeftColor, Rml::Property(Colourb(), Unit::COLOUR));
 			context->Update();
 			context->Render();
 		});
@@ -132,7 +132,7 @@ TEST_CASE("backgrounds_and_borders")
 
 		bench.run("Border " + id, [&] {
 			for (auto& element : elements)
-				element->SetProperty(Rml::PropertyId::BorderLeftColor, Rml::Property(Colourb(), Property::COLOUR));
+				element->SetProperty(Rml::PropertyId::BorderLeftColor, Rml::Property(Colourb(), Unit::COLOUR));
 			context->Update();
 			context->Render();
 		});

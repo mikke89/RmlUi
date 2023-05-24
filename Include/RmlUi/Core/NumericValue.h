@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,36 +26,31 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/Property.h"
-#include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#ifndef RMLUI_CORE_NUMERICVALUE_H
+#define RMLUI_CORE_NUMERICVALUE_H
+
+#include "Unit.h"
 
 namespace Rml {
 
-Property::Property() : unit(Unit::UNKNOWN), specificity(-1)
+/**
+    A numeric value is a number combined with a unit.
+ */
+struct NumericValue {
+	NumericValue() noexcept : number(0.f), unit(Unit::UNKNOWN) {}
+	NumericValue(float number, Unit unit) noexcept : number(number), unit(unit) {}
+	float number;
+	Unit unit;
+};
+inline bool operator==(const NumericValue& a, const NumericValue& b)
 {
-	definition = nullptr;
-	parser_index = -1;
+	return a.number == b.number && a.unit == b.unit;
 }
-
-String Property::ToString() const
+inline bool operator!=(const NumericValue& a, const NumericValue& b)
 {
-	if (!definition)
-		return value.Get<String>();
-
-	String string;
-	definition->GetValue(string, *this);
-	return string;
-}
-
-NumericValue Property::GetNumericValue() const
-{
-	NumericValue result;
-	if (Any(unit & Unit::NUMERIC))
-	{
-		if (value.GetInto(result.number))
-			result.unit = unit;
-	}
-	return result;
+	return !(a == b);
 }
 
 } // namespace Rml
+
+#endif

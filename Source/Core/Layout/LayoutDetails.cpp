@@ -60,16 +60,16 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 	const ComputedValues& computed = element->GetComputedValues();
 
 	// Calculate the padding area.
-	box.SetEdge(Box::PADDING, Box::TOP, Math::Max(0.0f, ResolveValue(computed.padding_top(), containing_block.x)));
-	box.SetEdge(Box::PADDING, Box::RIGHT, Math::Max(0.0f, ResolveValue(computed.padding_right(), containing_block.x)));
-	box.SetEdge(Box::PADDING, Box::BOTTOM, Math::Max(0.0f, ResolveValue(computed.padding_bottom(), containing_block.x)));
-	box.SetEdge(Box::PADDING, Box::LEFT, Math::Max(0.0f, ResolveValue(computed.padding_left(), containing_block.x)));
+	box.SetEdge(BoxArea::Padding, BoxEdge::Top, Math::Max(0.0f, ResolveValue(computed.padding_top(), containing_block.x)));
+	box.SetEdge(BoxArea::Padding, BoxEdge::Right, Math::Max(0.0f, ResolveValue(computed.padding_right(), containing_block.x)));
+	box.SetEdge(BoxArea::Padding, BoxEdge::Bottom, Math::Max(0.0f, ResolveValue(computed.padding_bottom(), containing_block.x)));
+	box.SetEdge(BoxArea::Padding, BoxEdge::Left, Math::Max(0.0f, ResolveValue(computed.padding_left(), containing_block.x)));
 
 	// Calculate the border area.
-	box.SetEdge(Box::BORDER, Box::TOP, Math::Max(0.0f, computed.border_top_width()));
-	box.SetEdge(Box::BORDER, Box::RIGHT, Math::Max(0.0f, computed.border_right_width()));
-	box.SetEdge(Box::BORDER, Box::BOTTOM, Math::Max(0.0f, computed.border_bottom_width()));
-	box.SetEdge(Box::BORDER, Box::LEFT, Math::Max(0.0f, computed.border_left_width()));
+	box.SetEdge(BoxArea::Border, BoxEdge::Top, Math::Max(0.0f, computed.border_top_width()));
+	box.SetEdge(BoxArea::Border, BoxEdge::Right, Math::Max(0.0f, computed.border_right_width()));
+	box.SetEdge(BoxArea::Border, BoxEdge::Bottom, Math::Max(0.0f, computed.border_bottom_width()));
+	box.SetEdge(BoxArea::Border, BoxEdge::Left, Math::Max(0.0f, computed.border_left_width()));
 
 	// Prepare sizing of the content area.
 	Vector2f content_area(-1, -1);
@@ -101,8 +101,8 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 		// Adjust sizes for the given box sizing model.
 		if (computed.box_sizing() == Style::BoxSizing::BorderBox)
 		{
-			const float border_padding_width = box.GetSizeAcross(Box::HORIZONTAL, Box::BORDER, Box::PADDING);
-			const float border_padding_height = box.GetSizeAcross(Box::VERTICAL, Box::BORDER, Box::PADDING);
+			const float border_padding_width = box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Border, BoxArea::Padding);
+			const float border_padding_height = box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border, BoxArea::Padding);
 
 			min_size.x = BorderSizeToContentSize(min_size.x, border_padding_width);
 			max_size.x = BorderSizeToContentSize(max_size.x, border_padding_width);
@@ -135,7 +135,7 @@ void LayoutDetails::GetMinMaxWidth(float& min_width, float& max_width, const Com
 
 	if (computed.box_sizing() == Style::BoxSizing::BorderBox)
 	{
-		const float border_padding_width = box.GetSizeAcross(Box::HORIZONTAL, Box::BORDER, Box::PADDING);
+		const float border_padding_width = box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Border, BoxArea::Padding);
 		min_width = BorderSizeToContentSize(min_width, border_padding_width);
 		max_width = BorderSizeToContentSize(max_width, border_padding_width);
 	}
@@ -149,7 +149,7 @@ void LayoutDetails::GetMinMaxHeight(float& min_height, float& max_height, const 
 
 	if (computed.box_sizing() == Style::BoxSizing::BorderBox)
 	{
-		const float border_padding_height = box.GetSizeAcross(Box::VERTICAL, Box::BORDER, Box::PADDING);
+		const float border_padding_height = box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border, BoxArea::Padding);
 		min_height = BorderSizeToContentSize(min_height, border_padding_height);
 		max_height = BorderSizeToContentSize(max_height, border_padding_height);
 	}
@@ -176,7 +176,7 @@ ContainingBlock LayoutDetails::GetContainingBlock(ContainerBox* parent_container
 	using Style::Position;
 
 	ContainerBox* container = parent_container;
-	Box::Area area = Box::CONTENT;
+	BoxArea area = BoxArea::Content;
 
 	// For absolutely positioned boxes we look for the first positioned ancestor. We deviate from the CSS specs by using
 	// the same rules for fixed boxes, as that is particularly helpful on handles and other widgets that should not
@@ -184,7 +184,7 @@ ContainingBlock LayoutDetails::GetContainingBlock(ContainerBox* parent_container
 	// behavior may be reconsidered in the future.
 	if (position == Position::Absolute || position == Position::Fixed)
 	{
-		area = Box::PADDING;
+		area = BoxArea::Padding;
 
 		auto EstablishesAbsoluteContainingBlock = [](ContainerBox* container) -> bool {
 			return container->GetPositionProperty() != Position::Static || container->HasLocalTransformOrPerspective();
@@ -230,10 +230,10 @@ void LayoutDetails::BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f
 	{
 		// For inline elements, their calculations are straightforward. No worrying about auto margins and dimensions, etc.
 		// Evaluate the margins. Any declared as 'auto' will resolve to 0.
-		box.SetEdge(Box::MARGIN, Box::TOP, ResolveValue(computed.margin_top(), containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::RIGHT, ResolveValue(computed.margin_right(), containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::BOTTOM, ResolveValue(computed.margin_bottom(), containing_block.x));
-		box.SetEdge(Box::MARGIN, Box::LEFT, ResolveValue(computed.margin_left(), containing_block.x));
+		box.SetEdge(BoxArea::Margin, BoxEdge::Top, ResolveValue(computed.margin_top(), containing_block.x));
+		box.SetEdge(BoxArea::Margin, BoxEdge::Right, ResolveValue(computed.margin_right(), containing_block.x));
+		box.SetEdge(BoxArea::Margin, BoxEdge::Bottom, ResolveValue(computed.margin_bottom(), containing_block.x));
+		box.SetEdge(BoxArea::Margin, BoxEdge::Left, ResolveValue(computed.margin_left(), containing_block.x));
 	}
 	else
 	{
@@ -274,7 +274,7 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	RootBox root(Math::Max(containing_block, Vector2f(0.f)));
 	UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
 
-	const float available_width = Math::Max(0.f, containing_block.x - box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN, Box::PADDING));
+	const float available_width = Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
 
 	return Math::Min(available_width, layout_box->GetShrinkToFitWidth());
 }
@@ -418,12 +418,12 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		{
 			margins_auto[i] = true;
 			num_auto_margins++;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::LEFT : Box::RIGHT, 0);
+			box.SetEdge(BoxArea::Margin, i == 0 ? BoxEdge::Left : BoxEdge::Right, 0);
 		}
 		else
 		{
 			margins_auto[i] = false;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::LEFT : Box::RIGHT, ResolveValue(margin_value, containing_block.x));
+			box.SetEdge(BoxArea::Margin, i == 0 ? BoxEdge::Left : BoxEdge::Right, ResolveValue(margin_value, containing_block.x));
 		}
 	}
 
@@ -450,7 +450,7 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		if (!shrink_to_fit)
 		{
 			// The width is set to whatever remains of the containing block.
-			content_area.x = containing_block.x - (GetInsetWidth() + box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN, Box::PADDING));
+			content_area.x = containing_block.x - (GetInsetWidth() + box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
 			content_area.x = Math::Max(0.0f, content_area.x);
 		}
 		else if (override_shrink_to_fit_width >= 0)
@@ -466,12 +466,13 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 	// Otherwise, the margins that are set to auto will pick up the remaining width of the containing block.
 	else if (num_auto_margins > 0)
 	{
-		const float margin = (containing_block.x - (GetInsetWidth() + box.GetSizeAcross(Box::HORIZONTAL, Box::MARGIN))) / float(num_auto_margins);
+		const float margin =
+			(containing_block.x - (GetInsetWidth() + box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin))) / float(num_auto_margins);
 
 		if (margins_auto[0])
-			box.SetEdge(Box::MARGIN, Box::LEFT, margin);
+			box.SetEdge(BoxArea::Margin, BoxEdge::Left, margin);
 		if (margins_auto[1])
-			box.SetEdge(Box::MARGIN, Box::RIGHT, margin);
+			box.SetEdge(BoxArea::Margin, BoxEdge::Right, margin);
 	}
 
 	// Clamp the calculated width; if the width is changed by the clamp, then the margins need to be recalculated if
@@ -506,12 +507,12 @@ void LayoutDetails::BuildBoxHeight(Box& box, const ComputedValues& computed, flo
 		{
 			margins_auto[i] = true;
 			num_auto_margins++;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::TOP : Box::BOTTOM, 0);
+			box.SetEdge(BoxArea::Margin, i == 0 ? BoxEdge::Top : BoxEdge::Bottom, 0);
 		}
 		else
 		{
 			margins_auto[i] = false;
-			box.SetEdge(Box::MARGIN, i == 0 ? Box::TOP : Box::BOTTOM, ResolveValue(margin_value, containing_block_height));
+			box.SetEdge(BoxArea::Margin, i == 0 ? BoxEdge::Top : BoxEdge::Bottom, ResolveValue(margin_value, containing_block_height));
 		}
 	}
 
@@ -537,19 +538,21 @@ void LayoutDetails::BuildBoxHeight(Box& box, const ComputedValues& computed, flo
 		if (absolutely_positioned && !inset_auto)
 		{
 			// The height is set to whatever remains of the containing block.
-			content_area.y = containing_block_height - (GetInsetHeight() + box.GetSizeAcross(Box::VERTICAL, Box::MARGIN, Box::PADDING));
+			content_area.y =
+				containing_block_height - (GetInsetHeight() + box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Margin, BoxArea::Padding));
 			content_area.y = Math::Max(0.0f, content_area.y);
 		}
 	}
 	// Otherwise, the margins that are set to auto will pick up the remaining height of the containing block.
 	else if (num_auto_margins > 0)
 	{
-		const float margin = (containing_block_height - (GetInsetHeight() + box.GetSizeAcross(Box::VERTICAL, Box::MARGIN))) / float(num_auto_margins);
+		const float margin =
+			(containing_block_height - (GetInsetHeight() + box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Margin))) / float(num_auto_margins);
 
 		if (margins_auto[0])
-			box.SetEdge(Box::MARGIN, Box::TOP, margin);
+			box.SetEdge(BoxArea::Margin, BoxEdge::Top, margin);
 		if (margins_auto[1])
-			box.SetEdge(Box::MARGIN, Box::BOTTOM, margin);
+			box.SetEdge(BoxArea::Margin, BoxEdge::Bottom, margin);
 	}
 
 	if (content_area.y >= 0)

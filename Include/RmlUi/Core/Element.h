@@ -121,19 +121,19 @@ public:
 	/// offset parent's top-left border corner.
 	/// @param[in] area The desired area position.
 	/// @return The relative offset.
-	Vector2f GetRelativeOffset(Box::Area area = Box::CONTENT);
+	Vector2f GetRelativeOffset(BoxArea area = BoxArea::Content);
 	/// Returns the position of the top-left corner of one of the areas of this element's primary box, relative to
 	/// the element root.
 	/// @param[in] area The desired area position.
 	/// @return The absolute offset.
-	Vector2f GetAbsoluteOffset(Box::Area area = Box::CONTENT);
+	Vector2f GetAbsoluteOffset(BoxArea area = BoxArea::Content);
 
 	/// Sets an alternate area to use as the client area.
 	/// @param[in] client_area The box area to use as the element's client area.
-	void SetClientArea(Box::Area client_area);
+	void SetClientArea(BoxArea client_area);
 	/// Returns the area the element uses as its client area.
 	/// @return The box area used as the element's client area.
-	Box::Area GetClientArea() const;
+	BoxArea GetClientArea() const;
 
 	/// Sets the dimensions of the element's scrollable overflow rectangle. This is the tightest fitting box surrounding
 	/// all of this element's logical children, and the element's padding box.
@@ -234,17 +234,17 @@ public:
 	/// @return The local properties for this element, or nullptr if no properties defined
 	const PropertyMap& GetLocalStyleProperties();
 
-	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
+	/// Resolves a length to its canonical unit ('px').
+	/// @param[in] value The numeric value.
+	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
+	/// @note Font-relative and context-relative units will be resolved against this element's computed values and its context.
+	float ResolveLength(NumericValue value);
+	/// Resolves a numeric value with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
 	/// Numbers and percentages are scaled by the base value and returned.
-	/// @param[in] property The property to resolve the value for.
+	/// @param[in] value The value to be resolved.
 	/// @param[in] base_value The value that is scaled by the number or percentage value, if applicable.
 	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
-	float ResolveNumericProperty(const Property* property, float base_value);
-	/// Resolves a property with units of number, percentage, length, or angle to their canonical unit (unit-less, 'px', or 'rad').
-	/// Numbers and percentages are scaled according to the relative target of the property definition.
-	/// @param[in] name The property to resolve the value for.
-	/// @return The resolved value in their canonical unit, or zero if it could not be resolved.
-	float ResolveNumericProperty(const String& property_name);
+	float ResolveNumericValue(NumericValue value, float base_value);
 
 	/// Returns the size of the containing block. Often percentages are scaled relative to this.
 	Vector2f GetContainingBlock();
@@ -744,7 +744,7 @@ private:
 	int num_non_dom_children;
 
 	// Defines what box area represents the element's client area; this is usually padding, but may be content.
-	Box::Area client_area;
+	BoxArea client_area;
 
 	// Original tag this element came from.
 	String tag;
