@@ -400,6 +400,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		bool numlock = event.GetParameter<int>("num_lock_key", 0) > 0;
 		bool shift = event.GetParameter<int>("shift_key", 0) > 0;
 		bool ctrl = event.GetParameter<int>("ctrl_key", 0) > 0;
+		bool alt = event.GetParameter<int>("alt_key", 0) > 0;
 		bool selection_changed = false;
 
 		switch (key_identifier)
@@ -482,7 +483,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 
 		case Input::KI_V:
 		{
-			if (ctrl)
+			if (ctrl && !alt)
 			{
 				String clipboard_text;
 				GetSystemInterface()->GetClipboardText(clipboard_text);
