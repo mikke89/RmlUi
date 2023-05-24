@@ -41,10 +41,16 @@ void ExtraInit<Event>(lua_State* /*L*/, int /*metatable_index*/)
 	return;
 }
 
-// method
+// methods
 int EventStopPropagation(lua_State* /*L*/, Event* obj)
 {
 	obj->StopPropagation();
+	return 0;
+}
+
+int EventStopImmediatePropagation(lua_State* /*L*/, Event* obj)
+{
+	obj->StopImmediatePropagation();
 	return 0;
 }
 
@@ -88,6 +94,7 @@ int EventGetAttrparameters(lua_State* L)
 
 RegType<Event> EventMethods[] = {
 	RMLUI_LUAMETHOD(Event, StopPropagation),
+	RMLUI_LUAMETHOD(Event, StopImmediatePropagation),
 	{nullptr, nullptr},
 };
 
