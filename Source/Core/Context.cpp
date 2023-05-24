@@ -55,8 +55,8 @@ static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
 static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
 
 Context::Context(const String& name) :
-	name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1),
-	next_update_timeout(0)
+	name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), pixels_per_inch(0), mouse_position(0, 0), clip_origin(-1, -1),
+	clip_dimensions(-1, -1), next_update_timeout(0)
 {
 	instancer = nullptr;
 
@@ -174,6 +174,29 @@ float Context::GetDensityIndependentPixelRatio() const
 	return density_independent_pixel_ratio;
 }
 
+void Context::SetPixelsPerInch(float ppi)
+{
+	if (pixels_per_inch != ppi)
+	{
+		pixels_per_inch = ppi;
+
+		for (int i = 0; i < root->GetNumChildren(true); ++i)
+		{
+			ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
+			if (document)
+			{
+				document->DirtyMediaQueries();
+				document->OnDpRatioChangeRecursive();
+			}
+		}
+	}
+}
+
+float Context::GetPixelsPerInch() const
+{
+	return pixels_per_inch;
+}
+
 bool Context::Update()
 {
 	RMLUI_ZoneScoped;
@@ -197,7 +220,7 @@ bool Context::Update()
 	root->dirty_definition = false;
 	root->dirty_child_definitions = false;
 
-	root->Update(density_independent_pixel_ratio, Vector2f(dimensions));
+	root->Update(pixels_per_inch, density_independent_pixel_ratio, Vector2f(dimensions));
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 	{

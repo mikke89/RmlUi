@@ -350,6 +350,7 @@ static float ComputeLength(NumericValue value, Element* element)
 	float font_size = 0.f;
 	float doc_font_size = 0.f;
 	float dp_ratio = 1.0f;
+	float pixels_per_inch = 0.0f;
 	Vector2f vp_dimensions(1.0f);
 
 	switch (value.unit)
@@ -370,18 +371,24 @@ static float ComputeLength(NumericValue value, Element* element)
 		if (Context* context = element->GetContext())
 			vp_dimensions = Vector2f(context->GetDimensions());
 		break;
+	case Unit::INCH:
+	case Unit::CM:
+	case Unit::MM:
+	case Unit::PT:
+	case Unit::PC:
+		if (Context* context = element->GetContext())
+			pixels_per_inch = context->GetPixelsPerInch();
+		break;
 	default: break;
 	}
 
-	const float result = ComputeLength(value, font_size, doc_font_size, dp_ratio, vp_dimensions);
+	const float result = ComputeLength(value, font_size, doc_font_size, pixels_per_inch, dp_ratio, vp_dimensions);
 	return result;
 }
 
 float ElementStyle::ResolveNumericValue(NumericValue value, float base_value) const
 {
-	if (Any(value.unit & Unit::ABSOLUTE_LENGTH))
-		return ComputeAbsoluteLength(value);
-	else if (Any(value.unit & Unit::LENGTH))
+	if (Any(value.unit & Unit::LENGTH))
 		return ComputeLength(value, element);
 
 	switch (value.unit)
@@ -506,7 +513,7 @@ void ElementStyle::DirtyProperties(const PropertyIdSet& properties)
 }
 
 PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values,
-	const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions)
+	const Style::ComputedValues* document_values, bool values_are_default_initialized, float pixels_per_inch, float dp_ratio, Vector2f vp_dimensions)
 {
 	if (dirty_properties.Empty())
 		return PropertyIdSet();
@@ -543,7 +550,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	if (dirty_properties.Contains(PropertyId::FontSize))
 	{
 		if (auto p = GetLocalProperty(PropertyId::FontSize))
-			values.font_size(ComputeFontsize(p->GetNumericValue(), values, parent_values, document_values, dp_ratio, vp_dimensions));
+			values.font_size(ComputeFontSize(p->GetNumericValue(), values, parent_values, document_values, pixels_per_inch, dp_ratio, vp_dimensions));
 		else if (parent_values)
 			values.font_size(parent_values->font_size());
 
@@ -566,7 +573,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	{
 		if (auto p = GetLocalProperty(PropertyId::LineHeight))
 		{
-			values.line_height(ComputeLineHeight(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.line_height(ComputeLineHeight(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 		}
 		else if (parent_values)
 		{
@@ -604,44 +611,44 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		switch (id)
 		{
 		case PropertyId::MarginTop:
-			values.margin_top(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.margin_top(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MarginRight:
-			values.margin_right(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.margin_right(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MarginBottom:
-			values.margin_bottom(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.margin_bottom(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MarginLeft:
-			values.margin_left(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.margin_left(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::PaddingTop:
-			values.padding_top(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.padding_top(ComputeLengthPercentage(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PaddingRight:
-			values.padding_right(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.padding_right(ComputeLengthPercentage(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PaddingBottom:
-			values.padding_bottom(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.padding_bottom(ComputeLengthPercentage(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PaddingLeft:
-			values.padding_left(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.padding_left(ComputeLengthPercentage(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::BorderTopWidth:
-			values.border_top_width(ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
+			values.border_top_width(ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions)));
 			break;
 		case PropertyId::BorderRightWidth:
 			values.border_right_width(
-				ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
+				ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions)));
 			break;
 		case PropertyId::BorderBottomWidth:
 			values.border_bottom_width(
-				ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
+				ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions)));
 			break;
 		case PropertyId::BorderLeftWidth:
-			values.border_left_width(ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions)));
+			values.border_left_width(ComputeBorderWidth(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions)));
 			break;
 
 		case PropertyId::BorderTopColor:
@@ -658,16 +665,16 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::BorderTopLeftRadius:
-			values.border_top_left_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.border_top_left_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::BorderTopRightRadius:
-			values.border_top_right_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.border_top_right_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::BorderBottomRightRadius:
-			values.border_bottom_right_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.border_bottom_right_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::BorderBottomLeftRadius:
-			values.border_bottom_left_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.border_bottom_left_radius(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Display:
@@ -678,16 +685,16 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::Top:
-			values.top(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.top(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::Right:
-			values.right(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.right(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::Bottom:
-			values.bottom(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.bottom(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::Left:
-			values.left(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.left(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Float:
@@ -705,30 +712,30 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::Width:
-			values.width(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.width(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MinWidth:
-			values.min_width(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.min_width(ComputeLengthPercentage(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MaxWidth:
-			values.max_width(ComputeMaxSize(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.max_width(ComputeMaxSize(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Height:
-			values.height(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.height(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MinHeight:
-			values.min_height(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.min_height(ComputeLengthPercentage(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::MaxHeight:
-			values.max_height(ComputeMaxSize(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.max_height(ComputeMaxSize(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::LineHeight:
 			// (Line-height computed above)
 			break;
 		case PropertyId::VerticalAlign:
-			values.vertical_align(ComputeVerticalAlign(p, values.line_height().value, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.vertical_align(ComputeVerticalAlign(p, values.line_height().value, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::OverflowX:
@@ -795,10 +802,10 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::RowGap:
-			values.row_gap(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.row_gap(ComputeLengthPercentage(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::ColumnGap:
-			values.column_gap(ComputeLengthPercentage(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.column_gap(ComputeLengthPercentage(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Drag:
@@ -811,7 +818,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.focus((Focus)p->Get<int>());
 			break;
 		case PropertyId::ScrollbarMargin:
-			values.scrollbar_margin(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.scrollbar_margin(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::OverscrollBehavior:
 			values.overscroll_behavior((OverscrollBehavior)p->Get<int>());
@@ -821,27 +828,27 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::Perspective:
-			values.perspective(p->unit == Unit::KEYWORD ? 0.f : ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.perspective(p->unit == Unit::KEYWORD ? 0.f : ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			values.has_local_perspective(values.perspective() > 0.f);
 			break;
 		case PropertyId::PerspectiveOriginX:
-			values.perspective_origin_x(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.perspective_origin_x(ComputeOrigin(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::PerspectiveOriginY:
-			values.perspective_origin_y(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.perspective_origin_y(ComputeOrigin(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Transform:
 			values.has_local_transform(p->Get<TransformPtr>() != nullptr);
 			break;
 		case PropertyId::TransformOriginX:
-			values.transform_origin_x(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.transform_origin_x(ComputeOrigin(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::TransformOriginY:
-			values.transform_origin_y(ComputeOrigin(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.transform_origin_y(ComputeOrigin(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 		case PropertyId::TransformOriginZ:
-			values.transform_origin_z(ComputeLength(p->GetNumericValue(), font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.transform_origin_z(ComputeLength(p->GetNumericValue(), font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		case PropertyId::Decorator:
@@ -851,7 +858,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.has_font_effect((p->unit == Unit::FONTEFFECT));
 			break;
 		case PropertyId::FlexBasis:
-			values.flex_basis(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
+			values.flex_basis(ComputeLengthPercentageAuto(p, font_size, document_font_size, pixels_per_inch, dp_ratio, vp_dimensions));
 			break;
 
 		// Fetched from element's properties.

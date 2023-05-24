@@ -244,9 +244,10 @@ void ElementScroll::UpdateScrollElementProperties(Element* scroll_element)
 
 	Context* context = element->GetContext();
 
+	const float pixels_per_inch = (context ? context->GetPixelsPerInch() : 0.0f);
 	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
 	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
-	scroll_element->Update(dp_ratio, vp_dimensions);
+	scroll_element->Update(pixels_per_inch, dp_ratio, vp_dimensions);
 }
 
 ElementScroll::Scrollbar::Scrollbar() {}

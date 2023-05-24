@@ -53,6 +53,7 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 {
 	RMLUI_ZoneScoped;
 
+	const float pixels_per_inch = context->GetPixelsPerInch();
 	const float dp_ratio = context->GetDensityIndependentPixelRatio();
 	const Vector2i vp_dimensions_i(context->GetDimensions());
 	const Vector2f vp_dimensions(vp_dimensions_i);
@@ -73,27 +74,33 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 			switch (id)
 			{
 			case MediaQueryId::Width:
-				if (vp_dimensions.x != ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.x !=
+					ComputeLength(property.second.GetNumericValue(), font_size, font_size, pixels_per_inch, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::MinWidth:
-				if (vp_dimensions.x < ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.x <
+					ComputeLength(property.second.GetNumericValue(), font_size, font_size, pixels_per_inch, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::MaxWidth:
-				if (vp_dimensions.x > ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.x >
+					ComputeLength(property.second.GetNumericValue(), font_size, font_size, pixels_per_inch, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::Height:
-				if (vp_dimensions.y != ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.y !=
+					ComputeLength(property.second.GetNumericValue(), font_size, font_size, pixels_per_inch, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::MinHeight:
-				if (vp_dimensions.y < ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.y <
+					ComputeLength(property.second.GetNumericValue(), font_size, font_size, pixels_per_inch, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::MaxHeight:
-				if (vp_dimensions.y > ComputeLength(property.second.GetNumericValue(), font_size, font_size, dp_ratio, vp_dimensions))
+				if (vp_dimensions.y >
+					ComputeLength(property.second.GetNumericValue(), font_size, font_size, pixels_per_inch, dp_ratio, vp_dimensions))
 					all_match = false;
 				break;
 			case MediaQueryId::AspectRatio:

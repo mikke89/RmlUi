@@ -81,6 +81,13 @@ public:
 	/// @return The current density-independent pixel ratio of the context.
 	float GetDensityIndependentPixelRatio() const;
 
+	/// Changes the pixels per inch value used for ppi-based property units
+	/// @param[in] pixels_per_inch The new pixels per inch value of the context.
+	void SetPixelsPerInch(float pixels_per_inch);
+	/// Returns the pixels per inch value of the context.
+	/// @return The current pixels per inch of the context.
+	float GetPixelsPerInch() const;
+
 	/// Updates all elements in the context's documents.
 	/// This must be called before Context::Render, but after any elements have been changed, added or removed.
 	bool Update();
@@ -306,6 +313,7 @@ private:
 	String name;
 	Vector2i dimensions;
 	float density_independent_pixel_ratio;
+	float pixels_per_inch;
 	String documents_base_tag = "body";
 
 	SmallUnorderedSet<String> active_themes;

@@ -151,7 +151,7 @@ Element::~Element()
 	element_meta_chunk_pool.DestroyAndDeallocate(meta);
 }
 
-void Element::Update(float dp_ratio, Vector2f vp_dimensions)
+void Element::Update(float pixels_per_inch, float dp_ratio, Vector2f vp_dimensions)
 {
 #ifdef RMLUI_ENABLE_PROFILING
 	auto name = GetAddress(false, false);
@@ -167,20 +167,20 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 
 	meta->scroll.Update();
 
-	UpdateProperties(dp_ratio, vp_dimensions);
+	UpdateProperties(pixels_per_inch, dp_ratio, vp_dimensions);
 
 	// Do en extra pass over the animations and properties if the 'animation' property was just changed.
 	if (dirty_animation)
 	{
 		HandleAnimationProperty();
 		AdvanceAnimations();
-		UpdateProperties(dp_ratio, vp_dimensions);
+		UpdateProperties(pixels_per_inch, dp_ratio, vp_dimensions);
 	}
 
 	meta->decoration.InstanceDecorators();
 
 	for (size_t i = 0; i < children.size(); i++)
-		children[i]->Update(dp_ratio, vp_dimensions);
+		children[i]->Update(pixels_per_inch, dp_ratio, vp_dimensions);
 
 	if (!animations.empty() && IsVisible(true))
 	{
@@ -189,7 +189,7 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 	}
 }
 
-void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)
+void Element::UpdateProperties(const float pixels_per_inch, const float dp_ratio, const Vector2f vp_dimensions)
 {
 	UpdateDefinition();
 
@@ -200,7 +200,7 @@ void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimension
 
 		// Compute values and clear dirty properties
 		PropertyIdSet dirty_properties = meta->style.ComputeValues(meta->computed_values, parent_values, document_values,
-			computed_values_are_default_initialized, dp_ratio, vp_dimensions);
+			computed_values_are_default_initialized, pixels_per_inch, dp_ratio, vp_dimensions);
 
 		computed_values_are_default_initialized = false;
 
@@ -576,18 +576,18 @@ bool Element::SetProperty(PropertyId id, const Property& property)
 void Element::RemoveProperty(const String& name)
 {
 	auto property_id = StyleSheetSpecification::GetPropertyId(name);
-    if (property_id != PropertyId::Invalid)
-        meta->style.RemoveProperty(property_id);
-    else
-    {
-        auto shorthand_id = StyleSheetSpecification::GetShorthandId(name);
-        if (shorthand_id != ShorthandId::Invalid)
-        {
-            auto property_id_set = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand_id);
-            for (auto it = property_id_set.begin(); it != property_id_set.end(); ++it)
-                meta->style.RemoveProperty(*it);
-        }
-    }
+	if (property_id != PropertyId::Invalid)
+		meta->style.RemoveProperty(property_id);
+	else
+	{
+		auto shorthand_id = StyleSheetSpecification::GetShorthandId(name);
+		if (shorthand_id != ShorthandId::Invalid)
+		{
+			auto property_id_set = StyleSheetSpecification::GetShorthandUnderlyingProperties(shorthand_id);
+			for (auto it = property_id_set.begin(); it != property_id_set.end(); ++it)
+				meta->style.RemoveProperty(*it);
+		}
+	}
 }
 
 void Element::RemoveProperty(PropertyId id)

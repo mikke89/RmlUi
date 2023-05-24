@@ -137,7 +137,8 @@ public:
 	/// Turns the local and inherited properties into computed values for this element. These values can in turn be used during the layout procedure.
 	/// Must be called in correct order, always parent before its children.
 	PropertyIdSet ComputeValues(Style::ComputedValues& values, const Style::ComputedValues* parent_values,
-		const Style::ComputedValues* document_values, bool values_are_default_initialized, float dp_ratio, Vector2f vp_dimensions);
+		const Style::ComputedValues* document_values, bool values_are_default_initialized, float pixels_per_inch, float dp_ratio,
+		Vector2f vp_dimensions);
 
 	/// Returns an iterator for iterating the local properties of this element.
 	/// Note: Modifying the element's style invalidates its iterator.
