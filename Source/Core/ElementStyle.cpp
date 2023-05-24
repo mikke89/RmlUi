@@ -289,7 +289,7 @@ void ElementStyle::UpdateDefinition()
 		for (auto const& it : props)
 		{
 			auto prop = source_inline_properties.GetProperty(it.first);
-			if (!prop || prop->unit == Property::PROPERTYVARIABLETERM)
+			if (!prop || prop->unit == Unit::PROPERTYVARIABLETERM)
 			{
 				inline_properties.RemoveProperty(it.first);
 				DirtyProperty(it.first);
@@ -299,7 +299,7 @@ void ElementStyle::UpdateDefinition()
 		for (auto const& it : vars)
 		{
 			auto var = source_inline_properties.GetPropertyVariable(it.first);
-			if (!var || var->unit == Property::PROPERTYVARIABLETERM)
+			if (!var || var->unit == Unit::PROPERTYVARIABLETERM)
 			{
 				inline_properties.RemovePropertyVariable(it.first);
 				dirty_variables.insert(it.first);
@@ -413,7 +413,7 @@ bool ElementStyle::SetProperty(PropertyId id, const Property& property)
 	source_inline_properties.SetProperty(id, new_property);
 
 	// directly copy to resolved values if not variable-dependent
-	if (property.unit != Property::PROPERTYVARIABLETERM)
+	if (property.unit != Unit::PROPERTYVARIABLETERM)
 		inline_properties.SetProperty(id, new_property);
 
 	UpdatePropertyDependencies(id);
@@ -435,7 +435,7 @@ bool ElementStyle::SetPropertyVariable(const String& name, const Property& varia
 {
 	source_inline_properties.SetPropertyVariable(name, variable);
 	// directly copy to resolved values if not variable-dependent
-	if (variable.unit != Property::PROPERTYVARIABLETERM)
+	if (variable.unit != Unit::PROPERTYVARIABLETERM)
 		inline_properties.SetPropertyVariable(name, variable);
 
 	DirtyPropertyVariable(name);
@@ -488,7 +488,6 @@ const PropertyMap& ElementStyle::GetLocalStyleProperties() const
 	return source_inline_properties.GetProperties();
 }
 
-
 const PropertyVariableMap& ElementStyle::GetLocalStylePropertyVariables() const
 {
 	return source_inline_properties.GetPropertyVariables();
@@ -505,8 +504,8 @@ static float ComputeLength(NumericValue value, Element* element)
 	{
 	case Unit::EM: font_size = element->GetComputedValues().font_size(); break;
 	case Unit::REM:
-	if (ElementDocument* document = element->GetOwnerDocument())
-		doc_font_size = document->GetComputedValues().font_size();
+		if (ElementDocument* document = element->GetOwnerDocument())
+			doc_font_size = document->GetComputedValues().font_size();
 		else
 			doc_font_size = DefaultComputedValues.font_size();
 		break;
@@ -520,7 +519,7 @@ static float ComputeLength(NumericValue value, Element* element)
 			vp_dimensions = Vector2f(context->GetDimensions());
 		break;
 	default: break;
-		}
+	}
 
 	const float result = ComputeLength(value, font_size, doc_font_size, dp_ratio, vp_dimensions);
 	return result;
@@ -672,7 +671,7 @@ void ElementStyle::ResolveProperty(PropertyDictionary& output, PropertyId id, co
 	{
 		output.RemoveProperty(id);
 	}
-	else if (prop->unit == Property::PROPERTYVARIABLETERM)
+	else if (prop->unit == Unit::PROPERTYVARIABLETERM)
 	{
 		String string_value;
 		ResolvePropertyVariableTerm(string_value, prop->value.GetReference<PropertyVariableTerm>(), element, inline_properties, definition);
@@ -724,7 +723,7 @@ void ElementStyle::ResolvePropertyVariable(PropertyDictionary& output, const Str
 	{
 		output.RemovePropertyVariable(name);
 	}
-	else if (var->unit == Property::PROPERTYVARIABLETERM)
+	else if (var->unit == Unit::PROPERTYVARIABLETERM)
 	{
 		// resolve dirty variable dependencies first
 		auto const& term = var->value.GetReference<PropertyVariableTerm>();
@@ -737,7 +736,7 @@ void ElementStyle::ResolvePropertyVariable(PropertyDictionary& output, const Str
 		// resolve actual variable using output dictionary as inline source!
 		String string_value;
 		ResolvePropertyVariableTerm(string_value, term, element, output, definition);
-		output.SetPropertyVariable(name, Property(string_value, Property::STRING));
+		output.SetPropertyVariable(name, Property(string_value, Unit::STRING));
 	}
 }
 
@@ -752,7 +751,7 @@ void ElementStyle::ResolvePropertyVariableTerm(String& output, const PropertyVar
 			const Property* var = GetPropertyVariable(atom.variable, element, inline_properties, definition);
 			if (var)
 			{
-				if (var->unit == Property::PROPERTYVARIABLETERM)
+				if (var->unit == Unit::PROPERTYVARIABLETERM)
 				{
 					if (atom.constant.empty())
 						Log::Message(Log::LT_ERROR, "Failed to resolve RCSS variable '%s'. Has not been resolved yet.", atom.variable.c_str());
@@ -790,7 +789,7 @@ void ElementStyle::UpdatePropertyDependencies(PropertyId id)
 
 	auto property = GetProperty(id);
 
-	if (property && property->unit == Property::PROPERTYVARIABLETERM)
+	if (property && property->unit == Unit::PROPERTYVARIABLETERM)
 	{
 		auto term = property->value.GetReference<PropertyVariableTerm>();
 		for (auto const& atom : term)
@@ -886,7 +885,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		if (dirty_properties.Contains(PropertyId::FontSize))
 		{
 			if (auto p = GetLocalProperty(PropertyId::FontSize))
-			values.font_size(ComputeFontsize(p->GetNumericValue(), values, parent_values, document_values, dp_ratio, vp_dimensions));
+				values.font_size(ComputeFontsize(p->GetNumericValue(), values, parent_values, document_values, dp_ratio, vp_dimensions));
 			else if (parent_values)
 				values.font_size(parent_values->font_size());
 
@@ -938,7 +937,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			const PropertyId id = name_property_pair.first;
 			const Property* p = &name_property_pair.second;
 
-		if (dirty_em_properties && p->unit == Unit::EM)
+			if (dirty_em_properties && p->unit == Unit::EM)
 				dirty_properties.Insert(id);
 
 			using namespace Style;

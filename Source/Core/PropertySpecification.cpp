@@ -255,7 +255,7 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 	Property new_property;
 	if (ParsePropertyVariableTerm(term, property_values))
 	{
-		new_property = Property(std::move(term), Property::PROPERTYVARIABLETERM);
+		new_property = Property(std::move(term), Unit::PROPERTYVARIABLETERM);
 		new_property.definition = property_definition;
 		dictionary.SetProperty(property_id, new_property);
 		return true;
@@ -434,7 +434,8 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 	return true;
 }
 
-bool PropertySpecification::ParsePropertyVariableDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value) const
+bool PropertySpecification::ParsePropertyVariableDeclaration(PropertyDictionary& dictionary, const String& property_name,
+	const String& property_value) const
 {
 	if (!(property_name.size() > 2 && property_name[0] == '-' && property_name[1] == '-'))
 		return false;
@@ -452,14 +453,14 @@ bool PropertySpecification::ParsePropertyVariableDeclaration(PropertyDictionary&
 	// Only store original variable term when there is another variable inside that needs resolving
 	if (any_variable)
 	{
-		dictionary.SetPropertyVariable(property_name, Property(std::move(term), Property::PROPERTYVARIABLETERM));
+		dictionary.SetPropertyVariable(property_name, Property(std::move(term), Unit::PROPERTYVARIABLETERM));
 	}
 	else
 	{
 		String joined;
 		StringUtilities::JoinString(joined, property_values, ' ');
 
-		dictionary.SetPropertyVariable(property_name, Property(joined, Property::STRING));
+		dictionary.SetPropertyVariable(property_name, Property(joined, Unit::STRING));
 	}
 	return true;
 }

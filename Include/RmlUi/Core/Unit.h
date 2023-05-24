@@ -71,13 +71,14 @@ enum class Unit {
 	RAD = 1 << 19, // number suffixed by 'rad'; fetch as <float>
 
 	// Values tied to specific types.
-	TRANSFORM = 1 << 20,     // transform; fetch as <TransformPtr>, may be empty
-	TRANSITION = 1 << 21,    // transition; fetch as <TransitionList>
-	ANIMATION = 1 << 22,     // animation; fetch as <AnimationList>
-	DECORATOR = 1 << 23,     // decorator; fetch as <DecoratorsPtr>
-	FONTEFFECT = 1 << 24,    // font-effect; fetch as <FontEffectsPtr>
-	COLORSTOPLIST = 1 << 25, // color stop list; fetch as <ColorStopList>
-	SHADOWLIST = 1 << 26,    // shadow list; fetch as <ShadowList>
+	TRANSFORM = 1 << 20,            // transform; fetch as <TransformPtr>, may be empty
+	TRANSITION = 1 << 21,           // transition; fetch as <TransitionList>
+	ANIMATION = 1 << 22,            // animation; fetch as <AnimationList>
+	DECORATOR = 1 << 23,            // decorator; fetch as <DecoratorsPtr>
+	FONTEFFECT = 1 << 24,           // font-effect; fetch as <FontEffectsPtr>
+	COLORSTOPLIST = 1 << 25,        // color stop list; fetch as <ColorStopList>
+	SHADOWLIST = 1 << 26,           // shadow list; fetch as <ShadowList>
+	PROPERTYVARIABLETERM = 1 << 27, // variable term; fetch as < PropertyVariableTerm >
 
 	LENGTH = PX | DP | VW | VH | EM | REM | PPI_UNIT,
 	LENGTH_PERCENT = LENGTH | PERCENT,

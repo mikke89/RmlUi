@@ -368,7 +368,7 @@ TEST_CASE("variables.shorthands")
 	CHECK(div->GetProperty(PropertyId::PaddingRight)->ToString() == "5px");
 
 	// variable modification and shorthand override
-	div->SetProperty(PropertyId::PaddingTop, Property(6, Property::PX));
+	div->SetProperty(PropertyId::PaddingTop, Property(6, Unit::PX));
 
 	TestsShell::RenderLoop();
 
