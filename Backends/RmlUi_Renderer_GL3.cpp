@@ -182,6 +182,19 @@ void main() {
 	finalColor = color;
 }
 )";
+static const char* shader_frag_drop_shadow = RMLUI_SHADER_HEADER R"(
+uniform sampler2D _tex;
+uniform vec2 _texCoordMin;
+uniform vec2 _texCoordMax;
+uniform vec4 _color;
+
+in vec2 fragTexCoord;
+out vec4 finalColor;
+
+void main() {
+	finalColor = texture(_tex, clamp(fragTexCoord, _texCoordMin, _texCoordMax)).a * _color;
+}
+)";
 
 enum class ProgramId {
 	None,
@@ -190,6 +203,7 @@ enum class ProgramId {
 	Passthrough,
 	ColorMatrix,
 	Blur,
+	DropShadow,
 	Count,
 };
 enum class VertShaderId {
@@ -204,12 +218,14 @@ enum class FragShaderId {
 	Passthrough,
 	ColorMatrix,
 	Blur,
+	DropShadow,
 	Count,
 };
 enum class UniformId {
 	Translate,
 	Transform,
 	Tex,
+	Color,
 	ColorMatrix,
 	TexelOffset,
 	TexCoordMin,
@@ -220,8 +236,8 @@ enum class UniformId {
 
 namespace Gfx {
 
-static const char* const program_uniform_names[(size_t)UniformId::Count] = {"_translate", "_transform", "_tex", "_color_matrix", "_texelOffset",
-	"_texCoordMin", "_texCoordMax", "_weights[0]"};
+static const char* const program_uniform_names[(size_t)UniformId::Count] = {"_translate", "_transform", "_tex", "_color", "_color_matrix",
+	"_texelOffset", "_texCoordMin", "_texCoordMax", "_weights[0]"};
 
 enum class VertexAttribute { Position, Color0, TexCoord0, Count };
 static const char* const vertex_attribute_names[(size_t)VertexAttribute::Count] = {"inPosition", "inColor0", "inTexCoord0"};
@@ -255,6 +271,7 @@ static const FragShaderDefinition frag_shader_definitions[] = {
 	{FragShaderId::Passthrough, "passthrough",  shader_frag_passthrough},
 	{FragShaderId::ColorMatrix, "color_matrix", shader_frag_color_matrix},
 	{FragShaderId::Blur,        "blur",         shader_frag_blur},
+	{FragShaderId::DropShadow,  "drop_shadow",  shader_frag_drop_shadow},
 };
 static const ProgramDefinition program_definitions[] = {
 	{ProgramId::Color,       "color",        VertShaderId::Main,        FragShaderId::Color},
@@ -262,6 +279,7 @@ static const ProgramDefinition program_definitions[] = {
 	{ProgramId::Passthrough, "passthrough",  VertShaderId::Passthrough, FragShaderId::Passthrough},
 	{ProgramId::ColorMatrix, "color_matrix", VertShaderId::Passthrough, FragShaderId::ColorMatrix},
 	{ProgramId::Blur,        "blur",         VertShaderId::Blur,        FragShaderId::Blur},
+	{ProgramId::DropShadow,  "drop_shadow",  VertShaderId::Passthrough, FragShaderId::DropShadow},
 };
 // clang-format on
 
@@ -1279,7 +1297,7 @@ void RenderInterface_GL3::SetTransform(const Rml::Matrix4f* new_transform)
 	program_transform_dirty.set();
 }
 
-enum class FilterType { Invalid = 0, Passthrough, Blur, ColorMatrix };
+enum class FilterType { Invalid = 0, Passthrough, Blur, DropShadow, ColorMatrix };
 struct CompiledFilter {
 	FilterType type;
 
@@ -1288,6 +1306,10 @@ struct CompiledFilter {
 
 	// Blur
 	float sigma;
+
+	// Drop shadow
+	Rml::Vector2f offset;
+	Rml::Colourb color;
 
 	// ColorMatrix
 	Rml::Matrix4f color_matrix;
@@ -1306,6 +1328,13 @@ Rml::CompiledFilterHandle RenderInterface_GL3::CompileFilter(const Rml::String& 
 	{
 		filter.type = FilterType::Blur;
 		filter.sigma = 0.5f * Rml::Get(parameters, "radius", 1.0f);
+	}
+	else if (name == "drop-shadow")
+	{
+		filter.type = FilterType::DropShadow;
+		filter.sigma = Rml::Get(parameters, "sigma", 0.f);
+		filter.color = Rml::Get(parameters, "color", Rml::Colourb());
+		filter.offset = Rml::Get(parameters, "offset", Rml::Vector2f(0.f));
 	}
 	else if (name == "brightness")
 	{
@@ -1414,6 +1443,16 @@ void RenderInterface_GL3::BlitTopLayerToPostprocessPrimary()
 	glBlitFramebuffer(0, 0, source.width, source.height, 0, 0, destination.width, destination.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
+static inline Rml::Colourf ToPremultipliedAlpha(Rml::Colourb c0)
+{
+	Rml::Colourf result;
+	result.alpha = (1.f / 255.f) * float(c0.alpha);
+	result.red = (1.f / 255.f) * float(c0.red) * result.alpha;
+	result.green = (1.f / 255.f) * float(c0.green) * result.alpha;
+	result.blue = (1.f / 255.f) * float(c0.blue) * result.alpha;
+	return result;
+}
+
 void RenderInterface_GL3::RenderFilters(const Rml::FilterHandleList& filter_handles)
 {
 	for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
@@ -1451,6 +1490,40 @@ void RenderInterface_GL3::RenderFilters(const Rml::FilterHandleList& filter_hand
 			RenderBlur(filter.sigma, source_destination, temp, window_flipped);
 
 			glEnable(GL_BLEND);
+		}
+		break;
+		case FilterType::DropShadow:
+		{
+			UseProgram(ProgramId::DropShadow);
+			glDisable(GL_BLEND);
+
+			Rml::Colourf color = ToPremultipliedAlpha(filter.color);
+			glUniform4fv(GetUniformLocation(UniformId::Color), 1, &color[0]);
+
+			const Gfx::FramebufferData& primary = render_layers.GetPostprocessPrimary();
+			const Gfx::FramebufferData& secondary = render_layers.GetPostprocessSecondary();
+			Gfx::BindTexture(primary);
+			glBindFramebuffer(GL_FRAMEBUFFER, secondary.framebuffer);
+
+			const Rml::Rectanglei window_flipped = VerticallyFlipped(scissor_state, viewport_height);
+			SetTexCoordLimits(GetUniformLocation(UniformId::TexCoordMin), GetUniformLocation(UniformId::TexCoordMax), window_flipped,
+				{primary.width, primary.height});
+
+			const Rml::Vector2f uv_offset = filter.offset / Rml::Vector2f(-(float)viewport_width, (float)viewport_height);
+			DrawFullscreenQuad(uv_offset);
+
+			if (filter.sigma >= 0.5f)
+			{
+				const Gfx::FramebufferData& tertiary = render_layers.GetPostprocessTertiary();
+				RenderBlur(filter.sigma, secondary, tertiary, window_flipped);
+			}
+
+			UseProgram(ProgramId::Passthrough);
+			BindTexture(primary);
+			glEnable(GL_BLEND);
+			DrawFullscreenQuad();
+
+			render_layers.SwapPostprocessPrimarySecondary();
 		}
 		break;
 		case FilterType::ColorMatrix:

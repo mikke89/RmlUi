@@ -100,7 +100,7 @@ private:
 	void SetScissor(Rml::Rectanglei region, bool vertically_flip = false);
 
 	void DrawFullscreenQuad();
-	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling);
+	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f));
 
 	void RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp, Rml::Rectanglei window_flipped);
 

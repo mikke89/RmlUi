@@ -64,6 +64,7 @@
 #include "EventInstancerDefault.h"
 #include "FilterBasic.h"
 #include "FilterBlur.h"
+#include "FilterDropShadow.h"
 #include "FontEffectBlur.h"
 #include "FontEffectGlow.h"
 #include "FontEffectOutline.h"
@@ -158,6 +159,7 @@ struct DefaultInstancers {
 	FilterBasicInstancer filter_basic_d0 = {FilterBasicInstancer::ValueType::NumberPercent, "0"};
 	FilterBasicInstancer filter_basic_d1 = {FilterBasicInstancer::ValueType::NumberPercent, "1"};
 	FilterBlurInstancer filter_blur;
+	FilterDropShadowInstancer filter_drop_shadow;
 
 	// Font effects
 	FontEffectBlurInstancer font_effect_blur;
@@ -252,6 +254,7 @@ bool Factory::Initialise()
 	RegisterFilterInstancer("sepia", &default_instancers->filter_basic_d0);
 
 	RegisterFilterInstancer("blur", &default_instancers->filter_blur);
+	RegisterFilterInstancer("drop-shadow", &default_instancers->filter_drop_shadow);
 
 	// Font effect instancers
 	RegisterFontEffectInstancer("blur", &default_instancers->font_effect_blur);
