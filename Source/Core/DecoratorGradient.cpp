@@ -67,13 +67,7 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 	const ComputedValues& computed = element->GetComputedValues();
 	const float opacity = computed.opacity();
 
-	const Vector4f border_radius{
-		computed.border_top_left_radius(),
-		computed.border_top_right_radius(),
-		computed.border_bottom_right_radius(),
-		computed.border_bottom_left_radius(),
-	};
-	GeometryUtilities::GenerateBackgroundBorder(geometry, element->GetBox(), Vector2f(0), border_radius, Colourb());
+	GeometryUtilities::GenerateBackground(geometry, element->GetBox(), Vector2f(0), computed.border_radius(), Colourb());
 
 	// Apply opacity
 	Colourb colour_start = start;

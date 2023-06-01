@@ -71,6 +71,7 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 		computed.border_bottom_color(),
 		computed.border_left_color(),
 	};
+	const Vector4f border_radius = computed.border_radius();
 
 	// Apply opacity
 	const float opacity = computed.opacity();
@@ -85,14 +86,11 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 	geometry.GetVertices().clear();
 	geometry.GetIndices().clear();
 
-	const Vector4f radii(computed.border_top_left_radius(), computed.border_top_right_radius(), computed.border_bottom_right_radius(),
-		computed.border_bottom_left_radius());
-
 	for (int i = 0; i < element->GetNumBoxes(); i++)
 	{
 		Vector2f offset;
 		const Box& box = element->GetBox(i, offset);
-		GeometryUtilities::GenerateBackgroundBorder(&geometry, box, offset, radii, background_color, border_colors);
+		GeometryUtilities::GenerateBackgroundBorder(&geometry, box, offset, border_radius, background_color, border_colors);
 	}
 
 	geometry.Release();

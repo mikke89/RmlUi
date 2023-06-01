@@ -293,6 +293,8 @@ namespace Style {
 		float             border_top_right_radius()    const { return (float)rare.border_top_right_radius; }
 		float             border_bottom_right_radius() const { return (float)rare.border_bottom_right_radius; }
 		float             border_bottom_left_radius()  const { return (float)rare.border_bottom_left_radius; }
+		Vector4f          border_radius()              const { return {(float)rare.border_top_left_radius,     (float)rare.border_top_right_radius,
+		                                                               (float)rare.border_bottom_right_radius, (float)rare.border_bottom_left_radius}; }
 		Clip              clip()                       const { return rare.clip; }
 		Drag              drag()                       const { return rare.drag; }
 		TabIndex          tab_index()                  const { return rare.tab_index; }

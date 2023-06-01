@@ -44,24 +44,45 @@ using CornerSizes = Array<float, 4>;
 using CornerSizes2 = Array<Vector2f, 4>;
 using CornerPositions = Array<Vector2f, 4>;
 
+// The background-border metrics specify an inner and an outer rectangular area, whose corners can be rounded.
+struct BorderMetrics {
+	// Outer corner positions (e.g. at border edge)
+	CornerPositions positions_outer;
+	// Inner corner positions (e.g. at padding edge)
+	CornerPositions positions_inner;
+	// Curved borders are drawn as circles (outer border) and ellipses (inner border) around the centers.
+	CornerPositions positions_circle_center;
+
+	// Radii of the outer edges, always circles.
+	CornerSizes outer_radii;
+	// Radii of the inner edges, 2-dimensional as these can be elliptic.
+	// The inner radii is effectively the (signed) distance from the circle center to the inner edge.
+	// They can also be zero or negative, in which case a sharp corner should be drawn instead of an arc.
+	CornerSizes2 inner_radii;
+};
+
 class GeometryBackgroundBorder {
 public:
-	/// Generate geometry for background and borders.
-	/// @param[out] vertices Destination vector for generated vertices.
-	/// @param[out] indices Destination vector for generated indices.
-	/// @param[in] radii The radius of each corner.
-	/// @param[in] box The box used for positioning and sizing of the background and borders.
-	/// @param[in] offset Offset the position of the generated vertices.
-	/// @param[in] background_color Color of the background, set alpha to zero to not generate a background.
-	/// @param[in] border_colors Pointer to a four-element array of border colors in top-right-bottom-left order, or nullptr to not generate borders.
-	static void Draw(Vector<Vertex>& vertices, Vector<int>& indices, CornerSizes radii, const Box& box, Vector2f offset, Colourb background_color,
-		const Colourb* border_colors);
+	// Construct the background-border geometry drawer, passing in the target vertex and index lists to be filled by later draw operations.
+	GeometryBackgroundBorder(Vector<Vertex>& vertices, Vector<int>& indices);
+
+	/// Compute background-border metrics used by later draw operations.
+	/// @param outer_position Top-left position of the outer edge.
+	/// @param edge_sizes Widths of the border.
+	/// @param inner_size Size of the inner area.
+	/// @param outer_radii The radius of the outer edge at each corner.
+	/// @return The computed metrics.
+	static BorderMetrics ComputeBorderMetrics(Vector2f outer_position, EdgeSizes edge_sizes, Vector2f inner_size, Vector4f outer_radii);
+
+	// Generate geometry for the background, defined by the inner area of the border metrics.
+	void DrawBackground(const BorderMetrics& metrics, Colourb color);
+
+	/// Generate geometry for the border, defined by the intersection of the outer and inner areas of the border metrics.
+	void DrawBorder(const BorderMetrics& metrics, EdgeSizes edge_sizes, const Colourb border_colors[4]);
 
 private:
 	enum Edge { TOP, RIGHT, BOTTOM, LEFT };
 	enum Corner { TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT };
-
-	GeometryBackgroundBorder(Vector<Vertex>& vertices, Vector<int>& indices);
 
 	// -- Background --
 	// All draw operations place vertices in clockwise order.
