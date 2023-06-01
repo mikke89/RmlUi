@@ -1160,7 +1160,7 @@ void Context::UpdateHoverChain(Vector2i old_mouse_position, int key_modifier_sta
 
 Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_element, Element* element) const
 {
-	if (element == nullptr)
+	if (!element)
 	{
 		if (ignore_element == root.get())
 			return nullptr;
@@ -1174,7 +1174,7 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 		if (focus)
 		{
 			ElementDocument* focus_document = focus->GetOwnerDocument();
-			if (focus_document != nullptr && focus_document->IsModal())
+			if (focus_document && focus_document->IsModal())
 			{
 				element = focus_document;
 			}
@@ -1190,10 +1190,11 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 
 		for (int i = (int)element->stacking_context.size() - 1; i >= 0; --i)
 		{
-			if (ignore_element != nullptr)
+			if (ignore_element)
 			{
+				// Check if the element is a descendant of the element we're ignoring.
 				Element* element_hierarchy = element->stacking_context[i];
-				while (element_hierarchy != nullptr)
+				while (element_hierarchy)
 				{
 					if (element_hierarchy == ignore_element)
 						break;
@@ -1201,12 +1202,12 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 					element_hierarchy = element_hierarchy->GetParentNode();
 				}
 
-				if (element_hierarchy != nullptr)
+				if (element_hierarchy)
 					continue;
 			}
 
 			Element* child_element = GetElementAtPoint(point, ignore_element, element->stacking_context[i]);
-			if (child_element != nullptr)
+			if (child_element)
 				return child_element;
 		}
 	}
@@ -1222,6 +1223,7 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 	bool within_element = (projection_result && element->IsPointWithinElement(point));
 	if (within_element)
 	{
+		// The element may have been clipped out of view if it overflows an ancestor, so check its clipping region.
 		Vector2i clip_origin, clip_dimensions;
 		if (ElementUtilities::GetClippingRegion(clip_origin, clip_dimensions, element))
 		{
