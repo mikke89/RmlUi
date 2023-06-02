@@ -31,6 +31,7 @@
 
 #include "Header.h"
 #include "Input.h"
+#include "RenderManager.h"
 #include "ScriptInterface.h"
 #include "ScrollTypes.h"
 #include "Traits.h"
@@ -246,14 +247,8 @@ public:
 	/// @param[in] speed_factor A factor for adjusting the final smooth scrolling speed, must be strictly positive, defaults to 1.0.
 	void SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float speed_factor);
 
-	/// Gets the current clipping region for the render traversal
-	/// @param[out] origin The clipping origin
-	/// @param[out] dimensions The clipping dimensions
-	bool GetActiveClipRegion(Vector2i& origin, Vector2i& dimensions) const;
-	/// Sets the current clipping region for the render traversal
-	/// @param[out] origin The clipping origin
-	/// @param[out] dimensions The clipping dimensions
-	void SetActiveClipRegion(Vector2i origin, Vector2i dimensions);
+	/// Retrieves the render manager which can be used to submit changes to the render state.
+	RenderManager& GetRenderManager();
 
 	/// Sets the instancer to use for releasing this object.
 	/// @param[in] instancer The context's instancer.
@@ -369,8 +364,8 @@ private:
 	// itself can't be part of it.
 	ElementSet drag_hover_chain;
 
-	Vector2i clip_origin;
-	Vector2i clip_dimensions;
+	// Wrapper around the render interface for tracking the render state.
+	RenderManager render_manager;
 
 	using DataModels = UnorderedMap<String, UniquePtr<DataModel>>;
 	DataModels data_models;

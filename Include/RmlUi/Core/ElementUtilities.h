@@ -30,6 +30,7 @@
 #define RMLUI_CORE_ELEMENTUTILITIES_H
 
 #include "Header.h"
+#include "RenderManager.h"
 #include "Types.h"
 
 namespace Rml {
@@ -87,19 +88,18 @@ public:
 	static int GetStringWidth(Element* element, const String& string, Character prior_character = Character::Null);
 
 	/// Generates the clipping region for an element.
-	/// @param[out] clip_origin The origin, in context coordinates, of the origin of the element's clipping window.
-	/// @param[out] clip_dimensions The size, in context coordinates, of the element's clipping window.
 	/// @param[in] element The element to generate the clipping region for.
+	/// @param[out] clip_region The element's clipping region in window coordinates.
+	/// @param[out] clip_mask_list Optional, returns a list of geometry that defines the element's clip mask.
+	/// @param[in] force_clip_self If true, also clips to the border area of the provided element regardless.
 	/// @return True if a clipping region exists for the element and clip_origin and clip_window were set, false if not.
-	static bool GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_dimensions, Element* element);
+	static bool GetClippingRegion(Element* element, Rectanglei& clip_region, ClipMaskGeometryList* clip_mask_list = nullptr,
+		bool force_clip_self = false);
 	/// Sets the clipping region from an element and its ancestors.
 	/// @param[in] element The element to generate the clipping region from.
-	/// @param[in] context The context of the element; if this is not supplied, it will be derived from the element.
+	/// @param[in] force_clip_self If true, also clips to the border area of the provided element regardless.
 	/// @return The visibility of the given element within its clipping region.
-	static bool SetClippingRegion(Element* element, Context* context = nullptr);
-	/// Applies the clip region from the render interface to the renderer
-	/// @param[in] context The context to read the clip region from
-	static void ApplyActiveClipRegion(Context* context);
+	static bool SetClippingRegion(Element* element, bool force_clip_self = false);
 
 	/// Returns a rectangle covering the element's area in window coordinate space.
 	/// @param[in] out_rectangle The resulting rectangle covering the projected element's box.
@@ -129,9 +129,8 @@ public:
 	static bool PositionElement(Element* element, Vector2f offset, PositionAnchor anchor);
 
 	/// Applies an element's accumulated transform matrix, determined from its and ancestor's `perspective' and `transform' properties.
-	/// @param[in] element The element whose transform to apply.
-	/// @return true if a render interface is available to set the transform.
-	/// @note All calls to RenderInterface::SetTransform must go through here.
+	/// @param[in] element The element whose transform to apply, or nullptr for identity transform.
+	/// @return True if the transform could be submitted to the render interface.
 	static bool ApplyTransform(Element& element);
 
 	/// Creates data views and data controllers if a data model applies to the element.

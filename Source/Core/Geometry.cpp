@@ -75,7 +75,7 @@ Geometry::~Geometry()
 
 void Geometry::Render(Vector2f translation)
 {
-	RenderInterface* const render_interface = ::Rml::GetRenderInterface();
+	RenderInterface* render_interface = GetRenderInterface();
 	RMLUI_ASSERT(render_interface);
 
 	translation = translation.Round();
@@ -113,6 +113,29 @@ void Geometry::Render(Vector2f translation)
 		// render the uncompiled version.
 		render_interface->RenderGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size(), texture ? texture->GetHandle() : 0,
 			translation);
+	}
+}
+
+void Geometry::RenderToClipMask(ClipMaskOperation clip_mask, Vector2f translation)
+{
+	RenderInterface* render_interface = GetRenderInterface();
+	RMLUI_ASSERT(render_interface);
+
+	if (!compile_attempted)
+	{
+		if (vertices.empty() || indices.empty())
+			return;
+
+		RMLUI_ZoneScoped;
+
+		compile_attempted = true;
+		compiled_geometry = render_interface->CompileGeometry(&vertices[0], (int)vertices.size(), &indices[0], (int)indices.size());
+	}
+
+	if (compiled_geometry)
+	{
+		translation = translation.Round();
+		render_interface->RenderToClipMask(clip_mask, compiled_geometry, translation);
 	}
 }
 

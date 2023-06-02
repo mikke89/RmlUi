@@ -38,6 +38,7 @@ namespace Rml {
 class Context;
 class Element;
 struct Texture;
+enum class ClipMaskOperation;
 using GeometryDatabaseHandle = uint32_t;
 
 /**
@@ -61,6 +62,11 @@ public:
 	/// Attempts to compile the geometry if appropriate, then renders the geometry, compiled if it can.
 	/// @param[in] translation The translation of the geometry.
 	void Render(Vector2f translation);
+
+	/// Use the geometry to set the clip mask through the render interface. Requires that the geometry can be compiled.
+	/// @param[in] operation The clip mask operation to apply.
+	/// @param[in] translation The translation of the geometry.
+	void RenderToClipMask(ClipMaskOperation operation, Vector2f translation);
 
 	/// Returns the geometry's vertices. If these are written to, Release() should be called to force a recompile.
 	/// @return The geometry's vertex array.

@@ -36,9 +36,11 @@
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 #include "ComputeProperty.h"
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
+#include "TransformState.h"
 
 namespace Rml {
 
@@ -136,30 +138,31 @@ void ElementText::OnRender()
 	const Vector2f translation = GetAbsoluteOffset();
 
 	bool render = true;
-	Vector2i clip_origin;
-	Vector2i clip_dimensions;
-	if (GetContext()->GetActiveClipRegion(clip_origin, clip_dimensions))
+	const RenderManager& render_manager = GetContext()->GetRenderManager();
+
+	// Do a visibility test against the scissor region to avoid unnecessary render calls. Instead of handling
+	// culling in complicated transform cases, for simplicity we always proceed to render if one is detected.
+	Rectanglei scissor_region = render_manager.GetState().scissor_region;
+	if (!scissor_region.Valid())
+		scissor_region = Rectanglei::FromSize(render_manager.GetViewport());
+
+	if (!GetTransformState() || !GetTransformState()->GetTransform())
 	{
 		const FontMetrics& font_metrics = GetFontEngineInterface()->GetFontMetrics(GetFontFaceHandle());
-		float clip_top = (float)clip_origin.y;
-		float clip_left = (float)clip_origin.x;
-		float clip_right = (float)(clip_origin.x + clip_dimensions.x);
-		float clip_bottom = (float)(clip_origin.y + clip_dimensions.y);
-		float ascent = font_metrics.ascent;
-		float descent = font_metrics.descent;
+		const int ascent = Math::RoundUpToInteger(font_metrics.ascent);
+		const int descent = Math::RoundUpToInteger(font_metrics.descent);
 
 		render = false;
 		for (const Line& line : lines)
 		{
-			float x_left = translation.x + line.position.x;
-			float x_right = x_left + line.width;
-			float y = translation.y + line.position.y;
-			float y_top = y - ascent;
-			float y_bottom = y + descent;
+			const Vector2i baseline = Vector2i(translation + line.position);
+			const Rectanglei line_region = Rectanglei::FromCorners(baseline - Vector2i(0, ascent), baseline + Vector2i(line.width, descent));
 
-			render = !(x_left > clip_right || x_right < clip_left || y_top > clip_bottom || y_bottom < clip_top);
-			if (render)
+			if (line_region.Valid() && scissor_region.Intersects(line_region))
+			{
+				render = true;
 				break;
+			}
 		}
 	}
 

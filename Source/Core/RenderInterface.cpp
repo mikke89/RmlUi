@@ -51,6 +51,10 @@ void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle /*geometry*/
 
 void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle /*geometry*/) {}
 
+void RenderInterface::EnableClipMask(bool /*enable*/) {}
+
+void RenderInterface::RenderToClipMask(ClipMaskOperation /*operation*/, CompiledGeometryHandle /*geometry*/, Vector2f /*translation*/) {}
+
 bool RenderInterface::LoadTexture(TextureHandle& /*texture_handle*/, Vector2i& /*texture_dimensions*/, const String& /*source*/)
 {
 	return false;

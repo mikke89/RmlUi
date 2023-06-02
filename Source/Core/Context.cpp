@@ -55,8 +55,7 @@ static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
 static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
 
 Context::Context(const String& name) :
-	name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), clip_origin(-1, -1), clip_dimensions(-1, -1),
-	next_update_timeout(0)
+	name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), next_update_timeout(0)
 {
 	instancer = nullptr;
 
@@ -126,6 +125,7 @@ void Context::SetDimensions(const Vector2i _dimensions)
 	if (dimensions != _dimensions)
 	{
 		dimensions = _dimensions;
+		render_manager.SetViewport(dimensions);
 		root->SetBox(Box(Vector2f(dimensions)));
 		root->DirtyLayout();
 
@@ -141,8 +141,6 @@ void Context::SetDimensions(const Vector2i _dimensions)
 				document->DispatchEvent(EventId::Resize, Dictionary());
 			}
 		}
-
-		clip_dimensions = dimensions;
 	}
 }
 
@@ -218,11 +216,9 @@ bool Context::Render()
 {
 	RMLUI_ZoneScoped;
 
-	ElementUtilities::ApplyActiveClipRegion(this);
+	render_manager.BeginRender();
 
 	root->Render();
-
-	ElementUtilities::SetClippingRegion(nullptr, this);
 
 	// Render the cursor proxy so that any attached drag clone will be rendered below the cursor.
 	if (drag_clone)
@@ -232,6 +228,8 @@ bool Context::Render()
 			Vector2f((float)Math::Clamp(mouse_position.x, 0, dimensions.x), (float)Math::Clamp(mouse_position.y, 0, dimensions.y)), nullptr);
 		cursor_proxy->Render();
 	}
+
+	render_manager.ResetState();
 
 	return true;
 }
@@ -855,21 +853,9 @@ void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float spe
 	scroll_controller->SetDefaultScrollBehavior(scroll_behavior, speed_factor);
 }
 
-bool Context::GetActiveClipRegion(Vector2i& origin, Vector2i& dimensions) const
+RenderManager& Context::GetRenderManager()
 {
-	if (clip_dimensions.x < 0 || clip_dimensions.y < 0)
-		return false;
-
-	origin = clip_origin;
-	dimensions = clip_dimensions;
-
-	return true;
-}
-
-void Context::SetActiveClipRegion(const Vector2i origin, const Vector2i dimensions)
-{
-	clip_origin = origin;
-	clip_dimensions = dimensions;
+	return render_manager;
 }
 
 void Context::SetInstancer(ContextInstancer* _instancer)
@@ -1224,12 +1210,9 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 	if (within_element)
 	{
 		// The element may have been clipped out of view if it overflows an ancestor, so check its clipping region.
-		Vector2i clip_origin, clip_dimensions;
-		if (ElementUtilities::GetClippingRegion(clip_origin, clip_dimensions, element))
-		{
-			within_element = point.x >= clip_origin.x && point.y >= clip_origin.y && point.x <= (clip_origin.x + clip_dimensions.x) &&
-				point.y <= (clip_origin.y + clip_dimensions.y);
-		}
+		Rectanglei clip_region;
+		if (ElementUtilities::GetClippingRegion(element, clip_region))
+			within_element = clip_region.Contains(Vector2i(point));
 	}
 
 	if (within_element)

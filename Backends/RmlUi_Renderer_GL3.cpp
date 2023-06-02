@@ -978,6 +978,63 @@ void RenderInterface_GL3::SetScissorRegion(int x, int y, int width, int height)
 	SetScissor(Rml::Rectanglei::FromPositionSize({x, y}, {width, height}));
 }
 
+void RenderInterface_GL3::EnableClipMask(bool enable)
+{
+	if (enable)
+		glEnable(GL_STENCIL_TEST);
+	else
+		glDisable(GL_STENCIL_TEST);
+}
+
+void RenderInterface_GL3::RenderToClipMask(Rml::ClipMaskOperation operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation)
+{
+	RMLUI_ASSERT(glIsEnabled(GL_STENCIL_TEST));
+	using Rml::ClipMaskOperation;
+
+	const bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
+	if (clear_stencil)
+	{
+		// @performance Increment the reference value instead of clearing each time.
+		glClear(GL_STENCIL_BUFFER_BIT);
+	}
+
+	GLint stencil_test_value = 0;
+	glGetIntegerv(GL_STENCIL_REF, &stencil_test_value);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glStencilFunc(GL_ALWAYS, GLint(1), GLuint(-1));
+
+	switch (operation)
+	{
+	case ClipMaskOperation::Set:
+	{
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		stencil_test_value = 1;
+	}
+	break;
+	case ClipMaskOperation::SetInverse:
+	{
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		stencil_test_value = 0;
+	}
+	break;
+	case ClipMaskOperation::Intersect:
+	{
+		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+		stencil_test_value += 1;
+	}
+	break;
+	}
+
+	RenderCompiledGeometry(geometry, translation, {});
+
+	// Restore state
+	// @performance Cache state so we don't toggle it unnecessarily.
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	glStencilFunc(GL_EQUAL, stencil_test_value, GLuint(-1));
+}
+
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
 #pragma pack(1)
 struct TGAHeader {
@@ -1293,7 +1350,7 @@ void RenderInterface_GL3::ReleaseTexture(Rml::TextureHandle texture_handle)
 
 void RenderInterface_GL3::SetTransform(const Rml::Matrix4f* new_transform)
 {
-	transform = projection * (new_transform ? *new_transform : Rml::Matrix4f::Identity());
+	transform = (new_transform ? (projection * (*new_transform)) : projection);
 	program_transform_dirty.set();
 }
 

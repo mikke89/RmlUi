@@ -50,6 +50,7 @@ class Decorator;
 class ElementInstancer;
 class EventDispatcher;
 class EventListener;
+class ElementBackgroundBorder;
 class ElementDecoration;
 class ElementDefinition;
 class ElementDocument;
@@ -571,6 +572,8 @@ public:
 	EventDispatcher* GetEventDispatcher() const;
 	/// Returns event types with number of listeners for debugging.
 	String GetEventDispatcherSummary() const;
+	/// Access the element background and border.
+	ElementBackgroundBorder* GetElementBackgroundBorder() const;
 	/// Access the element decorators.
 	ElementDecoration* GetElementDecoration() const;
 	/// Returns the element's scrollbar functionality.

@@ -40,14 +40,17 @@ void ElementBackgroundBorder::Render(Element* element)
 {
 	if (background_dirty || border_dirty)
 	{
+		for (auto& background : backgrounds)
+			background.second.geometry.Release(true);
+
 		GenerateGeometry(element);
 
 		background_dirty = false;
 		border_dirty = false;
 	}
 
-	if (geometry)
-		geometry.Render(element->GetAbsoluteOffset(BoxArea::Border));
+	if (Geometry* geometry = GetGeometry(BackgroundType::BackgroundBorder))
+		geometry->Render(element->GetAbsoluteOffset(BoxArea::Border));
 }
 
 void ElementBackgroundBorder::DirtyBackground()
@@ -58,6 +61,28 @@ void ElementBackgroundBorder::DirtyBackground()
 void ElementBackgroundBorder::DirtyBorder()
 {
 	border_dirty = true;
+}
+
+Geometry* ElementBackgroundBorder::GetClipGeometry(Element* element, BoxArea clip_area)
+{
+	BackgroundType type = {};
+	switch (clip_area)
+	{
+	case Rml::BoxArea::Border: type = BackgroundType::ClipBorder; break;
+	case Rml::BoxArea::Padding: type = BackgroundType::ClipPadding; break;
+	case Rml::BoxArea::Content: type = BackgroundType::ClipContent; break;
+	default: RMLUI_ERROR; return nullptr;
+	}
+
+	Geometry& geometry = GetOrCreateBackground(type).geometry;
+	if (!geometry)
+	{
+		const Box& box = element->GetBox();
+		const Vector4f border_radius = element->GetComputedValues().border_radius();
+		GeometryUtilities::GenerateBackground(&geometry, box, {}, border_radius, Colourb(255), clip_area);
+	}
+
+	return &geometry;
 }
 
 void ElementBackgroundBorder::GenerateGeometry(Element* element)
@@ -83,8 +108,8 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 			border_colors[i].alpha = (byte)(opacity * (float)border_colors[i].alpha);
 	}
 
-	geometry.GetVertices().clear();
-	geometry.GetIndices().clear();
+	Geometry& geometry = GetOrCreateBackground(BackgroundType::BackgroundBorder).geometry;
+	RMLUI_ASSERT(!geometry);
 
 	for (int i = 0; i < element->GetNumBoxes(); i++)
 	{
@@ -92,8 +117,23 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 		const Box& box = element->GetBox(i, offset);
 		GeometryUtilities::GenerateBackgroundBorder(&geometry, box, offset, border_radius, background_color, border_colors);
 	}
+}
 
-	geometry.Release();
+Geometry* ElementBackgroundBorder::GetGeometry(BackgroundType type)
+{
+	auto it = backgrounds.find(type);
+	if (it != backgrounds.end())
+		return &it->second.geometry;
+	return nullptr;
+}
+
+ElementBackgroundBorder::Background& ElementBackgroundBorder::GetOrCreateBackground(BackgroundType type)
+{
+	auto it = backgrounds.find(type);
+	if (it != backgrounds.end())
+		return it->second;
+
+	return backgrounds.emplace(type, Background{}).first->second;
 }
 
 } // namespace Rml

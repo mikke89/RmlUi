@@ -76,6 +76,7 @@
 #include "Core/PropertyParser.h"
 #include "Core/PropertySpecification.h"
 #include "Core/RenderInterface.h"
+#include "Core/RenderManager.h"
 #include "Core/Spritesheet.h"
 #include "Core/StringUtilities.h"
 #include "Core/StyleSheet.h"

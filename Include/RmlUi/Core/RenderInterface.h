@@ -37,6 +37,11 @@
 
 namespace Rml {
 
+enum class ClipMaskOperation {
+	Set,        // Set the clip mask to the area of the rendered geometry, clearing any existing clip mask.
+	SetInverse, // Set the clip mask to the area *outside* the rendered geometry, clearing any existing clip mask.
+	Intersect,  // Intersect the clip mask with the area of the rendered geometry.
+};
 enum class LayerFill {
 	None,  // No operation necessary, does not care about the layer color.
 	Clear, // Clear the layer to transparent black.
@@ -101,6 +106,16 @@ public:
 	/// @param[in] width The width of the scissored region. All pixels to the right of (x + width) should be clipped.
 	/// @param[in] height The height of the scissored region. All pixels to below (y + height) should be clipped.
 	virtual void SetScissorRegion(int x, int y, int width, int height) = 0;
+
+	/// Called by RmlUi when it wants to enable or disable the clip mask.
+	/// @param[in] enable True if the clip mask is to be enabled, false if it is to be disabled.
+	/// @note When enabled, the clip mask should hide any rendered contents outside the area of the mask.
+	virtual void EnableClipMask(bool enable);
+	/// Called by RmlUi when it wants to set or modify the contents of the clip mask.
+	/// @param[in] operation Describes how the geometry should affect the clip mask.
+	/// @param[in] geometry The compiled geometry to render.
+	/// @param[in] translation The translation to apply to the geometry.
+	virtual void RenderToClipMask(ClipMaskOperation operation, CompiledGeometryHandle geometry, Vector2f translation);
 
 	/// Called by RmlUi when a texture is required by the library.
 	/// @param[out] texture_handle The handle to write the texture handle for the loaded texture to.

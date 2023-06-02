@@ -208,14 +208,21 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 	if (!render_interface || !context)
 		return;
 
-	auto ApplyClippingRegion = [this, render_interface, context](bool extend_ink_overflow) {
-		ElementUtilities::SetClippingRegion(element); // TODO: For backdrop-filter only: Force clipping to our border-box.
+	RenderManager& render_manager = context->GetRenderManager();
+	Rectanglei initial_scissor_region = render_manager.GetState().scissor_region;
+
+	auto ApplyClippingRegion = [this, &render_manager, initial_scissor_region](PropertyId filter_id) {
+		RMLUI_ASSERT(filter_id == PropertyId::Filter || filter_id == PropertyId::BackdropFilter);
+
+		const bool force_clip_to_self_border_box = (filter_id == PropertyId::BackdropFilter);
+		ElementUtilities::SetClippingRegion(element, force_clip_to_self_border_box);
 
 		// Find the region being affected by the active filters and apply it as a scissor.
 		Rectanglef filter_region = Rectanglef::MakeInvalid();
 		ElementUtilities::GetBoundingBox(filter_region, element, BoxArea::Auto);
 
-		if (extend_ink_overflow)
+		// The filter property may draw outside our normal clipping region due to ink overflow.
+		if (filter_id == PropertyId::Filter)
 		{
 			for (const auto& filter : filters)
 				filter.filter->ExtendInkOverflow(element, filter_region);
@@ -223,22 +230,16 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 
 		Math::ExpandToPixelGrid(filter_region);
 
-		Rectanglei scissor_region = Rectanglei::FromSize(context->GetDimensions());
-		Vector2i clip_position, clip_size;
-		if (context->GetActiveClipRegion(clip_position, clip_size))
-			scissor_region.Intersect(Rectanglei::FromPositionSize(clip_position, clip_size));
-
-		scissor_region.IntersectIfValid(Rectanglei(filter_region));
-
-		render_interface->EnableScissorRegion(true);
-		render_interface->SetScissorRegion(scissor_region.Left(), scissor_region.Top(), scissor_region.Width(), scissor_region.Height());
+		Rectanglei scissor_region = Rectanglei(filter_region);
+		scissor_region.IntersectIfValid(initial_scissor_region);
+		render_manager.SetScissorRegion(scissor_region);
 	};
 
 	if (!backdrop_filters.empty())
 	{
 		if (render_stage == RenderStage::Enter)
 		{
-			ApplyClippingRegion(false);
+			ApplyClippingRegion(PropertyId::BackdropFilter);
 
 			render_interface->PushLayer(LayerFill::Clone);
 
@@ -251,7 +252,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 
 			render_interface->PopLayer(BlendMode::Replace, filter_handles);
 
-			ElementUtilities::ApplyActiveClipRegion(context);
+			render_manager.SetScissorRegion(initial_scissor_region);
 		}
 	}
 
@@ -263,7 +264,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 		}
 		else if (render_stage == RenderStage::Exit)
 		{
-			ApplyClippingRegion(true);
+			ApplyClippingRegion(PropertyId::Filter);
 
 			FilterHandleList filter_handles;
 			for (auto& filter : filters)
@@ -274,7 +275,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 
 			render_interface->PopLayer(BlendMode::Blend, filter_handles);
 
-			ElementUtilities::ApplyActiveClipRegion(context);
+			render_manager.SetScissorRegion(initial_scissor_region);
 		}
 	}
 }
