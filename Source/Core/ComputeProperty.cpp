@@ -37,7 +37,7 @@ const Style::ComputedValues DefaultComputedValues{nullptr};
 
 static constexpr float PixelsPerInch = 96.0f;
 
-float ComputeAbsoluteLength(NumericValue value)
+float ComputeAbsoluteLength(NumericValue value, float dp_ratio)
 {
 	if (value.unit == Unit::PX)
 	{
@@ -46,7 +46,8 @@ float ComputeAbsoluteLength(NumericValue value)
 	else if (Any(value.unit & Unit::PPI_UNIT))
 	{
 		// Values based on pixels-per-inch.
-		const float inch = value.number * PixelsPerInch;
+		// placeholder solution to fix PPI for high-DPI screens: multiplying by dp_ratio
+		const float inch = value.number * PixelsPerInch * dp_ratio;
 
 		switch (value.unit)
 		{
@@ -66,7 +67,7 @@ float ComputeAbsoluteLength(NumericValue value)
 float ComputeLength(NumericValue value, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
 {
 	if (Any(value.unit & Unit::ABSOLUTE_LENGTH))
-		return ComputeAbsoluteLength(value);
+		return ComputeAbsoluteLength(value, dp_ratio);
 
 	switch (value.unit)
 	{

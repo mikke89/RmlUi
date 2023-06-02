@@ -380,7 +380,12 @@ static float ComputeLength(NumericValue value, Element* element)
 float ElementStyle::ResolveNumericValue(NumericValue value, float base_value) const
 {
 	if (Any(value.unit & Unit::ABSOLUTE_LENGTH))
-		return ComputeAbsoluteLength(value);
+	{
+		float dp_ratio = 1.0f;
+		if (Context* context = element->GetContext())
+			dp_ratio = context->GetDensityIndependentPixelRatio();
+		return ComputeAbsoluteLength(value, dp_ratio);
+	}
 	else if (Any(value.unit & Unit::LENGTH))
 		return ComputeLength(value, element);
 
