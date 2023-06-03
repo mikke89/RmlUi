@@ -72,6 +72,7 @@ public:
 		DECORATORSPTR = 'D',
 		FILTERSPTR = 'F',
 		FONTEFFECTSPTR = 'E',
+		BOXSHADOWLIST = 'S',
 		VOIDPTR = '*',
 	};
 
@@ -158,6 +159,8 @@ private:
 	void Set(FiltersPtr&& value);
 	void Set(const FontEffectsPtr& value);
 	void Set(FontEffectsPtr&& value);
+	void Set(const BoxShadowList& value);
+	void Set(BoxShadowList&& value);
 
 	template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
 	void Set(const T value);

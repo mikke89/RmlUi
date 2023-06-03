@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/Variant.h"
+#include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include <string.h>
 
 namespace Rml {
@@ -112,6 +113,12 @@ void Variant::Clear()
 		font_effects->~shared_ptr();
 	}
 	break;
+	case BOXSHADOWLIST:
+	{
+		BoxShadowList* value = (BoxShadowList*)data;
+		value->~BoxShadowList();
+	}
+	break;
 	default: break;
 	}
 	type = NONE;
@@ -130,6 +137,7 @@ void Variant::Set(const Variant& copy)
 	case DECORATORSPTR: Set(*reinterpret_cast<const DecoratorsPtr*>(copy.data)); break;
 	case FILTERSPTR: Set(*reinterpret_cast<const FiltersPtr*>(copy.data)); break;
 	case FONTEFFECTSPTR: Set(*reinterpret_cast<const FontEffectsPtr*>(copy.data)); break;
+	case BOXSHADOWLIST: Set(*reinterpret_cast<const BoxShadowList*>(copy.data)); break;
 	default:
 		memcpy(data, copy.data, LOCAL_DATA_SIZE);
 		type = copy.type;
@@ -149,6 +157,7 @@ void Variant::Set(Variant&& other)
 	case DECORATORSPTR: Set(std::move(*reinterpret_cast<DecoratorsPtr*>(other.data))); break;
 	case FILTERSPTR: Set(std::move(*reinterpret_cast<FiltersPtr*>(other.data))); break;
 	case FONTEFFECTSPTR: Set(std::move(*reinterpret_cast<FontEffectsPtr*>(other.data))); break;
+	case BOXSHADOWLIST: Set(std::move(*reinterpret_cast<BoxShadowList*>(other.data))); break;
 	default:
 		memcpy(data, other.data, LOCAL_DATA_SIZE);
 		type = other.type;
@@ -430,6 +439,30 @@ void Variant::Set(FontEffectsPtr&& value)
 		new (data) FontEffectsPtr(std::move(value));
 	}
 }
+void Variant::Set(const BoxShadowList& value)
+{
+	if (type == BOXSHADOWLIST)
+	{
+		*(BoxShadowList*)data = value;
+	}
+	else
+	{
+		type = BOXSHADOWLIST;
+		new (data) BoxShadowList(value);
+	}
+}
+void Variant::Set(BoxShadowList&& value)
+{
+	if (type == BOXSHADOWLIST)
+	{
+		(*(BoxShadowList*)data) = std::move(value);
+	}
+	else
+	{
+		type = BOXSHADOWLIST;
+		new (data) BoxShadowList(std::move(value));
+	}
+}
 
 Variant& Variant::operator=(const Variant& copy)
 {
@@ -483,6 +516,7 @@ bool Variant::operator==(const Variant& other) const
 	case DECORATORSPTR: return DEFAULT_VARIANT_COMPARE(DecoratorsPtr);
 	case FILTERSPTR: return DEFAULT_VARIANT_COMPARE(FiltersPtr);
 	case FONTEFFECTSPTR: return DEFAULT_VARIANT_COMPARE(FontEffectsPtr);
+	case BOXSHADOWLIST: return DEFAULT_VARIANT_COMPARE(BoxShadowList);
 	case NONE: return true;
 	}
 	RMLUI_ERRORMSG("Variant comparison not implemented for this type.");

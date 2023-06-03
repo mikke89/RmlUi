@@ -78,7 +78,7 @@ enum class Unit {
 	FILTER = 1 << 24,        // decorator; fetch as <FiltersPtr>
 	FONTEFFECT = 1 << 25,    // font-effect; fetch as <FontEffectsPtr>
 	COLORSTOPLIST = 1 << 26, // color stop list; fetch as <ColorStopList>
-	SHADOWLIST = 1 << 27,    // shadow list; fetch as <ShadowList>
+	BOXSHADOWLIST = 1 << 27, // shadow list; fetch as <BoxShadowList>
 
 	LENGTH = PX | DP | VW | VH | EM | REM | PPI_UNIT,
 	LENGTH_PERCENT = LENGTH | PERCENT,

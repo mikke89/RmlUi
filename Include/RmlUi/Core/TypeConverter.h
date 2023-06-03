@@ -145,6 +145,17 @@ public:
 	RMLUICORE_API static bool Convert(const FontEffectsPtr& src, String& dest);
 };
 
+template <>
+class TypeConverter<BoxShadowList, BoxShadowList> {
+public:
+	RMLUICORE_API static bool Convert(const BoxShadowList& src, BoxShadowList& dest);
+};
+template <>
+class TypeConverter<BoxShadowList, String> {
+public:
+	RMLUICORE_API static bool Convert(const BoxShadowList& src, String& dest);
+};
+
 } // namespace Rml
 
 #include "TypeConverter.inl"

@@ -28,6 +28,7 @@
 
 #include "../../Include/RmlUi/Core/TypeConverter.h"
 #include "../../Include/RmlUi/Core/Animation.h"
+#include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Filter.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
@@ -220,6 +221,39 @@ bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, S
 		dest = "none";
 	else
 		dest += src->value;
+	return true;
+}
+
+bool TypeConverter<BoxShadowList, BoxShadowList>::Convert(const BoxShadowList& src, BoxShadowList& dest)
+{
+	dest = src;
+	return true;
+}
+
+bool TypeConverter<BoxShadowList, String>::Convert(const BoxShadowList& src, String& dest)
+{
+	dest.clear();
+	String temp, str_unit;
+	for (size_t i = 0; i < src.size(); i++)
+	{
+		const BoxShadow& shadow = src[i];
+		for (const NumericValue* value : {&shadow.offset_x, &shadow.offset_y, &shadow.blur_radius, &shadow.spread_distance})
+		{
+			if (TypeConverter<Unit, String>::Convert(value->unit, str_unit))
+				temp += " " + ToString(value->number) + str_unit;
+		}
+
+		if (shadow.inset)
+			temp += " inset";
+
+		dest += "rgba(" + ToString(shadow.color) + ')' + temp;
+
+		if (i < src.size() - 1)
+		{
+			dest += ", ";
+			temp.clear();
+		}
+	}
 	return true;
 }
 

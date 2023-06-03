@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "IdNameMap.h"
 #include "PropertyParserAnimation.h"
+#include "PropertyParserBoxShadow.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserDecorator.h"
 #include "PropertyParserFilter.h"
@@ -64,6 +65,7 @@ struct DefaultStyleSheetParsers : NonCopyMoveable {
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserRatio ratio = PropertyParserRatio();
 	PropertyParserNumber resolution = PropertyParserNumber(Unit::X);
+	PropertyParserBoxShadow box_shadow = PropertyParserBoxShadow(&color, &length);
 };
 
 StyleSheetSpecification::StyleSheetSpecification() :
@@ -259,6 +261,7 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("transform", &default_parsers->transform);
 	RegisterParser("ratio", &default_parsers->ratio);
 	RegisterParser("resolution", &default_parsers->resolution);
+	RegisterParser("box_shadow", &default_parsers->box_shadow);
 }
 
 void StyleSheetSpecification::RegisterDefaultProperties()
@@ -412,6 +415,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 		
 	RegisterProperty(PropertyId::Filter, "filter", "", false, false).AddParser("filter", "filter");
 	RegisterProperty(PropertyId::BackdropFilter, "backdrop-filter", "", false, false).AddParser("filter");
+	
+	RegisterProperty(PropertyId::BoxShadow, "box-shadow", "none", false, false).AddParser("box_shadow");
 
 	// Rare properties (not added to computed values)
 	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");

@@ -84,6 +84,8 @@ public:
 	void PushLayer(Rml::LayerFill layer_fill) override;
 	void PopLayer(Rml::BlendMode blend_mode, const Rml::FilterHandleList& filters) override;
 
+	Rml::TextureHandle SaveLayerAsTexture(Rml::Vector2i dimensions) override;
+
 	Rml::CompiledFilterHandle CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters) override;
 	void ReleaseCompiledFilter(Rml::CompiledFilterHandle filter) override;
 

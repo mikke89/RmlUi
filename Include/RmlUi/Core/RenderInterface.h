@@ -147,6 +147,11 @@ public:
 	/// @param[in] filters A list of compiled filters which should be applied to the top layer before blending.
 	virtual void PopLayer(BlendMode blend_mode, const FilterHandleList& filters);
 
+	/// Called by RmlUi when it wants to store the current layer as a new texture to be rendered later with geometry.
+	/// @param[in] dimensions The dimensions of the texture, to be copied from the top-left part of the viewport.
+	/// @return The handle to the new texture.
+	virtual TextureHandle SaveLayerAsTexture(Vector2i dimensions);
+
 	/// Called by RmlUi when it wants to compile a new filter.
 	/// @param[in] name The name of the filter.
 	/// @param[in] parameters The list of name-value parameters specified for the filter.

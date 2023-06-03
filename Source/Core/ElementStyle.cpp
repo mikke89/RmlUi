@@ -858,6 +858,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::BackdropFilter:
 			values.has_backdrop_filter(p->unit == Unit::FILTER);
 			break;
+		case PropertyId::BoxShadow:
+			values.has_box_shadow(p->unit == Unit::BOXSHADOWLIST);
+			break;
 
 		case PropertyId::FlexBasis:
 			values.flex_basis(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));

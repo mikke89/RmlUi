@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/Factory.h"
@@ -286,11 +287,36 @@ bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* elemen
 {
 	RMLUI_ASSERT(element);
 
+	Vector2f shadow_extent_top_left, shadow_extent_bottom_right;
 	if (box_area == BoxArea::Auto)
+	{
+		// 'Auto' acts like border box extended to encompass any ink overflow, which includes the element's box-shadow.
+		// TODO: Include ink overflow due to filters (e.g. blur or drop-shadow).
 		box_area = BoxArea::Border;
 
+		if (const Property* p_box_shadow = element->GetLocalProperty(PropertyId::BoxShadow))
+		{
+			RMLUI_ASSERT(p_box_shadow->value.GetType() == Variant::BOXSHADOWLIST);
+			const BoxShadowList& shadow_list = p_box_shadow->value.GetReference<BoxShadowList>();
+
+			for (const BoxShadow& shadow : shadow_list)
+			{
+				if (!shadow.inset)
+				{
+					const float extent = 1.5f * element->ResolveLength(shadow.blur_radius) + element->ResolveLength(shadow.spread_distance);
+					const Vector2f offset = {element->ResolveLength(shadow.offset_x), element->ResolveLength(shadow.offset_y)};
+
+					shadow_extent_top_left = Math::Max(shadow_extent_top_left, -offset + Vector2f(extent));
+					shadow_extent_bottom_right = Math::Max(shadow_extent_bottom_right, offset + Vector2f(extent));
+				}
+			}
+		}
+	}
+
 	// Element bounds in non-transformed space.
-	const Rectanglef bounds = Rectanglef::FromPositionSize(element->GetAbsoluteOffset(box_area), element->GetBox().GetSize(box_area));
+	Rectanglef bounds = Rectanglef::FromPositionSize(element->GetAbsoluteOffset(box_area), element->GetBox().GetSize(box_area));
+	bounds.ExtendTopLeft(shadow_extent_top_left);
+	bounds.ExtendBottomRight(shadow_extent_bottom_right);
 
 	const TransformState* transform_state = element->GetTransformState();
 	const Matrix4f* transform = (transform_state ? transform_state->GetTransform() : nullptr);

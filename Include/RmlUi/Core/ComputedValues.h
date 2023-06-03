@@ -159,7 +159,7 @@ namespace Style {
 
 			vertical_align_type(VerticalAlign::Baseline), drag(Drag::None), tab_index(TabIndex::None), overscroll_behavior(OverscrollBehavior::Auto),
 
-			has_filter(false), has_backdrop_filter(false)
+			has_filter(false), has_backdrop_filter(false), has_box_shadow(false)
 		{}
 
 		LengthPercentage::Type min_width_type : 1, max_width_type : 1;
@@ -179,6 +179,7 @@ namespace Style {
 
 		bool has_filter : 1;
 		bool has_backdrop_filter : 1;
+		bool has_box_shadow : 1;
 
 		Clip clip;
 
@@ -305,6 +306,7 @@ namespace Style {
 		float             scrollbar_margin()           const { return rare.scrollbar_margin; }
 		bool              has_filter()                 const { return rare.has_filter; }
 		bool              has_backdrop_filter()        const { return rare.has_backdrop_filter; }
+		bool              has_box_shadow()             const { return rare.has_box_shadow; }
 		
 		// -- Assignment --
 		// Common
@@ -387,6 +389,7 @@ namespace Style {
 		void scrollbar_margin          (float value)             { rare.scrollbar_margin           = value; }
 		void has_filter                (bool value)              { rare.has_filter                 = value; }
 		void has_backdrop_filter       (bool value)              { rare.has_backdrop_filter        = value; }
+		void has_box_shadow            (bool value)              { rare.has_box_shadow             = value; }
 
 		// clang-format on
 

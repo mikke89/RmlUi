@@ -83,6 +83,7 @@ handle.size:hover, handle.size:active {
 	width: 400dp;
 	height: 480dp;
 	overflow: auto;
+	overscroll-behavior: contain;
 
 	background: #fffc;
 	border: 2dp #555a;

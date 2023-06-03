@@ -75,6 +75,7 @@ bool Variant::GetInto(T& value) const
 	case DECORATORSPTR: return TypeConverter<DecoratorsPtr, T>::Convert(*reinterpret_cast<const DecoratorsPtr*>(data), value);
 	case FILTERSPTR: return TypeConverter<FiltersPtr, T>::Convert(*reinterpret_cast<const FiltersPtr*>(data), value);
 	case FONTEFFECTSPTR: return TypeConverter<FontEffectsPtr, T>::Convert(*reinterpret_cast<const FontEffectsPtr*>(data), value);
+	case BOXSHADOWLIST: return TypeConverter<BoxShadowList, T>::Convert(*reinterpret_cast<const BoxShadowList*>(data), value);
 	case NONE: break;
 	}
 

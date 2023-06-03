@@ -1766,7 +1766,8 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	if (border_radius_changed ||                                    //
 		changed_properties.Contains(PropertyId::BackgroundColor) || //
 		changed_properties.Contains(PropertyId::Opacity) ||         //
-		changed_properties.Contains(PropertyId::ImageColor))        //
+		changed_properties.Contains(PropertyId::ImageColor) ||      //
+		changed_properties.Contains(PropertyId::BoxShadow))         //
 	{
 		meta->background_border.DirtyBackground();
 	}

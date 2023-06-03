@@ -26,44 +26,30 @@
  *
  */
 
-#ifndef RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
-#define RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
+#ifndef RMLUI_CORE_DECORATIONTYPES_H
+#define RMLUI_CORE_DECORATIONTYPES_H
 
-#include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/Texture.h"
-#include "../../Include/RmlUi/Core/Types.h"
+#include "NumericValue.h"
+#include "Types.h"
 
 namespace Rml {
 
-class ElementBackgroundBorder {
-public:
-	ElementBackgroundBorder();
-
-	void Render(Element* element);
-
-	void DirtyBackground();
-	void DirtyBorder();
-
-	Geometry* GetClipGeometry(Element* element, BoxArea clip_area);
-
-private:
-	enum class BackgroundType { BackgroundBorder, BoxShadow, ClipBorder, ClipPadding, ClipContent, Count };
-	struct Background {
-		Geometry geometry;
-		Texture texture;
-	};
-
-	Geometry* GetGeometry(BackgroundType type);
-	Background& GetOrCreateBackground(BackgroundType type);
-
-	void GenerateGeometry(Element* element);
-	void GenerateBoxShadow(Element* element, BoxShadowList shadow_list, const Vector4f border_radius, const float opacity);
-
-	bool background_dirty = false;
-	bool border_dirty = false;
-
-	StableMap<BackgroundType, Background> backgrounds;
+struct BoxShadow {
+	Colourb color;
+	NumericValue offset_x, offset_y;
+	NumericValue blur_radius;
+	NumericValue spread_distance;
+	bool inset = false;
 };
+inline bool operator==(const BoxShadow& a, const BoxShadow& b)
+{
+	return a.color == b.color && a.offset_x == b.offset_x && a.offset_y == b.offset_y && a.blur_radius == b.blur_radius &&
+		a.spread_distance == b.spread_distance && a.inset == b.inset;
+}
+inline bool operator!=(const BoxShadow& a, const BoxShadow& b)
+{
+	return !(a == b);
+}
 
 } // namespace Rml
 #endif

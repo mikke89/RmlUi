@@ -81,6 +81,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIterator.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserBoxShadow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserDecorator.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFilter.h
@@ -140,6 +141,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataVariable.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DecorationTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Dictionary.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EffectSpecification.h
@@ -350,6 +352,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserBoxShadow.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserDecorator.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFilter.cpp

@@ -26,43 +26,31 @@
  *
  */
 
-#ifndef RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
-#define RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
+#ifndef RMLUI_CORE_PROPERTYPARSERBOXSHADOW_H
+#define RMLUI_CORE_PROPERTYPARSERBOXSHADOW_H
 
-#include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/Texture.h"
-#include "../../Include/RmlUi/Core/Types.h"
+#include "../../Include/RmlUi/Core/PropertyParser.h"
 
 namespace Rml {
 
-class ElementBackgroundBorder {
+/**
+    Parses the RCSS 'box-shadow' property.
+*/
+
+class PropertyParserBoxShadow : public PropertyParser {
 public:
-	ElementBackgroundBorder();
+	PropertyParserBoxShadow(PropertyParser* parser_color, PropertyParser* parser_length);
 
-	void Render(Element* element);
-
-	void DirtyBackground();
-	void DirtyBorder();
-
-	Geometry* GetClipGeometry(Element* element, BoxArea clip_area);
+	/// Called to parse a RCSS declaration.
+	/// @param[out] property The property to set the parsed value on.
+	/// @param[in] value The raw value defined for this property.
+	/// @param[in] parameters The parameters defined for this property.
+	/// @return True if the value was validated successfully, false otherwise.
+	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 
 private:
-	enum class BackgroundType { BackgroundBorder, BoxShadow, ClipBorder, ClipPadding, ClipContent, Count };
-	struct Background {
-		Geometry geometry;
-		Texture texture;
-	};
-
-	Geometry* GetGeometry(BackgroundType type);
-	Background& GetOrCreateBackground(BackgroundType type);
-
-	void GenerateGeometry(Element* element);
-	void GenerateBoxShadow(Element* element, BoxShadowList shadow_list, const Vector4f border_radius, const float opacity);
-
-	bool background_dirty = false;
-	bool border_dirty = false;
-
-	StableMap<BackgroundType, Background> backgrounds;
+	PropertyParser* parser_color;
+	PropertyParser* parser_length;
 };
 
 } // namespace Rml

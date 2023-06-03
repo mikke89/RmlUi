@@ -158,6 +158,7 @@ enum class PropertyId : uint8_t {
 	FontEffect,
 	Filter,
 	BackdropFilter,
+	BoxShadow,
 
 	FillImage,
 

@@ -78,6 +78,28 @@
 
 .dropshadow { filter: drop-shadow(#f33f 30px 20px 5px); }
 
+.boxshadow_blur {
+	box-shadow:
+		#f00f  40px  30px 25px 0px,
+		#00ff -40px -30px 45px 0px,
+		#0f08 -60px  70px 60px 0px,
+		#333a  0px  0px 30px 15px inset
+		;
+	margin-top: 100px;
+	margin-bottom: 100px;
+}
+.boxshadow_trail {
+	box-shadow:
+		#f66 30dp 30dp 0 0,
+		#c88 60dp 60dp 0 0,
+		#baa 90dp 90dp 0 0,
+		#ffac 0 0 .8em 8dp inset
+		;
+	margin-bottom: 100px;
+	filter: opacity(1); /* Tests filter clipping behavior when element has ink overflow due to box-shadow. */
+}
+.boxshadow_inset { box-shadow: #f4fd 10px 5px 5px 3px inset; }
+
 </style>
 </head>
 <body
@@ -126,6 +148,10 @@
 	data-style-filter="'opacity(' + opacity + ') sepia(' + sepia + ') grayscale(' + grayscale + ') saturate(' + saturate + ') brightness(' + brightness + ') contrast(' + contrast + ') hue-rotate(' + hue_rotate + 'deg) invert(' + invert + ') blur(' + blur + 'px)' + (drop_shadow ? ' drop-shadow(#f11b 10px 10px 8px)' : '')"
 	data-class-transform_all="transform_all"
 >
+
+<div class="box boxshadow_blur transform"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box boxshadow_trail"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box boxshadow_inset"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 
 <div class="box"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 <div class="box big"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>

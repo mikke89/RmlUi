@@ -104,7 +104,7 @@ public:
 	/// Returns a rectangle covering the element's area in window coordinate space.
 	/// @param[in] out_rectangle The resulting rectangle covering the projected element's box.
 	/// @param[in] element The element to find the bounding box of.
-	/// @param[in] area The box area to consider.
+	/// @param[in] area The box area to consider, 'Auto' means the border box in addition to any ink overflow.
 	/// @return True on success, otherwise false.
 	static bool GetBoundingBox(Rectanglef& out_rectangle, Element* element, BoxArea area);
 
