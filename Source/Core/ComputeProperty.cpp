@@ -37,27 +37,21 @@ const Style::ComputedValues DefaultComputedValues{nullptr};
 
 static constexpr float PixelsPerInch = 96.0f;
 
-float ComputeAbsoluteLength(NumericValue value, float dp_ratio)
+static float ComputePPILength(NumericValue value, float dp_ratio)
 {
-	if (value.unit == Unit::PX)
-	{
-		return value.number;
-	}
-	else if (Any(value.unit & Unit::PPI_UNIT))
-	{
-		// Values based on pixels-per-inch.
-		// placeholder solution to fix PPI for high-DPI screens: multiplying by dp_ratio
-		const float inch = value.number * PixelsPerInch * dp_ratio;
+	RMLUI_ASSERT(Any(value.unit & Unit::PPI_UNIT));
 
-		switch (value.unit)
-		{
-		case Unit::INCH: return inch;
-		case Unit::CM: return inch * (1.0f / 2.54f);
-		case Unit::MM: return inch * (1.0f / 25.4f);
-		case Unit::PT: return inch * (1.0f / 72.0f);
-		case Unit::PC: return inch * (1.0f / 6.0f);
-		default: break;
-		}
+	// Values based on pixels-per-inch. Scaled by the dp-ratio as a placeholder solution until we make the pixel unit itself scalable.
+	const float inch = value.number * PixelsPerInch * dp_ratio;
+
+	switch (value.unit)
+	{
+	case Unit::INCH: return inch;
+	case Unit::CM: return inch * (1.0f / 2.54f);
+	case Unit::MM: return inch * (1.0f / 25.4f);
+	case Unit::PT: return inch * (1.0f / 72.0f);
+	case Unit::PC: return inch * (1.0f / 6.0f);
+	default: break;
 	}
 
 	RMLUI_ERROR;
@@ -66,11 +60,12 @@ float ComputeAbsoluteLength(NumericValue value, float dp_ratio)
 
 float ComputeLength(NumericValue value, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions)
 {
-	if (Any(value.unit & Unit::ABSOLUTE_LENGTH))
-		return ComputeAbsoluteLength(value, dp_ratio);
+	if (Any(value.unit & Unit::PPI_UNIT))
+		return ComputePPILength(value, dp_ratio);
 
 	switch (value.unit)
 	{
+	case Unit::PX: return value.number;
 	case Unit::EM: return value.number * font_size;
 	case Unit::REM: return value.number * document_font_size;
 	case Unit::DP: return value.number * dp_ratio;

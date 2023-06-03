@@ -39,8 +39,6 @@ class Property;
 // Note that numbers and percentages are not lengths, they have to be resolved elsewhere.
 float ComputeLength(NumericValue value, float font_size, float document_font_size, float dp_ratio, Vector2f vp_dimensions);
 
-float ComputeAbsoluteLength(NumericValue value, float dp_ratio);
-
 float ComputeAngle(NumericValue value);
 
 float ComputeFontsize(NumericValue value, const Style::ComputedValues& values, const Style::ComputedValues* parent_values,
