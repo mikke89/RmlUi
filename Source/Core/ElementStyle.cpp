@@ -352,6 +352,12 @@ static float ComputeLength(NumericValue value, Element* element)
 	float dp_ratio = 1.0f;
 	Vector2f vp_dimensions(1.0f);
 
+	if (Any(value.unit & Unit::DP_SCALABLE_LENGTH))
+	{
+		if (Context* context = element->GetContext())
+			dp_ratio = context->GetDensityIndependentPixelRatio();
+	}
+
 	switch (value.unit)
 	{
 	case Unit::EM: font_size = element->GetComputedValues().font_size(); break;
@@ -360,10 +366,6 @@ static float ComputeLength(NumericValue value, Element* element)
 			doc_font_size = document->GetComputedValues().font_size();
 		else
 			doc_font_size = DefaultComputedValues.font_size();
-		break;
-	case Unit::DP:
-		if (Context* context = element->GetContext())
-			dp_ratio = context->GetDensityIndependentPixelRatio();
 		break;
 	case Unit::VW:
 	case Unit::VH:
@@ -379,8 +381,8 @@ static float ComputeLength(NumericValue value, Element* element)
 
 float ElementStyle::ResolveNumericValue(NumericValue value, float base_value) const
 {
-	if (Any(value.unit & Unit::ABSOLUTE_LENGTH))
-		return ComputeAbsoluteLength(value);
+	if (value.unit == Unit::PX)
+		return value.number;
 	else if (Any(value.unit & Unit::LENGTH))
 		return ComputeLength(value, element);
 
