@@ -672,14 +672,14 @@ RenderInterface_GL3::~RenderInterface_GL3()
 
 void RenderInterface_GL3::SetViewport(int width, int height)
 {
-	viewport_width = width;
-	viewport_height = height;
+	viewport_width = Rml::Math::Max(width, 1);
+	viewport_height = Rml::Math::Max(height, 1);
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 }
 
 void RenderInterface_GL3::BeginFrame()
 {
-	RMLUI_ASSERT(viewport_width >= 0 && viewport_height >= 0);
+	RMLUI_ASSERT(viewport_width >= 1 && viewport_height >= 1);
 
 	// Backup GL state.
 	glstate_backup.enable_cull_face = glIsEnabled(GL_CULL_FACE);
