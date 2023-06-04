@@ -133,8 +133,8 @@ private:
 	FontLayerCache layer_cache;
 
 	// Pre-cache kerning pairs for some ascii subset of all characters.
-	using AsciiPair = std::uint16_t;
-	using KerningIntType = std::int16_t;
+	using AsciiPair = uint16_t;
+	using KerningIntType = int16_t;
 	using KerningPairs = UnorderedMap<AsciiPair, KerningIntType>;
 	KerningPairs kerning_pair_cache;
 

@@ -33,7 +33,6 @@
 #include <RmlUi/Core/BaseXMLParser.h>
 #include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/Types.h>
-#include <cstdint>
 
 class FontFaceBitmap;
 
@@ -55,7 +54,7 @@ struct BitmapGlyph {
 using FontGlyphs = Rml::UnorderedMap<Character, BitmapGlyph>;
 
 // Mapping of combined (left, right) character to kerning in pixels.
-using FontKerning = Rml::UnorderedMap<std::uint64_t, int>;
+using FontKerning = Rml::UnorderedMap<uint64_t, int>;
 
 class FontFaceBitmap {
 public:

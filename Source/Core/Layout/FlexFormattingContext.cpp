@@ -142,7 +142,7 @@ struct FlexItem {
 	float hypothetical_main_size; // Outer size
 
 	// Used for resolving flexible length
-	enum class Violation : std::uint8_t { None = 0, Min, Max };
+	enum class Violation : uint8_t { None = 0, Min, Max };
 	bool frozen;
 	Violation violation;
 	float target_main_size; // Outer size

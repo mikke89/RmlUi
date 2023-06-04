@@ -209,7 +209,7 @@ int FontFaceBitmap::GenerateString(const String& string, const Vector2f& string_
 
 int FontFaceBitmap::GetKerning(Character left, Character right) const
 {
-	std::uint64_t key = (((std::uint64_t)left << 32) | (std::uint64_t)right);
+	uint64_t key = (((uint64_t)left << 32) | (uint64_t)right);
 
 	auto it = kerning.find(key);
 	if (it != kerning.end())
@@ -271,13 +271,13 @@ void FontParserBitmap::HandleElementStart(const String& name, const Rml::XMLAttr
 	}
 	else if (name == "kerning")
 	{
-		std::uint64_t first = (std::uint64_t)Get(attributes, "first", 0);
-		std::uint64_t second = (std::uint64_t)Get(attributes, "second", 0);
+		uint64_t first = (uint64_t)Get(attributes, "first", 0);
+		uint64_t second = (uint64_t)Get(attributes, "second", 0);
 		int amount = Get(attributes, "amount", 0);
 
 		if (first != 0 && second != 0 && amount != 0)
 		{
-			std::uint64_t key = ((first << 32) | second);
+			uint64_t key = ((first << 32) | second);
 			kerning[key] = amount;
 		}
 	}

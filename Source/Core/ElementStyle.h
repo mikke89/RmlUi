@@ -40,7 +40,7 @@ class ElementDefinition;
 class PropertiesIterator;
 enum class RelativeTarget;
 
-enum class PseudoClassState : std::uint8_t { Clear = 0, Set = 1, Override = 2 };
+enum class PseudoClassState : uint8_t { Clear = 0, Set = 1, Override = 2 };
 using PseudoClassMap = SmallUnorderedMap<String, PseudoClassState>;
 
 /**

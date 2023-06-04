@@ -35,7 +35,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <GLFW/glfw3.h>
-#include <cstdint>
+#include <stdint.h>
 #include <thread>
 
 static void SetupCallbacks(GLFWwindow* window);

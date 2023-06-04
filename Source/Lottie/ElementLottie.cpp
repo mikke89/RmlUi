@@ -233,7 +233,7 @@ void ElementLottie::UpdateTexture()
 		const size_t total_bytes = bytes_per_line * render_dimensions.y;
 		byte* p_data = texture_data.get();
 
-		rlottie::Surface surface(reinterpret_cast<std::uint32_t*>(p_data), render_dimensions.x, render_dimensions.y, bytes_per_line);
+		rlottie::Surface surface(reinterpret_cast<uint32_t*>(p_data), render_dimensions.x, render_dimensions.y, bytes_per_line);
 		animation->renderSync(next_frame, surface);
 
 		// Swizzle the channel order from rlottie's BGRA to RmlUi's RGBA, and change pre-multiplied to post-multiplied alpha.

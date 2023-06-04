@@ -32,6 +32,7 @@
 #include "../Config/Config.h"
 #include "Traits.h"
 #include <cstdlib>
+#include <stdint.h>
 #include <memory>
 
 namespace Rml {
