@@ -35,31 +35,21 @@
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
-/*
-Gradient decorator usage in CSS:
-
-decorator: gradient( direction start-color stop-color );
-
-direction: horizontal|vertical;
-start-color: #ff00ff;
-stop-color: #00ff00;
-*/
-
 namespace Rml {
 
-DecoratorGradient::DecoratorGradient() {}
+DecoratorStraightGradient::DecoratorStraightGradient() {}
 
-DecoratorGradient::~DecoratorGradient() {}
+DecoratorStraightGradient::~DecoratorStraightGradient() {}
 
-bool DecoratorGradient::Initialise(const Direction dir_, const Colourb start_, const Colourb stop_)
+bool DecoratorStraightGradient::Initialise(const Direction in_direction, const Colourb in_start, const Colourb in_stop)
 {
-	dir = dir_;
-	start = start_;
-	stop = stop_;
+	direction = in_direction;
+	start = in_start;
+	stop = in_stop;
 	return true;
 }
 
-DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* element) const
 {
 	Geometry* geometry = new Geometry();
 	const Box& box = element->GetBox();
@@ -80,7 +70,7 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 
 	Vector<Vertex>& vertices = geometry->GetVertices();
 
-	if (dir == Direction::Horizontal)
+	if (direction == Direction::Horizontal)
 	{
 		for (int i = 0; i < (int)vertices.size(); i++)
 		{
@@ -88,7 +78,7 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 			vertices[i].colour = Math::RoundedLerp(t, colour_start, colour_stop);
 		}
 	}
-	else if (dir == Direction::Vertical)
+	else if (direction == Direction::Vertical)
 	{
 		for (int i = 0; i < (int)vertices.size(); i++)
 		{
@@ -100,40 +90,50 @@ DecoratorDataHandle DecoratorGradient::GenerateElementData(Element* element) con
 	return reinterpret_cast<DecoratorDataHandle>(geometry);
 }
 
-void DecoratorGradient::ReleaseElementData(DecoratorDataHandle element_data) const
+void DecoratorStraightGradient::ReleaseElementData(DecoratorDataHandle element_data) const
 {
 	delete reinterpret_cast<Geometry*>(element_data);
 }
 
-void DecoratorGradient::RenderElement(Element* element, DecoratorDataHandle element_data) const
+void DecoratorStraightGradient::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	auto* data = reinterpret_cast<Geometry*>(element_data);
 	data->Render(element->GetAbsoluteOffset(BoxArea::Border));
 }
 
-DecoratorGradientInstancer::DecoratorGradientInstancer()
+DecoratorStraightGradientInstancer::DecoratorStraightGradientInstancer()
 {
-	// register properties for the decorator
 	ids.direction = RegisterProperty("direction", "horizontal").AddParser("keyword", "horizontal, vertical").GetId();
 	ids.start = RegisterProperty("start-color", "#ffffff").AddParser("color").GetId();
 	ids.stop = RegisterProperty("stop-color", "#ffffff").AddParser("color").GetId();
 	RegisterShorthand("decorator", "direction, start-color, stop-color", ShorthandType::FallThrough);
 }
 
-DecoratorGradientInstancer::~DecoratorGradientInstancer() {}
+DecoratorStraightGradientInstancer::~DecoratorStraightGradientInstancer() {}
 
-SharedPtr<Decorator> DecoratorGradientInstancer::InstanceDecorator(const String& /*name*/, const PropertyDictionary& properties_,
+SharedPtr<Decorator> DecoratorStraightGradientInstancer::InstanceDecorator(const String& name, const PropertyDictionary& properties_,
 	const DecoratorInstancerInterface& /*interface_*/)
 {
-	DecoratorGradient::Direction dir = (DecoratorGradient::Direction)properties_.GetProperty(ids.direction)->Get<int>();
+	using Direction = DecoratorStraightGradient::Direction;
+	Direction direction;
+	if (name == "horizontal-gradient")
+		direction = Direction::Horizontal;
+	else if (name == "vertical-gradient")
+		direction = Direction::Vertical;
+	else
+	{
+		direction = (Direction)properties_.GetProperty(ids.direction)->Get<int>();
+		Log::Message(Log::LT_WARNING,
+			"Decorator syntax 'gradient(horizontal|vertical ...)' is deprecated, please replace with 'horizontal-gradient(...)' or "
+			"'vertical-gradient(...)'");
+	}
+
 	Colourb start = properties_.GetProperty(ids.start)->Get<Colourb>();
 	Colourb stop = properties_.GetProperty(ids.stop)->Get<Colourb>();
 
-	auto decorator = MakeShared<DecoratorGradient>();
-	if (decorator->Initialise(dir, start, stop))
-	{
+	auto decorator = MakeShared<DecoratorStraightGradient>();
+	if (decorator->Initialise(direction, start, stop))
 		return decorator;
-	}
 
 	return nullptr;
 }

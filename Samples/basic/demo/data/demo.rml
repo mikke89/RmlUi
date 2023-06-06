@@ -140,14 +140,14 @@ p.title
 }
 #decorators button.gradient
 {
-	decorator: gradient( vertical #415857 #5990A3 );
+	decorator: vertical-gradient( #415857 #5990A3 );
 	border: 3dp #415857;
 	border-radius: 8dp;
 	margin-right: 12dp;
 }
 #decorators button.gradient.horizontal
 {
-	decorator: gradient( horizontal #DB6565 #F1B58A );
+	decorator: horizontal-gradient( #DB6565 #F1B58A );
 	border-color: #DB6565;
 }
 #decorators button.gradient:hover
@@ -354,7 +354,7 @@ p.title
 	margin-left: -20dp;
 	width: 40dp;
 	height: 200dp;
-	decorator: gradient( vertical #daf0 #fef6 );
+	decorator: vertical-gradient( #daf0 #fef6 );
 }
 #transition:hover .ray
 {

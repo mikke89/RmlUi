@@ -34,14 +34,21 @@
 
 namespace Rml {
 
-class DecoratorGradient : public Decorator {
+/**
+    Straight gradient.
+
+    CSS usage:
+    decorator: horizontal-gradient( <start-color> <stop-color> );
+    decorator: vertical-gradient( <start-color> <stop-color> );
+ */
+class DecoratorStraightGradient : public Decorator {
 public:
-	enum class Direction { Horizontal = 0, Vertical = 1 };
+	enum class Direction { Horizontal, Vertical };
 
-	DecoratorGradient();
-	virtual ~DecoratorGradient();
+	DecoratorStraightGradient();
+	virtual ~DecoratorStraightGradient();
 
-	bool Initialise(Direction dir_, Colourb start_, Colourb stop_);
+	bool Initialise(Direction direction, Colourb start, Colourb stop);
 
 	DecoratorDataHandle GenerateElementData(Element* element) const override;
 	void ReleaseElementData(DecoratorDataHandle element_data) const override;
@@ -49,23 +56,23 @@ public:
 	void RenderElement(Element* element, DecoratorDataHandle element_data) const override;
 
 private:
-	Direction dir = {};
+	Direction direction = {};
 	Colourb start, stop;
 };
 
-class DecoratorGradientInstancer : public DecoratorInstancer {
+class DecoratorStraightGradientInstancer : public DecoratorInstancer {
 public:
-	DecoratorGradientInstancer();
-	~DecoratorGradientInstancer();
+	DecoratorStraightGradientInstancer();
+	~DecoratorStraightGradientInstancer();
 
 	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
 		const DecoratorInstancerInterface& instancer_interface) override;
 
 private:
-	struct GradientPropertyIds {
+	struct PropertyIds {
 		PropertyId direction, start, stop;
 	};
-	GradientPropertyIds ids;
+	PropertyIds ids;
 };
 
 } // namespace Rml

@@ -48,8 +48,8 @@ static const String document_decorator_rml = R"(
 			bottom: 0;
 		}
 		
-		@decorator from_rule : gradient { %s }
-		@decorator to_rule: gradient{ %s }		
+		@decorator from_rule : horizontal-gradient { %s }
+		@decorator to_rule: horizontal-gradient{ %s }
 
 		@keyframes mix {
 			from { decorator: %s; }
@@ -86,113 +86,117 @@ TEST_CASE("animation.decorator")
 			"",
 			"",
 
-			"gradient(horizontal transparent transparent)",
-			"gradient(horizontal white white)",
+			"horizontal-gradient(transparent transparent)",
+			"horizontal-gradient(white white)",
 
-			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 		{
 			"",
 			"",
 
 			"none",
-			"gradient(horizontal transparent transparent)",
+			"horizontal-gradient(transparent transparent)",
 
-			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
 		},
 		{
 			"",
 			"",
 
 			"none",
-			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
+			"horizontal-gradient(transparent transparent), horizontal-gradient(transparent transparent)",
 
-			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), horizontal-gradient(horizontal rgba(220,220,220,191) "
+			"rgba(220,220,220,191))",
 		},
 		{
 			"",
 			"",
 
-			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
+			"horizontal-gradient(transparent transparent), horizontal-gradient(transparent transparent)",
 			"none",
 
-			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)), gradient(vertical rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)), horizontal-gradient(horizontal rgba(127,127,127,63) "
+			"rgba(127,127,127,63))",
 		},
 
 		/// Only rule declaration
 		{
-			"direction: horizontal; start-color: transparent; stop-color: transparent;",
-			"direction: horizontal; start-color: white; stop-color: white;",
+			"start-color: transparent; stop-color: transparent;",
+			"start-color: white; stop-color: white;",
 
 			"from_rule",
 			"to_rule",
 
-			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 		{
 			"",
-			"direction: horizontal; start-color: transparent; stop-color: transparent;",
+			"start-color: transparent; stop-color: transparent;",
 
 			"from_rule",
 			"to_rule",
 
-			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
 		},
 		{
-			"direction: vertical; start-color: transparent; stop-color: transparent;",
+			"start-color: transparent; stop-color: transparent;",
 			"",
 
 			"from_rule",
 			"to_rule",
 
-			"gradient(vertical rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 
 		/// Mix rule and standard declaration
 		{
-			"direction: horizontal; start-color: transparent; stop-color: transparent;",
+			"start-color: transparent; stop-color: transparent;",
 			"",
 
 			"from_rule",
-			"gradient(horizontal white white)",
+			"horizontal-gradient(white white)",
 
-			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 		{
 			"",
-			"direction: horizontal; start-color: transparent; stop-color: transparent;",
+			"start-color: transparent; stop-color: transparent;",
 
 			"none",
 			"to_rule",
 
-			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
 		},
 		{
-			"direction: vertical; start-color: transparent; stop-color: transparent;",
+			"start-color: transparent; stop-color: transparent;",
 			"",
 
 			"from_rule",
 			"none",
 
-			"gradient(vertical rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
 		},
 		{
 			"",
 			"",
 
 			"from_rule, to_rule",
-			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
+			"horizontal-gradient(transparent transparent), horizontal-gradient(transparent transparent)",
 
-			"gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), horizontal-gradient(horizontal rgba(220,220,220,191) "
+			"rgba(220,220,220,191))",
 		},
 		{
 			"",
 			"",
 
-			"gradient(horizontal transparent transparent), gradient(vertical transparent transparent)",
+			"horizontal-gradient(transparent transparent), horizontal-gradient(transparent transparent)",
 			"from_rule, to_rule",
 
-			"gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)), gradient(vertical rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)), horizontal-gradient(horizontal rgba(127,127,127,63) "
+			"rgba(127,127,127,63))",
 		},
 	};
 
