@@ -116,7 +116,10 @@ namespace Math {
 
 	RMLUICORE_API float NormaliseAngle(float angle)
 	{
-		return fmodf(angle, RMLUI_PI * 2.0f);
+		float result = fmodf(angle, RMLUI_PI * 2.0f);
+		if (result < 0.f)
+			result += RMLUI_PI * 2.0f;
+		return result;
 	}
 
 	RMLUICORE_API float SquareRoot(float value)

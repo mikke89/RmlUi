@@ -154,9 +154,9 @@ namespace Math {
 	/// @param[in] The angle, in degrees.
 	/// @return The angle converted to radians.
 	RMLUICORE_API float DegreesToRadians(float angle);
-	/// Normalises and angle in radians
-	/// @param[in] The angle, in randians
-	/// @return The normalised angle
+	/// Normalises an angle in radians to [0, 2pi).
+	/// @param[in] The angle, in radians.
+	/// @return The normalised angle.
 	RMLUICORE_API float NormaliseAngle(float angle);
 
 	/// Calculates the square root of a value.
