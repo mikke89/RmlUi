@@ -50,7 +50,8 @@ struct TextureGeometry {
 
 bool CaptureScreenshot(const Rml::String& filename, int clip_width);
 
-ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_interface, const Rml::String& filename, TextureGeometry* out_geometry);
+ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_interface, const Rml::String& filename, TextureGeometry* out_reference,
+	TextureGeometry* out_highlight);
 
 void RenderTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry);
 
