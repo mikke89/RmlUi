@@ -95,7 +95,7 @@ bool DecoratorTiledBox::Initialise(const Tile* _tiles, const Texture* _textures)
 	return true;
 }
 
-DecoratorDataHandle DecoratorTiledBox::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorTiledBox::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	// Initialise the tiles for this element.
 	for (int i = 0; i < 9; i++)
@@ -104,7 +104,8 @@ DecoratorDataHandle DecoratorTiledBox::GenerateElementData(Element* element) con
 		tiles[i].CalculateDimensions(*GetTexture(tiles[i].texture_index));
 	}
 
-	Vector2f padded_size = element->GetBox().GetSize(BoxArea::Padding);
+	const Vector2f offset = element->GetBox().GetPosition(paint_area);
+	const Vector2f size = element->GetBox().GetSize(paint_area);
 
 	// Calculate the natural dimensions of tile corners and edges.
 	const Vector2f natural_top_left = tiles[TOP_LEFT_CORNER].GetNaturalDimensions(element);
@@ -132,60 +133,60 @@ DecoratorDataHandle DecoratorTiledBox::GenerateElementData(Element* element) con
 
 	// Scale the top corners down if appropriate. If they are scaled, then the left and right edges are also scaled
 	// if they shared a width with their corner. Best solution? Don't know.
-	if (padded_size.x < top_left.x + top_right.x)
+	if (size.x < top_left.x + top_right.x)
 	{
 		float minimum_width = top_left.x + top_right.x;
 
-		top_left.x = padded_size.x * (top_left.x / minimum_width);
+		top_left.x = size.x * (top_left.x / minimum_width);
 		if (natural_top_left.x == natural_left.x)
 			left.x = top_left.x;
 
-		top_right.x = padded_size.x * (top_right.x / minimum_width);
+		top_right.x = size.x * (top_right.x / minimum_width);
 		if (natural_top_right.x == natural_right.x)
 			right.x = top_right.x;
 	}
 
 	// Scale the bottom corners down if appropriate. If they are scaled, then the left and right edges are also scaled
 	// if they shared a width with their corner. Best solution? Don't know.
-	if (padded_size.x < bottom_left.x + bottom_right.x)
+	if (size.x < bottom_left.x + bottom_right.x)
 	{
 		float minimum_width = bottom_left.x + bottom_right.x;
 
-		bottom_left.x = padded_size.x * (bottom_left.x / minimum_width);
+		bottom_left.x = size.x * (bottom_left.x / minimum_width);
 		if (natural_bottom_left.x == natural_left.x)
 			left.x = bottom_left.x;
 
-		bottom_right.x = padded_size.x * (bottom_right.x / minimum_width);
+		bottom_right.x = size.x * (bottom_right.x / minimum_width);
 		if (natural_bottom_right.x == natural_right.x)
 			right.x = bottom_right.x;
 	}
 
 	// Scale the left corners down if appropriate. If they are scaled, then the top and bottom edges are also scaled
 	// if they shared a width with their corner. Best solution? Don't know.
-	if (padded_size.y < top_left.y + bottom_left.y)
+	if (size.y < top_left.y + bottom_left.y)
 	{
 		float minimum_height = top_left.y + bottom_left.y;
 
-		top_left.y = padded_size.y * (top_left.y / minimum_height);
+		top_left.y = size.y * (top_left.y / minimum_height);
 		if (natural_top_left.y == natural_top.y)
 			top.y = top_left.y;
 
-		bottom_left.y = padded_size.y * (bottom_left.y / minimum_height);
+		bottom_left.y = size.y * (bottom_left.y / minimum_height);
 		if (natural_bottom_left.y == natural_bottom.y)
 			bottom.y = bottom_left.y;
 	}
 
 	// Scale the right corners down if appropriate. If they are scaled, then the top and bottom edges are also scaled
 	// if they shared a width with their corner. Best solution? Don't know.
-	if (padded_size.y < top_right.y + bottom_right.y)
+	if (size.y < top_right.y + bottom_right.y)
 	{
 		float minimum_height = top_right.y + bottom_right.y;
 
-		top_right.y = padded_size.y * (top_right.y / minimum_height);
+		top_right.y = size.y * (top_right.y / minimum_height);
 		if (natural_top_right.y == natural_top.y)
 			top.y = top_right.y;
 
-		bottom_right.y = padded_size.y * (bottom_right.y / minimum_height);
+		bottom_right.y = size.y * (bottom_right.y / minimum_height);
 		if (natural_bottom_right.y == natural_bottom.y)
 			bottom.y = bottom_right.y;
 	}
@@ -196,44 +197,46 @@ DecoratorDataHandle DecoratorTiledBox::GenerateElementData(Element* element) con
 
 	// Generate the geometry for the top-left tile.
 	tiles[TOP_LEFT_CORNER].GenerateGeometry(data->geometry[tiles[TOP_LEFT_CORNER].texture_index].GetVertices(),
-		data->geometry[tiles[TOP_LEFT_CORNER].texture_index].GetIndices(), computed, Vector2f(0, 0), top_left, top_left);
+		data->geometry[tiles[TOP_LEFT_CORNER].texture_index].GetIndices(), computed, offset, top_left, top_left);
 	// Generate the geometry for the top edge tiles.
 	tiles[TOP_EDGE].GenerateGeometry(data->geometry[tiles[TOP_EDGE].texture_index].GetVertices(),
-		data->geometry[tiles[TOP_EDGE].texture_index].GetIndices(), computed, Vector2f(top_left.x, 0),
-		Vector2f(padded_size.x - (top_left.x + top_right.x), top.y), top);
+		data->geometry[tiles[TOP_EDGE].texture_index].GetIndices(), computed, offset + Vector2f(top_left.x, 0),
+		Vector2f(size.x - (top_left.x + top_right.x), top.y), top);
 	// Generate the geometry for the top-right tile.
 	tiles[TOP_RIGHT_CORNER].GenerateGeometry(data->geometry[tiles[TOP_RIGHT_CORNER].texture_index].GetVertices(),
-		data->geometry[tiles[TOP_RIGHT_CORNER].texture_index].GetIndices(), computed, Vector2f(padded_size.x - top_right.x, 0), top_right, top_right);
+		data->geometry[tiles[TOP_RIGHT_CORNER].texture_index].GetIndices(), computed, offset + Vector2f(size.x - top_right.x, 0), top_right,
+		top_right);
 
 	// Generate the geometry for the left side.
 	tiles[LEFT_EDGE].GenerateGeometry(data->geometry[tiles[LEFT_EDGE].texture_index].GetVertices(),
-		data->geometry[tiles[LEFT_EDGE].texture_index].GetIndices(), computed, Vector2f(0, top_left.y),
-		Vector2f(left.x, padded_size.y - (top_left.y + bottom_left.y)), left);
+		data->geometry[tiles[LEFT_EDGE].texture_index].GetIndices(), computed, offset + Vector2f(0, top_left.y),
+		Vector2f(left.x, size.y - (top_left.y + bottom_left.y)), left);
 
 	// Generate the geometry for the right side.
 	tiles[RIGHT_EDGE].GenerateGeometry(data->geometry[tiles[RIGHT_EDGE].texture_index].GetVertices(),
-		data->geometry[tiles[RIGHT_EDGE].texture_index].GetIndices(), computed, Vector2f((padded_size.x - right.x), top_right.y),
-		Vector2f(right.x, padded_size.y - (top_right.y + bottom_right.y)), right);
+		data->geometry[tiles[RIGHT_EDGE].texture_index].GetIndices(), computed, offset + Vector2f((size.x - right.x), top_right.y),
+		Vector2f(right.x, size.y - (top_right.y + bottom_right.y)), right);
 
 	// Generate the geometry for the bottom-left tile.
 	tiles[BOTTOM_LEFT_CORNER].GenerateGeometry(data->geometry[tiles[BOTTOM_LEFT_CORNER].texture_index].GetVertices(),
-		data->geometry[tiles[BOTTOM_LEFT_CORNER].texture_index].GetIndices(), computed, Vector2f(0, padded_size.y - bottom_left.y), bottom_left,
+		data->geometry[tiles[BOTTOM_LEFT_CORNER].texture_index].GetIndices(), computed, offset + Vector2f(0, size.y - bottom_left.y), bottom_left,
 		bottom_left);
 	// Generate the geometry for the bottom edge tiles.
 	tiles[BOTTOM_EDGE].GenerateGeometry(data->geometry[tiles[BOTTOM_EDGE].texture_index].GetVertices(),
-		data->geometry[tiles[BOTTOM_EDGE].texture_index].GetIndices(), computed, Vector2f(bottom_left.x, padded_size.y - bottom.y),
-		Vector2f(padded_size.x - (bottom_left.x + bottom_right.x), bottom.y), bottom);
+		data->geometry[tiles[BOTTOM_EDGE].texture_index].GetIndices(), computed, offset + Vector2f(bottom_left.x, size.y - bottom.y),
+		Vector2f(size.x - (bottom_left.x + bottom_right.x), bottom.y), bottom);
 	// Generate the geometry for the bottom-right tile.
 	tiles[BOTTOM_RIGHT_CORNER].GenerateGeometry(data->geometry[tiles[BOTTOM_RIGHT_CORNER].texture_index].GetVertices(),
 		data->geometry[tiles[BOTTOM_RIGHT_CORNER].texture_index].GetIndices(), computed,
-		Vector2f(padded_size.x - bottom_right.x, padded_size.y - bottom_right.y), bottom_right, bottom_right);
+		offset + Vector2f(size.x - bottom_right.x, size.y - bottom_right.y), bottom_right, bottom_right);
 
 	// Generate the centre geometry.
 	Vector2f centre_dimensions = tiles[CENTRE].GetNaturalDimensions(element);
-	Vector2f centre_surface_dimensions(padded_size.x - (left.x + right.x), padded_size.y - (top.y + bottom.y));
+	Vector2f centre_surface_dimensions(size.x - (left.x + right.x), size.y - (top.y + bottom.y));
 
 	tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index].GetVertices(),
-		data->geometry[tiles[CENTRE].texture_index].GetIndices(), computed, Vector2f(left.x, top.y), centre_surface_dimensions, centre_dimensions);
+		data->geometry[tiles[CENTRE].texture_index].GetIndices(), computed, offset + Vector2f(left.x, top.y), centre_surface_dimensions,
+		centre_dimensions);
 
 	// Set the textures on the geometry.
 	const Texture* texture = nullptr;
@@ -251,7 +254,7 @@ void DecoratorTiledBox::ReleaseElementData(DecoratorDataHandle element_data) con
 
 void DecoratorTiledBox::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
-	Vector2f translation = element->GetAbsoluteOffset(BoxArea::Padding).Round();
+	Vector2f translation = element->GetAbsoluteOffset(BoxArea::Border);
 	DecoratorTiledBoxData* data = reinterpret_cast<DecoratorTiledBoxData*>(element_data);
 
 	for (int i = 0; i < data->num_textures; i++)

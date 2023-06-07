@@ -54,7 +54,7 @@ bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectang
 	return (texture_index >= 0);
 }
 
-DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	const auto& computed = element->GetComputedValues();
 
@@ -64,7 +64,8 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 	data->SetTexture(texture);
 	const Vector2f texture_dimensions(texture->GetDimensions());
 
-	const Vector2f surface_dimensions = element->GetBox().GetSize(BoxArea::Padding).Round();
+	const Vector2f surface_offset = element->GetBox().GetPosition(paint_area);
+	const Vector2f surface_dimensions = element->GetBox().GetSize(paint_area).Round();
 
 	const float opacity = computed.opacity();
 	Colourb quad_colour = computed.image_color();
@@ -126,6 +127,10 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 		}
 	}
 
+	// Now offset all positions, relative to the border box.
+	for (Vector2f& surface_pos_entry : surface_pos)
+		surface_pos_entry += surface_offset;
+
 	// Round the inner corners
 	surface_pos[1] = surface_pos[1].Round();
 	surface_pos[2] = surface_pos[2].Round();
@@ -176,7 +181,7 @@ void DecoratorNinePatch::ReleaseElementData(DecoratorDataHandle element_data) co
 void DecoratorNinePatch::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	Geometry* data = reinterpret_cast<Geometry*>(element_data);
-	data->Render(element->GetAbsoluteOffset(BoxArea::Padding));
+	data->Render(element->GetAbsoluteOffset(BoxArea::Border));
 }
 
 DecoratorNinePatchInstancer::DecoratorNinePatchInstancer()

@@ -43,7 +43,7 @@ public:
 	bool Initialise(const Rectanglef& rect_outer, const Rectanglef& rect_inner, const Array<NumericValue, 4>* _edges, const Texture& texture,
 		float display_scale);
 
-	DecoratorDataHandle GenerateElementData(Element* element) const override;
+	DecoratorDataHandle GenerateElementData(Element* element, BoxArea paint_area) const override;
 	void ReleaseElementData(DecoratorDataHandle element_data) const override;
 
 	void RenderElement(Element* element, DecoratorDataHandle element_data) const override;

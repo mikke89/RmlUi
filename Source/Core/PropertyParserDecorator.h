@@ -44,6 +44,11 @@ public:
 
 	/// Called to parse a decorator declaration.
 	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
+
+	static String ConvertAreaToString(BoxArea area);
+
+private:
+	static const SmallUnorderedMap<String, BoxArea> area_keywords;
 };
 
 } // namespace Rml

@@ -171,7 +171,7 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 
 	struct DecoratorDeclarationView {
 		DecoratorDeclarationView(const DecoratorDeclaration& declaration) :
-			type(declaration.type), instancer(declaration.instancer), properties(declaration.properties)
+			type(declaration.type), instancer(declaration.instancer), properties(declaration.properties), paint_area(declaration.paint_area)
 		{}
 		DecoratorDeclarationView(const NamedDecorator* specification) :
 			type(specification->type), instancer(Factory::GetDecoratorInstancer(specification->type)), properties(specification->properties)
@@ -179,6 +179,7 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 		const String& type;
 		DecoratorInstancer* instancer;
 		const PropertyDictionary& properties;
+		BoxArea paint_area = BoxArea::Auto;
 	};
 
 	if (p0.unit == Unit::DECORATOR && p1.unit == Unit::DECORATOR)
@@ -230,13 +231,13 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 				return DiscreteInterpolation();
 
 			if (d0_view.instancer != d1_view.instancer || d0_view.type != d1_view.type ||
-				d0_view.properties.GetNumProperties() != d1_view.properties.GetNumProperties())
+				d0_view.properties.GetNumProperties() != d1_view.properties.GetNumProperties() || d0_view.paint_area != d1_view.paint_area)
 			{
 				// Incompatible decorators, fall back to discrete interpolation.
 				return DiscreteInterpolation();
 			}
 
-			decorator->list.push_back(DecoratorDeclaration{d0_view.type, d0_view.instancer, PropertyDictionary()});
+			decorator->list.push_back(DecoratorDeclaration{d0_view.type, d0_view.instancer, PropertyDictionary(), d0_view.paint_area});
 			PropertyDictionary& props = decorator->list.back().properties;
 
 			const auto& props0 = d0_view.properties.GetProperties();
@@ -269,7 +270,7 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 			if (!dbig_view.instancer)
 				return DiscreteInterpolation();
 
-			decorator->list.push_back(DecoratorDeclaration{dbig_view.type, dbig_view.instancer, PropertyDictionary()});
+			decorator->list.push_back(DecoratorDeclaration{dbig_view.type, dbig_view.instancer, PropertyDictionary(), dbig_view.paint_area});
 			DecoratorDeclaration& d_new = decorator->list.back();
 
 			const PropertySpecification& specification = d_new.instancer->GetPropertySpecification();

@@ -49,7 +49,7 @@ bool DecoratorDefender::Initialise(const Rml::Texture& texture)
 	return true;
 }
 
-Rml::DecoratorDataHandle DecoratorDefender::GenerateElementData(Rml::Element* /*element*/) const
+Rml::DecoratorDataHandle DecoratorDefender::GenerateElementData(Rml::Element* /*element*/, Rml::BoxArea /*paint_area*/) const
 {
 	return Rml::Decorator::INVALID_DECORATORDATAHANDLE;
 }

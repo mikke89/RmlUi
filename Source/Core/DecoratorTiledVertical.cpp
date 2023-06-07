@@ -76,7 +76,7 @@ bool DecoratorTiledVertical::Initialise(const Tile* _tiles, const Texture* _text
 	return true;
 }
 
-DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	// Initialise the tile for this element.
 	for (int i = 0; i < 3; i++)
@@ -85,41 +85,42 @@ DecoratorDataHandle DecoratorTiledVertical::GenerateElementData(Element* element
 	const int num_textures = GetNumTextures();
 	DecoratorTiledVerticalData* data = new DecoratorTiledVerticalData(num_textures);
 
-	Vector2f padded_size = element->GetBox().GetSize(BoxArea::Padding);
+	const Vector2f offset = element->GetBox().GetPosition(paint_area);
+	const Vector2f size = element->GetBox().GetSize(paint_area);
 
 	Vector2f top_dimensions = tiles[TOP].GetNaturalDimensions(element);
 	Vector2f bottom_dimensions = tiles[BOTTOM].GetNaturalDimensions(element);
 	Vector2f centre_dimensions = tiles[CENTRE].GetNaturalDimensions(element);
 
 	// Scale the tile sizes by the width scale.
-	ScaleTileDimensions(top_dimensions, padded_size.x, Axis::Horizontal);
-	ScaleTileDimensions(bottom_dimensions, padded_size.x, Axis::Horizontal);
-	ScaleTileDimensions(centre_dimensions, padded_size.x, Axis::Horizontal);
+	ScaleTileDimensions(top_dimensions, size.x, Axis::Horizontal);
+	ScaleTileDimensions(bottom_dimensions, size.x, Axis::Horizontal);
+	ScaleTileDimensions(centre_dimensions, size.x, Axis::Horizontal);
 
 	// Round the outer tile heights now so that we don't get gaps when rounding again in GenerateGeometry.
 	top_dimensions.y = Math::Round(top_dimensions.y);
 	bottom_dimensions.y = Math::Round(bottom_dimensions.y);
 
 	// Shrink the y-sizes on the left and right tiles if necessary.
-	if (padded_size.y < top_dimensions.y + bottom_dimensions.y)
+	if (size.y < top_dimensions.y + bottom_dimensions.y)
 	{
 		float minimum_height = top_dimensions.y + bottom_dimensions.y;
-		top_dimensions.y = padded_size.y * (top_dimensions.y / minimum_height);
-		bottom_dimensions.y = padded_size.y * (bottom_dimensions.y / minimum_height);
+		top_dimensions.y = size.y * (top_dimensions.y / minimum_height);
+		bottom_dimensions.y = size.y * (bottom_dimensions.y / minimum_height);
 	}
 
 	const ComputedValues& computed = element->GetComputedValues();
 
 	// Generate the geometry for the left tile.
 	tiles[TOP].GenerateGeometry(data->geometry[tiles[TOP].texture_index].GetVertices(), data->geometry[tiles[TOP].texture_index].GetIndices(),
-		computed, Vector2f(0, 0), top_dimensions, top_dimensions);
+		computed, offset, top_dimensions, top_dimensions);
 	// Generate the geometry for the centre tiles.
 	tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index].GetVertices(),
-		data->geometry[tiles[CENTRE].texture_index].GetIndices(), computed, Vector2f(0, top_dimensions.y),
-		Vector2f(centre_dimensions.x, padded_size.y - (top_dimensions.y + bottom_dimensions.y)), centre_dimensions);
+		data->geometry[tiles[CENTRE].texture_index].GetIndices(), computed, offset + Vector2f(0, top_dimensions.y),
+		Vector2f(centre_dimensions.x, size.y - (top_dimensions.y + bottom_dimensions.y)), centre_dimensions);
 	// Generate the geometry for the right tile.
 	tiles[BOTTOM].GenerateGeometry(data->geometry[tiles[BOTTOM].texture_index].GetVertices(),
-		data->geometry[tiles[BOTTOM].texture_index].GetIndices(), computed, Vector2f(0, padded_size.y - bottom_dimensions.y), bottom_dimensions,
+		data->geometry[tiles[BOTTOM].texture_index].GetIndices(), computed, offset + Vector2f(0, size.y - bottom_dimensions.y), bottom_dimensions,
 		bottom_dimensions);
 
 	// Set the textures on the geometry.

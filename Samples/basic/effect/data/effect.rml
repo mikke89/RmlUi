@@ -63,7 +63,7 @@
 
 .transform, .filter.transform_all > .box { transform: rotate3d(0.2, 0.4, 0.1, 15deg); }
 
-.gradient { decorator: linear-gradient(110deg, #fff3, #fff 10%, #c33 250dp, #3c3, #33c, #000 90%, #0003); }
+.gradient { decorator: linear-gradient(110deg, #fff3, #fff 10%, #c33 250dp, #3c3, #33c, #000 90%, #0003) border-box; }
 
 .brightness { filter: brightness(0.5); }
 .contrast { filter: contrast(0.5); }

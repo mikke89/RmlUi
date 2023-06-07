@@ -55,7 +55,7 @@ bool DecoratorStarfield::Initialise(int _num_layers, const Rml::Colourb& _top_co
 	return true;
 }
 
-Rml::DecoratorDataHandle DecoratorStarfield::GenerateElementData(Rml::Element* element) const
+Rml::DecoratorDataHandle DecoratorStarfield::GenerateElementData(Rml::Element* element, Rml::BoxArea /*paint_area*/) const
 {
 	const double t = Rml::GetSystemInterface()->GetElapsedTime();
 

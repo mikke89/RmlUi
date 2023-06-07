@@ -87,16 +87,22 @@ void ElementDecoration::InstanceDecorators()
 		}
 
 		const DecoratorPtrList& decorator_list = style_sheet->InstanceDecorators(*decorators_ptr, source);
+		RMLUI_ASSERT(decorator_list.empty() || decorator_list.size() == decorators_ptr->list.size());
 
-		for (const SharedPtr<const Decorator>& decorator : decorator_list)
+		for (size_t i = 0; i < decorator_list.size() && i < decorators_ptr->list.size(); i++)
 		{
+			const SharedPtr<const Decorator>& decorator = decorator_list[i];
 			if (decorator)
 			{
-				DecoratorEntry decorator_handle;
-				decorator_handle.decorator_data = 0;
-				decorator_handle.decorator = decorator;
+				DecoratorEntry entry;
+				entry.decorator_data = 0;
+				entry.decorator = decorator;
+				entry.paint_area = decorators_ptr->list[i].paint_area;
+				if (entry.paint_area == BoxArea::Auto)
+					entry.paint_area = BoxArea::Padding;
 
-				decorators.push_back(std::move(decorator_handle));
+				RMLUI_ASSERT(entry.paint_area >= BoxArea::Border && entry.paint_area <= BoxArea::Content);
+				decorators.push_back(std::move(entry));
 			}
 		}
 	}
@@ -145,7 +151,7 @@ void ElementDecoration::ReloadDecoratorsData()
 			if (decorator.decorator_data)
 				decorator.decorator->ReleaseElementData(decorator.decorator_data);
 
-			decorator.decorator_data = decorator.decorator->GenerateElementData(element);
+			decorator.decorator_data = decorator.decorator->GenerateElementData(element, decorator.paint_area);
 		}
 
 		for (FilterEntryList* list : {&filters, &backdrop_filters})

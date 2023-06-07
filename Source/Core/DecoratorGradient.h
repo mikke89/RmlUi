@@ -52,7 +52,7 @@ public:
 
 	bool Initialise(Direction direction, Colourb start, Colourb stop);
 
-	DecoratorDataHandle GenerateElementData(Element* element) const override;
+	DecoratorDataHandle GenerateElementData(Element* element, BoxArea paint_area) const override;
 	void ReleaseElementData(DecoratorDataHandle element_data) const override;
 
 	void RenderElement(Element* element, DecoratorDataHandle element_data) const override;
@@ -89,7 +89,7 @@ public:
 
 	bool Initialise(bool repeating, Corner corner, float angle, const ColorStopList& color_stops);
 
-	DecoratorDataHandle GenerateElementData(Element* element) const override;
+	DecoratorDataHandle GenerateElementData(Element* element, BoxArea paint_area) const override;
 	void ReleaseElementData(DecoratorDataHandle element_data) const override;
 
 	void RenderElement(Element* element, DecoratorDataHandle element_data) const override;

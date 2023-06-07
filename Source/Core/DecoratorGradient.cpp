@@ -160,7 +160,7 @@ bool DecoratorStraightGradient::Initialise(const Direction in_direction, const C
 	return true;
 }
 
-DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	Geometry* geometry = new Geometry();
 	const Box& box = element->GetBox();
@@ -168,7 +168,7 @@ DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* elem
 	const ComputedValues& computed = element->GetComputedValues();
 	const float opacity = computed.opacity();
 
-	GeometryUtilities::GenerateBackground(geometry, element->GetBox(), Vector2f(0), computed.border_radius(), Colourb());
+	GeometryUtilities::GenerateBackground(geometry, element->GetBox(), Vector2f(0), computed.border_radius(), Colourb(), paint_area);
 
 	// Apply opacity
 	Colourb colour_start = start;
@@ -176,8 +176,8 @@ DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* elem
 	Colourb colour_stop = stop;
 	colour_stop.alpha = (byte)(opacity * (float)colour_stop.alpha);
 
-	const Vector2f padding_offset = box.GetPosition(BoxArea::Padding);
-	const Vector2f padding_size = box.GetSize(BoxArea::Padding);
+	const Vector2f offset = box.GetPosition(paint_area);
+	const Vector2f size = box.GetSize(paint_area);
 
 	Vector<Vertex>& vertices = geometry->GetVertices();
 
@@ -185,7 +185,7 @@ DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* elem
 	{
 		for (int i = 0; i < (int)vertices.size(); i++)
 		{
-			const float t = Math::Clamp((vertices[i].position.x - padding_offset.x) / padding_size.x, 0.0f, 1.0f);
+			const float t = Math::Clamp((vertices[i].position.x - offset.x) / size.x, 0.0f, 1.0f);
 			vertices[i].colour = Math::RoundedLerp(t, colour_start, colour_stop);
 		}
 	}
@@ -193,7 +193,7 @@ DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* elem
 	{
 		for (int i = 0; i < (int)vertices.size(); i++)
 		{
-			const float t = Math::Clamp((vertices[i].position.y - padding_offset.y) / padding_size.y, 0.0f, 1.0f);
+			const float t = Math::Clamp((vertices[i].position.y - offset.y) / size.y, 0.0f, 1.0f);
 			vertices[i].colour = Math::RoundedLerp(t, colour_start, colour_stop);
 		}
 	}
@@ -262,7 +262,7 @@ bool DecoratorLinearGradient::Initialise(bool in_repeating, Corner in_corner, fl
 	return !color_stops.empty();
 }
 
-DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	RenderInterface* render_interface = GetRenderInterface();
 	if (!render_interface)
@@ -270,9 +270,8 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 
 	RMLUI_ASSERT(!color_stops.empty());
 
-	BoxArea box_area = BoxArea::Padding;
 	const Box& box = element->GetBox();
-	const Vector2f dimensions = box.GetSize(box_area);
+	const Vector2f dimensions = box.GetSize(paint_area);
 
 	LinearGradientShape gradient_shape = CalculateShape(dimensions);
 
@@ -299,9 +298,9 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), Colourb(255, alpha), box_area);
+	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), Colourb(255, alpha), paint_area);
 
-	const Vector2f render_offset = box.GetPosition(box_area);
+	const Vector2f render_offset = box.GetPosition(paint_area);
 	for (Vertex& vertex : geometry.GetVertices())
 		vertex.tex_coord = vertex.position - render_offset;
 

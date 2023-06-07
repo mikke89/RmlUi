@@ -37,6 +37,7 @@
 #include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "PropertyParserDecorator.h"
 #include "TransformUtilities.h"
 
 namespace Rml {
@@ -163,6 +164,16 @@ bool TypeConverter<AnimationList, String>::Convert(const AnimationList& src, Str
 	return true;
 }
 
+template <typename EffectDeclaration>
+void AppendPaintArea(const EffectDeclaration& /*declaration*/, String& /*dest*/)
+{}
+template <>
+void AppendPaintArea(const DecoratorDeclaration& declaration, String& dest)
+{
+	if (declaration.paint_area >= BoxArea::Border && declaration.paint_area <= BoxArea::Padding)
+		dest += " " + PropertyParserDecorator::ConvertAreaToString(declaration.paint_area);
+}
+
 template <typename EffectsPtr>
 static bool ConvertEffectToString(const EffectsPtr& src, String& dest, const String& separator)
 {
@@ -176,10 +187,10 @@ static bool ConvertEffectToString(const EffectsPtr& src, String& dest, const Str
 		for (const auto& declaration : src->list)
 		{
 			dest += declaration.type;
-			if (auto instancer = declaration.instancer)
-			{
+			if (auto* instancer = declaration.instancer)
 				dest += '(' + instancer->GetPropertySpecification().PropertiesToString(declaration.properties, false, ' ') + ')';
-			}
+
+			AppendPaintArea(declaration, dest);
 			if (&declaration != &src->list.back())
 				dest += separator;
 		}

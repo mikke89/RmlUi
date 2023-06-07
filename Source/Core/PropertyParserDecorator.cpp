@@ -35,6 +35,12 @@
 
 namespace Rml {
 
+const SmallUnorderedMap<String, BoxArea> PropertyParserDecorator::area_keywords = {
+	{"border-box", BoxArea::Border},
+	{"padding-box", BoxArea::Padding},
+	{"content-box", BoxArea::Content},
+};
+
 PropertyParserDecorator::PropertyParserDecorator() {}
 
 PropertyParserDecorator::~PropertyParserDecorator() {}
@@ -44,9 +50,11 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 	// Decorators are declared as
 	//   decorator: <decorator-value>[, <decorator-value> ...];
 	// Where <decorator-value> is either a @decorator name:
-	//   decorator: invader-theme-background, ...;
+	//   decorator: invader-theme-background <paint-area>?, ...;
 	// or is an anonymous decorator with inline properties
-	//   decorator: tiled-box( <shorthand properties> ), ...;
+	//   decorator: tiled-box( <shorthand properties> ) <paint-area>?, ...;
+	// where <paint-area> is one of
+	//   border-box, padding-box, content-box
 
 	if (decorator_string_value.empty() || decorator_string_value == "none")
 	{
@@ -56,6 +64,8 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 	}
 
 	RMLUI_ZoneScoped;
+
+	const BoxArea default_paint_area = BoxArea::Padding;
 
 	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
 	StringList decorator_string_list;
@@ -72,10 +82,33 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 		const size_t shorthand_close = decorator_string.rfind(')');
 		const bool invalid_parenthesis = (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close);
 
+		// Find the paint area for the decorator.
+		BoxArea paint_area = default_paint_area;
+
+		// Look-up keywords for customized paint area.
+		{
+			const size_t keywords_begin = (invalid_parenthesis ? decorator_string.find(' ') : shorthand_close + 1);
+			StringList keywords;
+			if (keywords_begin < decorator_string.size())
+				StringUtilities::ExpandString(keywords, decorator_string.substr(keywords_begin), ' ');
+
+			for (const String& keyword : keywords)
+			{
+				if (keyword.empty())
+					continue;
+
+				auto it = area_keywords.find(StringUtilities::ToLower(keyword));
+				if (it == area_keywords.end())
+					return false; // Bail out if we have an invalid keyword.
+
+				paint_area = it->second;
+			}
+		}
+
 		if (invalid_parenthesis)
 		{
 			// We found no parenthesis, that means the value must be a name of a @decorator rule.
-			decorators.list.emplace_back(DecoratorDeclaration{decorator_string, nullptr, {}});
+			decorators.list.emplace_back(DecoratorDeclaration{decorator_string, nullptr, {}, paint_area});
 		}
 		else
 		{
@@ -105,7 +138,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 			// Set unspecified values to their defaults
 			specification.SetPropertyDefaults(properties);
 
-			decorators.list.emplace_back(DecoratorDeclaration{type, instancer, std::move(properties)});
+			decorators.list.emplace_back(DecoratorDeclaration{type, instancer, std::move(properties), paint_area});
 		}
 	}
 
@@ -116,6 +149,16 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 	property.unit = Unit::DECORATOR;
 
 	return true;
+}
+
+String PropertyParserDecorator::ConvertAreaToString(BoxArea area)
+{
+	for (const auto& it : area_keywords)
+	{
+		if (it.second == area)
+			return it.first;
+	}
+	return String();
 }
 
 } // namespace Rml

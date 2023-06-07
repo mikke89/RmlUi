@@ -70,6 +70,7 @@ private:
 	struct DecoratorEntry {
 		SharedPtr<const Decorator> decorator;
 		DecoratorDataHandle decorator_data;
+		BoxArea paint_area;
 	};
 	using DecoratorEntryList = Vector<DecoratorEntry>;
 

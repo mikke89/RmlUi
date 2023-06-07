@@ -75,7 +75,7 @@ bool DecoratorTiledHorizontal::Initialise(const Tile* _tiles, const Texture* _te
 	return true;
 }
 
-DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	// Initialise the tiles for this element.
 	for (int i = 0; i < 3; i++)
@@ -84,41 +84,42 @@ DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* eleme
 	const int num_textures = GetNumTextures();
 	DecoratorTiledHorizontalData* data = new DecoratorTiledHorizontalData(num_textures);
 
-	Vector2f padded_size = element->GetBox().GetSize(BoxArea::Padding);
+	const Vector2f offset = element->GetBox().GetPosition(paint_area);
+	const Vector2f size = element->GetBox().GetSize(paint_area);
 
 	Vector2f left_dimensions = tiles[LEFT].GetNaturalDimensions(element);
 	Vector2f right_dimensions = tiles[RIGHT].GetNaturalDimensions(element);
 	Vector2f centre_dimensions = tiles[CENTRE].GetNaturalDimensions(element);
 
 	// Scale the tile sizes by the height scale.
-	ScaleTileDimensions(left_dimensions, padded_size.y, Axis::Vertical);
-	ScaleTileDimensions(right_dimensions, padded_size.y, Axis::Vertical);
-	ScaleTileDimensions(centre_dimensions, padded_size.y, Axis::Vertical);
+	ScaleTileDimensions(left_dimensions, size.y, Axis::Vertical);
+	ScaleTileDimensions(right_dimensions, size.y, Axis::Vertical);
+	ScaleTileDimensions(centre_dimensions, size.y, Axis::Vertical);
 
 	// Round the outer tile widths now so that we don't get gaps when rounding again in GenerateGeometry.
 	left_dimensions.x = Math::Round(left_dimensions.x);
 	right_dimensions.x = Math::Round(right_dimensions.x);
 
 	// Shrink the x-sizes on the left and right tiles if necessary.
-	if (padded_size.x < left_dimensions.x + right_dimensions.x)
+	if (size.x < left_dimensions.x + right_dimensions.x)
 	{
 		float minimum_width = left_dimensions.x + right_dimensions.x;
-		left_dimensions.x = padded_size.x * (left_dimensions.x / minimum_width);
-		right_dimensions.x = padded_size.x * (right_dimensions.x / minimum_width);
+		left_dimensions.x = size.x * (left_dimensions.x / minimum_width);
+		right_dimensions.x = size.x * (right_dimensions.x / minimum_width);
 	}
 
 	const ComputedValues& computed = element->GetComputedValues();
 
 	// Generate the geometry for the left tile.
 	tiles[LEFT].GenerateGeometry(data->geometry[tiles[LEFT].texture_index].GetVertices(), data->geometry[tiles[LEFT].texture_index].GetIndices(),
-		computed, Vector2f(0, 0), left_dimensions, left_dimensions);
+		computed, offset, left_dimensions, left_dimensions);
 	// Generate the geometry for the centre tiles.
 	tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index].GetVertices(),
-		data->geometry[tiles[CENTRE].texture_index].GetIndices(), computed, Vector2f(left_dimensions.x, 0),
-		Vector2f(padded_size.x - (left_dimensions.x + right_dimensions.x), centre_dimensions.y), centre_dimensions);
+		data->geometry[tiles[CENTRE].texture_index].GetIndices(), computed, offset + Vector2f(left_dimensions.x, 0),
+		Vector2f(size.x - (left_dimensions.x + right_dimensions.x), centre_dimensions.y), centre_dimensions);
 	// Generate the geometry for the right tile.
 	tiles[RIGHT].GenerateGeometry(data->geometry[tiles[RIGHT].texture_index].GetVertices(), data->geometry[tiles[RIGHT].texture_index].GetIndices(),
-		computed, Vector2f(padded_size.x - right_dimensions.x, 0), right_dimensions, right_dimensions);
+		computed, offset + Vector2f(size.x - right_dimensions.x, 0), right_dimensions, right_dimensions);
 
 	// Set the textures on the geometry.
 	const Texture* texture = nullptr;
@@ -136,7 +137,7 @@ void DecoratorTiledHorizontal::ReleaseElementData(DecoratorDataHandle element_da
 
 void DecoratorTiledHorizontal::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
-	Vector2f translation = element->GetAbsoluteOffset(BoxArea::Padding).Round();
+	Vector2f translation = element->GetAbsoluteOffset(BoxArea::Border);
 	DecoratorTiledHorizontalData* data = reinterpret_cast<DecoratorTiledHorizontalData*>(element_data);
 
 	for (int i = 0; i < data->num_textures; i++)

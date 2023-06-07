@@ -44,7 +44,7 @@ bool DecoratorTiledImage::Initialise(const Tile& _tile, const Texture& _texture)
 	return (tile.texture_index >= 0);
 }
 
-DecoratorDataHandle DecoratorTiledImage::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorTiledImage::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	// Calculate the tile's dimensions for this element.
 	tile.CalculateDimensions(*GetTexture(tile.texture_index));
@@ -54,9 +54,11 @@ DecoratorDataHandle DecoratorTiledImage::GenerateElementData(Element* element) c
 
 	const ComputedValues& computed = element->GetComputedValues();
 
+	const Vector2f offset = element->GetBox().GetPosition(paint_area);
+	const Vector2f size = element->GetBox().GetSize(paint_area);
+
 	// Generate the geometry for the tile.
-	tile.GenerateGeometry(data->GetVertices(), data->GetIndices(), computed, Vector2f(0, 0), element->GetBox().GetSize(BoxArea::Padding),
-		tile.GetNaturalDimensions(element));
+	tile.GenerateGeometry(data->GetVertices(), data->GetIndices(), computed, offset, size, tile.GetNaturalDimensions(element));
 
 	return reinterpret_cast<DecoratorDataHandle>(data);
 }
@@ -69,7 +71,7 @@ void DecoratorTiledImage::ReleaseElementData(DecoratorDataHandle element_data) c
 void DecoratorTiledImage::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	Geometry* data = reinterpret_cast<Geometry*>(element_data);
-	data->Render(element->GetAbsoluteOffset(BoxArea::Padding).Round());
+	data->Render(element->GetAbsoluteOffset(BoxArea::Border));
 }
 
 DecoratorTiledImageInstancer::DecoratorTiledImageInstancer() : DecoratorTiledInstancer(1)
