@@ -138,11 +138,17 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 	{
 		ShorthandItem item;
 		bool optional = false;
+		bool repeats = false;
 		String name = raw_name;
 
 		if (!raw_name.empty() && raw_name.back() == '?')
 		{
 			optional = true;
+			name.pop_back();
+		}
+		if (!raw_name.empty() && raw_name.back() == '#')
+		{
+			repeats = true;
 			name.pop_back();
 		}
 
@@ -151,7 +157,7 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 		{
 			// We have a valid property
 			if (const PropertyDefinition* property = GetProperty(property_id))
-				item = ShorthandItem(property_id, property, optional);
+				item = ShorthandItem(property_id, property, optional, repeats);
 		}
 		else
 		{
@@ -162,7 +168,7 @@ ShorthandId PropertySpecification::RegisterShorthand(const String& shorthand_nam
 			if (shorthand_id != ShorthandId::Invalid && (type == ShorthandType::RecursiveRepeat || type == ShorthandType::RecursiveCommaSeparated))
 			{
 				if (const ShorthandDefinition* shorthand = GetShorthand(shorthand_id))
-					item = ShorthandItem(shorthand_id, shorthand, optional);
+					item = ShorthandItem(shorthand_id, shorthand, optional, repeats);
 			}
 		}
 
@@ -267,10 +273,10 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		return false;
 
 	// Handle the special behavior of the flex shorthand first, otherwise it acts like 'FallThrough'.
-	if (shorthand_definition->type == ShorthandType::Flex)
+	if (shorthand_definition->type == ShorthandType::Flex && !property_values.empty())
 	{
 		RMLUI_ASSERT(shorthand_definition->items.size() == 3);
-		if (!property_values.empty() && property_values[0] == "none")
+		if (property_values[0] == "none")
 		{
 			property_values = {"0", "0", "auto"};
 		}
@@ -292,8 +298,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		}
 	}
 
-	// If this definition is a 'box'-style shorthand (x-top, x-right, x-bottom, x-left, etc) and there are fewer
-	// than four values
+	// If this definition is a 'box'-style shorthand (x-top, x-right, x-bottom, x-left, etc) and there are fewer than four values
 	if (shorthand_definition->type == ShorthandType::Box && property_values.size() < 4)
 	{
 		// This array tells which property index each side is parsed from
@@ -360,12 +365,22 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		}
 
 		size_t subvalue_i = 0;
+		String temp_subvalue;
 		for (size_t i = 0; i < shorthand_definition->items.size() && subvalue_i < property_values.size(); i++)
 		{
 			bool result = false;
 
 			const String* subvalue = &property_values[subvalue_i];
+
 			const ShorthandItem& item = shorthand_definition->items[i];
+			if (item.repeats)
+			{
+				property_values.erase(property_values.begin(), property_values.begin() + subvalue_i);
+				temp_subvalue.clear();
+				StringUtilities::JoinString(temp_subvalue, property_values);
+				subvalue = &temp_subvalue;
+			}
+
 			if (item.type == ShorthandItemType::Property)
 				result = ParsePropertyDeclaration(dictionary, item.property_id, *subvalue);
 			else if (item.type == ShorthandItemType::Shorthand)
@@ -373,8 +388,11 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 
 			if (result)
 				subvalue_i += 1;
-			else if (!item.optional)
+			else if (item.repeats || !item.optional)
 				return false;
+
+			if (item.repeats)
+				break;
 		}
 	}
 	else

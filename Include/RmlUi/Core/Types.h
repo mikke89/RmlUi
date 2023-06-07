@@ -90,6 +90,7 @@ struct Transition;
 struct TransitionList;
 struct DecoratorDeclarationList;
 struct FilterDeclarationList;
+struct ColorStop;
 struct BoxShadow;
 enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
@@ -101,6 +102,7 @@ using FileHandle = uintptr_t;
 using TextureHandle = uintptr_t;
 using CompiledGeometryHandle = uintptr_t;
 using CompiledFilterHandle = uintptr_t;
+using CompiledShaderHandle = uintptr_t;
 using DecoratorDataHandle = uintptr_t;
 using FontFaceHandle = uintptr_t;
 using FontEffectsHandle = uintptr_t;
@@ -128,6 +130,7 @@ struct FontEffects {
 	FontEffectList list;
 	String value;
 };
+using ColorStopList = Vector<ColorStop>;
 using BoxShadowList = Vector<BoxShadow>;
 
 // Additional smart pointers

@@ -29,7 +29,9 @@
 #ifndef RMLUI_CORE_DECORATORGRADIENT_H
 #define RMLUI_CORE_DECORATORGRADIENT_H
 
+#include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
+#include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/ID.h"
 
 namespace Rml {
@@ -71,6 +73,70 @@ public:
 private:
 	struct PropertyIds {
 		PropertyId direction, start, stop;
+	};
+	PropertyIds ids;
+};
+
+/**
+    Linear gradient.
+ */
+class DecoratorLinearGradient : public Decorator {
+public:
+	enum class Corner { TopRight, BottomRight, BottomLeft, TopLeft, None, Count = None };
+
+	DecoratorLinearGradient();
+	virtual ~DecoratorLinearGradient();
+
+	bool Initialise(bool repeating, Corner corner, float angle, const ColorStopList& color_stops);
+
+	DecoratorDataHandle GenerateElementData(Element* element) const override;
+	void ReleaseElementData(DecoratorDataHandle element_data) const override;
+
+	void RenderElement(Element* element, DecoratorDataHandle element_data) const override;
+
+private:
+	struct LinearGradientShape {
+		// Gradient line starting and ending points.
+		Vector2f p0, p1;
+		float length;
+	};
+	struct ElementData {
+		Geometry geometry;
+		CompiledShaderHandle shader;
+	};
+
+	LinearGradientShape CalculateShape(Vector2f box_dimensions) const;
+
+	bool repeating = false;
+	Corner corner = Corner::None;
+	float angle = 0.f;
+	ColorStopList color_stops;
+};
+
+class DecoratorLinearGradientInstancer : public DecoratorInstancer {
+public:
+	DecoratorLinearGradientInstancer();
+	~DecoratorLinearGradientInstancer();
+
+	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) override;
+
+private:
+	enum class Direction {
+		None = 0,
+		Top = 1,
+		Right = 2,
+		Bottom = 4,
+		Left = 8,
+		TopLeft = Top | Left,
+		TopRight = Top | Right,
+		BottomRight = Bottom | Right,
+		BottomLeft = Bottom | Left,
+	};
+	struct PropertyIds {
+		PropertyId angle;
+		PropertyId direction_to, direction_x, direction_y;
+		PropertyId color_stop_list;
 	};
 	PropertyIds ids;
 };

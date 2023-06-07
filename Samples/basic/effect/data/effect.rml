@@ -63,6 +63,8 @@
 
 .transform, .filter.transform_all > .box { transform: rotate3d(0.2, 0.4, 0.1, 15deg); }
 
+.gradient { decorator: linear-gradient(110deg, #fff3, #fff 10%, #c33 250dp, #3c3, #33c, #000 90%, #0003); }
+
 .brightness { filter: brightness(0.5); }
 .contrast { filter: contrast(0.5); }
 .sepia { filter: sepia(80%); }
@@ -155,6 +157,7 @@
 
 <div class="box"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 <div class="box big"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box big gradient"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 
 <div class="box hue_rotate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 

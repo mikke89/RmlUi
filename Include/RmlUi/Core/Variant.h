@@ -72,6 +72,7 @@ public:
 		DECORATORSPTR = 'D',
 		FILTERSPTR = 'F',
 		FONTEFFECTSPTR = 'E',
+		COLORSTOPLIST = 'C',
 		BOXSHADOWLIST = 'S',
 		VOIDPTR = '*',
 	};
@@ -159,6 +160,8 @@ private:
 	void Set(FiltersPtr&& value);
 	void Set(const FontEffectsPtr& value);
 	void Set(FontEffectsPtr&& value);
+	void Set(const ColorStopList& value);
+	void Set(ColorStopList&& value);
 	void Set(const BoxShadowList& value);
 	void Set(BoxShadowList&& value);
 

@@ -28,6 +28,7 @@
 
 #include "RmlUi_Renderer_GL3.h"
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/DecorationTypes.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Log.h>
@@ -57,6 +58,8 @@
 static constexpr int NUM_MSAA_SAMPLES = 2;
 
 #define RMLUI_PREMULTIPLIED_ALPHA 1
+
+#define MAX_NUM_STOPS 16
 #define BLUR_SIZE 7
 #define BLUR_NUM_WEIGHTS ((BLUR_SIZE + 1) / 2)
 
@@ -65,7 +68,7 @@ static constexpr int NUM_MSAA_SAMPLES = 2;
 
 #define RMLUI_SHADER_HEADER     \
 	RMLUI_SHADER_HEADER_VERSION \
-	"#define RMLUI_PREMULTIPLIED_ALPHA " RMLUI_STRINGIFY(RMLUI_PREMULTIPLIED_ALPHA) "\n"
+	"#define RMLUI_PREMULTIPLIED_ALPHA " RMLUI_STRINGIFY(RMLUI_PREMULTIPLIED_ALPHA) "\n#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n"
 
 static const char* shader_vert_main = RMLUI_SHADER_HEADER R"(
 uniform vec2 _translate;
@@ -113,6 +116,50 @@ out vec4 finalColor;
 
 void main() {
 	finalColor = fragColor;
+}
+)";
+
+enum class ShaderGradientFunction { Linear, RepeatingLinear }; // Must match shader definitions below.
+static const char* shader_frag_gradient = RMLUI_SHADER_HEADER R"(
+#define LINEAR 0
+#define REPEATING_LINEAR 1
+#define PI 3.14159265
+
+uniform int _func; // one of the above definitions
+uniform vec2 _p;   // starting point
+uniform vec2 _v;   // vector to ending point
+uniform vec4 _stop_colors[MAX_NUM_STOPS];
+uniform float _stop_positions[MAX_NUM_STOPS]; // normalized, 0 -> starting point, 1 -> ending point
+uniform int _num_stops;
+
+in vec2 fragTexCoord;
+in vec4 fragColor;
+out vec4 finalColor;
+
+vec4 mix_stop_colors(float t) {
+	vec4 color = _stop_colors[0];
+
+	for (int i = 1; i < _num_stops; i++)
+		color = mix(color, _stop_colors[i], smoothstep(_stop_positions[i-1], _stop_positions[i], t));
+
+	return color;
+}
+
+void main() {
+	float t = 0;
+
+	float dist_square = dot(_v, _v);
+	vec2 V = fragTexCoord - _p;
+	t = dot(_v, V) / dist_square;
+
+	if (_func == REPEATING_LINEAR)
+	{
+		float t0 = _stop_positions[0];
+		float t1 = _stop_positions[_num_stops - 1];
+		t = t0 + mod(t - t0, t1 - t0);
+	}
+
+	finalColor = fragColor * mix_stop_colors(t);
 }
 )";
 
@@ -204,6 +251,7 @@ enum class ProgramId {
 	None,
 	Color,
 	Texture,
+	Gradient,
 	Passthrough,
 	ColorMatrix,
 	Blur,
@@ -219,6 +267,7 @@ enum class VertShaderId {
 enum class FragShaderId {
 	Color,
 	Texture,
+	Gradient,
 	Passthrough,
 	ColorMatrix,
 	Blur,
@@ -235,13 +284,19 @@ enum class UniformId {
 	TexCoordMin,
 	TexCoordMax,
 	Weights,
+	Func,
+	P,
+	V,
+	StopColors,
+	StopPositions,
+	NumStops,
 	Count,
 };
 
 namespace Gfx {
 
 static const char* const program_uniform_names[(size_t)UniformId::Count] = {"_translate", "_transform", "_tex", "_color", "_color_matrix",
-	"_texelOffset", "_texCoordMin", "_texCoordMax", "_weights[0]"};
+	"_texelOffset", "_texCoordMin", "_texCoordMax", "_weights[0]", "_func", "_p", "_v", "_stop_colors[0]", "_stop_positions[0]", "_num_stops"};
 
 enum class VertexAttribute { Position, Color0, TexCoord0, Count };
 static const char* const vertex_attribute_names[(size_t)VertexAttribute::Count] = {"inPosition", "inColor0", "inTexCoord0"};
@@ -272,6 +327,7 @@ static const VertShaderDefinition vert_shader_definitions[] = {
 static const FragShaderDefinition frag_shader_definitions[] = {
 	{FragShaderId::Color,       "color",        shader_frag_color},
 	{FragShaderId::Texture,     "texture",      shader_frag_texture},
+	{FragShaderId::Gradient,    "gradient",     shader_frag_gradient},
 	{FragShaderId::Passthrough, "passthrough",  shader_frag_passthrough},
 	{FragShaderId::ColorMatrix, "color_matrix", shader_frag_color_matrix},
 	{FragShaderId::Blur,        "blur",         shader_frag_blur},
@@ -280,6 +336,7 @@ static const FragShaderDefinition frag_shader_definitions[] = {
 static const ProgramDefinition program_definitions[] = {
 	{ProgramId::Color,       "color",        VertShaderId::Main,        FragShaderId::Color},
 	{ProgramId::Texture,     "texture",      VertShaderId::Main,        FragShaderId::Texture},
+	{ProgramId::Gradient,    "gradient",     VertShaderId::Main,        FragShaderId::Gradient},
 	{ProgramId::Passthrough, "passthrough",  VertShaderId::Passthrough, FragShaderId::Passthrough},
 	{ProgramId::ColorMatrix, "color_matrix", VertShaderId::Passthrough, FragShaderId::ColorMatrix},
 	{ProgramId::Blur,        "blur",         VertShaderId::Blur,        FragShaderId::Blur},
@@ -1202,6 +1259,16 @@ void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vecto
 	RenderGeometry(vertices, 4, indices, 6, RenderInterface_GL3::TexturePostprocess, {});
 }
 
+static Rml::Colourf ToPremultipliedAlpha(Rml::Colourb c0)
+{
+	Rml::Colourf result;
+	result.alpha = (1.f / 255.f) * float(c0.alpha);
+	result.red = (1.f / 255.f) * float(c0.red) * result.alpha;
+	result.green = (1.f / 255.f) * float(c0.green) * result.alpha;
+	result.blue = (1.f / 255.f) * float(c0.blue) * result.alpha;
+	return result;
+}
+
 static void SigmaToParameters(const float desired_sigma, int& out_pass_level, float& out_sigma)
 {
 	constexpr int max_num_passes = 10;
@@ -1493,6 +1560,100 @@ void RenderInterface_GL3::ReleaseCompiledFilter(Rml::CompiledFilterHandle filter
 	delete reinterpret_cast<CompiledFilter*>(filter);
 }
 
+enum class CompiledShaderType { Invalid = 0, Gradient };
+struct CompiledShader {
+	CompiledShaderType type;
+
+	// Gradient
+	ShaderGradientFunction gradient_function;
+	Rml::Vector2f p;
+	Rml::Vector2f v;
+	Rml::Vector<float> stop_positions;
+	Rml::Vector<Rml::Colourf> stop_colors;
+};
+
+Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& name, const Rml::Dictionary& parameters)
+{
+	auto ApplyColorStopList = [](CompiledShader& shader, const Rml::Dictionary& shader_parameters) {
+		auto it = shader_parameters.find("color_stop_list");
+		RMLUI_ASSERT(it != shader_parameters.end() && it->second.GetType() == Rml::Variant::COLORSTOPLIST);
+		const Rml::ColorStopList& color_stop_list = it->second.GetReference<Rml::ColorStopList>();
+		const int num_stops = Rml::Math::Min((int)color_stop_list.size(), MAX_NUM_STOPS);
+
+		shader.stop_positions.resize(num_stops);
+		shader.stop_colors.resize(num_stops);
+		for (int i = 0; i < num_stops; i++)
+		{
+			const Rml::ColorStop& stop = color_stop_list[i];
+			RMLUI_ASSERT(stop.position.unit == Rml::Unit::NUMBER);
+			shader.stop_positions[i] = stop.position.number;
+			shader.stop_colors[i] = ToPremultipliedAlpha(stop.color);
+		}
+	};
+
+	CompiledShader shader = {};
+
+	if (name == "linear-gradient")
+	{
+		shader.type = CompiledShaderType::Gradient;
+		const bool repeating = Rml::Get(parameters, "repeating", false);
+		shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingLinear : ShaderGradientFunction::Linear);
+		shader.p = Rml::Get(parameters, "p0", Rml::Vector2f(0.f));
+		shader.v = Rml::Get(parameters, "p1", Rml::Vector2f(0.f)) - shader.p;
+		ApplyColorStopList(shader, parameters);
+	}
+
+	if (shader.type != CompiledShaderType::Invalid)
+		return reinterpret_cast<Rml::CompiledShaderHandle>(new CompiledShader(std::move(shader)));
+
+	Rml::Log::Message(Rml::Log::LT_WARNING, "Unsupported shader type '%s'.", name.c_str());
+	return {};
+}
+
+void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
+	Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
+{
+	RMLUI_ASSERT(geometry_handle);
+	const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
+	const CompiledShaderType type = shader.type;
+	const Gfx::CompiledGeometryData& geometry = *reinterpret_cast<Gfx::CompiledGeometryData*>(geometry_handle);
+
+	switch (type)
+	{
+	case CompiledShaderType::Gradient:
+	{
+		RMLUI_ASSERT(shader.stop_positions.size() == shader.stop_colors.size());
+		const int num_stops = (int)shader.stop_positions.size();
+
+		UseProgram(ProgramId::Gradient);
+		glUniform1i(GetUniformLocation(UniformId::Func), static_cast<int>(shader.gradient_function));
+		glUniform2f(GetUniformLocation(UniformId::P), shader.p.x, shader.p.y);
+		glUniform2f(GetUniformLocation(UniformId::V), shader.v.x, shader.v.y);
+		glUniform1i(GetUniformLocation(UniformId::NumStops), num_stops);
+		glUniform1fv(GetUniformLocation(UniformId::StopPositions), num_stops, shader.stop_positions.data());
+		glUniform4fv(GetUniformLocation(UniformId::StopColors), num_stops, shader.stop_colors[0]);
+
+		SubmitTransformUniform(translation);
+		glBindVertexArray(geometry.vao);
+		glDrawElements(GL_TRIANGLES, geometry.draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+		glBindVertexArray(0);
+	}
+	break;
+	case CompiledShaderType::Invalid:
+	{
+		Rml::Log::Message(Rml::Log::LT_WARNING, "Unhandled render shader %d.", (int)type);
+	}
+	break;
+	}
+
+	Gfx::CheckGLError("RenderShader");
+}
+
+void RenderInterface_GL3::ReleaseCompiledShader(Rml::CompiledShaderHandle effect_handle)
+{
+	delete reinterpret_cast<CompiledShader*>(effect_handle);
+}
+
 void RenderInterface_GL3::BlitTopLayerToPostprocessPrimary()
 {
 	const Gfx::FramebufferData& source = render_layers.GetTopLayer();
@@ -1502,16 +1663,6 @@ void RenderInterface_GL3::BlitTopLayerToPostprocessPrimary()
 
 	// Blit and resolve MSAA. Any active scissor state will restrict the size of the blit region.
 	glBlitFramebuffer(0, 0, source.width, source.height, 0, 0, destination.width, destination.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-}
-
-static inline Rml::Colourf ToPremultipliedAlpha(Rml::Colourb c0)
-{
-	Rml::Colourf result;
-	result.alpha = (1.f / 255.f) * float(c0.alpha);
-	result.red = (1.f / 255.f) * float(c0.red) * result.alpha;
-	result.green = (1.f / 255.f) * float(c0.green) * result.alpha;
-	result.blue = (1.f / 255.f) * float(c0.blue) * result.alpha;
-	return result;
 }
 
 void RenderInterface_GL3::RenderFilters(const Rml::FilterHandleList& filter_handles)

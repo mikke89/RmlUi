@@ -32,6 +32,7 @@
 #include "IdNameMap.h"
 #include "PropertyParserAnimation.h"
 #include "PropertyParserBoxShadow.h"
+#include "PropertyParserColorStopList.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserDecorator.h"
 #include "PropertyParserFilter.h"
@@ -59,6 +60,7 @@ struct DefaultStyleSheetParsers : NonCopyMoveable {
 	PropertyParserAnimation animation = PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER);
 	PropertyParserAnimation transition = PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER);
 	PropertyParserColour color = PropertyParserColour();
+	PropertyParserColorStopList color_stop_list = PropertyParserColorStopList(&color);
 	PropertyParserDecorator decorator = PropertyParserDecorator();
 	PropertyParserFilter filter = PropertyParserFilter();
 	PropertyParserFontEffect font_effect = PropertyParserFontEffect();
@@ -255,6 +257,7 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("animation", &default_parsers->animation);
 	RegisterParser("transition", &default_parsers->transition);
 	RegisterParser("color", &default_parsers->color);
+	RegisterParser("color_stop_list", &default_parsers->color_stop_list);
 	RegisterParser("decorator", &default_parsers->decorator);
 	RegisterParser("filter", &default_parsers->filter);
 	RegisterParser("font_effect", &default_parsers->font_effect);

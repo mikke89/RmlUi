@@ -40,6 +40,7 @@
 #include "Core/DataTypeRegister.h"
 #include "Core/DataTypes.h"
 #include "Core/DataVariable.h"
+#include "Core/DecorationTypes.h"
 #include "Core/Decorator.h"
 #include "Core/EffectSpecification.h"
 #include "Core/Element.h"

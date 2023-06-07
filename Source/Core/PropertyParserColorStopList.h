@@ -26,43 +26,30 @@
  *
  */
 
-#ifndef RMLUI_CORE_DECORATIONTYPES_H
-#define RMLUI_CORE_DECORATIONTYPES_H
+#ifndef RMLUI_CORE_PROPERTYPARSERCOLORSTOPLIST_H
+#define RMLUI_CORE_PROPERTYPARSERCOLORSTOPLIST_H
 
-#include "NumericValue.h"
-#include "Types.h"
+#include "../../Include/RmlUi/Core/PropertyParser.h"
+#include "../../Include/RmlUi/Core/Types.h"
+#include "PropertyParserNumber.h"
 
 namespace Rml {
 
-struct ColorStop {
-	Colourb color;
-	NumericValue position;
-};
-inline bool operator==(const ColorStop& a, const ColorStop& b)
-{
-	return a.color == b.color && a.position == b.position;
-}
-inline bool operator!=(const ColorStop& a, const ColorStop& b)
-{
-	return !(a == b);
-}
+/**
+    A property parser that parses color stop lists, particularly for gradients.
+ */
 
-struct BoxShadow {
-	Colourb color;
-	NumericValue offset_x, offset_y;
-	NumericValue blur_radius;
-	NumericValue spread_distance;
-	bool inset = false;
+class PropertyParserColorStopList : public PropertyParser {
+public:
+	PropertyParserColorStopList(PropertyParser* parser_color);
+	virtual ~PropertyParserColorStopList();
+
+	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
+
+private:
+	PropertyParser* parser_color;
+	PropertyParserNumber parser_length_percent_angle;
 };
-inline bool operator==(const BoxShadow& a, const BoxShadow& b)
-{
-	return a.color == b.color && a.offset_x == b.offset_x && a.offset_y == b.offset_y && a.blur_radius == b.blur_radius &&
-		a.spread_distance == b.spread_distance && a.inset == b.inset;
-}
-inline bool operator!=(const BoxShadow& a, const BoxShadow& b)
-{
-	return !(a == b);
-}
 
 } // namespace Rml
 #endif

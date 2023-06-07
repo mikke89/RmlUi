@@ -1,0 +1,102 @@
+<rml>
+<head>
+	<title>linear-gradient</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="A variety of linear-gradient backgrounds. Each group should match their description." />
+	<meta name="Backend" content="Requires backend support for rendering with compiled shaders." />
+	<link rel="source" href="https://www.w3.org/TR/css-images-3/#linear-gradients" />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+			width: 900dp;
+		}
+		div {
+			margin: 5dp;
+			width: 200dp;
+			height: 100dp;
+			box-sizing: border-box;
+			border: 1dp #bbb;
+			float: left;
+		}
+		group {
+			margin-left: 1em;
+			display: flow-root;
+			margin-bottom: 1em;
+		}
+
+		.yellow_blue > :nth-child(1) { decorator: linear-gradient(yellow, blue); }
+		.yellow_blue > :nth-child(2) { decorator: linear-gradient(yellow, blue); }
+		.yellow_blue > :nth-child(3) { decorator: linear-gradient(180deg, yellow, blue); }
+		.yellow_blue > :nth-child(4) { decorator: linear-gradient(to bottom, yellow, blue); }
+		.yellow_blue > :nth-child(5) { decorator: linear-gradient(to top, blue, yellow); }
+		.yellow_blue > :nth-child(6) { decorator: linear-gradient(to bottom, yellow 0%, blue 100%); }
+
+		.yellow_blue-angle > :nth-child(1) { decorator: linear-gradient(135deg, yellow, blue); }
+		.yellow_blue-angle > :nth-child(2) { decorator: linear-gradient(-45deg, blue, yellow); }
+
+		.three_color > :nth-child(1) { decorator: linear-gradient(yellow, blue 20%, #0f0); }
+
+		.corner_to_corner > :nth-child(1) { decorator: linear-gradient(to top right, red, white, blue); }
+		.corner_to_corner > :nth-child(2) { decorator: linear-gradient(to bottom right, red, white, blue); }
+		.corner_to_corner > :nth-child(3) { decorator: linear-gradient(to bottom left, red, white, blue); }
+		.corner_to_corner > :nth-child(4) { decorator: linear-gradient(to top left, red, white, blue); }
+
+		.corner_to_corner > :nth-child(5) { decorator: linear-gradient(to top right, red 49%, white, blue 51%); }
+		.corner_to_corner > :nth-child(6) { decorator: linear-gradient(to bottom right, red 49%, white, blue 51%); }
+		.corner_to_corner > :nth-child(7) { decorator: linear-gradient(to bottom left, red 48%, white, blue 52%); width: 50dp; }
+		.corner_to_corner > :nth-child(8) { decorator: linear-gradient(to top left, red 48%, white, blue 52%); width: 50dp; }
+
+		.repeating > :nth-child(1) { decorator: repeating-linear-gradient(50deg, red, white, blue 20%); }
+		.repeating > :nth-child(2) { decorator: repeating-linear-gradient(red, blue 20px, red 40px); }
+
+		.premultiplied_alpha > :nth-child(1) { decorator: linear-gradient(90deg, red, transparent, blue); background: #fff; }
+	</style>
+</head>
+
+<body>
+Yellow (top) to blue (bottom) [equivalent]
+<group class="yellow_blue">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Yellow (top-left) to blue (bottom-right) [equivalent]
+<group class="yellow_blue-angle">
+	<div/>
+	<div/>
+</group>
+
+Yellow (top), blue, green (bottom)
+<group class="three_color">
+	<div/>
+</group>
+
+Corner-to-corner, first: red (bottom-left), white, blue (top-right)
+<group class="corner_to_corner">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Repeating linear gradients
+<group class="repeating">
+	<div/>
+	<div/>
+</group>
+
+Red (left), white, blue (right). Should not show any grayish transition colors if the backend correctly interpolates in premultiplied alpha space.
+<group class="premultiplied_alpha">
+	<div/>
+</group>
+</body>
+</rml>

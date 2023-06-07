@@ -82,6 +82,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIterator.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserBoxShadow.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColorStopList.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserDecorator.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFilter.h
@@ -353,6 +354,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserBoxShadow.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColorStopList.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserDecorator.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFilter.cpp

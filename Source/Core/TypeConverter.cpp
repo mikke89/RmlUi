@@ -224,6 +224,29 @@ bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, S
 	return true;
 }
 
+bool TypeConverter<ColorStopList, ColorStopList>::Convert(const ColorStopList& src, ColorStopList& dest)
+{
+	dest = src;
+	return true;
+}
+
+bool TypeConverter<ColorStopList, String>::Convert(const ColorStopList& src, String& dest)
+{
+	dest.clear();
+	for (size_t i = 0; i < src.size(); i++)
+	{
+		const ColorStop& stop = src[i];
+		dest += ToString(stop.color);
+
+		if (Any(stop.position.unit & Unit::NUMBER_LENGTH_PERCENT))
+			dest += " " + ToString(stop.position.number) + ToString(stop.position.unit);
+
+		if (i < src.size() - 1)
+			dest += ", ";
+	}
+	return true;
+}
+
 bool TypeConverter<BoxShadowList, BoxShadowList>::Convert(const BoxShadowList& src, BoxShadowList& dest)
 {
 	dest = src;
