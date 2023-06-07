@@ -85,4 +85,15 @@ CompiledFilterHandle RenderInterface::CompileFilter(const String& /*name*/, cons
 
 void RenderInterface::ReleaseCompiledFilter(CompiledFilterHandle /*filter*/) {}
 
+CompiledShaderHandle RenderInterface::CompileShader(const String& /*name*/, const Dictionary& /*parameters*/)
+{
+	return CompiledShaderHandle{};
+}
+
+void RenderInterface::RenderShader(CompiledShaderHandle /*shader*/, CompiledGeometryHandle /*geometry*/, Vector2f /*translation*/,
+	TextureHandle /*texture*/)
+{}
+
+void RenderInterface::ReleaseCompiledShader(CompiledShaderHandle /*shader*/) {}
+
 } // namespace Rml

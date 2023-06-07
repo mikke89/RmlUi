@@ -63,6 +63,11 @@ public:
 	/// @param[in] translation The translation of the geometry.
 	void Render(Vector2f translation);
 
+	/// Render the geometry with a compiled shader. Requires that the geometry can be compiled.
+	/// @param[in] shader The shader to use for rendering the geometry.
+	/// @param[in] translation The translation of the geometry.
+	void RenderWithShader(CompiledShaderHandle shader, Vector2f translation);
+
 	/// Use the geometry to set the clip mask through the render interface. Requires that the geometry can be compiled.
 	/// @param[in] operation The clip mask operation to apply.
 	/// @param[in] translation The translation of the geometry.

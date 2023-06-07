@@ -159,6 +159,20 @@ public:
 	/// Called by RmlUi when it no longer needs a previously compiled filter.
 	/// @param[in] filter The handle to a previously compiled filter.
 	virtual void ReleaseCompiledFilter(CompiledFilterHandle filter);
+
+	/// Called by RmlUi when it wants to compile a new shader.
+	/// @param[in] name The name of the shader.
+	/// @param[in] parameters The list of name-value parameters specified for the filter.
+	virtual CompiledShaderHandle CompileShader(const String& name, const Dictionary& parameters);
+	/// Called by RmlUi when it wants to render geometry using the given shader.
+	/// @param[in] shader The handle to a previously compiled shader.
+	/// @param[in] geometry The handle to a previously compiled geometry.
+	/// @param[in] translation The translation to apply to the geometry.
+	/// @param[in] texture The texture to use when rendering the geometry, or nullptr if no texture is required.
+	virtual void RenderShader(CompiledShaderHandle shader, CompiledGeometryHandle geometry, Vector2f translation, TextureHandle texture);
+	/// Called by RmlUi when it no longer needs a previously compiled shader.
+	/// @param[in] shader The handle to a previously compiled shader.
+	virtual void ReleaseCompiledShader(CompiledShaderHandle shader);
 };
 
 } // namespace Rml
