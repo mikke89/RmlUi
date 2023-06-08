@@ -29,7 +29,6 @@
 #include "ElementAnimation.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
@@ -37,6 +36,7 @@
 #include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "ComputeProperty.h"
 #include "ElementStyle.h"
 #include "TransformUtilities.h"
 
@@ -109,6 +109,14 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 			float f = (1.0f - alpha) * f0 + alpha * f1;
 			return Property{f, Unit::PX};
 		}
+	}
+
+	if (Any(p0.unit & Unit::ANGLE) && Any(p1.unit & Unit::ANGLE))
+	{
+		float f0 = ComputeAngle(p0.GetNumericValue());
+		float f1 = ComputeAngle(p1.GetNumericValue());
+		float f = (1.0f - alpha) * f0 + alpha * f1;
+		return Property{f, Unit::RAD};
 	}
 
 	if (p0.unit == Unit::KEYWORD && p1.unit == Unit::KEYWORD)
@@ -376,13 +384,9 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 				if (TransformUtilities::TryConvertToMatchingGenericType(small[i_small], big[i_big]))
 				{
 					// They matched exactly or in their more generic form. One or both primitives may have been converted.
-					match_success = true;
 					if (big[i_big].type != big_type)
 						changed_big = true;
-				}
 
-				if (match_success)
-				{
 					matching_indices.push_back(i_big);
 					match_success = true;
 					i_big += 1;

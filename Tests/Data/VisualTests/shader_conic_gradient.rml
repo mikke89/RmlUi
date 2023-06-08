@@ -53,7 +53,12 @@
 		.color_wheel > :nth-child(2) { decorator: conic-gradient(#9acd32 40%, #ffd700 0 75%, #f06 0); }
 		.color_wheel > :nth-child(3) { decorator: conic-gradient(black 25%, white 0 50%, black 0 75%, white 0); }
 
+		@keyframes spinner {
+			from { decorator: repeating-conic-gradient(from   0deg, #fff3 0 15deg, #fff0 0 30deg);  }
+			to   { decorator: repeating-conic-gradient(from 360deg, #fff3 0 15deg, #fff0 0 30deg);  }
+		}
 		.repeating > :nth-child(1) { decorator: repeating-conic-gradient(#ffd700, #f06 20deg); }
+		.repeating > :nth-child(2) { background: #0ac; animation: 5s spinner infinite; }
 	</style>
 </head>
 
@@ -99,6 +104,7 @@ Color wheel, pie chart, and checkerboard
 
 Repeating
 <group class="repeating">
+	<div/>
 	<div/>
 </group>
 </body>

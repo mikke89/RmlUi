@@ -95,6 +95,15 @@ TEST_CASE("animation.decorator")
 			"",
 			"",
 
+			"horizontal-gradient(transparent transparent) border-box",
+			"horizontal-gradient(white white) border-box",
+
+			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)) border-box",
+		},
+		{
+			"",
+			"",
+
 			"none",
 			"horizontal-gradient(transparent transparent)",
 
