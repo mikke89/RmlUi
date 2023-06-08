@@ -36,6 +36,8 @@
 
 namespace Rml {
 
+using Vector2Numeric = Vector2<NumericValue>;
+
 /**
     Straight gradient.
 
@@ -65,7 +67,7 @@ private:
 class DecoratorStraightGradientInstancer : public DecoratorInstancer {
 public:
 	DecoratorStraightGradientInstancer();
-	~DecoratorStraightGradientInstancer();
+	virtual ~DecoratorStraightGradientInstancer();
 
 	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
 		const DecoratorInstancerInterface& instancer_interface) override;
@@ -100,10 +102,6 @@ private:
 		Vector2f p0, p1;
 		float length;
 	};
-	struct ElementData {
-		Geometry geometry;
-		CompiledShaderHandle shader;
-	};
 
 	LinearGradientShape CalculateShape(Vector2f box_dimensions) const;
 
@@ -116,7 +114,7 @@ private:
 class DecoratorLinearGradientInstancer : public DecoratorInstancer {
 public:
 	DecoratorLinearGradientInstancer();
-	~DecoratorLinearGradientInstancer();
+	virtual ~DecoratorLinearGradientInstancer();
 
 	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
 		const DecoratorInstancerInterface& instancer_interface) override;
@@ -139,6 +137,96 @@ private:
 		PropertyId color_stop_list;
 	};
 	PropertyIds ids;
+};
+
+/**
+    Radial gradient.
+ */
+class DecoratorRadialGradient : public Decorator {
+public:
+	enum class Shape { Circle, Ellipse, Unspecified };
+	enum class SizeType { ClosestSide, FarthestSide, ClosestCorner, FarthestCorner, LengthPercentage };
+
+	DecoratorRadialGradient();
+	virtual ~DecoratorRadialGradient();
+
+	bool Initialise(bool repeating, Shape shape, SizeType size_type, Vector2Numeric size, Vector2Numeric position, const ColorStopList& color_stops);
+
+	DecoratorDataHandle GenerateElementData(Element* element, BoxArea paint_area) const override;
+	void ReleaseElementData(DecoratorDataHandle element_data) const override;
+
+	void RenderElement(Element* element, DecoratorDataHandle element_data) const override;
+
+private:
+	struct RadialGradientShape {
+		Vector2f center, radius;
+	};
+	RadialGradientShape CalculateRadialGradientShape(Element* element, Vector2f dimensions) const;
+
+	bool repeating = false;
+	Shape shape = {};
+	SizeType size_type = {};
+	Vector2Numeric size;
+	Vector2Numeric position;
+
+	ColorStopList color_stops;
+};
+
+class DecoratorRadialGradientInstancer : public DecoratorInstancer {
+public:
+	DecoratorRadialGradientInstancer();
+	virtual ~DecoratorRadialGradientInstancer();
+
+	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) override;
+
+private:
+	struct GradientPropertyIds {
+		PropertyId ending_shape;
+		PropertyId size_x, size_y;
+		PropertyId position_x, position_y;
+		PropertyId color_stop_list;
+	};
+	GradientPropertyIds ids;
+};
+
+/**
+    Conic gradient.
+ */
+class DecoratorConicGradient : public Decorator {
+public:
+	DecoratorConicGradient();
+	virtual ~DecoratorConicGradient();
+
+	bool Initialise(bool repeating, float angle, Vector2Numeric position, const ColorStopList& color_stops);
+
+	DecoratorDataHandle GenerateElementData(Element* element, BoxArea paint_area) const override;
+	void ReleaseElementData(DecoratorDataHandle element_data) const override;
+
+	void RenderElement(Element* element, DecoratorDataHandle element_data) const override;
+
+private:
+	bool repeating = false;
+	float angle = {};
+	Vector2Numeric position;
+	ColorStopList color_stops;
+};
+
+class DecoratorConicGradientInstancer : public DecoratorInstancer {
+public:
+	DecoratorConicGradientInstancer();
+	virtual ~DecoratorConicGradientInstancer();
+
+	SharedPtr<Decorator> InstanceDecorator(const String& name, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) override;
+
+private:
+	struct GradientPropertyIds {
+		PropertyId angle;
+		PropertyId position_x, position_y;
+		PropertyId color_stop_list;
+	};
+	GradientPropertyIds ids;
 };
 
 } // namespace Rml

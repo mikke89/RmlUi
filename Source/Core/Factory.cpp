@@ -154,6 +154,8 @@ struct DefaultInstancers {
 	DecoratorNinePatchInstancer decorator_ninepatch;
 	DecoratorStraightGradientInstancer decorator_straight_gradient;
 	DecoratorLinearGradientInstancer decorator_linear_gradient;
+	DecoratorRadialGradientInstancer decorator_radial_gradient;
+	DecoratorConicGradientInstancer decorator_conic_gradient;
 
 	// Filters
 	FilterBasicInstancer filter_hue_rotate = {FilterBasicInstancer::ValueType::Angle, "0rad"};
@@ -242,11 +244,17 @@ bool Factory::Initialise()
 	RegisterDecoratorInstancer("tiled-box", &default_instancers->decorator_tiled_box);
 	RegisterDecoratorInstancer("image", &default_instancers->decorator_image);
 	RegisterDecoratorInstancer("ninepatch", &default_instancers->decorator_ninepatch);
+
 	RegisterDecoratorInstancer("gradient", &default_instancers->decorator_straight_gradient);
 	RegisterDecoratorInstancer("horizontal-gradient", &default_instancers->decorator_straight_gradient);
 	RegisterDecoratorInstancer("vertical-gradient", &default_instancers->decorator_straight_gradient);
+
 	RegisterDecoratorInstancer("linear-gradient", &default_instancers->decorator_linear_gradient);
 	RegisterDecoratorInstancer("repeating-linear-gradient", &default_instancers->decorator_linear_gradient);
+	RegisterDecoratorInstancer("radial-gradient", &default_instancers->decorator_radial_gradient);
+	RegisterDecoratorInstancer("repeating-radial-gradient", &default_instancers->decorator_radial_gradient);
+	RegisterDecoratorInstancer("conic-gradient", &default_instancers->decorator_conic_gradient);
+	RegisterDecoratorInstancer("repeating-conic-gradient", &default_instancers->decorator_conic_gradient);
 
 	// Filter instancers
 	RegisterFilterInstancer("hue-rotate", &default_instancers->filter_hue_rotate);

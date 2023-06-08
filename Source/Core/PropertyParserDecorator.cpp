@@ -65,8 +65,6 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 
 	RMLUI_ZoneScoped;
 
-	const BoxArea default_paint_area = BoxArea::Padding;
-
 	// Make sure we don't split inside the parenthesis since they may appear in decorator shorthands.
 	StringList decorator_string_list;
 	StringUtilities::ExpandString(decorator_string_list, decorator_string_value, ',', '(', ')');
@@ -82,10 +80,9 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 		const size_t shorthand_close = decorator_string.rfind(')');
 		const bool invalid_parenthesis = (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close);
 
-		// Find the paint area for the decorator.
-		BoxArea paint_area = default_paint_area;
-
 		// Look-up keywords for customized paint area.
+		BoxArea paint_area = BoxArea::Auto;
+
 		{
 			const size_t keywords_begin = (invalid_parenthesis ? decorator_string.find(' ') : shorthand_close + 1);
 			StringList keywords;

@@ -119,15 +119,19 @@ void main() {
 }
 )";
 
-enum class ShaderGradientFunction { Linear, RepeatingLinear }; // Must match shader definitions below.
+enum class ShaderGradientFunction { Linear, Radial, Conic, RepeatingLinear, RepeatingRadial, RepeatingConic }; // Must match shader definitions below.
 static const char* shader_frag_gradient = RMLUI_SHADER_HEADER R"(
 #define LINEAR 0
-#define REPEATING_LINEAR 1
+#define RADIAL 1
+#define CONIC 2
+#define REPEATING_LINEAR 3
+#define REPEATING_RADIAL 4
+#define REPEATING_CONIC 5
 #define PI 3.14159265
 
 uniform int _func; // one of the above definitions
-uniform vec2 _p;   // starting point
-uniform vec2 _v;   // vector to ending point
+uniform vec2 _p;   // linear: starting point,         radial: center,                        conic: center
+uniform vec2 _v;   // linear: vector to ending point, radial: 2d curvature (inverse radius), conic: angled unit vector
 uniform vec4 _stop_colors[MAX_NUM_STOPS];
 uniform float _stop_positions[MAX_NUM_STOPS]; // normalized, 0 -> starting point, 1 -> ending point
 uniform int _num_stops;
@@ -148,11 +152,25 @@ vec4 mix_stop_colors(float t) {
 void main() {
 	float t = 0;
 
-	float dist_square = dot(_v, _v);
-	vec2 V = fragTexCoord - _p;
-	t = dot(_v, V) / dist_square;
+	if (_func == LINEAR || _func == REPEATING_LINEAR)
+	{
+		float dist_square = dot(_v, _v);
+		vec2 V = fragTexCoord - _p;
+		t = dot(_v, V) / dist_square;
+	}
+	else if (_func == RADIAL || _func == REPEATING_RADIAL)
+	{
+		vec2 V = fragTexCoord - _p;
+		t = length(_v * V);
+	}
+	else if (_func == CONIC || _func == REPEATING_CONIC)
+	{
+		mat2 R = mat2(_v.x, -_v.y, _v.y, _v.x);
+		vec2 V = R * (fragTexCoord - _p);
+		t = 0.5 + atan(-V.x, V.y) / (2.0 * PI);
+	}
 
-	if (_func == REPEATING_LINEAR)
+	if (_func == REPEATING_LINEAR || _func == REPEATING_RADIAL || _func == REPEATING_CONIC)
 	{
 		float t0 = _stop_positions[0];
 		float t1 = _stop_positions[_num_stops - 1];
@@ -1602,6 +1620,25 @@ Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& 
 		shader.v = Rml::Get(parameters, "p1", Rml::Vector2f(0.f)) - shader.p;
 		ApplyColorStopList(shader, parameters);
 	}
+	else if (name == "radial-gradient")
+	{
+		shader.type = CompiledShaderType::Gradient;
+		const bool repeating = Rml::Get(parameters, "repeating", false);
+		shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingRadial : ShaderGradientFunction::Radial);
+		shader.p = Rml::Get(parameters, "center", Rml::Vector2f(0.f));
+		shader.v = Rml::Vector2f(1.f) / Rml::Get(parameters, "radius", Rml::Vector2f(1.f));
+		ApplyColorStopList(shader, parameters);
+	}
+	else if (name == "conic-gradient")
+	{
+		shader.type = CompiledShaderType::Gradient;
+		const bool repeating = Rml::Get(parameters, "repeating", false);
+		shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingConic : ShaderGradientFunction::Conic);
+		shader.p = Rml::Get(parameters, "center", Rml::Vector2f(0.f));
+		const float angle = Rml::Get(parameters, "angle", 0.f);
+		shader.v = {Rml::Math::Cos(angle), Rml::Math::Sin(angle)};
+		ApplyColorStopList(shader, parameters);
+	}
 
 	if (shader.type != CompiledShaderType::Invalid)
 		return reinterpret_cast<Rml::CompiledShaderHandle>(new CompiledShader(std::move(shader)));
@@ -1613,7 +1650,7 @@ Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& 
 void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
 	Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
 {
-	RMLUI_ASSERT(geometry_handle);
+	RMLUI_ASSERT(shader_handle && geometry_handle);
 	const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
 	const CompiledShaderType type = shader.type;
 	const Gfx::CompiledGeometryData& geometry = *reinterpret_cast<Gfx::CompiledGeometryData*>(geometry_handle);
@@ -1649,9 +1686,9 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 	Gfx::CheckGLError("RenderShader");
 }
 
-void RenderInterface_GL3::ReleaseCompiledShader(Rml::CompiledShaderHandle effect_handle)
+void RenderInterface_GL3::ReleaseCompiledShader(Rml::CompiledShaderHandle shader_handle)
 {
-	delete reinterpret_cast<CompiledShader*>(effect_handle);
+	delete reinterpret_cast<CompiledShader*>(shader_handle);
 }
 
 void RenderInterface_GL3::BlitTopLayerToPostprocessPrimary()
