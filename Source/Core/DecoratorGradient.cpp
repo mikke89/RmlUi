@@ -35,21 +35,9 @@
 #include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "ComputeProperty.h"
-#include "Pool.h"
+#include "DecoratorShader.h"
 
 namespace Rml {
-
-struct GradientElementData {
-	GradientElementData(Geometry&& geometry, CompiledShaderHandle shader) : geometry(std::move(geometry)), shader(shader) {}
-	Geometry geometry;
-	CompiledShaderHandle shader;
-};
-
-Pool<GradientElementData>& GetGradientElementDataPool()
-{
-	static Pool<GradientElementData> gradient_element_data_pool(20, true);
-	return gradient_element_data_pool;
-}
 
 // Returns the point along the input line ('line_point', 'line_vector') closest to the input 'point'.
 static Vector2f IntersectionPointToLineNormal(const Vector2f point, const Vector2f line_point, const Vector2f line_vector)
@@ -342,21 +330,21 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 	for (Vertex& vertex : geometry.GetVertices())
 		vertex.tex_coord = vertex.position - render_offset;
 
-	GradientElementData* element_data = GetGradientElementDataPool().AllocateAndConstruct(std::move(geometry), shader_handle);
+	ShaderElementData* element_data = GetShaderElementDataPool().AllocateAndConstruct(std::move(geometry), shader_handle);
 
 	return reinterpret_cast<DecoratorDataHandle>(element_data);
 }
 
 void DecoratorLinearGradient::ReleaseElementData(DecoratorDataHandle handle) const
 {
-	GradientElementData* element_data = reinterpret_cast<GradientElementData*>(handle);
+	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
 	GetRenderInterface()->ReleaseCompiledShader(element_data->shader);
-	GetGradientElementDataPool().DestroyAndDeallocate(element_data);
+	GetShaderElementDataPool().DestroyAndDeallocate(element_data);
 }
 
 void DecoratorLinearGradient::RenderElement(Element* element, DecoratorDataHandle handle) const
 {
-	GradientElementData* element_data = reinterpret_cast<GradientElementData*>(handle);
+	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
 	element_data->geometry.RenderWithShader(element_data->shader, element->GetAbsoluteOffset(BoxArea::Border));
 }
 
@@ -510,20 +498,20 @@ DecoratorDataHandle DecoratorRadialGradient::GenerateElementData(Element* elemen
 	for (Vertex& vertex : geometry.GetVertices())
 		vertex.tex_coord = vertex.position - render_offset;
 
-	GradientElementData* element_data = GetGradientElementDataPool().AllocateAndConstruct(std::move(geometry), shader_handle);
+	ShaderElementData* element_data = GetShaderElementDataPool().AllocateAndConstruct(std::move(geometry), shader_handle);
 	return reinterpret_cast<DecoratorDataHandle>(element_data);
 }
 
 void DecoratorRadialGradient::ReleaseElementData(DecoratorDataHandle handle) const
 {
-	GradientElementData* element_data = reinterpret_cast<GradientElementData*>(handle);
+	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
 	GetRenderInterface()->ReleaseCompiledShader(element_data->shader);
-	GetGradientElementDataPool().DestroyAndDeallocate(element_data);
+	GetShaderElementDataPool().DestroyAndDeallocate(element_data);
 }
 
 void DecoratorRadialGradient::RenderElement(Element* element, DecoratorDataHandle handle) const
 {
-	GradientElementData* element_data = reinterpret_cast<GradientElementData*>(handle);
+	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
 	element_data->geometry.RenderWithShader(element_data->shader, element->GetAbsoluteOffset(BoxArea::Border));
 }
 
@@ -706,21 +694,21 @@ DecoratorDataHandle DecoratorConicGradient::GenerateElementData(Element* element
 	for (Vertex& vertex : geometry.GetVertices())
 		vertex.tex_coord = vertex.position - render_offset;
 
-	GradientElementData* element_data = GetGradientElementDataPool().AllocateAndConstruct(std::move(geometry), shader_handle);
+	ShaderElementData* element_data = GetShaderElementDataPool().AllocateAndConstruct(std::move(geometry), shader_handle);
 	return reinterpret_cast<DecoratorDataHandle>(element_data);
 }
 
 void DecoratorConicGradient::ReleaseElementData(DecoratorDataHandle handle) const
 {
-	GradientElementData* element_data = reinterpret_cast<GradientElementData*>(handle);
+	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
 	GetRenderInterface()->ReleaseCompiledShader(element_data->shader);
 
-	GetGradientElementDataPool().DestroyAndDeallocate(element_data);
+	GetShaderElementDataPool().DestroyAndDeallocate(element_data);
 }
 
 void DecoratorConicGradient::RenderElement(Element* element, DecoratorDataHandle handle) const
 {
-	GradientElementData* element_data = reinterpret_cast<GradientElementData*>(handle);
+	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
 	element_data->geometry.RenderWithShader(element_data->shader, element->GetAbsoluteOffset(BoxArea::Border));
 }
 

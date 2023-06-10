@@ -50,6 +50,7 @@
 #include "DataViewDefault.h"
 #include "DecoratorGradient.h"
 #include "DecoratorNinePatch.h"
+#include "DecoratorShader.h"
 #include "DecoratorTiledBox.h"
 #include "DecoratorTiledHorizontal.h"
 #include "DecoratorTiledImage.h"
@@ -152,6 +153,7 @@ struct DefaultInstancers {
 	DecoratorTiledBoxInstancer decorator_tiled_box;
 	DecoratorTiledImageInstancer decorator_image;
 	DecoratorNinePatchInstancer decorator_ninepatch;
+	DecoratorShaderInstancer decorator_shader;
 	DecoratorStraightGradientInstancer decorator_straight_gradient;
 	DecoratorLinearGradientInstancer decorator_linear_gradient;
 	DecoratorRadialGradientInstancer decorator_radial_gradient;
@@ -244,6 +246,7 @@ bool Factory::Initialise()
 	RegisterDecoratorInstancer("tiled-box", &default_instancers->decorator_tiled_box);
 	RegisterDecoratorInstancer("image", &default_instancers->decorator_image);
 	RegisterDecoratorInstancer("ninepatch", &default_instancers->decorator_ninepatch);
+	RegisterDecoratorInstancer("shader", &default_instancers->decorator_shader);
 
 	RegisterDecoratorInstancer("gradient", &default_instancers->decorator_straight_gradient);
 	RegisterDecoratorInstancer("horizontal-gradient", &default_instancers->decorator_straight_gradient);

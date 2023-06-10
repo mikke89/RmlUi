@@ -33,6 +33,7 @@
 #include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Platform.h>
+#include <RmlUi/Core/SystemInterface.h>
 #include <string.h>
 
 #if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
@@ -181,6 +182,33 @@ void main() {
 }
 )";
 
+// "Creation" by Danilo Guanabara, based on: https://www.shadertoy.com/view/XsXXDn
+static const char* shader_frag_creation = RMLUI_SHADER_HEADER R"(
+uniform float _value;
+uniform vec2 _dimensions;
+
+in vec2 fragTexCoord;
+in vec4 fragColor;
+out vec4 finalColor;
+
+void main() {
+	float t = _value;
+	vec3 c;
+	float l;
+	for (int i = 0; i < 3; i++) {
+		vec2 p = fragTexCoord;
+		vec2 uv = p;
+		p -= .5;
+		p.x *= _dimensions.x / _dimensions.y;
+		float z = t + float(i) * .07;
+		l = length(p);
+		uv += p / l * (sin(z) + 1.) * abs(sin(l * 9. - z - z));
+		c[i] = .01 / length(mod(uv, 1.) - .5);
+	}
+	finalColor = vec4(c / l, fragColor.a);
+}
+)";
+
 static const char* shader_vert_passthrough = RMLUI_SHADER_HEADER R"(
 in vec2 inPosition;
 in vec2 inTexCoord0;
@@ -270,6 +298,7 @@ enum class ProgramId {
 	Color,
 	Texture,
 	Gradient,
+	Creation,
 	Passthrough,
 	ColorMatrix,
 	Blur,
@@ -286,6 +315,7 @@ enum class FragShaderId {
 	Color,
 	Texture,
 	Gradient,
+	Creation,
 	Passthrough,
 	ColorMatrix,
 	Blur,
@@ -308,13 +338,16 @@ enum class UniformId {
 	StopColors,
 	StopPositions,
 	NumStops,
+	Value,
+	Dimensions,
 	Count,
 };
 
 namespace Gfx {
 
 static const char* const program_uniform_names[(size_t)UniformId::Count] = {"_translate", "_transform", "_tex", "_color", "_color_matrix",
-	"_texelOffset", "_texCoordMin", "_texCoordMax", "_weights[0]", "_func", "_p", "_v", "_stop_colors[0]", "_stop_positions[0]", "_num_stops"};
+	"_texelOffset", "_texCoordMin", "_texCoordMax", "_weights[0]", "_func", "_p", "_v", "_stop_colors[0]", "_stop_positions[0]", "_num_stops",
+	"_value", "_dimensions"};
 
 enum class VertexAttribute { Position, Color0, TexCoord0, Count };
 static const char* const vertex_attribute_names[(size_t)VertexAttribute::Count] = {"inPosition", "inColor0", "inTexCoord0"};
@@ -346,6 +379,7 @@ static const FragShaderDefinition frag_shader_definitions[] = {
 	{FragShaderId::Color,       "color",        shader_frag_color},
 	{FragShaderId::Texture,     "texture",      shader_frag_texture},
 	{FragShaderId::Gradient,    "gradient",     shader_frag_gradient},
+	{FragShaderId::Creation,    "creation",     shader_frag_creation},
 	{FragShaderId::Passthrough, "passthrough",  shader_frag_passthrough},
 	{FragShaderId::ColorMatrix, "color_matrix", shader_frag_color_matrix},
 	{FragShaderId::Blur,        "blur",         shader_frag_blur},
@@ -355,6 +389,7 @@ static const ProgramDefinition program_definitions[] = {
 	{ProgramId::Color,       "color",        VertShaderId::Main,        FragShaderId::Color},
 	{ProgramId::Texture,     "texture",      VertShaderId::Main,        FragShaderId::Texture},
 	{ProgramId::Gradient,    "gradient",     VertShaderId::Main,        FragShaderId::Gradient},
+	{ProgramId::Creation,    "creation",     VertShaderId::Main,        FragShaderId::Creation},
 	{ProgramId::Passthrough, "passthrough",  VertShaderId::Passthrough, FragShaderId::Passthrough},
 	{ProgramId::ColorMatrix, "color_matrix", VertShaderId::Passthrough, FragShaderId::ColorMatrix},
 	{ProgramId::Blur,        "blur",         VertShaderId::Blur,        FragShaderId::Blur},
@@ -1578,7 +1613,7 @@ void RenderInterface_GL3::ReleaseCompiledFilter(Rml::CompiledFilterHandle filter
 	delete reinterpret_cast<CompiledFilter*>(filter);
 }
 
-enum class CompiledShaderType { Invalid = 0, Gradient };
+enum class CompiledShaderType { Invalid = 0, Gradient, Creation };
 struct CompiledShader {
 	CompiledShaderType type;
 
@@ -1588,6 +1623,9 @@ struct CompiledShader {
 	Rml::Vector2f v;
 	Rml::Vector<float> stop_positions;
 	Rml::Vector<Rml::Colourf> stop_colors;
+
+	// Shader
+	Rml::Vector2f dimensions;
 };
 
 Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& name, const Rml::Dictionary& parameters)
@@ -1639,6 +1677,15 @@ Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& 
 		shader.v = {Rml::Math::Cos(angle), Rml::Math::Sin(angle)};
 		ApplyColorStopList(shader, parameters);
 	}
+	else if (name == "shader")
+	{
+		const Rml::String value = Rml::Get(parameters, "value", Rml::String());
+		if (value == "creation")
+		{
+			shader.type = CompiledShaderType::Creation;
+			shader.dimensions = Rml::Get(parameters, "dimensions", Rml::Vector2f(0.f));
+		}
+	}
 
 	if (shader.type != CompiledShaderType::Invalid)
 		return reinterpret_cast<Rml::CompiledShaderHandle>(new CompiledShader(std::move(shader)));
@@ -1669,6 +1716,20 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 		glUniform1i(GetUniformLocation(UniformId::NumStops), num_stops);
 		glUniform1fv(GetUniformLocation(UniformId::StopPositions), num_stops, shader.stop_positions.data());
 		glUniform4fv(GetUniformLocation(UniformId::StopColors), num_stops, shader.stop_colors[0]);
+
+		SubmitTransformUniform(translation);
+		glBindVertexArray(geometry.vao);
+		glDrawElements(GL_TRIANGLES, geometry.draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+		glBindVertexArray(0);
+	}
+	break;
+	case CompiledShaderType::Creation:
+	{
+		const double time = Rml::GetSystemInterface()->GetElapsedTime();
+
+		UseProgram(ProgramId::Creation);
+		glUniform1f(GetUniformLocation(UniformId::Value), (float)time);
+		glUniform2f(GetUniformLocation(UniformId::Dimensions), shader.dimensions.x, shader.dimensions.y);
 
 		SubmitTransformUniform(translation);
 		glBindVertexArray(geometry.vao);
