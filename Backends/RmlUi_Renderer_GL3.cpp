@@ -241,6 +241,19 @@ void main() {
 	finalColor = _color_matrix * texColor;
 }
 )";
+static const char* shader_frag_blend_mask = RMLUI_SHADER_HEADER R"(
+uniform sampler2D _tex;
+uniform sampler2D _texMask;
+
+in vec2 fragTexCoord;
+out vec4 finalColor;
+
+void main() {
+	vec4 texColor = texture(_tex, fragTexCoord);
+	float maskAlpha = texture(_texMask, fragTexCoord).a;
+	finalColor = texColor * maskAlpha;
+}
+)";
 
 #define RMLUI_SHADER_BLUR_HEADER \
 	RMLUI_SHADER_HEADER "\n#define BLUR_SIZE " RMLUI_STRINGIFY(BLUR_SIZE) "\n#define BLUR_NUM_WEIGHTS " RMLUI_STRINGIFY(BLUR_NUM_WEIGHTS)
@@ -301,6 +314,7 @@ enum class ProgramId {
 	Creation,
 	Passthrough,
 	ColorMatrix,
+	BlendMask,
 	Blur,
 	DropShadow,
 	Count,
@@ -318,6 +332,7 @@ enum class FragShaderId {
 	Creation,
 	Passthrough,
 	ColorMatrix,
+	BlendMask,
 	Blur,
 	DropShadow,
 	Count,
@@ -331,6 +346,7 @@ enum class UniformId {
 	TexelOffset,
 	TexCoordMin,
 	TexCoordMax,
+	TexMask,
 	Weights,
 	Func,
 	P,
@@ -346,8 +362,8 @@ enum class UniformId {
 namespace Gfx {
 
 static const char* const program_uniform_names[(size_t)UniformId::Count] = {"_translate", "_transform", "_tex", "_color", "_color_matrix",
-	"_texelOffset", "_texCoordMin", "_texCoordMax", "_weights[0]", "_func", "_p", "_v", "_stop_colors[0]", "_stop_positions[0]", "_num_stops",
-	"_value", "_dimensions"};
+	"_texelOffset", "_texCoordMin", "_texCoordMax", "_texMask", "_weights[0]", "_func", "_p", "_v", "_stop_colors[0]", "_stop_positions[0]",
+	"_num_stops", "_value", "_dimensions"};
 
 enum class VertexAttribute { Position, Color0, TexCoord0, Count };
 static const char* const vertex_attribute_names[(size_t)VertexAttribute::Count] = {"inPosition", "inColor0", "inTexCoord0"};
@@ -382,6 +398,7 @@ static const FragShaderDefinition frag_shader_definitions[] = {
 	{FragShaderId::Creation,    "creation",     shader_frag_creation},
 	{FragShaderId::Passthrough, "passthrough",  shader_frag_passthrough},
 	{FragShaderId::ColorMatrix, "color_matrix", shader_frag_color_matrix},
+	{FragShaderId::BlendMask,   "blend_mask",   shader_frag_blend_mask},
 	{FragShaderId::Blur,        "blur",         shader_frag_blur},
 	{FragShaderId::DropShadow,  "drop_shadow",  shader_frag_drop_shadow},
 };
@@ -392,6 +409,7 @@ static const ProgramDefinition program_definitions[] = {
 	{ProgramId::Creation,    "creation",     VertShaderId::Main,        FragShaderId::Creation},
 	{ProgramId::Passthrough, "passthrough",  VertShaderId::Passthrough, FragShaderId::Passthrough},
 	{ProgramId::ColorMatrix, "color_matrix", VertShaderId::Passthrough, FragShaderId::ColorMatrix},
+	{ProgramId::BlendMask,   "blend_mask",   VertShaderId::Passthrough, FragShaderId::BlendMask},
 	{ProgramId::Blur,        "blur",         VertShaderId::Blur,        FragShaderId::Blur},
 	{ProgramId::DropShadow,  "drop_shadow",  VertShaderId::Passthrough, FragShaderId::DropShadow},
 };
@@ -735,6 +753,9 @@ static bool CreateShaders(ProgramData& data)
 		if (!CreateProgram(data.programs[def.id], data.uniforms, def.id, data.vert_shaders[def.vert_shader], data.frag_shaders[def.frag_shader]))
 			return ReportError("program", def.name_str);
 	}
+
+	glUseProgram(data.programs[ProgramId::BlendMask]);
+	glUniform1i(data.uniforms.Get(ProgramId::BlendMask, UniformId::TexMask), 1);
 
 	glUseProgram(0);
 
@@ -1478,7 +1499,7 @@ void RenderInterface_GL3::SetTransform(const Rml::Matrix4f* new_transform)
 	program_transform_dirty.set();
 }
 
-enum class FilterType { Invalid = 0, Passthrough, Blur, DropShadow, ColorMatrix };
+enum class FilterType { Invalid = 0, Passthrough, Blur, DropShadow, ColorMatrix, MaskImage };
 struct CompiledFilter {
 	FilterType type;
 
@@ -1856,6 +1877,28 @@ void RenderInterface_GL3::RenderFilters(const Rml::FilterHandleList& filter_hand
 			glEnable(GL_BLEND);
 		}
 		break;
+		case FilterType::MaskImage:
+		{
+			UseProgram(ProgramId::BlendMask);
+			glDisable(GL_BLEND);
+
+			const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
+			const Gfx::FramebufferData& blend_mask = render_layers.GetBlendMask();
+			const Gfx::FramebufferData& destination = render_layers.GetPostprocessSecondary();
+
+			Gfx::BindTexture(source);
+			glActiveTexture(GL_TEXTURE1);
+			Gfx::BindTexture(blend_mask);
+			glActiveTexture(GL_TEXTURE0);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
+
+			DrawFullscreenQuad();
+
+			render_layers.SwapPostprocessPrimarySecondary();
+			glEnable(GL_BLEND);
+		}
+		break;
 		case FilterType::Invalid:
 		{
 			Rml::Log::Message(Rml::Log::LT_WARNING, "Unhandled render filter %d.", (int)type);
@@ -1960,6 +2003,29 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensi
 	return render_texture;
 }
 
+Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
+{
+	BlitTopLayerToPostprocessPrimary();
+
+	const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
+	const Gfx::FramebufferData& destination = render_layers.GetBlendMask();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
+	BindTexture(source);
+	UseProgram(ProgramId::Passthrough);
+	glDisable(GL_BLEND);
+
+	DrawFullscreenQuad();
+
+	glEnable(GL_BLEND);
+	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
+	Gfx::CheckGLError("SaveLayerAsMaskImage");
+
+	CompiledFilter filter = {};
+	filter.type = FilterType::MaskImage;
+	return reinterpret_cast<Rml::CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
+}
+
 void RenderInterface_GL3::UseProgram(ProgramId program_id)
 {
 	RMLUI_ASSERT(program_data);
@@ -1994,7 +2060,7 @@ void RenderInterface_GL3::SubmitTransformUniform(Rml::Vector2f translation)
 
 RenderInterface_GL3::RenderLayerStack::RenderLayerStack()
 {
-	fb_postprocess.resize(3);
+	fb_postprocess.resize(4);
 }
 
 RenderInterface_GL3::RenderLayerStack::~RenderLayerStack()

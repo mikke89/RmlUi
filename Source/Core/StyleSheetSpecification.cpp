@@ -414,6 +414,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 
 	// Decorators and effects
 	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("decorator");
+	RegisterProperty(PropertyId::MaskImage, "mask-image", "", false, false).AddParser("decorator");
 	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("font_effect");
 		
 	RegisterProperty(PropertyId::Filter, "filter", "", false, false).AddParser("filter", "filter");

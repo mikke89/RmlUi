@@ -130,7 +130,7 @@ public:
 	/// @return True if the texture generation succeeded and the handle is valid, false if not.
 	virtual bool GenerateTexture(TextureHandle& texture_handle, const byte* source, const Vector2i& source_dimensions);
 	/// Called by RmlUi when a loaded texture is no longer required.
-	/// @param texture The texture handle to release.
+	/// @param[in] texture The texture handle to release.
 	virtual void ReleaseTexture(TextureHandle texture);
 
 	/// Called by RmlUi when it wants the renderer to use a new transform matrix.
@@ -152,9 +152,14 @@ public:
 	/// @return The handle to the new texture.
 	virtual TextureHandle SaveLayerAsTexture(Vector2i dimensions);
 
+	/// Called by RmlUi when it wants to store the current layer as a mask image, to be applied later as a filter.
+	/// @return The handle to a new filter representng the stored mask image.
+	virtual CompiledFilterHandle SaveLayerAsMaskImage();
+
 	/// Called by RmlUi when it wants to compile a new filter.
 	/// @param[in] name The name of the filter.
 	/// @param[in] parameters The list of name-value parameters specified for the filter.
+	/// @return The handle representing the compiled filter.
 	virtual CompiledFilterHandle CompileFilter(const String& name, const Dictionary& parameters);
 	/// Called by RmlUi when it no longer needs a previously compiled filter.
 	/// @param[in] filter The handle to a previously compiled filter.
@@ -163,6 +168,7 @@ public:
 	/// Called by RmlUi when it wants to compile a new shader.
 	/// @param[in] name The name of the shader.
 	/// @param[in] parameters The list of name-value parameters specified for the filter.
+	/// @return The handle representing the compiled shader.
 	virtual CompiledShaderHandle CompileShader(const String& name, const Dictionary& parameters);
 	/// Called by RmlUi when it wants to render geometry using the given shader.
 	/// @param[in] shader The handle to a previously compiled shader.

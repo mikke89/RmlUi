@@ -78,6 +78,11 @@ TextureHandle RenderInterface::SaveLayerAsTexture(Vector2i /*dimensions*/)
 	return TextureHandle{};
 }
 
+CompiledFilterHandle RenderInterface::SaveLayerAsMaskImage()
+{
+	return CompiledFilterHandle{};
+}
+
 CompiledFilterHandle RenderInterface::CompileFilter(const String& /*name*/, const Dictionary& /*parameters*/)
 {
 	return CompiledFilterHandle{};

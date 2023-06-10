@@ -849,6 +849,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::Decorator:
 			values.has_decorator(p->unit == Unit::DECORATOR);
 			break;
+		case PropertyId::MaskImage:
+			values.has_mask_image(p->unit == Unit::DECORATOR);
+			break;
 		case PropertyId::FontEffect:
 			values.has_font_effect(p->unit == Unit::FONTEFFECT);
 			break;

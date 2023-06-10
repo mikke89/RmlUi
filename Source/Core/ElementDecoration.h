@@ -84,6 +84,7 @@ private:
 
 	// The list of decorators and filters used by this element from all style rules.
 	DecoratorEntryList decorators;
+	DecoratorEntryList mask_images;
 	FilterEntryList filters;
 	FilterEntryList backdrop_filters;
 

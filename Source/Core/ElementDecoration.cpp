@@ -60,49 +60,55 @@ void ElementDecoration::InstanceDecorators()
 
 	const ComputedValues& computed = element->GetComputedValues();
 
-	if (computed.has_decorator())
+	if (computed.has_decorator() || computed.has_mask_image())
 	{
-		const Property* property = element->GetLocalProperty(PropertyId::Decorator);
-		if (!property || property->unit != Unit::DECORATOR)
-			return;
-
-		DecoratorsPtr decorators_ptr = property->Get<DecoratorsPtr>();
-		if (!decorators_ptr)
-			return;
-
 		const StyleSheet* style_sheet = element->GetStyleSheet();
 		if (!style_sheet)
 			return;
 
-		PropertySource document_source("", 0, "");
-		const PropertySource* source = property->source.get();
-
-		if (!source)
+		for (const auto id : {PropertyId::Decorator, PropertyId::MaskImage})
 		{
-			if (ElementDocument* document = element->GetOwnerDocument())
+			const Property* property = element->GetLocalProperty(id);
+			if (!property || property->unit != Unit::DECORATOR)
+				continue;
+
+			DecoratorsPtr decorators_ptr = property->Get<DecoratorsPtr>();
+			if (!decorators_ptr)
+				continue;
+
+			PropertySource document_source("", 0, "");
+			const PropertySource* source = property->source.get();
+
+			if (!source)
 			{
-				document_source.path = document->GetSourceURL();
-				source = &document_source;
+				if (ElementDocument* document = element->GetOwnerDocument())
+				{
+					document_source.path = document->GetSourceURL();
+					source = &document_source;
+				}
 			}
-		}
 
-		const DecoratorPtrList& decorator_list = style_sheet->InstanceDecorators(*decorators_ptr, source);
-		RMLUI_ASSERT(decorator_list.empty() || decorator_list.size() == decorators_ptr->list.size());
+			const DecoratorPtrList& decorator_list = style_sheet->InstanceDecorators(*decorators_ptr, source);
+			RMLUI_ASSERT(decorator_list.empty() || decorator_list.size() == decorators_ptr->list.size());
 
-		for (size_t i = 0; i < decorator_list.size() && i < decorators_ptr->list.size(); i++)
-		{
-			const SharedPtr<const Decorator>& decorator = decorator_list[i];
-			if (decorator)
+			DecoratorEntryList& decorators_target = (id == PropertyId::Decorator ? decorators : mask_images);
+			decorators_target.reserve(decorators_ptr->list.size());
+
+			for (size_t i = 0; i < decorator_list.size() && i < decorators_ptr->list.size(); i++)
 			{
-				DecoratorEntry entry;
-				entry.decorator_data = 0;
-				entry.decorator = decorator;
-				entry.paint_area = decorators_ptr->list[i].paint_area;
-				if (entry.paint_area == BoxArea::Auto)
-					entry.paint_area = BoxArea::Padding;
+				const SharedPtr<const Decorator>& decorator = decorator_list[i];
+				if (decorator)
+				{
+					DecoratorEntry entry;
+					entry.decorator_data = 0;
+					entry.decorator = decorator;
+					entry.paint_area = decorators_ptr->list[i].paint_area;
+					if (entry.paint_area == BoxArea::Auto)
+						entry.paint_area = (id == PropertyId::Decorator ? BoxArea::Padding : BoxArea::Border);
 
-				RMLUI_ASSERT(entry.paint_area >= BoxArea::Border && entry.paint_area <= BoxArea::Content);
-				decorators.push_back(std::move(entry));
+					RMLUI_ASSERT(entry.paint_area >= BoxArea::Border && entry.paint_area <= BoxArea::Content);
+					decorators_target.push_back(std::move(entry));
+				}
 			}
 		}
 	}
@@ -146,12 +152,15 @@ void ElementDecoration::ReloadDecoratorsData()
 	{
 		decorators_data_dirty = false;
 
-		for (DecoratorEntry& decorator : decorators)
+		for (DecoratorEntryList* list : {&decorators, &mask_images})
 		{
-			if (decorator.decorator_data)
-				decorator.decorator->ReleaseElementData(decorator.decorator_data);
+			for (DecoratorEntry& decorator : *list)
+			{
+				if (decorator.decorator_data)
+					decorator.decorator->ReleaseElementData(decorator.decorator_data);
 
-			decorator.decorator_data = decorator.decorator->GenerateElementData(element, decorator.paint_area);
+				decorator.decorator_data = decorator.decorator->GenerateElementData(element, decorator.paint_area);
+			}
 		}
 
 		for (FilterEntryList* list : {&filters, &backdrop_filters})
@@ -169,12 +178,15 @@ void ElementDecoration::ReloadDecoratorsData()
 
 void ElementDecoration::ReleaseDecorators()
 {
-	for (DecoratorEntry& decorator : decorators)
+	for (DecoratorEntryList* list : {&decorators, &mask_images})
 	{
-		if (decorator.decorator_data)
-			decorator.decorator->ReleaseElementData(decorator.decorator_data);
+		for (DecoratorEntry& decorator : *list)
+		{
+			if (decorator.decorator_data)
+				decorator.decorator->ReleaseElementData(decorator.decorator_data);
+		}
+		list->clear();
 	}
-	decorators.clear();
 
 	for (FilterEntryList* list : {&filters, &backdrop_filters})
 	{
@@ -206,7 +218,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 		}
 	}
 
-	if (filters.empty() && backdrop_filters.empty())
+	if (filters.empty() && backdrop_filters.empty() && mask_images.empty())
 		return;
 
 	RenderInterface* render_interface = ::Rml::GetRenderInterface();
@@ -262,7 +274,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 		}
 	}
 
-	if (!filters.empty())
+	if (!filters.empty() || !mask_images.empty())
 	{
 		if (render_stage == RenderStage::Enter)
 		{
@@ -272,15 +284,34 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 		{
 			ApplyClippingRegion(PropertyId::Filter);
 
+			CompiledFilterHandle mask_image_handle = {};
 			FilterHandleList filter_handles;
+
 			for (auto& filter : filters)
 			{
 				if (filter.handle)
 					filter_handles.push_back(filter.handle);
 			}
 
+			if (!mask_images.empty())
+			{
+				render_interface->PushLayer(LayerFill::Clear);
+
+				for (int i = (int)mask_images.size() - 1; i >= 0; i--)
+				{
+					DecoratorEntry& mask_image = mask_images[i];
+					mask_image.decorator->RenderElement(element, mask_image.decorator_data);
+				}
+				mask_image_handle = render_interface->SaveLayerAsMaskImage();
+				if (mask_image_handle)
+					filter_handles.push_back(mask_image_handle);
+				render_interface->PopLayer(BlendMode::Discard, {});
+			}
+
 			render_interface->PopLayer(BlendMode::Blend, filter_handles);
 
+			if (mask_image_handle)
+				render_interface->ReleaseCompiledFilter(mask_image_handle);
 			render_manager.SetScissorRegion(initial_scissor_region);
 		}
 	}

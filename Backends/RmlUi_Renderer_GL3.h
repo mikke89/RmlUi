@@ -86,6 +86,8 @@ public:
 
 	Rml::TextureHandle SaveLayerAsTexture(Rml::Vector2i dimensions) override;
 
+	Rml::CompiledFilterHandle SaveLayerAsMaskImage() override;
+
 	Rml::CompiledFilterHandle CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters) override;
 	void ReleaseCompiledFilter(Rml::CompiledFilterHandle filter) override;
 
@@ -158,6 +160,7 @@ private:
 		const Gfx::FramebufferData& GetPostprocessPrimary() { return EnsureFramebufferPostprocess(0); }
 		const Gfx::FramebufferData& GetPostprocessSecondary() { return EnsureFramebufferPostprocess(1); }
 		const Gfx::FramebufferData& GetPostprocessTertiary() { return EnsureFramebufferPostprocess(2); }
+		const Gfx::FramebufferData& GetBlendMask() { return EnsureFramebufferPostprocess(3); }
 
 		void SwapPostprocessPrimarySecondary();
 
