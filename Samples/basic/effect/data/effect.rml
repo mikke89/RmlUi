@@ -107,6 +107,14 @@
 }
 .boxshadow_inset { box-shadow: #f4fd 10px 5px 5px 3px inset; }
 
+@keyframes animate-filter {
+	from { filter: drop-shadow(#f00) opacity(1.0) sepia(1.0); }
+	to   { filter: drop-shadow(#000 30px 20px 5px) opacity(0.2) sepia(0.2); }
+}
+.animate {
+	animation: animate-filter 1.5s cubic-in-out infinite alternate;
+}
+
 </style>
 </head>
 <body
@@ -167,8 +175,10 @@
 
 <div class="box hue_rotate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 
+<div class="box animate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 <div class="box saturate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 <div class="box invert"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box blur"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 
 <div class="box brightness"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 <div class="box contrast"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
