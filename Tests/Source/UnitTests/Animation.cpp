@@ -52,8 +52,8 @@ static const String document_decorator_rml = R"(
 		@decorator to_rule: horizontal-gradient{ %s }
 
 		@keyframes mix {
-			from { decorator: %s; }
-			to   { decorator: %s; }
+			from { %s: %s; }
+			to   { %s: %s; }
 		}
 		div {
 			background: #333;
@@ -211,27 +211,29 @@ TEST_CASE("animation.decorator")
 
 	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
 	Context* context = TestsShell::GetContext();
-	context->SetDensityIndependentPixelRatio(2.0f);
 
-	for (const Test& test : tests)
+	for (const char* property_str : {"decorator", "mask-image"})
 	{
-		const double t_final = 0.1;
+		for (const Test& test : tests)
+		{
+			const double t_final = 0.1;
 
-		system_interface->SetTime(0.0);
-		String document_rml = Rml::CreateString(document_decorator_rml.size() + 512, document_decorator_rml.c_str(), test.from_rule.c_str(),
-			test.to_rule.c_str(), test.from.c_str(), test.to.c_str());
+			system_interface->SetTime(0.0);
+			String document_rml = Rml::CreateString(document_decorator_rml.size() + 512, document_decorator_rml.c_str(), test.from_rule.c_str(),
+				test.to_rule.c_str(), property_str, test.from.c_str(), property_str, test.to.c_str());
 
-		ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
-		Element* element = document->GetChild(0);
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
+			Element* element = document->GetChild(0);
 
-		document->Show();
-		TestsShell::RenderLoop();
+			document->Show();
+			TestsShell::RenderLoop();
 
-		system_interface->SetTime(0.25 * t_final);
-		TestsShell::RenderLoop();
-		CHECK_MESSAGE(element->GetProperty<String>("decorator") == test.expected_25p, "from: ", test.from, ", to: ", test.to);
+			system_interface->SetTime(0.25 * t_final);
+			TestsShell::RenderLoop();
+			CHECK_MESSAGE(element->GetProperty<String>(property_str) == test.expected_25p, property_str, " from: ", test.from, ", to: ", test.to);
 
-		document->Close();
+			document->Close();
+		}
 	}
 
 	system_interface->SetTime(0.0);
@@ -252,8 +254,8 @@ static const String document_filter_rml = R"(
 			bottom: 0;
 		}
 		@keyframes mix {
-			from { filter: %s; }
-			to   { filter: %s; }
+			from { %s: %s; }
+			to   { %s: %s; }
 		}
 		div {
 			background: #333;
@@ -336,24 +338,28 @@ TEST_CASE("animation.filter")
 	Context* context = TestsShell::GetContext();
 	context->SetDensityIndependentPixelRatio(2.0f);
 
-	for (const Test& test : tests)
+	for (const char* property_str : {"filter", "backdrop-filter"})
 	{
-		const double t_final = 0.1;
+		for (const Test& test : tests)
+		{
+			const double t_final = 0.1;
 
-		system_interface->SetTime(0.0);
-		String document_rml = Rml::CreateString(document_filter_rml.size() + 512, document_filter_rml.c_str(), test.from.c_str(), test.to.c_str());
+			system_interface->SetTime(0.0);
+			String document_rml = Rml::CreateString(document_filter_rml.size() + 512, document_filter_rml.c_str(), property_str, test.from.c_str(),
+				property_str, test.to.c_str());
 
-		ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
-		Element* element = document->GetChild(0);
+			ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
+			Element* element = document->GetChild(0);
 
-		document->Show();
+			document->Show();
 
-		system_interface->SetTime(0.25 * t_final);
-		TestsShell::RenderLoop();
+			system_interface->SetTime(0.25 * t_final);
+			TestsShell::RenderLoop();
 
-		CHECK_MESSAGE(element->GetProperty<String>("filter") == test.expected_25p, "from: ", test.from, ", to: ", test.to);
+			CHECK_MESSAGE(element->GetProperty<String>(property_str) == test.expected_25p, property_str, " from: ", test.from, ", to: ", test.to);
 
-		document->Close();
+			document->Close();
+		}
 	}
 
 	system_interface->SetTime(0.0);
