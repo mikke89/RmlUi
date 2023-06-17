@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include <algorithm>
+#include <limits.h>
 #include <sstream>
 #include <stdarg.h>
 #include <stdio.h>
