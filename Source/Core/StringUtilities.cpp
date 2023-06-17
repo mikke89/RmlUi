@@ -171,12 +171,13 @@ String StringUtilities::DecodeRml(const String& s)
 					if (j > 0 && s[start + j] == ';')
 					{
 						String tmp = s.substr(start, j);
-						std::istringstream iss(tmp);
-						uint32_t code_point;
-						if (iss >> std::hex >> code_point)
+						const char* begin = tmp.c_str();
+						char* end;
+						unsigned long code_point = strtoul(begin, &end, 16);
+						if (code_point != 0 && code_point != ULONG_MAX)
 						{
 							result += ToUTF8(static_cast<Character>(code_point));
-							i = start + j + 1;
+							i = start + (end - begin) + 1;
 							continue;
 						}
 					}
@@ -194,12 +195,13 @@ String StringUtilities::DecodeRml(const String& s)
 					if (j > 0 && s[start + j] == ';')
 					{
 						String tmp = s.substr(start, j);
-						std::istringstream iss(tmp);
-						uint32_t code_point;
-						if (iss >> code_point)
+						const char* begin = tmp.c_str();
+						char* end;
+						unsigned long code_point = strtoul(begin, &end, 10);
+						if (code_point != 0 && code_point != ULONG_MAX)
 						{
 							result += ToUTF8(static_cast<Character>(code_point));
-							i = start + j + 1;
+							i = start + (end - begin) + 1;
 							continue;
 						}
 					}
