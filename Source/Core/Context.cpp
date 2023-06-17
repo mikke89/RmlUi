@@ -38,10 +38,10 @@
 #include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/Debug.h"
 #include "DataModel.h"
 #include "EventDispatcher.h"
 #include "PluginRegistry.h"
-#include "RmlUi/Core/Debug.h"
 #include "ScrollController.h"
 #include "StreamFile.h"
 #include <algorithm>
