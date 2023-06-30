@@ -229,7 +229,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 	RenderManager& render_manager = context->GetRenderManager();
 	Rectanglei initial_scissor_region = render_manager.GetState().scissor_region;
 
-	auto ApplyClippingRegion = [this, &render_manager, initial_scissor_region](PropertyId filter_id) {
+	auto ApplyClippingRegion = [this, &render_manager](PropertyId filter_id) {
 		RMLUI_ASSERT(filter_id == PropertyId::Filter || filter_id == PropertyId::BackdropFilter);
 
 		const bool force_clip_to_self_border_box = (filter_id == PropertyId::BackdropFilter);
@@ -237,7 +237,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 
 		// Find the region being affected by the active filters and apply it as a scissor.
 		Rectanglef filter_region = Rectanglef::MakeInvalid();
-		ElementUtilities::GetBoundingBox(filter_region, element, BoxArea::Auto);
+		ElementUtilities::GetBoundingBox(filter_region, element, force_clip_to_self_border_box ? BoxArea::Border : BoxArea::Auto);
 
 		// The filter property may draw outside our normal clipping region due to ink overflow.
 		if (filter_id == PropertyId::Filter)
@@ -249,7 +249,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 		Math::ExpandToPixelGrid(filter_region);
 
 		Rectanglei scissor_region = Rectanglei(filter_region);
-		scissor_region.IntersectIfValid(initial_scissor_region);
+		scissor_region.IntersectIfValid(render_manager.GetState().scissor_region);
 		render_manager.SetScissorRegion(scissor_region);
 	};
 
