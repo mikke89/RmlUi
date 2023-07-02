@@ -52,7 +52,7 @@ public:
 
 	/// Clear any existing data and set a callback function for loading the data.
 	/// Texture loading is delayed until the texture is accessed by a specific render interface.
-	void Set(const String& name, const TextureCallback& callback);
+	void Set(const String& name, TextureCallback&& callback);
 
 	/// Returns the resource's underlying texture handle.
 	TextureHandle GetHandle();

@@ -37,10 +37,10 @@ void Texture::Set(const String& source, const String& source_path)
 	resource = TextureDatabase::Fetch(source, source_path);
 }
 
-void Texture::Set(const String& name, const TextureCallback& callback)
+void Texture::Set(const String& name, TextureCallback&& callback)
 {
 	resource = MakeShared<TextureResource>();
-	resource->Set(name, callback);
+	resource->Set(name, std::move(callback));
 }
 
 const String& Texture::GetSource() const

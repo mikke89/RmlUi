@@ -48,11 +48,11 @@ void TextureResource::Set(const String& _source)
 	source = _source;
 }
 
-void TextureResource::Set(const String& name, const TextureCallback& callback)
+void TextureResource::Set(const String& name, TextureCallback&& callback)
 {
 	Reset();
 	source = name;
-	texture_callback = MakeUnique<TextureCallback>(callback);
+	texture_callback = MakeUnique<TextureCallback>(std::move(callback));
 	TextureDatabase::AddCallbackTexture(this);
 }
 

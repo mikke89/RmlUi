@@ -171,7 +171,7 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 			};
 
 			Texture texture;
-			texture.Set("font-face-layer", texture_callback);
+			texture.Set("font-face-layer", std::move(texture_callback));
 			textures.push_back(texture);
 		}
 	}

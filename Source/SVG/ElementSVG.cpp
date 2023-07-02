@@ -194,7 +194,8 @@ void ElementSVG::UpdateTexture()
 		return;
 
 	// Callback for generating texture.
-	auto p_callback = [this](RenderInterface* render_interface, const String& /*name*/, TextureHandle& out_handle, Vector2i& out_dimensions) -> bool {
+	auto texture_callback = [this](RenderInterface* render_interface, const String& /*name*/, TextureHandle& out_handle,
+								Vector2i& out_dimensions) -> bool {
 		RMLUI_ASSERT(svg_document);
 		lunasvg::Bitmap bitmap = svg_document->renderToBitmap(render_dimensions.x, render_dimensions.y);
 		if (!bitmap.valid() || !bitmap.data())
@@ -205,7 +206,7 @@ void ElementSVG::UpdateTexture()
 		return true;
 	};
 
-	texture.Set("svg", p_callback);
+	texture.Set("svg", std::move(texture_callback));
 	geometry.SetTexture(&texture);
 	texture_dirty = false;
 }

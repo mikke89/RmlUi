@@ -225,8 +225,8 @@ void ElementLottie::UpdateTexture()
 	}
 
 	// Callback for generating texture.
-	auto p_callback = [this, next_frame](RenderInterface* render_interface, const String& /*name*/, TextureHandle& out_handle,
-						  Vector2i& out_dimensions) -> bool {
+	auto texture_callback = [this, next_frame](RenderInterface* render_interface, const String& /*name*/, TextureHandle& out_handle,
+								Vector2i& out_dimensions) -> bool {
 		RMLUI_ASSERT(animation);
 
 		const size_t bytes_per_line = 4 * render_dimensions.x;
@@ -259,7 +259,7 @@ void ElementLottie::UpdateTexture()
 		return true;
 	};
 
-	texture.Set("lottie", p_callback);
+	texture.Set("lottie", std::move(texture_callback));
 	geometry.SetTexture(&texture);
 	prev_animation_frame = next_frame;
 	texture_size_dirty = false;

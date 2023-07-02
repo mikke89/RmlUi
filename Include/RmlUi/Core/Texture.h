@@ -63,7 +63,7 @@ public:
 	/// Set a callback function for generating the texture on first use. The texture is never added to the global cache.
 	/// @param[in] name The name of the texture.
 	/// @param[in] callback The callback function which generates the data of the texture, see TextureCallback.
-	void Set(const String& name, const TextureCallback& callback);
+	void Set(const String& name, TextureCallback&& callback);
 
 	/// Returns the texture's source name. This is usually the name of the file the texture was loaded from.
 	/// @return The name of the this texture's source. This will be the empty string if this texture is not loaded.
