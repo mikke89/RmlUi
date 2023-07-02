@@ -26,42 +26,29 @@
  *
  */
 
-#ifndef RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
-#define RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
+#ifndef RMLUI_CORE_GEOMETRYBOXSHADOW_H
+#define RMLUI_CORE_GEOMETRYBOXSHADOW_H
 
-#include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/Texture.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
-class ElementBackgroundBorder {
+class Geometry;
+struct Texture;
+
+class GeometryBoxShadow {
 public:
-	ElementBackgroundBorder();
-
-	void Render(Element* element);
-
-	void DirtyBackground();
-	void DirtyBorder();
-
-	Geometry* GetClipGeometry(Element* element, BoxArea clip_area);
-
-private:
-	enum class BackgroundType { BackgroundBorder, BoxShadow, ClipBorder, ClipPadding, ClipContent, Count };
-	struct Background {
-		Geometry geometry;
-		Texture texture;
-	};
-
-	Geometry* GetGeometry(BackgroundType type);
-	Background& GetOrCreateBackground(BackgroundType type);
-
-	void GenerateGeometry(Element* element);
-
-	bool background_dirty = false;
-	bool border_dirty = false;
-
-	StableMap<BackgroundType, Background> backgrounds;
+	/// Generate the texture and geometry for a box shadow.
+	/// @param[out] out_shadow_geometry The target geometry.
+	/// @param[out] out_shadow_texture The target texture, assumes pointer stability during the lifetime of the shadow geometry.
+	/// @param[in] element The element to generate the shadow for.
+	/// @param[in] background_border_geometry The geometry of the background and border, assumed to already have been generated. Assumes pointer
+	/// stability during the lifetime of the shadow geometry.
+	/// @param[in] shadow_list The list of box-shadows to generate.
+	/// @param[in] border_radius The border radius of the element.
+	/// @param[in] opacity The opacity of the element.
+	static void Generate(Geometry& out_shadow_geometry, Texture& out_shadow_texture, Element* element, Geometry& background_border_geometry,
+		BoxShadowList shadow_list, Vector4f border_radius, float opacity);
 };
 
 } // namespace Rml
