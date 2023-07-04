@@ -37,7 +37,7 @@
 
 namespace Rml {
 
-template<typename T>
+template <typename T>
 struct is_builtin_data_scalar {
 	static constexpr bool value =
 		std::is_arithmetic<T>::value || std::is_enum<T>::value || std::is_same<typename std::remove_const<T>::type, String>::value;
@@ -63,7 +63,7 @@ public:
 		return inserted;
 	}
 
-	template<typename T>
+	template <typename T>
 	VariableDefinition* GetDefinition()
 	{
 		return GetDefinitionDetail<T>();
@@ -74,7 +74,7 @@ public:
 private:
 	// Get definition for scalar types that can be assigned to and from Rml::Variant.
 	// We automatically register these when needed, so users don't have to register trivial types manually.
-	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && is_builtin_data_scalar<T>::value, int>::type = 0>
+	template <typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && is_builtin_data_scalar<T>::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
 		FamilyId id = Family<T>::Id();
@@ -91,7 +91,7 @@ private:
 
 	// Get definition for types that are not a built-in scalar.
 	// These must already have been registered by the user.
-	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_builtin_data_scalar<T>::value, int>::type = 0>
+	template <typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_builtin_data_scalar<T>::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
 		FamilyId id = Family<T>::Id();
@@ -109,7 +109,7 @@ private:
 
 	// Get definition for pointer types, or create one as needed.
 	// This will create a wrapper definition that forwards the call to the definition of the underlying type.
-	template<typename T, typename std::enable_if<PointerTraits<T>::is_pointer::value, int>::type = 0>
+	template <typename T, typename std::enable_if<PointerTraits<T>::is_pointer::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
 		static_assert(PointerTraits<T>::is_pointer::value, "Invalid pointer type provided.");
