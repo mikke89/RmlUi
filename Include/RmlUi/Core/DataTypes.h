@@ -65,7 +65,7 @@ using DirtyVariables = SmallUnorderedSet<String>;
 
 struct DataAddressEntry {
 	DataAddressEntry(String name) : name(std::move(name)), index(-1) {}
-	DataAddressEntry(int index) : index(index) { }
+	DataAddressEntry(int index) : index(index) {}
 	String name;
 	int index;
 };
@@ -74,53 +74,51 @@ using DataAddress = Vector<DataAddressEntry>;
 // DataPointer is a wrapper around void* which preserves the constness of the underlying object.
 class DataPointer {
 public:
-	DataPointer(std::nullptr_t) : ptr(nullptr), cptr(nullptr) {};
-	DataPointer(void* p) : ptr(p), cptr(p) {};
-	DataPointer(const void* p) : ptr(nullptr), cptr(p) {};
+	DataPointer(std::nullptr_t) : ptr(nullptr), cptr(nullptr){};
+	DataPointer(void* p) : ptr(p), cptr(p){};
+	DataPointer(const void* p) : ptr(nullptr), cptr(p){};
 
-	template<typename T, typename std::enable_if<!std::is_const<typename std::remove_pointer<T>::type>::value, int>::type = 0>
-	T Get() {
+	template <typename T, typename std::enable_if<!std::is_const<typename std::remove_pointer<T>::type>::value, int>::type = 0>
+	T Get()
+	{
 		return static_cast<T>(ptr);
 	}
-	template<typename T, typename std::enable_if<std::is_const<typename std::remove_pointer<T>::type>::value, int>::type = 0>
-	T Get() {
+	template <typename T, typename std::enable_if<std::is_const<typename std::remove_pointer<T>::type>::value, int>::type = 0>
+	T Get()
+	{
 		return static_cast<T>(cptr);
 	}
+
+	operator bool() const { return cptr; }
 
 private:
 	void* ptr = nullptr;
 	const void* cptr = nullptr;
 };
 
-template<class T>
+template <class T>
 struct PointerTraits {
 	using is_pointer = std::false_type;
 	using element_type = T;
 	// Dereference() function intentionally missing.
 };
-template<class T>
+template <class T>
 struct PointerTraits<T*> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static DataPointer Dereference(DataPointer ptr) {
-		return DataPointer(*ptr.Get<T**>());
-	}
+	static DataPointer Dereference(DataPointer ptr) { return DataPointer(*ptr.Get<T**>()); }
 };
-template<class T>
+template <class T>
 struct PointerTraits<UniquePtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static DataPointer Dereference(DataPointer ptr) {
-		return DataPointer(ptr.Get<UniquePtr<T>*>()->get());
-	}
+	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<UniquePtr<T>*>()->get()); }
 };
-template<class T>
+template <class T>
 struct PointerTraits<SharedPtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static DataPointer Dereference(DataPointer ptr) {
-		return DataPointer(ptr.Get<SharedPtr<T>*>()->get());
-	}
+	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<SharedPtr<T>*>()->get()); }
 };
 
 struct VoidMemberFunc {};
