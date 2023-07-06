@@ -1963,6 +1963,10 @@ void Element::SetDataModel(DataModel* new_data_model)
 	if (data_model == new_data_model)
 		return;
 
+	// stop descent if a nested data model is encountered
+	if (data_model && new_data_model && data_model != new_data_model)
+		return;
+
 	if (data_model)
 		data_model->OnElementRemove(this);
 
