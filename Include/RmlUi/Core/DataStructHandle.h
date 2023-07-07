@@ -76,6 +76,22 @@ public:
 		return RegisterMemberGetter(name, member_get_func_ptr);
 	}
 
+	/// Register a member getter function.
+	/// @note Underlying type must be registered before it is used as a member.
+	/// @note Getter functions can return by reference, raw pointer, or by value. If returned by value,
+	///       the returned type must be a scalar data type, otherwise any data type can be used.
+	/// @example
+	///		struct Invader {
+	///			std::vector<Weapon>& GetWeapons();
+	///			/* ... */
+	/// 	};
+	///		struct_handle.RegisterMember("weapons", &Invader::GetWeapons);
+	template <typename ReturnType>
+	bool RegisterMember(const String& name, ReturnType (Object::*member_get_func_ptr)() const)
+	{
+		return RegisterMemberGetter(name, member_get_func_ptr);
+	}
+
 	/// Register member getter and setter functions. The getter and setter functions must return and assign scalar value types.
 	/// @note Underlying type must be registered before it is used as a member.
 	/// @note Getter and setter functions can return by reference, raw pointer, or by value.
@@ -117,6 +133,20 @@ private:
 		return CreateMemberGetFuncDefinition<ReturnType>(name, member_get_func_ptr);
 	}
 
+	// Member getter with reference return type.
+	template <typename ReturnType>
+	bool RegisterMemberGetter(const String& name, ReturnType& (Object::*member_get_func_ptr)() const)
+	{
+		return CreateMemberGetFuncDefinition<ReturnType>(name, member_get_func_ptr);
+	}
+
+	// Member getter with pointer return type.
+	template <typename ReturnType>
+	bool RegisterMemberGetter(const String& name, ReturnType* (Object::*member_get_func_ptr)() const)
+	{
+		return CreateMemberGetFuncDefinition<ReturnType>(name, member_get_func_ptr);
+	}
+
 	// Member getter with value return type, only valid for scalar return types.
 	template <typename ReturnType>
 	bool RegisterMemberGetter(const String& name, ReturnType (Object::*member_get_func_ptr)())
@@ -130,6 +160,9 @@ private:
 
 	template <typename BasicReturnType, typename MemberType>
 	bool CreateMemberGetFuncDefinition(const String& name, MemberType Object::*member_get_func_ptr);
+
+	template <typename BasicReturnType, typename MemberType>
+	bool CreateMemberGetFuncDefinition(const String& name, MemberType (Object::*member_get_func_ptr)() const);
 
 	template <typename UnderlyingType, typename MemberGetType, typename MemberSetType>
 	bool CreateMemberScalarGetSetFuncDefinition(const String& name, MemberGetType Object::*member_get_func_ptr,
@@ -169,6 +202,19 @@ bool StructHandle<Object>::CreateMemberGetFuncDefinition(const String& name, Mem
 
 	struct_definition->AddMember(name,
 		Rml::MakeUnique<MemberGetFuncDefinition<Object, MemberType, BasicReturnType>>(underlying_definition, member_get_func_ptr));
+	return true;
+}
+
+template <typename Object>
+template <typename BasicReturnType, typename MemberType>
+bool StructHandle<Object>::CreateMemberGetFuncDefinition(const String& name, MemberType (Object::*member_get_func_ptr)() const)
+{
+	VariableDefinition* underlying_definition = type_register->GetDefinition<BasicReturnType>();
+	if (!underlying_definition)
+		return false;
+
+	struct_definition->AddMember(name,
+		Rml::MakeUnique<MemberGetConstFuncDefinition<Object, MemberType, BasicReturnType>>(underlying_definition, member_get_func_ptr));
 	return true;
 }
 
