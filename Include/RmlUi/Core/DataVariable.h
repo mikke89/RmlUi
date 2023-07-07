@@ -101,7 +101,13 @@ public:
 		variant = *ptr.Get<const T*>();
 		return true;
 	}
-	bool Set(DataPointer ptr, const Variant& variant) override { return variant.GetInto<T>(*ptr.Get<T*>()); }
+	bool Set(DataPointer ptr, const Variant& variant) override
+	{
+		auto value = ptr.Get<T*>();
+		if (!value)
+			return false;
+		return variant.GetInto<T>(*value);
+	}
 };
 
 class RMLUICORE_API FuncDefinition final : public VariableDefinition {
