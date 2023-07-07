@@ -71,23 +71,6 @@ struct DataAddressEntry {
 };
 using DataAddress = Vector<DataAddressEntry>;
 
-template <typename T>
-struct remove_pointer_recursive {
-	typedef T type;
-};
-
-template <typename T>
-struct remove_pointer_recursive<T*> : public remove_pointer_recursive<T> {};
-
-template <typename T>
-struct remove_pointer_recursive<T* const> : public remove_pointer_recursive<T> {};
-
-template <typename T>
-struct remove_pointer_recursive<T* volatile> : public remove_pointer_recursive<T> {};
-
-template <typename T>
-struct remove_pointer_recursive<T* const volatile> : public remove_pointer_recursive<T> {};
-
 // DataPointer is a wrapper around void* which preserves the constness of the underlying object.
 class DataPointer {
 public:
@@ -123,19 +106,31 @@ template <class T>
 struct PointerTraits<T*> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static DataPointer Dereference(DataPointer ptr) { return DataPointer(*ptr.Get<T**>()); }
+	static DataPointer Dereference(DataPointer ptr)
+	{
+		auto val = ptr.Get<T**>();
+		return val ? DataPointer(*val) : nullptr;
+	}
 };
 template <class T>
 struct PointerTraits<UniquePtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<UniquePtr<T>*>()->get()); }
+	static DataPointer Dereference(DataPointer ptr)
+	{
+		auto val = ptr.Get<UniquePtr<T>*>();
+		return val ? DataPointer(val->get()) : nullptr;
+	}
 };
 template <class T>
 struct PointerTraits<SharedPtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<SharedPtr<T>*>()->get()); }
+	static DataPointer Dereference(DataPointer ptr)
+	{
+		auto val = ptr.Get<SharedPtr<T>*>();
+		return val ? DataPointer(val->get()) : nullptr;
+	}
 };
 template <class T>
 struct PointerTraits<const T*> {
