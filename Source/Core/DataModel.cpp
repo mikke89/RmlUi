@@ -324,10 +324,6 @@ const DataEventFunc* DataModel::GetEventCallback(const String& name)
 
 bool DataModel::GetVariableInto(const DataAddress& address, Variant& out_value) const
 {
-	if (address[0].name == "categories")
-	{
-		int i = 0;
-	}
 	DataVariable variable = GetVariable(address);
 	bool result = (variable && variable.Get(out_value));
 	if (!result)
