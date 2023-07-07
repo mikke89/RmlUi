@@ -152,29 +152,28 @@ bool BasePointerDefinition::Get(DataPointer ptr, Variant& variant)
 {
 	if (!ptr)
 		return false;
-	return underlying_definition->Get(DereferencePointer(ptr.Get<const void*>()), variant);
+	return underlying_definition->Get(DereferencePointer(ptr), variant);
 }
 
 bool BasePointerDefinition::Set(DataPointer ptr, const Variant& variant)
 {
-	auto pptr = ptr.Get<void*>();
-	if (!pptr)
+	if (!ptr)
 		return false;
-	return underlying_definition->Set(DereferencePointer(pptr), variant);
+	return underlying_definition->Set(DereferencePointer(ptr), variant);
 }
 
 int BasePointerDefinition::Size(DataPointer ptr)
 {
 	if (!ptr)
 		return 0;
-	return underlying_definition->Size(DereferencePointer(ptr.Get<const void*>()));
+	return underlying_definition->Size(DereferencePointer(ptr));
 }
 
 DataVariable BasePointerDefinition::Child(DataPointer ptr, const DataAddressEntry& address)
 {
 	if (!ptr)
 		return DataVariable();
-	return underlying_definition->Child(DereferencePointer(ptr.Get<const void*>()), address);
+	return underlying_definition->Child(DereferencePointer(ptr), address);
 }
 
 } // namespace Rml

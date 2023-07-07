@@ -212,8 +212,7 @@ public:
 	DataVariable Child(DataPointer ptr, const DataAddressEntry& address) override;
 
 protected:
-	virtual void* DereferencePointer(void* ptr) = 0;
-	virtual const void* DereferencePointer(const void* ptr) = 0;
+	virtual DataPointer DereferencePointer(DataPointer ptr) = 0;
 
 private:
 	VariableDefinition* underlying_definition;
@@ -225,8 +224,7 @@ public:
 	PointerDefinition(VariableDefinition* underlying_definition) : BasePointerDefinition(underlying_definition) {}
 
 protected:
-	void* DereferencePointer(void* ptr) override { return PointerTraits<T>::Dereference(ptr); }
-	const void* DereferencePointer(const void* ptr) override { return PointerTraits<const T>::Dereference(ptr); }
+	DataPointer DereferencePointer(DataPointer ptr) override { return PointerTraits<T>::Dereference(ptr); }
 };
 
 template <typename Object, typename MemberType>
@@ -237,8 +235,14 @@ public:
 	{}
 
 protected:
-	void* DereferencePointer(void* base_ptr) override { return &(static_cast<Object*>(base_ptr)->*member_ptr); }
-	const void* DereferencePointer(const void* base_ptr) override { return &(static_cast<const Object*>(base_ptr)->*member_ptr); }
+	DataPointer DereferencePointer(DataPointer base_ptr) override
+	{
+		auto ptr = base_ptr.Get<Object*>();
+		if (ptr)
+			return &(ptr->*member_ptr);
+		else
+			return &(base_ptr.Get<const Object*>()->*member_ptr);
+	}
 
 private:
 	MemberType Object::*member_ptr;
@@ -252,8 +256,7 @@ public:
 	{}
 
 protected:
-	void* DereferencePointer(void* base_ptr) override { return Extract((static_cast<Object*>(base_ptr)->*member_get_func_ptr)()); }
-	const void* DereferencePointer(const void*) override { return nullptr; }
+	DataPointer DereferencePointer(DataPointer base_ptr) override { return DataPointer(Extract((base_ptr.Get<Object*>()->*member_get_func_ptr)())); }
 
 private:
 	BasicReturnType* Extract(BasicReturnType* value) { return value; }
@@ -270,8 +273,7 @@ public:
 	{}
 
 protected:
-	void* DereferencePointer(void* base_ptr) override { return Extract((static_cast<Object*>(base_ptr)->*member_get_func_ptr)()); }
-	const void* DereferencePointer(const void* base_ptr) override { return Extract((static_cast<const Object*>(base_ptr)->*member_get_func_ptr)()); }
+	DataPointer DereferencePointer(DataPointer base_ptr) override { return Extract((base_ptr.Get<const Object*>()->*member_get_func_ptr)()); }
 
 private:
 	BasicReturnType* Extract(BasicReturnType* value) { return value; }

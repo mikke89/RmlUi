@@ -71,6 +71,23 @@ struct DataAddressEntry {
 };
 using DataAddress = Vector<DataAddressEntry>;
 
+template <typename T>
+struct remove_pointer_recursive {
+	typedef T type;
+};
+
+template <typename T>
+struct remove_pointer_recursive<T*> : public remove_pointer_recursive<T> {};
+
+template <typename T>
+struct remove_pointer_recursive<T* const> : public remove_pointer_recursive<T> {};
+
+template <typename T>
+struct remove_pointer_recursive<T* volatile> : public remove_pointer_recursive<T> {};
+
+template <typename T>
+struct remove_pointer_recursive<T* const volatile> : public remove_pointer_recursive<T> {};
+
 // DataPointer is a wrapper around void* which preserves the constness of the underlying object.
 class DataPointer {
 public:
@@ -106,37 +123,37 @@ template <class T>
 struct PointerTraits<T*> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static void* Dereference(void* ptr) { return *static_cast<T**>(ptr); }
+	static DataPointer Dereference(DataPointer ptr) { return DataPointer(*ptr.Get<T**>()); }
 };
 template <class T>
 struct PointerTraits<UniquePtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static void* Dereference(void* ptr) { return static_cast<UniquePtr<T>*>(ptr)->get(); }
+	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<UniquePtr<T>*>()->get()); }
 };
 template <class T>
 struct PointerTraits<SharedPtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static void* Dereference(void* ptr) { return static_cast<SharedPtr<T>*>(ptr)->get(); }
+	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<SharedPtr<T>*>()->get()); }
 };
 template <class T>
-struct PointerTraits<T* const> {
+struct PointerTraits<const T*> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static const void* Dereference(const void* ptr) { return *static_cast<T* const*>(ptr); }
+	static DataPointer Dereference(DataPointer ptr) { return DataPointer(*ptr.Get<T* const*>()); }
 };
 template <class T>
 struct PointerTraits<const UniquePtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static const void* Dereference(const void* ptr) { return static_cast<const UniquePtr<T>*>(ptr)->get(); }
+	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<const UniquePtr<T>*>()->get()); }
 };
 template <class T>
 struct PointerTraits<const SharedPtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
-	static const void* Dereference(const void* ptr) { return static_cast<const SharedPtr<T>*>(ptr)->get(); }
+	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<const SharedPtr<T>*>()->get()); }
 };
 
 struct VoidMemberFunc {};
