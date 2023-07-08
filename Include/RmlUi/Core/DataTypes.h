@@ -109,7 +109,7 @@ struct PointerTraits<T*> {
 	static DataPointer Dereference(DataPointer ptr)
 	{
 		auto val = ptr.Get<T**>();
-		return val ? DataPointer(*val) : nullptr;
+		return val ? DataPointer(*val) : DataPointer(*ptr.Get<const T* const*>());
 	}
 };
 template <class T>
@@ -119,7 +119,7 @@ struct PointerTraits<UniquePtr<T>> {
 	static DataPointer Dereference(DataPointer ptr)
 	{
 		auto val = ptr.Get<UniquePtr<T>*>();
-		return val ? DataPointer(val->get()) : nullptr;
+		return val ? DataPointer(val->get()) : DataPointer(ptr.Get<const UniquePtr<T>*>()->get());
 	}
 };
 template <class T>
@@ -129,26 +129,8 @@ struct PointerTraits<SharedPtr<T>> {
 	static DataPointer Dereference(DataPointer ptr)
 	{
 		auto val = ptr.Get<SharedPtr<T>*>();
-		return val ? DataPointer(val->get()) : nullptr;
+		return val ? DataPointer(val->get()) : DataPointer(ptr.Get<const SharedPtr<T>*>()->get());
 	}
-};
-template <class T>
-struct PointerTraits<const T*> {
-	using is_pointer = std::true_type;
-	using element_type = T;
-	static DataPointer Dereference(DataPointer ptr) { return DataPointer(*ptr.Get<T* const*>()); }
-};
-template <class T>
-struct PointerTraits<const UniquePtr<T>> {
-	using is_pointer = std::true_type;
-	using element_type = T;
-	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<const UniquePtr<T>*>()->get()); }
-};
-template <class T>
-struct PointerTraits<const SharedPtr<T>> {
-	using is_pointer = std::true_type;
-	using element_type = T;
-	static DataPointer Dereference(DataPointer ptr) { return DataPointer(ptr.Get<const SharedPtr<T>*>()->get()); }
 };
 
 struct VoidMemberFunc {};
