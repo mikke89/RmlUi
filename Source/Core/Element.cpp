@@ -2022,11 +2022,6 @@ void Element::SetParent(Element* _parent)
 		else if (Context* context = GetContext())
 		{
 			String name = it->second.Get<String>();
-			if (parent->data_model)
-			{
-				Log::Message(Log::LT_INFO, "Nested data models encountered. Data model '%s' will replace parent model in element %s.", name.c_str(),
-					GetAddress().c_str());
-			}
 
 			if (DataModel* model = context->GetDataModelPtr(name))
 			{
