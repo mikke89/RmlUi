@@ -1963,6 +1963,10 @@ void Element::SetDataModel(DataModel* new_data_model)
 	if (data_model == new_data_model)
 		return;
 
+	// stop descent if a nested data model is encountered
+	if (data_model && new_data_model && data_model != new_data_model)
+		return;
+
 	if (data_model)
 		data_model->OnElementRemove(this);
 
@@ -2015,15 +2019,10 @@ void Element::SetParent(Element* _parent)
 		{
 			SetDataModel(parent->data_model);
 		}
-		else if (parent->data_model)
-		{
-			String name = it->second.Get<String>();
-			Log::Message(Log::LT_ERROR, "Nested data models are not allowed. Data model '%s' given in element %s.", name.c_str(),
-				GetAddress().c_str());
-		}
 		else if (Context* context = GetContext())
 		{
 			String name = it->second.Get<String>();
+
 			if (DataModel* model = context->GetDataModelPtr(name))
 			{
 				model->AttachModelRootElement(this);
