@@ -79,7 +79,7 @@ private:
 	template <typename T, typename std::enable_if<is_builtin_data_scalar<T>::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
-		FamilyId id = Family<T>::Id();
+		FamilyId id = Family<typename std::remove_const<T>::type>::Id();
 
 		auto result = type_register.emplace(id, nullptr);
 		bool inserted = result.second;
@@ -96,7 +96,7 @@ private:
 	template <typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_builtin_data_scalar<T>::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
-		FamilyId id = Family<T>::Id();
+		FamilyId id = Family<typename std::remove_const<T>::type>::Id();
 		auto it = type_register.find(id);
 		if (it == type_register.end())
 		{
@@ -129,7 +129,7 @@ private:
 		}
 
 		// Get or create the pointer wrapper definition.
-		FamilyId id = Family<T>::Id();
+		FamilyId id = Family<typename std::remove_const<T>::type>::Id();
 
 		auto result = type_register.emplace(id, nullptr);
 		bool inserted = result.second;
