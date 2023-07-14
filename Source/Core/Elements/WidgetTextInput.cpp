@@ -908,6 +908,23 @@ int WidgetTextInput::CalculateLineIndex(float position) const
 	return Math::Clamp(line_index, 0, (int)(lines.size() - 1));
 }
 
+float WidgetTextInput::GetAlignmentSpecificTextOffset(const char* p_begin, int line_index) const
+{
+	const float client_width = parent->GetClientWidth();
+	const float total_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, lines[line_index].editable_length));
+	auto text_align = GetElement()->GetComputedValues().text_align();
+
+	// offset position depending on text align
+	switch (text_align)
+	{
+	case Style::TextAlign::Right: return -(client_width - total_width);
+	case Style::TextAlign::Center: return -((client_width - total_width) / 2);
+	default: break;
+	}
+
+	return 0;
+}
+
 int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 {
 	int prev_offset = 0;
@@ -917,17 +934,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 
 	const char* p_begin = GetValue().data() + lines[line_index].value_offset;
 
-	const float client_width = parent->GetClientWidth();
-	const float total_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, lines[line_index].editable_length));
-	auto text_align = GetElement()->GetComputedValues().text_align();
-
-	// offset position depending on text align
-	switch (text_align)
-	{
-	case Style::TextAlign::Right: position -= client_width - total_width; break;
-	case Style::TextAlign::Center: position -= (client_width - total_width) / 2; break;
-	default: break;
-	}
+	position += GetAlignmentSpecificTextOffset(p_begin, line_index);
 
 	for (auto it = StringIteratorU8(p_begin, p_begin, p_begin + lines[line_index].editable_length); it;)
 	{
@@ -1292,17 +1299,7 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 	cursor_position.x = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, cursor_character_index));
 	cursor_position.y = -1.f + (float)cursor_line_index * text_element->GetLineHeight();
 
-	const float client_width = parent->GetClientWidth();
-	const float total_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, line.editable_length));
-	auto text_align = GetElement()->GetComputedValues().text_align();
-
-	// offset position depending on text align
-	switch (text_align)
-	{
-	case Style::TextAlign::Right: cursor_position.x += client_width - total_width; break;
-	case Style::TextAlign::Center: cursor_position.x += (client_width - total_width) / 2; break;
-	default: break;
-	}
+	cursor_position.x -= GetAlignmentSpecificTextOffset(p_begin, cursor_line_index);
 
 	if (update_ideal_cursor_position)
 		ideal_cursor_position = cursor_position.x;
