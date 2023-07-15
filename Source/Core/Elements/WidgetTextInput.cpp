@@ -1085,11 +1085,9 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		Vector2f position;
 		int width;
 		String content;
-		int selection_vertex_base;
+		bool selected;
 		int line_index;
 	};
-
-	const int InvalidSelectionVertexBase = -1;
 
 	Vector<Segment> segments;
 	Vector<float> line_widths;
@@ -1158,7 +1156,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!pre_selection.empty())
 		{
 			const int width = ElementUtilities::GetStringWidth(text_element, pre_selection);
-			segments.push_back({line_position, width, pre_selection, InvalidSelectionVertexBase, (int)line_widths.size()});
+			segments.push_back({line_position, width, pre_selection, false, (int)line_widths.size()});
 			line_position.x += width;
 		}
 
@@ -1187,15 +1185,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		{
 			line_position.x += GetKerningBetween(pre_selection, selection);
 			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
-			segments.push_back({line_position, selection_width, selection, (int)selection_vertices.size(), (int)line_widths.size()});
-
-			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + line.editable_length);
-			const Vector2f selection_size(float(selection_width + (selection_contains_endline ? endline_selection_width : 0)), line_height);
-
-			selection_vertices.resize(selection_vertices.size() + 4);
-			selection_indices.resize(selection_indices.size() + 6);
-			GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6],
-				line_position - Vector2f(0.f, font_baseline), selection_size, selection_colour, (int)selection_vertices.size() - 4);
+			segments.push_back({line_position, selection_width, selection, true, (int)line_widths.size()});
 
 			line_position.x += selection_width;
 		}
@@ -1206,7 +1196,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		{
 			line_position.x += GetKerningBetween(selection, post_selection);
 			const int width = ElementUtilities::GetStringWidth(text_element, post_selection);
-			segments.push_back({line_position, width, post_selection, InvalidSelectionVertexBase, (int)line_widths.size()});
+			segments.push_back({line_position, width, post_selection, false, (int)line_widths.size()});
 		}
 
 		// Update variables for the next line.
@@ -1242,10 +1232,16 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	{
 		float offset = (client_width - line_widths[it.line_index]) * offset_factor;
 		it.position.x += offset;
-		if (it.selection_vertex_base != InvalidSelectionVertexBase)
+		if (it.selected)
 		{
-			for (int i = 0; i < 4; ++i)
-				selection_vertices[it.selection_vertex_base + i].position.x += offset;
+			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + lines[it.line_index].editable_length);
+			const Vector2f selection_size(float(it.width + (selection_contains_endline ? endline_selection_width : 0)), line_height);
+
+			selection_vertices.resize(selection_vertices.size() + 4);
+			selection_indices.resize(selection_indices.size() + 6);
+			GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6],
+				it.position - Vector2f(0, font_baseline), selection_size, selection_colour, (int)selection_vertices.size() - 4);
+
 			selected_text_element->AddLine(it.position, it.content);
 		}
 		else
