@@ -32,9 +32,9 @@
 line-break</textarea>
 		<br />
 		<textarea style="text-align:center" rows="3">center aligned overflow overflow overflow overflow
-textarea</textarea>
+line-break</textarea>
 		<br />
 		<textarea style="text-align:right" rows="3">right aligned overflow overflow overflow overflow
-aligned</textarea>
+line-break</textarea>
 	</body>
 </rml>
