@@ -1132,17 +1132,19 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 					orphan += ' ';
 			}
 		}
-		else if (last_line && text_align == Style::TextAlign::Right && lines.size() > 0)
-		{
-			// append single orphan to last line to properly align it with other lines when right aligned
-			orphan = ' ';
-		}
 
 		if (!orphan.empty())
 		{
 			line_content += orphan;
 			line.size += (int)orphan.size();
 			line_width += ElementUtilities::GetStringWidth(text_element, orphan);
+		}
+
+		// visually remove trailing space if right aligned
+		if (!last_line && text_align == Style::TextAlign::Right && !line_content.empty() && line_content.back() == ' ')
+		{
+			line_content.pop_back();
+			line_width -= ElementUtilities::GetStringWidth(text_element, " ");
 		}
 
 		// Now that we have the string of characters appearing on the new line, we split it into
