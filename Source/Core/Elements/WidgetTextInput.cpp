@@ -917,8 +917,8 @@ float WidgetTextInput::GetAlignmentSpecificTextOffset(const char* p_begin, int l
 	// offset position depending on text align
 	switch (text_align)
 	{
-	case Style::TextAlign::Right: return std::max(0.0f, (client_width - total_width));
-	case Style::TextAlign::Center: return std::max(0.0f, ((client_width - total_width) / 2));
+	case Style::TextAlign::Right: return Math::Max(0.0f, (client_width - total_width));
+	case Style::TextAlign::Center: return Math::Max(0.0f, ((client_width - total_width) / 2));
 	default: break;
 	}
 
