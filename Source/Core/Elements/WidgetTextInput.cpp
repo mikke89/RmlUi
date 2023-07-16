@@ -917,8 +917,8 @@ float WidgetTextInput::GetAlignmentSpecificTextOffset(const char* p_begin, int l
 	// offset position depending on text align
 	switch (text_align)
 	{
-	case Style::TextAlign::Right: return -(client_width - total_width);
-	case Style::TextAlign::Center: return -((client_width - total_width) / 2);
+	case Style::TextAlign::Right: return std::max(0.0f, (client_width - total_width));
+	case Style::TextAlign::Center: return std::max(0.0f, ((client_width - total_width) / 2));
 	default: break;
 	}
 
@@ -934,7 +934,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 
 	const char* p_begin = GetValue().data() + lines[line_index].value_offset;
 
-	position += GetAlignmentSpecificTextOffset(p_begin, line_index);
+	position -= GetAlignmentSpecificTextOffset(p_begin, line_index);
 
 	for (auto it = StringIteratorU8(p_begin, p_begin, p_begin + lines[line_index].editable_length); it;)
 	{
@@ -1090,7 +1090,6 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	};
 
 	Vector<Segment> segments;
-	Vector<float> line_widths;
 
 	// Keep generating lines until all the text content is placed.
 	do
@@ -1158,7 +1157,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!pre_selection.empty())
 		{
 			const int width = ElementUtilities::GetStringWidth(text_element, pre_selection);
-			segments.push_back({line_position, width, pre_selection, false, (int)line_widths.size()});
+			segments.push_back({line_position, width, pre_selection, false, (int)lines.size()});
 			line_position.x += width;
 		}
 
@@ -1187,7 +1186,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		{
 			line_position.x += GetKerningBetween(pre_selection, selection);
 			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
-			segments.push_back({line_position, selection_width, selection, true, (int)line_widths.size()});
+			segments.push_back({line_position, selection_width, selection, true, (int)lines.size()});
 
 			line_position.x += selection_width;
 		}
@@ -1198,7 +1197,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		{
 			line_position.x += GetKerningBetween(selection, post_selection);
 			const int width = ElementUtilities::GetStringWidth(text_element, post_selection);
-			segments.push_back({line_position, width, post_selection, false, (int)line_widths.size()});
+			segments.push_back({line_position, width, post_selection, false, (int)lines.size()});
 		}
 
 		// Update variables for the next line.
@@ -1210,8 +1209,6 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		content_area.x = Math::Max(content_area.x, line_width + cursor_size.x);
 		content_area.y = line_position.y - font_baseline;
 
-		line_widths.push_back(line_width);
-
 		// Finally, push the new line into our array of lines.
 		lines.push_back(std::move(line));
 
@@ -1221,19 +1218,14 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	absolute_cursor_index = Math::Min(absolute_cursor_index, (int)GetValue().size());
 
 	// Transform segments according to text alignment
-
-	float offset_factor;
-	switch (text_align)
-	{
-	case Style::TextAlign::Right: offset_factor = 1; break;
-	case Style::TextAlign::Center: offset_factor = 0.5; break;
-	default: offset_factor = 0; break;
-	}
-
 	for (auto& it : segments)
 	{
-		float offset = (client_width - line_widths[it.line_index]) * offset_factor;
+		auto const& line = lines[it.line_index];
+		const char* p_begin = GetValue().data() + line.value_offset;
+		float offset = GetAlignmentSpecificTextOffset(p_begin, it.line_index);
+
 		it.position.x += offset;
+
 		if (it.selected)
 		{
 			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + lines[it.line_index].editable_length);
@@ -1297,7 +1289,7 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 	cursor_position.x = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, cursor_character_index));
 	cursor_position.y = -1.f + (float)cursor_line_index * text_element->GetLineHeight();
 
-	cursor_position.x -= GetAlignmentSpecificTextOffset(p_begin, cursor_line_index);
+	cursor_position.x += GetAlignmentSpecificTextOffset(p_begin, cursor_line_index);
 
 	if (update_ideal_cursor_position)
 		ideal_cursor_position = cursor_position.x;

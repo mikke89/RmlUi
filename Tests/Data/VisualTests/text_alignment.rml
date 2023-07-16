@@ -36,5 +36,11 @@ line-break</textarea>
 		<br />
 		<textarea style="text-align:right" rows="3">right aligned overflow overflow overflow overflow
 line-break</textarea>
+		<br />
+		<textarea style="text-align:left;white-space: nowrap;" rows="3">left aligned nowrap nowrap nowrap nowrap nowrap</textarea>
+		<br />
+		<textarea style="text-align:center;white-space: nowrap;" rows="3">center aligned nowrap nowrap nowrap nowrap nowrap</textarea>
+		<br />
+		<textarea style="text-align:right;white-space: nowrap;" rows="3">right aligned nowrap nowrap nowrap nowrap nowrap</textarea>
 	</body>
 </rml>
