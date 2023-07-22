@@ -114,7 +114,7 @@ private:
 	// The decoration geometry we've generated for this string.
 	UniquePtr<Geometry> decoration;
 
-	Colourb colour;
+	ColourbPremultiplied colour;
 	float opacity;
 
 	int font_handle_version;

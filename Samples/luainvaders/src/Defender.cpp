@@ -95,7 +95,7 @@ void Defender::Update(double t)
 
 void Defender::Render(float dp_ratio, Rml::TextureHandle texture)
 {
-	Rml::Colourb color = GameDetails::GetDefenderColour();
+	Rml::ColourbPremultiplied color = GameDetails::GetDefenderColour().ToPremultiplied();
 
 	// Render our sprite if rendering is enabled
 	if (render)

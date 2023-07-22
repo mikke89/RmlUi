@@ -265,9 +265,9 @@ int FontFaceLayer::GetNumTextures() const
 	return (int)textures.size();
 }
 
-Colourb FontFaceLayer::GetColour() const
+ColourbPremultiplied FontFaceLayer::GetColour(float opacity) const
 {
-	return colour;
+	return colour.ToPremultiplied(opacity);
 }
 
 } // namespace Rml

@@ -173,10 +173,10 @@ void Invader::UpdateAnimation()
 
 void Invader::Render(float dp_ratio, Rml::TextureHandle texture)
 {
-	Rml::Colourb color(255);
+	Rml::ColourbPremultiplied color(255);
 
 	if (type == MOTHERSHIP)
-		color = MOTHERSHIP_COLOUR;
+		color = MOTHERSHIP_COLOUR.ToPremultiplied();
 
 	int sprite_index = GetSpriteIndex();
 	int sprite_offset = int((invader_sprites[sprite_index].dimensions.x - 48) / 2);

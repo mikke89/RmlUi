@@ -59,8 +59,9 @@ namespace Rml {
 
 // Color and linear algebra
 enum class ColorFormat { RGBA8, A8 };
-using Colourf = Colour<float, 1>;
-using Colourb = Colour<byte, 255>;
+using Colourf = Colour<float, 1, false>;
+using Colourb = Colour<byte, 255, false>;
+using ColourbPremultiplied = Colour<byte, 255, true>;
 using Vector2i = Vector2<int>;
 using Vector2f = Vector2<float>;
 using Vector3i = Vector3<int>;

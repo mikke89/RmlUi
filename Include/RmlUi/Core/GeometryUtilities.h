@@ -54,7 +54,7 @@ public:
 	/// @param[in] dimensions The dimensions of the quad to generate.
 	/// @param[in] colour The colour to be assigned to each of the quad's vertices.
 	/// @param[in] index_offset The offset to be added to the generated indices; this should be the number of vertices already in the array.
-	static void GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, int index_offset = 0);
+	static void GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, ColourbPremultiplied colour, int index_offset = 0);
 	/// Generates a quad from a position, size, colour and texture coordinates.
 	/// @param[out] vertices An array of at least four vertices that the generated vertex data will be written into.
 	/// @param[out] indices An array of at least six indices that the generated index data will be written into.
@@ -64,15 +64,15 @@ public:
 	/// @param[in] top_left_texcoord The texture coordinates at the top-left of the quad.
 	/// @param[in] bottom_right_texcoord The texture coordinates at the bottom-right of the quad.
 	/// @param[in] index_offset The offset to be added to the generated indices; this should be the number of vertices already in the array.
-	static void GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, Vector2f top_left_texcoord,
-		Vector2f bottom_right_texcoord, int index_offset = 0);
+	static void GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, ColourbPremultiplied colour,
+		Vector2f top_left_texcoord, Vector2f bottom_right_texcoord, int index_offset = 0);
 
 	/// Generates the geometry required to render a line.
 	/// @param[out] geometry The geometry to append the newly created geometry into.
 	/// @param[in] position The top-left position the line.
 	/// @param[in] position The size of the line.
 	/// @param[in] color The color to draw the line in.
-	static void GenerateLine(Geometry* geometry, Vector2f position, Vector2f size, Colourb color);
+	static void GenerateLine(Geometry* geometry, Vector2f position, Vector2f size, ColourbPremultiplied color);
 
 	/// Generates the geometry for an element's background and border, with support for the border-radius property.
 	/// @param[out] geometry The geometry to append the newly created vertices and indices into.
@@ -82,8 +82,8 @@ public:
 	/// @param[in] background_colour The colour applied to the background, set alpha to zero to not generate the background.
 	/// @param[in] border_colours A four-element array of border colors in top-right-bottom-left order.
 	/// @note Vertex positions are relative to the border-box, vertex texture coordinates are default initialized.
-	static void GenerateBackgroundBorder(Geometry* geometry, const Box& box, Vector2f offset, Vector4f border_radius, Colourb background_colour,
-		const Colourb border_colours[4]);
+	static void GenerateBackgroundBorder(Geometry* geometry, const Box& box, Vector2f offset, Vector4f border_radius,
+		ColourbPremultiplied background_colour, const ColourbPremultiplied border_colours[4]);
 
 	/// Generates the background geometry for an element's area, with support for border-radius.
 	/// @param[out] geometry The geometry to append the newly created vertices and indices into.
@@ -93,7 +93,7 @@ public:
 	/// @param[in] colour The colour applied to the background.
 	/// @param[in] area Either the border, padding or content area to be filled.
 	/// @note Vertex positions are relative to the border-box, vertex texture coordinates are default initialized.
-	static void GenerateBackground(Geometry* geometry, const Box& box, Vector2f offset, Vector4f border_radius, Colourb colour,
+	static void GenerateBackground(Geometry* geometry, const Box& box, Vector2f offset, Vector4f border_radius, ColourbPremultiplied colour,
 		BoxArea area = BoxArea::Padding);
 
 private:

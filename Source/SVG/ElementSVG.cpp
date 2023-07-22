@@ -128,10 +128,7 @@ void ElementSVG::GenerateGeometry()
 	};
 
 	const ComputedValues& computed = GetComputedValues();
-
-	const float opacity = computed.opacity();
-	Colourb quad_colour = computed.image_color();
-	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+	ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 
 	const Vector2f render_dimensions_f = GetBox().GetSize(BoxArea::Content).Round();
 	render_dimensions.x = int(render_dimensions_f.x);

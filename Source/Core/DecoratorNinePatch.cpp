@@ -67,10 +67,7 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element, Bo
 	const Vector2f surface_offset = element->GetBox().GetPosition(paint_area);
 	const Vector2f surface_dimensions = element->GetBox().GetSize(paint_area).Round();
 
-	const float opacity = computed.opacity();
-	Colourb quad_colour = computed.image_color();
-
-	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+	const ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 
 	/* In the following, we operate on the four diagonal vertices in the grid, as they define the whole grid. */
 

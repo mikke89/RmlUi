@@ -53,10 +53,12 @@ void Geometry::RenderOutline(const Vector2f origin, const Vector2f dimensions, c
 	Vertex vertices[4 * 4];
 	int indices[6 * 4];
 
-	GeometryUtilities::GenerateQuad(vertices + 0, indices + 0, Vector2f(0, 0), Vector2f(dimensions.x, width), colour, 0);
-	GeometryUtilities::GenerateQuad(vertices + 4, indices + 6, Vector2f(0, dimensions.y - width), Vector2f(dimensions.x, width), colour, 4);
-	GeometryUtilities::GenerateQuad(vertices + 8, indices + 12, Vector2f(0, 0), Vector2f(width, dimensions.y), colour, 8);
-	GeometryUtilities::GenerateQuad(vertices + 12, indices + 18, Vector2f(dimensions.x - width, 0), Vector2f(width, dimensions.y), colour, 12);
+	ColourbPremultiplied colour_pre = colour.ToPremultiplied();
+
+	GeometryUtilities::GenerateQuad(vertices + 0, indices + 0, Vector2f(0, 0), Vector2f(dimensions.x, width), colour_pre, 0);
+	GeometryUtilities::GenerateQuad(vertices + 4, indices + 6, Vector2f(0, dimensions.y - width), Vector2f(dimensions.x, width), colour_pre, 4);
+	GeometryUtilities::GenerateQuad(vertices + 8, indices + 12, Vector2f(0, 0), Vector2f(width, dimensions.y), colour_pre, 8);
+	GeometryUtilities::GenerateQuad(vertices + 12, indices + 18, Vector2f(dimensions.x - width, 0), Vector2f(width, dimensions.y), colour_pre, 12);
 
 	render_interface->RenderGeometry(vertices, 4 * 4, indices, 6 * 4, 0, origin);
 }
@@ -70,7 +72,7 @@ void Geometry::RenderBox(const Vector2f origin, const Vector2f dimensions, const
 	Vertex vertices[4];
 	int indices[6];
 
-	GeometryUtilities::GenerateQuad(vertices, indices, Vector2f(0, 0), Vector2f(dimensions.x, dimensions.y), colour, 0);
+	GeometryUtilities::GenerateQuad(vertices, indices, Vector2f(0, 0), Vector2f(dimensions.x, dimensions.y), colour.ToPremultiplied(), 0);
 
 	render_interface->RenderGeometry(vertices, 4, indices, 6, 0, origin);
 }

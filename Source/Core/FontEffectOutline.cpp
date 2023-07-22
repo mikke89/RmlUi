@@ -93,6 +93,8 @@ void FontEffectOutline::GenerateGlyphTexture(byte* destination_data, const Vecto
 {
 	filter.Run(destination_data, destination_dimensions, destination_stride, ColorFormat::RGBA8, glyph.bitmap_data, glyph.bitmap_dimensions,
 		Vector2i(width), glyph.color_format);
+
+	FillColorValuesFromAlpha(destination_data, destination_dimensions, destination_stride);
 }
 
 FontEffectOutlineInstancer::FontEffectOutlineInstancer() : id_width(PropertyId::Invalid), id_color(PropertyId::Invalid)

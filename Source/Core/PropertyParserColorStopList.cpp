@@ -72,7 +72,7 @@ bool PropertyParserColorStopList::ParseValue(Property& property, const String& v
 			return false;
 
 		ColorStop color_stop = {};
-		color_stop.color = p_color.Get<Colourb>();
+		color_stop.color = p_color.Get<Colourb>().ToPremultiplied();
 
 		if (values.size() <= 1)
 			color_stops.push_back(color_stop);

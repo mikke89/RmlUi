@@ -117,31 +117,31 @@ TEST_CASE("Properties")
 			{
 				"red, blue",
 				{
-					ColorStop{Colourb(255, 0, 0), NumericValue{}},
-					ColorStop{Colourb(0, 0, 255), NumericValue{}},
+					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{}},
+					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{}},
 				},
 			},
 			{
 				"red 5px, blue 50%",
 				{
-					ColorStop{Colourb(255, 0, 0), NumericValue{5.f, Unit::PX}},
-					ColorStop{Colourb(0, 0, 255), NumericValue{50.f, Unit::PERCENT}},
+					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{5.f, Unit::PX}},
+					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{50.f, Unit::PERCENT}},
 				},
 			},
 			{
 				"red, #00f 50%, rgba(0, 255,0, 150) 10dp",
 				{
-					ColorStop{Colourb(255, 0, 0), NumericValue{}},
-					ColorStop{Colourb(0, 0, 255), NumericValue{50.f, Unit::PERCENT}},
-					ColorStop{Colourb(0, 255, 0, 150), NumericValue{10.f, Unit::DP}},
+					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{}},
+					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{50.f, Unit::PERCENT}},
+					ColorStop{ColourbPremultiplied(0, 150, 0, 150), NumericValue{10.f, Unit::DP}},
 				},
 			},
 			{
 				"red 50px 20%, blue 10in",
 				{
-					ColorStop{Colourb(255, 0, 0), NumericValue{50.f, Unit::PX}},
-					ColorStop{Colourb(255, 0, 0), NumericValue{20.f, Unit::PERCENT}},
-					ColorStop{Colourb(0, 0, 255), NumericValue{10.f, Unit::INCH}},
+					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{50.f, Unit::PX}},
+					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{20.f, Unit::PERCENT}},
+					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{10.f, Unit::INCH}},
 				},
 			},
 		};

@@ -78,7 +78,7 @@ int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const Stri
 }
 
 int FontEngineInterfaceDefault::GenerateString(FontFaceHandle handle, FontEffectsHandle font_effects_handle, const String& string,
-	const Vector2f& position, const Colourb& colour, float opacity, float letter_spacing, GeometryList& geometry)
+	const Vector2f& position, ColourbPremultiplied colour, float opacity, float letter_spacing, GeometryList& geometry)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
 	return handle_default->GenerateString(geometry, string, position, colour, opacity, letter_spacing, (int)font_effects_handle);

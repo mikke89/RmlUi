@@ -155,7 +155,7 @@ int FontFaceBitmap::GetStringWidth(const String& string, Character previous_char
 	return width;
 }
 
-int FontFaceBitmap::GenerateString(const String& string, const Vector2f& string_position, const Colourb& colour, GeometryList& geometry_list)
+int FontFaceBitmap::GenerateString(const String& string, const Vector2f& string_position, ColourbPremultiplied colour, GeometryList& geometry_list)
 {
 	int width = 0;
 

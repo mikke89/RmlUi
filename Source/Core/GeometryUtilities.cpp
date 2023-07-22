@@ -40,13 +40,14 @@ GeometryUtilities::GeometryUtilities() {}
 
 GeometryUtilities::~GeometryUtilities() {}
 
-void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, int index_offset)
+void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, ColourbPremultiplied colour,
+	int index_offset)
 {
 	GenerateQuad(vertices, indices, origin, dimensions, colour, Vector2f(0, 0), Vector2f(1, 1), index_offset);
 }
 
-void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, Colourb colour, Vector2f top_left_texcoord,
-	Vector2f bottom_right_texcoord, int index_offset)
+void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, ColourbPremultiplied colour,
+	Vector2f top_left_texcoord, Vector2f bottom_right_texcoord, int index_offset)
 {
 	vertices[0].position = origin;
 	vertices[0].colour = colour;
@@ -73,7 +74,7 @@ void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f or
 	indices[5] = index_offset + 2;
 }
 
-void GeometryUtilities::GenerateLine(Geometry* geometry, Vector2f position, Vector2f size, Colourb color)
+void GeometryUtilities::GenerateLine(Geometry* geometry, Vector2f position, Vector2f size, ColourbPremultiplied color)
 {
 	Math::SnapToPixelGrid(position, size);
 
@@ -90,7 +91,7 @@ void GeometryUtilities::GenerateLine(Geometry* geometry, Vector2f position, Vect
 }
 
 void GeometryUtilities::GenerateBackgroundBorder(Geometry* out_geometry, const Box& box, Vector2f offset, Vector4f border_radius,
-	Colourb background_color, const Colourb border_colors[4])
+	ColourbPremultiplied background_color, const ColourbPremultiplied border_colors[4])
 {
 	RMLUI_ASSERT(border_colors);
 
@@ -148,7 +149,7 @@ void GeometryUtilities::GenerateBackgroundBorder(Geometry* out_geometry, const B
 		for (int i = 0; i < num_vertices; i++)
 		{
 			GeometryUtilities::GenerateQuad(vertices.data() + num_vertices + 4 * i, indices.data() + num_indices + 6 * i, vertices[i].position,
-				Vector2f(3, 3), Colourb(255, 0, (i % 2) == 0 ? 0 : 255), num_vertices + 4 * i);
+				Vector2f(3, 3), ColourbPremultiplied(255, 0, (i % 2) == 0 ? 0 : 255), num_vertices + 4 * i);
 		}
 	}
 #endif
@@ -162,8 +163,8 @@ void GeometryUtilities::GenerateBackgroundBorder(Geometry* out_geometry, const B
 #endif
 }
 
-void GeometryUtilities::GenerateBackground(Geometry* out_geometry, const Box& box, Vector2f offset, Vector4f border_radius, Colourb color,
-	BoxArea fill_area)
+void GeometryUtilities::GenerateBackground(Geometry* out_geometry, const Box& box, Vector2f offset, Vector4f border_radius,
+	ColourbPremultiplied color, BoxArea fill_area)
 {
 	RMLUI_ASSERTMSG(fill_area >= BoxArea::Border && fill_area <= BoxArea::Content,
 		"Rectangle geometry only supports border, padding and content boxes.");

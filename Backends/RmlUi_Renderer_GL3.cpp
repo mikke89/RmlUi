@@ -82,11 +82,6 @@ void main() {
 	fragTexCoord = inTexCoord0;
 	fragColor = inColor0;
 
-#if 1 // TODO: Make all vertex colors already premultiplied, and remove this step.
-	// Pre-multiply vertex colors with their alpha.
-	fragColor.rgb = fragColor.rgb * fragColor.a;
-#endif
-
 	vec2 translatedPos = inPosition + _translate;
 	vec4 outPos = _transform * vec4(translatedPos, 0.0, 1.0);
 
@@ -1311,13 +1306,11 @@ void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vecto
 	RenderGeometry(vertices, 4, indices, 6, RenderInterface_GL3::TexturePostprocess, {});
 }
 
-static Rml::Colourf ToPremultipliedAlpha(Rml::Colourb c0)
+static Rml::Colourf ConvertToColorf(Rml::ColourbPremultiplied c0)
 {
 	Rml::Colourf result;
-	result.alpha = (1.f / 255.f) * float(c0.alpha);
-	result.red = (1.f / 255.f) * float(c0.red) * result.alpha;
-	result.green = (1.f / 255.f) * float(c0.green) * result.alpha;
-	result.blue = (1.f / 255.f) * float(c0.blue) * result.alpha;
+	for (int i = 0; i < 4; i++)
+		result[i] = (1.f / 255.f) * float(c0[i]);
 	return result;
 }
 
@@ -1489,7 +1482,7 @@ struct CompiledFilter {
 
 	// Drop shadow
 	Rml::Vector2f offset;
-	Rml::Colourb color;
+	Rml::ColourbPremultiplied color;
 
 	// ColorMatrix
 	Rml::Matrix4f color_matrix;
@@ -1513,7 +1506,7 @@ Rml::CompiledFilterHandle RenderInterface_GL3::CompileFilter(const Rml::String& 
 	{
 		filter.type = FilterType::DropShadow;
 		filter.sigma = Rml::Get(parameters, "sigma", 0.f);
-		filter.color = Rml::Get(parameters, "color", Rml::Colourb());
+		filter.color = Rml::Get(parameters, "color", Rml::Colourb()).ToPremultiplied();
 		filter.offset = Rml::Get(parameters, "offset", Rml::Vector2f(0.f));
 	}
 	else if (name == "brightness")
@@ -1642,7 +1635,7 @@ Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& 
 			const Rml::ColorStop& stop = color_stop_list[i];
 			RMLUI_ASSERT(stop.position.unit == Rml::Unit::NUMBER);
 			shader.stop_positions[i] = stop.position.number;
-			shader.stop_colors[i] = ToPremultipliedAlpha(stop.color);
+			shader.stop_colors[i] = ConvertToColorf(stop.color);
 		}
 	};
 
@@ -1806,7 +1799,7 @@ void RenderInterface_GL3::RenderFilters(const Rml::FilterHandleList& filter_hand
 			UseProgram(ProgramId::DropShadow);
 			glDisable(GL_BLEND);
 
-			Rml::Colourf color = ToPremultipliedAlpha(filter.color);
+			Rml::Colourf color = ConvertToColorf(filter.color);
 			glUniform4fv(GetUniformLocation(UniformId::Color), 1, &color[0]);
 
 			const Gfx::FramebufferData& primary = render_layers.GetPostprocessPrimary();

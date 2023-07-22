@@ -67,7 +67,7 @@ DecoratorDataHandle DecoratorShader::GenerateElementData(Element* element, BoxAr
 
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), Colourb(255, alpha), render_area);
+	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), render_area);
 
 	const Vector2f offset = box.GetPosition(render_area);
 	for (Vertex& vertex : geometry.GetVertices())

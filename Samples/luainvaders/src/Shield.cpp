@@ -123,7 +123,7 @@ void Shield::Render(float dp_ratio)
 		const Rml::Vector2f scaled_position = (dp_ratio * position).Round();
 		const int scaled_pixel = Rml::Math::RoundUpToInteger(PIXEL_SIZE * dp_ratio);
 
-		Rml::Colourb color = GameDetails::GetDefenderColour();
+		Rml::ColourbPremultiplied color = GameDetails::GetDefenderColour().ToPremultiplied();
 		ColoredPointList points;
 		points.reserve(NUM_SHIELD_CELLS * NUM_SHIELD_CELLS);
 

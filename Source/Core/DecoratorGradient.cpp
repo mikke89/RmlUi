@@ -195,13 +195,10 @@ DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* elem
 	const ComputedValues& computed = element->GetComputedValues();
 	const float opacity = computed.opacity();
 
-	GeometryUtilities::GenerateBackground(geometry, element->GetBox(), Vector2f(0), computed.border_radius(), Colourb(), paint_area);
+	GeometryUtilities::GenerateBackground(geometry, element->GetBox(), Vector2f(0), computed.border_radius(), ColourbPremultiplied(), paint_area);
 
-	// Apply opacity
-	Colourb colour_start = start;
-	colour_start.alpha = (byte)(opacity * (float)colour_start.alpha);
-	Colourb colour_stop = stop;
-	colour_stop.alpha = (byte)(opacity * (float)colour_stop.alpha);
+	ColourbPremultiplied colour_start = start.ToPremultiplied(opacity);
+	ColourbPremultiplied colour_stop = stop.ToPremultiplied(opacity);
 
 	const Vector2f offset = box.GetPosition(paint_area);
 	const Vector2f size = box.GetSize(paint_area);
@@ -324,7 +321,7 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), Colourb(255, alpha), paint_area);
+	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), paint_area);
 
 	const Vector2f render_offset = box.GetPosition(paint_area);
 	for (Vertex& vertex : geometry.GetVertices())
@@ -492,7 +489,7 @@ DecoratorDataHandle DecoratorRadialGradient::GenerateElementData(Element* elemen
 
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), Colourb(255, alpha), box_area);
+	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), box_area);
 
 	const Vector2f render_offset = box.GetPosition(box_area);
 	for (Vertex& vertex : geometry.GetVertices())
@@ -688,7 +685,7 @@ DecoratorDataHandle DecoratorConicGradient::GenerateElementData(Element* element
 
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), Colourb(255, alpha), box_area);
+	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), box_area);
 
 	const Vector2f render_offset = box.GetPosition(box_area);
 	for (Vertex& vertex : geometry.GetVertices())

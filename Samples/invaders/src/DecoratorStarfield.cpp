@@ -117,7 +117,7 @@ void DecoratorStarfield::RenderElement(Rml::Element* element, Rml::DecoratorData
 
 	for (size_t i = 0; i < star_field->star_layers.size(); i++)
 	{
-		Rml::Colourb color = star_field->star_layers[i].colour;
+		Rml::ColourbPremultiplied color = star_field->star_layers[i].colour.ToPremultiplied();
 
 		for (size_t j = 0; j < star_field->star_layers[i].stars.size(); j++)
 		{

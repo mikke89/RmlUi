@@ -100,7 +100,7 @@ BorderMetrics GeometryBackgroundBorder::ComputeBorderMetrics(Vector2f outer_posi
 	return metrics;
 }
 
-void GeometryBackgroundBorder::DrawBackground(const BorderMetrics& metrics, Colourb color)
+void GeometryBackgroundBorder::DrawBackground(const BorderMetrics& metrics, ColourbPremultiplied color)
 {
 	const int offset_vertices = (int)vertices.size();
 
@@ -111,7 +111,7 @@ void GeometryBackgroundBorder::DrawBackground(const BorderMetrics& metrics, Colo
 	FillBackground(offset_vertices);
 }
 
-void GeometryBackgroundBorder::DrawBorder(const BorderMetrics& metrics, EdgeSizes edge_sizes, const Colourb border_colors[4])
+void GeometryBackgroundBorder::DrawBorder(const BorderMetrics& metrics, EdgeSizes edge_sizes, const ColourbPremultiplied border_colors[4])
 {
 	RMLUI_ASSERT(border_colors);
 
@@ -153,7 +153,8 @@ void GeometryBackgroundBorder::DrawBorder(const BorderMetrics& metrics, EdgeSize
 	}
 }
 
-void GeometryBackgroundBorder::DrawBackgroundCorner(Corner corner, Vector2f pos_inner, Vector2f pos_circle_center, float R, Vector2f r, Colourb color)
+void GeometryBackgroundBorder::DrawBackgroundCorner(Corner corner, Vector2f pos_inner, Vector2f pos_circle_center, float R, Vector2f r,
+	ColourbPremultiplied color)
 {
 	if (R == 0 || r.x <= 0 || r.y <= 0)
 	{
@@ -168,7 +169,7 @@ void GeometryBackgroundBorder::DrawBackgroundCorner(Corner corner, Vector2f pos_
 	}
 }
 
-void GeometryBackgroundBorder::DrawPoint(Vector2f pos, Colourb color)
+void GeometryBackgroundBorder::DrawPoint(Vector2f pos, ColourbPremultiplied color)
 {
 	const int offset_vertices = (int)vertices.size();
 
@@ -178,7 +179,8 @@ void GeometryBackgroundBorder::DrawPoint(Vector2f pos, Colourb color)
 	vertices[offset_vertices].colour = color;
 }
 
-void GeometryBackgroundBorder::DrawArc(Vector2f pos_center, Vector2f r, float a0, float a1, Colourb color0, Colourb color1, int num_points)
+void GeometryBackgroundBorder::DrawArc(Vector2f pos_center, Vector2f r, float a0, float a1, ColourbPremultiplied color0, ColourbPremultiplied color1,
+	int num_points)
 {
 	RMLUI_ASSERT(num_points >= 2 && r.x > 0 && r.y > 0);
 
@@ -217,7 +219,7 @@ void GeometryBackgroundBorder::FillBackground(int index_start)
 }
 
 void GeometryBackgroundBorder::DrawBorderCorner(Corner corner, Vector2f pos_outer, Vector2f pos_inner, Vector2f pos_circle_center, float R,
-	Vector2f r, Colourb color0, Colourb color1)
+	Vector2f r, ColourbPremultiplied color0, ColourbPremultiplied color1)
 {
 	const float a0 = float((int)corner + 2) * 0.5f * Math::RMLUI_PI;
 	const float a1 = float((int)corner + 3) * 0.5f * Math::RMLUI_PI;
@@ -236,7 +238,7 @@ void GeometryBackgroundBorder::DrawBorderCorner(Corner corner, Vector2f pos_oute
 	}
 }
 
-void GeometryBackgroundBorder::DrawPointPoint(Vector2f pos_outer, Vector2f pos_inner, Colourb color0, Colourb color1)
+void GeometryBackgroundBorder::DrawPointPoint(Vector2f pos_outer, Vector2f pos_inner, ColourbPremultiplied color0, ColourbPremultiplied color1)
 {
 	const bool different_color = (color0 != color1);
 
@@ -252,8 +254,8 @@ void GeometryBackgroundBorder::DrawPointPoint(Vector2f pos_outer, Vector2f pos_i
 	}
 }
 
-void GeometryBackgroundBorder::DrawArcArc(Vector2f pos_center, float R, Vector2f r, float a0, float a1, Colourb color0, Colourb color1,
-	int num_points)
+void GeometryBackgroundBorder::DrawArcArc(Vector2f pos_center, float R, Vector2f r, float a0, float a1, ColourbPremultiplied color0,
+	ColourbPremultiplied color1, int num_points)
 {
 	RMLUI_ASSERT(num_points >= 2 && R > 0 && r.x > 0 && r.y > 0);
 
@@ -270,7 +272,7 @@ void GeometryBackgroundBorder::DrawArcArc(Vector2f pos_center, float R, Vector2f
 		const float t = float(i) / float(num_points - 1);
 
 		const float a = Math::Lerp(t, a0, a1);
-		const Colourb color = Math::RoundedLerp(t, color0, color1);
+		const ColourbPremultiplied color = Math::RoundedLerp(t, color0, color1);
 		const Vector2f unit_vector(Math::Cos(a), Math::Sin(a));
 
 		vertices[offset_vertices + 2 * i].position = unit_vector * r + pos_center;
@@ -291,8 +293,8 @@ void GeometryBackgroundBorder::DrawArcArc(Vector2f pos_center, float R, Vector2f
 	}
 }
 
-void GeometryBackgroundBorder::DrawArcPoint(Vector2f pos_center, Vector2f pos_inner, float R, float a0, float a1, Colourb color0, Colourb color1,
-	int num_points)
+void GeometryBackgroundBorder::DrawArcPoint(Vector2f pos_center, Vector2f pos_inner, float R, float a0, float a1, ColourbPremultiplied color0,
+	ColourbPremultiplied color1, int num_points)
 {
 	RMLUI_ASSERT(R > 0 && num_points >= 2);
 

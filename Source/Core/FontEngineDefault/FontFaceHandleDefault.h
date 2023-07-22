@@ -84,8 +84,8 @@ public:
 	/// @param[in] opacity The opacity of the text, should be applied to font effects.
 	/// @param[in] layer_configuration Face configuration index to use for generating string.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(GeometryList& geometry, const String& string, Vector2f position, Colourb colour, float opacity, float letter_spacing,
-		int layer_configuration = 0);
+	int GenerateString(GeometryList& geometry, const String& string, Vector2f position, ColourbPremultiplied colour, float opacity,
+		float letter_spacing, int layer_configuration = 0);
 
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;

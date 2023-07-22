@@ -71,7 +71,7 @@ public:
 	/// @param[in] character_code The character to generate geometry for.
 	/// @param[in] position The position of the baseline.
 	/// @param[in] colour The colour of the string.
-	inline void GenerateGeometry(Geometry* geometry, const Character character_code, const Vector2f position, const Colourb colour) const
+	inline void GenerateGeometry(Geometry* geometry, const Character character_code, const Vector2f position, const ColourbPremultiplied colour) const
 	{
 		auto it = character_boxes.find(character_code);
 		if (it == character_boxes.end())
@@ -101,8 +101,8 @@ public:
 	/// Returns the number of textures employed by this layer.
 	int GetNumTextures() const;
 
-	/// Returns the layer's colour.
-	Colourb GetColour() const;
+	/// Returns the layer's colour after applying the given opacity.
+	ColourbPremultiplied GetColour(float opacity) const;
 
 private:
 	struct TextureBox {

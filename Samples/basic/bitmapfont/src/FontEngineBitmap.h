@@ -65,7 +65,7 @@ public:
 	int GetStringWidth(const String& string, Character prior_character);
 
 	// Generate the string geometry, returning its width.
-	int GenerateString(const String& string, const Vector2f& position, const Colourb& colour, GeometryList& geometry);
+	int GenerateString(const String& string, const Vector2f& position, ColourbPremultiplied colour, GeometryList& geometry);
 
 	const FontMetrics& GetMetrics() const { return metrics; }
 

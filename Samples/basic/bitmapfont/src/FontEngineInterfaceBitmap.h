@@ -38,7 +38,7 @@ using Rml::FontFaceHandle;
 
 using Rml::byte;
 using Rml::Character;
-using Rml::Colourb;
+using Rml::ColourbPremultiplied;
 using Rml::String;
 using Rml::Texture;
 using Rml::Vector2f;
@@ -77,7 +77,7 @@ public:
 
 	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
 	int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position,
-		const Colourb& colour, float opacity, float letter_spacing, GeometryList& geometry) override;
+		ColourbPremultiplied colour, float opacity, float letter_spacing, GeometryList& geometry) override;
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated.eometry.
 	int GetVersion(FontFaceHandle handle) override;

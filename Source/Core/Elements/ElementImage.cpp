@@ -192,11 +192,7 @@ void ElementImage::GenerateGeometry()
 	}
 
 	const ComputedValues& computed = GetComputedValues();
-
-	float opacity = computed.opacity();
-	Colourb quad_colour = computed.image_color();
-	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
-
+	ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 	Vector2f quad_size = GetBox().GetSize(BoxArea::Content).Round();
 
 	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), quad_size, quad_colour, texcoords[0], texcoords[1]);

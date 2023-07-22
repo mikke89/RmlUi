@@ -184,7 +184,7 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 	auto GenerateGeometry = [&](TextureGeometry& geometry, Rml::byte* data, Rml::Vector2i dimensions) -> bool {
 		if (!render_interface->GenerateTexture(geometry.texture_handle, data, dimensions))
 			return false;
-		const Rml::Colourb colour = {255, 255, 255, 255};
+		const Rml::ColourbPremultiplied colour = {255, 255, 255, 255};
 		const Rml::Vector2f uv_top_left = {0, 0};
 		const Rml::Vector2f uv_bottom_right = {1, 1};
 		Rml::GeometryUtilities::GenerateQuad(geometry.vertices, geometry.indices, Rml::Vector2f(0, 0), Rml::Vector2f((float)w_ref, (float)h_ref),

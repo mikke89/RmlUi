@@ -35,7 +35,7 @@
 namespace Rml {
 
 struct ColorStop {
-	Colourb color;
+	ColourbPremultiplied color;
 	NumericValue position;
 };
 inline bool operator==(const ColorStop& a, const ColorStop& b)
@@ -48,7 +48,7 @@ inline bool operator!=(const ColorStop& a, const ColorStop& b)
 }
 
 struct BoxShadow {
-	Colourb color;
+	ColourbPremultiplied color;
 	NumericValue offset_x, offset_y;
 	NumericValue blur_radius;
 	NumericValue spread_distance;

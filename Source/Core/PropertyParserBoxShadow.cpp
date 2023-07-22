@@ -97,7 +97,7 @@ bool PropertyParserBoxShadow::ParseValue(Property& property, const String& value
 			}
 			else if (parser_color->ParseValue(prop, argument, empty_parameter_map))
 			{
-				shadow.color = prop.Get<Colourb>();
+				shadow.color = prop.Get<Colourb>().ToPremultiplied();
 			}
 			else
 			{

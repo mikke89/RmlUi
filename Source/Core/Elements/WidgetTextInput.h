@@ -242,7 +242,7 @@ private:
 	int selection_length;
 
 	// The colour of the background of selected text.
-	Colourb selection_colour;
+	ColourbPremultiplied selection_colour;
 	// The selection background.
 	Geometry selection_geometry;
 

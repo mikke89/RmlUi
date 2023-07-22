@@ -279,9 +279,9 @@ namespace Math {
 		return Vector2i(Clamp(value.x, min.x, max.x), Clamp(value.y, min.y, max.y));
 	}
 
-	Colourb RoundedLerp(float t, Colourb v0, Colourb v1)
+	ColourbPremultiplied RoundedLerp(float t, ColourbPremultiplied v0, ColourbPremultiplied v1)
 	{
-		return Colourb{
+		return ColourbPremultiplied{
 			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[0]), static_cast<float>(v1[0])))),
 			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[1]), static_cast<float>(v1[1])))),
 			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[2]), static_cast<float>(v1[2])))),

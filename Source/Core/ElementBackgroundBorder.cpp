@@ -85,7 +85,7 @@ Geometry* ElementBackgroundBorder::GetClipGeometry(Element* element, BoxArea cli
 	{
 		const Box& box = element->GetBox();
 		const Vector4f border_radius = element->GetComputedValues().border_radius();
-		GeometryUtilities::GenerateBackground(&geometry, box, {}, border_radius, Colourb(255), clip_area);
+		GeometryUtilities::GenerateBackground(&geometry, box, {}, border_radius, ColourbPremultiplied(255), clip_area);
 	}
 
 	return &geometry;
@@ -112,29 +112,28 @@ void ElementBackgroundBorder::GenerateGeometry(Element* element)
 {
 	const ComputedValues& computed = element->GetComputedValues();
 
-	Colourb background_color = computed.background_color();
-	Colourb border_colors[4] = {
-		computed.border_top_color(),
-		computed.border_right_color(),
-		computed.border_bottom_color(),
-		computed.border_left_color(),
+	const bool has_box_shadow = computed.has_box_shadow();
+	const float opacity = computed.opacity();
+
+	// Apply opacity except if we have a box shadow. In the latter case the background is rendered opaquely into the box-shadow texture, while
+	// opacity is applied to the entire box-shadow texture when that is rendered.
+	bool apply_opacity = (!has_box_shadow && opacity < 1.f);
+
+	auto ConvertColor = [=](Colourb color) {
+		if (apply_opacity)
+			return color.ToPremultiplied(opacity);
+		else
+			return color.ToPremultiplied();
+	};
+
+	ColourbPremultiplied background_color = ConvertColor(computed.background_color());
+	ColourbPremultiplied border_colors[4] = {
+		ConvertColor(computed.border_top_color()),
+		ConvertColor(computed.border_right_color()),
+		ConvertColor(computed.border_bottom_color()),
+		ConvertColor(computed.border_left_color()),
 	};
 	const Vector4f border_radius = computed.border_radius();
-	const bool has_box_shadow = computed.has_box_shadow();
-
-	if (!has_box_shadow)
-	{
-		// Apply opacity except if we have a box shadow. In the latter case the background is rendered opaquely into the box-shadow texture, while
-		// opacity is applied to the entire box-shadow texture when that is rendered.
-		const float opacity = computed.opacity();
-		if (opacity < 1.f)
-		{
-			background_color.alpha = (byte)(opacity * (float)background_color.alpha);
-
-			for (int i = 0; i < 4; ++i)
-				border_colors[i].alpha = (byte)(opacity * (float)border_colors[i].alpha);
-		}
-	}
 
 	Geometry& geometry = GetOrCreateBackground(BackgroundType::BackgroundBorder).geometry;
 	RMLUI_ASSERT(!geometry);

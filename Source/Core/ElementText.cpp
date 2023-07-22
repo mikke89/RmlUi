@@ -340,8 +340,7 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		const float new_opacity = computed.opacity();
 		const bool opacity_changed = opacity != new_opacity;
 
-		Colourb new_colour = computed.color();
-		new_colour.alpha = byte(new_opacity * float(new_colour.alpha));
+		ColourbPremultiplied new_colour = computed.color().ToPremultiplied(new_opacity);
 		colour_changed = colour != new_colour;
 
 		if (colour_changed)

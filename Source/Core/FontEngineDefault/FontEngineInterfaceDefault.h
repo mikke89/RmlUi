@@ -59,7 +59,7 @@ public:
 	int GetStringWidth(FontFaceHandle, const String& string, float letter_spacing, Character prior_character) override;
 
 	/// Generates the geometry required to render a single line of text.
-	int GenerateString(FontFaceHandle, FontEffectsHandle, const String& string, const Vector2f& position, const Colourb& colour, float opacity,
+	int GenerateString(FontFaceHandle, FontEffectsHandle, const String& string, const Vector2f& position, ColourbPremultiplied colour, float opacity,
 		float letter_spacing, GeometryList& geometry) override;
 
 	/// Returns the current version of the font face.

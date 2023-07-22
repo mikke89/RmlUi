@@ -104,11 +104,7 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int
 	if (surface_dimensions.x <= 0 || surface_dimensions.y <= 0)
 		return;
 
-	float opacity = computed.opacity();
-	Colourb quad_colour = computed.image_color();
-
-	// Apply opacity
-	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+	const ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 
 	if (!tile_data_calculated)
 		return;

@@ -65,7 +65,7 @@ void DecoratorDefender::RenderElement(Rml::Element* element, Rml::DecoratorDataH
 	if (Rml::RenderInterface* render_interface = ::Rml::GetRenderInterface())
 	{
 		Rml::TextureHandle texture = GetTexture(image_index)->GetHandle();
-		Rml::Colourb color = element->GetProperty<Rml::Colourb>("color");
+		Rml::ColourbPremultiplied color = element->GetProperty<Rml::Colourb>("color").ToPremultiplied();
 
 		Rml::Vertex vertices[4];
 		int indices[6];

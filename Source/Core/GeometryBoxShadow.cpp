@@ -120,11 +120,12 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, Texture& out_sha
 		{
 			Vector2f offset;
 			const Box& box = element->GetBox(i, offset);
+			ColourbPremultiplied white(255);
 
 			if (has_inner_shadow)
-				GeometryUtilities::GenerateBackground(&geometry_padding, box, offset, border_radius, Colourb(255), BoxArea::Padding);
+				GeometryUtilities::GenerateBackground(&geometry_padding, box, offset, border_radius, white, BoxArea::Padding);
 			if (has_outer_shadow)
-				GeometryUtilities::GenerateBackground(&geometry_padding_border, box, offset, border_radius, Colourb(255), BoxArea::Border);
+				GeometryUtilities::GenerateBackground(&geometry_padding_border, box, offset, border_radius, white, BoxArea::Border);
 		}
 
 		RenderManager& render_manager = context->GetRenderManager();
@@ -232,7 +233,8 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, Texture& out_sha
 	vertices.resize(4);
 	indices.resize(6);
 	const byte alpha = byte(opacity * 255.f);
-	GeometryUtilities::GenerateQuad(vertices.data(), indices.data(), -element_offset_in_texture, Vector2f(texture_dimensions), Colourb(255, alpha));
+	GeometryUtilities::GenerateQuad(vertices.data(), indices.data(), -element_offset_in_texture, Vector2f(texture_dimensions),
+		ColourbPremultiplied(alpha, alpha));
 
 	out_shadow_texture.Set("box-shadow", texture_callback);
 	out_shadow_geometry.SetTexture(&out_shadow_texture);

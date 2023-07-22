@@ -68,7 +68,7 @@ int FontEngineInterface::GetStringWidth(FontFaceHandle /*handle*/, const String&
 }
 
 int FontEngineInterface::GenerateString(FontFaceHandle /*face_handle*/, FontEffectsHandle /*font_effects_handle*/, const String& /*string*/,
-	const Vector2f& /*position*/, const Colourb& /*colour*/, float /*opacity*/, float /*letter_spacing*/, GeometryList& /*geometry*/)
+	const Vector2f& /*position*/, ColourbPremultiplied /*colour*/, float /*opacity*/, float /*letter_spacing*/, GeometryList& /*geometry*/)
 {
 	return 0;
 }

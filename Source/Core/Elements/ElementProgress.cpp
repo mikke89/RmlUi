@@ -243,13 +243,8 @@ void ElementProgress::GenerateGeometry()
 		texcoords[1] = Vector2f(1, 1);
 	}
 
-	Colourb quad_colour;
-	{
-		const ComputedValues& computed = GetComputedValues();
-		const float opacity = computed.opacity();
-		quad_colour = computed.image_color();
-		quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
-	}
+	const ComputedValues& computed = GetComputedValues();
+	const ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 
 	switch (direction)
 	{

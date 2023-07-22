@@ -35,9 +35,10 @@
 namespace Rml {
 
 using byte = unsigned char;
-template <typename ColourType, int AlphaDefault>
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
 class Colour;
-using Colourb = Colour<byte, 255>;
+using Colourb = Colour<byte, 255, false>;
+using ColourbPremultiplied = Colour<byte, 255, true>;
 template <typename Type>
 class Vector2;
 using Vector2f = Vector2<float>;
@@ -92,7 +93,7 @@ namespace Math {
 	RMLUICORE_API Vector2i Clamp<Vector2i>(Vector2i value, Vector2i min, Vector2i max);
 
 	/// Color interpolation.
-	RMLUICORE_API Colourb RoundedLerp(float t, Colourb c0, Colourb c1);
+	RMLUICORE_API ColourbPremultiplied RoundedLerp(float t, ColourbPremultiplied c0, ColourbPremultiplied c1);
 
 	/// Evaluates if a number is, or close to, zero.
 	/// @param[in] value The number to compare to zero.

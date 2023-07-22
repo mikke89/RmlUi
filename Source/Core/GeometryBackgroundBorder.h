@@ -75,10 +75,10 @@ public:
 	static BorderMetrics ComputeBorderMetrics(Vector2f outer_position, EdgeSizes edge_sizes, Vector2f inner_size, Vector4f outer_radii);
 
 	// Generate geometry for the background, defined by the inner area of the border metrics.
-	void DrawBackground(const BorderMetrics& metrics, Colourb color);
+	void DrawBackground(const BorderMetrics& metrics, ColourbPremultiplied color);
 
 	/// Generate geometry for the border, defined by the intersection of the outer and inner areas of the border metrics.
-	void DrawBorder(const BorderMetrics& metrics, EdgeSizes edge_sizes, const Colourb border_colors[4]);
+	void DrawBorder(const BorderMetrics& metrics, EdgeSizes edge_sizes, const ColourbPremultiplied border_colors[4]);
 
 private:
 	enum Edge { TOP, RIGHT, BOTTOM, LEFT };
@@ -88,14 +88,14 @@ private:
 	// All draw operations place vertices in clockwise order.
 
 	// Draw the corner, delegate to the specific corner shape drawing function.
-	void DrawBackgroundCorner(Corner corner, Vector2f pos_inner, Vector2f pos_circle_center, float R, Vector2f r, Colourb color);
+	void DrawBackgroundCorner(Corner corner, Vector2f pos_inner, Vector2f pos_circle_center, float R, Vector2f r, ColourbPremultiplied color);
 
 	// Add a single point.
-	void DrawPoint(Vector2f pos, Colourb color);
+	void DrawPoint(Vector2f pos, ColourbPremultiplied color);
 
 	// Draw an arc by placing vertices along the ellipse formed by the two-axis radius r, spaced evenly between angles a0,a1 (inclusive). Colors are
 	// interpolated.
-	void DrawArc(Vector2f pos_center, Vector2f r, float a0, float a1, Colourb color0, Colourb color1, int num_points);
+	void DrawArc(Vector2f pos_center, Vector2f r, float a0, float a1, ColourbPremultiplied color0, ColourbPremultiplied color1, int num_points);
 
 	// Generates triangles by connecting the added vertices.
 	void FillBackground(int index_start);
@@ -110,18 +110,20 @@ private:
 	// Where 'next' corner means along the clockwise direction. This way we can easily fill the triangles of the edges in FillEdge().
 
 	// Draw the corner, delegate to the specific corner shape drawing function.
-	void DrawBorderCorner(Corner corner, Vector2f pos_outer, Vector2f pos_inner, Vector2f pos_circle_center, float R, Vector2f r, Colourb color0,
-		Colourb color1);
+	void DrawBorderCorner(Corner corner, Vector2f pos_outer, Vector2f pos_inner, Vector2f pos_circle_center, float R, Vector2f r,
+		ColourbPremultiplied color0, ColourbPremultiplied color1);
 
 	// Draw a sharp border corner, ie. no border-radius. Does not produce any triangles.
-	void DrawPointPoint(Vector2f pos_outer, Vector2f pos_inner, Colourb color0, Colourb color1);
+	void DrawPointPoint(Vector2f pos_outer, Vector2f pos_inner, ColourbPremultiplied color0, ColourbPremultiplied color1);
 
 	// Draw an arc along the outer edge (radius R), and an arc along the inner edge (two-axis radius r),
 	// spaced evenly between angles a0,a1 (inclusive). Connect them by triangles. Colors are interpolated.
-	void DrawArcArc(Vector2f pos_center, float R, Vector2f r, float a0, float a1, Colourb color0, Colourb color1, int num_points);
+	void DrawArcArc(Vector2f pos_center, float R, Vector2f r, float a0, float a1, ColourbPremultiplied color0, ColourbPremultiplied color1,
+		int num_points);
 
 	// Draw an arc along the outer edge, and connect them by triangles to a point on the inner edge.
-	void DrawArcPoint(Vector2f pos_center, Vector2f pos_inner, float R, float a0, float a1, Colourb color0, Colourb color1, int num_points);
+	void DrawArcPoint(Vector2f pos_center, Vector2f pos_inner, float R, float a0, float a1, ColourbPremultiplied color0, ColourbPremultiplied color1,
+		int num_points);
 
 	// Add triangles between the previous corner to another one specified by the index (possibly yet-to-be-drawn).
 	void FillEdge(int index_next_corner);

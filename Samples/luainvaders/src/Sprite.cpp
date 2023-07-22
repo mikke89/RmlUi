@@ -38,7 +38,7 @@ Sprite::Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_te
 
 Sprite::~Sprite() {}
 
-void Sprite::Render(Rml::Vector2f position, const float dp_ratio, Rml::Colourb color, Rml::TextureHandle texture)
+void Sprite::Render(Rml::Vector2f position, const float dp_ratio, Rml::ColourbPremultiplied color, Rml::TextureHandle texture)
 {
 	Rml::RenderInterface* render_interface = Rml::GetRenderInterface();
 	if (!render_interface)
