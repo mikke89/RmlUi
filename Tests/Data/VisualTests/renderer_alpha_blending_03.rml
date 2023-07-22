@@ -1,0 +1,68 @@
+<rml>
+<head>
+	<title>Alpha blending 03</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="The wheels in each container has two commutative filters, but applied in different order. The rendered result should be the same in each case, given that the renderer does alpha blending and color transformation correctly." />
+	<meta name="Assert" content="The left and right wheels in each container should look equivalent. " />
+	<meta name="Backend" content="Requires backend support for rendering with shaders and filters." />
+	<style>
+		body { width: 800dp; }
+		.white { background: #fff; }
+		.black { background: #000; }
+		.container {
+			padding: 15px;
+			border: 1px #000;
+			margin: 10px 15px 30px;
+			height: 300px;
+		}
+		.wheel {
+			position: relative;
+			width: 49%;
+			height: 300px;
+			float: left;
+		}
+		.wheel > div {
+			width: 200px;
+			height: 200px;
+			position: absolute;
+			top: 0px;
+			left: 0px;
+		}
+		.filter_ab { filter: contrast(0.5) opacity(0.5); }
+		.filter_ba { filter: opacity(0.5) contrast(0.5); }
+
+		.wheel > .rg { decorator: radial-gradient(#ff08 58%, transparent 60%); }
+		.wheel > .rb { decorator: radial-gradient(#f0f8 58%, transparent 60%); left: 130px; }
+		.wheel > .gb { decorator: radial-gradient(#0ff8 58%, transparent 60%); top: 100px; left: 75px; }
+	</style>
+</head>
+
+<body>
+<div class="container white">
+	<div class="wheel filter_ab">
+		<div class="rg"/>
+		<div class="rb"/>
+		<div class="gb"/>
+	</div>
+
+	<div class="wheel filter_ba">
+		<div class="rg"/>
+		<div class="rb"/>
+		<div class="gb"/>
+	</div>
+</div>
+<div class="container black">
+	<div class="wheel filter_ab">
+		<div class="rg"/>
+		<div class="rb"/>
+		<div class="gb"/>
+	</div>
+
+	<div class="wheel filter_ba">
+		<div class="rg"/>
+		<div class="rb"/>
+		<div class="gb"/>
+	</div>
+</div>
+</body>
+</rml>
