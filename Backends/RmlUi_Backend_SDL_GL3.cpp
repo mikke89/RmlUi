@@ -68,8 +68,8 @@ public:
 		file_interface->Read(buffer.get(), buffer_size, file_handle);
 		file_interface->Close(file_handle);
 
-		const size_t i = source.rfind('.');
-		Rml::String extension = (i == Rml::String::npos ? Rml::String() : source.substr(i + 1));
+		const size_t i_ext = source.rfind('.');
+		Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
 		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
 
@@ -93,6 +93,15 @@ public:
 
 				SDL_FreeSurface(surface);
 				surface = new_surface;
+			}
+
+			// RmlUi assumes premultiplied alpha, convert the color values accordingly.
+			byte* pixels = static_cast<byte*>(surface->pixels);
+			for (int i = 0; i < surface->w * surface->h * 4; i += 4)
+			{
+				const byte alpha = pixels[i + 3];
+				for (int j = 0; j < 3; ++j)
+					pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
 			}
 
 			success = RenderInterface_GL3::GenerateTexture(texture_handle, (const Rml::byte*)surface->pixels, texture_dimensions);

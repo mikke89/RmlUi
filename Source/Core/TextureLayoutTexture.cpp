@@ -139,11 +139,8 @@ UniquePtr<byte[]> TextureLayoutTexture::AllocateTexture()
 
 	if (dimensions.x > 0 && dimensions.y > 0)
 	{
-		texture_data.reset(new byte[dimensions.x * dimensions.y * 4]);
-
-		// Set the texture to transparent white.
-		for (int i = 0; i < dimensions.x * dimensions.y; i++)
-			((unsigned int*)(texture_data.get()))[i] = 0x00ffffff;
+		// Set the texture to transparent black.
+		texture_data.reset(new byte[dimensions.x * dimensions.y * 4]());
 
 		for (size_t i = 0; i < rows.size(); ++i)
 			rows[i].Allocate(texture_data.get(), dimensions.x * 4);

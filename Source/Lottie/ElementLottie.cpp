@@ -236,20 +236,17 @@ void ElementLottie::UpdateTexture()
 		rlottie::Surface surface(reinterpret_cast<uint32_t*>(p_data), render_dimensions.x, render_dimensions.y, bytes_per_line);
 		animation->renderSync(next_frame, surface);
 
-		// Swizzle the channel order from rlottie's BGRA to RmlUi's RGBA, and change pre-multiplied to post-multiplied alpha.
+		// Swizzle the channel order from rlottie's BGRA to RmlUi's RGBA.
 		for (size_t i = 0; i < total_bytes; i += 4)
 		{
 			// Swap the RB order for correct color channels.
 			std::swap(p_data[i], p_data[i + 2]);
 
-			// The RmlUi samples shell uses post-multiplied alpha, while rlottie serves pre-multiplied alpha.
-			// Here, we un-premultiply the colors.
-			const byte a = p_data[i + 3];
-			if (a > 0 && a < 255)
-			{
-				for (size_t j = 0; j < 3; j++)
-					p_data[i + j] = (p_data[i + j] * 255) / a;
-			}
+#ifdef RMLUI_DEBUG
+			const byte alpha = p_data[i + 3];
+			for (int c = 0; c < 3; c++)
+				RMLUI_ASSERTMSG(p_data[i + c] <= alpha, "Glyph data is assumed to be encoded in premultiplied alpha, but that is not the case.");
+#endif
 		}
 
 		if (!render_interface->GenerateTexture(out_handle, p_data, render_dimensions))

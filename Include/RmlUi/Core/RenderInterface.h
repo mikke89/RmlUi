@@ -125,7 +125,7 @@ public:
 	virtual bool LoadTexture(TextureHandle& texture_handle, Vector2i& texture_dimensions, const String& source);
 	/// Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
 	/// @param[out] texture_handle The handle to write the texture handle for the generated texture to.
-	/// @param[in] source The raw 8-bit texture data. Each pixel is made up of four 8-bit values, indicating red, green, blue and alpha in that order.
+	/// @param[in] source The raw texture data. Each pixel is made up of four 8-bit values, red, green, blue, and premultiplied alpha, in that order.
 	/// @param[in] source_dimensions The dimensions, in pixels, of the source data.
 	/// @return True if the texture generation succeeded and the handle is valid, false if not.
 	virtual bool GenerateTexture(TextureHandle& texture_handle, const byte* source, const Vector2i& source_dimensions);

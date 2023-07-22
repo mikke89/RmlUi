@@ -220,8 +220,10 @@ bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vecto
 					{
 					case ColorFormat::A8:
 					{
+						// We use premultiplied alpha, so copy the alpha into all four channels.
 						for (int k = 0; k < num_bytes_per_line; ++k)
-							destination[k * 4 + 3] = source[k];
+							for (int c = 0; c < 4; ++c)
+								destination[k * 4 + c] = source[k];
 					}
 					break;
 					case ColorFormat::RGBA8:

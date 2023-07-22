@@ -58,8 +58,6 @@
 // Determines the anti-aliasing quality when creating layers. Enables better-looking visuals, especially when transforms are applied.
 static constexpr int NUM_MSAA_SAMPLES = 2;
 
-#define RMLUI_PREMULTIPLIED_ALPHA 1
-
 #define MAX_NUM_STOPS 16
 #define BLUR_SIZE 7
 #define BLUR_NUM_WEIGHTS ((BLUR_SIZE + 1) / 2)
@@ -67,9 +65,7 @@ static constexpr int NUM_MSAA_SAMPLES = 2;
 #define RMLUI_STRINGIFY_IMPL(x) #x
 #define RMLUI_STRINGIFY(x) RMLUI_STRINGIFY_IMPL(x)
 
-#define RMLUI_SHADER_HEADER     \
-	RMLUI_SHADER_HEADER_VERSION \
-	"#define RMLUI_PREMULTIPLIED_ALPHA " RMLUI_STRINGIFY(RMLUI_PREMULTIPLIED_ALPHA) "\n#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n"
+#define RMLUI_SHADER_HEADER RMLUI_SHADER_HEADER_VERSION "#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n"
 
 static const char* shader_vert_main = RMLUI_SHADER_HEADER R"(
 uniform vec2 _translate;
@@ -86,7 +82,7 @@ void main() {
 	fragTexCoord = inTexCoord0;
 	fragColor = inColor0;
 
-#if RMLUI_PREMULTIPLIED_ALPHA
+#if 1 // TODO: Make all vertex colors already premultiplied, and remove this step.
 	// Pre-multiply vertex colors with their alpha.
 	fragColor.rgb = fragColor.rgb * fragColor.a;
 #endif
@@ -864,13 +860,10 @@ void RenderInterface_GL3::BeginFrame()
 	glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_CULL_FACE);
 
+	// Set blending function for premultiplied alpha.
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
-#if RMLUI_PREMULTIPLIED_ALPHA
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-#else
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#endif
 
 #ifndef RMLUI_PLATFORM_EMSCRIPTEN
 	// We do blending in nonlinear sRGB space because that is the common practice and gives results that we are used to.
@@ -910,7 +903,7 @@ void RenderInterface_GL3::EndFrame()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// Assuming we have an opaque background, we can just write to it with the premultiplied alpha blend mode and we'll get the correct result.
-	// Instead, if we had a transparent destination that didn't use pre-multiplied alpha, we would need to perform a manual un-premultiplication step.
+	// Instead, if we had a transparent destination that didn't use premultiplied alpha, we would need to perform a manual un-premultiplication step.
 	glActiveTexture(GL_TEXTURE0);
 	Gfx::BindTexture(fb_postprocess);
 	UseProgram(ProgramId::Passthrough);
@@ -1245,11 +1238,16 @@ bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * 4;
 		for (long x = 0; x < header.width; x++)
 		{
-			image_dest[write_index] = image_src[read_index + 2];
-			image_dest[write_index + 1] = image_src[read_index + 1];
+			image_dest[write_index] = image_src[read_index + 1];
+			image_dest[write_index + 1] = image_src[read_index + 2];
 			image_dest[write_index + 2] = image_src[read_index];
 			if (color_mode == 4)
-				image_dest[write_index + 3] = image_src[read_index + 3];
+			{
+				const byte alpha = image_src[read_index + 3];
+				for (size_t j = 0; j < 3; j++)
+					image_dest[write_index + j] = byte((int(image_dest[write_index + j]) * int(alpha)) / 255);
+				image_dest[write_index + 3] = alpha;
+			}
 			else
 				image_dest[write_index + 3] = 255;
 
@@ -1278,26 +1276,6 @@ bool RenderInterface_GL3::GenerateTexture(Rml::TextureHandle& texture_handle, co
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to generate texture.");
 		return false;
 	}
-
-#if RMLUI_PREMULTIPLIED_ALPHA
-	using Rml::byte;
-	Rml::UniquePtr<byte[]> source_premultiplied;
-	if (source)
-	{
-		const size_t num_bytes = source_dimensions.x * source_dimensions.y * 4;
-		source_premultiplied = Rml::UniquePtr<byte[]>(new byte[num_bytes]);
-
-		for (size_t i = 0; i < num_bytes; i += 4)
-		{
-			const byte alpha = source[i + 3];
-			for (size_t j = 0; j < 3; j++)
-				source_premultiplied[i + j] = byte((int(source[i + j]) * int(alpha)) / 255);
-			source_premultiplied[i + 3] = alpha;
-		}
-
-		source = source_premultiplied.get();
-	}
-#endif
 
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 
