@@ -427,19 +427,20 @@ bool RenderInterface_VK::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Ve
 	size_t buffer_size = file_interface->Tell(file_handle);
 	file_interface->Seek(file_handle, 0, SEEK_SET);
 
-	RMLUI_ASSERTMSG(buffer_size > sizeof(TGAHeader), "Texture file size is smaller than TGAHeader, file must be corrupt or otherwise invalid");
 	if (buffer_size <= sizeof(TGAHeader))
 	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Texture file size is smaller than TGAHeader, file is not a valid TGA image.");
 		file_interface->Close(file_handle);
 		return false;
 	}
 
-	char* buffer = new char[buffer_size];
-	file_interface->Read(buffer, buffer_size, file_handle);
+	using Rml::byte;
+	Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
+	file_interface->Read(buffer.get(), buffer_size, file_handle);
 	file_interface->Close(file_handle);
 
 	TGAHeader header;
-	memcpy(&header, buffer, sizeof(TGAHeader));
+	memcpy(&header, buffer.get(), sizeof(TGAHeader));
 
 	int color_mode = header.bitsPerPixel / 8;
 	int image_size = header.width * header.height * 4; // We always make 32bit textures
@@ -453,25 +454,31 @@ bool RenderInterface_VK::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Ve
 	// Ensure we have at least 3 colors
 	if (color_mode < 3)
 	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported.");
 		return false;
 	}
 
-	const char* image_src = buffer + sizeof(TGAHeader);
-	unsigned char* image_dest = new unsigned char[image_size];
+	const byte* image_src = buffer.get() + sizeof(TGAHeader);
+	Rml::UniquePtr<byte[]> image_dest_buffer(new byte[image_size]);
+	byte* image_dest = image_dest_buffer.get();
 
-	// Targa is BGR, swap to RGB and flip Y axis
+	// Targa is BGR, swap to RGB, flip Y axis, and convert to premultiplied alpha.
 	for (long y = 0; y < header.height; y++)
 	{
 		long read_index = y * header.width * color_mode;
-		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * color_mode;
+		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * 4;
 		for (long x = 0; x < header.width; x++)
 		{
 			image_dest[write_index] = image_src[read_index + 2];
 			image_dest[write_index + 1] = image_src[read_index + 1];
 			image_dest[write_index + 2] = image_src[read_index];
 			if (color_mode == 4)
-				image_dest[write_index + 3] = image_src[read_index + 3];
+			{
+				const byte alpha = image_src[read_index + 3];
+				for (size_t j = 0; j < 3; j++)
+					image_dest[write_index + j] = byte((image_dest[write_index + j] * alpha) / 255);
+				image_dest[write_index + 3] = alpha;
+			}
 			else
 				image_dest[write_index + 3] = 255;
 
@@ -483,12 +490,9 @@ bool RenderInterface_VK::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Ve
 	texture_dimensions.x = header.width;
 	texture_dimensions.y = header.height;
 
-	bool status = CreateTexture(texture_handle, image_dest, texture_dimensions, source);
+	bool success = GenerateTexture(texture_handle, image_dest, texture_dimensions);
 
-	delete[] image_dest;
-	delete[] buffer;
-
-	return status;
+	return success;
 }
 
 bool RenderInterface_VK::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
@@ -1961,10 +1965,10 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 	VkPipelineColorBlendAttachmentState info_color_blend_att = {};
 	info_color_blend_att.colorWriteMask = 0xf;
 	info_color_blend_att.blendEnable = VK_TRUE;
-	info_color_blend_att.srcColorBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_SRC_ALPHA;
+	info_color_blend_att.srcColorBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE;
 	info_color_blend_att.dstColorBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	info_color_blend_att.colorBlendOp = VkBlendOp::VK_BLEND_OP_ADD;
-	info_color_blend_att.srcAlphaBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_SRC_ALPHA;
+	info_color_blend_att.srcAlphaBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE;
 	info_color_blend_att.dstAlphaBlendFactor = VkBlendFactor::VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	info_color_blend_att.alphaBlendOp = VkBlendOp::VK_BLEND_OP_SUBTRACT;
 

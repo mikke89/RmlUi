@@ -33,14 +33,20 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-RenderInterface_SDL::RenderInterface_SDL(SDL_Renderer* renderer) : renderer(renderer) {}
+RenderInterface_SDL::RenderInterface_SDL(SDL_Renderer* renderer) : renderer(renderer)
+{
+	// RmlUi serves vertex colors and textures with premultiplied alpha, set the blend mode accordingly.
+	// Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
+	blend_mode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE,
+		SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
+}
 
 void RenderInterface_SDL::BeginFrame()
 {
 	SDL_RenderSetViewport(renderer, nullptr);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
-	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+	SDL_SetRenderDrawBlendMode(renderer, blend_mode);
 }
 
 void RenderInterface_SDL::EndFrame() {}
@@ -96,54 +102,60 @@ bool RenderInterface_SDL::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	size_t buffer_size = file_interface->Tell(file_handle);
 	file_interface->Seek(file_handle, 0, SEEK_SET);
 
-	char* buffer = new char[buffer_size];
-	file_interface->Read(buffer, buffer_size, file_handle);
+	using Rml::byte;
+	Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
+	file_interface->Read(buffer.get(), buffer_size, file_handle);
 	file_interface->Close(file_handle);
 
-	const size_t i = source.rfind('.');
-	Rml::String extension = (i == Rml::String::npos ? Rml::String() : source.substr(i + 1));
+	const size_t i_ext = source.rfind('.');
+	Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
-	SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer, int(buffer_size)), 1, extension.c_str());
+	SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
+	if (!surface)
+		return false;
 
-	bool success = false;
-
-	if (surface)
+	if (surface->format->format != SDL_PIXELFORMAT_RGBA32 && surface->format->format != SDL_PIXELFORMAT_BGRA32)
 	{
-		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-		if (texture)
-		{
-			texture_handle = (Rml::TextureHandle)texture;
-			texture_dimensions = Rml::Vector2i(surface->w, surface->h);
-			success = true;
-		}
-
+		SDL_Surface* converted_surface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
 		SDL_FreeSurface(surface);
+
+		if (!converted_surface)
+			return false;
+
+		surface = converted_surface;
 	}
 
-	delete[] buffer;
+	// Convert colors to premultiplied alpha, which is necessary for correct alpha compositing.
+	byte* pixels = static_cast<byte*>(surface->pixels);
+	for (int i = 0; i < surface->w * surface->h * 4; i += 4)
+	{
+		const byte alpha = pixels[i + 3];
+		for (int j = 0; j < 3; ++j)
+			pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
+	}
 
-	return success;
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+	texture_dimensions = Rml::Vector2i(surface->w, surface->h);
+	texture_handle = (Rml::TextureHandle)texture;
+	SDL_FreeSurface(surface);
+
+	if (!texture)
+		return false;
+
+	SDL_SetTextureBlendMode(texture, blend_mode);
+
+	return true;
 }
 
 bool RenderInterface_SDL::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
 {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	Uint32 rmask = 0xff000000;
-	Uint32 gmask = 0x00ff0000;
-	Uint32 bmask = 0x0000ff00;
-	Uint32 amask = 0x000000ff;
-#else
-	Uint32 rmask = 0x000000ff;
-	Uint32 gmask = 0x0000ff00;
-	Uint32 bmask = 0x00ff0000;
-	Uint32 amask = 0xff000000;
-#endif
+	SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom((void*)source, source_dimensions.x, source_dimensions.y, 32, source_dimensions.x * 4,
+		SDL_PIXELFORMAT_RGBA32);
 
-	SDL_Surface* surface =
-		SDL_CreateRGBSurfaceFrom((void*)source, source_dimensions.x, source_dimensions.y, 32, source_dimensions.x * 4, rmask, gmask, bmask, amask);
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-	SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(texture, blend_mode);
+
 	SDL_FreeSurface(surface);
 	texture_handle = (Rml::TextureHandle)texture;
 	return true;

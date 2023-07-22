@@ -228,8 +228,15 @@ in vec2 fragTexCoord;
 out vec4 finalColor;
 
 void main() {
+	// The general case uses a 4x5 color matrix for full rgba transformation, plus a constant term with the last column.
+	// However, we only consider the case of rgb transformations. Thus, we could in principle use a 3x4 matrix, but we
+	// keep the alpha row for simplicity.
+	// In the general case we should do the matrix transformation in non-premultiplied space. However, without alpha
+	// transformations, we can do it directly in premultiplied space to avoid the extra division and multiplication
+	// steps. In this space, the constant term needs to be multiplied by the alpha value, instead of unity.
 	vec4 texColor = texture(_tex, fragTexCoord);
-	finalColor = _color_matrix * texColor;
+	vec3 transformedColor = vec3(_color_matrix * texColor);
+	finalColor = vec4(transformedColor, texColor.a);
 }
 )";
 static const char* shader_frag_blend_mask = RMLUI_SHADER_HEADER R"(
@@ -1198,12 +1205,12 @@ bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	}
 
 	using Rml::byte;
-	byte* buffer = new byte[buffer_size];
-	file_interface->Read(buffer, buffer_size, file_handle);
+	Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
+	file_interface->Read(buffer.get(), buffer_size, file_handle);
 	file_interface->Close(file_handle);
 
 	TGAHeader header;
-	memcpy(&header, buffer, sizeof(TGAHeader));
+	memcpy(&header, buffer.get(), sizeof(TGAHeader));
 
 	int color_mode = header.bitsPerPixel / 8;
 	int image_size = header.width * header.height * 4; // We always make 32bit textures
@@ -1211,7 +1218,6 @@ bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	if (header.dataType != 2)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
-		delete[] buffer;
 		return false;
 	}
 
@@ -1219,28 +1225,28 @@ bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	if (color_mode < 3)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported.");
-		delete[] buffer;
 		return false;
 	}
 
-	const byte* image_src = buffer + sizeof(TGAHeader);
-	byte* image_dest = new byte[image_size];
+	const byte* image_src = buffer.get() + sizeof(TGAHeader);
+	Rml::UniquePtr<byte[]> image_dest_buffer(new byte[image_size]);
+	byte* image_dest = image_dest_buffer.get();
 
-	// Targa is BGR, swap to RGB and flip Y axis
+	// Targa is BGR, swap to RGB, flip Y axis, and convert to premultiplied alpha.
 	for (long y = 0; y < header.height; y++)
 	{
 		long read_index = y * header.width * color_mode;
 		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * 4;
 		for (long x = 0; x < header.width; x++)
 		{
-			image_dest[write_index] = image_src[read_index + 1];
-			image_dest[write_index + 1] = image_src[read_index + 2];
+			image_dest[write_index] = image_src[read_index + 2];
+			image_dest[write_index + 1] = image_src[read_index + 1];
 			image_dest[write_index + 2] = image_src[read_index];
 			if (color_mode == 4)
 			{
 				const byte alpha = image_src[read_index + 3];
 				for (size_t j = 0; j < 3; j++)
-					image_dest[write_index + j] = byte((int(image_dest[write_index + j]) * int(alpha)) / 255);
+					image_dest[write_index + j] = byte((image_dest[write_index + j] * alpha) / 255);
 				image_dest[write_index + 3] = alpha;
 			}
 			else
@@ -1255,9 +1261,6 @@ bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	texture_dimensions.y = header.height;
 
 	bool success = GenerateTexture(texture_handle, image_dest, texture_dimensions);
-
-	delete[] image_dest;
-	delete[] buffer;
 
 	return success;
 }

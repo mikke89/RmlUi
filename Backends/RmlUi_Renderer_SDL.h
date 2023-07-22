@@ -54,6 +54,7 @@ public:
 
 private:
 	SDL_Renderer* renderer;
+	SDL_BlendMode blend_mode = {};
 	SDL_Rect rect_scissor = {};
 	bool scissor_region_enabled = false;
 };

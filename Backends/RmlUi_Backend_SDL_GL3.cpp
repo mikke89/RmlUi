@@ -72,41 +72,35 @@ public:
 		Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
 		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
+		if (!surface)
+			return false;
 
-		bool success = false;
-		if (surface)
+		texture_dimensions.x = surface->w;
+		texture_dimensions.y = surface->h;
+
+		if (surface->format->format != SDL_PIXELFORMAT_RGBA32)
 		{
-			texture_dimensions.x = surface->w;
-			texture_dimensions.y = surface->h;
-
-			if (surface->format->format != SDL_PIXELFORMAT_RGBA32)
-			{
-				SDL_SetSurfaceAlphaMod(surface, SDL_ALPHA_OPAQUE);
-				SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_NONE);
-
-				SDL_Surface* new_surface = SDL_CreateRGBSurfaceWithFormat(0, surface->w, surface->h, 32, SDL_PIXELFORMAT_RGBA32);
-				if (!new_surface)
-					return false;
-
-				if (SDL_BlitSurface(surface, 0, new_surface, 0) != 0)
-					return false;
-
-				SDL_FreeSurface(surface);
-				surface = new_surface;
-			}
-
-			// RmlUi assumes premultiplied alpha, convert the color values accordingly.
-			byte* pixels = static_cast<byte*>(surface->pixels);
-			for (int i = 0; i < surface->w * surface->h * 4; i += 4)
-			{
-				const byte alpha = pixels[i + 3];
-				for (int j = 0; j < 3; ++j)
-					pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
-			}
-
-			success = RenderInterface_GL3::GenerateTexture(texture_handle, (const Rml::byte*)surface->pixels, texture_dimensions);
+			// Ensure correct format for premultiplied alpha conversion and GenerateTexture below.
+			SDL_Surface* converted_surface = SDL_ConvertSurfaceFormat(surface, SDL_PixelFormatEnum::SDL_PIXELFORMAT_RGBA32, 0);
 			SDL_FreeSurface(surface);
+
+			if (!converted_surface)
+				return false;
+
+			surface = converted_surface;
 		}
+
+		// Convert colors to premultiplied alpha, which is necessary for correct alpha compositing.
+		byte* pixels = static_cast<byte*>(surface->pixels);
+		for (int i = 0; i < surface->w * surface->h * 4; i += 4)
+		{
+			const byte alpha = pixels[i + 3];
+			for (int j = 0; j < 3; ++j)
+				pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
+		}
+
+		bool success = RenderInterface_GL3::GenerateTexture(texture_handle, (const Rml::byte*)surface->pixels, texture_dimensions);
+		SDL_FreeSurface(surface);
 
 		return success;
 	}

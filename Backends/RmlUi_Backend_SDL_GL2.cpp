@@ -76,23 +76,25 @@ public:
 			return false;
 
 		file_interface->Seek(file_handle, 0, SEEK_END);
-		size_t buffer_size = file_interface->Tell(file_handle);
+		const size_t buffer_size = file_interface->Tell(file_handle);
 		file_interface->Seek(file_handle, 0, SEEK_SET);
 
-		Rml::UniquePtr<char[]> buffer(new char[buffer_size]);
+		using Rml::byte;
+		Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
 		file_interface->Read(buffer.get(), buffer_size, file_handle);
 		file_interface->Close(file_handle);
 
-		const size_t i = source.rfind('.');
-		Rml::String extension = (i == Rml::String::npos ? Rml::String() : source.substr(i + 1));
+		const size_t i_ext = source.rfind('.');
+		Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
 		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
 		if (!surface)
 			return false;
 
-		if (surface->format->Amask == 0)
+		if (surface->format->format != SDL_PIXELFORMAT_RGBA32 && surface->format->format != SDL_PIXELFORMAT_BGRA32)
 		{
-			// Fix for rendering images with no alpha channel, see https://github.com/mikke89/RmlUi/issues/239
+			// Ensure correct format for premultiplied alpha conversion below. Additionally, fix rendering images with
+			// no alpha channel, see https://github.com/mikke89/RmlUi/issues/239
 			SDL_Surface* converted_surface = SDL_ConvertSurfaceFormat(surface, SDL_PixelFormatEnum::SDL_PIXELFORMAT_RGBA32, 0);
 			SDL_FreeSurface(surface);
 
@@ -102,14 +104,23 @@ public:
 			surface = converted_surface;
 		}
 
-		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-		if (texture)
+		// Convert colors to premultiplied alpha, which is necessary for correct alpha compositing.
+		byte* pixels = static_cast<byte*>(surface->pixels);
+		for (int i = 0; i < surface->w * surface->h * 4; i += 4)
 		{
-			texture_handle = (Rml::TextureHandle)texture;
-			texture_dimensions = Rml::Vector2i(surface->w, surface->h);
+			const byte alpha = pixels[i + 3];
+			for (int j = 0; j < 3; ++j)
+				pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
 		}
 
+		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+		texture_dimensions = Rml::Vector2i(surface->w, surface->h);
+		texture_handle = (Rml::TextureHandle)texture;
 		SDL_FreeSurface(surface);
+
+		if (!texture)
+			return false;
 
 		return true;
 	}

@@ -70,7 +70,7 @@ void RenderInterface_GL2::BeginFrame()
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 	Rml::Matrix4f projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 	glMatrixMode(GL_PROJECTION);
@@ -222,12 +222,13 @@ bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 		return false;
 	}
 
-	char* buffer = new char[buffer_size];
-	file_interface->Read(buffer, buffer_size, file_handle);
+	using Rml::byte;
+	Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
+	file_interface->Read(buffer.get(), buffer_size, file_handle);
 	file_interface->Close(file_handle);
 
 	TGAHeader header;
-	memcpy(&header, buffer, sizeof(TGAHeader));
+	memcpy(&header, buffer.get(), sizeof(TGAHeader));
 
 	int color_mode = header.bitsPerPixel / 8;
 	int image_size = header.width * header.height * 4; // We always make 32bit textures
@@ -235,7 +236,6 @@ bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	if (header.dataType != 2)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
-		delete[] buffer;
 		return false;
 	}
 
@@ -243,25 +243,30 @@ bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	if (color_mode < 3)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported.");
-		delete[] buffer;
 		return false;
 	}
 
-	const char* image_src = buffer + sizeof(TGAHeader);
-	unsigned char* image_dest = new unsigned char[image_size];
+	const byte* image_src = buffer.get() + sizeof(TGAHeader);
+	Rml::UniquePtr<byte[]> image_dest_buffer(new byte[image_size]);
+	byte* image_dest = image_dest_buffer.get();
 
-	// Targa is BGR, swap to RGB and flip Y axis
+	// Targa is BGR, swap to RGB, flip Y axis, and convert to premultiplied alpha.
 	for (long y = 0; y < header.height; y++)
 	{
 		long read_index = y * header.width * color_mode;
-		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * color_mode;
+		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * 4;
 		for (long x = 0; x < header.width; x++)
 		{
 			image_dest[write_index] = image_src[read_index + 2];
 			image_dest[write_index + 1] = image_src[read_index + 1];
 			image_dest[write_index + 2] = image_src[read_index];
 			if (color_mode == 4)
-				image_dest[write_index + 3] = image_src[read_index + 3];
+			{
+				const byte alpha = image_src[read_index + 3];
+				for (size_t j = 0; j < 3; j++)
+					image_dest[write_index + j] = byte((image_dest[write_index + j] * alpha) / 255);
+				image_dest[write_index + 3] = alpha;
+			}
 			else
 				image_dest[write_index + 3] = 255;
 
@@ -274,9 +279,6 @@ bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	texture_dimensions.y = header.height;
 
 	bool success = GenerateTexture(texture_handle, image_dest, texture_dimensions);
-
-	delete[] image_dest;
-	delete[] buffer;
 
 	return success;
 }

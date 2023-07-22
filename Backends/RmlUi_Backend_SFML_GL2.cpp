@@ -69,28 +69,41 @@ public:
 		size_t buffer_size = file_interface->Tell(file_handle);
 		file_interface->Seek(file_handle, 0, SEEK_SET);
 
-		char* buffer = new char[buffer_size];
-		file_interface->Read(buffer, buffer_size, file_handle);
+		using Rml::byte;
+		Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
+		file_interface->Read(buffer.get(), buffer_size, file_handle);
 		file_interface->Close(file_handle);
+
+		sf::Image image;
+		if (!image.loadFromMemory(buffer.get(), buffer_size))
+			return false;
+
+		// Convert colors to premultiplied alpha, which is necessary for correct alpha compositing.
+		for (unsigned int x = 0; x < image.getSize().x; x++)
+		{
+			for (unsigned int y = 0; y < image.getSize().y; y++)
+			{
+				sf::Color color = image.getPixel(x, y);
+				color.r = (sf::Uint8)((color.r * color.a) / 255);
+				color.g = (sf::Uint8)((color.g * color.a) / 255);
+				color.b = (sf::Uint8)((color.b * color.a) / 255);
+				image.setPixel(x, y, color);
+			}
+		}
 
 		sf::Texture* texture = new sf::Texture();
 		texture->setSmooth(true);
 
-		bool success = texture->loadFromMemory(buffer, buffer_size);
-
-		delete[] buffer;
-
-		if (success)
-		{
-			texture_handle = (Rml::TextureHandle)texture;
-			texture_dimensions = Rml::Vector2i(texture->getSize().x, texture->getSize().y);
-		}
-		else
+		if (!texture->loadFromImage(image))
 		{
 			delete texture;
+			return false;
 		}
 
-		return success;
+		texture_handle = (Rml::TextureHandle)texture;
+		texture_dimensions = Rml::Vector2i(texture->getSize().x, texture->getSize().y);
+
+		return true;
 	}
 
 	bool GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override
@@ -105,6 +118,7 @@ public:
 		}
 
 		texture->update(source, source_dimensions.x, source_dimensions.y, 0, 0);
+
 		texture_handle = (Rml::TextureHandle)texture;
 
 		return true;
