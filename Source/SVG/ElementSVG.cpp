@@ -198,6 +198,13 @@ void ElementSVG::UpdateTexture()
 								Vector2i& out_dimensions) -> bool {
 		RMLUI_ASSERT(svg_document);
 		lunasvg::Bitmap bitmap = svg_document->renderToBitmap(render_dimensions.x, render_dimensions.y);
+
+		// Swap red and blue channels, assuming LunaSVG v2.3.2 or newer, to convert to RmlUi's expected RGBA-ordering.
+		const size_t bitmap_size = bitmap.width() * bitmap.height();
+		uint8_t* bitmap_data = bitmap.data();
+		for (size_t i = 0; i < bitmap_size; i++)
+			std::swap(bitmap_data[i * 4], bitmap_data[i * 4 + 2]);
+
 		if (!bitmap.valid() || !bitmap.data())
 			return false;
 		if (!render_interface->GenerateTexture(out_handle, reinterpret_cast<const Rml::byte*>(bitmap.data()), render_dimensions))
