@@ -847,22 +847,22 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::Decorator:
-			values.has_decorator(p->unit == Unit::DECORATOR);
+			values.has_decorator(p->unit == Unit::DECORATOR && p->value.GetType() == Variant::DECORATORSPTR && p->value.GetReference<DecoratorsPtr>());
 			break;
 		case PropertyId::MaskImage:
-			values.has_mask_image(p->unit == Unit::DECORATOR);
+			values.has_mask_image(p->unit == Unit::DECORATOR && p->value.GetType() == Variant::DECORATORSPTR && p->value.GetReference<DecoratorsPtr>());
 			break;
 		case PropertyId::FontEffect:
-			values.has_font_effect(p->unit == Unit::FONTEFFECT);
+			values.has_font_effect(p->unit == Unit::FONTEFFECT && p->value.GetType() == Variant::FONTEFFECTSPTR && p->value.GetReference<FontEffectsPtr>());
 			break;
 		case PropertyId::Filter:
-			values.has_filter(p->unit == Unit::FILTER);
+			values.has_filter(p->unit == Unit::FILTER && p->value.GetType() == Variant::FILTERSPTR && p->value.GetReference<FiltersPtr>());
 			break;
 		case PropertyId::BackdropFilter:
-			values.has_backdrop_filter(p->unit == Unit::FILTER);
+			values.has_backdrop_filter(p->unit == Unit::FILTER && p->value.GetType() == Variant::FILTERSPTR && p->value.GetReference<FiltersPtr>());
 			break;
 		case PropertyId::BoxShadow:
-			values.has_box_shadow(p->unit == Unit::BOXSHADOWLIST);
+			values.has_box_shadow(p->unit == Unit::BOXSHADOWLIST && p->value.GetType() == Variant::BOXSHADOWLIST && !p->value.GetReference<BoxShadowList>().empty());
 			break;
 
 		case PropertyId::FlexBasis:
