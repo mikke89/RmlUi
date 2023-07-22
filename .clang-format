@@ -63,3 +63,4 @@ StatementMacros:
   - RMLUI_RTTI_DefineWithParent
 TabWidth: 4
 UseTab: AlignWithSpaces
+WhitespaceSensitiveMacros: ['RMLUI_STRINGIFY']
