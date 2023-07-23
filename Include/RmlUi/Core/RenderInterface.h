@@ -97,26 +97,6 @@ public:
 	/// @param[in] geometry The application-specific compiled geometry to release.
 	virtual void ReleaseCompiledGeometry(CompiledGeometryHandle geometry);
 
-	/// Called by RmlUi when it wants to enable or disable scissoring to clip content.
-	/// @param[in] enable True if scissoring is to enabled, false if it is to be disabled.
-	virtual void EnableScissorRegion(bool enable) = 0;
-	/// Called by RmlUi when it wants to change the scissor region.
-	/// @param[in] x The left-most pixel to be rendered. All pixels to the left of this should be clipped.
-	/// @param[in] y The top-most pixel to be rendered. All pixels to the top of this should be clipped.
-	/// @param[in] width The width of the scissored region. All pixels to the right of (x + width) should be clipped.
-	/// @param[in] height The height of the scissored region. All pixels to below (y + height) should be clipped.
-	virtual void SetScissorRegion(int x, int y, int width, int height) = 0;
-
-	/// Called by RmlUi when it wants to enable or disable the clip mask.
-	/// @param[in] enable True if the clip mask is to be enabled, false if it is to be disabled.
-	/// @note When enabled, the clip mask should hide any rendered contents outside the area of the mask.
-	virtual void EnableClipMask(bool enable);
-	/// Called by RmlUi when it wants to set or modify the contents of the clip mask.
-	/// @param[in] operation Describes how the geometry should affect the clip mask.
-	/// @param[in] geometry The compiled geometry to render.
-	/// @param[in] translation The translation to apply to the geometry.
-	virtual void RenderToClipMask(ClipMaskOperation operation, CompiledGeometryHandle geometry, Vector2f translation);
-
 	/// Called by RmlUi when a texture is required by the library.
 	/// @param[out] texture_handle The handle to write the texture handle for the loaded texture to.
 	/// @param[out] texture_dimensions The variable to write the dimensions of the loaded texture.
@@ -132,6 +112,30 @@ public:
 	/// Called by RmlUi when a loaded texture is no longer required.
 	/// @param[in] texture The texture handle to release.
 	virtual void ReleaseTexture(TextureHandle texture);
+
+	/// Called by RmlUi when it wants to enable or disable scissoring to clip content.
+	/// @param[in] enable True if scissoring is to enabled, false if it is to be disabled.
+	virtual void EnableScissorRegion(bool enable) = 0;
+	/// Called by RmlUi when it wants to change the scissor region.
+	/// @param[in] x The left-most pixel to be rendered. All pixels to the left of this should be clipped.
+	/// @param[in] y The top-most pixel to be rendered. All pixels to the top of this should be clipped.
+	/// @param[in] width The width of the scissored region. All pixels to the right of (x + width) should be clipped.
+	/// @param[in] height The height of the scissored region. All pixels to below (y + height) should be clipped.
+	virtual void SetScissorRegion(int x, int y, int width, int height) = 0;
+
+	/**
+	    @name Remaining functions are optional to implement for advanced effects.
+	 */
+
+	/// Called by RmlUi when it wants to enable or disable the clip mask.
+	/// @param[in] enable True if the clip mask is to be enabled, false if it is to be disabled.
+	/// @note When enabled, the clip mask should hide any rendered contents outside the area of the mask.
+	virtual void EnableClipMask(bool enable);
+	/// Called by RmlUi when it wants to set or modify the contents of the clip mask.
+	/// @param[in] operation Describes how the geometry should affect the clip mask.
+	/// @param[in] geometry The compiled geometry to render.
+	/// @param[in] translation The translation to apply to the geometry.
+	virtual void RenderToClipMask(ClipMaskOperation operation, CompiledGeometryHandle geometry, Vector2f translation);
 
 	/// Called by RmlUi when it wants the renderer to use a new transform matrix.
 	/// This will only be called if 'transform' properties are encountered. If no transform applies to the current element, nullptr
