@@ -193,7 +193,7 @@ static bool NextEvent(MSG& message, UINT timeout)
 {
 	if (timeout != 0)
 	{
-		UINT_PTR timer_id = SetTimer(NULL, NULL, timeout, NULL);
+		UINT_PTR timer_id = SetTimer(NULL, 0, timeout, NULL);
 		BOOL res = GetMessage(&message, NULL, 0, 0);
 		KillTimer(NULL, timer_id);
 		if (message.message != WM_TIMER || message.hwnd != nullptr || message.wParam != timer_id)
