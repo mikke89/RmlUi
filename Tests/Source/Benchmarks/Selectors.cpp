@@ -282,7 +282,7 @@ TEST_CASE("Selectors")
 
 		bool hover_active = false;
 
-		bench.run(name, [&] {
+		bench.run(name.c_str(), [&] {
 			hover_active = !hover_active;
 			// Toggle some arbitrary pseudo class on the element to dirty the definition on this and all descendent elements.
 			el->SetPseudoClass("hover", hover_active);
