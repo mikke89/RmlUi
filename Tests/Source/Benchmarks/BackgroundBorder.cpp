@@ -130,7 +130,7 @@ TEST_CASE("backgrounds_and_borders")
 		document->QuerySelectorAll(elements, "#" + id + " > div");
 		REQUIRE(!elements.empty());
 
-		bench.run("Border " + id, [&] {
+		bench.run(("Border " + id).c_str(), [&] {
 			for (auto& element : elements)
 				element->SetProperty(Rml::PropertyId::BorderLeftColor, Rml::Property(Colourb(), Unit::COLOUR));
 			context->Update();
