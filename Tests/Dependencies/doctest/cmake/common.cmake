@@ -138,6 +138,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         add_compiler_flags(-Wnoexcept)
     endif()
 
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+        add_compiler_flags(-Wno-missing-field-initializers)
+    endif()
+
     # no way to silence it in the expression decomposition macros: _Pragma() in macros doesn't work for the c++ front-end of g++
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=55578
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69543
@@ -179,7 +183,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compiler_flags(-Wno-c++98-compat-pedantic)
     add_compiler_flags(-Wno-c++98-compat-bind-to-temporary-copy)
     add_compiler_flags(-Wno-c++98-compat-local-type-template-args)
-    add_compiler_flags(-Qunused-arguments -fcolor-diagnostics) # needed for ccache integration on travis
+    add_compiler_flags(-Qunused-arguments -fcolor-diagnostics) # needed for ccache integration
 endif()
 
 if(MSVC)
@@ -191,6 +195,7 @@ if(MSVC)
     add_compiler_flags(
         /wd4514 # unreferenced inline function has been removed
         /wd4571 # SEH related
+        /wd5264 # const variable is not used
         /wd4710 # function not inlined
         /wd4711 # function 'x' selected for automatic inline expansion
 

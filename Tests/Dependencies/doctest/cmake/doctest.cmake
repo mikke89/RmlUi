@@ -32,7 +32,9 @@ same as the doctest name; see also ``TEST_PREFIX`` and ``TEST_SUFFIX``.
                          [TEST_PREFIX prefix]
                          [TEST_SUFFIX suffix]
                          [PROPERTIES name1 value1...]
+                         [ADD_LABELS value]
                          [TEST_LIST var]
+                         [JUNIT_OUTPUT_DIR dir]
     )
 
   ``doctest_discover_tests`` sets up a post-build command on the test executable
@@ -84,11 +86,21 @@ same as the doctest name; see also ``TEST_PREFIX`` and ``TEST_SUFFIX``.
     Specifies additional properties to be set on all tests discovered by this
     invocation of ``doctest_discover_tests``.
 
+  ``ADD_LABELS value``
+    Specifies if the test labels should be set automatically.
+
   ``TEST_LIST var``
     Make the list of tests available in the variable ``var``, rather than the
     default ``<target>_TESTS``.  This can be useful when the same test
     executable is being used in multiple calls to ``doctest_discover_tests()``.
     Note that this variable is only available in CTest.
+
+  ``JUNIT_OUTPUT_DIR dir``
+    If specified, the parameter is passed along with ``--reporters=junit``
+    and ``--out=`` to the test executable. The actual file name is the same
+    as the test target, including prefix and suffix. This should be used
+    instead of EXTRA_ARGS to avoid race conditions writing the XML result
+    output when using parallel test execution.
 
 #]=======================================================================]
 
@@ -97,8 +109,8 @@ function(doctest_discover_tests TARGET)
   cmake_parse_arguments(
     ""
     ""
-    "TEST_PREFIX;TEST_SUFFIX;WORKING_DIRECTORY;TEST_LIST"
-    "TEST_SPEC;EXTRA_ARGS;PROPERTIES"
+    "TEST_PREFIX;TEST_SUFFIX;WORKING_DIRECTORY;TEST_LIST;JUNIT_OUTPUT_DIR"
+    "TEST_SPEC;EXTRA_ARGS;PROPERTIES;ADD_LABELS"
     ${ARGN}
   )
 
@@ -131,9 +143,11 @@ function(doctest_discover_tests TARGET)
             -D "TEST_SPEC=${_TEST_SPEC}"
             -D "TEST_EXTRA_ARGS=${_EXTRA_ARGS}"
             -D "TEST_PROPERTIES=${_PROPERTIES}"
+            -D "TEST_ADD_LABELS=${_ADD_LABELS}"
             -D "TEST_PREFIX=${_TEST_PREFIX}"
             -D "TEST_SUFFIX=${_TEST_SUFFIX}"
             -D "TEST_LIST=${_TEST_LIST}"
+            -D "TEST_JUNIT_OUTPUT_DIR=${_JUNIT_OUTPUT_DIR}"
             -D "CTEST_FILE=${ctest_tests_file}"
             -P "${_DOCTEST_DISCOVER_TESTS_SCRIPT}"
     VERBATIM
