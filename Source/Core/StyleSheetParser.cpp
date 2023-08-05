@@ -325,7 +325,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	return true;
 }
 
-bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, NamedDecoratorMap& decorator_map, const StyleSheet& style_sheet,
+bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, NamedDecoratorMap& named_decorator_map,
 	const SharedPtr<const PropertySource>& source)
 {
 	StringList name_type;
@@ -341,8 +341,8 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, NamedDecorator
 	const String& name = name_type[0];
 	String decorator_type = name_type[1];
 
-	auto it_find = decorator_map.find(name);
-	if (it_find != decorator_map.end())
+	auto it_find = named_decorator_map.find(name);
+	if (it_find != named_decorator_map.end())
 	{
 		Log::Message(Log::LT_WARNING, "Decorator with name '%s' already declared, ignoring decorator at %s:%d.", name.c_str(),
 			stream_file_name.c_str(), line_number);
@@ -356,8 +356,8 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, NamedDecorator
 	if (!decorator_instancer)
 	{
 		// Type is not a declared decorator type, instead, see if it is another decorator name, then we inherit its properties.
-		auto it = decorator_map.find(decorator_type);
-		if (it != decorator_map.end())
+		auto it = named_decorator_map.find(decorator_type);
+		if (it != named_decorator_map.end())
 		{
 			// Yes, try to retrieve the instancer from the parent type, and add its property values.
 			decorator_instancer = Factory::GetDecoratorInstancer(it->second.type);
@@ -384,16 +384,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, NamedDecorator
 	property_specification.SetPropertyDefaults(properties);
 	properties.SetSourceOfAllProperties(source);
 
-	SharedPtr<Decorator> decorator =
-		decorator_instancer->InstanceDecorator(decorator_type, properties, DecoratorInstancerInterface(style_sheet, source.get()));
-	if (!decorator)
-	{
-		Log::Message(Log::LT_WARNING, "Could not instance decorator of type '%s' declared at %s:%d.", decorator_type.c_str(),
-			stream_file_name.c_str(), line_number);
-		return false;
-	}
-
-	decorator_map.emplace(name, NamedDecorator{std::move(decorator_type), std::move(properties), std::move(decorator)});
+	named_decorator_map.emplace(name, NamedDecorator{std::move(decorator_type), decorator_instancer, std::move(properties)});
 
 	return true;
 }
@@ -599,7 +590,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					else if (at_rule_identifier == "decorator")
 					{
 						auto source = MakeShared<PropertySource>(stream_file_name, (int)line_number, pre_token_str);
-						ParseDecoratorBlock(at_rule_name, current_block.stylesheet->decorator_map, *current_block.stylesheet, source);
+						ParseDecoratorBlock(at_rule_name, current_block.stylesheet->named_decorator_map, source);
 
 						at_rule_name.clear();
 						state = State::Global;

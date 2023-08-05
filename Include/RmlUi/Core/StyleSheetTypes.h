@@ -54,8 +54,8 @@ using KeyframesMap = UnorderedMap<String, Keyframes>;
 
 struct NamedDecorator {
 	String type;
+	DecoratorInstancer* instancer;
 	PropertyDictionary properties;
-	SharedPtr<Decorator> decorator;
 };
 using NamedDecoratorMap = UnorderedMap<String, NamedDecorator>;
 

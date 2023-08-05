@@ -103,7 +103,7 @@ private:
 	KeyframesMap keyframes;
 
 	// Name of every @decorator mapped to their specification
-	NamedDecoratorMap decorator_map;
+	NamedDecoratorMap named_decorator_map;
 
 	// Name of every @spritesheet and underlying sprites mapped to their values
 	SpritesheetList spritesheet_list;

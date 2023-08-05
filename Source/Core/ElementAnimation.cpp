@@ -100,7 +100,7 @@ struct EffectDeclarationView {
 		instancer(declaration.instancer), type(&declaration.type), properties(&declaration.properties), paint_area(declaration.paint_area)
 	{}
 	EffectDeclarationView(const NamedDecorator* named_decorator) :
-		instancer(Factory::GetDecoratorInstancer(named_decorator->type)), type(&named_decorator->type), properties(&named_decorator->properties)
+		instancer(named_decorator->instancer), type(&named_decorator->type), properties(&named_decorator->properties)
 	{}
 	EffectDeclarationView(const FilterDeclaration& declaration) :
 		instancer(declaration.instancer), type(&declaration.type), properties(&declaration.properties)
