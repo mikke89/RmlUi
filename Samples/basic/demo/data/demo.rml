@@ -226,9 +226,9 @@ p.title
 .fit-cover      { decorator: image( icon-invader cover      ); }
 .fit-scale-none { decorator: image( icon-invader scale-none ); }
 .fit-scale-down { decorator: image( icon-invader scale-down ); }
-.fit-repeat   { decorator: image( /assets/repeat.tga repeat ); }
-.fit-repeat-x { decorator: image( /assets/repeat.tga repeat-x ); }
-.fit-repeat-y { decorator: image( /assets/repeat.tga repeat-y ); }
+.fit-repeat   { decorator: image( /assets/alien_small.tga repeat ); }
+.fit-repeat-x { decorator: image( /assets/alien_small.tga repeat-x ); }
+.fit-repeat-y { decorator: image( /assets/alien_small.tga repeat-y ); }
 .orientation-vertical   { decorator: image( icon-invader flip-vertical   scale-none ); }
 .orientation-horizontal { decorator: image( icon-invader flip-horizontal scale-none ); }
 .orientation-rotate     { decorator: image( icon-invader rotate-180      scale-none ); }
