@@ -66,6 +66,9 @@ public:
 		COVER,      // Tile is stretched to cover the boundaries, keeping aspect ratio fixed.
 		SCALE_NONE, // Tile is never scaled.
 		SCALE_DOWN, // Tile acts like 'scale-none' if smaller than boundaries, or like 'contain' otherwise.
+		REPEAT,     // Tile is repeated on both x and y axis
+		REPEAT_X,   // Tile is repeated on the x axis
+		REPEAT_Y,   // Tile is repeated on the y axis
 	};
 
 	/**

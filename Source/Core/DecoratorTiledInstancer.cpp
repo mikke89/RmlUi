@@ -48,7 +48,7 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 	if (register_fit_modes)
 	{
 		String fit_name = CreateString(32, "%s-fit", name.c_str());
-		ids.fit = RegisterProperty(fit_name, "fill").AddParser("keyword", "fill, contain, cover, scale-none, scale-down").GetId();
+		ids.fit = RegisterProperty(fit_name, "fill").AddParser("keyword", "fill, contain, cover, scale-none, scale-down, repeat, repeat-x, repeat-y").GetId();
 
 		String align_x_name = CreateString(32, "%s-align-x", name.c_str());
 		ids.align_x = RegisterProperty(align_x_name, "center").AddParser("keyword", "left, center, right").AddParser("length_percent").GetId();

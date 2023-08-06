@@ -120,6 +120,7 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int
 
 	Vector2f final_tile_dimensions;
 	bool offset_and_clip_tile = false;
+	Vector2f repeat_factor = Vector2f(1);
 
 	switch (fit_mode)
 	{
@@ -165,6 +166,20 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int
 		offset_and_clip_tile = true;
 	}
 	break;
+	case REPEAT:
+		final_tile_dimensions = surface_dimensions;
+		repeat_factor = surface_dimensions / tile_dimensions;
+	break;
+	case REPEAT_X:
+		final_tile_dimensions = Vector2f(surface_dimensions.x, tile_dimensions.y);
+		repeat_factor.x = surface_dimensions.x / tile_dimensions.x;
+		offset_and_clip_tile = true;
+	break;
+	case REPEAT_Y:
+		final_tile_dimensions = Vector2f(tile_dimensions.x, surface_dimensions.y);
+		repeat_factor.y = surface_dimensions.y / tile_dimensions.y;
+		offset_and_clip_tile = true;
+	break;
 	}
 
 	Vector2f tile_offset(0, 0);
@@ -205,6 +220,9 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int
 			}
 		}
 	}
+
+	scaled_texcoords[0] *= repeat_factor;
+	scaled_texcoords[1] *= repeat_factor;
 
 	// Resize the vertex and index arrays to fit the new geometry.
 	int index_offset = (int)vertices.size();
