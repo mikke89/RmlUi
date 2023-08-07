@@ -168,31 +168,17 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int
 	break;
 	case REPEAT:
 		final_tile_dimensions = surface_dimensions;
-		if (scaled_texcoords[1].y - scaled_texcoords[0].y == 1.0 && scaled_texcoords[1].y - scaled_texcoords[0].y == 1.0) {
-			repeat_factor = surface_dimensions / tile_dimensions;
-		} else {
-			Log::Message(Log::LT_WARNING, "Texture repeating is not supported for spritesheets.");
-		}
+		repeat_factor = surface_dimensions / tile_dimensions;
 	break;
 	case REPEAT_X:
 		final_tile_dimensions = Vector2f(surface_dimensions.x, tile_dimensions.y);
+		repeat_factor.x = surface_dimensions.x / tile_dimensions.x;
 		offset_and_clip_tile = true;
-
-		if (scaled_texcoords[1].x - scaled_texcoords[0].x == 1.0) {
-			repeat_factor.x = surface_dimensions.x / tile_dimensions.x;
-		} else {
-			Log::Message(Log::LT_WARNING, "Texture repeating (repeat-x) is not supported for spritesheets.");
-		}
 	break;
 	case REPEAT_Y:
 		final_tile_dimensions = Vector2f(tile_dimensions.x, surface_dimensions.y);
+		repeat_factor.y = surface_dimensions.y / tile_dimensions.y;
 		offset_and_clip_tile = true;
-
-		if (scaled_texcoords[1].y - scaled_texcoords[0].y == 1.0) {
-			repeat_factor.y = surface_dimensions.y / tile_dimensions.y;
-		} else {
-			Log::Message(Log::LT_WARNING, "Texture repeating (repeat-y) is not supported for spritesheets.");
-		}
 	break;
 	}
 
