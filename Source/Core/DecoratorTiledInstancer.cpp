@@ -48,7 +48,7 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 	if (register_fit_modes)
 	{
 		String fit_name = CreateString(32, "%s-fit", name.c_str());
-		ids.fit = RegisterProperty(fit_name, "fill").AddParser("keyword", "fill, contain, cover, scale-none, scale-down").GetId();
+		ids.fit = RegisterProperty(fit_name, "fill").AddParser("keyword", "fill, contain, cover, scale-none, scale-down, repeat, repeat-x, repeat-y").GetId();
 
 		String align_x_name = CreateString(32, "%s-align-x", name.c_str());
 		ids.align_x = RegisterProperty(align_x_name, "center").AddParser("keyword", "left, center, right").AddParser("length_percent").GetId();
@@ -99,8 +99,9 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		DecoratorTiled::Tile& tile = tiles[i];
 		Texture& texture = textures[i];
 
+		const Sprite* sprite = instancer_interface.GetSprite(texture_name);
 		// A tile is always either a sprite or an image.
-		if (const Sprite* sprite = instancer_interface.GetSprite(texture_name))
+		if (sprite)
 		{
 			tile.position = sprite->rectangle.Position();
 			tile.size = sprite->rectangle.Size();
@@ -133,6 +134,14 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			RMLUI_ASSERT(ids.align_x != PropertyId::Invalid && ids.align_y != PropertyId::Invalid);
 			const Property& fit_property = *properties.GetProperty(ids.fit);
 			tile.fit_mode = (DecoratorTiled::TileFitMode)fit_property.value.Get<int>();
+
+			if (sprite && (tile.fit_mode == DecoratorTiled::TileFitMode::REPEAT ||
+				tile.fit_mode == DecoratorTiled::TileFitMode::REPEAT_X ||
+				tile.fit_mode == DecoratorTiled::TileFitMode::REPEAT_Y)) {
+				Log::Message(Log::LT_WARNING, "Decorator fit value is '%s', which is incompatible with a spritesheet",
+						fit_property.ToString().c_str());
+				return false;
+			}
 
 			const Property* align_properties[2] = {properties.GetProperty(ids.align_x), properties.GetProperty(ids.align_y)};
 

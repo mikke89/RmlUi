@@ -199,6 +199,9 @@ p.title
 	border: 1dp #777;
 	font-effect: shadow( 1dp 1dp #333 );
 }
+.image-mode.repeat > div {
+	height: 120dp;
+}
 #decorators .image-mode > div > p
 {
 	margin: -2em 0 0 0;
@@ -223,6 +226,9 @@ p.title
 .fit-cover      { decorator: image( icon-invader cover      ); }
 .fit-scale-none { decorator: image( icon-invader scale-none ); }
 .fit-scale-down { decorator: image( icon-invader scale-down ); }
+.fit-repeat   { decorator: image( /assets/alien_small.tga repeat ); }
+.fit-repeat-x { decorator: image( /assets/alien_small.tga repeat-x ); }
+.fit-repeat-y { decorator: image( /assets/alien_small.tga repeat-y ); }
 .orientation-vertical   { decorator: image( icon-invader flip-vertical   scale-none ); }
 .orientation-horizontal { decorator: image( icon-invader flip-horizontal scale-none ); }
 .orientation-rotate     { decorator: image( icon-invader rotate-180      scale-none ); }
@@ -708,6 +714,11 @@ progress {
 			<div class="fit-cover"></div>
 			<div class="fit-scale-none"></div>
 			<div class="fit-scale-down"></div>
+		</div>
+		<div class="image-mode repeat">
+			<div class="fit-repeat"><p>repeat</p></div>
+			<div class="fit-repeat-x"><p>repeat-x</p></div>
+			<div class="fit-repeat-y"><p>repeat-y</p></div>
 		</div>
 		<h1>Image decorator alignment modes</h1>
 		<div class="image-mode">
