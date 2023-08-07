@@ -99,8 +99,9 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 		DecoratorTiled::Tile& tile = tiles[i];
 		Texture& texture = textures[i];
 
+		const Sprite* sprite = instancer_interface.GetSprite(texture_name);
 		// A tile is always either a sprite or an image.
-		if (const Sprite* sprite = instancer_interface.GetSprite(texture_name))
+		if (sprite)
 		{
 			tile.position = sprite->rectangle.Position();
 			tile.size = sprite->rectangle.Size();
@@ -133,6 +134,14 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			RMLUI_ASSERT(ids.align_x != PropertyId::Invalid && ids.align_y != PropertyId::Invalid);
 			const Property& fit_property = *properties.GetProperty(ids.fit);
 			tile.fit_mode = (DecoratorTiled::TileFitMode)fit_property.value.Get<int>();
+
+			if (sprite && (tile.fit_mode == DecoratorTiled::TileFitMode::REPEAT ||
+				tile.fit_mode == DecoratorTiled::TileFitMode::REPEAT_X ||
+				tile.fit_mode == DecoratorTiled::TileFitMode::REPEAT_Y)) {
+				Log::Message(Log::LT_WARNING, "Decorator fit value is '%s', which is incompatible with a spritesheet",
+						fit_property.ToString().c_str());
+				return false;
+			}
 
 			const Property* align_properties[2] = {properties.GetProperty(ids.align_x), properties.GetProperty(ids.align_y)};
 
