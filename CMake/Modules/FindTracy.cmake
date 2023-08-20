@@ -6,7 +6,7 @@
 
 set(TRACY_DIR "" CACHE PATH "Parent directory of Tracy library")
 
-find_path(TRACY_INCLUDE_DIR Tracy.hpp PATHS ${TRACY_DIR} $ENV{TRACY_DIR} PATH_SUFFIXES tracy)
+find_path(TRACY_INCLUDE_DIR TracyClient.cpp PATHS ${TRACY_DIR} $ENV{TRACY_DIR} PATH_SUFFIXES tracy public tracy/public)
 
 set(TRACY_FOUND "NO")
 if(TRACY_INCLUDE_DIR)
