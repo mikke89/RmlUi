@@ -27,6 +27,7 @@
  */
 
 #include "FontFaceHandleDefault.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "../TextureLayout.h"
 #include "FontFaceLayer.h"
@@ -83,6 +84,8 @@ const FontGlyphMap& FontFaceHandleDefault::GetGlyphs() const
 
 int FontFaceHandleDefault::GetStringWidth(const String& string, float letter_spacing, Character prior_character)
 {
+	RMLUI_ZoneScoped;
+
 	int width = 0;
 	for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 	{

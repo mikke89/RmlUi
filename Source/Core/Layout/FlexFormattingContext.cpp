@@ -30,6 +30,7 @@
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/Element.h"
 #include "../../../Include/RmlUi/Core/ElementScroll.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/Types.h"
 #include "ContainerBox.h"
 #include "LayoutDetails.h"
@@ -42,6 +43,7 @@ namespace Rml {
 
 UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box)
 {
+	RMLUI_ZoneScopedC(0xAFAF4F);
 	auto flex_container_box = MakeUnique<FlexContainer>(element, parent_container);
 
 	ElementScroll* element_scroll = element->GetElementScroll();
@@ -135,7 +137,7 @@ struct FlexItem {
 	Size cross;
 	float flex_shrink_factor;
 	float flex_grow_factor;
-	Style::AlignSelf align_self;  // 'Auto' is replaced by container's 'align-items' value
+	Style::AlignSelf align_self; // 'Auto' is replaced by container's 'align-items' value
 
 	float inner_flex_base_size;   // Inner size
 	float flex_base_size;         // Outer size
@@ -234,9 +236,10 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	const float cross_size_base_value = (cross_available_size < 0.0f ? 0.0f : cross_available_size);
 
 	// -- Build a list of all flex items with base size information --
-	Vector<FlexItem> items;
-
 	const int num_flex_children = element_flex->GetNumChildren();
+	Vector<FlexItem> items;
+	items.reserve(num_flex_children);
+
 	for (int i = 0; i < num_flex_children; i++)
 	{
 		Element* element = element_flex->GetChild(i);

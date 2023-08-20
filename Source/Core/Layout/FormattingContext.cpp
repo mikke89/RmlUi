@@ -29,6 +29,7 @@
 #include "FormattingContext.h"
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/Element.h"
+#include "../../../Include/RmlUi/Core/Profiling.h"
 #include "BlockFormattingContext.h"
 #include "FlexFormattingContext.h"
 #include "LayoutBox.h"
@@ -40,6 +41,7 @@ namespace Rml {
 UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_container, Element* element, const Box* override_initial_box,
 	FormattingContextType backup_context)
 {
+	RMLUI_ZoneScopedC(0xAFAFAF);
 	using namespace Style;
 
 	if (element->IsReplaced())

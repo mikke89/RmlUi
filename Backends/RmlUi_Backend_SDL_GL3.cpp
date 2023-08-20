@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/Profiling.h>
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -321,4 +322,7 @@ void Backend::PresentFrame()
 
 	data->render_interface.EndFrame();
 	SDL_GL_SwapWindow(data->window);
+
+	// Optional, used to mark frames during performance profiling.
+	RMLUI_FrameMark;
 }
