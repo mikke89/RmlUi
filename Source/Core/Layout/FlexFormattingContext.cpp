@@ -89,8 +89,6 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 			context.flex_content_containing_block.y = containing_block.y;
 		}
 
-		Math::SnapToPixelGrid(context.flex_content_offset, context.flex_available_content_size);
-
 		// Format the flexbox and all its children.
 		Vector2f flex_resulting_content_size, content_overflow_size;
 		float flex_baseline = 0.f;
@@ -579,7 +577,6 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				item.main_offset = cursor + item.main.margin_a + item.main_auto_margin_size_a;
 
 			cursor += item.used_main_size + item.main_auto_margin_size_a + item.main_auto_margin_size_b;
-			Math::SnapToPixelGrid(item.main_offset, item.used_main_size);
 		}
 	}
 
@@ -636,7 +633,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				})->hypothetical_cross_size;
 
 			// Currently, we don't handle the case where baseline alignment could extend the line's cross size, see CSS specs 9.4.8.
-			line.cross_size = Math::Max(0.0f, Math::Round(largest_hypothetical_cross_size));
+			line.cross_size = Math::Max(0.0f, largest_hypothetical_cross_size);
 
 			if (flex_single_line)
 				line.cross_size = Math::Clamp(line.cross_size, cross_min_size, cross_max_size);
@@ -765,10 +762,6 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				}
 			}
 		}
-
-		// Snap the outer item cross edges to the pixel grid.
-		for (FlexItem& item : line.items)
-			Math::SnapToPixelGrid(item.cross_offset, item.used_cross_size);
 	}
 
 	const float accumulated_lines_cross_size = std::accumulate(container.lines.begin(), container.lines.end(), 0.f,
@@ -835,7 +828,6 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				line.cross_offset = cursor + line.cross_spacing_a;
 
 			cursor += line.cross_spacing_a + line.cross_size + line.cross_spacing_b;
-			Math::SnapToPixelGrid(line.cross_offset, line.cross_size);
 		}
 	}
 

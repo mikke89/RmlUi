@@ -46,7 +46,6 @@ void Sprite::Render(Rml::Vector2f position, const float dp_ratio, Rml::Colourb c
 
 	position = dp_ratio * position;
 	Rml::Vector2f dimensions_px = dp_ratio * dimensions;
-	Rml::Math::SnapToPixelGrid(position, dimensions_px);
 
 	Rml::Vertex vertices[4];
 	int indices[6];

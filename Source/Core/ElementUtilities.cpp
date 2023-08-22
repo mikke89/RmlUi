@@ -199,7 +199,6 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 				const BoxArea client_area = clipping_element->GetClientArea();
 				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(client_area);
 				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(client_area);
-				Math::SnapToPixelGrid(element_origin_f, element_dimensions_f);
 
 				const Vector2i element_origin(element_origin_f);
 				const Vector2i element_dimensions(element_dimensions_f);

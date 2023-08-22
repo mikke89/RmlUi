@@ -87,7 +87,7 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 		// Set any auto margins to their current value, since auto-margins may affect the size and position of an element.
 		auto SetDefiniteMargins = [](Element* element, const ComputedValues& computed) {
 			auto SetDefiniteMargin = [](Element* element, PropertyId margin_id, BoxEdge edge) {
-				element->SetProperty(margin_id, Property(Math::Round(element->GetBox().GetEdge(BoxArea::Margin, edge)), Unit::PX));
+				element->SetProperty(margin_id, Property(element->GetBox().GetEdge(BoxArea::Margin, edge), Unit::PX));
 			};
 			using Style::Margin;
 			if (computed.margin_top().type == Margin::Auto)
@@ -118,9 +118,9 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 
 				// Check if we have auto-size together with definite right/bottom; if so, the size needs to be fixed to the current size.
 				if (computed.width().type == Width::Auto && computed.right().type != Right::Auto)
-					move_target->SetProperty(PropertyId::Width, Property(Math::Round(GetSize(box, computed).x), Unit::PX));
+					move_target->SetProperty(PropertyId::Width, Property(GetSize(box, computed).x, Unit::PX));
 				if (computed.height().type == Height::Auto && computed.bottom().type != Bottom::Auto)
-					move_target->SetProperty(PropertyId::Height, Property(Math::Round(GetSize(box, computed).y), Unit::PX));
+					move_target->SetProperty(PropertyId::Height, Property(GetSize(box, computed).y, Unit::PX));
 
 				SetDefiniteMargins(move_target, computed);
 			}
@@ -148,7 +148,7 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 
 			if (size_target)
 			{
-				const Vector2f new_size = Math::Max((size_original_size + delta).Round(), Vector2f(0.f));
+				const Vector2f new_size = Math::Max(size_original_size + delta, Vector2f(0.f));
 				size_target->SetProperty(PropertyId::Width, Property(new_size.x, Unit::PX));
 				size_target->SetProperty(PropertyId::Height, Property(new_size.y, Unit::PX));
 			}

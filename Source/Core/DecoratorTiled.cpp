@@ -218,8 +218,6 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int
 	// Generate the vertices for the tiled surface.
 	Vector2f tile_position = (surface_origin + tile_offset);
 
-	Math::SnapToPixelGrid(tile_position, final_tile_dimensions);
-
 	GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, final_tile_dimensions, quad_colour, scaled_texcoords[0],
 		scaled_texcoords[1], index_offset);
 }
