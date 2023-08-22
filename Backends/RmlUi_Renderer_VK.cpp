@@ -2040,7 +2040,7 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 	info_vertex.pNext = nullptr;
 	info_vertex.flags = 0;
 
-	Rml::Array<VkVertexInputAttributeDescription, 3> info_shader_vertex_attributes;
+	Rml::Array<VkVertexInputAttributeDescription, 4> info_shader_vertex_attributes;
 	// describe info about our vertex and what is used in vertex shader as "layout(location = X) in"
 
 	VkVertexInputBindingDescription info_vertex_input_binding = {};
@@ -2062,6 +2062,11 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 	info_shader_vertex_attributes[2].location = 2;
 	info_shader_vertex_attributes[2].format = VK_FORMAT_R32G32_SFLOAT;
 	info_shader_vertex_attributes[2].offset = offsetof(Rml::Vertex, tex_coord);
+
+	info_shader_vertex_attributes[3].binding = 0;
+	info_shader_vertex_attributes[3].location = 3;
+	info_shader_vertex_attributes[3].format = VK_FORMAT_R32G32_SFLOAT;
+	info_shader_vertex_attributes[3].offset = offsetof(Rml::Vertex, relative_position);
 
 	info_vertex.pVertexAttributeDescriptions = info_shader_vertex_attributes.data();
 	info_vertex.vertexAttributeDescriptionCount = static_cast<uint32_t>(info_shader_vertex_attributes.size());

@@ -259,6 +259,8 @@ void GeometryBackgroundBorder::DrawArc(Vector2f pos_center, Vector2f r, float a0
 		const Vector2f unit_vector(Math::Cos(a), Math::Sin(a));
 
 		vertices[offset_vertices + i].position = unit_vector * r + pos_center;
+		if (i > 0 && i < num_points)
+			vertices[offset_vertices + i].relative_position = vertices[offset_vertices + 0].position + Vector2f(0.f, r.y);
 		vertices[offset_vertices + i].colour = Math::RoundedLerp(t, color0, color1);
 	}
 }
