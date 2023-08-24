@@ -260,7 +260,7 @@ void GeometryBackgroundBorder::DrawArc(Vector2f pos_center, Vector2f r, float a0
 
 		vertices[offset_vertices + i].position = unit_vector * r + pos_center;
 		if (i > 0 && i < num_points)
-			vertices[offset_vertices + i].relative_position = vertices[offset_vertices + 0].position + Vector2f(0.f, r.y);
+			vertices[offset_vertices + i].relative_position = pos_center + r;
 		vertices[offset_vertices + i].colour = Math::RoundedLerp(t, color0, color1);
 	}
 }
@@ -343,6 +343,12 @@ void GeometryBackgroundBorder::DrawArcArc(Vector2f pos_center, float R, Vector2f
 		vertices[offset_vertices + 2 * i].colour = color;
 		vertices[offset_vertices + 2 * i + 1].position = unit_vector * R + pos_center;
 		vertices[offset_vertices + 2 * i + 1].colour = color;
+
+		if (i > 0 && i < num_points)
+		{
+			vertices[offset_vertices + 2 * i].relative_position = pos_center + r;
+			vertices[offset_vertices + 2 * i + 1].relative_position = pos_center + Vector2f(R);
+		}
 	}
 
 	for (int i = 0; i < num_triangles; i += 2)
