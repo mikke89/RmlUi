@@ -372,7 +372,7 @@ elseif(rmlui_core_TYPE STREQUAL "SHARED_LIBRARY")
     # If RmlUi is being compiled as a shared library, notify code to export functions using __dllspec()
     # For applications consuming the library, the headers will automatically use dllimport
     # Platform and compiler handling is already done by code via pre-processor macros
-    target_compile_definitions(rmlui_core PRIVATE "RMLUICORE_EXPORTS")
+    target_compile_definitions(rmlui_core PRIVATE "RMLUI_CORE_EXPORTS")
 endif()
 
 # Negotiate usage of the default font engine

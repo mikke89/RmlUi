@@ -18,7 +18,7 @@ endfunction()
 if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     # All dependencies are searched as soft dependencies so that they won't error out if the library
     # is declared by other means
-    if(RMLUI_USING_VCPKG)
+    if(VCPKG_TOOLCHAIN)
         # vcpkg uses a different name for their SDL find module and target than the official CMake one
         find_package("SDL2")
 

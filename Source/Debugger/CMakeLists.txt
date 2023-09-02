@@ -65,7 +65,7 @@ if(rmlui_debugger_TYPE STREQUAL "SHARED_LIBRARY")
     # If RmlUi debugger is being compiled as a shared library, notify code to export functions using __dllspec()
     # For applications consuming the library, the headers will automatically use dllimport
     # Platform and compiler handling is already done by code via pre-processor macros
-    target_compile_definitions(rmlui_debugger PRIVATE "RMLUIDEBUGGER_EXPORTS")
+    target_compile_definitions(rmlui_debugger PRIVATE "RMLUI_DEBUGGER_EXPORTS")
 endif()
 
 # Set additional target properties
