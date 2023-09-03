@@ -125,17 +125,6 @@ endif()
 
 # SFML
 if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
-    # For compatibility with SFML >= 2.7, component names might need to be capitalized (Graphics, Window, ...)
-    if (WIN32)
-        find_package("SFML" "2" COMPONENTS graphics window system main)
-    else()
-        find_package("SFML" "2" COMPONENTS graphics window system)
-    endif()
-
-    if(NOT SFML_FOUND)
-        report_not_found_dependency("SFML" SFML::SFML)
-    endif()
-
     #[[
         Starting with SFML 2.7, the recommended method to find the library is using 
         the official config file which sets up targets for each module of the library.
@@ -152,16 +141,31 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
         approach.
     #]]
 
-    # Because we always require the window module, we can use it to determine which method CMake has used
-    # to find SFML
-    if(NOT TARGET SFML::Window)
-        list(APPEND RMLUI_SFML_REQUIRED_COMPONENTS "Graphics" "Window" "System")
-        if(WIN32)
-            list(APPEND RMLUI_SFML_REQUIRED_COMPONENTS "Main")
-        endif()
+    # List of required components in capital case
+    list(APPEND RMLUI_SFML_REQUIRED_COMPONENTS "Graphics" "Window" "System")
+    if(WIN32)
+        list(APPEND RMLUI_SFML_REQUIRED_COMPONENTS "Main")
+    endif()
 
-        # Because we always require the window module, we can use it to determine which iteration of the config
-        # module is being used
+    # Run find package with component names both capitalized and lower-cased
+    find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS})
+    list(TRANSFORM RMLUI_SFML_REQUIRED_COMPONENTS TOLOWER OUTPUT_VARIABLE RMLUI_SFML_REQUIRED_COMPONENTS_LOWER)
+    find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS_LOWER})
+
+    # Since we are using find_package() in basic mode, we can check the _FOUND variable 
+    if(NOT SFML_FOUND)
+        report_not_found_dependency("SFML" SFML::SFML)
+    endif()
+
+    #[[
+        Since the RmlUi CMake project uses the SFML 2.7 namespaced target names, if the version is lower wrappers
+        need to be set up.
+
+        Because we always require the window module, we can use it to determine which iteration of the config.
+    #]]
+
+    # If any of the mandatory SFML 2.7 targets isn't present, asume SFML < 2.7 has been found and set up wrappers
+    if(NOT TARGET SFML::Window)
         if(TARGET sfml-window)
             #[[
                 If sfml-window exists, then that means the version is either SFML 2.5 or 2.6 which set up
@@ -184,7 +188,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
             # Because module-specific targets already exist, there's no need for the wrapper for the older find module
             # Set up wrapper target as dumb target
             add_library(rmlui_SFML_old_wrapper INTERFACE)
-        elseif()
+        else()
             #[[
                 If sfml-window doesn't exist, then SFML version is <= 2.4 and the old-variable approach used in their
                 old official find module needs to be wrapped.
