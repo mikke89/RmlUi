@@ -56,9 +56,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     endif()
 
     # Set up wrapper target
-    add_library(windows_shell_shlwapi INTERFACE)
-    add_library(Windows::Shell::LightweightUtility ALIAS windows_shell_shlwapi)
-    target_link_libraries(windows_shell_shlwapi INTERFACE ${Shlwapi})
+    add_library(Windows::Shell::LightweightUtility INTERFACE IMPORTED)
+    target_link_libraries(Windows::Shell::LightweightUtility INTERFACE ${Shlwapi})
 
 # Link against required libraries from macOS
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -72,7 +71,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     endif()
 
     # Set up wrapper target
-    add_library(macos_cocoa INTERFACE)
-    add_library(macOS::Cocoa ALIAS macos_cocoa)
-    target_link_libraries(macos_cocoa INTERFACE ${Cocoa})
+    add_library(macOS::Cocoa INTERFACE IMPORTED)
+    target_link_libraries(macOS::Cocoa INTERFACE ${Cocoa})
 endif()

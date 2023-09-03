@@ -29,7 +29,7 @@ endif()
 
 # Emscripten includes GLFW support as part of it's SDK, meaning there's no need to find it
 set(glfw3_FOUND TRUE)
-add_library(glfw INTERFACE)
+add_library(glfw INTERFACE IMPORTED)
 
 # Set found GLFW version based on latest Emscripten SDK at the time of writing this file
 # Version set based on latest Emscripten SDK at the time of writing this file

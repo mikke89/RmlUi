@@ -48,13 +48,12 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     # Set up the detected SDL as the SDL::SDL INTERFACE target if it hasn't already been created
     # This is done for consistent referencing across the CMake code regardless of the CMake version used
     if(NOT TARGET SDL::SDL)
-        add_library(SDL INTERFACE)
-        add_library(SDL::SDL ALIAS SDL)
+        add_library(SDL::SDL INTERFACE IMPORTED)
 
         # Any CMake target linking against SDL::SDL will link against the SDL libraries and have
         # their include directories added to their target properties
-        target_link_libraries(SDL INTERFACE ${SDL_LIBRARIES})
-        target_include_directories(SDL INTERFACE ${SDL_INCLUDE_DIRS})
+        target_link_libraries(SDL::SDL INTERFACE ${SDL_LIBRARIES})
+        target_include_directories(SDL::SDL INTERFACE ${SDL_INCLUDE_DIRS})
     endif()
 
     # SDL_GL2 backend requires GLEW
@@ -102,13 +101,12 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
         # to make the code more future-proof
         # For us, its name will be SDL::Image
         if(NOT TARGET SDL::Image)
-            add_library(SDLimage INTERFACE)
-            add_library(SDL::Image ALIAS SDLimage)
+            add_library(SDL::Image INTERFACE IMPORTED)
 
             # Any CMake target linking against SDL::Image will link against the SDL_image libraries
             # and have their include directories added to their target properties
-            target_link_libraries(SDLimage INTERFACE ${SDL_IMAGE_LIBRARIES})
-            target_include_directories(SDLimage INTERFACE ${SDL_IMAGE_INCLUDE_DIRS})
+            target_link_libraries(SDL::Image INTERFACE ${SDL_IMAGE_LIBRARIES})
+            target_include_directories(SDL::Image INTERFACE ${SDL_IMAGE_INCLUDE_DIRS})
         endif()
     endif()
 endif()
@@ -203,8 +201,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
 
             # Create dumb targets to replace the modern component-specific targets
             foreach(sfml_component ${RMLUI_SFML_REQUIRED_COMPONENTS})
-                add_library(rmlui_SFML_${sfml_component} INTERFACE)
-                add_library(SFML::${sfml_component} ALIAS rmlui_SFML_${sfml_component})
+                add_library(SFML::${sfml_component} INTERFACE IMPORTED)
             endforeach()
         endif()
     endif()

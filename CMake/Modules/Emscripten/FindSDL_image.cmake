@@ -34,8 +34,7 @@ message(WARNING
 
 # Emscripten includes SDL support as part of it's SDK, meaning there's no need to find it
 set(SDL_image_FOUND TRUE)
-add_library(sdl_image INTERFACE)
-add_library(SDL::Image ALIAS sdl_image)
+add_library(SDL::Image INTERFACE IMPORTED)
 
 # Set found SDL_image version based on latest Emscripten SDK at the time of writing this file
 if((SDL_image_FIND_VERSION VERSION_GREATER_EQUAL "1") AND (SDL_image_FIND_VERSION VERSION_LESS "2"))
@@ -54,12 +53,12 @@ elseif((SDL_image_FIND_VERSION VERSION_GREATER_EQUAL "2") AND (SDL_image_FIND_VE
 endif()
 
 # Enable compilation and linking against SDL
-target_compile_options(sdl_image INTERFACE "-sUSE_SDL_IMAGE=${SDL_image_EMSCRIPTEN_COMPILER_SELECTED_VERSION}")
-target_link_libraries(sdl_image INTERFACE "-sUSE_SDL_IMAGE=${SDL_image_EMSCRIPTEN_COMPILER_SELECTED_VERSION}")
+target_compile_options(SDL::Image INTERFACE "-sUSE_SDL_IMAGE=${SDL_image_EMSCRIPTEN_COMPILER_SELECTED_VERSION}")
+target_link_libraries(SDL::Image INTERFACE "-sUSE_SDL_IMAGE=${SDL_image_EMSCRIPTEN_COMPILER_SELECTED_VERSION}")
 
 # Get final compiler and linker flags to print them
-get_target_property(SDL_image_COMPILE_FLAGS sdl_image "INTERFACE_COMPILE_OPTIONS")
-get_target_property(SDL_image_LINK_FLAGS sdl_image "INTERFACE_LINK_OPTIONS")
+get_target_property(SDL_image_COMPILE_FLAGS SDL::Image "INTERFACE_COMPILE_OPTIONS")
+get_target_property(SDL_image_LINK_FLAGS SDL::Image "INTERFACE_LINK_OPTIONS")
 
 find_package_message(
     "SDL_image"

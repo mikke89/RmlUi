@@ -30,8 +30,7 @@ endif()
 
 # Emscripten includes OpenGL ES support as part of it's SDK, meaning there's no need to find it
 set(OpenGL_FOUND TRUE)
-add_library(opengl INTERFACE)
-add_library(OpenGL::GL ALIAS opengl)
+add_library(OpenGL::GL INTERFACE IMPORTED)
 
 # Set found OpenGL version
 if((OpenGL_FIND_VERSION VERSION_GREATER_EQUAL "1") AND (OpenGL_FIND_VERSION VERSION_LESS "2"))
@@ -50,18 +49,18 @@ endif()
 # Handle OpenGL 1 edge case
 # More info: https://emscripten.org/docs/porting/multimedia_and_graphics/OpenGL-support.html#emulation-of-older-desktop-opengl-api-features
 if(OpenGL_VERSION VERSION_EQUAL "1")
-    target_link_libraries(opengl INTERFACE "-sLEGACY_GL_EMULATION")
+    target_link_libraries(OpenGL::GL INTERFACE "-sLEGACY_GL_EMULATION")
 endif()
 
 # Handle OpenGL ES software emulation
 # More info: https://emscripten.org/docs/porting/multimedia_and_graphics/OpenGL-support.html#opengl-es-2-0-3-0-emulation
 if(OpenGL_ENABLE_EMULATION AND OpenGL_VERSION VERSION_GREATER_EQUAL "2")
-    target_link_libraries(opengl INTERFACE "-sFULL_ES${OpenGL_VERSION}")
+    target_link_libraries(OpenGL::GL INTERFACE "-sFULL_ES${OpenGL_VERSION}")
 endif()
 
 # Get final compiler and linker flags to print them
-get_target_property(OpenGL_COMPILE_FLAGS opengl "INTERFACE_COMPILE_OPTIONS")
-get_target_property(OpenGL_LINK_FLAGS opengl "INTERFACE_LINK_OPTIONS")
+get_target_property(OpenGL_COMPILE_FLAGS OpenGL::GL "INTERFACE_COMPILE_OPTIONS")
+get_target_property(OpenGL_LINK_FLAGS OpenGL::GL "INTERFACE_LINK_OPTIONS")
 
 find_package_message(
     "OpenGL"

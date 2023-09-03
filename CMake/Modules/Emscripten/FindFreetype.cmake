@@ -30,20 +30,19 @@ endif()
 
 # Emscripten includes Freetype support as part of it's SDK, meaning there's no need to find it
 set(Freetype_FOUND TRUE)
-add_library(freetype INTERFACE)
-add_library(Freetype::Freetype ALIAS freetype)
+add_library(Freetype::Freetype INTERFACE IMPORTED)
 
 # Set found Freetype version
 # Version set based on latest Emscripten SDK at the time of writing this file
 set(FREETYPE_VERSION_STRING "2.6")
 
 # Enable compilation and linking against Freetype
-target_compile_options(freetype INTERFACE "-sUSE_FREETYPE=1")
-target_link_libraries(freetype INTERFACE "-sUSE_FREETYPE=1")
+target_compile_options(Freetype::Freetype INTERFACE "-sUSE_FREETYPE=1")
+target_link_libraries(Freetype::Freetype INTERFACE "-sUSE_FREETYPE=1")
 
 # Get final compiler and linker flags to print them
-get_target_property(Freetype_COMPILE_FLAGS freetype "INTERFACE_COMPILE_OPTIONS")
-get_target_property(Freetype_LINK_FLAGS freetype "INTERFACE_LINK_OPTIONS")
+get_target_property(Freetype_COMPILE_FLAGS Freetype::Freetype "INTERFACE_COMPILE_OPTIONS")
+get_target_property(Freetype_LINK_FLAGS Freetype::Freetype "INTERFACE_LINK_OPTIONS")
 
 find_package_message(
     "Freetype"
