@@ -1,17 +1,4 @@
-#[[
-Function to print a message to the console indicating a dependency hasn't been found
-Arguments:
-    - friendly_name: Friendly name of the target
-    - target_name: Name of the CMake target the project is supposed to link against
-]]
-function(report_not_found_dependency friendly_name target_name)
-    message(FATAL_ERROR     
-        "${friendly_name} has not been found by CMake."
-        "\nIf you are consuming RmlUi as a subdirectory inside another CMake project, please ensure that "
-        "${friendly_name} can be found by CMake or at least being linked using \"${target_name}\" as its "
-        "target name. You can create an ALIAS target to offer an alternative name for a CMake target."
-    )
-endfunction()
+include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 
 # --- Window/input APIs ---
 # SDL
