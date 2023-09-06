@@ -1,7 +1,9 @@
-# Declare executable
-add_executable(rmlui_samples_benchmark WIN32
-    src/main.cpp
-)
+if(NOT (RMLUI_FONT_INTERFACE STREQUAL "none"))
+    # Declare executable
+    add_executable(rmlui_samples_benchmark WIN32
+        src/main.cpp
+    )
 
-# Link shell library
-target_link_libraries(rmlui_samples_benchmark PRIVATE rmlui_samples_shell)
+    # Link shell library
+    target_link_libraries(rmlui_samples_benchmark PRIVATE rmlui_samples_shell)
+endif()

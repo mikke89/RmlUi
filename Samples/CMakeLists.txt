@@ -1,7 +1,10 @@
 # Check the font interface configuration
 if(RMLUI_FONT_INTERFACE STREQUAL "none")
-    # If RmlUi is being built with no font interface, then samples cannot be built
-    message(FATAL_ERROR "Building samples has been enabled, but no font interface has been selected.")
+    # If RmlUi is being built with no font interface, then some samples cannot be built
+    message(NOTICE 
+        "Building samples has been enabled, but no font interface has been selected. "
+        "Some samples might be disabled."
+    )
 endif()
 
 # Declare dependencies for sample backend

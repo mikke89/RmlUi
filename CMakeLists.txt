@@ -17,7 +17,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # "RMLUI_" prefix is included in order to take advantage of the fact that the
 # CMake GUI can group variables based on their prefix to make more clear
 # which options are specific to this project
-set(RMLUI_FONT_INTERFACE "freetype" CACHE STRING "Font interface to build RmlUi with. If set to \"none\", RmlUi won't be built with any of the included font interfaces.")
+set(RMLUI_FONT_INTERFACE "freetype" CACHE STRING "Font interface to build RmlUi with. If set to \"none\", RmlUi won't be built with any of the included font interfaces and some samples might be disabled.")
 option(RMLUI_ENABLE_LOTTIE_PLUGIN "Enable plugin for Lottie animations. Requires the rlottie library." OFF)
 option(RMLUI_ENABLE_SVG_PLUGIN "Enable plugin for SVG images. Requires the lunasvg library." OFF)
 option(RMLUI_BUILD_SAMPLES "Build samples of the library." OFF)

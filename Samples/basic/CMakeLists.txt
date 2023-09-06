@@ -1,6 +1,7 @@
-# Add CMake subdirectories of samples
+# Add CMake subdirectories of basic samples
 add_subdirectory("benchmark")
 add_subdirectory("demo")
+add_subdirectory("bitmapfont")
 
 # Negotiate inclusion of Lottie sample
 if(RMLUI_ENABLE_LOTTIE_PLUGIN)
