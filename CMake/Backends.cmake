@@ -1,17 +1,9 @@
-# List of available backends
-list(APPEND RMLUI_SAMPLES_AVAILABLE_BACKENDS
-    "Win32_GL2"
-    "Win32_VK"
-    "X11_GL2"
-    "SDL_GL2"
-    "SDL_GL3"
-    "SDL_VK"
-    "SDL_SDLrenderer"
-    "SFML_GL2"
-    "GLFW_GL2"
-    "GLFW_GL3"
-    "GLFW_VK"
-)
+#[[
+    Details about sample backends, their source code files and linking requirements
+
+    Everytime a new backend gets added or its target name is modified, please update
+    the list of available backends found in OptionsLists.cmake
+#]]
 
 list(APPEND RMLUI_BACKEND_COMMON_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend.h

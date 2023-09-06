@@ -1,5 +1,5 @@
 # Check the font interface configuration
-if(RMLUI_FONT_INTERFACE STREQUAL "")
+if(RMLUI_FONT_INTERFACE STREQUAL "none")
     # If RmlUi is being built with no font interface, then samples cannot be built
     message(FATAL_ERROR "Building samples has been enabled, but no font interface has been selected.")
 endif()
@@ -9,13 +9,6 @@ include("${PROJECT_SOURCE_DIR}/CMake/BackendsDependencies.cmake")
 
 # Add information about the available backends specified in CMake/Backends.cmake
 include("${PROJECT_SOURCE_DIR}/CMake/Backends.cmake")
-
-# Check if the specified backend is available
-list(FIND RMLUI_SAMPLES_AVAILABLE_BACKENDS ${RMLUI_SAMPLES_BACKEND} backend_index)
-if(backend_index EQUAL "-1")
-    # If the backend identifier isn't found in the list, return error
-    message(FATAL_ERROR "The RmlUi backend ID specified in RMLUI_SAMPLES_BACKEND is not valid.")
-endif()
 
 # Negotiate Vulkan debugging for Vulkan-based backends
 if(RMLUI_SAMPLES_BACKEND MATCHES "VK$")
