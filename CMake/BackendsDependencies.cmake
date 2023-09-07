@@ -1,46 +1,40 @@
+#[[
+    Set up of external dependencies required by the sample backends
+
+    All dependencies are searched as soft dependencies so that they won't error out if the library
+    is declared by other means
+#]]
+
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 
 # --- Window/input APIs ---
 # SDL
 if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
-    # All dependencies are searched as soft dependencies so that they won't error out if the library
-    # is declared by other means
-    if(VCPKG_TOOLCHAIN)
-        # vcpkg uses a different name for their SDL find module and target than the official CMake one
-        find_package("SDL2")
+    # Although the official CMake find module is called FindSDL.cmake, the official config module
+    # provided by the SDL package for its version 2 is called SDL2Config.cmake
+    # Following this trend, the official SDL config files change their name according to their major version number
+    find_package("SDL2" REQUIRED)
 
-        # If the target has been successfully imported
-        if(TARGET SDL2::SDL2)
-            # Report SDL as found
-            set(SDL_FOUND TRUE)
+    #[[
+        RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
+        Current code operates using a hybrid mode by detecting either the variable or the target due to the possibility
+        of package managers such as Conan and vcpkg of setting up SDL in their own way but always following the
+        target naming conventions of the official SDL config files
+    #]]
 
-            # Add the target to SDL_LIBRARIES
-            # This way no other pieces of code will need to be modified for the CMake project to work with vcpkg's SDL
-            list(APPEND SDL_LIBRARIES SDL2::SDL2)
-        endif()
-    else()
-        find_package("SDL" "2")
+    if(NOT TARGET SDL2::SDL2 AND NOT SDL2_FOUND)
+        report_not_found_dependency("SDL2" SDL2::SDL2)
     endif()
 
-    # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-    # In CMake 3.19 the IMPORTED target SDL::SDL is available when using the FindSDL find module.
-    # More info: https://cmake.org/cmake/help/latest/module/FindSDL.html
-    # Current code operates using a hybrid mode by detecting either the variable or the target due to the possibility
-    # of package managers such as Conan and vcpkg of setting up SDL in their own way but always following the
-    # target naming conventions of the official CMake find modules
-    if(NOT TARGET SDL::SDL AND NOT SDL_FOUND)
-        report_not_found_dependency("SDL" SDL::SDL)
-    endif()
-
-    # Set up the detected SDL as the SDL::SDL INTERFACE target if it hasn't already been created
+    # Set up the detected SDL as the SDL2::SDL2 INTERFACE target if it hasn't already been created
     # This is done for consistent referencing across the CMake code regardless of the CMake version used
-    if(NOT TARGET SDL::SDL)
-        add_library(SDL::SDL INTERFACE IMPORTED)
+    if(NOT TARGET SDL2::SDL2)
+        add_library(SDL2::SDL2 INTERFACE IMPORTED)
 
-        # Any CMake target linking against SDL::SDL will link against the SDL libraries and have
+        # Any CMake target linking against SDL2::SDL2 will link against the SDL libraries and have
         # their include directories added to their target properties
-        target_link_libraries(SDL::SDL INTERFACE ${SDL_LIBRARIES})
-        target_include_directories(SDL::SDL INTERFACE ${SDL_INCLUDE_DIRS})
+        target_link_libraries(SDL2::SDL2 INTERFACE ${SDL2_LIBRARIES})
+        target_include_directories(SDL2::SDL2 INTERFACE ${SDL2_INCLUDE_DIRS})
     endif()
 
     # SDL_GL2 backend requires GLEW
@@ -52,8 +46,8 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     endif()
 
     # Check version requirement for the SDL renderer
-    if(RMLUI_SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer" AND SDL_VERSION VERSION_LESS "2.0.20")
-        message(FATAL_ERROR "SDL native renderer backend (${RMLUI_SAMPLES_BACKEND}) requires SDL 2.0.20 (found ${SDL_VERSION}).")
+    if(RMLUI_SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer" AND SDL2_VERSION VERSION_LESS "2.0.20")
+        message(FATAL_ERROR "SDL native renderer backend (${RMLUI_SAMPLES_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
     endif()
 
     # List of SDL backends that require SDL_image to work with samples
@@ -74,26 +68,10 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
 
     # Require SDL_image if needed
     if(RMLUI_SDLIMAGE_REQUIRED)
-        find_package("SDL_image" "2")
+        find_package("SDL2_image")
 
-        # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-        # FindSDL_image doesn't provide an imported target to check against
-        # Using old method of using a variable to check
-        if(NOT SDL_IMAGE_FOUND AND NOT TARGET SDL::Image)
-            report_not_found_dependency("SDL_image" SDL::Image)
-        endif()
-
-        # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-        # No official target name has been decided for SDL_image yet, but we pretend there's one
-        # to make the code more future-proof
-        # For us, its name will be SDL::Image
-        if(NOT TARGET SDL::Image)
-            add_library(SDL::Image INTERFACE IMPORTED)
-
-            # Any CMake target linking against SDL::Image will link against the SDL_image libraries
-            # and have their include directories added to their target properties
-            target_link_libraries(SDL::Image INTERFACE ${SDL_IMAGE_LIBRARIES})
-            target_include_directories(SDL::Image INTERFACE ${SDL_IMAGE_INCLUDE_DIRS})
+        if(NOT TARGET SDL2_image::SDL2_image)
+            report_not_found_dependency("SDL2_image" SDL2_image::SDL2_image)
         endif()
     endif()
 endif()
@@ -134,8 +112,10 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
 
     # Run find package with component names both capitalized and lower-cased
     find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS})
-    list(TRANSFORM RMLUI_SFML_REQUIRED_COMPONENTS TOLOWER OUTPUT_VARIABLE RMLUI_SFML_REQUIRED_COMPONENTS_LOWER)
-    find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS_LOWER})
+    if(NOT SFML_FOUND)
+        list(TRANSFORM RMLUI_SFML_REQUIRED_COMPONENTS TOLOWER OUTPUT_VARIABLE RMLUI_SFML_REQUIRED_COMPONENTS_LOWER_CASE)
+        find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS_LOWER_CASE})
+    endif()
 
     # Since we are using find_package() in basic mode, we can check the _FOUND variable 
     if(NOT SFML_FOUND)
@@ -165,8 +145,19 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
                 string(TOLOWER ${sfml_component} sfml_component_lower)
 
                 if(TARGET sfml-${sfml_component_lower})
+                    #[[
+                        RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
+                        Because the target CMake version is 3.10, we can't alias non-global targets nor global imported targets.
+
+                        Promoting an imported target to the global scope without it being necessary can cause undesired behavior,
+                        specially when the project is consumed as a subdirectory inside another CMake project, therefore is not
+                        recommended. Instead of that, we pseudo-alias the target creating a second INTERFACE target with alias name.
+                        More info: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries
+                    #]]
+
                     # If the target exists, alias it
-                    add_library(SFML::${sfml_component} ALIAS sfml-${sfml_component_lower})
+                    add_library(SFML::${sfml_component} INTERFACE IMPORTED)
+                    target_link_libraries(SFML::${sfml_component} INTERFACE sfml-${sfml_component_lower})
                 endif()
             endforeach()
 

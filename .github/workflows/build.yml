@@ -4,13 +4,12 @@ on: [push, pull_request]
 
 jobs:
   Linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     
     env:
       BUILD_TYPE: Release
       CC: "${{ matrix.cc }}"
       CXX: "${{ matrix.cxx }}"
-      CMAKE_PREFIX_PATH: "/usr"
   
     strategy:
       fail-fast: false
@@ -21,13 +20,13 @@ jobs:
             cmake_options: -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DRMLUI_SAMPLES_BACKEND=GLFW_GL2
           - cc: clang
             cxx: clang++
-            cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK -DSDL_LIBRARY=SDL2 -DSDL_INCLUDE_DIR=/usr/include/SDL2
+            cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK
           - cmake_options: -DRMLUI_BUILD_TESTING=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF
             enable_testing: true
           - cmake_options: -DRMLUI_ENABLE_LOTTIE_PLUGIN=ON -DRMLUI_SAMPLES_BACKEND=X11_GL2
-          - cmake_options: -DRMLUI_DISABLE_RTTI_AND_EXCEPTIONS=ON -DRMLUI_SAMPLES_BACKEND=SDL_GL2 -DSDL_LIBRARY=SDL2 -DSDL_INCLUDE_DIR=/usr/include/SDL2 -DSDL_IMAGE_LIBRARY=/usr/lib/x86_64-linux-gnu/libSDL2_image-2.0.so.0 -DSDL_IMAGE_INCLUDE_DIR=/usr/include/SDL2
-          - cmake_options: -DRMLUI_NO_THIRDPARTY_CONTAINERS=ON -DRMLUI_SAMPLES_BACKEND=SFML_GL2 
-          - cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug -DSDL_LIBRARY=SDL2 -DSDL_INCLUDE_DIR=/usr/include/SDL2
+          - cmake_options: -DRMLUI_DISABLE_RTTI_AND_EXCEPTIONS=ON -DRMLUI_SAMPLES_BACKEND=SDL_GL2
+          - cmake_options: -DRMLUI_NO_THIRDPARTY_CONTAINERS=ON -DRMLUI_SAMPLES_BACKEND=SFML_GL2
+          - cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug
 
     steps:
     - uses: actions/checkout@v3
@@ -44,6 +43,7 @@ jobs:
       working-directory: ${{github.workspace}}/Build
       run: >-
         cmake $GITHUB_WORKSPACE -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_BUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/CMake/Modules/CI/Linux
         ${{ matrix.cmake_options }}
 
     - name: Build
@@ -124,7 +124,7 @@ jobs:
       working-directory: ${{github.workspace}}/Build
       run: >-
         cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_BUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
-        -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ${{ matrix.cmake_options }} -DRMLUI_USING_VCPKG=TRUE
+        -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ${{ matrix.cmake_options }}
 
     - name: Build
       working-directory: ${{github.workspace}}/Build

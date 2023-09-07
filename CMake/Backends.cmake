@@ -61,7 +61,7 @@ target_sources(rmlui_backend_SDL_GL2 INTERFACE
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.h
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.h
 )
-target_link_libraries(rmlui_backend_SDL_GL2 INTERFACE OpenGL::GL SDL::SDL GLEW::GLEW SDL::Image)
+target_link_libraries(rmlui_backend_SDL_GL2 INTERFACE OpenGL::GL SDL2::SDL2 GLEW::GLEW SDL2_image::SDL2_image)
 
 add_library(rmlui_backend_SDL_GL3 INTERFACE)
 target_sources(rmlui_backend_SDL_GL3 INTERFACE
@@ -73,7 +73,12 @@ target_sources(rmlui_backend_SDL_GL3 INTERFACE
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL3.h
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Include_GL3.h
 )
-target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE OpenGL::GL SDL::SDL SDL::Image)
+target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE OpenGL::GL SDL2::SDL2 SDL2_image::SDL2_image)
+if(UNIX)
+    # The OpenGL 3 renderer implementation uses dlopen/dlclose
+    # This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
+    target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE ${CMAKE_DL_LIBS})
+endif()
 
 add_library(rmlui_backend_SDL_VK INTERFACE)
 target_sources(rmlui_backend_SDL_VK INTERFACE
@@ -86,7 +91,12 @@ target_sources(rmlui_backend_SDL_VK INTERFACE
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Vulkan/ShadersCompiledSPV.h
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Vulkan/vk_mem_alloc.h
 )
-target_link_libraries(rmlui_backend_SDL_VK INTERFACE Vulkan::Vulkan SDL::SDL)
+target_link_libraries(rmlui_backend_SDL_VK INTERFACE Vulkan::Vulkan SDL2::SDL2)
+if(UNIX)
+    # The Vulkan renderer implementation uses dlopen/dlclose
+    # This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
+    target_link_libraries(rmlui_backend_SDL_VK INTERFACE ${CMAKE_DL_LIBS})
+endif()
 
 add_library(rmlui_backend_SDL_SDLrenderer INTERFACE)
 target_sources(rmlui_backend_SDL_SDLrenderer INTERFACE
@@ -97,7 +107,7 @@ target_sources(rmlui_backend_SDL_SDLrenderer INTERFACE
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.h
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_SDL.h
 )
-target_link_libraries(rmlui_backend_SDL_SDLrenderer INTERFACE SDL::SDL SDL::Image)
+target_link_libraries(rmlui_backend_SDL_SDLrenderer INTERFACE SDL2::SDL2 SDL2_image::SDL2_image)
 
 add_library(rmlui_backend_SFML_GL2 INTERFACE)
 target_sources(rmlui_backend_SFML_GL2 INTERFACE
@@ -137,6 +147,11 @@ target_sources(rmlui_backend_GLFW_GL3 INTERFACE
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Include_GL3.h
 )
 target_link_libraries(rmlui_backend_GLFW_GL3 INTERFACE OpenGL::GL glfw)
+if(UNIX)
+    # The OpenGL 3 renderer implementation uses dlopen/dlclose
+    # This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
+    target_link_libraries(rmlui_backend_GLFW_GL3 INTERFACE ${CMAKE_DL_LIBS})
+endif()
 
 add_library(rmlui_backend_GLFW_VK INTERFACE)
 target_sources(rmlui_backend_GLFW_VK INTERFACE
@@ -148,3 +163,8 @@ target_sources(rmlui_backend_GLFW_VK INTERFACE
     ${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.h
 )
 target_link_libraries(rmlui_backend_GLFW_VK INTERFACE Vulkan::Vulkan glfw)
+if(UNIX)
+    # The Vulkan renderer implementation uses dlopen/dlclose
+    # This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
+    target_link_libraries(rmlui_backend_GLFW_VK INTERFACE ${CMAKE_DL_LIBS})
+endif()
