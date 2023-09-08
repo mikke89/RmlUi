@@ -234,6 +234,18 @@ bool DataModel::EraseAliases(Element* element)
 	return aliases.erase(element) == 1;
 }
 
+void DataModel::CopyAliases(Element* from_element, Element* to_element)
+{
+	auto existing_map = aliases.find(from_element);
+	auto& new_map = aliases.emplace(to_element, SmallUnorderedMap<String, DataAddress>()).first->second;
+
+	if (existing_map != aliases.end())
+	{
+		for (auto const& it : existing_map->second)
+			new_map[it.first] = it.second;
+	}
+}
+
 DataAddress DataModel::ResolveAddress(const String& address_str, Element* element) const
 {
 	DataAddress address = ParseAddress(address_str);
