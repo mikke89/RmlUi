@@ -3,6 +3,8 @@
 
     Everytime a new backend gets added or its target name is modified, please update
     the list of available backends found in OptionsLists.cmake
+
+    This file is not meant to be used by consumers of the library, only by the RmlUi CMake project
 #]]
 
 list(APPEND RMLUI_BACKEND_COMMON_HDR_FILES

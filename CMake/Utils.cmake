@@ -1,8 +1,12 @@
 #[[
-Function to print a message to the console indicating a dependency hasn't been found
-Arguments:
-    - friendly_name: Friendly name of the target
-    - target_name: Name of the CMake target the project is supposed to link against
+    Various CMake utilities
+#]]
+
+#[[
+    Function to print a message to the console indicating a dependency hasn't been found
+    Arguments:
+        - friendly_name: Friendly name of the target
+        - target_name: Name of the CMake target the project is supposed to link against
 ]]
 function(report_not_found_dependency friendly_name target_name)
     message(FATAL_ERROR     
@@ -14,9 +18,9 @@ function(report_not_found_dependency friendly_name target_name)
 endfunction()
 
 #[[
-Function to print a message to the console indicating a library from a native platform SDK hasn't been found
-Arguments:
-    - library_name: Name of the library
+    Function to print a message to the console indicating a library from a native platform SDK hasn't been found
+    Arguments:
+        - library_name: Name of the library
 ]]
 function(report_not_found_native_library library_name)
     # Set SDK notice string

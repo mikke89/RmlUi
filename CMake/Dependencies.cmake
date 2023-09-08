@@ -1,3 +1,7 @@
+#[[
+    Set up of external dependencies required to build RmlUi itself
+#]]
+
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 
 # Freetype

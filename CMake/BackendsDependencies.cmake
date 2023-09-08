@@ -1,8 +1,10 @@
 #[[
-    Set up of external dependencies required by the sample backends
+    Set up of external dependencies required by the backends provided by the project to build the samples
 
     All dependencies are searched as soft dependencies so that they won't error out if the library
     is declared by other means
+
+    This file is not meant to be used by consumers of the library, only by the RmlUi CMake project
 #]]
 
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
