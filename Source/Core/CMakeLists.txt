@@ -376,7 +376,7 @@ if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
     target_link_libraries(rmlui_core PRIVATE rmlui_core_fontenginedefault)
 else()
     # Pass information to code via compile definition
-    target_compile_definitions(rmlui_core PRIVATE "RMLUI_NO_FONT_INTERFACE_DEFAULT")
+    target_compile_definitions(rmlui_core PRIVATE "RMLUI_FONT_INTERFACE_FREETYPE")
 endif()
 
 # Negotiate usage of the Lottie plugin

@@ -4,7 +4,9 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # Add plugin directories
-add_subdirectory("Lottie")
+if(RMLUI_ENABLE_LOTTIE_PLUGIN)
+    add_subdirectory("Lottie")
+endif()
 
 # Add main RmlUi directory
 add_subdirectory("Core")
