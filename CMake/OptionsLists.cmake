@@ -1,6 +1,6 @@
 #[[
     Lists of options available to configure some aspects of the project
-#]]
+]]
 
 # List of available backends
 list(APPEND RMLUI_SAMPLES_AVAILABLE_BACKENDS

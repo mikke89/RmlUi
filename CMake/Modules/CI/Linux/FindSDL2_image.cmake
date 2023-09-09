@@ -4,7 +4,7 @@
 
     This is necessary on Ubuntu 20.04 because the libsdl2-image-dev package doesn't provide the config file.
     https://packages.ubuntu.com/focal/amd64/libsdl2-image-dev/filelist
-#]]
+]]
 
 set(SDL2_image_FOUND TRUE)
 

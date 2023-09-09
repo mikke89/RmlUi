@@ -1,6 +1,6 @@
 #[[
     Various CMake utilities
-#]]
+]]
 
 #[[
     Function to print a message to the console indicating a dependency hasn't been found

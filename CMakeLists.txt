@@ -32,20 +32,20 @@ set_property(CACHE RMLUI_SAMPLES_BACKEND PROPERTY STRINGS ${RMLUI_SAMPLES_AVAILA
 set_property(CACHE RMLUI_FONT_INTERFACE PROPERTY STRINGS ${RMLUI_AVAILABLE_FONT_INTERFACES})
 
 # Check if the specified sample backend is available
-list(FIND RMLUI_SAMPLES_AVAILABLE_BACKENDS ${RMLUI_SAMPLES_BACKEND} backend_index)
-if(backend_index EQUAL "-1")
+list(FIND RMLUI_SAMPLES_AVAILABLE_BACKENDS ${RMLUI_SAMPLES_BACKEND} rmlui_backend_index)
+if(rmlui_backend_index EQUAL "-1")
     # If the backend identifier isn't found in the list, return error
     message(FATAL_ERROR "The RmlUi backend ID specified in RMLUI_SAMPLES_BACKEND is not valid.")
 endif()
-unset(backend_index)
+unset(rmlui_backend_index)
 
 # Check if the specified font interface is available
-list(FIND RMLUI_AVAILABLE_FONT_INTERFACES ${RMLUI_FONT_INTERFACE} fontinterface_index)
-if(fontinterface_index EQUAL "-1")
+list(FIND RMLUI_AVAILABLE_FONT_INTERFACES ${RMLUI_FONT_INTERFACE} rmlui_fontinterface_index)
+if(rmlui_fontinterface_index EQUAL "-1")
     # If the backend identifier isn't found in the list, return error
     message(FATAL_ERROR "The RmlUi font interface ID specified in RMLUI_FONT_INTERFACE is not valid.")
 endif()
-unset(fontinterface_index)
+unset(rmlui_fontinterface_index)
 
 # Add custom CMake modules path for external dependencies
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules")

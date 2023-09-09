@@ -12,7 +12,7 @@
 
     More info:
     https://emscripten.org/docs/porting/multimedia_and_graphics/OpenGL-support.html
-#]]
+]]
 
 include(FindPackageHandleStandardArgs)
 include(FindPackageMessage)

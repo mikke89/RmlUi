@@ -4,17 +4,6 @@
 #
 # Although not necessary, header files are also included to improve IntelliSense
 # capabilities on IDEs and language servers
-#
-# Tip: On UNIX systems you can run this on the current source folder to get the
-# entire list of files in the folder copied on the files.txt file:
-#
-#       ls *.cpp *.h > files.txt
-#
-# After running it, you can copy the text in that file and paste it here as a list
-# of source files
-#
-# Quoting the source file paths isn't necessary because add_library() doesn't read
-# CMake variables, just strings
 add_library(rmlui_debugger
     BeaconSource.h
     CommonSource.h
@@ -47,9 +36,9 @@ target_include_directories(rmlui_debugger PUBLIC "${PROJECT_SOURCE_DIR}/Include"
 # Setting them as PRIVATE so that it's addition doesn't propagate, it won't affect availability since
 # the entire include directory has already been declared as public
 target_sources(rmlui_debugger PRIVATE
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger/Debugger.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger.h
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger/Debugger.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger/Header.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger.h"
 )
 
 # Link against RmlUi

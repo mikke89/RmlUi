@@ -13,7 +13,7 @@
 
     More info:
     https://emscripten.org/docs/porting/multimedia_and_graphics/OpenGL-support.html
-#]]
+]]
 
 include(FindPackageHandleStandardArgs)
 include(FindPackageMessage)
@@ -44,7 +44,7 @@ endif()
 #[[
     The Emscripten SDK already makes OpenGL available by default without any additional configuration.
     However, additional settings might be needed in some cases.
-#]]
+]]
 
 # Handle OpenGL 1 edge case
 # More info: https://emscripten.org/docs/porting/multimedia_and_graphics/OpenGL-support.html#emulation-of-older-desktop-opengl-api-features

@@ -1,6 +1,6 @@
 #[[
     Set up of external dependencies required by the shell utility library used by the samples
-#]]
+]]
 
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 

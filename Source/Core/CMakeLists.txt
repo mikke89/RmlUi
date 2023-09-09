@@ -4,17 +4,6 @@
 #
 # Although not necessary, header files are also included to improve IntelliSense
 # capabilities on IDEs and language servers
-#
-# Tip: On UNIX systems you can run this on the current source folder to get the
-# entire list of files in the folder copied on the files.txt file:
-#
-#       ls *.cpp *.h > files.txt
-#
-# After running it, you can copy the text in that file and paste it here as a list
-# of source files
-#
-# Quoting the source file paths isn't necessary because add_library() doesn't read
-# CMake variables, just strings
 add_library(rmlui_core 
     BaseXMLParser.cpp
     Box.cpp
@@ -231,113 +220,113 @@ target_include_directories(rmlui_core PUBLIC "${PROJECT_SOURCE_DIR}/Include")
 # Setting them as PRIVATE so that it's addition doesn't propagate, it won't affect availability since
 # the entire include directory has already been declared as public
 target_sources(rmlui_core PRIVATE
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Config/Config.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Animation.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/BaseXMLParser.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Box.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.inl
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ComputedValues.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/itlib/flat_map.hpp
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/itlib/flat_set.hpp
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/LICENSE.txt
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/robin_hood.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Context.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ContextInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ConvolutionFilter.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Core.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataModelHandle.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataStructHandle.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypeRegister.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypes.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataVariable.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DecoratorInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Dictionary.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementDocument.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Input.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Log.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Math.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.inl
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/NumericValue.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ObserverPtr.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Platform.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Plugin.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Profiling.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertiesIteratorView.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Property.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDefinition.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDictionary.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyIdSet.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyParser.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertySpecification.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Rectangle.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementText.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementUtilities.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Event.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListener.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListenerInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Factory.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FileInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffect.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffectInstancer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEngineInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontGlyph.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontMetrics.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Geometry.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/GeometryUtilities.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Header.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScriptInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScrollTypes.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Spritesheet.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Stream.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StreamMemory.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StringUtilities.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheet.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetContainer.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetSpecification.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetTypes.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleTypes.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/SystemInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Texture.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Traits.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Transform.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TransformPrimitive.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Tween.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.inl
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Types.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Unit.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/URL.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Utilities.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Variant.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Variant.inl
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector2.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector2.inl
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector3.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector3.inl
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.inl
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vertex.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLNodeHandler.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLParser.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementForm.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControl.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlInput.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlSelect.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlTextArea.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementProgress.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementTabSet.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ID.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterface.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core.h
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Config/Config.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Animation.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/BaseXMLParser.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Box.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.inl"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ComputedValues.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/itlib/flat_map.hpp"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/itlib/flat_set.hpp"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/LICENSE.txt"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/robin_hood.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Context.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ContextInstancer.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ConvolutionFilter.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Core.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataModelHandle.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataStructHandle.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypeRegister.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypes.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataVariable.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DecoratorInstancer.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Dictionary.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementDocument.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementInstancer.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Input.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Log.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Math.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.inl"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/NumericValue.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ObserverPtr.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Platform.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Plugin.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Profiling.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertiesIteratorView.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Property.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDefinition.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyDictionary.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyIdSet.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertyParser.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertySpecification.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Rectangle.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementScroll.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementText.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementUtilities.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Event.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventInstancer.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListener.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListenerInstancer.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Factory.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FileInterface.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffect.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffectInstancer.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEngineInterface.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontGlyph.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontMetrics.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Geometry.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/GeometryUtilities.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Header.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScriptInterface.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScrollTypes.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Spritesheet.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Stream.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StreamMemory.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StringUtilities.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheet.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetContainer.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetSpecification.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetTypes.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleTypes.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/SystemInterface.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Texture.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Traits.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Transform.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TransformPrimitive.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Tween.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.inl"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Types.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Unit.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/URL.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Utilities.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Variant.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Variant.inl"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector2.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector2.inl"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector3.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector3.inl"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vector4.inl"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Vertex.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLNodeHandler.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/XMLParser.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementForm.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControl.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlInput.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlSelect.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementFormControlTextArea.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementProgress.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Elements/ElementTabSet.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ID.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterface.h"
+    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core.h"
 )
 
 # Add alias for the library so that a namespaced name can be used in the rest
@@ -374,6 +363,7 @@ elseif(rmlui_core_TYPE STREQUAL "SHARED_LIBRARY")
     # Platform and compiler handling is already done by code via pre-processor macros
     target_compile_definitions(rmlui_core PRIVATE "RMLUI_CORE_EXPORTS")
 endif()
+unset(rmlui_core_TYPE)
 
 # Negotiate usage of the default font engine
 # When any new font engine is added, it must be added here with an else if statement before the else case

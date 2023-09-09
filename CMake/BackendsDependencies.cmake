@@ -5,7 +5,7 @@
     is declared by other means
 
     This file is not meant to be used by consumers of the library, only by the RmlUi CMake project
-#]]
+]]
 
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 
@@ -18,11 +18,10 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     find_package("SDL2" REQUIRED)
 
     #[[
-        RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
         Current code operates using a hybrid mode by detecting either the variable or the target due to the possibility
         of package managers such as Conan and vcpkg of setting up SDL in their own way but always following the
         target naming conventions of the official SDL config files
-    #]]
+    ]]
 
     if(NOT TARGET SDL2::SDL2 AND NOT SDL2_FOUND)
         report_not_found_dependency("SDL2" SDL2::SDL2)
@@ -56,8 +55,8 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     list(APPEND RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer")
 
     # Determine if the selected SDL backend requires SDL_image
-    list(FIND RMLUI_SDL_BACKENDS_WITH_SDLIMAGE ${RMLUI_SAMPLES_BACKEND} index)
-    if(index EQUAL "-1")
+    list(FIND RMLUI_SDL_BACKENDS_WITH_SDLIMAGE ${RMLUI_SAMPLES_BACKEND} rmlui_sdl_image_found_item_index)
+    if(rmlui_sdl_image_found_item_index EQUAL "-1")
         # If the backend hasn't been found in the list, SDL_image isn't required
         set(RMLUI_SDLIMAGE_REQUIRED FALSE)
     else()
@@ -65,7 +64,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
         set(RMLUI_SDLIMAGE_REQUIRED TRUE)
     endif()
     # Clear scope
-    unset(index)
+    unset(rmlui_sdl_image_found_item_index)
     unset(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
 
     # Require SDL_image if needed
@@ -104,7 +103,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
 
         In SFML <= 2.4 the old official find module is still in use which uses the old variable-based
         approach.
-    #]]
+    ]]
 
     # List of required components in capital case
     list(APPEND RMLUI_SFML_REQUIRED_COMPONENTS "Graphics" "Window" "System")
@@ -129,7 +128,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
         need to be set up.
 
         Because we always require the window module, we can use it to determine which iteration of the config.
-    #]]
+    ]]
 
     # If any of the mandatory SFML 2.7 targets isn't present, asume SFML < 2.7 has been found and set up wrappers
     if(NOT TARGET SFML::Window)
@@ -139,7 +138,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
                 module-specific CMake targets but with different names using a config file.
 
                 Therefore, we need to alias the target names to match those declared by SFML 2.7 and used by RmlUi.
-            #]]
+            ]]
 
             # For each SFML component the project requires
             foreach(sfml_component ${RMLUI_SFML_REQUIRED_COMPONENTS})
@@ -155,7 +154,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
                         specially when the project is consumed as a subdirectory inside another CMake project, therefore is not
                         recommended. Instead of that, we pseudo-alias the target creating a second INTERFACE target with alias name.
                         More info: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries
-                    #]]
+                    ]]
 
                     # If the target exists, alias it
                     add_library(SFML::${sfml_component} INTERFACE IMPORTED)
@@ -170,7 +169,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
             #[[
                 If sfml-window doesn't exist, then SFML version is <= 2.4 and the old-variable approach used in their
                 old official find module needs to be wrapped.
-            #]]
+            ]]
 
             # Create our own custom INTERFACE target
             add_library(rmlui_SFML_old_wrapper INTERFACE)
