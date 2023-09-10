@@ -58,6 +58,9 @@ class TestsRenderInterface : public Rml::RenderInterface {
 public:
 	struct Counters {
 		size_t render_calls;
+		size_t compile_geometry_calls;
+		size_t render_compiled_geometry_calls;
+		size_t release_compiled_geometry_calls;
 		size_t enable_scissor;
 		size_t set_scissor;
 		size_t load_texture;
@@ -69,6 +72,10 @@ public:
 	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
 		const Rml::Vector2f& translation) override;
 
+	Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices) override;
+	void RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation, Rml::TextureHandle texture) override;
+	void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) override;
+
 	void EnableScissorRegion(bool enable) override;
 	void SetScissorRegion(int x, int y, int width, int height) override;
 
@@ -78,11 +85,19 @@ public:
 
 	void SetTransform(const Rml::Matrix4f* transform) override;
 
-	const Counters& GetCounters() const { return counters; }
+	void EnableCompiledGeometry(bool enable) { enable_compiled_geometry = enable; }
 
+	const Counters& GetCounters() const { return counters; }
 	void ResetCounters() { counters = {}; }
 
+	void Reset()
+	{
+		ResetCounters();
+		EnableCompiledGeometry(false);
+	}
+
 private:
+	bool enable_compiled_geometry = false;
 	Counters counters = {};
 };
 

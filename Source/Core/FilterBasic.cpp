@@ -27,10 +27,11 @@
  */
 
 #include "FilterBasic.h"
-#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/CompiledFilterShader.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 
 namespace Rml {
 
@@ -41,15 +42,9 @@ bool FilterBasic::Initialise(const String& in_name, float in_value)
 	return true;
 }
 
-CompiledFilterHandle FilterBasic::CompileFilter(Element* /*element*/) const
+CompiledFilter FilterBasic::CompileFilter(Element* element) const
 {
-	CompiledFilterHandle handle = GetRenderInterface()->CompileFilter(name, Dictionary{{"value", Variant(value)}});
-	return handle;
-}
-
-void FilterBasic::ReleaseCompiledFilter(Element* /*element*/, CompiledFilterHandle filter_handle) const
-{
-	GetRenderInterface()->ReleaseCompiledFilter(filter_handle);
+	return element->GetRenderManager()->CompileFilter(name, Dictionary{{"value", Variant(value)}});
 }
 
 FilterBasicInstancer::FilterBasicInstancer(ValueType value_type, const char* default_value)

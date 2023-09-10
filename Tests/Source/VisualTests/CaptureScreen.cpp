@@ -28,8 +28,8 @@
 
 #include "CaptureScreen.h"
 #include "TestConfig.h"
-#include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <RendererExtensions.h>
 #include <Shell.h>
@@ -187,8 +187,8 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 		const Rml::ColourbPremultiplied colour = {255, 255, 255, 255};
 		const Rml::Vector2f uv_top_left = {0, 0};
 		const Rml::Vector2f uv_bottom_right = {1, 1};
-		Rml::GeometryUtilities::GenerateQuad(geometry.vertices, geometry.indices, Rml::Vector2f(0, 0), Rml::Vector2f((float)w_ref, (float)h_ref),
-			colour, uv_top_left, uv_bottom_right, 0);
+		Rml::MeshUtilities::GenerateQuad(geometry.mesh, Rml::Vector2f(0, 0), Rml::Vector2f((float)w_ref, (float)h_ref), colour, uv_top_left,
+			uv_bottom_right);
 		return true;
 	};
 
@@ -207,7 +207,8 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 void RenderTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry)
 {
 	if (geometry.texture_handle)
-		render_interface->RenderGeometry(geometry.vertices, 4, geometry.indices, 6, geometry.texture_handle, Rml::Vector2f(0, 0));
+		render_interface->RenderGeometry(geometry.mesh.vertices.data(), (int)geometry.mesh.vertices.size(), geometry.mesh.indices.data(),
+			(int)geometry.mesh.indices.size(), geometry.texture_handle, Rml::Vector2f(0, 0));
 }
 
 void ReleaseTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry)

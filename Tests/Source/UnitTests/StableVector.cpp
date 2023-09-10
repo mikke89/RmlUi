@@ -26,36 +26,51 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/Geometry.h"
-#include "RenderManagerAccess.h"
+#include <RmlUi/Core/StableVector.h>
+#include <doctest.h>
 
-namespace Rml {
+using namespace Rml;
 
-Geometry::Geometry(RenderManager* render_manager, StableVectorIndex resource_handle) : UniqueRenderResource(render_manager, resource_handle) {}
-
-void Geometry::Render(Vector2f translation, Texture texture, const CompiledShader& shader) const
+TEST_CASE("StableVector")
 {
-	if (resource_handle == StableVectorIndex::Invalid)
-		return;
+	StableVector<int> v;
 
-	translation = translation.Round();
+	REQUIRE(v.empty() == true);
+	REQUIRE(v.size() == 0);
 
-	RenderManagerAccess::Render(render_manager, *this, translation, texture, shader);
+	const int a = 3;
+	const auto index_a = v.insert(a);
+	REQUIRE(!v.empty());
+	REQUIRE(v.size() == 1);
+
+	const int b = 4;
+	const auto index_b = v.insert(b);
+	REQUIRE(!v.empty());
+	REQUIRE(v.size() == 2);
+
+	const int expected_values[] = {a, b};
+	v.for_each([&, i = 0](int& value) mutable {
+		REQUIRE(value == expected_values[i]);
+		i++;
+	});
+
+	REQUIRE(v[index_a] == a);
+	REQUIRE(v[index_b] == b);
+
+	const int a_out = v.erase(index_a);
+	REQUIRE(a_out == a);
+	REQUIRE(v.size() == 1);
+	REQUIRE(v[index_b] == b);
+
+	const int b_out = v.erase(index_b);
+	REQUIRE(b_out == b);
+	REQUIRE(v.empty());
+	REQUIRE(v.size() == 0);
+
+	const int c = 5;
+	const auto index_c = v.insert(c);
+	REQUIRE(!v.empty());
+	REQUIRE(v.size() == 1);
+	REQUIRE(v[index_c] == c);
+	v.for_each([&](int& value) { REQUIRE(value == c); });
 }
-
-Mesh Geometry::Release(ReleaseMode mode)
-{
-	if (resource_handle == StableVectorIndex::Invalid)
-		return Mesh();
-
-	Mesh mesh = RenderManagerAccess::ReleaseResource(render_manager, *this);
-	Clear();
-	if (mode == ReleaseMode::ClearMesh)
-	{
-		mesh.vertices.clear();
-		mesh.indices.clear();
-	}
-	return mesh;
-}
-
-} // namespace Rml

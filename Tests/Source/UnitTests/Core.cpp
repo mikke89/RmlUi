@@ -124,14 +124,15 @@ TEST_CASE("core.texture_source_list")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("core.release_textures")
+TEST_CASE("core.release_resources")
 {
 	TestsRenderInterface* render_interface = TestsShell::GetTestsRenderInterface();
 	// This test only works with the dummy renderer.
 	if (!render_interface)
 		return;
 
-	render_interface->ResetCounters();
+	render_interface->Reset();
+	render_interface->EnableCompiledGeometry(true);
 	const auto& counters = render_interface->GetCounters();
 
 	Context* context = TestsShell::GetContext();
@@ -154,6 +155,20 @@ TEST_CASE("core.release_textures")
 		CHECK(counters.generate_texture + counters.load_texture > counters.release_texture);
 	}
 
+	SUBCASE("ReleaseFontResources")
+	{
+		const auto counter_generate_before = counters.generate_texture;
+		const auto counter_release_before = counters.release_texture;
+
+		Rml::ReleaseFontResources();
+		CHECK(counters.generate_texture == counter_generate_before);
+		CHECK(counters.release_texture > counter_release_before);
+
+		// Font texture is regenerated when rendered again.
+		TestsShell::RenderLoop();
+		CHECK(counters.generate_texture > counter_generate_before);
+	}
+
 	SUBCASE("FontGlyphCache")
 	{
 		const auto counter_generate_before = counters.generate_texture;
@@ -172,10 +187,25 @@ TEST_CASE("core.release_textures")
 		CHECK(counters.release_texture == counter_release_before + 1);
 	}
 
+	SUBCASE("ReleaseCompiledGeometry")
+	{
+		CHECK(counters.compile_geometry_calls > 0);
+		CHECK(counters.release_compiled_geometry_calls == 0);
+
+		Rml::ReleaseCompiledGeometry();
+		CHECK(counters.compile_geometry_calls == counters.release_compiled_geometry_calls);
+
+		TestsShell::RenderLoop();
+		CHECK(counters.compile_geometry_calls > counters.release_compiled_geometry_calls);
+	}
+
 	document->Close();
 
 	TestsShell::ShutdownShell();
 
-	// Finally, verify that all generated and loaded textures are released during shutdown.
+	// Finally, verify that all generated and loaded resources are released during shutdown.
 	CHECK(counters.generate_texture + counters.load_texture == counters.release_texture);
+	CHECK(counters.compile_geometry_calls == counters.release_compiled_geometry_calls);
+
+	render_interface->Reset();
 }

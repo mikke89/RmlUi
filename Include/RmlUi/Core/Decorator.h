@@ -41,8 +41,9 @@ namespace Rml {
 class Element;
 class PropertyDictionary;
 struct Sprite;
-struct Texture;
+class Texture;
 class StyleSheet;
+class RenderManager;
 class DecoratorInstancerInterface;
 
 /**
@@ -76,13 +77,13 @@ protected:
 	/// Adds a texture if it is valid into the list of textures in use by the decorator.
 	/// @param[in] texture The texture to add.
 	/// @return The index of the texture if it is successful, or -1 if it is invalid.
-	int AddTexture(const Texture& texture);
+	int AddTexture(Texture texture);
 	/// Get number of textures in use by the decorator.
 	int GetNumTextures() const;
 	/// Returns one of the decorator's previously loaded textures.
 	/// @param[in] index The index of the desired texture.
 	/// @return The texture at the appropriate index, or nullptr if the index was invalid.
-	const Texture* GetTexture(int index = 0) const;
+	Texture GetTexture(int index = 0) const;
 
 private:
 	// Stores a list of textures in use by this decorator.
@@ -110,8 +111,8 @@ public:
 
 class RMLUICORE_API DecoratorInstancerInterface {
 public:
-	DecoratorInstancerInterface(const StyleSheet& style_sheet, const PropertySource* property_source) :
-		style_sheet(style_sheet), property_source(property_source)
+	DecoratorInstancerInterface(RenderManager& render_manager, const StyleSheet& style_sheet, const PropertySource* property_source) :
+		render_manager(render_manager), style_sheet(style_sheet), property_source(property_source)
 	{}
 
 	/// Get a sprite from any @spritesheet in the style sheet the decorator is being instanced on.
@@ -121,7 +122,11 @@ public:
 	/// This will use the document path where the 'decorator' property was declared to locate relative files, if available.
 	Texture GetTexture(const String& filename) const;
 
+	/// Get the render manager for the decorator being instanced.
+	RenderManager& GetRenderManager() const;
+
 private:
+	RenderManager& render_manager;
 	const StyleSheet& style_sheet;
 	const PropertySource* property_source;
 };

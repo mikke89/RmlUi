@@ -31,8 +31,8 @@
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "ComputeProperty.h"
 #include "DecoratorShader.h"
@@ -189,13 +189,13 @@ bool DecoratorStraightGradient::Initialise(const Direction in_direction, const C
 
 DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* element, BoxArea paint_area) const
 {
-	Geometry* geometry = new Geometry();
 	const Box& box = element->GetBox();
 
 	const ComputedValues& computed = element->GetComputedValues();
 	const float opacity = computed.opacity();
 
-	GeometryUtilities::GenerateBackground(geometry, element->GetBox(), Vector2f(0), computed.border_radius(), ColourbPremultiplied(), paint_area);
+	Mesh mesh;
+	MeshUtilities::GenerateBackground(mesh, element->GetBox(), Vector2f(0), computed.border_radius(), ColourbPremultiplied(), paint_area);
 
 	ColourbPremultiplied colour_start = start.ToPremultiplied(opacity);
 	ColourbPremultiplied colour_stop = stop.ToPremultiplied(opacity);
@@ -203,7 +203,7 @@ DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* elem
 	const Vector2f offset = box.GetPosition(paint_area);
 	const Vector2f size = box.GetSize(paint_area);
 
-	Vector<Vertex>& vertices = geometry->GetVertices();
+	Vector<Vertex>& vertices = mesh.vertices;
 
 	if (direction == Direction::Horizontal)
 	{
@@ -221,6 +221,8 @@ DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* elem
 			vertices[i].colour = Math::RoundedLerp(t, colour_start, colour_stop);
 		}
 	}
+
+	Geometry* geometry = new Geometry(element->GetRenderManager()->MakeGeometry(std::move(mesh)));
 
 	return reinterpret_cast<DecoratorDataHandle>(geometry);
 }
@@ -288,8 +290,8 @@ bool DecoratorLinearGradient::Initialise(bool in_repeating, Corner in_corner, fl
 
 DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* element, BoxArea paint_area) const
 {
-	RenderInterface* render_interface = GetRenderInterface();
-	if (!render_interface)
+	RenderManager* render_manager = element->GetRenderManager();
+	if (!render_manager)
 		return INVALID_DECORATORDATAHANDLE;
 
 	RMLUI_ASSERT(!color_stops.empty());
@@ -304,7 +306,7 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 
 	ColorStopList resolved_stops = ResolveColorStops(element, gradient_shape.length, soft_spacing, color_stops);
 
-	CompiledShaderHandle shader_handle = render_interface->CompileShader("linear-gradient",
+	CompiledShader shader = render_manager->CompileShader("linear-gradient",
 		Dictionary{
 			{"angle", Variant(angle)},
 			{"p0", Variant(gradient_shape.p0)},
@@ -313,21 +315,20 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 			{"repeating", Variant(repeating)},
 			{"color_stop_list", Variant(std::move(resolved_stops))},
 		});
-
-	if (!shader_handle)
+	if (!shader)
 		return INVALID_DECORATORDATAHANDLE;
 
-	Geometry geometry;
-
+	Mesh mesh;
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), paint_area);
+	MeshUtilities::GenerateBackground(mesh, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), paint_area);
 
 	const Vector2f render_offset = box.GetPosition(paint_area);
-	for (Vertex& vertex : geometry.GetVertices())
+	for (Vertex& vertex : mesh.vertices)
 		vertex.tex_coord = vertex.position - render_offset;
 
-	ShaderElementData* element_data = GetShaderElementDataPool().AllocateAndConstruct(std::move(geometry), shader_handle);
+	ShaderElementData* element_data =
+		GetShaderElementDataPool().AllocateAndConstruct(render_manager->MakeGeometry(std::move(mesh)), std::move(shader));
 
 	return reinterpret_cast<DecoratorDataHandle>(element_data);
 }
@@ -335,14 +336,13 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 void DecoratorLinearGradient::ReleaseElementData(DecoratorDataHandle handle) const
 {
 	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
-	GetRenderInterface()->ReleaseCompiledShader(element_data->shader);
 	GetShaderElementDataPool().DestroyAndDeallocate(element_data);
 }
 
 void DecoratorLinearGradient::RenderElement(Element* element, DecoratorDataHandle handle) const
 {
 	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
-	element_data->geometry.RenderWithShader(element_data->shader, element->GetAbsoluteOffset(BoxArea::Border));
+	element_data->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), {}, element_data->shader);
 }
 
 DecoratorLinearGradient::LinearGradientShape DecoratorLinearGradient::CalculateShape(Vector2f dim) const
@@ -461,8 +461,8 @@ bool DecoratorRadialGradient::Initialise(bool in_repeating, Shape in_shape, Size
 
 DecoratorDataHandle DecoratorRadialGradient::GenerateElementData(Element* element, BoxArea box_area) const
 {
-	RenderInterface* render_interface = GetRenderInterface();
-	if (!render_interface)
+	RenderManager* render_manager = element->GetRenderManager();
+	if (!render_manager)
 		return INVALID_DECORATORDATAHANDLE;
 
 	RMLUI_ASSERT(!color_stops.empty() && (shape == Shape::Circle || shape == Shape::Ellipse));
@@ -477,39 +477,40 @@ DecoratorDataHandle DecoratorRadialGradient::GenerateElementData(Element* elemen
 
 	ColorStopList resolved_stops = ResolveColorStops(element, gradient_shape.radius.x, soft_spacing, color_stops);
 
-	CompiledShaderHandle shader_handle = render_interface->CompileShader("radial-gradient",
+	CompiledShader shader = render_manager->CompileShader("radial-gradient",
 		Dictionary{
 			{"center", Variant(gradient_shape.center)},
 			{"radius", Variant(gradient_shape.radius)},
 			{"repeating", Variant(repeating)},
 			{"color_stop_list", Variant(std::move(resolved_stops))},
 		});
+	if (!shader)
+		return INVALID_DECORATORDATAHANDLE;
 
-	Geometry geometry;
-
+	Mesh mesh;
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), box_area);
+	MeshUtilities::GenerateBackground(mesh, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), box_area);
 
 	const Vector2f render_offset = box.GetPosition(box_area);
-	for (Vertex& vertex : geometry.GetVertices())
+	for (Vertex& vertex : mesh.vertices)
 		vertex.tex_coord = vertex.position - render_offset;
 
-	ShaderElementData* element_data = GetShaderElementDataPool().AllocateAndConstruct(std::move(geometry), shader_handle);
+	ShaderElementData* element_data =
+		GetShaderElementDataPool().AllocateAndConstruct(render_manager->MakeGeometry(std::move(mesh)), std::move(shader));
 	return reinterpret_cast<DecoratorDataHandle>(element_data);
 }
 
 void DecoratorRadialGradient::ReleaseElementData(DecoratorDataHandle handle) const
 {
 	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
-	GetRenderInterface()->ReleaseCompiledShader(element_data->shader);
 	GetShaderElementDataPool().DestroyAndDeallocate(element_data);
 }
 
 void DecoratorRadialGradient::RenderElement(Element* element, DecoratorDataHandle handle) const
 {
 	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
-	element_data->geometry.RenderWithShader(element_data->shader, element->GetAbsoluteOffset(BoxArea::Border));
+	element_data->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), {}, element_data->shader);
 }
 
 DecoratorRadialGradient::RadialGradientShape DecoratorRadialGradient::CalculateRadialGradientShape(Element* element, Vector2f dimensions) const
@@ -659,8 +660,8 @@ bool DecoratorConicGradient::Initialise(bool in_repeating, float in_angle, Vecto
 
 DecoratorDataHandle DecoratorConicGradient::GenerateElementData(Element* element, BoxArea box_area) const
 {
-	RenderInterface* render_interface = GetRenderInterface();
-	if (!render_interface)
+	RenderManager* render_manager = element->GetRenderManager();
+	if (!render_manager)
 		return INVALID_DECORATORDATAHANDLE;
 
 	RMLUI_ASSERT(!color_stops.empty());
@@ -673,40 +674,40 @@ DecoratorDataHandle DecoratorConicGradient::GenerateElementData(Element* element
 
 	ColorStopList resolved_stops = ResolveColorStops(element, 1.f, 0.f, color_stops);
 
-	CompiledShaderHandle shader_handle = render_interface->CompileShader("conic-gradient",
+	CompiledShader shader = render_manager->CompileShader("conic-gradient",
 		Dictionary{
 			{"angle", Variant(angle)},
 			{"center", Variant(center)},
 			{"repeating", Variant(repeating)},
 			{"color_stop_list", Variant(std::move(resolved_stops))},
 		});
+	if (!shader)
+		return INVALID_DECORATORDATAHANDLE;
 
-	Geometry geometry;
-
+	Mesh mesh;
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), box_area);
+	MeshUtilities::GenerateBackground(mesh, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), box_area);
 
 	const Vector2f render_offset = box.GetPosition(box_area);
-	for (Vertex& vertex : geometry.GetVertices())
+	for (Vertex& vertex : mesh.vertices)
 		vertex.tex_coord = vertex.position - render_offset;
 
-	ShaderElementData* element_data = GetShaderElementDataPool().AllocateAndConstruct(std::move(geometry), shader_handle);
+	ShaderElementData* element_data =
+		GetShaderElementDataPool().AllocateAndConstruct(render_manager->MakeGeometry(std::move(mesh)), std::move(shader));
 	return reinterpret_cast<DecoratorDataHandle>(element_data);
 }
 
 void DecoratorConicGradient::ReleaseElementData(DecoratorDataHandle handle) const
 {
 	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
-	GetRenderInterface()->ReleaseCompiledShader(element_data->shader);
-
 	GetShaderElementDataPool().DestroyAndDeallocate(element_data);
 }
 
 void DecoratorConicGradient::RenderElement(Element* element, DecoratorDataHandle handle) const
 {
 	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
-	element_data->geometry.RenderWithShader(element_data->shader, element->GetAbsoluteOffset(BoxArea::Border));
+	element_data->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), {}, element_data->shader);
 }
 
 DecoratorConicGradientInstancer::DecoratorConicGradientInstancer()

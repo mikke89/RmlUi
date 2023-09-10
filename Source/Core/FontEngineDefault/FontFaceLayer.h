@@ -29,10 +29,10 @@
 #ifndef RMLUI_CORE_FONTENGINEDEFAULT_FONTFACELAYER_H
 #define RMLUI_CORE_FONTENGINEDEFAULT_FONTFACELAYER_H
 
+#include "../../../Include/RmlUi/Core/CallbackTexture.h"
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
-#include "../../../Include/RmlUi/Core/GeometryUtilities.h"
-#include "../../../Include/RmlUi/Core/Texture.h"
+#include "../../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../TextureLayout.h"
 
 namespace Rml {
@@ -54,8 +54,8 @@ public:
 
 	/// Generates or re-generates the character and texture data for the layer.
 	/// @param[in] handle The handle generating this layer.
-	/// @param[in] effect The effect to initialise the layer with.
 	/// @param[in] clone The layer to optionally clone geometry and texture data from.
+	/// @param[in] clone_glyph_origins True to keep the character origins from the cloned layer, false to generate new ones.
 	/// @return True if the layer was generated successfully, false if not.
 	bool Generate(const FontFaceHandleDefault* handle, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
 
@@ -67,11 +67,12 @@ public:
 	bool GenerateTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs);
 
 	/// Generates the geometry required to render a single character.
-	/// @param[out] geometry An array of geometries this layer will write to. It must be at least as big as the number of textures in this layer.
+	/// @param[out] mesh_list An array of meshes this layer will write to. It must be at least as big as the number of textures in this layer.
 	/// @param[in] character_code The character to generate geometry for.
 	/// @param[in] position The position of the baseline.
 	/// @param[in] colour The colour of the string.
-	inline void GenerateGeometry(Geometry* geometry, const Character character_code, const Vector2f position, const ColourbPremultiplied colour) const
+	inline void GenerateGeometry(TexturedMesh* mesh_list, const Character character_code, const Vector2f position,
+		const ColourbPremultiplied colour) const
 	{
 		auto it = character_boxes.find(character_code);
 		if (it == character_boxes.end())
@@ -83,21 +84,15 @@ public:
 			return;
 
 		// Generate the geometry for the character.
-		Vector<Vertex>& character_vertices = geometry[box.texture_index].GetVertices();
-		Vector<int>& character_indices = geometry[box.texture_index].GetIndices();
-
-		character_vertices.resize(character_vertices.size() + 4);
-		character_indices.resize(character_indices.size() + 6);
-		GeometryUtilities::GenerateQuad(&character_vertices[0] + (character_vertices.size() - 4),
-			&character_indices[0] + (character_indices.size() - 6), Vector2f(position.x + box.origin.x, position.y + box.origin.y).Round(),
-			box.dimensions, colour, box.texcoords[0], box.texcoords[1], (int)character_vertices.size() - 4);
+		Mesh& mesh = mesh_list[box.texture_index].mesh;
+		MeshUtilities::GenerateQuad(mesh, (position + box.origin).Round(), box.dimensions, colour, box.texcoords[0], box.texcoords[1]);
 	}
 
 	/// Returns the effect used to generate the layer.
 	const FontEffect* GetFontEffect() const;
 
 	/// Returns one of the layer's textures.
-	const Texture* GetTexture(int index);
+	Texture GetTexture(RenderManager& render_manager, int index);
 	/// Returns the number of textures employed by this layer.
 	int GetNumTextures() const;
 
@@ -106,8 +101,6 @@ public:
 
 private:
 	struct TextureBox {
-		TextureBox() : texture_index(-1) {}
-
 		// The offset, in pixels, of the baseline from the start of this character's geometry.
 		Vector2f origin;
 		// The width and height, in pixels, of this character's geometry.
@@ -116,18 +109,19 @@ private:
 		Vector2f texcoords[2];
 
 		// The texture this character renders from.
-		int texture_index;
+		int texture_index = -1;
 	};
 
 	using CharacterMap = UnorderedMap<Character, TextureBox>;
-	using TextureList = Vector<Texture>;
+	using TextureList = Vector<CallbackTextureSource>;
 
 	SharedPtr<const FontEffect> effect;
 
-	TextureLayout texture_layout;
+	TextureList textures_owned;
+	TextureList* textures_ptr = &textures_owned;
 
+	TextureLayout texture_layout;
 	CharacterMap character_boxes;
-	TextureList textures;
 	Colourb colour;
 };
 

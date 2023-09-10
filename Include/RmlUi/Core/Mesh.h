@@ -26,43 +26,28 @@
  *
  */
 
-#include "../../../Source/Core/GeometryDatabase.h"
-#include <RmlUi/Core/Geometry.h>
-#include <RmlUi/Core/Types.h>
-#include <doctest.h>
+#ifndef RMLUI_CORE_MESH_H
+#define RMLUI_CORE_MESH_H
 
-using namespace Rml;
+#include "Header.h"
+#include "Texture.h"
+#include "Vertex.h"
 
-TEST_CASE("Geometry database")
-{
-	REQUIRE(GeometryDatabase::PrepareForTests());
+namespace Rml {
 
-	using GeometryDatabase::ListMatchesDatabase;
+struct Mesh {
+	Vector<Vertex> vertices;
+	Vector<int> indices;
 
-	Vector<Geometry> geometry_list(10);
+	explicit operator bool() const { return !indices.empty(); }
+};
 
-	int i = 0;
-	for (auto& geometry : geometry_list)
-		geometry.GetIndices().push_back(i++);
+struct TexturedMesh {
+	Mesh mesh;
+	Texture texture;
+};
 
-	CHECK(ListMatchesDatabase(geometry_list));
+using TexturedMeshList = Vector<TexturedMesh>;
 
-	geometry_list.reserve(2000);
-	CHECK(ListMatchesDatabase(geometry_list));
-
-	geometry_list.erase(geometry_list.begin() + 5);
-	CHECK(ListMatchesDatabase(geometry_list));
-
-	std::swap(geometry_list.front(), geometry_list.back());
-	geometry_list.pop_back();
-	CHECK(ListMatchesDatabase(geometry_list));
-
-	std::swap(geometry_list.front(), geometry_list.back());
-	CHECK(ListMatchesDatabase(geometry_list));
-
-	geometry_list.emplace_back();
-	CHECK(ListMatchesDatabase(geometry_list));
-
-	geometry_list.clear();
-	CHECK(ListMatchesDatabase(geometry_list));
-}
+} // namespace Rml
+#endif

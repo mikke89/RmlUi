@@ -32,12 +32,9 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementUtilities.h>
-#include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/PropertyDefinition.h>
-#include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/SystemInterface.h>
-#include <Shell.h>
 
 DecoratorStarfield::~DecoratorStarfield() {}
 
@@ -126,7 +123,8 @@ void DecoratorStarfield::RenderElement(Rml::Element* element, Rml::DecoratorData
 		}
 	}
 
-	DrawPoints(point_size, points);
+	if (Rml::RenderManager* render_manager = element->GetRenderManager())
+		DrawPoints(*render_manager, point_size, points);
 }
 
 void DecoratorStarfield::StarField::Update(double t)

@@ -35,7 +35,6 @@
 namespace Rml {
 
 class TextureLayout;
-class TextureResource;
 
 /**
     A texture layout texture is a single rectangular area which sub-rectangles are placed on within

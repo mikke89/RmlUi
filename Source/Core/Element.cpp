@@ -830,6 +830,13 @@ Context* Element::GetContext() const
 	return nullptr;
 }
 
+RenderManager* Element::GetRenderManager() const
+{
+	if (Context* context = GetContext())
+		return &context->GetRenderManager();
+	return nullptr;
+}
+
 void Element::SetAttributes(const ElementAttributes& _attributes)
 {
 	attributes.reserve(attributes.size() + _attributes.size());

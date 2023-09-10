@@ -29,8 +29,8 @@
 #ifndef RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
 #define RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
 
+#include "../../Include/RmlUi/Core/CallbackTexture.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/Texture.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
@@ -50,10 +50,10 @@ private:
 	enum class BackgroundType { BackgroundBorder, BoxShadow, ClipBorder, ClipPadding, ClipContent, Count };
 	struct Background {
 		Geometry geometry;
-		Texture texture;
+		CallbackTexture texture;
 	};
 
-	Geometry* GetGeometry(BackgroundType type);
+	Background* GetBackground(BackgroundType type);
 	Background& GetOrCreateBackground(BackgroundType type);
 
 	void GenerateGeometry(Element* element);

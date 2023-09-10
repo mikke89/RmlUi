@@ -38,9 +38,7 @@ class FilterBasic : public Filter {
 public:
 	bool Initialise(const String& name, float value);
 
-	CompiledFilterHandle CompileFilter(Element* element) const override;
-
-	void ReleaseCompiledFilter(Element* element, CompiledFilterHandle filter_handle) const override;
+	CompiledFilter CompileFilter(Element* element) const override;
 
 private:
 	String name;

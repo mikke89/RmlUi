@@ -28,14 +28,12 @@
 
 #include "ElementDecoration.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
-#include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Filter.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 
 namespace Rml {
@@ -57,6 +55,13 @@ void ElementDecoration::InstanceDecorators()
 
 	RMLUI_ZoneScopedC(0xB22222);
 	ReleaseDecorators();
+
+	RenderManager* render_manager = element->GetRenderManager();
+	if (!render_manager)
+	{
+		RMLUI_ERRORMSG("Decorators are being instanced before a render manager is available. Is this element attached to the document?");
+		return;
+	}
 
 	const ComputedValues& computed = element->GetComputedValues();
 
@@ -88,7 +93,7 @@ void ElementDecoration::InstanceDecorators()
 				}
 			}
 
-			const DecoratorPtrList& decorator_list = style_sheet->InstanceDecorators(*decorators_ptr, source);
+			const DecoratorPtrList& decorator_list = style_sheet->InstanceDecorators(*render_manager, *decorators_ptr, source);
 			RMLUI_ASSERT(decorator_list.empty() || decorator_list.size() == decorators_ptr->list.size());
 
 			DecoratorEntryList& decorators_target = (id == PropertyId::Decorator ? decorators : mask_images);
@@ -133,7 +138,7 @@ void ElementDecoration::InstanceDecorators()
 				SharedPtr<const Filter> filter = declaration.instancer->InstanceFilter(declaration.type, declaration.properties);
 				if (filter)
 				{
-					list.push_back({std::move(filter), CompiledFilterHandle{}});
+					list.push_back({std::move(filter), CompiledFilter{}});
 				}
 				else
 				{
@@ -166,12 +171,7 @@ void ElementDecoration::ReloadDecoratorsData()
 		for (FilterEntryList* list : {&filters, &backdrop_filters})
 		{
 			for (FilterEntry& filter : *list)
-			{
-				if (filter.handle)
-					filter.filter->ReleaseCompiledFilter(element, filter.handle);
-
-				filter.handle = filter.filter->CompileFilter(element);
-			}
+				filter.compiled = filter.filter->CompileFilter(element);
 		}
 	}
 }
@@ -188,15 +188,8 @@ void ElementDecoration::ReleaseDecorators()
 		list->clear();
 	}
 
-	for (FilterEntryList* list : {&filters, &backdrop_filters})
-	{
-		for (FilterEntry& filter : *list)
-		{
-			if (filter.handle)
-				filter.filter->ReleaseCompiledFilter(element, filter.handle);
-		}
-		list->clear();
-	}
+	filters.clear();
+	backdrop_filters.clear();
 }
 
 void ElementDecoration::RenderDecorators(RenderStage render_stage)
@@ -213,7 +206,8 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 			for (int i = (int)decorators.size() - 1; i >= 0; i--)
 			{
 				DecoratorEntry& decorator = decorators[i];
-				decorator.decorator->RenderElement(element, decorator.decorator_data);
+				if (decorator.decorator_data)
+					decorator.decorator->RenderElement(element, decorator.decorator_data);
 			}
 		}
 	}
@@ -221,13 +215,11 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 	if (filters.empty() && backdrop_filters.empty() && mask_images.empty())
 		return;
 
-	RenderInterface* render_interface = ::Rml::GetRenderInterface();
-	Context* context = element->GetContext();
-	if (!render_interface || !context)
+	RenderManager* render_manager = element->GetRenderManager();
+	if (!render_manager)
 		return;
 
-	RenderManager& render_manager = context->GetRenderManager();
-	Rectanglei initial_scissor_region = render_manager.GetState().scissor_region;
+	Rectanglei initial_scissor_region = render_manager->GetState().scissor_region;
 
 	auto ApplyClippingRegion = [this, &render_manager](PropertyId filter_id) {
 		RMLUI_ASSERT(filter_id == PropertyId::Filter || filter_id == PropertyId::BackdropFilter);
@@ -249,8 +241,8 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 		Math::ExpandToPixelGrid(filter_region);
 
 		Rectanglei scissor_region = Rectanglei(filter_region);
-		scissor_region.IntersectIfValid(render_manager.GetState().scissor_region);
-		render_manager.SetScissorRegion(scissor_region);
+		scissor_region.IntersectIfValid(render_manager->GetState().scissor_region);
+		render_manager->SetScissorRegion(scissor_region);
 	};
 
 	if (!backdrop_filters.empty())
@@ -259,18 +251,15 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 		{
 			ApplyClippingRegion(PropertyId::BackdropFilter);
 
-			render_interface->PushLayer(LayerFill::Clone);
+			render_manager->PushLayer(LayerFill::Clone);
 
 			FilterHandleList filter_handles;
 			for (auto& filter : backdrop_filters)
-			{
-				if (filter.handle)
-					filter_handles.push_back(filter.handle);
-			}
+				filter.compiled.AddHandleTo(filter_handles);
 
-			render_interface->PopLayer(BlendMode::Replace, filter_handles);
+			render_manager->PopLayer(BlendMode::Replace, filter_handles);
 
-			render_manager.SetScissorRegion(initial_scissor_region);
+			render_manager->SetScissorRegion(initial_scissor_region);
 		}
 	}
 
@@ -278,41 +267,36 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 	{
 		if (render_stage == RenderStage::Enter)
 		{
-			render_interface->PushLayer(LayerFill::Clear);
+			render_manager->PushLayer(LayerFill::Clear);
 		}
 		else if (render_stage == RenderStage::Exit)
 		{
 			ApplyClippingRegion(PropertyId::Filter);
 
-			CompiledFilterHandle mask_image_handle = {};
+			CompiledFilter mask_image_filter;
 			FilterHandleList filter_handles;
+			filter_handles.reserve(filters.size() + (mask_images.empty() ? 0 : 1));
 
 			for (auto& filter : filters)
-			{
-				if (filter.handle)
-					filter_handles.push_back(filter.handle);
-			}
+				filter.compiled.AddHandleTo(filter_handles);
 
 			if (!mask_images.empty())
 			{
-				render_interface->PushLayer(LayerFill::Clear);
+				render_manager->PushLayer(LayerFill::Clear);
 
 				for (int i = (int)mask_images.size() - 1; i >= 0; i--)
 				{
 					DecoratorEntry& mask_image = mask_images[i];
-					mask_image.decorator->RenderElement(element, mask_image.decorator_data);
+					if (mask_image.decorator_data)
+						mask_image.decorator->RenderElement(element, mask_image.decorator_data);
 				}
-				mask_image_handle = render_interface->SaveLayerAsMaskImage();
-				if (mask_image_handle)
-					filter_handles.push_back(mask_image_handle);
-				render_interface->PopLayer(BlendMode::Discard, {});
+				mask_image_filter = render_manager->SaveLayerAsMaskImage();
+				mask_image_filter.AddHandleTo(filter_handles);
+				render_manager->PopLayer(BlendMode::Discard, {});
 			}
 
-			render_interface->PopLayer(BlendMode::Blend, filter_handles);
-
-			if (mask_image_handle)
-				render_interface->ReleaseCompiledFilter(mask_image_handle);
-			render_manager.SetScissorRegion(initial_scissor_region);
+			render_manager->PopLayer(BlendMode::Blend, filter_handles);
+			render_manager->SetScissorRegion(initial_scissor_region);
 		}
 	}
 }

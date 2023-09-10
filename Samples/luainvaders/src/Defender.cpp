@@ -93,17 +93,17 @@ void Defender::Update(double t)
 	}
 }
 
-void Defender::Render(float dp_ratio, Rml::TextureHandle texture)
+void Defender::Render(Rml::RenderManager& render_manager, float dp_ratio, Rml::Texture texture)
 {
 	Rml::ColourbPremultiplied color = GameDetails::GetDefenderColour().ToPremultiplied();
 
 	// Render our sprite if rendering is enabled
 	if (render)
-		defender_sprite.Render(position, dp_ratio, color, texture);
+		defender_sprite.Render(render_manager, position, dp_ratio, color, texture);
 
 	// Render the bullet
 	if (bullet_in_flight)
-		bullet_sprite.Render(bullet_position, dp_ratio, color, texture);
+		bullet_sprite.Render(render_manager, bullet_position, dp_ratio, color, texture);
 }
 
 void Defender::StartMove(float direction)

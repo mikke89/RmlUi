@@ -26,36 +26,41 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/Geometry.h"
 #include "RenderManagerAccess.h"
+#include "../../Include/RmlUi/Core/Texture.h"
+#include "TextureDatabase.h"
 
 namespace Rml {
 
-Geometry::Geometry(RenderManager* render_manager, StableVectorIndex resource_handle) : UniqueRenderResource(render_manager, resource_handle) {}
-
-void Geometry::Render(Vector2f translation, Texture texture, const CompiledShader& shader) const
+Vector2i RenderManagerAccess::GetDimensions(RenderManager* render_manager, TextureFileIndex texture)
 {
-	if (resource_handle == StableVectorIndex::Invalid)
-		return;
-
-	translation = translation.Round();
-
-	RenderManagerAccess::Render(render_manager, *this, translation, texture, shader);
+	return render_manager->texture_database->file_database.GetDimensions(texture);
 }
 
-Mesh Geometry::Release(ReleaseMode mode)
+Vector2i RenderManagerAccess::GetDimensions(RenderManager* render_manager, StableVectorIndex callback_texture)
 {
-	if (resource_handle == StableVectorIndex::Invalid)
-		return Mesh();
+	return render_manager->texture_database->callback_database.GetDimensions(render_manager, render_manager->render_interface, callback_texture);
+}
 
-	Mesh mesh = RenderManagerAccess::ReleaseResource(render_manager, *this);
-	Clear();
-	if (mode == ReleaseMode::ClearMesh)
-	{
-		mesh.vertices.clear();
-		mesh.indices.clear();
-	}
-	return mesh;
+void RenderManagerAccess::Render(RenderManager* render_manager, const Geometry& geometry, Vector2f translation, Texture texture,
+	const CompiledShader& shader)
+{
+	render_manager->Render(geometry, translation, texture, shader);
+}
+
+void RenderManagerAccess::GetTextureSourceList(RenderManager* render_manager, StringList& source_list)
+{
+	render_manager->GetTextureSourceList(source_list);
+}
+
+void RenderManagerAccess::ReleaseAllTextures(RenderManager* render_manager)
+{
+	render_manager->ReleaseAllTextures();
+}
+
+void RenderManagerAccess::ReleaseAllCompiledGeometry(RenderManager* render_manager)
+{
+	render_manager->ReleaseAllCompiledGeometry();
 }
 
 } // namespace Rml

@@ -35,7 +35,7 @@
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "DataModel.h"
@@ -54,8 +54,7 @@ static constexpr float DOUBLE_CLICK_TIME = 0.5f;    // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
 static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
 
-Context::Context(const String& name) :
-	name(name), dimensions(0, 0), density_independent_pixel_ratio(1.0f), mouse_position(0, 0), next_update_timeout(0)
+Context::Context(const String& name, RenderManager* render_manager) : name(name), render_manager(render_manager)
 {
 	instancer = nullptr;
 
@@ -125,7 +124,7 @@ void Context::SetDimensions(const Vector2i _dimensions)
 	if (dimensions != _dimensions)
 	{
 		dimensions = _dimensions;
-		render_manager.SetViewport(dimensions);
+		render_manager->SetViewport(dimensions);
 		root->SetBox(Box(Vector2f(dimensions)));
 		root->DirtyLayout();
 
@@ -216,7 +215,7 @@ bool Context::Render()
 {
 	RMLUI_ZoneScoped;
 
-	render_manager.BeginRender();
+	render_manager->PrepareRender();
 
 	root->Render();
 
@@ -229,7 +228,7 @@ bool Context::Render()
 		cursor_proxy->Render();
 	}
 
-	render_manager.ResetState();
+	render_manager->ResetState();
 
 	return true;
 }
@@ -855,7 +854,7 @@ void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float spe
 
 RenderManager& Context::GetRenderManager()
 {
-	return render_manager;
+	return *render_manager;
 }
 
 void Context::SetInstancer(ContextInstancer* _instancer)

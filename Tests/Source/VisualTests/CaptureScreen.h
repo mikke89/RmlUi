@@ -29,9 +29,9 @@
 #ifndef RMLUI_TESTS_VISUALTESTS_CAPTURESCREEN_H
 #define RMLUI_TESTS_VISUALTESTS_CAPTURESCREEN_H
 
+#include <RmlUi/Core/Mesh.h>
 #include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Vertex.h>
 
 struct ComparisonResult {
 	bool skipped = true;
@@ -44,8 +44,7 @@ struct ComparisonResult {
 
 struct TextureGeometry {
 	Rml::TextureHandle texture_handle = 0;
-	Rml::Vertex vertices[4];
-	int indices[6] = {};
+	Rml::Mesh mesh;
 };
 
 bool CaptureScreenshot(const Rml::String& filename, int clip_width);

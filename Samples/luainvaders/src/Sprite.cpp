@@ -28,9 +28,10 @@
 
 #include "Sprite.h"
 #include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/GeometryUtilities.h>
+#include <RmlUi/Core/Geometry.h>
 #include <RmlUi/Core/Math.h>
-#include <RmlUi/Core/RenderInterface.h>
+#include <RmlUi/Core/MeshUtilities.h>
+#include <RmlUi/Core/RenderManager.h>
 
 Sprite::Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord) :
 	dimensions(dimensions), top_left_texcoord(top_left_texcoord), bottom_right_texcoord(bottom_right_texcoord)
@@ -38,53 +39,38 @@ Sprite::Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_te
 
 Sprite::~Sprite() {}
 
-void Sprite::Render(Rml::Vector2f position, const float dp_ratio, Rml::ColourbPremultiplied color, Rml::TextureHandle texture)
+void Sprite::Render(Rml::RenderManager& render_manager, Rml::Vector2f position, const float dp_ratio, Rml::ColourbPremultiplied color,
+	Rml::Texture texture)
 {
-	Rml::RenderInterface* render_interface = Rml::GetRenderInterface();
-	if (!render_interface)
-		return;
-
 	position = dp_ratio * position;
 	Rml::Vector2f dimensions_px = dp_ratio * dimensions;
 	Rml::Math::SnapToPixelGrid(position, dimensions_px);
 
-	Rml::Vertex vertices[4];
-	int indices[6];
-	Rml::GeometryUtilities::GenerateQuad(vertices, indices, Rml::Vector2f(0.f), dimensions_px, color, top_left_texcoord, bottom_right_texcoord);
+	Rml::Mesh mesh;
+	Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(0.f), dimensions_px, color, top_left_texcoord, bottom_right_texcoord);
 
-	render_interface->RenderGeometry(vertices, 4, indices, 6, texture, position);
+	Rml::Geometry geometry = render_manager.MakeGeometry(std::move(mesh));
+	geometry.Render(position, texture);
 }
 
-void DrawPoints(float point_size, const ColoredPointList& points)
+void DrawPoints(Rml::RenderManager& render_manager, float point_size, const ColoredPointList& points)
 {
-	Rml::RenderInterface* render_interface = Rml::GetRenderInterface();
-	if (!render_interface)
-		return;
-
 	constexpr int num_quad_vertices = 4;
 	constexpr int num_quad_indices = 6;
 
 	const int num_points = (int)points.size();
 
-	Rml::Vector<Rml::Vertex> vertices(num_points * num_quad_vertices);
-	Rml::Vector<int> indices(num_points * num_quad_indices);
-
-	int vertex_offset = 0;
-	int index_offset = 0;
+	Rml::Mesh mesh;
+	mesh.vertices.reserve(num_points * num_quad_vertices);
+	mesh.indices.reserve(num_points * num_quad_indices);
 
 	for (const ColoredPoint& point : points)
 	{
 		Rml::Vector2f position = point.position;
 		Rml::Vector2f size = Rml::Vector2f(point_size);
-		Rml::GeometryUtilities::GenerateQuad(vertices.data() + vertex_offset, indices.data() + index_offset, position, size, point.color,
-			vertex_offset);
-
-		vertex_offset += num_quad_vertices;
-		index_offset += num_quad_indices;
+		Rml::MeshUtilities::GenerateQuad(mesh, position, size, point.color);
 	}
 
-	RMLUI_ASSERT(vertex_offset == (int)vertices.size());
-	RMLUI_ASSERT(index_offset == (int)indices.size());
-
-	render_interface->RenderGeometry(vertices.data(), vertex_offset, indices.data(), index_offset, {}, Rml::Vector2f(0.f));
+	Rml::Geometry geometry = render_manager.MakeGeometry(std::move(mesh));
+	geometry.Render(Rml::Vector2f(0.f));
 }

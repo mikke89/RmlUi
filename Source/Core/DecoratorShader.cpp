@@ -30,9 +30,9 @@
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 
 namespace Rml {
 
@@ -54,26 +54,28 @@ bool DecoratorShader::Initialise(String&& in_value)
 
 DecoratorDataHandle DecoratorShader::GenerateElementData(Element* element, BoxArea render_area) const
 {
-	RenderInterface* render_interface = GetRenderInterface();
-	if (!render_interface)
+	RenderManager* render_manager = element->GetRenderManager();
+	if (!render_manager)
 		return INVALID_DECORATORDATAHANDLE;
 
 	const Box& box = element->GetBox();
 	const Vector2f dimensions = box.GetSize(render_area);
-	CompiledShaderHandle effect_handle =
-		render_interface->CompileShader("shader", Dictionary{{"value", Variant(value)}, {"dimensions", Variant(dimensions)}});
+	CompiledShader shader = render_manager->CompileShader("shader", Dictionary{{"value", Variant(value)}, {"dimensions", Variant(dimensions)}});
+	if (!shader)
+		return INVALID_DECORATORDATAHANDLE;
 
-	Geometry geometry;
+	Mesh mesh;
 
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	GeometryUtilities::GenerateBackground(&geometry, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), render_area);
+	MeshUtilities::GenerateBackground(mesh, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), render_area);
 
 	const Vector2f offset = box.GetPosition(render_area);
-	for (Vertex& vertex : geometry.GetVertices())
+	for (Vertex& vertex : mesh.vertices)
 		vertex.tex_coord = (vertex.position - offset) / dimensions;
 
-	ShaderElementData* element_data = GetShaderElementDataPool().AllocateAndConstruct(std::move(geometry), effect_handle);
+	ShaderElementData* element_data =
+		GetShaderElementDataPool().AllocateAndConstruct(render_manager->MakeGeometry(std::move(mesh)), std::move(shader));
 
 	return reinterpret_cast<DecoratorDataHandle>(element_data);
 }
@@ -81,14 +83,13 @@ DecoratorDataHandle DecoratorShader::GenerateElementData(Element* element, BoxAr
 void DecoratorShader::ReleaseElementData(DecoratorDataHandle handle) const
 {
 	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
-	GetRenderInterface()->ReleaseCompiledShader(element_data->shader);
 	GetShaderElementDataPool().DestroyAndDeallocate(element_data);
 }
 
 void DecoratorShader::RenderElement(Element* element, DecoratorDataHandle handle) const
 {
 	ShaderElementData* element_data = reinterpret_cast<ShaderElementData*>(handle);
-	element_data->geometry.RenderWithShader(element_data->shader, element->GetAbsoluteOffset(BoxArea::Border));
+	element_data->geometry.Render(element->GetAbsoluteOffset(BoxArea::Border), {}, element_data->shader);
 }
 
 DecoratorShaderInstancer::DecoratorShaderInstancer()

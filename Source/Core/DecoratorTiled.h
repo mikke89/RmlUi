@@ -35,7 +35,8 @@
 
 namespace Rml {
 
-struct Texture;
+class Texture;
+struct Mesh;
 
 /**
     Base class for tiled decorators.
@@ -79,7 +80,7 @@ public:
 		Tile();
 
 		/// Calculates the tile's dimensions from the texture and texture coordinates.
-		void CalculateDimensions(const Texture& texture) const;
+		void CalculateDimensions(Texture texture) const;
 		/// Get the dimensions (in px) that this tile is ideally displayed as.
 		/// Uses the dp-ratio of the current element and 'display_scale' to calculate the dimensions.
 		Vector2f GetNaturalDimensions(Element* element) const;
@@ -91,8 +92,8 @@ public:
 		/// @param[in] surface_origin The starting point of the first tile to generate.
 		/// @param[in] surface_dimensions The dimensions of the surface to be tiled.
 		/// @param[in] tile_dimensions The dimensions to render this tile at.
-		void GenerateGeometry(Vector<Vertex>& vertices, Vector<int>& indices, const ComputedValues& computed_values, Vector2f surface_origin,
-			Vector2f surface_dimensions, Vector2f tile_dimensions) const;
+		void GenerateGeometry(Mesh& mesh, const ComputedValues& computed_values, Vector2f surface_origin, Vector2f surface_dimensions,
+			Vector2f tile_dimensions) const;
 
 		struct TileData {
 			Vector2f size;         // 'px' units

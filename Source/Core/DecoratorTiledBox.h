@@ -58,18 +58,19 @@ public:
 
 private:
 	enum {
-		TOP_LEFT_CORNER = 0,
-		TOP_RIGHT_CORNER = 1,
-		BOTTOM_LEFT_CORNER = 2,
-		BOTTOM_RIGHT_CORNER = 3,
-		LEFT_EDGE = 4,
-		RIGHT_EDGE = 5,
-		TOP_EDGE = 6,
-		BOTTOM_EDGE = 7,
-		CENTRE = 8
+		TOP_LEFT_CORNER,
+		TOP_RIGHT_CORNER,
+		BOTTOM_LEFT_CORNER,
+		BOTTOM_RIGHT_CORNER,
+		LEFT_EDGE,
+		RIGHT_EDGE,
+		TOP_EDGE,
+		BOTTOM_EDGE,
+		CENTRE,
+		COUNT,
 	};
 
-	Tile tiles[9];
+	Tile tiles[COUNT];
 };
 
 class DecoratorTiledBoxInstancer : public DecoratorTiledInstancer {

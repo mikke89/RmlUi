@@ -116,7 +116,7 @@ const Rml::Vector2f& Shield::GetPosition() const
 	return position;
 }
 
-void Shield::Render(float dp_ratio)
+void Shield::Render(Rml::RenderManager& render_manager, float dp_ratio)
 {
 	if (health > 0)
 	{
@@ -139,7 +139,7 @@ void Shield::Render(float dp_ratio)
 			}
 		}
 
-		DrawPoints((float)scaled_pixel, points);
+		DrawPoints(render_manager, (float)scaled_pixel, points);
 	}
 }
 

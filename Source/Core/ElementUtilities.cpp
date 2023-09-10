@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/DecorationTypes.h"
@@ -35,13 +36,11 @@
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/Math.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/RenderManager.h"
 #include "DataController.h"
 #include "DataModel.h"
 #include "DataView.h"
 #include "ElementBackgroundBorder.h"
-#include "ElementStyle.h"
 #include "Layout/LayoutDetails.h"
 #include "Layout/LayoutEngine.h"
 #include "TransformState.h"

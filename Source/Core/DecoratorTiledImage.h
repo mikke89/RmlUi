@@ -46,7 +46,7 @@ public:
 	/// @param tile[in] The declaration for the tile.
 	/// @param texture[in] The texture to apply to the tile.
 	/// @return True if the image is valid, false otherwise.
-	bool Initialise(const Tile& tile, const Texture& texture);
+	bool Initialise(const Tile& tile, Texture texture);
 
 	/// Called on a decorator to generate any required per-element data for a newly decorated element.
 	DecoratorDataHandle GenerateElementData(Element* element, BoxArea paint_area) const override;

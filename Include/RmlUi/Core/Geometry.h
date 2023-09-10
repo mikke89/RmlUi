@@ -29,85 +29,35 @@
 #ifndef RMLUI_CORE_GEOMETRY_H
 #define RMLUI_CORE_GEOMETRY_H
 
+#include "CompiledFilterShader.h"
 #include "Header.h"
-#include "Vertex.h"
-#include <stdint.h>
+#include "Mesh.h"
+#include "Texture.h"
+#include "UniqueRenderResource.h"
 
 namespace Rml {
 
-class Context;
-class Element;
-struct Texture;
-enum class ClipMaskOperation;
-using GeometryDatabaseHandle = uint32_t;
+class RenderManager;
 
 /**
-    A helper object for holding an array of vertices and indices, and compiling it as necessary when rendered.
+    A representation of geometry to be rendered through its underlying render interface.
 
-    @author Peter Curry
+    A unique resource constructed through the render manager.
  */
-
-class RMLUICORE_API Geometry {
+class RMLUICORE_API Geometry final : public UniqueRenderResource<Geometry, StableVectorIndex, StableVectorIndex::Invalid> {
 public:
-	Geometry();
+	enum class ReleaseMode { ReturnMesh, ClearMesh };
 
-	Geometry(const Geometry&) = delete;
-	Geometry& operator=(const Geometry&) = delete;
+	Geometry() = default;
 
-	Geometry(Geometry&& other) noexcept;
-	Geometry& operator=(Geometry&& other) noexcept;
+	void Render(Vector2f translation, Texture texture = {}, const CompiledShader& shader = {}) const;
 
-	~Geometry();
-
-	/// Attempts to compile the geometry if appropriate, then renders the geometry, compiled if it can.
-	/// @param[in] translation The translation of the geometry.
-	void Render(Vector2f translation);
-
-	/// Render the geometry with a compiled shader. Requires that the geometry can be compiled.
-	/// @param[in] shader The shader to use for rendering the geometry.
-	/// @param[in] translation The translation of the geometry.
-	void RenderWithShader(CompiledShaderHandle shader, Vector2f translation);
-
-	/// Use the geometry to set the clip mask through the render interface. Requires that the geometry can be compiled.
-	/// @param[in] operation The clip mask operation to apply.
-	/// @param[in] translation The translation of the geometry.
-	void RenderToClipMask(ClipMaskOperation operation, Vector2f translation);
-
-	/// Returns the geometry's vertices. If these are written to, Release() should be called to force a recompile.
-	/// @return The geometry's vertex array.
-	Vector<Vertex>& GetVertices();
-	/// Returns the geometry's indices. If these are written to, Release() should be called to force a recompile.
-	/// @return The geometry's index array.
-	Vector<int>& GetIndices();
-
-	/// Gets the geometry's texture.
-	/// @return The geometry's texture.
-	const Texture* GetTexture() const;
-	/// Sets the geometry's texture.
-	void SetTexture(const Texture* texture);
-
-	/// Releases any previously-compiled geometry, and forces any new geometry to have a compile attempted.
-	/// @param[in] clear_buffers True to also clear the vertex and index buffers, false to leave intact.
-	void Release(bool clear_buffers = false);
-
-	/// Returns true if there is geometry to be rendered.
-	explicit operator bool() const;
+	Mesh Release(ReleaseMode mode = ReleaseMode::ReturnMesh);
 
 private:
-	// Move members from another geometry.
-	void MoveFrom(Geometry& other) noexcept;
-
-	Vector<Vertex> vertices;
-	Vector<int> indices;
-	const Texture* texture = nullptr;
-
-	CompiledGeometryHandle compiled_geometry = 0;
-	bool compile_attempted = false;
-
-	GeometryDatabaseHandle database_handle;
+	Geometry(RenderManager* render_manager, StableVectorIndex resource_handle);
+	friend class RenderManager;
 };
-
-using GeometryList = Vector<Geometry>;
 
 } // namespace Rml
 #endif

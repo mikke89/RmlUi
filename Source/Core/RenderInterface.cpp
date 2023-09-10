@@ -27,19 +27,22 @@
  */
 
 #include "../../Include/RmlUi/Core/RenderInterface.h"
-#include "TextureDatabase.h"
 
 namespace Rml {
+
+namespace CoreInternal {
+	bool HasRenderManager(RenderInterface* render_interface);
+}
 
 RenderInterface::RenderInterface() {}
 
 RenderInterface::~RenderInterface()
 {
-	// Note: We cannot automatically release the textures from the database here, because that involves a virtual call to this interface during its
-	// destruction which is illegal.
-	RMLUI_ASSERTMSG(TextureDatabase::AllTexturesReleased(),
-		"RenderInterface is being destroyed, but there are still active textures in the texture database. This may lead to use-after-free or nullptr "
-		"dereference when releasing the textures. Ensure that the render interface is destroyed *after* the call to Rml::Shutdown.");
+	// Note: We cannot automatically release render resources here, because that involves a virtual call to this interface during its destruction
+	// which is illegal.
+	RMLUI_ASSERTMSG(!CoreInternal::HasRenderManager(this),
+		"RenderInterface is being destroyed, but it is still actively referenced and used within the RmlUi library. This may lead to use-after-free "
+		"or nullptr dereference when releasing render resources. Ensure that the render interface is destroyed *after* the call to Rml::Shutdown.");
 }
 
 CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/)

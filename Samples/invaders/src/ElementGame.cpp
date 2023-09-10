@@ -90,7 +90,8 @@ void ElementGame::OnUpdate()
 
 void ElementGame::OnRender()
 {
-	game->Render(GetContext()->GetDensityIndependentPixelRatio());
+	if (Rml::Context* context = GetContext())
+		game->Render(context->GetRenderManager(), context->GetDensityIndependentPixelRatio());
 }
 
 void ElementGame::OnChildAdd(Rml::Element* element)

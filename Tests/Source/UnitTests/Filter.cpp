@@ -27,6 +27,7 @@
  */
 
 #include "../Common/TestsShell.h"
+#include <RmlUi/Core/CompiledFilterShader.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -49,21 +50,15 @@ static Vector<CompiledTestFilter> compiled_test_filters;
 class FilterTest : public Filter {
 public:
 	FilterTest(float value, Unit unit) : value(value), unit(unit) {}
-	~FilterTest() { CHECK(num_compile == num_release); }
 
-	CompiledFilterHandle CompileFilter(Element* element) const override
+	CompiledFilter CompileFilter(Element* element) const override
 	{
 		compiled_test_filters.push_back({element->GetId(), this});
-		num_compile += 1;
-		return CompiledFilterHandle(num_compile);
+		return CompiledFilter();
 	}
-
-	void ReleaseCompiledFilter(Element* /*element*/, CompiledFilterHandle /*filter_handle*/) const override { num_release += 1; }
 
 	float value = 0.f;
 	Unit unit = Unit::UNKNOWN;
-	mutable int num_compile = 0;
-	mutable int num_release = 0;
 };
 
 class FilterTestInstancer : public FilterInstancer {

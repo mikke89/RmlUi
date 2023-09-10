@@ -26,38 +26,46 @@
  *
  */
 
-#ifndef RMLUI_CORE_GEOMETRYDATABASE_H
-#define RMLUI_CORE_GEOMETRYDATABASE_H
+#ifndef RMLUI_CORE_COMPILEDFILTERSHADER_H
+#define RMLUI_CORE_COMPILEDFILTERSHADER_H
 
-#include "../../Include/RmlUi/Core/Types.h"
-#include <stdint.h>
+#include "Header.h"
+#include "UniqueRenderResource.h"
 
 namespace Rml {
 
-class Geometry;
-using GeometryDatabaseHandle = uint32_t;
+class RenderManager;
 
 /**
-    The geometry database stores a reference to all active geometry.
+    A compiled filter to be applied during layer pop in its render manager. A unique resource constructed through the render manager.
+ */
+class RMLUICORE_API CompiledFilter final : public UniqueRenderResource<CompiledFilter, CompiledFilterHandle, CompiledFilterHandle(0)> {
+public:
+	CompiledFilter() = default;
 
-    The intention is for the user to be able to re-compile all geometry in use.
+	void AddHandleTo(FilterHandleList& list);
 
-    It is expected that every Insert() call is followed (at some later time) by
-    exactly one Erase() call with the same handle value.
-*/
+	void Release();
 
-namespace GeometryDatabase {
+private:
+	CompiledFilter(RenderManager* render_manager, CompiledFilterHandle resource_handle) : UniqueRenderResource(render_manager, resource_handle) {}
+	friend class RenderManager;
+};
 
-	GeometryDatabaseHandle Insert(Geometry* geometry);
-	void Erase(GeometryDatabaseHandle handle);
+/**
+    A compiled shader to be used when rendering geometry. A unique resource constructed through the render manager.
+ */
+class RMLUICORE_API CompiledShader final : public UniqueRenderResource<CompiledShader, CompiledShaderHandle, CompiledShaderHandle(0)> {
+public:
+	CompiledShader() = default;
 
-	void ReleaseAll();
+	void Release();
 
-#ifdef RMLUI_TESTS_ENABLED
-	bool PrepareForTests();
-	bool ListMatchesDatabase(const Vector<Geometry>& geometry_list);
-#endif
-} // namespace GeometryDatabase
+private:
+	CompiledShader(RenderManager* render_manager, CompiledShaderHandle resource_handle) : UniqueRenderResource(render_manager, resource_handle) {}
+	friend class RenderManager;
+};
 
 } // namespace Rml
+
 #endif

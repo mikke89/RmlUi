@@ -29,6 +29,7 @@
 #include "DecoratorTiledHorizontal.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/Texture.h"
 
 namespace Rml {
@@ -79,10 +80,7 @@ DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* eleme
 {
 	// Initialise the tiles for this element.
 	for (int i = 0; i < 3; i++)
-		tiles[i].CalculateDimensions(*GetTexture(tiles[i].texture_index));
-
-	const int num_textures = GetNumTextures();
-	DecoratorTiledHorizontalData* data = new DecoratorTiledHorizontalData(num_textures);
+		tiles[i].CalculateDimensions(GetTexture(tiles[i].texture_index));
 
 	const Vector2f offset = element->GetBox().GetPosition(paint_area);
 	const Vector2f size = element->GetBox().GetSize(paint_area);
@@ -109,23 +107,23 @@ DecoratorDataHandle DecoratorTiledHorizontal::GenerateElementData(Element* eleme
 	}
 
 	const ComputedValues& computed = element->GetComputedValues();
+	Mesh mesh[COUNT];
 
-	// Generate the geometry for the left tile.
-	tiles[LEFT].GenerateGeometry(data->geometry[tiles[LEFT].texture_index].GetVertices(), data->geometry[tiles[LEFT].texture_index].GetIndices(),
-		computed, offset, left_dimensions, left_dimensions);
-	// Generate the geometry for the centre tiles.
-	tiles[CENTRE].GenerateGeometry(data->geometry[tiles[CENTRE].texture_index].GetVertices(),
-		data->geometry[tiles[CENTRE].texture_index].GetIndices(), computed, offset + Vector2f(left_dimensions.x, 0),
+	tiles[LEFT].GenerateGeometry(mesh[tiles[LEFT].texture_index], computed, offset, left_dimensions, left_dimensions);
+
+	tiles[CENTRE].GenerateGeometry(mesh[tiles[CENTRE].texture_index], computed, offset + Vector2f(left_dimensions.x, 0),
 		Vector2f(size.x - (left_dimensions.x + right_dimensions.x), centre_dimensions.y), centre_dimensions);
-	// Generate the geometry for the right tile.
-	tiles[RIGHT].GenerateGeometry(data->geometry[tiles[RIGHT].texture_index].GetVertices(), data->geometry[tiles[RIGHT].texture_index].GetIndices(),
-		computed, offset + Vector2f(size.x - right_dimensions.x, 0), right_dimensions, right_dimensions);
 
-	// Set the textures on the geometry.
-	const Texture* texture = nullptr;
-	int texture_index = 0;
-	while ((texture = GetTexture(texture_index)) != nullptr)
-		data->geometry[texture_index++].SetTexture(texture);
+	tiles[RIGHT].GenerateGeometry(mesh[tiles[RIGHT].texture_index], computed, offset + Vector2f(size.x - right_dimensions.x, 0), right_dimensions,
+		right_dimensions);
+
+	const int num_textures = GetNumTextures();
+	DecoratorTiledHorizontalData* data = new DecoratorTiledHorizontalData(num_textures);
+	RenderManager* render_manager = element->GetRenderManager();
+
+	// Set the mesh and textures on the geometry.
+	for (int i = 0; i < num_textures; i++)
+		data->geometry[i] = render_manager->MakeGeometry(std::move(mesh[i]));
 
 	return reinterpret_cast<DecoratorDataHandle>(data);
 }
@@ -141,7 +139,7 @@ void DecoratorTiledHorizontal::RenderElement(Element* element, DecoratorDataHand
 	DecoratorTiledHorizontalData* data = reinterpret_cast<DecoratorTiledHorizontalData*>(element_data);
 
 	for (int i = 0; i < data->num_textures; i++)
-		data->geometry[i].Render(translation);
+		data->geometry[i].Render(translation, GetTexture(i));
 }
 
 DecoratorTiledHorizontalInstancer::DecoratorTiledHorizontalInstancer() : DecoratorTiledInstancer(3)

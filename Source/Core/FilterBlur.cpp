@@ -27,10 +27,11 @@
  */
 
 #include "FilterBlur.h"
+#include "../../Include/RmlUi/Core/CompiledFilterShader.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 
 namespace Rml {
 
@@ -40,16 +41,10 @@ bool FilterBlur::Initialise(NumericValue in_radius)
 	return Any(in_radius.unit & Unit::LENGTH);
 }
 
-CompiledFilterHandle FilterBlur::CompileFilter(Element* element) const
+CompiledFilter FilterBlur::CompileFilter(Element* element) const
 {
 	const float radius = element->ResolveLength(radius_value);
-	CompiledFilterHandle handle = GetRenderInterface()->CompileFilter("blur", Dictionary{{"radius", Variant(radius)}});
-	return handle;
-}
-
-void FilterBlur::ReleaseCompiledFilter(Element* /*element*/, CompiledFilterHandle filter_handle) const
-{
-	GetRenderInterface()->ReleaseCompiledFilter(filter_handle);
+	return element->GetRenderManager()->CompileFilter("blur", Dictionary{{"radius", Variant(radius)}});
 }
 
 void FilterBlur::ExtendInkOverflow(Element* element, Rectanglef& scissor_region) const

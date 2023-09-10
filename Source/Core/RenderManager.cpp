@@ -30,21 +30,51 @@
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "TextureDatabase.h"
 
 namespace Rml {
 
-RenderManager::RenderManager() : render_interface(GetRenderInterface())
+RenderManager::RenderManager(RenderInterface* render_interface) : render_interface(render_interface), texture_database(MakeUnique<TextureDatabase>())
 {
 	RMLUI_ASSERT(render_interface);
+
+	constexpr size_t reserve_geometry = 256;
+	geometry_list.reserve(reserve_geometry);
 }
 
-void RenderManager::BeginRender()
+RenderManager::~RenderManager()
+{
+	struct ResourceCount {
+		const char* name;
+		int count;
+	};
+	ResourceCount elements[] = {
+		{"Geometry", (int)geometry_list.size()},
+		{"CompiledFilter", compiled_filter_count},
+		{"CompiledShader", compiled_shader_count},
+		{"CallbackTexture", (int)texture_database->callback_database.size()},
+	};
+
+	for (auto& element : elements)
+	{
+		if (element.count != 0)
+		{
+			Log::Message(Log::LT_ERROR, "Leaking %s detected (%d). Ensure that all RmlUi resources have been released by the end of Rml::Shutdown.",
+				element.name, element.count);
+		}
+	}
+
+	ReleaseAllTextures();
+}
+
+void RenderManager::PrepareRender()
 {
 #ifdef RMLUI_DEBUG
 	const RenderState default_state;
 	RMLUI_ASSERT(state.clip_mask_list == default_state.clip_mask_list);
-	RMLUI_ASSERT(state.scissor_region == state.scissor_region);
-	RMLUI_ASSERT(state.transform == state.transform);
+	RMLUI_ASSERT(state.scissor_region == default_state.scissor_region);
+	RMLUI_ASSERT(state.transform == default_state.transform);
 #endif
 }
 
@@ -56,6 +86,27 @@ void RenderManager::SetViewport(Vector2i dimensions)
 Vector2i RenderManager::GetViewport() const
 {
 	return viewport_dimensions;
+}
+
+Geometry RenderManager::MakeGeometry(Mesh&& mesh)
+{
+	return Geometry(this, InsertGeometry(std::move(mesh)));
+}
+
+Texture RenderManager::LoadTexture(const String& source, const String& document_path)
+{
+	String path;
+	if (source.size() > 0 && source[0] == '?')
+		path = source;
+	else
+		GetSystemInterface()->JoinPath(path, StringUtilities::Replace(document_path, '|', ':'), source);
+
+	return Texture(this, texture_database->file_database.LoadTexture(render_interface, path));
+}
+
+CallbackTexture RenderManager::MakeCallbackTexture(CallbackTextureFunction callback)
+{
+	return CallbackTexture(this, texture_database->callback_database.CreateTexture(std::move(callback)));
 }
 
 void RenderManager::DisableScissorRegion()
@@ -93,7 +144,7 @@ void RenderManager::DisableClipMask()
 
 void RenderManager::SetClipMask(ClipMaskOperation operation, Geometry* geometry, Vector2f translation)
 {
-	RMLUI_ASSERT(geometry);
+	RMLUI_ASSERT(geometry && geometry->render_manager == this);
 	state.clip_mask_list = {ClipMaskGeometry{operation, geometry, translation, nullptr}};
 	ApplyClipMask(state.clip_mask_list);
 }
@@ -130,8 +181,10 @@ void RenderManager::ApplyClipMask(const ClipMaskGeometryList& clip_elements)
 
 		for (const ClipMaskGeometry& element_clip : clip_elements)
 		{
+			RMLUI_ASSERT(element_clip.geometry->render_manager == this);
 			SetTransform(element_clip.transform);
-			element_clip.geometry->RenderToClipMask(element_clip.operation, element_clip.absolute_offset);
+			if (CompiledGeometryHandle handle = GetCompiledGeometryHandle(element_clip.geometry->resource_handle))
+				render_interface->RenderToClipMask(element_clip.operation, handle, element_clip.absolute_offset);
 		}
 
 		// Apply the initially set transform in case it was changed.
@@ -151,6 +204,151 @@ void RenderManager::SetState(const RenderState& next)
 void RenderManager::ResetState()
 {
 	SetState(RenderState{});
+}
+
+StableVectorIndex RenderManager::InsertGeometry(Mesh&& mesh)
+{
+	return geometry_list.insert(GeometryData{std::move(mesh), CompiledGeometryHandle{}});
+}
+
+CompiledGeometryHandle RenderManager::GetCompiledGeometryHandle(StableVectorIndex index)
+{
+	if (index == StableVectorIndex::Invalid)
+		return {};
+
+	GeometryData& geometry = geometry_list[index];
+	if (!geometry.handle && !geometry.mesh.indices.empty())
+	{
+		geometry.handle = render_interface->CompileGeometry(geometry.mesh.vertices.data(), (int)geometry.mesh.vertices.size(),
+			geometry.mesh.indices.data(), (int)geometry.mesh.indices.size());
+	}
+	return geometry.handle;
+}
+
+void RenderManager::Render(const Geometry& geometry, Vector2f translation, Texture texture, const CompiledShader& shader)
+{
+	RMLUI_ASSERT(geometry);
+	if (geometry.render_manager != this || (shader && shader.render_manager != this) || (texture && texture.render_manager != this))
+	{
+		RMLUI_ERRORMSG("Trying to render geometry with resources constructed in different render managers.");
+		return;
+	}
+
+	if (CompiledGeometryHandle geometry_handle = GetCompiledGeometryHandle(geometry.resource_handle))
+	{
+		TextureHandle texture_handle = {};
+		if (texture.file_index != TextureFileIndex::Invalid)
+			texture_handle = texture_database->file_database.GetHandle(texture.file_index);
+		else if (texture.callback_index != StableVectorIndex::Invalid)
+			texture_handle = texture_database->callback_database.GetHandle(this, render_interface, texture.callback_index);
+
+		if (shader)
+			render_interface->RenderShader(shader.resource_handle, geometry_handle, translation, texture_handle);
+		else
+			render_interface->RenderCompiledGeometry(geometry_handle, translation, texture_handle);
+	}
+}
+
+void RenderManager::GetTextureSourceList(StringList& source_list) const
+{
+	texture_database->file_database.GetSourceList(source_list);
+}
+
+void RenderManager::ReleaseAllTextures()
+{
+	texture_database->callback_database.ReleaseAllTextures(render_interface);
+	texture_database->file_database.ReleaseAllTextures(render_interface);
+}
+
+void RenderManager::ReleaseAllCompiledGeometry()
+{
+	geometry_list.for_each([this](GeometryData& data) {
+		if (data.handle)
+		{
+			render_interface->ReleaseCompiledGeometry(data.handle);
+			data.handle = {};
+		}
+	});
+}
+
+CompiledFilter RenderManager::CompileFilter(const String& name, const Dictionary& parameters)
+{
+	if (CompiledFilterHandle handle = render_interface->CompileFilter(name, parameters))
+	{
+		compiled_filter_count += 1;
+		return CompiledFilter(this, handle);
+	}
+
+	return CompiledFilter();
+}
+
+CompiledShader RenderManager::CompileShader(const String& name, const Dictionary& parameters)
+{
+	if (CompiledShaderHandle handle = render_interface->CompileShader(name, parameters))
+	{
+		compiled_shader_count += 1;
+		return CompiledShader(this, handle);
+	}
+
+	return CompiledShader();
+}
+
+void RenderManager::PushLayer(LayerFill layer_fill)
+{
+	render_interface->PushLayer(layer_fill);
+}
+
+void RenderManager::PopLayer(BlendMode blend_mode, const FilterHandleList& filters)
+{
+	render_interface->PopLayer(blend_mode, filters);
+}
+
+CompiledFilter RenderManager::SaveLayerAsMaskImage()
+{
+	if (CompiledFilterHandle handle = render_interface->SaveLayerAsMaskImage())
+	{
+		compiled_filter_count += 1;
+		return CompiledFilter(this, handle);
+	}
+	return CompiledFilter();
+}
+
+void RenderManager::ReleaseResource(const CallbackTexture& texture)
+{
+	RMLUI_ASSERT(texture.render_manager == this && texture.resource_handle != texture.InvalidHandle());
+
+	texture_database->callback_database.ReleaseTexture(render_interface, texture.resource_handle);
+}
+
+Mesh RenderManager::ReleaseResource(const Geometry& geometry)
+{
+	RMLUI_ASSERT(geometry.render_manager == this && geometry.resource_handle != geometry.InvalidHandle());
+
+	GeometryData& data = geometry_list[geometry.resource_handle];
+	if (data.handle)
+	{
+		render_interface->ReleaseCompiledGeometry(data.handle);
+		data.handle = {};
+	}
+	Mesh result = std::exchange(data.mesh, Mesh());
+	geometry_list.erase(geometry.resource_handle);
+	return result;
+}
+
+void RenderManager::ReleaseResource(const CompiledFilter& filter)
+{
+	RMLUI_ASSERT(filter.render_manager == this && filter.resource_handle != filter.InvalidHandle());
+
+	render_interface->ReleaseCompiledFilter(filter.resource_handle);
+	compiled_filter_count -= 1;
+}
+
+void RenderManager::ReleaseResource(const CompiledShader& shader)
+{
+	RMLUI_ASSERT(shader.render_manager == this && shader.resource_handle != shader.InvalidHandle());
+
+	render_interface->ReleaseCompiledShader(shader.resource_handle);
+	compiled_shader_count -= 1;
 }
 
 } // namespace Rml

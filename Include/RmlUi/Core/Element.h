@@ -61,6 +61,7 @@ class InlineLevelBox;
 class ReplacedBox;
 class PropertiesIteratorView;
 class PropertyDictionary;
+class RenderManager;
 class StyleSheet;
 class StyleSheetContainer;
 class TransformState;
@@ -337,6 +338,9 @@ public:
 	/// Returns the element's context.
 	/// @return The context this element's document exists within.
 	Context* GetContext() const;
+	/// Returns the element's render manager.
+	/// @return The render manager responsible for this element.
+	RenderManager* GetRenderManager() const;
 
 	/** @name DOM Properties
 	 */

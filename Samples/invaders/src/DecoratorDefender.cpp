@@ -29,10 +29,11 @@
 #include "DecoratorDefender.h"
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
-#include <RmlUi/Core/GeometryUtilities.h>
+#include <RmlUi/Core/Geometry.h>
 #include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/PropertyDefinition.h>
-#include <RmlUi/Core/RenderInterface.h>
+#include <RmlUi/Core/RenderManager.h>
 #include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/Types.h>
 
@@ -62,16 +63,16 @@ void DecoratorDefender::RenderElement(Rml::Element* element, Rml::DecoratorDataH
 	Rml::Vector2f size = element->GetBox().GetSize(Rml::BoxArea::Padding);
 	Rml::Math::SnapToPixelGrid(position, size);
 
-	if (Rml::RenderInterface* render_interface = ::Rml::GetRenderInterface())
+	if (Rml::RenderManager* render_manager = element->GetRenderManager())
 	{
-		Rml::TextureHandle texture = GetTexture(image_index)->GetHandle();
+		Rml::Texture texture = GetTexture(image_index);
 		Rml::ColourbPremultiplied color = element->GetProperty<Rml::Colourb>("color").ToPremultiplied();
 
-		Rml::Vertex vertices[4];
-		int indices[6];
-		Rml::GeometryUtilities::GenerateQuad(vertices, indices, Rml::Vector2f(0.f), size, color);
+		Rml::Mesh mesh;
+		Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(0.f), size, color);
 
-		render_interface->RenderGeometry(vertices, 4, indices, 6, texture, position);
+		Rml::Geometry geometry = render_manager->MakeGeometry(std::move(mesh));
+		geometry.Render(position, texture);
 	}
 }
 

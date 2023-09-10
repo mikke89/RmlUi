@@ -34,21 +34,23 @@
 namespace Rml {
 
 class Geometry;
-struct Texture;
+class CallbackTexture;
+class RenderManager;
 
 class GeometryBoxShadow {
 public:
 	/// Generate the texture and geometry for a box shadow.
 	/// @param[out] out_shadow_geometry The target geometry.
 	/// @param[out] out_shadow_texture The target texture, assumes pointer stability during the lifetime of the shadow geometry.
+	/// @param[in] render_manager The render manager to generate the shadow for.
 	/// @param[in] element The element to generate the shadow for.
 	/// @param[in] background_border_geometry The geometry of the background and border, assumed to already have been generated. Assumes pointer
 	/// stability during the lifetime of the shadow geometry.
 	/// @param[in] shadow_list The list of box-shadows to generate.
 	/// @param[in] border_radius The border radius of the element.
 	/// @param[in] opacity The opacity of the element.
-	static void Generate(Geometry& out_shadow_geometry, Texture& out_shadow_texture, Element* element, Geometry& background_border_geometry,
-		BoxShadowList shadow_list, Vector4f border_radius, float opacity);
+	static void Generate(Geometry& out_shadow_geometry, CallbackTexture& out_shadow_texture, RenderManager& render_manager, Element* element,
+		Geometry& background_border_geometry, BoxShadowList shadow_list, Vector4f border_radius, float opacity);
 };
 
 } // namespace Rml

@@ -113,7 +113,8 @@ const Keyframes* StyleSheet::GetKeyframes(const String& name) const
 	return nullptr;
 }
 
-const DecoratorPtrList& StyleSheet::InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* source) const
+const DecoratorPtrList& StyleSheet::InstanceDecorators(RenderManager& render_manager, const DecoratorDeclarationList& declaration_list,
+	const PropertySource* source) const
 {
 	RMLUI_ASSERT_NONRECURSIVE; // Since we may return a reference to the below static variable.
 	static DecoratorPtrList non_cached_decorator_list;
@@ -152,8 +153,8 @@ const DecoratorPtrList& StyleSheet::InstanceDecorators(const DecoratorDeclaratio
 		if (declaration.instancer)
 		{
 			RMLUI_ZoneScopedN("InstanceDecorator");
-			decorator =
-				declaration.instancer->InstanceDecorator(declaration.type, declaration.properties, DecoratorInstancerInterface(*this, source));
+			decorator = declaration.instancer->InstanceDecorator(declaration.type, declaration.properties,
+				DecoratorInstancerInterface(render_manager, *this, source));
 
 			if (!decorator)
 				Log::Message(Log::LT_WARNING, "Decorator '%s' in '%s' could not be instanced, declared at %s:%d", declaration.type.c_str(),
@@ -165,7 +166,7 @@ const DecoratorPtrList& StyleSheet::InstanceDecorators(const DecoratorDeclaratio
 			auto it_map = named_decorator_map.find(declaration.type);
 			if (it_map != named_decorator_map.end())
 				decorator = it_map->second.instancer->InstanceDecorator(it_map->second.type, it_map->second.properties,
-					DecoratorInstancerInterface(*this, source));
+					DecoratorInstancerInterface(render_manager, *this, source));
 
 			if (!decorator)
 				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d",

@@ -29,8 +29,8 @@
 #define RMLUI_CORE_FONTENGINEINTERFACE_H
 
 #include "FontMetrics.h"
-#include "Geometry.h"
 #include "Header.h"
+#include "Mesh.h"
 #include "StyleTypes.h"
 #include "Types.h"
 
@@ -96,7 +96,8 @@ public:
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
 	virtual int GetStringWidth(FontFaceHandle handle, const String& string, float letter_spacing, Character prior_character = Character::Null);
 
-	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
+	/// Called by RmlUi when it wants to retrieve the meshes required to render a single line of text.
+	/// @param[in] render_manager The render manager responsible for rendering the string.
 	/// @param[in] face_handle The font handle.
 	/// @param[in] font_effects_handle The handle to the prepared font effects for which the geometry should be generated.
 	/// @param[in] string The string to render.
@@ -104,10 +105,10 @@ public:
 	/// @param[in] colour The colour to render the text.
 	/// @param[in] opacity The opacity of the text, should be applied to font effects.
 	/// @param[in] letter_spacing The letter spacing size in pixels.
-	/// @param[out] geometry An array of geometries to generate the geometry into.
-	/// @return The width, in pixels, of the string geometry.
-	virtual int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position,
-		ColourbPremultiplied colour, float opacity, float letter_spacing, GeometryList& geometry);
+	/// @param[out] mesh_list A list to place the meshes and textures representing the string to be rendered.
+	/// @return The width, in pixels, of the string mesh.
+	virtual int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string,
+		const Vector2f& position, ColourbPremultiplied colour, float opacity, float letter_spacing, TexturedMeshList& mesh_list);
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated. Whenever the returned version
 	/// is changed, all geometry belonging to the given face handle will be re-generated.

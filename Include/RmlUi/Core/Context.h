@@ -31,7 +31,6 @@
 
 #include "Header.h"
 #include "Input.h"
-#include "RenderManager.h"
 #include "ScriptInterface.h"
 #include "ScrollTypes.h"
 #include "Traits.h"
@@ -47,6 +46,7 @@ class DataModel;
 class DataModelConstructor;
 class DataTypeRegister;
 class ScrollController;
+class RenderManager;
 enum class EventId : uint16_t;
 
 /**
@@ -57,10 +57,10 @@ enum class EventId : uint16_t;
 
 class RMLUICORE_API Context : public ScriptInterface {
 public:
-	/// Constructs a new, uninitialised context. This should not be called directly, use CreateContext()
-	/// instead.
+	/// Constructs a new, uninitialised context. This should not be called directly, use CreateContext() instead.
 	/// @param[in] name The name of the context.
-	Context(const String& name);
+	/// @param[in] render_manager The render manager used for this context.
+	Context(const String& name, RenderManager* render_manager);
 	/// Destroys a context.
 	virtual ~Context();
 
@@ -300,8 +300,11 @@ protected:
 private:
 	String name;
 	Vector2i dimensions;
-	float density_independent_pixel_ratio;
+	float density_independent_pixel_ratio = 1.f;
 	String documents_base_tag = "body";
+
+	// Wrapper around the render interface for tracking the render state.
+	RenderManager* render_manager;
 
 	SmallUnorderedSet<String> active_themes;
 
@@ -364,9 +367,6 @@ private:
 	// itself can't be part of it.
 	ElementSet drag_hover_chain;
 
-	// Wrapper around the render interface for tracking the render state.
-	RenderManager render_manager;
-
 	using DataModels = UnorderedMap<String, UniquePtr<DataModel>>;
 	DataModels data_models;
 
@@ -374,7 +374,7 @@ private:
 
 	// Time in seconds until Update and Render should be called again. This allows applications to only redraw the ui if needed.
 	// See RequestNextUpdate() and NextUpdateRequested() for details.
-	double next_update_timeout;
+	double next_update_timeout = 0;
 
 	// Internal callback for when an element is detached or removed from the hierarchy.
 	void OnElementDetach(Element* element);

@@ -30,7 +30,8 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/DecorationTypes.h>
 #include <RmlUi/Core/FileInterface.h>
-#include <RmlUi/Core/GeometryUtilities.h>
+#include <RmlUi/Core/Geometry.h>
+#include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Core/SystemInterface.h>
@@ -780,11 +781,10 @@ RenderInterface_GL3::RenderInterface_GL3()
 	if (Gfx::CreateShaders(*mut_program_data))
 	{
 		program_data = std::move(mut_program_data);
-
-		Rml::Vertex vertices[4];
-		int indices[6];
-		Rml::GeometryUtilities::GenerateQuad(vertices, indices, Rml::Vector2f(-1), Rml::Vector2f(2), {});
-		fullscreen_quad_geometry = RenderInterface_GL3::CompileGeometry(vertices, 4, indices, 6);
+		Rml::Mesh mesh;
+		Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
+		fullscreen_quad_geometry =
+			RenderInterface_GL3::CompileGeometry(mesh.vertices.data(), (int)mesh.vertices.size(), mesh.indices.data(), (int)mesh.indices.size());
 	}
 }
 
@@ -1298,15 +1298,15 @@ void RenderInterface_GL3::DrawFullscreenQuad()
 
 void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling)
 {
-	Rml::Vertex vertices[4];
-	int indices[6];
-	Rml::GeometryUtilities::GenerateQuad(vertices, indices, Rml::Vector2f(-1), Rml::Vector2f(2), {});
+	Rml::Mesh mesh;
+	Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
 	if (uv_offset != Rml::Vector2f() || uv_scaling != Rml::Vector2f(1.f))
 	{
-		for (Rml::Vertex& vertex : vertices)
+		for (Rml::Vertex& vertex : mesh.vertices)
 			vertex.tex_coord = (vertex.tex_coord * uv_scaling) + uv_offset;
 	}
-	RenderGeometry(vertices, 4, indices, 6, RenderInterface_GL3::TexturePostprocess, {});
+	RenderGeometry(mesh.vertices.data(), (int)mesh.vertices.size(), mesh.indices.data(), (int)mesh.indices.size(),
+		RenderInterface_GL3::TexturePostprocess, {});
 }
 
 static Rml::Colourf ConvertToColorf(Rml::ColourbPremultiplied c0)

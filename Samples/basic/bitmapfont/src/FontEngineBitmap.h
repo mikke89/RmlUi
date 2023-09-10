@@ -35,6 +35,7 @@
 #include <RmlUi/Core/Types.h>
 
 class FontFaceBitmap;
+using Rml::TextureSource;
 
 namespace FontProviderBitmap {
 void Initialise();
@@ -58,14 +59,14 @@ using FontKerning = Rml::UnorderedMap<uint64_t, int>;
 
 class FontFaceBitmap {
 public:
-	FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, Texture texture, Vector2f texture_dimensions,
-		FontGlyphs&& glyphs, FontKerning&& kerning);
+	FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, String texture_name, String texture_path,
+		Vector2f texture_dimensions, FontGlyphs&& glyphs, FontKerning&& kerning);
 
 	// Get width of string.
 	int GetStringWidth(const String& string, Character prior_character);
 
 	// Generate the string geometry, returning its width.
-	int GenerateString(const String& string, const Vector2f& position, ColourbPremultiplied colour, GeometryList& geometry);
+	int GenerateString(RenderManager& render_manager, const String& string, const Vector2f& position, ColourbPremultiplied colour, TexturedMeshList& mesh_list);
 
 	const FontMetrics& GetMetrics() const { return metrics; }
 
@@ -82,7 +83,7 @@ private:
 
 	FontMetrics metrics;
 
-	Texture texture;
+	TextureSource texture_source;
 	Vector2f texture_dimensions;
 
 	FontGlyphs glyphs;

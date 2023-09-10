@@ -32,9 +32,9 @@
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
-#include "../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include <cmath>
 #include <rlottie.h>
@@ -88,7 +88,7 @@ void ElementLottie::OnRender()
 			GenerateGeometry();
 
 		UpdateTexture();
-		geometry.Render(GetAbsoluteOffset(BoxArea::Content).Round());
+		geometry.Render(GetAbsoluteOffset(BoxArea::Content).Round(), texture);
 	}
 }
 
@@ -121,26 +121,15 @@ void ElementLottie::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 void ElementLottie::GenerateGeometry()
 {
-	geometry.Release(true);
-
-	Vector<Vertex>& vertices = geometry.GetVertices();
-	Vector<int>& indices = geometry.GetIndices();
-
-	vertices.resize(4);
-	indices.resize(6);
-
-	Vector2f texcoords[2] = {
-		{0.0f, 0.0f},
-		{1.0f, 1.0f},
-	};
-
 	const ComputedValues& computed = GetComputedValues();
 	ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 
 	const Vector2f render_dimensions_f = GetBox().GetSize(BoxArea::Content).Round();
 	render_dimensions = Vector2i(render_dimensions_f);
 
-	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), render_dimensions_f, quad_colour, texcoords[0], texcoords[1]);
+	Mesh mesh = geometry.Release(Geometry::ReleaseMode::ClearMesh);
+	MeshUtilities::GenerateQuad(mesh, Vector2f(0), render_dimensions_f, quad_colour, Vector2f(0), Vector2f(1));
+	geometry = GetRenderManager()->MakeGeometry(std::move(mesh));
 
 	geometry_dirty = false;
 }
@@ -149,7 +138,7 @@ bool ElementLottie::LoadAnimation()
 {
 	animation_dirty = false;
 	intrinsic_dimensions = Vector2f{};
-	geometry.SetTexture(nullptr);
+	texture = {};
 	animation.reset();
 	prev_animation_frame = size_t(-1);
 	time_animation_start = -1;
@@ -198,6 +187,10 @@ void ElementLottie::UpdateTexture()
 	if (!animation)
 		return;
 
+	RenderManager* render_manager = GetRenderManager();
+	if (!render_manager)
+		return;
+
 	const double t = GetSystemInterface()->GetElapsedTime();
 
 	// Find the next animation frame to display.
@@ -222,8 +215,7 @@ void ElementLottie::UpdateTexture()
 	}
 
 	// Callback for generating texture.
-	auto texture_callback = [this, next_frame](RenderInterface* render_interface, const String& /*name*/, TextureHandle& out_handle,
-								Vector2i& out_dimensions) -> bool {
+	auto texture_callback = [this, next_frame](const CallbackTextureInterface& texture_interface) -> bool {
 		RMLUI_ASSERT(animation);
 
 		const size_t bytes_per_line = 4 * render_dimensions.x;
@@ -246,15 +238,13 @@ void ElementLottie::UpdateTexture()
 #endif
 		}
 
-		if (!render_interface->GenerateTexture(out_handle, p_data, render_dimensions))
+		if (!texture_interface.GenerateTexture(p_data, render_dimensions))
 			return false;
-
-		out_dimensions = render_dimensions;
 		return true;
 	};
 
-	texture.Set("lottie", std::move(texture_callback));
-	geometry.SetTexture(&texture);
+	texture = render_manager->MakeCallbackTexture(std::move(texture_callback));
+
 	prev_animation_frame = next_frame;
 	texture_size_dirty = false;
 }

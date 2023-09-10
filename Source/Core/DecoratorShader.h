@@ -69,9 +69,9 @@ private:
 };
 
 struct ShaderElementData {
-	ShaderElementData(Geometry&& geometry, CompiledShaderHandle shader) : geometry(std::move(geometry)), shader(shader) {}
+	ShaderElementData(Geometry&& geometry, CompiledShader&& shader) : geometry(std::move(geometry)), shader(std::move(shader)) {}
 	Geometry geometry;
-	CompiledShaderHandle shader;
+	CompiledShader shader;
 };
 Pool<ShaderElementData>& GetShaderElementDataPool();
 

@@ -30,7 +30,6 @@
 #define RMLUI_CORE_RENDERINTERFACE_H
 
 #include "Header.h"
-#include "Texture.h"
 #include "Traits.h"
 #include "Types.h"
 #include "Vertex.h"
@@ -52,8 +51,6 @@ enum class BlendMode {
 	Replace, // Replace the destination colors from the source.
 	Discard, // Leave the destination colors unaltered.
 };
-
-using FilterHandleList = Vector<CompiledFilterHandle>;
 
 /**
     The abstract base class for application-specific rendering implementation. Your application must provide a concrete

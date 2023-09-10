@@ -26,77 +26,69 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/Box.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
-#include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include "GeometryBackgroundBorder.h"
 
 namespace Rml {
 
-GeometryUtilities::GeometryUtilities() {}
-
-GeometryUtilities::~GeometryUtilities() {}
-
-void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, ColourbPremultiplied colour,
-	int index_offset)
+void MeshUtilities::GenerateQuad(Mesh& mesh, Vector2f origin, Vector2f dimensions, ColourbPremultiplied colour)
 {
-	GenerateQuad(vertices, indices, origin, dimensions, colour, Vector2f(0, 0), Vector2f(1, 1), index_offset);
+	GenerateQuad(mesh, origin, dimensions, colour, Vector2f(0, 0), Vector2f(1, 1));
 }
 
-void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f origin, Vector2f dimensions, ColourbPremultiplied colour,
-	Vector2f top_left_texcoord, Vector2f bottom_right_texcoord, int index_offset)
+void MeshUtilities::GenerateQuad(Mesh& mesh, Vector2f origin, Vector2f dimensions, ColourbPremultiplied colour, Vector2f top_left_texcoord,
+	Vector2f bottom_right_texcoord)
 {
-	vertices[0].position = origin;
-	vertices[0].colour = colour;
-	vertices[0].tex_coord = top_left_texcoord;
+	const int v0 = (int)mesh.vertices.size();
+	const int i0 = (int)mesh.indices.size();
 
-	vertices[1].position = Vector2f(origin.x + dimensions.x, origin.y);
-	vertices[1].colour = colour;
-	vertices[1].tex_coord = Vector2f(bottom_right_texcoord.x, top_left_texcoord.y);
+	mesh.vertices.resize(mesh.vertices.size() + 4);
+	mesh.indices.resize(mesh.indices.size() + 6);
+	Vertex* vertices = mesh.vertices.data();
+	int* indices = mesh.indices.data();
 
-	vertices[2].position = origin + dimensions;
-	vertices[2].colour = colour;
-	vertices[2].tex_coord = bottom_right_texcoord;
+	vertices[v0 + 0].position = origin;
+	vertices[v0 + 0].colour = colour;
+	vertices[v0 + 0].tex_coord = top_left_texcoord;
 
-	vertices[3].position = Vector2f(origin.x, origin.y + dimensions.y);
-	vertices[3].colour = colour;
-	vertices[3].tex_coord = Vector2f(top_left_texcoord.x, bottom_right_texcoord.y);
+	vertices[v0 + 1].position = Vector2f(origin.x + dimensions.x, origin.y);
+	vertices[v0 + 1].colour = colour;
+	vertices[v0 + 1].tex_coord = Vector2f(bottom_right_texcoord.x, top_left_texcoord.y);
 
-	indices[0] = index_offset + 0;
-	indices[1] = index_offset + 3;
-	indices[2] = index_offset + 1;
+	vertices[v0 + 2].position = origin + dimensions;
+	vertices[v0 + 2].colour = colour;
+	vertices[v0 + 2].tex_coord = bottom_right_texcoord;
 
-	indices[3] = index_offset + 1;
-	indices[4] = index_offset + 3;
-	indices[5] = index_offset + 2;
+	vertices[v0 + 3].position = Vector2f(origin.x, origin.y + dimensions.y);
+	vertices[v0 + 3].colour = colour;
+	vertices[v0 + 3].tex_coord = Vector2f(top_left_texcoord.x, bottom_right_texcoord.y);
+
+	indices[i0 + 0] = v0 + 0;
+	indices[i0 + 1] = v0 + 3;
+	indices[i0 + 2] = v0 + 1;
+
+	indices[i0 + 3] = v0 + 1;
+	indices[i0 + 4] = v0 + 3;
+	indices[i0 + 5] = v0 + 2;
 }
 
-void GeometryUtilities::GenerateLine(Geometry* geometry, Vector2f position, Vector2f size, ColourbPremultiplied color)
+void MeshUtilities::GenerateLine(Mesh& mesh, Vector2f position, Vector2f size, ColourbPremultiplied color)
 {
 	Math::SnapToPixelGrid(position, size);
-
-	Vector<Vertex>& line_vertices = geometry->GetVertices();
-	Vector<int>& line_indices = geometry->GetIndices();
-
-	const int vertices_i0 = (int)line_vertices.size();
-	const int indices_i0 = (int)line_indices.size();
-
-	line_vertices.resize(line_vertices.size() + 4);
-	line_indices.resize(line_indices.size() + 6);
-
-	GeometryUtilities::GenerateQuad(line_vertices.data() + vertices_i0, line_indices.data() + indices_i0, position, size, color, vertices_i0);
+	MeshUtilities::GenerateQuad(mesh, position, size, color);
 }
 
-void GeometryUtilities::GenerateBackgroundBorder(Geometry* out_geometry, const Box& box, Vector2f offset, Vector4f border_radius,
+void MeshUtilities::GenerateBackgroundBorder(Mesh& out_mesh, const Box& box, Vector2f offset, Vector4f border_radius,
 	ColourbPremultiplied background_color, const ColourbPremultiplied border_colors[4])
 {
 	RMLUI_ASSERT(border_colors);
 
-	Vector<Vertex>& vertices = out_geometry->GetVertices();
-	Vector<int>& indices = out_geometry->GetIndices();
+	Vector<Vertex>& vertices = out_mesh.vertices;
+	Vector<int>& indices = out_mesh.indices;
 
 	EdgeSizes border_widths = {
 		// TODO: Move rounding to computed values (round border only).
@@ -148,7 +140,7 @@ void GeometryUtilities::GenerateBackgroundBorder(Geometry* out_geometry, const B
 
 		for (int i = 0; i < num_vertices; i++)
 		{
-			GeometryUtilities::GenerateQuad(vertices.data() + num_vertices + 4 * i, indices.data() + num_indices + 6 * i, vertices[i].position,
+			MeshUtilities::GenerateQuad(vertices.data() + num_vertices + 4 * i, indices.data() + num_indices + 6 * i, vertices[i].position,
 				Vector2f(3, 3), ColourbPremultiplied(255, 0, (i % 2) == 0 ? 0 : 255), num_vertices + 4 * i);
 		}
 	}
@@ -163,8 +155,8 @@ void GeometryUtilities::GenerateBackgroundBorder(Geometry* out_geometry, const B
 #endif
 }
 
-void GeometryUtilities::GenerateBackground(Geometry* out_geometry, const Box& box, Vector2f offset, Vector4f border_radius,
-	ColourbPremultiplied color, BoxArea fill_area)
+void MeshUtilities::GenerateBackground(Mesh& out_mesh, const Box& box, Vector2f offset, Vector4f border_radius, ColourbPremultiplied color,
+	BoxArea fill_area)
 {
 	RMLUI_ASSERTMSG(fill_area >= BoxArea::Border && fill_area <= BoxArea::Content,
 		"Rectangle geometry only supports border, padding and content boxes.");
@@ -187,8 +179,8 @@ void GeometryUtilities::GenerateBackground(Geometry* out_geometry, const Box& bo
 
 	const BorderMetrics metrics = GeometryBackgroundBorder::ComputeBorderMetrics(offset.Round(), edge_sizes, inner_size, border_radius);
 
-	Vector<Vertex>& vertices = out_geometry->GetVertices();
-	Vector<int>& indices = out_geometry->GetIndices();
+	Vector<Vertex>& vertices = out_mesh.vertices;
+	Vector<int>& indices = out_mesh.indices;
 
 	// Reserve geometry. A conservative estimate, does not take border-radii into account.
 	vertices.reserve((int)vertices.size() + 4);

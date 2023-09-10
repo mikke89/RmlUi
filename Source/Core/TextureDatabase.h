@@ -29,50 +29,68 @@
 #ifndef RMLUI_CORE_TEXTUREDATABASE_H
 #define RMLUI_CORE_TEXTUREDATABASE_H
 
+#include "../../Include/RmlUi/Core/CallbackTexture.h"
+#include "../../Include/RmlUi/Core/StableVector.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
-class TextureResource;
+class RenderInterface;
 
-/**
-    @author Peter Curry
- */
+class CallbackTextureDatabase : NonCopyMoveable {
+public:
+	CallbackTextureDatabase();
+	~CallbackTextureDatabase();
+
+	StableVectorIndex CreateTexture(CallbackTextureFunction&& callback);
+	void ReleaseTexture(RenderInterface* render_interface, StableVectorIndex callback_index);
+
+	Vector2i GetDimensions(RenderManager* render_manager, RenderInterface* render_interface, StableVectorIndex callback_index);
+	TextureHandle GetHandle(RenderManager* render_manager, RenderInterface* render_interface, StableVectorIndex callback_index);
+
+	size_t size() const;
+
+	void ReleaseAllTextures(RenderInterface* render_interface);
+
+private:
+	struct CallbackTextureEntry {
+		CallbackTextureFunction callback;
+		TextureHandle texture_handle = {};
+		Vector2i dimensions;
+	};
+
+	CallbackTextureEntry& EnsureLoaded(RenderManager* render_manager, RenderInterface* render_interface, StableVectorIndex callback_index);
+
+	StableVector<CallbackTextureEntry> texture_list;
+};
+
+class FileTextureDatabase : NonCopyMoveable {
+public:
+	FileTextureDatabase();
+	~FileTextureDatabase();
+
+	TextureFileIndex LoadTexture(RenderInterface* render_interface, const String& source);
+
+	TextureHandle GetHandle(TextureFileIndex index) const;
+	Vector2i GetDimensions(TextureFileIndex index) const;
+
+	void GetSourceList(StringList& source_list) const;
+
+	void ReleaseAllTextures(RenderInterface* render_interface);
+
+private:
+	struct FileTextureEntry {
+		TextureHandle texture_handle = {};
+		Vector2i dimensions;
+	};
+	Vector<FileTextureEntry> texture_list;
+	UnorderedMap<String, TextureFileIndex> texture_map; // key: source, value: index into 'texture_list'
+};
 
 class TextureDatabase {
 public:
-	static void Initialise();
-	static void Shutdown();
-
-	/// Fetch a texture resource from file.
-	/// The texture will be returned from the database if it already exists, otherwise a new
-	/// entry will be added and returned.
-	static SharedPtr<TextureResource> Fetch(const String& source, const String& source_directory);
-
-	/// Release all textures in the database.
-	static void ReleaseTextures();
-
-	/// Adds a texture resource with a callback function and stores it as a weak (raw) pointer in the database.
-	static void AddCallbackTexture(TextureResource* texture);
-
-	/// Removes a callback texture from the database.
-	static void RemoveCallbackTexture(TextureResource* texture);
-
-	/// Return a list of all texture sources currently in the database.
-	static StringList GetSourceList();
-
-	/// Returns true if there are no textures in the database yet to be released through the render interface.
-	static bool AllTexturesReleased();
-
-private:
-	TextureDatabase();
-	~TextureDatabase();
-
-	using TextureMap = UnorderedMap<String, SharedPtr<TextureResource>>;
-	TextureMap textures;
-
-	using CallbackTextureMap = UnorderedSet<TextureResource*>;
-	CallbackTextureMap callback_textures;
+	FileTextureDatabase file_database;
+	CallbackTextureDatabase callback_database;
 };
 
 } // namespace Rml

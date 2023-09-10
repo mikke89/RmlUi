@@ -40,6 +40,7 @@ class Element;
 class ElementDefinition;
 class StyleSheetNode;
 class Decorator;
+class RenderManager;
 class SpritesheetList;
 class StyleSheetContainer;
 class StyleSheetParser;
@@ -84,7 +85,8 @@ public:
 	SharedPtr<const ElementDefinition> GetElementDefinition(const Element* element) const;
 
 	/// Returns a list of instanced decorators from the declarations. The instances are cached for faster future retrieval.
-	const DecoratorPtrList& InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* decorator_source) const;
+	const DecoratorPtrList& InstanceDecorators(RenderManager& render_manager, const DecoratorDeclarationList& declaration_list,
+		const PropertySource* decorator_source) const;
 
 private:
 	StyleSheet();

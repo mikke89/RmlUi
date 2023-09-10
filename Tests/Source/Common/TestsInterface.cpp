@@ -89,6 +89,26 @@ void TestsRenderInterface::RenderGeometry(Rml::Vertex* /*vertices*/, int /*num_v
 	counters.render_calls += 1;
 }
 
+Rml::CompiledGeometryHandle TestsRenderInterface::CompileGeometry(Rml::Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/,
+	int /*num_indices*/)
+{
+	if (!enable_compiled_geometry)
+		return {};
+	counters.compile_geometry_calls += 1;
+	return Rml::CompiledGeometryHandle(counters.compile_geometry_calls);
+}
+
+void TestsRenderInterface::RenderCompiledGeometry(Rml::CompiledGeometryHandle /*geometry*/, const Rml::Vector2f& /*translation*/,
+	Rml::TextureHandle /*texture*/)
+{
+	counters.render_compiled_geometry_calls += 1;
+}
+
+void TestsRenderInterface::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle /*geometry*/)
+{
+	counters.release_compiled_geometry_calls += 1;
+}
+
 void TestsRenderInterface::EnableScissorRegion(bool /*enable*/)
 {
 	counters.enable_scissor += 1;

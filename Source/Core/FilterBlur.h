@@ -39,9 +39,7 @@ class FilterBlur : public Filter {
 public:
 	bool Initialise(NumericValue radius);
 
-	CompiledFilterHandle CompileFilter(Element* element) const override;
-
-	void ReleaseCompiledFilter(Element* element, CompiledFilterHandle filter_handle) const override;
+	CompiledFilter CompileFilter(Element* element) const override;
 
 	void ExtendInkOverflow(Element* element, Rectanglef& scissor_region) const override;
 

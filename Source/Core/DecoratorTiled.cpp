@@ -29,8 +29,9 @@
 #include "DecoratorTiled.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
-#include "../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/Spritesheet.h"
 #include <algorithm>
@@ -55,7 +56,7 @@ DecoratorTiled::Tile::Tile() : display_scale(1), position(0, 0), size(0, 0)
 	orientation = ORIENTATION_NONE;
 }
 
-void DecoratorTiled::Tile::CalculateDimensions(const Texture& texture) const
+void DecoratorTiled::Tile::CalculateDimensions(Texture texture) const
 {
 	if (!tile_data_calculated)
 	{
@@ -98,8 +99,8 @@ Vector2f DecoratorTiled::Tile::GetNaturalDimensions(Element* element) const
 	return raw_dimensions * scale_raw_to_natural_dimensions;
 }
 
-void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int>& indices, const ComputedValues& computed,
-	const Vector2f surface_origin, const Vector2f surface_dimensions, const Vector2f tile_dimensions) const
+void DecoratorTiled::Tile::GenerateGeometry(Mesh& mesh, const ComputedValues& computed, const Vector2f surface_origin,
+	const Vector2f surface_dimensions, const Vector2f tile_dimensions) const
 {
 	if (surface_dimensions.x <= 0 || surface_dimensions.y <= 0)
 		return;
@@ -204,22 +205,11 @@ void DecoratorTiled::Tile::GenerateGeometry(Vector<Vertex>& vertices, Vector<int
 		}
 	}
 
-	// Resize the vertex and index arrays to fit the new geometry.
-	int index_offset = (int)vertices.size();
-	vertices.resize(vertices.size() + 4);
-	Vertex* new_vertices = &vertices[0] + index_offset;
-
-	size_t num_indices = indices.size();
-	indices.resize(indices.size() + 6);
-	int* new_indices = &indices[0] + num_indices;
-
 	// Generate the vertices for the tiled surface.
 	Vector2f tile_position = (surface_origin + tile_offset);
-
 	Math::SnapToPixelGrid(tile_position, final_tile_dimensions);
 
-	GeometryUtilities::GenerateQuad(new_vertices, new_indices, tile_position, final_tile_dimensions, quad_colour, scaled_texcoords[0],
-		scaled_texcoords[1], index_offset);
+	MeshUtilities::GenerateQuad(mesh, tile_position, final_tile_dimensions, quad_colour, scaled_texcoords[0], scaled_texcoords[1]);
 }
 
 void DecoratorTiled::ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, Axis axis_enum) const
@@ -306,7 +296,7 @@ bool DecoratorTiledInstancer::GetTileProperties(DecoratorTiled::Tile* tiles, Tex
 			tile.size = sprite->rectangle.Size();
 			tile.display_scale = sprite->sprite_sheet->display_scale;
 
-			texture = sprite->sprite_sheet->texture;
+			texture = sprite->sprite_sheet->texture_source.GetTexture(instancer_interface.GetRenderManager());
 		}
 		else
 		{

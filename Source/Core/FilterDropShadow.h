@@ -39,9 +39,7 @@ class FilterDropShadow : public Filter {
 public:
 	bool Initialise(Colourb color, NumericValue offset_x, NumericValue offset_y, NumericValue sigma);
 
-	CompiledFilterHandle CompileFilter(Element* element) const override;
-
-	void ReleaseCompiledFilter(Element* element, CompiledFilterHandle filter_handle) const override;
+	CompiledFilter CompileFilter(Element* element) const override;
 
 	void ExtendInkOverflow(Element* element, Rectanglef& scissor_region) const override;
 

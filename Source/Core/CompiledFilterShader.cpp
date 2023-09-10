@@ -26,36 +26,35 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/Geometry.h"
+#include "../../Include/RmlUi/Core/CompiledFilterShader.h"
 #include "RenderManagerAccess.h"
 
 namespace Rml {
 
-Geometry::Geometry(RenderManager* render_manager, StableVectorIndex resource_handle) : UniqueRenderResource(render_manager, resource_handle) {}
-
-void Geometry::Render(Vector2f translation, Texture texture, const CompiledShader& shader) const
+void CompiledFilter::AddHandleTo(FilterHandleList& list)
 {
-	if (resource_handle == StableVectorIndex::Invalid)
-		return;
-
-	translation = translation.Round();
-
-	RenderManagerAccess::Render(render_manager, *this, translation, texture, shader);
+	if (resource_handle != InvalidHandle())
+	{
+		list.push_back(resource_handle);
+	}
 }
 
-Mesh Geometry::Release(ReleaseMode mode)
+void CompiledFilter::Release()
 {
-	if (resource_handle == StableVectorIndex::Invalid)
-		return Mesh();
-
-	Mesh mesh = RenderManagerAccess::ReleaseResource(render_manager, *this);
-	Clear();
-	if (mode == ReleaseMode::ClearMesh)
+	if (resource_handle != InvalidHandle())
 	{
-		mesh.vertices.clear();
-		mesh.indices.clear();
+		RenderManagerAccess::ReleaseResource(render_manager, *this);
+		Clear();
 	}
-	return mesh;
+}
+
+void CompiledShader::Release()
+{
+	if (resource_handle != InvalidHandle())
+	{
+		RenderManagerAccess::ReleaseResource(render_manager, *this);
+		Clear();
+	}
 }
 
 } // namespace Rml

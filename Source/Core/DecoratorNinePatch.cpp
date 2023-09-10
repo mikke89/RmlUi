@@ -40,7 +40,7 @@ DecoratorNinePatch::DecoratorNinePatch() {}
 DecoratorNinePatch::~DecoratorNinePatch() {}
 
 bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectanglef& _rect_inner, const Array<NumericValue, 4>* _edges,
-	const Texture& _texture, float _display_scale)
+	Texture _texture, float _display_scale)
 {
 	rect_outer = _rect_outer;
 	rect_inner = _rect_inner;
@@ -58,11 +58,8 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element, Bo
 {
 	const auto& computed = element->GetComputedValues();
 
-	Geometry* data = new Geometry();
-
-	const Texture* texture = GetTexture();
-	data->SetTexture(texture);
-	const Vector2f texture_dimensions(texture->GetDimensions());
+	Texture texture = GetTexture();
+	const Vector2f texture_dimensions(texture.GetDimensions());
 
 	const Vector2f surface_offset = element->GetBox().GetPosition(paint_area);
 	const Vector2f surface_dimensions = element->GetBox().GetSize(paint_area).Round();
@@ -133,9 +130,9 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element, Bo
 	surface_pos[2] = surface_pos[2].Round();
 
 	/* Now we have all the coordinates we need. Expand the diagonal vertices to the 16 individual vertices. */
-
-	Vector<Vertex>& vertices = data->GetVertices();
-	Vector<int>& indices = data->GetIndices();
+	Mesh mesh;
+	Vector<Vertex>& vertices = mesh.vertices;
+	Vector<int>& indices = mesh.indices;
 
 	vertices.resize(4 * 4);
 
@@ -167,6 +164,8 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element, Bo
 		indices[i + 5] = top_left_index + 5;
 	}
 
+	Geometry* data = new Geometry(element->GetRenderManager()->MakeGeometry(std::move(mesh)));
+
 	return reinterpret_cast<DecoratorDataHandle>(data);
 }
 
@@ -178,7 +177,7 @@ void DecoratorNinePatch::ReleaseElementData(DecoratorDataHandle element_data) co
 void DecoratorNinePatch::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	Geometry* data = reinterpret_cast<Geometry*>(element_data);
-	data->Render(element->GetAbsoluteOffset(BoxArea::Border));
+	data->Render(element->GetAbsoluteOffset(BoxArea::Border), GetTexture());
 }
 
 DecoratorNinePatchInstancer::DecoratorNinePatchInstancer()
@@ -243,8 +242,8 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 
 	auto decorator = MakeShared<DecoratorNinePatch>();
 
-	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, (edges_set ? &edges : nullptr), sprite_outer->sprite_sheet->texture,
-			sprite_outer->sprite_sheet->display_scale))
+	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, (edges_set ? &edges : nullptr),
+			sprite_outer->sprite_sheet->texture_source.GetTexture(instancer_interface.GetRenderManager()), sprite_outer->sprite_sheet->display_scale))
 	{
 		return nullptr;
 	}

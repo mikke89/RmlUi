@@ -36,9 +36,9 @@
 #include "../../../Include/RmlUi/Core/Elements/ElementFormControl.h"
 #include "../../../Include/RmlUi/Core/Factory.h"
 #include "../../../Include/RmlUi/Core/FontEngineInterface.h"
-#include "../../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../../Include/RmlUi/Core/Input.h"
 #include "../../../Include/RmlUi/Core/Math.h"
+#include "../../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../../Include/RmlUi/Core/SystemInterface.h"
 #include "../Clock.h"
@@ -1065,12 +1065,6 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	text_element->ClearLines();
 	selected_text_element->ClearLines();
 
-	// Clear the selection background geometry, and get the vertices and indices so the new geo can
-	// be generated.
-	selection_geometry.Release(true);
-	Vector<Vertex>& selection_vertices = selection_geometry.GetVertices();
-	Vector<int>& selection_indices = selection_geometry.GetIndices();
-
 	// Determine the line-height of the text element.
 	const float line_height = parent->GetLineHeight();
 	const float font_baseline = GetFontEngineInterface()->GetFontMetrics(font_handle).ascent;
@@ -1220,6 +1214,9 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// Clamp the cursor to a valid range.
 	absolute_cursor_index = Math::Min(absolute_cursor_index, (int)GetValue().size());
 
+	// Clear the selection background geometry, and get the vertices and indices so the new geometry can be generated.
+	Mesh selection_mesh = selection_geometry.Release(Geometry::ReleaseMode::ClearMesh);
+
 	// Transform segments according to text alignment
 	for (auto& it : segments)
 	{
@@ -1234,10 +1231,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + lines[it.line_index].editable_length);
 			const Vector2f selection_size(float(it.width + (selection_contains_endline ? endline_selection_width : 0)), line_height);
 
-			selection_vertices.resize(selection_vertices.size() + 4);
-			selection_indices.resize(selection_indices.size() + 6);
-			GeometryUtilities::GenerateQuad(&selection_vertices[selection_vertices.size() - 4], &selection_indices[selection_indices.size() - 6],
-				it.position - Vector2f(0, font_baseline), selection_size, selection_colour, (int)selection_vertices.size() - 4);
+			MeshUtilities::GenerateQuad(selection_mesh, it.position - Vector2f(0, font_baseline), selection_size, selection_colour);
 
 			selected_text_element->AddLine(it.position, it.content);
 		}
@@ -1245,20 +1239,13 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			text_element->AddLine(it.position, it.content);
 	}
 
+	selection_geometry = parent->GetRenderManager()->MakeGeometry(std::move(selection_mesh));
+
 	return content_area;
 }
 
 void WidgetTextInput::GenerateCursor()
 {
-	// Generates the cursor.
-	cursor_geometry.Release();
-
-	Vector<Vertex>& vertices = cursor_geometry.GetVertices();
-	vertices.resize(4);
-
-	Vector<int>& indices = cursor_geometry.GetIndices();
-	indices.resize(6);
-
 	cursor_size.x = Math::Round(ElementUtilities::GetDensityIndependentPixelRatio(text_element));
 	cursor_size.y = text_element->GetLineHeight() + 2.0f;
 
@@ -1270,7 +1257,9 @@ void WidgetTextInput::GenerateCursor()
 			color = property->Get<Colourb>();
 	}
 
-	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), cursor_size, color.ToPremultiplied());
+	Mesh mesh = cursor_geometry.Release(Geometry::ReleaseMode::ClearMesh);
+	MeshUtilities::GenerateQuad(mesh, Vector2f(0, 0), cursor_size, color.ToPremultiplied());
+	cursor_geometry = parent->GetRenderManager()->MakeGeometry(std::move(mesh));
 }
 
 void WidgetTextInput::ForceFormattingOnNextLayout()

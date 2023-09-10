@@ -26,36 +26,50 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/Geometry.h"
-#include "RenderManagerAccess.h"
+#ifndef RMLUI_CORE_RENDERMANAGERACCESS_H
+#define RMLUI_CORE_RENDERMANAGERACCESS_H
+
+#include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
-Geometry::Geometry(RenderManager* render_manager, StableVectorIndex resource_handle) : UniqueRenderResource(render_manager, resource_handle) {}
+class CompiledFilter;
+class CompiledShader;
+class CallbackTexture;
+class Geometry;
+class Texture;
 
-void Geometry::Render(Vector2f translation, Texture texture, const CompiledShader& shader) const
-{
-	if (resource_handle == StableVectorIndex::Invalid)
-		return;
-
-	translation = translation.Round();
-
-	RenderManagerAccess::Render(render_manager, *this, translation, texture, shader);
-}
-
-Mesh Geometry::Release(ReleaseMode mode)
-{
-	if (resource_handle == StableVectorIndex::Invalid)
-		return Mesh();
-
-	Mesh mesh = RenderManagerAccess::ReleaseResource(render_manager, *this);
-	Clear();
-	if (mode == ReleaseMode::ClearMesh)
+class RenderManagerAccess {
+private:
+	template <typename T>
+	static auto ReleaseResource(RenderManager* render_manager, T& resource)
 	{
-		mesh.vertices.clear();
-		mesh.indices.clear();
+		return render_manager->ReleaseResource(resource);
 	}
-	return mesh;
-}
+
+	static Vector2i GetDimensions(RenderManager* render_manager, TextureFileIndex texture);
+	static Vector2i GetDimensions(RenderManager* render_manager, StableVectorIndex callback_texture);
+
+	static void Render(RenderManager* render_manager, const Geometry& geometry, Vector2f translation, Texture texture, const CompiledShader& shader);
+	
+	static void GetTextureSourceList(RenderManager* render_manager, StringList& source_list);
+
+	static void ReleaseAllTextures(RenderManager* render_manager);
+	static void ReleaseAllCompiledGeometry(RenderManager* render_manager);
+
+	friend class CompiledFilter;
+	friend class CompiledShader;
+	friend class CallbackTexture;
+	friend class Geometry;
+	friend class Texture;
+
+	friend StringList Rml::GetTextureSourceList();
+	friend void Rml::ReleaseTextures(RenderInterface*);
+	friend void Rml::ReleaseCompiledGeometry(RenderInterface*);
+};
 
 } // namespace Rml
+
+#endif

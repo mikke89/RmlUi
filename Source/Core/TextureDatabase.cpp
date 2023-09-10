@@ -27,127 +27,143 @@
  */
 
 #include "TextureDatabase.h"
-#include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/StringUtilities.h"
-#include "../../Include/RmlUi/Core/SystemInterface.h"
-#include "TextureResource.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "../../Include/RmlUi/Core/RenderInterface.h"
 
 namespace Rml {
 
-static TextureDatabase* texture_database = nullptr;
-
-TextureDatabase::TextureDatabase()
+CallbackTextureDatabase::CallbackTextureDatabase()
 {
-	RMLUI_ASSERT(texture_database == nullptr);
-	texture_database = this;
+	constexpr size_t reserve_callback_textures = 30;
+	texture_list.reserve(reserve_callback_textures);
 }
 
-TextureDatabase::~TextureDatabase()
+CallbackTextureDatabase::~CallbackTextureDatabase()
 {
-	RMLUI_ASSERT(texture_database == this);
-
-#ifdef RMLUI_DEBUG
-	// All textures not owned by the database should have been released at this point.
-	int num_leaks_file = 0;
-
-	for (auto& texture : textures)
-		num_leaks_file += (texture.second.use_count() > 1);
-
-	const int num_leaks_callback = (int)callback_textures.size();
-	const int total_num_leaks = num_leaks_file + num_leaks_callback;
-
-	if (total_num_leaks > 0)
+	if (!texture_list.empty())
 	{
-		Log::Message(Log::LT_ERROR, "Textures leaked during shutdown. Total: %d  From file: %d  Generated: %d.", total_num_leaks, num_leaks_file,
-			num_leaks_callback);
+		Log::Message(Log::LT_ERROR, "TextureDatabase destroyed with outstanding callback textures. Will likely result in memory corruption.");
+		RMLUI_ERROR;
+	}
+}
+
+StableVectorIndex CallbackTextureDatabase::CreateTexture(CallbackTextureFunction&& callback)
+{
+	RMLUI_ASSERT(callback);
+	return texture_list.insert(CallbackTextureEntry{std::move(callback), TextureHandle(), Vector2i()});
+}
+
+void CallbackTextureDatabase::ReleaseTexture(RenderInterface* render_interface, StableVectorIndex callback_index)
+{
+	CallbackTextureEntry& data = texture_list[callback_index];
+	if (data.texture_handle)
+		render_interface->ReleaseTexture(data.texture_handle);
+	texture_list.erase(callback_index);
+}
+
+Vector2i CallbackTextureDatabase::GetDimensions(RenderManager* render_manager, RenderInterface* render_interface, StableVectorIndex callback_index)
+{
+	return EnsureLoaded(render_manager, render_interface, callback_index).dimensions;
+}
+
+TextureHandle CallbackTextureDatabase::GetHandle(RenderManager* render_manager, RenderInterface* render_interface, StableVectorIndex callback_index)
+{
+	return EnsureLoaded(render_manager, render_interface, callback_index).texture_handle;
+}
+
+auto CallbackTextureDatabase::EnsureLoaded(RenderManager* render_manager, RenderInterface* render_interface, StableVectorIndex callback_index)
+	-> CallbackTextureEntry&
+{
+	CallbackTextureEntry& data = texture_list[callback_index];
+	if (!data.texture_handle)
+	{
+		if (!data.callback(CallbackTextureInterface(*render_manager, *render_interface, data.texture_handle, data.dimensions)))
+		{
+			data.texture_handle = {};
+			data.dimensions = {};
+		}
+	}
+	return data;
+}
+
+size_t CallbackTextureDatabase::size() const
+{
+	return texture_list.size();
+}
+
+void CallbackTextureDatabase::ReleaseAllTextures(RenderInterface* render_interface)
+{
+	texture_list.for_each([render_interface](CallbackTextureEntry& texture) {
+		if (texture.texture_handle)
+		{
+			render_interface->ReleaseTexture(texture.texture_handle);
+			texture.texture_handle = {};
+			texture.dimensions = {};
+		}
+	});
+}
+
+FileTextureDatabase::FileTextureDatabase() {}
+
+FileTextureDatabase::~FileTextureDatabase()
+{
+#ifdef RMLUI_DEBUG
+	for (const FileTextureEntry& texture : texture_list)
+	{
+		RMLUI_ASSERTMSG(!texture.texture_handle,
+			"TextureDatabase destroyed without releasing all file textures first. Ensure that 'ReleaseAllTextures' is called before destruction.");
 	}
 #endif
-
-	texture_database = nullptr;
 }
 
-void TextureDatabase::Initialise()
+TextureFileIndex FileTextureDatabase::LoadTexture(RenderInterface* render_interface, const String& source)
 {
-	new TextureDatabase();
-}
+	auto it = texture_map.find(source);
+	if (it != texture_map.end())
+		return it->second;
 
-void TextureDatabase::Shutdown()
-{
-	delete texture_database;
-}
-
-SharedPtr<TextureResource> TextureDatabase::Fetch(const String& source, const String& source_directory)
-{
-	String path;
-	if (source.size() > 0 && source[0] == '?')
-		path = source;
-	else
-		GetSystemInterface()->JoinPath(path, StringUtilities::Replace(source_directory, '|', ':'), source);
-
-	auto iterator = texture_database->textures.find(path);
-	if (iterator != texture_database->textures.end())
-		return iterator->second;
-
-	auto resource = MakeShared<TextureResource>();
-	resource->Set(path);
-
-	texture_database->textures[path] = resource;
-	return resource;
-}
-
-void TextureDatabase::AddCallbackTexture(TextureResource* texture)
-{
-	if (texture_database)
-		texture_database->callback_textures.insert(texture);
-}
-
-void TextureDatabase::RemoveCallbackTexture(TextureResource* texture)
-{
-	if (texture_database)
-		texture_database->callback_textures.erase(texture);
-}
-
-StringList TextureDatabase::GetSourceList()
-{
-	StringList result;
-
-	if (texture_database)
+	TextureHandle handle = {};
+	Vector2i dimensions;
+	if (render_interface->LoadTexture(handle, dimensions, source) && handle)
 	{
-		result.reserve(texture_database->textures.size());
-
-		for (const auto& pair : texture_database->textures)
-			result.push_back(pair.first);
+		TextureFileIndex result = TextureFileIndex(texture_list.size());
+		texture_map[source] = result;
+		texture_list.push_back(FileTextureEntry{handle, dimensions});
+		return result;
 	}
 
-	return result;
+	return TextureFileIndex::Invalid;
 }
 
-void TextureDatabase::ReleaseTextures()
+TextureHandle FileTextureDatabase::GetHandle(TextureFileIndex index) const
 {
-	if (texture_database)
-	{
-		for (const auto& texture : texture_database->textures)
-			texture.second->Release();
-
-		for (const auto& texture : texture_database->callback_textures)
-			texture->Release();
-	}
+	RMLUI_ASSERT(size_t(index) < texture_list.size());
+	return texture_list[size_t(index)].texture_handle;
 }
 
-bool TextureDatabase::AllTexturesReleased()
+Vector2i FileTextureDatabase::GetDimensions(TextureFileIndex index) const
 {
-	if (texture_database)
+	RMLUI_ASSERT(size_t(index) < texture_list.size());
+	return texture_list[size_t(index)].dimensions;
+}
+
+void FileTextureDatabase::GetSourceList(StringList& source_list) const
+{
+	source_list.reserve(source_list.size() + texture_list.size());
+	for (const auto& texture : texture_map)
+		source_list.push_back(texture.first);
+}
+
+void FileTextureDatabase::ReleaseAllTextures(RenderInterface* render_interface)
+{
+	for (FileTextureEntry& texture : texture_list)
 	{
-		for (const auto& texture : texture_database->textures)
-			if (!texture.second->IsLoaded())
-				return false;
-
-		for (const auto& texture : texture_database->callback_textures)
-			if (!texture->IsLoaded())
-				return false;
+		if (texture.texture_handle)
+		{
+			render_interface->ReleaseTexture(texture.texture_handle);
+			texture.texture_handle = {};
+		}
 	}
-
-	return true;
 }
 
 } // namespace Rml

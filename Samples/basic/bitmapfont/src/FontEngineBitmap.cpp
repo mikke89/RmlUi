@@ -29,7 +29,7 @@
 #include "FontEngineBitmap.h"
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
-#include <RmlUi/Core/GeometryUtilities.h>
+#include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/StreamMemory.h>
 #include <cstdio>
 
@@ -84,12 +84,9 @@ bool LoadFontFace(const String& file_name)
 		parser.metrics.underline_thickness = 1.f;
 	}
 
-	Texture texture;
-	texture.Set(parser.texture_name, file_name);
-
 	// Construct and add the font face
-	fonts.push_back(Rml::MakeUnique<FontFaceBitmap>(parser.family, parser.style, parser.weight, parser.metrics, texture, parser.texture_dimensions,
-		std::move(parser.glyphs), std::move(parser.kerning)));
+	fonts.push_back(Rml::MakeUnique<FontFaceBitmap>(parser.family, parser.style, parser.weight, parser.metrics, parser.texture_name, file_name,
+		parser.texture_dimensions, std::move(parser.glyphs), std::move(parser.kerning)));
 
 	return true;
 }
@@ -125,11 +122,11 @@ FontFaceBitmap* GetFontFaceHandle(const String& family, FontStyle style, FontWei
 
 } // namespace FontProviderBitmap
 
-FontFaceBitmap::FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, Texture texture, Vector2f texture_dimensions,
-	FontGlyphs&& glyphs, FontKerning&& kerning) :
+FontFaceBitmap::FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, String texture_name, String texture_path,
+	Vector2f texture_dimensions, FontGlyphs&& glyphs, FontKerning&& kerning) :
 	family(family),
-	style(style), weight(weight), metrics(metrics), texture(texture), texture_dimensions(texture_dimensions), glyphs(std::move(glyphs)),
-	kerning(std::move(kerning))
+	style(style), weight(weight), metrics(metrics), texture_source(texture_name, texture_path), texture_dimensions(texture_dimensions),
+	glyphs(std::move(glyphs)), kerning(std::move(kerning))
 {}
 
 int FontFaceBitmap::GetStringWidth(const String& string, Character previous_character)
@@ -155,17 +152,18 @@ int FontFaceBitmap::GetStringWidth(const String& string, Character previous_char
 	return width;
 }
 
-int FontFaceBitmap::GenerateString(const String& string, const Vector2f& string_position, ColourbPremultiplied colour, GeometryList& geometry_list)
+int FontFaceBitmap::GenerateString(RenderManager& render_manager, const String& string, const Vector2f& string_position, ColourbPremultiplied colour,
+	TexturedMeshList& mesh_list)
 {
 	int width = 0;
 
-	geometry_list.resize(1);
-	Rml::Geometry& geometry = geometry_list[0];
+	mesh_list.resize(1);
 
-	geometry.SetTexture(&texture);
+	mesh_list[0].texture = texture_source.GetTexture(render_manager);
 
-	auto& vertices = geometry.GetVertices();
-	auto& indices = geometry.GetIndices();
+	Rml::Mesh& mesh = mesh_list[0].mesh;
+	auto& vertices = mesh.vertices;
+	auto& indices = mesh.indices;
 
 	vertices.reserve(string.size() * 4);
 	indices.reserve(string.size() * 6);
@@ -195,8 +193,7 @@ int FontFaceBitmap::GenerateString(const String& string, const Vector2f& string_
 		Vector2f uv_top_left = glyph.position / texture_dimensions;
 		Vector2f uv_bottom_right = (glyph.position + glyph.dimension) / texture_dimensions;
 
-		Rml::GeometryUtilities::GenerateQuad(&vertices[0] + (vertices.size() - 4), &indices[0] + (indices.size() - 6),
-			Vector2f(position + glyph.offset).Round(), glyph.dimension, colour, uv_top_left, uv_bottom_right, (int)vertices.size() - 4);
+		Rml::MeshUtilities::GenerateQuad(mesh, Vector2f(position + glyph.offset).Round(), glyph.dimension, colour, uv_top_left, uv_bottom_right);
 
 		width += glyph.advance;
 		position.x += glyph.advance;

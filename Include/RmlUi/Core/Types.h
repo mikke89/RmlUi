@@ -32,8 +32,8 @@
 #include "../Config/Config.h"
 #include "Traits.h"
 #include <cstdlib>
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 
 namespace Rml {
 
@@ -78,6 +78,8 @@ using Matrix4f = RMLUI_MATRIX4_TYPE;
 class Element;
 class ElementInstancer;
 class ElementAnimation;
+class RenderManager;
+class Texture;
 class Context;
 class Event;
 class Property;
@@ -112,6 +114,9 @@ using ElementPtr = UniqueReleaserPtr<Element>;
 using ContextPtr = UniqueReleaserPtr<Context>;
 using EventPtr = UniqueReleaserPtr<Event>;
 
+enum class StableVectorIndex : uint32_t { Invalid = uint32_t(-1) };
+enum class TextureFileIndex : uint32_t { Invalid = uint32_t(-1) };
+
 // Container types for common classes
 using ElementList = Vector<Element*>;
 using OwnedElementList = Vector<ElementPtr>;
@@ -133,6 +138,7 @@ struct FontEffects {
 };
 using ColorStopList = Vector<ColorStop>;
 using BoxShadowList = Vector<BoxShadow>;
+using FilterHandleList = Vector<CompiledFilterHandle>;
 
 // Additional smart pointers
 using TransformPtr = SharedPtr<Transform>;

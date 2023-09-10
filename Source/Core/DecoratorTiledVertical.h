@@ -57,9 +57,9 @@ public:
 	void RenderElement(Element* element, DecoratorDataHandle element_data) const override;
 
 private:
-	enum { TOP = 0, BOTTOM = 1, CENTRE = 2 };
+	enum { TOP, BOTTOM, CENTRE, COUNT };
 
-	Tile tiles[3];
+	Tile tiles[COUNT];
 };
 
 class DecoratorTiledVerticalInstancer : public DecoratorTiledInstancer {

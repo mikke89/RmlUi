@@ -34,55 +34,52 @@
 
 namespace Rml {
 
-class TextureResource;
-class RenderInterface;
-
-/*
-    Callback function for generating textures.
-    /// @param[in] render_interface The render interface to use for generating the texture.
-    /// @param[in] name The name used to set the texture.
-    /// @param[out] handle The texture handle obtained through the render interface.
-    /// @param[out] dimensions The width and height of the generated texture.
-    /// @return True on success.
-*/
-using TextureCallback = Function<bool(RenderInterface* render_interface, const String& name, TextureHandle& handle, Vector2i& dimensions)>;
+class CallbackTexture;
+class RenderManager;
 
 /**
-    Abstraction of a two-dimensional texture image, with an application-specific texture handle.
+    Texture is a simple view of either a file texture or a callback texture.
 
-    @author Peter Curry
+    It is constructed through the render manager. It can be freely copied, and does not own or release the underlying
+    resource. The user is responsible for ensuring that the lifetime of the texture is valid.
  */
-
-struct RMLUICORE_API Texture {
+class RMLUICORE_API Texture {
 public:
-	/// Set the texture source and path. The texture is added to the global cache and only loaded on first use.
-	/// @param[in] source The source of the texture.
-	/// @param[in] source_path The path of the resource that is requesting the texture (ie, the RCSS file in which it was specified, etc).
-	void Set(const String& source, const String& source_path = "");
+	Texture() = default;
 
-	/// Set a callback function for generating the texture on first use. The texture is never added to the global cache.
-	/// @param[in] name The name of the texture.
-	/// @param[in] callback The callback function which generates the data of the texture, see TextureCallback.
-	void Set(const String& name, TextureCallback&& callback);
-
-	/// Returns the texture's source name. This is usually the name of the file the texture was loaded from.
-	/// @return The name of the this texture's source. This will be the empty string if this texture is not loaded.
-	const String& GetSource() const;
-	/// Returns the texture's handle, will attempt to load the texture as necessary.
-	/// @return The texture's handle. This will be 0 if the texture cannot be loaded.
-	TextureHandle GetHandle() const;
-	/// Returns the texture's dimensions, will attempt to load the texture as necessary.
-	/// @return The texture's dimensions. This will be (0, 0) if the texture cannot be loaded.
 	Vector2i GetDimensions() const;
 
-	/// Returns true if the texture points to the same underlying resource.
-	bool operator==(const Texture&) const;
-
-	/// Returns true if the underlying resource is set.
 	explicit operator bool() const;
+	bool operator==(const Texture& other) const;
 
 private:
-	SharedPtr<TextureResource> resource;
+	Texture(RenderManager* render_manager, TextureFileIndex file_index);
+	Texture(RenderManager* render_manager, StableVectorIndex callback_index);
+
+	RenderManager* render_manager = nullptr;
+	TextureFileIndex file_index = TextureFileIndex::Invalid;
+	StableVectorIndex callback_index = StableVectorIndex::Invalid;
+
+	friend class RenderManager;
+	friend class CallbackTexture;
+};
+
+/**
+    Stores the file source for a texture, which is used to generate textures possibly for multiple render managers.
+ */
+class RMLUICORE_API TextureSource : NonCopyMoveable {
+public:
+	TextureSource() = default;
+	TextureSource(String source, String document_path);
+
+	Texture GetTexture(RenderManager& render_manager) const;
+
+	const String& GetDefinitionSource() const;
+
+private:
+	String source;
+	String document_path;
+	mutable SmallUnorderedMap<RenderManager*, Texture> textures;
 };
 
 } // namespace Rml

@@ -55,6 +55,7 @@ class StyleSheetContainer;
 class PropertyDictionary;
 class PropertySpecification;
 class DecoratorInstancerInterface;
+class RenderManager;
 enum class EventId : uint16_t;
 
 /**
@@ -79,8 +80,9 @@ public:
 	static void RegisterContextInstancer(ContextInstancer* instancer);
 	/// Instances a new context.
 	/// @param[in] name The name of the new context.
+	/// @param[in] render_manager The render manager used for the new context.
 	/// @return The new context, or nullptr if no context could be created.
-	static ContextPtr InstanceContext(const String& name);
+	static ContextPtr InstanceContext(const String& name, RenderManager* render_manager);
 
 	/// Registers a non-owning pointer to the element instancer that will be used to instance an element when the specified tag is encountered.
 	/// @param[in] name Name of the instancer; elements with this as their tag will use this instancer.

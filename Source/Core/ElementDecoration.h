@@ -29,13 +29,16 @@
 #ifndef RMLUI_CORE_ELEMENTDECORATION_H
 #define RMLUI_CORE_ELEMENTDECORATION_H
 
+#include "../../Include/RmlUi/Core/CompiledFilterShader.h"
+#include "../../Include/RmlUi/Core/Filter.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
 
 class Decorator;
-class Filter;
 class Element;
+class Filter;
+class CompiledFilter;
 
 enum class RenderStage { Enter, Decoration, Exit };
 
@@ -76,7 +79,7 @@ private:
 
 	struct FilterEntry {
 		SharedPtr<const Filter> filter;
-		CompiledFilterHandle handle;
+		CompiledFilter compiled;
 	};
 	using FilterEntryList = Vector<FilterEntry>;
 

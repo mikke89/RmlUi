@@ -29,13 +29,20 @@
 #ifndef RMLUI_CORE_RENDERMANAGER_H
 #define RMLUI_CORE_RENDERMANAGER_H
 
-#include "Box.h"
+#include "CallbackTexture.h"
+#include "Mesh.h"
 #include "RenderInterface.h"
+#include "StableVector.h"
 #include "Types.h"
 
 namespace Rml {
 
 class Geometry;
+class CompiledFilter;
+class CompiledShader;
+class TextureDatabase;
+class Texture;
+class RenderManagerAccess;
 
 struct ClipMaskGeometry {
 	ClipMaskOperation operation;
@@ -60,15 +67,18 @@ struct RenderState {
 };
 
 /**
-    A wrapper over the render interface which tracks the following state:
-       - Scissor
-       - Clip mask
-       - Transform
-    All such operations on the render interface should go through this class.
+    A wrapper over the render interface, which tracks its state and resources.
+
+    All operations to be submitted to the render interface should go through this class.
  */
 class RMLUICORE_API RenderManager : NonCopyMoveable {
 public:
-	RenderManager();
+	RenderManager(RenderInterface* render_interface);
+	~RenderManager();
+
+	void PrepareRender();
+	void SetViewport(Vector2i dimensions);
+	Vector2i GetViewport() const;
 
 	void DisableScissorRegion();
 	void SetScissorRegion(Rectanglei region);
@@ -79,20 +89,60 @@ public:
 
 	void SetTransform(const Matrix4f* new_transform);
 
+	// Retrieves the cached render state. If setting this state again, ensure the lifetimes of referenced objects are
+	// still valid. Possibly invalidating actions include destroying an element, or altering its transform property.
 	const RenderState& GetState() const { return state; }
 	void SetState(const RenderState& next);
 	void ResetState();
 
-	void BeginRender();
-	void SetViewport(Vector2i dimensions);
-	Vector2i GetViewport() const;
+	Geometry MakeGeometry(Mesh&& mesh);
+
+	Texture LoadTexture(const String& source, const String& document_path = String());
+	CallbackTexture MakeCallbackTexture(CallbackTextureFunction callback);
+
+	CompiledFilter CompileFilter(const String& name, const Dictionary& parameters);
+	CompiledShader CompileShader(const String& name, const Dictionary& parameters);
+
+	void PushLayer(LayerFill layer_fill);
+	void PopLayer(BlendMode blend_mode, const FilterHandleList& filters);
+
+	CompiledFilter SaveLayerAsMaskImage();
 
 private:
 	void ApplyClipMask(const ClipMaskGeometryList& clip_elements);
 
-	RenderState state;
+	StableVectorIndex InsertGeometry(Mesh&& mesh);
+	CompiledGeometryHandle GetCompiledGeometryHandle(StableVectorIndex index);
+
+	void Render(const Geometry& geometry, Vector2f translation, Texture texture, const CompiledShader& shader);
+
+	void GetTextureSourceList(StringList& source_list) const;
+
+	void ReleaseAllTextures();
+	void ReleaseAllCompiledGeometry();
+
+	void ReleaseResource(const CallbackTexture& texture);
+	Mesh ReleaseResource(const Geometry& geometry);
+	void ReleaseResource(const CompiledFilter& filter);
+	void ReleaseResource(const CompiledShader& shader);
+
+	struct GeometryData {
+		Mesh mesh;
+		CompiledGeometryHandle handle = {};
+	};
+
 	RenderInterface* render_interface = nullptr;
+
+	StableVector<GeometryData> geometry_list;
+	UniquePtr<TextureDatabase> texture_database;
+
+	int compiled_filter_count = 0;
+	int compiled_shader_count = 0;
+
+	RenderState state;
 	Vector2i viewport_dimensions;
+
+	friend class RenderManagerAccess;
 };
 
 } // namespace Rml

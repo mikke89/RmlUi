@@ -27,10 +27,11 @@
  */
 
 #include "FilterDropShadow.h"
+#include "../../Include/RmlUi/Core/CompiledFilterShader.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 
 namespace Rml {
 
@@ -43,7 +44,7 @@ bool FilterDropShadow::Initialise(Colourb in_color, NumericValue in_offset_x, Nu
 	return Any(in_offset_x.unit & Unit::LENGTH) && Any(in_offset_y.unit & Unit::LENGTH) && Any(in_sigma.unit & Unit::LENGTH);
 }
 
-CompiledFilterHandle FilterDropShadow::CompileFilter(Element* element) const
+CompiledFilter FilterDropShadow::CompileFilter(Element* element) const
 {
 	const float sigma = element->ResolveLength(value_sigma);
 	const Vector2f offset = {
@@ -51,15 +52,10 @@ CompiledFilterHandle FilterDropShadow::CompileFilter(Element* element) const
 		element->ResolveLength(value_offset_y),
 	};
 
-	CompiledFilterHandle handle = GetRenderInterface()->CompileFilter("drop-shadow",
+	CompiledFilter filter = element->GetRenderManager()->CompileFilter("drop-shadow",
 		Dictionary{{"color", Variant(color)}, {"offset", Variant(offset)}, {"sigma", Variant(sigma)}});
 
-	return handle;
-}
-
-void FilterDropShadow::ReleaseCompiledFilter(Element* /*element*/, CompiledFilterHandle filter_handle) const
-{
-	GetRenderInterface()->ReleaseCompiledFilter(filter_handle);
+	return filter;
 }
 
 void FilterDropShadow::ExtendInkOverflow(Element* element, Rectanglef& scissor_region) const

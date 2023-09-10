@@ -40,7 +40,7 @@ public:
 	DecoratorNinePatch();
 	virtual ~DecoratorNinePatch();
 
-	bool Initialise(const Rectanglef& rect_outer, const Rectanglef& rect_inner, const Array<NumericValue, 4>* _edges, const Texture& texture,
+	bool Initialise(const Rectanglef& rect_outer, const Rectanglef& rect_inner, const Array<NumericValue, 4>* _edges, Texture texture,
 		float display_scale);
 
 	DecoratorDataHandle GenerateElementData(Element* element, BoxArea paint_area) const override;
