@@ -29,7 +29,10 @@ include("${PROJECT_SOURCE_DIR}/CMake/SamplesShellDependencies.cmake")
 # Change the runtime output directory of all target declared in this scope
 # This is needed so that the shell library can find the samples asset files
 # when running them from a CMake binary directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+# The set() call is guarded against pre-definitions in order to respect consumer choice
+if(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+endif()
 
 # Add shell library for the samples
 add_subdirectory("shell")
