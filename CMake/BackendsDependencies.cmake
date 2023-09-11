@@ -193,6 +193,11 @@ endif()
 
 # --- Rendering APIs ---
 # OpenGL
+
+# Set preferred OpenGL ABI on Linux for target OpenGL::GL
+# More info: https://cmake.org/cmake/help/latest/module/FindOpenGL.html#linux-specific
+set(OpenGL_GL_PREFERENCE "GLVND")
+
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
 # OpenGL handling changes in CMake 3.11, requiring to set CMake policy CMP0072
 # More info: https://cmake.org/cmake/help/latest/policy/CMP0072.html
