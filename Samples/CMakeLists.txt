@@ -7,7 +7,14 @@ if(RMLUI_FONT_INTERFACE STREQUAL "none")
     )
 endif()
 
-# Declare dependencies for sample backend
+# Handle automatic selection of the backend if chosen
+if(RMLUI_SAMPLES_BACKEND STREQUAL "auto")
+    # include("${PROJECT_SOURCE_DIR}/CMake/BackendsAutoSelection.cmake")
+
+    message(STATUS "Automatic sample backend selection enabled. Chosen backend: ${RMLUI_SAMPLES_BACKEND}")
+endif()
+
+# Declare dependencies for sample backends
 include("${PROJECT_SOURCE_DIR}/CMake/BackendsDependencies.cmake")
 
 # Add information about the available backends specified in CMake/Backends.cmake
