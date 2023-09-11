@@ -15,7 +15,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     # Although the official CMake find module is called FindSDL.cmake, the official config module
     # provided by the SDL package for its version 2 is called SDL2Config.cmake
     # Following this trend, the official SDL config files change their name according to their major version number
-    find_package("SDL2" REQUIRED)
+    find_package("SDL2")
 
     #[[
         Current code operates using a hybrid mode by detecting either the variable or the target due to the possibility
