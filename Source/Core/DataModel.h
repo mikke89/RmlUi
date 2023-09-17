@@ -58,6 +58,7 @@ public:
 
 	bool InsertAlias(Element* element, const String& alias_name, DataAddress replace_with_address);
 	bool EraseAliases(Element* element);
+	void CopyAliases(Element* source_element, Element* target_element);
 
 	DataAddress ResolveAddress(const String& address_str, Element* element) const;
 	const DataEventFunc* GetEventCallback(const String& name);

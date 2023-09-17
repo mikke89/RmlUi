@@ -38,6 +38,7 @@
 #include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/Property.h"
+#include "../DataModel.h"
 
 namespace Rml {
 
@@ -129,9 +130,17 @@ void WidgetDropDown::OnUpdate()
 		const int selection = GetSelection();
 
 		if (Element* option = selection_element->GetChild(selection))
+		{
 			option->GetInnerRML(value_rml);
+			if (auto model = value_element->GetDataModel())
+				model->CopyAliases(option, value_element);
+		}
 		else
+		{
+			if (auto model = value_element->GetDataModel())
+				model->EraseAliases(value_element);
 			value_rml = parent_element->GetValue();
+		}
 
 		value_element->SetInnerRML(value_rml);
 
