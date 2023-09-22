@@ -62,7 +62,7 @@ private:
 	/// @return True if parsed successfully, false otherwise.
 	bool Scan(int& out_bytes_read, const char* str, const char* keyword, const PropertyParser** parsers, NumericValue* args, int nargs) const;
 
-	PropertyParserNumber number, length, angle;
+	PropertyParserNumber number, length, length_pct, angle;
 };
 
 } // namespace Rml

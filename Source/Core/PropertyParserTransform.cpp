@@ -34,7 +34,9 @@
 
 namespace Rml {
 
-PropertyParserTransform::PropertyParserTransform() : number(Unit::NUMBER), length(Unit::LENGTH_PERCENT, Unit::PX), angle(Unit::ANGLE, Unit::RAD) {}
+PropertyParserTransform::PropertyParserTransform() :
+	number(Unit::NUMBER), length(Unit::LENGTH, Unit::PX), length_pct(Unit::LENGTH_PERCENT, Unit::PX), angle(Unit::ANGLE, Unit::RAD)
+{}
 
 PropertyParserTransform::~PropertyParserTransform() {}
 
@@ -53,18 +55,21 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 
 	NumericValue args[16];
 
-	const PropertyParser* angle1[] = {&angle};
-	const PropertyParser* angle2[] = {&angle, &angle};
-	const PropertyParser* length1[] = {&length};
-	const PropertyParser* length2[] = {&length, &length};
-	const PropertyParser* length3[] = {&length, &length, &length};
-	const PropertyParser* number3angle1[] = {&number, &number, &number, &angle};
-	const PropertyParser* number1[] = {&number};
-	const PropertyParser* number2[] = {&number, &number};
-	const PropertyParser* number3[] = {&number, &number, &number};
-	const PropertyParser* number6[] = {&number, &number, &number, &number, &number, &number};
 	const PropertyParser* number16[] = {&number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number, &number,
 		&number, &number, &number, &number};
+	const PropertyParser* lengthpct2_length1[] = {&length_pct, &length_pct, &length};
+	const PropertyParser* number3angle1[] = {&number, &number, &number, &angle};
+	const PropertyParser* angle2[] = {&angle, &angle};
+	const PropertyParser* length1[] = {&length};
+
+	// For semantic purposes, define subsets of the above parsers when scanning primitives below.
+	auto lengthpct1 = lengthpct2_length1;
+	auto lengthpct2 = lengthpct2_length1;
+	auto angle1 = angle2;
+	auto number1 = number16;
+	auto number2 = number16;
+	auto number3 = number16;
+	auto number6 = number16;
 
 	while (*next)
 	{
@@ -83,11 +88,11 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 		{
 			transform->AddPrimitive({Matrix3D(args)});
 		}
-		else if (Scan(bytes_read, next, "translateX", length1, args, 1))
+		else if (Scan(bytes_read, next, "translateX", lengthpct1, args, 1))
 		{
 			transform->AddPrimitive({TranslateX(args)});
 		}
-		else if (Scan(bytes_read, next, "translateY", length1, args, 1))
+		else if (Scan(bytes_read, next, "translateY", lengthpct1, args, 1))
 		{
 			transform->AddPrimitive({TranslateY(args)});
 		}
@@ -95,11 +100,11 @@ bool PropertyParserTransform::ParseValue(Property& property, const String& value
 		{
 			transform->AddPrimitive({TranslateZ(args)});
 		}
-		else if (Scan(bytes_read, next, "translate", length2, args, 2))
+		else if (Scan(bytes_read, next, "translate", lengthpct2, args, 2))
 		{
 			transform->AddPrimitive({Translate2D(args)});
 		}
-		else if (Scan(bytes_read, next, "translate3d", length3, args, 3))
+		else if (Scan(bytes_read, next, "translate3d", lengthpct2_length1, args, 3))
 		{
 			transform->AddPrimitive({Translate3D(args)});
 		}
@@ -183,20 +188,6 @@ bool PropertyParserTransform::Scan(int& out_bytes_read, const char* str, const c
 	out_bytes_read = 0;
 	int total_bytes_read = 0, bytes_read = 0;
 
-	/* use the quicker stack-based argument buffer, if possible */
-	char* arg = nullptr;
-	char arg_stack[1024];
-	String arg_heap;
-	if (strlen(str) < sizeof(arg_stack))
-	{
-		arg = arg_stack;
-	}
-	else
-	{
-		arg_heap = str;
-		arg = &arg_heap[0];
-	}
-
 	/* skip leading white space */
 	bytes_read = 0;
 	sscanf(str, " %n", &bytes_read);
@@ -231,6 +222,20 @@ bool PropertyParserTransform::Scan(int& out_bytes_read, const char* str, const c
 	else
 	{
 		return false;
+	}
+
+	/* use the quicker stack-based argument buffer, if possible */
+	char* arg = nullptr;
+	char arg_stack[1024];
+	String arg_heap;
+	if (strlen(str) < sizeof(arg_stack))
+	{
+		arg = arg_stack;
+	}
+	else
+	{
+		arg_heap = str;
+		arg = &arg_heap[0];
 	}
 
 	/* parse the arguments */

@@ -85,13 +85,12 @@ static inline float ResolveHeight(NumericValue value, Element& e) noexcept
 	return e.ResolveNumericValue(value, e.GetBox().GetSize(BoxArea::Border).y);
 }
 
-// Resolve a numeric property value with the element's depth as relative base value.
-static inline float ResolveDepth(NumericValue value, Element& e) noexcept
+// Resolve a length numeric property value for the given element.
+static inline float ResolveLength(NumericValue value, Element& e) noexcept
 {
 	if (value.unit == Unit::PX || value.unit == Unit::NUMBER)
 		return value.number;
-	Vector2f size = e.GetBox().GetSize(BoxArea::Border);
-	return e.ResolveNumericValue(value, Math::Max(size.x, size.y));
+	return e.ResolveLength(value);
 }
 
 static inline String ToString(NumericValue value) noexcept
@@ -192,11 +191,11 @@ struct ResolveTransformVisitor {
 
 	void operator()(const Transforms::TranslateX& p) { m = Matrix4f::TranslateX(ResolveWidth(p.values[0], e)); }
 	void operator()(const Transforms::TranslateY& p) { m = Matrix4f::TranslateY(ResolveHeight(p.values[0], e)); }
-	void operator()(const Transforms::TranslateZ& p) { m = Matrix4f::TranslateZ(ResolveDepth(p.values[0], e)); }
+	void operator()(const Transforms::TranslateZ& p) { m = Matrix4f::TranslateZ(ResolveLength(p.values[0], e)); }
 	void operator()(const Transforms::Translate2D& p) { m = Matrix4f::Translate(ResolveWidth(p.values[0], e), ResolveHeight(p.values[1], e), 0); }
 	void operator()(const Transforms::Translate3D& p)
 	{
-		m = Matrix4f::Translate(ResolveWidth(p.values[0], e), ResolveHeight(p.values[1], e), ResolveDepth(p.values[2], e));
+		m = Matrix4f::Translate(ResolveWidth(p.values[0], e), ResolveHeight(p.values[1], e), ResolveLength(p.values[2], e));
 	}
 
 	void operator()(const Transforms::ScaleX& p) { m = Matrix4f::ScaleX(p.values[0]); }
@@ -216,7 +215,7 @@ struct ResolveTransformVisitor {
 	void operator()(const Transforms::Skew2D& p) { m = Matrix4f::Skew(p.values[0], p.values[1]); }
 
 	void operator()(const Transforms::DecomposedMatrix4& p) { m = Matrix4f::Compose(p.translation, p.scale, p.skew, p.perspective, p.quaternion); }
-	void operator()(const Transforms::Perspective& p) { m = Matrix4f::Perspective(ResolveDepth(p.values[0], e)); }
+	void operator()(const Transforms::Perspective& p) { m = Matrix4f::Perspective(ResolveLength(p.values[0], e)); }
 
 	void run(const TransformPrimitive& primitive)
 	{
@@ -271,7 +270,7 @@ struct PrepareVisitor {
 	}
 	bool operator()(TranslateZ& p)
 	{
-		p.values[0] = NumericValue{ResolveDepth(p.values[0], e), Unit::PX};
+		p.values[0] = NumericValue{ResolveLength(p.values[0], e), Unit::PX};
 		return true;
 	}
 	bool operator()(Translate2D& p)
@@ -284,7 +283,7 @@ struct PrepareVisitor {
 	{
 		p.values[0] = NumericValue{ResolveWidth(p.values[0], e), Unit::PX};
 		p.values[1] = NumericValue{ResolveHeight(p.values[1], e), Unit::PX};
-		p.values[2] = NumericValue{ResolveDepth(p.values[2], e), Unit::PX};
+		p.values[2] = NumericValue{ResolveLength(p.values[2], e), Unit::PX};
 		return true;
 	}
 	template <size_t N>

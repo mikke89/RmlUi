@@ -63,7 +63,7 @@ public:
 		{
 			std::stringstream s;
 			s << "perspective(" << perspective << "dp) ";
-			document->SetProperty("transform", s.str().c_str());
+			document->SetProperty("transform", s.str());
 		}
 	}
 
@@ -75,7 +75,7 @@ public:
 			if (perspective > 0)
 				s << "perspective(" << perspective << "dp) ";
 			s << "rotate3d(0.0, 1.0, 0.0, " << degrees << "deg)";
-			document->SetProperty("transform", s.str().c_str());
+			document->SetProperty("transform", s.str());
 		}
 	}
 
