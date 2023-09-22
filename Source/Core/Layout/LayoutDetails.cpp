@@ -186,10 +186,11 @@ ContainingBlock LayoutDetails::GetContainingBlock(ContainerBox* parent_container
 	{
 		area = BoxArea::Padding;
 
-		auto EstablishesAbsoluteContainingBlock = [](ContainerBox* container) -> bool {
+		auto EstablishesAbsoluteContainingBlock = [](const ContainerBox* container) -> bool {
 			return container->GetPositionProperty() != Position::Static || container->HasLocalTransformOrPerspective();
 		};
-		while (container && container->GetParent() && !EstablishesAbsoluteContainingBlock(container))
+
+		while (!EstablishesAbsoluteContainingBlock(container) && container->GetParent())
 			container = container->GetParent();
 	}
 
@@ -530,7 +531,7 @@ void LayoutDetails::BuildBoxHeight(Box& box, const ComputedValues& computed, flo
 	// If the height is set to auto, we need to calculate the height.
 	if (height_auto)
 	{
-		// If the height is set to auto for a box in normal flow, the height is set to -1.
+		// If the height is set to auto for a box in normal flow, the height is set to -1, representing indefinite height.
 		content_area.y = -1;
 
 		// But if we are dealing with an absolutely positioned element we need to consider if the top and bottom
