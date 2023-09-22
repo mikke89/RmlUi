@@ -221,7 +221,7 @@ void ElementDocument::ReloadStyleSheet()
 		return;
 	}
 
-	SetStyleSheetContainer(static_cast<ElementDocument*>(temp_doc.get())->style_sheet_container);
+	SetStyleSheetContainer(rmlui_static_cast<ElementDocument*>(temp_doc.get())->style_sheet_container);
 }
 
 void ElementDocument::DirtyMediaQueries()

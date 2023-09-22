@@ -460,7 +460,7 @@ InlineContainer* BlockContainer::GetOpenInlineContainer()
 const InlineContainer* BlockContainer::GetOpenInlineContainer() const
 {
 	if (!child_boxes.empty() && child_boxes.back()->GetType() == Type::InlineContainer)
-		return static_cast<InlineContainer*>(child_boxes.back().get());
+		return rmlui_static_cast<InlineContainer*>(child_boxes.back().get());
 	return nullptr;
 }
 

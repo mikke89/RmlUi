@@ -391,18 +391,12 @@ bool DataViewText::Update(DataModel& model)
 	{
 		if (Element* element = GetElement())
 		{
-			RMLUI_ASSERTMSG(rmlui_dynamic_cast<ElementText*>(element),
-				"Somehow the element type was changed from ElementText since construction of the view. Should not be possible?");
+			String new_text = BuildText();
+			String text;
+			if (SystemInterface* system_interface = GetSystemInterface())
+				system_interface->TranslateString(text, new_text);
 
-			if (ElementText* text_element = static_cast<ElementText*>(element))
-			{
-				String new_text = BuildText();
-
-				String text;
-				if (SystemInterface* system_interface = GetSystemInterface())
-					system_interface->TranslateString(text, new_text);
-				text_element->SetText(text);
-			}
+			rmlui_static_cast<ElementText*>(element)->SetText(text);
 		}
 		else
 		{

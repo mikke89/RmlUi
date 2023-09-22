@@ -71,7 +71,7 @@ ElementPtr ElementInstancerText::InstanceElement(Element* /*parent*/, const Stri
 
 void ElementInstancerText::ReleaseElement(Element* element)
 {
-	pool_text_default.DestroyAndDeallocate(static_cast<ElementText*>(element));
+	pool_text_default.DestroyAndDeallocate(rmlui_static_cast<ElementText*>(element));
 }
 
 } // namespace Rml

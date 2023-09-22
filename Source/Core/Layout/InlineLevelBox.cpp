@@ -227,8 +227,6 @@ String InlineLevelBox_Text::DebugDumpNameValue() const
 
 ElementText* InlineLevelBox_Text::GetTextElement()
 {
-	RMLUI_ASSERT(rmlui_dynamic_cast<ElementText*>(GetElement()));
-
-	return static_cast<ElementText*>(GetElement());
+	return rmlui_static_cast<ElementText*>(GetElement());
 }
 } // namespace Rml

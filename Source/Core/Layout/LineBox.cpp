@@ -92,7 +92,7 @@ bool LineBox::AddBox(InlineLevelBox* box, InlineLayoutMode layout_mode, LayoutOv
 	case FragmentType::InlineBox:
 	{
 		RMLUI_ASSERT(constructor.layout_width < 0.f);
-		RMLUI_ASSERT(rmlui_dynamic_cast<InlineBox*>(box));
+		RMLUI_ASSERT(rmlui_static_cast<InlineBox*>(box));
 
 		open_fragments_leaf = fragment_index;
 		open_spacing_left += box->GetSpacingLeft();
@@ -389,7 +389,7 @@ InlineBox* LineBox::GetOpenInlineBox()
 	if (open_fragments_leaf == RootFragmentIndex)
 		return nullptr;
 
-	return static_cast<InlineBox*>(fragments[open_fragments_leaf].box);
+	return rmlui_static_cast<InlineBox*>(fragments[open_fragments_leaf].box);
 }
 
 bool LineBox::CanCollapseLine() const

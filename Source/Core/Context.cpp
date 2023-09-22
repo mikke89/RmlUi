@@ -282,7 +282,7 @@ ElementDocument* Context::LoadDocument(Stream* stream)
 	if (!element)
 		return nullptr;
 
-	ElementDocument* document = static_cast<ElementDocument*>(element.get());
+	ElementDocument* document = rmlui_static_cast<ElementDocument*>(element.get());
 
 	root->AppendChild(std::move(element));
 
