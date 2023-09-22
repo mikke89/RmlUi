@@ -2,7 +2,7 @@
 # Build script for RmlUi ===========
 #===================================
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
 if(APPLE)
 	# This has to be before most other options so CMake properly handles the
