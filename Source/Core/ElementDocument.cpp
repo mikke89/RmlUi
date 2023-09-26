@@ -277,11 +277,12 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 		break;
 	}
 
-	// Set to visible and switch focus if necessary
+	// Set to visible and switch focus if necessary.
 	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 
-	// We should update the document now, otherwise the focusing methods below do not think we are visible
-	// If this turns out to be slow, the more performant approach is just to compute the new visibility property
+	// Update the document now, otherwise the focusing methods below do not think we are visible. This is also important
+	// to ensure correct layout for any event handlers, such as for focused input fields to submit the proper caret
+	// position.
 	UpdateDocument();
 
 	if (focus)
