@@ -29,9 +29,8 @@
 #ifndef RMLUI_CORE_PROFILING_H
 #define RMLUI_CORE_PROFILING_H
 
-#ifdef RMLUI_ENABLE_PROFILING
+#ifdef RMLUI_TRACY_PROFILING
 
-	#define TRACY_ENABLE
 	#include <tracy/Tracy.hpp>
 
 	#define RMLUI_ZoneNamed(varname, active) ZoneNamed(varname, active)
