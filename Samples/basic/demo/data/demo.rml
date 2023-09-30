@@ -602,6 +602,13 @@ progress {
 {
 	height: 12dp;
 }
+.autonav
+{
+	nav-up: auto;
+	nav-down: auto;
+	nav-left: auto;
+	nav-right: auto;
+}
 </style>
 </head>
 
@@ -832,33 +839,33 @@ progress {
 	<form onsubmit="submit_form">
 		<h2>Full name</h2>
 		<div>
-			<input class="two-wide" type="text" name="name"/>
+			<input id="name" class="two-wide" style="nav-down: #email" type="text" name="name"/>
 		</div>
 		<h2>Email and password</h2>
 		<div>
-			<input type="text" name="email"/>
-			<input type="password" name="password"/>
+			<input id="email" style="nav-up: #name; nav-right: #password; nav-down: #dog" type="text" name="email"/>
+			<input id="password" style="nav-up: #name; nav-left: #email; nav-down: #dog" type="password" name="password"/>
 		</div>
 		<h2>Favorite animal</h2>
 		<div>
-			<label><input type="radio" name="animal" value="dog" checked/> Dog </label>
-			<label><input type="radio" name="animal" value="cat"/> Cat </label>
-			<label><input type="radio" name="animal" value="narwhal"/> Narwhal </label>
-			<label><input type="radio" name="animal" value="no"/> I don't like animals </label>
+			<label><input id="dog" class="autonav" type="radio" name="animal" value="dog" checked/> Dog </label>
+			<label><input class="autonav" type="radio" name="animal" value="cat"/> Cat </label>
+			<label><input class="autonav" type="radio" name="animal" value="narwhal"/> Narwhal </label>
+			<label><input class="autonav" type="radio" name="animal" value="no"/> I don't like animals </label>
 		</div>
 		<h2>Favorite meals</h2>
 		<div>
-			<label><input type="checkbox" name="meals" value="pizza" checked/> Pizza </label>
-			<label><input type="checkbox" name="meals" value="pasta" checked/> Pasta </label>
-			<label><input type="checkbox" name="meals" value="lasagne" checked/> Lasagne </label>
+			<label><input class="autonav" type="checkbox" name="meals" value="pizza" checked/> Pizza </label>
+			<label><input class="autonav" type="checkbox" name="meals" value="pasta" checked/> Pasta </label>
+			<label><input class="autonav" type="checkbox" name="meals" value="lasagne" checked/> Lasagne </label>
 		</div>
 		<h2>Rating</h2>
 		<div>
-			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating"/> <span id="rating"/><span id="rating_emoji">&nbsp;</span>
+			<input class="autonav" type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating"/> <span id="rating"/><span id="rating_emoji">&nbsp;</span>
 		</div>
 		<h2>Subject</h2>
 		<div>
-			<select name="subject">
+			<select name="subject" class="autonav">
 				<option value="none" selected>Choose your subject</option>
 				<option value="feature">Feature request</option>
 				<option value="bug">Bug report</option>
@@ -868,10 +875,10 @@ progress {
 		</div>
 		<h2>Message</h2>
 		<div>
-			<textarea cols="25" rows="4" name="message">😍 Hello 🌐 World! 😎</textarea>
+			<textarea class="autonav" cols="25" rows="4" name="message">😍 Hello 🌐 World! 😎</textarea>
 		</div>
 		<div style="margin-bottom: 15dp;">
-			<input type="submit">Submit</input>
+			<input class="autonav" type="submit">Submit</input>
 		</div>
 		<div id="submit_progress" style="display: none;">
 			<p id="progress_label">&nbsp;</p>

@@ -169,6 +169,11 @@ enum class PropertyId : uint8_t {
 	FlexWrap,
 	JustifyContent,
 
+	NavUp,
+	NavDown,
+	NavLeft,
+	NavRight,
+
 	NumDefinedIds,
 	FirstCustomId = NumDefinedIds,
 

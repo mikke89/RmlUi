@@ -454,8 +454,10 @@ void WidgetSlider::ProcessEvent(Event& event)
 
 		if (increment || decrement)
 		{
+			const float unclamped_bar_position = bar_position;
 			SetBarPosition(decrement ? OnLineDecrement() : OnLineIncrement());
-			event.StopPropagation();
+			if (unclamped_bar_position == bar_position)
+			    event.StopPropagation();
 		}
 	}
 	break;
