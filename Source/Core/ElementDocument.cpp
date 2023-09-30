@@ -678,7 +678,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 		if (key_identifier == Input::KI_LEFT || key_identifier == Input::KI_RIGHT || key_identifier == Input::KI_UP ||
 			key_identifier == Input::KI_DOWN)
 		{
-			SpatialSearchDirection direction;
+			SpatialSearchDirection direction {};
 			String propertyName;
 			switch (key_identifier)
             {
