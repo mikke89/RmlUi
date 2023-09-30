@@ -140,6 +140,7 @@ body
 	font-style: normal;
 	font-size: 15dp;
 	color: white;
+	nav: auto;
 }
 
 body.window
@@ -336,10 +337,11 @@ table input.text
 	background-color: white;
 
 	font-size: 15dp;
-
+}
+table input.text, table input.text:focus-visible
+{
 	decorator: none;
 }
-
 
 
 select

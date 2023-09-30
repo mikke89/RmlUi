@@ -134,13 +134,15 @@ private:
 	/// Moves the cursor along the current line.
 	/// @param[in] movement Cursor movement operation.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
+	/// @param[out] out_of_bounds Set to true if the resulting line position is out of bounds, false if not.
 	/// @return True if selection was changed.
-	bool MoveCursorHorizontal(CursorMovement movement, bool select);
+	bool MoveCursorHorizontal(CursorMovement movement, bool select, bool& out_of_bounds);
 	/// Moves the cursor up and down the text field.
 	/// @param[in] x How far to move the cursor.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
+	/// @param[out] out_of_bounds Set to true if the resulting line position is out of bounds, false if not.
 	/// @return True if selection was changed.
-	bool MoveCursorVertical(int distance, bool select);
+	bool MoveCursorVertical(int distance, bool select, bool& out_of_bounds);
 	// Move the cursor to utf-8 boundaries, in case it was moved into the middle of a multibyte character.
 	/// @param[in] forward True to seek forward, else back.
 	void MoveCursorToCharacterBoundaries(bool forward);

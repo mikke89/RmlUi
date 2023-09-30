@@ -869,6 +869,12 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::FlexWrap:
 		case PropertyId::JustifyContent:
 			break;
+		// Navigation properties. Must be manually retrieved with 'GetProperty()'.
+		case PropertyId::NavUp:
+		case PropertyId::NavDown:
+		case PropertyId::NavLeft:
+		case PropertyId::NavRight:
+			break;
 		// Unhandled properties. Must be manually retrieved with 'GetProperty()'.
 		case PropertyId::FillImage:
 		case PropertyId::CaretColor:
