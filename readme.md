@@ -105,7 +105,7 @@ Make sure to replace the path to vcpkg. When this completes, feel free to test t
 
 #### Conan
 
-RmlUi is readily available from [ConanCenter](https://conan.io/center/rmlui).
+RmlUi is readily available from [ConanCenter](https://conan.io/center/recipes/rmlui).
 
 
 ## Integrating RmlUi
@@ -125,7 +125,7 @@ Several [samples](Samples/) demonstrate everything from basic integration to mor
 
 To ease the integration of RmlUi, the library includes [many backends](Backends/) adding support for common renderers and platforms. The following terms are used here:
 
-- ***Renderer***: Implements the [render interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/render) for a given rendering API, and provides initialization code when necessary.
+- ***Renderer***: Implements the [render interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/render.html) for a given rendering API, and provides initialization code when necessary.
 - ***Platform***: Implements the [system interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/system.html) for a given platform (operating system or window library), and adds procedures for providing input to RmlUi contexts.
 - ***Backend***: Combines a renderer and a platform for a complete windowing framework sample, implementing the basic [Backend interface](Backends/RmlUi_Backend.h).
 
