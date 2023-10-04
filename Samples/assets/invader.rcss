@@ -302,6 +302,7 @@ input.text, input.password
 	padding: 11dp 10dp 0;
 	decorator: tiled-horizontal( text-l, text-c, auto ); /* Right becomes mirrored left */
 	cursor: text;
+	text-align: left;
 }
 
 textarea
@@ -309,6 +310,7 @@ textarea
 	padding: 14dp 12dp 10dp;
 	decorator: ninepatch( textarea, textarea-inner, 1.0 );
 	cursor: text;
+	text-align: left;
 }
 
 input.text,
