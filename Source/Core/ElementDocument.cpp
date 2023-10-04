@@ -88,129 +88,6 @@ namespace {
 		return CanFocus::No;
 	}
 
-    enum class SpatialSearchDirection { Up, Down, Left, Right };
-
-	/// Searches for a focusable element in the given substree
-	Element* SpatialSearchFocusSubtree(ElementDocument* document, Element* element, SpatialSearchDirection direction, BoundingBox& bounding_box,
-		Element* exclude_element)
-	{
-		Element* best_result = nullptr;
-
-		if (exclude_element != element)
-		{
-			CanFocus can_focus = CanFocusElement(element);
-			if (can_focus == CanFocus::Yes)
-			{
-				const Vector2f position = element->GetAbsoluteOffset(BoxArea::Border);
-				for (int i = 0; i < element->GetNumBoxes(); i++)
-				{
-					Vector2f box_offset;
-					const Box& box = element->GetBox(i, box_offset);
-
-					const Vector2f box_position = position + box_offset;
-					BoundingBox element_bbox (box_position, box_position + box.GetSize(BoxArea::Border));
-					if (bounding_box.Intersects(element_bbox))
-					{
-                        switch (direction)
-                        {
-                        case SpatialSearchDirection::Up:
-							if (element_bbox.max.y < bounding_box.max.y)
-							{
-								bounding_box.min.y = element_bbox.max.y;
-								best_result = element;
-							}
-							break;
-						case SpatialSearchDirection::Down:
-							if (element_bbox.min.y > bounding_box.min.y)
-							{
-								bounding_box.max.y = element_bbox.min.y;
-								best_result = element;
-							}
-							break;
-						case SpatialSearchDirection::Left:
-							if (element_bbox.max.x < bounding_box.max.x)
-							{
-								bounding_box.min.x = element_bbox.max.x;
-								best_result = element;
-							}
-							break;
-						case SpatialSearchDirection::Right:
-							if (element_bbox.min.x > bounding_box.min.x)
-							{
-								bounding_box.max.x = element_bbox.min.x;
-								best_result = element;
-							}
-							break;
-                        default: ;
-                        }
-					}
-				}
-			}
-			else if (can_focus == CanFocus::NoAndNoChildren)
-				return nullptr;
-		}
-
-		const int num_children = element->GetNumChildren();
-		for (int child_index = 0; child_index < num_children; child_index++)
-		{
-			if (Element* result = SpatialSearchFocusSubtree(document, element->GetChild(child_index), direction, bounding_box, exclude_element))
-				best_result = result;
-		}
-
-		return best_result;
-	}
-
-	Element* FindNextSpatialElement(ElementDocument* document, Element* current_element, SpatialSearchDirection direction, const Property& property)
-	{
-		if (property.unit == Unit::STRING)
-		{
-			auto propertyValue = property.Get<String>();
-			if (propertyValue[0] == '#')
-			{
-				return document->GetElementById(String(propertyValue.begin() + 1, propertyValue.end()));
-			}
-			return nullptr;
-		}
-		if (property.unit == Unit::KEYWORD)
-		{
-			switch (static_cast<Style::Nav>(property.value.Get<int>()))
-			{
-			case Style::Nav::None:
-				return nullptr;
-			case Style::Nav::Auto:
-				break;
-			default: return nullptr;
-			}
-		}
-
-		// Evaluate search bounding box
-		const Vector2f position = current_element->GetAbsoluteOffset(BoxArea::Border);
-		BoundingBox bounding_box = BoundingBox::Invalid;
-		for (int i = 0; i < current_element->GetNumBoxes(); i++)
-		{
-			Vector2f box_offset;
-			const Box& box = current_element->GetBox(i, box_offset);
-
-			const Vector2f box_position = position + box_offset;
-			bounding_box = bounding_box.Union(BoundingBox(box_position, box_position + box.GetSize(BoxArea::Border)));
-		}
-
-		if (!bounding_box.IsValid())
-            return nullptr;
-
-        switch (direction)
-        {
-        case SpatialSearchDirection::Up: bounding_box.min.y = -FLT_MAX; break;
-        case SpatialSearchDirection::Down: bounding_box.max.y = FLT_MAX; break;
-        case SpatialSearchDirection::Left: bounding_box.min.x = -FLT_MAX; break;
-        case SpatialSearchDirection::Right: bounding_box.max.x = FLT_MAX; break;
-        default:;
-        }
-
-        return SpatialSearchFocusSubtree(document, document, direction, bounding_box, current_element);
-    }
-
-
 } // namespace
 
 ElementDocument::ElementDocument(const String& tag) : Element(tag)
@@ -676,7 +553,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			}
 		}
 		// Process direction keys
-		if (key_identifier == Input::KI_LEFT || key_identifier == Input::KI_RIGHT || key_identifier == Input::KI_UP ||
+		else if (key_identifier == Input::KI_LEFT || key_identifier == Input::KI_RIGHT || key_identifier == Input::KI_UP ||
 			key_identifier == Input::KI_DOWN)
 		{
 			SpatialSearchDirection direction {};
@@ -702,9 +579,11 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			}
 
 			Element* focus_node = GetFocusLeafNode();
-			if (const Property* propertyValue = focus_node->GetLocalProperty(propertyId))
+			const Property autoProp{Style::Nav::Auto};
+			const Property* propertyValue = (focus_node == this) ? &autoProp : focus_node->GetLocalProperty(propertyId);
+			if (propertyValue)
 			{
-				Element* next = FindNextSpatialElement(this, focus_node, direction, *propertyValue);
+				Element* next = FindNextSpatialElement(focus_node, direction, *propertyValue);
 				if (next)
 				{
 					if (next->Focus())
@@ -733,8 +612,76 @@ void ElementDocument::OnResize()
 {
 	DirtyPosition();
 }
+Element* ElementDocument::FindNextSpatialElement(Element* current_element, SpatialSearchDirection direction,
+	const Property& property)
+{
+	if (property.unit == Unit::STRING)
+	{
+		auto propertyValue = property.Get<String>();
+		if (propertyValue[0] == '#')
+		{
+			return GetElementById(String(propertyValue.begin() + 1, propertyValue.end()));
+		}
+		return nullptr;
+	}
+	else if (property.unit == Unit::KEYWORD)
+	{
+		switch (static_cast<Style::Nav>(property.value.Get<int>()))
+		{
+		case Style::Nav::None: return nullptr;
+		case Style::Nav::Auto: break;
+		default: return nullptr;
+		}
+	}
+	else
+	{
+	    return nullptr;
+	}
 
-Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward)
+	// Evaluate search bounding box
+	const Vector2f position = current_element->GetAbsoluteOffset(BoxArea::Border);
+	BoundingBox bounding_box = BoundingBox::Invalid;
+	for (int i = 0; i < current_element->GetNumBoxes(); i++)
+	{
+		Vector2f box_offset;
+		const Box& box = current_element->GetBox(i, box_offset);
+
+		const Vector2f box_position = position + box_offset;
+		bounding_box = bounding_box.Union(BoundingBox(box_position, box_position + box.GetSize(BoxArea::Border)));
+	}
+
+	if (!bounding_box.IsValid())
+		return nullptr;
+
+	switch (direction)
+	{
+	case SpatialSearchDirection::Up: bounding_box.min.y = -FLT_MAX; break;
+	case SpatialSearchDirection::Down: bounding_box.max.y = FLT_MAX; break;
+	case SpatialSearchDirection::Left: bounding_box.min.x = -FLT_MAX; break;
+	case SpatialSearchDirection::Right: bounding_box.max.x = FLT_MAX; break;
+	default:;
+	}
+
+	return FindNextTabElement(current_element, direction == SpatialSearchDirection::Down || direction == SpatialSearchDirection::Right,
+		[&](Element* element) {
+			const Vector2f pos = element->GetAbsoluteOffset(BoxArea::Border);
+			for (int i = 0; i < element->GetNumBoxes(); i++)
+			{
+				Vector2f box_offset;
+				const Box& box = element->GetBox(i, box_offset);
+
+				const Vector2f box_position = pos + box_offset;
+				BoundingBox element_bbox(box_position, box_position + box.GetSize(BoxArea::Border));
+				if (bounding_box.Intersects(element_bbox))
+				{
+					return true;
+				}
+			}
+			return false;
+		});
+}
+
+Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward, const Function<bool(Element*)>& predicate)
 {
 	// This algorithm is quite sneaky, I originally thought a depth first search would work, but it appears not. What is
 	// required is to cut the tree in half along the nodes from current_element up the root and then either traverse the
@@ -744,7 +691,7 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 	if (forward)
 	{
 		for (int i = 0; i < current_element->GetNumChildren(); i++)
-			if (Element* result = SearchFocusSubtree(current_element->GetChild(i), forward))
+			if (Element* result = SearchFocusSubtree(current_element->GetChild(i), forward, predicate))
 				return result;
 	}
 
@@ -766,7 +713,7 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 
 			// Do a search if its enabled
 			if (search_enabled)
-				if (Element* result = SearchFocusSubtree(search_child, forward))
+				if (Element* result = SearchFocusSubtree(search_child, forward, predicate))
 					return result;
 
 			// Enable searching when we reach the child.
@@ -791,18 +738,21 @@ Element* ElementDocument::FindNextTabElement(Element* current_element, bool forw
 	for (int i = 0; i < num_children; i++)
 	{
 		const int child_index = forward ? i : (num_children - i - 1);
-		if (Element* result = SearchFocusSubtree(document->GetChild(child_index), forward))
+		if (Element* result = SearchFocusSubtree(document->GetChild(child_index), forward, predicate))
 			return result;
 	}
 
 	return nullptr;
 }
 
-Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward)
+Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward, const Function<bool(Element*)>& predicate)
 {
 	CanFocus can_focus = CanFocusElement(element);
 	if (can_focus == CanFocus::Yes)
-		return element;
+	{
+		if (!predicate || predicate(element))
+		    return element;
+	}
 	else if (can_focus == CanFocus::NoAndNoChildren)
 		return nullptr;
 
@@ -812,7 +762,7 @@ Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward)
 		int child_index = i;
 		if (!forward)
 			child_index = element->GetNumChildren() - i - 1;
-		if (Element* result = SearchFocusSubtree(element->GetChild(child_index), forward))
+		if (Element* result = SearchFocusSubtree(element->GetChild(child_index), forward, predicate))
 			return result;
 	}
 

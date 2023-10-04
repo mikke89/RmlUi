@@ -834,7 +834,7 @@ progress {
 		</div>
 	</div>
 </panel>
-<tab>Forms</tab>
+<tab class="autonav">Forms</tab>
 <panel id="controls">
 	<form onsubmit="submit_form">
 		<h2>Full name</h2>
