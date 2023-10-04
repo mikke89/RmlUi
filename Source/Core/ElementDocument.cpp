@@ -68,7 +68,7 @@ namespace {
         bool IsValid() const { return min.x <= max.x && min.y <= max.y; }
     };
 
-	const BoundingBox BoundingBox::Invalid{BoundingBox(Vector2f(FLT_MAX, FLT_MAX), Vector2f(-FLT_MAX, -FLT_MAX))};
+	const BoundingBox BoundingBox::Invalid = {Vector2f(FLT_MAX, FLT_MAX), Vector2f(-FLT_MAX, -FLT_MAX)};
 
 	enum class CanFocus { Yes, No, NoAndNoChildren };
 
@@ -91,11 +91,12 @@ namespace {
     enum class SpatialSearchDirection { Up, Down, Left, Right };
 
 	/// Searches for a focusable element in the given substree
-	Element* SpatialSearchFocusSubtree(Element* element, SpatialSearchDirection direction, BoundingBox& bounding_box, Element* excludeElement)
+	Element* SpatialSearchFocusSubtree(ElementDocument* document, Element* element, SpatialSearchDirection direction, BoundingBox& bounding_box,
+		Element* exclude_element)
 	{
 		Element* best_result = nullptr;
 
-		if (excludeElement != element)
+		if (exclude_element != element)
 		{
 			CanFocus can_focus = CanFocusElement(element);
 			if (can_focus == CanFocus::Yes)
@@ -152,21 +153,21 @@ namespace {
 		const int num_children = element->GetNumChildren();
 		for (int child_index = 0; child_index < num_children; child_index++)
 		{
-			if (Element* result = SpatialSearchFocusSubtree(element->GetChild(child_index), direction, bounding_box, excludeElement))
+			if (Element* result = SpatialSearchFocusSubtree(document, element->GetChild(child_index), direction, bounding_box, exclude_element))
 				best_result = result;
 		}
 
 		return best_result;
 	}
 
-	Element* FindNextSpatialElement(Element* current_element, SpatialSearchDirection direction, const Property& property)
+	Element* FindNextSpatialElement(ElementDocument* document, Element* current_element, SpatialSearchDirection direction, const Property& property)
 	{
 		if (property.unit == Unit::STRING)
 		{
 			auto propertyValue = property.Get<String>();
 			if (propertyValue[0] == '#')
 			{
-				return current_element->GetOwnerDocument()->GetElementById(String(propertyValue.begin() + 1, propertyValue.end()));
+				return document->GetElementById(String(propertyValue.begin() + 1, propertyValue.end()));
 			}
 			return nullptr;
 		}
@@ -206,7 +207,7 @@ namespace {
         default:;
         }
 
-        return SpatialSearchFocusSubtree(current_element->GetOwnerDocument(), direction, bounding_box, current_element);
+        return SpatialSearchFocusSubtree(document, document, direction, bounding_box, current_element);
     }
 
 
@@ -679,36 +680,36 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			key_identifier == Input::KI_DOWN)
 		{
 			SpatialSearchDirection direction {};
-			String propertyName;
+			PropertyId propertyId;
 			switch (key_identifier)
             {
 			case Input::KI_LEFT:
 				direction = SpatialSearchDirection::Left;
-				propertyName = "nav-left";
+				propertyId = PropertyId::NavLeft;
 				break;
 			case Input::KI_RIGHT:
 				direction = SpatialSearchDirection::Right;
-				propertyName = "nav-right";
+				propertyId = PropertyId::NavRight;
 				break;
 			case Input::KI_UP:
 				direction = SpatialSearchDirection::Up;
-				propertyName = "nav-up";
+				propertyId = PropertyId::NavUp;
 				break;
 			case Input::KI_DOWN:
 				direction = SpatialSearchDirection::Down;
-				propertyName = "nav-down";
+				propertyId = PropertyId::NavDown;
 				break;
 			}
 
 			Element* focus_node = GetFocusLeafNode();
-			if (auto* propertyValue = focus_node->GetProperty(propertyName))
+			if (const Property* propertyValue = focus_node->GetLocalProperty(propertyId))
 			{
-				auto *next = FindNextSpatialElement(GetFocusLeafNode(), direction, *propertyValue);
+				Element* next = FindNextSpatialElement(this, focus_node, direction, *propertyValue);
 				if (next)
 				{
 					if (next->Focus())
 					{
-						next->ScrollIntoView(false);
+						next->ScrollIntoView(ScrollAlignment::Nearest);
 						event.StopPropagation();
 					}
 				}
