@@ -173,11 +173,11 @@ namespace {
 		}
 		if (property.unit == Unit::KEYWORD)
 		{
-			switch (property.value.Get<int>())
+			switch (static_cast<Style::Nav>(property.value.Get<int>()))
 			{
-			case 0: // none
+			case Style::Nav::None:
 				return nullptr;
-			case 1: // auto
+			case Style::Nav::Auto:
 				break;
 			default: return nullptr;
 			}

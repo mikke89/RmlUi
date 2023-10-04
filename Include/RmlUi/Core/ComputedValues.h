@@ -296,7 +296,11 @@ namespace Style {
 		LengthPercentage  column_gap()                 const { return LengthPercentage(rare.column_gap_type, rare.column_gap); }
 		OverscrollBehavior overscroll_behavior()       const { return rare.overscroll_behavior; }
 		float             scrollbar_margin()           const { return rare.scrollbar_margin; }
-		
+		Nav               nav_up()                     const { return GetLocalPropertyKeyword(PropertyId::NavUp, Nav::None); }
+		Nav               nav_down()                   const { return GetLocalPropertyKeyword(PropertyId::NavDown, Nav::None); }
+		Nav               nav_left()                   const { return GetLocalPropertyKeyword(PropertyId::NavLeft, Nav::None); }
+		Nav               nav_right()                  const { return GetLocalPropertyKeyword(PropertyId::NavRight, Nav::None); }
+
 		// -- Assignment --
 		// Common
 		void width              (LengthPercentageAuto value) { common.width_type          = value.type; common.width_value          = value.value; }
