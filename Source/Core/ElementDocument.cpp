@@ -50,23 +50,20 @@ namespace {
 	struct BoundingBox {
 		static const BoundingBox Invalid;
 
-	    Vector2f min;
+		Vector2f min;
 		Vector2f max;
 
-        BoundingBox(const Vector2f& min, const Vector2f& max):min(min), max(max) {}
+		BoundingBox(const Vector2f& min, const Vector2f& max) : min(min), max(max) {}
 
 		BoundingBox Union(const BoundingBox& bounding_box) const
 		{
 			return BoundingBox(Math::Min(min, bounding_box.min), Math::Max(max, bounding_box.max));
 		}
 
-		bool Intersects(const BoundingBox& box) const
-		{
-			return min.x <= box.max.x && max.x >= box.min.x && min.y <= box.max.y && max.y >= box.min.y;
-		}
+		bool Intersects(const BoundingBox& box) const { return min.x <= box.max.x && max.x >= box.min.x && min.y <= box.max.y && max.y >= box.min.y; }
 
-        bool IsValid() const { return min.x <= max.x && min.y <= max.y; }
-    };
+		bool IsValid() const { return min.x <= max.x && min.y <= max.y; }
+	};
 
 	const BoundingBox BoundingBox::Invalid = {Vector2f(FLT_MAX, FLT_MAX), Vector2f(-FLT_MAX, -FLT_MAX)};
 
@@ -556,10 +553,10 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 		else if (key_identifier == Input::KI_LEFT || key_identifier == Input::KI_RIGHT || key_identifier == Input::KI_UP ||
 			key_identifier == Input::KI_DOWN)
 		{
-			SpatialSearchDirection direction {};
+			SpatialSearchDirection direction{};
 			PropertyId propertyId;
 			switch (key_identifier)
-            {
+			{
 			case Input::KI_LEFT:
 				direction = SpatialSearchDirection::Left;
 				propertyId = PropertyId::NavLeft;
@@ -612,8 +609,7 @@ void ElementDocument::OnResize()
 {
 	DirtyPosition();
 }
-Element* ElementDocument::FindNextSpatialElement(Element* current_element, SpatialSearchDirection direction,
-	const Property& property)
+Element* ElementDocument::FindNextSpatialElement(Element* current_element, SpatialSearchDirection direction, const Property& property)
 {
 	if (property.unit == Unit::STRING)
 	{
@@ -635,7 +631,7 @@ Element* ElementDocument::FindNextSpatialElement(Element* current_element, Spati
 	}
 	else
 	{
-	    return nullptr;
+		return nullptr;
 	}
 
 	// Evaluate search bounding box
@@ -751,7 +747,7 @@ Element* ElementDocument::SearchFocusSubtree(Element* element, bool forward, con
 	if (can_focus == CanFocus::Yes)
 	{
 		if (!predicate || predicate(element))
-		    return element;
+			return element;
 	}
 	else if (can_focus == CanFocus::NoAndNoChildren)
 		return nullptr;
