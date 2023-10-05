@@ -615,14 +615,14 @@ progress {
 <body template="window">
 
 <tabset id="menu">
-<tab>Welcome</tab>
+<tab class="autonav">Welcome</tab>
 <panel id="welcome">
 	<p class="title" style="margin-top: 1.8em;">RmlUi 😍</p>
 	<p>Have fun fiddling about in this demo.</p>
 	<p>Press 'F8' to open up the debugger.</p>
 	<p class="title" style="margin-top: 1em;">🎉</p>
 </panel>
-<tab>Decorators</tab>
+<tab class="autonav">Decorators</tab>
 <panel id="decorators">
 	<h1>Gradient decorator</h1>
 	<p>The 'gradient' decorator renders a color gradient in the vertical or horizontal direction.</p>
@@ -759,7 +759,7 @@ progress {
 	<img src="../../../assets/invader.tga" rect="0 0 500 435" style="margin-top: 10dp; margin-bottom: 10dp;"/>
 	<p>is used to render most sprites in this demo. Sprites can be used in decorators and image elements as if they were separate images.</p>
 </panel>
-<tab>Font effects</tab>
+<tab class="autonav">Font effects</tab>
 <panel id="font_effects">
 	<h1>None</h1>
 	<div class="original">RmlUi 😍</div>
@@ -778,7 +778,7 @@ progress {
 	<div class="blur_small">RmlUi 😍</div>
 	<div class="blur_big">RmlUi 😍</div>
 </panel>
-<tab>Animations</tab>
+<tab class="autonav">Animations</tab>
 <panel id="animations">
 
 	<h1>Transitions</h1>
@@ -892,7 +892,7 @@ progress {
 		</div>
 	</form>
 </panel>
-<tab>Sandbox</tab>
+<tab class="autonav">Sandbox</tab>
 <panel id="sandbox">
 	<table>
 		<col id="col_rml_source"/>

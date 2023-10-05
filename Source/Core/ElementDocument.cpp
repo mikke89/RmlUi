@@ -554,7 +554,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			key_identifier == Input::KI_DOWN)
 		{
 			SpatialSearchDirection direction{};
-			PropertyId propertyId;
+			PropertyId propertyId = PropertyId::NavLeft;
 			switch (key_identifier)
 			{
 			case Input::KI_LEFT:
