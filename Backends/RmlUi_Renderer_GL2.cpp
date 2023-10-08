@@ -72,6 +72,11 @@ void RenderInterface_GL2::BeginFrame()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
+	glStencilMask(GLuint(-1));
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
 	Rml::Matrix4f projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(projection.data());
@@ -88,13 +93,40 @@ void RenderInterface_GL2::EndFrame() {}
 void RenderInterface_GL2::Clear()
 {
 	glClearStencil(0);
-	glClearColor(0, 0, 0, 1);
+	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void RenderInterface_GL2::RenderGeometry(Rml::Vertex* vertices, int /*num_vertices*/, int* indices, int num_indices, const Rml::TextureHandle texture,
+void RenderInterface_GL2::RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::TextureHandle texture,
 	const Rml::Vector2f& translation)
 {
+	Rml::CompiledGeometryHandle geometry = CompileGeometry(vertices, num_vertices, indices, num_indices);
+
+	if (geometry)
+	{
+		RenderCompiledGeometry(geometry, translation, texture);
+		ReleaseCompiledGeometry(geometry);
+	}
+}
+
+Rml::CompiledGeometryHandle RenderInterface_GL2::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices)
+{
+	GeometryView* data = new GeometryView{vertices, indices, num_vertices, num_indices};
+	return reinterpret_cast<Rml::CompiledGeometryHandle>(data);
+}
+
+void RenderInterface_GL2::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry)
+{
+	delete reinterpret_cast<GeometryView*>(geometry);
+}
+
+void RenderInterface_GL2::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation, Rml::TextureHandle texture)
+{
+	const GeometryView* geometry = reinterpret_cast<GeometryView*>(handle);
+	const Rml::Vertex* vertices = geometry->vertices;
+	const int* indices = geometry->indices;
+	const int num_indices = geometry->num_indices;
+
 	glPushMatrix();
 	glTranslatef(translation.x, translation.y, 0);
 
@@ -125,62 +157,71 @@ void RenderInterface_GL2::RenderGeometry(Rml::Vertex* vertices, int /*num_vertic
 void RenderInterface_GL2::EnableScissorRegion(bool enable)
 {
 	if (enable)
-	{
-		if (!transform_enabled)
-		{
-			glEnable(GL_SCISSOR_TEST);
-			glDisable(GL_STENCIL_TEST);
-		}
-		else
-		{
-			glDisable(GL_SCISSOR_TEST);
-			glEnable(GL_STENCIL_TEST);
-		}
-	}
+		glEnable(GL_SCISSOR_TEST);
 	else
-	{
 		glDisable(GL_SCISSOR_TEST);
-		glDisable(GL_STENCIL_TEST);
-	}
 }
 
 void RenderInterface_GL2::SetScissorRegion(int x, int y, int width, int height)
 {
-	if (!transform_enabled)
-	{
-		glScissor(x, viewport_height - (y + height), width, height);
-	}
+	glScissor(x, viewport_height - (y + height), width, height);
+}
+
+void RenderInterface_GL2::EnableClipMask(bool enable)
+{
+	if (enable)
+		glEnable(GL_STENCIL_TEST);
 	else
+		glDisable(GL_STENCIL_TEST);
+}
+
+void RenderInterface_GL2::RenderToClipMask(Rml::ClipMaskOperation operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation)
+{
+	RMLUI_ASSERT(glIsEnabled(GL_STENCIL_TEST));
+	using Rml::ClipMaskOperation;
+
+	const bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
+	if (clear_stencil)
 	{
-		// clear the stencil buffer
-		glStencilMask(GLuint(-1));
+		// @performance Increment the reference value instead of clearing each time.
 		glClear(GL_STENCIL_BUFFER_BIT);
-
-		// fill the stencil buffer
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		glDepthMask(GL_FALSE);
-		glStencilFunc(GL_NEVER, 1, GLuint(-1));
-		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
-
-		float fx = (float)x;
-		float fy = (float)y;
-		float fwidth = (float)width;
-		float fheight = (float)height;
-
-		// draw transformed quad
-		GLfloat vertices[] = {fx, fy, 0, fx, fy + fheight, 0, fx + fwidth, fy + fheight, 0, fx + fwidth, fy, 0};
-		glDisableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, vertices);
-		GLushort indices[] = {1, 2, 0, 3};
-		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, indices);
-		glEnableClientState(GL_COLOR_ARRAY);
-
-		// prepare for drawing the real thing
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glDepthMask(GL_TRUE);
-		glStencilMask(0);
-		glStencilFunc(GL_EQUAL, 1, GLuint(-1));
 	}
+
+	GLint stencil_test_value = 0;
+	glGetIntegerv(GL_STENCIL_REF, &stencil_test_value);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glStencilFunc(GL_ALWAYS, GLint(1), GLuint(-1));
+
+	switch (operation)
+	{
+	case ClipMaskOperation::Set:
+	{
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		stencil_test_value = 1;
+	}
+	break;
+	case ClipMaskOperation::SetInverse:
+	{
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		stencil_test_value = 0;
+	}
+	break;
+	case ClipMaskOperation::Intersect:
+	{
+		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+		stencil_test_value += 1;
+	}
+	break;
+	}
+
+	RenderCompiledGeometry(geometry, translation, {});
+
+	// Restore state
+	// @performance Cache state so we don't toggle it unnecessarily.
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	glStencilFunc(GL_EQUAL, stencil_test_value, GLuint(-1));
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file

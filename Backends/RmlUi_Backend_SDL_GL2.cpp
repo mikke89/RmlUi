@@ -52,8 +52,7 @@ private:
 public:
 	RenderInterface_GL2_SDL(SDL_Renderer* renderer) : renderer(renderer) {}
 
-	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
-		const Rml::Vector2f& translation) override
+	void RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation, Rml::TextureHandle texture) override
 	{
 		SDL_Texture* sdl_texture = (SDL_Texture*)texture;
 		if (sdl_texture)
@@ -62,7 +61,7 @@ public:
 			texture = RenderInterface_GL2::TextureEnableWithoutBinding;
 		}
 
-		RenderInterface_GL2::RenderGeometry(vertices, num_vertices, indices, num_indices, texture, translation);
+		RenderInterface_GL2::RenderCompiledGeometry(handle, translation, texture);
 
 		if (sdl_texture)
 			SDL_GL_UnbindTexture(sdl_texture);

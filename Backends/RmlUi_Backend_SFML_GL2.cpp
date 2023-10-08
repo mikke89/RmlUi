@@ -46,8 +46,7 @@ class RenderInterface_GL2_SFML : public RenderInterface_GL2 {
 public:
 	// -- Inherited from Rml::RenderInterface --
 
-	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
-		const Rml::Vector2f& translation) override
+	void RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation, Rml::TextureHandle texture) override
 	{
 		if (texture)
 		{
@@ -55,7 +54,7 @@ public:
 			texture = RenderInterface_GL2::TextureEnableWithoutBinding;
 		}
 
-		RenderInterface_GL2::RenderGeometry(vertices, num_vertices, indices, num_indices, texture, translation);
+		RenderInterface_GL2::RenderCompiledGeometry(handle, translation, texture);
 	}
 
 	bool LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override
