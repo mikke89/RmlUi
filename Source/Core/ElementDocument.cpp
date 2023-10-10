@@ -509,7 +509,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			}
 		}
 		// Process ENTER being pressed on a focusable object (emulate click)
-		else if (key_identifier == Input::KI_RETURN || key_identifier == Input::KI_NUMPADENTER)
+		else if (key_identifier == Input::KI_RETURN || key_identifier == Input::KI_NUMPADENTER || key_identifier == Input::KI_SPACE)
 		{
 			Element* focus_node = GetFocusLeafNode();
 
