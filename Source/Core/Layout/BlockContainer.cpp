@@ -362,7 +362,7 @@ float BlockContainer::GetShrinkToFitWidth() const
 	if (computed.width().type == Style::Width::Length)
 	{
 		// We have a definite width, so use that size.
-		content_width = computed.width().value;
+		content_width = box.GetSize().x;
 	}
 	else
 	{
