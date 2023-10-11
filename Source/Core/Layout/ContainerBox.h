@@ -131,6 +131,8 @@ public:
 	// @returns True if it succeeds, otherwise false if it needs to be formatted again because scrollbars were enabled.
 	bool Close(const Vector2f content_overflow_size, const Box& box, float element_baseline);
 
+	float GetShrinkToFitWidth() const override;
+
 	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;
 
@@ -151,6 +153,8 @@ public:
 
 	// Submits the formatted box to the table element, and propagates any uncaught overflow to this box.
 	void Close(const Vector2f content_overflow_size, const Box& box, float element_baseline);
+
+	float GetShrinkToFitWidth() const override;
 
 	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;

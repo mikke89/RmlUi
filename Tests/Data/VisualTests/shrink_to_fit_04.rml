@@ -1,0 +1,67 @@
+<rml>
+<head>
+	<title>Shrink-to-fit 4</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/CSS21/visudet.html#shrink-to-fit-float" />
+	<meta name="Description" content="Shrink-to-fit should respect definite widths of inner elements. This also applies to flex containers and tables, even though we don't currently support shrink-to-fit layout for them." />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+		}
+		body > div {
+			float: left;
+			clear: left;
+			margin-top: 20dp;
+			color: black;
+		}
+		.wrapper {
+			border: 2dp #888;
+			background: #f00;
+		}
+		.fixed {
+			width: 100dp;
+			padding: 10dp 5dp 10dp 15dp;
+			box-sizing: border-box;
+			background: #ccf;
+		}
+		.flex {
+			display: flex;
+		}
+	</style>
+</head>
+
+<body>
+<p>The following boxes should all appear the same, with a border wrapped all the way around the background and no red visible.</p>
+
+<div>
+	<div class="wrapper">
+		<div class="fixed">Hello</div>
+	</div>
+</div>
+<div>
+	<div class="wrapper">
+		<div>
+			<div class="fixed">Hello</div>
+		</div>
+	</div>
+</div>
+<div>
+	<div class="wrapper">
+		<div class="flex fixed"><div>Hello</div></div>
+	</div>
+</div>
+<div>
+	<div class="wrapper">
+		<div>
+			<div class="flex fixed"><div>Hello</div></div>
+		</div>
+	</div>
+</div>
+<div>
+	<div class="wrapper">
+		<table class="fixed"><td>Hello</td></table>
+	</div>
+</div>
+</body>
+</rml>
