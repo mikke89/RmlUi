@@ -147,4 +147,8 @@ input.text {
 	tab-index: auto;
 	cursor: text;
 	box-sizing: border-box;
+	text-align: left;
+}
+input.text, textarea {
+	text-align: left;
 }
