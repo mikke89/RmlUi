@@ -65,28 +65,29 @@ class DataParser;
 enum class Instruction {
 	// clang-format off
 	// Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
-	Push         = 'P',     //      S+ = R
-	Pop          = 'o',     // <R/L/C> = S-  (D determines R/L/C)
-	Literal      = 'D',     //       R = D
-	Variable     = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
-	Add          = '+',     //       R = L + R
-	Subtract     = '-',     //       R = L - R
-	Multiply     = '*',     //       R = L * R
-	Divide       = '/',     //       R = L / R
-	Not          = '!',     //       R = !R
-	And          = '&',     //       R = L && R
-	Or           = '|',     //       R = L || R
-	Less         = '<',     //       R = L < R
-	LessEq       = 'L',     //       R = L <= R
-	Greater      = '>',     //       R = L > R
-	GreaterEq    = 'G',     //       R = L >= R
-	Equal        = '=',     //       R = L == R
-	NotEqual     = 'N',     //       R = L != R
-	Ternary      = '?',     //       R = L ? C : R
-	NumArguments = '#',     //       R = D  (Contains the num. arguments currently on the stack, immediately followed by a 'T' or 'E' instruction)
-	TransformFnc = 'T',     //       R = DataModel.Execute(D, A) where A = S[TOP - R, TOP]; S -= R;  (D determines function name, input R the num. arguments, A the arguments)
-	EventFnc     = 'E',     //       DataModel.EventCallback(D, A); S -= R;
-	Assign       = 'A',     //       DataModel.SetVariable(D, R)
+	Push          = 'P',     //      S+ = R
+	Pop           = 'o',     // <R/L/C> = S-  (D determines R/L/C)
+	Literal       = 'D',     //       R = D
+	Variable      = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
+	Add           = '+',     //       R = L + R
+	Subtract      = '-',     //       R = L - R
+	Multiply      = '*',     //       R = L * R
+	Divide        = '/',     //       R = L / R
+	Not           = '!',     //       R = !R
+	And           = '&',     //       R = L && R
+	Or            = '|',     //       R = L || R
+	Less          = '<',     //       R = L < R
+	LessEq        = 'L',     //       R = L <= R
+	Greater       = '>',     //       R = L > R
+	GreaterEq     = 'G',     //       R = L >= R
+	Equal         = '=',     //       R = L == R
+	NotEqual      = 'N',     //       R = L != R
+	Ternary       = '?',     //       R = L ? C : R
+	NumArguments  = '#',     //       R = D  (Contains the num. arguments currently on the stack, immediately followed by a 'T' or 'E' instruction)
+	TransformFnc  = 'T',     //       R = DataModel.Execute(D, A) where A = S[TOP - R, TOP]; S -= R;  (D determines function name, input R the num. arguments, A the arguments)
+	EventFnc      = 'E',     //       DataModel.EventCallback(D, A); S -= R;
+	Assign        = 'A',     //       DataModel.SetVariable(D, R)
+	AddressLookup = 'L',     //       DataModel.LookupVariable(D, R) (Looks up a variable by path (R) and updates the variable address list at the given index D)
 	// clang-format on
 };
 
@@ -246,20 +247,28 @@ public:
 		program.push_back(InstructionData{Instruction::NumArguments, Variant(int(num_arguments))});
 		program.push_back(InstructionData{instruction, Variant(std::move(name))});
 	}
-	void Variable(const String& name) { VariableGetSet(name, false); }
-	void Assign(const String& name) { VariableGetSet(name, true); }
+	void Variable(const String& expression) { VariableGetSet(expression, false); }
+	void Assign(const String& expression) { VariableGetSet(expression, true); }
 
 private:
-	void VariableGetSet(const String& name, bool is_assignment)
+	int ResolveAddress(const String& expression) { return -1; }
+
+	void VariableGetSet(const String& expression, bool is_assignment)
 	{
-		DataAddress address = expression_interface.ParseAddress(name);
-		if (address.empty())
+		int index = ResolveAddress(expression);
+		if (index == -1)
 		{
-			Error(CreateString(name.size() + 50, "Could not find data variable with name '%s'.", name.c_str()));
+			Error(CreateString(expression.size() + 50, "Could not find data variable with name '%s'.", expression.c_str()));
 			return;
 		}
-		int index = int(variable_addresses.size());
-		variable_addresses.push_back(std::move(address));
+		// DataAddress address = expression_interface.ParseAddress(name);
+		// if (address.empty())
+		// {
+		// 	Error(CreateString(name.size() + 50, "Could not find data variable with name '%s'.", name.c_str()));
+		// 	return;
+		// }
+		// int index = int(variable_addresses.size());
+		// variable_addresses.push_back(std::move(address));
 		program.push_back(InstructionData{is_assignment ? Instruction::Assign : Instruction::Variable, Variant(int(index))});
 	}
 
@@ -307,6 +316,7 @@ namespace Parse {
 
 	static void Ternary(DataParser& parser);
 	static void Function(DataParser& parser, Instruction function_type, String&& name, bool first_argument_piped);
+	static void Address(DataParser& parser, String&& prefix);
 
 	// Helper functions
 	static bool IsVariableCharacter(char c, bool is_first_character)
@@ -319,7 +329,7 @@ namespace Parse {
 		if (is_alpha || (c >= '0' && c <= '9'))
 			return true;
 
-		for (char valid_char : "_.[] ")
+		for (char valid_char : "_. ")
 		{
 			if (c == valid_char && valid_char != '\0')
 				return true;
@@ -353,7 +363,7 @@ namespace Parse {
 			name.resize(new_size);
 
 		if (out_valid_function_name)
-			*out_valid_function_name = (name.find_first_of(".[] ") == String::npos);
+			*out_valid_function_name = (name.find_first_of(". ") == String::npos);
 
 		return name;
 	}
@@ -586,6 +596,12 @@ namespace Parse {
 
 		parser.Emit(Instruction::Literal, Variant(str));
 	}
+
+	static void AddressExpression(DataParser& parser, String const& prefix)
+	{
+		parser.Next();
+	}
+
 	static void VariableOrFunction(DataParser& parser)
 	{
 		bool valid_function_name = true;
@@ -609,6 +625,10 @@ namespace Parse {
 				return;
 			}
 			Function(parser, Instruction::TransformFnc, std::move(name), false);
+		}
+		else if (parser.Look() == '[')
+		{
+			AddressExpression(parser, name);
 		}
 		else
 			parser.Variable(name);

@@ -184,6 +184,24 @@ static const String aliasing_rml = R"(
 </rml>
 )";
 
+static const String dynamic_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<link type="text/rcss" href="/assets/invader.rcss"/>
+	<link type="text/template" href="/../Tests/Data/UnitTests/data-title.rml"/>
+</head>
+
+<body data-model="basics">
+<!--<p>{{ arrays.a[i0] }}</p>
+<p>{{ arrays.b[i1] }}</p>
+<p>{{ arrays.c[arrays.b[i1] - 19] }}</p>-->
+<p>{{ arrays.c[sqrt(arrays.b[i1] - 12)] }}</p>
+</body>
+</rml>
+)";
+
 struct StringWrap {
 	StringWrap(String val = "wrap_default") : val(val) {}
 	String val;
@@ -340,6 +358,12 @@ bool InitializeDataBindings(Context* context)
 	Rml::DataModelConstructor constructor = context->CreateDataModel("basics");
 	if (!constructor)
 		return false;
+
+	constructor.RegisterTransformFunc("sqrt", [](const VariantList& params) {
+		if (params.empty())
+			return Variant();
+		return Variant(std::sqrt(params[0].Get<int>()));
+	});
 
 	if (auto handle = constructor.RegisterStruct<StringWrap>())
 	{
@@ -500,6 +524,30 @@ TEST_CASE("databinding.aliasing")
 	CHECK(document->QuerySelector("#w1 .icon")->GetAttribute("icon", String()) == "a");
 	CHECK(document->QuerySelector("#w2 .title")->GetInnerRML() == "s1");
 	CHECK(document->QuerySelector("#w2 .icon")->GetAttribute("icon", String()) == "b");
+
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("databinding.dynamic_variables")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	REQUIRE(InitializeDataBindings(context));
+
+	ElementDocument* document = context->LoadDocumentFromMemory(dynamic_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	// CHECK(document->QuerySelector("p:nth-child(1)")->GetInnerRML() == "10");
+	// CHECK(document->QuerySelector("p:nth-child(2)")->GetInnerRML() == "21");
+	// CHECK(document->QuerySelector("p:nth-child(3)")->GetInnerRML() == "c3");
+	// CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "c3");
+	CHECK(document->QuerySelector("p:nth-child(0)")->GetInnerRML() == "c3");
 
 	document->Close();
 
