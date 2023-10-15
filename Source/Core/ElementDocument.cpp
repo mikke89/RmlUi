@@ -503,7 +503,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			{
 				if (element->Focus())
 				{
-					element->ScrollIntoView(false);
+					element->ScrollIntoView(ScrollAlignment::Nearest);
 					event.StopPropagation();
 				}
 			}
