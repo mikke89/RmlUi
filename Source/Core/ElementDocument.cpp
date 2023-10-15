@@ -438,7 +438,7 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 		}
 
 		// Focus the window or element
-		bool focused = focus_element->Focus();
+		bool focused = focus_element->Focus(true);
 		if (focused && focus_element != this)
 			focus_element->ScrollIntoView(false);
 	}
@@ -625,7 +625,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 		{
 			if (Element* element = FindNextTabElement(event.GetTargetElement(), !event.GetParameter<bool>("shift_key", false)))
 			{
-				if (element->Focus())
+				if (element->Focus(true))
 				{
 					element->ScrollIntoView(ScrollAlignment::Nearest);
 					event.StopPropagation();
@@ -672,7 +672,7 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 			{
 				if (Element* next = FindNextNavigationElement(focus_node, direction, *nav_property))
 				{
-					if (next->Focus())
+					if (next->Focus(true))
 					{
 						next->ScrollIntoView(ScrollAlignment::Nearest);
 						event.StopPropagation();

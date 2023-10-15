@@ -525,6 +525,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 	{
 		if (event.GetTargetElement() == parent)
 		{
+			parent->SetPseudoClass("focus-visible", true);
 			if (UpdateSelection(false))
 				FormatElement();
 			ShowCursor(true, false);
