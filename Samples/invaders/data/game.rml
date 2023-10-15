@@ -89,7 +89,7 @@
 			}
 		</style>
 	</head>
-	<body id="game_window">
+	<body id="game_window" onkeyup="onescape load pause">
 		<game id="game">
 			<div id="score_div">
 				<icon />

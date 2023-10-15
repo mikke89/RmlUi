@@ -97,7 +97,7 @@ function Options.SaveOptions(event)
 end
 	</script>
 	</head>
-	<body template="luawindow" onload="Window.OnWindowLoad(document) Options.LoadOptions(document)">
+	<body template="luawindow" onload="Window.OnWindowLoad(document) Options.LoadOptions(document)" onkeydown="if Window.EscapePressed(event) then Window.LoadMenu('main_menu',document) end">
 		<form data-model="options" onsubmit="Options.SaveOptions(event) Window.LoadMenu('main_menu',document)" data-event-change="options_changed = true">
 			<div>
 				<p>

@@ -31,7 +31,7 @@
 			}
 		</style>
 	</head>
-	<body template="window">
+	<body template="window" onkeydown="onescape goto main_menu">
 		<form onsubmit="start">
 			<div>
 				<p>
