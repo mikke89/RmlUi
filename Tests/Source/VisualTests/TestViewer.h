@@ -47,6 +47,7 @@ public:
 	void ShowSource(SourceType type);
 	void ShowHelp(bool show);
 	bool IsHelpVisible() const;
+	bool IsNavigationLocked() const;
 
 	bool LoadTest(const Rml::String& directory, const Rml::String& filename, int test_index, int number_of_tests, int filtered_test_index,
 		int filtered_number_of_tests, int suite_index, int number_of_suites, bool keep_scroll_position = false);

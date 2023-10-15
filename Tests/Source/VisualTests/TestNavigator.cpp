@@ -33,6 +33,7 @@
 #include "TestViewer.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Math.h>
 #include <Shell.h>
 #include <cstdio>
@@ -230,6 +231,10 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 			{
 				element_filter_input->Blur();
 			}
+			else if (viewer->IsNavigationLocked())
+			{
+				element_filter_input->GetOwnerDocument()->Focus();
+			}
 			else if (goto_index >= 0)
 			{
 				goto_index = -1;
@@ -252,7 +257,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 	}
 
 	// Keydown events in target/bubble phase ignored when focusing on input.
-	if (event == Rml::EventId::Keydown && event.GetPhase() != Rml::EventPhase::Capture)
+	if (event == Rml::EventId::Keydown && event.GetPhase() != Rml::EventPhase::Capture && !viewer->IsNavigationLocked())
 	{
 		const auto key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
 
