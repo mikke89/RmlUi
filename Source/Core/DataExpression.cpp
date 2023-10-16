@@ -216,6 +216,7 @@ public:
 				instruction != Instruction::TransformFnc && instruction != Instruction::EventFnc && instruction != Instruction::Variable &&
 				instruction != Instruction::Assign,
 			"Use Push(), Pop(), Function(), Variable(), and Assign() procedures for stack manipulation and variable instructions.");
+
 		program.push_back(InstructionData{instruction, std::move(data)});
 	}
 	void Push()
@@ -250,25 +251,26 @@ public:
 	void Variable(const String& expression) { VariableGetSet(expression, false); }
 	void Assign(const String& expression) { VariableGetSet(expression, true); }
 
-private:
-	int ResolveAddress(const String& expression) { return -1; }
-
-	void VariableGetSet(const String& expression, bool is_assignment)
+	void DynamicVariable(bool is_assignment)
 	{
-		int index = ResolveAddress(expression);
-		if (index == -1)
+		// Reserve slot in variable index table for dynamic resolution
+		int index = int(variable_addresses.size());
+		variable_addresses.push_back(DataAddress());
+		program.push_back(InstructionData{Instruction::AddressLookup, Variant(int(index))});
+		program.push_back(InstructionData{is_assignment ? Instruction::Assign : Instruction::Variable, Variant(int(index))});
+	}
+
+private:
+	void VariableGetSet(const String& name, bool is_assignment)
+	{
+		DataAddress address = expression_interface.ParseAddress(name);
+		if (address.empty())
 		{
-			Error(CreateString(expression.size() + 50, "Could not find data variable with name '%s'.", expression.c_str()));
+			Error(CreateString(name.size() + 50, "Could not find data variable with name '%s'.", name.c_str()));
 			return;
 		}
-		// DataAddress address = expression_interface.ParseAddress(name);
-		// if (address.empty())
-		// {
-		// 	Error(CreateString(name.size() + 50, "Could not find data variable with name '%s'.", name.c_str()));
-		// 	return;
-		// }
-		// int index = int(variable_addresses.size());
-		// variable_addresses.push_back(std::move(address));
+		int index = int(variable_addresses.size());
+		variable_addresses.push_back(std::move(address));
 		program.push_back(InstructionData{is_assignment ? Instruction::Assign : Instruction::Variable, Variant(int(index))});
 	}
 
@@ -297,7 +299,7 @@ namespace Parse {
 	static void Term(DataParser& parser);
 	static void Factor(DataParser& parser);
 
-	static void NumberLiteral(DataParser& parser);
+	static String NumberLiteral(DataParser& parser);
 	static void StringLiteral(DataParser& parser);
 	static void VariableOrFunction(DataParser& parser);
 
@@ -316,7 +318,6 @@ namespace Parse {
 
 	static void Ternary(DataParser& parser);
 	static void Function(DataParser& parser, Instruction function_type, String&& name, bool first_argument_piped);
-	static void Address(DataParser& parser, String&& prefix);
 
 	// Helper functions
 	static bool IsVariableCharacter(char c, bool is_first_character)
@@ -527,7 +528,9 @@ namespace Parse {
 		}
 		else if (c == '-' || (c >= '0' && c <= '9'))
 		{
-			NumberLiteral(parser);
+			const double number = FromString(NumberLiteral(parser), 0.0);
+
+			parser.Emit(Instruction::Literal, Variant(number));
 			parser.SkipWhitespace();
 		}
 		else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
@@ -539,7 +542,7 @@ namespace Parse {
 			parser.Expected("literal, variable name, function name, parenthesis, or '!'");
 	}
 
-	static void NumberLiteral(DataParser& parser)
+	static String NumberLiteral(DataParser& parser)
 	{
 		String str;
 
@@ -564,13 +567,12 @@ namespace Parse {
 		if (!first_match)
 		{
 			parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
-			return;
+			return String();
 		}
 
-		const double number = FromString(str, 0.0);
-
-		parser.Emit(Instruction::Literal, Variant(number));
+		return str;
 	}
+
 	static void StringLiteral(DataParser& parser)
 	{
 		String str;
@@ -597,9 +599,92 @@ namespace Parse {
 		parser.Emit(Instruction::Literal, Variant(str));
 	}
 
+	static void AddressSubExpression(DataParser& parser, String& address, int depth, bool& is_dynamic)
+	{
+		char next = parser.Look();
+		if (next == '(')
+		{
+			// dynamic address expression
+			parser.Emit(Instruction::Literal, Variant(address));
+			parser.Push();
+
+			// parse and push index resolving expression
+			Expression(parser);
+			parser.Push();
+			depth++;
+
+			is_dynamic = true;
+
+			if (!parser.Match(']'))
+			{
+				return;
+			}
+
+			address = "]";
+		}
+		else
+		{
+			// literal index
+			address.append(NumberLiteral(parser));
+			if (!parser.Match(']'))
+			{
+				return;
+			}
+
+			address.push_back(']');
+		}
+
+		next = parser.Look();
+		if (next == '.')
+		{
+			address.push_back('.');
+			parser.Next();
+
+			bool valid_function_name = true;
+			String name = VariableOrFunctionName(parser, &valid_function_name);
+			if (name.empty())
+			{
+				parser.Error("Expected a variable address but got an empty name.");
+				return;
+			}
+
+			address.append(name);
+		}
+
+		next = parser.Look();
+		if (next == '[')
+		{
+			address.push_back('[');
+			parser.Next();
+
+			AddressSubExpression(parser, address, depth, is_dynamic);
+		}
+	}
+
 	static void AddressExpression(DataParser& parser, String const& prefix)
 	{
+		String address = prefix;
+		bool is_dynamic = false;
+
+		address.push_back('[');
 		parser.Next();
+
+		AddressSubExpression(parser, address, 0, is_dynamic);
+
+		if (is_dynamic)
+		{
+			if (!address.empty())
+			{
+				// push address suffix
+				parser.Emit(Instruction::Literal, Variant(address));
+				parser.Emit(Instruction::Add, Variant());
+			}
+			parser.DynamicVariable(false);
+		}
+		else
+		{
+			parser.Variable(address);
+		}
 	}
 
 	static void VariableOrFunction(DataParser& parser)

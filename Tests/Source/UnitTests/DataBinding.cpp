@@ -194,10 +194,11 @@ static const String dynamic_rml = R"(
 </head>
 
 <body data-model="basics">
-<!--<p>{{ arrays.a[i0] }}</p>
-<p>{{ arrays.b[i1] }}</p>
-<p>{{ arrays.c[arrays.b[i1] - 19] }}</p>-->
-<p>{{ arrays.c[sqrt(arrays.b[i1] - 12)] }}</p>
+<p>{{ arrays.a[5].cc.bb[5][54] }}</p>
+<p>{{ arrays.a[(i0)] }}</p>
+<p>{{ arrays.b[(i1)] }}</p>
+<p>{{ arrays.c[(arrays.b[(i1)] - 19)] }}</p>
+<p>{{ arrays.c[(sqrt(arrays.b[(i1)] - 12))].data[5][(i0)].cc }}</p>
 </body>
 </rml>
 )";
