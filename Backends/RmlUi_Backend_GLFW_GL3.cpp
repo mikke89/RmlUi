@@ -242,8 +242,8 @@ static void SetupCallbacks(GLFWwindow* window)
 	glfwSetCursorEnterCallback(window, [](GLFWwindow* /*window*/, int entered) { RmlGLFW::ProcessCursorEnterCallback(data->context, entered); });
 
 	// Mouse input
-	glfwSetCursorPosCallback(window, [](GLFWwindow* /*window*/, double xpos, double ypos) {
-		RmlGLFW::ProcessCursorPosCallback(data->context, xpos, ypos, data->glfw_active_modifiers);
+	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
+		RmlGLFW::ProcessCursorPosCallback(data->context, window, xpos, ypos, data->glfw_active_modifiers);
 	});
 
 	glfwSetMouseButtonCallback(window, [](GLFWwindow* /*window*/, int button, int action, int mods) {

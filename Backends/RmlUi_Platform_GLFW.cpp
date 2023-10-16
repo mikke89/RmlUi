@@ -30,6 +30,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Core/SystemInterface.h>
 #include <GLFW/glfw3.h>
@@ -135,12 +136,23 @@ bool RmlGLFW::ProcessCursorEnterCallback(Rml::Context* context, int entered)
 	return result;
 }
 
-bool RmlGLFW::ProcessCursorPosCallback(Rml::Context* context, double xpos, double ypos, int mods)
+bool RmlGLFW::ProcessCursorPosCallback(Rml::Context* context, GLFWwindow* window, double xpos, double ypos, int mods)
 {
 	if (!context)
 		return true;
 
-	bool result = context->ProcessMouseMove(int(xpos), int(ypos), RmlGLFW::ConvertKeyModifiers(mods));
+	using Rml::Vector2i;
+	using Vector2d = Rml::Vector2<double>;
+
+	Vector2i window_size, framebuffer_size;
+	glfwGetWindowSize(window, &window_size.x, &window_size.y);
+	glfwGetFramebufferSize(window, &framebuffer_size.x, &framebuffer_size.y);
+
+	// Convert from mouse position in GLFW screen coordinates to framebuffer coordinates (pixels) used by RmlUi.
+	const Vector2d mouse_pos = Vector2d(xpos, ypos) * (Vector2d(window_size) / Vector2d(framebuffer_size));
+	const Vector2i mouse_pos_round = {int(Rml::Math::Round(mouse_pos.x)), int(Rml::Math::Round(mouse_pos.y))};
+
+	bool result = context->ProcessMouseMove(mouse_pos_round.x, mouse_pos_round.y, RmlGLFW::ConvertKeyModifiers(mods));
 	return result;
 }
 
