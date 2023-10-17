@@ -149,7 +149,7 @@ bool RmlGLFW::ProcessCursorPosCallback(Rml::Context* context, GLFWwindow* window
 	glfwGetFramebufferSize(window, &framebuffer_size.x, &framebuffer_size.y);
 
 	// Convert from mouse position in GLFW screen coordinates to framebuffer coordinates (pixels) used by RmlUi.
-	const Vector2d mouse_pos = Vector2d(xpos, ypos) * (Vector2d(window_size) / Vector2d(framebuffer_size));
+	const Vector2d mouse_pos = Vector2d(xpos, ypos) * (Vector2d(framebuffer_size) / Vector2d(window_size));
 	const Vector2i mouse_pos_round = {int(Rml::Math::Round(mouse_pos.x)), int(Rml::Math::Round(mouse_pos.y))};
 
 	bool result = context->ProcessMouseMove(mouse_pos_round.x, mouse_pos_round.y, RmlGLFW::ConvertKeyModifiers(mods));
