@@ -84,9 +84,7 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 	glfwWindowHint(GLFW_RESIZABLE, allow_resize ? GLFW_TRUE : GLFW_FALSE);
 	glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
-#if __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
 	GLFWwindow* window = glfwCreateWindow(width, height, name, nullptr, nullptr);
 	if (!window)
