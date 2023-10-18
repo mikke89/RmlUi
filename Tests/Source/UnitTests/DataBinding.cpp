@@ -194,11 +194,11 @@ static const String dynamic_rml = R"(
 </head>
 
 <body data-model="basics">
-<p>{{ arrays.a[5].cc.bb[5][54] }}</p>
-<p>{{ arrays.a[(i0)] }}</p>
-<p>{{ arrays.b[(i1)] }}</p>
-<p>{{ arrays.c[(arrays.b[(i1)] - 19)] }}</p>
-<p>{{ arrays.c[(sqrt(arrays.b[(i1)] - 12))].data[5][(i0)].cc }}</p>
+<p>{{ arrays.a[0] }}</p>
+<p>{{ arrays.a[i0] }}</p>
+<p>{{ arrays.b[i1] }}</p>
+<p>{{ arrays.c[arrays.b[i1] - 19].val }}</p>
+<p>{{ arrays.c[sqrt(arrays.b[i1] - 12) - 1].val }}</p>
 </body>
 </rml>
 )";
@@ -544,11 +544,11 @@ TEST_CASE("databinding.dynamic_variables")
 
 	TestsShell::RenderLoop();
 
-	// CHECK(document->QuerySelector("p:nth-child(1)")->GetInnerRML() == "10");
-	// CHECK(document->QuerySelector("p:nth-child(2)")->GetInnerRML() == "21");
-	// CHECK(document->QuerySelector("p:nth-child(3)")->GetInnerRML() == "c3");
-	// CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "c3");
-	CHECK(document->QuerySelector("p:nth-child(0)")->GetInnerRML() == "c3");
+	CHECK(document->QuerySelector("p:nth-child(1)")->GetInnerRML() == "10");
+	CHECK(document->QuerySelector("p:nth-child(2)")->GetInnerRML() == "10");
+	CHECK(document->QuerySelector("p:nth-child(3)")->GetInnerRML() == "21");
+	CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "c3");
+	CHECK(document->QuerySelector("p:nth-child(5)")->GetInnerRML() == "c3");
 
 	document->Close();
 

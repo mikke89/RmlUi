@@ -65,29 +65,29 @@ class DataParser;
 enum class Instruction {
 	// clang-format off
 	// Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
-	Push          = 'P',     //      S+ = R
-	Pop           = 'o',     // <R/L/C> = S-  (D determines R/L/C)
-	Literal       = 'D',     //       R = D
-	Variable      = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
-	Add           = '+',     //       R = L + R
-	Subtract      = '-',     //       R = L - R
-	Multiply      = '*',     //       R = L * R
-	Divide        = '/',     //       R = L / R
-	Not           = '!',     //       R = !R
-	And           = '&',     //       R = L && R
-	Or            = '|',     //       R = L || R
-	Less          = '<',     //       R = L < R
-	LessEq        = 'L',     //       R = L <= R
-	Greater       = '>',     //       R = L > R
-	GreaterEq     = 'G',     //       R = L >= R
-	Equal         = '=',     //       R = L == R
-	NotEqual      = 'N',     //       R = L != R
-	Ternary       = '?',     //       R = L ? C : R
-	NumArguments  = '#',     //       R = D  (Contains the num. arguments currently on the stack, immediately followed by a 'T' or 'E' instruction)
-	TransformFnc  = 'T',     //       R = DataModel.Execute(D, A) where A = S[TOP - R, TOP]; S -= R;  (D determines function name, input R the num. arguments, A the arguments)
-	EventFnc      = 'E',     //       DataModel.EventCallback(D, A); S -= R;
-	Assign        = 'A',     //       DataModel.SetVariable(D, R)
-	AddressLookup = 'L',     //       DataModel.LookupVariable(D, R) (Looks up a variable by path (R) and updates the variable address list at the given index D)
+	Push            = 'P',     //      S+ = R
+	Pop             = 'o',     // <R/L/C> = S-  (D determines R/L/C)
+	Literal         = 'D',     //       R = D
+	Variable        = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
+	Add             = '+',     //       R = L + R
+	Subtract        = '-',     //       R = L - R
+	Multiply        = '*',     //       R = L * R
+	Divide          = '/',     //       R = L / R
+	Not             = '!',     //       R = !R
+	And             = '&',     //       R = L && R
+	Or              = '|',     //       R = L || R
+	Less            = '<',     //       R = L < R
+	LessEq          = 'L',     //       R = L <= R
+	Greater         = '>',     //       R = L > R
+	GreaterEq       = 'G',     //       R = L >= R
+	Equal           = '=',     //       R = L == R
+	NotEqual        = 'N',     //       R = L != R
+	Ternary         = '?',     //       R = L ? C : R
+	NumArguments    = '#',     //       R = D  (Contains the num. arguments currently on the stack, immediately followed by a 'T' or 'E' instruction)
+	TransformFnc    = 'T',     //       R = DataModel.Execute(D, A) where A = S[TOP - R, TOP]; S -= R;  (D determines function name, input R the num. arguments, A the arguments)
+	EventFnc        = 'E',     //       DataModel.EventCallback(D, A); S -= R;
+	Assign          = 'A',     //       DataModel.SetVariable(D, R)
+	DynamicVariable = 'Y',     //       DataModel.GetVariable(DataModel.ParseAddress(R)) (Looks up a variable by path in R)
 	// clang-format on
 };
 
@@ -195,6 +195,12 @@ public:
 			parse_error = true;
 			Error(CreateString(120, "Internal parser error, inconsistent stack operations. Stack size is %d at parse end.", program_stack_size));
 		}
+		if (!parse_error && !program_states.empty())
+		{
+			parse_error = true;
+			Error(CreateString(140, "Internal parser error, inconsistent state stack operations. State stack size is %d at parse end.",
+				(int)program_states.size()));
+		}
 
 		return !parse_error;
 	}
@@ -251,13 +257,22 @@ public:
 	void Variable(const String& expression) { VariableGetSet(expression, false); }
 	void Assign(const String& expression) { VariableGetSet(expression, true); }
 
-	void DynamicVariable(bool is_assignment)
+	void PushState() { program_states.push_back(ProgramState{program.size(), program_stack_size, index}); }
+
+	void PopState()
 	{
-		// Reserve slot in variable index table for dynamic resolution
-		int index = int(variable_addresses.size());
-		variable_addresses.push_back(DataAddress());
-		program.push_back(InstructionData{Instruction::AddressLookup, Variant(int(index))});
-		program.push_back(InstructionData{is_assignment ? Instruction::Assign : Instruction::Variable, Variant(int(index))});
+		RMLUI_ASSERT(!program_states.empty());
+		auto const& state = program_states.back();
+		RMLUI_ASSERT(state.program_length <= program.size());
+		program.resize(state.program_length);
+		program_stack_size = state.stack_size;
+		program_states.pop_back();
+	}
+
+	void DiscardState()
+	{
+		RMLUI_ASSERT(!program_states.empty());
+		program_states.pop_back();
 	}
 
 private:
@@ -285,6 +300,14 @@ private:
 	Program program;
 
 	AddressList variable_addresses;
+
+	struct ProgramState {
+		size_t program_length;
+		int stack_size;
+		size_t index;
+	};
+
+	Vector<ProgramState> program_states;
 };
 
 namespace Parse {
@@ -299,7 +322,7 @@ namespace Parse {
 	static void Term(DataParser& parser);
 	static void Factor(DataParser& parser);
 
-	static String NumberLiteral(DataParser& parser);
+	static String NumberLiteral(DataParser& parser, bool silent = false);
 	static void StringLiteral(DataParser& parser);
 	static void VariableOrFunction(DataParser& parser);
 
@@ -542,7 +565,7 @@ namespace Parse {
 			parser.Expected("literal, variable name, function name, parenthesis, or '!'");
 	}
 
-	static String NumberLiteral(DataParser& parser)
+	static String NumberLiteral(DataParser& parser, bool silent)
 	{
 		String str;
 
@@ -566,7 +589,8 @@ namespace Parse {
 
 		if (!first_match)
 		{
-			parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
+			if (!silent)
+				parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
 			return String();
 		}
 
@@ -599,92 +623,63 @@ namespace Parse {
 		parser.Emit(Instruction::Literal, Variant(str));
 	}
 
-	static void AddressSubExpression(DataParser& parser, String& address, int depth, bool& is_dynamic)
+	static String VariableExpression(DataParser& parser, String const& address_prefix)
 	{
-		char next = parser.Look();
-		if (next == '(')
+		if (parser.Look() == '[')
 		{
-			// dynamic address expression
-			parser.Emit(Instruction::Literal, Variant(address));
-			parser.Push();
-
-			// parse and push index resolving expression
-			Expression(parser);
-			parser.Push();
-			depth++;
-
-			is_dynamic = true;
-
-			if (!parser.Match(']'))
-			{
-				return;
-			}
-
-			address = "]";
-		}
-		else
-		{
-			// literal index
-			address.append(NumberLiteral(parser));
-			if (!parser.Match(']'))
-			{
-				return;
-			}
-
-			address.push_back(']');
-		}
-
-		next = parser.Look();
-		if (next == '.')
-		{
-			address.push_back('.');
 			parser.Next();
+			String prefix = address_prefix;
+			prefix.push_back('[');
 
-			bool valid_function_name = true;
-			String name = VariableOrFunctionName(parser, &valid_function_name);
-			if (name.empty())
+			parser.PushState();
+			String index = NumberLiteral(parser, true);
+			if (!index.empty() && parser.Look() == ']')
 			{
-				parser.Error("Expected a variable address but got an empty name.");
-				return;
+				parser.DiscardState();
+				parser.Next();
+				prefix.append(index);
+				prefix.push_back(']');
+				return VariableExpression(parser, prefix);
 			}
-
-			address.append(name);
-		}
-
-		next = parser.Look();
-		if (next == '[')
-		{
-			address.push_back('[');
-			parser.Next();
-
-			AddressSubExpression(parser, address, depth, is_dynamic);
-		}
-	}
-
-	static void AddressExpression(DataParser& parser, String const& prefix)
-	{
-		String address = prefix;
-		bool is_dynamic = false;
-
-		address.push_back('[');
-		parser.Next();
-
-		AddressSubExpression(parser, address, 0, is_dynamic);
-
-		if (is_dynamic)
-		{
-			if (!address.empty())
+			else
 			{
-				// push address suffix
-				parser.Emit(Instruction::Literal, Variant(address));
+				parser.PopState();
+
+				parser.Emit(Instruction::Literal, Variant(prefix));
+				parser.Push();
+
+				Expression(parser);
+				parser.Push();
+
+				parser.Match(']');
+				VariableExpression(parser, "]");
+
+				parser.Pop(Register::L);
 				parser.Emit(Instruction::Add, Variant());
+				parser.Pop(Register::L);
+				parser.Emit(Instruction::Add, Variant());
+
+				return "";
 			}
-			parser.DynamicVariable(false);
+		}
+		else if (parser.Look() == '.')
+		{
+			parser.Next();
+			return VariableExpression(parser, address_prefix + ".");
 		}
 		else
 		{
-			parser.Variable(address);
+			String next = VariableOrFunctionName(parser, nullptr);
+			if (next.empty())
+			{
+				if (!address_prefix.empty())
+					parser.Emit(Instruction::Literal, Variant(address_prefix));
+				return address_prefix;
+			}
+			return VariableExpression(parser, address_prefix + next);
 		}
+
+		return address_prefix;
 	}
 
 	static void VariableOrFunction(DataParser& parser)
@@ -713,7 +708,20 @@ namespace Parse {
 		}
 		else if (parser.Look() == '[')
 		{
-			AddressExpression(parser, name);
+			parser.PushState();
+
+			String full_address = VariableExpression(parser, name);
+
+			if (!full_address.empty())
+			{
+				parser.PopState();
+				parser.Variable(full_address);
+			}
+			else
+			{
+				parser.DiscardState();
+				parser.Emit(Instruction::DynamicVariable, Variant());
+			}
 		}
 		else
 			parser.Variable(name);
@@ -982,6 +990,14 @@ private:
 		case Instruction::Literal:
 		{
 			R = data;
+		}
+		break;
+		case Instruction::DynamicVariable:
+		{
+			auto address = expression_interface.ParseAddress(R.Get<String>());
+			if (address.empty())
+				return Error("Variable address not found.");
+			R = expression_interface.GetValue(address);
 		}
 		break;
 		case Instruction::Variable:
