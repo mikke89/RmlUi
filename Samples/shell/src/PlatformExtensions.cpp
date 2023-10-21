@@ -88,7 +88,7 @@ Rml::String PlatformExtensions::FindSamplesRoot()
 
 #elif defined RMLUI_PLATFORM_MACOSX
 
-	Rml::String path = "../../Samples/";
+	Rml::String path = "../Samples/";
 
 	// Find the location of the executable.
 	CFBundleRef bundle = CFBundleGetMainBundle();
