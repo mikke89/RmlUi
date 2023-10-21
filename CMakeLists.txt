@@ -418,7 +418,7 @@ elseif( ENABLE_LOTTIE_PLUGIN )
 
 	list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/rlottie/build)
 	find_package(rlottie CONFIG)
-	find_path(rlottie_INCLUDE_DIR rlottie.h HINTS ${rlottie_DIR} $ENV{rlottie_DIR} PATH_SUFFIXES inc rlottie/inc )
+	find_path(rlottie_INCLUDE_DIR rlottie.h HINTS ${rlottie_DIR} $ENV{rlottie_DIR} PATH_SUFFIXES inc rlottie/inc ../inc)
 
 	if(rlottie_FOUND AND rlottie_INCLUDE_DIR)
 		message("-- Can Lottie plugin be added to RmlCore - yes - rlottie library found")
@@ -662,12 +662,33 @@ endif()
 # Build samples ====================
 #===================================
 
+function(resource VAR SOURCE_PATH DESTINATION PATTERN)
+    file(GLOB_RECURSE _LIST CONFIGURE_DEPENDS ${SOURCE_PATH}/${PATTERN})
+    foreach (RESOURCE ${_LIST})
+        get_filename_component(_PARENT ${RESOURCE} DIRECTORY)
+        if (${_PARENT} STREQUAL ${SOURCE_PATH})
+            set(_DESTINATION ${DESTINATION})
+        else ()
+            file(RELATIVE_PATH _DESTINATION ${SOURCE_PATH} ${_PARENT})
+            set(_DESTINATION ${DESTINATION}/${_DESTINATION})
+        endif ()
+        set_property(SOURCE ${RESOURCE} PROPERTY MACOSX_PACKAGE_LOCATION ${_DESTINATION})
+    endforeach (RESOURCE)
+    set(${VAR} ${_LIST} PARENT_SCOPE)
+endfunction()
+
 # Build and link the samples
-macro(bl_sample NAME)
+macro(bl_sample NAME SAMPLE_SUB_DIR)
 	if (WIN32)
 		add_executable(${NAME} WIN32 ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
 	elseif(APPLE)
-		add_executable(${NAME} MACOSX_BUNDLE ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
+		resource(ASSETS ${SAMPLES_DIR}/assets Resources/assets *)
+		resource(DATA ${SAMPLES_DIR}/${SAMPLE_SUB_DIR}/data Resources/${SAMPLE_SUB_DIR}/data *)
+		resource(LUA ${SAMPLES_DIR}/${SAMPLE_SUB_DIR}/lua Resources/${SAMPLE_SUB_DIR}/lua *)
+
+		set(RESOURCE_FILES ${ASSETS} ${DATA} ${LUA})
+
+		add_executable(${NAME} MACOSX_BUNDLE ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} ${RESOURCE_FILES})
 
 		# The first rpath is to the proper location where the framework/library SHOULD be, the second is to the location actually seen
 		# in the build environment
@@ -705,7 +726,7 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 		)
 	endif()
 
-	set(SAMPLES_DIR opt/RmlUi/Samples CACHE PATH "Path to samples directory.")
+	set(SAMPLES_DIR ${PROJECT_SOURCE_DIR}/Samples CACHE PATH "Path to samples directory.")
 	if(WIN32)
 		mark_as_advanced(SAMPLES_DIR)
 	endif()
@@ -863,7 +884,7 @@ if(BUILD_SAMPLES)
 
 	# Build and install the basic samples
 	foreach(sample ${samples})
-		bl_sample(${sample} ${sample_LIBRARIES})
+		bl_sample(${sample} basic/${sample} ${sample_LIBRARIES} )
 
 		# The samples always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
@@ -875,7 +896,7 @@ if(BUILD_SAMPLES)
 	# Build and install the tutorials
 	foreach(tutorial ${tutorials})
 		set(tutorial_fullname tutorial_${tutorial})
-		bl_sample(${tutorial_fullname} ${sample_LIBRARIES})
+		bl_sample(${tutorial_fullname} tutorial/${tutorial} ${sample_LIBRARIES})
 
 		# The tutorials always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
@@ -885,14 +906,14 @@ if(BUILD_SAMPLES)
 	endforeach()
 
 	# Build and install invaders sample
-	bl_sample(invaders ${sample_LIBRARIES})
+	bl_sample(invaders invaders  ${sample_LIBRARIES})
 	install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
 	install(TARGETS invaders
 		RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
 		BUNDLE DESTINATION ${SAMPLES_DIR})
 
 	if(BUILD_LUA_BINDINGS)
-		bl_sample(luainvaders RmlLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
+		bl_sample(luainvaders luainvaders RmlLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
 		install(TARGETS luainvaders
 			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
