@@ -1,6 +1,5 @@
 # Primary CMake build target
 /Build/
-/Dependencies/
 
 # Other common build targets
 /build*/

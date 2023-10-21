@@ -182,8 +182,6 @@ if(SAMPLES_BACKEND STREQUAL "auto")
 	endif()
 endif()
 
-set(SAMPLES_DIR ${PROJECT_SOURCE_DIR}/Samples CACHE PATH "Path to samples directory.")
-
 option(MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are used by default." OFF)
 
 if(APPLE)
@@ -680,13 +678,13 @@ function(resource VAR SOURCE_PATH DESTINATION PATTERN)
 endfunction()
 
 # Build and link the samples
-macro(bl_sample NAME SDIR)
+macro(bl_sample NAME SAMPLE_SUB_DIR)
 	if (WIN32)
 		add_executable(${NAME} WIN32 ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
 	elseif(APPLE)
 		resource(ASSETS ${SAMPLES_DIR}/assets Resources/assets *)
-		resource(DATA ${SAMPLES_DIR}${SDIR}/data Resources${SDIR}/data *)
-		resource(LUA ${SAMPLES_DIR}${SDIR}/lua Resources${SDIR}/lua *)
+		resource(DATA ${SAMPLES_DIR}/${SAMPLE_SUB_DIR}/data Resources/${SAMPLE_SUB_DIR}/data *)
+		resource(LUA ${SAMPLES_DIR}/${SAMPLE_SUB_DIR}/lua Resources/${SAMPLE_SUB_DIR}/lua *)
 
 		set(RESOURCE_FILES ${ASSETS} ${DATA} ${LUA})
 
@@ -886,7 +884,7 @@ if(BUILD_SAMPLES)
 
 	# Build and install the basic samples
 	foreach(sample ${samples})
-		bl_sample(${sample} /basic/${sample} ${sample_LIBRARIES} )
+		bl_sample(${sample} basic/${sample} ${sample_LIBRARIES} )
 
 		# The samples always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/${sample})
@@ -898,7 +896,7 @@ if(BUILD_SAMPLES)
 	# Build and install the tutorials
 	foreach(tutorial ${tutorials})
 		set(tutorial_fullname tutorial_${tutorial})
-		bl_sample(${tutorial_fullname} /tutorial/${tutorial} ${sample_LIBRARIES})
+		bl_sample(${tutorial_fullname} tutorial/${tutorial} ${sample_LIBRARIES})
 
 		# The tutorials always set this as their current working directory
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/tutorial/${tutorial})
@@ -908,14 +906,14 @@ if(BUILD_SAMPLES)
 	endforeach()
 
 	# Build and install invaders sample
-	bl_sample(invaders /invaders  ${sample_LIBRARIES})
+	bl_sample(invaders invaders  ${sample_LIBRARIES})
 	install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
 	install(TARGETS invaders
 		RUNTIME DESTINATION ${SAMPLES_DIR}/invaders
 		BUNDLE DESTINATION ${SAMPLES_DIR})
 
 	if(BUILD_LUA_BINDINGS)
-		bl_sample(luainvaders /luainvaders RmlLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
+		bl_sample(luainvaders luainvaders RmlLua ${sample_LIBRARIES} ${LUA_BINDINGS_LINK_LIBS})
 		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/luainvaders)
 		install(TARGETS luainvaders
 			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
