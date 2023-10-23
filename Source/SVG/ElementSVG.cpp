@@ -197,6 +197,7 @@ void ElementSVG::UpdateTexture()
 	auto p_callback = [this](RenderInterface* render_interface, const String& /*name*/, TextureHandle& out_handle, Vector2i& out_dimensions) -> bool {
 		RMLUI_ASSERT(svg_document);
 		lunasvg::Bitmap bitmap = svg_document->renderToBitmap(render_dimensions.x, render_dimensions.y);
+		bitmap.convertToRGBA();
 		if (!bitmap.valid() || !bitmap.data())
 			return false;
 		if (!render_interface->GenerateTexture(out_handle, reinterpret_cast<const Rml::byte*>(bitmap.data()), render_dimensions))
