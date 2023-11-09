@@ -662,29 +662,16 @@ endif()
 # Build samples ====================
 #===================================
 
-function(resource VAR SOURCE_PATH DESTINATION PATTERN)
-    file(GLOB_RECURSE _LIST CONFIGURE_DEPENDS ${SOURCE_PATH}/${PATTERN})
-    foreach (RESOURCE ${_LIST})
-        get_filename_component(_PARENT ${RESOURCE} DIRECTORY)
-        if (${_PARENT} STREQUAL ${SOURCE_PATH})
-            set(_DESTINATION ${DESTINATION})
-        else ()
-            file(RELATIVE_PATH _DESTINATION ${SOURCE_PATH} ${_PARENT})
-            set(_DESTINATION ${DESTINATION}/${_DESTINATION})
-        endif ()
-        set_property(SOURCE ${RESOURCE} PROPERTY MACOSX_PACKAGE_LOCATION ${_DESTINATION})
-    endforeach (RESOURCE)
-    set(${VAR} ${_LIST} PARENT_SCOPE)
-endfunction()
+include(ResourceTree)
 
 # Build and link the samples
 macro(bl_sample NAME SAMPLE_SUB_DIR)
 	if (WIN32)
 		add_executable(${NAME} WIN32 ${${NAME}_SRC_FILES} ${${NAME}_HDR_FILES} )
 	elseif(APPLE)
-		resource(ASSETS ${SAMPLES_DIR}/assets Resources/assets *)
-		resource(DATA ${SAMPLES_DIR}/${SAMPLE_SUB_DIR}/data Resources/${SAMPLE_SUB_DIR}/data *)
-		resource(LUA ${SAMPLES_DIR}/${SAMPLE_SUB_DIR}/lua Resources/${SAMPLE_SUB_DIR}/lua *)
+		resourceTree(ASSETS ${SAMPLES_DIR}/assets Resources/assets *)
+		resourceTree(DATA ${SAMPLES_DIR}/${SAMPLE_SUB_DIR}/data Resources/${SAMPLE_SUB_DIR}/data *)
+		resourceTree(LUA ${SAMPLES_DIR}/${SAMPLE_SUB_DIR}/lua Resources/${SAMPLE_SUB_DIR}/lua *)
 
 		set(RESOURCE_FILES ${ASSETS} ${DATA} ${LUA})
 
