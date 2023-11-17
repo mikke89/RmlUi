@@ -81,6 +81,12 @@ void ElementFormControlInput::GetSelection(int* selection_start, int* selection_
 	type->GetSelection(selection_start, selection_end, selected_text);
 }
 
+void ElementFormControlInput::SetIMERange(int range_start, int range_end)
+{
+	RMLUI_ASSERT(type);
+	type->SetIMERange(range_start, range_end);
+}
+
 void ElementFormControlInput::OnUpdate()
 {
 	RMLUI_ASSERT(type);

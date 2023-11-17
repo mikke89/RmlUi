@@ -162,6 +162,9 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
 	selection_begin_index = 0;
 	selection_length = 0;
 
+	ime_composition_begin_index = 0;
+	ime_composition_end_index = 0;
+
 	last_update_time = 0;
 
 	ShowCursor(false);
@@ -286,6 +289,26 @@ void WidgetTextInput::GetSelection(int* selection_start, int* selection_end, Str
 		*selected_text = value.substr(Math::Min((size_t)selection_begin_index, (size_t)value.size()), (size_t)selection_length);
 }
 
+void WidgetTextInput::SetIMERange(int range_start, int range_end)
+{
+	const String& value = GetValue();
+	const int byte_start = ConvertCharacterOffsetToByteOffset(value, range_start);
+	const int byte_end = ConvertCharacterOffsetToByteOffset(value, range_end);
+
+	if (byte_end > byte_start)
+	{
+		ime_composition_begin_index = byte_start;
+		ime_composition_end_index = byte_end;
+	}
+	else
+	{
+		ime_composition_begin_index = 0;
+		ime_composition_end_index = 0;
+	}
+
+	FormatText();
+}
+
 void WidgetTextInput::UpdateSelectionColours()
 {
 	// Determine what the colour of the selected text is. If our 'selection' element has the 'color'
@@ -359,6 +382,7 @@ void WidgetTextInput::OnRender()
 
 	Vector2f text_translation = parent->GetAbsoluteOffset() - Vector2f(parent->GetScrollLeft(), parent->GetScrollTop());
 	selection_geometry.Render(text_translation);
+	ime_composition_geometry.Render(text_translation);
 
 	if (cursor_visible && !parent->IsDisabled())
 	{
@@ -1080,6 +1104,8 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	if (!font_handle)
 		return content_area;
 
+	const FontMetrics& font_metrics = GetFontEngineInterface()->GetFontMetrics(font_handle);
+
 	// Clear the old lines, and all the lines in the text elements.
 	lines.clear();
 	text_element->ClearLines();
@@ -1087,9 +1113,9 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 	// Determine the line-height of the text element.
 	const float line_height = parent->GetLineHeight();
-	const float font_baseline = GetFontEngineInterface()->GetFontMetrics(font_handle).ascent;
-	// When the selection contains endlines we expand the selection area by this width.
-	const int endline_selection_width = int(0.4f * parent->GetComputedValues().font_size());
+	const float font_baseline = font_metrics.ascent;
+	// When the selection contains endlines, we expand the selection area by this width.
+	const int endline_font_width = int(0.4f * parent->GetComputedValues().font_size());
 
 	const float client_width = parent->GetClientWidth();
 	int line_begin = 0;
@@ -1107,6 +1133,14 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	};
 
 	Vector<Segment> segments;
+
+	struct IMESegment {
+		Vector2f position;
+		int width;
+		int line_index;
+	};
+
+	Vector<IMESegment> ime_segments;
 
 	// Keep generating lines until all the text content is placed.
 	do
@@ -1217,6 +1251,18 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			segments.push_back({line_position, width, post_selection, false, (int)lines.size()});
 		}
 
+		// We fetch the IME composition on the new line to highlight it.
+		String ime_pre_composition, ime_composition;
+		GetLineIMEComposition(ime_pre_composition, ime_composition, line_content, line_begin);
+
+		// If there is any IME composition string on the line, create a segment for its underline.
+		if (!ime_composition.empty())
+		{
+			const int composition_width = ElementUtilities::GetStringWidth(text_element, ime_composition);
+			const Vector2f composition_position(ElementUtilities::GetStringWidth(text_element, ime_pre_composition), line_position.y);
+			ime_segments.push_back({composition_position, composition_width, (int)lines.size()});
+		}
+
 		// Update variables for the next line.
 		line_begin += line.size;
 		line_position.x = 0;
@@ -1249,7 +1295,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (it.selected)
 		{
 			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + lines[it.line_index].editable_length);
-			const Vector2f selection_size(float(it.width + (selection_contains_endline ? endline_selection_width : 0)), line_height);
+			const Vector2f selection_size(float(it.width + (selection_contains_endline ? endline_font_width : 0)), line_height);
 
 			MeshUtilities::GenerateQuad(selection_mesh, it.position - Vector2f(0, font_baseline), selection_size, selection_colour);
 
@@ -1260,6 +1306,27 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	}
 
 	selection_geometry = parent->GetRenderManager()->MakeGeometry(std::move(selection_mesh));
+
+	// Clear the IME composition geometry, and get the vertices and indices so the new geometry can be generated.
+	Mesh ime_composition_mesh = ime_composition_geometry.Release(Geometry::ReleaseMode::ClearMesh);
+
+	// Transform IME segments according to text alignment.
+	for (auto& it : ime_segments)
+	{
+		auto const& line = lines[it.line_index];
+		const char* p_begin = GetValue().data() + line.value_offset;
+		float offset = GetAlignmentSpecificTextOffset(p_begin, it.line_index);
+
+		it.position.x += offset;
+		it.position.y += font_metrics.underline_position;
+
+		const bool composition_contains_endline = (ime_composition_end_index > line_begin + lines[it.line_index].editable_length);
+		const Vector2f line_size(float(it.width + (composition_contains_endline ? endline_font_width : 0)), font_metrics.underline_thickness);
+
+		MeshUtilities::GenerateLine(ime_composition_mesh, it.position, line_size, parent->GetComputedValues().color().ToPremultiplied());
+	}
+
+	ime_composition_geometry = parent->GetRenderManager()->MakeGeometry(std::move(ime_composition_mesh));
 
 	return content_area;
 }
