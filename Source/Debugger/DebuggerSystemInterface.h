@@ -85,7 +85,7 @@ public:
 	void GetClipboardText(String& text) override;
 
 	/// Activate keyboard (for touchscreen devices).
-	void ActivateKeyboard(Rml::Vector2f caret_position, float line_height) override;
+	void ActivateKeyboard(Rml::Vector2f caret_position, float line_height, ElementFormControl* focused_input) override;
 
 	/// Deactivate keyboard (for touchscreen devices).
 	void DeactivateKeyboard() override;

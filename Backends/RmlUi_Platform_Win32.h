@@ -51,7 +51,7 @@ public:
 	void SetClipboardText(const Rml::String& text) override;
 	void GetClipboardText(Rml::String& text) override;
 
-	void ActivateKeyboard(Rml::Vector2f caret_position, float line_height) override;
+	void ActivateKeyboard(Rml::Vector2f caret_position, float line_height, Rml::ElementFormControl* focused_input) override;
 
 private:
 	HWND window_handle = nullptr;

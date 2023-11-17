@@ -36,6 +36,8 @@
 
 namespace Rml {
 
+class ElementFormControl;
+
 /**
     RmlUi's System Interface.
 
@@ -93,7 +95,8 @@ public:
 	/// Activate keyboard (for touchscreen devices).
 	/// @param[in] caret_position Position of the caret in absolute window coordinates.
 	/// @param[in] line_height Height of the current line being edited.
-	virtual void ActivateKeyboard(Rml::Vector2f caret_position, float line_height);
+	/// @param[in] focused_input Affected input/textarea element.
+	virtual void ActivateKeyboard(Rml::Vector2f caret_position, float line_height, ElementFormControl* focused_input);
 
 	/// Deactivate keyboard (for touchscreen devices).
 	virtual void DeactivateKeyboard();

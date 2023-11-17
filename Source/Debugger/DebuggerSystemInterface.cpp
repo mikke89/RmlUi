@@ -80,9 +80,9 @@ void DebuggerSystemInterface::GetClipboardText(String& text)
 	application_interface->GetClipboardText(text);
 }
 
-void DebuggerSystemInterface::ActivateKeyboard(Rml::Vector2f caret_position, float line_height)
+void DebuggerSystemInterface::ActivateKeyboard(Rml::Vector2f caret_position, float line_height, ElementFormControl* focused_input)
 {
-	application_interface->ActivateKeyboard(caret_position, line_height);
+	application_interface->ActivateKeyboard(caret_position, line_height, focused_input);
 }
 
 void DebuggerSystemInterface::DeactivateKeyboard()

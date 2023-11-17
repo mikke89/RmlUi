@@ -148,7 +148,7 @@ void SystemInterface_Win32::GetClipboardText(Rml::String& text)
 	}
 }
 
-void SystemInterface_Win32::ActivateKeyboard(Rml::Vector2f caret_position, float /*line_height*/)
+void SystemInterface_Win32::ActivateKeyboard(Rml::Vector2f caret_position, float /*line_height*/, Rml::ElementFormControl* /*focused_input*/)
 {
 	// Adjust the position of the input method editor (IME) to the caret.
 	if (HIMC himc = ImmGetContext(window_handle))

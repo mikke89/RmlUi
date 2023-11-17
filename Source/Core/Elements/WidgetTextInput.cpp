@@ -1393,7 +1393,7 @@ void WidgetTextInput::SetKeyboardActive(bool active)
 			const Vector2f element_offset = parent->GetAbsoluteOffset() - scroll_offset;
 			const Vector2f absolute_cursor_position = element_offset + cursor_position + Vector2f(0, 1);
 			const float line_height = cursor_size.y - 2.f;
-			system->ActivateKeyboard(absolute_cursor_position, line_height);
+			system->ActivateKeyboard(absolute_cursor_position, line_height, parent);
 		}
 		else
 		{
