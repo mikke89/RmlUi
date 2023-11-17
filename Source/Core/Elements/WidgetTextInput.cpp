@@ -1301,7 +1301,7 @@ bool WidgetTextInput::UpdateSelection(bool selecting)
 	bool selection_changed = false;
 	if (!selecting)
 	{
-		selection_anchor_index = absolute_cursor_index;
+		selection_anchor_index = selection_begin_index = absolute_cursor_index;
 		selection_changed = ClearSelection();
 	}
 	else
