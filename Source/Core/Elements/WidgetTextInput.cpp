@@ -1263,7 +1263,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!ime_composition.empty())
 		{
 			const int composition_width = ElementUtilities::GetStringWidth(text_element, ime_composition);
-			const Vector2f composition_position(ElementUtilities::GetStringWidth(text_element, ime_pre_composition), line_position.y);
+			const Vector2f composition_position(float(ElementUtilities::GetStringWidth(text_element, ime_pre_composition)), line_position.y);
 			ime_segments.push_back({composition_position, composition_width, (int)lines.size()});
 		}
 
