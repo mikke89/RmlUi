@@ -1464,6 +1464,24 @@ void WidgetTextInput::GetLineSelection(String& pre_selection, String& selection,
 	post_selection = line.substr(Clamp(selection_end - line_begin, 0, line_length));
 }
 
+void WidgetTextInput::GetLineIMEComposition(String& pre_composition, String& ime_composition, const String& line, int line_begin) const
+{
+	const int composition_length = ime_composition_end_index - ime_composition_begin_index;
+
+	// Check if the line has any text in the IME composition range at all.
+	if (composition_length <= 0 || ime_composition_end_index < line_begin || ime_composition_begin_index > line_begin + (int)line.size())
+	{
+		pre_composition = line;
+		return;
+	}
+
+	const int line_length = (int)line.size();
+
+	pre_composition = line.substr(0, Math::Max(0, ime_composition_begin_index - line_begin));
+	ime_composition = line.substr(Math::Clamp(ime_composition_begin_index - line_begin, 0, line_length),
+		Math::Max(0, composition_length + Math::Min(0, ime_composition_begin_index - line_begin)));
+}
+
 void WidgetTextInput::SetKeyboardActive(bool active)
 {
 	if (SystemInterface* system = GetSystemInterface())
