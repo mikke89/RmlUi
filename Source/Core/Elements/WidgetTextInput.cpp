@@ -212,6 +212,10 @@ void WidgetTextInput::SetValue(String value)
 
 		text_element->SetText(value);
 
+		// Reset the IME composition range when the value changes.
+		ime_composition_begin_index = 0;
+		ime_composition_end_index = 0;
+
 		FormatElement();
 		UpdateCursorPosition(true);
 	}
