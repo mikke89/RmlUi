@@ -67,22 +67,27 @@ void EventManager::ProcessEvent(Rml::Event& event, const Rml::String& value)
 	Rml::StringUtilities::ExpandString(commands, value, ';');
 	for (size_t i = 0; i < commands.size(); ++i)
 	{
-		// Check for a generic 'load' or 'exit' command.
+		// Check for custom commands.
 		Rml::StringList values;
 		Rml::StringUtilities::ExpandString(values, commands[i], ' ');
 
 		if (values.empty())
 			return;
 
+		if (values[0] == "onescape" && values.size() > 1)
+		{
+			Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
+			if (key_identifier == Rml::Input::KI_ESCAPE)
+				values.erase(values.begin());
+		}
+
 		if (values[0] == "goto" && values.size() > 1)
 		{
-			// Load the window, and if successful close the old window.
 			if (LoadWindow(values[1]))
 				event.GetTargetElement()->GetOwnerDocument()->Close();
 		}
 		else if (values[0] == "load" && values.size() > 1)
 		{
-			// Load the window.
 			LoadWindow(values[1]);
 		}
 		else if (values[0] == "close")

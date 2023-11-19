@@ -468,8 +468,9 @@ public:
 	//@{
 
 	/// Gives focus to the current element.
+	/// @param[in] focus_visible True to indicate that the focus should be visually indicated by setting the ':focus-visible' pseudo class.
 	/// @return True if the change focus request was successful
-	bool Focus();
+	bool Focus(bool focus_visible = false);
 	/// Removes focus from from this element.
 	void Blur();
 	/// Fakes a mouse click on this element.

@@ -158,6 +158,8 @@ namespace Style {
 	enum class FlexWrap : uint8_t { Nowrap, Wrap, WrapReverse };
 	enum class JustifyContent : uint8_t { FlexStart, FlexEnd, Center, SpaceBetween, SpaceAround };
 
+	enum class Nav : uint8_t { None, Auto, Horizontal, Vertical };
+
 	class ComputedValues;
 
 } // namespace Style

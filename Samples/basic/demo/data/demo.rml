@@ -602,6 +602,14 @@ progress {
 {
 	height: 12dp;
 }
+form input, form textarea, form select
+{
+	nav: vertical;
+}
+form .nav-auto, form input.checkbox, form input.radio
+{
+	nav: auto;
+}
 </style>
 </head>
 
@@ -836,21 +844,21 @@ progress {
 		</div>
 		<h2>Email and password</h2>
 		<div>
-			<input type="text" name="email"/>
-			<input type="password" name="password"/>
+			<input type="text" name="email" class="nav-auto"/>
+			<input type="password" name="password" class="nav-auto"/>
 		</div>
 		<h2>Favorite animal</h2>
 		<div>
 			<label><input type="radio" name="animal" value="dog" checked/> Dog </label>
 			<label><input type="radio" name="animal" value="cat"/> Cat </label>
 			<label><input type="radio" name="animal" value="narwhal"/> Narwhal </label>
-			<label><input type="radio" name="animal" value="no"/> I don't like animals </label>
+			<label><input type="radio" name="animal" value="no" style="nav-down: #lasagne"/> I don't like animals </label>
 		</div>
 		<h2>Favorite meals</h2>
 		<div>
 			<label><input type="checkbox" name="meals" value="pizza" checked/> Pizza </label>
 			<label><input type="checkbox" name="meals" value="pasta" checked/> Pasta </label>
-			<label><input type="checkbox" name="meals" value="lasagne" checked/> Lasagne </label>
+			<label><input type="checkbox" name="meals" value="lasagne" id="lasagne" checked/> Lasagne </label>
 		</div>
 		<h2>Rating</h2>
 		<div>

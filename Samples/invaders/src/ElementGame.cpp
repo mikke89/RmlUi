@@ -53,11 +53,6 @@ void ElementGame::ProcessEvent(Rml::Event& event)
 		bool key_down = (event == Rml::EventId::Keydown);
 		Rml::Input::KeyIdentifier key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
 
-		if (key_identifier == Rml::Input::KI_ESCAPE && !key_down)
-		{
-			EventManager::LoadWindow("pause");
-		}
-
 		// Process left and right keys
 		if (key_down)
 		{

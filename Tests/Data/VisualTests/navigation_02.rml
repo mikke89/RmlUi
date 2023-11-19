@@ -1,0 +1,111 @@
+<rml>
+<head>
+	<title>Spatial navigation 02</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://www.w3.org/TR/css-ui-4/#keyboard" />
+	<link rel="navigation" href="https://drafts.csswg.org/css-nav-1/" />
+	<meta name="Description" content="Keyboard navigation with scroll containers. Click on test document to enable navigation." />
+	<meta name="Assert" content="Auto-navigation should not navigate between scroll containers. In the left column, manual navigation overrides have been added for entering and exiting the scroll container from the top and bottom boxes." />
+	<meta name="Assert" content="On the other hand, the right column is fully automatic and will be skipped over from the top and bottom boxes. To enter it, one must use mouse click or tab navigation." />
+	<style>
+		body { nav: auto; }
+		body button {
+			padding: 5dp;
+			border: 1dp #333;
+			background: #aaa;
+			margin: 10dp 10dp;
+			display: block;
+			nav-down: auto;
+			text-align: center;
+		}
+		body button:hover {
+			background: #bbb;
+		}
+		body:focus button {
+			background: #fff;
+		}
+		body > div {
+			display: flow-root;
+		}
+		.left {
+			float: left;
+		}
+		.right {
+			float: right;
+		}
+		.column {
+			width: 50%;
+			box-sizing: border-box;
+			overflow: auto;
+			height: 300dp;
+		}
+		.box {
+			width: 50dp;
+			height: 50dp;
+			box-sizing: border-box;
+			background-color: #aea;
+			margin: 10dp;
+			border: 5dp #999;
+			tab-index: auto;
+			nav: auto;
+
+			display: inline-block;
+			vertical-align: center;
+		}
+		.box:focus {
+			background-color: #cfc;
+		}
+		.box:focus-visible {
+			border-color: #8df;
+		}
+		.w2 { width: 120dp; }
+		.w3 { width: 190dp; }
+		.w4 { width: 260dp; }
+		.s1 { margin-left: 80dp; }
+		.s2 { margin-left: 150dp; }
+	</style>
+</head>
+
+<body lock-navigation>
+<button>Enable document focus for keyboard navigation</button>
+<hr/>
+<div>
+	<div class="box"/>
+	<div class="box w2"/>
+	<div class="box"/>
+	<div class="box"/>
+	<div id="top" class="box w2" style="nav-down: #left-top"/>
+</div>
+<hr/>
+<div>
+	<div class="column left">
+		<div class="box w3" id="left-top" style="nav-up: #top"/><br/>
+		<div class="box"/><br/>
+		<div class="box"/><div class="box"/><div class="box"/><br/>
+		<div class="box w2"/><br/>
+		<br/>
+		<div class="box s1"/><br/>
+		<div class="box"/><div class="box s1" id="left-bottom-c" style="nav-down: #bottom-c"/><br/>
+		<div class="box" id="left-bottom-a" style="nav-down: #bottom-a"/><div class="box" id="left-bottom-b" style="nav-down: #bottom-b"/><br/>
+	</div>
+	<div class="column right">
+		<div class="box w3"/><br/>
+		<div class="box"/><br/>
+		<div class="box"/><div class="box"/><div class="box"/><br/>
+		<div class="box w2"/><br/>
+		<br/>
+		<div class="box s1"/><br/>
+		<div class="box"/><div class="box s1"/><br/>
+		<div class="box"/><div class="box"/><br/>
+	</div>
+</div>
+<hr/>
+<div class="nav-up-to-left-column">
+	<div class="box" id="bottom-a" style="nav-up: #left-bottom-a"/>
+	<div class="box" id="bottom-b" style="nav-up: #left-bottom-b"/>
+	<div class="box" id="bottom-c" style="nav-up: #left-bottom-c"/>
+	<div class="box w3" id="bottom-d"/>
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>

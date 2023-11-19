@@ -44,7 +44,7 @@
 		}
 	</style>
 </head>
-<body template="window" onload="add_score">
+<body template="window" onload="add_score" onkeydown="onescape goto main_menu">
 	<table data-model="high_scores">
 		<thead>
 			<tr>
