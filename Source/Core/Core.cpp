@@ -355,6 +355,11 @@ void ReleaseTextures()
 	TextureDatabase::ReleaseTextures();
 }
 
+bool ReleaseTexture(const String& source)
+{
+	return TextureDatabase::ReleaseTexture(source);
+}
+
 void ReleaseCompiledGeometry()
 {
 	return GeometryDatabase::ReleaseAll();
