@@ -134,6 +134,18 @@ void TextureDatabase::ReleaseTextures()
 	}
 }
 
+bool TextureDatabase::ReleaseTexture(const String& source)
+{
+	auto it = texture_database->textures.find(source);
+	if (it != texture_database->textures.end())
+	{
+		it->second->Release();
+		return true;
+	}
+
+	return false;
+}
+
 bool TextureDatabase::AllTexturesReleased()
 {
 	if (texture_database)
