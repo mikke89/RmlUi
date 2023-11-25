@@ -246,6 +246,9 @@ void WidgetTextInput::Select()
 
 void WidgetTextInput::SetSelectionRange(int selection_start, int selection_end)
 {
+	if (parent->GetContext()->GetFocusElement() != parent)
+		return;
+
 	const String& value = GetValue();
 	const int byte_start = ConvertCharacterOffsetToByteOffset(value, selection_start);
 	const int byte_end = ConvertCharacterOffsetToByteOffset(value, selection_end);
