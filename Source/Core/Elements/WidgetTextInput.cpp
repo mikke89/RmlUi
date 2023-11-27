@@ -246,7 +246,7 @@ void WidgetTextInput::Select()
 
 void WidgetTextInput::SetSelectionRange(int selection_start, int selection_end)
 {
-	if (parent->GetContext()->GetFocusElement() != parent)
+	if (!IsFocused())
 		return;
 
 	const String& value = GetValue();
@@ -380,6 +380,11 @@ void WidgetTextInput::OnLayout()
 Element* WidgetTextInput::GetElement() const
 {
 	return parent;
+}
+
+bool WidgetTextInput::IsFocused() const
+{
+	return cursor_timer > 0;
 }
 
 void WidgetTextInput::DispatchChangeEvent(bool linebreak)
