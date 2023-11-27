@@ -246,6 +246,9 @@ void WidgetTextInput::Select()
 
 void WidgetTextInput::SetSelectionRange(int selection_start, int selection_end)
 {
+	if (!IsFocused())
+		return;
+
 	const String& value = GetValue();
 	const int byte_start = ConvertCharacterOffsetToByteOffset(value, selection_start);
 	const int byte_end = ConvertCharacterOffsetToByteOffset(value, selection_end);
@@ -377,6 +380,11 @@ void WidgetTextInput::OnLayout()
 Element* WidgetTextInput::GetElement() const
 {
 	return parent;
+}
+
+bool WidgetTextInput::IsFocused() const
+{
+	return cursor_timer > 0;
 }
 
 void WidgetTextInput::DispatchChangeEvent(bool linebreak)

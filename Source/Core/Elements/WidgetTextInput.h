@@ -121,6 +121,9 @@ protected:
 	/// Gets the parent element containing the widget.
 	Element* GetElement() const;
 
+	/// Returns true if the text input element is currently focused.
+	bool IsFocused() const;
+
 	/// Dispatches a change event to the widget's element.
 	void DispatchChangeEvent(bool linebreak = false);
 
