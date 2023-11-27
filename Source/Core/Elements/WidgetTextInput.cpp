@@ -269,6 +269,7 @@ void WidgetTextInput::SetSelectionRange(int selection_start, int selection_end)
 	}
 
 	UpdateCursorPosition(true);
+	ShowCursor(true, true);
 
 	if (selection_changed)
 		FormatText();
