@@ -116,9 +116,6 @@ target_sources(rmlui_backend_SFML_GL2 INTERFACE
 target_link_libraries(rmlui_backend_SFML_GL2 INTERFACE 
     rmlui_backend_common_headers OpenGL::GL rmlui_SFML_old_wrapper SFML::Graphics SFML::Window SFML::System
 )
-if(WIN32)
-    target_link_libraries(rmlui_backend_SFML_GL2 INTERFACE SFML::Main)
-endif()
 
 add_library(rmlui_backend_GLFW_GL2 INTERFACE)
 target_sources(rmlui_backend_GLFW_GL2 INTERFACE    

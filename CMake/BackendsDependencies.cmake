@@ -107,15 +107,12 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
 
     # List of required components in capital case
     list(APPEND RMLUI_SFML_REQUIRED_COMPONENTS "Graphics" "Window" "System")
-    if(WIN32)
-        list(APPEND RMLUI_SFML_REQUIRED_COMPONENTS "Main")
-    endif()
 
     # Run find package with component names both capitalized and lower-cased
-    find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS})
+    find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS} QUIET)
     if(NOT SFML_FOUND)
         list(TRANSFORM RMLUI_SFML_REQUIRED_COMPONENTS TOLOWER OUTPUT_VARIABLE RMLUI_SFML_REQUIRED_COMPONENTS_LOWER_CASE)
-        find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS_LOWER_CASE})
+        find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS_LOWER_CASE} QUIET)
     endif()
 
     # Since we are using find_package() in basic mode, we can check the _FOUND variable 
@@ -130,59 +127,40 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
         Because we always require the window module, we can use it to determine which iteration of the config.
     ]]
 
-    # If any of the mandatory SFML 2.7 targets isn't present, asume SFML < 2.7 has been found and set up wrappers
+    # If any of the mandatory SFML 2.7 targets isn't present, assume SFML < 2.7 has been found and set up wrappers
     if(NOT TARGET SFML::Window)
-        if(TARGET sfml-window)
-            #[[
-                If sfml-window exists, then that means the version is either SFML 2.5 or 2.6 which set up
-                module-specific CMake targets but with different names using a config file.
+        #[[
+            If sfml-window exists, then that means the version is either SFML 2.5 or 2.6 which set up
+            module-specific CMake targets but with different names using a config file.
 
-                Therefore, we need to alias the target names to match those declared by SFML 2.7 and used by RmlUi.
-            ]]
+            Therefore, we need to alias the target names to match those declared by SFML 2.7 and used by RmlUi.
+        ]]
 
-            # For each SFML component the project requires
-            foreach(sfml_component ${RMLUI_SFML_REQUIRED_COMPONENTS})
-                # Make the component name lowercase
-                string(TOLOWER ${sfml_component} sfml_component_lower)
+        # For each SFML component the project requires
+        foreach(sfml_component ${RMLUI_SFML_REQUIRED_COMPONENTS})
+            # Make the component name lowercase
+            string(TOLOWER ${sfml_component} sfml_component_lower)
 
-                if(TARGET sfml-${sfml_component_lower})
-                    #[[
-                        RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-                        Because the target CMake version is 3.10, we can't alias non-global targets nor global imported targets.
+            if(TARGET sfml-${sfml_component_lower})
+                #[[
+                    RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
+                    Because the target CMake version is 3.10, we can't alias non-global targets nor global imported targets.
 
-                        Promoting an imported target to the global scope without it being necessary can cause undesired behavior,
-                        specially when the project is consumed as a subdirectory inside another CMake project, therefore is not
-                        recommended. Instead of that, we pseudo-alias the target creating a second INTERFACE target with alias name.
-                        More info: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries
-                    ]]
+                    Promoting an imported target to the global scope without it being necessary can cause undesired behavior,
+                    specially when the project is consumed as a subdirectory inside another CMake project, therefore is not
+                    recommended. Instead of that, we pseudo-alias the target creating a second INTERFACE target with alias name.
+                    More info: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries
+                ]]
 
-                    # If the target exists, alias it
-                    add_library(SFML::${sfml_component} INTERFACE IMPORTED)
-                    target_link_libraries(SFML::${sfml_component} INTERFACE sfml-${sfml_component_lower})
-                endif()
-            endforeach()
-
-            # Because module-specific targets already exist, there's no need for the wrapper for the older find module
-            # Set up wrapper target as dumb target
-            add_library(rmlui_SFML_old_wrapper INTERFACE)
-        else()
-            #[[
-                If sfml-window doesn't exist, then SFML version is <= 2.4 and the old-variable approach used in their
-                old official find module needs to be wrapped.
-            ]]
-
-            # Create our own custom INTERFACE target
-            add_library(rmlui_SFML_old_wrapper INTERFACE)
-
-            # Set up the custom target with all the libraries
-            target_link_libraries(rmlui_SFML_old_wrapper INTERFACE ${SFML_LIBRARIES})
-            target_include_directories(rmlui_SFML_old_wrapper INTERFACE ${SFML_INCLUDE_DIR})
-
-            # Create dumb targets to replace the modern component-specific targets
-            foreach(sfml_component ${RMLUI_SFML_REQUIRED_COMPONENTS})
+                # If the target exists, alias it
                 add_library(SFML::${sfml_component} INTERFACE IMPORTED)
-            endforeach()
-        endif()
+                target_link_libraries(SFML::${sfml_component} INTERFACE sfml-${sfml_component_lower})
+            endif()
+        endforeach()
+
+        # Because module-specific targets already exist, there's no need for the wrapper for the older find module
+        # Set up wrapper target as dumb target
+        add_library(rmlui_SFML_old_wrapper INTERFACE)
     endif()
 endif()
 
