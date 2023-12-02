@@ -17,8 +17,8 @@ if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
 
     # Warn about problematic versions of the library with MSVC
     if(DEFINED FREETYPE_VERSION_STRING)
-        if((FREETYPE_VERSION_STRING VERSION_GREATER_EQUAL "2.11.0") AND (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
-            message(WARNING "Using Freetype 2.11.0 or greater with MSVC can cause issues.")
+        if((FREETYPE_VERSION_STRING VERSION_EQUAL "2.11.0") AND (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
+            message(WARNING "Using Freetype 2.11.0 with MSVC can cause issues. This issue is solved in Freetype 2.11.1.")
         endif()
     else()
         if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
