@@ -5,12 +5,12 @@ on: [push, pull_request]
 jobs:
   Linux:
     runs-on: ubuntu-20.04
-    
+
     env:
       BUILD_TYPE: Release
       CC: ${{ matrix.cc }}
       CXX: ${{ matrix.cxx }}
-  
+
     strategy:
       fail-fast: false
       matrix:
@@ -20,7 +20,7 @@ jobs:
             cmake_options: -DENABLE_PRECOMPILED_HEADERS=OFF -DSAMPLES_BACKEND=GLFW_GL2
           - cc: clang
             cxx: clang++
-            cmake_options: -DSAMPLES_BACKEND=SDL_VK
+            cmake_options: -DBUILD_TESTING=ON -DSAMPLES_BACKEND=SDL_VK -DCMAKE_BUILD_TYPE=Debug
           - cmake_options: -DBUILD_TESTING=ON -DENABLE_PRECOMPILED_HEADERS=OFF
             enable_testing: true
           - cmake_options: -DNO_FONT_INTERFACE_DEFAULT=ON -DENABLE_LOTTIE_PLUGIN=ON -DSAMPLES_BACKEND=X11_GL2
@@ -30,12 +30,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      
+
     - name: Install Dependencies
       run: |-
         sudo apt-get update
         sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev libglfw3-dev
-      
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
 
@@ -57,23 +57,23 @@ jobs:
 
   macOS:
     runs-on: macos-latest
-    
+
     env:
       BUILD_TYPE: Release
-    
+
     strategy:
       fail-fast: false
       matrix:
         include:
           - cmake_options: -DSAMPLES_BACKEND=auto
           - cmake_options: -DSAMPLES_BACKEND=GLFW_GL2
-    
+
     steps:
     - uses: actions/checkout@v3
-      
+
     - name: Install Dependencies
       run: brew install lua sdl2 sdl2_image glfw
-      
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
 
@@ -90,11 +90,11 @@ jobs:
 
   Windows:
     runs-on: windows-latest
-    
+
     env:
       BUILD_TYPE: Release
       VCPKG_DEFAULT_TRIPLET: x64-windows
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -102,13 +102,13 @@ jobs:
           - cmake_options: -DSAMPLES_BACKEND=auto -DENABLE_PRECOMPILED_HEADERS=OFF
           - cmake_options: -DSAMPLES_BACKEND=Win32_VK -DRMLUI_VK_DEBUG=ON
           - cmake_options: -DSAMPLES_BACKEND=SDL_VK -DBUILD_LUA_BINDINGS_FOR_LUAJIT=ON
-    
+
     steps:
     - uses: actions/checkout@v3
-      
+
     - name: Install Dependencies
       run: C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan] lua[core] luajit
-      
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
 
@@ -138,10 +138,10 @@ jobs:
         emsdk-master/emsdk update
         emsdk-master/emsdk install latest
         emsdk-master/emsdk activate latest
-              
+
     - name: Create Build Environment
       run: cmake -E make_directory Build
-      
+
     - name: Configure CMake
       run: |-
         source emsdk-master/emsdk_env.sh
