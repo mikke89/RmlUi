@@ -1,5 +1,5 @@
 # Declare executable
-add_executable(rmlui_samples_bitmapfont WIN32
+add_executable(rmlui_sample_bitmapfont WIN32
     src/FontEngineBitmap.cpp
     src/FontEngineBitmap.h
     src/FontEngineInterfaceBitmap.cpp
@@ -8,4 +8,4 @@ add_executable(rmlui_samples_bitmapfont WIN32
 )
 
 # Link shell library
-target_link_libraries(rmlui_samples_bitmapfont PRIVATE rmlui_samples_shell)
+target_link_libraries(rmlui_sample_bitmapfont PRIVATE rmlui_sample_shell)
