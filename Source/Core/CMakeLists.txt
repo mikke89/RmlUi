@@ -374,8 +374,8 @@ if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
     # the build system if the default font interface is disabled
     add_subdirectory("FontEngineDefault")
     target_link_libraries(rmlui_core PRIVATE rmlui_core_fontenginedefault)
-else()
-    # Pass information to code via compile definition
+
+    # Pass information to code via pre-processor definition
     target_compile_definitions(rmlui_core PRIVATE "RMLUI_FONT_INTERFACE_FREETYPE")
 endif()
 
