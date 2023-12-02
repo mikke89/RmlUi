@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   Linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     env:
       BUILD_TYPE: Release
@@ -53,6 +53,49 @@ jobs:
       if: ${{ matrix.enable_testing }}
       working-directory: ${{github.workspace}}/Build
       run: ctest -C $BUILD_TYPE
+
+
+  Linux-legacy:
+    runs-on: ubuntu-20.04
+
+    env:
+      BUILD_TYPE: Release
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cc: clang
+            cxx: clang++
+            cmake_options: -DENABLE_PRECOMPILED_HEADERS=OFF -DSAMPLES_BACKEND=GLFW_GL2
+          - cc: clang
+            cxx: clang++
+            cmake_options: -DBUILD_TESTING=ON -DSAMPLES_BACKEND=SDL_VK -DCMAKE_BUILD_TYPE=Debug
+          - cmake_options: -DBUILD_TESTING=ON
+          - cmake_options: -DSAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Dependencies
+      run: |-
+        sudo apt-get update
+        sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libglfw3-dev
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/Build
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/Build
+      run: >-
+        cmake $GITHUB_WORKSPACE -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        ${{ matrix.cmake_options }}
+
+    - name: Build
+      working-directory: ${{github.workspace}}/Build
+      run: cmake --build . --config $BUILD_TYPE
 
 
   macOS:
