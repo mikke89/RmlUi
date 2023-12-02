@@ -26,4 +26,4 @@ target_sources(rmlui_lottie INTERFACE
 target_link_libraries(rmlui_lottie INTERFACE rlottie::rlottie)
 
 # Notify source files about the usage of the plugin
-target_compile_definitions(rmlui_lottie INTERFACE "RMLUI_ENABLE_LOTTIE_PLUGIN")
+target_compile_definitions(rmlui_lottie INTERFACE "RMLUI_LOTTIE_PLUGIN")

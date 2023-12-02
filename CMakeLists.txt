@@ -18,9 +18,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # CMake GUI can group variables based on their prefix to make more clear
 # which options are specific to this project
 set(RMLUI_FONT_INTERFACE "freetype" CACHE STRING "Font interface to build RmlUi with. If set to \"none\", RmlUi won't be built with any of the included font interfaces and some samples might be disabled.")
-option(RMLUI_ENABLE_LOTTIE_PLUGIN "Enable plugin for Lottie animations. Requires the rlottie library." OFF)
-option(RMLUI_ENABLE_SVG_PLUGIN "Enable plugin for SVG images. Requires the lunasvg library." OFF)
-option(RMLUI_BUILD_SAMPLES "Build samples of the library." OFF)
+option(RMLUI_LOTTIE_PLUGIN "Enable plugin for Lottie animations. Requires the rlottie library." OFF)
+option(RMLUI_SVG_PLUGIN "Enable plugin for SVG images. Requires the lunasvg library." OFF)
+option(RMLUI_SAMPLES "Build samples of the library." OFF)
 set(RMLUI_SAMPLES_BACKEND "GLFW_GL3" CACHE STRING "Backend to use when building the RmlUi samples. Choose one from ./CMake/Backends.cmake.")
 option(BUILD_SHARED_LIBS "CMake standard option. Choose whether to build RmlUi and RmlUi's debugger as shared libraries." ON)
 
@@ -58,6 +58,6 @@ include("CMake/Dependencies.cmake")
 add_subdirectory("Source")
 
 # Add samples to the build project if enabled
-if(RMLUI_BUILD_SAMPLES)
+if(RMLUI_SAMPLES)
     add_subdirectory("Samples")
 endif()

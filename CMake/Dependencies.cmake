@@ -28,7 +28,7 @@ if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
 endif()
 
 # rlottie
-if(RMLUI_ENABLE_LOTTIE_PLUGIN)
+if(RMLUI_LOTTIE_PLUGIN)
     # Declaring rlottie as a soft dependency so that it doesn't error out if the package
     # is declared by other means
     find_package("rlottie")

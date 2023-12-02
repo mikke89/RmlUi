@@ -7,7 +7,7 @@ if(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 endif()
 
 # Add plugin directories
-if(RMLUI_ENABLE_LOTTIE_PLUGIN)
+if(RMLUI_LOTTIE_PLUGIN)
     add_subdirectory("Lottie")
 endif()
 

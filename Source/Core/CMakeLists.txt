@@ -380,7 +380,7 @@ if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
 endif()
 
 # Negotiate usage of the Lottie plugin
-if(RMLUI_ENABLE_LOTTIE_PLUGIN)
+if(RMLUI_LOTTIE_PLUGIN)
     # Link against the Lottie plugin
     target_link_libraries(rmlui_core PRIVATE rmlui_lottie)
 endif()

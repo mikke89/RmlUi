@@ -23,7 +23,7 @@ jobs:
             cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK
           - cmake_options: -DRMLUI_BUILD_TESTING=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF
             enable_testing: true
-          - cmake_options: -DRMLUI_ENABLE_LOTTIE_PLUGIN=ON -DRMLUI_SAMPLES_BACKEND=X11_GL2
+          - cmake_options: -DRMLUI_LOTTIE_PLUGIN=ON -DRMLUI_SAMPLES_BACKEND=X11_GL2
           - cmake_options: -DRMLUI_DISABLE_RTTI_AND_EXCEPTIONS=ON -DRMLUI_SAMPLES_BACKEND=SDL_GL2
           - cmake_options: -DRMLUI_NO_THIRDPARTY_CONTAINERS=ON -DRMLUI_SAMPLES_BACKEND=SFML_GL2
           - cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug
@@ -42,7 +42,7 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/Build
       run: >-
-        cmake $GITHUB_WORKSPACE -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_BUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        cmake $GITHUB_WORKSPACE -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
         -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/CMake/Modules/CI/Linux
         ${{ matrix.cmake_options }}
 
@@ -81,7 +81,7 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/Build
       run: >-
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_BUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
         ${{ matrix.cmake_options }}
 
     - name: Build
@@ -123,7 +123,7 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/Build
       run: >-
-        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_BUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
+        cmake $env:GITHUB_WORKSPACE -A x64 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
         -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ${{ matrix.cmake_options }}
 
     - name: Build
@@ -155,7 +155,7 @@ jobs:
     - name: Configure CMake
       run: |-
         source ~/emsdk/emsdk_env.sh
-        cmake -S . -B Build -DCMAKE_BUILD_TYPE=Debug -DRMLUI_BUILD_SAMPLES=ON -DRMLUI_SAMPLES_BACKEND=SDL_GL3 \
+        cmake -S . -B Build -DCMAKE_BUILD_TYPE=Debug -DRMLUI_SAMPLES=ON -DRMLUI_SAMPLES_BACKEND=SDL_GL3 \
         -DBUILD_SHARED_LIBS=OFF -DWARNINGS_AS_ERRORS=ON -DRMLUI_EMSCRIPTEN_EXE_FLAGS="-O1" \
         -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
         -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/CMake/Modules/Emscripten
