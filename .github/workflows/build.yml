@@ -43,7 +43,7 @@ jobs:
       working-directory: ${{github.workspace}}/Build
       run: >-
         cmake $GITHUB_WORKSPACE -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DRMLUI_BUILD_LUA_BINDINGS=ON -DRMLUI_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
-        -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/CMake/Modules/CI/Linux
+        -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/CMake/Modules/Linux
         ${{ matrix.cmake_options }}
 
     - name: Build
