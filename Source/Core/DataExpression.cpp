@@ -1021,15 +1021,28 @@ bool DataExpression::Run(const DataExpressionInterface& expression_interface, Va
 	return true;
 }
 
+static void CollectAddresses(StringList& list, const DataAddress& address)
+{
+	if (!address.empty())
+		list.push_back(address[0].name);
+
+	for (const DataAddressEntry& entry : address)
+	{
+		if (!entry.address.empty())
+			CollectAddresses(list, entry.address);
+	}
+}
+
 StringList DataExpression::GetVariableNameList() const
 {
 	StringList list;
 	list.reserve(addresses.size());
+
 	for (const DataAddress& address : addresses)
 	{
-		if (!address.empty())
-			list.push_back(address[0].name);
+		CollectAddresses(list, address);
 	}
+
 	return list;
 }
 

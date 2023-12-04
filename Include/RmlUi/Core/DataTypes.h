@@ -62,14 +62,16 @@ template <typename Object, typename AssignType>
 using MemberSetterFunc = void (Object::*)(AssignType);
 
 using DirtyVariables = SmallUnorderedSet<String>;
+using DataAddress = Vector<struct DataAddressEntry>;
 
 struct DataAddressEntry {
-	DataAddressEntry(String name) : name(std::move(name)), index(-1) {}
-	DataAddressEntry(int index) : index(index) {}
+	DataAddressEntry(String name_) : name(std::move(name_)), index(-1) {}
+	DataAddressEntry(DataAddress address_) : address(std::move(address_)), index(-1) {}
+	DataAddressEntry(int index_) : index(index_) {}
 	String name;
+	DataAddress address;
 	int index;
 };
-using DataAddress = Vector<DataAddressEntry>;
 
 template <class T>
 struct PointerTraits {

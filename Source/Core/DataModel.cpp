@@ -37,7 +37,7 @@ namespace Rml {
 static DataAddress ParseAddress(const String& address_str)
 {
 	StringList list;
-	StringUtilities::ExpandString(list, address_str, '.');
+	StringUtilities::ExpandString(list, address_str, '.', '[', ']');
 
 	DataAddress address;
 	address.reserve(list.size() * 2);
@@ -55,15 +55,26 @@ static DataAddress ParseAddress(const String& address_str)
 
 		while (i_open != String::npos)
 		{
-			size_t i_close = item.find(']', i_open + 1);
-			if (i_close == String::npos)
-				return DataAddress();
+			int depth = 1;
+			size_t i_close = i_open;
+			while (depth > 0)
+			{
+				i_close = item.find_first_of("[]", i_close + 1);
+				if (i_close == String::npos)
+					return DataAddress();
 
-			int index = FromString<int>(item.substr(i_open + 1, i_close - i_open), -1);
-			if (index < 0)
-				return DataAddress();
+				if (item[i_close] == '[')
+					depth++;
+				else if (item[i_close] == ']')
+					depth--;
+			}
 
-			address.emplace_back(index);
+			std::string accessor = item.substr(i_open + 1, i_close - (i_open + 1));
+			int index = FromString<int>(accessor, -1);
+			if (index >= 0)
+				address.emplace_back(index);
+			else
+				address.emplace_back(ParseAddress(accessor));
 
 			i_open = item.find('[', i_close + 1);
 		}
@@ -308,7 +319,7 @@ DataVariable DataModel::GetVariable(const DataAddress& address) const
 
 		for (int i = 1; i < (int)address.size() && variable; i++)
 		{
-			variable = variable.Child(address[i]);
+			variable = variable.Child(*this, address[i]);
 			if (!variable)
 				return DataVariable();
 		}

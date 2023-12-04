@@ -38,6 +38,8 @@
 
 namespace Rml {
 
+class DataModel;
+
 enum class DataVariableType { Scalar, Array, Struct };
 
 /*
@@ -56,7 +58,7 @@ public:
 	bool Get(Variant& variant);
 	bool Set(const Variant& variant);
 	int Size();
-	DataVariable Child(const DataAddressEntry& address);
+	DataVariable Child(const DataModel& model, const DataAddressEntry& address);
 	DataVariableType Type();
 
 private:
@@ -79,10 +81,12 @@ public:
 	virtual bool Set(void* ptr, const Variant& variant);
 
 	virtual int Size(void* ptr);
-	virtual DataVariable Child(void* ptr, const DataAddressEntry& address);
+	virtual DataVariable Child(const DataModel& model, void* ptr, const DataAddressEntry& address);
 
 protected:
 	VariableDefinition(DataVariableType type) : type(type) {}
+
+	static int ResolveArrayIndex(const DataModel& model, const DataAddressEntry &address);
 
 private:
 	DataVariableType type;
@@ -145,7 +149,7 @@ class RMLUICORE_API StructDefinition final : public VariableDefinition {
 public:
 	StructDefinition();
 
-	DataVariable Child(void* ptr, const DataAddressEntry& address) override;
+	DataVariable Child(const DataModel& model, void* ptr, const DataAddressEntry& address) override;
 
 	void AddMember(const String& name, UniquePtr<VariableDefinition> member);
 
@@ -163,11 +167,10 @@ public:
 	int Size(void* ptr) override { return int(static_cast<Container*>(ptr)->size()); }
 
 protected:
-	DataVariable Child(void* void_ptr, const DataAddressEntry& address) override
+	DataVariable Child(const DataModel& model, void* void_ptr, const DataAddressEntry& address) override
 	{
 		Container* ptr = static_cast<Container*>(void_ptr);
-		const int index = address.index;
-
+		const int index = VariableDefinition::ResolveArrayIndex(model, address);
 		const int container_size = int(ptr->size());
 		if (index < 0 || index >= container_size)
 		{
@@ -196,7 +199,7 @@ public:
 	bool Get(void* ptr, Variant& variant) override;
 	bool Set(void* ptr, const Variant& variant) override;
 	int Size(void* ptr) override;
-	DataVariable Child(void* ptr, const DataAddressEntry& address) override;
+	DataVariable Child(const DataModel& model, void* ptr, const DataAddressEntry& address) override;
 
 protected:
 	virtual void* DereferencePointer(void* ptr) = 0;

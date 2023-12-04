@@ -31,6 +31,7 @@
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/DataVariable.h>
 #include <RmlUi/Lua/Utilities.h>
+#include "../Core/DataModel.h"
 
 #define RMLDATAMODEL "RMLDATAMODEL"
 
@@ -133,7 +134,7 @@ public:
 	bool Get(void* ptr, Variant& variant) override;
 	bool Set(void* ptr, const Variant& variant) override;
 	int Size(void* ptr) override;
-	DataVariable Child(void* ptr, const DataAddressEntry& address) override;
+	DataVariable Child(const DataModel& data_model, void* ptr, const DataAddressEntry& address) override;
 
 protected:
 	const struct LuaDataModel* model;
@@ -142,7 +143,7 @@ protected:
 class LuaScalarDef final : public LuaTableDef {
 public:
 	LuaScalarDef(const struct LuaDataModel* model);
-	DataVariable Child(void* ptr, const DataAddressEntry& address) override;
+	DataVariable Child(const DataModel& data_model, void* ptr, const DataAddressEntry& address) override;
 };
 
 LuaTableDef::LuaTableDef(const struct LuaDataModel* model) : VariableDefinition(DataVariableType::Scalar), model(model) {}
@@ -206,7 +207,7 @@ int LuaTableDef::Size(void* ptr)
 	return size;
 }
 
-DataVariable LuaTableDef::Child(void* ptr, const DataAddressEntry& address)
+DataVariable LuaTableDef::Child(const DataModel& /*data_model*/, void* ptr, const DataAddressEntry& address)
 {
 	lua_State* L = model->dataL;
 	if (!L)
@@ -240,13 +241,13 @@ DataVariable LuaTableDef::Child(void* ptr, const DataAddressEntry& address)
 
 LuaScalarDef::LuaScalarDef(const struct LuaDataModel* model) : LuaTableDef(model) {}
 
-DataVariable LuaScalarDef::Child(void* ptr, const DataAddressEntry& address)
+DataVariable LuaScalarDef::Child(const DataModel& data_model, void* ptr, const DataAddressEntry& address)
 {
 	lua_State* L = model->dataL;
 	if (!L)
 		return DataVariable{};
 	lua_settop(L, model->top);
-	return LuaTableDef::Child(ptr, address);
+	return LuaTableDef::Child(data_model, ptr, address);
 }
 
 static void BindVariable(struct LuaDataModel* D, lua_State* L)

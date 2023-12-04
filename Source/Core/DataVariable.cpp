@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/DataVariable.h"
+#include "DataModel.h"
 
 namespace Rml {
 
@@ -45,9 +46,9 @@ int DataVariable::Size()
 	return definition->Size(ptr);
 }
 
-DataVariable DataVariable::Child(const DataAddressEntry& address)
+DataVariable DataVariable::Child(const DataModel& model, const DataAddressEntry& address)
 {
-	return definition->Child(ptr, address);
+	return definition->Child(model, ptr, address);
 }
 
 DataVariableType DataVariable::Type()
@@ -70,10 +71,31 @@ int VariableDefinition::Size(void* /*ptr*/)
 	Log::Message(Log::LT_WARNING, "Tried to get the size from a non-array data type.");
 	return 0;
 }
-DataVariable VariableDefinition::Child(void* /*ptr*/, const DataAddressEntry& /*address*/)
+DataVariable VariableDefinition::Child(const DataModel& /*model*/ , void* /*ptr*/, const DataAddressEntry& /*address*/)
 {
 	Log::Message(Log::LT_WARNING, "Tried to get the child of a scalar type.");
 	return DataVariable();
+}
+
+int VariableDefinition::ResolveArrayIndex(const DataModel& model, const DataAddressEntry &address)
+{
+	if (address.index >= 0)
+		return address.index;
+
+	if (!address.address.empty())
+	{
+		Rml::DataVariable variable_index = model.GetVariable(address.address);
+		if (variable_index)
+		{
+			Rml::Variant value;
+			if (variable_index.Get(value))
+			{
+				return value.Get<int>(-1);
+			}
+		}
+	}
+
+	return -1;
 }
 
 class LiteralIntDefinition final : public VariableDefinition {
@@ -95,7 +117,7 @@ DataVariable MakeLiteralIntVariable(int value)
 
 StructDefinition::StructDefinition() : VariableDefinition(DataVariableType::Struct) {}
 
-DataVariable StructDefinition::Child(void* ptr, const DataAddressEntry& address)
+DataVariable StructDefinition::Child(const DataModel& /*model*/, void *ptr, const DataAddressEntry &address)
 {
 	const String& name = address.name;
 	if (name.empty())
@@ -169,11 +191,11 @@ int BasePointerDefinition::Size(void* ptr)
 	return underlying_definition->Size(DereferencePointer(ptr));
 }
 
-DataVariable BasePointerDefinition::Child(void* ptr, const DataAddressEntry& address)
+DataVariable BasePointerDefinition::Child(const DataModel& model, void* ptr, const DataAddressEntry& address)
 {
 	if (!ptr)
 		return DataVariable();
-	return underlying_definition->Child(DereferencePointer(ptr), address);
+	return underlying_definition->Child(model, DereferencePointer(ptr), address);
 }
 
 } // namespace Rml
