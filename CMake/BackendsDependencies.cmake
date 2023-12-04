@@ -100,9 +100,6 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
         In SFML 2.5 the first iteration of the SFMLConfig.cmake file was introduced, which
         uses a target-oriented approach to exposing the different modules of SFML but it doesn't
         use the same names as the config file from SFML 2.7.
-
-        In SFML <= 2.4 the old official find module is still in use which uses the old variable-based
-        approach.
     ]]
 
     # List of required components in capital case
