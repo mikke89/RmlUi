@@ -204,6 +204,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/SystemInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TextInputHandler.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Texture.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Traits.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Transform.h

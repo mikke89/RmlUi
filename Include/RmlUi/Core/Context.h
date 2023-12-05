@@ -46,6 +46,7 @@ class DataModel;
 class DataModelConstructor;
 class DataTypeRegister;
 class ScrollController;
+class TextInputHandler;
 enum class EventId : uint16_t;
 
 /**
@@ -259,6 +260,13 @@ public:
 	/// @param[in] instancer The context's instancer.
 	void SetInstancer(ContextInstancer* instancer);
 
+	/// Sets a listener handling text input events.
+	/// @param[in] handler Text input event handler.
+	void SetTextInputHandler(TextInputHandler* handler);
+	/// Retrieves the handler for text input events.
+	/// @return The current text input handler, or nullptr if none is set.
+	TextInputHandler* GetTextInputHandler() const;
+
 	/// Creates a data model.
 	/// The returned constructor can be used to bind data variables. Elements can bind to the model using the attribute 'data-model="name"'.
 	/// @param[in] name The name of the data model.
@@ -311,6 +319,8 @@ private:
 	SmallUnorderedSet<String> active_themes;
 
 	ContextInstancer* instancer;
+
+	TextInputHandler* text_input_handler;
 
 	using ElementSet = SmallOrderedSet<Element*>;
 	using ElementList = Vector<Element*>;

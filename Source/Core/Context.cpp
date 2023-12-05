@@ -38,6 +38,7 @@
 #include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/TextInputHandler.h"
 #include "../../Include/RmlUi/Core/Debug.h"
 #include "DataModel.h"
 #include "EventDispatcher.h"
@@ -59,6 +60,7 @@ Context::Context(const String& name) :
 	next_update_timeout(0)
 {
 	instancer = nullptr;
+	text_input_handler = nullptr;
 
 	root = Factory::InstanceElement(nullptr, "*", "#root", XMLAttributes());
 	root->SetId(name);
@@ -876,6 +878,16 @@ void Context::SetInstancer(ContextInstancer* _instancer)
 {
 	RMLUI_ASSERT(instancer == nullptr);
 	instancer = _instancer;
+}
+
+void Context::SetTextInputHandler(TextInputHandler* handler)
+{
+	text_input_handler = handler;
+}
+
+TextInputHandler* Context::GetTextInputHandler() const
+{
+	return text_input_handler;
 }
 
 DataModelConstructor Context::CreateDataModel(const String& name, DataTypeRegister* data_type_register)

@@ -41,6 +41,7 @@
 #include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../../Include/RmlUi/Core/TextInputHandler.h"
 #include "../Clock.h"
 #include "ElementTextSelection.h"
 #include <algorithm>
@@ -538,6 +539,10 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			if (UpdateSelection(false))
 				FormatElement();
 			ShowCursor(true, false);
+
+			if (Context* context = parent->GetContext())
+				if (TextInputHandler* text_input_handler = context->GetTextInputHandler())
+					text_input_handler->OnFocus(parent);
 		}
 	}
 	break;
@@ -547,6 +552,11 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		{
 			if (ClearSelection())
 				FormatElement();
+
+			if (Context* context = parent->GetContext())
+				if (TextInputHandler* text_input_handler = context->GetTextInputHandler())
+					text_input_handler->OnBlur(parent);
+
 			ShowCursor(false, false);
 		}
 	}
