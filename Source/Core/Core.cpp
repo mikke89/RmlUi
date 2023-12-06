@@ -46,15 +46,15 @@
 #include "TemplateCache.h"
 #include "TextureDatabase.h"
 
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+#ifdef RMLUI_FONT_INTERFACE_FREETYPE
 	#include "FontEngineDefault/FontEngineInterfaceDefault.h"
 #endif
 
-#ifdef RMLUI_ENABLE_LOTTIE_PLUGIN
+#ifdef RMLUI_LOTTIE_PLUGIN
 	#include "../Lottie/LottiePlugin.h"
 #endif
 
-#ifdef RMLUI_ENABLE_SVG_PLUGIN
+#ifdef RMLUI_SVG_PLUGIN
 	#include "../SVG/SVGPlugin.h"
 #endif
 
@@ -122,7 +122,7 @@ bool Initialise()
 
 	if (!font_interface)
 	{
-#ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
+#ifdef RMLUI_FONT_INTERFACE_FREETYPE
 		default_font_interface = MakeUnique<FontEngineInterfaceDefault>();
 		font_interface = default_font_interface.get();
 #else
@@ -140,10 +140,10 @@ bool Initialise()
 	Factory::Initialise();
 
 	// Initialise plugins integrated with Core.
-#ifdef RMLUI_ENABLE_LOTTIE_PLUGIN
+#ifdef RMLUI_LOTTIE_PLUGIN
 	Lottie::Initialise();
 #endif
-#ifdef RMLUI_ENABLE_SVG_PLUGIN
+#ifdef RMLUI_SVG_PLUGIN
 	SVG::Initialise();
 #endif
 

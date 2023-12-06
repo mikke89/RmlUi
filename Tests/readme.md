@@ -31,7 +31,7 @@ This directory contains additional libraries used by the test suite.
 
 By default, the visual tests will output screenshots and diff images into this directory, and read previous screenshots from this directory.
 
-Use the CMake options `VISUAL_TESTS_OUTPUT_DIRECTORY` and `VISUAL_TESTS_INPUT_DIRECTORY` to specify other directories.
+Use the CMake options `RMLUI_VISUAL_TESTS_OUTPUT_DIRECTORY` and `RMLUI_VISUAL_TESTS_INPUT_DIRECTORY` to specify other directories.
 
 #### `Source`
 
