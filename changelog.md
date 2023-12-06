@@ -221,6 +221,10 @@ input { nav: auto; nav-right: #ok_button; }
 - Change `StringUtilities::DecodeRml` to improve compatibility with other string types, like `EASTL::string`. #472 #475 (thanks @gleblebedev)
 - Various CMake fixes for MacOS. #525 (thanks @NaLiJa)
 - Fix include path. #533 (thanks @gleblebedev)
+- Can now add Tracy in one of the following three ways. #516 #518
+  1. Using target `Tracy::TracyClient` from parent project.
+  2. Using find package in config mode.
+  3. With Tracy source files located in `Dependencies/Tracy`.
 
 ### Backends
 
@@ -232,7 +236,133 @@ input { nav: auto; nav-right: #ok_button; }
 - OpenGL 3: Restore all modified state after rendering a frame. #449 (thanks @reworks-org)
 - OpenGL 3: Set forward compatibility flag to fix running on MacOS. #522 (thanks @NaLiJa)
 
+### Modernized CMake
+
+The CMake code has been fully rewritten with modern practices. Special thanks to @hobyst who laid the groundwork for this change, with a solid foundation and great guidelines. #198 #446 #551 #606 (thanks @hobyst)
+
+While modernizing our CMake code, it was clear that we also needed to change our naming conventions. This leads to quite significant breaking changes for building and linking, but the result should make the library a lot easier to work with and link with.
+
+We now try to support all setups including:
+
+1. Adding the library as a subdirectory directly from CMake.
+2. Building the library "in-source" without installing.
+3. Building and installing the library.
+4. Using pre-built Windows binaries.
+
+It should be a lot easier now to simply point to the built library or sources, and have everything link correctly.
+
+And naturally, we will continue to support package managers however we can, and that is still considered the default recommendation. However, for the most part we rely on contributors to keep supporting this. Please help out with your favorite package manager if you see missing versions, or room for improvements.
+
+Large parts of the CI workflows have also been rewritten to accommodate these changes. Most of the Windows building and packaging procedures have been moved from Appveyor to GitHub Actions, which streamlines our testing and also helps speed up the CI builds.
+
+#### New target names
+
+We now export the following targets:
+
+| Target          | Description                                                     |
+|-----------------|-----------------------------------------------------------------|
+| RmlUi::RmlUi    | Includes all sub-libraries of the project, as listed just below |
+| RmlUi::Core     | The main library                                                |
+| RmlUi::Debugger | The debugger library                                            |
+| RmlUi::Lua      | The Lua plugin (when enabled)                                   |
+
+When including RmlUi as a subdirectory, the targets are constructed as aliases. When using pre-built or installed binaries, they are constructed using imported targets, which are available through the exported build targets.
+
+The internal target names have also been changed, although they are typically only needed when exploring or developing the library. They are all lowercase and contain the prefix `rmlui_` to avoid colliding with names in any parent projects. Some examples are: `rmlui_core`, `rmlui_debugger`, `rmlui_sample_invaders`, `rmlui_tutorial_drag`, `rmlui_unit_tests`, and `rmlui_visual_tests`.
+
+#### New library filenames
+
+The library binaries have also changed names. These names would be suffixed by e.g. `.dll` on Windows, and so on.
+
+| Library          | Description                   |
+|------------------|-------------------------------|
+| `rmlui`          | The core (main) library       |
+| `rmlui_debugger` | The debugger library          |
+| `rmlui_lua`      | The Lua plugin (when enabled) |
+
+#### New option names
+
+We have a new set of CMake naming conventions for the library:
+
+- Use `RMLUI_` prefix to make all options specific to this project easily identifiable, and avoid colliding with any parent project variables.
+- Do not include negations (such as "not" and "disable"), to avoid situations with double negation.
+- Do not include a verb prefix (such as "enable" and "build"), as these are often superfluous.
+
+The following table lists all the new option names.
+
+| Option                               | Default value | Old related option             | Comment                                                                                                                                 |
+|--------------------------------------|---------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| RMLUI_BACKEND                        | auto          | SAMPLES_BACKEND                |                                                                                                                                         |
+| RMLUI_COMPILER_OPTIONS               | ON            |                                | Automatically sets recommended compiler flags                                                                                           |
+| RMLUI_CUSTOM_CONFIGURATION           | OFF           | CUSTOM_CONFIGURATION           |                                                                                                                                         |
+| RMLUI_CUSTOM_CONFIGURATION_FILE      |               | CUSTOM_CONFIGURATION_FILE      |                                                                                                                                         |
+| RMLUI_CUSTOM_INCLUDE_DIRS            |               | CUSTOM_INCLUDE_DIRS            |                                                                                                                                         |
+| RMLUI_CUSTOM_LINK_LIBRARIES          |               | CUSTOM_LINK_LIBRARIES          |                                                                                                                                         |
+| RMLUI_CUSTOM_RTTI                    | OFF           | DISABLE_RTTI_AND_EXCEPTIONS    | No longer modifies compiler flags - only enables RmlUi's custom RTTI solution so that the user can disable language RTTI and exceptions |
+| RMLUI_FONT_ENGINE                    | freetype      | NO_FONT_INTERFACE_DEFAULT      | Now takes a string with one of the options: `none`, `freetype`                                                                          |
+| RMLUI_HARFBUZZ_SAMPLE                | OFF           |                                |                                                                                                                                         |
+| RMLUI_INSTALL_RUNTIME_DEPENDENCIES   | ON            |                                | Automatically install runtime dependencies on supported platforms (e.g. DLLs)                                                           |
+| RMLUI_LOTTIE_PLUGIN                  | OFF           | ENABLE_LOTTIE_PLUGIN           |                                                                                                                                         |
+| RMLUI_LUA_BINDINGS                   | OFF           | BUILD_LUA_BINDINGS             |                                                                                                                                         |
+| RMLUI_LUA_BINDINGS_LIBRARY           | lua           | BUILD_LUA_BINDINGS_FOR_LUAJIT  | Now takes a string with one of the options: `lua`, `lua_as_cxx`, `luajit`                                                               |
+| RMLUI_MATRIX_ROW_MAJOR               | OFF           | MATRIX_ROW_MAJOR               |                                                                                                                                         |
+| RMLUI_PRECOMPILED_HEADERS            | ON            | ENABLE_PRECOMPILED_HEADERS     |                                                                                                                                         |
+| RMLUI_SAMPLES                        | OFF           | BUILD_SAMPLES                  |                                                                                                                                         |
+| RMLUI_SVG_PLUGIN                     | OFF           | ENABLE_SVG_PLUGIN              |                                                                                                                                         |
+| RMLUI_THIRDPARTY_CONTAINERS          | ON            | NO_THIRDPARTY_CONTAINERS       |                                                                                                                                         |
+| RMLUI_TRACY_CONFIGURATION            | ON            |                                | New option for multi-config generators to add Tracy as a separate configuration.                                                        |
+| RMLUI_TRACY_MEMORY_PROFILING         | ON            |                                | New option to overload global operator new/delete for memory inspection with Tracy.                                                     |
+| RMLUI_TRACY_PROFILING                | OFF           | ENABLE_TRACY_PROFILING         |                                                                                                                                         |
+| RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY |               | VISUAL_TESTS_CAPTURE_DIRECTORY |                                                                                                                                         |
+| RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY |               | VISUAL_TESTS_COMPARE_DIRECTORY |                                                                                                                                         |
+| RMLUI_VISUAL_TESTS_RML_DIRECTORIES   |               | VISUAL_TESTS_RML_DIRECTORIES   |                                                                                                                                         |
+
+For reference, the following options have not changed names, as these are standard options used by CMake.
+
+| Unchanged options | Default value |
+|-------------------|---------------|
+| CMAKE_BUILD_TYPE  |               |
+| BUILD_SHARED_LIBS | ON            |
+| BUILD_TESTING     | OFF           |
+
+#### New exported definitions
+
+Certain CMake options, when changed from their default value, require clients to set definitions before including RmlUi. These are automatically set when using the exported CMake targets, otherwise users will need to define them manually.
+
+Some exported definition names have changed, as follows.
+
+| Definition                | Old definition         | Related CMake option  |
+|---------------------------|------------------------|-----------------------|
+| RMLUI_TRACY_PROFILING     | RMLUI_ENABLE_PROFILING | RMLUI_TRACY_PROFILING |
+| RMLUI_CUSTOM_RTTI         | RMLUI_USE_CUSTOM_RTTI  | RMLUI_CUSTOM_RTTI     |
+
+For reference, here follows all other possibly exported definitions.
+
+| Definition                      | Related CMake option            |
+|---------------------------------|---------------------------------|
+| RMLUI_STATIC_LIB                | BUILD_SHARED_LIBS               |
+| RMLUI_NO_THIRDPARTY_CONTAINERS  | RMLUI_THIRDPARTY_CONTAINERS     |
+| RMLUI_MATRIX_ROW_MAJOR          | RMLUI_MATRIX_ROW_MAJOR          |
+| RMLUI_CUSTOM_CONFIGURATION_FILE | RMLUI_CUSTOM_CONFIGURATION_FILE |
+
+#### CMake presets
+
+We now have CMake presets:
+
+- `samples` Enable samples but only those without extra dependencies.
+- `samples-all` Enable all samples, also those with extra dependencies.
+- `standalone` Build the library completely without any dependencies, the only sample available is `bitmapfont`.
+- `dev` Enable testing in addition to samples.
+- `dev-all` Enable testing in addition to samples, including those that require extra dependencies.
+
+The presets can be combined with other options, like `CMAKE_BUILD_TYPE` to select the desired build type when using single-configuration generators.
+
 ### Breaking changes
+
+#### CMake and linking
+
+- Most options, target names, library filenames, and certain exported definitions, have been changed. Please see the tables above.
+- CMake minimum version raised to 3.10.
 
 #### Layout
 

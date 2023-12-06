@@ -13,7 +13,7 @@ To ensure smaller units of the library are working properly.
 
 #### Benchmarks
 
-Benchmarking various components of the library to keep track of performance increases or regressions for future development, and find any performance hotspots that could need extra attention.
+Benchmarking various components of the library to keep track of performance improvements or regressions for future development, and to find any performance hotspots that could need extra attention.
 
 
 
@@ -21,7 +21,7 @@ Benchmarking various components of the library to keep track of performance incr
 
 #### `Data`
 
-This directory contains the shared style sheets and documents, as well as the source documents for the included visual tests. All documents located under `Data/VisualTests/` will automatically be loaded by the visual tests project.
+This directory contains the shared style sheets and documents, as well as the source documents for the included visual tests. All documents located under `Data/VisualTests/` will automatically be loaded by the visual tests project. Additional source folders can be specified with the CMake option `RMLUI_VISUAL_TESTS_RML_DIRECTORIES`. 
 
 #### `Dependencies`
 
@@ -29,9 +29,7 @@ This directory contains additional libraries used by the test suite.
 
 #### `Output`
 
-By default, the visual tests will output screenshots and diff images into this directory, and read previous screenshots from this directory.
-
-Use the CMake options `VISUAL_TESTS_OUTPUT_DIRECTORY` and `VISUAL_TESTS_INPUT_DIRECTORY` to specify other directories.
+By default, the visual tests will store screenshots and other outputs into this directory, and read previous screenshots from this directory. To specify other directories, use the CMake options `RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY` and `RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY`.
 
 #### `Source`
 
