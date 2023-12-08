@@ -1,7 +1,7 @@
 #[[
     Details about sample backends, their source code files and linking requirements
 
-    Everytime a new backend gets added or its target name is modified, please update
+    Every time a new backend gets added or its target name is modified, please update
     the list of available backends found in OptionsLists.cmake
 
     This file is not meant to be used by consumers of the library, only by the RmlUi CMake project
@@ -114,7 +114,7 @@ target_sources(rmlui_backend_SFML_GL2 INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.h"
 )
 target_link_libraries(rmlui_backend_SFML_GL2 INTERFACE 
-    rmlui_backend_common_headers OpenGL::GL rmlui_SFML_old_wrapper SFML::Graphics SFML::Window SFML::System
+    rmlui_backend_common_headers OpenGL::GL SFML::Graphics SFML::Window SFML::System
 )
 
 add_library(rmlui_backend_GLFW_GL2 INTERFACE)

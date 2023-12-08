@@ -134,11 +134,11 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
         ]]
 
         # For each SFML component the project requires
-        foreach(sfml_component ${RMLUI_SFML_REQUIRED_COMPONENTS})
+        foreach(rmlui_sfml_component ${RMLUI_SFML_REQUIRED_COMPONENTS})
             # Make the component name lowercase
-            string(TOLOWER ${sfml_component} sfml_component_lower)
+            string(TOLOWER ${rmlui_sfml_component} rmlui_sfml_component_lower)
 
-            if(TARGET sfml-${sfml_component_lower})
+            if(TARGET sfml-${rmlui_sfml_component_lower})
                 #[[
                     RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
                     Because the target CMake version is 3.10, we can't alias non-global targets nor global imported targets.
@@ -150,14 +150,10 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
                 ]]
 
                 # If the target exists, alias it
-                add_library(SFML::${sfml_component} INTERFACE IMPORTED)
-                target_link_libraries(SFML::${sfml_component} INTERFACE sfml-${sfml_component_lower})
+                add_library(SFML::${rmlui_sfml_component} INTERFACE IMPORTED)
+                target_link_libraries(SFML::${rmlui_sfml_component} INTERFACE sfml-${rmlui_sfml_component_lower})
             endif()
         endforeach()
-
-        # Because module-specific targets already exist, there's no need for the wrapper for the older find module
-        # Set up wrapper target as dumb target
-        add_library(rmlui_SFML_old_wrapper INTERFACE)
     endif()
 endif()
 
