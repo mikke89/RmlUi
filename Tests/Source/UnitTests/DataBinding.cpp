@@ -31,8 +31,9 @@
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <cmath>
 #include <doctest.h>
-#include <map>
+
 
 using namespace Rml;
 
