@@ -1112,6 +1112,7 @@ private:
 			else
 				return Error("Variable address not found.");
 		}
+		break;
 		case Instruction::CastToInt:
 		{
 			R = R.Get<int>();
