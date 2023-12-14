@@ -88,6 +88,7 @@ enum class Instruction {
 	EventFnc        = 'E',     //       DataModel.EventCallback(D, A); S -= R;
 	Assign          = 'A',     //       DataModel.SetVariable(D, R)
 	DynamicVariable = 'Y',     //       DataModel.GetVariable(DataModel.ParseAddress(R)) (Looks up a variable by path in R)
+	CastToInt       = 'I'      //       R = (int)R
 	// clang-format on
 };
 
@@ -273,6 +274,18 @@ public:
 	{
 		RMLUI_ASSERT(!program_states.empty());
 		program_states.pop_back();
+	}
+
+	bool Address(const String& name)
+	{
+		DataAddress address = expression_interface.ParseAddress(name);
+		if (address.empty())
+		{
+			return false;
+		}
+
+		variable_addresses.push_back(std::move(address));
+		return true;
 	}
 
 private:
@@ -629,6 +642,7 @@ namespace Parse {
 		{
 			parser.Next();
 			String prefix = address_prefix;
+
 			prefix.push_back('[');
 
 			parser.PushState();
@@ -649,6 +663,7 @@ namespace Parse {
 				parser.Push();
 
 				Expression(parser);
+				parser.Emit(Instruction::CastToInt);
 				parser.Push();
 
 				parser.Match(']');
@@ -719,6 +734,9 @@ namespace Parse {
 			}
 			else
 			{
+				// add the root of a variable expression as dependency into the address list
+				parser.Address(name);
+
 				parser.DiscardState();
 				parser.Emit(Instruction::DynamicVariable, Variant());
 			}
@@ -994,7 +1012,8 @@ private:
 		break;
 		case Instruction::DynamicVariable:
 		{
-			auto address = expression_interface.ParseAddress(R.Get<String>());
+			auto str = R.Get<String>();
+			auto address = expression_interface.ParseAddress(str);
 			if (address.empty())
 				return Error("Variable address not found.");
 			R = expression_interface.GetValue(address);
@@ -1092,6 +1111,10 @@ private:
 			}
 			else
 				return Error("Variable address not found.");
+		}
+		case Instruction::CastToInt:
+		{
+			R = R.Get<int>();
 		}
 		break;
 		default: RMLUI_ERRORMSG("Instruction not implemented."); break;

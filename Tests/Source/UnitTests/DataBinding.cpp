@@ -550,6 +550,13 @@ TEST_CASE("databinding.dynamic_variables")
 	CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "c3");
 	CHECK(document->QuerySelector("p:nth-child(5)")->GetInnerRML() == "c3");
 
+	*globals.i1 = 0;
+	context->GetDataModel("basics").GetModelHandle().DirtyVariable("i1");
+	TestsShell::RenderLoop();
+
+	CHECK(document->QuerySelector("p:nth-child(3)")->GetInnerRML() == "20");
+	CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "c2");
+
 	document->Close();
 
 	TestsShell::ShutdownShell();
