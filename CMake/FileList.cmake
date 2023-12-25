@@ -199,6 +199,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertySpecification.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Rectangle.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterfaceCompatibility.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderManager.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScriptInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScrollTypes.h
@@ -376,6 +377,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertySpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterfaceCompatibility.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderManager.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderManagerAccess.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ScrollController.cpp

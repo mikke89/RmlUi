@@ -168,7 +168,7 @@ endif()
 option(BUILD_SAMPLES "Build samples" OFF)
 
 set(SAMPLES_BACKEND "auto" CACHE STRING "Backend platform and renderer used for the samples.")
-set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 Win32_VK X11_GL2 SDL_GL2 SDL_GL3 SDL_VK SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3 GLFW_VK)
+set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 Win32_VK X11_GL2 SDL_GL2 SDL_GL3 SDL_VK SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3 GLFW_VK BackwardCompatible_GLFW_GL2 BackwardCompatible_GLFW_GL3)
 
 if(SAMPLES_BACKEND STREQUAL "auto")
 	if(EMSCRIPTEN)
@@ -765,7 +765,7 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 		target_link_libraries(shell PRIVATE ${SFML_LIBRARIES})
 	endif()
 
-	if(SAMPLES_BACKEND MATCHES "^GLFW")
+	if(SAMPLES_BACKEND MATCHES "GLFW")
 		message("-- Looking for GLFW3 library for samples backend.")
 		find_package(glfw3 3.3 CONFIG REQUIRED)
 		target_link_libraries(shell PRIVATE glfw)

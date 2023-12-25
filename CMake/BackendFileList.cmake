@@ -119,3 +119,24 @@ set(GLFW_VK_HDR_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.h
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.h
 )
+
+set(BackwardCompatible_GLFW_GL2_SRC_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_BackwardCompatible/RmlUi_Renderer_BackwardCompatible_GL2.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_BackwardCompatible/RmlUi_Backend_BackwardCompatible_GLFW_GL2.cpp
+)
+set(BackwardCompatible_GLFW_GL2_HDR_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_BackwardCompatible/RmlUi_Renderer_BackwardCompatible_GL2.h
+)
+
+set(BackwardCompatible_GLFW_GL3_SRC_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_BackwardCompatible/RmlUi_Renderer_BackwardCompatible_GL3.cpp
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_BackwardCompatible/RmlUi_Backend_BackwardCompatible_GLFW_GL3.cpp
+)
+set(BackwardCompatible_GLFW_GL3_HDR_FILES
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_BackwardCompatible/RmlUi_Renderer_BackwardCompatible_GL3.h
+	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Include_GL3.h
+)
