@@ -51,12 +51,28 @@ void RenderInterface_SDL::BeginFrame()
 
 void RenderInterface_SDL::EndFrame() {}
 
-void RenderInterface_SDL::RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::TextureHandle texture,
-	const Rml::Vector2f& translation)
+Rml::CompiledGeometryHandle RenderInterface_SDL::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
 {
+	GeometryView* data = new GeometryView{vertices, indices};
+	return reinterpret_cast<Rml::CompiledGeometryHandle>(data);
+}
+
+void RenderInterface_SDL::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
+{
+	delete reinterpret_cast<GeometryView*>(geometry);
+}
+
+void RenderInterface_SDL::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
+{
+	const GeometryView* geometry = reinterpret_cast<GeometryView*>(handle);
+	const Rml::Vertex* vertices = geometry->vertices.data();
+	const size_t num_vertices = geometry->vertices.size();
+	const int* indices = geometry->indices.data();
+	const size_t num_indices = geometry->indices.size();
+
 	SDL_FPoint* positions = new SDL_FPoint[num_vertices];
 
-	for (int i = 0; i < num_vertices; i++)
+	for (size_t i = 0; i < num_vertices; i++)
 	{
 		positions[i].x = vertices[i].position.x + translation.x;
 		positions[i].y = vertices[i].position.y + translation.y;
@@ -65,7 +81,7 @@ void RenderInterface_SDL::RenderGeometry(Rml::Vertex* vertices, int num_vertices
 	SDL_Texture* sdl_texture = (SDL_Texture*)texture;
 
 	SDL_RenderGeometryRaw(renderer, sdl_texture, &positions[0].x, sizeof(SDL_FPoint), (const SDL_Color*)&vertices->colour, sizeof(Rml::Vertex),
-		&vertices->tex_coord.x, sizeof(Rml::Vertex), num_vertices, indices, num_indices, 4);
+		&vertices->tex_coord.x, sizeof(Rml::Vertex), (int)num_vertices, indices, (int)num_indices, 4);
 
 	delete[] positions;
 }
@@ -80,23 +96,23 @@ void RenderInterface_SDL::EnableScissorRegion(bool enable)
 	scissor_region_enabled = enable;
 }
 
-void RenderInterface_SDL::SetScissorRegion(int x, int y, int width, int height)
+void RenderInterface_SDL::SetScissorRegion(Rml::Rectanglei region)
 {
-	rect_scissor.x = x;
-	rect_scissor.y = y;
-	rect_scissor.w = width;
-	rect_scissor.h = height;
+	rect_scissor.x = region.Left();
+	rect_scissor.y = region.Top();
+	rect_scissor.w = region.Width();
+	rect_scissor.h = region.Height();
 
 	if (scissor_region_enabled)
 		SDL_RenderSetClipRect(renderer, &rect_scissor);
 }
 
-bool RenderInterface_SDL::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
+Rml::TextureHandle RenderInterface_SDL::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
 	Rml::FileInterface* file_interface = Rml::GetFileInterface();
 	Rml::FileHandle file_handle = file_interface->Open(source);
 	if (!file_handle)
-		return false;
+		return {};
 
 	file_interface->Seek(file_handle, 0, SEEK_END);
 	size_t buffer_size = file_interface->Tell(file_handle);
@@ -112,7 +128,7 @@ bool RenderInterface_SDL::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 
 	SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
 	if (!surface)
-		return false;
+		return {};
 
 	if (surface->format->format != SDL_PIXELFORMAT_RGBA32 && surface->format->format != SDL_PIXELFORMAT_BGRA32)
 	{
@@ -120,7 +136,7 @@ bool RenderInterface_SDL::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 		SDL_FreeSurface(surface);
 
 		if (!converted_surface)
-			return false;
+			return {};
 
 		surface = converted_surface;
 	}
@@ -137,28 +153,24 @@ bool RenderInterface_SDL::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 
 	texture_dimensions = Rml::Vector2i(surface->w, surface->h);
-	texture_handle = (Rml::TextureHandle)texture;
 	SDL_FreeSurface(surface);
 
-	if (!texture)
-		return false;
+	if (texture)
+		SDL_SetTextureBlendMode(texture, blend_mode);
 
-	SDL_SetTextureBlendMode(texture, blend_mode);
-
-	return true;
+	return (Rml::TextureHandle)texture;
 }
 
-bool RenderInterface_SDL::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
+Rml::TextureHandle RenderInterface_SDL::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions)
 {
-	SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom((void*)source, source_dimensions.x, source_dimensions.y, 32, source_dimensions.x * 4,
-		SDL_PIXELFORMAT_RGBA32);
+	SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom((void*)source.data(), source_dimensions.x, source_dimensions.y, 32,
+		source_dimensions.x * 4, SDL_PIXELFORMAT_RGBA32);
 
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_SetTextureBlendMode(texture, blend_mode);
 
 	SDL_FreeSurface(surface);
-	texture_handle = (Rml::TextureHandle)texture;
-	return true;
+	return (Rml::TextureHandle)texture;
 }
 
 void RenderInterface_SDL::ReleaseTexture(Rml::TextureHandle texture_handle)

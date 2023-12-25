@@ -132,18 +132,17 @@ int TextureLayoutTexture::Generate(TextureLayout& layout, int maximum_dimensions
 	}
 }
 
-UniquePtr<byte[]> TextureLayoutTexture::AllocateTexture()
+Vector<byte> TextureLayoutTexture::AllocateTexture()
 {
-	// Note: this object does not free this texture data. It is freed in the font texture loader.
-	UniquePtr<byte[]> texture_data;
+	Vector<byte> texture_data;
 
 	if (dimensions.x > 0 && dimensions.y > 0)
 	{
 		// Set the texture to transparent black.
-		texture_data.reset(new byte[dimensions.x * dimensions.y * 4]());
+		texture_data.resize(dimensions.x * dimensions.y * 4, 0);
 
 		for (size_t i = 0; i < rows.size(); ++i)
-			rows[i].Allocate(texture_data.get(), dimensions.x * 4);
+			rows[i].Allocate(texture_data.data(), dimensions.x * 4);
 	}
 
 	return texture_data;

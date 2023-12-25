@@ -132,7 +132,6 @@ TEST_CASE("core.release_resources")
 		return;
 
 	render_interface->Reset();
-	render_interface->EnableCompiledGeometry(true);
 	const auto& counters = render_interface->GetCounters();
 
 	Context* context = TestsShell::GetContext();
@@ -187,16 +186,16 @@ TEST_CASE("core.release_resources")
 		CHECK(counters.release_texture == counter_release_before + 1);
 	}
 
-	SUBCASE("ReleaseCompiledGeometry")
+	SUBCASE("ReleaseGeometry")
 	{
-		CHECK(counters.compile_geometry_calls > 0);
-		CHECK(counters.release_compiled_geometry_calls == 0);
+		CHECK(counters.compile_geometry > 0);
+		CHECK(counters.release_geometry == 0);
 
 		Rml::ReleaseCompiledGeometry();
-		CHECK(counters.compile_geometry_calls == counters.release_compiled_geometry_calls);
+		CHECK(counters.compile_geometry == counters.release_geometry);
 
 		TestsShell::RenderLoop();
-		CHECK(counters.compile_geometry_calls > counters.release_compiled_geometry_calls);
+		CHECK(counters.compile_geometry > counters.release_geometry);
 	}
 
 	document->Close();
@@ -205,7 +204,7 @@ TEST_CASE("core.release_resources")
 
 	// Finally, verify that all generated and loaded resources are released during shutdown.
 	CHECK(counters.generate_texture + counters.load_texture == counters.release_texture);
-	CHECK(counters.compile_geometry_calls == counters.release_compiled_geometry_calls);
+	CHECK(counters.compile_geometry == counters.release_geometry);
 
 	render_interface->Reset();
 }

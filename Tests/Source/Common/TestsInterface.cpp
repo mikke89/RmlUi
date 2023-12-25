@@ -83,30 +83,20 @@ void TestsSystemInterface::SetTime(double t)
 	elapsed_time = t;
 }
 
-void TestsRenderInterface::RenderGeometry(Rml::Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/,
-	const Rml::TextureHandle /*texture*/, const Rml::Vector2f& /*translation*/)
+Rml::CompiledGeometryHandle TestsRenderInterface::CompileGeometry(Rml::Span<const Rml::Vertex> /*vertices*/, Rml::Span<const int> /*indices*/)
 {
-	counters.render_calls += 1;
+	counters.compile_geometry += 1;
+	return Rml::CompiledGeometryHandle(counters.compile_geometry);
 }
 
-Rml::CompiledGeometryHandle TestsRenderInterface::CompileGeometry(Rml::Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/,
-	int /*num_indices*/)
+void TestsRenderInterface::RenderGeometry(Rml::CompiledGeometryHandle /*geometry*/, Rml::Vector2f /*translation*/, Rml::TextureHandle /*texture*/)
 {
-	if (!enable_compiled_geometry)
-		return {};
-	counters.compile_geometry_calls += 1;
-	return Rml::CompiledGeometryHandle(counters.compile_geometry_calls);
+	counters.render_geometry += 1;
 }
 
-void TestsRenderInterface::RenderCompiledGeometry(Rml::CompiledGeometryHandle /*geometry*/, const Rml::Vector2f& /*translation*/,
-	Rml::TextureHandle /*texture*/)
+void TestsRenderInterface::ReleaseGeometry(Rml::CompiledGeometryHandle /*geometry*/)
 {
-	counters.render_compiled_geometry_calls += 1;
-}
-
-void TestsRenderInterface::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle /*geometry*/)
-{
-	counters.release_compiled_geometry_calls += 1;
+	counters.release_geometry += 1;
 }
 
 void TestsRenderInterface::EnableScissorRegion(bool /*enable*/)
@@ -114,26 +104,33 @@ void TestsRenderInterface::EnableScissorRegion(bool /*enable*/)
 	counters.enable_scissor += 1;
 }
 
-void TestsRenderInterface::SetScissorRegion(int /*x*/, int /*y*/, int /*width*/, int /*height*/)
+void TestsRenderInterface::SetScissorRegion(Rml::Rectanglei /*region*/)
 {
 	counters.set_scissor += 1;
 }
 
-bool TestsRenderInterface::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& /*source*/)
+void TestsRenderInterface::EnableClipMask(bool /*enable*/)
 {
-	counters.load_texture += 1;
-	texture_handle = 1;
-	texture_dimensions.x = 512;
-	texture_dimensions.y = 256;
-	return true;
+	counters.enable_clip_mask += 1;
 }
 
-bool TestsRenderInterface::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* /*source*/,
-	const Rml::Vector2i& /*source_dimensions*/)
+void TestsRenderInterface::RenderToClipMask(Rml::ClipMaskOperation /*mask_operation*/, Rml::CompiledGeometryHandle /*geometry*/, Rml::Vector2f /*translation*/)
+{
+	counters.render_to_clip_mask += 1;
+}
+
+Rml::TextureHandle TestsRenderInterface::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& /*source*/)
+{
+	counters.load_texture += 1;
+	texture_dimensions.x = 512;
+	texture_dimensions.y = 256;
+	return 1;
+}
+
+Rml::TextureHandle TestsRenderInterface::GenerateTexture(Rml::Span<const Rml::byte> /*source*/, Rml::Vector2i /*source_dimensions*/)
 {
 	counters.generate_texture += 1;
-	texture_handle = 1;
-	return true;
+	return 1;
 }
 
 void TestsRenderInterface::ReleaseTexture(Rml::TextureHandle /*texture_handle*/)

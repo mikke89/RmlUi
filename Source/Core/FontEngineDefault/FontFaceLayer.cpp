@@ -161,12 +161,12 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 			const int texture_id = i;
 
 			CallbackTextureFunction texture_callback = [handle, effect_ptr, texture_id, handle_version](
-												   const CallbackTextureInterface& texture_interface) -> bool {
+														   const CallbackTextureInterface& texture_interface) -> bool {
 				Vector2i dimensions;
-				UniquePtr<const byte[]> data;
-				if (!handle->GenerateLayerTexture(data, dimensions, effect_ptr, texture_id, handle_version) || !data)
+				Vector<byte> data;
+				if (!handle->GenerateLayerTexture(data, dimensions, effect_ptr, texture_id, handle_version) || data.empty())
 					return false;
-				if (!texture_interface.GenerateTexture(data.get(), dimensions))
+				if (!texture_interface.GenerateTexture(data, dimensions))
 					return false;
 				return true;
 			};
@@ -181,7 +181,7 @@ bool FontFaceLayer::Generate(const FontFaceHandleDefault* handle, const FontFace
 	return true;
 }
 
-bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs)
+bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs)
 {
 	if (texture_id < 0 || texture_id > texture_layout.GetNumTextures())
 		return false;

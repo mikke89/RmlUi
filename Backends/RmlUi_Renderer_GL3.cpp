@@ -31,8 +31,8 @@
 #include <RmlUi/Core/DecorationTypes.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Geometry.h>
-#include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Core/SystemInterface.h>
 #include <string.h>
@@ -783,8 +783,7 @@ RenderInterface_GL3::RenderInterface_GL3()
 		program_data = std::move(mut_program_data);
 		Rml::Mesh mesh;
 		Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
-		fullscreen_quad_geometry =
-			RenderInterface_GL3::CompileGeometry(mesh.vertices.data(), (int)mesh.vertices.size(), mesh.indices.data(), (int)mesh.indices.size());
+		fullscreen_quad_geometry = RenderInterface_GL3::CompileGeometry(mesh.vertices, mesh.indices);
 	}
 }
 
@@ -792,7 +791,7 @@ RenderInterface_GL3::~RenderInterface_GL3()
 {
 	if (fullscreen_quad_geometry)
 	{
-		RenderInterface_GL3::ReleaseCompiledGeometry(fullscreen_quad_geometry);
+		RenderInterface_GL3::ReleaseGeometry(fullscreen_quad_geometry);
 		fullscreen_quad_geometry = {};
 	}
 
@@ -965,19 +964,7 @@ void RenderInterface_GL3::Clear()
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void RenderInterface_GL3::RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::TextureHandle texture,
-	const Rml::Vector2f& translation)
-{
-	Rml::CompiledGeometryHandle geometry = CompileGeometry(vertices, num_vertices, indices, num_indices);
-
-	if (geometry)
-	{
-		RenderCompiledGeometry(geometry, translation, texture);
-		ReleaseCompiledGeometry(geometry);
-	}
-}
-
-Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices)
+Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
 {
 	constexpr GLenum draw_usage = GL_STATIC_DRAW;
 
@@ -991,7 +978,7 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* ve
 	glBindVertexArray(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Rml::Vertex) * num_vertices, (const void*)vertices, draw_usage);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Rml::Vertex) * vertices.size(), (const void*)vertices.data(), draw_usage);
 
 	glEnableVertexAttribArray((GLuint)Gfx::VertexAttribute::Position);
 	glVertexAttribPointer((GLuint)Gfx::VertexAttribute::Position, 2, GL_FLOAT, GL_FALSE, sizeof(Rml::Vertex),
@@ -1006,7 +993,7 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* ve
 		(const GLvoid*)(offsetof(Rml::Vertex, tex_coord)));
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * num_indices, (const void*)indices, draw_usage);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * indices.size(), (const void*)indices.data(), draw_usage);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1017,12 +1004,12 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Vertex* ve
 	geometry->vao = vao;
 	geometry->vbo = vbo;
 	geometry->ibo = ibo;
-	geometry->draw_count = num_indices;
+	geometry->draw_count = (GLsizei)indices.size();
 
 	return (Rml::CompiledGeometryHandle)geometry;
 }
 
-void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation, Rml::TextureHandle texture)
+void RenderInterface_GL3::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
 	Gfx::CompiledGeometryData* geometry = (Gfx::CompiledGeometryData*)handle;
 
@@ -1053,7 +1040,7 @@ void RenderInterface_GL3::RenderCompiledGeometry(Rml::CompiledGeometryHandle han
 	Gfx::CheckGLError("RenderCompiledGeometry");
 }
 
-void RenderInterface_GL3::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle handle)
+void RenderInterface_GL3::ReleaseGeometry(Rml::CompiledGeometryHandle handle)
 {
 	Gfx::CompiledGeometryData* geometry = (Gfx::CompiledGeometryData*)handle;
 
@@ -1103,9 +1090,9 @@ void RenderInterface_GL3::EnableScissorRegion(bool enable)
 		SetScissor(Rml::Rectanglei::MakeInvalid(), false);
 }
 
-void RenderInterface_GL3::SetScissorRegion(int x, int y, int width, int height)
+void RenderInterface_GL3::SetScissorRegion(Rml::Rectanglei region)
 {
-	SetScissor(Rml::Rectanglei::FromPositionSize({x, y}, {width, height}));
+	SetScissor(region);
 }
 
 void RenderInterface_GL3::EnableClipMask(bool enable)
@@ -1156,7 +1143,7 @@ void RenderInterface_GL3::RenderToClipMask(Rml::ClipMaskOperation operation, Rml
 	break;
 	}
 
-	RenderCompiledGeometry(geometry, translation, {});
+	RenderGeometry(geometry, translation, {});
 
 	// Restore state
 	// @performance Cache state so we don't toggle it unnecessarily.
@@ -1184,7 +1171,7 @@ struct TGAHeader {
 // Restore packing
 #pragma pack()
 
-bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
+Rml::TextureHandle RenderInterface_GL3::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
 	Rml::FileInterface* file_interface = Rml::GetFileInterface();
 	Rml::FileHandle file_handle = file_interface->Open(source);
@@ -1213,7 +1200,7 @@ bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	memcpy(&header, buffer.get(), sizeof(TGAHeader));
 
 	int color_mode = header.bitsPerPixel / 8;
-	int image_size = header.width * header.height * 4; // We always make 32bit textures
+	const size_t image_size = header.width * header.height * 4; // We always make 32bit textures
 
 	if (header.dataType != 2)
 	{
@@ -1260,12 +1247,10 @@ bool RenderInterface_GL3::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	texture_dimensions.x = header.width;
 	texture_dimensions.y = header.height;
 
-	bool success = GenerateTexture(texture_handle, image_dest, texture_dimensions);
-
-	return success;
+	return GenerateTexture({image_dest, image_size}, texture_dimensions);
 }
 
-bool RenderInterface_GL3::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
+Rml::TextureHandle RenderInterface_GL3::GenerateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions)
 {
 	GLuint texture_id = 0;
 	glGenTextures(1, &texture_id);
@@ -1277,23 +1262,21 @@ bool RenderInterface_GL3::GenerateTexture(Rml::TextureHandle& texture_handle, co
 
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source_data.data());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	texture_handle = (Rml::TextureHandle)texture_id;
-
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	return true;
+	return (Rml::TextureHandle)texture_id;
 }
 
 void RenderInterface_GL3::DrawFullscreenQuad()
 {
-	RenderCompiledGeometry(fullscreen_quad_geometry, {}, RenderInterface_GL3::TexturePostprocess);
+	RenderGeometry(fullscreen_quad_geometry, {}, RenderInterface_GL3::TexturePostprocess);
 }
 
 void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling)
@@ -1305,8 +1288,9 @@ void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vecto
 		for (Rml::Vertex& vertex : mesh.vertices)
 			vertex.tex_coord = (vertex.tex_coord * uv_scaling) + uv_offset;
 	}
-	RenderGeometry(mesh.vertices.data(), (int)mesh.vertices.size(), mesh.indices.data(), (int)mesh.indices.size(),
-		RenderInterface_GL3::TexturePostprocess, {});
+	const Rml::CompiledGeometryHandle geometry = CompileGeometry(mesh.vertices, mesh.indices);
+	RenderGeometry(geometry, {}, RenderInterface_GL3::TexturePostprocess);
+	ReleaseGeometry(geometry);
 }
 
 static Rml::Colourf ConvertToColorf(Rml::ColourbPremultiplied c0)
@@ -1758,7 +1742,7 @@ void RenderInterface_GL3::BlitTopLayerToPostprocessPrimary()
 	glBlitFramebuffer(0, 0, source.width, source.height, 0, 0, destination.width, destination.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
-void RenderInterface_GL3::RenderFilters(const Rml::FilterHandleList& filter_handles)
+void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
 {
 	for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
 	{
@@ -1896,7 +1880,7 @@ void RenderInterface_GL3::PushLayer(Rml::LayerFill layer_fill)
 		glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void RenderInterface_GL3::PopLayer(Rml::BlendMode blend_mode, const Rml::FilterHandleList& filters)
+void RenderInterface_GL3::PopLayer(Rml::BlendMode blend_mode, Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
 	using Rml::BlendMode;
 
@@ -1938,8 +1922,8 @@ void RenderInterface_GL3::PopLayer(Rml::BlendMode blend_mode, const Rml::FilterH
 
 Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensions)
 {
-	Rml::TextureHandle render_texture = {};
-	if (!GenerateTexture(render_texture, nullptr, dimensions))
+	Rml::TextureHandle render_texture = GenerateTexture({}, dimensions);
+	if (!render_texture)
 		return {};
 
 	BlitTopLayerToPostprocessPrimary();

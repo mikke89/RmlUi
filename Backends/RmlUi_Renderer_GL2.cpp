@@ -97,35 +97,23 @@ void RenderInterface_GL2::Clear()
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void RenderInterface_GL2::RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, const Rml::TextureHandle texture,
-	const Rml::Vector2f& translation)
+Rml::CompiledGeometryHandle RenderInterface_GL2::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
 {
-	Rml::CompiledGeometryHandle geometry = CompileGeometry(vertices, num_vertices, indices, num_indices);
-
-	if (geometry)
-	{
-		RenderCompiledGeometry(geometry, translation, texture);
-		ReleaseCompiledGeometry(geometry);
-	}
-}
-
-Rml::CompiledGeometryHandle RenderInterface_GL2::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices)
-{
-	GeometryView* data = new GeometryView{vertices, indices, num_vertices, num_indices};
+	GeometryView* data = new GeometryView{vertices, indices};
 	return reinterpret_cast<Rml::CompiledGeometryHandle>(data);
 }
 
-void RenderInterface_GL2::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry)
+void RenderInterface_GL2::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
 {
 	delete reinterpret_cast<GeometryView*>(geometry);
 }
 
-void RenderInterface_GL2::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation, Rml::TextureHandle texture)
+void RenderInterface_GL2::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
 	const GeometryView* geometry = reinterpret_cast<GeometryView*>(handle);
-	const Rml::Vertex* vertices = geometry->vertices;
-	const int* indices = geometry->indices;
-	const int num_indices = geometry->num_indices;
+	const Rml::Vertex* vertices = geometry->vertices.data();
+	const int* indices = geometry->indices.data();
+	const int num_indices = (int)geometry->indices.size();
 
 	glPushMatrix();
 	glTranslatef(translation.x, translation.y, 0);
@@ -162,9 +150,9 @@ void RenderInterface_GL2::EnableScissorRegion(bool enable)
 		glDisable(GL_SCISSOR_TEST);
 }
 
-void RenderInterface_GL2::SetScissorRegion(int x, int y, int width, int height)
+void RenderInterface_GL2::SetScissorRegion(Rml::Rectanglei region)
 {
-	glScissor(x, viewport_height - (y + height), width, height);
+	glScissor(region.Left(), viewport_height - region.Bottom(), region.Width(), region.Height());
 }
 
 void RenderInterface_GL2::EnableClipMask(bool enable)
@@ -215,7 +203,7 @@ void RenderInterface_GL2::RenderToClipMask(Rml::ClipMaskOperation operation, Rml
 	break;
 	}
 
-	RenderCompiledGeometry(geometry, translation, {});
+	RenderGeometry(geometry, translation, {});
 
 	// Restore state
 	// @performance Cache state so we don't toggle it unnecessarily.
@@ -243,7 +231,7 @@ struct TGAHeader {
 // Restore packing
 #pragma pack()
 
-bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
+Rml::TextureHandle RenderInterface_GL2::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
 	Rml::FileInterface* file_interface = Rml::GetFileInterface();
 	Rml::FileHandle file_handle = file_interface->Open(source);
@@ -272,7 +260,7 @@ bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	memcpy(&header, buffer.get(), sizeof(TGAHeader));
 
 	int color_mode = header.bitsPerPixel / 8;
-	int image_size = header.width * header.height * 4; // We always make 32bit textures
+	const size_t image_size = header.width * header.height * 4; // We always make 32bit textures
 
 	if (header.dataType != 2)
 	{
@@ -319,33 +307,29 @@ bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	texture_dimensions.x = header.width;
 	texture_dimensions.y = header.height;
 
-	bool success = GenerateTexture(texture_handle, image_dest, texture_dimensions);
-
-	return success;
+	return GenerateTexture({image_dest, image_size}, texture_dimensions);
 }
 
-bool RenderInterface_GL2::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
+Rml::TextureHandle RenderInterface_GL2::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions)
 {
 	GLuint texture_id = 0;
 	glGenTextures(1, &texture_id);
 	if (texture_id == 0)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to generate texture.");
-		return false;
+		return {};
 	}
 
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source.data());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	texture_handle = (Rml::TextureHandle)texture_id;
-
-	return true;
+	return (Rml::TextureHandle)texture_id;
 }
 
 void RenderInterface_GL2::ReleaseTexture(Rml::TextureHandle texture_handle)

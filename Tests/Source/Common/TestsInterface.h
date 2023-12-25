@@ -57,47 +57,41 @@ private:
 class TestsRenderInterface : public Rml::RenderInterface {
 public:
 	struct Counters {
-		size_t render_calls;
-		size_t compile_geometry_calls;
-		size_t render_compiled_geometry_calls;
-		size_t release_compiled_geometry_calls;
-		size_t enable_scissor;
-		size_t set_scissor;
+		size_t compile_geometry;
+		size_t render_geometry;
+		size_t release_geometry;
 		size_t load_texture;
 		size_t generate_texture;
 		size_t release_texture;
+		size_t enable_scissor;
+		size_t set_scissor;
+		size_t enable_clip_mask;
+		size_t render_to_clip_mask;
 		size_t set_transform;
 	};
 
-	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
-		const Rml::Vector2f& translation) override;
+	Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
+	void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override;
+	void ReleaseGeometry(Rml::CompiledGeometryHandle handle) override;
 
-	Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices) override;
-	void RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation, Rml::TextureHandle texture) override;
-	void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) override;
-
-	void EnableScissorRegion(bool enable) override;
-	void SetScissorRegion(int x, int y, int width, int height) override;
-
-	bool LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
-	bool GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override;
+	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
+	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions) override;
 	void ReleaseTexture(Rml::TextureHandle texture_handle) override;
 
-	void SetTransform(const Rml::Matrix4f* transform) override;
+	void EnableScissorRegion(bool enable) override;
+	void SetScissorRegion(Rml::Rectanglei region) override;
 
-	void EnableCompiledGeometry(bool enable) { enable_compiled_geometry = enable; }
+	void EnableClipMask(bool enable) override;
+	void RenderToClipMask(Rml::ClipMaskOperation mask_operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation) override;
+
+	void SetTransform(const Rml::Matrix4f* transform) override;
 
 	const Counters& GetCounters() const { return counters; }
 	void ResetCounters() { counters = {}; }
 
-	void Reset()
-	{
-		ResetCounters();
-		EnableCompiledGeometry(false);
-	}
+	void Reset() { ResetCounters(); }
 
 private:
-	bool enable_compiled_geometry = false;
 	Counters counters = {};
 };
 

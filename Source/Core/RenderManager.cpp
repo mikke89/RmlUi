@@ -127,7 +127,7 @@ void RenderManager::SetScissorRegion(Rectanglei new_region)
 		new_region.Intersect(Rectanglei::FromSize(viewport_dimensions));
 
 		if (new_region != state.scissor_region)
-			render_interface->SetScissorRegion(new_region.Left(), new_region.Top(), new_region.Width(), new_region.Height());
+			render_interface->SetScissorRegion(new_region);
 	}
 
 	state.scissor_region = new_region;
@@ -219,8 +219,10 @@ CompiledGeometryHandle RenderManager::GetCompiledGeometryHandle(StableVectorInde
 	GeometryData& geometry = geometry_list[index];
 	if (!geometry.handle && !geometry.mesh.indices.empty())
 	{
-		geometry.handle = render_interface->CompileGeometry(geometry.mesh.vertices.data(), (int)geometry.mesh.vertices.size(),
-			geometry.mesh.indices.data(), (int)geometry.mesh.indices.size());
+		geometry.handle = render_interface->CompileGeometry(geometry.mesh.vertices, geometry.mesh.indices);
+
+		if (!geometry.handle)
+			Log::Message(Log::LT_ERROR, "Got empty compiled geometry.");
 	}
 	return geometry.handle;
 }
@@ -245,7 +247,7 @@ void RenderManager::Render(const Geometry& geometry, Vector2f translation, Textu
 		if (shader)
 			render_interface->RenderShader(shader.resource_handle, geometry_handle, translation, texture_handle);
 		else
-			render_interface->RenderCompiledGeometry(geometry_handle, translation, texture_handle);
+			render_interface->RenderGeometry(geometry_handle, translation, texture_handle);
 	}
 }
 
@@ -265,7 +267,7 @@ void RenderManager::ReleaseAllCompiledGeometry()
 	geometry_list.for_each([this](GeometryData& data) {
 		if (data.handle)
 		{
-			render_interface->ReleaseCompiledGeometry(data.handle);
+			render_interface->ReleaseGeometry(data.handle);
 			data.handle = {};
 		}
 	});
@@ -298,7 +300,7 @@ void RenderManager::PushLayer(LayerFill layer_fill)
 	render_interface->PushLayer(layer_fill);
 }
 
-void RenderManager::PopLayer(BlendMode blend_mode, const FilterHandleList& filters)
+void RenderManager::PopLayer(BlendMode blend_mode, Span<const CompiledFilterHandle> filters)
 {
 	render_interface->PopLayer(blend_mode, filters);
 }
@@ -327,7 +329,7 @@ Mesh RenderManager::ReleaseResource(const Geometry& geometry)
 	GeometryData& data = geometry_list[geometry.resource_handle];
 	if (data.handle)
 	{
-		render_interface->ReleaseCompiledGeometry(data.handle);
+		render_interface->ReleaseGeometry(data.handle);
 		data.handle = {};
 	}
 	Mesh result = std::exchange(data.mesh, Mesh());

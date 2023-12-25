@@ -169,7 +169,7 @@ int FontFaceHandleDefault::GenerateLayerConfiguration(const FontEffectList& font
 	return (int)(layer_configurations.size() - 1);
 }
 
-bool FontFaceHandleDefault::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, const FontEffect* font_effect,
+bool FontFaceHandleDefault::GenerateLayerTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, const FontEffect* font_effect,
 	int texture_id, int handle_version) const
 {
 	if (handle_version != version)

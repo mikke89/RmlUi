@@ -31,6 +31,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Core/Profiling.h>
 #include <algorithm>
@@ -101,19 +102,7 @@ RenderInterface_VK::RenderInterface_VK() :
 
 RenderInterface_VK::~RenderInterface_VK() {}
 
-void RenderInterface_VK::RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
-	const Rml::Vector2f& translation)
-{
-	Rml::CompiledGeometryHandle handle = CompileGeometry(vertices, num_vertices, indices, num_indices);
-
-	if (handle)
-	{
-		RenderCompiledGeometry(handle, translation, texture);
-		ReleaseCompiledGeometry(handle);
-	}
-}
-
-Rml::CompiledGeometryHandle RenderInterface_VK::CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices)
+Rml::CompiledGeometryHandle RenderInterface_VK::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
 {
 	RMLUI_ZoneScopedN("Vulkan - CompileGeometry");
 
@@ -127,26 +116,26 @@ Rml::CompiledGeometryHandle RenderInterface_VK::CompileGeometry(Rml::Vertex* ver
 	auto* p_geometry_handle = new geometry_handle_t{};
 
 	uint32_t* pCopyDataToBuffer = nullptr;
-	const void* pData = reinterpret_cast<const void*>(vertices);
+	const void* pData = reinterpret_cast<const void*>(vertices.data());
 
-	bool status = m_memory_pool.Alloc_VertexBuffer(num_vertices, sizeof(Rml::Vertex), reinterpret_cast<void**>(&pCopyDataToBuffer),
+	bool status = m_memory_pool.Alloc_VertexBuffer((uint32_t)vertices.size(), sizeof(Rml::Vertex), reinterpret_cast<void**>(&pCopyDataToBuffer),
 		&p_geometry_handle->m_p_vertex, &p_geometry_handle->m_p_vertex_allocation);
 	RMLUI_VK_ASSERTMSG(status, "failed to AllocVertexBuffer");
 
-	memcpy(pCopyDataToBuffer, pData, sizeof(Rml::Vertex) * num_vertices);
+	memcpy(pCopyDataToBuffer, pData, sizeof(Rml::Vertex) * vertices.size());
 
-	status = m_memory_pool.Alloc_IndexBuffer(num_indices, sizeof(int), reinterpret_cast<void**>(&pCopyDataToBuffer), &p_geometry_handle->m_p_index,
-		&p_geometry_handle->m_p_index_allocation);
+	status = m_memory_pool.Alloc_IndexBuffer((uint32_t)indices.size(), sizeof(int), reinterpret_cast<void**>(&pCopyDataToBuffer),
+		&p_geometry_handle->m_p_index, &p_geometry_handle->m_p_index_allocation);
 	RMLUI_VK_ASSERTMSG(status, "failed to AllocIndexBuffer");
 
-	memcpy(pCopyDataToBuffer, indices, sizeof(int) * num_indices);
+	memcpy(pCopyDataToBuffer, indices.data(), sizeof(int) * indices.size());
 
-	p_geometry_handle->m_num_indices = num_indices;
+	p_geometry_handle->m_num_indices = (int)indices.size();
 
 	return Rml::CompiledGeometryHandle(p_geometry_handle);
 }
 
-void RenderInterface_VK::RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation, Rml::TextureHandle texture)
+void RenderInterface_VK::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
 	RMLUI_ZoneScopedN("Vulkan - RenderCompiledGeometry");
 
@@ -288,7 +277,7 @@ void RenderInterface_VK::RenderCompiledGeometry(Rml::CompiledGeometryHandle geom
 	vkCmdDrawIndexed(m_p_current_command_buffer, p_casted_compiled_geometry->m_num_indices, 1, 0, 0, 0);
 }
 
-void RenderInterface_VK::ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry)
+void RenderInterface_VK::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
 {
 	RMLUI_ZoneScopedN("Vulkan - ReleaseCompiledGeometry");
 
@@ -316,23 +305,18 @@ void RenderInterface_VK::EnableScissorRegion(bool enable)
 	}
 }
 
-void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
+void RenderInterface_VK::SetScissorRegion(Rml::Rectanglei region)
 {
 	if (m_is_use_scissor_specified)
 	{
 		if (m_is_transform_enabled)
 		{
-			float left = static_cast<float>(x);
-			float right = static_cast<float>(x + width);
-			float top = static_cast<float>(y);
-			float bottom = static_cast<float>(y + height);
-
 			Rml::Vertex vertices[4];
 
-			vertices[0].position = {left, top};
-			vertices[1].position = {right, top};
-			vertices[2].position = {right, bottom};
-			vertices[3].position = {left, bottom};
+			vertices[0].position = Rml::Vector2f(region.TopLeft());
+			vertices[1].position = Rml::Vector2f(region.TopRight());
+			vertices[2].position = Rml::Vector2f(region.BottomRight());
+			vertices[3].position = Rml::Vector2f(region.BottomLeft());
 
 			int indices[6] = {0, 2, 1, 0, 3, 2};
 
@@ -365,7 +349,11 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 			vkCmdClearDepthStencilImage(m_p_current_command_buffer, m_texture_depthstencil.m_p_vk_image,
 				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &info_clear_color, 1, &info_range);
 
-			RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
+			if (Rml::CompiledGeometryHandle handle = CompileGeometry({vertices, 4}, {indices, 6}))
+			{
+				RenderGeometry(handle, {}, {});
+				ReleaseGeometry(handle);
+			}
 
 			m_is_use_stencil_pipeline = false;
 
@@ -373,10 +361,10 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 		}
 		else
 		{
-			m_scissor.extent.width = width;
-			m_scissor.extent.height = height;
-			m_scissor.offset.x = static_cast<int32_t>(std::abs(x));
-			m_scissor.offset.y = static_cast<int32_t>(std::abs(y));
+			m_scissor.extent.width = region.Width();
+			m_scissor.extent.height = region.Height();
+			m_scissor.offset.x = Rml::Math::Max(region.Left(), 0);
+			m_scissor.offset.y = Rml::Math::Max(region.Top(), 0);
 
 #ifdef RMLUI_DEBUG
 			VkDebugUtilsLabelEXT info{};
@@ -414,7 +402,7 @@ struct TGAHeader {
 // Restore packing
 #pragma pack()
 
-bool RenderInterface_VK::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
+Rml::TextureHandle RenderInterface_VK::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
 	Rml::FileInterface* file_interface = Rml::GetFileInterface();
 	Rml::FileHandle file_handle = file_interface->Open(source);
@@ -443,7 +431,7 @@ bool RenderInterface_VK::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Ve
 	memcpy(&header, buffer.get(), sizeof(TGAHeader));
 
 	int color_mode = header.bitsPerPixel / 8;
-	int image_size = header.width * header.height * 4; // We always make 32bit textures
+	const size_t image_size = header.width * header.height * 4; // We always make 32bit textures
 
 	if (header.dataType != 2)
 	{
@@ -490,15 +478,13 @@ bool RenderInterface_VK::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Ve
 	texture_dimensions.x = header.width;
 	texture_dimensions.y = header.height;
 
-	bool success = GenerateTexture(texture_handle, image_dest, texture_dimensions);
-
-	return success;
+	return GenerateTexture({image_dest, image_size}, texture_dimensions);
 }
 
-bool RenderInterface_VK::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
+Rml::TextureHandle RenderInterface_VK::GenerateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions)
 {
 	Rml::String source_name = "generated-texture";
-	return CreateTexture(texture_handle, source, source_dimensions, source_name);
+	return CreateTexture(source_data, source_dimensions, source_name);
 }
 
 /*
@@ -517,12 +503,11 @@ bool RenderInterface_VK::GenerateTexture(Rml::TextureHandle& texture_handle, con
     efficient handling otherwise it is cpu_to_gpu visibility and it means you create only ONE buffer that is accessible for CPU and for GPU, but it
     will cause the worst performance...
 */
-bool RenderInterface_VK::CreateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& dimensions,
-	const Rml::String& name)
+Rml::TextureHandle RenderInterface_VK::CreateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i dimensions, const Rml::String& name)
 {
 	RMLUI_ZoneScopedN("Vulkan - GenerateTexture");
 
-	RMLUI_VK_ASSERTMSG(source, "you pushed not valid data for copying to buffer");
+	RMLUI_VK_ASSERTMSG(!source.empty(), "you pushed not valid data for copying to buffer");
 	RMLUI_VK_ASSERTMSG(m_p_allocator, "you have to initialize Vma Allocator for this method");
 	(void)name;
 
@@ -532,14 +517,14 @@ bool RenderInterface_VK::CreateTexture(Rml::TextureHandle& texture_handle, const
 	RMLUI_VK_ASSERTMSG(width, "invalid width");
 	RMLUI_VK_ASSERTMSG(height, "invalid height");
 
-	VkDeviceSize image_size = width * height * 4;
+	VkDeviceSize image_size = source.size();
 	VkFormat format = VkFormat::VK_FORMAT_R8G8B8A8_UNORM;
 
 	buffer_data_t cpu_buffer = CreateResource_StagingBuffer(image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
 	void* data;
 	vmaMapMemory(m_p_allocator, cpu_buffer.m_p_vma_allocation, &data);
-	memcpy(data, source, static_cast<size_t>(image_size));
+	memcpy(data, source.data(), static_cast<size_t>(image_size));
 	vmaUnmapMemory(m_p_allocator, cpu_buffer.m_p_vma_allocation);
 
 	VkExtent3D extent_image = {};
@@ -678,9 +663,7 @@ bool RenderInterface_VK::CreateTexture(Rml::TextureHandle& texture_handle, const
 	p_texture->m_p_vk_image_view = p_image_view;
 	p_texture->m_p_vk_sampler = m_p_sampler_linear;
 
-	texture_handle = reinterpret_cast<Rml::TextureHandle>(p_texture);
-
-	return true;
+	return reinterpret_cast<Rml::TextureHandle>(p_texture);
 }
 
 void RenderInterface_VK::ReleaseTexture(Rml::TextureHandle texture_handle)

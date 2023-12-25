@@ -46,7 +46,7 @@ class RenderInterface_GL2_SFML : public RenderInterface_GL2 {
 public:
 	// -- Inherited from Rml::RenderInterface --
 
-	void RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation, Rml::TextureHandle texture) override
+	void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override
 	{
 		if (texture)
 		{
@@ -54,10 +54,10 @@ public:
 			texture = RenderInterface_GL2::TextureEnableWithoutBinding;
 		}
 
-		RenderInterface_GL2::RenderCompiledGeometry(handle, translation, texture);
+		RenderInterface_GL2::RenderGeometry(handle, translation, texture);
 	}
 
-	bool LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override
+	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override
 	{
 		Rml::FileInterface* file_interface = Rml::GetFileInterface();
 		Rml::FileHandle file_handle = file_interface->Open(source);
@@ -99,13 +99,11 @@ public:
 			return false;
 		}
 
-		texture_handle = (Rml::TextureHandle)texture;
 		texture_dimensions = Rml::Vector2i(texture->getSize().x, texture->getSize().y);
-
-		return true;
+		return (Rml::TextureHandle)texture;
 	}
 
-	bool GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override
+	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override
 	{
 		sf::Texture* texture = new sf::Texture();
 		texture->setSmooth(true);
@@ -116,11 +114,9 @@ public:
 			return false;
 		}
 
-		texture->update(source, source_dimensions.x, source_dimensions.y, 0, 0);
+		texture->update(source.data(), source_dimensions.x, source_dimensions.y, 0, 0);
 
-		texture_handle = (Rml::TextureHandle)texture;
-
-		return true;
+		return (Rml::TextureHandle)texture;
 	}
 
 	void ReleaseTexture(Rml::TextureHandle texture_handle) override { delete (sf::Texture*)texture_handle; }

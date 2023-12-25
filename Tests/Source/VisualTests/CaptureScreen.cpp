@@ -125,11 +125,13 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 	}
 	RMLUI_ASSERT(screen.num_components == 3);
 
+	const size_t image_ref_diff_byte_size = w_ref * h_ref * 4;
+
 	Image diff;
 	diff.width = w_ref;
 	diff.height = h_ref;
 	diff.num_components = 4;
-	diff.data = Rml::UniquePtr<Rml::byte[]>(new Rml::byte[diff.width * diff.height * diff.num_components]);
+	diff.data = Rml::UniquePtr<Rml::byte[]>(new Rml::byte[image_ref_diff_byte_size]);
 
 	// So we have both images now, compare them! Also create a diff image.
 	// In case they are not the same size, we require that the reference image size is smaller or equal to the screen
@@ -181,22 +183,23 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 	result.similarity_score = (sum_diff == 0 ? 1.0 : 1.0 - std::log(double(sum_diff)) / std::log(double(max_diff)));
 
 	// Optionally render the screen capture or diff to a texture.
-	auto GenerateGeometry = [&](TextureGeometry& geometry, Rml::byte* data, Rml::Vector2i dimensions) -> bool {
-		if (!render_interface->GenerateTexture(geometry.texture_handle, data, dimensions))
-			return false;
+	auto GenerateGeometry = [&](TextureGeometry& geometry, Rml::Span<const Rml::byte> data, Rml::Vector2i dimensions) -> bool {
+		ReleaseTextureGeometry(render_interface, geometry);
 		const Rml::ColourbPremultiplied colour = {255, 255, 255, 255};
 		const Rml::Vector2f uv_top_left = {0, 0};
 		const Rml::Vector2f uv_bottom_right = {1, 1};
 		Rml::MeshUtilities::GenerateQuad(geometry.mesh, Rml::Vector2f(0, 0), Rml::Vector2f((float)w_ref, (float)h_ref), colour, uv_top_left,
 			uv_bottom_right);
-		return true;
+		geometry.texture_handle = render_interface->GenerateTexture(data, dimensions);
+		geometry.geometry_handle = render_interface->CompileGeometry(geometry.mesh.vertices, geometry.mesh.indices);
+		return geometry.texture_handle && geometry.geometry_handle;
 	};
 
 	if (out_reference && result.success)
-		result.success = GenerateGeometry(*out_reference, data_ref, {(int)w_ref, (int)h_ref});
+		result.success = GenerateGeometry(*out_reference, {data_ref, image_ref_diff_byte_size}, {(int)w_ref, (int)h_ref});
 
 	if (out_highlight && result.success)
-		result.success = GenerateGeometry(*out_highlight, diff.data.get(), {diff.width, diff.height});
+		result.success = GenerateGeometry(*out_highlight, {diff.data.get(), image_ref_diff_byte_size}, {diff.width, diff.height});
 
 	if (!result.success)
 		result.error_msg = Rml::CreateString(1024, "Could not generate texture from file %s", input_path.c_str());
@@ -206,13 +209,19 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 
 void RenderTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry)
 {
-	if (geometry.texture_handle)
-		render_interface->RenderGeometry(geometry.mesh.vertices.data(), (int)geometry.mesh.vertices.size(), geometry.mesh.indices.data(),
-			(int)geometry.mesh.indices.size(), geometry.texture_handle, Rml::Vector2f(0, 0));
+	if (geometry.geometry_handle && geometry.texture_handle)
+	{
+		render_interface->RenderGeometry(geometry.geometry_handle, Rml::Vector2f(0, 0), geometry.texture_handle);
+	}
 }
 
 void ReleaseTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry)
 {
+	if (geometry.geometry_handle)
+	{
+		render_interface->ReleaseGeometry(geometry.geometry_handle);
+		geometry.geometry_handle = 0;
+	}
 	if (geometry.texture_handle)
 	{
 		render_interface->ReleaseTexture(geometry.texture_handle);

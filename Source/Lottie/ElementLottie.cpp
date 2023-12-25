@@ -238,7 +238,7 @@ void ElementLottie::UpdateTexture()
 #endif
 		}
 
-		if (!texture_interface.GenerateTexture(p_data, render_dimensions))
+		if (!texture_interface.GenerateTexture({p_data, total_bytes}, render_dimensions))
 			return false;
 		return true;
 	};

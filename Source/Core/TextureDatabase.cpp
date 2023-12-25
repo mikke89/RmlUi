@@ -122,9 +122,8 @@ TextureFileIndex FileTextureDatabase::LoadTexture(RenderInterface* render_interf
 	if (it != texture_map.end())
 		return it->second;
 
-	TextureHandle handle = {};
 	Vector2i dimensions;
-	if (render_interface->LoadTexture(handle, dimensions, source) && handle)
+	if (TextureHandle handle = render_interface->LoadTexture(dimensions, source))
 	{
 		TextureFileIndex result = TextureFileIndex(texture_list.size());
 		texture_map[source] = result;

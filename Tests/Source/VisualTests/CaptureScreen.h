@@ -44,6 +44,7 @@ struct ComparisonResult {
 
 struct TextureGeometry {
 	Rml::TextureHandle texture_handle = 0;
+	Rml::CompiledGeometryHandle geometry_handle = 0;
 	Rml::Mesh mesh;
 };
 

@@ -76,6 +76,12 @@ public:
 	void ExtendTopLeft(Vector2Type v) { p0 -= v; }
 	void ExtendBottomRight(Vector2Type v) { p1 += v; }
 
+	void Translate(Vector2Type v)
+	{
+		p0 += v;
+		p1 += v;
+	}
+
 	void Join(Vector2Type p)
 	{
 		p0 = Math::Min(p0, p);

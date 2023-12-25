@@ -104,7 +104,7 @@ public:
 	CompiledShader CompileShader(const String& name, const Dictionary& parameters);
 
 	void PushLayer(LayerFill layer_fill);
-	void PopLayer(BlendMode blend_mode, const FilterHandleList& filters);
+	void PopLayer(BlendMode blend_mode, Span<const CompiledFilterHandle> filters);
 
 	CompiledFilter SaveLayerAsMaskImage();
 

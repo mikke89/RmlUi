@@ -76,7 +76,7 @@ public:
 	/// @param[in] source Texture data in 8-bit RGBA (premultiplied) format.
 	/// @param[in] dimensions The width and height of the texture.
 	/// @return True on success.
-	bool GenerateTexture(const byte* source, Vector2i dimensions) const;
+	bool GenerateTexture(Span<const byte> source, Vector2i dimensions) const;
 
 	/// Store the current layer as a texture, so that it can be rendered with geometry later.
 	/// @param[in] dimensions The dimensions of the resulting texture, which will be copied from the top-left part of the active layer.

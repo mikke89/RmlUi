@@ -52,7 +52,7 @@ private:
 public:
 	RenderInterface_GL2_SDL(SDL_Renderer* renderer) : renderer(renderer) {}
 
-	void RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation, Rml::TextureHandle texture) override
+	void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override
 	{
 		SDL_Texture* sdl_texture = (SDL_Texture*)texture;
 		if (sdl_texture)
@@ -61,18 +61,18 @@ public:
 			texture = RenderInterface_GL2::TextureEnableWithoutBinding;
 		}
 
-		RenderInterface_GL2::RenderCompiledGeometry(handle, translation, texture);
+		RenderInterface_GL2::RenderGeometry(handle, translation, texture);
 
 		if (sdl_texture)
 			SDL_GL_UnbindTexture(sdl_texture);
 	}
 
-	bool LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override
+	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override
 	{
 		Rml::FileInterface* file_interface = Rml::GetFileInterface();
 		Rml::FileHandle file_handle = file_interface->Open(source);
 		if (!file_handle)
-			return false;
+			return {};
 
 		file_interface->Seek(file_handle, 0, SEEK_END);
 		const size_t buffer_size = file_interface->Tell(file_handle);
@@ -88,7 +88,9 @@ public:
 
 		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
 		if (!surface)
-			return false;
+			return {};
+
+		texture_dimensions = {surface->w, surface->h};
 
 		if (surface->format->format != SDL_PIXELFORMAT_RGBA32 && surface->format->format != SDL_PIXELFORMAT_BGRA32)
 		{
@@ -98,7 +100,7 @@ public:
 			SDL_FreeSurface(surface);
 
 			if (!converted_surface)
-				return false;
+				return {};
 
 			surface = converted_surface;
 		}
@@ -113,18 +115,12 @@ public:
 		}
 
 		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-		texture_dimensions = Rml::Vector2i(surface->w, surface->h);
-		texture_handle = (Rml::TextureHandle)texture;
 		SDL_FreeSurface(surface);
 
-		if (!texture)
-			return false;
-
-		return true;
+		return (Rml::TextureHandle)texture;
 	}
 
-	bool GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override
+	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override
 	{
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 		Uint32 rmask = 0xff000000;
@@ -138,13 +134,12 @@ public:
 		Uint32 amask = 0xff000000;
 #endif
 
-		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*)source, source_dimensions.x, source_dimensions.y, 32, source_dimensions.x * 4, rmask,
-			gmask, bmask, amask);
+		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*)source.data(), source_dimensions.x, source_dimensions.y, 32, source_dimensions.x * 4,
+			rmask, gmask, bmask, amask);
 		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 		SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 		SDL_FreeSurface(surface);
-		texture_handle = (Rml::TextureHandle)texture;
-		return true;
+		return (Rml::TextureHandle)texture;
 	}
 
 	void ReleaseTexture(Rml::TextureHandle texture_handle) override { SDL_DestroyTexture((SDL_Texture*)texture_handle); }

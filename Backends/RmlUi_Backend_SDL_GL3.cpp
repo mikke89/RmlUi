@@ -52,12 +52,12 @@ class RenderInterface_GL3_SDL : public RenderInterface_GL3 {
 public:
 	RenderInterface_GL3_SDL() {}
 
-	bool LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override
+	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override
 	{
 		Rml::FileInterface* file_interface = Rml::GetFileInterface();
 		Rml::FileHandle file_handle = file_interface->Open(source);
 		if (!file_handle)
-			return false;
+			return {};
 
 		file_interface->Seek(file_handle, 0, SEEK_END);
 		const size_t buffer_size = file_interface->Tell(file_handle);
@@ -73,10 +73,9 @@ public:
 
 		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
 		if (!surface)
-			return false;
+			return {};
 
-		texture_dimensions.x = surface->w;
-		texture_dimensions.y = surface->h;
+		texture_dimensions = {surface->w, surface->h};
 
 		if (surface->format->format != SDL_PIXELFORMAT_RGBA32)
 		{
@@ -85,24 +84,26 @@ public:
 			SDL_FreeSurface(surface);
 
 			if (!converted_surface)
-				return false;
+				return {};
 
 			surface = converted_surface;
 		}
 
 		// Convert colors to premultiplied alpha, which is necessary for correct alpha compositing.
+		const size_t pixels_byte_size = surface->w * surface->h * 4;
 		byte* pixels = static_cast<byte*>(surface->pixels);
-		for (int i = 0; i < surface->w * surface->h * 4; i += 4)
+		for (size_t i = 0; i < pixels_byte_size; i += 4)
 		{
 			const byte alpha = pixels[i + 3];
-			for (int j = 0; j < 3; ++j)
+			for (size_t j = 0; j < 3; ++j)
 				pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
 		}
 
-		bool success = RenderInterface_GL3::GenerateTexture(texture_handle, (const Rml::byte*)surface->pixels, texture_dimensions);
+		Rml::TextureHandle texture_handle = RenderInterface_GL3::GenerateTexture({pixels, pixels_byte_size}, texture_dimensions);
+
 		SDL_FreeSurface(surface);
 
-		return success;
+		return texture_handle;
 	}
 };
 

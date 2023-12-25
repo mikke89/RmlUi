@@ -117,9 +117,14 @@ void TestNavigator::Render()
 {
 	if (reference_state != ReferenceState::None && source_state == SourceType::None && !viewer->IsHelpVisible())
 	{
-		TextureGeometry& geometry = (reference_state == ReferenceState::ShowReferenceHighlight ? reference_highlight_geometry : reference_geometry);
-		render_interface->RenderGeometry(geometry.mesh.vertices.data(), (int)geometry.mesh.vertices.size(), geometry.mesh.indices.data(),
-			(int)geometry.mesh.indices.size(), geometry.texture_handle, Rml::Vector2f(0, 0));
+		const TextureGeometry& geometry =
+			(reference_state == ReferenceState::ShowReferenceHighlight ? reference_highlight_geometry : reference_geometry);
+
+		if (const Rml::CompiledGeometryHandle handle = render_interface->CompileGeometry(geometry.mesh.vertices, geometry.mesh.indices))
+		{
+			render_interface->RenderGeometry(handle, Rml::Vector2f(0, 0), geometry.texture_handle);
+			render_interface->ReleaseGeometry(handle);
+		}
 	}
 }
 

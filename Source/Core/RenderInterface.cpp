@@ -45,36 +45,15 @@ RenderInterface::~RenderInterface()
 		"or nullptr dereference when releasing render resources. Ensure that the render interface is destroyed *after* the call to Rml::Shutdown.");
 }
 
-CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/)
-{
-	return 0;
-}
-
-void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle /*geometry*/, const Vector2f& /*translation*/, TextureHandle /*texture*/) {}
-
-void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle /*geometry*/) {}
-
 void RenderInterface::EnableClipMask(bool /*enable*/) {}
 
 void RenderInterface::RenderToClipMask(ClipMaskOperation /*operation*/, CompiledGeometryHandle /*geometry*/, Vector2f /*translation*/) {}
-
-bool RenderInterface::LoadTexture(TextureHandle& /*texture_handle*/, Vector2i& /*texture_dimensions*/, const String& /*source*/)
-{
-	return false;
-}
-
-bool RenderInterface::GenerateTexture(TextureHandle& /*texture_handle*/, const byte* /*source*/, const Vector2i& /*source_dimensions*/)
-{
-	return false;
-}
-
-void RenderInterface::ReleaseTexture(TextureHandle /*texture*/) {}
 
 void RenderInterface::SetTransform(const Matrix4f* /*transform*/) {}
 
 void RenderInterface::PushLayer(LayerFill /*layer_fill*/) {}
 
-void RenderInterface::PopLayer(BlendMode /*blend_mode*/, const FilterHandleList& /*filters*/) {}
+void RenderInterface::PopLayer(BlendMode /*blend_mode*/, Span<const CompiledFilterHandle> /*filters*/) {}
 
 TextureHandle RenderInterface::SaveLayerAsTexture(Vector2i /*dimensions*/)
 {

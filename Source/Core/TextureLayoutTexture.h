@@ -62,7 +62,7 @@ public:
 
 	/// Allocates the texture.
 	/// @return The allocated texture data.
-	UniquePtr<byte[]> AllocateTexture();
+	Vector<byte> AllocateTexture();
 
 private:
 	using RowList = Vector<TextureLayoutRow>;
