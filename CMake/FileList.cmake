@@ -202,6 +202,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderManager.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScriptInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScrollTypes.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Span.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Spritesheet.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StableVector.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Stream.h
