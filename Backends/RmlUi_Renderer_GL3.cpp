@@ -66,7 +66,8 @@ static constexpr int NUM_MSAA_SAMPLES = 2;
 #define RMLUI_STRINGIFY_IMPL(x) #x
 #define RMLUI_STRINGIFY(x) RMLUI_STRINGIFY_IMPL(x)
 
-#define RMLUI_SHADER_HEADER RMLUI_SHADER_HEADER_VERSION "#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n"
+#define RMLUI_SHADER_HEADER \
+	RMLUI_SHADER_HEADER_VERSION "#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n#line " RMLUI_STRINGIFY(__LINE__) "\n"
 
 static const char* shader_vert_main = RMLUI_SHADER_HEADER R"(
 uniform vec2 _translate;
@@ -113,6 +114,7 @@ void main() {
 )";
 
 enum class ShaderGradientFunction { Linear, Radial, Conic, RepeatingLinear, RepeatingRadial, RepeatingConic }; // Must match shader definitions below.
+
 static const char* shader_frag_gradient = RMLUI_SHADER_HEADER R"(
 #define LINEAR 0
 #define RADIAL 1
@@ -143,7 +145,7 @@ vec4 mix_stop_colors(float t) {
 }
 
 void main() {
-	float t = 0;
+	float t = 0.0;
 
 	if (_func == LINEAR || _func == REPEATING_LINEAR)
 	{
