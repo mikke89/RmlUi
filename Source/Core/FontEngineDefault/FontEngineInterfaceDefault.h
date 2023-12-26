@@ -56,11 +56,11 @@ public:
 	const FontMetrics& GetFontMetrics(FontFaceHandle handle) override;
 
 	/// Returns the width a string will take up if rendered with this handle.
-	int GetStringWidth(FontFaceHandle, const String& string, float letter_spacing, Character prior_character) override;
+	int GetStringWidth(FontFaceHandle, const String& string, float letter_spacing, Element* element, Character prior_character) override;
 
 	/// Generates the geometry required to render a single line of text.
 	int GenerateString(FontFaceHandle, FontEffectsHandle, const String& string, const Vector2f& position, const Colourb& colour, float opacity,
-		float letter_spacing, GeometryList& geometry) override;
+		float letter_spacing, Element* element, GeometryList& geometry) override;
 
 	/// Returns the current version of the font face.
 	int GetVersion(FontFaceHandle handle) override;

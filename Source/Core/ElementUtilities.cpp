@@ -161,7 +161,7 @@ int ElementUtilities::GetStringWidth(Element* element, const String& string, Cha
 	if (font_face_handle == 0)
 		return 0;
 
-	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string, letter_spacing, prior_character);
+	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string, letter_spacing, element, prior_character);
 }
 
 bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_dimensions, Element* element)

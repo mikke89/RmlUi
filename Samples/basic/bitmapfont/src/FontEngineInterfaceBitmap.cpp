@@ -74,14 +74,14 @@ const FontMetrics& FontEngineInterfaceBitmap::GetFontMetrics(FontFaceHandle hand
 	return handle_bitmap->GetMetrics();
 }
 
-int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const String& string, float /*letter_spacing*/, Character prior_character)
+int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const String& string, float /*letter_spacing*/, Element* /*element*/, Character prior_character)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
 	return handle_bitmap->GetStringWidth(string, prior_character);
 }
 
 int FontEngineInterfaceBitmap::GenerateString(FontFaceHandle handle, FontEffectsHandle /*font_effects_handle*/, const String& string,
-	const Vector2f& position, const Colourb& colour, float /*opacity*/, float /*letter_spacing*/, GeometryList& geometry)
+	const Vector2f& position, const Colourb& colour, float /*opacity*/, float /*letter_spacing*/, Element* /*element*/, GeometryList& geometry)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
 	return handle_bitmap->GenerateString(string, position, colour, geometry);

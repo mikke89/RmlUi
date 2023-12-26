@@ -228,7 +228,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space,
 			break_at_endline, text_transform_property, decode_escape_characters);
-		int token_width = font_engine_interface->GetStringWidth(font_face_handle, token, letter_spacing, previous_codepoint);
+		int token_width = font_engine_interface->GetStringWidth(font_face_handle, token, letter_spacing, this, previous_codepoint);
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
 		if (break_at_line)
@@ -253,7 +253,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 						const char* partial_string_end = StringUtilities::SeekBackwardUTF8(token_begin + i, token_begin);
 						BuildToken(token, next_token_begin, partial_string_end, line.empty() && trim_whitespace_prefix, collapse_white_space,
 							break_at_endline, text_transform_property, decode_escape_characters);
-						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, letter_spacing, previous_codepoint);
+						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, letter_spacing, this, previous_codepoint);
 
 						if (force_loop_break_after_next || token_width <= max_token_width)
 						{
@@ -463,7 +463,7 @@ void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle, Line& 
 	const float letter_spacing = GetComputedValues().letter_spacing();
 
 	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, opacity,
-		letter_spacing, geometry);
+		letter_spacing, this, geometry);
 }
 
 void ElementText::GenerateDecoration(const FontFaceHandle font_face_handle)
