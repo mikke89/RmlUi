@@ -35,13 +35,6 @@
 
 namespace Rml {
 
-bool Log::Initialise()
-{
-	return true;
-}
-
-void Log::Shutdown() {}
-
 void Log::Message(Log::Type type, const char* fmt, ...)
 {
 	const int buffer_size = 1024;

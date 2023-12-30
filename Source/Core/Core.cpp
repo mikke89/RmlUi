@@ -94,8 +94,6 @@ bool Initialise()
 {
 	RMLUI_ASSERTMSG(!initialised, "Rml::Initialise() called, but RmlUi is already initialised!");
 
-	Log::Initialise();
-
 	// Check for valid interfaces, or install default interfaces as appropriate.
 	if (!system_interface)
 	{
@@ -184,9 +182,6 @@ void Shutdown()
 
 	default_file_interface.reset();
 
-	Log::Shutdown();
-
-	// Release any memory pools
 	ReleaseMemoryPools();
 }
 
