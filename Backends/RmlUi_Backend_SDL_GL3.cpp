@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/Log.h>
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -154,7 +155,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	SDL_Window* window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
 	if (!window)
 	{
-		fprintf(stderr, "SDL error on create window: %s\n", SDL_GetError());
+		Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on create window: %s", SDL_GetError());
 		return false;
 	}
 
@@ -164,7 +165,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	if (!RmlGL3::Initialize())
 	{
-		fprintf(stderr, "Could not initialize OpenGL");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to initialize OpenGL renderer");
 		return false;
 	}
 
@@ -173,7 +174,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (!data->render_interface)
 	{
 		data.reset();
-		fprintf(stderr, "Could not initialize OpenGL3 render interface.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to initialize OpenGL3 render interface");
 		return false;
 	}
 

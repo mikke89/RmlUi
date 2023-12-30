@@ -26,12 +26,13 @@
  *
  */
 
-#include "RmlUi/Core/Debug.h"
 #include "RmlUi_Backend.h"
 #include "RmlUi_Include_Xlib.h"
 #include "RmlUi_Platform_X11.h"
 #include "RmlUi_Renderer_GL2.h"
 #include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/Debug.h>
+#include <RmlUi/Core/Log.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <GL/glu.h>
@@ -61,7 +62,7 @@ static bool AttachToNative(GLXContext& out_gl_context, Display* display, Window 
 		return false;
 
 	if (!glXIsDirect(display, gl_context))
-		puts("OpenGL context does not support direct rendering; performance is likely to be poor.");
+		Rml::Log::Message(Rml::Log::LT_INFO, "OpenGL context does not support direct rendering; performance is likely to be poor.");
 
 	out_gl_context = gl_context;
 
@@ -142,7 +143,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 		XSizeHints* win_size_hints = XAllocSizeHints(); // Allocate a size hint structure
 		if (!win_size_hints)
 		{
-			fprintf(stderr, "XAllocSizeHints - out of memory\n");
+			Rml::Log::Message(Rml::Log::LT_ERROR, "XAllocSizeHints - out of memory");
 		}
 		else
 		{
