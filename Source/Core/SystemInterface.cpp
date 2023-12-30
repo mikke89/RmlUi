@@ -30,12 +30,7 @@
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/URL.h"
-
-#ifdef RMLUI_PLATFORM_WIN32
-	#include <windows.h>
-#else
-	#include <stdio.h>
-#endif
+#include "LogDefault.h"
 
 namespace Rml {
 
@@ -45,37 +40,10 @@ SystemInterface::SystemInterface() {}
 
 SystemInterface::~SystemInterface() {}
 
-#ifdef RMLUI_PLATFORM_WIN32
-bool SystemInterface::LogMessage(Log::Type logtype, const String& message)
+bool SystemInterface::LogMessage(Log::Type type, const String& message)
 {
-	// By default we just send a platform message
-	#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
-	if (logtype == Log::LT_ASSERT)
-	{
-		String message_user = CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());
-
-		// Return TRUE if the user presses NO (continue execution)
-		return (IDNO == MessageBoxA(nullptr, message_user.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_TASKMODAL));
-	}
-	else
-	#endif
-	{
-		OutputDebugStringA(message.c_str());
-		OutputDebugStringA("\r\n");
-	}
-	return true;
+	return LogDefault::LogMessage(type, message);
 }
-#else
-bool SystemInterface::LogMessage(Log::Type /*logtype*/, const String& message)
-{
-	#ifdef RMLUI_PLATFORM_EMSCRIPTEN
-	puts(message.c_str());
-	#else
-	fprintf(stderr, "%s\n", message.c_str());
-	#endif
-	return true;
-}
-#endif
 
 void SystemInterface::SetMouseCursor(const String& /*cursor_name*/) {}
 

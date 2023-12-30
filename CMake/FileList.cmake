@@ -76,6 +76,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/ReplacedFormattingContext.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingContext.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingDetails.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/LogDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Memory.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Pool.h
@@ -352,6 +353,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingContext.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingDetails.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Log.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/LogDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Math.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Memory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/MeshUtilities.cpp

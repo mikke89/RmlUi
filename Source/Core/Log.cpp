@@ -30,6 +30,7 @@
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "LogDefault.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -54,7 +55,7 @@ void Log::Message(Log::Type type, const char* fmt, ...)
 	if (SystemInterface* system_interface = GetSystemInterface())
 		system_interface->LogMessage(type, buffer);
 	else
-		puts(buffer);
+		LogDefault::LogMessage(type, buffer);
 }
 
 void Log::ParseError(const String& filename, int line_number, const char* fmt, ...)
@@ -87,7 +88,7 @@ bool Assert(const char* msg, const char* file, int line)
 	if (SystemInterface* system_interface = GetSystemInterface())
 		result = system_interface->LogMessage(Log::LT_ASSERT, message);
 	else
-		puts(message.c_str());
+		result = LogDefault::LogMessage(Log::LT_ASSERT, message);
 
 	return result;
 }
