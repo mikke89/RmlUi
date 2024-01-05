@@ -154,7 +154,7 @@ static UniquePtr<SpritesheetPropertyParser> spritesheet_property_parser;
 
 /*
  * Media queries need a special parser because they have unique properties that
- * aren't admissible in other property declaration contexts and the syntax of
+ * aren't admissible in other property declaration contexts.
  */
 class MediaQueryPropertyParser final : public AbstractPropertyParser {
 private:
@@ -398,12 +398,12 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	return true;
 }
 
-bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, const String& rules)
+bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, const String& rules, bool &match_value)
 {
 	media_query_property_parser->SetTargetProperties(&properties);
 
 	enum ParseState { Global, Name, Value };
-	ParseState state = Name;
+	ParseState state = Global;
 
 	char character = 0;
 
@@ -413,12 +413,36 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 
 	String current_string;
 
-	while (cursor++ < rules.length())
+	match_value = true;
+
+	do
 	{
-		character = rules[cursor];
+		character = rules[cursor++];
 
 		switch (character)
 		{
+		case ' ':
+		{
+			if (state == Global)
+			{
+				current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
+
+				if (current_string == "not")
+				{
+					// we can only ever see one "not" on the entire global query.
+					if (!match_value)
+					{
+						Log::Message(Log::LT_WARNING, "Unexpected 'not' in @media query list at %s:%d.", stream_file_name.c_str(), line_number);
+						return false;
+					}
+
+					match_value = false;
+					current_string.clear();
+				}
+			}
+
+			break;
+		}
 		case '(':
 		{
 			if (state != Global)
@@ -429,7 +453,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 
 			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
 
-			if (current_string != "and")
+			if (!current_string.empty() && current_string != "and")
 			{
 				Log::Message(Log::LT_WARNING, "Unexpected '%s' in @media query list at %s:%d. Expected 'and'.", current_string.c_str(),
 					stream_file_name.c_str(), line_number);
@@ -483,7 +507,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 		break;
 		default: current_string += character;
 		}
-	}
+	} while (cursor < rules.length());
 
 	if (properties.GetNumProperties() == 0)
 	{
@@ -529,7 +553,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					// Initialize current block if not present
 					if (!current_block.stylesheet)
 					{
-						current_block = MediaBlock{PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
+						current_block = MediaBlock{PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet()), true};
 					}
 
 					const int rule_line_number = line_number;
@@ -586,7 +610,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					// Initialize current block if not present
 					if (!current_block.stylesheet)
 					{
-						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
+						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet()), true};
 					}
 
 					const String at_rule_identifier = StringUtilities::StripWhitespace(pre_token_str.substr(0, pre_token_str.find(' ')));
@@ -654,8 +678,8 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 
 						// parse media query list into block
 						PropertyDictionary feature_map;
-						ParseMediaFeatureMap(feature_map, at_rule_name);
-						current_block = {std::move(feature_map), UniquePtr<StyleSheet>(new StyleSheet())};
+						ParseMediaFeatureMap(feature_map, at_rule_name, current_block.match_value);
+						current_block = {std::move(feature_map), UniquePtr<StyleSheet>(new StyleSheet()), current_block.match_value};
 
 						inside_media_block = true;
 						state = State::Global;
@@ -684,7 +708,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					// Initialize current block if not present
 					if (!current_block.stylesheet)
 					{
-						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
+						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet()), true};
 					}
 
 					// Each keyframe in keyframes has its own block which is processed here

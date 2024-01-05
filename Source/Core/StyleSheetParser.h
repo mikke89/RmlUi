@@ -109,7 +109,7 @@ private:
 		const SharedPtr<const PropertySource>& source);
 
 	// Attempts to parse the properties of a @media query
-	bool ParseMediaFeatureMap(PropertyDictionary& properties, const String& rules);
+	bool ParseMediaFeatureMap(PropertyDictionary& properties, const String& rules, bool &match_value);
 
 	// Attempts to find one of the given character tokens in the active stream
 	// If it's found, buffer is filled with all content up until the token

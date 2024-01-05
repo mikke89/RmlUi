@@ -86,12 +86,13 @@ struct DecoratorDeclarationList {
 
 struct MediaBlock {
 	MediaBlock() {}
-	MediaBlock(PropertyDictionary _properties, SharedPtr<StyleSheet> _stylesheet) :
-		properties(std::move(_properties)), stylesheet(std::move(_stylesheet))
+	MediaBlock(PropertyDictionary _properties, SharedPtr<StyleSheet> _stylesheet, bool _match_value) :
+		properties(std::move(_properties)), stylesheet(std::move(_stylesheet)), match_value(_match_value)
 	{}
 
 	PropertyDictionary properties; // Media query properties
 	SharedPtr<StyleSheet> stylesheet;
+	bool match_value = true;
 };
 using MediaBlockList = Vector<MediaBlock>;
 
