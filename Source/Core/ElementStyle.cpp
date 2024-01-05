@@ -875,6 +875,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::NavLeft:
 		case PropertyId::NavRight:
 			break;
+		// Internationalization properties (internal). Must be manually retrieved with 'GetProperty()'.
+		case PropertyId::Language:
+		case PropertyId::Direction:
 		// Unhandled properties. Must be manually retrieved with 'GetProperty()'.
 		case PropertyId::FillImage:
 		case PropertyId::CaretColor:

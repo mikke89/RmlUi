@@ -71,17 +71,19 @@ const FontMetrics& FontEngineInterfaceDefault::GetFontMetrics(FontFaceHandle han
 	return handle_default->GetFontMetrics();
 }
 
-int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const String& string, float letter_spacing, Character prior_character)
+int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& text_shaping_context,
+	Character prior_character)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
-	return handle_default->GetStringWidth(string, letter_spacing, prior_character);
+	return handle_default->GetStringWidth(string, text_shaping_context.letter_spacing, prior_character);
 }
 
 int FontEngineInterfaceDefault::GenerateString(FontFaceHandle handle, FontEffectsHandle font_effects_handle, const String& string,
-	const Vector2f& position, const Colourb& colour, float opacity, float letter_spacing, GeometryList& geometry)
+	const Vector2f& position, const Colourb& colour, float opacity, const TextShapingContext& text_shaping_context, GeometryList& geometry)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
-	return handle_default->GenerateString(geometry, string, position, colour, opacity, letter_spacing, (int)font_effects_handle);
+	return handle_default->GenerateString(geometry, string, position, colour, opacity, text_shaping_context.letter_spacing,
+		(int)font_effects_handle);
 }
 
 int FontEngineInterfaceDefault::GetVersion(FontFaceHandle handle)

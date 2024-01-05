@@ -45,6 +45,15 @@ namespace Rml {
 
 class RMLUICORE_API FontEngineInterface {
 public:
+	/*
+		Data extracted from the properties of the text's element to help provide context for text shaping and spacing.
+	*/
+	struct TextShapingContext {
+		const Rml::String& language;
+		Rml::Style::Direction text_direction = Rml::Style::Direction::Auto;
+		float letter_spacing = 0.0f;
+	};
+
 	FontEngineInterface();
 	virtual ~FontEngineInterface();
 
@@ -90,11 +99,12 @@ public:
 	/// Called by RmlUi when it wants to retrieve the width of a string when rendered with this handle.
 	/// @param[in] handle The font handle.
 	/// @param[in] string The string to measure.
-	/// @param[in] letter_spacing The letter spacing size in pixels.
+	/// @param[in] text_shaping_context Additional parameters that provide context for text shaping.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string
 	/// width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	virtual int GetStringWidth(FontFaceHandle handle, const String& string, float letter_spacing, Character prior_character = Character::Null);
+	virtual int GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& text_shaping_context,
+		Character prior_character = Character::Null);
 
 	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
 	/// @param[in] face_handle The font handle.
@@ -103,11 +113,11 @@ public:
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text. Colour alpha is premultiplied with opacity.
 	/// @param[in] opacity The opacity of the text, should be applied to font effects.
-	/// @param[in] letter_spacing The letter spacing size in pixels.
+	/// @param[in] text_shaping_context Additional parameters that provide context for text shaping.
 	/// @param[out] geometry An array of geometries to generate the geometry into.
 	/// @return The width, in pixels, of the string geometry.
 	virtual int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position,
-		const Colourb& colour, float opacity, float letter_spacing, GeometryList& geometry);
+		const Colourb& colour, float opacity, const TextShapingContext& text_shaping_context, GeometryList& geometry);
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated. Whenever the returned version
 	/// is changed, all geometry belonging to the given face handle will be re-generated.

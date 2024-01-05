@@ -429,6 +429,10 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterShorthand(ShorthandId::Flex, "flex", "flex-grow, flex-shrink, flex-basis", ShorthandType::Flex);
 	RegisterShorthand(ShorthandId::FlexFlow, "flex-flow", "flex-direction, flex-wrap", ShorthandType::FallThrough);
 
+	// Internationalization properties (internal)
+	RegisterProperty(PropertyId::Language, "language", "", true, false);
+	RegisterProperty(PropertyId::Direction, "direction", "auto", true, false);
+
 	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");
 	RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");
 	// clang-format on
