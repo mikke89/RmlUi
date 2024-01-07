@@ -407,17 +407,15 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 
 	char character = 0;
 
-	size_t cursor = 0;
-
 	String name;
 
 	String current_string;
 
 	modifier = MediaQueryModifier::None;
 
-	do
+	for (size_t cursor = 0; cursor < rules.length(); cursor++)
 	{
-		character = rules[cursor++];
+		character = rules[cursor];
 
 		switch (character)
 		{
@@ -509,7 +507,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 		break;
 		default: current_string += character;
 		}
-	} while (cursor < rules.length());
+	}
 
 	if (properties.GetNumProperties() == 0)
 	{
