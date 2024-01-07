@@ -453,7 +453,9 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 
 			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
 
-			if (!current_string.empty() && current_string != "and")
+			// allow an empty string to pass through only if we had just parsed a modifier.
+			if (current_string != "and" &&
+				(properties.GetNumProperties() != 0 || !current_string.empty()))
 			{
 				Log::Message(Log::LT_WARNING, "Unexpected '%s' in @media query list at %s:%d. Expected 'and'.", current_string.c_str(),
 					stream_file_name.c_str(), line_number);

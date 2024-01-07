@@ -286,6 +286,47 @@ static const String document_media_query6_rml = R"(
 </rml>
 )";
 
+static const String document_media_query7_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+		}
+
+		div {
+			height: 48px;
+			width: 48px;
+			background: white;
+		}
+
+		@media (theme: big) (theme: small) {
+			div {
+				height: 32px;
+				width: 32px;
+			}
+		}
+
+		@media not (theme: big) (theme: small) {
+			div {
+				height: 32px;
+				width: 32px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+<div/>
+</body>
+</rml>
+)";
+
 TEST_CASE("mediaquery.basic")
 {
 	Context* context = TestsShell::GetContext();
@@ -512,10 +553,27 @@ TEST_CASE("mediaquery.theme.notonly_mix")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 	
-	INFO("Expected warning: unexpected 'not'/'only'.");
+	INFO("Expected warnings: unexpected 'not'/'only'.");
 	TestsShell::SetNumExpectedWarnings(2);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query6_rml);
+	REQUIRE(document);
+	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+
+// test that an `and` must be between multiple conditions.
+TEST_CASE("mediaquery.theme.condition_checks")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+	
+	INFO("Expected warnings: expected 'and'.");
+	TestsShell::SetNumExpectedWarnings(2);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query7_rml);
 	REQUIRE(document);
 	document->Close();
 
