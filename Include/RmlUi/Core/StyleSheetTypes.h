@@ -84,15 +84,21 @@ struct DecoratorDeclarationList {
 	String value;
 };
 
+enum class MediaQueryModifier {
+	None,
+	Not, // passes only if the query is false instead of true
+	Only // provided only for compatibility; does nothing
+};
+
 struct MediaBlock {
 	MediaBlock() {}
-	MediaBlock(PropertyDictionary _properties, SharedPtr<StyleSheet> _stylesheet, bool _match_value) :
-		properties(std::move(_properties)), stylesheet(std::move(_stylesheet)), match_value(_match_value)
+	MediaBlock(PropertyDictionary _properties, SharedPtr<StyleSheet> _stylesheet, MediaQueryModifier _modifier) :
+		properties(std::move(_properties)), stylesheet(std::move(_stylesheet)), modifier(_modifier)
 	{}
 
 	PropertyDictionary properties; // Media query properties
 	SharedPtr<StyleSheet> stylesheet;
-	bool match_value = true;
+	MediaQueryModifier modifier = MediaQueryModifier::None;
 };
 using MediaBlockList = Vector<MediaBlock>;
 
