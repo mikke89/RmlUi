@@ -32,6 +32,7 @@
 #include "Geometry.h"
 #include "Header.h"
 #include "StyleTypes.h"
+#include "TextShapingContext.h"
 #include "Types.h"
 
 namespace Rml {
@@ -45,15 +46,6 @@ namespace Rml {
 
 class RMLUICORE_API FontEngineInterface {
 public:
-	/*
-		Data extracted from the properties of the text's element to help provide context for text shaping and spacing.
-	*/
-	struct TextShapingContext {
-		const Rml::String& language;
-		Rml::Style::Direction text_direction = Rml::Style::Direction::Auto;
-		float letter_spacing = 0.0f;
-	};
-
 	FontEngineInterface();
 	virtual ~FontEngineInterface();
 

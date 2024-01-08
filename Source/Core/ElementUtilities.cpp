@@ -34,6 +34,7 @@
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/TextShapingContext.h"
 #include "DataController.h"
 #include "DataModel.h"
 #include "DataView.h"
@@ -155,9 +156,9 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element* element)
 
 int ElementUtilities::GetStringWidth(Element* element, const String& string, Character prior_character)
 {
-	const FontEngineInterface::TextShapingContext text_shaping_context{
-		element->GetProperty(PropertyId::Language)->value.GetReference<String>(),
-		element->GetProperty(PropertyId::Direction)->Get<Style::Direction>(),
+	const TextShapingContext text_shaping_context{
+		element->GetComputedValues().language(),
+		element->GetComputedValues().direction(),
 		element->GetComputedValues().letter_spacing()
 	};
 

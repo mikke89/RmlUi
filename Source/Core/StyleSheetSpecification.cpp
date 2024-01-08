@@ -430,8 +430,8 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterShorthand(ShorthandId::FlexFlow, "flex-flow", "flex-direction, flex-wrap", ShorthandType::FallThrough);
 
 	// Internationalization properties (internal)
-	RegisterProperty(PropertyId::Language, "language", "", true, false);
-	RegisterProperty(PropertyId::Direction, "direction", "auto", true, false);
+	RegisterProperty(PropertyId::RmlUi_Language, "--rmlui-language", "", true, true).AddParser("string");
+	RegisterProperty(PropertyId::RmlUi_Direction, "--rmlui-direction", "auto", true, true).AddParser("keyword", "auto, ltr, rtl");
 
 	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");
 	RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");

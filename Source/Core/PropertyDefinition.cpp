@@ -29,7 +29,6 @@
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
-#include "../../Include/RmlUi/Core/StyleTypes.h"
 
 namespace Rml {
 
@@ -138,25 +137,9 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 					break;
 				}
 			}
-
+			// If we couldn't find it, exit now
 			if (parser_index < 0 || parser_index >= (int)parsers.size())
-			{
-				// Manually handle internal direction property
-				if (id == PropertyId::Direction)
-				{
-					switch (property.value.Get<Style::Direction>())
-					{
-					case Style::Direction::Auto: value = "auto"; break;
-					case Style::Direction::Ltr: value = "ltr"; break;
-					case Style::Direction::Rtl: value = "rtl"; break;
-					}
-
-					break;
-				}
-
-				// We couldn't find it, exit now
 				return false;
-			}
 		}
 
 		int keyword = property.value.Get<int>();

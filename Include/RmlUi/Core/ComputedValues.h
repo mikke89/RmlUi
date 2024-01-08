@@ -115,7 +115,7 @@ namespace Style {
 			font_weight(FontWeight::Normal), has_letter_spacing(0), font_style(FontStyle::Normal), has_font_effect(false),
 			pointer_events(PointerEvents::Auto), focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None),
 			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal),
-			line_height_inherit_type(LineHeight::Number)
+			direction(Direction::Auto), line_height_inherit_type(LineHeight::Number)
 		{}
 
 		// Font face used to render text and resolve ex properties. Does not represent a true property
@@ -141,9 +141,13 @@ namespace Style {
 		WhiteSpace white_space : 3;
 		WordBreak word_break : 2;
 
+		Direction direction : 2;
+
 		LineHeight::InheritType line_height_inherit_type : 1;
 		float line_height = 12.f * 1.2f;
 		float line_height_inherit = 1.2f;
+
+		String language = "";
 	};
 
 	struct RareValues {
@@ -257,6 +261,8 @@ namespace Style {
 		Colourb        color()            const { return inherited.color; }
 		float          opacity()          const { return inherited.opacity; }
 		LineHeight     line_height()      const { return LineHeight(inherited.line_height, inherited.line_height_inherit_type, inherited.line_height_inherit); }
+		const String&  language()         const { return inherited.language; }
+		Direction      direction()        const { return inherited.direction; }
 
 		// -- Rare --
 		MinWidth          min_width()                  const { return LengthPercentage(rare.min_width_type, rare.min_width); }
@@ -349,6 +355,8 @@ namespace Style {
 		void color             (Colourb value)        { inherited.color              = value; }
 		void opacity           (float value)          { inherited.opacity            = value; }
 		void line_height       (LineHeight value)     { inherited.line_height = value.value; inherited.line_height_inherit_type = value.inherit_type; inherited.line_height_inherit = value.inherit_value;  }
+		void language          (const String& value)  { inherited.language           = value; }
+		void direction         (Direction value)      { inherited.direction          = value; }
 		// Rare
 		void min_width                 (MinWidth value)          { rare.min_width_type             = value.type; rare.min_width                  = value.value; }
 		void max_width                 (MaxWidth value)          { rare.max_width_type             = value.type; rare.max_width                  = value.value; }

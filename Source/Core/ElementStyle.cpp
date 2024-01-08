@@ -856,6 +856,13 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.flex_basis(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
+		case PropertyId::RmlUi_Language:
+			values.language(p->value.GetReference<String>());
+			break;
+		case PropertyId::RmlUi_Direction:
+			values.direction(p->Get<Direction>());
+			break;
+
 		// Fetched from element's properties.
 		case PropertyId::Cursor:
 		case PropertyId::Transition:
@@ -875,9 +882,6 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::NavLeft:
 		case PropertyId::NavRight:
 			break;
-		// Internationalization properties (internal). Must be manually retrieved with 'GetProperty()'.
-		case PropertyId::Language:
-		case PropertyId::Direction:
 		// Unhandled properties. Must be manually retrieved with 'GetProperty()'.
 		case PropertyId::FillImage:
 		case PropertyId::CaretColor:

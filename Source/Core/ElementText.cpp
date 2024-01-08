@@ -36,6 +36,7 @@
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/TextShapingContext.h"
 #include "ComputeProperty.h"
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
@@ -205,10 +206,8 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	bool break_at_endline =
 		white_space_property == WhiteSpace::Pre || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline;
 
-	const FontEngineInterface::TextShapingContext text_shaping_context{
-		GetProperty(PropertyId::Language)->value.GetReference<String>(),
-		GetProperty(PropertyId::Direction)->Get<Style::Direction>(),
-		computed.letter_spacing()
+	const TextShapingContext text_shaping_context{
+		computed.language(), computed.direction(), computed.letter_spacing()
 	};
 
 	TextTransform text_transform_property = computed.text_transform();
@@ -357,13 +356,13 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		}
 	}
 
-	if (changed_properties.Contains(PropertyId::FontFamily) ||    //
-		changed_properties.Contains(PropertyId::FontWeight) ||    //
-		changed_properties.Contains(PropertyId::FontStyle) ||     //
-		changed_properties.Contains(PropertyId::FontSize) ||      //
-		changed_properties.Contains(PropertyId::LetterSpacing) || //
-		changed_properties.Contains(PropertyId::Language) ||      //
-		changed_properties.Contains(PropertyId::Direction))
+	if (changed_properties.Contains(PropertyId::FontFamily) ||     //
+		changed_properties.Contains(PropertyId::FontWeight) ||     //
+		changed_properties.Contains(PropertyId::FontStyle) ||      //
+		changed_properties.Contains(PropertyId::FontSize) ||       //
+		changed_properties.Contains(PropertyId::LetterSpacing) ||  //
+		changed_properties.Contains(PropertyId::RmlUi_Language) || //
+		changed_properties.Contains(PropertyId::RmlUi_Direction))
 	{
 		font_face_changed = true;
 
@@ -466,10 +465,8 @@ void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle)
 
 void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle, Line& line)
 {
-	const FontEngineInterface::TextShapingContext text_shaping_context{
-		GetProperty(PropertyId::Language)->value.GetReference<String>(),
-		GetProperty(PropertyId::Direction)->Get<Style::Direction>(),
-		GetComputedValues().letter_spacing()
+	const TextShapingContext text_shaping_context{
+		GetComputedValues().language(), GetComputedValues().direction(), GetComputedValues().letter_spacing()
 	};
 
 	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, opacity,

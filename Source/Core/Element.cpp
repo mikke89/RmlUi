@@ -1648,7 +1648,7 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 		else if (attribute == "lang")
 		{
 			if (value.GetType() == Variant::STRING)
-				meta->style.SetProperty(PropertyId::Language, Property(value.GetReference<String>(), Unit::STRING));
+				meta->style.SetProperty(PropertyId::RmlUi_Language, Property(value.GetReference<String>(), Unit::STRING));
 			else if (value.GetType() != Variant::NONE)
 				Log::Message(Log::LT_WARNING, "Invalid 'lang' attribute, string type required. In element: %s", GetAddress().c_str());
 		}
@@ -1659,11 +1659,11 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 				const String& dir_value = value.GetReference<String>();
 
 				if (dir_value == "auto")
-					meta->style.SetProperty(PropertyId::Direction, Property(Style::Direction::Auto));
+					meta->style.SetProperty(PropertyId::RmlUi_Direction, Property(Style::Direction::Auto));
 				else if (dir_value == "ltr")
-					meta->style.SetProperty(PropertyId::Direction, Property(Style::Direction::Ltr));
+					meta->style.SetProperty(PropertyId::RmlUi_Direction, Property(Style::Direction::Ltr));
 				else if (dir_value == "rtl")
-					meta->style.SetProperty(PropertyId::Direction, Property(Style::Direction::Rtl));
+					meta->style.SetProperty(PropertyId::RmlUi_Direction, Property(Style::Direction::Rtl));
 				else
 					Log::Message(Log::LT_WARNING, "Invalid 'dir' attribute '%s', value must be 'auto', 'ltr', or 'rtl'. In element: %s",
 						dir_value.c_str(), GetAddress().c_str());

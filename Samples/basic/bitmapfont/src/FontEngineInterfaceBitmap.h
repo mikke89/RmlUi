@@ -49,6 +49,7 @@ using Rml::Style::FontWeight;
 using Rml::FontEffectList;
 using Rml::FontMetrics;
 using Rml::GeometryList;
+using Rml::TextShapingContext;
 
 class FontEngineInterfaceBitmap : public Rml::FontEngineInterface {
 public:
