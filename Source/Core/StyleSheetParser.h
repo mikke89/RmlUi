@@ -108,7 +108,6 @@ private:
 	bool ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet,
 		const SharedPtr<const PropertySource>& source);
 
-	// Attempts to parse the properties of a @media query
     /// Attempts to parse the properties of a @media query.
 	/// @param[in] rules The rules to parse.
 	/// @param[out] properties Parsed properties representing all values to be matched.
