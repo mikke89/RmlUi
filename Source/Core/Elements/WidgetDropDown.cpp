@@ -230,8 +230,10 @@ void WidgetDropDown::OnRender()
 			selection_element->SetOffset(Vector2f(offset_x, offset_y), parent_element);
 		}
 
+		int selection = GetSelection();
+
 		// Scroll selected element into view, if we have one
-		if (int selection = GetSelection(); selection != -1)
+		if (selection != -1)
 		{
 			Rml::ScrollIntoViewOptions scrollOptions {
 				box_layout_dirty == DropDownBoxLayoutType::Open ? Rml::ScrollAlignment::Start : Rml::ScrollAlignment::Nearest
