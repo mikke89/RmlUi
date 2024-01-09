@@ -197,7 +197,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 
 	// Determine how we are processing white-space while formatting the text.
 	using namespace Style;
-	auto& computed = GetComputedValues();
+	const auto& computed = GetComputedValues();
 	WhiteSpace white_space_property = computed.white_space();
 	bool collapse_white_space =
 		white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Nowrap || white_space_property == WhiteSpace::Preline;
@@ -206,10 +206,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	bool break_at_endline =
 		white_space_property == WhiteSpace::Pre || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline;
 
-	const TextShapingContext text_shaping_context{
-		computed.language(), computed.direction(), computed.letter_spacing()
-	};
-
+	const TextShapingContext text_shaping_context{ computed.language(), computed.direction(), computed.letter_spacing() };
 	TextTransform text_transform_property = computed.text_transform();
 	WordBreak word_break = computed.word_break();
 
@@ -465,9 +462,8 @@ void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle)
 
 void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle, Line& line)
 {
-	const TextShapingContext text_shaping_context{
-		GetComputedValues().language(), GetComputedValues().direction(), GetComputedValues().letter_spacing()
-	};
+	const auto& computed = GetComputedValues();
+	const TextShapingContext text_shaping_context{ computed.language(), computed.direction(), computed.letter_spacing() };
 
 	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, opacity,
 		text_shaping_context, geometry);

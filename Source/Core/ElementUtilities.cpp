@@ -156,11 +156,8 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element* element)
 
 int ElementUtilities::GetStringWidth(Element* element, const String& string, Character prior_character)
 {
-	const TextShapingContext text_shaping_context{
-		element->GetComputedValues().language(),
-		element->GetComputedValues().direction(),
-		element->GetComputedValues().letter_spacing()
-	};
+	const auto& computed = element->GetComputedValues();
+	const TextShapingContext text_shaping_context{ computed.language(), computed.direction(), computed.letter_spacing() };
 
 	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
 	if (font_face_handle == 0)

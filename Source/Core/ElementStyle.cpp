@@ -857,7 +857,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			break;
 
 		case PropertyId::RmlUi_Language:
-			values.language(p->value.GetReference<String>());
+			values.language(p->Get<String>());
 			break;
 		case PropertyId::RmlUi_Direction:
 			values.direction(p->Get<Direction>());
