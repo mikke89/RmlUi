@@ -175,6 +175,9 @@ enum class PropertyId : uint8_t {
 	NavDown,
 	NavLeft,
 
+	RmlUi_Language,
+	RmlUi_Direction,
+
 	NumDefinedIds,
 	FirstCustomId = NumDefinedIds,
 

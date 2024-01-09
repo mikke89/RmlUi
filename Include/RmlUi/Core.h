@@ -82,6 +82,7 @@
 #include "Core/StyleSheetSpecification.h"
 #include "Core/StyleTypes.h"
 #include "Core/SystemInterface.h"
+#include "Core/TextShapingContext.h"
 #include "Core/Texture.h"
 #include "Core/Transform.h"
 #include "Core/TransformPrimitive.h"

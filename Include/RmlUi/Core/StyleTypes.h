@@ -160,6 +160,8 @@ namespace Style {
 
 	enum class Nav : uint8_t { None, Auto, Horizontal, Vertical };
 
+	enum class Direction : uint8_t { Auto, Ltr, Rtl };
+
 	class ComputedValues;
 
 } // namespace Style

@@ -856,6 +856,13 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 			values.flex_basis(ComputeLengthPercentageAuto(p, font_size, document_font_size, dp_ratio, vp_dimensions));
 			break;
 
+		case PropertyId::RmlUi_Language:
+			values.language(p->Get<String>());
+			break;
+		case PropertyId::RmlUi_Direction:
+			values.direction(p->Get<Direction>());
+			break;
+
 		// Fetched from element's properties.
 		case PropertyId::Cursor:
 		case PropertyId::Transition:

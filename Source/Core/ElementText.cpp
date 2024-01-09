@@ -36,6 +36,7 @@
 #include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/Property.h"
+#include "../../Include/RmlUi/Core/TextShapingContext.h"
 #include "ComputeProperty.h"
 #include "ElementDefinition.h"
 #include "ElementStyle.h"
@@ -196,7 +197,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 
 	// Determine how we are processing white-space while formatting the text.
 	using namespace Style;
-	auto& computed = GetComputedValues();
+	const auto& computed = GetComputedValues();
 	WhiteSpace white_space_property = computed.white_space();
 	bool collapse_white_space =
 		white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Nowrap || white_space_property == WhiteSpace::Preline;
@@ -205,8 +206,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	bool break_at_endline =
 		white_space_property == WhiteSpace::Pre || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline;
 
-	float letter_spacing = computed.letter_spacing();
-
+	const TextShapingContext text_shaping_context{ computed.language(), computed.direction(), computed.letter_spacing() };
 	TextTransform text_transform_property = computed.text_transform();
 	WordBreak word_break = computed.word_break();
 
@@ -228,7 +228,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space,
 			break_at_endline, text_transform_property, decode_escape_characters);
-		int token_width = font_engine_interface->GetStringWidth(font_face_handle, token, letter_spacing, previous_codepoint);
+		int token_width = font_engine_interface->GetStringWidth(font_face_handle, token, text_shaping_context, previous_codepoint);
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
 		if (break_at_line)
@@ -253,7 +253,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 						const char* partial_string_end = StringUtilities::SeekBackwardUTF8(token_begin + i, token_begin);
 						BuildToken(token, next_token_begin, partial_string_end, line.empty() && trim_whitespace_prefix, collapse_white_space,
 							break_at_endline, text_transform_property, decode_escape_characters);
-						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, letter_spacing, previous_codepoint);
+						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, text_shaping_context, previous_codepoint);
 
 						if (force_loop_break_after_next || token_width <= max_token_width)
 						{
@@ -353,11 +353,13 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		}
 	}
 
-	if (changed_properties.Contains(PropertyId::FontFamily) || //
-		changed_properties.Contains(PropertyId::FontWeight) || //
-		changed_properties.Contains(PropertyId::FontStyle) ||  //
-		changed_properties.Contains(PropertyId::FontSize) ||   //
-		changed_properties.Contains(PropertyId::LetterSpacing))
+	if (changed_properties.Contains(PropertyId::FontFamily) ||     //
+		changed_properties.Contains(PropertyId::FontWeight) ||     //
+		changed_properties.Contains(PropertyId::FontStyle) ||      //
+		changed_properties.Contains(PropertyId::FontSize) ||       //
+		changed_properties.Contains(PropertyId::LetterSpacing) ||  //
+		changed_properties.Contains(PropertyId::RmlUi_Language) || //
+		changed_properties.Contains(PropertyId::RmlUi_Direction))
 	{
 		font_face_changed = true;
 
@@ -460,10 +462,11 @@ void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle)
 
 void ElementText::GenerateGeometry(const FontFaceHandle font_face_handle, Line& line)
 {
-	const float letter_spacing = GetComputedValues().letter_spacing();
+	const auto& computed = GetComputedValues();
+	const TextShapingContext text_shaping_context{ computed.language(), computed.direction(), computed.letter_spacing() };
 
 	line.width = GetFontEngineInterface()->GenerateString(font_face_handle, font_effects_handle, line.text, line.position, colour, opacity,
-		letter_spacing, geometry);
+		text_shaping_context, geometry);
 }
 
 void ElementText::GenerateDecoration(const FontFaceHandle font_face_handle)

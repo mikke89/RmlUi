@@ -1645,6 +1645,32 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 			else if (value.GetType() != Variant::NONE)
 				Log::Message(Log::LT_WARNING, "Invalid 'style' attribute, string type required. In element: %s", GetAddress().c_str());
 		}
+		else if (attribute == "lang")
+		{
+			if (value.GetType() == Variant::STRING)
+				meta->style.SetProperty(PropertyId::RmlUi_Language, Property(value.GetReference<String>(), Unit::STRING));
+			else if (value.GetType() != Variant::NONE)
+				Log::Message(Log::LT_WARNING, "Invalid 'lang' attribute, string type required. In element: %s", GetAddress().c_str());
+		}
+		else if (attribute == "dir")
+		{
+			if (value.GetType() == Variant::STRING)
+			{
+				const String& dir_value = value.GetReference<String>();
+
+				if (dir_value == "auto")
+					meta->style.SetProperty(PropertyId::RmlUi_Direction, Property(Style::Direction::Auto));
+				else if (dir_value == "ltr")
+					meta->style.SetProperty(PropertyId::RmlUi_Direction, Property(Style::Direction::Ltr));
+				else if (dir_value == "rtl")
+					meta->style.SetProperty(PropertyId::RmlUi_Direction, Property(Style::Direction::Rtl));
+				else
+					Log::Message(Log::LT_WARNING, "Invalid 'dir' attribute '%s', value must be 'auto', 'ltr', or 'rtl'. In element: %s",
+						dir_value.c_str(), GetAddress().c_str());
+			}
+			else if (value.GetType() != Variant::NONE)
+				Log::Message(Log::LT_WARNING, "Invalid 'dir' attribute, string type required. In element: %s", GetAddress().c_str());
+		}
 	}
 
 	// Any change to the attributes may affect which styles apply to the current element, in particular due to attribute selectors, ID selectors, and
