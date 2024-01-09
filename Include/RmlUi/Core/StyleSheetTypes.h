@@ -86,8 +86,7 @@ struct DecoratorDeclarationList {
 
 enum class MediaQueryModifier {
 	None,
-	Not, // passes only if the query is false instead of true
-	Only // provided only for compatibility; does nothing
+	Not // passes only if the query is false instead of true
 };
 
 struct MediaBlock {

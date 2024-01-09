@@ -230,7 +230,7 @@ static const String document_media_query5_rml = R"(
 			}
 		}
 
-		@media only (theme: big) {
+		@media (theme: big) {
 			div {
 				height: 96px;
 				width: 96px;
@@ -264,14 +264,7 @@ static const String document_media_query6_rml = R"(
 			background: white;
 		}
 
-		@media only not (theme: big) {
-			div {
-				height: 32px;
-				width: 32px;
-			}
-		}
-
-		@media not only (theme: big) {
+		@media not not (theme: big) {
 			div {
 				height: 32px;
 				width: 32px;
@@ -496,8 +489,7 @@ TEST_CASE("mediaquery.theme")
 	TestsShell::ShutdownShell();
 }
 
-// test of `not` and `only`; `only` should work as normal, but
-// `not` should be an inverted case
+// test of `not`; `not` should be an inverted case
 TEST_CASE("mediaquery.theme.notonly")
 {
 	Context* context = TestsShell::GetContext();
@@ -547,14 +539,14 @@ TEST_CASE("mediaquery.theme.notonly")
 	TestsShell::ShutdownShell();
 }
 
-// test that `not` and `only` cannot be mixed
-TEST_CASE("mediaquery.theme.notonly_mix")
+// test that `not` cannot appear multiple times
+TEST_CASE("mediaquery.theme.notonly_one")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 	
-	INFO("Expected warnings: unexpected 'not'/'only'.");
-	TestsShell::SetNumExpectedWarnings(2);
+	INFO("Expected warnings: unexpected 'not'.");
+	TestsShell::SetNumExpectedWarnings(1);
 
 	ElementDocument* document = context->LoadDocumentFromMemory(document_media_query6_rml);
 	REQUIRE(document);

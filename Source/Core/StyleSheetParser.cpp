@@ -425,9 +425,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 			{
 				current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
 
-				bool is_not = current_string == "not";
-
-				if (is_not || current_string == "only")
+				if (current_string == "not")
 				{
 					// we can only ever see one "not" on the entire global query.
 					if (modifier != MediaQueryModifier::None)
@@ -436,7 +434,7 @@ bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDiction
 						return false;
 					}
 
-					modifier = is_not ? MediaQueryModifier::Not : MediaQueryModifier::Only;
+					modifier = MediaQueryModifier::Not;
 					current_string.clear();
 				}
 			}
