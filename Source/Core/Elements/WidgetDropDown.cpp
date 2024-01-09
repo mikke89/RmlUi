@@ -48,7 +48,7 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 	lock_selection = false;
 	selection_dirty = false;
-	box_layout_dirty = false;
+	box_layout_dirty = DropDownBoxLayoutType::None;
 	value_rml_dirty = false;
 	value_layout_dirty = false;
 	box_visible = false;
@@ -151,7 +151,7 @@ void WidgetDropDown::OnUpdate()
 
 void WidgetDropDown::OnRender()
 {
-	if (box_visible && box_layout_dirty)
+	if (box_visible && box_layout_dirty != DropDownBoxLayoutType::None)
 	{
 		// Layout the selection box.
 		// The following procedure should ensure that the selection box is never (partly) outside of the context's window.
@@ -230,7 +230,16 @@ void WidgetDropDown::OnRender()
 			selection_element->SetOffset(Vector2f(offset_x, offset_y), parent_element);
 		}
 
-		box_layout_dirty = false;
+		// Scroll selected element into view, if we have one
+		if (int selection = GetSelection(); selection != -1)
+		{
+			Rml::ScrollIntoViewOptions scrollOptions {
+				box_layout_dirty == DropDownBoxLayoutType::Open ? Rml::ScrollAlignment::Start : Rml::ScrollAlignment::Nearest
+			};
+			GetOption(selection)->ScrollIntoView(scrollOptions);
+		}
+
+		box_layout_dirty = DropDownBoxLayoutType::None;
 	}
 
 	if (value_layout_dirty)
@@ -267,7 +276,7 @@ void WidgetDropDown::OnLayout()
 	value_element->SetOffset(parent_element->GetBox().GetPosition(BoxArea::Content), parent_element);
 	value_element->SetBox(Box(size));
 
-	box_layout_dirty = true;
+	box_layout_dirty = DropDownBoxLayoutType::Switch;
 	value_layout_dirty = true;
 }
 
@@ -380,6 +389,8 @@ int WidgetDropDown::AddOption(const String& rml, const String& option_value, int
 
 	int result = AddOption(std::move(element), before);
 
+	value_last_selected = -1;
+
 	return result;
 }
 
@@ -405,6 +416,8 @@ int WidgetDropDown::AddOption(ElementPtr element, int before)
 		option_index = before;
 	}
 
+	value_last_selected = -1;
+
 	return option_index;
 }
 
@@ -414,6 +427,8 @@ void WidgetDropDown::RemoveOption(int index)
 	if (!element)
 		return;
 
+	value_last_selected = -1;
+
 	selection_element->RemoveChild(element);
 }
 
@@ -421,6 +436,8 @@ void WidgetDropDown::ClearOptions()
 {
 	while (Element* element = selection_element->GetLastChild())
 		selection_element->RemoveChild(element);
+
+	value_last_selected = -1;
 }
 
 Element* WidgetDropDown::GetOption(int index)
@@ -449,7 +466,8 @@ void WidgetDropDown::OnChildAdd(Element* element)
 		SetSelection(element, true);
 
 	selection_dirty = true;
-	box_layout_dirty = true;
+	value_last_selected = -1;
+	box_layout_dirty = DropDownBoxLayoutType::Switch;
 }
 
 void WidgetDropDown::OnChildRemove(Element* element)
@@ -463,7 +481,8 @@ void WidgetDropDown::OnChildRemove(Element* element)
 		SetSelection(nullptr);
 
 	selection_dirty = true;
-	box_layout_dirty = true;
+	value_last_selected = -1;
+	box_layout_dirty = DropDownBoxLayoutType::Switch;
 }
 
 void WidgetDropDown::AttachScrollEvent()
@@ -583,6 +602,17 @@ void WidgetDropDown::ProcessEvent(Event& event)
 			parent_element->Click();
 			event.StopPropagation();
 			break;
+		case Input::KI_ESCAPE:
+			if (!box_visible)
+				break;
+			if (value_last_selected != -1)
+			{
+				SetSelection(GetOption(value_last_selected), true);
+				value_last_selected = -1;
+			}
+			ShowSelectBox(false);
+			event.StopPropagation();
+			break;
 		default: break;
 		}
 	}
@@ -620,7 +650,8 @@ void WidgetDropDown::ShowSelectBox(bool show)
 		selection_element->SetPseudoClass("checked", true);
 		value_element->SetPseudoClass("checked", true);
 		button_element->SetPseudoClass("checked", true);
-		box_layout_dirty = true;
+		box_layout_dirty = DropDownBoxLayoutType::Open;
+		value_last_selected = GetSelection();
 		AttachScrollEvent();
 	}
 	else
@@ -634,6 +665,11 @@ void WidgetDropDown::ShowSelectBox(bool show)
 	}
 
 	box_visible = show;
+}
+
+bool WidgetDropDown::GetSelectBoxVisible()
+{
+	return box_visible;
 }
 
 } // namespace Rml

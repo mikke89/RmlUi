@@ -110,6 +110,16 @@ void ElementFormControlSelect::RemoveAll()
 	widget->ClearOptions();
 }
 
+void ElementFormControlSelect::ShowSelectBox(bool show)
+{
+	widget->ShowSelectBox(show);
+}
+
+bool ElementFormControlSelect::GetSelectBoxVisible()
+{
+	return widget->GetSelectBoxVisible();
+}
+
 void ElementFormControlSelect::OnUpdate()
 {
 	ElementFormControl::OnUpdate();
