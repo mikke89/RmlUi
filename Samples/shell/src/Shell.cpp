@@ -102,7 +102,7 @@ bool Shell::ProcessKeyDownShortcuts(Rml::Context* context, Rml::Input::KeyIdenti
 		}
 		else if (key == Rml::Input::KI_1 && key_modifier & Rml::Input::KM_CTRL)
 		{
-			context->SetDensityIndependentPixelRatio(1.f);
+			context->SetDensityIndependentPixelRatio(2.f);
 		}
 		else if ((key == Rml::Input::KI_OEM_MINUS || key == Rml::Input::KI_SUBTRACT) && key_modifier & Rml::Input::KM_CTRL)
 		{

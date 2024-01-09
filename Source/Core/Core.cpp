@@ -58,6 +58,10 @@
 	#include "../SVG/SVGPlugin.h"
 #endif
 
+#ifdef RMLUI_ENABLE_QJS_PLUGIN
+	#include "../QuickJS/QjsPlugin.h"
+#endif
+
 #include "Pool.h"
 
 namespace Rml {
@@ -143,9 +147,15 @@ bool Initialise()
 #ifdef RMLUI_ENABLE_LOTTIE_PLUGIN
 	Lottie::Initialise();
 #endif
+
 #ifdef RMLUI_ENABLE_SVG_PLUGIN
 	SVG::Initialise();
 #endif
+
+#ifdef RMLUI_ENABLE_QJS_PLUGIN
+	Qjs::Initialise();
+#endif
+
 
 	// Notify all plugins we're starting up.
 	PluginRegistry::NotifyInitialise();

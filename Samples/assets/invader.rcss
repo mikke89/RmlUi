@@ -55,6 +55,11 @@
 	textarea-focus: 162px 231px 145px 31px;
 	textarea-focus-inner: 173px 244px 127px 10px;
 
+	tab-head: 162px 193px 145px 30px;
+	tab-head-inner: 173px 206px 127px 10px;
+	tab-head-focus: 162px 231px 145px 30px;
+	tab-head-focus-inner: 173px 244px 127px 10px;
+
 	selectbox-tl: 281px 275px 11px 9px;
 	selectbox-t:  292px 275px 1px 9px;
 	selectbox-tr: 294px 275px 11px 9px;
@@ -84,9 +89,9 @@
 	checkbox-checked-hover: 437px 90px 30px 30px;
 	checkbox-checked-active: 467px 90px 30px 30px;
 
-	tableheader-l: 127px 192px 16px 31px;
-	tableheader-c: 143px 192px 2px 31px;
-	tableheader-r: 145px 192px 15px 31px;
+	tableheader-l: 165px 198px 4px 4px;
+	tableheader-c: 170px 198px 4px 4px;
+	tableheader-r: 192px 198px 4px 4px;
 
 	expand: 3px 232px 17px 17px;
 	expand-hover: 21px 232px 17px 17px;
@@ -146,7 +151,7 @@ body
 	font-weight: normal;
 	font-style: normal;
 	font-size: 15dp;
-	color: white;
+	color: #424242;
 	nav: auto;
 }
 
@@ -198,8 +203,8 @@ div#title_bar span
 	font-size: 20dp;
 	font-weight: bold;
 
-	font-effect: glow(1dp black);
-	decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );
+	/*font-effect: glow(1dp black);
+	decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );*/
 }
 
 div#window
@@ -278,12 +283,13 @@ input.submit
 	tab-index: auto;
 
 	decorator: image(button);
+	color: #424242;
 }
 
 button:focus,
 input.submit:focus
 {
-	font-effect: blur(3dp #fff);
+	/*font-effect: blur(3dp #fff);*/
 }
 
 button:hover, button:focus-visible,
@@ -423,21 +429,24 @@ select selectbox option
 {
 	width: auto;
 	padding: 3dp 0 3dp 6dp;
-	background: #DDDD;
+	background: white;
 }
 
 select selectbox option:nth-child(even),
 tr:nth-child(even)
 {
-	background: #FFFFFFA0;
+	background: #FFFFFF;
 }
+
 select selectbox option:checked
 {
 	font-weight: bold;
 }
+
 select selectbox option:hover
 {
-	background: #FF5D5D;
+	background: #2393D5;
+	color: white;
 }
 
 
@@ -516,15 +525,18 @@ input.range {
 	height: 32dp;
 	vertical-align: -12dp;
 }
+
 input.range slidertrack {
 	margin-top: 3dp;
 	height: 22dp;
-	image-color: #ecc;
+	image-color: white;
 	decorator: ninepatch( range-track, range-track-inner, 1.0 );
 }
+
 input.range:focus-visible slidertrack {
 	decorator: ninepatch( range-track-focus, range-track-focus-inner, 1.0 );
 }
+
 input.range sliderbar {
 	margin-left: -8dp;
 	margin-right: -7dp;
@@ -533,17 +545,21 @@ input.range sliderbar {
 	height: 23dp;
 	decorator: image( range-bar );
 }
+
 input.range sliderbar:hover, input.range slidertrack:hover + sliderbar  {
 	image-color: #cc0;
 }
+
 input.range sliderbar:active, input.range slidertrack:active + sliderbar  {
 	image-color: #c80;
 }
+
 input.range sliderarrowdec, input.range sliderarrowinc {
 	width: 17dp;
 	height: 17dp;
 	margin-top: 6dp;
 }
+
 input.range sliderarrowdec        { decorator: image( range-dec        ); }
 input.range sliderarrowinc        { decorator: image( range-inc        ); }
 input.range sliderarrowdec:hover  { decorator: image( range-dec-hover  ); }

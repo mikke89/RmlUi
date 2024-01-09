@@ -9,25 +9,25 @@
 
 	window-outer: 0px 0px 144px 151px;
 
-	demo-radio-t: 407px  0px 30px 14px;
-	demo-radio-c: 407px 14px 30px  2px;
-	demo-radio-b: 407px 16px 30px 14px;
+	-demo-radio-t: 407px  0px 30px 14px;
+	-demo-radio-c: 407px 14px 30px  2px;
+	-demo-radio-b: 407px 16px 30px 14px;
 
-	demo-radio-l: 407px 0px 14px 30px;
-	demo-radio-m: 421px 0px  2px 30px;
-	demo-radio-r: 423px 0px 14px 30px;
+	-demo-radio-l: 407px 0px 14px 30px;
+	-demo-radio-m: 421px 0px  2px 30px;
+	-demo-radio-r: 423px 0px 14px 30px;
 
-	demo-checkbox-t: 407px 60px 30px 14px;
-	demo-checkbox-c: 407px 74px 30px  2px;
-	demo-checkbox-b: 407px 76px 30px 14px;
+	-demo-checkbox-t: 407px 60px 30px 14px;
+	-demo-checkbox-c: 407px 74px 30px  2px;
+	-demo-checkbox-b: 407px 76px 30px 14px;
 
-	demo-checkbox-l: 407px 60px 14px 30px;
-	demo-checkbox-m: 421px 60px  2px 30px;
-	demo-checkbox-r: 423px 60px 14px 30px;
+	-demo-checkbox-l: 407px 60px 14px 30px;
+	-demo-checkbox-m: 421px 60px  2px 30px;
+	-demo-checkbox-r: 423px 60px 14px 30px;
 
-	demo-checked-t: 407px  90px 30px  8px;
-	demo-checked-c: 407px  98px 30px 14px;
-	demo-checked-b: 407px 112px 30px  8px;
+	-demo-checked-t: 407px  90px 30px  8px;
+	-demo-checked-c: 407px  98px 30px 14px;
+	-demo-checked-b: 407px 112px 30px  8px;
 
 	demo-help-t:    128px 152px 51px  6px;
 	demo-help-c:    128px 158px 51px 21px;
@@ -46,20 +46,25 @@ body.window
 	min-height: 300dp;
 	max-width: none;
 	max-height: none;
+	background: #f0f0f0;
 }
+
 div#title_bar div#icon
 {
 	display: none;
 }
+
 div#content
 {
 	position: relative;
 	/* background-color: #bbb; */
 }
+
 tabset
 {
 	display: block;
 }
+
 tabs
 {
 	display: block;
@@ -70,6 +75,7 @@ tabs
 	left: 205dp;
 	right: 10dp;
 }
+
 tab
 {
 	width: 90dp;
@@ -78,26 +84,33 @@ tab
 	display: inline-block;
 
 	font-size: 15dp;
-	color: #ddd;
+	color: #424242;
 	text-align: center;
 
-	decorator: tiled-horizontal( tableheader-l, tableheader-c, tableheader-r );
-	image-color: #cffc;
+	/*decorator: tiled-horizontal( tableheader-l, tableheader-c, tableheader-r );*/
+	decorator: ninepatch( tab-header, tab-header-inner, 1.0 );
+	image-color: #fff;
 }
+
 tab:hover
 {
-	image-color: #fffe;
-	color: #fff;
+	/*image-color: #fffe;*/
+	background: #ebebeb;
+	color: #424242;
 }
+
 tab:active, tab:selected
 {
-	image-color: #fff;
+	/*image-color: #fff;*/
+	background: #2393D5;
 	color: #fff;
 }
+
 panels
 {
 	display: block;
 }
+
 panel
 {
 	display: block;
@@ -106,24 +119,29 @@ panel
 	margin-right: auto;
 	max-width: 500dp;
 }
+
 panel#welcome
 {
 	display: inline-block;
 }
+
 h1
 {
 	margin: 1.4em 0 0.7em;
 	font-size: 18dp;
 }
+
 p.title
 {
 	font-size: 35dp;
 	color: #b33;
-	font-effect: glow(2dp #ed5);
+	/*font-effect: glow(2dp #ed5);*/
 }
+
 .center {
 	text-align: center;
 }
+
 .clickable
 {
 	cursor: pointer;
@@ -134,10 +152,12 @@ p.title
 #decorators {
 	text-align: left;
 }
+
 #decorators p
 {
 	margin: 0.5em 0;
 }
+
 #decorators button.gradient
 {
 	decorator: gradient( vertical #415857 #5990A3 );
@@ -433,15 +453,19 @@ form {
 	display: block;
 	text-align: left;
 }
+
 form input, form select {
 	margin-left: 0;
 }
+
 input.text, input.password {
 	width: 35%;
 }
+
 input.text.two-wide {
 	width: 70%;
 }
+
 form h2 {
 	display: block;
 	font-size: 16dp;
@@ -449,26 +473,31 @@ form h2 {
 	margin-top: 0.6em;
 	margin-bottom: 0.4em;
 }
+
 #rating {
 	display: inline-block;
 	width: 40dp;
 	padding-left: 1em;
 }
+
 #rating_emoji {
 	color: #ffd40f;
 	font-size: 1.7em;
 }
+
 progress {
 	margin: 10dp 20dp;
 	display: inline-block;
 	vertical-align: middle;
 }
+
 #gauge {
 	decorator: image( gauge );
 	width: 100dp;
 	height: 86dp;
 	fill-image: gauge-fill;
 }
+
 #progress_horizontal {
 	decorator: tiled-horizontal( progress-l, progress-c, progress-r );
 	width: 150dp;
@@ -517,14 +546,15 @@ progress {
 #controls textarea
 {
 	font-size: 18dp;
-	font-effect: outline(2dp #060);
-	color: #ddd;
+	/*font-effect: outline(2dp #060);*/
+	color: #424242;
 	caret-color: #060;
 }
+
 #controls textarea selection
 {
-	background-color: #aca;
-	color: #999;
+	background-color: #2393D5;
+	color: #fff;
 }
 
 
@@ -602,20 +632,24 @@ progress {
 {
 	height: 12dp;
 }
+
 form input, form textarea, form select
 {
 	nav: vertical;
 }
+
 form .nav-auto, form input.checkbox, form input.radio
 {
 	nav: auto;
 }
 </style>
+
 </head>
 
 <body template="window">
 
 <tabset id="menu">
+
 <tab>Welcome</tab>
 <panel id="welcome">
 	<p class="title" style="margin-top: 1.8em;">RmlUi 😍</p>
@@ -652,10 +686,12 @@ form .nav-auto, form input.checkbox, form input.radio
 		<div style="width: 30dp; height: 30dp; decorator: image( radio );"/>
 		<div style="width: 120dp; height: 30dp; decorator: tiled-horizontal( demo-radio-l, demo-radio-m, demo-radio-r );"/>
 	</div>
+
 	<div class="side-by-side">
 		<div style="width: 30dp; height: 30dp; decorator: image( checkbox );"/>
 		<div style="width: 120dp; height: 30dp; decorator: tiled-horizontal( demo-checkbox-l, demo-checkbox-m, demo-checkbox-r );"/>
 	</div>
+
 	<div class="side-by-side" width="250dp;">
 		<div style="width: 96dp; height: 85dp; decorator: image( demo-title-bar );"/>
 		<div style="width: 250dp; height: 85dp; decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );"/>
@@ -835,6 +871,7 @@ form .nav-auto, form input.checkbox, form input.radio
 		</div>
 	</div>
 </panel>
+
 <tab>Forms</tab>
 <panel id="controls">
 	<form onsubmit="submit_form">
@@ -842,11 +879,13 @@ form .nav-auto, form input.checkbox, form input.radio
 		<div>
 			<input class="two-wide" type="text" name="name"/>
 		</div>
+
 		<h2>Email and password</h2>
 		<div>
 			<input type="text" name="email" class="nav-auto"/>
 			<input type="password" name="password" class="nav-auto"/>
 		</div>
+
 		<h2>Favorite animal</h2>
 		<div>
 			<label><input type="radio" name="animal" value="dog" checked/> Dog </label>
@@ -854,12 +893,14 @@ form .nav-auto, form input.checkbox, form input.radio
 			<label><input type="radio" name="animal" value="narwhal"/> Narwhal </label>
 			<label><input type="radio" name="animal" value="no" style="nav-down: #lasagne"/> I don't like animals </label>
 		</div>
+
 		<h2>Favorite meals</h2>
 		<div>
 			<label><input type="checkbox" name="meals" value="pizza" checked/> Pizza </label>
 			<label><input type="checkbox" name="meals" value="pasta" checked/> Pasta </label>
 			<label><input type="checkbox" name="meals" value="lasagne" id="lasagne" checked/> Lasagne </label>
 		</div>
+
 		<h2>Rating</h2>
 		<div>
 			<input type="range" name="rating" min="0" max="100" step="1" value="50" onchange="rating"/> <span id="rating"/><span id="rating_emoji">&nbsp;</span>
