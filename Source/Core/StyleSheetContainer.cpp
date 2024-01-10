@@ -65,6 +65,8 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 	{
 		const MediaBlock& media_block = media_blocks[media_block_index];
 		bool all_match = true;
+		bool expected_match_value = media_block.modifier == MediaQueryModifier::Not ? false : true;
+
 		for (const auto& property : media_block.properties.GetProperties())
 		{
 			const MediaQueryId id = static_cast<MediaQueryId>(property.first);
@@ -138,11 +140,11 @@ bool StyleSheetContainer::UpdateCompiledStyleSheet(const Context* context)
 			case MediaQueryId::NumDefinedIds: break;
 			}
 
-			if (!all_match)
+			if (all_match != expected_match_value)
 				break;
 		}
 
-		if (all_match)
+		if (all_match == expected_match_value)
 			new_active_media_block_indices.push_back(media_block_index);
 	}
 
@@ -194,7 +196,7 @@ SharedPtr<StyleSheetContainer> StyleSheetContainer::CombineStyleSheetContainer(c
 
 	for (const MediaBlock& media_block : media_blocks)
 	{
-		new_sheet->media_blocks.emplace_back(media_block.properties, media_block.stylesheet);
+		new_sheet->media_blocks.emplace_back(media_block.properties, media_block.stylesheet, media_block.modifier);
 	}
 
 	new_sheet->MergeStyleSheetContainer(container);
@@ -234,7 +236,7 @@ void StyleSheetContainer::MergeStyleSheetContainer(const StyleSheetContainer& ot
 	for (auto it = it_other_begin; it != other.media_blocks.end(); ++it)
 	{
 		const MediaBlock& block_other = *it;
-		media_blocks.emplace_back(block_other.properties, block_other.stylesheet);
+		media_blocks.emplace_back(block_other.properties, block_other.stylesheet, block_other.modifier);
 	}
 }
 
