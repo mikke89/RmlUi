@@ -905,6 +905,23 @@ if(BUILD_SAMPLES)
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endforeach()
 
+	# Build and install textshaper sample
+	find_package(HarfBuzz)
+	if(${HARFBUZZ_FOUND})
+		bl_sample(textshaper basic/textshaper ${sample_LIBRARIES} )
+		target_include_directories(textshaper PRIVATE ${FREETYPE_INCLUDE_DIRS} ${HARFBUZZ_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/Source/Core)
+		target_link_directories(textshaper PRIVATE ${HARFBUZZ_LIBRARY_DIR})
+		target_link_libraries(textshaper harfbuzz)
+
+		# Set the current working directory to the same as the basic samples
+		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/textshaper)
+		install(TARGETS textshaper
+			RUNTIME DESTINATION ${SAMPLES_DIR}/textshaper
+			BUNDLE DESTINATION ${SAMPLES_DIR})
+	else()
+		message("-- Failed to find HarfBuzz library; skipping textshaper sample")
+	endif()
+
 	# Build and install invaders sample
 	bl_sample(invaders invaders  ${sample_LIBRARIES})
 	install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
@@ -1033,6 +1050,12 @@ if(BUILD_SAMPLES)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
 			DESTINATION ${SAMPLES_DIR}/invaders
 	)
+
+	if (${HARFBUZZ_FOUND})
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/data
+			DESTINATION ${SAMPLES_DIR}/basic/textshaper
+		)
+	endif()
 
 	if(TARGET lottie)
 		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/data
