@@ -601,6 +601,7 @@ RegType<Element> ElementMethods[] = {
 	RMLUI_LUAMETHOD(Element, GetElementsByTagName),
 	RMLUI_LUAMETHOD(Element, QuerySelector),
 	RMLUI_LUAMETHOD(Element, QuerySelectorAll),
+	RMLUI_LUAMETHOD(Element, Matches),
 	RMLUI_LUAMETHOD(Element, HasAttribute),
 	RMLUI_LUAMETHOD(Element, HasChildNodes),
 	RMLUI_LUAMETHOD(Element, InsertBefore),
