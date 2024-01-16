@@ -1066,7 +1066,7 @@ Element* Element::Closest(const String& selectors) const
 	{
 		for (const StyleSheetNode* node : leaf_nodes)
 		{
-			if (node->IsApplicable(parent))
+			if (node->IsApplicable(parent, this))
 			{
 				return parent;
 			}
@@ -1523,7 +1523,7 @@ void Element::GetElementsByClassName(ElementList& elements, const String& class_
 	return ElementUtilities::GetElementsByClassName(elements, this, class_name);
 }
 
-static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, Element* element)
+static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, Element* element, Element* scope)
 {
 	const int num_children = element->GetNumChildren();
 
@@ -1535,11 +1535,11 @@ static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, 
 
 		for (const StyleSheetNode* node : nodes)
 		{
-			if (node->IsApplicable(child))
+			if (node->IsApplicable(child, scope))
 				return child;
 		}
 
-		Element* matching_element = QuerySelectorMatchRecursive(nodes, child);
+		Element* matching_element = QuerySelectorMatchRecursive(nodes, child, scope);
 		if (matching_element)
 			return matching_element;
 	}
@@ -1547,7 +1547,7 @@ static Element* QuerySelectorMatchRecursive(const StyleSheetNodeListRaw& nodes, 
 	return nullptr;
 }
 
-static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const StyleSheetNodeListRaw& nodes, Element* element)
+static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const StyleSheetNodeListRaw& nodes, Element* element, Element* scope)
 {
 	const int num_children = element->GetNumChildren();
 
@@ -1559,14 +1559,14 @@ static void QuerySelectorAllMatchRecursive(ElementList& matching_elements, const
 
 		for (const StyleSheetNode* node : nodes)
 		{
-			if (node->IsApplicable(child))
+			if (node->IsApplicable(child, scope))
 			{
 				matching_elements.push_back(child);
 				break;
 			}
 		}
 
-		QuerySelectorAllMatchRecursive(matching_elements, nodes, child);
+		QuerySelectorAllMatchRecursive(matching_elements, nodes, child, scope);
 	}
 }
 
@@ -1581,7 +1581,7 @@ Element* Element::QuerySelector(const String& selectors)
 		return nullptr;
 	}
 
-	return QuerySelectorMatchRecursive(leaf_nodes, this);
+	return QuerySelectorMatchRecursive(leaf_nodes, this, this);
 }
 
 void Element::QuerySelectorAll(ElementList& elements, const String& selectors)
@@ -1595,7 +1595,7 @@ void Element::QuerySelectorAll(ElementList& elements, const String& selectors)
 		return;
 	}
 
-	QuerySelectorAllMatchRecursive(elements, leaf_nodes, this);
+	QuerySelectorAllMatchRecursive(elements, leaf_nodes, this, this);
 }
 
 bool Element::Matches(const String& selectors)
@@ -1611,7 +1611,7 @@ bool Element::Matches(const String& selectors)
 
 	for (const StyleSheetNode* node : leaf_nodes)
 	{
-		if (node->IsApplicable(this))
+		if (node->IsApplicable(this, this))
 		{
 			return true;
 		}

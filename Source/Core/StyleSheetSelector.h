@@ -108,7 +108,8 @@ enum class StructuralSelectorType {
 	Only_Child,
 	Only_Of_Type,
 	Empty,
-	Not
+	Not,
+	Scope,
 };
 struct StructuralSelector {
 	StructuralSelector(StructuralSelectorType type, int a, int b) : type(type), a(a), b(b) {}
@@ -148,10 +149,11 @@ struct CompoundSelector {
 };
 bool operator==(const CompoundSelector& a, const CompoundSelector& b);
 
-/// Returns true if the the node the given selector is discriminating for is applicable to a given element.
+/// Returns true if the node the given selector is discriminating for is applicable to a given element.
 /// @param element[in] The element to determine node applicability for.
 /// @param selector[in] The selector to test against the element.
-bool IsSelectorApplicable(const Element* element, const StructuralSelector& selector);
+/// @param scope[in] The element considered as the reference point/scope (for :scope).
+bool IsSelectorApplicable(const Element* element, const StructuralSelector& selector, const Element* scope);
 
 } // namespace Rml
 #endif
