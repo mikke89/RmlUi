@@ -1527,6 +1527,28 @@ void Element::QuerySelectorAll(ElementList& elements, const String& selectors)
 	QuerySelectorAllMatchRecursive(elements, leaf_nodes, this);
 }
 
+bool Element::Matches(const String& selectors)
+{
+	StyleSheetNode root_node;
+	StyleSheetNodeListRaw leaf_nodes = StyleSheetParser::ConstructNodes(root_node, selectors);
+
+	if (leaf_nodes.empty())
+	{
+		Log::Message(Log::LT_WARNING, "Query selector '%s' is empty. In element %s", selectors.c_str(), GetAddress().c_str());
+		return false;
+	}
+
+	for (const StyleSheetNode* node : leaf_nodes)
+	{
+		if (node->IsApplicable(this))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 EventDispatcher* Element::GetEventDispatcher() const
 {
 	return &meta->event_dispatcher;

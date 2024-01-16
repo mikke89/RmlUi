@@ -561,6 +561,9 @@ public:
 	/// @param[in] selectors The selector or comma-separated selectors to match against.
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
 	void QuerySelectorAll(ElementList& elements, const String& selectors);
+	/// Check if the element matches the given RCSS selector query.
+	/// @return True if the element matches the given RCSS selector query, false otherwise.
+	bool Matches(const String& selectors);
 
 	//@}
 
