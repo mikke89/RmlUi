@@ -254,7 +254,6 @@ static const Vector<MatchesSelector> matches_selectors =
 	{ "X", ".hello",         true },
 	{ "X", ".hello, .world", true },
 	{ "E", "h3",             true },
-	{ "E", "h3",             true },
 	{ "G", "p#G[class]",     true },
 	{ "G", "p#G[missing]",   false },
 	{ "B", "[unit='m']",     true }
@@ -421,7 +420,7 @@ TEST_CASE("Selectors")
 		}
 		context->UnloadDocument(document);
 	}
-	
+
 	SUBCASE("Closest")
 	{
 		const String document_string = doc_begin + doc_end;
