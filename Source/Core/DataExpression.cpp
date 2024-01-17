@@ -103,6 +103,11 @@ struct InstructionData {
 	Variant data;
 };
 
+struct ProgramState {
+	size_t program_length;
+	int stack_size;
+};
+
 namespace Parse {
 	static void Assignment(DataParser& parser);
 	static void Expression(DataParser& parser);
@@ -196,12 +201,6 @@ public:
 			parse_error = true;
 			Error(CreateString(120, "Internal parser error, inconsistent stack operations. Stack size is %d at parse end.", program_stack_size));
 		}
-		if (!parse_error && !program_states.empty())
-		{
-			parse_error = true;
-			Error(CreateString(140, "Internal parser error, inconsistent state stack operations. State stack size is %d at parse end.",
-				(int)program_states.size()));
-		}
 
 		return !parse_error;
 	}
@@ -258,22 +257,13 @@ public:
 	void StaticVariable(const String& expression) { VariableGetSet(expression, false); }
 	void StaticAssign(const String& expression) { VariableGetSet(expression, true); }
 
-	void PushProgramState() { program_states.push_back(ProgramState{program.size(), program_stack_size, index}); }
+	ProgramState GetProgramState() { return ProgramState{program.size(), program_stack_size}; }
 
-	void PopProgramState()
+	void SetProgramState(const ProgramState& state)
 	{
-		RMLUI_ASSERT(!program_states.empty());
-		auto const& state = program_states.back();
 		RMLUI_ASSERT(state.program_length <= program.size());
 		program.resize(state.program_length);
 		program_stack_size = state.stack_size;
-		program_states.pop_back();
-	}
-
-	void DiscardProgramState()
-	{
-		RMLUI_ASSERT(!program_states.empty());
-		program_states.pop_back();
 	}
 
 	bool AddVariableAddress(const String& name)
@@ -313,14 +303,6 @@ private:
 	Program program;
 
 	AddressList variable_addresses;
-
-	struct ProgramState {
-		size_t program_length;
-		int stack_size;
-		size_t index;
-	};
-
-	Vector<ProgramState> program_states;
 };
 
 namespace Parse {
@@ -636,11 +618,13 @@ namespace Parse {
 
 			prefix.push_back('[');
 
-			parser.PushProgramState();
+			// Backup program state before trying to parse number inside brackets.
+			// Could turn out to be expression and needs reparsing
+			auto backup_state = parser.GetProgramState();
+
 			String index = NumberLiteral(parser, true);
 			if (!index.empty() && parser.Look() == ']')
 			{
-				parser.DiscardProgramState();
 				parser.Next();
 				prefix.append(index);
 				prefix.push_back(']');
@@ -648,7 +632,7 @@ namespace Parse {
 			}
 			else
 			{
-				parser.PopProgramState();
+				parser.SetProgramState(backup_state);
 
 				parser.Emit(Instruction::Literal, Variant(prefix));
 				parser.Push();
@@ -712,13 +696,15 @@ namespace Parse {
 		}
 		else if (parser.Look() == '[')
 		{
-			parser.PushProgramState();
+			// Backup program state before trying to parse part inside brackets.
+			// Could turn out to be expression and needs reparsing
+			auto backup_state = parser.GetProgramState();
 
 			String full_address = VariableExpression(parser, name);
 
 			if (!full_address.empty())
 			{
-				parser.PopProgramState();
+				parser.SetProgramState(backup_state);
 				parser.StaticVariable(full_address);
 			}
 			else
@@ -726,7 +712,6 @@ namespace Parse {
 				// add the root of a variable expression as dependency into the address list
 				parser.AddVariableAddress(name);
 
-				parser.DiscardProgramState();
 				parser.Emit(Instruction::DynamicVariable, Variant());
 			}
 		}
