@@ -116,12 +116,12 @@ public:
 	{
 		if (name == "src")
 		{
-			if(!specification.ParsePropertyDeclaration(properties, id_src, value))
+			if (!specification.ParsePropertyDeclaration(properties, id_src, value))
 				return false;
 
-			if(const Property* property = properties.GetProperty(id_src))
+			if (const Property* property = properties.GetProperty(id_src))
 			{
-				if(property->unit == Unit::STRING)
+				if (property->unit == Unit::STRING)
 					image_source = property->Get<String>();
 			}
 		}
@@ -406,7 +406,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	return true;
 }
 
-bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDictionary& properties, MediaQueryModifier &modifier)
+bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDictionary& properties, MediaQueryModifier& modifier)
 {
 	media_query_property_parser->SetTargetProperties(&properties);
 
