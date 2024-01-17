@@ -30,7 +30,7 @@
 #include "FontEngineDefault/../ComputeProperty.h"
 #include "FontEngineDefault/FreeTypeInterface.h"
 #include "FontFace.h"
-#include "FontFaceHandleTextShaper.h"
+#include "FontFaceHandleHarfBuzz.h"
 #include "FontFamily.h"
 #include <algorithm>
 
@@ -69,7 +69,7 @@ FontProvider& FontProvider::Get()
 	return *g_font_provider;
 }
 
-FontFaceHandleTextShaper* FontProvider::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
+FontFaceHandleHarfBuzz* FontProvider::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
 {
 	RMLUI_ASSERTMSG(family == Rml::StringUtilities::ToLower(family), "Font family name must be converted to lowercase before entering here.");
 

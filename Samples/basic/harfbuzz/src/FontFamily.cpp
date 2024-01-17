@@ -28,7 +28,7 @@
 
 #include "FontFamily.h"
 #include "FontFace.h"
-#include "FontFaceHandleTextShaper.h"
+#include "FontFaceHandleHarfBuzz.h"
 #include <limits.h>
 
 FontFamily::FontFamily(const String& name) : name(name) {}
@@ -41,7 +41,7 @@ FontFamily::~FontFamily()
 		entry.face.reset();
 }
 
-FontFaceHandleTextShaper* FontFamily::GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size)
+FontFaceHandleHarfBuzz* FontFamily::GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size)
 {
 	int best_dist = INT_MAX;
 	FontFace* matching_face = nullptr;

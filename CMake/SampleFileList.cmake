@@ -73,36 +73,36 @@ set(drag_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/main.cpp
 )
 
+set(harfbuzz_HDR_FILES
+    ${FREETYPE_INCLUDE_DIRS}
+    ${HARFBUZZ_INCLUDE_DIR}
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontEngineInterfaceHarfBuzz.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontFace.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontFaceHandleHarfBuzz.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontFaceLayer.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontGlyph.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontProvider.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FreeTypeInterface.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/LanguageData.h
+)
+
+set(harfbuzz_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontEngineInterfaceHarfBuzz.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontFace.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontFaceHandleHarfBuzz.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontFaceLayer.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontFamily.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FontProvider.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/FreeTypeInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/src/main.cpp
+)
+
 set(loaddocument_HDR_FILES
 )
 
 set(loaddocument_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/loaddocument/src/main.cpp
-)
-
-set(textshaper_HDR_FILES
-    ${FREETYPE_INCLUDE_DIRS}
-    ${HARFBUZZ_INCLUDE_DIR}
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontEngineInterfaceTextShaper.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontFace.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontFaceHandleTextShaper.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontFaceLayer.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontFamily.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontGlyph.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontProvider.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FreeTypeInterface.h
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/LanguageData.h
-)
-
-set(textshaper_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontEngineInterfaceTextShaper.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontFace.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontFaceHandleTextShaper.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontFaceLayer.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontFamily.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FontProvider.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/FreeTypeInterface.cpp
-    ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/src/main.cpp
 )
 
 set(treeview_HDR_FILES

@@ -42,7 +42,7 @@ namespace Style = Rml::Style;
 
 class FontFace;
 class FontFamily;
-class FontFaceHandleTextShaper;
+class FontFaceHandleHarfBuzz;
 
 /**
     The font provider contains all font families currently in use by RmlUi.
@@ -63,7 +63,7 @@ public:
 	/// @param[in] weight The weight of the desired font handle.
 	/// @param[in] size The size of desired handle, in points.
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	static FontFaceHandleTextShaper* GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
+	static FontFaceHandleHarfBuzz* GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	static bool LoadFontFace(const String& file_name, Style::FontWeight weight = Style::FontWeight::Auto);

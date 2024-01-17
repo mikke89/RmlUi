@@ -52,7 +52,7 @@ Style::FontWeight FontFace::GetWeight() const
 	return weight;
 }
 
-FontFaceHandleTextShaper* FontFace::GetHandle(int size, bool load_default_glyphs)
+FontFaceHandleHarfBuzz* FontFace::GetHandle(int size, bool load_default_glyphs)
 {
 	auto it = handles.find(size);
 	if (it != handles.end())
@@ -66,14 +66,14 @@ FontFaceHandleTextShaper* FontFace::GetHandle(int size, bool load_default_glyphs
 	}
 
 	// Construct and initialise the new handle.
-	auto handle = Rml::MakeUnique<FontFaceHandleTextShaper>();
+	auto handle = Rml::MakeUnique<FontFaceHandleHarfBuzz>();
 	if (!handle->Initialize(face, size, load_default_glyphs))
 	{
 		handles[size] = nullptr;
 		return nullptr;
 	}
 
-	FontFaceHandleTextShaper* result = handle.get();
+	FontFaceHandleHarfBuzz* result = handle.get();
 
 	// Save the new handle to the font face
 	handles[size] = std::move(handle);

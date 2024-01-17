@@ -26,77 +26,77 @@
  *
  */
 
-#include "FontEngineInterfaceTextShaper.h"
-#include "FontFaceHandleTextShaper.h"
+#include "FontEngineInterfaceHarfBuzz.h"
+#include "FontFaceHandleHarfBuzz.h"
 #include "FontProvider.h"
 #include <RmlUi/Core.h>
 
-FontEngineInterfaceTextShaper::FontEngineInterfaceTextShaper()
+FontEngineInterfaceHarfBuzz::FontEngineInterfaceHarfBuzz()
 {
 	FontProvider::Initialise();
 }
 
-FontEngineInterfaceTextShaper::~FontEngineInterfaceTextShaper()
+FontEngineInterfaceHarfBuzz::~FontEngineInterfaceHarfBuzz()
 {
 	FontProvider::Shutdown();
 }
 
-bool FontEngineInterfaceTextShaper::LoadFontFace(const String& file_name, bool /*fallback_face*/, Style::FontWeight weight)
+bool FontEngineInterfaceHarfBuzz::LoadFontFace(const String& file_name, bool /*fallback_face*/, Style::FontWeight weight)
 {
 	return FontProvider::LoadFontFace(file_name, weight);
 }
 
-bool FontEngineInterfaceTextShaper::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style,
+bool FontEngineInterfaceHarfBuzz::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style,
 	Style::FontWeight weight, bool /*fallback_face*/)
 {
 	return FontProvider::LoadFontFace(data, data_size, font_family, style, weight);
 }
 
-FontFaceHandle FontEngineInterfaceTextShaper::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
+FontFaceHandle FontEngineInterfaceHarfBuzz::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)
 {
 	auto handle = FontProvider::GetFontFaceHandle(family, style, weight, size);
 	return reinterpret_cast<FontFaceHandle>(handle);
 }
 
-FontEffectsHandle FontEngineInterfaceTextShaper::PrepareFontEffects(FontFaceHandle handle, const FontEffectList& font_effects)
+FontEffectsHandle FontEngineInterfaceHarfBuzz::PrepareFontEffects(FontFaceHandle handle, const FontEffectList& font_effects)
 {
-	auto handle_text_shaper = reinterpret_cast<FontFaceHandleTextShaper*>(handle);
-	return (FontEffectsHandle)handle_text_shaper->GenerateLayerConfiguration(font_effects);
+	auto handle_harfbuzz = reinterpret_cast<FontFaceHandleHarfBuzz*>(handle);
+	return (FontEffectsHandle)handle_harfbuzz->GenerateLayerConfiguration(font_effects);
 }
 
-const FontMetrics& FontEngineInterfaceTextShaper::GetFontMetrics(FontFaceHandle handle)
+const FontMetrics& FontEngineInterfaceHarfBuzz::GetFontMetrics(FontFaceHandle handle)
 {
-	auto handle_text_shaper = reinterpret_cast<FontFaceHandleTextShaper*>(handle);
-	return handle_text_shaper->GetFontMetrics();
+	auto handle_harfbuzz = reinterpret_cast<FontFaceHandleHarfBuzz*>(handle);
+	return handle_harfbuzz->GetFontMetrics();
 }
 
-int FontEngineInterfaceTextShaper::GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& text_shaping_context,
+int FontEngineInterfaceHarfBuzz::GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& text_shaping_context,
 	Character prior_character)
 {
-	auto handle_text_shaper = reinterpret_cast<FontFaceHandleTextShaper*>(handle);
-	return handle_text_shaper->GetStringWidth(string, text_shaping_context, registered_languages, prior_character);
+	auto handle_harfbuzz = reinterpret_cast<FontFaceHandleHarfBuzz*>(handle);
+	return handle_harfbuzz->GetStringWidth(string, text_shaping_context, registered_languages, prior_character);
 }
 
-int FontEngineInterfaceTextShaper::GenerateString(FontFaceHandle handle, FontEffectsHandle font_effects_handle, const String& string,
+int FontEngineInterfaceHarfBuzz::GenerateString(FontFaceHandle handle, FontEffectsHandle font_effects_handle, const String& string,
 	const Vector2f& position, const Colourb& colour, float opacity, const TextShapingContext& text_shaping_context, GeometryList& geometry)
 {
-	auto handle_text_shaper = reinterpret_cast<FontFaceHandleTextShaper*>(handle);
-	return handle_text_shaper->GenerateString(geometry, string, position, colour, opacity, text_shaping_context, registered_languages,
+	auto handle_harfbuzz = reinterpret_cast<FontFaceHandleHarfBuzz*>(handle);
+	return handle_harfbuzz->GenerateString(geometry, string, position, colour, opacity, text_shaping_context, registered_languages,
 		(int)font_effects_handle);
 }
 
-int FontEngineInterfaceTextShaper::GetVersion(FontFaceHandle handle)
+int FontEngineInterfaceHarfBuzz::GetVersion(FontFaceHandle handle)
 {
-	auto handle_text_shaper = reinterpret_cast<FontFaceHandleTextShaper*>(handle);
-	return handle_text_shaper->GetVersion();
+	auto handle_harfbuzz = reinterpret_cast<FontFaceHandleHarfBuzz*>(handle);
+	return handle_harfbuzz->GetVersion();
 }
 
-void FontEngineInterfaceTextShaper::ReleaseFontResources()
+void FontEngineInterfaceHarfBuzz::ReleaseFontResources()
 {
 	FontProvider::ReleaseFontResources();
 }
 
-void FontEngineInterfaceTextShaper::RegisterLanguage(const String& language_bcp47_code, const String& script_iso15924_code,
+void FontEngineInterfaceHarfBuzz::RegisterLanguage(const String& language_bcp47_code, const String& script_iso15924_code,
 	const TextFlowDirection text_flow_direction)
 {
 	registered_languages[language_bcp47_code] = LanguageData{script_iso15924_code, text_flow_direction};

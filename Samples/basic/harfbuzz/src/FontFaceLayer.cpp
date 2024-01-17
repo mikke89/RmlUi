@@ -27,7 +27,7 @@
  */
 
 #include "FontFaceLayer.h"
-#include "FontFaceHandleTextShaper.h"
+#include "FontFaceHandleHarfBuzz.h"
 #include <string.h>
 
 FontFaceLayer::FontFaceLayer(const SharedPtr<const FontEffect>& _effect) : colour(255, 255, 255)
@@ -39,7 +39,7 @@ FontFaceLayer::FontFaceLayer(const SharedPtr<const FontEffect>& _effect) : colou
 
 FontFaceLayer::~FontFaceLayer() {}
 
-bool FontFaceLayer::Generate(const FontFaceHandleTextShaper* handle, const FontFaceLayer* clone, bool clone_glyph_origins)
+bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFaceLayer* clone, bool clone_glyph_origins)
 {
 	// Clear the old layout if it exists.
 	{

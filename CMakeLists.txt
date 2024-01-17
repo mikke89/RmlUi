@@ -166,6 +166,7 @@ if(APPLE)
 endif()
 
 option(BUILD_SAMPLES "Build samples" OFF)
+option(ENABLE_HARFBUZZ "Enable HarfBuzz for text-shaping sample. Requires the HarfBuzz library." OFF)
 
 set(SAMPLES_BACKEND "auto" CACHE STRING "Backend platform and renderer used for the samples.")
 set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 Win32_VK X11_GL2 SDL_GL2 SDL_GL3 SDL_VK SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3 GLFW_VK)
@@ -905,21 +906,22 @@ if(BUILD_SAMPLES)
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endforeach()
 
-	# Build and install textshaper sample
-	find_package(HarfBuzz)
-	if(${HARFBUZZ_FOUND})
-		bl_sample(textshaper basic/textshaper ${sample_LIBRARIES} )
-		target_include_directories(textshaper PRIVATE ${FREETYPE_INCLUDE_DIRS} ${HARFBUZZ_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/Source/Core)
-		target_link_directories(textshaper PRIVATE ${HARFBUZZ_LIBRARY_DIR})
-		target_link_libraries(textshaper harfbuzz)
+	# Build and install harfbuzz sample
+	if (ENABLE_HARFBUZZ)
+		find_package(HarfBuzz)
+		if(HARFBUZZ_FOUND)
+			set(harfbuzz_sample_LIBRARIES ${sample_LIBRARIES} ${HARFBUZZ_LIBRARY})
+			bl_sample(harfbuzz basic/harfbuzz ${harfbuzz_sample_LIBRARIES})
+			target_include_directories(harfbuzz PRIVATE ${FREETYPE_INCLUDE_DIRS} ${HARFBUZZ_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/Source/Core)
 
-		# Set the current working directory to the same as the basic samples
-		install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/textshaper)
-		install(TARGETS textshaper
-			RUNTIME DESTINATION ${SAMPLES_DIR}/textshaper
-			BUNDLE DESTINATION ${SAMPLES_DIR})
-	else()
-		message("-- Failed to find HarfBuzz library; skipping textshaper sample")
+			# Set the current working directory to the same as the basic samples
+			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/harfbuzz)
+			install(TARGETS harfbuzz
+				RUNTIME DESTINATION ${SAMPLES_DIR}/harfbuzz
+				BUNDLE DESTINATION ${SAMPLES_DIR})
+		else()
+			message("-- Failed to find HarfBuzz library; skipping harfbuzz sample")
+		endif()
 	endif()
 
 	# Build and install invaders sample
@@ -1051,9 +1053,9 @@ if(BUILD_SAMPLES)
 			DESTINATION ${SAMPLES_DIR}/invaders
 	)
 
-	if (${HARFBUZZ_FOUND})
-		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/textshaper/data
-			DESTINATION ${SAMPLES_DIR}/basic/textshaper
+	if (ENABLE_HARFBUZZ AND HARFBUZZ_FOUND)
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/data
+			DESTINATION ${SAMPLES_DIR}/basic/harfbuzz
 		)
 	endif()
 

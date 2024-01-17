@@ -6,15 +6,29 @@
 #
 # After a successful discovery, this will set the following for inclusion where needed:
 # HARFBUZZ_INCLUDE_DIR - directory containing the HarfBuzz header files.
-# HARFBUZZ_LIBRARY_DIR - directory containing the compiled HarfBuzz library.
+# HARFBUZZ_LIBRARY     - the compiled HarfBuzz library.
 
-FIND_PATH(HARFBUZZ_INCLUDE_DIR
+# Look for the library in config mode first.
+find_package(harfbuzz CONFIG)
+if (TARGET harfbuzz::harfbuzz)
+	message(STATUS "Found HarfBuzz in config mode: version ${HARFBUZZ_VERSION}.")
+	set(HARFBUZZ_LIBRARY "harfbuzz::harfbuzz")
+	return()
+else()
+	message(STATUS "Looking for HarfBuzz in module mode instead.")
+endif()
+
+find_path(HARFBUZZ_INCLUDE_DIR
 	NAMES hb.h
 	HINTS ${HARFBUZZ_DIR})
 
-FIND_LIBRARY(HARFBUZZ_LIBRARY_DIR
+find_library(HARFBUZZ_LIBRARY
 	NAMES harfbuzz
-	HINTS ${HARFBUZZ_LIB_DIRS})
+	HINTS ${HARFBUZZ_DIR} ${HARFBUZZ_LIB_DIRS})
 
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(HarfBuzz DEFAULT_MSG HARFBUZZ_INCLUDE_DIR HARFBUZZ_LIBRARY_DIR)
+include(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(HarfBuzz DEFAULT_MSG HARFBUZZ_LIBRARY HARFBUZZ_INCLUDE_DIR)
+
+if (HARFBUZZ_FOUND)
+	message(STATUS "Found HarfBuzz library at " ${HARFBUZZ_LIBRARY})
+endif()

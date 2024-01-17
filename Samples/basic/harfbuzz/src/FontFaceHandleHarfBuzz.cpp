@@ -26,7 +26,7 @@
  *
  */
 
-#include "FontFaceHandleTextShaper.h"
+#include "FontFaceHandleHarfBuzz.h"
 #include "FontEngineDefault/FreeTypeInterface.h"
 #include "FontFaceLayer.h"
 #include "FontProvider.h"
@@ -42,7 +42,7 @@ static bool IsASCIIControlCharacter(Character c)
 	return (char32_t)c < ' ';
 }
 
-FontFaceHandleTextShaper::FontFaceHandleTextShaper()
+FontFaceHandleHarfBuzz::FontFaceHandleHarfBuzz()
 {
 	base_layer = nullptr;
 	metrics = {};
@@ -50,7 +50,7 @@ FontFaceHandleTextShaper::FontFaceHandleTextShaper()
 	hb_font = nullptr;
 }
 
-FontFaceHandleTextShaper::~FontFaceHandleTextShaper()
+FontFaceHandleHarfBuzz::~FontFaceHandleHarfBuzz()
 {
 	hb_font_destroy(hb_font);
 
@@ -58,7 +58,7 @@ FontFaceHandleTextShaper::~FontFaceHandleTextShaper()
 	layers.clear();
 }
 
-bool FontFaceHandleTextShaper::Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs)
+bool FontFaceHandleHarfBuzz::Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs)
 {
 	ft_face = face;
 
@@ -81,17 +81,17 @@ bool FontFaceHandleTextShaper::Initialize(FontFaceHandleFreetype face, int font_
 	return true;
 }
 
-const FontMetrics& FontFaceHandleTextShaper::GetFontMetrics() const
+const FontMetrics& FontFaceHandleHarfBuzz::GetFontMetrics() const
 {
 	return metrics;
 }
 
-const FontGlyphMap& FontFaceHandleTextShaper::GetGlyphs() const
+const FontGlyphMap& FontFaceHandleHarfBuzz::GetGlyphs() const
 {
 	return glyphs;
 }
 
-int FontFaceHandleTextShaper::GetStringWidth(const String& string, const TextShapingContext& text_shaping_context,
+int FontFaceHandleHarfBuzz::GetStringWidth(const String& string, const TextShapingContext& text_shaping_context,
 	const LanguageDataMap& registered_languages, Character prior_character)
 {
 	int width = 0;
@@ -135,7 +135,7 @@ int FontFaceHandleTextShaper::GetStringWidth(const String& string, const TextSha
 	return Rml::Math::Max(width, 0);
 }
 
-int FontFaceHandleTextShaper::GenerateLayerConfiguration(const FontEffectList& font_effects)
+int FontFaceHandleHarfBuzz::GenerateLayerConfiguration(const FontEffectList& font_effects)
 {
 	if (font_effects.empty())
 		return 0;
@@ -198,7 +198,7 @@ int FontFaceHandleTextShaper::GenerateLayerConfiguration(const FontEffectList& f
 	return (int)(layer_configurations.size() - 1);
 }
 
-bool FontFaceHandleTextShaper::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions,
+bool FontFaceHandleHarfBuzz::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions,
 	const FontEffect* font_effect, int texture_id, int handle_version) const
 {
 	if (handle_version != version)
@@ -218,7 +218,7 @@ bool FontFaceHandleTextShaper::GenerateLayerTexture(UniquePtr<const byte[]>& tex
 	return it->layer->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs);
 }
 
-int FontFaceHandleTextShaper::GenerateString(GeometryList& geometry, const String& string, const Vector2f position, const Colourb colour,
+int FontFaceHandleHarfBuzz::GenerateString(GeometryList& geometry, const String& string, const Vector2f position, const Colourb colour,
 	const float opacity, const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages,
 	const int layer_configuration_index)
 {
@@ -323,7 +323,7 @@ int FontFaceHandleTextShaper::GenerateString(GeometryList& geometry, const Strin
 	return Rml::Math::Max(line_width, 0);
 }
 
-bool FontFaceHandleTextShaper::UpdateLayersOnDirty()
+bool FontFaceHandleHarfBuzz::UpdateLayersOnDirty()
 {
 	bool result = false;
 
@@ -347,18 +347,18 @@ bool FontFaceHandleTextShaper::UpdateLayersOnDirty()
 	return result;
 }
 
-int FontFaceHandleTextShaper::GetVersion() const
+int FontFaceHandleHarfBuzz::GetVersion() const
 {
 	return version;
 }
 
-bool FontFaceHandleTextShaper::AppendGlyph(FontGlyphIndex glyph_index)
+bool FontFaceHandleHarfBuzz::AppendGlyph(FontGlyphIndex glyph_index)
 {
 	bool result = FreeType::AppendGlyph(ft_face, metrics.size, glyph_index, glyphs);
 	return result;
 }
 
-void FontFaceHandleTextShaper::FillKerningPairCache()
+void FontFaceHandleHarfBuzz::FillKerningPairCache()
 {
 	if (!has_kerning)
 		return;
@@ -383,7 +383,7 @@ void FontFaceHandleTextShaper::FillKerningPairCache()
 	}
 }
 
-int FontFaceHandleTextShaper::GetKerning(FontGlyphIndex lhs, FontGlyphIndex rhs) const
+int FontFaceHandleHarfBuzz::GetKerning(FontGlyphIndex lhs, FontGlyphIndex rhs) const
 {
 	// Check if we have no kerning, or if we are have an unsupported character.
 	if (!has_kerning || lhs == 0 || rhs == 0)
@@ -401,7 +401,7 @@ int FontFaceHandleTextShaper::GetKerning(FontGlyphIndex lhs, FontGlyphIndex rhs)
 	return result;
 }
 
-const FontGlyph* FontFaceHandleTextShaper::GetOrAppendGlyph(FontGlyphIndex& glyph_index)
+const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendGlyph(FontGlyphIndex& glyph_index)
 {
 	auto glyph_location = glyphs.find(glyph_index);
 	if (glyph_location == glyphs.cend())
@@ -429,7 +429,7 @@ const FontGlyph* FontFaceHandleTextShaper::GetOrAppendGlyph(FontGlyphIndex& glyp
 	return glyph;
 }
 
-FontFaceLayer* FontFaceHandleTextShaper::GetOrCreateLayer(const SharedPtr<const FontEffect>& font_effect)
+FontFaceLayer* FontFaceHandleHarfBuzz::GetOrCreateLayer(const SharedPtr<const FontEffect>& font_effect)
 {
 	// Search for the font effect layer first, it may have been instanced before as part of a different configuration.
 	const FontEffect* font_effect_ptr = font_effect.get();
@@ -449,7 +449,7 @@ FontFaceLayer* FontFaceHandleTextShaper::GetOrCreateLayer(const SharedPtr<const 
 	return layer.get();
 }
 
-bool FontFaceHandleTextShaper::GenerateLayer(FontFaceLayer* layer)
+bool FontFaceHandleHarfBuzz::GenerateLayer(FontFaceLayer* layer)
 {
 	RMLUI_ASSERT(layer);
 	const FontEffect* font_effect = layer->GetFontEffect();
@@ -490,7 +490,7 @@ bool FontFaceHandleTextShaper::GenerateLayer(FontFaceLayer* layer)
 	return result;
 }
 
-void FontFaceHandleTextShaper::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buffer, const String& string,
+void FontFaceHandleHarfBuzz::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buffer, const String& string,
 	const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages)
 {
 	// Set the buffer's language based on the value of the element's 'lang' attribute.

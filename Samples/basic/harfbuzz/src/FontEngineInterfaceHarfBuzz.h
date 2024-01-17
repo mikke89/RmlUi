@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef FONTENGINEINTERFACETEXTSHAPER_H
-#define FONTENGINEINTERFACETEXTSHAPER_H
+#ifndef FONTENGINEINTERFACEHARFBUZZ_H
+#define FONTENGINEINTERFACEHARFBUZZ_H
 
 #include "LanguageData.h"
 #include <RmlUi/Core.h>
@@ -45,10 +45,10 @@ using Rml::TextShapingContext;
 using Rml::Vector2f;
 namespace Style = Rml::Style;
 
-class FontEngineInterfaceTextShaper : public Rml::FontEngineInterface {
+class FontEngineInterfaceHarfBuzz : public Rml::FontEngineInterface {
 public:
-	FontEngineInterfaceTextShaper();
-	virtual ~FontEngineInterfaceTextShaper();
+	FontEngineInterfaceHarfBuzz();
+	virtual ~FontEngineInterfaceHarfBuzz();
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight) override;

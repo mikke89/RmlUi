@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef FONTFACEHANDLETEXTSHAPER_H
-#define FONTFACEHANDLETEXTSHAPER_H
+#ifndef FONTFACEHANDLEHARFBUZZ_H
+#define FONTFACEHANDLEHARFBUZZ_H
 
 #include "FontEngineDefault/FontTypes.h"
 #include "FontFaceLayer.h"
@@ -58,10 +58,10 @@ using Rml::Vector2i;
     Original author: Peter Curry
     Modified to support HarfBuzz text shaping.
  */
-class FontFaceHandleTextShaper : public Rml::NonCopyMoveable {
+class FontFaceHandleHarfBuzz : public Rml::NonCopyMoveable {
 public:
-	FontFaceHandleTextShaper();
-	~FontFaceHandleTextShaper();
+	FontFaceHandleHarfBuzz();
+	~FontFaceHandleHarfBuzz();
 
 	bool Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs);
 

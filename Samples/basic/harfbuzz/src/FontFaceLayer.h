@@ -46,7 +46,7 @@ using Rml::Vector;
 using Rml::Vector2f;
 using Rml::Vector2i;
 
-class FontFaceHandleTextShaper;
+class FontFaceHandleHarfBuzz;
 
 /**
     A textured layer stored as part of a font face handle. Each handle will have at least a base
@@ -66,7 +66,7 @@ public:
 	/// @param[in] effect The effect to initialise the layer with.
 	/// @param[in] clone The layer to optionally clone geometry and texture data from.
 	/// @return True if the layer was generated successfully, false if not.
-	bool Generate(const FontFaceHandleTextShaper* handle, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
+	bool Generate(const FontFaceHandleHarfBuzz* handle, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
 
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The pointer to be set to the generated texture data.

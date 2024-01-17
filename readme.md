@@ -455,6 +455,7 @@ See [Source/Debugger/LICENSE.txt](Source/Debugger/LICENSE.txt) - SIL Open Font L
 See
 - [Samples/assets/LICENSE.txt](Samples/assets/LICENSE.txt)
 - [Samples/basic/bitmapfont/data/LICENSE.txt](Samples/basic/bitmapfont/data/LICENSE.txt)
+- [Samples/basic/harfbuzz/data/LICENSE.txt](Samples/basic/harfbuzz/data/LICENSE.txt)
 - [Samples/basic/lottie/data/LICENSE.txt](Samples/basic/lottie/data/LICENSE.txt)
 - [Samples/basic/svg/data/LICENSE.txt](Samples/basic/svg/data/LICENSE.txt)
 

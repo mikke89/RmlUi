@@ -26,61 +26,49 @@
  *
  */
 
-#ifndef FONTFAMILY_H
-#define FONTFAMILY_H
+#ifndef FONTFACE_H
+#define FONTFACE_H
 
 #include "FontEngineDefault/FontTypes.h"
+#include "FontFaceHandleHarfBuzz.h"
 #include <RmlUi/Core.h>
 
-using Rml::byte;
 using Rml::FontFaceHandleFreetype;
-using Rml::String;
 using Rml::UniquePtr;
-using Rml::Vector;
+using Rml::UnorderedMap;
 namespace Style = Rml::Style;
-
-class FontFace;
-class FontFaceHandleTextShaper;
 
 /**
     Original author: Peter Curry
     Modified to support HarfBuzz text shaping.
  */
 
-class FontFamily {
+class FontFace {
 public:
-	FontFamily(const String& name);
-	~FontFamily();
+	FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight);
+	~FontFace();
 
-	/// Returns a handle to the most appropriate font in the family, at the correct size.
-	/// @param[in] style The style of the desired handle.
-	/// @param[in] weight The weight of the desired handle.
-	/// @param[in] size The size of desired handle, in points.
-	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
-	FontFaceHandleTextShaper* GetFaceHandle(Style::FontStyle style, Style::FontWeight weight, int size);
+	Style::FontStyle GetStyle() const;
+	Style::FontWeight GetWeight() const;
 
-	/// Adds a new face to the family.
-	/// @param[in] ft_face The previously loaded FreeType face.
-	/// @param[in] style The style of the new face.
-	/// @param[in] weight The weight of the new face.
-	/// @param[in] face_memory Optionally pass ownership of the face's memory to the face itself, automatically releasing it on destruction.
-	/// @return True if the face was loaded successfully, false otherwise.
-	FontFace* AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]> face_memory);
+	/// Returns a handle for positioning and rendering this face at the given size.
+	/// @param[in] size The size of the desired handle, in points.
+	/// @param[in] load_default_glyphs True to load the default set of glyph (ASCII range).
+	/// @return The font handle.
+	FontFaceHandleHarfBuzz* GetHandle(int size, bool load_default_glyphs);
 
 	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
 	void ReleaseFontResources();
 
-protected:
-	String name;
+private:
+	Style::FontStyle style;
+	Style::FontWeight weight;
 
-	struct FontFaceEntry {
-		UniquePtr<FontFace> face;
-		// Only filled if we own the memory used by the face's FreeType handle. May be shared with other faces in this family.
-		UniquePtr<byte[]> face_memory;
-	};
+	// Key is font size
+	using HandleMap = UnorderedMap<int, UniquePtr<FontFaceHandleHarfBuzz>>;
+	HandleMap handles;
 
-	using FontFaceList = Vector<FontFaceEntry>;
-	FontFaceList font_faces;
+	FontFaceHandleFreetype face;
 };
 
 #endif
