@@ -270,7 +270,7 @@ public:
 		program_states.pop_back();
 	}
 
-	void DiscardState()
+	void DiscardProgramState()
 	{
 		RMLUI_ASSERT(!program_states.empty());
 		program_states.pop_back();
@@ -367,7 +367,7 @@ namespace Parse {
 		if (is_alpha || (c >= '0' && c <= '9'))
 			return true;
 
-		for (char valid_char : "_. ")
+		for (char valid_char : "_.")
 		{
 			if (c == valid_char && valid_char != '\0')
 				return true;
@@ -387,18 +387,6 @@ namespace Parse {
 			c = parser.Next();
 			is_first_character = false;
 		}
-
-		// Right trim spaces in name
-		size_t new_size = String::npos;
-		for (int i = int(name.size()) - 1; i >= 1; i--)
-		{
-			if (name[i] == ' ')
-				new_size = size_t(i);
-			else
-				break;
-		}
-		if (new_size != String::npos)
-			name.resize(new_size);
 
 		if (out_valid_function_name)
 			*out_valid_function_name = (name.find_first_of(". ") == String::npos);
@@ -420,6 +408,8 @@ namespace Parse {
 					parser.Error("Expected a variable for assignment but got an empty name.");
 					return;
 				}
+
+				parser.SkipWhitespace();
 
 				const char c = parser.Look();
 				if (c == '=')
@@ -650,7 +640,7 @@ namespace Parse {
 			String index = NumberLiteral(parser, true);
 			if (!index.empty() && parser.Look() == ']')
 			{
-				parser.DiscardState();
+				parser.DiscardProgramState();
 				parser.Next();
 				prefix.append(index);
 				prefix.push_back(']');
@@ -736,7 +726,7 @@ namespace Parse {
 				// add the root of a variable expression as dependency into the address list
 				parser.AddVariableAddress(name);
 
-				parser.DiscardState();
+				parser.DiscardProgramState();
 				parser.Emit(Instruction::DynamicVariable, Variant());
 			}
 		}
@@ -1114,7 +1104,11 @@ private:
 		break;
 		case Instruction::CastToInt:
 		{
-			R = R.Get<int>();
+			int tmp;
+			if (!R.GetInto(tmp))
+				return Error("Could not cast value to int.");
+			else
+				R = tmp;
 		}
 		break;
 		default: RMLUI_ERRORMSG("Instruction not implemented."); break;
