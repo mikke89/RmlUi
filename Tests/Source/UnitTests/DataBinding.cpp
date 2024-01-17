@@ -34,7 +34,6 @@
 #include <cmath>
 #include <doctest.h>
 
-
 using namespace Rml;
 
 namespace {
@@ -559,6 +558,7 @@ TEST_CASE("databinding.dynamic_variables")
 	CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "c2");
 
 	document->Close();
+	*globals.i1 = 1;
 
 	TestsShell::ShutdownShell();
 }

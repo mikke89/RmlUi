@@ -255,12 +255,12 @@ public:
 		program.push_back(InstructionData{Instruction::NumArguments, Variant(int(num_arguments))});
 		program.push_back(InstructionData{instruction, Variant(std::move(name))});
 	}
-	void Variable(const String& expression) { VariableGetSet(expression, false); }
-	void Assign(const String& expression) { VariableGetSet(expression, true); }
+	void StaticVariable(const String& expression) { VariableGetSet(expression, false); }
+	void StaticAssign(const String& expression) { VariableGetSet(expression, true); }
 
-	void PushState() { program_states.push_back(ProgramState{program.size(), program_stack_size, index}); }
+	void PushProgramState() { program_states.push_back(ProgramState{program.size(), program_stack_size, index}); }
 
-	void PopState()
+	void PopProgramState()
 	{
 		RMLUI_ASSERT(!program_states.empty());
 		auto const& state = program_states.back();
@@ -276,7 +276,7 @@ public:
 		program_states.pop_back();
 	}
 
-	bool Address(const String& name)
+	bool AddVariableAddress(const String& name)
 	{
 		DataAddress address = expression_interface.ParseAddress(name);
 		if (address.empty())
@@ -337,6 +337,7 @@ namespace Parse {
 
 	static String NumberLiteral(DataParser& parser, bool silent = false);
 	static void StringLiteral(DataParser& parser);
+	static String VariableExpression(DataParser& parser, const String& address_prefix);
 	static void VariableOrFunction(DataParser& parser);
 
 	static void Add(DataParser& parser);
@@ -425,7 +426,7 @@ namespace Parse {
 				{
 					parser.Match('=');
 					Expression(parser);
-					parser.Assign(variable_name);
+					parser.StaticAssign(variable_name);
 				}
 				else if (c == '(' || c == ';' || c == '\0')
 				{
@@ -636,7 +637,7 @@ namespace Parse {
 		parser.Emit(Instruction::Literal, Variant(str));
 	}
 
-	static String VariableExpression(DataParser& parser, String const& address_prefix)
+	static String VariableExpression(DataParser& parser, const String& address_prefix)
 	{
 		if (parser.Look() == '[')
 		{
@@ -645,7 +646,7 @@ namespace Parse {
 
 			prefix.push_back('[');
 
-			parser.PushState();
+			parser.PushProgramState();
 			String index = NumberLiteral(parser, true);
 			if (!index.empty() && parser.Look() == ']')
 			{
@@ -657,7 +658,7 @@ namespace Parse {
 			}
 			else
 			{
-				parser.PopState();
+				parser.PopProgramState();
 
 				parser.Emit(Instruction::Literal, Variant(prefix));
 				parser.Push();
@@ -693,8 +694,6 @@ namespace Parse {
 			}
 			return VariableExpression(parser, address_prefix + next);
 		}
-
-		return address_prefix;
 	}
 
 	static void VariableOrFunction(DataParser& parser)
@@ -723,26 +722,26 @@ namespace Parse {
 		}
 		else if (parser.Look() == '[')
 		{
-			parser.PushState();
+			parser.PushProgramState();
 
 			String full_address = VariableExpression(parser, name);
 
 			if (!full_address.empty())
 			{
-				parser.PopState();
-				parser.Variable(full_address);
+				parser.PopProgramState();
+				parser.StaticVariable(full_address);
 			}
 			else
 			{
 				// add the root of a variable expression as dependency into the address list
-				parser.Address(name);
+				parser.AddVariableAddress(name);
 
 				parser.DiscardState();
 				parser.Emit(Instruction::DynamicVariable, Variant());
 			}
 		}
 		else
-			parser.Variable(name);
+			parser.StaticVariable(name);
 	}
 
 	static void Add(DataParser& parser)
