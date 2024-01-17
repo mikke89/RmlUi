@@ -123,8 +123,6 @@ public:
 			{
 				if(property->unit == Unit::STRING)
 					image_source = property->Get<String>();
-			} else {
-				image_source = value;
 			}
 		}
 		else if (name == "resolution")
