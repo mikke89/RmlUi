@@ -211,6 +211,13 @@ int ElementQuerySelectorAll(lua_State* L, Element* obj)
 	return 1;
 }
 
+int ElementMatches(lua_State* L, Element* obj)
+{
+	const char* tag = luaL_checkstring(L, 1);
+	lua_pushboolean(L, obj->Matches(tag));
+	return 1;
+}
+
 int ElementHasAttribute(lua_State* L, Element* obj)
 {
 	const char* name = luaL_checkstring(L, 1);
@@ -594,6 +601,7 @@ RegType<Element> ElementMethods[] = {
 	RMLUI_LUAMETHOD(Element, GetElementsByTagName),
 	RMLUI_LUAMETHOD(Element, QuerySelector),
 	RMLUI_LUAMETHOD(Element, QuerySelectorAll),
+	RMLUI_LUAMETHOD(Element, Matches),
 	RMLUI_LUAMETHOD(Element, HasAttribute),
 	RMLUI_LUAMETHOD(Element, HasChildNodes),
 	RMLUI_LUAMETHOD(Element, InsertBefore),

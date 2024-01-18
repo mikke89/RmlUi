@@ -242,6 +242,22 @@ static const Vector<ClosestSelector> closest_selectors =
 	{ "D1",  ":nth-child(4)",    "D" },
 	{ "D1",  "div:nth-child(4)", "P" },
 };
+
+struct MatchesSelector {
+	String id;
+	String selector;
+	bool expected_result;
+};
+static const Vector<MatchesSelector> matches_selectors =
+{
+	{ "X", ".world",         false },
+	{ "X", ".hello",         true },
+	{ "X", ".hello, .world", true },
+	{ "E", "h3",             true },
+	{ "G", "p#G[class]",     true },
+	{ "G", "p#G[missing]",   false },
+	{ "B", "[unit='m']",     true }
+};
 // clang-format on
 
 // Recursively iterate through 'element' and all of its descendants to find all
@@ -419,6 +435,23 @@ TEST_CASE("Selectors")
 			Element* match = start->Closest(selector.selector);
 			const String match_id = match ? match->GetId() : "";
 			CHECK_MESSAGE(match_id == selector.expected_id, "Closest() selector '" << selector.selector << "' from " << selector.start_id);
+		}
+		context->UnloadDocument(document);
+	}
+
+	SUBCASE("Matches")
+	{
+		const String document_string = doc_begin + doc_end;
+		ElementDocument* document = context->LoadDocumentFromMemory(document_string);
+		REQUIRE(document);
+
+		for (const MatchesSelector& selector : matches_selectors)
+		{
+			Element* start = document->GetElementById(selector.id);
+			REQUIRE(start);
+
+			bool matches = start->Matches(selector.selector);
+			CHECK_MESSAGE(matches == selector.expected_result, "Matches() selector '" << selector.selector << "' from " << selector.id);
 		}
 		context->UnloadDocument(document);
 	}
