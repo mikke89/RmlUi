@@ -69,13 +69,13 @@ TEST_CASE("spritesheet")
 	Initialise();
 
 	{
-		StyleSheetContainer styleSheetContainer;
+		StyleSheetContainer style_sheet_container;
 		StreamMemory spriteSheetStream{reinterpret_cast<const byte*>(spriteSheet), strlen(spriteSheet)};
-		styleSheetContainer.LoadStyleSheetContainer(&spriteSheetStream, 0);
+		style_sheet_container.LoadStyleSheetContainer(&spriteSheetStream, 0);
 
 		Context* context = CreateContext("test", Vector2i(1024, 768));
-		styleSheetContainer.UpdateCompiledStyleSheet(context);
-		const auto* styleSheet = styleSheetContainer.GetCompiledStyleSheet();
+		style_sheet_container.UpdateCompiledStyleSheet(context);
+		const auto* styleSheet = style_sheet_container.GetCompiledStyleSheet();
 		CHECK(styleSheet != nullptr);
 
 		const auto* sprite00 = styleSheet->GetSprite("test00");
@@ -126,13 +126,13 @@ TEST_CASE("spritesheet with path string encoding")
 	Initialise();
 
 	{
-		StyleSheetContainer styleSheetContainer;
+		StyleSheetContainer style_sheet_container;
 		StreamMemory spriteSheetStream{reinterpret_cast<const byte*>(spriteSheetWithPathStringEncoding), strlen(spriteSheetWithPathStringEncoding)};
-		styleSheetContainer.LoadStyleSheetContainer(&spriteSheetStream, 0);
+		style_sheet_container.LoadStyleSheetContainer(&spriteSheetStream, 0);
 
 		Context* context = CreateContext("test", Vector2i(1024, 768));
-		styleSheetContainer.UpdateCompiledStyleSheet(context);
-		const auto* styleSheet = styleSheetContainer.GetCompiledStyleSheet();
+		style_sheet_container.UpdateCompiledStyleSheet(context);
+		const auto* styleSheet = style_sheet_container.GetCompiledStyleSheet();
 		CHECK(styleSheet != nullptr);
 
 		const auto* sprite00 = styleSheet->GetSprite("test00");
