@@ -317,7 +317,7 @@ namespace Parse {
 	static void Term(DataParser& parser);
 	static void Factor(DataParser& parser);
 
-	static String NumberLiteral(DataParser& parser, bool silent = false);
+	static void NumberLiteral(DataParser& parser);
 	static void StringLiteral(DataParser& parser);
 	static String VariableExpression(DataParser& parser, const String& address_prefix);
 	static void VariableOrFunction(DataParser& parser);
@@ -374,6 +374,36 @@ namespace Parse {
 			*out_valid_function_name = (name.find_first_of(". ") == String::npos);
 
 		return name;
+	}
+
+	static String FindNumberLiteral(DataParser& parser)
+	{
+		String str;
+
+		bool first_match = false;
+		bool has_dot = false;
+		char c = parser.Look();
+		if (c == '-')
+		{
+			str += c;
+			c = parser.Next();
+		}
+
+		while ((c >= '0' && c <= '9') || (c == '.' && !has_dot))
+		{
+			first_match = true;
+			str += c;
+			if (c == '.')
+				has_dot = true;
+			c = parser.Next();
+		}
+
+		if (!first_match)
+		{
+			return String();
+		}
+
+		return str;
 	}
 
 	// Parser functions
@@ -537,9 +567,7 @@ namespace Parse {
 		}
 		else if (c == '-' || (c >= '0' && c <= '9'))
 		{
-			const double number = FromString(NumberLiteral(parser), 0.0);
-
-			parser.Emit(Instruction::Literal, Variant(number));
+			NumberLiteral(parser);
 			parser.SkipWhitespace();
 		}
 		else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
@@ -551,7 +579,7 @@ namespace Parse {
 			parser.Expected("literal, variable name, function name, parenthesis, or '!'");
 	}
 
-	static String NumberLiteral(DataParser& parser, bool silent)
+	static void NumberLiteral(DataParser& parser)
 	{
 		String str;
 
@@ -575,12 +603,13 @@ namespace Parse {
 
 		if (!first_match)
 		{
-			if (!silent)
-				parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
-			return String();
+			parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
+			return;
 		}
 
-		return str;
+		const double number = FromString(str, 0.0);
+
+		parser.Emit(Instruction::Literal, Variant(number));
 	}
 
 	static void StringLiteral(DataParser& parser)
@@ -622,7 +651,7 @@ namespace Parse {
 			// Could turn out to be expression and needs reparsing
 			auto backup_state = parser.GetProgramState();
 
-			String index = NumberLiteral(parser, true);
+			String index = FindNumberLiteral(parser);
 			if (!index.empty() && parser.Look() == ']')
 			{
 				parser.Next();
