@@ -118,6 +118,28 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 	return flex_container_box;
 }
 
+Vector2f FlexFormattingContext::GetMaxContentSize(Element* element)
+{
+	// A large but finite number is used here, because the flexbox formatting algorithm
+	// needs to round numbers, and it doesn't support infinities.
+	const Vector2f infinity(10000.0f, 10000.0f);
+	RootBox root(infinity);
+	auto flex_container_box = MakeUnique<FlexContainer>(element, &root);
+
+	FlexFormattingContext context;
+	context.flex_container_box = flex_container_box.get();
+	context.element_flex = element;
+	context.flex_available_content_size = Vector2f(-1, -1);
+	context.flex_content_containing_block = infinity;
+	context.flex_max_size = Vector2f(FLT_MAX, FLT_MAX);
+
+	// Format the flexbox and all its children.
+	Vector2f flex_resulting_content_size, content_overflow_size;
+	float flex_baseline = 0.f;
+	context.Format(flex_resulting_content_size, content_overflow_size, flex_baseline);
+	return flex_resulting_content_size;
+}
+
 struct FlexItem {
 	// In the following, suffix '_a' means flex start edge while '_b' means flex end edge.
 	struct Size {
@@ -137,7 +159,7 @@ struct FlexItem {
 	Size cross;
 	float flex_shrink_factor;
 	float flex_grow_factor;
-	Style::AlignSelf align_self; // 'Auto' is replaced by container's 'align-items' value
+	Style::AlignSelf align_self;  // 'Auto' is replaced by container's 'align-items' value
 
 	float inner_flex_base_size;   // Inner size
 	float flex_base_size;         // Outer size
@@ -315,10 +337,11 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			RMLUI_ASSERT(initial_box_size.y < 0.f);
 
 			Box format_box = item.box;
-			if (initial_box_size.x < 0.f)
+			if (initial_box_size.x < 0.f && flex_available_content_size.x >= 0.f)
 				format_box.SetContent(Vector2f(flex_available_content_size.x - item.cross.sum_edges, initial_box_size.y));
 
-			FormattingContext::FormatIndependent(flex_container_box, element, &format_box, FormattingContextType::Block);
+			FormattingContext::FormatIndependent(flex_container_box, element, (format_box.GetSize().x >= 0 ? &format_box : nullptr),
+				FormattingContextType::Block);
 			item.inner_flex_base_size = element->GetBox().GetSize().y;
 		}
 

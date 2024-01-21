@@ -256,16 +256,17 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::UnalignedBlock);
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
 
-	// Currently we don't support shrink-to-fit width for flexboxes or tables. Just return a zero-sized width.
+	// Currently we don't support shrink-to-fit width for tables. Just return a zero-sized width.
 	const Style::Display display = element->GetDisplay();
-	if (display == Style::Display::Flex || display == Style::Display::InlineFlex || display == Style::Display::Table ||
-		display == Style::Display::InlineTable)
+	if (display == Style::Display::Table || display == Style::Display::InlineTable)
+	{
 		return 0.f;
+	}
 
 	// Use a large size for the box content width, so that it is practically unconstrained. This makes the formatting
 	// procedure act as if under a maximum content constraint. Children with percentage sizing values may be scaled
 	// based on this width (such as 'width' or 'margin'), if so, the layout is considered undefined like in CSS 2.
-	const float max_content_constraint_width = containing_block.x + 1000.f;
+	const float max_content_constraint_width = containing_block.x + 10000.f;
 	box.SetContent({max_content_constraint_width, box.GetSize().y});
 
 	// First, format the element under the above generated box. Then we ask the resulting box for its shrink-to-fit
@@ -275,9 +276,14 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	RootBox root(Math::Max(containing_block, Vector2f(0.f)));
 	UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
 
-	const float available_width = Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
-
-	return Math::Min(available_width, layout_box->GetShrinkToFitWidth());
+	float shrink_to_fit_width = layout_box->GetShrinkToFitWidth();
+	if (containing_block.x >= 0)
+	{
+		const float available_width =
+			Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
+		shrink_to_fit_width = Math::Min(shrink_to_fit_width, available_width);
+	}
+	return shrink_to_fit_width;
 }
 
 ComputedAxisSize LayoutDetails::BuildComputedHorizontalSize(const ComputedValues& computed)
@@ -446,7 +452,7 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		// See CSS 2.1 section 10.3.7 for when this should be applied.
 		const bool shrink_to_fit = !replaced_element &&
 			((computed.float_() != Style::Float::None) || (absolutely_positioned && inset_auto) ||
-				(computed.display() == Style::Display::InlineBlock));
+				(computed.display() == Style::Display::InlineBlock || computed.display() == Style::Display::InlineFlex));
 
 		if (!shrink_to_fit)
 		{
