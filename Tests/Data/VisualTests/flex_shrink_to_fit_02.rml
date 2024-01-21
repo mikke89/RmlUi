@@ -1,0 +1,72 @@
+<rml>
+<head>
+	<title>Flex - Shrink-to-fit 02</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-flexbox/" />
+	<link rel="PR #559" href="https://github.com/mikke89/RmlUi/pull/559" />
+	<meta name="Description" content="Flexboxes in shrink-to-fit contexts should be sized to fit compactly around their contents." />
+	<style>
+		.shrink-to-fit {
+			float: left;
+			clear: left;
+		}
+		.outer, .inner { display: flex; }
+		.row { flex-direction: row; }
+		.column { flex-direction: column; }
+		.block {
+			width: 50px;
+			height: 50px;
+			margin: 10px;
+		}
+		.red { background-color: red; }
+		.green { background-color: green; }
+		.blue { background-color: blue; }
+	</style>
+</head>
+
+<body>
+<div class="shrink-to-fit">
+	<div class="outer row">
+		<div class="inner column">
+			<div class="block red"></div>
+			<div class="block green"></div>
+			<div class="block blue"></div>
+		</div>
+		<div class="inner column">
+			<div class="block red"></div>
+			<div class="block green"></div>
+			<div class="block blue"></div>
+		</div>
+		<div class="inner column">
+			<div class="block red"></div>
+			<div class="block green"></div>
+			<div class="block blue"></div>
+		</div>
+	</div>
+</div>
+
+<hr/>
+
+<div class="shrink-to-fit">
+	<div class="outer column">
+		<div class="inner row">
+			<div class="block red"></div>
+			<div class="block green"></div>
+			<div class="block blue"></div>
+		</div>
+		<div class="inner row">
+			<div class="block red"></div>
+			<div class="block green"></div>
+			<div class="block blue"></div>
+		</div>
+		<div class="inner row">
+			<div class="block red"></div>
+			<div class="block green"></div>
+			<div class="block blue"></div>
+		</div>
+	</div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

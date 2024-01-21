@@ -1,0 +1,88 @@
+<rml>
+<head>
+	<title>Flex - Shrink-to-fit 01</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css-flexbox/" />
+	<link rel="PR #559" href="https://github.com/mikke89/RmlUi/pull/559" />
+	<meta name="Description" content="Flexboxes in shrink-to-fit contexts should be sized to fit compactly around their contents." />
+	<style>
+		.shrink-to-fit {
+			float: left;
+			clear: both;
+			margin: 10px 0;
+			border: 2px #e8e8e8;
+		}
+		.shrink-to-fit.right {
+			float: right;
+			clear: none;
+		}
+		.outer {
+			display: flex;
+			border: 1px red;
+			padding: 30px;
+		}
+		.inner {
+			border: 1px blue;
+			padding: 30px;
+		}
+		.row-align-start, .row-align-start * {
+			display: flex;
+			flex-direction: row;
+			align-items: flex-start;
+		}
+		.column-align-end, .column-align-end * {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-end;
+		}
+	</style>
+</head>
+
+<body>
+<div class="shrink-to-fit">
+	Before
+	<div class="outer">
+		<div class="inner">Flex</div>
+	</div>
+	After
+</div>
+
+<div class="shrink-to-fit right">
+	Before
+	<div class="outer" style="display: inline-flex">
+		<div class="inner">Inline-flex</div>
+	</div>
+	After
+</div>
+
+<div class="shrink-to-fit"  style="display: flex; flex-direction: column">
+	<div style="padding: 42px; background: blue; border: 5px #00ffff">
+		<div style="display: flex; background: green; padding: 10px; border: 5px #ff00ff">
+			<div style="width: 10px; height: 10px; background: red; border: 5px #ffff00"></div>
+		</div>
+	</div>
+</div>
+
+<div class="shrink-to-fit row-align-start" style="width: 130px; height: 130px">
+	<div style="border: 5px yellow">
+		<div style="border: 5px red; width: 100px; height: 100px">
+			<div style="border: 5px green">
+				<div style="border: 5px blue; width: 50px; height: 50px;"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="shrink-to-fit right column-align-end" style="width: 130px; height: 130px">
+	<div style="border: 5px yellow">
+		<div style="border: 5px red; width: 100px; height: 100px;">
+			<div style="border: 5px green">
+				<div style="border: 5px blue; width: 50px; height: 50px;"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>
