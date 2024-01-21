@@ -571,3 +571,100 @@ TEST_CASE("flexbox.chat")
 
 	document->Close();
 }
+
+static const String rml_flexbox_shrink_to_fit = R"(
+<rml>
+<head>
+    <title>Flex - Shrink-to-fit 01</title>
+    <link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<style>
+		body { width: 1000px; }
+		.shrink-to-fit {
+			float: left;
+			clear: both;
+			margin: 10px 0;
+			border: 2px #e8e8e8;
+		}
+		.outer {
+			border: 1px red;
+			padding: 30px;
+		}
+		#basic .outer {
+			display: flex;
+		}
+		#nested .outer {
+			display: inline-flex;
+		}
+		.inner {
+			border: 1px blue;
+			padding: 30px;
+		}
+	</style>
+</head>
+<body>
+<div id="basic" class="shrink-to-fit">
+	Before
+	<div class="outer">
+		<div class="inner">Flex</div>
+	</div>
+	After
+</div>
+<div id="nested" class="shrink-to-fit">
+	Before
+	<div class="outer">
+		<div class="inner">
+			<div class="outer">
+				<div class="inner">
+					<div class="outer">
+						<div class="inner">Flex</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	After
+</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("flexbox.shrink-to-fit")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	nanobench::Bench bench;
+	bench.title("Flexbox shrink-to-fit");
+	bench.relative(true);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(rml_flexbox_shrink_to_fit);
+	Element* basic = document->GetElementById("basic");
+	Element* nested = document->GetElementById("nested");
+
+	document->Show();
+	TestsShell::RenderLoop();
+
+	basic->SetProperty(PropertyId::Display, Style::Display::None);
+	nested->SetProperty(PropertyId::Display, Style::Display::None);
+
+	bench.run("Reference", [&] {
+		document->SetProperty(PropertyId::Display, Style::Display::None);
+		document->RemoveProperty(PropertyId::Display);
+		context->Update();
+		context->Render();
+	});
+	bench.run("Basic shrink-to-fit", [&] {
+		basic->RemoveProperty(PropertyId::Display);
+		nested->SetProperty(PropertyId::Display, Style::Display::None);
+		context->Update();
+		context->Render();
+	});
+	bench.run("Nested shrink-to-fit", [&] {
+		basic->SetProperty(PropertyId::Display, Style::Display::None);
+		nested->RemoveProperty(PropertyId::Display);
+		context->Update();
+		context->Render();
+	});
+
+	document->Close();
+}
