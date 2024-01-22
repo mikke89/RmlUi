@@ -96,6 +96,29 @@ set(transform_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/transform/src/main.cpp
 )
 
+set(harfbuzzshaping_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontEngineInterfaceHarfBuzz.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontFace.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontFaceHandleHarfBuzz.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontFaceLayer.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontFamily.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontGlyph.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontProvider.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FreeTypeInterface.h
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/LanguageData.h
+)
+
+set(harfbuzzshaping_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontEngineInterfaceHarfBuzz.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontFace.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontFaceHandleHarfBuzz.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontFaceLayer.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontFamily.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FontProvider.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/FreeTypeInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/main.cpp
+)
+
 set(lottie_HDR_FILES
 )
 
