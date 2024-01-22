@@ -394,6 +394,18 @@ if(NOT NO_FONT_INTERFACE_DEFAULT)
 	endif()
 endif()
 
+# HarfBuzz
+if (ENABLE_HARFBUZZ)
+	if(NO_FONT_INTERFACE_DEFAULT)
+		message(FATAL_ERROR "The HarfBuzz sample requires the default (FreeType) font engine to be enabled. Please disable either NO_FONT_INTERFACE_DEFAULT or ENABLE_HARFBUZZ.")
+	endif()
+	if(WIN32 AND BUILD_SHARED_LIBS)
+		message(FATAL_ERROR "-- The HarfBuzz sample cannot be built when using shared libraries on Windows. Please disable either BUILD_SHARED_LIBS or ENABLE_HARFBUZZ.")
+	endif()
+
+	find_package(HarfBuzz REQUIRED)
+endif()
+
 # Lua
 if(BUILD_LUA_BINDINGS)
 	if(BUILD_LUA_BINDINGS_FOR_LUAJIT)
@@ -882,6 +894,9 @@ if(BUILD_SAMPLES)
 	if(ENABLE_SVG_PLUGIN)
 		list(APPEND samples "svg")
 	endif()
+	if(ENABLE_HARFBUZZ)
+		list(APPEND samples "harfbuzzshaping")
+	endif()
 
 	# Build and install the basic samples
 	foreach(sample ${samples})
@@ -906,24 +921,6 @@ if(BUILD_SAMPLES)
 			BUNDLE DESTINATION ${SAMPLES_DIR})
 	endforeach()
 
-	# Build and install harfbuzz sample
-	if (ENABLE_HARFBUZZ)
-		find_package(HarfBuzz)
-		if(HARFBUZZ_FOUND)
-			set(harfbuzz_sample_LIBRARIES ${sample_LIBRARIES} ${HARFBUZZ_LIBRARY})
-			bl_sample(harfbuzz basic/harfbuzz ${harfbuzz_sample_LIBRARIES})
-			target_include_directories(harfbuzz PRIVATE ${FREETYPE_INCLUDE_DIRS} ${HARFBUZZ_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/Source/Core)
-
-			# Set the current working directory to the same as the basic samples
-			install(DIRECTORY DESTINATION ${SAMPLES_DIR}/basic/harfbuzz)
-			install(TARGETS harfbuzz
-				RUNTIME DESTINATION ${SAMPLES_DIR}/harfbuzz
-				BUNDLE DESTINATION ${SAMPLES_DIR})
-		else()
-			message("-- Failed to find HarfBuzz library; skipping harfbuzz sample")
-		endif()
-	endif()
-
 	# Build and install invaders sample
 	bl_sample(invaders invaders  ${sample_LIBRARIES})
 	install(DIRECTORY DESTINATION ${SAMPLES_DIR}/invaders)
@@ -937,6 +934,12 @@ if(BUILD_SAMPLES)
 		install(TARGETS luainvaders
 			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
 			BUNDLE DESTINATION ${SAMPLES_DIR})
+	endif()
+
+	# Attach harfbuzz sample dependencies to samples
+	if (ENABLE_HARFBUZZ)
+		target_include_directories(harfbuzzshaping PRIVATE ${FREETYPE_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/Source/Core)
+		target_link_libraries(harfbuzzshaping harfbuzz::harfbuzz)
 	endif()
 
 	# Add assets to emscripten binaries
@@ -1054,8 +1057,8 @@ if(BUILD_SAMPLES)
 	)
 
 	if (ENABLE_HARFBUZZ AND HARFBUZZ_FOUND)
-		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzz/data
-			DESTINATION ${SAMPLES_DIR}/basic/harfbuzz
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/data
+			DESTINATION ${SAMPLES_DIR}/basic/harfbuzzshaping
 		)
 	endif()
 

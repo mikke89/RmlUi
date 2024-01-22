@@ -33,7 +33,7 @@
 #include <Shell.h>
 
 /*
-	This demo shows how to create a custom text-shaping font engine implementation using HarfBuzz.
+    This demo shows how to create a custom text-shaping font engine implementation using HarfBuzz.
 */
 
 // Toggle this variable to enable/disable text shaping.
@@ -43,7 +43,8 @@ class HarfBuzzEventListener : public Rml::EventListener {
 public:
 	HarfBuzzEventListener(const Rml::String& value, Rml::ElementDocument* document) :
 		value(value), english_element(document->GetElementById("lorem-ipsum-en")), arabic_element(document->GetElementById("lorem-ipsum-ar")),
-		hindi_element(document->GetElementById("lorem-ipsum-hi")){}
+		hindi_element(document->GetElementById("lorem-ipsum-hi"))
+	{}
 
 	void ProcessEvent(Rml::Event& /*event*/) override
 	{
@@ -92,7 +93,7 @@ int main(int /*argc*/, char** /*argv*/)
 		return -1;
 
 	// Constructs the system and render interfaces, creates a window, and attaches the renderer.
-	if (!Backend::Initialize("Text Shaper Sample", window_width, window_height, true))
+	if (!Backend::Initialize("HarfBuzz Text Shaping Sample", window_width, window_height, true))
 	{
 		Shell::Shutdown();
 		return -1;
@@ -133,8 +134,8 @@ int main(int /*argc*/, char** /*argv*/)
 	// Load required fonts.
 	Rml::String font_paths[3] = {
 		"assets/LatoLatin-Regular.ttf",
-		"basic/harfbuzz/data/Cairo-Regular.ttf",
-		"basic/harfbuzz/data/Poppins-Regular.ttf"
+		"basic/harfbuzzshaping/data/Cairo-Regular.ttf",
+		"basic/harfbuzzshaping/data/Poppins-Regular.ttf",
 	};
 	for (const Rml::String& font_path : font_paths)
 		if (!Rml::LoadFontFace(font_path))
@@ -146,10 +147,10 @@ int main(int /*argc*/, char** /*argv*/)
 		}
 
 	// Load and show the demo document.
-	if (Rml::ElementDocument* document = context->LoadDocument("basic/harfbuzz/data/harfbuzz.rml"))
+	if (Rml::ElementDocument* document = context->LoadDocument("basic/harfbuzzshaping/data/harfbuzzshaping.rml"))
 	{
 		if (auto el = document->GetElementById("title"))
-			el->SetInnerRML("Text Shaping");
+			el->SetInnerRML("HarfBuzz Text Shaping");
 
 		document->Show();
 

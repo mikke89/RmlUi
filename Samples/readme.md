@@ -19,6 +19,7 @@ This directory contains basic applications that demonstrate initialisation, usag
 -  `databinding` setting up and using data bindings
 -  `demo` demonstrates a variety of features in RmlUi and includes a sandbox for playing with RML/RCSS
 -  `drag` dragging elements between containers
+-  `harfbuzzshaping` advanced text shaping, only enabled when [HarfBuzz](https://harfbuzz.github.io/) is enabled 
 -  `loaddocument` loading your first document
 -  `lottie` playing Lottie animations, only enabled with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)
 -  `svg` render SVG images, only enabled with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html)
