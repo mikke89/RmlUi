@@ -599,6 +599,19 @@ public:
 	/// Return the computed values of the element's properties. These values are updated as appropriate on every Context::Update.
 	const ComputedValues& GetComputedValues() const;
 
+	/// Set cached shrink to fit width value.
+	/// @param[in] width The width to cache.
+	/// @param[in] container_size The size of the container (used as cache key).
+	void SetCachedShrinkToFitWidth(float width, Vector2f container_size);
+
+	/// Get cached shrink to fit width value.
+	/// Note: The cache is invalidated on each frame number increment. Values from
+	/// the previous frame will never be returned.
+	/// @param[out] width The cached width.
+	/// @param[in] container_size The size of the container (used as cache key).
+	/// @return True if a cached value was found.
+	bool GetCachedShrinkToFitWidth(float& width, Vector2f container_size) const;
+
 protected:
 	void Update(float dp_ratio, Vector2f vp_dimensions);
 	void Render();
@@ -787,6 +800,10 @@ private:
 	ElementAnimationList animations;
 
 	ElementMeta* meta;
+
+	// Shrink to fit cache.
+	std::unordered_map<Vector2f, float, Vector2fHash> cached_shrink_to_fit_widths;
+	int cached_shrink_to_fit_widths_frame_number = 0;
 
 	friend class Rml::Context;
 	friend class Rml::ElementStyle;
