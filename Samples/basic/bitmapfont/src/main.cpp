@@ -115,11 +115,11 @@ int main(int /*argc*/, char** /*argv*/)
 		Backend::PresentFrame();
 	}
 
-	// Shutdown RmlUi.
-	Rml::Shutdown();
-
 	// Destroy the font interface before taking down the shell, this way font textures are properly released through the render interface.
 	font_interface.reset();
+
+	// Shutdown RmlUi.
+	Rml::Shutdown();
 
 	Backend::Shutdown();
 	Shell::Shutdown();
