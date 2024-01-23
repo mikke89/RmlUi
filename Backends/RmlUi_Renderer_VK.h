@@ -630,7 +630,7 @@ private:
 	VkQueue m_p_queue_compute;
 
 #ifdef RMLUI_VK_DEBUG
-	VkDebugReportCallbackEXT m_debug_report_callback_instance;
+	VkDebugUtilsMessengerEXT m_debug_messenger;
 #endif
 
 	VkSurfaceFormatKHR m_swapchain_format;
