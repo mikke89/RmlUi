@@ -254,8 +254,8 @@ public:
 		program.push_back(InstructionData{Instruction::NumArguments, Variant(int(num_arguments))});
 		program.push_back(InstructionData{instruction, Variant(std::move(name))});
 	}
-	void StaticVariable(const String& expression) { VariableGetSet(expression, false); }
-	void StaticAssign(const String& expression) { VariableGetSet(expression, true); }
+	void Variable(const String& data_address) { VariableGetSet(data_address, false); }
+	void Assign(const String& data_address) { VariableGetSet(data_address, true); }
 
 	ProgramState GetProgramState() { return ProgramState{program.size(), program_stack_size}; }
 
