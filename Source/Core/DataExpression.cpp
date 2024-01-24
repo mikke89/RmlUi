@@ -376,7 +376,7 @@ namespace Parse {
 		return name;
 	}
 
-	static String FindNumberLiteral(DataParser& parser)
+	static String FindNumberLiteral(DataParser& parser, bool silent)
 	{
 		String str;
 
@@ -400,6 +400,9 @@ namespace Parse {
 
 		if (!first_match)
 		{
+			if (!silent)
+				parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
+
 			return String();
 		}
 
@@ -428,7 +431,7 @@ namespace Parse {
 				{
 					parser.Match('=');
 					Expression(parser);
-					parser.StaticAssign(variable_name);
+					parser.Assign(variable_name);
 				}
 				else if (c == '(' || c == ';' || c == '\0')
 				{
@@ -581,31 +584,10 @@ namespace Parse {
 
 	static void NumberLiteral(DataParser& parser)
 	{
-		String str;
+		String str = FindNumberLiteral(parser, false);
 
-		bool first_match = false;
-		bool has_dot = false;
-		char c = parser.Look();
-		if (c == '-')
-		{
-			str += c;
-			c = parser.Next();
-		}
-
-		while ((c >= '0' && c <= '9') || (c == '.' && !has_dot))
-		{
-			first_match = true;
-			str += c;
-			if (c == '.')
-				has_dot = true;
-			c = parser.Next();
-		}
-
-		if (!first_match)
-		{
-			parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
+		if (str.empty())
 			return;
-		}
 
 		const double number = FromString(str, 0.0);
 
@@ -651,7 +633,7 @@ namespace Parse {
 			// Could turn out to be expression and needs reparsing
 			auto backup_state = parser.GetProgramState();
 
-			String index = FindNumberLiteral(parser);
+			String index = FindNumberLiteral(parser, true);
 			if (!index.empty() && parser.Look() == ']')
 			{
 				parser.Next();
@@ -734,7 +716,7 @@ namespace Parse {
 			if (!full_address.empty())
 			{
 				parser.SetProgramState(backup_state);
-				parser.StaticVariable(full_address);
+				parser.Variable(full_address);
 			}
 			else
 			{
@@ -745,7 +727,7 @@ namespace Parse {
 			}
 		}
 		else
-			parser.StaticVariable(name);
+			parser.Variable(name);
 	}
 
 	static void Add(DataParser& parser)
