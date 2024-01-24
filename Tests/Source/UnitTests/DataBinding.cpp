@@ -31,8 +31,8 @@
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <cmath>
 #include <doctest.h>
-#include <map>
 
 using namespace Rml;
 
@@ -180,6 +180,25 @@ static const String aliasing_rml = R"(
 <div data-alias-title="s1" data-alias-icon="wrapped.b.val" id="w2">
 	<template src="data-title"/>
 </div>
+</body>
+</rml>
+)";
+
+static const String dynamic_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<link type="text/rcss" href="/assets/invader.rcss"/>
+	<link type="text/template" href="/../Tests/Data/UnitTests/data-title.rml"/>
+</head>
+
+<body data-model="basics">
+<p>{{ arrays.a[0] }}</p>
+<p>{{ arrays.a[i0] }}</p>
+<p>{{ arrays.b[i1] }}</p>
+<p>{{ arrays.c[arrays.b[i1] - 19].val }}</p>
+<p>{{ arrays.c[sqrt(arrays.b[i1] - 12) - 1].val }}</p>
 </body>
 </rml>
 )";
@@ -340,6 +359,12 @@ bool InitializeDataBindings(Context* context)
 	Rml::DataModelConstructor constructor = context->CreateDataModel("basics");
 	if (!constructor)
 		return false;
+
+	constructor.RegisterTransformFunc("sqrt", [](const VariantList& params) {
+		if (params.empty())
+			return Variant();
+		return Variant(std::sqrt(params[0].Get<int>()));
+	});
 
 	if (auto handle = constructor.RegisterStruct<StringWrap>())
 	{
@@ -502,6 +527,38 @@ TEST_CASE("databinding.aliasing")
 	CHECK(document->QuerySelector("#w2 .icon")->GetAttribute("icon", String()) == "b");
 
 	document->Close();
+
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("databinding.dynamic_variables")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	REQUIRE(InitializeDataBindings(context));
+
+	ElementDocument* document = context->LoadDocumentFromMemory(dynamic_rml);
+	REQUIRE(document);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	CHECK(document->QuerySelector("p:nth-child(1)")->GetInnerRML() == "10");
+	CHECK(document->QuerySelector("p:nth-child(2)")->GetInnerRML() == "10");
+	CHECK(document->QuerySelector("p:nth-child(3)")->GetInnerRML() == "21");
+	CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "c3");
+	CHECK(document->QuerySelector("p:nth-child(5)")->GetInnerRML() == "c3");
+
+	*globals.i1 = 0;
+	context->GetDataModel("basics").GetModelHandle().DirtyVariable("i1");
+	TestsShell::RenderLoop();
+
+	CHECK(document->QuerySelector("p:nth-child(3)")->GetInnerRML() == "20");
+	CHECK(document->QuerySelector("p:nth-child(4)")->GetInnerRML() == "c2");
+
+	document->Close();
+	*globals.i1 = 1;
 
 	TestsShell::ShutdownShell();
 }
