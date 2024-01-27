@@ -68,10 +68,10 @@ TEST_CASE("style_sheet_parser.spritesheet")
 		style_sheet_container.LoadStyleSheetContainer(&spritesheet_stream, 0);
 
 		style_sheet_container.UpdateCompiledStyleSheet(context);
-		const auto* styleSheet = style_sheet_container.GetCompiledStyleSheet();
-		CHECK(styleSheet != nullptr);
+		const auto* style_sheet = style_sheet_container.GetCompiledStyleSheet();
+		CHECK(style_sheet != nullptr);
 
-		const auto* sprite00 = styleSheet->GetSprite("test00");
+		const auto* sprite00 = style_sheet->GetSprite("test00");
 		CHECK(sprite00 != nullptr);
 		CHECK(sprite00->sprite_sheet->name == "test_sheet");
 		CHECK(sprite00->sprite_sheet->image_source == "/assets/high_scores_alien_3.tga");
@@ -79,7 +79,7 @@ TEST_CASE("style_sheet_parser.spritesheet")
 		CHECK(sprite00->rectangle.BottomRight() == Vector2f(64.f, 64.f));
 		CHECK(sprite00->sprite_sheet->display_scale == 1.f);
 
-		const auto* sprite01 = styleSheet->GetSprite("test01");
+		const auto* sprite01 = style_sheet->GetSprite("test01");
 		CHECK(sprite01 != nullptr);
 		CHECK(sprite01->sprite_sheet->name == "test_sheet");
 		CHECK(sprite01->sprite_sheet->image_source == "/assets/high_scores_alien_3.tga");
@@ -87,7 +87,7 @@ TEST_CASE("style_sheet_parser.spritesheet")
 		CHECK(sprite01->rectangle.BottomRight() == Vector2f(128.f, 64.f));
 		CHECK(sprite01->sprite_sheet->display_scale == 1.f);
 
-		const auto* sprite10 = styleSheet->GetSprite("test10");
+		const auto* sprite10 = style_sheet->GetSprite("test10");
 		CHECK(sprite10 != nullptr);
 		CHECK(sprite10->sprite_sheet->name == "test_sheet");
 		CHECK(sprite10->sprite_sheet->image_source == "/assets/high_scores_alien_3.tga");
@@ -95,7 +95,7 @@ TEST_CASE("style_sheet_parser.spritesheet")
 		CHECK(sprite10->rectangle.BottomRight() == Vector2f(64.f, 128.f));
 		CHECK(sprite10->sprite_sheet->display_scale == 1.f);
 
-		const auto* sprite11 = styleSheet->GetSprite("test11");
+		const auto* sprite11 = style_sheet->GetSprite("test11");
 		CHECK(sprite11 != nullptr);
 		CHECK(sprite11->sprite_sheet->name == "test_sheet");
 		CHECK(sprite11->sprite_sheet->image_source == "/assets/high_scores_alien_3.tga");
