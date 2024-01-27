@@ -86,12 +86,13 @@ private:
 
 	PropertyDictionary properties;
 	PropertySpecification specification;
-	PropertyId id_rx, id_ry, id_rw, id_rh, id_resolution;
+	PropertyId id_src, id_rx, id_ry, id_rw, id_rh, id_resolution;
 	ShorthandId id_rectangle;
 
 public:
 	SpritesheetPropertyParser() : specification(4, 1)
 	{
+		id_src = specification.RegisterProperty("src", "", false, false).AddParser("string").GetId();
 		id_rx = specification.RegisterProperty("rectangle-x", "", false, false).AddParser("length").GetId();
 		id_ry = specification.RegisterProperty("rectangle-y", "", false, false).AddParser("length").GetId();
 		id_rw = specification.RegisterProperty("rectangle-w", "", false, false).AddParser("length").GetId();
@@ -115,7 +116,14 @@ public:
 	{
 		if (name == "src")
 		{
-			image_source = value;
+			if (!specification.ParsePropertyDeclaration(properties, id_src, value))
+				return false;
+
+			if (const Property* property = properties.GetProperty(id_src))
+			{
+				if (property->unit == Unit::STRING)
+					image_source = property->Get<String>();
+			}
 		}
 		else if (name == "resolution")
 		{
@@ -398,7 +406,7 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	return true;
 }
 
-bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDictionary& properties, MediaQueryModifier &modifier)
+bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDictionary& properties, MediaQueryModifier& modifier)
 {
 	media_query_property_parser->SetTargetProperties(&properties);
 
