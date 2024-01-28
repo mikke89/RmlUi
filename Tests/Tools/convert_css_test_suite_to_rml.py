@@ -243,8 +243,6 @@ def process_file(in_file):
 
 		line = re.sub(r'flex: none;', r'flex: 0 0 auto;', line, flags = re.IGNORECASE)
 		line = re.sub(r'align-content:\s*(start|end)', r'align-content: flex-\1', line, flags = re.IGNORECASE)
-		line = re.sub(r'align-content:\s*space-evenly', r'align-content: space-around', line, flags = re.IGNORECASE)
-		line = re.sub(r'justify-content:\s*space-evenly', r'justify-content: space-around', line, flags = re.IGNORECASE)
 		line = re.sub(r'justify-content:\s*left', r'justify-content: flex-start', line, flags = re.IGNORECASE)
 		line = re.sub(r'justify-content:\s*right', r'justify-content: flex-end', line, flags = re.IGNORECASE)
 		line = re.sub(r'table-layout:[^;}]*[;}]', r'', line, flags = re.IGNORECASE)
