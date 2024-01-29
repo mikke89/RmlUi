@@ -1,20 +1,20 @@
 # This source file is part of RmlUi, the HTML/CSS Interface Middleware
-# 
+#
 # For the latest information, see http://github.com/mikke89/RmlUi
-# 
+#
 # Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors
 # Copyright (c) 2019-2023 The RmlUi Team, and contributors
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -55,13 +55,13 @@ if not os.path.isdir(in_dir):
 	exit()
 
 if not os.path.exists(out_dir):
-	try: 
+	try:
 		os.mkdir(out_dir)
 	except Exception as e:
 		print('Error: Failed to create output directory {}'.format(out_dir))
 
 if not os.path.exists(out_ref_dir):
-	try: 
+	try:
 		os.mkdir(out_ref_dir)
 	except Exception as e:
 		print('Error: Failed to create reference output directory {}'.format(out_ref_dir))
@@ -98,7 +98,7 @@ html_color_mapping = {
 def border_format(side: str, type: str, content: str):
 	# Side: (empty)/-top/-right/-bottom/-left
 	# Type: (empty)/-width/-style/-color
-	
+
 	content = content.replace("thick", "5px")
 	content = content.replace("medium", "3px")
 	content = content.replace("thin", "1px")
@@ -183,11 +183,11 @@ assert( border_find_replace(r'<span style="border-right: none; border-left: none
 reference_links = []
 
 def process_file(in_file):
-	
+
 	in_path = os.path.join(in_dir, in_file)
 	out_file = os.path.splitext(in_file)[0] + '.rml'
 	out_path = os.path.join(out_dir, out_file)
-	
+
 	f = open(in_path, 'r', encoding="utf8")
 	lines = f.readlines()
 	f.close()
@@ -201,7 +201,7 @@ def process_file(in_file):
 			in_style = True
 		if re.search(r'</style', line, flags = re.IGNORECASE):
 			in_style = False
-		
+
 		if in_style:
 			line = re.sub(r'(^|[^<])html', r'\1body', line, flags = re.IGNORECASE)
 			line = re.sub(r'<!--', r'/*', line, flags = re.IGNORECASE)
@@ -260,7 +260,7 @@ def process_file(in_file):
 				color = html_color_mapping[color]
 			new_line += line[prev_end:match.start()] + 'background-color: ' + color + delimiter
 			prev_end = match.end()
-			
+
 		new_line += line[prev_end:]
 		line = new_line
 
@@ -284,7 +284,7 @@ def process_file(in_file):
 		if flags_match and flags_match[1] != '' and flags_match[1] != 'interactive':
 			print("File '{}' skipped due to flags '{}'".format(in_file, flags_match[1]))
 			return False
-		if re.search(r'display:[^;]*(inline-table|table-caption|table-header-group|table-footer-group|run-in|list-item|inline-flex)', line, flags = re.IGNORECASE):
+		if re.search(r'display:[^;]*(table-caption|table-header-group|table-footer-group|run-in|list-item)', line, flags = re.IGNORECASE):
 			print("File '{}' skipped since it uses unsupported display modes.".format(in_file))
 			return False
 		if re.search(r'visibility:[^;]*collapse|z-index:\s*[0-9\.]+%', line, flags = re.IGNORECASE):
@@ -319,7 +319,7 @@ def process_file(in_file):
 
 	if reference_link:
 		reference_links.append(reference_link)
-	
+
 	print("File '{}' processed successfully!".format(in_file))
 
 	return True
@@ -361,5 +361,14 @@ for in_ref_file in final_reference_links:
 	if process_file(in_ref_file):
 		processed_reference_files += 1
 
-print('\nDone!\n\nTotal test files: {}\nSkipped test files: {}\nParsed test files: {}\n\nTotal reference files: {}\nSkipped reference files: {}\nIgnored alternate references: {}\nParsed reference files: {}'\
-	.format(total_files, total_files - processed_files, processed_files, total_reference_files, total_reference_files - processed_reference_files, len(reference_links), processed_reference_files ))
+print(f"""
+Done!
+
+Total test files: {total_files}
+Skipped test files: {total_files - processed_files}
+Parsed test files: {processed_files}
+
+Total reference files: {total_reference_files}
+Skipped reference files: {total_reference_files - processed_reference_files}
+Ignored alternate references: {len(reference_links)}
+Parsed reference files: {processed_reference_files}""")
