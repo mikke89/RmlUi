@@ -299,6 +299,15 @@ public:
 	/// @return Time until next update is expected.
 	double GetNextUpdateDelay() const;
 
+	// Builds the parameters for a generic key event.
+	void GenerateKeyEventParameters(Dictionary &parameters, Input::KeyIdentifier key_identifier);
+	// Builds the parameters for a generic mouse event.
+	void GenerateMouseEventParameters(Dictionary &parameters, int button_index = -1);
+	// Builds the parameters for the key modifier state.
+	void GenerateKeyModifierEventParameters(Dictionary &parameters, int key_modifier_state);
+	// Builds the parameters for a drag event.
+	void GenerateDragEventParameters(Dictionary &parameters);
+
 protected:
 	void Release() override;
 
@@ -405,15 +414,6 @@ private:
 
 	// Returns the data model with the provided name, or nullptr if it does not exist.
 	DataModel* GetDataModelPtr(const String& name) const;
-
-	// Builds the parameters for a generic key event.
-	void GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier);
-	// Builds the parameters for a generic mouse event.
-	void GenerateMouseEventParameters(Dictionary& parameters, int button_index = -1);
-	// Builds the parameters for the key modifier state.
-	void GenerateKeyModifierEventParameters(Dictionary& parameters, int key_modifier_state);
-	// Builds the parameters for a drag event.
-	void GenerateDragEventParameters(Dictionary& parameters);
 
 	// Releases all unloaded documents pending destruction.
 	void ReleaseUnloadedDocuments();
