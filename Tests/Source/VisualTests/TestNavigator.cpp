@@ -480,8 +480,8 @@ void TestNavigator::StopTestSuiteIteration()
 				not_equal.push_back(i);
 		}
 
-		Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Equal: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d", num_tests,
-			(int)equal.size(), (int)not_equal.size(), (int)failed.size(), (int)skipped.size());
+		Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d\n  Equal: %d", num_tests,
+			(int)not_equal.size(), (int)failed.size(), (int)skipped.size(), (int)equal.size());
 
 		if (!suite.GetFilter().empty())
 			summary += "\n  Filter applied: " + suite.GetFilter();
@@ -515,12 +515,6 @@ void TestNavigator::StopTestSuiteIteration()
 			if (!comparison_results[i].error_msg.empty())
 				log += "          " + comparison_results[i].error_msg + "\n";
 		}
-		log += "\nEqual:\n";
-		for (int i : equal)
-		{
-			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
-		}
 		log += "\nFailed:\n";
 		for (int i : failed)
 		{
@@ -530,6 +524,12 @@ void TestNavigator::StopTestSuiteIteration()
 		}
 		log += "\nSkipped:\n";
 		for (int i : skipped)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+		}
+		log += "\nEqual:\n";
+		for (int i : equal)
 		{
 			suite.SetIndex(i);
 			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
