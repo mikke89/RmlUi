@@ -591,6 +591,21 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 					}
 				}
 				break;
+				case JustifyContent::SpaceEvenly:
+				{
+					const float space_per_edge = remaining_free_space / float(2 * (num_items + 1));
+					for (int i = 0; i < num_items; i++)
+					{
+						FlexItem& item = line.items[i];
+						item.main_auto_margin_size_a = space_per_edge;
+						item.main_auto_margin_size_b = space_per_edge;
+						if (i == 0)
+							item.main_auto_margin_size_a *= 2.0f;
+						else if (i == num_items - 1)
+							item.main_auto_margin_size_b *= 2.0f;
+					}
+				}
+				break;
 				}
 			}
 		}
@@ -842,6 +857,21 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				{
 					line.cross_spacing_a = space_per_edge;
 					line.cross_spacing_b = space_per_edge;
+				}
+			}
+			break;
+			case AlignContent::SpaceEvenly:
+			{
+				const float space_per_edge = remaining_free_space / float(2 * (num_lines + 1));
+				for (int i = 0; i < num_lines; i++)
+				{
+					FlexLine& line = container.lines[i];
+					line.cross_spacing_a = space_per_edge;
+					line.cross_spacing_b = space_per_edge;
+					if (i == 0)
+						line.cross_spacing_a *= 2.0f;
+					else if (i == num_lines - 1)
+						line.cross_spacing_b *= 2.0f;
 				}
 			}
 			break;
