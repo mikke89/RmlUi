@@ -151,11 +151,11 @@ bool TextureDatabase::AllTexturesReleased()
 	if (texture_database)
 	{
 		for (const auto& texture : texture_database->textures)
-			if (!texture.second->IsLoaded())
+			if (texture.second->IsLoaded())
 				return false;
 
 		for (const auto& texture : texture_database->callback_textures)
-			if (!texture->IsLoaded())
+			if (texture->IsLoaded())
 				return false;
 	}
 
