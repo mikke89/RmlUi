@@ -30,12 +30,12 @@
 #include "FontEngineBitmap.h"
 #include <RmlUi/Core.h>
 
-FontEngineInterfaceBitmap::FontEngineInterfaceBitmap()
+void FontEngineInterfaceBitmap::Initialize()
 {
 	FontProviderBitmap::Initialise();
 }
 
-FontEngineInterfaceBitmap::~FontEngineInterfaceBitmap()
+void FontEngineInterfaceBitmap::Shutdown()
 {
 	FontProviderBitmap::Shutdown();
 }

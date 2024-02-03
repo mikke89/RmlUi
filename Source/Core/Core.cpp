@@ -116,10 +116,6 @@ bool Initialise()
 #endif
 	}
 
-	EventSpecificationInterface::Initialize();
-
-	TextureDatabase::Initialise();
-
 	if (!font_interface)
 	{
 #ifndef RMLUI_NO_FONT_INTERFACE_DEFAULT
@@ -130,6 +126,12 @@ bool Initialise()
 		return false;
 #endif
 	}
+
+	EventSpecificationInterface::Initialize();
+
+	TextureDatabase::Initialise();
+
+	font_interface->Initialize();
 
 	StyleSheetSpecification::Initialise();
 	StyleSheetParser::Initialise();
@@ -171,17 +173,18 @@ void Shutdown()
 	StyleSheetParser::Shutdown();
 	StyleSheetSpecification::Shutdown();
 
-	font_interface = nullptr;
-	default_font_interface.reset();
+	font_interface->Shutdown();
 
 	TextureDatabase::Shutdown();
 
 	initialised = false;
 
+	font_interface = nullptr;
 	render_interface = nullptr;
 	file_interface = nullptr;
 	system_interface = nullptr;
 
+	default_font_interface.reset();
 	default_file_interface.reset();
 
 	Log::Shutdown();

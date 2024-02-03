@@ -34,6 +34,10 @@ FontEngineInterface::FontEngineInterface() {}
 
 FontEngineInterface::~FontEngineInterface() {}
 
+void FontEngineInterface::Initialize() {}
+
+void FontEngineInterface::Shutdown() {}
+
 bool FontEngineInterface::LoadFontFace(const String& /*file_path*/, bool /*fallback_face*/, Style::FontWeight /*weight*/)
 {
 	return false;

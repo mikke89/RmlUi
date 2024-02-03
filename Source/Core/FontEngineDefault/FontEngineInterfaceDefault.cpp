@@ -32,12 +32,12 @@
 
 namespace Rml {
 
-FontEngineInterfaceDefault::FontEngineInterfaceDefault()
+void FontEngineInterfaceDefault::Initialize()
 {
 	FontProvider::Initialise();
 }
 
-FontEngineInterfaceDefault::~FontEngineInterfaceDefault()
+void FontEngineInterfaceDefault::Shutdown()
 {
 	FontProvider::Shutdown();
 }
@@ -82,8 +82,7 @@ int FontEngineInterfaceDefault::GenerateString(FontFaceHandle handle, FontEffect
 	const Vector2f& position, const Colourb& colour, float opacity, const TextShapingContext& text_shaping_context, GeometryList& geometry)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
-	return handle_default->GenerateString(geometry, string, position, colour, opacity, text_shaping_context.letter_spacing,
-		(int)font_effects_handle);
+	return handle_default->GenerateString(geometry, string, position, colour, opacity, text_shaping_context.letter_spacing, (int)font_effects_handle);
 }
 
 int FontEngineInterfaceDefault::GetVersion(FontFaceHandle handle)
