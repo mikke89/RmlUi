@@ -46,7 +46,7 @@ bool TypeConverter<Unit, String>::Convert(const Unit& src, String& dest)
 {
 	switch (src)
 	{
-	// clang-format off
+		// clang-format off
 	case Unit::NUMBER:  dest = "";    return true;
 	case Unit::PERCENT: dest = "%";   return true;
 
@@ -247,7 +247,8 @@ bool TypeConverter<ColorStopList, String>::Convert(const ColorStopList& src, Str
 	for (size_t i = 0; i < src.size(); i++)
 	{
 		const ColorStop& stop = src[i];
-		dest += ToString(stop.color);
+		const Colourb color = stop.color.ToNonPremultiplied();
+		dest += CreateString(32, "rgba(%d,%d,%d,%d)", color.red, color.green, color.blue, color.alpha);
 
 		if (Any(stop.position.unit & Unit::NUMBER_LENGTH_PERCENT))
 			dest += " " + ToString(stop.position.number) + ToString(stop.position.unit);
@@ -280,7 +281,7 @@ bool TypeConverter<BoxShadowList, String>::Convert(const BoxShadowList& src, Str
 		if (shadow.inset)
 			temp += " inset";
 
-		dest += "rgba(" + ToString(shadow.color) + ')' + temp;
+		dest += "rgba(" + ToString(shadow.color.ToNonPremultiplied()) + ')' + temp;
 
 		if (i < src.size() - 1)
 		{

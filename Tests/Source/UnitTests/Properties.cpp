@@ -32,6 +32,8 @@
 #include <RmlUi/Core/DecorationTypes.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/PropertyDictionary.h>
+#include <RmlUi/Core/StyleSheetSpecification.h>
 #include <RmlUi/Core/StyleSheetTypes.h>
 #include <doctest.h>
 
@@ -95,7 +97,7 @@ TEST_CASE("Properties")
 
 	SUBCASE("gradient")
 	{
-		auto ParseGradient = [&](const String& value) -> ColorStopList {
+		auto ParseGradient = [&](const String& value) -> Property {
 			document->SetProperty("decorator", "linear-gradient(" + value + ")");
 			auto decorators = document->GetProperty<DecoratorsPtr>("decorator");
 			if (!decorators || decorators->list.size() != 1)
@@ -103,19 +105,21 @@ TEST_CASE("Properties")
 			for (auto& id_property : decorators->list.front().properties.GetProperties())
 			{
 				if (id_property.second.unit == Unit::COLORSTOPLIST)
-					return id_property.second.Get<ColorStopList>();
+					return id_property.second;
 			}
 			return {};
 		};
 
 		struct GradientTestCase {
 			String value;
+			String expected_parsed_string;
 			ColorStopList expected_color_stops;
 		};
 
 		GradientTestCase test_cases[] = {
 			{
 				"red, blue",
+				"rgba(255,0,0,255), rgba(0,0,255,255)",
 				{
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{}},
 					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{}},
@@ -123,6 +127,7 @@ TEST_CASE("Properties")
 			},
 			{
 				"red 5px, blue 50%",
+				"rgba(255,0,0,255) 5px, rgba(0,0,255,255) 50%",
 				{
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{5.f, Unit::PX}},
 					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{50.f, Unit::PERCENT}},
@@ -130,6 +135,7 @@ TEST_CASE("Properties")
 			},
 			{
 				"red, #00f 50%, rgba(0, 255,0, 150) 10dp",
+				"rgba(255,0,0,255), rgba(0,0,255,255) 50%, rgba(0,255,0,150) 10dp",
 				{
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{}},
 					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{50.f, Unit::PERCENT}},
@@ -138,6 +144,7 @@ TEST_CASE("Properties")
 			},
 			{
 				"red 50px 20%, blue 10in",
+				"rgba(255,0,0,255) 50px, rgba(255,0,0,255) 20%, rgba(0,0,255,255) 10in",
 				{
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{50.f, Unit::PX}},
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{20.f, Unit::PERCENT}},
@@ -148,10 +155,55 @@ TEST_CASE("Properties")
 
 		for (const GradientTestCase& test_case : test_cases)
 		{
-			const ColorStopList result = ParseGradient(test_case.value);
-			CHECK(result == test_case.expected_color_stops);
+			const Property result = ParseGradient(test_case.value);
+			CHECK(result.ToString() == test_case.expected_parsed_string);
+			CHECK(result.Get<ColorStopList>() == test_case.expected_color_stops);
 		}
 	}
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("Property.ToString")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+
+	Rml::Initialise();
+
+	CHECK(Property(5.2f, Unit::CM).ToString() == "5.2cm");
+	CHECK(Property(150, Unit::PERCENT).ToString() == "150%");
+	CHECK(Property(Colourb{170, 187, 204, 255}, Unit::COLOUR).ToString() == "170, 187, 204, 255");
+
+	auto ParsedValue = [](const String& name, const String& value) -> String {
+		PropertyDictionary properties;
+		StyleSheetSpecification::ParsePropertyDeclaration(properties, name, value);
+		REQUIRE(properties.GetNumProperties() == 1);
+		return properties.GetProperties().begin()->second.ToString();
+	};
+
+	CHECK(ParsedValue("width", "10px") == "10px");
+	CHECK(ParsedValue("width", "10.00em") == "10em");
+	CHECK(ParsedValue("width", "auto") == "auto");
+
+	CHECK(ParsedValue("background-color", "#abc") == "rgba(170,187,204,255)");
+	CHECK(ParsedValue("background-color", "red") == "rgba(255,0,0,255)");
+
+	CHECK(ParsedValue("transform", "translateX(10px)") == "translateX(10px)");
+	CHECK(ParsedValue("transform", "translate(20in, 50em)") == "translate(20in, 50em)");
+
+	CHECK(ParsedValue("box-shadow", "2px 2px 0px, #00ff 4px 4px 2em") == "rgba(0, 0, 0, 255) 2px 2px 0px, rgba(0, 0, 255, 255) 4px 4px 2em");
+
+	// Due to conversion to and from premultiplied alpha, some color information is lost.
+	CHECK(ParsedValue("box-shadow", "#fff0 2px 2px 0px") == "rgba(0, 0, 0, 0) 2px 2px 0px");
+
+	CHECK(ParsedValue("decorator", "linear-gradient(110deg, #fff3, #fff 10%, #c33 250dp, #3c3, #33c, #000 90%, #0003) border-box") ==
+		"linear-gradient(110deg, #fff3, #fff 10%, #c33 250dp, #3c3, #33c, #000 90%, #0003) border-box");
+
+	CHECK(ParsedValue("filter", "drop-shadow(#000 30px 20px 5px) opacity(0.2) sepia(0.2)") ==
+		"drop-shadow(#000 30px 20px 5px) opacity(0.2) sepia(0.2)");
 
 	Rml::Shutdown();
 }
