@@ -79,6 +79,16 @@ class TypeConverter<Unit, String> {
 public:
 	RMLUICORE_API static bool Convert(const Unit& src, String& dest);
 };
+template <>
+class TypeConverter<Colourb, String> {
+public:
+	RMLUICORE_API static bool Convert(const Colourb& src, String& dest);
+};
+template <>
+class TypeConverter<String, Colourb> {
+public:
+	RMLUICORE_API static bool Convert(const String& src, Colourb& dest);
+};
 
 template <>
 class TypeConverter<TransformPtr, TransformPtr> {

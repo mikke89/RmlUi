@@ -121,7 +121,7 @@ TEST_CASE("Data expressions")
 
 	CHECK(TestExpression("'a' | to_upper") == "A");
 	CHECK(TestExpression("!!10 - 1 ? 'hello' : 'world' | to_upper") == "WORLD");
-	CHECK(TestExpression("(color_name) + (': rgba(' + color_value + ')')") == "color: rgba(180, 100, 255, 255)");
+	CHECK(TestExpression("(color_name) + (': ' + color_value)") == "color: #b464ff");
 	CHECK(TestExpression("'hello world' | to_upper | concatenate(5 + 12 == 17 ? 'yes' : 'no', 9*2)") == "HELLO WORLD,yes,18");
 	CHECK(TestExpression("true == false") == "0");
 	CHECK(TestExpression("true != false") == "1");

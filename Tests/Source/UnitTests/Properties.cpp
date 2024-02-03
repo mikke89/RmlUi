@@ -119,7 +119,7 @@ TEST_CASE("Properties")
 		GradientTestCase test_cases[] = {
 			{
 				"red, blue",
-				"rgba(255,0,0,255), rgba(0,0,255,255)",
+				"#ff0000, #0000ff",
 				{
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{}},
 					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{}},
@@ -127,7 +127,7 @@ TEST_CASE("Properties")
 			},
 			{
 				"red 5px, blue 50%",
-				"rgba(255,0,0,255) 5px, rgba(0,0,255,255) 50%",
+				"#ff0000 5px, #0000ff 50%",
 				{
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{5.f, Unit::PX}},
 					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{50.f, Unit::PERCENT}},
@@ -135,7 +135,7 @@ TEST_CASE("Properties")
 			},
 			{
 				"red, #00f 50%, rgba(0, 255,0, 150) 10dp",
-				"rgba(255,0,0,255), rgba(0,0,255,255) 50%, rgba(0,255,0,150) 10dp",
+				"#ff0000, #0000ff 50%, #00ff0096 10dp",
 				{
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{}},
 					ColorStop{ColourbPremultiplied(0, 0, 255), NumericValue{50.f, Unit::PERCENT}},
@@ -144,7 +144,7 @@ TEST_CASE("Properties")
 			},
 			{
 				"red 50px 20%, blue 10in",
-				"rgba(255,0,0,255) 50px, rgba(255,0,0,255) 20%, rgba(0,0,255,255) 10in",
+				"#ff0000 50px, #ff0000 20%, #0000ff 10in",
 				{
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{50.f, Unit::PX}},
 					ColorStop{ColourbPremultiplied(255, 0, 0), NumericValue{20.f, Unit::PERCENT}},
@@ -175,7 +175,7 @@ TEST_CASE("Property.ToString")
 
 	CHECK(Property(5.2f, Unit::CM).ToString() == "5.2cm");
 	CHECK(Property(150, Unit::PERCENT).ToString() == "150%");
-	CHECK(Property(Colourb{170, 187, 204, 255}, Unit::COLOUR).ToString() == "170, 187, 204, 255");
+	CHECK(Property(Colourb{170, 187, 204, 255}, Unit::COLOUR).ToString() == "#aabbcc");
 
 	auto ParsedValue = [](const String& name, const String& value) -> String {
 		PropertyDictionary properties;
@@ -188,16 +188,16 @@ TEST_CASE("Property.ToString")
 	CHECK(ParsedValue("width", "10.00em") == "10em");
 	CHECK(ParsedValue("width", "auto") == "auto");
 
-	CHECK(ParsedValue("background-color", "#abc") == "rgba(170,187,204,255)");
-	CHECK(ParsedValue("background-color", "red") == "rgba(255,0,0,255)");
+	CHECK(ParsedValue("background-color", "#abc") == "#aabbcc");
+	CHECK(ParsedValue("background-color", "red") == "#ff0000");
 
 	CHECK(ParsedValue("transform", "translateX(10px)") == "translateX(10px)");
 	CHECK(ParsedValue("transform", "translate(20in, 50em)") == "translate(20in, 50em)");
 
-	CHECK(ParsedValue("box-shadow", "2px 2px 0px, #00ff 4px 4px 2em") == "rgba(0, 0, 0, 255) 2px 2px 0px, rgba(0, 0, 255, 255) 4px 4px 2em");
+	CHECK(ParsedValue("box-shadow", "2px 2px 0px, #00ff 4px 4px 2em") == "#000000 2px 2px 0px, #0000ff 4px 4px 2em");
 
 	// Due to conversion to and from premultiplied alpha, some color information is lost.
-	CHECK(ParsedValue("box-shadow", "#fff0 2px 2px 0px") == "rgba(0, 0, 0, 0) 2px 2px 0px");
+	CHECK(ParsedValue("box-shadow", "#fff0 2px 2px 0px") == "#00000000 2px 2px 0px");
 
 	CHECK(ParsedValue("decorator", "linear-gradient(110deg, #fff3, #fff 10%, #c33 250dp, #3c3, #33c, #000 90%, #0003) border-box") ==
 		"linear-gradient(110deg, #fff3, #fff 10%, #c33 250dp, #3c3, #33c, #000 90%, #0003) border-box");

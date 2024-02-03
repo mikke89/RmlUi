@@ -37,6 +37,7 @@
 #include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "PropertyParserColour.h"
 #include "PropertyParserDecorator.h"
 #include "TransformUtilities.h"
 
@@ -247,8 +248,7 @@ bool TypeConverter<ColorStopList, String>::Convert(const ColorStopList& src, Str
 	for (size_t i = 0; i < src.size(); i++)
 	{
 		const ColorStop& stop = src[i];
-		const Colourb color = stop.color.ToNonPremultiplied();
-		dest += CreateString(32, "rgba(%d,%d,%d,%d)", color.red, color.green, color.blue, color.alpha);
+		dest += ToString(stop.color.ToNonPremultiplied());
 
 		if (Any(stop.position.unit & Unit::NUMBER_LENGTH_PERCENT))
 			dest += " " + ToString(stop.position.number) + ToString(stop.position.unit);
@@ -281,7 +281,7 @@ bool TypeConverter<BoxShadowList, String>::Convert(const BoxShadowList& src, Str
 		if (shadow.inset)
 			temp += " inset";
 
-		dest += "rgba(" + ToString(shadow.color.ToNonPremultiplied()) + ')' + temp;
+		dest += ToString(shadow.color.ToNonPremultiplied()) + temp;
 
 		if (i < src.size() - 1)
 		{
@@ -290,6 +290,19 @@ bool TypeConverter<BoxShadowList, String>::Convert(const BoxShadowList& src, Str
 		}
 	}
 	return true;
+}
+
+bool TypeConverter<Colourb, String>::Convert(const Colourb& src, String& dest)
+{
+	if (src.alpha == 255)
+		return FormatString(dest, 32, "#%02hhx%02hhx%02hhx", src.red, src.green, src.blue) > 0;
+	else
+		return FormatString(dest, 32, "#%02hhx%02hhx%02hhx%02hhx", src.red, src.green, src.blue, src.alpha) > 0;
+}
+
+bool TypeConverter<String, Colourb>::Convert(const String& src, Colourb& dest)
+{
+	return PropertyParserColour::ParseColour(dest, src);
 }
 
 } // namespace Rml

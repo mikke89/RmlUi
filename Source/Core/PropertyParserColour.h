@@ -52,9 +52,12 @@ public:
 	/// @return True if the value was parsed successfully, false otherwise.
 	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 
+	/// Parse a colour directly.
+	static bool ParseColour(Colourb& colour, const String& value);
+
 private:
 	using ColourMap = UnorderedMap<String, Colourb>;
-	ColourMap html_colours;
+	static const ColourMap html_colours;
 };
 
 } // namespace Rml

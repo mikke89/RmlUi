@@ -89,7 +89,7 @@ TEST_CASE("animation.decorator")
 			"horizontal-gradient(transparent transparent)",
 			"horizontal-gradient(white white)",
 
-			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f)",
 		},
 		{
 			"",
@@ -98,7 +98,7 @@ TEST_CASE("animation.decorator")
 			"horizontal-gradient(transparent transparent) border-box",
 			"horizontal-gradient(white white) border-box",
 
-			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)) border-box",
+			"horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f) border-box",
 		},
 		{
 			"",
@@ -107,7 +107,7 @@ TEST_CASE("animation.decorator")
 			"none",
 			"horizontal-gradient(transparent transparent)",
 
-			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal #dcdcdcbf #dcdcdcbf)",
 		},
 		{
 			"",
@@ -116,8 +116,7 @@ TEST_CASE("animation.decorator")
 			"none",
 			"horizontal-gradient(transparent transparent), horizontal-gradient(transparent transparent)",
 
-			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), horizontal-gradient(horizontal rgba(220,220,220,191) "
-			"rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal #dcdcdcbf #dcdcdcbf), horizontal-gradient(horizontal #dcdcdcbf #dcdcdcbf)",
 		},
 		{
 			"",
@@ -126,8 +125,7 @@ TEST_CASE("animation.decorator")
 			"horizontal-gradient(transparent transparent), horizontal-gradient(transparent transparent)",
 			"none",
 
-			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)), horizontal-gradient(horizontal rgba(127,127,127,63) "
-			"rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f), horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f)",
 		},
 
 		/// Only rule declaration
@@ -138,7 +136,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"to_rule",
 
-			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f)",
 		},
 		{
 			"",
@@ -147,7 +145,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"to_rule",
 
-			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal #dcdcdcbf #dcdcdcbf)",
 		},
 		{
 			"start-color: transparent; stop-color: transparent;",
@@ -156,7 +154,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"to_rule",
 
-			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f)",
 		},
 
 		/// Mix rule and standard declaration
@@ -167,7 +165,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"horizontal-gradient(white white)",
 
-			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f)",
 		},
 		{
 			"",
@@ -176,7 +174,7 @@ TEST_CASE("animation.decorator")
 			"none",
 			"to_rule",
 
-			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal #dcdcdcbf #dcdcdcbf)",
 		},
 		{
 			"start-color: transparent; stop-color: transparent;",
@@ -185,7 +183,7 @@ TEST_CASE("animation.decorator")
 			"from_rule",
 			"none",
 
-			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f)",
 		},
 		{
 			"",
@@ -194,8 +192,7 @@ TEST_CASE("animation.decorator")
 			"from_rule, to_rule",
 			"horizontal-gradient(transparent transparent), horizontal-gradient(transparent transparent)",
 
-			"horizontal-gradient(horizontal rgba(220,220,220,191) rgba(220,220,220,191)), horizontal-gradient(horizontal rgba(220,220,220,191) "
-			"rgba(220,220,220,191))",
+			"horizontal-gradient(horizontal #dcdcdcbf #dcdcdcbf), horizontal-gradient(horizontal #dcdcdcbf #dcdcdcbf)",
 		},
 		{
 			"",
@@ -204,8 +201,7 @@ TEST_CASE("animation.decorator")
 			"horizontal-gradient(transparent transparent), horizontal-gradient(transparent transparent)",
 			"from_rule, to_rule",
 
-			"horizontal-gradient(horizontal rgba(127,127,127,63) rgba(127,127,127,63)), horizontal-gradient(horizontal rgba(127,127,127,63) "
-			"rgba(127,127,127,63))",
+			"horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f), horizontal-gradient(horizontal #7f7f7f3f #7f7f7f3f)",
 		},
 	};
 
@@ -305,7 +301,7 @@ TEST_CASE("animation.filter")
 		{
 			"drop-shadow(#000 30px 20px 0px)",
 			"drop-shadow(#f00 30px 20px 4px)", // colors interpolated in linear space
-			"drop-shadow(rgba(127,0,0,255) 30px 20px 1px)",
+			"drop-shadow(#7f0000 30px 20px 1px)",
 		},
 		{
 			"opacity(0) brightness(2)",

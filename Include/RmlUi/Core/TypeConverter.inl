@@ -302,7 +302,6 @@ STRING_VECTOR_CONVERTER(Vector3f, float, 3);
 STRING_VECTOR_CONVERTER(Vector4i, int, 4);
 STRING_VECTOR_CONVERTER(Vector4f, float, 4);
 STRING_VECTOR_CONVERTER(Colourf, float, 4);
-STRING_VECTOR_CONVERTER(Colourb, byte, 4);
 
 /////////////////////////////////////////////////
 // To String Converters
@@ -440,7 +439,6 @@ VECTOR_STRING_CONVERTER(Vector3f, float, 3);
 VECTOR_STRING_CONVERTER(Vector4i, int, 4);
 VECTOR_STRING_CONVERTER(Vector4f, float, 4);
 VECTOR_STRING_CONVERTER(Colourf, float, 4);
-VECTOR_STRING_CONVERTER(Colourb, byte, 4);
 
 template <typename SourceType>
 class TypeConverter<SourceType, String> {
