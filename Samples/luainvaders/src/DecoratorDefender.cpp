@@ -30,12 +30,17 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/Geometry.h>
-#include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/PropertyDefinition.h>
 #include <RmlUi/Core/RenderManager.h>
 #include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/Types.h>
+
+struct DecoratorDefenderElementData {
+	Rml::Texture texture;
+	Rml::Geometry geometry;
+};
 
 DecoratorDefender::~DecoratorDefender() {}
 
@@ -50,30 +55,41 @@ bool DecoratorDefender::Initialise(const Rml::Texture& texture)
 	return true;
 }
 
-Rml::DecoratorDataHandle DecoratorDefender::GenerateElementData(Rml::Element* /*element*/, Rml::BoxArea /*paint_area*/) const
+Rml::DecoratorDataHandle DecoratorDefender::GenerateElementData(Rml::Element* element, Rml::BoxArea /*paint_area*/) const
 {
-	return Rml::Decorator::INVALID_DECORATORDATAHANDLE;
-}
+	Rml::RenderManager* render_manager = element->GetRenderManager();
+	if (!render_manager)
+		return Rml::Decorator::INVALID_DECORATORDATAHANDLE;
 
-void DecoratorDefender::ReleaseElementData(Rml::DecoratorDataHandle /*element_data*/) const {}
-
-void DecoratorDefender::RenderElement(Rml::Element* element, Rml::DecoratorDataHandle /*element_data*/) const
-{
 	Rml::Vector2f position = element->GetAbsoluteOffset(Rml::BoxArea::Padding);
 	Rml::Vector2f size = element->GetBox().GetSize(Rml::BoxArea::Padding);
 	Rml::Math::SnapToPixelGrid(position, size);
 
-	if (Rml::RenderManager* render_manager = element->GetRenderManager())
-	{
-		Rml::Texture texture = GetTexture(image_index);
-		Rml::ColourbPremultiplied color = element->GetProperty<Rml::Colourb>("color").ToPremultiplied();
+	Rml::ColourbPremultiplied color = element->GetProperty<Rml::Colourb>("image-color").ToPremultiplied();
+	Rml::Mesh mesh;
+	Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(0.f), size, color);
 
-		Rml::Mesh mesh;
-		Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(0.f), size, color);
+	DecoratorDefenderElementData* element_data = new DecoratorDefenderElementData{
+		GetTexture(image_index),
+		render_manager->MakeGeometry(std::move(mesh)),
+	};
 
-		Rml::Geometry geometry = render_manager->MakeGeometry(std::move(mesh));
-		geometry.Render(position, texture);
-	}
+	if (!element_data->texture || !element_data->geometry)
+		return Rml::Decorator::INVALID_DECORATORDATAHANDLE;
+
+	return reinterpret_cast<Rml::DecoratorDataHandle>(element_data);
+}
+
+void DecoratorDefender::ReleaseElementData(Rml::DecoratorDataHandle element_data_handle) const
+{
+	delete reinterpret_cast<DecoratorDefenderElementData*>(element_data_handle);
+}
+
+void DecoratorDefender::RenderElement(Rml::Element* element, Rml::DecoratorDataHandle element_data_handle) const
+{
+	Rml::Vector2f position = element->GetAbsoluteOffset(Rml::BoxArea::Padding).Round();
+	DecoratorDefenderElementData* element_data = reinterpret_cast<DecoratorDefenderElementData*>(element_data_handle);
+	element_data->geometry.Render(position, element_data->texture);
 }
 
 DecoratorInstancerDefender::DecoratorInstancerDefender()

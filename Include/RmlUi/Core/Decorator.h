@@ -71,6 +71,7 @@ public:
 	virtual void RenderElement(Element* element, DecoratorDataHandle element_data) const = 0;
 
 	/// Value specifying an invalid or non-existent Decorator data handle.
+	/// @note This value will prevent the decorator from being rendered on the given element.
 	static const DecoratorDataHandle INVALID_DECORATORDATAHANDLE = 0;
 
 protected:

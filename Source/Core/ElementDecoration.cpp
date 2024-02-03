@@ -165,6 +165,9 @@ void ElementDecoration::ReloadDecoratorsData()
 					decorator.decorator->ReleaseElementData(decorator.decorator_data);
 
 				decorator.decorator_data = decorator.decorator->GenerateElementData(element, decorator.paint_area);
+
+				if (!decorator.decorator_data)
+					Log::Message(Log::LT_WARNING, "Could not load decorator data on element: %s", element->GetAddress().c_str());
 			}
 		}
 

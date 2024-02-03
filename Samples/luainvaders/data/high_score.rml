@@ -72,7 +72,7 @@ end
 					{{score.name}}
 				</td>
 				<td>
-					<defender data-style-color="score.colour"/>
+					<defender data-style-image-color="score.colour"/>
 				</td>
 				<td>
 					{{score.wave}}
