@@ -94,14 +94,6 @@ static inline float ResolveDepth(NumericValue value, Element& e) noexcept
 	return e.ResolveNumericValue(value, Math::Max(size.x, size.y));
 }
 
-static inline String ToString(NumericValue value) noexcept
-{
-	Property prop;
-	prop.value = Variant(value.number);
-	prop.unit = value.unit;
-	return prop.ToString();
-}
-
 struct SetIdentityVisitor {
 	template <size_t N>
 	void operator()(Transforms::ResolvedPrimitive<N>& p)
@@ -607,6 +599,11 @@ static String ToString(const Transforms::ResolvedPrimitive<N>& p, const String& 
 	}
 	result += ")";
 	return result;
+}
+
+static inline String ToString(NumericValue value) noexcept
+{
+	return ToString(value.number) + ToString(value.unit);
 }
 
 template <size_t N>
