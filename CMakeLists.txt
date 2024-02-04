@@ -2,7 +2,7 @@
 # Build script for RmlUi ===========
 #===================================
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
 if(APPLE)
 	# This has to be before most other options so CMake properly handles the
@@ -51,6 +51,9 @@ if (POLICY CMP0072)
 endif(POLICY CMP0072)
 if(POLICY CMP0074)
 	cmake_policy(SET CMP0074 NEW)
+endif(POLICY CMP0074)
+if(POLICY CMP0074)
+	cmake_policy(SET CMP0092 NEW)
 endif(POLICY CMP0074)
 
 project(RmlUi LANGUAGES C CXX VERSION 6.0)
