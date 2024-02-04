@@ -34,8 +34,11 @@ namespace Rml {
 
 class RMLUICORE_API FontEngineInterfaceDefault : public FontEngineInterface {
 public:
-	FontEngineInterfaceDefault();
-	virtual ~FontEngineInterfaceDefault();
+	/// Called when RmlUi is being initialized.
+	void Initialize() override;
+
+	/// Called when RmlUi is being shut down.
+	void Shutdown() override;
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight) override;

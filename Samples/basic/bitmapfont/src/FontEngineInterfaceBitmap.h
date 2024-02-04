@@ -53,8 +53,11 @@ using Rml::TextShapingContext;
 
 class FontEngineInterfaceBitmap : public Rml::FontEngineInterface {
 public:
-	FontEngineInterfaceBitmap();
-	virtual ~FontEngineInterfaceBitmap();
+	/// Called when RmlUi is being initialized.
+	void Initialize() override;
+
+	/// Called when RmlUi is being shut down.
+	void Shutdown() override;
 
 	/// Called by RmlUi when it wants to load a font face from file.
 	bool LoadFontFace(const String& file_name, bool fallback_face, FontWeight weight) override;

@@ -61,24 +61,24 @@ static Rml::String FormatByteSize(VkDeviceSize size) noexcept
 	return Rml::CreateString(32, "%g MB", double(size) / double(K * K));
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT /*objectType*/,
-	uint64_t /*object*/, size_t /*location*/, int32_t /*messageCode*/, const char* /*pLayerPrefix*/, const char* pMessage, void* /*pUserData*/)
+static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severityFlags,
+	VkDebugUtilsMessageTypeFlagsEXT /*messageTypeFlags*/, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* /*pUserData*/)
 {
-	if (flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_INFORMATION_BIT_EXT || flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+	if (severityFlags & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
 	{
 		return VK_FALSE;
 	}
 
 	#ifdef RMLUI_PLATFORM_WIN32
-	if (flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_ERROR_BIT_EXT)
+	if (severityFlags & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
 	{
 		// some logs are not passed to our UI, because of early calling for explicity I put native log output
 		OutputDebugString(TEXT("\n"));
-		OutputDebugStringA(pMessage);
+		OutputDebugStringA(pCallbackData->pMessage);
 	}
 	#endif
 
-	Rml::Log::Message(Rml::Log::LT_ERROR, "[Vulkan][VALIDATION] %s ", pMessage);
+	Rml::Log::Message(Rml::Log::LT_ERROR, "[Vulkan][VALIDATION] %s ", pCallbackData->pMessage);
 
 	return VK_FALSE;
 }
@@ -94,7 +94,7 @@ RenderInterface_VK::RenderInterface_VK() :
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
 	m_p_sampler_linear{}, m_scissor{}, m_scissor_original{}, m_viewport{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
 #ifdef RMLUI_VK_DEBUG
-	m_debug_report_callback_instance{},
+	m_debug_messenger{},
 #endif
 	m_swapchain_format{}, m_texture_depthstencil{}, m_pending_for_deletion_textures_by_frames{}
 {}
@@ -1552,29 +1552,33 @@ void RenderInterface_VK::CreatePropertiesFor_Device(ExtensionPropertiesList& res
 void RenderInterface_VK::CreateReportDebugCallback() noexcept
 {
 #ifdef RMLUI_VK_DEBUG
-	VkDebugReportCallbackCreateInfoEXT info = {};
+	VkDebugUtilsMessengerCreateInfoEXT info = {};
 
-	info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-	info.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-	info.pfnCallback = MyDebugReportCallback;
+	info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+	info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	info.pfnUserCallback = MyDebugReportCallback;
 
-	PFN_vkCreateDebugReportCallbackEXT p_callback_creation = VK_NULL_HANDLE;
+	PFN_vkCreateDebugUtilsMessengerEXT p_callback_creation = VK_NULL_HANDLE;
 
-	p_callback_creation = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(m_p_instance, "vkCreateDebugReportCallbackEXT"));
-	VkResult status = p_callback_creation(m_p_instance, &info, nullptr, &m_debug_report_callback_instance);
-	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "failed to vkCreateDebugReportCallbackEXT");
+	p_callback_creation = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_p_instance, "vkCreateDebugUtilsMessengerEXT"));
+	VkResult status = p_callback_creation(m_p_instance, &info, nullptr, &m_debug_messenger);
+	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "failed to vkCreateDebugUtilsMessengerEXT");
 #endif
 }
 
 void RenderInterface_VK::Destroy_ReportDebugCallback() noexcept
 {
 #ifdef RMLUI_VK_DEBUG
-	PFN_vkDestroyDebugReportCallbackEXT p_destroy_callback =
-		reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(m_p_instance, "vkDestroyDebugReportCallbackEXT"));
+	PFN_vkDestroyDebugUtilsMessengerEXT p_destroy_callback =
+		reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_p_instance, "vkDestroyDebugUtilsMessengerEXT"));
 
-	if (p_destroy_callback)
+	if (m_debug_messenger)
 	{
-		p_destroy_callback(m_p_instance, m_debug_report_callback_instance, nullptr);
+		p_destroy_callback(m_p_instance, m_debug_messenger, nullptr);
+		m_debug_messenger = VK_NULL_HANDLE;
 	}
 #endif
 }

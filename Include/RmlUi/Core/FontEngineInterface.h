@@ -49,6 +49,12 @@ public:
 	FontEngineInterface();
 	virtual ~FontEngineInterface();
 
+	/// Called when RmlUi is being initialized.
+	virtual void Initialize();
+
+	/// Called when RmlUi is being shut down.
+	virtual void Shutdown();
+
 	/// Called by RmlUi when it wants to load a font face from file.
 	/// @param[in] file_name The file to load the face from.
 	/// @param[in] fallback_face True to use this font face for unknown characters in other font faces.

@@ -150,13 +150,13 @@ namespace Style {
 	enum class OriginX : uint8_t { Left, Center, Right };
 	enum class OriginY : uint8_t { Top, Center, Bottom };
 
-	enum class AlignContent : uint8_t { FlexStart, FlexEnd, Center, SpaceBetween, SpaceAround, Stretch };
+	enum class AlignContent : uint8_t { FlexStart, FlexEnd, Center, SpaceBetween, SpaceAround, SpaceEvenly, Stretch };
 	enum class AlignItems : uint8_t { FlexStart, FlexEnd, Center, Baseline, Stretch };
 	enum class AlignSelf : uint8_t { Auto, FlexStart, FlexEnd, Center, Baseline, Stretch };
 	using FlexBasis = LengthPercentageAuto;
 	enum class FlexDirection : uint8_t { Row, RowReverse, Column, ColumnReverse };
 	enum class FlexWrap : uint8_t { Nowrap, Wrap, WrapReverse };
-	enum class JustifyContent : uint8_t { FlexStart, FlexEnd, Center, SpaceBetween, SpaceAround };
+	enum class JustifyContent : uint8_t { FlexStart, FlexEnd, Center, SpaceBetween, SpaceAround, SpaceEvenly };
 
 	enum class Nav : uint8_t { None, Auto, Horizontal, Vertical };
 
