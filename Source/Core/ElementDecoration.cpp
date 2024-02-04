@@ -157,6 +157,7 @@ void ElementDecoration::ReloadDecoratorsData()
 	{
 		decorators_data_dirty = false;
 
+		bool decorator_data_failed = false;
 		for (DecoratorEntryList* list : {&decorators, &mask_images})
 		{
 			for (DecoratorEntry& decorator : *list)
@@ -165,17 +166,27 @@ void ElementDecoration::ReloadDecoratorsData()
 					decorator.decorator->ReleaseElementData(decorator.decorator_data);
 
 				decorator.decorator_data = decorator.decorator->GenerateElementData(element, decorator.paint_area);
-
 				if (!decorator.decorator_data)
-					Log::Message(Log::LT_WARNING, "Could not load decorator data on element: %s", element->GetAddress().c_str());
+					decorator_data_failed = true;
 			}
 		}
 
+		if (decorator_data_failed)
+			Log::Message(Log::LT_WARNING, "Could not load decorator data on element: %s", element->GetAddress().c_str());
+
+		bool filter_compile_failed = false;
 		for (FilterEntryList* list : {&filters, &backdrop_filters})
 		{
 			for (FilterEntry& filter : *list)
+			{
 				filter.compiled = filter.filter->CompileFilter(element);
+				if (!filter.compiled)
+					filter_compile_failed = true;
+			}
 		}
+
+		if (filter_compile_failed)
+			Log::Message(Log::LT_WARNING, "Could not compile filter on element: %s", element->GetAddress().c_str());
 	}
 }
 
