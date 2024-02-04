@@ -828,6 +828,7 @@ void RenderInterface_GL3::BeginFrame()
 
 	glGetIntegerv(GL_STENCIL_CLEAR_VALUE, &glstate_backup.stencil_clear_value);
 	glGetFloatv(GL_COLOR_CLEAR_VALUE, glstate_backup.color_clear_value);
+	glGetBooleanv(GL_COLOR_WRITEMASK, glstate_backup.color_writemask);
 
 	glGetIntegerv(GL_BLEND_EQUATION_RGB, &glstate_backup.blend_equation_rgb);
 	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &glstate_backup.blend_equation_alpha);
@@ -943,6 +944,8 @@ void RenderInterface_GL3::EndFrame()
 	glClearStencil(glstate_backup.stencil_clear_value);
 	glClearColor(glstate_backup.color_clear_value[0], glstate_backup.color_clear_value[1], glstate_backup.color_clear_value[2],
 		glstate_backup.color_clear_value[3]);
+	glColorMask(glstate_backup.color_writemask[0], glstate_backup.color_writemask[1], glstate_backup.color_writemask[2],
+		glstate_backup.color_writemask[3]);
 
 	glBlendEquationSeparate(glstate_backup.blend_equation_rgb, glstate_backup.blend_equation_alpha);
 	glBlendFuncSeparate(glstate_backup.blend_src_rgb, glstate_backup.blend_dst_rgb, glstate_backup.blend_src_alpha, glstate_backup.blend_dst_alpha);

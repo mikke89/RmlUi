@@ -193,6 +193,7 @@ private:
 
 		int stencil_clear_value;
 		float color_clear_value[4];
+		unsigned char color_writemask[4];
 
 		int blend_equation_rgb;
 		int blend_equation_alpha;
