@@ -41,14 +41,13 @@
 #include <string.h>
 
 namespace Rml {
-
 ElementSVG::ElementSVG(const String& tag) : Element(tag) {}
 
 ElementSVG::~ElementSVG() {}
 
 bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
-	if (source_dirty)
+	if (inline_resized || source_dirty)
 		LoadSource();
 
 	dimensions = intrinsic_dimensions;
@@ -70,18 +69,16 @@ bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 
 void ElementSVG::OnRender()
 {
-	if (svg_document)
-	{
-		if (geometry_dirty)
-			GenerateGeometry();
-
-		UpdateTexture();
-		geometry.Render(GetAbsoluteOffset(BoxArea::Content));
-	}
+	if (geometry_dirty)
+		GenerateGeometry();
+		
+	UpdateTexture();
+	geometry.Render(GetAbsoluteOffset(BoxArea::Content));
 }
 
 void ElementSVG::OnResize()
 {
+	inline_resized = true;
 	geometry_dirty = true;
 	texture_dirty = true;
 }
@@ -146,45 +143,64 @@ bool ElementSVG::LoadSource()
 {
 	source_dirty = false;
 	texture_dirty = true;
+	loading_inline_source = false;
 	intrinsic_dimensions = Vector2f{};
 	geometry.SetTexture(nullptr);
 	svg_document.reset();
 
 	const String attribute_src = GetAttribute<String>("src", "");
 
+	/// if the source is empty, we attempt to load the inline source.
 	if (attribute_src.empty())
-		return false;
+	{
+		loading_inline_source = true;
+	}
 
 	String path = attribute_src;
 	String directory;
-
-	if (ElementDocument* document = GetOwnerDocument())
-	{
-		const String document_source_url = StringUtilities::Replace(document->GetSourceURL(), '|', ':');
-		GetSystemInterface()->JoinPath(path, document_source_url, attribute_src);
-		GetSystemInterface()->JoinPath(directory, document_source_url, "");
-	}
-
 	String svg_data;
 
-	if (path.empty() || !GetFileInterface()->LoadFile(path, svg_data))
+	if (loading_inline_source == false)
 	{
-		Log::Message(Rml::Log::Type::LT_WARNING, "Could not load SVG file %s", path.c_str());
-		return false;
+		if (ElementDocument* document = GetOwnerDocument())
+		{
+			const String document_source_url = StringUtilities::Replace(document->GetSourceURL(), '|', ':');
+			GetSystemInterface()->JoinPath(path, document_source_url, attribute_src);
+			GetSystemInterface()->JoinPath(directory, document_source_url, "");
+		}
+
+		if (path.empty() || !GetFileInterface()->LoadFile(path, svg_data))
+		{
+			Log::Message(Rml::Log::Type::LT_WARNING, "Could not load SVG file %s", path.c_str());
+			return false;
+		}
+
+		// We use a reset-release approach here in case clients use a non-std unique_ptr (lunasvg uses std::unique_ptr)
+		svg_document.reset(lunasvg::Document::loadFromData(svg_data).release());
+
+		if (!svg_document)
+		{
+			Log::Message(Rml::Log::Type::LT_WARNING, "Could not load SVG data from file %s", path.c_str());
+			return false;
+		}
 	}
-
-	// We use a reset-release approach here in case clients use a non-std unique_ptr (lunasvg uses std::unique_ptr)
-	svg_document.reset(lunasvg::Document::loadFromData(svg_data).release());
-
-	if (!svg_document)
+	else
 	{
-		Log::Message(Rml::Log::Type::LT_WARNING, "Could not load SVG data from file %s", path.c_str());
-		return false;
+		LoadAndSendRawSVG(svg_data);
+		// We use a reset-release approach here in case clients use a non-std unique_ptr (lunasvg uses std::unique_ptr)
+		svg_document.reset(lunasvg::Document::loadFromData(svg_data).release());
+
+		if (!svg_document)
+		{
+			Log::Message(Rml::Log::Type::LT_WARNING, "Could not load Inline SVG data from %s. this may mean that the SVG data is invalid.",
+				path.c_str());
+			return false;
+		}
 	}
 
 	intrinsic_dimensions.x = Math::Max(float(svg_document->width()), 1.0f);
 	intrinsic_dimensions.y = Math::Max(float(svg_document->height()), 1.0f);
-
+	inline_resized = false;
 	return true;
 }
 
@@ -210,4 +226,16 @@ void ElementSVG::UpdateTexture()
 	texture_dirty = false;
 }
 
+void ElementSVG::LoadAndSendRawSVG(String& svg_data)
+{
+	// Get Inline SVG RML.
+	this->GetRML(svg_data);
+	// If the Inline SVG RML is empty, then report a error.
+	if (svg_data.empty() == true)
+	{
+		Log::Message(Rml::Log::Type::LT_ERROR, "Could not load inline SVG data. Is the data invalid?");
+	}
+	// reset the guard.
+	inline_resized = false;
+}
 } // namespace Rml

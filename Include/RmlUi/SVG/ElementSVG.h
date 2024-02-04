@@ -39,7 +39,6 @@ class Document;
 }
 
 namespace Rml {
-
 class RMLUICORE_API ElementSVG : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
@@ -73,10 +72,16 @@ private:
 	// Update the texture when necessary.
 	void UpdateTexture();
 
+	/// Loads and sends the raw svg data within the svg tag to luna so it can create a bitmap.
+	void LoadAndSendRawSVG(String& svg_data);
+
 	bool source_dirty = false;
 	bool geometry_dirty = false;
 	bool texture_dirty = false;
-
+	/// Are we rendering a inline svg? (vector data layed out within rml/html file)
+	bool loading_inline_source = false;
+	/// Guard to not keep resizing for inline svg(s).
+	bool inline_resized = false;
 	// The texture this element is rendering from.
 	Texture texture;
 
@@ -90,7 +95,6 @@ private:
 
 	UniquePtr<lunasvg::Document> svg_document;
 };
-
 } // namespace Rml
 
 #endif
