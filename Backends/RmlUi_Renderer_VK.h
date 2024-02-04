@@ -80,7 +80,7 @@ RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
 	#define RMLUI_VK_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(statement, msg)
 
 	// Uncomment the following line to enable additional Vulkan debugging.
-	#define RMLUI_VK_DEBUG
+	// #define RMLUI_VK_DEBUG
 #else
 	#define RMLUI_VK_ASSERTMSG(statement, msg) static_cast<void>(statement)
 #endif
