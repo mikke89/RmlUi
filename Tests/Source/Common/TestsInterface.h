@@ -68,6 +68,11 @@ public:
 		size_t enable_clip_mask;
 		size_t render_to_clip_mask;
 		size_t set_transform;
+		size_t compile_filter;
+		size_t release_filter;
+		size_t compile_shader;
+		size_t render_shader;
+		size_t release_shader;
 	};
 
 	Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
@@ -85,6 +90,14 @@ public:
 	void RenderToClipMask(Rml::ClipMaskOperation mask_operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation) override;
 
 	void SetTransform(const Rml::Matrix4f* transform) override;
+
+	Rml::CompiledFilterHandle CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters) override;
+	void ReleaseCompiledFilter(Rml::CompiledFilterHandle filter) override;
+
+	Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override;
+	void RenderShader(Rml::CompiledShaderHandle shader, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation,
+		Rml::TextureHandle texture) override;
+	void ReleaseCompiledShader(Rml::CompiledShaderHandle shader) override;
 
 	const Counters& GetCounters() const { return counters; }
 	void ResetCounters() { counters = {}; }

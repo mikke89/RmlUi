@@ -26,6 +26,7 @@
  *
  */
 
+#include "../Common/TestsInterface.h"
 #include "../Common/TestsShell.h"
 #include <RmlUi/Core/CompiledFilterShader.h>
 #include <RmlUi/Core/Context.h>
@@ -35,6 +36,7 @@
 #include <RmlUi/Core/Filter.h>
 #include <RmlUi/Core/PropertyDefinition.h>
 #include <RmlUi/Core/PropertyDictionary.h>
+#include <RmlUi/Core/RenderManager.h>
 #include <algorithm>
 #include <doctest.h>
 
@@ -54,7 +56,7 @@ public:
 	CompiledFilter CompileFilter(Element* element) const override
 	{
 		compiled_test_filters.push_back({element->GetId(), this});
-		return CompiledFilter();
+		return element->GetRenderManager()->CompileFilter("FilterTest", {});
 	}
 
 	float value = 0.f;
@@ -125,6 +127,8 @@ TEST_CASE("filter")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
+	TestsShell::GetTestsRenderInterface()->ResetCounters();
+
 	FilterTestInstancer instancer;
 	Rml::Factory::RegisterFilterInstancer("test", &instancer);
 
@@ -165,8 +169,17 @@ TEST_CASE("filter")
 
 	// Filters aren't cached like decorators are, so each element will instance a new decorator even if they refer to
 	// the same style rule. Thus, here producing 4 instead of 3 unique instances.
-	CHECK(instancer.num_instances == 4);
+	CHECK(instancer.num_instances == expected_compiled_filters.size());
+
+	auto& counters = TestsShell::GetTestsRenderInterface()->GetCounters();
+	CHECK(counters.compile_filter == expected_compiled_filters.size());
+	CHECK(counters.release_filter == 0);
 
 	document->Close();
+	context->Update();
+
+	CHECK(counters.compile_filter == expected_compiled_filters.size());
+	CHECK(counters.release_filter == expected_compiled_filters.size());
+
 	TestsShell::ShutdownShell();
 }

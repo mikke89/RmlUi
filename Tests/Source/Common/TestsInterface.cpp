@@ -114,7 +114,8 @@ void TestsRenderInterface::EnableClipMask(bool /*enable*/)
 	counters.enable_clip_mask += 1;
 }
 
-void TestsRenderInterface::RenderToClipMask(Rml::ClipMaskOperation /*mask_operation*/, Rml::CompiledGeometryHandle /*geometry*/, Rml::Vector2f /*translation*/)
+void TestsRenderInterface::RenderToClipMask(Rml::ClipMaskOperation /*mask_operation*/, Rml::CompiledGeometryHandle /*geometry*/,
+	Rml::Vector2f /*translation*/)
 {
 	counters.render_to_clip_mask += 1;
 }
@@ -141,4 +142,32 @@ void TestsRenderInterface::ReleaseTexture(Rml::TextureHandle /*texture_handle*/)
 void TestsRenderInterface::SetTransform(const Rml::Matrix4f* /*transform*/)
 {
 	counters.set_transform += 1;
+}
+
+Rml::CompiledFilterHandle TestsRenderInterface::CompileFilter(const Rml::String& /*name*/, const Rml::Dictionary& /*parameters*/)
+{
+	counters.compile_filter += 1;
+	return 1;
+}
+
+void TestsRenderInterface::ReleaseCompiledFilter(Rml::CompiledFilterHandle /*filter*/)
+{
+	counters.release_filter += 1;
+}
+
+Rml::CompiledShaderHandle TestsRenderInterface::CompileShader(const Rml::String& /*name*/, const Rml::Dictionary& /*parameters*/)
+{
+	counters.compile_shader += 1;
+	return 1;
+}
+
+void TestsRenderInterface::RenderShader(Rml::CompiledShaderHandle /*shader*/, Rml::CompiledGeometryHandle /*geometry*/, Rml::Vector2f /*translation*/,
+	Rml::TextureHandle /*texture*/)
+{
+	counters.render_shader += 1;
+}
+
+void TestsRenderInterface::ReleaseCompiledShader(Rml::CompiledShaderHandle /*shader*/)
+{
+	counters.release_shader += 1;
 }
