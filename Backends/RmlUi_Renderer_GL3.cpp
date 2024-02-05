@@ -1592,7 +1592,7 @@ Rml::CompiledFilterHandle RenderInterface_GL3::CompileFilter(const Rml::String& 
 	return {};
 }
 
-void RenderInterface_GL3::ReleaseCompiledFilter(Rml::CompiledFilterHandle filter)
+void RenderInterface_GL3::ReleaseFilter(Rml::CompiledFilterHandle filter)
 {
 	delete reinterpret_cast<CompiledFilter*>(filter);
 }
@@ -1731,7 +1731,7 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 	Gfx::CheckGLError("RenderShader");
 }
 
-void RenderInterface_GL3::ReleaseCompiledShader(Rml::CompiledShaderHandle shader_handle)
+void RenderInterface_GL3::ReleaseShader(Rml::CompiledShaderHandle shader_handle)
 {
 	delete reinterpret_cast<CompiledShader*>(shader_handle);
 }

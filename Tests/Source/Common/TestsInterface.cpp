@@ -150,7 +150,7 @@ Rml::CompiledFilterHandle TestsRenderInterface::CompileFilter(const Rml::String&
 	return 1;
 }
 
-void TestsRenderInterface::ReleaseCompiledFilter(Rml::CompiledFilterHandle /*filter*/)
+void TestsRenderInterface::ReleaseFilter(Rml::CompiledFilterHandle /*filter*/)
 {
 	counters.release_filter += 1;
 }
@@ -167,7 +167,7 @@ void TestsRenderInterface::RenderShader(Rml::CompiledShaderHandle /*shader*/, Rm
 	counters.render_shader += 1;
 }
 
-void TestsRenderInterface::ReleaseCompiledShader(Rml::CompiledShaderHandle /*shader*/)
+void TestsRenderInterface::ReleaseShader(Rml::CompiledShaderHandle /*shader*/)
 {
 	counters.release_shader += 1;
 }

@@ -341,7 +341,7 @@ void RenderManager::ReleaseResource(const CompiledFilter& filter)
 {
 	RMLUI_ASSERT(filter.render_manager == this && filter.resource_handle != filter.InvalidHandle());
 
-	render_interface->ReleaseCompiledFilter(filter.resource_handle);
+	render_interface->ReleaseFilter(filter.resource_handle);
 	compiled_filter_count -= 1;
 }
 
@@ -349,7 +349,7 @@ void RenderManager::ReleaseResource(const CompiledShader& shader)
 {
 	RMLUI_ASSERT(shader.render_manager == this && shader.resource_handle != shader.InvalidHandle());
 
-	render_interface->ReleaseCompiledShader(shader.resource_handle);
+	render_interface->ReleaseShader(shader.resource_handle);
 	compiled_shader_count -= 1;
 }
 

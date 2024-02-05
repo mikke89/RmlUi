@@ -152,7 +152,7 @@ public:
 	virtual CompiledFilterHandle CompileFilter(const String& name, const Dictionary& parameters);
 	/// Called by RmlUi when it no longer needs a previously compiled filter.
 	/// @param[in] filter The handle to a previously compiled filter.
-	virtual void ReleaseCompiledFilter(CompiledFilterHandle filter);
+	virtual void ReleaseFilter(CompiledFilterHandle filter);
 
 	/// Called by RmlUi when it wants to compile a new shader.
 	/// @param[in] name The name of the shader.
@@ -167,7 +167,7 @@ public:
 	virtual void RenderShader(CompiledShaderHandle shader, CompiledGeometryHandle geometry, Vector2f translation, TextureHandle texture);
 	/// Called by RmlUi when it no longer needs a previously compiled shader.
 	/// @param[in] shader The handle to a previously compiled shader.
-	virtual void ReleaseCompiledShader(CompiledShaderHandle shader);
+	virtual void ReleaseShader(CompiledShaderHandle shader);
 };
 
 } // namespace Rml

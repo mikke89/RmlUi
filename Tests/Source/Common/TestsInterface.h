@@ -92,12 +92,12 @@ public:
 	void SetTransform(const Rml::Matrix4f* transform) override;
 
 	Rml::CompiledFilterHandle CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters) override;
-	void ReleaseCompiledFilter(Rml::CompiledFilterHandle filter) override;
+	void ReleaseFilter(Rml::CompiledFilterHandle filter) override;
 
 	Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override;
 	void RenderShader(Rml::CompiledShaderHandle shader, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation,
 		Rml::TextureHandle texture) override;
-	void ReleaseCompiledShader(Rml::CompiledShaderHandle shader) override;
+	void ReleaseShader(Rml::CompiledShaderHandle shader) override;
 
 	const Counters& GetCounters() const { return counters; }
 	void ResetCounters() { counters = {}; }
