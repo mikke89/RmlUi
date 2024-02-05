@@ -132,7 +132,7 @@ ContainerBox::ContainerBox(Type type, Element* element, ContainerBox* parent_con
 		overflow_x = computed.overflow_x();
 		overflow_y = computed.overflow_y();
 		is_absolute_positioning_containing_block = (computed.position() != Style::Position::Static || computed.has_local_transform() ||
-			computed.has_local_perspective() || computed.has_filter() || computed.has_backdrop_filter());
+			computed.has_local_perspective() || computed.has_filter() || computed.has_backdrop_filter() || computed.has_mask_image());
 	}
 }
 
