@@ -787,7 +787,7 @@ void RenderInterface_VK::SetViewport(int width, int height)
 	if (window_extent.width == 0 || window_extent.height == 0)
 		return;
 
-#ifdef RMLUI_DEBUG
+#ifdef RMLUI_VK_DEBUG
 	Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "Rml width: %d height: %d | Vulkan width: %d height: %d", m_width, m_height, window_extent.width,
 		window_extent.height);
 #endif
