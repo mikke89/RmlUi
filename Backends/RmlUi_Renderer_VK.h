@@ -85,6 +85,9 @@ RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
 	#define RMLUI_VK_ASSERTMSG(statement, msg) static_cast<void>(statement)
 #endif
 
+// your specified api version, but in future it will be dynamic ^_^
+#define RMLUI_VK_API_VERSION VK_API_VERSION_1_0
+
 /**
  * Vulkan render interface for RmlUi
  *
@@ -545,7 +548,7 @@ private:
 	void Create_Pipelines() noexcept;
 	void CreateRenderPass() noexcept;
 
-	void CreateSwapchainFrameBuffers() noexcept;
+	void CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
 
 	// This method is called in Views, so don't call it manually
 	void CreateSwapchainImages() noexcept;
@@ -554,7 +557,7 @@ private:
 	void Create_DepthStencilImage() noexcept;
 	void Create_DepthStencilImageViews() noexcept;
 
-	void CreateResourcesDependentOnSize() noexcept;
+	void CreateResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
 
 	buffer_data_t CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept;
 	void DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept;
