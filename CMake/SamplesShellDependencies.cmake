@@ -15,8 +15,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Required to use the functions from the shlwapi.h header
     find_library(Shlwapi NAMES "Shlwapi" "Shlwapi.lib" "Shlwapi.dll")
     if(NOT Shlwapi)
-        # report_not_found_native_library("Shlwapi")
-
         # Many platform libraries are still available to linkers even if CMake cannot find them
         # Ignore the fact that the Shlwapi wasn't found and try to link against it anyway
         set(Shlwapi "Shlwapi")
@@ -31,8 +29,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     # Required to use the functions from the Cocoa framework
     find_library(Cocoa NAMES "Cocoa" "Cocoa.framework")
     if(NOT Cocoa)
-        # report_not_found_native_library("Cocoa")
-
         # Many platform libraries are still available to linkers even if CMake cannot find them
         # Ignore the fact that the Cocoa wasn't found and try to link against it anyway
         set(Cocoa "Cocoa")

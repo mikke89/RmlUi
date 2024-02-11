@@ -1,10 +1,5 @@
-# Declare library
-#
-# Although not necessary, header files are also included to improve IntelliSense
-# capabilities on IDEs and language servers
 add_library(rmlui_core_elements INTERFACE)
 
-# Set C++14 as requirement
 target_compile_features(rmlui_core_elements INTERFACE "cxx_std_14")
 
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:

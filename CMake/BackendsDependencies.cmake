@@ -55,16 +55,11 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     list(APPEND RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer")
 
     # Determine if the selected SDL backend requires SDL_image
-    list(FIND RMLUI_SDL_BACKENDS_WITH_SDLIMAGE ${RMLUI_SAMPLES_BACKEND} rmlui_sdl_image_found_item_index)
-    if(rmlui_sdl_image_found_item_index EQUAL "-1")
-        # If the backend hasn't been found in the list, SDL_image isn't required
-        set(RMLUI_SDLIMAGE_REQUIRED FALSE)
-    else()
-        # If the backend has been found in the list, SDL_image is required
+    if(RMLUI_SAMPLES_BACKEND IN_LIST RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
         set(RMLUI_SDLIMAGE_REQUIRED TRUE)
+    else()
+        set(RMLUI_SDLIMAGE_REQUIRED FALSE)
     endif()
-    # Clear scope
-    unset(rmlui_sdl_image_found_item_index)
     unset(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
 
     # Require SDL_image if needed
@@ -90,7 +85,7 @@ endif()
 # SFML
 if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
     #[[
-        Starting with SFML 2.7, the recommended method to find the library is using 
+        Starting with SFML 2.7, the recommended method to find the library is using
         the official config file which sets up targets for each module of the library.
         The names of the targets follow the namespaced target names convention.
 
@@ -112,7 +107,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
         find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS_LOWER_CASE} QUIET)
     endif()
 
-    # Since we are using find_package() in basic mode, we can check the _FOUND variable 
+    # Since we are using find_package() in basic mode, we can check the _FOUND variable
     if(NOT SFML_FOUND)
         report_not_found_dependency("SFML" SFML::SFML)
     endif()

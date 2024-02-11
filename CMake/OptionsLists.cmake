@@ -2,7 +2,6 @@
     Lists of options available to configure some aspects of the project
 ]]
 
-# List of available backends
 list(APPEND RMLUI_SAMPLES_AVAILABLE_BACKENDS
     "Win32_GL2"
     "Win32_VK"
@@ -17,8 +16,7 @@ list(APPEND RMLUI_SAMPLES_AVAILABLE_BACKENDS
     "GLFW_VK"
 )
 
-# List of available font interfaces
-list(APPEND RMLUI_AVAILABLE_FONT_INTERFACES 
+list(APPEND RMLUI_AVAILABLE_FONT_INTERFACES
     "none"
     "freetype"
 )
