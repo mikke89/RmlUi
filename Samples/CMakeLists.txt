@@ -1,7 +1,7 @@
 # Check the font interface configuration
 if(RMLUI_FONT_INTERFACE STREQUAL "none")
     # If RmlUi is being built with no font interface, then some samples cannot be built
-    message(NOTICE 
+    message(NOTICE
         "Building samples has been enabled, but no font interface has been selected. "
         "Some samples might be disabled."
     )
@@ -13,6 +13,8 @@ if(RMLUI_SAMPLES_BACKEND STREQUAL "auto")
 
     message(STATUS "Automatic sample backend selection enabled. Chosen backend: ${RMLUI_SAMPLES_BACKEND}")
 endif()
+
+set(RMLUI_SAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Declare dependencies for sample backends
 include("${PROJECT_SOURCE_DIR}/CMake/BackendsDependencies.cmake")
@@ -44,5 +46,9 @@ endif()
 # Add shell library for the samples
 add_subdirectory("shell")
 
-# Add samples's subdirectories
+# Add basic samples
 add_subdirectory("basic")
+
+install(DIRECTORY assets
+	DESTINATION Samples
+)

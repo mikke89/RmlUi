@@ -42,6 +42,9 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies")
 
+# Fetch standard install paths
+include(GNUInstallDirs)
+
 # Set up external dependencies
 include("CMake/Dependencies.cmake")
 
@@ -52,3 +55,8 @@ add_subdirectory("Source")
 if(RMLUI_SAMPLES)
     add_subdirectory("Samples")
 endif()
+
+install(EXPORT RmlUiTargets
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi
+	NAMESPACE RmlUi::
+)

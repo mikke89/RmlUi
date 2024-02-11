@@ -1,9 +1,6 @@
-# Declare core RmlUi debugger
-# Not explicitly setting library type so that it can be chosen by consumer
-# using BUILD_SHARED_LIBS
-#
-# Although not necessary, header files are also included to improve IntelliSense
-# capabilities on IDEs and language servers
+# Declare RmlUi debugger
+# Not explicitly setting library type so that it can be chosen by consumer using BUILD_SHARED_LIBS. Although not
+# necessary, header files are also included to improve IntelliSense capabilities on IDEs and language servers.
 add_library(rmlui_debugger
     BeaconSource.h
     CommonSource.h
@@ -26,11 +23,13 @@ add_library(rmlui_debugger
     MenuSource.h
 )
 
-# Set C++14 as requirement
 target_compile_features(rmlui_debugger PUBLIC "cxx_std_14")
 
-# Add public include directories
-target_include_directories(rmlui_debugger PUBLIC "${PROJECT_SOURCE_DIR}/Include")
+target_include_directories(rmlui_debugger PRIVATE "${PROJECT_SOURCE_DIR}/Include")
+target_include_directories(rmlui_debugger INTERFACE
+	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/Include>"
+	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
 
 # Add public headers as files in the project (it's not necessary but convenient for IDE integration)
 # Setting them as PRIVATE so that it's addition doesn't propagate, it won't affect availability since
@@ -61,8 +60,23 @@ endif()
 set_target_properties(rmlui_debugger PROPERTIES
     # Add export name so that it can be exported with a namespaced name instead
     # of using the name we actually used to declare the target
-    EXPORT_NAME "RmlUi::Debugger"
+    EXPORT_NAME "Debugger"
 
     # Change output name of the final library file
     OUTPUT_NAME "rmlui_debugger"
+)
+
+install(TARGETS rmlui_debugger
+	EXPORT RmlUiTargets
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+install(DIRECTORY
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger"
+	DESTINATION "Include/RmlUi"
+)
+install(FILES
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger.h"
+	DESTINATION "Include/RmlUi"
 )

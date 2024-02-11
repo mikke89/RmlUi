@@ -27,3 +27,8 @@ target_link_libraries(rmlui_lottie INTERFACE rlottie::rlottie)
 
 # Notify source files about the usage of the plugin
 target_compile_definitions(rmlui_lottie INTERFACE "RMLUI_LOTTIE_PLUGIN")
+
+install(DIRECTORY
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lottie"
+	DESTINATION "Include/RmlUi"
+)

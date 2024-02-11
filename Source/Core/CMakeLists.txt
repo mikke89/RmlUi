@@ -1,10 +1,7 @@
-# Declare core RmlUi library
-# Not explicitly setting library type so that it can be chosen by consumer
-# using BUILD_SHARED_LIBS
-#
-# Although not necessary, header files are also included to improve IntelliSense
-# capabilities on IDEs and language servers
-add_library(rmlui_core 
+# Declare RmlUi core library
+# Not explicitly setting library type so that it can be chosen by consumer using BUILD_SHARED_LIBS. Although not
+# necessary, header files are also included to improve IntelliSense capabilities on IDEs and language servers.
+add_library(rmlui_core
     BaseXMLParser.cpp
     Box.cpp
     Clock.cpp
@@ -210,18 +207,19 @@ add_library(rmlui_core
     XMLParseTools.h
 )
 
-# Set C++14 as requirement
 target_compile_features(rmlui_core PUBLIC "cxx_std_14")
 
-# Add public include directories
-target_include_directories(rmlui_core PUBLIC "${PROJECT_SOURCE_DIR}/Include")
+target_include_directories(rmlui_core PRIVATE "${PROJECT_SOURCE_DIR}/Include")
+target_include_directories(rmlui_core INTERFACE
+	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/Include>"
+	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
 
 # Add public headers as files in the project (it's not necessary but convenient for IDE integration)
 # Setting them as PRIVATE so that it's addition doesn't propagate, it won't affect availability since
 # the entire include directory has already been declared as public
 target_sources(rmlui_core PRIVATE
     "${PROJECT_SOURCE_DIR}/Include/RmlUi/Config/Config.h"
-    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Animation.h"
     "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/BaseXMLParser.h"
     "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Box.h"
     "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.h"
@@ -337,7 +335,7 @@ add_library(RmlUi::RmlUi ALIAS rmlui_core)
 set_target_properties(rmlui_core PROPERTIES
     # Add export name so that it can be exported with a namespaced name instead
     # of using the name we actually used to declare the target
-    EXPORT_NAME "RmlUi::RmlUi"
+    EXPORT_NAME "RmlUi"
 
     # Change output name of the final library file
     OUTPUT_NAME "rmlui"
@@ -351,7 +349,7 @@ target_link_libraries(rmlui_core PRIVATE rmlui_core_elements)
 add_subdirectory("Layout")
 target_link_libraries(rmlui_core PRIVATE rmlui_core_layout)
 
-# Avoid problems with MSVC's __dllspec() in static builds
+# Set up definitions to export functions and classes as appropriate
 get_target_property(rmlui_core_TYPE rmlui_core "TYPE")
 if(rmlui_core_TYPE STREQUAL "STATIC_LIBRARY")
     # If RmlUi is being compiled as a static library, notify code to disable usage of __dllspec()
@@ -384,3 +382,23 @@ if(RMLUI_LOTTIE_PLUGIN)
     # Link against the Lottie plugin
     target_link_libraries(rmlui_core PRIVATE rmlui_lottie)
 endif()
+
+# RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
+# We use default paths provided from GNUInstallDirs. From CMake 3.14 these paths (CMAKE_INSTALL_...) will be used
+# automatically and can be removed from the following call. The same applies to many other calls to install(TARGETS...).
+# Note that GNUInstallDirs should still be included in the project root.
+install(TARGETS rmlui_core
+	EXPORT RmlUiTargets
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+install(DIRECTORY
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Config"
+	DESTINATION "Include/RmlUi"
+)
+install(FILES
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core.h"
+	DESTINATION "Include/RmlUi"
+)

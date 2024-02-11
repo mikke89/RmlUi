@@ -1,7 +1,5 @@
-# Declare executable
-add_executable(rmlui_sample_benchmark WIN32
+add_executable("${RMLUI_SAMPLES_PREFIX}benchmark" WIN32
     src/main.cpp
 )
 
-# Link shell library
-target_link_libraries(rmlui_sample_benchmark PRIVATE rmlui_sample_shell)
+target_link_libraries("${RMLUI_SAMPLES_PREFIX}benchmark" PRIVATE rmlui_sample_shell)

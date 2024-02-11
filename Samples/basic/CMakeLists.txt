@@ -1,4 +1,5 @@
-# Add CMake subdirectories of basic samples
+set(RMLUI_SAMPLES_PREFIX "rmlui_")
+
 add_subdirectory("bitmapfont")
 
 # If a font interface has been selected, add CMake subdirectories of samples that require it
