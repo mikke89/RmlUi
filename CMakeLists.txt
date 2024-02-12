@@ -48,6 +48,10 @@ include(GNUInstallDirs)
 # Set up external dependencies
 include("CMake/Dependencies.cmake")
 
+# Setup variables for runtime dependencies
+include("${PROJECT_SOURCE_DIR}/CMake/RuntimeDependencies.cmake")
+setup_runtime_dependency_set_arg()
+
 # Add CMake subdirectories
 add_subdirectory("Source")
 
@@ -60,3 +64,5 @@ install(EXPORT RmlUiTargets
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi
 	NAMESPACE RmlUi::
 )
+
+install_runtime_dependencies()

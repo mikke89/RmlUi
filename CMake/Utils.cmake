@@ -9,7 +9,7 @@
         - target_name: Name of the CMake target the project is supposed to link against
 ]]
 function(report_not_found_dependency friendly_name target_name)
-    message(FATAL_ERROR     
+    message(FATAL_ERROR
         "${friendly_name} has not been found by CMake."
         "\nIf you are consuming RmlUi as a subdirectory inside another CMake project, please ensure that "
         "${friendly_name} can be found by CMake or at least being linked using \"${target_name}\" as its "
@@ -35,7 +35,7 @@ function(report_not_found_native_library library_name)
     endif()
 
     # Print notice
-    message(NOTICE 
+    message(NOTICE
         "CMake failed to find the ${library_name} library. Depending on the compiler, underlying build system "
         "and environment setup, linkage of the RmlUi samples executables might fail."
         "\n${SDK_NOTICE}"

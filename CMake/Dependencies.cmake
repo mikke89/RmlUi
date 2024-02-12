@@ -8,7 +8,6 @@
 
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 
-# Freetype
 if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
     find_package("Freetype")
 
@@ -23,11 +22,18 @@ if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
     endif()
 endif()
 
-# rlottie
 if(RMLUI_LOTTIE_PLUGIN)
     find_package("rlottie")
 
     if(NOT TARGET rlottie::rlottie)
         report_not_found_dependency("rlottie" rlottie::rlottie)
+    endif()
+endif()
+
+if(RMLUI_SVG_PLUGIN)
+    find_package("lunasvg")
+
+    if(NOT TARGET lunasvg::lunasvg)
+        report_not_found_dependency("lunasvg" lunasvg::lunasvg)
     endif()
 endif()

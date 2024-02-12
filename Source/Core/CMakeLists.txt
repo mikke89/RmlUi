@@ -377,10 +377,11 @@ if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
     target_compile_definitions(rmlui_core PRIVATE "RMLUI_FONT_INTERFACE_FREETYPE")
 endif()
 
-# Negotiate usage of the Lottie plugin
 if(RMLUI_LOTTIE_PLUGIN)
-    # Link against the Lottie plugin
     target_link_libraries(rmlui_core PRIVATE rmlui_lottie)
+endif()
+if(RMLUI_SVG_PLUGIN)
+	target_link_libraries(rmlui_core PRIVATE rmlui_svg)
 endif()
 
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
@@ -389,6 +390,7 @@ endif()
 # Note that GNUInstallDirs should still be included in the project root.
 install(TARGETS rmlui_core
 	EXPORT RmlUiTargets
+	${RMLUI_RUNTIME_DEPENDENCY_SET_ARG}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
