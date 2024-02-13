@@ -118,9 +118,6 @@ int main(int /*argc*/, char** /*argv*/)
 	// Shutdown RmlUi.
 	Rml::Shutdown();
 
-	// Destroy the font interface before taking down the shell, this way font textures are properly released through the render interface.
-	font_interface.reset();
-
 	Backend::Shutdown();
 	Shell::Shutdown();
 

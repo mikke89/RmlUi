@@ -33,6 +33,7 @@
 #include "TestViewer.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Math.h>
 #include <Shell.h>
 #include <cstdio>
@@ -230,6 +231,10 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 			{
 				element_filter_input->Blur();
 			}
+			else if (viewer->IsNavigationLocked())
+			{
+				element_filter_input->GetOwnerDocument()->Focus();
+			}
 			else if (goto_index >= 0)
 			{
 				goto_index = -1;
@@ -252,7 +257,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 	}
 
 	// Keydown events in target/bubble phase ignored when focusing on input.
-	if (event == Rml::EventId::Keydown && event.GetPhase() != Rml::EventPhase::Capture)
+	if (event == Rml::EventId::Keydown && event.GetPhase() != Rml::EventPhase::Capture && !viewer->IsNavigationLocked())
 	{
 		const auto key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
 
@@ -475,8 +480,8 @@ void TestNavigator::StopTestSuiteIteration()
 				not_equal.push_back(i);
 		}
 
-		Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Equal: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d", num_tests,
-			(int)equal.size(), (int)not_equal.size(), (int)failed.size(), (int)skipped.size());
+		Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d\n  Equal: %d", num_tests,
+			(int)not_equal.size(), (int)failed.size(), (int)skipped.size(), (int)equal.size());
 
 		if (!suite.GetFilter().empty())
 			summary += "\n  Filter applied: " + suite.GetFilter();
@@ -510,12 +515,6 @@ void TestNavigator::StopTestSuiteIteration()
 			if (!comparison_results[i].error_msg.empty())
 				log += "          " + comparison_results[i].error_msg + "\n";
 		}
-		log += "\nEqual:\n";
-		for (int i : equal)
-		{
-			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
-		}
 		log += "\nFailed:\n";
 		for (int i : failed)
 		{
@@ -525,6 +524,12 @@ void TestNavigator::StopTestSuiteIteration()
 		}
 		log += "\nSkipped:\n";
 		for (int i : skipped)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+		}
+		log += "\nEqual:\n";
+		for (int i : equal)
 		{
 			suite.SetIndex(i);
 			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());

@@ -166,6 +166,7 @@ if(APPLE)
 endif()
 
 option(BUILD_SAMPLES "Build samples" OFF)
+option(ENABLE_HARFBUZZ "Enable HarfBuzz for text-shaping sample. Requires the HarfBuzz library." OFF)
 
 set(SAMPLES_BACKEND "auto" CACHE STRING "Backend platform and renderer used for the samples.")
 set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 Win32_VK X11_GL2 SDL_GL2 SDL_GL3 SDL_VK SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3 GLFW_VK)
@@ -391,6 +392,18 @@ if(NOT NO_FONT_INTERFACE_DEFAULT)
 		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARIES})
 		list(APPEND CORE_INCLUDE_DIRS ${FREETYPE_INCLUDE_DIRS})
 	endif()
+endif()
+
+# HarfBuzz
+if (ENABLE_HARFBUZZ)
+	if(NO_FONT_INTERFACE_DEFAULT)
+		message(FATAL_ERROR "The HarfBuzz sample requires the default (FreeType) font engine to be enabled. Please disable either NO_FONT_INTERFACE_DEFAULT or ENABLE_HARFBUZZ.")
+	endif()
+	if(WIN32 AND BUILD_SHARED_LIBS)
+		message(FATAL_ERROR "-- The HarfBuzz sample cannot be built when using shared libraries on Windows. Please disable either BUILD_SHARED_LIBS or ENABLE_HARFBUZZ.")
+	endif()
+
+	find_package(HarfBuzz REQUIRED)
 endif()
 
 # Lua
@@ -881,6 +894,9 @@ if(BUILD_SAMPLES)
 	if(ENABLE_SVG_PLUGIN)
 		list(APPEND samples "svg")
 	endif()
+	if(ENABLE_HARFBUZZ)
+		list(APPEND samples "harfbuzzshaping")
+	endif()
 
 	# Build and install the basic samples
 	foreach(sample ${samples})
@@ -918,6 +934,12 @@ if(BUILD_SAMPLES)
 		install(TARGETS luainvaders
 			RUNTIME DESTINATION ${SAMPLES_DIR}/luainvaders
 			BUNDLE DESTINATION ${SAMPLES_DIR})
+	endif()
+
+	# Attach harfbuzz sample dependencies to samples
+	if (ENABLE_HARFBUZZ)
+		target_include_directories(harfbuzzshaping PRIVATE ${FREETYPE_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/Source/Core)
+		target_link_libraries(harfbuzzshaping harfbuzz::harfbuzz)
 	endif()
 
 	# Add assets to emscripten binaries
@@ -1033,6 +1055,12 @@ if(BUILD_SAMPLES)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/invaders/data
 			DESTINATION ${SAMPLES_DIR}/invaders
 	)
+
+	if (ENABLE_HARFBUZZ AND HARFBUZZ_FOUND)
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/data
+			DESTINATION ${SAMPLES_DIR}/basic/harfbuzzshaping
+		)
+	endif()
 
 	if(TARGET lottie)
 		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/lottie/data

@@ -52,6 +52,9 @@ public:
 	/// Release all textures in the database.
 	static void ReleaseTextures();
 
+	/// Release a given texture from the database.
+	static bool ReleaseTexture(const String& source);
+
 	/// Adds a texture resource with a callback function and stores it as a weak (raw) pointer in the database.
 	static void AddCallbackTexture(TextureResource* texture);
 

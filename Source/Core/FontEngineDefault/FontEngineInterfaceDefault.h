@@ -34,8 +34,11 @@ namespace Rml {
 
 class RMLUICORE_API FontEngineInterfaceDefault : public FontEngineInterface {
 public:
-	FontEngineInterfaceDefault();
-	virtual ~FontEngineInterfaceDefault();
+	/// Called when RmlUi is being initialized.
+	void Initialize() override;
+
+	/// Called when RmlUi is being shut down.
+	void Shutdown() override;
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight) override;
@@ -56,11 +59,11 @@ public:
 	const FontMetrics& GetFontMetrics(FontFaceHandle handle) override;
 
 	/// Returns the width a string will take up if rendered with this handle.
-	int GetStringWidth(FontFaceHandle, const String& string, float letter_spacing, Character prior_character) override;
+	int GetStringWidth(FontFaceHandle, const String& string, const TextShapingContext& text_shaping_context, Character prior_character) override;
 
 	/// Generates the geometry required to render a single line of text.
 	int GenerateString(FontFaceHandle, FontEffectsHandle, const String& string, const Vector2f& position, const Colourb& colour, float opacity,
-		float letter_spacing, GeometryList& geometry) override;
+		const TextShapingContext& text_shaping_context, GeometryList& geometry) override;
 
 	/// Returns the current version of the font face.
 	int GetVersion(FontFaceHandle handle) override;

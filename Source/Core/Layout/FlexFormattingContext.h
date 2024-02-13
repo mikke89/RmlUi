@@ -43,7 +43,11 @@ class FlexContainer;
 */
 class FlexFormattingContext final : public FormattingContext {
 public:
+	/// Formats a flex container element and its flex items according to flexbox layout rules.
 	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box);
+
+	/// Computes max-content size for a flex container.
+	static Vector2f GetMaxContentSize(Element* element);
 
 private:
 	FlexFormattingContext() = default;

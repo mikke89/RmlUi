@@ -134,16 +134,28 @@ void TextureDatabase::ReleaseTextures()
 	}
 }
 
+bool TextureDatabase::ReleaseTexture(const String& source)
+{
+	auto it = texture_database->textures.find(source);
+	if (it != texture_database->textures.end())
+	{
+		it->second->Release();
+		return true;
+	}
+
+	return false;
+}
+
 bool TextureDatabase::AllTexturesReleased()
 {
 	if (texture_database)
 	{
 		for (const auto& texture : texture_database->textures)
-			if (!texture.second->IsLoaded())
+			if (texture.second->IsLoaded())
 				return false;
 
 		for (const auto& texture : texture_database->callback_textures)
-			if (!texture->IsLoaded())
+			if (texture->IsLoaded())
 				return false;
 	}
 

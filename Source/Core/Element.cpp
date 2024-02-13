@@ -1094,7 +1094,7 @@ void Element::SetInnerRML(const String& rml)
 		Factory::InstanceElementText(this, rml);
 }
 
-bool Element::Focus()
+bool Element::Focus(bool focus_visible)
 {
 	// Are we allowed focus?
 	Style::Focus focus_property = meta->computed_values.focus();
@@ -1106,7 +1106,7 @@ bool Element::Focus()
 	if (context == nullptr)
 		return false;
 
-	if (!context->OnFocusChange(this))
+	if (!context->OnFocusChange(this, focus_visible))
 		return false;
 
 	// Set this as the end of the focus chain.
@@ -1527,6 +1527,28 @@ void Element::QuerySelectorAll(ElementList& elements, const String& selectors)
 	QuerySelectorAllMatchRecursive(elements, leaf_nodes, this);
 }
 
+bool Element::Matches(const String& selectors)
+{
+	StyleSheetNode root_node;
+	StyleSheetNodeListRaw leaf_nodes = StyleSheetParser::ConstructNodes(root_node, selectors);
+
+	if (leaf_nodes.empty())
+	{
+		Log::Message(Log::LT_WARNING, "Query selector '%s' is empty. In element %s", selectors.c_str(), GetAddress().c_str());
+		return false;
+	}
+
+	for (const StyleSheetNode* node : leaf_nodes)
+	{
+		if (node->IsApplicable(this))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 EventDispatcher* Element::GetEventDispatcher() const
 {
 	return &meta->event_dispatcher;
@@ -1644,6 +1666,32 @@ void Element::OnAttributeChange(const ElementAttributes& changed_attributes)
 			}
 			else if (value.GetType() != Variant::NONE)
 				Log::Message(Log::LT_WARNING, "Invalid 'style' attribute, string type required. In element: %s", GetAddress().c_str());
+		}
+		else if (attribute == "lang")
+		{
+			if (value.GetType() == Variant::STRING)
+				meta->style.SetProperty(PropertyId::RmlUi_Language, Property(value.GetReference<String>(), Unit::STRING));
+			else if (value.GetType() != Variant::NONE)
+				Log::Message(Log::LT_WARNING, "Invalid 'lang' attribute, string type required. In element: %s", GetAddress().c_str());
+		}
+		else if (attribute == "dir")
+		{
+			if (value.GetType() == Variant::STRING)
+			{
+				const String& dir_value = value.GetReference<String>();
+
+				if (dir_value == "auto")
+					meta->style.SetProperty(PropertyId::RmlUi_Direction, Property(Style::Direction::Auto));
+				else if (dir_value == "ltr")
+					meta->style.SetProperty(PropertyId::RmlUi_Direction, Property(Style::Direction::Ltr));
+				else if (dir_value == "rtl")
+					meta->style.SetProperty(PropertyId::RmlUi_Direction, Property(Style::Direction::Rtl));
+				else
+					Log::Message(Log::LT_WARNING, "Invalid 'dir' attribute '%s', value must be 'auto', 'ltr', or 'rtl'. In element: %s",
+						dir_value.c_str(), GetAddress().c_str());
+			}
+			else if (value.GetType() != Variant::NONE)
+				Log::Message(Log::LT_WARNING, "Invalid 'dir' attribute, string type required. In element: %s", GetAddress().c_str());
 		}
 	}
 
@@ -1888,8 +1936,15 @@ void Element::ProcessDefaultAction(Event& event)
 		{
 		case EventId::Mouseover: SetPseudoClass("hover", true); break;
 		case EventId::Mouseout: SetPseudoClass("hover", false); break;
-		case EventId::Focus: SetPseudoClass("focus", true); break;
-		case EventId::Blur: SetPseudoClass("focus", false); break;
+		case EventId::Focus:
+			SetPseudoClass("focus", true);
+			if (event.GetParameter("focus_visible", false))
+				SetPseudoClass("focus-visible", true);
+			break;
+		case EventId::Blur:
+			SetPseudoClass("focus", false);
+			SetPseudoClass("focus-visible", false);
+			break;
 		default: break;
 		}
 	}

@@ -65,28 +65,30 @@ class DataParser;
 enum class Instruction {
 	// clang-format off
 	// Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
-	Push         = 'P',     //      S+ = R
-	Pop          = 'o',     // <R/L/C> = S-  (D determines R/L/C)
-	Literal      = 'D',     //       R = D
-	Variable     = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
-	Add          = '+',     //       R = L + R
-	Subtract     = '-',     //       R = L - R
-	Multiply     = '*',     //       R = L * R
-	Divide       = '/',     //       R = L / R
-	Not          = '!',     //       R = !R
-	And          = '&',     //       R = L && R
-	Or           = '|',     //       R = L || R
-	Less         = '<',     //       R = L < R
-	LessEq       = 'L',     //       R = L <= R
-	Greater      = '>',     //       R = L > R
-	GreaterEq    = 'G',     //       R = L >= R
-	Equal        = '=',     //       R = L == R
-	NotEqual     = 'N',     //       R = L != R
-	Ternary      = '?',     //       R = L ? C : R
-	NumArguments = '#',     //       R = D  (Contains the num. arguments currently on the stack, immediately followed by a 'T' or 'E' instruction)
-	TransformFnc = 'T',     //       R = DataModel.Execute(D, A) where A = S[TOP - R, TOP]; S -= R;  (D determines function name, input R the num. arguments, A the arguments)
-	EventFnc     = 'E',     //       DataModel.EventCallback(D, A); S -= R;
-	Assign       = 'A',     //       DataModel.SetVariable(D, R)
+	Push            = 'P',     //      S+ = R
+	Pop             = 'o',     // <R/L/C> = S-  (D determines R/L/C)
+	Literal         = 'D',     //       R = D
+	Variable        = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
+	Add             = '+',     //       R = L + R
+	Subtract        = '-',     //       R = L - R
+	Multiply        = '*',     //       R = L * R
+	Divide          = '/',     //       R = L / R
+	Not             = '!',     //       R = !R
+	And             = '&',     //       R = L && R
+	Or              = '|',     //       R = L || R
+	Less            = '<',     //       R = L < R
+	LessEq          = 'L',     //       R = L <= R
+	Greater         = '>',     //       R = L > R
+	GreaterEq       = 'G',     //       R = L >= R
+	Equal           = '=',     //       R = L == R
+	NotEqual        = 'N',     //       R = L != R
+	Ternary         = '?',     //       R = L ? C : R
+	NumArguments    = '#',     //       R = D  (Contains the num. arguments currently on the stack, immediately followed by a 'T' or 'E' instruction)
+	TransformFnc    = 'T',     //       R = DataModel.Execute(D, A) where A = S[TOP - R, TOP]; S -= R;  (D determines function name, input R the num. arguments, A the arguments)
+	EventFnc        = 'E',     //       DataModel.EventCallback(D, A); S -= R;
+	Assign          = 'A',     //       DataModel.SetVariable(D, R)
+	DynamicVariable = 'Y',     //       DataModel.GetVariable(DataModel.ParseAddress(R)) (Looks up a variable by path in R)
+	CastToInt       = 'I'      //       R = (int)R
 	// clang-format on
 };
 
@@ -99,6 +101,11 @@ enum class Register {
 struct InstructionData {
 	Instruction instruction;
 	Variant data;
+};
+
+struct ProgramState {
+	size_t program_length;
+	int stack_size;
 };
 
 namespace Parse {
@@ -215,6 +222,7 @@ public:
 				instruction != Instruction::TransformFnc && instruction != Instruction::EventFnc && instruction != Instruction::Variable &&
 				instruction != Instruction::Assign,
 			"Use Push(), Pop(), Function(), Variable(), and Assign() procedures for stack manipulation and variable instructions.");
+
 		program.push_back(InstructionData{instruction, std::move(data)});
 	}
 	void Push()
@@ -246,8 +254,29 @@ public:
 		program.push_back(InstructionData{Instruction::NumArguments, Variant(int(num_arguments))});
 		program.push_back(InstructionData{instruction, Variant(std::move(name))});
 	}
-	void Variable(const String& name) { VariableGetSet(name, false); }
-	void Assign(const String& name) { VariableGetSet(name, true); }
+	void Variable(const String& data_address) { VariableGetSet(data_address, false); }
+	void Assign(const String& data_address) { VariableGetSet(data_address, true); }
+
+	ProgramState GetProgramState() { return ProgramState{program.size(), program_stack_size}; }
+
+	void SetProgramState(const ProgramState& state)
+	{
+		RMLUI_ASSERT(state.program_length <= program.size());
+		program.resize(state.program_length);
+		program_stack_size = state.stack_size;
+	}
+
+	bool AddVariableAddress(const String& name)
+	{
+		DataAddress address = expression_interface.ParseAddress(name);
+		if (address.empty())
+		{
+			return false;
+		}
+
+		variable_addresses.push_back(std::move(address));
+		return true;
+	}
 
 private:
 	void VariableGetSet(const String& name, bool is_assignment)
@@ -290,6 +319,7 @@ namespace Parse {
 
 	static void NumberLiteral(DataParser& parser);
 	static void StringLiteral(DataParser& parser);
+	static String VariableExpression(DataParser& parser, const String& address_prefix);
 	static void VariableOrFunction(DataParser& parser);
 
 	static void Add(DataParser& parser);
@@ -319,7 +349,7 @@ namespace Parse {
 		if (is_alpha || (c >= '0' && c <= '9'))
 			return true;
 
-		for (char valid_char : "_.[] ")
+		for (char valid_char : "_.")
 		{
 			if (c == valid_char && valid_char != '\0')
 				return true;
@@ -340,22 +370,43 @@ namespace Parse {
 			is_first_character = false;
 		}
 
-		// Right trim spaces in name
-		size_t new_size = String::npos;
-		for (int i = int(name.size()) - 1; i >= 1; i--)
-		{
-			if (name[i] == ' ')
-				new_size = size_t(i);
-			else
-				break;
-		}
-		if (new_size != String::npos)
-			name.resize(new_size);
-
 		if (out_valid_function_name)
-			*out_valid_function_name = (name.find_first_of(".[] ") == String::npos);
+			*out_valid_function_name = (name.find_first_of(". ") == String::npos);
 
 		return name;
+	}
+
+	static String FindNumberLiteral(DataParser& parser, bool silent)
+	{
+		String str;
+
+		bool first_match = false;
+		bool has_dot = false;
+		char c = parser.Look();
+		if (c == '-')
+		{
+			str += c;
+			c = parser.Next();
+		}
+
+		while ((c >= '0' && c <= '9') || (c == '.' && !has_dot))
+		{
+			first_match = true;
+			str += c;
+			if (c == '.')
+				has_dot = true;
+			c = parser.Next();
+		}
+
+		if (!first_match)
+		{
+			if (!silent)
+				parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
+
+			return String();
+		}
+
+		return str;
 	}
 
 	// Parser functions
@@ -372,6 +423,8 @@ namespace Parse {
 					parser.Error("Expected a variable for assignment but got an empty name.");
 					return;
 				}
+
+				parser.SkipWhitespace();
 
 				const char c = parser.Look();
 				if (c == '=')
@@ -531,36 +584,16 @@ namespace Parse {
 
 	static void NumberLiteral(DataParser& parser)
 	{
-		String str;
+		String str = FindNumberLiteral(parser, false);
 
-		bool first_match = false;
-		bool has_dot = false;
-		char c = parser.Look();
-		if (c == '-')
-		{
-			str += c;
-			c = parser.Next();
-		}
-
-		while ((c >= '0' && c <= '9') || (c == '.' && !has_dot))
-		{
-			first_match = true;
-			str += c;
-			if (c == '.')
-				has_dot = true;
-			c = parser.Next();
-		}
-
-		if (!first_match)
-		{
-			parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
+		if (str.empty())
 			return;
-		}
 
 		const double number = FromString(str, 0.0);
 
 		parser.Emit(Instruction::Literal, Variant(number));
 	}
+
 	static void StringLiteral(DataParser& parser)
 	{
 		String str;
@@ -586,6 +619,68 @@ namespace Parse {
 
 		parser.Emit(Instruction::Literal, Variant(str));
 	}
+
+	static String VariableExpression(DataParser& parser, const String& address_prefix)
+	{
+		if (parser.Look() == '[')
+		{
+			parser.Next();
+			String prefix = address_prefix;
+
+			prefix.push_back('[');
+
+			// Backup program state before trying to parse number inside brackets.
+			// Could turn out to be expression and needs reparsing
+			auto backup_state = parser.GetProgramState();
+
+			String index = FindNumberLiteral(parser, true);
+			if (!index.empty() && parser.Look() == ']')
+			{
+				parser.Next();
+				prefix.append(index);
+				prefix.push_back(']');
+				return VariableExpression(parser, prefix);
+			}
+			else
+			{
+				parser.SetProgramState(backup_state);
+
+				parser.Emit(Instruction::Literal, Variant(prefix));
+				parser.Push();
+
+				Expression(parser);
+				parser.Emit(Instruction::CastToInt);
+				parser.Push();
+
+				parser.Match(']');
+				VariableExpression(parser, "]");
+
+				parser.Pop(Register::L);
+				parser.Emit(Instruction::Add, Variant());
+				parser.Pop(Register::L);
+				parser.Emit(Instruction::Add, Variant());
+
+				return "";
+			}
+		}
+		else if (parser.Look() == '.')
+		{
+			parser.Next();
+			return VariableExpression(parser, address_prefix + ".");
+		}
+		else
+		{
+			String next = VariableOrFunctionName(parser, nullptr);
+			if (next.empty())
+			{
+				if (!address_prefix.empty())
+					parser.Emit(Instruction::Literal, Variant(address_prefix));
+				return address_prefix;
+			}
+			return VariableExpression(parser, address_prefix + next);
+		}
+	}
+
 	static void VariableOrFunction(DataParser& parser)
 	{
 		bool valid_function_name = true;
@@ -609,6 +704,27 @@ namespace Parse {
 				return;
 			}
 			Function(parser, Instruction::TransformFnc, std::move(name), false);
+		}
+		else if (parser.Look() == '[')
+		{
+			// Backup program state before trying to parse part inside brackets.
+			// Could turn out to be expression and needs reparsing
+			auto backup_state = parser.GetProgramState();
+
+			String full_address = VariableExpression(parser, name);
+
+			if (!full_address.empty())
+			{
+				parser.SetProgramState(backup_state);
+				parser.Variable(full_address);
+			}
+			else
+			{
+				// add the root of a variable expression as dependency into the address list
+				parser.AddVariableAddress(name);
+
+				parser.Emit(Instruction::DynamicVariable, Variant());
+			}
 		}
 		else
 			parser.Variable(name);
@@ -879,6 +995,15 @@ private:
 			R = data;
 		}
 		break;
+		case Instruction::DynamicVariable:
+		{
+			auto str = R.Get<String>();
+			auto address = expression_interface.ParseAddress(str);
+			if (address.empty())
+				return Error("Variable address not found.");
+			R = expression_interface.GetValue(address);
+		}
+		break;
 		case Instruction::Variable:
 		{
 			size_t variable_index = size_t(data.Get<int>(-1));
@@ -971,6 +1096,15 @@ private:
 			}
 			else
 				return Error("Variable address not found.");
+		}
+		break;
+		case Instruction::CastToInt:
+		{
+			int tmp;
+			if (!R.GetInto(tmp))
+				return Error("Could not cast value to int.");
+			else
+				R = tmp;
 		}
 		break;
 		default: RMLUI_ERRORMSG("Instruction not implemented."); break;

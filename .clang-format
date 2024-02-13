@@ -40,6 +40,7 @@ Language: Cpp
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: Inner
 PointerAlignment: Left
+QualifierAlignment: Left
 ReflowComments: true
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false

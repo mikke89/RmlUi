@@ -53,7 +53,7 @@ function HighScore.OnKeyDown(event)
 end
 	</script>
 </head>
-<body template="luawindow" onload="Window.OnWindowLoad(document) Game.SubmitHighScore()">
+<body template="luawindow" onload="Window.OnWindowLoad(document) Game.SubmitHighScore()" onkeydown="if Window.EscapePressed(event) then Window.LoadMenu('main_menu',document) end">
 	<table data-model="high_scores">
 		<thead>
 			<tr>

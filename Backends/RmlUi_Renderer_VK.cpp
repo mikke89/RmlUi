@@ -61,24 +61,24 @@ static Rml::String FormatByteSize(VkDeviceSize size) noexcept
 	return Rml::CreateString(32, "%g MB", double(size) / double(K * K));
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT /*objectType*/,
-	uint64_t /*object*/, size_t /*location*/, int32_t /*messageCode*/, const char* /*pLayerPrefix*/, const char* pMessage, void* /*pUserData*/)
+static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severityFlags,
+	VkDebugUtilsMessageTypeFlagsEXT /*messageTypeFlags*/, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* /*pUserData*/)
 {
-	if (flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_INFORMATION_BIT_EXT || flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+	if (severityFlags & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
 	{
 		return VK_FALSE;
 	}
 
 	#ifdef RMLUI_PLATFORM_WIN32
-	if (flags & VkDebugReportFlagBitsEXT::VK_DEBUG_REPORT_ERROR_BIT_EXT)
+	if (severityFlags & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
 	{
 		// some logs are not passed to our UI, because of early calling for explicity I put native log output
 		OutputDebugString(TEXT("\n"));
-		OutputDebugStringA(pMessage);
+		OutputDebugStringA(pCallbackData->pMessage);
 	}
 	#endif
 
-	Rml::Log::Message(Rml::Log::LT_ERROR, "[Vulkan][VALIDATION] %s ", pMessage);
+	Rml::Log::Message(Rml::Log::LT_ERROR, "[Vulkan][VALIDATION] %s ", pCallbackData->pMessage);
 
 	return VK_FALSE;
 }
@@ -94,7 +94,7 @@ RenderInterface_VK::RenderInterface_VK() :
 	m_p_pipeline_stencil_for_regular_geometry_that_applied_to_region_without_textures{}, m_p_descriptor_set{}, m_p_render_pass{},
 	m_p_sampler_linear{}, m_scissor{}, m_scissor_original{}, m_viewport{}, m_p_queue_present{}, m_p_queue_graphics{}, m_p_queue_compute{},
 #ifdef RMLUI_VK_DEBUG
-	m_debug_report_callback_instance{},
+	m_debug_messenger{},
 #endif
 	m_swapchain_format{}, m_texture_depthstencil{}, m_pending_for_deletion_textures_by_frames{}
 {}
@@ -358,15 +358,17 @@ void RenderInterface_VK::SetScissorRegion(int x, int y, int width, int height)
 			info_clear_color.depth = 1.0f;
 			info_clear_color.stencil = 0;
 
-			VkImageSubresourceRange info_range{};
-			info_range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-			info_range.baseMipLevel = 0;
-			info_range.baseArrayLayer = 0;
-			info_range.levelCount = 1;
-			info_range.layerCount = 1;
+			VkClearAttachment clear_attachment = {};
+			clear_attachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+			clear_attachment.clearValue.depthStencil = info_clear_color;
+			clear_attachment.colorAttachment = 1;
 
-			vkCmdClearDepthStencilImage(m_p_current_command_buffer, m_texture_depthstencil.m_p_vk_image,
-				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, &info_clear_color, 1, &info_range);
+			VkClearRect clear_rect = {};
+			clear_rect.layerCount = 1;
+			clear_rect.rect.extent.width = m_width;
+			clear_rect.rect.extent.height = m_height;
+
+			vkCmdClearAttachments(m_p_current_command_buffer, 1, &clear_attachment, 1, &clear_rect);
 
 			RenderGeometry(vertices, 4, indices, 6, 0, Rml::Vector2f(0.0f, 0.0f));
 
@@ -785,8 +787,18 @@ void RenderInterface_VK::SetViewport(int width, int height)
 	if (window_extent.width == 0 || window_extent.height == 0)
 		return;
 
+#ifdef RMLUI_VK_DEBUG
+	Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "Rml width: %d height: %d | Vulkan width: %d height: %d", m_width, m_height, window_extent.width,
+		window_extent.height);
+#endif
+
+	//  we need to sync the data from Vulkan so we can't use native Rml's data about width and height so be careful otherwise we create framebuffer
+	//  with Rml's width and height but they're different to what Vulkan determines for our window (e.g. device/swapchain)
+	m_width = window_extent.width;
+	m_height = window_extent.height;
+
 	Initialize_Swapchain(window_extent);
-	CreateResourcesDependentOnSize();
+	CreateResourcesDependentOnSize(window_extent);
 }
 
 bool RenderInterface_VK::IsSwapchainValid()
@@ -1202,7 +1214,7 @@ void RenderInterface_VK::Initialize_Allocator() noexcept
 
 	VmaAllocatorCreateInfo info = {};
 
-	info.vulkanApiVersion = VK_API_VERSION_1_0;
+	info.vulkanApiVersion = RMLUI_VK_API_VERSION;
 	info.device = m_p_device;
 	info.instance = m_p_instance;
 	info.physicalDevice = m_p_physical_device;
@@ -1540,36 +1552,40 @@ void RenderInterface_VK::CreatePropertiesFor_Device(ExtensionPropertiesList& res
 void RenderInterface_VK::CreateReportDebugCallback() noexcept
 {
 #ifdef RMLUI_VK_DEBUG
-	VkDebugReportCallbackCreateInfoEXT info = {};
+	VkDebugUtilsMessengerCreateInfoEXT info = {};
 
-	info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-	info.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-	info.pfnCallback = MyDebugReportCallback;
+	info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+	info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	info.pfnUserCallback = MyDebugReportCallback;
 
-	PFN_vkCreateDebugReportCallbackEXT p_callback_creation = VK_NULL_HANDLE;
+	PFN_vkCreateDebugUtilsMessengerEXT p_callback_creation = VK_NULL_HANDLE;
 
-	p_callback_creation = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(m_p_instance, "vkCreateDebugReportCallbackEXT"));
-	VkResult status = p_callback_creation(m_p_instance, &info, nullptr, &m_debug_report_callback_instance);
-	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "failed to vkCreateDebugReportCallbackEXT");
+	p_callback_creation = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_p_instance, "vkCreateDebugUtilsMessengerEXT"));
+	VkResult status = p_callback_creation(m_p_instance, &info, nullptr, &m_debug_messenger);
+	RMLUI_VK_ASSERTMSG(status == VK_SUCCESS, "failed to vkCreateDebugUtilsMessengerEXT");
 #endif
 }
 
 void RenderInterface_VK::Destroy_ReportDebugCallback() noexcept
 {
 #ifdef RMLUI_VK_DEBUG
-	PFN_vkDestroyDebugReportCallbackEXT p_destroy_callback =
-		reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(m_p_instance, "vkDestroyDebugReportCallbackEXT"));
+	PFN_vkDestroyDebugUtilsMessengerEXT p_destroy_callback =
+		reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_p_instance, "vkDestroyDebugUtilsMessengerEXT"));
 
-	if (p_destroy_callback)
+	if (m_debug_messenger)
 	{
-		p_destroy_callback(m_p_instance, m_debug_report_callback_instance, nullptr);
+		p_destroy_callback(m_p_instance, m_debug_messenger, nullptr);
+		m_debug_messenger = VK_NULL_HANDLE;
 	}
 #endif
 }
 
 uint32_t RenderInterface_VK::GetUserAPIVersion() const noexcept
 {
-	uint32_t result = VK_API_VERSION_1_0;
+	uint32_t result = RMLUI_VK_API_VERSION;
 
 #if defined VK_VERSION_1_1
 	VkResult status = vkEnumerateInstanceVersion(&result);
@@ -1581,7 +1597,7 @@ uint32_t RenderInterface_VK::GetUserAPIVersion() const noexcept
 
 uint32_t RenderInterface_VK::GetRequiredVersionAndValidateMachine() noexcept
 {
-	constexpr uint32_t kRequiredVersion = VK_API_VERSION_1_0;
+	constexpr uint32_t kRequiredVersion = RMLUI_VK_API_VERSION;
 	const uint32_t user_version = GetUserAPIVersion();
 
 	RMLUI_VK_ASSERTMSG(kRequiredVersion <= user_version, "Your machine doesn't support Vulkan");
@@ -2173,7 +2189,7 @@ void RenderInterface_VK::Create_Pipelines() noexcept
 #endif
 }
 
-void RenderInterface_VK::CreateSwapchainFrameBuffers() noexcept
+void RenderInterface_VK::CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept
 {
 	RMLUI_VK_ASSERTMSG(m_p_render_pass, "you must create a VkRenderPass before calling this method");
 	RMLUI_VK_ASSERTMSG(m_p_device, "you must have a valid VkDevice here");
@@ -2192,8 +2208,8 @@ void RenderInterface_VK::CreateSwapchainFrameBuffers() noexcept
 	info.renderPass = m_p_render_pass;
 	info.attachmentCount = static_cast<uint32_t>(attachments.size());
 	info.pAttachments = attachments.data();
-	info.width = m_width;
-	info.height = m_height;
+	info.width = real_render_image_size.width;
+	info.height = real_render_image_size.height;
 	info.layers = 1;
 
 	int index = 0;
@@ -2281,7 +2297,7 @@ void RenderInterface_VK::Create_DepthStencilImage() noexcept
 	info.arrayLayers = 1;
 	info.samples = VK_SAMPLE_COUNT_1_BIT;
 	info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	VmaAllocation p_allocation = {};
 	VkImage p_image = {};
@@ -2333,17 +2349,17 @@ void RenderInterface_VK::Create_DepthStencilImageViews() noexcept
 	m_texture_depthstencil.m_p_vk_image_view = p_image_view;
 }
 
-void RenderInterface_VK::CreateResourcesDependentOnSize() noexcept
+void RenderInterface_VK::CreateResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept
 {
-	m_viewport.height = static_cast<float>(m_height);
-	m_viewport.width = static_cast<float>(m_width);
+	m_viewport.height = static_cast<float>(real_render_image_size.height);
+	m_viewport.width = static_cast<float>(real_render_image_size.width);
 	m_viewport.minDepth = 0.0f;
 	m_viewport.maxDepth = 1.0f;
 	m_viewport.x = 0.0f;
 	m_viewport.y = 0.0f;
 
-	m_scissor.extent.width = m_width;
-	m_scissor.extent.height = m_height;
+	m_scissor.extent.width = real_render_image_size.width;
+	m_scissor.extent.height = real_render_image_size.height;
 	m_scissor.offset.x = 0;
 	m_scissor.offset.y = 0;
 
@@ -2361,7 +2377,7 @@ void RenderInterface_VK::CreateResourcesDependentOnSize() noexcept
 	SetTransform(nullptr);
 
 	CreateRenderPass();
-	CreateSwapchainFrameBuffers();
+	CreateSwapchainFrameBuffers(real_render_image_size);
 	Create_Pipelines();
 }
 
@@ -2535,7 +2551,7 @@ void RenderInterface_VK::CreateRenderPass() noexcept
 	attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	attachments[1].finalLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
 	RMLUI_VK_ASSERTMSG(attachments[1].format != VkFormat::VK_FORMAT_UNDEFINED,
 		"can't obtain depth format, your device doesn't support depth/stencil operations");
@@ -2548,7 +2564,7 @@ void RenderInterface_VK::CreateRenderPass() noexcept
 
 	// depth stencil
 	color_references[1].attachment = 1;
-	color_references[1].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	color_references[1].layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
 	VkSubpassDescription subpass = {};
 

@@ -383,6 +383,12 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::TabIndex, "tab-index", "none", false, false).AddParser("keyword", "none, auto");
 	RegisterProperty(PropertyId::Focus, "focus", "auto", true, false).AddParser("keyword", "none, auto");
 
+	RegisterProperty(PropertyId::NavUp, "nav-up", "none", false, false).AddParser("keyword", "none, auto, horizontal, vertical").AddParser("string");
+	RegisterProperty(PropertyId::NavRight, "nav-right", "none", false, false).AddParser("keyword", "none, auto, horizontal, vertical").AddParser("string");
+	RegisterProperty(PropertyId::NavDown, "nav-down", "none", false, false).AddParser("keyword", "none, auto, horizontal, vertical").AddParser("string");
+	RegisterProperty(PropertyId::NavLeft, "nav-left", "none", false, false).AddParser("keyword", "none, auto, horizontal, vertical").AddParser("string");
+	RegisterShorthand(ShorthandId::Nav, "nav", "nav-up, nav-right, nav-down, nav-left", ShorthandType::Box);
+
 	RegisterProperty(PropertyId::ScrollbarMargin, "scrollbar-margin", "0", false, false).AddParser("length");
 	RegisterProperty(PropertyId::OverscrollBehavior, "overscroll-behavior", "auto", false, false).AddParser("keyword", "auto, contain");
 	RegisterProperty(PropertyId::PointerEvents, "pointer-events", "auto", true, false).AddParser("keyword", "none, auto");
@@ -408,7 +414,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");
 
 	// Flexbox
-	RegisterProperty(PropertyId::AlignContent, "align-content", "stretch", false, true).AddParser("keyword", "flex-start, flex-end, center, space-between, space-around, stretch");
+	RegisterProperty(PropertyId::AlignContent, "align-content", "stretch", false, true).AddParser("keyword", "flex-start, flex-end, center, space-between, space-around, space-evenly, stretch");
 	RegisterProperty(PropertyId::AlignItems, "align-items", "stretch", false, true).AddParser("keyword", "flex-start, flex-end, center, baseline, stretch");
 	RegisterProperty(PropertyId::AlignSelf, "align-self", "auto", false, true).AddParser("keyword", "auto, flex-start, flex-end, center, baseline, stretch");
 	
@@ -418,10 +424,14 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::FlexGrow, "flex-grow", "0", false, true).AddParser("number");
 	RegisterProperty(PropertyId::FlexShrink, "flex-shrink", "1", false, true).AddParser("number");
 	RegisterProperty(PropertyId::FlexWrap, "flex-wrap", "nowrap", false, true).AddParser("keyword", "nowrap, wrap, wrap-reverse");
-	RegisterProperty(PropertyId::JustifyContent, "justify-content", "flex-start", false, true).AddParser("keyword", "flex-start, flex-end, center, space-between, space-around");
+	RegisterProperty(PropertyId::JustifyContent, "justify-content", "flex-start", false, true).AddParser("keyword", "flex-start, flex-end, center, space-between, space-around, space-evenly");
 
 	RegisterShorthand(ShorthandId::Flex, "flex", "flex-grow, flex-shrink, flex-basis", ShorthandType::Flex);
 	RegisterShorthand(ShorthandId::FlexFlow, "flex-flow", "flex-direction, flex-wrap", ShorthandType::FallThrough);
+
+	// Internationalization properties (internal)
+	RegisterProperty(PropertyId::RmlUi_Language, "--rmlui-language", "", true, true).AddParser("string");
+	RegisterProperty(PropertyId::RmlUi_Direction, "--rmlui-direction", "auto", true, true).AddParser("keyword", "auto, ltr, rtl");
 
 	RMLUI_ASSERTMSG(instance->properties.shorthand_map->AssertAllInserted(ShorthandId::NumDefinedIds), "Missing specification for one or more Shorthand IDs.");
 	RMLUI_ASSERTMSG(instance->properties.property_map->AssertAllInserted(PropertyId::NumDefinedIds), "Missing specification for one or more Property IDs.");

@@ -29,5 +29,6 @@
 *.dir/
 Win32/
 x64/
+vcpkg/
 CMakeSettings.json
 compile_commands.json

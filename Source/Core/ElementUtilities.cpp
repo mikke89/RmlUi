@@ -34,6 +34,7 @@
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/TextShapingContext.h"
 #include "DataController.h"
 #include "DataModel.h"
 #include "DataView.h"
@@ -155,13 +156,14 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element* element)
 
 int ElementUtilities::GetStringWidth(Element* element, const String& string, Character prior_character)
 {
-	const float letter_spacing = element->GetComputedValues().letter_spacing();
+	const auto& computed = element->GetComputedValues();
+	const TextShapingContext text_shaping_context{ computed.language(), computed.direction(), computed.letter_spacing() };
 
 	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
 	if (font_face_handle == 0)
 		return 0;
 
-	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string, letter_spacing, prior_character);
+	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string, text_shaping_context, prior_character);
 }
 
 bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_dimensions, Element* element)

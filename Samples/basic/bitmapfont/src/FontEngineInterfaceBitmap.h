@@ -49,11 +49,15 @@ using Rml::Style::FontWeight;
 using Rml::FontEffectList;
 using Rml::FontMetrics;
 using Rml::GeometryList;
+using Rml::TextShapingContext;
 
 class FontEngineInterfaceBitmap : public Rml::FontEngineInterface {
 public:
-	FontEngineInterfaceBitmap();
-	virtual ~FontEngineInterfaceBitmap();
+	/// Called when RmlUi is being initialized.
+	void Initialize() override;
+
+	/// Called when RmlUi is being shut down.
+	void Shutdown() override;
 
 	/// Called by RmlUi when it wants to load a font face from file.
 	bool LoadFontFace(const String& file_name, bool fallback_face, FontWeight weight) override;
@@ -73,11 +77,12 @@ public:
 	const FontMetrics& GetFontMetrics(FontFaceHandle handle) override;
 
 	/// Called by RmlUi when it wants to retrieve the width of a string when rendered with this handle.
-	int GetStringWidth(FontFaceHandle handle, const String& string, float letter_spacing, Character prior_character = Character::Null) override;
+	int GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& text_shaping_context,
+		Character prior_character = Character::Null) override;
 
 	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
 	int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position,
-		const Colourb& colour, float opacity, float letter_spacing, GeometryList& geometry) override;
+		const Colourb& colour, float opacity, const TextShapingContext& text_shaping_context, GeometryList& geometry) override;
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated.eometry.
 	int GetVersion(FontFaceHandle handle) override;

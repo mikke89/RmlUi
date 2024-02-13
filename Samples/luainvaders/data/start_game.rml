@@ -51,7 +51,7 @@ function StartGame.SetupGame(event,document)
 end
 		</script>
 	</head>
-	<body template="luawindow">
+	<body template="luawindow" onkeydown="if Window.EscapePressed(event) then Window.LoadMenu('main_menu',document) end">
 		<form onsubmit="StartGame.SetupGame(event,document)">
 			<div>
 				<p>

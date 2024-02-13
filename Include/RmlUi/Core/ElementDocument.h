@@ -39,6 +39,7 @@ class DocumentHeader;
 class ElementText;
 class StyleSheet;
 class StyleSheetContainer;
+enum class NavigationSearchDirection;
 
 /**
      ModalFlag used for controlling the modal state of the document.
@@ -153,6 +154,8 @@ private:
 	Element* FindNextTabElement(Element* current_element, bool forward);
 	/// Searches forwards or backwards for a focusable element in the given substree
 	Element* SearchFocusSubtree(Element* element, bool forward);
+	/// Find the next element to navigate to, starting at the current element.
+	Element* FindNextNavigationElement(Element* current_element, NavigationSearchDirection direction, const Property& property);
 
 	/// Sets the dirty flag on the layout so the document will format its children before the next render.
 	void DirtyLayout() override;

@@ -384,7 +384,7 @@ private:
 	// Internal callback for when an element is detached or removed from the hierarchy.
 	void OnElementDetach(Element* element);
 	// Internal callback for when a new element gains focus.
-	bool OnFocusChange(Element* element);
+	bool OnFocusChange(Element* element, bool focus_visible);
 
 	// Generates an event for faking clicks on an element.
 	void GenerateClickEvent(Element* element);

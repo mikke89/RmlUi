@@ -182,6 +182,19 @@ bool TestViewer::IsHelpVisible() const
 	return document_help->IsVisible();
 }
 
+bool TestViewer::IsNavigationLocked() const
+{
+	if (Element* element = context->GetFocusElement())
+	{
+		if (document_test && element->GetOwnerDocument() == document_test)
+		{
+			if (document_test->HasAttribute("lock-navigation"))
+				return true;
+		}
+	}
+	return false;
+}
+
 bool TestViewer::LoadTest(const Rml::String& directory, const Rml::String& filename, int test_index, int number_of_tests, int filtered_test_index,
 	int filtered_number_of_tests, int suite_index, int number_of_suites, bool keep_scroll_position)
 {

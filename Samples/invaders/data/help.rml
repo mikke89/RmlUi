@@ -21,7 +21,7 @@
 			}
 		</style>
 	</head>
-	<body template="window">
+	<body template="window" onkeydown="onescape goto main_menu">
 		<h1>Story</h1>
 		<p>
 			One day, without warning, they came for us; endless waves of the invaders, numbers too vast to count, fresh from the Martian foundries. Earth's orbital defences took a heavy toll, but were inevitably overrun, buying enough time only for a single rmlui ship to launch. The prototype X-42 'Defender'-class, not yet tested but piloted by the finest astronaut the Space Corps had to offer.
