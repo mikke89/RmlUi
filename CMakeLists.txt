@@ -897,6 +897,9 @@ if(BUILD_SAMPLES)
 	if(ENABLE_HARFBUZZ)
 		list(APPEND samples "harfbuzzshaping")
 	endif()
+	if(WIN32)
+		list(APPEND samples "ime")
+	endif()
 
 	# Build and install the basic samples
 	foreach(sample ${samples})
@@ -1070,6 +1073,11 @@ if(BUILD_SAMPLES)
 	if(TARGET svg)
 		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/svg/data
 				DESTINATION ${SAMPLES_DIR}/basic/svg
+		)
+	endif()
+	if(WIN32)
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/ime/data
+				DESTINATION ${SAMPLES_DIR}/basic/ime
 		)
 	endif()
 
