@@ -32,7 +32,6 @@
 #include <PlatformExtensions.h>
 #include <RmlUi_Backend.h>
 #include <RmlUi_Include_Windows.h>
-#include <RmlUi_Platform_Win32.h>
 #include <Shell.h>
 
 #if !defined RMLUI_PLATFORM_WIN32
@@ -100,7 +99,12 @@ static Rml::String GetCompositionString(HIMC context, bool finalize)
 	Rml::UniquePtr<WCHAR[]> buffer(new WCHAR[len_chars + 1]);
 	ImmGetCompositionStringW(context, type, buffer.get(), len_bytes);
 
-	return RmlWin32::ConvertToUTF8(std::wstring(buffer.get(), len_chars));
+	int multi_byte_count = WideCharToMultiByte(CP_UTF8, 0, buffer.get(), len_chars, nullptr, 0, nullptr, nullptr);
+
+	Rml::String str(multi_byte_count, 0);
+	WideCharToMultiByte(CP_UTF8, 0, buffer.get(), -1, &str[0], multi_byte_count, nullptr, nullptr);
+
+	return str;
 }
 
 // The original window procedure handler.
@@ -144,8 +148,6 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
 				{
 					text_input_method_editor.cursor_pos = GetCursorPosition(context);
 					text_input_method_editor.UpdateCursorPosition();
-
-					Rml::Log::Message(Rml::Log::LT_DEBUG, "[IME] Cursor position: %d", text_input_method_editor.cursor_pos);
 				}
 			}
 
