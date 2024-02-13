@@ -1,0 +1,47 @@
+<rml>
+	<head>
+		<link type="text/rcss" href="../../../assets/rml.rcss" />
+		<title>IME</title>
+		<style>
+			body {
+				width: 450dp;
+				height: 400dp;
+				padding: 10dp 15dp;
+				box-sizing: border-box;
+				margin: auto;
+				background-color: white;
+				color: black;
+				font-family: "Noto Sans";
+				font-weight: normal;
+				font-style: normal;
+				font-size: 15dp;
+			}
+
+			label {
+				display: block;
+				margin-bottom: 2dp;
+			}
+
+			input[type="text"] {
+				width: 100%;
+				border: 1px gray;
+			}
+
+			p {
+				margin-top: 10dp;
+			}
+
+			.note {
+				font-size: .8rem;
+			}
+		</style>
+	</head>
+	<body>
+		<form>
+			<label for="text">Input text</label>
+			<input id="text" type="text" name="text" />
+		</form>
+
+		<p class="note">Note: the emoji keyboard and clipboard history use IME, too.</p>
+	</body>
+</rml>
