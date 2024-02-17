@@ -24,4 +24,4 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     target_link_libraries(rmlui_sample_shell PRIVATE macOS::Cocoa)
 endif()
 
-target_link_libraries(rmlui_sample_shell PUBLIC RmlUi::RmlUi RmlUi::Debugger)
+target_link_libraries(rmlui_sample_shell PUBLIC RmlUi::Core RmlUi::Debugger)

@@ -327,15 +327,13 @@ target_sources(rmlui_core PRIVATE
     "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core.h"
 )
 
-# Add alias for the library so that a namespaced name can be used in the rest
-# of the project to link against it
-add_library(RmlUi::RmlUi ALIAS rmlui_core)
+add_library(RmlUi::Core ALIAS rmlui_core)
 
 # Set additional target properties
 set_target_properties(rmlui_core PROPERTIES
     # Add export name so that it can be exported with a namespaced name instead
     # of using the name we actually used to declare the target
-    EXPORT_NAME "RmlUi"
+    EXPORT_NAME "Core"
 
     # Change output name of the final library file
     OUTPUT_NAME "rmlui"

@@ -1,13 +1,129 @@
-# Placeholder CMake file
+add_library(rmlui_lua
+	Colourb.cpp
+	Colourb.h
+	Colourf.cpp
+	Colourf.h
+	Context.cpp
+	Context.h
+	ContextDocumentsProxy.cpp
+	ContextDocumentsProxy.h
+	Document.cpp
+	Document.h
+	Element.cpp
+	Element.h
+	ElementAttributesProxy.cpp
+	ElementAttributesProxy.h
+	ElementChildNodesProxy.cpp
+	ElementChildNodesProxy.h
+	ElementInstancer.cpp
+	ElementInstancer.h
+	Elements/As.h
+	Elements/ElementForm.cpp
+	Elements/ElementForm.h
+	Elements/ElementFormControl.cpp
+	Elements/ElementFormControl.h
+	Elements/ElementFormControlInput.cpp
+	Elements/ElementFormControlInput.h
+	Elements/ElementFormControlSelect.cpp
+	Elements/ElementFormControlSelect.h
+	Elements/ElementFormControlTextArea.cpp
+	Elements/ElementFormControlTextArea.h
+	Elements/ElementTabSet.cpp
+	Elements/ElementTabSet.h
+	Elements/SelectOptionsProxy.cpp
+	Elements/SelectOptionsProxy.h
+	ElementStyleProxy.cpp
+	ElementStyleProxy.h
+	ElementText.cpp
+	ElementText.h
+	Event.cpp
+	Event.h
+	EventParametersProxy.cpp
+	EventParametersProxy.h
+	GlobalLuaFunctions.cpp
+	GlobalLuaFunctions.h
+	Interpreter.cpp
+	Log.cpp
+	Log.h
+	Lua.cpp
+	LuaDataModel.cpp
+	LuaDataModel.h
+	LuaDocument.cpp
+	LuaDocument.h
+	LuaDocumentElementInstancer.cpp
+	LuaDocumentElementInstancer.h
+	LuaElementInstancer.cpp
+	LuaElementInstancer.h
+	LuaEventListener.cpp
+	LuaEventListener.h
+	LuaEventListenerInstancer.cpp
+	LuaEventListenerInstancer.h
+	LuaPlugin.cpp
+	LuaPlugin.h
+	LuaType.cpp
+	Pairs.h
+	RmlUi.cpp
+	RmlUi.h
+	RmlUiContextsProxy.cpp
+	RmlUiContextsProxy.h
+	Utilities.cpp
+	Vector2f.cpp
+	Vector2f.h
+	Vector2i.cpp
+	Vector2i.h
 
-# Add public headers as files in the project (it's not necessary but convenient for IDE integration)
-target_sources(rmlui_lua INTERFACE
-    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Header.h"
-    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/IncludeLua.h"
-    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Interpreter.h"
-    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Lua.h"
-    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/LuaType.h"
-    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/LuaType.inl"
-    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Utilities.h"
-    "${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Header.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/IncludeLua.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Interpreter.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Lua.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/LuaType.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/LuaType.inl"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Utilities.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua.h"
+)
+
+target_compile_features(rmlui_lua PUBLIC "cxx_std_14")
+
+target_include_directories(rmlui_lua PRIVATE "${PROJECT_SOURCE_DIR}/Include")
+target_include_directories(rmlui_lua INTERFACE
+	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/Include>"
+	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+
+target_link_libraries(rmlui_lua PUBLIC RmlUi::Core)
+
+add_library(RmlUi::Lua ALIAS rmlui_lua)
+
+target_link_libraries(rmlui_lua PUBLIC RmlUi::Private::LuaInterface)
+
+# Set up definitions to export functions and classes as appropriate
+get_target_property(rmlui_lua_TYPE rmlui_lua "TYPE")
+if(rmlui_lua_TYPE STREQUAL "SHARED_LIBRARY")
+	# If RmlUi lua is being compiled as a shared library, notify code to export functions using __dllspec()
+	# For applications consuming the library, the headers will automatically use dllimport
+	# Platform and compiler handling is already done by code via pre-processor macros
+	target_compile_definitions(rmlui_lua PRIVATE "RMLUI_LUA_EXPORTS")
+endif()
+
+# Set additional target properties
+set_target_properties(rmlui_lua PROPERTIES
+	# Add export name so that it can be exported with a namespaced name instead
+	# of using the name we actually used to declare the target
+	EXPORT_NAME "Lua"
+)
+
+install(TARGETS rmlui_lua
+	EXPORT RmlUiTargets
+	${RMLUI_RUNTIME_DEPENDENCY_SET_ARG}
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+install(DIRECTORY
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua"
+	DESTINATION "Include/RmlUi"
+)
+install(FILES
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua.h"
+	DESTINATION "Include/RmlUi"
 )

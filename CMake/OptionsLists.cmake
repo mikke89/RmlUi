@@ -20,3 +20,8 @@ list(APPEND RMLUI_AVAILABLE_FONT_INTERFACES
     "none"
     "freetype"
 )
+
+list(APPEND RMLUI_AVAILABLE_LUA_BINDINGS_LIBRARIES
+	"lua"
+	"luajit"
+)

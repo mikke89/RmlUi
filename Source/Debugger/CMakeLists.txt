@@ -1,6 +1,3 @@
-# Declare RmlUi debugger
-# Not explicitly setting library type so that it can be chosen by consumer using BUILD_SHARED_LIBS. Although not
-# necessary, header files are also included to improve IntelliSense capabilities on IDEs and language servers.
 add_library(rmlui_debugger
     BeaconSource.h
     CommonSource.h
@@ -40,14 +37,11 @@ target_sources(rmlui_debugger PRIVATE
     "${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger.h"
 )
 
-# Link against RmlUi
-target_link_libraries(rmlui_debugger PUBLIC RmlUi::RmlUi)
+target_link_libraries(rmlui_debugger PUBLIC RmlUi::Core)
 
-# Add alias for the library so that a namespaced name can be used in the rest
-# of the project to link against it
 add_library(RmlUi::Debugger ALIAS rmlui_debugger)
 
-# Avoid problems with MSVC's __dllspec() in static builds
+# Set up definitions to export functions and classes as appropriate
 get_target_property(rmlui_debugger_TYPE rmlui_debugger "TYPE")
 if(rmlui_debugger_TYPE STREQUAL "SHARED_LIBRARY")
     # If RmlUi debugger is being compiled as a shared library, notify code to export functions using __dllspec()
@@ -61,9 +55,6 @@ set_target_properties(rmlui_debugger PROPERTIES
     # Add export name so that it can be exported with a namespaced name instead
     # of using the name we actually used to declare the target
     EXPORT_NAME "Debugger"
-
-    # Change output name of the final library file
-    OUTPUT_NAME "rmlui_debugger"
 )
 
 install(TARGETS rmlui_debugger

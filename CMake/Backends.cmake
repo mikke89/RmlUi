@@ -24,7 +24,7 @@ target_sources(rmlui_backend_Win32_GL2 INTERFACE
 target_link_libraries(rmlui_backend_Win32_GL2 INTERFACE rmlui_backend_common_headers OpenGL::GL)
 
 add_library(rmlui_backend_Win32_VK INTERFACE)
-target_sources(rmlui_backend_Win32_VK INTERFACE    
+target_sources(rmlui_backend_Win32_VK INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_Win32.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_Win32_VK.cpp"
@@ -36,7 +36,7 @@ target_sources(rmlui_backend_Win32_VK INTERFACE
 target_link_libraries(rmlui_backend_Win32_VK INTERFACE rmlui_backend_common_headers Vulkan::Vulkan)
 
 add_library(rmlui_backend_X11_GL2 INTERFACE)
-target_sources(rmlui_backend_X11_GL2 INTERFACE    
+target_sources(rmlui_backend_X11_GL2 INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_X11.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_X11_GL2.cpp"
@@ -48,12 +48,12 @@ target_sources(rmlui_backend_X11_GL2 INTERFACE
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
 # Once the minimum CMake version is CMake >= 3.14, "${X11_LIBRARIES}" should
 # be substituted by "X11:X11" in addition to any of the other imported that might
-# be required. More info: 
+# be required. More info:
 # https://cmake.org/cmake/help/latest/module/FindX11.html
 target_link_libraries(rmlui_backend_X11_GL2 INTERFACE rmlui_backend_common_headers OpenGL::GL ${X11_LIBRARIES})
 
 add_library(rmlui_backend_SDL_GL2 INTERFACE)
-target_sources(rmlui_backend_SDL_GL2 INTERFACE    
+target_sources(rmlui_backend_SDL_GL2 INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_SDL_GL2.cpp"
@@ -63,7 +63,7 @@ target_sources(rmlui_backend_SDL_GL2 INTERFACE
 target_link_libraries(rmlui_backend_SDL_GL2 INTERFACE rmlui_backend_common_headers OpenGL::GL SDL2::SDL2 GLEW::GLEW SDL2_image::SDL2_image)
 
 add_library(rmlui_backend_SDL_GL3 INTERFACE)
-target_sources(rmlui_backend_SDL_GL3 INTERFACE    
+target_sources(rmlui_backend_SDL_GL3 INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL3.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_SDL_GL3.cpp"
@@ -79,7 +79,7 @@ if(UNIX)
 endif()
 
 add_library(rmlui_backend_SDL_VK INTERFACE)
-target_sources(rmlui_backend_SDL_VK INTERFACE    
+target_sources(rmlui_backend_SDL_VK INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_SDL_VK.cpp"
@@ -96,7 +96,7 @@ if(UNIX)
 endif()
 
 add_library(rmlui_backend_SDL_SDLrenderer INTERFACE)
-target_sources(rmlui_backend_SDL_SDLrenderer INTERFACE    
+target_sources(rmlui_backend_SDL_SDLrenderer INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_SDL.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SDL.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_SDL_SDLrenderer.cpp"
@@ -106,19 +106,19 @@ target_sources(rmlui_backend_SDL_SDLrenderer INTERFACE
 target_link_libraries(rmlui_backend_SDL_SDLrenderer INTERFACE rmlui_backend_common_headers SDL2::SDL2 SDL2_image::SDL2_image)
 
 add_library(rmlui_backend_SFML_GL2 INTERFACE)
-target_sources(rmlui_backend_SFML_GL2 INTERFACE    
+target_sources(rmlui_backend_SFML_GL2 INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SFML.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_SFML_GL2.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_SFML.h"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.h"
 )
-target_link_libraries(rmlui_backend_SFML_GL2 INTERFACE 
+target_link_libraries(rmlui_backend_SFML_GL2 INTERFACE
     rmlui_backend_common_headers OpenGL::GL SFML::Graphics SFML::Window SFML::System
 )
 
 add_library(rmlui_backend_GLFW_GL2 INTERFACE)
-target_sources(rmlui_backend_GLFW_GL2 INTERFACE    
+target_sources(rmlui_backend_GLFW_GL2 INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_GLFW_GL2.cpp"
@@ -128,7 +128,7 @@ target_sources(rmlui_backend_GLFW_GL2 INTERFACE
 target_link_libraries(rmlui_backend_GLFW_GL2 INTERFACE rmlui_backend_common_headers OpenGL::GL glfw)
 
 add_library(rmlui_backend_GLFW_GL3 INTERFACE)
-target_sources(rmlui_backend_GLFW_GL3 INTERFACE    
+target_sources(rmlui_backend_GLFW_GL3 INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL3.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_GLFW_GL3.cpp"
@@ -144,7 +144,7 @@ if(UNIX)
 endif()
 
 add_library(rmlui_backend_GLFW_VK INTERFACE)
-target_sources(rmlui_backend_GLFW_VK INTERFACE    
+target_sources(rmlui_backend_GLFW_VK INTERFACE
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_VK.cpp"
     "${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_GLFW_VK.cpp"
