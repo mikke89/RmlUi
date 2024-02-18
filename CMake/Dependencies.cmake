@@ -3,7 +3,7 @@
 
     Packages are configured as soft dependencies (i.e. not REQUIRED), so that a consuming project can declare them
     by other means, without an error being emitted here. For the same reason, instead of relying on variables like
-    *_NOTOUND variables, we check directly for the existence of the target.
+    *_NOTFOUND variables, we check directly for the existence of the target.
 ]]
 
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
