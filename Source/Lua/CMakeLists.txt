@@ -17,21 +17,6 @@ add_library(rmlui_lua
 	ElementChildNodesProxy.h
 	ElementInstancer.cpp
 	ElementInstancer.h
-	Elements/As.h
-	Elements/ElementForm.cpp
-	Elements/ElementForm.h
-	Elements/ElementFormControl.cpp
-	Elements/ElementFormControl.h
-	Elements/ElementFormControlInput.cpp
-	Elements/ElementFormControlInput.h
-	Elements/ElementFormControlSelect.cpp
-	Elements/ElementFormControlSelect.h
-	Elements/ElementFormControlTextArea.cpp
-	Elements/ElementFormControlTextArea.h
-	Elements/ElementTabSet.cpp
-	Elements/ElementTabSet.h
-	Elements/SelectOptionsProxy.cpp
-	Elements/SelectOptionsProxy.h
 	ElementStyleProxy.cpp
 	ElementStyleProxy.h
 	ElementText.cpp
@@ -71,7 +56,9 @@ add_library(rmlui_lua
 	Vector2f.h
 	Vector2i.cpp
 	Vector2i.h
+)
 
+target_sources(rmlui_lua PRIVATE
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Header.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/IncludeLua.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua/Interpreter.h"

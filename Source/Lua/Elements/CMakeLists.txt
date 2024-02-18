@@ -1,0 +1,17 @@
+target_sources(rmlui_lua PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/As.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementForm.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementForm.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementFormControl.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementFormControl.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementFormControlInput.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementFormControlInput.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementFormControlSelect.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementFormControlSelect.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementFormControlTextArea.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementFormControlTextArea.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementTabSet.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/ElementTabSet.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/SelectOptionsProxy.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Elements/SelectOptionsProxy.h"
+)

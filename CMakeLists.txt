@@ -57,7 +57,8 @@ include(GNUInstallDirs)
 include("CMake/Dependencies.cmake")
 
 # Setup variables for runtime dependencies
-include("${PROJECT_SOURCE_DIR}/CMake/RuntimeDependencies.cmake")
+include("CMake/RuntimeDependencies.cmake")
+setup_runtime_output_directory()
 setup_runtime_dependency_set_arg()
 
 # Add CMake subdirectories

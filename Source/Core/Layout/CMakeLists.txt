@@ -1,17 +1,7 @@
-# Declare library
-#
-# Although not necessary, header files are also included to improve IntelliSense
-# capabilities on IDEs and language servers
-add_library(rmlui_core_layout INTERFACE)
-
-# Set C++14 as requirement
-target_compile_features(rmlui_core_layout INTERFACE "cxx_std_14")
-
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-# Using absolute paths to prevent improper interpretation of relative paths
-# Relative paths can be used once the minimum CMake version is greater or
-# equal than CMake 3.13
-target_sources(rmlui_core_layout INTERFACE
+# Using absolute paths to prevent improper interpretation of relative paths Relative paths can be used once the minimum
+# CMake version is greater or equal than CMake 3.13
+target_sources(rmlui_core PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/BlockContainer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/BlockContainer.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/BlockFormattingContext.cpp"

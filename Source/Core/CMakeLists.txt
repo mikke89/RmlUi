@@ -1,6 +1,6 @@
 # Declare RmlUi core library
-# Not explicitly setting library type so that it can be chosen by consumer using BUILD_SHARED_LIBS. Although not
-# necessary, header files are also included to improve IntelliSense capabilities on IDEs and language servers.
+# Not explicitly setting library type so that it can be chosen by consumer using BUILD_SHARED_LIBS. Header files are not
+# necessary, but are included to improve navigation and code completion on IDEs and language servers.
 add_library(rmlui_core
     BaseXMLParser.cpp
     Box.cpp
@@ -207,14 +207,6 @@ add_library(rmlui_core
     XMLParseTools.h
 )
 
-target_compile_features(rmlui_core PUBLIC "cxx_std_14")
-
-target_include_directories(rmlui_core PRIVATE "${PROJECT_SOURCE_DIR}/Include")
-target_include_directories(rmlui_core INTERFACE
-	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/Include>"
-	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
-)
-
 # Add public headers as files in the project (it's not necessary but convenient for IDE integration)
 # Setting them as PRIVATE so that it's addition doesn't propagate, it won't affect availability since
 # the entire include directory has already been declared as public
@@ -327,9 +319,16 @@ target_sources(rmlui_core PRIVATE
     "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core.h"
 )
 
+target_compile_features(rmlui_core PUBLIC "cxx_std_14")
+
+target_include_directories(rmlui_core PRIVATE "${PROJECT_SOURCE_DIR}/Include")
+target_include_directories(rmlui_core INTERFACE
+	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/Include>"
+	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+
 add_library(RmlUi::Core ALIAS rmlui_core)
 
-# Set additional target properties
 set_target_properties(rmlui_core PROPERTIES
     # Add export name so that it can be exported with a namespaced name instead
     # of using the name we actually used to declare the target
@@ -339,13 +338,8 @@ set_target_properties(rmlui_core PROPERTIES
     OUTPUT_NAME "rmlui"
 )
 
-# Add the RmlUi element sources
 add_subdirectory("Elements")
-target_link_libraries(rmlui_core PRIVATE rmlui_core_elements)
-
-# Add the RmlUi layout sources
 add_subdirectory("Layout")
-target_link_libraries(rmlui_core PRIVATE rmlui_core_layout)
 
 # Set up definitions to export functions and classes as appropriate
 get_target_property(rmlui_core_TYPE rmlui_core "TYPE")
@@ -361,18 +355,15 @@ elseif(rmlui_core_TYPE STREQUAL "SHARED_LIBRARY")
 endif()
 unset(rmlui_core_TYPE)
 
-# Negotiate usage of the default font engine
-# When any new font engine is added, it must be added here with an else if statement before the else case
 if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
     # Link against the default font engine
-    # Adding the subdirectory inside the conditional block so that compilation doesn't
-    # fail when CMake tries to build all targets, effectively hiding the CMake target from
-    # the build system if the default font interface is disabled
+    # Adding the subdirectory inside the conditional block so that compilation doesn't fail when CMake tries to build
+    # all targets, effectively hiding the CMake target from the build system if the default font interface is disabled
     add_subdirectory("FontEngineDefault")
-    target_link_libraries(rmlui_core PRIVATE rmlui_core_fontenginedefault)
 
-    # Pass information to code via pre-processor definition
-    target_compile_definitions(rmlui_core PRIVATE "RMLUI_FONT_INTERFACE_FREETYPE")
+    # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
+    # From CMake 3.13 the next line can be moved into `FontEngineDefault/CMakeLists.txt`, see CMP0079.
+	target_link_libraries(rmlui_core PRIVATE Freetype::Freetype)
 endif()
 
 if(RMLUI_LOTTIE_PLUGIN)

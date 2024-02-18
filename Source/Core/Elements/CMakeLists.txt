@@ -1,12 +1,7 @@
-add_library(rmlui_core_elements INTERFACE)
-
-target_compile_features(rmlui_core_elements INTERFACE "cxx_std_14")
-
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-# Using absolute paths to prevent improper interpretation of relative paths
-# Relative paths can be used once the minimum CMake version is greater or
-# equal than CMake 3.13
-target_sources(rmlui_core_elements INTERFACE
+# Using absolute paths to prevent improper interpretation of relative paths. Relative paths can be used once the minimum
+# CMake version is greater or equal than CMake 3.13
+target_sources(rmlui_core PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/ElementFormControl.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ElementFormControlInput.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ElementFormControlSelect.cpp"
