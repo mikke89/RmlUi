@@ -33,5 +33,5 @@ install(TARGETS rmlui_svg
 
 install(DIRECTORY
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/SVG"
-	DESTINATION "Include/RmlUi"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
 )

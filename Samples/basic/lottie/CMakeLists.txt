@@ -9,5 +9,5 @@ install(TARGETS rmlui_sample_lottie
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(DIRECTORY data
-	DESTINATION Samples/basic/lottie
+	DESTINATION samples/basic/lottie
 )

@@ -33,5 +33,5 @@ install(TARGETS rmlui_lottie
 
 install(DIRECTORY
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lottie"
-	DESTINATION "Include/RmlUi"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
 )

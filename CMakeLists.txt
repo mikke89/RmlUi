@@ -78,10 +78,24 @@ target_link_libraries(rmlui INTERFACE RmlUi::Core RmlUi::Debugger)
 if (RMLUI_LUA_BINDINGS)
 	target_link_libraries(rmlui INTERFACE RmlUi::Lua)
 endif()
+set_target_properties(rmlui PROPERTIES EXPORT_NAME "RmlUi")
+install(TARGETS rmlui EXPORT RmlUiTargets)
 
 install(EXPORT RmlUiTargets
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi
 	NAMESPACE RmlUi::
+	FILE RmlUiConfig.cmake
+)
+
+include(CMakePackageConfigHelpers)
+
+# RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
+# From CMake 3.11 use compatibility mode `SameMinorVersion`.
+write_basic_package_version_file(RmlUiConfigVersion.cmake
+	COMPATIBILITY ExactVersion
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfigVersion.cmake
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi
 )
 
 install_runtime_dependencies()

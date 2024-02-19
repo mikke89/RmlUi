@@ -42,5 +42,5 @@ add_subdirectory("shell")
 add_subdirectory("basic")
 
 install(DIRECTORY assets
-	DESTINATION Samples
+	DESTINATION samples
 )

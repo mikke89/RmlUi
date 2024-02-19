@@ -66,9 +66,9 @@ install(TARGETS rmlui_debugger
 )
 install(DIRECTORY
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger"
-	DESTINATION "Include/RmlUi"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
 )
 install(FILES
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger.h"
-	DESTINATION "Include/RmlUi"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
 )

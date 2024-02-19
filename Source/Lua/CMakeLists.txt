@@ -77,11 +77,12 @@ target_include_directories(rmlui_lua INTERFACE
 	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_link_libraries(rmlui_lua PUBLIC RmlUi::Core)
-
 add_library(RmlUi::Lua ALIAS rmlui_lua)
 
-target_link_libraries(rmlui_lua PUBLIC RmlUi::Private::LuaInterface)
+target_link_libraries(rmlui_lua PUBLIC
+	RmlUi::Core
+	RmlUi::Private::LuaInterface
+)
 
 # Set up definitions to export functions and classes as appropriate
 get_target_property(rmlui_lua_TYPE rmlui_lua "TYPE")
@@ -99,6 +100,8 @@ set_target_properties(rmlui_lua PROPERTIES
 	EXPORT_NAME "Lua"
 )
 
+add_subdirectory("Elements")
+
 install(TARGETS rmlui_lua
 	EXPORT RmlUiTargets
 	${RMLUI_RUNTIME_DEPENDENCY_SET_ARG}
@@ -108,9 +111,9 @@ install(TARGETS rmlui_lua
 )
 install(DIRECTORY
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua"
-	DESTINATION "Include/RmlUi"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
 )
 install(FILES
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua.h"
-	DESTINATION "Include/RmlUi"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
 )
