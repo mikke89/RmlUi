@@ -4,7 +4,7 @@ set(RMLUI_SAMPLES_PREFIX "rmlui_")
 add_subdirectory("bitmapfont")
 
 # Only enable the remaining samples if a default font engine is selected.
-if(NOT RMLUI_FONT_INTERFACE STREQUAL "none")
+if(NOT RMLUI_FONT_ENGINE STREQUAL "none")
     add_subdirectory("benchmark")
     add_subdirectory("demo")
 

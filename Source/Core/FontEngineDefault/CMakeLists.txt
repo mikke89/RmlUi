@@ -19,4 +19,4 @@ target_sources(rmlui_core PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/FreeTypeInterface.h"
 )
 
-target_compile_definitions(rmlui_core PRIVATE "RMLUI_FONT_INTERFACE_FREETYPE")
+target_compile_definitions(rmlui_core PRIVATE "RMLUI_FONT_ENGINE_FREETYPE")

@@ -1,5 +1,5 @@
 # Check the font interface configuration
-if(RMLUI_FONT_INTERFACE STREQUAL "none")
+if(RMLUI_FONT_ENGINE STREQUAL "none")
     # If RmlUi is being built with no font interface, then some samples cannot be built
     message(NOTICE
         "Building samples has been enabled, but no font interface has been selected. "

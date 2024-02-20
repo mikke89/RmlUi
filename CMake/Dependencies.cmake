@@ -8,7 +8,7 @@
 
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 
-if(RMLUI_FONT_INTERFACE STREQUAL "freetype")
+if(RMLUI_FONT_ENGINE STREQUAL "freetype")
     find_package("Freetype")
 
     if(NOT TARGET Freetype::Freetype)

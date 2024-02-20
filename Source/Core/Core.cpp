@@ -46,7 +46,7 @@
 #include "TemplateCache.h"
 #include "TextureDatabase.h"
 
-#ifdef RMLUI_FONT_INTERFACE_FREETYPE
+#ifdef RMLUI_FONT_ENGINE_FREETYPE
 	#include "FontEngineDefault/FontEngineInterfaceDefault.h"
 #endif
 
@@ -122,7 +122,7 @@ bool Initialise()
 
 	if (!font_interface)
 	{
-#ifdef RMLUI_FONT_INTERFACE_FREETYPE
+#ifdef RMLUI_FONT_ENGINE_FREETYPE
 		default_font_interface = MakeUnique<FontEngineInterfaceDefault>();
 		font_interface = default_font_interface.get();
 #else
