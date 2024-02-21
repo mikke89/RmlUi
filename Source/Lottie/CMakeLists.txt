@@ -1,27 +1,30 @@
-add_library(rmlui_lottie INTERFACE)
-
-target_compile_features(rmlui_lottie INTERFACE "cxx_std_14")
+# Here we make two separate interface libraries for this plugin, and later link to them in `rmlui_core`. One private and
+# one public, so that dependencies are propagated to users during export, but not source files and other build details.
 
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-# Here we make a separate interface library for this plugin, and later link to that in `rmlui_core`. From CMake 3.13 we
-# could instead target `rmlui_core` here directly, since we are not making an actual library for this plugin. Then we
-# also don't have to export this plugin as a separate target.
-target_sources(rmlui_lottie INTERFACE
-	"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ElementLottie.cpp>"
-	"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/LottiePlugin.cpp>"
-	"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/LottiePlugin.h>"
-	"$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/Include/RmlUi/Lottie/ElementLottie.h>"
+# From CMake 3.13 we could instead target `rmlui_core` here directly, since we are not making a real library for this
+# plugin. This way we can remove the interface libraries defined here, which should considerably simplify how we install
+# targets with dependencies being automatically handled when installing `rmlui_core`. We would just need to install
+# headers here.
+add_library(rmlui_lottie INTERFACE)
+add_library(rmlui_lottie_private INTERFACE)
+
+target_compile_features(rmlui_lottie_private INTERFACE "cxx_std_14")
+
+target_sources(rmlui_lottie_private INTERFACE
+	"${CMAKE_CURRENT_SOURCE_DIR}/ElementLottie.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/LottiePlugin.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/LottiePlugin.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lottie/ElementLottie.h"
 )
 
-add_library(RmlUi::Lottie ALIAS rmlui_lottie)
+target_compile_definitions(rmlui_lottie_private INTERFACE "RMLUI_LOTTIE_PLUGIN")
 
 set_target_properties(rmlui_lottie PROPERTIES
 	EXPORT_NAME "Lottie"
 )
 
 target_link_libraries(rmlui_lottie INTERFACE rlottie::rlottie)
-
-target_compile_definitions(rmlui_lottie INTERFACE "RMLUI_LOTTIE_PLUGIN")
 
 install(TARGETS rmlui_lottie
 	EXPORT RmlUiTargets

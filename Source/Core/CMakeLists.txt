@@ -367,10 +367,12 @@ if(RMLUI_FONT_ENGINE STREQUAL "freetype")
 endif()
 
 if(RMLUI_LOTTIE_PLUGIN)
-    target_link_libraries(rmlui_core PRIVATE rmlui_lottie)
+	target_link_libraries(rmlui_core PRIVATE rmlui_lottie_private)
+	target_link_libraries(rmlui_core PUBLIC rmlui_lottie)
 endif()
 if(RMLUI_SVG_PLUGIN)
-	target_link_libraries(rmlui_core PRIVATE rmlui_svg)
+	target_link_libraries(rmlui_core PRIVATE rmlui_svg_private)
+	target_link_libraries(rmlui_core PUBLIC rmlui_svg)
 endif()
 
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:

@@ -114,6 +114,8 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules"
 
 export(EXPORT RmlUiTargets
 	FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake"
+	NAMESPACE RmlUi::
+	FILE RmlUiTargets.cmake
 )
 
 install_runtime_dependencies()

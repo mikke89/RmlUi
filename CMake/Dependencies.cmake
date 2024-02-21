@@ -6,7 +6,7 @@
     *_NOTFOUND variables, we check directly for the existence of the target.
 ]]
 
-if(NOT DEFINED report_not_found_dependency)
+if(NOT "${RMLUI_IS_CONFIG_FILE}")
     include("${CMAKE_CURRENT_LIST_DIR}/Utils.cmake")
 endif()
 
@@ -40,18 +40,20 @@ if(RMLUI_SVG_PLUGIN)
     endif()
 endif()
 
-if(RMLUI_LUA_BINDINGS)
-    # The Lua and LuaJIT modules don't provide targets, so make our own, and mark the libraries as required.
-    add_library(rmlui_lua_interface INTERFACE IMPORTED)
-    add_library(RmlUi::Private::LuaInterface ALIAS rmlui_lua_interface)
-    if(RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "luajit")
-        find_package("LuaJIT" REQUIRED)
-        target_include_directories(rmlui_lua_interface INTERFACE ${LUAJIT_INCLUDE_DIR})
-        target_link_libraries(rmlui_lua_interface INTERFACE ${LUAJIT_LIBRARY})
-    elseif(RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "lua")
+if(RMLUI_LUA_BINDINGS AND NOT TARGET RmlUi::External::Lua)
+    # The Lua and LuaJIT modules don't provide targets, so make our own, or let users define the target already.
+    if(RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "lua")
         find_package("Lua" REQUIRED)
-        target_include_directories(rmlui_lua_interface INTERFACE ${LUA_INCLUDE_DIR})
-        target_link_libraries(rmlui_lua_interface INTERFACE ${LUA_LIBRARIES})
+        add_library(rmlui_external_lua INTERFACE)
+        target_include_directories(rmlui_external_lua INTERFACE ${LUA_INCLUDE_DIR})
+        target_link_libraries(rmlui_external_lua INTERFACE ${LUA_LIBRARIES})
+        add_library(RmlUi::External::Lua ALIAS rmlui_external_lua)
+    elseif(RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "luajit")
+        find_package("LuaJIT" REQUIRED)
+        add_library(rmlui_external_luajit INTERFACE)
+        target_include_directories(rmlui_external_luajit INTERFACE ${LUAJIT_INCLUDE_DIR})
+        target_link_libraries(rmlui_external_luajit INTERFACE ${LUAJIT_LIBRARY})
+        add_library(RmlUi::External::Lua ALIAS rmlui_external_luajit)
     else()
         message(FATAL_ERROR "Invalid value for Lua bindings library.")
     endif()
