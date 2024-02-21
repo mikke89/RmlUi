@@ -1,0 +1,21 @@
+set(RMLUI_SVG_PLUGIN @RMLUI_SVG_PLUGIN@)
+set(RMLUI_LOTTIE_PLUGIN @RMLUI_LOTTIE_PLUGIN@)
+set(RMLUI_FONT_ENGINE "@RMLUI_FONT_ENGINE@")
+set(RMLUI_LUA_BINDINGS @RMLUI_LUA_BINDINGS@)
+set(RMLUI_LUA_BINDINGS_LIBRARY "@RMLUI_LUA_BINDINGS_LIBRARY@")
+
+macro(report_not_found_dependency friendly_name target_name)
+    message(ERROR
+        "${friendly_name} has not been found by CMake."
+        "\nIf you are consuming RmlUi as a subdirectory inside another CMake project, please ensure that "
+        "${friendly_name} can be found by CMake or at least being linked using \"${target_name}\" as its "
+        "target name. You can create an ALIAS target to offer an alternative name for a CMake target."
+    )
+    return()
+endmacro()
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Modules")
+
+include("${CMAKE_CURRENT_LIST_DIR}/Dependencies.cmake")
+
+include("${CMAKE_CURRENT_LIST_DIR}/RmlUiTargets.cmake")

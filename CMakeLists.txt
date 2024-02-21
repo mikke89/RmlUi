@@ -84,18 +84,36 @@ install(TARGETS rmlui EXPORT RmlUiTargets)
 install(EXPORT RmlUiTargets
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi
 	NAMESPACE RmlUi::
-	FILE RmlUiConfig.cmake
+	FILE RmlUiTargets.cmake
 )
 
 include(CMakePackageConfigHelpers)
 
+configure_file(
+	"${CMAKE_CURRENT_SOURCE_DIR}/CMake/RmlUiConfig.cmake.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake"
+	@ONLY
+)
+
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
 # From CMake 3.11 use compatibility mode `SameMinorVersion`.
-write_basic_package_version_file(RmlUiConfigVersion.cmake
+write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake"
 	COMPATIBILITY ExactVersion
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/RmlUiConfigVersion.cmake
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi
+install(FILES
+	"${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake"
+	"${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake"
+	"${CMAKE_CURRENT_SOURCE_DIR}/CMake/Dependencies.cmake"
+	DESTINATION
+	"${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi"
+)
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules"
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi"
+)
+
+export(EXPORT RmlUiTargets
+	FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake"
 )
 
 install_runtime_dependencies()

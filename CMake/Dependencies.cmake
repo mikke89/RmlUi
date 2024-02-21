@@ -6,7 +6,9 @@
     *_NOTFOUND variables, we check directly for the existence of the target.
 ]]
 
-include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
+if(NOT DEFINED report_not_found_dependency)
+    include("${CMAKE_CURRENT_LIST_DIR}/Utils.cmake")
+endif()
 
 if(RMLUI_FONT_ENGINE STREQUAL "freetype")
     find_package("Freetype")
