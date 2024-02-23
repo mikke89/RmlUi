@@ -1,25 +1,12 @@
-# Check the font interface configuration
-if(RMLUI_FONT_ENGINE STREQUAL "none")
-    # If RmlUi is being built with no font interface, then some samples cannot be built
-    message(NOTICE
-        "Building samples has been enabled, but no font interface has been selected. "
-        "Some samples might be disabled."
-    )
+if(NOT RMLUI_FONT_ENGINE_ENABLED)
+	message(NOTICE "Building samples without any font engine selected: Some samples will be disabled.")
 endif()
-
-# Handle automatic selection of the backend if chosen
 if(RMLUI_SAMPLES_BACKEND STREQUAL "auto")
     # include("${PROJECT_SOURCE_DIR}/CMake/BackendsAutoSelection.cmake")
-
-    message(STATUS "Automatic sample backend selection enabled. Chosen backend: ${RMLUI_SAMPLES_BACKEND}")
+    message(FATAL_ERROR "[auto backend not yet implemented] Automatic sample backend selection enabled. Chosen backend: ${RMLUI_SAMPLES_BACKEND}")
 endif()
 
-set(RMLUI_SAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
-# Declare dependencies for sample backends
 include("${PROJECT_SOURCE_DIR}/CMake/BackendsDependencies.cmake")
-
-# Add information about the available backends specified in CMake/Backends.cmake
 include("${PROJECT_SOURCE_DIR}/CMake/Backends.cmake")
 
 # Negotiate Vulkan debugging for Vulkan-based backends
@@ -32,14 +19,20 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "VK$")
     endif()
 endif()
 
-# Look for dependencies for the RmlUi samples shell
 include("${PROJECT_SOURCE_DIR}/CMake/SamplesShellDependencies.cmake")
 
-# Add shell library for the samples
-add_subdirectory("shell")
+set(RMLUI_SAMPLE_PREFIX "rmlui_sample_")
 
-# Add basic samples
+add_subdirectory("shell")
 add_subdirectory("basic")
+
+if(RMLUI_FONT_ENGINE_ENABLED)
+	add_subdirectory("invaders")
+	add_subdirectory("tutorial")
+endif()
+if(RMLUI_FONT_ENGINE_ENABLED AND RMLUI_LUA_BINDINGS)
+	add_subdirectory("luainvaders")
+endif()
 
 install(DIRECTORY assets
 	DESTINATION samples

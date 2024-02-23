@@ -1,5 +1,16 @@
-add_executable("${RMLUI_SAMPLES_PREFIX}animation" WIN32
-    src/main.cpp
+set(SAMPLE_NAME "animation")
+set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
+
+add_executable(${TARGET_NAME} WIN32
+	src/main.cpp
 )
 
-target_link_libraries("${RMLUI_SAMPLES_PREFIX}animation" PRIVATE rmlui_sample_shell)
+target_link_libraries(${TARGET_NAME} PRIVATE rmlui_shell)
+
+install(TARGETS ${TARGET_NAME}
+	${RMLUI_RUNTIME_DEPENDENCY_SET_ARG}
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(DIRECTORY data
+	DESTINATION "samples/basic/${SAMPLE_NAME}"
+)

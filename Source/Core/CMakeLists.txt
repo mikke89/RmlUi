@@ -356,9 +356,9 @@ endif()
 unset(rmlui_core_TYPE)
 
 if(RMLUI_FONT_ENGINE STREQUAL "freetype")
-    # Link against the default font engine
-    # Adding the subdirectory inside the conditional block so that compilation doesn't fail when CMake tries to build
-    # all targets, effectively hiding the CMake target from the build system if the default font interface is disabled
+    # Link against the default font engine. Adding the subdirectory inside the conditional block so that compilation
+    # doesn't fail when CMake tries to build all targets, effectively hiding the CMake target from the build system if
+    # the font engine is disabled.
     add_subdirectory("FontEngineDefault")
 
     # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:

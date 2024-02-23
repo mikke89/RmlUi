@@ -1,10 +1,8 @@
-set(SAMPLE_NAME "customlog")
-set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
+set(TUTORIAL_NAME "template")
+set(TARGET_NAME "${RMLUI_TUTORIAL_PREFIX}${TUTORIAL_NAME}")
 
 add_executable(${TARGET_NAME} WIN32
-	src/main.cpp
-	src/SystemInterface.cpp
-	src/SystemInterface.h
+    src/main.cpp
 )
 
 target_link_libraries(${TARGET_NAME} PRIVATE rmlui_shell)
@@ -12,4 +10,7 @@ target_link_libraries(${TARGET_NAME} PRIVATE rmlui_shell)
 install(TARGETS ${TARGET_NAME}
 	${RMLUI_RUNTIME_DEPENDENCY_SET_ARG}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(DIRECTORY data
+	DESTINATION "samples/tutorial/${TUTORIAL_NAME}"
 )

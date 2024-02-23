@@ -2,7 +2,7 @@
     Lists of options available to configure some aspects of the project
 ]]
 
-list(APPEND RMLUI_SAMPLES_AVAILABLE_BACKENDS
+list(APPEND RMLUI_AVAILABLE_SAMPLES_BACKENDS
     "Win32_GL2"
     "Win32_VK"
     "X11_GL2"

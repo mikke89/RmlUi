@@ -5,9 +5,8 @@
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
-# CMake >= 3.18 introduces the REQUIRED option for find_library() calls.
-# Guaranteeing the presence of the platform SDK by making these calls to find_library()
-# REQUIRED should be investigated.
+# CMake >= 3.18 introduces the REQUIRED option for find_library() calls. Guaranteeing the presence of the platform SDK
+# by making these calls to find_library() REQUIRED should be investigated.
 # More info: https://cmake.org/cmake/help/latest/command/find_library.html
 
 # Link against required libraries from Windows

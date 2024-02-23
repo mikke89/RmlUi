@@ -1,8 +1,10 @@
-set(SAMPLE_NAME "databinding")
-set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
+set(TUTORIAL_NAME "drag")
+set(TARGET_NAME "${RMLUI_TUTORIAL_PREFIX}${TUTORIAL_NAME}")
 
 add_executable(${TARGET_NAME} WIN32
-	src/main.cpp
+    src/Inventory.cpp
+    src/Inventory.h
+    src/main.cpp
 )
 
 target_link_libraries(${TARGET_NAME} PRIVATE rmlui_shell)
@@ -12,5 +14,5 @@ install(TARGETS ${TARGET_NAME}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(DIRECTORY data
-	DESTINATION "samples/basic/${SAMPLE_NAME}"
+	DESTINATION "samples/tutorial/${TUTORIAL_NAME}"
 )

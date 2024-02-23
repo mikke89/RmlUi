@@ -1,12 +1,17 @@
-set(RMLUI_SAMPLES_PREFIX "rmlui_")
-
 # The following sample does not require any default font engine.
 add_subdirectory("bitmapfont")
 
 # Only enable the remaining samples if a default font engine is selected.
-if(NOT RMLUI_FONT_ENGINE STREQUAL "none")
+if(RMLUI_FONT_ENGINE_ENABLED)
+    add_subdirectory("animation")
     add_subdirectory("benchmark")
+    add_subdirectory("customlog")
+    add_subdirectory("databinding")
     add_subdirectory("demo")
+    add_subdirectory("drag")
+    add_subdirectory("loaddocument")
+    add_subdirectory("transform")
+    add_subdirectory("treeview")
 
     if(RMLUI_LOTTIE_PLUGIN)
         add_subdirectory("lottie")
