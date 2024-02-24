@@ -376,6 +376,14 @@ if(RMLUI_SVG_PLUGIN)
 endif()
 
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
+# From CMake 3.16 we can skip the version check.
+if(RMLUI_PRECOMPILED_HEADERS AND CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
+	target_precompile_headers(rmlui_core PRIVATE "${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h")
+elseif(RMLUI_PRECOMPILED_HEADERS)
+	message(STATUS "Could not enable precompiled headers, requires CMake version 3.16 or greater.")
+endif()
+
+# RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
 # We use default paths provided from GNUInstallDirs. From CMake 3.14 these paths (CMAKE_INSTALL_...) will be used
 # automatically and can be removed from the following call. The same applies to many other calls to install(TARGETS...).
 # Note that GNUInstallDirs should still be included in the project root.

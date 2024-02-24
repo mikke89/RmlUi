@@ -47,6 +47,8 @@ option(RMLUI_SVG_PLUGIN "Enable plugin for SVG images. Requires the lunasvg libr
 
 option(BUILD_SHARED_LIBS "CMake standard option. Choose whether to build shared RmlUi libraries." ON)
 
+option(RMLUI_PRECOMPILED_HEADERS "Enable precompiled headers for RmlUi." ON)
+
 # Add custom CMake modules path for external dependencies
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies")
