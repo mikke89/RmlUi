@@ -1,0 +1,11 @@
+# Enable some extra testing code in the core library.
+target_compile_definitions(rmlui_core PUBLIC RMLUI_TESTS_ENABLED)
+
+include("${PROJECT_SOURCE_DIR}/CMake/TestsDependencies.cmake")
+
+if(EMSCRIPTEN)
+	# Add data for tests to emscripten targets
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sLLD_REPORT_UNDEFINED --preload-file \"${CMAKE_CURRENT_SOURCE_DIR}/Data/@/Tests/Data/\"")
+endif()
+
+add_subdirectory("Source")
