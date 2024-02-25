@@ -367,12 +367,15 @@ if(RMLUI_FONT_ENGINE STREQUAL "freetype")
 endif()
 
 if(RMLUI_LOTTIE_PLUGIN)
-	target_link_libraries(rmlui_core PRIVATE rmlui_lottie_private)
-	target_link_libraries(rmlui_core PUBLIC rmlui_lottie)
+	# RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
+	# From CMake 3.13 we could move this to `Lottie/CMakeLists.txt`, see CMP0079.
+	target_link_libraries(rmlui_core PRIVATE rlottie::rlottie)
 endif()
+
 if(RMLUI_SVG_PLUGIN)
-	target_link_libraries(rmlui_core PRIVATE rmlui_svg_private)
-	target_link_libraries(rmlui_core PUBLIC rmlui_svg)
+	# RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
+	# From CMake 3.13 we could move this to `Lottie/CMakeLists.txt`, see CMP0079.
+	target_link_libraries(rmlui_core PRIVATE lunasvg::lunasvg)
 endif()
 
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:

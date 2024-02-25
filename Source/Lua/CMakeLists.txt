@@ -79,15 +79,11 @@ target_include_directories(rmlui_lua INTERFACE
 
 add_library(RmlUi::Lua ALIAS rmlui_lua)
 
-target_link_libraries(rmlui_lua PUBLIC RmlUi::Core)
+target_link_libraries(rmlui_lua PUBLIC rmlui_core)
 
-# Add Lua as a private dependency. We might want to make this public, however, it's tricky to get this right since the
-# Lua find module does create a target. We would need to find a solution that works when adding RmlUi as a subdirectory,
-# adding it from the build tree, and also after installing it. In particular, we expose some public headers that require
-# Lua, but importantly not `Lua/Lua.h` which is used to initialize the library. In the meantime, clients will have to
-# link to Lua manually into their client project if they want to use all our headers. Maybe that's the best solution in
-# any case.
-target_link_libraries(rmlui_lua PRIVATE RmlUi::External::Lua)
+# Use public linking, as some of our public headers require Lua. However, in principle the Lua bindings can be used
+# without the Lua header files, in particular `RmlUi/Lua/Lua.h` does not require Lua.
+target_link_libraries(rmlui_lua PUBLIC RmlUi::External::Lua)
 
 # Set up definitions to export functions and classes as appropriate
 get_target_property(rmlui_lua_TYPE rmlui_lua "TYPE")

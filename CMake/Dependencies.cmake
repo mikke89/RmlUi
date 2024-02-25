@@ -40,21 +40,27 @@ if(RMLUI_SVG_PLUGIN)
     endif()
 endif()
 
-if(RMLUI_LUA_BINDINGS AND NOT TARGET RmlUi::External::Lua)
-    # The Lua and LuaJIT modules don't provide targets, so make our own, or let users define the target already.
-    if(RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "lua")
+# The Lua and LuaJIT modules don't provide targets, so make our own, or let users define the target already.
+if(RMLUI_LUA_BINDINGS AND RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "lua")
+    if(NOT TARGET Lua::Lua)
         find_package("Lua" REQUIRED)
-        add_library(rmlui_external_lua INTERFACE)
-        target_include_directories(rmlui_external_lua INTERFACE ${LUA_INCLUDE_DIR})
-        target_link_libraries(rmlui_external_lua INTERFACE ${LUA_LIBRARIES})
-        add_library(RmlUi::External::Lua ALIAS rmlui_external_lua)
-    elseif(RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "luajit")
-        find_package("LuaJIT" REQUIRED)
-        add_library(rmlui_external_luajit INTERFACE)
-        target_include_directories(rmlui_external_luajit INTERFACE ${LUAJIT_INCLUDE_DIR})
-        target_link_libraries(rmlui_external_luajit INTERFACE ${LUAJIT_LIBRARY})
-        add_library(RmlUi::External::Lua ALIAS rmlui_external_luajit)
-    else()
-        message(FATAL_ERROR "Invalid value for Lua bindings library.")
+        add_library(Lua::Lua INTERFACE IMPORTED)
+        set_target_properties(Lua::Lua PROPERTIES
+            INTERFACE_LINK_LIBRARIES "${LUA_LIBRARIES}"
+            INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
+        )
     endif()
+    add_library(RmlUi::External::Lua ALIAS Lua::Lua)
+endif()
+
+if(RMLUI_LUA_BINDINGS AND RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "luajit")
+    if(NOT TARGET LuaJIT::LuaJIT)
+        find_package("LuaJIT" REQUIRED)
+        add_library(LuaJIT::LuaJIT INTERFACE IMPORTED)
+        set_target_properties(LuaJIT::LuaJIT PROPERTIES
+            INTERFACE_LINK_LIBRARIES "${LUAJIT_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${LUAJIT_INCLUDE_DIR}"
+        )
+    endif()
+    add_library(RmlUi::External::Lua ALIAS LuaJIT::LuaJIT)
 endif()

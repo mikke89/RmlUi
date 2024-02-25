@@ -37,7 +37,7 @@ add_executable(${TARGET_NAME} WIN32
 
 target_link_libraries(${TARGET_NAME} PRIVATE
 	rmlui_shell
-	RmlUi::Lua
+	rmlui_lua
 	RmlUi::External::Lua
 )
 

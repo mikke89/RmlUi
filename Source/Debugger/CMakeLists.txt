@@ -37,7 +37,7 @@ target_sources(rmlui_debugger PRIVATE
     "${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger.h"
 )
 
-target_link_libraries(rmlui_debugger PUBLIC RmlUi::Core)
+target_link_libraries(rmlui_debugger PUBLIC rmlui_core)
 
 add_library(RmlUi::Debugger ALIAS rmlui_debugger)
 
