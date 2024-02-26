@@ -4,16 +4,18 @@ cmake_minimum_required(VERSION "3.10")
 
 project("RmlUi"
 	VERSION "6.0"
-	DESCRIPTION "C++ user interface package based on the HTML and CSS standards"
+	DESCRIPTION "C++ user interface library based on the HTML and CSS standards"
 	LANGUAGES "C" "CXX"
 )
 
-# Add lists of available options for those that support it
-include("${PROJECT_SOURCE_DIR}/CMake/OptionsLists.cmake")
+set(RMLUI_VERSION_RELEASE FALSE)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	set(RMLUI_IS_ROOT_PROJECT TRUE)
 endif()
+
+# Add lists of available options for those that support it
+include("${PROJECT_SOURCE_DIR}/CMake/OptionsLists.cmake")
 
 option(BUILD_SHARED_LIBS "CMake standard option. Choose whether to build shared RmlUi libraries." ON)
 

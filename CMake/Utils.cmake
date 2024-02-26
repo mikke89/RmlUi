@@ -3,6 +3,24 @@
 ]]
 
 #[[
+    Format the RmlUi version as it should normally be displayed
+    Output:
+        RMLUI_VERSION_SHORT: The RmlUi version as a string
+]]
+function(generate_rmlui_version_string)
+	if(NOT RMLUI_VERSION_RELEASE)
+		set(RMLUI_VERSION_SUFFIX "-dev")
+	endif()
+	if(PROJECT_VERSION_PATCH GREATER 0)
+		set(RMLUI_VERSION_PATCH ".${PROJECT_VERSION_PATCH}")
+	endif()
+	set(RMLUI_VERSION_SHORT
+		"${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}${RMLUI_VERSION_PATCH}${RMLUI_VERSION_SUFFIX}"
+		PARENT_SCOPE
+	)
+endfunction()
+
+#[[
     Function to print a message to the console indicating a dependency hasn't been found
     Arguments:
         - friendly_name: Friendly name of the target
