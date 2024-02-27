@@ -88,6 +88,8 @@ setup_runtime_dependency_set_arg()
 add_subdirectory("Source")
 
 if(RMLUI_SAMPLES)
+	include("${PROJECT_SOURCE_DIR}/CMake/BackendsDependencies.cmake")
+	add_subdirectory("Backends")
 	add_subdirectory("Samples")
 endif()
 
@@ -108,7 +110,7 @@ set_target_properties(rmlui PROPERTIES EXPORT_NAME "RmlUi")
 install(TARGETS rmlui EXPORT RmlUiTargets)
 
 install(EXPORT RmlUiTargets
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi"
 	NAMESPACE RmlUi::
 	FILE RmlUiTargets.cmake
 )

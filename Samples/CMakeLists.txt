@@ -1,13 +1,10 @@
 if(NOT RMLUI_FONT_ENGINE_ENABLED)
-	message(NOTICE "Building samples without any font engine selected: Some samples will be disabled.")
+	message(NOTICE "Building samples without any font engine selected - some samples will be disabled.")
 endif()
 if(RMLUI_SAMPLES_BACKEND STREQUAL "auto")
     # include("${PROJECT_SOURCE_DIR}/CMake/BackendsAutoSelection.cmake")
     message(FATAL_ERROR "[auto backend not yet implemented] Automatic sample backend selection enabled. Chosen backend: ${RMLUI_SAMPLES_BACKEND}")
 endif()
-
-include("${PROJECT_SOURCE_DIR}/CMake/BackendsDependencies.cmake")
-include("${PROJECT_SOURCE_DIR}/CMake/Backends.cmake")
 
 # Negotiate Vulkan debugging for Vulkan-based backends
 if(RMLUI_SAMPLES_BACKEND MATCHES "VK$")
@@ -35,5 +32,5 @@ if(RMLUI_FONT_ENGINE_ENABLED AND RMLUI_LUA_BINDINGS)
 endif()
 
 install(DIRECTORY assets
-	DESTINATION samples
+	DESTINATION "${CMAKE_INSTALL_DATADIR}/samples"
 )

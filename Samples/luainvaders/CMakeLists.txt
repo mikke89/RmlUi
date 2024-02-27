@@ -46,5 +46,5 @@ install(TARGETS ${TARGET_NAME}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(DIRECTORY data lua
-	DESTINATION "samples/luainvaders"
+	DESTINATION "${CMAKE_INSTALL_DATADIR}/samples/luainvaders"
 )
