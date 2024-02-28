@@ -1,0 +1,13 @@
+if(RMLUI_SAMPLES_BACKEND STREQUAL "auto")
+    if(EMSCRIPTEN)
+        set(RMLUI_SAMPLES_BACKEND SDL_GL3)
+    elseif(WIN32)
+        set(RMLUI_SAMPLES_BACKEND GLFW_GL2)
+    elseif(APPLE)
+        set(RMLUI_SAMPLES_BACKEND SDL_SDLrenderer)
+    else()
+        set(RMLUI_SAMPLES_BACKEND X11_GL2)
+    endif()
+endif()
+
+message(STATUS "Using RmlUi backend ${RMLUI_SAMPLES_BACKEND} for samples")
