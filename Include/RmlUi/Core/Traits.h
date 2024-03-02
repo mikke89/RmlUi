@@ -94,7 +94,7 @@ public:
 
 } // namespace Rml
 
-#ifdef RMLUI_USE_CUSTOM_RTTI
+#ifdef RMLUI_CUSTOM_RTTI
 
 	#define RMLUI_RTTI_Define(_NAME_)                             \
 		using RttiClassType = _NAME_;                             \
@@ -174,6 +174,6 @@ const char* rmlui_type_name()
 	return typeid(T).name();
 }
 
-#endif // RMLUI_USE_CUSTOM_RTTI
+#endif // RMLUI_CUSTOM_RTTI
 
 #endif // RMLUI_CORE_TRAITS_H

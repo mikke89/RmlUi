@@ -382,6 +382,11 @@ if(RMLUI_SVG_PLUGIN)
 	target_link_libraries(rmlui_core PRIVATE lunasvg::lunasvg)
 endif()
 
+if(RMLUI_CUSTOM_RTTI)
+	target_compile_definitions(rmlui_core PUBLIC "RMLUI_CUSTOM_RTTI")
+	message(STATUS "Enabling custom RTTI for RmlUi.")
+endif()
+
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
 # From CMake 3.16 we can skip the version check.
 if(RMLUI_PRECOMPILED_HEADERS AND CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
