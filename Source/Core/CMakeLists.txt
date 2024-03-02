@@ -382,6 +382,11 @@ if(RMLUI_SVG_PLUGIN)
 	target_link_libraries(rmlui_core PRIVATE lunasvg::lunasvg)
 endif()
 
+if(NOT RMLUI_THIRDPARTY_CONTAINERS)
+	target_compile_definitions(rmlui_core PUBLIC "RMLUI_NO_THIRDPARTY_CONTAINERS")
+	message(STATUS "Disabling third-party containers for RmlUi.")
+endif()
+
 if(RMLUI_CUSTOM_RTTI)
 	target_compile_definitions(rmlui_core PUBLIC "RMLUI_CUSTOM_RTTI")
 	message(STATUS "Enabling custom RTTI for RmlUi.")

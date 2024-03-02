@@ -68,6 +68,8 @@ endif()
 option(RMLUI_LOTTIE_PLUGIN "Enable plugin for Lottie animations. Requires the rlottie library." OFF)
 option(RMLUI_SVG_PLUGIN "Enable plugin for SVG images. Requires the lunasvg library." OFF)
 
+option(RMLUI_THIRDPARTY_CONTAINERS "Enable integrated third-party containers for improved performance, rather than their standard library counterparts." ON)
+
 option(RMLUI_MATRIX_ROW_MAJOR "Use row-major matrices. Column-major matrices are used by default." OFF)
 
 option(RMLUI_CUSTOM_RTTI "Build RmlUi with a custom implementation of run-time type information (RTTI). When enabled, all usage of language RTTI features such as dynamic_cast will be disabled." OFF)
