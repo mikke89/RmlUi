@@ -3,23 +3,24 @@
 		<title>Demo</title>
 		<link type="text/template" href="/assets/window.rml" />
 		<style>
-			body
-			{
+			body {
 				width: 300px;
 				height: 225px;
-
 				margin: auto;
+				left: 400px;
 			}
 
-			svg {
+			div.tiger {
 				display: block;
+				height: 80%;
 				max-width: 80%;
 				max-height: 80%;
 				margin: auto;
+				decorator: svg("tiger.svg" crop-to-content);
 			}
 		</style>
 	</head>
 	<body template="window">
-		<svg src="tiger.svg"></svg>
+		<div class="tiger"></div>
 	</body>
 </rml>
