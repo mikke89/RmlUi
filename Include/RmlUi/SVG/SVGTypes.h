@@ -26,56 +26,18 @@
  *
  */
 
+#ifndef RMLUI_SVG_SVG_TYPES_H
+#define RMLUI_SVG_SVG_TYPES_H
 
-#include "../../Include/RmlUi/SVG/ElementSVG.h"
-#include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
-#include "../../Include/RmlUi/Core/Factory.h"
-#include "../../Include/RmlUi/Core/Log.h"
-#include "../../Include/RmlUi/Core/Plugin.h"
-
-#include "SVGCache.h"
-#include "DecoratorSVGInstancer.h"
+#include "../Core/Types.h"
 
 namespace Rml {
 namespace SVG {
 
-
-class SVGPlugin : public Plugin {
-public:
-	void OnInitialise() override
-	{
-		element_instancer = MakeUnique<ElementInstancerGeneric<ElementSVG> >();
-		Factory::RegisterElementInstancer("svg", element_instancer.get());
-
-		decorator_instancer = MakeUnique<DecoratorSVGInstancer>();
-		Factory::RegisterDecoratorInstancer("svg", decorator_instancer.get());
-
-		Log::Message(Log::LT_INFO, "SVG plugin initialised.");
-	}
-
-	void OnShutdown() override
-	{
-		delete this;
-
-		SVGCache::Deninitialize();
-	}
-
-	int GetEventClasses() override
-	{
-		return Plugin::EVT_BASIC;
-	}
-
-private:
-	UniquePtr<ElementInstancerGeneric<ElementSVG>> element_instancer;
-	UniquePtr<DecoratorSVGInstancer> decorator_instancer;
-};
-
-
-void Initialise()
-{
-	RegisterPlugin(new SVGPlugin);
-}
+using SVGHandle = size_t;
 
 } // namespace SVG
 } // namespace Rml
+
+#endif
+

@@ -26,55 +26,37 @@
  *
  */
 
-
-#include "../../Include/RmlUi/SVG/ElementSVG.h"
-#include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
-#include "../../Include/RmlUi/Core/Factory.h"
-#include "../../Include/RmlUi/Core/Log.h"
-#include "../../Include/RmlUi/Core/Plugin.h"
-
-#include "SVGCache.h"
 #include "DecoratorSVGInstancer.h"
+#include "DecoratorSVG.h"
+#include "../../Include/RmlUi/Core/PropertyDefinition.h"
 
 namespace Rml {
 namespace SVG {
 
-
-class SVGPlugin : public Plugin {
-public:
-	void OnInitialise() override
-	{
-		element_instancer = MakeUnique<ElementInstancerGeneric<ElementSVG> >();
-		Factory::RegisterElementInstancer("svg", element_instancer.get());
-
-		decorator_instancer = MakeUnique<DecoratorSVGInstancer>();
-		Factory::RegisterDecoratorInstancer("svg", decorator_instancer.get());
-
-		Log::Message(Log::LT_INFO, "SVG plugin initialised.");
-	}
-
-	void OnShutdown() override
-	{
-		delete this;
-
-		SVGCache::Deninitialize();
-	}
-
-	int GetEventClasses() override
-	{
-		return Plugin::EVT_BASIC;
-	}
-
-private:
-	UniquePtr<ElementInstancerGeneric<ElementSVG>> element_instancer;
-	UniquePtr<DecoratorSVGInstancer> decorator_instancer;
-};
-
-
-void Initialise()
+DecoratorSVGInstancer::DecoratorSVGInstancer() 
 {
-	RegisterPlugin(new SVGPlugin);
+	source_id = RegisterProperty("source", "").AddParser("string").GetId();
+	crop_id = RegisterProperty("cropping", "none").AddParser("keyword", "none, content").GetId();
+	RegisterShorthand("decorator", "source, cropping", ShorthandType::FallThrough);
+}
+
+DecoratorSVGInstancer::~DecoratorSVGInstancer()
+{
+}
+
+
+SharedPtr<Decorator> DecoratorSVGInstancer::InstanceDecorator(const String&, const PropertyDictionary& properties, const DecoratorInstancerInterface&)
+{
+	String source = properties.GetProperty(source_id)->Get<String>();
+	if (source.empty())
+		return nullptr;
+
+	if (source[source.size() - 1u] == ',') // there seems to be an issue where the decorator csvs include the comma
+		source = source.substr(0, source.size() - 1u);
+
+	const bool crop_to_content = properties.GetProperty(crop_id)->Get<int>() != 0;
+
+	return MakeShared<DecoratorSVG>(source, crop_to_content);
 }
 
 } // namespace SVG
