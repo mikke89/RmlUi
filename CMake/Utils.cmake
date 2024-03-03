@@ -59,3 +59,29 @@ function(report_not_found_native_library library_name)
         "\n${SDK_NOTICE}"
     )
 endfunction()
+
+#[[
+    Enable or disable a given configuration type for multi-configuration generators.
+    Arguments:
+        - name: The name of the new configuration
+        - clone_config: The name of the configuration to clone compile flags from
+        - enable: Enable or disable configuration
+]]
+function(enable_configuration_type name clone_config enable)
+	if(CMAKE_CONFIGURATION_TYPES)
+		string(TOUPPER "${name}" name_upper)
+		string(TOUPPER "${clone_config}" clone_config_upper)
+		if(enable)
+			list(APPEND CMAKE_CONFIGURATION_TYPES "${name}")
+			list(REMOVE_DUPLICATES CMAKE_CONFIGURATION_TYPES)
+			set("CMAKE_MAP_IMPORTED_CONFIG_${name_upper}" "${name};${clone_config}" CACHE INTERNAL "" FORCE)
+			set("CMAKE_C_FLAGS_${name_upper}" "${CMAKE_C_FLAGS_${clone_config_upper}}" CACHE INTERNAL "" FORCE)
+			set("CMAKE_CXX_FLAGS_${name_upper}" "${CMAKE_CXX_FLAGS_${clone_config_upper}}" CACHE INTERNAL "" FORCE)
+			set("CMAKE_EXE_LINKER_FLAGS_${name_upper}" "${CMAKE_EXE_LINKER_FLAGS_${clone_config_upper}}" CACHE INTERNAL "" FORCE)
+			set("CMAKE_SHARED_LINKER_FLAGS_${name_upper}" "${CMAKE_SHARED_LINKER_FLAGS_${clone_config_upper}}" CACHE INTERNAL "" FORCE)
+		else()
+			list(REMOVE_ITEM CMAKE_CONFIGURATION_TYPES "${name}")
+		endif()
+		set(CMAKE_CONFIGURATION_TYPES "${CMAKE_CONFIGURATION_TYPES}" CACHE STRING "List of configurations to enable" FORCE)
+	endif()
+endfunction()

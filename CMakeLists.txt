@@ -76,6 +76,14 @@ option(RMLUI_CUSTOM_RTTI "Build RmlUi with a custom implementation of run-time t
 
 option(RMLUI_PRECOMPILED_HEADERS "Enable precompiled headers for RmlUi." ON)
 
+option(RMLUI_TRACY_PROFILING "Enable profiling with Tracy. Source files can optionally be placed in `Dependencies/tracy`." OFF)
+if(RMLUI_TRACY_PROFILING)
+	option(RMLUI_TRACY_MEMORY_PROFILING "Overload global operator new/delete to track memory allocations in Tracy." ON)
+endif()
+if(RMLUI_TRACY_PROFILING AND CMAKE_CONFIGURATION_TYPES)
+	option(RMLUI_TRACY_CONFIGURATION "Enable a separate Tracy configuration type for multi-config generators such as Visual Studio, otherwise enable Tracy in all configurations." ON)
+endif()
+
 option(RMLUI_CUSTOM_CONFIGURATION "Customize the RmlUi configuration file to override the default configuration and types." OFF)
 set(RMLUI_CUSTOM_CONFIGURATION_FILE "" CACHE STRING "Custom configuration file to be included in place of <RmlUi/Config/Config.h>.")
 set(RMLUI_CUSTOM_INCLUDE_DIRS "" CACHE STRING "Extra include directories (use with RMLUI_CUSTOM_CONFIGURATION_FILE).")
@@ -168,7 +176,6 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules"
 if(RMLUI_IS_ROOT_PROJECT)
 	# Export build targets, except if RmlUi is included from a parent project using `add_subdirectory`.
 	export(EXPORT RmlUiTargets
-		FILE "${CMAKE_CURRENT_BINARY_DIR}/RmlUiTargets.cmake"
 		NAMESPACE RmlUi::
 		FILE RmlUiTargets.cmake
 	)

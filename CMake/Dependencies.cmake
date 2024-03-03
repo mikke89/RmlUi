@@ -6,7 +6,7 @@
     *_NOTFOUND variables, we check directly for the existence of the target.
 ]]
 
-if(NOT "${RMLUI_IS_CONFIG_FILE}")
+if(NOT RMLUI_IS_CONFIG_FILE)
     include("${CMAKE_CURRENT_LIST_DIR}/Utils.cmake")
 endif()
 
@@ -63,4 +63,41 @@ if(RMLUI_LUA_BINDINGS AND RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "luajit")
         )
     endif()
     add_library(RmlUi::External::Lua ALIAS LuaJIT::LuaJIT)
+endif()
+
+if(NOT RMLUI_IS_CONFIG_FILE)
+    if(RMLUI_TRACY_PROFILING AND RMLUI_TRACY_CONFIGURATION)
+        enable_configuration_type(Tracy Release ON)
+    else()
+        enable_configuration_type(Tracy Release OFF)
+    endif()
+endif()
+
+if(RMLUI_TRACY_PROFILING)
+    find_package(Tracy CONFIG QUIET)
+
+    if(NOT TARGET Tracy::TracyClient)
+        if(RMLUI_IS_CONFIG_FILE)
+            report_not_found_dependency("Tracy" Tracy::TracyClient)
+        endif()
+
+        message(STATUS "Trying to add Tracy from subdirectory 'Dependencies/tracy'.")
+        add_subdirectory("Dependencies/tracy")
+
+        if(NOT TARGET Tracy::TracyClient)
+            message(FATAL_ERROR "Tracy client not found. Either "
+                "(a) make sure target Tracy::TracyClient is available from parent project, "
+                "(b) Tracy can be found as a config package, or "
+                "(c) Tracy source files are located in 'Dependencies/Tracy'.")
+        endif()
+
+        if(RMLUI_IS_ROOT_PROJECT)
+            # Tracy does not export its targets to the build tree. Do that for it here, otherwise CMake will emit an
+            # error about target `TracyClient` not being located in any export set.
+            export(EXPORT TracyConfig
+                NAMESPACE Tracy::
+                FILE TracyTargets.cmake
+            )
+        endif()
+    endif()
 endif()
