@@ -76,6 +76,19 @@ option(RMLUI_CUSTOM_RTTI "Build RmlUi with a custom implementation of run-time t
 
 option(RMLUI_PRECOMPILED_HEADERS "Enable precompiled headers for RmlUi." ON)
 
+option(RMLUI_CUSTOM_CONFIGURATION "Customize the RmlUi configuration file to override the default configuration and types." OFF)
+set(RMLUI_CUSTOM_CONFIGURATION_FILE "" CACHE STRING "Custom configuration file to be included in place of <RmlUi/Config/Config.h>.")
+set(RMLUI_CUSTOM_INCLUDE_DIRS "" CACHE STRING "Extra include directories (use with RMLUI_CUSTOM_CONFIGURATION_FILE).")
+set(RMLUI_CUSTOM_LINK_LIBRARIES "" CACHE STRING "Extra link libraries (use with RMLUI_CUSTOM_CONFIGURATION_FILE).")
+if(RMLUI_CUSTOM_CONFIGURATION)
+	mark_as_advanced(CLEAR RMLUI_CUSTOM_CONFIGURATION_FILE RMLUI_CUSTOM_INCLUDE_DIRS RMLUI_CUSTOM_LINK_LIBRARIES)
+else()
+	mark_as_advanced(FORCE RMLUI_CUSTOM_CONFIGURATION_FILE RMLUI_CUSTOM_INCLUDE_DIRS RMLUI_CUSTOM_LINK_LIBRARIES)
+	if(RMLUI_CUSTOM_CONFIGURATION_FILE OR RMLUI_CUSTOM_INCLUDE_DIRS OR RMLUI_CUSTOM_LINK_LIBRARIES)
+		message(STATUS "RMLUI_CUSTOM_CONFIGURATION is disabled, but custom configuration variables are set. They will have no effect.")
+	endif()
+endif()
+
 # Add custom CMake modules path for external dependencies
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies")

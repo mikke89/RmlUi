@@ -405,6 +405,17 @@ elseif(RMLUI_PRECOMPILED_HEADERS)
 	message(STATUS "Could not enable precompiled headers, requires CMake version 3.16 or greater.")
 endif()
 
+if(RMLUI_CUSTOM_CONFIGURATION AND RMLUI_CUSTOM_CONFIGURATION_FILE)
+	target_compile_definitions(rmlui_core PUBLIC "RMLUI_CUSTOM_CONFIGURATION_FILE=\"${RMLUI_CUSTOM_CONFIGURATION_FILE}\"")
+	message(STATUS "Including ${RMLUI_CUSTOM_CONFIGURATION_FILE} instead of <RmlUi/Config/Config.h>")
+endif()
+if(RMLUI_CUSTOM_CONFIGURATION AND RMLUI_CUSTOM_INCLUDE_DIRS)
+	target_include_directories(rmlui_core PUBLIC ${RMLUI_CUSTOM_INCLUDE_DIRS})
+endif()
+if(RMLUI_CUSTOM_CONFIGURATION AND RMLUI_CUSTOM_LINK_LIBRARIES)
+	target_link_libraries(rmlui_core PUBLIC ${RMLUI_CUSTOM_LINK_LIBRARIES})
+endif()
+
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
 # We use default paths provided from GNUInstallDirs. From CMake 3.14 these paths (CMAKE_INSTALL_...) will be used
 # automatically and can be removed from the following call. The same applies to many other calls to install(TARGETS...).
