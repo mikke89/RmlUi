@@ -122,28 +122,47 @@ TextureFileIndex FileTextureDatabase::LoadTexture(RenderInterface* render_interf
 	if (it != texture_map.end())
 		return it->second;
 
-	Vector2i dimensions;
-	if (TextureHandle handle = render_interface->LoadTexture(dimensions, source))
+	FileTextureEntry entry = LoadTextureEntry(render_interface, source);
+	if (!entry.texture_handle)
+		return TextureFileIndex::Invalid;
+
+	const auto index = TextureFileIndex(texture_list.size());
+	texture_map[source] = index;
+	texture_list.push_back(std::move(entry));
+
+	return index;
+}
+
+FileTextureDatabase::FileTextureEntry FileTextureDatabase::LoadTextureEntry(RenderInterface* render_interface, const String& source)
+{
+	FileTextureEntry result = {};
+	result.texture_handle = render_interface->LoadTexture(result.dimensions, source);
+	return result;
+}
+
+FileTextureDatabase::FileTextureEntry& FileTextureDatabase::EnsureLoaded(RenderInterface* render_interface, TextureFileIndex index)
+{
+	FileTextureEntry& entry = texture_list[size_t(index)];
+	if (!entry.texture_handle)
 	{
-		TextureFileIndex result = TextureFileIndex(texture_list.size());
-		texture_map[source] = result;
-		texture_list.push_back(FileTextureEntry{handle, dimensions});
-		return result;
+		auto it = std::find_if(texture_map.begin(), texture_map.end(), [index](const auto& pair) { return pair.second == index; });
+		RMLUI_ASSERT(it != texture_map.end());
+		const String& source = it->first;
+		entry = LoadTextureEntry(render_interface, source);
 	}
-
-	return TextureFileIndex::Invalid;
+	return entry;
 }
 
-TextureHandle FileTextureDatabase::GetHandle(TextureFileIndex index) const
+TextureHandle FileTextureDatabase::GetHandle(RenderInterface* render_interface, TextureFileIndex index)
 {
 	RMLUI_ASSERT(size_t(index) < texture_list.size());
-	return texture_list[size_t(index)].texture_handle;
+	return EnsureLoaded(render_interface, index).texture_handle;
 }
 
-Vector2i FileTextureDatabase::GetDimensions(TextureFileIndex index) const
+Vector2i FileTextureDatabase::GetDimensions(RenderInterface* render_interface, TextureFileIndex index)
 {
 	RMLUI_ASSERT(size_t(index) < texture_list.size());
-	return texture_list[size_t(index)].dimensions;
+	return EnsureLoaded(render_interface, index).dimensions;
 }
 
 void FileTextureDatabase::GetSourceList(StringList& source_list) const

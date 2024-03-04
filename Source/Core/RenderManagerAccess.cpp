@@ -34,7 +34,7 @@ namespace Rml {
 
 Vector2i RenderManagerAccess::GetDimensions(RenderManager* render_manager, TextureFileIndex texture)
 {
-	return render_manager->texture_database->file_database.GetDimensions(texture);
+	return render_manager->texture_database->file_database.GetDimensions(render_manager->render_interface, texture);
 }
 
 Vector2i RenderManagerAccess::GetDimensions(RenderManager* render_manager, StableVectorIndex callback_texture)

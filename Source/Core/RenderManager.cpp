@@ -240,7 +240,7 @@ void RenderManager::Render(const Geometry& geometry, Vector2f translation, Textu
 	{
 		TextureHandle texture_handle = {};
 		if (texture.file_index != TextureFileIndex::Invalid)
-			texture_handle = texture_database->file_database.GetHandle(texture.file_index);
+			texture_handle = texture_database->file_database.GetHandle(render_interface, texture.file_index);
 		else if (texture.callback_index != StableVectorIndex::Invalid)
 			texture_handle = texture_database->callback_database.GetHandle(this, render_interface, texture.callback_index);
 

@@ -61,7 +61,7 @@ static const String document_textures_rml = R"(
 			height: 100px;
 			decorator: image(alien3);
 		}
-		progress { 
+		progress {
 			display: block;
 			width: 50px;
 			height: 50px;
@@ -145,13 +145,29 @@ TEST_CASE("core.release_resources")
 
 	SUBCASE("ReleaseTextures")
 	{
+		const auto startup_counters = counters;
+		REQUIRE(counters.load_texture > 0);
+		REQUIRE(counters.generate_texture > 0);
+		REQUIRE(counters.release_texture == 0);
+
 		// Release all textures and verify that the render interface received the release call.
 		Rml::ReleaseTextures();
-		CHECK(counters.generate_texture + counters.load_texture == counters.release_texture);
+		CHECK(counters.load_texture == startup_counters.load_texture);
+		CHECK(counters.generate_texture == startup_counters.generate_texture);
+		CHECK(counters.release_texture == startup_counters.generate_texture + startup_counters.load_texture);
+		const int num_released_textures = counters.release_texture;
 
 		// By doing a new context Update+Render the textures should be loaded again.
 		TestsShell::RenderLoop();
-		CHECK(counters.generate_texture + counters.load_texture > counters.release_texture);
+		CHECK(counters.load_texture == 2 * startup_counters.load_texture);
+		CHECK(counters.generate_texture == 2 * startup_counters.generate_texture);
+		CHECK(counters.release_texture == num_released_textures);
+
+		// Another loop should not affect the texture calls.
+		TestsShell::RenderLoop();
+		CHECK(counters.load_texture == 2 * startup_counters.load_texture);
+		CHECK(counters.generate_texture == 2 * startup_counters.generate_texture);
+		CHECK(counters.release_texture == num_released_textures);
 	}
 
 	SUBCASE("ReleaseFontResources")

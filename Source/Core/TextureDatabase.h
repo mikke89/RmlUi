@@ -71,8 +71,8 @@ public:
 
 	TextureFileIndex LoadTexture(RenderInterface* render_interface, const String& source);
 
-	TextureHandle GetHandle(TextureFileIndex index) const;
-	Vector2i GetDimensions(TextureFileIndex index) const;
+	TextureHandle GetHandle(RenderInterface* render_interface, TextureFileIndex index);
+	Vector2i GetDimensions(RenderInterface* render_interface, TextureFileIndex index);
 
 	void GetSourceList(StringList& source_list) const;
 
@@ -83,6 +83,10 @@ private:
 		TextureHandle texture_handle = {};
 		Vector2i dimensions;
 	};
+
+	FileTextureEntry LoadTextureEntry(RenderInterface* render_interface, const String& source);
+	FileTextureEntry& EnsureLoaded(RenderInterface* render_interface, TextureFileIndex index);
+
 	Vector<FileTextureEntry> texture_list;
 	UnorderedMap<String, TextureFileIndex> texture_map; // key: source, value: index into 'texture_list'
 };
