@@ -1,4 +1,6 @@
-add_executable(rmlui_unit_tests
+set(TARGET_NAME "rmlui_unit_tests")
+
+add_executable(${TARGET_NAME}
 	Animation.cpp
 	Core.cpp
 	DataBinding.cpp
@@ -27,11 +29,13 @@ add_executable(rmlui_unit_tests
 	XMLParser.cpp
 )
 
-target_link_libraries(rmlui_unit_tests PRIVATE
+set_common_target_options(${TARGET_NAME})
+
+target_link_libraries(${TARGET_NAME} PRIVATE
 	rmlui_tests_common
 	rmlui_core
 	doctest::doctest
 	trompeloeil::trompeloeil
 )
 
-doctest_discover_tests(rmlui_unit_tests)
+doctest_discover_tests(${TARGET_NAME})

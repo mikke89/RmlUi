@@ -69,7 +69,7 @@ target_sources(rmlui_lua PRIVATE
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua.h"
 )
 
-target_compile_features(rmlui_lua PUBLIC "cxx_std_14")
+set_common_target_options(rmlui_lua)
 
 target_include_directories(rmlui_lua PRIVATE "${PROJECT_SOURCE_DIR}/Include")
 target_include_directories(rmlui_lua INTERFACE

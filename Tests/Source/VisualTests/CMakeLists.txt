@@ -1,4 +1,6 @@
-add_executable(rmlui_visual_tests WIN32
+set(TARGET_NAME "rmlui_visual_tests")
+
+add_executable(${TARGET_NAME} WIN32
 	XmlNodeHandlers.h
 	XmlNodeHandlers.cpp
 	TestViewer.h
@@ -13,19 +15,21 @@ add_executable(rmlui_visual_tests WIN32
 	CaptureScreen.cpp
 )
 
-target_link_libraries(rmlui_visual_tests PRIVATE
+set_common_target_options(${TARGET_NAME})
+
+target_link_libraries(${TARGET_NAME} PRIVATE
 	rmlui_tests_common
 	rmlui_core
 	rmlui_shell
 	lodepng::lodepng
 )
 
-if(VISUAL_TESTS_RML_DIRECTORIES)
-	target_compile_definitions(rmlui_visual_tests PRIVATE RMLUI_VISUAL_TESTS_RML_DIRECTORIES="${VISUAL_TESTS_RML_DIRECTORIES}")
+if(RMLUI_VISUAL_TESTS_RML_DIRECTORIES)
+	target_compile_definitions(${TARGET_NAME} PRIVATE RMLUI_VISUAL_TESTS_RML_DIRECTORIES="${RMLUI_VISUAL_TESTS_RML_DIRECTORIES}")
 endif()
-if(VISUAL_TESTS_COMPARE_DIRECTORY)
-	target_compile_definitions(rmlui_visual_tests PRIVATE RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY="${VISUAL_TESTS_COMPARE_DIRECTORY}")
+if(RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY)
+	target_compile_definitions(${TARGET_NAME} PRIVATE RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY="${RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY}")
 endif()
-if(VISUAL_TESTS_CAPTURE_DIRECTORY)
-	target_compile_definitions(rmlui_visual_tests PRIVATE RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY="${VISUAL_TESTS_CAPTURE_DIRECTORY}")
+if(RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY)
+	target_compile_definitions(${TARGET_NAME} PRIVATE RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY="${RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY}")
 endif()

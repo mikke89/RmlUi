@@ -319,7 +319,7 @@ target_sources(rmlui_core PRIVATE
     "${PROJECT_SOURCE_DIR}/Include/RmlUi/Core.h"
 )
 
-target_compile_features(rmlui_core PUBLIC "cxx_std_14")
+set_common_target_options(rmlui_core)
 
 target_include_directories(rmlui_core PRIVATE "${PROJECT_SOURCE_DIR}/Include")
 target_include_directories(rmlui_core INTERFACE

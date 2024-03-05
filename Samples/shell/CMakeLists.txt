@@ -14,6 +14,8 @@ add_library(rmlui_shell STATIC
     include/ShellFileInterface.h
 )
 
+set_common_target_options(rmlui_shell)
+
 target_link_libraries(rmlui_shell PRIVATE rmlui_backend_${RMLUI_SAMPLES_BACKEND})
 
 target_include_directories(rmlui_shell PUBLIC "include" "${PROJECT_SOURCE_DIR}/Backends")

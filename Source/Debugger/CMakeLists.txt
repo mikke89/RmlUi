@@ -20,7 +20,7 @@ add_library(rmlui_debugger
     MenuSource.h
 )
 
-target_compile_features(rmlui_debugger PUBLIC "cxx_std_14")
+set_common_target_options(rmlui_debugger)
 
 target_include_directories(rmlui_debugger PRIVATE "${PROJECT_SOURCE_DIR}/Include")
 target_include_directories(rmlui_debugger INTERFACE
