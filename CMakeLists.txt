@@ -1,6 +1,6 @@
 # Using CMake 3.10 as minimum to support all platforms of interest
 # https://github.com/mikke89/RmlUi/issues/198#issuecomment-1246957062
-cmake_minimum_required(VERSION "3.10")
+cmake_minimum_required(VERSION 3.10...3.27)
 
 project("RmlUi"
 	VERSION "6.0"
