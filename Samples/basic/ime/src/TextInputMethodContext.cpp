@@ -58,37 +58,22 @@ void RmlBaseTextInputMethodContext::SetCursorPosition(int position)
 	SetSelectionRange(position, position);
 }
 
-static int ConvertCharacterOffsetToByteOffset(const Rml::String& value, int character_offset)
-{
-	if (character_offset >= (int)value.size())
-		return (int)value.size();
-
-	int character_count = 0;
-	for (auto it = Rml::StringIteratorU8(value); it; ++it)
-	{
-		character_count += 1;
-		if (character_count > character_offset)
-			return (int)it.offset();
-	}
-	return (int)value.size();
-}
-
 void RmlBaseTextInputMethodContext::SetText(Rml::StringView text, int start, int end)
 {
 	Rml::String value = GetControl()->GetValue();
 
-	start = ConvertCharacterOffsetToByteOffset(value, start);
-	end = ConvertCharacterOffsetToByteOffset(value, end);
+	start = Rml::StringUtilities::ConvertCharacterOffsetToByteOffset(value, start);
+	end = Rml::StringUtilities::ConvertCharacterOffsetToByteOffset(value, end);
 
 	RMLUI_ASSERTMSG(end >= start, "Invalid end character offset.");
 	value.replace(start, end - start, text.begin(), text.size());
 
 	int max_length = GetControl()->GetAttribute<int>("maxlength", 0);
-	int max_byte = ConvertCharacterOffsetToByteOffset(value, max_length);
+	int max_byte = Rml::StringUtilities::ConvertCharacterOffsetToByteOffset(value, max_length);
 
 	if (max_byte > 0 && (int)value.length() > max_byte)
 	{
-		value = value.substr(0, max_byte);
+		value.erase(max_byte);
 	}
 
 	GetControl()->SetValue(value);

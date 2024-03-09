@@ -524,6 +524,33 @@ size_t StringUtilities::LengthUTF8(StringView string_view)
 	return string_view.size() - num_continuation_bytes;
 }
 
+int StringUtilities::ConvertCharacterOffsetToByteOffset(StringView string, int character_offset)
+{
+	if (character_offset >= (int)string.size())
+		return (int)string.size();
+
+	int character_count = 0;
+	for (auto it = StringIteratorU8(string.begin(), string.begin(), string.end()); it; ++it)
+	{
+		character_count += 1;
+		if (character_count > character_offset)
+			return (int)it.offset();
+	}
+	return (int)string.size();
+}
+
+int StringUtilities::ConvertByteOffsetToCharacterOffset(StringView string, int byte_offset)
+{
+	int character_count = 0;
+	for (auto it = StringIteratorU8(string.begin(), string.begin(), string.end()); it; ++it)
+	{
+		if (it.offset() >= byte_offset)
+			break;
+		character_count += 1;
+	}
+	return character_count;
+}
+
 StringView::StringView()
 {
 	const char* empty_string = "";
