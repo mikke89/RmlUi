@@ -133,6 +133,12 @@ namespace StringUtilities {
 			--p;
 		return p;
 	}
+
+	/// Converts a character position in a UTF-8 string to a byte offset.
+	RMLUICORE_API int ConvertCharacterOffsetToByteOffset(StringView string, int character_offset);
+
+	/// Converts a byte offset of a UTF-8 string to a character position.
+	RMLUICORE_API int ConvertByteOffsetToCharacterOffset(StringView string, int byte_offset);
 } // namespace StringUtilities
 
 /*

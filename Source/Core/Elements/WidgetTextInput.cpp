@@ -62,39 +62,12 @@ static CharacterClass GetCharacterClass(char c)
 	return CharacterClass::Whitespace;
 }
 
-static int ConvertCharacterOffsetToByteOffset(const String& value, int character_offset)
-{
-	if (character_offset >= (int)value.size())
-		return (int)value.size();
-
-	int character_count = 0;
-	for (auto it = StringIteratorU8(value); it; ++it)
-	{
-		character_count += 1;
-		if (character_count > character_offset)
-			return (int)it.offset();
-	}
-	return (int)value.size();
-}
-
-static int ConvertByteOffsetToCharacterOffset(const String& value, int byte_offset)
-{
-	int character_count = 0;
-	for (auto it = StringIteratorU8(value); it; ++it)
-	{
-		if (it.offset() >= byte_offset)
-			break;
-		character_count += 1;
-	}
-	return character_count;
-}
-
 // Clamps the value to the given maximum number of unicode code points. Returns true if the value was changed.
 static bool ClampValue(String& value, int max_length)
 {
 	if (max_length >= 0)
 	{
-		int max_byte_length = ConvertCharacterOffsetToByteOffset(value, max_length);
+		int max_byte_length = StringUtilities::ConvertCharacterOffsetToByteOffset(value, max_length);
 		if (max_byte_length < (int)value.size())
 		{
 			value.erase((size_t)max_byte_length);
@@ -257,8 +230,8 @@ void WidgetTextInput::SetSelectionRange(int selection_start, int selection_end)
 		return;
 
 	const String& value = GetValue();
-	const int byte_start = ConvertCharacterOffsetToByteOffset(value, selection_start);
-	const int byte_end = ConvertCharacterOffsetToByteOffset(value, selection_end);
+	const int byte_start = StringUtilities::ConvertCharacterOffsetToByteOffset(value, selection_start);
+	const int byte_end = StringUtilities::ConvertCharacterOffsetToByteOffset(value, selection_end);
 	const bool is_selecting = (byte_start != byte_end);
 
 	cursor_wrap_down = true;
@@ -286,9 +259,9 @@ void WidgetTextInput::GetSelection(int* selection_start, int* selection_end, Str
 {
 	const String& value = GetValue();
 	if (selection_start)
-		*selection_start = ConvertByteOffsetToCharacterOffset(value, selection_begin_index);
+		*selection_start = StringUtilities::ConvertByteOffsetToCharacterOffset(value, selection_begin_index);
 	if (selection_end)
-		*selection_end = ConvertByteOffsetToCharacterOffset(value, selection_begin_index + selection_length);
+		*selection_end = StringUtilities::ConvertByteOffsetToCharacterOffset(value, selection_begin_index + selection_length);
 	if (selected_text)
 		*selected_text = value.substr(Math::Min((size_t)selection_begin_index, (size_t)value.size()), (size_t)selection_length);
 }
@@ -296,8 +269,8 @@ void WidgetTextInput::GetSelection(int* selection_start, int* selection_end, Str
 void WidgetTextInput::SetIMERange(int range_start, int range_end)
 {
 	const String& value = GetValue();
-	const int byte_start = ConvertCharacterOffsetToByteOffset(value, range_start);
-	const int byte_end = ConvertCharacterOffsetToByteOffset(value, range_end);
+	const int byte_start = StringUtilities::ConvertCharacterOffsetToByteOffset(value, range_start);
+	const int byte_end = StringUtilities::ConvertCharacterOffsetToByteOffset(value, range_end);
 
 	if (byte_end > byte_start)
 	{
