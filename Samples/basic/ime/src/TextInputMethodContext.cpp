@@ -96,7 +96,7 @@ public:
 
 	virtual void GetSelectionRange(int& start, int& end) const override;
 	virtual void SetSelectionRange(int start, int end) override;
-	virtual void UpdateCompositionRange(int start, int end) override;
+	virtual void SetCompositionRange(int start, int end) override;
 
 private:
 	Rml::ElementFormControlInput* input;
@@ -116,7 +116,7 @@ void RmlInputTextInputMethodContext::SetSelectionRange(int start, int end)
 	input->SetSelectionRange(start, end);
 }
 
-void RmlInputTextInputMethodContext::UpdateCompositionRange(int start, int end)
+void RmlInputTextInputMethodContext::SetCompositionRange(int start, int end)
 {
 	input->SetIMERange(start, end);
 }
@@ -132,7 +132,7 @@ public:
 
 	virtual void GetSelectionRange(int& start, int& end) const override;
 	virtual void SetSelectionRange(int start, int end) override;
-	virtual void UpdateCompositionRange(int start, int end) override;
+	virtual void SetCompositionRange(int start, int end) override;
 
 private:
 	Rml::ElementFormControlTextArea* text_area;
@@ -152,7 +152,7 @@ void RmlTextAreaTextInputMethodContext::SetSelectionRange(int start, int end)
 	text_area->SetSelectionRange(start, end);
 }
 
-void RmlTextAreaTextInputMethodContext::UpdateCompositionRange(int start, int end)
+void RmlTextAreaTextInputMethodContext::SetCompositionRange(int start, int end)
 {
 	text_area->SetIMERange(start, end);
 }

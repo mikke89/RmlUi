@@ -343,7 +343,7 @@ void TextInputMethodEditor::IMEStartComposition()
 void TextInputMethodEditor::IMEEndComposition()
 {
 	if (context)
-		context->UpdateCompositionRange(0, 0);
+		context->SetCompositionRange(0, 0);
 
 	composing = false;
 
@@ -386,7 +386,7 @@ void TextInputMethodEditor::IMESetComposition(Rml::StringView composition, bool 
 	// Update the composition range only if the cursor can be moved around. Editors working with a single
 	// character (e.g., Hangul IME) should have no visual feedback; they use a selection range instead.
 	if (cursor_pos != -1)
-		context->UpdateCompositionRange(composition_range_start, composition_range_end);
+		context->SetCompositionRange(composition_range_start, composition_range_end);
 }
 
 void TextInputMethodEditor::UpdateCursorPosition()
