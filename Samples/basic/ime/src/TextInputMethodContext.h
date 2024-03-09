@@ -67,7 +67,7 @@ public:
 	/// Updates the range of the text being composed (e.g., for visual feedback).
 	/// @param[in] start The first character in the range.
 	/// @param[in] end The first character *after* the range.
-	virtual void UpdateCompositionRange(int start, int end) = 0;
+	virtual void SetCompositionRange(int start, int end) = 0;
 };
 
 namespace Rml {
