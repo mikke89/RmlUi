@@ -21,7 +21,7 @@
 			"cacheVariables": {
 				"RMLUI_SAMPLES": true,
 				"RMLUI_FONT_ENGINE": "none",
-				"RMLUI_SAMPLES_BACKEND": "native"
+				"RMLUI_BACKEND": "native"
 			}
 		},
 		{

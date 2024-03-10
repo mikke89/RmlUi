@@ -17,16 +17,16 @@ jobs:
         include:
           - cc: clang
             cxx: clang++
-            cmake_options: -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DRMLUI_SAMPLES_BACKEND=GLFW_GL2
+            cmake_options: -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DRMLUI_BACKEND=GLFW_GL2
           - cc: clang
             cxx: clang++
-            cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK
+            cmake_options: -DRMLUI_BACKEND=SDL_VK
           - cmake_options: -DRMLUI_BUILD_TESTING=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF
             enable_testing: true
-          - cmake_options: -DRMLUI_LOTTIE_PLUGIN=ON -DRMLUI_SAMPLES_BACKEND=X11_GL2
-          - cmake_options: -DRMLUI_DISABLE_RTTI_AND_EXCEPTIONS=ON -DRMLUI_SAMPLES_BACKEND=SDL_GL2
-          - cmake_options: -DRMLUI_NO_THIRDPARTY_CONTAINERS=ON -DRMLUI_SAMPLES_BACKEND=SFML_GL2
-          - cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug
+          - cmake_options: -DRMLUI_LOTTIE_PLUGIN=ON -DRMLUI_BACKEND=X11_GL2
+          - cmake_options: -DRMLUI_DISABLE_RTTI_AND_EXCEPTIONS=ON -DRMLUI_BACKEND=SDL_GL2
+          - cmake_options: -DRMLUI_NO_THIRDPARTY_CONTAINERS=ON -DRMLUI_BACKEND=SFML_GL2
+          - cmake_options: -DRMLUI_BACKEND=SDL_VK -DRMLUI_VK_DEBUG=ON -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_BUILD_TYPE=Debug
 
     steps:
     - uses: actions/checkout@v3
@@ -66,8 +66,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - cmake_options: -DRMLUI_SAMPLES_BACKEND=auto
-          - cmake_options: -DRMLUI_SAMPLES_BACKEND=GLFW_GL2
+          # - cmake_options: -DRMLUI_BACKEND=auto
+          - cmake_options: -DRMLUI_BACKEND=GLFW_GL2
     
     steps:
     - uses: actions/checkout@v3
@@ -100,10 +100,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - cmake_options: -DRMLUI_SAMPLES_BACKEND=auto -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF
+          # - cmake_options: -DRMLUI_BACKEND=auto -DRMLUI_ENABLE_PRECOMPILED_HEADERS=OFF
           # After upgrading minimum CMake to >= 3.18, CMake should automatically find Vulkan using the VULKAN_SDK environment variable
-          - cmake_options: -DRMLUI_SAMPLES_BACKEND=Win32_VK -DRMLUI_VK_DEBUG=ON -DVulkan_LIBRARY="C:\VulkanSDK\1.3.250.1\Lib\vulkan-1.lib" -DVulkan_INCLUDE_DIR="C:\VulkanSDK\1.3.250.1\Include\vulkan"
-          - cmake_options: -DRMLUI_SAMPLES_BACKEND=SDL_VK -DRMLUI_BUILD_LUA_BINDINGS_FOR_LUAJIT=ON -DVulkan_LIBRARY="C:\VulkanSDK\1.3.250.1\Lib\vulkan-1.lib" -DVulkan_INCLUDE_DIR="C:\VulkanSDK\1.3.250.1\Include\vulkan"
+          - cmake_options: -DRMLUI_BACKEND=Win32_VK -DRMLUI_VK_DEBUG=ON -DVulkan_LIBRARY="C:\VulkanSDK\1.3.250.1\Lib\vulkan-1.lib" -DVulkan_INCLUDE_DIR="C:\VulkanSDK\1.3.250.1\Include\vulkan"
+          - cmake_options: -DRMLUI_BACKEND=SDL_VK -DRMLUI_BUILD_LUA_BINDINGS_FOR_LUAJIT=ON -DVulkan_LIBRARY="C:\VulkanSDK\1.3.250.1\Lib\vulkan-1.lib" -DVulkan_INCLUDE_DIR="C:\VulkanSDK\1.3.250.1\Include\vulkan"
     
     steps:
     - uses: actions/checkout@v3
@@ -155,7 +155,7 @@ jobs:
     - name: Configure CMake
       run: |-
         source ~/emsdk/emsdk_env.sh
-        cmake -S . -B Build -DCMAKE_BUILD_TYPE=Debug -DRMLUI_SAMPLES=ON -DRMLUI_SAMPLES_BACKEND=SDL_GL3 \
+        cmake -S . -B Build -DCMAKE_BUILD_TYPE=Debug -DRMLUI_SAMPLES=ON -DRMLUI_BACKEND=SDL_GL3 \
         -DBUILD_SHARED_LIBS=OFF -DWARNINGS_AS_ERRORS=ON -DRMLUI_EMSCRIPTEN_EXE_FLAGS="-O1" \
         -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
         -DCMAKE_MODULE_PATH=$GITHUB_WORKSPACE/CMake/Modules/Emscripten

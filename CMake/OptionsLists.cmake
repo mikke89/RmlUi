@@ -2,7 +2,7 @@
     Lists of options available to configure some aspects of the project
 ]]
 
-set(RMLUI_AVAILABLE_SAMPLES_BACKENDS
+set(RMLUI_BACKEND_OPTIONS
 	"auto"
 	"native"
     "Win32_GL2"
@@ -18,12 +18,12 @@ set(RMLUI_AVAILABLE_SAMPLES_BACKENDS
     "GLFW_VK"
 )
 
-set(RMLUI_AVAILABLE_FONT_ENGINES
+set(RMLUI_FONT_ENGINE_OPTIONS
     "none"
     "freetype"
 )
 
-set(RMLUI_AVAILABLE_LUA_BINDINGS_LIBRARIES
+set(RMLUI_LUA_BINDINGS_LIBRARY_OPTIONS
 	"lua"
 	"luajit"
 )

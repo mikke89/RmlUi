@@ -11,7 +11,7 @@ include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 
 # --- Window/input APIs ---
 # SDL
-if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
+if(RMLUI_BACKEND MATCHES "^SDL")
     # Although the official CMake find module is called FindSDL.cmake, the official config module
     # provided by the SDL package for its version 2 is called SDL2Config.cmake
     # Following this trend, the official SDL config files change their name according to their major version number
@@ -38,7 +38,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     endif()
 
     # SDL_GL2 backend requires GLEW
-    if(RMLUI_SAMPLES_BACKEND STREQUAL "SDL_GL2" AND NOT TARGET GLEW::GLEW)
+    if(RMLUI_BACKEND STREQUAL "SDL_GL2" AND NOT TARGET GLEW::GLEW)
         find_package(GLEW)
         if(NOT TARGET GLEW::GLEW)
             report_not_found_dependency("GLEW" GLEW::GLEW)
@@ -46,15 +46,15 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     endif()
 
     # Check version requirement for the SDL renderer
-    if(RMLUI_SAMPLES_BACKEND STREQUAL "SDL_SDLrenderer" AND SDL2_VERSION VERSION_LESS "2.0.20")
-        message(FATAL_ERROR "SDL native renderer backend (${RMLUI_SAMPLES_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
+    if(RMLUI_BACKEND STREQUAL "SDL_SDLrenderer" AND SDL2_VERSION VERSION_LESS "2.0.20")
+        message(FATAL_ERROR "SDL native renderer backend (${RMLUI_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
     endif()
 
     # List of SDL backends that require SDL_image to work with samples
     set(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer")
 
     # Determine if the selected SDL backend requires SDL_image
-    if(RMLUI_SAMPLES_BACKEND IN_LIST RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
+    if(RMLUI_BACKEND IN_LIST RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
         set(RMLUI_SDLIMAGE_REQUIRED TRUE)
     else()
         set(RMLUI_SDLIMAGE_REQUIRED FALSE)
@@ -72,7 +72,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
 endif()
 
 # GLFW
-if(RMLUI_SAMPLES_BACKEND MATCHES "^GLFW")
+if(RMLUI_BACKEND MATCHES "^GLFW")
     find_package("glfw3" "3.3")
 
     # Instead of relying on the <package_name>_FOUND variable, we check directly for the target
@@ -82,7 +82,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^GLFW")
 endif()
 
 # SFML
-if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
+if(RMLUI_BACKEND MATCHES "^SFML")
     #[[
         Starting with SFML 2.7, the recommended method to find the library is using
         the official config file which sets up targets for each module of the library.
@@ -152,7 +152,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
 endif()
 
 # X11
-if(RMLUI_SAMPLES_BACKEND MATCHES "^X11")
+if(RMLUI_BACKEND MATCHES "^X11")
     find_package("X11")
 endif()
 
@@ -165,14 +165,14 @@ endif()
 # Can remove this with CMake 3.11 as this has become the default. See policy CMP0072.
 set(OpenGL_GL_PREFERENCE "GLVND")
 
-if(RMLUI_SAMPLES_BACKEND MATCHES "GL2$")
+if(RMLUI_BACKEND MATCHES "GL2$")
     find_package("OpenGL" "2")
     if(NOT TARGET OpenGL::GL)
         report_not_found_dependency("OpenGL" OpenGL::GL)
     endif()
 endif()
 
-if(RMLUI_SAMPLES_BACKEND MATCHES "GL3$")
+if(RMLUI_BACKEND MATCHES "GL3$")
     find_package("OpenGL" "3")
     if(NOT TARGET OpenGL::GL)
         report_not_found_dependency("OpenGL" OpenGL::GL)
@@ -180,7 +180,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "GL3$")
 endif()
 
 # Vulkan
-if(RMLUI_SAMPLES_BACKEND MATCHES "VK$")
+if(RMLUI_BACKEND MATCHES "VK$")
     find_package("Vulkan")
     if(NOT TARGET Vulkan::Vulkan)
         report_not_found_dependency("Vulkan" Vulkan::Vulkan)
