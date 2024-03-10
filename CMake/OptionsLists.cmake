@@ -4,6 +4,7 @@
 
 set(RMLUI_AVAILABLE_SAMPLES_BACKENDS
 	"auto"
+	"native"
     "Win32_GL2"
     "Win32_VK"
     "X11_GL2"
