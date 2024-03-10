@@ -1,11 +1,11 @@
 set(RMLUI_SAMPLE_PREFIX "rmlui_sample_")
 
 if(RMLUI_BACKEND MATCHES "VK$")
-    option(RMLUI_VK_DEBUG "Enable debugging mode for Vulkan renderer." OFF)
-    mark_as_advanced(RMLUI_VK_DEBUG)
-    if(RMLUI_VK_DEBUG)
-        target_compile_definitions(rmlui_backend_${RMLUI_BACKEND} INTERFACE "RMLUI_VK_DEBUG")
-    endif()
+	option(RMLUI_VK_DEBUG "Enable debugging mode for Vulkan renderer." OFF)
+	mark_as_advanced(RMLUI_VK_DEBUG)
+	if(RMLUI_VK_DEBUG)
+		target_compile_definitions(rmlui_backend_${RMLUI_BACKEND} INTERFACE "RMLUI_VK_DEBUG")
+	endif()
 endif()
 
 if(RMLUI_SHELL)

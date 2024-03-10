@@ -2,9 +2,9 @@ set(SAMPLE_NAME "treeview")
 set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
 
 add_executable(${TARGET_NAME} WIN32
-    src/FileBrowser.cpp
-    src/FileBrowser.h
-    src/main.cpp
+	src/FileBrowser.cpp
+	src/FileBrowser.h
+	src/main.cpp
 )
 
 set_common_target_options(${TARGET_NAME})

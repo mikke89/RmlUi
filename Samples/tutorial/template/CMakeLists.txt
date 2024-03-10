@@ -2,7 +2,7 @@ set(TUTORIAL_NAME "template")
 set(TARGET_NAME "${RMLUI_TUTORIAL_PREFIX}${TUTORIAL_NAME}")
 
 add_executable(${TARGET_NAME} WIN32
-    src/main.cpp
+	src/main.cpp
 )
 
 set_common_target_options(${TARGET_NAME})

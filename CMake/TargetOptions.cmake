@@ -1,7 +1,7 @@
 #[[
-    Set compile options and features that are common to all RmlUi targets.
-    Arguments:
-        - target: The name of the target to set
+	Set compile options and features that are common to all RmlUi targets.
+	Arguments:
+		- target: The name of the target to set
 ]]
 function(set_common_target_options target)
 	target_compile_features(${target} PUBLIC cxx_std_14)

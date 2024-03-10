@@ -1,8 +1,8 @@
 #[[
-    Interface libraries for each backend, including their source files and linking requirements.
+	Interface libraries for each backend, including their source files and linking requirements.
 
-    Every time a new backend gets added or its target name is modified, please update
-    the list of available backends found in OptionsLists.cmake
+	Every time a new backend gets added or its target name is modified, please update
+	the list of available backends found in OptionsLists.cmake
 ]]
 
 add_library(rmlui_backend_common_headers INTERFACE)
@@ -71,9 +71,9 @@ target_sources(rmlui_backend_SDL_GL3 INTERFACE
 )
 target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE rmlui_backend_common_headers OpenGL::GL SDL2::SDL2 SDL2_image::SDL2_image)
 if(UNIX)
-    # The OpenGL 3 renderer implementation uses dlopen/dlclose
-    # This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
-    target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE ${CMAKE_DL_LIBS})
+	# The OpenGL 3 renderer implementation uses dlopen/dlclose
+	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
+	target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE ${CMAKE_DL_LIBS})
 endif()
 
 add_library(rmlui_backend_SDL_VK INTERFACE)
@@ -88,9 +88,9 @@ target_sources(rmlui_backend_SDL_VK INTERFACE
 )
 target_link_libraries(rmlui_backend_SDL_VK INTERFACE rmlui_backend_common_headers Vulkan::Vulkan SDL2::SDL2)
 if(UNIX)
-    # The Vulkan renderer implementation uses dlopen/dlclose
-    # This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
-    target_link_libraries(rmlui_backend_SDL_VK INTERFACE ${CMAKE_DL_LIBS})
+	# The Vulkan renderer implementation uses dlopen/dlclose
+	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
+	target_link_libraries(rmlui_backend_SDL_VK INTERFACE ${CMAKE_DL_LIBS})
 endif()
 
 add_library(rmlui_backend_SDL_SDLrenderer INTERFACE)
@@ -112,7 +112,7 @@ target_sources(rmlui_backend_SFML_GL2 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_GL2.h"
 )
 target_link_libraries(rmlui_backend_SFML_GL2 INTERFACE
-    rmlui_backend_common_headers OpenGL::GL SFML::Graphics SFML::Window SFML::System
+	rmlui_backend_common_headers OpenGL::GL SFML::Graphics SFML::Window SFML::System
 )
 
 add_library(rmlui_backend_GLFW_GL2 INTERFACE)
@@ -136,9 +136,9 @@ target_sources(rmlui_backend_GLFW_GL3 INTERFACE
 )
 target_link_libraries(rmlui_backend_GLFW_GL3 INTERFACE rmlui_backend_common_headers OpenGL::GL glfw)
 if(UNIX)
-    # The OpenGL 3 renderer implementation uses dlopen/dlclose
-    # This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
-    target_link_libraries(rmlui_backend_GLFW_GL3 INTERFACE ${CMAKE_DL_LIBS})
+	# The OpenGL 3 renderer implementation uses dlopen/dlclose
+	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
+	target_link_libraries(rmlui_backend_GLFW_GL3 INTERFACE ${CMAKE_DL_LIBS})
 endif()
 
 add_library(rmlui_backend_GLFW_VK INTERFACE)
@@ -151,9 +151,9 @@ target_sources(rmlui_backend_GLFW_VK INTERFACE
 )
 target_link_libraries(rmlui_backend_GLFW_VK INTERFACE rmlui_backend_common_headers Vulkan::Vulkan glfw)
 if(UNIX)
-    # The Vulkan renderer implementation uses dlopen/dlclose
-    # This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
-    target_link_libraries(rmlui_backend_GLFW_VK INTERFACE ${CMAKE_DL_LIBS})
+	# The Vulkan renderer implementation uses dlopen/dlclose
+	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
+	target_link_libraries(rmlui_backend_GLFW_VK INTERFACE ${CMAKE_DL_LIBS})
 endif()
 
 if(RMLUI_IS_ROOT_PROJECT)

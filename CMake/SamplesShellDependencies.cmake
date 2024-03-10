@@ -1,5 +1,5 @@
 #[[
-    Set up of external dependencies required by the shell utility library used by the samples
+	Set up of external dependencies required by the shell utility library used by the samples
 ]]
 
 include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
@@ -11,29 +11,29 @@ include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 
 # Link against required libraries from Windows
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    # Required to use the functions from the shlwapi.h header
-    find_library(Shlwapi NAMES "Shlwapi" "Shlwapi.lib" "Shlwapi.dll")
-    if(NOT Shlwapi)
-        # Many platform libraries are still available to linkers even if CMake cannot find them
-        # Ignore the fact that the Shlwapi wasn't found and try to link against it anyway
-        set(Shlwapi "Shlwapi")
-    endif()
+	# Required to use the functions from the shlwapi.h header
+	find_library(Shlwapi NAMES "Shlwapi" "Shlwapi.lib" "Shlwapi.dll")
+	if(NOT Shlwapi)
+		# Many platform libraries are still available to linkers even if CMake cannot find them
+		# Ignore the fact that the Shlwapi wasn't found and try to link against it anyway
+		set(Shlwapi "Shlwapi")
+	endif()
 
-    # Set up wrapper target
-    add_library(Windows::Shell::LightweightUtility INTERFACE IMPORTED)
-    target_link_libraries(Windows::Shell::LightweightUtility INTERFACE ${Shlwapi})
+	# Set up wrapper target
+	add_library(Windows::Shell::LightweightUtility INTERFACE IMPORTED)
+	target_link_libraries(Windows::Shell::LightweightUtility INTERFACE ${Shlwapi})
 
-# Link against required libraries from macOS
+	# Link against required libraries from macOS
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    # Required to use the functions from the Cocoa framework
-    find_library(Cocoa NAMES "Cocoa" "Cocoa.framework")
-    if(NOT Cocoa)
-        # Many platform libraries are still available to linkers even if CMake cannot find them
-        # Ignore the fact that the Cocoa wasn't found and try to link against it anyway
-        set(Cocoa "Cocoa")
-    endif()
+	# Required to use the functions from the Cocoa framework
+	find_library(Cocoa NAMES "Cocoa" "Cocoa.framework")
+	if(NOT Cocoa)
+		# Many platform libraries are still available to linkers even if CMake cannot find them
+		# Ignore the fact that the Cocoa wasn't found and try to link against it anyway
+		set(Cocoa "Cocoa")
+	endif()
 
-    # Set up wrapper target
-    add_library(macOS::Cocoa INTERFACE IMPORTED)
-    target_link_libraries(macOS::Cocoa INTERFACE ${Cocoa})
+	# Set up wrapper target
+	add_library(macOS::Cocoa INTERFACE IMPORTED)
+	target_link_libraries(macOS::Cocoa INTERFACE ${Cocoa})
 endif()

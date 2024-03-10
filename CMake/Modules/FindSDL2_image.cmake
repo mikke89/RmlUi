@@ -1,15 +1,15 @@
 #[[
-    Find module for SDL_image version 2 that matches the naming convention of the SDL2_imageConfig.cmake file
-    provided in official distributions of the SDL2_image library.
+	Find module for SDL_image version 2 that matches the naming convention of the SDL2_imageConfig.cmake file
+	provided in official distributions of the SDL2_image library.
 
-    This is necessary on some distributions, including Ubuntu 20.04 and 22.04, because the libsdl2-image-dev package
-    doesn't provide the config file. https://packages.ubuntu.com/focal/amd64/libsdl2-image-dev/filelist
-    Furthermore, the CMake integrated find module is only compatible with the SDL1_image.
+	This is necessary on some distributions, including Ubuntu 20.04 and 22.04, because the libsdl2-image-dev package
+	doesn't provide the config file. https://packages.ubuntu.com/focal/amd64/libsdl2-image-dev/filelist
+	Furthermore, the CMake integrated find module is only compatible with the SDL1_image.
 
-    Defines the imported CMake target:
-    	SDL2_image::SDL2_image
+	Defines the imported CMake target:
+		SDL2_image::SDL2_image
 
-    In addition, the following CMake variables are defined according to normal conventions:
+	In addition, the following CMake variables are defined according to normal conventions:
 		SDL2_IMAGE_LIBRARIES
 		SDL2_IMAGE_INCLUDE_DIRS
 		SDL2_IMAGE_FOUND

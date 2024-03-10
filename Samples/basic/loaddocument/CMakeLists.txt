@@ -2,7 +2,7 @@ set(SAMPLE_NAME "loaddocument")
 set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
 
 add_executable(${TARGET_NAME} WIN32
-    src/main.cpp
+	src/main.cpp
 )
 
 set_common_target_options(${TARGET_NAME})

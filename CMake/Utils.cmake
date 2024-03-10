@@ -1,11 +1,11 @@
 #[[
-    Various CMake utilities
+	Various CMake utilities
 ]]
 
 #[[
-    Format the RmlUi version as it should normally be displayed.
-    Output:
-        RMLUI_VERSION_SHORT: The RmlUi version as a string
+	Format the RmlUi version as it should normally be displayed.
+	Output:
+		RMLUI_VERSION_SHORT: The RmlUi version as a string
 ]]
 function(generate_rmlui_version_string)
 	if(NOT RMLUI_VERSION_RELEASE)
@@ -21,10 +21,10 @@ function(generate_rmlui_version_string)
 endfunction()
 
 #[[
-    Function to print a message to the console indicating a dependency hasn't been found.
-    Arguments:
-        - friendly_name: Friendly name of the target
-        - target_name: Name of the CMake target the project will link against
+	Function to print a message to the console indicating a dependency hasn't been found.
+	Arguments:
+		- friendly_name: Friendly name of the target
+		- target_name: Name of the CMake target the project will link against
 ]]
 function(report_not_found_dependency friendly_name target_name)
 	message(FATAL_ERROR
@@ -36,34 +36,34 @@ function(report_not_found_dependency friendly_name target_name)
 endfunction()
 
 #[[
-    Function to print a message to the console indicating a library from a native platform SDK hasn't been found.
-    Arguments:
-        - library_name: Name of the library
+	Function to print a message to the console indicating a library from a native platform SDK hasn't been found.
+	Arguments:
+		- library_name: Name of the library
 ]]
 function(report_not_found_native_library library_name)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        set(SDK_NOTICE  "In order to ensure it is found, install the Windows SDK and build RmlUi inside a Visual Studio Developer CLI environment.\n"
-                        "More info: https://learn.microsoft.com/en-us/visualstudio/ide/reference/command-prompt-powershell"
-        )
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-        set(SDK_NOTICE  "In order to ensure it is found, install the macOS SDK.\n"
-                        "More info: https://developer.apple.com/macos/"
-        )
-    endif()
+	if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+		set(SDK_NOTICE "In order to ensure it is found, install the Windows SDK and build RmlUi inside a Visual Studio Developer CLI environment.\n"
+			"More info: https://learn.microsoft.com/en-us/visualstudio/ide/reference/command-prompt-powershell"
+		)
+	elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+		set(SDK_NOTICE "In order to ensure it is found, install the macOS SDK.\n"
+			"More info: https://developer.apple.com/macos/"
+		)
+	endif()
 
-    message(NOTICE
-        "CMake failed to find the ${library_name} library. Depending on the compiler, underlying build system "
-        "and environment setup, linkage of the RmlUi samples executables might fail."
-        "\n${SDK_NOTICE}"
-    )
+	message(NOTICE
+		"CMake failed to find the ${library_name} library. Depending on the compiler, underlying build system "
+		"and environment setup, linkage of the RmlUi samples executables might fail."
+		"\n${SDK_NOTICE}"
+	)
 endfunction()
 
 #[[
-    Enable or disable a given configuration type for multi-configuration generators.
-    Arguments:
-        - name: The name of the new configuration
-        - clone_config: The name of the configuration to clone compile flags from
-        - enable: Enable or disable configuration
+	Enable or disable a given configuration type for multi-configuration generators.
+	Arguments:
+		- name: The name of the new configuration
+		- clone_config: The name of the configuration to clone compile flags from
+		- enable: Enable or disable configuration
 ]]
 function(enable_configuration_type name clone_config enable)
 	if(CMAKE_CONFIGURATION_TYPES)

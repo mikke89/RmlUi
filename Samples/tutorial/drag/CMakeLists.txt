@@ -2,9 +2,9 @@ set(TUTORIAL_NAME "drag")
 set(TARGET_NAME "${RMLUI_TUTORIAL_PREFIX}${TUTORIAL_NAME}")
 
 add_executable(${TARGET_NAME} WIN32
-    src/Inventory.cpp
-    src/Inventory.h
-    src/main.cpp
+	src/Inventory.cpp
+	src/Inventory.h
+	src/main.cpp
 )
 
 set_common_target_options(${TARGET_NAME})
