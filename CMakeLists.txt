@@ -76,6 +76,8 @@ option(RMLUI_CUSTOM_RTTI "Build RmlUi with a custom implementation of run-time t
 
 option(RMLUI_PRECOMPILED_HEADERS "Enable precompiled headers for RmlUi." ON)
 
+option(RMLUI_COMPILER_OPTIONS "Enable recommended compiler-specific options for the project, such as for supported warning level, standards conformance, and multiprocess builds. Turn off for full control over compiler flags." ON)
+
 option(RMLUI_WARNINGS_AS_ERRORS "Treat compiler warnings as errors." OFF)
 mark_as_advanced(RMLUI_WARNINGS_AS_ERRORS)
 
