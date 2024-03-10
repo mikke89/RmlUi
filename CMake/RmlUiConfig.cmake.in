@@ -7,12 +7,14 @@ set(RMLUI_LUA_BINDINGS_LIBRARY "@RMLUI_LUA_BINDINGS_LIBRARY@")
 set(RMLUI_TRACY_PROFILING "@RMLUI_TRACY_PROFILING@")
 
 macro(report_not_found_dependency friendly_name target_name)
-    message(FATAL_ERROR
-        "${friendly_name} has not been found by CMake."
-        "\nIf you are consuming RmlUi as a subdirectory inside another CMake project, please ensure that "
-        "${friendly_name} can be found by CMake or at least being linked using \"${target_name}\" as its "
-        "target name. You can create an ALIAS target to offer an alternative name for a CMake target."
-    )
+    if(RmlUi_FIND_REQUIRED)
+        message(FATAL_ERROR
+            "${friendly_name} could not be found.\n"
+            "Please ensure that ${friendly_name} can be found by CMake, or linked to using \"${target_name}\" as its "
+            "target name. If you are consuming RmlUi from another CMake project, you can create an ALIAS target to "
+            "offer an alternative name for a CMake target."
+        )
+    endif()
     return()
 endmacro()
 

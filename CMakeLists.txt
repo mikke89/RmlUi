@@ -24,7 +24,7 @@ option(BUILD_SHARED_LIBS "CMake standard option. Choose whether to build shared 
 #   - Do not include negations (such as "not" and "disable"), to avoid situations with double negation.
 #   - Do not include a verb prefix (such as "enable" and "build"), as these are often superfluous.
 option(RMLUI_SAMPLES "Build samples of the library." OFF)
-set(RMLUI_SAMPLES_BACKEND "auto" CACHE STRING "Backend to use when building the RmlUi samples. Choose one from ./CMake/Backends.cmake.")
+set(RMLUI_SAMPLES_BACKEND "auto" CACHE STRING "Backend to use when building the RmlUi samples. Choose one from ./CMake/OptionsLists.cmake.")
 set_property(CACHE RMLUI_SAMPLES_BACKEND PROPERTY STRINGS ${RMLUI_AVAILABLE_SAMPLES_BACKENDS})
 if(NOT RMLUI_SAMPLES_BACKEND IN_LIST RMLUI_AVAILABLE_SAMPLES_BACKENDS)
 	message(FATAL_ERROR "The RmlUi backend '${RMLUI_SAMPLES_BACKEND}' specified in RMLUI_SAMPLES_BACKEND is not valid. Valid options: ${RMLUI_AVAILABLE_SAMPLES_BACKENDS}")

@@ -31,11 +31,10 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     # This is done for consistent referencing across the CMake code regardless of the CMake version used
     if(NOT TARGET SDL2::SDL2)
         add_library(SDL2::SDL2 INTERFACE IMPORTED)
-
-        # Any CMake target linking against SDL2::SDL2 will link against the SDL libraries and have
-        # their include directories added to their target properties
-        target_link_libraries(SDL2::SDL2 INTERFACE ${SDL2_LIBRARIES})
-        target_include_directories(SDL2::SDL2 INTERFACE ${SDL2_INCLUDE_DIRS})
+        set_target_properties(SDL2::SDL2 PROPERTIES
+            INTERFACE_LINK_LIBRARIES "${SDL2_LIBRARIES}"
+            INTERFACE_INCLUDE_DIRECTORIES "${SDL2_INCLUDE_DIRS}"
+        )
     endif()
 
     # SDL_GL2 backend requires GLEW
@@ -52,7 +51,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SDL")
     endif()
 
     # List of SDL backends that require SDL_image to work with samples
-    list(APPEND RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer")
+    set(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer")
 
     # Determine if the selected SDL backend requires SDL_image
     if(RMLUI_SAMPLES_BACKEND IN_LIST RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
@@ -98,7 +97,7 @@ if(RMLUI_SAMPLES_BACKEND MATCHES "^SFML")
     ]]
 
     # List of required components in capital case
-    list(APPEND RMLUI_SFML_REQUIRED_COMPONENTS "Graphics" "Window" "System")
+    set(RMLUI_SFML_REQUIRED_COMPONENTS "Graphics" "Window" "System")
 
     # Run find package with component names both capitalized and lower-cased
     find_package("SFML" "2" COMPONENTS ${RMLUI_SFML_REQUIRED_COMPONENTS} QUIET)

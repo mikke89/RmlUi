@@ -15,7 +15,7 @@ endif()
 
 if(RMLUI_SAMPLES)
 	if(NOT RMLUI_FONT_ENGINE_ENABLED)
-		message(NOTICE "Building samples without any font engine selected - some samples will be disabled.")
+		message(NOTICE "Building samples without any font engine selected - most samples will be disabled.")
 	endif()
 
 	add_subdirectory("basic")
