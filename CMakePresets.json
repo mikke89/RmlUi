@@ -2,6 +2,16 @@
 	"version": 3,
 	"configurePresets": [
 		{
+			"name": "cmake-warnings",
+			"hidden": true,
+			"warnings": {
+				"dev": true
+			},
+			"errors": {
+				"dev": true
+			}
+		},
+		{
 			"name": "samples",
 			"cacheVariables": {
 				"RMLUI_SAMPLES": true
@@ -26,17 +36,12 @@
 		},
 		{
 			"name": "dev",
+			"inherits": "cmake-warnings",
 			"installDir": "Install",
 			"cacheVariables": {
 				"RMLUI_SAMPLES": true,
 				"BUILD_TESTING": true,
 				"BUILD_SHARED_LIBS": false
-			},
-			"warnings": {
-				"dev": true
-			},
-			"errors": {
-				"dev": true
 			}
 		},
 		{
@@ -50,6 +55,7 @@
 		},
 		{
 			"name": "ci",
+			"inherits": "cmake-warnings",
 			"cacheVariables": {
 				"RMLUI_WARNINGS_AS_ERRORS": true
 			}
