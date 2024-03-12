@@ -158,6 +158,6 @@ endif()
 
 if(RMLUI_IS_ROOT_PROJECT)
 	install(DIRECTORY "./"
-		DESTINATION "${CMAKE_INSTALL_DATADIR}/backends"
+		DESTINATION "${CMAKE_INSTALL_DATADIR}/Backends"
 	)
 endif()

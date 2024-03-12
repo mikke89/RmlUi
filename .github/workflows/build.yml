@@ -1,16 +1,16 @@
 name: Build
 
-on: [push, pull_request]
+on: [] #"[push, pull_request]
 
 jobs:
   Linux:
     runs-on: ubuntu-20.04
-    
+
     env:
       BUILD_TYPE: Release
       CC: "${{ matrix.cc }}"
       CXX: "${{ matrix.cxx }}"
-  
+
     strategy:
       fail-fast: false
       matrix:
@@ -30,12 +30,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      
+
     - name: Install Dependencies
       run: |-
         sudo apt update -yq
         sudo apt install -yq cmake ninja-build clang libsdl2-dev libsdl2-image-dev libfreetype6-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev libglfw3-dev
-      
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
 
@@ -58,23 +58,23 @@ jobs:
 
   macOS:
     runs-on: macos-latest
-    
+
     env:
       BUILD_TYPE: Release
-    
+
     strategy:
       fail-fast: false
       matrix:
         include:
           # - cmake_options: -DRMLUI_BACKEND=auto
           - cmake_options: -DRMLUI_BACKEND=GLFW_GL2
-    
+
     steps:
     - uses: actions/checkout@v3
-      
+
     - name: Install Dependencies
       run: brew install lua sdl2 sdl2_image glfw
-      
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
 
@@ -91,11 +91,11 @@ jobs:
 
   Windows:
     runs-on: windows-latest
-    
+
     env:
       BUILD_TYPE: Release
       VCPKG_DEFAULT_TRIPLET: x64-windows
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -104,10 +104,10 @@ jobs:
           # After upgrading minimum CMake to >= 3.18, CMake should automatically find Vulkan using the VULKAN_SDK environment variable
           - cmake_options: -DRMLUI_BACKEND=Win32_VK -DRMLUI_VK_DEBUG=ON -DVulkan_LIBRARY="C:\VulkanSDK\1.3.250.1\Lib\vulkan-1.lib" -DVulkan_INCLUDE_DIR="C:\VulkanSDK\1.3.250.1\Include\vulkan"
           - cmake_options: -DRMLUI_BACKEND=SDL_VK -DRMLUI_BUILD_LUA_BINDINGS_FOR_LUAJIT=ON -DVulkan_LIBRARY="C:\VulkanSDK\1.3.250.1\Lib\vulkan-1.lib" -DVulkan_INCLUDE_DIR="C:\VulkanSDK\1.3.250.1\Include\vulkan"
-    
+
     steps:
     - uses: actions/checkout@v3
-      
+
     - name: Enable Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1.12.1
 
@@ -116,7 +116,7 @@ jobs:
         Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.3.250.1/windows/VulkanSDK-1.3.250.1-Installer.exe -OutFile vulkansdk.exe
         .\vulkansdk.exe --confirm-command --accept-licenses --default-answer in com.lunarg.vulkan
         C:\vcpkg\vcpkg install freetype[core] sdl2[core,vulkan] lua[core] luajit
-      
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/Build
 
@@ -151,7 +151,7 @@ jobs:
 
     - name: Create Build Environment
       run: cmake -E make_directory Build
-      
+
     - name: Configure CMake
       run: |-
         source ~/emsdk/emsdk_env.sh

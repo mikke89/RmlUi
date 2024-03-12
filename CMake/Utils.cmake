@@ -93,13 +93,16 @@ function(install_target_pdb target)
 	if(MSVC)
 		if(BUILD_SHARED_LIBS)
 			# The following only works for linker-generated PDBs, not compiler-generated PDBs produced in static builds.
-			install(FILES $<TARGET_PDB_FILE:${target}>
-				DESTINATION ${CMAKE_INSTALL_LIBDIR}
+			install(FILES "$<TARGET_PDB_FILE:${target}>"
+				DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 				OPTIONAL
 			)
 		else()
 			get_property(output_name TARGET ${target} PROPERTY OUTPUT_NAME)
-			install(FILES "$<TARGET_FILE_DIR:${target}>/${output_name}.pdb" DESTINATION "${CMAKE_INSTALL_LIBDIR}" OPTIONAL)
+			install(FILES "$<TARGET_FILE_DIR:${target}>/${output_name}.pdb"
+				DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+				OPTIONAL
+			)
 		endif()
 	endif()
 endfunction()

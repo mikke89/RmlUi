@@ -28,7 +28,8 @@ if(RMLUI_SAMPLES)
 		add_subdirectory("luainvaders")
 	endif()
 
-	install(DIRECTORY assets
-		DESTINATION "${CMAKE_INSTALL_DATADIR}/samples"
+	install(DIRECTORY assets shell
+		DESTINATION "${CMAKE_INSTALL_DATADIR}/Samples"
+		PATTERN "CMakeLists.txt" EXCLUDE
 	)
 endif()

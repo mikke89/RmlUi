@@ -102,11 +102,17 @@ else()
 	endif()
 endif()
 
+set(RMLUI_INSTALL_TARGETS_DIR "" CACHE STRING "Override the install directory for the generated CMake targets.")
+mark_as_advanced(RMLUI_INSTALL_TARGETS_DIR)
+
 # Add custom CMake modules path for external dependencies
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies")
 
 include(GNUInstallDirs)
+if(NOT RMLUI_INSTALL_TARGETS_DIR)
+	set(RMLUI_INSTALL_TARGETS_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi")
+endif()
 
 include("CMake/Utils.cmake")
 include("CMake/Dependencies.cmake")
@@ -147,7 +153,7 @@ set_target_properties(rmlui PROPERTIES EXPORT_NAME "RmlUi")
 install(TARGETS rmlui EXPORT RmlUiTargets)
 
 install(EXPORT RmlUiTargets
-	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi"
+	DESTINATION "${RMLUI_INSTALL_TARGETS_DIR}"
 	NAMESPACE RmlUi::
 	FILE RmlUiTargets.cmake
 )
@@ -170,15 +176,15 @@ install(FILES
 	"${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake"
 	"${CMAKE_CURRENT_SOURCE_DIR}/CMake/Dependencies.cmake"
 	DESTINATION
-	"${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi"
+	"${RMLUI_INSTALL_TARGETS_DIR}"
 )
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules"
-	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi"
+	DESTINATION "${RMLUI_INSTALL_TARGETS_DIR}"
 )
 
 if(RMLUI_IS_ROOT_PROJECT)
-	# Export build targets, except if RmlUi is included from a parent project using `add_subdirectory`.
+	# Export build targets if RmlUi is the top-level project.
 	export(EXPORT RmlUiTargets
 		NAMESPACE RmlUi::
 		FILE RmlUiTargets.cmake

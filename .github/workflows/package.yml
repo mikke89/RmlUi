@@ -1,0 +1,197 @@
+name: Package
+
+on: push
+
+jobs:
+  Build:
+    runs-on: windows-2019
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+        library_linkage: [Dynamic, Static]
+        architecture: [win32, win64]
+
+    env:
+      GENERATOR: Visual Studio 16 2019
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-${{ matrix.library_linkage == 'Dynamic' && 'windows' || 'windows-static-md' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |-
+          echo "Using vcpkg triplet: $env:VCPKG_DEFAULT_TRIPLET"
+          C:\vcpkg\vcpkg install freetype[core]
+
+      - name: Configure CMake
+        run: >-
+          cmake -B Build
+          -G "$env:GENERATOR"
+          -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64'  }}
+          -DRMLUI_WARNINGS_AS_ERRORS=ON
+          -DBUILD_SHARED_LIBS=${{ matrix.library_linkage == 'Dynamic' && 'ON' || 'OFF' }}
+          -DVCPKG_TARGET_TRIPLET="$env:VCPKG_DEFAULT_TRIPLET"
+          -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/Install"
+          -DCMAKE_INSTALL_BINDIR=Bin-${{matrix.library_linkage}}/${{matrix.build_type}}
+          -DCMAKE_INSTALL_LIBDIR=Bin-${{matrix.library_linkage}}/${{matrix.build_type}}
+          -DCMAKE_INSTALL_INCLUDEDIR=Include
+          -DRMLUI_INSTALL_TARGETS_DIR=Bin-${{matrix.library_linkage}}/CMake
+
+      - name: Build
+        run: cmake --build Build --config ${{ matrix.build_type }}
+
+      - name: Install
+        run: cmake --install Build --config ${{ matrix.build_type }}
+
+      - name: Copy licenses
+        run: |-
+          cp LICENSE.txt Install/LICENSE.txt
+          $vcpkg_installed_dir="C:/vcpkg/installed/$env:VCPKG_DEFAULT_TRIPLET/"
+          $destination_dir="./Install/Dependencies/Licenses/"
+          $copyright_files = Get-ChildItem -Path "$vcpkg_installed_dir/share" -Filter "copyright" -Recurse | Where-Object { $_.Directory.Name -notmatch '^vcpkg-' }
+          mkdir $destination_dir -Force | Out-Null
+          foreach ($file in $copyright_files) {
+            $name = $file.Directory.Name
+            Copy-Item -Path $file.FullName -Destination "$destination_dir/$name.txt"
+          }
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-${{ matrix.build_type }}-${{ matrix.library_linkage }}
+          path: ${{github.workspace}}/Install/
+          if-no-files-found: error
+
+  Samples:
+    runs-on: windows-2019
+
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [win32, win64]
+
+    env:
+      GENERATOR: Visual Studio 16 2019
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-windows${{ matrix.architecture == 'win64' && '-release' || '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        name: Checkout dependency rlottie
+        with:
+          repository: 'Samsung/rlottie'
+          ref: 'd40008707addacb636ff435236d31c694ce2b6cf'
+          path: 'Dependencies/rlottie'
+
+      - name: Install Dependencies
+        run: |-
+          echo "Using vcpkg triplet: $env:VCPKG_DEFAULT_TRIPLET"
+          C:\vcpkg\vcpkg install freetype[core] glfw3[core] lua[core] lunasvg[core]
+          cd Dependencies\rlottie
+          cmake -B build -G "$env:GENERATOR" -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64' }} -DBUILD_SHARED_LIBS=ON -DLOTTIE_MODULE=OFF
+          cmake --build build --target rlottie --config Release -- "/clp:ErrorsOnly"
+
+      - name: Configure CMake
+        run: >-
+          cmake -B Build
+          -G "$env:GENERATOR"
+          -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64' }}
+          --preset samples-all
+          -DRMLUI_BACKEND=GLFW_GL3
+          -DBUILD_SHARED_LIBS=ON
+          -DRMLUI_WARNINGS_AS_ERRORS=ON
+          -DVCPKG_TARGET_TRIPLET="$env:VCPKG_DEFAULT_TRIPLET"
+          -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/Install"
+          -DCMAKE_INSTALL_BINDIR="Samples"
+          -DCMAKE_INSTALL_DATAROOTDIR=""
+
+      - name: Build
+        run: cmake --build Build --config Release
+
+      - name: Copy runtime dependencies
+        run: cp Dependencies/rlottie/build/Release/rlottie.dll Build/bin/Release/
+
+      - name: Install
+        run: cmake --install Build --config Release
+
+      - name: Copy readme
+        run: |-
+          cp readme.md Install/
+          cp changelog.md Install/
+          cp Samples/readme.md Install/Samples/
+
+      - name: Write build info
+        run: |-
+          $rmlui_version=""
+          if ("$env:GITHUB_REF" -like "refs/tags/*") {
+            $rmlui_version=" $env:GITHUB_REF" -replace "refs/tags/", ""
+          }
+          $date=git show $env:GITHUB_SHA --no-patch --format=%cd --date=iso
+
+          echo @"
+          RmlUi$rmlui_version library and sample binaries for ${{ matrix.architecture }}.
+
+          https://github.com/mikke89/RmlUi
+
+          Built using $env:GENERATOR on $date (run $env:GITHUB_RUN_ID).
+          Commit id: $env:GITHUB_SHA
+          "@ > "Install/Build.txt"
+
+      - name: Copy licenses
+        run: |-
+          $vcpkg_installed_dir="C:/vcpkg/installed/$env:VCPKG_DEFAULT_TRIPLET/"
+          $destination_dir="./Install/Dependencies/"
+          $copyright_files = Get-ChildItem -Path "$vcpkg_installed_dir/share" -Filter "copyright" -Recurse | Where-Object { $_.Directory.Name -notmatch '^vcpkg-' }
+          mkdir $destination_dir -Force | Out-Null
+          foreach ($file in $copyright_files) {
+            $name = $file.Directory.Name
+            Copy-Item -Path $file.FullName -Destination "$destination_dir/$name.txt"
+          }
+
+          cp Dependencies/rlottie/licenses Install/Dependencies/rlottie -Recurse
+          cp Dependencies/rlottie/COPYING Install/Dependencies/rlottie
+          cp LICENSE.txt Install/LICENSE.txt
+          cp Include/RmlUi/Core/Containers/LICENSE.txt Install/LICENSE.Core.ThirdParty.txt
+          cp Source/Debugger/LICENSE.txt Install/LICENSE.Debugger.ThirdParty.txt
+          echo @'
+          The rlottie library includes source code licensed under Mozilla Public License Version 2.0.
+          The source for this code can be found in the rlottie library at the following URL:
+          https://github.com/Samsung/rlottie/blob/d40008707addacb636ff435236d31c694ce2b6cf/src/vector/vinterpolator.cpp
+          '@ > "Install/Dependencies/rlottie/vinterpolator.txt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: samples-${{ matrix.architecture }}
+          path: |
+            ${{github.workspace}}/Install/
+            !${{github.workspace}}/Install/lib/
+            !${{github.workspace}}/Install/include/
+          if-no-files-found: error
+
+  Package:
+    needs: [Build, Samples]
+    runs-on: windows-2019
+
+    strategy:
+      fail-fast: true
+      matrix:
+        architecture: [win32, win64]
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: List artifact contents
+        run: |
+          Get-ChildItem -Recurse | ForEach-Object { $_.FullName }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RmlUi-vs2019-${{ matrix.architecture }}
+          path: ./
