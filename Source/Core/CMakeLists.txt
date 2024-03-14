@@ -444,6 +444,7 @@ install(TARGETS rmlui_core
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+install_target_pdb(rmlui_core)
 install(DIRECTORY
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Config"
