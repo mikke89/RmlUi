@@ -6,10 +6,6 @@
 	*_NOTFOUND variables, we check directly for the existence of the target.
 ]]
 
-if(NOT RMLUI_IS_CONFIG_FILE)
-	include("${CMAKE_CURRENT_LIST_DIR}/Utils.cmake")
-endif()
-
 if(RMLUI_FONT_ENGINE STREQUAL "freetype")
 	find_package("Freetype")
 

@@ -7,8 +7,6 @@
 	This file is not meant to be used by consumers of the library, only by the RmlUi CMake project
 ]]
 
-include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
-
 # --- Window/input APIs ---
 # SDL
 if(RMLUI_BACKEND MATCHES "^SDL")

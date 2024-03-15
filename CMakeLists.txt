@@ -108,6 +108,7 @@ list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies")
 
 include(GNUInstallDirs)
 
+include("CMake/Utils.cmake")
 include("CMake/Dependencies.cmake")
 include("CMake/TargetOptions.cmake")
 

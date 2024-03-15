@@ -338,7 +338,6 @@ set_target_properties(rmlui_core PROPERTIES
 	OUTPUT_NAME "rmlui"
 )
 
-include("${PROJECT_SOURCE_DIR}/CMake/Utils.cmake")
 generate_rmlui_version_string()
 target_compile_definitions(rmlui_core PRIVATE "RMLUI_VERSION=\"${RMLUI_VERSION_SHORT}\"")
 
