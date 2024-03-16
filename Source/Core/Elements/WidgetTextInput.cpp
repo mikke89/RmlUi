@@ -84,15 +84,17 @@ public:
 	WidgetTextInputIMEContext(WidgetTextInput* _owner);
 	~WidgetTextInputIMEContext() = default;
 
-	virtual void GetScreenBounds(Vector2f& position, Vector2f& size) const override;
-	virtual void GetSelectionRange(int& start, int& end) const override;
-	virtual void SetSelectionRange(int start, int end) override;
-	virtual void SetCursorPosition(int position) override;
-	virtual void SetText(StringView text, int start, int end) override;
-	virtual void SetCompositionRange(int start, int end) override;
+	void GetScreenBounds(Vector2f& position, Vector2f& size) const override;
+	void GetSelectionRange(int& start, int& end) const override;
+	void SetSelectionRange(int start, int end) override;
+	void SetCursorPosition(int position) override;
+	void SetText(StringView text, int start, int end) override;
+	void SetCompositionRange(int start, int end) override;
+	void CommitComposition() override;
 
 private:
 	WidgetTextInput* owner;
+	String composition;
 };
 
 WidgetTextInputIMEContext::WidgetTextInputIMEContext(WidgetTextInput* _owner) : owner(_owner) {}
@@ -129,11 +131,47 @@ void WidgetTextInputIMEContext::SetText(StringView text, int start, int end)
 	value.replace(start, end - start, text.begin(), text.size());
 
 	owner->parent->SetValue(value);
+
+	composition = String(text);
 }
 
 void WidgetTextInputIMEContext::SetCompositionRange(int start, int end)
 {
 	owner->SetIMERange(start, end);
+}
+
+void WidgetTextInputIMEContext::CommitComposition()
+{
+	const int start_byte = owner->ime_composition_begin_index;
+	const int end_byte = owner->ime_composition_end_index;
+
+	// No composition to commit.
+	if (start_byte == 0 && end_byte == 0)
+		return;
+
+	String value = owner->GetAttributeValue();
+
+	// If the text input has a length restriction, we have to shorten the composition string.
+	if (owner->GetMaxLength() >= 0)
+	{
+		int start = StringUtilities::ConvertByteOffsetToCharacterOffset(value, start_byte);
+		int end = StringUtilities::ConvertByteOffsetToCharacterOffset(value, end_byte);
+
+		int value_length = (int)StringUtilities::LengthUTF8(value);
+		int composition_length = (int)StringUtilities::LengthUTF8(composition);
+
+		// The requested text value would exceed the length restriction after replacing the original value.
+		if (value_length + composition_length - (start - end) > owner->GetMaxLength())
+		{
+			int new_length = owner->GetMaxLength() - (value_length - composition_length);
+			composition.erase(StringUtilities::ConvertCharacterOffsetToByteOffset(composition, new_length));
+		}
+	}
+
+	RMLUI_ASSERTMSG(end_byte >= start_byte, "Invalid end character offset.");
+	value.replace(start_byte, end_byte - start_byte, composition.data(), composition.size());
+
+	owner->parent->SetValue(value);
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :

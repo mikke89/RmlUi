@@ -66,10 +66,13 @@ public:
 	/// @param[in] end The first character *after* the range.
 	virtual void SetText(StringView text, int start, int end) = 0;
 
-	/// Update the range of the text being composed (e.g., for visual feedback).
+	/// Update the range of the text being composed.
 	/// @param[in] start The first character in the range.
 	/// @param[in] end The first character *after* the range.
 	virtual void SetCompositionRange(int start, int end) = 0;
+
+	/// Commit the current composition.
+	virtual void CommitComposition() = 0;
 };
 
 } // namespace Rml

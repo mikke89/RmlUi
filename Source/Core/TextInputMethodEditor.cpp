@@ -147,6 +147,13 @@ void DefaultTextInputMethodEditor::IMEConfirmComposition(StringView composition)
 	RMLUI_ASSERT(IsComposing());
 
 	SetCompositionString(composition);
+
+	RMLUI_ASSERT(!context.expired());
+	SharedPtr<TextInputMethodContext> _context = context.lock();
+
+	_context->SetCompositionRange(composition_range_start, composition_range_end);
+	_context->CommitComposition();
+
 	// Move the cursor to the end of the string.
 	SetCursorPosition(composition_range_end - composition_range_start, true);
 

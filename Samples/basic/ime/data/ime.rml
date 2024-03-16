@@ -25,7 +25,7 @@
 			input[type="text"], textarea {
 				width: 100%;
 				border: 1px gray;
-                margin-bottom: 10dp;
+				margin-bottom: 10dp;
 			}
 
 			.note {
@@ -36,10 +36,10 @@
 	<body>
 		<form>
 			<label for="text">Input text</label>
-			<input id="text" type="text" name="text" />
+			<input id="text" type="text" name="text" maxlength=100 />
 
-            <label for="text_area">Type long text</label>
-            <textarea rows=4 id="text_area" name="text_area"></textarea>
+			<label for="text_area">Type long text</label>
+			<textarea rows=4 id="text_area" name="text_area"></textarea>
 		</form>
 
 		<p class="note">Note: the emoji keyboard and clipboard history use IME, too.</p>
