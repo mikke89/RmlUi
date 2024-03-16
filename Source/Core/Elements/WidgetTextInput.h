@@ -38,6 +38,7 @@ namespace Rml {
 
 class ElementText;
 class ElementFormControl;
+class WidgetTextInputIMEContext;
 
 /**
     An abstract widget for editing and navigating around a text field.
@@ -268,6 +269,10 @@ private:
 
 	// The IME composition text highlighting.
 	Geometry ime_composition_geometry;
+
+	friend class WidgetTextInputIMEContext;
+	// The IME context for this widget.
+	SharedPtr<WidgetTextInputIMEContext> text_input_method_context;
 
 	// Cursor visibility and timings.
 	float cursor_timer;

@@ -90,5 +90,10 @@ void DebuggerSystemInterface::DeactivateKeyboard()
 	application_interface->DeactivateKeyboard();
 }
 
+TextInputMethodEditor* DebuggerSystemInterface::GetTextInputMethodEditor() const
+{
+	return application_interface->GetTextInputMethodEditor();
+}
+
 } // namespace Debugger
 } // namespace Rml

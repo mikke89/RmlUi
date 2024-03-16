@@ -2,8 +2,6 @@ set(SAMPLE_NAME "ime")
 set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
 
 add_executable(${TARGET_NAME} WIN32
-	src/TextInputMethodContext.cpp
-	src/TextInputMethodContext.h
 	src/main.cpp
 )
 

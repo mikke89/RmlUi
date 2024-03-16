@@ -29,9 +29,11 @@
 #include "RmlUi_Platform_Win32.h"
 #include "RmlUi_Include_Windows.h"
 #include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Core/SystemInterface.h>
+#include <RmlUi/Core/TextInputMethodEditor.h>
 #include <string.h>
 
 // Used to interact with the input method editor (IME). Users of MinGW should manually link to this.
@@ -55,7 +57,11 @@ SystemInterface_Win32::SystemInterface_Win32()
 	cursor_cross = LoadCursor(nullptr, IDC_CROSS);
 	cursor_text = LoadCursor(nullptr, IDC_IBEAM);
 	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
+
+	text_input_method_editor = Rml::CreateDefaultTextInputMethodEditor();
 }
+
+SystemInterface_Win32::~SystemInterface_Win32() = default;
 
 void SystemInterface_Win32::SetWindow(HWND in_window_handle)
 {
@@ -169,6 +175,11 @@ void SystemInterface_Win32::ActivateKeyboard(Rml::Vector2f caret_position, float
 	}
 }
 
+Rml::TextInputMethodEditor* SystemInterface_Win32::GetTextInputMethodEditor() const
+{
+	return text_input_method_editor.get();
+}
+
 Rml::String RmlWin32::ConvertToUTF8(const std::wstring& wstr)
 {
 	const int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.length(), NULL, 0, NULL, NULL);
@@ -183,6 +194,30 @@ std::wstring RmlWin32::ConvertToUTF16(const Rml::String& str)
 	std::wstring wstr(count, 0);
 	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), &wstr[0], count);
 	return wstr;
+}
+
+static int IMEGetCursorPosition(HIMC context)
+{
+	return ImmGetCompositionString(context, GCS_CURSORPOS, nullptr, 0);
+}
+
+static std::wstring IMEGetCompositionString(HIMC context, bool finalize)
+{
+	DWORD type = finalize ? GCS_RESULTSTR : GCS_COMPSTR;
+	int len_bytes = ImmGetCompositionString(context, type, nullptr, 0);
+
+	if (len_bytes <= 0)
+		return {};
+
+	int len_chars = len_bytes / sizeof(TCHAR);
+	Rml::UniquePtr<TCHAR[]> buffer(new TCHAR[len_chars + 1]);
+	ImmGetCompositionString(context, type, buffer.get(), len_bytes);
+
+#ifdef UNICODE
+	return std::wstring(buffer.get(), len_chars);
+#else
+	return RmlWin32::ConvertToUTF16(Rml::String(buffer.get(), len_chars));
+#endif
 }
 
 bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param)
@@ -266,6 +301,78 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 		}
 	}
 	break;
+	case WM_IME_STARTCOMPOSITION:
+		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
+		{
+			editor->IMEStartComposition();
+			// Prevent the native composition window from appearing by capturing the message.
+			result = !editor->IsNativeCompositionBlocked();
+		}
+		break;
+	case WM_IME_ENDCOMPOSITION:
+		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
+			if (editor->IsComposing())
+				editor->IMEConfirmComposition(Rml::StringView());
+		break;
+	case WM_IME_COMPOSITION:
+		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
+		{
+			// Not every IME starts a composition.
+			if (!editor->IsComposing())
+				editor->IMEStartComposition();
+
+			if (!!(l_param & GCS_CURSORPOS))
+			{
+				if (auto imm_context = ImmGetContext(GetActiveWindow()))
+				{
+					// The cursor position is the wchar_t offset in the composition string. Because we
+					// work with UTF-8 and not UTF-16, we will have to convert the character offset.
+					int cursor_pos = IMEGetCursorPosition(imm_context);
+
+					std::wstring composition = IMEGetCompositionString(imm_context, false);
+					Rml::String converted = RmlWin32::ConvertToUTF8(composition.substr(0, cursor_pos));
+					cursor_pos = (int)Rml::StringUtilities::LengthUTF8(converted);
+
+					editor->SetCursorPosition(cursor_pos, true);
+				}
+			}
+
+			if (!!(l_param & CS_NOMOVECARET))
+			{
+				// Suppress the cursor position update. CS_NOMOVECARET is always a part of a more
+				// complex message which means that the cursor is updated from a different event.
+				editor->SetCursorPosition(-1, false);
+			}
+
+			if (!!(l_param & GCS_RESULTSTR))
+			{
+				if (auto imm_context = ImmGetContext(GetActiveWindow()))
+				{
+					std::wstring composition = IMEGetCompositionString(imm_context, true);
+					editor->IMEConfirmComposition(RmlWin32::ConvertToUTF8(composition));
+				}
+			}
+
+			if (!!(l_param & GCS_COMPSTR))
+			{
+				if (auto imm_context = ImmGetContext(GetActiveWindow()))
+				{
+					std::wstring composition = IMEGetCompositionString(imm_context, false);
+					editor->IMESetComposition(RmlWin32::ConvertToUTF8(composition));
+				}
+			}
+
+			// The composition has been canceled.
+			if (!l_param)
+				editor->IMECancelComposition();
+		}
+		break;
+	case WM_IME_CHAR:
+	case WM_IME_REQUEST:
+		// Ignore WM_IME_CHAR and WM_IME_REQUEST to block the system from appending the composition string.
+		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
+			result = !editor->IsNativeCompositionBlocked();
+		break;
 	default: break;
 	}
 

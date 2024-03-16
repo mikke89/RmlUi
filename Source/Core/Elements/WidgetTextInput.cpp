@@ -41,6 +41,8 @@
 #include "../../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../../Include/RmlUi/Core/TextInputMethodContext.h"
+#include "../../../Include/RmlUi/Core/TextInputMethodEditor.h"
 #include "../Clock.h"
 #include "ElementTextSelection.h"
 #include <algorithm>
@@ -75,6 +77,56 @@ static bool ClampValue(String& value, int max_length)
 		}
 	}
 	return false;
+}
+
+class WidgetTextInputIMEContext final : public TextInputMethodContext {
+public:
+	WidgetTextInputIMEContext(WidgetTextInput* _owner);
+	~WidgetTextInputIMEContext() = default;
+
+	virtual void GetSelectionRange(int& start, int& end) const override;
+	virtual void SetSelectionRange(int start, int end) override;
+	virtual void SetCursorPosition(int position) override;
+	virtual void SetText(StringView text, int start, int end) override;
+	virtual void SetCompositionRange(int start, int end) override;
+
+private:
+	WidgetTextInput* owner;
+};
+
+WidgetTextInputIMEContext::WidgetTextInputIMEContext(WidgetTextInput* _owner) : owner(_owner) {}
+
+void WidgetTextInputIMEContext::GetSelectionRange(int& start, int& end) const
+{
+	owner->GetSelection(&start, &end, nullptr);
+}
+
+void WidgetTextInputIMEContext::SetSelectionRange(int start, int end)
+{
+	owner->SetSelectionRange(start, end);
+}
+
+void WidgetTextInputIMEContext::SetCursorPosition(int position)
+{
+	SetSelectionRange(position, position);
+}
+
+void WidgetTextInputIMEContext::SetText(StringView text, int start, int end)
+{
+	String value = owner->GetAttributeValue();
+
+	start = StringUtilities::ConvertCharacterOffsetToByteOffset(value, start);
+	end = StringUtilities::ConvertCharacterOffsetToByteOffset(value, end);
+
+	RMLUI_ASSERTMSG(end >= start, "Invalid end character offset.");
+	value.replace(start, end - start, text.begin(), text.size());
+
+	owner->parent->SetValue(value);
+}
+
+void WidgetTextInputIMEContext::SetCompositionRange(int start, int end)
+{
+	owner->SetIMERange(start, end);
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
@@ -137,6 +189,8 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
 
 	ime_composition_begin_index = 0;
 	ime_composition_end_index = 0;
+
+	text_input_method_context = MakeShared<WidgetTextInputIMEContext>(this);
 
 	last_update_time = 0;
 
@@ -541,6 +595,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			if (UpdateSelection(false))
 				FormatElement();
 			ShowCursor(true, false);
+			if (TextInputMethodEditor* editor = GetSystemInterface()->GetTextInputMethodEditor())
+				editor->ActivateContext(text_input_method_context);
 		}
 	}
 	break;
@@ -548,6 +604,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 	{
 		if (event.GetTargetElement() == parent)
 		{
+			if (TextInputMethodEditor* editor = GetSystemInterface()->GetTextInputMethodEditor())
+				editor->DeactivateContext(text_input_method_context.get());
 			if (ClearSelection())
 				FormatElement();
 			ShowCursor(false, false);
@@ -1263,7 +1321,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// Transform segments according to text alignment
 	for (auto& it : segments)
 	{
-		auto const& line = lines[it.line_index];
+		const auto& line = lines[it.line_index];
 		const char* p_begin = GetValue().data() + line.value_offset;
 		float offset = GetAlignmentSpecificTextOffset(p_begin, it.line_index);
 
@@ -1290,7 +1348,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// Transform IME segments according to text alignment.
 	for (auto& it : ime_segments)
 	{
-		auto const& line = lines[it.line_index];
+		const auto& line = lines[it.line_index];
 		const char* p_begin = GetValue().data() + line.value_offset;
 		float offset = GetAlignmentSpecificTextOffset(p_begin, it.line_index);
 
@@ -1339,7 +1397,7 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 	int cursor_line_index = 0, cursor_character_index = 0;
 	GetRelativeCursorIndices(cursor_line_index, cursor_character_index);
 
-	auto const& line = lines[cursor_line_index];
+	const auto& line = lines[cursor_line_index];
 	const char* p_begin = GetValue().data() + line.value_offset;
 
 	cursor_position.x = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, cursor_character_index));

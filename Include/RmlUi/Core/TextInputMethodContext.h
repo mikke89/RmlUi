@@ -31,51 +31,42 @@
 
 #include <RmlUi/Core/StringUtilities.h>
 
+namespace Rml {
+
 /**
-    Sample interface for a text input handler for IME.
+    An interface for a text input handler for IME.
  */
 
 class TextInputMethodContext {
 public:
-	virtual ~TextInputMethodContext() = 0;
+	virtual ~TextInputMethodContext() {}
 
-	/// Retrieves the selection range.
+	/// Retrieve the selection range.
 	/// @param[out] start The first character selected.
 	/// @param[out] end The first character *after* the selection.
 	virtual void GetSelectionRange(int& start, int& end) const = 0;
 
-	/// Selects the text in the given character range.
+	/// Select the text in the given character range.
 	/// @param[in] start The first character to be selected.
 	/// @param[in] end The first character *after* the selection.
 	virtual void SetSelectionRange(int start, int end) = 0;
 
-	/// Moves the cursor caret to after a specific character.
-	/// @param[in] position The character after which the cursor should be moved.
+	/// Move the cursor caret to after a specific character.
+	/// @param[in] position The character position after which the cursor should be moved.
 	virtual void SetCursorPosition(int position) = 0;
 
-	/// Replaces a text in the given character range.
+	/// Replace a text in the given character range.
 	/// @param[in] text The string to replace the character range with.
 	/// @param[in] start The first character to be replaced.
 	/// @param[in] end The first character *after* the range.
-	virtual void SetText(Rml::StringView text, int start, int end) = 0;
+	virtual void SetText(StringView text, int start, int end) = 0;
 
-	/// Retrieves the screen-space bounds of the text area (in px).
-	/// @param[out] position The screen-space position of the text area (in px).
-	/// @param[out] size The screen-space size of the text area (in px).
-	virtual void GetScreenBounds(Rml::Vector2f& position, Rml::Vector2f& size) const = 0;
-
-	/// Updates the range of the text being composed (e.g., for visual feedback).
+	/// Update the range of the text being composed (e.g., for visual feedback).
 	/// @param[in] start The first character in the range.
 	/// @param[in] end The first character *after* the range.
 	virtual void SetCompositionRange(int start, int end) = 0;
 };
 
-namespace Rml {
-class ElementFormControlInput;
-class ElementFormControlTextArea;
 } // namespace Rml
-
-Rml::UniquePtr<TextInputMethodContext> CreateTextInputMethodContext(Rml::ElementFormControlInput* input);
-Rml::UniquePtr<TextInputMethodContext> CreateTextInputMethodContext(Rml::ElementFormControlTextArea* text_area);
 
 #endif
