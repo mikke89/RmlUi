@@ -11,7 +11,7 @@
 				margin: auto;
 				background-color: white;
 				color: black;
-				font-family: "Noto Sans";
+				font-family: LatoLatin;
 				font-weight: normal;
 				font-style: normal;
 				font-size: 15dp;
@@ -22,13 +22,10 @@
 				margin-bottom: 2dp;
 			}
 
-			input[type="text"] {
+			input[type="text"], textarea {
 				width: 100%;
 				border: 1px gray;
-			}
-
-			p {
-				margin-top: 10dp;
+                margin-bottom: 10dp;
 			}
 
 			.note {
@@ -40,6 +37,9 @@
 		<form>
 			<label for="text">Input text</label>
 			<input id="text" type="text" name="text" />
+
+            <label for="text_area">Type long text</label>
+            <textarea rows=4 id="text_area" name="text_area"></textarea>
 		</form>
 
 		<p class="note">Note: the emoji keyboard and clipboard history use IME, too.</p>
