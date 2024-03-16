@@ -86,8 +86,8 @@ void DefaultTextInputMethodEditor::ActivateContext(SharedPtr<TextInputMethodCont
 
 void DefaultTextInputMethodEditor::DeactivateContext(TextInputMethodContext* _context)
 {
-	RMLUI_ASSERT(context.lock().get() == _context);
-	context.reset();
+	if (context.lock().get() == _context)
+		context.reset();
 }
 
 bool DefaultTextInputMethodEditor::IsComposing() const
