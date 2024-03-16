@@ -111,11 +111,3 @@ install(TARGETS rmlui_lua
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 install_target_pdb(rmlui_lua)
-install(DIRECTORY
-	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua"
-	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
-)
-install(FILES
-	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lua.h"
-	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
-)

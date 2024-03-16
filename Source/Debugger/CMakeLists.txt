@@ -65,11 +65,3 @@ install(TARGETS rmlui_debugger
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 install_target_pdb(rmlui_debugger)
-install(DIRECTORY
-	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger"
-	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
-)
-install(FILES
-	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Debugger.h"
-	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
-)

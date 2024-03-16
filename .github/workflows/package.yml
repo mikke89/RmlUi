@@ -9,9 +9,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build_type: [Debug, Release]
-        library_linkage: [Dynamic, Static]
         architecture: [win32, win64]
+        library_linkage: [Dynamic, Static]
+        build_type: [Debug, Release]
 
     env:
       GENERATOR: Visual Studio 16 2019
@@ -50,7 +50,7 @@ jobs:
         run: |-
           cp LICENSE.txt Install/LICENSE.txt
           $vcpkg_installed_dir="C:/vcpkg/installed/$env:VCPKG_DEFAULT_TRIPLET/"
-          $destination_dir="./Install/Dependencies/Licenses/"
+          $destination_dir="./Install/Dependencies/"
           $copyright_files = Get-ChildItem -Path "$vcpkg_installed_dir/share" -Filter "copyright" -Recurse | Where-Object { $_.Directory.Name -notmatch '^vcpkg-' }
           mkdir $destination_dir -Force | Out-Null
           foreach ($file in $copyright_files) {
@@ -61,7 +61,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.architecture }}-${{ matrix.build_type }}-${{ matrix.library_linkage }}
+          name: build-${{ matrix.architecture }}-${{ matrix.library_linkage }}-${{ matrix.build_type }}
           path: ${{github.workspace}}/Install/
           if-no-files-found: error
 
@@ -108,7 +108,7 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/Install"
           -DCMAKE_INSTALL_BINDIR="Samples"
-          -DCMAKE_INSTALL_DATAROOTDIR=""
+          -DCMAKE_INSTALL_DATAROOTDIR="."
 
       - name: Build
         run: cmake --build Build --config Release

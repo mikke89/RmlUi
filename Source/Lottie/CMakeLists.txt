@@ -8,8 +8,3 @@ target_sources(rmlui_core PRIVATE
 )
 
 target_compile_definitions(rmlui_core PRIVATE "RMLUI_LOTTIE_PLUGIN")
-
-install(DIRECTORY
-	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Lottie"
-	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/RmlUi"
-)

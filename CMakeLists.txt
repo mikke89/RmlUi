@@ -157,6 +157,10 @@ install(EXPORT RmlUiTargets
 	NAMESPACE RmlUi::
 	FILE RmlUiTargets.cmake
 )
+install(DIRECTORY
+	"${CMAKE_CURRENT_SOURCE_DIR}/Include/RmlUi"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
 
 include(CMakePackageConfigHelpers)
 
@@ -165,7 +169,6 @@ configure_file(
 	"${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfig.cmake"
 	@ONLY
 )
-
 # RMLUI_CMAKE_MINIMUM_VERSION_RAISE_NOTICE:
 # From CMake 3.11 use compatibility mode `SameMinorVersion`.
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/install/RmlUiConfigVersion.cmake"
@@ -178,7 +181,6 @@ install(FILES
 	DESTINATION
 	"${RMLUI_INSTALL_TARGETS_DIR}"
 )
-
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules"
 	DESTINATION "${RMLUI_INSTALL_TARGETS_DIR}"
 )
