@@ -90,6 +90,10 @@ public:
 	/// Deactivate keyboard (for touchscreen devices).
 	void DeactivateKeyboard() override;
 
+	/// Obtain the text input method editor.
+	/// @return An instance of a text input method editor, or nullptr if not implemented.
+	TextInputMethodEditor* GetTextInputMethodEditor() const override;
+
 private:
 	Rml::SystemInterface* application_interface;
 	ElementLog* log;
