@@ -41,6 +41,11 @@ class RMLUICORE_API TextInputMethodContext {
 public:
 	virtual ~TextInputMethodContext() {}
 
+	/// Retrieve the screen-space bounds of the text area (in px).
+	/// @param[out] position The screen-space position of the text area (in px).
+	/// @param[out] size The screen-space size of the text area (in px).
+	virtual void GetScreenBounds(Vector2f& position, Vector2f& size) const = 0;
+
 	/// Retrieve the selection range.
 	/// @param[out] start The first character selected.
 	/// @param[out] end The first character *after* the selection.

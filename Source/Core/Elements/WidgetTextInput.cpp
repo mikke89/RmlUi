@@ -84,6 +84,7 @@ public:
 	WidgetTextInputIMEContext(WidgetTextInput* _owner);
 	~WidgetTextInputIMEContext() = default;
 
+	virtual void GetScreenBounds(Vector2f& position, Vector2f& size) const override;
 	virtual void GetSelectionRange(int& start, int& end) const override;
 	virtual void SetSelectionRange(int start, int end) override;
 	virtual void SetCursorPosition(int position) override;
@@ -95,6 +96,12 @@ private:
 };
 
 WidgetTextInputIMEContext::WidgetTextInputIMEContext(WidgetTextInput* _owner) : owner(_owner) {}
+
+void WidgetTextInputIMEContext::GetScreenBounds(Vector2f& position, Vector2f& size) const
+{
+	position = owner->GetElement()->GetAbsoluteOffset(BoxArea::Border);
+	size = owner->GetElement()->GetBox().GetSize(BoxArea::Border);
+}
 
 void WidgetTextInputIMEContext::GetSelectionRange(int& start, int& end) const
 {
