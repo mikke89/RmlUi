@@ -37,7 +37,7 @@ namespace Rml {
     An interface for a text input handler for IME.
  */
 
-class TextInputMethodContext {
+class RMLUICORE_API TextInputMethodContext {
 public:
 	virtual ~TextInputMethodContext() {}
 
