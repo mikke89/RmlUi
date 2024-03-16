@@ -104,6 +104,8 @@ endif()
 
 set(RMLUI_INSTALL_TARGETS_DIR "" CACHE STRING "Override the install directory for the generated CMake targets.")
 mark_as_advanced(RMLUI_INSTALL_TARGETS_DIR)
+option(RMLUI_INSTALL_LICENSES_AND_BUILD_INFO "Install license files and build info intended for the github actions workflow." OFF)
+mark_as_advanced(RMLUI_INSTALL_LICENSES_AND_BUILD_INFO)
 
 # Add custom CMake modules path for external dependencies
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules")
@@ -191,6 +193,11 @@ if(RMLUI_IS_ROOT_PROJECT)
 		NAMESPACE RmlUi::
 		FILE RmlUiTargets.cmake
 	)
+endif()
+
+if(RMLUI_INSTALL_LICENSES_AND_BUILD_INFO)
+	install_licenses()
+	install_build_info()
 endif()
 
 install_runtime_dependencies()

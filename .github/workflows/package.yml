@@ -35,28 +35,22 @@ jobs:
           -DVCPKG_TARGET_TRIPLET="$env:VCPKG_DEFAULT_TRIPLET"
           -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/Install"
+          -DRMLUI_INSTALL_TARGETS_DIR=Bin-${{matrix.library_linkage}}/CMake
           -DCMAKE_INSTALL_BINDIR=Bin-${{matrix.library_linkage}}/${{matrix.build_type}}
           -DCMAKE_INSTALL_LIBDIR=Bin-${{matrix.library_linkage}}/${{matrix.build_type}}
           -DCMAKE_INSTALL_INCLUDEDIR=Include
-          -DRMLUI_INSTALL_TARGETS_DIR=Bin-${{matrix.library_linkage}}/CMake
+          -DCMAKE_INSTALL_DATADIR="."
+          -DRMLUI_INSTALL_LICENSES_AND_BUILD_INFO=ON
+          -DRMLUI_ARCHITECTURE="${{ matrix.architecture }}"
+          -DRMLUI_COMMIT_DATE="$(git show $env:GITHUB_SHA --no-patch --format=%cd --date=iso)"
+          -DRMLUI_RUN_ID="$env:GITHUB_RUN_ID"
+          -DRMLUI_SHA="$env:GITHUB_SHA"
 
       - name: Build
         run: cmake --build Build --config ${{ matrix.build_type }}
 
       - name: Install
         run: cmake --install Build --config ${{ matrix.build_type }}
-
-      - name: Copy licenses
-        run: |-
-          cp LICENSE.txt Install/LICENSE.txt
-          $vcpkg_installed_dir="C:/vcpkg/installed/$env:VCPKG_DEFAULT_TRIPLET/"
-          $destination_dir="./Install/Dependencies/"
-          $copyright_files = Get-ChildItem -Path "$vcpkg_installed_dir/share" -Filter "copyright" -Recurse | Where-Object { $_.Directory.Name -notmatch '^vcpkg-' }
-          mkdir $destination_dir -Force | Out-Null
-          foreach ($file in $copyright_files) {
-            $name = $file.Directory.Name
-            Copy-Item -Path $file.FullName -Destination "$destination_dir/$name.txt"
-          }
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -108,7 +102,12 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/Install"
           -DCMAKE_INSTALL_BINDIR="Samples"
-          -DCMAKE_INSTALL_DATAROOTDIR="."
+          -DCMAKE_INSTALL_DATADIR="."
+          -DRMLUI_INSTALL_LICENSES_AND_BUILD_INFO=ON
+          -DRMLUI_ARCHITECTURE="${{ matrix.architecture }}"
+          -DRMLUI_COMMIT_DATE="$(git show $env:GITHUB_SHA --no-patch --format=%cd --date=iso)"
+          -DRMLUI_RUN_ID="$env:GITHUB_RUN_ID"
+          -DRMLUI_SHA="$env:GITHUB_SHA"
 
       - name: Build
         run: cmake --build Build --config Release
@@ -125,39 +124,10 @@ jobs:
           cp changelog.md Install/
           cp Samples/readme.md Install/Samples/
 
-      - name: Write build info
+      - name: Copy extra license files
         run: |-
-          $rmlui_version=""
-          if ("$env:GITHUB_REF" -like "refs/tags/*") {
-            $rmlui_version=" $env:GITHUB_REF" -replace "refs/tags/", ""
-          }
-          $date=git show $env:GITHUB_SHA --no-patch --format=%cd --date=iso
-
-          echo @"
-          RmlUi$rmlui_version library and sample binaries for ${{ matrix.architecture }}.
-
-          https://github.com/mikke89/RmlUi
-
-          Built using $env:GENERATOR on $date (run $env:GITHUB_RUN_ID).
-          Commit id: $env:GITHUB_SHA
-          "@ > "Install/Build.txt"
-
-      - name: Copy licenses
-        run: |-
-          $vcpkg_installed_dir="C:/vcpkg/installed/$env:VCPKG_DEFAULT_TRIPLET/"
-          $destination_dir="./Install/Dependencies/"
-          $copyright_files = Get-ChildItem -Path "$vcpkg_installed_dir/share" -Filter "copyright" -Recurse | Where-Object { $_.Directory.Name -notmatch '^vcpkg-' }
-          mkdir $destination_dir -Force | Out-Null
-          foreach ($file in $copyright_files) {
-            $name = $file.Directory.Name
-            Copy-Item -Path $file.FullName -Destination "$destination_dir/$name.txt"
-          }
-
           cp Dependencies/rlottie/licenses Install/Dependencies/rlottie -Recurse
           cp Dependencies/rlottie/COPYING Install/Dependencies/rlottie
-          cp LICENSE.txt Install/LICENSE.txt
-          cp Include/RmlUi/Core/Containers/LICENSE.txt Install/LICENSE.Core.ThirdParty.txt
-          cp Source/Debugger/LICENSE.txt Install/LICENSE.Debugger.ThirdParty.txt
           echo @'
           The rlottie library includes source code licensed under Mozilla Public License Version 2.0.
           The source for this code can be found in the rlottie library at the following URL:
@@ -183,13 +153,26 @@ jobs:
         architecture: [win32, win64]
 
     steps:
+      # Download artifacts in a well-defined order, with release binaries last.
       - uses: actions/download-artifact@v4
         with:
-          merge-multiple: true
+          name: samples-${{ matrix.architecture }}
 
-      - name: List artifact contents
-        run: |
-          Get-ChildItem -Recurse | ForEach-Object { $_.FullName }
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-Dynamic-Debug
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-Static-Debug
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-Dynamic-Release
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-Static-Release
 
       - uses: actions/upload-artifact@v4
         with:
