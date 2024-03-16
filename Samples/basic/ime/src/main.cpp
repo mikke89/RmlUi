@@ -48,10 +48,8 @@ static void LoadFonts()
 		{"assets/LatoLatin-Italic.ttf", false},
 		{"assets/LatoLatin-Bold.ttf", false},
 		{"assets/LatoLatin-BoldItalic.ttf", false},
-		{"basic/ime/data/NotoSans-Regular.ttf", false},
 		{"assets/NotoEmoji-Regular.ttf", true},
-		{"basic/ime/data/NotoSansKR-Regular.otf", true},
-		{"basic/ime/data/NotoSansSC-Regular.otf", true},
+		{"basic/ime/data/unifont.otf", true},
 	};
 
 	for (const FontFace& face : font_faces)
