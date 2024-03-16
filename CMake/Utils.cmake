@@ -106,3 +106,23 @@ function(install_target_pdb target)
 		endif()
 	endif()
 endfunction()
+
+#[[
+	Create installation rules for sample targets.
+	Arguments:
+		- target: The name of the target
+]]
+function(install_sample_target target)
+	set(install_dirs "src")
+	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/data")
+		list(APPEND install_dirs "data")
+	endif()
+	file(RELATIVE_PATH sample_path ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+	install(TARGETS ${TARGET_NAME}
+		${RMLUI_RUNTIME_DEPENDENCY_SET_ARG}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	)
+	install(DIRECTORY ${install_dirs}
+		DESTINATION "${CMAKE_INSTALL_DATADIR}/${sample_path}"
+	)
+endfunction()

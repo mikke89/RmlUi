@@ -43,10 +43,4 @@ target_link_libraries(${TARGET_NAME} PRIVATE
 	RmlUi::External::Lua
 )
 
-install(TARGETS ${TARGET_NAME}
-	${RMLUI_RUNTIME_DEPENDENCY_SET_ARG}
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-install(DIRECTORY data lua
-	DESTINATION "${CMAKE_INSTALL_DATADIR}/samples/luainvaders"
-)
+install_sample_target(${TARGET_NAME})
