@@ -39,7 +39,7 @@ class TextInputMethodContext;
     An interface for an IME (Input Method Editor) system.
  */
 
-class TextInputMethodEditor {
+class RMLUICORE_API TextInputMethodEditor {
 public:
 	virtual ~TextInputMethodEditor() {}
 
@@ -82,7 +82,7 @@ public:
 	virtual void SetCursorPosition(int cursor_pos, bool update) = 0;
 };
 
-UniquePtr<TextInputMethodEditor> CreateDefaultTextInputMethodEditor();
+RMLUICORE_API UniquePtr<TextInputMethodEditor> CreateDefaultTextInputMethodEditor();
 
 } // namespace Rml
 
