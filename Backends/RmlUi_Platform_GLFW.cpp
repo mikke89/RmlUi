@@ -29,17 +29,26 @@
 #include "RmlUi_Platform_GLFW.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Input.h>
-#include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Math.h>
 #include <RmlUi/Core/StringUtilities.h>
-#include <RmlUi/Core/SystemInterface.h>
 #include <GLFW/glfw3.h>
+
+#define GLFW_HAS_EXTRA_CURSORS (GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 4)
 
 SystemInterface_GLFW::SystemInterface_GLFW()
 {
 	cursor_pointer = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 	cursor_cross = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
 	cursor_text = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+#if GLFW_HAS_EXTRA_CURSORS
+	cursor_move = glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR);
+	cursor_resize = glfwCreateStandardCursor(GLFW_RESIZE_NWSE_CURSOR);
+	cursor_unavailable = glfwCreateStandardCursor(GLFW_NOT_ALLOWED_CURSOR);
+#else
+	cursor_move = cursor_pointer;
+	cursor_resize = cursor_pointer;
+	cursor_unavailable = nullptr;
+#endif
 }
 
 SystemInterface_GLFW::~SystemInterface_GLFW()
@@ -47,6 +56,11 @@ SystemInterface_GLFW::~SystemInterface_GLFW()
 	glfwDestroyCursor(cursor_pointer);
 	glfwDestroyCursor(cursor_cross);
 	glfwDestroyCursor(cursor_text);
+#if GLFW_HAS_EXTRA_CURSORS
+	glfwDestroyCursor(cursor_move);
+	glfwDestroyCursor(cursor_resize);
+	glfwDestroyCursor(cursor_unavailable);
+#endif
 }
 
 void SystemInterface_GLFW::SetWindow(GLFWwindow* in_window)
@@ -66,19 +80,19 @@ void SystemInterface_GLFW::SetMouseCursor(const Rml::String& cursor_name)
 	if (cursor_name.empty() || cursor_name == "arrow")
 		cursor = nullptr;
 	else if (cursor_name == "move")
-		cursor = cursor_pointer;
+		cursor = cursor_move;
 	else if (cursor_name == "pointer")
 		cursor = cursor_pointer;
 	else if (cursor_name == "resize")
-		cursor = cursor_pointer;
+		cursor = cursor_resize;
 	else if (cursor_name == "cross")
 		cursor = cursor_cross;
 	else if (cursor_name == "text")
 		cursor = cursor_text;
 	else if (cursor_name == "unavailable")
-		cursor = nullptr;
+		cursor = cursor_unavailable;
 	else if (Rml::StringUtilities::StartsWith(cursor_name, "rmlui-scroll"))
-		cursor = cursor_pointer;
+		cursor = cursor_move;
 
 	if (window)
 		glfwSetCursor(window, cursor);
