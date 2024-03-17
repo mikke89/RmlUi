@@ -18,31 +18,11 @@ if(RMLUI_FONT_ENGINE STREQUAL "freetype")
 			message(WARNING "Using Freetype 2.11.0 with MSVC can cause issues, please upgrade to Freetype 2.11.1 or newer.")
 		endif()
 	endif()
+
+	message(STATUS "Freetype font engine enabled, Freetype found.")
 endif()
 
 if(RMLUI_LOTTIE_PLUGIN)
-	execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
-	## Convert command output into a CMake list
-	STRING(REGEX REPLACE ";" "\\\\;" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
-	STRING(REGEX REPLACE "\n" ";" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
-
-	list(REMOVE_DUPLICATES CMAKE_PROPERTY_LIST)
-
-	function(print_target_properties tgt)
-		if(NOT TARGET ${tgt})
-			message("There is no target named '${tgt}'")
-			return()
-		endif()
-
-		foreach(prop ${CMAKE_PROPERTY_LIST})
-			string(REPLACE "<CONFIG>" "${CMAKE_BUILD_TYPE}" prop ${prop})
-			get_target_property(propval ${tgt} ${prop})
-			if(propval)
-				message("${tgt} ${prop} = ${propval}")
-			endif()
-		endforeach(prop)
-	endfunction(print_target_properties)
-
 	find_package("rlottie")
 
 	if(NOT TARGET rlottie::rlottie)
@@ -50,7 +30,6 @@ if(RMLUI_LOTTIE_PLUGIN)
 	endif()
 
 	message(STATUS "Lottie plugin enabled, rlottie found.")
-	print_target_properties(rlottie::rlottie)
 endif()
 
 if(RMLUI_SVG_PLUGIN)
@@ -59,6 +38,8 @@ if(RMLUI_SVG_PLUGIN)
 	if(NOT TARGET lunasvg::lunasvg)
 		report_not_found_dependency("lunasvg" lunasvg::lunasvg)
 	endif()
+
+	message(STATUS "SVG plugin enabled, lunasvg found.")
 endif()
 
 # The Lua and LuaJIT modules don't provide targets, so make our own, or let users define the target already.

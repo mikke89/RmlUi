@@ -40,7 +40,9 @@ jobs:
           -DCMAKE_INSTALL_LIBDIR=Bin-${{matrix.library_linkage}}/${{matrix.build_type}}
           -DCMAKE_INSTALL_INCLUDEDIR=Include
           -DCMAKE_INSTALL_DATADIR="."
+          -DRMLUI_INSTALL_RUNTIME_DEPENDENCIES=OFF
           -DRMLUI_INSTALL_LICENSES_AND_BUILD_INFO=ON
+          -DRMLUI_INSTALL_DEPENDENCIES_DIR="Dependencies/Bin-${{matrix.library_linkage}}"
           -DRMLUI_ARCHITECTURE="${{ matrix.architecture }}"
           -DRMLUI_COMMIT_DATE="$(git show $env:GITHUB_SHA --no-patch --format=%cd --date=iso)"
           -DRMLUI_RUN_ID="$env:GITHUB_RUN_ID"

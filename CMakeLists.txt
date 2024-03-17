@@ -199,5 +199,8 @@ if(RMLUI_INSTALL_LICENSES_AND_BUILD_INFO)
 	install_licenses()
 	install_build_info()
 endif()
+if(RMLUI_INSTALL_DEPENDENCIES_DIR)
+	install_vcpkg_dependencies()
+endif()
 
 install_runtime_dependencies()

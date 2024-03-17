@@ -6,6 +6,7 @@
 ]]
 
 add_library(rmlui_backend_common_headers INTERFACE)
+target_include_directories(rmlui_backend_common_headers INTERFACE "${CMAKE_CURRENT_LIST_DIR}")
 target_sources(rmlui_backend_common_headers INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend.h"
 )
