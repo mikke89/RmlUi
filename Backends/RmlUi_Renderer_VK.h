@@ -104,7 +104,7 @@ RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
  * and delete operations every frame (CPU side), on GPU we implemented the pre-allocated buffer with virtual allocs (Vma) so there's no problems and
  * all fine. I wrote all ideas and implementation for that.
  *
- * @author wh1t3lord
+ * @author wh1t3lord (https://github.com/wh1t3lord)
  */
 
 class RenderInterface_VK : public Rml::RenderInterface {
