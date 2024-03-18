@@ -9,37 +9,23 @@
 if(RMLUI_FONT_ENGINE STREQUAL "freetype")
 	find_package("Freetype")
 
-	if(NOT TARGET Freetype::Freetype)
-		report_not_found_dependency("Freetype" Freetype::Freetype)
-	endif()
-
-	if(DEFINED FREETYPE_VERSION_STRING)
+	if(FREETYPE_VERSION_STRING)
 		if(FREETYPE_VERSION_STRING VERSION_EQUAL "2.11.0" AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 			message(WARNING "Using Freetype 2.11.0 with MSVC can cause issues, please upgrade to Freetype 2.11.1 or newer.")
 		endif()
 	endif()
 
-	message(STATUS "Freetype font engine enabled, Freetype found.")
+	report_dependency_found_or_error("Freetype" Freetype::Freetype "Freetype font engine enabled")
 endif()
 
 if(RMLUI_LOTTIE_PLUGIN)
 	find_package("rlottie")
-
-	if(NOT TARGET rlottie::rlottie)
-		report_not_found_dependency("rlottie" rlottie::rlottie)
-	endif()
-
-	message(STATUS "Lottie plugin enabled, rlottie found.")
+	report_dependency_found_or_error("rlottie" rlottie::rlottie "Lottie plugin enabled")
 endif()
 
 if(RMLUI_SVG_PLUGIN)
 	find_package("lunasvg")
-
-	if(NOT TARGET lunasvg::lunasvg)
-		report_not_found_dependency("lunasvg" lunasvg::lunasvg)
-	endif()
-
-	message(STATUS "SVG plugin enabled, lunasvg found.")
+	report_dependency_found_or_error("lunasvg" lunasvg::lunasvg "SVG plugin enabled")
 endif()
 
 # The Lua and LuaJIT modules don't provide targets, so make our own, or let users define the target already.
@@ -53,6 +39,7 @@ if(RMLUI_LUA_BINDINGS AND RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "lua")
 		)
 	endif()
 	add_library(RmlUi::External::Lua ALIAS Lua::Lua)
+	report_dependency_found_or_error("Lua" Lua::Lua "Lua bindings enabled")
 endif()
 
 if(RMLUI_LUA_BINDINGS AND RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "luajit")
@@ -65,6 +52,7 @@ if(RMLUI_LUA_BINDINGS AND RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "luajit")
 		)
 	endif()
 	add_library(RmlUi::External::Lua ALIAS LuaJIT::LuaJIT)
+	report_dependency_found_or_error("Lua" LuaJIT::LuaJIT "Lua bindings enabled with LuaJIT")
 endif()
 
 if(NOT RMLUI_IS_CONFIG_FILE)
@@ -78,11 +66,11 @@ endif()
 if(RMLUI_TRACY_PROFILING)
 	find_package(Tracy CONFIG QUIET)
 
-	if(NOT TARGET Tracy::TracyClient)
-		if(RMLUI_IS_CONFIG_FILE)
-			report_not_found_dependency("Tracy" Tracy::TracyClient)
-		endif()
+	if(RMLUI_IS_CONFIG_FILE)
+		report_dependency_found_or_error("Tracy" Tracy::TracyClient)
+	endif()
 
+	if(NOT TARGET Tracy::TracyClient)
 		message(STATUS "Trying to add Tracy from subdirectory 'Dependencies/tracy'.")
 		add_subdirectory("Dependencies/tracy")
 

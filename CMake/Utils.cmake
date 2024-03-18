@@ -21,12 +21,12 @@ function(generate_rmlui_version_string)
 endfunction()
 
 #[[
-	Function to print a message to the console indicating a dependency hasn't been found.
+	Stop execution and print an error message for the dependency.
 	Arguments:
 		- friendly_name: Friendly name of the target
 		- target_name: Name of the CMake target the project will link against
 ]]
-function(report_not_found_dependency friendly_name target_name)
+function(report_dependency_not_found friendly_name target_name)
 	message(FATAL_ERROR
 		"${friendly_name} could not be found.\n"
 		"Please ensure that ${friendly_name} can be found by CMake, or linked to using \"${target_name}\" as its "
@@ -36,7 +36,24 @@ function(report_not_found_dependency friendly_name target_name)
 endfunction()
 
 #[[
-	Function to print a message to the console indicating a library from a native platform SDK hasn't been found.
+	Verify that the target is found and print a message, otherwise stop execution.
+	Arguments:
+		- friendly_name: Friendly name of the target
+		- target_name: Name of the CMake target the project will link against
+		- success_message: Message to show when the target exists (optional)
+]]
+function(report_dependency_found_or_error friendly_name target_name)
+	if(NOT TARGET ${target_name})
+		report_dependency_not_found(${friendly_name} ${target_name})
+	endif()
+	if(ARGC GREATER "2" AND ARGV2)
+		set(success_message " - ${ARGV2}")
+	endif()
+	message(STATUS "Found ${target_name}${success_message}")
+endfunction()
+
+#[[
+	Print a message to the console indicating a library from a native platform SDK hasn't been found.
 	Arguments:
 		- library_name: Name of the library
 ]]
