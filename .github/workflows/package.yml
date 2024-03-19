@@ -180,3 +180,29 @@ jobs:
         with:
           name: RmlUi-vs2019-${{ matrix.architecture }}
           path: ./
+
+  Release:
+    needs: [Package]
+    runs-on: windows-2019
+    if: ${{ github.ref_type == 'tag' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Download release artifacts
+        run: |
+          $release_artifacts = "RmlUi-vs2019-win64", "RmlUi-vs2019-win32", "samples-win64"
+          $headers = @{ "Authorization" = "token ${{ secrets.GITHUB_TOKEN }}" }
+          $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts" -Headers $headers
+          foreach ($name in $release_artifacts) {
+            $artifact = $response.artifacts | Where-Object { $_.name -eq $name }
+            Invoke-WebRequest -Uri $artifact.archive_download_url -OutFile "$name.zip" -Headers $headers
+          }
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: RmlUi ${{ github.ref_name }}
+          files: "*.zip"
+          draft: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
