@@ -1,6 +1,6 @@
 name: Package
 
-on: push
+on: [push, pull_request]
 
 jobs:
   Build:
@@ -204,5 +204,4 @@ jobs:
           name: RmlUi ${{ github.ref_name }}
           files: "*.zip"
           draft: true
-          generate_release_notes: true
           fail_on_unmatched_files: true
