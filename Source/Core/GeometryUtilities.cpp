@@ -74,8 +74,6 @@ void GeometryUtilities::GenerateQuad(Vertex* vertices, int* indices, Vector2f or
 
 void GeometryUtilities::GenerateLine(Geometry* geometry, Vector2f position, Vector2f size, Colourb color)
 {
-	Math::SnapToPixelGrid(position, size);
-
 	Vector<Vertex>& line_vertices = geometry->GetVertices();
 	Vector<int>& line_indices = geometry->GetIndices();
 

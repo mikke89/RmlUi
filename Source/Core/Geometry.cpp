@@ -78,8 +78,6 @@ void Geometry::Render(Vector2f translation)
 	RenderInterface* const render_interface = ::Rml::GetRenderInterface();
 	RMLUI_ASSERT(render_interface);
 
-	translation = translation.Round();
-
 	// Render our compiled geometry if possible.
 	if (compiled_geometry)
 	{

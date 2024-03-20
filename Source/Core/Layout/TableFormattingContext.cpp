@@ -73,7 +73,6 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 
 	context.table_content_offset = box.GetPosition();
 	context.table_initial_content_size = Vector2f(initial_content_size.x, Math::Max(0.0f, initial_content_size.y));
-	Math::SnapToPixelGrid(context.table_content_offset, context.table_initial_content_size);
 
 	// When width or height is set, they act as minimum width or height, just as in CSS.
 	if (computed_table.width().type != Style::Width::Auto)

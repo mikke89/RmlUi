@@ -47,6 +47,8 @@ struct RMLUICORE_API Vertex {
 	Colourb colour;
 	/// Texture coordinate for any associated texture.
 	Vector2f tex_coord;
+	/// Relative position (helps with properly snapping vertices for sharp looking)
+	Vector2f relative_position;
 };
 
 } // namespace Rml

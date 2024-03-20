@@ -40,10 +40,10 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 	const Colourb background_color, const Colourb* border_colors)
 {
 	EdgeSizes border_widths = {
-		Math::Round(box.GetEdge(BoxArea::Border, BoxEdge::Top)),
-		Math::Round(box.GetEdge(BoxArea::Border, BoxEdge::Right)),
-		Math::Round(box.GetEdge(BoxArea::Border, BoxEdge::Bottom)),
-		Math::Round(box.GetEdge(BoxArea::Border, BoxEdge::Left)),
+		box.GetEdge(BoxArea::Border, BoxEdge::Top),
+		box.GetEdge(BoxArea::Border, BoxEdge::Right),
+		box.GetEdge(BoxArea::Border, BoxEdge::Bottom),
+		box.GetEdge(BoxArea::Border, BoxEdge::Left),
 	};
 
 	int num_borders = 0;
@@ -55,7 +55,7 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 				num_borders += 1;
 	}
 
-	const Vector2f padding_size = box.GetSize(BoxArea::Padding).Round();
+	const Vector2f padding_size = box.GetSize(BoxArea::Padding);
 
 	const bool has_background = (background_color.alpha > 0 && padding_size.x > 0 && padding_size.y > 0);
 	const bool has_border = (num_borders > 0);
@@ -65,7 +65,7 @@ void GeometryBackgroundBorder::Draw(Vector<Vertex>& vertices, Vector<int>& indic
 
 	// -- Find the corner positions --
 
-	const Vector2f border_position = offset.Round();
+	const Vector2f border_position = offset;
 	const Vector2f padding_position = border_position + Vector2f(border_widths[Edge::LEFT], border_widths[Edge::TOP]);
 	const Vector2f border_size =
 		padding_size + Vector2f(border_widths[Edge::LEFT] + border_widths[Edge::RIGHT], border_widths[Edge::TOP] + border_widths[Edge::BOTTOM]);
@@ -259,6 +259,8 @@ void GeometryBackgroundBorder::DrawArc(Vector2f pos_center, Vector2f r, float a0
 		const Vector2f unit_vector(Math::Cos(a), Math::Sin(a));
 
 		vertices[offset_vertices + i].position = unit_vector * r + pos_center;
+		if (i > 0 && i < num_points)
+			vertices[offset_vertices + i].relative_position = pos_center + r;
 		vertices[offset_vertices + i].colour = Math::RoundedLerp(t, color0, color1);
 	}
 }
@@ -341,6 +343,12 @@ void GeometryBackgroundBorder::DrawArcArc(Vector2f pos_center, float R, Vector2f
 		vertices[offset_vertices + 2 * i].colour = color;
 		vertices[offset_vertices + 2 * i + 1].position = unit_vector * R + pos_center;
 		vertices[offset_vertices + 2 * i + 1].colour = color;
+
+		if (i > 0 && i < num_points)
+		{
+			vertices[offset_vertices + 2 * i].relative_position = pos_center + r;
+			vertices[offset_vertices + 2 * i + 1].relative_position = pos_center + Vector2f(R);
+		}
 	}
 
 	for (int i = 0; i < num_triangles; i += 2)
