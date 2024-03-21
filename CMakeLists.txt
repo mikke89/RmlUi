@@ -116,7 +116,7 @@ if(NOT RMLUI_INSTALL_TARGETS_DIR)
 	set(RMLUI_INSTALL_TARGETS_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/RmlUi")
 endif()
 
-include("CMake/Utils.cmake")
+include("CMake/Utilities.cmake")
 include("CMake/Dependencies.cmake")
 include("CMake/TargetOptions.cmake")
 
@@ -131,8 +131,8 @@ if(RMLUI_SAMPLES OR RMLUI_TESTS)
 endif()
 
 if(RMLUI_SHELL)
-	include("CMake/BackendsAutoSelection.cmake")
-	include("CMake/BackendsDependencies.cmake")
+	include("CMake/BackendAutoSelection.cmake")
+	include("CMake/BackendDependencies.cmake")
 	add_subdirectory("Backends")
 endif()
 

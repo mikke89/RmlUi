@@ -1,5 +1,5 @@
 #[[
-	Various CMake utilities
+	Various global CMake utilities for RmlUi, functions only.
 ]]
 
 #[[

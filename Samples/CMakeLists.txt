@@ -9,7 +9,7 @@ if(RMLUI_BACKEND MATCHES "VK$")
 endif()
 
 if(RMLUI_SHELL)
-	include("${PROJECT_SOURCE_DIR}/CMake/SamplesShellDependencies.cmake")
+	include("${PROJECT_SOURCE_DIR}/CMake/ShellDependencies.cmake")
 	add_subdirectory("shell")
 endif()
 
