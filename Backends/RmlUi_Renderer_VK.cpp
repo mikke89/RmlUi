@@ -3038,12 +3038,6 @@ void RenderInterface_VK::MemoryPool::Free_GeometryHandle_ShaderDataOnly(geometry
 	p_valid_geometry_handle->m_p_shader_allocation = nullptr;
 }
 
-RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
-
 #define GLAD_VULKAN_IMPLEMENTATION
-#include "RmlUi_Vulkan/vulkan.h"
-
 #define VMA_IMPLEMENTATION
-#include "RmlUi_Vulkan/vk_mem_alloc.h"
-
-RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
+#include "RmlUi_Include_Vulkan.h"
