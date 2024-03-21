@@ -29,8 +29,8 @@ target_sources(rmlui_backend_Win32_VK INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_Win32_VK.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_Win32.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_VK.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_Vulkan.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/ShadersCompiledSPV.h"
-	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/vk_mem_alloc.h"
 )
 target_link_libraries(rmlui_backend_Win32_VK INTERFACE rmlui_backend_common_headers)
 
@@ -84,8 +84,8 @@ target_sources(rmlui_backend_SDL_VK INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_SDL_VK.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_SDL.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_VK.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_Vulkan.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/ShadersCompiledSPV.h"
-	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/vk_mem_alloc.h"
 )
 target_link_libraries(rmlui_backend_SDL_VK INTERFACE rmlui_backend_common_headers SDL2::SDL2)
 if(UNIX)
@@ -149,6 +149,8 @@ target_sources(rmlui_backend_GLFW_VK INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Backend_GLFW_VK.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_GLFW.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_VK.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_Vulkan.h"
+	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/ShadersCompiledSPV.h"
 )
 target_link_libraries(rmlui_backend_GLFW_VK INTERFACE rmlui_backend_common_headers glfw)
 if(UNIX)
