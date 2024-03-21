@@ -31,50 +31,12 @@
 
 #include <RmlUi/Core/RenderInterface.h>
 
-/**
- * Include third-party dependencies.
- */
 #ifdef RMLUI_PLATFORM_WIN32
 	#include "RmlUi_Include_Windows.h"
 	#define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
-#if (_MSC_VER > 0)
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH _Pragma("warning(push, 0)")
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP _Pragma("warning(pop)")
-#elif __clang__
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH                                                                                   \
-		_Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Wall\"") _Pragma("clang diagnostic ignored \"-Wextra\"") \
-			_Pragma("clang diagnostic ignored \"-Wnullability-extension\"")                                                            \
-				_Pragma("clang diagnostic ignored \"-Wgnu-zero-variadic-macro-arguments\"")                                            \
-					_Pragma("clang diagnostic ignored \"-Wnullability-completeness\"")
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP _Pragma("clang diagnostic pop")
-#elif __GNUC__
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH                                                                                       \
-		_Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wimplicit-fallthrough\"")                                        \
-			_Pragma("GCC diagnostic ignored \"-Wunused-function\"") _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")               \
-				_Pragma("GCC diagnostic ignored \"-Wunused-variable\"") _Pragma("GCC diagnostic ignored \"-Wmissing-field-initializers\"") \
-					_Pragma("GCC diagnostic ignored \"-Wswitch\"") _Pragma("GCC diagnostic ignored \"-Wpedantic\"")                        \
-						_Pragma("GCC diagnostic ignored \"-Wattributes\"") _Pragma("GCC diagnostic ignored \"-Wignored-qualifiers\"")      \
-							_Pragma("GCC diagnostic ignored \"-Wparentheses\"")
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP _Pragma("GCC diagnostic pop")
-#else
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
-#endif
-
-RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
-
-#if defined(RMLUI_PLATFORM_UNIX)
-	#define VK_USE_PLATFORM_XCB_KHR 1
-#endif
-#include "RmlUi_Vulkan/vulkan.h"
-
-#define VMA_STATIC_VULKAN_FUNCTIONS 0
-#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
-#include "RmlUi_Vulkan/vk_mem_alloc.h"
-
-RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
+#include "RmlUi_Include_Vulkan.h"
 
 #ifdef RMLUI_DEBUG
 	#define RMLUI_VK_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(statement, msg)
