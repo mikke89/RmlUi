@@ -32,7 +32,7 @@ target_sources(rmlui_backend_Win32_VK INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/ShadersCompiledSPV.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/vk_mem_alloc.h"
 )
-target_link_libraries(rmlui_backend_Win32_VK INTERFACE rmlui_backend_common_headers Vulkan::Vulkan)
+target_link_libraries(rmlui_backend_Win32_VK INTERFACE rmlui_backend_common_headers)
 
 add_library(rmlui_backend_X11_GL2 INTERFACE)
 target_sources(rmlui_backend_X11_GL2 INTERFACE
@@ -87,7 +87,7 @@ target_sources(rmlui_backend_SDL_VK INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/ShadersCompiledSPV.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Vulkan/vk_mem_alloc.h"
 )
-target_link_libraries(rmlui_backend_SDL_VK INTERFACE rmlui_backend_common_headers Vulkan::Vulkan SDL2::SDL2)
+target_link_libraries(rmlui_backend_SDL_VK INTERFACE rmlui_backend_common_headers SDL2::SDL2)
 if(UNIX)
 	# The Vulkan renderer implementation uses dlopen/dlclose
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
@@ -150,7 +150,7 @@ target_sources(rmlui_backend_GLFW_VK INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Platform_GLFW.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_VK.h"
 )
-target_link_libraries(rmlui_backend_GLFW_VK INTERFACE rmlui_backend_common_headers Vulkan::Vulkan glfw)
+target_link_libraries(rmlui_backend_GLFW_VK INTERFACE rmlui_backend_common_headers glfw)
 if(UNIX)
 	# The Vulkan renderer implementation uses dlopen/dlclose
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime

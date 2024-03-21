@@ -169,9 +169,3 @@ if(RMLUI_BACKEND MATCHES "GL3$")
 	find_package("OpenGL" "3")
 	report_dependency_found_or_error("OpenGL" OpenGL::GL)
 endif()
-
-# Vulkan
-if(RMLUI_BACKEND MATCHES "VK$")
-	find_package("Vulkan")
-	report_dependency_found_or_error("Vulkan" Vulkan::Vulkan)
-endif()
