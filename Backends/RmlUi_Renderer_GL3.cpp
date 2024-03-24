@@ -1432,10 +1432,10 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 	const Rml::Vector2i dst_max = window_flipped.p1;
 	glBlitFramebuffer(src_min.x, src_min.y, src_max.x, src_max.y, dst_min.x, dst_min.y, dst_max.x, dst_max.y, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-	// The above upscale blit might be jittery at low resolutions (large pass levels). This is especially noticable when moving an element with
+	// The above upscale blit might be jittery at low resolutions (large pass levels). This is especially noticeable when moving an element with
 	// backdrop blur around or when trying to click/hover an element within a blurred region since it may be rendered at an offset. For more stable
 	// and accurate rendering we next upscale the blur image by an exact power-of-two. However, this may not fill the edges completely so we need to
-	// do the above first. Note that this strategy may sometimes result in visible seams. Alternatively, we could try to enlargen the window to the
+	// do the above first. Note that this strategy may sometimes result in visible seams. Alternatively, we could try to enlarge the window to the
 	// next power-of-two size and then downsample and blur that.
 	const Rml::Vector2i target_min = src_min * (1 << pass_level);
 	const Rml::Vector2i target_max = src_max * (1 << pass_level);
@@ -1875,14 +1875,28 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 
 void RenderInterface_GL3::PushLayer(Rml::LayerFill layer_fill)
 {
-	if (layer_fill == Rml::LayerFill::Clone)
+	const Gfx::FramebufferData source = render_layers.GetTopLayer();
+
+	if (layer_fill == Rml::LayerFill::Link)
 		render_layers.PushLayerClone();
 	else
 		render_layers.PushLayer();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
-	if (layer_fill == Rml::LayerFill::Clear)
-		glClear(GL_COLOR_BUFFER_BIT);
+	if (layer_fill == Rml::LayerFill::Copy)
+	{
+		const Gfx::FramebufferData& destination = render_layers.GetTopLayer();
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, source.framebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination.framebuffer);
+		// Note that the blit region will be clipped by any active scissor region.
+		glBlitFramebuffer(0, 0, source.width, source.height, 0, 0, destination.width, destination.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
+	}
+	else
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
+		if (layer_fill == Rml::LayerFill::Clear)
+			glClear(GL_COLOR_BUFFER_BIT);
+	}
 }
 
 void RenderInterface_GL3::PopLayer(Rml::BlendMode blend_mode, Rml::Span<const Rml::CompiledFilterHandle> filters)

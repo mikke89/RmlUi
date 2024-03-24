@@ -163,32 +163,32 @@
 	data-style-filter="'opacity(' + opacity + ') sepia(' + sepia + ') grayscale(' + grayscale + ') saturate(' + saturate + ') brightness(' + brightness + ') contrast(' + contrast + ') hue-rotate(' + hue_rotate + 'deg) invert(' + invert + ') blur(' + blur + 'px)' + (drop_shadow ? ' drop-shadow(#f11b 10px 10px 8px)' : '')"
 	data-class-transform_all="transform_all"
 >
+	<div class="box boxshadow_blur transform"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box boxshadow_trail"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box boxshadow_inset"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 
-<div class="box boxshadow_blur transform"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box boxshadow_trail"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box boxshadow_inset"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box big shader"><div class="label">"Creation" (Danilo Guanabara)</div></div>
+	<div class="box big gradient"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box mask"><div class="placeholder"/>Hello, do you feel the funk?</div>
 
-<div class="box"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box big shader"><div class="label">"Creation" (Danilo Guanabara)</div></div>
-<div class="box big gradient"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box mask"><div class="placeholder"/>Hello, do you feel the funk?</div>
+	<div class="box hue_rotate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 
-<div class="box hue_rotate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box animate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box saturate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box invert"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box blur"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 
-<div class="box animate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box saturate"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box invert"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box blur"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box brightness"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box contrast"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box dropshadow"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
 
-<div class="box brightness"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box contrast"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box dropshadow"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box grayscale"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+	<div class="box opacity_low"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+</div>
 
 <div class="box window sepia" style="top: 375dp"><handle move_target="#parent"/><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box window back_blur" style="top: 475dp"><handle move_target="#parent"/><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-
-<div class="box grayscale"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
-<div class="box opacity_low"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box window back_blur" style="top: 475dp"><handle move_target="#parent"/><img sprite="icon-invader"/>Hello, do you feel the funk?
 </div>
 </body>
 </rml>

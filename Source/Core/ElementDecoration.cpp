@@ -258,30 +258,22 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 		scissor_region.IntersectIfValid(render_manager->GetState().scissor_region);
 		render_manager->SetScissorRegion(scissor_region);
 	};
-
-	if (!backdrop_filters.empty())
-	{
-		if (render_stage == RenderStage::Enter)
-		{
-			ApplyClippingRegion(PropertyId::BackdropFilter);
-
-			render_manager->PushLayer(LayerFill::Clone);
-
-			FilterHandleList filter_handles;
-			for (auto& filter : backdrop_filters)
-				filter.compiled.AddHandleTo(filter_handles);
-
-			render_manager->PopLayer(BlendMode::Replace, filter_handles);
-
-			render_manager->SetScissorRegion(initial_scissor_region);
-		}
-	}
+	auto ApplyScissorRegionForBackdrop = [this, &render_manager]() {
+		// Set the scissor region for backdrop drawing, which covers the element's border box plus any area we may need
+		// to read from, such as any blur radius.
+		Rectanglef filter_region = Rectanglef::MakeInvalid();
+		ElementUtilities::GetBoundingBox(filter_region, element, BoxArea::Border);
+		for (const auto& filter : backdrop_filters)
+			filter.filter->ExtendInkOverflow(element, filter_region);
+		Math::ExpandToPixelGrid(filter_region);
+		render_manager->SetScissorRegion(Rectanglei(filter_region));
+	};
 
 	if (!filters.empty() || !mask_images.empty())
 	{
 		if (render_stage == RenderStage::Enter)
 		{
-			render_manager->PushLayer(LayerFill::Clear);
+			render_manager->PushLayer(backdrop_filters.empty() ? LayerFill::Clear : LayerFill::Copy);
 		}
 		else if (render_stage == RenderStage::Exit)
 		{
@@ -310,6 +302,25 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 			}
 
 			render_manager->PopLayer(BlendMode::Blend, filter_handles);
+			render_manager->SetScissorRegion(initial_scissor_region);
+		}
+	}
+
+	if (!backdrop_filters.empty())
+	{
+		if (render_stage == RenderStage::Enter)
+		{
+			ApplyScissorRegionForBackdrop();
+			render_manager->PushLayer(LayerFill::Copy);
+			render_manager->PushLayer(LayerFill::Link);
+
+			FilterHandleList filter_handles;
+			for (auto& filter : backdrop_filters)
+				filter.compiled.AddHandleTo(filter_handles);
+
+			render_manager->PopLayer(BlendMode::Replace, filter_handles);
+			ApplyClippingRegion(PropertyId::BackdropFilter);
+			render_manager->PopLayer(BlendMode::Blend, {});
 			render_manager->SetScissorRegion(initial_scissor_region);
 		}
 	}

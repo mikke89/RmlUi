@@ -1,0 +1,112 @@
+<rml>
+<head>
+	<title>Filter: backdrop</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Filters should apply to the backdrop filter as well. Requires filter support in the renderer." />
+	<style>
+		.container {
+			display: flow-root;
+			padding-bottom: 15dp;
+			border-bottom: 2dp #aaa;
+			margin-bottom: 15dp;
+		}
+		.box {
+			margin: 0 10dp;
+			width: 100dp;
+			height: 100dp;
+			float: left;
+		}
+		.backdrop {
+			backdrop-filter: blur(10dp);
+		}
+		.filter {
+			filter: sepia(1);
+		}
+		.mask-image {
+			mask-image: image("/assets/present.tga");
+		}
+		.green {
+			background-color: green;
+		}
+		.red {
+			background-color: red;
+		}
+		.background {
+			width: 50dp;
+			height: 50dp;
+			margin: 25dp 35dp;
+		}
+
+		.foreground {
+			margin-left: -110dp;
+		}
+	</style>
+</head>
+
+<body>
+<div class="container">
+	<div class="box"></div>
+	<div id="backdrop" class="box backdrop"></div>
+	<div class="box backdrop filter"></div>
+	<div class="box backdrop filter mask-image"></div>
+</div>
+
+<div class="container">
+	<div class="box green backdrop"></div>
+	<div class="box green mask-image"></div>
+	<div class="box green backdrop mask-image"></div>
+	<div class="box green backdrop mask-image filter"></div>
+</div>
+
+<div class="container">
+	<div class="box green"></div>
+	<div class="box green backdrop"></div>
+	<div class="box green filter"></div>
+	<div class="box green filter mask-image"></div>
+</div>
+
+<div class="container">
+	<div class="box background green"></div>
+	<div class="box foreground backdrop"></div>
+
+	<div class="box background green"></div>
+	<div class="box foreground backdrop filter"></div>
+
+	<div class="box background green"></div>
+	<div class="box foreground backdrop mask-image"></div>
+
+	<div class="box background green"></div>
+	<div class="box foreground backdrop filter mask-image"></div>
+</div>
+
+<div class="container">
+	<div class="box background green"></div>
+	<div class="box foreground red filter"></div>
+
+	<div class="box background green"></div>
+	<div class="box foreground red filter backdrop"></div>
+
+	<div class="box background green"></div>
+	<div class="box foreground red filter mask-image"></div>
+
+	<div class="box background green"></div>
+	<div class="box foreground red filter backdrop mask-image"></div>
+</div>
+
+<div class="container">
+	<div class="box background green"></div>
+	<div class="box foreground red mask-image"></div>
+
+	<div class="box background green"></div>
+	<div class="box foreground red mask-image backdrop"></div>
+
+	<div class="box background green"></div>
+	<div class="box foreground red mask-image filter"></div>
+
+	<div class="box background green"></div>
+	<div class="box foreground red mask-image backdrop filter"></div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

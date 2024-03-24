@@ -44,7 +44,8 @@ enum class ClipMaskOperation {
 enum class LayerFill {
 	None,  // No operation necessary, does not care about the layer color.
 	Clear, // Clear the layer to transparent black.
-	Clone, // Copy the color data from the previous layer.
+	Copy,  // Copy the color data from the previous layer.
+	Link,  // Link the color data with the previous layer.
 };
 enum class BlendMode {
 	Blend,   // Normal alpha blending.
