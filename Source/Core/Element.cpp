@@ -2897,4 +2897,31 @@ void Element::DirtyFontFaceRecursive()
 		GetChild(i)->DirtyFontFaceRecursive();
 }
 
+void Element::SetCachedShrinkToFitWidth(float width, Vector2f container_size)
+{
+	int frame_number = GetContext()->GetFrameNumber();
+	if (cached_shrink_to_fit_widths_frame_number != frame_number)
+	{
+		cached_shrink_to_fit_widths.clear();
+		cached_shrink_to_fit_widths_frame_number = frame_number;
+	}
+	cached_shrink_to_fit_widths[container_size] = width;
+}
+
+bool Element::GetCachedShrinkToFitWidth(float& width, Vector2f container_size) const
+{
+	int frame_number = GetContext()->GetFrameNumber();
+	if (cached_shrink_to_fit_widths_frame_number != frame_number)
+	{
+		return false;
+	}
+	auto it = cached_shrink_to_fit_widths.find(container_size);
+	if (it == cached_shrink_to_fit_widths.end())
+	{
+		return false;
+	}
+	width = it->second;
+	return true;
+}
+
 } // namespace Rml
