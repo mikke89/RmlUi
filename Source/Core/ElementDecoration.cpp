@@ -269,13 +269,45 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 		render_manager->SetScissorRegion(Rectanglei(filter_region));
 	};
 
-	if (!filters.empty() || !mask_images.empty())
+	if (render_stage == RenderStage::Enter)
 	{
-		if (render_stage == RenderStage::Enter)
+		const LayerHandle backdrop_source_layer = render_manager->GetTopLayer();
+
+		if (!filters.empty() || !mask_images.empty())
 		{
-			render_manager->PushLayer(backdrop_filters.empty() ? LayerFill::Clear : LayerFill::Copy);
+			render_manager->PushLayer();
 		}
-		else if (render_stage == RenderStage::Exit)
+
+		if (!backdrop_filters.empty())
+		{
+			const LayerHandle backdrop_destination_layer = render_manager->GetTopLayer();
+
+			// @performance We strictly only need this temporary buffer when having to read from outside the element
+			// boundaries, which currently only applies to blur and drop-shadow. Alternatively, we could avoid this
+			// completely if we introduced a render interface API concept of different input and output clipping. That
+			// is, we set a large input scissor to cover all input data, which can be used e.g. during blurring, and use
+			// our small border-area-only clipping region for the layers composite output.
+			ApplyScissorRegionForBackdrop();
+			render_manager->PushLayer();
+			const LayerHandle backdrop_temp_layer = render_manager->GetTopLayer();
+
+			FilterHandleList filter_handles;
+			for (auto& filter : backdrop_filters)
+				filter.compiled.AddHandleTo(filter_handles);
+
+			// Render the backdrop filters in the extended scissor region including any ink overflow.
+			render_manager->CompositeLayers(backdrop_source_layer, backdrop_temp_layer, BlendMode::Blend, filter_handles);
+
+			// Then composite the filter output to our destination while applying our clipping region, including any border-radius.
+			ApplyClippingRegion(PropertyId::BackdropFilter);
+			render_manager->CompositeLayers(backdrop_temp_layer, backdrop_destination_layer, BlendMode::Blend, {});
+			render_manager->PopLayer();
+			render_manager->SetScissorRegion(initial_scissor_region);
+		}
+	}
+	else if (render_stage == RenderStage::Exit)
+	{
+		if (!filters.empty() || !mask_images.empty())
 		{
 			ApplyClippingRegion(PropertyId::Filter);
 
@@ -288,7 +320,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 
 			if (!mask_images.empty())
 			{
-				render_manager->PushLayer(LayerFill::Clear);
+				render_manager->PushLayer();
 
 				for (int i = (int)mask_images.size() - 1; i >= 0; i--)
 				{
@@ -298,29 +330,11 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 				}
 				mask_image_filter = render_manager->SaveLayerAsMaskImage();
 				mask_image_filter.AddHandleTo(filter_handles);
-				render_manager->PopLayer(BlendMode::Discard, {});
+				render_manager->PopLayer();
 			}
 
-			render_manager->PopLayer(BlendMode::Blend, filter_handles);
-			render_manager->SetScissorRegion(initial_scissor_region);
-		}
-	}
-
-	if (!backdrop_filters.empty())
-	{
-		if (render_stage == RenderStage::Enter)
-		{
-			ApplyScissorRegionForBackdrop();
-			render_manager->PushLayer(LayerFill::Copy);
-			render_manager->PushLayer(LayerFill::Link);
-
-			FilterHandleList filter_handles;
-			for (auto& filter : backdrop_filters)
-				filter.compiled.AddHandleTo(filter_handles);
-
-			render_manager->PopLayer(BlendMode::Replace, filter_handles);
-			ApplyClippingRegion(PropertyId::BackdropFilter);
-			render_manager->PopLayer(BlendMode::Blend, {});
+			render_manager->CompositeLayers(render_manager->GetTopLayer(), render_manager->GetNextLayer(), BlendMode::Blend, filter_handles);
+			render_manager->PopLayer();
 			render_manager->SetScissorRegion(initial_scissor_region);
 		}
 	}

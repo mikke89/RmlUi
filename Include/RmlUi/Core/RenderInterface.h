@@ -41,16 +41,9 @@ enum class ClipMaskOperation {
 	SetInverse, // Set the clip mask to the area *outside* the rendered geometry, clearing any existing clip mask.
 	Intersect,  // Intersect the clip mask with the area of the rendered geometry.
 };
-enum class LayerFill {
-	None,  // No operation necessary, does not care about the layer color.
-	Clear, // Clear the layer to transparent black.
-	Copy,  // Copy the color data from the previous layer.
-	Link,  // Link the color data with the previous layer.
-};
 enum class BlendMode {
 	Blend,   // Normal alpha blending.
 	Replace, // Replace the destination colors from the source.
-	Discard, // Leave the destination colors unaltered.
 };
 
 /**
@@ -119,7 +112,8 @@ public:
 	/// @param[in] geometry The compiled geometry to render.
 	/// @param[in] translation The translation to apply to the geometry.
 	/// @note When enabled, the clip mask should hide any rendered contents outside the area of the mask.
-	/// @note The clip mask applies to all other functions that render with a geometry handle, and only those.
+	/// @note The clip mask applies exclusively to all other functions that render with a geometry handle, in addition
+	/// to the layer compositing function while rendering to its destination.
 	virtual void RenderToClipMask(ClipMaskOperation operation, CompiledGeometryHandle geometry, Vector2f translation);
 
 	/// Called by RmlUi when it wants the renderer to use a new transform matrix.
@@ -129,13 +123,19 @@ public:
 	/// @note The transform applies to all functions that render with a geometry handle, and only those.
 	virtual void SetTransform(const Matrix4f* transform);
 
-	/// Called by RmlUi when it wants to push a new layer onto the render stack.
-	/// @param[in] layer_fill Specifies how the color data of the new layer should be filled.
-	virtual void PushLayer(LayerFill layer_fill);
-	/// Called by RmlUi when it wants to pop the render layer stack, after applying filters to the top layer and blending it into the layer below.
-	/// @param[in] blend_mode The mode used to blend the top layer into the one below.
-	/// @param[in] filters A list of compiled filters which should be applied to the top layer before blending.
-	virtual void PopLayer(BlendMode blend_mode, Span<const CompiledFilterHandle> filters);
+	/// Called by RmlUi when it wants to push a new layer onto the render stack, setting it as the new render target.
+	/// @return An application-specified handle representing the new layer. The value 'zero' is reserved for the initial base layer.
+	/// @note The new layer should be initialized to transparent black within the current scissor region.
+	virtual LayerHandle PushLayer();
+	/// Composite two layers with the given blend mode and apply filters.
+	/// @param[in] source The source layer.
+	/// @param[in] destination The destination layer.
+	/// @param[in] blend_mode The mode used to blend the source layer onto the destination layer.
+	/// @param[in] filters A list of compiled filters which should be applied before blending.
+	/// @note Source and destination can reference the same layer.
+	virtual void CompositeLayers(LayerHandle source, LayerHandle destination, BlendMode blend_mode, Span<const CompiledFilterHandle> filters);
+	/// Called by RmlUi when it wants to pop the render layer stack, setting the new top layer as the render target.
+	virtual void PopLayer();
 
 	/// Called by RmlUi when it wants to store the current layer as a new texture to be rendered later with geometry.
 	/// @param[in] dimensions The dimensions of the texture, to be copied from the top-left part of the viewport.
@@ -143,7 +143,7 @@ public:
 	virtual TextureHandle SaveLayerAsTexture(Vector2i dimensions);
 
 	/// Called by RmlUi when it wants to store the current layer as a mask image, to be applied later as a filter.
-	/// @return An application-specified handle to a new filter representng the stored mask image.
+	/// @return An application-specified handle to a new filter representing the stored mask image.
 	virtual CompiledFilterHandle SaveLayerAsMaskImage();
 
 	/// Called by RmlUi when it wants to compile a new filter.

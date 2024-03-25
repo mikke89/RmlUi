@@ -103,8 +103,12 @@ public:
 	CompiledFilter CompileFilter(const String& name, const Dictionary& parameters);
 	CompiledShader CompileShader(const String& name, const Dictionary& parameters);
 
-	void PushLayer(LayerFill layer_fill);
-	void PopLayer(BlendMode blend_mode, Span<const CompiledFilterHandle> filters);
+	LayerHandle PushLayer();
+	void CompositeLayers(LayerHandle source, LayerHandle destination, BlendMode blend_mode, Span<const CompiledFilterHandle> filters);
+	void PopLayer();
+
+	LayerHandle GetTopLayer() const;
+	LayerHandle GetNextLayer() const;
 
 	CompiledFilter SaveLayerAsMaskImage();
 
@@ -141,6 +145,8 @@ private:
 
 	RenderState state;
 	Vector2i viewport_dimensions;
+
+	Vector<LayerHandle> render_stack;
 
 	friend class RenderManagerAccess;
 };

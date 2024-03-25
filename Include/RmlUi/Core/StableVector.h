@@ -40,8 +40,9 @@ namespace Rml {
     A vector-like container that returns stable indices to refer to entries.
 
     The indices are only invalidated when the element is erased. Pointers on the other hand are invalidated just like for a
-    vector. The container is implemented as a vector with a separate bit mask to track free slots. For simplicity, freed
-    slots are simply replaced with value-initialized elements.
+    vector. The container is implemented as a vector with a separate bit mask to track free slots.
+
+    @note For simplicity, freed slots are simply replaced with value-initialized elements instead of being destroyed.
  */
 template <typename T>
 class StableVector {

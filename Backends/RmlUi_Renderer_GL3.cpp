@@ -1736,9 +1736,9 @@ void RenderInterface_GL3::ReleaseShader(Rml::CompiledShaderHandle shader_handle)
 	delete reinterpret_cast<CompiledShader*>(shader_handle);
 }
 
-void RenderInterface_GL3::BlitTopLayerToPostprocessPrimary()
+void RenderInterface_GL3::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle)
 {
-	const Gfx::FramebufferData& source = render_layers.GetTopLayer();
+	const Gfx::FramebufferData& source = render_layers.GetLayer(layer_handle);
 	const Gfx::FramebufferData& destination = render_layers.GetPostprocessPrimary();
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, source.framebuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination.framebuffer);
@@ -1873,57 +1873,31 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 	Gfx::CheckGLError("RenderFilter");
 }
 
-void RenderInterface_GL3::PushLayer(Rml::LayerFill layer_fill)
+Rml::LayerHandle RenderInterface_GL3::PushLayer()
 {
-	const Gfx::FramebufferData source = render_layers.GetTopLayer();
+	const Rml::LayerHandle layer_handle = render_layers.PushLayer();
 
-	if (layer_fill == Rml::LayerFill::Link)
-		render_layers.PushLayerClone();
-	else
-		render_layers.PushLayer();
+	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(layer_handle).framebuffer);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-	if (layer_fill == Rml::LayerFill::Copy)
-	{
-		const Gfx::FramebufferData& destination = render_layers.GetTopLayer();
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, source.framebuffer);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination.framebuffer);
-		// Note that the blit region will be clipped by any active scissor region.
-		glBlitFramebuffer(0, 0, source.width, source.height, 0, 0, destination.width, destination.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
-	}
-	else
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
-		if (layer_fill == Rml::LayerFill::Clear)
-			glClear(GL_COLOR_BUFFER_BIT);
-	}
+	return layer_handle;
 }
 
-void RenderInterface_GL3::PopLayer(Rml::BlendMode blend_mode, Rml::Span<const Rml::CompiledFilterHandle> filters)
+void RenderInterface_GL3::CompositeLayers(Rml::LayerHandle source_handle, Rml::LayerHandle destination_handle, Rml::BlendMode blend_mode,
+	Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
 	using Rml::BlendMode;
 
-	if (blend_mode == BlendMode::Discard)
-	{
-		RMLUI_ASSERT(filters.empty());
-		render_layers.PopLayer();
-		glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
-		return;
-	}
-
-	// Blit stack to filter rendering buffer. Do this regardless of whether we actually have any filters to be applied,
-	// because we need to resolve the multi-sampled framebuffer in any case.
+	// Blit source layer to postprocessing buffer. Do this regardless of whether we actually have any filters to be
+	// applied, because we need to resolve the multi-sampled framebuffer in any case.
 	// @performance If we have BlendMode::Replace and no filters or mask then we can just blit directly to the destination.
-	BlitTopLayerToPostprocessPrimary();
+	BlitLayerToPostprocessPrimary(source_handle);
 
 	// Render the filters, the PostprocessPrimary framebuffer is used for both input and output.
 	RenderFilters(filters);
 
-	// Pop the active layer, thereby activating the beneath layer.
-	render_layers.PopLayer();
-
-	// Render to the activated layer. Apply any mask if active.
-	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
+	// Render to the destination layer.
+	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(destination_handle).framebuffer);
 	Gfx::BindTexture(render_layers.GetPostprocessPrimary());
 
 	UseProgram(ProgramId::Passthrough);
@@ -1936,7 +1910,16 @@ void RenderInterface_GL3::PopLayer(Rml::BlendMode blend_mode, Rml::Span<const Rm
 	if (blend_mode == BlendMode::Replace)
 		glEnable(GL_BLEND);
 
-	Gfx::CheckGLError("PopLayer");
+	if (destination_handle != render_layers.GetTopLayerHandle())
+		glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
+
+	Gfx::CheckGLError("CompositeLayers");
+}
+
+void RenderInterface_GL3::PopLayer()
+{
+	render_layers.PopLayer();
+	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
 }
 
 Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensions)
@@ -1945,7 +1928,7 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensi
 	if (!render_texture)
 		return {};
 
-	BlitTopLayerToPostprocessPrimary();
+	BlitLayerToPostprocessPrimary(render_layers.GetTopLayerHandle());
 
 	RMLUI_ASSERT(scissor_state.Valid() && render_texture);
 	const Rml::Rectanglei initial_scissor_state = scissor_state;
@@ -1982,7 +1965,7 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensi
 
 Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
 {
-	BlitTopLayerToPostprocessPrimary();
+	BlitLayerToPostprocessPrimary(render_layers.GetTopLayerHandle());
 
 	const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
 	const Gfx::FramebufferData& destination = render_layers.GetBlendMask();
@@ -2045,7 +2028,7 @@ RenderInterface_GL3::RenderLayerStack::~RenderLayerStack()
 	DestroyFramebuffers();
 }
 
-void RenderInterface_GL3::RenderLayerStack::PushLayer()
+Rml::LayerHandle RenderInterface_GL3::RenderLayerStack::PushLayer()
 {
 	RMLUI_ASSERT(layers_size <= (int)fb_layers.size());
 
@@ -2059,29 +2042,30 @@ void RenderInterface_GL3::RenderLayerStack::PushLayer()
 	}
 
 	layers_size += 1;
-}
-
-void RenderInterface_GL3::RenderLayerStack::PushLayerClone()
-{
-	RMLUI_ASSERT(layers_size > 0);
-	fb_layers.insert(fb_layers.begin() + layers_size, Gfx::FramebufferData{fb_layers[layers_size - 1]});
-	layers_size += 1;
+	return GetTopLayerHandle();
 }
 
 void RenderInterface_GL3::RenderLayerStack::PopLayer()
 {
 	RMLUI_ASSERT(layers_size > 0);
 	layers_size -= 1;
+}
 
-	// Only cloned framebuffers are removed. Other framebuffers remain for later re-use.
-	if (IsCloneOfBelow(layers_size))
-		fb_layers.erase(fb_layers.begin() + layers_size);
+const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::GetLayer(Rml::LayerHandle layer) const
+{
+	RMLUI_ASSERT((size_t)layer < (size_t)layers_size);
+	return fb_layers[layer];
 }
 
 const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::GetTopLayer() const
 {
+	return GetLayer(GetTopLayerHandle());
+}
+
+Rml::LayerHandle RenderInterface_GL3::RenderLayerStack::GetTopLayerHandle() const
+{
 	RMLUI_ASSERT(layers_size > 0);
-	return fb_layers[layers_size - 1];
+	return static_cast<Rml::LayerHandle>(layers_size - 1);
 }
 
 void RenderInterface_GL3::RenderLayerStack::SwapPostprocessPrimarySecondary()
@@ -2121,13 +2105,6 @@ void RenderInterface_GL3::RenderLayerStack::DestroyFramebuffers()
 
 	for (Gfx::FramebufferData& fb : fb_postprocess)
 		Gfx::DestroyFramebuffer(fb);
-}
-
-bool RenderInterface_GL3::RenderLayerStack::IsCloneOfBelow(int layer_index) const
-{
-	const bool result =
-		(layer_index >= 1 && layer_index < (int)fb_layers.size() && fb_layers[layer_index].framebuffer == fb_layers[layer_index - 1].framebuffer);
-	return result;
 }
 
 const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::EnsureFramebufferPostprocess(int index)

@@ -155,7 +155,7 @@ TEST_CASE("core.release_resources")
 		CHECK(counters.load_texture == startup_counters.load_texture);
 		CHECK(counters.generate_texture == startup_counters.generate_texture);
 		CHECK(counters.release_texture == startup_counters.generate_texture + startup_counters.load_texture);
-		const int num_released_textures = counters.release_texture;
+		const size_t num_released_textures = counters.release_texture;
 
 		// By doing a new context Update+Render the textures should be loaded again.
 		TestsShell::RenderLoop();

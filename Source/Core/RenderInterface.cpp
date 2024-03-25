@@ -51,9 +51,16 @@ void RenderInterface::RenderToClipMask(ClipMaskOperation /*operation*/, Compiled
 
 void RenderInterface::SetTransform(const Matrix4f* /*transform*/) {}
 
-void RenderInterface::PushLayer(LayerFill /*layer_fill*/) {}
+LayerHandle RenderInterface::PushLayer()
+{
+	return {};
+}
 
-void RenderInterface::PopLayer(BlendMode /*blend_mode*/, Span<const CompiledFilterHandle> /*filters*/) {}
+void RenderInterface::CompositeLayers(LayerHandle /*source*/, LayerHandle /*destination*/, BlendMode /*blend_mode*/,
+	Span<const CompiledFilterHandle> /*filters*/)
+{}
+
+void RenderInterface::PopLayer() {}
 
 TextureHandle RenderInterface::SaveLayerAsTexture(Vector2i /*dimensions*/)
 {

@@ -1,6 +1,6 @@
 <rml>
 <head>
-	<title>Filter: blur</title>
+	<title>Filter: blur area</title>
 	<link type="text/rcss" href="../style.rcss"/>
 	<meta name="Description" content="Both the blur element in the center and the background can be moved. Requires filter support in the renderer." />
 	<meta name="Assert" content="See how the blur algorithm behaves while moving the elements around. Try with different sizes and blur radius. Ideally, there should be as little aliasing as possible during movement, and edges should be fairly stable, while keeping performance in mind."/>
@@ -16,6 +16,7 @@
 			display: block;
 			cursor: move;
 			background: transparent;
+			box-sizing: border-box;
 		}
 		.background {
 			width: 512dp;
@@ -27,7 +28,7 @@
 		.blur {
 			width: 300dp;
 			height: 300dp;
-			border-radius: 50dp;
+			border-radius: 30dp;
 			margin: auto;
 			backdrop-filter: blur(50dp);
 		}

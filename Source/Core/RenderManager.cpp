@@ -75,6 +75,7 @@ void RenderManager::PrepareRender()
 	RMLUI_ASSERT(state.clip_mask_list == default_state.clip_mask_list);
 	RMLUI_ASSERT(state.scissor_region == default_state.scissor_region);
 	RMLUI_ASSERT(state.transform == default_state.transform);
+	RMLUI_ASSERTMSG(render_stack.empty(), "Unbalanced render stack detected, ensure every PushLayer call has a corresponding call to PopLayer.");
 #endif
 }
 
@@ -295,14 +296,36 @@ CompiledShader RenderManager::CompileShader(const String& name, const Dictionary
 	return CompiledShader();
 }
 
-void RenderManager::PushLayer(LayerFill layer_fill)
+LayerHandle RenderManager::PushLayer()
 {
-	render_interface->PushLayer(layer_fill);
+	const LayerHandle layer = render_interface->PushLayer();
+	render_stack.push_back(layer);
+	return layer;
 }
 
-void RenderManager::PopLayer(BlendMode blend_mode, Span<const CompiledFilterHandle> filters)
+void RenderManager::CompositeLayers(LayerHandle source, LayerHandle destination, BlendMode blend_mode, Span<const CompiledFilterHandle> filters)
 {
-	render_interface->PopLayer(blend_mode, filters);
+	RMLUI_ASSERT(source == 0 || std::find(render_stack.begin(), render_stack.end(), source) != render_stack.end());
+	RMLUI_ASSERT(destination == 0 || std::find(render_stack.begin(), render_stack.end(), destination) != render_stack.end());
+	render_interface->CompositeLayers(source, destination, blend_mode, filters);
+}
+
+void RenderManager::PopLayer()
+{
+	RMLUI_ASSERT(!render_stack.empty());
+	render_interface->PopLayer();
+	render_stack.pop_back();
+}
+
+LayerHandle RenderManager::GetTopLayer() const
+{
+	return render_stack.empty() ? LayerHandle{} : render_stack.back();
+}
+
+LayerHandle RenderManager::GetNextLayer() const
+{
+	RMLUI_ASSERT(!render_stack.empty());
+	return render_stack.size() < 2 ? LayerHandle{} : render_stack[render_stack.size() - 2];
 }
 
 CompiledFilter RenderManager::SaveLayerAsMaskImage()

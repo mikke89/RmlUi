@@ -124,7 +124,7 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 		render_manager.ResetState();
 		render_manager.SetScissorRegion(Rectanglei::FromSize(texture_dimensions));
 
-		render_manager.PushLayer(LayerFill::Clear);
+		render_manager.PushLayer();
 
 		background_border_geometry.Render(element_offset_in_texture);
 
@@ -174,7 +174,7 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 			{
 				blur = render_manager.CompileFilter("blur", Dictionary{{"radius", Variant(blur_radius)}});
 				if (blur)
-					render_manager.PushLayer(LayerFill::Clear);
+					render_manager.PushLayer();
 			}
 
 			Geometry geometry_shadow = render_manager.MakeGeometry(std::move(mesh_shadow));
@@ -204,14 +204,15 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 			{
 				FilterHandleList filters;
 				blur.AddHandleTo(filters);
-				render_manager.PopLayer(BlendMode::Blend, filters);
+				render_manager.CompositeLayers(render_manager.GetTopLayer(), render_manager.GetNextLayer(), BlendMode::Blend, filters);
+				render_manager.PopLayer();
 				blur.Release();
 			}
 		}
 
 		texture_interface.SaveLayerAsTexture(texture_dimensions);
 
-		render_manager.PopLayer(BlendMode::Discard, {});
+		render_manager.PopLayer();
 		render_manager.SetState(initial_render_state);
 
 		return true;

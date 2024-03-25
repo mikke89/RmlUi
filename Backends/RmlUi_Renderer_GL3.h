@@ -78,8 +78,10 @@ public:
 
 	void SetTransform(const Rml::Matrix4f* transform) override;
 
-	void PushLayer(Rml::LayerFill layer_fill) override;
-	void PopLayer(Rml::BlendMode blend_mode, Rml::Span<const Rml::CompiledFilterHandle> filters) override;
+	Rml::LayerHandle PushLayer() override;
+	void CompositeLayers(Rml::LayerHandle source, Rml::LayerHandle destination, Rml::BlendMode blend_mode,
+		Rml::Span<const Rml::CompiledFilterHandle> filters) override;
+	void PopLayer() override;
 
 	Rml::TextureHandle SaveLayerAsTexture(Rml::Vector2i dimensions) override;
 
@@ -103,7 +105,7 @@ private:
 	int GetUniformLocation(UniformId uniform_id) const;
 	void SubmitTransformUniform(Rml::Vector2f translation);
 
-	void BlitTopLayerToPostprocessPrimary();
+	void BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle);
 	void RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles);
 
 	void SetScissor(Rml::Rectanglei region, bool vertically_flip = false);
@@ -144,15 +146,14 @@ private:
 		~RenderLayerStack();
 
 		// Push a new layer. All references to previously retrieved layers are invalidated.
-		void PushLayer();
-
-		// Push a clone of the active layer. All references to previously retrieved layers are invalidated.
-		void PushLayerClone();
+		Rml::LayerHandle PushLayer();
 
 		// Pop the top layer. All references to previously retrieved layers are invalidated.
 		void PopLayer();
 
+		const Gfx::FramebufferData& GetLayer(Rml::LayerHandle layer) const;
 		const Gfx::FramebufferData& GetTopLayer() const;
+		Rml::LayerHandle GetTopLayerHandle() const;
 
 		const Gfx::FramebufferData& GetPostprocessPrimary() { return EnsureFramebufferPostprocess(0); }
 		const Gfx::FramebufferData& GetPostprocessSecondary() { return EnsureFramebufferPostprocess(1); }
@@ -166,7 +167,6 @@ private:
 
 	private:
 		void DestroyFramebuffers();
-		bool IsCloneOfBelow(int layer_index) const;
 		const Gfx::FramebufferData& EnsureFramebufferPostprocess(int index);
 
 		int width = 0, height = 0;
