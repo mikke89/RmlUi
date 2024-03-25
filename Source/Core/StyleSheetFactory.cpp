@@ -52,6 +52,7 @@ StyleSheetFactory::StyleSheetFactory() :
 		{"only-of-type", StructuralSelectorType::Only_Of_Type},
 		{"empty", StructuralSelectorType::Empty},
 		{"not", StructuralSelectorType::Not},
+		{"scope", StructuralSelectorType::Scope},
 	}
 {}
 
