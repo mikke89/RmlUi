@@ -1082,7 +1082,13 @@ void RenderInterface_GL3::SetScissor(Rml::Rectanglei region, bool vertically_fli
 		region = VerticallyFlipped(region, viewport_height);
 
 	if (region.Valid() && region != scissor_state)
-		glScissor(region.Left(), viewport_height - region.Bottom(), region.Width(), region.Height());
+	{
+		// Some render APIs don't like offscreen positions (WebGL in particular), so clamp them to the viewport.
+		const int x = Rml::Math::Clamp(region.Left(), 0, viewport_width);
+		const int y = Rml::Math::Clamp(viewport_height - region.Bottom(), 0, viewport_height);
+
+		glScissor(x, y, region.Width(), region.Height());
+	}
 
 	Gfx::CheckGLError("SetScissorRegion");
 	scissor_state = region;
