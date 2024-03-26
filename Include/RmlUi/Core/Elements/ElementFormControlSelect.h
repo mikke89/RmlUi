@@ -94,6 +94,11 @@ public:
 	/// Removes all options from the select control.
 	void RemoveAll();
 
+	/// Show or hide the selection box.
+	void ShowSelectBox(bool show);
+	/// Check whether the select box is opened or not.
+	bool GetSelectBoxVisible();
+
 protected:
 	/// Moves all children to be under control of the widget.
 	void OnUpdate() override;
