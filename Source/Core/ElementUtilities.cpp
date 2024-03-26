@@ -290,7 +290,7 @@ bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* elemen
 	if (box_area == BoxArea::Auto)
 	{
 		// 'Auto' acts like border box extended to encompass any ink overflow, including the element's box-shadow.
-		// Note: Does not currently include ink overflow due to filters, as that is handled manually in ElementDecoration.
+		// Note: Does not currently include ink overflow due to filters, as that is handled manually in ElementEffects.
 		box_area = BoxArea::Border;
 
 		if (const Property* p_box_shadow = element->GetLocalProperty(PropertyId::BoxShadow))

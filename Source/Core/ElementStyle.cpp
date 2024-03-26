@@ -44,7 +44,6 @@
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "ComputeProperty.h"
-#include "ElementDecoration.h"
 #include "ElementDefinition.h"
 #include "PropertiesIterator.h"
 #include <algorithm>

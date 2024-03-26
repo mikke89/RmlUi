@@ -47,18 +47,19 @@ public:
 protected:
 	~EffectSpecification();
 
-	/// Registers a property for the decorator.
+	/// Registers a property for the effect.
 	/// @param[in] property_name The name of the new property (how it is specified through RCSS).
 	/// @param[in] default_value The default value to be used.
 	/// @return The new property definition, ready to have parsers attached.
 	PropertyDefinition& RegisterProperty(const String& property_name, const String& default_value);
 
-	/// Registers a shorthand property definition. Specify a shorthand name of 'decorator' to parse anonymous decorators.
+	/// Registers a shorthand property definition. Specify a shorthand name of 'decorator' or 'filter' to parse
+	/// anonymous decorators or filters, respectively.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
-	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is
-	/// the order in which the values will be processed.
+	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in
+	/// which they are specified here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
-	/// @param True if all the property names exist, false otherwise.
+	/// @return An ID for the new shorthand, or 'Invalid' if the shorthand declaration is invalid.
 	ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 
 private:

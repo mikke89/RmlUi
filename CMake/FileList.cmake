@@ -21,8 +21,8 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackgroundBorder.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementEffects.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementImage.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementLabel.h
@@ -277,9 +277,9 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Element.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackgroundBorder.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDocument.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementEffects.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementForm.cpp

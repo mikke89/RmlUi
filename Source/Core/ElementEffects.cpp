@@ -26,7 +26,7 @@
  *
  */
 
-#include "ElementDecoration.h"
+#include "ElementEffects.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Element.h"
@@ -38,23 +38,23 @@
 
 namespace Rml {
 
-ElementDecoration::ElementDecoration(Element* _element) : element(_element) {}
+ElementEffects::ElementEffects(Element* _element) : element(_element) {}
 
-ElementDecoration::~ElementDecoration()
+ElementEffects::~ElementEffects()
 {
-	ReleaseDecorators();
+	ReleaseEffects();
 }
 
-void ElementDecoration::InstanceDecorators()
+void ElementEffects::InstanceEffects()
 {
-	if (!decorators_dirty)
+	if (!effects_dirty)
 		return;
 
-	decorators_dirty = false;
-	decorators_data_dirty = true;
+	effects_dirty = false;
+	effects_data_dirty = true;
 
 	RMLUI_ZoneScopedC(0xB22222);
-	ReleaseDecorators();
+	ReleaseEffects();
 
 	RenderManager* render_manager = element->GetRenderManager();
 	if (!render_manager)
@@ -151,11 +151,11 @@ void ElementDecoration::InstanceDecorators()
 	}
 }
 
-void ElementDecoration::ReloadDecoratorsData()
+void ElementEffects::ReloadEffectsData()
 {
-	if (decorators_data_dirty)
+	if (effects_data_dirty)
 	{
-		decorators_data_dirty = false;
+		effects_data_dirty = false;
 
 		bool decorator_data_failed = false;
 		for (DecoratorEntryList* list : {&decorators, &mask_images})
@@ -190,7 +190,7 @@ void ElementDecoration::ReloadDecoratorsData()
 	}
 }
 
-void ElementDecoration::ReleaseDecorators()
+void ElementEffects::ReleaseEffects()
 {
 	for (DecoratorEntryList* list : {&decorators, &mask_images})
 	{
@@ -206,10 +206,10 @@ void ElementDecoration::ReleaseDecorators()
 	backdrop_filters.clear();
 }
 
-void ElementDecoration::RenderDecorators(RenderStage render_stage)
+void ElementEffects::RenderEffects(RenderStage render_stage)
 {
-	InstanceDecorators();
-	ReloadDecoratorsData();
+	InstanceEffects();
+	ReloadEffectsData();
 
 	if (!decorators.empty())
 	{
@@ -286,7 +286,7 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 			// boundaries, which currently only applies to blur and drop-shadow. Alternatively, we could avoid this
 			// completely if we introduced a render interface API concept of different input and output clipping. That
 			// is, we set a large input scissor to cover all input data, which can be used e.g. during blurring, and use
-			// our small border-area-only clipping region for the layers composite output.
+			// our small border-area-only clipping region for the composite layers output.
 			ApplyScissorRegionForBackdrop();
 			render_manager->PushLayer();
 			const LayerHandle backdrop_temp_layer = render_manager->GetTopLayer();
@@ -340,14 +340,14 @@ void ElementDecoration::RenderDecorators(RenderStage render_stage)
 	}
 }
 
-void ElementDecoration::DirtyDecorators()
+void ElementEffects::DirtyEffects()
 {
-	decorators_dirty = true;
+	effects_dirty = true;
 }
 
-void ElementDecoration::DirtyDecoratorsData()
+void ElementEffects::DirtyEffectsData()
 {
-	decorators_data_dirty = true;
+	effects_data_dirty = true;
 }
 
 } // namespace Rml

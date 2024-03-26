@@ -47,8 +47,8 @@
 #include "DataModel.h"
 #include "ElementAnimation.h"
 #include "ElementBackgroundBorder.h"
-#include "ElementDecoration.h"
 #include "ElementDefinition.h"
+#include "ElementEffects.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
 #include "EventSpecification.h"
@@ -92,12 +92,12 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta {
-	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(), decoration(el), scroll(el), computed_values(el) {}
+	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(), effects(el), scroll(el), computed_values(el) {}
 	SmallUnorderedMap<EventId, EventListener*> attribute_event_listeners;
 	EventDispatcher event_dispatcher;
 	ElementStyle style;
 	ElementBackgroundBorder background_border;
-	ElementDecoration decoration;
+	ElementEffects effects;
 	ElementScroll scroll;
 	Style::ComputedValues computed_values;
 };
@@ -177,7 +177,7 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 		UpdateProperties(dp_ratio, vp_dimensions);
 	}
 
-	meta->decoration.InstanceDecorators();
+	meta->effects.InstanceEffects();
 
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio, vp_dimensions);
@@ -233,13 +233,13 @@ void Element::Render()
 	// Apply our transform
 	ElementUtilities::ApplyTransform(*this);
 
-	meta->decoration.RenderDecorators(RenderStage::Enter);
+	meta->effects.RenderEffects(RenderStage::Enter);
 
 	// Set up the clipping region for this element.
 	if (ElementUtilities::SetClippingRegion(this))
 	{
 		meta->background_border.Render(this);
-		meta->decoration.RenderDecorators(RenderStage::Decoration);
+		meta->effects.RenderEffects(RenderStage::Decoration);
 
 		{
 			RMLUI_ZoneScopedNC("OnRender", 0x228B22);
@@ -252,7 +252,7 @@ void Element::Render()
 	for (Element* element : stacking_context)
 		element->Render();
 
-	meta->decoration.RenderDecorators(RenderStage::Exit);
+	meta->effects.RenderEffects(RenderStage::Exit);
 }
 
 ElementPtr Element::Clone() const
@@ -452,7 +452,7 @@ void Element::SetBox(const Box& box)
 
 		meta->background_border.DirtyBackground();
 		meta->background_border.DirtyBorder();
-		meta->decoration.DirtyDecoratorsData();
+		meta->effects.DirtyEffectsData();
 	}
 }
 
@@ -464,7 +464,7 @@ void Element::AddBox(const Box& box, Vector2f offset)
 
 	meta->background_border.DirtyBackground();
 	meta->background_border.DirtyBorder();
-	meta->decoration.DirtyDecoratorsData();
+	meta->effects.DirtyEffectsData();
 }
 
 const Box& Element::GetBox()
@@ -1553,11 +1553,6 @@ ElementBackgroundBorder* Element::GetElementBackgroundBorder() const
 	return &meta->background_border;
 }
 
-ElementDecoration* Element::GetElementDecoration() const
-{
-	return &meta->decoration;
-}
-
 ElementScroll* Element::GetElementScroll() const
 {
 	return &meta->scroll;
@@ -1795,18 +1790,18 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		meta->background_border.DirtyBorder();
 	}
 
-	// Dirty the decoration if it's changed.
+	// Dirty the effects if they've changed.
 	if (border_radius_changed || filter_or_mask_changed || changed_properties.Contains(PropertyId::Decorator))
 	{
-		meta->decoration.DirtyDecorators();
+		meta->effects.DirtyEffects();
 	}
 
-	// Dirty the decoration data when its visual looks may have changed.
+	// Dirty the effects data when their visual looks may have changed.
 	if (border_radius_changed ||                            //
 		changed_properties.Contains(PropertyId::Opacity) || //
 		changed_properties.Contains(PropertyId::ImageColor))
 	{
-		meta->decoration.DirtyDecoratorsData();
+		meta->effects.DirtyEffectsData();
 	}
 
 	// Check for `perspective' and `perspective-origin' changes
@@ -2813,7 +2808,7 @@ void Element::UpdateTransformState()
 
 void Element::OnStyleSheetChangeRecursive()
 {
-	GetElementDecoration()->DirtyDecorators();
+	meta->effects.DirtyEffects();
 
 	OnStyleSheetChange();
 
@@ -2825,7 +2820,7 @@ void Element::OnStyleSheetChangeRecursive()
 
 void Element::OnDpRatioChangeRecursive()
 {
-	GetElementDecoration()->DirtyDecorators();
+	meta->effects.DirtyEffects();
 	GetStyle()->DirtyPropertiesWithUnits(Unit::DP_SCALABLE_LENGTH);
 
 	OnDpRatioChange();
