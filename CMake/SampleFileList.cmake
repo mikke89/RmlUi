@@ -119,6 +119,13 @@ set(harfbuzzshaping_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/harfbuzzshaping/src/main.cpp
 )
 
+set(ime_HDR_FILES
+)
+
+set(ime_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/ime/src/main.cpp
+)
+
 set(lottie_HDR_FILES
 )
 
