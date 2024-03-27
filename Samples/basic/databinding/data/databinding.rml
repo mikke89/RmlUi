@@ -335,14 +335,6 @@ select selectbox option.disabled {
 	<div class="sidebox right score">
 		Score<br/>{{ score }}
 	</div>
-	<div class="messagebox start_game" data-if="health == 0 && num_games_played == 0">
-		Do you dare to take on the fight against the alien invaders?<br/>
-		<button data-event-click="start_game">Start game</button>
-	</div>
-	<div class="messagebox game_over" data-if="health == 0 && num_games_played > 0">
-		Game Over!<br/>
-		<button data-event-click="start_game">Restart game</button>
-	</div>
 	<div class="invaders" data-class-paused="health == 0">
 		<invader data-for="invader : invaders" data-class-alive="invader.health > 0" data-class-firing="invader.charge >= 100">
 			<progress class="invader-health" direction="top" data-attr-max="invader.max_health" data-attr-value="invader.health"/>
@@ -350,6 +342,14 @@ select selectbox option.disabled {
 			<img data-attr-sprite="invader.sprite" data-style-image-color="invader.color" data-event-click="fire(it_index)"/>
 			<name>{{ invader.name }}</name>
 		</invader>
+	</div>
+	<div class="messagebox start_game" data-if="health == 0 && num_games_played == 0">
+		Do you dare to take on the fight against the alien invaders?<br/>
+		<button data-event-click="start_game">Start game</button>
+	</div>
+	<div class="messagebox game_over" data-if="health == 0 && num_games_played > 0">
+		Game Over!<br/>
+		<button data-event-click="start_game">Restart game</button>
 	</div>
 </panel>
 <tab>Forms</tab>
