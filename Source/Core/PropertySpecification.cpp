@@ -290,8 +290,7 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		}
 	}
 
-	// If this definition is a 'box'-style shorthand (x-top, x-right, x-bottom, x-left, etc) and there are fewer
-	// than four values
+	// If this definition is a 'box'-style shorthand (x-top x-right x-bottom x-left) that needs replication.
 	if (shorthand_definition->type == ShorthandType::Box && property_values.size() < 4)
 	{
 		// This array tells which property index each side is parsed from
@@ -382,6 +381,10 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		RMLUI_ASSERT(shorthand_definition->type == ShorthandType::Box || shorthand_definition->type == ShorthandType::FallThrough ||
 			shorthand_definition->type == ShorthandType::Replicate || shorthand_definition->type == ShorthandType::Flex);
 
+		// Abort over-specified shorthand values.
+		if (property_values.size() > shorthand_definition->items.size())
+			return false;
+
 		size_t value_index = 0;
 		size_t property_index = 0;
 
@@ -407,6 +410,11 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 			if (shorthand_definition->type != ShorthandType::Replicate || value_index < property_values.size() - 1)
 				value_index++;
 		}
+
+		// Abort if we still have values left to parse but no more properties to pass them to.
+		if (shorthand_definition->type != ShorthandType::Replicate && value_index < property_values.size() &&
+			property_index >= shorthand_definition->items.size())
+			return false;
 	}
 
 	return true;

@@ -28,9 +28,12 @@
 
 #include "../Common/TestsInterface.h"
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/PropertyDefinition.h>
 #include <RmlUi/Core/PropertyDictionary.h>
 #include <RmlUi/Core/PropertySpecification.h>
+#include <RmlUi/Core/StyleSheetSpecification.h>
 #include <doctest.h>
 #include <limits.h>
 
@@ -154,5 +157,69 @@ TEST_CASE("PropertyParser.Keyword")
 	Parse(numbers, "2", 2);
 	Parse(numbers, "20", 20);
 
+	Rml::Shutdown();
+}
+
+TEST_CASE("PropertyParser.InvalidShorthands")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	Rml::Initialise();
+
+	ElementPtr element = Factory::InstanceElement(nullptr, "*", "div", {});
+
+	struct TestCase {
+		bool expected_result;
+		String name;
+		String value;
+	};
+	Vector<TestCase> tests = {
+		{true, "margin", "10px "},                     //
+		{true, "margin", "10px 20px "},                //
+		{true, "margin", "10px 20px 30px "},           //
+		{true, "margin", "10px 20px 30px 40px"},       //
+		{false, "margin", ""},                         // Too few values
+		{false, "margin", "10px 20px 30px 40px 50px"}, // Too many values
+
+		{true, "flex", "1 2 3px"},    //
+		{false, "flex", "1 2 3px 4"}, // Too many values
+		{false, "flex", "1px 2 3 4"}, // Wrong order
+
+		{true, "perspective-origin", "center center"},         //
+		{true, "perspective-origin", "left top"},              //
+		{false, "perspective-origin", "center center center"}, // Too many values
+		{false, "perspective-origin", "left top 50px"},        // Too many values
+		{false, "perspective-origin", "50px 50px left"},       // Too many values
+		{false, "perspective-origin", "top left"},             // Wrong order
+		{false, "perspective-origin", "50px left"},            // Wrong order
+
+		{true, "font", "20px arial"},  //
+		{false, "font", "arial 20px"}, // Wrong order
+
+		{true, "decorator", "gradient(vertical blue red)"},        //
+		{false, "decorator", "gradient(blue red vertical)"},       // Wrong order
+		{false, "decorator", "gradient(blue vertical red)"},       // Wrong order
+		{false, "decorator", "gradient(vertical blue red green)"}, // Too many values
+
+		{true, "overflow", "hidden"},                //
+		{true, "overflow", "scroll hidden"},         //
+		{false, "overflow", ""},                     // Too few values
+		{false, "overflow", "scroll hidden scroll"}, // Too many values
+	};
+
+	for (const TestCase& test : tests)
+	{
+		PropertyDictionary properties;
+		INFO(test.name, ": ", test.value);
+		CHECK(StyleSheetSpecification::ParsePropertyDeclaration(properties, test.name, test.value) == test.expected_result);
+
+		// Ensure we get a warning when trying to set the invalid property on an element.
+		system_interface.SetNumExpectedWarnings(test.expected_result ? 0 : 1);
+		CHECK(element->SetProperty(test.name, test.value) == test.expected_result);
+	}
+
+	element.reset();
 	Rml::Shutdown();
 }
