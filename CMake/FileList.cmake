@@ -562,15 +562,22 @@ set(Lottie_SRC_FILES
 )
 
 set(SVG_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Source/SVG/DecoratorSVG.h
+    ${PROJECT_SOURCE_DIR}/Source/SVG/DecoratorSVGInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/SVG/SVGPlugin.h
+    ${PROJECT_SOURCE_DIR}/Source/SVG/SVGCache.h
 )
 
 set(SVG_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/SVG/ElementSVG.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/SVG/SVGTypes.h
 )
 
 set(SVG_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Source/SVG/DecoratorSVG.cpp
+    ${PROJECT_SOURCE_DIR}/Source/SVG/DecoratorSVGInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/SVG/ElementSVG.cpp
+    ${PROJECT_SOURCE_DIR}/Source/SVG/SVGCache.cpp
     ${PROJECT_SOURCE_DIR}/Source/SVG/SVGPlugin.cpp
 )
 
