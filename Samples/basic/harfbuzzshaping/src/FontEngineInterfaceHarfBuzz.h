@@ -47,8 +47,8 @@ namespace Style = Rml::Style;
 
 class FontEngineInterfaceHarfBuzz : public Rml::FontEngineInterface {
 public:
-	FontEngineInterfaceHarfBuzz();
-	virtual ~FontEngineInterfaceHarfBuzz();
+	void Initialize() override;
+	void Shutdown() override;
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight) override;

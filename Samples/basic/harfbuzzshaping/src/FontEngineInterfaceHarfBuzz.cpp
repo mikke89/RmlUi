@@ -31,12 +31,11 @@
 #include "FontProvider.h"
 #include <RmlUi/Core.h>
 
-FontEngineInterfaceHarfBuzz::FontEngineInterfaceHarfBuzz()
+void FontEngineInterfaceHarfBuzz::Initialize()
 {
 	FontProvider::Initialise();
 }
-
-FontEngineInterfaceHarfBuzz::~FontEngineInterfaceHarfBuzz()
+void FontEngineInterfaceHarfBuzz::Shutdown()
 {
 	FontProvider::Shutdown();
 }
