@@ -31,6 +31,11 @@
 #include <RmlUi/Core/StringUtilities.h>
 #include <doctest.h>
 
+TestsSystemInterface::~TestsSystemInterface()
+{
+	SetNumExpectedWarnings(0);
+}
+
 double TestsSystemInterface::GetElapsedTime()
 {
 	return elapsed_time;
@@ -68,6 +73,8 @@ void TestsSystemInterface::SetNumExpectedWarnings(int in_num_expected_warnings)
 		{
 			Rml::String str = "Got unexpected number of warnings: \n";
 			Rml::StringUtilities::JoinString(str, warnings, '\n');
+			if (warnings.empty())
+				str += "(no warnings logged)";
 			CHECK_MESSAGE(num_logged_warnings == num_expected_warnings, str);
 		}
 
