@@ -148,6 +148,7 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 
 	const Rml::Colourb highlight_color(255, 0, 255, 255);
 	size_t sum_diff = 0;
+	size_t max_pixel_diff = 0;
 	for (int y = 0; y < (int)h_ref; y++)
 	{
 		const int y_flipped_screen = screen.height - y - 1;
@@ -170,6 +171,7 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 			diff.data[i0_diff + 2] = (pixel_diff ? highlight_color[2] : screen.data[i0_screen + 2]);
 			diff.data[i0_diff + 3] = highlight_color[3];
 			sum_diff += (size_t)pixel_diff;
+			max_pixel_diff = Rml::Math::Max(max_pixel_diff, (size_t)pixel_diff);
 		}
 	}
 
@@ -178,6 +180,7 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 	result.success = true;
 	result.is_equal = (sum_diff == 0);
 	result.absolute_difference_sum = sum_diff;
+	result.max_absolute_difference_single_pixel = max_pixel_diff;
 
 	const size_t max_diff = size_t(3 * 255) * size_t(w_ref) * size_t(h_ref);
 	result.similarity_score = (sum_diff == 0 ? 1.0 : 1.0 - std::log(double(sum_diff)) / std::log(double(max_diff)));

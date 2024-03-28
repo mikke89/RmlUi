@@ -43,9 +43,7 @@
 constexpr int iteration_wait_frame_count = 2;
 
 TestNavigator::TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList _test_suites,
-	int start_suite, int start_case) :
-	render_interface(render_interface),
-	context(context), viewer(viewer), test_suites(std::move(_test_suites))
+	int start_suite, int start_case) : render_interface(render_interface), context(context), viewer(viewer), test_suites(std::move(_test_suites))
 {
 	RMLUI_ASSERT(context);
 	RMLUI_ASSERTMSG(!test_suites.empty(), "At least one test suite is required.");
@@ -539,11 +537,12 @@ void TestNavigator::StopTestSuiteIteration()
 		log += "\n\nNot Equal:\n";
 
 		if (!not_equal.empty())
-			log += "Percentages are similarity scores.\n\n";
+			log += "    #   similarity scores (%)   max pixel difference   filename\n\n";
 		for (int i : not_equal)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(512, "%5d   %5.1f%%   %s\n", i + 1, comparison_results[i].similarity_score * 100.0, suite.GetFilename().c_str());
+			log += Rml::CreateString(512, "%5d   %5.1f%%  %4d   %s\n", i + 1, comparison_results[i].similarity_score * 100.0,
+				(int)comparison_results[i].max_absolute_difference_single_pixel, suite.GetFilename().c_str());
 			if (!comparison_results[i].error_msg.empty())
 				log += "          " + comparison_results[i].error_msg + "\n";
 		}

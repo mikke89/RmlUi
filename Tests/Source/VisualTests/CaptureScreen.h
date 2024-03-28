@@ -38,7 +38,8 @@ struct ComparisonResult {
 	bool success = false;
 	bool is_equal = false;
 	double similarity_score = 0;
-	std::size_t absolute_difference_sum = 0;
+	size_t absolute_difference_sum = 0;
+	size_t max_absolute_difference_single_pixel = 0;
 	Rml::String error_msg;
 };
 
