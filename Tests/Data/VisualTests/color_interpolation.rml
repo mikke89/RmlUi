@@ -30,10 +30,10 @@
 			width: 300dp;
 		}
 		.rectangle {
-			decorator: gradient( horizontal #f00 #0f0 );
+			decorator: horizontal-gradient( #f00 #0f0 );
 		}
 		.round {
-			decorator: gradient( horizontal #f00 #0f0 );
+			decorator: horizontal-gradient( #f00 #0f0 );
 			border-radius: 50dp;
 		}
 		.round-border {
@@ -42,10 +42,10 @@
 			border-color: #0f0 #f00 #0f0 #f00;
 		}
 		.rectangle.black {
-			decorator: gradient( horizontal #f00 #000 );
+			decorator: horizontal-gradient( #f00 #000 );
 		}
 		.round.black {
-			decorator: gradient( horizontal #f00 #000 );
+			decorator: horizontal-gradient( #f00 #000 );
 			border-radius: 50dp;
 		}
 		.round-border.black {

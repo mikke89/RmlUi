@@ -50,10 +50,11 @@
 #include "DataViewDefault.h"
 #include "DecoratorGradient.h"
 #include "DecoratorNinePatch.h"
-#include "DecoratorTiledBoxInstancer.h"
-#include "DecoratorTiledHorizontalInstancer.h"
-#include "DecoratorTiledImageInstancer.h"
-#include "DecoratorTiledVerticalInstancer.h"
+#include "DecoratorShader.h"
+#include "DecoratorTiledBox.h"
+#include "DecoratorTiledHorizontal.h"
+#include "DecoratorTiledImage.h"
+#include "DecoratorTiledVertical.h"
 #include "ElementHandle.h"
 #include "Elements/ElementImage.h"
 #include "Elements/ElementLabel.h"
@@ -62,6 +63,9 @@
 #include "Elements/XMLNodeHandlerTabSet.h"
 #include "Elements/XMLNodeHandlerTextArea.h"
 #include "EventInstancerDefault.h"
+#include "FilterBasic.h"
+#include "FilterBlur.h"
+#include "FilterDropShadow.h"
 #include "FontEffectBlur.h"
 #include "FontEffectGlow.h"
 #include "FontEffectOutline.h"
@@ -86,6 +90,10 @@ static ElementInstancerMap element_instancers;
 // Decorator instancers.
 using DecoratorInstancerMap = UnorderedMap<String, DecoratorInstancer*>;
 static DecoratorInstancerMap decorator_instancers;
+
+// Filter instancers.
+using FilterInstancerMap = UnorderedMap<String, FilterInstancer*>;
+static FilterInstancerMap filter_instancers;
 
 // Font effect instancers.
 using FontEffectInstancerMap = UnorderedMap<String, FontEffectInstancer*>;
@@ -145,7 +153,18 @@ struct DefaultInstancers {
 	DecoratorTiledBoxInstancer decorator_tiled_box;
 	DecoratorTiledImageInstancer decorator_image;
 	DecoratorNinePatchInstancer decorator_ninepatch;
-	DecoratorGradientInstancer decorator_gradient;
+	DecoratorShaderInstancer decorator_shader;
+	DecoratorStraightGradientInstancer decorator_straight_gradient;
+	DecoratorLinearGradientInstancer decorator_linear_gradient;
+	DecoratorRadialGradientInstancer decorator_radial_gradient;
+	DecoratorConicGradientInstancer decorator_conic_gradient;
+
+	// Filters
+	FilterBasicInstancer filter_hue_rotate = {FilterBasicInstancer::ValueType::Angle, "0rad"};
+	FilterBasicInstancer filter_basic_d0 = {FilterBasicInstancer::ValueType::NumberPercent, "0"};
+	FilterBasicInstancer filter_basic_d1 = {FilterBasicInstancer::ValueType::NumberPercent, "1"};
+	FilterBlurInstancer filter_blur;
+	FilterDropShadowInstancer filter_drop_shadow;
 
 	// Font effects
 	FontEffectBlurInstancer font_effect_blur;
@@ -227,7 +246,31 @@ bool Factory::Initialise()
 	RegisterDecoratorInstancer("tiled-box", &default_instancers->decorator_tiled_box);
 	RegisterDecoratorInstancer("image", &default_instancers->decorator_image);
 	RegisterDecoratorInstancer("ninepatch", &default_instancers->decorator_ninepatch);
-	RegisterDecoratorInstancer("gradient", &default_instancers->decorator_gradient);
+	RegisterDecoratorInstancer("shader", &default_instancers->decorator_shader);
+
+	RegisterDecoratorInstancer("gradient", &default_instancers->decorator_straight_gradient);
+	RegisterDecoratorInstancer("horizontal-gradient", &default_instancers->decorator_straight_gradient);
+	RegisterDecoratorInstancer("vertical-gradient", &default_instancers->decorator_straight_gradient);
+
+	RegisterDecoratorInstancer("linear-gradient", &default_instancers->decorator_linear_gradient);
+	RegisterDecoratorInstancer("repeating-linear-gradient", &default_instancers->decorator_linear_gradient);
+	RegisterDecoratorInstancer("radial-gradient", &default_instancers->decorator_radial_gradient);
+	RegisterDecoratorInstancer("repeating-radial-gradient", &default_instancers->decorator_radial_gradient);
+	RegisterDecoratorInstancer("conic-gradient", &default_instancers->decorator_conic_gradient);
+	RegisterDecoratorInstancer("repeating-conic-gradient", &default_instancers->decorator_conic_gradient);
+
+	// Filter instancers
+	RegisterFilterInstancer("hue-rotate", &default_instancers->filter_hue_rotate);
+	RegisterFilterInstancer("brightness", &default_instancers->filter_basic_d1);
+	RegisterFilterInstancer("contrast", &default_instancers->filter_basic_d1);
+	RegisterFilterInstancer("grayscale", &default_instancers->filter_basic_d0);
+	RegisterFilterInstancer("invert", &default_instancers->filter_basic_d0);
+	RegisterFilterInstancer("opacity", &default_instancers->filter_basic_d1);
+	RegisterFilterInstancer("saturate", &default_instancers->filter_basic_d1);
+	RegisterFilterInstancer("sepia", &default_instancers->filter_basic_d0);
+
+	RegisterFilterInstancer("blur", &default_instancers->filter_blur);
+	RegisterFilterInstancer("drop-shadow", &default_instancers->filter_drop_shadow);
 
 	// Font effect instancers
 	RegisterFontEffectInstancer("blur", &default_instancers->font_effect_blur);
@@ -299,9 +342,9 @@ void Factory::RegisterContextInstancer(ContextInstancer* instancer)
 	context_instancer = instancer;
 }
 
-ContextPtr Factory::InstanceContext(const String& name)
+ContextPtr Factory::InstanceContext(const String& name, RenderManager* render_manager)
 {
-	ContextPtr new_context = context_instancer->InstanceContext(name);
+	ContextPtr new_context = context_instancer->InstanceContext(name, render_manager);
 	if (new_context)
 		new_context->SetInstancer(context_instancer);
 	return new_context;
@@ -478,6 +521,21 @@ DecoratorInstancer* Factory::GetDecoratorInstancer(const String& name)
 {
 	auto iterator = decorator_instancers.find(name);
 	if (iterator == decorator_instancers.end())
+		return nullptr;
+
+	return iterator->second;
+}
+
+void Factory::RegisterFilterInstancer(const String& name, FilterInstancer* instancer)
+{
+	RMLUI_ASSERT(instancer);
+	filter_instancers[StringUtilities::ToLower(name)] = instancer;
+}
+
+FilterInstancer* Factory::GetFilterInstancer(const String& name)
+{
+	auto iterator = filter_instancers.find(name);
+	if (iterator == filter_instancers.end())
 		return nullptr;
 
 	return iterator->second;

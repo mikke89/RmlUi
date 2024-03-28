@@ -78,11 +78,13 @@ int FontEngineInterfaceDefault::GetStringWidth(FontFaceHandle handle, const Stri
 	return handle_default->GetStringWidth(string, text_shaping_context.letter_spacing, prior_character);
 }
 
-int FontEngineInterfaceDefault::GenerateString(FontFaceHandle handle, FontEffectsHandle font_effects_handle, const String& string,
-	const Vector2f& position, const Colourb& colour, float opacity, const TextShapingContext& text_shaping_context, GeometryList& geometry)
+int FontEngineInterfaceDefault::GenerateString(RenderManager& render_manager, FontFaceHandle handle, FontEffectsHandle font_effects_handle,
+	const String& string, const Vector2f& position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
+	TexturedMeshList& mesh_list)
 {
 	auto handle_default = reinterpret_cast<FontFaceHandleDefault*>(handle);
-	return handle_default->GenerateString(geometry, string, position, colour, opacity, text_shaping_context.letter_spacing, (int)font_effects_handle);
+	return handle_default->GenerateString(render_manager, mesh_list, string, position, colour, opacity, text_shaping_context.letter_spacing,
+		(int)font_effects_handle);
 }
 
 int FontEngineInterfaceDefault::GetVersion(FontFaceHandle handle)

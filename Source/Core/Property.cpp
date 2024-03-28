@@ -40,7 +40,7 @@ Property::Property() : unit(Unit::UNKNOWN), specificity(-1)
 String Property::ToString() const
 {
 	if (!definition)
-		return value.Get<String>();
+		return value.Get<String>() + Rml::ToString(unit);
 
 	String string;
 	definition->GetValue(string, *this);

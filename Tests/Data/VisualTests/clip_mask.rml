@@ -1,0 +1,71 @@
+<rml>
+<head>
+	<title>Clip mask</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Clipping with border-radius should clip along its curved, inner border. Requires clip mask support in the renderer, commonly implemented using a stencil buffer." />
+	<style>
+		.clip {
+			overflow: hidden;
+		}
+		handle {
+			top: auto;
+			right: auto;
+			bottom: auto;
+			left: auto;
+			width: auto;
+			height: auto;
+			display: block;
+			position: relative;
+		}
+		.box {
+			margin: 20dp auto;
+			position: relative;
+			width: 250dp;
+			border-color: #55f;
+			border-width: 20dp;
+			border-radius: 150dp;
+		}
+		.A {
+			height: 70dp;
+			background: #ffd34f;
+			border: 5dp #f57;
+		}
+		.B {
+			left: 50%;
+			background: #ffd34f;
+			border: 5dp #f57;
+			border-radius: 25dp;
+		}
+		.C {
+			width: 50%;
+			top: 50dp;
+			margin: 10dp auto;
+			height: 30dp;
+			background: #d3ff4f;
+			border: 5dp #3a4;
+			border-radius: 50dp;
+		}
+	</style>
+</head>
+
+<body>
+<div class="box clip">
+	Duck aloft
+	<handle move_target="#self" class="A">
+			A
+	</handle>
+	X
+</div>
+<div class="box clip">
+	Y
+	<handle move_target="#self" class="B clip">
+			C
+		<handle move_target="#self" class="C clip">
+				Some long text
+		</handle>
+			Z
+	</handle>
+	W
+</div>
+</body>
+</rml>

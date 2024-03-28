@@ -12,21 +12,17 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DataViewDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorGradient.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNinePatch.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorShader.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBox.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBoxInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledHorizontal.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledHorizontalInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledImage.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledImageInstancer.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackgroundBorder.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementEffects.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementImage.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementLabel.h
@@ -52,12 +48,15 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/EventInstancerDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/EventSpecification.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FilterBasic.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FilterBlur.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/FilterDropShadow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectBlur.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectGlow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectOutline.h
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectShadow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryBackgroundBorder.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/GeometryBoxShadow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/IdNameMap.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/BlockContainer.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/BlockFormattingContext.h
@@ -77,14 +76,18 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/ReplacedFormattingContext.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingContext.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingDetails.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/LogDefault.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Memory.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.h
     ${PROJECT_SOURCE_DIR}/Source/Core/Pool.h
     ${PROJECT_SOURCE_DIR}/Source/Core/precompiled.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertiesIterator.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserBoxShadow.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColorStopList.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserDecorator.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFilter.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFontEffect.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.h
@@ -92,6 +95,7 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserString.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.h
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyShorthandDefinition.h
+    ${PROJECT_SOURCE_DIR}/Source/Core/RenderManagerAccess.h
     ${PROJECT_SOURCE_DIR}/Source/Core/ScrollController.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StreamFile.h
     ${PROJECT_SOURCE_DIR}/Source/Core/StyleSheetFactory.h
@@ -105,7 +109,6 @@ set(Core_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutRectangle.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutRow.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutTexture.h
-    ${PROJECT_SOURCE_DIR}/Source/Core/TextureResource.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.h
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformUtilities.h
     ${PROJECT_SOURCE_DIR}/Source/Core/WidgetScroll.h
@@ -125,8 +128,10 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Animation.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/BaseXMLParser.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Box.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/CallbackTexture.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Colour.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/CompiledFilterShader.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ComputedValues.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/itlib/flat_map.hpp
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Containers/itlib/flat_set.hpp
@@ -141,9 +146,10 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DataVariable.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Debug.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DecorationTypes.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Decorator.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/DecoratorInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Dictionary.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EffectSpecification.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Element.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ElementDocument.h
@@ -164,13 +170,13 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/EventListenerInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Factory.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FileInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Filter.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffect.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEffectInstancer.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontEngineInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontGlyph.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/FontMetrics.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Geometry.h
-    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/GeometryUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Header.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ID.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Input.h
@@ -178,6 +184,8 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Math.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Matrix4.inl
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Mesh.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/MeshUtilities.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/NumericValue.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ObserverPtr.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Platform.h
@@ -192,9 +200,13 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/PropertySpecification.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Rectangle.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterface.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderInterfaceCompatibility.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/RenderManager.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScriptInterface.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/ScrollTypes.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Span.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Spritesheet.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StableVector.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Stream.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StreamMemory.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StringUtilities.h
@@ -213,6 +225,7 @@ set(Core_PUB_HDR_FILES
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TypeConverter.inl
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Types.h
+    ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/UniqueRenderResource.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Unit.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/URL.h
     ${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Utilities.h
@@ -232,7 +245,9 @@ set(Core_PUB_HDR_FILES
 set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/BaseXMLParser.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Box.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/CallbackTexture.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Clock.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/CompiledFilterShader.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputedValues.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ComputeProperty.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Context.cpp
@@ -251,25 +266,21 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/DataViewDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Decorator.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorGradient.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorNinePatch.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorShader.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiled.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBox.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledBoxInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledHorizontal.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledHorizontalInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledImage.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledImageInstancer.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVertical.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/DecoratorTiledVerticalInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/DocumentHeader.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/EffectSpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Element.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementAnimation.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementBackgroundBorder.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/ElementDecoration.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementDocument.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/ElementEffects.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementHandle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ElementInstancer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Elements/ElementForm.cpp
@@ -311,6 +322,10 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Factory.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FileInterfaceDefault.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/Filter.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FilterBasic.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FilterBlur.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/FilterDropShadow.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectBlur.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEffectGlow.cpp
@@ -320,8 +335,7 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/FontEngineInterface.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Geometry.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/GeometryBackgroundBorder.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/GeometryDatabase.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/GeometryUtilities.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/GeometryBoxShadow.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/BlockContainer.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/BlockFormattingContext.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/ContainerBox.cpp
@@ -340,8 +354,10 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingContext.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Layout/TableFormattingDetails.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Log.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/LogDefault.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Math.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Memory.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/MeshUtilities.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ObserverPtr.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Plugin.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PluginRegistry.cpp
@@ -351,8 +367,11 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDefinition.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyDictionary.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserAnimation.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserBoxShadow.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColorStopList.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserColour.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserDecorator.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFilter.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserFontEffect.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserKeyword.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserNumber.cpp
@@ -361,6 +380,9 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertyParserTransform.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/PropertySpecification.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterface.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/RenderInterfaceCompatibility.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/RenderManager.cpp
+    ${PROJECT_SOURCE_DIR}/Source/Core/RenderManagerAccess.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/ScrollController.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Spritesheet.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Stream.cpp
@@ -383,7 +405,6 @@ set(Core_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutRectangle.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutRow.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TextureLayoutTexture.cpp
-    ${PROJECT_SOURCE_DIR}/Source/Core/TextureResource.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/Transform.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformPrimitive.cpp
     ${PROJECT_SOURCE_DIR}/Source/Core/TransformState.cpp

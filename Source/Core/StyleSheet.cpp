@@ -27,7 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/StyleSheet.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
@@ -56,7 +56,7 @@ UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 	new_sheet->root = root->DeepCopy();
 	new_sheet->specificity_offset = specificity_offset;
 	new_sheet->keyframes = keyframes;
-	new_sheet->decorator_map = decorator_map;
+	new_sheet->named_decorator_map = named_decorator_map;
 	new_sheet->spritesheet_list = spritesheet_list;
 
 	new_sheet->MergeStyleSheet(other_sheet);
@@ -79,10 +79,10 @@ void StyleSheet::MergeStyleSheet(const StyleSheet& other_sheet)
 	}
 
 	// Copy over the decorators, and replace any matching decorator names from other_sheet
-	decorator_map.reserve(decorator_map.size() + other_sheet.decorator_map.size());
-	for (auto& other_decorator : other_sheet.decorator_map)
+	named_decorator_map.reserve(named_decorator_map.size() + other_sheet.named_decorator_map.size());
+	for (auto& other_decorator : other_sheet.named_decorator_map)
 	{
-		decorator_map[other_decorator.first] = other_decorator.second;
+		named_decorator_map[other_decorator.first] = other_decorator.second;
 	}
 
 	spritesheet_list.Reserve(spritesheet_list.NumSpriteSheets() + other_sheet.spritesheet_list.NumSpriteSheets(),
@@ -97,10 +97,10 @@ void StyleSheet::BuildNodeIndex()
 	root->BuildIndex(styled_node_index);
 }
 
-const DecoratorSpecification* StyleSheet::GetDecoratorSpecification(const String& name) const
+const NamedDecorator* StyleSheet::GetNamedDecorator(const String& name) const
 {
-	auto it = decorator_map.find(name);
-	if (it != decorator_map.end())
+	auto it = named_decorator_map.find(name);
+	if (it != named_decorator_map.end())
 		return &(it->second);
 	return nullptr;
 }
@@ -113,7 +113,8 @@ const Keyframes* StyleSheet::GetKeyframes(const String& name) const
 	return nullptr;
 }
 
-const DecoratorPtrList& StyleSheet::InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* source) const
+const DecoratorPtrList& StyleSheet::InstanceDecorators(RenderManager& render_manager, const DecoratorDeclarationList& declaration_list,
+	const PropertySource* source) const
 {
 	RMLUI_ASSERT_NONRECURSIVE; // Since we may return a reference to the below static variable.
 	static DecoratorPtrList non_cached_decorator_list;
@@ -152,8 +153,8 @@ const DecoratorPtrList& StyleSheet::InstanceDecorators(const DecoratorDeclaratio
 		if (declaration.instancer)
 		{
 			RMLUI_ZoneScopedN("InstanceDecorator");
-			decorator =
-				declaration.instancer->InstanceDecorator(declaration.type, declaration.properties, DecoratorInstancerInterface(*this, source));
+			decorator = declaration.instancer->InstanceDecorator(declaration.type, declaration.properties,
+				DecoratorInstancerInterface(render_manager, *this, source));
 
 			if (!decorator)
 				Log::Message(Log::LT_WARNING, "Decorator '%s' in '%s' could not be instanced, declared at %s:%d", declaration.type.c_str(),
@@ -162,9 +163,10 @@ const DecoratorPtrList& StyleSheet::InstanceDecorators(const DecoratorDeclaratio
 		else
 		{
 			// If we have no instancer, this means the type is the name of an @decorator rule.
-			auto it_map = decorator_map.find(declaration.type);
-			if (it_map != decorator_map.end())
-				decorator = it_map->second.decorator;
+			auto it_map = named_decorator_map.find(declaration.type);
+			if (it_map != named_decorator_map.end())
+				decorator = it_map->second.instancer->InstanceDecorator(it_map->second.type, it_map->second.properties,
+					DecoratorInstancerInterface(render_manager, *this, source));
 
 			if (!decorator)
 				Log::Message(Log::LT_WARNING, "Decorator name '%s' could not be found in any @decorator rule, declared at %s:%d",

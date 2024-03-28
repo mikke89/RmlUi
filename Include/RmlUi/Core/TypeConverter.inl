@@ -302,7 +302,6 @@ STRING_VECTOR_CONVERTER(Vector3f, float, 3);
 STRING_VECTOR_CONVERTER(Vector4i, int, 4);
 STRING_VECTOR_CONVERTER(Vector4f, float, 4);
 STRING_VECTOR_CONVERTER(Colourf, float, 4);
-STRING_VECTOR_CONVERTER(Colourb, byte, 4);
 
 /////////////////////////////////////////////////
 // To String Converters
@@ -385,6 +384,24 @@ public:
 	}
 };
 
+template <>
+class TypeConverter<void*, String> {
+public:
+	static bool Convert(void* const& src, String& dest) { return FormatString(dest, 32, "%p", src) > 0; }
+};
+
+template <>
+class TypeConverter<ScriptInterface*, String> {
+public:
+	static bool Convert(ScriptInterface* const& src, String& dest) { return FormatString(dest, 32, "%p", static_cast<void*>(src)) > 0; }
+};
+
+template <>
+class TypeConverter<char, String> {
+public:
+	static bool Convert(const char& src, String& dest) { return FormatString(dest, 32, "%c", src) > 0; }
+};
+
 template <typename SourceType, typename InternalType, int count>
 class TypeConverterVectorString {
 public:
@@ -422,7 +439,21 @@ VECTOR_STRING_CONVERTER(Vector3f, float, 3);
 VECTOR_STRING_CONVERTER(Vector4i, int, 4);
 VECTOR_STRING_CONVERTER(Vector4f, float, 4);
 VECTOR_STRING_CONVERTER(Colourf, float, 4);
-VECTOR_STRING_CONVERTER(Colourb, byte, 4);
+
+template <typename SourceType>
+class TypeConverter<SourceType, String> {
+public:
+	template <typename...>
+	struct AlwaysFalse : std::integral_constant<bool, false> {};
+
+	static bool Convert(const SourceType& /*src*/, String& /*dest*/)
+	{
+		static_assert(AlwaysFalse<SourceType>{},
+			"The type converter was invoked on a type without a string converter, please define a converter from SourceType to String.");
+		return false;
+	}
+};
+
 #undef PASS_THROUGH
 #undef BASIC_CONVERTER
 #undef BASIC_CONVERTER_BOOL

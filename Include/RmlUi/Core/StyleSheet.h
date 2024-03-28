@@ -40,6 +40,7 @@ class Element;
 class ElementDefinition;
 class StyleSheetNode;
 class Decorator;
+class RenderManager;
 class SpritesheetList;
 class StyleSheetContainer;
 class StyleSheetParser;
@@ -67,8 +68,8 @@ public:
 	/// Builds the node index for a combined style sheet.
 	void BuildNodeIndex();
 
-	/// Returns the DecoratorSpecification of the given name, or null if it does not exist.
-	const DecoratorSpecification* GetDecoratorSpecification(const String& name) const;
+	/// Returns the named @decorator, or null if it does not exist.
+	const NamedDecorator* GetNamedDecorator(const String& name) const;
 
 	/// Returns the Keyframes of the given name, or null if it does not exist.
 	/// @lifetime The returned pointer becomes invalidated whenever the style sheet is re-generated. Do not store this pointer or references to
@@ -84,7 +85,8 @@ public:
 	SharedPtr<const ElementDefinition> GetElementDefinition(const Element* element) const;
 
 	/// Returns a list of instanced decorators from the declarations. The instances are cached for faster future retrieval.
-	const DecoratorPtrList& InstanceDecorators(const DecoratorDeclarationList& declaration_list, const PropertySource* decorator_source) const;
+	const DecoratorPtrList& InstanceDecorators(RenderManager& render_manager, const DecoratorDeclarationList& declaration_list,
+		const PropertySource* decorator_source) const;
 
 private:
 	StyleSheet();
@@ -103,7 +105,7 @@ private:
 	KeyframesMap keyframes;
 
 	// Name of every @decorator mapped to their specification
-	DecoratorSpecificationMap decorator_map;
+	NamedDecoratorMap named_decorator_map;
 
 	// Name of every @spritesheet and underlying sprites mapped to their values
 	SpritesheetList spritesheet_list;

@@ -30,9 +30,10 @@
 #include "../../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../../Include/RmlUi/Core/ElementUtilities.h"
-#include "../../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "../../../Include/RmlUi/Core/StyleSheet.h"
+#include "../../../Include/RmlUi/Core/Texture.h"
 #include "../../../Include/RmlUi/Core/URL.h"
 #include "../TextureDatabase.h"
 
@@ -86,7 +87,7 @@ void ElementImage::OnRender()
 		GenerateGeometry();
 
 	// Render the geometry beginning at this element's content region.
-	geometry.Render(GetAbsoluteOffset(BoxArea::Content).Round());
+	geometry.Render(GetAbsoluteOffset(BoxArea::Content).Round(), texture);
 }
 
 void ElementImage::OnAttributeChange(const ElementAttributes& changed_attributes)
@@ -141,9 +142,7 @@ void ElementImage::OnChildAdd(Element* child)
 	// texture won't actually be loaded from the backend before it is shown. However, only do this if we have an active context so that the dp-ratio
 	// can be retrieved. If there is no context now the texture loading will be deferred until the next layout update.
 	if (child == this && texture_dirty && GetContext())
-	{
 		LoadTexture();
-	}
 }
 
 void ElementImage::OnResize()
@@ -169,13 +168,7 @@ void ElementImage::OnStyleSheetChange()
 void ElementImage::GenerateGeometry()
 {
 	// Release the old geometry before specifying the new vertices.
-	geometry.Release(true);
-
-	Vector<Vertex>& vertices = geometry.GetVertices();
-	Vector<int>& indices = geometry.GetIndices();
-
-	vertices.resize(4);
-	indices.resize(6);
+	Mesh mesh = geometry.Release(Geometry::ReleaseMode::ClearMesh);
 
 	// Generate the texture coordinates.
 	Vector2f texcoords[2];
@@ -192,14 +185,13 @@ void ElementImage::GenerateGeometry()
 	}
 
 	const ComputedValues& computed = GetComputedValues();
-
-	float opacity = computed.opacity();
-	Colourb quad_colour = computed.image_color();
-	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
-
+	ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 	Vector2f quad_size = GetBox().GetSize(BoxArea::Content).Round();
 
-	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), quad_size, quad_colour, texcoords[0], texcoords[1]);
+	MeshUtilities::GenerateQuad(mesh, Vector2f(0, 0), quad_size, quad_colour, texcoords[0], texcoords[1]);
+
+	if (RenderManager* render_manager = GetRenderManager())
+		geometry = render_manager->MakeGeometry(std::move(mesh));
 
 	geometry_dirty = false;
 }
@@ -209,6 +201,13 @@ bool ElementImage::LoadTexture()
 	texture_dirty = false;
 	geometry_dirty = true;
 	dimensions_scale = 1.0f;
+
+	RenderManager* render_manager = GetRenderManager();
+	if (!render_manager)
+	{
+		texture = {};
+		return false;
+	}
 
 	const float dp_ratio = ElementUtilities::GetDensityIndependentPixelRatio(this);
 
@@ -227,7 +226,7 @@ bool ElementImage::LoadTexture()
 				{
 					rect = sprite->rectangle;
 					rect_source = RectSource::Sprite;
-					texture = sprite->sprite_sheet->texture;
+					texture = sprite->sprite_sheet->texture_source.GetTexture(*render_manager);
 					dimensions_scale = sprite->sprite_sheet->display_scale * dp_ratio;
 					valid_sprite = true;
 				}
@@ -236,7 +235,7 @@ bool ElementImage::LoadTexture()
 
 		if (!valid_sprite)
 		{
-			texture = Texture();
+			texture = {};
 			rect_source = RectSource::None;
 			UpdateRect();
 			Log::Message(Log::LT_WARNING, "Could not find sprite '%s' specified in img element %s", sprite_name.c_str(), GetAddress().c_str());
@@ -249,7 +248,7 @@ bool ElementImage::LoadTexture()
 		const String source_name = GetAttribute<String>("src", "");
 		if (source_name.empty())
 		{
-			texture = Texture();
+			texture = {};
 			rect_source = RectSource::None;
 			return false;
 		}
@@ -259,13 +258,10 @@ bool ElementImage::LoadTexture()
 		if (ElementDocument* document = GetOwnerDocument())
 			source_url.SetURL(document->GetSourceURL());
 
-		texture.Set(source_name, source_url.GetPath());
+		texture = render_manager->LoadTexture(source_name, source_url.GetPath());
 
 		dimensions_scale = dp_ratio;
 	}
-
-	// Set the texture onto our geometry object.
-	geometry.SetTexture(&texture);
 
 	return true;
 }

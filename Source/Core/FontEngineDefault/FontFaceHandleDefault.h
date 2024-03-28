@@ -68,24 +68,26 @@ public:
 	/// @return The index to use when generating geometry using this configuration.
 	int GenerateLayerConfiguration(const FontEffectList& font_effects);
 	/// Generates the texture data for a layer (for the texture database).
-	/// @param[out] texture_data The pointer to be set to the generated texture data.
+	/// @param[out] texture_data The generated texture data.
 	/// @param[out] texture_dimensions The dimensions of the texture.
 	/// @param[in] font_effect The font effect used for the layer.
 	/// @param[in] texture_id The index of the texture within the layer to generate.
 	/// @param[in] handle_version The version of the handle data. Function returns false if out of date.
-	bool GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, const FontEffect* font_effect, int texture_id,
+	bool GenerateLayerTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, const FontEffect* font_effect, int texture_id,
 		int handle_version) const;
 
 	/// Generates the geometry required to render a single line of text.
-	/// @param[out] geometry An array of geometries to generate the geometry into.
+	/// @param[in] render_manager The render manager responsible for rendering the string.
+	/// @param[out] mesh_list A list to place the new meshes into.
 	/// @param[in] string The string to render.
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text.
 	/// @param[in] opacity The opacity of the text, should be applied to font effects.
+	/// @param[in] letter_spacing The letter spacing size in pixels.
 	/// @param[in] layer_configuration Face configuration index to use for generating string.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(GeometryList& geometry, const String& string, Vector2f position, Colourb colour, float opacity, float letter_spacing,
-		int layer_configuration = 0);
+	int GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, const String& string, Vector2f position,
+		ColourbPremultiplied colour, float opacity, float letter_spacing, int layer_configuration);
 
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;

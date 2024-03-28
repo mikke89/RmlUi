@@ -27,18 +27,21 @@
  */
 
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/DecorationTypes.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/FontEngineInterface.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/TextShapingContext.h"
 #include "DataController.h"
 #include "DataModel.h"
 #include "DataView.h"
-#include "ElementStyle.h"
+#include "ElementBackgroundBorder.h"
 #include "Layout/LayoutDetails.h"
 #include "Layout/LayoutEngine.h"
 #include "TransformState.h"
@@ -166,14 +169,12 @@ int ElementUtilities::GetStringWidth(Element* element, const String& string, Cha
 	return GetFontEngineInterface()->GetStringWidth(font_face_handle, string, text_shaping_context, prior_character);
 }
 
-bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_dimensions, Element* element)
+bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_region, ClipMaskGeometryList* out_clip_mask_list,
+	bool force_clip_self)
 {
 	using Style::Clip;
-	clip_origin = Vector2i(-1, -1);
-	clip_dimensions = Vector2i(-1, -1);
-
 	Clip target_element_clip = element->GetComputedValues().clip();
-	if (target_element_clip == Clip::Type::None)
+	if (target_element_clip == Clip::Type::None && !force_clip_self)
 		return false;
 
 	int num_ignored_clips = target_element_clip.GetNumber();
@@ -181,44 +182,59 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 	// Search through the element's ancestors, finding all elements that clip their overflow and have overflow to clip.
 	// For each that we find, we combine their clipping region with the existing clipping region, and so build up a
 	// complete clipping region for the element.
-	Element* clipping_element = element->GetOffsetParent();
+	Element* clipping_element = (force_clip_self ? element : element->GetParentNode());
 
-	while (clipping_element != nullptr)
+	Rectanglef clip_region = Rectanglef::MakeInvalid();
+
+	while (clipping_element)
 	{
+		const bool force_clip_current_element = (force_clip_self && clipping_element == element);
 		const ComputedValues& clip_computed = clipping_element->GetComputedValues();
 		const bool clip_enabled = (clip_computed.overflow_x() != Style::Overflow::Visible || clip_computed.overflow_y() != Style::Overflow::Visible);
 		const bool clip_always = (clip_computed.clip() == Clip::Type::Always);
 		const bool clip_none = (clip_computed.clip() == Clip::Type::None);
 		const int clip_number = clip_computed.clip().GetNumber();
 
-		// Merge the existing clip region with the current clip region if we aren't ignoring clip regions.
-		if ((clip_always || clip_enabled) && num_ignored_clips == 0)
+		// Merge the existing clip region with the current clip region, unless we are ignoring clip regions.
+		if (((clip_always || clip_enabled) && num_ignored_clips == 0) || force_clip_current_element)
 		{
-			// Ignore nodes that don't clip.
-			if (clip_always || clipping_element->GetClientWidth() < clipping_element->GetScrollWidth() - 0.5f ||
-				clipping_element->GetClientHeight() < clipping_element->GetScrollHeight() - 0.5f)
+			const BoxArea client_area = (force_clip_current_element ? BoxArea::Border : clipping_element->GetClientArea());
+			const bool has_clipping_content =
+				(clip_always || force_clip_current_element || clipping_element->GetClientWidth() < clipping_element->GetScrollWidth() - 0.5f ||
+					clipping_element->GetClientHeight() < clipping_element->GetScrollHeight() - 0.5f);
+			bool disable_scissor_clipping = false;
+
+			if (out_clip_mask_list)
 			{
-				const BoxArea client_area = clipping_element->GetClientArea();
-				Vector2f element_origin_f = clipping_element->GetAbsoluteOffset(client_area);
-				Vector2f element_dimensions_f = clipping_element->GetBox().GetSize(client_area);
-				Math::SnapToPixelGrid(element_origin_f, element_dimensions_f);
+				const TransformState* transform_state = clipping_element->GetTransformState();
+				const Matrix4f* transform = (transform_state ? transform_state->GetTransform() : nullptr);
+				const bool has_border_radius = (clip_computed.border_top_left_radius() > 0.f || clip_computed.border_top_right_radius() > 0.f ||
+					clip_computed.border_bottom_right_radius() > 0.f || clip_computed.border_bottom_left_radius() > 0.f);
 
-				const Vector2i element_origin(element_origin_f);
-				const Vector2i element_dimensions(element_dimensions_f);
-
-				if (clip_origin == Vector2i(-1, -1) && clip_dimensions == Vector2i(-1, -1))
+				// If the element has border-radius we always use a clip mask, since we can't easily predict if content is located on the curved
+				// region to be clipped. If the element has a transform we only use a clip mask when the content clips.
+				if (has_border_radius || (transform && has_clipping_content))
 				{
-					clip_origin = element_origin;
-					clip_dimensions = element_dimensions;
+					Geometry* clip_geometry = clipping_element->GetElementBackgroundBorder()->GetClipGeometry(clipping_element, client_area);
+					const ClipMaskOperation clip_operation = (out_clip_mask_list->empty() ? ClipMaskOperation::Set : ClipMaskOperation::Intersect);
+					const Vector2f absolute_offset = clipping_element->GetAbsoluteOffset(BoxArea::Border);
+					out_clip_mask_list->push_back(ClipMaskGeometry{clip_operation, clip_geometry, absolute_offset, transform});
 				}
-				else
-				{
-					const Vector2i top_left = Math::Max(clip_origin, element_origin);
-					const Vector2i bottom_right = Math::Min(clip_origin + clip_dimensions, element_origin + element_dimensions);
 
-					clip_origin = top_left;
-					clip_dimensions = Math::Max(Vector2i(0), bottom_right - top_left);
-				}
+				// If we only have border-radius then we add this element to the scissor region as well as the clip mask. This may help with e.g.
+				// culling text render calls. However, when we have a transform, the element cannot be added to the scissor region since its geometry
+				// may be projected entirely elsewhere.
+				if (transform)
+					disable_scissor_clipping = true;
+			}
+
+			if (has_clipping_content && !disable_scissor_clipping)
+			{
+				// Shrink the scissor region to the element's client area.
+				Vector2f element_offset = clipping_element->GetAbsoluteOffset(client_area);
+				Vector2f element_size = clipping_element->GetBox().GetSize(client_area);
+
+				clip_region.IntersectIfValid(Rectanglef::FromPositionSize(element_offset, element_size));
 			}
 		}
 
@@ -237,48 +253,122 @@ bool ElementUtilities::GetClippingRegion(Vector2i& clip_origin, Vector2i& clip_d
 		clipping_element = clipping_element->GetOffsetParent();
 	}
 
-	return clip_dimensions.x >= 0 && clip_dimensions.y >= 0;
+	if (clip_region.Valid())
+	{
+		Math::ExpandToPixelGrid(clip_region);
+		out_clip_region = Rectanglei(clip_region);
+	}
+
+	return clip_region.Valid();
 }
 
-bool ElementUtilities::SetClippingRegion(Element* element, Context* context)
+bool ElementUtilities::SetClippingRegion(Element* element, bool force_clip_self)
 {
-	if (element && !context)
-		context = element->GetContext();
-
+	Context* context = element->GetContext();
 	if (!context)
 		return false;
 
-	Vector2i clip_origin = {-1, -1};
-	Vector2i clip_dimensions = {-1, -1};
-	bool clip = element && GetClippingRegion(clip_origin, clip_dimensions, element);
+	RenderManager& render_manager = context->GetRenderManager();
 
-	Vector2i current_origin = {-1, -1};
-	Vector2i current_dimensions = {-1, -1};
-	bool current_clip = context->GetActiveClipRegion(current_origin, current_dimensions);
-	if (current_clip != clip || (clip && (clip_origin != current_origin || clip_dimensions != current_dimensions)))
-	{
-		context->SetActiveClipRegion(clip_origin, clip_dimensions);
-		ApplyActiveClipRegion(context);
-	}
+	Rectanglei clip_region;
+	ClipMaskGeometryList clip_mask_list;
+
+	const bool scissoring_enabled = GetClippingRegion(element, clip_region, &clip_mask_list, force_clip_self);
+	if (scissoring_enabled)
+		render_manager.SetScissorRegion(clip_region);
+	else
+		render_manager.DisableScissorRegion();
+
+	render_manager.SetClipMask(std::move(clip_mask_list));
 
 	return true;
 }
 
-void ElementUtilities::ApplyActiveClipRegion(Context* context)
+bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* element, BoxArea box_area)
 {
-	RenderInterface* render_interface = ::Rml::GetRenderInterface();
-	if (!render_interface)
-		return;
+	RMLUI_ASSERT(element);
 
-	Vector2i origin;
-	Vector2i dimensions;
-	bool clip_enabled = context->GetActiveClipRegion(origin, dimensions);
-
-	render_interface->EnableScissorRegion(clip_enabled);
-	if (clip_enabled)
+	Vector2f shadow_extent_top_left, shadow_extent_bottom_right;
+	if (box_area == BoxArea::Auto)
 	{
-		render_interface->SetScissorRegion(origin.x, origin.y, dimensions.x, dimensions.y);
+		// 'Auto' acts like border box extended to encompass any ink overflow, including the element's box-shadow.
+		// Note: Does not currently include ink overflow due to filters, as that is handled manually in ElementEffects.
+		box_area = BoxArea::Border;
+
+		if (const Property* p_box_shadow = element->GetLocalProperty(PropertyId::BoxShadow))
+		{
+			RMLUI_ASSERT(p_box_shadow->value.GetType() == Variant::BOXSHADOWLIST);
+			const BoxShadowList& shadow_list = p_box_shadow->value.GetReference<BoxShadowList>();
+
+			for (const BoxShadow& shadow : shadow_list)
+			{
+				if (!shadow.inset)
+				{
+					const float extent = 1.5f * element->ResolveLength(shadow.blur_radius) + element->ResolveLength(shadow.spread_distance);
+					const Vector2f offset = {element->ResolveLength(shadow.offset_x), element->ResolveLength(shadow.offset_y)};
+
+					shadow_extent_top_left = Math::Max(shadow_extent_top_left, -offset + Vector2f(extent));
+					shadow_extent_bottom_right = Math::Max(shadow_extent_bottom_right, offset + Vector2f(extent));
+				}
+			}
+		}
 	}
+
+	// Element bounds in non-transformed space.
+	Rectanglef bounds = Rectanglef::FromPositionSize(element->GetAbsoluteOffset(box_area), element->GetBox().GetSize(box_area));
+	bounds.ExtendTopLeft(shadow_extent_top_left);
+	bounds.ExtendBottomRight(shadow_extent_bottom_right);
+
+	const TransformState* transform_state = element->GetTransformState();
+	const Matrix4f* transform = (transform_state ? transform_state->GetTransform() : nullptr);
+
+	// Early exit in the common case of no transform.
+	if (!transform)
+	{
+		out_rectangle = bounds;
+		return true;
+	}
+
+	Context* context = element->GetContext();
+	if (!context)
+		return false;
+
+	constexpr int num_corners = 4;
+	Vector2f corners[num_corners] = {
+		bounds.TopLeft(),
+		bounds.TopRight(),
+		bounds.BottomRight(),
+		bounds.BottomLeft(),
+	};
+
+	// Transform and project corners to window coordinates.
+	constexpr float z_clip = 10'000.f;
+	const Vector2f window_size = Vector2f(context->GetDimensions());
+	const Matrix4f project = Matrix4f::ProjectOrtho(0.f, window_size.x, 0.f, window_size.y, -z_clip, z_clip);
+	const Matrix4f project_transform = project * (*transform);
+	bool any_vertex_depth_clipped = false;
+
+	for (int i = 0; i < num_corners; i++)
+	{
+		const Vector4f pos_clip_space = project_transform * Vector4f(corners[i].x, corners[i].y, 0, 1);
+		const Vector2f pos_ndc = Vector2f(pos_clip_space.x, pos_clip_space.y) / pos_clip_space.w;
+		const Vector2f pos_viewport = 0.5f * window_size * (pos_ndc + Vector2f(1));
+		corners[i] = pos_viewport;
+		any_vertex_depth_clipped |= !(-pos_clip_space.w <= pos_clip_space.z && pos_clip_space.z <= pos_clip_space.w);
+	}
+
+	// If any part of the box area is outside the depth clip planes we give up finding the bounding box. In this situation a renderer would normally
+	// clip the underlying triangles against the clip planes. We could in principle do the same, but the added complexity does not seem worthwhile for
+	// our use cases.
+	if (any_vertex_depth_clipped)
+		return false;
+
+	// Find the rectangle covering the projected corners.
+	out_rectangle = Rectanglef::FromPosition(corners[0]);
+	for (int i = 1; i < num_corners; i++)
+		out_rectangle.Join(corners[i]);
+
+	return true;
 }
 
 void ElementUtilities::FormatElement(Element* element, Vector2f containing_block)
@@ -317,31 +407,17 @@ bool ElementUtilities::PositionElement(Element* element, Vector2f offset, Positi
 
 bool ElementUtilities::ApplyTransform(Element& element)
 {
-	RenderInterface* render_interface = ::Rml::GetRenderInterface();
-	if (!render_interface)
+	Context* context = element.GetContext();
+	if (!context)
 		return false;
 
-	static const Matrix4f* old_transform_ptr = {}; // This may be expired, dereferencing not allowed!
-	static Matrix4f old_transform_value = Matrix4f::Identity();
+	RenderManager& render_manager = context->GetRenderManager();
 
-	const Matrix4f* new_transform_ptr = nullptr;
+	const Matrix4f* new_transform = nullptr;
 	if (const TransformState* state = element.GetTransformState())
-		new_transform_ptr = state->GetTransform();
+		new_transform = state->GetTransform();
 
-	// Only changed transforms are submitted.
-	if (old_transform_ptr != new_transform_ptr)
-	{
-		// Do a deep comparison as well to avoid submitting a new transform which is equal.
-		if (!old_transform_ptr || !new_transform_ptr || (old_transform_value != *new_transform_ptr))
-		{
-			render_interface->SetTransform(new_transform_ptr);
-
-			if (new_transform_ptr)
-				old_transform_value = *new_transform_ptr;
-		}
-
-		old_transform_ptr = new_transform_ptr;
-	}
+	render_manager.SetTransform(new_transform);
 
 	return true;
 }

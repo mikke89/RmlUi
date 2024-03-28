@@ -166,6 +166,8 @@ public:
 				if (auto el_output = document->GetElementById("form_output"))
 					el_output->SetInnerRML(submit_message);
 			}
+
+			document->GetContext()->RequestNextUpdate(.0);
 		}
 	}
 
@@ -465,9 +467,9 @@ int main(int /*argc*/, char** /*argv*/)
 	bool running = true;
 	while (running)
 	{
-		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts, true);
-
 		demo_window->Update();
+
+		running = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts, true);
 		context->Update();
 
 		Backend::BeginFrame();

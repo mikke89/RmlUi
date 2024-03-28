@@ -52,35 +52,30 @@ struct Keyframes {
 };
 using KeyframesMap = UnorderedMap<String, Keyframes>;
 
-struct DecoratorSpecification {
-	String decorator_type;
+struct NamedDecorator {
+	String type;
+	DecoratorInstancer* instancer;
 	PropertyDictionary properties;
-	SharedPtr<Decorator> decorator;
 };
-using DecoratorSpecificationMap = UnorderedMap<String, DecoratorSpecification>;
+using NamedDecoratorMap = UnorderedMap<String, NamedDecorator>;
 
 struct DecoratorDeclaration {
 	String type;
 	DecoratorInstancer* instancer;
 	PropertyDictionary properties;
+	BoxArea paint_area;
 };
-
-struct DecoratorDeclarationView {
-	DecoratorDeclarationView(const DecoratorDeclaration& declaration) :
-		type(declaration.type), instancer(declaration.instancer), properties(declaration.properties)
-	{}
-	DecoratorDeclarationView(const DecoratorSpecification* specification) :
-		type(specification->decorator_type), instancer(Factory::GetDecoratorInstancer(specification->decorator_type)),
-		properties(specification->properties)
-	{}
-
-	const String& type;
-	DecoratorInstancer* instancer;
-	const PropertyDictionary& properties;
-};
-
 struct DecoratorDeclarationList {
 	Vector<DecoratorDeclaration> list;
+	String value;
+};
+struct FilterDeclaration {
+	String type;
+	FilterInstancer* instancer;
+	PropertyDictionary properties;
+};
+struct FilterDeclarationList {
+	Vector<FilterDeclaration> list;
 	String value;
 };
 

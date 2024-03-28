@@ -31,8 +31,11 @@
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "IdNameMap.h"
 #include "PropertyParserAnimation.h"
+#include "PropertyParserBoxShadow.h"
+#include "PropertyParserColorStopList.h"
 #include "PropertyParserColour.h"
 #include "PropertyParserDecorator.h"
+#include "PropertyParserFilter.h"
 #include "PropertyParserFontEffect.h"
 #include "PropertyParserKeyword.h"
 #include "PropertyParserNumber.h"
@@ -45,10 +48,11 @@ namespace Rml {
 
 static StyleSheetSpecification* instance = nullptr;
 
-struct DefaultStyleSheetParsers {
+struct DefaultStyleSheetParsers : NonCopyMoveable {
 	PropertyParserNumber number = PropertyParserNumber(Unit::NUMBER);
 	PropertyParserNumber length = PropertyParserNumber(Unit::LENGTH, Unit::PX);
 	PropertyParserNumber length_percent = PropertyParserNumber(Unit::LENGTH_PERCENT, Unit::PX);
+	PropertyParserNumber number_percent = PropertyParserNumber(Unit::NUMBER_PERCENT);
 	PropertyParserNumber number_length_percent = PropertyParserNumber(Unit::NUMBER_LENGTH_PERCENT, Unit::PX);
 	PropertyParserNumber angle = PropertyParserNumber(Unit::ANGLE, Unit::RAD);
 	PropertyParserKeyword keyword = PropertyParserKeyword();
@@ -56,11 +60,14 @@ struct DefaultStyleSheetParsers {
 	PropertyParserAnimation animation = PropertyParserAnimation(PropertyParserAnimation::ANIMATION_PARSER);
 	PropertyParserAnimation transition = PropertyParserAnimation(PropertyParserAnimation::TRANSITION_PARSER);
 	PropertyParserColour color = PropertyParserColour();
+	PropertyParserColorStopList color_stop_list = PropertyParserColorStopList(&color);
 	PropertyParserDecorator decorator = PropertyParserDecorator();
+	PropertyParserFilter filter = PropertyParserFilter();
 	PropertyParserFontEffect font_effect = PropertyParserFontEffect();
 	PropertyParserTransform transform = PropertyParserTransform();
 	PropertyParserRatio ratio = PropertyParserRatio();
 	PropertyParserNumber resolution = PropertyParserNumber(Unit::X);
+	PropertyParserBoxShadow box_shadow = PropertyParserBoxShadow(&color, &length);
 };
 
 StyleSheetSpecification::StyleSheetSpecification() :
@@ -242,6 +249,7 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("number", &default_parsers->number);
 	RegisterParser("length", &default_parsers->length);
 	RegisterParser("length_percent", &default_parsers->length_percent);
+	RegisterParser("number_percent", &default_parsers->number_percent);
 	RegisterParser("number_length_percent", &default_parsers->number_length_percent);
 	RegisterParser("angle", &default_parsers->angle);
 	RegisterParser("keyword", &default_parsers->keyword);
@@ -249,11 +257,14 @@ void StyleSheetSpecification::RegisterDefaultParsers()
 	RegisterParser("animation", &default_parsers->animation);
 	RegisterParser("transition", &default_parsers->transition);
 	RegisterParser("color", &default_parsers->color);
+	RegisterParser("color_stop_list", &default_parsers->color_stop_list);
 	RegisterParser("decorator", &default_parsers->decorator);
+	RegisterParser("filter", &default_parsers->filter);
 	RegisterParser("font_effect", &default_parsers->font_effect);
 	RegisterParser("transform", &default_parsers->transform);
 	RegisterParser("ratio", &default_parsers->ratio);
 	RegisterParser("resolution", &default_parsers->resolution);
+	RegisterParser("box_shadow", &default_parsers->box_shadow);
 }
 
 void StyleSheetSpecification::RegisterDefaultProperties()
@@ -407,8 +418,15 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Transition, "transition", "none", false, false).AddParser("transition");
 	RegisterProperty(PropertyId::Animation, "animation", "none", false, false).AddParser("animation");
 
+	// Decorators and effects
 	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("decorator");
+	RegisterProperty(PropertyId::MaskImage, "mask-image", "", false, false).AddParser("decorator");
 	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("font_effect");
+		
+	RegisterProperty(PropertyId::Filter, "filter", "", false, false).AddParser("filter", "filter");
+	RegisterProperty(PropertyId::BackdropFilter, "backdrop-filter", "", false, false).AddParser("filter");
+	
+	RegisterProperty(PropertyId::BoxShadow, "box-shadow", "none", false, false).AddParser("box_shadow");
 
 	// Rare properties (not added to computed values)
 	RegisterProperty(PropertyId::FillImage, "fill-image", "", false, false).AddParser("string");

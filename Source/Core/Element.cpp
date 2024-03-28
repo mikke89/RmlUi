@@ -47,8 +47,8 @@
 #include "DataModel.h"
 #include "ElementAnimation.h"
 #include "ElementBackgroundBorder.h"
-#include "ElementDecoration.h"
 #include "ElementDefinition.h"
+#include "ElementEffects.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
 #include "EventSpecification.h"
@@ -92,12 +92,12 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 
 // Meta objects for element collected in a single struct to reduce memory allocations
 struct ElementMeta {
-	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(), decoration(el), scroll(el), computed_values(el) {}
+	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(), effects(el), scroll(el), computed_values(el) {}
 	SmallUnorderedMap<EventId, EventListener*> attribute_event_listeners;
 	EventDispatcher event_dispatcher;
 	ElementStyle style;
 	ElementBackgroundBorder background_border;
-	ElementDecoration decoration;
+	ElementEffects effects;
 	ElementScroll scroll;
 	Style::ComputedValues computed_values;
 };
@@ -177,7 +177,7 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 		UpdateProperties(dp_ratio, vp_dimensions);
 	}
 
-	meta->decoration.InstanceDecorators();
+	meta->effects.InstanceEffects();
 
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio, vp_dimensions);
@@ -233,11 +233,13 @@ void Element::Render()
 	// Apply our transform
 	ElementUtilities::ApplyTransform(*this);
 
+	meta->effects.RenderEffects(RenderStage::Enter);
+
 	// Set up the clipping region for this element.
 	if (ElementUtilities::SetClippingRegion(this))
 	{
 		meta->background_border.Render(this);
-		meta->decoration.RenderDecorators();
+		meta->effects.RenderEffects(RenderStage::Decoration);
 
 		{
 			RMLUI_ZoneScopedNC("OnRender", 0x228B22);
@@ -249,6 +251,8 @@ void Element::Render()
 	// Render all elements in our local stacking context.
 	for (Element* element : stacking_context)
 		element->Render();
+
+	meta->effects.RenderEffects(RenderStage::Exit);
 }
 
 ElementPtr Element::Clone() const
@@ -448,7 +452,7 @@ void Element::SetBox(const Box& box)
 
 		meta->background_border.DirtyBackground();
 		meta->background_border.DirtyBorder();
-		meta->decoration.DirtyDecoratorsData();
+		meta->effects.DirtyEffectsData();
 	}
 }
 
@@ -460,7 +464,7 @@ void Element::AddBox(const Box& box, Vector2f offset)
 
 	meta->background_border.DirtyBackground();
 	meta->background_border.DirtyBorder();
-	meta->decoration.DirtyDecoratorsData();
+	meta->effects.DirtyEffectsData();
 }
 
 const Box& Element::GetBox()
@@ -823,6 +827,13 @@ Context* Element::GetContext() const
 	if (document != nullptr)
 		return document->GetContext();
 
+	return nullptr;
+}
+
+RenderManager* Element::GetRenderManager() const
+{
+	if (Context* context = GetContext())
+		return &context->GetRenderManager();
 	return nullptr;
 }
 
@@ -1559,9 +1570,9 @@ String Element::GetEventDispatcherSummary() const
 	return meta->event_dispatcher.ToString();
 }
 
-ElementDecoration* Element::GetElementDecoration() const
+ElementBackgroundBorder* Element::GetElementBackgroundBorder() const
 {
-	return &meta->decoration;
+	return &meta->background_border;
 }
 
 ElementScroll* Element::GetElementScroll() const
@@ -1764,61 +1775,50 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		}
 	}
 
-	// Update the z-index.
-	if (changed_properties.Contains(PropertyId::ZIndex))
-	{
-		Style::ZIndex z_index_property = meta->computed_values.z_index();
-
-		if (z_index_property.type == Style::ZIndex::Auto)
-		{
-			if (local_stacking_context && !local_stacking_context_forced)
-			{
-				// We're no longer acting as a stacking context.
-				local_stacking_context = false;
-
-				stacking_context_dirty = false;
-				stacking_context.clear();
-			}
-
-			// If our old z-index was not zero, then we must dirty our stacking context so we'll be re-indexed.
-			if (z_index != 0)
-			{
-				z_index = 0;
-				DirtyStackingContext();
-			}
-		}
-		else
-		{
-			float new_z_index = z_index_property.value;
-
-			if (new_z_index != z_index)
-			{
-				z_index = new_z_index;
-
-				if (parent != nullptr)
-					parent->DirtyStackingContext();
-			}
-
-			if (!local_stacking_context)
-			{
-				local_stacking_context = true;
-				stacking_context_dirty = true;
-			}
-		}
-	}
-
 	const bool border_radius_changed = (                                    //
 		changed_properties.Contains(PropertyId::BorderTopLeftRadius) ||     //
 		changed_properties.Contains(PropertyId::BorderTopRightRadius) ||    //
 		changed_properties.Contains(PropertyId::BorderBottomRightRadius) || //
 		changed_properties.Contains(PropertyId::BorderBottomLeftRadius)     //
 	);
+	const bool filter_or_mask_changed = (changed_properties.Contains(PropertyId::Filter) || changed_properties.Contains(PropertyId::BackdropFilter) ||
+		changed_properties.Contains(PropertyId::MaskImage));
+
+	// Update the z-index and stacking context.
+	if (changed_properties.Contains(PropertyId::ZIndex) || filter_or_mask_changed)
+	{
+		const Style::ZIndex z_index_property = meta->computed_values.z_index();
+
+		const float new_z_index = (z_index_property.type == Style::ZIndex::Auto ? 0.f : z_index_property.value);
+		const bool enable_local_stacking_context = (z_index_property.type != Style::ZIndex::Auto || local_stacking_context_forced ||
+			meta->computed_values.has_filter() || meta->computed_values.has_backdrop_filter() || meta->computed_values.has_mask_image());
+
+		if (z_index != new_z_index || local_stacking_context != enable_local_stacking_context)
+		{
+			z_index = new_z_index;
+
+			if (local_stacking_context != enable_local_stacking_context)
+			{
+				local_stacking_context = enable_local_stacking_context;
+
+				// If we are no longer acting as a local stacking context, then we clear the list and are all set. Otherwise, we need to rebuild our
+				// local stacking context.
+				stacking_context.clear();
+				stacking_context_dirty = local_stacking_context;
+			}
+
+			// When our z-index or local stacking context changes, then we must dirty our parent stacking context so we are re-indexed.
+			if (parent)
+				parent->DirtyStackingContext();
+		}
+	}
 
 	// Dirty the background if it's changed.
 	if (border_radius_changed ||                                    //
 		changed_properties.Contains(PropertyId::BackgroundColor) || //
 		changed_properties.Contains(PropertyId::Opacity) ||         //
-		changed_properties.Contains(PropertyId::ImageColor))        //
+		changed_properties.Contains(PropertyId::ImageColor) ||      //
+		changed_properties.Contains(PropertyId::BoxShadow))         //
 	{
 		meta->background_border.DirtyBackground();
 	}
@@ -1838,18 +1838,18 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 		meta->background_border.DirtyBorder();
 	}
 
-	// Dirty the decoration if it's changed.
-	if (border_radius_changed || changed_properties.Contains(PropertyId::Decorator))
+	// Dirty the effects if they've changed.
+	if (border_radius_changed || filter_or_mask_changed || changed_properties.Contains(PropertyId::Decorator))
 	{
-		meta->decoration.DirtyDecorators();
+		meta->effects.DirtyEffects();
 	}
 
-	// Dirty the decoration data when its visual looks may have changed.
+	// Dirty the effects data when their visual looks may have changed.
 	if (border_radius_changed ||                            //
 		changed_properties.Contains(PropertyId::Opacity) || //
 		changed_properties.Contains(PropertyId::ImageColor))
 	{
-		meta->decoration.DirtyDecoratorsData();
+		meta->effects.DirtyEffectsData();
 	}
 
 	// Check for `perspective' and `perspective-origin' changes
@@ -2863,7 +2863,7 @@ void Element::UpdateTransformState()
 
 void Element::OnStyleSheetChangeRecursive()
 {
-	GetElementDecoration()->DirtyDecorators();
+	meta->effects.DirtyEffects();
 
 	OnStyleSheetChange();
 
@@ -2875,7 +2875,7 @@ void Element::OnStyleSheetChangeRecursive()
 
 void Element::OnDpRatioChangeRecursive()
 {
-	GetElementDecoration()->DirtyDecorators();
+	meta->effects.DirtyEffects();
 	GetStyle()->DirtyPropertiesWithUnits(Unit::DP_SCALABLE_LENGTH);
 
 	OnDpRatioChange();

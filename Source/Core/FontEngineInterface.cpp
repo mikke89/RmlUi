@@ -72,9 +72,9 @@ int FontEngineInterface::GetStringWidth(FontFaceHandle /*handle*/, const String&
 	return 0;
 }
 
-int FontEngineInterface::GenerateString(FontFaceHandle /*face_handle*/, FontEffectsHandle /*font_effects_handle*/, const String& /*string*/,
-	const Vector2f& /*position*/, const Colourb& /*colour*/, float /*opacity*/, const TextShapingContext& /*text_shaping_context*/,
-	GeometryList& /*geometry*/)
+int FontEngineInterface::GenerateString(RenderManager& /*render_manager*/, FontFaceHandle /*face_handle*/, FontEffectsHandle /*font_effects_handle*/,
+	const String& /*string*/, const Vector2f& /*position*/, ColourbPremultiplied /*colour*/, float /*opacity*/,
+	const TextShapingContext& /*text_shaping_context*/, TexturedMeshList& /*mesh_list*/)
 {
 	return 0;
 }

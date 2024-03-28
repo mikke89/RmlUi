@@ -109,11 +109,9 @@ void ConvolutionFilter::Run(byte* destination, const Vector2i destination_dimens
 
 			opacity = Math::Min(255.f, opacity);
 
-			const int destination_index = x * destination_bytes_per_pixel + destination_alpha_offset;
+			const int destination_index = y * destination_stride + x * destination_bytes_per_pixel + destination_alpha_offset;
 			destination[destination_index] = byte(opacity);
 		}
-
-		destination += destination_stride;
 	}
 }
 

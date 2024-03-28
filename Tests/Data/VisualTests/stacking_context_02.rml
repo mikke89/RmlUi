@@ -1,0 +1,65 @@
+<rml>
+<head>
+	<title>Stacking context and paint order 2</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help (paint order)" href="https://drafts.csswg.org/css2/#painting-order" />
+	<link rel="help (filter)" href="https://drafts.fxtf.org/filter-effects/#FilterProperty" />
+	<meta name="Description" content="Normally, positioned elements are painted above other in-flow boxes (first row). However, when setting the 'filter' property on the inner element (second row), this element creates a new stacking context, which is rendered at the same stage as positioned boxes, but now in tree order. Thus, the positioned box becomes hidden. By changing the z-index of the positioned box (third row), or the tree-order (fourth row), the positioned box is painted on top again." />
+	<meta name="Assert" content="The positioned box should be visible in all rows except the second one." />
+	<style>
+		div {
+			border: 2dp #bbb;
+		}
+		.wrapper {
+			margin: 15dp 0;
+			background: #ddf;
+			position: relative;
+			padding: 5dp;
+		}
+		.positioned {
+			background: #fdd;
+			text-align: center;
+			position: absolute;
+			width: 110dp;
+			height: 30dp;
+			margin: 0 auto;
+			top: 10dp;
+		}
+		.inner {
+			background: #dfd;
+			min-height: 3em;
+		}
+		.filter {
+			filter: opacity(1);
+		}
+		.z1 {
+			z-index: 1;
+		}
+	</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+	<div class="positioned">Positioned</div>
+	<div class="inner">Unfiltered</div>
+</div>
+
+<div class="wrapper">
+	<div class="positioned">Positioned</div>
+	<div class="inner filter">Filtered</div>
+</div>
+
+<div class="wrapper">
+	<div class="positioned z1">Positioned (z=1)</div>
+	<div class="inner filter">Filtered</div>
+</div>
+
+<div class="wrapper">
+	<div class="inner filter">Filtered (first)</div>
+	<div class="positioned">Positioned</div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

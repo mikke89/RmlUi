@@ -35,7 +35,7 @@
 namespace Rml {
 
 /**
-    Templated class for a generic rectangle.
+    Templated class for a generic axis-aligned rectangle.
  */
 template <typename Type>
 class Rectangle {
@@ -54,7 +54,9 @@ public:
 	Vector2Type Size() const { return p1 - p0; }
 
 	Vector2Type TopLeft() const { return p0; }
+	Vector2Type TopRight() const { return {p1.x, p0.y}; }
 	Vector2Type BottomRight() const { return p1; }
+	Vector2Type BottomLeft() const { return {p0.x, p1.y}; }
 
 	Vector2Type Center() const { return (p0 + p1) / Type(2); }
 
@@ -73,6 +75,12 @@ public:
 	}
 	void ExtendTopLeft(Vector2Type v) { p0 -= v; }
 	void ExtendBottomRight(Vector2Type v) { p1 += v; }
+
+	void Translate(Vector2Type v)
+	{
+		p0 += v;
+		p1 += v;
+	}
 
 	void Join(Vector2Type p)
 	{

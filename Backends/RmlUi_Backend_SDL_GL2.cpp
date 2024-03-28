@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/Log.h>
 #include <GL/glew.h>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -52,8 +53,7 @@ private:
 public:
 	RenderInterface_GL2_SDL(SDL_Renderer* renderer) : renderer(renderer) {}
 
-	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
-		const Rml::Vector2f& translation) override
+	void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override
 	{
 		SDL_Texture* sdl_texture = (SDL_Texture*)texture;
 		if (sdl_texture)
@@ -62,59 +62,66 @@ public:
 			texture = RenderInterface_GL2::TextureEnableWithoutBinding;
 		}
 
-		RenderInterface_GL2::RenderGeometry(vertices, num_vertices, indices, num_indices, texture, translation);
+		RenderInterface_GL2::RenderGeometry(handle, translation, texture);
 
 		if (sdl_texture)
 			SDL_GL_UnbindTexture(sdl_texture);
 	}
 
-	bool LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override
+	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override
 	{
 		Rml::FileInterface* file_interface = Rml::GetFileInterface();
 		Rml::FileHandle file_handle = file_interface->Open(source);
 		if (!file_handle)
-			return false;
+			return {};
 
 		file_interface->Seek(file_handle, 0, SEEK_END);
-		size_t buffer_size = file_interface->Tell(file_handle);
+		const size_t buffer_size = file_interface->Tell(file_handle);
 		file_interface->Seek(file_handle, 0, SEEK_SET);
 
-		Rml::UniquePtr<char[]> buffer(new char[buffer_size]);
+		using Rml::byte;
+		Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
 		file_interface->Read(buffer.get(), buffer_size, file_handle);
 		file_interface->Close(file_handle);
 
-		const size_t i = source.rfind('.');
-		Rml::String extension = (i == Rml::String::npos ? Rml::String() : source.substr(i + 1));
+		const size_t i_ext = source.rfind('.');
+		Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
 		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
 		if (!surface)
-			return false;
+			return {};
 
-		if (surface->format->Amask == 0)
+		texture_dimensions = {surface->w, surface->h};
+
+		if (surface->format->format != SDL_PIXELFORMAT_RGBA32 && surface->format->format != SDL_PIXELFORMAT_BGRA32)
 		{
-			// Fix for rendering images with no alpha channel, see https://github.com/mikke89/RmlUi/issues/239
+			// Ensure correct format for premultiplied alpha conversion below. Additionally, fix rendering images with
+			// no alpha channel, see https://github.com/mikke89/RmlUi/issues/239
 			SDL_Surface* converted_surface = SDL_ConvertSurfaceFormat(surface, SDL_PixelFormatEnum::SDL_PIXELFORMAT_RGBA32, 0);
 			SDL_FreeSurface(surface);
 
 			if (!converted_surface)
-				return false;
+				return {};
 
 			surface = converted_surface;
 		}
 
-		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-		if (texture)
+		// Convert colors to premultiplied alpha, which is necessary for correct alpha compositing.
+		byte* pixels = static_cast<byte*>(surface->pixels);
+		for (int i = 0; i < surface->w * surface->h * 4; i += 4)
 		{
-			texture_handle = (Rml::TextureHandle)texture;
-			texture_dimensions = Rml::Vector2i(surface->w, surface->h);
+			const byte alpha = pixels[i + 3];
+			for (int j = 0; j < 3; ++j)
+				pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
 		}
 
+		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 		SDL_FreeSurface(surface);
 
-		return true;
+		return (Rml::TextureHandle)texture;
 	}
 
-	bool GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override
+	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override
 	{
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 		Uint32 rmask = 0xff000000;
@@ -128,13 +135,12 @@ public:
 		Uint32 amask = 0xff000000;
 #endif
 
-		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*)source, source_dimensions.x, source_dimensions.y, 32, source_dimensions.x * 4, rmask,
-			gmask, bmask, amask);
+		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*)source.data(), source_dimensions.x, source_dimensions.y, 32, source_dimensions.x * 4,
+			rmask, gmask, bmask, amask);
 		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 		SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 		SDL_FreeSurface(surface);
-		texture_handle = (Rml::TextureHandle)texture;
-		return true;
+		return (Rml::TextureHandle)texture;
 	}
 
 	void ReleaseTexture(Rml::TextureHandle texture_handle) override { SDL_DestroyTexture((SDL_Texture*)texture_handle); }
@@ -190,7 +196,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 		window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
 		if (!window)
 		{
-			fprintf(stderr, "SDL error on create window: %s\n", SDL_GetError());
+			Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on create window: %s", SDL_GetError());
 			return false;
 		}
 	}
@@ -215,7 +221,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	GLenum err = glewInit();
 	if (err != GLEW_OK)
 	{
-		fprintf(stderr, "GLEW error: %s\n", glewGetErrorString(err));
+		Rml::Log::Message(Rml::Log::LT_ERROR, "GLEW error: %s", glewGetErrorString(err));
 		return false;
 	}
 

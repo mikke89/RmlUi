@@ -26,14 +26,15 @@
  *
  */
 
-#include "RmlUi/Config/Config.h"
 #include "RmlUi_Backend.h"
 #include "RmlUi_Include_Windows.h"
 #include "RmlUi_Platform_Win32.h"
 #include "RmlUi_Renderer_VK.h"
+#include <RmlUi/Config/Config.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Profiling.h>
 
 /**
@@ -92,11 +93,6 @@ static float GetDensityIndependentPixelRatio(HWND window_handle)
 	return float(GetWindowDpi(window_handle)) / float(USER_DEFAULT_SCREEN_DPI);
 }
 
-static void DisplayError(HWND window_handle, const Rml::String& msg)
-{
-	MessageBoxW(window_handle, RmlWin32::ConvertToUTF16(msg).c_str(), L"Backend Error", MB_OK);
-}
-
 // Create the window but don't show it yet. Returns the pixel size of the window, which may be different than the passed size due to DPI settings.
 static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name, int& inout_width, int& inout_height, bool allow_resize);
 // Create the Win32 Vulkan surface.
@@ -150,7 +146,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 	if (!data->render_interface.Initialize(std::move(extensions), CreateVulkanSurface))
 	{
-		DisplayError(window_handle, "Could not initialize Vulkan render interface.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to initialize Vulkan render interface");
 		::CloseWindow(window_handle);
 		data.reset();
 		return false;
@@ -195,7 +191,7 @@ static bool NextEvent(MSG& message, UINT timeout)
 {
 	if (timeout != 0)
 	{
-		UINT_PTR timer_id = SetTimer(NULL, NULL, timeout, NULL);
+		UINT_PTR timer_id = SetTimer(NULL, 0, timeout, NULL);
 		BOOL res = GetMessage(&message, NULL, 0, 0);
 		KillTimer(NULL, timer_id);
 		if (message.message != WM_TIMER || message.hwnd != nullptr || message.wParam != timer_id)
@@ -357,7 +353,7 @@ static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name
 
 	if (!RegisterClassW(&window_class))
 	{
-		DisplayError(NULL, "Could not register window class.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to register window class");
 		return nullptr;
 	}
 
@@ -369,7 +365,7 @@ static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name
 
 	if (!window_handle)
 	{
-		DisplayError(NULL, "Could not create window.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to create window");
 		return nullptr;
 	}
 

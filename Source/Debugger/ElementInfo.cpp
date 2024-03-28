@@ -35,6 +35,7 @@
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
@@ -175,6 +176,19 @@ void ElementInfo::RenderSourceElement()
 			Geometry::RenderBox(border_offset + element_box.GetPosition(BoxArea::Margin), element_box.GetSize(BoxArea::Margin),
 				border_offset + element_box.GetPosition(BoxArea::Border), element_box.GetSize(BoxArea::Border), Colourb(240, 255, 131, 128));
 		}
+
+		if (Context* context = source_element->GetContext())
+		{
+			context->GetRenderManager().SetTransform(nullptr);
+
+			Rectanglef bounding_box;
+			if (ElementUtilities::GetBoundingBox(bounding_box, source_element, BoxArea::Auto))
+			{
+				bounding_box.Extend(1.f);
+				Math::ExpandToPixelGrid(bounding_box);
+				Geometry::RenderOutline(bounding_box.Position(), bounding_box.Size(), Colourb(255, 255, 255, 200), 1.f);
+			}
+		}
 	}
 }
 
@@ -205,13 +219,11 @@ void ElementInfo::ProcessEvent(Event& event)
 				else if (id == "show_source")
 				{
 					show_source_element = !target_element->IsClassSet("active");
-					;
 					target_element->SetClass("active", show_source_element);
 				}
 				else if (id == "enable_element_select")
 				{
 					enable_element_select = !target_element->IsClassSet("active");
-					;
 					target_element->SetClass("active", enable_element_select);
 				}
 				else if (target_element->GetTagName() == "pseudo" && source_element)

@@ -29,6 +29,7 @@
 #ifndef RMLUI_LUAINVADERS_SPRITE_H
 #define RMLUI_LUAINVADERS_SPRITE_H
 
+#include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/Types.h>
 
 /**
@@ -40,7 +41,7 @@ public:
 	Sprite(const Rml::Vector2f& dimensions, const Rml::Vector2f& top_left_texcoord, const Rml::Vector2f& bottom_right_texcoord);
 	~Sprite();
 
-	void Render(Rml::Vector2f position, float dp_ratio, Rml::Colourb color, Rml::TextureHandle texture);
+	void Render(Rml::RenderManager& render_manager, Rml::Vector2f position, float dp_ratio, Rml::ColourbPremultiplied color, Rml::Texture texture);
 
 	Rml::Vector2f dimensions;
 	Rml::Vector2f top_left_texcoord;
@@ -48,11 +49,11 @@ public:
 };
 
 struct ColoredPoint {
-	Rml::Colourb color;
+	Rml::ColourbPremultiplied color;
 	Rml::Vector2f position;
 };
 using ColoredPointList = Rml::Vector<ColoredPoint>;
 
-void DrawPoints(float point_size, const ColoredPointList& points);
+void DrawPoints(Rml::RenderManager& render_manager, float point_size, const ColoredPointList& points);
 
 #endif

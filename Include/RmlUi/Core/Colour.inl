@@ -28,41 +28,43 @@
 
 namespace Rml {
 
-template <typename ColourType, int AlphaDefault>
-Colour<ColourType, AlphaDefault>::Colour(ColourType rgb, ColourType alpha) : red(rgb), green(rgb), blue(rgb), alpha(alpha)
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+Colour<ColourType, AlphaDefault, PremultipliedAlpha>::Colour(ColourType rgb, ColourType alpha) : red(rgb), green(rgb), blue(rgb), alpha(alpha)
 {}
 
-template <typename ColourType, int AlphaDefault>
-Colour<ColourType, AlphaDefault>::Colour(ColourType red, ColourType green, ColourType blue, ColourType alpha) :
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+Colour<ColourType, AlphaDefault, PremultipliedAlpha>::Colour(ColourType red, ColourType green, ColourType blue, ColourType alpha) :
 	red(red), green(green), blue(blue), alpha(alpha)
 {}
 
-template <typename ColourType, int AlphaDefault>
-Colour<ColourType, AlphaDefault> Colour<ColourType, AlphaDefault>::operator+(const Colour<ColourType, AlphaDefault> rhs) const
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+Colour<ColourType, AlphaDefault, PremultipliedAlpha> Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator+(
+	const Colour<ColourType, AlphaDefault, PremultipliedAlpha> rhs) const
 {
-	return Colour<ColourType, AlphaDefault>(red + rhs.red, green + rhs.green, blue + rhs.blue, alpha + rhs.alpha);
+	return Colour<ColourType, AlphaDefault, PremultipliedAlpha>(red + rhs.red, green + rhs.green, blue + rhs.blue, alpha + rhs.alpha);
 }
 
-template <typename ColourType, int AlphaDefault>
-Colour<ColourType, AlphaDefault> Colour<ColourType, AlphaDefault>::operator-(const Colour<ColourType, AlphaDefault> rhs) const
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+Colour<ColourType, AlphaDefault, PremultipliedAlpha> Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator-(
+	const Colour<ColourType, AlphaDefault, PremultipliedAlpha> rhs) const
 {
-	return Colour<ColourType, AlphaDefault>(red - rhs.red, green - rhs.green, blue - rhs.blue, alpha - rhs.alpha);
+	return Colour<ColourType, AlphaDefault, PremultipliedAlpha>(red - rhs.red, green - rhs.green, blue - rhs.blue, alpha - rhs.alpha);
 }
 
-template <typename ColourType, int AlphaDefault>
-Colour<ColourType, AlphaDefault> Colour<ColourType, AlphaDefault>::operator*(float rhs) const
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+Colour<ColourType, AlphaDefault, PremultipliedAlpha> Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator*(float rhs) const
 {
 	return Colour((ColourType)(red * rhs), (ColourType)(green * rhs), (ColourType)(blue * rhs), (ColourType)(alpha * rhs));
 }
 
-template <typename ColourType, int AlphaDefault>
-Colour<ColourType, AlphaDefault> Colour<ColourType, AlphaDefault>::operator/(float rhs) const
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+Colour<ColourType, AlphaDefault, PremultipliedAlpha> Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator/(float rhs) const
 {
 	return Colour((ColourType)(red / rhs), (ColourType)(green / rhs), (ColourType)(blue / rhs), (ColourType)(alpha / rhs));
 }
 
-template <typename ColourType, int AlphaDefault>
-void Colour<ColourType, AlphaDefault>::operator+=(const Colour rhs)
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+void Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator+=(const Colour rhs)
 {
 	red += rhs.red;
 	green += rhs.green;
@@ -70,8 +72,8 @@ void Colour<ColourType, AlphaDefault>::operator+=(const Colour rhs)
 	alpha += rhs.alpha;
 }
 
-template <typename ColourType, int AlphaDefault>
-void Colour<ColourType, AlphaDefault>::operator-=(const Colour rhs)
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+void Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator-=(const Colour rhs)
 {
 	red -= rhs.red;
 	green -= rhs.green;
@@ -79,8 +81,8 @@ void Colour<ColourType, AlphaDefault>::operator-=(const Colour rhs)
 	alpha -= rhs.alpha;
 }
 
-template <typename ColourType, int AlphaDefault>
-void Colour<ColourType, AlphaDefault>::operator*=(float rhs)
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+void Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator*=(float rhs)
 {
 	red = (ColourType)(red * rhs);
 	green = (ColourType)(green * rhs);
@@ -88,8 +90,8 @@ void Colour<ColourType, AlphaDefault>::operator*=(float rhs)
 	alpha = (ColourType)(alpha * rhs);
 }
 
-template <typename ColourType, int AlphaDefault>
-void Colour<ColourType, AlphaDefault>::operator/=(float rhs)
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
+void Colour<ColourType, AlphaDefault, PremultipliedAlpha>::operator/=(float rhs)
 {
 	*this *= (1.0f / rhs);
 }

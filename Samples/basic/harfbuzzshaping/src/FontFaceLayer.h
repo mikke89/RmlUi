@@ -29,17 +29,27 @@
 #ifndef FONTFACELAYER_H
 #define FONTFACELAYER_H
 
-#include <RmlUi/Core.h>
 #include "FontGlyph.h"
 #include "TextureLayout.h"
+#include <RmlUi/Core.h>
 
 using Rml::byte;
+using Rml::CallbackTextureFunction;
+using Rml::CallbackTextureInterface;
+using Rml::CallbackTextureSource;
+using Rml::Character;
+using Rml::ColorFormat;
 using Rml::Colourb;
+using Rml::ColourbPremultiplied;
 using Rml::FontEffect;
 using Rml::Geometry;
+using Rml::Mesh;
+using Rml::RenderManager;
 using Rml::SharedPtr;
 using Rml::Texture;
+using Rml::TexturedMesh;
 using Rml::TextureLayout;
+using Rml::TextureLayoutRectangle;
 using Rml::UniquePtr;
 using Rml::UnorderedMap;
 using Rml::Vector;
@@ -63,40 +73,53 @@ public:
 
 	/// Generates or re-generates the character and texture data for the layer.
 	/// @param[in] handle The handle generating this layer.
-	/// @param[in] effect The effect to initialise the layer with.
 	/// @param[in] clone The layer to optionally clone geometry and texture data from.
+	/// @param[in] clone_glyph_origins True to keep the character origins from the cloned layer, false to generate new ones.
 	/// @return True if the layer was generated successfully, false if not.
 	bool Generate(const FontFaceHandleHarfBuzz* handle, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
 
 	/// Generates the texture data for a layer (for the texture database).
-	/// @param[out] texture_data The pointer to be set to the generated texture data.
+	/// @param[out] texture_data The generated texture data.
 	/// @param[out] texture_dimensions The dimensions of the texture.
 	/// @param[in] texture_id The index of the texture within the layer to generate.
 	/// @param[in] glyphs The glyphs required by the font face handle.
-	bool GenerateTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs);
+	bool GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs);
 
 	/// Generates the geometry required to render a single character.
-	/// @param[out] geometry An array of geometries this layer will write to. It must be at least as big as the number of textures in this layer.
-	/// @param[in] glyph_index The font's glyph index of the character to generate geometry for.
+	/// @param[out] mesh_list An array of meshes this layer will write to. It must be at least as big as the number of textures in this layer.
+	/// @param[in] character_code The character to generate geometry for.
 	/// @param[in] position The position of the baseline.
 	/// @param[in] colour The colour of the string.
-	void GenerateGeometry(Geometry* geometry, const FontGlyphIndex glyph_index, const Vector2f position, const Colourb colour) const;
+	inline void GenerateGeometry(TexturedMesh* mesh_list, const FontGlyphIndex glyph_index, const Vector2f position,
+		const ColourbPremultiplied colour) const
+	{
+		auto it = character_boxes.find(glyph_index);
+		if (it == character_boxes.end())
+			return;
+
+		const TextureBox& box = it->second;
+
+		if (box.texture_index < 0)
+			return;
+
+		// Generate the geometry for the character.
+		Mesh& mesh = mesh_list[box.texture_index].mesh;
+		Rml::MeshUtilities::GenerateQuad(mesh, (position + box.origin).Round(), box.dimensions, colour, box.texcoords[0], box.texcoords[1]);
+	}
 
 	/// Returns the effect used to generate the layer.
 	const FontEffect* GetFontEffect() const;
 
 	/// Returns one of the layer's textures.
-	const Texture* GetTexture(int index);
+	Texture GetTexture(RenderManager& render_manager, int index);
 	/// Returns the number of textures employed by this layer.
 	int GetNumTextures() const;
 
-	/// Returns the layer's colour.
-	Colourb GetColour() const;
+	/// Returns the layer's colour after applying the given opacity.
+	ColourbPremultiplied GetColour(float opacity) const;
 
 private:
 	struct TextureBox {
-		TextureBox() : texture_index(-1) {}
-
 		// The offset, in pixels, of the baseline from the start of this character's geometry.
 		Vector2f origin;
 		// The width and height, in pixels, of this character's geometry.
@@ -105,18 +128,19 @@ private:
 		Vector2f texcoords[2];
 
 		// The texture this character renders from.
-		int texture_index;
+		int texture_index = -1;
 	};
 
 	using CharacterMap = UnorderedMap<FontGlyphIndex, TextureBox>;
-	using TextureList = Vector<Texture>;
+	using TextureList = Vector<CallbackTextureSource>;
 
 	SharedPtr<const FontEffect> effect;
 
-	TextureLayout texture_layout;
+	TextureList textures_owned;
+	TextureList* textures_ptr = &textures_owned;
 
+	TextureLayout texture_layout;
 	CharacterMap character_boxes;
-	TextureList textures;
 	Colourb colour;
 };
 

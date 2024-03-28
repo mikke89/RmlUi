@@ -29,6 +29,7 @@
 #ifndef RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
 #define RMLUI_CORE_ELEMENTBACKGROUNDBORDER_H
 
+#include "../../Include/RmlUi/Core/CallbackTexture.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/Types.h"
 
@@ -43,13 +44,24 @@ public:
 	void DirtyBackground();
 	void DirtyBorder();
 
+	Geometry* GetClipGeometry(Element* element, BoxArea clip_area);
+
 private:
+	enum class BackgroundType { BackgroundBorder, BoxShadow, ClipBorder, ClipPadding, ClipContent, Count };
+	struct Background {
+		Geometry geometry;
+		CallbackTexture texture;
+	};
+
+	Background* GetBackground(BackgroundType type);
+	Background& GetOrCreateBackground(BackgroundType type);
+
 	void GenerateGeometry(Element* element);
 
 	bool background_dirty = false;
 	bool border_dirty = false;
 
-	Geometry geometry;
+	StableMap<BackgroundType, Background> backgrounds;
 };
 
 } // namespace Rml

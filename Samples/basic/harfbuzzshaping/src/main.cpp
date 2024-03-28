@@ -37,7 +37,7 @@
 */
 
 // Toggle this variable to enable/disable text shaping.
-constexpr bool EnableTextShaping = true;
+constexpr bool EnableTextShaping = false;
 
 class HarfBuzzEventListener : public Rml::EventListener {
 public:

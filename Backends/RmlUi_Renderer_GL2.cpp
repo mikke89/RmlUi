@@ -67,7 +67,12 @@ void RenderInterface_GL2::BeginFrame()
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
+	glStencilMask(GLuint(-1));
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 	Rml::Matrix4f projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 	glMatrixMode(GL_PROJECTION);
@@ -85,13 +90,28 @@ void RenderInterface_GL2::EndFrame() {}
 void RenderInterface_GL2::Clear()
 {
 	glClearStencil(0);
-	glClearColor(0, 0, 0, 1);
+	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void RenderInterface_GL2::RenderGeometry(Rml::Vertex* vertices, int /*num_vertices*/, int* indices, int num_indices, const Rml::TextureHandle texture,
-	const Rml::Vector2f& translation)
+Rml::CompiledGeometryHandle RenderInterface_GL2::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
 {
+	GeometryView* data = new GeometryView{vertices, indices};
+	return reinterpret_cast<Rml::CompiledGeometryHandle>(data);
+}
+
+void RenderInterface_GL2::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
+{
+	delete reinterpret_cast<GeometryView*>(geometry);
+}
+
+void RenderInterface_GL2::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
+{
+	const GeometryView* geometry = reinterpret_cast<GeometryView*>(handle);
+	const Rml::Vertex* vertices = geometry->vertices.data();
+	const int* indices = geometry->indices.data();
+	const int num_indices = (int)geometry->indices.size();
+
 	glPushMatrix();
 	glTranslatef(translation.x, translation.y, 0);
 
@@ -122,62 +142,71 @@ void RenderInterface_GL2::RenderGeometry(Rml::Vertex* vertices, int /*num_vertic
 void RenderInterface_GL2::EnableScissorRegion(bool enable)
 {
 	if (enable)
-	{
-		if (!transform_enabled)
-		{
-			glEnable(GL_SCISSOR_TEST);
-			glDisable(GL_STENCIL_TEST);
-		}
-		else
-		{
-			glDisable(GL_SCISSOR_TEST);
-			glEnable(GL_STENCIL_TEST);
-		}
-	}
+		glEnable(GL_SCISSOR_TEST);
 	else
-	{
 		glDisable(GL_SCISSOR_TEST);
-		glDisable(GL_STENCIL_TEST);
-	}
 }
 
-void RenderInterface_GL2::SetScissorRegion(int x, int y, int width, int height)
+void RenderInterface_GL2::SetScissorRegion(Rml::Rectanglei region)
 {
-	if (!transform_enabled)
-	{
-		glScissor(x, viewport_height - (y + height), width, height);
-	}
+	glScissor(region.Left(), viewport_height - region.Bottom(), region.Width(), region.Height());
+}
+
+void RenderInterface_GL2::EnableClipMask(bool enable)
+{
+	if (enable)
+		glEnable(GL_STENCIL_TEST);
 	else
+		glDisable(GL_STENCIL_TEST);
+}
+
+void RenderInterface_GL2::RenderToClipMask(Rml::ClipMaskOperation operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation)
+{
+	RMLUI_ASSERT(glIsEnabled(GL_STENCIL_TEST));
+	using Rml::ClipMaskOperation;
+
+	const bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
+	if (clear_stencil)
 	{
-		// clear the stencil buffer
-		glStencilMask(GLuint(-1));
+		// @performance Increment the reference value instead of clearing each time.
 		glClear(GL_STENCIL_BUFFER_BIT);
-
-		// fill the stencil buffer
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		glDepthMask(GL_FALSE);
-		glStencilFunc(GL_NEVER, 1, GLuint(-1));
-		glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
-
-		float fx = (float)x;
-		float fy = (float)y;
-		float fwidth = (float)width;
-		float fheight = (float)height;
-
-		// draw transformed quad
-		GLfloat vertices[] = {fx, fy, 0, fx, fy + fheight, 0, fx + fwidth, fy + fheight, 0, fx + fwidth, fy, 0};
-		glDisableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, vertices);
-		GLushort indices[] = {1, 2, 0, 3};
-		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, indices);
-		glEnableClientState(GL_COLOR_ARRAY);
-
-		// prepare for drawing the real thing
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glDepthMask(GL_TRUE);
-		glStencilMask(0);
-		glStencilFunc(GL_EQUAL, 1, GLuint(-1));
 	}
+
+	GLint stencil_test_value = 0;
+	glGetIntegerv(GL_STENCIL_REF, &stencil_test_value);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glStencilFunc(GL_ALWAYS, GLint(1), GLuint(-1));
+
+	switch (operation)
+	{
+	case ClipMaskOperation::Set:
+	{
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		stencil_test_value = 1;
+	}
+	break;
+	case ClipMaskOperation::SetInverse:
+	{
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		stencil_test_value = 0;
+	}
+	break;
+	case ClipMaskOperation::Intersect:
+	{
+		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+		stencil_test_value += 1;
+	}
+	break;
+	}
+
+	RenderGeometry(geometry, translation, {});
+
+	// Restore state
+	// @performance Cache state so we don't toggle it unnecessarily.
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	glStencilFunc(GL_EQUAL, stencil_test_value, GLuint(-1));
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
@@ -199,7 +228,7 @@ struct TGAHeader {
 // Restore packing
 #pragma pack()
 
-bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source)
+Rml::TextureHandle RenderInterface_GL2::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
 	Rml::FileInterface* file_interface = Rml::GetFileInterface();
 	Rml::FileHandle file_handle = file_interface->Open(source);
@@ -219,20 +248,20 @@ bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 		return false;
 	}
 
-	char* buffer = new char[buffer_size];
-	file_interface->Read(buffer, buffer_size, file_handle);
+	using Rml::byte;
+	Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
+	file_interface->Read(buffer.get(), buffer_size, file_handle);
 	file_interface->Close(file_handle);
 
 	TGAHeader header;
-	memcpy(&header, buffer, sizeof(TGAHeader));
+	memcpy(&header, buffer.get(), sizeof(TGAHeader));
 
 	int color_mode = header.bitsPerPixel / 8;
-	int image_size = header.width * header.height * 4; // We always make 32bit textures
+	const size_t image_size = header.width * header.height * 4; // We always make 32bit textures
 
 	if (header.dataType != 2)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
-		delete[] buffer;
 		return false;
 	}
 
@@ -240,25 +269,30 @@ bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	if (color_mode < 3)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported.");
-		delete[] buffer;
 		return false;
 	}
 
-	const char* image_src = buffer + sizeof(TGAHeader);
-	unsigned char* image_dest = new unsigned char[image_size];
+	const byte* image_src = buffer.get() + sizeof(TGAHeader);
+	Rml::UniquePtr<byte[]> image_dest_buffer(new byte[image_size]);
+	byte* image_dest = image_dest_buffer.get();
 
-	// Targa is BGR, swap to RGB and flip Y axis
+	// Targa is BGR, swap to RGB, flip Y axis, and convert to premultiplied alpha.
 	for (long y = 0; y < header.height; y++)
 	{
 		long read_index = y * header.width * color_mode;
-		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * color_mode;
+		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * 4;
 		for (long x = 0; x < header.width; x++)
 		{
 			image_dest[write_index] = image_src[read_index + 2];
 			image_dest[write_index + 1] = image_src[read_index + 1];
 			image_dest[write_index + 2] = image_src[read_index];
 			if (color_mode == 4)
-				image_dest[write_index + 3] = image_src[read_index + 3];
+			{
+				const byte alpha = image_src[read_index + 3];
+				for (size_t j = 0; j < 3; j++)
+					image_dest[write_index + j] = byte((image_dest[write_index + j] * alpha) / 255);
+				image_dest[write_index + 3] = alpha;
+			}
 			else
 				image_dest[write_index + 3] = 255;
 
@@ -270,36 +304,29 @@ bool RenderInterface_GL2::LoadTexture(Rml::TextureHandle& texture_handle, Rml::V
 	texture_dimensions.x = header.width;
 	texture_dimensions.y = header.height;
 
-	bool success = GenerateTexture(texture_handle, image_dest, texture_dimensions);
-
-	delete[] image_dest;
-	delete[] buffer;
-
-	return success;
+	return GenerateTexture({image_dest, image_size}, texture_dimensions);
 }
 
-bool RenderInterface_GL2::GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions)
+Rml::TextureHandle RenderInterface_GL2::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions)
 {
 	GLuint texture_id = 0;
 	glGenTextures(1, &texture_id);
 	if (texture_id == 0)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to generate texture.");
-		return false;
+		return {};
 	}
 
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source.data());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	texture_handle = (Rml::TextureHandle)texture_id;
-
-	return true;
+	return (Rml::TextureHandle)texture_id;
 }
 
 void RenderInterface_GL2::ReleaseTexture(Rml::TextureHandle texture_handle)

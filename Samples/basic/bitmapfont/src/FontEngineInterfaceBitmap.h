@@ -38,7 +38,7 @@ using Rml::FontFaceHandle;
 
 using Rml::byte;
 using Rml::Character;
-using Rml::Colourb;
+using Rml::ColourbPremultiplied;
 using Rml::String;
 using Rml::Texture;
 using Rml::Vector2f;
@@ -48,8 +48,9 @@ using Rml::Style::FontWeight;
 
 using Rml::FontEffectList;
 using Rml::FontMetrics;
-using Rml::GeometryList;
+using Rml::RenderManager;
 using Rml::TextShapingContext;
+using Rml::TexturedMeshList;
 
 class FontEngineInterfaceBitmap : public Rml::FontEngineInterface {
 public:
@@ -81,8 +82,9 @@ public:
 		Character prior_character = Character::Null) override;
 
 	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
-	int GenerateString(FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string, const Vector2f& position,
-		const Colourb& colour, float opacity, const TextShapingContext& text_shaping_context, GeometryList& geometry) override;
+	int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string,
+		const Vector2f& position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
+		TexturedMeshList& mesh_list) override;
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated.eometry.
 	int GetVersion(FontFaceHandle handle) override;

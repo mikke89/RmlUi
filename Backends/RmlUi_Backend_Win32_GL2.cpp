@@ -33,6 +33,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Profiling.h>
 
 /**
@@ -89,11 +90,6 @@ static UINT GetWindowDpi(HWND window_handle)
 static float GetDensityIndependentPixelRatio(HWND window_handle)
 {
 	return float(GetWindowDpi(window_handle)) / float(USER_DEFAULT_SCREEN_DPI);
-}
-
-static void DisplayError(HWND window_handle, const Rml::String& msg)
-{
-	MessageBoxW(window_handle, RmlWin32::ConvertToUTF16(msg).c_str(), L"Backend Error", MB_OK);
 }
 
 // Create the window but don't show it yet. Returns the pixel size of the window, which may be different than the passed size due to DPI settings.
@@ -193,7 +189,7 @@ static bool NextEvent(MSG& message, UINT timeout)
 {
 	if (timeout != 0)
 	{
-		UINT_PTR timer_id = SetTimer(NULL, NULL, timeout, NULL);
+		UINT_PTR timer_id = SetTimer(NULL, 0, timeout, NULL);
 		BOOL res = GetMessage(&message, NULL, 0, 0);
 		KillTimer(NULL, timer_id);
 		if (message.message != WM_TIMER || message.hwnd != nullptr || message.wParam != timer_id)
@@ -349,7 +345,7 @@ static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name
 
 	if (!RegisterClassW(&window_class))
 	{
-		DisplayError(NULL, "Could not register window class.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to register window class");
 		return nullptr;
 	}
 
@@ -361,7 +357,7 @@ static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name
 
 	if (!window_handle)
 	{
-		DisplayError(NULL, "Could not create window.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to create window");
 		return nullptr;
 	}
 
@@ -398,7 +394,7 @@ static bool AttachToNative(HWND window_handle, HDC& out_device_context, HGLRC& o
 
 	if (!device_context)
 	{
-		DisplayError(window_handle, "Could not get device context.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to get device context");
 		return false;
 	}
 
@@ -418,27 +414,27 @@ static bool AttachToNative(HWND window_handle, HDC& out_device_context, HGLRC& o
 	int pixel_format = ChoosePixelFormat(device_context, &pixel_format_descriptor);
 	if (!pixel_format)
 	{
-		DisplayError(window_handle, "Could not choose 32-bit pixel format.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to choose 32-bit pixel format");
 		return false;
 	}
 
 	if (!SetPixelFormat(device_context, pixel_format, &pixel_format_descriptor))
 	{
-		DisplayError(window_handle, "Could not set pixel format.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to set pixel format");
 		return false;
 	}
 
 	HGLRC render_context = wglCreateContext(device_context);
 	if (!render_context)
 	{
-		DisplayError(window_handle, "Could not create OpenGL rendering context.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to create OpenGL rendering context");
 		return false;
 	}
 
 	// Activate the rendering context.
 	if (!wglMakeCurrent(device_context, render_context))
 	{
-		DisplayError(window_handle, "Unable to make rendering context current.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to make rendering context current");
 		return false;
 	}
 

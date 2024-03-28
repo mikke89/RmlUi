@@ -35,7 +35,8 @@
 
 namespace Rml {
 
-struct Texture;
+class Texture;
+struct Mesh;
 
 /**
     Base class for tiled decorators.
@@ -82,7 +83,7 @@ public:
 		Tile();
 
 		/// Calculates the tile's dimensions from the texture and texture coordinates.
-		void CalculateDimensions(const Texture& texture) const;
+		void CalculateDimensions(Texture texture) const;
 		/// Get the dimensions (in px) that this tile is ideally displayed as.
 		/// Uses the dp-ratio of the current element and 'display_scale' to calculate the dimensions.
 		Vector2f GetNaturalDimensions(Element* element) const;
@@ -94,8 +95,8 @@ public:
 		/// @param[in] surface_origin The starting point of the first tile to generate.
 		/// @param[in] surface_dimensions The dimensions of the surface to be tiled.
 		/// @param[in] tile_dimensions The dimensions to render this tile at.
-		void GenerateGeometry(Vector<Vertex>& vertices, Vector<int>& indices, const ComputedValues& computed_values, Vector2f surface_origin,
-			Vector2f surface_dimensions, Vector2f tile_dimensions) const;
+		void GenerateGeometry(Mesh& mesh, const ComputedValues& computed_values, Vector2f surface_origin, Vector2f surface_dimensions,
+			Vector2f tile_dimensions) const;
 
 		struct TileData {
 			Vector2f size;         // 'px' units
@@ -127,6 +128,32 @@ protected:
 	/// @param axis_value[in] The fixed value to scale against.
 	/// @param axis[in] The axis to scale against.
 	void ScaleTileDimensions(Vector2f& tile_dimensions, float axis_value, Axis axis) const;
+};
+
+class DecoratorTiledInstancer : public DecoratorInstancer {
+public:
+	DecoratorTiledInstancer(size_t num_tiles);
+
+protected:
+	/// Adds the property declarations for a tile.
+	/// @param[in] name The name of the tile property.
+	/// @param[in] register_fit_modes If true, the tile will have the fit modes registered.
+	void RegisterTileProperty(const String& name, bool register_fit_modes = false);
+
+	/// Retrieves all the properties for a tile from the property dictionary.
+	/// @param[out] tile The tile structure for storing the tile properties.
+	/// @param[out] textures Holds the textures declared for the tile.
+	/// @param[in] properties The user-defined list of parameters for the decorator.
+	/// @param[in] instancer_interface An interface for querying the active style sheet.
+	bool GetTileProperties(DecoratorTiled::Tile* tiles, Texture* textures, size_t num_tiles_and_textures, const PropertyDictionary& properties,
+		const DecoratorInstancerInterface& instancer_interface) const;
+
+private:
+	struct TilePropertyIds {
+		PropertyId src, fit, align_x, align_y, orientation;
+	};
+
+	Vector<TilePropertyIds> tile_property_ids;
 };
 
 } // namespace Rml

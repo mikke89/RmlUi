@@ -28,13 +28,17 @@
 
 #include "../../Include/RmlUi/Core/TypeConverter.h"
 #include "../../Include/RmlUi/Core/Animation.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/DecorationTypes.h"
+#include "../../Include/RmlUi/Core/Decorator.h"
+#include "../../Include/RmlUi/Core/Filter.h"
 #include "../../Include/RmlUi/Core/PropertyDictionary.h"
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "PropertyParserColour.h"
+#include "PropertyParserDecorator.h"
 #include "TransformUtilities.h"
 
 namespace Rml {
@@ -43,7 +47,7 @@ bool TypeConverter<Unit, String>::Convert(const Unit& src, String& dest)
 {
 	switch (src)
 	{
-	// clang-format off
+		// clang-format off
 	case Unit::NUMBER:  dest = "";    return true;
 	case Unit::PERCENT: dest = "%";   return true;
 
@@ -161,13 +165,18 @@ bool TypeConverter<AnimationList, String>::Convert(const AnimationList& src, Str
 	return true;
 }
 
-bool TypeConverter<DecoratorsPtr, DecoratorsPtr>::Convert(const DecoratorsPtr& src, DecoratorsPtr& dest)
+template <typename EffectDeclaration>
+void AppendPaintArea(const EffectDeclaration& /*declaration*/, String& /*dest*/)
+{}
+template <>
+void AppendPaintArea(const DecoratorDeclaration& declaration, String& dest)
 {
-	dest = src;
-	return true;
+	if (declaration.paint_area >= BoxArea::Border && declaration.paint_area <= BoxArea::Padding)
+		dest += " " + PropertyParserDecorator::ConvertAreaToString(declaration.paint_area);
 }
 
-bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, String& dest)
+template <typename EffectsPtr>
+static bool ConvertEffectToString(const EffectsPtr& src, String& dest, const String& separator)
 {
 	if (!src || src->list.empty())
 		dest = "none";
@@ -176,19 +185,40 @@ bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, Str
 	else
 	{
 		dest.clear();
-		for (const DecoratorDeclaration& declaration : src->list)
+		for (const auto& declaration : src->list)
 		{
 			dest += declaration.type;
-			if (auto instancer = declaration.instancer)
-			{
+			if (auto* instancer = declaration.instancer)
 				dest += '(' + instancer->GetPropertySpecification().PropertiesToString(declaration.properties, false, ' ') + ')';
-			}
-			dest += ", ";
+
+			AppendPaintArea(declaration, dest);
+			if (&declaration != &src->list.back())
+				dest += separator;
 		}
-		if (dest.size() > 2)
-			dest.resize(dest.size() - 2);
 	}
 	return true;
+}
+
+bool TypeConverter<DecoratorsPtr, DecoratorsPtr>::Convert(const DecoratorsPtr& src, DecoratorsPtr& dest)
+{
+	dest = src;
+	return true;
+}
+
+bool TypeConverter<DecoratorsPtr, String>::Convert(const DecoratorsPtr& src, String& dest)
+{
+	return ConvertEffectToString(src, dest, ", ");
+}
+
+bool TypeConverter<FiltersPtr, FiltersPtr>::Convert(const FiltersPtr& src, FiltersPtr& dest)
+{
+	dest = src;
+	return true;
+}
+
+bool TypeConverter<FiltersPtr, String>::Convert(const FiltersPtr& src, String& dest)
+{
+	return ConvertEffectToString(src, dest, " ");
 }
 
 bool TypeConverter<FontEffectsPtr, FontEffectsPtr>::Convert(const FontEffectsPtr& src, FontEffectsPtr& dest)
@@ -204,6 +234,75 @@ bool TypeConverter<FontEffectsPtr, String>::Convert(const FontEffectsPtr& src, S
 	else
 		dest += src->value;
 	return true;
+}
+
+bool TypeConverter<ColorStopList, ColorStopList>::Convert(const ColorStopList& src, ColorStopList& dest)
+{
+	dest = src;
+	return true;
+}
+
+bool TypeConverter<ColorStopList, String>::Convert(const ColorStopList& src, String& dest)
+{
+	dest.clear();
+	for (size_t i = 0; i < src.size(); i++)
+	{
+		const ColorStop& stop = src[i];
+		dest += ToString(stop.color.ToNonPremultiplied());
+
+		if (Any(stop.position.unit & Unit::NUMBER_LENGTH_PERCENT))
+			dest += " " + ToString(stop.position.number) + ToString(stop.position.unit);
+
+		if (i < src.size() - 1)
+			dest += ", ";
+	}
+	return true;
+}
+
+bool TypeConverter<BoxShadowList, BoxShadowList>::Convert(const BoxShadowList& src, BoxShadowList& dest)
+{
+	dest = src;
+	return true;
+}
+
+bool TypeConverter<BoxShadowList, String>::Convert(const BoxShadowList& src, String& dest)
+{
+	dest.clear();
+	String temp, str_unit;
+	for (size_t i = 0; i < src.size(); i++)
+	{
+		const BoxShadow& shadow = src[i];
+		for (const NumericValue* value : {&shadow.offset_x, &shadow.offset_y, &shadow.blur_radius, &shadow.spread_distance})
+		{
+			if (TypeConverter<Unit, String>::Convert(value->unit, str_unit))
+				temp += " " + ToString(value->number) + str_unit;
+		}
+
+		if (shadow.inset)
+			temp += " inset";
+
+		dest += ToString(shadow.color.ToNonPremultiplied()) + temp;
+
+		if (i < src.size() - 1)
+		{
+			dest += ", ";
+			temp.clear();
+		}
+	}
+	return true;
+}
+
+bool TypeConverter<Colourb, String>::Convert(const Colourb& src, String& dest)
+{
+	if (src.alpha == 255)
+		return FormatString(dest, 32, "#%02hhx%02hhx%02hhx", src.red, src.green, src.blue) > 0;
+	else
+		return FormatString(dest, 32, "#%02hhx%02hhx%02hhx%02hhx", src.red, src.green, src.blue, src.alpha) > 0;
+}
+
+bool TypeConverter<String, Colourb>::Convert(const String& src, Colourb& dest)
+{
+	return PropertyParserColour::ParseColour(dest, src);
 }
 
 } // namespace Rml

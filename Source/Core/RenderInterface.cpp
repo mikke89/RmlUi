@@ -27,43 +27,67 @@
  */
 
 #include "../../Include/RmlUi/Core/RenderInterface.h"
-#include "TextureDatabase.h"
 
 namespace Rml {
+
+namespace CoreInternal {
+	bool HasRenderManager(RenderInterface* render_interface);
+}
 
 RenderInterface::RenderInterface() {}
 
 RenderInterface::~RenderInterface()
 {
-	// Note: We cannot automatically release the textures from the database here, because that involves a virtual call to this interface during its
-	// destruction which is illegal.
-	RMLUI_ASSERTMSG(TextureDatabase::AllTexturesReleased(),
-		"RenderInterface is being destroyed, but there are still active textures in the texture database. This may lead to use-after-free or nullptr "
-		"dereference when releasing the textures. Ensure that the render interface is destroyed *after* the call to Rml::Shutdown.");
+	// Note: We cannot automatically release render resources here, because that involves a virtual call to this interface during its destruction
+	// which is illegal.
+	RMLUI_ASSERTMSG(!CoreInternal::HasRenderManager(this),
+		"RenderInterface is being destroyed, but it is still actively referenced and used within the RmlUi library. This may lead to use-after-free "
+		"or nullptr dereference when releasing render resources. Ensure that the render interface is destroyed *after* the call to Rml::Shutdown.");
 }
 
-CompiledGeometryHandle RenderInterface::CompileGeometry(Vertex* /*vertices*/, int /*num_vertices*/, int* /*indices*/, int /*num_indices*/,
-	TextureHandle /*texture*/)
-{
-	return 0;
-}
+void RenderInterface::EnableClipMask(bool /*enable*/) {}
 
-void RenderInterface::RenderCompiledGeometry(CompiledGeometryHandle /*geometry*/, const Vector2f& /*translation*/) {}
-
-void RenderInterface::ReleaseCompiledGeometry(CompiledGeometryHandle /*geometry*/) {}
-
-bool RenderInterface::LoadTexture(TextureHandle& /*texture_handle*/, Vector2i& /*texture_dimensions*/, const String& /*source*/)
-{
-	return false;
-}
-
-bool RenderInterface::GenerateTexture(TextureHandle& /*texture_handle*/, const byte* /*source*/, const Vector2i& /*source_dimensions*/)
-{
-	return false;
-}
-
-void RenderInterface::ReleaseTexture(TextureHandle /*texture*/) {}
+void RenderInterface::RenderToClipMask(ClipMaskOperation /*operation*/, CompiledGeometryHandle /*geometry*/, Vector2f /*translation*/) {}
 
 void RenderInterface::SetTransform(const Matrix4f* /*transform*/) {}
+
+LayerHandle RenderInterface::PushLayer()
+{
+	return {};
+}
+
+void RenderInterface::CompositeLayers(LayerHandle /*source*/, LayerHandle /*destination*/, BlendMode /*blend_mode*/,
+	Span<const CompiledFilterHandle> /*filters*/)
+{}
+
+void RenderInterface::PopLayer() {}
+
+TextureHandle RenderInterface::SaveLayerAsTexture(Vector2i /*dimensions*/)
+{
+	return TextureHandle{};
+}
+
+CompiledFilterHandle RenderInterface::SaveLayerAsMaskImage()
+{
+	return CompiledFilterHandle{};
+}
+
+CompiledFilterHandle RenderInterface::CompileFilter(const String& /*name*/, const Dictionary& /*parameters*/)
+{
+	return CompiledFilterHandle{};
+}
+
+void RenderInterface::ReleaseFilter(CompiledFilterHandle /*filter*/) {}
+
+CompiledShaderHandle RenderInterface::CompileShader(const String& /*name*/, const Dictionary& /*parameters*/)
+{
+	return CompiledShaderHandle{};
+}
+
+void RenderInterface::RenderShader(CompiledShaderHandle /*shader*/, CompiledGeometryHandle /*geometry*/, Vector2f /*translation*/,
+	TextureHandle /*texture*/)
+{}
+
+void RenderInterface::ReleaseShader(CompiledShaderHandle /*shader*/) {}
 
 } // namespace Rml

@@ -76,11 +76,12 @@ int FontEngineInterfaceHarfBuzz::GetStringWidth(FontFaceHandle handle, const Str
 	return handle_harfbuzz->GetStringWidth(string, text_shaping_context, registered_languages, prior_character);
 }
 
-int FontEngineInterfaceHarfBuzz::GenerateString(FontFaceHandle handle, FontEffectsHandle font_effects_handle, const String& string,
-	const Vector2f& position, const Colourb& colour, float opacity, const TextShapingContext& text_shaping_context, GeometryList& geometry)
+int FontEngineInterfaceHarfBuzz::GenerateString(RenderManager& render_manager, FontFaceHandle handle, FontEffectsHandle font_effects_handle,
+	const String& string, const Vector2f& position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
+	TexturedMeshList& mesh_list)
 {
 	auto handle_harfbuzz = reinterpret_cast<FontFaceHandleHarfBuzz*>(handle);
-	return handle_harfbuzz->GenerateString(geometry, string, position, colour, opacity, text_shaping_context, registered_languages,
+	return handle_harfbuzz->GenerateString(render_manager, mesh_list, string, position, colour, opacity, text_shaping_context, registered_languages,
 		(int)font_effects_handle);
 }
 

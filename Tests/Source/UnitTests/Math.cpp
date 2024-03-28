@@ -34,11 +34,11 @@ using namespace Rml;
 
 TEST_CASE("Math.RoundedLerp")
 {
-	const Colourb c0(0, 0, 0, 255);
-	const Colourb c1(255, 0, 0, 255);
-	const Colourb c2(127, 0, 0, 255);
+	const ColourbPremultiplied c0(0, 0, 0, 255);
+	const ColourbPremultiplied c1(255, 0, 0, 255);
+	const ColourbPremultiplied c2(127, 0, 0, 255);
 
-	Colourb c;
+	ColourbPremultiplied c;
 
 	c = Math::RoundedLerp(0.0f, c0, c1);
 	REQUIRE(c.red == c0.red);

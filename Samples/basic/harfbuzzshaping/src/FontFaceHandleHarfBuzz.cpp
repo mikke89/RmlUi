@@ -33,9 +33,10 @@
 #include "FreeTypeInterface.h"
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include <hb.h>
-#include <hb-ft.h>
 #include <algorithm>
+#include <hb-ft.h>
+#include <hb.h>
+#include <numeric>
 
 static bool IsASCIIControlCharacter(Character c)
 {
@@ -198,8 +199,8 @@ int FontFaceHandleHarfBuzz::GenerateLayerConfiguration(const FontEffectList& fon
 	return (int)(layer_configurations.size() - 1);
 }
 
-bool FontFaceHandleHarfBuzz::GenerateLayerTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions,
-	const FontEffect* font_effect, int texture_id, int handle_version) const
+bool FontFaceHandleHarfBuzz::GenerateLayerTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, const FontEffect* font_effect,
+	int texture_id, int handle_version) const
 {
 	if (handle_version != version)
 	{
@@ -218,9 +219,9 @@ bool FontFaceHandleHarfBuzz::GenerateLayerTexture(UniquePtr<const byte[]>& textu
 	return it->layer->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs);
 }
 
-int FontFaceHandleHarfBuzz::GenerateString(GeometryList& geometry, const String& string, const Vector2f position, const Colourb colour,
-	const float opacity, const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages,
-	const int layer_configuration_index)
+int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, const String& string, const Vector2f position,
+	const ColourbPremultiplied colour, const float opacity, const TextShapingContext& text_shaping_context,
+	const LanguageDataMap& registered_languages, const int layer_configuration_index)
 {
 	int geometry_index = 0;
 	int line_width = 0;
@@ -233,45 +234,37 @@ int FontFaceHandleHarfBuzz::GenerateString(GeometryList& geometry, const String&
 	// Fetch the requested configuration and generate the geometry for each one.
 	const LayerConfiguration& layer_configuration = layer_configurations[layer_configuration_index];
 
-	// Reserve for the common case of one texture per layer.
-	geometry.reserve(layer_configuration.size());
+	// Each texture represents one geometry.
+	const int num_geometries = std::accumulate(layer_configuration.begin(), layer_configuration.end(), 0,
+		[](int sum, const FontFaceLayer* layer) { return sum + layer->GetNumTextures(); });
+
+	mesh_list.resize(num_geometries);
 
 	hb_buffer_t* shaping_buffer = hb_buffer_create();
 	RMLUI_ASSERT(shaping_buffer != nullptr);
 
-	for (size_t i = 0; i < layer_configuration.size(); ++i)
+	for (size_t layer_index = 0; layer_index < layer_configuration.size(); ++layer_index)
 	{
-		FontFaceLayer* layer = layer_configuration[i];
+		FontFaceLayer* layer = layer_configuration[layer_index];
 
-		Colourb layer_colour;
+		ColourbPremultiplied layer_colour;
 		if (layer == base_layer)
-		{
 			layer_colour = colour;
-		}
 		else
-		{
-			layer_colour = layer->GetColour();
-			if (opacity < 1.f)
-				layer_colour.alpha = byte(opacity * float(layer_colour.alpha));
-		}
+			layer_colour = layer->GetColour(opacity);
 
 		const int num_textures = layer->GetNumTextures();
-
 		if (num_textures == 0)
 			continue;
 
-		// Resize the geometry list if required.
-		if ((int)geometry.size() < geometry_index + num_textures)
-			geometry.resize(geometry_index + num_textures);
-
-		RMLUI_ASSERT(geometry_index < (int)geometry.size());
-
-		// Bind the textures to the geometries.
-		for (int tex_index = 0; tex_index < num_textures; ++tex_index)
-			geometry[geometry_index + tex_index].SetTexture(layer->GetTexture(tex_index));
+		RMLUI_ASSERT(geometry_index + num_textures <= (int)mesh_list.size());
 
 		line_width = 0;
 		FontGlyphIndex prior_glyph_codepoint = 0;
+
+		// Set the mesh and textures to the geometries.
+		for (int tex_index = 0; tex_index < num_textures; ++tex_index)
+			mesh_list[geometry_index + tex_index].texture = layer->GetTexture(render_manager, tex_index);
 
 		// Set up and apply text shaping.
 		hb_buffer_clear_contents(shaping_buffer);
@@ -282,8 +275,8 @@ int FontFaceHandleHarfBuzz::GenerateString(GeometryList& geometry, const String&
 		unsigned int glyph_count = 0;
 		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
 
-		geometry[geometry_index].GetIndices().reserve(glyph_count * 6);
-		geometry[geometry_index].GetVertices().reserve(glyph_count * 4);
+		mesh_list[geometry_index].mesh.indices.reserve(string.size() * 6);
+		mesh_list[geometry_index].mesh.vertices.reserve(string.size() * 4);
 
 		for (int g = 0; g < (int)glyph_count; ++g)
 		{
@@ -300,12 +293,12 @@ int FontFaceHandleHarfBuzz::GenerateString(GeometryList& geometry, const String&
 			// Adjust the cursor for the kerning between this character and the previous one.
 			line_width += GetKerning(prior_glyph_codepoint, glyph_codepoint);
 
+			ColourbPremultiplied glyph_color = layer_colour;
 			// Use white vertex colors on RGB glyphs.
-			const Colourb glyph_color =
-				(layer == base_layer && glyph->color_format == Rml::ColorFormat::RGBA8 ? Colourb(255, layer_colour.alpha) : layer_colour);
+			if (layer == base_layer && glyph->color_format == ColorFormat::RGBA8)
+				glyph_color = ColourbPremultiplied(layer_colour.alpha, layer_colour.alpha);
 
-			layer->GenerateGeometry(&geometry[geometry_index], glyph_codepoint, Vector2f(position.x + line_width, position.y),
-				glyph_color);
+			layer->GenerateGeometry(&mesh_list[geometry_index], glyph_codepoint, Vector2f(position.x + line_width, position.y), glyph_color);
 
 			line_width += glyph->advance;
 			line_width += (int)text_shaping_context.letter_spacing;
@@ -316,9 +309,6 @@ int FontFaceHandleHarfBuzz::GenerateString(GeometryList& geometry, const String&
 	}
 
 	hb_buffer_destroy(shaping_buffer);
-
-	// Cull any excess geometry from a previous generation.
-	geometry.resize(geometry_index);
 
 	return Rml::Math::Max(line_width, 0);
 }
@@ -371,7 +361,7 @@ void FontFaceHandleHarfBuzz::FillKerningPairCache()
 		for (char32_t j = KerningCache_AsciiSubsetBegin; j <= KerningCache_AsciiSubsetLast; j++)
 		{
 			const bool first_iteration = (i == KerningCache_AsciiSubsetBegin && j == KerningCache_AsciiSubsetBegin);
-	
+
 			// Fetch the kerning from the font face. Submit zero font size on subsequent iterations for performance reasons.
 			const int kerning = FreeType::GetKerning(ft_face, first_iteration ? metrics.size : 0,
 				FreeType::GetGlyphIndexFromCharacter(ft_face, Character(i)), FreeType::GetGlyphIndexFromCharacter(ft_face, Character(j)));
@@ -390,7 +380,7 @@ int FontFaceHandleHarfBuzz::GetKerning(FontGlyphIndex lhs, FontGlyphIndex rhs) c
 		return 0;
 
 	// See if the kerning pair has been cached.
-	const auto it = kerning_pair_cache.find(AsciiPair((int(lhs) << 8) | int(rhs)));	
+	const auto it = kerning_pair_cache.find(AsciiPair((int(lhs) << 8) | int(rhs)));
 	if (it != kerning_pair_cache.end())
 	{
 		return it->second;

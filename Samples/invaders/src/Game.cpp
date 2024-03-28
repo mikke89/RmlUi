@@ -79,8 +79,6 @@ Game::Game()
 	for (int i = 0; i < NUM_SHIELDS; i++)
 		shields[i] = nullptr;
 
-	texture.Set("invaders/data/invaders.tga");
-
 	defender = new Defender(this);
 }
 
@@ -139,22 +137,23 @@ void Game::Update(double t)
 	}
 }
 
-void Game::Render(float dp_ratio)
+void Game::Render(Rml::RenderManager& render_manager, float dp_ratio)
 {
 	if (defender_lives <= 0)
 		return;
 
-	Rml::TextureHandle texture_handle = texture.GetHandle();
+	if (!texture)
+		texture = render_manager.LoadTexture("invaders/data/invaders.tga");
 
 	// Render all available shields
 	for (int i = 0; i < NUM_SHIELDS; i++)
-		shields[i]->Render(dp_ratio);
+		shields[i]->Render(render_manager, dp_ratio);
 
 	// Render all available invaders
 	for (int i = 0; i < NUM_INVADERS + 1; i++)
-		invaders[i]->Render(dp_ratio, texture_handle);
+		invaders[i]->Render(render_manager, dp_ratio, texture);
 
-	defender->Render(dp_ratio, texture_handle);
+	defender->Render(render_manager, dp_ratio, texture);
 }
 
 Defender* Game::GetDefender()

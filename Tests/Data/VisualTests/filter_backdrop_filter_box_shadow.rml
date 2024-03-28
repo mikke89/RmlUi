@@ -1,0 +1,44 @@
+<rml>
+<head>
+	<title>Filter, backdrop filter, and box shadow combinations</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Test various combinations of filter, backdrop-filter, and box-shadow effects." />
+	<style>
+		body { width: 900dp; }
+		.box {
+			width: 200dp;
+			height: 70dp;
+			border: 2dp #777;
+			margin: 120dp auto;
+			padding: 15dp;
+			border-radius: 30dp 8dp;
+			box-sizing: border-box;
+		}
+		.filter {
+			filter: drop-shadow(#fe3f 250dp 50dp 0px);
+		}
+		.backdrop {
+			backdrop-filter: invert(100%);
+		}
+		.boxshadow {
+			box-shadow: #f008  40px  30px 0px 0px, #00f8 -40px -30px 0px 0px;
+		}
+	</style>
+</head>
+
+<body>
+<div class="box boxshadow filter backdrop"></div>
+<div class="box boxshadow filter"></div>
+
+<div class="box boxshadow backdrop"></div>
+<div class="box boxshadow"></div>
+
+<div class="box backdrop filter"></div>
+<div class="box filter"></div>
+
+<div class="box backdrop"></div>
+<div class="box"></div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

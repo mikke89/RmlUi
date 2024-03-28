@@ -28,8 +28,9 @@
 
 #include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
+#include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/Texture.h"
-#include "TextureDatabase.h"
 #include <algorithm>
 
 namespace Rml {
@@ -38,7 +39,7 @@ Decorator::Decorator() {}
 
 Decorator::~Decorator() {}
 
-int Decorator::AddTexture(const Texture& texture)
+int Decorator::AddTexture(Texture texture)
 {
 	if (!texture)
 		return -1;
@@ -64,16 +65,41 @@ int Decorator::GetNumTextures() const
 	return result;
 }
 
-const Texture* Decorator::GetTexture(int index) const
+Texture Decorator::GetTexture(int index) const
 {
 	if (index == 0)
-		return &first_texture;
+		return first_texture;
 
 	index -= 1;
 	if (index < 0 || index >= (int)additional_textures.size())
-		return nullptr;
+		return {};
 
-	return &(additional_textures[index]);
+	return additional_textures[index];
+}
+
+DecoratorInstancer::DecoratorInstancer() {}
+
+DecoratorInstancer::~DecoratorInstancer() {}
+
+const Sprite* DecoratorInstancerInterface::GetSprite(const String& name) const
+{
+	return style_sheet.GetSprite(name);
+}
+
+Texture DecoratorInstancerInterface::GetTexture(const String& filename) const
+{
+	if (!property_source)
+	{
+		Log::Message(Log::LT_WARNING, "Texture name '%s' in decorator could not be loaded, no property source available.", filename.c_str());
+		return {};
+	}
+
+	return render_manager.LoadTexture(filename, property_source->path);
+}
+
+RenderManager& DecoratorInstancerInterface::GetRenderManager() const
+{
+	return render_manager;
 }
 
 } // namespace Rml

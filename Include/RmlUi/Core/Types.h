@@ -32,8 +32,8 @@
 #include "../Config/Config.h"
 #include "Traits.h"
 #include <cstdlib>
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 
 namespace Rml {
 
@@ -51,6 +51,7 @@ enum class BoxArea { Margin, Border, Padding, Content, Auto };
 #include "Matrix4.h"
 #include "ObserverPtr.h"
 #include "Rectangle.h"
+#include "Span.h"
 #include "Vector2.h"
 #include "Vector3.h"
 #include "Vector4.h"
@@ -59,8 +60,9 @@ namespace Rml {
 
 // Color and linear algebra
 enum class ColorFormat { RGBA8, A8 };
-using Colourf = Colour<float, 1>;
-using Colourb = Colour<byte, 255>;
+using Colourf = Colour<float, 1, false>;
+using Colourb = Colour<byte, 255, false>;
+using ColourbPremultiplied = Colour<byte, 255, true>;
 using Vector2i = Vector2<int>;
 using Vector2f = Vector2<float>;
 using Vector3i = Vector3<int>;
@@ -77,6 +79,8 @@ using Matrix4f = RMLUI_MATRIX4_TYPE;
 class Element;
 class ElementInstancer;
 class ElementAnimation;
+class RenderManager;
+class Texture;
 class Context;
 class Event;
 class Property;
@@ -89,6 +93,9 @@ struct Animation;
 struct Transition;
 struct TransitionList;
 struct DecoratorDeclarationList;
+struct FilterDeclarationList;
+struct ColorStop;
+struct BoxShadow;
 enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
 enum class MediaQueryId : uint8_t;
@@ -98,13 +105,19 @@ enum class FamilyId : int;
 using FileHandle = uintptr_t;
 using TextureHandle = uintptr_t;
 using CompiledGeometryHandle = uintptr_t;
+using CompiledFilterHandle = uintptr_t;
+using CompiledShaderHandle = uintptr_t;
 using DecoratorDataHandle = uintptr_t;
 using FontFaceHandle = uintptr_t;
 using FontEffectsHandle = uintptr_t;
+using LayerHandle = uintptr_t;
 
 using ElementPtr = UniqueReleaserPtr<Element>;
 using ContextPtr = UniqueReleaserPtr<Context>;
 using EventPtr = UniqueReleaserPtr<Event>;
+
+enum class StableVectorIndex : uint32_t { Invalid = uint32_t(-1) };
+enum class TextureFileIndex : uint32_t { Invalid = uint32_t(-1) };
 
 // Container types for common classes
 using ElementList = Vector<Element*>;
@@ -125,10 +138,14 @@ struct FontEffects {
 	FontEffectList list;
 	String value;
 };
+using ColorStopList = Vector<ColorStop>;
+using BoxShadowList = Vector<BoxShadow>;
+using FilterHandleList = Vector<CompiledFilterHandle>;
 
 // Additional smart pointers
 using TransformPtr = SharedPtr<Transform>;
 using DecoratorsPtr = SharedPtr<const DecoratorDeclarationList>;
+using FiltersPtr = SharedPtr<const FilterDeclarationList>;
 using FontEffectsPtr = SharedPtr<const FontEffects>;
 
 // Data binding types

@@ -47,7 +47,8 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 		// Right now we re-generate the whole thing, including textures.
 		texture_layout = TextureLayout{};
 		character_boxes.clear();
-		textures.clear();
+		textures_owned.clear();
+		textures_ptr = &textures_owned;
 	}
 
 	const FontGlyphMap& glyphs = handle->GetGlyphs();
@@ -58,9 +59,8 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 		// Clone the geometry and textures from the clone layer.
 		character_boxes = clone->character_boxes;
 
-		// Copy the cloned layer's textures.
-		for (size_t i = 0; i < clone->textures.size(); ++i)
-			textures.push_back(clone->textures[i]);
+		// Point our textures to the cloned layer's textures.
+		textures_ptr = clone->textures_ptr;
 
 		// Request the effect (if we have one) and adjust the origins as appropriate.
 		if (effect && !clone_glyph_origins)
@@ -156,26 +156,28 @@ bool FontFaceLayer::Generate(const FontFaceHandleHarfBuzz* handle, const FontFac
 		{
 			const int texture_id = i;
 
-			Rml::TextureCallback texture_callback = [handle, effect_ptr, texture_id, handle_version](Rml::RenderInterface* render_interface,
-												   const String& /*name*/, Rml::TextureHandle& out_texture_handle, Vector2i& out_dimensions) -> bool {
-				UniquePtr<const byte[]> data;
-				if (!handle->GenerateLayerTexture(data, out_dimensions, effect_ptr, texture_id, handle_version) || !data)
+			CallbackTextureFunction texture_callback = [handle, effect_ptr, texture_id, handle_version](
+														   const CallbackTextureInterface& texture_interface) -> bool {
+				Vector2i dimensions;
+				Vector<byte> data;
+				if (!handle->GenerateLayerTexture(data, dimensions, effect_ptr, texture_id, handle_version) || data.empty())
 					return false;
-				if (!render_interface->GenerateTexture(out_texture_handle, data.get(), out_dimensions))
+				if (!texture_interface.GenerateTexture(data, dimensions))
 					return false;
 				return true;
 			};
 
-			Texture texture;
-			texture.Set("font-face-layer", texture_callback);
-			textures.push_back(texture);
+			static_assert(std::is_nothrow_move_constructible<CallbackTextureSource>::value,
+				"CallbackTextureSource must be nothrow move constructible so that it can be placed in the vector below.");
+
+			textures_owned.emplace_back(std::move(texture_callback));
 		}
 	}
 
 	return true;
 }
 
-bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs)
+bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs)
 {
 	if (texture_id < 0 || texture_id > texture_layout.GetNumTextures())
 		return false;
@@ -206,8 +208,6 @@ bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vecto
 			// Copy the glyph's bitmap data into its allocated texture.
 			if (glyph.bitmap_data)
 			{
-				using Rml::ColorFormat;
-
 				byte* destination = rectangle.GetTextureData();
 				const byte* source = glyph.bitmap_data;
 				const int num_bytes_per_line = glyph.bitmap_dimensions.x * (glyph.color_format == ColorFormat::RGBA8 ? 4 : 1);
@@ -218,8 +218,10 @@ bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vecto
 					{
 					case ColorFormat::A8:
 					{
+						// We use premultiplied alpha, so copy the alpha into all four channels.
 						for (int k = 0; k < num_bytes_per_line; ++k)
-							destination[k * 4 + 3] = source[k];
+							for (int c = 0; c < 4; ++c)
+								destination[k * 4 + c] = source[k];
 					}
 					break;
 					case ColorFormat::RGBA8:
@@ -243,47 +245,25 @@ bool FontFaceLayer::GenerateTexture(UniquePtr<const byte[]>& texture_data, Vecto
 	return true;
 }
 
-void FontFaceLayer::GenerateGeometry(Geometry* geometry, const FontGlyphIndex glyph_index, const Vector2f position, const Colourb colour) const
-{
-	auto it = character_boxes.find(glyph_index);
-	if (it == character_boxes.end())
-		return;
-
-	const TextureBox& box = it->second;
-
-	if (box.texture_index < 0)
-		return;
-
-	// Generate the geometry for the character.
-	Vector<Rml::Vertex>& character_vertices = geometry[box.texture_index].GetVertices();
-	Vector<int>& character_indices = geometry[box.texture_index].GetIndices();
-
-	character_vertices.resize(character_vertices.size() + 4);
-	character_indices.resize(character_indices.size() + 6);
-	Rml::GeometryUtilities::GenerateQuad(&character_vertices[0] + (character_vertices.size() - 4),
-		&character_indices[0] + (character_indices.size() - 6), Vector2f(position.x + box.origin.x, position.y + box.origin.y).Round(),
-		box.dimensions, colour, box.texcoords[0], box.texcoords[1], (int)character_vertices.size() - 4);
-}
-
 const FontEffect* FontFaceLayer::GetFontEffect() const
 {
 	return effect.get();
 }
 
-const Texture* FontFaceLayer::GetTexture(int index)
+Texture FontFaceLayer::GetTexture(RenderManager& render_manager, int index)
 {
 	RMLUI_ASSERT(index >= 0);
 	RMLUI_ASSERT(index < GetNumTextures());
 
-	return &(textures[index]);
+	return (*textures_ptr)[index].GetTexture(render_manager);
 }
 
 int FontFaceLayer::GetNumTextures() const
 {
-	return (int)textures.size();
+	return (int)textures_ptr->size();
 }
 
-Colourb FontFaceLayer::GetColour() const
+ColourbPremultiplied FontFaceLayer::GetColour(float opacity) const
 {
-	return colour;
+	return colour.ToPremultiplied(opacity);
 }

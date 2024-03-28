@@ -186,11 +186,7 @@ ContainingBlock LayoutDetails::GetContainingBlock(ContainerBox* parent_container
 	{
 		area = BoxArea::Padding;
 
-		auto EstablishesAbsoluteContainingBlock = [](const ContainerBox* container) -> bool {
-			return container->GetPositionProperty() != Position::Static || container->HasLocalTransformOrPerspective();
-		};
-
-		while (!EstablishesAbsoluteContainingBlock(container) && container->GetParent())
+		while (container->GetParent() && !container->IsAbsolutePositioningContainingBlock())
 			container = container->GetParent();
 	}
 

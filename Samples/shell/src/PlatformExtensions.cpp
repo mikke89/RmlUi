@@ -27,6 +27,7 @@
  */
 
 #include "../include/PlatformExtensions.h"
+#include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Platform.h>
 
 #if defined RMLUI_PLATFORM_WIN32
@@ -118,7 +119,7 @@ Rml::String PlatformExtensions::FindSamplesRoot()
 	ssize_t len = readlink("/proc/self/exe", executable_file_name, PATH_MAX);
 	if (len == -1)
 	{
-		printf("Unable to determine the executable path!\n");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to determine the executable path");
 		executable_file_name[0] = 0;
 	}
 	else
@@ -153,7 +154,7 @@ Rml::String PlatformExtensions::FindSamplesRoot()
 		}
 	}
 
-	printf("Unable to find the path to the samples root!\n");
+	Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to find the path to the samples root");
 
 	return Rml::String();
 

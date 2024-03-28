@@ -116,7 +116,10 @@ namespace Math {
 
 	RMLUICORE_API float NormaliseAngle(float angle)
 	{
-		return fmodf(angle, RMLUI_PI * 2.0f);
+		float result = fmodf(angle, RMLUI_PI * 2.0f);
+		if (result < 0.f)
+			result += RMLUI_PI * 2.0f;
+		return result;
 	}
 
 	RMLUICORE_API float SquareRoot(float value)
@@ -186,6 +189,13 @@ namespace Math {
 		const Vector2f bottom_right = position + size;
 		position = Vector2f(std::floor(position.x), std::floor(position.y));
 		size = Vector2f(std::ceil(bottom_right.x), std::ceil(bottom_right.y)) - position;
+	}
+
+	RMLUICORE_API void ExpandToPixelGrid(Rectanglef& rectangle)
+	{
+		const Vector2f top_left = {std::floor(rectangle.Left()), std::floor(rectangle.Top())};
+		const Vector2f bottom_right = {std::ceil(rectangle.Right()), std::ceil(rectangle.Bottom())};
+		rectangle = Rectanglef::FromCorners(top_left, bottom_right);
 	}
 
 	RMLUICORE_API int ToPowerOfTwo(int number)
@@ -269,9 +279,9 @@ namespace Math {
 		return Vector2i(Clamp(value.x, min.x, max.x), Clamp(value.y, min.y, max.y));
 	}
 
-	Colourb RoundedLerp(float t, Colourb v0, Colourb v1)
+	ColourbPremultiplied RoundedLerp(float t, ColourbPremultiplied v0, ColourbPremultiplied v1)
 	{
-		return Colourb{
+		return ColourbPremultiplied{
 			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[0]), static_cast<float>(v1[0])))),
 			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[1]), static_cast<float>(v1[1])))),
 			static_cast<unsigned char>(RoundToInteger(Lerp(t, static_cast<float>(v0[2]), static_cast<float>(v1[2])))),

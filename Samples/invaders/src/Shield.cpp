@@ -116,14 +116,14 @@ const Rml::Vector2f& Shield::GetPosition() const
 	return position;
 }
 
-void Shield::Render(float dp_ratio)
+void Shield::Render(Rml::RenderManager& render_manager, float dp_ratio)
 {
 	if (health > 0)
 	{
 		const Rml::Vector2f scaled_position = (dp_ratio * position).Round();
 		const int scaled_pixel = Rml::Math::RoundUpToInteger(PIXEL_SIZE * dp_ratio);
 
-		Rml::Colourb color = GameDetails::GetDefenderColour();
+		Rml::ColourbPremultiplied color = GameDetails::GetDefenderColour().ToPremultiplied();
 		ColoredPointList points;
 		points.reserve(NUM_SHIELD_CELLS * NUM_SHIELD_CELLS);
 
@@ -139,7 +139,7 @@ void Shield::Render(float dp_ratio)
 			}
 		}
 
-		DrawPoints((float)scaled_pixel, points);
+		DrawPoints(render_manager, (float)scaled_pixel, points);
 	}
 }
 

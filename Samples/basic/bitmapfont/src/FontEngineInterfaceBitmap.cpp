@@ -81,11 +81,12 @@ int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const Strin
 	return handle_bitmap->GetStringWidth(string, prior_character);
 }
 
-int FontEngineInterfaceBitmap::GenerateString(FontFaceHandle handle, FontEffectsHandle /*font_effects_handle*/, const String& string,
-	const Vector2f& position, const Colourb& colour, float /*opacity*/, const TextShapingContext& /*text_shaping_context*/, GeometryList& geometry)
+int FontEngineInterfaceBitmap::GenerateString(RenderManager& render_manager, FontFaceHandle handle, FontEffectsHandle /*font_effects_handle*/,
+	const String& string, const Vector2f& position, ColourbPremultiplied colour, float /*opacity*/,
+	const TextShapingContext& /*text_shaping_context*/, TexturedMeshList& mesh_list)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
-	return handle_bitmap->GenerateString(string, position, colour, geometry);
+	return handle_bitmap->GenerateString(render_manager, string, position, colour, mesh_list);
 }
 
 int FontEngineInterfaceBitmap::GetVersion(FontFaceHandle /*handle*/)

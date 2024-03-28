@@ -171,21 +171,21 @@ void Invader::UpdateAnimation()
 	}
 }
 
-void Invader::Render(float dp_ratio, Rml::TextureHandle texture)
+void Invader::Render(Rml::RenderManager& render_manager, float dp_ratio, Rml::Texture texture)
 {
-	Rml::Colourb color(255);
+	Rml::ColourbPremultiplied color(255);
 
 	if (type == MOTHERSHIP)
-		color = MOTHERSHIP_COLOUR;
+		color = MOTHERSHIP_COLOUR.ToPremultiplied();
 
 	int sprite_index = GetSpriteIndex();
 	int sprite_offset = int((invader_sprites[sprite_index].dimensions.x - 48) / 2);
 
 	if (state != DEAD)
-		invader_sprites[sprite_index].Render(Rml::Vector2f(position.x - sprite_offset, position.y), dp_ratio, color, texture);
+		invader_sprites[sprite_index].Render(render_manager, Rml::Vector2f(position.x - sprite_offset, position.y), dp_ratio, color, texture);
 
 	if (bomb != NONE)
-		bomb_sprites[bomb_animation_frame].Render(bomb_position, dp_ratio, color, texture);
+		bomb_sprites[bomb_animation_frame].Render(render_manager, bomb_position, dp_ratio, color, texture);
 }
 
 Invader::InvaderState Invader::GetState()

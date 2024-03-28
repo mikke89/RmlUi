@@ -28,8 +28,8 @@
 
 #include "CaptureScreen.h"
 #include "TestConfig.h"
-#include <RmlUi/Core/GeometryUtilities.h>
 #include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <RendererExtensions.h>
 #include <Shell.h>
@@ -92,7 +92,8 @@ struct DeferFree {
 	~DeferFree() { free(ptr); }
 };
 
-ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_interface, const Rml::String& filename, TextureGeometry* out_geometry)
+ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_interface, const Rml::String& filename, TextureGeometry* out_reference,
+	TextureGeometry* out_highlight)
 {
 	using Image = RendererExtensions::Image;
 
@@ -114,25 +115,6 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 	}
 	RMLUI_ASSERT(w_ref > 0 && h_ref > 0 && data_ref);
 
-	// Optionally render the previous capture to a texture.
-	if (out_geometry)
-	{
-		if (!render_interface->GenerateTexture(out_geometry->texture_handle, data_ref, Rml::Vector2i((int)w_ref, (int)h_ref)))
-		{
-			ComparisonResult result;
-			result.success = false;
-			result.error_msg = Rml::CreateString(1024, "Could not generate texture from file %s", input_path.c_str());
-			return result;
-		}
-
-		const Rml::Colourb colour = {255, 255, 255, 255};
-		const Rml::Vector2f uv_top_left = {0, 0};
-		const Rml::Vector2f uv_bottom_right = {1, 1};
-
-		Rml::GeometryUtilities::GenerateQuad(out_geometry->vertices, out_geometry->indices, Rml::Vector2f(0, 0),
-			Rml::Vector2f((float)w_ref, (float)h_ref), colour, uv_top_left, uv_bottom_right, 0);
-	}
-
 	Image screen = RendererExtensions::CaptureScreen();
 	if (!screen.data)
 	{
@@ -143,11 +125,13 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 	}
 	RMLUI_ASSERT(screen.num_components == 3);
 
+	const size_t image_ref_diff_byte_size = w_ref * h_ref * 4;
+
 	Image diff;
 	diff.width = w_ref;
 	diff.height = h_ref;
-	diff.num_components = 3;
-	diff.data = Rml::UniquePtr<Rml::byte[]>(new Rml::byte[diff.width * diff.height * diff.num_components]);
+	diff.num_components = 4;
+	diff.data = Rml::UniquePtr<Rml::byte[]>(new Rml::byte[image_ref_diff_byte_size]);
 
 	// So we have both images now, compare them! Also create a diff image.
 	// In case they are not the same size, we require that the reference image size is smaller or equal to the screen
@@ -162,24 +146,30 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 		return result;
 	}
 
+	const Rml::Colourb highlight_color(255, 0, 255, 255);
 	size_t sum_diff = 0;
-
-	constexpr int c = 3;
 	for (int y = 0; y < (int)h_ref; y++)
 	{
 		const int y_flipped_screen = screen.height - y - 1;
-		const int yb_screen = y_flipped_screen * screen.width * c;
-
-		const int wb_ref = w_ref * c;
-		const int yb_ref = y * w_ref * c;
-
-		for (int xb = 0; xb < wb_ref; xb++)
+		for (int x = 0; x < (int)w_ref; x++)
 		{
-			const int i_ref = yb_ref + xb;
-			Rml::byte pix_ref = data_ref[(i_ref * 4) / 3];
-			Rml::byte pix_screen = screen.data[yb_screen + xb];
-			diff.data[i_ref] = (Rml::byte)std::abs((int)pix_ref - (int)pix_screen);
-			sum_diff += (size_t)diff.data[i_ref];
+			const int i0_screen = (y_flipped_screen * screen.width + x) * 3;
+			const int i0_ref = (y * w_ref + x) * 4;
+			const int i0_diff = (y * diff.width + x) * 4;
+
+			int pixel_diff = 0;
+			for (int z = 0; z < 3; z++)
+			{
+				const Rml::byte pix_ref = data_ref[i0_ref + z];
+				const Rml::byte pix_screen = screen.data[i0_screen + z];
+				pixel_diff += Rml::Math::Absolute((int)pix_ref - (int)pix_screen);
+			}
+
+			diff.data[i0_diff + 0] = (pixel_diff ? highlight_color[0] : screen.data[i0_screen + 0]);
+			diff.data[i0_diff + 1] = (pixel_diff ? highlight_color[1] : screen.data[i0_screen + 1]);
+			diff.data[i0_diff + 2] = (pixel_diff ? highlight_color[2] : screen.data[i0_screen + 2]);
+			diff.data[i0_diff + 3] = highlight_color[3];
+			sum_diff += (size_t)pixel_diff;
 		}
 	}
 
@@ -189,20 +179,49 @@ ComparisonResult CompareScreenToPreviousCapture(Rml::RenderInterface* render_int
 	result.is_equal = (sum_diff == 0);
 	result.absolute_difference_sum = sum_diff;
 
-	const size_t max_diff = size_t(c * 255) * size_t(w_ref) * size_t(h_ref);
+	const size_t max_diff = size_t(3 * 255) * size_t(w_ref) * size_t(h_ref);
 	result.similarity_score = (sum_diff == 0 ? 1.0 : 1.0 - std::log(double(sum_diff)) / std::log(double(max_diff)));
+
+	// Optionally render the screen capture or diff to a texture.
+	auto GenerateGeometry = [&](TextureGeometry& geometry, Rml::Span<const Rml::byte> data, Rml::Vector2i dimensions) -> bool {
+		ReleaseTextureGeometry(render_interface, geometry);
+		const Rml::ColourbPremultiplied colour = {255, 255, 255, 255};
+		const Rml::Vector2f uv_top_left = {0, 0};
+		const Rml::Vector2f uv_bottom_right = {1, 1};
+		Rml::MeshUtilities::GenerateQuad(geometry.mesh, Rml::Vector2f(0, 0), Rml::Vector2f((float)w_ref, (float)h_ref), colour, uv_top_left,
+			uv_bottom_right);
+		geometry.texture_handle = render_interface->GenerateTexture(data, dimensions);
+		geometry.geometry_handle = render_interface->CompileGeometry(geometry.mesh.vertices, geometry.mesh.indices);
+		return geometry.texture_handle && geometry.geometry_handle;
+	};
+
+	if (out_reference && result.success)
+		result.success = GenerateGeometry(*out_reference, {data_ref, image_ref_diff_byte_size}, {(int)w_ref, (int)h_ref});
+
+	if (out_highlight && result.success)
+		result.success = GenerateGeometry(*out_highlight, {diff.data.get(), image_ref_diff_byte_size}, {diff.width, diff.height});
+
+	if (!result.success)
+		result.error_msg = Rml::CreateString(1024, "Could not generate texture from file %s", input_path.c_str());
 
 	return result;
 }
 
 void RenderTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry)
 {
-	if (geometry.texture_handle)
-		render_interface->RenderGeometry(geometry.vertices, 4, geometry.indices, 6, geometry.texture_handle, Rml::Vector2f(0, 0));
+	if (geometry.geometry_handle && geometry.texture_handle)
+	{
+		render_interface->RenderGeometry(geometry.geometry_handle, Rml::Vector2f(0, 0), geometry.texture_handle);
+	}
 }
 
 void ReleaseTextureGeometry(Rml::RenderInterface* render_interface, TextureGeometry& geometry)
 {
+	if (geometry.geometry_handle)
+	{
+		render_interface->ReleaseGeometry(geometry.geometry_handle);
+		geometry.geometry_handle = 0;
+	}
 	if (geometry.texture_handle)
 	{
 		render_interface->ReleaseTexture(geometry.texture_handle);

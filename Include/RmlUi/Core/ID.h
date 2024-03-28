@@ -156,7 +156,12 @@ enum class PropertyId : uint8_t {
 	Focus,
 
 	Decorator,
+	MaskImage,
 	FontEffect,
+
+	Filter,
+	BackdropFilter,
+	BoxShadow,
 
 	FillImage,
 
