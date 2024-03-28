@@ -51,6 +51,9 @@
 		.repeating > :nth-child(2) { decorator: repeating-linear-gradient(red, blue 20px, red 40px); }
 
 		.premultiplied_alpha > :nth-child(1) { decorator: linear-gradient(90deg, red, transparent, blue); background: #fff; }
+		.premultiplied_alpha > :nth-child(2) { decorator: linear-gradient(90deg, red, white, blue); }
+
+		.multiple_locations_per_color > :nth-child(1) { decorator: linear-gradient(to right, red, white 40% 60%, blue); }
 	</style>
 </head>
 
@@ -96,6 +99,12 @@ Repeating linear gradients
 
 Red (left), white, blue (right). Should not show any grayish transition colors if the backend correctly interpolates in premultiplied alpha space.
 <group class="premultiplied_alpha">
+	<div/>
+	<div/>
+</group>
+
+Multiple locations per color
+<group class="multiple_locations_per_color">
 	<div/>
 </group>
 </body>
