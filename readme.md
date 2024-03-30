@@ -18,9 +18,16 @@ RmlUi is based around the XHTML1 and CSS2 standards while borrowing features fro
 
 Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
+---
+
+***Note:*** Expect breaking changes on the master branch as we are moving towards the release of RmlUi 6.0. This may require changes to projects using older releases, please take a look at the [breaking changes](changelog.md#breaking-changes) in the changelog. Meanwhile, documentation is being worked on for the new features. 
+
+---
+
+
 ## Features
 
-- Cross platform architecture: Windows, macOS, Linux, iOS, etc.
+- Cross-platform architecture: Windows, macOS, Linux, iOS, etc.
 - Dynamic layout system.
 - Full animation and transform support.
 - Efficient application-wide styling, with a custom-built templating engine.
@@ -135,16 +142,18 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Renderers
 
-| Renderer features | Basic rendering | Stencil | Transforms | Built-in image support                                                          |
-|-------------------|:---------------:|---------|:----------:|---------------------------------------------------------------------------------|
-| OpenGL 2 (GL2)    |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
-| OpenGL 3 (GL3)    |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
-| Vulkan (VK)       |        ✔️       |    ✔️    |      ✔️    | Uncompressed TGA                                                                |
-| SDLrenderer       |        ✔️       |    ❌    |      ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| Renderer features | Basic rendering | Transforms | Clip masks | Filters | Shaders | Built-in image support                                            |
+|-------------------|:---------------:|:----------:|:----------:|:-------:|:-------:|-------------------------------------------------------------------|
+| OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |    ❌    |    ❌    | Uncompressed TGA                                                  |
+| OpenGL 3 (GL3)    |       ✔️        |     ✔️     |     ✔️     |  ️ ✔️   |  ️ ✔️   | Uncompressed TGA                                                  |
+| Vulkan (VK)       |       ✔️        |     ✔️     |     ❌      |    ❌    |    ❌    | Uncompressed TGA                                                  |
+| SDLrenderer       |       ✔️        |     ❌      |     ❌      |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2d-layouts.\
-**Stencil**: Enables proper clipping when transforms are enabled.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
+**Clip masks**: Enables proper clipping of transformed elements and elements with border-radius.\
+**Filters**: Support for all built-in filter functions, such as blur and drop-shadow.\
+**Shaders**: Support for all built-in decorators that require shaders, such as `linear-gradient` and `radial-gradient`. Other advanced rendering functions are also implemented, including masking and render-to-texture support, for features such as `mask-image` and `box-shadow`.\
 **Built-in image support**: This only shows the supported formats built-in to the renderer, users are encouraged to derive from and extend the render interface to add support for their desired image formats.
 
 ### Platforms
