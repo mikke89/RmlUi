@@ -1,10 +1,10 @@
 <rml>
 <head>
 <link type="text/rcss" href="/assets/rml.rcss"/>
-<link type="text/rcss" href="effect_style.rcss"/>
-<title>Effect Sample</title>
+<link type="text/rcss" href="effects_style.rcss"/>
+<title>Effects Sample</title>
 <style>
-@spritesheet effect-sheet
+@spritesheet effects-sheet
 {
 	src: /assets/invader.tga;
 	icon-invader: 179px 152px 51px 39px;
@@ -123,7 +123,7 @@
 	data-style-perspective-origin-x="perspective_origin_x + '%'"
 	data-style-perspective-origin-y="perspective_origin_y + '%'"
 >
-<handle move_target="#document"><h1>Effect Sample</h1></handle>
+<handle move_target="#document"><h1>Effects Sample</h1></handle>
 <handle class="size" size_target="#document"/>
 <div id="menu_button" data-class-open="show_menu" data-event-click="show_menu = !show_menu">—<br/>—<br/>—</div>
 <div id="menu" data-if="show_menu">

@@ -894,7 +894,7 @@ endif()
 
 
 if(BUILD_SAMPLES)
-	set(samples treeview customlog drag loaddocument transform bitmapfont animation benchmark demo databinding effect)
+	set(samples treeview customlog drag loaddocument transform bitmapfont animation benchmark demo databinding effects)
 	set(tutorials template drag)
 
 	if(ENABLE_LOTTIE_PLUGIN)
@@ -1059,8 +1059,8 @@ if(BUILD_SAMPLES)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/demo/data
 			DESTINATION ${SAMPLES_DIR}/basic/demo
 	)
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/effect/data
-			DESTINATION ${SAMPLES_DIR}/basic/effect
+	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/effects/data
+			DESTINATION ${SAMPLES_DIR}/basic/effects
 	)
 	install(DIRECTORY ${PROJECT_SOURCE_DIR}/Samples/basic/transform/data
 			DESTINATION ${SAMPLES_DIR}/basic/transform

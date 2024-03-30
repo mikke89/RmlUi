@@ -46,7 +46,7 @@ int main(int /*argc*/, char** /*argv*/)
 		return -1;
 
 	// Constructs the system and render interfaces, creates a window, and attaches the renderer.
-	if (!Backend::Initialize("Effect Sample", window_width, window_height, true))
+	if (!Backend::Initialize("Effects Sample", window_width, window_height, true))
 	{
 		Shell::Shutdown();
 		return -1;
@@ -74,7 +74,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 	static constexpr float perspective_max = 3000.f;
 
-	struct EffectData {
+	struct EffectsData {
 		bool show_menu = false;
 		Rml::String submenu = "filter";
 
@@ -127,14 +127,14 @@ int main(int /*argc*/, char** /*argv*/)
 
 		constructor.BindEventCallback("reset", [&data](Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& /*arguments*/) {
 			if (data.submenu == "transform")
-				data.transform = EffectData::Transform{};
+				data.transform = EffectsData::Transform{};
 			else if (data.submenu == "filter")
-				data.filter = EffectData::Filter{};
+				data.filter = EffectsData::Filter{};
 			handle.DirtyAllVariables();
 		});
 	}
 
-	if (Rml::ElementDocument* document = context->LoadDocument("basic/effect/data/effect.rml"))
+	if (Rml::ElementDocument* document = context->LoadDocument("basic/effects/data/effects.rml"))
 		document->Show();
 
 	bool running = true;

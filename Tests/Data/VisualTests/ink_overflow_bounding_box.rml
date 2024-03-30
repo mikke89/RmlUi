@@ -5,7 +5,7 @@
 	<meta name="Description" content="Enables testing an element's bounding box with ink overflow and transform. The bounding box should cover all of the element's box shadows and filters, even when they have transforms applied." />
 	<meta name="Instructions" content="The bounding box of an element can be seen as the white frame in the debugger, when selecting it in the element info mode." />
 	<style>
-		@spritesheet effect-sheet
+		@spritesheet effects-sheet
 		{
 			src: /assets/invader.tga;
 			icon-invader: 179px 152px 51px 39px;

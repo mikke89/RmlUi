@@ -73,11 +73,11 @@ set(drag_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/drag/src/main.cpp
 )
 
-set(effect_HDR_FILES
+set(effects_HDR_FILES
 )
 
-set(effect_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/Samples/basic/effect/src/main.cpp
+set(effects_SRC_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/effects/src/main.cpp
 )
 
 set(loaddocument_HDR_FILES

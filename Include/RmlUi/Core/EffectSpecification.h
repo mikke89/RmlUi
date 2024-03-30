@@ -37,6 +37,9 @@ namespace Rml {
 
 class PropertyDefinition;
 
+/**
+    Specifies properties and shorthands for effects (decorators and filters).
+ */
 class RMLUICORE_API EffectSpecification {
 public:
 	EffectSpecification();
