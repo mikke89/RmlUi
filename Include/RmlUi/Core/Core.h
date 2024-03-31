@@ -124,8 +124,7 @@ RMLUICORE_API int GetNumContexts();
 /// @return True if the face was loaded successfully, false otherwise.
 RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = false, Style::FontWeight weight = Style::FontWeight::Auto);
 /// Adds a new font face from memory to the font engine. The face's family, style and weight is given by the parameters.
-/// @param[in] data A pointer to the data.
-/// @param[in] data_size Size of the data in bytes.
+/// @param[in] data The font data.
 /// @param[in] family The family to register the font as.
 /// @param[in] style The style to register the font as.
 /// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default it
@@ -133,7 +132,7 @@ RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = fa
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 /// @return True if the face was loaded successfully, false otherwise.
 /// @lifetime The pointed to 'data' must remain available until after the call to Rml::Shutdown.
-RMLUICORE_API bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style,
+RMLUICORE_API bool LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style,
 	Style::FontWeight weight = Style::FontWeight::Auto, bool fallback_face = false);
 
 /// Registers a generic RmlUi plugin.

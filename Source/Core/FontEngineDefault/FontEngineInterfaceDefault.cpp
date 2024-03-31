@@ -47,10 +47,10 @@ bool FontEngineInterfaceDefault::LoadFontFace(const String& file_name, bool fall
 	return FontProvider::LoadFontFace(file_name, fallback_face, weight);
 }
 
-bool FontEngineInterfaceDefault::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style,
-	Style::FontWeight weight, bool fallback_face)
+bool FontEngineInterfaceDefault::LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+	bool fallback_face)
 {
-	return FontProvider::LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
+	return FontProvider::LoadFontFace(data, font_family, style, weight, fallback_face);
 }
 
 FontFaceHandle FontEngineInterfaceDefault::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)

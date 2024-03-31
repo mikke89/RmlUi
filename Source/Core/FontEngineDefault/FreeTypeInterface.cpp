@@ -78,12 +78,12 @@ void FreeType::Shutdown()
 	}
 }
 
-bool FreeType::GetFaceVariations(const byte* data, int data_length, Vector<FaceVariation>& out_face_variations)
+bool FreeType::GetFaceVariations(Span<const byte> data, Vector<FaceVariation>& out_face_variations)
 {
 	RMLUI_ASSERT(ft_library);
 
 	FT_Face face = nullptr;
-	FT_Error error = FT_New_Memory_Face(ft_library, (const FT_Byte*)data, data_length, 0, &face);
+	FT_Error error = FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), 0, &face);
 	if (error)
 		return false;
 
@@ -133,12 +133,14 @@ bool FreeType::GetFaceVariations(const byte* data, int data_length, Vector<FaceV
 	return true;
 }
 
-FontFaceHandleFreetype FreeType::LoadFace(const byte* data, int data_length, const String& source, int named_style_index)
+FontFaceHandleFreetype FreeType::LoadFace(Span<const byte> data, const String& source, int named_style_index)
 {
 	RMLUI_ASSERT(ft_library);
 
 	FT_Face face = nullptr;
-	FT_Error error = FT_New_Memory_Face(ft_library, (const FT_Byte*)data, data_length, (named_style_index << 16), &face);
+	FT_Error error =
+		FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), (named_style_index << 16), &face);
+
 	if (error)
 	{
 		Log::Message(Log::LT_ERROR, "FreeType error %d while loading face from %s.", error, source.c_str());

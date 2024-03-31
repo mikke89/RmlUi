@@ -45,10 +45,10 @@ bool FontEngineInterfaceHarfBuzz::LoadFontFace(const String& file_name, bool /*f
 	return FontProvider::LoadFontFace(file_name, weight);
 }
 
-bool FontEngineInterfaceHarfBuzz::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style,
-	Style::FontWeight weight, bool /*fallback_face*/)
+bool FontEngineInterfaceHarfBuzz::LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+	bool /*fallback_face*/)
 {
-	return FontProvider::LoadFontFace(data, data_size, font_family, style, weight);
+	return FontProvider::LoadFontFace(data, font_family, style, weight);
 }
 
 FontFaceHandle FontEngineInterfaceHarfBuzz::GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size)

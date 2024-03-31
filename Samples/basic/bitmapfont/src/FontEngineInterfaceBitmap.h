@@ -39,6 +39,7 @@ using Rml::FontFaceHandle;
 using Rml::byte;
 using Rml::Character;
 using Rml::ColourbPremultiplied;
+using Rml::Span;
 using Rml::String;
 using Rml::Texture;
 using Rml::Vector2f;
@@ -65,7 +66,7 @@ public:
 
 	/// Called by RmlUi when it wants to load a font face from memory, registered using the provided family, style, and weight.
 	/// @param[in] data A pointer to the data.
-	bool LoadFontFace(const byte* data, int data_size, const String& family, FontStyle style, FontWeight weight, bool fallback_face) override;
+	bool LoadFontFace(Span<const byte> data, const String& family, FontStyle style, FontWeight weight, bool fallback_face) override;
 
 	/// Called by RmlUi when a font configuration is resolved for an element. Should return a handle that
 	/// can later be used to resolve properties of the face, and generate string geometry to be rendered.

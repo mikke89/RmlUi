@@ -245,6 +245,10 @@ input { nav: auto; nav-right: #ok_button; }
   - `Box::Edge` -> `BoxEdge` (e.g. `Box::TOP` -> `BoxEdge::Top`, values now in titlecase).
   - `Box::Direction` -> `BoxDirection` (e.g. `Box::VERTICAL` -> `BoxDirection::Vertical`, values now in titlecase).
   - `Property::Unit` -> `Unit` (e.g. `Property::PX` -> `Unit::PX`).
+
+#### Core functions
+
+- Changed the signature of `LoadFontFace` (from memory) to take a `Span` instead of a raw pointer. 
 - Replaced `Element::ResolveNumericProperty` with `Element::ResolveLength` and `Element::ResolveNumericValue`. Can be used together with `Property::GetNumericValue`.
 - Renamed and removed several `Math` functions.
 

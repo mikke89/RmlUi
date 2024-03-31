@@ -326,9 +326,9 @@ bool LoadFontFace(const String& file_path, bool fallback_face, Style::FontWeight
 	return font_interface->LoadFontFace(file_path, fallback_face, weight);
 }
 
-bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
+bool LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face)
 {
-	return font_interface->LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
+	return font_interface->LoadFontFace(data, font_family, style, weight, fallback_face);
 }
 
 void RegisterPlugin(Plugin* plugin)

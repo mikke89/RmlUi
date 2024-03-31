@@ -107,27 +107,27 @@ bool FontProvider::LoadFontFace(const String& file_name, Style::FontWeight weigh
 	file_interface->Read(buffer, length, handle);
 	file_interface->Close(handle);
 
-	bool result = Get().LoadFontFace(buffer, (int)length, std::move(buffer_ptr), file_name, {}, Style::FontStyle::Normal, weight);
+	bool result = Get().LoadFontFace({buffer, length}, std::move(buffer_ptr), file_name, {}, Style::FontStyle::Normal, weight);
 
 	return result;
 }
 
-bool FontProvider::LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight)
+bool FontProvider::LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight)
 {
 	const String source = "memory";
 
-	bool result = Get().LoadFontFace(data, data_size, nullptr, source, font_family, style, weight);
+	bool result = Get().LoadFontFace(data, nullptr, source, font_family, style, weight);
 
 	return result;
 }
 
-bool FontProvider::LoadFontFace(const byte* data, int data_size, UniquePtr<byte[]> face_memory, const String& source, String font_family,
+bool FontProvider::LoadFontFace(Span<const byte> data, UniquePtr<byte[]> face_memory, const String& source, String font_family,
 	Style::FontStyle style, Style::FontWeight weight)
 {
 	using Style::FontWeight;
 
 	Vector<Rml::FaceVariation> face_variations;
-	if (!Rml::FreeType::GetFaceVariations(data, data_size, face_variations))
+	if (!Rml::FreeType::GetFaceVariations(data, face_variations))
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to load font face from '%s': Invalid or unsupported font face file format.", source.c_str());
 		return false;
@@ -184,7 +184,7 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, UniquePtr<byte[
 
 	for (const Rml::FaceVariation& variation : load_variations)
 	{
-		FontFaceHandleFreetype ft_face = Rml::FreeType::LoadFace(data, data_size, source, variation.named_instance_index);
+		FontFaceHandleFreetype ft_face = Rml::FreeType::LoadFace(data, source, variation.named_instance_index);
 		if (!ft_face)
 			return false;
 

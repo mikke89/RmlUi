@@ -42,10 +42,10 @@ namespace FreeType {
 	void Shutdown();
 
 	// Returns a sorted list of available font variations for the font face located in memory.
-	bool GetFaceVariations(const byte* data, int data_length, Vector<FaceVariation>& out_face_variations);
+	bool GetFaceVariations(Span<const byte> data, Vector<FaceVariation>& out_face_variations);
 
 	// Loads a FreeType face from memory, 'source' is only used for logging.
-	FontFaceHandleFreetype LoadFace(const byte* data, int data_length, const String& source, int named_instance_index = 0);
+	FontFaceHandleFreetype LoadFace(Span<const byte> data, const String& source, int named_instance_index = 0);
 
 	// Releases the FreeType face.
 	bool ReleaseFace(FontFaceHandleFreetype face);

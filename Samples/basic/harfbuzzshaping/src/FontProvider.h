@@ -34,6 +34,7 @@
 
 using Rml::byte;
 using Rml::FontFaceHandleFreetype;
+using Rml::Span;
 using Rml::String;
 using Rml::UniquePtr;
 using Rml::UnorderedMap;
@@ -69,7 +70,7 @@ public:
 	static bool LoadFontFace(const String& file_name, Style::FontWeight weight = Style::FontWeight::Auto);
 
 	/// Adds a new font face from memory.
-	static bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight);
+	static bool LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight);
 
 	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
 	static void ReleaseFontResources();
@@ -80,8 +81,8 @@ private:
 
 	static FontProvider& Get();
 
-	bool LoadFontFace(const byte* data, int data_size, UniquePtr<byte[]> face_memory, const String& source, String font_family,
-		Style::FontStyle style, Style::FontWeight weight);
+	bool LoadFontFace(Span<const byte> data, UniquePtr<byte[]> face_memory, const String& source, String font_family, Style::FontStyle style,
+		Style::FontWeight weight);
 
 	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]> face_memory);
 
