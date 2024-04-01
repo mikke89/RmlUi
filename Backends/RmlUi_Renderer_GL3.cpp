@@ -452,7 +452,7 @@ public:
 	void Insert(ProgramId id, UniformId uniform, GLint location) { map[ToKey(id, uniform)] = location; }
 
 private:
-	using Key = std::uint64_t;
+	using Key = uint64_t;
 	Key ToKey(ProgramId id, UniformId uniform) const { return (static_cast<Key>(id) << 32) | static_cast<Key>(uniform); }
 	Rml::UnorderedMap<Key, GLint> map;
 };
