@@ -75,7 +75,12 @@ public:
 	void reserve(size_t reserve_size)
 	{
 		elements.reserve(reserve_size);
+
+#if !defined(__GNUC__) || defined(__llvm__) || (__GNUC__ < 13)
+		// Skipped on GCC 13.1+, as this emits a curious warning in some situations.
+		// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110498
 		free_slots.reserve(reserve_size);
+#endif
 	}
 
 	void clear()
