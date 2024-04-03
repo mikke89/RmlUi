@@ -3371,7 +3371,7 @@ namespace timer_large_integer
 #if defined(DOCTEST_PLATFORM_WINDOWS)
     using type = ULONGLONG;
 #else // DOCTEST_PLATFORM_WINDOWS
-    using type = std::uint64_t;
+    using type = uint64_t;
 #endif // DOCTEST_PLATFORM_WINDOWS
 }
 
