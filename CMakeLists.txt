@@ -173,7 +173,7 @@ option(BUILD_SAMPLES "Build samples" OFF)
 option(ENABLE_HARFBUZZ "Enable HarfBuzz for text-shaping sample. Requires the HarfBuzz library." OFF)
 
 set(SAMPLES_BACKEND "auto" CACHE STRING "Backend platform and renderer used for the samples.")
-set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 Win32_VK X11_GL2 SDL_GL2 SDL_GL3 SDL_VK SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3 GLFW_VK BackwardCompatible_GLFW_GL2 BackwardCompatible_GLFW_GL3)
+set_property(CACHE SAMPLES_BACKEND PROPERTY STRINGS auto Win32_GL2 Win32_DX12 Win32_VK X11_GL2 SDL_GL2 SDL_GL3 SDL_VK SDL_SDLrenderer SFML_GL2 GLFW_GL2 GLFW_GL3 GLFW_VK BackwardCompatible_GLFW_GL2 BackwardCompatible_GLFW_GL3)
 
 if(SAMPLES_BACKEND STREQUAL "auto")
 	if(EMSCRIPTEN)
@@ -873,6 +873,22 @@ if(BUILD_SAMPLES OR BUILD_TESTING)
 			target_compile_definitions(shell PRIVATE RMLUI_VK_DEBUG)
 		endif()
 
+		target_link_libraries(shell PRIVATE ${CMAKE_DL_LIBS})
+	endif()
+
+	if (SAMPLES_BACKEND MATCHES "DX12$")
+		message("-- Using DirectX-12 (DX12) renderer backend")
+
+		find_package(directx-headers CONFIG REQUIRED)
+
+		option(RMLUI_DX_DEBUG "Enable debugging mode for DirectX renderers" OFF)
+		mark_as_advanced(RMLUI_DX_DEBUG)
+
+		if (RMLUI_DX_DEBUG)
+			target_compile_definitions(shell PRIVATE RMLUI_DX_DEBUG)
+		endif()
+
+		target_link_libraries(shell PRIVATE Microsoft::DirectX-Guids Microsoft::DirectX-Headers)
 		target_link_libraries(shell PRIVATE ${CMAKE_DL_LIBS})
 	endif()
 

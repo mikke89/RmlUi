@@ -33,6 +33,7 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - Efficient application-wide styling, with a custom-built templating engine.
 - Fully featured control set: buttons, sliders, drop-downs, etc.
 - Runtime visual debugging suite.
+- **Easy integrating graphical APIs backends (see "RmlUi Backends" section and what library supports currently), also check integration samples**
 
 ## Extensible
 
@@ -103,11 +104,34 @@ To build RmlUi with the included samples we can use git and CMake together with 
 
 ```
 vcpkg install freetype
+vcpkg install directx-headers
 git clone https://github.com/mikke89/RmlUi.git
 cd RmlUi
 cmake -B Build -S . -DBUILD_SAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake"
 cmake --build Build
 ```
+
+##### DirectX
+
+TODO: Mikke fix this section, do you need this text?
+
+With a new added backend as DirectX 12 you need to add these lines for successfully compiling DirectX 12's samples.
+
+```
+vcpkg install directx-headers
+```
+
+So as final result will be
+
+```
+vcpkg install freetype
+vcpkg install directx-headers
+git clone https://github.com/mikke89/RmlUi.git
+cd RmlUi
+cmake -B Build -S . -DBUILD_SAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake"
+cmake --build Build
+```
+
 Make sure to replace the path to vcpkg. When this completes, feel free to test the freshly built samples, such as the `invader` sample, and enjoy! The executables should be located somewhere in the `Build` directory.
 
 #### Conan
@@ -146,7 +170,8 @@ The provided backends on the other hand are not intended to be used directly by 
 |-------------------|:---------------:|:----------:|:----------:|:-------:|:-------:|-------------------------------------------------------------------|
 | OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |    ❌    |    ❌    | Uncompressed TGA                                                  |
 | OpenGL 3 (GL3)    |       ✔️        |     ✔️     |     ✔️     |  ️ ✔️   |  ️ ✔️   | Uncompressed TGA                                                  |
-| Vulkan (VK)       |       ✔️        |     ✔️     |     ❌      |    ❌    |    ❌    | Uncompressed TGA                                                  |
+| Vulkan (VK)       |       ✔️        |     ✔️     |     ✔️      |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
+| DirectX 12 (DX12) |       ✔️        |     ✔️     |     ✔️      |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 | SDLrenderer       |       ✔️        |     ❌      |     ❌      |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2d-layouts.\
@@ -172,19 +197,22 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Backends
 
-| Platform \ Renderer | OpengGL 2 | OpengGL 3 | Vulkan | SDLrenderer |
-|---------------------|:---------:|:---------:|:---------:|:-----------:|
-| Win32               |     ✔️     |           |    ✔️     |             |
-| X11                 |     ✔️     |           |          |             |
-| SFML                |     ✔️     |           |          |             |
-| GLFW                |     ✔️     |     ✔️    |     ✔️    |             |
-| SDL¹                |     ✔️     |     ✔️²   |     ✔️    |      ✔️     |
+| Platform \ Renderer | OpengGL 2 | OpengGL 3 | Vulkan | 	SDLrenderer |  DirectX 12 |
+|---------------------|:---------:|:---------:|:---------:|:-----------:|:-----------:|
+| Win32               |     ✔️     |          |    ✔️     |             |	✔️		 |
+| X11                 |     ✔️     |          |            |             |	❌ (not supported natively)		  |
+| SFML                |     ✔️     |          |            |             |			  |
+| GLFW                |     ✔️     |     ✔️   |     ✔️    |             |	✔️		 |
+| SDL¹                |     ✔️     |     ✔️²  |     ✔️    |      ✔️     |	✔️		|
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
 
 When building the samples, the backend can be selected by setting the CMake option `SAMPLES_BACKEND` to `<Platform>_<RendererShorthand>` for any of the above supported combinations of platforms and renderers, such as `SDL_GL3`.
 
+### Render backend integration
+
+Document this section please
 
 ## Example document
 
@@ -471,6 +499,10 @@ See
 #### Library included with the Vulkan backend *(in Backends/RmlUi_Vulkan/)*
 
 See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT licensed.
+
+#### Library included with the DirectX 12 backend *(in Backends/RmlUi_DirectX/)*
+
+See [Backends/RmlUi_DirectX/LICENSE.txt](Backends/RmlUi_DirectX/LICENSE.txt) - MIT licensed.
 
 #### Libraries included with the test suite *(in Tests/Dependencies/)*
 
