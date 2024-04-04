@@ -200,13 +200,14 @@ The provided backends on the other hand are not intended to be used directly by 
 | Platform \ Renderer | OpengGL 2 | OpengGL 3 | Vulkan | 	SDLrenderer |  DirectX 12 |
 |---------------------|:---------:|:---------:|:---------:|:-----------:|:-----------:|
 | Win32               |     ✔️     |          |    ✔️     |             |	✔️		 |
-| X11                 |     ✔️     |          |            |             |	❌ (not supported natively)		  |
+| X11                 |     ✔️     |          |            |             |	❌  |
 | SFML                |     ✔️     |          |            |             |			  |
 | GLFW                |     ✔️     |     ✔️   |     ✔️    |             |	✔️		 |
 | SDL¹                |     ✔️     |     ✔️²  |     ✔️    |      ✔️     |	✔️		|
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
+❌ - means don't support natively and thus can't be implemented for a specified platform.
 
 When building the samples, the backend can be selected by setting the CMake option `SAMPLES_BACKEND` to `<Platform>_<RendererShorthand>` for any of the above supported combinations of platforms and renderers, such as `SDL_GL3`.
 
