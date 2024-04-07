@@ -423,6 +423,8 @@ public:
 
 		void Free_Texture(Gfx::FramebufferData* p_texture);
 
+		void Free_Texture(TextureHandleType* p_allocated_texture_with_class, D3D12MA::VirtualAllocation& allocation);
+
 		bool Is_Initialized(void) const;
 
 	private:
@@ -526,6 +528,8 @@ such as filters. They are used both as input and output during rendering, and do
 		void CreateFramebuffer(Gfx::FramebufferData* p_result, int width, int height, int sample_count);
 
 		void DestroyFramebuffer(Gfx::FramebufferData* p_data);
+		void Create_SharedDepthStencilTexture();
+		void Destroy_SharedDepthStencilTexture();
 
 	private:
 		int m_width, m_height;
@@ -534,6 +538,7 @@ such as filters. They are used both as input and output during rendering, and do
 		TextureMemoryManager* m_p_manager_texture;
 		BufferMemoryManager* m_p_manager_buffer;
 		ID3D12Device* m_p_device;
+		Gfx::FramebufferData* m_p_depth_stencil;
 		Rml::Vector<Gfx::FramebufferData> m_fb_layers;
 		Rml::Vector<Gfx::FramebufferData> m_fb_postprocess;
 	};

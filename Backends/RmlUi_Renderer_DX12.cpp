@@ -407,6 +407,9 @@ void RenderInterface_DX12::BeginFrame()
 		//
 		//	this->m_is_scissor_was_set = false;
 		this->SetTransform(nullptr);
+
+		this->m_manager_render_layer.BeginFrame(this->m_width, this->m_height);
+
 		this->UseProgram(ProgramId::None);
 		this->m_is_stencil_equal = false;
 		//	this->m_program_state_transform_dirty.set();
@@ -869,7 +872,7 @@ Rml::TextureHandle RenderInterface_DX12::GenerateTexture(Rml::Span<const Rml::by
 
 	this->m_manager_texture.Alloc_Texture(desc_texture, p_resource, source_data.data()
 	#ifdef RMLUI_DX_DEBUG
-		,
+																		,
 		p_resource->Get_ResourceName()
 	#endif
 	);
@@ -903,7 +906,7 @@ void RenderInterface_DX12::SetTransform(const Rml::Matrix4f* transform)
 namespace Gfx {
 class FramebufferData {
 public:
-	FramebufferData() : m_is_owns_depth_stencil_buffer{}, m_width{}, m_height{}, m_id{-1}, m_p_texture{}, m_texture_descriptor{} {}
+	FramebufferData() : m_width{}, m_height{}, m_id{-1}, m_p_texture{}, m_p_texture_depth_stencil{}, m_texture_descriptor{} {}
 	~FramebufferData()
 	{
 		m_id = -1;
@@ -919,36 +922,37 @@ public:
 	int Get_Height(void) const { return this->m_height; }
 	void Set_Height(int value) { this->m_height = value; }
 
-	bool Is_OwnsDepthStencilBuffer(void) const { return this->m_is_owns_depth_stencil_buffer; }
-	void Set_OwnsDepthStencilBuffer(bool value) { this->m_is_owns_depth_stencil_buffer = value; }
-
 	void Set_ID(int layer_current_size_index) { this->m_id = layer_current_size_index; }
 	int Get_ID(void) const { return this->m_id; }
 
 	void Set_Texture(RenderInterface_DX12::TextureHandleType* p_texture) { this->m_p_texture = p_texture; }
-
 	RenderInterface_DX12::TextureHandleType* Get_Texture(void) { return this->m_p_texture; }
 
 	void Set_Descriptor(const D3D12_CPU_DESCRIPTOR_HANDLE& handle) { this->m_texture_descriptor = handle; }
 	const D3D12_CPU_DESCRIPTOR_HANDLE& Get_Descriptor() const { return this->m_texture_descriptor; }
 
+	void Set_SharedDepthStencilTexture(FramebufferData* p_data) { this->m_p_texture_depth_stencil = p_data; }
+	FramebufferData* Get_SharedDepthStencilTexture(void) { return this->m_p_texture_depth_stencil; }
+
 	D3D12MA::VirtualAllocation* Get_VirtualAllocation_DescriptorRTV() { return &this->m_allocation_descriptor_offset; }
 
 private:
-	bool m_is_owns_depth_stencil_buffer;
 	int m_width;
 	int m_height;
 	int m_id;
 	RenderInterface_DX12::TextureHandleType* m_p_texture;
+	// this is shared texture and original pointer stored and managed at renderlayerstack class
+	FramebufferData* m_p_texture_depth_stencil;
 	D3D12_CPU_DESCRIPTOR_HANDLE m_texture_descriptor;
 	D3D12MA::VirtualAllocation m_allocation_descriptor_offset;
 };
 } // namespace Gfx
 
 RenderInterface_DX12::RenderLayerStack::RenderLayerStack() :
-	m_width{}, m_height{}, m_layers_size{}, m_p_manager_texture{}, m_p_manager_buffer{}, m_p_device{}
+	m_width{}, m_height{}, m_layers_size{}, m_p_manager_texture{}, m_p_manager_buffer{}, m_p_device{}, m_p_depth_stencil{}
 {
 	this->m_fb_postprocess.resize(4);
+	this->m_p_depth_stencil = new Gfx::FramebufferData();
 }
 
 RenderInterface_DX12::RenderLayerStack::~RenderLayerStack()
@@ -958,6 +962,12 @@ RenderInterface_DX12::RenderLayerStack::~RenderLayerStack()
 	this->m_p_device = nullptr;
 	this->m_p_manager_buffer = nullptr;
 	this->m_p_manager_texture = nullptr;
+
+	if (this->m_p_depth_stencil)
+	{
+		delete this->m_p_depth_stencil;
+		this->m_p_depth_stencil = nullptr;
+	}
 }
 
 void RenderInterface_DX12::RenderLayerStack::Initialize(RenderInterface_DX12* p_owner)
@@ -987,6 +997,7 @@ void RenderInterface_DX12::RenderLayerStack::Initialize(RenderInterface_DX12* p_
 void RenderInterface_DX12::RenderLayerStack::PushLayer()
 {
 	RMLUI_ASSERT(this->m_layers_size <= static_cast<int>(this->m_fb_layers.size()) && "overflow of layers!");
+	RMLUI_ASSERT(this->m_p_depth_stencil && "must be valid!");
 
 	if (this->m_layers_size == static_cast<int>(this->m_fb_layers.size()))
 	{
@@ -998,9 +1009,16 @@ void RenderInterface_DX12::RenderLayerStack::PushLayer()
 		Gfx::CreateFramebuffer(fb_layers.back(), width, height, NUM_MSAA_SAMPLES, Gfx::FramebufferAttachment::DepthStencil, shared_depth_stencil);
 		*/
 
+		if (this->m_p_depth_stencil->Get_Texture() == nullptr)
+		{
+			this->CreateFramebuffer(this->m_p_depth_stencil, m_width, m_height, kDefaultRenderImplField_MSAA_SampleCount);
+		}
+
 		this->m_fb_layers.push_back(Gfx::FramebufferData{});
 		auto* p_buffer = &this->m_fb_layers.back();
 		this->CreateFramebuffer(p_buffer, m_width, m_height, kDefaultRenderImplField_MSAA_SampleCount);
+
+		p_buffer->Set_SharedDepthStencilTexture(this->m_p_depth_stencil);
 	}
 
 	++this->m_layers_size;
@@ -1008,7 +1026,11 @@ void RenderInterface_DX12::RenderLayerStack::PushLayer()
 
 void RenderInterface_DX12::RenderLayerStack::PushLayerClone() {}
 
-void RenderInterface_DX12::RenderLayerStack::PopLayer() {}
+void RenderInterface_DX12::RenderLayerStack::PopLayer()
+{
+	RMLUI_ASSERT(this->m_layers_size > 0 && "calculations are wrong, debug your code please!");
+	this->m_layers_size -= 1;
+}
 
 const Gfx::FramebufferData& RenderInterface_DX12::RenderLayerStack::GetTopLayer() const
 {
@@ -1018,11 +1040,51 @@ const Gfx::FramebufferData& RenderInterface_DX12::RenderLayerStack::GetTopLayer(
 
 void RenderInterface_DX12::RenderLayerStack::SwapPostprocessPrimarySecondary() {}
 
-void RenderInterface_DX12::RenderLayerStack::BeginFrame(int width_new, int height_new) {}
+void RenderInterface_DX12::RenderLayerStack::BeginFrame(int width_new, int height_new)
+{
+	RMLUI_ASSERT(this->m_layers_size == 0 && "something is wrong and you forgot to clear/delete something!");
 
-void RenderInterface_DX12::RenderLayerStack::EndFrame() {}
+	if (this->m_width != width_new || this->m_height || height_new)
+	{
+		this->m_width = width_new;
+		this->m_height = height_new;
 
-void RenderInterface_DX12::RenderLayerStack::DestroyFramebuffers() {}
+		this->DestroyFramebuffers();
+	}
+
+	this->PushLayer();
+}
+
+void RenderInterface_DX12::RenderLayerStack::EndFrame()
+{
+	RMLUI_ASSERT(this->m_layers_size == 1 && "order is wrong or something is broken!");
+	this->PopLayer();
+}
+
+void RenderInterface_DX12::RenderLayerStack::DestroyFramebuffers()
+{
+	RMLUI_ASSERTMSG(this->m_layers_size == 0, "Do not call this during frame rendering, that is, between BeginFrame() and EndFrame().");
+	RMLUI_ASSERT(this->m_p_manager_texture && "you must initialize this manager or it is a early calling or it is a late calling, debug please!");
+
+	// deleting shared depth stencil
+
+	if (this->m_p_manager_texture)
+	{
+		this->m_p_manager_texture->Free_Texture(this->m_p_depth_stencil);
+	}
+
+	for (auto& fb : this->m_fb_layers)
+	{
+		this->DestroyFramebuffer(&fb);
+	}
+
+	this->m_fb_layers.clear();
+
+	for (auto& fb : this->m_fb_postprocess)
+	{
+		this->DestroyFramebuffer(&fb);
+	}
+}
 
 bool RenderInterface_DX12::RenderLayerStack::IsCloneOfBelow(int layer_index) const
 {
@@ -1031,6 +1093,7 @@ bool RenderInterface_DX12::RenderLayerStack::IsCloneOfBelow(int layer_index) con
 	return result;
 }
 
+// TODO: add argument for depth stencil thing!!!!
 void RenderInterface_DX12::RenderLayerStack::CreateFramebuffer(Gfx::FramebufferData* p_result, int width, int height, int sample_count)
 {
 	RMLUI_ASSERT(p_result && "you must pass a valid pointer!");
@@ -1079,12 +1142,19 @@ void RenderInterface_DX12::RenderLayerStack::CreateFramebuffer(Gfx::FramebufferD
 void RenderInterface_DX12::RenderLayerStack::DestroyFramebuffer(Gfx::FramebufferData* p_data)
 {
 	RMLUI_ASSERT(p_data && "you must pass a valid data");
+	RMLUI_ASSERT(this->m_p_manager_texture && "early/late calling?");
 
 	if (p_data)
-	{}
+	{
+		this->m_p_manager_texture->Free_Texture(p_data);
+		p_data->Set_Width(-1);
+		p_data->Set_Height(-1);
+	}
 }
 
-Rml::LayerHandle RenderInterface_DX12::PushLayer() 
+void RenderInterface_DX12::RenderLayerStack::Create_SharedDepthStencilTexture() {}
+
+Rml::LayerHandle RenderInterface_DX12::PushLayer()
 {
 	return Rml::LayerHandle();
 }
@@ -4245,18 +4315,25 @@ void RenderInterface_DX12::TextureMemoryManager::Free_Texture(Gfx::FramebufferDa
 
 	if (p_impl)
 	{
-		this->Free_Texture(p_impl->Get_Texture());
-
-		if (this->m_p_virtual_block_for_render_target_heap_allocations)
-		{
-			this->m_p_virtual_block_for_render_target_heap_allocations->FreeAllocation(*p_impl->Get_VirtualAllocation_DescriptorRTV());
-		}
+		this->Free_Texture(p_impl->Get_Texture(), *(p_impl->Get_VirtualAllocation_DescriptorRTV()));
 
 		delete p_impl->Get_Texture();
 		p_impl->Set_Texture(nullptr);
 
 		p_impl->Set_Descriptor({});
 		p_impl->Set_ID(-1);
+	}
+}
+
+void RenderInterface_DX12::TextureMemoryManager::Free_Texture(TextureHandleType* p_texture, D3D12MA::VirtualAllocation& allocation)
+{
+	RMLUI_ASSERT(p_texture && "you must pass a valid pointer!");
+
+	this->Free_Texture(p_texture);
+
+	if (this->m_p_virtual_block_for_render_target_heap_allocations)
+	{
+		this->m_p_virtual_block_for_render_target_heap_allocations->FreeAllocation(allocation);
 	}
 }
 
