@@ -28,6 +28,7 @@
 
 #include "../Common/TestsInterface.h"
 #include "../Common/TestsShell.h"
+#include "../Common/TypesToString.h"
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
@@ -47,7 +48,7 @@ static const String document_decorator_rml = R"(
 			right: 0;
 			bottom: 0;
 		}
-		
+
 		@decorator from_rule : horizontal-gradient { %s }
 		@decorator to_rule: horizontal-gradient{ %s }
 
@@ -360,5 +361,104 @@ TEST_CASE("animation.filter")
 
 	system_interface->SetTime(0.0);
 
+	TestsShell::ShutdownShell();
+}
+
+static const String document_multiple_values_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+		}
+		@keyframes fade {
+			from { opacity: 0; }
+			to { opacity: 1; }
+		}
+		@keyframes colorize {
+			from { background-color: #f00; }
+			25% { background-color: #0f0; }
+			to { background-color: #00f; }
+		}
+		div {
+			width: 300dp;
+			height: 300dp;
+			background-color: #000;
+			animation: 2s fade, 4s 1s colorize;
+		}
+	</style>
+</head>
+
+<body>
+	<div/>
+</body>
+</rml>
+)";
+
+TEST_CASE("animation.multiple_values")
+{
+	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+	Context* context = TestsShell::GetContext();
+
+	const double dt = 0.1;
+	const double t_fade_start = 0;
+	const double t_colorize_start = 1;
+	const double t_fade_final = 2;
+	const double t_colorize_final = 5;
+
+	struct TestCase {
+		double time;
+		float opacity_min;
+		Colourb background_color;
+	};
+	const std::vector<TestCase> tests = {
+		{t_fade_start, 0.f, {0, 0, 0}},
+		{t_fade_start + dt, 0.01f, {0, 0, 0}},
+
+		{t_colorize_start - dt, 0.4f, {0, 0, 0}},
+		{t_colorize_start, 0.49f, {0, 0, 0}},
+		{t_colorize_start + dt, 0.5f, {0xf1, 0x50, 0}},
+
+		{t_fade_final - dt, 0.9f, {0x50, 0xf1, 0}},
+		{t_fade_final, 0.99f, {0, 0xfe, 0x00}},
+		{t_fade_final + dt, 1.0f, {0, 0xfa, 0x2e}},
+
+		{t_colorize_final - dt, 1.0f, {0, 0x2e, 0xfa}},
+		{t_colorize_final, 1.0f, {0, 0, 0xfe}},
+		{t_colorize_final + dt, 1.0f, {0, 0, 0}},
+	};
+
+	{
+		system_interface->SetTime(0.0);
+		ElementDocument* document = context->LoadDocumentFromMemory(document_multiple_values_rml, "assets/");
+		Element* element = document->GetChild(0);
+
+		document->Show();
+
+		double t = 0.f;
+		for (const auto& test : tests)
+		{
+			// Simulate progression in small time steps since animations are constrained to 0.1s maximum step size.
+			while (t < test.time)
+			{
+				t = Math::Min(t + dt, test.time);
+				system_interface->SetTime(t);
+				context->Update();
+			}
+
+			INFO("Time: ", test.time);
+			CHECK(element->GetProperty<float>("opacity") >= test.opacity_min);
+			CHECK(element->GetProperty<Colourb>("background-color") == test.background_color);
+		}
+
+		document->Close();
+	}
+
+	system_interface->SetTime(0.0);
 	TestsShell::ShutdownShell();
 }

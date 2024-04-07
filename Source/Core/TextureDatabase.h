@@ -50,8 +50,6 @@ public:
 
 	size_t size() const;
 
-	bool ReleaseTexture(RenderInterface* render_interface, const String& source);
-
 	void ReleaseAllTextures(RenderInterface* render_interface);
 
 private:
