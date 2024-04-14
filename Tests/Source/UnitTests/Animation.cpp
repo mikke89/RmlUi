@@ -33,7 +33,7 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <doctest.h>
-#include <limits.h>
+#include <float.h>
 
 using namespace Rml;
 
