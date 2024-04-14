@@ -2442,6 +2442,16 @@ ElementAnimationList::iterator Element::StartAnimation(PropertyId property_id, c
 
 	if (it != animations.end())
 	{
+		const bool allow_overwriting_animation = !initiated_by_animation_property;
+		if (!allow_overwriting_animation)
+		{
+			Log::Message(Log::LT_WARNING,
+				"Could not animate property '%s' on element: %s. "
+				"Please ensure that the property does not appear in multiple animations on the same element.",
+				StyleSheetSpecification::GetPropertyName(property_id).c_str(), GetAddress().c_str());
+			return it;
+		}
+
 		*it = ElementAnimation{};
 	}
 	else
