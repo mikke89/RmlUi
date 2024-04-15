@@ -120,10 +120,12 @@ set(harfbuzzshaping_SRC_FILES
 )
 
 set(ime_HDR_FILES
+    ${PROJECT_SOURCE_DIR}/Samples/basic/ime/src/SystemFontWin32.h
 )
 
 set(ime_SRC_FILES
     ${PROJECT_SOURCE_DIR}/Samples/basic/ime/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/Samples/basic/ime/src/SystemFontWin32.cpp
 )
 
 set(lottie_HDR_FILES

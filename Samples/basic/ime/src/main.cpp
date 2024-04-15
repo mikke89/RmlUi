@@ -26,6 +26,7 @@
  *
  */
 
+#include "SystemFontWin32.h"
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
 #include <PlatformExtensions.h>
@@ -40,17 +41,18 @@
 static void LoadFonts()
 {
 	struct FontFace {
-		const char* filename;
+		Rml::String filename;
 		bool fallback_face;
 	};
-	FontFace font_faces[] = {
+	Rml::Vector<FontFace> font_faces = {
 		{"assets/LatoLatin-Regular.ttf", false},
 		{"assets/LatoLatin-Italic.ttf", false},
 		{"assets/LatoLatin-Bold.ttf", false},
 		{"assets/LatoLatin-BoldItalic.ttf", false},
-		{"assets/NotoEmoji-Regular.ttf", true},
-		{"basic/ime/data/unifont.otf", true},
 	};
+
+	for (const Rml::String& path : GetSelectedSystemFonts())
+		font_faces.push_back({path, true});
 
 	for (const FontFace& face : font_faces)
 		Rml::LoadFontFace(face.filename, face.fallback_face);
