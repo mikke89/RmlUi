@@ -36,10 +36,17 @@
 	<body>
 		<form>
 			<label for="text">Input text</label>
-			<input id="text" type="text" name="text" maxlength=100 />
+			<input id="text" type="text" name="text" maxlength=100 value="😁" />
 
 			<label for="text_area">Type long text</label>
-			<textarea rows=4 id="text_area" name="text_area"></textarea>
+			<textarea rows=10 id="text_area" name="text_area">English: Hello, how are you?
+Japanese: こんにちは、お元気ですか？
+Korean: 안녕하세요, 어떻게 지내세요?
+Chinese (Simplified): 你好，你好吗？
+Chinese (Traditional): 你好，你好嗎？
+Vietnamese: Xin chào, bạn có khỏe không?
+Thai: สวัสดีครับ/ค่ะ สบายดีไหม?
+Arabic: مرحبًا، كيف حالك؟</textarea>
 		</form>
 
 		<p class="note">Note: the emoji keyboard and clipboard history use IME, too.</p>
