@@ -224,3 +224,34 @@ TEST_CASE("core.release_resources")
 
 	render_interface->Reset();
 }
+
+TEST_CASE("core.initialize")
+{
+	TestsRenderInterface* render_interface = TestsShell::GetTestsRenderInterface();
+	// This test only works with the dummy renderer.
+	if (!render_interface)
+		return;
+
+	const Vector2i window_size = {1280, 720};
+
+	SUBCASE("GlobalRenderInterface")
+	{
+		Rml::SetRenderInterface(render_interface);
+		REQUIRE(Rml::CreateContext("invalid_before_initialise", window_size) == nullptr);
+		REQUIRE(Rml::Initialise());
+		REQUIRE(Rml::CreateContext("main", window_size) != nullptr);
+	}
+
+	SUBCASE("ContextRenderInterface")
+	{
+		REQUIRE(Rml::CreateContext("invalid_before_initialise", window_size) == nullptr);
+		// We should be able to initialize without setting any interfaces.
+		REQUIRE(Rml::Initialise());
+		// But then we must pass a render interface to new contexts (this will emit a warning).
+		REQUIRE(Rml::CreateContext("invalid_no_render_interface", window_size) == nullptr);
+		REQUIRE(Rml::CreateContext("main", window_size, render_interface) != nullptr);
+	}
+
+	Rml::Shutdown();
+	render_interface->Reset();
+}

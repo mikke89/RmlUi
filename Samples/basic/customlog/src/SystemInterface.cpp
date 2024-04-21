@@ -30,7 +30,6 @@
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <Shell.h>
-#include <chrono>
 #include <stdio.h>
 #ifdef RMLUI_PLATFORM_WIN32
 	#include <RmlUi_Include_Windows.h>
@@ -45,14 +44,6 @@ SystemInterface::~SystemInterface()
 {
 	if (fp)
 		fclose(fp);
-}
-
-double SystemInterface::GetElapsedTime()
-{
-	static const auto start = std::chrono::steady_clock::now();
-	const auto current = std::chrono::steady_clock::now();
-	std::chrono::duration<double> diff = current - start;
-	return diff.count();
 }
 
 bool SystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message)

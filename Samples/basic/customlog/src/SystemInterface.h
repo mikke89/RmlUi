@@ -41,10 +41,6 @@ public:
 	SystemInterface();
 	virtual ~SystemInterface();
 
-	/// Get the number of seconds elapsed since the start of the application.
-	/// @return Elapsed time, in seconds.
-	double GetElapsedTime() override;
-
 	/// Log the specified message.
 	/// @param[in] type Type of log message, ERROR, WARNING, etc.
 	/// @param[in] message Message to log.

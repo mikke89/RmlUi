@@ -73,6 +73,7 @@ static FileInterface* file_interface = nullptr;
 static FontEngineInterface* font_interface = nullptr;
 
 // Default interfaces should be created and destroyed on Initialise and Shutdown, respectively.
+static UniquePtr<SystemInterface> default_system_interface;
 static UniquePtr<FileInterface> default_file_interface;
 static UniquePtr<FontEngineInterface> default_font_interface;
 
@@ -94,11 +95,11 @@ bool Initialise()
 {
 	RMLUI_ASSERTMSG(!initialised, "Rml::Initialise() called, but RmlUi is already initialised!");
 
-	// Check for valid interfaces, or install default interfaces as appropriate.
+	// Install default interfaces as appropriate.
 	if (!system_interface)
 	{
-		Log::Message(Log::LT_ERROR, "No system interface set!");
-		return false;
+		default_system_interface = MakeUnique<SystemInterface>();
+		system_interface = default_system_interface.get();
 	}
 
 	if (!file_interface)
@@ -184,6 +185,7 @@ void Shutdown()
 
 	default_font_interface.reset();
 	default_file_interface.reset();
+	default_system_interface.reset();
 
 	ReleaseMemoryPools();
 }
