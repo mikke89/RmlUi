@@ -33,6 +33,7 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <doctest.h>
+#include <float.h>
 
 using namespace Rml;
 
@@ -454,6 +455,124 @@ TEST_CASE("animation.multiple_values")
 			INFO("Time: ", test.time);
 			CHECK(element->GetProperty<float>("opacity") >= test.opacity_min);
 			CHECK(element->GetProperty<Colourb>("background-color") == test.background_color);
+		}
+
+		document->Close();
+	}
+
+	system_interface->SetTime(0.0);
+	TestsShell::ShutdownShell();
+}
+
+static const String document_animation_multiple_values_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+		}
+		@keyframes fadein {
+			from {
+				opacity: 0;
+				visibility: hidden;
+			}
+			to {
+				opacity: 1;
+				visibility: visible;
+			}
+		}
+		@keyframes fadeout {
+			from {
+				opacity: 1;
+				visibility: visible;
+			}
+			to {
+				opacity: 0;
+				visibility: hidden;
+			}
+		}
+
+		div {
+			background-color: #c66;
+			width: 300dp;
+			height: 300dp;
+			margin: auto;
+			animation: 1s fadein, 1s 5s fadeout;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="div"/>
+</body>
+</rml>
+)";
+
+TEST_CASE("animation.multiple_overlapping")
+{
+	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+	Context* context = TestsShell::GetContext();
+
+	const float greater_than_zero = FLT_MIN;
+
+	const double dt = 1.0 / 60.0;
+	const double t0 = 0;
+	const double t_delta = 0.1;
+	const double t_fadein_final = 1;
+	const double t_fadeout_start = 5;
+	const double t_fadeout_final = 6;
+
+	struct TestCase {
+		double time;
+		float opacity_min;
+		bool is_visible;
+	};
+	const std::vector<TestCase> tests = {
+		{t0, 0.f, true},
+		{t0 + t_delta, greater_than_zero, true},
+		{t_fadein_final - t_delta, 0.8f, true},
+		{t_fadein_final, 1.f, true},
+		{t_fadein_final + t_delta, 1.f, true},
+		{t_fadeout_start - t_delta, 1.f, true},
+		{t_fadeout_start, 1.f, true},
+		{t_fadeout_start + t_delta, 0.8f, true},
+		{t_fadeout_final - t_delta, greater_than_zero, true},
+		{t_fadeout_final, 0.f, false},
+		{t_fadeout_final + t_delta, 0.f, false},
+	};
+
+	// Currently we don't support animating the same property from multiple animations on the same element, see #608.
+	// This test only checks that we submit warnings to the user. Once we support this feature, we can enable more checks in this test.
+	{
+		system_interface->SetNumExpectedWarnings(2);
+
+		system_interface->SetTime(0.0);
+
+		ElementDocument* document = context->LoadDocumentFromMemory(document_animation_multiple_values_rml, "assets/");
+		Element* element = document->GetChild(0);
+
+		document->Show();
+
+		TestsShell::RenderLoop();
+
+		double t = 0.f;
+		for (const auto& test : tests)
+		{
+			while (t < test.time)
+			{
+				t = Math::Min(t + dt, test.time);
+				system_interface->SetTime(t);
+				context->Update();
+			}
+
+			INFO("Time: ", test.time);
+			(void)(element->GetProperty<float>("opacity") == test.opacity_min);
+			(void)(element->IsVisible() == test.is_visible);
 		}
 
 		document->Close();

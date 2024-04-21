@@ -43,8 +43,8 @@ bool FontEngineInterface::LoadFontFace(const String& /*file_path*/, bool /*fallb
 	return false;
 }
 
-bool FontEngineInterface::LoadFontFace(Span<const byte> /*data*/, const String& /*font_family*/, Style::FontStyle /*style*/,
-	Style::FontWeight /*weight*/, bool /*fallback_face*/)
+bool FontEngineInterface::LoadFontFace(Span<const byte> /*data*/, const String& /*family*/, Style::FontStyle /*style*/, Style::FontWeight /*weight*/,
+	bool /*fallback_face*/)
 {
 	return false;
 }

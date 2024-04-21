@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../Include/RmlUi/Core/URL.h"
 #include "LogDefault.h"
+#include <chrono>
 
 namespace Rml {
 
@@ -39,6 +40,14 @@ static String clipboard_text;
 SystemInterface::SystemInterface() {}
 
 SystemInterface::~SystemInterface() {}
+
+double SystemInterface::GetElapsedTime()
+{
+	static const auto start = std::chrono::steady_clock::now();
+	const auto current = std::chrono::steady_clock::now();
+	std::chrono::duration<double> diff = current - start;
+	return diff.count();
+}
 
 bool SystemInterface::LogMessage(Log::Type type, const String& message)
 {

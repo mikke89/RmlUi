@@ -59,7 +59,8 @@ RMLUICORE_API void Shutdown();
 /// @return The version number.
 RMLUICORE_API String GetVersion();
 
-/// Sets the interface through which all system requests are made. This must be called before Initialise().
+/// Sets the interface through which all system requests are made. This is not required to be called, but if it is it
+/// must be called before Initialise().
 /// @param[in] system_interface A non-owning pointer to the application-specified logging interface.
 /// @lifetime The interface must be kept alive until after the call to Rml::Shutdown.
 RMLUICORE_API void SetSystemInterface(SystemInterface* system_interface);
@@ -132,7 +133,7 @@ RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = fa
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 /// @return True if the face was loaded successfully, false otherwise.
 /// @lifetime The pointed to 'data' must remain available until after the call to Rml::Shutdown.
-RMLUICORE_API bool LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style,
+RMLUICORE_API bool LoadFontFace(Span<const byte> data, const String& family, Style::FontStyle style,
 	Style::FontWeight weight = Style::FontWeight::Auto, bool fallback_face = false);
 
 /// Registers a generic RmlUi plugin.
