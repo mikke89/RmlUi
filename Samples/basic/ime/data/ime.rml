@@ -31,6 +31,10 @@
 			.note {
 				font-size: .8rem;
 			}
+
+			scrollbarvertical {
+				width: 0;
+			}
 		</style>
 	</head>
 	<body>
