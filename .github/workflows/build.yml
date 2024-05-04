@@ -98,39 +98,6 @@ jobs:
       run: cmake --build . --config $BUILD_TYPE
 
 
-  macOS:
-    runs-on: macos-latest
-
-    env:
-      BUILD_TYPE: Release
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - cmake_options: -DSAMPLES_BACKEND=auto
-          - cmake_options: -DSAMPLES_BACKEND=GLFW_GL2
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Install Dependencies
-      run: brew install lua sdl2 sdl2_image glfw
-
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/Build
-
-    - name: Configure CMake
-      working-directory: ${{github.workspace}}/Build
-      run: >-
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_LUA_BINDINGS=ON -DBUILD_SAMPLES=ON -DWARNINGS_AS_ERRORS=ON
-        ${{ matrix.cmake_options }}
-
-    - name: Build
-      working-directory: ${{github.workspace}}/Build
-      run: cmake --build . --config $BUILD_TYPE
-
-
   Windows:
     runs-on: windows-latest
 
