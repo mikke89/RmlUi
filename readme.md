@@ -20,7 +20,9 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 ---
 
-***Note:*** Expect breaking changes on the master branch as we are moving towards the release of RmlUi 6.0. This may require changes to projects using older releases, please take a look at the [breaking changes](changelog.md#breaking-changes) in the changelog. Meanwhile, documentation is being worked on for the new features. 
+***RmlUi 6.0 status:*** We are moving towards the release of RmlUi 6.0. Projects coming from 5.x releases should expect some [breaking changes](changelog.md#breaking-changes) as listed in the changelog. The project is currently in a stabilization phase before release, thus no further major breaking changes are planned.
+
+Our CMake scripts have been completely rewritten using modern CMake practices, with names for options, targets, and executable files being changed. For details, please see the [CMake changes](changelog.md#modernized-cmake) in the changelog, and all [CMake options](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html#cmake-options) in the documentation.
 
 ---
 
@@ -81,7 +83,7 @@ RmlUi adds features and enhancements over CSS and HTML where it makes sense, mos
 
 ## Dependencies
 
-- [FreeType](https://www.freetype.org/). However, it can be fully replaced by a custom [font engine](Include/RmlUi/Core/FontEngineInterface.h).
+- [FreeType](https://www.freetype.org/). However, it can be fully replaced by a custom [font engine](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/font_engine.html).
 - The standard library.
 
 In addition, a C++14 compatible compiler is required.
@@ -99,16 +101,16 @@ vcpkg install rmlui
 
 That's it! See below for details on integrating RmlUi.
 
-To build RmlUi with the included samples we can use git and CMake together with vcpkg to handle the dependency.
+To build RmlUi with the included samples we can use git and CMake together with vcpkg to handle dependencies.
 
 ```
-vcpkg install freetype
+vcpkg install freetype glfw
 git clone https://github.com/mikke89/RmlUi.git
 cd RmlUi
-cmake -B Build -S . -DBUILD_SAMPLES=ON -DCMAKE_TOOLCHAIN_FILE="<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake"
+cmake -B Build -S . --preset samples -DRMLUI_BACKEND=GLFW_GL3 -DCMAKE_TOOLCHAIN_FILE="<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake"
 cmake --build Build
 ```
-Make sure to replace the path to vcpkg. When this completes, feel free to test the freshly built samples, such as the `invader` sample, and enjoy! The executables should be located somewhere in the `Build` directory.
+Make sure to replace the path to vcpkg. This example uses the `GLFW_GL3` backend, other backends are available as shown below. When this completes, feel free to test the freshly built samples, such as the `invaders` sample (`rmlui_sample_invaders` target), and enjoy! The executables should be located somewhere in the `Build` directory.
 
 #### Conan
 
@@ -120,7 +122,7 @@ RmlUi is readily available from [ConanCenter](https://conan.io/center/recipes/rm
 Here are the general steps to integrate the library into a C++ application, have a look at the [integration documentation](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/integrating.html) for details.
 
 1. Build RmlUi as above or fetch the binaries, and [link it up](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/integrating.html#setting-up-the-build-environment) to your application.
-2. Implement the abstract [system interface](Include/RmlUi/Core/SystemInterface.h) and [render interface](Include/RmlUi/Core/RenderInterface.h), or fetch one of the backends listed below.
+2. Implement the abstract [render interface](Include/RmlUi/Core/RenderInterface.h), or fetch one of the backends listed below.
 3. Initialize RmlUi with the interfaces, create a context, provide font files, and load a document.
 4. Call into the context's update and render methods in a loop, and submit input events.
 5. Compile and run!
@@ -145,9 +147,9 @@ The provided backends on the other hand are not intended to be used directly by 
 | Renderer features | Basic rendering | Transforms | Clip masks | Filters | Shaders | Built-in image support                                            |
 |-------------------|:---------------:|:----------:|:----------:|:-------:|:-------:|-------------------------------------------------------------------|
 | OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |    ❌    |    ❌    | Uncompressed TGA                                                  |
-| OpenGL 3 (GL3)    |       ✔️        |     ✔️     |     ✔️     |  ️ ✔️   |  ️ ✔️   | Uncompressed TGA                                                  |
-| Vulkan (VK)       |       ✔️        |     ✔️     |     ❌      |    ❌    |    ❌    | Uncompressed TGA                                                  |
-| SDLrenderer       |       ✔️        |     ❌      |     ❌      |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| OpenGL 3 (GL3)    |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
+| Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
+| SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2d-layouts.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
@@ -183,7 +185,7 @@ The provided backends on the other hand are not intended to be used directly by 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
 
-When building the samples, the backend can be selected by setting the CMake option `SAMPLES_BACKEND` to `<Platform>_<RendererShorthand>` for any of the above supported combinations of platforms and renderers, such as `SDL_GL3`.
+When building the samples, the backend can be selected by setting the CMake option `RMLUI_BACKEND` to `<Platform>_<RendererShorthand>` for any of the above supported combinations of platforms and renderers, such as `SDL_GL3`.
 
 
 ## Example document
@@ -464,7 +466,7 @@ See [Source/Debugger/LICENSE.txt](Source/Debugger/LICENSE.txt) - SIL Open Font L
 See
 - [Samples/assets/LICENSE.txt](Samples/assets/LICENSE.txt)
 - [Samples/basic/bitmapfont/data/LICENSE.txt](Samples/basic/bitmapfont/data/LICENSE.txt)
-- [Samples/basic/harfbuzzshaping/data/LICENSE.txt](Samples/basic/harfbuzzshaping/data/LICENSE.txt)
+- [Samples/basic/harfbuzz/data/LICENSE.txt](Samples/basic/harfbuzz/data/LICENSE.txt)
 - [Samples/basic/lottie/data/LICENSE.txt](Samples/basic/lottie/data/LICENSE.txt)
 - [Samples/basic/svg/data/LICENSE.txt](Samples/basic/svg/data/LICENSE.txt)
 

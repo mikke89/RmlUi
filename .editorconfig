@@ -1,6 +1,12 @@
 root = true
 
-[CMakeLists.txt]
+[{CMakeLists.txt,*.cmake,*.cmake.in}]
+indent_style = tab
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[CMakePresets.json]
 indent_style = tab
 indent_size = 4
 trim_trailing_whitespace = true
