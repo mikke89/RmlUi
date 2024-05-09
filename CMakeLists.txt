@@ -194,10 +194,10 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules"
 )
 
 if(RMLUI_IS_ROOT_PROJECT)
-	# Export build targets if RmlUi is the top-level project.
+	# Export build tree targets if RmlUi is the top-level project.
 	export(EXPORT RmlUiTargets
 		NAMESPACE RmlUi::
-		FILE RmlUiTargets.cmake
+		FILE RmlUiConfig.cmake
 	)
 endif()
 
