@@ -72,7 +72,7 @@ Rml::Vector<Rml::String> GetSelectedSystemFonts()
 			Rml::String path = system_font_directory + '\\' + font_file;
 			DWORD attributes = GetFileAttributesA(path.c_str());
 
-			if (attributes & INVALID_FILE_ATTRIBUTES && !(attributes & FILE_ATTRIBUTE_DIRECTORY))
+			if (attributes != INVALID_FILE_ATTRIBUTES && !(attributes & FILE_ATTRIBUTE_DIRECTORY))
 				result.push_back(path);
 			else
 				Rml::Log::Message(Rml::Log::LT_INFO, "Could not find system font file '%s', skipping.", path.c_str());
