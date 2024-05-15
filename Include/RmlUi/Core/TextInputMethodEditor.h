@@ -62,9 +62,6 @@ public:
 	/// Start a composition (e.g., by displaying the composition window).
 	virtual void StartComposition() = 0;
 
-	/// End the current composition.
-	virtual void EndComposition() = 0;
-
 	/// Cancel the current composition and purge the string.
 	virtual void CancelComposition() = 0;
 

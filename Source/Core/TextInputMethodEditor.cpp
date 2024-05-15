@@ -44,7 +44,6 @@ public:
 	virtual bool IsComposing() const override;
 
 	virtual void StartComposition() override;
-	virtual void EndComposition() override;
 	virtual void CancelComposition() override;
 
 	virtual void SetComposition(StringView composition) override;
@@ -53,6 +52,7 @@ public:
 	virtual void SetCursorPosition(int cursor_pos, bool update) override;
 
 private:
+	void EndComposition();
 	void SetCompositionString(StringView composition);
 
 	void UpdateCursorPosition();
