@@ -55,6 +55,8 @@ public:
 	/// @param[in] value The new value to set on the text field.
 	/// @note The value will be sanitized and synchronized with the element's value attribute.
 	void SetValue(String value);
+	/// Returns the underlying text from the element's value attribute.
+	String GetAttributeValue() const;
 
 	/// Sets the maximum length (in characters) of this text field.
 	/// @param[in] max_length The new maximum length of the text field. A number lower than zero will mean infinite characters.
@@ -81,6 +83,8 @@ public:
 	/// @param[in] range_start The first character to be selected.
 	/// @param[in] range_end The first character *after* the selection.
 	void SetIMERange(int range_start, int range_end);
+	/// Obtains the IME composition byte range relative to the current value.
+	void GetIMERange(int& range_start, int& range_end) const;
 
 	/// Update the colours of the selected text.
 	void UpdateSelectionColours();
@@ -137,8 +141,6 @@ private:
 	/// Returns the displayed value of the text field.
 	/// @note For password fields this would only return the displayed asterisks '****', while the attribute value below contains the underlying text.
 	const String& GetValue() const;
-	/// Returns the underlying text from the element's value attribute.
-	String GetAttributeValue() const;
 
 	/// Moves the cursor along the current line.
 	/// @param[in] movement Cursor movement operation.
@@ -270,7 +272,6 @@ private:
 	// The IME composition text highlighting.
 	Geometry ime_composition_geometry;
 
-	friend class WidgetTextInputIMEContext;
 	// The IME context for this widget.
 	SharedPtr<WidgetTextInputIMEContext> text_input_method_context;
 

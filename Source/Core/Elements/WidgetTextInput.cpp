@@ -81,7 +81,7 @@ static bool ClampValue(String& value, int max_length)
 
 class WidgetTextInputIMEContext final : public TextInputMethodContext {
 public:
-	WidgetTextInputIMEContext(WidgetTextInput* _owner);
+	WidgetTextInputIMEContext(WidgetTextInput* _owner, ElementFormControl* _element);
 	~WidgetTextInputIMEContext() = default;
 
 	void GetScreenBounds(Vector2f& position, Vector2f& size) const override;
@@ -94,15 +94,16 @@ public:
 
 private:
 	WidgetTextInput* owner;
+	ElementFormControl* element;
 	String composition;
 };
 
-WidgetTextInputIMEContext::WidgetTextInputIMEContext(WidgetTextInput* _owner) : owner(_owner) {}
+WidgetTextInputIMEContext::WidgetTextInputIMEContext(WidgetTextInput* _owner, ElementFormControl* _element) : owner(_owner), element(_element) {}
 
 void WidgetTextInputIMEContext::GetScreenBounds(Vector2f& position, Vector2f& size) const
 {
-	position = owner->GetElement()->GetAbsoluteOffset(BoxArea::Border);
-	size = owner->GetElement()->GetBox().GetSize(BoxArea::Border);
+	position = element->GetAbsoluteOffset(BoxArea::Border);
+	size = element->GetBox().GetSize(BoxArea::Border);
 }
 
 void WidgetTextInputIMEContext::GetSelectionRange(int& start, int& end) const
@@ -130,7 +131,7 @@ void WidgetTextInputIMEContext::SetText(StringView text, int start, int end)
 	RMLUI_ASSERTMSG(end >= start, "Invalid end character offset.");
 	value.replace(start, end - start, text.begin(), text.size());
 
-	owner->parent->SetValue(value);
+	element->SetValue(value);
 
 	composition = String(text);
 }
@@ -142,8 +143,8 @@ void WidgetTextInputIMEContext::SetCompositionRange(int start, int end)
 
 void WidgetTextInputIMEContext::CommitComposition()
 {
-	const int start_byte = owner->ime_composition_begin_index;
-	const int end_byte = owner->ime_composition_end_index;
+	int start_byte, end_byte;
+	owner->GetIMERange(start_byte, end_byte);
 
 	// No composition to commit.
 	if (start_byte == 0 && end_byte == 0)
@@ -171,7 +172,7 @@ void WidgetTextInputIMEContext::CommitComposition()
 	RMLUI_ASSERTMSG(end_byte >= start_byte, "Invalid end character offset.");
 	value.replace(start_byte, end_byte - start_byte, composition.data(), composition.size());
 
-	owner->parent->SetValue(value);
+	element->SetValue(value);
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
@@ -235,7 +236,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
 	ime_composition_begin_index = 0;
 	ime_composition_end_index = 0;
 
-	text_input_method_context = MakeShared<WidgetTextInputIMEContext>(this);
+	text_input_method_context = MakeShared<WidgetTextInputIMEContext>(this, parent);
 
 	last_update_time = 0;
 
@@ -383,6 +384,12 @@ void WidgetTextInput::SetIMERange(int range_start, int range_end)
 	}
 
 	FormatText();
+}
+
+void WidgetTextInput::GetIMERange(int& range_start, int& range_end) const
+{
+	range_start = ime_composition_begin_index;
+	range_end = ime_composition_end_index;
 }
 
 void WidgetTextInput::UpdateSelectionColours()
