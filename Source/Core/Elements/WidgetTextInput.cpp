@@ -93,27 +93,36 @@ public:
 	void CommitComposition() override;
 
 private:
+	// As TextInputMethodContext may be used outside the element, there is no guarantee that the owner pointer is valid.
+	// A workaround for this problem is ensuring that the observed parent element is alive.
 	WidgetTextInput* owner;
-	ElementFormControl* element;
+	ObserverPtr<Element> element;
 	String composition;
 };
 
-WidgetTextInputIMEContext::WidgetTextInputIMEContext(WidgetTextInput* _owner, ElementFormControl* _element) : owner(_owner), element(_element) {}
+WidgetTextInputIMEContext::WidgetTextInputIMEContext(WidgetTextInput* _owner, ElementFormControl* _element) :
+	owner(_owner), element(_element->GetObserverPtr())
+{}
 
 void WidgetTextInputIMEContext::GetScreenBounds(Vector2f& position, Vector2f& size) const
 {
-	position = element->GetAbsoluteOffset(BoxArea::Border);
-	size = element->GetBox().GetSize(BoxArea::Border);
+	if (element)
+	{
+		position = element->GetAbsoluteOffset(BoxArea::Border);
+		size = element->GetBox().GetSize(BoxArea::Border);
+	}
 }
 
 void WidgetTextInputIMEContext::GetSelectionRange(int& start, int& end) const
 {
-	owner->GetSelection(&start, &end, nullptr);
+	if (element)
+		owner->GetSelection(&start, &end, nullptr);
 }
 
 void WidgetTextInputIMEContext::SetSelectionRange(int start, int end)
 {
-	owner->SetSelectionRange(start, end);
+	if (element)
+		owner->SetSelectionRange(start, end);
 }
 
 void WidgetTextInputIMEContext::SetCursorPosition(int position)
@@ -123,6 +132,9 @@ void WidgetTextInputIMEContext::SetCursorPosition(int position)
 
 void WidgetTextInputIMEContext::SetText(StringView text, int start, int end)
 {
+	if (!element)
+		return;
+
 	String value = owner->GetAttributeValue();
 
 	start = StringUtilities::ConvertCharacterOffsetToByteOffset(value, start);
@@ -131,18 +143,22 @@ void WidgetTextInputIMEContext::SetText(StringView text, int start, int end)
 	RMLUI_ASSERTMSG(end >= start, "Invalid end character offset.");
 	value.replace(start, end - start, text.begin(), text.size());
 
-	element->SetValue(value);
+	rmlui_static_cast<ElementFormControl*>(element.get())->SetValue(value);
 
 	composition = String(text);
 }
 
 void WidgetTextInputIMEContext::SetCompositionRange(int start, int end)
 {
-	owner->SetIMERange(start, end);
+	if (element)
+		owner->SetIMERange(start, end);
 }
 
 void WidgetTextInputIMEContext::CommitComposition()
 {
+	if (!element)
+		return;
+
 	int start_byte, end_byte;
 	owner->GetIMERange(start_byte, end_byte);
 
@@ -172,7 +188,7 @@ void WidgetTextInputIMEContext::CommitComposition()
 	RMLUI_ASSERTMSG(end_byte >= start_byte, "Invalid end character offset.");
 	value.replace(start_byte, end_byte - start_byte, composition.data(), composition.size());
 
-	element->SetValue(value);
+	rmlui_static_cast<ElementFormControl*>(element.get())->SetValue(value);
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
