@@ -43,12 +43,12 @@ public:
 
 	virtual bool IsComposing() const override;
 
-	virtual void IMEStartComposition() override;
-	virtual void IMEEndComposition() override;
-	virtual void IMECancelComposition() override;
+	virtual void StartComposition() override;
+	virtual void EndComposition() override;
+	virtual void CancelComposition() override;
 
-	virtual void IMESetComposition(StringView composition) override;
-	virtual void IMEConfirmComposition(StringView composition) override;
+	virtual void SetComposition(StringView composition) override;
+	virtual void ConfirmComposition(StringView composition) override;
 
 	virtual void SetCursorPosition(int cursor_pos, bool update) override;
 
@@ -95,13 +95,13 @@ bool DefaultTextInputMethodEditor::IsComposing() const
 	return composing;
 }
 
-void DefaultTextInputMethodEditor::IMEStartComposition()
+void DefaultTextInputMethodEditor::StartComposition()
 {
 	RMLUI_ASSERT(!composing);
 	composing = true;
 }
 
-void DefaultTextInputMethodEditor::IMEEndComposition()
+void DefaultTextInputMethodEditor::EndComposition()
 {
 	if (SharedPtr<TextInputMethodContext> _context = context.lock())
 		_context->SetCompositionRange(0, 0);
@@ -113,7 +113,7 @@ void DefaultTextInputMethodEditor::IMEEndComposition()
 	composition_range_end = 0;
 }
 
-void DefaultTextInputMethodEditor::IMECancelComposition()
+void DefaultTextInputMethodEditor::CancelComposition()
 {
 	RMLUI_ASSERT(IsComposing());
 
@@ -125,10 +125,10 @@ void DefaultTextInputMethodEditor::IMECancelComposition()
 		_context->SetCursorPosition(composition_range_start);
 	}
 
-	IMEEndComposition();
+	EndComposition();
 }
 
-void DefaultTextInputMethodEditor::IMESetComposition(StringView composition)
+void DefaultTextInputMethodEditor::SetComposition(StringView composition)
 {
 	RMLUI_ASSERT(IsComposing());
 
@@ -142,7 +142,7 @@ void DefaultTextInputMethodEditor::IMESetComposition(StringView composition)
 			_context->SetCompositionRange(composition_range_start, composition_range_end);
 }
 
-void DefaultTextInputMethodEditor::IMEConfirmComposition(StringView composition)
+void DefaultTextInputMethodEditor::ConfirmComposition(StringView composition)
 {
 	RMLUI_ASSERT(IsComposing());
 
@@ -157,7 +157,7 @@ void DefaultTextInputMethodEditor::IMEConfirmComposition(StringView composition)
 	// Move the cursor to the end of the string.
 	SetCursorPosition(composition_range_end - composition_range_start, true);
 
-	IMEEndComposition();
+	EndComposition();
 }
 
 void DefaultTextInputMethodEditor::SetCursorPosition(int _cursor_pos, bool update)

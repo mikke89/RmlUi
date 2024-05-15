@@ -304,7 +304,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 	case WM_IME_STARTCOMPOSITION:
 		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
 		{
-			editor->IMEStartComposition();
+			editor->StartComposition();
 			// Prevent the native composition window from appearing by capturing the message.
 			result = !editor->IsNativeCompositionBlocked();
 		}
@@ -312,14 +312,14 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 	case WM_IME_ENDCOMPOSITION:
 		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
 			if (editor->IsComposing())
-				editor->IMEConfirmComposition(Rml::StringView());
+				editor->ConfirmComposition(Rml::StringView());
 		break;
 	case WM_IME_COMPOSITION:
 		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
 		{
 			// Not every IME starts a composition.
 			if (!editor->IsComposing())
-				editor->IMEStartComposition();
+				editor->StartComposition();
 
 			if (!!(l_param & GCS_CURSORPOS))
 			{
@@ -349,7 +349,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 				if (auto imm_context = ImmGetContext(window_handle))
 				{
 					std::wstring composition = IMEGetCompositionString(imm_context, true);
-					editor->IMEConfirmComposition(RmlWin32::ConvertToUTF8(composition));
+					editor->ConfirmComposition(RmlWin32::ConvertToUTF8(composition));
 				}
 			}
 
@@ -358,13 +358,13 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 				if (auto imm_context = ImmGetContext(window_handle))
 				{
 					std::wstring composition = IMEGetCompositionString(imm_context, false);
-					editor->IMESetComposition(RmlWin32::ConvertToUTF8(composition));
+					editor->SetComposition(RmlWin32::ConvertToUTF8(composition));
 				}
 			}
 
 			// The composition has been canceled.
 			if (!l_param)
-				editor->IMECancelComposition();
+				editor->CancelComposition();
 		}
 		break;
 	case WM_IME_CHAR:

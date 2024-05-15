@@ -60,21 +60,21 @@ public:
 	virtual bool IsComposing() const = 0;
 
 	/// Start a composition (e.g., by displaying the composition window).
-	virtual void IMEStartComposition() = 0;
+	virtual void StartComposition() = 0;
 
 	/// End the current composition.
-	virtual void IMEEndComposition() = 0;
+	virtual void EndComposition() = 0;
 
 	/// Cancel the current composition and purge the string.
-	virtual void IMECancelComposition() = 0;
+	virtual void CancelComposition() = 0;
 
 	/// Set the composition string.
 	/// @param[in] composition A string to be set.
-	virtual void IMESetComposition(StringView composition) = 0;
+	virtual void SetComposition(StringView composition) = 0;
 
 	/// End the current composition by confirming the composition string.
 	/// @param[in] composition A string to confirm.
-	virtual void IMEConfirmComposition(StringView composition) = 0;
+	virtual void ConfirmComposition(StringView composition) = 0;
 
 	/// Set the cursor position within the composition.
 	/// @param[in] cursor_pos A character position of the cursor within the composition string.
