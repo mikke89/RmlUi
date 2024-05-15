@@ -252,8 +252,6 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
 	ime_composition_begin_index = 0;
 	ime_composition_end_index = 0;
 
-	text_input_method_context = MakeShared<WidgetTextInputIMEContext>(this, parent);
-
 	last_update_time = 0;
 
 	ShowCursor(false);
@@ -663,8 +661,12 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			if (UpdateSelection(false))
 				FormatElement();
 			ShowCursor(true, false);
+
 			if (TextInputMethodEditor* editor = GetSystemInterface()->GetTextInputMethodEditor())
+			{
+				text_input_method_context = MakeShared<WidgetTextInputIMEContext>(this, parent);
 				editor->ActivateContext(text_input_method_context);
+			}
 		}
 	}
 	break;
@@ -673,7 +675,11 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		if (event.GetTargetElement() == parent)
 		{
 			if (TextInputMethodEditor* editor = GetSystemInterface()->GetTextInputMethodEditor())
+			{
 				editor->DeactivateContext(text_input_method_context.get());
+				text_input_method_context.reset();
+			}
+
 			if (ClearSelection())
 				FormatElement();
 			ShowCursor(false, false);
