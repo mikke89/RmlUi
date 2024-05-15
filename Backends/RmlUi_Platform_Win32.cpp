@@ -323,7 +323,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 
 			if (!!(l_param & GCS_CURSORPOS))
 			{
-				if (auto imm_context = ImmGetContext(GetActiveWindow()))
+				if (auto imm_context = ImmGetContext(window_handle))
 				{
 					// The cursor position is the wchar_t offset in the composition string. Because we
 					// work with UTF-8 and not UTF-16, we will have to convert the character offset.
@@ -346,7 +346,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 
 			if (!!(l_param & GCS_RESULTSTR))
 			{
-				if (auto imm_context = ImmGetContext(GetActiveWindow()))
+				if (auto imm_context = ImmGetContext(window_handle))
 				{
 					std::wstring composition = IMEGetCompositionString(imm_context, true);
 					editor->IMEConfirmComposition(RmlWin32::ConvertToUTF8(composition));
@@ -355,7 +355,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 
 			if (!!(l_param & GCS_COMPSTR))
 			{
-				if (auto imm_context = ImmGetContext(GetActiveWindow()))
+				if (auto imm_context = ImmGetContext(window_handle))
 				{
 					std::wstring composition = IMEGetCompositionString(imm_context, false);
 					editor->IMESetComposition(RmlWin32::ConvertToUTF8(composition));
