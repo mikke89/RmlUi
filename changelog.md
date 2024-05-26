@@ -259,12 +259,12 @@ Large parts of the CI workflows have also been rewritten to accommodate these ch
 
 We now export the following targets:
 
-| Target          | Description                                                     |
-|-----------------|-----------------------------------------------------------------|
-| RmlUi::RmlUi    | Includes all sub-libraries of the project, as listed just below |
-| RmlUi::Core     | The main library                                                |
-| RmlUi::Debugger | The debugger library                                            |
-| RmlUi::Lua      | The Lua plugin (when enabled)                                   |
+| Target          | Old target  | Description                                                     |
+|-----------------|-------------|-----------------------------------------------------------------|
+| RmlUi::RmlUi    |             | Includes all sub-libraries of the project, as listed just below |
+| RmlUi::Core     | RmlCore     | The main library                                                |
+| RmlUi::Debugger | RmlDebugger | The debugger library                                            |
+| RmlUi::Lua      | RmlLua      | The Lua plugin (when enabled)                                   |
 
 When including RmlUi as a subdirectory, the targets are constructed as aliases. When using pre-built or installed binaries, they are constructed using imported targets, which are available through the exported build targets.
 
@@ -274,11 +274,11 @@ The internal target names have also been changed, although they are typically on
 
 The library binaries have also changed names. These names would be suffixed by e.g. `.dll` on Windows, and so on.
 
-| Library          | Description                   |
-|------------------|-------------------------------|
-| `rmlui`          | The core (main) library       |
-| `rmlui_debugger` | The debugger library          |
-| `rmlui_lua`      | The Lua plugin (when enabled) |
+| Library          | Old library   | Description                   |
+|------------------|---------------|-------------------------------|
+| `rmlui`          | `RmlCore`     | The core (main) library       |
+| `rmlui_debugger` | `RmlDebugger` | The debugger library          |
+| `rmlui_lua`      | `RmlLua`      | The Lua plugin (when enabled) |
 
 #### New option names
 
