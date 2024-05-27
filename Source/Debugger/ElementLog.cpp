@@ -83,10 +83,10 @@ ElementLog::~ElementLog()
 	RemoveEventListener(EventId::Click, this);
 
 	if (beacon && beacon->GetFirstChild())
-	{
 		beacon->GetFirstChild()->RemoveEventListener(EventId::Click, this);
+
+	if (beacon && GetParentNode())
 		beacon->GetParentNode()->RemoveChild(beacon);
-	}
 
 	if (message_content)
 	{

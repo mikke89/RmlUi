@@ -178,7 +178,6 @@ input { nav: auto; nav-right: #ok_button; }
 
 - Improved mesh utilities to construct background geometry for any given area of the element, including for elements with border-radius.
 - New Rectangle type to better represent many operations.
-- Debugger now displays the axis-aligned bounding box of selected elements, including any transforms and box shadows.
 - Visual tests:
   - Several new visual tests for the new features.
   - Highlight differences when comparing to previous capture by holding shift key.
@@ -190,6 +189,11 @@ input { nav: auto; nav-right: #ok_button; }
 - Allow nested data models. #484 (thanks @Dakror)
 - Fix XML parse error if single curly brace encountered at the end of a data binding string literal. #459 (thanks @Dakror)
 - Fix usage of data variables in selected `option`s. #509 #510 (thanks @Dakror)
+
+### Debugger plugin
+
+- The debugger can now display the axis-aligned bounding box of selected elements, including any transforms and box shadows.
+- Log an error message when externally closing documents owned by the debugger plugin.
 
 ### Lua plugin
 
