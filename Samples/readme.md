@@ -12,20 +12,20 @@ This directory contains the assets shared by all the sample applications.
 
 This directory contains basic applications that demonstrate initialisation, usage, shutdown and installation of custom interfaces.
 
--  `animation`  Animations and transitions.
--  `benchmark`  A benchmark to measure performance.
--  `bitmap_font`  Using a custom font engine.
--  `custom_log`  Setting up custom logging.
--  `data_binding`  Setting up and using data bindings.
--  `demo`  Demonstrates a variety of features in RmlUi and includes a sandbox for playing with RML/RCSS.
--  `drag`  Dragging elements between containers.
+- `animation` Animations and transitions.
+- `benchmark` A benchmark to measure performance.
+- `bitmap_font` Using a custom font engine. Available even without FreeType, i.e. `RMLUI_FONT_ENGINE="none"`.
+- `custom_log` Setting up custom logging.
+- `data_binding` Setting up and using data bindings.
+- `demo` Demonstrates a variety of features in RmlUi and includes a sandbox for playing with RML/RCSS.
+- `drag` Dragging elements between containers.
 - `effects` Advanced rendering effects, including filters, gradients and box shadows. Only enabled with supported backends.
--  `harfbuzz`  Advanced text shaping. Only enabled when [HarfBuzz](https://harfbuzz.github.io/) is enabled.
--  `load_document`  Loading your first document.
--  `lottie`  Playing Lottie animations, only enabled with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html).
--  `svg`  Render SVG images, only enabled with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html).
--  `transform`  Demonstration of transforms.
--  `tree_view`  Using data bindings to create a file browser.
+- `harfbuzz` Advanced text shaping. Only enabled when [HarfBuzz](https://harfbuzz.github.io/) is enabled.
+- `load_document` Loading your first document.
+- `lottie` Playing Lottie animations, only enabled with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html).
+- `svg` Render SVG images, only enabled with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html).
+- `transform` Demonstration of transforms.
+- `tree_view` Using data bindings to create a file browser.
 
 #### `invaders`
 
