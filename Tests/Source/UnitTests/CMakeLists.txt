@@ -12,6 +12,7 @@ add_executable(${TARGET_NAME}
 	ElementFormControlSelect.cpp
 	ElementImage.cpp
 	ElementStyle.cpp
+	EventListener.cpp
 	Filter.cpp
 	Layout.cpp
 	Localization.cpp

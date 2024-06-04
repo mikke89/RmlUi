@@ -39,26 +39,7 @@ void DemoEventListener::ProcessEvent(Rml::Event& event)
 {
 	using namespace Rml;
 
-	if (value == "exit")
-	{
-		// Test replacing the current element.
-		// Need to be careful with regard to lifetime issues. The event's current element will be destroyed, so we cannot
-		// use it after SetInnerRml(). The library should handle this case safely internally when propagating the event further.
-		Element* parent = element->GetParentNode();
-		parent->SetInnerRML("<button onclick='confirm_exit' onblur='cancel_exit' onmouseout='cancel_exit'>Are you sure?</button>");
-		if (Element* child = parent->GetChild(0))
-			child->Focus();
-	}
-	else if (value == "confirm_exit")
-	{
-		Backend::RequestExit();
-	}
-	else if (value == "cancel_exit")
-	{
-		if (Element* parent = element->GetParentNode())
-			parent->SetInnerRML("<button id='exit' onclick='exit'>Exit</button>");
-	}
-	else if (value == "change_color")
+	if (value == "change_color")
 	{
 		const TweeningParameters tweening_parameters = demo_window->GetTweeningParameters();
 		const Colourb color((byte)Math::RandomInteger(255), (byte)Math::RandomInteger(255), (byte)Math::RandomInteger(255));
