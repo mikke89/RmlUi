@@ -59,7 +59,7 @@ static const String document_decorator_rml = R"(
 
 <body>
 <div>
-	<button id="exit" onclick="exit">Exit</button>
+	<button id="exit" onclick="exit" />
 </div>
 </body>
 </rml>
@@ -85,7 +85,7 @@ public:
 			// current element will be destroyed, so we cannot use it after SetInnerRml(). The library should handle
 			// this case safely internally when propagating the event further.
 			Element* parent = element->GetParentNode();
-			parent->SetInnerRML("<button onclick='confirm_exit' onblur='cancel_exit' onmouseout='cancel_exit'>Are you sure?</button>");
+			parent->SetInnerRML("<button onclick='confirm_exit' onmouseout='cancel_exit' />");
 			if (Element* child = parent->GetChild(0))
 				child->Focus();
 		}
@@ -96,7 +96,7 @@ public:
 		else if (value == "cancel_exit")
 		{
 			if (Element* parent = element->GetParentNode())
-				parent->SetInnerRML("<button id='exit' onclick='exit'>Exit</button>");
+				parent->SetInnerRML("<button id='exit' onclick='exit' />");
 		}
 	}
 
@@ -113,7 +113,7 @@ Rml::EventListener* DemoEventListenerInstancer::InstanceEventListener(const Rml:
 	return new DemoEventListener(value, element, this);
 }
 
-TEST_CASE("event_listener.inline_decorator_images")
+TEST_CASE("event_listener.replace_current_element")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -158,5 +158,6 @@ TEST_CASE("event_listener.inline_decorator_images")
 	CHECK(event_listener_instancer.has_exited == !exit_cancelled);
 
 	document->Close();
+	Rml::Factory::RegisterEventListenerInstancer(nullptr);
 	TestsShell::ShutdownShell();
 }
