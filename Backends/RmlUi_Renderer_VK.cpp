@@ -193,7 +193,7 @@ void RenderInterface_VK::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rm
 	{
 		// it means our state is dirty and we need to update data, but it is not right in terms of architecture, for real better experience would
 		// be great to free all "compiled" geometries and "re-build" them in one general way, but here I got only three callings for
-		// font-face-layer textures (loaddocument example) and that shit. So better to think how to make it right, if it is fine okay, if it is
+		// font-face-layer textures (load_document example) and that shit. So better to think how to make it right, if it is fine okay, if it is
 		// not okay and like we really expect that ReleaseCompiledGeometry for all objects that needs to be rebuilt so better to implement that,
 		// but still it is a big architectural thing (or at least you need to do something big commits here to implement a such feature), so my
 		// implementation doesn't break anything what we had, but still it looks strange. If I get callings for releasing maybe I need to use it

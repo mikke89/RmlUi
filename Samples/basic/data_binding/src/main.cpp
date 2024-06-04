@@ -408,7 +408,7 @@ class DemoWindow : public Rml::EventListener {
 public:
 	DemoWindow(const Rml::String& title, Rml::Context* context)
 	{
-		document = context->LoadDocument("basic/databinding/data/databinding.rml");
+		document = context->LoadDocument("basic/data_binding/data/data_binding.rml");
 		if (document)
 		{
 			document->GetElementById("title")->SetInnerRML(title);

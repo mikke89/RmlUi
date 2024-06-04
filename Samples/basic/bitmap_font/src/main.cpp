@@ -86,7 +86,7 @@ int main(int /*argc*/, char** /*argv*/)
 	Rml::Debugger::Initialise(context);
 
 	// Load bitmap font
-	if (!Rml::LoadFontFace("basic/bitmapfont/data/Comfortaa_Regular_22.fnt"))
+	if (!Rml::LoadFontFace("basic/bitmap_font/data/Comfortaa_Regular_22.fnt"))
 	{
 		Rml::Shutdown();
 		Backend::Shutdown();
@@ -95,7 +95,7 @@ int main(int /*argc*/, char** /*argv*/)
 	}
 
 	// Load and show the demo document.
-	if (Rml::ElementDocument* document = context->LoadDocument("basic/bitmapfont/data/bitmapfont.rml"))
+	if (Rml::ElementDocument* document = context->LoadDocument("basic/bitmap_font/data/bitmap_font.rml"))
 	{
 		if (auto el = document->GetElementById("title"))
 			el->SetInnerRML("Bitmap font");

@@ -1,4 +1,4 @@
-set(SAMPLE_NAME "bitmapfont")
+set(SAMPLE_NAME "bitmap_font")
 set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
 
 add_executable(${TARGET_NAME} WIN32

@@ -141,7 +141,7 @@ void Game::Render(Rml::RenderManager& render_manager, float dp_ratio)
 		return;
 
 	if (!texture)
-		texture = render_manager.LoadTexture("luainvaders/data/invaders.tga");
+		texture = render_manager.LoadTexture("lua_invaders/data/invaders.tga");
 
 	// Render all available shields
 	for (int i = 0; i < NUM_SHIELDS; i++)

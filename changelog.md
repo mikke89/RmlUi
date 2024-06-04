@@ -214,7 +214,7 @@ input { nav: auto; nav-right: #ok_button; }
 - Fix `JoinPath` system interface method being passed through when using the debugger. #462 #603 (thanks @Dakror)
 - Fix some situations where units were not shown in properties, ensure all invoked types define a string converter.
 - In `demo` sample, fix form submit animation not playing smoothly on power saving mode.
-- Fix crash on shutdown in `bitmapfont` sample.
+- Fix crash on shutdown in `bitmap_font` sample.
 
 ### Build improvements
 
@@ -355,7 +355,7 @@ We now have CMake presets:
 
 - `samples` Enable samples but only those without extra dependencies.
 - `samples-all` Enable all samples, also those with extra dependencies.
-- `standalone` Build the library completely without any dependencies, the only sample available is `bitmapfont`.
+- `standalone` Build the library completely without any dependencies, the only sample available is `bitmap_font`.
 - `dev` Enable testing in addition to samples.
 - `dev-all` Enable testing in addition to samples, including those that require extra dependencies.
 

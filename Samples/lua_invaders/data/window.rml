@@ -9,7 +9,7 @@ function Window.OnWindowLoad(document)
 end
 
 function Window.LoadMenu(name,document)
-	local doc = document.context:LoadDocument('luainvaders/data/' .. name .. '.rml')
+	local doc = document.context:LoadDocument('lua_invaders/data/' .. name .. '.rml')
 	if doc then
 		doc:Show()
 		document:Close()
@@ -18,7 +18,7 @@ function Window.LoadMenu(name,document)
 end
 
 function Window.OpenDocument(name,document)
-	local doc = document.context:LoadDocument('luainvaders/data/' .. name .. '.rml')
+	local doc = document.context:LoadDocument('lua_invaders/data/' .. name .. '.rml')
 	if doc then
 		doc:Show()
 	end

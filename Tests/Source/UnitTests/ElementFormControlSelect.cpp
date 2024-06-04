@@ -216,7 +216,7 @@ TEST_CASE("form.select.value")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("form.select.databinding")
+TEST_CASE("form.select.data_binding")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);

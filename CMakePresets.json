@@ -21,7 +21,7 @@
 		},
 		{
 			"name": "standalone",
-			"description": "Build the library completely without any dependencies, features the `bitmapfont` sample.",
+			"description": "Build the library completely without any dependencies, features the `bitmap_font` sample.",
 			"cacheVariables": {
 				"RMLUI_SAMPLES": true,
 				"RMLUI_FONT_ENGINE": "none",

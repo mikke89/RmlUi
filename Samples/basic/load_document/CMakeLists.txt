@@ -1,4 +1,4 @@
-set(SAMPLE_NAME "databinding")
+set(SAMPLE_NAME "load_document")
 set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
 
 add_executable(${TARGET_NAME} WIN32
