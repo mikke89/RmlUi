@@ -249,11 +249,6 @@ enum class EventId : uint16_t {
 	Change,
 	Submit,
 	Tabchange,
-	Columnadd,
-	Rowadd,
-	Rowchange,
-	Rowremove,
-	Rowupdate,
 
 	NumDefinedIds,
 
