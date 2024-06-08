@@ -225,7 +225,6 @@ static bool ParseTransition(Property& property, const StringList& transition_val
 
 		bool duration_found = false;
 		bool delay_found = false;
-		bool reverse_adjustment_factor_found = false;
 
 		for (auto& argument : arguments)
 		{
