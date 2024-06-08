@@ -2534,9 +2534,7 @@ bool Element::StartTransition(const Transition& transition, const Property& star
 	else
 	{
 		// Compress the duration based on the progress of the current animation
-		float f = it->GetInterpolationFactor();
-		f = 1.0f - (1.0f - f) * transition.reverse_adjustment_factor;
-		duration = duration * f;
+		duration *= it->GetInterpolationFactor();
 		// Replace old transition
 		*it = ElementAnimation{transition.id, ElementAnimationOrigin::Transition, start_value, *this, start_time, 0.0f, 1, false};
 	}

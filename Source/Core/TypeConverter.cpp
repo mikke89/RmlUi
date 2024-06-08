@@ -123,8 +123,6 @@ bool TypeConverter<TransitionList, String>::Convert(const TransitionList& src, S
 			dest += tmp + "s ";
 		if (t.delay > 0.0f && TypeConverter<float, String>::Convert(t.delay, tmp))
 			dest += tmp + "s ";
-		if (t.reverse_adjustment_factor > 0.0f && TypeConverter<float, String>::Convert(t.reverse_adjustment_factor, tmp))
-			dest += tmp + ' ';
 		if (dest.size() > 0)
 			dest.resize(dest.size() - 1);
 		if (i != src.transitions.size() - 1)
