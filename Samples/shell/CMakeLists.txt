@@ -27,3 +27,10 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif()
 
 target_link_libraries(rmlui_shell PUBLIC rmlui_core rmlui_debugger)
+
+if(RMLUI_BACKEND MATCHES "GL2$")
+	target_compile_definitions(rmlui_shell PRIVATE "RMLUI_RENDERER_GL2")
+endif()
+if(RMLUI_BACKEND MATCHES "GL3$")
+	target_compile_definitions(rmlui_shell PRIVATE "RMLUI_RENDERER_GL3")
+endif()

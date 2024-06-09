@@ -124,7 +124,10 @@ TextureFileIndex FileTextureDatabase::LoadTexture(RenderInterface* render_interf
 
 	FileTextureEntry entry = LoadTextureEntry(render_interface, source);
 	if (!entry.texture_handle)
+	{
+		Rml::Log::Message(Rml::Log::LT_WARNING, "Could not load texture: %s", source.c_str());
 		return TextureFileIndex::Invalid;
+	}
 
 	const auto index = TextureFileIndex(texture_list.size());
 	texture_map[source] = index;

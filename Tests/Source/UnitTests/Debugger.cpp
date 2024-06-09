@@ -82,3 +82,28 @@ TEST_CASE("debugger")
 
 	TestsShell::ShutdownShell();
 }
+
+TEST_CASE("debugger.unload_documents")
+{
+	Context* context = TestsShell::GetContext(false);
+	Rml::Debugger::Initialise(context);
+
+	context->LoadDocument("assets/demo.rml");
+	TestsShell::RenderLoop();
+
+	// Closing documents from the debugger plugin is not allowed.
+	TestsShell::SetNumExpectedWarnings(1);
+
+	SUBCASE("UnloadDocument")
+	{
+		context->GetDocument("rmlui-debug-menu")->Close();
+	}
+	SUBCASE("UnloadAllDocuments")
+	{
+		context->UnloadAllDocuments();
+	}
+
+	context->Update();
+
+	TestsShell::ShutdownShell();
+}

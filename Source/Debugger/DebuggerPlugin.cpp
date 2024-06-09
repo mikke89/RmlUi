@@ -220,6 +220,15 @@ void DebuggerPlugin::OnContextDestroy(Context* context)
 
 void DebuggerPlugin::OnElementDestroy(Element* element)
 {
+	// Detect external destruction of any of the debugger documents. This can happen for example if the user calls
+	// `Context::UnloadAllDocuments()` on the host context.
+	if (element == menu_element || element == info_element || element == log_element)
+	{
+		Log::Message(Log::LT_ERROR,
+			"A document owned by the Debugger plugin was destroyed externally. This is not allowed. Consider shutting down the debugger instead.");
+		ReleaseElements();
+	}
+
 	if (info_element)
 		info_element->OnElementDestroy(element);
 }

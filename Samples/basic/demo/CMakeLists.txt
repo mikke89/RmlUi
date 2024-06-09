@@ -3,6 +3,10 @@ set(TARGET_NAME "${RMLUI_SAMPLE_PREFIX}${SAMPLE_NAME}")
 
 add_executable(${TARGET_NAME} WIN32
 	src/main.cpp
+	src/DemoEventListener.cpp
+	src/DemoEventListener.h
+	src/DemoWindow.cpp
+	src/DemoWindow.h
 )
 
 set_common_target_options(${TARGET_NAME})

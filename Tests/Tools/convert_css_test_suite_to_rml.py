@@ -31,8 +31,19 @@ import argparse
 parser = argparse.ArgumentParser(description=\
 '''Convert the W3C CSS 2.1 test suite to RML documents for testing in RmlUi.
 
-Fetch the CSS tests archive from here: https://www.w3.org/Style/CSS/Test/CSS2.1/
-Extract the 'xhtml1' folder and point the 'in_dir' argument to this directory.''')
+Instructions:
+  1. Fetch the CSS tests archive from here: https://www.w3.org/Style/CSS/Test/CSS2.1/
+  2. Extract the 'xhtml1' folder, and point the 'in_dir' argument to this directory.
+  3. Call this script with the 'out_dir' argument pointing to a directory of your choosing.
+
+The resulting tests can be opened in the `Visual tests` application. Set the environment variable
+`RMLUI_VISUAL_TESTS_RML_DIRECTORIES` to the 'out_dir' used above. After opening the application, use
+the arrow keys Up/Down to change the test suite directory.
+
+This script can also be used with the CSS3 test suites, such as the one for flexbox:
+	https://test.csswg.org/suites/css-flexbox-1_dev/nightly-unstable/
+''',
+formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('in_dir',
                     help="Input directory which contains the 'xhtml1' (.xht) files to be converted.")

@@ -25,7 +25,7 @@ if(RMLUI_SAMPLES)
 		add_subdirectory("tutorial")
 	endif()
 	if(RMLUI_FONT_ENGINE_ENABLED AND RMLUI_LUA_BINDINGS)
-		add_subdirectory("luainvaders")
+		add_subdirectory("lua_invaders")
 	endif()
 
 	install(DIRECTORY assets shell

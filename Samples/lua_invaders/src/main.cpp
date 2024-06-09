@@ -97,7 +97,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 	// Fire off the startup script.
 	LuaInterface::Initialise(Rml::Lua::Interpreter::GetLuaState()); // the tables/functions defined in the samples
-	Rml::Lua::Interpreter::LoadFile(Rml::String("luainvaders/lua/start.lua"));
+	Rml::Lua::Interpreter::LoadFile(Rml::String("lua_invaders/lua/start.lua"));
 
 	bool running = true;
 	while (running)

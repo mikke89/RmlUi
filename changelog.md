@@ -178,7 +178,6 @@ input { nav: auto; nav-right: #ok_button; }
 
 - Improved mesh utilities to construct background geometry for any given area of the element, including for elements with border-radius.
 - New Rectangle type to better represent many operations.
-- Debugger now displays the axis-aligned bounding box of selected elements, including any transforms and box shadows.
 - Visual tests:
   - Several new visual tests for the new features.
   - Highlight differences when comparing to previous capture by holding shift key.
@@ -190,6 +189,11 @@ input { nav: auto; nav-right: #ok_button; }
 - Allow nested data models. #484 (thanks @Dakror)
 - Fix XML parse error if single curly brace encountered at the end of a data binding string literal. #459 (thanks @Dakror)
 - Fix usage of data variables in selected `option`s. #509 #510 (thanks @Dakror)
+
+### Debugger plugin
+
+- The debugger can now display the axis-aligned bounding box of selected elements, including any transforms and box shadows.
+- Log an error message when externally closing documents owned by the debugger plugin.
 
 ### Lua plugin
 
@@ -210,7 +214,7 @@ input { nav: auto; nav-right: #ok_button; }
 - Fix `JoinPath` system interface method being passed through when using the debugger. #462 #603 (thanks @Dakror)
 - Fix some situations where units were not shown in properties, ensure all invoked types define a string converter.
 - In `demo` sample, fix form submit animation not playing smoothly on power saving mode.
-- Fix crash on shutdown in `bitmapfont` sample.
+- Fix crash on shutdown in `bitmap_font` sample.
 
 ### Build improvements
 
@@ -259,12 +263,12 @@ Large parts of the CI workflows have also been rewritten to accommodate these ch
 
 We now export the following targets:
 
-| Target          | Description                                                     |
-|-----------------|-----------------------------------------------------------------|
-| RmlUi::RmlUi    | Includes all sub-libraries of the project, as listed just below |
-| RmlUi::Core     | The main library                                                |
-| RmlUi::Debugger | The debugger library                                            |
-| RmlUi::Lua      | The Lua plugin (when enabled)                                   |
+| Target          | Old target  | Description                                                     |
+|-----------------|-------------|-----------------------------------------------------------------|
+| RmlUi::RmlUi    |             | Includes all sub-libraries of the project, as listed just below |
+| RmlUi::Core     | RmlCore     | The main library                                                |
+| RmlUi::Debugger | RmlDebugger | The debugger library                                            |
+| RmlUi::Lua      | RmlLua      | The Lua plugin (when enabled)                                   |
 
 When including RmlUi as a subdirectory, the targets are constructed as aliases. When using pre-built or installed binaries, they are constructed using imported targets, which are available through the exported build targets.
 
@@ -274,11 +278,11 @@ The internal target names have also been changed, although they are typically on
 
 The library binaries have also changed names. These names would be suffixed by e.g. `.dll` on Windows, and so on.
 
-| Library          | Description                   |
-|------------------|-------------------------------|
-| `rmlui`          | The core (main) library       |
-| `rmlui_debugger` | The debugger library          |
-| `rmlui_lua`      | The Lua plugin (when enabled) |
+| Library          | Old library   | Description                   |
+|------------------|---------------|-------------------------------|
+| `rmlui`          | `RmlCore`     | The core (main) library       |
+| `rmlui_debugger` | `RmlDebugger` | The debugger library          |
+| `rmlui_lua`      | `RmlLua`      | The Lua plugin (when enabled) |
 
 #### New option names
 
@@ -290,32 +294,32 @@ We have a new set of CMake naming conventions for the library:
 
 The following table lists all the new option names.
 
-| Option                               | Default value | Old related option             | Comment                                                                                                                                 |
-|--------------------------------------|---------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| RMLUI_BACKEND                        | auto          | SAMPLES_BACKEND                |                                                                                                                                         |
-| RMLUI_COMPILER_OPTIONS               | ON            |                                | Automatically sets recommended compiler flags                                                                                           |
-| RMLUI_CUSTOM_CONFIGURATION           | OFF           | CUSTOM_CONFIGURATION           |                                                                                                                                         |
-| RMLUI_CUSTOM_CONFIGURATION_FILE      |               | CUSTOM_CONFIGURATION_FILE      |                                                                                                                                         |
-| RMLUI_CUSTOM_INCLUDE_DIRS            |               | CUSTOM_INCLUDE_DIRS            |                                                                                                                                         |
-| RMLUI_CUSTOM_LINK_LIBRARIES          |               | CUSTOM_LINK_LIBRARIES          |                                                                                                                                         |
-| RMLUI_CUSTOM_RTTI                    | OFF           | DISABLE_RTTI_AND_EXCEPTIONS    | No longer modifies compiler flags - only enables RmlUi's custom RTTI solution so that the user can disable language RTTI and exceptions |
-| RMLUI_FONT_ENGINE                    | freetype      | NO_FONT_INTERFACE_DEFAULT      | Now takes a string with one of the options: `none`, `freetype`                                                                          |
-| RMLUI_HARFBUZZ_SAMPLE                | OFF           |                                |                                                                                                                                         |
-| RMLUI_INSTALL_RUNTIME_DEPENDENCIES   | ON            |                                | Automatically install runtime dependencies on supported platforms (e.g. DLLs)                                                           |
-| RMLUI_LOTTIE_PLUGIN                  | OFF           | ENABLE_LOTTIE_PLUGIN           |                                                                                                                                         |
-| RMLUI_LUA_BINDINGS                   | OFF           | BUILD_LUA_BINDINGS             |                                                                                                                                         |
-| RMLUI_LUA_BINDINGS_LIBRARY           | lua           | BUILD_LUA_BINDINGS_FOR_LUAJIT  | Now takes a string with one of the options: `lua`, `lua_as_cxx`, `luajit`                                                               |
-| RMLUI_MATRIX_ROW_MAJOR               | OFF           | MATRIX_ROW_MAJOR               |                                                                                                                                         |
-| RMLUI_PRECOMPILED_HEADERS            | ON            | ENABLE_PRECOMPILED_HEADERS     |                                                                                                                                         |
-| RMLUI_SAMPLES                        | OFF           | BUILD_SAMPLES                  |                                                                                                                                         |
-| RMLUI_SVG_PLUGIN                     | OFF           | ENABLE_SVG_PLUGIN              |                                                                                                                                         |
-| RMLUI_THIRDPARTY_CONTAINERS          | ON            | NO_THIRDPARTY_CONTAINERS       |                                                                                                                                         |
-| RMLUI_TRACY_CONFIGURATION            | ON            |                                | New option for multi-config generators to add Tracy as a separate configuration.                                                        |
-| RMLUI_TRACY_MEMORY_PROFILING         | ON            |                                | New option to overload global operator new/delete for memory inspection with Tracy.                                                     |
-| RMLUI_TRACY_PROFILING                | OFF           | ENABLE_TRACY_PROFILING         |                                                                                                                                         |
-| RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY |               | VISUAL_TESTS_CAPTURE_DIRECTORY |                                                                                                                                         |
-| RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY |               | VISUAL_TESTS_COMPARE_DIRECTORY |                                                                                                                                         |
-| RMLUI_VISUAL_TESTS_RML_DIRECTORIES   |               | VISUAL_TESTS_RML_DIRECTORIES   |                                                                                                                                         |
+| Option                             | Default value | Old related option             | Comment                                                                                                                                 |
+|------------------------------------|---------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| RMLUI_BACKEND                      | auto          | SAMPLES_BACKEND                |                                                                                                                                         |
+| RMLUI_COMPILER_OPTIONS             | ON            |                                | Automatically sets recommended compiler flags                                                                                           |
+| RMLUI_CUSTOM_CONFIGURATION         | OFF           | CUSTOM_CONFIGURATION           |                                                                                                                                         |
+| RMLUI_CUSTOM_CONFIGURATION_FILE    |               | CUSTOM_CONFIGURATION_FILE      |                                                                                                                                         |
+| RMLUI_CUSTOM_INCLUDE_DIRS          |               | CUSTOM_INCLUDE_DIRS            |                                                                                                                                         |
+| RMLUI_CUSTOM_LINK_LIBRARIES        |               | CUSTOM_LINK_LIBRARIES          |                                                                                                                                         |
+| RMLUI_CUSTOM_RTTI                  | OFF           | DISABLE_RTTI_AND_EXCEPTIONS    | No longer modifies compiler flags - only enables RmlUi's custom RTTI solution so that the user can disable language RTTI and exceptions |
+| RMLUI_FONT_ENGINE                  | freetype      | NO_FONT_INTERFACE_DEFAULT      | Now takes a string with one of the options: `none`, `freetype`                                                                          |
+| RMLUI_HARFBUZZ_SAMPLE              | OFF           |                                |                                                                                                                                         |
+| RMLUI_INSTALL_RUNTIME_DEPENDENCIES | ON            |                                | Automatically install runtime dependencies on supported platforms (e.g. DLLs)                                                           |
+| RMLUI_LOTTIE_PLUGIN                | OFF           | ENABLE_LOTTIE_PLUGIN           |                                                                                                                                         |
+| RMLUI_LUA_BINDINGS                 | OFF           | BUILD_LUA_BINDINGS             |                                                                                                                                         |
+| RMLUI_LUA_BINDINGS_LIBRARY         | lua           | BUILD_LUA_BINDINGS_FOR_LUAJIT  | Now takes a string with one of the options: `lua`, `lua_as_cxx`, `luajit`                                                               |
+| RMLUI_MATRIX_ROW_MAJOR             | OFF           | MATRIX_ROW_MAJOR               |                                                                                                                                         |
+| RMLUI_PRECOMPILED_HEADERS          | ON            | ENABLE_PRECOMPILED_HEADERS     |                                                                                                                                         |
+| RMLUI_SAMPLES                      | OFF           | BUILD_SAMPLES                  |                                                                                                                                         |
+| RMLUI_SVG_PLUGIN                   | OFF           | ENABLE_SVG_PLUGIN              |                                                                                                                                         |
+| RMLUI_THIRDPARTY_CONTAINERS        | ON            | NO_THIRDPARTY_CONTAINERS       |                                                                                                                                         |
+| RMLUI_TRACY_CONFIGURATION          | ON            |                                | New option for multi-config generators to add Tracy as a separate configuration.                                                        |
+| RMLUI_TRACY_MEMORY_PROFILING       | ON            |                                | New option to overload global operator new/delete for memory inspection with Tracy.                                                     |
+| RMLUI_TRACY_PROFILING              | OFF           | ENABLE_TRACY_PROFILING         |                                                                                                                                         |
+| -                                  |               | VISUAL_TESTS_CAPTURE_DIRECTORY | Replaced with environment variable `RMLUI_VISUAL_TESTS_CAPTURE_DIRECTORY`                                                               |
+| -                                  |               | VISUAL_TESTS_COMPARE_DIRECTORY | Replaced with environment variable `RMLUI_VISUAL_TESTS_COMPARE_DIRECTORY`                                                               |
+| -                                  |               | VISUAL_TESTS_RML_DIRECTORIES   | Replaced with environment variable `RMLUI_VISUAL_TESTS_RML_DIRECTORIES`                                                                 |
 
 For reference, the following options have not changed names, as these are standard options used by CMake.
 
@@ -351,7 +355,7 @@ We now have CMake presets:
 
 - `samples` Enable samples but only those without extra dependencies.
 - `samples-all` Enable all samples, also those with extra dependencies.
-- `standalone` Build the library completely without any dependencies, the only sample available is `bitmapfont`.
+- `standalone` Build the library completely without any dependencies, the only sample available is `bitmap_font`.
 - `dev` Enable testing in addition to samples.
 - `dev-all` Enable testing in addition to samples, including those that require extra dependencies.
 

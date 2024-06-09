@@ -147,7 +147,7 @@ static const String inside_string_rml = R"(
 
 </div>
 </body>
-</rml>	
+</rml>
 )";
 
 static const String aliasing_rml = R"(
@@ -469,7 +469,7 @@ bool InitializeDataBindings(Context* context)
 
 } // Anonymous namespace
 
-TEST_CASE("databinding")
+TEST_CASE("data_binding")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -487,7 +487,7 @@ TEST_CASE("databinding")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("databinding.inside_string")
+TEST_CASE("data_binding.inside_string")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -507,7 +507,7 @@ TEST_CASE("databinding.inside_string")
 
 	TestsShell::ShutdownShell();
 }
-TEST_CASE("databinding.aliasing")
+TEST_CASE("data_binding.aliasing")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -531,7 +531,7 @@ TEST_CASE("databinding.aliasing")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("databinding.dynamic_variables")
+TEST_CASE("data_binding.dynamic_variables")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -583,7 +583,7 @@ static const String set_enum_rml = R"(
 </rml>
 )";
 
-TEST_CASE("databinding.set_enum")
+TEST_CASE("data_binding.set_enum")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
