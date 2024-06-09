@@ -132,9 +132,9 @@ void InputTypeText::GetSelection(int* selection_start, int* selection_end, Strin
 	widget->GetSelection(selection_start, selection_end, selected_text);
 }
 
-void InputTypeText::SetIMERange(int range_start, int range_end)
+void InputTypeText::SetCompositionRange(int range_start, int range_end)
 {
-	widget->SetIMERange(range_start, range_end);
+	widget->SetCompositionRange(range_start, range_end);
 }
 
 } // namespace Rml

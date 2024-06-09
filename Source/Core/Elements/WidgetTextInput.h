@@ -82,9 +82,9 @@ public:
 	/// Sets visual feedback used for the IME composition in the range.
 	/// @param[in] range_start The first character to be selected.
 	/// @param[in] range_end The first character *after* the selection.
-	void SetIMERange(int range_start, int range_end);
+	void SetCompositionRange(int range_start, int range_end);
 	/// Obtains the IME composition byte range relative to the current value.
-	void GetIMERange(int& range_start, int& range_end) const;
+	void GetCompositionRange(int& range_start, int& range_end) const;
 
 	/// Update the colours of the selected text.
 	void UpdateSelectionColours();

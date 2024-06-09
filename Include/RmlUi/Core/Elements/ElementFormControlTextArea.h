@@ -105,7 +105,7 @@ public:
 	/// Sets visual feedback used for the IME composition in the range.
 	/// @param[in] range_start The first character to be selected.
 	/// @param[in] range_end The first character *after* the selection.
-	void SetIMERange(int range_start, int range_end);
+	void SetCompositionRange(int range_start, int range_end);
 
 	/// Returns the control's inherent size, based on the length of the input field and the current font size.
 	/// @return True.

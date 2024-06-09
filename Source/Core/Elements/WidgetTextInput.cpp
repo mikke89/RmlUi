@@ -147,7 +147,7 @@ void WidgetTextInputContext::SetText(StringView text, int start, int end)
 void WidgetTextInputContext::SetCompositionRange(int start, int end)
 {
 	if (element)
-		owner->SetIMERange(start, end);
+		owner->SetCompositionRange(start, end);
 }
 
 void WidgetTextInputContext::CommitComposition()
@@ -156,7 +156,7 @@ void WidgetTextInputContext::CommitComposition()
 		return;
 
 	int start_byte, end_byte;
-	owner->GetIMERange(start_byte, end_byte);
+	owner->GetCompositionRange(start_byte, end_byte);
 
 	// No composition to commit.
 	if (start_byte == 0 && end_byte == 0)
@@ -376,7 +376,7 @@ void WidgetTextInput::GetSelection(int* selection_start, int* selection_end, Str
 		*selected_text = value.substr(Math::Min((size_t)selection_begin_index, (size_t)value.size()), (size_t)selection_length);
 }
 
-void WidgetTextInput::SetIMERange(int range_start, int range_end)
+void WidgetTextInput::SetCompositionRange(int range_start, int range_end)
 {
 	const String& value = GetValue();
 	const int byte_start = StringUtilities::ConvertCharacterOffsetToByteOffset(value, range_start);
@@ -396,7 +396,7 @@ void WidgetTextInput::SetIMERange(int range_start, int range_end)
 	FormatText();
 }
 
-void WidgetTextInput::GetIMERange(int& range_start, int& range_end) const
+void WidgetTextInput::GetCompositionRange(int& range_start, int& range_end) const
 {
 	range_start = ime_composition_begin_index;
 	range_end = ime_composition_end_index;

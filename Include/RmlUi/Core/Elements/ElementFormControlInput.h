@@ -81,7 +81,7 @@ public:
 	/// @param[in] range_start The first character to be selected.
 	/// @param[in] range_end The first character *after* the selection.
 	/// @note Only applies to text and password input types.
-	void SetIMERange(int range_start, int range_end);
+	void SetCompositionRange(int range_start, int range_end);
 
 protected:
 	/// Updates the element's underlying type.

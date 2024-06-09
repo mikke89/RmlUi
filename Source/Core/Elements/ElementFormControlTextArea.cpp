@@ -119,9 +119,9 @@ void ElementFormControlTextArea::GetSelection(int* selection_start, int* selecti
 	widget->GetSelection(selection_start, selection_end, selected_text);
 }
 
-void ElementFormControlTextArea::SetIMERange(int range_start, int range_end)
+void ElementFormControlTextArea::SetCompositionRange(int range_start, int range_end)
 {
-	widget->SetIMERange(range_start, range_end);
+	widget->SetCompositionRange(range_start, range_end);
 }
 
 bool ElementFormControlTextArea::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
