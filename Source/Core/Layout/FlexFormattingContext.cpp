@@ -236,6 +236,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 	const ComputedValues& computed_flex = element_flex->GetComputedValues();
 	const Style::FlexDirection direction = computed_flex.flex_direction();
+	const Style::LengthPercentage row_gap = computed_flex.row_gap();
+	const Style::LengthPercentage column_gap = computed_flex.column_gap();
 
 	const bool main_axis_horizontal = (direction == Style::FlexDirection::Row || direction == Style::FlexDirection::RowReverse);
 	const bool direction_reverse = (direction == Style::FlexDirection::RowReverse || direction == Style::FlexDirection::ColumnReverse);
@@ -256,6 +258,9 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	// For the purpose of resolving lengths, infinite main size becomes zero.
 	const float main_size_base_value = (main_available_size < 0.0f ? 0.0f : main_available_size);
 	const float cross_size_base_value = (cross_available_size < 0.0f ? 0.0f : cross_available_size);
+	
+	const float main_gap_size = ResolveValue(main_axis_horizontal ? column_gap : row_gap, main_size_base_value);
+	const float cross_gap_size = ResolveValue(main_axis_horizontal ? row_gap : column_gap, cross_size_base_value);
 
 	// -- Build a list of all flex items with base size information --
 	const int num_flex_children = element_flex->GetNumChildren();
@@ -372,7 +377,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 		for (FlexItem& item : items)
 		{
-			cursor += item.hypothetical_main_size;
+			cursor += line_items.empty() ? 0 : main_gap_size + item.hypothetical_main_size;
 
 			if (!line_items.empty() && cursor > main_wrap_size)
 			{
@@ -397,7 +402,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 	for (FlexLine& line : container.lines)
 	{
-		line.accumulated_hypothetical_main_size = std::accumulate(line.items.begin(), line.items.end(), 0.0f,
+		line.accumulated_hypothetical_main_size = std::accumulate(line.items.begin(), line.items.end(),
+			  main_gap_size * static_cast<float>(line.items.size() - 1),
 			[](float value, const FlexItem& item) { return value + item.hypothetical_main_size; });
 	}
 
@@ -619,7 +625,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			else
 				item.main_offset = cursor + item.main.margin_a + item.main_auto_margin_size_a;
 
-			cursor += item.used_main_size + item.main_auto_margin_size_a + item.main_auto_margin_size_b;
+			cursor += item.used_main_size + item.main_auto_margin_size_a + item.main_auto_margin_size_b + main_gap_size;
 			Math::SnapToPixelGrid(item.main_offset, item.used_main_size);
 		}
 	}
@@ -688,7 +694,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	if (cross_available_size >= 0.f && computed_flex.align_content() == Style::AlignContent::Stretch)
 	{
 		int remaining_space = static_cast<int>(cross_available_size -
-			std::accumulate(container.lines.begin(), container.lines.end(), 0.f,
+			std::accumulate(container.lines.begin(), container.lines.end(), 
+				0.f,
 				[](float value, const FlexLine& line) { return value + line.cross_size; }));
 
 		if (remaining_space > 0)
@@ -812,7 +819,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			Math::SnapToPixelGrid(item.cross_offset, item.used_cross_size);
 	}
 
-	const float accumulated_lines_cross_size = std::accumulate(container.lines.begin(), container.lines.end(), 0.f,
+	const float accumulated_lines_cross_size = std::accumulate(container.lines.begin(), container.lines.end(), 
+		   cross_gap_size * static_cast<float>(container.lines.size() - 1),
 		[](float value, const FlexLine& line) { return value + line.cross_size; });
 
 	// If the available cross size is infinite, the used cross size becomes the accumulated line cross size.
@@ -890,7 +898,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			else
 				line.cross_offset = cursor + line.cross_spacing_a;
 
-			cursor += line.cross_spacing_a + line.cross_size + line.cross_spacing_b;
+			cursor += line.cross_spacing_a + line.cross_size + line.cross_spacing_b + cross_gap_size;
 			Math::SnapToPixelGrid(line.cross_offset, line.cross_size);
 		}
 	}
