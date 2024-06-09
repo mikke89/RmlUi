@@ -377,7 +377,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 		for (FlexItem& item : items)
 		{
-			cursor += line_items.empty() ? 0 : main_gap_size + item.hypothetical_main_size;
+			cursor += item.hypothetical_main_size;
 
 			if (!line_items.empty() && cursor > main_wrap_size)
 			{
@@ -391,6 +391,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				// Add item to current line.
 				line_items.push_back(std::move(item));
 			}
+			
+			cursor += main_gap_size;
 		}
 
 		if (!line_items.empty())
@@ -539,7 +541,11 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	for (FlexLine& line : container.lines)
 	{
 		const float remaining_free_space = used_main_size -
-			std::accumulate(line.items.begin(), line.items.end(), 0.f, [](float value, const FlexItem& item) { return value + item.used_main_size; });
+			std::accumulate(
+				line.items.begin(), line.items.end(), 
+				main_gap_size * static_cast<float>(line.items.size() - 1),
+				[](float value, const FlexItem& item) { return value + item.used_main_size; }
+			);
 
 		if (remaining_free_space > 0.0f)
 		{
