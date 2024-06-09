@@ -41,11 +41,11 @@ public:
 
 	/// Called when a text input element is focused.
 	/// @param[in] context The input context to be activated.
-	virtual void OnFocus(SharedPtr<TextInputContext> context) {}
+	virtual void OnFocus(SharedPtr<TextInputContext> /*context*/) {}
 
 	/// Called when a text input element loses focus.
 	/// @param[in] context The input context to be deactivated.
-	virtual void OnBlur(TextInputContext* context) {}
+	virtual void OnBlur(TextInputContext* /*context*/) {}
 };
 
 } // namespace Rml
