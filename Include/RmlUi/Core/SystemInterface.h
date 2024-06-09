@@ -36,8 +36,6 @@
 
 namespace Rml {
 
-class TextInputMethodEditor;
-
 /**
     RmlUi's system interface provides an interface for time, translation, logging, and other system utilities.
 
@@ -93,10 +91,6 @@ public:
 
 	/// Deactivate keyboard (for touchscreen devices).
 	virtual void DeactivateKeyboard();
-
-	/// Obtain the text input method editor.
-	/// @return An instance of a text input method editor, or nullptr if not implemented.
-	virtual TextInputMethodEditor* GetTextInputMethodEditor() const;
 };
 
 } // namespace Rml

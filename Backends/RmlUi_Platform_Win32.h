@@ -54,8 +54,6 @@ public:
 
 	void ActivateKeyboard(Rml::Vector2f caret_position, float line_height) override;
 
-	Rml::TextInputMethodEditor* GetTextInputMethodEditor() const override;
-
 private:
 	HWND window_handle = nullptr;
 
@@ -69,8 +67,6 @@ private:
 	HCURSOR cursor_cross = nullptr;
 	HCURSOR cursor_text = nullptr;
 	HCURSOR cursor_unavailable = nullptr;
-
-	Rml::UniquePtr<Rml::TextInputMethodEditor> text_input_method_editor;
 };
 
 /**

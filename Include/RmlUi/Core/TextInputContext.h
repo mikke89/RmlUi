@@ -33,18 +33,14 @@
 
 namespace Rml {
 
-/**
-    An interface for a text input handler for IME.
- */
-
-class RMLUICORE_API TextInputMethodContext {
+class RMLUICORE_API TextInputContext {
 public:
-	virtual ~TextInputMethodContext() {}
+	virtual ~TextInputContext() {}
 
 	/// Retrieve the screen-space bounds of the text area (in px).
-	/// @param[out] position The screen-space position of the text area (in px).
-	/// @param[out] size The screen-space size of the text area (in px).
-	virtual void GetScreenBounds(Vector2f& position, Vector2f& size) const = 0;
+	/// @param[out] out_rectangle The resulting rectangle covering the projected element's box (in px).
+	/// @return True if the bounds can be successfully retrieved, false otherwise.
+	virtual bool GetBoundingBox(Rectanglef& out_rectangle) const = 0;
 
 	/// Retrieve the selection range.
 	/// @param[out] start The first character selected.
@@ -66,12 +62,12 @@ public:
 	/// @param[in] end The first character *after* the range.
 	virtual void SetText(StringView text, int start, int end) = 0;
 
-	/// Update the range of the text being composed.
+	/// Update the range of the text being composed (for IME).
 	/// @param[in] start The first character in the range.
 	/// @param[in] end The first character *after* the range.
 	virtual void SetCompositionRange(int start, int end) = 0;
 
-	/// Commit the current composition.
+	/// Commit the current IME composition.
 	virtual void CommitComposition() = 0;
 };
 

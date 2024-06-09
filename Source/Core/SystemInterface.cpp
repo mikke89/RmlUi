@@ -111,9 +111,4 @@ void SystemInterface::ActivateKeyboard(Rml::Vector2f /*caret_position*/, float /
 
 void SystemInterface::DeactivateKeyboard() {}
 
-TextInputMethodEditor* SystemInterface::GetTextInputMethodEditor() const
-{
-	return nullptr;
-}
-
 } // namespace Rml

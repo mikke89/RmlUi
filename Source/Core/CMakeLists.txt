@@ -181,7 +181,6 @@ add_library(rmlui_core
 	Template.h
 	TemplateCache.cpp
 	TemplateCache.h
-	TextInputMethodEditor.cpp
 	Texture.cpp
 	TextureDatabase.cpp
 	TextureDatabase.h
@@ -316,8 +315,8 @@ target_sources(rmlui_core PRIVATE
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleSheetTypes.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/StyleTypes.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/SystemInterface.h"
-	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TextInputMethodContext.h"
-	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TextInputMethodEditor.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TextInputContext.h"
+	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TextInputHandler.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/TextShapingContext.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Texture.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/Core/Traits.h"

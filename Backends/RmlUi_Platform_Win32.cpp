@@ -33,13 +33,62 @@
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <RmlUi/Core/SystemInterface.h>
-#include <RmlUi/Core/TextInputMethodEditor.h>
+#include <RmlUi/Core/TextInputContext.h>
+#include <RmlUi/Core/TextInputHandler.h>
 #include <string.h>
 
 // Used to interact with the input method editor (IME). Users of MinGW should manually link to this.
 #ifdef _MSC_VER
 	#pragma comment(lib, "imm32")
 #endif
+
+class TextInputMethodEditor final : public Rml::TextInputHandler {
+public:
+	TextInputMethodEditor();
+
+	void OnFocus(Rml::SharedPtr<Rml::TextInputContext> context) override;
+	void OnBlur(Rml::TextInputContext* context) override;
+
+	/// Check that a composition is currently active.
+	/// @return True if we are composing, false otherwise.
+	bool IsComposing() const;
+
+	void StartComposition();
+	void CancelComposition();
+
+	/// Set the composition string.
+	/// @param[in] composition A string to be set.
+	void SetComposition(Rml::StringView composition);
+
+	/// End the current composition by confirming the composition string.
+	/// @param[in] composition A string to confirm.
+	void ConfirmComposition(Rml::StringView composition);
+
+	/// Set the cursor position within the composition.
+	/// @param[in] cursor_pos A character position of the cursor within the composition string.
+	/// @param[in] update Update the cursor position within active input contexts.
+	void SetCursorPosition(int cursor_pos, bool update);
+
+private:
+	void EndComposition();
+	void SetCompositionString(Rml::StringView composition);
+
+	void UpdateCursorPosition();
+
+private:
+	// An actively used text input method context.
+	Rml::WeakPtr<Rml::TextInputContext> context;
+
+	// A flag to mark a composition is currently active.
+	bool composing;
+	// Character position of the cursor in the composition string.
+	int cursor_pos;
+
+	// Composition range (character position) relative to the text input value.
+	int composition_range_start;
+	int composition_range_end;
+};
+static TextInputMethodEditor text_input_method_editor;
 
 SystemInterface_Win32::SystemInterface_Win32()
 {
@@ -58,7 +107,7 @@ SystemInterface_Win32::SystemInterface_Win32()
 	cursor_text = LoadCursor(nullptr, IDC_IBEAM);
 	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
 
-	text_input_method_editor = Rml::CreateDefaultTextInputMethodEditor();
+	Rml::SetTextInputHandler(&text_input_method_editor);
 }
 
 SystemInterface_Win32::~SystemInterface_Win32() = default;
@@ -173,11 +222,6 @@ void SystemInterface_Win32::ActivateKeyboard(Rml::Vector2f caret_position, float
 
 		ImmReleaseContext(window_handle, himc);
 	}
-}
-
-Rml::TextInputMethodEditor* SystemInterface_Win32::GetTextInputMethodEditor() const
-{
-	return text_input_method_editor.get();
 }
 
 Rml::String RmlWin32::ConvertToUTF8(const std::wstring& wstr)
@@ -302,76 +346,68 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT m
 	}
 	break;
 	case WM_IME_STARTCOMPOSITION:
-		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
-		{
-			editor->StartComposition();
-			// Prevent the native composition window from appearing by capturing the message.
-			result = !editor->IsNativeCompositionBlocked();
-		}
+		text_input_method_editor.StartComposition();
+		// Prevent the native composition window from appearing by capturing the message.
+		result = false;
 		break;
 	case WM_IME_ENDCOMPOSITION:
-		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
-			if (editor->IsComposing())
-				editor->ConfirmComposition(Rml::StringView());
+		if (text_input_method_editor.IsComposing())
+			text_input_method_editor.ConfirmComposition(Rml::StringView());
 		break;
 	case WM_IME_COMPOSITION:
-		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
+		// Not every IME starts a composition.
+		if (!text_input_method_editor.IsComposing())
+			text_input_method_editor.StartComposition();
+
+		if (!!(l_param & GCS_CURSORPOS))
 		{
-			// Not every IME starts a composition.
-			if (!editor->IsComposing())
-				editor->StartComposition();
-
-			if (!!(l_param & GCS_CURSORPOS))
+			if (auto imm_context = ImmGetContext(window_handle))
 			{
-				if (auto imm_context = ImmGetContext(window_handle))
-				{
-					// The cursor position is the wchar_t offset in the composition string. Because we
-					// work with UTF-8 and not UTF-16, we will have to convert the character offset.
-					int cursor_pos = IMEGetCursorPosition(imm_context);
+				// The cursor position is the wchar_t offset in the composition string. Because we
+				// work with UTF-8 and not UTF-16, we will have to convert the character offset.
+				int cursor_pos = IMEGetCursorPosition(imm_context);
 
-					std::wstring composition = IMEGetCompositionString(imm_context, false);
-					Rml::String converted = RmlWin32::ConvertToUTF8(composition.substr(0, cursor_pos));
-					cursor_pos = (int)Rml::StringUtilities::LengthUTF8(converted);
+				std::wstring composition = IMEGetCompositionString(imm_context, false);
+				Rml::String converted = RmlWin32::ConvertToUTF8(composition.substr(0, cursor_pos));
+				cursor_pos = (int)Rml::StringUtilities::LengthUTF8(converted);
 
-					editor->SetCursorPosition(cursor_pos, true);
-				}
+				text_input_method_editor.SetCursorPosition(cursor_pos, true);
 			}
-
-			if (!!(l_param & CS_NOMOVECARET))
-			{
-				// Suppress the cursor position update. CS_NOMOVECARET is always a part of a more
-				// complex message which means that the cursor is updated from a different event.
-				editor->SetCursorPosition(-1, false);
-			}
-
-			if (!!(l_param & GCS_RESULTSTR))
-			{
-				if (auto imm_context = ImmGetContext(window_handle))
-				{
-					std::wstring composition = IMEGetCompositionString(imm_context, true);
-					editor->ConfirmComposition(RmlWin32::ConvertToUTF8(composition));
-				}
-			}
-
-			if (!!(l_param & GCS_COMPSTR))
-			{
-				if (auto imm_context = ImmGetContext(window_handle))
-				{
-					std::wstring composition = IMEGetCompositionString(imm_context, false);
-					editor->SetComposition(RmlWin32::ConvertToUTF8(composition));
-				}
-			}
-
-			// The composition has been canceled.
-			if (!l_param)
-				editor->CancelComposition();
 		}
+
+		if (!!(l_param & CS_NOMOVECARET))
+		{
+			// Suppress the cursor position update. CS_NOMOVECARET is always a part of a more
+			// complex message which means that the cursor is updated from a different event.
+			text_input_method_editor.SetCursorPosition(-1, false);
+		}
+
+		if (!!(l_param & GCS_RESULTSTR))
+		{
+			if (auto imm_context = ImmGetContext(window_handle))
+			{
+				std::wstring composition = IMEGetCompositionString(imm_context, true);
+				text_input_method_editor.ConfirmComposition(RmlWin32::ConvertToUTF8(composition));
+			}
+		}
+
+		if (!!(l_param & GCS_COMPSTR))
+		{
+			if (auto imm_context = ImmGetContext(window_handle))
+			{
+				std::wstring composition = IMEGetCompositionString(imm_context, false);
+				text_input_method_editor.SetComposition(RmlWin32::ConvertToUTF8(composition));
+			}
+		}
+
+		// The composition has been canceled.
+		if (!l_param)
+			text_input_method_editor.CancelComposition();
 		break;
 	case WM_IME_CHAR:
 	case WM_IME_REQUEST:
 		// Ignore WM_IME_CHAR and WM_IME_REQUEST to block the system from appending the composition string.
-		if (Rml::TextInputMethodEditor* editor = Rml::GetSystemInterface()->GetTextInputMethodEditor())
-			result = !editor->IsNativeCompositionBlocked();
+		result = false;
 		break;
 	default: break;
 	}
@@ -616,4 +652,135 @@ Rml::Input::KeyIdentifier RmlWin32::ConvertKey(int win32_key_code)
 	// clang-format on
 
 	return Rml::Input::KI_UNKNOWN;
+}
+
+TextInputMethodEditor::TextInputMethodEditor() : composing(false), cursor_pos(-1), composition_range_start(0), composition_range_end(0) {}
+
+void TextInputMethodEditor::OnFocus(Rml::SharedPtr<Rml::TextInputContext> _context)
+{
+	context = _context;
+}
+
+void TextInputMethodEditor::OnBlur(Rml::TextInputContext* _context)
+{
+	if (context.lock().get() == _context)
+		context.reset();
+}
+
+bool TextInputMethodEditor::IsComposing() const
+{
+	return composing;
+}
+
+void TextInputMethodEditor::StartComposition()
+{
+	RMLUI_ASSERT(!composing);
+	composing = true;
+}
+
+void TextInputMethodEditor::EndComposition()
+{
+	if (Rml::SharedPtr<Rml::TextInputContext> _context = context.lock())
+		_context->SetCompositionRange(0, 0);
+
+	RMLUI_ASSERT(composing);
+	composing = false;
+
+	composition_range_start = 0;
+	composition_range_end = 0;
+}
+
+void TextInputMethodEditor::CancelComposition()
+{
+	RMLUI_ASSERT(IsComposing());
+
+	if (Rml::SharedPtr<Rml::TextInputContext> _context = context.lock())
+	{
+		// Purge the current composition string.
+		_context->SetText(Rml::StringView(), composition_range_start, composition_range_end);
+		// Move the cursor back to where the composition began.
+		_context->SetCursorPosition(composition_range_start);
+	}
+
+	EndComposition();
+}
+
+void TextInputMethodEditor::SetComposition(Rml::StringView composition)
+{
+	RMLUI_ASSERT(IsComposing());
+
+	SetCompositionString(composition);
+	UpdateCursorPosition();
+
+	// Update the composition range only if the cursor can be moved around. Editors working with a single
+	// character (e.g., Hangul IME) should have no visual feedback; they use a selection range instead.
+	if (cursor_pos != -1)
+		if (Rml::SharedPtr<Rml::TextInputContext> _context = context.lock())
+			_context->SetCompositionRange(composition_range_start, composition_range_end);
+}
+
+void TextInputMethodEditor::ConfirmComposition(Rml::StringView composition)
+{
+	RMLUI_ASSERT(IsComposing());
+
+	SetCompositionString(composition);
+
+	if (Rml::SharedPtr<Rml::TextInputContext> _context = context.lock())
+	{
+		_context->SetCompositionRange(composition_range_start, composition_range_end);
+		_context->CommitComposition();
+	}
+
+	// Move the cursor to the end of the string.
+	SetCursorPosition(composition_range_end - composition_range_start, true);
+
+	EndComposition();
+}
+
+void TextInputMethodEditor::SetCursorPosition(int _cursor_pos, bool update)
+{
+	RMLUI_ASSERT(IsComposing());
+
+	cursor_pos = _cursor_pos;
+
+	if (update)
+		UpdateCursorPosition();
+}
+
+void TextInputMethodEditor::SetCompositionString(Rml::StringView composition)
+{
+	if (context.expired())
+		return;
+
+	Rml::SharedPtr<Rml::TextInputContext> _context = context.lock();
+
+	// Retrieve the composition range if it is missing.
+	if (composition_range_start == 0 && composition_range_end == 0)
+		_context->GetSelectionRange(composition_range_start, composition_range_end);
+
+	_context->SetText(composition, composition_range_start, composition_range_end);
+
+	size_t length = Rml::StringUtilities::LengthUTF8(composition);
+	composition_range_end = composition_range_start + (int)length;
+}
+
+void TextInputMethodEditor::UpdateCursorPosition()
+{
+	// Cursor position update happens before a composition is set; ignore this event.
+	if (composition_range_start == 0 && composition_range_end == 0)
+		return;
+
+	if (Rml::SharedPtr<Rml::TextInputContext> _context = context.lock())
+	{
+		if (cursor_pos != -1)
+		{
+			int position = composition_range_start + cursor_pos;
+			_context->SetCursorPosition(position);
+		}
+		else
+		{
+			// If the API reports no cursor position, select the entire composition string for a better UX.
+			_context->SetSelectionRange(composition_range_start, composition_range_end);
+		}
+	}
 }

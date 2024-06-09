@@ -41,8 +41,8 @@
 #include "../../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../../Include/RmlUi/Core/SystemInterface.h"
-#include "../../../Include/RmlUi/Core/TextInputMethodContext.h"
-#include "../../../Include/RmlUi/Core/TextInputMethodEditor.h"
+#include "../../../Include/RmlUi/Core/TextInputContext.h"
+#include "../../../Include/RmlUi/Core/TextInputHandler.h"
 #include "../Clock.h"
 #include "ElementTextSelection.h"
 #include <algorithm>
@@ -79,12 +79,12 @@ static bool ClampValue(String& value, int max_length)
 	return false;
 }
 
-class WidgetTextInputIMEContext final : public TextInputMethodContext {
+class WidgetTextInputContext final : public TextInputContext {
 public:
-	WidgetTextInputIMEContext(WidgetTextInput* _owner, ElementFormControl* _element);
-	~WidgetTextInputIMEContext() = default;
+	WidgetTextInputContext(WidgetTextInput* _owner, ElementFormControl* _element);
+	~WidgetTextInputContext() = default;
 
-	void GetScreenBounds(Vector2f& position, Vector2f& size) const override;
+	bool GetBoundingBox(Rectanglef& out_rectangle) const override;
 	void GetSelectionRange(int& start, int& end) const override;
 	void SetSelectionRange(int start, int end) override;
 	void SetCursorPosition(int position) override;
@@ -93,44 +93,40 @@ public:
 	void CommitComposition() override;
 
 private:
-	// As TextInputMethodContext may be used outside the element, there is no guarantee that the owner pointer is valid.
+	// As TextInputContext may be used outside the element, there is no guarantee that the owner pointer is valid.
 	// A workaround for this problem is ensuring that the observed parent element is alive.
 	WidgetTextInput* owner;
 	ObserverPtr<Element> element;
 	String composition;
 };
 
-WidgetTextInputIMEContext::WidgetTextInputIMEContext(WidgetTextInput* _owner, ElementFormControl* _element) :
+WidgetTextInputContext::WidgetTextInputContext(WidgetTextInput* _owner, ElementFormControl* _element) :
 	owner(_owner), element(_element->GetObserverPtr())
 {}
 
-void WidgetTextInputIMEContext::GetScreenBounds(Vector2f& position, Vector2f& size) const
+bool WidgetTextInputContext::GetBoundingBox(Rectanglef& out_rectangle) const
 {
-	if (element)
-	{
-		position = element->GetAbsoluteOffset(BoxArea::Border);
-		size = element->GetBox().GetSize(BoxArea::Border);
-	}
+	return element ? ElementUtilities::GetBoundingBox(out_rectangle, element.get(), BoxArea::Border) : false;
 }
 
-void WidgetTextInputIMEContext::GetSelectionRange(int& start, int& end) const
+void WidgetTextInputContext::GetSelectionRange(int& start, int& end) const
 {
 	if (element)
 		owner->GetSelection(&start, &end, nullptr);
 }
 
-void WidgetTextInputIMEContext::SetSelectionRange(int start, int end)
+void WidgetTextInputContext::SetSelectionRange(int start, int end)
 {
 	if (element)
 		owner->SetSelectionRange(start, end);
 }
 
-void WidgetTextInputIMEContext::SetCursorPosition(int position)
+void WidgetTextInputContext::SetCursorPosition(int position)
 {
 	SetSelectionRange(position, position);
 }
 
-void WidgetTextInputIMEContext::SetText(StringView text, int start, int end)
+void WidgetTextInputContext::SetText(StringView text, int start, int end)
 {
 	if (!element)
 		return;
@@ -148,13 +144,13 @@ void WidgetTextInputIMEContext::SetText(StringView text, int start, int end)
 	composition = String(text);
 }
 
-void WidgetTextInputIMEContext::SetCompositionRange(int start, int end)
+void WidgetTextInputContext::SetCompositionRange(int start, int end)
 {
 	if (element)
 		owner->SetIMERange(start, end);
 }
 
-void WidgetTextInputIMEContext::CommitComposition()
+void WidgetTextInputContext::CommitComposition()
 {
 	if (!element)
 		return;
@@ -662,10 +658,10 @@ void WidgetTextInput::ProcessEvent(Event& event)
 				FormatElement();
 			ShowCursor(true, false);
 
-			if (TextInputMethodEditor* editor = GetSystemInterface()->GetTextInputMethodEditor())
+			if (TextInputHandler* handler = parent->GetContext()->GetTextInputHandler())
 			{
-				text_input_method_context = MakeShared<WidgetTextInputIMEContext>(this, parent);
-				editor->ActivateContext(text_input_method_context);
+				text_input_method_context = MakeShared<WidgetTextInputContext>(this, parent);
+				handler->OnFocus(text_input_method_context);
 			}
 		}
 	}
@@ -674,9 +670,9 @@ void WidgetTextInput::ProcessEvent(Event& event)
 	{
 		if (event.GetTargetElement() == parent)
 		{
-			if (TextInputMethodEditor* editor = GetSystemInterface()->GetTextInputMethodEditor())
+			if (TextInputHandler* handler = parent->GetContext()->GetTextInputHandler())
 			{
-				editor->DeactivateContext(text_input_method_context.get());
+				handler->OnBlur(text_input_method_context.get());
 				text_input_method_context.reset();
 			}
 
