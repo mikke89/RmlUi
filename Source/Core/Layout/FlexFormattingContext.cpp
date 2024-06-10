@@ -427,7 +427,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		
 		line.accumulated_hypothetical_main_size = std::accumulate(
 			line.items.begin(), line.items.end(),
-			  0, [](float value, const FlexItem& item) { return value + item.hypothetical_main_size; });
+			  0.0f, [](float value, const FlexItem& item) { return value + item.hypothetical_main_size; });
 	}
 
 	// If the available main size is infinite, the used main size becomes the accumulated outer size of all items of the widest line.
