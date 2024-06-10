@@ -179,6 +179,18 @@ struct FlexItem {
 	float used_cross_size;         // Outer size
 	float cross_offset;            // Offset within line
 	float cross_baseline_top;      // Only used for baseline cross alignment
+	
+	void ApplyMainGap(float gap_size) {
+		hypothetical_main_size += gap_size;
+		flex_base_size += gap_size;
+		main.margin_b += gap_size;
+		main.sum_edges += gap_size;
+	}
+	
+	void ApplyCrossGap(float gap_size) {
+		cross.margin_b += gap_size;
+		cross.sum_edges += gap_size;
+	}
 };
 
 struct FlexLine {
@@ -404,9 +416,14 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 	for (FlexLine& line : container.lines)
 	{
-		line.accumulated_hypothetical_main_size = std::accumulate(line.items.begin(), line.items.end(),
-			  main_gap_size * static_cast<float>(line.items.size() - 1),
-			[](float value, const FlexItem& item) { return value + item.hypothetical_main_size; });
+		// now that items are in lines, we can add the main gap size to all but the last item
+		for (size_t i = 0; i < line.items.size() - 1; i++) {
+			line.items[i].ApplyMainGap(main_gap_size);
+		}
+		
+		line.accumulated_hypothetical_main_size = std::accumulate(
+			line.items.begin(), line.items.end(),
+			  0, [](float value, const FlexItem& item) { return value + item.hypothetical_main_size; });
 	}
 
 	// If the available main size is infinite, the used main size becomes the accumulated outer size of all items of the widest line.
@@ -542,9 +559,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	{
 		const float remaining_free_space = used_main_size -
 			std::accumulate(
-				line.items.begin(), line.items.end(), 
-				main_gap_size * static_cast<float>(line.items.size() - 1),
-				[](float value, const FlexItem& item) { return value + item.used_main_size; }
+				line.items.begin(), line.items.end(),
+				0.0f, [](float value, const FlexItem& item) { return value + item.used_main_size; }
 			);
 
 		if (remaining_free_space > 0.0f)
@@ -631,11 +647,22 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			else
 				item.main_offset = cursor + item.main.margin_a + item.main_auto_margin_size_a;
 
-			cursor += item.used_main_size + item.main_auto_margin_size_a + item.main_auto_margin_size_b + main_gap_size;
+			cursor += item.used_main_size + item.main_auto_margin_size_a + item.main_auto_margin_size_b;
 			Math::SnapToPixelGrid(item.main_offset, item.used_main_size);
 		}
 	}
 
+	// Apply cross axis gaps to every item 
+	// in every line except the last line.
+	for (size_t i = 0; i < container.lines.size() - 1; i++)
+	{
+		FlexLine& line = container.lines[i];
+		for (FlexItem& item : line.items)
+		{
+			item.ApplyCrossGap(cross_gap_size);
+		}
+	}
+	
 	// -- Determine cross size (§9.4) --
 	// First, determine the cross size of each item, format it if necessary.
 	for (FlexLine& line : container.lines)
@@ -826,8 +853,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	}
 
 	const float accumulated_lines_cross_size = std::accumulate(container.lines.begin(), container.lines.end(), 
-		   cross_gap_size * static_cast<float>(container.lines.size() - 1),
-		[](float value, const FlexLine& line) { return value + line.cross_size; });
+		   0.0f, [](float value, const FlexLine& line) { return value + line.cross_size; });
 
 	// If the available cross size is infinite, the used cross size becomes the accumulated line cross size.
 	const float used_cross_size_unconstrained = cross_available_size >= 0.f ? cross_available_size : accumulated_lines_cross_size;
@@ -904,7 +930,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			else
 				line.cross_offset = cursor + line.cross_spacing_a;
 
-			cursor += line.cross_spacing_a + line.cross_size + line.cross_spacing_b + cross_gap_size;
+			cursor += line.cross_spacing_a + line.cross_size + line.cross_spacing_b;
 			Math::SnapToPixelGrid(line.cross_offset, line.cross_size);
 		}
 	}
