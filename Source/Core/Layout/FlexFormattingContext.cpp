@@ -417,8 +417,12 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	for (FlexLine& line : container.lines)
 	{
 		// now that items are in lines, we can add the main gap size to all but the last item
-		for (size_t i = 0; i < line.items.size() - 1; i++) {
-			line.items[i].ApplyMainGap(main_gap_size);
+		if (main_gap_size > 0.f)
+		{
+			for (size_t i = 0; i < line.items.size() - 1; i++)
+			{
+				line.items[i].ApplyMainGap(main_gap_size);
+			}
 		}
 		
 		line.accumulated_hypothetical_main_size = std::accumulate(
@@ -654,12 +658,14 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 	// Apply cross axis gaps to every item 
 	// in every line except the last line.
-	for (size_t i = 0; i < container.lines.size() - 1; i++)
-	{
-		FlexLine& line = container.lines[i];
-		for (FlexItem& item : line.items)
+	if (cross_gap_size > 0.f) {
+		for (size_t i = 0; i < container.lines.size() - 1; i++)
 		{
-			item.ApplyCrossGap(cross_gap_size);
+			FlexLine& line = container.lines[i];
+			for (FlexItem& item : line.items)
+			{
+				item.ApplyCrossGap(cross_gap_size);
+			}
 		}
 	}
 	
