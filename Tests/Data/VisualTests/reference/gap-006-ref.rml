@@ -1,0 +1,50 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>CSS Flexbox Test: gap - wrap horizontal</title>
+	<link href="https://test.csswg.org/suites/css-align-3_dev/nightly-unstable/xhtml1/reference/gap-006-ltr-ref.xht"
+		  rel="source"/>
+	<link href="mailto:argyle@google.com" rel="author" title="Adam Argyle"/>
+	<style>
+		section {
+			background-color: green;
+			height: 100px;
+			width: 200px;
+			display: inline-flex;
+			flex-wrap: wrap;
+		}
+
+		section > div {
+			background-color: grey;
+			color: white;
+			height: 20px;
+		}
+
+		#bp {
+			width: 120px;
+		}
+
+		#ww {
+			width: 130px;
+		}
+
+		#s, #f {
+			width: 40px;
+		}
+
+		#bp, #ww {
+			margin-bottom: 20px;
+			margin-right: 20px;
+		}
+	</style>
+</head>
+<body>
+<p>Test passes if there are <strong> green lines between boxes</strong>.</p>
+<section>
+	<div id="bp">Black Panther</div>
+	<div id="ww">Wonder Woman</div>
+	<div id="s">Storm</div>
+	<div id="f">Flash</div>
+</section>
+</body>
+</rml>
