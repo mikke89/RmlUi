@@ -1,7 +1,6 @@
 <rml>
 <head>
 	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
-	<meta charset="utf-8"/>
 	<title>CSS Flexbox Test: gap - horizontal</title>
 	<link href="https://test.csswg.org/suites/css-align-3_dev/nightly-unstable/xhtml1/reference/gap-001-ltr-ref.xht"
 		  rel="source"/>
@@ -25,11 +24,11 @@
 	</style>
 </head>
 <body>
-	<p>Test passes if there is <strong>a green vertical line between boxes</strong>.</p>
-	<section>
-		<div></div>
-		<div></div>
-		<div></div>
-	</section>
+<p>Test passes if there is <strong>a green vertical line between boxes</strong>.</p>
+<section>
+	<div></div>
+	<div></div>
+	<div></div>
+</section>
 </body>
 </rml>

@@ -1,7 +1,6 @@
 <rml>
 <head>
 	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
-	<meta charset="utf-8"/>
 	<title>CSS Flexbox Test: gap - mixed units</title>
 	<link href="https://test.csswg.org/suites/css-align-3_dev/nightly-unstable/xhtml1/gap-009-ltr.xht" rel="source"/>
 	<link href="mailto:argyle@google.com" rel="author" title="Adam Argyle"/>
@@ -9,7 +8,6 @@
 	<link href="https://www.w3.org/TR/css-align-3/#column-row-gap" rel="help"/>
 	<link href="https://www.w3.org/TR/css-align-3/#gap-legacy" rel="help"/>
 	<link href="reference/gap-009-ref.rml" rel="match"/>
-	<meta content="" name="flags"/>
 	<meta content="The 'gap' property enables putting space exclusively between items" name="assert"/>
 	<style>
 		section {
@@ -28,14 +26,14 @@
 	</style>
 </head>
 <body>
-	<p>
-		Test passes if there are <strong> 50% horizontal green line and 1rem vertical green line between boxes</strong>.
-	</p>
-	<section>
-		<div></div>
-		<div></div>
-		<div></div>
-		<div></div>
-	</section>
+<p>
+	Test passes if there are <strong> 50% horizontal green line and 1rem vertical green line between boxes</strong>.
+</p>
+<section>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+</section>
 </body>
 </rml>

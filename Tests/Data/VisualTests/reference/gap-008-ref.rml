@@ -1,7 +1,6 @@
 <rml>
 <head>
 	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
-	<meta charset="utf-8"/>
 	<title>CSS Flexbox Test: gap - row and column gap</title>
 	<link href="https://test.csswg.org/suites/css-align-3_dev/nightly-unstable/xhtml1/reference/gap-008-ltr-ref.xht"
 		  rel="source"/>
@@ -32,14 +31,14 @@
 	</style>
 </head>
 <body>
-	<p>
-		Test passes if there are <strong>40px horizontal green lines and 20px vertical green lines between boxes</strong>.
-	</p>
-	<section>
-		<div></div>
-		<div></div>
-		<div></div>
-		<div></div>
-	</section>
+<p>
+	Test passes if there are <strong>40px horizontal green lines and 20px vertical green lines between boxes</strong>.
+</p>
+<section>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+</section>
 </body>
 </rml>

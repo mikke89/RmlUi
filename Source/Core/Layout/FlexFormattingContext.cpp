@@ -643,8 +643,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		}
 	}
 
-	// Apply cross axis gaps to every item
-	// in every line except the last line.
+	// Apply cross axis gaps to every item in every line except the last line.
 	if (cross_gap_size > 0.f)
 	{
 		for (size_t i = 0; i < container.lines.size() - 1; i++)
