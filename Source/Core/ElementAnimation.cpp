@@ -763,7 +763,7 @@ ElementAnimation ElementAnimation::CreateTransition(PropertyId property_id, Elem
 	new_transition.InternalAddKey(duration, end_value, element, tween);
 	new_transition.reversing_adjusted_start_value = Rml::MakeUnique<Property>(reversing_adjusted_start_value);
 	new_transition.reversing_shortening_factor = reversing_shortening_factor;
-	return std::move(new_transition);
+	return new_transition;
 }
 
 } // namespace Rml
