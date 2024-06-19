@@ -756,4 +756,14 @@ Property ElementAnimation::UpdateAndGetProperty(double world_time, Element& elem
 	return result;
 }
 
+ElementAnimation ElementAnimation::CreateTransition(PropertyId property_id, Element& element, Tween tween, double start_time, float duration,
+	const Property& start_value, const Property& end_value, const Property& reversing_adjusted_start_value, float reversing_shortening_factor)
+{
+	auto new_transition = ElementAnimation(property_id, ElementAnimationOrigin::Transition, start_value, element, start_time, duration, 1, false);
+	new_transition.InternalAddKey(duration, end_value, element, tween);
+	new_transition.reversing_adjusted_start_value = Rml::MakeUnique<Property>(reversing_adjusted_start_value);
+	new_transition.reversing_shortening_factor = reversing_shortening_factor;
+	return std::move(new_transition);
+}
+
 } // namespace Rml

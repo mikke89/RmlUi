@@ -2515,38 +2515,106 @@ bool Element::AddAnimationKeyTime(PropertyId property_id, const Property* target
 	return result;
 }
 
-bool Element::StartTransition(const Transition& transition, const Property& start_value, const Property& target_value)
+bool Element::StartTransition(const Transition& transition, std::vector<ElementAnimation>::iterator& existing_iterator, const Property& start_value,
+	const Property& target_value)
 {
-	auto it = std::find_if(animations.begin(), animations.end(), [&](const ElementAnimation& el) { return el.GetPropertyId() == transition.id; });
+	ElementAnimation* existing_transition = existing_iterator != animations.end() ? &(*existing_iterator) : nullptr;
+	const bool has_running_transition = (existing_transition && !existing_transition->IsComplete());
+	const bool has_completed_transition = (existing_transition && existing_transition->IsComplete());
+	const bool existing_has_different_end_value = (existing_transition && existing_transition->GetEndValue() != &target_value);
 
-	if (it != animations.end() && !it->IsTransition())
-		return false;
+	// start_value and target_value are already checked to be different in the caller
+	// start_value has already been modified by the existing transition (if it exists)
 
-	float duration = transition.duration;
-	double start_time = Clock::GetElapsedTime() + (double)transition.delay;
+	// https://www.w3.org/TR/css-transitions-1/#starting
 
-	if (it == animations.end())
+	// Step 1: standard start from no transition or completed transition
+	if (!has_running_transition && (!has_completed_transition || existing_has_different_end_value) && transition.duration > 0.0f)
 	{
-		// Add transition as new animation
-		animations.push_back(ElementAnimation{transition.id, ElementAnimationOrigin::Transition, start_value, *this, start_time, 0.0f, 1, false});
-		it = (animations.end() - 1);
+		if (existing_transition)
+			animations.erase(existing_iterator);
+
+		double start_time = Clock::GetElapsedTime() + (double)transition.delay;
+		float duration = transition.duration;
+
+		auto new_transition = ElementAnimation::CreateTransition(transition.id, *this, transition.tween, start_time, duration, start_value,
+			target_value, start_value, 1.f);
+
+		if (new_transition.IsValidTransition())
+		{
+			animations.push_back(std::move(new_transition));
+			SetProperty(transition.id, start_value);
+			return true;
+		}
 	}
-	else
+	// Step 2: remove completed transition if it has different end value, do not start new transition
+	else if (has_completed_transition && existing_has_different_end_value)
 	{
-		// Compress the duration based on the progress of the current animation
-		duration *= it->GetInterpolationFactor();
-		// Replace old transition
-		*it = ElementAnimation{transition.id, ElementAnimationOrigin::Transition, start_value, *this, start_time, 0.0f, 1, false};
+		animations.erase(existing_iterator);
+	}
+	// Step 3: transition was removed from the element's style
+	// this is taken care of in Element::HandleTransitionProperty()
+	// Step 4: replace running transition
+	else if (has_running_transition && existing_has_different_end_value)
+	{
+		// Step 4.1: cancel running transition if new transition would do nothing
+		// taken care of in Element::StartTransition just before calling this function
+		// Step 4.2: cancel running transition if new transition would be invalid
+		// supposed to also check if the property is "transitionable", but that is hard to determine
+		if (transition.duration <= 0.0f)
+		{
+			animations.erase(existing_iterator);
+		}
+		// Step 4.3: replace running transition with special reversing transition
+		else if (existing_transition && existing_transition->GetReversingAdjustedStartValue() == &target_value)
+		{
+			float reversing_shortening_factor = existing_transition->GetReversingShorteningFactor();
+			float new_reversing_shortening_factor = std::abs(existing_transition->GetInterpolationFactor() * reversing_shortening_factor);
+			new_reversing_shortening_factor = Math::Clamp(new_reversing_shortening_factor, 0.f, 1.f);
+
+			double start_time = Clock::GetElapsedTime() + (double)transition.delay;
+			start_time = (transition.delay >= 0.0f ? start_time : start_time * new_reversing_shortening_factor);
+			float new_duration = transition.duration * new_reversing_shortening_factor;
+
+			auto new_transition = ElementAnimation::CreateTransition(transition.id, *this, transition.tween, start_time, new_duration, start_value,
+				target_value, *(existing_transition->GetEndValue()), new_reversing_shortening_factor);
+
+			if (new_transition.IsValidTransition())
+			{
+				// replace existing transition in place
+				*existing_iterator = std::move(new_transition);
+				SetProperty(transition.id, start_value);
+				return true;
+			}
+			else
+			{
+				animations.erase(existing_iterator);
+			}
+		}
+		// Step 4.4: replace running transition with entirely new transition
+		else
+		{
+			double start_time = Clock::GetElapsedTime() + (double)transition.delay;
+			float duration = transition.duration;
+
+			auto new_transition = ElementAnimation::CreateTransition(transition.id, *this, transition.tween, start_time, duration, start_value,
+				target_value, start_value, 1.f);
+
+			if (new_transition.IsValidTransition())
+			{
+				// replace existing transition in place
+				*existing_iterator = std::move(new_transition);
+				SetProperty(transition.id, start_value);
+				return true;
+			}
+			else
+			{
+				animations.erase(existing_iterator);
+			}
+		}
 	}
 
-	bool result = it->AddKey(duration, target_value, *this, transition.tween, true);
-
-	if (result)
-		SetProperty(transition.id, start_value);
-	else
-		animations.erase(it);
-
-	return result;
+	return false;
 }
 
 void Element::HandleTransitionProperty()
