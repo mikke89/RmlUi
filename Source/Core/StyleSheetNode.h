@@ -74,7 +74,7 @@ public:
 	/// Returns true if this node is applicable to the given element, given its IDs, classes and heritage.
 	/// @note For performance reasons this call does not check whether 'element' is a text element. The caller must manually check this condition and
 	/// consider any text element not applicable.
-	bool IsApplicable(const Element* element) const;
+	bool IsApplicable(const Element* element, const Element* scope) const;
 
 	/// Returns the specificity of this node.
 	int GetSpecificity() const;
@@ -83,12 +83,12 @@ private:
 	void CalculateAndSetSpecificity();
 
 	// Match an element to the local node requirements.
-	inline bool Match(const Element* element) const;
-	inline bool MatchStructuralSelector(const Element* element) const;
+	inline bool Match(const Element* element, const Element* scope) const;
+	inline bool MatchStructuralSelector(const Element* element, const Element* scope) const;
 	inline bool MatchAttributes(const Element* element) const;
 
 	// Recursively traverse the nodes up towards the root to match the element and its hierarchy.
-	bool TraverseMatch(const Element* element) const;
+	bool TraverseMatch(const Element* element, const Element* scope) const;
 
 	// The parent of this node; is nullptr for the root node.
 	StyleSheetNode* parent = nullptr;
