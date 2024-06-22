@@ -176,6 +176,7 @@ bool Context::Update()
 	RMLUI_ZoneScoped;
 
 	next_update_timeout = std::numeric_limits<double>::infinity();
+	frame_number++;
 
 	if (scroll_controller->Update(mouse_position, density_independent_pixel_ratio))
 		RequestNextUpdate(0);
@@ -1393,6 +1394,11 @@ void Context::RequestNextUpdate(double delay)
 double Context::GetNextUpdateDelay() const
 {
 	return next_update_timeout;
+}
+
+int Context::GetFrameNumber() const
+{
+	return frame_number;
 }
 
 } // namespace Rml

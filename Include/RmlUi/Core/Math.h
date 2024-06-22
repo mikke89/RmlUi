@@ -47,6 +47,10 @@ template <typename Type>
 class Rectangle;
 using Rectanglef = Rectangle<float>;
 
+struct Vector2fHash {
+	auto operator()(const Vector2f& v) const noexcept -> std::size_t;
+};
+
 namespace Math {
 
 	constexpr float RMLUI_PI = 3.141592653f;

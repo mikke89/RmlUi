@@ -244,6 +244,12 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 {
 	RMLUI_ASSERT(element);
 
+	float cached_shrink_to_fit_width;
+	if (element->GetCachedShrinkToFitWidth(cached_shrink_to_fit_width, containing_block))
+	{
+		return cached_shrink_to_fit_width;
+	}
+
 	// @performance Can we lay out the elements directly using a fit-content size mode, instead of fetching the
 	// shrink-to-fit width first? Use a non-definite placeholder for the box content width, and available width as a
 	// maximum constraint.
@@ -256,6 +262,7 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	const Style::Display display = element->GetDisplay();
 	if (display == Style::Display::Table || display == Style::Display::InlineTable)
 	{
+		element->SetCachedShrinkToFitWidth(0.f, containing_block);
 		return 0.f;
 	}
 
@@ -279,6 +286,7 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 			Math::Max(0.f, containing_block.x - box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
 		shrink_to_fit_width = Math::Min(shrink_to_fit_width, available_width);
 	}
+	element->SetCachedShrinkToFitWidth(shrink_to_fit_width, containing_block);
 	return shrink_to_fit_width;
 }
 
