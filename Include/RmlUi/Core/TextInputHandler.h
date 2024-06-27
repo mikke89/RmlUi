@@ -26,10 +26,8 @@
  *
  */
 
-#ifndef TEXTINPUTMETHODEDITOR_H
-#define TEXTINPUTMETHODEDITOR_H
-
-#include <RmlUi/Core/StringUtilities.h>
+#ifndef TEXTINPUTHANDLER_H
+#define TEXTINPUTHANDLER_H
 
 namespace Rml {
 

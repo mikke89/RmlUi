@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef TEXTINPUTMETHODCONTEXT_H
-#define TEXTINPUTMETHODCONTEXT_H
+#ifndef TEXTINPUTCONTEXT_H
+#define TEXTINPUTCONTEXT_H
 
 #include <RmlUi/Core/StringUtilities.h>
 
