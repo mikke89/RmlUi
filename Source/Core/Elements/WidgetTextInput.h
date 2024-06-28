@@ -273,7 +273,7 @@ private:
 	Geometry ime_composition_geometry;
 
 	// The IME context for this widget.
-	SharedPtr<WidgetTextInputContext> text_input_method_context;
+	SharedPtr<WidgetTextInputContext> text_input_context;
 
 	// Cursor visibility and timings.
 	float cursor_timer;
