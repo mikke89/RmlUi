@@ -99,7 +99,7 @@ int GetKeyModifierState();
     Custom backend implementation of TextInputHandler to handle the system's Input Method Editor (IME).
     This version supports only one active text input context.
  */
-class TextInputMethodEditor_Win32 final : public Rml::TextInputHandler {
+class TextInputMethodEditor_Win32 final : public Rml::TextInputHandler, Rml::NonCopyMoveable {
 public:
 	TextInputMethodEditor_Win32();
 

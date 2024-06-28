@@ -214,6 +214,15 @@ static std::wstring IMEGetCompositionString(HIMC context, bool finalize)
 #endif
 }
 
+static void IMECompleteComposition(HWND window_handle)
+{
+	if (HIMC context = ImmGetContext(window_handle))
+	{
+		ImmNotifyIME(context, NI_COMPOSITIONSTR, CPS_COMPLETE, NULL);
+		ImmReleaseContext(window_handle, context);
+	}
+}
+
 bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win32& text_input_method_editor, HWND window_handle, UINT message,
 	WPARAM w_param, LPARAM l_param)
 {
@@ -221,6 +230,12 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win3
 		return true;
 
 	static bool tracking_mouse_leave = false;
+
+	// If the user tries to interact with the window by using the mouse in any way, end the
+	// composition by committing the current string. This behavior is identical to other
+	// browsers and is expected, yet, Windows does not send any IME messages in such a case.
+	if (text_input_method_editor.IsComposing() && message >= WM_LBUTTONDOWN && message <= WM_MBUTTONDBLCLK)
+		IMECompleteComposition(window_handle);
 
 	bool result = true;
 
@@ -306,24 +321,24 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win3
 			text_input_method_editor.ConfirmComposition(Rml::StringView());
 		break;
 	case WM_IME_COMPOSITION:
+	{
+		HIMC imm_context = ImmGetContext(window_handle);
+
 		// Not every IME starts a composition.
 		if (!text_input_method_editor.IsComposing())
 			text_input_method_editor.StartComposition();
 
 		if (!!(l_param & GCS_CURSORPOS))
 		{
-			if (auto imm_context = ImmGetContext(window_handle))
-			{
-				// The cursor position is the wchar_t offset in the composition string. Because we
-				// work with UTF-8 and not UTF-16, we will have to convert the character offset.
-				int cursor_pos = IMEGetCursorPosition(imm_context);
+			// The cursor position is the wchar_t offset in the composition string. Because we
+			// work with UTF-8 and not UTF-16, we will have to convert the character offset.
+			int cursor_pos = IMEGetCursorPosition(imm_context);
 
-				std::wstring composition = IMEGetCompositionString(imm_context, false);
-				Rml::String converted = RmlWin32::ConvertToUTF8(composition.substr(0, cursor_pos));
-				cursor_pos = (int)Rml::StringUtilities::LengthUTF8(converted);
+			std::wstring composition = IMEGetCompositionString(imm_context, false);
+			Rml::String converted = RmlWin32::ConvertToUTF8(composition.substr(0, cursor_pos));
+			cursor_pos = (int)Rml::StringUtilities::LengthUTF8(converted);
 
-				text_input_method_editor.SetCursorPosition(cursor_pos, true);
-			}
+			text_input_method_editor.SetCursorPosition(cursor_pos, true);
 		}
 
 		if (!!(l_param & CS_NOMOVECARET))
@@ -335,26 +350,23 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win3
 
 		if (!!(l_param & GCS_RESULTSTR))
 		{
-			if (auto imm_context = ImmGetContext(window_handle))
-			{
-				std::wstring composition = IMEGetCompositionString(imm_context, true);
-				text_input_method_editor.ConfirmComposition(RmlWin32::ConvertToUTF8(composition));
-			}
+			std::wstring composition = IMEGetCompositionString(imm_context, true);
+			text_input_method_editor.ConfirmComposition(RmlWin32::ConvertToUTF8(composition));
 		}
 
 		if (!!(l_param & GCS_COMPSTR))
 		{
-			if (auto imm_context = ImmGetContext(window_handle))
-			{
-				std::wstring composition = IMEGetCompositionString(imm_context, false);
-				text_input_method_editor.SetComposition(RmlWin32::ConvertToUTF8(composition));
-			}
+			std::wstring composition = IMEGetCompositionString(imm_context, false);
+			text_input_method_editor.SetComposition(RmlWin32::ConvertToUTF8(composition));
 		}
 
 		// The composition has been canceled.
 		if (!l_param)
 			text_input_method_editor.CancelComposition();
-		break;
+
+		ImmReleaseContext(window_handle, imm_context);
+	}
+	break;
 	case WM_IME_CHAR:
 	case WM_IME_REQUEST:
 		// Ignore WM_IME_CHAR and WM_IME_REQUEST to block the system from appending the composition string.
