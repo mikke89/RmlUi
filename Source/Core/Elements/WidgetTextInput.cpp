@@ -660,7 +660,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 				FormatElement();
 			ShowCursor(true, false);
 			if (TextInputHandler* handler = parent->GetContext()->GetTextInputHandler())
-				handler->OnFocus(text_input_method_context);
+				handler->OnActivate(text_input_method_context);
 		}
 	}
 	break;
@@ -669,7 +669,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		if (event.GetTargetElement() == parent)
 		{
 			if (TextInputHandler* handler = parent->GetContext()->GetTextInputHandler())
-				handler->OnBlur(text_input_method_context.get());
+				handler->OnDeactivate(text_input_method_context.get());
 			if (ClearSelection())
 				FormatElement();
 			ShowCursor(false, false);

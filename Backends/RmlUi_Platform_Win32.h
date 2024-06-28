@@ -103,8 +103,8 @@ class TextInputMethodEditor_Win32 final : public Rml::TextInputHandler, Rml::Non
 public:
 	TextInputMethodEditor_Win32();
 
-	void OnFocus(Rml::SharedPtr<Rml::TextInputContext> input_context) override;
-	void OnBlur(Rml::TextInputContext* input_context) override;
+	void OnActivate(Rml::SharedPtr<Rml::TextInputContext> input_context) override;
+	void OnDeactivate(Rml::TextInputContext* input_context) override;
 
 	/// Check that a composition is currently active.
 	/// @return True if we are composing, false otherwise.

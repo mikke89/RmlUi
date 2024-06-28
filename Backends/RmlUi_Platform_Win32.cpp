@@ -619,12 +619,12 @@ Rml::Input::KeyIdentifier RmlWin32::ConvertKey(int win32_key_code)
 
 TextInputMethodEditor_Win32::TextInputMethodEditor_Win32() : composing(false), cursor_pos(-1), composition_range_start(0), composition_range_end(0) {}
 
-void TextInputMethodEditor_Win32::OnFocus(Rml::SharedPtr<Rml::TextInputContext> _input_context)
+void TextInputMethodEditor_Win32::OnActivate(Rml::SharedPtr<Rml::TextInputContext> _input_context)
 {
 	input_context = _input_context;
 }
 
-void TextInputMethodEditor_Win32::OnBlur(Rml::TextInputContext* _input_context)
+void TextInputMethodEditor_Win32::OnDeactivate(Rml::TextInputContext* _input_context)
 {
 	if (input_context.lock().get() == _input_context)
 		input_context.reset();

@@ -46,13 +46,13 @@ class RMLUICORE_API TextInputHandler {
 public:
 	virtual ~TextInputHandler() {}
 
-	/// Called when a text input element is focused.
+	/// Called when a text input element is activated (e.g., focused).
 	/// @param[in] input_context The input context to be activated.
-	virtual void OnFocus(SharedPtr<TextInputContext> /*input_context*/) {}
+	virtual void OnActivate(SharedPtr<TextInputContext> /*input_context*/) {}
 
-	/// Called when a text input element loses focus.
+	/// Called when a text input element is deactivated (e.g., by losing focus).
 	/// @param[in] input_context The input context to be deactivated.
-	virtual void OnBlur(TextInputContext* /*input_context*/) {}
+	virtual void OnDeactivate(TextInputContext* /*input_context*/) {}
 };
 
 } // namespace Rml
