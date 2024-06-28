@@ -42,54 +42,6 @@
 	#pragma comment(lib, "imm32")
 #endif
 
-class TextInputMethodEditor final : public Rml::TextInputHandler {
-public:
-	TextInputMethodEditor();
-
-	void OnFocus(Rml::SharedPtr<Rml::TextInputContext> input_context) override;
-	void OnBlur(Rml::TextInputContext* input_context) override;
-
-	/// Check that a composition is currently active.
-	/// @return True if we are composing, false otherwise.
-	bool IsComposing() const;
-
-	void StartComposition();
-	void CancelComposition();
-
-	/// Set the composition string.
-	/// @param[in] composition A string to be set.
-	void SetComposition(Rml::StringView composition);
-
-	/// End the current composition by confirming the composition string.
-	/// @param[in] composition A string to confirm.
-	void ConfirmComposition(Rml::StringView composition);
-
-	/// Set the cursor position within the composition.
-	/// @param[in] cursor_pos A character position of the cursor within the composition string.
-	/// @param[in] update Update the cursor position within active input contexts.
-	void SetCursorPosition(int cursor_pos, bool update);
-
-private:
-	void EndComposition();
-	void SetCompositionString(Rml::StringView composition);
-
-	void UpdateCursorPosition();
-
-private:
-	// An actively used text input method context.
-	Rml::WeakPtr<Rml::TextInputContext> input_context;
-
-	// A flag to mark a composition is currently active.
-	bool composing;
-	// Character position of the cursor in the composition string.
-	int cursor_pos;
-
-	// Composition range (character position) relative to the text input value.
-	int composition_range_start;
-	int composition_range_end;
-};
-static TextInputMethodEditor text_input_method_editor;
-
 SystemInterface_Win32::SystemInterface_Win32()
 {
 	LARGE_INTEGER time_ticks_per_second;
@@ -106,8 +58,6 @@ SystemInterface_Win32::SystemInterface_Win32()
 	cursor_cross = LoadCursor(nullptr, IDC_CROSS);
 	cursor_text = LoadCursor(nullptr, IDC_IBEAM);
 	cursor_unavailable = LoadCursor(nullptr, IDC_NO);
-
-	Rml::SetTextInputHandler(&text_input_method_editor);
 }
 
 SystemInterface_Win32::~SystemInterface_Win32() = default;
@@ -264,7 +214,8 @@ static std::wstring IMEGetCompositionString(HIMC context, bool finalize)
 #endif
 }
 
-bool RmlWin32::WindowProcedure(Rml::Context* context, HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param)
+bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win32& text_input_method_editor, HWND window_handle, UINT message,
+	WPARAM w_param, LPARAM l_param)
 {
 	if (!context)
 		return true;
@@ -654,31 +605,31 @@ Rml::Input::KeyIdentifier RmlWin32::ConvertKey(int win32_key_code)
 	return Rml::Input::KI_UNKNOWN;
 }
 
-TextInputMethodEditor::TextInputMethodEditor() : composing(false), cursor_pos(-1), composition_range_start(0), composition_range_end(0) {}
+TextInputMethodEditor_Win32::TextInputMethodEditor_Win32() : composing(false), cursor_pos(-1), composition_range_start(0), composition_range_end(0) {}
 
-void TextInputMethodEditor::OnFocus(Rml::SharedPtr<Rml::TextInputContext> _input_context)
+void TextInputMethodEditor_Win32::OnFocus(Rml::SharedPtr<Rml::TextInputContext> _input_context)
 {
 	input_context = _input_context;
 }
 
-void TextInputMethodEditor::OnBlur(Rml::TextInputContext* _input_context)
+void TextInputMethodEditor_Win32::OnBlur(Rml::TextInputContext* _input_context)
 {
 	if (input_context.lock().get() == _input_context)
 		input_context.reset();
 }
 
-bool TextInputMethodEditor::IsComposing() const
+bool TextInputMethodEditor_Win32::IsComposing() const
 {
 	return composing;
 }
 
-void TextInputMethodEditor::StartComposition()
+void TextInputMethodEditor_Win32::StartComposition()
 {
 	RMLUI_ASSERT(!composing);
 	composing = true;
 }
 
-void TextInputMethodEditor::EndComposition()
+void TextInputMethodEditor_Win32::EndComposition()
 {
 	if (Rml::SharedPtr<Rml::TextInputContext> _input_context = input_context.lock())
 		_input_context->SetCompositionRange(0, 0);
@@ -690,7 +641,7 @@ void TextInputMethodEditor::EndComposition()
 	composition_range_end = 0;
 }
 
-void TextInputMethodEditor::CancelComposition()
+void TextInputMethodEditor_Win32::CancelComposition()
 {
 	RMLUI_ASSERT(IsComposing());
 
@@ -705,7 +656,7 @@ void TextInputMethodEditor::CancelComposition()
 	EndComposition();
 }
 
-void TextInputMethodEditor::SetComposition(Rml::StringView composition)
+void TextInputMethodEditor_Win32::SetComposition(Rml::StringView composition)
 {
 	RMLUI_ASSERT(IsComposing());
 
@@ -719,7 +670,7 @@ void TextInputMethodEditor::SetComposition(Rml::StringView composition)
 			_input_context->SetCompositionRange(composition_range_start, composition_range_end);
 }
 
-void TextInputMethodEditor::ConfirmComposition(Rml::StringView composition)
+void TextInputMethodEditor_Win32::ConfirmComposition(Rml::StringView composition)
 {
 	RMLUI_ASSERT(IsComposing());
 
@@ -737,7 +688,7 @@ void TextInputMethodEditor::ConfirmComposition(Rml::StringView composition)
 	EndComposition();
 }
 
-void TextInputMethodEditor::SetCursorPosition(int _cursor_pos, bool update)
+void TextInputMethodEditor_Win32::SetCursorPosition(int _cursor_pos, bool update)
 {
 	RMLUI_ASSERT(IsComposing());
 
@@ -747,7 +698,7 @@ void TextInputMethodEditor::SetCursorPosition(int _cursor_pos, bool update)
 		UpdateCursorPosition();
 }
 
-void TextInputMethodEditor::SetCompositionString(Rml::StringView composition)
+void TextInputMethodEditor_Win32::SetCompositionString(Rml::StringView composition)
 {
 	if (input_context.expired())
 		return;
@@ -764,7 +715,7 @@ void TextInputMethodEditor::SetCompositionString(Rml::StringView composition)
 	composition_range_end = composition_range_start + (int)length;
 }
 
-void TextInputMethodEditor::UpdateCursorPosition()
+void TextInputMethodEditor_Win32::UpdateCursorPosition()
 {
 	// Cursor position update happens before a composition is set; ignore this event.
 	if (composition_range_start == 0 && composition_range_end == 0)

@@ -107,6 +107,7 @@ static void DetachFromNative(HWND window_handle, HDC device_context, HGLRC rende
 struct BackendData {
 	SystemInterface_Win32 system_interface;
 	RenderInterface_GL2 render_interface;
+	TextInputMethodEditor_Win32 text_input_method_editor;
 
 	HINSTANCE instance_handle = nullptr;
 	std::wstring instance_name;
@@ -158,12 +159,19 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	::SetForegroundWindow(window_handle);
 	::SetFocus(window_handle);
 
+	// Provide a backend-specific text input handler to manage the IME.
+	Rml::SetTextInputHandler(&data->text_input_method_editor);
+
 	return true;
 }
 
 void Backend::Shutdown()
 {
 	RMLUI_ASSERT(data);
+
+	// As we forcefully override the global text input handler, we must reset it before the data is destroyed to avoid any potential use-after-free.
+	if (Rml::GetTextInputHandler() == &data->text_input_method_editor)
+		Rml::SetTextInputHandler(nullptr);
 
 	DetachFromNative(data->window_handle, data->device_context, data->render_context);
 
@@ -307,7 +315,7 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
 		if (key_down_callback && !key_down_callback(context, rml_key, rml_modifier, native_dp_ratio, true))
 			return 0;
 		// Otherwise, hand the event over to the context by calling the input handler as normal.
-		if (!RmlWin32::WindowProcedure(context, window_handle, message, w_param, l_param))
+		if (!RmlWin32::WindowProcedure(context, data->text_input_method_editor, window_handle, message, w_param, l_param))
 			return 0;
 		// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
 		if (key_down_callback && !key_down_callback(context, rml_key, rml_modifier, native_dp_ratio, false))
@@ -318,7 +326,7 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
 	default:
 	{
 		// Submit it to the platform handler for default input handling.
-		if (!RmlWin32::WindowProcedure(data->context, window_handle, message, w_param, l_param))
+		if (!RmlWin32::WindowProcedure(data->context, data->text_input_method_editor, window_handle, message, w_param, l_param))
 			return 0;
 	}
 	break;
