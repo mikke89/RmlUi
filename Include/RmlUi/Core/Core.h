@@ -96,6 +96,7 @@ RMLUICORE_API FontEngineInterface* GetFontEngineInterface();
 /// Sets the implementation for handling text input events. This is not required to be called.
 /// @param[in] text_input_handler A non-owning pointer to the application-specified implementation of a text input handler.
 /// @lifetime The instance must be kept alive until after the call to Rml::Shutdown.
+/// @note Be aware that you might be overriding a custom backend implementation.
 RMLUICORE_API void SetTextInputHandler(TextInputHandler* text_input_handler);
 /// Returns RmlUi's default implementation of a text input handler.
 RMLUICORE_API TextInputHandler* GetTextInputHandler();

@@ -33,6 +33,20 @@
 
 namespace Rml {
 
+/**
+    Interface for an editable text area.
+
+    Methods of this class are used for the internal IME implementation. Nonetheless, this interface
+    provides extra methods that can be used for a custom IME system or any other work with text inputs.
+
+    To capture the context of a text input, create a custom implementation of TextInputHandler.
+    See the documentation of the handler for more details.
+
+    The lifetime of RmlUi's implementations is equal to the element's lifetime.
+
+    @see Rml::TextInputHandler
+    @see Rml::SetTextInputHandler()
+ */
 class RMLUICORE_API TextInputContext {
 public:
 	virtual ~TextInputContext() {}

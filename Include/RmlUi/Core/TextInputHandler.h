@@ -33,6 +33,15 @@ namespace Rml {
 
 class TextInputContext;
 
+/**
+    Handler of changes to text editable areas. Implement this interface to pick up these events, and pass
+    the custom implementation to a context (via its constructor) or globally (via SetTextInputHandler).
+
+    Be aware that backends might provide their custom handler to, for example, handle the IME.
+
+    @see Rml::TextInputContext
+    @see Rml::SetTextInputHandler()
+ */
 class RMLUICORE_API TextInputHandler {
 public:
 	virtual ~TextInputHandler() {}
