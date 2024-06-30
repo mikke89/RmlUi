@@ -131,6 +131,9 @@ protected:
 	/// Gets the parent element containing the widget.
 	Element* GetElement() const;
 
+	/// Obtains the text input handler of the parent element's context.
+	TextInputHandler* GetTextInputHandler() const;
+
 	/// Returns true if the text input element is currently focused.
 	bool IsFocused() const;
 
@@ -273,7 +276,7 @@ private:
 	Geometry ime_composition_geometry;
 
 	// The IME context for this widget.
-	SharedPtr<WidgetTextInputContext> text_input_context;
+	UniquePtr<WidgetTextInputContext> text_input_context;
 
 	// Cursor visibility and timings.
 	float cursor_timer;

@@ -82,7 +82,7 @@ static bool ClampValue(String& value, int max_length)
 class WidgetTextInputContext final : public TextInputContext {
 public:
 	WidgetTextInputContext(WidgetTextInput* _owner, ElementFormControl* _element);
-	~WidgetTextInputContext() = default;
+	~WidgetTextInputContext();
 
 	bool GetBoundingBox(Rectanglef& out_rectangle) const override;
 	void GetSelectionRange(int& start, int& end) const override;
@@ -93,32 +93,33 @@ public:
 	void CommitComposition() override;
 
 private:
-	// As TextInputContext may be used outside the element, there is no guarantee that the owner pointer is valid.
-	// A workaround for this problem is ensuring that the observed parent element is alive.
 	WidgetTextInput* owner;
-	ObserverPtr<Element> element;
+	ElementFormControl* element;
 	String composition;
 };
 
-WidgetTextInputContext::WidgetTextInputContext(WidgetTextInput* _owner, ElementFormControl* _element) :
-	owner(_owner), element(_element->GetObserverPtr())
-{}
+WidgetTextInputContext::WidgetTextInputContext(WidgetTextInput* owner, ElementFormControl* element) : owner(owner), element(element) {}
+
+WidgetTextInputContext::~WidgetTextInputContext()
+{
+	if (Context* context = element->GetContext())
+		if (TextInputHandler* handler = context->GetTextInputHandler())
+			handler->OnDestroy(this);
+}
 
 bool WidgetTextInputContext::GetBoundingBox(Rectanglef& out_rectangle) const
 {
-	return element ? ElementUtilities::GetBoundingBox(out_rectangle, element.get(), BoxArea::Border) : false;
+	return ElementUtilities::GetBoundingBox(out_rectangle, element, BoxArea::Border);
 }
 
 void WidgetTextInputContext::GetSelectionRange(int& start, int& end) const
 {
-	if (element)
-		owner->GetSelection(&start, &end, nullptr);
+	owner->GetSelection(&start, &end, nullptr);
 }
 
 void WidgetTextInputContext::SetSelectionRange(int start, int end)
 {
-	if (element)
-		owner->SetSelectionRange(start, end);
+	owner->SetSelectionRange(start, end);
 }
 
 void WidgetTextInputContext::SetCursorPosition(int position)
@@ -128,9 +129,6 @@ void WidgetTextInputContext::SetCursorPosition(int position)
 
 void WidgetTextInputContext::SetText(StringView text, int start, int end)
 {
-	if (!element)
-		return;
-
 	String value = owner->GetAttributeValue();
 
 	start = StringUtilities::ConvertCharacterOffsetToByteOffset(value, start);
@@ -139,22 +137,18 @@ void WidgetTextInputContext::SetText(StringView text, int start, int end)
 	RMLUI_ASSERTMSG(end >= start, "Invalid end character offset.");
 	value.replace(start, end - start, text.begin(), text.size());
 
-	rmlui_static_cast<ElementFormControl*>(element.get())->SetValue(value);
+	element->SetValue(value);
 
 	composition = String(text);
 }
 
 void WidgetTextInputContext::SetCompositionRange(int start, int end)
 {
-	if (element)
-		owner->SetCompositionRange(start, end);
+	owner->SetCompositionRange(start, end);
 }
 
 void WidgetTextInputContext::CommitComposition()
 {
-	if (!element)
-		return;
-
 	int start_byte, end_byte;
 	owner->GetCompositionRange(start_byte, end_byte);
 
@@ -184,7 +178,7 @@ void WidgetTextInputContext::CommitComposition()
 	RMLUI_ASSERTMSG(end_byte >= start_byte, "Invalid end character offset.");
 	value.replace(start_byte, end_byte - start_byte, composition.data(), composition.size());
 
-	rmlui_static_cast<ElementFormControl*>(element.get())->SetValue(value);
+	element->SetValue(value);
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
@@ -247,8 +241,6 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
 
 	ime_composition_begin_index = 0;
 	ime_composition_end_index = 0;
-
-	text_input_context = MakeShared<WidgetTextInputContext>(this, parent);
 
 	last_update_time = 0;
 
@@ -504,6 +496,13 @@ Element* WidgetTextInput::GetElement() const
 	return parent;
 }
 
+TextInputHandler* WidgetTextInput::GetTextInputHandler() const
+{
+	if (Context* context = parent->GetContext())
+		return context->GetTextInputHandler();
+	return nullptr;
+}
+
 bool WidgetTextInput::IsFocused() const
 {
 	return cursor_timer > 0;
@@ -659,8 +658,15 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			if (UpdateSelection(false))
 				FormatElement();
 			ShowCursor(true, false);
-			if (TextInputHandler* handler = parent->GetContext()->GetTextInputHandler())
-				handler->OnActivate(text_input_context);
+
+			if (TextInputHandler* handler = GetTextInputHandler())
+			{
+				// Lazily instance the text input context for this widget.
+				if (!text_input_context)
+					text_input_context = MakeUnique<WidgetTextInputContext>(this, parent);
+
+				handler->OnActivate(text_input_context.get());
+			}
 		}
 	}
 	break;
@@ -668,7 +674,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 	{
 		if (event.GetTargetElement() == parent)
 		{
-			if (TextInputHandler* handler = parent->GetContext()->GetTextInputHandler())
+			if (TextInputHandler* handler = GetTextInputHandler())
 				handler->OnDeactivate(text_input_context.get());
 			if (ClearSelection())
 				FormatElement();

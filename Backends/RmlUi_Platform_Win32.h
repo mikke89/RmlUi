@@ -99,12 +99,13 @@ int GetKeyModifierState();
     Custom backend implementation of TextInputHandler to handle the system's Input Method Editor (IME).
     This version supports only one active text input context.
  */
-class TextInputMethodEditor_Win32 final : public Rml::TextInputHandler, Rml::NonCopyMoveable {
+class TextInputMethodEditor_Win32 final : public Rml::TextInputHandler {
 public:
 	TextInputMethodEditor_Win32();
 
-	void OnActivate(Rml::SharedPtr<Rml::TextInputContext> input_context) override;
+	void OnActivate(Rml::TextInputContext* input_context) override;
 	void OnDeactivate(Rml::TextInputContext* input_context) override;
+	void OnDestroy(Rml::TextInputContext* input_context) override;
 
 	/// Check that a composition is currently active.
 	/// @return True if we are composing, false otherwise.
@@ -134,7 +135,7 @@ private:
 
 private:
 	// An actively used text input method context.
-	Rml::WeakPtr<Rml::TextInputContext> input_context;
+	Rml::TextInputContext* input_context;
 
 	// A flag to mark a composition is currently active.
 	bool composing;
