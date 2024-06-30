@@ -1,0 +1,72 @@
+<rml>
+	<head>
+		<link href="../../../assets/rml.rcss" type="text/rcss" />
+		<title>IME</title>
+		<style>
+			body {
+				width: 500dp;
+				height: 500dp;
+				max-width: 100%;
+				max-height: 100%;
+				padding: 10dp 15dp;
+				box-sizing: border-box;
+				margin: auto;
+				background-color: white;
+				color: black;
+				font-family: LatoLatin;
+				font-weight: normal;
+				font-style: normal;
+				font-size: 15dp;
+				overflow: auto;
+			}
+
+			h1 {
+				font-size: 2em;
+				margin-bottom: .5em;
+				font-weight: bold;
+			}
+
+			p {
+				margin-bottom: .6em;
+			}
+
+			label {
+				display: block;
+				margin-bottom: 2dp;
+			}
+
+			input[type="text"], textarea {
+				width: 100%;
+				border: 1px gray;
+				margin-bottom: 10dp;
+			}
+
+			scrollbarvertical {
+				width: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>IME Sample</h1>
+		<p>Input Method Editor (IME) is a software component that allows the user to type characters not otherwise
+			available on a standard QWERTY keyboard. This is crucial for languages using a writing system different
+			from Latin, such as Japanese, Chinese, Vietnamese, and others. You must add the language in the system
+			options to use such a keyboard.</p>
+		<p>IME is also used for emojis or clipboard history (on Windows).</p>
+
+		<form>
+			<label for="text">Input text</label>
+			<input id="text" name="text" type="text" maxlength=100 value="😁" />
+
+			<label for="text_area">Type multi-line text</label>
+			<textarea id="text_area" name="text_area" rows=10>English: Hello, how are you?
+Japanese: こんにちは、お元気ですか？
+Korean: 안녕하세요, 어떻게 지내세요?
+Chinese (Simplified): 你好，你好吗？
+Chinese (Traditional): 你好，你好嗎？
+Vietnamese: Xin chào, bạn có khỏe không?
+Thai: สวัสดีครับ/ค่ะ สบายดีไหม?
+Arabic: مرحبًا، كيف حالك؟</textarea>
+		</form>
+	</body>
+</rml>

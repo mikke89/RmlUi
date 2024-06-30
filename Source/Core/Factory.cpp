@@ -342,9 +342,9 @@ void Factory::RegisterContextInstancer(ContextInstancer* instancer)
 	context_instancer = instancer;
 }
 
-ContextPtr Factory::InstanceContext(const String& name, RenderManager* render_manager)
+ContextPtr Factory::InstanceContext(const String& name, RenderManager* render_manager, TextInputHandler* text_input_handler)
 {
-	ContextPtr new_context = context_instancer->InstanceContext(name, render_manager);
+	ContextPtr new_context = context_instancer->InstanceContext(name, render_manager, text_input_handler);
 	if (new_context)
 		new_context->SetInstancer(context_instancer);
 	return new_context;

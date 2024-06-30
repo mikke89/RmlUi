@@ -45,7 +45,7 @@ public:
 	virtual ~ContextInstancerDefault();
 
 	/// Instances a context.
-	ContextPtr InstanceContext(const String& name, RenderManager* render_manager) override;
+	ContextPtr InstanceContext(const String& name, RenderManager* render_manager, TextInputHandler* text_input_handler) override;
 
 	/// Releases a context previously created by this context.
 	void ReleaseContext(Context* context) override;

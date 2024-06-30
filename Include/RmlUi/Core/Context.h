@@ -47,6 +47,7 @@ class DataModelConstructor;
 class DataTypeRegister;
 class ScrollController;
 class RenderManager;
+class TextInputHandler;
 enum class EventId : uint16_t;
 
 /**
@@ -60,7 +61,8 @@ public:
 	/// Constructs a new, uninitialised context. This should not be called directly, use CreateContext() instead.
 	/// @param[in] name The name of the context.
 	/// @param[in] render_manager The render manager used for this context.
-	Context(const String& name, RenderManager* render_manager);
+	/// @param[in] text_input_handler The text input handler used for this context.
+	Context(const String& name, RenderManager* render_manager, TextInputHandler* text_input_handler);
 	/// Destroys a context.
 	virtual ~Context();
 
@@ -250,6 +252,9 @@ public:
 	/// Retrieves the render manager which can be used to submit changes to the render state.
 	RenderManager& GetRenderManager();
 
+	/// Obtains the text input handler.
+	TextInputHandler* GetTextInputHandler() const;
+
 	/// Sets the instancer to use for releasing this object.
 	/// @param[in] instancer The context's instancer.
 	void SetInstancer(ContextInstancer* instancer);
@@ -371,6 +376,8 @@ private:
 	DataModels data_models;
 
 	UniquePtr<DataTypeRegister> default_data_type_register;
+
+	TextInputHandler* text_input_handler;
 
 	// Time in seconds until Update and Render should be called again. This allows applications to only redraw the ui if needed.
 	// See RequestNextUpdate() and NextUpdateRequested() for details.

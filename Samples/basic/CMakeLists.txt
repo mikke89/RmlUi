@@ -29,4 +29,11 @@ if(RMLUI_FONT_ENGINE_ENABLED)
 	else()
 		message(STATUS "SVG sample disabled due to RMLUI_SVG_PLUGIN=OFF")
 	endif()
+
+	# Enable the IME sample only for Windows backends; no other platform backend is currently supported.
+	if(RMLUI_BACKEND MATCHES "^Win32")
+		add_subdirectory("ime")
+	else()
+		message(STATUS "IME sample disabled due to RMLUI_BACKEND not being prefixed by Win32")
+	endif()
 endif()
