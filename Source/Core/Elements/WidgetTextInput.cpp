@@ -81,7 +81,7 @@ static bool ClampValue(String& value, int max_length)
 
 class WidgetTextInputContext final : public TextInputContext {
 public:
-	WidgetTextInputContext(WidgetTextInput* _owner, ElementFormControl* _element);
+	WidgetTextInputContext(TextInputHandler* handler, WidgetTextInput* _owner, ElementFormControl* _element);
 	~WidgetTextInputContext();
 
 	bool GetBoundingBox(Rectanglef& out_rectangle) const override;
@@ -93,18 +93,19 @@ public:
 	void CommitComposition() override;
 
 private:
+	TextInputHandler* handler;
 	WidgetTextInput* owner;
 	ElementFormControl* element;
 	String composition;
 };
 
-WidgetTextInputContext::WidgetTextInputContext(WidgetTextInput* owner, ElementFormControl* element) : owner(owner), element(element) {}
+WidgetTextInputContext::WidgetTextInputContext(TextInputHandler* handler, WidgetTextInput* owner, ElementFormControl* element) :
+	handler(handler), owner(owner), element(element)
+{}
 
 WidgetTextInputContext::~WidgetTextInputContext()
 {
-	if (Context* context = element->GetContext())
-		if (TextInputHandler* handler = context->GetTextInputHandler())
-			handler->OnDestroy(this);
+	handler->OnDestroy(this);
 }
 
 bool WidgetTextInputContext::GetBoundingBox(Rectanglef& out_rectangle) const
@@ -663,7 +664,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			{
 				// Lazily instance the text input context for this widget.
 				if (!text_input_context)
-					text_input_context = MakeUnique<WidgetTextInputContext>(this, parent);
+					text_input_context = MakeUnique<WidgetTextInputContext>(handler, this, parent);
 
 				handler->OnActivate(text_input_context.get());
 			}
