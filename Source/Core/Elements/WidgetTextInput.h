@@ -38,6 +38,7 @@ namespace Rml {
 
 class ElementText;
 class ElementFormControl;
+class TextInputHandler;
 class WidgetTextInputContext;
 
 /**
