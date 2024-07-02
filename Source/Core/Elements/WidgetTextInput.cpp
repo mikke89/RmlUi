@@ -41,6 +41,8 @@
 #include "../../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../../Include/RmlUi/Core/StringUtilities.h"
 #include "../../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../../Include/RmlUi/Core/TextInputContext.h"
+#include "../../../Include/RmlUi/Core/TextInputHandler.h"
 #include "../Clock.h"
 #include "ElementTextSelection.h"
 #include <algorithm>
@@ -62,39 +64,12 @@ static CharacterClass GetCharacterClass(char c)
 	return CharacterClass::Whitespace;
 }
 
-static int ConvertCharacterOffsetToByteOffset(const String& value, int character_offset)
-{
-	if (character_offset >= (int)value.size())
-		return (int)value.size();
-
-	int character_count = 0;
-	for (auto it = StringIteratorU8(value); it; ++it)
-	{
-		character_count += 1;
-		if (character_count > character_offset)
-			return (int)it.offset();
-	}
-	return (int)value.size();
-}
-
-static int ConvertByteOffsetToCharacterOffset(const String& value, int byte_offset)
-{
-	int character_count = 0;
-	for (auto it = StringIteratorU8(value); it; ++it)
-	{
-		if (it.offset() >= byte_offset)
-			break;
-		character_count += 1;
-	}
-	return character_count;
-}
-
 // Clamps the value to the given maximum number of unicode code points. Returns true if the value was changed.
 static bool ClampValue(String& value, int max_length)
 {
 	if (max_length >= 0)
 	{
-		int max_byte_length = ConvertCharacterOffsetToByteOffset(value, max_length);
+		int max_byte_length = StringUtilities::ConvertCharacterOffsetToByteOffset(value, max_length);
 		if (max_byte_length < (int)value.size())
 		{
 			value.erase((size_t)max_byte_length);
@@ -102,6 +77,109 @@ static bool ClampValue(String& value, int max_length)
 		}
 	}
 	return false;
+}
+
+class WidgetTextInputContext final : public TextInputContext {
+public:
+	WidgetTextInputContext(TextInputHandler* handler, WidgetTextInput* _owner, ElementFormControl* _element);
+	~WidgetTextInputContext();
+
+	bool GetBoundingBox(Rectanglef& out_rectangle) const override;
+	void GetSelectionRange(int& start, int& end) const override;
+	void SetSelectionRange(int start, int end) override;
+	void SetCursorPosition(int position) override;
+	void SetText(StringView text, int start, int end) override;
+	void SetCompositionRange(int start, int end) override;
+	void CommitComposition() override;
+
+private:
+	TextInputHandler* handler;
+	WidgetTextInput* owner;
+	ElementFormControl* element;
+	String composition;
+};
+
+WidgetTextInputContext::WidgetTextInputContext(TextInputHandler* handler, WidgetTextInput* owner, ElementFormControl* element) :
+	handler(handler), owner(owner), element(element)
+{}
+
+WidgetTextInputContext::~WidgetTextInputContext()
+{
+	handler->OnDestroy(this);
+}
+
+bool WidgetTextInputContext::GetBoundingBox(Rectanglef& out_rectangle) const
+{
+	return ElementUtilities::GetBoundingBox(out_rectangle, element, BoxArea::Border);
+}
+
+void WidgetTextInputContext::GetSelectionRange(int& start, int& end) const
+{
+	owner->GetSelection(&start, &end, nullptr);
+}
+
+void WidgetTextInputContext::SetSelectionRange(int start, int end)
+{
+	owner->SetSelectionRange(start, end);
+}
+
+void WidgetTextInputContext::SetCursorPosition(int position)
+{
+	SetSelectionRange(position, position);
+}
+
+void WidgetTextInputContext::SetText(StringView text, int start, int end)
+{
+	String value = owner->GetAttributeValue();
+
+	start = StringUtilities::ConvertCharacterOffsetToByteOffset(value, start);
+	end = StringUtilities::ConvertCharacterOffsetToByteOffset(value, end);
+
+	RMLUI_ASSERTMSG(end >= start, "Invalid end character offset.");
+	value.replace(start, end - start, text.begin(), text.size());
+
+	element->SetValue(value);
+
+	composition = String(text);
+}
+
+void WidgetTextInputContext::SetCompositionRange(int start, int end)
+{
+	owner->SetCompositionRange(start, end);
+}
+
+void WidgetTextInputContext::CommitComposition()
+{
+	int start_byte, end_byte;
+	owner->GetCompositionRange(start_byte, end_byte);
+
+	// No composition to commit.
+	if (start_byte == 0 && end_byte == 0)
+		return;
+
+	String value = owner->GetAttributeValue();
+
+	// If the text input has a length restriction, we have to shorten the composition string.
+	if (owner->GetMaxLength() >= 0)
+	{
+		int start = StringUtilities::ConvertByteOffsetToCharacterOffset(value, start_byte);
+		int end = StringUtilities::ConvertByteOffsetToCharacterOffset(value, end_byte);
+
+		int value_length = (int)StringUtilities::LengthUTF8(value);
+		int composition_length = (int)StringUtilities::LengthUTF8(composition);
+
+		// The requested text value would exceed the length restriction after replacing the original value.
+		if (value_length + composition_length - (start - end) > owner->GetMaxLength())
+		{
+			int new_length = owner->GetMaxLength() - (value_length - composition_length);
+			composition.erase(StringUtilities::ConvertCharacterOffsetToByteOffset(composition, new_length));
+		}
+	}
+
+	RMLUI_ASSERTMSG(end_byte >= start_byte, "Invalid end character offset.");
+	value.replace(start_byte, end_byte - start_byte, composition.data(), composition.size());
+
+	element->SetValue(value);
 }
 
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
@@ -162,6 +240,9 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
 	selection_begin_index = 0;
 	selection_length = 0;
 
+	ime_composition_begin_index = 0;
+	ime_composition_end_index = 0;
+
 	last_update_time = 0;
 
 	ShowCursor(false);
@@ -209,6 +290,10 @@ void WidgetTextInput::SetValue(String value)
 
 		text_element->SetText(value);
 
+		// Reset the IME composition range when the value changes.
+		ime_composition_begin_index = 0;
+		ime_composition_end_index = 0;
+
 		FormatElement();
 		UpdateCursorPosition(true);
 	}
@@ -250,8 +335,8 @@ void WidgetTextInput::SetSelectionRange(int selection_start, int selection_end)
 		return;
 
 	const String& value = GetValue();
-	const int byte_start = ConvertCharacterOffsetToByteOffset(value, selection_start);
-	const int byte_end = ConvertCharacterOffsetToByteOffset(value, selection_end);
+	const int byte_start = StringUtilities::ConvertCharacterOffsetToByteOffset(value, selection_start);
+	const int byte_end = StringUtilities::ConvertCharacterOffsetToByteOffset(value, selection_end);
 	const bool is_selecting = (byte_start != byte_end);
 
 	cursor_wrap_down = true;
@@ -279,11 +364,37 @@ void WidgetTextInput::GetSelection(int* selection_start, int* selection_end, Str
 {
 	const String& value = GetValue();
 	if (selection_start)
-		*selection_start = ConvertByteOffsetToCharacterOffset(value, selection_begin_index);
+		*selection_start = StringUtilities::ConvertByteOffsetToCharacterOffset(value, selection_begin_index);
 	if (selection_end)
-		*selection_end = ConvertByteOffsetToCharacterOffset(value, selection_begin_index + selection_length);
+		*selection_end = StringUtilities::ConvertByteOffsetToCharacterOffset(value, selection_begin_index + selection_length);
 	if (selected_text)
 		*selected_text = value.substr(Math::Min((size_t)selection_begin_index, (size_t)value.size()), (size_t)selection_length);
+}
+
+void WidgetTextInput::SetCompositionRange(int range_start, int range_end)
+{
+	const String& value = GetValue();
+	const int byte_start = StringUtilities::ConvertCharacterOffsetToByteOffset(value, range_start);
+	const int byte_end = StringUtilities::ConvertCharacterOffsetToByteOffset(value, range_end);
+
+	if (byte_end > byte_start)
+	{
+		ime_composition_begin_index = byte_start;
+		ime_composition_end_index = byte_end;
+	}
+	else
+	{
+		ime_composition_begin_index = 0;
+		ime_composition_end_index = 0;
+	}
+
+	FormatText();
+}
+
+void WidgetTextInput::GetCompositionRange(int& range_start, int& range_end) const
+{
+	range_start = ime_composition_begin_index;
+	range_end = ime_composition_end_index;
 }
 
 void WidgetTextInput::UpdateSelectionColours()
@@ -359,6 +470,7 @@ void WidgetTextInput::OnRender()
 
 	Vector2f text_translation = parent->GetAbsoluteOffset() - Vector2f(parent->GetScrollLeft(), parent->GetScrollTop());
 	selection_geometry.Render(text_translation);
+	ime_composition_geometry.Render(text_translation);
 
 	if (cursor_visible && !parent->IsDisabled())
 	{
@@ -383,6 +495,13 @@ void WidgetTextInput::OnLayout()
 Element* WidgetTextInput::GetElement() const
 {
 	return parent;
+}
+
+TextInputHandler* WidgetTextInput::GetTextInputHandler() const
+{
+	if (Context* context = parent->GetContext())
+		return context->GetTextInputHandler();
+	return nullptr;
 }
 
 bool WidgetTextInput::IsFocused() const
@@ -540,6 +659,15 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			if (UpdateSelection(false))
 				FormatElement();
 			ShowCursor(true, false);
+
+			if (TextInputHandler* handler = GetTextInputHandler())
+			{
+				// Lazily instance the text input context for this widget.
+				if (!text_input_context)
+					text_input_context = MakeUnique<WidgetTextInputContext>(handler, this, parent);
+
+				handler->OnActivate(text_input_context.get());
+			}
 		}
 	}
 	break;
@@ -547,6 +675,8 @@ void WidgetTextInput::ProcessEvent(Event& event)
 	{
 		if (event.GetTargetElement() == parent)
 		{
+			if (TextInputHandler* handler = GetTextInputHandler())
+				handler->OnDeactivate(text_input_context.get());
 			if (ClearSelection())
 				FormatElement();
 			ShowCursor(false, false);
@@ -1080,6 +1210,8 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	if (!font_handle)
 		return content_area;
 
+	const FontMetrics& font_metrics = GetFontEngineInterface()->GetFontMetrics(font_handle);
+
 	// Clear the old lines, and all the lines in the text elements.
 	lines.clear();
 	text_element->ClearLines();
@@ -1087,9 +1219,9 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 	// Determine the line-height of the text element.
 	const float line_height = parent->GetLineHeight();
-	const float font_baseline = GetFontEngineInterface()->GetFontMetrics(font_handle).ascent;
-	// When the selection contains endlines we expand the selection area by this width.
-	const int endline_selection_width = int(0.4f * parent->GetComputedValues().font_size());
+	const float font_baseline = font_metrics.ascent;
+	// When the selection contains endlines, we expand the selection area by this width.
+	const int endline_font_width = int(0.4f * parent->GetComputedValues().font_size());
 
 	const float client_width = parent->GetClientWidth();
 	int line_begin = 0;
@@ -1107,6 +1239,14 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	};
 
 	Vector<Segment> segments;
+
+	struct IMESegment {
+		Vector2f position;
+		int width;
+		int line_index;
+	};
+
+	Vector<IMESegment> ime_segments;
 
 	// Keep generating lines until all the text content is placed.
 	do
@@ -1217,6 +1357,18 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			segments.push_back({line_position, width, post_selection, false, (int)lines.size()});
 		}
 
+		// We fetch the IME composition on the new line to highlight it.
+		String ime_pre_composition, ime_composition;
+		GetLineIMEComposition(ime_pre_composition, ime_composition, line_content, line_begin);
+
+		// If there is any IME composition string on the line, create a segment for its underline.
+		if (!ime_composition.empty())
+		{
+			const int composition_width = ElementUtilities::GetStringWidth(text_element, ime_composition);
+			const Vector2f composition_position(float(ElementUtilities::GetStringWidth(text_element, ime_pre_composition)), line_position.y);
+			ime_segments.push_back({composition_position, composition_width, (int)lines.size()});
+		}
+
 		// Update variables for the next line.
 		line_begin += line.size;
 		line_position.x = 0;
@@ -1240,7 +1392,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// Transform segments according to text alignment
 	for (auto& it : segments)
 	{
-		auto const& line = lines[it.line_index];
+		const auto& line = lines[it.line_index];
 		const char* p_begin = GetValue().data() + line.value_offset;
 		float offset = GetAlignmentSpecificTextOffset(p_begin, it.line_index);
 
@@ -1249,7 +1401,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (it.selected)
 		{
 			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + lines[it.line_index].editable_length);
-			const Vector2f selection_size(float(it.width + (selection_contains_endline ? endline_selection_width : 0)), line_height);
+			const Vector2f selection_size(float(it.width + (selection_contains_endline ? endline_font_width : 0)), line_height);
 
 			MeshUtilities::GenerateQuad(selection_mesh, it.position - Vector2f(0, font_baseline), selection_size, selection_colour);
 
@@ -1260,6 +1412,27 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	}
 
 	selection_geometry = parent->GetRenderManager()->MakeGeometry(std::move(selection_mesh));
+
+	// Clear the IME composition geometry, and get the vertices and indices so the new geometry can be generated.
+	Mesh ime_composition_mesh = ime_composition_geometry.Release(Geometry::ReleaseMode::ClearMesh);
+
+	// Transform IME segments according to text alignment.
+	for (auto& it : ime_segments)
+	{
+		const auto& line = lines[it.line_index];
+		const char* p_begin = GetValue().data() + line.value_offset;
+		float offset = GetAlignmentSpecificTextOffset(p_begin, it.line_index);
+
+		it.position.x += offset;
+		it.position.y += font_metrics.underline_position;
+
+		const bool composition_contains_endline = (ime_composition_end_index > line_begin + lines[it.line_index].editable_length);
+		const Vector2f line_size(float(it.width + (composition_contains_endline ? endline_font_width : 0)), font_metrics.underline_thickness);
+
+		MeshUtilities::GenerateLine(ime_composition_mesh, it.position, line_size, parent->GetComputedValues().color().ToPremultiplied());
+	}
+
+	ime_composition_geometry = parent->GetRenderManager()->MakeGeometry(std::move(ime_composition_mesh));
 
 	return content_area;
 }
@@ -1295,7 +1468,7 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 	int cursor_line_index = 0, cursor_character_index = 0;
 	GetRelativeCursorIndices(cursor_line_index, cursor_character_index);
 
-	auto const& line = lines[cursor_line_index];
+	const auto& line = lines[cursor_line_index];
 	const char* p_begin = GetValue().data() + line.value_offset;
 
 	cursor_position.x = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, cursor_character_index));
@@ -1391,6 +1564,24 @@ void WidgetTextInput::GetLineSelection(String& pre_selection, String& selection,
 	selection =
 		line.substr(Clamp(selection_begin_index - line_begin, 0, line_length), Max(0, selection_length + Min(0, selection_begin_index - line_begin)));
 	post_selection = line.substr(Clamp(selection_end - line_begin, 0, line_length));
+}
+
+void WidgetTextInput::GetLineIMEComposition(String& pre_composition, String& ime_composition, const String& line, int line_begin) const
+{
+	const int composition_length = ime_composition_end_index - ime_composition_begin_index;
+
+	// Check if the line has any text in the IME composition range at all.
+	if (composition_length <= 0 || ime_composition_end_index < line_begin || ime_composition_begin_index > line_begin + (int)line.size())
+	{
+		pre_composition = line;
+		return;
+	}
+
+	const int line_length = (int)line.size();
+
+	pre_composition = line.substr(0, Math::Max(0, ime_composition_begin_index - line_begin));
+	ime_composition = line.substr(Math::Clamp(ime_composition_begin_index - line_begin, 0, line_length),
+		Math::Max(0, composition_length + Math::Min(0, ime_composition_begin_index - line_begin)));
 }
 
 void WidgetTextInput::SetKeyboardActive(bool active)

@@ -37,6 +37,7 @@
 #include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
+#include "../../Include/RmlUi/Core/TextInputHandler.h"
 #include "../../Include/RmlUi/Core/Types.h"
 #include "EventSpecification.h"
 #include "FileInterfaceDefault.h"
@@ -71,11 +72,14 @@ static SystemInterface* system_interface = nullptr;
 static FileInterface* file_interface = nullptr;
 // RmlUi's font engine interface.
 static FontEngineInterface* font_interface = nullptr;
+// RmlUi's text input handler implementation.
+static TextInputHandler* text_input_handler = nullptr;
 
 // Default interfaces should be created and destroyed on Initialise and Shutdown, respectively.
 static UniquePtr<SystemInterface> default_system_interface;
 static UniquePtr<FileInterface> default_file_interface;
 static UniquePtr<FontEngineInterface> default_font_interface;
+static UniquePtr<TextInputHandler> default_text_input_handler;
 
 static UniquePtr<SmallUnorderedMap<RenderInterface*, UniquePtr<RenderManager>>> render_managers;
 
@@ -122,6 +126,12 @@ bool Initialise()
 		Log::Message(Log::LT_ERROR, "No font engine interface set!");
 		return false;
 #endif
+	}
+
+	if (!text_input_handler)
+	{
+		default_text_input_handler = MakeUnique<TextInputHandler>();
+		text_input_handler = default_text_input_handler.get();
 	}
 
 	EventSpecificationInterface::Initialize();
@@ -235,13 +245,27 @@ FontEngineInterface* GetFontEngineInterface()
 	return font_interface;
 }
 
-Context* CreateContext(const String& name, const Vector2i dimensions, RenderInterface* render_interface_for_context)
+void SetTextInputHandler(TextInputHandler* _text_input_handler)
+{
+	text_input_handler = _text_input_handler;
+}
+
+TextInputHandler* GetTextInputHandler()
+{
+	return text_input_handler;
+}
+
+Context* CreateContext(const String& name, const Vector2i dimensions, RenderInterface* render_interface_for_context,
+	TextInputHandler* text_input_handler_for_context)
 {
 	if (!initialised)
 		return nullptr;
 
 	if (!render_interface_for_context)
 		render_interface_for_context = render_interface;
+
+	if (!text_input_handler_for_context)
+		text_input_handler_for_context = text_input_handler;
 
 	if (!render_interface_for_context)
 	{
@@ -261,7 +285,7 @@ Context* CreateContext(const String& name, const Vector2i dimensions, RenderInte
 	if (!render_manager)
 		render_manager = MakeUnique<RenderManager>(render_interface_for_context);
 
-	ContextPtr new_context = Factory::InstanceContext(name, render_manager.get());
+	ContextPtr new_context = Factory::InstanceContext(name, render_manager.get(), text_input_handler_for_context);
 	if (!new_context)
 	{
 		Log::Message(Log::LT_WARNING, "Failed to instance context '%s', instancer returned nullptr.", name.c_str());

@@ -38,6 +38,8 @@ namespace Rml {
 
 class ElementText;
 class ElementFormControl;
+class TextInputHandler;
+class WidgetTextInputContext;
 
 /**
     An abstract widget for editing and navigating around a text field.
@@ -54,6 +56,8 @@ public:
 	/// @param[in] value The new value to set on the text field.
 	/// @note The value will be sanitized and synchronized with the element's value attribute.
 	void SetValue(String value);
+	/// Returns the underlying text from the element's value attribute.
+	String GetAttributeValue() const;
 
 	/// Sets the maximum length (in characters) of this text field.
 	/// @param[in] max_length The new maximum length of the text field. A number lower than zero will mean infinite characters.
@@ -75,6 +79,13 @@ public:
 	/// @param[out] selection_end The first character *after* the selection.
 	/// @param[out] selected_text The selected text.
 	void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
+
+	/// Sets visual feedback used for the IME composition in the range.
+	/// @param[in] range_start The first character to be selected.
+	/// @param[in] range_end The first character *after* the selection.
+	void SetCompositionRange(int range_start, int range_end);
+	/// Obtains the IME composition byte range relative to the current value.
+	void GetCompositionRange(int& range_start, int& range_end) const;
 
 	/// Update the colours of the selected text.
 	void UpdateSelectionColours();
@@ -121,6 +132,9 @@ protected:
 	/// Gets the parent element containing the widget.
 	Element* GetElement() const;
 
+	/// Obtains the text input handler of the parent element's context.
+	TextInputHandler* GetTextInputHandler() const;
+
 	/// Returns true if the text input element is currently focused.
 	bool IsFocused() const;
 
@@ -131,8 +145,6 @@ private:
 	/// Returns the displayed value of the text field.
 	/// @note For password fields this would only return the displayed asterisks '****', while the attribute value below contains the underlying text.
 	const String& GetValue() const;
-	/// Returns the underlying text from the element's value attribute.
-	String GetAttributeValue() const;
 
 	/// Moves the cursor along the current line.
 	/// @param[in] movement Cursor movement operation.
@@ -205,6 +217,12 @@ private:
 	/// @param[in] line The text making up the line.
 	/// @param[in] line_begin The absolute index at the beginning of the line.
 	void GetLineSelection(String& pre_selection, String& selection, String& post_selection, const String& line, int line_begin) const;
+	/// Fetch the IME composition range on the line.
+	/// @param[out] pre_composition The section of text before the IME composition string on the line.
+	/// @param[out] ime_composition The IME composition string on the line.
+	/// @param[in] line The text making up the line.
+	/// @param[in] line_begin The absolute index at the beginning of the line.
+	void GetLineIMEComposition(String& pre_composition, String& ime_composition, const String& line, int line_begin) const;
 
 	struct Line {
 		// Offset into the text field's value.
@@ -250,6 +268,16 @@ private:
 	ColourbPremultiplied selection_colour;
 	// The selection background.
 	Geometry selection_geometry;
+
+	// IME composition range. The start and end indices are in absolute coordinates.
+	int ime_composition_begin_index;
+	int ime_composition_end_index;
+
+	// The IME composition text highlighting.
+	Geometry ime_composition_geometry;
+
+	// The IME context for this widget.
+	UniquePtr<WidgetTextInputContext> text_input_context;
 
 	// Cursor visibility and timings.
 	float cursor_timer;

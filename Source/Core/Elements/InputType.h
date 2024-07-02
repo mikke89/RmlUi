@@ -94,6 +94,9 @@ public:
 	/// Retrieves the selection range and text.
 	virtual void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
 
+	/// Sets visual feedback for the IME composition in the given character range.
+	virtual void SetCompositionRange(int range_start, int range_end);
+
 protected:
 	ElementFormControlInput* element;
 };

@@ -101,10 +101,10 @@ TEST_CASE("StringView")
 	CHECK(StringView() == "");
 }
 
-#include "../../../Source/Core/Elements/WidgetTextInput.cpp"
-
-TEST_CASE("ConvertByteOffsetToCharacterOffset")
+TEST_CASE("StringUtilities::ConvertByteOffsetToCharacterOffset")
 {
+	using namespace Rml::StringUtilities;
+
 	// clang-format off
 	CHECK(ConvertByteOffsetToCharacterOffset("", 0) == 0);
 	CHECK(ConvertByteOffsetToCharacterOffset("", 1) == 0);
@@ -125,8 +125,10 @@ TEST_CASE("ConvertByteOffsetToCharacterOffset")
 	// clang-format on
 }
 
-TEST_CASE("ConvertCharacterOffsetToByteOffset")
+TEST_CASE("StringUtilities::ConvertCharacterOffsetToByteOffset")
 {
+	using namespace Rml::StringUtilities;
+
 	// clang-format off
 	CHECK(ConvertCharacterOffsetToByteOffset("", 0) == 0);
 	CHECK(ConvertCharacterOffsetToByteOffset("", 1) == 0);

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2024 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,41 +26,41 @@
  *
  */
 
-#ifndef RMLUI_CORE_CONTEXTINSTANCER_H
-#define RMLUI_CORE_CONTEXTINSTANCER_H
-
-#include "Header.h"
-#include "Traits.h"
-#include "Types.h"
+#ifndef RMLUI_CORE_TEXTINPUTHANDLER_H
+#define RMLUI_CORE_TEXTINPUTHANDLER_H
 
 namespace Rml {
 
-class TextInputHandler;
-class RenderManager;
-class Context;
-class Event;
+class TextInputContext;
 
 /**
-    Abstract instancer interface for instancing contexts.
+    Handler of changes to text editable areas. Implement this interface to pick up these events, and pass
+    the custom implementation to a context (via its constructor) or globally (via SetTextInputHandler).
 
-    @author Lloyd Weehuizen
+    Be aware that backends might provide their custom handler to, for example, handle the IME.
+
+    The lifetime of a text input context is ended with the call of OnDestroy().
+
+    @see Rml::TextInputContext
+    @see Rml::SetTextInputHandler()
  */
-
-class RMLUICORE_API ContextInstancer : public Releasable {
+class RMLUICORE_API TextInputHandler : public NonCopyMoveable {
 public:
-	virtual ~ContextInstancer();
+	virtual ~TextInputHandler() {}
 
-	/// Instances a context.
-	/// @param[in] name Name of this context.
-	/// @param[in] render_manager The render manager used for this context.
-	/// @param[in] text_input_handler The text input handler used for this context.
-	/// @return The instanced context.
-	virtual ContextPtr InstanceContext(const String& name, RenderManager* render_manager, TextInputHandler* text_input_handler) = 0;
+	/// Called when a text input area is activated (e.g., focused).
+	/// @param[in] input_context The input context to be activated.
+	virtual void OnActivate(TextInputContext* /*input_context*/) {}
 
-	/// Releases a context previously created by this context.
-	/// @param[in] context The context to release.
-	virtual void ReleaseContext(Context* context) = 0;
+	/// Called when a text input area is deactivated (e.g., by losing focus).
+	/// @param[in] input_context The input context to be deactivated.
+	virtual void OnDeactivate(TextInputContext* /*input_context*/) {}
+
+	/// Invoked when the context of a text input area is destroyed (e.g., when the element is being removed).
+	/// @param[in] input_context The input context to be destroyed.
+	virtual void OnDestroy(TextInputContext* /*input_context*/) {}
 };
 
 } // namespace Rml
+
 #endif

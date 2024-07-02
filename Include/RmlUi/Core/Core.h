@@ -42,6 +42,7 @@ class FileInterface;
 class FontEngineInterface;
 class RenderInterface;
 class SystemInterface;
+class TextInputHandler;
 enum class DefaultActionPhase;
 
 /**
@@ -92,14 +93,25 @@ RMLUICORE_API void SetFontEngineInterface(FontEngineInterface* font_interface);
 /// Returns RmlUi's font interface.
 RMLUICORE_API FontEngineInterface* GetFontEngineInterface();
 
+/// Sets the implementation for handling text input events. This is not required to be called.
+/// @param[in] text_input_handler A non-owning pointer to the application-specified implementation of a text input handler.
+/// @lifetime The instance must be kept alive until after the call to Rml::Shutdown.
+/// @note Be aware that you might be overriding a custom backend implementation.
+RMLUICORE_API void SetTextInputHandler(TextInputHandler* text_input_handler);
+/// Returns RmlUi's default implementation of a text input handler.
+RMLUICORE_API TextInputHandler* GetTextInputHandler();
+
 /// Creates a new element context.
 /// @param[in] name The new name of the context. This must be unique.
 /// @param[in] dimensions The initial dimensions of the new context.
 /// @param[in] render_interface The custom render interface to use, or nullptr to use the default.
-/// @lifetime If specified, the render interface must be kept alive until after the call to Rml::Shutdown. Alternatively, the render interface can be
-///           destroyed after all contexts it belongs to have been destroyed and a subsequent call has been made to Rml::ReleaseTextures.
+/// @param[in] text_input_handler The custom text input handler to use, or nullptr to use the default.
+/// @lifetime If specified, the render interface and the text input handler must be kept alive until after the call to
+///           Rml::Shutdown. Alternatively, the render interface can be destroyed after all contexts it belongs to have been
+///           destroyed and a subsequent call has been made to Rml::ReleaseTextures.
 /// @return A non-owning pointer to the new context, or nullptr if the context could not be created.
-RMLUICORE_API Context* CreateContext(const String& name, Vector2i dimensions, RenderInterface* render_interface = nullptr);
+RMLUICORE_API Context* CreateContext(const String& name, Vector2i dimensions, RenderInterface* render_interface = nullptr,
+	TextInputHandler* text_input_handler = nullptr);
 /// Removes and destroys a context.
 /// @param[in] name The name of the context to remove.
 /// @return True if name is a valid context, false otherwise.

@@ -31,6 +31,7 @@
 #include "../../Include/RmlUi/Core/ContextInstancer.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/DataModelHandle.h"
+#include "../../Include/RmlUi/Core/Debug.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
@@ -38,7 +39,6 @@
 #include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
-#include "../../Include/RmlUi/Core/Debug.h"
 #include "DataModel.h"
 #include "EventDispatcher.h"
 #include "PluginRegistry.h"
@@ -54,7 +54,8 @@ static constexpr float DOUBLE_CLICK_TIME = 0.5f;    // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
 static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
 
-Context::Context(const String& name, RenderManager* render_manager) : name(name), render_manager(render_manager)
+Context::Context(const String& name, RenderManager* render_manager, TextInputHandler* text_input_handler) :
+	name(name), render_manager(render_manager), text_input_handler(text_input_handler)
 {
 	instancer = nullptr;
 
@@ -855,6 +856,11 @@ void Context::SetDefaultScrollBehavior(ScrollBehavior scroll_behavior, float spe
 RenderManager& Context::GetRenderManager()
 {
 	return *render_manager;
+}
+
+TextInputHandler* Context::GetTextInputHandler() const
+{
+	return text_input_handler;
 }
 
 void Context::SetInstancer(ContextInstancer* _instancer)
