@@ -185,6 +185,7 @@ private:
 		bool enable_blend;
 		bool enable_stencil_test;
 		bool enable_scissor_test;
+		bool enable_depth_test;
 
 		int viewport[4];
 		int scissor[4];
