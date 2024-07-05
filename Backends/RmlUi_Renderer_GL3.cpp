@@ -820,6 +820,7 @@ void RenderInterface_GL3::BeginFrame()
 	glstate_backup.enable_blend = glIsEnabled(GL_BLEND);
 	glstate_backup.enable_stencil_test = glIsEnabled(GL_STENCIL_TEST);
 	glstate_backup.enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+	glstate_backup.enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
 
 	glGetIntegerv(GL_VIEWPORT, glstate_backup.viewport);
 	glGetIntegerv(GL_SCISSOR_BOX, glstate_backup.scissor);
@@ -879,6 +880,8 @@ void RenderInterface_GL3::BeginFrame()
 	glStencilMask(GLuint(-1));
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
+	glDisable(GL_DEPTH_TEST);
+
 	SetTransform(nullptr);
 
 	render_layers.BeginFrame(viewport_width, viewport_height);
@@ -935,6 +938,11 @@ void RenderInterface_GL3::EndFrame()
 		glEnable(GL_SCISSOR_TEST);
 	else
 		glDisable(GL_SCISSOR_TEST);
+
+	if(glstate_backup.enable_depth_test)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
 
 	glViewport(glstate_backup.viewport[0], glstate_backup.viewport[1], glstate_backup.viewport[2], glstate_backup.viewport[3]);
 	glScissor(glstate_backup.scissor[0], glstate_backup.scissor[1], glstate_backup.scissor[2], glstate_backup.scissor[3]);
