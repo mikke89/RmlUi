@@ -1305,7 +1305,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		// Now that we have the string of characters appearing on the new line, we split it into
 		// three parts; the unselected text appearing before any selected text on the line, the
 		// selected text on the line, and any unselected text after the selection.
-		String pre_selection, selection, post_selection;
+		StringView pre_selection, selection, post_selection;
 		GetLineSelection(pre_selection, selection, post_selection, line_content, line_begin);
 
 		// The pre-selected text is placed, if there is any (if the selection starts on or before
@@ -1313,20 +1313,18 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!pre_selection.empty())
 		{
 			const int width = ElementUtilities::GetStringWidth(text_element, pre_selection);
-			text_element->AddLine(line_position + Vector2f{GetAlignmentSpecificTextOffset(line), 0}, pre_selection);
+			text_element->AddLine(line_position + Vector2f{GetAlignmentSpecificTextOffset(line), 0}, String(pre_selection));
 			line_position.x += width;
 		}
 
 		// Return the extra kerning that would result in joining two strings.
-		auto GetKerningBetween = [this](const String& left, const String& right) -> float {
+		auto GetKerningBetween = [this](StringView left, StringView right) -> float {
 			if (left.empty() || right.empty())
 				return 0.0f;
 			// We could join the whole string, and compare the result of the joined width to the individual widths of each string. Instead, we take
 			// the two neighboring characters from each string and compare the string width with and without kerning, which should be much faster.
-			const Character left_back =
-				StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(&left.back(), &left.front()), left.data() + left.size());
-			const String right_front_u8 =
-				right.substr(0, size_t(StringUtilities::SeekForwardUTF8(right.c_str() + 1, right.c_str() + right.size()) - right.c_str()));
+			const Character left_back = StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(left.end() - 1, left.begin()), left.end());
+			const StringView right_front_u8 = StringView(right.begin(), StringUtilities::SeekForwardUTF8(right.begin() + 1, right.end()));
 			const int width_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, left_back);
 			const int width_no_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, Character::Null);
 			return float(width_kerning - width_no_kerning);
@@ -1345,7 +1343,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 			MeshUtilities::GenerateQuad(selection_composition_mesh, aligned_position - Vector2f(0, top_to_baseline), selection_size,
 				selection_colour);
-			selected_text_element->AddLine(aligned_position, selection);
+			selected_text_element->AddLine(aligned_position, String(selection));
 
 			max_selection_right_edge = Math::Max(max_selection_right_edge, aligned_position.x + selection_size.x);
 			line_position.x += selection_width;
@@ -1356,11 +1354,11 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!post_selection.empty())
 		{
 			line_position.x += GetKerningBetween(selection, post_selection);
-			text_element->AddLine(line_position + Vector2f{GetAlignmentSpecificTextOffset(line), 0}, post_selection);
+			text_element->AddLine(line_position + Vector2f{GetAlignmentSpecificTextOffset(line), 0}, String(post_selection));
 		}
 
 		// We fetch the IME composition on the new line to highlight it.
-		String ime_pre_composition, ime_composition;
+		StringView ime_pre_composition, ime_composition;
 		GetLineIMEComposition(ime_pre_composition, ime_composition, line_content, line_begin);
 
 		// If there is any IME composition string on the line, create a segment for its underline.
@@ -1528,11 +1526,10 @@ void WidgetTextInput::DeleteSelection()
 	}
 }
 
-void WidgetTextInput::GetLineSelection(String& pre_selection, String& selection, String& post_selection, const String& line, int line_begin) const
+void WidgetTextInput::GetLineSelection(StringView& pre_selection, StringView& selection, StringView& post_selection, const String& line,
+	int line_begin) const
 {
 	const int selection_end = selection_begin_index + selection_length;
-
-	// Check if we have any selection at all, and if so if the selection is on this line.
 	if (selection_length <= 0 || selection_end < line_begin || selection_begin_index > line_begin + (int)line.size())
 	{
 		pre_selection = line;
@@ -1543,13 +1540,13 @@ void WidgetTextInput::GetLineSelection(String& pre_selection, String& selection,
 	using namespace Math;
 
 	// Split the line up into its three parts, depending on the size and placement of the selection.
-	pre_selection = line.substr(0, Max(0, selection_begin_index - line_begin));
-	selection =
-		line.substr(Clamp(selection_begin_index - line_begin, 0, line_length), Max(0, selection_length + Min(0, selection_begin_index - line_begin)));
-	post_selection = line.substr(Clamp(selection_end - line_begin, 0, line_length));
+	pre_selection = StringView(line, 0, Max(0, selection_begin_index - line_begin));
+	selection = StringView(line, Clamp(selection_begin_index - line_begin, 0, line_length),
+		Max(0, selection_length + Min(0, selection_begin_index - line_begin)));
+	post_selection = StringView(line, Clamp(selection_end - line_begin, 0, line_length));
 }
 
-void WidgetTextInput::GetLineIMEComposition(String& pre_composition, String& ime_composition, const String& line, int line_begin) const
+void WidgetTextInput::GetLineIMEComposition(StringView& pre_composition, StringView& ime_composition, const String& line, int line_begin) const
 {
 	const int composition_length = ime_composition_end_index - ime_composition_begin_index;
 
@@ -1562,8 +1559,8 @@ void WidgetTextInput::GetLineIMEComposition(String& pre_composition, String& ime
 
 	const int line_length = (int)line.size();
 
-	pre_composition = line.substr(0, Math::Max(0, ime_composition_begin_index - line_begin));
-	ime_composition = line.substr(Math::Clamp(ime_composition_begin_index - line_begin, 0, line_length),
+	pre_composition = StringView(line, 0, Math::Max(0, ime_composition_begin_index - line_begin));
+	ime_composition = StringView(line, Math::Clamp(ime_composition_begin_index - line_begin, 0, line_length),
 		Math::Max(0, composition_length + Math::Min(0, ime_composition_begin_index - line_begin)));
 }
 

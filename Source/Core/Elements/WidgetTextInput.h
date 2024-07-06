@@ -222,13 +222,14 @@ private:
 	/// will be empty.
 	/// @param[in] line The text making up the line.
 	/// @param[in] line_begin The absolute index at the beginning of the line.
-	void GetLineSelection(String& pre_selection, String& selection, String& post_selection, const String& line, int line_begin) const;
+	/// @lifetime The returned string views are tied to the lifetime of the line's data.
+	void GetLineSelection(StringView& pre_selection, StringView& selection, StringView& post_selection, const String& line, int line_begin) const;
 	/// Fetch the IME composition range on the line.
 	/// @param[out] pre_composition The section of text before the IME composition string on the line.
 	/// @param[out] ime_composition The IME composition string on the line.
 	/// @param[in] line The text making up the line.
 	/// @param[in] line_begin The absolute index at the beginning of the line.
-	void GetLineIMEComposition(String& pre_composition, String& ime_composition, const String& line, int line_begin) const;
+	void GetLineIMEComposition(StringView& pre_composition, StringView& ime_composition, const String& line, int line_begin) const;
 
 	/// Returns the offset that aligns the contents of the line according to the 'text-align' property.
 	float GetAlignmentSpecificTextOffset(const Line& line) const;
