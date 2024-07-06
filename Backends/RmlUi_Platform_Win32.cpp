@@ -153,25 +153,32 @@ void SystemInterface_Win32::GetClipboardText(Rml::String& text)
 	}
 }
 
-void SystemInterface_Win32::ActivateKeyboard(Rml::Vector2f caret_position, float /*line_height*/)
+void SystemInterface_Win32::ActivateKeyboard(Rml::Vector2f caret_position, float line_height)
 {
+	HIMC himc = ImmGetContext(window_handle);
+	if (himc == NULL)
+		return;
+
+	constexpr LONG BottomMargin = 2;
+
 	// Adjust the position of the input method editor (IME) to the caret.
-	if (HIMC himc = ImmGetContext(window_handle))
-	{
-		COMPOSITIONFORM comp = {};
-		comp.ptCurrentPos.x = (LONG)caret_position.x;
-		comp.ptCurrentPos.y = (LONG)caret_position.y;
-		comp.dwStyle = CFS_FORCE_POSITION;
-		ImmSetCompositionWindow(himc, &comp);
+	const LONG x = static_cast<LONG>(caret_position.x);
+	const LONG y = static_cast<LONG>(caret_position.y);
+	const LONG w = 1;
+	const LONG h = static_cast<LONG>(line_height) + BottomMargin;
 
-		CANDIDATEFORM cand = {};
-		cand.dwStyle = CFS_CANDIDATEPOS;
-		cand.ptCurrentPos.x = (LONG)caret_position.x;
-		cand.ptCurrentPos.y = (LONG)caret_position.y;
-		ImmSetCandidateWindow(himc, &cand);
+	COMPOSITIONFORM comp = {};
+	comp.dwStyle = CFS_FORCE_POSITION;
+	comp.ptCurrentPos = {x, y};
+	ImmSetCompositionWindow(himc, &comp);
 
-		ImmReleaseContext(window_handle, himc);
-	}
+	CANDIDATEFORM cand = {};
+	cand.dwStyle = CFS_EXCLUDE;
+	cand.ptCurrentPos = {x, y};
+	cand.rcArea = {x, y, x + w, y + h};
+	ImmSetCandidateWindow(himc, &cand);
+
+	ImmReleaseContext(window_handle, himc);
 }
 
 Rml::String RmlWin32::ConvertToUTF8(const std::wstring& wstr)
