@@ -631,7 +631,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		default: break;
 		}
 
-		if (!out_of_bounds || selection_changed)
+		if (shift || ctrl || !out_of_bounds || selection_changed)
 			event.StopPropagation();
 		if (selection_changed)
 			FormatText();
@@ -861,7 +861,7 @@ bool WidgetTextInput::MoveCursorHorizontal(CursorMovement movement, bool select,
 	}
 	break;
 	case CursorMovement::EndLine: SetCursorFromRelativeIndices(cursor_line_index, lines[cursor_line_index].editable_length); break;
-	case CursorMovement::End: absolute_cursor_index = INT_MAX; break;
+	case CursorMovement::End: absolute_cursor_index = (int)GetValue().size(); break;
 	}
 
 	const int unclamped_absolute_cursor_index = absolute_cursor_index;
