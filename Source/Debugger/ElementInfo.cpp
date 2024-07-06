@@ -495,13 +495,7 @@ void ElementInfo::UpdateSourceElement()
 		if (source_element != nullptr)
 			BuildElementPropertiesRML(properties, source_element, source_element);
 
-		if (properties.empty())
-		{
-			while (properties_content->HasChildNodes())
-				properties_content->RemoveChild(properties_content->GetChild(0));
-			properties_rml.clear();
-		}
-		else if (properties != properties_rml)
+		if (properties != properties_rml)
 		{
 			properties_content->SetInnerRML(properties);
 			properties_rml = std::move(properties);
@@ -704,7 +698,7 @@ void ElementInfo::BuildElementPropertiesRML(String& property_rml, Element* eleme
 					String str_line_number;
 					TypeConverter<int, String>::Convert(source->line_number, str_line_number);
 					property_rml += "<h3>" + source->rule_name + "</h3>";
-					property_rml += "<h4>" + source->path + " : " + str_line_number + "</h4>";
+					property_rml += "<h4><span class='break-all'>" + source->path + "</span> : " + str_line_number + "</h4>";
 				}
 				else
 				{
