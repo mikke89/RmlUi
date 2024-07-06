@@ -302,7 +302,7 @@ bool RmlWin32::WindowProcedure(Rml::Context* context, TextInputMethodEditor_Win3
 			{
 				// Second 16-bit code unit of a two-wide character.
 				Rml::String utf8 = ConvertToUTF8(std::wstring{first_u16_code_unit, c});
-				character = Rml::StringUtilities::ToCharacter(utf8.data());
+				character = Rml::StringUtilities::ToCharacter(utf8.data(), utf8.data() + utf8.size());
 			}
 			else if (c == '\r')
 			{

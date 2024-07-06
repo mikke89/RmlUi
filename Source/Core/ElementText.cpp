@@ -212,7 +212,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	bool break_at_endline =
 		white_space_property == WhiteSpace::Pre || white_space_property == WhiteSpace::Prewrap || white_space_property == WhiteSpace::Preline;
 
-	const TextShapingContext text_shaping_context{ computed.language(), computed.direction(), computed.letter_spacing() };
+	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.letter_spacing()};
 	TextTransform text_transform_property = computed.text_transform();
 	WordBreak word_break = computed.word_break();
 
@@ -229,7 +229,8 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 		const char* next_token_begin = token_begin;
 		Character previous_codepoint = Character::Null;
 		if (!line.empty())
-			previous_codepoint = StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(&line.back(), line.data()));
+			previous_codepoint =
+				StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(&line.back(), line.data()), line.data() + line.size());
 
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.empty() && trim_whitespace_prefix, collapse_white_space,

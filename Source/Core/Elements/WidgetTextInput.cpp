@@ -1082,7 +1082,7 @@ float WidgetTextInput::GetAlignmentSpecificTextOffset(const Line& line) const
 		// For right alignment with soft-wrapped newlines, remove up to a single space to align the last word to the right edge.
 		const bool is_last_line = (line.value_offset + line.size == (int)value.size());
 		const bool is_soft_wrapped = (!is_last_line && line.editable_length == line.size);
-		if (is_soft_wrapped && editable_line_string.size() > 0 && *(editable_line_string.end() - 1) == ' ')
+		if (is_soft_wrapped && !editable_line_string.empty() && *(editable_line_string.end() - 1) == ' ')
 		{
 			editable_line_string = StringView(editable_line_string.begin(), editable_line_string.end() - 1);
 		}
@@ -1324,7 +1324,8 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 				return 0.0f;
 			// We could join the whole string, and compare the result of the joined width to the individual widths of each string. Instead, we take
 			// the two neighboring characters from each string and compare the string width with and without kerning, which should be much faster.
-			const Character left_back = StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(&left.back(), &left.front()));
+			const Character left_back =
+				StringUtilities::ToCharacter(StringUtilities::SeekBackwardUTF8(&left.back(), &left.front()), left.data() + left.size());
 			const String right_front_u8 =
 				right.substr(0, size_t(StringUtilities::SeekForwardUTF8(right.c_str() + 1, right.c_str() + right.size()) - right.c_str()));
 			const int width_kerning = ElementUtilities::GetStringWidth(text_element, right_front_u8, left_back);

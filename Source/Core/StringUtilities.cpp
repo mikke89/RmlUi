@@ -430,8 +430,10 @@ bool StringUtilities::StringCompareCaseInsensitive(const StringView lhs, const S
 	return true;
 }
 
-Character StringUtilities::ToCharacter(const char* p)
+Character StringUtilities::ToCharacter(const char* p, const char* p_end)
 {
+	RMLUI_ASSERTMSG(p && p != p_end, "ToCharacter expects a valid, non-empty input string");
+
 	if ((*p & (1 << 7)) == 0)
 		return static_cast<Character>(*p);
 
@@ -458,6 +460,9 @@ Character StringUtilities::ToCharacter(const char* p)
 		// Invalid begin byte
 		return Character::Null;
 	}
+
+	if (p_end - p < num_bytes)
+		return Character::Null;
 
 	for (int i = 1; i < num_bytes; i++)
 	{
@@ -586,6 +591,7 @@ bool StringView::operator==(const StringView& other) const
 }
 
 StringIteratorU8::StringIteratorU8(const char* p_begin, const char* p, const char* p_end) : view(p_begin, p_end), p(p) {}
+StringIteratorU8::StringIteratorU8(StringView string) : view(string), p(view.begin()) {}
 StringIteratorU8::StringIteratorU8(const String& string) : view(string), p(string.data()) {}
 StringIteratorU8::StringIteratorU8(const String& string, size_t offset) : view(string), p(string.data() + offset) {}
 StringIteratorU8::StringIteratorU8(const String& string, size_t offset, size_t count) : view(string, 0, offset + count), p(string.data() + offset) {}
