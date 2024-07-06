@@ -1414,7 +1414,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 void WidgetTextInput::GenerateCursor()
 {
 	cursor_size.x = Math::Round(ElementUtilities::GetDensityIndependentPixelRatio(text_element));
-	cursor_size.y = GetLineHeight() + 2.0f;
+	cursor_size.y = GetLineHeight();
 
 	Colourb color = parent->GetComputedValues().color();
 
@@ -1449,7 +1449,7 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 
 	cursor_position = {
 		(float)string_width_pre_cursor + alignment_offset,
-		-1.f + (float)cursor_line_index * GetLineHeight(),
+		(float)cursor_line_index * GetLineHeight(),
 	};
 
 	const bool word_wrap = parent->GetComputedValues().white_space() == Style::WhiteSpace::Prewrap;
@@ -1569,12 +1569,10 @@ void WidgetTextInput::SetKeyboardActive(bool active)
 	{
 		if (active)
 		{
-			// Activate the keyboard and submit the cursor position and line height to enable clients to adjust the input method editor (IME). Note
-			// that the cursor is extended by one pixel along the top and bottom, we reverse this extension here.
+			// Activate the keyboard and submit the cursor position and line height to enable clients to adjust the input method editor (IME).
 			const Vector2f element_offset = parent->GetAbsoluteOffset() - scroll_offset;
-			const Vector2f absolute_cursor_position = element_offset + cursor_position + Vector2f(0, 1);
-			const float line_height = cursor_size.y - 2.f;
-			system->ActivateKeyboard(absolute_cursor_position, line_height);
+			const Vector2f absolute_cursor_position = element_offset + cursor_position;
+			system->ActivateKeyboard(absolute_cursor_position, cursor_size.y);
 		}
 		else
 		{
