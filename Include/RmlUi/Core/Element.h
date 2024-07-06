@@ -109,8 +109,9 @@ public:
 	virtual const StyleSheet* GetStyleSheet() const;
 
 	/// Fills a string with the full address of this element.
-	/// @param[in] include_pseudo_classes True if the address is to include the pseudo-classes of the leaf element.
-	/// @return The address of the element, including its full parentage.
+	/// @param[in] include_pseudo_classes True to include the pseudo-classes of the leaf element.
+	/// @param[in] include_parents True to include the address of all parent elements.
+	/// @return The address of the element.
 	String GetAddress(bool include_pseudo_classes = false, bool include_parents = true) const;
 
 	/// Sets the position of this element, as a two-dimensional offset from another element.
@@ -198,7 +199,7 @@ public:
 	/// @return True if the property parsed successfully, false otherwise.
 	bool SetProperty(const String& name, const String& value);
 	/// Sets a local property override on the element to a pre-parsed value.
-	/// @param[in] name The name of the new property.
+	/// @param[in] id The id of the new property.
 	/// @param[in] property The parsed property to set.
 	/// @return True if the property was set successfully, false otherwise.
 	bool SetProperty(PropertyId id, const Property& property);
@@ -514,7 +515,7 @@ public:
 	/// aligned to the bottom of the parent element's window.
 	void ScrollIntoView(bool align_with_top = true);
 	/// Sets the scroll offset of this element to the given coordinates.
-	/// @param[in] position The scroll destination coordinates.
+	/// @param[in] offset The scroll destination coordinates.
 	/// @param[in] behavior Smooth scrolling behavior.
 	/// @note Smooth scrolling can only be applied to a single element at a time, any active smooth scrolls will be cancelled.
 	void ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Instant);
@@ -534,7 +535,7 @@ public:
 	/// @return A unique pointer to the replaced element if found, discard the result to immediately destroy.
 	ElementPtr ReplaceChild(ElementPtr inserted_element, Element* replaced_element);
 	/// Remove a child element from this element.
-	/// @param[in] The element to remove.
+	/// @param[in] element The element to remove.
 	/// @returns A unique pointer to the element if found, discard the result to immediately destroy.
 	ElementPtr RemoveChild(Element* element);
 	/// Returns whether or not this element has any DOM children.
@@ -551,21 +552,22 @@ public:
 	void GetElementsByTagName(ElementList& elements, const String& tag);
 	/// Get all descendant elements with the given class set on them.
 	/// @param[out] elements Resulting elements.
-	/// @param[in] tag Tag to search for.
+	/// @param[in] class_name Class name to search for.
 	void GetElementsByClassName(ElementList& elements, const String& class_name);
 	/// Returns the first descendent element matching the RCSS selector query.
-	/// @param[in] selectors The selector or comma-separated selectors to match against.
+	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @return The first matching element during a depth-first traversal.
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
 	Element* QuerySelector(const String& selector);
 	/// Returns all descendent elements matching the RCSS selector query.
 	/// @param[out] elements The list of matching elements.
-	/// @param[in] selectors The selector or comma-separated selectors to match against.
+	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
-	void QuerySelectorAll(ElementList& elements, const String& selectors);
+	void QuerySelectorAll(ElementList& elements, const String& selector);
 	/// Check if the element matches the given RCSS selector query.
+	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @return True if the element matches the given RCSS selector query, false otherwise.
-	bool Matches(const String& selectors);
+	bool Matches(const String& selector);
 
 	//@}
 
