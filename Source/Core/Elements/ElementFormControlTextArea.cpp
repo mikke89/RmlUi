@@ -39,10 +39,7 @@ namespace Rml {
 ElementFormControlTextArea::ElementFormControlTextArea(const String& tag) : ElementFormControl(tag)
 {
 	widget = MakeUnique<WidgetTextInputMultiLine>(this);
-
-	SetProperty(PropertyId::OverflowX, Property(Style::Overflow::Auto));
-	SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Auto));
-	SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Prewrap));
+	SetWordWrapProperties();
 }
 
 ElementFormControlTextArea::~ElementFormControlTextArea() {}
@@ -157,12 +154,7 @@ void ElementFormControlTextArea::OnAttributeChange(const ElementAttributes& chan
 	ElementFormControl::OnAttributeChange(changed_attributes);
 
 	if (changed_attributes.find("wrap") != changed_attributes.end())
-	{
-		if (GetWordWrap())
-			SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Prewrap));
-		else
-			SetProperty(PropertyId::WhiteSpace, Property(Style::WhiteSpace::Pre));
-	}
+		SetWordWrapProperties();
 
 	if (changed_attributes.find("rows") != changed_attributes.end() || changed_attributes.find("cols") != changed_attributes.end())
 		DirtyLayout();
@@ -197,6 +189,14 @@ void ElementFormControlTextArea::OnPropertyChange(const PropertyIdSet& changed_p
 void ElementFormControlTextArea::GetInnerRML(String& content) const
 {
 	content = GetValue();
+}
+
+void ElementFormControlTextArea::SetWordWrapProperties()
+{
+	const bool word_wrap = GetWordWrap();
+	SetProperty(PropertyId::OverflowX, Property(word_wrap ? Style::Overflow::Hidden : Style::Overflow::Auto));
+	SetProperty(PropertyId::OverflowY, Property(Style::Overflow::Auto));
+	SetProperty(PropertyId::WhiteSpace, Property(word_wrap ? Style::WhiteSpace::Prewrap : Style::WhiteSpace::Pre));
 }
 
 } // namespace Rml

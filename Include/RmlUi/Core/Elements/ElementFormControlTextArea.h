@@ -132,6 +132,9 @@ protected:
 	void GetInnerRML(String& content) const override;
 
 private:
+	/// Sets the necessary properties to display the widget in current word wrap state.
+	void SetWordWrapProperties();
+
 	UniquePtr<WidgetTextInputMultiLine> widget;
 };
 
