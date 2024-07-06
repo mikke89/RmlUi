@@ -128,8 +128,7 @@ void DemoEventListener::ProcessEvent(Rml::Event& event)
 		if (el_rating && el_rating_emoji)
 		{
 			enum { Sad, Mediocre, Exciting, Celebrate, Champion, CountEmojis };
-			static const Rml::String emojis[CountEmojis] = {(const char*)u8"😢", (const char*)u8"😐", (const char*)u8"😮", (const char*)u8"😎",
-				(const char*)u8"🏆"};
+			static const char* emojis[CountEmojis] = {"😢", "😐", "😮", "😎", "🏆"};
 			int value = event.GetParameter("value", 50);
 
 			Rml::String emoji;
