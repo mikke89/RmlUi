@@ -1143,14 +1143,14 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 		// Shift the cursor into view.
 		if (move_to_cursor)
 		{
-			float minimum_scroll_top = (cursor_position.y + cursor_size.y) - GetAvailableHeight();
+			float minimum_scroll_top = Math::Min((cursor_position.y + cursor_size.y) - GetAvailableHeight(), cursor_position.y);
 			if (parent->GetScrollTop() < minimum_scroll_top)
 				parent->SetScrollTop(minimum_scroll_top);
 			else if (parent->GetScrollTop() > cursor_position.y)
 				parent->SetScrollTop(cursor_position.y);
 
 			const bool word_wrap = parent->GetComputedValues().white_space() == Style::WhiteSpace::Prewrap;
-			float minimum_scroll_left = (cursor_position.x + cursor_size.x) - GetAvailableWidth();
+			float minimum_scroll_left = Math::Min((cursor_position.x + cursor_size.x) - GetAvailableWidth(), cursor_position.x);
 			if (word_wrap)
 				parent->SetScrollLeft(0.f);
 			else if (parent->GetScrollLeft() < minimum_scroll_left)
