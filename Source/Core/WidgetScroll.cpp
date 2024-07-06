@@ -36,6 +36,7 @@
 #include "../../Include/RmlUi/Core/Property.h"
 #include "Clock.h"
 #include "Layout/LayoutDetails.h"
+#include <algorithm>
 
 namespace Rml {
 
@@ -144,20 +145,17 @@ bool WidgetScroll::Initialise(Orientation _orientation)
 
 void WidgetScroll::Update()
 {
+	if (!std::any_of(std::begin(arrow_timers), std::end(arrow_timers), [](float timer) { return timer > 0; }))
+		return;
+
+	double current_time = Clock::GetElapsedTime();
+	const float delta_time = float(current_time - last_update_time);
+	last_update_time = current_time;
+
 	for (int i = 0; i < 2; i++)
 	{
-		bool updated_time = false;
-		float delta_time = 0;
-
 		if (arrow_timers[i] > 0)
 		{
-			if (!updated_time)
-			{
-				double current_time = Clock::GetElapsedTime();
-				delta_time = float(current_time - last_update_time);
-				last_update_time = current_time;
-			}
-
 			arrow_timers[i] -= delta_time;
 			while (arrow_timers[i] <= 0)
 			{
@@ -315,8 +313,7 @@ void WidgetScroll::FormatBar(float bar_length)
 
 		if (orientation == VERTICAL)
 		{
-			float track_length = track_size.y -
-				(bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Top) + bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Bottom));
+			float track_length = track_size.y - bar_box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Margin, BoxArea::Padding);
 
 			if (height.type == height.Auto)
 			{
@@ -336,8 +333,7 @@ void WidgetScroll::FormatBar(float bar_length)
 		}
 		else
 		{
-			float track_length = track_size.x -
-				(bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Left) + bar_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Right));
+			float track_length = track_size.x - bar_box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding);
 
 			if (width.type == width.Auto)
 			{
