@@ -1,0 +1,62 @@
+<rml>
+<head>
+	<title>Text input overflow</title>
+	<link type="text/rcss" href="../style.rcss" />
+	<link rel="help" href="https://drafts.csswg.org/css-ui/#input-rules" />
+	<link rel="fiddle" href="https://jsfiddle.net/kmouse/t3k7jurn/5/" />
+	<meta name="Description" content="Overflow behavior in text input controls." />
+	<meta name="Assert" content="Single-line text inputs should clip to their content area in the horizontal direction and padding area in the vertical direction. For simplicity, we always clip to the content area. Chrome seems to do the same, only Firefox seems to follow the specification. Text areas follow normal rules, clipping to the padding area." />
+	<meta name="Notes" content="Overflow from the text itself, here simulated using a shadow font effect, does not engage clipping by itself. This can be tricky to detect, especially during the layout stage. For small shadows, or for some glyphs that render slightly outside the content area, it might be nice to keep the current behavior so that they are not clipped. However, once the text overflows to the right, or border-radius is added, then clipping kicks in, causing the text to also clip on the left side." />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+			text-align: center;
+		}
+		input.text, textarea {
+			display: block;
+			margin: 15dp auto;
+		}
+		input.text {
+			padding: 10dp 15dp;
+			width: 150dp;
+		}
+		textarea {
+			background-color: #fff;
+			padding: 10px 16px;
+			border: 2dp #999;
+		}
+		.shadow {
+			font-effect: shadow(-30dp -10dp #f00);
+		}
+		.border-radius {
+			border-radius: 15dp;
+		}
+	</style>
+</head>
+
+<body>
+<input value="sample text" />
+
+<input class="shadow" value="sample text" />
+<input class="shadow" value="sample text overflow overflow overflow" />
+<input class="shadow border-radius" value="sample text" />
+<input class="shadow border-radius" value="sample text overflow overflow overflow" />
+
+<textarea rows="2">sample text</textarea>
+<textarea class="shadow"  rows="2">sample text</textarea>
+<textarea class="shadow border-radius"  rows="2">sample text</textarea>
+
+<textarea rows="2">sample text
+sample text
+sample text</textarea>
+
+<textarea class="shadow" rows="2">sample text
+sample text
+sample text</textarea>
+
+<textarea class="shadow" rows="2" wrap="nowrap">sample text overflow overflow overflow overflow
+sample text
+sample text</textarea>
+</body>
+</rml>
