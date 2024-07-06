@@ -47,6 +47,7 @@ using Rml::RenderManager;
 using Rml::SharedPtr;
 using Rml::SmallUnorderedMap;
 using Rml::String;
+using Rml::StringView;
 using Rml::TextShapingContext;
 using Rml::TexturedMeshList;
 using Rml::UniquePtr;
@@ -77,7 +78,7 @@ public:
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string
 	/// width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	int GetStringWidth(const String& string, const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages,
+	int GetStringWidth(StringView string, const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages,
 		Character prior_character = Character::Null);
 
 	/// Generates, if required, the layer configuration for a given list of font effects.
@@ -104,9 +105,8 @@ public:
 	/// @param[in] registered_languages A list of languages registered in the font engine interface.
 	/// @param[in] layer_configuration Face configuration index to use for generating string.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, const String& string, Vector2f position,
-		ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages,
-		int layer_configuration = 0);
+	int GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView, Vector2f position, ColourbPremultiplied colour,
+		float opacity, const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages, int layer_configuration = 0);
 
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;
@@ -136,7 +136,7 @@ private:
 	bool GenerateLayer(FontFaceLayer* layer);
 
 	// Configure internal text shaping buffer values with context.
-	void ConfigureTextShapingBuffer(struct hb_buffer_t* shaping_buffer, const String& string, const TextShapingContext& text_shaping_context,
+	void ConfigureTextShapingBuffer(struct hb_buffer_t* shaping_buffer, StringView string, const TextShapingContext& text_shaping_context,
 		const LanguageDataMap& registered_languages);
 
 	FontGlyphMap glyphs;

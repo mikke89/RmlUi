@@ -63,10 +63,10 @@ public:
 		Vector2f texture_dimensions, FontGlyphs&& glyphs, FontKerning&& kerning);
 
 	// Get width of string.
-	int GetStringWidth(const String& string, Character prior_character);
+	int GetStringWidth(StringView string, Character prior_character);
 
 	// Generate the string geometry, returning its width.
-	int GenerateString(RenderManager& render_manager, const String& string, const Vector2f& position, ColourbPremultiplied colour, TexturedMeshList& mesh_list);
+	int GenerateString(RenderManager& render_manager, StringView string, Vector2f position, ColourbPremultiplied colour, TexturedMeshList& mesh_list);
 
 	const FontMetrics& GetMetrics() const { return metrics; }
 

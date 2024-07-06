@@ -61,7 +61,7 @@ public:
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string
 	/// width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	int GetStringWidth(const String& string, float letter_spacing, Character prior_character = Character::Null);
+	int GetStringWidth(StringView string, float letter_spacing, Character prior_character = Character::Null);
 
 	/// Generates, if required, the layer configuration for a given list of font effects.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
@@ -86,8 +86,8 @@ public:
 	/// @param[in] letter_spacing The letter spacing size in pixels.
 	/// @param[in] layer_configuration Face configuration index to use for generating string.
 	/// @return The width, in pixels, of the string geometry.
-	int GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, const String& string, Vector2f position,
-		ColourbPremultiplied colour, float opacity, float letter_spacing, int layer_configuration);
+	int GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView string, Vector2f position, ColourbPremultiplied colour,
+		float opacity, float letter_spacing, int layer_configuration);
 
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;

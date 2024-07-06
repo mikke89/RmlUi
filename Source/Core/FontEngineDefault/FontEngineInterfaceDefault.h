@@ -59,12 +59,11 @@ public:
 	const FontMetrics& GetFontMetrics(FontFaceHandle handle) override;
 
 	/// Returns the width a string will take up if rendered with this handle.
-	int GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& text_shaping_context,
-		Character prior_character) override;
+	int GetStringWidth(FontFaceHandle handle, StringView string, const TextShapingContext& text_shaping_context, Character prior_character) override;
 
 	/// Generates the geometry required to render a single line of text.
-	int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle effects_handle, const String& string,
-		const Vector2f& position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
+	int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle effects_handle, StringView string,
+		Vector2f position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
 		TexturedMeshList& mesh_list) override;
 
 	/// Returns the current version of the font face.

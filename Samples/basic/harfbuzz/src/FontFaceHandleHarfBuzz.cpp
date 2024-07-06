@@ -92,7 +92,7 @@ const FontGlyphMap& FontFaceHandleHarfBuzz::GetGlyphs() const
 	return glyphs;
 }
 
-int FontFaceHandleHarfBuzz::GetStringWidth(const String& string, const TextShapingContext& text_shaping_context,
+int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingContext& text_shaping_context,
 	const LanguageDataMap& registered_languages, Character prior_character)
 {
 	int width = 0;
@@ -101,7 +101,7 @@ int FontFaceHandleHarfBuzz::GetStringWidth(const String& string, const TextShapi
 	hb_buffer_t* shaping_buffer = hb_buffer_create();
 	RMLUI_ASSERT(shaping_buffer != nullptr);
 	ConfigureTextShapingBuffer(shaping_buffer, string, text_shaping_context, registered_languages);
-	hb_buffer_add_utf8(shaping_buffer, string.c_str(), -1, 0, -1);
+	hb_buffer_add_utf8(shaping_buffer, string.begin(), (int)string.size(), 0, (int)string.size());
 	hb_shape(hb_font, shaping_buffer, nullptr, 0);
 
 	FontGlyphIndex prior_glyph_codepoint = FreeType::GetGlyphIndexFromCharacter(ft_face, prior_character);
@@ -112,7 +112,7 @@ int FontFaceHandleHarfBuzz::GetStringWidth(const String& string, const TextShapi
 	for (int g = 0; g < (int)glyph_count; ++g)
 	{
 		// Don't render control characters.
-		Character character = *Rml::StringIteratorU8(&string[glyph_info[g].cluster]);
+		Character character = Rml::StringUtilities::ToCharacter(string.begin() + glyph_info[g].cluster, string.end());
 		if (IsASCIIControlCharacter(character))
 			continue;
 
@@ -219,7 +219,7 @@ bool FontFaceHandleHarfBuzz::GenerateLayerTexture(Vector<byte>& texture_data, Ve
 	return it->layer->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs);
 }
 
-int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, const String& string, const Vector2f position,
+int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView string, const Vector2f position,
 	const ColourbPremultiplied colour, const float opacity, const TextShapingContext& text_shaping_context,
 	const LanguageDataMap& registered_languages, const int layer_configuration_index)
 {
@@ -269,7 +269,7 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 		// Set up and apply text shaping.
 		hb_buffer_clear_contents(shaping_buffer);
 		ConfigureTextShapingBuffer(shaping_buffer, string, text_shaping_context, registered_languages);
-		hb_buffer_add_utf8(shaping_buffer, string.c_str(), -1, 0, -1);
+		hb_buffer_add_utf8(shaping_buffer, string.begin(), (int)string.size(), 0, (int)string.size());
 		hb_shape(hb_font, shaping_buffer, nullptr, 0);
 
 		unsigned int glyph_count = 0;
@@ -281,7 +281,7 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 		for (int g = 0; g < (int)glyph_count; ++g)
 		{
 			// Don't render control characters.
-			Character character = *Rml::StringIteratorU8(&string[glyph_info[g].cluster]);
+			Character character = Rml::StringUtilities::ToCharacter(string.begin() + glyph_info[g].cluster, string.end());
 			if (IsASCIIControlCharacter(character))
 				continue;
 
@@ -480,7 +480,7 @@ bool FontFaceHandleHarfBuzz::GenerateLayer(FontFaceLayer* layer)
 	return result;
 }
 
-void FontFaceHandleHarfBuzz::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buffer, const String& string,
+void FontFaceHandleHarfBuzz::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buffer, StringView string,
 	const TextShapingContext& text_shaping_context, const LanguageDataMap& registered_languages)
 {
 	// Set the buffer's language based on the value of the element's 'lang' attribute.
@@ -498,7 +498,7 @@ void FontFaceHandleHarfBuzz::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buf
 		hb_unicode_funcs_t* unicode_functions = hb_unicode_funcs_get_default();
 		if (unicode_functions != nullptr && !string.empty())
 		{
-			Character first_character = *Rml::StringIteratorU8(string);
+			Character first_character = Rml::StringUtilities::ToCharacter(string.begin(), string.end());
 			script = hb_unicode_script(unicode_functions, (hb_codepoint_t)first_character);
 		}
 	}

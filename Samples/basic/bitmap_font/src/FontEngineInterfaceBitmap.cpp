@@ -74,7 +74,7 @@ const FontMetrics& FontEngineInterfaceBitmap::GetFontMetrics(FontFaceHandle hand
 	return handle_bitmap->GetMetrics();
 }
 
-int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& /*text_shaping_context*/,
+int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, StringView string, const TextShapingContext& /*text_shaping_context*/,
 	Character prior_character)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
@@ -82,8 +82,8 @@ int FontEngineInterfaceBitmap::GetStringWidth(FontFaceHandle handle, const Strin
 }
 
 int FontEngineInterfaceBitmap::GenerateString(RenderManager& render_manager, FontFaceHandle handle, FontEffectsHandle /*font_effects_handle*/,
-	const String& string, const Vector2f& position, ColourbPremultiplied colour, float /*opacity*/,
-	const TextShapingContext& /*text_shaping_context*/, TexturedMeshList& mesh_list)
+	StringView string, Vector2f position, ColourbPremultiplied colour, float /*opacity*/, const TextShapingContext& /*text_shaping_context*/,
+	TexturedMeshList& mesh_list)
 {
 	auto handle_bitmap = reinterpret_cast<FontFaceBitmap*>(handle);
 	return handle_bitmap->GenerateString(render_manager, string, position, colour, mesh_list);

@@ -99,7 +99,7 @@ public:
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string
 	/// width due to kerning.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	virtual int GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& text_shaping_context,
+	virtual int GetStringWidth(FontFaceHandle handle, StringView string, const TextShapingContext& text_shaping_context,
 		Character prior_character = Character::Null);
 
 	/// Called by RmlUi when it wants to retrieve the meshes required to render a single line of text.
@@ -113,9 +113,8 @@ public:
 	/// @param[in] text_shaping_context Additional parameters that provide context for text shaping.
 	/// @param[out] mesh_list A list to place the meshes and textures representing the string to be rendered.
 	/// @return The width, in pixels, of the string mesh.
-	virtual int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string,
-		const Vector2f& position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
-		TexturedMeshList& mesh_list);
+	virtual int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, StringView string,
+		Vector2f position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context, TexturedMeshList& mesh_list);
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated. Whenever the returned version
 	/// is changed, all geometry belonging to the given face handle will be re-generated.

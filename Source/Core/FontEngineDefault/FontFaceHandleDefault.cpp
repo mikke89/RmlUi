@@ -83,7 +83,7 @@ const FontGlyphMap& FontFaceHandleDefault::GetGlyphs() const
 	return glyphs;
 }
 
-int FontFaceHandleDefault::GetStringWidth(const String& string, float letter_spacing, Character prior_character)
+int FontFaceHandleDefault::GetStringWidth(StringView string, float letter_spacing, Character prior_character)
 {
 	RMLUI_ZoneScoped;
 
@@ -193,7 +193,7 @@ bool FontFaceHandleDefault::GenerateLayerTexture(Vector<byte>& texture_data, Vec
 	return it->layer->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs);
 }
 
-int FontFaceHandleDefault::GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, const String& string, const Vector2f position,
+int FontFaceHandleDefault::GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView string, const Vector2f position,
 	const ColourbPremultiplied colour, const float opacity, const float letter_spacing, const int layer_configuration_index)
 {
 	RMLUI_ASSERT(layer_configuration_index >= 0);

@@ -124,12 +124,11 @@ FontFaceBitmap* GetFontFaceHandle(const String& family, FontStyle style, FontWei
 
 FontFaceBitmap::FontFaceBitmap(String family, FontStyle style, FontWeight weight, FontMetrics metrics, String texture_name, String texture_path,
 	Vector2f texture_dimensions, FontGlyphs&& glyphs, FontKerning&& kerning) :
-	family(family),
-	style(style), weight(weight), metrics(metrics), texture_source(texture_name, texture_path), texture_dimensions(texture_dimensions),
-	glyphs(std::move(glyphs)), kerning(std::move(kerning))
+	family(family), style(style), weight(weight), metrics(metrics), texture_source(texture_name, texture_path),
+	texture_dimensions(texture_dimensions), glyphs(std::move(glyphs)), kerning(std::move(kerning))
 {}
 
-int FontFaceBitmap::GetStringWidth(const String& string, Character previous_character)
+int FontFaceBitmap::GetStringWidth(StringView string, Character previous_character)
 {
 	int width = 0;
 
@@ -152,7 +151,7 @@ int FontFaceBitmap::GetStringWidth(const String& string, Character previous_char
 	return width;
 }
 
-int FontFaceBitmap::GenerateString(RenderManager& render_manager, const String& string, const Vector2f& string_position, ColourbPremultiplied colour,
+int FontFaceBitmap::GenerateString(RenderManager& render_manager, StringView string, Vector2f string_position, ColourbPremultiplied colour,
 	TexturedMeshList& mesh_list)
 {
 	int width = 0;

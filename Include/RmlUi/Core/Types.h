@@ -89,6 +89,7 @@ class Transform;
 class PropertyIdSet;
 class Decorator;
 class FontEffect;
+class StringView;
 struct Animation;
 struct Transition;
 struct TransitionList;

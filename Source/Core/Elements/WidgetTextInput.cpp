@@ -1050,8 +1050,8 @@ void WidgetTextInput::SetCursorFromRelativeIndices(int cursor_line_index, int cu
 	for (int i = 0; i < cursor_line_index; i++)
 		absolute_cursor_index += lines[i].size;
 
-	// Don't wrap down if we're located at the end of the line.
-	cursor_wrap_down = !(cursor_character_index >= lines[cursor_line_index].editable_length);
+	// Only wrap down if we're not located at the end of the line.
+	cursor_wrap_down = (cursor_character_index < lines[cursor_line_index].editable_length);
 }
 
 int WidgetTextInput::CalculateLineIndex(float position) const
@@ -1063,18 +1063,16 @@ int WidgetTextInput::CalculateLineIndex(float position) const
 
 float WidgetTextInput::GetAlignmentSpecificTextOffset(const Line& line) const
 {
-	const String& value = GetValue();
-	StringView editable_line_string(value, line.value_offset, line.editable_length);
-
-	const Style::TextAlign text_align = parent->GetComputedValues().text_align();
-
 	// Callback to avoid expensive calculation in the cases where it is not needed.
-	auto RemainingWidth = [&] {
-		const float total_width = (float)ElementUtilities::GetStringWidth(text_element, String(editable_line_string));
+	auto RemainingWidth = [this](StringView editable_line_string) {
+		const float total_width = (float)ElementUtilities::GetStringWidth(text_element, editable_line_string);
 		return GetAvailableWidth() - total_width;
 	};
 
-	switch (text_align)
+	const String& value = GetValue();
+	StringView editable_line_string(value, line.value_offset, line.editable_length);
+
+	switch (parent->GetComputedValues().text_align())
 	{
 	case Style::TextAlign::Left: return 0;
 	case Style::TextAlign::Right:
@@ -1086,9 +1084,9 @@ float WidgetTextInput::GetAlignmentSpecificTextOffset(const Line& line) const
 		{
 			editable_line_string = StringView(editable_line_string.begin(), editable_line_string.end() - 1);
 		}
-		return Math::Max(0.0f, RemainingWidth());
+		return Math::Max(0.0f, RemainingWidth(editable_line_string));
 	}
-	case Style::TextAlign::Center: return Math::Max(0.0f, 0.5f * RemainingWidth());
+	case Style::TextAlign::Center: return Math::Max(0.0f, 0.5f * RemainingWidth(editable_line_string));
 	case Style::TextAlign::Justify: return 0;
 	}
 	return 0;
@@ -1103,15 +1101,16 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 
 	const Line& line = lines[line_index];
 	const char* p_begin = GetValue().data() + line.value_offset;
+	const char* p_end = p_begin + line.editable_length;
 
 	position -= GetAlignmentSpecificTextOffset(line);
 
-	for (auto it = StringIteratorU8(p_begin, p_begin, p_begin + line.editable_length); it;)
+	for (auto it = StringIteratorU8(p_begin, p_begin, p_end); it;)
 	{
 		++it;
 		const int offset = (int)it.offset();
 
-		const float line_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, (size_t)offset));
+		const float line_width = (float)ElementUtilities::GetStringWidth(text_element, StringView(p_begin, p_begin + offset));
 		if (line_width > position)
 		{
 			if (position - prev_line_width < line_width - position)
@@ -1448,7 +1447,7 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 
 	const auto& line = lines[cursor_line_index];
 	const int string_width_pre_cursor =
-		ElementUtilities::GetStringWidth(text_element, String(StringView(GetValue(), line.value_offset, cursor_character_index)));
+		ElementUtilities::GetStringWidth(text_element, StringView(GetValue(), line.value_offset, cursor_character_index));
 	const float alignment_offset = GetAlignmentSpecificTextOffset(line);
 
 	cursor_position = {

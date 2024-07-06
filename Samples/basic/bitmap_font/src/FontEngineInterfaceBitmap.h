@@ -41,6 +41,7 @@ using Rml::Character;
 using Rml::ColourbPremultiplied;
 using Rml::Span;
 using Rml::String;
+using Rml::StringView;
 using Rml::Texture;
 using Rml::Vector2f;
 using Rml::Vector2i;
@@ -79,12 +80,12 @@ public:
 	const FontMetrics& GetFontMetrics(FontFaceHandle handle) override;
 
 	/// Called by RmlUi when it wants to retrieve the width of a string when rendered with this handle.
-	int GetStringWidth(FontFaceHandle handle, const String& string, const TextShapingContext& text_shaping_context,
+	int GetStringWidth(FontFaceHandle handle, StringView string, const TextShapingContext& text_shaping_context,
 		Character prior_character = Character::Null) override;
 
 	/// Called by RmlUi when it wants to retrieve the geometry required to render a single line of text.
-	int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, const String& string,
-		const Vector2f& position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
+	int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, StringView string,
+		Vector2f position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
 		TexturedMeshList& mesh_list) override;
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated.eometry.
