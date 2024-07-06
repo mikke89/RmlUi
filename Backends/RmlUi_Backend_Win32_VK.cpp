@@ -398,8 +398,12 @@ static HWND InitializeWindow(HINSTANCE instance_handle, const std::wstring& name
 	SetWindowLong(window_handle, GWL_EXSTYLE, extended_style);
 	SetWindowLong(window_handle, GWL_STYLE, style);
 
-	// Resize the window.
-	SetWindowPos(window_handle, HWND_TOP, 0, 0, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, SWP_NOACTIVATE);
+	// Resize the window and center it on the screen.
+	Rml::Vector2i screen_size = {GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)};
+	Rml::Vector2i window_size = {int(window_rect.right - window_rect.left), int(window_rect.bottom - window_rect.top)};
+	Rml::Vector2i window_pos = Rml::Math::Max((screen_size - window_size) / 2, Rml::Vector2i(0));
+
+	SetWindowPos(window_handle, HWND_TOP, window_pos.x, window_pos.y, window_size.x, window_size.y, SWP_NOACTIVATE);
 
 	return window_handle;
 }
