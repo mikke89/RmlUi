@@ -1217,13 +1217,16 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 	// Determine the line-height of the text element.
 	const float line_height = parent->GetLineHeight();
-	const float font_baseline = font_metrics.ascent;
+
+	const float half_leading = 0.5f * (line_height - (font_metrics.ascent + font_metrics.descent));
+	const float top_to_baseline = font_metrics.ascent + half_leading;
+
 	// When the selection contains endlines, we expand the selection area by this width.
 	const int endline_font_width = int(0.4f * parent->GetComputedValues().font_size());
 
 	const float client_width = parent->GetClientWidth();
 	int line_begin = 0;
-	Vector2f line_position(0, font_baseline);
+	Vector2f line_position = {0, top_to_baseline};
 	bool last_line = false;
 
 	auto text_align = GetElement()->GetComputedValues().text_align();
@@ -1374,7 +1377,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 
 		// Grow the content area width-wise if this line is the longest so far, and push the height out.
 		content_area.x = Math::Max(content_area.x, line_width + cursor_size.x);
-		content_area.y = line_position.y - font_baseline;
+		content_area.y = line_position.y - top_to_baseline;
 
 		// Finally, push the new line into our array of lines.
 		lines.push_back(std::move(line));
@@ -1388,7 +1391,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	Mesh selection_mesh = selection_geometry.Release(Geometry::ReleaseMode::ClearMesh);
 
 	// Transform segments according to text alignment
-	for (auto& it : segments)
+	for (Segment& it : segments)
 	{
 		const auto& line = lines[it.line_index];
 		const char* p_begin = GetValue().data() + line.value_offset;
@@ -1401,7 +1404,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + lines[it.line_index].editable_length);
 			const Vector2f selection_size(float(it.width + (selection_contains_endline ? endline_font_width : 0)), line_height);
 
-			MeshUtilities::GenerateQuad(selection_mesh, it.position - Vector2f(0, font_baseline), selection_size, selection_colour);
+			MeshUtilities::GenerateQuad(selection_mesh, it.position - Vector2f(0, top_to_baseline), selection_size, selection_colour);
 
 			selected_text_element->AddLine(it.position, it.content);
 		}
