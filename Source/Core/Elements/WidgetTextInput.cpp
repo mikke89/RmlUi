@@ -50,7 +50,8 @@
 
 namespace Rml {
 
-static constexpr float CURSOR_BLINK_TIME = 0.7f;
+static constexpr float CURSOR_BLINK_TIME = 0.7f;  // [s]
+static constexpr float OVERFLOW_TOLERANCE = 0.5f; // [px]
 
 enum class CharacterClass { Word, Punctuation, Newline, Whitespace, Undefined };
 static CharacterClass GetCharacterClass(char c)
@@ -1183,16 +1184,16 @@ void WidgetTextInput::FormatElement()
 	Vector2f content_area = FormatText(formatting_height_constraint);
 
 	// If we're set to automatically generate horizontal scrollbars, check for that now.
-	if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
+	if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth() + OVERFLOW_TOLERANCE)
 		scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 
 	// Now check for vertical overflow. If we do turn on the scrollbar, this will cause a reflow.
-	if (y_overflow_property == Overflow::Auto && content_area.y > parent->GetClientHeight())
+	if (y_overflow_property == Overflow::Auto && content_area.y > parent->GetClientHeight() + OVERFLOW_TOLERANCE)
 	{
 		scroll->EnableScrollbar(ElementScroll::VERTICAL, width);
 		content_area = FormatText();
 
-		if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth())
+		if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth() + OVERFLOW_TOLERANCE)
 			scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 	}
 
@@ -1382,7 +1383,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		// Finally, push the new line into our array of lines.
 		lines.push_back(std::move(line));
 
-	} while (!last_line && content_area.y <= height_constraint);
+	} while (!last_line && content_area.y <= height_constraint + OVERFLOW_TOLERANCE);
 
 	// Clamp the cursor to a valid range.
 	absolute_cursor_index = Math::Min(absolute_cursor_index, (int)GetValue().size());
