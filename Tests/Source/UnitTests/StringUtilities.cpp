@@ -148,3 +148,36 @@ TEST_CASE("StringUtilities::ConvertCharacterOffsetToByteOffset")
 	CHECK(ConvertCharacterOffsetToByteOffset("a\xE2\x82\xAC" "b", 4) == 5);
 	// clang-format on
 }
+
+TEST_CASE("CreateString")
+{
+	CHECK(Rml::CreateString(0, "Hello %s!", "world") == "Hello world!");
+	CHECK(Rml::CreateString(0, "%g, %d, %.2f", 0.5f, 5, 2.f) == "0.5, 5, 2.00");
+
+	constexpr int InternalBufferSize = 256;
+	for (int string_size : {InternalBufferSize - 1, InternalBufferSize, InternalBufferSize + 1})
+	{
+		Rml::String large_string(string_size, 'x');
+		CHECK(Rml::CreateString(0, "%s", large_string.c_str()) == large_string);
+	}
+}
+
+TEST_CASE("FormatString")
+{
+	{
+		Rml::String result;
+		int length = Rml::FormatString(result, 0, "Hello %s!", "world");
+		CHECK(result == "Hello world!");
+		CHECK(length == 12);
+	}
+
+	constexpr int InternalBufferSize = 256;
+	for (int string_size : {InternalBufferSize - 1, InternalBufferSize, InternalBufferSize + 1})
+	{
+		const Rml::String large_string(string_size, 'x');
+		Rml::String result;
+		int length = Rml::FormatString(result, 0, "%s", large_string.c_str());
+		CHECK(result == large_string);
+		CHECK(length == string_size);
+	}
+}
