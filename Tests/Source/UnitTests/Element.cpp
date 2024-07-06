@@ -314,7 +314,7 @@ TEST_CASE("Element.ScrollIntoView")
 	{
 		for (int j = 0; j < 4; ++j)
 		{
-			cells[i][j] = document->GetElementById(CreateString(8, "cell%d%d", i, j));
+			cells[i][j] = document->GetElementById(CreateString("cell%d%d", i, j));
 			REQUIRE(cells[i][j]);
 		}
 	}

@@ -93,7 +93,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	SDL_RendererInfo renderer_info;
 	if (SDL_GetRendererInfo(renderer, &renderer_info) == 0)
 	{
-		data->system_interface.LogMessage(Rml::Log::LT_INFO, Rml::CreateString(128, "Using SDL renderer: %s\n", renderer_info.name));
+		data->system_interface.LogMessage(Rml::Log::LT_INFO, Rml::CreateString("Using SDL renderer: %s\n", renderer_info.name));
 	}
 
 	return true;

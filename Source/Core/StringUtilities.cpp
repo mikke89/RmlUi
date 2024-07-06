@@ -76,7 +76,7 @@ static int FormatString(String& string, const char* format, va_list argument_lis
 	return length;
 }
 
-int FormatString(String& string, size_t /*max_size*/, const char* format, ...)
+int FormatString(String& string, const char* format, ...)
 {
 	va_list argument_list;
 	va_start(argument_list, format);
@@ -84,7 +84,7 @@ int FormatString(String& string, size_t /*max_size*/, const char* format, ...)
 	va_end(argument_list);
 	return result;
 }
-String CreateString(size_t /*max_size*/, const char* format, ...)
+String CreateString(const char* format, ...)
 {
 	String result;
 	va_list argument_list;

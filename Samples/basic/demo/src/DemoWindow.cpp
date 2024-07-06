@@ -150,8 +150,8 @@ void DemoWindow::Update()
 		float value_mapped = value_begin + value_gauge * (value_end - value_begin);
 		gauge->SetAttribute("value", value_mapped);
 
-		auto value_gauge_str = CreateString(10, "%d %%", Math::RoundToInteger(value_gauge * 100.f));
-		auto value_horizontal_str = CreateString(10, "%d %%", Math::RoundToInteger(value_horizontal * 100.f));
+		auto value_gauge_str = CreateString("%d %%", Math::RoundToInteger(value_gauge * 100.f));
+		auto value_horizontal_str = CreateString("%d %%", Math::RoundToInteger(value_horizontal * 100.f));
 
 		if (auto el_value = document->GetElementById("gauge_value"))
 			el_value->SetInnerRML(value_gauge_str);

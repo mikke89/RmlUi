@@ -510,7 +510,7 @@ void TestNavigator::StopTestSuiteIteration()
 				not_equal.push_back(i);
 		}
 
-		Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d\n  Equal: %d", num_tests,
+		Rml::String summary = Rml::CreateString("  Total tests: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d\n  Equal: %d", num_tests,
 			(int)not_equal.size(), (int)failed.size(), (int)skipped.size(), (int)equal.size());
 
 		if (!suite.GetFilter().empty())
@@ -541,7 +541,7 @@ void TestNavigator::StopTestSuiteIteration()
 		for (int i : not_equal)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(512, "%5d   %5.1f%%  %4d   %s\n", i + 1, comparison_results[i].similarity_score * 100.0,
+			log += Rml::CreateString("%5d   %5.1f%%  %4d   %s\n", i + 1, comparison_results[i].similarity_score * 100.0,
 				(int)comparison_results[i].max_absolute_difference_single_pixel, suite.GetFilename().c_str());
 			if (!comparison_results[i].error_msg.empty())
 				log += "          " + comparison_results[i].error_msg + "\n";
@@ -550,26 +550,26 @@ void TestNavigator::StopTestSuiteIteration()
 		for (int i : failed)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(512, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
 			log += "          " + comparison_results[i].error_msg + "\n";
 		}
 		log += "\nSkipped:\n";
 		for (int i : skipped)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(512, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
 		log += "\nEqual:\n";
 		for (int i : equal)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(512, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
 		log += "\nEqual:\n";
 		for (int i : equal)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
 
 		const Rml::String log_path = GetCaptureOutputDirectory() + "/comparison.log";
@@ -597,7 +597,7 @@ void TestNavigator::UpdateGoToText(bool out_of_bounds)
 	if (out_of_bounds)
 		viewer->SetGoToText("Go To out of bounds");
 	else if (goto_index > 0)
-		viewer->SetGoToText(Rml::CreateString(64, "Go To: %d", goto_index));
+		viewer->SetGoToText(Rml::CreateString("Go To: %d", goto_index));
 	else if (goto_index == 0)
 		viewer->SetGoToText("Go To:");
 	else if (iteration_state == IterationState::Capture)
@@ -605,7 +605,7 @@ void TestNavigator::UpdateGoToText(bool out_of_bounds)
 	else if (iteration_state == IterationState::Comparison)
 		viewer->SetGoToText("Comparing all tests");
 	else if (reference_state == ReferenceState::ShowReference)
-		viewer->SetGoToText(Rml::CreateString(100, "Showing reference capture (%.1f%% similar)", reference_comparison.similarity_score * 100.));
+		viewer->SetGoToText(Rml::CreateString("Showing reference capture (%.1f%% similar)", reference_comparison.similarity_score * 100.));
 	else if (reference_state == ReferenceState::ShowReferenceHighlight)
 		viewer->SetGoToText("Showing reference capture (highlight differences)");
 	else

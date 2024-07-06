@@ -27,13 +27,13 @@
  */
 
 #include "../Common/TestsShell.h"
-#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ComputedValues.h>
+#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/StyleTypes.h>
 #include <RmlUi/Core/StringUtilities.h>
+#include <RmlUi/Core/StyleTypes.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -68,7 +68,7 @@ TEST_CASE("Localization")
 	Element* cells[4]{};
 	for (int i = 0; i < 4; ++i)
 	{
-		cells[i] = document->GetElementById(CreateString(8, "cell%d", i));
+		cells[i] = document->GetElementById(CreateString("cell%d", i));
 		REQUIRE(cells[i]);
 	}
 

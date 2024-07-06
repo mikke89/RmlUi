@@ -176,7 +176,7 @@ void HighScores::SaveScores()
 			Rml::String colour_string;
 			Rml::TypeConverter<Rml::Colourb, Rml::String>::Convert(score.colour, colour_string);
 
-			Rml::String score_str = Rml::CreateString(1024, "%s\t%s\t%d\t%d\n", score.name.c_str(), colour_string.c_str(), score.wave, score.score);
+			Rml::String score_str = Rml::CreateString("%s\t%s\t%d\t%d\n", score.name.c_str(), colour_string.c_str(), score.wave, score.score);
 			fputs(score_str.c_str(), scores_file);
 		}
 

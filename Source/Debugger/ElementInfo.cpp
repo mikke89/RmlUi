@@ -448,13 +448,13 @@ void ElementInfo::UpdateSourceElement()
 					name = "id";
 					value = source_element->GetId();
 					if (!value.empty())
-						attributes += CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+						attributes += CreateString("%s: <em>%s</em><br />", name.c_str(), value.c_str());
 				}
 				{
 					name = "class";
 					value = source_element->GetClassNames();
 					if (!value.empty())
-						attributes += CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+						attributes += CreateString("%s: <em>%s</em><br />", name.c_str(), value.c_str());
 				}
 			}
 
@@ -464,14 +464,14 @@ void ElementInfo::UpdateSourceElement()
 				auto& variant = pair.second;
 				String value = StringUtilities::EncodeRml(variant.Get<String>());
 				if (name != "class" && name != "style" && name != "id")
-					attributes += CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+					attributes += CreateString("%s: <em>%s</em><br />", name.c_str(), value.c_str());
 			}
 
 			// Text is not an attribute but useful nonetheless
 			if (auto text_element = rmlui_dynamic_cast<ElementText*>(source_element))
 			{
 				const String& text_content = text_element->GetText();
-				attributes += CreateString(text_content.size() + 32, "Text: <em>%s</em><br />", text_content.c_str());
+				attributes += CreateString("Text: <em>%s</em><br />", text_content.c_str());
 			}
 		}
 
@@ -548,7 +548,7 @@ void ElementInfo::UpdateSourceElement()
 					ToString(box.GetEdge(BoxArea::Padding, edge1));
 				const String edge2_str = ToString(box.GetEdge(BoxArea::Padding, edge2)) + "|" + ToString(box.GetEdge(BoxArea::Border, edge2)) + "|" +
 					ToString(box.GetEdge(BoxArea::Margin, edge2));
-				return CreateString(256, "%s &lt;%s&gt; %s", edge1_str.c_str(), ToString(content_size).c_str(), edge2_str.c_str());
+				return CreateString("%s &lt;%s&gt; %s", edge1_str.c_str(), ToString(content_size).c_str(), edge2_str.c_str());
 			};
 
 			position = "<span class='name'>left: </span><em>" + ToString(element_offset.x) + "px</em><br/>" +                                 //
@@ -579,7 +579,7 @@ void ElementInfo::UpdateSourceElement()
 		while (element_ancestor)
 		{
 			String ancestor_name = element_ancestor->GetAddress(false, false);
-			ancestors += CreateString(ancestor_name.size() + 32, "<p id=\"a %d\">%s</p>", ancestor_depth, ancestor_name.c_str());
+			ancestors += CreateString("<p id=\"a %d\">%s</p>", ancestor_depth, ancestor_name.c_str());
 			element_ancestor = element_ancestor->GetParentNode();
 			ancestor_depth++;
 		}
@@ -620,7 +620,7 @@ void ElementInfo::UpdateSourceElement()
 
 				const char* non_dom_string = (i >= num_dom_children ? " class=\"non_dom\"" : "");
 
-				children += CreateString(child_name.size() + 40, "<p id=\"c %d\"%s>%s</p>", i, non_dom_string, child_name.c_str());
+				children += CreateString("<p id=\"c %d\"%s>%s</p>", i, non_dom_string, child_name.c_str());
 			}
 		}
 

@@ -56,10 +56,10 @@ static Rml::String FormatByteSize(VkDeviceSize size) noexcept
 {
 	constexpr VkDeviceSize K = VkDeviceSize(1024);
 	if (size < K)
-		return Rml::CreateString(32, "%zu B", size);
+		return Rml::CreateString("%zu B", size);
 	else if (size < K * K)
-		return Rml::CreateString(32, "%g KB", double(size) / double(K));
-	return Rml::CreateString(32, "%g MB", double(size) / double(K * K));
+		return Rml::CreateString("%g KB", double(size) / double(K));
+	return Rml::CreateString("%g MB", double(size) / double(K * K));
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severityFlags,

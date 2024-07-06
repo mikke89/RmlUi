@@ -42,10 +42,10 @@ namespace Rml {
 class StringView;
 
 /// Construct a string using sprintf-style syntax.
-RMLUICORE_API String CreateString(size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(2, 3);
+RMLUICORE_API String CreateString(const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(1, 2);
 
 /// Format to a string using sprintf-style syntax.
-RMLUICORE_API int FormatString(String& string, size_t max_size, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(3, 4);
+RMLUICORE_API int FormatString(String& string, const char* format, ...) RMLUI_ATTRIBUTE_FORMAT_PRINTF(2, 3);
 
 namespace StringUtilities {
 	/// Expands character-delimited list of values in a single string to a whitespace-trimmed list
@@ -80,9 +80,9 @@ namespace StringUtilities {
 	/// Decode RML characters, eg. '&lt;' to '<'
 	RMLUICORE_API String DecodeRml(const String& string);
 
-	// Replaces all occurences of 'search' in 'subject' with 'replace'.
+	// Replaces all occurrences of 'search' in 'subject' with 'replace'.
 	RMLUICORE_API String Replace(String subject, const String& search, const String& replace);
-	// Replaces all occurences of 'search' in 'subject' with 'replace'.
+	// Replaces all occurrences of 'search' in 'subject' with 'replace'.
 	RMLUICORE_API String Replace(String subject, char search, char replace);
 
 	/// Checks if a given value is a whitespace character.

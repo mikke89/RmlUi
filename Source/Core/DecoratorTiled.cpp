@@ -168,17 +168,17 @@ void DecoratorTiled::Tile::GenerateGeometry(Mesh& mesh, const ComputedValues& co
 	case REPEAT:
 		final_tile_dimensions = surface_dimensions;
 		repeat_factor = surface_dimensions / tile_dimensions;
-	break;
+		break;
 	case REPEAT_X:
 		final_tile_dimensions = Vector2f(surface_dimensions.x, tile_dimensions.y);
 		repeat_factor.x = surface_dimensions.x / tile_dimensions.x;
 		offset_and_clip_tile = true;
-	break;
+		break;
 	case REPEAT_Y:
 		final_tile_dimensions = Vector2f(tile_dimensions.x, surface_dimensions.y);
 		repeat_factor.y = surface_dimensions.y / tile_dimensions.y;
 		offset_and_clip_tile = true;
-	break;
+		break;
 	}
 
 	Vector2f tile_offset(0, 0);
@@ -249,32 +249,32 @@ void DecoratorTiledInstancer::RegisterTileProperty(const String& name, bool regi
 {
 	TilePropertyIds ids = {};
 
-	ids.src = RegisterProperty(CreateString(32, "%s-src", name.c_str()), "").AddParser("string").GetId();
+	ids.src = RegisterProperty(CreateString("%s-src", name.c_str()), "").AddParser("string").GetId();
 
 	String additional_modes;
 
 	if (register_fit_modes)
 	{
-		String fit_name = CreateString(32, "%s-fit", name.c_str());
+		String fit_name = CreateString("%s-fit", name.c_str());
 		ids.fit = RegisterProperty(fit_name, "fill")
 					  .AddParser("keyword", "fill, contain, cover, scale-none, scale-down, repeat, repeat-x, repeat-y")
 					  .GetId();
 
-		String align_x_name = CreateString(32, "%s-align-x", name.c_str());
+		String align_x_name = CreateString("%s-align-x", name.c_str());
 		ids.align_x = RegisterProperty(align_x_name, "center").AddParser("keyword", "left, center, right").AddParser("length_percent").GetId();
 
-		String align_y_name = CreateString(32, "%s-align-y", name.c_str());
+		String align_y_name = CreateString("%s-align-y", name.c_str());
 		ids.align_y = RegisterProperty(align_y_name, "center").AddParser("keyword", "top, center, bottom").AddParser("length_percent").GetId();
 
 		additional_modes += ", " + fit_name + ", " + align_x_name + ", " + align_y_name;
 	}
 
-	ids.orientation = RegisterProperty(CreateString(32, "%s-orientation", name.c_str()), "none")
+	ids.orientation = RegisterProperty(CreateString("%s-orientation", name.c_str()), "none")
 						  .AddParser("keyword", "none, flip-horizontal, flip-vertical, rotate-180")
 						  .GetId();
 
 	RegisterShorthand(name,
-		CreateString(256, ("%s-src, %s-orientation" + additional_modes).c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(),
+		CreateString(("%s-src, %s-orientation" + additional_modes).c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(), name.c_str(),
 			name.c_str()),
 		ShorthandType::FallThrough);
 

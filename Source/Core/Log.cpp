@@ -82,7 +82,7 @@ void Log::ParseError(const String& filename, int line_number, const char* fmt, .
 
 bool Assert(const char* msg, const char* file, int line)
 {
-	String message = CreateString(1024, "%s\n%s:%d", msg, file, line);
+	String message = CreateString("%s\n%s:%d", msg, file, line);
 
 	bool result = true;
 	if (SystemInterface* system_interface = GetSystemInterface())

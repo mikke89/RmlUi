@@ -268,7 +268,7 @@ String GetFontFaceDescription(const String& font_family, Style::FontStyle style,
 	else
 		font_attributes.resize(font_attributes.size() - 2);
 
-	return CreateString(font_attributes.size() + font_family.size() + 8, "'%s' [%s]", font_family.c_str(), font_attributes.c_str());
+	return CreateString("'%s' [%s]", font_family.c_str(), font_attributes.c_str());
 }
 
 } // namespace Rml

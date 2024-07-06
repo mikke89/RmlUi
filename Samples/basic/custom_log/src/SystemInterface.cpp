@@ -69,7 +69,7 @@ bool SystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message
 #ifdef RMLUI_PLATFORM_WIN32
 		if (type == Rml::Log::LT_ASSERT)
 		{
-			Rml::String assert_message = Rml::CreateString(1024, "%s\nWould you like to interrupt execution?", message.c_str());
+			Rml::String assert_message = Rml::CreateString("%s\nWould you like to interrupt execution?", message.c_str());
 
 			// Return TRUE if the user presses NO (continue execution)
 			return MessageBoxA(nullptr, assert_message.c_str(), "Assertion Failure", MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDNO;

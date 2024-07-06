@@ -217,8 +217,8 @@ TEST_CASE("animation.decorator")
 			const double t_final = 0.1;
 
 			system_interface->SetTime(0.0);
-			String document_rml = Rml::CreateString(document_decorator_rml.size() + 512, document_decorator_rml.c_str(), test.from_rule.c_str(),
-				test.to_rule.c_str(), property_str, test.from.c_str(), property_str, test.to.c_str());
+			String document_rml = Rml::CreateString(document_decorator_rml.c_str(), test.from_rule.c_str(), test.to_rule.c_str(), property_str,
+				test.from.c_str(), property_str, test.to.c_str());
 
 			ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
 			Element* element = document->GetChild(0);
@@ -343,8 +343,7 @@ TEST_CASE("animation.filter")
 			const double t_final = 0.1;
 
 			system_interface->SetTime(0.0);
-			String document_rml = Rml::CreateString(document_filter_rml.size() + 512, document_filter_rml.c_str(), property_str, test.from.c_str(),
-				property_str, test.to.c_str());
+			String document_rml = Rml::CreateString(document_filter_rml.c_str(), property_str, test.from.c_str(), property_str, test.to.c_str());
 
 			ElementDocument* document = context->LoadDocumentFromMemory(document_rml, "assets/");
 			Element* element = document->GetChild(0);

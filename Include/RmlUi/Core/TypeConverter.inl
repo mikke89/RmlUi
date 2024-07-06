@@ -313,7 +313,7 @@ STRING_VECTOR_CONVERTER(Colourf, float, 4);
 	public:                                                \
 		static bool Convert(const type& src, String& dest) \
 		{                                                  \
-			if (FormatString(dest, 32, "%.3f", src) == 0)  \
+			if (FormatString(dest, "%.3f", src) == 0)      \
 				return false;                              \
 			StringUtilities::TrimTrailingDotZeros(dest);   \
 			return true;                                   \
@@ -325,43 +325,43 @@ FLOAT_STRING_CONVERTER(double);
 template <>
 class TypeConverter<int, String> {
 public:
-	static bool Convert(const int& src, String& dest) { return FormatString(dest, 32, "%d", src) > 0; }
+	static bool Convert(const int& src, String& dest) { return FormatString(dest, "%d", src) > 0; }
 };
 
 template <>
 class TypeConverter<unsigned int, String> {
 public:
-	static bool Convert(const unsigned int& src, String& dest) { return FormatString(dest, 32, "%u", src) > 0; }
+	static bool Convert(const unsigned int& src, String& dest) { return FormatString(dest, "%u", src) > 0; }
 };
 
 template <>
 class TypeConverter<long, String> {
 public:
-	static bool Convert(const long& src, String& dest) { return FormatString(dest, 32, "%ld", src) > 0; }
+	static bool Convert(const long& src, String& dest) { return FormatString(dest, "%ld", src) > 0; }
 };
 
 template <>
 class TypeConverter<unsigned long, String> {
 public:
-	static bool Convert(const unsigned long& src, String& dest) { return FormatString(dest, 32, "%lu", src) > 0; }
+	static bool Convert(const unsigned long& src, String& dest) { return FormatString(dest, "%lu", src) > 0; }
 };
 
 template <>
 class TypeConverter<long long, String> {
 public:
-	static bool Convert(const long long& src, String& dest) { return FormatString(dest, 32, "%lld", src) > 0; }
+	static bool Convert(const long long& src, String& dest) { return FormatString(dest, "%lld", src) > 0; }
 };
 
 template <>
 class TypeConverter<unsigned long long, String> {
 public:
-	static bool Convert(const unsigned long long& src, String& dest) { return FormatString(dest, 32, "%llu", src) > 0; }
+	static bool Convert(const unsigned long long& src, String& dest) { return FormatString(dest, "%llu", src) > 0; }
 };
 
 template <>
 class TypeConverter<byte, String> {
 public:
-	static bool Convert(const byte& src, String& dest) { return FormatString(dest, 32, "%hhu", src) > 0; }
+	static bool Convert(const byte& src, String& dest) { return FormatString(dest, "%hhu", src) > 0; }
 };
 
 template <>
@@ -387,19 +387,19 @@ public:
 template <>
 class TypeConverter<void*, String> {
 public:
-	static bool Convert(void* const& src, String& dest) { return FormatString(dest, 32, "%p", src) > 0; }
+	static bool Convert(void* const& src, String& dest) { return FormatString(dest, "%p", src) > 0; }
 };
 
 template <>
 class TypeConverter<ScriptInterface*, String> {
 public:
-	static bool Convert(ScriptInterface* const& src, String& dest) { return FormatString(dest, 32, "%p", static_cast<void*>(src)) > 0; }
+	static bool Convert(ScriptInterface* const& src, String& dest) { return FormatString(dest, "%p", static_cast<void*>(src)) > 0; }
 };
 
 template <>
 class TypeConverter<char, String> {
 public:
-	static bool Convert(const char& src, String& dest) { return FormatString(dest, 32, "%c", src) > 0; }
+	static bool Convert(const char& src, String& dest) { return FormatString(dest, "%c", src) > 0; }
 };
 
 template <typename SourceType, typename InternalType, int count>

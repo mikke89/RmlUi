@@ -295,9 +295,9 @@ bool TypeConverter<BoxShadowList, String>::Convert(const BoxShadowList& src, Str
 bool TypeConverter<Colourb, String>::Convert(const Colourb& src, String& dest)
 {
 	if (src.alpha == 255)
-		return FormatString(dest, 32, "#%02hhx%02hhx%02hhx", src.red, src.green, src.blue) > 0;
+		return FormatString(dest, "#%02hhx%02hhx%02hhx", src.red, src.green, src.blue) > 0;
 	else
-		return FormatString(dest, 32, "#%02hhx%02hhx%02hhx%02hhx", src.red, src.green, src.blue, src.alpha) > 0;
+		return FormatString(dest, "#%02hhx%02hhx%02hhx%02hhx", src.red, src.green, src.blue, src.alpha) > 0;
 }
 
 bool TypeConverter<String, Colourb>::Convert(const String& src, Colourb& dest)

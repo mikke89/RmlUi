@@ -119,7 +119,7 @@ void DemoEventListener::ProcessEvent(Rml::Event& event)
 		demo_window->SetTweeningParameters(tweening_parameters);
 
 		if (auto el_duration = element->GetElementById("duration"))
-			el_duration->SetInnerRML(CreateString(20, "%2.2f", value));
+			el_duration->SetInnerRML(CreateString("%2.2f", value));
 	}
 	else if (value == "rating")
 	{
@@ -144,7 +144,7 @@ void DemoEventListener::ProcessEvent(Rml::Event& event)
 			else
 				emoji = emojis[Champion];
 
-			el_rating->SetInnerRML(Rml::CreateString(30, "%d%%", value));
+			el_rating->SetInnerRML(Rml::CreateString("%d%%", value));
 			el_rating_emoji->SetInnerRML(emoji);
 		}
 	}

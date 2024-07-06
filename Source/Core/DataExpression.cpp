@@ -168,9 +168,9 @@ public:
 	{
 		const char c = Look();
 		if (c == '\0')
-			Error(CreateString(expected_symbols.size() + 50, "Expected %s but found end of string.", expected_symbols.c_str()));
+			Error(CreateString("Expected %s but found end of string.", expected_symbols.c_str()));
 		else
-			Error(CreateString(expected_symbols.size() + 50, "Expected %s but found character '%c'.", expected_symbols.c_str(), c));
+			Error(CreateString("Expected %s but found character '%c'.", expected_symbols.c_str(), c));
 	}
 	void Expected(char expected) { Expected(String(1, '\'') + expected + '\''); }
 
@@ -194,12 +194,12 @@ public:
 		if (!reached_end)
 		{
 			parse_error = true;
-			Error(CreateString(50, "Unexpected character '%c' encountered.", Look()));
+			Error(CreateString("Unexpected character '%c' encountered.", Look()));
 		}
 		if (!parse_error && program_stack_size != 0)
 		{
 			parse_error = true;
-			Error(CreateString(120, "Internal parser error, inconsistent stack operations. Stack size is %d at parse end.", program_stack_size));
+			Error(CreateString("Internal parser error, inconsistent stack operations. Stack size is %d at parse end.", program_stack_size));
 		}
 
 		return !parse_error;
@@ -246,7 +246,7 @@ public:
 		RMLUI_ASSERT(num_arguments >= 0);
 		if (program_stack_size < num_arguments)
 		{
-			Error(CreateString(128, "Internal parser error: Popping %d arguments, but the stack contains only %d elements.", num_arguments,
+			Error(CreateString("Internal parser error: Popping %d arguments, but the stack contains only %d elements.", num_arguments,
 				program_stack_size));
 			return;
 		}
@@ -284,7 +284,7 @@ private:
 		DataAddress address = expression_interface.ParseAddress(name);
 		if (address.empty())
 		{
-			Error(CreateString(name.size() + 50, "Could not find data variable with name '%s'.", name.c_str()));
+			Error(CreateString("Could not find data variable with name '%s'.", name.c_str()));
 			return;
 		}
 		int index = int(variable_addresses.size());
@@ -401,7 +401,7 @@ namespace Parse {
 		if (!first_match)
 		{
 			if (!silent)
-				parser.Error(CreateString(100, "Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
+				parser.Error(CreateString("Invalid number literal. Expected '0-9' or '.' but found '%c'.", c));
 
 			return String();
 		}
@@ -907,7 +907,7 @@ static String DumpProgram(const Program& program)
 	for (size_t i = 0; i < program.size(); i++)
 	{
 		String instruction_str = program[i].data.Get<String>();
-		str += CreateString(50 + instruction_str.size(), "  %4zu  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
+		str += CreateString("  %4zu  '%c'  %s\n", i, char(program[i].instruction), instruction_str.c_str());
 	}
 	return str;
 }
@@ -986,7 +986,7 @@ private:
 			case Register::L:  L = stack.back(); stack.pop_back(); break;
 			case Register::C:  C = stack.back(); stack.pop_back(); break;
 				// clang-format on
-			default: return Error(CreateString(50, "Invalid register %d.", int(reg)));
+			default: return Error(CreateString("Invalid register %d.", int(reg)));
 			}
 		}
 		break;
@@ -1080,9 +1080,9 @@ private:
 					if (i < arguments.size() - 1)
 						arguments_str += ", ";
 				}
-				return Error(CreateString(60 + function_name.size() + arguments_str.size(), "Failed to execute %s: %s(%s)",
-					instruction == Instruction::TransformFnc ? "transform function" : "event callback", function_name.c_str(),
-					arguments_str.c_str()));
+				return Error(
+					CreateString("Failed to execute %s: %s(%s)", instruction == Instruction::TransformFnc ? "transform function" : "event callback",
+						function_name.c_str(), arguments_str.c_str()));
 			}
 		}
 		break;
@@ -1118,7 +1118,7 @@ private:
 		if (num_arguments < 0)
 			return Error("Invalid number of arguments.");
 		if (stack.size() < size_t(num_arguments))
-			return Error(CreateString(100, "Cannot pop %d arguments, stack contains only %zu elements.", num_arguments, stack.size()));
+			return Error(CreateString("Cannot pop %d arguments, stack contains only %zu elements.", num_arguments, stack.size()));
 
 		const auto it_stack_begin_arguments = stack.end() - num_arguments;
 		out_arguments.insert(out_arguments.end(), std::make_move_iterator(it_stack_begin_arguments), std::make_move_iterator(stack.end()));
