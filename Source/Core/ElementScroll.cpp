@@ -191,10 +191,12 @@ void ElementScroll::FormatScrollbars()
 		CreateCorner();
 
 		Box corner_box;
+		LayoutDetails::BuildBox(corner_box, Vector2f(containing_block.x), corner);
+
 		corner_box.SetContent(Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size));
 		corner->SetBox(corner_box);
 		corner->SetOffset(containing_block + element_box.GetPosition(BoxArea::Padding) -
-				Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size),
+				Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size) - corner_box.GetPosition(BoxArea::Margin),
 			element, true);
 
 		corner->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
