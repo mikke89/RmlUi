@@ -87,6 +87,7 @@ int FontFaceHandleDefault::GetStringWidth(const String& string, float letter_spa
 {
 	RMLUI_ZoneScoped;
 
+	bool has_set_size = false;
 	int width = 0;
 	for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
 	{
@@ -97,7 +98,7 @@ int FontFaceHandleDefault::GetStringWidth(const String& string, float letter_spa
 			continue;
 
 		// Adjust the cursor for the kerning between this character and the previous one.
-		width += GetKerning(prior_character, character);
+		width += GetKerning(prior_character, character, has_set_size);
 
 		// Adjust the cursor for this character's advance.
 		width += glyph->advance;
@@ -195,11 +196,12 @@ bool FontFaceHandleDefault::GenerateLayerTexture(Vector<byte>& texture_data, Vec
 int FontFaceHandleDefault::GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, const String& string, const Vector2f position,
 	const ColourbPremultiplied colour, const float opacity, const float letter_spacing, const int layer_configuration_index)
 {
-	int geometry_index = 0;
-	int line_width = 0;
-
 	RMLUI_ASSERT(layer_configuration_index >= 0);
 	RMLUI_ASSERT(layer_configuration_index < (int)layer_configurations.size());
+
+	int geometry_index = 0;
+	int line_width = 0;
+	bool has_set_size = false;
 
 	UpdateLayersOnDirty();
 
@@ -247,7 +249,7 @@ int FontFaceHandleDefault::GenerateString(RenderManager& render_manager, Texture
 				continue;
 
 			// Adjust the cursor for the kerning between this character and the previous one.
-			line_width += GetKerning(prior_character, character);
+			line_width += GetKerning(prior_character, character, has_set_size);
 
 			ColourbPremultiplied glyph_color = layer_colour;
 			// Use white vertex colors on RGB glyphs.
@@ -323,11 +325,11 @@ void FontFaceHandleDefault::FillKerningPairCache()
 	}
 }
 
-int FontFaceHandleDefault::GetKerning(Character lhs, Character rhs) const
+int FontFaceHandleDefault::GetKerning(Character lhs, Character rhs, bool& has_set_size) const
 {
 	static_assert(' ' == 32, "Only ASCII/UTF8 character set supported.");
 
-	// Check if we have no kerning, or if we are have a control character.
+	// Check if we have no kerning, or if we have a control character.
 	if (!has_kerning || char32_t(lhs) < ' ' || char32_t(rhs) < ' ')
 		return 0;
 
@@ -348,7 +350,11 @@ int FontFaceHandleDefault::GetKerning(Character lhs, Character rhs) const
 	}
 
 	// Fetch it from the font face instead.
-	const int result = FreeType::GetKerning(ft_face, metrics.size, lhs, rhs);
+	const int result = FreeType::GetKerning(ft_face, has_set_size ? 0 : metrics.size, lhs, rhs);
+
+	// This is purely an optimization to avoid repeatedly setting the font size in FreeType, which can be a measurable performance hit.
+	has_set_size = true;
+
 	return result;
 }
 

@@ -100,7 +100,7 @@ private:
 	void FillKerningPairCache();
 
 	// Return the kerning for a character pair.
-	int GetKerning(Character lhs, Character rhs) const;
+	int GetKerning(Character lhs, Character rhs, bool& has_set_size) const;
 
 	/// Retrieve a glyph from the given code point, building and appending a new glyph if not already built.
 	/// @param[in-out] character  The character, can be changed e.g. to the replacement character if no glyph is found.
