@@ -234,6 +234,8 @@ private:
 	/// Returns the offset that aligns the contents of the line according to the 'text-align' property.
 	float GetAlignmentSpecificTextOffset(const Line& line) const;
 
+	/// Returns the used line height.
+	float GetLineHeight() const;
 	/// Returns the width available for the text contents without overflowing, that is, the content area subtracted by any scrollbar.
 	float GetAvailableWidth() const;
 	/// Returns the height available for the text contents without overflowing, that is, the content area subtracted by any scrollbar.

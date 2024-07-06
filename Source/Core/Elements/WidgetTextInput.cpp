@@ -556,10 +556,10 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		case Input::KI_END:     selection_changed = MoveCursorHorizontal(ctrl ? CursorMovement::End : CursorMovement::EndLine, shift, out_of_bounds); break;
 
 		case Input::KI_NUMPAD9: if (numlock) break; //-fallthrough
-		case Input::KI_PRIOR:   selection_changed = MoveCursorVertical(-int(internal_dimensions.y / parent->GetLineHeight()) + 1, shift, out_of_bounds); break;
+		case Input::KI_PRIOR:   selection_changed = MoveCursorVertical(-int(internal_dimensions.y / GetLineHeight()) + 1, shift, out_of_bounds); break;
 
 		case Input::KI_NUMPAD3: if (numlock) break; //-fallthrough
-		case Input::KI_NEXT:    selection_changed = MoveCursorVertical(int(internal_dimensions.y / parent->GetLineHeight()) - 1, shift, out_of_bounds); break;
+		case Input::KI_NEXT:    selection_changed = MoveCursorVertical(int(internal_dimensions.y / GetLineHeight()) - 1, shift, out_of_bounds); break;
 
 		case Input::KI_BACK:
 		{
@@ -1056,8 +1056,7 @@ void WidgetTextInput::SetCursorFromRelativeIndices(int cursor_line_index, int cu
 
 int WidgetTextInput::CalculateLineIndex(float position) const
 {
-	float line_height = parent->GetLineHeight();
-	int line_index = int(position / line_height);
+	int line_index = int(position / GetLineHeight());
 	return Math::Clamp(line_index, 0, (int)(lines.size() - 1));
 }
 
@@ -1239,7 +1238,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	selected_text_element->ClearLines();
 
 	// Determine the line-height of the text element.
-	const float line_height = parent->GetLineHeight();
+	const float line_height = GetLineHeight();
 
 	const float half_leading = 0.5f * (line_height - (font_metrics.ascent + font_metrics.descent));
 	const float top_to_baseline = font_metrics.ascent + half_leading;
@@ -1415,7 +1414,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 void WidgetTextInput::GenerateCursor()
 {
 	cursor_size.x = Math::Round(ElementUtilities::GetDensityIndependentPixelRatio(text_element));
-	cursor_size.y = text_element->GetLineHeight() + 2.0f;
+	cursor_size.y = GetLineHeight() + 2.0f;
 
 	Colourb color = parent->GetComputedValues().color();
 
@@ -1450,7 +1449,7 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 
 	cursor_position = {
 		(float)string_width_pre_cursor + alignment_offset,
-		-1.f + (float)cursor_line_index * text_element->GetLineHeight(),
+		-1.f + (float)cursor_line_index * GetLineHeight(),
 	};
 
 	const bool word_wrap = parent->GetComputedValues().white_space() == Style::WhiteSpace::Prewrap;
@@ -1582,6 +1581,11 @@ void WidgetTextInput::SetKeyboardActive(bool active)
 			system->DeactivateKeyboard();
 		}
 	}
+}
+
+float WidgetTextInput::GetLineHeight() const
+{
+	return Math::Round(parent->GetLineHeight());
 }
 
 float WidgetTextInput::GetAvailableWidth() const
