@@ -698,7 +698,7 @@ void TextInputMethodEditor_Win32::ConfirmComposition(Rml::StringView composition
 	if (input_context != nullptr)
 	{
 		input_context->SetCompositionRange(composition_range_start, composition_range_end);
-		input_context->CommitComposition();
+		input_context->CommitComposition(Rml::String(composition));
 	}
 
 	// Move the cursor to the end of the string.

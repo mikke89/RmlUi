@@ -74,6 +74,7 @@ public:
 	/// @param[in] text The string to replace the character range with.
 	/// @param[in] start The first character to be replaced.
 	/// @param[in] end The first character *after* the range.
+	/// @note This method does not respect internal restrictions, such as the maximum length.
 	virtual void SetText(StringView text, int start, int end) = 0;
 
 	/// Update the range of the text being composed (for IME).
@@ -81,8 +82,10 @@ public:
 	/// @param[in] end The first character *after* the range.
 	virtual void SetCompositionRange(int start, int end) = 0;
 
-	/// Commit the current IME composition.
-	virtual void CommitComposition() = 0;
+	/// Commit an composition string (from IME), and respect internal restrictions (e.g., the maximum length).
+	/// @param[in] composition The string to replace the composition range with.
+	/// @note If the composition range equals to [0, 0], it takes no action.
+	virtual void CommitComposition(String composition) = 0;
 };
 
 } // namespace Rml
