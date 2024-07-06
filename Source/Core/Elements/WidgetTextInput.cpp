@@ -472,7 +472,7 @@ void WidgetTextInput::OnRender()
 	Vector2f text_translation = parent->GetAbsoluteOffset() - Vector2f(parent->GetScrollLeft(), parent->GetScrollTop());
 	selection_composition_geometry.Render(text_translation);
 
-	if (cursor_visible && !parent->IsDisabled())
+	if (cursor_visible && selection_length <= 0 && !parent->IsDisabled())
 	{
 		cursor_geometry.Render(text_translation + cursor_position);
 	}
