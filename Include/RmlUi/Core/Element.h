@@ -129,12 +129,12 @@ public:
 	/// @return The absolute offset.
 	Vector2f GetAbsoluteOffset(BoxArea area = BoxArea::Content);
 
-	/// Sets an alternate area to use as the client area.
-	/// @param[in] client_area The box area to use as the element's client area.
-	void SetClientArea(BoxArea client_area);
-	/// Returns the area the element uses as its client area.
-	/// @return The box area used as the element's client area.
-	BoxArea GetClientArea() const;
+	/// Sets an alternate area to use as the clip area.
+	/// @param[in] clip_area The box area to use as the element's clip area.
+	void SetClipArea(BoxArea clip_area);
+	/// Returns the area the element uses as its clip area.
+	/// @return The box area used as the element's clip area.
+	BoxArea GetClipArea() const;
 
 	/// Sets the dimensions of the element's scrollable overflow rectangle. This is the tightest fitting box surrounding
 	/// all of this element's logical children, and the element's padding box.
@@ -364,20 +364,18 @@ public:
 	float GetAbsoluteTop();
 
 	/// Gets the horizontal offset from the element's left border edge to the left edge of its client area. This is
-	/// usually the edge of the padding, but may be the content area for some replaced elements.
+	/// effectively equivalent to the left border width.
 	/// @return The horizontal offset of the element's client area, in pixels.
 	float GetClientLeft();
 	/// Gets the vertical offset from the element's top border edge to the top edge of its client area. This is
-	/// usually the edge of the padding, but may be the content area for some replaced elements.
+	/// effectively equivalent to the top border width.
 	/// @return The vertical offset of the element's client area, in pixels.
 	float GetClientTop();
-	/// Gets the width of the element's client area. This is usually the padded area less the vertical scrollbar
-	/// width, but may be the content area for some replaced elements.
-	/// @return The width of the element's client area, usually including padding but not the vertical scrollbar width, border or margin.
+	/// Gets the width of the element's client area. This is the padding area subtracted by the vertical scrollbar width if present.
+	/// @return The element's client width, in pixels.
 	float GetClientWidth();
-	/// Gets the height of the element's client area. This is usually the padded area less the horizontal scrollbar
-	/// height, but may be the content area for some replaced elements.
-	/// @return The inner height of the element, usually including padding but not the horizontal scrollbar height, border or margin.
+	/// Gets the height of the element's client area. This is the padding area subtracted by the horizontal scrollbar height if present.
+	/// @return The element's client height, in pixels.
 	float GetClientHeight();
 
 	/// Returns the element from which all offset calculations are currently computed.
@@ -389,10 +387,10 @@ public:
 	/// Gets the distance from this element's top border to its offset parent's top border.
 	/// @return The vertical distance (in pixels) from this element's offset parent to itself.
 	float GetOffsetTop();
-	/// Gets the width of the element, including the client area, padding, borders and scrollbars, but not margins.
+	/// Gets the width of the element, including the content area, padding, borders and scrollbars, but not margins.
 	/// @return The width of the rendered element, in pixels.
 	float GetOffsetWidth();
-	/// Gets the height of the element, including the client area, padding, borders and scrollbars, but not margins.
+	/// Gets the height of the element, including the content area, padding, borders and scrollbars, but not margins.
 	/// @return The height of the rendered element, in pixels.
 	float GetOffsetHeight();
 
@@ -735,8 +733,8 @@ private:
 	OwnedElementList children;
 	int num_non_dom_children;
 
-	// Defines what box area represents the element's client area; this is usually padding, but may be content.
-	BoxArea client_area;
+	// Defines which box area to use for clipping; this is usually padding, but may be content.
+	BoxArea clip_area;
 
 	// Original tag this element came from.
 	String tag;

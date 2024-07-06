@@ -321,14 +321,17 @@ input.text:focus-visible, input.password:focus-visible
 
 textarea
 {
-	padding: 14dp 12dp 10dp;
-	decorator: ninepatch( textarea, textarea-inner, 1.0 );
+	padding: 5dp 8dp;
+	decorator: ninepatch(textarea, textarea-inner, 1.0) border-box;
 	cursor: text;
 	text-align: left;
+	line-height: 1.3;
+	border-width: 14dp 12dp 10dp;
+	border-color: transparent;
 }
 textarea:focus-visible
 {
-	decorator: ninepatch( textarea-focus, textarea-focus-inner, 1.0 );
+	decorator: ninepatch(textarea-focus, textarea-focus-inner, 1.0) border-box;
 }
 
 input.text,
@@ -686,18 +689,33 @@ scrollbarhorizontal
 textarea scrollbarvertical
 {
 	cursor: arrow;
-	margin: 10dp 0 4dp 0;
 	width: 12dp;
+	margin: -3dp -7dp -3dp 7dp;
 }
 textarea scrollbarvertical slidertrack
 {
 	decorator: none;
+	background-color: #eee;
 }
 textarea scrollbarvertical sliderbar
 {
-	margin-left: 2dp;
-	width: 10dp;
+	decorator: none;
+	background-color: #bc0000;
+	border-left: 5dp #cc7272;
+	width: 7dp;
 	min-height: 16dp;
+	margin: 0;
+}
+textarea scrollbarvertical sliderbar:hover
+{
+	decorator: none;
+	background-color: #ca3535;
+}
+
+textarea scrollbarvertical sliderbar:active
+{
+	decorator: none;
+	background-color: #880000;
 }
 textarea scrollbarvertical sliderarrowdec,
 textarea scrollbarvertical sliderarrowinc
@@ -709,20 +727,33 @@ textarea scrollbarvertical sliderarrowinc
 textarea scrollbarhorizontal
 {
 	cursor: arrow;
-	margin-left: 7dp;
-	height: 12dp;
+	height: 10dp;
+	margin: 3dp -7dp -3dp -3dp;
 }
 textarea scrollbarhorizontal sliderbar
 {
-	background-color: #BC0000CC;
-	height: 8dp;
+	background-color: #bc0000;
+	border-top: 4dp #cc7272;
+	height: 6dp;
 	min-width: 10dp;
 }
 textarea scrollbarhorizontal sliderbar:hover
 {
-	background-color: #B82500CC;
+	background-color: #ca3535;
 }
 textarea scrollbarhorizontal sliderbar:active
 {
-	background-color: #770000CC;
+	background-color: #880000;
+}
+textarea scrollbarhorizontal slidertrack
+{
+	background-color: #eee;
+}
+
+textarea scrollbarcorner
+{
+	cursor: arrow;
+	background-color: #ccc;
+	margin-top: 3dp;
+	margin-left: 7dp;
 }

@@ -224,6 +224,11 @@ private:
 	/// @param[in] line_begin The absolute index at the beginning of the line.
 	void GetLineIMEComposition(String& pre_composition, String& ime_composition, const String& line, int line_begin) const;
 
+	/// Returns the width available for the text contents without overflowing, that is, the content area subtracted by any scrollbar.
+	float GetAvailableWidth() const;
+	/// Returns the height available for the text contents without overflowing, that is, the content area subtracted by any scrollbar.
+	float GetAvailableHeight() const;
+
 	struct Line {
 		// Offset into the text field's value.
 		int value_offset;

@@ -193,7 +193,6 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
 	parent->SetProperty(PropertyId::Drag, Property(Style::Drag::Drag));
 	parent->SetProperty(PropertyId::WordBreak, Property(Style::WordBreak::BreakWord));
 	parent->SetProperty(PropertyId::TextTransform, Property(Style::TextTransform::None));
-	parent->SetClientArea(BoxArea::Content);
 
 	parent->AddEventListener(EventId::Keydown, this, true);
 	parent->AddEventListener(EventId::Textinput, this, true);
@@ -1062,15 +1061,15 @@ int WidgetTextInput::CalculateLineIndex(float position) const
 
 float WidgetTextInput::GetAlignmentSpecificTextOffset(const char* p_begin, int line_index) const
 {
-	const float client_width = parent->GetClientWidth();
+	const float available_width = GetAvailableWidth();
 	const float total_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, lines[line_index].editable_length));
 	auto text_align = GetElement()->GetComputedValues().text_align();
 
 	// offset position depending on text align
 	switch (text_align)
 	{
-	case Style::TextAlign::Right: return Math::Max(0.0f, (client_width - total_width));
-	case Style::TextAlign::Center: return Math::Max(0.0f, ((client_width - total_width) / 2));
+	case Style::TextAlign::Right: return Math::Max(0.0f, (available_width - total_width));
+	case Style::TextAlign::Center: return Math::Max(0.0f, ((available_width - total_width) / 2));
 	default: break;
 	}
 
@@ -1125,13 +1124,13 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 		// Shift the cursor into view.
 		if (move_to_cursor)
 		{
-			float minimum_scroll_top = (cursor_position.y + cursor_size.y) - parent->GetClientHeight();
+			float minimum_scroll_top = (cursor_position.y + cursor_size.y) - GetAvailableHeight();
 			if (parent->GetScrollTop() < minimum_scroll_top)
 				parent->SetScrollTop(minimum_scroll_top);
 			else if (parent->GetScrollTop() > cursor_position.y)
 				parent->SetScrollTop(cursor_position.y);
 
-			float minimum_scroll_left = (cursor_position.x + cursor_size.x) - parent->GetClientWidth();
+			float minimum_scroll_left = (cursor_position.x + cursor_size.x) - GetAvailableWidth();
 			if (parent->GetScrollLeft() < minimum_scroll_left)
 				parent->SetScrollLeft(minimum_scroll_left);
 			else if (parent->GetScrollLeft() > cursor_position.x)
@@ -1178,26 +1177,28 @@ void WidgetTextInput::FormatElement()
 		scroll->DisableScrollbar(ElementScroll::VERTICAL);
 
 	// If the formatting produces scrollbars we need to format again later, this constraint enables early exit for the first formatting round.
-	const float formatting_height_constraint = (y_overflow_property == Overflow::Auto ? parent->GetClientHeight() : FLT_MAX);
+	const float formatting_height_constraint = (y_overflow_property == Overflow::Auto ? GetAvailableHeight() : FLT_MAX);
 
 	// Format the text and determine its total area.
 	Vector2f content_area = FormatText(formatting_height_constraint);
 
 	// If we're set to automatically generate horizontal scrollbars, check for that now.
-	if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth() + OVERFLOW_TOLERANCE)
+	if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > GetAvailableWidth() + OVERFLOW_TOLERANCE)
 		scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 
 	// Now check for vertical overflow. If we do turn on the scrollbar, this will cause a reflow.
-	if (y_overflow_property == Overflow::Auto && content_area.y > parent->GetClientHeight() + OVERFLOW_TOLERANCE)
+	if (y_overflow_property == Overflow::Auto && content_area.y > GetAvailableHeight() + OVERFLOW_TOLERANCE)
 	{
 		scroll->EnableScrollbar(ElementScroll::VERTICAL, width);
 		content_area = FormatText();
 
-		if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > parent->GetClientWidth() + OVERFLOW_TOLERANCE)
+		if (!word_wrap && x_overflow_property == Overflow::Auto && content_area.x > GetAvailableWidth() + OVERFLOW_TOLERANCE)
 			scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
 	}
 
-	parent->SetScrollableOverflowRectangle(content_area);
+	// For text elements, make the content and padding on all sides reachable by scrolling.
+	const Vector2f padding_size = parent->GetBox().GetFrameSize(BoxArea::Padding);
+	parent->SetScrollableOverflowRectangle(content_area + padding_size);
 	scroll->FormatScrollbars();
 }
 
@@ -1225,7 +1226,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// When the selection contains endlines, we expand the selection area by this width.
 	const int endline_font_width = int(0.4f * parent->GetComputedValues().font_size());
 
-	const float client_width = parent->GetClientWidth();
+	const float available_width = GetAvailableWidth();
 	int line_begin = 0;
 	Vector2f line_position = {0, top_to_baseline};
 	bool last_line = false;
@@ -1253,7 +1254,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// Keep generating lines until all the text content is placed.
 	do
 	{
-		if (client_width <= 0.f)
+		if (available_width <= 0.f)
 		{
 			lines.push_back(Line{});
 			break;
@@ -1265,7 +1266,8 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		String line_content;
 
 		// Generate the next line.
-		last_line = text_element->GenerateLine(line_content, line.size, line_width, line_begin, client_width - cursor_size.x, 0, false, false, false);
+		last_line =
+			text_element->GenerateLine(line_content, line.size, line_width, line_begin, available_width - cursor_size.x, 0, false, false, false);
 
 		// If this line terminates in a soft-return (word wrap), then the line may be leaving a space or two behind as an orphan. If so, we must
 		// append the orphan onto the line even though it will push the line outside of the input field's bounds.
@@ -1604,6 +1606,16 @@ void WidgetTextInput::SetKeyboardActive(bool active)
 			system->DeactivateKeyboard();
 		}
 	}
+}
+
+float WidgetTextInput::GetAvailableWidth() const
+{
+	return parent->GetClientWidth() - parent->GetBox().GetFrameSize(BoxArea::Padding).x;
+}
+
+float WidgetTextInput::GetAvailableHeight() const
+{
+	return parent->GetClientHeight() - parent->GetBox().GetFrameSize(BoxArea::Padding).y;
 }
 
 } // namespace Rml

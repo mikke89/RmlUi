@@ -160,7 +160,7 @@ float ElementUtilities::GetDensityIndependentPixelRatio(Element* element)
 int ElementUtilities::GetStringWidth(Element* element, const String& string, Character prior_character)
 {
 	const auto& computed = element->GetComputedValues();
-	const TextShapingContext text_shaping_context{ computed.language(), computed.direction(), computed.letter_spacing() };
+	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.letter_spacing()};
 
 	FontFaceHandle font_face_handle = element->GetFontFaceHandle();
 	if (font_face_handle == 0)
@@ -198,7 +198,7 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 		// Merge the existing clip region with the current clip region, unless we are ignoring clip regions.
 		if (((clip_always || clip_enabled) && num_ignored_clips == 0) || force_clip_current_element)
 		{
-			const BoxArea client_area = (force_clip_current_element ? BoxArea::Border : clipping_element->GetClientArea());
+			const BoxArea clip_area = (force_clip_current_element ? BoxArea::Border : clipping_element->GetClipArea());
 			const bool has_clipping_content =
 				(clip_always || force_clip_current_element || clipping_element->GetClientWidth() < clipping_element->GetScrollWidth() - 0.5f ||
 					clipping_element->GetClientHeight() < clipping_element->GetScrollHeight() - 0.5f);
@@ -215,7 +215,7 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 				// region to be clipped. If the element has a transform we only use a clip mask when the content clips.
 				if (has_border_radius || (transform && has_clipping_content))
 				{
-					Geometry* clip_geometry = clipping_element->GetElementBackgroundBorder()->GetClipGeometry(clipping_element, client_area);
+					Geometry* clip_geometry = clipping_element->GetElementBackgroundBorder()->GetClipGeometry(clipping_element, clip_area);
 					const ClipMaskOperation clip_operation = (out_clip_mask_list->empty() ? ClipMaskOperation::Set : ClipMaskOperation::Intersect);
 					const Vector2f absolute_offset = clipping_element->GetAbsoluteOffset(BoxArea::Border);
 					out_clip_mask_list->push_back(ClipMaskGeometry{clip_operation, clip_geometry, absolute_offset, transform});
@@ -231,8 +231,8 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 			if (has_clipping_content && !disable_scissor_clipping)
 			{
 				// Shrink the scissor region to the element's client area.
-				Vector2f element_offset = clipping_element->GetAbsoluteOffset(client_area);
-				Vector2f element_size = clipping_element->GetBox().GetSize(client_area);
+				Vector2f element_offset = clipping_element->GetAbsoluteOffset(clip_area);
+				Vector2f element_size = clipping_element->GetBox().GetSize(clip_area);
 
 				clip_region.IntersectIfValid(Rectanglef::FromPositionSize(element_offset, element_size));
 			}

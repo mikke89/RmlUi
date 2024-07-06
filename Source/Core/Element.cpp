@@ -117,7 +117,7 @@ Element::Element(const String& tag) :
 	owner_document = nullptr;
 	offset_parent = nullptr;
 
-	client_area = BoxArea::Padding;
+	clip_area = BoxArea::Padding;
 
 	baseline = 0.0f;
 
@@ -419,14 +419,14 @@ Vector2f Element::GetAbsoluteOffset(BoxArea area)
 	return absolute_offset + GetBox().GetPosition(area);
 }
 
-void Element::SetClientArea(BoxArea _client_area)
+void Element::SetClipArea(BoxArea _clip_area)
 {
-	client_area = _client_area;
+	clip_area = _clip_area;
 }
 
-BoxArea Element::GetClientArea() const
+BoxArea Element::GetClipArea() const
 {
-	return client_area;
+	return clip_area;
 }
 
 void Element::SetScrollableOverflowRectangle(Vector2f _scrollable_overflow_rectangle)
@@ -878,22 +878,22 @@ float Element::GetAbsoluteTop()
 
 float Element::GetClientLeft()
 {
-	return GetBox().GetPosition(client_area).x;
+	return GetBox().GetPosition(BoxArea::Padding).x;
 }
 
 float Element::GetClientTop()
 {
-	return GetBox().GetPosition(client_area).y;
+	return GetBox().GetPosition(BoxArea::Padding).y;
 }
 
 float Element::GetClientWidth()
 {
-	return GetBox().GetSize(client_area).x - meta->scroll.GetScrollbarSize(ElementScroll::VERTICAL);
+	return GetBox().GetSize(BoxArea::Padding).x - meta->scroll.GetScrollbarSize(ElementScroll::VERTICAL);
 }
 
 float Element::GetClientHeight()
 {
-	return GetBox().GetSize(client_area).y - meta->scroll.GetScrollbarSize(ElementScroll::HORIZONTAL);
+	return GetBox().GetSize(BoxArea::Padding).y - meta->scroll.GetScrollbarSize(ElementScroll::HORIZONTAL);
 }
 
 Element* Element::GetOffsetParent()
