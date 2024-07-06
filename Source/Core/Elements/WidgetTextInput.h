@@ -106,8 +106,6 @@ public:
 protected:
 	enum class CursorMovement { Begin = -4, BeginLine = -3, PreviousWord = -2, Left = -1, Right = 1, NextWord = 2, EndLine = 3, End = 4 };
 
-	float GetAlignmentSpecificTextOffset(const char* p_begin, int line_index) const;
-
 	/// Processes the "keydown" and "textinput" event to write to the input field, and the "focus" and
 	/// "blur" to set the state of the cursor.
 	void ProcessEvent(Event& event) override;
@@ -142,6 +140,15 @@ protected:
 	void DispatchChangeEvent(bool linebreak = false);
 
 private:
+	struct Line {
+		// Offset into the text field's value.
+		int value_offset;
+		// The size of the contents of the line (including the trailing endline, if that terminated the line).
+		int size;
+		// The length of the editable characters on the line (excluding any trailing endline).
+		int editable_length;
+	};
+
 	/// Returns the displayed value of the text field.
 	/// @note For password fields this would only return the displayed asterisks '****', while the attribute value below contains the underlying text.
 	const String& GetValue() const;
@@ -176,7 +183,6 @@ private:
 	/// Calculates the character index along a line under a specific horizontal position.
 	/// @param[in] line_index The line to query.
 	/// @param[in] position The position to query.
-	/// @param[out] on_right_side True if position is on the right side of the returned character, else left side.
 	/// @return The index of the character under the mouse cursor.
 	int CalculateCharacterIndex(int line_index, float position);
 
@@ -224,19 +230,13 @@ private:
 	/// @param[in] line_begin The absolute index at the beginning of the line.
 	void GetLineIMEComposition(String& pre_composition, String& ime_composition, const String& line, int line_begin) const;
 
+	/// Returns the offset that aligns the contents of the line according to the 'text-align' property.
+	float GetAlignmentSpecificTextOffset(const Line& line) const;
+
 	/// Returns the width available for the text contents without overflowing, that is, the content area subtracted by any scrollbar.
 	float GetAvailableWidth() const;
 	/// Returns the height available for the text contents without overflowing, that is, the content area subtracted by any scrollbar.
 	float GetAvailableHeight() const;
-
-	struct Line {
-		// Offset into the text field's value.
-		int value_offset;
-		// The size of the contents of the line (including the trailing endline, if that terminated the line).
-		int size;
-		// The length of the editable characters on the line (excluding any trailing endline).
-		int editable_length;
-	};
 
 	ElementFormControl* parent;
 
@@ -272,14 +272,11 @@ private:
 	// The colour of the background of selected text.
 	ColourbPremultiplied selection_colour;
 	// The selection background.
-	Geometry selection_geometry;
+	Geometry selection_composition_geometry;
 
 	// IME composition range. The start and end indices are in absolute coordinates.
 	int ime_composition_begin_index;
 	int ime_composition_end_index;
-
-	// The IME composition text highlighting.
-	Geometry ime_composition_geometry;
 
 	// The IME context for this widget.
 	UniquePtr<WidgetTextInputContext> text_input_context;
@@ -291,6 +288,8 @@ private:
 	/// Activate or deactivate keyboard (for touchscreen devices)
 	/// @param[in] active True if need activate keyboard, false if need deactivate.
 	void SetKeyboardActive(bool active);
+
+	bool ink_overflow;
 
 	double last_update_time;
 

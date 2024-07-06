@@ -50,8 +50,9 @@
 
 namespace Rml {
 
-static constexpr float CURSOR_BLINK_TIME = 0.7f;  // [s]
-static constexpr float OVERFLOW_TOLERANCE = 0.5f; // [px]
+static constexpr float CURSOR_BLINK_TIME = 0.7f;          // [s]
+static constexpr float OVERFLOW_TOLERANCE = 0.5f;         // [px]
+static constexpr float COMPOSITION_UNDERLINE_WIDTH = 2.f; // [px]
 
 enum class CharacterClass { Word, Punctuation, Newline, Whitespace, Undefined };
 static CharacterClass GetCharacterClass(char c)
@@ -193,6 +194,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
 	parent->SetProperty(PropertyId::Drag, Property(Style::Drag::Drag));
 	parent->SetProperty(PropertyId::WordBreak, Property(Style::WordBreak::BreakWord));
 	parent->SetProperty(PropertyId::TextTransform, Property(Style::TextTransform::None));
+	parent->SetProperty(PropertyId::Clip, Property(Style::Clip::Type::Auto));
 
 	parent->AddEventListener(EventId::Keydown, this, true);
 	parent->AddEventListener(EventId::Textinput, this, true);
@@ -242,6 +244,7 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
 	ime_composition_end_index = 0;
 
 	last_update_time = 0;
+	ink_overflow = false;
 
 	ShowCursor(false);
 }
@@ -467,8 +470,7 @@ void WidgetTextInput::OnRender()
 	ElementUtilities::SetClippingRegion(text_element);
 
 	Vector2f text_translation = parent->GetAbsoluteOffset() - Vector2f(parent->GetScrollLeft(), parent->GetScrollTop());
-	selection_geometry.Render(text_translation);
-	ime_composition_geometry.Render(text_translation);
+	selection_composition_geometry.Render(text_translation);
 
 	if (cursor_visible && !parent->IsDisabled())
 	{
@@ -1059,20 +1061,36 @@ int WidgetTextInput::CalculateLineIndex(float position) const
 	return Math::Clamp(line_index, 0, (int)(lines.size() - 1));
 }
 
-float WidgetTextInput::GetAlignmentSpecificTextOffset(const char* p_begin, int line_index) const
+float WidgetTextInput::GetAlignmentSpecificTextOffset(const Line& line) const
 {
-	const float available_width = GetAvailableWidth();
-	const float total_width = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, lines[line_index].editable_length));
-	auto text_align = GetElement()->GetComputedValues().text_align();
+	const String& value = GetValue();
+	StringView editable_line_string(value, line.value_offset, line.editable_length);
 
-	// offset position depending on text align
+	const Style::TextAlign text_align = parent->GetComputedValues().text_align();
+
+	// Callback to avoid expensive calculation in the cases where it is not needed.
+	auto RemainingWidth = [&] {
+		const float total_width = (float)ElementUtilities::GetStringWidth(text_element, String(editable_line_string));
+		return GetAvailableWidth() - total_width;
+	};
+
 	switch (text_align)
 	{
-	case Style::TextAlign::Right: return Math::Max(0.0f, (available_width - total_width));
-	case Style::TextAlign::Center: return Math::Max(0.0f, ((available_width - total_width) / 2));
-	default: break;
+	case Style::TextAlign::Left: return 0;
+	case Style::TextAlign::Right:
+	{
+		// For right alignment with soft-wrapped newlines, remove up to a single space to align the last word to the right edge.
+		const bool is_last_line = (line.value_offset + line.size == (int)value.size());
+		const bool is_soft_wrapped = (!is_last_line && line.editable_length == line.size);
+		if (is_soft_wrapped && editable_line_string.size() > 0 && *(editable_line_string.end() - 1) == ' ')
+		{
+			editable_line_string = StringView(editable_line_string.begin(), editable_line_string.end() - 1);
+		}
+		return Math::Max(0.0f, RemainingWidth());
 	}
-
+	case Style::TextAlign::Center: return Math::Max(0.0f, 0.5f * RemainingWidth());
+	case Style::TextAlign::Justify: return 0;
+	}
 	return 0;
 }
 
@@ -1083,11 +1101,12 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 
 	ideal_cursor_position_to_the_right_of_cursor = true;
 
-	const char* p_begin = GetValue().data() + lines[line_index].value_offset;
+	const Line& line = lines[line_index];
+	const char* p_begin = GetValue().data() + line.value_offset;
 
-	position -= GetAlignmentSpecificTextOffset(p_begin, line_index);
+	position -= GetAlignmentSpecificTextOffset(line);
 
-	for (auto it = StringIteratorU8(p_begin, p_begin, p_begin + lines[line_index].editable_length); it;)
+	for (auto it = StringIteratorU8(p_begin, p_begin, p_begin + line.editable_length); it;)
 	{
 		++it;
 		const int offset = (int)it.offset();
@@ -1130,8 +1149,11 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 			else if (parent->GetScrollTop() > cursor_position.y)
 				parent->SetScrollTop(cursor_position.y);
 
+			const bool word_wrap = parent->GetComputedValues().white_space() == Style::WhiteSpace::Prewrap;
 			float minimum_scroll_left = (cursor_position.x + cursor_size.x) - GetAvailableWidth();
-			if (parent->GetScrollLeft() < minimum_scroll_left)
+			if (word_wrap)
+				parent->SetScrollLeft(0.f);
+			else if (parent->GetScrollLeft() < minimum_scroll_left)
 				parent->SetScrollLeft(minimum_scroll_left);
 			else if (parent->GetScrollLeft() > cursor_position.x)
 				parent->SetScrollLeft(cursor_position.x);
@@ -1231,25 +1253,10 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	Vector2f line_position = {0, top_to_baseline};
 	bool last_line = false;
 
-	auto text_align = GetElement()->GetComputedValues().text_align();
+	float max_selection_right_edge = 0;
 
-	struct Segment {
-		Vector2f position;
-		int width;
-		String content;
-		bool selected;
-		int line_index;
-	};
-
-	Vector<Segment> segments;
-
-	struct IMESegment {
-		Vector2f position;
-		int width;
-		int line_index;
-	};
-
-	Vector<IMESegment> ime_segments;
+	// Clear the selection background and IME composition geometry, and get the vertices and indices so the new geometry can be generated.
+	Mesh selection_composition_mesh = selection_composition_geometry.Release(Geometry::ReleaseMode::ClearMesh);
 
 	// Keep generating lines until all the text content is placed.
 	do
@@ -1269,42 +1276,31 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		last_line =
 			text_element->GenerateLine(line_content, line.size, line_width, line_begin, available_width - cursor_size.x, 0, false, false, false);
 
-		// If this line terminates in a soft-return (word wrap), then the line may be leaving a space or two behind as an orphan. If so, we must
-		// append the orphan onto the line even though it will push the line outside of the input field's bounds.
-		String orphan;
-		if (!last_line && (line_content.empty() || line_content.back() != '\n'))
+		// Check if the editable length needs to be truncated to dodge a trailing endline.
+		line.editable_length = (int)line_content.size();
+		if (!line_content.empty() && line_content.back() == '\n')
+			line.editable_length -= 1;
+
+		// Include all spaces at the end of this line, if they were not included due to soft-wrapping in `GenerateLine`.
+		// This helps prevent sudden shifts when whitespace wraps down to the next line.
 		{
 			const String& text = GetValue();
-			for (int i = 1; i >= 0; --i)
+			size_t i_space_begin = size_t(line_begin + line.editable_length);
+			size_t i_space_end = Math::Min(text.find_first_not_of(' ', i_space_begin), text.size());
+			size_t count = i_space_end - i_space_begin;
+			if (count > 0)
 			{
-				int index = line_begin + line.size + i;
-				if (index >= (int)text.size())
-					continue;
-
-				if (text[index] != ' ')
-				{
-					orphan.clear();
-					continue;
-				}
-
-				int next_index = index + 1;
-				if (!orphan.empty() || next_index >= (int)text.size() || text[next_index] != ' ')
-					orphan += ' ';
+				line_content.append(count, ' ');
+				line_width += ElementUtilities::GetStringWidth(text_element, " ") * (int)count;
+				line.editable_length += (int)count;
+				line.size += (int)count;
+				// Consume the hard wrap if we have one on this line, so that it doesn't make its own, empty line.
+				if (text[i_space_end] == '\n')
+					line.size += 1;
+				// If the spaces extend all the way to the end, we have consumed all the lines.
+				if (i_space_end == text.size())
+					last_line = true;
 			}
-		}
-
-		if (!orphan.empty())
-		{
-			line_content += orphan;
-			line.size += (int)orphan.size();
-			line_width += ElementUtilities::GetStringWidth(text_element, orphan);
-		}
-
-		// visually remove trailing space if right aligned
-		if (!last_line && text_align == Style::TextAlign::Right && !line_content.empty() && line_content.back() == ' ')
-		{
-			line_content.pop_back();
-			line_width -= ElementUtilities::GetStringWidth(text_element, " ");
 		}
 
 		// Now that we have the string of characters appearing on the new line, we split it into
@@ -1318,7 +1314,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!pre_selection.empty())
 		{
 			const int width = ElementUtilities::GetStringWidth(text_element, pre_selection);
-			segments.push_back({line_position, width, pre_selection, false, (int)lines.size()});
+			text_element->AddLine(line_position + Vector2f{GetAlignmentSpecificTextOffset(line), 0}, pre_selection);
 			line_position.x += width;
 		}
 
@@ -1336,19 +1332,22 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 			return float(width_kerning - width_no_kerning);
 		};
 
-		// Check if the editable length needs to be truncated to dodge a trailing endline.
-		line.editable_length = (int)line_content.size();
-		if (!line_content.empty() && line_content.back() == '\n')
-			line.editable_length -= 1;
-
 		// If there is any selected text on this line, place it in the selected text element and
 		// generate the geometry for its background.
 		if (!selection.empty())
 		{
 			line_position.x += GetKerningBetween(pre_selection, selection);
-			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
-			segments.push_back({line_position, selection_width, selection, true, (int)lines.size()});
 
+			const int selection_width = ElementUtilities::GetStringWidth(selected_text_element, selection);
+			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + line.editable_length);
+			const Vector2f selection_size = {float(selection_width + (selection_contains_endline ? endline_font_width : 0)), line_height};
+			const Vector2f aligned_position = line_position + Vector2f{GetAlignmentSpecificTextOffset(line), 0};
+
+			MeshUtilities::GenerateQuad(selection_composition_mesh, aligned_position - Vector2f(0, top_to_baseline), selection_size,
+				selection_colour);
+			selected_text_element->AddLine(aligned_position, selection);
+
+			max_selection_right_edge = Math::Max(max_selection_right_edge, aligned_position.x + selection_size.x);
 			line_position.x += selection_width;
 		}
 
@@ -1357,8 +1356,7 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		if (!post_selection.empty())
 		{
 			line_position.x += GetKerningBetween(selection, post_selection);
-			const int width = ElementUtilities::GetStringWidth(text_element, post_selection);
-			segments.push_back({line_position, width, post_selection, false, (int)lines.size()});
+			text_element->AddLine(line_position + Vector2f{GetAlignmentSpecificTextOffset(line), 0}, post_selection);
 		}
 
 		// We fetch the IME composition on the new line to highlight it.
@@ -1368,9 +1366,16 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 		// If there is any IME composition string on the line, create a segment for its underline.
 		if (!ime_composition.empty())
 		{
+			const bool composition_contains_endline = (ime_composition_end_index > line_begin + line.editable_length);
 			const int composition_width = ElementUtilities::GetStringWidth(text_element, ime_composition);
-			const Vector2f composition_position(float(ElementUtilities::GetStringWidth(text_element, ime_pre_composition)), line_position.y);
-			ime_segments.push_back({composition_position, composition_width, (int)lines.size()});
+			const Vector2f composition_position = {
+				float(ElementUtilities::GetStringWidth(text_element, ime_pre_composition)) + GetAlignmentSpecificTextOffset(line),
+				line_position.y - top_to_baseline + line_height - COMPOSITION_UNDERLINE_WIDTH,
+			};
+			Vector2f line_size = {float(composition_width + (composition_contains_endline ? endline_font_width : 0)), COMPOSITION_UNDERLINE_WIDTH};
+
+			MeshUtilities::GenerateLine(selection_composition_mesh, composition_position, line_size,
+				parent->GetComputedValues().color().ToPremultiplied());
 		}
 
 		// Update variables for the next line.
@@ -1390,53 +1395,21 @@ Vector2f WidgetTextInput::FormatText(float height_constraint)
 	// Clamp the cursor to a valid range.
 	absolute_cursor_index = Math::Min(absolute_cursor_index, (int)GetValue().size());
 
-	// Clear the selection background geometry, and get the vertices and indices so the new geometry can be generated.
-	Mesh selection_mesh = selection_geometry.Release(Geometry::ReleaseMode::ClearMesh);
+	selection_composition_geometry = parent->GetRenderManager()->MakeGeometry(std::move(selection_composition_mesh));
 
-	// Transform segments according to text alignment
-	for (Segment& it : segments)
+	// Overflow is automatically caught by any text overflowing the content area. However, sometimes it is possible that
+	// the selection box extends beyond the text and outside the content area. This can even overflow the element
+	// itself. In particular, when the selection includes newlines near the right edge. We don't want the selection box
+	// to take part in the scrollable region of the element, which would be one way to ensure that it is always clipped.
+	// Instead, we here detect such possible overflow manually and force the element to clip. This will clip any parts
+	// of the selection box that is overflowing. Maybe in the future we'll have a better way to specify ink overflow and
+	// have that automatically clipped.
+	const bool new_ink_overflow = (max_selection_right_edge > available_width + parent->GetBox().GetEdge(BoxArea::Padding, BoxEdge::Right));
+	if (new_ink_overflow != ink_overflow)
 	{
-		const auto& line = lines[it.line_index];
-		const char* p_begin = GetValue().data() + line.value_offset;
-		float offset = GetAlignmentSpecificTextOffset(p_begin, it.line_index);
-
-		it.position.x += offset;
-
-		if (it.selected)
-		{
-			const bool selection_contains_endline = (selection_begin_index + selection_length > line_begin + lines[it.line_index].editable_length);
-			const Vector2f selection_size(float(it.width + (selection_contains_endline ? endline_font_width : 0)), line_height);
-
-			MeshUtilities::GenerateQuad(selection_mesh, it.position - Vector2f(0, top_to_baseline), selection_size, selection_colour);
-
-			selected_text_element->AddLine(it.position, it.content);
-		}
-		else
-			text_element->AddLine(it.position, it.content);
+		ink_overflow = new_ink_overflow;
+		parent->SetProperty(PropertyId::Clip, Property(ink_overflow ? Style::Clip::Type::Always : Style::Clip::Type::Auto));
 	}
-
-	selection_geometry = parent->GetRenderManager()->MakeGeometry(std::move(selection_mesh));
-
-	// Clear the IME composition geometry, and get the vertices and indices so the new geometry can be generated.
-	Mesh ime_composition_mesh = ime_composition_geometry.Release(Geometry::ReleaseMode::ClearMesh);
-
-	// Transform IME segments according to text alignment.
-	for (auto& it : ime_segments)
-	{
-		const auto& line = lines[it.line_index];
-		const char* p_begin = GetValue().data() + line.value_offset;
-		float offset = GetAlignmentSpecificTextOffset(p_begin, it.line_index);
-
-		it.position.x += offset;
-		it.position.y += font_metrics.underline_position;
-
-		const bool composition_contains_endline = (ime_composition_end_index > line_begin + lines[it.line_index].editable_length);
-		const Vector2f line_size(float(it.width + (composition_contains_endline ? endline_font_width : 0)), font_metrics.underline_thickness);
-
-		MeshUtilities::GenerateLine(ime_composition_mesh, it.position, line_size, parent->GetComputedValues().color().ToPremultiplied());
-	}
-
-	ime_composition_geometry = parent->GetRenderManager()->MakeGeometry(std::move(ime_composition_mesh));
 
 	return content_area;
 }
@@ -1473,12 +1446,18 @@ void WidgetTextInput::UpdateCursorPosition(bool update_ideal_cursor_position)
 	GetRelativeCursorIndices(cursor_line_index, cursor_character_index);
 
 	const auto& line = lines[cursor_line_index];
-	const char* p_begin = GetValue().data() + line.value_offset;
+	const int string_width_pre_cursor =
+		ElementUtilities::GetStringWidth(text_element, String(StringView(GetValue(), line.value_offset, cursor_character_index)));
+	const float alignment_offset = GetAlignmentSpecificTextOffset(line);
 
-	cursor_position.x = (float)ElementUtilities::GetStringWidth(text_element, String(p_begin, cursor_character_index));
-	cursor_position.y = -1.f + (float)cursor_line_index * text_element->GetLineHeight();
+	cursor_position = {
+		(float)string_width_pre_cursor + alignment_offset,
+		-1.f + (float)cursor_line_index * text_element->GetLineHeight(),
+	};
 
-	cursor_position.x += GetAlignmentSpecificTextOffset(p_begin, cursor_line_index);
+	const bool word_wrap = parent->GetComputedValues().white_space() == Style::WhiteSpace::Prewrap;
+	if (word_wrap)
+		cursor_position.x = Math::Min(cursor_position.x, GetAvailableWidth() - cursor_size.x);
 
 	if (update_ideal_cursor_position)
 		ideal_cursor_position = cursor_position.x;
