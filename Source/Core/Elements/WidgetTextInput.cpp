@@ -90,13 +90,12 @@ public:
 	void SetCursorPosition(int position) override;
 	void SetText(StringView text, int start, int end) override;
 	void SetCompositionRange(int start, int end) override;
-	void CommitComposition() override;
+	void CommitComposition(StringView composition) override;
 
 private:
 	TextInputHandler* handler;
 	WidgetTextInput* owner;
 	ElementFormControl* element;
-	String composition;
 };
 
 WidgetTextInputContext::WidgetTextInputContext(TextInputHandler* handler, WidgetTextInput* owner, ElementFormControl* element) :
@@ -139,8 +138,6 @@ void WidgetTextInputContext::SetText(StringView text, int start, int end)
 	value.replace(start, end - start, text.begin(), text.size());
 
 	element->SetValue(value);
-
-	composition = String(text);
 }
 
 void WidgetTextInputContext::SetCompositionRange(int start, int end)
@@ -148,7 +145,7 @@ void WidgetTextInputContext::SetCompositionRange(int start, int end)
 	owner->SetCompositionRange(start, end);
 }
 
-void WidgetTextInputContext::CommitComposition()
+void WidgetTextInputContext::CommitComposition(StringView composition)
 {
 	int start_byte, end_byte;
 	owner->GetCompositionRange(start_byte, end_byte);
@@ -172,12 +169,13 @@ void WidgetTextInputContext::CommitComposition()
 		if (value_length + composition_length - (start - end) > owner->GetMaxLength())
 		{
 			int new_length = owner->GetMaxLength() - (value_length - composition_length);
-			composition.erase(StringUtilities::ConvertCharacterOffsetToByteOffset(composition, new_length));
+			int new_length_byte = StringUtilities::ConvertCharacterOffsetToByteOffset(composition, new_length);
+			composition = StringView(composition.begin(), composition.begin() + new_length_byte);
 		}
 	}
 
 	RMLUI_ASSERTMSG(end_byte >= start_byte, "Invalid end character offset.");
-	value.replace(start_byte, end_byte - start_byte, composition.data(), composition.size());
+	value.replace(start_byte, end_byte - start_byte, composition.begin(), composition.size());
 
 	element->SetValue(value);
 }
