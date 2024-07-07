@@ -11,6 +11,7 @@ add_executable(${TARGET_NAME}
 	DataBinding.cpp
 	Flexbox.cpp
 	FontEffect.cpp
+	WidgetTextInput.cpp
 )
 
 set_common_target_options(${TARGET_NAME})
@@ -27,4 +28,9 @@ doctest_discover_tests(${TARGET_NAME})
 if(EMSCRIPTEN)
 	# The benchmarks additionally use data from the benchmark sample.
 	target_link_libraries(${TARGET_NAME} "--preload-file \"${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/data/@/Samples/basic/benchmark/data/\"")
+endif()
+
+if(MSVC)
+	# Set UTF-8 on MSVC to properly encode non-ascii characters.
+	target_compile_options(${TARGET_NAME} PRIVATE /utf-8)
 endif()
