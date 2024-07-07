@@ -85,7 +85,7 @@ public:
 	/// Commit an composition string (from IME), and respect internal restrictions (e.g., the maximum length).
 	/// @param[in] composition The string to replace the composition range with.
 	/// @note If the composition range equals to [0, 0], it takes no action.
-	virtual void CommitComposition(String composition) = 0;
+	virtual void CommitComposition(StringView composition) = 0;
 };
 
 } // namespace Rml
