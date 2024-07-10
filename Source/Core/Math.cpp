@@ -290,4 +290,10 @@ namespace Math {
 	}
 
 } // namespace Math
+
+auto Vector2fHash::operator()(const Vector2f& v) const noexcept -> size_t
+{
+	return std::hash<float>()(v.x) ^ std::hash<float>()(v.y);
+}
+
 } // namespace Rml

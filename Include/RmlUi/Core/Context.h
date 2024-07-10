@@ -299,6 +299,10 @@ public:
 	/// @return Time until next update is expected.
 	double GetNextUpdateDelay() const;
 
+	/// Get current frame number. Frame number is incremented every time Update() is called.
+	/// @return Current frame number.
+	int GetFrameNumber() const;
+
 protected:
 	void Release() override;
 
@@ -307,6 +311,7 @@ private:
 	Vector2i dimensions;
 	float density_independent_pixel_ratio = 1.f;
 	String documents_base_tag = "body";
+	int frame_number = 0;
 
 	// Wrapper around the render interface for tracking the render state.
 	RenderManager* render_manager;
