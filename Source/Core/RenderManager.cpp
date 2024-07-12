@@ -134,6 +134,11 @@ void RenderManager::SetScissorRegion(Rectanglei new_region)
 	state.scissor_region = new_region;
 }
 
+Rectanglei RenderManager::GetScissorRegion() const
+{
+	return state.scissor_region;
+}
+
 void RenderManager::DisableClipMask()
 {
 	if (!state.clip_mask_list.empty())

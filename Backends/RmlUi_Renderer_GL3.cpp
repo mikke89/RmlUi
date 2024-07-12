@@ -1936,24 +1936,23 @@ void RenderInterface_GL3::PopLayer()
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
 }
 
-Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensions)
+Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture()
 {
-	Rml::TextureHandle render_texture = GenerateTexture({}, dimensions);
+	RMLUI_ASSERT(scissor_state.Valid());
+	const Rml::Rectanglei bounds = scissor_state;
+
+	Rml::TextureHandle render_texture = GenerateTexture({}, bounds.Size());
 	if (!render_texture)
 		return {};
 
 	BlitLayerToPostprocessPrimary(render_layers.GetTopLayerHandle());
 
-	RMLUI_ASSERT(scissor_state.Valid() && render_texture);
-	const Rml::Rectanglei initial_scissor_state = scissor_state;
 	EnableScissorRegion(false);
 
 	const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
 	const Gfx::FramebufferData& destination = render_layers.GetPostprocessSecondary();
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, source.framebuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination.framebuffer);
-
-	Rml::Rectanglei bounds = initial_scissor_state;
 
 	// Flip the image vertically, as that convention is used for textures, and move to origin.
 	glBlitFramebuffer(                                  //
@@ -1970,7 +1969,7 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensi
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, texture_source.framebuffer);
 	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.Width(), bounds.Height());
 
-	SetScissor(initial_scissor_state);
+	SetScissor(bounds);
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
 	Gfx::CheckGLError("SaveLayerAsTexture");
 

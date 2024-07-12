@@ -233,7 +233,7 @@ void ElementEffects::RenderEffects(RenderStage render_stage)
 	if (!render_manager)
 		return;
 
-	Rectanglei initial_scissor_region = render_manager->GetState().scissor_region;
+	Rectanglei initial_scissor_region = render_manager->GetScissorRegion();
 
 	auto ApplyClippingRegion = [this, &render_manager](PropertyId filter_id) {
 		RMLUI_ASSERT(filter_id == PropertyId::Filter || filter_id == PropertyId::BackdropFilter);
@@ -255,7 +255,7 @@ void ElementEffects::RenderEffects(RenderStage render_stage)
 		Math::ExpandToPixelGrid(filter_region);
 
 		Rectanglei scissor_region = Rectanglei(filter_region);
-		scissor_region.IntersectIfValid(render_manager->GetState().scissor_region);
+		scissor_region.IntersectIfValid(render_manager->GetScissorRegion());
 		render_manager->SetScissorRegion(scissor_region);
 	};
 	auto ApplyScissorRegionForBackdrop = [this, &render_manager]() {

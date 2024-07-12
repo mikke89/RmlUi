@@ -82,6 +82,7 @@ public:
 
 	void DisableScissorRegion();
 	void SetScissorRegion(Rectanglei region);
+	Rectanglei GetScissorRegion() const;
 
 	void DisableClipMask();
 	void SetClipMask(ClipMaskGeometryList clip_elements);

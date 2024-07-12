@@ -62,7 +62,7 @@ void RenderInterface::CompositeLayers(LayerHandle /*source*/, LayerHandle /*dest
 
 void RenderInterface::PopLayer() {}
 
-TextureHandle RenderInterface::SaveLayerAsTexture(Vector2i /*dimensions*/)
+TextureHandle RenderInterface::SaveLayerAsTexture()
 {
 	return TextureHandle{};
 }

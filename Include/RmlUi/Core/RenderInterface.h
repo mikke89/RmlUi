@@ -138,9 +138,9 @@ public:
 	virtual void PopLayer();
 
 	/// Called by RmlUi when it wants to store the current layer as a new texture to be rendered later with geometry.
-	/// @param[in] dimensions The dimensions of the texture, to be copied from the top-left part of the viewport.
 	/// @return An application-specified handle to the new texture.
-	virtual TextureHandle SaveLayerAsTexture(Vector2i dimensions);
+	/// @note The texture should be extracted using the bounds defined by the active scissor region, thereby matching its size.
+	virtual TextureHandle SaveLayerAsTexture();
 
 	/// Called by RmlUi when it wants to store the current layer as a mask image, to be applied later as a filter.
 	/// @return An application-specified handle to a new filter representing the stored mask image.

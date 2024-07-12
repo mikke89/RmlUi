@@ -210,7 +210,8 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 			}
 		}
 
-		texture_interface.SaveLayerAsTexture(texture_dimensions);
+		RMLUI_ASSERT(render_manager.GetScissorRegion() == Rectanglei::FromSize(texture_dimensions))
+		texture_interface.SaveLayerAsTexture();
 
 		render_manager.PopLayer();
 		render_manager.SetState(initial_render_state);

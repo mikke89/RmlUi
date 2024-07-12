@@ -83,7 +83,7 @@ public:
 		Rml::Span<const Rml::CompiledFilterHandle> filters) override;
 	void PopLayer() override;
 
-	Rml::TextureHandle SaveLayerAsTexture(Rml::Vector2i dimensions) override;
+	Rml::TextureHandle SaveLayerAsTexture() override;
 
 	Rml::CompiledFilterHandle SaveLayerAsMaskImage() override;
 
