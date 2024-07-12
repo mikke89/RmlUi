@@ -120,7 +120,7 @@ Filters will only render based on geometry that is visible on-screen. Thus, some
   - Allow nested flexboxes: Flex items can now be flex containers themselves. #320
   - Better handling of block-level boxes in inline formatting contexts. #392
 
-More details to be posted later. Expect some possible layout shifts in existing documents, usually due to better CSS conformance.
+More details to be posted later. Expect some possible layout shifts in existing documents, primarily due to better CSS conformance.
 
 ### General layout improvements
 
@@ -128,6 +128,7 @@ More details to be posted later. Expect some possible layout shifts in existing 
 - Make flex containers and tables with fixed width work in shrink-to-fit contexts. #520
 - Compute shrink-to-fit width for flex boxes. #559 #577 (thanks @alml)
 - Add `space-evenly` value to flex box properties `justify-content` and `align-content`. #585 (thanks @LucidSigma)
+- Implement `gap` property for flexboxes. #621 (thanks @ChrisFloofyKitsune)
 
 ### General decorator improvements
 
@@ -166,13 +167,28 @@ input { nav: auto; nav-right: #ok_button; }
 
 - Enable removal of properties using shorthand names. #463 (thanks @aimoonchen)
 - Add `Element::Matches`, the last missing selector-related function. #573 (thanks @Paril)
-- Text input: Add support for `text-align`. #454 #455 (thanks @Dakror)
-- Text input: Fix clipboard being pasted when Ctrl + Alt + V key combination is used. #464 #465 (thanks @ShawnCZek)
-- Text input: Fix selection index possibly returning an invalid index. #539 (thanks @ShawnCZek)
-- Text input: Move the input cursor when the selection range changes. #542 (thanks @ShawnCZek)
-- Text input: Ignore selection range update when the element is not focused. #544 (thanks @ShawnCZek)
 - Tab set: Allow `ElementTabSet::RemoveTab` to work on tab sets with no panels. #546 (thanks @exjam)
 - Range input: Fix a bug where the bar position was initially placed wrong when using min and max attributes.
+
+### Text input widget
+
+The following improvements apply to both the textarea and text input elements.
+
+- Add Input Method Editor (IME) support. #541 #630 (thanks @ShawnCZek)
+  - The text input widget implements the new `TextInputContext` interface, backends can interact with this by implementing the `TextInputHandler` interface for IME support. 
+  - Add native IME support to Win32 backends (`Win32_GL2` and `Win32_VK`).
+  - Add new sample `rmlui_sample_ime` to demonstrate IME support (only enabled on supported backends).
+- Add support for the `text-align` property in text inputs. #454 #455 (thanks @Dakror)
+- Fix clipboard being pasted when Ctrl + Alt + V key combination is used. #464 #465 (thanks @ShawnCZek)
+- Fix selection index possibly returning an invalid index. #539 (thanks @ShawnCZek)
+- Move the input cursor when the selection range changes. #542 (thanks @ShawnCZek)
+- Ignore selection range update when the element is not focused. #544 (thanks @ShawnCZek)
+- Text area elements now clip to their padding area instead of the content area, text input elements still clip to their content area (see [58581477](https://github.com/mikke89/RmlUi/commit/58581477a7c41cd2d163b306ae8c8fe0a04de9d2) for details).
+- Improve text widget navigation and selection (see [be9a497b](https://github.com/mikke89/RmlUi/commit/be9a497b508bc7598ea22198577e7fb1f0ddf357) for details).
+- The text cursor is no longer drawn when selecting text.
+- Consume key events with modifiers (ctrl, shift) to prevent event propagation and subsequently performing navigation.
+- Fix some cases where the scroll offset would alternate each time the text cursor was moved, causing rendering to flicker.
+- Use rounded line height to make render output more stable when scrolling vertically.
 
 ### Utilities
 
@@ -181,6 +197,7 @@ input { nav: auto; nav-right: #ok_button; }
 - Visual tests:
   - Several new visual tests for the new features.
   - Highlight differences when comparing to previous capture by holding shift key.
+  - Replace CMake options with [environment variables](./Tests/readme.md).
 
 ### Data bindings
 
@@ -192,13 +209,21 @@ input { nav: auto; nav-right: #ok_button; }
 
 ### Debugger plugin
 
-- The debugger can now display the axis-aligned bounding box of selected elements, including any transforms and box shadows.
+- Display the axis-aligned bounding box of selected elements, including any transforms and box shadows (white box).
+- List box model sizes for the selected element.
 - Log an error message when externally closing documents owned by the debugger plugin.
 
 ### Lua plugin
 
+- Add CMake option `RMLUI_LUA_BINDINGS_LIBRARY` to link to the Lua library compiled as C++, or to LuaJIT. #604 (thanks @LiquidFenrir)
 - Add `StopImmediatePropagation` to Rml::Event. #466 (thanks @ShawnCZek)
 - Return inserted element from `AppendChild` and `InsertBefore`. #478 (thanks @ShawnCZek)
+
+### System interface
+
+- The system interface now provides a default implementation of all functions, it is no longer required to override and set this interface.
+- The default log output is now used when there is no system interface installed. All print-like calls, including those in backends, are now submitted to the built-in logger.
+- Fix `JoinPath` system interface method now being passed through when using the debugger. #462 #603 (thanks @Dakror)
 
 ### General improvements
 
@@ -206,20 +231,22 @@ input { nav: auto; nav-right: #ok_button; }
 - Add support for the `not` prefix in media queries. #564 (thanks @Paril)
 - Use string parser to allow "quotes" in sprite sheet `src` property. #571 #574 (thanks @andreasschultes)
 - Format color types using RCSS hexadecimal notation.
-- Use the default log output when there is no system interface installed, and redirect all print-like calls to the built-in logger. This ensures that log messages are submitted to the same stream output before and after installing the default provided system interface. In particular, the output from MSVC is given in its debug output.
+- `CreateString` and `FormatString` methods no longer take a `max_size` argument, as this is now handled automatically.
+- Allow using `margin` to offset the `scrollbarcorner`.
+- Log a warning when a texture could not be loaded.
 
 ### General fixes
 
 - Fix wrong logic for assertion of released textures. #589 (thanks @pgruenbacher)
-- Fix `JoinPath` system interface method being passed through when using the debugger. #462 #603 (thanks @Dakror)
 - Fix some situations where units were not shown in properties, ensure all invoked types define a string converter.
 - In `demo` sample, fix form submit animation not playing smoothly on power saving mode.
 - Fix crash on shutdown in `bitmap_font` sample.
+- Fix being able to drag through the scroll track of a scrollbar.
+- Fix being able to scroll in a direction with hidden overflow.
 
 ### Build improvements
 
 - Fix compile issues on newer clang and gcc releases due to mixed use of std namespace on standard integer types. #470 #545 #555
-- Add CMake option to include Lua library compiled as C++. #604 (thanks @LiquidFenrir)
 - Fix `UnitTests` compilation error on MSVC by updating doctest. #491 (thanks @mwl4)
 - Fix `Benchmarks` compilation error when using custom string type. #490 (thanks @mwl4)
 - Change `StringUtilities::DecodeRml` to improve compatibility with other string types, like `EASTL::string`. #472 #475 (thanks @gleblebedev)
@@ -239,6 +266,8 @@ input { nav: auto; nav-right: #ok_button; }
 - Vulkan: Update deprecated debug utilities. #579 (thanks @skaarj1989)
 - OpenGL 3: Restore all modified state after rendering a frame. #449 (thanks @reworks-org)
 - OpenGL 3: Set forward compatibility flag to fix running on MacOS. #522 (thanks @NaLiJa)
+- OpenGL 3: Add depth test to OpenGL state backup. #629 (thanks @ben-metzger-z)
+- Win32: Center window on screen when opening it.
 
 ### Modernized CMake
 
@@ -372,6 +401,10 @@ The presets can be combined with other options, like `CMAKE_BUILD_TYPE` to selec
 
 - Possible layout changes, usually due to better CSS conformance. Please see notes above.
 
+#### Elements
+
+- The text area element now clips to its padding area instead of the content area. You may want to adjust RCSS rules to account for this. If you use decorators to display borders, you can set the decorator paint area to `border-box` and add a transparent border: `decorator: image(my-textarea-background) border-box; border: 4dp transparent;`.
+
 #### Core types
 
 - Changed `Box` enums and `Property` units as follows:
@@ -385,6 +418,7 @@ The presets can be combined with other options, like `CMAKE_BUILD_TYPE` to selec
 - Changed the signature of `LoadFontFace` (from memory) to take a `Span` instead of a raw pointer. 
 - Replaced `Element::ResolveNumericProperty` with `Element::ResolveLength` and `Element::ResolveNumericValue`. Can be used together with `Property::GetNumericValue`.
 - Renamed and removed several `Math` functions.
+- Removed `max_size` argument from `CreateString` and `FormatString` methods, this is no longer needed.
 
 #### RCSS
 
@@ -429,7 +463,7 @@ The font engine interface has been reworked to encompass new features, to simpli
 - Font metrics are now collected into a single function.
 - Signature changes due to text shaping and letter-spacing support.
 - The active render manager is now passed into the appropriate functions to generate textures against this one.
-- Now using span types where appropriate.
+- Now using span and string view types where appropriate.
 
 #### Removed deprecated functionality
 
