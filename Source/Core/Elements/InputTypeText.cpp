@@ -112,7 +112,7 @@ void InputTypeText::ProcessDefaultAction(Event& /*event*/) {}
 bool InputTypeText::GetIntrinsicDimensions(Vector2f& dimensions, float& /*ratio*/)
 {
 	dimensions.x = (float)(size * ElementUtilities::GetStringWidth(element, "m"));
-	dimensions.y = element->GetLineHeight() + 2.0f;
+	dimensions.y = Math::Round(element->GetLineHeight());
 
 	return true;
 }
