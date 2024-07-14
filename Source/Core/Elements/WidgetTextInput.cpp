@@ -657,7 +657,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 		{
 			parent->SetPseudoClass("focus-visible", true);
 			if (UpdateSelection(false))
-				FormatElement();
+				FormatText();
 			ShowCursor(true, false);
 
 			if (TextInputHandler* handler = GetTextInputHandler())
@@ -678,7 +678,7 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			if (TextInputHandler* handler = GetTextInputHandler())
 				handler->OnDeactivate(text_input_context.get());
 			if (ClearSelection())
-				FormatElement();
+				FormatText();
 			ShowCursor(false, false);
 		}
 	}
@@ -1218,7 +1218,7 @@ void WidgetTextInput::FormatElement()
 
 	// For text elements, make the content and padding on all sides reachable by scrolling.
 	const Vector2f padding_size = parent->GetBox().GetFrameSize(BoxArea::Padding);
-	parent->SetScrollableOverflowRectangle(content_area + padding_size);
+	parent->SetScrollableOverflowRectangle(content_area + padding_size, true);
 	scroll->FormatScrollbars();
 }
 

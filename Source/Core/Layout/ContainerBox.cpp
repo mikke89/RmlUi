@@ -216,17 +216,18 @@ bool ContainerBox::SubmitBox(const Vector2f content_overflow_size, const Box& bo
 			is_scroll_container ? element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL) : 0.f,
 		};
 
+		element->SetBox(box);
+
 		// Scrollable overflow is the set of things extending our padding area, for which scrolling could be provided.
 		const Vector2f scrollable_overflow_size = Math::Max(padding_size - scrollbar_size, padding_top_left + content_overflow_size);
-
-		element->SetBox(box);
-		element->SetScrollableOverflowRectangle(scrollable_overflow_size);
+		// Set the overflow size but defer clamping of the scroll offset, see `LayoutEngine::FormatElement`.
+		element->SetScrollableOverflowRectangle(scrollable_overflow_size, false);
 
 		const Vector2f border_size = padding_size + box.GetFrameSize(BoxArea::Border);
 
 		// Set the visible overflow size so that ancestors can catch any overflow produced by us. That is, hiding it or
-		// providing a scrolling mechanism. If this box is a scroll container, we catch our own overflow here; then,
-		// just use the normal margin box as that will effectively remove the overflow from our ancestor's perspective.
+		// providing a scrolling mechanism. If this box is a scroll container we catch our own overflow here. Thus, in
+		// this case, only our border box is visible from our ancestor's perpective.
 		if (is_scroll_container)
 		{
 			visible_overflow_size = border_size;

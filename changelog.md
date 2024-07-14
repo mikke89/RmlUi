@@ -237,6 +237,7 @@ The following improvements apply to both the textarea and text input elements.
 
 ### General fixes
 
+- Fix some situations where the scroll offset of an element would reset or change after layout updates. #452
 - Fix wrong logic for assertion of released textures. #589 (thanks @pgruenbacher)
 - Fix some situations where units were not shown in properties, ensure all invoked types define a string converter.
 - In `demo` sample, fix form submit animation not playing smoothly on power saving mode.

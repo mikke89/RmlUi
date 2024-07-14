@@ -55,6 +55,7 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
+class LayoutEngine;
 class ContainerBox;
 class InlineLevelBox;
 class ReplacedBox;
@@ -140,7 +141,8 @@ public:
 	/// Sets the dimensions of the element's scrollable overflow rectangle. This is the tightest fitting box surrounding
 	/// all of this element's logical children, and the element's padding box.
 	/// @param[in] scrollable_overflow_rectangle The dimensions of the box's scrollable content.
-	void SetScrollableOverflowRectangle(Vector2f scrollable_overflow_rectangle);
+	/// @param[in] clamp_scroll_offset Clamp scroll offset to the new rectangle, should only be set when the final overflow size has been determined.
+	void SetScrollableOverflowRectangle(Vector2f scrollable_overflow_rectangle, bool clamp_scroll_offset);
 	/// Sets the box describing the size of the element, and removes all others.
 	/// @param[in] box The new dimensions box for the element.
 	void SetBox(const Box& box);
@@ -692,6 +694,9 @@ private:
 	void OnDpRatioChangeRecursive();
 	void DirtyFontFaceRecursive();
 
+	void ClampScrollOffset();
+	void ClampScrollOffsetRecursive();
+
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
 	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction,
 		float delay, bool initiated_by_animation_property);
@@ -797,6 +802,7 @@ private:
 	friend class Rml::ContainerBox;
 	friend class Rml::InlineLevelBox;
 	friend class Rml::ReplacedBox;
+	friend class Rml::LayoutEngine;
 	friend class Rml::ElementScroll;
 	friend RMLUICORE_API void Rml::ReleaseFontResources();
 };
