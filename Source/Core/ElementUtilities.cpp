@@ -255,7 +255,7 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 
 	if (clip_region.Valid())
 	{
-		Math::ExpandToPixelGrid(clip_region);
+		Math::SnapToPixelGrid(clip_region);
 		out_clip_region = Rectanglei(clip_region);
 	}
 

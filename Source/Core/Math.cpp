@@ -184,6 +184,11 @@ namespace Math {
 		size = bottom_right.Round() - position;
 	}
 
+	RMLUICORE_API void SnapToPixelGrid(Rectanglef& rectangle)
+	{
+		rectangle = Rectanglef::FromCorners(rectangle.TopLeft().Round(), rectangle.BottomRight().Round());
+	}
+
 	RMLUICORE_API void ExpandToPixelGrid(Vector2f& position, Vector2f& size)
 	{
 		const Vector2f bottom_right = position + size;

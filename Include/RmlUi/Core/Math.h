@@ -208,12 +208,15 @@ namespace Math {
 	/// @param[inout] position The position, which will use normal rounding.
 	/// @param[inout] size The size, which is rounded such that movement of the right and bottom edges is minimized.
 	RMLUICORE_API void SnapToPixelGrid(Vector2f& position, Vector2f& size);
+	/// Round the rectangle to the pixel grid while minimizing movement of the edges.
+	/// @param[inout] rectangle The rectangle to round.
+	RMLUICORE_API void SnapToPixelGrid(Rectanglef& rectangle);
 	/// Round the position and size of a rectangle to the pixel grid such that it fully covers the original rectangle.
 	/// @param[inout] position The position, which will be rounded down.
 	/// @param[inout] size The size, which is rounded such that the right and bottom edges are rounded up.
 	RMLUICORE_API void ExpandToPixelGrid(Vector2f& position, Vector2f& size);
 	/// Round the rectangle to the pixel grid such that it fully covers the original rectangle.
-	/// @param[inout] position The rectangle to round.
+	/// @param[inout] rectangle The rectangle to round.
 	RMLUICORE_API void ExpandToPixelGrid(Rectanglef& rectangle);
 
 	/// Converts a number to the nearest power of two, rounding up if necessary.
