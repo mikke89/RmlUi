@@ -347,10 +347,11 @@ table input.text
 {
 	box-sizing: border-box;
 	width: 100%;
-	height: 18dp;
 	margin: 0;
-	padding: 0 5dp;
-	line-height: 1.0;
+	padding: 1dp 5dp;
+	height: auto;
+	line-height: 16dp;
+	text-align: center;
 
 	border-width: 1dp;
 	border-color: black;
