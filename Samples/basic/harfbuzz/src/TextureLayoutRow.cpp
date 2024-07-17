@@ -1,0 +1,98 @@
+/*
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
+ *
+ * For the latest information, see http://github.com/mikke89/RmlUi
+ *
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+#include "TextureLayoutRow.h"
+#include "TextureLayout.h"
+
+TextureLayoutRow::TextureLayoutRow()
+{
+	height = 0;
+}
+
+TextureLayoutRow::~TextureLayoutRow() {}
+
+int TextureLayoutRow::Generate(TextureLayout& layout, int max_width, int y)
+{
+	int width = 1;
+	int first_unplaced_index = 0;
+	int placed_rectangles = 0;
+
+	while (width < max_width)
+	{
+		// Find the first unplaced rectangle we can fit.
+		int index;
+		for (index = first_unplaced_index; index < layout.GetNumRectangles(); ++index)
+		{
+			TextureLayoutRectangle& rectangle = layout.GetRectangle(index);
+			if (!rectangle.IsPlaced())
+			{
+				if (width + rectangle.GetDimensions().x + 1 <= max_width)
+					break;
+			}
+		}
+
+		if (index == layout.GetNumRectangles())
+			return placed_rectangles;
+
+		TextureLayoutRectangle& rectangle = layout.GetRectangle(index);
+
+		// Increment the row height if necessary.
+		height = Rml::Math::Max(height, rectangle.GetDimensions().y);
+
+		// Add this glyph onto our list and mark it as placed.
+		rectangles.push_back(&rectangle);
+		rectangle.Place(layout.GetNumTextures(), Vector2i(width, y));
+		++placed_rectangles;
+
+		// Increment our width. An extra pixel is added on so the rectangles aren't pushed up
+		// against each other. This will avoid filtering artifacts.
+		if (rectangle.GetDimensions().x > 0)
+			width += rectangle.GetDimensions().x + 1;
+
+		first_unplaced_index = index + 1;
+	}
+
+	return placed_rectangles;
+}
+
+void TextureLayoutRow::Allocate(byte* texture_data, int stride)
+{
+	for (size_t i = 0; i < rectangles.size(); ++i)
+		rectangles[i]->Allocate(texture_data, stride);
+}
+
+int TextureLayoutRow::GetHeight() const
+{
+	return height;
+}
+
+void TextureLayoutRow::Unplace()
+{
+	for (size_t i = 0; i < rectangles.size(); ++i)
+		rectangles[i]->Unplace();
+}

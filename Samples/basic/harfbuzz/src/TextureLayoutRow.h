@@ -26,27 +26,54 @@
  *
  */
 
-#include "FontEngineDefault/FontTypes.h"
-#include "FontGlyph.h"
+#ifndef TEXTSHAPER_TEXTURELAYOUTROW_H
+#define TEXTSHAPER_TEXTURELAYOUTROW_H
+
+#include "TextureLayoutRectangle.h"
 #include <RmlUi/Core.h>
 
-using Rml::Character;
-using Rml::FontFaceHandleFreetype;
-using Rml::FontMetrics;
+using Rml::byte;
+using Rml::Vector;
 
-namespace FreeType {
+class TextureLayout;
 
-// Initializes a face for a given font size. Glyphs are filled with the ASCII subset, and the font face metrics are set.
-bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics, bool load_default_glyphs);
+/**
+    A texture layout row is a single row of rectangles positioned vertically within a texture.
 
-// Build a new glyph representing the given glyph index and append to 'glyphs'.
-bool AppendGlyph(FontFaceHandleFreetype face, int font_size, FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs);
+    Modified to support 64-bit IDs.
 
-// Returns the kerning between two characters given by glyph indices.
-// 'font_size' value of zero assumes the font size is already set on the face, and skips this step for performance reasons.
-int GetKerning(FontFaceHandleFreetype face, int font_size, FontGlyphIndex lhs, FontGlyphIndex rhs);
+    @author Peter
+ */
 
-// Returns the corresponding glyph index from a character code.
-FontGlyphIndex GetGlyphIndexFromCharacter(FontFaceHandleFreetype face, Character character);
+class TextureLayoutRow {
+public:
+	TextureLayoutRow();
+	~TextureLayoutRow();
 
-} // namespace FreeType
+	/// Attempts to position unplaced rectangles from the layout into this row.
+	/// @param[in] layout The layout to position rectangles from.
+	/// @param[in] width The maximum width of this row.
+	/// @param[in] y The y-coordinate of this row.
+	/// @return The number of placed rectangles.
+	int Generate(TextureLayout& layout, int width, int y);
+
+	/// Assigns allocated texture data to all rectangles in this row.
+	/// @param[in] texture_data The pointer to the beginning of the texture's data.
+	/// @param[in] stride The stride of the texture's surface, in bytes;
+	void Allocate(byte* texture_data, int stride);
+
+	/// Returns the height of the row.
+	/// @return The row's height.
+	int GetHeight() const;
+
+	/// Resets the placed status for all of the rectangles within this row.
+	void Unplace();
+
+private:
+	using RectangleList = Vector<TextureLayoutRectangle*>;
+
+	int height;
+	RectangleList rectangles;
+};
+
+#endif

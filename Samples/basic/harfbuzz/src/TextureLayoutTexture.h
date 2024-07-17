@@ -26,27 +26,52 @@
  *
  */
 
-#include "FontEngineDefault/FontTypes.h"
-#include "FontGlyph.h"
+#ifndef TEXTSHAPER_TEXTURELAYOUTTEXTURE_H
+#define TEXTSHAPER_TEXTURELAYOUTTEXTURE_H
+
+#include "TextureLayoutRow.h"
 #include <RmlUi/Core.h>
 
-using Rml::Character;
-using Rml::FontFaceHandleFreetype;
-using Rml::FontMetrics;
+using Rml::byte;
+using Rml::Vector;
 
-namespace FreeType {
+class TextureLayout;
 
-// Initializes a face for a given font size. Glyphs are filled with the ASCII subset, and the font face metrics are set.
-bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics, bool load_default_glyphs);
+/**
+    A texture layout texture is a single rectangular area which sub-rectangles are placed on within
+    a complete texture layout.
 
-// Build a new glyph representing the given glyph index and append to 'glyphs'.
-bool AppendGlyph(FontFaceHandleFreetype face, int font_size, FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs);
+	Modified to support 64-bit IDs.
 
-// Returns the kerning between two characters given by glyph indices.
-// 'font_size' value of zero assumes the font size is already set on the face, and skips this step for performance reasons.
-int GetKerning(FontFaceHandleFreetype face, int font_size, FontGlyphIndex lhs, FontGlyphIndex rhs);
+    @author Peter
+ */
 
-// Returns the corresponding glyph index from a character code.
-FontGlyphIndex GetGlyphIndexFromCharacter(FontFaceHandleFreetype face, Character character);
+class TextureLayoutTexture {
+public:
+	TextureLayoutTexture();
+	~TextureLayoutTexture();
 
-} // namespace FreeType
+	/// Returns the texture's dimensions. This is only valid after the texture has been generated.
+	/// @return The texture's dimensions.
+	Vector2i GetDimensions() const;
+
+	/// Attempts to position unplaced rectangles from the layout into this texture. The size of
+	/// this texture will be determined by its contents.
+	/// @param[in] layout The layout to position rectangles from.
+	/// @param[in] maximum_dimensions The maximum dimensions of this texture. If this is not big enough to place all the rectangles, then as many will
+	/// be placed as possible.
+	/// @return The number of placed rectangles.
+	int Generate(TextureLayout& layout, int maximum_dimensions);
+
+	/// Allocates the texture.
+	/// @return The allocated texture data.
+	Vector<byte> AllocateTexture();
+
+private:
+	using RowList = Vector<TextureLayoutRow>;
+
+	Vector2i dimensions;
+	RowList rows;
+};
+
+#endif

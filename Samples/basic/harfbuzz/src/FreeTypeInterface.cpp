@@ -36,13 +36,12 @@
 
 namespace FreeType
 {
-static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, FontGlyphMap& glyphs, const float bitmap_scaling_factor);
+static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs, const float bitmap_scaling_factor);
 static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const float bitmap_scaling_factor, const bool load_default_glyphs);
 static void GenerateMetrics(FT_Face ft_face, FontMetrics& metrics, float bitmap_scaling_factor);
 static bool SetFontSize(FT_Face ft_face, int font_size, float& out_bitmap_scaling_factor);
 static void BitmapDownscale(Rml::byte* bitmap_new, const int new_width, const int new_height, const Rml::byte* bitmap_source, const int width,
-	const int height,
-	const int pitch, const Rml::ColorFormat color_format);
+	const int height, const int pitch, const Rml::ColorFormat color_format);
 
 bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics, bool load_default_glyphs)
 {
@@ -63,7 +62,7 @@ bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphM
 	return true;
 }
 
-bool AppendGlyph(FontFaceHandleFreetype face, int font_size, FontGlyphIndex glyph_index, FontGlyphMap& glyphs)
+bool AppendGlyph(FontFaceHandleFreetype face, int font_size, FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs)
 {
 	FT_Face ft_face = (FT_Face)face;
 
@@ -75,7 +74,7 @@ bool AppendGlyph(FontFaceHandleFreetype face, int font_size, FontGlyphIndex glyp
 	if (!SetFontSize(ft_face, font_size, bitmap_scaling_factor))
 		return false;
 
-	if (!BuildGlyph(ft_face, glyph_index, glyphs, bitmap_scaling_factor))
+	if (!BuildGlyph(ft_face, glyph_index, character, glyphs, bitmap_scaling_factor))
 		return false;
 
 	return true;
@@ -112,7 +111,7 @@ FontGlyphIndex GetGlyphIndexFromCharacter(FontFaceHandleFreetype face, Character
 	return FT_Get_Char_Index((FT_Face)face, (FT_ULong)character);
 }
 
-static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, FontGlyphMap& glyphs,
+static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs,
 	const float bitmap_scaling_factor)
 {
 	if (glyph_index == 0)
@@ -136,7 +135,7 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, FontGl
 		return false;
 	}
 
-	auto result = glyphs.emplace(glyph_index, Rml::FontGlyph{});
+	auto result = glyphs.emplace(glyph_index, FontGlyphData{Rml::FontGlyph{}, character});
 	if (!result.second)
 	{
 		Rml::Log::Message(Rml::Log::LT_WARNING, "Glyph index '%u' is already loaded in the font face '%s %s'.", (unsigned int)glyph_index,
@@ -144,7 +143,7 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, FontGl
 		return false;
 	}
 
-	Rml::FontGlyph& glyph = result.first->second;
+	Rml::FontGlyph& glyph = result.first->second.bitmap;
 
 	FT_GlyphSlot ft_glyph = ft_face->glyph;
 
@@ -297,7 +296,7 @@ static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const
 		for (FT_ULong character_code = code_min; character_code <= code_max; ++character_code)
 		{
 			FT_UInt index = FT_Get_Char_Index(ft_face, character_code);
-			BuildGlyph(ft_face, index, glyphs, bitmap_scaling_factor);
+			BuildGlyph(ft_face, index, static_cast<Rml::Character>(character_code), glyphs, bitmap_scaling_factor);
 		}
 	}
 
@@ -326,7 +325,8 @@ static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const
 			}
 		}
 
-		glyphs[replacement_glyph_index] = std::move(glyph);
+		glyphs[replacement_glyph_index].bitmap = std::move(glyph);
+		glyphs[replacement_glyph_index].character = Rml::Character::Replacement;
 	}
 }
 
