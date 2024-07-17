@@ -88,6 +88,14 @@ FontFaceHandleDefault* FontProvider::GetFontFaceHandle(const String& family, Sty
 	return it->second->GetFaceHandle(style, weight, size);
 }
 
+FontFamily* FontProvider::GetFontFamily(const String& family) 
+{
+	RMLUI_ASSERTMSG(family == StringUtilities::ToLower(family), "Font family name must be converted to lowercase before entering here.");
+
+	auto it = g_font_provider->font_families.find(family);
+	return it == g_font_provider->font_families.end() ? nullptr : it->second.get();
+}
+
 int FontProvider::CountFallbackFontFaces()
 {
 	return (int)Get().fallback_font_faces.size();
@@ -229,6 +237,37 @@ bool FontProvider::LoadFontFace(const byte* data, int data_size, bool fallback_f
 	}
 
 	return true;
+}
+
+bool FontProvider::CreateVirtualFontFace(const String& font_name, const Vector<FontMatch>& font_data)
+{
+	if (g_font_provider->font_families.contains(font_name))
+	{
+		Log::Message(Log::LT_ERROR, "Font name %s already exists", font_name.c_str());
+		return false;
+	}
+
+	for(auto& font_match : font_data)
+	{
+		if (font_match.character_ranges.first == -1 && font_match.character_ranges.second == -1)
+			continue;
+
+		auto it = g_font_provider->font_families.find(font_match.font_name);
+
+		if (it == g_font_provider->font_families.end())
+		{
+			Log::Message(Log::LT_ERROR, "Font name %s doesn't exist!", font_match.font_name.c_str());
+			return false;
+		}
+
+		FontFace* font_match_face = it->second.get()->GetFontFace(font_match.style, font_match.weight);
+		if (!font_match_face)
+			return false; // no such font face is found.
+	}
+
+	auto virtual_font_family_ptr = MakeUnique<FontFamily>(font_name);
+	virtual_font_family_ptr->AddVirtualFace(font_data);
+	g_font_provider->font_families[font_name] = std::move(virtual_font_family_ptr);
 }
 
 bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face,

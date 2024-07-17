@@ -34,6 +34,7 @@
 #include "Types.h"
 
 namespace Rml {
+struct FontMatch;
 
 /**
 	The abstract base class for an application-specific font engine implementation.
@@ -55,6 +56,14 @@ public:
 	/// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as.
 	/// @return True if the face was loaded successfully, false otherwise.
 	virtual bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight);
+
+	
+	/// Called by RmlUi when it wants to create a custom font family.
+	/// @param[in] font_name The name of the custom font family.
+	/// @param[in] font_data A vector of font matches that will be used for matching characters.
+	/// @return True if the custom font face was created successfully, false otherwise.
+	virtual bool CreateCustomFontFace(const String& font_name, const Vector<FontMatch>& font_data);
+
 
 	/// Called by RmlUi when it wants to load a font face from memory, registered using the provided family, style, and weight.
 	/// @param[in] data A pointer to the data.

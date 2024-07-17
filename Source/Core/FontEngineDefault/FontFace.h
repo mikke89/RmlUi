@@ -44,6 +44,7 @@ class FontFace
 {
 public:
 	FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight);
+	FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight, const Vector<FontMatch>& font_matches);
 	~FontFace();
 
 	Style::FontStyle GetStyle() const;
@@ -58,9 +59,12 @@ public:
 	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
 	void ReleaseFontResources();
 
+	FontFaceHandleFreetype GetFreeTypeHandle() const;
+
 private:
 	Style::FontStyle style;
 	Style::FontWeight weight;
+	Vector<FontMatch> font_matches;
 
 	// Key is font size
 	using HandleMap = UnorderedMap< int, UniquePtr<FontFaceHandleDefault> >;

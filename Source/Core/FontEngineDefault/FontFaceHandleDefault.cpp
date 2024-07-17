@@ -71,6 +71,27 @@ bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_siz
 	return true;
 }
 
+bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_size, const Vector<FontMatch>& font_matches, bool load_default_glyphs)
+{
+	ft_face = face;
+
+	this->font_matches = font_matches;
+
+	RMLUI_ASSERTMSG(layer_configurations.empty(), "Initialize must only be called once.");
+
+	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics, load_default_glyphs))
+		return false;
+
+	has_kerning = FreeType::HasKerning(ft_face);
+	FillKerningPairCache();
+
+	// Generate the default layer and layer configuration.
+	base_layer = GetOrCreateLayer(nullptr);
+	layer_configurations.push_back(LayerConfiguration{base_layer});
+
+	return true;
+}
+
 // Returns the point size of this font face.
 int FontFaceHandleDefault::GetSize() const
 {
@@ -391,6 +412,28 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, b
 	if ((char32_t)character < (char32_t)' ')
 		return nullptr;
 
+
+	if (font_matches.size())
+	{
+		FontMatch query;
+		query.character_ranges = {(int)character, (int)character};
+
+		auto it = std::lower_bound(font_matches.begin(), font_matches.end(), query, [](const FontMatch& lhs, const FontMatch& rhs) { return lhs.character_ranges.first < rhs.character_ranges.first; });
+
+		if (it != font_matches.end() && it->character_ranges.first <= (int)character && (int)character <= it->character_ranges.second)
+		{
+			auto it_glyph = glyphs.find(character);
+			if (it_glyph != glyphs.end())
+			{
+				return &it_glyph->second;
+			}
+		}
+
+		return GetFallbackGlyph(character);
+	}
+
+
+
 	auto it_glyph = glyphs.find(character);
 	if (it_glyph == glyphs.end())
 	{
@@ -409,33 +452,7 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, b
 		}
 		else if (look_in_fallback_fonts)
 		{
-			const int num_fallback_faces = FontProvider::CountFallbackFontFaces();
-			for (int i = 0; i < num_fallback_faces; i++)
-			{
-				FontFaceHandleDefault* fallback_face = FontProvider::GetFallbackFontFace(i, metrics.size);
-				if (!fallback_face || fallback_face == this)
-					continue;
-
-				const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(character, false);
-				if (glyph)
-				{
-					// Insert the new glyph into our own set of glyphs
-					auto pair = glyphs.emplace(character, glyph->WeakCopy());
-					it_glyph = pair.first;
-					if(pair.second)
-						is_layers_dirty = true;
-					break;
-				}
-			}
-
-			// If we still have not found a glyph, use the replacement character.
-			if(it_glyph == glyphs.end())
-			{
-				character = Character::Replacement;
-				it_glyph = glyphs.find(character);
-				if (it_glyph == glyphs.end())
-					return nullptr;
-			}
+			return GetFallbackGlyph(character);
 		}
 		else
 		{
@@ -444,6 +461,43 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, b
 	}
 
 	const FontGlyph* glyph = &it_glyph->second;
+	return glyph;
+}
+
+const FontGlyph* FontFaceHandleDefault::GetFallbackGlyph(Character& character)
+{
+	const FontGlyph* glyph = nullptr;
+
+	const int num_fallback_faces = FontProvider::CountFallbackFontFaces();
+	for (int i = 0; i < num_fallback_faces; i++)
+	{
+		FontFaceHandleDefault* fallback_face = FontProvider::GetFallbackFontFace(i, metrics.size);
+		if (!fallback_face || fallback_face == this)
+			continue;
+
+		glyph = fallback_face->GetOrAppendGlyph(character, false);
+		if (glyph)
+		{
+			is_layers_dirty = glyphs.contains(character);
+			glyphs[character] = glyph->WeakCopy();
+
+			// Insert the new glyph into our own set of glyphs
+			// auto pair = glyphs.emplace(character, glyph->WeakCopy());
+			// if (pair.second)
+			//	is_layers_dirty = true;
+			break;
+		}
+	}
+
+	// If we still have not found a glyph, use the replacement character.
+	if (!glyph)
+	{
+		character = Character::Replacement;
+		auto it_glyph = glyphs.find(character);
+		if (it_glyph == glyphs.end())
+			return nullptr;
+	}
+
 	return glyph;
 }
 

@@ -45,6 +45,11 @@ bool FontEngineInterface::LoadFontFace(const byte* /*data*/, int /*data_size*/, 
 	return false;
 }
 
+bool FontEngineInterface::CreateCustomFontFace(const String& /*font_name*/, const Vector<FontMatch>& /*font_data*/)
+{
+	return false;
+}
+
 FontFaceHandle FontEngineInterface::GetFontFaceHandle(const String& /*family*/, Style::FontStyle /*style*/, Style::FontWeight /*weight*/,
 	int /*size*/)
 {

@@ -60,11 +60,16 @@ public:
 	/// @return A valid handle if a matching (or closely matching) font face was found, nullptr otherwise.
 	static FontFaceHandleDefault* GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
+	/// Returns a font family from string if found, else nullptr is returned.
+	static FontFamily* GetFontFamily(const String& family);
+
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	static bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight = Style::FontWeight::Auto);
 
 	/// Adds a new font face from memory.
 	static bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+
+	static bool CreateVirtualFontFace(const String& font_name, const Vector<FontMatch>& font_data);
 
 	/// Return the number of fallback font faces.
 	static int CountFallbackFontFaces();

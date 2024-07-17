@@ -42,6 +42,7 @@ class FileInterface;
 class FontEngineInterface;
 class RenderInterface;
 class SystemInterface;
+class FontMatch;
 enum class DefaultActionPhase;
 
 
@@ -124,6 +125,14 @@ RMLUICORE_API int GetNumContexts();
 /// loads all found font weights.
 /// @return True if the face was loaded successfully, false otherwise.
 RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = false, Style::FontWeight weight = Style::FontWeight::Auto);
+
+/// Creates a custom font face from the provided font data.
+/// @param[in] font_name The name of the font family.
+/// @param[in] font_data A vector containing font match data for the custom font face.
+/// @return True if the custom font face was created and added successfully, false otherwise.
+RMLUICORE_API bool CreateCustomFontFace(const String& font_name, const Vector<FontMatch>& font_data);
+
+
 /// Adds a new font face from memory to the font engine. The face's family, style and weight is given by the parameters.
 /// @param[in] data A pointer to the data.
 /// @param[in] data_size Size of the data in bytes.

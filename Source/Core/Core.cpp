@@ -342,6 +342,11 @@ bool LoadFontFace(const byte* data, int data_size, const String& font_family, St
 	return font_interface->LoadFontFace(data, data_size, font_family, style, weight, fallback_face);
 }
 
+bool CreateCustomFontFace(const String& font_name, const Vector<FontMatch>& font_data)
+{
+	return font_interface->CreateCustomFontFace(font_name, font_data);
+}
+
 // Registers a generic rmlui plugin
 void RegisterPlugin(Plugin* plugin)
 {

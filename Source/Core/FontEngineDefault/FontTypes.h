@@ -35,6 +35,14 @@
 
 namespace Rml {
 
+struct FontMatch 
+{
+	String font_name;
+	std::pair<int, int> character_ranges = { -1, -1 };
+	Style::FontStyle style = Style::FontStyle::Normal;
+	Style::FontWeight weight = Style::FontWeight::Normal;
+};
+
 using FontFaceHandleFreetype = uintptr_t;
 
 struct FontMetrics {

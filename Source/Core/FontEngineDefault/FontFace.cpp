@@ -40,9 +40,16 @@ FontFace::FontFace(FontFaceHandleFreetype _face, Style::FontStyle _style, Style:
 	face = _face;
 }
 
+ FontFace::FontFace(FontFaceHandleFreetype face, Style::FontStyle style, Style::FontWeight weight, const Vector<FontMatch>& font_matches) 
+	 : style(style), weight(weight), face(face), font_matches(font_matches)
+ {
+
+ }
+
 FontFace::~FontFace()
 {
-	if (face) 
+	// make sure to not destroy free type face if this font is "virtual" and we don't own the face.
+	if (face && !font_matches.size()) 
 		FreeType::ReleaseFace(face);
 }
 
@@ -73,7 +80,8 @@ FontFaceHandleDefault* FontFace::GetHandle(int size, bool load_default_glyphs)
 
 	// Construct and initialise the new handle.
 	auto handle = MakeUnique<FontFaceHandleDefault>();
-	if (!handle->Initialize(face, size, load_default_glyphs))
+
+	if (!handle->Initialize(face, size, font_matches, load_default_glyphs))
 	{
 		handles[size] = nullptr;
 		return nullptr;
@@ -91,5 +99,11 @@ void FontFace::ReleaseFontResources()
 {
 	HandleMap().swap(handles);
 }
+
+FontFaceHandleFreetype FontFace::GetFreeTypeHandle() const 
+{
+	return face;
+}
+
 
 } // namespace Rml

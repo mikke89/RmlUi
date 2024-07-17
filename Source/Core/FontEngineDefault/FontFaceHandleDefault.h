@@ -52,6 +52,7 @@ public:
 	~FontFaceHandleDefault();
 
 	bool Initialize(FontFaceHandleFreetype face, int font_size, bool load_default_glyphs);
+	bool Initialize(FontFaceHandleFreetype face, int font_size, const Vector<FontMatch>& font_matches, bool load_default_glyphs);
 
 	/// Returns the point size of this font face.
 	int GetSize() const;
@@ -115,6 +116,7 @@ private:
 	/// @param[in] look_in_fallback_fonts  Look for the glyph in fallback fonts if not found locally, adding it to our glyphs.
 	/// @return The font glyph for the returned code point.
 	const FontGlyph* GetOrAppendGlyph(Character& character, bool look_in_fallback_fonts = true);
+	const FontGlyph* GetFallbackGlyph(Character& character);
 
 	// Regenerate layers if dirty, such as after adding new glyphs.
 	bool UpdateLayersOnDirty();
@@ -135,6 +137,8 @@ private:
 	using FontLayerCache = SmallUnorderedMap< size_t, FontFaceLayer* >;
 	using LayerConfiguration = Vector< FontFaceLayer* >;
 	using LayerConfigurationList = Vector< LayerConfiguration >;
+
+	Vector<FontMatch> font_matches;
 
 	// The list of all font layers, index by the effect that instanced them.
 	FontFaceLayer* base_layer;
