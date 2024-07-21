@@ -79,12 +79,12 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 		const size_t shorthand_open = decorator_string.find('(');
 		const size_t shorthand_close = decorator_string.rfind(')');
 		const bool invalid_parenthesis = (shorthand_open == String::npos || shorthand_close == String::npos || shorthand_open >= shorthand_close);
+		const size_t keywords_begin = (invalid_parenthesis ? decorator_string.find(' ') : shorthand_close + 1);
 
 		// Look-up keywords for customized paint area.
 		BoxArea paint_area = BoxArea::Auto;
 
 		{
-			const size_t keywords_begin = (invalid_parenthesis ? decorator_string.find(' ') : shorthand_close + 1);
 			StringList keywords;
 			if (keywords_begin < decorator_string.size())
 				StringUtilities::ExpandString(keywords, decorator_string.substr(keywords_begin), ' ');
@@ -105,7 +105,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 		if (invalid_parenthesis)
 		{
 			// We found no parenthesis, that means the value must be a name of a @decorator rule.
-			decorators.list.emplace_back(DecoratorDeclaration{decorator_string, nullptr, {}, paint_area});
+			decorators.list.emplace_back(DecoratorDeclaration{decorator_string.substr(0, keywords_begin), nullptr, {}, paint_area});
 		}
 		else
 		{
