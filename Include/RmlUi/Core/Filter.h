@@ -47,15 +47,15 @@ public:
 	Filter();
 	virtual ~Filter();
 
-	/// Called on a decorator to generate any required per-element data for a newly decorated element.
-	/// @param[in] element The newly decorated element.
-	/// @return A handle to a decorator-defined data handle, or nullptr if none is needed for the element.
+	/// Called to compile the filter for a given element.
+	/// @param[in] element The element the filter will be applied to.
+	/// @return A compiled filter constructed through the render manager, or a default-constructed one to indicate an error.
 	virtual CompiledFilter CompileFilter(Element* element) const = 0;
 
-	/// Allows extending the area being affected by this filter beyond the border box of the element.
+	/// Called to allow extending the area being affected by this filter beyond the border box of the element.
 	/// @param[in] element The element the filter is being rendered on.
 	/// @param[in,out] overflow The ink overflow rectangle determining the clipping region to be applied when filtering the current element.
-	/// @note Modifying the ink overflow rectangle affects rendering of all filter decorators active on the current element.
+	/// @note Modifying the ink overflow rectangle affects rendering of all filters active on the current element.
 	/// @note Only affects the 'filter' property, not 'backdrop-filter'.
 	virtual void ExtendInkOverflow(Element* element, Rectanglef& overflow) const;
 };

@@ -37,7 +37,9 @@ namespace Rml {
 class RenderManager;
 
 /**
-    A compiled filter to be applied during layer pop in its render manager. A unique resource constructed through the render manager.
+    A compiled filter to be applied when compositing layers in the render manager.
+
+    Represents a unique render resource constructed through the render manager.
  */
 class RMLUICORE_API CompiledFilter final : public UniqueRenderResource<CompiledFilter, CompiledFilterHandle, CompiledFilterHandle(0)> {
 public:
@@ -53,7 +55,9 @@ private:
 };
 
 /**
-    A compiled shader to be used when rendering geometry. A unique resource constructed through the render manager.
+    A compiled shader to be used when rendering geometry.
+
+    Represents a unique render resource constructed through the render manager.
  */
 class RMLUICORE_API CompiledShader final : public UniqueRenderResource<CompiledShader, CompiledShaderHandle, CompiledShaderHandle(0)> {
 public:
