@@ -26,27 +26,67 @@
  *
  */
 
-#include "FontEngineDefault/FontTypes.h"
-#include "FontGlyph.h"
-#include <RmlUi/Core.h>
+#include "TextureLayoutRectangle.h"
 
-using Rml::Character;
-using Rml::FontFaceHandleFreetype;
-using Rml::FontMetrics;
+TextureLayoutRectangle::TextureLayoutRectangle(const uint64_t _id, const Vector2i dimensions) : dimensions(dimensions), texture_position(0, 0)
+{
+	id = _id;
+	texture_index = -1;
 
-namespace FreeType {
+	texture_data = nullptr;
+	texture_stride = 0;
+}
 
-// Initializes a face for a given font size. Glyphs are filled with the ASCII subset, and the font face metrics are set.
-bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphMap& glyphs, FontMetrics& metrics, bool load_default_glyphs);
+TextureLayoutRectangle::~TextureLayoutRectangle() {}
 
-// Build a new glyph representing the given glyph index and append to 'glyphs'.
-bool AppendGlyph(FontFaceHandleFreetype face, int font_size, FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs);
+uint64_t TextureLayoutRectangle::GetId() const
+{
+	return id;
+}
 
-// Returns the kerning between two characters given by glyph indices.
-// 'font_size' value of zero assumes the font size is already set on the face, and skips this step for performance reasons.
-int GetKerning(FontFaceHandleFreetype face, int font_size, FontGlyphIndex lhs, FontGlyphIndex rhs);
+Vector2i TextureLayoutRectangle::GetPosition() const
+{
+	return texture_position;
+}
 
-// Returns the corresponding glyph index from a character code.
-FontGlyphIndex GetGlyphIndexFromCharacter(FontFaceHandleFreetype face, Character character);
+Vector2i TextureLayoutRectangle::GetDimensions() const
+{
+	return dimensions;
+}
 
-} // namespace FreeType
+void TextureLayoutRectangle::Place(const int _texture_index, const Vector2i position)
+{
+	texture_index = _texture_index;
+	texture_position = position;
+}
+
+void TextureLayoutRectangle::Unplace()
+{
+	texture_index = -1;
+}
+
+bool TextureLayoutRectangle::IsPlaced() const
+{
+	return texture_index > -1;
+}
+
+void TextureLayoutRectangle::Allocate(byte* _texture_data, int _texture_stride)
+{
+	texture_data = _texture_data + ((texture_position.y * _texture_stride) + texture_position.x * 4);
+	texture_stride = _texture_stride;
+}
+
+int TextureLayoutRectangle::GetTextureIndex()
+{
+	return texture_index;
+}
+
+byte* TextureLayoutRectangle::GetTextureData()
+{
+	return texture_data;
+}
+
+int TextureLayoutRectangle::GetTextureStride() const
+{
+	return texture_stride;
+}

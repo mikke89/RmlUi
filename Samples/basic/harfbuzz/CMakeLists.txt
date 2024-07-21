@@ -18,6 +18,14 @@ add_executable(${TARGET_NAME} WIN32
 	src/FreeTypeInterface.cpp
 	src/FreeTypeInterface.h
 	src/LanguageData.h
+	src/TextureLayout.cpp
+	src/TextureLayout.h
+	src/TextureLayoutRectangle.cpp
+	src/TextureLayoutRectangle.h
+	src/TextureLayoutRow.cpp
+	src/TextureLayoutRow.h
+	src/TextureLayoutTexture.cpp
+	src/TextureLayoutTexture.h
 	src/main.cpp
 )
 

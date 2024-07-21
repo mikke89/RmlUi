@@ -31,6 +31,7 @@
 
 #include "FontGlyph.h"
 #include "TextureLayout.h"
+#include "TextureLayoutRectangle.h"
 #include <RmlUi/Core.h>
 
 using Rml::byte;
@@ -42,14 +43,13 @@ using Rml::ColorFormat;
 using Rml::Colourb;
 using Rml::ColourbPremultiplied;
 using Rml::FontEffect;
+using Rml::FontGlyph;
 using Rml::Geometry;
 using Rml::Mesh;
 using Rml::RenderManager;
 using Rml::SharedPtr;
 using Rml::Texture;
 using Rml::TexturedMesh;
-using Rml::TextureLayout;
-using Rml::TextureLayoutRectangle;
 using Rml::UniquePtr;
 using Rml::UnorderedMap;
 using Rml::Vector;
@@ -83,17 +83,17 @@ public:
 	/// @param[out] texture_dimensions The dimensions of the texture.
 	/// @param[in] texture_id The index of the texture within the layer to generate.
 	/// @param[in] glyphs The glyphs required by the font face handle.
-	bool GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs);
+	bool GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs, const FallbackFontGlyphMap& fallback_glyphs);
 
 	/// Generates the geometry required to render a single character.
 	/// @param[out] mesh_list An array of meshes this layer will write to. It must be at least as big as the number of textures in this layer.
 	/// @param[in] character_code The character to generate geometry for.
 	/// @param[in] position The position of the baseline.
 	/// @param[in] colour The colour of the string.
-	inline void GenerateGeometry(TexturedMesh* mesh_list, const FontGlyphIndex glyph_index, const Vector2f position,
+	inline void GenerateGeometry(TexturedMesh* mesh_list, const FontGlyphIndex glyph_index, const Character character_code, const Vector2f position,
 		const ColourbPremultiplied colour) const
 	{
-		auto it = character_boxes.find(glyph_index);
+		auto it = character_boxes.find(CreateFontGlyphID(glyph_index, character_code));
 		if (it == character_boxes.end())
 			return;
 
@@ -119,6 +119,21 @@ public:
 	ColourbPremultiplied GetColour(float opacity) const;
 
 private:
+	/// Creates an ID for a font glyph from a glyph index and character codepoint.
+	uint64_t CreateFontGlyphID(const FontGlyphIndex glyph_index, const Character character_code) const;
+
+	/// Retrieves the font glyph index from a font glyph ID.
+	FontGlyphIndex GetFontGlyphIndexFromID(const uint64_t glyph_id) const;
+
+	/// Retrieves the character from a font glyph ID.
+	Character GetCharacterCodepointFromID(const uint64_t glyph_id) const;
+
+	/// Creates a texture layout from the given glyph bitmap and data.
+	void CreateTextureLayout(const FontGlyph& glyph, FontGlyphIndex glyph_index, Character glyph_character);
+
+	/// Clones the given glyph bitmap and data into a texture box.
+	void CloneTextureBox(const FontGlyph& glyph, FontGlyphIndex glyph_index, Character glyph_character);
+
 	struct TextureBox {
 		// The offset, in pixels, of the baseline from the start of this character's geometry.
 		Vector2f origin;
@@ -131,7 +146,7 @@ private:
 		int texture_index = -1;
 	};
 
-	using CharacterMap = UnorderedMap<FontGlyphIndex, TextureBox>;
+	using CharacterMap = UnorderedMap<uint64_t, TextureBox>;
 	using TextureList = Vector<CallbackTextureSource>;
 
 	SharedPtr<const FontEffect> effect;

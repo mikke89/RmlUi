@@ -70,6 +70,7 @@ public:
 	const FontMetrics& GetFontMetrics() const;
 
 	const FontGlyphMap& GetGlyphs() const;
+	const FallbackFontGlyphMap& GetFallbackGlyphs() const;
 
 	/// Returns the width a string will take up if rendered with this handle.
 	/// @param[in] string The string to measure.
@@ -112,8 +113,11 @@ public:
 	int GetVersion() const;
 
 private:
-	// Build and append glyph to 'glyphs'
-	bool AppendGlyph(FontGlyphIndex glyph_index);
+	// Build and append glyph to 'glyphs'.
+	bool AppendGlyph(FontGlyphIndex glyph_index, Character character);
+
+	// Build and append fallback glyph to 'fallback_glyphs'.
+	bool AppendFallbackGlyph(Character character);
 
 	// Build a kerning cache for common characters.
 	void FillKerningPairCache();
@@ -122,9 +126,16 @@ private:
 	int GetKerning(FontGlyphIndex lhs, FontGlyphIndex rhs) const;
 
 	/// Retrieve a glyph from the given code index, building and appending a new glyph if not already built.
-	/// @param[in-out] glyph_index  The glyph index, can be changed e.g. to the replacement character if no glyph is found.
+	/// @param[in] glyph_index  The glyph index.
+	/// @param[in-out] character  The character codepoint, can be changed e.g. to the replacement character if no glyph is found..
+	/// @param[in] look_in_fallback_fonts  Look for the glyph in fallback fonts if not found locally, adding it to our fallback glyph map.
 	/// @return The font glyph for the returned glyph index.
-	const FontGlyph* GetOrAppendGlyph(FontGlyphIndex& glyph_index);
+	const FontGlyph* GetOrAppendGlyph(FontGlyphIndex glyph_index, Character& character, bool look_in_fallback_fonts = true);
+
+	/// Retrieve a fallback glyph from the given character, building and appending a new fallback glyph if not already built.
+	/// @param[in] character  The character codepoint.
+	/// @return The fallback font glyph for character.
+	const FontGlyph* GetOrAppendFallbackGlyph(Character character);
 
 	// Regenerate layers if dirty, such as after adding new glyphs.
 	bool UpdateLayersOnDirty();
@@ -140,6 +151,7 @@ private:
 		const LanguageDataMap& registered_languages);
 
 	FontGlyphMap glyphs;
+	FallbackFontGlyphMap fallback_glyphs;
 
 	struct EffectLayerPair {
 		const FontEffect* font_effect;

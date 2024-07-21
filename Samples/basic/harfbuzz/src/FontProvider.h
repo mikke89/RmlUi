@@ -67,10 +67,16 @@ public:
 	static FontFaceHandleHarfBuzz* GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
-	static bool LoadFontFace(const String& file_name, Style::FontWeight weight = Style::FontWeight::Auto);
+	static bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight = Style::FontWeight::Auto);
 
 	/// Adds a new font face from memory.
-	static bool LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight);
+	static bool LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+
+	/// Return the number of fallback font faces.
+	static int CountFallbackFontFaces();
+
+	/// Return a font face handle with the given index, at the given font size.
+	static FontFaceHandleHarfBuzz* GetFallbackFontFace(int index, int font_size);
 
 	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
 	static void ReleaseFontResources();
@@ -81,15 +87,18 @@ private:
 
 	static FontProvider& Get();
 
-	bool LoadFontFace(Span<const byte> data, UniquePtr<byte[]> face_memory, const String& source, String font_family, Style::FontStyle style,
+	bool LoadFontFace(Span<const byte> data, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source, String font_family,
+		Style::FontStyle style,
 		Style::FontWeight weight);
 
-	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]> face_memory);
+	bool AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight,
+		bool fallback_face, UniquePtr<byte[]> face_memory);
 
 	using FontFaceList = Vector<FontFace*>;
 	using FontFamilyMap = UnorderedMap<String, UniquePtr<FontFamily>>;
 
 	FontFamilyMap font_families;
+	FontFaceList fallback_font_faces;
 
 	static const String debugger_font_family_name;
 };

@@ -92,6 +92,11 @@ const FontGlyphMap& FontFaceHandleHarfBuzz::GetGlyphs() const
 	return glyphs;
 }
 
+const FallbackFontGlyphMap& FontFaceHandleHarfBuzz::GetFallbackGlyphs() const
+{
+	return fallback_glyphs;
+}
+
 int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingContext& text_shaping_context,
 	const LanguageDataMap& registered_languages, Character prior_character)
 {
@@ -117,7 +122,7 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 			continue;
 
 		FontGlyphIndex glyph_codepoint = glyph_info[g].codepoint;
-		const FontGlyph* glyph = GetOrAppendGlyph(glyph_codepoint);
+		const FontGlyph* glyph = GetOrAppendGlyph(glyph_codepoint, character);
 		if (!glyph)
 			continue;
 
@@ -216,7 +221,7 @@ bool FontFaceHandleHarfBuzz::GenerateLayerTexture(Vector<byte>& texture_data, Ve
 		return false;
 	}
 
-	return it->layer->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs);
+	return it->layer->GenerateTexture(texture_data, texture_dimensions, texture_id, glyphs, fallback_glyphs);
 }
 
 int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView string, const Vector2f position,
@@ -280,13 +285,14 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 
 		for (int g = 0; g < (int)glyph_count; ++g)
 		{
-			// Don't render control characters.
 			Character character = Rml::StringUtilities::ToCharacter(string.begin() + glyph_info[g].cluster, string.end());
+
+			// Don't render control characters.
 			if (IsASCIIControlCharacter(character))
 				continue;
 
 			FontGlyphIndex glyph_codepoint = glyph_info[g].codepoint;
-			const FontGlyph* glyph = GetOrAppendGlyph(glyph_codepoint);
+			const FontGlyph* glyph = GetOrAppendGlyph(glyph_codepoint, character);
 			if (!glyph)
 				continue;
 
@@ -298,7 +304,8 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 			if (layer == base_layer && glyph->color_format == ColorFormat::RGBA8)
 				glyph_color = ColourbPremultiplied(layer_colour.alpha, layer_colour.alpha);
 
-			layer->GenerateGeometry(&mesh_list[geometry_index], glyph_codepoint, Vector2f(position.x + line_width, position.y), glyph_color);
+			layer->GenerateGeometry(&mesh_list[geometry_index], glyph_codepoint, character, Vector2f(position.x + line_width, position.y),
+				glyph_color);
 
 			line_width += glyph->advance;
 			line_width += (int)text_shaping_context.letter_spacing;
@@ -342,10 +349,38 @@ int FontFaceHandleHarfBuzz::GetVersion() const
 	return version;
 }
 
-bool FontFaceHandleHarfBuzz::AppendGlyph(FontGlyphIndex glyph_index)
+bool FontFaceHandleHarfBuzz::AppendGlyph(FontGlyphIndex glyph_index, Character character)
 {
-	bool result = FreeType::AppendGlyph(ft_face, metrics.size, glyph_index, glyphs);
+	bool result = FreeType::AppendGlyph(ft_face, metrics.size, glyph_index, character, glyphs);
 	return result;
+}
+
+bool FontFaceHandleHarfBuzz::AppendFallbackGlyph(Character character)
+{
+	const int num_fallback_faces = FontProvider::CountFallbackFontFaces();
+	for (int i = 0; i < num_fallback_faces; i++)
+	{
+		FontFaceHandleHarfBuzz* fallback_face = FontProvider::GetFallbackFontFace(i, metrics.size);
+		if (!fallback_face || fallback_face == this)
+			continue;
+
+		const FontGlyphIndex character_index = FreeType::GetGlyphIndexFromCharacter(fallback_face->ft_face, character);
+		if (character_index == 0)
+			continue;
+
+		const FontGlyph* glyph = fallback_face->GetOrAppendGlyph(character_index, character, false);
+		if (glyph)
+		{
+			// Insert the new glyph into our own set of fallback glyphs
+			auto pair = fallback_glyphs.emplace(character, glyph->WeakCopy());
+			if (pair.second)
+				is_layers_dirty = true;
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void FontFaceHandleHarfBuzz::FillKerningPairCache()
@@ -391,14 +426,21 @@ int FontFaceHandleHarfBuzz::GetKerning(FontGlyphIndex lhs, FontGlyphIndex rhs) c
 	return result;
 }
 
-const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendGlyph(FontGlyphIndex& glyph_index)
+const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendGlyph(FontGlyphIndex glyph_index, Character& character, bool look_in_fallback_fonts)
 {
+	if (glyph_index == 0 && look_in_fallback_fonts && character != Character::Replacement)
+	{
+		auto fallback_glyph = GetOrAppendFallbackGlyph(character);
+		if (fallback_glyph != nullptr)
+			return fallback_glyph;
+	}
+
 	auto glyph_location = glyphs.find(glyph_index);
 	if (glyph_location == glyphs.cend())
 	{
 		bool result = false;
 		if (glyph_index != 0)
-			result = AppendGlyph(glyph_index);
+			result = AppendGlyph(glyph_index, character);
 
 		if (result)
 		{
@@ -415,8 +457,37 @@ const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendGlyph(FontGlyphIndex& glyph_
 			return nullptr;
 	}
 
-	const FontGlyph* glyph = &glyph_location->second;
+	if (glyph_index == 0)
+		character = Character::Replacement;
+
+	const FontGlyph* glyph = &glyph_location->second.bitmap;
 	return glyph;
+}
+
+const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendFallbackGlyph(Character character)
+{
+	auto fallback_glyph_location = fallback_glyphs.find(character);
+	if (fallback_glyph_location != fallback_glyphs.cend())
+		return &fallback_glyph_location->second;
+
+	bool result = AppendFallbackGlyph(character);
+
+	if (result)
+	{
+		fallback_glyph_location = fallback_glyphs.find(character);
+		if (fallback_glyph_location == fallback_glyphs.cend())
+		{
+			RMLUI_ERROR;
+			return nullptr;
+		}
+
+		is_layers_dirty = true;
+	}
+	else
+		return nullptr;
+
+	const FontGlyph* fallback_glyph = &fallback_glyph_location->second;
+	return fallback_glyph;
 }
 
 FontFaceLayer* FontFaceHandleHarfBuzz::GetOrCreateLayer(const SharedPtr<const FontEffect>& font_effect)
@@ -519,9 +590,12 @@ void FontFaceHandleHarfBuzz::ConfigureTextShapingBuffer(hb_buffer_t* shaping_buf
 		else
 		{
 			// Language not registered; determine best text-flow direction based on script.
-			bool is_common_right_to_left_script =
-				script == HB_SCRIPT_ARABIC || script == HB_SCRIPT_HEBREW || script == HB_SCRIPT_SYRIAC || script == HB_SCRIPT_THAANA;
-			hb_buffer_set_direction(shaping_buffer, is_common_right_to_left_script ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
+			hb_direction_t text_direction = hb_script_get_horizontal_direction(script);
+			if (text_direction == HB_DIRECTION_INVALID)
+				// Some scripts support both horizontal directions of text flow; default to left-to-right.
+				text_direction = HB_DIRECTION_LTR;
+
+			hb_buffer_set_direction(shaping_buffer, text_direction);
 		}
 		break;
 

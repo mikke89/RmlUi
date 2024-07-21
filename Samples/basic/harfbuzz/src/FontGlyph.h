@@ -31,7 +31,14 @@
 
 #include <RmlUi/Core.h>
 
+struct FontGlyphData
+{
+	Rml::FontGlyph bitmap;
+	Rml::Character character;
+};
+
 using FontGlyphIndex = uint32_t;
-using FontGlyphMap = Rml::UnorderedMap<FontGlyphIndex, Rml::FontGlyph>;
+using FontGlyphMap = Rml::UnorderedMap<FontGlyphIndex, FontGlyphData>;
+using FallbackFontGlyphMap = Rml::UnorderedMap<Rml::Character, Rml::FontGlyph>;
 
 #endif
