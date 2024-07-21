@@ -131,7 +131,6 @@ TEST_CASE("core.release_resources")
 	if (!render_interface)
 		return;
 
-	render_interface->Reset();
 	const auto& counters = render_interface->GetCounters();
 
 	Context* context = TestsShell::GetContext();
@@ -218,11 +217,12 @@ TEST_CASE("core.release_resources")
 
 	TestsShell::ShutdownShell();
 
-	// Finally, verify that all generated and loaded resources are released during shutdown.
-	CHECK(counters.generate_texture + counters.load_texture == counters.release_texture);
-	CHECK(counters.compile_geometry == counters.release_geometry);
+	// Counters are reset during shutdown.
+	const auto& counters_at_shutdown = render_interface->GetCountersFromPreviousReset();
 
-	render_interface->Reset();
+	// Finally, verify that all generated and loaded resources were released during shutdown.
+	CHECK(counters_at_shutdown.generate_texture + counters_at_shutdown.load_texture == counters_at_shutdown.release_texture);
+	CHECK(counters_at_shutdown.compile_geometry == counters_at_shutdown.release_geometry);
 }
 
 TEST_CASE("core.initialize")
@@ -253,5 +253,4 @@ TEST_CASE("core.initialize")
 	}
 
 	Rml::Shutdown();
-	render_interface->Reset();
 }

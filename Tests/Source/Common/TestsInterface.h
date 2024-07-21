@@ -102,12 +102,16 @@ public:
 	void ReleaseShader(Rml::CompiledShaderHandle shader) override;
 
 	const Counters& GetCounters() const { return counters; }
-	void ResetCounters() { counters = {}; }
+	void ResetCounters();
+	const Counters& GetCountersFromPreviousReset() const { return counters_from_previous_reset; }
 
-	void Reset() { ResetCounters(); }
+	void Reset();
 
 private:
+	void VerifyMeshes();
+
 	Counters counters = {};
+	Counters counters_from_previous_reset = {};
 };
 
 #endif

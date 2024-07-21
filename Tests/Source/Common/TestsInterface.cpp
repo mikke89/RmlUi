@@ -178,3 +178,11 @@ void TestsRenderInterface::ReleaseShader(Rml::CompiledShaderHandle /*shader*/)
 {
 	counters.release_shader += 1;
 }
+void TestsRenderInterface::ResetCounters()
+{
+	counters_from_previous_reset = std::exchange(counters, Counters());
+}
+void TestsRenderInterface::Reset()
+{
+	ResetCounters();
+}
