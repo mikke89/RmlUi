@@ -29,6 +29,7 @@
 #ifndef RMLUI_TESTS_TESTSINTERFACE_H
 #define RMLUI_TESTS_TESTSINTERFACE_H
 
+#include <RmlUi/Core/Mesh.h>
 #include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/SystemInterface.h>
 #include <Shell.h>
@@ -105,6 +106,8 @@ public:
 	void ResetCounters();
 	const Counters& GetCountersFromPreviousReset() const { return counters_from_previous_reset; }
 
+	void ExpectCompileGeometry(Rml::Vector<Rml::Mesh> meshes);
+
 	void Reset();
 
 private:
@@ -112,6 +115,8 @@ private:
 
 	Counters counters = {};
 	Counters counters_from_previous_reset = {};
+	Rml::Vector<Rml::Mesh> meshes;
+	bool meshes_set = false;
 };
 
 #endif

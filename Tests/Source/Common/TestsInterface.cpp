@@ -27,6 +27,7 @@
  */
 
 #include "TestsInterface.h"
+#include "TypesToString.h"
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/StringUtilities.h>
 #include <doctest.h>
@@ -90,9 +91,36 @@ void TestsSystemInterface::SetTime(double t)
 	elapsed_time = t;
 }
 
-Rml::CompiledGeometryHandle TestsRenderInterface::CompileGeometry(Rml::Span<const Rml::Vertex> /*vertices*/, Rml::Span<const int> /*indices*/)
+Rml::CompiledGeometryHandle TestsRenderInterface::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
 {
 	counters.compile_geometry += 1;
+
+	if (meshes_set)
+	{
+		INFO("Got vertices:\n", vertices);
+		INFO("Got indices:\n", indices);
+		REQUIRE_MESSAGE(!meshes.empty(), "No CompileGeometry expected, but one was passed to us");
+
+		Rml::Mesh mesh = std::move(meshes.front());
+		meshes.erase(meshes.begin());
+		INFO("Expected mesh:\n", mesh);
+
+		CHECK(mesh.vertices.size() == vertices.size());
+		CHECK(mesh.indices.size() == indices.size());
+
+		for (size_t i = 0; i < mesh.vertices.size(); i++)
+		{
+			CHECK(mesh.vertices[i].position == vertices[i].position);
+			CHECK(mesh.vertices[i].colour == vertices[i].colour);
+			CHECK(mesh.vertices[i].tex_coord == vertices[i].tex_coord);
+		}
+
+		for (size_t i = 0; i < mesh.indices.size(); i++)
+		{
+			CHECK(mesh.indices[i] == indices[i]);
+		}
+	}
+
 	return Rml::CompiledGeometryHandle(counters.compile_geometry);
 }
 
@@ -182,7 +210,21 @@ void TestsRenderInterface::ResetCounters()
 {
 	counters_from_previous_reset = std::exchange(counters, Counters());
 }
+
+void TestsRenderInterface::ExpectCompileGeometry(Rml::Vector<Rml::Mesh> in_meshes)
+{
+	VerifyMeshes();
+	meshes = std::move(in_meshes);
+	meshes_set = true;
+}
+
 void TestsRenderInterface::Reset()
 {
+	VerifyMeshes();
+	meshes_set = false;
 	ResetCounters();
+}
+void TestsRenderInterface::VerifyMeshes()
+{
+	REQUIRE_MESSAGE(meshes.empty(), "CompileGeometry: Expected meshes not passed to us");
 }
