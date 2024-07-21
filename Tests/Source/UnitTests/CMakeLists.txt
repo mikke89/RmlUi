@@ -7,6 +7,7 @@ add_executable(${TARGET_NAME}
 	DataExpression.cpp
 	DataModel.cpp
 	Debugger.cpp
+	Decorator.cpp
 	Element.cpp
 	ElementDocument.cpp
 	ElementFormControlSelect.cpp
