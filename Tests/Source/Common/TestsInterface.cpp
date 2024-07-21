@@ -226,5 +226,9 @@ void TestsRenderInterface::Reset()
 }
 void TestsRenderInterface::VerifyMeshes()
 {
-	REQUIRE_MESSAGE(meshes.empty(), "CompileGeometry: Expected meshes not passed to us");
+	if (!meshes.empty())
+	{
+		// Use FAIL instead of REQUIRE here as this may be executed outside the context of a doctest test case.
+		FAIL("CompileGeometry: Expected meshes not passed to us");
+	}
 }

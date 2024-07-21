@@ -73,7 +73,8 @@ TestsRenderInterface shell_render_interface;
 
 static void InitializeShell(bool allow_debugger)
 {
-	REQUIRE(!shell_initialized);
+	if (shell_initialized)
+		return;
 
 	// Initialize shell and create context.
 	shell_initialized = true;
@@ -154,7 +155,8 @@ void TestsShell::RenderLoop()
 
 void TestsShell::ShutdownShell()
 {
-	REQUIRE(shell_initialized);
+	if (!shell_initialized)
+		return;
 
 	if (debugger_allowed)
 	{
