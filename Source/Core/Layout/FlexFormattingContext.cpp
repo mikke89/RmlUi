@@ -317,6 +317,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		if (item.align_self == Style::AlignSelf::Auto)
 			item.align_self = static_cast<Style::AlignSelf>(static_cast<int>(computed_flex.align_items()) + 1);
 
+		auto GetMainSize = [&](const Box& box) { return box.GetSize()[main_axis_horizontal ? 0 : 1]; };
+
 		const float sum_padding_border = item.main.sum_edges - (item.main.margin_a + item.main.margin_b);
 
 		// Find the flex base size (possibly negative when using border box sizing)
@@ -331,6 +333,11 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			item.inner_flex_base_size = ResolveValue(item_main_size, main_size_base_value);
 			if (computed.box_sizing() == Style::BoxSizing::BorderBox)
 				item.inner_flex_base_size -= sum_padding_border;
+		}
+		else if (GetMainSize(item.box) >= 0.f)
+		{
+			// The element is auto-sized, and yet its box was given a definite size. This can happen e.g. due to intrinsic sizing or aspect ratios.
+			item.inner_flex_base_size = GetMainSize(item.box);
 		}
 		else if (main_axis_horizontal)
 		{
