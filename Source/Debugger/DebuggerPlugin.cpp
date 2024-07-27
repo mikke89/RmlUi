@@ -35,6 +35,7 @@
 #include "../../Include/RmlUi/Core/Types.h"
 #include "DebuggerSystemInterface.h"
 #include "ElementContextHook.h"
+#include "ElementDebugDocument.h"
 #include "ElementInfo.h"
 #include "ElementLog.h"
 #include "FontSource.h"
@@ -274,7 +275,9 @@ bool DebuggerPlugin::LoadFont()
 
 bool DebuggerPlugin::LoadMenuElement()
 {
-	menu_element = host_context->CreateDocument();
+	debug_document_instancer = MakeUnique<ElementInstancerGeneric<ElementDebugDocument>>();
+	Factory::RegisterElementInstancer("debug-document", debug_document_instancer.get());
+	menu_element = host_context->CreateDocument("debug-document");
 	if (!menu_element)
 		return false;
 

@@ -148,6 +148,11 @@ protected:
 	/// Called during update if the element size has been changed.
 	void OnResize() override;
 
+	/// Returns whether the document can receive focus during click when another document is modal.
+	bool IsFocusableFromModal() const;
+	/// Sets whether the document can receive focus when another document is modal.
+	void SetFocusableFromModal(bool focusable);
+
 private:
 	/// Find the next element to focus, starting at the current element
 	Element* FindNextTabElement(Element* current_element, bool forward);
@@ -183,6 +188,7 @@ private:
 	Context* context;
 
 	bool modal;
+	bool focusable_from_modal;
 
 	bool layout_dirty;
 	bool position_dirty;

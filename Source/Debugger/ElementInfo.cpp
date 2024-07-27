@@ -47,7 +47,7 @@
 namespace Rml {
 namespace Debugger {
 
-ElementInfo::ElementInfo(const String& tag) : ElementDocument(tag)
+ElementInfo::ElementInfo(const String& tag) : ElementDebugDocument(tag)
 {
 	hover_element = nullptr;
 	source_element = nullptr;

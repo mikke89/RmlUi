@@ -39,7 +39,7 @@ namespace Debugger {
 
 const int MAX_LOG_MESSAGES = 50;
 
-ElementLog::ElementLog(const String& tag) : ElementDocument(tag)
+ElementLog::ElementLog(const String& tag) : ElementDebugDocument(tag)
 {
 	dirty_logs = false;
 	beacon = nullptr;
@@ -85,7 +85,7 @@ ElementLog::~ElementLog()
 	if (beacon && beacon->GetFirstChild())
 		beacon->GetFirstChild()->RemoveEventListener(EventId::Click, this);
 
-	if (beacon && GetParentNode())
+	if (beacon && beacon->GetParentNode())
 		beacon->GetParentNode()->RemoveChild(beacon);
 
 	if (message_content)
@@ -114,7 +114,8 @@ bool ElementLog::Initialise()
 	AddEventListener(EventId::Click, this);
 
 	// Create the log beacon.
-	beacon = GetContext()->CreateDocument();
+	beacon = GetContext()->CreateDocument("debug-document");
+	RMLUI_ASSERT(rmlui_dynamic_cast<ElementDebugDocument*>(beacon));
 	if (!beacon)
 		return false;
 
