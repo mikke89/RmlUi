@@ -41,20 +41,19 @@ class StyleSheet;
 class StyleSheetContainer;
 enum class NavigationSearchDirection;
 
-/**
-     ModalFlag used for controlling the modal state of the document.
-        None:  Remove modal state.
-        Modal: Set modal state, other documents cannot receive focus.
-        Keep:  Modal state unchanged.
-
-    FocusFlag used for displaying the document.
-        None:     No focus.
-        Document: Focus the document.
-        Keep:     Focus the element in the document which last had focus.
-        Auto:     Focus the first tab element with the 'autofocus' attribute or else the document.
-*/
-enum class ModalFlag { None, Modal, Keep };
-enum class FocusFlag { None, Document, Keep, Auto };
+/** ModalFlag controls the modal state of the document. */
+enum class ModalFlag {
+	None,  // Remove modal state.
+	Modal, // Set modal state, other documents cannot receive focus.
+	Keep,  // Modal state unchanged.
+};
+/** FocusFlag controls the focus when showing the document. */
+enum class FocusFlag {
+	None,     // No focus.
+	Document, // Focus the document.
+	Keep,     // Focus the element in the document which last had focus.
+	Auto,     // Focus the first tab element with the 'autofocus' attribute or else the document.
+};
 
 /**
     Represents a document in the dom tree.
@@ -176,23 +175,16 @@ private:
 	/// Sets the dirty flag for document positioning
 	void DirtyPosition();
 
-	// Title of the document
 	String title;
-
-	// The original path this document came from
 	String source_url;
 
-	// The document's style sheet container.
 	SharedPtr<StyleSheetContainer> style_sheet_container;
 
 	Context* context;
 
-	// Is the current display modal
 	bool modal;
 
-	// Is the layout dirty?
 	bool layout_dirty;
-
 	bool position_dirty;
 
 	friend class Rml::Context;
