@@ -105,11 +105,13 @@ public:
 
 	/// Processes the incoming event.
 	void ProcessEvent(Event& event) override;
-
-	/// Shows or hides the selection box.
-	void ShowSelectBox(bool show);
+	
+	/// Shows the selection box.
+	void ShowSelectBox();
+	/// Hides the selection box.
+	void HideSelectBox();
 	/// Check whether the select box is visible or not.
-	bool GetSelectBoxVisible();
+	bool IsSelectBoxVisible();
 
 private:
 
