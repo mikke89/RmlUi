@@ -391,8 +391,6 @@ int WidgetDropDown::AddOption(const String& rml, const String& option_value, int
 
 	int result = AddOption(std::move(element), before);
 
-	value_last_selected = -1;
-
 	return result;
 }
 
@@ -418,8 +416,6 @@ int WidgetDropDown::AddOption(ElementPtr element, int before)
 		option_index = before;
 	}
 
-	value_last_selected = -1;
-
 	return option_index;
 }
 
@@ -429,8 +425,6 @@ void WidgetDropDown::RemoveOption(int index)
 	if (!element)
 		return;
 
-	value_last_selected = -1;
-
 	selection_element->RemoveChild(element);
 }
 
@@ -438,8 +432,6 @@ void WidgetDropDown::ClearOptions()
 {
 	while (Element* element = selection_element->GetLastChild())
 		selection_element->RemoveChild(element);
-
-	value_last_selected = -1;
 }
 
 Element* WidgetDropDown::GetOption(int index)
@@ -468,7 +460,6 @@ void WidgetDropDown::OnChildAdd(Element* element)
 		SetSelection(element, true);
 
 	selection_dirty = true;
-	value_last_selected = -1;
 	box_layout_dirty = DropDownBoxLayoutType::Switch;
 }
 
@@ -483,7 +474,6 @@ void WidgetDropDown::OnChildRemove(Element* element)
 		SetSelection(nullptr);
 
 	selection_dirty = true;
-	value_last_selected = -1;
 	box_layout_dirty = DropDownBoxLayoutType::Switch;
 }
 
@@ -604,17 +594,6 @@ void WidgetDropDown::ProcessEvent(Event& event)
 			parent_element->Click();
 			event.StopPropagation();
 			break;
-		case Input::KI_ESCAPE:
-			if (!box_visible)
-				break;
-			if (value_last_selected != -1)
-			{
-				SetSelection(GetOption(value_last_selected), true);
-				value_last_selected = -1;
-			}
-			ShowSelectBox(false);
-			event.StopPropagation();
-			break;
 		default: break;
 		}
 	}
@@ -653,7 +632,6 @@ void WidgetDropDown::ShowSelectBox(bool show)
 		value_element->SetPseudoClass("checked", true);
 		button_element->SetPseudoClass("checked", true);
 		box_layout_dirty = DropDownBoxLayoutType::Open;
-		value_last_selected = GetSelection();
 		AttachScrollEvent();
 	}
 	else

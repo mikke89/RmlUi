@@ -130,7 +130,6 @@ private:
 	bool value_layout_dirty;
 	DropDownBoxLayoutType box_layout_dirty;
 	bool box_visible;
-	int value_last_selected;
 };
 
 } // namespace Rml
