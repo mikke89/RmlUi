@@ -45,7 +45,7 @@ InputTypeRange::~InputTypeRange()
 
 String InputTypeRange::GetValue() const
 {
-	return CreateString(32, "%f", widget->GetValue());
+	return CreateString("%f", widget->GetValue());
 }
 
 void InputTypeRange::OnUpdate()

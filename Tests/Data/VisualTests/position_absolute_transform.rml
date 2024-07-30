@@ -5,6 +5,7 @@
 	<link rel="help" href="https://www.w3.org/TR/css-transforms-1/#containing-block-for-all-descendants" />
 	<meta name="Description" content="Elements with a local transform or perspective should act as the containing block for absolutely positioned children. "/>
 	<meta name="Assert" content="The child boxes should fit nicely at the bottom right corner of their parent elements."/>
+	<meta name="Assert" content="The child boxes should clip correctly to their containers, when they are scrolled down."/>
 	<style>
 		.container {
 			margin: 15dp 0;
@@ -12,6 +13,7 @@
 			background-color: #ddd;
 			border: 3px #888;
 			overflow: auto;
+			transform: translateY(50%);
 		}
 		.tall { height: 1000px; }
 		.transform {

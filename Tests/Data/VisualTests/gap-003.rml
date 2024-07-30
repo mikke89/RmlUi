@@ -1,0 +1,37 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>CSS Flexbox Test: gap - rows and columns</title>
+	<link href="https://test.csswg.org/suites/css-align-3_dev/nightly-unstable/xhtml1/gap-003-ltr.xht" rel="source"/>
+	<link href="mailto:argyle@google.com" rel="author" title="Adam Argyle"/>
+	<link href="https://www.w3.org/TR/css-grid-1/#gutters" rel="help"/>
+	<link href="https://www.w3.org/TR/css-align-3/#column-row-gap" rel="help"/>
+	<link href="https://www.w3.org/TR/css-align-3/#gap-legacy" rel="help"/>
+	<link href="reference/gap-003-ref.rml" rel="match"/>
+	<meta content="The 'gap' property enables putting space exclusively between items" name="assert"/>
+	<style>
+		section {
+			background-color: green;
+			height: 200px;
+			width: 400px;
+			display: flex;
+			gap: 20px;
+			flex-wrap: wrap;
+		}
+
+		section > div {
+			background-color: grey;
+			width: 190px;
+		}
+	</style>
+</head>
+<body>
+<p>Test passes if there are <strong> green lines between boxes</strong>.</p>
+<section>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+</section>
+</body>
+</rml>

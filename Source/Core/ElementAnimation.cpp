@@ -27,9 +27,9 @@
  */
 
 #include "ElementAnimation.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Filter.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "../../Include/RmlUi/Core/PropertySpecification.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
@@ -37,10 +37,13 @@
 #include "../../Include/RmlUi/Core/StyleSheetTypes.h"
 #include "../../Include/RmlUi/Core/Transform.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
+#include "ComputeProperty.h"
 #include "ElementStyle.h"
 #include "TransformUtilities.h"
 
 namespace Rml {
+
+static Property InterpolateProperties(const Property& p0, const Property& p1, float alpha, Element& element, const PropertyDefinition* definition);
 
 static Colourf ColourToLinearSpace(Colourb c)
 {
@@ -88,8 +91,96 @@ static bool CombineAndDecompose(Transform& t, Element& e)
 	return true;
 }
 
+/**
+    An abstraction for decorator and filter declarations.
+ */
+struct EffectDeclarationView {
+	EffectDeclarationView() = default;
+	EffectDeclarationView(const DecoratorDeclaration& declaration) :
+		instancer(declaration.instancer), type(&declaration.type), properties(&declaration.properties), paint_area(declaration.paint_area)
+	{}
+	EffectDeclarationView(const NamedDecorator* named_decorator) :
+		instancer(named_decorator->instancer), type(&named_decorator->type), properties(&named_decorator->properties)
+	{}
+	EffectDeclarationView(const FilterDeclaration& declaration) :
+		instancer(declaration.instancer), type(&declaration.type), properties(&declaration.properties)
+	{}
+
+	EffectSpecification* instancer = nullptr;
+	const String* type = nullptr;
+	const PropertyDictionary* properties = nullptr;
+	BoxArea paint_area = BoxArea::Auto;
+
+	explicit operator bool() const { return instancer != nullptr; }
+};
+
+// Interpolate two effect declarations. One of them can be empty, in which case the empty one is replaced by default values.
+static bool InterpolateEffectProperties(PropertyDictionary& properties, const EffectDeclarationView& d0, const EffectDeclarationView& d1, float alpha,
+	Element& element)
+{
+	if (d0 && d1)
+	{
+		// Both declarations are specified, check if they are compatible for interpolation.
+		if (!d0.instancer || d0.instancer != d1.instancer || *d0.type != *d1.type ||
+			d0.properties->GetNumProperties() != d1.properties->GetNumProperties() || d0.paint_area != d1.paint_area)
+			return false;
+
+		const auto& properties0 = d0.properties->GetProperties();
+		const auto& properties1 = d1.properties->GetProperties();
+
+		for (const auto& pair0 : properties0)
+		{
+			const PropertyId id = pair0.first;
+			const Property& prop0 = pair0.second;
+
+			auto it = properties1.find(id);
+			if (it == properties1.end())
+			{
+				RMLUI_ERRORMSG("Incompatible decorator properties.");
+				return false;
+			}
+			const Property& prop1 = it->second;
+
+			Property p = InterpolateProperties(prop0, prop1, alpha, element, prop0.definition);
+			p.definition = prop0.definition;
+			properties.SetProperty(id, p);
+		}
+		return true;
+	}
+	else if ((d0 && !d1) || (!d0 && d1))
+	{
+		// One of the declarations is empty, interpolate against the default values of its type.
+		const auto& d_filled = (d0 ? d0 : d1);
+
+		const PropertySpecification& specification = d_filled.instancer->GetPropertySpecification();
+		const PropertyMap& properties_filled = d_filled.properties->GetProperties();
+
+		for (const auto& pair_filled : properties_filled)
+		{
+			const PropertyId id = pair_filled.first;
+			const PropertyDefinition* underlying_definition = specification.GetProperty(id);
+			if (!underlying_definition)
+				return false;
+
+			const Property& p_filled = pair_filled.second;
+			const Property& p_default = *underlying_definition->GetDefaultValue();
+			const Property& p_interp0 = (d0 ? p_filled : p_default);
+			const Property& p_interp1 = (d1 ? p_filled : p_default);
+
+			Property p = InterpolateProperties(p_interp0, p_interp1, alpha, element, p_filled.definition);
+			p.definition = p_filled.definition;
+			properties.SetProperty(id, p);
+		}
+		return true;
+	}
+
+	return false;
+}
+
 static Property InterpolateProperties(const Property& p0, const Property& p1, float alpha, Element& element, const PropertyDefinition* definition)
 {
+	const Property& p_discrete = (alpha < 0.5f ? p0 : p1);
+
 	if (Any(p0.unit & Unit::NUMBER_LENGTH_PERCENT) && Any(p1.unit & Unit::NUMBER_LENGTH_PERCENT))
 	{
 		if (p0.unit == p1.unit || !definition)
@@ -111,6 +202,14 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 		}
 	}
 
+	if (Any(p0.unit & Unit::ANGLE) && Any(p1.unit & Unit::ANGLE))
+	{
+		float f0 = ComputeAngle(p0.GetNumericValue());
+		float f1 = ComputeAngle(p1.GetNumericValue());
+		float f = (1.0f - alpha) * f0 + alpha * f1;
+		return Property{f, Unit::RAD};
+	}
+
 	if (p0.unit == Unit::KEYWORD && p1.unit == Unit::KEYWORD)
 	{
 		// Discrete interpolation, swap at alpha = 0.5.
@@ -124,7 +223,7 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 				return alpha <= 0.f ? p0 : p1;
 		}
 
-		return alpha < 0.5f ? p0 : p1;
+		return p_discrete;
 	}
 
 	if (p0.unit == Unit::COLOUR && p1.unit == Unit::COLOUR)
@@ -171,29 +270,27 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 
 	if (p0.unit == Unit::DECORATOR && p1.unit == Unit::DECORATOR)
 	{
-		auto DiscreteInterpolation = [&]() { return alpha < 0.5f ? p0 : p1; };
+		auto GetEffectDeclarationView = [](const Vector<DecoratorDeclaration>& declarations, size_t i, Element& element) -> EffectDeclarationView {
+			if (i >= declarations.size())
+				return EffectDeclarationView();
 
-		// We construct DecoratorDeclarationView from declaration if it has instancer, otherwise we look for DecoratorSpecification and return
-		// DecoratorDeclarationView from it
-		auto GetDecoratorDeclarationView = [&](const DecoratorDeclaration& declaration) -> DecoratorDeclarationView {
+			const DecoratorDeclaration& declaration = declarations[i];
 			if (declaration.instancer)
-				return DecoratorDeclarationView{declaration};
+				return EffectDeclarationView(declaration);
 
+			// If we don't have a decorator instancer, then this should be a named @decorator, look for one now.
 			const StyleSheet* style_sheet = element.GetStyleSheet();
 			if (!style_sheet)
+				return EffectDeclarationView();
+
+			const NamedDecorator* named_decorator = style_sheet->GetNamedDecorator(declaration.type);
+			if (!named_decorator)
 			{
-				Log::Message(Log::LT_WARNING, "Failed to get element stylesheet for '%s' decorator rule.", declaration.type.c_str());
-				return DecoratorDeclarationView{declaration};
+				Log::Message(Log::LT_WARNING, "Could not find a named @decorator '%s'.", declaration.type.c_str());
+				return EffectDeclarationView();
 			}
 
-			const DecoratorSpecification* specification = style_sheet->GetDecoratorSpecification(declaration.type);
-			if (!specification)
-			{
-				Log::Message(Log::LT_WARNING, "Could not find DecoratorSpecification for '%s' decorator rule.", declaration.type.c_str());
-				return DecoratorDeclarationView{declaration};
-			}
-
-			return DecoratorDeclarationView{specification};
+			return EffectDeclarationView(named_decorator);
 		};
 
 		auto& ptr0 = p0.value.GetReference<DecoratorsPtr>();
@@ -201,95 +298,72 @@ static Property InterpolateProperties(const Property& p0, const Property& p1, fl
 		if (!ptr0 || !ptr1)
 		{
 			RMLUI_ERRORMSG("Invalid decorator pointer, were the decorator keys properly prepared?");
-			return DiscreteInterpolation();
+			return p_discrete;
 		}
 
-		const bool p0_smaller = (ptr0->list.size() < ptr1->list.size());
-		auto& small = (p0_smaller ? ptr0->list : ptr1->list);
-		auto& big = (p0_smaller ? ptr1->list : ptr0->list);
+		// Build the new, interpolated decorator list.
+		const bool p0_bigger = ptr0->list.size() > ptr1->list.size();
+		auto& big_list = (p0_bigger ? ptr0->list : ptr1->list);
+		auto decorator = MakeUnique<DecoratorDeclarationList>();
+		auto& list = decorator->list;
+		list.reserve(big_list.size());
 
-		// Build the new, interpolated decorator.
-		UniquePtr<DecoratorDeclarationList> decorator(new DecoratorDeclarationList);
-		decorator->list.reserve(ptr0->list.size());
-
-		// Interpolate decorators that have common types.
-		for (size_t i = 0; i < small.size(); i++)
+		for (size_t i = 0; i < big_list.size(); i++)
 		{
-			DecoratorDeclarationView d0_view{GetDecoratorDeclarationView(ptr0->list[i])};
-			DecoratorDeclarationView d1_view{GetDecoratorDeclarationView(ptr1->list[i])};
+			EffectDeclarationView d0 = GetEffectDeclarationView(ptr0->list, i, element);
+			EffectDeclarationView d1 = GetEffectDeclarationView(ptr1->list, i, element);
 
-			if (!d0_view.instancer || !d1_view.instancer)
-				return DiscreteInterpolation();
+			const EffectDeclarationView& declaration = (p0_bigger ? d0 : d1);
+			list.push_back(DecoratorDeclaration{*declaration.type, static_cast<DecoratorInstancer*>(declaration.instancer), PropertyDictionary(),
+				declaration.paint_area});
 
-			if (d0_view.instancer != d1_view.instancer || d0_view.type != d1_view.type ||
-				d0_view.properties.GetNumProperties() != d1_view.properties.GetNumProperties())
-			{
-				// Incompatible decorators, fall back to discrete interpolation.
-				return DiscreteInterpolation();
-			}
-
-			decorator->list.push_back(DecoratorDeclaration{d0_view.type, d0_view.instancer, PropertyDictionary()});
-			PropertyDictionary& props = decorator->list.back().properties;
-
-			const auto& props0 = d0_view.properties.GetProperties();
-			const auto& props1 = d1_view.properties.GetProperties();
-
-			for (const auto& pair0 : props0)
-			{
-				const PropertyId id = pair0.first;
-				const Property& prop0 = pair0.second;
-
-				auto it = props1.find(id);
-				if (it == props1.end())
-				{
-					RMLUI_ERRORMSG("Incompatible decorator properties.");
-					return DiscreteInterpolation();
-				}
-				const Property& prop1 = it->second;
-
-				Property p = InterpolateProperties(prop0, prop1, alpha, element, prop0.definition);
-				p.definition = prop0.definition;
-				props.SetProperty(id, p);
-			}
-		}
-
-		// Append any trailing decorators from the largest list and interpolate against the default values of its type.
-		for (size_t i = small.size(); i < big.size(); i++)
-		{
-			DecoratorDeclarationView dbig_view{GetDecoratorDeclarationView(big[i])};
-
-			if (!dbig_view.instancer)
-				return DiscreteInterpolation();
-
-			decorator->list.push_back(DecoratorDeclaration{dbig_view.type, dbig_view.instancer, PropertyDictionary()});
-			DecoratorDeclaration& d_new = decorator->list.back();
-
-			const PropertySpecification& specification = d_new.instancer->GetPropertySpecification();
-
-			const PropertyMap& props_big = dbig_view.properties.GetProperties();
-			for (const auto& pair_big : props_big)
-			{
-				const PropertyId id = pair_big.first;
-				const PropertyDefinition* underlying_definition = specification.GetProperty(id);
-				if (!underlying_definition)
-					return DiscreteInterpolation();
-
-				const Property& p_big = pair_big.second;
-				const Property& p_small = *underlying_definition->GetDefaultValue();
-				const Property& p_interp0 = (p0_smaller ? p_small : p_big);
-				const Property& p_interp1 = (p0_smaller ? p_big : p_small);
-
-				Property p = InterpolateProperties(p_interp0, p_interp1, alpha, element, p_big.definition);
-				p.definition = p_big.definition;
-				d_new.properties.SetProperty(id, p);
-			}
+			if (!InterpolateEffectProperties(list.back().properties, d0, d1, alpha, element))
+				return p_discrete;
 		}
 
 		return Property{DecoratorsPtr(std::move(decorator)), Unit::DECORATOR};
 	}
 
+	if (p0.unit == Unit::FILTER && p1.unit == Unit::FILTER)
+	{
+		auto GetEffectDeclarationView = [](const Vector<FilterDeclaration>& declarations, size_t i) -> EffectDeclarationView {
+			if (i >= declarations.size())
+				return EffectDeclarationView();
+			return EffectDeclarationView(declarations[i]);
+		};
+
+		auto& ptr0 = p0.value.GetReference<FiltersPtr>();
+		auto& ptr1 = p1.value.GetReference<FiltersPtr>();
+		if (!ptr0 || !ptr1)
+		{
+			RMLUI_ERRORMSG("Invalid filter pointer, were the filter keys properly prepared?");
+			return p_discrete;
+		}
+
+		// Build the new, interpolated filter list.
+		const bool p0_bigger = ptr0->list.size() > ptr1->list.size();
+		auto& big_list = (p0_bigger ? ptr0->list : ptr1->list);
+		auto filter = MakeUnique<FilterDeclarationList>();
+		auto& list = filter->list;
+		list.reserve(big_list.size());
+
+		for (size_t i = 0; i < big_list.size(); i++)
+		{
+			EffectDeclarationView d0 = GetEffectDeclarationView(ptr0->list, i);
+			EffectDeclarationView d1 = GetEffectDeclarationView(ptr1->list, i);
+
+			const EffectDeclarationView& declaration = (p0_bigger ? d0 : d1);
+			list.push_back(FilterDeclaration{*declaration.type, static_cast<FilterInstancer*>(declaration.instancer), PropertyDictionary()});
+
+			if (!InterpolateEffectProperties(list.back().properties, d0, d1, alpha, element))
+				return p_discrete;
+		}
+
+		return Property{FiltersPtr(std::move(filter)), Unit::FILTER};
+	}
+
 	// Fall back to discrete interpolation for incompatible units.
-	return alpha < 0.5f ? p0 : p1;
+	return p_discrete;
 }
 
 enum class PrepareTransformResult { Unchanged = 0, ChangedT0 = 1, ChangedT1 = 2, ChangedT0andT1 = 3, Invalid = 4 };
@@ -367,13 +441,9 @@ static PrepareTransformResult PrepareTransformPair(Transform& t0, Transform& t1,
 				if (TransformUtilities::TryConvertToMatchingGenericType(small[i_small], big[i_big]))
 				{
 					// They matched exactly or in their more generic form. One or both primitives may have been converted.
-					match_success = true;
 					if (big[i_big].type != big_type)
 						changed_big = true;
-				}
 
-				if (match_success)
-				{
 					matching_indices.push_back(i_big);
 					match_success = true;
 					i_big += 1;
@@ -517,6 +587,14 @@ static void PrepareDecorator(AnimationKey& key)
 	if (!property.value.GetReference<DecoratorsPtr>())
 		property.value = MakeShared<DecoratorDeclarationList>();
 }
+static void PrepareFilter(AnimationKey& key)
+{
+	Property& property = key.property;
+	RMLUI_ASSERT(property.value.GetType() == Variant::FILTERSPTR);
+
+	if (!property.value.GetReference<FiltersPtr>())
+		property.value = MakeShared<FilterDeclarationList>();
+}
 
 ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigin origin, const Property& current_value, Element& element,
 	double start_world_time, float duration, int num_iterations, bool alternate_direction) :
@@ -534,7 +612,8 @@ ElementAnimation::ElementAnimation(PropertyId property_id, ElementAnimationOrigi
 
 bool ElementAnimation::InternalAddKey(float time, const Property& in_property, Element& element, Tween tween)
 {
-	const Units valid_units = (Unit::NUMBER_LENGTH_PERCENT | Unit::ANGLE | Unit::COLOUR | Unit::TRANSFORM | Unit::KEYWORD | Unit::DECORATOR);
+	const Units valid_units =
+		(Unit::NUMBER_LENGTH_PERCENT | Unit::ANGLE | Unit::COLOUR | Unit::TRANSFORM | Unit::KEYWORD | Unit::DECORATOR | Unit::FILTER);
 
 	if (!Any(in_property.unit & valid_units))
 	{
@@ -543,15 +622,20 @@ bool ElementAnimation::InternalAddKey(float time, const Property& in_property, E
 	}
 
 	keys.emplace_back(time, in_property, tween);
+	Property& property = keys.back().property;
 	bool result = true;
 
-	if (keys.back().property.unit == Unit::TRANSFORM)
+	if (property.unit == Unit::TRANSFORM)
 	{
 		result = PrepareTransforms(keys, element, (int)keys.size() - 1);
 	}
-	else if (keys.back().property.unit == Unit::DECORATOR)
+	else if (property.unit == Unit::DECORATOR)
 	{
 		PrepareDecorator(keys.back());
+	}
+	else if (property.unit == Unit::FILTER)
+	{
+		PrepareFilter(keys.back());
 	}
 
 	if (!result)

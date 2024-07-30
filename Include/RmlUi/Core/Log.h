@@ -52,13 +52,6 @@ public:
 		LT_MAX,
 	};
 
-public:
-	/// Initialises the logging interface.
-	/// @return True if the logging interface was successful, false if not.
-	static bool Initialise();
-	/// Shutdown the log interface.
-	static void Shutdown();
-
 	/// Log the specified message via the registered log interface
 	/// @param[in] type Type of message.
 	/// @param[in] format The message, with sprintf-style parameters.

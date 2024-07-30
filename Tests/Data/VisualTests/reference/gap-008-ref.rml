@@ -1,0 +1,44 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>CSS Flexbox Test: gap - row and column gap</title>
+	<link href="https://test.csswg.org/suites/css-align-3_dev/nightly-unstable/xhtml1/reference/gap-008-ltr-ref.xht"
+		  rel="source"/>
+	<link href="mailto:argyle@google.com" rel="author" title="Adam Argyle"/>
+	<style>
+		section {
+			background-color: green;
+			height: 100px;
+			width: 400px;
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		section > div {
+			background-color: grey;
+			width: 190px;
+		}
+
+		section > div:nth-child(1),
+		section > div:nth-child(3) {
+			margin-right: 20px;
+		}
+
+		section > div:nth-child(3),
+		section > div:nth-child(4) {
+			margin-top: 40px;
+		}
+	</style>
+</head>
+<body>
+<p>
+	Test passes if there are <strong>40px horizontal green lines and 20px vertical green lines between boxes</strong>.
+</p>
+<section>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+</section>
+</body>
+</rml>

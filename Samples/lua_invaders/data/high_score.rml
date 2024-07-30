@@ -1,0 +1,91 @@
+<rml>
+<head>
+	<title>High Scores</title>
+	<link type="text/template" href="window.rml" />
+	<style>
+		body
+		{
+			width: 440dp;
+			height: 440dp;
+			margin: auto;
+		}
+
+		div#title_bar div#icon
+		{
+			decorator: image( icon-hiscore );
+		}
+		defender
+		{
+			display: inline-block;
+			width: 64dp;
+			height: 16dp;
+			decorator: defender( high_scores_defender.tga );
+		}
+		table {
+			margin-top: 5dp;
+			height: 345dp;
+		}
+		tbody tr {
+			height: 30dp;
+		}
+		tbody tr:last-child {
+			height: auto;
+			background-color: transparent;
+		}
+		tbody td
+		{
+			padding-top: 5dp;
+			height: 30dp;
+			white-space: nowrap;
+			overflow: hidden;
+		}
+		button {
+			margin-top: 20dp;
+		}
+	</style>
+	<script>
+HighScore = HighScore or {}
+
+function HighScore.OnKeyDown(event)
+	if event.parameters['key_identifier'] == rmlui.key_identifier.RETURN then
+		Game.SetHighScoreName(Element.As.ElementFormControlInput(event.current_element).value)
+	end
+end
+	</script>
+</head>
+<body template="luawindow" onload="Window.OnWindowLoad(document) Game.SubmitHighScore()" onkeydown="if Window.EscapePressed(event) then Window.LoadMenu('main_menu',document) end">
+	<table data-model="high_scores">
+		<thead>
+			<tr>
+				<td style="width: 200%; margin-left: 10dp;">Pilot</td>
+				<td style="min-width: 64dp;">Ship</td>
+				<td>Wave</td>
+				<td style="min-width: 64dp;">Score</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr data-for="score : scores">
+				<td data-if="score.name_required">
+					<input id="player_input" type="text" name="name" onkeydown="HighScore.OnKeyDown(event)" autofocus/>
+				</td>
+				<td data-if="!score.name_required">
+					{{score.name}}
+				</td>
+				<td>
+					<defender data-style-image-color="score.colour"/>
+				</td>
+				<td>
+					{{score.wave}}
+				</td>
+				<td>
+					{{score.score}}
+				</td>
+			</tr>
+			<tr>
+				<td data-if="scores.size == 0" colspan="4" style="vertical-align: middle"><em>No scores recorded. Play a game!</em></td>
+			</tr>
+		</tbody>
+	</table>
+	<button onclick="Game.SetHighScoreName('Anon') Window.LoadMenu('main_menu',document)">Main Menu</button>
+</body>
+</rml>

@@ -35,13 +35,17 @@
 namespace Rml {
 
 using byte = unsigned char;
-template <typename ColourType, int AlphaDefault>
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
 class Colour;
-using Colourb = Colour<byte, 255>;
+using Colourb = Colour<byte, 255, false>;
+using ColourbPremultiplied = Colour<byte, 255, true>;
 template <typename Type>
 class Vector2;
 using Vector2f = Vector2<float>;
 using Vector2i = Vector2<int>;
+template <typename Type>
+class Rectangle;
+using Rectanglef = Rectangle<float>;
 
 namespace Math {
 
@@ -89,7 +93,7 @@ namespace Math {
 	RMLUICORE_API Vector2i Clamp<Vector2i>(Vector2i value, Vector2i min, Vector2i max);
 
 	/// Color interpolation.
-	RMLUICORE_API Colourb RoundedLerp(float t, Colourb c0, Colourb c1);
+	RMLUICORE_API ColourbPremultiplied RoundedLerp(float t, ColourbPremultiplied c0, ColourbPremultiplied c1);
 
 	/// Evaluates if a number is, or close to, zero.
 	/// @param[in] value The number to compare to zero.
@@ -151,9 +155,9 @@ namespace Math {
 	/// @param[in] The angle, in degrees.
 	/// @return The angle converted to radians.
 	RMLUICORE_API float DegreesToRadians(float angle);
-	/// Normalises and angle in radians
-	/// @param[in] The angle, in randians
-	/// @return The normalised angle
+	/// Normalises an angle in radians to [0, 2pi).
+	/// @param[in] The angle, in radians.
+	/// @return The normalised angle.
 	RMLUICORE_API float NormaliseAngle(float angle);
 
 	/// Calculates the square root of a value.
@@ -204,10 +208,16 @@ namespace Math {
 	/// @param[inout] position The position, which will use normal rounding.
 	/// @param[inout] size The size, which is rounded such that movement of the right and bottom edges is minimized.
 	RMLUICORE_API void SnapToPixelGrid(Vector2f& position, Vector2f& size);
+	/// Round the rectangle to the pixel grid while minimizing movement of the edges.
+	/// @param[inout] rectangle The rectangle to round.
+	RMLUICORE_API void SnapToPixelGrid(Rectanglef& rectangle);
 	/// Round the position and size of a rectangle to the pixel grid such that it fully covers the original rectangle.
 	/// @param[inout] position The position, which will be rounded down.
 	/// @param[inout] size The size, which is rounded such that the right and bottom edges are rounded up.
 	RMLUICORE_API void ExpandToPixelGrid(Vector2f& position, Vector2f& size);
+	/// Round the rectangle to the pixel grid such that it fully covers the original rectangle.
+	/// @param[inout] rectangle The rectangle to round.
+	RMLUICORE_API void ExpandToPixelGrid(Rectanglef& rectangle);
 
 	/// Converts a number to the nearest power of two, rounding up if necessary.
 	/// @param[in] value The value to convert to a power-of-two.

@@ -1,0 +1,68 @@
+<rml>
+<head>
+	<title>Alpha blending 02</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Test alpha blending with partially transparent, overlapping circles. The wheel on the left side is drawn directly on top of the opaque background. On the other hand, the wheel on the right side is filtered. This results in it being rendered separately on a transparent background, before the finished wheel is blended back onto the opaque background. The end result should look the same if the renderer does alpha compositing correctly." />
+	<meta name="Assert" content="The left and right wheels in each container should look equivalent. " />
+	<meta name="Backend" content="Requires backend support for rendering with shaders and filters." />
+	<style>
+		body { width: 800dp; }
+		.white { background: #fff; }
+		.black { background: #000; }
+		.container {
+			padding: 15px;
+			border: 1px #000;
+			margin: 10px 15px 30px;
+			height: 300px;
+		}
+		.wheel {
+			position: relative;
+			width: 49%;
+			height: 300px;
+			float: left;
+		}
+		.wheel > div {
+			width: 200px;
+			height: 200px;
+			position: absolute;
+			top: 0px;
+			left: 0px;
+		}
+		.filter { filter: opacity(1); }
+
+		.wheel > .rg { decorator: radial-gradient(#ff09 58%, transparent 60%); }
+		.wheel > .rb { decorator: radial-gradient(#f0f9 58%, transparent 60%); left: 130px; }
+		.wheel > .gb { decorator: radial-gradient(#0ff9 58%, transparent 60%); top: 100px; left: 75px; }
+	</style>
+</head>
+
+<body>
+<div class="container white">
+	<div class="wheel">
+		<div class="rg"/>
+		<div class="rb"/>
+		<div class="gb"/>
+	</div>
+
+	<div class="wheel filter">
+		<div class="rg"/>
+		<div class="rb"/>
+		<div class="gb"/>
+	</div>
+</div>
+
+<div class="container black">
+	<div class="wheel">
+		<div class="rg"/>
+		<div class="rb"/>
+		<div class="gb"/>
+	</div>
+
+	<div class="wheel filter">
+		<div class="rg"/>
+		<div class="gb"/>
+		<div class="rb"/>
+	</div>
+</div>
+</body>
+</rml>

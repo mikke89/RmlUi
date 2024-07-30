@@ -79,4 +79,17 @@ void FontEffect::SetFingerprint(size_t _fingerprint)
 	fingerprint = _fingerprint;
 }
 
+void FontEffect::FillColorValuesFromAlpha(byte* destination, Vector2i dimensions, int stride)
+{
+	for (int y = 0; y < dimensions.y; ++y)
+	{
+		for (int x = 0; x < dimensions.x; ++x)
+		{
+			const int i = y * stride + x * 4;
+			const byte alpha = destination[i + 3];
+			destination[i + 0] = destination[i + 1] = destination[i + 2] = alpha;
+		}
+	}
+}
+
 } // namespace Rml

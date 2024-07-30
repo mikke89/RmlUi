@@ -27,7 +27,7 @@
  */
 
 #include "StyleSheetParser.h"
-#include "../../Include/RmlUi/Core/DecoratorInstancer.h"
+#include "../../Include/RmlUi/Core/Decorator.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
@@ -86,12 +86,13 @@ private:
 
 	PropertyDictionary properties;
 	PropertySpecification specification;
-	PropertyId id_rx, id_ry, id_rw, id_rh, id_resolution;
+	PropertyId id_src, id_rx, id_ry, id_rw, id_rh, id_resolution;
 	ShorthandId id_rectangle;
 
 public:
 	SpritesheetPropertyParser() : specification(4, 1)
 	{
+		id_src = specification.RegisterProperty("src", "", false, false).AddParser("string").GetId();
 		id_rx = specification.RegisterProperty("rectangle-x", "", false, false).AddParser("length").GetId();
 		id_ry = specification.RegisterProperty("rectangle-y", "", false, false).AddParser("length").GetId();
 		id_rw = specification.RegisterProperty("rectangle-w", "", false, false).AddParser("length").GetId();
@@ -115,7 +116,14 @@ public:
 	{
 		if (name == "src")
 		{
-			image_source = value;
+			if (!specification.ParsePropertyDeclaration(properties, id_src, value))
+				return false;
+
+			if (const Property* property = properties.GetProperty(id_src))
+			{
+				if (property->unit == Unit::STRING)
+					image_source = property->Get<String>();
+			}
 		}
 		else if (name == "resolution")
 		{
@@ -154,7 +162,7 @@ static UniquePtr<SpritesheetPropertyParser> spritesheet_property_parser;
 
 /*
  * Media queries need a special parser because they have unique properties that
- * aren't admissible in other property declaration contexts and the syntax of
+ * aren't admissible in other property declaration contexts.
  */
 class MediaQueryPropertyParser final : public AbstractPropertyParser {
 private:
@@ -325,7 +333,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 	return true;
 }
 
-bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpecificationMap& decorator_map, const StyleSheet& style_sheet,
+bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, NamedDecoratorMap& named_decorator_map,
 	const SharedPtr<const PropertySource>& source)
 {
 	StringList name_type;
@@ -341,8 +349,8 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	const String& name = name_type[0];
 	String decorator_type = name_type[1];
 
-	auto it_find = decorator_map.find(name);
-	if (it_find != decorator_map.end())
+	auto it_find = named_decorator_map.find(name);
+	if (it_find != named_decorator_map.end())
 	{
 		Log::Message(Log::LT_WARNING, "Decorator with name '%s' already declared, ignoring decorator at %s:%d.", name.c_str(),
 			stream_file_name.c_str(), line_number);
@@ -356,13 +364,13 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	if (!decorator_instancer)
 	{
 		// Type is not a declared decorator type, instead, see if it is another decorator name, then we inherit its properties.
-		auto it = decorator_map.find(decorator_type);
-		if (it != decorator_map.end())
+		auto it = named_decorator_map.find(decorator_type);
+		if (it != named_decorator_map.end())
 		{
 			// Yes, try to retrieve the instancer from the parent type, and add its property values.
-			decorator_instancer = Factory::GetDecoratorInstancer(it->second.decorator_type);
+			decorator_instancer = Factory::GetDecoratorInstancer(it->second.type);
 			properties = it->second.properties;
-			decorator_type = it->second.decorator_type;
+			decorator_type = it->second.type;
 		}
 
 		// If we still don't have an instancer, we cannot continue.
@@ -384,41 +392,54 @@ bool StyleSheetParser::ParseDecoratorBlock(const String& at_name, DecoratorSpeci
 	property_specification.SetPropertyDefaults(properties);
 	properties.SetSourceOfAllProperties(source);
 
-	SharedPtr<Decorator> decorator =
-		decorator_instancer->InstanceDecorator(decorator_type, properties, DecoratorInstancerInterface(style_sheet, source.get()));
-	if (!decorator)
-	{
-		Log::Message(Log::LT_WARNING, "Could not instance decorator of type '%s' declared at %s:%d.", decorator_type.c_str(),
-			stream_file_name.c_str(), line_number);
-		return false;
-	}
-
-	decorator_map.emplace(name, DecoratorSpecification{std::move(decorator_type), std::move(properties), std::move(decorator)});
+	named_decorator_map.emplace(name, NamedDecorator{std::move(decorator_type), decorator_instancer, std::move(properties)});
 
 	return true;
 }
 
-bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, const String& rules)
+bool StyleSheetParser::ParseMediaFeatureMap(const String& rules, PropertyDictionary& properties, MediaQueryModifier& modifier)
 {
 	media_query_property_parser->SetTargetProperties(&properties);
 
 	enum ParseState { Global, Name, Value };
-	ParseState state = Name;
+	ParseState state = Global;
 
 	char character = 0;
-
-	size_t cursor = 0;
 
 	String name;
 
 	String current_string;
 
-	while (cursor++ < rules.length())
+	modifier = MediaQueryModifier::None;
+
+	for (size_t cursor = 0; cursor < rules.length(); cursor++)
 	{
 		character = rules[cursor];
 
 		switch (character)
 		{
+		case ' ':
+		{
+			if (state == Global)
+			{
+				current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
+
+				if (current_string == "not")
+				{
+					// we can only ever see one "not" on the entire global query.
+					if (modifier != MediaQueryModifier::None)
+					{
+						Log::Message(Log::LT_WARNING, "Unexpected '%s' in @media query list at %s:%d.", current_string.c_str(), stream_file_name.c_str(), line_number);
+						return false;
+					}
+
+					modifier = MediaQueryModifier::Not;
+					current_string.clear();
+				}
+			}
+
+			break;
+		}
 		case '(':
 		{
 			if (state != Global)
@@ -429,7 +450,9 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 
 			current_string = StringUtilities::StripWhitespace(StringUtilities::ToLower(std::move(current_string)));
 
-			if (current_string != "and")
+			// allow an empty string to pass through only if we had just parsed a modifier.
+			if (current_string != "and" &&
+				(properties.GetNumProperties() != 0 || !current_string.empty()))
 			{
 				Log::Message(Log::LT_WARNING, "Unexpected '%s' in @media query list at %s:%d. Expected 'and'.", current_string.c_str(),
 					stream_file_name.c_str(), line_number);
@@ -529,7 +552,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					// Initialize current block if not present
 					if (!current_block.stylesheet)
 					{
-						current_block = MediaBlock{PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
+						current_block = MediaBlock{PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet()), MediaQueryModifier::None};
 					}
 
 					const int rule_line_number = line_number;
@@ -586,7 +609,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					// Initialize current block if not present
 					if (!current_block.stylesheet)
 					{
-						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
+						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet()), MediaQueryModifier::None};
 					}
 
 					const String at_rule_identifier = StringUtilities::StripWhitespace(pre_token_str.substr(0, pre_token_str.find(' ')));
@@ -599,7 +622,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					else if (at_rule_identifier == "decorator")
 					{
 						auto source = MakeShared<PropertySource>(stream_file_name, (int)line_number, pre_token_str);
-						ParseDecoratorBlock(at_rule_name, current_block.stylesheet->decorator_map, *current_block.stylesheet, source);
+						ParseDecoratorBlock(at_rule_name, current_block.stylesheet->named_decorator_map, source);
 
 						at_rule_name.clear();
 						state = State::Global;
@@ -654,8 +677,9 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 
 						// parse media query list into block
 						PropertyDictionary feature_map;
-						ParseMediaFeatureMap(feature_map, at_rule_name);
-						current_block = {std::move(feature_map), UniquePtr<StyleSheet>(new StyleSheet())};
+						MediaQueryModifier modifier;
+						ParseMediaFeatureMap(at_rule_name, feature_map, modifier);
+						current_block = {std::move(feature_map), UniquePtr<StyleSheet>(new StyleSheet()), modifier};
 
 						inside_media_block = true;
 						state = State::Global;
@@ -684,7 +708,7 @@ bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int 
 					// Initialize current block if not present
 					if (!current_block.stylesheet)
 					{
-						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet())};
+						current_block = {PropertyDictionary{}, UniquePtr<StyleSheet>(new StyleSheet()), MediaQueryModifier::None};
 					}
 
 					// Each keyframe in keyframes has its own block which is processed here

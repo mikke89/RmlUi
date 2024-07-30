@@ -35,17 +35,14 @@
 	#if defined RMLUI_PLATFORM_WIN32
 		#include <RmlUi_Include_Windows.h>
 		#include <gl/Gl.h>
-		#include <gl/Glu.h>
 	#elif defined RMLUI_PLATFORM_MACOSX
 		#include <AGL/agl.h>
 		#include <OpenGL/gl.h>
 		#include <OpenGL/glext.h>
-		#include <OpenGL/glu.h>
 	#elif defined RMLUI_PLATFORM_UNIX
 		#include <RmlUi_Include_Xlib.h>
 		#include <GL/gl.h>
 		#include <GL/glext.h>
-		#include <GL/glu.h>
 		#include <GL/glx.h>
 	#endif
 

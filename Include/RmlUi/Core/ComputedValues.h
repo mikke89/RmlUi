@@ -115,7 +115,7 @@ namespace Style {
 			font_weight(FontWeight::Normal), has_letter_spacing(0), font_style(FontStyle::Normal), has_font_effect(false),
 			pointer_events(PointerEvents::Auto), focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None),
 			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal),
-			line_height_inherit_type(LineHeight::Number)
+			direction(Direction::Auto), line_height_inherit_type(LineHeight::Number)
 		{}
 
 		// Font face used to render text and resolve ex properties. Does not represent a true property
@@ -141,9 +141,13 @@ namespace Style {
 		WhiteSpace white_space : 3;
 		WordBreak word_break : 2;
 
+		Direction direction : 2;
+
 		LineHeight::InheritType line_height_inherit_type : 1;
 		float line_height = 12.f * 1.2f;
 		float line_height_inherit = 1.2f;
+
+		String language = "";
 	};
 
 	struct RareValues {
@@ -157,7 +161,9 @@ namespace Style {
 
 			flex_basis_type(LengthPercentageAuto::Auto), row_gap_type(LengthPercentage::Length), column_gap_type(LengthPercentage::Length),
 
-			vertical_align_type(VerticalAlign::Baseline), drag(Drag::None), tab_index(TabIndex::None), overscroll_behavior(OverscrollBehavior::Auto)
+			vertical_align_type(VerticalAlign::Baseline), drag(Drag::None), tab_index(TabIndex::None), overscroll_behavior(OverscrollBehavior::Auto),
+
+			has_mask_image(false), has_filter(false), has_backdrop_filter(false), has_box_shadow(false)
 		{}
 
 		LengthPercentage::Type min_width_type : 1, max_width_type : 1;
@@ -174,6 +180,11 @@ namespace Style {
 		Drag drag : 3;
 		TabIndex tab_index : 1;
 		OverscrollBehavior overscroll_behavior : 1;
+
+		bool has_mask_image : 1;
+		bool has_filter : 1;
+		bool has_backdrop_filter : 1;
+		bool has_box_shadow : 1;
 
 		Clip clip;
 
@@ -257,6 +268,8 @@ namespace Style {
 		Colourb        color()            const { return inherited.color; }
 		float          opacity()          const { return inherited.opacity; }
 		LineHeight     line_height()      const { return LineHeight(inherited.line_height, inherited.line_height_inherit_type, inherited.line_height_inherit); }
+		const String&  language()         const { return inherited.language; }
+		Direction      direction()        const { return inherited.direction; }
 
 		// -- Rare --
 		MinWidth          min_width()                  const { return LengthPercentage(rare.min_width_type, rare.min_width); }
@@ -288,6 +301,8 @@ namespace Style {
 		float             border_top_right_radius()    const { return (float)rare.border_top_right_radius; }
 		float             border_bottom_right_radius() const { return (float)rare.border_bottom_right_radius; }
 		float             border_bottom_left_radius()  const { return (float)rare.border_bottom_left_radius; }
+		Vector4f          border_radius()              const { return {(float)rare.border_top_left_radius,     (float)rare.border_top_right_radius,
+		                                                               (float)rare.border_bottom_right_radius, (float)rare.border_bottom_left_radius}; }
 		Clip              clip()                       const { return rare.clip; }
 		Drag              drag()                       const { return rare.drag; }
 		TabIndex          tab_index()                  const { return rare.tab_index; }
@@ -296,6 +311,10 @@ namespace Style {
 		LengthPercentage  column_gap()                 const { return LengthPercentage(rare.column_gap_type, rare.column_gap); }
 		OverscrollBehavior overscroll_behavior()       const { return rare.overscroll_behavior; }
 		float             scrollbar_margin()           const { return rare.scrollbar_margin; }
+		bool              has_mask_image()             const { return rare.has_mask_image; }
+		bool              has_filter()                 const { return rare.has_filter; }
+		bool              has_backdrop_filter()        const { return rare.has_backdrop_filter; }
+		bool              has_box_shadow()             const { return rare.has_box_shadow; }
 		
 		// -- Assignment --
 		// Common
@@ -349,6 +368,8 @@ namespace Style {
 		void color             (Colourb value)        { inherited.color              = value; }
 		void opacity           (float value)          { inherited.opacity            = value; }
 		void line_height       (LineHeight value)     { inherited.line_height = value.value; inherited.line_height_inherit_type = value.inherit_type; inherited.line_height_inherit = value.inherit_value;  }
+		void language          (const String& value)  { inherited.language           = value; }
+		void direction         (Direction value)      { inherited.direction          = value; }
 		// Rare
 		void min_width                 (MinWidth value)          { rare.min_width_type             = value.type; rare.min_width                  = value.value; }
 		void max_width                 (MaxWidth value)          { rare.max_width_type             = value.type; rare.max_width                  = value.value; }
@@ -376,6 +397,10 @@ namespace Style {
 		void image_color               (Colourb value)           { rare.image_color                = value; }
 		void overscroll_behavior       (OverscrollBehavior value){ rare.overscroll_behavior        = value; }
 		void scrollbar_margin          (float value)             { rare.scrollbar_margin           = value; }
+		void has_mask_image            (bool value)              { rare.has_mask_image             = value; }
+		void has_filter                (bool value)              { rare.has_filter                 = value; }
+		void has_backdrop_filter       (bool value)              { rare.has_backdrop_filter        = value; }
+		void has_box_shadow            (bool value)              { rare.has_box_shadow             = value; }
 
 		// clang-format on
 

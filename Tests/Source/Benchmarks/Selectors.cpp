@@ -40,7 +40,7 @@ using namespace Rml;
 static constexpr const char* document_rml_template = R"(
 <rml>
 <head>
-	
+
 	<title>Benchmark Sample</title>
 	<link type="text/template" href="/assets/window.rml"/>
 	<style>
@@ -61,7 +61,7 @@ static constexpr const char* document_rml_template = R"(
 			width: 1300px;
 			height: 600px;
 		}
-		#performance 
+		#performance
 		{
 			width: 800px;
 			height: 300px;
@@ -151,7 +151,7 @@ static String GenerateRCSS(SelectorFlags selectors, const String& complex_select
 			result += GenerateRule(name);
 
 			// Set a property that does not require a layout change
-			result += CreateString(64, " { scrollbar-margin: %dpx; }\n", int(c - 'a') + 1);
+			result += CreateString(" { scrollbar-margin: %dpx; }\n", int(c - 'a') + 1);
 
 #if 1
 			// This conditions ensures that only a single version of the complex selector is included. This can be disabled to test how well the rules
@@ -181,7 +181,7 @@ static String GenerateRml(const int num_rows)
 		int value = rng() % max;
 		String class_name_a = char('a' + char(rng() % 26)) + ToString(rng() % num_rule_iterations);
 		String class_name_b = char('a' + char(rng() % 26)) + ToString(rng() % num_rule_iterations);
-		Rml::String rml_row = Rml::CreateString(1000, R"(
+		Rml::String rml_row = Rml::CreateString(R"(
 			<div class="row">
 				<div class="col col1"><button class="expand" index="%d">+</button>&nbsp;<a>Route %d</a></div>
 				<div class="col col23"><input type="range" class="assign_range" min="0" max="%d" value="%d"/></div>
@@ -256,7 +256,7 @@ TEST_CASE("Selectors")
 		else
 			styles = GenerateRCSS(selector_flags, complex_selector, name);
 
-		const String compiled_document_rml = Rml::CreateString(1000 + styles.size(), document_rml_template, styles.c_str());
+		const String compiled_document_rml = Rml::CreateString(document_rml_template, styles.c_str());
 
 		ElementDocument* document = context->LoadDocumentFromMemory(compiled_document_rml);
 		document->Show();
@@ -268,7 +268,7 @@ TEST_CASE("Selectors")
 
 		if (reference)
 		{
-			String msg = Rml::CreateString(128, "\nElement update after pseudo class change with %d descendant elements and %d unique RCSS rules.",
+			String msg = Rml::CreateString("\nElement update after pseudo class change with %d descendant elements and %d unique RCSS rules.",
 				GetNumDescendentElements(el), num_rule_iterations * 26);
 			MESSAGE(msg);
 

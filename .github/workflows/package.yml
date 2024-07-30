@@ -1,0 +1,208 @@
+name: Package
+
+on: [push, pull_request]
+
+jobs:
+  Build:
+    runs-on: windows-2019
+
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [win32, win64]
+        library_linkage: [Dynamic, Static]
+        build_type: [Debug, Release]
+
+    env:
+      GENERATOR: Visual Studio 16 2019
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-${{ matrix.library_linkage == 'Dynamic' && 'windows' || 'windows-static-md' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |-
+          echo "Using vcpkg triplet: $env:VCPKG_DEFAULT_TRIPLET"
+          C:\vcpkg\vcpkg install freetype[core]
+
+      - name: Configure CMake
+        run: >-
+          cmake -B Build
+          -G "$env:GENERATOR"
+          -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64'  }}
+          -DRMLUI_WARNINGS_AS_ERRORS=ON
+          -DBUILD_SHARED_LIBS=${{ matrix.library_linkage == 'Dynamic' && 'ON' || 'OFF' }}
+          -DVCPKG_TARGET_TRIPLET="$env:VCPKG_DEFAULT_TRIPLET"
+          -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/Install"
+          -DRMLUI_INSTALL_TARGETS_DIR=Bin-${{matrix.library_linkage}}/CMake
+          -DCMAKE_INSTALL_BINDIR=Bin-${{matrix.library_linkage}}/${{matrix.build_type}}
+          -DCMAKE_INSTALL_LIBDIR=Bin-${{matrix.library_linkage}}/${{matrix.build_type}}
+          -DCMAKE_INSTALL_INCLUDEDIR=Include
+          -DCMAKE_INSTALL_DATADIR="."
+          -DRMLUI_INSTALL_RUNTIME_DEPENDENCIES=OFF
+          -DRMLUI_INSTALL_LICENSES_AND_BUILD_INFO=ON
+          -DRMLUI_INSTALL_DEPENDENCIES_DIR="Dependencies/Bin-${{matrix.library_linkage}}"
+          -DRMLUI_ARCHITECTURE="${{ matrix.architecture }}"
+          -DRMLUI_COMMIT_DATE="$(git show $env:GITHUB_SHA --no-patch --format=%cd --date=iso)"
+          -DRMLUI_RUN_ID="$env:GITHUB_RUN_ID"
+          -DRMLUI_SHA="$env:GITHUB_SHA"
+
+      - name: Build
+        run: cmake --build Build --config ${{ matrix.build_type }}
+
+      - name: Install
+        run: cmake --install Build --config ${{ matrix.build_type }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-${{ matrix.library_linkage }}-${{ matrix.build_type }}
+          path: ${{github.workspace}}/Install/
+          if-no-files-found: error
+
+  Samples:
+    runs-on: windows-2019
+
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [win32, win64]
+
+    env:
+      GENERATOR: Visual Studio 16 2019
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture == 'win32' && 'x86' || 'x64' }}-windows${{ matrix.architecture == 'win64' && '-release' || '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        name: Checkout dependency rlottie
+        with:
+          repository: 'Samsung/rlottie'
+          ref: 'd40008707addacb636ff435236d31c694ce2b6cf'
+          path: 'Dependencies/rlottie'
+
+      - name: Install Dependencies
+        run: |-
+          echo "Using vcpkg triplet: $env:VCPKG_DEFAULT_TRIPLET"
+          C:\vcpkg\vcpkg install glfw3[core] freetype[core] lua[core] lunasvg[core]
+          cd Dependencies\rlottie
+          cmake -B build -G "$env:GENERATOR" -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64' }} -DBUILD_SHARED_LIBS=ON -DLOTTIE_MODULE=OFF
+          cmake --build build --target rlottie --config Release -- "/clp:ErrorsOnly"
+
+      - name: Configure CMake
+        run: >-
+          cmake -B Build
+          -G "$env:GENERATOR"
+          -A ${{ matrix.architecture == 'win32' && 'Win32' || 'x64' }}
+          --preset samples-all
+          -DRMLUI_HARFBUZZ_SAMPLE=OFF
+          -DRMLUI_BACKEND=GLFW_GL3
+          -DBUILD_SHARED_LIBS=ON
+          -DRMLUI_WARNINGS_AS_ERRORS=ON
+          -DVCPKG_TARGET_TRIPLET="$env:VCPKG_DEFAULT_TRIPLET"
+          -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/Install"
+          -DCMAKE_INSTALL_BINDIR="Samples"
+          -DCMAKE_INSTALL_DATADIR="."
+          -DRMLUI_INSTALL_LICENSES_AND_BUILD_INFO=ON
+          -DRMLUI_ARCHITECTURE="${{ matrix.architecture }}"
+          -DRMLUI_COMMIT_DATE="$(git show $env:GITHUB_SHA --no-patch --format=%cd --date=iso)"
+          -DRMLUI_RUN_ID="$env:GITHUB_RUN_ID"
+          -DRMLUI_SHA="$env:GITHUB_SHA"
+
+      - name: Build
+        run: cmake --build Build --config Release
+
+      - name: Copy runtime dependencies
+        run: cp Dependencies/rlottie/build/Release/rlottie.dll Build/Release/
+
+      - name: Install
+        run: cmake --install Build --config Release
+
+      - name: Copy readme
+        run: |-
+          cp readme.md Install/
+          cp changelog.md Install/
+          cp Samples/readme.md Install/Samples/
+
+      - name: Copy extra license files
+        run: |-
+          cp Dependencies/rlottie/licenses Install/Dependencies/rlottie -Recurse
+          cp Dependencies/rlottie/COPYING Install/Dependencies/rlottie
+          echo @'
+          The rlottie library includes source code licensed under Mozilla Public License Version 2.0.
+          The source for this code can be found in the rlottie library at the following URL:
+          https://github.com/Samsung/rlottie/blob/d40008707addacb636ff435236d31c694ce2b6cf/src/vector/vinterpolator.cpp
+          '@ > "Install/Dependencies/rlottie/vinterpolator.txt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: samples-${{ matrix.architecture }}
+          path: |
+            ${{github.workspace}}/Install/
+            !${{github.workspace}}/Install/lib/
+            !${{github.workspace}}/Install/include/
+          if-no-files-found: error
+
+  Package:
+    needs: [Build, Samples]
+    runs-on: windows-2019
+
+    strategy:
+      fail-fast: true
+      matrix:
+        architecture: [win32, win64]
+
+    steps:
+      # Download artifacts in a well-defined order, with release binaries last.
+      - uses: actions/download-artifact@v4
+        with:
+          name: samples-${{ matrix.architecture }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-Dynamic-Debug
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-Static-Debug
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-Dynamic-Release
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.architecture }}-Static-Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RmlUi-vs2019-${{ matrix.architecture }}
+          path: ./
+
+  Release:
+    needs: [Package]
+    runs-on: windows-2019
+    if: ${{ github.ref_type == 'tag' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Download release artifacts
+        run: |
+          $release_artifacts = "RmlUi-vs2019-win64", "RmlUi-vs2019-win32", "samples-win64"
+          $headers = @{ "Authorization" = "token ${{ secrets.GITHUB_TOKEN }}" }
+          $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts" -Headers $headers
+          foreach ($name in $release_artifacts) {
+            $artifact = $response.artifacts | Where-Object { $_.name -eq $name }
+            Invoke-WebRequest -Uri $artifact.archive_download_url -OutFile "$name.zip" -Headers $headers
+          }
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: RmlUi ${{ github.ref_name }}
+          files: "*.zip"
+          draft: true
+          fail_on_unmatched_files: true

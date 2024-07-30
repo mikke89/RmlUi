@@ -27,6 +27,7 @@
  */
 
 #include "ScrollController.h"
+#include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
@@ -34,7 +35,7 @@
 namespace Rml {
 
 static constexpr float AUTOSCROLL_SPEED_FACTOR = 0.09f;
-static constexpr float AUTOSCROLL_DEADZONE = 10.0f;            // [dp]
+static constexpr float AUTOSCROLL_DEADZONE = 10.0f; // [dp]
 
 static constexpr float SMOOTHSCROLL_WINDOW_SIZE = 50.f;        // The window where smoothing is applied, as a distance from scroll start and end. [dp]
 static constexpr float SMOOTHSCROLL_MAX_VELOCITY = 10'000.f;   // [dp/s]
@@ -198,9 +199,12 @@ bool ScrollController::HasSmoothscrollReachedTarget() const
 void ScrollController::PerformScrollOnTarget(Vector2f delta_distance)
 {
 	RMLUI_ASSERT(target);
-	if (delta_distance.x != 0.f)
+	auto overflow_is_scrollable = [](Style::Overflow overflow) { return overflow == Style::Overflow::Auto || overflow == Style::Overflow::Scroll; };
+	auto& computed_values = target->GetComputedValues();
+
+	if (delta_distance.x != 0.f && overflow_is_scrollable(computed_values.overflow_x()))
 		target->SetScrollLeft(target->GetScrollLeft() + delta_distance.x);
-	if (delta_distance.y != 0.f)
+	if (delta_distance.y != 0.f && overflow_is_scrollable(computed_values.overflow_y()))
 		target->SetScrollTop(target->GetScrollTop() + delta_distance.y);
 }
 

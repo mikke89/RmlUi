@@ -140,6 +140,8 @@ void FontEffectGlow::GenerateGlyphTexture(byte* destination_data, const Vector2i
 
 	filter_blur_y.Run(destination_data, destination_dimensions, destination_stride, ColorFormat::RGBA8, blur_x_output.data(), buf_dimensions,
 		Vector2i(0), ColorFormat::A8);
+
+	FillColorValuesFromAlpha(destination_data, destination_dimensions, destination_stride);
 }
 
 FontEffectGlowInstancer::FontEffectGlowInstancer() :

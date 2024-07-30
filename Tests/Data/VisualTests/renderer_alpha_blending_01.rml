@@ -1,0 +1,101 @@
+<rml>
+<head>
+	<title>Alpha blending 01</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Test alpha blending of the renderer with different combinations of vertex colors and textures. Ensures that blending with premultiplied alpha is handled consistently." />
+	<meta name="Backend" content="Requires backend support for rendering with shaders and filters, for all parts to render correctly." />
+	<style>
+		@spritesheet theme
+		{
+			src: /assets/invader.tga;
+			white: 230px 210px 1px 1px;                    /* #fff */
+			black: 421px 44px 1px 1px;                     /* #000 */
+			transparent-white: 292px 284px 1px 1px;        /* #ffffff80 */
+			transparent-gray: 85px 201.5px 1px 1px;        /* #80808099 */
+			transparent-black: 190px 56.499px 1px 0.002px; /* #0000004d */
+		}
+		.white { background: #fff; }
+		.gray { background: #808080; }
+		.black { background: #000; }
+		body > div {
+			padding: 15px;
+			border: 1px #000;
+			display: flow-root;
+			margin: 10px 0 30px;
+		}
+		body > div > div {
+			width: 32px;
+			height: 32px;
+			border: 1px transparent;
+			float: left;
+			margin-right: 15px;
+		}
+		.white .background { background: #fff; }
+		.white .background_alpha { background: #fff4; }
+		.white .background_opacity { background: #fff; opacity: 0.25; }
+		.white .sprite { decorator: image(white); }
+		.white .sprite_transparent { decorator: image(transparent-white); }
+		.white .sprite_image_color { decorator: image(white); image-color: #fff4; }
+		.white .black_transparent { background: #0000; }
+		.white .linear_gradient { decorator: linear-gradient(to right, #fff, transparent); }
+		.white .horizontal_gradient { decorator: horizontal-gradient(#fff transparent); }
+
+		.gray .background { background: #808080; }
+		.gray .background_alpha { background: #80808044; }
+		.gray .background_opacity { background: #808080; opacity: 0.25; }
+		.gray .sprite { decorator: image(transparent-gray); }
+		.gray .sprite_image_color { decorator: image(white); image-color: #808080;}
+		.gray .filter { background: #fff; filter: contrast(0); }
+		.gray .linear_gradient { decorator: linear-gradient(to right, #808080, transparent); }
+		.gray .horizontal_gradient { decorator: horizontal-gradient(#808080 transparent); }
+
+		.black .background { background: #000; }
+		.black .background_alpha { background: #0004; }
+		.black .background_opacity { background: #000; opacity: 0.25; }
+		.black .sprite { decorator: image(transparent-black); }
+		.black .sprite_image_color { decorator: image(white); image-color: #000;}
+		.black .filter { background: #fff; filter: brightness(0); }
+		.black .linear_gradient { decorator: linear-gradient(to right, #000, transparent); }
+		.black .horizontal_gradient { decorator: horizontal-gradient(#000 transparent); }
+	</style>
+</head>
+
+<body>
+The following box should be filled by perfect white.
+<div class="white">
+	<div class="background"/>
+	<div class="background_alpha"/>
+	<div class="background_opacity"/>
+	<div class="sprite"/>
+	<div class="sprite_transparent"/>
+	<div class="sprite_image_color"/>
+	<div class="black_transparent"/>
+	<div class="linear_gradient"/>
+	<div class="horizontal_gradient"/>
+</div>
+
+The following box should be filled by a single gray color.
+<div class="gray">
+	<div class="background"/>
+	<div class="background_alpha"/>
+	<div class="background_opacity"/>
+	<div class="sprite"/>
+	<div class="sprite_image_color"/>
+	<div class="filter"/>
+	<div class="linear_gradient"/>
+	<div class="horizontal_gradient"/>
+</div>
+
+The following box should be filled by perfect black.
+<div class="black">
+	<div class="background"/>
+	<div class="background_alpha"/>
+	<div class="background_opacity"/>
+	<div class="sprite"/>
+	<div class="sprite_image_color"/>
+	<div class="filter"/>
+	<div class="linear_gradient"/>
+	<div class="horizontal_gradient"/>
+</div>
+</body>
+</rml>

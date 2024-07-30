@@ -156,13 +156,6 @@ bool PropertyDefinition::GetValue(String& value, const Property& property) const
 	}
 	break;
 
-	case Unit::COLOUR:
-	{
-		Colourb colour = property.value.Get<Colourb>();
-		value = CreateString(32, "rgba(%d,%d,%d,%d)", colour.red, colour.green, colour.blue, colour.alpha);
-	}
-	break;
-
 	default: value += ToString(property.unit); break;
 	}
 

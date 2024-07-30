@@ -52,7 +52,7 @@ static const String document_rml = R"(
 			width: 1300px;
 			height: 600px;
 		}
-		#performance 
+		#performance
 		{
 			width: 800px;
 			height: 300px;
@@ -122,7 +122,7 @@ static String GenerateRml(const int num_rows, const char* row)
 		int route = rng() % 50;
 		int max = (rng() % 40) + 10;
 		int value = rng() % max;
-		Rml::String rml_row = Rml::CreateString(10000, row, index, route, max, value);
+		Rml::String rml_row = Rml::CreateString(row, index, route, max, value);
 		rml += rml_row;
 	}
 
@@ -148,7 +148,7 @@ TEST_CASE("element.creation_and_destruction")
 	context->Render();
 	TestsShell::RenderLoop();
 
-	String msg = Rml::CreateString(128, "\nElement construction and destruction of %d total elements.\n", GetNumDescendentElements(el));
+	String msg = Rml::CreateString("\nElement construction and destruction of %d total elements.\n", GetNumDescendentElements(el));
 	msg += TestsShell::GetRenderStats();
 	MESSAGE(msg);
 
@@ -211,7 +211,7 @@ TEST_CASE("element.long_texts")
 	context->Render();
 	TestsShell::RenderLoop();
 
-	String msg = Rml::CreateString(128, "\nElement construction and destruction of %d total very long elements.\n", GetNumDescendentElements(el));
+	String msg = Rml::CreateString("\nElement construction and destruction of %d total very long elements.\n", GetNumDescendentElements(el));
 	msg += TestsShell::GetRenderStats();
 	MESSAGE(msg);
 

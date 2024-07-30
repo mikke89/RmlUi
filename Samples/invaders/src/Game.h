@@ -57,7 +57,7 @@ public:
 	void Update(double t);
 
 	/// Render the game
-	void Render(float dp_ratio);
+	void Render(Rml::RenderManager& render_manager, float dp_ratio);
 
 	/// Access the defender
 	Defender* GetDefender();

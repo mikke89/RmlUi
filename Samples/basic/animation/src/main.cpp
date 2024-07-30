@@ -351,7 +351,7 @@ int main(int /*argc*/, char** /*argv*/)
 			auto el = window->GetDocument()->GetElementById("fps");
 			float fps = float(count_frames) / dt;
 			count_frames = 0;
-			el->SetInnerRML(Rml::CreateString(20, "FPS: %f", fps));
+			el->SetInnerRML(Rml::CreateString("FPS: %f", fps));
 		}
 	}
 

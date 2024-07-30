@@ -55,8 +55,6 @@ void ShutdownShell();
 // or until 'ShutdownShell()'.
 void SetNumExpectedWarnings(int num_warnings);
 
-void SetTime(double t);
-
 // Stats only available for the dummy renderer.
 Rml::String GetRenderStats();
 

@@ -59,7 +59,7 @@ h1
 h2
 {
 	background-color: #ddd;
-	border-width: 1px 0px;
+	border-width: 1dp 0px;
 	border-color: #888;
 }
 h3
@@ -78,7 +78,7 @@ handle#position_handle
 	top: 0;
 	right: 0;
 	bottom: 0;
-	left: 0; 
+	left: 0;
 }
 h1 .button
 {
@@ -92,7 +92,7 @@ div#close_button
 	width: 18dp;
 	color: black;
 	background-color: #ddd;
-	border-width: 1px;
+	border-width: 1dp;
 	border-color: #666;
 	text-align: center;
 }
@@ -113,7 +113,7 @@ div#content
 	background: white;
 	border-width: 2dp;
 	border-color: #888;
-	border-top-width: 0px;
+	border-top-width: 0;
 }
 .error
 {
@@ -142,12 +142,12 @@ div#content
 scrollbarvertical
 {
 	width: 16dp;
-	scrollbar-margin: 16px;
+	scrollbar-margin: 16dp;
 }
 scrollbarhorizontal
 {
 	height: 16dp;
-	scrollbar-margin: 16px;
+	scrollbar-margin: 16dp;
 }
 scrollbarvertical slidertrack,
 scrollbarhorizontal slidertrack
@@ -157,12 +157,12 @@ scrollbarhorizontal slidertrack
 }
 scrollbarvertical slidertrack
 {
-	border-left-width: 1px;
+	border-left-width: 1dp;
 }
 scrollbarhorizontal slidertrack
 {
 	height: 15dp;
-	border-top-width: 1px;
+	border-top-width: 1dp;
 }
 scrollbarvertical sliderbar,
 scrollbarhorizontal sliderbar
@@ -172,13 +172,13 @@ scrollbarhorizontal sliderbar
 }
 scrollbarvertical sliderbar
 {
-	border-width: 1px 0px;
+	border-width: 1dp 0;
 	margin-left: 1dp;
 }
 scrollbarhorizontal sliderbar
 {
 	height: 15dp;
-	border-width: 0px 1px;
+	border-width: 0 1dp;
 	margin-top: 1dp;
 }
 scrollbarcorner
@@ -190,7 +190,7 @@ handle#size_handle
 	position: absolute;
 	width: 16dp;
 	height: 16dp;
-	bottom: -2dp;
+	bottom: 0dp;
 	right: 2dp;
 	background-color: #888;
 }

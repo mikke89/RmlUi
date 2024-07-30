@@ -29,7 +29,8 @@
 #include "DecoratorTiledImage.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
-#include "../../Include/RmlUi/Core/GeometryUtilities.h"
+#include "../../Include/RmlUi/Core/MeshUtilities.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 
 namespace Rml {
 
@@ -37,26 +38,28 @@ DecoratorTiledImage::DecoratorTiledImage() {}
 
 DecoratorTiledImage::~DecoratorTiledImage() {}
 
-bool DecoratorTiledImage::Initialise(const Tile& _tile, const Texture& _texture)
+bool DecoratorTiledImage::Initialise(const Tile& _tile, Texture _texture)
 {
 	tile = _tile;
 	tile.texture_index = AddTexture(_texture);
 	return (tile.texture_index >= 0);
 }
 
-DecoratorDataHandle DecoratorTiledImage::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorTiledImage::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	// Calculate the tile's dimensions for this element.
-	tile.CalculateDimensions(*GetTexture(tile.texture_index));
-
-	Geometry* data = new Geometry();
-	data->SetTexture(GetTexture());
+	tile.CalculateDimensions(GetTexture());
 
 	const ComputedValues& computed = element->GetComputedValues();
 
+	const Vector2f offset = element->GetBox().GetPosition(paint_area);
+	const Vector2f size = element->GetBox().GetSize(paint_area);
+
 	// Generate the geometry for the tile.
-	tile.GenerateGeometry(data->GetVertices(), data->GetIndices(), computed, Vector2f(0, 0), element->GetBox().GetSize(BoxArea::Padding),
-		tile.GetNaturalDimensions(element));
+	Mesh mesh;
+	tile.GenerateGeometry(mesh, computed, offset, size, tile.GetNaturalDimensions(element));
+
+	Geometry* data = new Geometry(element->GetRenderManager()->MakeGeometry(std::move(mesh)));
 
 	return reinterpret_cast<DecoratorDataHandle>(data);
 }
@@ -69,7 +72,32 @@ void DecoratorTiledImage::ReleaseElementData(DecoratorDataHandle element_data) c
 void DecoratorTiledImage::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	Geometry* data = reinterpret_cast<Geometry*>(element_data);
-	data->Render(element->GetAbsoluteOffset(BoxArea::Padding).Round());
+	data->Render(element->GetAbsoluteOffset(BoxArea::Border), GetTexture());
+}
+
+DecoratorTiledImageInstancer::DecoratorTiledImageInstancer() : DecoratorTiledInstancer(1)
+{
+	RegisterTileProperty("image", true);
+	RegisterShorthand("decorator", "image", ShorthandType::RecursiveRepeat);
+}
+
+DecoratorTiledImageInstancer::~DecoratorTiledImageInstancer() {}
+
+SharedPtr<Decorator> DecoratorTiledImageInstancer::InstanceDecorator(const String& /*name*/, const PropertyDictionary& properties,
+	const DecoratorInstancerInterface& instancer_interface)
+{
+	DecoratorTiled::Tile tile;
+	Texture texture;
+
+	if (!GetTileProperties(&tile, &texture, 1, properties, instancer_interface))
+		return nullptr;
+
+	auto decorator = MakeShared<DecoratorTiledImage>();
+
+	if (!decorator->Initialise(tile, texture))
+		return nullptr;
+
+	return decorator;
 }
 
 } // namespace Rml

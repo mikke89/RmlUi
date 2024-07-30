@@ -46,14 +46,11 @@ using SpriteMap = UnorderedMap<String, Sprite>; // key: sprite name (as given in
  */
 struct Spritesheet {
 	String name;
-	String image_source;
-	String definition_source;
 	int definition_line_number;
 	float display_scale; // The inverse of the 'resolution' spritesheet property.
-	Texture texture;
+	TextureSource texture_source;
 
-	Spritesheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number, float display_scale,
-		const Texture& texture);
+	Spritesheet(const String& name, const String& source, const String& document_path, int definition_line_number, float display_scale);
 };
 
 using SpriteDefinitionList = Vector<Pair<String, Rectanglef>>; // Sprite name and rectangle

@@ -68,7 +68,7 @@ TEST_CASE("font_effect")
 	{
 		constexpr int effect_size = 8;
 
-		const String rml_document = CreateString(rml_font_effect_document.size() + 100, rml_font_effect_document.c_str(), effect_name, effect_size);
+		const String rml_document = CreateString(rml_font_effect_document.c_str(), effect_name, effect_size);
 
 		ElementDocument* document = context->LoadDocumentFromMemory(rml_document);
 		document->Show();

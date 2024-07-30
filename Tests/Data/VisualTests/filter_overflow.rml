@@ -1,0 +1,34 @@
+<rml>
+<head>
+	<title>Filter: overflowing content</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Test filtering of boxes with visible overflowing content. Requires filter support in the renderer." />
+	<meta name="Assert" content="There should be a red blurred box, and a blue blurred box to its lower-right." />
+	<style>
+		.box {
+			width: 100dp;
+			height: 100dp;
+			margin: 10dp;
+			box-sizing: border-box;
+		}
+		.parent {
+			background-color: red;
+			position: relative;
+			filter: blur(15dp);
+		}
+		.child {
+			background-color: blue;
+			position: absolute;
+			top: 200dp;
+			left: 200dp;
+		}
+	</style>
+</head>
+
+<body>
+<div class="box parent">
+	<div class="box child"></div>
+</div>
+<handle size_target="#document"/>
+</body>
+</rml>

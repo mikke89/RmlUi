@@ -19,7 +19,7 @@
 		font-size: 17dp;
 		width: 700dp;
 		margin: 0 auto;
-		padding-top: 30dp;
+		padding-top: 20dp;
 	}
 	p {
 		clear: both;
@@ -64,7 +64,7 @@
 <key>Ctrl+R</key> <value>Reload test</value>
 <key>Ctrl+S</key> <value>View source of test</value>
 <key>Ctrl+Shift+S</key> <value>View source of reference</value>
-<key>Ctrl+Q</key> <value>Show previous capture of test</value>
+<key>Ctrl+Q</key> <value>Show previous capture of test<br/>(hold Shift to highlight differences)</value>
 <key>Left Mouse Button on Link</key> <value>Copy link to clipboard (on supported platforms)</value>
 <key>F1</key> <value>Show / hide help</value>
 

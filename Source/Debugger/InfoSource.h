@@ -118,6 +118,9 @@ div#title-content em {
 p.non_dom {
 	font-style: italic;
 }
+.break-all {
+	word-break: break-all;
+}
 )RCSS";
 
 static const char* info_rml = R"RML(

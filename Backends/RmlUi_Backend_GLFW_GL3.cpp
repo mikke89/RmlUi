@@ -74,12 +74,6 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
-	// Request stencil buffer of at least 8-bit size to supporting clipping on transformed elements.
-	glfwWindowHint(GLFW_STENCIL_BITS, 8);
-
-	// Enable MSAA for better-looking visuals, especially when transforms are applied.
-	glfwWindowHint(GLFW_SAMPLES, 2);
-
 	// Apply window properties and create it.
 	glfwWindowHint(GLFW_RESIZABLE, allow_resize ? GLFW_TRUE : GLFW_FALSE);
 	glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
@@ -184,8 +178,8 @@ void Backend::RequestExit()
 void Backend::BeginFrame()
 {
 	RMLUI_ASSERT(data);
-	data->render_interface.BeginFrame();
 	data->render_interface.Clear();
+	data->render_interface.BeginFrame();
 }
 
 void Backend::PresentFrame()

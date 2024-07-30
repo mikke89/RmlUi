@@ -227,7 +227,7 @@ TEST_CASE("data_binding")
 
 		bench.run("Reference (Arrays)", [&] {
 			element_array->SetInnerRML(
-				Rml::CreateString(128, "<span>%d </span><span>%d </span><span>%d </span>", rng.bounded(5000), rng.bounded(5000), rng.bounded(5000)));
+				Rml::CreateString("<span>%d </span><span>%d </span><span>%d </span>", rng.bounded(5000), rng.bounded(5000), rng.bounded(5000)));
 			context->Update();
 		});
 

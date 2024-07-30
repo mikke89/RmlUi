@@ -40,7 +40,7 @@ DecoratorNinePatch::DecoratorNinePatch() {}
 DecoratorNinePatch::~DecoratorNinePatch() {}
 
 bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectanglef& _rect_inner, const Array<NumericValue, 4>* _edges,
-	const Texture& _texture, float _display_scale)
+	Texture _texture, float _display_scale)
 {
 	rect_outer = _rect_outer;
 	rect_inner = _rect_inner;
@@ -54,22 +54,17 @@ bool DecoratorNinePatch::Initialise(const Rectanglef& _rect_outer, const Rectang
 	return (texture_index >= 0);
 }
 
-DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) const
+DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	const auto& computed = element->GetComputedValues();
 
-	Geometry* data = new Geometry();
+	Texture texture = GetTexture();
+	const Vector2f texture_dimensions(texture.GetDimensions());
 
-	const Texture* texture = GetTexture();
-	data->SetTexture(texture);
-	const Vector2f texture_dimensions(texture->GetDimensions());
+	const Vector2f surface_offset = element->GetBox().GetPosition(paint_area);
+	const Vector2f surface_dimensions = element->GetBox().GetSize(paint_area).Round();
 
-	const Vector2f surface_dimensions = element->GetBox().GetSize(BoxArea::Padding).Round();
-
-	const float opacity = computed.opacity();
-	Colourb quad_colour = computed.image_color();
-
-	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+	const ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 
 	/* In the following, we operate on the four diagonal vertices in the grid, as they define the whole grid. */
 
@@ -126,14 +121,18 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 		}
 	}
 
+	// Now offset all positions, relative to the border box.
+	for (Vector2f& surface_pos_entry : surface_pos)
+		surface_pos_entry += surface_offset;
+
 	// Round the inner corners
 	surface_pos[1] = surface_pos[1].Round();
 	surface_pos[2] = surface_pos[2].Round();
 
 	/* Now we have all the coordinates we need. Expand the diagonal vertices to the 16 individual vertices. */
-
-	Vector<Vertex>& vertices = data->GetVertices();
-	Vector<int>& indices = data->GetIndices();
+	Mesh mesh;
+	Vector<Vertex>& vertices = mesh.vertices;
+	Vector<int>& indices = mesh.indices;
 
 	vertices.resize(4 * 4);
 
@@ -165,6 +164,8 @@ DecoratorDataHandle DecoratorNinePatch::GenerateElementData(Element* element) co
 		indices[i + 5] = top_left_index + 5;
 	}
 
+	Geometry* data = new Geometry(element->GetRenderManager()->MakeGeometry(std::move(mesh)));
+
 	return reinterpret_cast<DecoratorDataHandle>(data);
 }
 
@@ -176,7 +177,7 @@ void DecoratorNinePatch::ReleaseElementData(DecoratorDataHandle element_data) co
 void DecoratorNinePatch::RenderElement(Element* element, DecoratorDataHandle element_data) const
 {
 	Geometry* data = reinterpret_cast<Geometry*>(element_data);
-	data->Render(element->GetAbsoluteOffset(BoxArea::Padding));
+	data->Render(element->GetAbsoluteOffset(BoxArea::Border), GetTexture());
 }
 
 DecoratorNinePatchInstancer::DecoratorNinePatchInstancer()
@@ -241,8 +242,8 @@ SharedPtr<Decorator> DecoratorNinePatchInstancer::InstanceDecorator(const String
 
 	auto decorator = MakeShared<DecoratorNinePatch>();
 
-	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, (edges_set ? &edges : nullptr), sprite_outer->sprite_sheet->texture,
-			sprite_outer->sprite_sheet->display_scale))
+	if (!decorator->Initialise(sprite_outer->rectangle, sprite_inner->rectangle, (edges_set ? &edges : nullptr),
+			sprite_outer->sprite_sheet->texture_source.GetTexture(instancer_interface.GetRenderManager()), sprite_outer->sprite_sheet->display_scale))
 	{
 		return nullptr;
 	}

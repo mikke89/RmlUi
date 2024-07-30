@@ -43,13 +43,12 @@
 constexpr int iteration_wait_frame_count = 2;
 
 TestNavigator::TestNavigator(Rml::RenderInterface* render_interface, Rml::Context* context, TestViewer* viewer, TestSuiteList _test_suites,
-	int start_suite, int start_case) :
-	render_interface(render_interface),
-	context(context), viewer(viewer), test_suites(std::move(_test_suites))
+	int start_suite, int start_case) : render_interface(render_interface), context(context), viewer(viewer), test_suites(std::move(_test_suites))
 {
 	RMLUI_ASSERT(context);
 	RMLUI_ASSERTMSG(!test_suites.empty(), "At least one test suite is required.");
 	context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, this, true);
+	context->GetRootElement()->AddEventListener(Rml::EventId::Keyup, this, true);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Textinput, this);
 	context->GetRootElement()->AddEventListener(Rml::EventId::Change, this);
@@ -64,10 +63,12 @@ TestNavigator::TestNavigator(Rml::RenderInterface* render_interface, Rml::Contex
 TestNavigator::~TestNavigator()
 {
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Keydown, this, true);
+	context->GetRootElement()->RemoveEventListener(Rml::EventId::Keyup, this, true);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Keydown, this);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Textinput, this);
 	context->GetRootElement()->RemoveEventListener(Rml::EventId::Change, this);
 	ReleaseTextureGeometry(render_interface, reference_geometry);
+	ReleaseTextureGeometry(render_interface, reference_highlight_geometry);
 }
 
 void TestNavigator::Update()
@@ -113,10 +114,16 @@ void TestNavigator::Update()
 
 void TestNavigator::Render()
 {
-	if (show_reference && reference_geometry.texture_handle)
+	if (reference_state != ReferenceState::None && source_state == SourceType::None && !viewer->IsHelpVisible())
 	{
-		render_interface->RenderGeometry(reference_geometry.vertices, 4, reference_geometry.indices, 6, reference_geometry.texture_handle,
-			Rml::Vector2f(0, 0));
+		const TextureGeometry& geometry =
+			(reference_state == ReferenceState::ShowReferenceHighlight ? reference_highlight_geometry : reference_geometry);
+
+		if (const Rml::CompiledGeometryHandle handle = render_interface->CompileGeometry(geometry.mesh.vertices, geometry.mesh.indices))
+		{
+			render_interface->RenderGeometry(handle, Rml::Vector2f(0, 0), geometry.texture_handle);
+			render_interface->ReleaseGeometry(handle);
+		}
 	}
 }
 
@@ -180,6 +187,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 		}
 		else if (key_identifier == Rml::Input::KI_F1)
 		{
+			ShowReference(ReferenceState::None);
 			viewer->ShowHelp(!viewer->IsHelpVisible());
 		}
 		else if (key_identifier == Rml::Input::KI_F && key_ctrl)
@@ -206,11 +214,19 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 					source_state = SourceType::None;
 			}
 			viewer->ShowSource(source_state);
-			ShowReference(false, false);
+			ShowReference(ReferenceState::None);
 		}
 		else if (key_identifier == Rml::Input::KI_Q && key_ctrl)
 		{
-			ShowReference(!show_reference, false);
+			if (reference_state != ReferenceState::None)
+				ShowReference(ReferenceState::None);
+			else
+				ShowReference(key_shift ? ReferenceState::ShowReferenceHighlight : ReferenceState::ShowReference);
+		}
+		else if (key_identifier == Rml::Input::KI_LSHIFT || key_identifier == Rml::Input::KI_RSHIFT)
+		{
+			if (reference_state == ReferenceState::ShowReference)
+				ShowReference(ReferenceState::ShowReferenceHighlight);
 		}
 		else if (key_identifier == Rml::Input::KI_ESCAPE)
 		{
@@ -226,6 +242,10 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 			{
 				source_state = SourceType::None;
 				viewer->ShowSource(source_state);
+			}
+			else if (reference_state != ReferenceState::None)
+			{
+				ShowReference(ReferenceState::None);
 			}
 			else if (element_filter_input->IsPseudoClassSet("focus"))
 			{
@@ -253,6 +273,16 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 				UpdateGoToText();
 				element_filter_input->Blur();
 			}
+		}
+	}
+
+	if (event == Rml::EventId::Keyup && event.GetPhase() == Rml::EventPhase::Capture)
+	{
+		const auto key_identifier = (Rml::Input::KeyIdentifier)event.GetParameter<int>("key_identifier", 0);
+		if (key_identifier == Rml::Input::KI_LSHIFT || key_identifier == Rml::Input::KI_RSHIFT)
+		{
+			if (reference_state == ReferenceState::ShowReferenceHighlight)
+				ShowReference(ReferenceState::ShowReference);
 		}
 	}
 
@@ -364,7 +394,7 @@ void TestNavigator::LoadActiveTest(bool keep_scroll_position)
 	viewer->LoadTest(suite.GetDirectory(), suite.GetFilename(), suite.GetIndex(), suite.GetNumTests(), suite.GetFilterIndex(),
 		suite.GetNumFilteredTests(), suite_index, (int)test_suites.size(), keep_scroll_position);
 	viewer->ShowSource(source_state);
-	ShowReference(false, true);
+	ShowReference(ReferenceState::None);
 	UpdateGoToText();
 }
 
@@ -378,7 +408,7 @@ ComparisonResult TestNavigator::CompareCurrentView()
 {
 	const Rml::String filename = GetImageFilenameFromCurrentTest();
 
-	ComparisonResult result = CompareScreenToPreviousCapture(render_interface, filename, nullptr);
+	ComparisonResult result = CompareScreenToPreviousCapture(render_interface, filename, nullptr, nullptr);
 
 	return result;
 }
@@ -480,8 +510,8 @@ void TestNavigator::StopTestSuiteIteration()
 				not_equal.push_back(i);
 		}
 
-		Rml::String summary = Rml::CreateString(256, "  Total tests: %d\n  Equal: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d", num_tests,
-			(int)equal.size(), (int)not_equal.size(), (int)failed.size(), (int)skipped.size());
+		Rml::String summary = Rml::CreateString("  Total tests: %d\n  Not equal: %d\n  Failed: %d\n  Skipped: %d\n  Equal: %d", num_tests,
+			(int)not_equal.size(), (int)failed.size(), (int)skipped.size(), (int)equal.size());
 
 		if (!suite.GetFilter().empty())
 			summary += "\n  Filter applied: " + suite.GetFilter();
@@ -507,32 +537,39 @@ void TestNavigator::StopTestSuiteIteration()
 		log += "\n\nNot Equal:\n";
 
 		if (!not_equal.empty())
-			log += "Percentages are similarity scores. Difference images written to " + GetCaptureOutputDirectory() + "/*-diff.png\n\n";
+			log += "    #   similarity scores (%)   max pixel difference   filename\n\n";
 		for (int i : not_equal)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %5.1f%%   %s\n", i + 1, comparison_results[i].similarity_score * 100.0, suite.GetFilename().c_str());
+			log += Rml::CreateString("%5d   %5.1f%%  %4d   %s\n", i + 1, comparison_results[i].similarity_score * 100.0,
+				(int)comparison_results[i].max_absolute_difference_single_pixel, suite.GetFilename().c_str());
 			if (!comparison_results[i].error_msg.empty())
 				log += "          " + comparison_results[i].error_msg + "\n";
-		}
-		log += "\nEqual:\n";
-		for (int i : equal)
-		{
-			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
 		log += "\nFailed:\n";
 		for (int i : failed)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(512, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
 			log += "          " + comparison_results[i].error_msg + "\n";
 		}
 		log += "\nSkipped:\n";
 		for (int i : skipped)
 		{
 			suite.SetIndex(i);
-			log += Rml::CreateString(256, "%5d   %s\n", i + 1, suite.GetFilename().c_str());
+			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
+		}
+		log += "\nEqual:\n";
+		for (int i : equal)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
+		}
+		log += "\nEqual:\n";
+		for (int i : equal)
+		{
+			suite.SetIndex(i);
+			log += Rml::CreateString("%5d   %s\n", i + 1, suite.GetFilename().c_str());
 		}
 
 		const Rml::String log_path = GetCaptureOutputDirectory() + "/comparison.log";
@@ -560,38 +597,49 @@ void TestNavigator::UpdateGoToText(bool out_of_bounds)
 	if (out_of_bounds)
 		viewer->SetGoToText("Go To out of bounds");
 	else if (goto_index > 0)
-		viewer->SetGoToText(Rml::CreateString(64, "Go To: %d", goto_index));
+		viewer->SetGoToText(Rml::CreateString("Go To: %d", goto_index));
 	else if (goto_index == 0)
 		viewer->SetGoToText("Go To:");
 	else if (iteration_state == IterationState::Capture)
 		viewer->SetGoToText("Capturing all tests");
 	else if (iteration_state == IterationState::Comparison)
 		viewer->SetGoToText("Comparing all tests");
-	else if (show_reference)
-		viewer->SetGoToText(Rml::CreateString(100, "Showing reference capture (%.1f%% similar)", reference_comparison.similarity_score * 100.));
+	else if (reference_state == ReferenceState::ShowReference)
+		viewer->SetGoToText(Rml::CreateString("Showing reference capture (%.1f%% similar)", reference_comparison.similarity_score * 100.));
+	else if (reference_state == ReferenceState::ShowReferenceHighlight)
+		viewer->SetGoToText("Showing reference capture (highlight differences)");
 	else
 		viewer->SetGoToText("Press 'F1' for keyboard shortcuts.");
 }
 
-void TestNavigator::ShowReference(bool show, bool clear)
+void TestNavigator::ShowReference(ReferenceState new_reference_state)
 {
-	if (clear)
+	if (new_reference_state == reference_state || viewer->IsHelpVisible())
+		return;
+
+	Rml::String error_msg;
+
+	if (reference_state == ReferenceState::None)
+	{
+		reference_comparison =
+			CompareScreenToPreviousCapture(render_interface, GetImageFilenameFromCurrentTest(), &reference_geometry, &reference_highlight_geometry);
+
+		if (!reference_comparison.success || !reference_geometry.texture_handle || !reference_highlight_geometry.texture_handle)
+		{
+			error_msg = reference_comparison.error_msg;
+			new_reference_state = ReferenceState::None;
+		}
+	}
+
+	if (new_reference_state == ReferenceState::None)
 	{
 		ReleaseTextureGeometry(render_interface, reference_geometry);
+		ReleaseTextureGeometry(render_interface, reference_highlight_geometry);
 		reference_comparison = {};
 	}
 
-	Rml::String error_msg;
-	if (show && !reference_geometry.texture_handle)
-	{
-		reference_comparison = CompareScreenToPreviousCapture(render_interface, GetImageFilenameFromCurrentTest(), &reference_geometry);
-
-		if (!reference_comparison.success)
-			error_msg = reference_comparison.error_msg;
-	}
-
-	show_reference = (show && reference_comparison.success && !reference_comparison.is_equal);
-	viewer->SetAttention(show_reference);
+	reference_state = new_reference_state;
+	viewer->SetAttention(reference_state != ReferenceState::None);
 
 	if (!error_msg.empty())
 		viewer->SetGoToText(error_msg);

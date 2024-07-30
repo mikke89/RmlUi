@@ -37,16 +37,10 @@
 namespace Rml {
 
 /**
-    RmlUi's System Interface.
+    RmlUi's system interface provides an interface for time, translation, logging, and other system utilities.
 
-    This class provides interfaces for Time, Translation and Logging.
-
-    Time is the only required implementation.
-
-    The default implemention of Translation doesn't translate anything
-
-    The default implementation of logging logs Windows Debug Console,
-    or Standard Error, depending on what platform you're using.
+    The default logging implementation outputs to the Windows Debug Console on Windows, and Standard Error on other
+    platforms.
 
     @author Lloyd Weehuizen
  */
@@ -58,7 +52,7 @@ public:
 
 	/// Get the number of seconds elapsed since the start of the application.
 	/// @return Elapsed time, in seconds.
-	virtual double GetElapsedTime() = 0;
+	virtual double GetElapsedTime();
 
 	/// Translate the input string into the translated string.
 	/// @param[out] translated Translated string ready for display.

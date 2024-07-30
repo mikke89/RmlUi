@@ -78,12 +78,12 @@ void FreeType::Shutdown()
 	}
 }
 
-bool FreeType::GetFaceVariations(const byte* data, int data_length, Vector<FaceVariation>& out_face_variations)
+bool FreeType::GetFaceVariations(Span<const byte> data, Vector<FaceVariation>& out_face_variations)
 {
 	RMLUI_ASSERT(ft_library);
 
 	FT_Face face = nullptr;
-	FT_Error error = FT_New_Memory_Face(ft_library, (const FT_Byte*)data, data_length, 0, &face);
+	FT_Error error = FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), 0, &face);
 	if (error)
 		return false;
 
@@ -133,12 +133,14 @@ bool FreeType::GetFaceVariations(const byte* data, int data_length, Vector<FaceV
 	return true;
 }
 
-FontFaceHandleFreetype FreeType::LoadFace(const byte* data, int data_length, const String& source, int named_style_index)
+FontFaceHandleFreetype FreeType::LoadFace(Span<const byte> data, const String& source, int named_style_index)
 {
 	RMLUI_ASSERT(ft_library);
 
 	FT_Face face = nullptr;
-	FT_Error error = FT_New_Memory_Face(ft_library, (const FT_Byte*)data, data_length, (named_style_index << 16), &face);
+	FT_Error error =
+		FT_New_Memory_Face(ft_library, static_cast<const FT_Byte*>(data.data()), static_cast<FT_Long>(data.size()), (named_style_index << 16), &face);
+
 	if (error)
 	{
 		Log::Message(Log::LT_ERROR, "FreeType error %d while loading face from %s.", error, source.c_str());
@@ -438,28 +440,18 @@ static bool BuildGlyph(FT_Face ft_face, const Character character, FontGlyphMap&
 
 				if (glyph.color_format == ColorFormat::RGBA8)
 				{
-					// Swizzle channels (BGRA -> RGBA) and un-premultiply alpha.
+					// Swizzle channels (BGRA -> RGBA)
 					destination_bitmap = glyph.bitmap_owned_data.get();
 
 					for (int k = 0; k < glyph.bitmap_dimensions.x * glyph.bitmap_dimensions.y * num_bytes_per_pixel; k += 4)
 					{
-						byte b = destination_bitmap[k];
-						byte g = destination_bitmap[k + 1];
-						byte r = destination_bitmap[k + 2];
+						std::swap(destination_bitmap[k], destination_bitmap[k + 2]);
+#ifdef RMLUI_DEBUG
 						const byte alpha = destination_bitmap[k + 3];
-						RMLUI_ASSERTMSG(b <= alpha && g <= alpha && r <= alpha, "Assumption of glyph data being premultiplied is broken.");
-
-						if (alpha > 0 && alpha < 255)
-						{
-							b = byte((b * 255) / alpha);
-							g = byte((g * 255) / alpha);
-							r = byte((r * 255) / alpha);
-						}
-
-						destination_bitmap[k] = r;
-						destination_bitmap[k + 1] = g;
-						destination_bitmap[k + 2] = b;
-						destination_bitmap[k + 3] = alpha;
+						for (int c = 0; c < 3; c++)
+							RMLUI_ASSERTMSG(destination_bitmap[k + c] <= alpha,
+								"Glyph data is assumed to be encoded in premultiplied alpha, but that is not the case.");
+#endif
 					}
 				}
 			}

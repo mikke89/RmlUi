@@ -1,0 +1,47 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>CSS Flexbox Test: gap - mixed units</title>
+	<link href="https://test.csswg.org/suites/css-align-3_dev/nightly-unstable/xhtml1/reference/gap-009-ltr-ref.xht"
+		  rel="source"/>
+	<link href="mailto:argyle@google.com" rel="author" title="Adam Argyle"/>
+	<style>
+		section {
+			background-color: green;
+			height: 100px;
+			width: 30rem;
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		section > div {
+			background-color: grey;
+		}
+
+		section > div {
+			width: 14.5rem;
+		}
+
+		section > div:nth-child(1),
+		section > div:nth-child(3) {
+			margin-right: 1rem;
+		}
+
+		section > div:nth-child(3),
+		section > div:nth-child(4) {
+			margin-top: 50px; /* half block size */
+		}
+	</style>
+</head>
+<body>
+<p>
+	Test passes if there are <strong> 50% horizontal green line and 1rem vertical green line between boxes</strong>.
+</p>
+<section>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+</section>
+</body>
+</rml>
