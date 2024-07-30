@@ -28,15 +28,147 @@
 
 #include "../Common/TestsInterface.h"
 #include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/Factory.h>
 #include <RmlUi/Core/PropertyDefinition.h>
 #include <RmlUi/Core/PropertyDictionary.h>
 #include <RmlUi/Core/PropertySpecification.h>
+#include <RmlUi/Core/StyleSheetSpecification.h>
 #include <doctest.h>
 #include <limits.h>
 
+namespace Rml {
+class TestPropertySpecification {
+public:
+	using SplitOption = PropertySpecification::SplitOption;
+	TestPropertySpecification(const PropertySpecification& specification) : specification(specification) {}
+
+	bool ParsePropertyValues(StringList& values_list, const String& values, SplitOption split_option) const
+	{
+		return specification.ParsePropertyValues(values_list, values, split_option);
+	}
+
+private:
+	const PropertySpecification& specification;
+};
+} // namespace Rml
+
 using namespace Rml;
 
-TEST_CASE("PropertySpecification")
+static String Stringify(const StringList& list)
+{
+	String result = "[";
+	for (int i = 0; i < (int)list.size(); i++)
+	{
+		if (i != 0)
+			result += "; ";
+		result += list[i];
+	}
+	result += ']';
+	return result;
+}
+
+TEST_CASE("PropertySpecification.ParsePropertyValues")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	Rml::Initialise();
+
+	using SplitOption = TestPropertySpecification::SplitOption;
+	const TestPropertySpecification& specification = TestPropertySpecification(StyleSheetSpecification::GetPropertySpecification());
+
+	struct Expected {
+		Expected(const char* value) : values{String(value)} {}
+		Expected(std::initializer_list<String> list) : values(list) {}
+		StringList values;
+	};
+
+	auto Parse = [&](const String& test_value, const Expected& expected, SplitOption split = SplitOption::Whitespace) {
+		StringList parsed_values;
+		bool success = specification.ParsePropertyValues(parsed_values, test_value, split);
+		const String split_str[] = {"none", "whitespace", "comma"};
+
+		INFO("\n\tSplit:     ", split_str[(int)split], "\n\tInput:     ", test_value, "\n\tExpected: ", Stringify(expected.values),
+			"\n\tResult:   ", Stringify(parsed_values));
+		CHECK(success);
+		CHECK(parsed_values == expected.values);
+	};
+
+	Parse("red", "red");
+	Parse(" red ", "red");
+	Parse("inline-block", "inline-block");
+
+	Parse("none red", {"none", "red"});
+	Parse("none    red", {"none", "red"});
+	Parse("none\t \r \nred", {"none", "red"});
+
+	Parse("none red", "none red", SplitOption::None);
+	Parse(" none red ", "none red", SplitOption::None);
+	Parse("none    red", "none    red", SplitOption::None);
+	Parse("none\t \r \nred", "none\t \r \nred", SplitOption::None);
+	Parse("none,red", "none,red", SplitOption::None);
+	Parse(" \"none,red\" ", "none,red", SplitOption::None);
+
+	Parse("none,red", {"none,red"});
+	Parse("none, red", {"none,", "red"});
+	Parse("none , red", {"none", ",", "red"});
+	Parse("none   ,   red", {"none", ",", "red"});
+	Parse("none,,red", "none,,red");
+	Parse("none,,,red", "none,,,red");
+
+	Parse("none,red", {"none", "red"}, SplitOption::Comma);
+	Parse("none, red", {"none", "red"}, SplitOption::Comma);
+	Parse("none , red", {"none", "red"}, SplitOption::Comma);
+	Parse("none   ,   red", {"none", "red"}, SplitOption::Comma);
+	Parse("none,,red", {"none", "red"}, SplitOption::Comma);
+	Parse("none,,,red", {"none", "red"}, SplitOption::Comma);
+	Parse("none, ,  ,red", {"none", "red"}, SplitOption::Comma);
+
+	Parse("\"string with spaces\"", "string with spaces");
+	Parse("\"string with spaces\" two", {"string with spaces", "two"});
+	Parse("\"string with spaces\"two", {"string with spaces", "two"});
+	Parse("\"string with spaces\"two", "string with spaces two", SplitOption::None);
+
+	Parse("\"string (with) ((parenthesis\" two", {"string (with) ((parenthesis", "two"});
+	Parse("\"none,,red\" two", {"none,,red", "two"});
+
+	Parse("aa(bb( cc ) dd) ee", {"aa(bb( cc ) dd)", "ee"});
+	Parse("aa(\"bb cc ) dd\") ee", {"aa(\"bb cc ) dd\")", "ee"});
+	Parse("aa(\"bb cc \\) dd\") ee", {"aa(\"bb cc \\) dd\")", "ee"});
+	Parse("aa(\"bb cc \\) dd\") ee", "aa(\"bb cc \\) dd\") ee", SplitOption::Comma);
+
+	Parse("none(\"long string\"), aa, \"bb() cc\"", {"none(\"long string\"),", "aa,", "bb() cc"});
+	Parse("none(\"long string\"), aa, \"bb() cc\"", {"none(\"long string\")", "aa", "\"bb() cc\""}, SplitOption::Comma);
+	Parse("none(\"long string\"), aa, bb() cc", {"none(\"long string\")", "aa", "bb() cc"}, SplitOption::Comma);
+
+	Parse("tiled-horizontal( title-bar-l, title-bar-c, title-bar-r )", "tiled-horizontal( title-bar-l, title-bar-c, title-bar-r )");
+	Parse("tiled-horizontal( title-bar-l, title-bar-c,\n\ttitle-bar-r )", "tiled-horizontal( title-bar-l, title-bar-c,\n\ttitle-bar-r )");
+	Parse("tiled-horizontal( title-bar-l, title-bar-c )", "tiled-horizontal( title-bar-l, title-bar-c )", SplitOption::Comma);
+
+	Parse("linear-gradient(110deg, #fff, #000 10%) border-box, image(invader.png)",
+		{"linear-gradient(110deg, #fff, #000 10%)", "border-box,", "image(invader.png)"});
+	Parse("linear-gradient(110deg, #fff, #000 10%) border-box, image(invader.png)",
+		{"linear-gradient(110deg, #fff, #000 10%) border-box", "image(invader.png)"}, SplitOption::Comma);
+
+	Parse(R"(image( a\) b ))", {R"(image( a\))", "b", ")"});
+	Parse(R"(image( a\) b ))", R"(image( a\) b ))", SplitOption::Comma);
+
+	Parse(R"(image( ))", R"(image( ))");
+	Parse(R"(image( a\\b ))", R"(image( a\\b ))");
+	Parse(R"(image( a\\\b ))", R"(image( a\\\b ))");
+	Parse(R"(image( a\\\\b ))", R"(image( a\\\\b ))");
+	Parse(R"(image("a\)b"))", R"(image("a\)b"))");
+	Parse(R"(image("a\\)b"))", R"(image("a\)b"))");
+	Parse(R"(image("a\\b"))", R"(image("a\b"))");
+	Parse(R"(image("a\\\b"))", R"(image("a\\b"))");
+	Parse(R"(image("a\\\\b"))", R"(image("a\\b"))");
+
+	Rml::Shutdown();
+}
+
+TEST_CASE("PropertySpecification.string")
 {
 	TestsSystemInterface system_interface;
 	TestsRenderInterface render_interface;
@@ -89,13 +221,6 @@ TEST_CASE("PropertySpecification")
 	Parse(R"(image(a, "b"))", R"(image(a, "b"))");
 	Parse(R"V("image(a, \"b\")")V", R"V(image(a, "b"))V");
 
-	Parse(R"(image( ))", R"(image( ))");
-	Parse(R"(image( a\)b ))", R"(image( a)b ))");
-	Parse(R"(image("a\)b"))", R"(image("a)b"))");
-	Parse(R"(image( a\\b ))", R"(image( a\b ))");
-	Parse(R"(image( a\\\b ))", R"(image( a\\b ))");
-	Parse(R"(image( a\\\\b ))", R"(image( a\\b ))");
-
 	Rml::Shutdown();
 }
 
@@ -107,6 +232,7 @@ TEST_CASE("PropertyParser.Keyword")
 	SetSystemInterface(&system_interface);
 	Rml::Initialise();
 
+	// Test keyword parser. Ensure that the keyword values are correct.
 	PropertySpecification specification(20, 0);
 
 	auto Parse = [&](const PropertyId id, const String& test_value, int expected_value) {
@@ -154,5 +280,74 @@ TEST_CASE("PropertyParser.Keyword")
 	Parse(numbers, "2", 2);
 	Parse(numbers, "20", 20);
 
+	Rml::Shutdown();
+}
+
+TEST_CASE("PropertyParser.InvalidShorthands")
+{
+	TestsSystemInterface system_interface;
+	TestsRenderInterface render_interface;
+	SetRenderInterface(&render_interface);
+	SetSystemInterface(&system_interface);
+	Rml::Initialise();
+
+	ElementPtr element = Factory::InstanceElement(nullptr, "*", "div", {});
+
+	struct TestCase {
+		bool expected_result;
+		String name;
+		String value;
+	};
+	Vector<TestCase> tests = {
+		{true, "margin", "10px "},                     //
+		{true, "margin", "10px 20px "},                //
+		{true, "margin", "10px 20px 30px "},           //
+		{true, "margin", "10px 20px 30px 40px"},       //
+		{false, "margin", ""},                         // Too few values
+		{false, "margin", "10px 20px 30px 40px 50px"}, // Too many values
+
+		{true, "flex", "1 2 3px"},    //
+		{false, "flex", "1 2 3px 4"}, // Too many values
+		{false, "flex", "1px 2 3 4"}, // Wrong order
+
+		{true, "perspective-origin", "center center"},         //
+		{true, "perspective-origin", "left top"},              //
+		{false, "perspective-origin", "center center center"}, // Too many values
+		{false, "perspective-origin", "left top 50px"},        // Too many values
+		{false, "perspective-origin", "50px 50px left"},       // Too many values
+		{false, "perspective-origin", "top left"},             // Wrong order
+		{false, "perspective-origin", "50px left"},            // Wrong order
+
+		{true, "font", "20px arial"},  //
+		{false, "font", "arial 20px"}, // Wrong order
+
+		{true, "decorator", "gradient(vertical blue red)"},        //
+		{false, "decorator", "gradient(blue red vertical)"},       // Wrong order
+		{false, "decorator", "gradient(blue vertical red)"},       // Wrong order
+		{false, "decorator", "gradient(vertical blue red green)"}, // Too many values
+
+		{true, "filter", "drop-shadow(blue 10px 20px 30px)"},       //
+		{false, "filter", "drop-shadow(10px 20px 30px blue)"},      // Wrong order
+		{false, "filter", "drop-shadow(10px blue 20px 30px)"},      // Wrong order
+		{false, "filter", "drop-shadow(blue 10px 20px 30px 40px)"}, // Too many values
+
+		{true, "overflow", "hidden"},                //
+		{true, "overflow", "scroll hidden"},         //
+		{false, "overflow", ""},                     // Too few values
+		{false, "overflow", "scroll hidden scroll"}, // Too many values
+	};
+
+	for (const TestCase& test : tests)
+	{
+		PropertyDictionary properties;
+		INFO(test.name, ": ", test.value);
+		CHECK(StyleSheetSpecification::ParsePropertyDeclaration(properties, test.name, test.value) == test.expected_result);
+
+		// Ensure we get a warning when trying to set the invalid property on an element.
+		system_interface.SetNumExpectedWarnings(test.expected_result ? 0 : 1);
+		CHECK(element->SetProperty(test.name, test.value) == test.expected_result);
+	}
+
+	element.reset();
 	Rml::Shutdown();
 }

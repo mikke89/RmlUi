@@ -1,0 +1,147 @@
+<rml>
+<head>
+	<title>radial-gradient</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="A variety of radial-gradient backgrounds. Each group should match their description." />
+	<meta name="Backend" content="Requires backend support for rendering with compiled shaders." />
+	<link rel="source" href="https://www.w3.org/TR/css-images-3/#radial-gradients" />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+			width: 900dp;
+		}
+		div {
+			margin: 5dp;
+			width: 200dp;
+			height: 100dp;
+			box-sizing: border-box;
+			border: 1dp #bbb;
+			float: left;
+		}
+		group {
+			margin-left: 1em;
+			display: flow-root;
+			margin-bottom: 1em;
+		}
+
+		.ellipse > :nth-child(1) { decorator: radial-gradient(yellow, green); }
+		.ellipse > :nth-child(2) { decorator: radial-gradient(ellipse at center, yellow 0%, green 100%); }
+		.ellipse > :nth-child(3) { decorator: radial-gradient(farthest-corner at 50% 50%, yellow, green); }
+
+		.circle > :nth-child(1) { decorator: radial-gradient(circle, yellow, green); }
+
+		.three_color > :nth-child(1) { decorator: radial-gradient(red, yellow, green); }
+
+		.origin_bottom_left > :nth-child(1) { decorator: radial-gradient(farthest-side at left bottom, red, yellow 50px, green); }
+
+		.closest_side_ellipse > :nth-child(1) { decorator: radial-gradient(closest-side at 20px 30px, red, yellow, green); }
+		.closest_side_ellipse > :nth-child(2) { decorator: radial-gradient(20px 30px at 20px 30px, red, yellow, green); }
+
+		.closest_side_circle > :nth-child(1) { decorator: radial-gradient(circle closest-side at 20px 30px, red, yellow, green); }
+		.closest_side_circle > :nth-child(2) { decorator: radial-gradient(20px 20px at 20px 30px, red, yellow, green); }
+
+		.closest_corner_ellipse > :nth-child(1) { decorator: radial-gradient(closest-corner at 20px 30px, red, yellow, green); }
+
+		.closest_corner_circle > :nth-child(1) { decorator: radial-gradient(circle closest-corner at 20px 30px, red, yellow, green); }
+
+		.sharp > :nth-child(1) { decorator: radial-gradient(circle closest-side, red 50%, yellow 50%, green); }
+		.sharp > :nth-child(2) { decorator: radial-gradient(red 50%, yellow 50%, green); }
+		.sharp > :nth-child(3) { decorator: radial-gradient(60% 10px, red 50%, yellow 50%, green); }
+		.sharp > :nth-child(4) { decorator: radial-gradient(10px 60%, red 50%, yellow 50%, green); }
+
+		.problematic > :nth-child(1) { decorator: radial-gradient(circle closest-side at 199px 30px, red, yellow, green); }
+		.problematic > :nth-child(2) { decorator: radial-gradient(circle closest-side at 200px 30px, red, yellow, green); }
+		.problematic > :nth-child(3) { decorator: radial-gradient(circle closest-side at -1px, red, yellow, green); }
+		.problematic > :nth-child(4) { decorator: radial-gradient(circle closest-side at 0px, red, yellow, green); }
+		.problematic > :nth-child(5) { decorator: radial-gradient(5px 0.1px, red, yellow, green); }
+		.problematic > :nth-child(6) { decorator: radial-gradient(0px 0px, red, yellow, green); }
+
+		.repeating > :nth-child(1) { decorator: repeating-radial-gradient(circle 30px, red, yellow, green 90%, red); }
+		.repeating > :nth-child(2) { decorator: repeating-radial-gradient(farthest-side at left bottom, red, yellow 50px, green 90%, red); }
+		.repeating > :nth-child(3) { decorator: repeating-radial-gradient(closest-side at 20px 30px, red, yellow, green 90%, red); }
+		.repeating > :nth-child(4) { decorator: repeating-radial-gradient(circle closest-side at -15% 50%, red, yellow, green 90%, red); }
+
+		.repeating > :nth-child(5) { decorator: repeating-radial-gradient(red, yellow 20px, green 40px); }
+		.repeating > :nth-child(6) { decorator: repeating-radial-gradient(circle 20px, red, yellow, green 100%, yellow 150%, red 200%); }
+		.repeating > :nth-child(7) { decorator: repeating-radial-gradient(circle 30px, red -30px, yellow); }
+		.repeating > :nth-child(8) { decorator: repeating-radial-gradient(circle 30px, red 15px, yellow); }
+	</style>
+</head>
+
+<body>
+Ellipse, yellow (center) to green (corners) [equivalent]
+<group class="ellipse">
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Circle, yellow (center) to green (corners)
+<group class="circle">
+	<div/>
+</group>
+
+Ellipse, red (center), yellow, green (corners)
+<group class="three_color">
+	<div/>
+</group>
+
+Red (bottom-left), yellow, green (top-right)
+<group class="origin_bottom_left">
+	<div/>
+</group>
+
+Repeating radial gradients
+<group class="repeating">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Ellipse (top-left, closest-side), red, yellow, green [equivalent]
+<group class="closest_side_ellipse">
+	<div/>
+	<div/>
+</group>
+
+Circle (top-left, closest-side), red, yellow, green [equivalent]
+<group class="closest_side_circle">
+	<div/>
+	<div/>
+</group>
+
+Ellipse (top-left, closest-corner), red, yellow, green
+<group class="closest_corner_ellipse">
+	<div/>
+</group>
+
+Circle (top-left, closest-corner), red, yellow, green
+<group class="closest_corner_circle">
+	<div/>
+</group>
+
+Sharp color transitions for testing anti-aliasing
+<group class="sharp">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Edge cases, should be green, possibly with a tiny ellipse.
+<group class="problematic">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+</body>
+</rml>

@@ -29,10 +29,10 @@
 #ifndef RMLUI_LOTTIE_ELEMENT_LOTTIE_H
 #define RMLUI_LOTTIE_ELEMENT_LOTTIE_H
 
+#include "../Core/CallbackTexture.h"
 #include "../Core/Element.h"
 #include "../Core/Geometry.h"
 #include "../Core/Header.h"
-#include "../Core/Texture.h"
 
 namespace rlottie {
 class Animation;
@@ -81,7 +81,7 @@ private:
 	bool texture_size_dirty = false;
 
 	// The texture this element is rendering from.
-	Texture texture;
+	CallbackTexture texture;
 	// The texture data buffer.
 	size_t texture_data_size = 0;
 	UniquePtr<byte[]> texture_data;

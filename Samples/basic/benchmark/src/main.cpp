@@ -62,7 +62,7 @@ public:
 			int route = rand() % 50;
 			int max = (rand() % 40) + 10;
 			int value = rand() % max;
-			Rml::String rml_row = Rml::CreateString(1000, R"(
+			Rml::String rml_row = Rml::CreateString(R"(
 			<div class="row">
 				<div class="col col1"><button class="expand" index="%d">+</button>&nbsp;<a>Route %d</a></div>
 				<div class="col col23"><input type="range" class="assign_range" min="0" max="%d" value="%d"/></div>
@@ -262,7 +262,7 @@ int main(int /*argc*/, char** /*argv*/)
 
 			auto el = window->GetDocument()->GetElementById("fps");
 			count_frames = 0;
-			el->SetInnerRML(Rml::CreateString(20, "FPS: %f", fps_mean));
+			el->SetInnerRML(Rml::CreateString("FPS: %f", fps_mean));
 		}
 	}
 

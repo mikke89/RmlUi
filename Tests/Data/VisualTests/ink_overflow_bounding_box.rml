@@ -1,0 +1,47 @@
+<rml>
+<head>
+	<title>Ink overflow bounding box</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Enables testing an element's bounding box with ink overflow and transform. The bounding box should cover all of the element's box shadows and filters, even when they have transforms applied." />
+	<meta name="Instructions" content="The bounding box of an element can be seen as the white frame in the debugger, when selecting it in the element info mode." />
+	<style>
+		@spritesheet effects-sheet
+		{
+			src: /assets/invader.tga;
+			icon-invader: 179px 152px 51px 39px;
+		}
+		.box {
+			color: black;
+			font-size: 18dp;
+			width: 280dp;
+			height: 70dp;
+			background: #fff;
+			border: 2dp #777;
+			margin: 10dp auto;
+			padding: 15dp;
+			border-radius: 30dp 8dp;
+			box-sizing: border-box;
+			margin-top: 100px;
+			margin-bottom: 100px;
+			transform: skewX(10deg);
+		}
+		.box img {
+			float: left;
+			margin-right: 8dp;
+		}
+		.boxshadow {
+			box-shadow: #f008  40px  30px 0px 0px, #00f8 -40px -30px 0px 0px;
+		}
+		.dropshadow {
+			filter: drop-shadow(#fe3f 30px 40px 0px);
+		}
+	</style>
+</head>
+
+<body>
+<div class="box boxshadow"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box dropshadow"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<div class="box boxshadow dropshadow"><img sprite="icon-invader"/>Hello, do you feel the funk?</div>
+<handle size_target="#document"/>
+</body>
+</rml>

@@ -31,37 +31,50 @@
 
 namespace Rml {
 
-PropertyParserColour::PropertyParserColour()
-{
-	html_colours["black"] = Colourb(0, 0, 0);
-	html_colours["silver"] = Colourb(192, 192, 192);
-	html_colours["gray"] = Colourb(128, 128, 128);
-	html_colours["grey"] = Colourb(128, 128, 128);
-	html_colours["white"] = Colourb(255, 255, 255);
-	html_colours["maroon"] = Colourb(128, 0, 0);
-	html_colours["red"] = Colourb(255, 0, 0);
-	html_colours["orange"] = Colourb(255, 165, 0);
-	html_colours["purple"] = Colourb(128, 0, 128);
-	html_colours["fuchsia"] = Colourb(255, 0, 255);
-	html_colours["green"] = Colourb(0, 128, 0);
-	html_colours["lime"] = Colourb(0, 255, 0);
-	html_colours["olive"] = Colourb(128, 128, 0);
-	html_colours["yellow"] = Colourb(255, 255, 0);
-	html_colours["navy"] = Colourb(0, 0, 128);
-	html_colours["blue"] = Colourb(0, 0, 255);
-	html_colours["teal"] = Colourb(0, 128, 128);
-	html_colours["aqua"] = Colourb(0, 255, 255);
-	html_colours["transparent"] = Colourb(0, 0, 0, 0);
-}
+const PropertyParserColour::ColourMap PropertyParserColour::html_colours = {
+	{"black", Colourb(0, 0, 0)},
+	{"silver", Colourb(192, 192, 192)},
+	{"gray", Colourb(128, 128, 128)},
+	{"grey", Colourb(128, 128, 128)},
+	{"white", Colourb(255, 255, 255)},
+	{"maroon", Colourb(128, 0, 0)},
+	{"red", Colourb(255, 0, 0)},
+	{"orange", Colourb(255, 165, 0)},
+	{"purple", Colourb(128, 0, 128)},
+	{"fuchsia", Colourb(255, 0, 255)},
+	{"green", Colourb(0, 128, 0)},
+	{"lime", Colourb(0, 255, 0)},
+	{"olive", Colourb(128, 128, 0)},
+	{"yellow", Colourb(255, 255, 0)},
+	{"navy", Colourb(0, 0, 128)},
+	{"blue", Colourb(0, 0, 255)},
+	{"teal", Colourb(0, 128, 128)},
+	{"aqua", Colourb(0, 255, 255)},
+	{"transparent", Colourb(0, 0, 0, 0)},
+};
+
+PropertyParserColour::PropertyParserColour() {}
 
 PropertyParserColour::~PropertyParserColour() {}
 
 bool PropertyParserColour::ParseValue(Property& property, const String& value, const ParameterMap& /*parameters*/) const
 {
+	Colourb colour;
+	if (!ParseColour(colour, value))
+		return false;
+
+	property.value = Variant(colour);
+	property.unit = Unit::COLOUR;
+
+	return true;
+}
+
+bool PropertyParserColour::ParseColour(Colourb& colour, const String& value)
+{
 	if (value.empty())
 		return false;
 
-	Colourb colour;
+	colour = {};
 
 	// Check for a hex colour.
 	if (value[0] == '#')
@@ -154,9 +167,6 @@ bool PropertyParserColour::ParseValue(Property& property, const String& value, c
 		else
 			colour = (*iterator).second;
 	}
-
-	property.value = Variant(colour);
-	property.unit = Unit::COLOUR;
 
 	return true;
 }

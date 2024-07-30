@@ -31,50 +31,12 @@
 
 #include <RmlUi/Core/RenderInterface.h>
 
-/**
- * Include third-party dependencies.
- */
 #ifdef RMLUI_PLATFORM_WIN32
 	#include "RmlUi_Include_Windows.h"
 	#define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
-#if (_MSC_VER > 0)
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH _Pragma("warning(push, 0)")
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP _Pragma("warning(pop)")
-#elif __clang__
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH                                                                                   \
-		_Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Wall\"") _Pragma("clang diagnostic ignored \"-Wextra\"") \
-			_Pragma("clang diagnostic ignored \"-Wnullability-extension\"")                                                            \
-				_Pragma("clang diagnostic ignored \"-Wgnu-zero-variadic-macro-arguments\"")                                            \
-					_Pragma("clang diagnostic ignored \"-Wnullability-completeness\"")
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP _Pragma("clang diagnostic pop")
-#elif __GNUC__
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH                                                                                       \
-		_Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wimplicit-fallthrough\"")                                        \
-			_Pragma("GCC diagnostic ignored \"-Wunused-function\"") _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")               \
-				_Pragma("GCC diagnostic ignored \"-Wunused-variable\"") _Pragma("GCC diagnostic ignored \"-Wmissing-field-initializers\"") \
-					_Pragma("GCC diagnostic ignored \"-Wswitch\"") _Pragma("GCC diagnostic ignored \"-Wpedantic\"")                        \
-						_Pragma("GCC diagnostic ignored \"-Wattributes\"") _Pragma("GCC diagnostic ignored \"-Wignored-qualifiers\"")      \
-							_Pragma("GCC diagnostic ignored \"-Wparentheses\"")
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP _Pragma("GCC diagnostic pop")
-#else
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
-	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
-#endif
-
-RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH
-
-#if defined(RMLUI_PLATFORM_UNIX)
-	#define VK_USE_PLATFORM_XCB_KHR 1
-#endif
-#include "RmlUi_Vulkan/vulkan.h"
-
-#define VMA_STATIC_VULKAN_FUNCTIONS 0
-#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
-#include "RmlUi_Vulkan/vk_mem_alloc.h"
-
-RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
+#include "RmlUi_Include_Vulkan.h"
 
 #ifdef RMLUI_DEBUG
 	#define RMLUI_VK_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(statement, msg)
@@ -84,6 +46,9 @@ RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
 #else
 	#define RMLUI_VK_ASSERTMSG(statement, msg) static_cast<void>(statement)
 #endif
+
+// your specified api version, but in future it will be dynamic ^_^
+#define RMLUI_VK_API_VERSION VK_API_VERSION_1_0
 
 /**
  * Vulkan render interface for RmlUi
@@ -101,7 +66,7 @@ RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
  * and delete operations every frame (CPU side), on GPU we implemented the pre-allocated buffer with virtual allocs (Vma) so there's no problems and
  * all fine. I wrote all ideas and implementation for that.
  *
- * @author wh1t3lord
+ * @author wh1t3lord (https://github.com/wh1t3lord)
  */
 
 class RenderInterface_VK : public Rml::RenderInterface {
@@ -126,32 +91,24 @@ public:
 
 	// -- Inherited from Rml::RenderInterface --
 
-	/// Called by RmlUi when it wants to render geometry that it does not wish to optimise.
-	void RenderGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rml::TextureHandle texture,
-		const Rml::Vector2f& translation) override;
-
 	/// Called by RmlUi when it wants to compile geometry it believes will be static for the forseeable future.
-	Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* vertices, int num_vertices, int* indices, int num_indices,
-		Rml::TextureHandle texture) override;
-
+	Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
 	/// Called by RmlUi when it wants to render application-compiled geometry.
-	void RenderCompiledGeometry(Rml::CompiledGeometryHandle geometry, const Rml::Vector2f& translation) override;
-
+	void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override;
 	/// Called by RmlUi when it wants to release application-compiled geometry.
-	void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle geometry) override;
+	void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override;
+
+	/// Called by RmlUi when a texture is required by the library.
+	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
+	/// Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
+	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions) override;
+	/// Called by RmlUi when a loaded texture is no longer required.
+	void ReleaseTexture(Rml::TextureHandle texture_handle) override;
 
 	/// Called by RmlUi when it wants to enable or disable scissoring to clip content.
 	void EnableScissorRegion(bool enable) override;
 	/// Called by RmlUi when it wants to change the scissor region.
-	void SetScissorRegion(int x, int y, int width, int height) override;
-
-	/// Called by RmlUi when a texture is required by the library.
-	bool LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
-	/// Called by RmlUi when a texture is required to be built from an internally-generated sequence of pixels.
-	bool GenerateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override;
-
-	/// Called by RmlUi when a loaded texture is no longer required.
-	void ReleaseTexture(Rml::TextureHandle texture_handle) override;
+	void SetScissorRegion(Rml::Rectanglei region) override;
 
 	/// Called by RmlUi when it wants to set the current transform matrix to a new matrix.
 	void SetTransform(const Rml::Matrix4f* transform) override;
@@ -175,10 +132,7 @@ private:
 	};
 
 	struct geometry_handle_t {
-		bool m_has_texture;
 		int m_num_indices;
-
-		texture_data_t* m_p_texture;
 
 		VkDescriptorBufferInfo m_p_vertex;
 		VkDescriptorBufferInfo m_p_index;
@@ -483,7 +437,7 @@ private:
 	using ExtensionPropertiesList = Rml::Vector<VkExtensionProperties>;
 
 private:
-	bool CreateTexture(Rml::TextureHandle& texture_handle, const Rml::byte* source, const Rml::Vector2i& dimensions, const Rml::String& name);
+	Rml::TextureHandle CreateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i dimensions, const Rml::String& name);
 
 	void Initialize_Instance(Rml::Vector<const char*> required_extensions) noexcept;
 	void Initialize_Device() noexcept;
@@ -545,7 +499,7 @@ private:
 	void Create_Pipelines() noexcept;
 	void CreateRenderPass() noexcept;
 
-	void CreateSwapchainFrameBuffers() noexcept;
+	void CreateSwapchainFrameBuffers(const VkExtent2D& real_render_image_size) noexcept;
 
 	// This method is called in Views, so don't call it manually
 	void CreateSwapchainImages() noexcept;
@@ -554,7 +508,7 @@ private:
 	void Create_DepthStencilImage() noexcept;
 	void Create_DepthStencilImageViews() noexcept;
 
-	void CreateResourcesDependentOnSize() noexcept;
+	void CreateResourcesDependentOnSize(const VkExtent2D& real_render_image_size) noexcept;
 
 	buffer_data_t CreateResource_StagingBuffer(VkDeviceSize size, VkBufferUsageFlags flags) noexcept;
 	void DestroyResource_StagingBuffer(const buffer_data_t& data) noexcept;
@@ -630,7 +584,7 @@ private:
 	VkQueue m_p_queue_compute;
 
 #ifdef RMLUI_VK_DEBUG
-	VkDebugReportCallbackEXT m_debug_report_callback_instance;
+	VkDebugUtilsMessengerEXT m_debug_messenger;
 #endif
 
 	VkSurfaceFormatKHR m_swapchain_format;

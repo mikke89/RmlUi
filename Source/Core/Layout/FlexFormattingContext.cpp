@@ -118,6 +118,28 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 	return flex_container_box;
 }
 
+Vector2f FlexFormattingContext::GetMaxContentSize(Element* element)
+{
+	// A large but finite number is used here, because the flexbox formatting algorithm
+	// needs to round numbers, and it doesn't support infinities.
+	const Vector2f infinity(10000.0f, 10000.0f);
+	RootBox root(infinity);
+	auto flex_container_box = MakeUnique<FlexContainer>(element, &root);
+
+	FlexFormattingContext context;
+	context.flex_container_box = flex_container_box.get();
+	context.element_flex = element;
+	context.flex_available_content_size = Vector2f(-1, -1);
+	context.flex_content_containing_block = infinity;
+	context.flex_max_size = Vector2f(FLT_MAX, FLT_MAX);
+
+	// Format the flexbox and all its children.
+	Vector2f flex_resulting_content_size, content_overflow_size;
+	float flex_baseline = 0.f;
+	context.Format(flex_resulting_content_size, content_overflow_size, flex_baseline);
+	return flex_resulting_content_size;
+}
+
 struct FlexItem {
 	// In the following, suffix '_a' means flex start edge while '_b' means flex end edge.
 	struct Size {
@@ -137,7 +159,7 @@ struct FlexItem {
 	Size cross;
 	float flex_shrink_factor;
 	float flex_grow_factor;
-	Style::AlignSelf align_self; // 'Auto' is replaced by container's 'align-items' value
+	Style::AlignSelf align_self;  // 'Auto' is replaced by container's 'align-items' value
 
 	float inner_flex_base_size;   // Inner size
 	float flex_base_size;         // Outer size
@@ -214,6 +236,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 	const ComputedValues& computed_flex = element_flex->GetComputedValues();
 	const Style::FlexDirection direction = computed_flex.flex_direction();
+	const Style::LengthPercentage row_gap = computed_flex.row_gap();
+	const Style::LengthPercentage column_gap = computed_flex.column_gap();
 
 	const bool main_axis_horizontal = (direction == Style::FlexDirection::Row || direction == Style::FlexDirection::RowReverse);
 	const bool direction_reverse = (direction == Style::FlexDirection::RowReverse || direction == Style::FlexDirection::ColumnReverse);
@@ -234,6 +258,9 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	// For the purpose of resolving lengths, infinite main size becomes zero.
 	const float main_size_base_value = (main_available_size < 0.0f ? 0.0f : main_available_size);
 	const float cross_size_base_value = (cross_available_size < 0.0f ? 0.0f : cross_available_size);
+
+	const float main_gap_size = ResolveValue(main_axis_horizontal ? column_gap : row_gap, main_size_base_value);
+	const float cross_gap_size = ResolveValue(main_axis_horizontal ? row_gap : column_gap, cross_size_base_value);
 
 	// -- Build a list of all flex items with base size information --
 	const int num_flex_children = element_flex->GetNumChildren();
@@ -290,6 +317,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		if (item.align_self == Style::AlignSelf::Auto)
 			item.align_self = static_cast<Style::AlignSelf>(static_cast<int>(computed_flex.align_items()) + 1);
 
+		auto GetMainSize = [&](const Box& box) { return box.GetSize()[main_axis_horizontal ? 0 : 1]; };
+
 		const float sum_padding_border = item.main.sum_edges - (item.main.margin_a + item.main.margin_b);
 
 		// Find the flex base size (possibly negative when using border box sizing)
@@ -305,6 +334,11 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			if (computed.box_sizing() == Style::BoxSizing::BorderBox)
 				item.inner_flex_base_size -= sum_padding_border;
 		}
+		else if (GetMainSize(item.box) >= 0.f)
+		{
+			// The element is auto-sized, and yet its box was given a definite size. This can happen e.g. due to intrinsic sizing or aspect ratios.
+			item.inner_flex_base_size = GetMainSize(item.box);
+		}
 		else if (main_axis_horizontal)
 		{
 			item.inner_flex_base_size = LayoutDetails::GetShrinkToFitWidth(element, flex_content_containing_block);
@@ -315,10 +349,11 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			RMLUI_ASSERT(initial_box_size.y < 0.f);
 
 			Box format_box = item.box;
-			if (initial_box_size.x < 0.f)
+			if (initial_box_size.x < 0.f && flex_available_content_size.x >= 0.f)
 				format_box.SetContent(Vector2f(flex_available_content_size.x - item.cross.sum_edges, initial_box_size.y));
 
-			FormattingContext::FormatIndependent(flex_container_box, element, &format_box, FormattingContextType::Block);
+			FormattingContext::FormatIndependent(flex_container_box, element, (format_box.GetSize().x >= 0 ? &format_box : nullptr),
+				FormattingContextType::Block);
 			item.inner_flex_base_size = element->GetBox().GetSize().y;
 		}
 
@@ -363,6 +398,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				// Add item to current line.
 				line_items.push_back(std::move(item));
 			}
+
+			cursor += main_gap_size;
 		}
 
 		if (!line_items.empty())
@@ -374,6 +411,18 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 	for (FlexLine& line : container.lines)
 	{
+		// now that items are in lines, we can add the main gap size to all but the last item
+		if (main_gap_size > 0.f)
+		{
+			for (size_t i = 0; i < line.items.size() - 1; i++)
+			{
+				line.items[i].hypothetical_main_size += main_gap_size;
+				line.items[i].flex_base_size += main_gap_size;
+				line.items[i].main.margin_b += main_gap_size;
+				line.items[i].main.sum_edges += main_gap_size;
+			}
+		}
+
 		line.accumulated_hypothetical_main_size = std::accumulate(line.items.begin(), line.items.end(), 0.0f,
 			[](float value, const FlexItem& item) { return value + item.hypothetical_main_size; });
 	}
@@ -568,6 +617,21 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 					}
 				}
 				break;
+				case JustifyContent::SpaceEvenly:
+				{
+					const float space_per_edge = remaining_free_space / float(2 * (num_items + 1));
+					for (int i = 0; i < num_items; i++)
+					{
+						FlexItem& item = line.items[i];
+						item.main_auto_margin_size_a = space_per_edge;
+						item.main_auto_margin_size_b = space_per_edge;
+						if (i == 0)
+							item.main_auto_margin_size_a *= 2.0f;
+						else if (i == num_items - 1)
+							item.main_auto_margin_size_b *= 2.0f;
+					}
+				}
+				break;
 				}
 			}
 		}
@@ -583,6 +647,20 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 
 			cursor += item.used_main_size + item.main_auto_margin_size_a + item.main_auto_margin_size_b;
 			Math::SnapToPixelGrid(item.main_offset, item.used_main_size);
+		}
+	}
+
+	// Apply cross axis gaps to every item in every line except the last line.
+	if (cross_gap_size > 0.f)
+	{
+		for (size_t i = 0; i < container.lines.size() - 1; i++)
+		{
+			FlexLine& line = container.lines[i];
+			for (FlexItem& item : line.items)
+			{
+				item.cross.margin_b += cross_gap_size;
+				item.cross.sum_edges += cross_gap_size;
+			}
 		}
 	}
 
@@ -819,6 +897,21 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				{
 					line.cross_spacing_a = space_per_edge;
 					line.cross_spacing_b = space_per_edge;
+				}
+			}
+			break;
+			case AlignContent::SpaceEvenly:
+			{
+				const float space_per_edge = remaining_free_space / float(2 * (num_lines + 1));
+				for (int i = 0; i < num_lines; i++)
+				{
+					FlexLine& line = container.lines[i];
+					line.cross_spacing_a = space_per_edge;
+					line.cross_spacing_b = space_per_edge;
+					if (i == 0)
+						line.cross_spacing_a *= 2.0f;
+					else if (i == num_lines - 1)
+						line.cross_spacing_b *= 2.0f;
 				}
 			}
 			break;

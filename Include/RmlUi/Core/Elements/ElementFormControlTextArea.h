@@ -102,6 +102,11 @@ public:
 	/// @param[out] selected_text The selected text.
 	void GetSelection(int* selection_start, int* selection_end, String* selected_text) const;
 
+	/// Sets visual feedback used for the IME composition in the range.
+	/// @param[in] range_start The first character to be selected.
+	/// @param[in] range_end The first character *after* the selection.
+	void SetCompositionRange(int range_start, int range_end);
+
 	/// Returns the control's inherent size, based on the length of the input field and the current font size.
 	/// @return True.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
@@ -127,6 +132,9 @@ protected:
 	void GetInnerRML(String& content) const override;
 
 private:
+	/// Sets the necessary properties to display the widget in current word wrap state.
+	void SetWordWrapProperties();
+
 	UniquePtr<WidgetTextInputMultiLine> widget;
 };
 

@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/Profiling.h>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -53,12 +54,12 @@ class RenderInterface_GL3_SDL : public RenderInterface_GL3 {
 public:
 	RenderInterface_GL3_SDL() {}
 
-	bool LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override
+	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override
 	{
 		Rml::FileInterface* file_interface = Rml::GetFileInterface();
 		Rml::FileHandle file_handle = file_interface->Open(source);
 		if (!file_handle)
-			return false;
+			return {};
 
 		file_interface->Seek(file_handle, 0, SEEK_END);
 		const size_t buffer_size = file_interface->Tell(file_handle);
@@ -69,38 +70,42 @@ public:
 		file_interface->Read(buffer.get(), buffer_size, file_handle);
 		file_interface->Close(file_handle);
 
-		const size_t i = source.rfind('.');
-		Rml::String extension = (i == Rml::String::npos ? Rml::String() : source.substr(i + 1));
+		const size_t i_ext = source.rfind('.');
+		Rml::String extension = (i_ext == Rml::String::npos ? Rml::String() : source.substr(i_ext + 1));
 
 		SDL_Surface* surface = IMG_LoadTyped_RW(SDL_RWFromMem(buffer.get(), int(buffer_size)), 1, extension.c_str());
+		if (!surface)
+			return {};
 
-		bool success = false;
-		if (surface)
+		texture_dimensions = {surface->w, surface->h};
+
+		if (surface->format->format != SDL_PIXELFORMAT_RGBA32)
 		{
-			texture_dimensions.x = surface->w;
-			texture_dimensions.y = surface->h;
-
-			if (surface->format->format != SDL_PIXELFORMAT_RGBA32)
-			{
-				SDL_SetSurfaceAlphaMod(surface, SDL_ALPHA_OPAQUE);
-				SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_NONE);
-
-				SDL_Surface* new_surface = SDL_CreateRGBSurfaceWithFormat(0, surface->w, surface->h, 32, SDL_PIXELFORMAT_RGBA32);
-				if (!new_surface)
-					return false;
-
-				if (SDL_BlitSurface(surface, 0, new_surface, 0) != 0)
-					return false;
-
-				SDL_FreeSurface(surface);
-				surface = new_surface;
-			}
-
-			success = RenderInterface_GL3::GenerateTexture(texture_handle, (const Rml::byte*)surface->pixels, texture_dimensions);
+			// Ensure correct format for premultiplied alpha conversion and GenerateTexture below.
+			SDL_Surface* converted_surface = SDL_ConvertSurfaceFormat(surface, SDL_PixelFormatEnum::SDL_PIXELFORMAT_RGBA32, 0);
 			SDL_FreeSurface(surface);
+
+			if (!converted_surface)
+				return {};
+
+			surface = converted_surface;
 		}
 
-		return success;
+		// Convert colors to premultiplied alpha, which is necessary for correct alpha compositing.
+		const size_t pixels_byte_size = surface->w * surface->h * 4;
+		byte* pixels = static_cast<byte*>(surface->pixels);
+		for (size_t i = 0; i < pixels_byte_size; i += 4)
+		{
+			const byte alpha = pixels[i + 3];
+			for (size_t j = 0; j < 3; ++j)
+				pixels[i + j] = byte(int(pixels[i + j]) * int(alpha) / 255);
+		}
+
+		Rml::TextureHandle texture_handle = RenderInterface_GL3::GenerateTexture({pixels, pixels_byte_size}, texture_dimensions);
+
+		SDL_FreeSurface(surface);
+
+		return texture_handle;
 	}
 };
 
@@ -144,30 +149,15 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 #endif
 
-	// Request stencil buffer of at least 8-bit size to supporting clipping on transformed elements.
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-	// Enable linear filtering and MSAA for better-looking visuals, especially when transforms are applied.
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
 
 	const Uint32 window_flags = (SDL_WINDOW_OPENGL | (allow_resize ? SDL_WINDOW_RESIZABLE : 0));
 
 	SDL_Window* window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
 	if (!window)
 	{
-		// Try again on low-quality settings.
-		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-		window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
-		if (!window)
-		{
-			fprintf(stderr, "SDL error on create window: %s\n", SDL_GetError());
-			return false;
-		}
+		Rml::Log::Message(Rml::Log::LT_ERROR, "SDL error on create window: %s", SDL_GetError());
+		return false;
 	}
 
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
@@ -176,7 +166,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	if (!RmlGL3::Initialize())
 	{
-		fprintf(stderr, "Could not initialize OpenGL");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to initialize OpenGL renderer");
 		return false;
 	}
 
@@ -185,7 +175,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (!data->render_interface)
 	{
 		data.reset();
-		fprintf(stderr, "Could not initialize OpenGL3 render interface.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to initialize OpenGL3 render interface");
 		return false;
 	}
 

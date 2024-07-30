@@ -302,7 +302,6 @@ STRING_VECTOR_CONVERTER(Vector3f, float, 3);
 STRING_VECTOR_CONVERTER(Vector4i, int, 4);
 STRING_VECTOR_CONVERTER(Vector4f, float, 4);
 STRING_VECTOR_CONVERTER(Colourf, float, 4);
-STRING_VECTOR_CONVERTER(Colourb, byte, 4);
 
 /////////////////////////////////////////////////
 // To String Converters
@@ -314,7 +313,7 @@ STRING_VECTOR_CONVERTER(Colourb, byte, 4);
 	public:                                                \
 		static bool Convert(const type& src, String& dest) \
 		{                                                  \
-			if (FormatString(dest, 32, "%.3f", src) == 0)  \
+			if (FormatString(dest, "%.3f", src) == 0)      \
 				return false;                              \
 			StringUtilities::TrimTrailingDotZeros(dest);   \
 			return true;                                   \
@@ -326,43 +325,43 @@ FLOAT_STRING_CONVERTER(double);
 template <>
 class TypeConverter<int, String> {
 public:
-	static bool Convert(const int& src, String& dest) { return FormatString(dest, 32, "%d", src) > 0; }
+	static bool Convert(const int& src, String& dest) { return FormatString(dest, "%d", src) > 0; }
 };
 
 template <>
 class TypeConverter<unsigned int, String> {
 public:
-	static bool Convert(const unsigned int& src, String& dest) { return FormatString(dest, 32, "%u", src) > 0; }
+	static bool Convert(const unsigned int& src, String& dest) { return FormatString(dest, "%u", src) > 0; }
 };
 
 template <>
 class TypeConverter<long, String> {
 public:
-	static bool Convert(const long& src, String& dest) { return FormatString(dest, 32, "%ld", src) > 0; }
+	static bool Convert(const long& src, String& dest) { return FormatString(dest, "%ld", src) > 0; }
 };
 
 template <>
 class TypeConverter<unsigned long, String> {
 public:
-	static bool Convert(const unsigned long& src, String& dest) { return FormatString(dest, 32, "%lu", src) > 0; }
+	static bool Convert(const unsigned long& src, String& dest) { return FormatString(dest, "%lu", src) > 0; }
 };
 
 template <>
 class TypeConverter<long long, String> {
 public:
-	static bool Convert(const long long& src, String& dest) { return FormatString(dest, 32, "%lld", src) > 0; }
+	static bool Convert(const long long& src, String& dest) { return FormatString(dest, "%lld", src) > 0; }
 };
 
 template <>
 class TypeConverter<unsigned long long, String> {
 public:
-	static bool Convert(const unsigned long long& src, String& dest) { return FormatString(dest, 32, "%llu", src) > 0; }
+	static bool Convert(const unsigned long long& src, String& dest) { return FormatString(dest, "%llu", src) > 0; }
 };
 
 template <>
 class TypeConverter<byte, String> {
 public:
-	static bool Convert(const byte& src, String& dest) { return FormatString(dest, 32, "%hhu", src) > 0; }
+	static bool Convert(const byte& src, String& dest) { return FormatString(dest, "%hhu", src) > 0; }
 };
 
 template <>
@@ -383,6 +382,24 @@ public:
 		dest = src;
 		return true;
 	}
+};
+
+template <>
+class TypeConverter<void*, String> {
+public:
+	static bool Convert(void* const& src, String& dest) { return FormatString(dest, "%p", src) > 0; }
+};
+
+template <>
+class TypeConverter<ScriptInterface*, String> {
+public:
+	static bool Convert(ScriptInterface* const& src, String& dest) { return FormatString(dest, "%p", static_cast<void*>(src)) > 0; }
+};
+
+template <>
+class TypeConverter<char, String> {
+public:
+	static bool Convert(const char& src, String& dest) { return FormatString(dest, "%c", src) > 0; }
 };
 
 template <typename SourceType, typename InternalType, int count>
@@ -422,7 +439,21 @@ VECTOR_STRING_CONVERTER(Vector3f, float, 3);
 VECTOR_STRING_CONVERTER(Vector4i, int, 4);
 VECTOR_STRING_CONVERTER(Vector4f, float, 4);
 VECTOR_STRING_CONVERTER(Colourf, float, 4);
-VECTOR_STRING_CONVERTER(Colourb, byte, 4);
+
+template <typename SourceType>
+class TypeConverter<SourceType, String> {
+public:
+	template <typename...>
+	struct AlwaysFalse : std::integral_constant<bool, false> {};
+
+	static bool Convert(const SourceType& /*src*/, String& /*dest*/)
+	{
+		static_assert(AlwaysFalse<SourceType>{},
+			"The type converter was invoked on a type without a string converter, please define a converter from SourceType to String.");
+		return false;
+	}
+};
+
 #undef PASS_THROUGH
 #undef BASIC_CONVERTER
 #undef BASIC_CONVERTER_BOOL

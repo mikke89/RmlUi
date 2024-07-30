@@ -73,44 +73,44 @@ TestsRenderInterface shell_render_interface;
 
 static void InitializeShell(bool allow_debugger)
 {
+	if (shell_initialized)
+		return;
+
 	// Initialize shell and create context.
-	if (!shell_initialized)
-	{
-		shell_initialized = true;
-		debugger_allowed = allow_debugger;
-		REQUIRE(Shell::Initialize());
+	shell_initialized = true;
+	debugger_allowed = allow_debugger;
+	REQUIRE(Shell::Initialize());
 
 #ifdef RMLUI_TESTS_USE_SHELL
-		// Initialize the backend and launch a window.
-		REQUIRE(Backend::Initialize("RmlUi Tests", window_size.x, window_size.y, true));
+	// Initialize the backend and launch a window.
+	REQUIRE(Backend::Initialize("RmlUi Tests", window_size.x, window_size.y, true));
 
-		// Use our custom tests system interface.
-		Rml::SetSystemInterface(&tests_system_interface);
-		// However, use the backend's render interface.
-		Rml::SetRenderInterface(Backend::GetRenderInterface());
+	// Use our custom tests system interface.
+	Rml::SetSystemInterface(&tests_system_interface);
+	// However, use the backend's render interface.
+	Rml::SetRenderInterface(Backend::GetRenderInterface());
 
-		REQUIRE(Rml::Initialise());
-		shell_context = Rml::CreateContext("main", window_size);
-		Shell::LoadFonts();
+	REQUIRE(Rml::Initialise());
+	shell_context = Rml::CreateContext("main", window_size);
+	Shell::LoadFonts();
 
-		if (allow_debugger)
-		{
-			Rml::Debugger::Initialise(shell_context);
-			num_documents_begin = shell_context->GetNumDocuments();
-		}
+	if (allow_debugger)
+	{
+		Rml::Debugger::Initialise(shell_context);
+		num_documents_begin = shell_context->GetNumDocuments();
+	}
 
-		shell_context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, &shell_event_listener, true);
+	shell_context->GetRootElement()->AddEventListener(Rml::EventId::Keydown, &shell_event_listener, true);
 
 #else
-		// Set our custom system and render interfaces.
-		Rml::SetSystemInterface(&tests_system_interface);
-		Rml::SetRenderInterface(&shell_render_interface);
+	// Set our custom system and render interfaces.
+	Rml::SetSystemInterface(&tests_system_interface);
+	Rml::SetRenderInterface(&shell_render_interface);
 
-		REQUIRE(Rml::Initialise());
-		shell_context = Rml::CreateContext("main", window_size);
-		Shell::LoadFonts();
+	REQUIRE(Rml::Initialise());
+	shell_context = Rml::CreateContext("main", window_size);
+	Shell::LoadFonts();
 #endif
-	}
 }
 
 Rml::Context* TestsShell::GetContext(bool allow_debugger)
@@ -155,27 +155,29 @@ void TestsShell::RenderLoop()
 
 void TestsShell::ShutdownShell()
 {
-	if (shell_initialized)
+	if (!shell_initialized)
+		return;
+
+	if (debugger_allowed)
 	{
-		if (debugger_allowed)
-		{
-			RMLUI_ASSERTMSG(shell_context->GetNumDocuments() == num_documents_begin, "Make sure all previously opened documents have been closed.");
-			(void)num_documents_begin;
-		}
+		RMLUI_ASSERTMSG(shell_context->GetNumDocuments() == num_documents_begin, "Make sure all previously opened documents have been closed.");
+		(void)num_documents_begin;
+	}
 
-		tests_system_interface.SetNumExpectedWarnings(0);
+	tests_system_interface.SetNumExpectedWarnings(0);
 
-		Rml::Shutdown();
+	Rml::Shutdown();
+
+	shell_render_interface.Reset();
 
 #ifdef RMLUI_TESTS_USE_SHELL
-		Backend::Shutdown();
+	Backend::Shutdown();
 #endif
 
-		Shell::Shutdown();
+	Shell::Shutdown();
 
-		shell_context = nullptr;
-		shell_initialized = false;
-	}
+	shell_context = nullptr;
+	shell_initialized = false;
 }
 
 void TestsShell::SetNumExpectedWarnings(int num_warnings)
@@ -194,17 +196,21 @@ Rml::String TestsShell::GetRenderStats()
 	shell_context->Render();
 	auto& counters = shell_render_interface.GetCounters();
 
-	result = Rml::CreateString(256,
-		"Context::Render() stats:\n"
-		"  Render calls: %zu\n"
-		"  Scissor enable: %zu\n"
-		"  Scissor set: %zu\n"
-		"  Texture load: %zu\n"
-		"  Texture generate: %zu\n"
-		"  Texture release: %zu\n"
-		"  Transform set: %zu",
-		counters.render_calls, counters.enable_scissor, counters.set_scissor, counters.load_texture, counters.generate_texture,
-		counters.release_texture, counters.set_transform);
+	result = Rml::CreateString("Context::Render() stats:\n"
+							   "  Compile geometry: %zu\n"
+							   "  Render geometry: %zu\n"
+							   "  Release geometry: %zu\n"
+							   "  Texture load: %zu\n"
+							   "  Texture generate: %zu\n"
+							   "  Texture release: %zu\n"
+							   "  Scissor enable: %zu\n"
+							   "  Scissor set: %zu\n"
+							   "  Clip mask enable: %zu\n"
+							   "  Clip mask render: %zu\n"
+							   "  Transform set: %zu",
+		counters.compile_geometry, counters.render_geometry, counters.release_geometry, counters.load_texture, counters.generate_texture,
+		counters.release_texture, counters.enable_scissor, counters.set_scissor, counters.enable_clip_mask, counters.render_to_clip_mask,
+		counters.set_transform);
 
 #endif
 

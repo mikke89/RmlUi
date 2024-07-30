@@ -35,6 +35,7 @@
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/StyleSheet.h"
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
@@ -175,6 +176,19 @@ void ElementInfo::RenderSourceElement()
 			Geometry::RenderBox(border_offset + element_box.GetPosition(BoxArea::Margin), element_box.GetSize(BoxArea::Margin),
 				border_offset + element_box.GetPosition(BoxArea::Border), element_box.GetSize(BoxArea::Border), Colourb(240, 255, 131, 128));
 		}
+
+		if (Context* context = source_element->GetContext())
+		{
+			context->GetRenderManager().SetTransform(nullptr);
+
+			Rectanglef bounding_box;
+			if (ElementUtilities::GetBoundingBox(bounding_box, source_element, BoxArea::Auto))
+			{
+				bounding_box.Extend(1.f);
+				Math::ExpandToPixelGrid(bounding_box);
+				Geometry::RenderOutline(bounding_box.Position(), bounding_box.Size(), Colourb(255, 255, 255, 200), 1.f);
+			}
+		}
 	}
 }
 
@@ -205,13 +219,11 @@ void ElementInfo::ProcessEvent(Event& event)
 				else if (id == "show_source")
 				{
 					show_source_element = !target_element->IsClassSet("active");
-					;
 					target_element->SetClass("active", show_source_element);
 				}
 				else if (id == "enable_element_select")
 				{
 					enable_element_select = !target_element->IsClassSet("active");
-					;
 					target_element->SetClass("active", enable_element_select);
 				}
 				else if (target_element->GetTagName() == "pseudo" && source_element)
@@ -436,13 +448,13 @@ void ElementInfo::UpdateSourceElement()
 					name = "id";
 					value = source_element->GetId();
 					if (!value.empty())
-						attributes += CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+						attributes += CreateString("%s: <em>%s</em><br />", name.c_str(), value.c_str());
 				}
 				{
 					name = "class";
 					value = source_element->GetClassNames();
 					if (!value.empty())
-						attributes += CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+						attributes += CreateString("%s: <em>%s</em><br />", name.c_str(), value.c_str());
 				}
 			}
 
@@ -452,14 +464,14 @@ void ElementInfo::UpdateSourceElement()
 				auto& variant = pair.second;
 				String value = StringUtilities::EncodeRml(variant.Get<String>());
 				if (name != "class" && name != "style" && name != "id")
-					attributes += CreateString(name.size() + value.size() + 32, "%s: <em>%s</em><br />", name.c_str(), value.c_str());
+					attributes += CreateString("%s: <em>%s</em><br />", name.c_str(), value.c_str());
 			}
 
 			// Text is not an attribute but useful nonetheless
 			if (auto text_element = rmlui_dynamic_cast<ElementText*>(source_element))
 			{
 				const String& text_content = text_element->GetText();
-				attributes += CreateString(text_content.size() + 32, "Text: <em>%s</em><br />", text_content.c_str());
+				attributes += CreateString("Text: <em>%s</em><br />", text_content.c_str());
 			}
 		}
 
@@ -483,13 +495,7 @@ void ElementInfo::UpdateSourceElement()
 		if (source_element != nullptr)
 			BuildElementPropertiesRML(properties, source_element, source_element);
 
-		if (properties.empty())
-		{
-			while (properties_content->HasChildNodes())
-				properties_content->RemoveChild(properties_content->GetChild(0));
-			properties_rml.clear();
-		}
-		else if (properties != properties_rml)
+		if (properties != properties_rml)
 		{
 			properties_content->SetInnerRML(properties);
 			properties_rml = std::move(properties);
@@ -524,33 +530,37 @@ void ElementInfo::UpdateSourceElement()
 	{
 		String position;
 
-		// left, top, width, height.
-		if (source_element != nullptr)
+		if (source_element)
 		{
 			const Vector2f element_offset = source_element->GetRelativeOffset(BoxArea::Border);
+			const auto& box = source_element->GetBox();
+
 			const Vector2f element_size = source_element->GetBox().GetSize(BoxArea::Border);
 			Element* offset_parent = source_element->GetOffsetParent();
 			const String offset_parent_rml =
 				(offset_parent ? StringUtilities::EncodeRml(offset_parent->GetAddress(false, false)) : String("<em>none</em>"));
 
-			position = "<span class='name'>left: </span><em>" + ToString(element_offset.x) + "px</em><br/>" + "<span class='name'>top: </span><em>" +
-				ToString(element_offset.y) + "px</em><br/>" + "<span class='name'>width: </span><em>" + ToString(element_size.x) + "px</em><br/>" +
-				"<span class='name'>height: </span><em>" + ToString(element_size.y) + "px</em><br/>" +
-				"<span class='name'>offset parent: </span><p style='display: inline' id='offset_parent'>" + offset_parent_rml + "</p>";
-		}
-		else
-		{
-			while (position_content->HasChildNodes())
-				position_content->RemoveChild(position_content->GetFirstChild());
+			auto box_string = [&box](BoxDirection direction) {
+				const BoxEdge edge1 = (direction == BoxDirection::Horizontal ? BoxEdge::Left : BoxEdge::Top);
+				const BoxEdge edge2 = (direction == BoxDirection::Horizontal ? BoxEdge::Right : BoxEdge::Bottom);
+				const float content_size = (direction == BoxDirection::Horizontal ? box.GetSize().x : box.GetSize().y);
+				const String edge1_str = ToString(box.GetEdge(BoxArea::Margin, edge1)) + "|" + ToString(box.GetEdge(BoxArea::Border, edge1)) + "|" +
+					ToString(box.GetEdge(BoxArea::Padding, edge1));
+				const String edge2_str = ToString(box.GetEdge(BoxArea::Padding, edge2)) + "|" + ToString(box.GetEdge(BoxArea::Border, edge2)) + "|" +
+					ToString(box.GetEdge(BoxArea::Margin, edge2));
+				return CreateString("%s &lt;%s&gt; %s", edge1_str.c_str(), ToString(content_size).c_str(), edge2_str.c_str());
+			};
+
+			position = "<span class='name'>left: </span><em>" + ToString(element_offset.x) + "px</em><br/>" +                                 //
+				"<span class='name'>top: </span><em>" + ToString(element_offset.y) + "px</em><br/>" +                                         //
+				"<span class='name'>width: </span><em>" + ToString(element_size.x) + "px</em><br/>" +                                         //
+				"<span class='name'>height: </span><em>" + ToString(element_size.y) + "px</em><br/>" +                                        //
+				"<span class='name'>offset parent: </span><p style='display: inline' id='offset_parent'>" + offset_parent_rml + "</p><br/>" + //
+				"<span class='name'>box-x (px): </span>" + box_string(BoxDirection::Horizontal) + "<br/>" +                                   //
+				"<span class='name'>box-y (px): </span>" + box_string(BoxDirection::Vertical);
 		}
 
-		if (position.empty())
-		{
-			while (position_content->HasChildNodes())
-				position_content->RemoveChild(position_content->GetFirstChild());
-			position_rml.clear();
-		}
-		else if (position != position_rml)
+		if (position != position_rml)
 		{
 			position_content->SetInnerRML(position);
 			position_rml = std::move(position);
@@ -569,7 +579,7 @@ void ElementInfo::UpdateSourceElement()
 		while (element_ancestor)
 		{
 			String ancestor_name = element_ancestor->GetAddress(false, false);
-			ancestors += CreateString(ancestor_name.size() + 32, "<p id=\"a %d\">%s</p>", ancestor_depth, ancestor_name.c_str());
+			ancestors += CreateString("<p id=\"a %d\">%s</p>", ancestor_depth, ancestor_name.c_str());
 			element_ancestor = element_ancestor->GetParentNode();
 			ancestor_depth++;
 		}
@@ -610,7 +620,7 @@ void ElementInfo::UpdateSourceElement()
 
 				const char* non_dom_string = (i >= num_dom_children ? " class=\"non_dom\"" : "");
 
-				children += CreateString(child_name.size() + 40, "<p id=\"c %d\"%s>%s</p>", i, non_dom_string, child_name.c_str());
+				children += CreateString("<p id=\"c %d\"%s>%s</p>", i, non_dom_string, child_name.c_str());
 			}
 		}
 
@@ -688,7 +698,7 @@ void ElementInfo::BuildElementPropertiesRML(String& property_rml, Element* eleme
 					String str_line_number;
 					TypeConverter<int, String>::Convert(source->line_number, str_line_number);
 					property_rml += "<h3>" + source->rule_name + "</h3>";
-					property_rml += "<h4>" + source->path + " : " + str_line_number + "</h4>";
+					property_rml += "<h4><span class='break-all'>" + source->path + "</span> : " + str_line_number + "</h4>";
 				}
 				else
 				{

@@ -61,7 +61,7 @@ static const String document_textures_rml = R"(
 			height: 100px;
 			decorator: image(alien3);
 		}
-		progress { 
+		progress {
 			display: block;
 			width: 50px;
 			height: 50px;
@@ -124,14 +124,13 @@ TEST_CASE("core.texture_source_list")
 	TestsShell::ShutdownShell();
 }
 
-TEST_CASE("core.release_textures")
+TEST_CASE("core.release_resources")
 {
 	TestsRenderInterface* render_interface = TestsShell::GetTestsRenderInterface();
 	// This test only works with the dummy renderer.
 	if (!render_interface)
 		return;
 
-	render_interface->ResetCounters();
 	const auto& counters = render_interface->GetCounters();
 
 	Context* context = TestsShell::GetContext();
@@ -145,13 +144,43 @@ TEST_CASE("core.release_textures")
 
 	SUBCASE("ReleaseTextures")
 	{
+		const auto startup_counters = counters;
+		REQUIRE(counters.load_texture > 0);
+		REQUIRE(counters.generate_texture > 0);
+		REQUIRE(counters.release_texture == 0);
+
 		// Release all textures and verify that the render interface received the release call.
 		Rml::ReleaseTextures();
-		CHECK(counters.generate_texture + counters.load_texture == counters.release_texture);
+		CHECK(counters.load_texture == startup_counters.load_texture);
+		CHECK(counters.generate_texture == startup_counters.generate_texture);
+		CHECK(counters.release_texture == startup_counters.generate_texture + startup_counters.load_texture);
+		const size_t num_released_textures = counters.release_texture;
 
 		// By doing a new context Update+Render the textures should be loaded again.
 		TestsShell::RenderLoop();
-		CHECK(counters.generate_texture + counters.load_texture > counters.release_texture);
+		CHECK(counters.load_texture == 2 * startup_counters.load_texture);
+		CHECK(counters.generate_texture == 2 * startup_counters.generate_texture);
+		CHECK(counters.release_texture == num_released_textures);
+
+		// Another loop should not affect the texture calls.
+		TestsShell::RenderLoop();
+		CHECK(counters.load_texture == 2 * startup_counters.load_texture);
+		CHECK(counters.generate_texture == 2 * startup_counters.generate_texture);
+		CHECK(counters.release_texture == num_released_textures);
+	}
+
+	SUBCASE("ReleaseFontResources")
+	{
+		const auto counter_generate_before = counters.generate_texture;
+		const auto counter_release_before = counters.release_texture;
+
+		Rml::ReleaseFontResources();
+		CHECK(counters.generate_texture == counter_generate_before);
+		CHECK(counters.release_texture > counter_release_before);
+
+		// Font texture is regenerated when rendered again.
+		TestsShell::RenderLoop();
+		CHECK(counters.generate_texture > counter_generate_before);
 	}
 
 	SUBCASE("FontGlyphCache")
@@ -172,10 +201,56 @@ TEST_CASE("core.release_textures")
 		CHECK(counters.release_texture == counter_release_before + 1);
 	}
 
+	SUBCASE("ReleaseGeometry")
+	{
+		CHECK(counters.compile_geometry > 0);
+		CHECK(counters.release_geometry == 0);
+
+		Rml::ReleaseCompiledGeometry();
+		CHECK(counters.compile_geometry == counters.release_geometry);
+
+		TestsShell::RenderLoop();
+		CHECK(counters.compile_geometry > counters.release_geometry);
+	}
+
 	document->Close();
 
 	TestsShell::ShutdownShell();
 
-	// Finally, verify that all generated and loaded textures are released during shutdown.
-	CHECK(counters.generate_texture + counters.load_texture == counters.release_texture);
+	// Counters are reset during shutdown.
+	const auto& counters_at_shutdown = render_interface->GetCountersFromPreviousReset();
+
+	// Finally, verify that all generated and loaded resources were released during shutdown.
+	CHECK(counters_at_shutdown.generate_texture + counters_at_shutdown.load_texture == counters_at_shutdown.release_texture);
+	CHECK(counters_at_shutdown.compile_geometry == counters_at_shutdown.release_geometry);
+}
+
+TEST_CASE("core.initialize")
+{
+	TestsRenderInterface* render_interface = TestsShell::GetTestsRenderInterface();
+	// This test only works with the dummy renderer.
+	if (!render_interface)
+		return;
+
+	const Vector2i window_size = {1280, 720};
+
+	SUBCASE("GlobalRenderInterface")
+	{
+		Rml::SetRenderInterface(render_interface);
+		REQUIRE(Rml::CreateContext("invalid_before_initialise", window_size) == nullptr);
+		REQUIRE(Rml::Initialise());
+		REQUIRE(Rml::CreateContext("main", window_size) != nullptr);
+	}
+
+	SUBCASE("ContextRenderInterface")
+	{
+		REQUIRE(Rml::CreateContext("invalid_before_initialise", window_size) == nullptr);
+		// We should be able to initialize without setting any interfaces.
+		REQUIRE(Rml::Initialise());
+		// But then we must pass a render interface to new contexts (this will emit a warning).
+		REQUIRE(Rml::CreateContext("invalid_no_render_interface", window_size) == nullptr);
+		REQUIRE(Rml::CreateContext("main", window_size, render_interface) != nullptr);
+	}
+
+	Rml::Shutdown();
 }

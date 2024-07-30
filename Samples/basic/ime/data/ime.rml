@@ -1,0 +1,119 @@
+<rml>
+	<head>
+		<link href="../../../assets/rml.rcss" type="text/rcss" />
+		<title>IME</title>
+		<style>
+			body {
+				width: 700dp;
+				height: 600dp;
+				max-width: 100%;
+				max-height: 100%;
+				padding: 20dp;
+				box-sizing: border-box;
+				margin: auto;
+				background-color: #f0f0f0;
+				color: #333;
+				font-family: LatoLatin;
+				font-size: 15dp;
+				overflow: auto;
+				border-radius: 15dp;
+			}
+
+			h1 {
+				font-size: 2em;
+				color: #444;
+				text-align: center;
+				padding-bottom: 20dp;
+			}
+
+			p {
+				font-size: 1em;
+				line-height: 1.4;
+				margin-bottom: 10dp;
+			}
+
+			.shortcut {
+				font-family: rmlui-debugger-font;
+				font-size: 0.95em;
+				padding: 3dp 3dp 0dp;
+				background: #e9e9e9;
+				border: 1dp #e0e0e0;
+			}
+
+			form {
+				display: block;
+				background-color: #fff;
+				padding: 20dp;
+				margin-top: 15dp;
+				border-radius: 5dp;
+			}
+
+			label {
+				font-weight: bold;
+			}
+
+			input.text, textarea {
+				box-sizing: border-box;
+				width: 100%;
+				padding: 10dp;
+				border: 1dp #bbb;
+				border-radius: 3dp;
+				margin-top: 5dp;
+				margin-bottom: 20dp;
+				font-size: 1.1em;
+				line-height: 1.4;
+				cursor: text;
+			}
+
+			input.text:focus-visible, textarea:focus-visible {
+				border-color: #666;
+			}
+
+			textarea {
+				margin-bottom: 0dp;
+			}
+
+			scrollbarvertical {
+				width: 12dp;
+				cursor: arrow;
+				margin-right: -1dp;
+				padding-right: 1dp;
+			}
+
+			scrollbarvertical slidertrack {
+				background-color: #f0f0f0;
+			}
+
+			scrollbarvertical sliderbar {
+				background-color: #666;
+			}
+
+			textarea scrollbarvertical {
+				width: 10dp;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>IME Sample</h1>
+		<p>Input Method Editor (IME) is a software component that allows the user to type characters not otherwise
+			available on a standard QWERTY keyboard. This is crucial for languages using a writing system different
+			from Latin, such as Japanese, Chinese, Vietnamese, and others. You must add the language in the system
+			options to use such a keyboard.</p>
+		<p>IME is also used for emojis (<span class="shortcut">Win + .</span>) and the clipboard history (<span class="shortcut">Win + V</span>) on Windows.</p>
+
+		<form>
+			<label for="text">Input text</label>
+			<input id="text" name="text" type="text" maxlength=100 value="😁" />
+
+			<label for="text_area">Type multi-line text</label>
+			<textarea id="text_area" name="text_area" rows=8>English: Hello, how are you?
+Japanese: こんにちは、お元気ですか？
+Korean: 안녕하세요, 어떻게 지내세요?
+Chinese (Simplified): 你好，你好吗？
+Chinese (Traditional): 你好，你好嗎？
+Vietnamese: Xin chào, bạn có khỏe không?
+Thai: สวัสดีครับ/ค่ะ สบายดีไหม?
+Arabic: مرحبًا، كيف حالك؟</textarea>
+		</form>
+	</body>
+</rml>

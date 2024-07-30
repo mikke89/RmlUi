@@ -1,0 +1,29 @@
+<rml>
+<head>
+	<title>Filter: drop-shadow</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="The box should have a same-shaped, yellow shadow to its bottom right. Requires filter support in the renderer." />
+	<style>
+		.box {
+			width: 200dp;
+			height: 70dp;
+			background: #fff;
+			border: 2dp #777;
+			margin: 10dp auto;
+			padding: 15dp;
+			border-radius: 30dp 8dp;
+			box-sizing: border-box;
+		}
+		.dropshadow {
+			margin-top: 100px;
+			margin-bottom: 100px;
+			filter: drop-shadow(#fe3f 100px 100px 0px);
+		}
+	</style>
+</head>
+
+<body>
+<div class="box dropshadow"></div>
+<handle size_target="#document"/>
+</body>
+</rml>

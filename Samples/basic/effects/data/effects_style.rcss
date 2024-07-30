@@ -1,0 +1,199 @@
+body {
+	font-family: LatoLatin;
+	font-weight: normal;
+	font-style: normal;
+	font-size: 15dp;
+
+	left: 80dp;
+	right: 80dp;
+	top: 50dp;
+	bottom: 50dp;
+	min-width: 400dp;
+	min-height: 60dp;
+	background-color: #a4b6b7;
+	border: 3dp #d3e9ea;
+	border-radius: 30dp 8dp;
+	padding-top: 75dp;
+	overflow: hidden auto;
+}
+h1 {
+	margin: 0em 0 0.7em;
+	font-size: 22dp;
+	font-effect: glow(2dp #354c2e);
+	color: #fed;
+	padding: 1em 0 1em 40dp;
+	border-bottom: 3dp #d3e9ea;
+	background-color: #619158;
+	z-index: 1;
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+}
+handle.size {
+	position: fixed;
+	z-index: 100;
+	bottom: 0;
+	right: 0;
+	width: 18dp;
+	height: 18dp;
+	background-color: #d3e9ea66;
+	border-top-left-radius: 5dp;
+	cursor: resize;
+}
+handle.size:hover, handle.size:active {
+	background-color: #d3e9ea;
+}
+
+#menu_button {
+	position: fixed;
+	z-index: 2;
+	top: 15dp;
+	right: 25dp;
+	box-sizing: border-box;
+	width: 36dp;
+	height: 36dp;
+
+	background: #fffc;
+	border: 2dp #555a;
+	border-radius: 5dp;
+	color: #333;
+	padding-top: 5dp;
+	text-align: center;
+	line-height: 7dp;
+	font-size: 28dp;
+	cursor: pointer;
+}
+#menu_button.open {
+	background-color: #4bdc;
+	border-color: transparent;
+	border-top-right-radius: 15dp;
+}
+#menu_button:hover { background: #bcbc; }
+#menu_button:active { background: #abac; }
+#menu_button.open:hover { background: #5cec; }
+#menu_button.open:active { background: #4bdc; }
+
+#menu {
+	position: fixed;
+	z-index: 1;
+	top: 15dp;
+	right: 25dp;
+	box-sizing: border-box;
+	width: 400dp;
+	height: 480dp;
+	overflow: auto;
+	overscroll-behavior: contain;
+
+	background: #fffc;
+	border: 2dp #555a;
+	border-radius: 15dp;
+	color: #222;
+	padding: 20dp 40dp 0dp;
+}
+#menu table {
+	margin-bottom: 10dp;
+}
+#menu td {
+	vertical-align: middle;
+	height: 36dp;
+	line-height: 16dp;
+}
+#menu td:nth-child(3) {
+	text-align: right;
+	white-space: nowrap;
+	font-size: 0.92em;
+}
+
+#submenu {
+	display: flex;
+	text-align: center;
+	margin-bottom: 20dp;
+	justify-content: space-around;
+}
+#submenu div {
+	flex: 0.35;
+	height: 25dp;
+	cursor: pointer;
+	border-bottom: 1dp #aaa;
+	box-sizing: border-box;
+}
+#submenu div:hover {
+	color: #000;
+	border-bottom-color: #555;
+}
+#submenu div.selected {
+	font-weight: bold;
+	color: #37a;
+	border-bottom-color: #4bd;
+	border-bottom: 2dp #37a;
+}
+
+scrollbarvertical {
+	z-index: 100;
+	margin-top: 75dp;
+	margin-bottom: 20dp;
+	margin-right: 0dp;
+	width: 0dp;
+}
+scrollbarvertical sliderbar {
+	margin-left: -14dp;
+	width: 12dp;
+	min-height: 25dp;
+	background: #d3e9ea66;
+	border-radius: 4dp;
+}
+scrollbarvertical sliderbar:hover, scrollbarvertical sliderbar:active {
+	background: #d3e9eaaa;
+}
+
+input.range {
+	width: 100%;
+	height: 15dp;
+	transition: opacity 0.2s cubic-out;
+}
+input.range:disabled { opacity: 0.3; }
+input.range slidertrack {
+	background-color: #fff;
+}
+input.range sliderbar {
+	width: 15dp;
+	border-radius: 3dp;
+}
+input.range:hover sliderbar { background-color: #333; }
+input.range sliderbar:active { background-color: #111; }
+input.range sliderbar, input.range sliderbar:disabled { background-color: #555; }
+input.range sliderarrowdec, input.range sliderarrowinc {
+	width: 12dp;
+	height: 15dp;
+}
+input.range sliderarrowdec { border-radius: 2dp 0 0 2dp; }
+input.range sliderarrowinc { border-radius: 0 2dp 2dp 0; }
+input.range sliderarrowdec:hover,    input.range sliderarrowinc:hover    { background-color: #ddd; }
+input.range sliderarrowdec:active,   input.range sliderarrowinc:active   { background-color: #eee; }
+input.range sliderarrowdec,          input.range sliderarrowinc,
+input.range sliderarrowdec:disabled, input.range sliderarrowinc:disabled { background-color: #ccc; }
+
+input.radio, input.checkbox {
+	width: 15dp;
+	height: 15dp;
+	border: 1dp #ccc;
+	background: #fff;
+	border-radius: 2dp;
+}
+input.radio {
+	border-radius: 8dp;
+}
+input.radio:hover,   input.checkbox:hover   { background-color: #ff3; }
+input.radio:active,  input.checkbox:active  { background-color: #ddd; }
+input.radio:checked, input.checkbox:checked { background-color: #555; }
+
+button {
+	border: 1dp #555;
+	border-radius: 7dp;
+	padding: 6dp 13dp;
+	background-color: #fffa;
+	cursor: pointer;
+}
+button:hover { background-color: #ccca; }
+button:active { background-color: #bbba; }

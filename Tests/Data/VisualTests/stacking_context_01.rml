@@ -1,0 +1,65 @@
+<rml>
+<head>
+	<title>Stacking context and paint order</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="help" href="https://drafts.csswg.org/css2/#painting-order" />
+	<meta name="Description" content="Stacking contexts are formed by 'z-index' and possibly other properties." />
+	<style>
+		.wrapper {
+			margin: 15dp 0;
+		}
+		.box {
+			border: 2dp #d66;
+			background: #fff;
+			text-align: center;
+			width: 25dp;
+			height: 22dp;
+		}
+		.flex {
+			display: flex;
+			flex-direction: column;
+		}
+	</style>
+</head>
+
+<body>
+
+<p>In the following, 'AA' should overflow and be painted over the 'B' boxes.</p>
+
+<div class="wrapper">
+	<div class="box">A<br/>AA</div>
+	<div class="box">B</div>
+</div>
+
+<div class="wrapper">
+	<div class="box">A<br/>AA</div>
+	<div class="box" style="position: relative; z-index: -1;">B</div>
+</div>
+
+<hr/>
+
+<p>In the following, 'B' boxes should be painted over the overflowing 'AA' text.</p>
+
+<div class="wrapper">
+	<div class="box">A<br/>AA</div>
+	<div class="box" style="position: relative;">B</div>
+</div>
+
+<div class="wrapper">
+	<div class="box">A<br/>AA</div>
+	<div class="box" style="position: relative; z-index: 0;">B</div>
+</div>
+
+<div class="wrapper">
+	<div class="box">A<br/>AA</div>
+	<div class="box" style="display: inline-block;">B</div>
+</div>
+
+<div class="wrapper flex" id="flex">
+	<div class="box">A<br/>AA</div>
+	<div class="box">B</div>
+</div>
+
+<handle size_target="#document"/>
+</body>
+</rml>

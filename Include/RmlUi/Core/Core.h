@@ -42,6 +42,7 @@ class FileInterface;
 class FontEngineInterface;
 class RenderInterface;
 class SystemInterface;
+class TextInputHandler;
 enum class DefaultActionPhase;
 
 /**
@@ -59,14 +60,17 @@ RMLUICORE_API void Shutdown();
 /// @return The version number.
 RMLUICORE_API String GetVersion();
 
-/// Sets the interface through which all system requests are made. This must be called before Initialise().
+/// Sets the interface through which all system requests are made. This is not required to be called, but if it is it
+/// must be called before Initialise().
 /// @param[in] system_interface A non-owning pointer to the application-specified logging interface.
 /// @lifetime The interface must be kept alive until after the call to Rml::Shutdown.
 RMLUICORE_API void SetSystemInterface(SystemInterface* system_interface);
 /// Returns RmlUi's system interface.
 RMLUICORE_API SystemInterface* GetSystemInterface();
 
-/// Sets the interface through which all rendering requests are made. This must be called before Initialise().
+/// Sets the interface through which all rendering requests are made. This is not required to be called, but if it is,
+/// it must be called before Initialise(). If no render interface is specified, then all contexts must specify a render
+/// interface when created.
 /// @param[in] render_interface A non-owning pointer to the render interface implementation.
 /// @lifetime The interface must be kept alive until after the call to Rml::Shutdown.
 RMLUICORE_API void SetRenderInterface(RenderInterface* render_interface);
@@ -89,11 +93,25 @@ RMLUICORE_API void SetFontEngineInterface(FontEngineInterface* font_interface);
 /// Returns RmlUi's font interface.
 RMLUICORE_API FontEngineInterface* GetFontEngineInterface();
 
+/// Sets the implementation for handling text input events. This is not required to be called.
+/// @param[in] text_input_handler A non-owning pointer to the application-specified implementation of a text input handler.
+/// @lifetime The instance must be kept alive until after the call to Rml::Shutdown.
+/// @note Be aware that you might be overriding a custom backend implementation.
+RMLUICORE_API void SetTextInputHandler(TextInputHandler* text_input_handler);
+/// Returns RmlUi's default implementation of a text input handler.
+RMLUICORE_API TextInputHandler* GetTextInputHandler();
+
 /// Creates a new element context.
 /// @param[in] name The new name of the context. This must be unique.
 /// @param[in] dimensions The initial dimensions of the new context.
+/// @param[in] render_interface The custom render interface to use, or nullptr to use the default.
+/// @param[in] text_input_handler The custom text input handler to use, or nullptr to use the default.
+/// @lifetime If specified, the render interface and the text input handler must be kept alive until after the call to
+///           Rml::Shutdown. Alternatively, the render interface can be destroyed after all contexts it belongs to have been
+///           destroyed and a subsequent call has been made to Rml::ReleaseTextures.
 /// @return A non-owning pointer to the new context, or nullptr if the context could not be created.
-RMLUICORE_API Context* CreateContext(const String& name, Vector2i dimensions);
+RMLUICORE_API Context* CreateContext(const String& name, Vector2i dimensions, RenderInterface* render_interface = nullptr,
+	TextInputHandler* text_input_handler = nullptr);
 /// Removes and destroys a context.
 /// @param[in] name The name of the context to remove.
 /// @return True if name is a valid context, false otherwise.
@@ -119,8 +137,7 @@ RMLUICORE_API int GetNumContexts();
 /// @return True if the face was loaded successfully, false otherwise.
 RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = false, Style::FontWeight weight = Style::FontWeight::Auto);
 /// Adds a new font face from memory to the font engine. The face's family, style and weight is given by the parameters.
-/// @param[in] data A pointer to the data.
-/// @param[in] data_size Size of the data in bytes.
+/// @param[in] data The font data.
 /// @param[in] family The family to register the font as.
 /// @param[in] style The style to register the font as.
 /// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default it
@@ -128,7 +145,7 @@ RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = fa
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 /// @return True if the face was loaded successfully, false otherwise.
 /// @lifetime The pointed to 'data' must remain available until after the call to Rml::Shutdown.
-RMLUICORE_API bool LoadFontFace(const byte* data, int data_size, const String& font_family, Style::FontStyle style,
+RMLUICORE_API bool LoadFontFace(Span<const byte> data, const String& family, Style::FontStyle style,
 	Style::FontWeight weight = Style::FontWeight::Auto, bool fallback_face = false);
 
 /// Registers a generic RmlUi plugin.
@@ -149,11 +166,16 @@ RMLUICORE_API EventId RegisterEventType(const String& type, bool interruptible, 
 /// Returns a list of source URLs to textures in all loaded documents.
 RMLUICORE_API StringList GetTextureSourceList();
 /// Forces all texture handles loaded and generated by RmlUi to be released.
-RMLUICORE_API void ReleaseTextures();
+/// @param[in] render_interface Release all textures belonging to the given interface, or nullptr to release all textures in all interfaces.
+RMLUICORE_API void ReleaseTextures(RenderInterface* render_interface = nullptr);
 /// Releases a specified texture by name from memory, returning 'true' if successful and 'false' if not found.
-RMLUICORE_API bool ReleaseTexture(const String& name);
+/// @param[in] source The texture source to match.
+/// @param[in] render_interface Release any matching texture belonging to the given interface, or nullptr to look in all interfaces.
+/// @return True if any texture was released.
+RMLUICORE_API bool ReleaseTexture(const String& source, RenderInterface* render_interface = nullptr);
 /// Forces all compiled geometry handles generated by RmlUi to be released.
-RMLUICORE_API void ReleaseCompiledGeometry();
+/// @param[in] render_interface Release all geometry belonging to the given interface, or nullptr to release all geometry in all interfaces.
+RMLUICORE_API void ReleaseCompiledGeometry(RenderInterface* render_interface = nullptr);
 /// Releases unused font textures and rendered glyphs to free up memory, and regenerates actively used fonts.
 /// @note Invalidates all existing FontFaceHandles returned from the font engine.
 RMLUICORE_API void ReleaseFontResources();

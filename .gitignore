@@ -1,6 +1,9 @@
 # Primary CMake build target
 /Build/
 
+# Primary CMake install target for development
+/Install/
+
 # Other common build targets
 /build*/
 /Build*/
@@ -9,6 +12,8 @@
 /Lib/
 /lib/
 /out/
+/Install*/
+/install*/
 
 # Distribution target
 /Distribution/
@@ -22,6 +27,9 @@
 # Not ignore .github/
 !.github/
 
+# CMake user files
+CMakeUserPresets.json
+
 # Visual Studio project files
 *.suo
 *.user
@@ -29,5 +37,6 @@
 *.dir/
 Win32/
 x64/
+vcpkg/
 CMakeSettings.json
 compile_commands.json

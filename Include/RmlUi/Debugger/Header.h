@@ -33,7 +33,7 @@
 
 #if !defined RMLUI_STATIC_LIB
 	#ifdef RMLUI_PLATFORM_WIN32
-		#ifdef RmlDebugger_EXPORTS
+		#ifdef RMLUI_DEBUGGER_EXPORTS
 			#define RMLUIDEBUGGER_API __declspec(dllexport)
 		#else
 			#define RMLUIDEBUGGER_API __declspec(dllimport)

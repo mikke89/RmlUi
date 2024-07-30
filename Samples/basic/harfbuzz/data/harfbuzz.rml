@@ -1,0 +1,66 @@
+<rml>
+<head>
+<title>Text Shaping Demo</title>
+<link type="text/template" href="../../../assets/window.rml" />
+<style>
+body
+{
+	width: 600px;
+	height: 500px;
+	font-family: LatoLatin;
+	margin: auto;
+	font-size: 22px;
+}
+
+div#title_bar div#icon
+{
+	display: none;
+}
+
+div#content
+{
+	text-align: left;
+}
+
+[lang=en]
+{
+	font-family: LatoLatin;
+}
+
+[lang=ar]
+{
+	font-family: Cairo;
+}
+
+[lang=hi]
+{
+	font-family: Poppins;
+}
+
+p.lorem-ipsum[dir=ltr]
+{
+	text-align: left;
+}
+
+p.lorem-ipsum[dir=rtl]
+{
+	text-align: right;
+}
+
+p.hide-lorem-ipsum
+{
+	display: none;
+}
+</style>
+</head>
+<body template="window">
+	<div>
+		<button id="set-english" lang="en">English</button>
+		<button id="set-arabic" lang="ar">اَلْعَرَبِيَّةُ</button>
+		<button id="set-hindi" lang="hi">हिन्दी</button>
+	</div>
+	<p id="lorem-ipsum-en" class="lorem-ipsum" lang="en" dir="ltr">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Urna neque viverra justo nec ultrices dui sapien eget mi. Risus quis varius quam quisque id. Amet est placerat in egestas erat imperdiet. Velit egestas dui id ornare arcu odio ut sem. Aliquet porttitor lacus luctus accumsan tortor posuere. Et malesuada fames ac turpis egestas integer eget. Enim nunc faucibus a pellentesque sit amet porttitor eget. Nunc pulvinar sapien et ligula. Sit amet mattis vulputate enim nulla aliquet porttitor lacus luctus. Dolor sit amet consectetur adipiscing. Congue eu consequat ac felis donec et odio pellentesque. Nunc non blandit massa enim nec dui nunc mattis.</p>
+	<p id="lorem-ipsum-ar" class="lorem-ipsum hide-lorem-ipsum" lang="ar" dir="rtl">هناك حقيقة مثبتة منذ زمن طويل وهي أن المحتوى المقروء لصفحة ما سيلهي القارئ عن التركيز على الشكل الخارجي للنص أو شكل توضع الفقرات في الصفحة التي يقرأها. ولذلك يتم استخدام طريقة لوريم إيبسوم لأنها تعطي توزيعاَ طبيعياَ -إلى حد ما- للأحرف عوضاً عن استخدام "هنا يوجد محتوى نصي، هنا يوجد محتوى نصي" فتجعلها تبدو (أي الأحرف) وكأنها نص مقروء. العديد من برامح النشر المكتبي وبرامح تحرير صفحات الويب تستخدم لوريم إيبسوم بشكل إفتراضي كنموذج عن النص، وإذا قمت بإدخال "muspi merol" في أي محرك بحث ستظهر العديد من المواقع الحديثة العهد في نتائج البحث. على مدى السنين ظهرت نسخ جديدة ومختلفة من نص لوريم إيبسوم، أحياناً عن طريق الصدفة، وأحياناً عن عمد كإدخال بعض العبارات الفكاهية إليها.</p>
+	<p id="lorem-ipsum-hi" class="lorem-ipsum hide-lorem-ipsum" lang="hi" dir="ltr">यह एक लंबा स्थापित तथ्य है कि जब एक पाठक एक पृष्ठ के खाखे को देखेगा तो पठनीय सामग्री से विचलित हो जाएगा. Lorem Ipsum का उपयोग करने का मुद्दा यह है कि इसमें एक और अधिक या कम अक्षरों का सामान्य वितरण किया गया है, 'Content here, content here' प्रयोग करने की जगह इसे पठनीय English के रूप में प्रयोग किया जाये. अब कई डेस्कटॉप प्रकाशन संकुल और वेब पेज संपादक उनके डिफ़ॉल्ट मॉडल पाठ के रूप में Lorem Ipsum उपयोग करते हैं, और अब "Lorem Ipsum" के लिए खोज अपने शैशव में कई वेब साइटों को उजागर करती है. इसके विभिन्न संस्करणों का वर्षों में विकास हुआ है, कभी दुर्घटना से, तो कभी प्रयोजन पर (हास्य और लगाव डालने के लिए).</p>
+</body>
+</rml>

@@ -33,13 +33,15 @@
 
 namespace Rml {
 
+using byte = unsigned char;
+
 /**
     Templated class for a four-component RGBA colour.
 
     @author Peter Curry
  */
 
-template <typename ColourType, int AlphaDefault>
+template <typename ColourType, int AlphaDefault, bool PremultipliedAlpha>
 class Colour {
 public:
 	/// Initialising constructor.
@@ -98,6 +100,45 @@ public:
 	/// Constant auto-cast operator.
 	/// @return A constant pointer to the first value.
 	inline operator ColourType*() { return &red; }
+
+	// Convert color to premultiplied alpha.
+	template <typename IsPremultiplied = std::integral_constant<bool, PremultipliedAlpha>,
+		typename = typename std::enable_if_t<!IsPremultiplied::value && std::is_same<ColourType, byte>::value>>
+	inline Colour<ColourType, AlphaDefault, true> ToPremultiplied() const
+	{
+		return {
+			ColourType((red * alpha) / 255),
+			ColourType((green * alpha) / 255),
+			ColourType((blue * alpha) / 255),
+			alpha,
+		};
+	}
+	// Convert color to premultiplied alpha, after multiplying alpha by opacity.
+	template <typename IsPremultiplied = std::integral_constant<bool, PremultipliedAlpha>,
+		typename = typename std::enable_if_t<!IsPremultiplied::value && std::is_same<ColourType, byte>::value>>
+	inline Colour<ColourType, AlphaDefault, true> ToPremultiplied(float opacity) const
+	{
+		const float new_alpha = alpha * opacity;
+		return {
+			ColourType(red * (new_alpha / 255.f)),
+			ColourType(green * (new_alpha / 255.f)),
+			ColourType(blue * (new_alpha / 255.f)),
+			ColourType(new_alpha),
+		};
+	}
+
+	// Convert color to non-premultiplied alpha.
+	template <typename IsPremultiplied = std::integral_constant<bool, PremultipliedAlpha>,
+		typename = typename std::enable_if_t<IsPremultiplied::value && std::is_same<ColourType, byte>::value>>
+	inline Colour<ColourType, AlphaDefault, false> ToNonPremultiplied() const
+	{
+		return {
+			ColourType(alpha > 0 ? (red * 255) / alpha : 0),
+			ColourType(alpha > 0 ? (green * 255) / alpha : 0),
+			ColourType(alpha > 0 ? (blue * 255) / alpha : 0),
+			ColourType(alpha),
+		};
+	}
 
 	ColourType red, green, blue, alpha;
 

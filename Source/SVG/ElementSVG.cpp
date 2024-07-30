@@ -31,10 +31,10 @@
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/FileInterface.h"
-#include "../../Include/RmlUi/Core/GeometryUtilities.h"
 #include "../../Include/RmlUi/Core/Math.h"
+#include "../../Include/RmlUi/Core/MeshUtilities.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
-#include "../../Include/RmlUi/Core/RenderInterface.h"
+#include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include <cmath>
 #include <lunasvg.h>
@@ -76,7 +76,7 @@ void ElementSVG::OnRender()
 			GenerateGeometry();
 
 		UpdateTexture();
-		geometry.Render(GetAbsoluteOffset(BoxArea::Content));
+		geometry.Render(GetAbsoluteOffset(BoxArea::Content), Texture(texture));
 	}
 }
 
@@ -114,30 +114,15 @@ void ElementSVG::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 void ElementSVG::GenerateGeometry()
 {
-	geometry.Release(true);
-
-	Vector<Vertex>& vertices = geometry.GetVertices();
-	Vector<int>& indices = geometry.GetIndices();
-
-	vertices.resize(4);
-	indices.resize(6);
-
-	Vector2f texcoords[2] = {
-		{0.0f, 0.0f},
-		{1.0f, 1.0f},
-	};
-
 	const ComputedValues& computed = GetComputedValues();
-
-	const float opacity = computed.opacity();
-	Colourb quad_colour = computed.image_color();
-	quad_colour.alpha = (byte)(opacity * (float)quad_colour.alpha);
+	ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
 
 	const Vector2f render_dimensions_f = GetBox().GetSize(BoxArea::Content).Round();
-	render_dimensions.x = int(render_dimensions_f.x);
-	render_dimensions.y = int(render_dimensions_f.y);
+	render_dimensions = Vector2i(render_dimensions_f);
 
-	GeometryUtilities::GenerateQuad(&vertices[0], &indices[0], Vector2f(0, 0), render_dimensions_f, quad_colour, texcoords[0], texcoords[1]);
+	Mesh mesh = geometry.Release(Geometry::ReleaseMode::ClearMesh);
+	MeshUtilities::GenerateQuad(mesh, Vector2f(0), render_dimensions_f, quad_colour, Vector2f(0), Vector2f(1));
+	geometry = GetRenderManager()->MakeGeometry(std::move(mesh));
 
 	geometry_dirty = false;
 }
@@ -147,7 +132,7 @@ bool ElementSVG::LoadSource()
 	source_dirty = false;
 	texture_dirty = true;
 	intrinsic_dimensions = Vector2f{};
-	geometry.SetTexture(nullptr);
+	texture = {};
 	svg_document.reset();
 
 	const String attribute_src = GetAttribute<String>("src", "");
@@ -193,20 +178,29 @@ void ElementSVG::UpdateTexture()
 	if (!svg_document || !texture_dirty)
 		return;
 
+	RenderManager* render_manager = GetRenderManager();
+	if (!render_manager)
+		return;
+
 	// Callback for generating texture.
-	auto p_callback = [this](RenderInterface* render_interface, const String& /*name*/, TextureHandle& out_handle, Vector2i& out_dimensions) -> bool {
+	auto texture_callback = [this](const CallbackTextureInterface& texture_interface) -> bool {
 		RMLUI_ASSERT(svg_document);
 		lunasvg::Bitmap bitmap = svg_document->renderToBitmap(render_dimensions.x, render_dimensions.y);
+
+		// Swap red and blue channels, assuming LunaSVG v2.3.2 or newer, to convert to RmlUi's expected RGBA-ordering.
+		const size_t bitmap_byte_size = bitmap.width() * bitmap.height() * 4;
+		uint8_t* bitmap_data = bitmap.data();
+		for (size_t i = 0; i < bitmap_byte_size; i += 4)
+			std::swap(bitmap_data[i], bitmap_data[i + 2]);
+
 		if (!bitmap.valid() || !bitmap.data())
 			return false;
-		if (!render_interface->GenerateTexture(out_handle, reinterpret_cast<const Rml::byte*>(bitmap.data()), render_dimensions))
+		if (!texture_interface.GenerateTexture({reinterpret_cast<const Rml::byte*>(bitmap.data()), bitmap_byte_size}, render_dimensions))
 			return false;
-		out_dimensions = render_dimensions;
 		return true;
 	};
 
-	texture.Set("svg", p_callback);
-	geometry.SetTexture(&texture);
+	texture = render_manager->MakeCallbackTexture(std::move(texture_callback));
 	texture_dirty = false;
 }
 

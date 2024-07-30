@@ -26,14 +26,15 @@
  *
  */
 
-#include "RmlUi/Config/Config.h"
 #include "RmlUi_Backend.h"
 #include "RmlUi_Renderer_VK.h"
 // This space is intentional to prevent autoformat from reordering RmlUi_Renderer_VK behind RmlUi_Platform_GLFW
 #include "RmlUi_Platform_GLFW.h"
+#include <RmlUi/Config/Config.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/Log.h>
 #include <GLFW/glfw3.h>
 #include <stdint.h>
 #include <thread>
@@ -84,7 +85,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	if (!window)
 	{
-		fprintf(stderr, "[GLFW] error can't create window!");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "GLFW failed to create window");
 		return false;
 	}
 
@@ -93,7 +94,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 
 	uint32_t count;
 	const char** extensions = glfwGetRequiredInstanceExtensions(&count);
-	RMLUI_VK_ASSERTMSG(extensions != nullptr, "Failed to query glfw vulkan extensions");
+	RMLUI_VK_ASSERTMSG(extensions != nullptr, "Failed to query GLFW Vulkan extensions");
 	if (!data->render_interface.Initialize(Rml::Vector<const char*>(extensions, extensions + count),
 			[](VkInstance instance, VkSurfaceKHR* out_surface) {
 				return glfwCreateWindowSurface(instance, data->window, nullptr, out_surface) == VkResult::VK_SUCCESS;
@@ -101,7 +102,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 			}))
 	{
 		data.reset();
-		fprintf(stderr, "Could not initialize Vulkan render interface.");
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to initialize Vulkan render interface");
 		return false;
 	}
 

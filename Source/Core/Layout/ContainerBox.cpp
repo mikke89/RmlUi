@@ -31,6 +31,7 @@
 #include "../../../Include/RmlUi/Core/Element.h"
 #include "../../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
+#include "FlexFormattingContext.h"
 #include "FormattingContext.h"
 #include "LayoutDetails.h"
 #include <algorithm>
@@ -131,8 +132,8 @@ ContainerBox::ContainerBox(Type type, Element* element, ContainerBox* parent_con
 		const auto& computed = element->GetComputedValues();
 		overflow_x = computed.overflow_x();
 		overflow_y = computed.overflow_y();
-		position_property = computed.position();
-		has_local_transform_or_perspective = (computed.has_local_transform() || computed.has_local_perspective());
+		is_absolute_positioning_containing_block = (computed.position() != Style::Position::Static || computed.has_local_transform() ||
+			computed.has_local_perspective() || computed.has_filter() || computed.has_backdrop_filter() || computed.has_mask_image());
 	}
 }
 
@@ -215,17 +216,18 @@ bool ContainerBox::SubmitBox(const Vector2f content_overflow_size, const Box& bo
 			is_scroll_container ? element->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL) : 0.f,
 		};
 
+		element->SetBox(box);
+
 		// Scrollable overflow is the set of things extending our padding area, for which scrolling could be provided.
 		const Vector2f scrollable_overflow_size = Math::Max(padding_size - scrollbar_size, padding_top_left + content_overflow_size);
-
-		element->SetBox(box);
-		element->SetScrollableOverflowRectangle(scrollable_overflow_size);
+		// Set the overflow size but defer clamping of the scroll offset, see `LayoutEngine::FormatElement`.
+		element->SetScrollableOverflowRectangle(scrollable_overflow_size, false);
 
 		const Vector2f border_size = padding_size + box.GetFrameSize(BoxArea::Border);
 
 		// Set the visible overflow size so that ancestors can catch any overflow produced by us. That is, hiding it or
-		// providing a scrolling mechanism. If this box is a scroll container, we catch our own overflow here; then,
-		// just use the normal margin box as that will effectively remove the overflow from our ancestor's perspective.
+		// providing a scrolling mechanism. If this box is a scroll container we catch our own overflow here. Thus, in
+		// this case, only our border box is visible from our ancestor's perpective.
 		if (is_scroll_container)
 		{
 			visible_overflow_size = border_size;
@@ -269,12 +271,12 @@ bool FlexContainer::Close(const Vector2f content_overflow_size, const Box& box, 
 
 float FlexContainer::GetShrinkToFitWidth() const
 {
-	// We don't currently support shrink-to-fit layout of flex containers. However, for the trivial case of a fixed
-	// width, we simply return that.
+	// For the trivial case of a fixed width, we simply return that.
 	if (element->GetComputedValues().width().type == Style::Width::Type::Length)
 		return box.GetSize().x;
 
-	return 0.0f;
+	// Infer shrink-to-fit width from the intrinsic width of the element.
+	return FlexFormattingContext::GetMaxContentSize(element).x;
 }
 
 String FlexContainer::DebugDumpTree(int depth) const

@@ -98,23 +98,25 @@ private:
 	};
 
 	// Clears and regenerates all of the text's geometry.
-	void GenerateGeometry(const FontFaceHandle font_face_handle);
-	// Generates the geometry for a single line of text.
-	void GenerateGeometry(const FontFaceHandle font_face_handle, Line& line);
+	void GenerateGeometry(RenderManager& render_manager, FontFaceHandle font_face_handle);
 	// Generates any geometry necessary for rendering decoration (underline, strike-through, etc).
-	void GenerateDecoration(const FontFaceHandle font_face_handle);
+	void GenerateDecoration(Mesh& mesh, FontFaceHandle font_face_handle);
 
 	String text;
 
 	using LineList = Vector<Line>;
 	LineList lines;
 
-	GeometryList geometry;
+	struct TexturedGeometry {
+		Geometry geometry;
+		Texture texture;
+	};
+	Vector<TexturedGeometry> geometry;
 
 	// The decoration geometry we've generated for this string.
 	UniquePtr<Geometry> decoration;
 
-	Colourb colour;
+	ColourbPremultiplied colour;
 	float opacity;
 
 	int font_handle_version;

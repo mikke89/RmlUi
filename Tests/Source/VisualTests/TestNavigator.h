@@ -50,6 +50,7 @@ protected:
 
 private:
 	enum class IterationState { None, Capture, Comparison };
+	enum class ReferenceState { None, ShowReference, ShowReferenceHighlight };
 
 	TestSuite& CurrentSuite() { return test_suites[suite_index]; }
 
@@ -64,7 +65,7 @@ private:
 
 	void UpdateGoToText(bool out_of_bounds = false);
 
-	void ShowReference(bool show, bool clear);
+	void ShowReference(ReferenceState new_reference_state);
 
 	Rml::String GetImageFilenameFromCurrentTest();
 
@@ -79,9 +80,10 @@ private:
 	int goto_index = -1;
 	SourceType source_state = SourceType::None;
 
-	bool show_reference = false;
+	ReferenceState reference_state = ReferenceState::None;
 	ComparisonResult reference_comparison;
 	TextureGeometry reference_geometry;
+	TextureGeometry reference_highlight_geometry;
 
 	IterationState iteration_state = IterationState::None;
 

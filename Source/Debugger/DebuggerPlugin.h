@@ -62,7 +62,7 @@ public:
 
 	/// Sets the context to be debugged.
 	/// @param[in] context The context to be debugged.
-	/// @return True if the debugger is initialised and the context was switched, false otherwise..
+	/// @return True if the debugger is initialised and the context was switched, false otherwise.
 	bool SetContext(Context* context);
 
 	/// Sets the visibility of the debugger.

@@ -59,8 +59,8 @@ public:
 	virtual bool GetGlyphMetrics(Vector2i& origin, Vector2i& dimensions, const FontGlyph& glyph) const;
 
 	/// Requests the effect to generate the texture data for a single glyph's bitmap. The default implementation does nothing.
-	/// @param[out] destination_data The top-left corner of the glyph's 32-bit, RGBA-ordered, destination texture. Note that the glyph shares its
-	/// texture with other glyphs.
+	/// @param[out] destination_data The top-left corner of the glyph's 32-bit, destination texture, RGBA-ordered with pre-multiplied alpha. Note that
+	/// the glyph shares its texture with other glyphs.
 	/// @param[in] destination_dimensions The dimensions of the glyph's area on its texture.
 	/// @param[in] destination_stride The stride of the glyph's texture.
 	/// @param[in] glyph The glyph the effect is being asked to generate an effect texture for.
@@ -78,6 +78,10 @@ public:
 	/// @return A hash of the effect's type and properties used to generate the geometry and texture data.
 	size_t GetFingerprint() const;
 	void SetFingerprint(size_t fingerprint);
+
+protected:
+	// Helper function to copy the alpha value to the colour channels for each pixel, assuming RGBA-ordered bytes, resulting in a grayscale texture.
+	static void FillColorValuesFromAlpha(byte* destination, Vector2i dimensions, int stride);
 
 private:
 	Layer layer;

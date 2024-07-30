@@ -75,15 +75,10 @@ namespace EventSpecificationInterface {
 			{EventId::Scroll        , "scroll"        , false , true  , DefaultActionPhase::None},
 			{EventId::Animationend  , "animationend"  , false , true  , DefaultActionPhase::None},
 			{EventId::Transitionend , "transitionend" , false , true  , DefaultActionPhase::None},
-		
+
 			{EventId::Change        , "change"        , false , true  , DefaultActionPhase::None},
 			{EventId::Submit        , "submit"        , true  , true  , DefaultActionPhase::None},
 			{EventId::Tabchange     , "tabchange"     , false , true  , DefaultActionPhase::None},
-			{EventId::Columnadd     , "columnadd"     , false , true  , DefaultActionPhase::None},
-			{EventId::Rowadd        , "rowadd"        , false , true  , DefaultActionPhase::None},
-			{EventId::Rowchange     , "rowchange"     , false , true  , DefaultActionPhase::None},
-			{EventId::Rowremove     , "rowremove"     , false , true  , DefaultActionPhase::None},
-			{EventId::Rowupdate     , "rowupdate"     , false , true  , DefaultActionPhase::None},
 			// clang-format on
 		};
 

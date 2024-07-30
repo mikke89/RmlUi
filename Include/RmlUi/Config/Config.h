@@ -47,6 +47,7 @@
 	#include <queue>
 	#include <stack>
 	#include <string>
+	#include <map>
 	#include <unordered_map>
 	#include <utility>
 	#include <vector>
@@ -86,6 +87,8 @@ template <typename T>
 using Queue = std::queue<T>;
 template <typename T1, typename T2>
 using Pair = std::pair<T1, T2>;
+template <typename Key, typename Value>
+using StableMap = std::map<Key, Value>;
 template <typename Key, typename Value>
 using UnorderedMultimap = std::unordered_multimap<Key, Value>;
 

@@ -28,25 +28,17 @@
 
 #include "../../Include/RmlUi/Core/Spritesheet.h"
 #include "../../Include/RmlUi/Core/Log.h"
-#include "../../Include/RmlUi/Core/StringUtilities.h"
 
 namespace Rml {
 
-Spritesheet::Spritesheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number,
-	float display_scale, const Texture& texture) :
-	name(name),
-	image_source(image_source), definition_source(definition_source), definition_line_number(definition_line_number), display_scale(display_scale),
-	texture(texture)
+Spritesheet::Spritesheet(const String& name, const String& source, const String& document_path, int definition_line_number, float display_scale) :
+	name(name), definition_line_number(definition_line_number), display_scale(display_scale), texture_source(source, document_path)
 {}
 
 bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_source, const String& definition_source, int definition_line_number,
 	float display_scale, const SpriteDefinitionList& sprite_definitions)
 {
-	// Load the texture
-	Texture texture;
-	texture.Set(image_source, definition_source);
-
-	auto sprite_sheet_ptr = MakeShared<Spritesheet>(name, image_source, definition_source, definition_line_number, display_scale, texture);
+	auto sprite_sheet_ptr = MakeShared<Spritesheet>(name, image_source, definition_source, definition_line_number, display_scale);
 	Spritesheet* sprite_sheet = sprite_sheet_ptr.get();
 	spritesheets.push_back(std::move(sprite_sheet_ptr));
 
@@ -62,8 +54,8 @@ bool SpritesheetList::AddSpriteSheet(const String& name, const String& image_sou
 		if (new_sprite.sprite_sheet)
 		{
 			Log::Message(Log::LT_WARNING, "Sprite '%s' was overwritten due to duplicate names at the same block scope. Declared at %s:%d and %s:%d",
-				sprite_name.c_str(), new_sprite.sprite_sheet->definition_source.c_str(), new_sprite.sprite_sheet->definition_line_number,
-				definition_source.c_str(), definition_line_number);
+				sprite_name.c_str(), new_sprite.sprite_sheet->texture_source.GetDefinitionSource().c_str(),
+				new_sprite.sprite_sheet->definition_line_number, definition_source.c_str(), definition_line_number);
 		}
 
 		new_sprite = Sprite{sprite_rectangle, sprite_sheet};

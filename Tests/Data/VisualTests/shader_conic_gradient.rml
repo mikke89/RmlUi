@@ -1,0 +1,111 @@
+<rml>
+<head>
+	<title>conic-gradient</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="A variety of conic-gradient backgrounds. Each group should match their description." />
+	<meta name="Backend" content="Requires backend support for rendering with compiled shaders." />
+	<link rel="source" href="https://www.w3.org/TR/css-images-4/#conic-gradients" />
+	<style>
+		body {
+			background: #ddd;
+			color: #444;
+			width: 900dp;
+		}
+		div {
+			margin: 5dp;
+			width: 200dp;
+			height: 100dp;
+			box-sizing: border-box;
+			border: 1dp #bbb;
+			float: left;
+		}
+		group {
+			margin-left: 1em;
+			display: flow-root;
+			margin-bottom: 1em;
+		}
+
+		.basic > :nth-child(1) { decorator: conic-gradient(#f06, #ffd700); }
+		.basic > :nth-child(2) { decorator: conic-gradient(at 50% 50%, #f06, #ffd700); }
+		.basic > :nth-child(3) { decorator: conic-gradient(from 0deg, #f06, #ffd700); }
+		.basic > :nth-child(4) { decorator: conic-gradient(from 0deg at center, #f06, #ffd700); }
+		.basic > :nth-child(5) { decorator: conic-gradient(#f06 0%, #ffd700 100%); }
+		.basic > :nth-child(6) { decorator: conic-gradient(#f06 0deg, #ffd700 360deg); }
+		.basic > :nth-child(7) { decorator: conic-gradient(#f06 0deg 0deg, #ffd700 360deg 360deg); }
+		.basic > :nth-child(8) { decorator: conic-gradient(#f06 0 0, #ffd700 360deg 100%); }
+
+		.position > :nth-child(1) { decorator: conic-gradient(at 25% 30%, #f06, #ffd700 60%); }
+		.position > :nth-child(2) { decorator: conic-gradient(at 25% 30%, #f06, #ffd700 60%); }
+		.position > :nth-child(3) { decorator: conic-gradient(from 0deg at 25% 30%, #f06, #ffd700 60%); }
+		.position > :nth-child(4) { decorator: conic-gradient(from 0deg at 25% 30%, #f06, #ffd700 60%); }
+
+		.angle_outside > :nth-child(1) { decorator: conic-gradient(white -50%, black 150%); }
+		.angle_outside > :nth-child(2) { decorator: conic-gradient(white -180deg, black 540deg); }
+
+		.cone > :nth-child(1) { decorator: conic-gradient(white, black, white); }
+		.cone > :nth-child(2) { decorator: conic-gradient(from 45deg, white, black, white); }
+
+		.color_wheel > div {
+			border-radius: 100dp;
+			width: 200dp; height: 200dp;
+		}
+		.color_wheel > :nth-child(1) { decorator: radial-gradient(white, #fff3 65%, transparent), conic-gradient(red, yellow, lime, aqua, blue, #f0f, red); }
+		.color_wheel > :nth-child(2) { decorator: conic-gradient(#9acd32 40%, #ffd700 0 75%, #f06 0); }
+		.color_wheel > :nth-child(3) { decorator: conic-gradient(black 25%, white 0 50%, black 0 75%, white 0); }
+
+		@keyframes spinner {
+			from { decorator: repeating-conic-gradient(from   0deg, #fff3 0 15deg, #fff0 0 30deg);  }
+			to   { decorator: repeating-conic-gradient(from 360deg, #fff3 0 15deg, #fff0 0 30deg);  }
+		}
+		.repeating > :nth-child(1) { decorator: repeating-conic-gradient(#ffd700, #f06 20deg); }
+		.repeating > :nth-child(2) { background: #0ac; animation: 5s spinner infinite; }
+	</style>
+</head>
+
+<body>
+Red to gold clockwise, from top [equivalent]
+<group class="basic">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Positioned red to gold clockwise, from top [equivalent]
+<group class="position">
+	<div/>
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Light gray to dark gray, from top [equivalent]
+<group class="angle_outside">
+	<div/>
+	<div/>
+</group>
+
+Smooth cone
+<group class="cone">
+	<div/>
+	<div/>
+</group>
+
+Color wheel, pie chart, and checkerboard
+<group class="color_wheel">
+	<div/>
+	<div/>
+	<div/>
+</group>
+
+Repeating
+<group class="repeating">
+	<div/>
+	<div/>
+</group>
+</body>
+</rml>

@@ -50,16 +50,18 @@ class Decorator;
 class ElementInstancer;
 class EventDispatcher;
 class EventListener;
-class ElementDecoration;
+class ElementBackgroundBorder;
 class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
+class LayoutEngine;
 class ContainerBox;
 class InlineLevelBox;
 class ReplacedBox;
 class PropertiesIteratorView;
 class PropertyDictionary;
+class RenderManager;
 class StyleSheet;
 class StyleSheetContainer;
 class TransformState;
@@ -108,8 +110,9 @@ public:
 	virtual const StyleSheet* GetStyleSheet() const;
 
 	/// Fills a string with the full address of this element.
-	/// @param[in] include_pseudo_classes True if the address is to include the pseudo-classes of the leaf element.
-	/// @return The address of the element, including its full parentage.
+	/// @param[in] include_pseudo_classes True to include the pseudo-classes of the leaf element.
+	/// @param[in] include_parents True to include the address of all parent elements.
+	/// @return The address of the element.
 	String GetAddress(bool include_pseudo_classes = false, bool include_parents = true) const;
 
 	/// Sets the position of this element, as a two-dimensional offset from another element.
@@ -128,17 +131,18 @@ public:
 	/// @return The absolute offset.
 	Vector2f GetAbsoluteOffset(BoxArea area = BoxArea::Content);
 
-	/// Sets an alternate area to use as the client area.
-	/// @param[in] client_area The box area to use as the element's client area.
-	void SetClientArea(BoxArea client_area);
-	/// Returns the area the element uses as its client area.
-	/// @return The box area used as the element's client area.
-	BoxArea GetClientArea() const;
+	/// Sets an alternate area to use as the clip area.
+	/// @param[in] clip_area The box area to use as the element's clip area.
+	void SetClipArea(BoxArea clip_area);
+	/// Returns the area the element uses as its clip area.
+	/// @return The box area used as the element's clip area.
+	BoxArea GetClipArea() const;
 
 	/// Sets the dimensions of the element's scrollable overflow rectangle. This is the tightest fitting box surrounding
 	/// all of this element's logical children, and the element's padding box.
 	/// @param[in] scrollable_overflow_rectangle The dimensions of the box's scrollable content.
-	void SetScrollableOverflowRectangle(Vector2f scrollable_overflow_rectangle);
+	/// @param[in] clamp_scroll_offset Clamp scroll offset to the new rectangle, should only be set when the final overflow size has been determined.
+	void SetScrollableOverflowRectangle(Vector2f scrollable_overflow_rectangle, bool clamp_scroll_offset);
 	/// Sets the box describing the size of the element, and removes all others.
 	/// @param[in] box The new dimensions box for the element.
 	void SetBox(const Box& box);
@@ -197,7 +201,7 @@ public:
 	/// @return True if the property parsed successfully, false otherwise.
 	bool SetProperty(const String& name, const String& value);
 	/// Sets a local property override on the element to a pre-parsed value.
-	/// @param[in] name The name of the new property.
+	/// @param[in] id The id of the new property.
 	/// @param[in] property The parsed property to set.
 	/// @return True if the property was set successfully, false otherwise.
 	bool SetProperty(PropertyId id, const Property& property);
@@ -336,6 +340,9 @@ public:
 	/// Returns the element's context.
 	/// @return The context this element's document exists within.
 	Context* GetContext() const;
+	/// Returns the element's render manager.
+	/// @return The render manager responsible for this element.
+	RenderManager* GetRenderManager() const;
 
 	/** @name DOM Properties
 	 */
@@ -360,20 +367,18 @@ public:
 	float GetAbsoluteTop();
 
 	/// Gets the horizontal offset from the element's left border edge to the left edge of its client area. This is
-	/// usually the edge of the padding, but may be the content area for some replaced elements.
+	/// effectively equivalent to the left border width.
 	/// @return The horizontal offset of the element's client area, in pixels.
 	float GetClientLeft();
 	/// Gets the vertical offset from the element's top border edge to the top edge of its client area. This is
-	/// usually the edge of the padding, but may be the content area for some replaced elements.
+	/// effectively equivalent to the top border width.
 	/// @return The vertical offset of the element's client area, in pixels.
 	float GetClientTop();
-	/// Gets the width of the element's client area. This is usually the padded area less the vertical scrollbar
-	/// width, but may be the content area for some replaced elements.
-	/// @return The width of the element's client area, usually including padding but not the vertical scrollbar width, border or margin.
+	/// Gets the width of the element's client area. This is the padding area subtracted by the vertical scrollbar width if present.
+	/// @return The element's client width, in pixels.
 	float GetClientWidth();
-	/// Gets the height of the element's client area. This is usually the padded area less the horizontal scrollbar
-	/// height, but may be the content area for some replaced elements.
-	/// @return The inner height of the element, usually including padding but not the horizontal scrollbar height, border or margin.
+	/// Gets the height of the element's client area. This is the padding area subtracted by the horizontal scrollbar height if present.
+	/// @return The element's client height, in pixels.
 	float GetClientHeight();
 
 	/// Returns the element from which all offset calculations are currently computed.
@@ -385,10 +390,10 @@ public:
 	/// Gets the distance from this element's top border to its offset parent's top border.
 	/// @return The vertical distance (in pixels) from this element's offset parent to itself.
 	float GetOffsetTop();
-	/// Gets the width of the element, including the client area, padding, borders and scrollbars, but not margins.
+	/// Gets the width of the element, including the content area, padding, borders and scrollbars, but not margins.
 	/// @return The width of the rendered element, in pixels.
 	float GetOffsetWidth();
-	/// Gets the height of the element, including the client area, padding, borders and scrollbars, but not margins.
+	/// Gets the height of the element, including the content area, padding, borders and scrollbars, but not margins.
 	/// @return The height of the rendered element, in pixels.
 	float GetOffsetHeight();
 
@@ -512,7 +517,7 @@ public:
 	/// aligned to the bottom of the parent element's window.
 	void ScrollIntoView(bool align_with_top = true);
 	/// Sets the scroll offset of this element to the given coordinates.
-	/// @param[in] position The scroll destination coordinates.
+	/// @param[in] offset The scroll destination coordinates.
 	/// @param[in] behavior Smooth scrolling behavior.
 	/// @note Smooth scrolling can only be applied to a single element at a time, any active smooth scrolls will be cancelled.
 	void ScrollTo(Vector2f offset, ScrollBehavior behavior = ScrollBehavior::Instant);
@@ -532,7 +537,7 @@ public:
 	/// @return A unique pointer to the replaced element if found, discard the result to immediately destroy.
 	ElementPtr ReplaceChild(ElementPtr inserted_element, Element* replaced_element);
 	/// Remove a child element from this element.
-	/// @param[in] The element to remove.
+	/// @param[in] element The element to remove.
 	/// @returns A unique pointer to the element if found, discard the result to immediately destroy.
 	ElementPtr RemoveChild(Element* element);
 	/// Returns whether or not this element has any DOM children.
@@ -549,21 +554,22 @@ public:
 	void GetElementsByTagName(ElementList& elements, const String& tag);
 	/// Get all descendant elements with the given class set on them.
 	/// @param[out] elements Resulting elements.
-	/// @param[in] tag Tag to search for.
+	/// @param[in] class_name Class name to search for.
 	void GetElementsByClassName(ElementList& elements, const String& class_name);
 	/// Returns the first descendent element matching the RCSS selector query.
-	/// @param[in] selectors The selector or comma-separated selectors to match against.
+	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @return The first matching element during a depth-first traversal.
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
 	Element* QuerySelector(const String& selector);
 	/// Returns all descendent elements matching the RCSS selector query.
 	/// @param[out] elements The list of matching elements.
-	/// @param[in] selectors The selector or comma-separated selectors to match against.
+	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
-	void QuerySelectorAll(ElementList& elements, const String& selectors);
+	void QuerySelectorAll(ElementList& elements, const String& selector);
 	/// Check if the element matches the given RCSS selector query.
+	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @return True if the element matches the given RCSS selector query, false otherwise.
-	bool Matches(const String& selectors);
+	bool Matches(const String& selector);
 
 	//@}
 
@@ -575,8 +581,8 @@ public:
 	EventDispatcher* GetEventDispatcher() const;
 	/// Returns event types with number of listeners for debugging.
 	String GetEventDispatcherSummary() const;
-	/// Access the element decorators.
-	ElementDecoration* GetElementDecoration() const;
+	/// Access the element background and border.
+	ElementBackgroundBorder* GetElementBackgroundBorder() const;
 	/// Returns the element's scrollbar functionality.
 	ElementScroll* GetElementScroll() const;
 	/// Returns the element's nearest scroll container that can be scrolled, if any.
@@ -688,6 +694,9 @@ private:
 	void OnDpRatioChangeRecursive();
 	void DirtyFontFaceRecursive();
 
+	void ClampScrollOffset();
+	void ClampScrollOffsetRecursive();
+
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
 	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction,
 		float delay, bool initiated_by_animation_property);
@@ -731,8 +740,8 @@ private:
 	OwnedElementList children;
 	int num_non_dom_children;
 
-	// Defines what box area represents the element's client area; this is usually padding, but may be content.
-	BoxArea client_area;
+	// Defines which box area to use for clipping; this is usually padding, but may be content.
+	BoxArea clip_area;
 
 	// Original tag this element came from.
 	String tag;
@@ -793,6 +802,7 @@ private:
 	friend class Rml::ContainerBox;
 	friend class Rml::InlineLevelBox;
 	friend class Rml::ReplacedBox;
+	friend class Rml::LayoutEngine;
 	friend class Rml::ElementScroll;
 	friend RMLUICORE_API void Rml::ReleaseFontResources();
 };

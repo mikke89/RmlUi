@@ -79,8 +79,6 @@ Game::Game()
 	for (int i = 0; i < NUM_SHIELDS; i++)
 		shields[i] = nullptr;
 
-	texture.Set("invaders/data/invaders.tga");
-
 	defender = new Defender(this);
 }
 
@@ -139,22 +137,23 @@ void Game::Update(double t)
 	}
 }
 
-void Game::Render(float dp_ratio)
+void Game::Render(Rml::RenderManager& render_manager, float dp_ratio)
 {
 	if (defender_lives <= 0)
 		return;
 
-	Rml::TextureHandle texture_handle = texture.GetHandle();
+	if (!texture)
+		texture = render_manager.LoadTexture("invaders/data/invaders.tga");
 
 	// Render all available shields
 	for (int i = 0; i < NUM_SHIELDS; i++)
-		shields[i]->Render(dp_ratio);
+		shields[i]->Render(render_manager, dp_ratio);
 
 	// Render all available invaders
 	for (int i = 0; i < NUM_INVADERS + 1; i++)
-		invaders[i]->Render(dp_ratio, texture_handle);
+		invaders[i]->Render(render_manager, dp_ratio, texture);
 
-	defender->Render(dp_ratio, texture_handle);
+	defender->Render(render_manager, dp_ratio, texture);
 }
 
 Defender* Game::GetDefender()
@@ -213,7 +212,7 @@ void Game::SetScore(int score)
 
 	Rml::Element* score_element = context->GetDocument("game_window")->GetElementById("score");
 	if (score_element != nullptr)
-		score_element->SetInnerRML(Rml::CreateString(128, "%d", score).c_str());
+		score_element->SetInnerRML(Rml::CreateString("%d", score).c_str());
 
 	// Update the high score if we've beaten it.
 	if (score > HighScores::GetHighScore())
@@ -224,7 +223,7 @@ void Game::SetHighScore(int score)
 {
 	Rml::Element* high_score_element = context->GetDocument("game_window")->GetElementById("hiscore");
 	if (high_score_element != nullptr)
-		high_score_element->SetInnerRML(Rml::CreateString(128, "%d", score).c_str());
+		high_score_element->SetInnerRML(Rml::CreateString("%d", score).c_str());
 }
 
 void Game::SetLives(int lives)
@@ -233,7 +232,7 @@ void Game::SetLives(int lives)
 
 	Rml::Element* score_element = context->GetDocument("game_window")->GetElementById("lives");
 	if (score_element != nullptr)
-		score_element->SetInnerRML(Rml::CreateString(128, "%d", defender_lives).c_str());
+		score_element->SetInnerRML(Rml::CreateString("%d", defender_lives).c_str());
 }
 
 void Game::SetWave(int wave)
@@ -242,7 +241,7 @@ void Game::SetWave(int wave)
 
 	Rml::Element* waves_element = context->GetDocument("game_window")->GetElementById("waves");
 	if (waves_element != nullptr)
-		waves_element->SetInnerRML(Rml::CreateString(128, "%d", wave).c_str());
+		waves_element->SetInnerRML(Rml::CreateString("%d", wave).c_str());
 }
 
 void Game::RemoveLife()

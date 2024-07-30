@@ -1,0 +1,58 @@
+{
+	"version": 3,
+	"configurePresets": [
+		{
+			"name": "samples",
+			"description": "Enable samples but only those without extra dependencies.",
+			"cacheVariables": {
+				"RMLUI_SAMPLES": true
+			}
+		},
+		{
+			"name": "samples-all",
+			"description": "Enable all samples, also those with extra dependencies.",
+			"inherits": "samples",
+			"cacheVariables": {
+				"RMLUI_HARFBUZZ_SAMPLE": true,
+				"RMLUI_LOTTIE_PLUGIN": true,
+				"RMLUI_SVG_PLUGIN": true,
+				"RMLUI_LUA_BINDINGS": true
+			}
+		},
+		{
+			"name": "standalone",
+			"description": "Build the library completely without any dependencies, features the `bitmap_font` sample.",
+			"cacheVariables": {
+				"RMLUI_SAMPLES": true,
+				"RMLUI_FONT_ENGINE": "none",
+				"RMLUI_BACKEND": "native"
+			}
+		},
+		{
+			"name": "dev",
+			"description": "Enable testing in addition to samples.",
+			"installDir": "Install",
+			"cacheVariables": {
+				"RMLUI_SAMPLES": true,
+				"BUILD_TESTING": true
+			},
+			"warnings": {
+				"dev": true
+			},
+			"errors": {
+				"dev": true
+			}
+		},
+		{
+			"name": "dev-all",
+			"description": "Enable testing in addition to samples, including those that require extra dependencies.",
+			"inherits": "dev",
+			"cacheVariables": {
+				"RMLUI_HARFBUZZ_SAMPLE": true,
+				"RMLUI_LOTTIE_PLUGIN": true,
+				"RMLUI_SVG_PLUGIN": true,
+				"RMLUI_LUA_BINDINGS": true
+			}
+		}
+	]
+}
