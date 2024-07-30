@@ -168,10 +168,10 @@ void TestsShell::ShutdownShell()
 
 	Rml::Shutdown();
 
-	shell_render_interface.Reset();
-
 #ifdef RMLUI_TESTS_USE_SHELL
 	Backend::Shutdown();
+#else
+	shell_render_interface.Reset();
 #endif
 
 	Shell::Shutdown();

@@ -175,8 +175,9 @@ ElementDocument::ElementDocument(const String& tag) : Element(tag)
 	context = nullptr;
 
 	modal = false;
-	layout_dirty = true;
+	focusable_from_modal = false;
 
+	layout_dirty = true;
 	position_dirty = false;
 
 	ForceLocalStackingContext();
@@ -697,6 +698,16 @@ void ElementDocument::ProcessDefaultAction(Event& event)
 void ElementDocument::OnResize()
 {
 	DirtyPosition();
+}
+
+bool ElementDocument::IsFocusableFromModal() const
+{
+	return focusable_from_modal && IsVisible();
+}
+
+void ElementDocument::SetFocusableFromModal(bool focusable)
+{
+	focusable_from_modal = focusable;
 }
 
 Element* ElementDocument::FindNextTabElement(Element* current_element, bool forward)

@@ -29,7 +29,7 @@
 #ifndef RMLUI_CORE_TEXTINPUTCONTEXT_H
 #define RMLUI_CORE_TEXTINPUTCONTEXT_H
 
-#include <RmlUi/Core/StringUtilities.h>
+#include "StringUtilities.h"
 
 namespace Rml {
 

@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019-2024 The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,34 +26,22 @@
  *
  */
 
-#include "ElementContextHook.h"
-#include "DebuggerPlugin.h"
+#ifndef RMLUI_DEBUGGER_ELEMENTDEBUGDOCUMENT_H
+#define RMLUI_DEBUGGER_ELEMENTDEBUGDOCUMENT_H
+
+#include "../../Include/RmlUi/Core/ElementDocument.h"
 
 namespace Rml {
 namespace Debugger {
 
-ElementContextHook::ElementContextHook(const String& tag) : ElementDebugDocument(tag)
-{
-	debugger = nullptr;
-}
+class ElementDebugDocument : public ElementDocument {
+public:
+	RMLUI_RTTI_DefineWithParent(ElementDebugDocument, ElementDocument)
 
-ElementContextHook::~ElementContextHook() {}
-
-void ElementContextHook::Initialise(DebuggerPlugin* _debugger)
-{
-	SetId("rmlui-debug-hook");
-	SetProperty(PropertyId::ZIndex, Property(999'999, Unit::NUMBER));
-	debugger = _debugger;
-}
-
-void ElementContextHook::OnRender()
-{
-	// Make sure we're in the front of the render queue for this context (at least next frame).
-	PullToFront();
-
-	// Render the debugging elements.
-	debugger->Render();
-}
+	ElementDebugDocument(const String& tag);
+};
 
 } // namespace Debugger
 } // namespace Rml
+
+#endif

@@ -989,8 +989,8 @@ bool Context::OnFocusChange(Element* new_focus, bool focus_visible)
 	ElementDocument* old_document = old_focus ? old_focus->GetOwnerDocument() : nullptr;
 	ElementDocument* new_document = new_focus->GetOwnerDocument();
 
-	// If the current focus is modal and the new focus is not modal, deny the request
-	if (old_document && old_document->IsModal() && (!new_document || !new_document->GetOwnerDocument()->IsModal()))
+	// If the current focus is modal and the new focus is cannot receive focus from modal, deny the request.
+	if (old_document && old_document->IsModal() && (!new_document || !(new_document->IsModal() || new_document->IsFocusableFromModal())))
 		return false;
 
 	// Build the old chains
@@ -1162,17 +1162,15 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 		element = root.get();
 	}
 
-	// Check if any documents have modal focus; if so, only check down than document.
-	if (element == root.get())
+	bool is_modal = false;
+	ElementDocument* focus_document = nullptr;
+
+	// If we have modal focus, only check down documents that can receive focus from modals.
+	if (element == root.get() && focus)
 	{
-		if (focus)
-		{
-			ElementDocument* focus_document = focus->GetOwnerDocument();
-			if (focus_document && focus_document->IsModal())
-			{
-				element = focus_document;
-			}
-		}
+		focus_document = focus->GetOwnerDocument();
+		if (focus_document && focus_document->IsModal())
+			is_modal = true;
 	}
 
 	// Check any elements within our stacking context. We want to return the lowest-down element
@@ -1184,10 +1182,11 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 
 		for (int i = (int)element->stacking_context.size() - 1; i >= 0; --i)
 		{
+			Element* stacking_child = element->stacking_context[i];
 			if (ignore_element)
 			{
 				// Check if the element is a descendant of the element we're ignoring.
-				Element* element_hierarchy = element->stacking_context[i];
+				Element* element_hierarchy = stacking_child;
 				while (element_hierarchy)
 				{
 					if (element_hierarchy == ignore_element)
@@ -1200,7 +1199,14 @@ Element* Context::GetElementAtPoint(Vector2f point, const Element* ignore_elemen
 					continue;
 			}
 
-			Element* child_element = GetElementAtPoint(point, ignore_element, element->stacking_context[i]);
+			if (is_modal)
+			{
+				ElementDocument* child_document = stacking_child->GetOwnerDocument();
+				if (!child_document || !(child_document == focus_document || child_document->IsFocusableFromModal()))
+					continue;
+			}
+
+			Element* child_element = GetElementAtPoint(point, ignore_element, stacking_child);
 			if (child_element)
 				return child_element;
 		}
