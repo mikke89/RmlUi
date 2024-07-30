@@ -42,8 +42,8 @@ class ElementFormControl;
 
 enum class DropDownBoxLayoutType {
 	None,
-	Open,
-	Switch
+	Open,  // we just opened the drop-down menu
+	Switch // we're switching the selected value
 };
 
 class WidgetDropDown : public EventListener {
