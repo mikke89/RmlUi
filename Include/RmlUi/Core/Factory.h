@@ -125,7 +125,6 @@ public:
 	/// @param[in] name The name of the decorator the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the decorator name is encountered.
 	/// @lifetime The instancer must be kept alive until after the call to Rml::Shutdown.
-	/// @return The added instancer if the registration was successful, nullptr otherwise.
 	static void RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer);
 	/// Retrieves a decorator instancer registered with the factory.
 	/// @param[in] name The name of the desired decorator type.
@@ -136,7 +135,6 @@ public:
 	/// @param[in] name The name of the filter the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the filter name is encountered.
 	/// @lifetime The instancer must be kept alive until after the call to Rml::Shutdown.
-	/// @return The added instancer if the registration was successful, nullptr otherwise.
 	static void RegisterFilterInstancer(const String& name, FilterInstancer* instancer);
 	/// Retrieves a filter instancer registered with the factory.
 	/// @param[in] name The name of the desired filter type.
@@ -147,7 +145,6 @@ public:
 	/// @param[in] name The name of the font effect the instancer will be called for.
 	/// @param[in] instancer The instancer to call when the font effect name is encountered.
 	/// @lifetime The instancer must be kept alive until after the call to Rml::Shutdown.
-	/// @return The added instancer if the registration was successful, nullptr otherwise.
 	static void RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer);
 	/// Retrieves a font-effect instancer registered with the factory.
 	/// @param[in] name The name of the desired font-effect type.
