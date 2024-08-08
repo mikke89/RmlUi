@@ -48,7 +48,7 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 	lock_selection = false;
 	selection_dirty = false;
-	box_layout_dirty = false;
+	box_layout_dirty = DropDownBoxLayoutType::None;
 	value_rml_dirty = false;
 	value_layout_dirty = false;
 	box_visible = false;
@@ -151,7 +151,7 @@ void WidgetDropDown::OnUpdate()
 
 void WidgetDropDown::OnRender()
 {
-	if (box_visible && box_layout_dirty)
+	if (box_visible && box_layout_dirty != DropDownBoxLayoutType::None)
 	{
 		// Layout the selection box.
 		// The following procedure should ensure that the selection box is never (partly) outside of the context's window.
@@ -230,7 +230,18 @@ void WidgetDropDown::OnRender()
 			selection_element->SetOffset(Vector2f(offset_x, offset_y), parent_element);
 		}
 
-		box_layout_dirty = false;
+		int selection = GetSelection();
+
+		// Scroll selected element into view, if we have one
+		if (selection != -1)
+		{
+			Rml::ScrollIntoViewOptions scrollOptions {
+				box_layout_dirty == DropDownBoxLayoutType::Open ? Rml::ScrollAlignment::Start : Rml::ScrollAlignment::Nearest
+			};
+			GetOption(selection)->ScrollIntoView(scrollOptions);
+		}
+
+		box_layout_dirty = DropDownBoxLayoutType::None;
 	}
 
 	if (value_layout_dirty)
@@ -267,7 +278,7 @@ void WidgetDropDown::OnLayout()
 	value_element->SetOffset(parent_element->GetBox().GetPosition(BoxArea::Content), parent_element);
 	value_element->SetBox(Box(size));
 
-	box_layout_dirty = true;
+	box_layout_dirty = DropDownBoxLayoutType::Switch;
 	value_layout_dirty = true;
 }
 
@@ -449,7 +460,7 @@ void WidgetDropDown::OnChildAdd(Element* element)
 		SetSelection(element, true);
 
 	selection_dirty = true;
-	box_layout_dirty = true;
+	box_layout_dirty = DropDownBoxLayoutType::Switch;
 }
 
 void WidgetDropDown::OnChildRemove(Element* element)
@@ -463,7 +474,7 @@ void WidgetDropDown::OnChildRemove(Element* element)
 		SetSelection(nullptr);
 
 	selection_dirty = true;
-	box_layout_dirty = true;
+	box_layout_dirty = DropDownBoxLayoutType::Switch;
 }
 
 void WidgetDropDown::AttachScrollEvent()
@@ -502,7 +513,7 @@ void WidgetDropDown::ProcessEvent(Event& event)
 						SetSelection(current_element);
 						event.StopPropagation();
 
-						ShowSelectBox(false);
+						HideSelectBox();
 						parent_element->Focus();
 					}
 				}
@@ -523,9 +534,9 @@ void WidgetDropDown::ProcessEvent(Event& event)
 			}
 
 			if (selection_element->GetComputedValues().visibility() == Style::Visibility::Hidden)
-				ShowSelectBox(true);
+				ShowSelectBox();
 			else
-				ShowSelectBox(false);
+				HideSelectBox();
 		}
 	}
 	break;
@@ -542,7 +553,7 @@ void WidgetDropDown::ProcessEvent(Event& event)
 	{
 		if (event.GetTargetElement() == parent_element)
 		{
-			ShowSelectBox(false);
+			HideSelectBox();
 			value_element->SetPseudoClass("focus", false);
 			button_element->SetPseudoClass("focus", false);
 		}
@@ -604,7 +615,7 @@ void WidgetDropDown::ProcessEvent(Event& event)
 			}
 
 			if (!scrolls_selection_box)
-				ShowSelectBox(false);
+				HideSelectBox();
 		}
 	}
 	break;
@@ -612,28 +623,33 @@ void WidgetDropDown::ProcessEvent(Event& event)
 	}
 }
 
-void WidgetDropDown::ShowSelectBox(bool show)
+void WidgetDropDown::ShowSelectBox()
 {
-	if (show)
-	{
-		selection_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
-		selection_element->SetPseudoClass("checked", true);
-		value_element->SetPseudoClass("checked", true);
-		button_element->SetPseudoClass("checked", true);
-		box_layout_dirty = true;
-		AttachScrollEvent();
-	}
-	else
-	{
-		selection_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
-		selection_element->RemoveProperty(PropertyId::Height);
-		selection_element->SetPseudoClass("checked", false);
-		value_element->SetPseudoClass("checked", false);
-		button_element->SetPseudoClass("checked", false);
-		DetachScrollEvent();
-	}
+	selection_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+	selection_element->SetPseudoClass("checked", true);
+	value_element->SetPseudoClass("checked", true);
+	button_element->SetPseudoClass("checked", true);
+	box_layout_dirty = DropDownBoxLayoutType::Open;
+	AttachScrollEvent();
 
-	box_visible = show;
+	box_visible = true;
+}
+
+void WidgetDropDown::HideSelectBox()
+{
+	selection_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
+	selection_element->RemoveProperty(PropertyId::Height);
+	selection_element->SetPseudoClass("checked", false);
+	value_element->SetPseudoClass("checked", false);
+	button_element->SetPseudoClass("checked", false);
+	DetachScrollEvent();
+
+	box_visible = false;
+}
+
+bool WidgetDropDown::IsSelectBoxVisible()
+{
+	return box_visible;
 }
 
 } // namespace Rml
