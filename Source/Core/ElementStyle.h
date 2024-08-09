@@ -150,8 +150,16 @@ private:
 	static const Property* GetLocalProperty(PropertyId id, const PropertyDictionary& inline_properties, const ElementDefinition* definition);
 	static const Property* GetProperty(PropertyId id, const Element* element, const PropertyDictionary& inline_properties,
 		const ElementDefinition* definition);
-	static void TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& inline_properties,
-		const ElementDefinition* old_definition, const ElementDefinition* new_definition);
+
+	/** Called from Element::UpdateDefinition() just before dirty_properties is set.
+	 * https://www.w3.org/TR/css-transitions-1/
+	 * @param[in, out] changed_properties Set of changed properties ids. Properties that will be handled by a newly created transition are removed
+	 * from this set.
+	 * @param[in] old_definition
+	 * @param[in] new_definition
+	 */
+	void ApplyTransitionDefinitionChanges(PropertyIdSet& changed_properties, const ElementDefinition* old_definition,
+		const ElementDefinition* new_definition);
 
 	// Element these properties belong to
 	Element* element;
