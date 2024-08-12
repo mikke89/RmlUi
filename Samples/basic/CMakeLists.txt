@@ -13,6 +13,7 @@ if(RMLUI_FONT_ENGINE_ENABLED)
 	add_subdirectory("load_document")
 	add_subdirectory("transform")
 	add_subdirectory("tree_view")
+	add_subdirectory("player_list")
 
 	if(RMLUI_HARFBUZZ_SAMPLE)
 		add_subdirectory("harfbuzz")

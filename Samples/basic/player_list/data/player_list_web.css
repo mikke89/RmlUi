@@ -1,0 +1,130 @@
+* {
+    box-sizing: border-box;
+}
+
+#body {
+    width: 700px;
+    height: 600px;
+    min-width: 500px;
+    min-height: 250px;
+    margin: auto;
+    position: relative;
+
+    background-color: #f0f0f0;
+    color: #333;
+
+    font-family: Arial;
+    font-size: 15px;
+
+    resize: both;
+    overflow: auto;
+}
+
+table {
+    box-sizing: border-box;
+    display: table;
+}
+
+tr {
+    box-sizing: border-box;
+    display: table-row;
+}
+
+td {
+    box-sizing: border-box;
+    display: table-cell;
+}
+
+thead, tbody, tfoot {
+    display: table-row-group;
+}
+
+scrollbarvertical {
+    width: 12px;
+    cursor: arrow;
+    margin-right: -1px;
+    padding-right: 1px;
+}
+
+scrollbarvertical slidertrack {
+    background-color: #f0f0f0;
+}
+
+scrollbarvertical sliderbar {
+    background-color: #666;
+}
+
+input[type="text"] {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    border: 1px #bbb;
+    border-radius: 3px;
+    margin-top: 15px;
+    font-size: 1.1em;
+    line-height: 1.4;
+    cursor: text;
+}
+
+#title {
+    background-color: #CECECE;
+    padding: 4px 20px;
+    width: 100%;
+    display: block;
+    position: absolute;
+}
+
+#title > handle {
+    font-weight: bold;
+    font-size: 1.25em;
+}
+
+#contents {
+    height: 100%;
+    padding: 40px 20px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+#contents__footer {
+    width: 100%;
+    align-self: flex-end;
+}
+
+#panel_info {
+    font-size: .95em;
+    display: flex;
+    justify-content: space-between;
+}
+
+#players {
+    margin-top: 15px;
+    flex: auto;
+    overflow: auto;
+}
+
+table {
+    width: 100%;
+}
+
+table thead tr {
+    font-weight: bold;
+    padding-bottom: 1px;
+}
+
+table td {
+    padding: 2px 4px;
+}
+
+table td.data_column {
+    width: 70px;
+    text-align: center;
+}
+
+table tbody td.data_column {
+    font-size: .9em;
+}
+
+table td.tag_column {
+    width: 100px;
+}

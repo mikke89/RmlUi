@@ -1,0 +1,59 @@
+<rml>
+	<head>
+		<title>Player List Sample</title>
+
+		<link rel="stylesheet" type="text/rcss" href="player_list.css" />
+	</head>
+
+	<body>
+		<div id="title">
+			<handle move_target="#document">
+				<div id="title__text">Player List</div>
+			</handle>
+		</div>
+
+		<div id="contents">
+			<div>
+				<div id="panel_info">
+					<div>
+						Server: Europe #56763
+					</div>
+				</div>
+			</div>
+
+			<div id="players">
+				<table>
+					<thead>
+						<tr>
+							<td class="data_column">ID</td>
+							<td class="tag_column">Player Tag</td>
+							<td></td>
+							<td class="data_column">Ping</td>
+							<td class="data_column">Score</td>
+						</tr>
+					</thead>
+
+					<tbody data-model="player_list">
+						<tr data-for="player : players" data-attr-data-id="player.id">
+							<td class="data_column">{{player.id}}</td>
+							<td data-style-color="player.tag_color">{{player.tag_name}}</td>
+							<td>{{player.name}}</td>
+							<td class="data_column">{{player.latency}} ms</td>
+							<td class="data_column">{{player.score}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div id="contents__footer" data-model="player_list">
+				<div id="players_list_controls">
+					<div>
+						<input type="text" data-value="search_players_query" maxlength="32" />
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<handle size_target="#document" id="resizer" />
+	</body>
+</rml>

@@ -1,0 +1,138 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    width: 700dp;
+    height: 600dp;
+    min-width: 500dp;
+    min-height: 200dp;
+    max-width: 100%;
+    max-height: 100%;
+    margin: auto;
+
+    background-color: #f0f0f0;
+    color: #333;
+
+    font-family: LatoLatin;
+    font-size: 15dp;
+}
+
+table {
+    box-sizing: border-box;
+    display: table;
+}
+
+tr {
+    box-sizing: border-box;
+    display: table-row;
+}
+
+td {
+    box-sizing: border-box;
+    display: table-cell;
+}
+
+thead, tbody, tfoot {
+    display: table-row-group;
+}
+
+scrollbarvertical {
+    width: 12dp;
+    cursor: arrow;
+    margin-right: -1dp;
+    padding-right: 1dp;
+}
+
+scrollbarvertical slidertrack {
+    background-color: #f0f0f0;
+}
+
+scrollbarvertical sliderbar {
+    background-color: #666;
+}
+
+input[type="text"] {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10dp;
+    border: 1dp #bbb;
+    border-radius: 3dp;
+    margin-top: 5dp;
+    margin-bottom: 20dp;
+    font-size: 1.1em;
+    line-height: 1.4;
+    cursor: text;
+}
+
+#title {
+    background-color: #CECECE;
+    padding: 4dp 20dp;
+    width: 100%;
+    display: block;
+    position: absolute;
+}
+
+#title > handle {
+    font-weight: bold;
+    font-size: 1.25em;
+}
+
+#contents {
+    margin-top: 20dp;
+    height: 100%;
+    padding: 20dp;
+    display: flex;
+    flex-direction: column;
+}
+
+#contents__footer {
+    align-self: flex-end;
+}
+
+#panel_info {
+    font-size: .95em;
+    display: flex;
+    justify-content: space-between;
+}
+
+#players {
+    margin-top: 15dp;
+    flex: auto;
+    overflow: auto;
+}
+
+table {
+    width: 100%;
+}
+
+table thead tr {
+    font-weight: bold;
+    padding-bottom: 1dp;
+}
+
+table td {
+    padding: 2dp 4dp;
+}
+
+table td.data_column {
+    width: 70dp;
+    text-align: center;
+}
+
+table tbody td.data_column {
+    font-size: .9em;
+}
+
+table td.tag_column {
+    width: 100dp;
+}
+
+#resizer {
+    position: absolute;
+    width: 12dp;
+    height: 12dp;
+    bottom: 0;
+    right: 0;
+    cursor: resize;
+}
