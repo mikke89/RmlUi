@@ -50,7 +50,7 @@ bool PropertyParserBoxShadow::ParseValue(Property& property, const String& value
 	StringList shadows_string_list;
 	{
 		auto lowercase_value = StringUtilities::ToLower(value);
-		StringUtilities::ExpandString(shadows_string_list, lowercase_value, ',');
+		StringUtilities::ExpandString(shadows_string_list, lowercase_value, ',', '(', ')');
 	}
 
 	if (shadows_string_list.empty())
@@ -64,7 +64,7 @@ bool PropertyParserBoxShadow::ParseValue(Property& property, const String& value
 	for (const String& shadow_str : shadows_string_list)
 	{
 		StringList arguments;
-		StringUtilities::ExpandString(arguments, shadow_str, ' ');
+		StringUtilities::ExpandString(arguments, shadow_str, ' ', '(', ')');
 		if (arguments.empty())
 			return false;
 
