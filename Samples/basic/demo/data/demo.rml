@@ -207,7 +207,7 @@ p.title
 	margin: -2em 0 0 0;
 	text-align: center;
 }
-.image-mode.small { margin-top: -20dp; }
+.image-mode.small { margin-top: -15dp; }
 .image-mode.small > div
 {
 	width: 40dp;
@@ -695,7 +695,7 @@ form .nav-auto, form input.checkbox, form input.radio
 
 	<p>Let us define the outer sprite by the following image, and the inner sprite as the part within the displayed border.</p>
 	<div style="position: relative; text-align: left; width: 145dp;">
-		<img sprite="textarea"/><img sprite="textarea-inner" style="position: absolute; left: 10dp; top: 13dp; border: 1dp #f0f;"/>
+		<img sprite="textarea"/><img sprite="textarea-inner" style="position: absolute; left: 10dp; top: 12dp; border: 1dp #f0f;"/>
 	</div>
 
 	<p>When the ninepatch decorator is applied and the element is stretched, the following is rendered.</p>
@@ -740,6 +740,7 @@ form .nav-auto, form input.checkbox, form input.radio
 		<h1>Tiled decorators orientation</h1>
 		<p>Orientation can be applied to every tile individually in the 'image', 'tiled-horizontal', 'tiled-vertical', and 'tiled-box' decorators.</p>
 		<div class="image-mode">
+			<div class="align-default"><p style="font-style: italic;">default</p></div>
 			<div class="orientation-vertical"><p>flip-vertical</p></div>
 			<div class="orientation-horizontal"><p>flip-horizontal</p></div>
 			<div class="orientation-rotate"><p>rotate-180</p></div>
