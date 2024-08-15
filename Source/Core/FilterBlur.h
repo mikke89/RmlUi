@@ -37,14 +37,14 @@ namespace Rml {
 
 class FilterBlur : public Filter {
 public:
-	bool Initialise(NumericValue radius);
+	bool Initialise(NumericValue sigma);
 
 	CompiledFilter CompileFilter(Element* element) const override;
 
 	void ExtendInkOverflow(Element* element, Rectanglef& scissor_region) const override;
 
 private:
-	NumericValue radius_value;
+	NumericValue sigma_value;
 };
 
 class FilterBlurInstancer : public FilterInstancer {
@@ -55,7 +55,7 @@ public:
 
 private:
 	struct PropertyIds {
-		PropertyId radius;
+		PropertyId sigma;
 	};
 	PropertyIds ids;
 };

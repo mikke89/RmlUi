@@ -1506,7 +1506,7 @@ Rml::CompiledFilterHandle RenderInterface_GL3::CompileFilter(const Rml::String& 
 	else if (name == "blur")
 	{
 		filter.type = FilterType::Blur;
-		filter.sigma = 0.5f * Rml::Get(parameters, "radius", 1.0f);
+		filter.sigma = Rml::Get(parameters, "sigma", 1.0f);
 	}
 	else if (name == "drop-shadow")
 	{
