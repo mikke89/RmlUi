@@ -28,6 +28,7 @@
 
 #include "DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include <algorithm>
 
 namespace Rml {
@@ -89,6 +90,8 @@ void DataViews::OnElementRemove(Element* element)
 
 bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 {
+	RMLUI_ZoneScoped;
+
 	bool result = false;
 	size_t num_dirty_variables_prev = 0;
 
@@ -138,7 +141,11 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 				continue;
 
 			if (view->IsValid())
+			{
+				RMLUI_ZoneScopedN("DataView::Update");
+
 				result |= view->Update(model);
+			}
 		}
 
 		// Destroy views marked for destruction
