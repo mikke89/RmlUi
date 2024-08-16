@@ -86,6 +86,11 @@ input[type="text"] {
     flex-direction: column;
 }
 
+#contents > * {
+    flex: 1;
+    width: 100%;
+}
+
 #contents__footer {
     align-self: flex-end;
 }
@@ -98,8 +103,8 @@ input[type="text"] {
 
 #players {
     margin-top: 15dp;
-    flex: auto;
-    overflow: auto;
+    flex: 10;
+    overflow: scroll;
 }
 
 table {
