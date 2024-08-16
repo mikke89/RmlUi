@@ -244,7 +244,7 @@ void DataModel::CopyAliases(Element* from_element, Element* to_element)
 	{
 		// Need to create a copy to prevent errors during concurrent modification for 3rd party containers
 		auto copy = existing_map->second;
-		for (auto const& it : copy)
+		for (const auto& it : copy)
 			aliases[to_element][it.first] = std::move(it.second);
 	}
 }
@@ -348,8 +348,8 @@ bool DataModel::GetVariableInto(const DataAddress& address, Variant& out_value) 
 
 void DataModel::DirtyVariable(const String& variable_name)
 {
-	RMLUI_ASSERTMSG(LegalVariableName(variable_name) == nullptr, "Illegal variable name provided. Only top-level variables can be dirtied.");
-	RMLUI_ASSERTMSG(variables.count(variable_name) == 1, "In DirtyVariable: Variable name not found among added variables.");
+	// RMLUI_ASSERTMSG(LegalVariableName(variable_name) == nullptr, "Illegal variable name provided. Only top-level variables can be dirtied.");
+	// RMLUI_ASSERTMSG(variables.count(variable_name) == 1, "In DirtyVariable: Variable name not found among added variables.");
 	dirty_variables.emplace(variable_name);
 }
 

@@ -48,6 +48,8 @@ public:
 
 	StringList GetVariableNameList() const override;
 
+	bool HasAddressDependency(const DataAddress& address) const override;
+
 protected:
 	const String& GetModifier() const;
 	DataExpression& GetExpression();
@@ -134,6 +136,8 @@ public:
 	bool Update(DataModel& model) override;
 	StringList GetVariableNameList() const override;
 
+	bool HasAddressDependency(const DataAddress& address) const override;
+
 protected:
 	void Release() override;
 
@@ -160,6 +164,8 @@ public:
 
 	StringList GetVariableNameList() const override;
 
+	bool HasAddressDependency(const DataAddress& address) const override;
+
 protected:
 	void Release() override;
 
@@ -179,6 +185,8 @@ public:
 	virtual StringList GetVariableNameList() const override;
 	bool Update(DataModel& model) override;
 	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
+
+	bool HasAddressDependency(const DataAddress& address) const override;
 
 protected:
 	void Release() override;

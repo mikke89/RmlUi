@@ -69,6 +69,12 @@ StringList DataViewCommon::GetVariableNameList() const
 	return expression->GetVariableNameList();
 }
 
+bool DataViewCommon::HasAddressDependency(const DataAddress& address) const
+{
+	RMLUI_ASSERT(expression);
+	return expression->HasAddressDependency(address);
+}
+
 const String& DataViewCommon::GetModifier() const
 {
 	return modifier;
@@ -423,6 +429,17 @@ StringList DataViewText::GetVariableNameList() const
 	return full_list;
 }
 
+bool DataViewText::HasAddressDependency(const DataAddress& address) const
+{
+	for (const DataEntry& entry : data_entries)
+	{
+		RMLUI_ASSERT(entry.data_expression);
+		if (entry.data_expression->HasAddressDependency(address))
+			return true;
+	}
+	return false;
+}
+
 void DataViewText::Release()
 {
 	delete this;
@@ -503,7 +520,8 @@ bool DataViewFor::Initialize(DataModel& model, Element* element, const String& i
 
 	element->SetProperty(PropertyId::Display, Property(Style::Display::None));
 
-	// Copy over the attributes, but remove the 'data-for' which would otherwise recreate the data-for loop on all constructed children recursively.
+	// Copy over the attributes, but remove the 'data-for' which would otherwise recreate the data-for loop on all constructed children
+	// recursively.
 	attributes = element->GetAttributes();
 	for (auto it = attributes.begin(); it != attributes.end(); ++it)
 	{
@@ -571,6 +589,20 @@ StringList DataViewFor::GetVariableNameList() const
 	return StringList{container_address.front().name};
 }
 
+bool DataViewFor::HasAddressDependency(const DataAddress& address) const
+{
+	if (address.empty())
+		return false;
+
+	for (size_t i = 0; i < Math::Min(address.size(), container_address.size()); i++)
+	{
+		if (container_address[i] != address[i])
+			return false;
+	}
+
+	return true;
+}
+
 void DataViewFor::Release()
 {
 	delete this;
@@ -596,6 +628,12 @@ bool DataViewAlias::Initialize(DataModel& model, Element* element, const String&
 
 	variables.push_back(modifier);
 	model.InsertAlias(element, modifier, address);
+	return true;
+}
+
+bool DataViewAlias::HasAddressDependency(const DataAddress& /*address*/) const
+{
+	// TODO
 	return true;
 }
 

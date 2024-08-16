@@ -111,17 +111,23 @@ public:
 
 		RMLUI_ZoneScoped;
 
-		for (PlayerEntry& player : data)
-		{
-			player.score = (uint32_t)Rml::Math::RandomInteger(100);
-			player.latency = (uint16_t)Rml::Math::RandomInteger(500);
-		}
+		// for (PlayerEntry& player : data)
+		//{
+		//	player.score = (uint32_t)Rml::Math::RandomInteger(100);
+		//	player.latency = (uint16_t)Rml::Math::RandomInteger(500);
+		// }
 
-		Filter();
-		Sort();
+		data[5].score = (uint32_t)Rml::Math::RandomInteger(100);
+
+		// Filter();
+		// Sort();
+		//
+
+		entries = data;
 
 		RMLUI_ASSERT(data_model);
-		data_model.DirtyVariable("players");
+		data_model.DirtyVariable("players[5].score");
+		// data_model.DirtyVariable("players");
 
 		last_update = t;
 	}

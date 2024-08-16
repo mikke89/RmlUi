@@ -28,7 +28,7 @@
 
 #include "DataView.h"
 #include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/Profiling.h"
+#include "DataModel.h"
 #include <algorithm>
 
 namespace Rml {
@@ -120,9 +120,21 @@ bool DataViews::Update(DataModel& model, const DirtyVariables& dirty_variables)
 
 		for (const String& variable_name : dirty_variables)
 		{
-			auto pair = name_view_map.equal_range(variable_name);
-			for (auto it = pair.first; it != pair.second; ++it)
-				dirty_views.push_back(it->second);
+			DataAddress address = model.ResolveAddress(variable_name, nullptr);
+			if (address.size() > 1)
+			{
+				for (const DataViewPtr& view : views)
+				{
+					if (view->HasAddressDependency(address))
+						dirty_views.push_back(view.get());
+				}
+			}
+			else
+			{
+				auto pair = name_view_map.equal_range(variable_name);
+				for (auto it = pair.first; it != pair.second; ++it)
+					dirty_views.push_back(it->second);
+			}
 		}
 
 		// Remove duplicate entries

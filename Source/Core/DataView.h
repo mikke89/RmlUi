@@ -82,6 +82,9 @@ public:
 	// Returns the list of data variable name(s) which can modify this view.
 	virtual StringList GetVariableNameList() const = 0;
 
+	// Returns true if the variable at the given data address can modify this view.
+	virtual bool HasAddressDependency(const DataAddress& address) const = 0;
+
 	// Returns the attached element if it still exists.
 	Element* GetElement() const;
 

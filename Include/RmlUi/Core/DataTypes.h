@@ -66,6 +66,8 @@ using DirtyVariables = SmallUnorderedSet<String>;
 struct DataAddressEntry {
 	DataAddressEntry(String name) : name(std::move(name)), index(-1) {}
 	DataAddressEntry(int index) : index(index) {}
+	bool operator==(const DataAddressEntry& other) const { return name == other.name && index == other.index; }
+	bool operator!=(const DataAddressEntry& other) const { return !(*this == other); }
 	String name;
 	int index;
 };

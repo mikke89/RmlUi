@@ -1167,6 +1167,28 @@ StringList DataExpression::GetVariableNameList() const
 	return list;
 }
 
+bool DataExpression::HasAddressDependency(const DataAddress& match_address) const
+{
+	for (const DataAddress& address : addresses)
+	{
+		if (match_address.size() > address.size())
+			continue;
+
+		bool match = true;
+		for (size_t i = 0; i < match_address.size(); i++)
+		{
+			if (match_address[i] != address[i])
+			{
+				match = false;
+				break;
+			}
+		}
+		if (match)
+			return true;
+	}
+	return false;
+}
+
 DataExpressionInterface::DataExpressionInterface(DataModel* data_model, Element* element, Event* event) :
 	data_model(data_model), element(element), event(event)
 {}
