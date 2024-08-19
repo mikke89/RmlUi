@@ -17,7 +17,7 @@
 			float: left;
 		}
 		.backdrop {
-			backdrop-filter: blur(10dp);
+			backdrop-filter: blur(5dp);
 		}
 		.filter {
 			filter: sepia(1);

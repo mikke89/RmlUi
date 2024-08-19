@@ -30,7 +30,7 @@
 			height: 300dp;
 			border-radius: 30dp;
 			margin: auto;
-			backdrop-filter: blur(50dp);
+			backdrop-filter: blur(25dp);
 		}
 	</style>
 </head>

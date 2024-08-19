@@ -14,7 +14,7 @@
 		.parent {
 			background-color: red;
 			position: relative;
-			filter: blur(15dp);
+			filter: blur(10dp);
 		}
 		.child {
 			background-color: blue;
