@@ -182,7 +182,7 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 	// Search through the element's ancestors, finding all elements that clip their overflow and have overflow to clip.
 	// For each that we find, we combine their clipping region with the existing clipping region, and so build up a
 	// complete clipping region for the element.
-	Element* clipping_element = (force_clip_self ? element : element->GetParentNode());
+	Element* clipping_element = (force_clip_self ? element : element->GetOffsetParent());
 
 	Rectanglef clip_region = Rectanglef::MakeInvalid();
 
