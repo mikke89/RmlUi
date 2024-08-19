@@ -172,7 +172,7 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 			CompiledFilter blur;
 			if (blur_radius >= 0.5f)
 			{
-				blur = render_manager.CompileFilter("blur", Dictionary{{"sigma", Variant(2.f * blur_radius)}});
+				blur = render_manager.CompileFilter("blur", Dictionary{{"sigma", Variant(0.5f * blur_radius)}});
 				if (blur)
 					render_manager.PushLayer();
 			}
