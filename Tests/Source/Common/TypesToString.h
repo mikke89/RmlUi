@@ -31,6 +31,7 @@
 
 #include <RmlUi/Core/TypeConverter.h>
 #include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
 #include <doctest.h>
 #include <ostream>
 
@@ -90,6 +91,12 @@ inline std::ostream& operator<<(std::ostream& os, const Mesh& value)
 {
 	os << "vertices: {\n" << value.vertices << "}\n";
 	os << "indices: {\n" << value.indices << "\n}\n";
+	return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const Variant& value)
+{
+	os << value.Get<String>();
 	return os;
 }
 
