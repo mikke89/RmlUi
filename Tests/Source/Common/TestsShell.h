@@ -39,7 +39,7 @@ class TestsSystemInterface;
 namespace TestsShell {
 
 // Will initialize the shell and create a context on first use.
-Rml::Context* GetContext(bool allow_debugger = true);
+Rml::Context* GetContext(bool allow_debugger = true, Rml::RenderInterface* override_render_interface = nullptr);
 
 void BeginFrame();
 void PresentFrame();
