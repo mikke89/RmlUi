@@ -149,8 +149,12 @@ TEST_CASE("PropertySpecification.ParsePropertyValues")
 
 	Parse("linear-gradient(110deg, #fff, #000 10%) border-box, image(invader.png)",
 		{"linear-gradient(110deg, #fff, #000 10%)", "border-box,", "image(invader.png)"});
+	Parse("linear-gradient(110deg, rgba( 255, 255, 255, 255 ), #000 10%) border-box, image(invader.png)",
+		{"linear-gradient(110deg, rgba( 255, 255, 255, 255 ), #000 10%)", "border-box,", "image(invader.png)"});
 	Parse("linear-gradient(110deg, #fff, #000 10%) border-box, image(invader.png)",
 		{"linear-gradient(110deg, #fff, #000 10%) border-box", "image(invader.png)"}, SplitOption::Comma);
+	Parse("linear-gradient(110deg, rgba( 255, 255, 255, 255 ), #000 10%) border-box, image(invader.png)",
+		{"linear-gradient(110deg, rgba( 255, 255, 255, 255 ), #000 10%) border-box", "image(invader.png)"}, SplitOption::Comma);
 
 	Parse(R"(image( a\) b ))", {R"(image( a\))", "b", ")"});
 	Parse(R"(image( a\) b ))", R"(image( a\) b ))", SplitOption::Comma);
