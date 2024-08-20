@@ -308,7 +308,6 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 
 	CompiledShader shader = render_manager->CompileShader("linear-gradient",
 		Dictionary{
-			{"angle", Variant(angle)},
 			{"p0", Variant(gradient_shape.p0)},
 			{"p1", Variant(gradient_shape.p1)},
 			{"length", Variant(gradient_shape.length)},
