@@ -1,7 +1,7 @@
 /*
  * Trompeloeil C++ mocking framework
  *
- * Copyright Björn Fahller 2014-2019
+ * Copyright Björn Fahller 2014-2022
  *
  *  Use, modification and distribution is subject to the
  *  Boost Software License, Version 1.0. (See accompanying
@@ -30,14 +30,15 @@ namespace trompeloeil
     unsigned long line,
     const char* msg)
   {
+    doctest::String msgstr(msg);
     auto f = line ? file : "[file/line unavailable]";
     if (s == severity::fatal)
     {
-      DOCTEST_ADD_FAIL_AT(f, line, msg);
+      DOCTEST_ADD_FAIL_AT(f, line, msgstr);
     }
     else
     {
-      DOCTEST_ADD_FAIL_CHECK_AT(f, line, msg);
+      DOCTEST_ADD_FAIL_CHECK_AT(f, line, msgstr);
     }
   }
 
