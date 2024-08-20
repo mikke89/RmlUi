@@ -1773,8 +1773,8 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 		case FilterType::Passthrough:
 		{
 			UseProgram(ProgramId::Passthrough);
-			glBlendFunc(GL_CONSTANT_ALPHA, GL_ZERO);
-			glBlendColor(0.0f, 0.0f, 0.0f, filter.blend_factor);
+			glBlendFunc(GL_CONSTANT_COLOR, GL_ZERO);
+			glBlendColor(filter.blend_factor, filter.blend_factor, filter.blend_factor, filter.blend_factor);
 
 			const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
 			const Gfx::FramebufferData& destination = render_layers.GetPostprocessSecondary();
