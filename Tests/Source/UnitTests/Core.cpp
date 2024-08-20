@@ -169,6 +169,16 @@ TEST_CASE("core.release_resources")
 		CHECK(counters.release_texture == num_released_textures);
 	}
 
+	SUBCASE("ReleaseTexture")
+	{
+		const auto startup_counters = counters;
+		Rml::ReleaseTexture("assets/invader.tga");
+		CHECK(counters.release_texture == startup_counters.release_texture + 1);
+
+		TestsShell::RenderLoop();
+		CHECK(counters.load_texture == startup_counters.load_texture + 1);
+	}
+
 	SUBCASE("ReleaseFontResources")
 	{
 		const auto counter_generate_before = counters.generate_texture;
