@@ -23,11 +23,13 @@ target_link_libraries(${TARGET_NAME} PRIVATE
 	nanobench::nanobench
 )
 
-doctest_discover_tests(${TARGET_NAME})
+if(NOT EMSCRIPTEN)
+	doctest_discover_tests(${TARGET_NAME})
+endif()
 
 if(EMSCRIPTEN)
 	# The benchmarks additionally use data from the benchmark sample.
-	target_link_libraries(${TARGET_NAME} "--preload-file \"${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/data/@/Samples/basic/benchmark/data/\"")
+	target_link_libraries(${TARGET_NAME} PRIVATE "--preload-file \"${PROJECT_SOURCE_DIR}/Samples/basic/benchmark/data/@/Samples/basic/benchmark/data/\"")
 endif()
 
 if(MSVC)

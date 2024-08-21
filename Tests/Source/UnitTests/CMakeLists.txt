@@ -43,4 +43,6 @@ target_link_libraries(${TARGET_NAME} PRIVATE
 	trompeloeil::trompeloeil
 )
 
-doctest_discover_tests(${TARGET_NAME})
+if(NOT EMSCRIPTEN)
+	doctest_discover_tests(${TARGET_NAME})
+endif()
