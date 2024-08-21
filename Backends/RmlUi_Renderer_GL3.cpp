@@ -1432,6 +1432,17 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 	Gfx::BindTexture(source_destination);
 	glBindFramebuffer(GL_FRAMEBUFFER, temp.framebuffer);
 
+	// Add a 1px transparent border around the blur region by first clearing with a padded scissor. This helps prevent
+	// artifacts when upscaling the blur result in the later step. On Intel and AMD, we have observed that during
+	// blitting with linear filtering, pixels outside the 'src' region can be blended into the output. On the other
+	// hand, it looks like Nvidia clamps the pixels to the source edge, which is what we really want. Regardless, we
+	// work around the issue with this extra step.
+	Rml::Rectanglei padded_scissor = scissor;
+	padded_scissor.Extend(Rml::Vector2i(1));
+	SetScissor(padded_scissor, true);
+	glClear(GL_COLOR_BUFFER_BIT);
+	SetScissor(scissor, true);
+
 	SetTexelOffset({1.f, 0.f}, source_destination.width);
 	DrawFullscreenQuad();
 
