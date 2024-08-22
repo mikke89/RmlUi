@@ -67,44 +67,27 @@ public:
 	Type Width() const { return p1.x - p0.x; }
 	Type Height() const { return p1.y - p0.y; }
 
-	void Extend(Type v) { Extend(Vector2Type(v)); }
-	void Extend(Vector2Type v)
-	{
-		p0 -= v;
-		p1 += v;
-	}
-	void ExtendTopLeft(Vector2Type v) { p0 -= v; }
-	void ExtendBottomRight(Vector2Type v) { p1 += v; }
+	Rectangle Extend(Type v) const { return Extend(Vector2Type(v)); }
+	Rectangle Extend(Vector2Type v) const { return Rectangle{p0 - v, p1 + v}; }
+	Rectangle Extend(Vector2Type top_left, Vector2Type bottom_right) const { return Rectangle{p0 - top_left, p1 + bottom_right}; }
 
-	void Translate(Vector2Type v)
-	{
-		p0 += v;
-		p1 += v;
-	}
+	Rectangle Translate(Vector2Type v) const { return Rectangle{p0 + v, p1 + v}; }
 
-	void Join(Vector2Type p)
-	{
-		p0 = Math::Min(p0, p);
-		p1 = Math::Max(p1, p);
-	}
-	void Join(Rectangle other)
-	{
-		p0 = Math::Min(p0, other.p0);
-		p1 = Math::Max(p1, other.p1);
-	}
+	Rectangle Join(Vector2Type p) const { return Rectangle{Math::Min(p0, p), Math::Max(p1, p)}; }
+	Rectangle Join(Rectangle other) const { return Rectangle{Math::Min(p0, other.p0), Math::Max(p1, other.p1)}; }
 
-	void Intersect(Rectangle other)
+	Rectangle Intersect(Rectangle other) const
 	{
 		RMLUI_ASSERT(Valid() && other.Valid());
-		p0 = Math::Max(p0, other.p0);
-		p1 = Math::Max(Math::Min(p1, other.p1), p0);
+		Rectangle result{Math::Max(p0, other.p0), Math::Min(p1, other.p1)};
+		result.p1 = Math::Max(result.p0, result.p1);
+		return result;
 	}
-	void IntersectIfValid(Rectangle other)
+	Rectangle IntersectIfValid(Rectangle other) const
 	{
-		if (!Valid())
-			*this = other;
-		else if (other.Valid())
-			Intersect(other);
+		if (!Valid() || !other.Valid())
+			return *this;
+		return Intersect(other);
 	}
 
 	bool Intersects(Rectangle other) const { return p0.x < other.p1.x && p1.x > other.p0.x && p0.y < other.p1.y && p1.y > other.p0.y; }

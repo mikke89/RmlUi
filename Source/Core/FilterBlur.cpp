@@ -51,7 +51,7 @@ void FilterBlur::ExtendInkOverflow(Element* element, Rectanglef& scissor_region)
 {
 	const float sigma = element->ResolveLength(sigma_value);
 	const float blur_extent = 3.0f * Math::Max(sigma, 1.f);
-	scissor_region.Extend(blur_extent);
+	scissor_region = scissor_region.Extend(blur_extent);
 }
 
 FilterBlurInstancer::FilterBlurInstancer()

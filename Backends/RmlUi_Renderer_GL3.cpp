@@ -1437,9 +1437,7 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 	// blitting with linear filtering, pixels outside the 'src' region can be blended into the output. On the other
 	// hand, it looks like Nvidia clamps the pixels to the source edge, which is what we really want. Regardless, we
 	// work around the issue with this extra step.
-	Rml::Rectanglei padded_scissor = scissor;
-	padded_scissor.Extend(Rml::Vector2i(1));
-	SetScissor(padded_scissor, true);
+	SetScissor(scissor.Extend(1), true);
 	glClear(GL_COLOR_BUFFER_BIT);
 	SetScissor(scissor, true);
 

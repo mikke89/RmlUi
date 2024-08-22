@@ -233,8 +233,9 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 				// Shrink the scissor region to the element's client area.
 				Vector2f element_offset = clipping_element->GetAbsoluteOffset(clip_area);
 				Vector2f element_size = clipping_element->GetBox().GetSize(clip_area);
+				Rectanglef element_region = Rectanglef::FromPositionSize(element_offset, element_size);
 
-				clip_region.IntersectIfValid(Rectanglef::FromPositionSize(element_offset, element_size));
+				clip_region = element_region.IntersectIfValid(clip_region);
 			}
 		}
 
@@ -316,8 +317,7 @@ bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* elemen
 
 	// Element bounds in non-transformed space.
 	Rectanglef bounds = Rectanglef::FromPositionSize(element->GetAbsoluteOffset(box_area), element->GetBox().GetSize(box_area));
-	bounds.ExtendTopLeft(shadow_extent_top_left);
-	bounds.ExtendBottomRight(shadow_extent_bottom_right);
+	bounds = bounds.Extend(shadow_extent_top_left, shadow_extent_bottom_right);
 
 	const TransformState* transform_state = element->GetTransformState();
 	const Matrix4f* transform = (transform_state ? transform_state->GetTransform() : nullptr);
@@ -366,7 +366,7 @@ bool ElementUtilities::GetBoundingBox(Rectanglef& out_rectangle, Element* elemen
 	// Find the rectangle covering the projected corners.
 	out_rectangle = Rectanglef::FromPosition(corners[0]);
 	for (int i = 1; i < num_corners; i++)
-		out_rectangle.Join(corners[i]);
+		out_rectangle = out_rectangle.Join(corners[i]);
 
 	return true;
 }

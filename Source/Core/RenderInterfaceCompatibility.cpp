@@ -171,10 +171,9 @@ void RenderInterfaceAdapter::RenderToClipMask(ClipMaskOperation operation, Compi
 
 	Rectanglef rectangle = Rectanglef::FromPosition(geometry->vertices[0].position);
 	for (const Vertex& vertex : geometry->vertices)
-		rectangle.Join(vertex.position);
-	rectangle.Translate(translation);
+		rectangle = rectangle.Join(vertex.position);
 
-	const Rectanglei scissor = Rectanglei(rectangle);
+	const Rectanglei scissor = Rectanglei(rectangle.Translate(translation));
 	legacy.SetScissorRegion(scissor.Left(), scissor.Top(), scissor.Width(), scissor.Height());
 }
 

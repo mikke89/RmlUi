@@ -68,8 +68,8 @@ void FilterDropShadow::ExtendInkOverflow(Element* element, Rectanglef& scissor_r
 	};
 
 	const float blur_extent = 3.f * sigma;
-	scissor_region.ExtendTopLeft(Math::Max(-offset, Vector2f(0.f)) + Vector2f(blur_extent));
-	scissor_region.ExtendBottomRight(Math::Max(offset, Vector2f(0.f)) + Vector2f(blur_extent));
+	scissor_region =
+		scissor_region.Extend(Math::Max(-offset, Vector2f(0.f)) + Vector2f(blur_extent), Math::Max(offset, Vector2f(0.f)) + Vector2f(blur_extent));
 }
 
 FilterDropShadowInstancer::FilterDropShadowInstancer()

@@ -184,7 +184,7 @@ void ElementInfo::RenderSourceElement()
 			Rectanglef bounding_box;
 			if (ElementUtilities::GetBoundingBox(bounding_box, source_element, BoxArea::Auto))
 			{
-				bounding_box.Extend(1.f);
+				bounding_box = bounding_box.Extend(1.f);
 				Math::ExpandToPixelGrid(bounding_box);
 				Geometry::RenderOutline(bounding_box.Position(), bounding_box.Size(), Colourb(255, 255, 255, 200), 1.f);
 			}

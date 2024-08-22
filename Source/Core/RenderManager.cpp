@@ -125,7 +125,7 @@ void RenderManager::SetScissorRegion(Rectanglei new_region)
 
 	if (new_scissor_enable)
 	{
-		new_region.Intersect(Rectanglei::FromSize(viewport_dimensions));
+		new_region = new_region.Intersect(Rectanglei::FromSize(viewport_dimensions));
 
 		if (new_region != state.scissor_region)
 			render_interface->SetScissorRegion(new_region);

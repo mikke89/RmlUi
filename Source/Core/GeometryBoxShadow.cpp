@@ -77,11 +77,10 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 		{
 			Vector2f offset;
 			const Box& box = element->GetBox(i, offset);
-			texture_region.Join(Rectanglef::FromPositionSize(offset, box.GetSize(BoxArea::Border)));
+			texture_region = texture_region.Join(Rectanglef::FromPositionSize(offset, box.GetSize(BoxArea::Border)));
 		}
 
-		texture_region.ExtendTopLeft(-extend_min);
-		texture_region.ExtendBottomRight(extend_max);
+		texture_region = texture_region.Extend(-extend_min, extend_max);
 		Math::ExpandToPixelGrid(texture_region);
 
 		element_offset_in_texture = -texture_region.TopLeft();

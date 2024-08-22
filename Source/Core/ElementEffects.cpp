@@ -254,8 +254,7 @@ void ElementEffects::RenderEffects(RenderStage render_stage)
 
 		Math::ExpandToPixelGrid(filter_region);
 
-		Rectanglei scissor_region = Rectanglei(filter_region);
-		scissor_region.IntersectIfValid(render_manager->GetScissorRegion());
+		Rectanglei scissor_region = Rectanglei(filter_region).IntersectIfValid(render_manager->GetScissorRegion());
 		render_manager->SetScissorRegion(scissor_region);
 	};
 	auto ApplyScissorRegionForBackdrop = [this, &render_manager]() {
