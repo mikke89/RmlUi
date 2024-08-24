@@ -83,10 +83,10 @@ public:
 
 	/// Registers a custom shorthand property definition.
 	/// @param[in] shorthand_name The name to register the new shorthand property under.
-	/// @param[in] properties A comma-separated list of the properties this definition is shorthand for. The order in which they are specified here is
-	/// the order in which the values will be processed.
+	/// @param[in] property_names A comma-separated list of the properties this definition is shorthand for. The order in which they are specified
+	/// here is the order in which the values will be processed.
 	/// @param[in] type The type of shorthand to declare.
-	/// @param True if all the property names exist, false otherwise.
+	/// @return The new shorthand ID if successfully parsed, Invalid otherwise.
 	static ShorthandId RegisterShorthand(const String& shorthand_name, const String& property_names, ShorthandType type);
 	/// Returns a shorthand definition.
 	/// @param[in] shorthand_name The name of the desired shorthand.
@@ -98,9 +98,6 @@ public:
 	/// @param[in] dictionary The property dictionary which will hold all declared properties.
 	/// @param[in] property_name The name of the declared property.
 	/// @param[in] property_value The values the property is being set to.
-	/// @param[in] source_file The file where this property was declared. Used for error reporting, debugging and relative paths for referenced
-	/// assets.
-	/// @param[in] line_number The location of the source file where this property was declared. Used for error reporting and debugging.
 	/// @return True if all properties were parsed successfully, false otherwise.
 	static bool ParsePropertyDeclaration(PropertyDictionary& dictionary, const String& property_name, const String& property_value);
 

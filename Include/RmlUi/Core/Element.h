@@ -166,7 +166,7 @@ public:
 	/// @return The element's baseline. The default element will return 0.
 	virtual float GetBaseline() const;
 	/// Gets the intrinsic dimensions of this element, if it is a replaced element with an inherent size. This size will
-	/// only be overriden by a styled width or height.
+	/// only be overridden by a styled width or height.
 	/// @param[out] dimensions The dimensions to size, if appropriate.
 	/// @param[out] ratio The intrinsic ratio (width/height), if appropriate.
 	/// @return True if the element is a replaced element with intrinsic dimensions, false otherwise.
@@ -289,7 +289,7 @@ public:
 	bool IsPseudoClassSet(const String& pseudo_class) const;
 	/// Checks if a complete set of pseudo-classes are set on the element.
 	/// @param[in] pseudo_classes The list of pseudo-classes to check for.
-	/// @return True if all of the pseudo-classes are set, false if not.
+	/// @return True if all the pseudo-classes are set, false if not.
 	bool ArePseudoClassesSet(const StringList& pseudo_classes) const;
 	/// Gets a list of the current active pseudo-classes.
 	/// @return The list of active pseudo-classes.
@@ -333,8 +333,8 @@ public:
 	int GetNumAttributes() const;
 	//@}
 
-	/// Gets the outer-most focus element down the tree from this node.
-	/// @return Outer-most focus element.
+	/// Gets the outermost focus element down the tree from this node.
+	/// @return Outermost focus element.
 	Element* GetFocusLeafNode();
 
 	/// Returns the element's context.
@@ -410,10 +410,10 @@ public:
 	/// @param[in] scroll_top The element's new top scroll offset.
 	void SetScrollTop(float scroll_top);
 	/// Gets the width of the scrollable content of the element; it includes the element padding but not its margin.
-	/// @return The width (in pixels) of the of the scrollable content of the element.
+	/// @return The width (in pixels) of the scrollable content of the element.
 	float GetScrollWidth();
 	/// Gets the height of the scrollable content of the element; it includes the element padding but not its margin.
-	/// @return The height (in pixels) of the of the scrollable content of the element.
+	/// @return The height (in pixels) of the scrollable content of the element.
 	float GetScrollHeight();
 
 	/// Gets the object representing the declarations of an element's style attributes.
@@ -476,7 +476,7 @@ public:
 	/// @param[in] focus_visible True to indicate that the focus should be visually indicated by setting the ':focus-visible' pseudo class.
 	/// @return True if the change focus request was successful
 	bool Focus(bool focus_visible = false);
-	/// Removes focus from from this element.
+	/// Removes focus from this element.
 	void Blur();
 	/// Fakes a mouse click on this element.
 	void Click();
@@ -486,11 +486,11 @@ public:
 	/// @param[in] listener The listener object to be attached.
 	/// @param[in] in_capture_phase True to attach in the capture phase, false in bubble phase.
 	/// @lifetime The added listener must stay alive until after the dispatched call from EventListener::OnDetach(). This occurs
-	///     eg. when the element is destroyed or when RemoveEventListener() is called with the same parameters passed here.
+	///     e.g. when the element is destroyed or when RemoveEventListener() is called with the same parameters passed here.
 	void AddEventListener(const String& event, EventListener* listener, bool in_capture_phase = false);
 	/// Adds an event listener to this element by id.
 	/// @lifetime The added listener must stay alive until after the dispatched call from EventListener::OnDetach(). This occurs
-	///     eg. when the element is destroyed or when RemoveEventListener() is called with the same parameters passed here.
+	///     e.g. when the element is destroyed or when RemoveEventListener() is called with the same parameters passed here.
 	void AddEventListener(EventId id, EventListener* listener, bool in_capture_phase = false);
 	/// Removes an event listener from this element.
 	/// @param[in] event Event to detach from.
@@ -526,10 +526,10 @@ public:
 	/// @param[in] element The element to append as a child.
 	/// @param[in] dom_element True if the element is to be part of the DOM, false otherwise. Only set this to false if you know what you're doing!
 	Element* AppendChild(ElementPtr element, bool dom_element = true);
-	/// Adds a child to this element, directly after the adjacent element. The new element inherits the DOM/non-DOM
+	/// Adds a child to this element directly before the adjacent element. The new element inherits the DOM/non-DOM
 	/// status from the adjacent element.
-	/// @param[in] element Element to insert into the this element.
-	/// @param[in] adjacent_element The element to insert directly before.
+	/// @param[in] element Element to be inserted.
+	/// @param[in] adjacent_element The reference element which the new element will be inserted before.
 	Element* InsertBefore(ElementPtr element, Element* adjacent_element);
 	/// Replaces the second node with the first node.
 	/// @param[in] inserted_element The element that will be inserted and replace the other element.
@@ -545,7 +545,7 @@ public:
 	bool HasChildNodes() const;
 
 	/// Get a child element by its ID.
-	/// @param[in] id Id of the the child element
+	/// @param[in] id The ID of the child element.
 	/// @return The child of this element with the given ID, or nullptr if no such child exists.
 	Element* GetElementById(const String& id);
 	/// Get all descendant elements with the given tag.
@@ -662,7 +662,7 @@ protected:
 	static void OverridePseudoClass(Element* target_element, const String& pseudo_class, bool activate);
 
 	enum class DirtyNodes { Self, SelfAndSiblings };
-	// Dirty the element style definition, including all descendants of the specificed nodes.
+	// Dirty the element style definition, including all descendants of the specified nodes.
 	void DirtyDefinition(DirtyNodes dirty_nodes);
 
 	void SetOwnerDocument(ElementDocument* document);
