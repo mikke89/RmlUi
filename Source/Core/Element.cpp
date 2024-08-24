@@ -1962,8 +1962,11 @@ void Element::GetRML(String& content)
 
 	for (auto& pair : attributes)
 	{
-		auto& name = pair.first;
-		auto& variant = pair.second;
+		const String& name = pair.first;
+		if (name == "style")
+			continue;
+
+		const Variant& variant = pair.second;
 		String value;
 		if (variant.GetInto(value))
 		{
@@ -1974,6 +1977,24 @@ void Element::GetRML(String& content)
 			content += "\"";
 		}
 	}
+
+	const PropertyMap& local_properties = meta->style.GetLocalStyleProperties();
+	if (!local_properties.empty())
+		content += " style=\"";
+
+	for (const auto& pair : local_properties)
+	{
+		const PropertyId id = pair.first;
+		const Property& property = pair.second;
+
+		content += StyleSheetSpecification::GetPropertyName(id);
+		content += ": ";
+		content += StringUtilities::EncodeRml(property.ToString());
+		content += "; ";
+	}
+
+	if (!local_properties.empty())
+		content.back() = '\"';
 
 	if (HasChildNodes())
 	{
