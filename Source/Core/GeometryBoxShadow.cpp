@@ -123,6 +123,23 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 		render_manager.ResetState();
 		render_manager.SetScissorRegion(Rectanglei::FromSize(texture_dimensions));
 
+		// The scissor region will be clamped to the current window size, check the resulting scissor region.
+		const Rectanglei scissor_region = render_manager.GetScissorRegion();
+		if (scissor_region.Width() <= 0 || scissor_region.Height() <= 0)
+		{
+			// The window may become zero-sized for example when minimized. Just skip the texture generation for now, we
+			// expect to be called again later when the window is restored.
+			render_manager.SetState(initial_render_state);
+			return false;
+		}
+		if (scissor_region != Rectanglei::FromSize(texture_dimensions))
+		{
+			Log::Message(Log::LT_INFO,
+				"The desired box-shadow texture dimensions (%d, %d) are larger than the current window region (%d, %d). "
+				"Results may be clipped. In element: %s",
+				texture_dimensions.x, texture_dimensions.y, scissor_region.Width(), scissor_region.Height(), element->GetAddress().c_str());
+		}
+
 		render_manager.PushLayer();
 
 		background_border_geometry.Render(element_offset_in_texture);
@@ -209,7 +226,6 @@ void GeometryBoxShadow::Generate(Geometry& out_shadow_geometry, CallbackTexture&
 			}
 		}
 
-		RMLUI_ASSERT(render_manager.GetScissorRegion() == Rectanglei::FromSize(texture_dimensions))
 		texture_interface.SaveLayerAsTexture();
 
 		render_manager.PopLayer();
