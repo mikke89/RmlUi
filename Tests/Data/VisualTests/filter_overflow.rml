@@ -2,8 +2,9 @@
 <head>
 	<title>Filter: overflowing content</title>
 	<link type="text/rcss" href="../style.rcss"/>
+	<link rel="discussion" href="https://github.com/mikke89/RmlUi/pull/594#issuecomment-2001860732"/>
 	<meta name="Description" content="Test filtering of boxes with visible overflowing content. Requires filter support in the renderer." />
-	<meta name="Assert" content="There should be a red blurred box, and a blue blurred box to its lower-right." />
+	<meta name="Assert" content="There should be a red blurred box, and a blue blurred box to its lower-right. The blue box is not visible due to a limitation currently, see linked discussion." />
 	<style>
 		.box {
 			width: 100dp;

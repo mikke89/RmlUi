@@ -3,6 +3,7 @@
 	<title>Filter: backdrop</title>
 	<link type="text/rcss" href="../style.rcss"/>
 	<meta name="Description" content="Filters should apply to the backdrop filter as well. Requires filter support in the renderer." />
+	<link rel="reference" href="https://jsfiddle.net/kmouse/yjzhtx17/3/" />
 	<style>
 		.container {
 			display: flow-root;
@@ -17,7 +18,7 @@
 			float: left;
 		}
 		.backdrop {
-			backdrop-filter: blur(5dp);
+			backdrop-filter: blur(10dp);
 		}
 		.filter {
 			filter: sepia(1);

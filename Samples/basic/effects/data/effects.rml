@@ -80,8 +80,8 @@
 .invert { filter: invert(100%); }
 .opacity_low { filter: opacity(0.2); }
 
-.blur { filter: blur(25px); }
-.back_blur { backdrop-filter: blur(15px);  }
+.blur { filter: blur(10px); }
+.back_blur { backdrop-filter: blur(5px);  }
 
 .dropshadow { filter: drop-shadow(#f33f 30px 20px 5px); }
 
