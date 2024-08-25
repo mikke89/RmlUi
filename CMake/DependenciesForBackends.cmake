@@ -65,7 +65,7 @@ if(RMLUI_BACKEND MATCHES "^SDL")
 endif()
 
 # GLFW
-if(RMLUI_BACKEND MATCHES "^GLFW")
+if(RMLUI_BACKEND MATCHES "^(BackwardCompatible_)?GLFW")
 	find_package("glfw3" "3.3")
 
 	# Instead of relying on the <package_name>_FOUND variable, we check directly for the target
