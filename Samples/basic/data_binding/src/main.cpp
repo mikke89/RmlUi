@@ -200,7 +200,7 @@ namespace InvadersExample {
 		{
 			if (arguments.size() != 1)
 				return;
-			const std::size_t index = arguments[0].Get<std::size_t>();
+			const size_t index = arguments[0].Get<size_t>();
 			if (index >= invaders.size())
 				return;
 

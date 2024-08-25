@@ -46,10 +46,10 @@ struct LayoutChunk {
 	alignas(std::max_align_t) byte buffer[Size];
 };
 
-static constexpr std::size_t ChunkSizeBig = std::max({sizeof(BlockContainer)});
-static constexpr std::size_t ChunkSizeMedium =
+static constexpr size_t ChunkSizeBig = std::max({sizeof(BlockContainer)});
+static constexpr size_t ChunkSizeMedium =
 	std::max({sizeof(InlineContainer), sizeof(InlineBox), sizeof(RootBox), sizeof(FlexContainer), sizeof(TableWrapper)});
-static constexpr std::size_t ChunkSizeSmall =
+static constexpr size_t ChunkSizeSmall =
 	std::max({sizeof(ReplacedBox), sizeof(InlineLevelBox_Text), sizeof(InlineLevelBox_Atomic), sizeof(LineBox), sizeof(FloatedBoxSpace)});
 
 static Pool<LayoutChunk<ChunkSizeBig>> layout_chunk_pool_big(50, true);
