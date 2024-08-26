@@ -20,12 +20,6 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 ---
 
-***RmlUi 6.0 status:*** We are moving towards the release of RmlUi 6.0. Projects coming from 5.x releases should expect some [breaking changes](changelog.md#breaking-changes) as listed in the changelog. The project is currently in a stabilization phase before release, thus no further major breaking changes are planned.
-
-Our CMake scripts have been completely rewritten using modern CMake practices, with names for options, targets, and executable files being changed. For details, please see the [CMake changes](changelog.md#modernized-cmake) in the changelog, and all [CMake options](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/building_with_cmake.html#cmake-options) in the documentation.
-
----
-
 
 ## Features
 
@@ -63,6 +57,9 @@ RmlUi supports most of CSS2 with some CSS3 features such as
 - Flexbox layout
 - Media queries
 - Border radius
+- Box shadows and mask images
+- Gradients (linear, radial, and conic) as decorators
+- Filters and backdrop filters (with all CSS filter functions)
 
 and many of the common HTML elements including `<input>`,  `<textarea>`, and `<select>`.
 
@@ -151,11 +148,11 @@ The provided backends on the other hand are not intended to be used directly by 
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
 | SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
 
-**Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2d-layouts.\
+**Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2D layouts.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
-**Clip masks**: Enables proper clipping of transformed elements and elements with border-radius.\
-**Filters**: Support for all built-in filter functions, such as blur and drop-shadow.\
-**Shaders**: Support for all built-in decorators that require shaders, such as `linear-gradient` and `radial-gradient`. Other advanced rendering functions are also implemented, including masking and render-to-texture support, for features such as `mask-image` and `box-shadow`.\
+**Clip masks**: Enables proper clipping of transformed elements, elements with border-radius.\
+**Filters**: Support for the `filter` and `backdrop-filter` properties with all filter functions, such as blur and drop-shadow.\
+**Shaders**: Support for all built-in decorators that require shaders, such as `linear-gradient` and `radial-gradient`. Other advanced rendering functions are also implemented, including render-to-texture and masking support for properties such as `box-shadow` and `mask-image`.\
 **Built-in image support**: This only shows the supported formats built-in to the renderer, users are encouraged to derive from and extend the render interface to add support for their desired image formats.
 
 ### Platforms
@@ -360,13 +357,21 @@ Users can now edit the text field to change the animal. The data bindings ensure
 ## Gallery
 
 **Game interface from the 'invader' sample**\
-![Game interface](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/invader.png)
+![Game interface](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/invader.png?raw=true)
 
 **Game menu**\
-![Game menu](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/menu_screen.png)
+![Game menu](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/menu_screen.png?raw=true)
 
 **Simple game from the 'data_binding' sample**\
 ![Data binding sample](https://raw.githubusercontent.com/mikke89/RmlUiDoc/df1651db94e69f2977bc0344864ec061b56b104e/assets/gallery/data_binding.png)
+
+**Applying filters in the 'effects' sample**\
+![Effects sample](https://github.com/mikke89/RmlUiDoc/blob/master/assets/images/effects-sample-filters.png?raw=true)
+
+\
+**Video demonstration of the 'effects' sample**
+
+[Effects sample video](https://github.com/mikke89/RmlUi/assets/5490330/bdc0422d-867d-4090-9d48-e7159e3adc18)
 
 **[alt:V](https://altv.mp/) installer - a multiplayer client for GTA:V**\
 ![alt:V installer collage](https://user-images.githubusercontent.com/5490330/230487770-275fe98f-753f-4b35-b2e1-1e20a798f5e8.png)
@@ -381,16 +386,16 @@ Users can now edit the text field to change the animal. The data bindings ensure
 ![TruckersMP](https://raw.githubusercontent.com/mikke89/RmlUiDoc/8ce505124daec1a9fdff0327be495fc2e43a37cf/assets/gallery/truckers_mp.webp)
 
 **Form controls from the 'demo' sample**\
-![Form controls](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/forms.png)
+![Form controls](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/forms.png?raw=true)
 
 **Sandbox from the 'demo' sample, try it yourself!**\
-![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png)
+![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png?raw=true)
 
 **Visual testing framework - for built-in automated layout tests**\
-![Visual testing framework](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png)
+![Visual testing framework](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png?raw=true)
 
 **Flexbox layout**\
-![Flexbox](https://github.com/mikke89/RmlUiDoc/blob/4cf0c6ac23b822174e69e5f1413b71254230c619/assets/images/flexbox-example.png)  
+![Flexbox](https://github.com/mikke89/RmlUiDoc/blob/4cf0c6ac23b822174e69e5f1413b71254230c619/assets/images/flexbox-example.png?raw=true)
 
 
 **Animations and transitions from the 'animation' sample**
@@ -409,16 +414,16 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 \
 **Transitions on mouse hover (entirely in RCSS)**\
-![Transition](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transition.gif)  
+![Transition](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transition.gif)
 
 **Animated transforms (entirely in RCSS)**\
-![Transform](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transform.gif)  
+![Transform](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/transform.gif)
 
 **Vector animations with the [Lottie plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/lottie.html)**\
-![Lottie animation](https://github.com/mikke89/RmlUiDoc/blob/086385e119f0fc6e196229b785e91ee0252fe4b4/assets/gallery/lottie.gif)  
+![Lottie animation](https://github.com/mikke89/RmlUiDoc/blob/086385e119f0fc6e196229b785e91ee0252fe4b4/assets/gallery/lottie.gif)
 
 **Vector images with the [SVG plugin](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/svg.html)**\
-![SVG image](https://github.com/mikke89/RmlUiDoc/blob/2908fe50acf7861e729ce113eafa8cf7610bf08a/assets/gallery/svg_plugin.png)  
+![SVG image](https://github.com/mikke89/RmlUiDoc/blob/2908fe50acf7861e729ce113eafa8cf7610bf08a/assets/gallery/svg_plugin.png)
 
 
 See the **[full gallery](https://mikke89.github.io/RmlUiDoc/pages/gallery.html)** for more screenshots and videos of the library in action.
