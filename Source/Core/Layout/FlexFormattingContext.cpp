@@ -688,7 +688,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			}
 			else
 			{
-				if (content_size.x < 0.0f || item.cross.auto_size)
+				if (content_size.x < 0.0f)
 				{
 					item.box.SetContent(Vector2f(content_size.x, used_main_size_inner));
 					item.hypothetical_cross_size =

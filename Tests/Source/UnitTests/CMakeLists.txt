@@ -15,6 +15,7 @@ add_executable(${TARGET_NAME}
 	ElementStyle.cpp
 	EventListener.cpp
 	Filter.cpp
+	FlexFormatting.cpp
 	Layout.cpp
 	Localization.cpp
 	main.cpp
