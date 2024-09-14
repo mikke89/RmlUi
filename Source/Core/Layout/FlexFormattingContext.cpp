@@ -229,6 +229,17 @@ static void GetItemSizing(FlexItem::Size& destination, const ComputedAxisSize& c
 	}
 }
 
+static float GetInnerUsedMainSize(const FlexItem& item)
+{
+	// Due to pixel snapping (rounding) of the outer size, `sum_edges` may be larger than it, so clamp the result to zero.
+	return Math::Max(item.used_main_size - item.main.sum_edges, 0.f);
+}
+
+static float GetInnerUsedCrossSize(const FlexItem& item)
+{
+	return Math::Max(item.used_cross_size - item.cross.sum_edges, 0.f);
+}
+
 void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_content_overflow_size, float& flex_baseline) const
 {
 	// The following procedure is based on the CSS flexible box layout algorithm.
@@ -671,13 +682,12 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		for (FlexItem& item : line.items)
 		{
 			const Vector2f content_size = item.box.GetSize();
-			const float used_main_size_inner = item.used_main_size - item.main.sum_edges;
 
 			if (main_axis_horizontal)
 			{
 				if (content_size.y < 0.0f)
 				{
-					item.box.SetContent(Vector2f(used_main_size_inner, content_size.y));
+					item.box.SetContent(Vector2f(GetInnerUsedMainSize(item), content_size.y));
 					FormattingContext::FormatIndependent(flex_container_box, item.element, &item.box, FormattingContextType::Block);
 					item.hypothetical_cross_size = item.element->GetBox().GetSize().y + item.cross.sum_edges;
 				}
@@ -690,7 +700,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			{
 				if (content_size.x < 0.0f)
 				{
-					item.box.SetContent(Vector2f(content_size.x, used_main_size_inner));
+					item.box.SetContent(Vector2f(content_size.x, GetInnerUsedMainSize(item)));
 					item.hypothetical_cross_size =
 						LayoutDetails::GetShrinkToFitWidth(item.element, flex_content_containing_block) + item.cross.sum_edges;
 				}
@@ -946,7 +956,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	{
 		for (FlexItem& item : line.items)
 		{
-			const Vector2f item_size = MainCrossToVec2(item.used_main_size - item.main.sum_edges, item.used_cross_size - item.cross.sum_edges);
+			const Vector2f item_size = MainCrossToVec2(GetInnerUsedMainSize(item), GetInnerUsedCrossSize(item));
 			const Vector2f item_offset = MainCrossToVec2(item.main_offset, line.cross_offset + item.cross_offset);
 
 			item.box.SetContent(item_size);
