@@ -106,6 +106,7 @@ public:
 	static constexpr size_t kDefaultRenderImplField_AlignmentForBuffer = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
 	/// @brief RmlUI uses rgba by default
 	static constexpr DXGI_FORMAT kDefaultRenderImplField_ColorTextureFormat = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+	static constexpr DXGI_FORMAT kDefaultRenderImplField_DepthStencilTextureFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 	/// @brief this field is shared for all srv and cbv and uav it doesn't mean that it specifically allocates for srv 128, cbv 128 and uav 128, no!
 	/// it allocates only on descriptor for all of such types and total amount is 128 not 3 * 128 = 384 !!!
 	static constexpr size_t kDefaultRenderImplField_DescriptorAmountFor_SRV_CBV_UAV = 128;
@@ -398,7 +399,7 @@ public:
 		/// @param size_for_placed_heap by default it is 4Mb in bytes
 		void Initialize(D3D12MA::Allocator* p_allocator, OffsetAllocator::Allocator* p_offset_allocator_for_descriptor_heap_srv_cbv_uav,
 			ID3D12Device* p_device, ID3D12GraphicsCommandList* p_copy_command_list, ID3D12CommandAllocator* p_copy_allocator_command,
-			ID3D12DescriptorHeap* p_descriptor_heap_srv, ID3D12DescriptorHeap* p_descriptor_heap_rtv, ID3D12CommandQueue* p_copy_queue,
+			ID3D12DescriptorHeap* p_descriptor_heap_srv, ID3D12DescriptorHeap* p_descriptor_heap_rtv, ID3D12DescriptorHeap* p_descriptor_heap_dsv, ID3D12CommandQueue* p_copy_queue,
 			CD3DX12_CPU_DESCRIPTOR_HANDLE* p_handle, RenderInterface_DX12* p_renderer,
 			size_t size_for_placed_heap = kDefaultRenderImplField_VideoMemoryForTextureAllocation);
 		void Shutdown();
@@ -423,7 +424,7 @@ public:
 
 		void Free_Texture(Gfx::FramebufferData* p_texture);
 
-		void Free_Texture(TextureHandleType* p_allocated_texture_with_class, D3D12MA::VirtualAllocation& allocation);
+		void Free_Texture(TextureHandleType* p_allocated_texture_with_class, bool is_rt, D3D12MA::VirtualAllocation& allocation);
 
 		bool Is_Initialized(void) const;
 
@@ -457,6 +458,7 @@ public:
 		Rml::Pair<ID3D12Heap*, D3D12MA::VirtualBlock*> Create_HeapPlaced(size_t size_for_creation);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE Alloc_RenderTargetResourceView(ID3D12Resource* p_resource, D3D12MA::VirtualAllocation* p_allocation);
+		D3D12_CPU_DESCRIPTOR_HANDLE Alloc_DepthStencilResourceView(ID3D12Resource* p_resource, D3D12MA::VirtualAllocation* p_allocation);
 
 	private:
 		size_t m_size_for_placed_heap;
@@ -465,6 +467,7 @@ public:
 		size_t m_size_limit_for_being_placed;
 		size_t m_size_srv_cbv_uav_descriptor;
 		size_t m_size_rtv_descriptor;
+		size_t m_size_dsv_descriptor;
 		size_t m_fence_value;
 		D3D12MA::Allocator* m_p_allocator;
 		OffsetAllocator::Allocator* m_p_offset_allocator_for_descriptor_heap_srv_cbv_uav;
@@ -478,7 +481,9 @@ public:
 		CD3DX12_CPU_DESCRIPTOR_HANDLE* m_p_handle;
 		RenderInterface_DX12* m_p_renderer;
 		D3D12MA::VirtualBlock* m_p_virtual_block_for_render_target_heap_allocations;
+		D3D12MA::VirtualBlock* m_p_virtual_block_for_depth_stencil_heap_allocations;
 		ID3D12DescriptorHeap* m_p_descriptor_heap_rtv;
+		ID3D12DescriptorHeap* m_p_descriptor_heap_dsv;
 		Rml::Vector<D3D12MA::VirtualBlock*> m_blocks;
 		Rml::Vector<ID3D12Heap*> m_heaps_placed;
 	};
@@ -500,15 +505,15 @@ such as filters. They are used both as input and output during rendering, and do
 		void Initialize(RenderInterface_DX12* p_owner);
 
 		// Push a new layer. All references to previously retrieved layers are invalidated.
-		void PushLayer();
-
-		// Push a clone of the active layer. All references to previously retrieved layers are invalidated.
-		void PushLayerClone();
+		Rml::LayerHandle PushLayer();
 
 		// Pop the top layer. All references to previously retrieved layers are invalidated.
 		void PopLayer();
 
+		const Gfx::FramebufferData& GetLayer(Rml::LayerHandle layer) const;
 		const Gfx::FramebufferData& GetTopLayer() const;
+		const Gfx::FramebufferData& Get_SharedDepthStencil();
+		Rml::LayerHandle GetTopLayerHandle() const;
 
 		const Gfx::FramebufferData& GetPostprocessPrimary() { return EnsureFramebufferPostprocess(0); }
 		const Gfx::FramebufferData& GetPostprocessSecondary() { return EnsureFramebufferPostprocess(1); }
@@ -522,14 +527,11 @@ such as filters. They are used both as input and output during rendering, and do
 
 	private:
 		void DestroyFramebuffers();
-		bool IsCloneOfBelow(int layer_index) const;
 		const Gfx::FramebufferData& EnsureFramebufferPostprocess(int index);
 
-		void CreateFramebuffer(Gfx::FramebufferData* p_result, int width, int height, int sample_count);
+		void CreateFramebuffer(Gfx::FramebufferData* p_result, int width, int height, int sample_count, bool is_depth_stencil);
 
 		void DestroyFramebuffer(Gfx::FramebufferData* p_data);
-		void Create_SharedDepthStencilTexture();
-		void Destroy_SharedDepthStencilTexture();
 
 	private:
 		int m_width, m_height;
@@ -704,6 +706,16 @@ private:
 	void Update_PendingForDeletion_Geometry();
 	void Update_PendingForDeletion_Texture();
 
+	void BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_id);
+
+	void RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles);
+	void RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp,
+		const Rml::Rectanglei window_flipped);
+
+	void DrawFullscreenQuad();
+	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f));
+
+
 private:
 	bool m_is_full_initialization;
 	bool m_is_shutdown_called;
@@ -731,6 +743,7 @@ private:
 	ID3D12GraphicsCommandList* m_p_command_graphics_list;
 	ID3D12DescriptorHeap* m_p_descriptor_heap_render_target_view;
 	ID3D12DescriptorHeap* m_p_descriptor_heap_render_target_view_for_texture_manager;
+	ID3D12DescriptorHeap* m_p_descriptor_heap_depth_stencil_view_for_texture_manager;
 	// cbv; srv; uav; all in one
 	ID3D12DescriptorHeap* m_p_descriptor_heap_shaders;
 	ID3D12DescriptorHeap* m_p_descriptor_heap_depthstencil;
@@ -751,6 +764,7 @@ private:
 	HWND m_p_window_handle;
 	HANDLE m_p_fence_event;
 	uint64_t m_fence_value;
+	Rml::CompiledGeometryHandle m_precompiled_fullscreen_quad_geometry;
 
 	Rml::Array<ID3D12Resource*, kDefaultRenderImplField_SwapchainBackBufferCount> m_backbuffers_resources;
 	Rml::Array<ID3D12CommandAllocator*, kDefaultRenderImplField_SwapchainBackBufferCount> m_backbuffers_allocators;
@@ -771,7 +785,6 @@ private:
 	Rml::Matrix4f m_constant_buffer_data_transform;
 	Rml::Matrix4f m_constant_buffer_data_projection;
 	Rml::Matrix4f m_projection;
-
 	RenderLayerStack m_manager_render_layer;
 };
 
