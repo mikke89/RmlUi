@@ -675,12 +675,24 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		}
 	}
 
+	auto CanSkipHypotheticalCrossSize = [=](const FlexItem& item) {
+		// If the following conditions are met, the hypothetical cross size will never be used. This allows us to skip a
+		// potentially slow step with content-based sizing.
+		const bool stretch_item = (item.align_self == Style::AlignSelf::Stretch);
+		const bool stretched = (stretch_item && item.cross.auto_size && !item.cross.auto_margin_a && !item.cross.auto_margin_b);
+		const bool single_line_definite_cross_size = (cross_available_size >= 0.f && flex_single_line);
+		return stretched && single_line_definite_cross_size;
+	};
+
 	// -- Determine cross size (§9.4) --
 	// First, determine the cross size of each item, format it if necessary.
 	for (FlexLine& line : container.lines)
 	{
 		for (FlexItem& item : line.items)
 		{
+			if (CanSkipHypotheticalCrossSize(item))
+				continue;
+
 			const Vector2f content_size = item.box.GetSize();
 
 			if (main_axis_horizontal)
@@ -713,14 +725,17 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 	}
 
 	// Determine cross size of each line.
-	if (cross_available_size >= 0.f && flex_single_line && container.lines.size() == 1)
+	if (cross_available_size >= 0.f && flex_single_line)
 	{
+		RMLUI_ASSERT(container.lines.size() == 1);
 		container.lines[0].cross_size = cross_available_size;
 	}
 	else
 	{
 		for (FlexLine& line : container.lines)
 		{
+			RMLUI_ASSERT(std::none_of(line.items.begin(), line.items.end(), [&](const auto& item) { return CanSkipHypotheticalCrossSize(item); }));
+
 			const float largest_hypothetical_cross_size =
 				std::max_element(line.items.begin(), line.items.end(), [](const FlexItem& a, const FlexItem& b) {
 					return a.hypothetical_cross_size < b.hypothetical_cross_size;
@@ -769,6 +784,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			}
 			else
 			{
+				RMLUI_ASSERT(!CanSkipHypotheticalCrossSize(item));
 				item.used_cross_size = item.hypothetical_cross_size;
 			}
 		}
