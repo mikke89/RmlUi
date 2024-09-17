@@ -114,8 +114,8 @@ namespace Style {
 		InheritedValues() :
 			font_weight(FontWeight::Normal), has_letter_spacing(0), font_style(FontStyle::Normal), has_font_effect(false),
 			pointer_events(PointerEvents::Auto), focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None),
-			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal),
-			direction(Direction::Auto), line_height_inherit_type(LineHeight::Number)
+			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal), direction(Direction::Auto),
+			line_height_inherit_type(LineHeight::Number)
 		{}
 
 		// Font face used to render text and resolve ex properties. Does not represent a true property
@@ -275,7 +275,7 @@ namespace Style {
 		MinWidth          min_width()                  const { return LengthPercentage(rare.min_width_type, rare.min_width); }
 		MaxWidth          max_width()                  const { return LengthPercentage(rare.max_width_type, rare.max_width); }
 		MinHeight         min_height()                 const { return LengthPercentage(rare.min_height_type, rare.min_height); }
-		MinHeight         max_height()                 const { return LengthPercentage(rare.max_height_type, rare.max_height); }
+		MaxHeight         max_height()                 const { return LengthPercentage(rare.max_height_type, rare.max_height); }
 		VerticalAlign     vertical_align()             const { return VerticalAlign(rare.vertical_align_type, rare.vertical_align_length); }
 		const             AnimationList* animation()   const;
 		const             TransitionList* transition() const;
