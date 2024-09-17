@@ -366,6 +366,12 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 			FormattingContext::FormatIndependent(flex_container_box, element, (format_box.GetSize().x >= 0 ? &format_box : nullptr),
 				FormattingContextType::Block);
 			item.inner_flex_base_size = element->GetBox().GetSize().y;
+
+			// Apply the automatic block size as minimum size (§4.5). Strictly speaking, we should also apply this to
+			// the other branches in column mode (and inline min-content size in row mode). However, the formatting step
+			// can be expensive, here we have already done that step so the value is readily accessible to us.
+			if (item.main.min_size == 0.f && !LayoutDetails::IsScrollContainer(computed.overflow_x(), computed.overflow_y()))
+				item.main.min_size = Math::Min(item.inner_flex_base_size, item.main.max_size);
 		}
 
 		// Calculate the hypothetical main size (clamped flex base size).
