@@ -119,6 +119,11 @@ public:
 
 	static String GetDebugElementName(Element* element);
 
+	static bool IsScrollContainer(Style::Overflow overflow_x, Style::Overflow overflow_y)
+	{
+		return overflow_x != Style::Overflow::Visible || overflow_y != Style::Overflow::Visible;
+	}
+
 private:
 	/// Calculates and returns the content size for replaced elements.
 	static Vector2f CalculateSizeForReplacedElement(Vector2f specified_content_size, Vector2f min_size, Vector2f max_size, Vector2f intrinsic_size,

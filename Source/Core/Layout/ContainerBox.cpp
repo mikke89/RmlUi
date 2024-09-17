@@ -66,6 +66,11 @@ void ContainerBox::AddRelativeElement(Element* element)
 		relative_elements.push_back(element);
 }
 
+bool ContainerBox::IsScrollContainer() const
+{
+	return LayoutDetails::IsScrollContainer(overflow_x, overflow_y);
+}
+
 void ContainerBox::ClosePositionedElements()
 {
 	// Any relatively positioned elements that we act as containing block for may need to be have their positions

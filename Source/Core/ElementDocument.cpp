@@ -37,6 +37,7 @@
 #include "DocumentHeader.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
+#include "Layout/LayoutDetails.h"
 #include "Layout/LayoutEngine.h"
 #include "StreamFile.h"
 #include "StyleSheetFactory.h"
@@ -93,9 +94,7 @@ namespace {
 	bool IsScrollContainer(Element* element)
 	{
 		const auto& computed = element->GetComputedValues();
-		if (computed.overflow_x() != Style::Overflow::Visible || computed.overflow_y() != Style::Overflow::Visible)
-			return true;
-		return false;
+		return LayoutDetails::IsScrollContainer(computed.overflow_x(), computed.overflow_y());
 	}
 
 	int GetNavigationHeuristic(const BoundingBox& source, const BoundingBox& target, NavigationSearchDirection direction)
