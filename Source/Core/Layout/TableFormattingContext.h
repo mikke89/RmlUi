@@ -48,6 +48,9 @@ class TableFormattingContext final : public FormattingContext {
 public:
 	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box);
 
+	/// Conputes max-content size for a table element.
+	static Vector2f GetMaxContentSize(Element* element);
+
 private:
 	TableFormattingContext() = default;
 

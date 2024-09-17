@@ -257,13 +257,6 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 		return box.GetSize().x;
 	}
 
-	// Currently we don't support shrink-to-fit width for tables. Just return a zero-sized width.
-	const Style::Display display = element->GetDisplay();
-	if (display == Style::Display::Table || display == Style::Display::InlineTable)
-	{
-		return 0.f;
-	}
-
 	// Use a large size for the box content width, so that it is practically unconstrained. This makes the formatting
 	// procedure act as if under a maximum content constraint. Children with percentage sizing values may be scaled
 	// based on this width (such as 'width' or 'margin'), if so, the layout is considered undefined like in CSS 2.
@@ -453,7 +446,7 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		// See CSS 2.1 section 10.3.7 for when this should be applied.
 		const bool shrink_to_fit = !replaced_element &&
 			((computed.float_() != Style::Float::None) || (absolutely_positioned && inset_auto) ||
-				(computed.display() == Style::Display::InlineBlock || computed.display() == Style::Display::InlineFlex));
+				(computed.display() == Style::Display::InlineBlock || computed.display() == Style::Display::InlineFlex || computed.display() == Style::Display::InlineTable));
 
 		if (!shrink_to_fit)
 		{

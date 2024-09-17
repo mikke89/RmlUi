@@ -113,6 +113,37 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 	return table_wrapper_box;
 }
 
+Vector2f TableFormattingContext::GetMaxContentSize(Element* element)
+{
+	const Vector2f infinity(10000.0f, 10000.0f);
+	RootBox root(infinity);
+	auto table_wrapper_box = MakeUnique<TableWrapper>(element, &root);
+
+	TableFormattingContext context;
+	context.table_wrapper_box = table_wrapper_box.get();
+	context.element_table = element;
+	context.grid.Build(element, *table_wrapper_box);
+
+	Box& box = table_wrapper_box->GetBox();
+	LayoutDetails::BuildBox(box, infinity, element, BuildBoxMode::Block);
+	const Vector2f initial_content_size = box.GetSize();
+
+	context.table_auto_height = (initial_content_size.y < 0.0f);
+	context.table_content_offset = box.GetPosition();
+	context.table_initial_content_size = Vector2f(initial_content_size.x, Math::Max(0.0f, initial_content_size.y));
+	Math::SnapToPixelGrid(context.table_content_offset, context.table_initial_content_size);
+	context.table_max_size = Vector2f(FLT_MAX, FLT_MAX);
+
+	const ComputedValues& computed_table = element->GetComputedValues();
+	context.table_gap = Vector2f(ResolveValue(computed_table.column_gap(), context.table_initial_content_size.x));
+
+
+	Vector2f table_content_size, table_overflow_size;
+	float table_baseline = 0.f;
+	context.FormatTable(table_content_size, table_overflow_size, table_baseline);
+	return table_content_size;
+}
+
 void TableFormattingContext::FormatTable(Vector2f& table_content_size, Vector2f& table_overflow_size, float& table_baseline) const
 {
 	// Defines the boxes for all columns in this table, one entry per table column (spanning columns will add multiple entries).
