@@ -30,12 +30,12 @@
 
 #if defined RMLUI_PLATFORM_WIN32
 
-	#include "RmlUi_Renderer_DX11.h"
-	#include <RmlUi/Core/Core.h>
-	#include <RmlUi/Core/FileInterface.h>
-	#include <RmlUi/Core/Log.h>
+    #include "RmlUi_Renderer_DX11.h"
+    #include <RmlUi/Core/Core.h>
+    #include <RmlUi/Core/FileInterface.h>
+    #include <RmlUi/Core/Log.h>
 
-	#include "RmlUi_Include_Windows.h"
+    #include "RmlUi_Include_Windows.h"
 
 RenderInterface_DX11::RenderInterface_DX11() {
 
@@ -80,7 +80,7 @@ void RenderInterface_DX11::Init(ID3D11Device* pd3dDevice, ID3D11DeviceContext* p
 }
 
 void RenderInterface_DX11::Cleanup() {
-	m_blendState->Release();
+    m_blendState->Release();
 }
 
 void RenderInterface_DX11::BeginFrame() {
@@ -105,7 +105,7 @@ void RenderInterface_DX11::EndFrame() {
 
 
 Rml::CompiledGeometryHandle RenderInterface_DX11::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) {
-	return Rml::CompiledGeometryHandle(0);
+    return Rml::CompiledGeometryHandle(0);
 }
 
 void RenderInterface_DX11::ReleaseGeometry(Rml::CompiledGeometryHandle geometry) {
@@ -119,18 +119,18 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
 #pragma pack(1)
 struct TGAHeader {
-	char idLength;
-	char colourMapType;
-	char dataType;
-	short int colourMapOrigin;
-	short int colourMapLength;
-	char colourMapDepth;
-	short int xOrigin;
-	short int yOrigin;
-	short int width;
-	short int height;
-	char bitsPerPixel;
-	char imageDescriptor;
+    char idLength;
+    char colourMapType;
+    char dataType;
+    short int colourMapOrigin;
+    short int colourMapLength;
+    char colourMapDepth;
+    short int xOrigin;
+    short int yOrigin;
+    short int width;
+    short int height;
+    char bitsPerPixel;
+    char imageDescriptor;
 };
 // Restore packing
 #pragma pack()
@@ -229,21 +229,24 @@ void RenderInterface_DX11::EnableScissorRegion(bool enable) {
 void RenderInterface_DX11::SetScissorRegion(Rml::Rectanglei region) {
 }
 
-void RenderInterface_DX11::SetViewport(const int width, const int height) {
-	m_width = width;
-	m_height = height;
+void RenderInterface_DX11::SetViewport(const int width, const int height)
+{
+    m_width = width;
+    m_height = height;
 }
 
-void RenderInterface_DX11::Clear() {
-	float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	m_d3dContext->ClearRenderTargetView(m_mainRenderTargetView, clearColor);
+void RenderInterface_DX11::Clear()
+{
+    float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    m_d3dContext->ClearRenderTargetView(m_boundRenderTarget, clearColor);
 }
 
 void RenderInterface_DX11::SetBlendState(ID3D11BlendState* blendState) {
-	if (blendState != m_currentBlendState)
-	{
-		m_d3dContext->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
-		m_currentBlendState = blendState;
-	}
+    if (blendState != m_currentBlendState)
+    {
+        m_d3dContext->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
+        m_currentBlendState = blendState;
+    }
 }
+
 #endif // RMLUI_PLATFORM_WIN32

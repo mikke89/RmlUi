@@ -29,44 +29,44 @@
 #ifndef RMLUI_BACKENDS_RENDERER_DX11_H
 #define RMLUI_BACKENDS_RENDERER_DX11_H
 
-	#include <RmlUi/Core/Platform.h>
+    #include <RmlUi/Core/Platform.h>
 
-	#if defined RMLUI_PLATFORM_WIN32
-		#include <RmlUi/Core/RenderInterface.h>
+    #if defined RMLUI_PLATFORM_WIN32
+        #include <RmlUi/Core/RenderInterface.h>
 
-		#include <d3d11.h>
-		#include <dxgi1_3.h>
+        #include <d3d11.h>
+        #include <dxgi1_3.h>
 
 class RenderInterface_DX11 : public Rml::RenderInterface {
 public:
-	RenderInterface_DX11();
-	
-	// Resource initialisation and cleanup
 	void Init(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dDeviceContext, IDXGISwapChain* pSwapChain, ID3D11RenderTargetView* mainRenderTargetView);
-	void Cleanup ();
+    RenderInterface_DX11();
+    
+    // Resource initialisation and cleanup
+    void Cleanup ();
 
-	// Sets up DirectX11 states for taking rendering commands from RmlUi.
 	void BeginFrame();
-	void EndFrame();
+    // Sets up DirectX11 states for taking rendering commands from RmlUi.
+    void EndFrame();
 
-	// -- Inherited from Rml::RenderInterface --
+    // -- Inherited from Rml::RenderInterface --
 
-	Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
-	void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override;
-	void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override;
+    Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
+    void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override;
+    void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override;
 
-	Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
-	Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override;
-	void ReleaseTexture(Rml::TextureHandle texture_handle) override;
+    Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
+    Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override;
+    void ReleaseTexture(Rml::TextureHandle texture_handle) override;
 
-	void EnableScissorRegion(bool enable) override;
-	void SetScissorRegion(Rml::Rectanglei region) override;
+    void EnableScissorRegion(bool enable) override;
+    void SetScissorRegion(Rml::Rectanglei region) override;
 
-	void SetViewport(const int width, const int height);
-	void Clear();
+    void SetViewport(const int width, const int height);
+    void Clear();
 
 private:
-	void SetBlendState(ID3D11BlendState* blendState);
+    void SetBlendState(ID3D11BlendState* blendState);
 
 private:
 	// @TODO: Replace with vertex / index buffer pairs
