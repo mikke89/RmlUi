@@ -282,19 +282,43 @@ Rml::TextureHandle RenderInterface_DX11::LoadTexture(Rml::Vector2i& texture_dime
     return GenerateTexture({image_dest, image_size}, texture_dimensions);
 }
 
-Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) {
-	return Rml::TextureHandle(0);
+Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions)
+{
+    return Rml::TextureHandle(0);
 }
 
-void RenderInterface_DX11::ReleaseTexture(Rml::TextureHandle texture_handle) {
+void RenderInterface_DX11::ReleaseTexture(Rml::TextureHandle texture_handle)
+{
 
 }
 
 void RenderInterface_DX11::EnableScissorRegion(bool enable) {
 
+    if (enable != m_scissor_region_enabled)
+    {
+        if (enable)
+        {
+            m_d3dContext->RSSetState(m_rasterizerState_scissorEnabled);
+        }
+        else
+        {
+            m_d3dContext->RSSetState(m_rasterizerState_scissorDisabled);
+        }
+        m_scissor_region_enabled = enable;
+    }
 }
 
-void RenderInterface_DX11::SetScissorRegion(Rml::Rectanglei region) {
+void RenderInterface_DX11::SetScissorRegion(Rml::Rectanglei region)
+{
+    m_rect_scissor.left		= region.Left();
+    m_rect_scissor.top		= region.Top();
+    m_rect_scissor.bottom	= region.Bottom();
+    m_rect_scissor.right	= region.Right();
+
+    if (m_scissor_region_enabled)
+    {
+        m_d3dContext->RSSetScissorRects(1, &m_rect_scissor);
+    }
 }
 
 void RenderInterface_DX11::SetViewport(const int width, const int height)
