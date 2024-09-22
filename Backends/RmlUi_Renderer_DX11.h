@@ -37,6 +37,16 @@
         #include <d3d11.h>
         #include <dxgi1_3.h>
 
+// Allow the user to override the number of MSAA samples
+#ifndef MSAA_SAMPLES
+#define MSAA_SAMPLES 2
+#endif
+
+// Use these typedefs to overload the default implementation with another image loader so that you can handle more than uncompressed TGA if you wish.
+// Must define both the load and free functions. See RenderInterface_DX11::
+typedef void (*pfnLoadTextureRaw)(const Rml::String& filename, int* pWidth, int* pHeight, uint8_t** pData, size_t* pDataSize);
+typedef void (*pfnFreeTextureRaw)(uint8_t* pData);
+
 class RenderInterface_DX11 : public Rml::RenderInterface {
 public:
     RenderInterface_DX11();
@@ -64,6 +74,18 @@ public:
 
     void SetViewport(const int width, const int height);
     void Clear();
+
+public:
+    /// Called by the renderer when it wants to load a texture from disk.
+    /// @param[in] pFilename A Rml string containing the file name.
+    /// @param[out] pWidth The width of the texture read from disk.
+    /// @param[out] pHeight The height of the texture read from disk.
+    /// @param[out] pData A pointer to an RGBA byte array of texture data, which will then be used to generate a texture. Set to NULL to indicate that the file failed to load for whatever reason.
+    /// @param[out] pDataSize A pointer to a size_t storing how many bytes is in pData.
+    pfnLoadTextureRaw LoadTextureFromFileRaw = nullptr;
+    /// Called by the renderer when it wants to free a texture from disk. Always called after a successful load from LoadTextureFromFileRaw.
+    /// @param[in] pData A pointer to an RGBA byte array of texture data to free.
+    pfnFreeTextureRaw FreeTextureFromFileRaw = nullptr;
 
 private:
     void SetBlendState(ID3D11BlendState* blendState);

@@ -180,82 +180,106 @@ struct TGAHeader {
 #pragma pack()
 
 
-Rml::TextureHandle RenderInterface_DX11::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) {
-	Rml::FileInterface* file_interface = Rml::GetFileInterface();
-	Rml::FileHandle file_handle = file_interface->Open(source);
-	if (!file_handle)
-	{
-		return false;
-	}
+Rml::TextureHandle RenderInterface_DX11::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
+{
+    // Use the user provided image loading function if it's provided, else fallback to the included TGA one
+    if (LoadTextureFromFileRaw != nullptr && FreeTextureFromFileRaw != nullptr)
+    {
+        int texture_width = 0, texture_height = 0;
+        size_t image_size_bytes = 0;
+        uint8_t* texture_data = nullptr;
+        LoadTextureFromFileRaw(source, &texture_width, &texture_height, &texture_data, &image_size_bytes);
 
-	file_interface->Seek(file_handle, 0, SEEK_END);
-	size_t buffer_size = file_interface->Tell(file_handle);
-	file_interface->Seek(file_handle, 0, SEEK_SET);
+        if (texture_data != nullptr)
+        {
+            texture_dimensions.x = texture_width;
+            texture_dimensions.y = texture_height;
 
-	if (buffer_size <= sizeof(TGAHeader))
-	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Texture file size is smaller than TGAHeader, file is not a valid TGA image.");
-		file_interface->Close(file_handle);
-		return false;
-	}
+            Rml::TextureHandle handle = GenerateTexture({texture_data, image_size_bytes}, texture_dimensions);
 
-	using Rml::byte;
-	Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
-	file_interface->Read(buffer.get(), buffer_size, file_handle);
-	file_interface->Close(file_handle);
+            FreeTextureFromFileRaw(texture_data);
+            return handle;
+        }
 
-	TGAHeader header;
-	memcpy(&header, buffer.get(), sizeof(TGAHeader));
+        // Image must be invalid if the file failed to load. Return invalid handle
+        return Rml::TextureHandle(0);
+    }
 
-	int color_mode = header.bitsPerPixel / 8;
-	const size_t image_size = header.width * header.height * 4; // We always make 32bit textures
+    Rml::FileInterface* file_interface = Rml::GetFileInterface();
+    Rml::FileHandle file_handle = file_interface->Open(source);
+    if (!file_handle)
+    {
+        return false;
+    }
 
-	if (header.dataType != 2)
-	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
-		return false;
-	}
+    file_interface->Seek(file_handle, 0, SEEK_END);
+    size_t buffer_size = file_interface->Tell(file_handle);
+    file_interface->Seek(file_handle, 0, SEEK_SET);
 
-	// Ensure we have at least 3 colors
-	if (color_mode < 3)
-	{
-		Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported.");
-		return false;
-	}
+    if (buffer_size <= sizeof(TGAHeader))
+    {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "Texture file size is smaller than TGAHeader, file is not a valid TGA image.");
+        file_interface->Close(file_handle);
+        return false;
+    }
 
-	const byte* image_src = buffer.get() + sizeof(TGAHeader);
-	Rml::UniquePtr<byte[]> image_dest_buffer(new byte[image_size]);
-	byte* image_dest = image_dest_buffer.get();
+    using Rml::byte;
+    Rml::UniquePtr<byte[]> buffer(new byte[buffer_size]);
+    file_interface->Read(buffer.get(), buffer_size, file_handle);
+    file_interface->Close(file_handle);
 
-	// Targa is BGR, swap to RGB, flip Y axis, and convert to premultiplied alpha.
-	for (long y = 0; y < header.height; y++)
-	{
-		long read_index = y * header.width * color_mode;
-		long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * 4;
-		for (long x = 0; x < header.width; x++)
-		{
-			image_dest[write_index] = image_src[read_index + 2];
-			image_dest[write_index + 1] = image_src[read_index + 1];
-			image_dest[write_index + 2] = image_src[read_index];
-			if (color_mode == 4)
-			{
-				const byte alpha = image_src[read_index + 3];
-				for (size_t j = 0; j < 3; j++)
-					image_dest[write_index + j] = byte((image_dest[write_index + j] * alpha) / 255);
-				image_dest[write_index + 3] = alpha;
-			}
-			else
-				image_dest[write_index + 3] = 255;
+    TGAHeader header;
+    memcpy(&header, buffer.get(), sizeof(TGAHeader));
 
-			write_index += 4;
-			read_index += color_mode;
-		}
-	}
+    int color_mode = header.bitsPerPixel / 8;
+    const size_t image_size = header.width * header.height * 4; // We always make 32bit textures
 
-	texture_dimensions.x = header.width;
-	texture_dimensions.y = header.height;
+    if (header.dataType != 2)
+    {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24/32bit uncompressed TGAs are supported.");
+        return false;
+    }
 
-	return GenerateTexture({image_dest, image_size}, texture_dimensions);
+    // Ensure we have at least 3 colors
+    if (color_mode < 3)
+    {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "Only 24 and 32bit textures are supported.");
+        return false;
+    }
+
+    const byte* image_src = buffer.get() + sizeof(TGAHeader);
+    Rml::UniquePtr<byte[]> image_dest_buffer(new byte[image_size]);
+    byte* image_dest = image_dest_buffer.get();
+
+    // Targa is BGR, swap to RGB, flip Y axis, and convert to premultiplied alpha.
+    for (long y = 0; y < header.height; y++)
+    {
+        long read_index = y * header.width * color_mode;
+        long write_index = ((header.imageDescriptor & 32) != 0) ? read_index : (header.height - y - 1) * header.width * 4;
+        for (long x = 0; x < header.width; x++)
+        {
+            image_dest[write_index] = image_src[read_index + 2];
+            image_dest[write_index + 1] = image_src[read_index + 1];
+            image_dest[write_index + 2] = image_src[read_index];
+            if (color_mode == 4)
+            {
+                const byte alpha = image_src[read_index + 3];
+                for (size_t j = 0; j < 3; j++)
+                    image_dest[write_index + j] = byte((image_dest[write_index + j] * alpha) / 255);
+                image_dest[write_index + 3] = alpha;
+            }
+            else
+                image_dest[write_index + 3] = 255;
+
+            write_index += 4;
+            read_index += color_mode;
+        }
+    }
+
+    texture_dimensions.x = header.width;
+    texture_dimensions.y = header.height;
+
+    return GenerateTexture({image_dest, image_size}, texture_dimensions);
 }
 
 Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) {
