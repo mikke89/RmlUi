@@ -97,7 +97,7 @@ void RenderInterface_DX11::Init(ID3D11Device* pd3dDevice, ID3D11DeviceContext* p
 
         rasterizerDesc.ScissorEnable = false;
 
-        HRESULT result = m_d3dDevice->CreateRasterizerState(&rasterizerDesc, &m_rasterizerState_scissorDisabled);
+        result = m_d3dDevice->CreateRasterizerState(&rasterizerDesc, &m_rasterizerState_scissorDisabled);
         if (FAILED(result))
         {
             Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateRasterizerState (scissor: disabled) (%d)", result);
