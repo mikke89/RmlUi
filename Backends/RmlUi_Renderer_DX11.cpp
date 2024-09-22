@@ -37,70 +37,114 @@
 
     #include "RmlUi_Include_Windows.h"
 
-RenderInterface_DX11::RenderInterface_DX11() {
+RenderInterface_DX11::RenderInterface_DX11() {}
 
-}
-
-void RenderInterface_DX11::Init(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dDeviceContext, IDXGISwapChain* pSwapChain,
-	ID3D11RenderTargetView* mainRenderTargetView)
+void RenderInterface_DX11::Init(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dDeviceContext, IDXGISwapChain* pSwapChain)
 {
-	RMLUI_ASSERTMSG(pd3dDevice, "pd3dDevice cannot be nullptr!");
-	RMLUI_ASSERTMSG(pSwapChain, "pSwapChain cannot be nullptr!");
-	RMLUI_ASSERTMSG(pd3dDeviceContext, "pd3dDeviceContext cannot be nullptr!");
-	RMLUI_ASSERTMSG(mainRenderTargetView, "mainRenderTargetView cannot be nullptr!");
+    RMLUI_ASSERTMSG(pd3dDevice, "pd3dDevice cannot be nullptr!");
+    RMLUI_ASSERTMSG(pSwapChain, "pSwapChain cannot be nullptr!");
+    RMLUI_ASSERTMSG(pd3dDeviceContext, "pd3dDeviceContext cannot be nullptr!");
 
-	// Assign D3D resources
-	m_d3dDevice = pd3dDevice;
-	m_d3dContext = pd3dDeviceContext;
-	m_swapChain = pSwapChain;
-	m_mainRenderTargetView = mainRenderTargetView;
+    // Assign D3D resources
+    m_d3dDevice = pd3dDevice;
+    m_d3dContext = pd3dDeviceContext;
+    m_swapChain = pSwapChain;
 
-	// RmlUi serves vertex colors and textures with premultiplied alpha, set the blend mode accordingly.
-	// Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
-	if (!m_blendState)
-	{
-		D3D11_BLEND_DESC blendDesc;
-		ZeroMemory(&blendDesc, sizeof(blendDesc));
-		blendDesc.AlphaToCoverageEnable = FALSE;
-		blendDesc.IndependentBlendEnable = FALSE;
-		blendDesc.RenderTarget[0].BlendEnable = TRUE;
-		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-		HRESULT result = m_d3dDevice->CreateBlendState(&blendDesc, &m_blendState);
-		if (FAILED(result))
-		{
-			Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device1::CreateBlendState (%d)", result);
-		}
-	}
+    // RmlUi serves vertex colors and textures with premultiplied alpha, set the blend mode accordingly.
+    // Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
+    if (!m_blendState)
+    {
+        D3D11_BLEND_DESC blendDesc;
+        ZeroMemory(&blendDesc, sizeof(blendDesc));
+        blendDesc.AlphaToCoverageEnable = FALSE;
+        blendDesc.IndependentBlendEnable = FALSE;
+        blendDesc.RenderTarget[0].BlendEnable = TRUE;
+        blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+        blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+        blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+        blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+        blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+        HRESULT result = m_d3dDevice->CreateBlendState(&blendDesc, &m_blendState);
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateBlendState (%d)", result);
+            return;
+        }
+    }
+
+    // Scissor regions require a rasterizer state. Cache one for scissor on and off
+    {
+        D3D11_RASTERIZER_DESC rasterizerDesc;
+        rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+        rasterizerDesc.CullMode = D3D11_CULL_BACK;
+        rasterizerDesc.FrontCounterClockwise = false;
+        rasterizerDesc.DepthBias = 0;
+        rasterizerDesc.SlopeScaledDepthBias = 0.0f;
+        rasterizerDesc.DepthBiasClamp = 0.0f;
+        rasterizerDesc.DepthClipEnable = true;
+        rasterizerDesc.ScissorEnable = true;
+        rasterizerDesc.MultisampleEnable = MSAA_SAMPLES > 1;
+        rasterizerDesc.AntialiasedLineEnable = MSAA_SAMPLES > 1;
+
+        HRESULT result = m_d3dDevice->CreateRasterizerState(&rasterizerDesc, &m_rasterizerState_scissorEnabled);
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateRasterizerState (scissor: enabled) (%d)", result);
+            return;
+        }
+
+        rasterizerDesc.ScissorEnable = false;
+
+        HRESULT result = m_d3dDevice->CreateRasterizerState(&rasterizerDesc, &m_rasterizerState_scissorDisabled);
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateRasterizerState (scissor: disabled) (%d)", result);
+            return;
+        }
+    }
+
+    // Load shaders
+
+    // @TODO:
+
+    // Create vertex layout. This will be constant to avoid copying to an intermediate struct.
+
+    // @TODO:
+
+    // Create constant buffers. This is so that we can bind uniforms such as translation and color to the shaders.
+
+    // @TODO:
 }
 
 void RenderInterface_DX11::Cleanup() {
     m_blendState->Release();
 }
 
-void RenderInterface_DX11::BeginFrame() {
-	RMLUI_ASSERTMSG(m_d3dContext, "d3dContext cannot be nullptr!");
-	RMLUI_ASSERTMSG(m_d3dDevice, "d3dDevice cannot be nullptr!");
+void RenderInterface_DX11::BeginFrame(ID3D11RenderTargetView* renderTargetView) {
+    RMLUI_ASSERTMSG(renderTargetView, "renderTargetView cannot be nullptr!");
+    RMLUI_ASSERTMSG(m_d3dContext, "d3dContext cannot be nullptr!");
+    RMLUI_ASSERTMSG(m_d3dDevice, "d3dDevice cannot be nullptr!");
 
-	D3D11_VIEWPORT d3dviewport;
-	d3dviewport.TopLeftX = 0;
-	d3dviewport.TopLeftY = 0;
-	d3dviewport.Width = m_width;
-	d3dviewport.Height = m_height;
-	d3dviewport.MinDepth = 0.0f;
-	d3dviewport.MaxDepth = 1.0f;
-	m_d3dContext->RSSetViewports(1, &d3dviewport);
-	Clear();
-	SetBlendState(m_blendState);
+    m_boundRenderTarget = renderTargetView;
+
+    D3D11_VIEWPORT d3dviewport;
+    d3dviewport.TopLeftX = 0;
+    d3dviewport.TopLeftY = 0;
+    d3dviewport.Width = m_width;
+    d3dviewport.Height = m_height;
+    d3dviewport.MinDepth = 0.0f;
+    d3dviewport.MaxDepth = 1.0f;
+    m_d3dContext->RSSetViewports(1, &d3dviewport);
+    Clear();
+    SetBlendState(m_blendState);
 }
 
 void RenderInterface_DX11::EndFrame() {
-
+    // @TODO: Compositing
+    // @TODO: Layer stack
+    m_boundRenderTarget = nullptr;
 }
 
 

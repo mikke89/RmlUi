@@ -262,7 +262,7 @@ void Backend::BeginFrame()
 {
 	RMLUI_ASSERT(data);
 	// @TODO: Check if should resize, if so, re-create swapchain
-	data->render_interface.BeginFrame();
+	data->render_interface.BeginFrame(data->d3d_resources.pMainRenderTargetView);
 }
 
 void Backend::PresentFrame()

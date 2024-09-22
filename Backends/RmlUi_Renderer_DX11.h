@@ -39,14 +39,14 @@
 
 class RenderInterface_DX11 : public Rml::RenderInterface {
 public:
-	void Init(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dDeviceContext, IDXGISwapChain* pSwapChain, ID3D11RenderTargetView* mainRenderTargetView);
     RenderInterface_DX11();
     
     // Resource initialisation and cleanup
+    void Init(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dDeviceContext, IDXGISwapChain* pSwapChain);
     void Cleanup ();
 
-	void BeginFrame();
     // Sets up DirectX11 states for taking rendering commands from RmlUi.
+    void BeginFrame(ID3D11RenderTargetView* renderTargetView);
     void EndFrame();
 
     // -- Inherited from Rml::RenderInterface --
@@ -69,36 +69,37 @@ private:
     void SetBlendState(ID3D11BlendState* blendState);
 
 private:
-	// @TODO: Replace with vertex / index buffer pairs
-	struct GeometryView {
-		Rml::Span<const Rml::Vertex> vertices;
-		Rml::Span<const int> indices;
-	};
+    // @TODO: Replace with vertex / index buffer pairs
+    struct GeometryView {
+        Rml::Span<const Rml::Vertex> vertices;
+        Rml::Span<const int> indices;
+    };
 
-	// D3D11 core resources
-	ID3D11Device* m_d3dDevice = nullptr;
-	ID3D11DeviceContext* m_d3dContext = nullptr;
-	IDXGISwapChain* m_swapChain = nullptr;
-	ID3D11RenderTargetView* m_mainRenderTargetView = nullptr;
+    // D3D11 core resources
+    ID3D11Device* m_d3dDevice = nullptr;
+    ID3D11DeviceContext* m_d3dContext = nullptr;
+    IDXGISwapChain* m_swapChain = nullptr;
+    ID3D11RenderTargetView* m_boundRenderTarget = nullptr;
+    ID3D11RasterizerState* m_rasterizerState_scissorEnabled = nullptr;
+    ID3D11RasterizerState* m_rasterizerState_scissorDisabled = nullptr;
 
-	// Viewport dimensions
-	int m_width = 0;
-	int m_height = 0;
+    // Viewport dimensions
+    int m_width = 0;
+    int m_height = 0;
 
-	// SDL_Renderer* renderer;
-	ID3D11BlendState* m_blendState = nullptr;
-	// SDL_Rect rect_scissor = {};
-	bool scissor_region_enabled = false;
+    ID3D11BlendState* m_blendState = nullptr;
+    D3D11_RECT m_rect_scissor = {};
+    bool m_scissor_region_enabled = false;
 
-	// D3D11 state
-	ID3D11BlendState* m_currentBlendState = nullptr;
-	
-	struct D3D11State {
+    // D3D11 state
+    ID3D11BlendState* m_currentBlendState = nullptr;
+    
+    struct D3D11State {
 
-		ID3D11BlendState* m_previousBlendState = nullptr;
-	};
+        ID3D11BlendState* m_previousBlendState = nullptr;
+    };
 
-	D3D11State m_previousD3DState;
+    D3D11State m_previousD3DState;
 };
 
 #endif // RMLUI_PLATFORM_WIN32
