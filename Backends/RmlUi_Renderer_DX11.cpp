@@ -76,8 +76,7 @@ cbuffer ConstantBuffer : register(b0)
 {
     float4x4 m_transform;
     float2 m_translate;
-    float2 m_padding;
-    float4 m_padding1[11];
+    float2 _padding;
 };
 
 sOutputData main(const sInputData inArgs)
