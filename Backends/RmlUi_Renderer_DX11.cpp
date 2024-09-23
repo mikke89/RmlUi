@@ -169,9 +169,9 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         rasterizerDesc.FillMode = D3D11_FILL_SOLID;
         rasterizerDesc.CullMode = D3D11_CULL_BACK;
         rasterizerDesc.FrontCounterClockwise = false;
-        rasterizerDesc.DepthBias = 0;
-        rasterizerDesc.SlopeScaledDepthBias = 0.0f;
-        rasterizerDesc.DepthBiasClamp = 0.0f;
+        rasterizerDesc.DepthBias = D3D11_DEFAULT_DEPTH_BIAS;
+        rasterizerDesc.SlopeScaledDepthBias = D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+        rasterizerDesc.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
         rasterizerDesc.DepthClipEnable = true;
         rasterizerDesc.ScissorEnable = true;
         rasterizerDesc.MultisampleEnable = MSAA_SAMPLES > 1;
@@ -297,7 +297,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
 
     // Create vertex layout. This will be constant to avoid copying to an intermediate struct.
 
-    // @TODO:
     {
         D3D11_INPUT_ELEMENT_DESC polygonLayout[] = {
             {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
