@@ -109,6 +109,7 @@ public:
 private:
     // Changes blend state if necessary
     void SetBlendState(ID3D11BlendState* blendState);
+    void UpdateConstantBuffer();
 
 private:
     // @TODO: Replace with vertex / index buffer pairs
@@ -164,8 +165,6 @@ private:
         float _padding[2];
     };
     #pragma pack()
-
-    ShaderCbuffer m_shader_cbuffer_data{};
 };
 
 #endif // RMLUI_PLATFORM_WIN32

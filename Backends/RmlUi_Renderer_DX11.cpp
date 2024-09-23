@@ -584,4 +584,29 @@ void RenderInterface_DX11::SetTransform(const Rml::Matrix4f* new_transform)
     m_cbuffer_dirty = true;
 }
 
+void RenderInterface_DX11::UpdateConstantBuffer() {
+
+    if (m_cbuffer_dirty)
+    {
+        D3D11_MAPPED_SUBRESOURCE mappedResource{};
+        // Lock the constant buffer so it can be written to.
+        HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+        if (FAILED(result))
+        {
+            return;
+        }
+
+        // Get a pointer to the data in the constant buffer.
+        ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
+
+        // Copy the data to the GPU
+        dataPtr->transform = m_transform;
+        dataPtr->translation = m_translation;
+
+        // Upload to the GPU.
+        m_d3d_context->Unmap(m_shader_buffer, 0);
+        m_cbuffer_dirty = false;
+    }
+}
+
 #endif // RMLUI_PLATFORM_WIN32
