@@ -37,6 +37,23 @@
         #include <d3d11.h>
         #include <dxgi1_3.h>
 
+#ifdef RMLUI_DEBUG
+    #define RMLUI_DX_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(SUCCEEDED(statement), msg)
+
+    // Uncomment the following line to enable additional DirectX debugging.
+    #define RMLUI_DX_DEBUG
+#else
+    #define RMLUI_DX_ASSERTMSG(statement, msg) static_cast<void>(statement)
+#endif
+
+// Helper for a common cleanup pattern in DX11
+#define DX_CLEANUP_RESOURCE_IF_CREATED(resource)    \
+        if (resource)                               \
+        {                                           \
+            resource->Release();                    \
+            resource = nullptr;                     \
+        }
+
 // Allow the user to override the number of MSAA samples
 #ifndef MSAA_SAMPLES
 #define MSAA_SAMPLES 2
@@ -97,6 +114,8 @@ private:
         Rml::Span<const int> indices;
     };
 
+    UINT m_default_shader_flags;
+
     // D3D11 core resources
     ID3D11Device* m_d3d_device = nullptr;
     ID3D11DeviceContext* m_d3d_context = nullptr;
@@ -105,10 +124,16 @@ private:
     ID3D11RasterizerState* m_rasterizer_state_scissor_enabled = nullptr;
     ID3D11RasterizerState* m_rasterizer_state_scissor_disabled = nullptr;
 
+    // Shaders
+    ID3D11VertexShader* m_shader_vertex_common = nullptr;
+    ID3D11PixelShader* m_shader_pixel_color = nullptr;
+    ID3D11PixelShader* m_shader_pixel_texture = nullptr;
+
     // Viewport dimensions
     int m_width = 0;
     int m_height = 0;
 
+    ID3D11InputLayout* m_vertex_layout = nullptr;
     ID3D11BlendState* m_blend_state = nullptr;
     D3D11_RECT m_rect_scissor = {};
     bool m_scissor_region_enabled = false;

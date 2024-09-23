@@ -37,9 +37,96 @@
 
     #include "RmlUi_Include_Windows.h"
 
-RenderInterface_DX11::RenderInterface_DX11() {}
+    #include "d3dcompiler.h"
 
+    #ifdef RMLUI_DX_DEBUG
+        #include <dxgidebug.h>
+    #endif
+
+// Shader source code
+constexpr const char pShaderSourceText_Color[] = R"(
+struct sInputData
 {
+    float4 inputPos : SV_Position;
+    float4 inputColor : COLOR;
+    float2 inputUV : TEXCOORD;
+};
+
+float4 main(const sInputData inputArgs) : SV_TARGET 
+{ 
+    return inputArgs.inputColor; 
+}
+)";
+constexpr const char pShaderSourceText_Vertex[] = R"(
+struct sInputData 
+{
+    float2 inPosition : POSITION;
+    float4 inColor : COLOR;
+    float2 inTexCoord : TEXCOORD;
+};
+
+struct sOutputData
+{
+    float4 outPosition : SV_Position;
+    float4 outColor : COLOR;
+    float2 outUV : TEXCOORD;
+};
+
+cbuffer ConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+    float2 m_padding;
+    float4 m_padding1[11];
+};
+
+sOutputData main(const sInputData inArgs)
+{
+    sOutputData result;
+
+    float2 translatedPos = inArgs.inPosition + m_translate;
+    float4 resPos = mul(m_transform, float4(translatedPos.x, translatedPos.y, 0.0, 1.0));
+
+    result.outPosition = resPos;
+    result.outColor = inArgs.inColor;
+    result.outUV = inArgs.inTexCoord;
+
+#if defined(RMLUI_PREMULTIPLIED_ALPHA)
+    // Pre-multiply vertex colors with their alpha.
+    result.outColor.rgb = result.outColor.rgb * result.outColor.a;
+#endif
+
+    return result;
+};
+)";
+
+constexpr const char pShaderSourceText_Texture[] = R"(
+struct sInputData
+{
+    float4 inputPos : SV_Position;
+    float4 inputColor : COLOR;
+    float2 inputUV : TEXCOORD;
+};
+
+Texture2D g_InputTexture : register(t0);
+
+SamplerState g_SamplerLinear : register(s0);
+
+
+float4 main(const sInputData inputArgs) : SV_TARGET 
+{ 
+    return inputArgs.inputColor * g_InputTexture.Sample(g_SamplerLinear, inputArgs.inputUV); 
+}
+)";
+
+RenderInterface_DX11::RenderInterface_DX11() {
+    #ifdef RMLUI_DX_DEBUG
+    m_default_shader_flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+    #else
+    m_default_shader_flags = 0;
+    #endif
+}
+
 void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext* p_d3d_device_context)
 {
     RMLUI_ASSERTMSG(p_d3d_device, "p_d3d_device cannot be nullptr!");
@@ -66,11 +153,14 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
         blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
         HRESULT result = m_d3d_device->CreateBlendState(&blendDesc, &m_blend_state);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
+    #ifdef RMLUI_DX_DEBUG
         if (FAILED(result))
         {
             Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateBlendState (%d)", result);
             return;
         }
+    #endif
     }
 
     // Scissor regions require a rasterizer state. Cache one for scissor on and off
@@ -88,37 +178,179 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         rasterizerDesc.AntialiasedLineEnable = MSAA_SAMPLES > 1;
 
         HRESULT result = m_d3d_device->CreateRasterizerState(&rasterizerDesc, &m_rasterizer_state_scissor_enabled);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateRasterizerState");
+    #ifdef RMLUI_DX_DEBUG
         if (FAILED(result))
         {
             Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateRasterizerState (scissor: enabled) (%d)", result);
             return;
         }
+    #endif
 
         rasterizerDesc.ScissorEnable = false;
 
         result = m_d3d_device->CreateRasterizerState(&rasterizerDesc, &m_rasterizer_state_scissor_disabled);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateRasterizerState");
+    #ifdef RMLUI_DX_DEBUG
         if (FAILED(result))
         {
             Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateRasterizerState (scissor: disabled) (%d)", result);
             return;
         }
+    #endif
     }
 
-    // Load shaders
+    // Compile and load shaders
+    
+    // Buffer shall be cleared up later, as it's required to create the input layout
+    ID3DBlob* p_shader_vertex_common{};
 
-    // @TODO:
+    {
+        ID3DBlob* p_error_buff{};
+
+        // Common vertex shader
+        HRESULT result = D3DCompile(pShaderSourceText_Vertex, sizeof(pShaderSourceText_Vertex), nullptr, nullptr, nullptr, "main", "vs_5_0",
+            this->m_default_shader_flags, 0, &p_shader_vertex_common, &p_error_buff);
+        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
+    #ifdef RMLUI_DX_DEBUG
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
+        }
+    #endif
+
+        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
+
+        // Color fragment shader
+        ID3DBlob* p_shader_color_pixel{};
+
+        result = D3DCompile(pShaderSourceText_Color, sizeof(pShaderSourceText_Color), nullptr, nullptr, nullptr, "main", "ps_5_0",
+            this->m_default_shader_flags, 0, &p_shader_color_pixel, &p_error_buff);
+        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
+    #ifdef RMLUI_DX_DEBUG
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
+        }
+    #endif
+
+        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
+
+        // Texture fragment shader
+        ID3DBlob* p_shader_color_texture{};
+
+        result = D3DCompile(pShaderSourceText_Texture, sizeof(pShaderSourceText_Texture), nullptr, nullptr, nullptr, "main", "ps_5_0",
+            this->m_default_shader_flags, 0, &p_shader_color_texture, &p_error_buff);
+        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
+    #ifdef RMLUI_DX_DEBUG
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
+        }
+    #endif
+
+        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
+
+        // Create the shader objects
+        result = m_d3d_device->CreateVertexShader(p_shader_vertex_common->GetBufferPointer(), p_shader_vertex_common->GetBufferSize(), NULL,
+            &m_shader_vertex_common);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateVertexShader");
+        if (FAILED(result))
+        {
+    #ifdef RMLUI_DX_DEBUG
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create vertex shader: %d", result);
+    #endif
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
+            goto cleanup;
+            return;
+        }
+
+        result = m_d3d_device->CreatePixelShader(p_shader_color_pixel->GetBufferPointer(), p_shader_color_pixel->GetBufferSize(), NULL,
+            &m_shader_pixel_color);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreatePixelShader");
+        if (FAILED(result))
+        {
+    #ifdef RMLUI_DX_DEBUG
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create pixel shader: %d", result);
+    #endif
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
+            goto cleanup;
+            return;
+        }
+
+        result = m_d3d_device->CreatePixelShader(p_shader_color_texture->GetBufferPointer(), p_shader_color_texture->GetBufferSize(), NULL,
+            &m_shader_pixel_texture);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreatePixelShader");
+        if (FAILED(result))
+        {
+    #ifdef RMLUI_DX_DEBUG
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create pixel shader: %d", result);
+    #endif
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
+            goto cleanup;
+            return;
+        }
+    }
 
     // Create vertex layout. This will be constant to avoid copying to an intermediate struct.
 
     // @TODO:
+    {
+        D3D11_INPUT_ELEMENT_DESC polygonLayout[3]{};
+
+        polygonLayout[0].SemanticName = "POSITION";
+        polygonLayout[0].SemanticIndex = 0;
+        polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+        polygonLayout[0].InputSlot = 0;
+        polygonLayout[0].AlignedByteOffset = 0;
+        polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+        polygonLayout[0].InstanceDataStepRate = 0;
+
+        polygonLayout[1].SemanticName = "COLOR";
+        polygonLayout[1].SemanticIndex = 0;
+        polygonLayout[1].Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        polygonLayout[1].InputSlot = 0;
+        polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+        polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+        polygonLayout[1].InstanceDataStepRate = 0;
+
+        polygonLayout[2].SemanticName = "TEXCOORD";
+        polygonLayout[2].SemanticIndex = 0;
+        polygonLayout[2].Format = DXGI_FORMAT_R32G32_FLOAT;
+        polygonLayout[2].InputSlot = 0;
+        polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+        polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+        polygonLayout[2].InstanceDataStepRate = 0;
+
+        // Get a count of the elements in the layout.
+        uint32_t numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+        // Create the vertex input layout.
+        HRESULT result = m_d3d_device->CreateInputLayout(polygonLayout, numElements, p_shader_vertex_common->GetBufferPointer(),
+            p_shader_vertex_common->GetBufferSize(), &m_vertex_layout);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateInputLayout");
+        if (FAILED(result))
+        {
+            goto cleanup;
+            return;
+        }
+    }
 
     // Create constant buffers. This is so that we can bind uniforms such as translation and color to the shaders.
 
     // @TODO:
+
+cleanup:
+
+    // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+    DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_vertex_common);
 }
 
 void RenderInterface_DX11::Cleanup() {
-    m_blendState->Release();
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state);
 }
 
 void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
