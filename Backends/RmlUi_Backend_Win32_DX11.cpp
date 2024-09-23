@@ -61,19 +61,16 @@ static ProcAdjustWindowRectExForDpi procAdjustWindowRectExForDpi = NULL;
 // Make ourselves DPI aware on supported Windows versions.
 static void InitializeDpiSupport()
 {
-	// Cast function pointers to void* first for MinGW not to emit errors.
-	procSetProcessDpiAwarenessContext =
-	(ProcSetProcessDpiAwarenessContext)(void*)GetProcAddress(GetModuleHandle(TEXT("User32.dll")), "SetProcessDpiAwarenessContext");
-	procGetDpiForWindow = (ProcGetDpiForWindow)(void*)GetProcAddress(GetModuleHandle(TEXT("User32.dll")), "GetDpiForWindow");
 	procAdjustWindowRectExForDpi =
 	(ProcAdjustWindowRectExForDpi)(void*)GetProcAddress(GetModuleHandle(TEXT("User32.dll")), "AdjustWindowRectExForDpi");
 
 	if (!has_dpi_support && procSetProcessDpiAwarenessContext != NULL && procGetDpiForWindow != NULL && procAdjustWindowRectExForDpi != NULL)
 	{
-		// Activate Per Monitor V2.
 		if (procSetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
 		has_dpi_support = true;
 	}
+    procAdjustWindowRectExForDpi =
+    (ProcAdjustWindowRectExForDpi)(void*)GetProcAddress(GetModuleHandle(TEXT("User32.dll")), "AdjustWindowRectExForDpi");
 }
 
 static UINT GetWindowDpi(HWND window_handle)

@@ -52,11 +52,11 @@ public:
     RenderInterface_DX11();
     
     // Resource initialisation and cleanup
-    void Init(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dDeviceContext, IDXGISwapChain* pSwapChain);
+    void Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext* p_d3d_device_context);
     void Cleanup ();
 
     // Sets up DirectX11 states for taking rendering commands from RmlUi.
-    void BeginFrame(ID3D11RenderTargetView* renderTargetView);
+    void BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view);
     void EndFrame();
 
     // -- Inherited from Rml::RenderInterface --

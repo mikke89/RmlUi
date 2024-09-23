@@ -39,11 +39,11 @@
 
 RenderInterface_DX11::RenderInterface_DX11() {}
 
-void RenderInterface_DX11::Init(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dDeviceContext, IDXGISwapChain* pSwapChain)
 {
     RMLUI_ASSERTMSG(pd3dDevice, "pd3dDevice cannot be nullptr!");
     RMLUI_ASSERTMSG(pSwapChain, "pSwapChain cannot be nullptr!");
     RMLUI_ASSERTMSG(pd3dDeviceContext, "pd3dDeviceContext cannot be nullptr!");
+void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext* p_d3d_device_context)
 
     // Assign D3D resources
     m_d3dDevice = pd3dDevice;
@@ -126,6 +126,7 @@ void RenderInterface_DX11::BeginFrame(ID3D11RenderTargetView* renderTargetView) 
     RMLUI_ASSERTMSG(renderTargetView, "renderTargetView cannot be nullptr!");
     RMLUI_ASSERTMSG(m_d3dContext, "d3dContext cannot be nullptr!");
     RMLUI_ASSERTMSG(m_d3dDevice, "d3dDevice cannot be nullptr!");
+void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
 
     m_boundRenderTarget = renderTargetView;
 
