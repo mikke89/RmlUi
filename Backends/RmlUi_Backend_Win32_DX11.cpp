@@ -178,8 +178,12 @@ void Backend::Shutdown()
 
     // As we forcefully override the global text input handler, we must reset it before the data is destroyed to avoid any potential use-after-free.
     if (Rml::GetTextInputHandler() == &data->text_input_method_editor)
-    Rml::SetTextInputHandler(nullptr);
+        Rml::SetTextInputHandler(nullptr);
 
+    // Cleanup renderer resources
+    data->render_interface.Cleanup();
+
+    // Shutdown DirectX11
     CleanupDeviceD3D();
 
     ::DestroyWindow(data->window_handle);
