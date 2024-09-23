@@ -165,12 +165,12 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     {
         D3D11_RASTERIZER_DESC rasterizerDesc{};
         rasterizerDesc.FillMode = D3D11_FILL_SOLID;
-        rasterizerDesc.CullMode = D3D11_CULL_BACK;
+        rasterizerDesc.CullMode = D3D11_CULL_NONE;
         rasterizerDesc.FrontCounterClockwise = false;
         rasterizerDesc.DepthBias = D3D11_DEFAULT_DEPTH_BIAS;
         rasterizerDesc.SlopeScaledDepthBias = D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
         rasterizerDesc.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
-        rasterizerDesc.DepthClipEnable = true;
+        rasterizerDesc.DepthClipEnable = false;
         rasterizerDesc.ScissorEnable = true;
         rasterizerDesc.MultisampleEnable = MSAA_SAMPLES > 1;
         rasterizerDesc.AntialiasedLineEnable = MSAA_SAMPLES > 1;
