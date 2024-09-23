@@ -108,12 +108,11 @@ struct sInputData
 };
 
 Texture2D g_InputTexture : register(t0);
-
 SamplerState g_SamplerLinear : register(s0);
 
 
 float4 main(const sInputData inputArgs) : SV_TARGET 
-{ 
+{
     return inputArgs.inputColor * g_InputTexture.Sample(g_SamplerLinear, inputArgs.inputUV); 
 }
 )";
@@ -139,7 +138,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     // Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
     if (!m_blend_state)
     {
-        D3D11_BLEND_DESC blendDesc;
+        D3D11_BLEND_DESC blendDesc{};
         ZeroMemory(&blendDesc, sizeof(blendDesc));
         blendDesc.AlphaToCoverageEnable = FALSE;
         blendDesc.IndependentBlendEnable = FALSE;
@@ -164,7 +163,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
 
     // Scissor regions require a rasterizer state. Cache one for scissor on and off
     {
-        D3D11_RASTERIZER_DESC rasterizerDesc;
+        D3D11_RASTERIZER_DESC rasterizerDesc{};
         rasterizerDesc.FillMode = D3D11_FILL_SOLID;
         rasterizerDesc.CullMode = D3D11_CULL_BACK;
         rasterizerDesc.FrontCounterClockwise = false;
@@ -302,11 +301,8 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
             {"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
             {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
         };
-
-        // Get a count of the elements in the layout.
         uint32_t numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
-        // Create the vertex input layout.
         HRESULT result = m_d3d_device->CreateInputLayout(polygonLayout, numElements, p_shader_vertex_common->GetBufferPointer(),
             p_shader_vertex_common->GetBufferSize(), &m_vertex_layout);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateInputLayout");
@@ -335,6 +331,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
             goto cleanup;
             return;
         }
+
     }
 
 cleanup:

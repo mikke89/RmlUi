@@ -138,8 +138,9 @@ private:
     int m_viewport_width = 0;
     int m_viewport_height = 0;
 
-    Rml::Matrix4f m_transform;
-    Rml::Matrix4f m_projection;
+    Rml::Matrix4f m_transform = Rml::Matrix4f::Identity();
+    Rml::Matrix4f m_projection = Rml::Matrix4f::Identity();
+    Rml::Vector2f m_translation = {};
 
     ID3D11InputLayout* m_vertex_layout = nullptr;
     ID3D11BlendState* m_blend_state = nullptr;
