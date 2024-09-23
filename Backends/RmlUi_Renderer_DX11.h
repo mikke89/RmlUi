@@ -149,6 +149,11 @@ private:
     D3D11_RECT m_rect_scissor = {};
     bool m_scissor_region_enabled = false;
 
+    struct DX11_TextureData {
+    public:
+        ID3D11Texture2D* texture = nullptr;
+        ID3D11ShaderResourceView* texture_view = nullptr;
+    };
     // D3D11 state
     ID3D11BlendState* m_current_blend_state = nullptr;
     

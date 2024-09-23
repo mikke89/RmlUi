@@ -466,8 +466,7 @@ Rml::TextureHandle RenderInterface_DX11::LoadTexture(Rml::Vector2i& texture_dime
             return handle;
         }
 
-        // Image must be invalid if the file failed to load. Return invalid handle
-        return Rml::TextureHandle(0);
+        // Image must be invalid if the file failed to load. Fallback to the default loader.
     }
 
     Rml::FileInterface* file_interface = Rml::GetFileInterface();
@@ -549,12 +548,68 @@ Rml::TextureHandle RenderInterface_DX11::LoadTexture(Rml::Vector2i& texture_dime
 
 Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions)
 {
-    return Rml::TextureHandle(0);
+    ID3D11Texture2D* gpu_texture = nullptr;
+    ID3D11ShaderResourceView* gpu_texture_view = nullptr;
+
+    D3D11_TEXTURE2D_DESC textureDesc{};
+    textureDesc.Width = source_dimensions.x;
+    textureDesc.Height = source_dimensions.y;
+    textureDesc.MipLevels = 0;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+    HRESULT result = m_d3d_device->CreateTexture2D(&textureDesc, nullptr, &gpu_texture);
+    RMLUI_DX_ASSERTMSG(result, "failed to CreateTexture2D");
+    if (FAILED(result))
+    {
+        return Rml::TextureHandle(0);
+    }
+
+    // Set the row pitch of the raw image data
+    uint32_t rowPitch = (source_dimensions.x * 4) * sizeof(unsigned char);
+
+    // Copy the raw image data into the texture
+    m_d3d_context->UpdateSubresource(gpu_texture, 0, nullptr, source.data(), rowPitch, 0);
+
+    // Setup the shader resource view description.
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+    srvDesc.Format = textureDesc.Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = -1;
+
+    // Create the shader resource view for the texture.
+    result = m_d3d_device->CreateShaderResourceView(gpu_texture, &srvDesc, &gpu_texture_view);
+    RMLUI_DX_ASSERTMSG(result, "failed to CreateShaderResourceView");
+    if (FAILED(result))
+    {
+        DX_CLEANUP_RESOURCE_IF_CREATED(gpu_texture);
+        return Rml::TextureHandle(0);
+    }
+
+    DX11_TextureData* texData = new DX11_TextureData;
+    texData->texture = gpu_texture;
+    texData->texture_view = gpu_texture_view;
+
+    // Generate mipmaps for this texture.
+    m_d3d_context->GenerateMips(texData->texture_view);
+
+    return Rml::TextureHandle(texData);
 }
 
 void RenderInterface_DX11::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
+    DX11_TextureData* texData = (DX11_TextureData*)texture_handle;
+    DX_CLEANUP_RESOURCE_IF_CREATED(texData->texture_view);
+    DX_CLEANUP_RESOURCE_IF_CREATED(texData->texture);
 
+    delete reinterpret_cast<DX11_TextureData*>(texData);
 }
 
 void RenderInterface_DX11::EnableScissorRegion(bool enable) {
