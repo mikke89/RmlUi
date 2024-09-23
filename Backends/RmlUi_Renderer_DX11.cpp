@@ -351,8 +351,8 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     D3D11_VIEWPORT d3dviewport;
     d3dviewport.TopLeftX = 0;
     d3dviewport.TopLeftY = 0;
-    d3dviewport.Width = m_width;
-    d3dviewport.Height = m_height;
+    d3dviewport.Width = m_viewport_width;
+    d3dviewport.Height = m_viewport_height;
     d3dviewport.MinDepth = 0.0f;
     d3dviewport.MaxDepth = 1.0f;
     m_d3d_context->RSSetViewports(1, &d3dviewport);
@@ -545,8 +545,9 @@ void RenderInterface_DX11::SetScissorRegion(Rml::Rectanglei region)
 
 void RenderInterface_DX11::SetViewport(const int width, const int height)
 {
-    m_width = width;
-    m_height = height;
+    m_viewport_width = width;
+    m_viewport_height = height;
+    m_projection = Rml::Matrix4f::ProjectOrtho(0, (float)m_viewport_width, (float)m_viewport_height, 0, -10000, 10000);
 }
 
 void RenderInterface_DX11::Clear()
@@ -561,6 +562,12 @@ void RenderInterface_DX11::SetBlendState(ID3D11BlendState* blendState) {
         m_d3d_context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
         m_current_blend_state = blendState;
     }
+}
+
+void RenderInterface_DX11::SetTransform(const Rml::Matrix4f* new_transform)
+{
+    m_transform = (new_transform ? (m_projection * (*new_transform)) : m_projection);
+    m_cbuffer_dirty = true;
 }
 
 #endif // RMLUI_PLATFORM_WIN32

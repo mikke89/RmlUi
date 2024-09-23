@@ -76,6 +76,9 @@ public:
     void BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view);
     void EndFrame();
 
+    void SetViewport(const int width, const int height);
+    void Clear();
+
     // -- Inherited from Rml::RenderInterface --
 
     Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
@@ -88,9 +91,8 @@ public:
 
     void EnableScissorRegion(bool enable) override;
     void SetScissorRegion(Rml::Rectanglei region) override;
-
-    void SetViewport(const int width, const int height);
-    void Clear();
+    
+    void SetTransform(const Rml::Matrix4f* transform) override;
 
 public:
     /// Called by the renderer when it wants to load a texture from disk.
@@ -126,13 +128,17 @@ private:
     ID3D11RasterizerState* m_rasterizer_state_scissor_disabled = nullptr;
 
     // Shaders
+    bool m_cbuffer_dirty = true;
     ID3D11VertexShader* m_shader_vertex_common = nullptr;
     ID3D11PixelShader* m_shader_pixel_color = nullptr;
     ID3D11PixelShader* m_shader_pixel_texture = nullptr;
 
     // Viewport dimensions
-    int m_width = 0;
-    int m_height = 0;
+    int m_viewport_width = 0;
+    int m_viewport_height = 0;
+
+    Rml::Matrix4f m_transform;
+    Rml::Matrix4f m_projection;
 
     ID3D11InputLayout* m_vertex_layout = nullptr;
     ID3D11BlendState* m_blend_state = nullptr;
