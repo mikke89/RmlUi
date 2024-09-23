@@ -98,23 +98,23 @@ private:
     };
 
     // D3D11 core resources
-    ID3D11Device* m_d3dDevice = nullptr;
-    ID3D11DeviceContext* m_d3dContext = nullptr;
-    IDXGISwapChain* m_swapChain = nullptr;
-    ID3D11RenderTargetView* m_boundRenderTarget = nullptr;
-    ID3D11RasterizerState* m_rasterizerState_scissorEnabled = nullptr;
-    ID3D11RasterizerState* m_rasterizerState_scissorDisabled = nullptr;
+    ID3D11Device* m_d3d_device = nullptr;
+    ID3D11DeviceContext* m_d3d_context = nullptr;
+    IDXGISwapChain* m_bound_swapchain = nullptr;
+    ID3D11RenderTargetView* m_bound_render_target = nullptr;
+    ID3D11RasterizerState* m_rasterizer_state_scissor_enabled = nullptr;
+    ID3D11RasterizerState* m_rasterizer_state_scissor_disabled = nullptr;
 
     // Viewport dimensions
     int m_width = 0;
     int m_height = 0;
 
-    ID3D11BlendState* m_blendState = nullptr;
+    ID3D11BlendState* m_blend_state = nullptr;
     D3D11_RECT m_rect_scissor = {};
     bool m_scissor_region_enabled = false;
 
     // D3D11 state
-    ID3D11BlendState* m_currentBlendState = nullptr;
+    ID3D11BlendState* m_current_blend_state = nullptr;
     
     struct D3D11State {
 
