@@ -131,6 +131,7 @@ private:
     // Shaders
     ID3D11Buffer* m_shader_buffer = nullptr;
     bool m_cbuffer_dirty = true;
+    ID3D11SamplerState* m_samplerState = nullptr;
     ID3D11VertexShader* m_shader_vertex_common = nullptr;
     ID3D11PixelShader* m_shader_pixel_color = nullptr;
     ID3D11PixelShader* m_shader_pixel_texture = nullptr;

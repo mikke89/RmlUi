@@ -325,8 +325,36 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         cbufferDesc.MiscFlags = 0;
         cbufferDesc.StructureByteStride = 0;
 
-        HRESULT result = m_d3d_device->CreateBuffer(&cbufferDesc, NULL, &m_shader_buffer);
-        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
+        HRESULT result = m_d3d_device->CreateBuffer(&cbufferDesc, nullptr, &m_shader_buffer);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBuffer");
+        if (FAILED(result))
+        {
+            goto cleanup;
+            return;
+        }
+    }
+
+    // Create sampler state for textures
+    {
+        // Create a texture sampler state description.
+        D3D11_SAMPLER_DESC samplerDesc{};
+        samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+        samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+        samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+        samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+        samplerDesc.MipLODBias = 0.0f;
+        samplerDesc.MaxAnisotropy = 1;
+        samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+        samplerDesc.BorderColor[0] = 0;
+        samplerDesc.BorderColor[1] = 0;
+        samplerDesc.BorderColor[2] = 0;
+        samplerDesc.BorderColor[3] = 0;
+        samplerDesc.MinLOD = 0;
+        samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+        // Create the texture sampler state.
+        HRESULT result = m_d3d_device->CreateSamplerState(&samplerDesc, &m_samplerState);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateSamplerState");
         if (FAILED(result))
         {
             goto cleanup;
@@ -350,6 +378,7 @@ void RenderInterface_DX11::Cleanup() {
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_color);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_texture);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_samplerState);
 }
 
 void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
