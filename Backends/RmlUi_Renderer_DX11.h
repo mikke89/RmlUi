@@ -128,6 +128,7 @@ private:
     ID3D11RasterizerState* m_rasterizer_state_scissor_disabled = nullptr;
 
     // Shaders
+    ID3D11Buffer* m_shader_buffer = nullptr;
     bool m_cbuffer_dirty = true;
     ID3D11VertexShader* m_shader_vertex_common = nullptr;
     ID3D11PixelShader* m_shader_pixel_color = nullptr;
@@ -153,7 +154,17 @@ private:
         ID3D11BlendState* m_previousBlendState = nullptr;
     };
 
-    D3D11State m_previousD3DState;
+    D3D11State m_previousD3DState{};
+
+    #pragma pack(4)
+    struct ShaderCbuffer {
+        Rml::Matrix4f transform;
+        Rml::Vector2f translation;
+        float _padding[2];
+    };
+    #pragma pack()
+
+    ShaderCbuffer m_shader_cbuffer_data{};
 };
 
 #endif // RMLUI_PLATFORM_WIN32

@@ -320,7 +320,23 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
 
     // Create constant buffers. This is so that we can bind uniforms such as translation and color to the shaders.
 
-    // @TODO:
+    {
+        D3D11_BUFFER_DESC cbufferDesc{};
+        cbufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+        cbufferDesc.ByteWidth = sizeof(ShaderCbuffer);
+        cbufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        cbufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        cbufferDesc.MiscFlags = 0;
+        cbufferDesc.StructureByteStride = 0;
+
+        HRESULT result = m_d3d_device->CreateBuffer(&cbufferDesc, NULL, &m_shader_buffer);
+        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
+        if (FAILED(result))
+        {
+            goto cleanup;
+            return;
+        }
+    }
 
 cleanup:
 
@@ -336,6 +352,7 @@ void RenderInterface_DX11::Cleanup() {
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_vertex_common);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_color);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_texture);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
 }
 
 void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
