@@ -251,7 +251,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
 
         // Create the shader objects
-        result = m_d3d_device->CreateVertexShader(p_shader_vertex_common->GetBufferPointer(), p_shader_vertex_common->GetBufferSize(), NULL,
+        result = m_d3d_device->CreateVertexShader(p_shader_vertex_common->GetBufferPointer(), p_shader_vertex_common->GetBufferSize(), nullptr,
             &m_shader_vertex_common);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateVertexShader");
         if (FAILED(result))
@@ -265,7 +265,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
             return;
         }
 
-        result = m_d3d_device->CreatePixelShader(p_shader_color_pixel->GetBufferPointer(), p_shader_color_pixel->GetBufferSize(), NULL,
+        result = m_d3d_device->CreatePixelShader(p_shader_color_pixel->GetBufferPointer(), p_shader_color_pixel->GetBufferSize(), nullptr,
             &m_shader_pixel_color);
         RMLUI_DX_ASSERTMSG(result, "failed to CreatePixelShader");
         if (FAILED(result))
@@ -279,7 +279,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
             return;
         }
 
-        result = m_d3d_device->CreatePixelShader(p_shader_color_texture->GetBufferPointer(), p_shader_color_texture->GetBufferSize(), NULL,
+        result = m_d3d_device->CreatePixelShader(p_shader_color_texture->GetBufferPointer(), p_shader_color_texture->GetBufferSize(), nullptr,
             &m_shader_pixel_texture);
         RMLUI_DX_ASSERTMSG(result, "failed to CreatePixelShader");
         if (FAILED(result))
