@@ -43,7 +43,7 @@ target_sources(rmlui_backend_Win32_DX11 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_DX11.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_Windows.h"
 )
-target_link_libraries(rmlui_backend_Win32_DX11 INTERFACE rmlui_backend_common_headers d3d11.lib dxgi.lib )
+target_link_libraries(rmlui_backend_Win32_DX11 INTERFACE rmlui_backend_common_headers d3d11.lib dxgi.lib d3dcompiler.lib)
 
 add_library(rmlui_backend_X11_GL2 INTERFACE)
 target_sources(rmlui_backend_X11_GL2 INTERFACE
