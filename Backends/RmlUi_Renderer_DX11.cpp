@@ -364,7 +364,10 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
 void RenderInterface_DX11::EndFrame() {
     // @TODO: Compositing
     // @TODO: Layer stack
+    m_bound_swapchain = nullptr;
     m_bound_render_target = nullptr;
+    // Reset blend state
+    m_current_blend_state = nullptr;
 }
 
 

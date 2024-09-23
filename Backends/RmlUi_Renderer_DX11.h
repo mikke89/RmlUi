@@ -105,6 +105,7 @@ public:
     pfnFreeTextureRaw FreeTextureFromFileRaw = nullptr;
 
 private:
+    // Changes blend state if necessary
     void SetBlendState(ID3D11BlendState* blendState);
 
 private:
