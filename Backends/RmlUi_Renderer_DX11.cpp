@@ -204,10 +204,11 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     ID3DBlob* p_shader_vertex_common{};
 
     {
+        const D3D_SHADER_MACRO macros[] = {"RMLUI_PREMULTIPLIED_ALPHA", nullptr, nullptr, nullptr};
         ID3DBlob* p_error_buff{};
 
         // Common vertex shader
-        HRESULT result = D3DCompile(pShaderSourceText_Vertex, sizeof(pShaderSourceText_Vertex), nullptr, nullptr, nullptr, "main", "vs_5_0",
+        HRESULT result = D3DCompile(pShaderSourceText_Vertex, sizeof(pShaderSourceText_Vertex), nullptr, macros, nullptr, "main", "vs_5_0",
             this->m_default_shader_flags, 0, &p_shader_vertex_common, &p_error_buff);
         RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
     #ifdef RMLUI_DX_DEBUG
@@ -222,7 +223,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         // Color fragment shader
         ID3DBlob* p_shader_color_pixel{};
 
-        result = D3DCompile(pShaderSourceText_Color, sizeof(pShaderSourceText_Color), nullptr, nullptr, nullptr, "main", "ps_5_0",
+        result = D3DCompile(pShaderSourceText_Color, sizeof(pShaderSourceText_Color), nullptr, macros, nullptr, "main", "ps_5_0",
             this->m_default_shader_flags, 0, &p_shader_color_pixel, &p_error_buff);
         RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
     #ifdef RMLUI_DX_DEBUG
@@ -237,7 +238,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         // Texture fragment shader
         ID3DBlob* p_shader_color_texture{};
 
-        result = D3DCompile(pShaderSourceText_Texture, sizeof(pShaderSourceText_Texture), nullptr, nullptr, nullptr, "main", "ps_5_0",
+        result = D3DCompile(pShaderSourceText_Texture, sizeof(pShaderSourceText_Texture), nullptr, macros, nullptr, "main", "ps_5_0",
             this->m_default_shader_flags, 0, &p_shader_color_texture, &p_error_buff);
         RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
     #ifdef RMLUI_DX_DEBUG
