@@ -154,6 +154,14 @@ private:
         ID3D11Texture2D* texture = nullptr;
         ID3D11ShaderResourceView* texture_view = nullptr;
     };
+
+    struct DX11_GeometryData {
+    public:
+        ID3D11Buffer* vertex_buffer = nullptr;
+        ID3D11Buffer* index_buffer = nullptr;
+        uint32_t index_count = 0;
+    };
+
     // D3D11 state
     ID3D11BlendState* m_current_blend_state = nullptr;
     

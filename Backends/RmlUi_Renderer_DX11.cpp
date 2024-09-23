@@ -414,15 +414,115 @@ void RenderInterface_DX11::EndFrame() {
 
 
 Rml::CompiledGeometryHandle RenderInterface_DX11::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) {
-    return Rml::CompiledGeometryHandle(0);
+    
+    ID3D11Buffer* vertex_buffer = nullptr;
+    ID3D11Buffer* index_buffer = nullptr;
+
+    // Bind vertex buffer
+    {
+        D3D11_BUFFER_DESC vertexBufferDesc{};
+        vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+        vertexBufferDesc.ByteWidth = sizeof(Rml::Vertex) * vertices.size();
+        vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        vertexBufferDesc.CPUAccessFlags = 0;
+        vertexBufferDesc.MiscFlags = 0;
+        vertexBufferDesc.StructureByteStride = 0;
+
+        D3D11_SUBRESOURCE_DATA vertexData{};
+        vertexData.pSysMem = vertices.data();
+        vertexData.SysMemPitch = 0;
+        vertexData.SysMemSlicePitch = 0;
+
+        HRESULT result = m_d3d_device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertex_buffer);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBuffer");
+        if (FAILED(result))
+        {
+            return Rml::CompiledGeometryHandle(0);
+        }
+    }
+
+    // Bind index buffer
+    {
+
+        D3D11_BUFFER_DESC indexBufferDesc{};
+        indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+        indexBufferDesc.ByteWidth = sizeof(int) * indices.size();
+        indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        indexBufferDesc.CPUAccessFlags = 0;
+        indexBufferDesc.MiscFlags = 0;
+        indexBufferDesc.StructureByteStride = 0;
+
+        D3D11_SUBRESOURCE_DATA indexData{};
+        indexData.pSysMem = indices.data();
+        indexData.SysMemPitch = 0;
+        indexData.SysMemSlicePitch = 0;
+
+        HRESULT result = m_d3d_device->CreateBuffer(&indexBufferDesc, &indexData, &index_buffer);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBuffer");
+        if (FAILED(result))
+        {
+            DX_CLEANUP_RESOURCE_IF_CREATED(vertex_buffer);
+            return Rml::CompiledGeometryHandle(0);
+        }
+    }
+    
+    DX11_GeometryData* geometryData = new DX11_GeometryData;
+
+    geometryData->vertex_buffer = vertex_buffer;
+    geometryData->index_buffer = index_buffer;
+    geometryData->index_count = indices.size();
+
+    return Rml::CompiledGeometryHandle(geometryData);
 }
 
-void RenderInterface_DX11::ReleaseGeometry(Rml::CompiledGeometryHandle geometry) {
+void RenderInterface_DX11::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
+{
+    DX11_GeometryData* geometryData = (DX11_GeometryData*)geometry;
+    
+    DX_CLEANUP_RESOURCE_IF_CREATED(geometryData->vertex_buffer);
+    DX_CLEANUP_RESOURCE_IF_CREATED(geometryData->index_buffer);
 
+    delete reinterpret_cast<DX11_GeometryData*>(geometry);
 }
 
-void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) {
+void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
+{
+    DX11_GeometryData* geometryData = (DX11_GeometryData*)handle;
 
+    if (m_translation != translation)
+    {
+        m_translation = translation;
+        m_cbuffer_dirty = true;
+    }
+
+    if (texture)
+    {
+        // Texture available
+        DX11_TextureData* texData = (DX11_TextureData*)texture;
+        m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
+        m_d3d_context->PSSetShader(this->m_shader_pixel_texture, nullptr, 0);
+        m_d3d_context->PSSetShaderResources(0, 1, &texData->texture_view);
+        m_d3d_context->PSSetSamplers(0, 1, &m_samplerState);
+    }
+    else
+    {
+        // No texture, use color
+        m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
+        m_d3d_context->PSSetShader(this->m_shader_pixel_color, nullptr, 0);
+    }
+
+    UpdateConstantBuffer();
+
+    m_d3d_context->IASetInputLayout(m_vertex_layout);
+    m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
+
+    // Bind vertex and index buffers, issue draw call
+    uint32_t stride = sizeof(Rml::Vertex);
+    uint32_t offset = 0;
+    m_d3d_context->IASetVertexBuffers(0, 1, &geometryData->vertex_buffer, &stride, &offset);
+    m_d3d_context->IASetIndexBuffer(geometryData->index_buffer, DXGI_FORMAT_R32_UINT, 0);
+    m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    m_d3d_context->DrawIndexed(geometryData->index_count, 0, 0);
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
