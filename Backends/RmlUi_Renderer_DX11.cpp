@@ -399,8 +399,11 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     d3dviewport.MinDepth = 0.0f;
     d3dviewport.MaxDepth = 1.0f;
     m_d3d_context->RSSetViewports(1, &d3dviewport);
+    m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled); // Disable scissor
     Clear();
     SetBlendState(m_blend_state);
+    m_d3d_context->OMSetRenderTargets(1, &p_render_target_view, nullptr);
+    SetTransform(nullptr); // Set no transform on new frame
 }
 
 void RenderInterface_DX11::EndFrame() {
