@@ -117,6 +117,18 @@ float4 main(const sInputData inputArgs) : SV_TARGET
 }
 )";
 
+static uintptr_t HashPointer(uintptr_t inPtr)
+{
+    uintptr_t Value = (uintptr_t)inPtr;
+    Value = ~Value + (Value << 15);
+    Value = Value ^ (Value >> 12);
+    Value = Value + (Value << 2);
+    Value = Value ^ (Value >> 4);
+    Value = Value * 2057;
+    Value = Value ^ (Value >> 16);
+    return Value;
+}
+
 RenderInterface_DX11::RenderInterface_DX11() {
     #ifdef RMLUI_DX_DEBUG
     m_default_shader_flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -292,6 +304,9 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
             goto cleanup;
             return;
         }
+
+        DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
+        DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
     }
 
     // Create vertex layout. This will be constant to avoid copying to an intermediate struct.
@@ -370,7 +385,22 @@ cleanup:
 }
 
 void RenderInterface_DX11::Cleanup() {
-    // Cleans up all resources
+
+    // Loop through texture cache and free all resources
+    for (auto& it : m_texture_cache)
+    {
+        DX_CLEANUP_RESOURCE_IF_CREATED(it.second.texture_view);
+        DX_CLEANUP_RESOURCE_IF_CREATED(it.second.texture);
+    }
+    
+    // Loop through geometry cache and free all resources
+    for (auto& it : m_geometry_cache)
+    {
+        DX_CLEANUP_RESOURCE_IF_CREATED(it.second.vertex_buffer);
+        DX_CLEANUP_RESOURCE_IF_CREATED(it.second.index_buffer);
+    }
+
+    // Cleans up all general resources
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_disabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_enabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state);
@@ -378,6 +408,7 @@ void RenderInterface_DX11::Cleanup() {
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_color);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_texture);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_vertex_layout);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_samplerState);
 }
 
@@ -468,64 +499,89 @@ Rml::CompiledGeometryHandle RenderInterface_DX11::CompileGeometry(Rml::Span<cons
             return Rml::CompiledGeometryHandle(0);
         }
     }
+    uintptr_t handleId = HashPointer((uintptr_t) index_buffer);
     
-    DX11_GeometryData* geometryData = new DX11_GeometryData;
+    DX11_GeometryData geometryData{};
 
-    geometryData->vertex_buffer = vertex_buffer;
-    geometryData->index_buffer = index_buffer;
-    geometryData->index_count = indices.size();
+    geometryData.vertex_buffer = vertex_buffer;
+    geometryData.index_buffer = index_buffer;
+    geometryData.index_count = indices.size();
 
-    return Rml::CompiledGeometryHandle(geometryData);
+    m_geometry_cache.emplace(handleId, geometryData);
+    return Rml::CompiledGeometryHandle(handleId);
 }
 
-void RenderInterface_DX11::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
+void RenderInterface_DX11::ReleaseGeometry(Rml::CompiledGeometryHandle handle)
 {
-    DX11_GeometryData* geometryData = (DX11_GeometryData*)geometry;
-    
-    DX_CLEANUP_RESOURCE_IF_CREATED(geometryData->vertex_buffer);
-    DX_CLEANUP_RESOURCE_IF_CREATED(geometryData->index_buffer);
+    if (m_geometry_cache.find(handle) != m_geometry_cache.end())
+    {
+        DX11_GeometryData geometryData = m_geometry_cache[handle];
 
-    delete reinterpret_cast<DX11_GeometryData*>(geometry);
+        DX_CLEANUP_RESOURCE_IF_CREATED(geometryData.vertex_buffer);
+        DX_CLEANUP_RESOURCE_IF_CREATED(geometryData.index_buffer);
+
+        m_geometry_cache.erase(handle);
+    }
+    else
+    {
+        Rml::Log::Message(Rml::Log::LT_WARNING, "Geometry Handle %d does not exist!", handle);
+    }
 }
 
 void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
-    DX11_GeometryData* geometryData = (DX11_GeometryData*)handle;
-
-    if (m_translation != translation)
+    if (m_geometry_cache.find(handle) != m_geometry_cache.end())
     {
-        m_translation = translation;
-        m_cbuffer_dirty = true;
-    }
+        DX11_GeometryData geometryData = m_geometry_cache[handle];
 
-    if (texture)
-    {
-        // Texture available
-        DX11_TextureData* texData = (DX11_TextureData*)texture;
-        m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
-        m_d3d_context->PSSetShader(this->m_shader_pixel_texture, nullptr, 0);
-        m_d3d_context->PSSetShaderResources(0, 1, &texData->texture_view);
-        m_d3d_context->PSSetSamplers(0, 1, &m_samplerState);
+        if (m_translation != translation)
+        {
+            m_translation = translation;
+            m_cbuffer_dirty = true;
+        }
+
+        if (texture)
+        {
+            // Texture available
+            if (m_texture_cache.find(texture) != m_texture_cache.end())
+            {
+                DX11_TextureData texData = m_texture_cache[texture];
+                m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
+                m_d3d_context->PSSetShader(this->m_shader_pixel_texture, nullptr, 0);
+                m_d3d_context->PSSetShaderResources(0, 1, &texData.texture_view);
+                m_d3d_context->PSSetSamplers(0, 1, &m_samplerState);
+            }
+            else
+            {
+                Rml::Log::Message(Rml::Log::LT_WARNING, "Texture Handle %d does not exist!", texture);
+                m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
+                m_d3d_context->PSSetShader(this->m_shader_pixel_color, nullptr, 0);
+            }
+        }
+        else
+        {
+            // No texture, use color
+            m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
+            m_d3d_context->PSSetShader(this->m_shader_pixel_color, nullptr, 0);
+        }
+
+        UpdateConstantBuffer();
+
+        m_d3d_context->IASetInputLayout(m_vertex_layout);
+        m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
+
+        // Bind vertex and index buffers, issue draw call
+        uint32_t stride = sizeof(Rml::Vertex);
+        uint32_t offset = 0;
+        m_d3d_context->IASetVertexBuffers(0, 1, &geometryData.vertex_buffer, &stride, &offset);
+        m_d3d_context->IASetIndexBuffer(geometryData.index_buffer, DXGI_FORMAT_R32_UINT, 0);
+        m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_d3d_context->DrawIndexed(geometryData.index_count, 0, 0);
     }
     else
     {
-        // No texture, use color
-        m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
-        m_d3d_context->PSSetShader(this->m_shader_pixel_color, nullptr, 0);
+        Rml::Log::Message(Rml::Log::LT_WARNING, "Geometry Handle %d does not exist!", handle);
     }
-
-    UpdateConstantBuffer();
-
-    m_d3d_context->IASetInputLayout(m_vertex_layout);
-    m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
-
-    // Bind vertex and index buffers, issue draw call
-    uint32_t stride = sizeof(Rml::Vertex);
-    uint32_t offset = 0;
-    m_d3d_context->IASetVertexBuffers(0, 1, &geometryData->vertex_buffer, &stride, &offset);
-    m_d3d_context->IASetIndexBuffer(geometryData->index_buffer, DXGI_FORMAT_R32_UINT, 0);
-    m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_d3d_context->DrawIndexed(geometryData->index_count, 0, 0);
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
@@ -696,23 +752,34 @@ Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::by
         return Rml::TextureHandle(0);
     }
 
-    DX11_TextureData* texData = new DX11_TextureData;
-    texData->texture = gpu_texture;
-    texData->texture_view = gpu_texture_view;
-
     // Generate mipmaps for this texture.
-    m_d3d_context->GenerateMips(texData->texture_view);
+    m_d3d_context->GenerateMips(gpu_texture_view);
 
-    return Rml::TextureHandle(texData);
+    uintptr_t handleId = HashPointer((uintptr_t) gpu_texture_view);
+
+    DX11_TextureData texData{};
+    texData.texture = gpu_texture;
+    texData.texture_view = gpu_texture_view;
+
+    m_texture_cache.emplace(handleId, texData);
+    return Rml::TextureHandle(handleId);
 }
 
 void RenderInterface_DX11::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
-    DX11_TextureData* texData = (DX11_TextureData*)texture_handle;
-    DX_CLEANUP_RESOURCE_IF_CREATED(texData->texture_view);
-    DX_CLEANUP_RESOURCE_IF_CREATED(texData->texture);
+    if (m_texture_cache.find(texture_handle) != m_texture_cache.end())
+    {
+        DX11_TextureData texData = m_texture_cache[texture_handle];
 
-    delete reinterpret_cast<DX11_TextureData*>(texData);
+        DX_CLEANUP_RESOURCE_IF_CREATED(texData.texture_view);
+        DX_CLEANUP_RESOURCE_IF_CREATED(texData.texture);
+
+        m_texture_cache.erase(texture_handle);
+    }
+    else
+    {
+        Rml::Log::Message(Rml::Log::LT_WARNING, "Texture Handle %d does not exist!", texture_handle);
+    }
 }
 
 void RenderInterface_DX11::EnableScissorRegion(bool enable) {

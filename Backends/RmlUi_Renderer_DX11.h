@@ -82,7 +82,7 @@ public:
     // -- Inherited from Rml::RenderInterface --
 
     Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
-    void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override;
+    void ReleaseGeometry(Rml::CompiledGeometryHandle handle) override;
     void RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture) override;
 
     Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override;
@@ -161,6 +161,9 @@ private:
         ID3D11Buffer* index_buffer = nullptr;
         uint32_t index_count = 0;
     };
+
+    std::unordered_map<uintptr_t, DX11_TextureData> m_texture_cache;
+    std::unordered_map<uintptr_t, DX11_GeometryData> m_geometry_cache;
 
     // D3D11 state
     ID3D11BlendState* m_current_blend_state = nullptr;
