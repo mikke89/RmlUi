@@ -811,7 +811,8 @@ void RenderInterface_DX11::Clear()
 void RenderInterface_DX11::SetBlendState(ID3D11BlendState* blendState) {
     if (blendState != m_current_blend_state)
     {
-        m_d3d_context->OMSetBlendState(blendState, 0, 0xFFFFFFFF);
+        const float blend_factor[4] = {0.f, 0.f, 0.f, 0.f};
+        m_d3d_context->OMSetBlendState(blendState, blend_factor, 0xFFFFFFFF);
         m_current_blend_state = blendState;
     }
 }
