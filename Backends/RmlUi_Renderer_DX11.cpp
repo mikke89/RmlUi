@@ -146,9 +146,8 @@ sOutputData main(const sInputData inArgs)
 {
     sOutputData result;
 
-    result.outPosition = float4(inArgs.inPosition, 0.0, 1.0);
-    result.outColor = inArgs.inColor;
-    result.outUV = inArgs.inTexCoord;
+    result.outPosition = float4(inArgs.inPosition.xy, 0.0f, 1.0f);
+    result.outUV = float2(inArgs.inTexCoord.x, 1.0f - inArgs.inTexCoord.y);
 
     return result;
 };
