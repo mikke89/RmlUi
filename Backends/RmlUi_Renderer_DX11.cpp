@@ -129,7 +129,8 @@ static uintptr_t HashPointer(uintptr_t inPtr)
     return Value;
 }
 
-RenderInterface_DX11::RenderInterface_DX11() {
+RenderInterface_DX11::RenderInterface_DX11()
+{
     #ifdef RMLUI_DX_DEBUG
     m_default_shader_flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
     #else
@@ -184,8 +185,8 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         rasterizerDesc.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
         rasterizerDesc.DepthClipEnable = false;
         rasterizerDesc.ScissorEnable = true;
-        rasterizerDesc.MultisampleEnable = MSAA_SAMPLES > 1;
-        rasterizerDesc.AntialiasedLineEnable = MSAA_SAMPLES > 1;
+        rasterizerDesc.MultisampleEnable = NUM_MSAA_SAMPLES > 1;
+        rasterizerDesc.AntialiasedLineEnable = NUM_MSAA_SAMPLES > 1;
 
         HRESULT result = m_d3d_device->CreateRasterizerState(&rasterizerDesc, &m_rasterizer_state_scissor_enabled);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateRasterizerState");
@@ -211,10 +212,9 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     }
 
     // Compile and load shaders
-    
+
     // Buffer shall be cleared up later, as it's required to create the input layout
     ID3DBlob* p_shader_vertex_common{};
-
     {
         const D3D_SHADER_MACRO macros[] = {"RMLUI_PREMULTIPLIED_ALPHA", nullptr, nullptr, nullptr};
         ID3DBlob* p_error_buff{};
@@ -310,7 +310,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     }
 
     // Create vertex layout. This will be constant to avoid copying to an intermediate struct.
-
     {
         D3D11_INPUT_ELEMENT_DESC polygonLayout[] = {
             {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -330,7 +329,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     }
 
     // Create constant buffers. This is so that we can bind uniforms such as translation and color to the shaders.
-
     {
         D3D11_BUFFER_DESC cbufferDesc{};
         cbufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -351,7 +349,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
 
     // Create sampler state for textures
     {
-        // Create a texture sampler state description.
         D3D11_SAMPLER_DESC samplerDesc{};
         samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
         samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -367,7 +364,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         samplerDesc.MinLOD = 0;
         samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-        // Create the texture sampler state.
         HRESULT result = m_d3d_device->CreateSamplerState(&samplerDesc, &m_samplerState);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateSamplerState");
         if (FAILED(result))
@@ -397,8 +393,8 @@ cleanup:
     DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_vertex_common);
 }
 
-void RenderInterface_DX11::Cleanup() {
-
+void RenderInterface_DX11::Cleanup()
+{
     // Loop through geometry cache and free all resources
     for (auto& it : m_geometry_cache)
     {
@@ -436,12 +432,15 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
         m_d3d_context->OMGetDepthStencilState(&m_previous_d3d_state.depth_stencil_state, &m_previous_d3d_state.stencil_ref);
         m_d3d_context->PSGetShaderResources(0, 1, &m_previous_d3d_state.pixel_shader_shader_resource);
         m_d3d_context->PSGetSamplers(0, 1, &m_previous_d3d_state.pixel_shader_sampler);
-        m_previous_d3d_state.pixel_shader_instances_count = m_previous_d3d_state.vertex_shader_instances_count = m_previous_d3d_state.geometry_shader_instances_count = 256;
-        m_d3d_context->PSGetShader(&m_previous_d3d_state.pixel_shader, m_previous_d3d_state.pixel_shader_instances, &m_previous_d3d_state.pixel_shader_instances_count);
+        m_previous_d3d_state.pixel_shader_instances_count = m_previous_d3d_state.vertex_shader_instances_count =
+            m_previous_d3d_state.geometry_shader_instances_count = 256;
+        m_d3d_context->PSGetShader(&m_previous_d3d_state.pixel_shader, m_previous_d3d_state.pixel_shader_instances,
+            &m_previous_d3d_state.pixel_shader_instances_count);
         m_d3d_context->VSGetShader(&m_previous_d3d_state.vertex_shader, m_previous_d3d_state.vertex_shader_instances,
             &m_previous_d3d_state.vertex_shader_instances_count);
         m_d3d_context->VSGetConstantBuffers(0, 1, &m_previous_d3d_state.vertex_shader_constant_buffer);
-        m_d3d_context->GSGetShader(&m_previous_d3d_state.geometry_shader, m_previous_d3d_state.geometry_shader_instances, &m_previous_d3d_state.geometry_shader_instances_count);
+        m_d3d_context->GSGetShader(&m_previous_d3d_state.geometry_shader, m_previous_d3d_state.geometry_shader_instances,
+            &m_previous_d3d_state.geometry_shader_instances_count);
 
         m_d3d_context->IAGetPrimitiveTopology(&m_previous_d3d_state.primitive_topology);
         m_d3d_context->IAGetIndexBuffer(&m_previous_d3d_state.index_buffer, &m_previous_d3d_state.index_buffer_format,
@@ -467,11 +466,12 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state, 0);
     Clear();
     SetBlendState(m_blend_state);
-    m_d3d_context->OMSetRenderTargets(1, &p_render_target_view, nullptr);
+    m_d3d_context->OMSetRenderTargets(1, &m_bound_render_target, nullptr);
     SetTransform(nullptr); // Set no transform on new frame
 }
 
-void RenderInterface_DX11::EndFrame() {
+void RenderInterface_DX11::EndFrame()
+{
     // @TODO: Compositing
     // @TODO: Layer stack
     m_bound_swapchain = nullptr;
@@ -508,7 +508,8 @@ void RenderInterface_DX11::EndFrame() {
         {
             m_previous_d3d_state.pixel_shader_sampler->Release();
         }
-        m_d3d_context->PSSetShader(m_previous_d3d_state.pixel_shader, m_previous_d3d_state.pixel_shader_instances, m_previous_d3d_state.pixel_shader_instances_count);
+        m_d3d_context->PSSetShader(m_previous_d3d_state.pixel_shader, m_previous_d3d_state.pixel_shader_instances,
+            m_previous_d3d_state.pixel_shader_instances_count);
         if (m_previous_d3d_state.pixel_shader)
         {
             m_previous_d3d_state.pixel_shader->Release();
@@ -565,9 +566,8 @@ void RenderInterface_DX11::EndFrame() {
     }
 }
 
-
-Rml::CompiledGeometryHandle RenderInterface_DX11::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) {
-    
+Rml::CompiledGeometryHandle RenderInterface_DX11::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
+{
     ID3D11Buffer* vertex_buffer = nullptr;
     ID3D11Buffer* index_buffer = nullptr;
 
@@ -617,8 +617,8 @@ Rml::CompiledGeometryHandle RenderInterface_DX11::CompileGeometry(Rml::Span<cons
             return Rml::CompiledGeometryHandle(0);
         }
     }
-    uintptr_t handleId = HashPointer((uintptr_t) index_buffer);
-    
+    uintptr_t handleId = HashPointer((uintptr_t)index_buffer);
+
     DX11_GeometryData geometryData{};
 
     geometryData.vertex_buffer = vertex_buffer;
@@ -865,7 +865,7 @@ Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::by
     // Generate mipmaps for this texture.
     m_d3d_context->GenerateMips(gpu_texture_view);
 
-    uintptr_t handleId = HashPointer((uintptr_t) gpu_texture_view);
+    uintptr_t handleId = HashPointer((uintptr_t)gpu_texture_view);
 
     return Rml::TextureHandle(gpu_texture_view);
 }
@@ -876,8 +876,8 @@ void RenderInterface_DX11::ReleaseTexture(Rml::TextureHandle texture_handle)
     DX_CLEANUP_RESOURCE_IF_CREATED(texture_view);
 }
 
-void RenderInterface_DX11::EnableScissorRegion(bool enable) {
-
+void RenderInterface_DX11::EnableScissorRegion(bool enable)
+{
     if (enable != m_scissor_region_enabled)
     {
         if (enable)
@@ -918,7 +918,8 @@ void RenderInterface_DX11::Clear()
     m_d3d_context->ClearRenderTargetView(m_bound_render_target, clearColor);
 }
 
-void RenderInterface_DX11::SetBlendState(ID3D11BlendState* blendState) {
+void RenderInterface_DX11::SetBlendState(ID3D11BlendState* blendState)
+{
     if (blendState != m_current_blend_state)
     {
         const float blend_factor[4] = {0.f, 0.f, 0.f, 0.f};
@@ -933,8 +934,8 @@ void RenderInterface_DX11::SetTransform(const Rml::Matrix4f* new_transform)
     m_cbuffer_dirty = true;
 }
 
-void RenderInterface_DX11::UpdateConstantBuffer() {
-
+void RenderInterface_DX11::UpdateConstantBuffer()
+{
     if (m_cbuffer_dirty)
     {
         D3D11_MAPPED_SUBRESOURCE mappedResource{};

@@ -55,8 +55,8 @@
         }
 
 // Allow the user to override the number of MSAA samples
-#ifndef MSAA_SAMPLES
-#define MSAA_SAMPLES 2
+#ifndef NUM_MSAA_SAMPLES
+    #define NUM_MSAA_SAMPLES 2
 #endif
 
 // Use these typedefs to overload the default implementation with another image loader so that you can handle more than uncompressed TGA if you wish.
@@ -153,9 +153,10 @@ private:
 
     std::unordered_map<uintptr_t, DX11_GeometryData> m_geometry_cache;
 
-    // D3D11 state
+    // D3D11 state for RmlUi rendering
     ID3D11BlendState* m_current_blend_state = nullptr;
     
+    // Backup of prior D3D11 state
     struct D3D11State {
         UINT scissor_rects_count, viewports_count;
         D3D11_RECT scissor_rects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
