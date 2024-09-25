@@ -149,12 +149,6 @@ private:
     D3D11_RECT m_rect_scissor = {};
     bool m_scissor_region_enabled = false;
 
-    struct DX11_TextureData {
-    public:
-        ID3D11Texture2D* texture = nullptr;
-        ID3D11ShaderResourceView* texture_view = nullptr;
-    };
-
     struct DX11_GeometryData {
     public:
         ID3D11Buffer* vertex_buffer = nullptr;
@@ -162,7 +156,6 @@ private:
         uint32_t index_count = 0;
     };
 
-    std::unordered_map<uintptr_t, DX11_TextureData> m_texture_cache;
     std::unordered_map<uintptr_t, DX11_GeometryData> m_geometry_cache;
 
     // D3D11 state

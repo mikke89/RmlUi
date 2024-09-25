@@ -386,13 +386,6 @@ cleanup:
 
 void RenderInterface_DX11::Cleanup() {
 
-    // Loop through texture cache and free all resources
-    for (auto& it : m_texture_cache)
-    {
-        DX_CLEANUP_RESOURCE_IF_CREATED(it.second.texture_view);
-        DX_CLEANUP_RESOURCE_IF_CREATED(it.second.texture);
-    }
-    
     // Loop through geometry cache and free all resources
     for (auto& it : m_geometry_cache)
     {
@@ -543,20 +536,11 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
         if (texture)
         {
             // Texture available
-            if (m_texture_cache.find(texture) != m_texture_cache.end())
-            {
-                DX11_TextureData texData = m_texture_cache[texture];
-                m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
-                m_d3d_context->PSSetShader(this->m_shader_pixel_texture, nullptr, 0);
-                m_d3d_context->PSSetShaderResources(0, 1, &texData.texture_view);
-                m_d3d_context->PSSetSamplers(0, 1, &m_samplerState);
-            }
-            else
-            {
-                Rml::Log::Message(Rml::Log::LT_WARNING, "Texture Handle %d does not exist!", texture);
-                m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
-                m_d3d_context->PSSetShader(this->m_shader_pixel_color, nullptr, 0);
-            }
+            ID3D11ShaderResourceView* texture_view = (ID3D11ShaderResourceView*)texture;
+            m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
+            m_d3d_context->PSSetShader(this->m_shader_pixel_texture, nullptr, 0);
+            m_d3d_context->PSSetShaderResources(0, 1, &texture_view);
+            m_d3d_context->PSSetSamplers(0, 1, &m_samplerState);
         }
         else
         {
@@ -751,35 +735,20 @@ Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::by
         DX_CLEANUP_RESOURCE_IF_CREATED(gpu_texture);
         return Rml::TextureHandle(0);
     }
+    DX_CLEANUP_RESOURCE_IF_CREATED(gpu_texture);
 
     // Generate mipmaps for this texture.
     m_d3d_context->GenerateMips(gpu_texture_view);
 
     uintptr_t handleId = HashPointer((uintptr_t) gpu_texture_view);
 
-    DX11_TextureData texData{};
-    texData.texture = gpu_texture;
-    texData.texture_view = gpu_texture_view;
-
-    m_texture_cache.emplace(handleId, texData);
-    return Rml::TextureHandle(handleId);
+    return Rml::TextureHandle(gpu_texture_view);
 }
 
 void RenderInterface_DX11::ReleaseTexture(Rml::TextureHandle texture_handle)
 {
-    if (m_texture_cache.find(texture_handle) != m_texture_cache.end())
-    {
-        DX11_TextureData texData = m_texture_cache[texture_handle];
-
-        DX_CLEANUP_RESOURCE_IF_CREATED(texData.texture_view);
-        DX_CLEANUP_RESOURCE_IF_CREATED(texData.texture);
-
-        m_texture_cache.erase(texture_handle);
-    }
-    else
-    {
-        Rml::Log::Message(Rml::Log::LT_WARNING, "Texture Handle %d does not exist!", texture_handle);
-    }
+    ID3D11ShaderResourceView* texture_view = (ID3D11ShaderResourceView*)texture_handle;
+    DX_CLEANUP_RESOURCE_IF_CREATED(texture_view);
 }
 
 void RenderInterface_DX11::EnableScissorRegion(bool enable) {
