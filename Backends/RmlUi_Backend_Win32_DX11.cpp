@@ -296,6 +296,10 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
 
     switch (message)
     {
+        case WM_NCACTIVATE:
+        case WM_NCPAINT:
+            // Handle Windows Aero Snap
+            return DefWindowProcW(window_handle, message, w_param, l_param);
         case WM_CLOSE:
         {
             data->running = false;
