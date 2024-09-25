@@ -120,7 +120,7 @@ struct BackendData {
         ID3D11Device* pd3dDevice = nullptr;
         ID3D11DeviceContext* pd3dDeviceContext = nullptr;
         IDXGISwapChain* pSwapChain = nullptr;
-        bool swapchain_cccluded = false;
+        bool swapchain_occluded = false;
         ID3D11RenderTargetView* pMainRenderTargetView = nullptr;
     } d3d_resources;
 
@@ -273,7 +273,7 @@ void Backend::PresentFrame()
     // Present
     HRESULT hr = data->d3d_resources.pSwapChain->Present(1, 0); // Present with vsync
     //HRESULT hr = g_pSwapChain->Present(0, 0); // Present without vsync
-    data->d3d_resources.swapchain_cccluded = (hr == DXGI_STATUS_OCCLUDED);
+    data->d3d_resources.swapchain_occluded = (hr == DXGI_STATUS_OCCLUDED);
 
     // Optional, used to mark frames during performance profiling.
     RMLUI_FrameMark;
