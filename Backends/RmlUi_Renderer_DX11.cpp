@@ -375,7 +375,20 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
             goto cleanup;
             return;
         }
+    }
 
+    // Create depth stencil state
+    {
+        D3D11_DEPTH_STENCIL_DESC desc;
+        ZeroMemory(&desc, sizeof(desc));
+        desc.DepthEnable = false;
+        desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+        desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+        desc.StencilEnable = false;
+        desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp = desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+        desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+        desc.BackFace = desc.FrontFace;
+        m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state);
     }
 
 cleanup:
@@ -394,15 +407,16 @@ void RenderInterface_DX11::Cleanup() {
     }
 
     // Cleans up all general resources
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_samplerState);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_disabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_enabled);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_vertex_common);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_color);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_texture);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_vertex_layout);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_samplerState);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_vertex_common);
 }
 
 void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
@@ -424,6 +438,7 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     d3dviewport.MaxDepth = 1.0f;
     m_d3d_context->RSSetViewports(1, &d3dviewport);
     m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled); // Disable scissor
+    m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state, 0);
     Clear();
     SetBlendState(m_blend_state);
     m_d3d_context->OMSetRenderTargets(1, &p_render_target_view, nullptr);

@@ -127,6 +127,7 @@ private:
     ID3D11RenderTargetView* m_bound_render_target = nullptr;
     ID3D11RasterizerState* m_rasterizer_state_scissor_enabled = nullptr;
     ID3D11RasterizerState* m_rasterizer_state_scissor_disabled = nullptr;
+    ID3D11DepthStencilState* m_depth_stencil_state = nullptr;
 
     // Shaders
     ID3D11Buffer* m_shader_buffer = nullptr;
