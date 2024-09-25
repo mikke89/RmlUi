@@ -64,6 +64,12 @@
 typedef void (*pfnLoadTextureRaw)(const Rml::String& filename, int* pWidth, int* pHeight, uint8_t** pData, size_t* pDataSize);
 typedef void (*pfnFreeTextureRaw)(uint8_t* pData);
 
+class RenderLayerStack;
+namespace Gfx {
+struct ProgramData;
+struct RenderTargetData;
+} // namespace Gfx
+
 class RenderInterface_DX11 : public Rml::RenderInterface {
 public:
     RenderInterface_DX11();
@@ -94,6 +100,11 @@ public:
     
     void SetTransform(const Rml::Matrix4f* transform) override;
 
+    // Can be passed to RenderGeometry() to enable texture rendering without changing the bound texture.
+    static constexpr Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
+    // Can be passed to RenderGeometry() to leave the bound texture and used program unchanged.
+    static constexpr Rml::TextureHandle TexturePostprocess = Rml::TextureHandle(-2);
+
 public:
     /// Called by the renderer when it wants to load a texture from disk.
     /// @param[in] pFilename A Rml string containing the file name.
@@ -111,6 +122,11 @@ private:
     void SetBlendState(ID3D11BlendState* blendState);
     void UpdateConstantBuffer();
 
+    void SetScissor(Rml::Rectanglei region, bool vertically_flip = false);
+
+    void DrawFullscreenQuad();
+    void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f));
+
 private:
     UINT m_default_shader_flags;
 
@@ -121,7 +137,14 @@ private:
     ID3D11RenderTargetView* m_bound_render_target = nullptr;
     ID3D11RasterizerState* m_rasterizer_state_scissor_enabled = nullptr;
     ID3D11RasterizerState* m_rasterizer_state_scissor_disabled = nullptr;
-    ID3D11DepthStencilState* m_depth_stencil_state = nullptr;
+
+    // Depth stencil states
+    bool m_is_stencil_enabled = false;
+    bool m_stencil_dirty = false;
+    uint32_t m_stencil_ref_value = 0;
+    ID3D11DepthStencilState* m_depth_stencil_state_disable = nullptr; // Stencil Off
+    ID3D11DepthStencilState* m_depth_stencil_state_stencil_set = nullptr; // Clipmask Set/Inverse
+    ID3D11DepthStencilState* m_depth_stencil_state_stencil_intersect = nullptr; // Clipmask Intersect. Can have several test values
 
     // Shaders
     ID3D11Buffer* m_shader_buffer = nullptr;
@@ -130,6 +153,8 @@ private:
     ID3D11VertexShader* m_shader_vertex_common = nullptr;
     ID3D11PixelShader* m_shader_pixel_color = nullptr;
     ID3D11PixelShader* m_shader_pixel_texture = nullptr;
+    ID3D11VertexShader* m_shader_passthrough_vertex = nullptr;
+    ID3D11PixelShader* m_shader_passthrough_fragment = nullptr;
 
     // Viewport dimensions
     int m_viewport_width = 0;
@@ -141,8 +166,7 @@ private:
 
     ID3D11InputLayout* m_vertex_layout = nullptr;
     ID3D11BlendState* m_blend_state = nullptr;
-    D3D11_RECT m_rect_scissor = {};
-    bool m_scissor_region_enabled = false;
+    Rml::Rectanglei m_scissor_state = Rml::Rectanglei::MakeInvalid();
 
     struct DX11_GeometryData {
     public:
@@ -191,6 +215,61 @@ private:
         float _padding[2];
     };
     #pragma pack()
+
+    Rml::CompiledGeometryHandle m_fullscreen_quad_geometry = 0;
+
+    /*
+        Manages render targets, including the layer stack and postprocessing render targets.
+
+        Layers can be pushed and popped, creating new render targets as needed. Typically, geometry is rendered to the top
+        layer. The layer render targets may have MSAA enabled.
+
+        Postprocessing render targets are separate from the layers, and are commonly used to apply texture-wide effects
+        such as filters. They are used both as input and output during rendering, and do not use MSAA.
+    */
+    class RenderLayerStack {
+    public:
+        RenderLayerStack();
+        ~RenderLayerStack();
+
+        void SetD3DResources(ID3D11Device* device);
+
+        // Push a new layer. All references to previously retrieved layers are invalidated.
+        Rml::LayerHandle PushLayer();
+
+        // Pop the top layer. All references to previously retrieved layers are invalidated.
+        void PopLayer();
+
+        const Gfx::RenderTargetData& GetLayer(Rml::LayerHandle layer) const;
+        const Gfx::RenderTargetData& GetTopLayer() const;
+        Rml::LayerHandle GetTopLayerHandle() const;
+
+        const Gfx::RenderTargetData& GetPostprocessPrimary() { return EnsureRenderTargetPostprocess(0); }
+        const Gfx::RenderTargetData& GetPostprocessSecondary() { return EnsureRenderTargetPostprocess(1); }
+        const Gfx::RenderTargetData& GetPostprocessTertiary() { return EnsureRenderTargetPostprocess(2); }
+        const Gfx::RenderTargetData& GetBlendMask() { return EnsureRenderTargetPostprocess(3); }
+
+        void SwapPostprocessPrimarySecondary();
+
+        void BeginFrame(int new_width, int new_height);
+        void EndFrame();
+
+    private:
+        void DestroyRenderTargets();
+        const Gfx::RenderTargetData& EnsureRenderTargetPostprocess(int index);
+
+        int width = 0, height = 0;
+
+        // The number of active layers is manually tracked since we re-use the render targets stored in the fb_layers stack.
+        int layers_size = 0;
+
+        Rml::Vector<Gfx::RenderTargetData> rt_layers;
+        Rml::Vector<Gfx::RenderTargetData> rt_postprocess;
+        
+        ID3D11Device* m_d3d_device = nullptr;
+    };
+
+    RenderLayerStack m_render_layers;
 };
 
 #endif // RMLUI_PLATFORM_WIN32

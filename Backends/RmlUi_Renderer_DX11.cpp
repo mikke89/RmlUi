@@ -32,6 +32,8 @@
 
     #include "RmlUi_Renderer_DX11.h"
     #include <RmlUi/Core/Core.h>
+    #include <RmlUi/Core/Geometry.h>
+    #include <RmlUi/Core/MeshUtilities.h>
     #include <RmlUi/Core/FileInterface.h>
     #include <RmlUi/Core/Log.h>
 
@@ -44,7 +46,7 @@
     #endif
 
 // Shader source code
-constexpr const char pShaderSourceText_Color[] = R"(
+constexpr const char shader_source_text_color[] = R"(
 struct sInputData
 {
     float4 inputPos : SV_Position;
@@ -57,7 +59,8 @@ float4 main(const sInputData inputArgs) : SV_TARGET
     return inputArgs.inputColor; 
 }
 )";
-constexpr const char pShaderSourceText_Vertex[] = R"(
+
+constexpr const char shader_source_text_vertex[] = R"(
 struct sInputData 
 {
     float2 inPosition : POSITION;
@@ -99,7 +102,7 @@ sOutputData main(const sInputData inArgs)
 };
 )";
 
-constexpr const char pShaderSourceText_Texture[] = R"(
+constexpr const char shader_source_text_texture[] = R"(
 struct sInputData
 {
     float4 inputPos : SV_Position;
@@ -116,6 +119,209 @@ float4 main(const sInputData inputArgs) : SV_TARGET
     return inputArgs.inputColor * g_InputTexture.Sample(g_SamplerLinear, inputArgs.inputUV); 
 }
 )";
+
+constexpr const char shader_passthrough_source_vertex[] = R"(
+struct sInputData 
+{
+    float2 inPosition : POSITION;
+    float4 inColor : COLOR;
+    float2 inTexCoord : TEXCOORD;
+};
+
+struct sOutputData
+{
+    float4 outPosition : SV_Position;
+    float4 outColor : COLOR;
+    float2 outUV : TEXCOORD;
+};
+
+cbuffer ConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+    float2 _padding;
+};
+
+sOutputData main(const sInputData inArgs)
+{
+    sOutputData result;
+
+    result.outPosition = float4(inArgs.inPosition, 0.0, 1.0);
+    result.outColor = inArgs.inColor;
+    result.outUV = inArgs.inTexCoord;
+
+    return result;
+};
+)";
+
+constexpr const char shader_passthrough_source_fragment[] = R"(
+struct sInputData
+{
+    float4 inputPos : SV_Position;
+    float4 inputColor : COLOR;
+    float2 inputUV : TEXCOORD;
+};
+
+Texture2D g_InputTexture : register(t0);
+SamplerState g_SamplerLinear : register(s0);
+
+
+float4 main(const sInputData inputArgs) : SV_TARGET 
+{
+    return g_InputTexture.Sample(g_SamplerLinear, inputArgs.inputUV); 
+}
+)";
+
+namespace Gfx {
+struct RenderTargetData {
+    int width = 0, height = 0;
+    ID3D11RenderTargetView* render_target_view = nullptr; // To write to colour attachment buffer
+    ID3D11DepthStencilView* depth_stencil_view = nullptr; // To write to stencil buffer
+    ID3D11Texture2D* render_target_texture = nullptr; // For MSAA resolve
+    ID3D11ShaderResourceView* render_target_shader_resource_view = nullptr; // To blit
+    bool owns_depth_stencil_buffer = false;
+};
+
+enum class RenderTargetAttachment { None, Depth, DepthStencil };
+
+static bool CreateRenderTarget(ID3D11Device* p_device, RenderTargetData& out_rt, int width, int height, int samples,
+    RenderTargetAttachment attachment, ID3D11DepthStencilView* shared_depth_stencil_buffer)
+{
+    // Generate render target
+    D3D11_TEXTURE2D_DESC texture_desc = {};
+    ZeroMemory(&texture_desc, sizeof(D3D11_TEXTURE2D_DESC));
+    texture_desc.Width = width;
+    texture_desc.Height = height;
+    texture_desc.MipLevels = 1;
+    texture_desc.ArraySize = 1;
+    texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    texture_desc.SampleDesc.Count = (samples > 0) ? samples : 1; // MSAA
+    texture_desc.SampleDesc.Quality = 0;
+    texture_desc.Usage = D3D11_USAGE_DEFAULT;
+    texture_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    texture_desc.CPUAccessFlags = 0;
+    texture_desc.MiscFlags = 0;
+
+    ID3D11Texture2D* rt_texture = nullptr;
+    HRESULT result = p_device->CreateTexture2D(&texture_desc, nullptr, &rt_texture);
+    RMLUI_DX_ASSERTMSG(result, "failed to CreateTexture2D");
+    if (FAILED(result))
+    {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateTexture2D (%d)", result);
+        return false;
+    }
+
+    D3D11_RENDER_TARGET_VIEW_DESC render_target_view_desc = {};
+    render_target_view_desc.Format = texture_desc.Format;
+    render_target_view_desc.ViewDimension = samples > 0 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D;
+    render_target_view_desc.Texture2D.MipSlice = 0;
+
+    ID3D11RenderTargetView* render_target_view = nullptr;
+    result = p_device->CreateRenderTargetView(rt_texture, &render_target_view_desc, &render_target_view);
+    RMLUI_DX_ASSERTMSG(result, "failed to CreateRenderTargetView");
+    if (FAILED(result))
+    {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateRenderTargetView (%d)", result);
+        return false;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC render_target_shader_resource_view_desc = {};
+    render_target_shader_resource_view_desc.Format = texture_desc.Format;
+    render_target_shader_resource_view_desc.ViewDimension = samples > 0 ? D3D11_SRV_DIMENSION_TEXTURE2DMS : D3D11_SRV_DIMENSION_TEXTURE2D;
+    render_target_shader_resource_view_desc.Texture2D.MostDetailedMip = 0;
+    render_target_shader_resource_view_desc.Texture2D.MipLevels = 1;
+
+    ID3D11ShaderResourceView* render_target_shader_resource_view = nullptr;
+    result = p_device->CreateShaderResourceView(rt_texture, &render_target_shader_resource_view_desc, &render_target_shader_resource_view);
+    RMLUI_DX_ASSERTMSG(result, "failed to CreateShaderResourceView");
+    if (FAILED(result))
+    {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateShaderResourceView (%d)", result);
+        return false;
+    }
+
+    // Generate stencil buffer if necessary
+    ID3D11DepthStencilView* depth_stencil_view = nullptr;
+
+    if (attachment != RenderTargetAttachment::None)
+    {
+        if (shared_depth_stencil_buffer)
+        {
+            // Share the depth/stencil buffer
+            depth_stencil_view = shared_depth_stencil_buffer;
+            depth_stencil_view->AddRef(); // Increase reference count since we're sharing it
+        }
+        else
+        {
+            // Create a new depth/stencil buffer
+            D3D11_TEXTURE2D_DESC depthDesc = {};
+            depthDesc.Width = width;
+            depthDesc.Height = height;
+            depthDesc.MipLevels = 1;
+            depthDesc.ArraySize = 1;
+            depthDesc.Format =
+                (attachment == RenderTargetAttachment::DepthStencil) ? DXGI_FORMAT_D32_FLOAT_S8X24_UINT : DXGI_FORMAT_D24_UNORM_S8_UINT;
+            depthDesc.SampleDesc.Count = (samples > 0) ? samples : 1;
+            depthDesc.SampleDesc.Quality = 0;
+            depthDesc.Usage = D3D11_USAGE_DEFAULT;
+            depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+            depthDesc.CPUAccessFlags = 0;
+            depthDesc.MiscFlags = 0;
+
+            ID3D11Texture2D* depth_stencil_texture = nullptr;
+            result = p_device->CreateTexture2D(&depthDesc, nullptr, &depth_stencil_texture);
+            RMLUI_DX_ASSERTMSG(result, "failed to CreateTexture2D");
+            if (FAILED(result))
+            {
+                Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateTexture2D (%d)", result);
+                return false;
+            }
+
+            D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+            dsvDesc.Format = depthDesc.Format;
+            dsvDesc.ViewDimension = (samples > 0) ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D;
+            dsvDesc.Texture2D.MipSlice = 0;
+
+            result = p_device->CreateDepthStencilView(depth_stencil_texture, &dsvDesc, &depth_stencil_view);
+            RMLUI_DX_ASSERTMSG(result, "failed to CreateDepthStencilView");
+            if (FAILED(result))
+            {
+                depth_stencil_texture->Release();
+                Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateDepthStencilView (%d)", result);
+                return false;
+            }
+
+            depth_stencil_texture->Release();
+        }
+    }
+
+    out_rt = {};
+    out_rt.width = width;
+    out_rt.height = height;
+    out_rt.render_target_view = render_target_view;
+    out_rt.render_target_texture = rt_texture;
+    out_rt.render_target_shader_resource_view = render_target_shader_resource_view;
+    out_rt.depth_stencil_view = depth_stencil_view;
+    out_rt.owns_depth_stencil_buffer = shared_depth_stencil_buffer != nullptr;
+
+    return true;
+}
+
+static void DestroyRenderTarget(RenderTargetData& rt)
+{
+    DX_CLEANUP_RESOURCE_IF_CREATED(rt.render_target_view);
+    DX_CLEANUP_RESOURCE_IF_CREATED(rt.render_target_texture);
+    DX_CLEANUP_RESOURCE_IF_CREATED(rt.render_target_shader_resource_view);
+    DX_CLEANUP_RESOURCE_IF_CREATED(rt.depth_stencil_view);
+    rt = {};
+}
+
+static void BindTexture(ID3D11DeviceContext* context, const RenderTargetData& rt, uint32_t slot = 1)
+{
+    context->PSSetShaderResources(0, slot, &rt.render_target_shader_resource_view);
+}
+
+} // namespace Gfx
 
 static uintptr_t HashPointer(uintptr_t inPtr)
 {
@@ -146,6 +352,12 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     // Assign D3D resources
     m_d3d_device = p_d3d_device;
     m_d3d_context = p_d3d_device_context;
+    m_render_layers.SetD3DResources(m_d3d_device);
+
+    // Pre-cache quad for blitting
+    Rml::Mesh mesh;
+    Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
+    m_fullscreen_quad_geometry = RenderInterface_DX11::CompileGeometry(mesh.vertices, mesh.indices);
 
     // RmlUi serves vertex colors and textures with premultiplied alpha, set the blend mode accordingly.
     // Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
@@ -220,7 +432,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         ID3DBlob* p_error_buff{};
 
         // Common vertex shader
-        HRESULT result = D3DCompile(pShaderSourceText_Vertex, sizeof(pShaderSourceText_Vertex), nullptr, macros, nullptr, "main", "vs_5_0",
+        HRESULT result = D3DCompile(shader_source_text_vertex, sizeof(shader_source_text_vertex), nullptr, macros, nullptr, "main", "vs_5_0",
             this->m_default_shader_flags, 0, &p_shader_vertex_common, &p_error_buff);
         RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
     #ifdef RMLUI_DX_DEBUG
@@ -235,7 +447,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         // Color fragment shader
         ID3DBlob* p_shader_color_pixel{};
 
-        result = D3DCompile(pShaderSourceText_Color, sizeof(pShaderSourceText_Color), nullptr, macros, nullptr, "main", "ps_5_0",
+        result = D3DCompile(shader_source_text_color, sizeof(shader_source_text_color), nullptr, macros, nullptr, "main", "ps_5_0",
             this->m_default_shader_flags, 0, &p_shader_color_pixel, &p_error_buff);
         RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
     #ifdef RMLUI_DX_DEBUG
@@ -250,8 +462,38 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         // Texture fragment shader
         ID3DBlob* p_shader_color_texture{};
 
-        result = D3DCompile(pShaderSourceText_Texture, sizeof(pShaderSourceText_Texture), nullptr, macros, nullptr, "main", "ps_5_0",
+        result = D3DCompile(shader_source_text_texture, sizeof(shader_source_text_texture), nullptr, macros, nullptr, "main", "ps_5_0",
             this->m_default_shader_flags, 0, &p_shader_color_texture, &p_error_buff);
+        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
+    #ifdef RMLUI_DX_DEBUG
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
+        }
+    #endif
+
+        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
+
+        // Passthrough vertex shader
+        ID3DBlob* p_shader_passthrough_vertex{};
+
+        result = D3DCompile(shader_passthrough_source_vertex, sizeof(shader_passthrough_source_vertex), nullptr, macros, nullptr, "main",
+            "vs_5_0", this->m_default_shader_flags, 0, &p_shader_passthrough_vertex, &p_error_buff);
+        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
+    #ifdef RMLUI_DX_DEBUG
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
+        }
+    #endif
+
+        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
+
+        // Passthrough fragment shader
+        ID3DBlob* p_shader_passthrough_pixel{};
+
+        result = D3DCompile(shader_passthrough_source_fragment, sizeof(shader_passthrough_source_fragment), nullptr, macros, nullptr, "main",
+            "ps_5_0", this->m_default_shader_flags, 0, &p_shader_passthrough_pixel, &p_error_buff);
         RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
     #ifdef RMLUI_DX_DEBUG
         if (FAILED(result))
@@ -273,6 +515,8 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     #endif
             DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
             DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
             goto cleanup;
             return;
         }
@@ -287,6 +531,8 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     #endif
             DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
             DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
             goto cleanup;
             return;
         }
@@ -301,12 +547,49 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     #endif
             DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
             DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
+            goto cleanup;
+            return;
+        }
+
+        // Passthrough
+        result = m_d3d_device->CreateVertexShader(p_shader_passthrough_vertex->GetBufferPointer(), p_shader_passthrough_vertex->GetBufferSize(),
+            nullptr, &m_shader_passthrough_vertex);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateVertexShader");
+        if (FAILED(result))
+        {
+    #ifdef RMLUI_DX_DEBUG
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create vertex shader: %d", result);
+    #endif
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
+            goto cleanup;
+            return;
+        }
+
+        result = m_d3d_device->CreatePixelShader(p_shader_passthrough_pixel->GetBufferPointer(), p_shader_passthrough_pixel->GetBufferSize(), nullptr,
+            &m_shader_passthrough_fragment);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreatePixelShader");
+        if (FAILED(result))
+        {
+    #ifdef RMLUI_DX_DEBUG
+            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create pixel shader: %d", result);
+    #endif
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
+            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
             goto cleanup;
             return;
         }
 
         DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
         DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
+        DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
+        DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
     }
 
     // Create vertex layout. This will be constant to avoid copying to an intermediate struct.
@@ -373,18 +656,38 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         }
     }
 
-    // Create depth stencil state
+    // Create depth stencil states
     {
         D3D11_DEPTH_STENCIL_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
         desc.DepthEnable = false;
         desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
         desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
-        desc.StencilEnable = false;
         desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp = desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
         desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
         desc.BackFace = desc.FrontFace;
-        m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state);
+        desc.StencilEnable = false;
+        // Disabled
+        m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state_disable);
+
+        desc.StencilEnable = true;
+        desc.StencilReadMask = 0xFF;
+        desc.StencilWriteMask = 0xFF;
+        desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+        desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+        desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+        desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+        desc.BackFace = desc.FrontFace;
+        // Set and SetInverse
+        m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state_stencil_set);
+
+        desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+        desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_INCR;
+        desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+        desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+        desc.BackFace = desc.FrontFace;
+        // Intersect
+        m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state_stencil_intersect);
     }
 
 cleanup:
@@ -405,9 +708,11 @@ void RenderInterface_DX11::Cleanup()
     // Cleans up all general resources
     DX_CLEANUP_RESOURCE_IF_CREATED(m_samplerState);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_disable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_disabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_enabled);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_passthrough_fragment);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_passthrough_vertex);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_color);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_texture);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
@@ -417,6 +722,8 @@ void RenderInterface_DX11::Cleanup()
 
 void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
 {
+    RMLUI_ASSERT(m_viewport_width >= 1 && m_viewport_height >= 1);
+
     RMLUI_ASSERTMSG(p_swapchain, "p_swapchain cannot be nullptr!");
     RMLUI_ASSERTMSG(p_render_target_view, "p_render_target_view cannot be nullptr!");
     RMLUI_ASSERTMSG(m_d3d_context, "d3d_context cannot be nullptr!");
@@ -462,21 +769,54 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     d3dviewport.MinDepth = 0.0f;
     d3dviewport.MaxDepth = 1.0f;
     m_d3d_context->RSSetViewports(1, &d3dviewport);
-    m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled); // Disable scissor
-    m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state, 0);
-    Clear();
     SetBlendState(m_blend_state);
+    m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled); // Disable scissor
+    m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
     m_d3d_context->OMSetRenderTargets(1, &m_bound_render_target, nullptr);
-    SetTransform(nullptr); // Set no transform on new frame
+    Clear();
+    
+    SetTransform(nullptr);
+
+    m_render_layers.BeginFrame(m_viewport_width, m_viewport_height);
+    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, nullptr);
+    float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, clearColor);
+
+    // UseProgram(ProgramId::None);
+    // program_transform_dirty.set();
+    m_scissor_state = Rml::Rectanglei::MakeInvalid();
 }
 
 void RenderInterface_DX11::EndFrame()
 {
-    // @TODO: Compositing
-    // @TODO: Layer stack
+    RMLUI_ASSERTMSG(m_bound_render_target, "m_bound_render_target cannot be nullptr!");
+
+    const Gfx::RenderTargetData& rt_active = m_render_layers.GetTopLayer();
+    const Gfx::RenderTargetData& rt_postprocess = m_render_layers.GetPostprocessPrimary();
+
+    // Resolve MSAA to the post-process framebuffer.
+    m_d3d_context->ResolveSubresource(rt_postprocess.render_target_texture, 0, rt_active.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+    // Draw to bound_render_target (usually the swapchain RTV)
+    m_d3d_context->OMSetRenderTargets(1, &m_bound_render_target, nullptr);
+
+    // Assuming we have an opaque background, we can just write to it with the premultiplied alpha blend mode and we'll get the correct result.
+    // Instead, if we had a transparent destination that didn't use premultiplied alpha, we would need to perform a manual un-premultiplication step.
+    Gfx::BindTexture(m_d3d_context, rt_postprocess);
+
+    // @TODO: UseProgram
+    // @TODO: Find a pattern for flipped textures
+    // UseProgram(ProgramId::Passthrough);
+    m_d3d_context->VSSetShader(this->m_shader_passthrough_vertex, nullptr, 0);
+    m_d3d_context->PSSetShader(this->m_shader_passthrough_fragment, nullptr, 0);
+
+    DrawFullscreenQuad();
+
+    m_render_layers.EndFrame();
+
+    // Reset internal state
     m_bound_swapchain = nullptr;
     m_bound_render_target = nullptr;
-    // Reset blend state
     m_current_blend_state = nullptr;
 
     // Restore modified DX state
@@ -658,13 +998,20 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
             m_cbuffer_dirty = true;
         }
 
-        if (texture)
+        if (texture == TexturePostprocess)
+        {
+
+        }
+        else if (texture)
         {
             // Texture available
-            ID3D11ShaderResourceView* texture_view = (ID3D11ShaderResourceView*)texture;
             m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
             m_d3d_context->PSSetShader(this->m_shader_pixel_texture, nullptr, 0);
-            m_d3d_context->PSSetShaderResources(0, 1, &texture_view);
+            if (texture != TextureEnableWithoutBinding)
+            {
+                ID3D11ShaderResourceView* texture_view = (ID3D11ShaderResourceView*)texture;
+                m_d3d_context->PSSetShaderResources(0, 1, &texture_view);
+            }
             m_d3d_context->PSSetSamplers(0, 1, &m_samplerState);
         }
         else
@@ -876,33 +1223,79 @@ void RenderInterface_DX11::ReleaseTexture(Rml::TextureHandle texture_handle)
     DX_CLEANUP_RESOURCE_IF_CREATED(texture_view);
 }
 
+void RenderInterface_DX11::DrawFullscreenQuad()
+{
+    RenderGeometry(m_fullscreen_quad_geometry, {}, RenderInterface_DX11::TexturePostprocess);
+}
+
+void RenderInterface_DX11::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling)
+{
+    Rml::Mesh mesh;
+    Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
+    if (uv_offset != Rml::Vector2f() || uv_scaling != Rml::Vector2f(1.f))
+    {
+        for (Rml::Vertex& vertex : mesh.vertices)
+            vertex.tex_coord = (vertex.tex_coord * uv_scaling) + uv_offset;
+    }
+    const Rml::CompiledGeometryHandle geometry = CompileGeometry(mesh.vertices, mesh.indices);
+    RenderGeometry(geometry, {}, RenderInterface_DX11::TexturePostprocess);
+    ReleaseGeometry(geometry);
+}
+
+/// Flip vertical axis of the rectangle, and move its origin to the vertically opposite side of the viewport.
+/// @note Changes coordinate system from RmlUi to OpenGL, or equivalently in reverse.
+/// @note The Rectangle::Top and Rectangle::Bottom members will have reverse meaning in the returned rectangle.
+static Rml::Rectanglei VerticallyFlipped(Rml::Rectanglei rect, int viewport_height)
+{
+    RMLUI_ASSERT(rect.Valid());
+    Rml::Rectanglei flipped_rect = rect;
+    flipped_rect.p0.y = viewport_height - rect.p1.y;
+    flipped_rect.p1.y = viewport_height - rect.p0.y;
+    return flipped_rect;
+}
+
+
+void RenderInterface_DX11::SetScissor(Rml::Rectanglei region, bool vertically_flip)
+{
+    if (region.Valid() != m_scissor_state.Valid())
+    {
+        if (region.Valid())
+            m_d3d_context->RSSetState(m_rasterizer_state_scissor_enabled);
+        else
+            m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled);
+    }
+
+    if (region.Valid() && vertically_flip)
+        region = VerticallyFlipped(region, m_viewport_height);
+
+    if (region.Valid() && region != m_scissor_state)
+    {
+        // Some render APIs don't like offscreen positions (WebGL in particular), so clamp them to the viewport.
+        const int x = Rml::Math::Clamp(region.Left(), 0, m_viewport_width);
+        const int y = Rml::Math::Clamp(m_viewport_height - region.Bottom(), 0, m_viewport_height);
+
+        D3D11_RECT rect_scissor = {};
+        rect_scissor.left = x;
+        rect_scissor.top = y;
+        rect_scissor.right = x + region.Width();
+        rect_scissor.bottom = y + region.Height();
+
+        m_d3d_context->RSSetScissorRects(1, &rect_scissor);
+    }
+
+    m_scissor_state = region;
+}
+
 void RenderInterface_DX11::EnableScissorRegion(bool enable)
 {
-    if (enable != m_scissor_region_enabled)
-    {
-        if (enable)
-        {
-            m_d3d_context->RSSetState(m_rasterizer_state_scissor_enabled);
-        }
-        else
-        {
-            m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled);
-        }
-        m_scissor_region_enabled = enable;
-    }
+    // Assume enable is immediately followed by a SetScissorRegion() call, and ignore it here.
+    if (!enable)
+        SetScissor(Rml::Rectanglei::MakeInvalid(), false);
 }
 
 void RenderInterface_DX11::SetScissorRegion(Rml::Rectanglei region)
 {
-    m_rect_scissor.left		= region.Left();
-    m_rect_scissor.top		= region.Top();
-    m_rect_scissor.bottom	= region.Bottom();
-    m_rect_scissor.right	= region.Right();
-
-    if (m_scissor_region_enabled)
-    {
-        m_d3d_context->RSSetScissorRects(1, &m_rect_scissor);
-    }
+    SetScissor(region);
 }
 
 void RenderInterface_DX11::SetViewport(const int width, const int height)
@@ -959,4 +1352,110 @@ void RenderInterface_DX11::UpdateConstantBuffer()
     }
 }
 
+RenderInterface_DX11::RenderLayerStack::RenderLayerStack()
+{
+    rt_postprocess.resize(4);
+}
+
+RenderInterface_DX11::RenderLayerStack::~RenderLayerStack()
+{
+    DestroyRenderTargets();
+}
+
+void RenderInterface_DX11::RenderLayerStack::SetD3DResources(ID3D11Device* device)
+{
+    RMLUI_ASSERTMSG(!m_d3d_device, "D3D11Device has already been set!");
+    m_d3d_device = device;
+}
+
+Rml::LayerHandle RenderInterface_DX11::RenderLayerStack::PushLayer()
+{
+    RMLUI_ASSERT(layers_size <= (int)rt_layers.size());
+
+    if (layers_size == (int)rt_layers.size())
+    {
+        // All framebuffers should share a single stencil buffer.
+        ID3D11DepthStencilView* shared_depth_stencil = (rt_layers.empty() ? nullptr : rt_layers.front().depth_stencil_view);
+
+        rt_layers.push_back(Gfx::RenderTargetData{});
+        Gfx::CreateRenderTarget(m_d3d_device, rt_layers.back(), width, height, NUM_MSAA_SAMPLES, Gfx::RenderTargetAttachment::DepthStencil, shared_depth_stencil);
+    }
+
+    layers_size += 1;
+    return GetTopLayerHandle();
+}
+
+
+void RenderInterface_DX11::RenderLayerStack::PopLayer()
+{
+    RMLUI_ASSERT(layers_size > 0);
+    layers_size -= 1;
+}
+
+const Gfx::RenderTargetData& RenderInterface_DX11::RenderLayerStack::GetLayer(Rml::LayerHandle layer) const
+{
+    RMLUI_ASSERT((size_t)layer < (size_t)layers_size);
+    return rt_layers[layer];
+}
+
+const Gfx::RenderTargetData& RenderInterface_DX11::RenderLayerStack::GetTopLayer() const
+{
+    return GetLayer(GetTopLayerHandle());
+}
+
+Rml::LayerHandle RenderInterface_DX11::RenderLayerStack::GetTopLayerHandle() const
+{
+    RMLUI_ASSERT(layers_size > 0);
+    return static_cast<Rml::LayerHandle>(layers_size - 1);
+}
+
+void RenderInterface_DX11::RenderLayerStack::SwapPostprocessPrimarySecondary()
+{
+    std::swap(rt_postprocess[0], rt_postprocess[1]);
+}
+
+void RenderInterface_DX11::RenderLayerStack::BeginFrame(int new_width, int new_height)
+{
+    RMLUI_ASSERT(layers_size == 0);
+
+    if (new_width != width || new_height != height)
+    {
+        width = new_width;
+        height = new_height;
+
+        DestroyRenderTargets();
+    }
+
+    PushLayer();
+}
+
+void RenderInterface_DX11::RenderLayerStack::EndFrame()
+{
+    RMLUI_ASSERT(layers_size == 1);
+    PopLayer();
+}
+
+void RenderInterface_DX11::RenderLayerStack::DestroyRenderTargets()
+{
+    RMLUI_ASSERTMSG(layers_size == 0, "Do not call this during frame rendering, that is, between BeginFrame() and EndFrame().");
+
+    for (Gfx::RenderTargetData& fb : rt_layers)
+        Gfx::DestroyRenderTarget(fb);
+
+    rt_layers.clear();
+
+    for (Gfx::RenderTargetData& fb : rt_postprocess)
+        Gfx::DestroyRenderTarget(fb);
+}
+
+const Gfx::RenderTargetData& RenderInterface_DX11::RenderLayerStack::EnsureRenderTargetPostprocess(int index)
+{
+    RMLUI_ASSERT(index < (int)rt_postprocess.size())
+    Gfx::RenderTargetData& rt = rt_postprocess[index];
+    if (!rt.render_target_view)
+        Gfx::CreateRenderTarget(m_d3d_device, rt, width, height, 0, Gfx::RenderTargetAttachment::None, 0);
+    return rt;
+}
+
 #endif // RMLUI_PLATFORM_WIN32
+
