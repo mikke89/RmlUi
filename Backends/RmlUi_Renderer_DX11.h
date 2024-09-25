@@ -112,12 +112,6 @@ private:
     void UpdateConstantBuffer();
 
 private:
-    // @TODO: Replace with vertex / index buffer pairs
-    struct GeometryView {
-        Rml::Span<const Rml::Vertex> vertices;
-        Rml::Span<const int> indices;
-    };
-
     UINT m_default_shader_flags;
 
     // D3D11 core resources
