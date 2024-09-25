@@ -157,27 +157,28 @@ private:
     ID3D11BlendState* m_current_blend_state = nullptr;
     
     struct D3D11State {
-        UINT ScissorRectsCount, ViewportsCount;
-        D3D11_RECT ScissorRects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-        D3D11_VIEWPORT Viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-        ID3D11RasterizerState* RS;
-        ID3D11BlendState* BlendState;
-        FLOAT BlendFactor[4];
-        UINT SampleMask;
-        UINT StencilRef;
-        ID3D11DepthStencilState* DepthStencilState;
-        ID3D11ShaderResourceView* PSShaderResource;
-        ID3D11SamplerState* PSSampler;
-        ID3D11PixelShader* PS;
-        ID3D11VertexShader* VS;
-        ID3D11GeometryShader* GS;
-        UINT PSInstancesCount, VSInstancesCount, GSInstancesCount;
-        ID3D11ClassInstance *PSInstances[256], *VSInstances[256], *GSInstances[256]; // 256 is max according to PSSetShader documentation
-        D3D11_PRIMITIVE_TOPOLOGY PrimitiveTopology;
-        ID3D11Buffer *IndexBuffer, *VertexBuffer, *VSConstantBuffer;
-        UINT IndexBufferOffset, VertexBufferStride, VertexBufferOffset;
-        DXGI_FORMAT IndexBufferFormat;
-        ID3D11InputLayout* InputLayout;
+        UINT scissor_rects_count, viewports_count;
+        D3D11_RECT scissor_rects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+        D3D11_VIEWPORT viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+        ID3D11RasterizerState* rastizer_state;
+        ID3D11BlendState* blend_state;
+        FLOAT blend_factor[4];
+        UINT sample_mask;
+        UINT stencil_ref;
+        ID3D11DepthStencilState* depth_stencil_state;
+        ID3D11ShaderResourceView* pixel_shader_shader_resource;
+        ID3D11SamplerState* pixel_shader_sampler;
+        ID3D11PixelShader* pixel_shader;
+        ID3D11VertexShader* vertex_shader;
+        ID3D11GeometryShader* geometry_shader;
+        UINT pixel_shader_instances_count, vertex_shader_instances_count, geometry_shader_instances_count;
+        // 256 is max according to PSSetShader documentation
+        ID3D11ClassInstance *pixel_shader_instances[256], *vertex_shader_instances[256], *geometry_shader_instances[256];
+        D3D11_PRIMITIVE_TOPOLOGY primitive_topology;
+        ID3D11Buffer *index_buffer, *vertex_buffer, *vertex_shader_constant_buffer;
+        UINT index_buffer_offset, vertex_buffer_stride, vertex_buffer_offset;
+        DXGI_FORMAT index_buffer_format;
+        ID3D11InputLayout* input_layout;
     };
 
     D3D11State m_previous_d3d_state{};
