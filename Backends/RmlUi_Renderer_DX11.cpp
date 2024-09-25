@@ -426,6 +426,28 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     RMLUI_ASSERTMSG(m_d3d_context, "d3d_context cannot be nullptr!");
     RMLUI_ASSERTMSG(m_d3d_device, "d3d_device cannot be nullptr!");
 
+    // Backup DX11 state
+    m_previous_d3d_state.ScissorRectsCount = m_previous_d3d_state.ViewportsCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+    m_d3d_context->RSGetScissorRects(&m_previous_d3d_state.ScissorRectsCount, m_previous_d3d_state.ScissorRects);
+    m_d3d_context->RSGetViewports(&m_previous_d3d_state.ViewportsCount, m_previous_d3d_state.Viewports);
+    m_d3d_context->RSGetState(&m_previous_d3d_state.RS);
+    m_d3d_context->OMGetBlendState(&m_previous_d3d_state.BlendState, m_previous_d3d_state.BlendFactor, &m_previous_d3d_state.SampleMask);
+    m_d3d_context->OMGetDepthStencilState(&m_previous_d3d_state.DepthStencilState, &m_previous_d3d_state.StencilRef);
+    m_d3d_context->PSGetShaderResources(0, 1, &m_previous_d3d_state.PSShaderResource);
+    m_d3d_context->PSGetSamplers(0, 1, &m_previous_d3d_state.PSSampler);
+    m_previous_d3d_state.PSInstancesCount = m_previous_d3d_state.VSInstancesCount = m_previous_d3d_state.GSInstancesCount = 256;
+    m_d3d_context->PSGetShader(&m_previous_d3d_state.PS, m_previous_d3d_state.PSInstances, &m_previous_d3d_state.PSInstancesCount);
+    m_d3d_context->VSGetShader(&m_previous_d3d_state.VS, m_previous_d3d_state.VSInstances, &m_previous_d3d_state.VSInstancesCount);
+    m_d3d_context->VSGetConstantBuffers(0, 1, &m_previous_d3d_state.VSConstantBuffer);
+    m_d3d_context->GSGetShader(&m_previous_d3d_state.GS, m_previous_d3d_state.GSInstances, &m_previous_d3d_state.GSInstancesCount);
+
+    m_d3d_context->IAGetPrimitiveTopology(&m_previous_d3d_state.PrimitiveTopology);
+    m_d3d_context->IAGetIndexBuffer(&m_previous_d3d_state.IndexBuffer, &m_previous_d3d_state.IndexBufferFormat,
+        &m_previous_d3d_state.IndexBufferOffset);
+    m_d3d_context->IAGetVertexBuffers(0, 1, &m_previous_d3d_state.VertexBuffer, &m_previous_d3d_state.VertexBufferStride,
+        &m_previous_d3d_state.VertexBufferOffset);
+    m_d3d_context->IAGetInputLayout(&m_previous_d3d_state.InputLayout);
+
     m_bound_render_target = p_render_target_view;
     m_bound_swapchain = p_swapchain;
 
@@ -452,6 +474,54 @@ void RenderInterface_DX11::EndFrame() {
     m_bound_render_target = nullptr;
     // Reset blend state
     m_current_blend_state = nullptr;
+
+    // Restore modified DX state
+    m_d3d_context->RSSetScissorRects(m_previous_d3d_state.ScissorRectsCount, m_previous_d3d_state.ScissorRects);
+    m_d3d_context->RSSetViewports(m_previous_d3d_state.ViewportsCount, m_previous_d3d_state.Viewports);
+    m_d3d_context->RSSetState(m_previous_d3d_state.RS);
+    if (m_previous_d3d_state.RS)
+        m_previous_d3d_state.RS->Release();
+    m_d3d_context->OMSetBlendState(m_previous_d3d_state.BlendState, m_previous_d3d_state.BlendFactor, m_previous_d3d_state.SampleMask);
+    if (m_previous_d3d_state.BlendState)
+        m_previous_d3d_state.BlendState->Release();
+    m_d3d_context->OMSetDepthStencilState(m_previous_d3d_state.DepthStencilState, m_previous_d3d_state.StencilRef);
+    if (m_previous_d3d_state.DepthStencilState)
+        m_previous_d3d_state.DepthStencilState->Release();
+    m_d3d_context->PSSetShaderResources(0, 1, &m_previous_d3d_state.PSShaderResource);
+    if (m_previous_d3d_state.PSShaderResource)
+        m_previous_d3d_state.PSShaderResource->Release();
+    m_d3d_context->PSSetSamplers(0, 1, &m_previous_d3d_state.PSSampler);
+    if (m_previous_d3d_state.PSSampler)
+        m_previous_d3d_state.PSSampler->Release();
+    m_d3d_context->PSSetShader(m_previous_d3d_state.PS, m_previous_d3d_state.PSInstances, m_previous_d3d_state.PSInstancesCount);
+    if (m_previous_d3d_state.PS)
+        m_previous_d3d_state.PS->Release();
+    for (UINT i = 0; i < m_previous_d3d_state.PSInstancesCount; i++)
+        if (m_previous_d3d_state.PSInstances[i])
+            m_previous_d3d_state.PSInstances[i]->Release();
+    m_d3d_context->VSSetShader(m_previous_d3d_state.VS, m_previous_d3d_state.VSInstances, m_previous_d3d_state.VSInstancesCount);
+    if (m_previous_d3d_state.VS)
+        m_previous_d3d_state.VS->Release();
+    m_d3d_context->VSSetConstantBuffers(0, 1, &m_previous_d3d_state.VSConstantBuffer);
+    if (m_previous_d3d_state.VSConstantBuffer)
+        m_previous_d3d_state.VSConstantBuffer->Release();
+    m_d3d_context->GSSetShader(m_previous_d3d_state.GS, m_previous_d3d_state.GSInstances, m_previous_d3d_state.GSInstancesCount);
+    if (m_previous_d3d_state.GS)
+        m_previous_d3d_state.GS->Release();
+    for (UINT i = 0; i < m_previous_d3d_state.VSInstancesCount; i++)
+        if (m_previous_d3d_state.VSInstances[i])
+            m_previous_d3d_state.VSInstances[i]->Release();
+    m_d3d_context->IASetPrimitiveTopology(m_previous_d3d_state.PrimitiveTopology);
+    m_d3d_context->IASetIndexBuffer(m_previous_d3d_state.IndexBuffer, m_previous_d3d_state.IndexBufferFormat, m_previous_d3d_state.IndexBufferOffset);
+    if (m_previous_d3d_state.IndexBuffer)
+        m_previous_d3d_state.IndexBuffer->Release();
+    m_d3d_context->IASetVertexBuffers(0, 1, &m_previous_d3d_state.VertexBuffer, &m_previous_d3d_state.VertexBufferStride,
+        &m_previous_d3d_state.VertexBufferOffset);
+    if (m_previous_d3d_state.VertexBuffer)
+        m_previous_d3d_state.VertexBuffer->Release();
+    m_d3d_context->IASetInputLayout(m_previous_d3d_state.InputLayout);
+    if (m_previous_d3d_state.InputLayout)
+        m_previous_d3d_state.InputLayout->Release();
 }
 
 
