@@ -126,6 +126,7 @@ struct BackendData {
 
     bool context_dimensions_dirty = true;
     Rml::Vector2i window_dimensions;
+    Rml::Vector2i resize_dimensions;
     bool running = true;
 
     // Arguments set during event processing and nulled otherwise.
@@ -261,7 +262,16 @@ void Backend::RequestExit()
 void Backend::BeginFrame()
 {
     RMLUI_ASSERT(data);
-    // @TODO: Check if should resize, if so, re-create swapchain
+
+    // Handle window resize (we don't resize directly in the WM_SIZE handler)
+    if (data->resize_dimensions.x != 0 && data->resize_dimensions.y != 0)
+    {
+        CleanupRenderTarget();
+        data->d3d_resources.pSwapChain->ResizeBuffers(0, data->resize_dimensions.x, data->resize_dimensions.y, DXGI_FORMAT_UNKNOWN, 0);
+        data->resize_dimensions.x = data->resize_dimensions.y = 0;
+        CreateRenderTarget();
+    }
+
     data->render_interface.BeginFrame(data->d3d_resources.pSwapChain, data->d3d_resources.pMainRenderTargetView);
 }
 
@@ -298,6 +308,9 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
             const int height = HIWORD(l_param);
             data->window_dimensions.x = width;
             data->window_dimensions.y = height;
+            data->resize_dimensions.x = width;
+            data->resize_dimensions.y = height;
+            data->context_dimensions_dirty = true;
             data->render_interface.SetViewport(width, height);
             if (data->context)
                 data->context->SetDimensions(data->window_dimensions);
@@ -310,7 +323,7 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
             SetWindowPos(window_handle, NULL, new_pos->left, new_pos->top, new_pos->right - new_pos->left, new_pos->bottom - new_pos->top,
                          SWP_NOZORDER | SWP_NOACTIVATE);
             if (data->context && has_dpi_support)
-            data->context->SetDensityIndependentPixelRatio(GetDensityIndependentPixelRatio(window_handle));
+                data->context->SetDensityIndependentPixelRatio(GetDensityIndependentPixelRatio(window_handle));
             return 0;
         }
         break;
