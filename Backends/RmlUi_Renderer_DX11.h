@@ -113,6 +113,10 @@ public:
     Rml::TextureHandle SaveLayerAsTexture() override;
 
     // Rml::CompiledFilterHandle SaveLayerAsMaskImage() override;
+    Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override;
+    void RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle, Rml::Vector2f translation,
+        Rml::TextureHandle texture) override;
+    void ReleaseShader(Rml::CompiledShaderHandle effect_handle) override;
 
     // Can be passed to RenderGeometry() to enable texture rendering without changing the bound texture.
     static constexpr Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);

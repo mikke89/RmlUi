@@ -1845,6 +1845,200 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
 }
 */
 
+enum class CompiledShaderType { Invalid = 0, Gradient, Creation };
+struct CompiledShader {
+    CompiledShaderType type;
+
+    // Gradient
+    ShaderGradientFunction gradient_function;
+    Rml::Vector2f p;
+    Rml::Vector2f v;
+    Rml::Vector<float> stop_positions;
+    Rml::Vector<Rml::Colourf> stop_colors;
+
+    // Shader
+    Rml::Vector2f dimensions;
+};
+
+Rml::CompiledShaderHandle RenderInterface_DX11::CompileShader(const Rml::String& name, const Rml::Dictionary& parameters)
+{
+    auto ApplyColorStopList = [](CompiledShader& shader, const Rml::Dictionary& shader_parameters) {
+        auto it = shader_parameters.find("color_stop_list");
+        RMLUI_ASSERT(it != shader_parameters.end() && it->second.GetType() == Rml::Variant::COLORSTOPLIST);
+        const Rml::ColorStopList& color_stop_list = it->second.GetReference<Rml::ColorStopList>();
+        const int num_stops = Rml::Math::Min((int)color_stop_list.size(), MAX_NUM_STOPS);
+
+        shader.stop_positions.resize(num_stops);
+        shader.stop_colors.resize(num_stops);
+        for (int i = 0; i < num_stops; i++)
+        {
+            const Rml::ColorStop& stop = color_stop_list[i];
+            RMLUI_ASSERT(stop.position.unit == Rml::Unit::NUMBER);
+            shader.stop_positions[i] = stop.position.number;
+            shader.stop_colors[i] = ConvertToColorf(stop.color);
+        }
+    };
+
+    CompiledShader shader = {};
+
+    if (name == "linear-gradient")
+    {
+        shader.type = CompiledShaderType::Gradient;
+        const bool repeating = Rml::Get(parameters, "repeating", false);
+        shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingLinear : ShaderGradientFunction::Linear);
+        shader.p = Rml::Get(parameters, "p0", Rml::Vector2f(0.f));
+        shader.v = Rml::Get(parameters, "p1", Rml::Vector2f(0.f)) - shader.p;
+        ApplyColorStopList(shader, parameters);
+    }
+    else if (name == "radial-gradient")
+    {
+        shader.type = CompiledShaderType::Gradient;
+        const bool repeating = Rml::Get(parameters, "repeating", false);
+        shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingRadial : ShaderGradientFunction::Radial);
+        shader.p = Rml::Get(parameters, "center", Rml::Vector2f(0.f));
+        shader.v = Rml::Vector2f(1.f) / Rml::Get(parameters, "radius", Rml::Vector2f(1.f));
+        ApplyColorStopList(shader, parameters);
+    }
+    else if (name == "conic-gradient")
+    {
+        shader.type = CompiledShaderType::Gradient;
+        const bool repeating = Rml::Get(parameters, "repeating", false);
+        shader.gradient_function = (repeating ? ShaderGradientFunction::RepeatingConic : ShaderGradientFunction::Conic);
+        shader.p = Rml::Get(parameters, "center", Rml::Vector2f(0.f));
+        const float angle = Rml::Get(parameters, "angle", 0.f);
+        shader.v = {Rml::Math::Cos(angle), Rml::Math::Sin(angle)};
+        ApplyColorStopList(shader, parameters);
+    }
+    else if (name == "shader")
+    {
+        const Rml::String value = Rml::Get(parameters, "value", Rml::String());
+        if (value == "creation")
+        {
+            shader.type = CompiledShaderType::Creation;
+            shader.dimensions = Rml::Get(parameters, "dimensions", Rml::Vector2f(0.f));
+        }
+    }
+
+    if (shader.type != CompiledShaderType::Invalid)
+        return reinterpret_cast<Rml::CompiledShaderHandle>(new CompiledShader(std::move(shader)));
+
+    Rml::Log::Message(Rml::Log::LT_WARNING, "Unsupported shader type '%s'.", name.c_str());
+    return {};
+}
+
+void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
+    Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
+{
+    RMLUI_ASSERT(shader_handle && geometry_handle);
+    const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
+    const CompiledShaderType type = shader.type;
+
+    DX11_GeometryData geometry{};
+    if (m_geometry_cache.find(geometry_handle) != m_geometry_cache.end())
+    {
+        geometry = m_geometry_cache[geometry_handle];
+    }
+
+    switch (type)
+    {
+    case CompiledShaderType::Gradient:
+    {
+        RMLUI_ASSERT(shader.stop_positions.size() == shader.stop_colors.size());
+        const int num_stops = (int)shader.stop_positions.size();
+
+        UseProgram(ProgramId::Gradient);
+
+        D3D11_MAPPED_SUBRESOURCE mappedResource{};
+        // Lock the constant buffer so it can be written to.
+        HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+        if (FAILED(result))
+        {
+            return;
+        }
+
+        // Get a pointer to the data in the constant buffer.
+        ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
+
+        // Copy the data to the GPU
+        dataPtr->transform = m_transform;
+        dataPtr->translation = translation;
+        dataPtr->gradient.func = static_cast<int>(shader.gradient_function);
+        dataPtr->gradient.p = shader.p;
+        dataPtr->gradient.v = shader.v;
+        dataPtr->gradient.num_stops = num_stops;
+        // Reset stop positions and colours to 0
+        memset(dataPtr->gradient.stop_positions, 0, sizeof(dataPtr->gradient.stop_positions));
+        memset(dataPtr->gradient.stop_colors, 0, sizeof(dataPtr->gradient.stop_colors));
+        // Copy to stop position and colours
+        memcpy_s(&dataPtr->gradient.stop_positions, num_stops * sizeof(float), shader.stop_positions.data(), num_stops * sizeof(float));
+        memcpy_s(&dataPtr->gradient.stop_colors, num_stops * sizeof(Rml::Vector4f), shader.stop_colors.data(), num_stops * sizeof(Rml::Vector4f));
+
+        // Upload to the GPU.
+        m_d3d_context->Unmap(m_shader_buffer, 0);
+
+        // Issue draw call
+        m_d3d_context->IASetInputLayout(m_vertex_layout);
+        m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
+        m_d3d_context->PSSetConstantBuffers(0, 1, &m_shader_buffer);
+        uint32_t stride = sizeof(Rml::Vertex);
+        uint32_t offset = 0;
+        m_d3d_context->IASetVertexBuffers(0, 1, &geometry.vertex_buffer, &stride, &offset);
+        m_d3d_context->IASetIndexBuffer(geometry.index_buffer, DXGI_FORMAT_R32_UINT, 0);
+        m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_d3d_context->DrawIndexed(geometry.index_count, 0, 0);
+    }
+    break;
+    case CompiledShaderType::Creation:
+    {
+        const double time = Rml::GetSystemInterface()->GetElapsedTime();
+
+        UseProgram(ProgramId::Creation);
+
+        D3D11_MAPPED_SUBRESOURCE mappedResource{};
+        // Lock the constant buffer so it can be written to.
+        HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+        if (FAILED(result))
+        {
+            return;
+        }
+
+        // Get a pointer to the data in the constant buffer.
+        ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
+
+        // Copy the data to the GPU
+        dataPtr->transform = m_transform;
+        dataPtr->translation = translation;
+        dataPtr->creation.value = (float)time;
+        dataPtr->creation.dimensions = shader.dimensions;
+
+        // Upload to the GPU.
+        m_d3d_context->Unmap(m_shader_buffer, 0);
+
+        // Issue draw call
+        m_d3d_context->IASetInputLayout(m_vertex_layout);
+        m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
+        m_d3d_context->PSSetConstantBuffers(0, 1, &m_shader_buffer);
+        uint32_t stride = sizeof(Rml::Vertex);
+        uint32_t offset = 0;
+        m_d3d_context->IASetVertexBuffers(0, 1, &geometry.vertex_buffer, &stride, &offset);
+        m_d3d_context->IASetIndexBuffer(geometry.index_buffer, DXGI_FORMAT_R32_UINT, 0);
+        m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_d3d_context->DrawIndexed(geometry.index_count, 0, 0);
+    }
+    break;
+    case CompiledShaderType::Invalid:
+    {
+        Rml::Log::Message(Rml::Log::LT_WARNING, "Unhandled render shader %d.", (int)type);
+    }
+    break;
+    }
+}
+
+void RenderInterface_DX11::ReleaseShader(Rml::CompiledShaderHandle shader_handle)
+{
+    delete reinterpret_cast<CompiledShader*>(shader_handle);
+}
+
 void RenderInterface_DX11::UpdateConstantBuffer()
 {
     if (m_cbuffer_dirty)
