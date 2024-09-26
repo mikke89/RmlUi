@@ -110,6 +110,10 @@ public:
         Rml::Span<const Rml::CompiledFilterHandle> filters) override;
     void PopLayer() override;
 
+    Rml::TextureHandle SaveLayerAsTexture() override;
+
+    // Rml::CompiledFilterHandle SaveLayerAsMaskImage() override;
+
     // Can be passed to RenderGeometry() to enable texture rendering without changing the bound texture.
     static constexpr Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
     // Can be passed to RenderGeometry() to leave the bound texture and used program unchanged.
@@ -132,6 +136,8 @@ private:
     void SetBlendState(ID3D11BlendState* blendState);
     void UpdateConstantBuffer();
     void UseProgram(ProgramId program_id);
+
+    void BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle);
 
     void SetScissor(Rml::Rectanglei region, bool vertically_flip = false);
 

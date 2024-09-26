@@ -1564,7 +1564,10 @@ Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::by
     uint32_t rowPitch = (source_dimensions.x * 4) * sizeof(unsigned char);
 
     // Copy the raw image data into the texture
-    m_d3d_context->UpdateSubresource(gpu_texture, 0, nullptr, source.data(), rowPitch, 0);
+    if (source.size() > 0)
+    {
+        m_d3d_context->UpdateSubresource(gpu_texture, 0, nullptr, source.data(), rowPitch, 0);
+    }
 
     // Setup the shader resource view description.
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -1584,7 +1587,10 @@ Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::by
     DX_CLEANUP_RESOURCE_IF_CREATED(gpu_texture);
 
     // Generate mipmaps for this texture.
-    m_d3d_context->GenerateMips(gpu_texture_view);
+    if (source.size() > 0)
+    {
+        m_d3d_context->GenerateMips(gpu_texture_view);
+    }
 
     uintptr_t handleId = HashPointer((uintptr_t)gpu_texture_view);
 
@@ -1701,6 +1707,15 @@ void RenderInterface_DX11::SetTransform(const Rml::Matrix4f* new_transform)
     m_cbuffer_dirty = true;
 }
 
+void RenderInterface_DX11::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle)
+{
+    const Gfx::RenderTargetData& source = m_render_layers.GetLayer(layer_handle);
+    const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessPrimary();
+
+    // Blit and resolve MSAA. Any active scissor state will restrict the size of the blit region.
+    m_d3d_context->ResolveSubresource(destination.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+}
+
 Rml::LayerHandle RenderInterface_DX11::PushLayer()
 {
     const Rml::LayerHandle layer_handle = m_render_layers.PushLayer();
@@ -1712,37 +1727,37 @@ Rml::LayerHandle RenderInterface_DX11::PushLayer()
     return layer_handle;
 }
 
-void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source, Rml::LayerHandle destination, Rml::BlendMode blend_mode,
+void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source_handle, Rml::LayerHandle destination_handle, Rml::BlendMode blend_mode,
     Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
     using Rml::BlendMode;
 
-    #if 0
     // Blit source layer to postprocessing buffer. Do this regardless of whether we actually have any filters to be
     // applied, because we need to resolve the multi-sampled framebuffer in any case.
     // @performance If we have BlendMode::Replace and no filters or mask then we can just blit directly to the destination.
     BlitLayerToPostprocessPrimary(source_handle);
 
     // Render the filters, the PostprocessPrimary framebuffer is used for both input and output.
-    RenderFilters(filters);
+    // @TODO: RenderFilters implementation
+    // RenderFilters(filters);
 
     // Render to the destination layer.
-    glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(destination_handle).framebuffer);
-    Gfx::BindTexture(render_layers.GetPostprocessPrimary());
+    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetLayer(destination_handle).render_target_view,
+        m_render_layers.GetLayer(destination_handle).depth_stencil_view);
+    Gfx::BindTexture(m_d3d_context, m_render_layers.GetPostprocessPrimary());
 
     UseProgram(ProgramId::Passthrough);
 
     if (blend_mode == BlendMode::Replace)
-        glDisable(GL_BLEND);
+        SetBlendState(m_blend_state_disable);
 
     DrawFullscreenQuad();
 
     if (blend_mode == BlendMode::Replace)
-        glEnable(GL_BLEND);
+        SetBlendState(m_blend_state_enable);
 
-    if (destination_handle != render_layers.GetTopLayerHandle())
-        glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
-    #endif
+    if (destination_handle != m_render_layers.GetTopLayerHandle())
+        m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
 }
 
 void RenderInterface_DX11::PopLayer()
@@ -1750,6 +1765,85 @@ void RenderInterface_DX11::PopLayer()
     m_render_layers.PopLayer();
     m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
 }
+
+Rml::TextureHandle RenderInterface_DX11::SaveLayerAsTexture()
+{
+    RMLUI_ASSERT(m_scissor_state.Valid());
+    const Rml::Rectanglei bounds = m_scissor_state;
+
+    Rml::TextureHandle render_texture = GenerateTexture({}, bounds.Size());
+    if (!render_texture)
+        return {};
+
+    BlitLayerToPostprocessPrimary(m_render_layers.GetTopLayerHandle());
+
+    EnableScissorRegion(false);
+
+    const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
+    const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
+    
+    // Flip the image vertically, as that convention is used for textures, and move to origin.
+    D3D11_BOX source_box{};
+    source_box.left = bounds.Left();
+    source_box.right = bounds.Right();
+    source_box.top = source.height - bounds.Bottom();
+    source_box.bottom = source.height - bounds.Top();
+    source_box.front = 0;
+    source_box.back = 1;
+
+    // Perform a copy from the source render target to the destination render target
+    m_d3d_context->CopySubresourceRegion(destination.render_target_texture, 0, 0, 0, 0, source.render_target_texture, 0, &source_box);
+
+    // Now we need to copy the destination texture to the final texture for rendering
+    // Bind the destination texture as the source for copying to the final texture (render_texture)
+    // after extracting the associated resource with it
+    ID3D11ShaderResourceView* texture_view = (ID3D11ShaderResourceView*)render_texture;
+    ID3D11Resource* texture_resource = nullptr;
+    texture_view->GetResource(&texture_resource);
+
+    // Copy the destination texture to the final texture resource
+    D3D11_BOX copy_box{};
+    copy_box.left = 0;
+    copy_box.right = bounds.Width();
+    copy_box.top = 0;
+    copy_box.bottom = bounds.Height();
+    copy_box.front = 0;
+    copy_box.back = 1;
+
+    // Copy the blitted content from the destination to the final texture
+    m_d3d_context->CopySubresourceRegion(texture_resource, 0, 0, 0, 0, destination.render_target_texture, 0, &copy_box);
+
+    // Restore state and free memory
+    SetScissor(bounds);
+    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+    texture_resource->Release();
+
+    return render_texture;
+}
+
+/*
+Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
+{
+    BlitLayerToPostprocessPrimary(m_render_layers.GetTopLayerHandle());
+
+    const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
+    const Gfx::RenderTargetData& destination = m_render_layers.GetBlendMask();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
+    BindTexture(source);
+    UseProgram(ProgramId::Passthrough);
+    glDisable(GL_BLEND);
+
+    DrawFullscreenQuad();
+
+    glEnable(GL_BLEND);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_render_layers.GetTopLayer().framebuffer);
+
+    CompiledFilter filter = {};
+    filter.type = FilterType::MaskImage;
+    return reinterpret_cast<Rml::CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
+}
+*/
 
 void RenderInterface_DX11::UpdateConstantBuffer()
 {
