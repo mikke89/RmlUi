@@ -881,21 +881,45 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
 
     // RmlUi serves vertex colors and textures with premultiplied alpha, set the blend mode accordingly.
     // Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
-    if (!m_blend_state)
+    if (!m_blend_state_enable)
     {
-        D3D11_BLEND_DESC blendDesc{};
-        ZeroMemory(&blendDesc, sizeof(blendDesc));
-        blendDesc.AlphaToCoverageEnable = FALSE;
-        blendDesc.IndependentBlendEnable = FALSE;
-        blendDesc.RenderTarget[0].BlendEnable = TRUE;
-        blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-        blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-        blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-        blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-        blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-        blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-        blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-        HRESULT result = m_d3d_device->CreateBlendState(&blendDesc, &m_blend_state);
+        D3D11_BLEND_DESC blend_desc{};
+        ZeroMemory(&blend_desc, sizeof(blend_desc));
+        blend_desc.AlphaToCoverageEnable = false;
+        blend_desc.IndependentBlendEnable = false;
+        blend_desc.RenderTarget[0].BlendEnable = false;
+        HRESULT result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_disable);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
+    #ifdef RMLUI_DX_DEBUG
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateBlendState (%d)", result);
+            return;
+        }
+    #endif
+
+        blend_desc.RenderTarget[0].BlendEnable = true;
+        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+        blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+        blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+        result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_enable);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
+    #ifdef RMLUI_DX_DEBUG
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateBlendState (%d)", result);
+            return;
+        }
+    #endif
+
+        ZeroMemory(&blend_desc, sizeof(blend_desc));
+        blend_desc.RenderTarget[0].BlendEnable = false;
+        blend_desc.RenderTarget[0].RenderTargetWriteMask = 0;
+        result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_disable_color);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
     #ifdef RMLUI_DX_DEBUG
         if (FAILED(result))
@@ -965,7 +989,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         RMLUI_DX_ASSERTMSG(result, "failed to CreateInputLayout");
         if (FAILED(result))
         {
-            goto cleanup;
             return;
         }
     }
@@ -984,7 +1007,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         RMLUI_DX_ASSERTMSG(result, "failed to CreateBuffer");
         if (FAILED(result))
         {
-            goto cleanup;
             return;
         }
     }
@@ -1010,7 +1032,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         RMLUI_DX_ASSERTMSG(result, "failed to CreateSamplerState");
         if (FAILED(result))
         {
-            goto cleanup;
             return;
         }
     }
@@ -1020,18 +1041,18 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         D3D11_DEPTH_STENCIL_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
         desc.DepthEnable = false;
-        desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-        desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
-        desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp = desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-        desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+        desc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+        desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+        desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+        desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
         desc.BackFace = desc.FrontFace;
         desc.StencilEnable = false;
         // Disabled
         m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state_disable);
 
         desc.StencilEnable = true;
-        desc.StencilReadMask = 0xFF;
-        desc.StencilWriteMask = 0xFF;
+        desc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+        desc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
         desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
         desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
         desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
@@ -1067,7 +1088,9 @@ void RenderInterface_DX11::Cleanup()
 
     // Cleans up all general resources
     DX_CLEANUP_RESOURCE_IF_CREATED(m_samplerState);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_enable);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable_color);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_disable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_intersect);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_set);
@@ -1126,16 +1149,15 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     d3dviewport.MinDepth = 0.0f;
     d3dviewport.MaxDepth = 1.0f;
     m_d3d_context->RSSetViewports(1, &d3dviewport);
-    SetBlendState(m_blend_state);
+    SetBlendState(m_blend_state_enable);
     m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled); // Disable scissor
     m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
-    m_d3d_context->OMSetRenderTargets(1, &m_bound_render_target, nullptr);
     Clear();
     
     SetTransform(nullptr);
 
     m_render_layers.BeginFrame(m_viewport_width, m_viewport_height);
-    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, nullptr);
+    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
     float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, clearColor);
 
@@ -1754,6 +1776,19 @@ void RenderInterface_DX11::UpdateConstantBuffer()
     }
 }
 
+void RenderInterface_DX11::UseProgram(ProgramId program_id) {
+    RMLUI_ASSERT(program_data);
+    if (active_program != program_id)
+    {
+        if (program_id != ProgramId::None)
+        {
+            m_d3d_context->VSSetShader(program_data->programs[program_id].vertex_shader, nullptr, 0);
+            m_d3d_context->PSSetShader(program_data->programs[program_id].pixel_shader, nullptr, 0);
+        }
+        active_program = program_id;
+    }
+}
+
 void RenderInterface_DX11::EnableClipMask(bool enable)
 {
     if (enable != m_is_stencil_enabled)
@@ -1795,7 +1830,12 @@ void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rm
     }
     break;
     }
+    
+    // Disable writing to the color of the render target
+    float blendFactor[4] = {0.f, 0.f, 0.f, 0.f};
+    m_d3d_context->OMSetBlendState(m_blend_state_disable_color, blendFactor, 0xffffffff);
 
+    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
     m_d3d_context->OMSetDepthStencilState(stencil_state, stencil_test_value);
 
     bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
@@ -1813,6 +1853,8 @@ void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rm
     // Restore state
     // @performance Is this even necessary?
     m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
+    // Restore blend state
+    m_d3d_context->OMSetBlendState(m_current_blend_state, blendFactor, 0xffffffff);
 }
 
 RenderInterface_DX11::RenderLayerStack::RenderLayerStack()

@@ -169,7 +169,9 @@ private:
     Rml::Vector2f m_translation = {};
 
     ID3D11InputLayout* m_vertex_layout = nullptr;
-    ID3D11BlendState* m_blend_state = nullptr;
+    ID3D11BlendState* m_blend_state_enable = nullptr;
+    ID3D11BlendState* m_blend_state_disable = nullptr;
+    ID3D11BlendState* m_blend_state_disable_color = nullptr;
 
     ProgramId active_program = {};
     Rml::Rectanglei m_scissor_state = Rml::Rectanglei::MakeInvalid();
