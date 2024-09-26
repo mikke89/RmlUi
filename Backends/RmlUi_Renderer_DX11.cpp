@@ -708,6 +708,8 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_samplerState);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_disable);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_intersect);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_set);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_disabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_enabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_passthrough_fragment);
