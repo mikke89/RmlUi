@@ -1401,6 +1401,7 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
 
         m_d3d_context->IASetInputLayout(m_vertex_layout);
         m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
+        m_d3d_context->PSSetConstantBuffers(0, 1, &m_shader_buffer);
 
         // Bind vertex and index buffers, issue draw call
         uint32_t stride = sizeof(Rml::Vertex);
