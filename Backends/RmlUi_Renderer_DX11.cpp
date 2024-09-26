@@ -1328,6 +1328,56 @@ void RenderInterface_DX11::SetTransform(const Rml::Matrix4f* new_transform)
     m_cbuffer_dirty = true;
 }
 
+Rml::LayerHandle RenderInterface_DX11::PushLayer()
+{
+    const Rml::LayerHandle layer_handle = m_render_layers.PushLayer();
+
+    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+    float colors[4] = {0, 0, 0, 0};
+    m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, colors);
+
+    return layer_handle;
+}
+
+void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source, Rml::LayerHandle destination, Rml::BlendMode blend_mode,
+    Rml::Span<const Rml::CompiledFilterHandle> filters)
+{
+    using Rml::BlendMode;
+
+    #if 0
+    // Blit source layer to postprocessing buffer. Do this regardless of whether we actually have any filters to be
+    // applied, because we need to resolve the multi-sampled framebuffer in any case.
+    // @performance If we have BlendMode::Replace and no filters or mask then we can just blit directly to the destination.
+    BlitLayerToPostprocessPrimary(source_handle);
+
+    // Render the filters, the PostprocessPrimary framebuffer is used for both input and output.
+    RenderFilters(filters);
+
+    // Render to the destination layer.
+    glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(destination_handle).framebuffer);
+    Gfx::BindTexture(render_layers.GetPostprocessPrimary());
+
+    UseProgram(ProgramId::Passthrough);
+
+    if (blend_mode == BlendMode::Replace)
+        glDisable(GL_BLEND);
+
+    DrawFullscreenQuad();
+
+    if (blend_mode == BlendMode::Replace)
+        glEnable(GL_BLEND);
+
+    if (destination_handle != render_layers.GetTopLayerHandle())
+        glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
+    #endif
+}
+
+void RenderInterface_DX11::PopLayer()
+{
+    m_render_layers.PopLayer();
+    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+}
+
 void RenderInterface_DX11::UpdateConstantBuffer()
 {
     if (m_cbuffer_dirty)

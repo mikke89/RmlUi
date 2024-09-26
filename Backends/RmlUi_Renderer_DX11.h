@@ -103,6 +103,11 @@ public:
 
     void SetTransform(const Rml::Matrix4f* transform) override;
 
+    Rml::LayerHandle PushLayer() override;
+    void CompositeLayers(Rml::LayerHandle source, Rml::LayerHandle destination, Rml::BlendMode blend_mode,
+        Rml::Span<const Rml::CompiledFilterHandle> filters) override;
+    void PopLayer() override;
+
     // Can be passed to RenderGeometry() to enable texture rendering without changing the bound texture.
     static constexpr Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
     // Can be passed to RenderGeometry() to leave the bound texture and used program unchanged.
