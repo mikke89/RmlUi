@@ -1691,13 +1691,13 @@ void RenderInterface_DX11::Clear()
     m_d3d_context->ClearRenderTargetView(m_bound_render_target, clearColor);
 }
 
-void RenderInterface_DX11::SetBlendState(ID3D11BlendState* blendState)
+void RenderInterface_DX11::SetBlendState(ID3D11BlendState* blend_state)
 {
-    if (blendState != m_current_blend_state)
+    if (blend_state != m_current_blend_state)
     {
         const float blend_factor[4] = {0.f, 0.f, 0.f, 0.f};
-        m_d3d_context->OMSetBlendState(blendState, blend_factor, 0xFFFFFFFF);
-        m_current_blend_state = blendState;
+        m_d3d_context->OMSetBlendState(blend_state, blend_factor, 0xFFFFFFFF);
+        m_current_blend_state = blend_state;
     }
 }
 
