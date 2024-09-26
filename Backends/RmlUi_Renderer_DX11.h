@@ -112,7 +112,11 @@ public:
 
     Rml::TextureHandle SaveLayerAsTexture() override;
 
-    // Rml::CompiledFilterHandle SaveLayerAsMaskImage() override;
+    Rml::CompiledFilterHandle SaveLayerAsMaskImage() override;
+
+    Rml::CompiledFilterHandle CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters) override;
+    void ReleaseFilter(Rml::CompiledFilterHandle filter) override;
+
     Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override;
     void RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle, Rml::Vector2f translation,
         Rml::TextureHandle texture) override;

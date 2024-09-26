@@ -32,10 +32,12 @@
 
     #include "RmlUi_Renderer_DX11.h"
     #include <RmlUi/Core/Core.h>
-    #include <RmlUi/Core/Geometry.h>
-    #include <RmlUi/Core/MeshUtilities.h>
+    #include <RmlUi/Core/DecorationTypes.h>
     #include <RmlUi/Core/FileInterface.h>
+    #include <RmlUi/Core/Geometry.h>
     #include <RmlUi/Core/Log.h>
+    #include <RmlUi/Core/MeshUtilities.h>
+    #include <RmlUi/Core/SystemInterface.h>
 
     #include "RmlUi_Include_Windows.h"
 
@@ -1603,6 +1605,14 @@ void RenderInterface_DX11::ReleaseTexture(Rml::TextureHandle texture_handle)
     DX_CLEANUP_RESOURCE_IF_CREATED(texture_view);
 }
 
+static Rml::Colourf ConvertToColorf(Rml::ColourbPremultiplied c0)
+{
+    Rml::Colourf result;
+    for (int i = 0; i < 4; i++)
+        result[i] = (1.f / 255.f) * float(c0[i]);
+    return result;
+}
+
 void RenderInterface_DX11::DrawFullscreenQuad()
 {
     RenderGeometry(m_fullscreen_quad_geometry, {}, RenderInterface_DX11::TexturePostprocess);
@@ -1821,7 +1831,24 @@ Rml::TextureHandle RenderInterface_DX11::SaveLayerAsTexture()
     return render_texture;
 }
 
-/*
+enum class FilterType { Invalid = 0, Passthrough, Blur, DropShadow, ColorMatrix, MaskImage };
+struct CompiledFilter {
+    FilterType type;
+
+    // Passthrough
+    float blend_factor;
+
+    // Blur
+    float sigma;
+
+    // Drop shadow
+    Rml::Vector2f offset;
+    Rml::ColourbPremultiplied color;
+
+    // ColorMatrix
+    Rml::Matrix4f color_matrix;
+};
+
 Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
 {
     BlitLayerToPostprocessPrimary(m_render_layers.GetTopLayerHandle());
@@ -1843,7 +1870,123 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
     filter.type = FilterType::MaskImage;
     return reinterpret_cast<Rml::CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
 }
-*/
+
+Rml::CompiledFilterHandle RenderInterface_DX11::CompileFilter(const Rml::String& name, const Rml::Dictionary& parameters)
+{
+    CompiledFilter filter = {};
+
+    if (name == "opacity")
+    {
+        filter.type = FilterType::Passthrough;
+        filter.blend_factor = Rml::Get(parameters, "value", 1.0f);
+    }
+    else if (name == "blur")
+    {
+        filter.type = FilterType::Blur;
+        filter.sigma = Rml::Get(parameters, "sigma", 1.0f);
+    }
+    else if (name == "drop-shadow")
+    {
+        filter.type = FilterType::DropShadow;
+        filter.sigma = Rml::Get(parameters, "sigma", 0.f);
+        filter.color = Rml::Get(parameters, "color", Rml::Colourb()).ToPremultiplied();
+        filter.offset = Rml::Get(parameters, "offset", Rml::Vector2f(0.f));
+    }
+    else if (name == "brightness")
+    {
+        filter.type = FilterType::ColorMatrix;
+        const float value = Rml::Get(parameters, "value", 1.0f);
+        filter.color_matrix = Rml::Matrix4f::Diag(value, value, value, 1.f);
+    }
+    else if (name == "contrast")
+    {
+        filter.type = FilterType::ColorMatrix;
+        const float value = Rml::Get(parameters, "value", 1.0f);
+        const float grayness = 0.5f - 0.5f * value;
+        filter.color_matrix = Rml::Matrix4f::Diag(value, value, value, 1.f);
+        filter.color_matrix.SetColumn(3, Rml::Vector4f(grayness, grayness, grayness, 1.f));
+    }
+    else if (name == "invert")
+    {
+        filter.type = FilterType::ColorMatrix;
+        const float value = Rml::Math::Clamp(Rml::Get(parameters, "value", 1.0f), 0.f, 1.f);
+        const float inverted = 1.f - 2.f * value;
+        filter.color_matrix = Rml::Matrix4f::Diag(inverted, inverted, inverted, 1.f);
+        filter.color_matrix.SetColumn(3, Rml::Vector4f(value, value, value, 1.f));
+    }
+    else if (name == "grayscale")
+    {
+        filter.type = FilterType::ColorMatrix;
+        const float value = Rml::Get(parameters, "value", 1.0f);
+        const float rev_value = 1.f - value;
+        const Rml::Vector3f gray = value * Rml::Vector3f(0.2126f, 0.7152f, 0.0722f);
+        // clang-format off
+        filter.color_matrix = Rml::Matrix4f::FromRows(
+            {gray.x + rev_value, gray.y,             gray.z,             0.f},
+            {gray.x,             gray.y + rev_value, gray.z,             0.f},
+            {gray.x,             gray.y,             gray.z + rev_value, 0.f},
+            {0.f,                0.f,                0.f,                1.f}
+        );
+        // clang-format on
+    }
+    else if (name == "sepia")
+    {
+        filter.type = FilterType::ColorMatrix;
+        const float value = Rml::Get(parameters, "value", 1.0f);
+        const float rev_value = 1.f - value;
+        const Rml::Vector3f r_mix = value * Rml::Vector3f(0.393f, 0.769f, 0.189f);
+        const Rml::Vector3f g_mix = value * Rml::Vector3f(0.349f, 0.686f, 0.168f);
+        const Rml::Vector3f b_mix = value * Rml::Vector3f(0.272f, 0.534f, 0.131f);
+        // clang-format off
+        filter.color_matrix = Rml::Matrix4f::FromRows(
+            {r_mix.x + rev_value, r_mix.y,             r_mix.z,             0.f},
+            {g_mix.x,             g_mix.y + rev_value, g_mix.z,             0.f},
+            {b_mix.x,             b_mix.y,             b_mix.z + rev_value, 0.f},
+            {0.f,                 0.f,                 0.f,                 1.f}
+        );
+        // clang-format on
+    }
+    else if (name == "hue-rotate")
+    {
+        // Hue-rotation and saturation values based on: https://www.w3.org/TR/filter-effects-1/#attr-valuedef-type-huerotate
+        filter.type = FilterType::ColorMatrix;
+        const float value = Rml::Get(parameters, "value", 1.0f);
+        const float s = Rml::Math::Sin(value);
+        const float c = Rml::Math::Cos(value);
+        // clang-format off
+        filter.color_matrix = Rml::Matrix4f::FromRows(
+            {0.213f + 0.787f * c - 0.213f * s,  0.715f - 0.715f * c - 0.715f * s,  0.072f - 0.072f * c + 0.928f * s,  0.f},
+            {0.213f - 0.213f * c + 0.143f * s,  0.715f + 0.285f * c + 0.140f * s,  0.072f - 0.072f * c - 0.283f * s,  0.f},
+            {0.213f - 0.213f * c - 0.787f * s,  0.715f - 0.715f * c + 0.715f * s,  0.072f + 0.928f * c + 0.072f * s,  0.f},
+            {0.f,                               0.f,                               0.f,                               1.f}
+        );
+        // clang-format on
+    }
+    else if (name == "saturate")
+    {
+        filter.type = FilterType::ColorMatrix;
+        const float value = Rml::Get(parameters, "value", 1.0f);
+        // clang-format off
+        filter.color_matrix = Rml::Matrix4f::FromRows(
+            {0.213f + 0.787f * value,  0.715f - 0.715f * value,  0.072f - 0.072f * value,  0.f},
+            {0.213f - 0.213f * value,  0.715f + 0.285f * value,  0.072f - 0.072f * value,  0.f},
+            {0.213f - 0.213f * value,  0.715f - 0.715f * value,  0.072f + 0.928f * value,  0.f},
+            {0.f,                      0.f,                      0.f,                      1.f}
+        );
+        // clang-format on
+    }
+
+    if (filter.type != FilterType::Invalid)
+        return reinterpret_cast<Rml::CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
+
+    Rml::Log::Message(Rml::Log::LT_WARNING, "Unsupported filter type '%s'.", name.c_str());
+    return {};
+}
+
+void RenderInterface_DX11::ReleaseFilter(Rml::CompiledFilterHandle filter)
+{
+    delete reinterpret_cast<CompiledFilter*>(filter);
+}
 
 enum class CompiledShaderType { Invalid = 0, Gradient, Creation };
 struct CompiledShader {
