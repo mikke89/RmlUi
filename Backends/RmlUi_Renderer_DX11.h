@@ -97,7 +97,10 @@ public:
 
     void EnableScissorRegion(bool enable) override;
     void SetScissorRegion(Rml::Rectanglei region) override;
-    
+
+    void EnableClipMask(bool enable) override;
+    void RenderToClipMask(Rml::ClipMaskOperation mask_operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation) override;
+
     void SetTransform(const Rml::Matrix4f* transform) override;
 
     // Can be passed to RenderGeometry() to enable texture rendering without changing the bound texture.

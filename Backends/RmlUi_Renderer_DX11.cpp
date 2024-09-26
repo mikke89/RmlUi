@@ -1353,6 +1353,67 @@ void RenderInterface_DX11::UpdateConstantBuffer()
     }
 }
 
+void RenderInterface_DX11::EnableClipMask(bool enable)
+{
+    if (enable != m_is_stencil_enabled)
+    {
+        m_is_stencil_enabled = enable;
+        if (!enable)
+        {
+            m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
+        }
+    }
+}
+
+void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation)
+{
+    RMLUI_ASSERT(m_is_stencil_enabled);
+    using Rml::ClipMaskOperation;
+
+    ID3D11DepthStencilState* stencil_state = m_depth_stencil_state_disable;
+
+    UINT stencil_test_value = 0;
+    switch (operation)
+    {
+    case ClipMaskOperation::Set:
+    {
+        stencil_test_value = 1;
+        stencil_state = m_depth_stencil_state_stencil_set;
+    }
+    break;
+    case ClipMaskOperation::SetInverse:
+    {
+        stencil_test_value = 0;
+        stencil_state = m_depth_stencil_state_stencil_set;
+    }
+    break;
+    case ClipMaskOperation::Intersect:
+    {
+        stencil_test_value += 1;
+        stencil_state = m_depth_stencil_state_stencil_intersect;
+    }
+    break;
+    }
+
+    m_d3d_context->OMSetDepthStencilState(stencil_state, stencil_test_value);
+
+    bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
+    if (clear_stencil)
+    {
+        // Clear stencil buffer
+        Rml::LayerHandle layer_handle = m_render_layers.GetTopLayerHandle();
+        const Gfx::RenderTargetData& rtData = m_render_layers.GetLayer(layer_handle);
+        m_d3d_context->ClearDepthStencilView(rtData.depth_stencil_view, D3D11_CLEAR_STENCIL, 1.0f, 0);
+    }
+
+    // @TODO: Stencil buffer is inverted?
+    RenderGeometry(geometry, translation, {});
+
+    // Restore state
+    // @performance Is this even necessary?
+    m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
+}
+
 RenderInterface_DX11::RenderLayerStack::RenderLayerStack()
 {
     rt_postprocess.resize(4);
