@@ -216,10 +216,41 @@ private:
     D3D11State m_previous_d3d_state{};
 
     #pragma pack(4)
-    struct ShaderCbuffer {
-        Rml::Matrix4f transform;
-        Rml::Vector2f translation;
-        float _padding[2];
+    union ShaderCbuffer {
+        struct {
+            Rml::Matrix4f transform;
+            Rml::Vector2f translation;
+        };
+        struct Gradient {
+            int _padding[18];
+            int func;
+            int num_stops;
+            Rml::Vector2f p;
+            Rml::Vector2f v;
+            Rml::Vector4f stop_colors[16];
+            float stop_positions[16];
+        } gradient;
+        struct ColorMatrix {
+            Rml::Matrix4f color_matrix;
+        } color_matrix;
+        struct Blur {
+            int _padding[18];
+            Rml::Vector4f weights;
+            Rml::Vector2f texelOffset;
+            Rml::Vector2f texCoordMin;
+            Rml::Vector2f texCoordMax;
+        } blur;
+        struct DropShadow {
+            int _padding[18];
+            Rml::Vector2f texCoordMin;
+            Rml::Vector2f texCoordMax;
+            Rml::Vector4f color;
+        } dropShadow;
+        struct Creation {
+            int _padding[18];
+            Rml::Vector2f dimensions;
+            float value;
+        } creation;
     };
     #pragma pack()
 
