@@ -1856,15 +1856,16 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
     const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
     const Gfx::RenderTargetData& destination = m_render_layers.GetBlendMask();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
-    BindTexture(source);
+    m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, nullptr);
+    Gfx::BindTexture(m_d3d_context, source);
     UseProgram(ProgramId::Passthrough);
-    glDisable(GL_BLEND);
+    ID3D11BlendState* blend_state_backup = m_current_blend_state;
+    SetBlendState(m_blend_state_disable);
 
     DrawFullscreenQuad();
 
-    glEnable(GL_BLEND);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_render_layers.GetTopLayer().framebuffer);
+    SetBlendState(blend_state_backup);
+    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
 
     CompiledFilter filter = {};
     filter.type = FilterType::MaskImage;
