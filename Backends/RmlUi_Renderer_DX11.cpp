@@ -46,52 +46,50 @@
     #endif
 
 // Shader source code
-constexpr const char shader_source_text_color[] = R"(
-struct sInputData
-{
-    float4 inputPos : SV_Position;
-    float4 inputColor : COLOR;
-    float2 inputUV : TEXCOORD;
-};
 
-float4 main(const sInputData inputArgs) : SV_TARGET 
-{ 
-    return inputArgs.inputColor; 
-}
-)";
+#define MAX_NUM_STOPS 16
+#define BLUR_SIZE 7
+#define BLUR_NUM_WEIGHTS ((BLUR_SIZE + 1) / 2)
 
-constexpr const char shader_source_text_vertex[] = R"(
-struct sInputData 
+#define RMLUI_STRINGIFY_IMPL(x) #x
+#define RMLUI_STRINGIFY(x) RMLUI_STRINGIFY_IMPL(x)
+
+#define RMLUI_SHADER_HEADER \
+        "#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n#line " RMLUI_STRINGIFY(__LINE__) "\n"
+
+constexpr const char shader_vert_main[] = RMLUI_SHADER_HEADER R"(
+struct VS_Input
 {
     float2 inPosition : POSITION;
     float4 inColor : COLOR;
     float2 inTexCoord : TEXCOORD;
 };
 
-struct sOutputData
+struct PS_INPUT
 {
     float4 outPosition : SV_Position;
     float4 outColor : COLOR;
     float2 outUV : TEXCOORD;
 };
 
-cbuffer ConstantBuffer : register(b0)
+cbuffer SharedConstantBuffer : register(b0)
 {
     float4x4 m_transform;
     float2 m_translate;
     float2 _padding;
+    float4 _padding2[21]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
-sOutputData main(const sInputData inArgs)
+PS_INPUT VSMain(const VS_Input IN)
 {
-    sOutputData result;
+    PS_INPUT result = (PS_INPUT)0;
 
-    float2 translatedPos = inArgs.inPosition + m_translate;
+    float2 translatedPos = IN.inPosition + m_translate;
     float4 resPos = mul(m_transform, float4(translatedPos.x, translatedPos.y, 0.0, 1.0));
 
     result.outPosition = resPos;
-    result.outColor = inArgs.inColor;
-    result.outUV = inArgs.inTexCoord;
+    result.outColor = IN.inColor;
+    result.outUV = IN.inTexCoord;
 
 #if defined(RMLUI_PREMULTIPLIED_ALPHA)
     // Pre-multiply vertex colors with their alpha.
@@ -102,8 +100,8 @@ sOutputData main(const sInputData inArgs)
 };
 )";
 
-constexpr const char shader_source_text_texture[] = R"(
-struct sInputData
+constexpr const char shader_frag_texture[] = RMLUI_SHADER_HEADER R"(
+struct PS_Input
 {
     float4 inputPos : SV_Position;
     float4 inputColor : COLOR;
@@ -113,22 +111,159 @@ struct sInputData
 Texture2D g_InputTexture : register(t0);
 SamplerState g_SamplerLinear : register(s0);
 
-
-float4 main(const sInputData inputArgs) : SV_TARGET 
+float4 PSMain(const PS_Input IN) : SV_TARGET 
 {
-    return inputArgs.inputColor * g_InputTexture.Sample(g_SamplerLinear, inputArgs.inputUV); 
-}
+    return IN.inputColor * g_InputTexture.Sample(g_SamplerLinear, IN.inputUV); 
+};
 )";
 
-constexpr const char shader_passthrough_source_vertex[] = R"(
-struct sInputData 
+constexpr const char shader_frag_color[] = RMLUI_SHADER_HEADER R"(
+struct PS_Input
+{
+    float4 inputPos : SV_Position;
+    float4 inputColor : COLOR;
+    float2 inputUV : TEXCOORD;
+};
+
+float4 PSMain(const PS_Input IN) : SV_TARGET 
+{ 
+    return IN.inputColor; 
+};
+)";
+
+enum class ShaderGradientFunction { Linear, Radial, Conic, RepeatingLinear, RepeatingRadial, RepeatingConic }; // Must match shader definitions below.
+
+// We need to round up at compile-time so that we can embed the 
+#define CEILING(x, y) (((x) + (y)-1) / (y))
+static const char shader_frag_gradient[] = RMLUI_SHADER_HEADER "#define MAX_NUM_STOPS_PACKED (uint)" RMLUI_STRINGIFY(CEILING(MAX_NUM_STOPS, 4)) R"(
+#define LINEAR 0
+#define RADIAL 1
+#define CONIC 2
+#define REPEATING_LINEAR 3
+#define REPEATING_RADIAL 4
+#define REPEATING_CONIC 5
+#define PI 3.14159265
+
+cbuffer SharedConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+
+    // One to one translation of the OpenGL uniforms results in a LOT of wasted space due to CBuffer alignment rules.
+    // Changes from GL3:
+    // - Moved m_num_stops below m_func (saved 4 bytes of padding).
+    // - Packed m_stop_positions into a float4[MAX_NUM_STOPS / 4] array, as each array element starts a new 16-byte row.
+    // The below layout has 0 bytes of padding.
+
+    int m_func;   // one of the above definitions
+    int m_num_stops;
+    float2 m_p;   // linear: starting point,         radial: center,                        conic: center
+    float2 m_v;   // linear: vector to ending point, radial: 2d curvature (inverse radius), conic: angled unit vector
+    float4 m_stop_colors[MAX_NUM_STOPS];
+    float4 m_stop_positions[MAX_NUM_STOPS_PACKED]; // normalized, 0 -> starting point, 1 -> ending point
+};
+
+// Hide the way the data is packed in the cbuffer through a macro
+// @NOTE: Hardcoded for MAX_NUM_STOPS 16.
+//        i >> 2 => i >> sqrt(MAX_NUM_STOPS)
+#define GET_STOP_POS(i) (m_stop_positions[i >> 2][i & 3])
+
+struct PS_Input
+{
+    float4 inputPos : SV_Position;
+    float4 inputColor : COLOR;
+    float2 inputUV : TEXCOORD;
+};
+
+#define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
+
+float4 lerp_stop_colors(float t) {
+    float4 color = m_stop_colors[0];
+
+    for (int i = 1; i < m_num_stops; i++)
+        color = lerp(color, m_stop_colors[i], smoothstep(GET_STOP_POS(i-1), GET_STOP_POS(i), t));
+
+    return color;
+};
+
+float4 PSMain(const PS_Input IN) : SV_TARGET
+{
+    float t = 0.0;
+
+    if (m_func == LINEAR || m_func == REPEATING_LINEAR) {
+        float dist_square = dot(m_v, m_v);
+        float2 V = IN.inputPos.xy - m_p;
+        t = dot(m_v, V) / dist_square;
+    }
+    else if (m_func == RADIAL || m_func == REPEATING_RADIAL) {
+        float2 V = IN.inputPos.xy - m_p;
+        t = length(m_v * V);
+    }
+    else if (m_func == CONIC || m_func == REPEATING_CONIC) {
+        float2x2 R = float2x2(m_v.x, -m_v.y, m_v.y, m_v.x);
+        float2 V = mul(R, (IN.inputPos.xy - m_p));
+        t = 0.5 + atan2(V.y, -V.x) / (2.0 * PI);
+    }
+
+    if (m_func == REPEATING_LINEAR || m_func == REPEATING_RADIAL || m_func == REPEATING_CONIC) {
+        float t0 = GET_STOP_POS(0);
+        float t1 = GET_STOP_POS(m_num_stops - 1);
+        t = t0 + glsl_mod(t - t0, t1 - t0);
+    }
+
+    return IN.inputColor * lerp_stop_colors(t);
+};
+)";
+
+// "Creation" by Danilo Guanabara, based on: https://www.shadertoy.com/view/XsXXDn
+static const char shader_frag_creation[] = RMLUI_SHADER_HEADER R"(
+struct PS_Input
+{
+    float4 inputPos : SV_Position;
+    float4 inputColor : COLOR;
+    float2 inputUV : TEXCOORD;
+};
+
+cbuffer SharedConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+    float2 m_dimensions;
+    float m_value;
+    float3 _padding;
+    float4 _padding2[20]; // Padding so that cbuffer aligns with the largest one (gradient)
+};
+
+#define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
+
+float4 PSMain(const PS_Input IN) : SV_TARGET 
+{
+    float t = m_value;
+    float3 c;
+    float l;
+    for (int i = 0; i < 3; i++) {
+        float2 p = IN.inputUV;
+        float2 uv = p;
+        p -= .5;
+        p.x *= m_dimensions.x / m_dimensions.y;
+        float z = t + ((float)i) * .07;
+        l = length(p);
+        uv += p / l * (sin(z) + 1.) * abs(sin(l * 9. - z - z));
+        c[i] = .01 / length(glsl_mod(uv, 1.) - .5);
+    }
+    return float4(c / l, IN.inputColor.a);
+};
+)";
+
+constexpr const char shader_vert_passthrough[] = RMLUI_SHADER_HEADER R"(
+struct VS_Input 
 {
     float2 inPosition : POSITION;
     float4 inColor : COLOR;
     float2 inTexCoord : TEXCOORD;
 };
 
-struct sOutputData
+struct PS_Input
 {
     float4 outPosition : SV_Position;
     float4 outColor : COLOR;
@@ -140,21 +275,22 @@ cbuffer ConstantBuffer : register(b0)
     float4x4 m_transform;
     float2 m_translate;
     float2 _padding;
+    float4 _padding2[21]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
-sOutputData main(const sInputData inArgs)
+PS_Input VSMain(const VS_Input IN)
 {
-    sOutputData result;
+    PS_Input result = (PS_Input)0;
 
-    result.outPosition = float4(inArgs.inPosition.xy, 0.0f, 1.0f);
-    result.outUV = float2(inArgs.inTexCoord.x, 1.0f - inArgs.inTexCoord.y);
+    result.outPosition = float4(IN.inPosition.xy, 0.0f, 1.0f);
+    result.outUV = float2(IN.inTexCoord.x, 1.0f - IN.inTexCoord.y);
 
     return result;
 };
 )";
 
-constexpr const char shader_passthrough_source_fragment[] = R"(
-struct sInputData
+constexpr const char shader_frag_passthrough[] = RMLUI_SHADER_HEADER R"(
+struct PS_Input
 {
     float4 inputPos : SV_Position;
     float4 inputColor : COLOR;
@@ -164,14 +300,355 @@ struct sInputData
 Texture2D g_InputTexture : register(t0);
 SamplerState g_SamplerLinear : register(s0);
 
-
-float4 main(const sInputData inputArgs) : SV_TARGET 
+float4 PSMain(const PS_Input IN) : SV_TARGET 
 {
-    return g_InputTexture.Sample(g_SamplerLinear, inputArgs.inputUV); 
-}
+    return g_InputTexture.Sample(g_SamplerLinear, IN.inputUV); 
+};
 )";
 
+static const char shader_frag_color_matrix[] = RMLUI_SHADER_HEADER R"(
+
+Texture2D g_InputTexture : register(t0);
+SamplerState g_SamplerLinear : register(s0);
+
+cbuffer ConstantBuffer : register(b0)
+{
+    float4x4 m_color_matrix;
+    float4 _padding[22]; // Padding so that cbuffer aligns with the largest one (gradient)
+};
+
+struct PS_Input
+{
+    float4 inputPos : SV_Position;
+    float4 inputColor : COLOR;
+    float2 inputUV : TEXCOORD;
+};
+
+float4 PSMain(const PS_Input IN) : SV_TARGET
+{
+    // The general case uses a 4x5 color matrix for full rgba transformation, plus a constant term with the last column.
+    // However, we only consider the case of rgb transformations. Thus, we could in principle use a 3x4 matrix, but we
+    // keep the alpha row for simplicity.
+    // In the general case we should do the matrix transformation in non-premultiplied space. However, without alpha
+    // transformations, we can do it directly in premultiplied space to avoid the extra division and multiplication
+    // steps. In this space, the constant term needs to be multiplied by the alpha value, instead of unity.
+    float4 texColor = g_InputTexture.Sample(g_SamplerLinear, IN.inputUV); 
+    float3 transformedColor = mul(m_color_matrix, texColor).rgb;
+    return float4(transformedColor, texColor.a);
+};
+)";
+
+static const char shader_frag_blend_mask[] = RMLUI_SHADER_HEADER R"(
+Texture2D g_InputTexture : register(t0);
+SamplerState g_SamplerLinear : register(s0);
+Texture2D g_MaskTexture : register(t1);
+
+struct PS_Input
+{
+    float4 inputPos : SV_Position;
+    float4 inputColor : COLOR;
+    float2 inputUV : TEXCOORD;
+};
+
+float4 PSMain(const PS_Input IN) : SV_TARGET
+{
+    float4 texColor = g_InputTexture.Sample(g_SamplerLinear, IN.inputUV);
+    float maskAlpha = g_MaskTexture.Sample(g_SamplerLinear, IN.inputUV).a;
+    return texColor * maskAlpha;
+};
+)";
+
+#define RMLUI_SHADER_BLUR_HEADER \
+    RMLUI_SHADER_HEADER "\n#define BLUR_SIZE " RMLUI_STRINGIFY(BLUR_SIZE) "\n#define BLUR_NUM_WEIGHTS " RMLUI_STRINGIFY(BLUR_NUM_WEIGHTS)
+
+static const char shader_vert_blur[] = RMLUI_SHADER_BLUR_HEADER R"(
+struct VS_Input
+{
+    float2 inPosition : POSITION;
+    float4 inColor : COLOR;
+    float2 inTexCoord : TEXCOORD;
+};
+
+struct PS_INPUT
+{
+    float4 outPosition : SV_Position;
+    float4 outColor : COLOR;
+    float2 outUV : TEXCOORD;
+};
+
+cbuffer SharedConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+    float2 _padding;
+    float4 _padding2[21]; // Padding so that cbuffer aligns with the largest one (gradient)
+};
+
+PS_INPUT VSMain(const VS_Input IN)
+{
+    PS_INPUT result = (PS_INPUT)0;
+
+    float2 translatedPos = IN.inPosition + m_translate;
+    float4 resPos = mul(m_transform, float4(translatedPos.x, translatedPos.y, 0.0, 1.0));
+
+    result.outPosition = resPos;
+    result.outColor = IN.inColor;
+    result.outUV = IN.inTexCoord;
+
+#if defined(RMLUI_PREMULTIPLIED_ALPHA)
+    // Pre-multiply vertex colors with their alpha.
+    result.outColor.rgb = result.outColor.rgb * result.outColor.a;
+#endif
+
+    return result;
+};
+)";
+
+static const char shader_frag_blur[] = RMLUI_SHADER_BLUR_HEADER R"(
+Texture2D g_InputTexture : register(t0);
+SamplerState g_SamplerLinear : register(s0);
+
+cbuffer ConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+    float4 m_weights;
+    float2 m_texelOffset;
+    float2 m_texCoordMin;
+    float2 m_texCoordMax;
+    float4 _padding[19]; // Padding so that cbuffer aligns with the largest one (gradient)
+};
+
+struct PS_Input
+{
+    float4 inputPos : SV_Position;
+    float2 inputUV[BLUR_SIZE] : TEXCOORD;
+};
+
+float4 PSMain(const PS_Input IN) : SV_TARGET
+{
+    float4 color = float4(0.0, 0.0, 0.0, 0.0);
+    for(int i = 0; i < BLUR_SIZE; i++)
+    {
+        float2 in_region = step(m_texCoordMin, IN.inputUV[i]) * step(IN.inputUV[i], m_texCoordMax);
+        color += g_InputTexture.Sample(g_SamplerLinear, IN.inputUV[i]) * in_region.x * in_region.y * m_weights[abs(i - BLUR_NUM_WEIGHTS + 1)];
+    }
+    return color;
+};
+)";
+
+static const char shader_frag_drop_shadow[] = RMLUI_SHADER_HEADER R"(
+Texture2D g_InputTexture : register(t0);
+SamplerState g_SamplerLinear : register(s0);
+
+cbuffer ConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+    float2 m_texCoordMin;
+    float2 m_texCoordMax;
+    float4 m_color;
+    float2 _padding;
+    float4 _padding2[19]; // Padding so that cbuffer aligns with the largest one (gradient)
+};
+
+struct PS_Input
+{
+    float4 inputPos : SV_Position;
+    float4 inputColor : COLOR;
+    float2 inputUV : TEXCOORD;
+};
+
+float4 PSMain(const PS_Input IN) : SV_TARGET
+{
+    float2 in_region = step(m_texCoordMin, IN.inputUV) * step(IN.inputUV, m_texCoordMax);
+    return g_InputTexture.Sample(g_SamplerLinear, IN.inputUV).a * in_region.x * in_region.y * m_color;
+};
+)";
+
+enum class ProgramId {
+    None,
+    Color,
+    Texture,
+    Gradient,
+    Creation,
+    Passthrough,
+    ColorMatrix,
+    BlendMask,
+    Blur,
+    DropShadow,
+    Count,
+};
+enum class VertShaderId {
+    Main,
+    Passthrough,
+    Blur,
+    Count,
+};
+enum class FragShaderId {
+    Color,
+    Texture,
+    Gradient,
+    Creation,
+    Passthrough,
+    ColorMatrix,
+    BlendMask,
+    Blur,
+    DropShadow,
+    Count,
+};
+enum class ShaderType {
+    Vertex,
+    Fragment,
+};
+
 namespace Gfx {
+
+struct VertShaderDefinition {
+    VertShaderId id;
+    const char* name_str;
+    const char* code_str;
+    const size_t code_size;
+};
+struct FragShaderDefinition {
+    FragShaderId id;
+    const char* name_str;
+    const char* code_str;
+    const size_t code_size;
+};
+struct ProgramDefinition {
+    ProgramId id;
+    const char* name_str;
+    VertShaderId vert_shader;
+    FragShaderId frag_shader;
+};
+
+// clang-format off
+static const VertShaderDefinition vert_shader_definitions[] = {
+    {VertShaderId::Main,        "main",         shader_vert_main,           sizeof(shader_vert_main)},
+    {VertShaderId::Passthrough, "passthrough",  shader_vert_passthrough,    sizeof(shader_vert_passthrough)},
+    {VertShaderId::Blur,        "blur",         shader_vert_blur,           sizeof(shader_vert_blur)},
+};
+static const FragShaderDefinition frag_shader_definitions[] = {
+    {FragShaderId::Color,       "color",        shader_frag_color,          sizeof(shader_frag_color)},
+    {FragShaderId::Texture,     "texture",      shader_frag_texture,        sizeof(shader_frag_texture)},
+    {FragShaderId::Gradient,    "gradient",     shader_frag_gradient,       sizeof(shader_frag_gradient)},
+    {FragShaderId::Creation,    "creation",     shader_frag_creation,       sizeof(shader_frag_creation)},
+    {FragShaderId::Passthrough, "passthrough",  shader_frag_passthrough,    sizeof(shader_frag_passthrough)},
+    {FragShaderId::ColorMatrix, "color_matrix", shader_frag_color_matrix,   sizeof(shader_frag_color_matrix)},
+    {FragShaderId::BlendMask,   "blend_mask",   shader_frag_blend_mask,     sizeof(shader_frag_blend_mask)},
+    {FragShaderId::Blur,        "blur",         shader_frag_blur,           sizeof(shader_frag_blur)},
+    {FragShaderId::DropShadow,  "drop_shadow",  shader_frag_drop_shadow,    sizeof(shader_frag_drop_shadow)},
+};
+static const ProgramDefinition program_definitions[] = {
+    {ProgramId::Color,       "color",        VertShaderId::Main,        FragShaderId::Color},
+    {ProgramId::Texture,     "texture",      VertShaderId::Main,        FragShaderId::Texture},
+    {ProgramId::Gradient,    "gradient",     VertShaderId::Main,        FragShaderId::Gradient},
+    {ProgramId::Creation,    "creation",     VertShaderId::Main,        FragShaderId::Creation},
+    {ProgramId::Passthrough, "passthrough",  VertShaderId::Passthrough, FragShaderId::Passthrough},
+    {ProgramId::ColorMatrix, "color_matrix", VertShaderId::Passthrough, FragShaderId::ColorMatrix},
+    {ProgramId::BlendMask,   "blend_mask",   VertShaderId::Passthrough, FragShaderId::BlendMask},
+    {ProgramId::Blur,        "blur",         VertShaderId::Blur,        FragShaderId::Blur},
+    {ProgramId::DropShadow,  "drop_shadow",  VertShaderId::Passthrough, FragShaderId::DropShadow},
+};
+// clang-format on
+
+template <typename T, typename Enum>
+class EnumArray {
+public:
+    const T& operator[](Enum id) const
+    {
+        RMLUI_ASSERT((size_t)id < (size_t)Enum::Count);
+        return ids[size_t(id)];
+    }
+    T& operator[](Enum id)
+    {
+        RMLUI_ASSERT((size_t)id < (size_t)Enum::Count);
+        return ids[size_t(id)];
+    }
+    auto begin() const { return ids.begin(); }
+    auto end() const { return ids.end(); }
+
+private:
+    Rml::Array<T, (size_t)Enum::Count> ids = {};
+};
+
+struct ShaderProgram {
+public:
+    ID3D11VertexShader* vertex_shader;
+    ID3D11PixelShader* pixel_shader;
+};
+
+using Programs = EnumArray<ShaderProgram, ProgramId>;
+using VertShaders = EnumArray<ID3DBlob*, VertShaderId>;
+using FragShaders = EnumArray<ID3DBlob*, FragShaderId>;
+
+struct ProgramData {
+    Programs programs;
+    VertShaders vert_shaders;
+    FragShaders frag_shaders;
+};
+
+// Create the shader, 'shader_type' is either GL_VERTEX_SHADER or GL_FRAGMENT_SHADER.
+static bool CreateShader(ID3D11Device* p_device, ID3DBlob*& out_shader_dxil, ShaderType shader_type, const char* code_string, const size_t code_length)
+{
+    RMLUI_ASSERT(shader_type == ShaderType::Vertex || shader_type == ShaderType::Fragment);
+
+    #ifdef RMLUI_DX_DEBUG
+    static const UINT default_shader_flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+    #else
+    static const UINT default_shader_flags = 0;
+    #endif
+
+    // Compile shader
+    const D3D_SHADER_MACRO macros[] = {"RMLUI_PREMULTIPLIED_ALPHA", nullptr, nullptr, nullptr};
+    ID3DBlob* p_error_buff = nullptr;
+
+    HRESULT result = D3DCompile(code_string, code_length, nullptr, macros, nullptr, shader_type == ShaderType::Vertex ? "VSMain" : "PSMain",
+        shader_type == ShaderType::Vertex ? "vs_5_0" : "ps_5_0", default_shader_flags, 0, &out_shader_dxil, &p_error_buff);
+    RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
+    #ifdef RMLUI_DX_DEBUG
+    if (FAILED(result))
+    {
+        Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
+        return false;
+    }
+    #endif
+
+    DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
+
+    return true;
+}
+
+static bool CreateProgram(ID3D11Device* p_device, ShaderProgram& out_program, ProgramId program_id, ID3DBlob* vertex_shader, ID3DBlob* fragment_shader)
+{
+    RMLUI_ASSERT(vertex_shader);
+    RMLUI_ASSERT(fragment_shader);
+
+    HRESULT result =
+        p_device->CreateVertexShader(vertex_shader->GetBufferPointer(), vertex_shader->GetBufferSize(), nullptr, &out_program.vertex_shader);
+    RMLUI_DX_ASSERTMSG(result, "failed to CreateVertexShader");
+    if (FAILED(result))
+    {
+    #ifdef RMLUI_DX_DEBUG
+        Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create vertex shader: %d", result);
+    #endif
+        return false;
+    }
+
+    result = p_device->CreatePixelShader(fragment_shader->GetBufferPointer(), fragment_shader->GetBufferSize(), nullptr, &out_program.pixel_shader);
+    RMLUI_DX_ASSERTMSG(result, "failed to CreatePixelShader");
+    if (FAILED(result))
+    {
+    #ifdef RMLUI_DX_DEBUG
+        Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create pixel shader: %d", result);
+    #endif
+        return false;
+    }
+
+    return true;
+}
+
 struct RenderTargetData {
     int width = 0, height = 0;
     ID3D11RenderTargetView* render_target_view = nullptr; // To write to colour attachment buffer
@@ -320,6 +797,56 @@ static void BindTexture(ID3D11DeviceContext* context, const RenderTargetData& rt
     context->PSSetShaderResources(0, slot, &rt.render_target_shader_resource_view);
 }
 
+static bool CreateShaders(ID3D11Device* p_device, ProgramData& data)
+{
+    RMLUI_ASSERT(std::all_of(data.vert_shaders.begin(), data.vert_shaders.end(), [](auto&& value) { return value == nullptr; }));
+    RMLUI_ASSERT(std::all_of(data.frag_shaders.begin(), data.frag_shaders.end(), [](auto&& value) { return value == nullptr; }));
+    RMLUI_ASSERT(std::all_of(data.programs.begin(), data.programs.end(), [](const ShaderProgram& value) { return value.vertex_shader == nullptr || value.pixel_shader == nullptr; }));
+    auto ReportError = [](const char* type, const char* name) {
+        Rml::Log::Message(Rml::Log::LT_ERROR, "Could not create shader %s: '%s'.", type, name);
+        return false;
+    };
+
+    for (const VertShaderDefinition& def : vert_shader_definitions)
+    {
+        if (!CreateShader(p_device, data.vert_shaders[def.id], ShaderType::Vertex, def.code_str, def.code_size))
+            return ReportError("vertex shader", def.name_str);
+    }
+
+    for (const FragShaderDefinition& def : frag_shader_definitions)
+    {
+        if (!CreateShader(p_device, data.frag_shaders[def.id], ShaderType::Fragment, def.code_str, def.code_size))
+            return ReportError("fragment shader", def.name_str);
+    }
+
+    for (const ProgramDefinition& def : program_definitions)
+    {
+        if (!CreateProgram(p_device, data.programs[def.id], def.id, data.vert_shaders[def.vert_shader], data.frag_shaders[def.frag_shader]))
+            return ReportError("program", def.name_str);
+    }
+
+    return true;
+}
+
+static void DestroyShaders(const ProgramData& data)
+{
+    for (ShaderProgram programs : data.programs)
+    {
+        DX_CLEANUP_RESOURCE_IF_CREATED(programs.vertex_shader);
+        DX_CLEANUP_RESOURCE_IF_CREATED(programs.pixel_shader);
+    }
+
+    for (ID3DBlob* shader_blob : data.vert_shaders)
+    {
+        DX_CLEANUP_RESOURCE_IF_CREATED(shader_blob);
+    }
+
+    for (ID3DBlob* shader_blob : data.frag_shaders)
+    {
+        DX_CLEANUP_RESOURCE_IF_CREATED(shader_blob);
+    }
+}
+
 } // namespace Gfx
 
 static uintptr_t HashPointer(uintptr_t inPtr)
@@ -334,14 +861,8 @@ static uintptr_t HashPointer(uintptr_t inPtr)
     return Value;
 }
 
-RenderInterface_DX11::RenderInterface_DX11()
-{
-    #ifdef RMLUI_DX_DEBUG
-    m_default_shader_flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-    #else
-    m_default_shader_flags = 0;
-    #endif
-}
+RenderInterface_DX11::RenderInterface_DX11() {}
+RenderInterface_DX11::~RenderInterface_DX11() {}
 
 void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext* p_d3d_device_context)
 {
@@ -423,172 +944,10 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     }
 
     // Compile and load shaders
-
-    // Buffer shall be cleared up later, as it's required to create the input layout
-    ID3DBlob* p_shader_vertex_common{};
+    auto mut_program_data = Rml::MakeUnique<Gfx::ProgramData>();
+    if (Gfx::CreateShaders(m_d3d_device, *mut_program_data))
     {
-        const D3D_SHADER_MACRO macros[] = {"RMLUI_PREMULTIPLIED_ALPHA", nullptr, nullptr, nullptr};
-        ID3DBlob* p_error_buff{};
-
-        // Common vertex shader
-        HRESULT result = D3DCompile(shader_source_text_vertex, sizeof(shader_source_text_vertex), nullptr, macros, nullptr, "main", "vs_5_0",
-            this->m_default_shader_flags, 0, &p_shader_vertex_common, &p_error_buff);
-        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
-    #ifdef RMLUI_DX_DEBUG
-        if (FAILED(result))
-        {
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
-        }
-    #endif
-
-        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
-
-        // Color fragment shader
-        ID3DBlob* p_shader_color_pixel{};
-
-        result = D3DCompile(shader_source_text_color, sizeof(shader_source_text_color), nullptr, macros, nullptr, "main", "ps_5_0",
-            this->m_default_shader_flags, 0, &p_shader_color_pixel, &p_error_buff);
-        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
-    #ifdef RMLUI_DX_DEBUG
-        if (FAILED(result))
-        {
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
-        }
-    #endif
-
-        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
-
-        // Texture fragment shader
-        ID3DBlob* p_shader_color_texture{};
-
-        result = D3DCompile(shader_source_text_texture, sizeof(shader_source_text_texture), nullptr, macros, nullptr, "main", "ps_5_0",
-            this->m_default_shader_flags, 0, &p_shader_color_texture, &p_error_buff);
-        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
-    #ifdef RMLUI_DX_DEBUG
-        if (FAILED(result))
-        {
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
-        }
-    #endif
-
-        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
-
-        // Passthrough vertex shader
-        ID3DBlob* p_shader_passthrough_vertex{};
-
-        result = D3DCompile(shader_passthrough_source_vertex, sizeof(shader_passthrough_source_vertex), nullptr, macros, nullptr, "main",
-            "vs_5_0", this->m_default_shader_flags, 0, &p_shader_passthrough_vertex, &p_error_buff);
-        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
-    #ifdef RMLUI_DX_DEBUG
-        if (FAILED(result))
-        {
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
-        }
-    #endif
-
-        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
-
-        // Passthrough fragment shader
-        ID3DBlob* p_shader_passthrough_pixel{};
-
-        result = D3DCompile(shader_passthrough_source_fragment, sizeof(shader_passthrough_source_fragment), nullptr, macros, nullptr, "main",
-            "ps_5_0", this->m_default_shader_flags, 0, &p_shader_passthrough_pixel, &p_error_buff);
-        RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
-    #ifdef RMLUI_DX_DEBUG
-        if (FAILED(result))
-        {
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
-        }
-    #endif
-
-        DX_CLEANUP_RESOURCE_IF_CREATED(p_error_buff);
-
-        // Create the shader objects
-        result = m_d3d_device->CreateVertexShader(p_shader_vertex_common->GetBufferPointer(), p_shader_vertex_common->GetBufferSize(), nullptr,
-            &m_shader_vertex_common);
-        RMLUI_DX_ASSERTMSG(result, "failed to CreateVertexShader");
-        if (FAILED(result))
-        {
-    #ifdef RMLUI_DX_DEBUG
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create vertex shader: %d", result);
-    #endif
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
-            goto cleanup;
-            return;
-        }
-
-        result = m_d3d_device->CreatePixelShader(p_shader_color_pixel->GetBufferPointer(), p_shader_color_pixel->GetBufferSize(), nullptr,
-            &m_shader_pixel_color);
-        RMLUI_DX_ASSERTMSG(result, "failed to CreatePixelShader");
-        if (FAILED(result))
-        {
-    #ifdef RMLUI_DX_DEBUG
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create pixel shader: %d", result);
-    #endif
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
-            goto cleanup;
-            return;
-        }
-
-        result = m_d3d_device->CreatePixelShader(p_shader_color_texture->GetBufferPointer(), p_shader_color_texture->GetBufferSize(), nullptr,
-            &m_shader_pixel_texture);
-        RMLUI_DX_ASSERTMSG(result, "failed to CreatePixelShader");
-        if (FAILED(result))
-        {
-    #ifdef RMLUI_DX_DEBUG
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create pixel shader: %d", result);
-    #endif
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
-            goto cleanup;
-            return;
-        }
-
-        // Passthrough
-        result = m_d3d_device->CreateVertexShader(p_shader_passthrough_vertex->GetBufferPointer(), p_shader_passthrough_vertex->GetBufferSize(),
-            nullptr, &m_shader_passthrough_vertex);
-        RMLUI_DX_ASSERTMSG(result, "failed to CreateVertexShader");
-        if (FAILED(result))
-        {
-    #ifdef RMLUI_DX_DEBUG
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create vertex shader: %d", result);
-    #endif
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
-            goto cleanup;
-            return;
-        }
-
-        result = m_d3d_device->CreatePixelShader(p_shader_passthrough_pixel->GetBufferPointer(), p_shader_passthrough_pixel->GetBufferSize(), nullptr,
-            &m_shader_passthrough_fragment);
-        RMLUI_DX_ASSERTMSG(result, "failed to CreatePixelShader");
-        if (FAILED(result))
-        {
-    #ifdef RMLUI_DX_DEBUG
-            Rml::Log::Message(Rml::Log::Type::LT_ERROR, "failed to create pixel shader: %d", result);
-    #endif
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
-            DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
-            goto cleanup;
-            return;
-        }
-
-        DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_pixel);
-        DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_color_texture);
-        DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_vertex);
-        DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_passthrough_pixel);
+        program_data = std::move(mut_program_data);
     }
 
     // Create vertex layout. This will be constant to avoid copying to an intermediate struct.
@@ -600,8 +959,9 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         };
         uint32_t numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
-        HRESULT result = m_d3d_device->CreateInputLayout(polygonLayout, numElements, p_shader_vertex_common->GetBufferPointer(),
-            p_shader_vertex_common->GetBufferSize(), &m_vertex_layout);
+        HRESULT result =
+            m_d3d_device->CreateInputLayout(polygonLayout, numElements, program_data->vert_shaders[VertShaderId::Main]->GetBufferPointer(),
+                program_data->vert_shaders[VertShaderId::Main]->GetBufferSize(), &m_vertex_layout);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateInputLayout");
         if (FAILED(result))
         {
@@ -688,15 +1048,16 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         // Intersect
         m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state_stencil_intersect);
     }
-
-cleanup:
-
-    // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-    DX_CLEANUP_RESOURCE_IF_CREATED(p_shader_vertex_common);
 }
 
 void RenderInterface_DX11::Cleanup()
 {
+    if (program_data)
+    {
+        Gfx::DestroyShaders(*program_data);
+        program_data.reset();
+    }
+
     // Loop through geometry cache and free all resources
     for (auto& it : m_geometry_cache)
     {
@@ -712,13 +1073,8 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_set);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_disabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_enabled);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_passthrough_fragment);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_passthrough_vertex);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_color);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_pixel_texture);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_vertex_layout);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_vertex_common);
 }
 
 void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
@@ -783,7 +1139,7 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, clearColor);
 
-    // UseProgram(ProgramId::None);
+    UseProgram(ProgramId::None);
     // program_transform_dirty.set();
     m_scissor_state = Rml::Rectanglei::MakeInvalid();
 }
@@ -805,11 +1161,8 @@ void RenderInterface_DX11::EndFrame()
     // Instead, if we had a transparent destination that didn't use premultiplied alpha, we would need to perform a manual un-premultiplication step.
     Gfx::BindTexture(m_d3d_context, rt_postprocess);
 
-    // @TODO: UseProgram
     // @TODO: Find a pattern for flipped textures
-    // UseProgram(ProgramId::Passthrough);
-    m_d3d_context->VSSetShader(this->m_shader_passthrough_vertex, nullptr, 0);
-    m_d3d_context->PSSetShader(this->m_shader_passthrough_fragment, nullptr, 0);
+    UseProgram(ProgramId::Passthrough);
 
     DrawFullscreenQuad();
 
@@ -1006,8 +1359,7 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
         else if (texture)
         {
             // Texture available
-            m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
-            m_d3d_context->PSSetShader(this->m_shader_pixel_texture, nullptr, 0);
+            UseProgram(ProgramId::Texture);
             if (texture != TextureEnableWithoutBinding)
             {
                 ID3D11ShaderResourceView* texture_view = (ID3D11ShaderResourceView*)texture;
@@ -1018,8 +1370,7 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
         else
         {
             // No texture, use color
-            m_d3d_context->VSSetShader(this->m_shader_vertex_common, nullptr, 0);
-            m_d3d_context->PSSetShader(this->m_shader_pixel_color, nullptr, 0);
+            UseProgram(ProgramId::Color);
         }
 
         UpdateConstantBuffer();

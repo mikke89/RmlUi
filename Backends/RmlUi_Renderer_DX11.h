@@ -64,6 +64,7 @@
 typedef void (*pfnLoadTextureRaw)(const Rml::String& filename, int* pWidth, int* pHeight, uint8_t** pData, size_t* pDataSize);
 typedef void (*pfnFreeTextureRaw)(uint8_t* pData);
 
+enum class ProgramId;
 class RenderLayerStack;
 namespace Gfx {
 struct ProgramData;
@@ -73,6 +74,7 @@ struct RenderTargetData;
 class RenderInterface_DX11 : public Rml::RenderInterface {
 public:
     RenderInterface_DX11();
+    ~RenderInterface_DX11();
     
     // Resource initialisation and cleanup
     void Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext* p_d3d_device_context);
@@ -129,6 +131,7 @@ private:
     // Changes blend state if necessary
     void SetBlendState(ID3D11BlendState* blendState);
     void UpdateConstantBuffer();
+    void UseProgram(ProgramId program_id);
 
     void SetScissor(Rml::Rectanglei region, bool vertically_flip = false);
 
@@ -136,8 +139,6 @@ private:
     void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f));
 
 private:
-    UINT m_default_shader_flags;
-
     // D3D11 core resources
     ID3D11Device* m_d3d_device = nullptr;
     ID3D11DeviceContext* m_d3d_context = nullptr;
@@ -158,11 +159,6 @@ private:
     ID3D11Buffer* m_shader_buffer = nullptr;
     bool m_cbuffer_dirty = true;
     ID3D11SamplerState* m_samplerState = nullptr;
-    ID3D11VertexShader* m_shader_vertex_common = nullptr;
-    ID3D11PixelShader* m_shader_pixel_color = nullptr;
-    ID3D11PixelShader* m_shader_pixel_texture = nullptr;
-    ID3D11VertexShader* m_shader_passthrough_vertex = nullptr;
-    ID3D11PixelShader* m_shader_passthrough_fragment = nullptr;
 
     // Viewport dimensions
     int m_viewport_width = 0;
@@ -174,7 +170,10 @@ private:
 
     ID3D11InputLayout* m_vertex_layout = nullptr;
     ID3D11BlendState* m_blend_state = nullptr;
+
+    ProgramId active_program = {};
     Rml::Rectanglei m_scissor_state = Rml::Rectanglei::MakeInvalid();
+    Rml::UniquePtr<const Gfx::ProgramData> program_data;
 
     struct DX11_GeometryData {
     public:
