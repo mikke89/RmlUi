@@ -333,13 +333,13 @@ private:
     ID3DUserDefinedAnnotation* m_debug = nullptr;
 
     class DebugScope {
-	private:
-	public:
-		DebugScope(LPCWSTR scopeName);
-		void operator()(LPCWSTR scopeName) const;
-		~DebugScope();
-		static void AttachDebugLayer(ID3DUserDefinedAnnotation* debug);
-	};
+    private:
+    public:
+        DebugScope(LPCWSTR scopeName);
+        void operator()(LPCWSTR scopeName) const;
+        ~DebugScope();
+        static void AttachDebugLayer(ID3DUserDefinedAnnotation* debug);
+    };
 };
 
 #endif // RMLUI_PLATFORM_WIN32
