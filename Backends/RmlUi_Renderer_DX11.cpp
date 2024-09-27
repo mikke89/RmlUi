@@ -1030,7 +1030,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         samplerDesc.MinLOD = 0;
         samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-        HRESULT result = m_d3d_device->CreateSamplerState(&samplerDesc, &m_samplerState);
+        HRESULT result = m_d3d_device->CreateSamplerState(&samplerDesc, &m_sampler_state);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateSamplerState");
         if (FAILED(result))
         {
@@ -1089,7 +1089,7 @@ void RenderInterface_DX11::Cleanup()
     }
 
     // Cleans up all general resources
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_samplerState);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_sampler_state);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_enable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable_color);
@@ -1389,7 +1389,7 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
                 ID3D11ShaderResourceView* texture_view = (ID3D11ShaderResourceView*)texture;
                 m_d3d_context->PSSetShaderResources(0, 1, &texture_view);
             }
-            m_d3d_context->PSSetSamplers(0, 1, &m_samplerState);
+            m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
         }
         else
         {

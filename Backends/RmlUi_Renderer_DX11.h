@@ -172,7 +172,7 @@ private:
     // Shaders
     ID3D11Buffer* m_shader_buffer = nullptr;
     bool m_cbuffer_dirty = true;
-    ID3D11SamplerState* m_samplerState = nullptr;
+    ID3D11SamplerState* m_sampler_state = nullptr;
 
     // Viewport dimensions
     int m_viewport_width = 0;
@@ -252,16 +252,16 @@ private:
         struct Blur {
             int _padding[18];
             Rml::Vector4f weights;
-            Rml::Vector2f texelOffset;
-            Rml::Vector2f texCoordMin;
-            Rml::Vector2f texCoordMax;
+            Rml::Vector2f texel_offset;
+            Rml::Vector2f texcoord_min;
+            Rml::Vector2f texcoord_max;
         } blur;
         struct DropShadow {
             int _padding[18];
-            Rml::Vector2f texCoordMin;
-            Rml::Vector2f texCoordMax;
+            Rml::Vector2f texcoord_min;
+            Rml::Vector2f texcoord_max;
             Rml::Vector4f color;
-        } dropShadow;
+        } drop_shadow;
         struct Creation {
             int _padding[18];
             Rml::Vector2f dimensions;
