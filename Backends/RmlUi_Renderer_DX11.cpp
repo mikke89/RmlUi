@@ -794,9 +794,9 @@ static void DestroyRenderTarget(RenderTargetData& rt)
     rt = {};
 }
 
-static void BindTexture(ID3D11DeviceContext* context, const RenderTargetData& rt, uint32_t slot = 1)
+static void BindTexture(ID3D11DeviceContext* context, const RenderTargetData& rt, uint32_t slot = 0)
 {
-    context->PSSetShaderResources(0, slot, &rt.render_target_shader_resource_view);
+    context->PSSetShaderResources(slot, 1, &rt.render_target_shader_resource_view);
 }
 
 static bool CreateShaders(ID3D11Device* p_device, ProgramData& data)
