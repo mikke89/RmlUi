@@ -146,11 +146,14 @@ private:
     void UseProgram(ProgramId program_id);
 
     void BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle);
+    void RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles);
 
     void SetScissor(Rml::Rectanglei region, bool vertically_flip = false);
 
     void DrawFullscreenQuad();
     void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f));
+
+    void RenderBlur(float sigma, const Gfx::RenderTargetData& source_destination, const Gfx::RenderTargetData& temp, Rml::Rectanglei window_flipped);
 
 private:
     // D3D11 core resources
@@ -186,6 +189,7 @@ private:
     ID3D11BlendState* m_blend_state_enable = nullptr;
     ID3D11BlendState* m_blend_state_disable = nullptr;
     ID3D11BlendState* m_blend_state_disable_color = nullptr;
+    ID3D11BlendState* m_blend_state_color_filter = nullptr;
 
     ProgramId active_program = {};
     Rml::Rectanglei m_scissor_state = Rml::Rectanglei::MakeInvalid();

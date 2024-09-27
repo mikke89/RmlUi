@@ -930,6 +930,24 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
             return;
         }
     #endif
+
+        blend_desc.RenderTarget[0].BlendEnable = true;
+        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
+        blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+        blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+        result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_color_filter);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
+    #ifdef RMLUI_DX_DEBUG
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateBlendState (%d)", result);
+            return;
+        }
+    #endif
     }
 
     // Scissor regions require a rasterizer state. Cache one for scissor on and off
@@ -1043,12 +1061,14 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         D3D11_DEPTH_STENCIL_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
         desc.DepthEnable = false;
-        desc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+        desc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+        desc.StencilWriteMask = 0;
+        desc.FrontFace.StencilFunc = D3D11_COMPARISON_LESS_EQUAL;
         desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
         desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
         desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
         desc.BackFace = desc.FrontFace;
-        desc.StencilEnable = false;
+        desc.StencilEnable = true;
         // Disabled
         m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state_disable);
 
@@ -1092,6 +1112,7 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_sampler_state);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_enable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_color_filter);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable_color);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_disable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_intersect);
@@ -1749,8 +1770,7 @@ void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source_handle, Rml::
     BlitLayerToPostprocessPrimary(source_handle);
 
     // Render the filters, the PostprocessPrimary framebuffer is used for both input and output.
-    // @TODO: RenderFilters implementation
-    // RenderFilters(filters);
+    RenderFilters(filters);
 
     // Render to the destination layer.
     m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetLayer(destination_handle).render_target_view,
@@ -1784,7 +1804,9 @@ Rml::TextureHandle RenderInterface_DX11::SaveLayerAsTexture()
 
     Rml::TextureHandle render_texture = GenerateTexture({}, bounds.Size());
     if (!render_texture)
+    {
         return {};
+    }
 
     BlitLayerToPostprocessPrimary(m_render_layers.GetTopLayerHandle());
 
@@ -2182,6 +2204,394 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
 void RenderInterface_DX11::ReleaseShader(Rml::CompiledShaderHandle shader_handle)
 {
     delete reinterpret_cast<CompiledShader*>(shader_handle);
+}
+
+static void SigmaToParameters(const float desired_sigma, int& out_pass_level, float& out_sigma)
+{
+    constexpr int max_num_passes = 10;
+    static_assert(max_num_passes < 31, "");
+    constexpr float max_single_pass_sigma = 3.0f;
+    out_pass_level = Rml::Math::Clamp(Rml::Math::Log2(int(desired_sigma * (2.f / max_single_pass_sigma))), 0, max_num_passes);
+    out_sigma = Rml::Math::Clamp(desired_sigma / float(1 << out_pass_level), 0.0f, max_single_pass_sigma);
+}
+
+static void SetTexCoordLimits(Rml::Vector2f& p_tex_coord_min, Rml::Vector2f& p_tex_coord_max, Rml::Rectanglei rectangle_flipped,
+    Rml::Vector2i framebuffer_size)
+{
+    // Offset by half-texel values so that texture lookups are clamped to fragment centers, thereby avoiding color
+    // bleeding from neighboring texels due to bilinear interpolation.
+    const Rml::Vector2f min = (Rml::Vector2f(rectangle_flipped.p0) + Rml::Vector2f(0.5f)) / Rml::Vector2f(framebuffer_size);
+    const Rml::Vector2f max = (Rml::Vector2f(rectangle_flipped.p1) - Rml::Vector2f(0.5f)) / Rml::Vector2f(framebuffer_size);
+
+    p_tex_coord_min.x = min.x;
+    p_tex_coord_min.y = min.y;
+    p_tex_coord_max.x = max.x;
+    p_tex_coord_max.y = max.y;
+}
+
+static void SetBlurWeights(Rml::Vector4f& p_weights, float sigma)
+{
+    constexpr int num_weights = BLUR_NUM_WEIGHTS;
+    float weights[num_weights];
+    float normalization = 0.0f;
+    for (int i = 0; i < num_weights; i++)
+    {
+        if (Rml::Math::Absolute(sigma) < 0.1f)
+            weights[i] = float(i == 0);
+        else
+            weights[i] = Rml::Math::Exp(-float(i * i) / (2.0f * sigma * sigma)) / (Rml::Math::SquareRoot(2.f * Rml::Math::RMLUI_PI) * sigma);
+
+        normalization += (i == 0 ? 1.f : 2.0f) * weights[i];
+    }
+    for (int i = 0; i < num_weights; i++)
+        weights[i] /= normalization;
+
+    p_weights.x = weights[0];
+    p_weights.y = weights[1];
+    p_weights.z = weights[2];
+    p_weights.w = weights[3];
+}
+
+void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& source_destination, const Gfx::RenderTargetData& temp,
+    const Rml::Rectanglei window_flipped)
+{
+    // @TODO: Fix blur
+    return;
+    RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
+    RMLUI_ASSERT(window_flipped.Valid());
+
+    int pass_level = 0;
+    SigmaToParameters(sigma, pass_level, sigma);
+
+    const Rml::Rectanglei original_scissor = m_scissor_state;
+
+    // Begin by downscaling so that the blur pass can be done at a reduced resolution for large sigma.
+    Rml::Rectanglei scissor = window_flipped;
+
+    UseProgram(ProgramId::Passthrough);
+    SetScissor(scissor, true);
+
+    // Downscale by iterative half-scaling with bilinear filtering, to reduce aliasing.
+    D3D11_VIEWPORT d3dviewport;
+    d3dviewport.TopLeftX = 0;
+    d3dviewport.TopLeftY = 0;
+    d3dviewport.Width = source_destination.width / 2;
+    d3dviewport.Height = source_destination.height / 2;
+    d3dviewport.MinDepth = 0.0f;
+    d3dviewport.MaxDepth = 1.0f;
+    m_d3d_context->RSSetViewports(1, &d3dviewport);
+
+    // Scale UVs if we have even dimensions, such that texture fetches align perfectly between texels, thereby producing a 50% blend of
+    // neighboring texels.
+    const Rml::Vector2f uv_scaling = {(source_destination.width % 2 == 1) ? (1.f - 1.f / float(source_destination.width)) : 1.f,
+        (source_destination.height % 2 == 1) ? (1.f - 1.f / float(source_destination.height)) : 1.f};
+
+    for (int i = 0; i < pass_level; i++)
+    {
+        scissor.p0 = (scissor.p0 + Rml::Vector2i(1)) / 2;
+        scissor.p1 = Rml::Math::Max(scissor.p1 / 2, scissor.p0);
+        const bool from_source = (i % 2 == 0);
+        Gfx::BindTexture(m_d3d_context, from_source ? source_destination : temp);
+        m_d3d_context->OMSetRenderTargets(1, &(from_source ? temp : source_destination).render_target_view, source_destination.depth_stencil_view);
+        SetScissor(scissor, true);
+
+        DrawFullscreenQuad({}, uv_scaling);
+    }
+
+    d3dviewport.TopLeftX = 0;
+    d3dviewport.TopLeftY = 0;
+    d3dviewport.Width = source_destination.width;
+    d3dviewport.Height = source_destination.height;
+    d3dviewport.MinDepth = 0.0f;
+    d3dviewport.MaxDepth = 1.0f;
+    m_d3d_context->RSSetViewports(1, &d3dviewport);
+
+    // Ensure texture data end up in the temp buffer. Depending on the last downscaling, we might need to move it from the source_destination buffer.
+    const bool transfer_to_temp_buffer = (pass_level % 2 == 0);
+    if (transfer_to_temp_buffer)
+    {
+        Gfx::BindTexture(m_d3d_context, source_destination);
+        m_d3d_context->OMSetRenderTargets(1, &temp.render_target_view, nullptr);
+        DrawFullscreenQuad();
+    }
+
+    D3D11_MAPPED_SUBRESOURCE mappedResource{};
+    // Lock the constant buffer so it can be written to.
+    HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if (FAILED(result))
+    {
+        return;
+    }
+
+    // Get a pointer to the data in the constant buffer.
+    ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
+
+    // Copy the data to the GPU
+    dataPtr->transform = m_transform;
+    dataPtr->translation = m_translation;
+
+    SetBlurWeights(dataPtr->blur.weights, sigma);
+
+    // Set up uniforms.
+    UseProgram(ProgramId::Blur);
+    SetBlurWeights(dataPtr->blur.weights, sigma);
+    SetTexCoordLimits(dataPtr->blur.texcoord_min, dataPtr->blur.texcoord_max, scissor,
+        {source_destination.width, source_destination.height});
+
+    auto SetTexelOffset = [dataPtr](Rml::Vector2f blur_direction, int texture_dimension) {
+        const Rml::Vector2f texel_offset = blur_direction * (1.0f / float(texture_dimension));
+        dataPtr->blur.texel_offset = texel_offset;
+    };
+
+    // Upload to the GPU.
+    m_d3d_context->Unmap(m_shader_buffer, 0);
+
+    // Blur render pass - vertical.
+    Gfx::BindTexture(m_d3d_context, temp);
+    m_d3d_context->OMSetRenderTargets(1, &source_destination.render_target_view, nullptr);
+
+    SetTexelOffset({0.f, 1.f}, temp.height);
+    DrawFullscreenQuad();
+
+    // Blur render pass - horizontal.
+    Gfx::BindTexture(m_d3d_context, source_destination);
+    m_d3d_context->OMSetRenderTargets(1, &temp.render_target_view, nullptr);
+
+    // Add a 1px transparent border around the blur region by first clearing with a padded scissor. This helps prevent
+    // artifacts when upscaling the blur result in the later step. On Intel and AMD, we have observed that during
+    // blitting with linear filtering, pixels outside the 'src' region can be blended into the output. On the other
+    // hand, it looks like Nvidia clamps the pixels to the source edge, which is what we really want. Regardless, we
+    // work around the issue with this extra step.
+    SetScissor(scissor.Extend(1), true);
+    float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    m_d3d_context->ClearRenderTargetView(temp.render_target_view, clearColor);
+    SetScissor(scissor, true);
+
+    SetTexelOffset({1.f, 0.f}, source_destination.width);
+    DrawFullscreenQuad();
+
+    // Blit the blurred image to the scissor region with upscaling.
+    SetScissor(window_flipped, true);
+
+    const Rml::Vector2i src_min = scissor.p0;
+    const Rml::Vector2i src_max = scissor.p1;
+    const Rml::Vector2i dst_min = window_flipped.p0;
+    const Rml::Vector2i dst_max = window_flipped.p1;
+
+    D3D11_BOX srcBox;
+    srcBox.left = src_min.x;
+    srcBox.top = src_min.y;
+    srcBox.front = 0;
+    srcBox.right = src_max.x;
+    srcBox.bottom = src_max.y;
+    srcBox.back = 1;
+
+    m_d3d_context->CopySubresourceRegion(source_destination.render_target_texture, 0, dst_min.x, dst_min.y, 0, temp.render_target_texture, 0,
+        &srcBox);
+
+    // The above upscale blit might be jittery at low resolutions (large pass levels). This is especially noticeable when moving an element with
+    // backdrop blur around or when trying to click/hover an element within a blurred region since it may be rendered at an offset. For more stable
+    // and accurate rendering we next upscale the blur image by an exact power-of-two. However, this may not fill the edges completely so we need to
+    // do the above first. Note that this strategy may sometimes result in visible seams. Alternatively, we could try to enlarge the window to the
+    // next power-of-two size and then downsample and blur that.
+    const Rml::Vector2i target_min = src_min * (1 << pass_level);
+    const Rml::Vector2i target_max = src_max * (1 << pass_level);
+    if (target_min != dst_min || target_max != dst_max)
+    {
+        Gfx::BindTexture(m_d3d_context, temp);
+
+        D3D11_VIEWPORT viewport;
+        viewport.TopLeftX = target_min.x;
+        viewport.TopLeftY = target_min.y;
+        viewport.Width = target_max.x - target_min.x;
+        viewport.Height = target_max.y - target_min.y;
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
+        m_d3d_context->RSSetViewports(1, &viewport);
+        UseProgram(ProgramId::Passthrough);
+        DrawFullscreenQuad();
+        // Restore viewport
+        m_d3d_context->RSSetViewports(1, &d3dviewport);
+
+
+        // glBlitFramebuffer(src_min.x, src_min.y, src_max.x, src_max.y, target_min.x, target_min.y, target_max.x, target_max.y, GL_COLOR_BUFFER_BIT,
+        //     GL_LINEAR);
+    }
+
+    // Restore render state.
+    SetScissor(original_scissor);
+}
+
+void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
+{
+    m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
+    for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
+    {
+        const CompiledFilter& filter = *reinterpret_cast<const CompiledFilter*>(filter_handle);
+        const FilterType type = filter.type;
+
+        switch (type)
+        {
+        case FilterType::Passthrough:
+        {
+            UseProgram(ProgramId::Passthrough);
+            const float blend_factor[4] = {filter.blend_factor, filter.blend_factor, filter.blend_factor, filter.blend_factor};
+            m_d3d_context->OMSetBlendState(m_blend_state_color_filter, blend_factor, 0xFFFFFFFF);
+            m_current_blend_state = m_blend_state_color_filter;
+
+            const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
+            const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
+            Gfx::BindTexture(m_d3d_context, source);
+            m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
+            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, nullptr);
+
+            DrawFullscreenQuad();
+
+            m_render_layers.SwapPostprocessPrimarySecondary();
+            SetBlendState(m_blend_state_enable);
+        }
+        break;
+        case FilterType::Blur:
+        {
+            return;
+            ID3D11BlendState* blend_state_backup = m_current_blend_state;
+            SetBlendState(m_blend_state_disable);
+
+            const Gfx::RenderTargetData& source_destination = m_render_layers.GetPostprocessPrimary();
+            const Gfx::RenderTargetData& temp = m_render_layers.GetPostprocessSecondary();
+
+            const Rml::Rectanglei window_flipped = VerticallyFlipped(m_scissor_state, m_viewport_height);
+            RenderBlur(filter.sigma, source_destination, temp, window_flipped);
+
+            SetBlendState(blend_state_backup);
+        }
+        break;
+        case FilterType::DropShadow:
+        {
+            return;
+
+            UseProgram(ProgramId::DropShadow);
+            ID3D11BlendState* blend_state_backup = m_current_blend_state;
+            SetBlendState(m_blend_state_disable);
+
+
+            const Gfx::RenderTargetData& primary = m_render_layers.GetPostprocessPrimary();
+            const Gfx::RenderTargetData& secondary = m_render_layers.GetPostprocessSecondary();
+            Gfx::BindTexture(m_d3d_context, primary);
+            m_d3d_context->OMSetRenderTargets(1, &secondary.render_target_view, nullptr);
+
+            D3D11_MAPPED_SUBRESOURCE mappedResource{};
+            // Lock the constant buffer so it can be written to.
+            HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+            if (FAILED(result))
+            {
+                return;
+            }
+
+            // Get a pointer to the data in the constant buffer.
+            ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
+
+            Rml::Colourf color = ConvertToColorf(filter.color);
+
+            // Copy the data to the GPU
+            dataPtr->transform = m_transform;
+            dataPtr->translation = m_translation;
+            dataPtr->drop_shadow.color.x = color.red;
+            dataPtr->drop_shadow.color.y = color.green;
+            dataPtr->drop_shadow.color.z = color.blue;
+            dataPtr->drop_shadow.color.w = color.alpha;
+
+            const Rml::Rectanglei window_flipped = VerticallyFlipped(m_scissor_state, m_viewport_height);
+            SetTexCoordLimits(dataPtr->drop_shadow.texcoord_min, dataPtr->drop_shadow.texcoord_max, window_flipped,
+                {primary.width, primary.height});
+
+            // Upload to the GPU.
+            m_d3d_context->Unmap(m_shader_buffer, 0);
+
+            const Rml::Vector2f uv_offset = filter.offset / Rml::Vector2f(-(float)m_viewport_width, (float)m_viewport_height);
+            DrawFullscreenQuad(uv_offset);
+
+            if (filter.sigma >= 0.5f)
+            {
+                const Gfx::RenderTargetData& tertiary = m_render_layers.GetPostprocessTertiary();
+                RenderBlur(filter.sigma, secondary, tertiary, window_flipped);
+            }
+
+            UseProgram(ProgramId::Passthrough);
+            BindTexture(m_d3d_context, primary);
+            SetBlendState(blend_state_backup);
+            DrawFullscreenQuad();
+
+            m_render_layers.SwapPostprocessPrimarySecondary();
+        }
+        break;
+        case FilterType::ColorMatrix:
+        {
+            return;
+
+            UseProgram(ProgramId::ColorMatrix);
+            ID3D11BlendState* blend_state_backup = m_current_blend_state;
+            SetBlendState(m_blend_state_disable);
+
+            D3D11_MAPPED_SUBRESOURCE mappedResource{};
+            // Lock the constant buffer so it can be written to.
+            HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+            if (FAILED(result))
+            {
+                return;
+            }
+
+            // Get a pointer to the data in the constant buffer.
+            ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
+
+            // Copy the data to the GPU
+            dataPtr->transform = m_transform;
+            dataPtr->translation = m_translation;
+            memset(&dataPtr->color_matrix.color_matrix, 0, sizeof(dataPtr->color_matrix.color_matrix));
+            memcpy_s(&dataPtr->color_matrix.color_matrix, sizeof(dataPtr->color_matrix.color_matrix), filter.color_matrix.data(),
+                sizeof(dataPtr->color_matrix.color_matrix));
+
+            // Upload to the GPU.
+            m_d3d_context->Unmap(m_shader_buffer, 0);
+
+            const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
+            const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
+            Gfx::BindTexture(m_d3d_context, source);
+            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, nullptr);
+
+            DrawFullscreenQuad();
+
+            m_render_layers.SwapPostprocessPrimarySecondary();
+            SetBlendState(blend_state_backup);
+        }
+        break;
+        case FilterType::MaskImage:
+        {
+            UseProgram(ProgramId::BlendMask);
+            ID3D11BlendState* blend_state_backup = m_current_blend_state;
+            SetBlendState(m_blend_state_disable);
+
+            const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
+            const Gfx::RenderTargetData& blend_mask = m_render_layers.GetBlendMask();
+            const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
+
+            Gfx::BindTexture(m_d3d_context, source, 0);
+            Gfx::BindTexture(m_d3d_context, blend_mask, 1);
+            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, nullptr);
+
+            DrawFullscreenQuad();
+
+            m_render_layers.SwapPostprocessPrimarySecondary();
+            SetBlendState(blend_state_backup);
+        }
+        break;
+        case FilterType::Invalid:
+        {
+            Rml::Log::Message(Rml::Log::LT_WARNING, "Unhandled render filter %d.", (int)type);
+        }
+        break;
+        }
+    }
 }
 
 void RenderInterface_DX11::UpdateConstantBuffer()
