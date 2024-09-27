@@ -36,6 +36,7 @@
 
         #include <d3d11.h>
         #include <dxgi1_3.h>
+        #include <d3d11_1.h>
 
 #ifdef RMLUI_DEBUG
     #define RMLUI_DX_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(SUCCEEDED(statement), msg)
@@ -328,6 +329,17 @@ private:
     };
 
     RenderLayerStack m_render_layers;
+
+    ID3DUserDefinedAnnotation* m_debug = nullptr;
+
+    class DebugScope {
+	private:
+	public:
+		DebugScope(LPCWSTR scopeName);
+		void operator()(LPCWSTR scopeName) const;
+		~DebugScope();
+		static void AttachDebugLayer(ID3DUserDefinedAnnotation* debug);
+	};
 };
 
 #endif // RMLUI_PLATFORM_WIN32

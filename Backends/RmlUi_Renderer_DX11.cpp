@@ -874,6 +874,8 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     // Assign D3D resources
     m_d3d_device = p_d3d_device;
     m_d3d_context = p_d3d_device_context;
+    m_d3d_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&m_debug);
+    DebugScope::AttachDebugLayer(m_debug);
     m_render_layers.SetD3DResources(m_d3d_device);
 
     // Pre-cache quad for blitting
@@ -1121,6 +1123,7 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_enabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_vertex_layout);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_debug);
 }
 
 void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
@@ -1741,6 +1744,7 @@ void RenderInterface_DX11::SetTransform(const Rml::Matrix4f* new_transform)
 
 void RenderInterface_DX11::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle)
 {
+    DebugScope scope(L"BlitLayerToPostprocessPrimary");
     const Gfx::RenderTargetData& source = m_render_layers.GetLayer(layer_handle);
     const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessPrimary();
 
@@ -1756,12 +1760,14 @@ Rml::LayerHandle RenderInterface_DX11::PushLayer()
     float colors[4] = {0, 0, 0, 0};
     m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, colors);
 
+    m_debug->BeginEvent(L"BeginLayer");
     return layer_handle;
 }
 
 void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source_handle, Rml::LayerHandle destination_handle, Rml::BlendMode blend_mode,
     Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
+    DebugScope scope(L"CompositeLayers");
     using Rml::BlendMode;
 
     // Blit source layer to postprocessing buffer. Do this regardless of whether we actually have any filters to be
@@ -1794,11 +1800,13 @@ void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source_handle, Rml::
 void RenderInterface_DX11::PopLayer()
 {
     m_render_layers.PopLayer();
+    m_debug->EndEvent();
     m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
 }
 
 Rml::TextureHandle RenderInterface_DX11::SaveLayerAsTexture()
 {
+    DebugScope scope(L"SaveLayerAsTexture");
     RMLUI_ASSERT(m_scissor_state.Valid());
     const Rml::Rectanglei bounds = m_scissor_state;
 
@@ -1874,6 +1882,7 @@ struct CompiledFilter {
 
 Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
 {
+    DebugScope scope(L"SaveLayerAsMaskImage");
     BlitLayerToPostprocessPrimary(m_render_layers.GetTopLayerHandle());
 
     const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
@@ -2096,6 +2105,7 @@ Rml::CompiledShaderHandle RenderInterface_DX11::CompileShader(const Rml::String&
 void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
     Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
 {
+    DebugScope scope(L"RenderShader");
     RMLUI_ASSERT(shader_handle && geometry_handle);
     const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
     const CompiledShaderType type = shader.type;
@@ -2110,6 +2120,7 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
     {
     case CompiledShaderType::Gradient:
     {
+        DebugScope scope_gradient(L"Gradient");
         RMLUI_ASSERT(shader.stop_positions.size() == shader.stop_colors.size());
         const int num_stops = (int)shader.stop_positions.size();
 
@@ -2157,6 +2168,7 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
     break;
     case CompiledShaderType::Creation:
     {
+        DebugScope scope_creation(L"Creation");
         const double time = Rml::GetSystemInterface()->GetElapsedTime();
 
         UseProgram(ProgramId::Creation);
@@ -2257,6 +2269,7 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
 {
     // @TODO: Fix blur
     return;
+    DebugScope scope(L"RenderBlur");
     RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
     RMLUI_ASSERT(window_flipped.Valid());
 
@@ -2424,6 +2437,7 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
 
 void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
 {
+    DebugScope scope(L"RenderFilters");
     m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
     for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
     {
@@ -2434,6 +2448,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
         {
         case FilterType::Passthrough:
         {
+            DebugScope scopePasthrough(L"Passthrough");
             UseProgram(ProgramId::Passthrough);
             const float blend_factor[4] = {filter.blend_factor, filter.blend_factor, filter.blend_factor, filter.blend_factor};
             m_d3d_context->OMSetBlendState(m_blend_state_color_filter, blend_factor, 0xFFFFFFFF);
@@ -2469,6 +2484,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
         case FilterType::DropShadow:
         {
             return;
+            DebugScope scope_DropShadow(L"DropShadow");
 
             UseProgram(ProgramId::DropShadow);
             ID3D11BlendState* blend_state_backup = m_current_blend_state;
@@ -2528,6 +2544,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
         case FilterType::ColorMatrix:
         {
             return;
+            DebugScope scope_ColorMatrix(L"ColorMatrix");
 
             UseProgram(ProgramId::ColorMatrix);
             ID3D11BlendState* blend_state_backup = m_current_blend_state;
@@ -2567,6 +2584,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
         break;
         case FilterType::MaskImage:
         {
+            DebugScope scope_MaskImage(L"MaskImage");
             UseProgram(ProgramId::BlendMask);
             ID3D11BlendState* blend_state_backup = m_current_blend_state;
             SetBlendState(m_blend_state_disable);
@@ -2634,6 +2652,11 @@ void RenderInterface_DX11::UseProgram(ProgramId program_id) {
 
 void RenderInterface_DX11::EnableClipMask(bool enable)
 {
+    LPCWSTR clipMaskName = L"EnableClipMask";
+    if (!enable)
+        clipMaskName = L"DisableClipMask";
+    DebugScope scope(clipMaskName);
+
     if (enable != m_is_stencil_enabled)
     {
         m_is_stencil_enabled = enable;
@@ -2646,6 +2669,7 @@ void RenderInterface_DX11::EnableClipMask(bool enable)
 
 void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation)
 {
+    DebugScope scope(L"RenderToClipMask");
     RMLUI_ASSERT(m_is_stencil_enabled);
     using Rml::ClipMaskOperation;
 
@@ -2805,5 +2829,23 @@ const Gfx::RenderTargetData& RenderInterface_DX11::RenderLayerStack::EnsureRende
     return rt;
 }
 
+static ID3DUserDefinedAnnotation* m_debug_scope_debug_device = nullptr;
+
+RenderInterface_DX11::DebugScope::~DebugScope()
+{
+    m_debug_scope_debug_device->EndEvent();
+}
+RenderInterface_DX11::DebugScope::DebugScope(LPCWSTR name)
+{
+    m_debug_scope_debug_device->BeginEvent(name);
+}
+void RenderInterface_DX11::DebugScope::operator()(LPCWSTR name) const
+{
+    m_debug_scope_debug_device->BeginEvent(name);
+}
+void RenderInterface_DX11::DebugScope::AttachDebugLayer(ID3DUserDefinedAnnotation* debug)
+{
+    m_debug_scope_debug_device = debug;
+}
 #endif // RMLUI_PLATFORM_WIN32
 
