@@ -129,7 +129,7 @@ struct PS_Input
 
 float4 PSMain(const PS_Input IN) : SV_TARGET 
 { 
-    return IN.csolor; 
+    return IN.color; 
 };
 )";
 
@@ -393,9 +393,9 @@ PS_INPUT VSMain(const VS_Input IN)
     PS_INPUT result = (PS_INPUT)0;
 
     for (int i = 0; i < BLUR_SIZE; i++) {
-        resukt.uv[i] = IN.uv - float(i - BLUR_NUM_WEIGHTS + 1) * m_texelOffset;
+        result.uv[i] = IN.uv - float(i - BLUR_NUM_WEIGHTS + 1) * m_texelOffset;
     }
-    result.position = float(IN.position, 1.0);
+    result.position = float4(IN.position.xy, 1.0, 1.0);
 
     return result;
 };
