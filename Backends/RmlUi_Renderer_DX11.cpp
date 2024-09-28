@@ -62,16 +62,16 @@
 constexpr const char shader_vert_main[] = RMLUI_SHADER_HEADER R"(
 struct VS_Input
 {
-    float2 inPosition : POSITION;
-    float4 inColor : COLOR;
-    float2 inTexCoord : TEXCOORD;
+    float2 position : POSITION;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 struct PS_INPUT
 {
-    float4 outPosition : SV_Position;
-    float4 outColor : COLOR;
-    float2 outUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 cbuffer SharedConstantBuffer : register(b0)
@@ -86,16 +86,16 @@ PS_INPUT VSMain(const VS_Input IN)
 {
     PS_INPUT result = (PS_INPUT)0;
 
-    float2 translatedPos = IN.inPosition + m_translate;
+    float2 translatedPos = IN.position + m_translate;
     float4 resPos = mul(m_transform, float4(translatedPos.x, translatedPos.y, 0.0, 1.0));
 
-    result.outPosition = resPos;
-    result.outColor = IN.inColor;
-    result.outUV = IN.inTexCoord;
+    result.position = resPos;
+    result.color = IN.color;
+    result.uv = IN.uv;
 
 #if defined(RMLUI_PREMULTIPLIED_ALPHA)
     // Pre-multiply vertex colors with their alpha.
-    result.outColor.rgb = result.outColor.rgb * result.outColor.a;
+    result.color.rgb = result.color.rgb * result.color.a;
 #endif
 
     return result;
@@ -105,9 +105,9 @@ PS_INPUT VSMain(const VS_Input IN)
 constexpr const char shader_frag_texture[] = RMLUI_SHADER_HEADER R"(
 struct PS_Input
 {
-    float4 inputPos : SV_Position;
-    float4 inputColor : COLOR;
-    float2 inputUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 Texture2D g_InputTexture : register(t0);
@@ -115,21 +115,21 @@ SamplerState g_SamplerLinear : register(s0);
 
 float4 PSMain(const PS_Input IN) : SV_TARGET 
 {
-    return IN.inputColor * g_InputTexture.Sample(g_SamplerLinear, IN.inputUV); 
+    return IN.color * g_InputTexture.Sample(g_SamplerLinear, IN.uv); 
 };
 )";
 
 constexpr const char shader_frag_color[] = RMLUI_SHADER_HEADER R"(
 struct PS_Input
 {
-    float4 inputPos : SV_Position;
-    float4 inputColor : COLOR;
-    float2 inputUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 float4 PSMain(const PS_Input IN) : SV_TARGET 
 { 
-    return IN.inputColor; 
+    return IN.csolor; 
 };
 )";
 
@@ -172,9 +172,9 @@ cbuffer SharedConstantBuffer : register(b0)
 
 struct PS_Input
 {
-    float4 inputPos : SV_Position;
-    float4 inputColor : COLOR;
-    float2 inputUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 #define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
@@ -194,16 +194,16 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
 
     if (m_func == LINEAR || m_func == REPEATING_LINEAR) {
         float dist_square = dot(m_v, m_v);
-        float2 V = IN.inputPos.xy - m_p;
+        float2 V = IN.uv.xy - m_p;
         t = dot(m_v, V) / dist_square;
     }
     else if (m_func == RADIAL || m_func == REPEATING_RADIAL) {
-        float2 V = IN.inputPos.xy - m_p;
+        float2 V = IN.uv.xy - m_p;
         t = length(m_v * V);
     }
     else if (m_func == CONIC || m_func == REPEATING_CONIC) {
         float2x2 R = float2x2(m_v.x, -m_v.y, m_v.y, m_v.x);
-        float2 V = mul(R, (IN.inputPos.xy - m_p));
+        float2 V = mul(R, (IN.uv.xy - m_p));
         t = 0.5 + atan2(V.y, -V.x) / (2.0 * PI);
     }
 
@@ -213,7 +213,7 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
         t = t0 + glsl_mod(t - t0, t1 - t0);
     }
 
-    return IN.inputColor * lerp_stop_colors(t);
+    return IN.color * lerp_stop_colors(t);
 };
 )";
 
@@ -221,9 +221,9 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
 static const char shader_frag_creation[] = RMLUI_SHADER_HEADER R"(
 struct PS_Input
 {
-    float4 inputPos : SV_Position;
-    float4 inputColor : COLOR;
-    float2 inputUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 cbuffer SharedConstantBuffer : register(b0)
@@ -244,7 +244,7 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
     float3 c;
     float l;
     for (int i = 0; i < 3; i++) {
-        float2 p = IN.inputUV;
+        float2 p = IN.uv;
         float2 uv = p;
         p -= .5;
         p.x *= m_dimensions.x / m_dimensions.y;
@@ -253,23 +253,23 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
         uv += p / l * (sin(z) + 1.) * abs(sin(l * 9. - z - z));
         c[i] = .01 / length(glsl_mod(uv, 1.) - .5);
     }
-    return float4(c / l, IN.inputColor.a);
+    return float4(c / l, IN.color.a);
 };
 )";
 
 constexpr const char shader_vert_passthrough[] = RMLUI_SHADER_HEADER R"(
 struct VS_Input 
 {
-    float2 inPosition : POSITION;
-    float4 inColor : COLOR;
-    float2 inTexCoord : TEXCOORD;
+    float2 position : POSITION;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 struct PS_Input
 {
-    float4 outPosition : SV_Position;
-    float4 outColor : COLOR;
-    float2 outUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 cbuffer ConstantBuffer : register(b0)
@@ -284,8 +284,8 @@ PS_Input VSMain(const VS_Input IN)
 {
     PS_Input result = (PS_Input)0;
 
-    result.outPosition = float4(IN.inPosition.xy, 0.0f, 1.0f);
-    result.outUV = float2(IN.inTexCoord.x, 1.0f - IN.inTexCoord.y);
+    result.position = float4(IN.position.xy, 0.0f, 1.0f);
+    result.uv = float2(IN.uv.x, 1.0f - IN.uv.y);
 
     return result;
 };
@@ -294,9 +294,9 @@ PS_Input VSMain(const VS_Input IN)
 constexpr const char shader_frag_passthrough[] = RMLUI_SHADER_HEADER R"(
 struct PS_Input
 {
-    float4 inputPos : SV_Position;
-    float4 inputColor : COLOR;
-    float2 inputUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 Texture2D g_InputTexture : register(t0);
@@ -304,7 +304,7 @@ SamplerState g_SamplerLinear : register(s0);
 
 float4 PSMain(const PS_Input IN) : SV_TARGET 
 {
-    return g_InputTexture.Sample(g_SamplerLinear, IN.inputUV); 
+    return g_InputTexture.Sample(g_SamplerLinear, IN.uv); 
 };
 )";
 
@@ -321,9 +321,9 @@ cbuffer ConstantBuffer : register(b0)
 
 struct PS_Input
 {
-    float4 inputPos : SV_Position;
-    float4 inputColor : COLOR;
-    float2 inputUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 float4 PSMain(const PS_Input IN) : SV_TARGET
@@ -334,7 +334,7 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
     // In the general case we should do the matrix transformation in non-premultiplied space. However, without alpha
     // transformations, we can do it directly in premultiplied space to avoid the extra division and multiplication
     // steps. In this space, the constant term needs to be multiplied by the alpha value, instead of unity.
-    float4 texColor = g_InputTexture.Sample(g_SamplerLinear, IN.inputUV); 
+    float4 texColor = g_InputTexture.Sample(g_SamplerLinear, IN.uv); 
     float3 transformedColor = mul(m_color_matrix, texColor).rgb;
     return float4(transformedColor, texColor.a);
 };
@@ -347,15 +347,15 @@ Texture2D g_MaskTexture : register(t1);
 
 struct PS_Input
 {
-    float4 inputPos : SV_Position;
-    float4 inputColor : COLOR;
-    float2 inputUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 float4 PSMain(const PS_Input IN) : SV_TARGET
 {
-    float4 texColor = g_InputTexture.Sample(g_SamplerLinear, IN.inputUV);
-    float maskAlpha = g_MaskTexture.Sample(g_SamplerLinear, IN.inputUV).a;
+    float4 texColor = g_InputTexture.Sample(g_SamplerLinear, IN.uv);
+    float maskAlpha = g_MaskTexture.Sample(g_SamplerLinear, IN.uv).a;
     return texColor * maskAlpha;
 };
 )";
@@ -366,16 +366,15 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
 static const char shader_vert_blur[] = RMLUI_SHADER_BLUR_HEADER R"(
 struct VS_Input
 {
-    float2 inPosition : POSITION;
-    float4 inColor : COLOR;
-    float2 inTexCoord : TEXCOORD;
+    float2 position : POSITION;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 struct PS_INPUT
 {
-    float4 outPosition : SV_Position;
-    float4 outColor : COLOR;
-    float2 outUV : TEXCOORD;
+    float4 position : SV_Position;
+    float2 uv[BLUR_SIZE] : TEXCOORD;
 };
 
 cbuffer SharedConstantBuffer : register(b0)
@@ -423,8 +422,8 @@ cbuffer ConstantBuffer : register(b0)
 
 struct PS_Input
 {
-    float4 inputPos : SV_Position;
-    float2 inputUV[BLUR_SIZE] : TEXCOORD;
+    float4 position : SV_Position;
+    float2 uv[BLUR_SIZE] : TEXCOORD;
 };
 
 float4 PSMain(const PS_Input IN) : SV_TARGET
@@ -432,8 +431,8 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
     float4 color = float4(0.0, 0.0, 0.0, 0.0);
     for(int i = 0; i < BLUR_SIZE; i++)
     {
-        float2 in_region = step(m_texCoordMin, IN.inputUV[i]) * step(IN.inputUV[i], m_texCoordMax);
-        color += g_InputTexture.Sample(g_SamplerLinear, IN.inputUV[i]) * in_region.x * in_region.y * m_weights[abs(i - BLUR_NUM_WEIGHTS + 1)];
+        float2 in_region = step(m_texCoordMin, IN.uv[i]) * step(IN.uv[i], m_texCoordMax);
+        color += g_InputTexture.Sample(g_SamplerLinear, IN.uv[i]) * in_region.x * in_region.y * m_weights[abs(i - BLUR_NUM_WEIGHTS + 1)];
     }
     return color;
 };
@@ -456,15 +455,15 @@ cbuffer ConstantBuffer : register(b0)
 
 struct PS_Input
 {
-    float4 inputPos : SV_Position;
-    float4 inputColor : COLOR;
-    float2 inputUV : TEXCOORD;
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 float4 PSMain(const PS_Input IN) : SV_TARGET
 {
-    float2 in_region = step(m_texCoordMin, IN.inputUV) * step(IN.inputUV, m_texCoordMax);
-    return g_InputTexture.Sample(g_SamplerLinear, IN.inputUV).a * in_region.x * in_region.y * m_color;
+    float2 in_region = step(m_texCoordMin, IN.uv) * step(IN.uv, m_texCoordMax);
+    return g_InputTexture.Sample(g_SamplerLinear, IN.uv).a * in_region.x * in_region.y * m_color;
 };
 )";
 
