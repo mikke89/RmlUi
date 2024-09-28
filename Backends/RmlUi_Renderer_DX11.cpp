@@ -381,25 +381,21 @@ cbuffer SharedConstantBuffer : register(b0)
 {
     float4x4 m_transform;
     float2 m_translate;
-    float2 _padding;
-    float4 _padding2[21]; // Padding so that cbuffer aligns with the largest one (gradient)
+    float4 m_weights;
+    float2 m_texelOffset;
+    float2 m_texCoordMin;
+    float2 m_texCoordMax;
+    float4 _padding[19]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
 PS_INPUT VSMain(const VS_Input IN)
 {
     PS_INPUT result = (PS_INPUT)0;
 
-    float2 translatedPos = IN.inPosition + m_translate;
-    float4 resPos = mul(m_transform, float4(translatedPos.x, translatedPos.y, 0.0, 1.0));
-
-    result.outPosition = resPos;
-    result.outColor = IN.inColor;
-    result.outUV = IN.inTexCoord;
-
-#if defined(RMLUI_PREMULTIPLIED_ALPHA)
-    // Pre-multiply vertex colors with their alpha.
-    result.outColor.rgb = result.outColor.rgb * result.outColor.a;
-#endif
+    for (int i = 0; i < BLUR_SIZE; i++) {
+        resukt.uv[i] = IN.uv - float(i - BLUR_NUM_WEIGHTS + 1) * m_texelOffset;
+    }
+    result.position = float(IN.position, 1.0);
 
     return result;
 };
