@@ -172,6 +172,7 @@ private:
     ID3D11DepthStencilState* m_depth_stencil_state_disable = nullptr; // Stencil Off
     ID3D11DepthStencilState* m_depth_stencil_state_stencil_set = nullptr; // Clipmask Set/Inverse
     ID3D11DepthStencilState* m_depth_stencil_state_stencil_intersect = nullptr; // Clipmask Intersect. Can have several test values
+    ID3D11DepthStencilState* m_depth_stencil_state_stencil_test = nullptr; // Clipmask test
 
     // Shaders
     ID3D11Buffer* m_shader_buffer = nullptr;

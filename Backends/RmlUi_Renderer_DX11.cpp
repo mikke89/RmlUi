@@ -1060,7 +1060,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         desc.DepthEnable = false;
         desc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
         desc.StencilWriteMask = 0;
-        desc.FrontFace.StencilFunc = D3D11_COMPARISON_LESS_EQUAL;
+        desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
         desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
         desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
         desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
@@ -1087,6 +1087,15 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         desc.BackFace = desc.FrontFace;
         // Intersect
         m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state_stencil_intersect);
+
+        desc.StencilWriteMask = 0;
+        desc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+        desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+        desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+        desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+        desc.BackFace = desc.FrontFace;
+        // Stencil test
+        m_d3d_device->CreateDepthStencilState(&desc, &m_depth_stencil_state_stencil_test);
     }
 }
 
@@ -1114,6 +1123,7 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_disable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_intersect);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_set);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_test);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_disabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_enabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
@@ -1170,8 +1180,10 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     d3dviewport.MinDepth = 0.0f;
     d3dviewport.MaxDepth = 1.0f;
     m_d3d_context->RSSetViewports(1, &d3dviewport);
+
     SetBlendState(m_blend_state_enable);
     m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled); // Disable scissor
+    m_stencil_ref_value = 0; // Reset stencil
     m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
     Clear();
     
@@ -2656,13 +2668,14 @@ void RenderInterface_DX11::EnableClipMask(bool enable)
         clipMaskName = L"DisableClipMask";
     DebugScope scope(clipMaskName);
 
-    if (enable != m_is_stencil_enabled)
+    m_is_stencil_enabled = enable;
+    if (enable)
     {
-        m_is_stencil_enabled = enable;
-        if (!enable)
-        {
-            m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
-        }
+        m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_stencil_test, m_stencil_ref_value);
+    }
+    else
+    {
+        m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
     }
 }
 
@@ -2674,7 +2687,7 @@ void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rm
 
     ID3D11DepthStencilState* stencil_state = m_depth_stencil_state_disable;
 
-    UINT stencil_test_value = 0;
+    UINT stencil_test_value = m_stencil_ref_value;
     switch (operation)
     {
     case ClipMaskOperation::Set:
@@ -2702,7 +2715,7 @@ void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rm
     m_d3d_context->OMSetBlendState(m_blend_state_disable_color, blendFactor, 0xffffffff);
 
     m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
-    m_d3d_context->OMSetDepthStencilState(stencil_state, stencil_test_value);
+    m_d3d_context->OMSetDepthStencilState(stencil_state, 1);
 
     bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
     if (clear_stencil)
@@ -2713,14 +2726,13 @@ void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rm
         m_d3d_context->ClearDepthStencilView(rtData.depth_stencil_view, D3D11_CLEAR_STENCIL, 1.0f, 0);
     }
 
-    // @TODO: Stencil buffer is inverted?
     RenderGeometry(geometry, translation, {});
 
-    // Restore state
-    // @performance Is this even necessary?
-    m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
     // Restore blend state
     m_d3d_context->OMSetBlendState(m_current_blend_state, blendFactor, 0xffffffff);
+    // Restore state
+    m_stencil_ref_value = stencil_test_value;
+    m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_stencil_test, m_stencil_ref_value);
 }
 
 RenderInterface_DX11::RenderLayerStack::RenderLayerStack()
