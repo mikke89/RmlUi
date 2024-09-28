@@ -2594,6 +2594,10 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             DrawFullscreenQuad();
 
+            // Unbind texture on slot 1
+            ID3D11ShaderResourceView* null_shader_resource_view[1] = {nullptr};
+            m_d3d_context->PSSetShaderResources(1, 1, null_shader_resource_view);
+
             m_render_layers.SwapPostprocessPrimarySecondary();
             SetBlendState(blend_state_backup);
         }
