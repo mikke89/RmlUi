@@ -463,6 +463,53 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
 };
 )";
 
+constexpr const char shader_vert_blit[] = RMLUI_SHADER_HEADER R"(
+struct VS_Input 
+{
+    float2 position : POSITION;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
+};
+
+struct PS_Input
+{
+    float4 position : SV_Position;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
+};
+
+cbuffer ConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_source_min;
+    float2 m_source_max;
+    float2 m_destination_min;
+    float2 m_destination_max;
+    float4 _padding2[20]; // Padding so that cbuffer aligns with the largest one (gradient)
+};
+
+PS_Input VSMain(const VS_Input IN)
+{
+    PS_Input result = (PS_Input)0;
+
+    result.position = float4(IN.position.xy, 0.0f, 1.0f);
+    result.uv = float2(IN.uv.x, 1.0f - IN.uv.y);
+
+    // Correct coordinates to match source and dest bounds
+    // For source we lerp the UVs
+    result.uv.x = lerp(m_source_min.x, m_source_max.x, result.uv.x);
+    result.uv.y = lerp(m_source_min.y, m_source_max.y, result.uv.y);
+
+    // For destination we lerp the positions. Since the clip space box has a range of -1 to +1, we have to remap -1 to +1 to 0 to 1, lerp, then remap back to -1 to +1
+    result.position.xy = result.position.xy * 0.5f + 0.5f; // Remap to 0-+1
+    result.position.x = lerp(m_destination_min.x, m_destination_max.x, result.position.x);
+    result.position.y = lerp(m_destination_min.y, m_destination_max.y, result.position.y);
+    result.position.xy = (result.position.xy - 0.5f) * 2.0f; // Remap to -1-+1
+
+    return result;
+};
+)";
+
 enum class ProgramId {
     None,
     Color,
@@ -474,12 +521,14 @@ enum class ProgramId {
     BlendMask,
     Blur,
     DropShadow,
+    Blit,
     Count,
 };
 enum class VertShaderId {
     Main,
     Passthrough,
     Blur,
+    Blit,
     Count,
 };
 enum class FragShaderId {
@@ -525,6 +574,7 @@ static const VertShaderDefinition vert_shader_definitions[] = {
     {VertShaderId::Main,        "main",         shader_vert_main,           sizeof(shader_vert_main)},
     {VertShaderId::Passthrough, "passthrough",  shader_vert_passthrough,    sizeof(shader_vert_passthrough)},
     {VertShaderId::Blur,        "blur",         shader_vert_blur,           sizeof(shader_vert_blur)},
+    {VertShaderId::Blit,        "blit",         shader_vert_blit,           sizeof(shader_vert_blit)},
 };
 static const FragShaderDefinition frag_shader_definitions[] = {
     {FragShaderId::Color,       "color",        shader_frag_color,          sizeof(shader_frag_color)},
@@ -547,6 +597,7 @@ static const ProgramDefinition program_definitions[] = {
     {ProgramId::BlendMask,   "blend_mask",   VertShaderId::Passthrough, FragShaderId::BlendMask},
     {ProgramId::Blur,        "blur",         VertShaderId::Blur,        FragShaderId::Blur},
     {ProgramId::DropShadow,  "drop_shadow",  VertShaderId::Passthrough, FragShaderId::DropShadow},
+    {ProgramId::Blit,        "blur",         VertShaderId::Blit,        FragShaderId::Passthrough},
 };
 // clang-format on
 
@@ -1682,9 +1733,15 @@ void RenderInterface_DX11::SetScissor(Rml::Rectanglei region, bool vertically_fl
     if (region.Valid() != m_scissor_state.Valid())
     {
         if (region.Valid())
+        {
             m_d3d_context->RSSetState(m_rasterizer_state_scissor_enabled);
+            m_scissor_enabled = true;
+        }
         else
+        {
             m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled);
+            m_scissor_enabled = false;
+        }
     }
 
     if (region.Valid() && vertically_flip)
@@ -1752,36 +1809,96 @@ void RenderInterface_DX11::SetTransform(const Rml::Matrix4f* new_transform)
 void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source, const Gfx::RenderTargetData& dest, int srcX0, int srcY0, int srcX1,
     int srcY1, int dstX0, int dstY0, int dstX1, int dstY1)
 {
+    DebugScope scope(L"BlitRenderTarget");
+
     int src_width = srcX1 - srcX0;
     int src_height = srcY1 - srcY0;
     int dest_width = dstX1 - dstX0;
     int dest_height = dstY1 - dstY0;
 
     // All coords must be greater than 0
-    RMLUI_ASSERTMSG(srcX0 > 0, "Invalid source coordinate (srcX0)!");
-    RMLUI_ASSERTMSG(srcX1 > 0, "Invalid source coordinate (srcX1)!");
-    RMLUI_ASSERTMSG(srcY0 > 0, "Invalid source coordinate (srcY0)!");
-    RMLUI_ASSERTMSG(srcY1 > 0, "Invalid source coordinate (srcY1)!");
-    RMLUI_ASSERTMSG(dstX0 > 0, "Invalid destination coordinate (dstX0)!");
-    RMLUI_ASSERTMSG(dstX1 > 0, "Invalid destination coordinate (dstX1)!");
-    RMLUI_ASSERTMSG(dstY0 > 0, "Invalid destination coordinate (dstY0)!");
-    RMLUI_ASSERTMSG(dstY1 > 0, "Invalid destination coordinate (dstY1)!");
+    RMLUI_ASSERTMSG(srcX0 >= 0, "Invalid source coordinate (srcX0)!");
+    RMLUI_ASSERTMSG(srcX1 >= 0, "Invalid source coordinate (srcX1)!");
+    RMLUI_ASSERTMSG(srcY0 >= 0, "Invalid source coordinate (srcY0)!");
+    RMLUI_ASSERTMSG(srcY1 >= 0, "Invalid source coordinate (srcY1)!");
+    RMLUI_ASSERTMSG(dstX0 >= 0, "Invalid destination coordinate (dstX0)!");
+    RMLUI_ASSERTMSG(dstX1 >= 0, "Invalid destination coordinate (dstX1)!");
+    RMLUI_ASSERTMSG(dstY0 >= 0, "Invalid destination coordinate (dstY0)!");
+    RMLUI_ASSERTMSG(dstY1 >= 0, "Invalid destination coordinate (dstY1)!");
 
     // Width and height must be greater than 0
-    RMLUI_ASSERTMSG(src_width > 0, "Invalid source rectangle (width)!");
-    RMLUI_ASSERTMSG(src_height > 0, "Invalid source rectangle (height)!");
-    RMLUI_ASSERTMSG(dest_width > 0, "Invalid destination rectangle (width)!");
-    RMLUI_ASSERTMSG(dest_height > 0, "Invalid destination rectangle (height)!");
+    RMLUI_ASSERTMSG(src_width != 0, "Invalid source rectangle (width)!");
+    RMLUI_ASSERTMSG(src_height != 0, "Invalid source rectangle (height)!");
+    RMLUI_ASSERTMSG(dest_width != 0, "Invalid destination rectangle (width)!");
+    RMLUI_ASSERTMSG(dest_height != 0, "Invalid destination rectangle (height)!");
 
+    ID3D11RenderTargetView* original_render_target_view = nullptr;
+    ID3D11DepthStencilView* original_depth_stencil_view = nullptr;
+    m_d3d_context->OMGetRenderTargets(1, &original_render_target_view, &original_depth_stencil_view);
 
-    // @TODO: Use viewport to define write region
-    // @TODO: Lerp UVs such that they match with the write region
-    // @TODO: MSAA resolve
-
+    // Bind temporary as the render target
     const Gfx::RenderTargetData& temporary_rt = m_render_layers.GetTemporary();
 
-    // @TODO: Create temporary for MSAA resolve ?
-    m_d3d_context->ResolveSubresource(dest.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+    // Unbind existing textures to prevent warning spam
+    ID3D11ShaderResourceView* null_shader_resource_views[2] = {nullptr, nullptr};
+    m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
+
+    // Resolve from source to the temporary first
+    m_d3d_context->ResolveSubresource(temporary_rt.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+    m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled);
+
+    // Bind destination as our final render texture
+    m_d3d_context->OMSetRenderTargets(1, &dest.render_target_view, dest.depth_stencil_view);
+
+    // Draw a quad into temporary with source bound as the texture, and the UVs lerping to match the new dimensions
+    // We want to map UV   0 -  1 to src min-max
+    // We want to map pos -1 - +1 to dst min max
+    UseProgram(ProgramId::Blit);
+
+    D3D11_MAPPED_SUBRESOURCE mappedResource{};
+    // Lock the constant buffer so it can be written to.
+    HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if (FAILED(result))
+    {
+        // Restore state before exiting
+        m_d3d_context->OMSetRenderTargets(1, &original_render_target_view, original_depth_stencil_view);
+        original_render_target_view->Release();
+        original_depth_stencil_view->Release();
+        return;
+    }
+
+    // Get a pointer to the data in the constant buffer.
+    ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
+
+    dataPtr->transform = m_transform;
+
+    // To blit we need to map the UVs from a 0 to 1 range to a src0 to src1 range
+    dataPtr->blit.src_x_min = (float) srcX0 / (float) source.width;     // Map to 0
+    dataPtr->blit.src_y_min = (float) srcY0 / (float) source.height;    // Map to 0
+    dataPtr->blit.src_x_max = (float) srcX1 / (float) source.width;     // Map to +1
+    dataPtr->blit.src_y_max = (float) srcY1 / (float) source.height;    // Map to +1
+
+    // To blit we need to map the position from a -1 to 1 range to a dst0 dst1 range
+    dataPtr->blit.dst_x_min = (float) dstX0 / (float) dest.width;       // Map to -1
+    dataPtr->blit.dst_y_min = (float) dstY0 / (float) dest.height;      // Map to -1
+    dataPtr->blit.dst_x_max = (float) dstX1 / (float) dest.width;       // Map to +1
+    dataPtr->blit.dst_y_max = (float) dstY1 / (float) dest.height;      // Map to +1
+
+    // Upload to the GPU.
+    m_d3d_context->Unmap(m_shader_buffer, 0);
+
+    // Bind texture
+    m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
+    Gfx::BindTexture(m_d3d_context, temporary_rt);
+    
+    DrawFullscreenQuad();
+
+    // Restore state
+    m_d3d_context->OMSetRenderTargets(1, &original_render_target_view, original_depth_stencil_view);
+    m_d3d_context->RSSetState(m_scissor_enabled ? m_rasterizer_state_scissor_enabled : m_rasterizer_state_scissor_disabled);
+    original_render_target_view->Release();
+    original_depth_stencil_view->Release();
 }
 
 void RenderInterface_DX11::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle)

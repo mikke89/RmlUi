@@ -147,6 +147,7 @@ private:
     void UseProgram(ProgramId program_id);
 
     // Mirrors the behaviour of glBlitFramebuffer. It supports sampling from a rect from source, writing to a rect at dest, and does MSAA resolve.
+    // Coordinates are in pixels.
     void BlitRenderTarget(const Gfx::RenderTargetData& source, const Gfx::RenderTargetData& dest, int srcX0, int srcY0, int srcX1, int srcY1,
         int dstX0, int dstY0, int dstX1, int dstY1);
     void BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle);
@@ -165,6 +166,7 @@ private:
     ID3D11DeviceContext* m_d3d_context = nullptr;
     IDXGISwapChain* m_bound_swapchain = nullptr;
     ID3D11RenderTargetView* m_bound_render_target = nullptr;
+    bool m_scissor_enabled = false;
     ID3D11RasterizerState* m_rasterizer_state_scissor_enabled = nullptr;
     ID3D11RasterizerState* m_rasterizer_state_scissor_disabled = nullptr;
 
@@ -276,6 +278,19 @@ private:
             Rml::Vector2f dimensions;
             float value;
         } creation;
+        struct Blit {
+            int _padding[16];
+            
+            float src_x_min;
+            float src_y_min;
+            float src_x_max;
+            float src_y_max;
+
+            float dst_x_min;
+            float dst_y_min;
+            float dst_x_max;
+            float dst_y_max;
+        } blit;
     };
     #pragma pack()
 
