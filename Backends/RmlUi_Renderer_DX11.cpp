@@ -1762,9 +1762,12 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
     RMLUI_ASSERTMSG(dest_width > 0, "Invalid destination rectangle (width)!");
     RMLUI_ASSERTMSG(dest_height > 0, "Invalid destination rectangle (height)!");
 
+
     // @TODO: Use viewport to define write region
     // @TODO: Lerp UVs such that they match with the write region
     // @TODO: MSAA resolve
+
+    const Gfx::RenderTargetData& temporary_rt = m_render_layers.GetTemporary();
 
     // @TODO: Create temporary for MSAA resolve ?
     m_d3d_context->ResolveSubresource(dest.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -2764,7 +2767,7 @@ void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rm
 
 RenderInterface_DX11::RenderLayerStack::RenderLayerStack()
 {
-    m_rt_postprocess.resize(4);
+    m_rt_postprocess.resize(5);
 }
 
 RenderInterface_DX11::RenderLayerStack::~RenderLayerStack()

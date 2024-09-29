@@ -311,6 +311,7 @@ private:
         const Gfx::RenderTargetData& GetPostprocessSecondary() { return EnsureRenderTargetPostprocess(1); }
         const Gfx::RenderTargetData& GetPostprocessTertiary() { return EnsureRenderTargetPostprocess(2); }
         const Gfx::RenderTargetData& GetBlendMask() { return EnsureRenderTargetPostprocess(3); }
+        const Gfx::RenderTargetData& GetTemporary() { return EnsureRenderTargetPostprocess(4); }
 
         void SwapPostprocessPrimarySecondary();
 
