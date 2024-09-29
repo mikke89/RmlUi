@@ -2446,6 +2446,10 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 {
     DebugScope scope(L"RenderFilters");
     m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
+
+    // To unbind slots when necessary
+    ID3D11ShaderResourceView* null_shader_resource_views[2] = {nullptr, nullptr};
+
     for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
     {
         const CompiledFilter& filter = *reinterpret_cast<const CompiledFilter*>(filter_handle);
@@ -2585,6 +2589,8 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             DrawFullscreenQuad();
 
+            m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
+
             m_render_layers.SwapPostprocessPrimarySecondary();
             SetBlendState(blend_state_backup);
         }
@@ -2606,9 +2612,8 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             DrawFullscreenQuad();
 
-            // Unbind texture on slot 1
-            ID3D11ShaderResourceView* null_shader_resource_view[1] = {nullptr};
-            m_d3d_context->PSSetShaderResources(1, 1, null_shader_resource_view);
+            // Unbind textures
+            m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
 
             m_render_layers.SwapPostprocessPrimarySecondary();
             SetBlendState(blend_state_backup);
