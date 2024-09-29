@@ -342,8 +342,8 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
 
 static const char shader_frag_blend_mask[] = RMLUI_SHADER_HEADER R"(
 Texture2D g_InputTexture : register(t0);
-SamplerState g_SamplerLinear : register(s0);
 Texture2D g_MaskTexture : register(t1);
+SamplerState g_SamplerLinear : register(s0);
 
 struct PS_Input
 {
@@ -1895,7 +1895,7 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
     const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
     const Gfx::RenderTargetData& destination = m_render_layers.GetBlendMask();
 
-    m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, nullptr);
+    m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, destination.depth_stencil_view);
     Gfx::BindTexture(m_d3d_context, source);
     UseProgram(ProgramId::Passthrough);
     ID3D11BlendState* blend_state_backup = m_current_blend_state;
@@ -2274,7 +2274,6 @@ static void SetBlurWeights(Rml::Vector4f& p_weights, float sigma)
 void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& source_destination, const Gfx::RenderTargetData& temp,
     const Rml::Rectanglei window_flipped)
 {
-    // @TODO: Fix blur
     return;
     DebugScope scope(L"RenderBlur");
     RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
@@ -2312,7 +2311,8 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
         scissor.p1 = Rml::Math::Max(scissor.p1 / 2, scissor.p0);
         const bool from_source = (i % 2 == 0);
         Gfx::BindTexture(m_d3d_context, from_source ? source_destination : temp);
-        m_d3d_context->OMSetRenderTargets(1, &(from_source ? temp : source_destination).render_target_view, source_destination.depth_stencil_view);
+        m_d3d_context->OMSetRenderTargets(1, &(from_source ? temp : source_destination).render_target_view,
+            (from_source ? temp : source_destination).depth_stencil_view);
         SetScissor(scissor, true);
 
         DrawFullscreenQuad({}, uv_scaling);
@@ -2331,7 +2331,7 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     if (transfer_to_temp_buffer)
     {
         Gfx::BindTexture(m_d3d_context, source_destination);
-        m_d3d_context->OMSetRenderTargets(1, &temp.render_target_view, nullptr);
+        m_d3d_context->OMSetRenderTargets(1, &temp.render_target_view, temp.depth_stencil_view);
         DrawFullscreenQuad();
     }
 
@@ -2368,14 +2368,14 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
 
     // Blur render pass - vertical.
     Gfx::BindTexture(m_d3d_context, temp);
-    m_d3d_context->OMSetRenderTargets(1, &source_destination.render_target_view, nullptr);
+    m_d3d_context->OMSetRenderTargets(1, &source_destination.render_target_view, source_destination.depth_stencil_view);
 
     SetTexelOffset({0.f, 1.f}, temp.height);
     DrawFullscreenQuad();
 
     // Blur render pass - horizontal.
     Gfx::BindTexture(m_d3d_context, source_destination);
-    m_d3d_context->OMSetRenderTargets(1, &temp.render_target_view, nullptr);
+    m_d3d_context->OMSetRenderTargets(1, &temp.render_target_view, temp.depth_stencil_view);
 
     // Add a 1px transparent border around the blur region by first clearing with a padded scissor. This helps prevent
     // artifacts when upscaling the blur result in the later step. On Intel and AMD, we have observed that during
@@ -2465,7 +2465,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
             Gfx::BindTexture(m_d3d_context, source);
             m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
-            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, nullptr);
+            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, destination.depth_stencil_view);
 
             DrawFullscreenQuad();
 
@@ -2501,7 +2501,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             const Gfx::RenderTargetData& primary = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& secondary = m_render_layers.GetPostprocessSecondary();
             Gfx::BindTexture(m_d3d_context, primary);
-            m_d3d_context->OMSetRenderTargets(1, &secondary.render_target_view, nullptr);
+            m_d3d_context->OMSetRenderTargets(1, &secondary.render_target_view, secondary.depth_stencil_view);
 
             D3D11_MAPPED_SUBRESOURCE mappedResource{};
             // Lock the constant buffer so it can be written to.
@@ -2581,7 +2581,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
             Gfx::BindTexture(m_d3d_context, source);
-            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, nullptr);
+            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, destination.depth_stencil_view);
 
             DrawFullscreenQuad();
 
@@ -2602,7 +2602,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             Gfx::BindTexture(m_d3d_context, source, 0);
             Gfx::BindTexture(m_d3d_context, blend_mask, 1);
-            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, nullptr);
+            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, destination.depth_stencil_view);
 
             DrawFullscreenQuad();
 
