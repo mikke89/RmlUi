@@ -1401,7 +1401,7 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
     {
         DX11_GeometryData geometryData = m_geometry_cache[handle];
 
-        if (m_translation != translation)
+        if (texture != TexturePostprocess && m_translation != translation)
         {
             m_translation = translation;
             m_cbuffer_dirty = true;
@@ -1421,14 +1421,14 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
                 m_d3d_context->PSSetShaderResources(0, 1, &texture_view);
             }
             m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
+            UpdateConstantBuffer();
         }
         else
         {
             // No texture, use color
             UseProgram(ProgramId::Color);
+            UpdateConstantBuffer();
         }
-
-        UpdateConstantBuffer();
 
         m_d3d_context->IASetInputLayout(m_vertex_layout);
         m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
