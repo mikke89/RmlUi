@@ -2534,6 +2534,8 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             // Upload to the GPU.
             m_d3d_context->Unmap(m_shader_buffer, 0);
+            
+            m_cbuffer_dirty = true;
 
             const Rml::Vector2f uv_offset = filter.offset / Rml::Vector2f(-(float)m_viewport_width, (float)m_viewport_height);
             DrawFullscreenQuad(uv_offset);
@@ -2581,6 +2583,8 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             // Upload to the GPU.
             m_d3d_context->Unmap(m_shader_buffer, 0);
+
+            m_cbuffer_dirty = true;
 
             const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
