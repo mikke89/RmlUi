@@ -1749,6 +1749,27 @@ void RenderInterface_DX11::SetTransform(const Rml::Matrix4f* new_transform)
     m_cbuffer_dirty = true;
 }
 
+void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source, const Gfx::RenderTargetData& dest, int srcX0, int srcY0, int srcX1,
+    int srcY1, int dstX0, int dstY0, int dstX1, int dstY1)
+{
+    int src_width = srcX1 - srcX0;
+    int src_height = srcY1 - srcY0;
+    int dest_width = dstX1 - dstX0;
+    int dest_height = dstY1 - dstY0;
+
+    RMLUI_ASSERTMSG(src_width > 0, "Invalid source rectangle (width)!");
+    RMLUI_ASSERTMSG(src_height > 0, "Invalid source rectangle (height)!");
+    RMLUI_ASSERTMSG(dest_width > 0, "Invalid destination rectangle (width)!");
+    RMLUI_ASSERTMSG(dest_height > 0, "Invalid destination rectangle (height)!");
+
+    // @TODO: Use viewport to define write region
+    // @TODO: Lerp UVs such that they match with the write region
+    // @TODO: MSAA resolve
+
+    // @TODO: Create temporary for MSAA resolve ?
+    m_d3d_context->ResolveSubresource(dest.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+}
+
 void RenderInterface_DX11::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle)
 {
     DebugScope scope(L"BlitLayerToPostprocessPrimary");
@@ -1756,7 +1777,7 @@ void RenderInterface_DX11::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
     const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessPrimary();
 
     // Blit and resolve MSAA. Any active scissor state will restrict the size of the blit region.
-    m_d3d_context->ResolveSubresource(destination.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+    BlitRenderTarget(source, destination, 0, 0, source.width, source.height, 0, 0, destination.width, destination.height);
 }
 
 Rml::LayerHandle RenderInterface_DX11::PushLayer()
@@ -1831,16 +1852,12 @@ Rml::TextureHandle RenderInterface_DX11::SaveLayerAsTexture()
     const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
     
     // Flip the image vertically, as that convention is used for textures, and move to origin.
-    D3D11_BOX source_box{};
-    source_box.left = bounds.Left();
-    source_box.right = bounds.Right();
-    source_box.top = source.height - bounds.Bottom();
-    source_box.bottom = source.height - bounds.Top();
-    source_box.front = 0;
-    source_box.back = 1;
-
-    // Perform a copy from the source render target to the destination render target
-    m_d3d_context->CopySubresourceRegion(destination.render_target_texture, 0, 0, 0, 0, source.render_target_texture, 0, &source_box);
+    BlitRenderTarget(source, destination, 
+        bounds.Left(), source.height - bounds.Bottom(), // src0
+        bounds.Right(), source.height - bounds.Top(),   // src1
+        0, bounds.Height(),                             // dst0
+        bounds.Width(), 0                               // dst1
+    );
 
     // Now we need to copy the destination texture to the final texture for rendering
     // Bind the destination texture as the source for copying to the final texture (render_texture)

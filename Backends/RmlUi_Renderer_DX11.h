@@ -146,6 +146,9 @@ private:
     void UpdateConstantBuffer();
     void UseProgram(ProgramId program_id);
 
+    // Mirrors the behaviour of glBlitFramebuffer. It supports sampling from a rect from source, writing to a rect at dest, and does MSAA resolve.
+    void BlitRenderTarget(const Gfx::RenderTargetData& source, const Gfx::RenderTargetData& dest, int srcX0, int srcY0, int srcX1, int srcY1,
+        int dstX0, int dstY0, int dstX1, int dstY1);
     void BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle);
     void RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles);
 
