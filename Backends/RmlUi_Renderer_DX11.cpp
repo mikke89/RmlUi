@@ -2574,12 +2574,13 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             // Get a pointer to the data in the constant buffer.
             ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
 
+            constexpr bool transpose = std::is_same<decltype(filter.color_matrix), Rml::RowMajorMatrix4f>::value;
+
             // Copy the data to the GPU
             dataPtr->transform = m_transform;
             dataPtr->translation = m_translation;
             memset(&dataPtr->color_matrix.color_matrix, 0, sizeof(dataPtr->color_matrix.color_matrix));
-            memcpy_s(&dataPtr->color_matrix.color_matrix, sizeof(dataPtr->color_matrix.color_matrix), filter.color_matrix.data(),
-                sizeof(dataPtr->color_matrix.color_matrix));
+            memcpy_s(&dataPtr->color_matrix.color_matrix, sizeof(dataPtr->color_matrix.color_matrix), filter.color_matrix.data(), sizeof(dataPtr->color_matrix.color_matrix));
 
             // Upload to the GPU.
             m_d3d_context->Unmap(m_shader_buffer, 0);
