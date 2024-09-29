@@ -318,13 +318,13 @@ private:
         void DestroyRenderTargets();
         const Gfx::RenderTargetData& EnsureRenderTargetPostprocess(int index);
 
-        int width = 0, height = 0;
+        int m_width = 0, m_height = 0;
 
         // The number of active layers is manually tracked since we re-use the render targets stored in the fb_layers stack.
-        int layers_size = 0;
+        int m_layers_size = 0;
 
-        Rml::Vector<Gfx::RenderTargetData> rt_layers;
-        Rml::Vector<Gfx::RenderTargetData> rt_postprocess;
+        Rml::Vector<Gfx::RenderTargetData> m_rt_layers;
+        Rml::Vector<Gfx::RenderTargetData> m_rt_postprocess;
         
         ID3D11Device* m_d3d_device = nullptr;
     };

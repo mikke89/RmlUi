@@ -878,8 +878,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
     m_fullscreen_quad_geometry = RenderInterface_DX11::CompileGeometry(mesh.vertices, mesh.indices);
 
-    // RmlUi serves vertex colors and textures with premultiplied alpha, set the blend mode accordingly.
-    // Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
     if (!m_blend_state_enable)
     {
         D3D11_BLEND_DESC blend_desc{};
@@ -897,6 +895,8 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         }
     #endif
 
+        // RmlUi serves vertex colors and textures with premultiplied alpha, set the blend mode accordingly.
+        // Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
         blend_desc.RenderTarget[0].BlendEnable = true;
         blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
         blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
@@ -1409,7 +1409,7 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
 
         if (texture == TexturePostprocess)
         {
-
+            // Do nothing.
         }
         else if (texture)
         {
