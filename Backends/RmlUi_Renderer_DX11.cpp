@@ -2423,8 +2423,8 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
         D3D11_VIEWPORT viewport;
         viewport.TopLeftX = target_min.x;
         viewport.TopLeftY = target_min.y;
-        viewport.Width = target_max.x - target_min.x;
-        viewport.Height = target_max.y - target_min.y;
+        viewport.Width = (float)(target_max.x - target_min.x);
+        viewport.Height = (float)(target_max.y - target_min.y);
         viewport.MinDepth = 0.0f;
         viewport.MaxDepth = 1.0f;
         m_d3d_context->RSSetViewports(1, &viewport);
