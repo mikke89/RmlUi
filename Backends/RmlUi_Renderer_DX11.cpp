@@ -1761,13 +1761,13 @@ void RenderInterface_DX11::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
 
 Rml::LayerHandle RenderInterface_DX11::PushLayer()
 {
+    m_debug->BeginEvent(L"BeginLayer");
     const Rml::LayerHandle layer_handle = m_render_layers.PushLayer();
 
     m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
     float colors[4] = {0, 0, 0, 0};
     m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, colors);
 
-    m_debug->BeginEvent(L"BeginLayer");
     return layer_handle;
 }
 
