@@ -18,9 +18,6 @@ RmlUi is based around the XHTML1 and CSS2 standards while borrowing features fro
 
 Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
----
-
-
 ## Features
 
 - Cross-platform architecture: Windows, macOS, Linux, iOS, etc.
@@ -101,7 +98,7 @@ That's it! See below for details on integrating RmlUi.
 To build RmlUi with the included samples we can use git and CMake together with vcpkg to handle dependencies.
 
 ```
-vcpkg install freetype glfw
+vcpkg install freetype glfw3
 git clone https://github.com/mikke89/RmlUi.git
 cd RmlUi
 cmake -B Build -S . --preset samples -DRMLUI_BACKEND=GLFW_GL3 -DCMAKE_TOOLCHAIN_FILE="<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake"
@@ -196,15 +193,15 @@ This example demonstrates a basic document with [data bindings](https://mikke89.
 ```html
 <rml>
 <head>
-	<title>Hello world</title>
-	<link type="text/rcss" href="rml.rcss"/>
-	<link type="text/rcss" href="window.rcss"/>
+    <title>Hello world</title>
+    <link type="text/rcss" href="rml.rcss"/>
+    <link type="text/rcss" href="window.rcss"/>
 </head>
 <body data-model="animals">
-	<h1>RmlUi</h1>
-	<p>Hello <span id="world">world</span>!</p>
-	<p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
-	<input type="text" data-value="animal"/>
+    <h1>RmlUi</h1>
+    <p>Hello <span id="world">world</span>!</p>
+    <p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
+    <input type="text" data-value="animal"/>
 </body>
 </rml>
 ```
@@ -216,40 +213,40 @@ The `{{animal}}` text and the `data-if`, `data-value` attributes represent data 
 
 ```css
 body {
-	font-family: LatoLatin;
-	font-size: 18px;
-	color: #02475e;
-	background: #fefecc;
-	text-align: center;
-	padding: 2em 1em;
-	position: absolute;
-	border: 2px #ccc;
-	width: 500px;
-	height: 200px;
-	margin: auto;
+    font-family: LatoLatin;
+    font-size: 18px;
+    color: #02475e;
+    background: #fefecc;
+    text-align: center;
+    padding: 2em 1em;
+    position: absolute;
+    border: 2px #ccc;
+    width: 500px;
+    height: 200px;
+    margin: auto;
 }
-		
+
 h1 {
-	color: #f6470a;
-	font-size: 1.5em;
-	font-weight: bold;
-	margin-bottom: 0.7em;
+    color: #f6470a;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 0.7em;
 }
-		
+
 p { 
-	margin: 0.7em 0;
+    margin: 0.7em 0;
 }
-		
+
 input.text {
-	background-color: #fff;
-	color: #555;
-	border: 2px #999;
-	padding: 5px;
-	tab-index: auto;
-	cursor: text;
-	box-sizing: border-box;
-	width: 200px;
-	font-size: 0.9em;
+    background-color: #fff;
+    color: #555;
+    border: 2px #999;
+    padding: 5px;
+    tab-index: auto;
+    cursor: text;
+    box-sizing: border-box;
+    width: 200px;
+    font-size: 0.9em;
 }
 ```
 
@@ -265,85 +262,78 @@ RmlUi defines no styles internally, thus the `input` element is styled here, and
 
 class MyRenderInterface : public Rml::RenderInterface
 {
-	// RmlUi sends vertices, indices and draw commands through this interface for your
-	// application to render how you'd like.
-	/* ... */
-}
-
-class MySystemInterface : public Rml::SystemInterface
-{	
-	// RmlUi requests the current time and provides various utilities through this interface.
-	/* ... */
+    // RmlUi sends vertices, indices and draw commands through this interface for your
+    // application to render how you'd like.
+    /* ... */
 }
 
 struct ApplicationData {
-	bool show_text = true;
-	Rml::String animal = "dog";
+    bool show_text = true;
+    Rml::String animal = "dog";
 } my_data;
 
 int main(int argc, char** argv)
 {
-	// Initialize the window and graphics API being used, along with your game or application.
+    // Initialize the window and graphics API being used, along with your game or application.
 
-	/* ... */
+    /* ... */
 
-	MyRenderInterface render_interface;
-	MySystemInterface system_interface;
+    MyRenderInterface render_interface;
 
-	// Install the custom interfaces.
-	Rml::SetRenderInterface(&render_interface);
-	Rml::SetSystemInterface(&system_interface);
+    // Install the custom interfaces.
+    Rml::SetRenderInterface(&render_interface);
 
-	// Now we can initialize RmlUi.
-	Rml::Initialise();
+    // Now we can initialize RmlUi.
+    Rml::Initialise();
 
-	// Create a context to display documents within.
-	Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
+    // Create a context to display documents within.
+    Rml::Context* context =
+        Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 
-	// Tell RmlUi to load the given fonts.
-	Rml::LoadFontFace("LatoLatin-Regular.ttf");
-	// Fonts can be registered as fallback fonts, as in this case to display emojis.
-	Rml::LoadFontFace("NotoEmoji-Regular.ttf", true);
+    // Tell RmlUi to load the given fonts.
+    Rml::LoadFontFace("LatoLatin-Regular.ttf");
+    // Fonts can be registered as fallback fonts, as in this case to display emojis.
+    Rml::LoadFontFace("NotoEmoji-Regular.ttf", true);
 
-	// Set up data bindings to synchronize application data.
-	if (Rml::DataModelConstructor constructor = context->CreateDataModel("animals"))
-	{
-		constructor.Bind("show_text", &my_data.show_text);
-		constructor.Bind("animal", &my_data.animal);
-	}
+    // Set up data bindings to synchronize application data.
+    if (Rml::DataModelConstructor constructor = context->CreateDataModel("animals"))
+    {
+        constructor.Bind("show_text", &my_data.show_text);
+        constructor.Bind("animal", &my_data.animal);
+    }
 
-	// Now we are ready to load our document.
-	Rml::ElementDocument* document = context->LoadDocument("hello_world.rml");
-	document->Show();
+    // Now we are ready to load our document.
+    Rml::ElementDocument* document = context->LoadDocument("hello_world.rml");
+    document->Show();
 
-	// Replace and style some text in the loaded document.
-	Rml::Element* element = document->GetElementById("world");
-	element->SetInnerRML(reinterpret_cast<const char*>(u8"🌍"));
-	element->SetProperty("font-size", "1.5em");
+    // Replace and style some text in the loaded document.
+    Rml::Element* element = document->GetElementById("world");
+    element->SetInnerRML(reinterpret_cast<const char*>(u8"🌍"));
+    element->SetProperty("font-size", "1.5em");
 
-	bool exit_application = false;
-	while (!exit_application)
-	{
-		// We assume here that we have some way of updating and retrieving inputs internally.
-		if (my_input->KeyPressed(KEY_ESC))
-			exit_application = true;
+    bool exit_application = false;
+    while (!exit_application)
+    {
+        // We assume here that we have some way of updating and retrieving inputs internally.
+        if (my_input->KeyPressed(KEY_ESC))
+            exit_application = true;
 
-		// Submit input events such as MouseMove and key events (not shown) to the context.
-		if (my_input->MouseMoved())
-			context->ProcessMouseMove(mouse_pos.x, mouse_pos.y, 0);
+        // Submit input events such as MouseMove and key events (not shown) to the context.
+        if (my_input->MouseMoved())
+            context->ProcessMouseMove(mouse_pos.x, mouse_pos.y, 0);
 
-		// Update the context to reflect any changes resulting from input events, animations,
-		// modified and added elements, or changed data in data bindings.
-		context->Update();
+        // Update the context to reflect any changes resulting from input events, animations,
+        // modified and added elements, or changed data in data bindings.
+        context->Update();
 
-		// Render the user interface. All geometry and other rendering commands are now
-		// submitted through the render interface.
-		context->Render();
-	}
+        // Render the user interface. All geometry and other rendering commands are now
+        // submitted through the render interface.
+        context->Render();
+    }
 
-	Rml::Shutdown();
+    Rml::Shutdown();
 
-	return 0;
+    return 0;
 }
 ```
 
