@@ -2737,7 +2737,7 @@ void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rm
 
 RenderInterface_DX11::RenderLayerStack::RenderLayerStack()
 {
-    rt_postprocess.resize(4);
+    m_rt_postprocess.resize(4);
 }
 
 RenderInterface_DX11::RenderLayerStack::~RenderLayerStack()
@@ -2753,32 +2753,33 @@ void RenderInterface_DX11::RenderLayerStack::SetD3DResources(ID3D11Device* devic
 
 Rml::LayerHandle RenderInterface_DX11::RenderLayerStack::PushLayer()
 {
-    RMLUI_ASSERT(layers_size <= (int)rt_layers.size());
+    RMLUI_ASSERT(m_layers_size <= (int)m_rt_layers.size());
 
-    if (layers_size == (int)rt_layers.size())
+    if (m_layers_size == (int)m_rt_layers.size())
     {
         // All framebuffers should share a single stencil buffer.
-        ID3D11DepthStencilView* shared_depth_stencil = (rt_layers.empty() ? nullptr : rt_layers.front().depth_stencil_view);
+        ID3D11DepthStencilView* shared_depth_stencil = (m_rt_layers.empty() ? nullptr : m_rt_layers.front().depth_stencil_view);
 
-        rt_layers.push_back(Gfx::RenderTargetData{});
-        Gfx::CreateRenderTarget(m_d3d_device, rt_layers.back(), width, height, NUM_MSAA_SAMPLES, Gfx::RenderTargetAttachment::DepthStencil, shared_depth_stencil);
+        m_rt_layers.push_back(Gfx::RenderTargetData{});
+        Gfx::CreateRenderTarget(m_d3d_device, m_rt_layers.back(), m_width, m_height, NUM_MSAA_SAMPLES, Gfx::RenderTargetAttachment::DepthStencil,
+            shared_depth_stencil);
     }
 
-    layers_size += 1;
+    m_layers_size += 1;
     return GetTopLayerHandle();
 }
 
 
 void RenderInterface_DX11::RenderLayerStack::PopLayer()
 {
-    RMLUI_ASSERT(layers_size > 0);
-    layers_size -= 1;
+    RMLUI_ASSERT(m_layers_size > 0);
+    m_layers_size -= 1;
 }
 
 const Gfx::RenderTargetData& RenderInterface_DX11::RenderLayerStack::GetLayer(Rml::LayerHandle layer) const
 {
-    RMLUI_ASSERT((size_t)layer < (size_t)layers_size);
-    return rt_layers[layer];
+    RMLUI_ASSERT((size_t)layer < (size_t)m_layers_size);
+    return m_rt_layers[layer];
 }
 
 const Gfx::RenderTargetData& RenderInterface_DX11::RenderLayerStack::GetTopLayer() const
@@ -2788,23 +2789,23 @@ const Gfx::RenderTargetData& RenderInterface_DX11::RenderLayerStack::GetTopLayer
 
 Rml::LayerHandle RenderInterface_DX11::RenderLayerStack::GetTopLayerHandle() const
 {
-    RMLUI_ASSERT(layers_size > 0);
-    return static_cast<Rml::LayerHandle>(layers_size - 1);
+    RMLUI_ASSERT(m_layers_size > 0);
+    return static_cast<Rml::LayerHandle>(m_layers_size - 1);
 }
 
 void RenderInterface_DX11::RenderLayerStack::SwapPostprocessPrimarySecondary()
 {
-    std::swap(rt_postprocess[0], rt_postprocess[1]);
+    std::swap(m_rt_postprocess[0], m_rt_postprocess[1]);
 }
 
 void RenderInterface_DX11::RenderLayerStack::BeginFrame(int new_width, int new_height)
 {
-    RMLUI_ASSERT(layers_size == 0);
+    RMLUI_ASSERT(m_layers_size == 0);
 
-    if (new_width != width || new_height != height)
+    if (new_width != m_width || new_height != m_height)
     {
-        width = new_width;
-        height = new_height;
+        m_width = new_width;
+        m_height = new_height;
 
         DestroyRenderTargets();
     }
@@ -2814,29 +2815,29 @@ void RenderInterface_DX11::RenderLayerStack::BeginFrame(int new_width, int new_h
 
 void RenderInterface_DX11::RenderLayerStack::EndFrame()
 {
-    RMLUI_ASSERT(layers_size == 1);
+    RMLUI_ASSERT(m_layers_size == 1);
     PopLayer();
 }
 
 void RenderInterface_DX11::RenderLayerStack::DestroyRenderTargets()
 {
-    RMLUI_ASSERTMSG(layers_size == 0, "Do not call this during frame rendering, that is, between BeginFrame() and EndFrame().");
+    RMLUI_ASSERTMSG(m_layers_size == 0, "Do not call this during frame rendering, that is, between BeginFrame() and EndFrame().");
 
-    for (Gfx::RenderTargetData& fb : rt_layers)
+    for (Gfx::RenderTargetData& fb : m_rt_layers)
         Gfx::DestroyRenderTarget(fb);
 
-    rt_layers.clear();
+    m_rt_layers.clear();
 
-    for (Gfx::RenderTargetData& fb : rt_postprocess)
+    for (Gfx::RenderTargetData& fb : m_rt_postprocess)
         Gfx::DestroyRenderTarget(fb);
 }
 
 const Gfx::RenderTargetData& RenderInterface_DX11::RenderLayerStack::EnsureRenderTargetPostprocess(int index)
 {
-    RMLUI_ASSERT(index < (int)rt_postprocess.size())
-    Gfx::RenderTargetData& rt = rt_postprocess[index];
+    RMLUI_ASSERT(index < (int)m_rt_postprocess.size())
+    Gfx::RenderTargetData& rt = m_rt_postprocess[index];
     if (!rt.render_target_view)
-        Gfx::CreateRenderTarget(m_d3d_device, rt, width, height, 0, Gfx::RenderTargetAttachment::None, 0);
+        Gfx::CreateRenderTarget(m_d3d_device, rt, m_width, m_height, 0, Gfx::RenderTargetAttachment::None, 0);
     return rt;
 }
 
