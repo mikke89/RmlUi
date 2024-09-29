@@ -1757,6 +1757,17 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
     int dest_width = dstX1 - dstX0;
     int dest_height = dstY1 - dstY0;
 
+    // All coords must be greater than 0
+    RMLUI_ASSERTMSG(srcX0 > 0, "Invalid source coordinate (srcX0)!");
+    RMLUI_ASSERTMSG(srcX1 > 0, "Invalid source coordinate (srcX1)!");
+    RMLUI_ASSERTMSG(srcY0 > 0, "Invalid source coordinate (srcY0)!");
+    RMLUI_ASSERTMSG(srcY1 > 0, "Invalid source coordinate (srcY1)!");
+    RMLUI_ASSERTMSG(dstX0 > 0, "Invalid destination coordinate (dstX0)!");
+    RMLUI_ASSERTMSG(dstX1 > 0, "Invalid destination coordinate (dstX1)!");
+    RMLUI_ASSERTMSG(dstY0 > 0, "Invalid destination coordinate (dstY0)!");
+    RMLUI_ASSERTMSG(dstY1 > 0, "Invalid destination coordinate (dstY1)!");
+
+    // Width and height must be greater than 0
     RMLUI_ASSERTMSG(src_width > 0, "Invalid source rectangle (width)!");
     RMLUI_ASSERTMSG(src_height > 0, "Invalid source rectangle (height)!");
     RMLUI_ASSERTMSG(dest_width > 0, "Invalid destination rectangle (width)!");
