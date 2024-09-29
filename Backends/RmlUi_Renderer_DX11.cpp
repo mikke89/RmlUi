@@ -2383,7 +2383,7 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     // hand, it looks like Nvidia clamps the pixels to the source edge, which is what we really want. Regardless, we
     // work around the issue with this extra step.
     SetScissor(scissor.Extend(1), true);
-    float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float clearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     m_d3d_context->ClearRenderTargetView(temp.render_target_view, clearColor);
     SetScissor(scissor, true);
 
