@@ -1794,7 +1794,7 @@ void RenderInterface_DX11::SetBlendState(ID3D11BlendState* blend_state)
 {
     if (blend_state != m_current_blend_state)
     {
-        const float blend_factor[4] = {0.f, 0.f, 0.f, 0.f};
+        const float blend_factor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
         m_d3d_context->OMSetBlendState(blend_state, blend_factor, 0xFFFFFFFF);
         m_current_blend_state = blend_state;
     }
@@ -2869,7 +2869,7 @@ void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rm
     }
     
     // Disable writing to the color of the render target
-    float blendFactor[4] = {0.f, 0.f, 0.f, 0.f};
+    float blendFactor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     m_d3d_context->OMSetBlendState(m_blend_state_disable_color, blendFactor, 0xffffffff);
 
     m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
