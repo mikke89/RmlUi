@@ -1999,10 +1999,10 @@ Rml::TextureHandle RenderInterface_DX11::SaveLayerAsTexture()
 
     // Copy the destination texture to the final texture resource
     D3D11_BOX copy_box{};
-    copy_box.left = 0;
-    copy_box.right = bounds.Width();
-    copy_box.top = 0;
-    copy_box.bottom = bounds.Height();
+    copy_box.left = bounds.Left();
+    copy_box.right = bounds.Right();
+    copy_box.top = bounds.Top();
+    copy_box.bottom = bounds.Bottom();
     copy_box.front = 0;
     copy_box.back = 1;
 
