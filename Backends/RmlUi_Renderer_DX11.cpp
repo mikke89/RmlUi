@@ -1750,14 +1750,16 @@ void RenderInterface_DX11::SetScissor(Rml::Rectanglei region, bool vertically_fl
     if (region.Valid() && region != m_scissor_state)
     {
         // Some render APIs don't like offscreen positions (WebGL in particular), so clamp them to the viewport.
-        const int x = Rml::Math::Clamp(region.Left(), 0, m_viewport_width);
-        const int y = Rml::Math::Clamp(m_viewport_height - region.Bottom(), 0, m_viewport_height);
+        const int x_min = Rml::Math::Clamp(region.Left(), 0, m_viewport_width);
+        const int y_min = Rml::Math::Clamp(region.Top(), 0, m_viewport_height);
+        const int x_max = Rml::Math::Clamp(region.Right(), 0, m_viewport_width);
+        const int y_max = Rml::Math::Clamp(region.Bottom(), 0, m_viewport_height);
 
         D3D11_RECT rect_scissor = {};
-        rect_scissor.left = x;
-        rect_scissor.top = y;
-        rect_scissor.right = x + region.Width();
-        rect_scissor.bottom = y + region.Height();
+        rect_scissor.left = x_min;
+        rect_scissor.top = y_min;
+        rect_scissor.right = x_max;
+        rect_scissor.bottom = y_max;
 
         m_d3d_context->RSSetScissorRects(1, &rect_scissor);
     }
