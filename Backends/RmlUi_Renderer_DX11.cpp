@@ -940,7 +940,14 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         ZeroMemory(&blend_desc, sizeof(blend_desc));
         blend_desc.AlphaToCoverageEnable = false;
         blend_desc.IndependentBlendEnable = false;
-        blend_desc.RenderTarget[0].BlendEnable = false;
+        blend_desc.RenderTarget[0].BlendEnable = true;
+        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
         HRESULT result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_disable);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
     #ifdef RMLUI_DX_DEBUG
@@ -993,6 +1000,24 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
         blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
         result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_color_filter);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
+    #ifdef RMLUI_DX_DEBUG
+        if (FAILED(result))
+        {
+            Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateBlendState (%d)", result);
+            return;
+        }
+    #endif
+
+        blend_desc.RenderTarget[0].BlendEnable = true;
+        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+        result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_replace);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
     #ifdef RMLUI_DX_DEBUG
         if (FAILED(result))
@@ -1176,6 +1201,7 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_color_filter);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable_color);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_replace);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_disable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_intersect);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_set);
@@ -1841,73 +1867,109 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
     RMLUI_ASSERTMSG(dest_width != 0, "Invalid destination rectangle (width)!");
     RMLUI_ASSERTMSG(dest_height != 0, "Invalid destination rectangle (height)!");
 
-    ID3D11RenderTargetView* original_render_target_view = nullptr;
-    ID3D11DepthStencilView* original_depth_stencil_view = nullptr;
-    m_d3d_context->OMGetRenderTargets(1, &original_render_target_view, &original_depth_stencil_view);
+    bool is_flipped = src_width < 0 || src_height < 0 || dest_width < 0 || dest_height < 0;
+    bool is_stretched = src_width != dest_width || src_height != dest_height;
+    bool is_full_copy = src_width == dest_width && src_height == dest_height && srcX0 == 0 && srcY0 == 0 && dstX0 == 0 && dstY0 == 0;
 
-    // Bind temporary as the render target
-    const Gfx::RenderTargetData& temporary_rt = m_render_layers.GetTemporary();
-
-    // Unbind existing textures to prevent warning spam
-    ID3D11ShaderResourceView* null_shader_resource_views[2] = {nullptr, nullptr};
-    m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
-
-    // Resolve from source to the temporary first
-    m_d3d_context->ResolveSubresource(temporary_rt.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
-
-    m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled);
-
-    // Bind destination as our final render texture
-    m_d3d_context->OMSetRenderTargets(1, &dest.render_target_view, dest.depth_stencil_view);
-
-    // Draw a quad into temporary with source bound as the texture, and the UVs lerping to match the new dimensions
-    // We want to map UV   0 -  1 to src min-max
-    // We want to map pos -1 - +1 to dst min max
-    UseProgram(ProgramId::Blit);
-
-    D3D11_MAPPED_SUBRESOURCE mappedResource{};
-    // Lock the constant buffer so it can be written to.
-    HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    if (FAILED(result))
+    if (is_flipped || is_stretched || !is_full_copy)
     {
-        // Restore state before exiting
+        // Full draw call. Slow path because no equivalent in DX11
+
+        // Cache current state
+        ID3D11RenderTargetView* original_render_target_view = nullptr;
+        ID3D11DepthStencilView* original_depth_stencil_view = nullptr;
+        m_d3d_context->OMGetRenderTargets(1, &original_render_target_view, &original_depth_stencil_view);
+        ID3D11BlendState* original_blend_state = nullptr;
+        float original_blend_factor[4]{};
+        uint32_t original_blend_mask = 0;
+        m_d3d_context->OMGetBlendState(&original_blend_state, original_blend_factor, &original_blend_mask);
+
+        // Bind temporary as the render target
+        const Gfx::RenderTargetData& temporary_rt = m_render_layers.GetTemporary();
+
+        // Unbind existing textures to prevent warning spam
+        ID3D11ShaderResourceView* null_shader_resource_views[2] = {nullptr, nullptr};
+        m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
+
+        // Replace mode
+        float blendFactor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+        m_d3d_context->OMSetBlendState(m_blend_state_replace, blendFactor, 0xFFFFFFFF);
+
+        // Resolve from source to the temporary first
+        m_d3d_context->ResolveSubresource(temporary_rt.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+        // Bind destination as our final render texture
+        Gfx::BindRenderTarget(m_d3d_context, dest);
+
+        D3D11_VIEWPORT d3dviewport{};
+        d3dviewport.TopLeftX = 0;
+        d3dviewport.TopLeftY = 0;
+        d3dviewport.Width = (float) dest.width;
+        d3dviewport.Height = (float) dest.height;
+        d3dviewport.MinDepth = 0.0f;
+        d3dviewport.MaxDepth = 1.0f;
+        m_d3d_context->RSSetViewports(1, &d3dviewport);
+
+        // Draw a quad into temporary with source bound as the texture, and the UVs lerping to match the new dimensions
+        // We want to map UV   0 -  1 to src min-max
+        // We want to map pos -1 - +1 to dst min max
+        UseProgram(ProgramId::Blit);
+
+        ShaderCbuffer* dataPtr = nullptr;
+
+        D3D11_MAPPED_SUBRESOURCE mappedResource{};
+        // Lock the constant buffer so it can be written to.
+        HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+        if (FAILED(result))
+        {
+            // Restore state before exiting
+            goto blit_restore_state;
+            return;
+        }
+
+        // Get a pointer to the data in the constant buffer.
+        dataPtr = (ShaderCbuffer*)mappedResource.pData;
+
+        dataPtr->transform = m_transform;
+
+        // To blit we need to map the UVs from a 0 to 1 range to a src0 to src1 range
+        dataPtr->blit.src_x_min = float(srcX0) / float(source.width);  // Map to 0
+        dataPtr->blit.src_y_min = float(srcY0) / float(source.height); // Map to 0
+        dataPtr->blit.src_x_max = float(srcX1) / float(source.width);  // Map to +1
+        dataPtr->blit.src_y_max = float(srcY1) / float(source.height); // Map to +1
+
+        dataPtr->blit.dst_x_min = (dstX0 / float(dest.width));
+        dataPtr->blit.dst_y_min = ((dest.height - dstY0 - dest_height) / float(dest.height));
+        dataPtr->blit.dst_x_max = ((dstX0 + dest_width) / float(dest.width));
+        dataPtr->blit.dst_y_max = ((dest.height - dstY0) / float(dest.height));
+
+        // Upload to the GPU.
+        m_d3d_context->Unmap(m_shader_buffer, 0);
+
+        // Bind texture
+        m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
+
+        Gfx::BindTexture(m_d3d_context, temporary_rt);
+
+        DrawFullscreenQuad();
+
+        // Restore state
+    blit_restore_state:
         m_d3d_context->OMSetRenderTargets(1, &original_render_target_view, original_depth_stencil_view);
+        m_d3d_context->OMSetBlendState(original_blend_state, original_blend_factor, original_blend_mask);
         original_render_target_view->Release();
         original_depth_stencil_view->Release();
-        return;
+        original_blend_state->Release();
+
+        d3dviewport.Width = m_viewport_width;
+        d3dviewport.Height = m_viewport_height;
+        m_d3d_context->RSSetViewports(1, &d3dviewport);
     }
-
-    // Get a pointer to the data in the constant buffer.
-    ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
-
-    dataPtr->transform = m_transform;
-
-    // To blit we need to map the UVs from a 0 to 1 range to a src0 to src1 range
-    dataPtr->blit.src_x_min = (float) srcX0 / (float) source.width;     // Map to 0
-    dataPtr->blit.src_y_min = (float) srcY0 / (float) source.height;    // Map to 0
-    dataPtr->blit.src_x_max = (float) srcX1 / (float) source.width;     // Map to +1
-    dataPtr->blit.src_y_max = (float) srcY1 / (float) source.height;    // Map to +1
-
-    // To blit we need to map the position from a -1 to 1 range to a dst0 dst1 range
-    dataPtr->blit.dst_x_min = (float) dstX0 / (float) dest.width;       // Map to -1
-    dataPtr->blit.dst_y_min = (float) dstY0 / (float) dest.height;      // Map to -1
-    dataPtr->blit.dst_x_max = (float) dstX1 / (float) dest.width;       // Map to +1
-    dataPtr->blit.dst_y_max = (float) dstY1 / (float) dest.height;      // Map to +1
-
-    // Upload to the GPU.
-    m_d3d_context->Unmap(m_shader_buffer, 0);
-
-    // Bind texture
-    m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
-    Gfx::BindTexture(m_d3d_context, temporary_rt);
-    
-    DrawFullscreenQuad();
-
-    // Restore state
-    m_d3d_context->OMSetRenderTargets(1, &original_render_target_view, original_depth_stencil_view);
-    m_d3d_context->RSSetState(m_scissor_enabled ? m_rasterizer_state_scissor_enabled : m_rasterizer_state_scissor_disabled);
-    original_render_target_view->Release();
-    original_depth_stencil_view->Release();
+    else
+    {
+        // Resolve and move on
+        m_d3d_context->ResolveSubresource(dest.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+    }
 }
 
 void RenderInterface_DX11::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle)
@@ -2055,7 +2117,7 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
     Gfx::BindTexture(m_d3d_context, source);
     UseProgram(ProgramId::Passthrough);
     ID3D11BlendState* blend_state_backup = m_current_blend_state;
-    SetBlendState(m_blend_state_disable);
+    SetBlendState(m_blend_state_replace);
 
     DrawFullscreenQuad();
 

@@ -197,6 +197,7 @@ private:
     ID3D11BlendState* m_blend_state_disable = nullptr;
     ID3D11BlendState* m_blend_state_disable_color = nullptr;
     ID3D11BlendState* m_blend_state_color_filter = nullptr;
+    ID3D11BlendState* m_blend_state_replace = nullptr;
 
     ProgramId active_program = {};
     Rml::Rectanglei m_scissor_state = Rml::Rectanglei::MakeInvalid();
@@ -206,7 +207,7 @@ private:
     public:
         ID3D11Buffer* vertex_buffer = nullptr;
         ID3D11Buffer* index_buffer = nullptr;
-        uint32_t index_count = 0;
+        size_t index_count = 0;
     };
 
     std::unordered_map<uintptr_t, DX11_GeometryData> m_geometry_cache;
