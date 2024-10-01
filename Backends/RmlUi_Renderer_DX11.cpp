@@ -504,7 +504,7 @@ PS_Input VSMain(const VS_Input IN)
     result.position.xy = result.position.xy * 0.5f + 0.5f; // Remap to 0-+1
     result.position.x = lerp(m_destination_min.x, m_destination_max.x, result.position.x);
     result.position.y = lerp(m_destination_min.y, m_destination_max.y, result.position.y);
-    result.position.xy = (result.position.xy - 0.5f) * 2.0f; // Remap to -1-+1
+    result.position.xy = result.position.xy * 2.0f - 1.0; // Remap to -1-+1
 
     return result;
 };
