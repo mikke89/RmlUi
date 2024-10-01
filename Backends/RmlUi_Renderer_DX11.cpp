@@ -638,7 +638,7 @@ struct ProgramData {
 };
 
 // Create the shader, 'shader_type' is either GL_VERTEX_SHADER or GL_FRAGMENT_SHADER.
-static bool CreateShader(ID3D11Device* p_device, ID3DBlob*& out_shader_dxil, ShaderType shader_type, const char* code_string, const size_t code_length)
+static bool CreateShader(ID3DBlob*& out_shader_dxil, ShaderType shader_type, const char* code_string, const size_t code_length)
 {
     RMLUI_ASSERT(shader_type == ShaderType::Vertex || shader_type == ShaderType::Fragment);
 
@@ -668,7 +668,7 @@ static bool CreateShader(ID3D11Device* p_device, ID3DBlob*& out_shader_dxil, Sha
     return true;
 }
 
-static bool CreateProgram(ID3D11Device* p_device, ShaderProgram& out_program, ProgramId program_id, ID3DBlob* vertex_shader, ID3DBlob* fragment_shader)
+static bool CreateProgram(ID3D11Device* p_device, ShaderProgram& out_program, ID3DBlob* vertex_shader, ID3DBlob* fragment_shader)
 {
     RMLUI_ASSERT(vertex_shader);
     RMLUI_ASSERT(fragment_shader);
@@ -840,9 +840,13 @@ static void DestroyRenderTarget(RenderTargetData& rt)
     rt = {};
 }
 
-static void BindTexture(ID3D11DeviceContext* context, const RenderTargetData& rt, uint32_t slot = 0)
 {
     context->PSSetShaderResources(slot, 1, &rt.render_target_shader_resource_view);
+}
+
+static inline void BindRenderTarget(ID3D11DeviceContext* context, const RenderTargetData& rt)
+{
+    context->OMSetRenderTargets(1, &rt.render_target_view, rt.depth_stencil_view);
 }
 
 static bool CreateShaders(ID3D11Device* p_device, ProgramData& data)
@@ -857,19 +861,18 @@ static bool CreateShaders(ID3D11Device* p_device, ProgramData& data)
 
     for (const VertShaderDefinition& def : vert_shader_definitions)
     {
-        if (!CreateShader(p_device, data.vert_shaders[def.id], ShaderType::Vertex, def.code_str, def.code_size))
+        if (!CreateShader(data.vert_shaders[def.id], ShaderType::Vertex, def.code_str, def.code_size))
             return ReportError("vertex shader", def.name_str);
     }
 
     for (const FragShaderDefinition& def : frag_shader_definitions)
     {
-        if (!CreateShader(p_device, data.frag_shaders[def.id], ShaderType::Fragment, def.code_str, def.code_size))
+        if (!CreateShader(data.frag_shaders[def.id], ShaderType::Fragment, def.code_str, def.code_size))
             return ReportError("fragment shader", def.name_str);
     }
 
     for (const ProgramDefinition& def : program_definitions)
     {
-        if (!CreateProgram(p_device, data.programs[def.id], def.id, data.vert_shaders[def.vert_shader], data.frag_shaders[def.frag_shader]))
             return ReportError("program", def.name_str);
     }
 
@@ -1241,7 +1244,7 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     SetTransform(nullptr);
 
     m_render_layers.BeginFrame(m_viewport_width, m_viewport_height);
-    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
     float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, clearColor);
 
@@ -1918,7 +1921,7 @@ Rml::LayerHandle RenderInterface_DX11::PushLayer()
     m_debug->BeginEvent(L"BeginLayer");
     const Rml::LayerHandle layer_handle = m_render_layers.PushLayer();
 
-    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
     float colors[4] = {0, 0, 0, 0};
     m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, colors);
 
@@ -1940,8 +1943,7 @@ void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source_handle, Rml::
     RenderFilters(filters);
 
     // Render to the destination layer.
-    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetLayer(destination_handle).render_target_view,
-        m_render_layers.GetLayer(destination_handle).depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetLayer(destination_handle));
     Gfx::BindTexture(m_d3d_context, m_render_layers.GetPostprocessPrimary());
 
     UseProgram(ProgramId::Passthrough);
@@ -1955,14 +1957,14 @@ void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source_handle, Rml::
         SetBlendState(m_blend_state_enable);
 
     if (destination_handle != m_render_layers.GetTopLayerHandle())
-        m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+        Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
 }
 
 void RenderInterface_DX11::PopLayer()
 {
     m_render_layers.PopLayer();
     m_debug->EndEvent();
-    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
 }
 
 Rml::TextureHandle RenderInterface_DX11::SaveLayerAsTexture()
@@ -2013,7 +2015,7 @@ Rml::TextureHandle RenderInterface_DX11::SaveLayerAsTexture()
 
     // Restore state and free memory
     SetScissor(bounds);
-    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
     texture_resource->Release();
 
     return render_texture;
@@ -2045,7 +2047,7 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
     const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
     const Gfx::RenderTargetData& destination = m_render_layers.GetBlendMask();
 
-    m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, destination.depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, destination);
     Gfx::BindTexture(m_d3d_context, source);
     UseProgram(ProgramId::Passthrough);
     ID3D11BlendState* blend_state_backup = m_current_blend_state;
@@ -2054,7 +2056,7 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
     DrawFullscreenQuad();
 
     SetBlendState(blend_state_backup);
-    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
 
     CompiledFilter filter = {};
     filter.type = FilterType::MaskImage;
@@ -2461,8 +2463,7 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
         scissor.p1 = Rml::Math::Max(scissor.p1 / 2, scissor.p0);
         const bool from_source = (i % 2 == 0);
         Gfx::BindTexture(m_d3d_context, from_source ? source_destination : temp);
-        m_d3d_context->OMSetRenderTargets(1, &(from_source ? temp : source_destination).render_target_view,
-            (from_source ? temp : source_destination).depth_stencil_view);
+        Gfx::BindRenderTarget(m_d3d_context, (from_source ? temp : source_destination));
         SetScissor(scissor, true);
 
         DrawFullscreenQuad({}, uv_scaling);
@@ -2481,7 +2482,7 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     if (transfer_to_temp_buffer)
     {
         Gfx::BindTexture(m_d3d_context, source_destination);
-        m_d3d_context->OMSetRenderTargets(1, &temp.render_target_view, temp.depth_stencil_view);
+        Gfx::BindRenderTarget(m_d3d_context, temp);
         DrawFullscreenQuad();
     }
 
@@ -2518,14 +2519,14 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
 
     // Blur render pass - vertical.
     Gfx::BindTexture(m_d3d_context, temp);
-    m_d3d_context->OMSetRenderTargets(1, &source_destination.render_target_view, source_destination.depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, source_destination);
 
     SetTexelOffset({0.f, 1.f}, temp.height);
     DrawFullscreenQuad();
 
     // Blur render pass - horizontal.
     Gfx::BindTexture(m_d3d_context, source_destination);
-    m_d3d_context->OMSetRenderTargets(1, &temp.render_target_view, temp.depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, temp);
 
     // Add a 1px transparent border around the blur region by first clearing with a padded scissor. This helps prevent
     // artifacts when upscaling the blur result in the later step. On Intel and AMD, we have observed that during
@@ -2619,7 +2620,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
             Gfx::BindTexture(m_d3d_context, source);
             m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
-            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, destination.depth_stencil_view);
+            Gfx::BindRenderTarget(m_d3d_context, destination);
 
             DrawFullscreenQuad();
 
@@ -2655,7 +2656,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             const Gfx::RenderTargetData& primary = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& secondary = m_render_layers.GetPostprocessSecondary();
             Gfx::BindTexture(m_d3d_context, primary);
-            m_d3d_context->OMSetRenderTargets(1, &secondary.render_target_view, secondary.depth_stencil_view);
+            Gfx::BindRenderTarget(m_d3d_context, secondary);
 
             D3D11_MAPPED_SUBRESOURCE mappedResource{};
             // Lock the constant buffer so it can be written to.
@@ -2740,7 +2741,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
             Gfx::BindTexture(m_d3d_context, source);
-            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, destination.depth_stencil_view);
+            Gfx::BindRenderTarget(m_d3d_context, destination);
 
             DrawFullscreenQuad();
 
@@ -2763,7 +2764,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             Gfx::BindTexture(m_d3d_context, source, 0);
             Gfx::BindTexture(m_d3d_context, blend_mask, 1);
-            m_d3d_context->OMSetRenderTargets(1, &destination.render_target_view, destination.depth_stencil_view);
+            Gfx::BindRenderTarget(m_d3d_context, destination);
 
             DrawFullscreenQuad();
 
@@ -2874,7 +2875,7 @@ void RenderInterface_DX11::RenderToClipMask(Rml::ClipMaskOperation operation, Rm
     float blendFactor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     m_d3d_context->OMSetBlendState(m_blend_state_disable_color, blendFactor, 0xffffffff);
 
-    m_d3d_context->OMSetRenderTargets(1, &m_render_layers.GetTopLayer().render_target_view, m_render_layers.GetTopLayer().depth_stencil_view);
+    Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
     m_d3d_context->OMSetDepthStencilState(stencil_state, 1);
 
     bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
