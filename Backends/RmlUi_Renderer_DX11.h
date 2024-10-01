@@ -194,10 +194,8 @@ private:
 
     ID3D11InputLayout* m_vertex_layout = nullptr;
     ID3D11BlendState* m_blend_state_enable = nullptr;
-    ID3D11BlendState* m_blend_state_disable = nullptr;
     ID3D11BlendState* m_blend_state_disable_color = nullptr;
     ID3D11BlendState* m_blend_state_color_filter = nullptr;
-    ID3D11BlendState* m_blend_state_replace = nullptr;
 
     ProgramId active_program = {};
     Rml::Rectanglei m_scissor_state = Rml::Rectanglei::MakeInvalid();
@@ -213,6 +211,7 @@ private:
     std::unordered_map<uintptr_t, DX11_GeometryData> m_geometry_cache;
 
     // D3D11 state for RmlUi rendering
+    bool m_current_blend_state_enabled = false;
     ID3D11BlendState* m_current_blend_state = nullptr;
     
     // Backup of prior D3D11 state
@@ -279,19 +278,6 @@ private:
             Rml::Vector2f dimensions;
             float value;
         } creation;
-        struct Blit {
-            int _padding[16];
-            
-            float src_x_min;
-            float src_y_min;
-            float src_x_max;
-            float src_y_max;
-
-            float dst_x_min;
-            float dst_y_min;
-            float dst_x_max;
-            float dst_y_max;
-        } blit;
     };
     #pragma pack()
 

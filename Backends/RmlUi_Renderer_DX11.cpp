@@ -463,53 +463,6 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
 };
 )";
 
-constexpr const char shader_vert_blit[] = RMLUI_SHADER_HEADER R"(
-struct VS_Input 
-{
-    float2 position : POSITION;
-    float4 color : COLOR;
-    float2 uv : TEXCOORD;
-};
-
-struct PS_Input
-{
-    float4 position : SV_Position;
-    float4 color : COLOR;
-    float2 uv : TEXCOORD;
-};
-
-cbuffer ConstantBuffer : register(b0)
-{
-    float4x4 m_transform;
-    float2 m_source_min;
-    float2 m_source_max;
-    float2 m_destination_min;
-    float2 m_destination_max;
-    float4 _padding2[20]; // Padding so that cbuffer aligns with the largest one (gradient)
-};
-
-PS_Input VSMain(const VS_Input IN)
-{
-    PS_Input result = (PS_Input)0;
-
-    result.position = float4(IN.position.xy, 0.0f, 1.0f);
-    result.uv = float2(IN.uv.x, 1.0f - IN.uv.y);
-
-    // Correct coordinates to match source and dest bounds
-    // For source we lerp the UVs
-    result.uv.x = lerp(m_source_min.x, m_source_max.x, result.uv.x);
-    result.uv.y = lerp(m_source_min.y, m_source_max.y, result.uv.y);
-
-    // For destination we lerp the positions. Since the clip space box has a range of -1 to +1, we have to remap -1 to +1 to 0 to 1, lerp, then remap back to -1 to +1
-    result.position.xy = result.position.xy * 0.5f + 0.5f; // Remap to 0-+1
-    result.position.x = lerp(m_destination_min.x, m_destination_max.x, result.position.x);
-    result.position.y = lerp(m_destination_min.y, m_destination_max.y, result.position.y);
-    result.position.xy = result.position.xy * 2.0f - 1.0; // Remap to -1-+1
-
-    return result;
-};
-)";
-
 enum class ProgramId {
     None,
     Color,
@@ -521,14 +474,12 @@ enum class ProgramId {
     BlendMask,
     Blur,
     DropShadow,
-    Blit,
     Count,
 };
 enum class VertShaderId {
     Main,
     Passthrough,
     Blur,
-    Blit,
     Count,
 };
 enum class FragShaderId {
@@ -574,7 +525,6 @@ static const VertShaderDefinition vert_shader_definitions[] = {
     {VertShaderId::Main,        "main",         shader_vert_main,           sizeof(shader_vert_main)},
     {VertShaderId::Passthrough, "passthrough",  shader_vert_passthrough,    sizeof(shader_vert_passthrough)},
     {VertShaderId::Blur,        "blur",         shader_vert_blur,           sizeof(shader_vert_blur)},
-    {VertShaderId::Blit,        "blit",         shader_vert_blit,           sizeof(shader_vert_blit)},
 };
 static const FragShaderDefinition frag_shader_definitions[] = {
     {FragShaderId::Color,       "color",        shader_frag_color,          sizeof(shader_frag_color)},
@@ -597,7 +547,6 @@ static const ProgramDefinition program_definitions[] = {
     {ProgramId::BlendMask,   "blend_mask",   VertShaderId::Passthrough, FragShaderId::BlendMask},
     {ProgramId::Blur,        "blur",         VertShaderId::Blur,        FragShaderId::Blur},
     {ProgramId::DropShadow,  "drop_shadow",  VertShaderId::Passthrough, FragShaderId::DropShadow},
-    {ProgramId::Blit,        "blur",         VertShaderId::Blit,        FragShaderId::Passthrough},
 };
 // clang-format on
 
@@ -936,30 +885,12 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
 
     if (!m_blend_state_enable)
     {
+        // RmlUi serves vertex colors and textures with premultiplied alpha, set the blend mode accordingly.
+        // Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
         D3D11_BLEND_DESC blend_desc{};
         ZeroMemory(&blend_desc, sizeof(blend_desc));
         blend_desc.AlphaToCoverageEnable = false;
         blend_desc.IndependentBlendEnable = false;
-        blend_desc.RenderTarget[0].BlendEnable = true;
-        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
-        blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-        blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
-        blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-        blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-        blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-        HRESULT result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_disable);
-        RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
-    #ifdef RMLUI_DX_DEBUG
-        if (FAILED(result))
-        {
-            Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateBlendState (%d)", result);
-            return;
-        }
-    #endif
-
-        // RmlUi serves vertex colors and textures with premultiplied alpha, set the blend mode accordingly.
-        // Equivalent to glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
         blend_desc.RenderTarget[0].BlendEnable = true;
         blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
         blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
@@ -968,7 +899,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
         blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
         blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-        result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_enable);
+        HRESULT result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_enable);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
     #ifdef RMLUI_DX_DEBUG
         if (FAILED(result))
@@ -1000,24 +931,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
         blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
         result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_color_filter);
-        RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
-    #ifdef RMLUI_DX_DEBUG
-        if (FAILED(result))
-        {
-            Rml::Log::Message(Rml::Log::LT_ERROR, "ID3D11Device::CreateBlendState (%d)", result);
-            return;
-        }
-    #endif
-
-        blend_desc.RenderTarget[0].BlendEnable = true;
-        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
-        blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-        blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
-        blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-        blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-        blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-        result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_replace);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
     #ifdef RMLUI_DX_DEBUG
         if (FAILED(result))
@@ -1827,11 +1740,20 @@ void RenderInterface_DX11::Clear()
 
 void RenderInterface_DX11::SetBlendState(ID3D11BlendState* blend_state)
 {
-    if (blend_state != m_current_blend_state)
+    if (!m_current_blend_state_enabled || blend_state != m_current_blend_state)
     {
         const float blend_factor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
         m_d3d_context->OMSetBlendState(blend_state, blend_factor, 0xFFFFFFFF);
         m_current_blend_state = blend_state;
+        m_current_blend_state_enabled = true;
+    }
+}
+
+void RenderInterface_DX11::DisableBlend() {
+    if (m_current_blend_state_enabled)
+    {
+        m_d3d_context->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+        m_current_blend_state_enabled = false;
     }
 }
 
@@ -1873,6 +1795,7 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
 
     if (is_flipped || is_stretched || !is_full_copy)
     {
+        DebugScope scope(L"Complex");
         // Full draw call. Slow path because no equivalent in DX11
 
         // Cache current state
@@ -1891,9 +1814,8 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
         ID3D11ShaderResourceView* null_shader_resource_views[2] = {nullptr, nullptr};
         m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
 
-        // Replace mode
-        float blendFactor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-        m_d3d_context->OMSetBlendState(m_blend_state_replace, blendFactor, 0xFFFFFFFF);
+        // Disable blending
+        m_d3d_context->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 
         // Resolve from source to the temporary first
         m_d3d_context->ResolveSubresource(temporary_rt.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -1910,48 +1832,65 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
         d3dviewport.MaxDepth = 1.0f;
         m_d3d_context->RSSetViewports(1, &d3dviewport);
 
+        // Bind texture
+        m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
+        Gfx::BindTexture(m_d3d_context, temporary_rt);
+        UseProgram(ProgramId::Passthrough);
+
         // Draw a quad into temporary with source bound as the texture, and the UVs lerping to match the new dimensions
         // We want to map UV   0 -  1 to src min-max
         // We want to map pos -1 - +1 to dst min max
-        UseProgram(ProgramId::Blit);
 
-        ShaderCbuffer* dataPtr = nullptr;
+        float uv_x_min = float(srcX0) / float(source.width);  // Map to 0
+        float uv_y_max = float(srcY0) / float(source.height); // Map to 0
+        float uv_x_max = float(srcX1) / float(source.width);  // Map to +1
+        float uv_y_min = float(srcY1) / float(source.height); // Map to +1
 
-        D3D11_MAPPED_SUBRESOURCE mappedResource{};
-        // Lock the constant buffer so it can be written to.
-        HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-        if (FAILED(result))
-        {
-            // Restore state before exiting
-            goto blit_restore_state;
-            return;
-        }
+        float pos_x_min = (dstX0 / float(dest.width)) * 2.0f - 1.0f;
+        float pos_y_min = ((dest.height - dstY0 - dest_height) / float(dest.height)) * 2.0f - 1.0f;
+        float pos_x_max = ((dstX0 + dest_width) / float(dest.width)) * 2.0f - 1.0f;
+        float pos_y_max = ((dest.height - dstY0) / float(dest.height)) * 2.0f - 1.0f;
+        
+        Rml::Mesh mesh;
+        const int v0 = (int)mesh.vertices.size();
+        const int i0 = (int)mesh.indices.size();
+        
+        mesh.vertices.resize(mesh.vertices.size() + 4);
+        mesh.indices.resize(mesh.indices.size() + 6);
+        Rml::Vertex* vertices = mesh.vertices.data();
+        int* indices = mesh.indices.data();
 
-        // Get a pointer to the data in the constant buffer.
-        dataPtr = (ShaderCbuffer*)mappedResource.pData;
+        vertices[v0 + 0].position.x  = pos_x_min;
+        vertices[v0 + 0].position.y  = pos_y_min;
+        vertices[v0 + 0].tex_coord.x = uv_x_min;
+        vertices[v0 + 0].tex_coord.y = uv_y_min;
 
-        dataPtr->transform = m_transform;
+        vertices[v0 + 1].position.x  = pos_x_max;
+        vertices[v0 + 1].position.y  = pos_y_min;
+        vertices[v0 + 1].tex_coord.x = uv_x_max;
+        vertices[v0 + 1].tex_coord.y = uv_y_min;
 
-        // To blit we need to map the UVs from a 0 to 1 range to a src0 to src1 range
-        dataPtr->blit.src_x_min = float(srcX0) / float(source.width);  // Map to 0
-        dataPtr->blit.src_y_min = float(srcY0) / float(source.height); // Map to 0
-        dataPtr->blit.src_x_max = float(srcX1) / float(source.width);  // Map to +1
-        dataPtr->blit.src_y_max = float(srcY1) / float(source.height); // Map to +1
+        vertices[v0 + 2].position.x  = pos_x_max;
+        vertices[v0 + 2].position.y  = pos_y_max;
+        vertices[v0 + 2].tex_coord.x = uv_x_max;
+        vertices[v0 + 2].tex_coord.y = uv_y_max;
 
-        dataPtr->blit.dst_x_min = (dstX0 / float(dest.width));
-        dataPtr->blit.dst_y_min = ((dest.height - dstY0 - dest_height) / float(dest.height));
-        dataPtr->blit.dst_x_max = ((dstX0 + dest_width) / float(dest.width));
-        dataPtr->blit.dst_y_max = ((dest.height - dstY0) / float(dest.height));
+        vertices[v0 + 3].position.x  = pos_x_min;
+        vertices[v0 + 3].position.y  = pos_y_max;
+        vertices[v0 + 3].tex_coord.x = uv_x_min;
+        vertices[v0 + 3].tex_coord.y = uv_y_max;
 
-        // Upload to the GPU.
-        m_d3d_context->Unmap(m_shader_buffer, 0);
+        indices[i0 + 0] = v0 + 0;
+        indices[i0 + 1] = v0 + 3;
+        indices[i0 + 2] = v0 + 1;
 
-        // Bind texture
-        m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
-
-        Gfx::BindTexture(m_d3d_context, temporary_rt);
-
-        DrawFullscreenQuad();
+        indices[i0 + 3] = v0 + 1;
+        indices[i0 + 4] = v0 + 3;
+        indices[i0 + 5] = v0 + 2;
+        
+        const Rml::CompiledGeometryHandle geometry = CompileGeometry(mesh.vertices, mesh.indices);
+        RenderGeometry(geometry, {}, RenderInterface_DX11::TexturePostprocess);
+        ReleaseGeometry(geometry);
 
         // Restore state
     blit_restore_state:
@@ -1964,9 +1903,11 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
         d3dviewport.Width = m_viewport_width;
         d3dviewport.Height = m_viewport_height;
         m_d3d_context->RSSetViewports(1, &d3dviewport);
+        m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
     }
     else
     {
+        DebugScope scope(L"Simple");
         // Resolve and move on
         m_d3d_context->ResolveSubresource(dest.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
     }
