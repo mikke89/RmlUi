@@ -2441,7 +2441,6 @@ static void SetBlurWeights(Rml::Vector4f& p_weights, float sigma)
 void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& source_destination, const Gfx::RenderTargetData& temp,
     const Rml::Rectanglei window_flipped)
 {
-    return;
     DebugScope scope(L"RenderBlur");
     RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
     RMLUI_ASSERT(window_flipped.Valid());
@@ -2633,9 +2632,9 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
+            Gfx::BindRenderTarget(m_d3d_context, destination);
             Gfx::BindTexture(m_d3d_context, source);
             m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
-            Gfx::BindRenderTarget(m_d3d_context, destination);
 
             DrawFullscreenQuad();
 
@@ -2671,8 +2670,8 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             const Gfx::RenderTargetData& primary = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& secondary = m_render_layers.GetPostprocessSecondary();
-            Gfx::BindTexture(m_d3d_context, primary);
             Gfx::BindRenderTarget(m_d3d_context, secondary);
+            Gfx::BindTexture(m_d3d_context, primary);
 
             D3D11_MAPPED_SUBRESOURCE mappedResource{};
             // Lock the constant buffer so it can be written to.
@@ -2714,7 +2713,6 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             }
 
             UseProgram(ProgramId::Passthrough);
-            BindTexture(m_d3d_context, primary);
             SetBlendState(blend_state_backup);
             DrawFullscreenQuad();
 
