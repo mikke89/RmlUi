@@ -264,8 +264,8 @@ private:
         } color_matrix;
         struct Blur {
             int _padding[18];
-            Rml::Vector4f weights;
             Rml::Vector2f texel_offset;
+            Rml::Vector4f weights;
             Rml::Vector2f texcoord_min;
             Rml::Vector2f texcoord_max;
         } blur;

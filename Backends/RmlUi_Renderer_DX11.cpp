@@ -382,8 +382,8 @@ cbuffer SharedConstantBuffer : register(b0)
 {
     float4x4 m_transform;
     float2 m_translate;
-    float4 m_weights;
     float2 m_texelOffset;
+    float4 m_weights;
     float2 m_texCoordMin;
     float2 m_texCoordMax;
     float4 _padding[19]; // Padding so that cbuffer aligns with the largest one (gradient)
@@ -410,8 +410,8 @@ cbuffer ConstantBuffer : register(b0)
 {
     float4x4 m_transform;
     float2 m_translate;
-    float4 m_weights;
     float2 m_texelOffset;
+    float4 m_weights;
     float2 m_texCoordMin;
     float2 m_texCoordMax;
     float4 _padding[19]; // Padding so that cbuffer aligns with the largest one (gradient)
