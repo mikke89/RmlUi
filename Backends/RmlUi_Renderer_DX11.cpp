@@ -1686,8 +1686,6 @@ Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::by
         m_d3d_context->GenerateMips(gpu_texture_view);
     }
 
-    uintptr_t handleId = HashPointer((uintptr_t)gpu_texture_view);
-
     return Rml::TextureHandle(gpu_texture_view);
 }
 
