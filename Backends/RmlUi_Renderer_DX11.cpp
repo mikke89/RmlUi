@@ -315,8 +315,9 @@ SamplerState g_SamplerLinear : register(s0);
 
 cbuffer ConstantBuffer : register(b0)
 {
+    float4 _padding[5];
     float4x4 m_color_matrix;
-    float4 _padding[22]; // Padding so that cbuffer aligns with the largest one (gradient)
+    float4 _padding2[17]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
 struct PS_Input
@@ -2714,7 +2715,6 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
         break;
         case FilterType::ColorMatrix:
         {
-            return;
             DebugScope scope_ColorMatrix(L"ColorMatrix");
 
             UseProgram(ProgramId::ColorMatrix);
@@ -2738,7 +2738,8 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             dataPtr->transform = m_transform;
             dataPtr->translation = m_translation;
             memset(&dataPtr->color_matrix.color_matrix, 0, sizeof(dataPtr->color_matrix.color_matrix));
-            memcpy_s(&dataPtr->color_matrix.color_matrix, sizeof(dataPtr->color_matrix.color_matrix), filter.color_matrix.data(), sizeof(dataPtr->color_matrix.color_matrix));
+            memcpy_s(&dataPtr->color_matrix.color_matrix, sizeof(dataPtr->color_matrix.color_matrix),
+                transpose ? filter.color_matrix.Transpose().data() : filter.color_matrix.data(), sizeof(dataPtr->color_matrix.color_matrix));
 
             // Upload to the GPU.
             m_d3d_context->Unmap(m_shader_buffer, 0);
@@ -2747,15 +2748,16 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
-            Gfx::BindTexture(m_d3d_context, source);
             Gfx::BindRenderTarget(m_d3d_context, destination);
+            Gfx::BindTexture(m_d3d_context, source);
 
             DrawFullscreenQuad();
 
-            m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
-
             m_render_layers.SwapPostprocessPrimarySecondary();
             SetBlendState(blend_state_backup);
+
+            ID3D11ShaderResourceView* const nullSRV = nullptr;
+            m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
         }
         break;
         case FilterType::MaskImage:

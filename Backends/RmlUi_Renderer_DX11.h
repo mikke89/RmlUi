@@ -259,6 +259,7 @@ private:
             float stop_positions[16];
         } gradient;
         struct ColorMatrix {
+            int _padding[20];
             Rml::Matrix4f color_matrix;
         } color_matrix;
         struct Blur {
