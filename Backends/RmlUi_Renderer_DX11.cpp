@@ -2055,6 +2055,10 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
     const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
     const Gfx::RenderTargetData& destination = m_render_layers.GetBlendMask();
 
+    // Unbind resources
+    ID3D11ShaderResourceView* const nullSRV = nullptr;
+    m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
+
     Gfx::BindRenderTarget(m_d3d_context, destination);
     Gfx::BindTexture(m_d3d_context, source);
     UseProgram(ProgramId::Passthrough);
@@ -2062,6 +2066,9 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
     DisableBlend();
 
     DrawFullscreenQuad();
+
+    // Unbind resources
+    m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
 
     SetBlendState(blend_state_backup);
     Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
@@ -2634,6 +2641,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             m_render_layers.SwapPostprocessPrimarySecondary();
             SetBlendState(m_blend_state_enable);
+            m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
         }
         break;
         case FilterType::Blur:
@@ -2711,6 +2719,9 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             DrawFullscreenQuad();
 
             m_render_layers.SwapPostprocessPrimarySecondary();
+
+            ID3D11ShaderResourceView* const nullSRV = nullptr;
+            m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
         }
         break;
         case FilterType::ColorMatrix:
@@ -2777,11 +2788,9 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             DrawFullscreenQuad();
 
-            // Unbind textures
-            m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
-
             m_render_layers.SwapPostprocessPrimarySecondary();
             SetBlendState(blend_state_backup);
+            m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
         }
         break;
         case FilterType::Invalid:
@@ -2790,6 +2799,10 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
         }
         break;
         }
+
+        // Unbind resources
+        ID3D11ShaderResourceView* const nullSRV = nullptr;
+        m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
     }
 }
 
