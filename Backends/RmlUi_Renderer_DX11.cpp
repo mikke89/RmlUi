@@ -1169,8 +1169,8 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     D3D11_VIEWPORT d3dviewport;
     d3dviewport.TopLeftX = 0;
     d3dviewport.TopLeftY = 0;
-    d3dviewport.Width = m_viewport_width;
-    d3dviewport.Height = m_viewport_height;
+    d3dviewport.Width = (float) m_viewport_width;
+    d3dviewport.Height = (float) m_viewport_height;
     d3dviewport.MinDepth = 0.0f;
     d3dviewport.MaxDepth = 1.0f;
     m_d3d_context->RSSetViewports(1, &d3dviewport);
@@ -1318,7 +1318,7 @@ Rml::CompiledGeometryHandle RenderInterface_DX11::CompileGeometry(Rml::Span<cons
     {
         D3D11_BUFFER_DESC vertexBufferDesc{};
         vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-        vertexBufferDesc.ByteWidth = sizeof(Rml::Vertex) * vertices.size();
+        vertexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(Rml::Vertex) * vertices.size());
         vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         vertexBufferDesc.CPUAccessFlags = 0;
         vertexBufferDesc.MiscFlags = 0;
@@ -1341,7 +1341,7 @@ Rml::CompiledGeometryHandle RenderInterface_DX11::CompileGeometry(Rml::Span<cons
     {
         D3D11_BUFFER_DESC indexBufferDesc{};
         indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-        indexBufferDesc.ByteWidth = sizeof(int) * indices.size();
+        indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(int) * indices.size());
         indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
         indexBufferDesc.CPUAccessFlags = 0;
         indexBufferDesc.MiscFlags = 0;
@@ -1434,7 +1434,7 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
         m_d3d_context->IASetVertexBuffers(0, 1, &geometryData.vertex_buffer, &stride, &offset);
         m_d3d_context->IASetIndexBuffer(geometryData.index_buffer, DXGI_FORMAT_R32_UINT, 0);
         m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        m_d3d_context->DrawIndexed(geometryData.index_count, 0, 0);
+        m_d3d_context->DrawIndexed(static_cast<UINT>(geometryData.index_count), 0, 0);
 
         // Unbind resources
         ID3D11ShaderResourceView* const nullSRV = nullptr;
@@ -1606,7 +1606,7 @@ Rml::TextureHandle RenderInterface_DX11::GenerateTexture(Rml::Span<const Rml::by
     srvDesc.Format = textureDesc.Format;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = -1;
+    srvDesc.Texture2D.MipLevels = static_cast<UINT>(-1);
 
     // Create the shader resource view for the texture.
     result = m_d3d_device->CreateShaderResourceView(gpu_texture, &srvDesc, &gpu_texture_view);
@@ -1794,7 +1794,7 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
 
     if (is_flipped || is_stretched || !is_full_copy)
     {
-        DebugScope scope(L"Complex");
+        DebugScope scope2(L"Complex");
         // Full draw call. Slow path because no equivalent in DX11
 
         // Cache current state
@@ -1892,21 +1892,20 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
         ReleaseGeometry(geometry);
 
         // Restore state
-    blit_restore_state:
         m_d3d_context->OMSetRenderTargets(1, &original_render_target_view, original_depth_stencil_view);
         m_d3d_context->OMSetBlendState(original_blend_state, original_blend_factor, original_blend_mask);
         original_render_target_view->Release();
         original_depth_stencil_view->Release();
         original_blend_state->Release();
 
-        d3dviewport.Width = m_viewport_width;
-        d3dviewport.Height = m_viewport_height;
+        d3dviewport.Width = static_cast<FLOAT>(m_viewport_width);
+        d3dviewport.Height = static_cast<FLOAT>(m_viewport_height);
         m_d3d_context->RSSetViewports(1, &d3dviewport);
         m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
     }
     else
     {
-        DebugScope scope(L"Simple");
+        DebugScope scope2(L"Simple");
         // Resolve and move on
         m_d3d_context->ResolveSubresource(dest.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
     }
@@ -1953,8 +1952,6 @@ void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source_handle, Rml::
     Gfx::BindTexture(m_d3d_context, m_render_layers.GetPostprocessPrimary());
 
     UseProgram(ProgramId::Passthrough);
-
-    ID3D11BlendState* current_blend_state = m_current_blend_state;
 
     if (blend_mode == BlendMode::Replace)
         DisableBlend();
@@ -2337,7 +2334,7 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
         m_d3d_context->IASetVertexBuffers(0, 1, &geometry.vertex_buffer, &stride, &offset);
         m_d3d_context->IASetIndexBuffer(geometry.index_buffer, DXGI_FORMAT_R32_UINT, 0);
         m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        m_d3d_context->DrawIndexed(geometry.index_count, 0, 0);
+        m_d3d_context->DrawIndexed(static_cast<UINT>(geometry.index_count), 0, 0);
     }
     break;
     case CompiledShaderType::Creation:
@@ -2376,7 +2373,7 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
         m_d3d_context->IASetVertexBuffers(0, 1, &geometry.vertex_buffer, &stride, &offset);
         m_d3d_context->IASetIndexBuffer(geometry.index_buffer, DXGI_FORMAT_R32_UINT, 0);
         m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        m_d3d_context->DrawIndexed(geometry.index_count, 0, 0);
+        m_d3d_context->DrawIndexed(static_cast<UINT>(geometry.index_count), 0, 0);
     }
     break;
     case CompiledShaderType::Invalid:
@@ -2460,8 +2457,8 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     D3D11_VIEWPORT d3dviewport;
     d3dviewport.TopLeftX = 0;
     d3dviewport.TopLeftY = 0;
-    d3dviewport.Width = source_destination.width / 2;
-    d3dviewport.Height = source_destination.height / 2;
+    d3dviewport.Width = static_cast<FLOAT>(source_destination.width / 2);
+    d3dviewport.Height = static_cast<FLOAT>(source_destination.height / 2);
     d3dviewport.MinDepth = 0.0f;
     d3dviewport.MaxDepth = 1.0f;
     m_d3d_context->RSSetViewports(1, &d3dviewport);
@@ -2485,8 +2482,8 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
 
     d3dviewport.TopLeftX = 0;
     d3dviewport.TopLeftY = 0;
-    d3dviewport.Width = source_destination.width;
-    d3dviewport.Height = source_destination.height;
+    d3dviewport.Width = static_cast<FLOAT>(source_destination.width);
+    d3dviewport.Height = static_cast<FLOAT>(source_destination.height);
     d3dviewport.MinDepth = 0.0f;
     d3dviewport.MaxDepth = 1.0f;
     m_d3d_context->RSSetViewports(1, &d3dviewport);
@@ -2586,10 +2583,10 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
         Gfx::BindTexture(m_d3d_context, temp);
 
         D3D11_VIEWPORT viewport;
-        viewport.TopLeftX = target_min.x;
-        viewport.TopLeftY = target_min.y;
-        viewport.Width = (float)(target_max.x - target_min.x);
-        viewport.Height = (float)(target_max.y - target_min.y);
+        viewport.TopLeftX = static_cast<FLOAT>(target_min.x);
+        viewport.TopLeftY = static_cast<FLOAT>(target_min.y);
+        viewport.Width = static_cast<FLOAT>(target_max.x - target_min.x);
+        viewport.Height = static_cast<FLOAT>(target_max.y - target_min.y);
         viewport.MinDepth = 0.0f;
         viewport.MaxDepth = 1.0f;
         m_d3d_context->RSSetViewports(1, &viewport);
