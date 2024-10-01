@@ -2830,18 +2830,15 @@ void RenderInterface_DX11::UseProgram(ProgramId program_id) {
 
 void RenderInterface_DX11::EnableClipMask(bool enable)
 {
-    LPCWSTR clipMaskName = L"EnableClipMask";
-    if (!enable)
-        clipMaskName = L"DisableClipMask";
-    DebugScope scope(clipMaskName);
-
     m_is_stencil_enabled = enable;
     if (enable)
     {
+        DebugScope scope(L"EnableClipMask");
         m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_stencil_test, m_stencil_ref_value);
     }
     else
     {
+        DebugScope scope(L"DisableClipMask");
         m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
     }
 }
