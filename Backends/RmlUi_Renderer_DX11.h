@@ -143,6 +143,7 @@ public:
 private:
     // Changes blend state if necessary
     void SetBlendState(ID3D11BlendState* blend_state);
+    void DisableBlend();
     void UpdateConstantBuffer();
     void UseProgram(ProgramId program_id);
 

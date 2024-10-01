@@ -1111,10 +1111,8 @@ void RenderInterface_DX11::Cleanup()
     // Cleans up all general resources
     DX_CLEANUP_RESOURCE_IF_CREATED(m_sampler_state);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_enable);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_color_filter);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_disable_color);
-    DX_CLEANUP_RESOURCE_IF_CREATED(m_blend_state_replace);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_disable);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_intersect);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_depth_stencil_state_stencil_set);
@@ -1955,13 +1953,15 @@ void RenderInterface_DX11::CompositeLayers(Rml::LayerHandle source_handle, Rml::
 
     UseProgram(ProgramId::Passthrough);
 
+    ID3D11BlendState* current_blend_state = m_current_blend_state;
+
     if (blend_mode == BlendMode::Replace)
-        SetBlendState(m_blend_state_disable);
+        DisableBlend();
 
     DrawFullscreenQuad();
 
     if (blend_mode == BlendMode::Replace)
-        SetBlendState(m_blend_state_enable);
+        SetBlendState(m_current_blend_state);
 
     if (destination_handle != m_render_layers.GetTopLayerHandle())
         Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
@@ -2058,7 +2058,7 @@ Rml::CompiledFilterHandle RenderInterface_DX11::SaveLayerAsMaskImage()
     Gfx::BindTexture(m_d3d_context, source);
     UseProgram(ProgramId::Passthrough);
     ID3D11BlendState* blend_state_backup = m_current_blend_state;
-    SetBlendState(m_blend_state_replace);
+    DisableBlend();
 
     DrawFullscreenQuad();
 
@@ -2639,7 +2639,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
         {
             return;
             ID3D11BlendState* blend_state_backup = m_current_blend_state;
-            SetBlendState(m_blend_state_disable);
+            DisableBlend();
 
             const Gfx::RenderTargetData& source_destination = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& temp = m_render_layers.GetPostprocessSecondary();
@@ -2657,7 +2657,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             UseProgram(ProgramId::DropShadow);
             ID3D11BlendState* blend_state_backup = m_current_blend_state;
-            SetBlendState(m_blend_state_disable);
+            DisableBlend();
 
 
             const Gfx::RenderTargetData& primary = m_render_layers.GetPostprocessPrimary();
@@ -2719,7 +2719,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             UseProgram(ProgramId::ColorMatrix);
             ID3D11BlendState* blend_state_backup = m_current_blend_state;
-            SetBlendState(m_blend_state_disable);
+            DisableBlend();
 
             D3D11_MAPPED_SUBRESOURCE mappedResource{};
             // Lock the constant buffer so it can be written to.
@@ -2763,7 +2763,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             DebugScope scope_MaskImage(L"MaskImage");
             UseProgram(ProgramId::BlendMask);
             ID3D11BlendState* blend_state_backup = m_current_blend_state;
-            SetBlendState(m_blend_state_disable);
+            DisableBlend();
 
             const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& blend_mask = m_render_layers.GetBlendMask();
