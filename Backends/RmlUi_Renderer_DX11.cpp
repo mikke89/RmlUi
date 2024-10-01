@@ -840,6 +840,7 @@ static void DestroyRenderTarget(RenderTargetData& rt)
     rt = {};
 }
 
+static inline void BindTexture(ID3D11DeviceContext* context, const RenderTargetData& rt, uint32_t slot = 0)
 {
     context->PSSetShaderResources(slot, 1, &rt.render_target_shader_resource_view);
 }
@@ -873,6 +874,7 @@ static bool CreateShaders(ID3D11Device* p_device, ProgramData& data)
 
     for (const ProgramDefinition& def : program_definitions)
     {
+        if (!CreateProgram(p_device, data.programs[def.id], data.vert_shaders[def.vert_shader], data.frag_shaders[def.frag_shader]))
             return ReportError("program", def.name_str);
     }
 
@@ -1455,7 +1457,7 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
     {
         DX11_GeometryData geometryData = m_geometry_cache[handle];
 
-        if (texture != TexturePostprocess && m_translation != translation)
+        if (m_translation != translation)
         {
             m_translation = translation;
             m_cbuffer_dirty = true;
@@ -1475,14 +1477,14 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
                 m_d3d_context->PSSetShaderResources(0, 1, &texture_view);
             }
             m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
-            UpdateConstantBuffer();
         }
         else
         {
             // No texture, use color
             UseProgram(ProgramId::Color);
-            UpdateConstantBuffer();
         }
+
+        UpdateConstantBuffer();
 
         m_d3d_context->IASetInputLayout(m_vertex_layout);
         m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
@@ -1495,6 +1497,10 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
         m_d3d_context->IASetIndexBuffer(geometryData.index_buffer, DXGI_FORMAT_R32_UINT, 0);
         m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         m_d3d_context->DrawIndexed(geometryData.index_count, 0, 0);
+
+        // Unbind resources
+        ID3D11ShaderResourceView* const nullSRV = nullptr;
+        m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
     }
     else
     {
