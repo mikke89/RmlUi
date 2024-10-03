@@ -78,8 +78,6 @@ cbuffer SharedConstantBuffer : register(b0)
 {
     float4x4 m_transform;
     float2 m_translate;
-    float2 _padding;
-    float4 _padding2[21]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
 PS_INPUT VSMain(const VS_Input IN)
@@ -232,8 +230,6 @@ cbuffer SharedConstantBuffer : register(b0)
     float2 m_translate;
     float2 m_dimensions;
     float m_value;
-    float3 _padding;
-    float4 _padding2[20]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
 #define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
@@ -276,8 +272,6 @@ cbuffer ConstantBuffer : register(b0)
 {
     float4x4 m_transform;
     float2 m_translate;
-    float2 _padding;
-    float4 _padding2[21]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
 PS_Input VSMain(const VS_Input IN)
@@ -384,7 +378,6 @@ cbuffer SharedConstantBuffer : register(b0)
     float4 m_weights;
     float2 m_texCoordMin;
     float2 m_texCoordMax;
-    float4 _padding[19]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
 PS_INPUT VSMain(const VS_Input IN)
@@ -412,7 +405,6 @@ cbuffer ConstantBuffer : register(b0)
     float4 m_weights;
     float2 m_texCoordMin;
     float2 m_texCoordMax;
-    float4 _padding[19]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
 struct PS_Input
@@ -444,8 +436,6 @@ cbuffer ConstantBuffer : register(b0)
     float2 m_texCoordMin;
     float2 m_texCoordMax;
     float4 m_color;
-    float2 _padding;
-    float4 _padding2[19]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
 struct PS_Input
