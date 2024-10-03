@@ -313,11 +313,9 @@ static const char shader_frag_color_matrix[] = RMLUI_SHADER_HEADER R"(
 Texture2D g_InputTexture : register(t0);
 SamplerState g_SamplerLinear : register(s0);
 
-cbuffer ConstantBuffer : register(b0)
+cbuffer ConstantBuffer : register(b1)
 {
-    float4 _padding[5];
     float4x4 m_color_matrix;
-    float4 _padding2[17]; // Padding so that cbuffer aligns with the largest one (gradient)
 };
 
 struct PS_Input
@@ -1021,6 +1019,15 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
         {
             return;
         }
+
+        cbufferDesc.ByteWidth = sizeof(ColorMatrixCbuffer);
+
+        result = m_d3d_device->CreateBuffer(&cbufferDesc, nullptr, &m_color_matrix_cbuffer);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBuffer");
+        if (FAILED(result))
+        {
+            return;
+        }
     }
 
     // Create sampler state for textures
@@ -1121,6 +1128,7 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_disabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_enabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_color_matrix_cbuffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_vertex_layout);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_debug);
 }
@@ -2724,46 +2732,63 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             DebugScope scope_ColorMatrix(L"ColorMatrix");
 
             UseProgram(ProgramId::ColorMatrix);
-            ID3D11BlendState* blend_state_backup = m_current_blend_state;
+
+            ID3D11BlendState* original_blend_state = nullptr;
+            FLOAT original_blend_factor[4] = {};
+            UINT original_sample_mask = 0;
+            m_d3d_context->OMGetBlendState(&original_blend_state, original_blend_factor, &original_sample_mask);
             DisableBlend();
-
-            D3D11_MAPPED_SUBRESOURCE mappedResource{};
-            // Lock the constant buffer so it can be written to.
-            HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-            if (FAILED(result))
-            {
-                return;
-            }
-
-            // Get a pointer to the data in the constant buffer.
-            ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
-
-            constexpr bool transpose = std::is_same<decltype(filter.color_matrix), Rml::RowMajorMatrix4f>::value;
-
-            // Copy the data to the GPU
-            dataPtr->transform = m_transform;
-            dataPtr->translation = m_translation;
-            memset(&dataPtr->color_matrix.color_matrix, 0, sizeof(dataPtr->color_matrix.color_matrix));
-            memcpy_s(&dataPtr->color_matrix.color_matrix, sizeof(dataPtr->color_matrix.color_matrix),
-                transpose ? filter.color_matrix.Transpose().data() : filter.color_matrix.data(), sizeof(dataPtr->color_matrix.color_matrix));
-
-            // Upload to the GPU.
-            m_d3d_context->Unmap(m_shader_buffer, 0);
-
-            m_cbuffer_dirty = true;
 
             const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
             const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
             Gfx::BindRenderTarget(m_d3d_context, destination);
             Gfx::BindTexture(m_d3d_context, source);
 
+            D3D11_MAPPED_SUBRESOURCE mappedResource{};
+            // Lock the constant buffer so it can be written to.
+            HRESULT result = m_d3d_context->Map(m_color_matrix_cbuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+            if (FAILED(result))
+            {
+                // Restore blend state
+                m_d3d_context->OMSetBlendState(original_blend_state, original_blend_factor, original_sample_mask);
+                original_blend_state->Release();
+                m_current_blend_state_enabled = true;
+
+                ID3D11ShaderResourceView* const nullSRV = nullptr;
+                m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
+                m_cbuffer_dirty = true;
+                return;
+            }
+
+            // Get a pointer to the data in the constant buffer.
+            ColorMatrixCbuffer* dataPtr = (ColorMatrixCbuffer*)mappedResource.pData;
+
+            constexpr bool transpose = std::is_same<decltype(filter.color_matrix), Rml::RowMajorMatrix4f>::value;
+
+            // Copy the data to the GPU
+            memcpy_s(&dataPtr->color_matrix, sizeof(dataPtr->color_matrix),
+                transpose ? filter.color_matrix.Transpose().data() : filter.color_matrix.data(), sizeof(dataPtr->color_matrix));
+
+            // Upload to the GPU.
+            m_d3d_context->Unmap(m_color_matrix_cbuffer, 0);
+
+            m_d3d_context->PSSetConstantBuffers(1, 1, &m_color_matrix_cbuffer);
+
             DrawFullscreenQuad();
 
+            ID3D11Buffer* null_cbuffer = nullptr;
+            m_d3d_context->PSSetConstantBuffers(1, 1, &null_cbuffer);
+
             m_render_layers.SwapPostprocessPrimarySecondary();
-            SetBlendState(blend_state_backup);
+
+            // Restore blend state
+            m_d3d_context->OMSetBlendState(original_blend_state, original_blend_factor, original_sample_mask);
+            original_blend_state->Release();
+            m_current_blend_state_enabled = true;
 
             ID3D11ShaderResourceView* const nullSRV = nullptr;
             m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
+            m_cbuffer_dirty = true;
         }
         break;
         case FilterType::MaskImage:
@@ -2943,7 +2968,6 @@ Rml::LayerHandle RenderInterface_DX11::RenderLayerStack::PushLayer()
     m_layers_size += 1;
     return GetTopLayerHandle();
 }
-
 
 void RenderInterface_DX11::RenderLayerStack::PopLayer()
 {

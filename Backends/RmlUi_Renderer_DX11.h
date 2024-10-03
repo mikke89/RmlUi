@@ -182,6 +182,7 @@ private:
 
     // Shaders
     ID3D11Buffer* m_shader_buffer = nullptr;
+    ID3D11Buffer* m_color_matrix_cbuffer = nullptr;
     bool m_cbuffer_dirty = true;
     ID3D11SamplerState* m_sampler_state = nullptr;
 
@@ -258,10 +259,6 @@ private:
             Rml::Vector4f stop_colors[16];
             float stop_positions[16];
         } gradient;
-        struct ColorMatrix {
-            int _padding[20];
-            Rml::Matrix4f color_matrix;
-        } color_matrix;
         struct Blur {
             int _padding[18];
             Rml::Vector2f texel_offset;
@@ -281,6 +278,9 @@ private:
             float value;
         } creation;
     };
+    struct ColorMatrixCbuffer {
+        Rml::Matrix4f color_matrix;
+    } color_matrix;
     #pragma pack()
 
     Rml::CompiledGeometryHandle m_fullscreen_quad_geometry = 0;
