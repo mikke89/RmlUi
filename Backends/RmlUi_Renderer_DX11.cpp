@@ -91,11 +91,6 @@ PS_INPUT VSMain(const VS_Input IN)
     result.color = IN.color;
     result.uv = IN.uv;
 
-#if defined(RMLUI_PREMULTIPLIED_ALPHA)
-    // Pre-multiply vertex colors with their alpha.
-    result.color.rgb = result.color.rgb * result.color.a;
-#endif
-
     return result;
 };
 )";
@@ -587,10 +582,9 @@ static bool CreateShader(ID3DBlob*& out_shader_dxil, ShaderType shader_type, con
     #endif
 
     // Compile shader
-    const D3D_SHADER_MACRO macros[] = {"RMLUI_PREMULTIPLIED_ALPHA", nullptr, nullptr, nullptr};
     ID3DBlob* p_error_buff = nullptr;
 
-    HRESULT result = D3DCompile(code_string, code_length, nullptr, macros, nullptr, shader_type == ShaderType::Vertex ? "VSMain" : "PSMain",
+    HRESULT result = D3DCompile(code_string, code_length, nullptr, nullptr, nullptr, shader_type == ShaderType::Vertex ? "VSMain" : "PSMain",
         shader_type == ShaderType::Vertex ? "vs_5_0" : "ps_5_0", default_shader_flags, 0, &out_shader_dxil, &p_error_buff);
     RMLUI_DX_ASSERTMSG(result, "failed to D3DCompile");
     #ifdef RMLUI_DX_DEBUG
@@ -899,7 +893,6 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     #endif
 
         ZeroMemory(&blend_desc, sizeof(blend_desc));
-        blend_desc.RenderTarget[0].BlendEnable = false;
         blend_desc.RenderTarget[0].RenderTargetWriteMask = 0;
         result = m_d3d_device->CreateBlendState(&blend_desc, &m_blend_state_disable_color);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateBlendState");
@@ -912,10 +905,10 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
     #endif
 
         blend_desc.RenderTarget[0].BlendEnable = true;
-        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
+        blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_BLEND_FACTOR;
         blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
         blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+        blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_BLEND_FACTOR;
         blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
         blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
         blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
@@ -1799,10 +1792,6 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
         ID3D11RenderTargetView* original_render_target_view = nullptr;
         ID3D11DepthStencilView* original_depth_stencil_view = nullptr;
         m_d3d_context->OMGetRenderTargets(1, &original_render_target_view, &original_depth_stencil_view);
-        ID3D11BlendState* original_blend_state = nullptr;
-        float original_blend_factor[4]{};
-        uint32_t original_blend_mask = 0;
-        m_d3d_context->OMGetBlendState(&original_blend_state, original_blend_factor, &original_blend_mask);
 
         // Bind temporary as the render target
         const Gfx::RenderTargetData& temporary_rt = m_render_layers.GetTemporary();
@@ -1812,7 +1801,7 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
         m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
 
         // Disable blending
-        m_d3d_context->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+        DisableBlend();
 
         // Resolve from source to the temporary first
         m_d3d_context->ResolveSubresource(temporary_rt.render_target_texture, 0, source.render_target_texture, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -1891,10 +1880,7 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
 
         // Restore state
         m_d3d_context->OMSetRenderTargets(1, &original_render_target_view, original_depth_stencil_view);
-        m_d3d_context->OMSetBlendState(original_blend_state, original_blend_factor, original_blend_mask);
-        original_render_target_view->Release();
-        original_depth_stencil_view->Release();
-        original_blend_state->Release();
+        SetBlendState(m_current_blend_state);
 
         d3dviewport.Width = static_cast<FLOAT>(m_viewport_width);
         d3dviewport.Height = static_cast<FLOAT>(m_viewport_height);
@@ -2723,10 +2709,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             UseProgram(ProgramId::ColorMatrix);
 
-            ID3D11BlendState* original_blend_state = nullptr;
-            FLOAT original_blend_factor[4] = {};
-            UINT original_sample_mask = 0;
-            m_d3d_context->OMGetBlendState(&original_blend_state, original_blend_factor, &original_sample_mask);
+            ID3D11BlendState* blend_state_backup = m_current_blend_state;
             DisableBlend();
 
             const Gfx::RenderTargetData& source = m_render_layers.GetPostprocessPrimary();
@@ -2740,9 +2723,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             if (FAILED(result))
             {
                 // Restore blend state
-                m_d3d_context->OMSetBlendState(original_blend_state, original_blend_factor, original_sample_mask);
-                original_blend_state->Release();
-                m_current_blend_state_enabled = true;
+                SetBlendState(blend_state_backup);
 
                 ID3D11ShaderResourceView* const nullSRV = nullptr;
                 m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
@@ -2773,9 +2754,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             m_render_layers.SwapPostprocessPrimarySecondary();
 
             // Restore blend state
-            m_d3d_context->OMSetBlendState(original_blend_state, original_blend_factor, original_sample_mask);
-            original_blend_state->Release();
-            m_current_blend_state_enabled = true;
+            SetBlendState(blend_state_backup);
 
             ID3D11ShaderResourceView* const nullSRV = nullptr;
             m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
