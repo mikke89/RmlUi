@@ -2766,6 +2766,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             DrawFullscreenQuad();
 
+            // Unbind cbuffer
             ID3D11Buffer* null_cbuffer = nullptr;
             m_d3d_context->PSSetConstantBuffers(1, 1, &null_cbuffer);
 
@@ -2792,9 +2793,9 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             const Gfx::RenderTargetData& blend_mask = m_render_layers.GetBlendMask();
             const Gfx::RenderTargetData& destination = m_render_layers.GetPostprocessSecondary();
 
+            Gfx::BindRenderTarget(m_d3d_context, destination);
             Gfx::BindTexture(m_d3d_context, source, 0);
             Gfx::BindTexture(m_d3d_context, blend_mask, 1);
-            Gfx::BindRenderTarget(m_d3d_context, destination);
 
             DrawFullscreenQuad();
 
