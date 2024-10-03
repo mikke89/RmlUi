@@ -68,7 +68,7 @@ RenderManager::~RenderManager()
 	ReleaseAllTextures();
 }
 
-void RenderManager::PrepareRender()
+void RenderManager::PrepareRender(Vector2i dimensions)
 {
 #ifdef RMLUI_DEBUG
 	const RenderState default_state;
@@ -77,6 +77,8 @@ void RenderManager::PrepareRender()
 	RMLUI_ASSERT(state.transform == default_state.transform);
 	RMLUI_ASSERTMSG(render_stack.empty(), "Unbalanced render stack detected, ensure every PushLayer call has a corresponding call to PopLayer.");
 #endif
+
+	SetViewport(dimensions);
 }
 
 void RenderManager::SetViewport(Vector2i dimensions)
