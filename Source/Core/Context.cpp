@@ -216,7 +216,7 @@ bool Context::Render()
 {
 	RMLUI_ZoneScoped;
 
-	render_manager->PrepareRender();
+	render_manager->PrepareRender(dimensions);
 
 	root->Render();
 
