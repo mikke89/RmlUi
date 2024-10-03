@@ -249,7 +249,7 @@ private:
         struct {
             Rml::Matrix4f transform;
             Rml::Vector2f translation;
-        };
+        } common;
         struct Gradient {
             int _padding[18];
             int func;

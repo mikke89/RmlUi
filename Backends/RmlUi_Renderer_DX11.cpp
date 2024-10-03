@@ -2307,8 +2307,8 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
         ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
 
         // Copy the data to the GPU
-        dataPtr->transform = m_transform;
-        dataPtr->translation = translation;
+        dataPtr->common.transform = m_transform;
+        dataPtr->common.translation = translation;
         dataPtr->gradient.func = static_cast<int>(shader.gradient_function);
         dataPtr->gradient.p = shader.p;
         dataPtr->gradient.v = shader.v;
@@ -2354,8 +2354,8 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
         ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
 
         // Copy the data to the GPU
-        dataPtr->transform = m_transform;
-        dataPtr->translation = translation;
+        dataPtr->common.transform = m_transform;
+        dataPtr->common.translation = translation;
         dataPtr->creation.value = (float)time;
         dataPtr->creation.dimensions = shader.dimensions;
 
@@ -2507,8 +2507,8 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
 
     // Copy the data to the GPU
-    dataPtr->transform = m_transform;
-    dataPtr->translation = m_translation;
+    dataPtr->common.transform = m_transform;
+    dataPtr->common.translation = m_translation;
 
     SetBlurWeights(dataPtr->blur.weights, sigma);
 
@@ -2682,8 +2682,8 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             Rml::Colourf color = ConvertToColorf(filter.color);
 
             // Copy the data to the GPU
-            dataPtr->transform = m_transform;
-            dataPtr->translation = m_translation;
+            dataPtr->common.transform = m_transform;
+            dataPtr->common.translation = m_translation;
             dataPtr->drop_shadow.color.x = color.red;
             dataPtr->drop_shadow.color.y = color.green;
             dataPtr->drop_shadow.color.z = color.blue;
@@ -2833,8 +2833,8 @@ void RenderInterface_DX11::UpdateConstantBuffer()
         ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
 
         // Copy the data to the GPU
-        dataPtr->transform = m_transform;
-        dataPtr->translation = m_translation;
+        dataPtr->common.transform = m_transform;
+        dataPtr->common.translation = m_translation;
 
         // Upload to the GPU.
         m_d3d_context->Unmap(m_shader_buffer, 0);
