@@ -1890,6 +1890,8 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
         d3dviewport.Height = static_cast<FLOAT>(m_viewport_height);
         m_d3d_context->RSSetViewports(1, &d3dviewport);
         m_d3d_context->PSSetShaderResources(0, 2, null_shader_resource_views);
+        DX_CLEANUP_RESOURCE_IF_CREATED(original_render_target_view);
+        DX_CLEANUP_RESOURCE_IF_CREATED(original_depth_stencil_view);
     }
     else
     {
