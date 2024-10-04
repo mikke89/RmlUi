@@ -2557,7 +2557,8 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     const Rml::Vector2i target_max = src_max * (1 << pass_level);
     if (target_min != dst_min || target_max != dst_max)
     {
-        BlitRenderTarget(temp, source_destination, src_min.x, src_min.y, src_max.x, src_max.y, target_min.x, target_min.y, target_max.x, target_max.y);
+        BlitRenderTarget(temp, source_destination, src_min.x, src_max.y, src_max.x, src_min.y, target_min.x, target_min.y, target_max.x,
+            target_max.y);
     }
 
     // Restore render state.
