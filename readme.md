@@ -322,6 +322,10 @@ int main(int argc, char** argv)
         if (my_input->MouseMoved())
             context->ProcessMouseMove(mouse_pos.x, mouse_pos.y, 0);
 
+        // Prepare before drawing. Clear render interface, update width/height, etc.
+        // With RML Backend abstraction, Backend::BeginFrame() should be called here.
+        render_interface.BeginFrame();
+
         // Update the context to reflect any changes resulting from input events, animations,
         // modified and added elements, or changed data in data bindings.
         context->Update();
@@ -329,6 +333,10 @@ int main(int argc, char** argv)
         // Render the user interface. All geometry and other rendering commands are now
         // submitted through the render interface.
         context->Render();
+
+        // Present the content to the screen. Swap the swapchain and resolve post-processors...
+        // With RML Backend abstraction, Backend::PresentFrame() should be called here.
+        render_interface.PresentFrame();
     }
 
     Rml::Shutdown();
