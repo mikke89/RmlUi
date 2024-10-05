@@ -46,6 +46,7 @@
 #include "../../Include/RmlUi/Core/StyleSheetContainer.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "ContextInstancerDefault.h"
+#include "ControlledLifetimeResource.h"
 #include "DataControllerDefault.h"
 #include "DataViewDefault.h"
 #include "DecoratorGradient.h"
@@ -82,46 +83,6 @@
 #include <algorithm>
 
 namespace Rml {
-
-// Element instancers.
-using ElementInstancerMap = UnorderedMap<String, ElementInstancer*>;
-static ElementInstancerMap element_instancers;
-
-// Decorator instancers.
-using DecoratorInstancerMap = UnorderedMap<String, DecoratorInstancer*>;
-static DecoratorInstancerMap decorator_instancers;
-
-// Filter instancers.
-using FilterInstancerMap = UnorderedMap<String, FilterInstancer*>;
-static FilterInstancerMap filter_instancers;
-
-// Font effect instancers.
-using FontEffectInstancerMap = UnorderedMap<String, FontEffectInstancer*>;
-static FontEffectInstancerMap font_effect_instancers;
-
-// Data view instancers.
-using DataViewInstancerMap = UnorderedMap<String, DataViewInstancer*>;
-static DataViewInstancerMap data_view_instancers;
-
-// Data controller instancers.
-using DataControllerInstancerMap = UnorderedMap<String, DataControllerInstancer*>;
-static DataControllerInstancerMap data_controller_instancers;
-
-// Structural data view instancers.
-using StructuralDataViewInstancerMap = SmallUnorderedMap<String, DataViewInstancer*>;
-static StructuralDataViewInstancerMap structural_data_view_instancers;
-
-// Structural data view names.
-static StringList structural_data_view_attribute_names;
-
-// The context instancer.
-static ContextInstancer* context_instancer = nullptr;
-
-// The event instancer
-static EventInstancer* event_instancer = nullptr;
-
-// Event listener instancer.
-static EventListenerInstancer* event_listener_instancer = nullptr;
 
 // Default instancers are constructed and destroyed on Initialise and Shutdown, respectively.
 struct DefaultInstancers {
@@ -192,28 +153,46 @@ struct DefaultInstancers {
 	DataControllerInstancerDefault<DataControllerValue> data_controller_value;
 };
 
-static UniquePtr<DefaultInstancers> default_instancers;
+struct FactoryData {
+	DefaultInstancers default_instancers;
+	UnorderedMap<String, ElementInstancer*> element_instancers;
+	UnorderedMap<String, DecoratorInstancer*> decorator_instancers;
+	UnorderedMap<String, FilterInstancer*> filter_instancers;
+	UnorderedMap<String, FontEffectInstancer*> font_effect_instancers;
+	UnorderedMap<String, DataViewInstancer*> data_view_instancers;
+	UnorderedMap<String, DataControllerInstancer*> data_controller_instancers;
+	SmallUnorderedMap<String, DataViewInstancer*> structural_data_view_instancers;
+	StringList structural_data_view_attribute_names;
+};
+
+static ControlledLifetimeResource<FactoryData> factory_data;
+
+static ContextInstancer* context_instancer = nullptr;
+static EventInstancer* event_instancer = nullptr;
+static EventListenerInstancer* event_listener_instancer = nullptr;
 
 Factory::Factory() {}
 
 Factory::~Factory() {}
 
-bool Factory::Initialise()
+void Factory::Initialise()
 {
-	default_instancers = MakeUnique<DefaultInstancers>();
+	factory_data.Initialize();
+
+	DefaultInstancers& default_instancers = factory_data->default_instancers;
 
 	// Default context instancer
 	if (!context_instancer)
 	{
-		default_instancers->context_default = MakeUnique<ContextInstancerDefault>();
-		context_instancer = default_instancers->context_default.get();
+		default_instancers.context_default = MakeUnique<ContextInstancerDefault>();
+		context_instancer = default_instancers.context_default.get();
 	}
 
 	// Default event instancer
 	if (!event_instancer)
 	{
-		default_instancers->event_default = MakeUnique<EventInstancerDefault>();
-		event_instancer = default_instancers->event_default.get();
+		default_instancers.event_default = MakeUnique<EventInstancerDefault>();
+		event_instancer = default_instancers.event_default.get();
 	}
 
 	// No default event listener instancer
@@ -221,83 +200,83 @@ bool Factory::Initialise()
 		event_listener_instancer = nullptr;
 
 	// Basic element instancers
-	RegisterElementInstancer("*", &default_instancers->element_default);
-	RegisterElementInstancer("img", &default_instancers->element_img);
-	RegisterElementInstancer("#text", &default_instancers->element_text);
-	RegisterElementInstancer("handle", &default_instancers->element_handle);
-	RegisterElementInstancer("body", &default_instancers->element_body);
+	RegisterElementInstancer("*", &default_instancers.element_default);
+	RegisterElementInstancer("img", &default_instancers.element_img);
+	RegisterElementInstancer("#text", &default_instancers.element_text);
+	RegisterElementInstancer("handle", &default_instancers.element_handle);
+	RegisterElementInstancer("body", &default_instancers.element_body);
 
 	// Control element instancers
-	RegisterElementInstancer("form", &default_instancers->form);
-	RegisterElementInstancer("input", &default_instancers->input);
-	RegisterElementInstancer("select", &default_instancers->select);
-	RegisterElementInstancer("label", &default_instancers->element_label);
+	RegisterElementInstancer("form", &default_instancers.form);
+	RegisterElementInstancer("input", &default_instancers.input);
+	RegisterElementInstancer("select", &default_instancers.select);
+	RegisterElementInstancer("label", &default_instancers.element_label);
 
-	RegisterElementInstancer("textarea", &default_instancers->textarea);
-	RegisterElementInstancer("#selection", &default_instancers->selection);
-	RegisterElementInstancer("tabset", &default_instancers->tabset);
+	RegisterElementInstancer("textarea", &default_instancers.textarea);
+	RegisterElementInstancer("#selection", &default_instancers.selection);
+	RegisterElementInstancer("tabset", &default_instancers.tabset);
 
-	RegisterElementInstancer("progress", &default_instancers->progress);
-	RegisterElementInstancer("progressbar", &default_instancers->progress);
+	RegisterElementInstancer("progress", &default_instancers.progress);
+	RegisterElementInstancer("progressbar", &default_instancers.progress);
 
 	// Decorator instancers
-	RegisterDecoratorInstancer("tiled-horizontal", &default_instancers->decorator_tiled_horizontal);
-	RegisterDecoratorInstancer("tiled-vertical", &default_instancers->decorator_tiled_vertical);
-	RegisterDecoratorInstancer("tiled-box", &default_instancers->decorator_tiled_box);
-	RegisterDecoratorInstancer("image", &default_instancers->decorator_image);
-	RegisterDecoratorInstancer("ninepatch", &default_instancers->decorator_ninepatch);
-	RegisterDecoratorInstancer("shader", &default_instancers->decorator_shader);
+	RegisterDecoratorInstancer("tiled-horizontal", &default_instancers.decorator_tiled_horizontal);
+	RegisterDecoratorInstancer("tiled-vertical", &default_instancers.decorator_tiled_vertical);
+	RegisterDecoratorInstancer("tiled-box", &default_instancers.decorator_tiled_box);
+	RegisterDecoratorInstancer("image", &default_instancers.decorator_image);
+	RegisterDecoratorInstancer("ninepatch", &default_instancers.decorator_ninepatch);
+	RegisterDecoratorInstancer("shader", &default_instancers.decorator_shader);
 
-	RegisterDecoratorInstancer("gradient", &default_instancers->decorator_straight_gradient);
-	RegisterDecoratorInstancer("horizontal-gradient", &default_instancers->decorator_straight_gradient);
-	RegisterDecoratorInstancer("vertical-gradient", &default_instancers->decorator_straight_gradient);
+	RegisterDecoratorInstancer("gradient", &default_instancers.decorator_straight_gradient);
+	RegisterDecoratorInstancer("horizontal-gradient", &default_instancers.decorator_straight_gradient);
+	RegisterDecoratorInstancer("vertical-gradient", &default_instancers.decorator_straight_gradient);
 
-	RegisterDecoratorInstancer("linear-gradient", &default_instancers->decorator_linear_gradient);
-	RegisterDecoratorInstancer("repeating-linear-gradient", &default_instancers->decorator_linear_gradient);
-	RegisterDecoratorInstancer("radial-gradient", &default_instancers->decorator_radial_gradient);
-	RegisterDecoratorInstancer("repeating-radial-gradient", &default_instancers->decorator_radial_gradient);
-	RegisterDecoratorInstancer("conic-gradient", &default_instancers->decorator_conic_gradient);
-	RegisterDecoratorInstancer("repeating-conic-gradient", &default_instancers->decorator_conic_gradient);
+	RegisterDecoratorInstancer("linear-gradient", &default_instancers.decorator_linear_gradient);
+	RegisterDecoratorInstancer("repeating-linear-gradient", &default_instancers.decorator_linear_gradient);
+	RegisterDecoratorInstancer("radial-gradient", &default_instancers.decorator_radial_gradient);
+	RegisterDecoratorInstancer("repeating-radial-gradient", &default_instancers.decorator_radial_gradient);
+	RegisterDecoratorInstancer("conic-gradient", &default_instancers.decorator_conic_gradient);
+	RegisterDecoratorInstancer("repeating-conic-gradient", &default_instancers.decorator_conic_gradient);
 
 	// Filter instancers
-	RegisterFilterInstancer("hue-rotate", &default_instancers->filter_hue_rotate);
-	RegisterFilterInstancer("brightness", &default_instancers->filter_basic_d1);
-	RegisterFilterInstancer("contrast", &default_instancers->filter_basic_d1);
-	RegisterFilterInstancer("grayscale", &default_instancers->filter_basic_d0);
-	RegisterFilterInstancer("invert", &default_instancers->filter_basic_d0);
-	RegisterFilterInstancer("opacity", &default_instancers->filter_basic_d1);
-	RegisterFilterInstancer("saturate", &default_instancers->filter_basic_d1);
-	RegisterFilterInstancer("sepia", &default_instancers->filter_basic_d0);
+	RegisterFilterInstancer("hue-rotate", &default_instancers.filter_hue_rotate);
+	RegisterFilterInstancer("brightness", &default_instancers.filter_basic_d1);
+	RegisterFilterInstancer("contrast", &default_instancers.filter_basic_d1);
+	RegisterFilterInstancer("grayscale", &default_instancers.filter_basic_d0);
+	RegisterFilterInstancer("invert", &default_instancers.filter_basic_d0);
+	RegisterFilterInstancer("opacity", &default_instancers.filter_basic_d1);
+	RegisterFilterInstancer("saturate", &default_instancers.filter_basic_d1);
+	RegisterFilterInstancer("sepia", &default_instancers.filter_basic_d0);
 
-	RegisterFilterInstancer("blur", &default_instancers->filter_blur);
-	RegisterFilterInstancer("drop-shadow", &default_instancers->filter_drop_shadow);
+	RegisterFilterInstancer("blur", &default_instancers.filter_blur);
+	RegisterFilterInstancer("drop-shadow", &default_instancers.filter_drop_shadow);
 
 	// Font effect instancers
-	RegisterFontEffectInstancer("blur", &default_instancers->font_effect_blur);
-	RegisterFontEffectInstancer("glow", &default_instancers->font_effect_glow);
-	RegisterFontEffectInstancer("outline", &default_instancers->font_effect_outline);
-	RegisterFontEffectInstancer("shadow", &default_instancers->font_effect_shadow);
+	RegisterFontEffectInstancer("blur", &default_instancers.font_effect_blur);
+	RegisterFontEffectInstancer("glow", &default_instancers.font_effect_glow);
+	RegisterFontEffectInstancer("outline", &default_instancers.font_effect_outline);
+	RegisterFontEffectInstancer("shadow", &default_instancers.font_effect_shadow);
 
 	// Data binding views
 	// clang-format off
-	RegisterDataViewInstancer(&default_instancers->data_view_attribute,      "attr",    false);
-	RegisterDataViewInstancer(&default_instancers->data_view_attribute_if,   "attrif",  false);
-	RegisterDataViewInstancer(&default_instancers->data_view_class,          "class",   false);
-	RegisterDataViewInstancer(&default_instancers->data_view_if,             "if",      false);
-	RegisterDataViewInstancer(&default_instancers->data_view_visible,        "visible", false);
-	RegisterDataViewInstancer(&default_instancers->data_view_rml,            "rml",     false);
-	RegisterDataViewInstancer(&default_instancers->data_view_style,          "style",   false);
-	RegisterDataViewInstancer(&default_instancers->data_view_text,           "text",    false);
-	RegisterDataViewInstancer(&default_instancers->data_view_value,          "value",   false);
-	RegisterDataViewInstancer(&default_instancers->data_view_checked,        "checked", false);
-	RegisterDataViewInstancer(&default_instancers->data_view_alias,          "alias",   false);
-	RegisterDataViewInstancer(&default_instancers->structural_data_view_for, "for",     true );
+	RegisterDataViewInstancer(&default_instancers.data_view_attribute,      "attr",    false);
+	RegisterDataViewInstancer(&default_instancers.data_view_attribute_if,   "attrif",  false);
+	RegisterDataViewInstancer(&default_instancers.data_view_class,          "class",   false);
+	RegisterDataViewInstancer(&default_instancers.data_view_if,             "if",      false);
+	RegisterDataViewInstancer(&default_instancers.data_view_visible,        "visible", false);
+	RegisterDataViewInstancer(&default_instancers.data_view_rml,            "rml",     false);
+	RegisterDataViewInstancer(&default_instancers.data_view_style,          "style",   false);
+	RegisterDataViewInstancer(&default_instancers.data_view_text,           "text",    false);
+	RegisterDataViewInstancer(&default_instancers.data_view_value,          "value",   false);
+	RegisterDataViewInstancer(&default_instancers.data_view_checked,        "checked", false);
+	RegisterDataViewInstancer(&default_instancers.data_view_alias,          "alias",   false);
+	RegisterDataViewInstancer(&default_instancers.structural_data_view_for, "for",     true );
 	// clang-format on
 
 	// Data binding controllers
-	RegisterDataControllerInstancer(&default_instancers->data_controller_value, "checked");
-	RegisterDataControllerInstancer(&default_instancers->data_controller_event, "event");
-	RegisterDataControllerInstancer(&default_instancers->data_controller_value, "value");
+	RegisterDataControllerInstancer(&default_instancers.data_controller_value, "checked");
+	RegisterDataControllerInstancer(&default_instancers.data_controller_event, "event");
+	RegisterDataControllerInstancer(&default_instancers.data_controller_value, "value");
 
 	// XML node handlers
 	XMLParser::RegisterNodeHandler("", MakeShared<XMLNodeHandlerDefault>());
@@ -309,32 +288,17 @@ bool Factory::Initialise()
 	XMLParser::RegisterNodeHandler("tabset", MakeShared<XMLNodeHandlerTabSet>());
 	XMLParser::RegisterNodeHandler("textarea", MakeShared<XMLNodeHandlerTextArea>());
 	XMLParser::RegisterNodeHandler("select", MakeShared<XMLNodeHandlerSelect>());
-
-	return true;
 }
 
 void Factory::Shutdown()
 {
-	element_instancers.clear();
-
-	decorator_instancers.clear();
-
-	font_effect_instancers.clear();
-
-	data_controller_instancers.clear();
-	data_view_instancers.clear();
-	structural_data_view_instancers.clear();
-	structural_data_view_attribute_names.clear();
-
 	context_instancer = nullptr;
-
 	event_listener_instancer = nullptr;
-
 	event_instancer = nullptr;
 
 	XMLParser::ReleaseHandlers();
 
-	default_instancers.reset();
+	factory_data.Shutdown();
 }
 
 void Factory::RegisterContextInstancer(ContextInstancer* instancer)
@@ -352,16 +316,16 @@ ContextPtr Factory::InstanceContext(const String& name, RenderManager* render_ma
 
 void Factory::RegisterElementInstancer(const String& name, ElementInstancer* instancer)
 {
-	element_instancers[StringUtilities::ToLower(name)] = instancer;
+	factory_data->element_instancers[StringUtilities::ToLower(name)] = instancer;
 }
 
 ElementInstancer* Factory::GetElementInstancer(const String& tag)
 {
-	ElementInstancerMap::iterator instancer_iterator = element_instancers.find(tag);
-	if (instancer_iterator == element_instancers.end())
+	auto instancer_iterator = factory_data->element_instancers.find(tag);
+	if (instancer_iterator == factory_data->element_instancers.end())
 	{
-		instancer_iterator = element_instancers.find("*");
-		if (instancer_iterator == element_instancers.end())
+		instancer_iterator = factory_data->element_instancers.find("*");
+		if (instancer_iterator == factory_data->element_instancers.end())
 			return nullptr;
 	}
 
@@ -514,13 +478,13 @@ ElementPtr Factory::InstanceDocumentStream(Context* context, Stream* stream, con
 void Factory::RegisterDecoratorInstancer(const String& name, DecoratorInstancer* instancer)
 {
 	RMLUI_ASSERT(instancer);
-	decorator_instancers[StringUtilities::ToLower(name)] = instancer;
+	factory_data->decorator_instancers[StringUtilities::ToLower(name)] = instancer;
 }
 
 DecoratorInstancer* Factory::GetDecoratorInstancer(const String& name)
 {
-	auto iterator = decorator_instancers.find(name);
-	if (iterator == decorator_instancers.end())
+	auto iterator = factory_data->decorator_instancers.find(name);
+	if (iterator == factory_data->decorator_instancers.end())
 		return nullptr;
 
 	return iterator->second;
@@ -529,13 +493,13 @@ DecoratorInstancer* Factory::GetDecoratorInstancer(const String& name)
 void Factory::RegisterFilterInstancer(const String& name, FilterInstancer* instancer)
 {
 	RMLUI_ASSERT(instancer);
-	filter_instancers[StringUtilities::ToLower(name)] = instancer;
+	factory_data->filter_instancers[StringUtilities::ToLower(name)] = instancer;
 }
 
 FilterInstancer* Factory::GetFilterInstancer(const String& name)
 {
-	auto iterator = filter_instancers.find(name);
-	if (iterator == filter_instancers.end())
+	auto iterator = factory_data->filter_instancers.find(name);
+	if (iterator == factory_data->filter_instancers.end())
 		return nullptr;
 
 	return iterator->second;
@@ -544,13 +508,13 @@ FilterInstancer* Factory::GetFilterInstancer(const String& name)
 void Factory::RegisterFontEffectInstancer(const String& name, FontEffectInstancer* instancer)
 {
 	RMLUI_ASSERT(instancer);
-	font_effect_instancers[StringUtilities::ToLower(name)] = instancer;
+	factory_data->font_effect_instancers[StringUtilities::ToLower(name)] = instancer;
 }
 
 FontEffectInstancer* Factory::GetFontEffectInstancer(const String& name)
 {
-	auto iterator = font_effect_instancers.find(name);
-	if (iterator == font_effect_instancers.end())
+	auto iterator = factory_data->font_effect_instancers.find(name);
+	if (iterator == factory_data->font_effect_instancers.end())
 		return nullptr;
 
 	return iterator->second;
@@ -621,13 +585,13 @@ void Factory::RegisterDataViewInstancer(DataViewInstancer* instancer, const Stri
 	bool inserted = false;
 	if (is_structural_view)
 	{
-		inserted = structural_data_view_instancers.emplace(name, instancer).second;
+		inserted = factory_data->structural_data_view_instancers.emplace(name, instancer).second;
 		if (inserted)
-			structural_data_view_attribute_names.push_back(String("data-") + name);
+			factory_data->structural_data_view_attribute_names.push_back(String("data-") + name);
 	}
 	else
 	{
-		inserted = data_view_instancers.emplace(name, instancer).second;
+		inserted = factory_data->data_view_instancers.emplace(name, instancer).second;
 	}
 
 	if (!inserted)
@@ -636,7 +600,7 @@ void Factory::RegisterDataViewInstancer(DataViewInstancer* instancer, const Stri
 
 void Factory::RegisterDataControllerInstancer(DataControllerInstancer* instancer, const String& name)
 {
-	bool inserted = data_controller_instancers.emplace(name, instancer).second;
+	bool inserted = factory_data->data_controller_instancers.emplace(name, instancer).second;
 	if (!inserted)
 		Log::Message(Log::LT_WARNING, "Could not register data controller instancer '%s'. The given name is already registered.", name.c_str());
 }
@@ -647,14 +611,14 @@ DataViewPtr Factory::InstanceDataView(const String& type_name, Element* element,
 
 	if (is_structural_view)
 	{
-		auto it = structural_data_view_instancers.find(type_name);
-		if (it != structural_data_view_instancers.end())
+		auto it = factory_data->structural_data_view_instancers.find(type_name);
+		if (it != factory_data->structural_data_view_instancers.end())
 			return it->second->InstanceView(element);
 	}
 	else
 	{
-		auto it = data_view_instancers.find(type_name);
-		if (it != data_view_instancers.end())
+		auto it = factory_data->data_view_instancers.find(type_name);
+		if (it != factory_data->data_view_instancers.end())
 			return it->second->InstanceView(element);
 	}
 	return nullptr;
@@ -662,20 +626,20 @@ DataViewPtr Factory::InstanceDataView(const String& type_name, Element* element,
 
 DataControllerPtr Factory::InstanceDataController(const String& type_name, Element* element)
 {
-	auto it = data_controller_instancers.find(type_name);
-	if (it != data_controller_instancers.end())
+	auto it = factory_data->data_controller_instancers.find(type_name);
+	if (it != factory_data->data_controller_instancers.end())
 		return it->second->InstanceController(element);
 	return DataControllerPtr();
 }
 
 bool Factory::IsStructuralDataView(const String& type_name)
 {
-	return structural_data_view_instancers.find(type_name) != structural_data_view_instancers.end();
+	return factory_data->structural_data_view_instancers.find(type_name) != factory_data->structural_data_view_instancers.end();
 }
 
 const StringList& Factory::GetStructuralDataViewAttributeNames()
 {
-	return structural_data_view_attribute_names;
+	return factory_data->structural_data_view_attribute_names;
 }
 
 } // namespace Rml

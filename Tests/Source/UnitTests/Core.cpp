@@ -264,3 +264,18 @@ TEST_CASE("core.initialize")
 
 	Rml::Shutdown();
 }
+
+TEST_CASE("core.observer_ptr")
+{
+	Context* context = TestsShell::GetContext();
+	ElementDocument* document = context->LoadDocument("assets/demo.rml");
+
+	ObserverPtr<Element> observer_ptr = document->GetObserverPtr();
+	document->Close();
+
+	// We expect a warning about the observer pointer being held in user space, preventing its memory pool from shutting down.
+	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+	system_interface->SetNumExpectedWarnings(1);
+
+	TestsShell::ShutdownShell();
+}

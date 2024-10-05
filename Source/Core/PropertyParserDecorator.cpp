@@ -35,11 +35,24 @@
 
 namespace Rml {
 
-const SmallUnorderedMap<String, BoxArea> PropertyParserDecorator::area_keywords = {
-	{"border-box", BoxArea::Border},
-	{"padding-box", BoxArea::Padding},
-	{"content-box", BoxArea::Content},
+struct PropertyParserDecoratorData {
+	const SmallUnorderedMap<String, BoxArea> area_keywords = {
+		{"border-box", BoxArea::Border},
+		{"padding-box", BoxArea::Padding},
+		{"content-box", BoxArea::Content},
+	};
 };
+
+ControlledLifetimeResource<PropertyParserDecoratorData> PropertyParserDecorator::parser_data;
+
+void PropertyParserDecorator::Initialize()
+{
+	parser_data.Initialize();
+}
+void PropertyParserDecorator::Shutdown()
+{
+	parser_data.Shutdown();
+}
 
 PropertyParserDecorator::PropertyParserDecorator() {}
 
@@ -94,8 +107,8 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 				if (keyword.empty())
 					continue;
 
-				auto it = area_keywords.find(StringUtilities::ToLower(keyword));
-				if (it == area_keywords.end())
+				auto it = parser_data->area_keywords.find(StringUtilities::ToLower(keyword));
+				if (it == parser_data->area_keywords.end())
 					return false; // Bail out if we have an invalid keyword.
 
 				paint_area = it->second;
@@ -150,7 +163,7 @@ bool PropertyParserDecorator::ParseValue(Property& property, const String& decor
 
 String PropertyParserDecorator::ConvertAreaToString(BoxArea area)
 {
-	for (const auto& it : area_keywords)
+	for (const auto& it : parser_data->area_keywords)
 	{
 		if (it.second == area)
 			return it.first;

@@ -27,6 +27,7 @@
  */
 
 #include "PropertyParserColour.h"
+#include "ControlledLifetimeResource.h"
 #include <algorithm>
 #include <cmath>
 #include <string.h>
@@ -61,27 +62,40 @@ static void HSLAToRGBA(Array<float, 4>& vals)
 	}
 }
 
-const PropertyParserColour::ColourMap PropertyParserColour::html_colours = {
-	{"black", Colourb(0, 0, 0)},
-	{"silver", Colourb(192, 192, 192)},
-	{"gray", Colourb(128, 128, 128)},
-	{"grey", Colourb(128, 128, 128)},
-	{"white", Colourb(255, 255, 255)},
-	{"maroon", Colourb(128, 0, 0)},
-	{"red", Colourb(255, 0, 0)},
-	{"orange", Colourb(255, 165, 0)},
-	{"purple", Colourb(128, 0, 128)},
-	{"fuchsia", Colourb(255, 0, 255)},
-	{"green", Colourb(0, 128, 0)},
-	{"lime", Colourb(0, 255, 0)},
-	{"olive", Colourb(128, 128, 0)},
-	{"yellow", Colourb(255, 255, 0)},
-	{"navy", Colourb(0, 0, 128)},
-	{"blue", Colourb(0, 0, 255)},
-	{"teal", Colourb(0, 128, 128)},
-	{"aqua", Colourb(0, 255, 255)},
-	{"transparent", Colourb(0, 0, 0, 0)},
+struct PropertyParserColourData {
+	const UnorderedMap<String, Colourb> html_colours = {
+		{"black", Colourb(0, 0, 0)},
+		{"silver", Colourb(192, 192, 192)},
+		{"gray", Colourb(128, 128, 128)},
+		{"grey", Colourb(128, 128, 128)},
+		{"white", Colourb(255, 255, 255)},
+		{"maroon", Colourb(128, 0, 0)},
+		{"red", Colourb(255, 0, 0)},
+		{"orange", Colourb(255, 165, 0)},
+		{"purple", Colourb(128, 0, 128)},
+		{"fuchsia", Colourb(255, 0, 255)},
+		{"green", Colourb(0, 128, 0)},
+		{"lime", Colourb(0, 255, 0)},
+		{"olive", Colourb(128, 128, 0)},
+		{"yellow", Colourb(255, 255, 0)},
+		{"navy", Colourb(0, 0, 128)},
+		{"blue", Colourb(0, 0, 255)},
+		{"teal", Colourb(0, 128, 128)},
+		{"aqua", Colourb(0, 255, 255)},
+		{"transparent", Colourb(0, 0, 0, 0)},
+	};
 };
+
+ControlledLifetimeResource<PropertyParserColourData> PropertyParserColour::parser_data;
+
+void PropertyParserColour::Initialize()
+{
+	parser_data.Initialize();
+}
+void PropertyParserColour::Shutdown()
+{
+	parser_data.Shutdown();
+}
 
 PropertyParserColour::PropertyParserColour() {}
 
@@ -228,11 +242,11 @@ bool PropertyParserColour::ParseColour(Colourb& colour, const String& value)
 	else
 	{
 		// Check for the specification of an HTML colour.
-		ColourMap::const_iterator iterator = html_colours.find(StringUtilities::ToLower(value));
-		if (iterator == html_colours.end())
+		auto it = parser_data->html_colours.find(StringUtilities::ToLower(value));
+		if (it == parser_data->html_colours.end())
 			return false;
 		else
-			colour = (*iterator).second;
+			colour = it->second;
 	}
 
 	return true;

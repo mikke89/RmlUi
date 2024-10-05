@@ -35,12 +35,16 @@
 
 namespace Rml {
 
-struct RMLUICORE_API ObserverPtrBlock {
-	int num_observers;
-	void* pointed_to_object;
-};
-RMLUICORE_API ObserverPtrBlock* AllocateObserverPtrBlock();
-RMLUICORE_API void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block);
+namespace Detail {
+	struct RMLUICORE_API ObserverPtrBlock {
+		int num_observers;
+		void* pointed_to_object;
+	};
+	RMLUICORE_API ObserverPtrBlock* AllocateObserverPtrBlock();
+	RMLUICORE_API void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block);
+	void InitializeObserverPtrPool();
+	void ShutdownObserverPtrPool();
+} // namespace Detail
 
 template <typename T>
 class EnableObserverPtr;
@@ -117,7 +121,7 @@ public:
 		if (block)
 		{
 			block->num_observers -= 1;
-			DeallocateObserverPtrBlockIfEmpty(block);
+			Detail::DeallocateObserverPtrBlockIfEmpty(block);
 			block = nullptr;
 		}
 	}
@@ -125,13 +129,13 @@ public:
 private:
 	friend class Rml::EnableObserverPtr<T>;
 
-	explicit ObserverPtr(ObserverPtrBlock* block) noexcept : block(block)
+	explicit ObserverPtr(Detail::ObserverPtrBlock* block) noexcept : block(block)
 	{
 		if (block)
 			block->num_observers += 1;
 	}
 
-	ObserverPtrBlock* block;
+	Detail::ObserverPtrBlock* block;
 };
 
 template <typename T>
@@ -151,7 +155,7 @@ protected:
 		if (block)
 		{
 			block->pointed_to_object = nullptr;
-			DeallocateObserverPtrBlockIfEmpty(block);
+			Detail::DeallocateObserverPtrBlockIfEmpty(block);
 		}
 	}
 
@@ -180,13 +184,13 @@ private:
 	{
 		if (!block)
 		{
-			block = AllocateObserverPtrBlock();
+			block = Detail::AllocateObserverPtrBlock();
 			block->num_observers = 0;
 			block->pointed_to_object = static_cast<void*>(static_cast<T*>(this));
 		}
 	}
 
-	ObserverPtrBlock* block = nullptr;
+	Detail::ObserverPtrBlock* block = nullptr;
 };
 
 } // namespace Rml

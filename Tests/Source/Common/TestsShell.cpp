@@ -164,9 +164,9 @@ void TestsShell::ShutdownShell()
 		(void)num_documents_begin;
 	}
 
-	tests_system_interface.SetNumExpectedWarnings(0);
-
 	Rml::Shutdown();
+
+	tests_system_interface.SetNumExpectedWarnings(0);
 
 #ifdef RMLUI_TESTS_USE_SHELL
 	Backend::Shutdown();

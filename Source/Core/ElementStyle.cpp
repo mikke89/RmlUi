@@ -364,7 +364,7 @@ static float ComputeLength(NumericValue value, Element* element)
 		if (ElementDocument* document = element->GetOwnerDocument())
 			doc_font_size = document->GetComputedValues().font_size();
 		else
-			doc_font_size = DefaultComputedValues.font_size();
+			doc_font_size = DefaultComputedValues().font_size();
 		break;
 	case Unit::VW:
 	case Unit::VH:
@@ -419,7 +419,7 @@ float ElementStyle::ResolveRelativeLength(NumericValue value, RelativeTarget rel
 	case RelativeTarget::ParentFontSize:
 	{
 		auto p = element->GetParentNode();
-		base_value = (p ? p->GetComputedValues().font_size() : DefaultComputedValues.font_size());
+		base_value = (p ? p->GetComputedValues().font_size() : DefaultComputedValues().font_size());
 	}
 	break;
 	case RelativeTarget::LineHeight: base_value = element->GetLineHeight(); break;
@@ -530,13 +530,13 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		// If we skipped this, the old dirty value would be unmodified, instead, now it is set to its default value.
 		// Strictly speaking, we only really need to do this for the dirty, non-inherited values. However, in most
 		// cases it seems simply assigning all non-inherited values is faster than iterating the dirty properties.
-		values.CopyNonInherited(DefaultComputedValues);
+		values.CopyNonInherited(DefaultComputedValues());
 	}
 
 	if (parent_values)
 		values.CopyInherited(*parent_values);
 	else if (!values_are_default_initialized)
-		values.CopyInherited(DefaultComputedValues);
+		values.CopyInherited(DefaultComputedValues());
 
 	bool dirty_em_properties = false;
 
@@ -560,7 +560,7 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 	}
 
 	const float font_size = values.font_size();
-	const float document_font_size = (document_values ? document_values->font_size() : DefaultComputedValues.font_size());
+	const float document_font_size = (document_values ? document_values->font_size() : DefaultComputedValues().font_size());
 
 	// Since vertical-align depends on line-height we compute this before iteration
 	if (dirty_properties.Contains(PropertyId::LineHeight))

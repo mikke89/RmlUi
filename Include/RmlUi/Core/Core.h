@@ -180,9 +180,6 @@ RMLUICORE_API void ReleaseCompiledGeometry(RenderInterface* render_interface = n
 /// @note Invalidates all existing FontFaceHandles returned from the font engine.
 RMLUICORE_API void ReleaseFontResources();
 
-/// Forces all memory pools used by RmlUi to be released.
-RMLUICORE_API void ReleaseMemoryPools();
-
 } // namespace Rml
 
 #endif

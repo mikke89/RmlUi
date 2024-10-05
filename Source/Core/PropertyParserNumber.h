@@ -30,6 +30,7 @@
 #define RMLUI_CORE_PROPERTYPARSERNUMBER_H
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
+#include "ControlledLifetimeResource.h"
 
 namespace Rml {
 
@@ -51,7 +52,12 @@ public:
 	/// @return True if the value was validated successfully, false otherwise.
 	bool ParseValue(Property& property, const String& value, const ParameterMap& parameters) const override;
 
+	static void Initialize();
+	static void Shutdown();
+
 private:
+	static ControlledLifetimeResource<struct PropertyParserNumberData> parser_data;
+
 	// Stores a bit mask of allowed units.
 	Units units;
 

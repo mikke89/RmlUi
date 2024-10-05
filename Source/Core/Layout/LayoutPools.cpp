@@ -28,6 +28,7 @@
 
 #include "LayoutPools.h"
 #include "../../../Include/RmlUi/Core/Element.h"
+#include "../ControlledLifetimeResource.h"
 #include "../Pool.h"
 #include "BlockContainer.h"
 #include "FloatedBoxSpace.h"
@@ -52,9 +53,22 @@ static constexpr size_t ChunkSizeMedium =
 static constexpr size_t ChunkSizeSmall =
 	std::max({sizeof(ReplacedBox), sizeof(InlineLevelBox_Text), sizeof(InlineLevelBox_Atomic), sizeof(LineBox), sizeof(FloatedBoxSpace)});
 
-static Pool<LayoutChunk<ChunkSizeBig>> layout_chunk_pool_big(50, true);
-static Pool<LayoutChunk<ChunkSizeMedium>> layout_chunk_pool_medium(50, true);
-static Pool<LayoutChunk<ChunkSizeSmall>> layout_chunk_pool_small(50, true);
+struct LayoutPoolsData {
+	Pool<LayoutChunk<ChunkSizeBig>> layout_chunk_pool_big{50, true};
+	Pool<LayoutChunk<ChunkSizeMedium>> layout_chunk_pool_medium{50, true};
+	Pool<LayoutChunk<ChunkSizeSmall>> layout_chunk_pool_small{50, true};
+};
+
+static ControlledLifetimeResource<LayoutPoolsData> layout_pools_data;
+
+void LayoutPools::Initialize()
+{
+	layout_pools_data.Initialize();
+}
+void LayoutPools::Shutdown()
+{
+	layout_pools_data.Shutdown();
+}
 
 void* LayoutPools::AllocateLayoutChunk(size_t size)
 {
@@ -62,11 +76,11 @@ void* LayoutPools::AllocateLayoutChunk(size_t size)
 
 	// Note: If any change is made here, make sure a corresponding change is applied to the deallocation procedure below.
 	if (size <= ChunkSizeSmall)
-		return layout_chunk_pool_small.AllocateAndConstruct();
+		return layout_pools_data->layout_chunk_pool_small.AllocateAndConstruct();
 	else if (size <= ChunkSizeMedium)
-		return layout_chunk_pool_medium.AllocateAndConstruct();
+		return layout_pools_data->layout_chunk_pool_medium.AllocateAndConstruct();
 	else if (size <= ChunkSizeBig)
-		return layout_chunk_pool_big.AllocateAndConstruct();
+		return layout_pools_data->layout_chunk_pool_big.AllocateAndConstruct();
 
 	RMLUI_ERROR;
 	return nullptr;
@@ -76,11 +90,11 @@ void LayoutPools::DeallocateLayoutChunk(void* chunk, size_t size)
 {
 	// Note: If any change is made here, make sure a corresponding change is applied to the allocation procedure above.
 	if (size <= ChunkSizeSmall)
-		layout_chunk_pool_small.DestroyAndDeallocate((LayoutChunk<ChunkSizeSmall>*)chunk);
+		layout_pools_data->layout_chunk_pool_small.DestroyAndDeallocate((LayoutChunk<ChunkSizeSmall>*)chunk);
 	else if (size <= ChunkSizeMedium)
-		layout_chunk_pool_medium.DestroyAndDeallocate((LayoutChunk<ChunkSizeMedium>*)chunk);
+		layout_pools_data->layout_chunk_pool_medium.DestroyAndDeallocate((LayoutChunk<ChunkSizeMedium>*)chunk);
 	else if (size <= ChunkSizeBig)
-		layout_chunk_pool_big.DestroyAndDeallocate((LayoutChunk<ChunkSizeBig>*)chunk);
+		layout_pools_data->layout_chunk_pool_big.DestroyAndDeallocate((LayoutChunk<ChunkSizeBig>*)chunk);
 	else
 	{
 		RMLUI_ERROR;
