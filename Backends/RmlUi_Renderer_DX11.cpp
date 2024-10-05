@@ -2447,6 +2447,11 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
 
     int pass_level = 0;
     SigmaToParameters(sigma, pass_level, sigma);
+    if (sigma == 0)
+    {
+        // If sigma is zero we don't have anything to blur, so early exit to save performance
+        return;
+    }
 
     const Rml::Rectanglei original_scissor = m_scissor_state;
 
@@ -2595,8 +2600,11 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     // and accurate rendering we next upscale the blur image by an exact power-of-two. However, this may not fill the edges completely so we need to
     // do the above first. Note that this strategy may sometimes result in visible seams. Alternatively, we could try to enlarge the window to the
     // next power-of-two size and then downsample and blur that.
-    const Rml::Vector2i target_min = src_min * (1 << pass_level);
-    const Rml::Vector2i target_max = src_max * (1 << pass_level);
+    
+    // We need to flip the scissor rect to have it match DX11 coords
+    window_flipped_twice = VerticallyFlipped(scissor, m_viewport_height);
+    const Rml::Vector2i target_min = window_flipped_twice.p0 * (1 << pass_level);
+    const Rml::Vector2i target_max = window_flipped_twice.p1 * (1 << pass_level);
     if (target_min != dst_min || target_max != dst_max)
     {
         BlitRenderTarget(temp, source_destination, src_min.x, src_min.y, src_max.x, src_max.y, target_min.x, target_max.y, target_max.x,
