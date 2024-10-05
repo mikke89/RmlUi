@@ -855,6 +855,7 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device)
 
     // Assign D3D resources
     m_d3d_device = p_d3d_device;
+    m_d3d_device->AddRef();
     m_d3d_device->QueryInterface(__uuidof(ID3D11Device1), (void**)&m_d3d_device_1);
     m_d3d_device_1->GetImmediateContext1(&m_d3d_context);
     m_d3d_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&m_debug);
@@ -1134,6 +1135,9 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blur_cbuffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_vertex_layout);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_debug);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_d3d_context);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_d3d_device_1);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_d3d_device);
 }
 
 void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
