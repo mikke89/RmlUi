@@ -1367,8 +1367,19 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 	RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
 	RMLUI_ASSERT(window_flipped.Valid());
 
+	if (window_flipped.Top() == window_flipped.Bottom() || window_flipped.Left() == window_flipped.Right())
+	{
+		// In some cases the bounds are 0 width, so early exit since there's nothing to blur
+		return;
+	}
+
 	int pass_level = 0;
 	SigmaToParameters(sigma, pass_level, sigma);
+	if (sigma == 0)
+	{
+		// If sigma is zero we don't have anything to blur, so early exit since blurring will have no effect on the final image
+		return;
+	}
 
 	const Rml::Rectanglei original_scissor = scissor_state;
 

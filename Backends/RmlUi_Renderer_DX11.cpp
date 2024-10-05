@@ -2449,7 +2449,7 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     SigmaToParameters(sigma, pass_level, sigma);
     if (sigma == 0)
     {
-        // If sigma is zero we don't have anything to blur, so early exit to save performance
+        // If sigma is zero we don't have anything to blur, so early exit since blurring will have no effect on the final image
         return;
     }
 
