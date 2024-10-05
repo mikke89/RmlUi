@@ -29,6 +29,16 @@
 
 - Support `hsl` and `hsla` colors. E.g. `color: hsl(30, 80%, 50%)`. #674 (thanks @AmaiKinono)
 
+### RML Parsing
+
+- Fix RML parsing of extra hyphen in closing comment, i.e. `--->` instead of `-->`. #681
+
+### Rendering
+
+- Fix incorrect clipping when using multiple contexts of different dimensions. #677 #680 (thanks @s1sw)
+
+
+
 
 ## RmlUi 6.0
 
@@ -559,6 +569,9 @@ Expect some possible layout shifts in existing documents, mainly due to better C
   - Change the tree order, or the `z-index` or `clip` properties as appropriate.
 - Size of shrink-to-fit boxes may have changed.
 - Position of documents with margins may have changed.
+- Documents that don't have their size set will now shrink to their contents, previously they would span the entire context.
+  - The size can be set either directly using the `width` and `height` properties, or implicitly by a combination of the
+    `top`/`right`/`bottom`/`left` properties.
 
 #### Elements
 
