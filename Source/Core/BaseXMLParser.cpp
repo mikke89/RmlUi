@@ -449,16 +449,13 @@ bool BaseXMLParser::FindWord(String& word, const char* terminators)
 
 bool BaseXMLParser::FindString(const char* string, String& data, bool escape_brackets)
 {
-	int index = 0;
+	const char first_char = string[0];
 	bool in_brackets = false;
 	bool in_string = false;
 	char previous = 0;
 
-	while (string[index])
+	while (!AtEnd())
 	{
-		if (AtEnd())
-			return false;
-
 		const char c = Look();
 
 		// Count line numbers
@@ -477,26 +474,17 @@ bool BaseXMLParser::FindString(const char* string, String& data, bool escape_bra
 			}
 		}
 
-		if (c == string[index] && !in_brackets)
+		if (c == first_char && !in_brackets && PeekString(string))
 		{
-			index += 1;
-		}
-		else
-		{
-			if (index > 0)
-			{
-				data += String(string, index);
-				index = 0;
-			}
-
-			data += c;
+			return true;
 		}
 
+		data += c;
 		previous = c;
 		Next();
 	}
 
-	return true;
+	return false;
 }
 
 bool BaseXMLParser::PeekString(const char* string, bool consume)
