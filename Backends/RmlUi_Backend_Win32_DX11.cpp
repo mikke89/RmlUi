@@ -178,7 +178,7 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
     stbi_convert_iphone_png_to_rgb(true);
 #endif
 
-    data->render_interface.Init(data->d3d_resources.pd3dDevice, data->d3d_resources.pd3dDeviceContext);
+    data->render_interface.Init(data->d3d_resources.pd3dDevice);
 
     data->window_handle = window_handle;
     data->system_interface.SetWindow(window_handle);

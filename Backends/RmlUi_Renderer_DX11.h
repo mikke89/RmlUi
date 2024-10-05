@@ -78,7 +78,7 @@ public:
     ~RenderInterface_DX11();
     
     // Resource initialisation and cleanup
-    void Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext* p_d3d_device_context);
+    void Init(ID3D11Device* p_d3d_device);
     void Cleanup ();
 
     // Sets up DirectX11 states for taking rendering commands from RmlUi.
@@ -127,6 +127,8 @@ public:
     static constexpr Rml::TextureHandle TextureEnableWithoutBinding = Rml::TextureHandle(-1);
     // Can be passed to RenderGeometry() to leave the bound texture and used program unchanged.
     static constexpr Rml::TextureHandle TexturePostprocess = Rml::TextureHandle(-2);
+    // Can be passed to RenderGeometry() to not touch the cbuffers
+    static constexpr Rml::TextureHandle TexturePostprocessNoBinding = Rml::TextureHandle(-3);
 
 public:
     /// Called by the renderer when it wants to load a texture from disk.
@@ -164,7 +166,8 @@ private:
 private:
     // D3D11 core resources
     ID3D11Device* m_d3d_device = nullptr;
-    ID3D11DeviceContext* m_d3d_context = nullptr;
+    ID3D11Device1* m_d3d_device_1 = nullptr;
+    ID3D11DeviceContext1* m_d3d_context = nullptr;
     IDXGISwapChain* m_bound_swapchain = nullptr;
     ID3D11RenderTargetView* m_bound_render_target = nullptr;
     bool m_scissor_enabled = false;
@@ -183,6 +186,7 @@ private:
     // Shaders
     ID3D11Buffer* m_shader_buffer = nullptr;
     ID3D11Buffer* m_color_matrix_cbuffer = nullptr;
+    ID3D11Buffer* m_blur_cbuffer = nullptr;
     bool m_cbuffer_dirty = true;
     ID3D11SamplerState* m_sampler_state = nullptr;
 

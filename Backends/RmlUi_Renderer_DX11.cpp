@@ -379,12 +379,8 @@ PS_INPUT VSMain(const VS_Input IN)
 {
     PS_INPUT result = (PS_INPUT)0;
 
-    // Flip UVs
-    // float2 flipped_uv = float2(IN.uv.x, 1.0f - IN.uv.y);
-    float2 flipped_uv = IN.uv;
-
     for (int i = 0; i < BLUR_SIZE; i++) {
-        result.uv[i] = flipped_uv - float(i - BLUR_NUM_WEIGHTS + 1) * m_texelOffset;
+        result.uv[i] = IN.uv - float(i - BLUR_NUM_WEIGHTS + 1) * m_texelOffset;
     }
     result.position = float4(IN.position.xy, 1.0, 1.0);
 
@@ -396,7 +392,7 @@ static const char shader_frag_blur[] = RMLUI_SHADER_BLUR_HEADER R"(
 Texture2D g_InputTexture : register(t0);
 SamplerState g_SamplerLinear : register(s0);
 
-cbuffer ConstantBuffer : register(b0)
+cbuffer SharedConstantBuffer : register(b0)
 {
     float4x4 m_transform;
     float2 m_translate;
@@ -853,14 +849,14 @@ static uintptr_t HashPointer(uintptr_t inPtr)
 RenderInterface_DX11::RenderInterface_DX11() {}
 RenderInterface_DX11::~RenderInterface_DX11() {}
 
-void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext* p_d3d_device_context)
+void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device)
 {
     RMLUI_ASSERTMSG(p_d3d_device, "p_d3d_device cannot be nullptr!");
-    RMLUI_ASSERTMSG(p_d3d_device_context, "p_d3d_device_context cannot be nullptr!");
 
     // Assign D3D resources
     m_d3d_device = p_d3d_device;
-    m_d3d_context = p_d3d_device_context;
+    m_d3d_device->QueryInterface(__uuidof(ID3D11Device1), (void**)&m_d3d_device_1);
+    m_d3d_device_1->GetImmediateContext1(&m_d3d_context);
     m_d3d_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&m_debug);
     DebugScope::AttachDebugLayer(m_debug);
     m_render_layers.SetD3DResources(m_d3d_device);
@@ -1007,9 +1003,28 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device, ID3D11DeviceContext*
             return;
         }
 
+        cbufferDesc.Usage = D3D11_USAGE_DYNAMIC;
         cbufferDesc.ByteWidth = sizeof(ColorMatrixCbuffer);
+        cbufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        cbufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        cbufferDesc.MiscFlags = 0;
+        cbufferDesc.StructureByteStride = 0;
 
         result = m_d3d_device->CreateBuffer(&cbufferDesc, nullptr, &m_color_matrix_cbuffer);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBuffer");
+        if (FAILED(result))
+        {
+            return;
+        }
+
+        cbufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+        cbufferDesc.ByteWidth = sizeof(ShaderCbuffer::Blur);
+        cbufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        cbufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        cbufferDesc.MiscFlags = 0;
+        cbufferDesc.StructureByteStride = 0;
+
+        result = m_d3d_device->CreateBuffer(&cbufferDesc, nullptr, &m_blur_cbuffer);
         RMLUI_DX_ASSERTMSG(result, "failed to CreateBuffer");
         if (FAILED(result))
         {
@@ -1116,6 +1131,7 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_rasterizer_state_scissor_enabled);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_color_matrix_cbuffer);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_blur_cbuffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_vertex_layout);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_debug);
 }
@@ -1396,7 +1412,7 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
             m_cbuffer_dirty = true;
         }
 
-        if (texture == TexturePostprocess)
+        if (texture == TexturePostprocess || texture == TexturePostprocessNoBinding)
         {
             // Do nothing.
         }
@@ -1417,15 +1433,18 @@ void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rm
             UseProgram(ProgramId::Color);
         }
 
-        UpdateConstantBuffer();
+        if (texture != TexturePostprocessNoBinding)
+        {
+            UpdateConstantBuffer();
 
-        m_d3d_context->IASetInputLayout(m_vertex_layout);
-        m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
-        m_d3d_context->PSSetConstantBuffers(0, 1, &m_shader_buffer);
+            m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
+            m_d3d_context->PSSetConstantBuffers(0, 1, &m_shader_buffer);
+        }
 
         // Bind vertex and index buffers, issue draw call
         uint32_t stride = sizeof(Rml::Vertex);
         uint32_t offset = 0;
+        m_d3d_context->IASetInputLayout(m_vertex_layout);
         m_d3d_context->IASetVertexBuffers(0, 1, &geometryData.vertex_buffer, &stride, &offset);
         m_d3d_context->IASetIndexBuffer(geometryData.index_buffer, DXGI_FORMAT_R32_UINT, 0);
         m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -1766,22 +1785,6 @@ void RenderInterface_DX11::BlitRenderTarget(const Gfx::RenderTargetData& source,
     int src_height = srcY1 - srcY0;
     int dest_width = dstX1 - dstX0;
     int dest_height = dstY1 - dstY0;
-
-    // All coords must be greater than 0
-    // RMLUI_ASSERTMSG(srcX0 >= 0, "Invalid source coordinate (srcX0)!");
-    // RMLUI_ASSERTMSG(srcX1 >= 0, "Invalid source coordinate (srcX1)!");
-    // RMLUI_ASSERTMSG(srcY0 >= 0, "Invalid source coordinate (srcY0)!");
-    // RMLUI_ASSERTMSG(srcY1 >= 0, "Invalid source coordinate (srcY1)!");
-    // RMLUI_ASSERTMSG(dstX0 >= 0, "Invalid destination coordinate (dstX0)!");
-    // RMLUI_ASSERTMSG(dstX1 >= 0, "Invalid destination coordinate (dstX1)!");
-    // RMLUI_ASSERTMSG(dstY0 >= 0, "Invalid destination coordinate (dstY0)!");
-    // RMLUI_ASSERTMSG(dstY1 >= 0, "Invalid destination coordinate (dstY1)!");
-
-    // Width and height must be greater than 0
-    // RMLUI_ASSERTMSG(src_width != 0, "Invalid source rectangle (width)!");
-    // RMLUI_ASSERTMSG(src_height != 0, "Invalid source rectangle (height)!");
-    // RMLUI_ASSERTMSG(dest_width != 0, "Invalid destination rectangle (width)!");
-    // RMLUI_ASSERTMSG(dest_height != 0, "Invalid destination rectangle (height)!");
 
     bool is_flipped = src_width < 0 || src_height < 0 || dest_width < 0 || dest_height < 0;
     bool is_stretched = src_width != dest_width || src_height != dest_height;
@@ -2432,6 +2435,12 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
     RMLUI_ASSERT(window_flipped.Valid());
 
+    if (window_flipped.Top() == window_flipped.Bottom() || window_flipped.Left() == window_flipped.Right())
+    {
+        // In some cases the bounds are 0 width, so early exit since there's nothing to blur
+        return;
+    }
+
     int pass_level = 0;
     SigmaToParameters(sigma, pass_level, sigma);
 
@@ -2500,22 +2509,17 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     // Get a pointer to the data in the constant buffer.
     ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
 
-    // Copy the data to the GPU
-    dataPtr->common.transform = m_transform;
-    dataPtr->common.translation = m_translation;
-
     SetBlurWeights(dataPtr->blur.weights, sigma);
     SetTexCoordLimits(dataPtr->blur.texcoord_min, dataPtr->blur.texcoord_max, scissor, {source_destination.width, source_destination.height});
 
-    auto SetTexelOffset = [dataPtr](Rml::Vector2f blur_direction, int texture_dimension) {
-        const Rml::Vector2f texel_offset = blur_direction * (1.0f / float(texture_dimension));
-        dataPtr->blur.texel_offset = texel_offset;
-    };
-
-    SetTexelOffset({0.f, 1.f}, temp.height);
+    Rml::Vector2f texel_offset = Rml::Vector2f(0.f, 1.f) * (1.0f / float(temp.height));
+    dataPtr->blur.texel_offset = texel_offset;
 
     // Upload to the GPU.
     m_d3d_context->Unmap(m_shader_buffer, 0);
+    // Unbind second pass
+    ID3D11Buffer* null_buffer = nullptr;
+    m_d3d_context->VSSetConstantBuffers(1, 1, &null_buffer);
 
     // Blur render pass - vertical.
     Gfx::BindRenderTarget(m_d3d_context, source_destination);
@@ -2532,21 +2536,55 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     // hand, it looks like Nvidia clamps the pixels to the source edge, which is what we really want. Regardless, we
     // work around the issue with this extra step.
     SetScissor(scissor.Extend(1), true);
+    // D3D11 does not support clearing based on scissor rects. So we use a D3D11Context1 to use ClearView, and define the D3D11_RECt here
+    Rml::Rectanglei scissor_ext = scissor.Extend(1);
+    scissor_ext = VerticallyFlipped(scissor_ext, m_viewport_height);
+
+    // Some render APIs don't like offscreen positions (WebGL in particular), so clamp them to the viewport.
+    const int x_min = Rml::Math::Clamp(scissor_ext.Left(), 0, m_viewport_width);
+    const int y_min = Rml::Math::Clamp(scissor_ext.Top(), 0, m_viewport_height);
+    const int x_max = Rml::Math::Clamp(scissor_ext.Right(), 0, m_viewport_width);
+    const int y_max = Rml::Math::Clamp(scissor_ext.Bottom(), 0, m_viewport_height);
+
+    D3D11_RECT rect_scissor = {};
+    rect_scissor.left = x_min;
+    rect_scissor.top = y_min;
+    rect_scissor.right = x_max;
+    rect_scissor.bottom = y_max;
+
     FLOAT clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    m_d3d_context->ClearRenderTargetView(temp.render_target_view, clear_color);
+    m_d3d_context->ClearView(temp.render_target_view, clear_color, &rect_scissor, 1);
     SetScissor(scissor, true);
 
-    SetTexelOffset({1.f, 0.f}, source_destination.width);
-    DrawFullscreenQuad();
+    // Update texel offset for upscale pass
+    result = m_d3d_context->Map(m_blur_cbuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if (FAILED(result))
+    {
+        ID3D11ShaderResourceView* const nullSRV = nullptr;
+        m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
+        return;
+    }
+
+    ShaderCbuffer::Blur* dataPtrBlur = (ShaderCbuffer::Blur*)mappedResource.pData;
+
+    texel_offset = Rml::Vector2f(1.f, 0.f) * (1.0f / float(source_destination.width));
+    dataPtrBlur->texel_offset = texel_offset;
+
+    // Upload to the GPU.
+    m_d3d_context->Unmap(m_blur_cbuffer, 0);
+    m_d3d_context->VSSetConstantBuffers(0, 1, &m_blur_cbuffer);
+
+    RenderGeometry(m_fullscreen_quad_geometry, {}, RenderInterface_DX11::TexturePostprocessNoBinding);
 
     // Blit the blurred image to the scissor region with upscaling.
-    SetScissor(window_flipped, true);
+    Rml::Rectanglei window_flipped_twice = VerticallyFlipped(window_flipped, m_viewport_height);
+    SetScissor(window_flipped_twice, false);
 
     const Rml::Vector2i src_min = scissor.p0;
     const Rml::Vector2i src_max = scissor.p1;
-    const Rml::Vector2i dst_min = window_flipped.p0;
-    const Rml::Vector2i dst_max = window_flipped.p1;
-    BlitRenderTarget(temp, source_destination, src_min.x, src_max.y, src_max.x, src_min.y, dst_min.x, dst_min.y, dst_max.x, dst_max.y);
+    const Rml::Vector2i dst_min = window_flipped_twice.p0;
+    const Rml::Vector2i dst_max = window_flipped_twice.p1;
+    BlitRenderTarget(temp, source_destination, src_min.x, src_min.y, src_max.x, src_max.y, dst_min.x, dst_max.y, dst_max.x, dst_min.y);
 
     // The above upscale blit might be jittery at low resolutions (large pass levels). This is especially noticeable when moving an element with
     // backdrop blur around or when trying to click/hover an element within a blurred region since it may be rendered at an offset. For more stable
@@ -2557,8 +2595,8 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     const Rml::Vector2i target_max = src_max * (1 << pass_level);
     if (target_min != dst_min || target_max != dst_max)
     {
-        BlitRenderTarget(temp, source_destination, src_min.x, src_max.y, src_max.x, src_min.y, target_min.x, target_min.y, target_max.x,
-            target_max.y);
+        BlitRenderTarget(temp, source_destination, src_min.x, src_min.y, src_max.x, src_max.y, target_min.x, target_max.y, target_max.x,
+            target_min.y);
     }
 
     // Restore render state.
