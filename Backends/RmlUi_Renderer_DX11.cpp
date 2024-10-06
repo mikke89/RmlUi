@@ -2602,13 +2602,15 @@ void RenderInterface_DX11::RenderBlur(float sigma, const Gfx::RenderTargetData& 
     // next power-of-two size and then downsample and blur that.
     
     // We need to flip the scissor rect to have it match DX11 coords
-    window_flipped_twice = VerticallyFlipped(scissor, m_viewport_height);
-    const Rml::Vector2i target_min = window_flipped_twice.p0 * (1 << pass_level);
-    const Rml::Vector2i target_max = window_flipped_twice.p1 * (1 << pass_level);
+    const Rml::Vector2i target_min = scissor.p0 * (1 << pass_level);
+    const Rml::Vector2i target_max = scissor.p1 * (1 << pass_level);
     if (target_min != dst_min || target_max != dst_max)
     {
-        BlitRenderTarget(temp, source_destination, src_min.x, src_min.y, src_max.x, src_max.y, target_min.x, target_max.y, target_max.x,
-            target_min.y);
+        window_flipped_twice = VerticallyFlipped(scissor, m_viewport_height);
+        const Rml::Vector2i target_min_blit = window_flipped_twice.p0 * (1 << pass_level);
+        const Rml::Vector2i target_max_blit = window_flipped_twice.p1 * (1 << pass_level);
+        BlitRenderTarget(temp, source_destination, src_min.x, src_min.y, src_max.x, src_max.y, target_min_blit.x, target_max_blit.y,
+            target_max_blit.x, target_min_blit.y);
     }
 
     // Restore render state.
