@@ -326,9 +326,17 @@ int main(int argc, char** argv)
         // modified and added elements, or changed data in data bindings.
         context->Update();
 
+        // Prepare the application for rendering, such as by clearing the window. This calls
+        // into the RmlUi backend interface, replace with your own procedures as appropriate.
+        Backend::BeginFrame();
+        
         // Render the user interface. All geometry and other rendering commands are now
         // submitted through the render interface.
         context->Render();
+
+        // Present the rendered content, such as by swapping the swapchain. This calls into
+        // the RmlUi backend interface, replace with your own procedures as appropriate.
+        Backend::PresentFrame();
     }
 
     Rml::Shutdown();
