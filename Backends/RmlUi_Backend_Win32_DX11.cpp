@@ -293,7 +293,7 @@ void Backend::BeginFrame()
         CreateRenderTarget();
     }
 
-    data->render_interface.BeginFrame(data->d3d_resources.pSwapChain, data->d3d_resources.pMainRenderTargetView);
+    data->render_interface.BeginFrame(data->d3d_resources.pMainRenderTargetView);
 }
 
 void Backend::PresentFrame()

@@ -82,7 +82,7 @@ public:
     void Cleanup ();
 
     // Sets up DirectX11 states for taking rendering commands from RmlUi.
-    void BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view);
+    void BeginFrame(ID3D11RenderTargetView* p_render_target_view);
     void EndFrame();
 
     void SetViewport(const int width, const int height);
@@ -168,7 +168,6 @@ private:
     ID3D11Device* m_d3d_device = nullptr;
     ID3D11Device1* m_d3d_device_1 = nullptr;
     ID3D11DeviceContext1* m_d3d_context = nullptr;
-    IDXGISwapChain* m_bound_swapchain = nullptr;
     ID3D11RenderTargetView* m_bound_render_target = nullptr;
     bool m_scissor_enabled = false;
     ID3D11RasterizerState* m_rasterizer_state_scissor_enabled = nullptr;

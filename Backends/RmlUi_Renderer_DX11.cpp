@@ -1150,11 +1150,10 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_d3d_device);
 }
 
-void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderTargetView* p_render_target_view)
+void RenderInterface_DX11::BeginFrame(ID3D11RenderTargetView* p_render_target_view)
 {
     RMLUI_ASSERT(m_viewport_width >= 1 && m_viewport_height >= 1);
 
-    RMLUI_ASSERTMSG(p_swapchain, "p_swapchain cannot be nullptr!");
     RMLUI_ASSERTMSG(p_render_target_view, "p_render_target_view cannot be nullptr!");
     RMLUI_ASSERTMSG(m_d3d_context, "d3d_context cannot be nullptr!");
     RMLUI_ASSERTMSG(m_d3d_device, "d3d_device cannot be nullptr!");
@@ -1188,7 +1187,6 @@ void RenderInterface_DX11::BeginFrame(IDXGISwapChain* p_swapchain, ID3D11RenderT
     }
 
     m_bound_render_target = p_render_target_view;
-    m_bound_swapchain = p_swapchain;
 
     // Initialise DX11 state for RmlUi
     D3D11_VIEWPORT d3dviewport;
@@ -1243,7 +1241,6 @@ void RenderInterface_DX11::EndFrame()
     m_render_layers.EndFrame();
 
     // Reset internal state
-    m_bound_swapchain = nullptr;
     m_bound_render_target = nullptr;
     m_current_blend_state = nullptr;
 
