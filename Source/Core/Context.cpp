@@ -149,11 +149,11 @@ Vector2i Context::GetDimensions() const
 	return dimensions;
 }
 
-void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_ratio)
+void Context::SetDensityIndependentPixelRatio(float dp_ratio)
 {
-	if (density_independent_pixel_ratio != _density_independent_pixel_ratio)
+	if (density_independent_pixel_ratio != dp_ratio)
 	{
-		density_independent_pixel_ratio = _density_independent_pixel_ratio;
+		density_independent_pixel_ratio = dp_ratio;
 
 		for (int i = 0; i < root->GetNumChildren(true); ++i)
 		{

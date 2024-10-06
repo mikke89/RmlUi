@@ -41,7 +41,7 @@
 namespace Rml {
 
 // Some data views need to offset the update order for proper behavior.
-//  'data-value' may need other attributes applied first, eg. min/max attributes.
+//  'data-value' may need other attributes applied first, e.g. min/max attributes.
 static constexpr int SortOffset_DataValue = 100;
 //  'data-checked' may need a value attribute already set.
 static constexpr int SortOffset_DataChecked = 110;

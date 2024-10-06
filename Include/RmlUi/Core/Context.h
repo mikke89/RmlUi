@@ -77,10 +77,10 @@ public:
 	/// @return The current dimensions of the context.
 	Vector2i GetDimensions() const;
 
-	/// Changes the size ratio of 'dp' unit to 'px' unit
+	/// Changes the ratio of the 'dp' unit to the 'px' unit.
 	/// @param[in] dp_ratio The new density-independent pixel ratio of the context.
-	void SetDensityIndependentPixelRatio(float density_independent_pixel_ratio);
-	/// Returns the size ratio of 'dp' unit to 'px' unit
+	void SetDensityIndependentPixelRatio(float dp_ratio);
+	/// Returns the ratio of the 'dp' unit to the 'px' unit.
 	/// @return The current density-independent pixel ratio of the context.
 	float GetDensityIndependentPixelRatio() const;
 
@@ -118,7 +118,7 @@ public:
 
 	/// Enable or disable handling of the mouse cursor from this context.
 	/// When enabled, changes to the cursor name is transmitted through the system interface.
-	/// @param[in] show True to enable mouse cursor handling, false to disable.
+	/// @param[in] enable True to enable mouse cursor handling, false to disable.
 	void EnableMouseCursor(bool enable);
 
 	/// Activate or deactivate a media theme. Themes can be used in RCSS media queries.

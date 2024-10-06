@@ -121,7 +121,7 @@ RMLUICORE_API bool RemoveContext(const String& name);
 /// @return The desired context, or nullptr if no context exists with the given name.
 RMLUICORE_API Context* GetContext(const String& name);
 /// Fetches a context by index.
-/// @param[in] index The index of the desired context. If this is outside of the valid range of contexts, it will be clamped.
+/// @param[in] index The index of the desired context. If this is outside the valid range of contexts, it will be clamped.
 /// @return The requested context, or nullptr if no contexts exist.
 RMLUICORE_API Context* GetContext(int index);
 /// Returns the number of active contexts.
@@ -132,7 +132,7 @@ RMLUICORE_API int GetNumContexts();
 /// @param[in] file_path The path to the file to load the face from. The path is passed directly to the file interface which is used to load the file.
 /// The default file interface accepts both absolute paths and paths relative to the working directory.
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
-/// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default it
+/// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default, it
 /// loads all found font weights.
 /// @return True if the face was loaded successfully, false otherwise.
 RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = false, Style::FontWeight weight = Style::FontWeight::Auto);
@@ -140,7 +140,7 @@ RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = fa
 /// @param[in] data The font data.
 /// @param[in] family The family to register the font as.
 /// @param[in] style The style to register the font as.
-/// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default it
+/// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default, it
 /// loads all found font weights.
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 /// @return True if the face was loaded successfully, false otherwise.
