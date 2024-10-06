@@ -284,7 +284,7 @@ private:
     };
     struct ColorMatrixCbuffer {
         Rml::Matrix4f color_matrix;
-    } color_matrix;
+    };
     #pragma pack()
 
     Rml::CompiledGeometryHandle m_fullscreen_quad_geometry = 0;
