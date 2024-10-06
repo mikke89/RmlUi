@@ -424,10 +424,8 @@ static const char shader_frag_drop_shadow[] = RMLUI_SHADER_HEADER R"(
 Texture2D g_InputTexture : register(t0);
 SamplerState g_SamplerLinear : register(s0);
 
-cbuffer ConstantBuffer : register(b0)
+cbuffer DropShadowBuffer : register(b1)
 {
-    float4x4 m_transform;
-    float2 m_translate;
     float2 m_texCoordMin;
     float2 m_texCoordMax;
     float4 m_color;
@@ -1031,6 +1029,20 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device)
         {
             return;
         }
+
+        cbufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+        cbufferDesc.ByteWidth = sizeof(ShaderCbuffer::DropShadow);
+        cbufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        cbufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        cbufferDesc.MiscFlags = 0;
+        cbufferDesc.StructureByteStride = 0;
+
+        result = m_d3d_device->CreateBuffer(&cbufferDesc, nullptr, &m_drop_shadow_cbuffer);
+        RMLUI_DX_ASSERTMSG(result, "failed to CreateBuffer");
+        if (FAILED(result))
+        {
+            return;
+        }
     }
 
     // Create sampler state for textures
@@ -1133,6 +1145,7 @@ void RenderInterface_DX11::Cleanup()
     DX_CLEANUP_RESOURCE_IF_CREATED(m_shader_buffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_color_matrix_cbuffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_blur_cbuffer);
+    DX_CLEANUP_RESOURCE_IF_CREATED(m_drop_shadow_cbuffer);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_vertex_layout);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_debug);
     DX_CLEANUP_RESOURCE_IF_CREATED(m_d3d_context);
@@ -2672,7 +2685,6 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
         break;
         case FilterType::DropShadow:
         {
-            return;
             DebugScope scope_DropShadow(L"DropShadow");
 
             UseProgram(ProgramId::DropShadow);
@@ -2686,31 +2698,30 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             D3D11_MAPPED_SUBRESOURCE mappedResource{};
             // Lock the constant buffer so it can be written to.
-            HRESULT result = m_d3d_context->Map(m_shader_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+            HRESULT result = m_d3d_context->Map(m_drop_shadow_cbuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
             if (FAILED(result))
             {
                 return;
             }
 
             // Get a pointer to the data in the constant buffer.
-            ShaderCbuffer* dataPtr = (ShaderCbuffer*)mappedResource.pData;
+            ShaderCbuffer::DropShadow* dataPtr = (ShaderCbuffer::DropShadow*)mappedResource.pData;
 
             Rml::Colourf color = ConvertToColorf(filter.color);
 
             // Copy the data to the GPU
-            dataPtr->common.transform = m_transform;
-            dataPtr->common.translation = m_translation;
-            dataPtr->drop_shadow.color.x = color.red;
-            dataPtr->drop_shadow.color.y = color.green;
-            dataPtr->drop_shadow.color.z = color.blue;
-            dataPtr->drop_shadow.color.w = color.alpha;
+            dataPtr->color.x = color.red;
+            dataPtr->color.y = color.green;
+            dataPtr->color.z = color.blue;
+            dataPtr->color.w = color.alpha;
 
             const Rml::Rectanglei window_flipped = VerticallyFlipped(m_scissor_state, m_viewport_height);
-            SetTexCoordLimits(dataPtr->drop_shadow.texcoord_min, dataPtr->drop_shadow.texcoord_max, window_flipped,
+            SetTexCoordLimits(dataPtr->texcoord_min, dataPtr->texcoord_max, m_scissor_state,
                 {primary.width, primary.height});
 
             // Upload to the GPU.
-            m_d3d_context->Unmap(m_shader_buffer, 0);
+            m_d3d_context->Unmap(m_drop_shadow_cbuffer, 0);
+            m_d3d_context->PSSetConstantBuffers(1, 1, &m_drop_shadow_cbuffer);
             
             m_cbuffer_dirty = true;
 
@@ -2724,6 +2735,8 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
             }
 
             UseProgram(ProgramId::Passthrough);
+            Gfx::BindRenderTarget(m_d3d_context, secondary);
+            Gfx::BindTexture(m_d3d_context, primary);
             SetBlendState(blend_state_backup);
             DrawFullscreenQuad();
 
@@ -2731,6 +2744,7 @@ void RenderInterface_DX11::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
             ID3D11ShaderResourceView* const nullSRV = nullptr;
             m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
+            m_d3d_context->PSSetShaderResources(1, 1, &nullSRV);
         }
         break;
         case FilterType::ColorMatrix:

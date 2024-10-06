@@ -187,6 +187,7 @@ private:
     ID3D11Buffer* m_shader_buffer = nullptr;
     ID3D11Buffer* m_color_matrix_cbuffer = nullptr;
     ID3D11Buffer* m_blur_cbuffer = nullptr;
+    ID3D11Buffer* m_drop_shadow_cbuffer = nullptr;
     bool m_cbuffer_dirty = true;
     ID3D11SamplerState* m_sampler_state = nullptr;
 
@@ -271,7 +272,6 @@ private:
             Rml::Vector2f texcoord_max;
         } blur;
         struct DropShadow {
-            int _padding[18];
             Rml::Vector2f texcoord_min;
             Rml::Vector2f texcoord_max;
             Rml::Vector4f color;
