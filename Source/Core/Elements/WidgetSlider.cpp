@@ -127,20 +127,17 @@ bool WidgetSlider::Initialise()
 
 void WidgetSlider::Update()
 {
+	if (!std::any_of(std::begin(arrow_timers), std::end(arrow_timers), [](float timer) { return timer > 0; }))
+		return;
+
+	const double current_time = Clock::GetElapsedTime();
+	const float delta_time = float(current_time - last_update_time);
+	last_update_time = current_time;
+
 	for (int i = 0; i < 2; i++)
 	{
-		bool updated_time = false;
-		float delta_time = 0;
-
 		if (arrow_timers[i] > 0)
 		{
-			if (!updated_time)
-			{
-				double current_time = Clock::GetElapsedTime();
-				delta_time = float(current_time - last_update_time);
-				last_update_time = current_time;
-			}
-
 			arrow_timers[i] -= delta_time;
 			while (arrow_timers[i] <= 0)
 			{

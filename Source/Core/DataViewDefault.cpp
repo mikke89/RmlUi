@@ -104,7 +104,7 @@ bool DataViewAttribute::Update(DataModel& model)
 		const String value = variant.Get<String>();
 		const Variant* attribute = element->GetAttribute(attribute_name);
 
-		if (!attribute || (attribute && attribute->Get<String>() != value))
+		if (!attribute || attribute->Get<String>() != value)
 		{
 			element->SetAttribute(attribute_name, value);
 			result = true;
