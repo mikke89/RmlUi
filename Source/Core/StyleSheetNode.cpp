@@ -177,7 +177,7 @@ const PropertyDictionary& StyleSheetNode::GetProperties() const
 	return properties;
 }
 
-bool StyleSheetNode::Match(const Element* element) const
+bool StyleSheetNode::Match(const Element* element, const Element* scope) const
 {
 	if (!selector.tag.empty() && selector.tag != element->GetTagName())
 		return false;
@@ -200,17 +200,17 @@ bool StyleSheetNode::Match(const Element* element) const
 	if (!selector.attributes.empty() && !MatchAttributes(element))
 		return false;
 
-	if (!selector.structural_selectors.empty() && !MatchStructuralSelector(element))
+	if (!selector.structural_selectors.empty() && !MatchStructuralSelector(element, scope))
 		return false;
 
 	return true;
 }
 
-bool StyleSheetNode::MatchStructuralSelector(const Element* element) const
+bool StyleSheetNode::MatchStructuralSelector(const Element* element, const Element* scope) const
 {
 	for (auto& node_selector : selector.structural_selectors)
 	{
-		if (!IsSelectorApplicable(element, node_selector))
+		if (!IsSelectorApplicable(element, node_selector, scope))
 			return false;
 	}
 
@@ -292,7 +292,7 @@ bool StyleSheetNode::MatchAttributes(const Element* element) const
 	return true;
 }
 
-bool StyleSheetNode::TraverseMatch(const Element* element) const
+bool StyleSheetNode::TraverseMatch(const Element* element, const Element* scope) const
 {
 	RMLUI_ASSERT(parent);
 	if (!parent->parent)
@@ -307,7 +307,7 @@ bool StyleSheetNode::TraverseMatch(const Element* element) const
 		// hierarchy using the next element parent. Repeat until we run out of elements.
 		for (element = element->GetParentNode(); element; element = element->GetParentNode())
 		{
-			if (parent->Match(element) && parent->TraverseMatch(element))
+			if (parent->Match(element, scope) && parent->TraverseMatch(element, scope))
 				return true;
 			// If the node has a child combinator we must match this first ancestor.
 			else if (selector.combinator == SelectorCombinator::Child)
@@ -341,7 +341,7 @@ bool StyleSheetNode::TraverseMatch(const Element* element) const
 			// text elements don't have children and thus any ancestor is not a text element.
 			if (IsTextElement(element))
 				continue;
-			else if (parent->Match(element) && parent->TraverseMatch(element))
+			else if (parent->Match(element, scope) && parent->TraverseMatch(element, scope))
 				return true;
 			// If the node has a next-sibling combinator we must match this first sibling.
 			else if (selector.combinator == SelectorCombinator::NextSibling)
@@ -355,7 +355,7 @@ bool StyleSheetNode::TraverseMatch(const Element* element) const
 	return false;
 }
 
-bool StyleSheetNode::IsApplicable(const Element* element) const
+bool StyleSheetNode::IsApplicable(const Element* element, const Element* scope) const
 {
 	// Determine whether the element matches the current node and its entire lineage. The entire hierarchy of the element's document will be
 	// considered during the match as necessary.
@@ -384,11 +384,11 @@ bool StyleSheetNode::IsApplicable(const Element* element) const
 		return false;
 
 	// Check the structural selector requirements last as they can be quite slow.
-	if (!selector.structural_selectors.empty() && !MatchStructuralSelector(element))
+	if (!selector.structural_selectors.empty() && !MatchStructuralSelector(element, scope))
 		return false;
 
 	// Walk up through all our parent nodes, each one of them must be matched by some ancestor or sibling element.
-	if (parent && !TraverseMatch(element))
+	if (parent && !TraverseMatch(element, scope))
 		return false;
 
 	return true;
