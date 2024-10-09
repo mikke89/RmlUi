@@ -46,6 +46,7 @@ struct EventSpecification {
 namespace EventSpecificationInterface {
 
 	void Initialize();
+	void Shutdown();
 
 	// Get event specification for the given id.
 	// Returns the 'invalid' event type if no specification exists for id.

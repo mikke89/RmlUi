@@ -34,13 +34,17 @@
 #include "../../Include/RmlUi/Core/Types.h"
 #include "../../Include/RmlUi/Core/URL.h"
 #include "../../Include/RmlUi/Core/XMLNodeHandler.h"
+#include "ControlledLifetimeResource.h"
 #include "DocumentHeader.h"
 
 namespace Rml {
 
-using NodeHandlers = UnorderedMap<String, SharedPtr<XMLNodeHandler>>;
-static NodeHandlers node_handlers;
-static SharedPtr<XMLNodeHandler> default_node_handler;
+struct XmlParserData {
+	UnorderedMap<String, SharedPtr<XMLNodeHandler>> node_handlers;
+	SharedPtr<XMLNodeHandler> default_node_handler;
+};
+
+static ControlledLifetimeResource<XmlParserData> xml_parser_data;
 
 XMLParser::XMLParser(Element* root)
 {
@@ -64,24 +68,27 @@ XMLParser::~XMLParser() {}
 
 XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XMLNodeHandler> handler)
 {
+	if (!xml_parser_data)
+		xml_parser_data.Initialize();
+
 	String tag = StringUtilities::ToLower(_tag);
 
 	// Check for a default node registration.
 	if (tag.empty())
 	{
-		default_node_handler = std::move(handler);
-		return default_node_handler.get();
+		xml_parser_data->default_node_handler = std::move(handler);
+		return xml_parser_data->default_node_handler.get();
 	}
 
 	XMLNodeHandler* result = handler.get();
-	node_handlers[tag] = std::move(handler);
+	xml_parser_data->node_handlers[tag] = std::move(handler);
 	return result;
 }
 
 XMLNodeHandler* XMLParser::GetNodeHandler(const String& tag)
 {
-	auto it = node_handlers.find(tag);
-	if (it != node_handlers.end())
+	auto it = xml_parser_data->node_handlers.find(tag);
+	if (it != xml_parser_data->node_handlers.end())
 		return it->second.get();
 
 	return nullptr;
@@ -89,8 +96,7 @@ XMLNodeHandler* XMLParser::GetNodeHandler(const String& tag)
 
 void XMLParser::ReleaseHandlers()
 {
-	default_node_handler.reset();
-	node_handlers.clear();
+	xml_parser_data.Shutdown();
 }
 
 DocumentHeader* XMLParser::GetDocumentHeader()
@@ -100,16 +106,16 @@ DocumentHeader* XMLParser::GetDocumentHeader()
 
 void XMLParser::PushDefaultHandler()
 {
-	active_handler = default_node_handler.get();
+	active_handler = xml_parser_data->default_node_handler.get();
 }
 
 bool XMLParser::PushHandler(const String& tag)
 {
-	NodeHandlers::iterator i = node_handlers.find(StringUtilities::ToLower(tag));
-	if (i == node_handlers.end())
+	auto it = xml_parser_data->node_handlers.find(StringUtilities::ToLower(tag));
+	if (it == xml_parser_data->node_handlers.end())
 		return false;
 
-	active_handler = i->second.get();
+	active_handler = it->second.get();
 	return true;
 }
 
@@ -130,8 +136,8 @@ void XMLParser::HandleElementStart(const String& _name, const XMLAttributes& att
 	const String name = StringUtilities::ToLower(_name);
 
 	// Check for a specific handler that will override the child handler.
-	NodeHandlers::iterator itr = node_handlers.find(name);
-	if (itr != node_handlers.end())
+	auto itr = xml_parser_data->node_handlers.find(name);
+	if (itr != xml_parser_data->node_handlers.end())
 		active_handler = itr->second.get();
 
 	// Store the current active handler, so we can use it through this function (as active handler may change)

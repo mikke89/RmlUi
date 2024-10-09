@@ -97,25 +97,31 @@ ShorthandId StyleSheetSpecification::RegisterShorthand(ShorthandId id, const Str
 	return properties.RegisterShorthand(shorthand_name, property_names, type, id);
 }
 
-bool StyleSheetSpecification::Initialise()
+void StyleSheetSpecification::Initialise()
 {
-	if (instance == nullptr)
-	{
-		new StyleSheetSpecification();
+	RMLUI_ASSERT(!instance);
 
-		instance->RegisterDefaultParsers();
-		instance->RegisterDefaultProperties();
-	}
+	PropertyParserAnimation::Initialize();
+	PropertyParserColour::Initialize();
+	PropertyParserDecorator::Initialize();
+	PropertyParserNumber::Initialize();
 
-	return true;
+	new StyleSheetSpecification();
+
+	instance->RegisterDefaultParsers();
+	instance->RegisterDefaultProperties();
 }
 
 void StyleSheetSpecification::Shutdown()
 {
-	if (instance != nullptr)
-	{
-		delete instance;
-	}
+	RMLUI_ASSERT(instance);
+
+	delete instance;
+
+	PropertyParserAnimation::Shutdown();
+	PropertyParserColour::Shutdown();
+	PropertyParserDecorator::Shutdown();
+	PropertyParserNumber::Shutdown();
 }
 
 bool StyleSheetSpecification::RegisterParser(const String& parser_name, PropertyParser* parser)
@@ -422,10 +428,10 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::Decorator, "decorator", "", false, false).AddParser("decorator");
 	RegisterProperty(PropertyId::MaskImage, "mask-image", "", false, false).AddParser("decorator");
 	RegisterProperty(PropertyId::FontEffect, "font-effect", "", true, false).AddParser("font_effect");
-		
+
 	RegisterProperty(PropertyId::Filter, "filter", "", false, false).AddParser("filter", "filter");
 	RegisterProperty(PropertyId::BackdropFilter, "backdrop-filter", "", false, false).AddParser("filter");
-	
+
 	RegisterProperty(PropertyId::BoxShadow, "box-shadow", "none", false, false).AddParser("box_shadow");
 
 	// Rare properties (not added to computed values)
@@ -435,7 +441,7 @@ void StyleSheetSpecification::RegisterDefaultProperties()
 	RegisterProperty(PropertyId::AlignContent, "align-content", "stretch", false, true).AddParser("keyword", "flex-start, flex-end, center, space-between, space-around, space-evenly, stretch");
 	RegisterProperty(PropertyId::AlignItems, "align-items", "stretch", false, true).AddParser("keyword", "flex-start, flex-end, center, baseline, stretch");
 	RegisterProperty(PropertyId::AlignSelf, "align-self", "auto", false, true).AddParser("keyword", "auto, flex-start, flex-end, center, baseline, stretch");
-	
+
 	RegisterProperty(PropertyId::FlexBasis, "flex-basis", "auto", false, true).AddParser("keyword", "auto").AddParser("length_percent");
 	RegisterProperty(PropertyId::FlexDirection, "flex-direction", "row", false, true).AddParser("keyword", "row, row-reverse, column, column-reverse");
 

@@ -30,6 +30,7 @@
 #define RMLUI_CORE_PROPERTYPARSERDECORATOR_H
 
 #include "../../Include/RmlUi/Core/PropertyParser.h"
+#include "ControlledLifetimeResource.h"
 
 namespace Rml {
 
@@ -47,8 +48,11 @@ public:
 
 	static String ConvertAreaToString(BoxArea area);
 
+	static void Initialize();
+	static void Shutdown();
+
 private:
-	static const SmallUnorderedMap<String, BoxArea> area_keywords;
+	static ControlledLifetimeResource<struct PropertyParserDecoratorData> parser_data;
 };
 
 } // namespace Rml

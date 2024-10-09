@@ -30,10 +30,29 @@
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/Property.h"
 #include "../../Include/RmlUi/Core/StringUtilities.h"
+#include "ControlledLifetimeResource.h"
 
 namespace Rml {
 
-const Style::ComputedValues DefaultComputedValues{nullptr};
+struct ComputedPropertyData {
+	const Style::ComputedValues computed{nullptr};
+};
+static ControlledLifetimeResource<ComputedPropertyData> computed_property_data;
+
+const Style::ComputedValues& DefaultComputedValues()
+{
+	return computed_property_data->computed;
+}
+
+void InitializeComputeProperty()
+{
+	computed_property_data.Initialize();
+}
+
+void ShutdownComputeProperty()
+{
+	computed_property_data.Shutdown();
+}
 
 static constexpr float PixelsPerInch = 96.0f;
 
@@ -114,7 +133,7 @@ float ComputeFontsize(NumericValue value, const Style::ComputedValues& values, c
 		case Unit::REM:
 			// If the current element is a document, the rem unit is relative to the default size.
 			if (!document_values || &values == document_values)
-				return value.number * DefaultComputedValues.font_size();
+				return value.number * DefaultComputedValues().font_size();
 
 			// Otherwise it is relative to the document font size.
 			return value.number * document_values->font_size();
