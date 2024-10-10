@@ -395,6 +395,8 @@ Users can now edit the text field to change the animal. The data bindings ensure
 **Flexbox layout**\
 ![Flexbox](https://github.com/mikke89/RmlUiDoc/blob/4cf0c6ac23b822174e69e5f1413b71254230c619/assets/images/flexbox-example.png?raw=true)
 
+**GoodNight - A tool to fix S0 standby**
+![Goodnight](https://github.com/std-microblock/Goodnight.Laptop/raw/refs/heads/master/resources/screenshot_en.webp)
 
 **Animations and transitions from the 'animation' sample**
 
