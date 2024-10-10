@@ -7,6 +7,7 @@ set(RMLUI_BACKEND_OPTIONS
 	"native"
 	"Win32_GL2"
 	"Win32_VK"
+	"Win32_DX11"
 	"X11_GL2"
 	"SDL_GL2"
 	"SDL_GL3"
