@@ -81,6 +81,7 @@ static const String document_rml = R"(
 <p>{{ s5.val }}</p>
 <p>{{ simple }}</p>
 <p>{{ scoped }}</p>
+<p id="scoped_custom">{{ scoped_custom }}</p>
 
 <h1>Basic</h1>
 <p>{{ basic.a }}</p>
@@ -212,6 +213,8 @@ enum SimpleEnum { Simple_Zero = 0, Simple_One, Simple_Two };
 
 enum class ScopedEnum : uint64_t { Zero = 0, One, Two };
 
+enum class ScopedEnumCustom { Zero, One, Two };
+
 struct Globals {
 	int i0 = 0;
 	int* i1 = new int(1);
@@ -220,6 +223,7 @@ struct Globals {
 
 	SimpleEnum simple = Simple_One;
 	ScopedEnum scoped = ScopedEnum::One;
+	ScopedEnumCustom scoped_custom = ScopedEnumCustom::One;
 
 	String s0 = "s0";
 	String* s1 = new String("s1");
@@ -371,6 +375,45 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("val", &StringWrap::val);
 	}
 
+	constructor.RegisterScalar<ScopedEnumCustom>(
+		[](const ScopedEnumCustom& value, Rml::Variant& variant) {
+			if (value == ScopedEnumCustom::Zero)
+			{
+				variant = "Zero";
+			}
+			else if (value == ScopedEnumCustom::One)
+			{
+				variant = "One";
+			}
+			else if (value == ScopedEnumCustom::Two)
+			{
+				variant = "Two";
+			}
+			else
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "Invalid value for ScopedEnumCustom type.");
+			}
+		},
+		[](ScopedEnumCustom& value, const Rml::Variant& variant) {
+			Rml::String str = variant.Get<Rml::String>();
+			if (str == "Zero")
+			{
+				value = ScopedEnumCustom::Zero;
+			}
+			else if (str == "One")
+			{
+				value = ScopedEnumCustom::One;
+			}
+			else if (str == "Two")
+			{
+				value = ScopedEnumCustom::Two;
+			}
+			else
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "Can't convert '%s' to ScopedEnumCustom.", str.c_str());
+			}
+		});
+
 	{
 		// Globals
 		constructor.Bind("i0", &globals.i0);
@@ -387,6 +430,7 @@ bool InitializeDataBindings(Context* context)
 
 		constructor.Bind("simple", &globals.simple);
 		constructor.Bind("scoped", &globals.scoped);
+		constructor.Bind("scoped_custom", &globals.scoped_custom);
 		// Invalid: Each of the following should give a compile-time failure.
 		// constructor.Bind("x0", &globals.x0);
 		// constructor.Bind("x1", &globals.x1);
@@ -481,6 +525,9 @@ TEST_CASE("data_binding")
 	document->Show();
 
 	TestsShell::RenderLoop();
+
+	Element* element = document->GetElementById("scoped_custom");
+	CHECK(element->GetInnerRML() == "One");
 
 	document->Close();
 
