@@ -79,8 +79,9 @@ static const String document_rml = R"(
 <p>{{ s3.val }}</p>
 <p>{{ s4.val }}</p>
 <p>{{ s5.val }}</p>
-<p>{{ simple }}</p>
-<p>{{ scoped }}</p>
+<p id="simple">{{ simple }}</p>
+<p id="simple_custom">{{ simple_custom }}</p>
+<p id="scoped">{{ scoped }}</p>
 <p id="scoped_custom">{{ scoped_custom }}</p>
 
 <h1>Basic</h1>
@@ -211,6 +212,8 @@ struct StringWrap {
 
 enum SimpleEnum { Simple_Zero = 0, Simple_One, Simple_Two };
 
+enum SimpleEnumCustom { Simple_Zero_Custom, Simple_One_Custom, Simple_Two_Custom };
+
 enum class ScopedEnum : uint64_t { Zero = 0, One, Two };
 
 enum class ScopedEnumCustom { Zero, One, Two };
@@ -222,6 +225,7 @@ struct Globals {
 	SharedPtr<int> i3 = MakeShared<int>(3);
 
 	SimpleEnum simple = Simple_One;
+	SimpleEnumCustom simple_custom = Simple_One_Custom;
 	ScopedEnum scoped = ScopedEnum::One;
 	ScopedEnumCustom scoped_custom = ScopedEnumCustom::One;
 
@@ -375,6 +379,45 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("val", &StringWrap::val);
 	}
 
+	constructor.RegisterScalar<SimpleEnumCustom>(
+		[](const SimpleEnumCustom& value, Rml::Variant& variant) {
+			if (value == Simple_Zero_Custom)
+			{
+				variant = "Zero";
+			}
+			else if (value == Simple_One_Custom)
+			{
+				variant = "One";
+			}
+			else if (value == Simple_Two_Custom)
+			{
+				variant = "Two";
+			}
+			else
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "Invalid value for SimpleEnumCustom type.");
+			}
+		},
+		[](SimpleEnumCustom& value, const Rml::Variant& variant) {
+			Rml::String str = variant.Get<Rml::String>();
+			if (str == "Zero")
+			{
+				value = Simple_Zero_Custom;
+			}
+			else if (str == "One")
+			{
+				value = Simple_One_Custom;
+			}
+			else if (str == "Two")
+			{
+				value = Simple_Two_Custom;
+			}
+			else
+			{
+				Rml::Log::Message(Rml::Log::LT_ERROR, "Can't convert '%s' to SimpleEnumCustom.", str.c_str());
+			}
+		});
+
 	constructor.RegisterScalar<ScopedEnumCustom>(
 		[](const ScopedEnumCustom& value, Rml::Variant& variant) {
 			if (value == ScopedEnumCustom::Zero)
@@ -429,6 +472,7 @@ bool InitializeDataBindings(Context* context)
 		constructor.Bind("s5", &globals.s5);
 
 		constructor.Bind("simple", &globals.simple);
+		constructor.Bind("simple_custom", &globals.simple_custom);
 		constructor.Bind("scoped", &globals.scoped);
 		constructor.Bind("scoped_custom", &globals.scoped_custom);
 		// Invalid: Each of the following should give a compile-time failure.
@@ -526,7 +570,16 @@ TEST_CASE("data_binding")
 
 	TestsShell::RenderLoop();
 
-	Element* element = document->GetElementById("scoped_custom");
+	Element* element = document->GetElementById("simple");
+	CHECK(element->GetInnerRML() == "1");
+
+	element = document->GetElementById("simple_custom");
+	CHECK(element->GetInnerRML() == "One");
+
+	element = document->GetElementById("scoped");
+	CHECK(element->GetInnerRML() == "1");
+
+	element = document->GetElementById("scoped_custom");
 	CHECK(element->GetInnerRML() == "One");
 
 	document->Close();

@@ -37,16 +37,6 @@
 
 namespace Rml {
 
-template <typename T, bool = std::is_enum<T>::value>
-struct is_scoped_enum {
-	static constexpr bool value = false;
-};
-
-template <typename T>
-struct is_scoped_enum<T, true> {
-	static constexpr bool value = !std::is_convertible<T, int>::value;
-};
-
 template <typename T>
 struct is_builtin_data_scalar {
 	static constexpr bool value =
