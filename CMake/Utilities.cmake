@@ -53,6 +53,22 @@ function(report_dependency_found_or_error friendly_name target_name)
 endfunction()
 
 #[[
+	Returns a list of data directories for the current target.
+	Arguments:
+		- target: Name of the target
+		- out_var: Name of the returned variable
+]]
+function(get_data_dirs target out_var)
+	set(data_dirs "")
+	foreach(dir IN ITEMS "data" "lua")
+		if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}")
+			list(APPEND data_dirs "${dir}")
+		endif()
+	endforeach()
+	set(${out_var} ${data_dirs} PARENT_SCOPE)
+endfunction()
+
+#[[
 	Set compiler options and features that are common to all RmlUi targets.
 	Arguments:
 		- target: The name of the target to set
@@ -107,6 +123,7 @@ function(set_common_target_options target)
 		file(GLOB asset_files "${PROJECT_SOURCE_DIR}/${common_assets_dir}/*")
 
 		# Add sample-specific assets.
+		get_data_dirs(${target} data_dirs)
 		foreach(source_relative_dir IN LISTS data_dirs)
 			set(abs_dir "${CMAKE_CURRENT_SOURCE_DIR}/${source_relative_dir}")
 			file(RELATIVE_PATH root_relative_dir "${PROJECT_SOURCE_DIR}" "${abs_dir}")
@@ -149,12 +166,7 @@ endfunction()
 		- target: The name of the target
 ]]
 function(install_sample_target target)
-	set(data_dirs "")
-	foreach(dir IN ITEMS "data" "lua")
-		if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}")
-			list(APPEND data_dirs "${dir}")
-		endif()
-	endforeach()
+	get_data_dirs(${target} data_dirs)
 	file(RELATIVE_PATH sample_path ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 	install(TARGETS ${TARGET_NAME}
 		${RMLUI_RUNTIME_DEPENDENCY_SET_ARG}
