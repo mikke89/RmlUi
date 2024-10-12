@@ -76,6 +76,10 @@ if(UNIX)
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
 	target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE ${CMAKE_DL_LIBS})
 endif()
+if(EMSCRIPTEN)
+	# Only Emscripten requires linking to OpenGL::GL, for other platforms we use 'glad' as an OpenGL loader.
+	target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE OpenGL::GL)
+endif()
 
 add_library(rmlui_backend_SDL_VK INTERFACE)
 target_sources(rmlui_backend_SDL_VK INTERFACE
