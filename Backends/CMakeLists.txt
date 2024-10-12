@@ -70,11 +70,15 @@ target_sources(rmlui_backend_SDL_GL3 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_GL3.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_GL3.h"
 )
-target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE rmlui_backend_common_headers OpenGL::GL SDL2::SDL2 SDL2_image::SDL2_image)
+target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE rmlui_backend_common_headers SDL2::SDL2 SDL2_image::SDL2_image)
 if(UNIX)
 	# The OpenGL 3 renderer implementation uses dlopen/dlclose
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
 	target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE ${CMAKE_DL_LIBS})
+endif()
+if(EMSCRIPTEN)
+	# Only Emscripten requires linking to OpenGL::GL, for other platforms we use 'glad' as an OpenGL loader.
+	target_link_libraries(rmlui_backend_SDL_GL3 INTERFACE OpenGL::GL)
 endif()
 
 add_library(rmlui_backend_SDL_VK INTERFACE)
@@ -135,7 +139,7 @@ target_sources(rmlui_backend_GLFW_GL3 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Renderer_GL3.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_Include_GL3.h"
 )
-target_link_libraries(rmlui_backend_GLFW_GL3 INTERFACE rmlui_backend_common_headers OpenGL::GL glfw)
+target_link_libraries(rmlui_backend_GLFW_GL3 INTERFACE rmlui_backend_common_headers glfw)
 if(UNIX)
 	# The OpenGL 3 renderer implementation uses dlopen/dlclose
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
@@ -177,7 +181,7 @@ target_sources(rmlui_backend_BackwardCompatible_GLFW_GL3 INTERFACE
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_BackwardCompatible/RmlUi_Renderer_BackwardCompatible_GL3.h"
 	"${CMAKE_CURRENT_LIST_DIR}/RmlUi_BackwardCompatible/RmlUi_Backend_BackwardCompatible_GLFW_GL3.cpp"
 )
-target_link_libraries(rmlui_backend_BackwardCompatible_GLFW_GL3 INTERFACE rmlui_backend_common_headers OpenGL::GL glfw)
+target_link_libraries(rmlui_backend_BackwardCompatible_GLFW_GL3 INTERFACE rmlui_backend_common_headers glfw)
 if(UNIX)
 	# The OpenGL 3 renderer implementation uses dlopen/dlclose
 	# This is required in some UNIX and UNIX-like operating systems to load shared object files at runtime
