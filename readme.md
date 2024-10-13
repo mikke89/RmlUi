@@ -380,8 +380,9 @@ Users can now edit the text field to change the animal. The data bindings ensure
 **Installer software by [@xland](https://github.com/xland)**\
 ![xland installer collage](https://user-images.githubusercontent.com/5490330/230487763-ec4d28e7-7ec6-44af-89f2-d2cbad8f44c1.png)
 
-**[TruckersMP](https://truckersmp.com/) - a multiplayer mod for truck simulators - chat box in RmlUi**\
-![TruckersMP](https://raw.githubusercontent.com/mikke89/RmlUiDoc/8ce505124daec1a9fdff0327be495fc2e43a37cf/assets/gallery/truckers_mp.webp)
+**[TruckersMP](https://truckersmp.com/) - a multiplayer mod for truck simulators - chat box and player panel in RmlUi**\
+![TruckersMP chat box](https://raw.githubusercontent.com/mikke89/RmlUiDoc/8ce505124daec1a9fdff0327be495fc2e43a37cf/assets/gallery/truckers_mp.webp)
+![TruckersMP player panel](https://raw.githubusercontent.com/mikke89/RmlUiDoc/3e37fdcd85b72e20ee15b4f30033ca580866b48d/assets/gallery/truckers_mp_player_list.webp)
 
 **Form controls from the 'demo' sample**\
 ![Form controls](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/forms.png?raw=true)
