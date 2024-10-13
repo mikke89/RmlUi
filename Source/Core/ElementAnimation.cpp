@@ -662,7 +662,8 @@ bool ElementAnimation::InternalAddKey(float time, const Property& in_property, E
 
 	if (!Any(in_property.unit & valid_units))
 	{
-		Log::Message(Log::LT_WARNING, "Property value '%s' is not a valid target for interpolation.", in_property.ToString().c_str());
+		const char* property_type = (in_property.unit == Unit::BOXSHADOWLIST ? "Box shadows do not" : "Property value does not");
+		Log::Message(Log::LT_WARNING, "%s support animations or transitions. Value: %s", property_type, in_property.ToString().c_str());
 		return false;
 	}
 
