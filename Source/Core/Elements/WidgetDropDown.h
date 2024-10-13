@@ -40,6 +40,12 @@ class ElementFormControl;
     @author Lloyd Weehuizen
  */
 
+enum class DropDownBoxLayoutType {
+	None,
+	Open,  // we just opened the drop-down menu
+	Switch // we're switching the selected value
+};
+
 class WidgetDropDown : public EventListener {
 public:
 	WidgetDropDown(ElementFormControl* element);
@@ -99,10 +105,15 @@ public:
 
 	/// Processes the incoming event.
 	void ProcessEvent(Event& event) override;
+	
+	/// Shows the selection box.
+	void ShowSelectBox();
+	/// Hides the selection box.
+	void HideSelectBox();
+	/// Check whether the select box is visible or not.
+	bool IsSelectBoxVisible();
 
 private:
-	// Shows or hides the selection box.
-	void ShowSelectBox(bool show);
 
 	void AttachScrollEvent();
 	void DetachScrollEvent();
@@ -119,7 +130,7 @@ private:
 	bool selection_dirty;
 	bool value_rml_dirty;
 	bool value_layout_dirty;
-	bool box_layout_dirty;
+	DropDownBoxLayoutType box_layout_dirty;
 	bool box_visible;
 };
 
