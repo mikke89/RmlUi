@@ -35,7 +35,11 @@
 
 namespace Rml {
 
-static String clipboard_text;
+static String& GlobalClipBoardText()
+{
+	static String clipboard_text;
+	return clipboard_text;
+}
 
 SystemInterface::SystemInterface() {}
 
@@ -59,12 +63,12 @@ void SystemInterface::SetMouseCursor(const String& /*cursor_name*/) {}
 void SystemInterface::SetClipboardText(const String& text)
 {
 	// The default implementation will only copy and paste within the application
-	clipboard_text = text;
+	GlobalClipBoardText() = text;
 }
 
 void SystemInterface::GetClipboardText(String& text)
 {
-	text = clipboard_text;
+	text = GlobalClipBoardText();
 }
 
 int SystemInterface::TranslateString(String& translated, const String& input)
