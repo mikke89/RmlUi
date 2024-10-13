@@ -225,7 +225,6 @@ static bool ParseTransition(Property& property, const StringList& transition_val
 
 		bool duration_found = false;
 		bool delay_found = false;
-		bool reverse_adjustment_factor_found = false;
 
 		for (auto& argument : arguments)
 		{
@@ -279,17 +278,6 @@ static bool ParseTransition(Property& property, const StringList& transition_val
 						else
 							return false;
 					}
-					else
-					{
-						// No 's' unit means reverse adjustment factor was found
-						if (!reverse_adjustment_factor_found)
-						{
-							reverse_adjustment_factor_found = true;
-							transition.reverse_adjustment_factor = number;
-						}
-						else
-							return false;
-					}
 				}
 				else
 				{
@@ -317,8 +305,6 @@ static bool ParseTransition(Property& property, const StringList& transition_val
 		if ((transition_list.all && !target_property_ids.Empty())    //
 			|| (!transition_list.all && target_property_ids.Empty()) //
 			|| transition.duration <= 0.0f                           //
-			|| transition.reverse_adjustment_factor < 0.0f           //
-			|| transition.reverse_adjustment_factor > 1.0f           //
 		)
 		{
 			return false;

@@ -44,6 +44,7 @@
 #include "../../Include/RmlUi/Core/StyleSheetSpecification.h"
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "ComputeProperty.h"
+#include "ElementAnimation.h"
 #include "ElementDefinition.h"
 #include "PropertiesIterator.h"
 #include <algorithm>
@@ -108,59 +109,69 @@ const Property* ElementStyle::GetProperty(PropertyId id, const Element* element,
 	return property->GetDefaultValue();
 }
 
-void ElementStyle::TransitionPropertyChanges(Element* element, PropertyIdSet& properties, const PropertyDictionary& inline_properties,
-	const ElementDefinition* old_definition, const ElementDefinition* new_definition)
+void ElementStyle::ApplyTransitionDefinitionChanges(PropertyIdSet& changed_properties, const ElementDefinition* old_definition,
+	const ElementDefinition* new_definition)
 {
-	// Apply transition to relevant properties if a transition is defined on element.
-	// Properties that are part of a transition are removed from the properties list.
+	RMLUI_ZoneScoped;
 
-	RMLUI_ASSERT(element);
-	if (!old_definition || !new_definition || properties.Empty())
+	if (!old_definition || !new_definition || changed_properties.Empty())
 		return;
 
-	// We get the local property instead of the computed value here, because we want to intercept property changes even before the computed values are
-	// ready. Now that we have the concept of computed values, we may want do this operation directly on them instead.
-	if (const Property* transition_property = GetLocalProperty(PropertyId::Transition, inline_properties, new_definition))
+	const Property* new_transition_property = GetLocalProperty(PropertyId::Transition, inline_properties, new_definition);
+	if (!new_transition_property || new_transition_property->value.GetType() != Variant::TRANSITIONLIST)
+		return;
+
+	const auto& transition_list = new_transition_property->value.GetReference<TransitionList>();
+
+	if (!transition_list.none)
 	{
-		if (transition_property->value.GetType() != Variant::TRANSITIONLIST)
-			return;
+		static const PropertyDictionary empty_properties;
 
-		const TransitionList& transition_list = transition_property->value.GetReference<TransitionList>();
+		auto add_transition = [&](const Transition& transition) {
+			auto existing_iterator = std::find_if(element->animations.begin(), element->animations.end(),
+				[&](const ElementAnimation& el) { return el.GetPropertyId() == transition.id; });
 
-		if (!transition_list.none)
-		{
-			static const PropertyDictionary empty_properties;
+			if (existing_iterator != element->animations.end() && !existing_iterator->IsTransition())
+				return false;
 
-			auto add_transition = [&](const Transition& transition) {
-				bool transition_added = false;
-				const Property* start_value = GetProperty(transition.id, element, inline_properties, old_definition);
-				const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition);
-				if (start_value && target_value && (*start_value != *target_value))
-					transition_added = element->StartTransition(transition, *start_value, *target_value);
-				return transition_added;
-			};
-
-			if (transition_list.all)
+			bool transition_added = false;
+			const Property* start_value = GetProperty(transition.id, element, inline_properties, old_definition);
+			const Property* target_value = GetProperty(transition.id, element, empty_properties, new_definition);
+			if (start_value && target_value && (*start_value != *target_value))
 			{
-				Transition transition = transition_list.transitions[0];
-				for (auto it = properties.begin(); it != properties.end();)
-				{
-					transition.id = *it;
-					if (add_transition(transition))
-						it = properties.Erase(it);
-					else
-						++it;
-				}
+				transition_added = element->StartTransition(transition, existing_iterator, *start_value, *target_value);
 			}
-			else
+			else if (existing_iterator != element->animations.end() && !existing_iterator->IsComplete())
 			{
-				for (const Transition& transition : transition_list.transitions)
+				// https://www.w3.org/TR/css-transitions-1/#starting
+				// Step 4.1: cancel running transition if new transition would do nothing
+				// ... or additionally, if the values can't be determined
+				element->animations.erase(existing_iterator);
+			}
+
+			return transition_added;
+		};
+
+		if (transition_list.all)
+		{
+			Transition transition = transition_list.transitions[0];
+			for (auto it = changed_properties.begin(); it != changed_properties.end();)
+			{
+				transition.id = *it;
+				if (add_transition(transition))
+					it = changed_properties.Erase(it);
+				else
+					++it;
+			}
+		}
+		else
+		{
+			for (const Transition& transition : transition_list.transitions)
+			{
+				if (changed_properties.Contains(transition.id))
 				{
-					if (properties.Contains(transition.id))
-					{
-						if (add_transition(transition))
-							properties.Erase(transition.id);
-					}
+					if (add_transition(transition))
+						changed_properties.Erase(transition.id);
 				}
 			}
 		}
@@ -203,7 +214,7 @@ void ElementStyle::UpdateDefinition()
 			}
 
 			// Transition changed properties if transition property is set
-			TransitionPropertyChanges(element, changed_properties, inline_properties, definition.get(), new_definition.get());
+			ApplyTransitionDefinitionChanges(changed_properties, definition.get(), new_definition.get());
 		}
 
 		definition = new_definition;
