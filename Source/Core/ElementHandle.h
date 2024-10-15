@@ -54,10 +54,16 @@ protected:
 
 	bool initialised;
 
+	enum { TOP, RIGHT, BOTTOM, LEFT };
+
 	Element* move_target;
 	Element* size_target;
 
 	Vector2f drag_start;
+	Vector2f drag_delta_min;
+	Vector2f drag_delta_max;
+
+	Array<NumericValue, 4> edge_margin = {};
 
 	Vector2f move_original_position_top_left;
 	Vector2f move_original_position_bottom_right;

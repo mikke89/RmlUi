@@ -64,21 +64,21 @@
 
 <div class="top_left">
 	<p>Anchored top-left</p>
-
-	<handle move_target="#parent"/>
-	<handle size_target="#parent"/>
+	<p>Edge margin: -50%</p>
+	<handle move_target="#parent" edge_margin="-50%"/>
+	<handle size_target="#parent" edge_margin="-50%"/>
 </div>
 
 <div class="top_right_bottom_left">
 	<p>Anchored all sides</p>
-
-	<handle move_target="#parent"/>
-	<handle size_target="#parent"/>
+	<p>Edge margin: 50dp</p>
+	<handle move_target="#parent" edge_margin="50dp"/>
+	<handle size_target="#parent" edge_margin="50dp"/>
 </div>
 
 <div class="bottom_right">
 	<p>Anchored bottom-right</p>
-
+	<p>Edge margin: 0px</p>
 	<handle move_target="#parent"/>
 	<handle size_target="#parent"/>
 </div>
