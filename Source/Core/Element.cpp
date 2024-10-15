@@ -627,9 +627,9 @@ float Element::ResolveNumericValue(NumericValue value, float base_value)
 
 Vector2f Element::GetContainingBlock()
 {
-	Vector2f containing_block(0, 0);
+	Vector2f containing_block;
 
-	if (offset_parent != nullptr)
+	if (offset_parent)
 	{
 		using namespace Style;
 		Position position_property = GetPosition();
@@ -643,6 +643,10 @@ Vector2f Element::GetContainingBlock()
 		{
 			containing_block = parent_box.GetSize(BoxArea::Padding);
 		}
+	}
+	else if (Context* context = GetContext())
+	{
+		containing_block = Vector2f(context->GetDimensions());
 	}
 
 	return containing_block;
