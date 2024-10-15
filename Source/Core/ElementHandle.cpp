@@ -28,6 +28,7 @@
 
 #include "ElementHandle.h"
 #include "../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Event.h"
@@ -80,10 +81,6 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			initialised = true;
 		}
 
-		auto GetSize = [](const Box& box, const ComputedValues& computed) {
-			return box.GetSize((computed.box_sizing() == Style::BoxSizing::BorderBox) ? BoxArea::Border : BoxArea::Content);
-		};
-
 		// Set any auto margins to their current value, since auto-margins may affect the size and position of an element.
 		auto SetDefiniteMargins = [](Element* element, const ComputedValues& computed) {
 			auto SetDefiniteMargin = [](Element* element, PropertyId margin_id, BoxEdge edge) {
@@ -100,39 +97,90 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 				SetDefiniteMargin(element, PropertyId::MarginLeft, BoxEdge::Left);
 		};
 
+		// The following table lists the expected behavior for each combination of definite (non-auto) properties:
+		//
+		//   Definite properties  | Move                    | Size
+		//   ---------------------|-------------------------|--------------------------
+		//   (none)               | left += dx              | width += dx
+		//   left                 | left += dx              | width += dx
+		//   right                | right -= dx             | right -= dx; width += dx
+		//   width                | left += dx              | width += dx
+		//   left & right         | left += dx; right -= dx | right -= dx
+		//   left & width         | left += dx;             | width += dx
+		//   right & width        | right -= dx             | right -= dx; width += dx
+		//   right & width        | right -= dx             | right -= dx; width += dx
+		//   left & right & width | left += dx;             | width += dx
+		//
+		// For simplicity, this table only specifies the horizontal direction. The same behavior applies for the
+		// corresponding properties in the vertical direction. For now, we assume that the handle is anchored to the
+		// bottom-right corner of the target element.
+
 		if (event == EventId::Dragstart)
 		{
-			// Store the drag starting position
+			Context* context = GetContext();
 			drag_start = event.GetUnprojectedMouseScreenPos();
 
-			// Store current element position and size
-			if (move_target)
+			if (move_target && context)
 			{
 				using namespace Style;
+				const Box& parent_box =
+					move_target->GetOffsetParent() ? move_target->GetOffsetParent()->GetBox() : context->GetRootElement()->GetBox();
+				const Vector2f containing_block = move_target->GetContainingBlock();
 				const Box& box = move_target->GetBox();
 				const auto& computed = move_target->GetComputedValues();
-
-				// Store the initial margin edge position, since top/left properties determine the margin position.
-				move_original_position.x = move_target->GetOffsetLeft() - box.GetEdge(BoxArea::Margin, BoxEdge::Left);
-				move_original_position.y = move_target->GetOffsetTop() - box.GetEdge(BoxArea::Margin, BoxEdge::Top);
-
-				// Check if we have auto-size together with definite right/bottom; if so, the size needs to be fixed to the current size.
-				if (computed.width().type == Width::Auto && computed.right().type != Right::Auto)
-					move_target->SetProperty(PropertyId::Width, Property(Math::Round(GetSize(box, computed).x), Unit::PX));
-				if (computed.height().type == Height::Auto && computed.bottom().type != Bottom::Auto)
-					move_target->SetProperty(PropertyId::Height, Property(Math::Round(GetSize(box, computed).y), Unit::PX));
+				const Position position = computed.position();
 
 				SetDefiniteMargins(move_target, computed);
+
+				auto ResolveValueOrInvoke = [](const LengthPercentageAuto& value, float containing_block, Position position, auto&& fallback_func) {
+					if (value.type != LengthPercentageAuto::Auto)
+						return ResolveValue(value, containing_block);
+					if (position == Position::Relative)
+						return 0.0f;
+					return fallback_func();
+				};
+
+				// The following is derived at by solving the expressions in 'Element::UpdateOffset' for the computed top/left values.
+				move_original_position_top_left.x = ResolveValueOrInvoke(computed.left(), containing_block.x, position, [&] {
+					return move_target->GetOffsetLeft() -
+						(box.GetEdge(BoxArea::Margin, BoxEdge::Left) + parent_box.GetEdge(BoxArea::Border, BoxEdge::Left));
+				});
+				move_original_position_top_left.y = ResolveValueOrInvoke(computed.top(), containing_block.y, position, [&] {
+					return move_target->GetOffsetTop() -
+						(box.GetEdge(BoxArea::Margin, BoxEdge::Top) + parent_box.GetEdge(BoxArea::Border, BoxEdge::Top));
+				});
+
+				// For the bottom-right positions, we don't need to find the 'auto'-invoked expressions like above,
+				// since the following value is only used when bottom-right is non-auto.
+				move_original_position_bottom_right.x = ResolveValue(computed.right(), containing_block.x);
+				move_original_position_bottom_right.y = ResolveValue(computed.bottom(), containing_block.y);
+
+				move_bottom_right.x = (computed.right().type != Right::Auto);
+				move_bottom_right.y = (computed.bottom().type != Bottom::Auto);
+				move_top_left.x = (!move_bottom_right.x || computed.left().type != Left::Auto);
+				move_top_left.y = (!move_bottom_right.y || computed.top().type != Top::Auto);
 			}
-			if (size_target)
+
+			if (size_target && context)
 			{
 				using namespace Style;
 				const Box& box = size_target->GetBox();
 				const auto& computed = size_target->GetComputedValues();
-
-				size_original_size = GetSize(box, computed);
+				const Vector2f containing_block = size_target->GetContainingBlock();
 
 				SetDefiniteMargins(size_target, computed);
+
+				size_original_size = box.GetSize(computed.box_sizing() == BoxSizing::BorderBox ? BoxArea::Border : BoxArea::Content);
+
+				size_original_position_bottom_right.x = ResolveValue(computed.right(), containing_block.x);
+				size_original_position_bottom_right.y = ResolveValue(computed.bottom(), containing_block.y);
+
+				size_bottom_right.x = (computed.right().type != Right::Auto);
+				size_bottom_right.y = (computed.bottom().type != Bottom::Auto);
+				size_width_height.x =
+					(computed.left().type == Left::Auto || computed.right().type == Right::Auto || computed.width().type != Width::Auto);
+				size_width_height.y =
+					(computed.top().type == Top::Auto || computed.bottom().type == Bottom::Auto || computed.height().type != Height::Auto);
 			}
 		}
 		else if (event == EventId::Drag)
@@ -141,16 +189,34 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 
 			if (move_target)
 			{
-				const Vector2f new_position = (move_original_position + delta).Round();
-				move_target->SetProperty(PropertyId::Left, Property(new_position.x, Unit::PX));
-				move_target->SetProperty(PropertyId::Top, Property(new_position.y, Unit::PX));
+				const Vector2f new_position_top_left = (move_original_position_top_left + delta).Round();
+				const Vector2f new_position_bottom_right = (move_original_position_bottom_right - delta).Round();
+
+				if (move_top_left.x)
+					move_target->SetProperty(PropertyId::Left, Property(new_position_top_left.x, Unit::PX));
+				if (move_top_left.y)
+					move_target->SetProperty(PropertyId::Top, Property(new_position_top_left.y, Unit::PX));
+
+				if (move_bottom_right.x)
+					move_target->SetProperty(PropertyId::Right, Property(new_position_bottom_right.x, Unit::PX));
+				if (move_bottom_right.y)
+					move_target->SetProperty(PropertyId::Bottom, Property(new_position_bottom_right.y, Unit::PX));
 			}
 
 			if (size_target)
 			{
 				const Vector2f new_size = Math::Max((size_original_size + delta).Round(), Vector2f(0.f));
-				size_target->SetProperty(PropertyId::Width, Property(new_size.x, Unit::PX));
-				size_target->SetProperty(PropertyId::Height, Property(new_size.y, Unit::PX));
+				const Vector2f new_position_bottom_right = (size_original_position_bottom_right - delta).Round();
+
+				if (size_width_height.x)
+					size_target->SetProperty(PropertyId::Width, Property(new_size.x, Unit::PX));
+				if (size_width_height.y)
+					size_target->SetProperty(PropertyId::Height, Property(new_size.y, Unit::PX));
+
+				if (size_bottom_right.x)
+					size_target->SetProperty(PropertyId::Right, Property(new_position_bottom_right.x, Unit::PX));
+				if (size_bottom_right.y)
+					size_target->SetProperty(PropertyId::Bottom, Property(new_position_bottom_right.y, Unit::PX));
 			}
 
 			Dictionary parameters;
