@@ -48,32 +48,35 @@ public:
 	ElementHandle(const String& tag);
 	virtual ~ElementHandle();
 
+	struct MoveData {
+		Vector2f original_position_top_left;
+		Vector2f original_position_bottom_right;
+		Vector2<bool> top_left;
+		Vector2<bool> bottom_right;
+	};
+
+	struct SizeData {
+		Vector2f original_size;
+		Vector2f original_position_bottom_right;
+		Vector2<bool> width_height;
+		Vector2<bool> bottom_right;
+	};
+
 protected:
 	void OnAttributeChange(const ElementAttributes& changed_attributes) override;
 	void ProcessDefaultAction(Event& event) override;
 
 	bool initialised;
-
-	enum { TOP, RIGHT, BOTTOM, LEFT };
-
 	Element* move_target;
 	Element* size_target;
+	Array<NumericValue, 4> edge_margin = {};
 
 	Vector2f drag_start;
 	Vector2f drag_delta_min;
 	Vector2f drag_delta_max;
 
-	Array<NumericValue, 4> edge_margin = {};
-
-	Vector2f move_original_position_top_left;
-	Vector2f move_original_position_bottom_right;
-	Vector2<bool> move_top_left;
-	Vector2<bool> move_bottom_right;
-
-	Vector2f size_original_size;
-	Vector2f size_original_position_bottom_right;
-	Vector2<bool> size_width_height;
-	Vector2<bool> size_bottom_right;
+	MoveData move_data;
+	SizeData size_data;
 };
 
 } // namespace Rml
