@@ -71,7 +71,7 @@ enum class EventId : uint16_t;
 class RMLUICORE_API Factory {
 public:
 	/// Initialise the element factory
-	static bool Initialise();
+	static void Initialise();
 	/// Cleanup and shutdown the factory
 	static void Shutdown();
 

@@ -70,7 +70,7 @@ public:
 	static void NotifyElementDestroy(Element* element);
 
 private:
-	PluginRegistry();
+	PluginRegistry() = delete;
 };
 
 } // namespace Rml

@@ -27,35 +27,52 @@
  */
 
 #include "../../Include/RmlUi/Core/ObserverPtr.h"
+#include "../../Include/RmlUi/Core/Log.h"
+#include "ControlledLifetimeResource.h"
 #include "Pool.h"
 
 namespace Rml {
 
-// The ObserverPtrBlock pool
-Pool<ObserverPtrBlock>* observerPtrBlockPool = nullptr;
+struct ObserverPtrData {
+	Pool<Detail::ObserverPtrBlock> block_pool{128, true};
+};
+static ControlledLifetimeResource<ObserverPtrData> observer_ptr_data;
 
-static Pool<ObserverPtrBlock>& GetPool()
-{
-	// Wrap pool in a function to ensure it is initialized before use.
-	// This pool must outlive all other global variables that derive from EnableObserverPtr. This even includes
-	// user variables which we have no control over. For this reason, we intentionally let this leak.
-	if (observerPtrBlockPool == nullptr)
-		observerPtrBlockPool = new Pool<ObserverPtrBlock>(128, true);
-	return *observerPtrBlockPool;
-}
-
-void DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block)
+void Detail::DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block)
 {
 	RMLUI_ASSERT(block->num_observers >= 0);
 	if (block->num_observers == 0 && block->pointed_to_object == nullptr)
 	{
-		GetPool().DestroyAndDeallocate(block);
+		observer_ptr_data->block_pool.DestroyAndDeallocate(block);
+	}
+}
+void Detail::InitializeObserverPtrPool()
+{
+	observer_ptr_data.InitializeIfEmpty();
+}
+
+void Detail::ShutdownObserverPtrPool()
+{
+	const int num_objects = observer_ptr_data->block_pool.GetNumAllocatedObjects();
+	if (num_objects == 0)
+	{
+		observer_ptr_data.Shutdown();
+	}
+	else
+	{
+		// This pool must outlive all other global variables that derive from EnableObserverPtr. This even includes user
+		// variables which we have no control over. So if there are any objects still alive, let the pool leak.
+		Log::Message(Log::LT_WARNING,
+			"Observer pointers still alive on shutdown, %d object(s) leaked. "
+			"Please ensure that no RmlUi objects are retained in user space at the end of Rml::Shutdown.",
+			num_objects);
+		observer_ptr_data.Leak();
 	}
 }
 
-ObserverPtrBlock* AllocateObserverPtrBlock()
+Detail::ObserverPtrBlock* Detail::AllocateObserverPtrBlock()
 {
-	return GetPool().AllocateAndConstruct();
+	return observer_ptr_data->block_pool.AllocateAndConstruct();
 }
 
 } // namespace Rml
