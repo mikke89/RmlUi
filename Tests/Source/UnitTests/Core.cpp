@@ -225,7 +225,7 @@ TEST_CASE("core.release_resources")
 
 	document->Close();
 
-	TestsShell::ShutdownShell();
+	TestsShell::ShutdownShell(false);
 
 	// Counters are reset during shutdown.
 	const auto& counters_at_shutdown = render_interface->GetCountersFromPreviousReset();
@@ -233,6 +233,8 @@ TEST_CASE("core.release_resources")
 	// Finally, verify that all generated and loaded resources were released during shutdown.
 	CHECK(counters_at_shutdown.generate_texture + counters_at_shutdown.load_texture == counters_at_shutdown.release_texture);
 	CHECK(counters_at_shutdown.compile_geometry == counters_at_shutdown.release_geometry);
+
+	TestsShell::ResetTestsRenderInterface();
 }
 
 TEST_CASE("core.initialize")
