@@ -108,7 +108,7 @@ RMLUICORE_API TextInputHandler* GetTextInputHandler();
 /// @param[in] text_input_handler The custom text input handler to use, or nullptr to use the default.
 /// @lifetime If specified, the render interface and the text input handler must be kept alive until after the call to
 ///           Rml::Shutdown. Alternatively, the render interface can be destroyed after all contexts it belongs to have been
-///           destroyed and a subsequent call has been made to Rml::ReleaseTextures.
+///           destroyed and a subsequent call has been made to Rml::ReleaseRenderManagers.
 /// @return A non-owning pointer to the new context, or nullptr if the context could not be created.
 RMLUICORE_API Context* CreateContext(const String& name, Vector2i dimensions, RenderInterface* render_interface = nullptr,
 	TextInputHandler* text_input_handler = nullptr);
@@ -179,6 +179,10 @@ RMLUICORE_API void ReleaseCompiledGeometry(RenderInterface* render_interface = n
 /// Releases unused font textures and rendered glyphs to free up memory, and regenerates actively used fonts.
 /// @note Invalidates all existing FontFaceHandles returned from the font engine.
 RMLUICORE_API void ReleaseFontResources();
+/// Releases render managers that are not used by any contexts.
+/// @note Any resources referring to the render manager in user space must be cleared first, including callback textures and compiled geometry.
+/// @note Also releases font resources, which invalidates all existing FontFaceHandles returned from the font engine.
+RMLUICORE_API void ReleaseRenderManagers();
 
 } // namespace Rml
 

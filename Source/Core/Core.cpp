@@ -51,7 +51,6 @@
 #include "StyleSheetFactory.h"
 #include "StyleSheetParser.h"
 #include "TemplateCache.h"
-#include "TextureDatabase.h"
 
 #ifdef RMLUI_FONT_ENGINE_FREETYPE
 	#include "FontEngineDefault/FontEngineInterfaceDefault.h"
@@ -65,7 +64,7 @@
 	#include "../SVG/SVGPlugin.h"
 #endif
 
-#include "Pool.h"
+#include <algorithm>
 
 namespace Rml {
 
@@ -450,6 +449,26 @@ void ReleaseFontResources()
 
 	for (const auto& name_context : core_data->contexts)
 		name_context.second->Update();
+}
+
+void ReleaseRenderManagers()
+{
+	auto& contexts = core_data->contexts;
+	auto& render_managers = core_data->render_managers;
+
+	ReleaseFontResources();
+
+	for (auto it = render_managers.begin(); it != render_managers.end();)
+	{
+		RenderManager* render_manager = it->second.get();
+		const auto num_contexts_using_manager = std::count_if(contexts.begin(), contexts.end(),
+			[&](const auto& context_pair) { return &context_pair.second->GetRenderManager() == render_manager; });
+
+		if (num_contexts_using_manager == 0)
+			it = render_managers.erase(it);
+		else
+			++it;
+	}
 }
 
 // Functions that need to be accessible within the Core library, but not publicly.

@@ -70,6 +70,7 @@ private:
 	friend bool Rml::ReleaseTexture(const String&, RenderInterface*);
 	friend void Rml::ReleaseTextures(RenderInterface*);
 	friend void Rml::ReleaseCompiledGeometry(RenderInterface*);
+	friend void Rml::ReleaseRenderManagers();
 };
 
 } // namespace Rml
