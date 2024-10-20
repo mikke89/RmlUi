@@ -313,6 +313,107 @@ TEST_CASE("ElementHandle")
 		CHECK(target->GetBox().GetSize() == Vector2f(200, 200));
 	}
 
+	SUBCASE("AutoMarginMove")
+	{
+		handle->SetAttribute("move_target", "target");
+
+		target->SetProperty(PropertyId::Width, Property(100, Unit::PX));
+		target->SetProperty(PropertyId::Height, Property(100, Unit::PX));
+		target->SetProperty("margin", "auto");
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(200, 200));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+
+		dispatch_mouse_event(EventId::Dragstart, handle, {0, 0});
+		dispatch_mouse_event(EventId::Drag, handle, {10, 10});
+
+		CHECK(target->GetProperty(PropertyId::MarginTop)->Get<float>() == 200);
+		CHECK(target->GetProperty(PropertyId::MarginRight)->Get<float>() == 200);
+		CHECK(target->GetProperty(PropertyId::MarginBottom)->Get<float>() == 200);
+		CHECK(target->GetProperty(PropertyId::MarginLeft)->Get<float>() == 200);
+		CHECK(target->GetProperty(PropertyId::Top)->Get<float>() == 10);
+		CHECK(target->GetProperty(PropertyId::Left)->Get<float>() == 10);
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(210, 210));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+
+		document_set_size({1000, 1000});
+		CHECK(target->GetAbsoluteOffset() == Vector2f(210, 210));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+	}
+
+	SUBCASE("AutoMarginMoveConstraints")
+	{
+		handle->SetAttribute("move_target", "target");
+
+		target->SetProperty(PropertyId::Width, Property(100, Unit::PX));
+		target->SetProperty(PropertyId::Height, Property(100, Unit::PX));
+		target->SetProperty("margin", "auto");
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(200, 200));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+
+		dispatch_mouse_event(EventId::Dragstart, handle, {0, 0});
+		dispatch_mouse_event(EventId::Drag, handle, {-1000, -1000});
+
+		CHECK(target->GetProperty(PropertyId::Top)->Get<float>() == -200);
+		CHECK(target->GetProperty(PropertyId::Left)->Get<float>() == -200);
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(0, 0));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+	}
+
+	SUBCASE("AutoMarginSize")
+	{
+		handle->SetAttribute("size_target", "target");
+
+		target->SetProperty(PropertyId::Width, Property(100, Unit::PX));
+		target->SetProperty(PropertyId::Height, Property(100, Unit::PX));
+		target->SetProperty("margin", "auto");
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(200, 200));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+
+		dispatch_mouse_event(EventId::Dragstart, handle, {0, 0});
+		dispatch_mouse_event(EventId::Drag, handle, {10, 10});
+
+		CHECK(target->GetProperty(PropertyId::MarginTop)->Get<float>() == 200);
+		CHECK(target->GetProperty(PropertyId::MarginRight)->Get<float>() == 200);
+		CHECK(target->GetProperty(PropertyId::MarginBottom)->Get<float>() == 200);
+		CHECK(target->GetProperty(PropertyId::MarginLeft)->Get<float>() == 200);
+		CHECK(target->GetProperty(PropertyId::Width)->Get<float>() == 110);
+		CHECK(target->GetProperty(PropertyId::Height)->Get<float>() == 110);
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(200, 200));
+		CHECK(target->GetBox().GetSize() == Vector2f(110, 110));
+	}
+
+	SUBCASE("AutoMarginSizeConstraints")
+	{
+		handle->SetAttribute("size_target", "target");
+
+		target->SetProperty(PropertyId::Width, Property(100, Unit::PX));
+		target->SetProperty(PropertyId::Height, Property(100, Unit::PX));
+		target->SetProperty("margin", "auto");
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(200, 200));
+		CHECK(target->GetBox().GetSize() == Vector2f(100, 100));
+
+		dispatch_mouse_event(EventId::Dragstart, handle, {0, 0});
+		dispatch_mouse_event(EventId::Drag, handle, {1000, 1000});
+
+		context->Update();
+		CHECK(target->GetAbsoluteOffset() == Vector2f(200, 200));
+		CHECK(target->GetBox().GetSize() == Vector2f(300, 300));
+	}
+
 	TestsShell::RenderLoop();
 
 	document->Close();

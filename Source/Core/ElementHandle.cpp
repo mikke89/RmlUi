@@ -84,9 +84,13 @@ public:
 		data.top_left.x = (!data.bottom_right.x || computed.left().type != Left::Auto);
 		data.top_left.y = (!data.bottom_right.y || computed.top().type != Top::Auto);
 
-		drag_delta_min = Math::Max(drag_delta_min, Vector2f{resolved_edge_margin[LEFT], resolved_edge_margin[TOP]} - data.original_position_top_left);
-		drag_delta_max =
-			Math::Min(drag_delta_max, Vector2f{-resolved_edge_margin[RIGHT], -resolved_edge_margin[BOTTOM]} + data.original_position_bottom_right);
+		const Vector2f top_left_margin = {box.GetEdge(BoxArea::Margin, BoxEdge::Left), box.GetEdge(BoxArea::Margin, BoxEdge::Top)};
+		const Vector2f bottom_right_margin = {box.GetEdge(BoxArea::Margin, BoxEdge::Right), box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)};
+
+		drag_delta_min = Math::Max(drag_delta_min,
+			Vector2f{resolved_edge_margin[LEFT], resolved_edge_margin[TOP]} - data.original_position_top_left - top_left_margin);
+		drag_delta_max = Math::Min(drag_delta_max,
+			Vector2f{-resolved_edge_margin[RIGHT], -resolved_edge_margin[BOTTOM]} + data.original_position_bottom_right + bottom_right_margin);
 
 		return data;
 	}
@@ -112,10 +116,12 @@ public:
 			ResolveValueOr(computed.max_width(), containing_block.x, FLT_MAX),
 			ResolveValueOr(computed.max_height(), containing_block.y, FLT_MAX),
 		};
+		const Vector2f bottom_right_margin = {box.GetEdge(BoxArea::Margin, BoxEdge::Right), box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)};
+
 		drag_delta_min = Math::Max(drag_delta_min, min_size - data.original_size);
 		drag_delta_max = Math::Min(drag_delta_max, max_size - data.original_size);
-		drag_delta_max =
-			Math::Min(drag_delta_max, Vector2f{-resolved_edge_margin[RIGHT], -resolved_edge_margin[BOTTOM]} + data.original_position_bottom_right);
+		drag_delta_max = Math::Min(drag_delta_max,
+			Vector2f{-resolved_edge_margin[RIGHT], -resolved_edge_margin[BOTTOM]} + data.original_position_bottom_right + bottom_right_margin);
 
 		return data;
 	}

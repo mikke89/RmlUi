@@ -36,7 +36,7 @@
 			min-width: 100dp;
 			min-height: 50dp;
 			border-width: 0;
-			margin: 0;
+			margin: 30dp 20dp;
 		}
 		.top_left {
 			top: 25px;
