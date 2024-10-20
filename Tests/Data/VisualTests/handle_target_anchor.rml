@@ -2,7 +2,9 @@
 <head>
 	<title>Handle anchor positioning</title>
 	<link type="text/rcss" href="../style.rcss"/>
-	<meta name="Description" content="Handles should respect the target element's anchoring to its parent, determined by its top/right/bottom/left properties. The anchoring should still hold after moving and resizing the target." />
+	<meta name="Description" content="Handles should respect the target element's anchoring to its parent, determined by its top/right/bottom/left properties." />
+	<meta name="Assert" content="The anchoring should still hold after moving and resizing the target." />
+	<meta name="Assert" content="The handles should constrain the movement and sizing such that the target element is located within the edge margin of its containing block." />
 	<style>
 		handle[move_target] {
 			top: 0;

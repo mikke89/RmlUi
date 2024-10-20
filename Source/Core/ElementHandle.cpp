@@ -84,13 +84,11 @@ public:
 		data.top_left.x = (!data.bottom_right.x || computed.left().type != Left::Auto);
 		data.top_left.y = (!data.bottom_right.y || computed.top().type != Top::Auto);
 
-		const Vector2f top_left_margin = {box.GetEdge(BoxArea::Margin, BoxEdge::Left), box.GetEdge(BoxArea::Margin, BoxEdge::Top)};
-		const Vector2f bottom_right_margin = {box.GetEdge(BoxArea::Margin, BoxEdge::Right), box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)};
+		const Vector2f distance_to_top_left = DistanceToTopLeft();
+		const Vector2f distance_to_bottom_right = DistanceToBottomRight(distance_to_top_left);
 
-		drag_delta_min = Math::Max(drag_delta_min,
-			Vector2f{resolved_edge_margin[LEFT], resolved_edge_margin[TOP]} - data.original_position_top_left - top_left_margin);
-		drag_delta_max = Math::Min(drag_delta_max,
-			Vector2f{-resolved_edge_margin[RIGHT], -resolved_edge_margin[BOTTOM]} + data.original_position_bottom_right + bottom_right_margin);
+		drag_delta_min = Math::Max(drag_delta_min, Vector2f{resolved_edge_margin[LEFT], resolved_edge_margin[TOP]} - distance_to_top_left);
+		drag_delta_max = Math::Min(drag_delta_max, Vector2f{-resolved_edge_margin[RIGHT], -resolved_edge_margin[BOTTOM]} + distance_to_bottom_right);
 
 		return data;
 	}
@@ -116,12 +114,11 @@ public:
 			ResolveValueOr(computed.max_width(), containing_block.x, FLT_MAX),
 			ResolveValueOr(computed.max_height(), containing_block.y, FLT_MAX),
 		};
-		const Vector2f bottom_right_margin = {box.GetEdge(BoxArea::Margin, BoxEdge::Right), box.GetEdge(BoxArea::Margin, BoxEdge::Bottom)};
+		const Vector2f distance_to_bottom_right = DistanceToBottomRight(DistanceToTopLeft());
 
 		drag_delta_min = Math::Max(drag_delta_min, min_size - data.original_size);
 		drag_delta_max = Math::Min(drag_delta_max, max_size - data.original_size);
-		drag_delta_max = Math::Min(drag_delta_max,
-			Vector2f{-resolved_edge_margin[RIGHT], -resolved_edge_margin[BOTTOM]} + data.original_position_bottom_right + bottom_right_margin);
+		drag_delta_max = Math::Min(drag_delta_max, Vector2f{-resolved_edge_margin[RIGHT], -resolved_edge_margin[BOTTOM]} + distance_to_bottom_right);
 
 		return data;
 	}
@@ -199,6 +196,17 @@ private:
 			return containing_block.x + parent_box.GetEdge(BoxArea::Border, BoxEdge::Left) -
 				(target->GetOffsetLeft() + box.GetSize(BoxArea::Border).x + box.GetEdge(BoxArea::Margin, BoxEdge::Right));
 		});
+	}
+
+	Vector2f DistanceToTopLeft() const
+	{
+		return {target->GetOffsetLeft() - parent_box.GetEdge(BoxArea::Border, BoxEdge::Left),
+			target->GetOffsetTop() - parent_box.GetEdge(BoxArea::Border, BoxEdge::Top)};
+	}
+	Vector2f DistanceToBottomRight(Vector2f distance_to_top_left) const
+	{
+		const Vector2f scroll_size = {target->GetParentNode()->GetScrollWidth(), target->GetParentNode()->GetScrollHeight()};
+		return scroll_size - box.GetSize(BoxArea::Border) - distance_to_top_left;
 	}
 
 	Element* target;

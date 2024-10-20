@@ -38,7 +38,7 @@
 </head>
 
 <body>
-	<handle class="background" move_target="#self"/>
-	<handle class="blur" move_target="#self"/>
+	<handle class="background" move_target="#self" edge_margin="-50%"/>
+	<handle class="blur" move_target="#self" edge_margin="-50%"/>
 </body>
 </rml>
