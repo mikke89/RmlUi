@@ -568,8 +568,6 @@ TEST_CASE("form.select.event.change")
 	CHECK(listener->num_events_processed == 3);
 
 	document->Close();
-	context->Update();
-	listener.reset();
 
 	TestsShell::ShutdownShell();
 }

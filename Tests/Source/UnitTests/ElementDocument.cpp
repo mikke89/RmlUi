@@ -260,31 +260,28 @@ TEST_CASE("Load")
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
 
-	{
-		MockEventListener mockEventListener;
-		MockEventListenerInstancer mockEventListenerInstancer;
+	MockEventListener mockEventListener;
+	MockEventListenerInstancer mockEventListenerInstancer;
 
-		tl::sequence sequence;
-		REQUIRE_CALL(mockEventListenerInstancer, InstanceEventListener("something", tl::_))
-			.WITH(_2->GetTagName() == BODY_TAG)
-			.IN_SEQUENCE(sequence)
-			.LR_RETURN(&mockEventListener);
+	tl::sequence sequence;
+	REQUIRE_CALL(mockEventListenerInstancer, InstanceEventListener("something", tl::_))
+		.WITH(_2->GetTagName() == BODY_TAG)
+		.IN_SEQUENCE(sequence)
+		.LR_RETURN(&mockEventListener);
 
-		ALLOW_CALL(mockEventListener, OnAttach(tl::_));
-		ALLOW_CALL(mockEventListener, OnDetach(tl::_));
+	ALLOW_CALL(mockEventListener, OnAttach(tl::_));
+	ALLOW_CALL(mockEventListener, OnDetach(tl::_));
 
-		REQUIRE_CALL(mockEventListener, ProcessEvent(tl::_))
-			.WITH(_1.GetId() == EventId::Load && _1.GetTargetElement()->GetTagName() == BODY_TAG)
-			.IN_SEQUENCE(sequence);
+	REQUIRE_CALL(mockEventListener, ProcessEvent(tl::_))
+		.WITH(_1.GetId() == EventId::Load && _1.GetTargetElement()->GetTagName() == BODY_TAG)
+		.IN_SEQUENCE(sequence);
 
-		Factory::RegisterEventListenerInstancer(&mockEventListenerInstancer);
+	Factory::RegisterEventListenerInstancer(&mockEventListenerInstancer);
 
-		ElementDocument* document = context->LoadDocumentFromMemory(document_focus_rml);
-		REQUIRE(document);
+	ElementDocument* document = context->LoadDocumentFromMemory(document_focus_rml);
+	REQUIRE(document);
 
-		document->Close();
-		context->Update();
-	}
+	document->Close();
 
 	TestsShell::ShutdownShell();
 }

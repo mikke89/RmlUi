@@ -46,7 +46,11 @@ void ElementMetaPool::Shutdown()
 	}
 	else
 	{
-		Log::Message(Log::LT_WARNING, "Element meta pool not empty on shutdown, %d object(s) leaked.", num_objects);
+		Log::Message(Log::LT_ERROR,
+			"Element meta pool not empty on shutdown, %d object(s) leaked. This will likely lead to a crash when element is destroyed. Ensure that "
+			"no Rml::Element objects are kept alive in user space at the end of Rml::Shutdown.",
+			num_objects);
+		RMLUI_ERROR;
 		element_meta_pool.Leak();
 	}
 }

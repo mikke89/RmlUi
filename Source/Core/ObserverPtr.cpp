@@ -34,6 +34,7 @@
 namespace Rml {
 
 struct ObserverPtrData {
+	bool is_shutdown = false;
 	Pool<Detail::ObserverPtrBlock> block_pool{128, true};
 };
 static ControlledLifetimeResource<ObserverPtrData> observer_ptr_data;
@@ -44,11 +45,16 @@ void Detail::DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block)
 	if (block->num_observers == 0 && block->pointed_to_object == nullptr)
 	{
 		observer_ptr_data->block_pool.DestroyAndDeallocate(block);
+		if (observer_ptr_data->is_shutdown && observer_ptr_data->block_pool.GetNumAllocatedObjects() == 0)
+		{
+			observer_ptr_data.Shutdown();
+		}
 	}
 }
 void Detail::InitializeObserverPtrPool()
 {
 	observer_ptr_data.InitializeIfEmpty();
+	observer_ptr_data->is_shutdown = false;
 }
 
 void Detail::ShutdownObserverPtrPool()
@@ -61,12 +67,11 @@ void Detail::ShutdownObserverPtrPool()
 	else
 	{
 		// This pool must outlive all other global variables that derive from EnableObserverPtr. This even includes user
-		// variables which we have no control over. So if there are any objects still alive, let the pool leak.
-		Log::Message(Log::LT_WARNING,
-			"Observer pointers still alive on shutdown, %d object(s) leaked. "
-			"Please ensure that no RmlUi objects are retained in user space at the end of Rml::Shutdown.",
-			num_objects);
-		observer_ptr_data.Leak();
+		// variables which we have no control over. So if there are any objects still alive, let the pool garbage
+		// collect itself when all references to it are gone. It is somewhat unreasonable to expect that no observer
+		// pointers remain, particularly because that means no objects derived from Rml::EventListener can be alive in
+		// user space, which can be a hassle to ensure and is otherwise pretty innocent.
+		observer_ptr_data->is_shutdown = true;
 	}
 }
 

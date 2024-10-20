@@ -309,11 +309,14 @@ TEST_CASE("core.observer_ptr")
 	ObserverPtr<Element> observer_ptr = document->GetObserverPtr();
 	document->Close();
 
-	// We expect a warning about the observer pointer being held in user space, preventing its memory pool from shutting down.
-	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
-	system_interface->SetNumExpectedWarnings(1);
-
+	// Keeping the observer pointer alive should prevent the memory pool from shutting down.
 	TestsShell::ShutdownShell();
+
+	// For that reason, the observer pointer can still be used as normal without crashing.
+	REQUIRE(!observer_ptr);
+
+	// Resetting the observer pointer (or destroying it) should not cause any crashes, and should release the memory pool.
+	observer_ptr.reset();
 }
 
 TEST_CASE("core.RemoveContext")
