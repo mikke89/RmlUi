@@ -27,8 +27,6 @@
  */
 
 #include "../../Include/RmlUi/Core/ObserverPtr.h"
-#include "../../Include/RmlUi/Core/Log.h"
-#include "ControlledLifetimeResource.h"
 #include "Pool.h"
 
 namespace Rml {
@@ -37,7 +35,7 @@ struct ObserverPtrData {
 	bool is_shutdown = false;
 	Pool<Detail::ObserverPtrBlock> block_pool{128, true};
 };
-static ControlledLifetimeResource<ObserverPtrData> observer_ptr_data;
+static ObserverPtrData* observer_ptr_data = nullptr;
 
 void Detail::DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block)
 {
@@ -47,22 +45,25 @@ void Detail::DeallocateObserverPtrBlockIfEmpty(ObserverPtrBlock* block)
 		observer_ptr_data->block_pool.DestroyAndDeallocate(block);
 		if (observer_ptr_data->is_shutdown && observer_ptr_data->block_pool.GetNumAllocatedObjects() == 0)
 		{
-			observer_ptr_data.Shutdown();
+			delete observer_ptr_data;
+			observer_ptr_data = nullptr;
 		}
 	}
 }
+
 void Detail::InitializeObserverPtrPool()
 {
-	observer_ptr_data.InitializeIfEmpty();
+	if (!observer_ptr_data)
+		observer_ptr_data = new ObserverPtrData;
 	observer_ptr_data->is_shutdown = false;
 }
 
 void Detail::ShutdownObserverPtrPool()
 {
-	const int num_objects = observer_ptr_data->block_pool.GetNumAllocatedObjects();
-	if (num_objects == 0)
+	if (observer_ptr_data->block_pool.GetNumAllocatedObjects() == 0)
 	{
-		observer_ptr_data.Shutdown();
+		delete observer_ptr_data;
+		observer_ptr_data = nullptr;
 	}
 	else
 	{
