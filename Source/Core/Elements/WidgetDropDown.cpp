@@ -240,6 +240,7 @@ void WidgetDropDown::OnRender()
 				box_opened_since_last_format ? ScrollAlignment::Center : ScrollAlignment::Nearest,
 				ScrollAlignment::Nearest,
 				ScrollBehavior::Instant,
+				ScrollParentage::Closest,
 			};
 			GetOption(selection)->ScrollIntoView(scroll_options);
 		}

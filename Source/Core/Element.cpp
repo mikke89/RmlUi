@@ -1228,6 +1228,9 @@ void Element::ScrollIntoView(const ScrollIntoViewOptions options)
 			// Currently, only a single scrollable parent can be smooth scrolled at a time, so any other parents must be instant scrolled.
 			scroll_behavior = ScrollBehavior::Instant;
 		}
+
+		if ((scrollable_box_x || scrollable_box_y) && options.parentage == ScrollParentage::Closest)
+			break;
 	}
 }
 
