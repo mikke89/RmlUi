@@ -48,7 +48,8 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 
 	lock_selection = false;
 	selection_dirty = false;
-	box_layout_dirty = DropDownBoxLayoutType::None;
+	box_layout_dirty = false;
+	box_opened_since_last_format = false;
 	value_rml_dirty = false;
 	value_layout_dirty = false;
 	box_visible = false;
@@ -151,7 +152,7 @@ void WidgetDropDown::OnUpdate()
 
 void WidgetDropDown::OnRender()
 {
-	if (box_visible && box_layout_dirty != DropDownBoxLayoutType::None)
+	if (box_visible && box_layout_dirty)
 	{
 		// Layout the selection box.
 		// The following procedure should ensure that the selection box is never (partly) outside of the context's window.
@@ -235,13 +236,15 @@ void WidgetDropDown::OnRender()
 		// Scroll selected element into view, if we have one
 		if (selection != -1)
 		{
-			Rml::ScrollIntoViewOptions scrollOptions {
-				box_layout_dirty == DropDownBoxLayoutType::Open ? Rml::ScrollAlignment::Start : Rml::ScrollAlignment::Nearest
+			ScrollIntoViewOptions scroll_options = {
+				box_opened_since_last_format ? ScrollAlignment::Center : ScrollAlignment::Nearest,
+				ScrollAlignment::Nearest,
+				ScrollBehavior::Instant,
 			};
-			GetOption(selection)->ScrollIntoView(scrollOptions);
+			GetOption(selection)->ScrollIntoView(scroll_options);
 		}
-
-		box_layout_dirty = DropDownBoxLayoutType::None;
+		box_opened_since_last_format = false;
+		box_layout_dirty = false;
 	}
 
 	if (value_layout_dirty)
@@ -278,7 +281,7 @@ void WidgetDropDown::OnLayout()
 	value_element->SetOffset(parent_element->GetBox().GetPosition(BoxArea::Content), parent_element);
 	value_element->SetBox(Box(size));
 
-	box_layout_dirty = DropDownBoxLayoutType::Switch;
+	box_layout_dirty = true;
 	value_layout_dirty = true;
 }
 
@@ -460,7 +463,7 @@ void WidgetDropDown::OnChildAdd(Element* element)
 		SetSelection(element, true);
 
 	selection_dirty = true;
-	box_layout_dirty = DropDownBoxLayoutType::Switch;
+	box_layout_dirty = true;
 }
 
 void WidgetDropDown::OnChildRemove(Element* element)
@@ -474,7 +477,7 @@ void WidgetDropDown::OnChildRemove(Element* element)
 		SetSelection(nullptr);
 
 	selection_dirty = true;
-	box_layout_dirty = DropDownBoxLayoutType::Switch;
+	box_layout_dirty = true;
 }
 
 void WidgetDropDown::AttachScrollEvent()
@@ -629,7 +632,8 @@ void WidgetDropDown::ShowSelectBox()
 	selection_element->SetPseudoClass("checked", true);
 	value_element->SetPseudoClass("checked", true);
 	button_element->SetPseudoClass("checked", true);
-	box_layout_dirty = DropDownBoxLayoutType::Open;
+	box_layout_dirty = true;
+	box_opened_since_last_format = true;
 	AttachScrollEvent();
 
 	box_visible = true;
