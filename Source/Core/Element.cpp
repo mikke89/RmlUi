@@ -638,6 +638,8 @@ Vector2f Element::GetContainingBlock()
 		if (position_property == Position::Static || position_property == Position::Relative)
 		{
 			containing_block = parent_box.GetSize();
+			containing_block.x -= meta->scroll.GetScrollbarSize(ElementScroll::VERTICAL);
+			containing_block.y -= meta->scroll.GetScrollbarSize(ElementScroll::HORIZONTAL);
 		}
 		else if (position_property == Position::Absolute || position_property == Position::Fixed)
 		{
