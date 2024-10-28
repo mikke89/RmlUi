@@ -182,8 +182,7 @@ void WidgetTextInputContext::CommitComposition(StringView composition)
 	element->SetValue(value);
 }
 
-WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) :
-	internal_dimensions(0, 0), scroll_offset(0, 0), cursor_position(0, 0), cursor_size(0, 0)
+WidgetTextInput::WidgetTextInput(ElementFormControl* _parent)
 {
 	keyboard_showed = false;
 
@@ -487,9 +486,6 @@ void WidgetTextInput::OnLayout()
 		UpdateCursorPosition(true);
 		force_formatting_on_next_layout = false;
 	}
-
-	parent->SetScrollLeft(scroll_offset.x);
-	parent->SetScrollTop(scroll_offset.y);
 }
 
 Element* WidgetTextInput::GetElement() const
@@ -1155,9 +1151,6 @@ void WidgetTextInput::ShowCursor(bool show, bool move_to_cursor)
 				parent->SetScrollLeft(minimum_scroll_left);
 			else if (parent->GetScrollLeft() > cursor_position.x)
 				parent->SetScrollLeft(cursor_position.x);
-
-			scroll_offset.x = parent->GetScrollLeft();
-			scroll_offset.y = parent->GetScrollTop();
 		}
 
 		SetKeyboardActive(true);
@@ -1570,7 +1563,7 @@ void WidgetTextInput::SetKeyboardActive(bool active)
 		if (active)
 		{
 			// Activate the keyboard and submit the cursor position and line height to enable clients to adjust the input method editor (IME).
-			const Vector2f element_offset = parent->GetAbsoluteOffset() - scroll_offset;
+			const Vector2f element_offset = parent->GetAbsoluteOffset() - Vector2f{parent->GetScrollLeft(), parent->GetScrollTop()};
 			const Vector2f absolute_cursor_position = element_offset + cursor_position;
 			system->ActivateKeyboard(absolute_cursor_position, cursor_size.y);
 		}
