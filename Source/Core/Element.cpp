@@ -2937,7 +2937,7 @@ void Element::ClampScrollOffset()
 void Element::ClampScrollOffsetRecursive()
 {
 	ClampScrollOffset();
-	const int num_children = GetNumChildren(true);
+	const int num_children = GetNumChildren();
 	for (int i = 0; i < num_children; ++i)
 		GetChild(i)->ClampScrollOffsetRecursive();
 }
