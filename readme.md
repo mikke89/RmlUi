@@ -168,13 +168,13 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Backends
 
-| Platform \ Renderer | OpengGL 2 | OpengGL 3 | Vulkan | SDLrenderer |
-|---------------------|:---------:|:---------:|:---------:|:-----------:|
-| Win32               |     ✔️     |           |    ✔️     |             |
-| X11                 |     ✔️     |           |          |             |
-| SFML                |     ✔️     |           |          |             |
-| GLFW                |     ✔️     |     ✔️    |     ✔️    |             |
-| SDL¹                |     ✔️     |     ✔️²   |     ✔️    |      ✔️     |
+| Platform \ Renderer | OpengGL 2 | OpengGL 3 | Vulkan | SDLrenderer | DirectX11 |
+|---------------------|:---------:|:---------:|:---------:|:-----------:|:-----------:|
+| Win32               |     ✔️     |           |    ✔️     |             |      ✔️     |
+| X11                 |     ✔️     |           |          |             |             |
+| SFML                |     ✔️     |           |          |             |             |
+| GLFW                |     ✔️     |     ✔️    |     ✔️    |             |      ✔️     |
+| SDL¹                |     ✔️     |     ✔️²   |     ✔️    |      ✔️     |             |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
