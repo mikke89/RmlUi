@@ -108,7 +108,7 @@ RMLUICORE_API TextInputHandler* GetTextInputHandler();
 /// @param[in] text_input_handler The custom text input handler to use, or nullptr to use the default.
 /// @lifetime If specified, the render interface and the text input handler must be kept alive until after the call to
 ///           Rml::Shutdown. Alternatively, the render interface can be destroyed after all contexts it belongs to have been
-///           destroyed and a subsequent call has been made to Rml::ReleaseTextures.
+///           destroyed and a subsequent call has been made to Rml::ReleaseRenderManagers.
 /// @return A non-owning pointer to the new context, or nullptr if the context could not be created.
 RMLUICORE_API Context* CreateContext(const String& name, Vector2i dimensions, RenderInterface* render_interface = nullptr,
 	TextInputHandler* text_input_handler = nullptr);
@@ -121,7 +121,7 @@ RMLUICORE_API bool RemoveContext(const String& name);
 /// @return The desired context, or nullptr if no context exists with the given name.
 RMLUICORE_API Context* GetContext(const String& name);
 /// Fetches a context by index.
-/// @param[in] index The index of the desired context. If this is outside of the valid range of contexts, it will be clamped.
+/// @param[in] index The index of the desired context. If this is outside the valid range of contexts, it will be clamped.
 /// @return The requested context, or nullptr if no contexts exist.
 RMLUICORE_API Context* GetContext(int index);
 /// Returns the number of active contexts.
@@ -132,7 +132,7 @@ RMLUICORE_API int GetNumContexts();
 /// @param[in] file_path The path to the file to load the face from. The path is passed directly to the file interface which is used to load the file.
 /// The default file interface accepts both absolute paths and paths relative to the working directory.
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
-/// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default it
+/// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default, it
 /// loads all found font weights.
 /// @return True if the face was loaded successfully, false otherwise.
 RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = false, Style::FontWeight weight = Style::FontWeight::Auto);
@@ -140,7 +140,7 @@ RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = fa
 /// @param[in] data The font data.
 /// @param[in] family The family to register the font as.
 /// @param[in] style The style to register the font as.
-/// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default it
+/// @param[in] weight The weight to load when the font face contains multiple weights, otherwise the weight to register the font as. By default, it
 /// loads all found font weights.
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
 /// @return True if the face was loaded successfully, false otherwise.
@@ -179,9 +179,10 @@ RMLUICORE_API void ReleaseCompiledGeometry(RenderInterface* render_interface = n
 /// Releases unused font textures and rendered glyphs to free up memory, and regenerates actively used fonts.
 /// @note Invalidates all existing FontFaceHandles returned from the font engine.
 RMLUICORE_API void ReleaseFontResources();
-
-/// Forces all memory pools used by RmlUi to be released.
-RMLUICORE_API void ReleaseMemoryPools();
+/// Releases render managers that are not used by any contexts.
+/// @note Any resources referring to the render manager in user space must be cleared first, including callback textures and compiled geometry.
+/// @note Also releases font resources, which invalidates all existing FontFaceHandles returned from the font engine.
+RMLUICORE_API void ReleaseRenderManagers();
 
 } // namespace Rml
 

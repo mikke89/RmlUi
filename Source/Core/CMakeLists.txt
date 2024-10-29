@@ -15,6 +15,7 @@ add_library(rmlui_core
 	ContextInstancer.cpp
 	ContextInstancerDefault.cpp
 	ContextInstancerDefault.h
+	ControlledLifetimeResource.h
 	ConvolutionFilter.cpp
 	Core.cpp
 	DataController.cpp
@@ -65,6 +66,8 @@ add_library(rmlui_core
 	ElementHandle.cpp
 	ElementHandle.h
 	ElementInstancer.cpp
+	ElementMeta.cpp
+	ElementMeta.h
 	ElementScroll.cpp
 	ElementStyle.cpp
 	ElementStyle.h
@@ -192,6 +195,7 @@ add_library(rmlui_core
 	TextureLayoutRow.h
 	TextureLayoutTexture.cpp
 	TextureLayoutTexture.h
+	Traits.cpp
 	Transform.cpp
 	TransformPrimitive.cpp
 	TransformState.cpp

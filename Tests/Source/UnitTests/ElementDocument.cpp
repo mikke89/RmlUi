@@ -282,6 +282,7 @@ TEST_CASE("Load")
 	REQUIRE(document);
 
 	document->Close();
+
 	TestsShell::ShutdownShell();
 }
 

@@ -58,7 +58,7 @@ static const String document_escaping = R"(
 <rml>
     <head>
 	<style>
-	p { 
+	p {
 		font-family: LatoLatin;
 	}
 	</style>
@@ -73,7 +73,7 @@ static const String document_escaping_tags = R"(
 <rml>
     <head>
 	<style>
-	* { 
+	* {
 		font-family: LatoLatin;
 	}
 	</style>
@@ -143,5 +143,56 @@ TEST_CASE("XMLParser.escaping_tags")
 	CHECK(document->GetInnerRML() == "&lt;p&gt;&amp;lt;span/&amp;gt;&lt;/p&gt;");
 
 	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("XMLParser.comments_and_cdata")
+{
+	const String document_source_pre = R"(
+	<rml>
+	    <head>
+		<style>
+		body {
+			font-family: LatoLatin;
+		}
+		</style>
+	    </head>
+	    <body>)";
+	const String document_source_post = R"(</body></rml>)";
+
+	struct TestCase {
+		String rml;
+		String expected_parsed_rml;
+	};
+
+	const TestCase tests[] = {
+		{"<!-- <xyz> -->", ""},
+		{"<!--<xyz>-->", ""},
+		{"<!-- <xyz> ->-->", ""},
+		{"<!-- <xyz> -- >-->", ""},
+		{"<!-- <xyz> --->", ""},
+		{"<!-- <xyz> ---->", ""},
+		{"<!--- <xyz> ---->", ""},
+		{"<!-- <p> --><p>hello</p><!-- </p> -->", "<p>hello</p>"},
+		{"<![CDATA[hello]]>", "hello"},
+		{"<![CDATA[hello]]]>", "hello]"},
+		{"<![CDATA[hello]]world]]>", "hello]]world"},
+		{"<![CDATA[\"hello\"]]>", "&quot;hello&quot;"},
+		{"<![CDATA[<p>world</p>]]>", "<p>world</p>"},
+	};
+
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context);
+
+	for (const TestCase& test : tests)
+	{
+		ElementDocument* document = context->LoadDocumentFromMemory(document_source_pre + test.rml + document_source_post);
+		REQUIRE(document);
+
+		CHECK(document->GetInnerRML() == test.expected_parsed_rml);
+
+		document->Close();
+		context->Update();
+	}
 	TestsShell::ShutdownShell();
 }

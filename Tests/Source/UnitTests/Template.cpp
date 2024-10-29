@@ -51,12 +51,41 @@ static const String document_body_template_rml = R"(
 </head>
 
 <body id="body" class="overridden" template="window">
-<p id="p">A paragraph</p>
+	<p id="p">A paragraph</p>
 </body>
 </rml>
 )";
 
 static const String p_address_body_template = "p#p < div#content < div#window < body#body.window < #root#main";
+
+static const String document_body_and_inline_template_rml = R"(
+<rml>
+<head>
+	<link type="text/template" href="/assets/window.rml"/>
+	<link type="text/template" href="/../Tests/Data/UnitTests/template_basic.rml"/>
+	<style>
+		body.window
+		{
+			top: 100px;
+			left: 200px;
+			width: 600px;
+			height: 450px;
+		}
+	</style>
+</head>
+
+<body id="body" template="window">
+	<p id="p">A paragraph</p>
+	<div id="basic_wrapper">
+		<template src="basic">
+			Hello!<span id="span">World</span>
+		</template>
+	</div>
+</body>
+</rml>
+)";
+
+static const String span_address_body_template = "span#span < p#text < div#basic_wrapper < div#content < div#window < body#body.window < #root#main";
 
 static const String document_inline_template_rml = R"(
 <rml>
@@ -86,6 +115,40 @@ static const String document_inline_template_rml = R"(
 
 static const String p_address_inline_template = "p#p < div#content < div#window < div#template_parent < body#body.inline < #root#main";
 
+static const String document_double_inline_template_rml = R"(
+<rml>
+<head>
+	<link type="text/template" href="/assets/window.rml"/>
+	<link type="text/template" href="/../Tests/Data/UnitTests/template_basic.rml"/>
+	<style>
+		body
+		{
+			top: 100px;
+			left: 200px;
+			width: 600px;
+			height: 450px;
+		}
+	</style>
+</head>
+
+<body id="body" class="inline">
+<p>Paragraph outside the window.</p>
+<div id="template_parent">
+	<template src="window">
+		<p id="p">A paragraph</p>
+	</template>
+	<div id="basic_wrapper">
+		<template src="basic">
+			Hello!<span id="span">World</span>
+		</template>
+	</div>
+</div>
+</body>
+</rml>
+)";
+
+static const String span_address_inline_template = "span#span < p#text < div#basic_wrapper < div#template_parent < body#body.inline < #root#main";
+
 TEST_CASE("template")
 {
 	Context* context = TestsShell::GetContext();
@@ -95,22 +158,31 @@ TEST_CASE("template")
 	{
 		INFO("Expected warning: Body 'class' attribute overridden by template.");
 		TestsShell::SetNumExpectedWarnings(1);
-
 		ElementDocument* document = context->LoadDocumentFromMemory(document_body_template_rml);
-		REQUIRE(document);
 		TestsShell::SetNumExpectedWarnings(0);
 
 		document->Show();
-
-		context->Update();
-		context->Render();
-
 		TestsShell::RenderLoop();
 
 		Element* el_p = document->GetElementById("p");
 		REQUIRE(el_p);
-
 		CHECK(el_p->GetAddress() == p_address_body_template);
+
+		document->Close();
+	}
+
+	SUBCASE("body+inline")
+	{
+		ElementDocument* document = context->LoadDocumentFromMemory(document_body_and_inline_template_rml);
+		document->Show();
+		TestsShell::RenderLoop();
+
+		Element* el_p = document->GetElementById("p");
+		Element* el_span = document->GetElementById("span");
+		REQUIRE(el_p);
+		REQUIRE(el_span);
+		CHECK(el_p->GetAddress() == p_address_body_template);
+		CHECK(el_span->GetAddress() == span_address_body_template);
 
 		document->Close();
 	}
@@ -118,18 +190,28 @@ TEST_CASE("template")
 	SUBCASE("inline")
 	{
 		ElementDocument* document = context->LoadDocumentFromMemory(document_inline_template_rml);
-		REQUIRE(document);
 		document->Show();
-
-		context->Update();
-		context->Render();
-
 		TestsShell::RenderLoop();
 
 		Element* el_p = document->GetElementById("p");
 		REQUIRE(el_p);
-
 		CHECK(el_p->GetAddress() == p_address_inline_template);
+
+		document->Close();
+	}
+
+	SUBCASE("inline+inline")
+	{
+		ElementDocument* document = context->LoadDocumentFromMemory(document_double_inline_template_rml);
+		document->Show();
+		TestsShell::RenderLoop();
+
+		Element* el_p = document->GetElementById("p");
+		Element* el_span = document->GetElementById("span");
+		REQUIRE(el_p);
+		REQUIRE(el_span);
+		CHECK(el_p->GetAddress() == p_address_inline_template);
+		CHECK(el_span->GetAddress() == span_address_inline_template);
 
 		document->Close();
 	}

@@ -35,9 +35,8 @@
 namespace Rml {
 
 /**
-    A derivation of an element for use as a mouse handle. A handle is designed to be instanced and attached as a non-
-    DOM element to a window-style element, and listened to for movement events which can be responsed to to move or
-    resize the element as appropriate.
+    A derivation of an element for use as a mouse drag handle. It responds to drag events, and can be configured to move
+    or resize specified target elements.
 
     @author Peter Curry
  */
@@ -49,18 +48,35 @@ public:
 	ElementHandle(const String& tag);
 	virtual ~ElementHandle();
 
+	struct MoveData {
+		Vector2f original_position_top_left;
+		Vector2f original_position_bottom_right;
+		Vector2<bool> top_left;
+		Vector2<bool> bottom_right;
+	};
+
+	struct SizeData {
+		Vector2f original_size;
+		Vector2f original_position_bottom_right;
+		Vector2<bool> width_height;
+		Vector2<bool> bottom_right;
+	};
+
 protected:
 	void OnAttributeChange(const ElementAttributes& changed_attributes) override;
 	void ProcessDefaultAction(Event& event) override;
 
-	Vector2f drag_start;
-	Vector2f move_original_position;
-	Vector2f size_original_size;
-
+	bool initialised;
 	Element* move_target;
 	Element* size_target;
+	Array<NumericValue, 4> edge_margin = {};
 
-	bool initialised;
+	Vector2f drag_start;
+	Vector2f drag_delta_min;
+	Vector2f drag_delta_max;
+
+	MoveData move_data;
+	SizeData size_data;
 };
 
 } // namespace Rml

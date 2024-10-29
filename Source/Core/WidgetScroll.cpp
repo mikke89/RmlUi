@@ -148,7 +148,7 @@ void WidgetScroll::Update()
 	if (!std::any_of(std::begin(arrow_timers), std::end(arrow_timers), [](float timer) { return timer > 0; }))
 		return;
 
-	double current_time = Clock::GetElapsedTime();
+	const double current_time = Clock::GetElapsedTime();
 	const float delta_time = float(current_time - last_update_time);
 	last_update_time = current_time;
 

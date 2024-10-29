@@ -74,18 +74,14 @@ enum class FamilyId : int {};
 
 class RMLUICORE_API FamilyBase {
 protected:
-	static int GetNewId()
-	{
-		static int id = 0;
-		return id++;
-	}
+	static int GetNewId();
 };
 
 template <typename T>
 class Family : FamilyBase {
 public:
 	// Get a unique ID for a given type.
-	// Note: IDs will be unique across DLL-boundaries even for the same type.
+	// Note: An ID for a given type may not match across DLL-boundaries.
 	static FamilyId Id()
 	{
 		static int id = GetNewId();

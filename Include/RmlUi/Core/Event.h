@@ -45,7 +45,7 @@ enum class EventPhase { None, Capture = 1, Target = 2, Bubble = 4 };
 enum class DefaultActionPhase { None, Target = (int)EventPhase::Target, TargetAndBubble = ((int)Target | (int)EventPhase::Bubble) };
 
 /**
-    An event that propogates through the element hierarchy. Events follow the DOM3 event specification. See
+    An event that propagates through the element hierarchy. Events follow the DOM3 event specification. See
     http://www.w3.org/TR/DOM-Level-3-Events/events.html.
 
     @author Lloyd Weehuizen
@@ -57,6 +57,7 @@ public:
 	Event();
 	/// Constructor
 	/// @param[in] target The target element of this event
+	/// @param[in] id The event id
 	/// @param[in] type The event type
 	/// @param[in] parameters The event parameters
 	/// @param[in] interruptible Can this event have is propagation stopped?
@@ -102,7 +103,8 @@ public:
 
 	/// Returns the value of one of the event's parameters.
 	/// @param key[in] The name of the desired parameter.
-	/// @return The value of the requested parameter.
+	/// @param default_value[in] The default value.
+	/// @return The value of the requested parameter, or the default value if the key does not exist.
 	template <typename T>
 	T GetParameter(const String& key, const T& default_value) const
 	{

@@ -480,7 +480,7 @@ struct FramebufferData {
 	bool owns_depth_stencil_buffer;
 };
 
-enum class FramebufferAttachment { None, Depth, DepthStencil };
+enum class FramebufferAttachment { None, DepthStencil };
 
 static void CheckGLError(const char* operation_name)
 {
@@ -670,12 +670,10 @@ static bool CreateFramebuffer(FramebufferData& out_fb, int width, int height, in
 			glGenRenderbuffers(1, &depth_stencil_buffer);
 			glBindRenderbuffer(GL_RENDERBUFFER, depth_stencil_buffer);
 
-			const GLenum internal_format = (attachment == FramebufferAttachment::DepthStencil ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT24);
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, internal_format, width, height);
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, width, height);
 		}
 
-		const GLenum attachment_type = (attachment == FramebufferAttachment::DepthStencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment_type, GL_RENDERBUFFER, depth_stencil_buffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_stencil_buffer);
 	}
 
 	const GLuint framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);

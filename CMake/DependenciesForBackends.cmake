@@ -163,7 +163,9 @@ if(RMLUI_BACKEND MATCHES "GL2$")
 	report_dependency_found_or_error("OpenGL" OpenGL::GL)
 endif()
 
-if(RMLUI_BACKEND MATCHES "GL3$")
+# We use 'glad' as an OpenGL loader for GL3 backends, thus we don't normally need to link to OpenGL::GL. The exception
+# is for Emscripten, where we use a custom find module to provide OpenGL support.
+if(EMSCRIPTEN AND RMLUI_BACKEND MATCHES "GL3$")
 	find_package("OpenGL" "3")
 	report_dependency_found_or_error("OpenGL" OpenGL::GL)
 endif()

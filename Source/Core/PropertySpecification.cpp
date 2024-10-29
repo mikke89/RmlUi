@@ -248,7 +248,8 @@ bool PropertySpecification::ParsePropertyDeclaration(PropertyDictionary& diction
 		return false;
 
 	StringList property_values;
-	if (!ParsePropertyValues(property_values, property_value, SplitOption::None) || property_values.empty())
+	ParsePropertyValues(property_values, property_value, SplitOption::None);
+	if (property_values.empty())
 		return false;
 
 	Property new_property;
@@ -269,7 +270,8 @@ bool PropertySpecification::ParseShorthandDeclaration(PropertyDictionary& dictio
 		(shorthand_definition->type == ShorthandType::RecursiveCommaSeparated ? SplitOption::Comma : SplitOption::Whitespace);
 
 	StringList property_values;
-	if (!ParsePropertyValues(property_values, property_value, split_option) || property_values.empty())
+	ParsePropertyValues(property_values, property_value, split_option);
+	if (property_values.empty())
 		return false;
 
 	// Handle the special behavior of the flex shorthand first, otherwise it acts like 'FallThrough'.
@@ -475,7 +477,7 @@ String PropertySpecification::PropertiesToString(const PropertyDictionary& dicti
 	return result;
 }
 
-bool PropertySpecification::ParsePropertyValues(StringList& values_list, const String& values, const SplitOption split_option) const
+void PropertySpecification::ParsePropertyValues(StringList& values_list, const String& values, const SplitOption split_option) const
 {
 	const bool split_values = (split_option != SplitOption::None);
 	const bool split_by_comma = (split_option == SplitOption::Comma);
@@ -609,8 +611,6 @@ bool PropertySpecification::ParsePropertyValues(StringList& values_list, const S
 
 	if (state == VALUE)
 		SubmitValue();
-
-	return true;
 }
 
 } // namespace Rml

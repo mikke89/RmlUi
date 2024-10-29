@@ -246,7 +246,6 @@ private:
 	ElementText* text_element;
 	ElementText* selected_text_element;
 	Vector2f internal_dimensions;
-	Vector2f scroll_offset;
 
 	using LineList = Vector<Line>;
 	LineList lines;

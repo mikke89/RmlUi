@@ -10,6 +10,7 @@ add_executable(${TARGET_NAME}
 	Decorator.cpp
 	Element.cpp
 	ElementDocument.cpp
+	ElementHandle.cpp
 	ElementFormControlSelect.cpp
 	ElementImage.cpp
 	ElementStyle.cpp

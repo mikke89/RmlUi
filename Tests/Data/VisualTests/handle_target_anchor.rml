@@ -1,0 +1,91 @@
+<rml>
+<head>
+	<title>Handle anchor positioning</title>
+	<link type="text/rcss" href="../style.rcss"/>
+	<meta name="Description" content="Handles should respect the target element's anchoring to its parent, determined by its top/right/bottom/left properties." />
+	<meta name="Assert" content="The anchoring should still hold after moving and resizing the target." />
+	<meta name="Assert" content="The handles should constrain the movement and sizing such that the target element is located within the edge margin of its containing block." />
+	<style>
+		handle[move_target] {
+			top: 0;
+			right: 0;
+			left: 0;
+			bottom: auto;
+			height: 20px;
+			width: auto;
+			cursor: move;
+		}
+		body, div {
+			border: 5dp #fff;
+			padding-top: 2em;
+		}
+		body {
+			text-align: center;
+			z-index: 100;
+			box-sizing: border-box;
+			border: 5dp #222;
+			width: auto;
+			height: auto;
+			top: 100dp;
+			bottom: 100dp;
+			left: 100dp;
+			right: 580dp;
+		}
+		div {
+			position: absolute;
+			z-index: 1;
+			background: #eee;
+			min-width: 100dp;
+			min-height: 50dp;
+			border-width: 0;
+			margin: 30dp 20dp;
+		}
+		.top_left {
+			top: 25px;
+			left: 25px;
+			width: 180dp;
+			height: 100dp;
+		}
+		.top_right_bottom_left {
+			top: 200px;
+			left: 250px;
+			bottom: 200px;
+			right: 250px;
+		}
+		.bottom_right {
+			bottom: 25px;
+			right: 25px;
+			width: 180dp;
+			height: 100dp;
+		}
+	</style>
+</head>
+
+<body>
+<p>Document</p>
+
+<div class="top_left">
+	<p>Anchored top-left</p>
+	<p>Edge margin: -50%</p>
+	<handle move_target="#parent" edge_margin="-50%"/>
+	<handle size_target="#parent" edge_margin="-50%"/>
+</div>
+
+<div class="top_right_bottom_left">
+	<p>Anchored all sides</p>
+	<p>Edge margin: 50dp</p>
+	<handle move_target="#parent" edge_margin="50dp"/>
+	<handle size_target="#parent" edge_margin="50dp"/>
+</div>
+
+<div class="bottom_right">
+	<p>Anchored bottom-right</p>
+	<p>Edge margin: 0px</p>
+	<handle move_target="#parent"/>
+	<handle size_target="#parent"/>
+</div>
+
+<handle move_target="#parent"/>
+<handle size_target="#parent"/>
+</body>
+</rml>

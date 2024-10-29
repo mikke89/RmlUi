@@ -73,9 +73,9 @@ namespace Math {
 		return sinf(angle);
 	}
 
-	RMLUICORE_API float ASin(float angle)
+	RMLUICORE_API float ASin(float value)
 	{
-		return asinf(angle);
+		return asinf(value);
 	}
 
 	RMLUICORE_API float Tan(float angle)

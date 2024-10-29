@@ -49,6 +49,7 @@
 #include "ElementBackgroundBorder.h"
 #include "ElementDefinition.h"
 #include "ElementEffects.h"
+#include "ElementMeta.h"
 #include "ElementStyle.h"
 #include "EventDispatcher.h"
 #include "EventSpecification.h"
@@ -90,20 +91,6 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 	return 0.f;
 }
 
-// Meta objects for element collected in a single struct to reduce memory allocations
-struct ElementMeta {
-	ElementMeta(Element* el) : event_dispatcher(el), style(el), background_border(), effects(el), scroll(el), computed_values(el) {}
-	SmallUnorderedMap<EventId, EventListener*> attribute_event_listeners;
-	EventDispatcher event_dispatcher;
-	ElementStyle style;
-	ElementBackgroundBorder background_border;
-	ElementEffects effects;
-	ElementScroll scroll;
-	Style::ComputedValues computed_values;
-};
-
-static Pool<ElementMeta> element_meta_chunk_pool(200, true);
-
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
 	visible(true), offset_fixed(false), absolute_offset_dirty(true), dirty_definition(false), dirty_child_definitions(false), dirty_animation(false),
@@ -125,7 +112,7 @@ Element::Element(const String& tag) :
 
 	z_index = 0;
 
-	meta = element_meta_chunk_pool.AllocateAndConstruct(this);
+	meta = ElementMetaPool::element_meta_pool->pool.AllocateAndConstruct(this);
 	data_model = nullptr;
 }
 
@@ -148,7 +135,7 @@ Element::~Element()
 	children.clear();
 	num_non_dom_children = 0;
 
-	element_meta_chunk_pool.DestroyAndDeallocate(meta);
+	ElementMetaPool::element_meta_pool->pool.DestroyAndDeallocate(meta);
 }
 
 void Element::Update(float dp_ratio, Vector2f vp_dimensions)
@@ -640,9 +627,9 @@ float Element::ResolveNumericValue(NumericValue value, float base_value)
 
 Vector2f Element::GetContainingBlock()
 {
-	Vector2f containing_block(0, 0);
+	Vector2f containing_block;
 
-	if (offset_parent != nullptr)
+	if (offset_parent)
 	{
 		using namespace Style;
 		Position position_property = GetPosition();
@@ -656,6 +643,10 @@ Vector2f Element::GetContainingBlock()
 		{
 			containing_block = parent_box.GetSize(BoxArea::Padding);
 		}
+	}
+	else if (Context* context = GetContext())
+	{
+		containing_block = Vector2f(context->GetDimensions());
 	}
 
 	return containing_block;

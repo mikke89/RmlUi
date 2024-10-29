@@ -97,7 +97,7 @@ namespace Math {
 
 	/// Evaluates if a number is, or close to, zero.
 	/// @param[in] value The number to compare to zero.
-	/// @return True if the number if zero or close to it, false otherwise.
+	/// @return True if the number is zero or close to it, false otherwise.
 	RMLUICORE_API bool IsCloseToZero(float value);
 
 	/// Calculates the absolute value of a number.
@@ -117,18 +117,18 @@ namespace Math {
 	/// @param[in] angle The angle to calculate the cosine of, in radians.
 	/// @return The cosine of the angle.
 	RMLUICORE_API float Cos(float angle);
-	/// Calculates the arc-cosine of an value.
-	/// @param[in] angle The value to calculate the arc-cosine of.
+	/// Calculates the arc-cosine of a value.
+	/// @param[in] value The value to calculate the arc-cosine of.
 	/// @return The angle, in radians.
 	RMLUICORE_API float ACos(float value);
 	/// Calculates the sine of an angle.
 	/// @param[in] angle The angle to calculate the sine of, in radians.
 	/// @return The sine of the angle.
 	RMLUICORE_API float Sin(float angle);
-	/// Calculates the arc-sine of an value.
-	/// @param[in] angle The value to calculate the arc-sine of.
+	/// Calculates the arc-sine of a value.
+	/// @param[in] value The value to calculate the arc-sine of.
 	/// @return The angle, in radians.
-	RMLUICORE_API float ASin(float angle);
+	RMLUICORE_API float ASin(float value);
 	/// Calculates the tangent of an angle.
 	/// @param[in] angle The angle to calculate the tangent of, in radians.
 	/// @return The tanget of the angle.
@@ -148,15 +148,15 @@ namespace Math {
 	RMLUICORE_API int Log2(int value);
 
 	/// Converts an angle from radians to degrees.
-	/// @param[in] The angle, in radians.
+	/// @param[in] angle The angle, in radians.
 	/// @return The angle converted to degrees.
 	RMLUICORE_API float RadiansToDegrees(float angle);
 	/// Converts an angle from degrees to radians.
-	/// @param[in] The angle, in degrees.
+	/// @param[in] angle The angle, in degrees.
 	/// @return The angle converted to radians.
 	RMLUICORE_API float DegreesToRadians(float angle);
 	/// Normalises an angle in radians to [0, 2pi).
-	/// @param[in] The angle, in radians.
+	/// @param[in] angle The angle, in radians.
 	/// @return The normalised angle.
 	RMLUICORE_API float NormaliseAngle(float angle);
 

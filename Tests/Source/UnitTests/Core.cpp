@@ -32,6 +32,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <Shell.h>
 #include <algorithm>
 #include <doctest.h>
 
@@ -78,6 +79,39 @@ static const String document_textures_rml = R"(
 	<div class="sprite"/>
 	<progress direction="clockwise" start-edge="bottom" value="0.5"/>
 </div>
+</body>
+</rml>
+)";
+
+static const String document_basic_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			font-family: LatoLatin;
+			font-size: 16px;
+		}
+		@spritesheet aliens {
+			src: /assets/high_scores_alien_3.tga;
+			alien3: 0px 0px 64px 64px;
+		}
+		div.sprite {
+			height: 100px;
+			decorator: image(alien3);
+		}
+	</style>
+</head>
+
+<body>
+	<img src="/assets/high_scores_alien_1.tga"/>
+	<div class="sprite"/>
+	abc
 </body>
 </rml>
 )";
@@ -225,7 +259,7 @@ TEST_CASE("core.release_resources")
 
 	document->Close();
 
-	TestsShell::ShutdownShell();
+	TestsShell::ShutdownShell(false);
 
 	// Counters are reset during shutdown.
 	const auto& counters_at_shutdown = render_interface->GetCountersFromPreviousReset();
@@ -233,6 +267,8 @@ TEST_CASE("core.release_resources")
 	// Finally, verify that all generated and loaded resources were released during shutdown.
 	CHECK(counters_at_shutdown.generate_texture + counters_at_shutdown.load_texture == counters_at_shutdown.release_texture);
 	CHECK(counters_at_shutdown.compile_geometry == counters_at_shutdown.release_geometry);
+
+	TestsShell::ResetTestsRenderInterface();
 }
 
 TEST_CASE("core.initialize")
@@ -263,4 +299,71 @@ TEST_CASE("core.initialize")
 	}
 
 	Rml::Shutdown();
+}
+
+TEST_CASE("core.observer_ptr")
+{
+	Context* context = TestsShell::GetContext();
+	ElementDocument* document = context->LoadDocument("assets/demo.rml");
+
+	ObserverPtr<Element> observer_ptr = document->GetObserverPtr();
+	document->Close();
+
+	// Keeping the observer pointer alive should prevent the memory pool from shutting down.
+	TestsShell::ShutdownShell();
+
+	// For that reason, the observer pointer can still be used as normal without crashing.
+	REQUIRE(!observer_ptr);
+
+	// Resetting the observer pointer (or destroying it) should not cause any crashes, and should release the memory pool.
+	observer_ptr.reset();
+}
+
+TEST_CASE("core.RemoveContext")
+{
+	TestsSystemInterface* system_interface = TestsShell::GetTestsSystemInterface();
+	TestsRenderInterface* render_interface = TestsShell::GetTestsRenderInterface();
+	// This test only works with the dummy renderer.
+	if (!render_interface)
+		return;
+
+	const Vector2i window_size = {1280, 720};
+
+	Shell::Initialize();
+	Rml::SetSystemInterface(system_interface);
+	REQUIRE(Rml::GetRenderInterface() == nullptr);
+	REQUIRE(Rml::Initialise());
+	Shell::LoadFonts();
+
+	Context* context = Rml::CreateContext("main", window_size, render_interface);
+	REQUIRE(context);
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_basic_rml);
+	document->Show();
+
+	context->Update();
+	context->Render();
+
+	REQUIRE(Rml::RemoveContext(context->GetName()));
+
+	SUBCASE("Normal shutdown")
+	{
+		Rml::Shutdown();
+		TestsShell::ResetTestsRenderInterface();
+	}
+
+	SUBCASE("Destroy render interface before shutdown")
+	{
+		ReleaseRenderManagers();
+
+		const auto counters = render_interface->GetCounters();
+		CHECK(counters.release_texture == counters.generate_texture + counters.load_texture);
+		CHECK(counters.release_geometry == counters.compile_geometry);
+
+		TestsShell::ResetTestsRenderInterface();
+
+		Rml::Shutdown();
+	}
+
+	Shell::Shutdown();
 }

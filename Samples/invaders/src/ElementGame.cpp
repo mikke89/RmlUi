@@ -63,7 +63,7 @@ void ElementGame::ProcessEvent(Rml::Event& event)
 			if (key_identifier == Rml::Input::KI_SPACE)
 				game->GetDefender()->Fire();
 		}
-		else if (!key_down)
+		else
 		{
 			if (key_identifier == Rml::Input::KI_LEFT)
 				game->GetDefender()->StopMove(-1.0f);
