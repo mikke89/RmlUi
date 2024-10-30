@@ -46,14 +46,6 @@ WidgetDropDown::WidgetDropDown(ElementFormControl* element)
 {
 	parent_element = element;
 
-	lock_selection = false;
-	selection_dirty = false;
-	box_layout_dirty = false;
-	box_opened_since_last_format = false;
-	value_rml_dirty = false;
-	value_layout_dirty = false;
-	box_visible = false;
-
 	// Create the button and selection elements.
 	button_element = parent_element->AppendChild(Factory::InstanceElement(parent_element, "*", "selectarrow", XMLAttributes()), false);
 	value_element = parent_element->AppendChild(Factory::InstanceElement(parent_element, "*", "selectvalue", XMLAttributes()), false);
