@@ -73,7 +73,7 @@ public:
 	/// Get all elements with the given class set on them.
 	/// @param[out] elements Resulting elements.
 	/// @param[in] root_element First element to check.
-	/// @param[in] tag Class name to search for.
+	/// @param[in] class_name Class name to search for.
 	static void GetElementsByClassName(ElementList& elements, Element* root_element, const String& class_name);
 
 	/// Returns an element's density-independent pixel ratio, defined by it's context
@@ -121,8 +121,8 @@ public:
 	/// @param[in] inline_element True if the element is placed in an inline context, false if not.
 	static void BuildBox(Box& box, Vector2f containing_block, Element* element, bool inline_element = false);
 
-	/// Sizes an element, and positions it within its parent offset from the borders of its content area. Any relative
-	/// values will be evaluated against the size of the element parent's content area.
+	/// Sizes and sets the box of an element, and positions the element at the content area of its parent, plus any
+	/// specified offset. Any relative values will be evaluated against the size of the element parent's content area.
 	/// @param element[in] The element to size and position.
 	/// @param offset[in] The offset from the parent's borders.
 	/// @param anchor[in] Defines which corner or edge the border is to be positioned relative to.
