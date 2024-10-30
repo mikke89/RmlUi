@@ -123,6 +123,7 @@ private:
 	bool selection_dirty = false;
 	bool value_rml_dirty = false;
 	bool value_layout_dirty = false;
+	bool value_changed_since_last_box_format = false;
 	bool box_layout_dirty = false;
 	bool box_opened_since_last_format = false;
 	bool box_visible = false;

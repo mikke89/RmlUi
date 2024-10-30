@@ -153,6 +153,7 @@ void WidgetDropDown::OnRender()
 		// We try to respect user values of 'height', 'min-height', and 'max-height'. However, when we need to shrink the box
 		// we will override the 'height' property.
 
+		const float initial_used_height = selection_element->GetBox().GetSize().y;
 		const Vector2f initial_scroll_offset = {selection_element->GetScrollLeft(), selection_element->GetScrollTop()};
 
 		// Previously set 'height' property from this procedure must be removed for the calculations below to work as intended.
@@ -232,10 +233,13 @@ void WidgetDropDown::OnRender()
 			selection_element->SetOffset(Vector2f(offset_x, offset_y), parent_element);
 		}
 
-		int selection = GetSelection();
+		const float new_used_height = selection_element->GetBox().GetSize().y;
+		const bool should_scroll_into_view =
+			(box_opened_since_last_format || value_changed_since_last_box_format || initial_used_height != new_used_height);
 
-		// Scroll selected element into view, if we have one
-		if (selection != -1)
+		const int selection = GetSelection();
+
+		if (should_scroll_into_view && selection != -1)
 		{
 			ScrollIntoViewOptions scroll_options = {
 				box_opened_since_last_format ? ScrollAlignment::Center : ScrollAlignment::Nearest,
@@ -245,7 +249,9 @@ void WidgetDropDown::OnRender()
 			};
 			GetOption(selection)->ScrollIntoView(scroll_options);
 		}
+
 		box_opened_since_last_format = false;
+		value_changed_since_last_box_format = false;
 		box_layout_dirty = false;
 	}
 
@@ -310,6 +316,7 @@ void WidgetDropDown::OnValueChange(const String& value)
 	parent_element->DispatchEvent(EventId::Change, parameters);
 
 	value_rml_dirty = true;
+	value_changed_since_last_box_format = true;
 }
 
 void WidgetDropDown::SetSelection(Element* select_option, bool force)
