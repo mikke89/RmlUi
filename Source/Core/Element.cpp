@@ -2934,6 +2934,11 @@ void Element::ClampScrollOffset()
 		scroll_offset = new_scroll_offset;
 		DirtyAbsoluteOffset();
 	}
+
+	// At this point the scrollbars have been resolved, both in terms of size and visibility. Update their properties
+	// now so that any visibility changes in particular are reflected immediately on the next render. Otherwise we risk
+	// that the scrollbars renders a frame late, since changes to scrollbars can happen during layouting.
+	meta->scroll.UpdateProperties();
 }
 
 void Element::ClampScrollOffsetRecursive()
