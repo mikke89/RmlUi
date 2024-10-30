@@ -161,6 +161,8 @@ void WidgetDropDown::OnRender()
 		// We try to respect user values of 'height', 'min-height', and 'max-height'. However, when we need to shrink the box
 		// we will override the 'height' property.
 
+		const Vector2f initial_scroll_offset = {selection_element->GetScrollLeft(), selection_element->GetScrollTop()};
+
 		// Previously set 'height' property from this procedure must be removed for the calculations below to work as intended.
 		if (selection_element->GetLocalStyleProperties().count(PropertyId::Height) == 1)
 		{
@@ -204,8 +206,7 @@ void WidgetDropDown::OnRender()
 		else
 		{
 			// Shrink box and position either below or above
-			const float padding_border_size = box.GetEdge(BoxArea::Border, BoxEdge::Top) + box.GetEdge(BoxArea::Border, BoxEdge::Bottom) +
-				box.GetEdge(BoxArea::Padding, BoxEdge::Top) + box.GetEdge(BoxArea::Padding, BoxEdge::Bottom);
+			const float padding_border_size = box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border, BoxArea::Padding);
 
 			float height = 0.f;
 			float offset_y = 0.f;
@@ -224,9 +225,17 @@ void WidgetDropDown::OnRender()
 			}
 
 			// Set the height and re-format the selection box.
+			// @performance: This causes a re-layout of the document since we're setting the height and then updating
+			// the document. However, the re-layout is not really needed, since the document's layout is independent of
+			// the selection element's size, and we do all the formatting for the element here. We really only call
+			// `UpdateDocument` to update the properties. See also `RemoveProperty` for height above.
 			selection_element->SetProperty(PropertyId::Height, Property(height, Unit::PX));
 			selection_element->GetOwnerDocument()->UpdateDocument();
 			ElementUtilities::FormatElement(selection_element, parent_element->GetBox().GetSize(BoxArea::Border));
+
+			// Set the scroll offset back, since it may have been clamped during the first element formatting.
+			selection_element->SetScrollLeft(initial_scroll_offset.x);
+			selection_element->SetScrollTop(initial_scroll_offset.y);
 
 			selection_element->SetOffset(Vector2f(offset_x, offset_y), parent_element);
 		}
@@ -268,11 +277,8 @@ void WidgetDropDown::OnLayout()
 		button_element->SetPseudoClass("disabled", true);
 	}
 
-	// Layout the button and selection boxes.
-	Box parent_box = parent_element->GetBox();
-
+	// Layout the button box. The selection element layout is deferred until it is opened.
 	ElementUtilities::PositionElement(button_element, Vector2f(0, 0), ElementUtilities::TOP_RIGHT);
-	ElementUtilities::PositionElement(selection_element, Vector2f(0, 0), ElementUtilities::TOP_LEFT);
 
 	// Calculate the value element position and size.
 	Vector2f size;
