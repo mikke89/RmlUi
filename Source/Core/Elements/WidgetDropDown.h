@@ -104,6 +104,8 @@ public:
 	void ShowSelectBox();
 	/// Hides the selection box.
 	void HideSelectBox();
+	/// Revert to the value selected when the selection box was opened, then hide the box.
+	void CancelSelectBox();
 	/// Check whether the select box is visible or not.
 	bool IsSelectBoxVisible();
 
@@ -118,6 +120,8 @@ private:
 	Element* button_element;
 	Element* selection_element;
 	Element* value_element;
+
+	String selected_value_on_box_open;
 
 	bool lock_selection = false;
 	bool selection_dirty = false;

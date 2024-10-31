@@ -867,7 +867,7 @@ form .nav-auto, form input.checkbox, form input.radio
 		</div>
 		<h2>Subject</h2>
 		<div>
-			<select name="subject">
+			<select name="subject" onkeydown="cancel_selection_on_escape">
 				<option value="none" selected>Choose your subject</option>
 				<option value="feature">Feature request</option>
 				<option value="bug">Bug report</option>

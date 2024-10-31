@@ -29,6 +29,7 @@
 #include "DemoWindow.h"
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/Elements/ElementFormControl.h>
+#include <RmlUi/Core/Elements/ElementFormControlSelect.h>
 #include <RmlUi_Backend.h>
 
 DemoEventListener::DemoEventListener(const Rml::String& value, Rml::Element* element, DemoWindow* demo_window) :
@@ -176,6 +177,18 @@ void DemoEventListener::ProcessEvent(Rml::Event& event)
 		{
 			auto value = source->GetValue();
 			demo_window->SetSandboxStylesheet(value);
+		}
+	}
+	else if (value == "cancel_selection_on_escape")
+	{
+		if (event.GetParameter("key_identifier", 0) == Input::KeyIdentifier ::KI_ESCAPE)
+		{
+			auto select_control = rmlui_dynamic_cast<Rml::ElementFormControlSelect*>(element);
+			if (select_control && select_control->IsSelectBoxVisible())
+			{
+				select_control->CancelSelectBox();
+				event.StopPropagation();
+			}
 		}
 	}
 }

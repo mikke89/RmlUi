@@ -67,7 +67,7 @@ public:
 	int GetSelection() const;
 
 	/// Returns one of the select control's option elements.
-	/// @param[in] The index of the desired option.
+	/// @param[in] index The index of the desired option.
 	/// @return The option element or nullptr if the index was out of bounds.
 	Element* GetOption(int index);
 	/// Returns the number of options in the select control.
@@ -93,11 +93,13 @@ public:
 
 	/// Removes all options from the select control.
 	void RemoveAll();
-	
+
 	/// Show the selection box.
 	void ShowSelectBox();
 	/// Hide the selection box.
 	void HideSelectBox();
+	/// Revert to the value selected when the selection box was opened, then hide the box.
+	void CancelSelectBox();
 	/// Check whether the select box is opened or not.
 	bool IsSelectBoxVisible();
 

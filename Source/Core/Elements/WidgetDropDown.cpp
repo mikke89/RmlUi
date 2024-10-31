@@ -634,6 +634,10 @@ void WidgetDropDown::ProcessEvent(Event& event)
 
 void WidgetDropDown::ShowSelectBox()
 {
+	if (box_visible)
+		return;
+
+	selected_value_on_box_open = parent_element->GetAttribute<String>("value", "");
 	selection_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
 	selection_element->SetPseudoClass("checked", true);
 	value_element->SetPseudoClass("checked", true);
@@ -647,6 +651,9 @@ void WidgetDropDown::ShowSelectBox()
 
 void WidgetDropDown::HideSelectBox()
 {
+	if (!box_visible)
+		return;
+
 	selection_element->SetProperty(PropertyId::Visibility, Property(Style::Visibility::Hidden));
 	selection_element->RemoveProperty(PropertyId::Height);
 	selection_element->SetPseudoClass("checked", false);
@@ -655,6 +662,17 @@ void WidgetDropDown::HideSelectBox()
 	DetachScrollEvent();
 
 	box_visible = false;
+}
+
+void WidgetDropDown::CancelSelectBox()
+{
+	if (!box_visible)
+		return;
+
+	if (parent_element->GetAttribute<String>("value", "") != selected_value_on_box_open)
+		parent_element->SetAttribute("value", selected_value_on_box_open);
+
+	HideSelectBox();
 }
 
 bool WidgetDropDown::IsSelectBoxVisible()

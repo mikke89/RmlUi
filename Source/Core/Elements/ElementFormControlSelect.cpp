@@ -119,6 +119,10 @@ void ElementFormControlSelect::HideSelectBox()
 {
 	widget->HideSelectBox();
 }
+void ElementFormControlSelect::CancelSelectBox()
+{
+	widget->CancelSelectBox();
+}
 
 bool ElementFormControlSelect::IsSelectBoxVisible()
 {
