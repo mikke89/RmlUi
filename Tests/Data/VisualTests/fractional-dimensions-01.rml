@@ -1,0 +1,54 @@
+<rml>
+<head>
+	<link type="text/rcss" href="/../Tests/Data/style.rcss"/>
+	<title>Fractional dimensions 01</title>
+	<link rel="#438" href="https://github.com/mikke89/RmlUi/issues/438"/>
+	<meta name="Description" content="Layout of elements with fractional height. Try zooming in and out (Ctrl +/-). The inner heights are allowed to vary by one pixel to accommodate the accumulation of the fractional pixels."/>
+	<style>
+		div {
+			border: 1dp black;
+			height: 1.2em;
+			padding-left: 1em;
+		}
+	</style>
+</head>
+<body>
+	<p>Borders should have the same width everywhere and be placed edge to edge.</p>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+</body>
+</rml>
