@@ -15,17 +15,17 @@ if(RMLUI_FONT_ENGINE STREQUAL "freetype")
 		endif()
 	endif()
 
-	report_dependency_found_or_error("Freetype" Freetype::Freetype "Freetype font engine enabled")
+	report_dependency_found_or_error("Freetype" "Freetype" Freetype::Freetype "Freetype font engine enabled")
 endif()
 
 if(RMLUI_LOTTIE_PLUGIN)
 	find_package("rlottie")
-	report_dependency_found_or_error("rlottie" rlottie::rlottie "Lottie plugin enabled")
+	report_dependency_found_or_error("rlottie" "rlottie" rlottie::rlottie "Lottie plugin enabled")
 endif()
 
 if(RMLUI_SVG_PLUGIN)
 	find_package("lunasvg")
-	report_dependency_found_or_error("lunasvg" lunasvg::lunasvg "SVG plugin enabled")
+	report_dependency_found_or_error("LunaSVG" "lunasvg" lunasvg::lunasvg "SVG plugin enabled")
 endif()
 
 # The Lua and LuaJIT modules don't provide targets, so make our own, or let users define the target already.
@@ -43,7 +43,7 @@ if(RMLUI_LUA_BINDINGS AND (RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "lua" OR RMLUI_LU
 	if(RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "lua_as_cxx")
 		string(APPEND friendly_message " with Lua compiled as C++")
 	endif()
-	report_dependency_found_or_error("Lua" Lua::Lua "${friendly_message}")
+	report_dependency_found_or_error("Lua" "Lua" Lua::Lua "${friendly_message}")
 	unset(friendly_message)
 endif()
 
@@ -57,7 +57,7 @@ if(RMLUI_LUA_BINDINGS AND RMLUI_LUA_BINDINGS_LIBRARY STREQUAL "luajit")
 		)
 	endif()
 	add_library(RmlUi::External::Lua ALIAS LuaJIT::LuaJIT)
-	report_dependency_found_or_error("Lua" LuaJIT::LuaJIT "Lua bindings enabled with LuaJIT")
+	report_dependency_found_or_error("Lua" "LuaJIT" LuaJIT::LuaJIT "Lua bindings enabled with LuaJIT")
 endif()
 
 if(NOT RMLUI_IS_CONFIG_FILE)
@@ -74,14 +74,14 @@ if(RMLUI_HARFBUZZ_SAMPLE)
 	endif()
 
 	find_package("HarfBuzz")
-	report_dependency_found_or_error("HarfBuzz" harfbuzz::harfbuzz "HarfBuzz library available for samples")
+	report_dependency_found_or_error("HarfBuzz" "HarfBuzz" harfbuzz::harfbuzz "HarfBuzz library available for samples")
 endif()
 
 if(RMLUI_TRACY_PROFILING)
 	find_package(Tracy CONFIG QUIET)
 
 	if(RMLUI_IS_CONFIG_FILE)
-		report_dependency_found_or_error("Tracy" Tracy::TracyClient)
+		report_dependency_found_or_error("Tracy" "Tracy" Tracy::TracyClient)
 	endif()
 
 	if(NOT TARGET Tracy::TracyClient)

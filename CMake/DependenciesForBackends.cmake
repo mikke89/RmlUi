@@ -20,7 +20,7 @@ if(RMLUI_BACKEND MATCHES "^SDL")
 	]]
 
 	if(NOT TARGET SDL2::SDL2 AND NOT SDL2_FOUND)
-		report_dependency_not_found("SDL2" SDL2::SDL2)
+		report_dependency_not_found("SDL2" "SDL2" SDL2::SDL2)
 	endif()
 
 	# Set up the detected SDL as the SDL2::SDL2 INTERFACE target if it hasn't already been created. This is done for
@@ -35,9 +35,9 @@ if(RMLUI_BACKEND MATCHES "^SDL")
 
 	# SDL_GL2 backend requires GLEW
 	if(RMLUI_BACKEND STREQUAL "SDL_GL2" AND NOT TARGET GLEW::GLEW)
-		find_package(GLEW)
+		find_package("GLEW")
 		if(NOT TARGET GLEW::GLEW)
-			report_dependency_not_found("GLEW" GLEW::GLEW)
+			report_dependency_not_found("GLEW" "GLEW" GLEW::GLEW)
 		endif()
 	endif()
 
@@ -60,7 +60,7 @@ if(RMLUI_BACKEND MATCHES "^SDL")
 	# Require SDL_image if needed
 	if(RMLUI_SDLIMAGE_REQUIRED)
 		find_package("SDL2_image")
-		report_dependency_found_or_error("SDL2_image" SDL2_image::SDL2_image)
+		report_dependency_found_or_error("SDL2_image" "SDL2_image" SDL2_image::SDL2_image)
 	endif()
 endif()
 
@@ -70,7 +70,7 @@ if(RMLUI_BACKEND MATCHES "^(BackwardCompatible_)?GLFW")
 
 	# Instead of relying on the <package_name>_FOUND variable, we check directly for the target
 	if(NOT TARGET glfw)
-		report_dependency_found_or_error("GLFW" glfw)
+		report_dependency_found_or_error("GLFW" "glfw3" glfw)
 	endif()
 endif()
 
@@ -101,7 +101,7 @@ if(RMLUI_BACKEND MATCHES "^SFML")
 
 	# Since we are using find_package() in basic mode, we can check the _FOUND variable
 	if(NOT SFML_FOUND)
-		report_dependency_not_found("SFML" SFML::SFML)
+		report_dependency_not_found("SFML" "SFML" SFML::SFML)
 	endif()
 
 	#[[
@@ -160,12 +160,12 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 
 if(RMLUI_BACKEND MATCHES "GL2$")
 	find_package("OpenGL" "2")
-	report_dependency_found_or_error("OpenGL" OpenGL::GL)
+	report_dependency_found_or_error("OpenGL" "OpenGL" OpenGL::GL)
 endif()
 
 # We use 'glad' as an OpenGL loader for GL3 backends, thus we don't normally need to link to OpenGL::GL. The exception
 # is for Emscripten, where we use a custom find module to provide OpenGL support.
 if(EMSCRIPTEN AND RMLUI_BACKEND MATCHES "GL3$")
 	find_package("OpenGL" "3")
-	report_dependency_found_or_error("OpenGL" OpenGL::GL)
+	report_dependency_found_or_error("OpenGL" "OpenGL" OpenGL::GL)
 endif()
