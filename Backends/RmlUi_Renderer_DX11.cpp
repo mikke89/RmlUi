@@ -649,8 +649,8 @@ static bool CreateRenderTarget(ID3D11Device* p_device, RenderTargetData& out_rt,
     texture_desc.MipLevels = 1;
     texture_desc.ArraySize = 1;
     texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    texture_desc.SampleDesc.Count = (samples > 0) ? samples : 1; // MSAA
-    texture_desc.SampleDesc.Quality = 0;
+    texture_desc.SampleDesc.Count = (samples > 1) ? samples : 1; // MSAA
+    texture_desc.SampleDesc.Quality = (samples > 1) ? D3D11_STANDARD_MULTISAMPLE_PATTERN : 0;
     texture_desc.Usage = D3D11_USAGE_DEFAULT;
     texture_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
     texture_desc.CPUAccessFlags = 0;
@@ -708,22 +708,21 @@ static bool CreateRenderTarget(ID3D11Device* p_device, RenderTargetData& out_rt,
         else
         {
             // Create a new depth/stencil buffer
-            D3D11_TEXTURE2D_DESC depthDesc = {};
-            depthDesc.Width = width;
-            depthDesc.Height = height;
-            depthDesc.MipLevels = 1;
-            depthDesc.ArraySize = 1;
-            depthDesc.Format =
+            D3D11_TEXTURE2D_DESC depth_desc = {};
+            depth_desc.Width = width;
+            depth_desc.Height = height;
+            depth_desc.MipLevels = 1;
+            depth_desc.ArraySize = 1;
+            depth_desc.Format =
                 (attachment == RenderTargetAttachment::DepthStencil) ? DXGI_FORMAT_D32_FLOAT_S8X24_UINT : DXGI_FORMAT_D24_UNORM_S8_UINT;
-            depthDesc.SampleDesc.Count = (samples > 0) ? samples : 1;
-            depthDesc.SampleDesc.Quality = 0;
-            depthDesc.Usage = D3D11_USAGE_DEFAULT;
-            depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-            depthDesc.CPUAccessFlags = 0;
-            depthDesc.MiscFlags = 0;
+            depth_desc.SampleDesc = texture_desc.SampleDesc;
+            depth_desc.Usage = D3D11_USAGE_DEFAULT;
+            depth_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+            depth_desc.CPUAccessFlags = 0;
+            depth_desc.MiscFlags = 0;
 
             ID3D11Texture2D* depth_stencil_texture = nullptr;
-            result = p_device->CreateTexture2D(&depthDesc, nullptr, &depth_stencil_texture);
+            result = p_device->CreateTexture2D(&depth_desc, nullptr, &depth_stencil_texture);
             RMLUI_DX_ASSERTMSG(result, "failed to CreateTexture2D");
             if (FAILED(result))
             {
@@ -732,7 +731,7 @@ static bool CreateRenderTarget(ID3D11Device* p_device, RenderTargetData& out_rt,
             }
 
             D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-            dsvDesc.Format = depthDesc.Format;
+            dsvDesc.Format = depth_desc.Format;
             dsvDesc.ViewDimension = (samples > 0) ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D;
             dsvDesc.Texture2D.MipSlice = 0;
 
