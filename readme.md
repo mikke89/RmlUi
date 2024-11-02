@@ -106,6 +106,8 @@ cmake --build Build
 ```
 Make sure to replace the path to vcpkg. This example uses the `GLFW_GL3` backend, other backends are available as shown below. When this completes, feel free to test the freshly built samples, such as the `invaders` sample (`rmlui_sample_invaders` target), and enjoy! The executables should be located somewhere in the `Build` directory.
 
+To make all the samples available, you can additionally install `lua lunasvg rlottie harfbuzz` and pass `--preset samples-all` during CMake configuration.
+
 #### Conan
 
 RmlUi is readily available from [ConanCenter](https://conan.io/center/recipes/rmlui).
