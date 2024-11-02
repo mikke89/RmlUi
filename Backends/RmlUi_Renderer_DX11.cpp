@@ -831,18 +831,6 @@ static void DestroyShaders(const ProgramData& data)
 
 } // namespace Gfx
 
-static uintptr_t HashPointer(uintptr_t inPtr)
-{
-    uintptr_t Value = (uintptr_t)inPtr;
-    Value = ~Value + (Value << 15);
-    Value = Value ^ (Value >> 12);
-    Value = Value + (Value << 2);
-    Value = Value ^ (Value >> 4);
-    Value = Value * 2057;
-    Value = Value ^ (Value >> 16);
-    return Value;
-}
-
 RenderInterface_DX11::RenderInterface_DX11() {}
 RenderInterface_DX11::~RenderInterface_DX11() {}
 
@@ -1115,17 +1103,16 @@ void RenderInterface_DX11::Init(ID3D11Device* p_d3d_device)
 
 void RenderInterface_DX11::Cleanup()
 {
+    if (m_fullscreen_quad_geometry)
+    {
+        RenderInterface_DX11::ReleaseGeometry(m_fullscreen_quad_geometry);
+        m_fullscreen_quad_geometry = {};
+    }
+
     if (program_data)
     {
         Gfx::DestroyShaders(*program_data);
         program_data.reset();
-    }
-
-    // Loop through geometry cache and free all resources
-    for (auto& it : m_geometry_cache)
-    {
-        DX_CLEANUP_RESOURCE_IF_CREATED(it.second.vertex_buffer);
-        DX_CLEANUP_RESOURCE_IF_CREATED(it.second.index_buffer);
     }
 
     // Cleans up all general resources
@@ -1211,7 +1198,6 @@ void RenderInterface_DX11::BeginFrame(ID3D11RenderTargetView* p_render_target_vi
     m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, clearColor);
 
     UseProgram(ProgramId::None);
-    // program_transform_dirty.set();
     m_scissor_state = Rml::Rectanglei::MakeInvalid();
 }
 
@@ -1232,7 +1218,6 @@ void RenderInterface_DX11::EndFrame()
     // Instead, if we had a transparent destination that didn't use premultiplied alpha, we would need to perform a manual un-premultiplication step.
     Gfx::BindTexture(m_d3d_context, rt_postprocess);
 
-    // @TODO: Find a pattern for flipped textures
     UseProgram(ProgramId::Passthrough);
 
     DrawFullscreenQuad();
@@ -1381,93 +1366,77 @@ Rml::CompiledGeometryHandle RenderInterface_DX11::CompileGeometry(Rml::Span<cons
             return Rml::CompiledGeometryHandle(0);
         }
     }
-    uintptr_t handleId = HashPointer((uintptr_t)index_buffer);
 
-    DX11_GeometryData geometryData{};
+    DX11_GeometryData* geometryData = new DX11_GeometryData;
 
-    geometryData.vertex_buffer = vertex_buffer;
-    geometryData.index_buffer = index_buffer;
-    geometryData.index_count = indices.size();
+    geometryData->vertex_buffer = vertex_buffer;
+    geometryData->index_buffer = index_buffer;
+    geometryData->index_count = indices.size();
 
-    m_geometry_cache.emplace(handleId, geometryData);
-    return Rml::CompiledGeometryHandle(handleId);
+    return (Rml::CompiledGeometryHandle)geometryData;
 }
 
 void RenderInterface_DX11::ReleaseGeometry(Rml::CompiledGeometryHandle handle)
 {
-    if (m_geometry_cache.find(handle) != m_geometry_cache.end())
-    {
-        DX11_GeometryData geometryData = m_geometry_cache[handle];
+    DX11_GeometryData* geometry = (DX11_GeometryData*)handle;
 
-        DX_CLEANUP_RESOURCE_IF_CREATED(geometryData.vertex_buffer);
-        DX_CLEANUP_RESOURCE_IF_CREATED(geometryData.index_buffer);
+    DX_CLEANUP_RESOURCE_IF_CREATED(geometry->vertex_buffer);
+    DX_CLEANUP_RESOURCE_IF_CREATED(geometry->index_buffer);
 
-        m_geometry_cache.erase(handle);
-    }
-    else
-    {
-        Rml::Log::Message(Rml::Log::LT_WARNING, "Geometry Handle %d does not exist!", handle);
-    }
+    delete geometry;
 }
 
 void RenderInterface_DX11::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
-    if (m_geometry_cache.find(handle) != m_geometry_cache.end())
+    DX11_GeometryData* geometry = (DX11_GeometryData*)handle;
+
+    if (m_translation != translation)
     {
-        DX11_GeometryData geometryData = m_geometry_cache[handle];
+        m_translation = translation;
+        m_cbuffer_dirty = true;
+    }
 
-        if (m_translation != translation)
+    if (texture == TexturePostprocess || texture == TexturePostprocessNoBinding)
+    {
+        // Do nothing.
+    }
+    else if (texture)
+    {
+        // Texture available
+        UseProgram(ProgramId::Texture);
+        if (texture != TextureEnableWithoutBinding)
         {
-            m_translation = translation;
-            m_cbuffer_dirty = true;
+            ID3D11ShaderResourceView* texture_view = (ID3D11ShaderResourceView*)texture;
+            m_d3d_context->PSSetShaderResources(0, 1, &texture_view);
         }
-
-        if (texture == TexturePostprocess || texture == TexturePostprocessNoBinding)
-        {
-            // Do nothing.
-        }
-        else if (texture)
-        {
-            // Texture available
-            UseProgram(ProgramId::Texture);
-            if (texture != TextureEnableWithoutBinding)
-            {
-                ID3D11ShaderResourceView* texture_view = (ID3D11ShaderResourceView*)texture;
-                m_d3d_context->PSSetShaderResources(0, 1, &texture_view);
-            }
-            m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
-        }
-        else
-        {
-            // No texture, use color
-            UseProgram(ProgramId::Color);
-        }
-
-        if (texture != TexturePostprocessNoBinding)
-        {
-            UpdateConstantBuffer();
-
-            m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
-            m_d3d_context->PSSetConstantBuffers(0, 1, &m_shader_buffer);
-        }
-
-        // Bind vertex and index buffers, issue draw call
-        uint32_t stride = sizeof(Rml::Vertex);
-        uint32_t offset = 0;
-        m_d3d_context->IASetInputLayout(m_vertex_layout);
-        m_d3d_context->IASetVertexBuffers(0, 1, &geometryData.vertex_buffer, &stride, &offset);
-        m_d3d_context->IASetIndexBuffer(geometryData.index_buffer, DXGI_FORMAT_R32_UINT, 0);
-        m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        m_d3d_context->DrawIndexed(static_cast<UINT>(geometryData.index_count), 0, 0);
-
-        // Unbind resources
-        ID3D11ShaderResourceView* const nullSRV = nullptr;
-        m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
+        m_d3d_context->PSSetSamplers(0, 1, &m_sampler_state);
     }
     else
     {
-        Rml::Log::Message(Rml::Log::LT_WARNING, "Geometry Handle %d does not exist!", handle);
+        // No texture, use color
+        UseProgram(ProgramId::Color);
     }
+
+    if (texture != TexturePostprocessNoBinding)
+    {
+        UpdateConstantBuffer();
+
+        m_d3d_context->VSSetConstantBuffers(0, 1, &m_shader_buffer);
+        m_d3d_context->PSSetConstantBuffers(0, 1, &m_shader_buffer);
+    }
+
+    // Bind vertex and index buffers, issue draw call
+    uint32_t stride = sizeof(Rml::Vertex);
+    uint32_t offset = 0;
+    m_d3d_context->IASetInputLayout(m_vertex_layout);
+    m_d3d_context->IASetVertexBuffers(0, 1, &geometry->vertex_buffer, &stride, &offset);
+    m_d3d_context->IASetIndexBuffer(geometry->index_buffer, DXGI_FORMAT_R32_UINT, 0);
+    m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    m_d3d_context->DrawIndexed(static_cast<UINT>(geometry->index_count), 0, 0);
+
+    // Unbind resources
+    ID3D11ShaderResourceView* const nullSRV = nullptr;
+    m_d3d_context->PSSetShaderResources(0, 1, &nullSRV);
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
@@ -2273,11 +2242,7 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
     const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
     const CompiledShaderType type = shader.type;
 
-    DX11_GeometryData geometry{};
-    if (m_geometry_cache.find(geometry_handle) != m_geometry_cache.end())
-    {
-        geometry = m_geometry_cache[geometry_handle];
-    }
+    DX11_GeometryData* geometry = (DX11_GeometryData*)geometry_handle;
 
     switch (type)
     {
@@ -2322,10 +2287,10 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
         m_d3d_context->PSSetConstantBuffers(0, 1, &m_shader_buffer);
         uint32_t stride = sizeof(Rml::Vertex);
         uint32_t offset = 0;
-        m_d3d_context->IASetVertexBuffers(0, 1, &geometry.vertex_buffer, &stride, &offset);
-        m_d3d_context->IASetIndexBuffer(geometry.index_buffer, DXGI_FORMAT_R32_UINT, 0);
+        m_d3d_context->IASetVertexBuffers(0, 1, &geometry->vertex_buffer, &stride, &offset);
+        m_d3d_context->IASetIndexBuffer(geometry->index_buffer, DXGI_FORMAT_R32_UINT, 0);
         m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        m_d3d_context->DrawIndexed(static_cast<UINT>(geometry.index_count), 0, 0);
+        m_d3d_context->DrawIndexed(static_cast<UINT>(geometry->index_count), 0, 0);
     }
     break;
     case CompiledShaderType::Creation:
@@ -2360,10 +2325,10 @@ void RenderInterface_DX11::RenderShader(Rml::CompiledShaderHandle shader_handle,
         m_d3d_context->PSSetConstantBuffers(0, 1, &m_shader_buffer);
         uint32_t stride = sizeof(Rml::Vertex);
         uint32_t offset = 0;
-        m_d3d_context->IASetVertexBuffers(0, 1, &geometry.vertex_buffer, &stride, &offset);
-        m_d3d_context->IASetIndexBuffer(geometry.index_buffer, DXGI_FORMAT_R32_UINT, 0);
+        m_d3d_context->IASetVertexBuffers(0, 1, &geometry->vertex_buffer, &stride, &offset);
+        m_d3d_context->IASetIndexBuffer(geometry->index_buffer, DXGI_FORMAT_R32_UINT, 0);
         m_d3d_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        m_d3d_context->DrawIndexed(static_cast<UINT>(geometry.index_count), 0, 0);
+        m_d3d_context->DrawIndexed(static_cast<UINT>(geometry->index_count), 0, 0);
     }
     break;
     case CompiledShaderType::Invalid:

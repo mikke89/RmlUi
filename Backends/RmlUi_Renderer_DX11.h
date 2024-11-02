@@ -214,8 +214,6 @@ private:
         size_t index_count = 0;
     };
 
-    std::unordered_map<uintptr_t, DX11_GeometryData> m_geometry_cache;
-
     // D3D11 state for RmlUi rendering
     bool m_current_blend_state_enabled = false;
     ID3D11BlendState* m_current_blend_state = nullptr;
