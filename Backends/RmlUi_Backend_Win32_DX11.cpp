@@ -37,14 +37,66 @@
 #include <RmlUi/Core/Profiling.h>
 
 #ifdef RMLUI_USE_STB_IMAGE_LOADER
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#include <RmlUi/Core/FileInterface.h>
-
-// stb_image based loaders
-void LoadTexture(const Rml::String& filename, int* pWidth, int* pHeight, uint8_t** pData, size_t* pDataSize);
-void FreeTexture(uint8_t* pData);
+    #define STB_IMAGE_IMPLEMENTATION
+    #include "stb_image.h"
+    #include <RmlUi/Core/FileInterface.h>
 #endif
+
+/**
+    Custom render interface example for the DX11/Win32 backend.
+
+    Overloads the DX11 render interface to load textures through stb_image.
+ */
+class RenderInterface_DX11_Win32 : public RenderInterface_DX11 {
+public:
+    RenderInterface_DX11_Win32() {}
+
+#ifdef RMLUI_USE_STB_IMAGE_LOADER
+    Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override
+    {
+        int texture_width = 0, texture_height = 0, num_channels = 0;
+        size_t image_size_bytes = 0;
+        uint8_t* texture_data = nullptr;
+
+        // Find where on disk the file is
+        Rml::FileInterface* file_interface = Rml::GetFileInterface();
+        Rml::FileHandle file_handle = file_interface->Open(source);
+        if (!file_handle)
+        {
+            // Tell RmlUI that the image is invalid
+            texture_data = nullptr;
+            return false;
+        }
+
+        // Load the file through stb_image
+        texture_data = stbi_load_from_file((FILE*)file_handle, &texture_width, &texture_height, &num_channels, 0);
+
+        // If the file data is correct
+        if (texture_data != nullptr)
+        {
+            // Compute number of elements in texture
+            image_size_bytes = texture_width * texture_height * num_channels;
+
+            // Pre-multiply the data
+            for (int i = 0; i < image_size_bytes; i += 4)
+            {
+                texture_data[i + 0] = (uint8_t)((texture_data[i + 0] * texture_data[i + 3]) / 255);
+                texture_data[i + 1] = (uint8_t)((texture_data[i + 1] * texture_data[i + 3]) / 255);
+                texture_data[i + 2] = (uint8_t)((texture_data[i + 2] * texture_data[i + 3]) / 255);
+            }
+
+            texture_dimensions.x = texture_width;
+            texture_dimensions.y = texture_height;
+
+            Rml::TextureHandle handle = GenerateTexture({texture_data, image_size_bytes}, texture_dimensions);
+
+            stbi_image_free(texture_data);
+            return handle;
+        }
+        return false;
+    }
+#endif
+};
 
 /**
 High DPI support using Windows Per Monitor V2 DPI awareness.
@@ -118,7 +170,7 @@ Lifetime governed by the calls to Backend::Initialize() and Backend::Shutdown().
 */
 struct BackendData {
     SystemInterface_Win32 system_interface;
-    RenderInterface_DX11 render_interface;
+    RenderInterface_DX11_Win32 render_interface;
     TextInputMethodEditor_Win32 text_input_method_editor;
 
     HINSTANCE instance_handle = nullptr;
@@ -168,9 +220,6 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
     }
 
 #ifdef RMLUI_USE_STB_IMAGE_LOADER
-    // Assign stb_image loader to render interface
-    data->render_interface.LoadTextureFromFileRaw = &LoadTexture;
-    data->render_interface.FreeTextureFromFileRaw = &FreeTexture;
     // Disable pre-multiplication because loading images through stb_image will inconsistently return pre-multiplied images (only iPhone PNGs are pre-multipled)
     // We handle pre-multiplication manually on decode
     stbi_set_unpremultiply_on_load(true);
@@ -525,48 +574,3 @@ static void CleanupRenderTarget()
         data->d3d_resources.pMainRenderTargetView = nullptr;
     }
 }
-
-#ifdef RMLUI_USE_STB_IMAGE_LOADER
-void LoadTexture(const Rml::String& filename, int* pWidth, int* pHeight, uint8_t** pData, size_t* pDataSize)
-{
-    // Find where on disk the file is
-    Rml::FileInterface* file_interface = Rml::GetFileInterface();
-    Rml::FileHandle file_handle = file_interface->Open(filename);
-    if (!file_handle)
-    {
-        // Tell the backend that the data is invalid (*pData = 0), and return
-        *pData = nullptr;
-        return;
-    }
-
-    // Load the file through stb_image
-    int texture_width, texture_height, num_channels;
-    *pData = stbi_load_from_file((FILE*)file_handle, &texture_width, &texture_height, &num_channels, 0);
-
-    // If the file data is correct
-    if (*pData != nullptr)
-    {
-        // Assign image parameters
-        *pWidth = texture_width;
-        *pHeight = texture_height;
-
-        // Compute number of elements in texture
-        *pDataSize = texture_width * texture_height * num_channels;
-
-        // Pre-multiply the data
-        uint8_t* dataView = *pData;
-        for (int i = 0; i < *pDataSize; i += 4)
-        {
-            dataView[i + 0] = (uint8_t)((dataView[i + 0] * dataView[i + 3]) / 255);
-            dataView[i + 1] = (uint8_t)((dataView[i + 1] * dataView[i + 3]) / 255);
-            dataView[i + 2] = (uint8_t)((dataView[i + 2] * dataView[i + 3]) / 255);
-        }
-    }
-}
-
-void FreeTexture(uint8_t* pData)
-{
-    // Free the allocated memory once the texture has been uploaded to the GPU
-    stbi_image_free(pData);
-}
-#endif

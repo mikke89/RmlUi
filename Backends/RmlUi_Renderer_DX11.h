@@ -130,18 +130,6 @@ public:
     // Can be passed to RenderGeometry() to not touch the cbuffers
     static constexpr Rml::TextureHandle TexturePostprocessNoBinding = Rml::TextureHandle(-3);
 
-public:
-    /// Called by the renderer when it wants to load a texture from disk.
-    /// @param[in] pFilename A Rml string containing the file name.
-    /// @param[out] pWidth The width of the texture read from disk.
-    /// @param[out] pHeight The height of the texture read from disk.
-    /// @param[out] pData A pointer to an RGBA byte array of texture data, which will then be used to generate a texture. Set to NULL to indicate that the file failed to load for whatever reason.
-    /// @param[out] pDataSize A pointer to a size_t storing how many bytes is in pData.
-    pfnLoadTextureRaw LoadTextureFromFileRaw = nullptr;
-    /// Called by the renderer when it wants to free a texture from disk. Always called after a successful load from LoadTextureFromFileRaw.
-    /// @param[in] pData A pointer to an RGBA byte array of texture data to free.
-    pfnFreeTextureRaw FreeTextureFromFileRaw = nullptr;
-
 private:
     // Changes blend state if necessary
     void SetBlendState(ID3D11BlendState* blend_state);

@@ -1461,28 +1461,6 @@ struct TGAHeader {
 
 Rml::TextureHandle RenderInterface_DX11::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source)
 {
-    // Use the user provided image loading function if it's provided, else fallback to the included TGA one
-    if (LoadTextureFromFileRaw != nullptr && FreeTextureFromFileRaw != nullptr)
-    {
-        int texture_width = 0, texture_height = 0;
-        size_t image_size_bytes = 0;
-        uint8_t* texture_data = nullptr;
-        LoadTextureFromFileRaw(source, &texture_width, &texture_height, &texture_data, &image_size_bytes);
-
-        if (texture_data != nullptr)
-        {
-            texture_dimensions.x = texture_width;
-            texture_dimensions.y = texture_height;
-
-            Rml::TextureHandle handle = GenerateTexture({texture_data, image_size_bytes}, texture_dimensions);
-
-            FreeTextureFromFileRaw(texture_data);
-            return handle;
-        }
-
-        // Image must be invalid if the file failed to load. Fallback to the default loader.
-    }
-
     Rml::FileInterface* file_interface = Rml::GetFileInterface();
     Rml::FileHandle file_handle = file_interface->Open(source);
     if (!file_handle)
