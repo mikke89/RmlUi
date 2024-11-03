@@ -239,7 +239,10 @@ void ElementLottie::UpdateTexture()
 		}
 
 		if (!texture_interface.GenerateTexture({p_data, total_bytes}, render_dimensions))
+		{
+			Log::Message(Rml::Log::Type::LT_WARNING, "Could not generate texture for lottie animation: %s", GetAttribute<String>("src", "").c_str());
 			return false;
+		}
 		return true;
 	};
 
