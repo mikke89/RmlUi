@@ -129,12 +129,12 @@ namespace Math {
 
 	RMLUICORE_API float Round(float value)
 	{
-		return roundf(value);
+		return floorf(value + 0.5f);
 	}
 
 	RMLUICORE_API double Round(double value)
 	{
-		return round(value);
+		return floor(value + 0.5);
 	}
 
 	RMLUICORE_API float RoundUp(float value)
