@@ -373,6 +373,9 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 [Effects sample video](https://github.com/mikke89/RmlUi/assets/5490330/bdc0422d-867d-4090-9d48-e7159e3adc18)
 
+**[Killing Time: Resurrected](https://www.nightdivestudios.com/) by [Nightdive Studios](https://www.nightdivestudios.com/) and [Ziggurat Interactive](https://www.ziggurat.games/game/killing-time-resurrected) - remastered version of the classic shooter game - user interface made with RmlUi**\
+![Killing Time: Resurrected collage](https://raw.githubusercontent.com/mikke89/RmlUiDoc/7ca874cc506986a789e2c9a317a4e23f359d2316/assets/gallery/killing_time_resurrected_collage.webp)
+
 **[alt:V](https://altv.mp/) installer - a multiplayer client for GTA:V**\
 ![alt:V installer collage](https://user-images.githubusercontent.com/5490330/230487770-275fe98f-753f-4b35-b2e1-1e20a798f5e8.png)
 
