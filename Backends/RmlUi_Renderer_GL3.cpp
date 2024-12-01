@@ -35,6 +35,7 @@
 #include <RmlUi/Core/MeshUtilities.h>
 #include <RmlUi/Core/Platform.h>
 #include <RmlUi/Core/SystemInterface.h>
+#include <algorithm>
 #include <string.h>
 
 #if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
