@@ -260,12 +260,16 @@ enum class ProgramId : int {
 	Texture_Stencil_Disabled,
 	Gradient,
 	Creation,
+	// this is for presenting our msaa render target texture for NO MSAA RT
+	// if you do not correctly stuff DX12 validation will say about different 
+	// sample count like it is expected 1 (because no MSAA) but your RT target texture was created with
+	// sample count = 2, so it is not correct way of using it
 	Passthrough,
 	ColorMatrix,
 	BlendMask,
 	Blur,
 	DropShadow,
-	Count,
+	Count
 };
 
 // Determines the anti-aliasing quality when creating layers. Enables better-looking visuals, especially when transforms are applied.
@@ -314,7 +318,7 @@ RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, ID3D12Device* 
 }
 
 namespace Gfx {
-class FramebufferData {
+struct FramebufferData {
 public:
 	FramebufferData() :
 		m_is_render_target{true}, m_width{}, m_height{}, m_id{-1}, m_p_texture{}, m_p_texture_depth_stencil{}, m_texture_descriptor_resource_view{},
@@ -527,8 +531,8 @@ void RenderInterface_DX12::BeginFrame()
 		this->m_p_command_graphics_list->OMSetRenderTargets(1, p_handle_rtv, FALSE, p_handle_dsv);
 
 		D3D12_VIEWPORT viewport{};
-		viewport.Height = this->m_height;
-		viewport.Width = this->m_width;
+		viewport.Height = static_cast<FLOAT>(this->m_height);
+		viewport.Width = static_cast<FLOAT>(this->m_width);
 		viewport.MaxDepth = 1.0f;
 		this->m_p_command_graphics_list->RSSetViewports(1, &viewport);
 
@@ -772,7 +776,7 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 		}
 		else
 		{
-			RMLUI_ASSERT(false && "not reached code point, something is missing or corrupted data");
+			RMLUI_ASSERT(!"not reached code point, something is missing or corrupted data"[0]);
 		}
 
 		// this->SubmitTransformUniform(p_handle_geometry->Get_ConstantBuffer(), translation);
@@ -828,7 +832,7 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 
 				view_vertex_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + p_handle_geometry->Get_InfoVertex().Get_Offset();
 				view_vertex_buffer.StrideInBytes = sizeof(Rml::Vertex);
-				view_vertex_buffer.SizeInBytes = p_handle_geometry->Get_InfoVertex().Get_Size();
+				view_vertex_buffer.SizeInBytes = static_cast<UINT>(p_handle_geometry->Get_InfoVertex().Get_Size());
 
 				this->m_p_command_graphics_list->IASetVertexBuffers(0, 1, &view_vertex_buffer);
 			}
@@ -868,8 +872,8 @@ Rml::CompiledGeometryHandle RenderInterface_DX12::CompileGeometry(Rml::Span<cons
 
 	if (p_handle)
 	{
-		this->m_manager_buffer.Alloc_Vertex(vertices.data(), vertices.size(), sizeof(Rml::Vertex), p_handle);
-		this->m_manager_buffer.Alloc_Index(indices.data(), indices.size(), sizeof(int), p_handle);
+		this->m_manager_buffer.Alloc_Vertex(vertices.data(), static_cast<int>(vertices.size()), sizeof(Rml::Vertex), p_handle);
+		this->m_manager_buffer.Alloc_Index(indices.data(), static_cast<int>(indices.size()), sizeof(int), p_handle);
 		//	p_handle->Get_ConstantBuffer().Set_AllocInfo(this->m_manager_buffer.Alloc_ConstantBuffer(&p_handle->Get_ConstantBuffer(), 72));
 	}
 
@@ -1414,7 +1418,7 @@ void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
 	const auto& source_framebuffer = this->m_manager_render_layer.GetLayer(layer_id);
 	const auto& destination_framebuffer = this->m_manager_render_layer.GetPostprocessPrimary();
 
-	RMLUI_ASSERT(false && "todo: implement resolve msaa on dx12 side");
+	RMLUI_ASSERT(!"todo: implement resolve msaa on dx12 side"[0]);
 }
 
 static Rml::Pair<int, float> SigmaToParameters(const float desired_sigma)
@@ -1481,6 +1485,18 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 			break;
 		}
 		case FilterType::Blur:
+		{
+			break;
+		}
+		case FilterType::DropShadow:
+		{
+			break;
+		}
+		case FilterType::ColorMatrix:
+		{
+			break;
+		}
+		case FilterType::MaskImage:
 		{
 			break;
 		}
@@ -2151,7 +2167,10 @@ void RenderInterface_DX12::Initialize_Swapchain(int width, int height) noexcept
 
 	RMLUI_DX_ASSERTMSG(CreateDXGIFactory2(create_factory_flags, IID_PPV_ARGS(&p_factory)), "failed to CreateDXGIFactory2");
 
-	this->m_desc_sample.Count = 1;
+	// todo: use information from user's initialization data structure
+	// todo: if user specified MSAA as ON but forgot to pass any valid data, use this field kDefaultRenderImplField_MSAA_SampleCount as fallback default handling value
+	#pragma todo("read this!");
+	this->m_desc_sample.Count = kDefaultRenderImplField_MSAA_SampleCount;
 	this->m_desc_sample.Quality = 0;
 
 	DXGI_SWAP_CHAIN_DESC1 desc = {};
@@ -2160,7 +2179,10 @@ void RenderInterface_DX12::Initialize_Swapchain(int width, int height) noexcept
 	desc.Height = height;
 	desc.Format = kDefaultRenderImplField_ColorTextureFormat;
 	desc.Stereo = 0;
-	desc.SampleDesc = this->m_desc_sample;
+	// since we can't use rt textures with different sample count than Swapchain's so we create framebuffers and presenting them on NO-MSAA 
+	// Swapchain
+	desc.SampleDesc.Count=1;
+	desc.SampleDesc.Quality=0;
 	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	desc.BufferCount = kDefaultRenderImplField_SwapchainBackBufferCount;
 	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
@@ -3473,7 +3495,12 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 		desc_pipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		desc_pipeline.RTVFormats[0] = kDefaultRenderImplField_ColorTextureFormat;
 		desc_pipeline.DSVFormat = kDefaultRenderImplField_DepthStencilTextureFormat;
-		desc_pipeline.SampleDesc = this->m_desc_sample;
+		
+		// since it is used for presenting MSAA texture on screen, we create swapchain and all RTs as NO-MSAA, keep this in mind
+		// otherwise it is wrong to mix target texture with different sample count than swapchain's
+		desc_pipeline.SampleDesc.Count = 1;
+		desc_pipeline.SampleDesc.Quality = 0;
+
 		desc_pipeline.SampleMask = 0xffffffff;
 		desc_pipeline.RasterizerState = desc_rasterizer;
 		desc_pipeline.BlendState = desc_blend_state;
@@ -5166,7 +5193,7 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 		desc.Alignment = D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT;
 		info_for_alloc = this->m_p_device->GetResourceAllocationInfo(0, 1, &desc);
 
-		RMLUI_ASSERT(info_for_alloc.Alignment == D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT, "wrong calculation! check CanBeSmallResource method!");
+		RMLUI_ASSERT(info_for_alloc.Alignment == D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT && "wrong calculation! check CanBeSmallResource method!");
 		RMLUI_ASSERT(total_memory == info_for_alloc.SizeInBytes, "must be equal! check calculate how you calculate total_memory variable!");
 	}
 	else
@@ -5174,7 +5201,7 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 		desc.Alignment = 0;
 		info_for_alloc = this->m_p_device->GetResourceAllocationInfo(0, 1, &desc);
 
-		RMLUI_ASSERT(info_for_alloc.Alignment != D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT, "wrong calculation! check CanBeSmallResource method!");
+		RMLUI_ASSERT(info_for_alloc.Alignment != D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT && "wrong calculation! check CanBeSmallResource method!");
 		RMLUI_ASSERT(total_memory == info_for_alloc.SizeInBytes, "must be equal! check calculation how you calculate total_memory variable!");
 	}
 

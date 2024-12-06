@@ -778,6 +778,7 @@ private:
 	Rml::Vector<TextureHandleType*> m_pending_for_deletion_textures;
 	// ConstantBufferType m_constantbuffer;
 
+	// this represents user's data from initialization structure about multisampling features 
 	DXGI_SAMPLE_DESC m_desc_sample;
 	CD3DX12_CPU_DESCRIPTOR_HANDLE m_handle_shaders;
 	BufferMemoryManager m_manager_buffer;
