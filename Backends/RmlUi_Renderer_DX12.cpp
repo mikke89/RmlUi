@@ -1110,6 +1110,16 @@ RenderInterface_DX12::RenderLayerStack::RenderLayerStack() :
 	m_width{}, m_height{}, m_layers_size{}, m_p_manager_texture{}, m_p_manager_buffer{}, m_p_device{}, m_p_depth_stencil{}
 {
 	this->m_fb_postprocess.resize(4);
+
+	// in order to prevent calling dtor when doing push_back on m_fb_layers 
+	// we need to reserve memory, like how much we do expect elements in array (vector)
+	// otherwise you will get validation assert in dtor of FramebufferData struct and 
+	// that validation supposed to be for memory leaks or wrong resource handling (like you forgot to delete resource somehow)
+	// if you didn't get it check this: https://en.cppreference.com/w/cpp/container/vector/reserve
+
+	// otherwise if your default implementation requires more layers by default, thus we have a field at compile-time 
+	// RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
+	this->m_fb_layers.reserve(6);
 	this->m_p_depth_stencil = new Gfx::FramebufferData();
 	this->m_p_depth_stencil->Set_RenderTarget(false);
 }
