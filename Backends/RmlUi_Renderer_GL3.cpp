@@ -1356,6 +1356,7 @@ static void SetBlurWeights(GLint weights_location, float sigma)
 void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& source_destination, const Gfx::FramebufferData& temp,
 	const Rml::Rectanglei window_flipped)
 {
+	OutputDebugStringA("::RenderBlur()\n");
 	RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
 	RMLUI_ASSERT(window_flipped.Valid());
 
@@ -1687,6 +1688,8 @@ Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& 
 void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
 	Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
 {
+	OutputDebugStringA("::RenderShader()\n");
+
 	RMLUI_ASSERT(shader_handle && geometry_handle);
 	const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
 	const CompiledShaderType type = shader.type;
@@ -1744,6 +1747,7 @@ void RenderInterface_GL3::ReleaseShader(Rml::CompiledShaderHandle shader_handle)
 
 void RenderInterface_GL3::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle)
 {
+	OutputDebugStringA("::BlitLayerToPostprocessPrimary()\n");
 	const Gfx::FramebufferData& source = render_layers.GetLayer(layer_handle);
 	const Gfx::FramebufferData& destination = render_layers.GetPostprocessPrimary();
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, source.framebuffer);
@@ -1755,6 +1759,8 @@ void RenderInterface_GL3::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_h
 
 void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
 {
+	OutputDebugStringA("::RenderFilters()\n");
+
 	for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
 	{
 		const CompiledFilter& filter = *reinterpret_cast<const CompiledFilter*>(filter_handle);
@@ -1881,6 +1887,8 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 
 Rml::LayerHandle RenderInterface_GL3::PushLayer()
 {
+	OutputDebugStringA("::PushLayer()\n");
+
 	const Rml::LayerHandle layer_handle = render_layers.PushLayer();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(layer_handle).framebuffer);
@@ -1892,6 +1900,8 @@ Rml::LayerHandle RenderInterface_GL3::PushLayer()
 void RenderInterface_GL3::CompositeLayers(Rml::LayerHandle source_handle, Rml::LayerHandle destination_handle, Rml::BlendMode blend_mode,
 	Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
+	OutputDebugStringA("::CompositeLayers()\n");
+
 	using Rml::BlendMode;
 
 	// Blit source layer to postprocessing buffer. Do this regardless of whether we actually have any filters to be
@@ -1924,12 +1934,14 @@ void RenderInterface_GL3::CompositeLayers(Rml::LayerHandle source_handle, Rml::L
 
 void RenderInterface_GL3::PopLayer()
 {
+	OutputDebugStringA("::PopLayer()\n");
 	render_layers.PopLayer();
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
 }
 
 Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensions)
 {
+	OutputDebugStringA("::SaveLayerAsTexture()\n");
 	Rml::TextureHandle render_texture = GenerateTexture({}, dimensions);
 	if (!render_texture)
 		return {};
@@ -1971,6 +1983,7 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensi
 
 Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
 {
+	OutputDebugStringA("::SaveLayerAsMaskImage()\n");
 	BlitLayerToPostprocessPrimary(render_layers.GetTopLayerHandle());
 
 	const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
@@ -2036,6 +2049,7 @@ RenderInterface_GL3::RenderLayerStack::~RenderLayerStack()
 
 Rml::LayerHandle RenderInterface_GL3::RenderLayerStack::PushLayer()
 {
+	OutputDebugStringA("LS::PushLayer()\n");
 	RMLUI_ASSERT(layers_size <= (int)fb_layers.size());
 
 	if (layers_size == (int)fb_layers.size())
@@ -2053,34 +2067,40 @@ Rml::LayerHandle RenderInterface_GL3::RenderLayerStack::PushLayer()
 
 void RenderInterface_GL3::RenderLayerStack::PopLayer()
 {
+	OutputDebugStringA("LS::PopLayer()\n");
 	RMLUI_ASSERT(layers_size > 0);
 	layers_size -= 1;
 }
 
 const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::GetLayer(Rml::LayerHandle layer) const
 {
+	OutputDebugStringA("LS::GetLayer()\n");
 	RMLUI_ASSERT((size_t)layer < (size_t)layers_size);
 	return fb_layers[layer];
 }
 
 const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::GetTopLayer() const
 {
+	OutputDebugStringA("LS::GetTopLayer()\n");
 	return GetLayer(GetTopLayerHandle());
 }
 
 Rml::LayerHandle RenderInterface_GL3::RenderLayerStack::GetTopLayerHandle() const
 {
+	OutputDebugStringA("LS::GetTopLayerHandle()\n");
 	RMLUI_ASSERT(layers_size > 0);
 	return static_cast<Rml::LayerHandle>(layers_size - 1);
 }
 
 void RenderInterface_GL3::RenderLayerStack::SwapPostprocessPrimarySecondary()
 {
+	OutputDebugStringA("LS::SwapPostprocessPrimarySecondary()\n");
 	std::swap(fb_postprocess[0], fb_postprocess[1]);
 }
 
 void RenderInterface_GL3::RenderLayerStack::BeginFrame(int new_width, int new_height)
 {
+	OutputDebugStringA("LS::BeginFrame()\n");
 	RMLUI_ASSERT(layers_size == 0);
 
 	if (new_width != width || new_height != height)
@@ -2096,12 +2116,14 @@ void RenderInterface_GL3::RenderLayerStack::BeginFrame(int new_width, int new_he
 
 void RenderInterface_GL3::RenderLayerStack::EndFrame()
 {
+	OutputDebugStringA("LS::EndFrame()\n");
 	RMLUI_ASSERT(layers_size == 1);
 	PopLayer();
 }
 
 void RenderInterface_GL3::RenderLayerStack::DestroyFramebuffers()
 {
+	OutputDebugStringA("LS::DestroyFrameBuffer()\n");
 	RMLUI_ASSERTMSG(layers_size == 0, "Do not call this during frame rendering, that is, between BeginFrame() and EndFrame().");
 
 	for (Gfx::FramebufferData& fb : fb_layers)
@@ -2115,6 +2137,7 @@ void RenderInterface_GL3::RenderLayerStack::DestroyFramebuffers()
 
 const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::EnsureFramebufferPostprocess(int index)
 {
+	OutputDebugStringA("LS::EnsureFramebufferPostprocess()\n");
 	RMLUI_ASSERT(index < (int)fb_postprocess.size())
 	Gfx::FramebufferData& fb = fb_postprocess[index];
 	if (!fb.framebuffer)
