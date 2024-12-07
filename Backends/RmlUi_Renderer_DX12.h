@@ -177,8 +177,8 @@ static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION > 0 
 	#else
 		// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
 		// use it, not just because we handling invalid input from user)
-		// notice: this field is shared for all srv and cbv and uav it doesn't mean that it specifically allocates for srv 128, cbv 128 and uav 128, no!
-		// it allocates only on descriptor for all of such types and total amount is 128 not 3 * 128 = 384 !!!
+		// notice: this field is shared for all srv and cbv and uav it doesn't mean that it specifically allocates for srv 128, cbv 128 and uav 128,
+		// no! it allocates only on descriptor for all of such types and total amount is 128 not 3 * 128 = 384 !!!
 		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV 128
 	#endif
 
@@ -186,7 +186,32 @@ static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION > 0 
 		#define RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MAXNUMPROGRAMS
 	#else
 		#define RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS 32
+	#endif
+
+	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
+		#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
+	#else
+		// for getting total size of constant buffers you should multiply kPreAllocatedConstantBuffers * kSwapchainBackBufferCount e.g. 250 * 3 = 750
+		#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS 250
+	#endif
+
+	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
+		#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
+	#else
+		#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT 2
 	#endif	
+
+	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_RTV
+		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_RTV
+	#else
+		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV 8
+	#endif
+
+	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
+		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
+	#else
+		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV 8
+	#endif
 
 enum class ProgramId;
 
@@ -203,36 +228,11 @@ struct FramebufferData;
 
 class RenderInterface_DX12 : public Rml::RenderInterface {
 public:
-	static constexpr uint32_t kDefaultRenderImplField_SwapchainBackBufferCount = 3;
-
-	static constexpr size_t kDefaultRenderImplField_VideoMemoryForBufferAllocation = 4 * 512 * 512;
-	static constexpr size_t kDefaultRenderImplField_VideoMemoryForTextureAllocation = 4 * 1024 * 1024;
-	static constexpr size_t kDefaultRenderImplField_AlignmentForBuffer = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
-	/// @brief RmlUI uses rgba by default
-	static constexpr DXGI_FORMAT kDefaultRenderImplField_ColorTextureFormat = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
-	static constexpr DXGI_FORMAT kDefaultRenderImplField_DepthStencilTextureFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-	/// @brief this field is shared for all srv and cbv and uav it doesn't mean that it specifically allocates for srv 128, cbv 128 and uav 128, no!
-	/// it allocates only on descriptor for all of such types and total amount is 128 not 3 * 128 = 384 !!!
-	static constexpr size_t kDefaultRenderImplField_DescriptorAmountFor_SRV_CBV_UAV = 128;
-
-	static constexpr size_t kDefaultRenderImplField_MaxNumPrograms = 32;
-	// for getting total size of constant buffers you should multiply kPreAllocatedConstantBuffers * kSwapchainBackBufferCount e.g. 250 * 3 = 750
-	static constexpr size_t kDefaultRenderImplField_PreAllocatedConstantBuffers = 250;
-
-	static constexpr int kDefaultRenderImplField_MSAA_SampleCount = 2;
-
-	// how many resources can be allocated as render targets? (it is allocated textures! not some size)
-	static constexpr int kDefaultRenderImplField_DescriptorHeapRTVForTextureManagerCount = 8;
-
-	// how many resources can be allocated as depthstencil? (it is allocated textures! not some size)
-	static constexpr int kDefaultRenderImplField_DescriptorHeapDSVForTextureManagerCount =
-		kDefaultRenderImplField_DescriptorHeapRTVForTextureManagerCount;
-
 	#ifdef RMLUI_DX_DEBUG
 	// only for your mouse course to see how it is in MBs, just move cursor to variable on left side from = and you see the value of MBs
 
-	static constexpr size_t kDebugMB_BA = (kDefaultRenderImplField_VideoMemoryForBufferAllocation / 1024) / 1024;
-	static constexpr size_t kDebugMB_TA = (kDefaultRenderImplField_VideoMemoryForTextureAllocation / 1024) / 1024;
+	static constexpr size_t kDebugMB_BA = (RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION / 1024) / 1024;
+	static constexpr size_t kDebugMB_TA = (RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION / 1024) / 1024;
 	#endif
 
 public:
@@ -434,8 +434,8 @@ public:
 
 		void Initialize(ID3D12Device* m_p_device, D3D12MA::Allocator* p_allocator,
 			OffsetAllocator::Allocator* p_offset_allocator_for_descriptor_heap_srv_cbv_uav, CD3DX12_CPU_DESCRIPTOR_HANDLE* p_handle,
-			uint32_t size_descriptor_element, size_t size_for_allocation = kDefaultRenderImplField_VideoMemoryForBufferAllocation,
-			size_t size_alignment = kDefaultRenderImplField_AlignmentForBuffer);
+			uint32_t size_descriptor_element, size_t size_for_allocation = RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION,
+			size_t size_alignment = RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER);
 		void Shutdown();
 
 		void Alloc_Vertex(const void* p_data, int num_vertices, size_t size_of_one_element_in_p_data, GeometryHandleType* p_handle);
@@ -505,7 +505,7 @@ public:
 			ID3D12Device* p_device, ID3D12GraphicsCommandList* p_copy_command_list, ID3D12CommandAllocator* p_copy_allocator_command,
 			ID3D12DescriptorHeap* p_descriptor_heap_srv, ID3D12DescriptorHeap* p_descriptor_heap_rtv, ID3D12DescriptorHeap* p_descriptor_heap_dsv,
 			ID3D12CommandQueue* p_copy_queue, CD3DX12_CPU_DESCRIPTOR_HANDLE* p_handle, RenderInterface_DX12* p_renderer,
-			size_t size_for_placed_heap = kDefaultRenderImplField_VideoMemoryForTextureAllocation);
+			size_t size_for_placed_heap = RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION);
 		void Shutdown();
 
 		ID3D12Resource* Alloc_Texture(D3D12_RESOURCE_DESC& desc, TextureHandleType* p_impl, const Rml::byte* p_data
@@ -721,7 +721,7 @@ public:
 
 	ID3D12Fence* Get_Fence(void);
 	HANDLE Get_FenceEvent(void);
-	Rml::Array<uint64_t, kDefaultRenderImplField_SwapchainBackBufferCount>& Get_FenceValues(void);
+	Rml::Array<uint64_t, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT>& Get_FenceValues(void);
 	uint32_t Get_CurrentFrameIndex(void);
 
 	ID3D12Device* Get_Device(void) const;
@@ -837,7 +837,7 @@ private:
 
 	/// @brief depends on compile build type if it is debug it means D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION otherwise it is 0
 	UINT m_default_shader_flags;
-	std::bitset<kDefaultRenderImplField_MaxNumPrograms> m_program_state_transform_dirty;
+	std::bitset<RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS> m_program_state_transform_dirty;
 	ID3D12Device* m_p_device;
 	ID3D12CommandQueue* m_p_command_queue;
 	ID3D12CommandQueue* m_p_copy_queue;
@@ -868,11 +868,11 @@ private:
 	uint64_t m_fence_value;
 	Rml::CompiledGeometryHandle m_precompiled_fullscreen_quad_geometry;
 
-	Rml::Array<ID3D12Resource*, kDefaultRenderImplField_SwapchainBackBufferCount> m_backbuffers_resources;
-	Rml::Array<ID3D12CommandAllocator*, kDefaultRenderImplField_SwapchainBackBufferCount> m_backbuffers_allocators;
-	Rml::Array<uint64_t, kDefaultRenderImplField_SwapchainBackBufferCount> m_backbuffers_fence_values;
-	Rml::Array<size_t, kDefaultRenderImplField_SwapchainBackBufferCount> m_constant_buffer_count_per_frame;
-	Rml::Array<size_t, kDefaultRenderImplField_SwapchainBackBufferCount> m_vertex_and_index_buffer_count_per_frame;
+	Rml::Array<ID3D12Resource*, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_backbuffers_resources;
+	Rml::Array<ID3D12CommandAllocator*, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_backbuffers_allocators;
+	Rml::Array<uint64_t, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_backbuffers_fence_values;
+	Rml::Array<size_t, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_constant_buffer_count_per_frame;
+	Rml::Array<size_t, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_vertex_and_index_buffer_count_per_frame;
 	// per object (per draw)
 	Rml::Array<Rml::Vector<ConstantBufferType>, 1> m_constantbuffers;
 	Rml::Vector<GeometryHandleType*> m_pending_for_deletion_geometry;

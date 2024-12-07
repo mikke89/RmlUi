@@ -382,7 +382,7 @@ RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, bool use_vsync
 	m_p_fence_event{}, m_fence_value{}, m_precompiled_fullscreen_quad_geometry{}
 {
 	RMLUI_ASSERT(p_window_handle && "you can't pass an empty window handle! (also it must be castable to HWND)");
-	RMLUI_ASSERT(kDefaultRenderImplField_SwapchainBackBufferCount >= 1 && "must be non zero!");
+	RMLUI_ASSERT(RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT >= 1 && "must be non zero!");
 	RMLUI_ASSERT((sizeof(this->m_pipelines) / sizeof(this->m_pipelines[0])) == static_cast<int>(ProgramId::Count) &&
 		"you didn't update size of your variable");
 	RMLUI_ASSERT((sizeof(this->m_root_signatures) / sizeof(this->m_root_signatures[0])) == static_cast<int>(ProgramId::Count) &&
@@ -404,7 +404,7 @@ RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, bool use_vsync
 RenderInterface_DX12::~RenderInterface_DX12()
 {
 	RMLUI_ASSERT(this->m_is_shutdown_called == true && "something is wrong and you didn't provide a calling for shutdown method outside of class!");
-	RMLUI_ASSERT(kDefaultRenderImplField_SwapchainBackBufferCount >= 1 && "must be non zero!");
+	RMLUI_ASSERT(RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT >= 1 && "must be non zero!");
 
 	// library developers must gurantee that shutdown was called, but if it is not we gurantee that shutdown will be called in destructor
 	if (!this->m_is_shutdown_called)
@@ -443,14 +443,14 @@ void RenderInterface_DX12::SetViewport(int viewport_width, int viewport_height)
 			{
 				this->Destroy_Resources_DependentOnSize();
 
-				for (int i = 0; i < kDefaultRenderImplField_SwapchainBackBufferCount; ++i)
+				for (int i = 0; i < RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT; ++i)
 				{
 					this->m_backbuffers_fence_values[i] = this->m_backbuffers_fence_values[this->m_current_back_buffer_index];
 				}
 
 				DXGI_SWAP_CHAIN_DESC desc;
 				RMLUI_DX_ASSERTMSG(this->m_p_swapchain->GetDesc(&desc), "failed to GetDesc");
-				RMLUI_DX_ASSERTMSG(this->m_p_swapchain->ResizeBuffers(static_cast<UINT>(kDefaultRenderImplField_SwapchainBackBufferCount),
+				RMLUI_DX_ASSERTMSG(this->m_p_swapchain->ResizeBuffers(static_cast<UINT>(RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT),
 									   static_cast<UINT>(this->m_width), static_cast<UINT>(this->m_height), desc.BufferDesc.Format, desc.Flags),
 					"failed to ResizeBuffers");
 
@@ -611,7 +611,7 @@ void RenderInterface_DX12::EndFrame()
 
 		this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
 
-		this->m_p_command_graphics_list->ResolveSubresource(p_postprocess_texture, 0, p_msaa_texture, 0, kDefaultRenderImplField_ColorTextureFormat);
+		this->m_p_command_graphics_list->ResolveSubresource(p_postprocess_texture, 0, p_msaa_texture, 0, RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT);
 
 		CD3DX12_RESOURCE_BARRIER offscreen_texture_barrier_for_shader = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
 			D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -1056,7 +1056,7 @@ Rml::TextureHandle RenderInterface_DX12::GenerateTexture(Rml::Span<const Rml::by
 	D3D12_RESOURCE_DESC desc_texture = {};
 	desc_texture.MipLevels = 1;
 	desc_texture.DepthOrArraySize = 1;
-	desc_texture.Format = kDefaultRenderImplField_ColorTextureFormat;
+	desc_texture.Format = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 	desc_texture.Width = width;
 	desc_texture.Height = height;
 	desc_texture.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -1180,12 +1180,12 @@ Rml::LayerHandle RenderInterface_DX12::RenderLayerStack::PushLayer()
 
 		if (this->m_p_depth_stencil->Get_Texture() == nullptr)
 		{
-			this->CreateFramebuffer(this->m_p_depth_stencil, m_width, m_height, kDefaultRenderImplField_MSAA_SampleCount, true);
+			this->CreateFramebuffer(this->m_p_depth_stencil, m_width, m_height, RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT, true);
 		}
-
+		
 		this->m_fb_layers.push_back(Gfx::FramebufferData{});
 		auto* p_buffer = &this->m_fb_layers.back();
-		this->CreateFramebuffer(p_buffer, m_width, m_height, kDefaultRenderImplField_MSAA_SampleCount, false);
+		this->CreateFramebuffer(p_buffer, m_width, m_height, RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT, false);
 
 		p_buffer->Set_SharedDepthStencilTexture(this->m_p_depth_stencil);
 	}
@@ -1317,9 +1317,9 @@ void RenderInterface_DX12::RenderLayerStack::CreateFramebuffer(Gfx::FramebufferD
 		DXGI_FORMAT format{};
 
 		if (is_depth_stencil)
-			format = kDefaultRenderImplField_DepthStencilTextureFormat;
+			format = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 		else
-			format = kDefaultRenderImplField_ColorTextureFormat;
+			format = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 
 		desc_texture.MipLevels = 1;
 		desc_texture.DepthOrArraySize = 1;
@@ -1959,20 +1959,20 @@ void RenderInterface_DX12::Initialize(void) noexcept
 		this->Initialize_Swapchain(0, 0);
 
 		this->m_p_descriptor_heap_render_target_view = this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, kDefaultRenderImplField_SwapchainBackBufferCount);
+			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT);
 
 		this->m_p_descriptor_heap_render_target_view_for_texture_manager = this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, kDefaultRenderImplField_DescriptorHeapRTVForTextureManagerCount);
-
+			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV);
+		
 		this->m_p_descriptor_heap_shaders = this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, kDefaultRenderImplField_DescriptorAmountFor_SRV_CBV_UAV);
-
+			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV);
+		
 		this->m_p_descriptor_heap_depthstencil =
 			this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 1);
 
 		this->m_p_descriptor_heap_depth_stencil_view_for_texture_manager = this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
-			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, kDefaultRenderImplField_DescriptorHeapDSVForTextureManagerCount);
-
+			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV);
+		
 		this->m_handle_shaders = CD3DX12_CPU_DESCRIPTOR_HANDLE(this->m_p_descriptor_heap_shaders->GetCPUDescriptorHandleForHeapStart());
 
 		this->m_size_descriptor_heap_render_target_view = this->m_p_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -1989,11 +1989,11 @@ void RenderInterface_DX12::Initialize(void) noexcept
 		this->m_p_copy_command_list = this->Create_CommandList(this->m_p_copy_allocator, D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_COPY);
 
 		this->m_p_offset_allocator_for_descriptor_heap_shaders =
-			new OffsetAllocator::Allocator(kDefaultRenderImplField_DescriptorAmountFor_SRV_CBV_UAV * this->m_size_descriptor_heap_shaders);
+			new OffsetAllocator::Allocator(RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV * this->m_size_descriptor_heap_shaders);
 
 	#ifdef RMLUI_DX_DEBUG
 		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "amount of srv_cbv_uav: %d size of increment: %d",
-			kDefaultRenderImplField_DescriptorAmountFor_SRV_CBV_UAV, this->m_size_descriptor_heap_shaders);
+			RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV, this->m_size_descriptor_heap_shaders);
 	#endif
 
 		this->m_manager_buffer.Initialize(this->m_p_device, this->m_p_allocator, this->m_p_offset_allocator_for_descriptor_heap_shaders,
@@ -2043,7 +2043,7 @@ HANDLE RenderInterface_DX12::Get_FenceEvent(void)
 	return this->m_p_fence_event;
 }
 
-Rml::Array<uint64_t, RenderInterface_DX12::kDefaultRenderImplField_SwapchainBackBufferCount>& RenderInterface_DX12::Get_FenceValues(void)
+Rml::Array<uint64_t, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT>& RenderInterface_DX12::Get_FenceValues(void)
 {
 	return this->m_backbuffers_fence_values;
 }
@@ -2178,23 +2178,23 @@ void RenderInterface_DX12::Initialize_Swapchain(int width, int height) noexcept
 	RMLUI_DX_ASSERTMSG(CreateDXGIFactory2(create_factory_flags, IID_PPV_ARGS(&p_factory)), "failed to CreateDXGIFactory2");
 
 	// todo: use information from user's initialization data structure
-	// todo: if user specified MSAA as ON but forgot to pass any valid data, use this field kDefaultRenderImplField_MSAA_SampleCount as fallback default handling value
+	// todo: if user specified MSAA as ON but forgot to pass any valid data, use this field RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT as fallback default handling value
 	#pragma todo("read this!");
-	this->m_desc_sample.Count = kDefaultRenderImplField_MSAA_SampleCount;
+	this->m_desc_sample.Count = RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT;
 	this->m_desc_sample.Quality = 0;
 
 	DXGI_SWAP_CHAIN_DESC1 desc = {};
 
 	desc.Width = width;
 	desc.Height = height;
-	desc.Format = kDefaultRenderImplField_ColorTextureFormat;
+	desc.Format = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 	desc.Stereo = 0;
 	// since we can't use rt textures with different sample count than Swapchain's so we create framebuffers and presenting them on NO-MSAA 
 	// Swapchain
 	desc.SampleDesc.Count=1;
 	desc.SampleDesc.Quality=0;
 	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	desc.BufferCount = kDefaultRenderImplField_SwapchainBackBufferCount;
+	desc.BufferCount = RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT;
 	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	desc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 
@@ -2238,7 +2238,7 @@ void RenderInterface_DX12::Initialize_SyncPrimitives(void) noexcept
 	{
 		if (this->m_is_full_initialization)
 		{
-			for (int i = 0; i < kDefaultRenderImplField_SwapchainBackBufferCount; ++i)
+			for (int i = 0; i < RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT; ++i)
 			{
 				this->m_backbuffers_fence_values[i] = 0;
 			}
@@ -2253,7 +2253,7 @@ void RenderInterface_DX12::Initialize_SyncPrimitives(void) noexcept
 
 void RenderInterface_DX12::Initialize_CommandAllocators(void)
 {
-	for (int i = 0; i < kDefaultRenderImplField_SwapchainBackBufferCount; ++i)
+	for (int i = 0; i < RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT; ++i)
 	{
 		this->m_backbuffers_allocators[i] = this->Create_CommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT);
 	}
@@ -2401,7 +2401,7 @@ void RenderInterface_DX12::Create_Resource_DepthStencil()
 
 	D3D12_RESOURCE_DESC desc_texture = {};
 	desc_texture.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	desc_texture.Format = kDefaultRenderImplField_DepthStencilTextureFormat;
+	desc_texture.Format = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 	desc_texture.MipLevels = 1;
 	desc_texture.Width = this->m_width;
 	desc_texture.Height = this->m_height;
@@ -2413,7 +2413,7 @@ void RenderInterface_DX12::Create_Resource_DepthStencil()
 	desc_texture.Alignment = 0;
 
 	D3D12_CLEAR_VALUE depth_optimized_clear_value = {};
-	depth_optimized_clear_value.Format = kDefaultRenderImplField_DepthStencilTextureFormat;
+	depth_optimized_clear_value.Format = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 	depth_optimized_clear_value.DepthStencil.Depth = 1.0f;
 	depth_optimized_clear_value.DepthStencil.Stencil = 0;
 
@@ -2431,7 +2431,7 @@ void RenderInterface_DX12::Create_Resource_DepthStencil()
 	#endif
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC desc_view = {};
-	desc_view.Format = kDefaultRenderImplField_DepthStencilTextureFormat;
+	desc_view.Format = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 	desc_view.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	desc_view.Flags = D3D12_DSV_FLAG_NONE;
 
@@ -2529,7 +2529,7 @@ void RenderInterface_DX12::Create_Resource_RenderTargetViews()
 				auto rtv_size = this->m_p_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 				CD3DX12_CPU_DESCRIPTOR_HANDLE rtv_handle(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
 
-				for (auto i = 0; i < kDefaultRenderImplField_SwapchainBackBufferCount; ++i)
+				for (auto i = 0; i < RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT; ++i)
 				{
 					ID3D12Resource* p_back_buffer{};
 
@@ -2558,7 +2558,7 @@ void RenderInterface_DX12::Destroy_Resource_RenderTagetViews()
 		}
 	}
 
-	for (int i = 0; i < kDefaultRenderImplField_SwapchainBackBufferCount; ++i)
+	for (int i = 0; i < RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT; ++i)
 	{
 		this->m_backbuffers_resources[i] = nullptr;
 	}
@@ -2572,7 +2572,7 @@ void RenderInterface_DX12::Create_Resource_For_Shaders(void)
 void RenderInterface_DX12::Create_Resource_For_Shaders_ConstantBufferHeap(void)
 {
 	RMLUI_ASSERT(this->m_p_allocator && "must be valid when you call this method!");
-	RMLUI_ASSERT(kDefaultRenderImplField_SwapchainBackBufferCount >= 1 && "must be non zero!");
+	RMLUI_ASSERT(RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT >= 1 && "must be non zero!");
 
 	// todo: delete
 	//	this->m_constantbuffer.Set_AllocInfo(this->m_manager_buffer.Alloc_ConstantBuffer(&this->m_constantbuffer, 72));
@@ -2652,9 +2652,9 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 {
 	for (auto& vec_cb : this->m_constantbuffers)
 	{
-		vec_cb.resize(kDefaultRenderImplField_PreAllocatedConstantBuffers);
+		vec_cb.resize(RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS);
 	}
-
+	
 	for (auto& vec_cb : this->m_constantbuffers)
 	{
 		for (auto& cb : vec_cb)
@@ -2664,8 +2664,8 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 		}
 	}
 
-	this->m_pending_for_deletion_geometry.reserve(kDefaultRenderImplField_PreAllocatedConstantBuffers);
-	this->m_pending_for_deletion_textures.reserve(kDefaultRenderImplField_PreAllocatedConstantBuffers);
+	this->m_pending_for_deletion_geometry.reserve(RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS);
+	this->m_pending_for_deletion_textures.reserve(RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS);
 
 	this->Create_Resource_For_Shaders();
 	this->Create_Resource_Pipeline_BlendMask();
@@ -2875,8 +2875,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Color()
 		desc_pipeline.VS = desc_bytecode_vertex_shader;
 		desc_pipeline.PS = desc_bytecode_pixel_shader;
 		desc_pipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		desc_pipeline.RTVFormats[0] = kDefaultRenderImplField_ColorTextureFormat;
-		desc_pipeline.DSVFormat = kDefaultRenderImplField_DepthStencilTextureFormat;
+		desc_pipeline.RTVFormats[0] = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
+		desc_pipeline.DSVFormat = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 		desc_pipeline.SampleDesc = this->m_desc_sample;
 		desc_pipeline.SampleMask = 0xffffffff;
 		desc_pipeline.RasterizerState = desc_rasterizer;
@@ -3244,8 +3244,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Texture()
 		desc_pipeline.VS = desc_bytecode_vertex_shader;
 		desc_pipeline.PS = desc_bytecode_pixel_shader;
 		desc_pipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		desc_pipeline.RTVFormats[0] = kDefaultRenderImplField_ColorTextureFormat;
-		desc_pipeline.DSVFormat = kDefaultRenderImplField_DepthStencilTextureFormat;
+		desc_pipeline.RTVFormats[0] = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
+		desc_pipeline.DSVFormat = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 		desc_pipeline.SampleDesc = this->m_desc_sample;
 		desc_pipeline.SampleMask = 0xffffffff;
 		desc_pipeline.RasterizerState = desc_rasterizer;
@@ -3503,8 +3503,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 		desc_pipeline.VS = desc_bytecode_vertex_shader;
 		desc_pipeline.PS = desc_bytecode_pixel_shader;
 		desc_pipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		desc_pipeline.RTVFormats[0] = kDefaultRenderImplField_ColorTextureFormat;
-		desc_pipeline.DSVFormat = kDefaultRenderImplField_DepthStencilTextureFormat;
+		desc_pipeline.RTVFormats[0] = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
+		desc_pipeline.DSVFormat = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 		
 		// since it is used for presenting MSAA texture on screen, we create swapchain and all RTs as NO-MSAA, keep this in mind
 		// otherwise it is wrong to mix target texture with different sample count than swapchain's
@@ -3775,7 +3775,7 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 
 void RenderInterface_DX12::SubmitTransformUniform(ConstantBufferType& constant_buffer, const Rml::Vector2f& translation)
 {
-	static_assert((size_t)ProgramId::Count < kDefaultRenderImplField_MaxNumPrograms, "Maximum number of pipelines exceeded");
+	static_assert((size_t)ProgramId::Count < RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS, "Maximum number of pipelines exceeded");
 
 	size_t program_index = (size_t)this->m_active_program_id;
 
@@ -3831,9 +3831,9 @@ RenderInterface_DX12::ConstantBufferType* RenderInterface_DX12::Get_ConstantBuff
 
 	auto current_constant_buffer_index = this->m_constant_buffer_count_per_frame[current_back_buffer_index];
 
-	auto max_index = kDefaultRenderImplField_PreAllocatedConstantBuffers - 1;
+	auto max_index = RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS - 1;
 
-	if (this->m_constantbuffers[current_back_buffer_index].size() > kDefaultRenderImplField_PreAllocatedConstantBuffers)
+	if (this->m_constantbuffers[current_back_buffer_index].size() > RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS)
 		max_index = this->m_constantbuffers[current_back_buffer_index].size() - 1;
 
 	if (current_constant_buffer_index > max_index)
@@ -4702,7 +4702,7 @@ void RenderInterface_DX12::TextureMemoryManager::Initialize(D3D12MA::Allocator* 
 	if (this->m_p_descriptor_heap_rtv)
 	{
 		D3D12MA::VIRTUAL_BLOCK_DESC desc_block{};
-		desc_block.Size = this->m_size_rtv_descriptor * kDefaultRenderImplField_DescriptorHeapRTVForTextureManagerCount;
+		desc_block.Size = this->m_size_rtv_descriptor * RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV;
 
 		auto status = D3D12MA::CreateVirtualBlock(&desc_block, &this->m_p_virtual_block_for_render_target_heap_allocations);
 
@@ -4712,7 +4712,7 @@ void RenderInterface_DX12::TextureMemoryManager::Initialize(D3D12MA::Allocator* 
 	if (this->m_p_descriptor_heap_dsv)
 	{
 		D3D12MA::VIRTUAL_BLOCK_DESC desc_block{};
-		desc_block.Size = this->m_size_dsv_descriptor * kDefaultRenderImplField_DescriptorHeapDSVForTextureManagerCount;
+		desc_block.Size = this->m_size_dsv_descriptor * RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV;
 
 		auto status = D3D12MA::CreateVirtualBlock(&desc_block, &this->m_p_virtual_block_for_depth_stencil_heap_allocations);
 
@@ -5405,7 +5405,7 @@ size_t RenderInterface_DX12::TextureMemoryManager::BitsPerPixel(DXGI_FORMAT form
 	case DXGI_FORMAT_R32G32_UINT:
 	case DXGI_FORMAT_R32G32_SINT:
 	case DXGI_FORMAT_R32G8X24_TYPELESS:
-	case kDefaultRenderImplField_DepthStencilTextureFormat:
+	case RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT:
 	case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
 	case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
 	case DXGI_FORMAT_Y416:
@@ -5568,10 +5568,10 @@ D3D12_CPU_DESCRIPTOR_HANDLE RenderInterface_DX12::TextureMemoryManager::Alloc_De
 
 					RMLUI_DX_ASSERTMSG(status,
 						"failed to allocate descriptor rtv, it means you need to resize and set higher size than previous, overflow (see "
-						"kDefaultRenderImplField_DescriptorHeapRTVForTextureManagerCount constant)");
+						"RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV constant)");
 
 					D3D12_DEPTH_STENCIL_VIEW_DESC desc_rtv = {};
-					desc_rtv.Format = kDefaultRenderImplField_DepthStencilTextureFormat;
+					desc_rtv.Format = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 					desc_rtv.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
 
 					calculated_offset.ptr = (this->m_p_descriptor_heap_dsv->GetCPUDescriptorHandleForHeapStart().ptr + offset);
@@ -5612,10 +5612,10 @@ D3D12_CPU_DESCRIPTOR_HANDLE RenderInterface_DX12::TextureMemoryManager::Alloc_Re
 
 					RMLUI_DX_ASSERTMSG(status,
 						"failed to allocate descriptor rtv, it means you need to resize and set higher size than previous, overflow (see "
-						"kDefaultRenderImplField_DescriptorHeapRTVForTextureManagerCount constant)");
+						"RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV constant)");
 
 					D3D12_RENDER_TARGET_VIEW_DESC desc_rtv = {};
-					desc_rtv.Format = kDefaultRenderImplField_ColorTextureFormat;
+					desc_rtv.Format = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 					desc_rtv.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
 
 					calculated_offset.ptr = (this->m_p_descriptor_heap_rtv->GetCPUDescriptorHandleForHeapStart().ptr + offset);
