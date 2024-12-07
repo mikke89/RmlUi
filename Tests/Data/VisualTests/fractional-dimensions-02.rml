@@ -12,17 +12,24 @@
 	<meta name="Instructions" content="Try different font sizes, zooms, and resolutions, as well as slightly different sizes for the floats."/>
 	<meta name="Assert" content="It's hard to fill the box perfectly for all combinations of scaling and box dimensions. Even Firefox and Chromium struggles with this for some combinations. However, we should at least try to avoid gaps between the individual span elements."/>
 	<style>
-		div {
-			width: 8.7em;
-			height: 8.7em;
+		handle {
+			width: 87dp;
+			height: 87dp;
 			background-color: red;
-			border: 3px lime;
+			border: 3dp lime;
+			position: relative;
+			top: auto;
+			left: auto;
+			right: auto;
+			bottom: auto;
+			display: block;
+			cursor: move;
 		}
 
 		span {
 			float: left;
-			width: 0.87em;
-			height: 0.87em;
+			width: 8.7dp;
+			height: 8.7dp;
 			background-color: green;
 		}
 
@@ -33,7 +40,7 @@
 </head>
 <body>
 <p>You should see no red below, just a green square with a green border.</p>
-<div>
+<handle move_target="#self">
 	<!-- 100 spans -->
 	<span></span> <span></span> <span></span> <span></span> <span></span>
 	<span></span> <span></span> <span></span> <span></span> <span></span>
@@ -55,6 +62,6 @@
 	<span></span> <span></span> <span></span> <span></span> <span></span>
 	<span></span> <span></span> <span></span> <span></span> <span></span>
 	<span></span> <span></span> <span></span> <span></span> <span></span>
-</div>
+</handle>
 </body>
 </rml>
