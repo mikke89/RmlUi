@@ -538,26 +538,24 @@ void WidgetSlider::PositionBar()
 		const float edge_top = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		const float edge_bottom = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom);
 
-		float traversable_track_length = track_dimensions.y - bar_dimensions.y - edge_top - edge_bottom;
-		bar->SetOffset(
-			Vector2f{
-				bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left),
-				track->GetRelativeOffset().y + edge_top + traversable_track_length * bar_position,
-			},
-			parent);
+		const float traversable_track_length = track_dimensions.y - bar_dimensions.y - edge_top - edge_bottom;
+		const Vector2f offset = {
+			bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left),
+			track->GetRelativeOffset().y + edge_top + traversable_track_length * bar_position,
+		};
+		bar->SetOffset(offset.Round(), parent);
 	}
 	else
 	{
 		const float edge_left = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
 		const float edge_right = bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right);
 
-		float traversable_track_length = track_dimensions.x - bar_dimensions.x - edge_left - edge_right;
-		bar->SetOffset(
-			Vector2f{
-				track->GetRelativeOffset().x + edge_left + traversable_track_length * bar_position,
-				bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top),
-			},
-			parent);
+		const float traversable_track_length = track_dimensions.x - bar_dimensions.x - edge_left - edge_right;
+		const Vector2f offset = {
+			track->GetRelativeOffset().x + edge_left + traversable_track_length * bar_position,
+			bar->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top),
+		};
+		bar->SetOffset(offset.Round(), parent);
 	}
 }
 
