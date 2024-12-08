@@ -617,16 +617,6 @@ static float InitializeTrackBoxes(TrackBoxList& boxes, const TrackMetricList& me
 	return cursor;
 }
 
-static void SnapTrackBoxesToPixelGrid(TrackBoxList& boxes)
-{
-	for (TrackBox& box : boxes)
-	{
-		Math::SnapToPixelGrid(box.cell_offset, box.cell_size);
-		Math::SnapToPixelGrid(box.track_offset, box.track_size);
-		Math::SnapToPixelGrid(box.group_offset, box.group_size);
-	}
-}
-
 float BuildColumnBoxes(TrackBoxList& column_boxes, const TrackMetricList& column_metrics, const TableGrid::ColumnList& grid_columns,
 	const float table_gap_x)
 {
@@ -654,8 +644,6 @@ float BuildColumnBoxes(TrackBoxList& column_boxes, const TrackMetricList& column
 		}
 	}
 
-	SnapTrackBoxesToPixelGrid(column_boxes);
-
 	return columns_width;
 }
 
@@ -676,8 +664,6 @@ float BuildRowBoxes(TrackBoxList& row_boxes, const TrackMetricList& row_metrics,
 			metric.group_size = metric_last_span.group_size + (metric_last_span.track_offset - metric.track_offset);
 		}
 	}
-
-	SnapTrackBoxesToPixelGrid(row_boxes);
 
 	return rows_height;
 }
