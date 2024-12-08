@@ -261,7 +261,7 @@ enum class ProgramId : int {
 	Gradient,
 	Creation,
 	// this is for presenting our msaa render target texture for NO MSAA RT
-	// if you do not correctly stuff DX12 validation will say about different 
+	// if you do not correctly stuff DX12 validation will say about different
 	// sample count like it is expected 1 (because no MSAA) but your RT target texture was created with
 	// sample count = 2, so it is not correct way of using it
 	Passthrough,
@@ -609,12 +609,19 @@ void RenderInterface_DX12::EndFrame()
 		barriers[1] =
 			CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_DEST);
 
+		CD3DX12_RESOURCE_BARRIER barrier_transition_from_msaa_resolve_source_to_rt =
+			CD3DX12_RESOURCE_BARRIER::Transition(p_msaa_texture, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
 		this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
 
-		this->m_p_command_graphics_list->ResolveSubresource(p_postprocess_texture, 0, p_msaa_texture, 0, RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT);
+		this->m_p_command_graphics_list->ResolveSubresource(p_postprocess_texture, 0, p_msaa_texture, 0,
+			RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT);
+
+		this->m_p_command_graphics_list->ResourceBarrier(1, &barrier_transition_from_msaa_resolve_source_to_rt);
 
 		CD3DX12_RESOURCE_BARRIER offscreen_texture_barrier_for_shader = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
 			D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		CD3DX12_RESOURCE_BARRIER restore_state_of_postprocess_texture_return_to_rt = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		this->m_p_command_graphics_list->ResourceBarrier(1, &offscreen_texture_barrier_for_shader);
 
@@ -628,11 +635,15 @@ void RenderInterface_DX12::EndFrame()
 		srv_handle.ptr = this->m_p_descriptor_heap_shaders->GetGPUDescriptorHandleForHeapStart().ptr +
 			p_handle_postprocess_texture->Get_Allocation_DescriptorHeap().offset;
 
-		this->m_p_command_graphics_list->SetGraphicsRootDescriptorTable(1, srv_handle);
+		this->m_p_command_graphics_list->SetGraphicsRootDescriptorTable(0, srv_handle);
 
 		this->DrawFullscreenQuad();
 
+		this->m_manager_render_layer.EndFrame();
+
 		this->m_p_command_graphics_list->ResourceBarrier(1, &backbuffer_barrier_from_rt_to_present);
+		this->m_p_command_graphics_list->ResourceBarrier(1, &restore_state_of_postprocess_texture_return_to_rt);
+
 		RMLUI_DX_ASSERTMSG(this->m_p_command_graphics_list->Close(), "failed to Close");
 
 		ID3D12CommandList* const lists[] = {this->m_p_command_graphics_list};
@@ -1111,15 +1122,15 @@ RenderInterface_DX12::RenderLayerStack::RenderLayerStack() :
 {
 	this->m_fb_postprocess.resize(4);
 
-	// in order to prevent calling dtor when doing push_back on m_fb_layers 
+	// in order to prevent calling dtor when doing push_back on m_fb_layers
 	// we need to reserve memory, like how much we do expect elements in array (vector)
-	// otherwise you will get validation assert in dtor of FramebufferData struct and 
+	// otherwise you will get validation assert in dtor of FramebufferData struct and
 	// that validation supposed to be for memory leaks or wrong resource handling (like you forgot to delete resource somehow)
 	// if you didn't get it check this: https://en.cppreference.com/w/cpp/container/vector/reserve
 
-	// otherwise if your default implementation requires more layers by default, thus we have a field at compile-time 
+	// otherwise if your default implementation requires more layers by default, thus we have a field at compile-time (or at runtime as dynamic extension)
 	// RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
-	this->m_fb_layers.reserve(6);
+	this->m_fb_layers.reserve(RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS);
 	this->m_p_depth_stencil = new Gfx::FramebufferData();
 	this->m_p_depth_stencil->Set_RenderTarget(false);
 }
@@ -1182,10 +1193,35 @@ Rml::LayerHandle RenderInterface_DX12::RenderLayerStack::PushLayer()
 		{
 			this->CreateFramebuffer(this->m_p_depth_stencil, m_width, m_height, RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT, true);
 		}
-		
+
 		this->m_fb_layers.push_back(Gfx::FramebufferData{});
 		auto* p_buffer = &this->m_fb_layers.back();
 		this->CreateFramebuffer(p_buffer, m_width, m_height, RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT, false);
+
+	#ifdef RMLUI_DX_DEBUG
+		wchar_t framebuffer_name[32];
+		wsprintf(framebuffer_name, L"framebuffer (layer): %d", this->m_layers_size);
+		int index_buffer = p_buffer->Get_Texture()->Get_Info().Get_BufferIndex();
+
+		if (index_buffer == -1)
+		{
+			D3D12MA::Allocation* p_committed_resource = static_cast<D3D12MA::Allocation*>(p_buffer->Get_Texture()->Get_Resource());
+
+			if (p_committed_resource->GetResource())
+			{
+				p_committed_resource->GetResource()->SetName(framebuffer_name);
+			}
+		}
+		else
+		{
+			ID3D12Resource* p_casted = static_cast<ID3D12Resource*>(p_buffer->Get_Texture()->Get_Resource());
+
+			if (p_casted)
+			{
+				p_casted->SetName(framebuffer_name);
+			}
+		}
+	#endif
 
 		p_buffer->Set_SharedDepthStencilTexture(this->m_p_depth_stencil);
 	}
@@ -1235,7 +1271,7 @@ void RenderInterface_DX12::RenderLayerStack::BeginFrame(int width_new, int heigh
 {
 	RMLUI_ASSERT(this->m_layers_size == 0 && "something is wrong and you forgot to clear/delete something!");
 
-	if (this->m_width != width_new || this->m_height || height_new)
+	if (this->m_width != width_new || this->m_height != height_new)
 	{
 		this->m_width = width_new;
 		this->m_height = height_new;
@@ -1295,6 +1331,38 @@ const Gfx::FramebufferData& RenderInterface_DX12::RenderLayerStack::EnsureFrameb
 	if (!fb.Get_Texture())
 	{
 		this->CreateFramebuffer(&fb, this->m_width, this->m_height, 1, false);
+
+		#ifdef RMLUI_DX_DEBUG
+		if (fb.Get_Texture())
+		{
+			wchar_t framebuffer_name[32];
+			wsprintf(framebuffer_name, L"framebuffer (postprocess): %d", index);
+			int buffer_index = fb.Get_Texture()->Get_Info().Get_BufferIndex();
+			if (buffer_index == -1)
+			{
+				D3D12MA::Allocation* p_alloc = static_cast<D3D12MA::Allocation*>(fb.Get_Texture()->Get_Resource());
+
+				if (p_alloc)
+				{
+					ID3D12Resource* p_resource = p_alloc->GetResource();
+
+					if (p_resource)
+					{
+						p_resource->SetName(framebuffer_name);
+					}
+				}
+			}
+			else
+			{
+				ID3D12Resource* p_placement_resource = static_cast<ID3D12Resource*>(fb.Get_Texture()->Get_Resource());
+
+				if (p_placement_resource)
+				{
+					p_placement_resource->SetName(framebuffer_name);
+				}
+			}
+		}
+		#endif
 	}
 
 	return fb;
@@ -1963,16 +2031,16 @@ void RenderInterface_DX12::Initialize(void) noexcept
 
 		this->m_p_descriptor_heap_render_target_view_for_texture_manager = this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
 			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV);
-		
+
 		this->m_p_descriptor_heap_shaders = this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
 			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV);
-		
+
 		this->m_p_descriptor_heap_depthstencil =
 			this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 1);
 
 		this->m_p_descriptor_heap_depth_stencil_view_for_texture_manager = this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
 			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV);
-		
+
 		this->m_handle_shaders = CD3DX12_CPU_DESCRIPTOR_HANDLE(this->m_p_descriptor_heap_shaders->GetCPUDescriptorHandleForHeapStart());
 
 		this->m_size_descriptor_heap_render_target_view = this->m_p_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -2178,7 +2246,8 @@ void RenderInterface_DX12::Initialize_Swapchain(int width, int height) noexcept
 	RMLUI_DX_ASSERTMSG(CreateDXGIFactory2(create_factory_flags, IID_PPV_ARGS(&p_factory)), "failed to CreateDXGIFactory2");
 
 	// todo: use information from user's initialization data structure
-	// todo: if user specified MSAA as ON but forgot to pass any valid data, use this field RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT as fallback default handling value
+	// todo: if user specified MSAA as ON but forgot to pass any valid data, use this field RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT as fallback
+	// default handling value
 	#pragma todo("read this!");
 	this->m_desc_sample.Count = RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT;
 	this->m_desc_sample.Quality = 0;
@@ -2189,10 +2258,10 @@ void RenderInterface_DX12::Initialize_Swapchain(int width, int height) noexcept
 	desc.Height = height;
 	desc.Format = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 	desc.Stereo = 0;
-	// since we can't use rt textures with different sample count than Swapchain's so we create framebuffers and presenting them on NO-MSAA 
+	// since we can't use rt textures with different sample count than Swapchain's so we create framebuffers and presenting them on NO-MSAA
 	// Swapchain
-	desc.SampleDesc.Count=1;
-	desc.SampleDesc.Quality=0;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
 	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	desc.BufferCount = RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT;
 	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
@@ -2654,7 +2723,7 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 	{
 		vec_cb.resize(RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS);
 	}
-	
+
 	for (auto& vec_cb : this->m_constantbuffers)
 	{
 		for (auto& cb : vec_cb)
@@ -3505,7 +3574,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 		desc_pipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		desc_pipeline.RTVFormats[0] = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 		desc_pipeline.DSVFormat = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
-		
+
 		// since it is used for presenting MSAA texture on screen, we create swapchain and all RTs as NO-MSAA, keep this in mind
 		// otherwise it is wrong to mix target texture with different sample count than swapchain's
 		desc_pipeline.SampleDesc.Count = 1;
@@ -4950,7 +5019,6 @@ void RenderInterface_DX12::TextureMemoryManager::Free_Texture(TextureHandleType*
 
 	this->Free_Texture(p_texture);
 
-
 	if (is_rt)
 	{
 		if (this->m_p_virtual_block_for_render_target_heap_allocations)
@@ -5145,7 +5213,7 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 		D3D12_SHADER_RESOURCE_VIEW_DESC desc_srv{};
 		desc_srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-				bool is_rt = desc.Flags & D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		bool is_rt = desc.Flags & D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 		bool is_ds = desc.Flags & D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 		if (is_rt)
@@ -5163,8 +5231,6 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 		}
 
 		desc_srv.Texture2D.MipLevels = desc.MipLevels;
-
-
 
 		RMLUI_ASSERT(is_rt || is_ds && "this method for dsv or rtv resources");
 
