@@ -105,8 +105,9 @@ DecoratorDataHandle DecoratorTiledBox::GenerateElementData(Element* element, Box
 		tiles[i].CalculateDimensions(GetTexture(tiles[i].texture_index));
 	}
 
-	const Vector2f offset = element->GetBox().GetPosition(paint_area);
-	const Vector2f size = element->GetBox().GetSize(paint_area);
+	const RenderBox render_box = element->GetRenderBox(paint_area);
+	const Vector2f offset = render_box.GetFillOffset();
+	const Vector2f size = render_box.GetFillSize();
 
 	// Calculate the natural dimensions of tile corners and edges.
 	const Vector2f natural_top_left = tiles[TOP_LEFT_CORNER].GetNaturalDimensions(element);

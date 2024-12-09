@@ -238,6 +238,8 @@ CompiledGeometryHandle RenderManager::GetCompiledGeometryHandle(StableVectorInde
 void RenderManager::Render(const Geometry& geometry, Vector2f translation, Texture texture, const CompiledShader& shader)
 {
 	RMLUI_ASSERT(geometry);
+	RMLUI_ASSERTMSG(translation == translation.Round(), "RenderManager::Render expects translation to be rounded");
+
 	if (geometry.render_manager != this || (shader && shader.render_manager != this) || (texture && texture.render_manager != this))
 	{
 		RMLUI_ERRORMSG("Trying to render geometry with resources constructed in different render managers.");

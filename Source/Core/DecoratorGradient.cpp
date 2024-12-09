@@ -189,19 +189,18 @@ bool DecoratorStraightGradient::Initialise(const Direction in_direction, const C
 
 DecoratorDataHandle DecoratorStraightGradient::GenerateElementData(Element* element, BoxArea paint_area) const
 {
-	const Box& box = element->GetBox();
-
+	const RenderBox render_box = element->GetRenderBox(paint_area);
 	const ComputedValues& computed = element->GetComputedValues();
 	const float opacity = computed.opacity();
 
 	Mesh mesh;
-	MeshUtilities::GenerateBackground(mesh, element->GetBox(), Vector2f(0), computed.border_radius(), ColourbPremultiplied(), paint_area);
+	MeshUtilities::GenerateBackground(mesh, render_box, ColourbPremultiplied());
 
 	ColourbPremultiplied colour_start = start.ToPremultiplied(opacity);
 	ColourbPremultiplied colour_stop = stop.ToPremultiplied(opacity);
 
-	const Vector2f offset = box.GetPosition(paint_area);
-	const Vector2f size = box.GetSize(paint_area);
+	const Vector2f offset = render_box.GetFillOffset();
+	const Vector2f size = render_box.GetFillSize();
 
 	Vector<Vertex>& vertices = mesh.vertices;
 
@@ -296,10 +295,8 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 
 	RMLUI_ASSERT(!color_stops.empty());
 
-	const Box& box = element->GetBox();
-	const Vector2f dimensions = box.GetSize(paint_area);
-
-	LinearGradientShape gradient_shape = CalculateShape(dimensions);
+	const RenderBox render_box = element->GetRenderBox(paint_area);
+	LinearGradientShape gradient_shape = CalculateShape(render_box.GetFillSize());
 
 	// One-pixel minimum color stop spacing to avoid aliasing.
 	const float soft_spacing = 1.f / gradient_shape.length;
@@ -320,9 +317,9 @@ DecoratorDataHandle DecoratorLinearGradient::GenerateElementData(Element* elemen
 	Mesh mesh;
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	MeshUtilities::GenerateBackground(mesh, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), paint_area);
+	MeshUtilities::GenerateBackground(mesh, render_box, ColourbPremultiplied(alpha, alpha));
 
-	const Vector2f render_offset = box.GetPosition(paint_area);
+	const Vector2f render_offset = render_box.GetFillOffset();
 	for (Vertex& vertex : mesh.vertices)
 		vertex.tex_coord = vertex.position - render_offset;
 
@@ -458,7 +455,7 @@ bool DecoratorRadialGradient::Initialise(bool in_repeating, Shape in_shape, Size
 	return !color_stops.empty();
 }
 
-DecoratorDataHandle DecoratorRadialGradient::GenerateElementData(Element* element, BoxArea box_area) const
+DecoratorDataHandle DecoratorRadialGradient::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	RenderManager* render_manager = element->GetRenderManager();
 	if (!render_manager)
@@ -466,8 +463,8 @@ DecoratorDataHandle DecoratorRadialGradient::GenerateElementData(Element* elemen
 
 	RMLUI_ASSERT(!color_stops.empty() && (shape == Shape::Circle || shape == Shape::Ellipse));
 
-	const Box& box = element->GetBox();
-	const Vector2f dimensions = box.GetSize(box_area);
+	const RenderBox render_box = element->GetRenderBox(paint_area);
+	const Vector2f dimensions = render_box.GetFillSize();
 
 	RadialGradientShape gradient_shape = CalculateRadialGradientShape(element, dimensions);
 
@@ -489,9 +486,9 @@ DecoratorDataHandle DecoratorRadialGradient::GenerateElementData(Element* elemen
 	Mesh mesh;
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	MeshUtilities::GenerateBackground(mesh, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), box_area);
+	MeshUtilities::GenerateBackground(mesh, render_box, ColourbPremultiplied(alpha, alpha));
 
-	const Vector2f render_offset = box.GetPosition(box_area);
+	const Vector2f render_offset = render_box.GetFillOffset();
 	for (Vertex& vertex : mesh.vertices)
 		vertex.tex_coord = vertex.position - render_offset;
 
@@ -657,7 +654,7 @@ bool DecoratorConicGradient::Initialise(bool in_repeating, float in_angle, Vecto
 	return !color_stops.empty();
 }
 
-DecoratorDataHandle DecoratorConicGradient::GenerateElementData(Element* element, BoxArea box_area) const
+DecoratorDataHandle DecoratorConicGradient::GenerateElementData(Element* element, BoxArea paint_area) const
 {
 	RenderManager* render_manager = element->GetRenderManager();
 	if (!render_manager)
@@ -665,8 +662,8 @@ DecoratorDataHandle DecoratorConicGradient::GenerateElementData(Element* element
 
 	RMLUI_ASSERT(!color_stops.empty());
 
-	const Box& box = element->GetBox();
-	const Vector2f dimensions = box.GetSize(box_area);
+	const RenderBox render_box = element->GetRenderBox(paint_area);
+	const Vector2f dimensions = render_box.GetFillSize();
 
 	const Vector2f center =
 		Vector2f{element->ResolveNumericValue(position.x, dimensions.x), element->ResolveNumericValue(position.y, dimensions.y)}.Round();
@@ -686,9 +683,9 @@ DecoratorDataHandle DecoratorConicGradient::GenerateElementData(Element* element
 	Mesh mesh;
 	const ComputedValues& computed = element->GetComputedValues();
 	const byte alpha = byte(computed.opacity() * 255.f);
-	MeshUtilities::GenerateBackground(mesh, box, Vector2f(), computed.border_radius(), ColourbPremultiplied(alpha, alpha), box_area);
+	MeshUtilities::GenerateBackground(mesh, render_box, ColourbPremultiplied(alpha, alpha));
 
-	const Vector2f render_offset = box.GetPosition(box_area);
+	const Vector2f render_offset = render_box.GetFillOffset();
 	for (Vertex& vertex : mesh.vertices)
 		vertex.tex_coord = vertex.position - render_offset;
 

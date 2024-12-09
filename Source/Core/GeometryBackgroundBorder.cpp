@@ -37,7 +37,7 @@ namespace Rml {
 GeometryBackgroundBorder::GeometryBackgroundBorder(Vector<Vertex>& vertices, Vector<int>& indices) : vertices(vertices), indices(indices) {}
 
 BorderMetrics GeometryBackgroundBorder::ComputeBorderMetrics(Vector2f outer_position, EdgeSizes edge_sizes, Vector2f inner_size,
-	Vector4f outer_radii_def)
+	CornerSizes outer_radii_def)
 {
 	BorderMetrics metrics = {};
 
@@ -68,7 +68,7 @@ BorderMetrics GeometryBackgroundBorder::ComputeBorderMetrics(Vector2f outer_posi
 	if (has_radius)
 	{
 		auto& outer_radii = metrics.outer_radii;
-		outer_radii = {outer_radii_def.x, outer_radii_def.y, outer_radii_def.z, outer_radii_def.w};
+		outer_radii = outer_radii_def;
 
 		// Scale the radii such that we have no overlapping curves.
 		float scale_factor = FLT_MAX;

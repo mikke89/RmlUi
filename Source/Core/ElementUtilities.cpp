@@ -187,7 +187,7 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 				{
 					Geometry* clip_geometry = clipping_element->GetElementBackgroundBorder()->GetClipGeometry(clipping_element, clip_area);
 					const ClipMaskOperation clip_operation = (out_clip_mask_list->empty() ? ClipMaskOperation::Set : ClipMaskOperation::Intersect);
-					const Vector2f absolute_offset = clipping_element->GetAbsoluteOffset(BoxArea::Border);
+					const Vector2f absolute_offset = clipping_element->GetAbsoluteOffset(BoxArea::Border).Round();
 					out_clip_mask_list->push_back(ClipMaskGeometry{clip_operation, clip_geometry, absolute_offset, transform});
 				}
 
@@ -201,8 +201,8 @@ bool ElementUtilities::GetClippingRegion(Element* element, Rectanglei& out_clip_
 			if (has_clipping_content && !disable_scissor_clipping)
 			{
 				// Shrink the scissor region to the element's client area.
-				Vector2f element_offset = clipping_element->GetAbsoluteOffset(clip_area);
-				Vector2f element_size = clipping_element->GetBox().GetSize(clip_area);
+				Vector2f element_offset = clipping_element->GetAbsoluteOffset(clip_area).Round();
+				Vector2f element_size = clipping_element->GetRenderBox(clip_area).GetFillSize();
 				Rectanglef element_region = Rectanglef::FromPositionSize(element_offset, element_size);
 
 				clip_region = element_region.IntersectIfValid(clip_region);

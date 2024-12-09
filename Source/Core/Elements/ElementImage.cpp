@@ -86,8 +86,7 @@ void ElementImage::OnRender()
 	if (geometry_dirty)
 		GenerateGeometry();
 
-	// Render the geometry beginning at this element's content region.
-	geometry.Render(GetAbsoluteOffset(BoxArea::Content).Round(), texture);
+	geometry.Render(GetAbsoluteOffset(BoxArea::Border), texture);
 }
 
 void ElementImage::OnAttributeChange(const ElementAttributes& changed_attributes)
@@ -131,9 +130,7 @@ void ElementImage::OnPropertyChange(const PropertyIdSet& changed_properties)
 	Element::OnPropertyChange(changed_properties);
 
 	if (changed_properties.Contains(PropertyId::ImageColor) || changed_properties.Contains(PropertyId::Opacity))
-	{
-		GenerateGeometry();
-	}
+		geometry_dirty = true;
 }
 
 void ElementImage::OnChildAdd(Element* child)
@@ -147,7 +144,7 @@ void ElementImage::OnChildAdd(Element* child)
 
 void ElementImage::OnResize()
 {
-	GenerateGeometry();
+	geometry_dirty = true;
 }
 
 void ElementImage::OnDpRatioChange()
@@ -185,10 +182,10 @@ void ElementImage::GenerateGeometry()
 	}
 
 	const ComputedValues& computed = GetComputedValues();
-	ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
-	Vector2f quad_size = GetBox().GetSize(BoxArea::Content).Round();
+	const ColourbPremultiplied quad_colour = computed.image_color().ToPremultiplied(computed.opacity());
+	const RenderBox render_box = GetRenderBox(BoxArea::Content);
 
-	MeshUtilities::GenerateQuad(mesh, Vector2f(0, 0), quad_size, quad_colour, texcoords[0], texcoords[1]);
+	MeshUtilities::GenerateQuad(mesh, render_box.GetFillOffset(), render_box.GetFillSize(), quad_colour, texcoords[0], texcoords[1]);
 
 	if (RenderManager* render_manager = GetRenderManager())
 		geometry = render_manager->MakeGeometry(std::move(mesh));

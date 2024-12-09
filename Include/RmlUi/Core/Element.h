@@ -35,6 +35,7 @@
 #include "Header.h"
 #include "ObserverPtr.h"
 #include "Property.h"
+#include "RenderBox.h"
 #include "ScriptInterface.h"
 #include "ScrollTypes.h"
 #include "StyleTypes.h"
@@ -158,6 +159,11 @@ public:
 	/// @param[out] offset The offset of the box relative to the element's border box.
 	/// @return The requested box.
 	const Box& GetBox(int index, Vector2f& offset);
+	/// Returns one of the render boxes describing how to generate the geometry for the corresponding element's box.
+	/// @param[in] fill_area The box area that acts as the background, or fill, of the render box.
+	/// @param[in] index The index of the desired box, with 0 being the main box. If outside of bounds, the main render box will be returned.
+	/// @return The requested render box.
+	RenderBox GetRenderBox(BoxArea fill_area = BoxArea::Padding, int index = 0);
 	/// Returns the number of boxes making up this element's geometry.
 	/// @return the number of boxes making up this element's geometry.
 	int GetNumBoxes();
@@ -678,6 +684,7 @@ private:
 
 	void DirtyAbsoluteOffset();
 	void DirtyAbsoluteOffsetRecursive();
+	void UpdateAbsoluteOffsetAndRenderBoxData();
 	void UpdateOffset();
 	void SetBaseline(float baseline);
 
@@ -728,6 +735,7 @@ private:
 
 	bool offset_fixed;
 	bool absolute_offset_dirty;
+	bool rounded_main_padding_size_dirty : 1;
 
 	bool dirty_definition : 1; // Implies dirty child definitions as well.
 	bool dirty_child_definitions : 1;
@@ -770,6 +778,7 @@ private:
 	Vector2f relative_offset_position; // the offset of a relatively positioned element
 
 	Vector2f absolute_offset;
+	Vector2f rounded_main_padding_size;
 
 	// The offset this element adds to its logical children due to scrolling content.
 	Vector2f scroll_offset;
