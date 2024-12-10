@@ -14,6 +14,36 @@
 
 ## RmlUi 6.1 (WIP)
 
+### Prevent single pixel gaps between elements
+
+This release addresses the issue of 1px gaps appearing between fractionally sized elements when placed border-to-border. This was particularly pronounced in DPI-scaled layouts, as that often leads to fractionally sized elements. Resolves #438, see also #502.
+
+The solution involves rounding the rendered sizes of elements based on their absolute positions to ensure that the bottom/right of one element matches the top/left of the next element. This implies that the rendered size of a fractional element may vary by up to one pixel. This generally matches how web browsers behave. Floating-point precision issues may still cause rare gaps, but the improvements should cover almost all cases. See the [commit message](https://github.com/mikke89/RmlUi/commit/b197f985b328d5493af3190e27d4290bb496ff1d) for details.
+
+Fixes several situations with single pixel gaps and overlaps:
+
+- Gap of 1px between border or backgrounds of neighboring elements.
+- Overlap of 1px between border or backgrounds of neighboring elements.
+- Table cell backgrounds overlaps the table border by 1px.
+- Clipping area offset by 1px compared to the border area.
+
+![Single pixel gap fix examples - before and after comparisons](https://github.com/user-attachments/assets/f1b29382-4686-4fea-a4dc-ea9628669b80)
+
+### Handle element
+
+The `<handle>` element has received several major improvements.
+
+- The handle now retains the anchoring that applies to the target element, even after moving or sizing it. #637
+  - If an element has all of its inset (top/right/bottom/left) properties set, this determines the size, and anchors to all edges. Previously, we would break the anchoring and just declare its new position or size. Now, positioning and sizing is performed in a way that retains this anchoring. Similarly, this applies to every combination of anchoring.
+  - Thus, when first sizing and moving the target, and then resizing its container, the element can now still resize itself to match the new dimensions.
+- The `edge_margin` attribute is introduced to constrain the target placement to the edges of its containing block. #631 
+  - Applies to both position and size targets.
+  - This attribute can take any length or percentage, which specifies the minimum distance between the target and the edges of its containing block. Each side can be specified individually, and negative values are allowed. See the [documentation](https://mikke89.github.io/RmlUiDoc/pages/rml/controls.html#handle) for details.
+  - Defaults to `0px`, which means that handle targets will now be constrained exactly to the edges of their containing block.
+- Fix several issues where the element jolts some distance at drag start:
+  - When the target's containing block has a border.
+  - When the target is set to relative positioning and offset from the top-left corner.
+
 ### Flexbox layout improvements
 
 - Apply automatic minimum size of flex items in column mode with auto size. #658
@@ -21,13 +51,40 @@
 - Fix hypothetical width of replaced elements (such as images) in column direction layout. #666
 - Fix hitting an assertion due to negative flex item size in some situations when edge size is fractional. #657
 
+### Data binding
+
+- Allow custom getter/setter on scoped enum. #693 #699 (thanks @AmaiKinono)
+- Fix an issue where the `FamilyId` would have the same value for different types across shared library boundaries, which could lead to a crash or other unexpected behavior. 
+
 ### Animations
 
 - Add interpolation of color stop lists, which enables animation of color and position of stops in gradient decorators. #667
+- Improve warning message when trying to animate box shadows. #688
 
 ### RCSS Values
 
 - Support `hsl` and `hsla` colors. E.g. `color: hsl(30, 80%, 50%)`. #674 (thanks @AmaiKinono)
+
+### Input elements
+
+- Improve navigation of `<select>` elements when using controller/keyboard navigation. #566 (thanks @Paril)
+  - Scroll to the selected options as one is moving up or down the list.
+  - Scroll to the selected option when opening up the selection box.
+  - Add ability to programmatically show or hide the selection box.
+- Fix some layout and behavior issues of the `<select>` element. 
+  - Fix some issues related to specifying the height of the select arrow element. 
+  - Fix an issue where the selection box would scroll to the top-left corner when the document layout is updated.
+  - 
+- Fix an issue where the contents of the `<input type="text">` and `<textarea>` elements could sometimes unintentionally scroll to a new place after a layout update.
+
+### Elements
+
+- Allow `Element::ScrollIntoView` to only scroll in the nearest scroll container, instead of all ancestor scroll containers, by using the new `ScrollParentage::Closest` scroll option.
+- Fix an issue where scrollbars could appear or disappear one frame after they should have changed visibility.
+
+### Documents
+
+- Expose `ElementDocument::FindNextTabElement` publicly.
 
 ### RML Parsing
 
@@ -37,7 +94,41 @@
 
 - Fix incorrect clipping when using multiple contexts of different dimensions. #677 #680 (thanks @s1sw)
 
+### Plugins
 
+- Log warnings when SVG or Lottie files cannot be rendered. #687
+
+### Unit testing
+
+- Enable shell renderer with environment variable `RMLUI_TESTS_USE_SHELL=1` instead of compile definition.
+
+### Resource management
+
+- Avoid memory allocations during global initialization. #689
+  - Instead, explicitly start lifetime of globals during the call to `Rml::Initialise`.
+  - Thus, there should no longer be any memory allocations occurring before `main()` when linking to RmlUi.
+  - We now give a warning if there are objects in user space that refer to any RmlUi resources at the end of `Rml::Shutdown`, as this prevents the library from cleaning up memory pools.
+    - We make an exemption for `Rml::EventListener` as those are commonly kept around until after `Rml::Shutdown` which is considered reasonable.
+- Add manual release of render managers, `Rml::ReleaseRenderManagers`, to allow render interface to be destroyed before `Rml::Shutdown`. #703
+
+### Building
+
+- Remove `OpenGL::GL` dependency for GL3 backends. #684 (thanks @std-microblock)
+- Fix missing header in the GL3 renderer, causing a compilation error on Visual Studio 17.12.
+- Fix unit tests and missing sample data when building with Emscripten.
+- Support LunaSVG 3.0.
+
+### Documentation
+
+- Improve readme code examples. #683 (thanks @std-microblock)
+
+### Breaking changes
+
+- The target of the `<handle>` element will no longer move outside its containing block by default, see above for how to override this behavior.
+- Changed the signature of `MeshUtilities::GenerateBackground` and  `MeshUtilities::GenerateBackgroundBorder`.
+  - They now take the new `RenderBox` class as input. The `Element::GetRenderBox` method can be used to construct it.
+- Changed `ComputedValues::border_radius` to return an array instead of `Vector4f`.
+- `Rml::ReleaseMemoryPools` is no longer exposed publicly. This function is automatically called during shutdown and should not be used manually.
 
 
 ## RmlUi 6.0
