@@ -42,10 +42,6 @@ bool InitialiseFaceHandle(FontFaceHandleFreetype face, int font_size, FontGlyphM
 // Build a new glyph representing the given glyph index and append to 'glyphs'.
 bool AppendGlyph(FontFaceHandleFreetype face, int font_size, FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs);
 
-// Returns the kerning between two characters given by glyph indices.
-// 'font_size' value of zero assumes the font size is already set on the face, and skips this step for performance reasons.
-int GetKerning(FontFaceHandleFreetype face, int font_size, FontGlyphIndex lhs, FontGlyphIndex rhs);
-
 // Returns the corresponding glyph index from a character code.
 FontGlyphIndex GetGlyphIndexFromCharacter(FontFaceHandleFreetype face, Character character);
 
