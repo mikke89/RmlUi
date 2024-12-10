@@ -66,6 +66,10 @@ private:
 	bool animation_complete = false;
 	ElementAnimationOrigin origin = ElementAnimationOrigin::User;
 
+	// transition-only fields
+	Rml::UniquePtr<Property> reversing_adjusted_start_value;
+	float reversing_shortening_factor = 1.0f;
+
 	bool InternalAddKey(float time, const Property& property, Element& element, Tween tween);
 
 	float GetInterpolationFactorAndKeys(int* out_key0, int* out_key1) const;
@@ -86,6 +90,18 @@ public:
 	bool IsInitalized() const { return !keys.empty(); }
 	float GetInterpolationFactor() const { return GetInterpolationFactorAndKeys(nullptr, nullptr); }
 	ElementAnimationOrigin GetOrigin() const { return origin; }
+
+	const Property* GetStartValue() { return &(keys[0].property); }
+	const Property* GetEndValue() { return &(keys[keys.size() - 1].property); }
+
+	// Transition-related getters
+	const Property* GetReversingAdjustedStartValue() const { return reversing_adjusted_start_value.get(); }
+	float GetReversingShorteningFactor() const { return reversing_shortening_factor; }
+	bool IsValidTransition() const { return IsTransition() && keys.size() == 2; }
+
+	// arguments based on: https://www.w3.org/TR/css-transitions-1/#ref-for-completed-transition%E2%91%A1
+	static ElementAnimation CreateTransition(PropertyId property_id, Element& element, Tween tween, double start_time, float duration,
+		const Property& start_value, const Property& end_value, const Property& reversing_adjusted_start_value, float reversing_shortening_factor);
 };
 
 } // namespace Rml
