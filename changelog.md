@@ -16,9 +16,9 @@
 
 ### Prevent single pixel gaps between elements
 
-This release addresses the issue of 1px gaps appearing between fractionally sized elements when placed border-to-border. This was particularly pronounced in DPI-scaled layouts, as that often leads to fractionally sized elements. Resolves #438, see also #502.
+This release addresses the issue of 1px gaps appearing between fractionally sized elements when placed border-to-border. This was particularly pronounced in DPI-scaled layouts, as that often leads to fractionally sized elements.
 
-The solution involves rounding the rendered sizes of elements based on their absolute positions to ensure that the bottom/right of one element matches the top/left of the next element. This implies that the rendered size of a fractional element may vary by up to one pixel. This generally matches how web browsers behave. Floating-point precision issues may still cause rare gaps, but the improvements should cover almost all cases. See the [commit message](https://github.com/mikke89/RmlUi/commit/b197f985b328d5493af3190e27d4290bb496ff1d) for details.
+The solution involves rounding the rendered sizes of elements based on their absolute positions to ensure that the bottom/right of one element matches the top/left of the next element. This implies that the rendered size of a fractional element may vary by up to one pixel. This generally matches how web browsers behave. Floating-point precision issues may still cause rare gaps, but the improvements should cover almost all cases. See the [commit message](https://github.com/mikke89/RmlUi/commit/b197f985b328d5493af3190e27d4290bb496ff1d) for details. Resolves #438, thanks to @mwl4 for the extensive initiative and proof of concept.
 
 Fixes several situations with single pixel gaps and overlaps:
 
@@ -67,14 +67,13 @@ The `<handle>` element has received several major improvements.
 
 ### Input elements
 
-- Improve navigation of `<select>` elements when using controller/keyboard navigation. #566 (thanks @Paril)
+- Improve navigation of `<select>` elements when using controller/keyboard navigation. #565 #566 (thanks @Paril)
   - Scroll to the selected options as one is moving up or down the list.
   - Scroll to the selected option when opening up the selection box.
-  - Add ability to programmatically show or hide the selection box.
+  - Add ability to programmatically [show or hide](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/element_packages/form.html#drop-down-select-box) the selection box.
 - Fix some layout and behavior issues of the `<select>` element. 
-  - Fix some issues related to specifying the height of the select arrow element. 
+  - Fix issues related to specifying the height of the select arrow element. 
   - Fix an issue where the selection box would scroll to the top-left corner when the document layout is updated.
-  - 
 - Fix an issue where the contents of the `<input type="text">` and `<textarea>` elements could sometimes unintentionally scroll to a new place after a layout update.
 
 ### Elements

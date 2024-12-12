@@ -14,17 +14,17 @@ RmlUi is the C++ user interface package based on the HTML and CSS standards, des
 
 RmlUi aims at being a light-weight and performant library with its own layouting engine and few dependencies. In essence, RmlUi takes your HTML/CSS-like source files and turns them into vertices, indices and draw commands, and then you bring your own renderer to draw them. And of course there is full access to the element hierarchy/DOM, event handling, and all the interactivity and customizability you would expect. All of this directly from C++, or optionally from scripting languages using plugins. The core library compiles down to fractions of the size it takes to integrate a fully fledged web browser. 
 
-RmlUi is based around the XHTML1 and CSS2 standards while borrowing features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Take a look at the [conformance](#conformance) and [enhancements](#enhancements) sections below for details.
+RmlUi is based around the XHTML1 and CSS2 standards while integrating features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Take a look at the [conformance](#conformance) and [enhancements](#enhancements) sections below for details.
 
 Documentation is located at https://mikke89.github.io/RmlUiDoc/
 
 ## Features
 
-- Cross-platform architecture: Windows, macOS, Linux, iOS, etc.
+- Cross-platform architecture: Windows, Linux, macOS, Android, iOS, Switch, and more.
 - Dynamic layout system.
 - Full animation and transform support.
 - Efficient application-wide styling, with a custom-built templating engine.
-- Fully featured control set: buttons, sliders, drop-downs, etc.
+- Fully featured control set: buttons, sliders, drop-downs, and more.
 - Runtime visual debugging suite.
 
 ## Extensible
@@ -41,7 +41,6 @@ Documentation is located at https://mikke89.github.io/RmlUiDoc/
 - Input handling and rendering is performed by the user.
 - The library generates vertices, indices, and textures for the user to render how they like.
 - File handling and the font engine can optionally be fully replaced by the user.
-
 
 ## Conformance
 
@@ -73,7 +72,7 @@ RmlUi adds features and enhancements over CSS and HTML where it makes sense, mos
 - [Sprite sheets](https://mikke89.github.io/RmlUiDoc/pages/rcss/sprite_sheets.html). Define and use sprites with easy high DPI support.
 - [Templates](https://mikke89.github.io/RmlUiDoc/pages/rml/templates.html). Making windows look consistent.
 - [Localization](https://mikke89.github.io/RmlUiDoc/pages/localisation.html). Translate any text in the document.
-
+- [Spatial navigation](https://mikke89.github.io/RmlUiDoc/pages/rcss/user_interface.html#nav). Suitable for controllers.
 
 ## Dependencies
 
@@ -373,7 +372,7 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 [Effects sample video](https://github.com/mikke89/RmlUi/assets/5490330/bdc0422d-867d-4090-9d48-e7159e3adc18)
 
-**[Killing Time: Resurrected](https://www.nightdivestudios.com/) by [Nightdive Studios](https://www.nightdivestudios.com/) and [Ziggurat Interactive](https://www.ziggurat.games/game/killing-time-resurrected) - remastered version of the classic shooter game - user interface made with RmlUi**\
+**[Killing Time: Resurrected](https://nightdivestudios.com/killing-time-resurrected/) by [Nightdive Studios](https://www.nightdivestudios.com/) and [Ziggurat Interactive](https://www.ziggurat.games/game/killing-time-resurrected) - remastered version of the classic shooter game - user interface made with RmlUi**\
 ![Killing Time: Resurrected collage](https://raw.githubusercontent.com/mikke89/RmlUiDoc/7ca874cc506986a789e2c9a317a4e23f359d2316/assets/gallery/killing_time_resurrected_collage.webp)
 
 **[alt:V](https://altv.mp/) installer - a multiplayer client for GTA:V**\
@@ -394,6 +393,9 @@ Users can now edit the text field to change the animal. The data bindings ensure
 
 **Sandbox from the 'demo' sample, try it yourself!**\
 ![Sandbox](https://github.com/mikke89/RmlUiDoc/blob/3f319d8464e73b821179ff8d20537013af5b9810/assets/gallery/sandbox.png?raw=true)
+
+**Collage of advanced effects:**\
+![Collage of advanced effects](https://github.com/user-attachments/assets/71840d6f-903e-45fe-9e34-a02ed1ddae07)
 
 **Visual testing framework - for built-in automated layout tests**\
 ![Visual testing framework](https://github.com/mikke89/RmlUiDoc/blob/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/gallery/visual_tests_flex.png?raw=true)
