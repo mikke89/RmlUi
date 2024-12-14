@@ -40,6 +40,8 @@ add_library(rmlui_core
 	DecoratorNinePatch.h
 	DecoratorShader.cpp
 	DecoratorShader.h
+	DecoratorText.cpp
+	DecoratorText.h
 	DecoratorTiled.cpp
 	DecoratorTiled.h
 	DecoratorTiledBox.cpp
@@ -50,6 +52,8 @@ add_library(rmlui_core
 	DecoratorTiledImage.h
 	DecoratorTiledVertical.cpp
 	DecoratorTiledVertical.h
+	DecoratorUtilities.cpp
+	DecoratorUtilities.h
 	DocumentHeader.cpp
 	DocumentHeader.h
 	EffectSpecification.cpp

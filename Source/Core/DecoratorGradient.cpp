@@ -149,32 +149,6 @@ static ColorStopList ResolveColorStops(Element* element, const float gradient_li
 	return stops;
 }
 
-// Compute a 2d-position property value into a percentage-length vector.
-static Vector2Numeric ComputePosition(const Property* p_position[2])
-{
-	Vector2Numeric position;
-	for (int dimension = 0; dimension < 2; dimension++)
-	{
-		NumericValue& value = position[dimension];
-		const Property& property = *p_position[dimension];
-		if (property.unit == Unit::KEYWORD)
-		{
-			enum { TOP_LEFT, CENTER, BOTTOM_RIGHT };
-			switch (property.Get<int>())
-			{
-			case TOP_LEFT: value = NumericValue(0.f, Unit::PERCENT); break;
-			case CENTER: value = NumericValue(50.f, Unit::PERCENT); break;
-			case BOTTOM_RIGHT: value = NumericValue(100.f, Unit::PERCENT); break;
-			}
-		}
-		else
-		{
-			value = property.GetNumericValue();
-		}
-	}
-	return position;
-}
-
 DecoratorStraightGradient::DecoratorStraightGradient() {}
 
 DecoratorStraightGradient::~DecoratorStraightGradient() {}
@@ -596,7 +570,7 @@ SharedPtr<Decorator> DecoratorRadialGradientInstancer::InstanceDecorator(const S
 	const Property* p_ending_shape = properties_.GetProperty(ids.ending_shape);
 	const Property* p_size_x = properties_.GetProperty(ids.size_x);
 	const Property* p_size_y = properties_.GetProperty(ids.size_y);
-	const Property* p_position[2] = {properties_.GetProperty(ids.position_x), properties_.GetProperty(ids.position_y)};
+	Array<const Property*, 2> p_position = {properties_.GetProperty(ids.position_x), properties_.GetProperty(ids.position_y)};
 	const Property* p_color_stop_list = properties_.GetProperty(ids.color_stop_list);
 
 	if (!p_ending_shape || !p_size_x || !p_size_y || !p_position[0] || !p_position[1] || !p_color_stop_list)
@@ -727,7 +701,7 @@ SharedPtr<Decorator> DecoratorConicGradientInstancer::InstanceDecorator(const St
 	const DecoratorInstancerInterface& /*interface_*/)
 {
 	const Property* p_angle = properties_.GetProperty(ids.angle);
-	const Property* p_position[2] = {properties_.GetProperty(ids.position_x), properties_.GetProperty(ids.position_y)};
+	Array<const Property*, 2> p_position = {properties_.GetProperty(ids.position_x), properties_.GetProperty(ids.position_y)};
 	const Property* p_color_stop_list = properties_.GetProperty(ids.color_stop_list);
 
 	if (!p_angle || !p_position[0] || !p_position[1] || !p_color_stop_list)

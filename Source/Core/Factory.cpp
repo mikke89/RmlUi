@@ -52,6 +52,7 @@
 #include "DecoratorGradient.h"
 #include "DecoratorNinePatch.h"
 #include "DecoratorShader.h"
+#include "DecoratorText.h"
 #include "DecoratorTiledBox.h"
 #include "DecoratorTiledHorizontal.h"
 #include "DecoratorTiledImage.h"
@@ -109,6 +110,7 @@ struct DefaultInstancers {
 	ElementInstancerGeneric<ElementProgress> progress;
 
 	// Decorators
+	DecoratorTextInstancer decorator_text;
 	DecoratorTiledHorizontalInstancer decorator_tiled_horizontal;
 	DecoratorTiledVerticalInstancer decorator_tiled_vertical;
 	DecoratorTiledBoxInstancer decorator_tiled_box;
@@ -220,6 +222,7 @@ void Factory::Initialise()
 	RegisterElementInstancer("progressbar", &default_instancers.progress);
 
 	// Decorator instancers
+	RegisterDecoratorInstancer("text", &default_instancers.decorator_text);
 	RegisterDecoratorInstancer("tiled-horizontal", &default_instancers.decorator_tiled_horizontal);
 	RegisterDecoratorInstancer("tiled-vertical", &default_instancers.decorator_tiled_vertical);
 	RegisterDecoratorInstancer("tiled-box", &default_instancers.decorator_tiled_box);

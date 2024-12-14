@@ -44,6 +44,16 @@ The `<handle>` element has received several major improvements.
   - When the target's containing block has a border.
   - When the target is set to relative positioning and offset from the top-left corner.
 
+### New decorator: `text`
+
+Added a new decorator to render text as a background on elements. This can be particularly helpful when using icon fonts, and even allows using such fonts for generated elements. #348 #679
+
+```
+decorator: text("Hello 🌎 world!" blue bottom right);
+```
+
+The font face will be inherited from the element it is being applied to. However, it can be colored independently. Further, the text can be freely aligned within the element using lengths, percentages, or keywords. Unicode numerical references are supported with the HTML syntax, e.g. `&#x1F30E;`.
+
 ### Flexbox layout improvements
 
 - Apply automatic minimum size of flex items in column mode with auto size. #658
