@@ -342,8 +342,8 @@ static bool BuildGlyph(FT_Face ft_face, const Character character, FontGlyphMap&
 	glyph.dimensions.y = ft_glyph->metrics.height >> 6;
 
 	// Set the glyph's bearing.
-	glyph.bearing.x = ft_glyph->metrics.horiBearingX >> 6;
-	glyph.bearing.y = ft_glyph->metrics.horiBearingY >> 6;
+	glyph.bearing.x = ft_glyph->bitmap_left;
+	glyph.bearing.y = ft_glyph->bitmap_top;
 
 	// Set the glyph's advance.
 	glyph.advance = ft_glyph->metrics.horiAdvance >> 6;

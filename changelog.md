@@ -46,7 +46,7 @@ The `<handle>` element has received several major improvements.
 
 ### New decorator: `text`
 
-Added a new decorator to render text as a background on elements. This can be particularly helpful when using icon fonts, and even allows using such fonts for generated elements. #348 #679
+Added a new decorator to render text as a background on elements. This can be particularly helpful when using icon fonts, and even allows using such fonts for generated elements. #348 #655 #679
 
 ```
 decorator: text("Hello 🌎 world!" blue bottom right);
@@ -94,6 +94,10 @@ The font face will be inherited from the element it is being applied to. However
 ### Documents
 
 - Expose `ElementDocument::FindNextTabElement` publicly.
+
+### Font engine
+
+- Fix rare placement of glyphs appearing below the baseline in some fonts, by using the bitmap bearing instead of the glyph metrics.
 
 ### RML Parsing
 

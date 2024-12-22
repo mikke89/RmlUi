@@ -34,9 +34,9 @@
 #include FT_MULTIPLE_MASTERS_H
 #include FT_TRUETYPE_TABLES_H
 
-namespace FreeType
-{
-static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs, const float bitmap_scaling_factor);
+namespace FreeType {
+static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Character character, FontGlyphMap& glyphs,
+	const float bitmap_scaling_factor);
 static void BuildGlyphMap(FT_Face ft_face, int size, FontGlyphMap& glyphs, const float bitmap_scaling_factor, const bool load_default_glyphs);
 static void GenerateMetrics(FT_Face ft_face, FontMetrics& metrics, float bitmap_scaling_factor);
 static bool SetFontSize(FT_Face ft_face, int font_size, float& out_bitmap_scaling_factor);
@@ -97,7 +97,7 @@ int GetKerning(FontFaceHandleFreetype face, int font_size, FontGlyphIndex lhs, F
 
 	FT_Vector ft_kerning;
 
-	FT_Error ft_error = FT_Get_Kerning(ft_face, lhs, rhs,FT_KERNING_DEFAULT, &ft_kerning);
+	FT_Error ft_error = FT_Get_Kerning(ft_face, lhs, rhs, FT_KERNING_DEFAULT, &ft_kerning);
 
 	if (ft_error)
 		return 0;
@@ -121,8 +121,7 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Charac
 	if (error != 0)
 	{
 		Rml::Log::Message(Rml::Log::LT_WARNING, "Unable to load glyph at index '%u' on the font face '%s %s'; error code: %d.",
-			(unsigned int)glyph_index,
-			ft_face->family_name, ft_face->style_name, error);
+			(unsigned int)glyph_index, ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
@@ -130,8 +129,7 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Charac
 	if (error != 0)
 	{
 		Rml::Log::Message(Rml::Log::LT_WARNING, "Unable to render glyph at index '%u' on the font face '%s %s'; error code: %d.",
-			(unsigned int)glyph_index,
-			ft_face->family_name, ft_face->style_name, error);
+			(unsigned int)glyph_index, ft_face->family_name, ft_face->style_name, error);
 		return false;
 	}
 
@@ -152,8 +150,8 @@ static bool BuildGlyph(FT_Face ft_face, const FontGlyphIndex glyph_index, Charac
 	glyph.dimensions.y = ft_glyph->metrics.height >> 6;
 
 	// Set the glyph's bearing.
-	glyph.bearing.x = ft_glyph->metrics.horiBearingX >> 6;
-	glyph.bearing.y = ft_glyph->metrics.horiBearingY >> 6;
+	glyph.bearing.x = ft_glyph->bitmap_left;
+	glyph.bearing.y = ft_glyph->bitmap_top;
 
 	// Set the glyph's advance.
 	glyph.advance = ft_glyph->metrics.horiAdvance >> 6;
