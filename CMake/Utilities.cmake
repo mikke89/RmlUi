@@ -38,6 +38,24 @@ function(report_dependency_not_found friendly_name package_name target_name)
 endfunction()
 
 #[[
+	Print a message for the dependency after being found.
+	Arguments:
+		- package_name: Name of the package to search for
+		- target_name: Name of the CMake target the project will link against
+		- success_message: Message to show when the target exists (optional)
+]]
+function(report_dependency_found package_name target_name)
+	set(message "")
+	if(DEFINED ${package_name}_VERSION AND NOT ${package_name}_VERSION STREQUAL "UNKNOWN")
+		set(message " v${${package_name}_VERSION}")
+	endif()
+	if(ARGC GREATER "2" AND ARGV2)
+		set(message "${message} - ${ARGV2}")
+	endif()
+	message(STATUS "Found ${target_name}${message}")
+endfunction()
+
+#[[
 	Verify that the target is found and print a message, otherwise stop execution.
 	Arguments:
 		- friendly_name: Friendly name of the dependency
@@ -49,10 +67,11 @@ function(report_dependency_found_or_error friendly_name package_name target_name
 	if(NOT TARGET ${target_name})
 		report_dependency_not_found(${friendly_name} ${package_name} ${target_name})
 	endif()
-	if(ARGC GREATER "2" AND ARGV2)
-		set(success_message " - ${ARGV2}")
+	set(success_message "")
+	if(ARGC GREATER "3" AND ARGV3)
+		set(success_message "${ARGV3}")
 	endif()
-	message(STATUS "Found ${target_name}${success_message}")
+	report_dependency_found(${package_name} ${target_name} ${success_message})
 endfunction()
 
 #[[

@@ -69,9 +69,7 @@ if(RMLUI_BACKEND MATCHES "^(BackwardCompatible_)?GLFW")
 	find_package("glfw3" "3.3")
 
 	# Instead of relying on the <package_name>_FOUND variable, we check directly for the target
-	if(NOT TARGET glfw)
-		report_dependency_found_or_error("GLFW" "glfw3" glfw)
-	endif()
+	report_dependency_found_or_error("GLFW" "glfw3" glfw)
 endif()
 
 # SFML
