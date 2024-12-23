@@ -35,6 +35,7 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Math.h>
+#include <RmlUi/Core/SystemInterface.h>
 #include <Shell.h>
 #include <cstdio>
 
@@ -257,7 +258,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 			}
 			else if (goto_index >= 0)
 			{
-				goto_index = -1;
+				CancelGoTo();
 				UpdateGoToText();
 			}
 		}
@@ -269,9 +270,9 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 		{
 			if (goto_index < 0)
 			{
-				goto_index = 0;
-				UpdateGoToText();
 				element_filter_input->Blur();
+				StartGoTo();
+				UpdateGoToText();
 			}
 		}
 	}
@@ -340,7 +341,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 		else if (goto_index >= 0 && key_identifier == Rml::Input::KI_BACK)
 		{
 			if (goto_index <= 0)
-				goto_index = -1;
+				CancelGoTo();
 			else
 				goto_index = goto_index / 10;
 
@@ -371,7 +372,7 @@ void TestNavigator::ProcessEvent(Rml::Event& event)
 						out_of_bounds = true;
 				}
 
-				goto_index = -1;
+				CancelGoTo();
 				UpdateGoToText(out_of_bounds);
 			}
 		}
@@ -590,6 +591,19 @@ void TestNavigator::StopTestSuiteIteration()
 
 	suite.SetIndex(iteration_initial_index);
 	LoadActiveTest();
+}
+
+void TestNavigator::StartGoTo()
+{
+	goto_index = 0;
+	const Rml::Rectanglef area = viewer->GetGoToArea();
+	Rml::GetSystemInterface()->ActivateKeyboard(area.TopLeft(), area.Height());
+}
+
+void TestNavigator::CancelGoTo()
+{
+	Rml::GetSystemInterface()->DeactivateKeyboard();
+	goto_index = -1;
 }
 
 void TestNavigator::UpdateGoToText(bool out_of_bounds)
