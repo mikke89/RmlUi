@@ -34,7 +34,7 @@ jobs:
     - name: Install Dependencies
       run: |-
         sudo apt-get update
-        sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libharfbuzz-dev libglew-dev liblua5.2-dev libsfml-dev librlottie-dev libglfw3-dev
+        sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libharfbuzz-dev liblua5.2-dev libsfml-dev librlottie-dev libglfw3-dev
 
     - name: Configure CMake
       run: >-
@@ -77,7 +77,7 @@ jobs:
       - name: Install Dependencies
         run: |-
           sudo apt-get update
-          sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libharfbuzz-dev libglew-dev liblua5.2-dev libglfw3-dev
+          sudo apt-get install cmake ninja-build libsdl2-dev libsdl2-image-dev libfreetype6-dev libharfbuzz-dev liblua5.2-dev libglfw3-dev
 
       - name: Configure CMake
         run: >-
@@ -163,7 +163,7 @@ jobs:
         run: |-
           C:\msys64\usr\bin\bash -lc ("pacman --needed --noconfirm --sync " +
             "mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-freetype mingw-w64-x86_64-lua " +
-            "mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-glew")
+            "mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image")
 
       - name: Configure CMake
         run: |-

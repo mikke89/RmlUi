@@ -32,7 +32,14 @@
 #include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/SystemInterface.h>
 #include <RmlUi/Core/Types.h>
-#include <SDL.h>
+
+#if RMLUI_SDL_VERSION_MAJOR == 3
+	#include <SDL3/SDL.h>
+#elif RMLUI_SDL_VERSION_MAJOR == 2
+	#include <SDL.h>
+#else
+	#error "Unspecified RMLUI_SDL_VERSION_MAJOR. Please set this definition to the major version of the SDL library being linked to."
+#endif
 
 class SystemInterface_SDL : public Rml::SystemInterface {
 public:
@@ -50,6 +57,9 @@ public:
 
 	void SetClipboardText(const Rml::String& text) override;
 	void GetClipboardText(Rml::String& text) override;
+
+	void ActivateKeyboard(Rml::Vector2f caret_position, float line_height) override;
+	void DeactivateKeyboard() override;
 
 private:
 	SDL_Window* window = nullptr;

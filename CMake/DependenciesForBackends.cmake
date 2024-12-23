@@ -6,8 +6,53 @@
 ]]
 
 # --- Window/input APIs ---
-# SDL
+
+# SDL 2 and 3 common setup
 if(RMLUI_BACKEND MATCHES "^SDL")
+	set(RMLUI_SDL_VERSION_MAJOR "" CACHE STRING "Major version of SDL to search for, or empty for automatic search.")
+	mark_as_advanced(RMLUI_SDL_VERSION_MAJOR)
+
+	# List of SDL backends that require SDL_image to work with samples
+	set(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer")
+
+	# Determine if the selected SDL backend requires SDL_image
+	if(RMLUI_BACKEND IN_LIST RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
+		set(RMLUI_SDLIMAGE_REQUIRED TRUE)
+	else()
+		set(RMLUI_SDLIMAGE_REQUIRED FALSE)
+	endif()
+	unset(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
+endif()
+
+# SDL 3
+if(RMLUI_BACKEND MATCHES "^SDL" AND (RMLUI_SDL_VERSION_MAJOR EQUAL "3" OR RMLUI_SDL_VERSION_MAJOR STREQUAL ""))
+	find_package("SDL3" QUIET)
+
+	if(NOT TARGET SDL3::SDL3 AND RMLUI_SDL_VERSION_MAJOR EQUAL "3")
+		report_dependency_not_found("SDL3" "SDL3" SDL3::SDL3)
+	endif()
+
+	if(TARGET SDL3::SDL3)
+		#[[
+			The official target includes the major version number in the target name. However, since we want to link to
+			SDL independent of its major version, we create a new version-independent target to link against.
+		]]
+		report_dependency_found("SDL3" SDL3::SDL3)
+		add_library(SDL::SDL INTERFACE IMPORTED)
+		target_link_libraries(SDL::SDL INTERFACE SDL3::SDL3)
+		target_compile_definitions(SDL::SDL INTERFACE RMLUI_SDL_VERSION_MAJOR=3)
+
+		if(RMLUI_SDLIMAGE_REQUIRED)
+			find_package("SDL3_image")
+			report_dependency_found_or_error("SDL3_image" "SDL3_image" SDL3_image::SDL3_image)
+			add_library(SDL_image::SDL_image INTERFACE IMPORTED)
+			target_link_libraries(SDL_image::SDL_image INTERFACE SDL3_image::SDL3_image)
+		endif()
+	endif()
+endif()
+
+# SDL 2
+if(RMLUI_BACKEND MATCHES "^SDL" AND NOT TARGET SDL::SDL AND (RMLUI_SDL_VERSION_MAJOR EQUAL "2" OR RMLUI_SDL_VERSION_MAJOR STREQUAL ""))
 	# Although the official CMake find module is called FindSDL.cmake, the official config module provided by the SDL
 	# package for its version 2 is called SDL2Config.cmake. Following this trend, the official SDL config files change
 	# their name according to their major version number
@@ -32,36 +77,27 @@ if(RMLUI_BACKEND MATCHES "^SDL")
 			INTERFACE_INCLUDE_DIRECTORIES "${SDL2_INCLUDE_DIRS}"
 		)
 	endif()
+	report_dependency_found("SDL2" SDL2::SDL2)
 
-	# SDL_GL2 backend requires GLEW
-	if(RMLUI_BACKEND STREQUAL "SDL_GL2" AND NOT TARGET GLEW::GLEW)
-		find_package("GLEW")
-		if(NOT TARGET GLEW::GLEW)
-			report_dependency_not_found("GLEW" "GLEW" GLEW::GLEW)
-		endif()
-	endif()
+	add_library(SDL::SDL INTERFACE IMPORTED)
+	target_link_libraries(SDL::SDL INTERFACE SDL2::SDL2)
+	target_compile_definitions(SDL::SDL INTERFACE RMLUI_SDL_VERSION_MAJOR=2)
 
 	# Check version requirement for the SDL renderer
 	if(RMLUI_BACKEND STREQUAL "SDL_SDLrenderer" AND SDL2_VERSION VERSION_LESS "2.0.20")
 		message(FATAL_ERROR "SDL native renderer backend (${RMLUI_BACKEND}) requires SDL 2.0.20 (found ${SDL2_VERSION}).")
 	endif()
 
-	# List of SDL backends that require SDL_image to work with samples
-	set(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE "SDL_GL2" "SDL_GL3" "SDL_SDLrenderer")
-
-	# Determine if the selected SDL backend requires SDL_image
-	if(RMLUI_BACKEND IN_LIST RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
-		set(RMLUI_SDLIMAGE_REQUIRED TRUE)
-	else()
-		set(RMLUI_SDLIMAGE_REQUIRED FALSE)
-	endif()
-	unset(RMLUI_SDL_BACKENDS_WITH_SDLIMAGE)
-
-	# Require SDL_image if needed
 	if(RMLUI_SDLIMAGE_REQUIRED)
 		find_package("SDL2_image")
 		report_dependency_found_or_error("SDL2_image" "SDL2_image" SDL2_image::SDL2_image)
+		add_library(SDL_image::SDL_image INTERFACE IMPORTED)
+		target_link_libraries(SDL_image::SDL_image INTERFACE SDL2_image::SDL2_image)
 	endif()
+endif()
+
+if(RMLUI_BACKEND MATCHES "^SDL" AND NOT TARGET SDL::SDL)
+	message(FATAL_ERROR "SDL version ${RMLUI_SDL_VERSION_MAJOR} is not supported.")
 endif()
 
 # GLFW
@@ -151,6 +187,7 @@ if(RMLUI_BACKEND MATCHES "^X11")
 endif()
 
 # --- Rendering APIs ---
+
 # OpenGL
 
 # Set preferred OpenGL ABI on Linux for target OpenGL::GL
