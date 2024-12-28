@@ -147,7 +147,7 @@ void SystemInterface_SDL::DeactivateKeyboard()
 	}
 }
 
-bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Event& ev)
+bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Window* window, SDL_Event& ev)
 {
 #if SDL_MAJOR_VERSION >= 3
 	#define RMLSDL_WINDOW_EVENTS_BEGIN
@@ -165,6 +165,7 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Event& ev)
 	constexpr auto rmlsdl_true = true;
 	constexpr auto rmlsdl_false = false;
 #else
+	(void)window;
 	#define RMLSDL_WINDOW_EVENTS_BEGIN \
 	case SDL_WINDOWEVENT:              \
 	{                                  \
@@ -245,6 +246,15 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Event& ev)
 		context->ProcessMouseLeave();
 	}
 	break;
+
+#if SDL_MAJOR_VERSION >= 3
+	case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+	{
+		const float display_scale = SDL_GetWindowDisplayScale(window);
+		context->SetDensityIndependentPixelRatio(display_scale);
+	}
+	break;
+#endif
 
 		RMLSDL_WINDOW_EVENTS_END
 

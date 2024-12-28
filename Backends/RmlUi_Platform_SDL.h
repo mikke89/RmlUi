@@ -77,7 +77,7 @@ namespace RmlSDL {
 
 // Applies input on the context based on the given SDL event.
 // @return True if the event is still propagating, false if it was handled by the context.
-bool InputEventHandler(Rml::Context* context, SDL_Event& ev);
+bool InputEventHandler(Rml::Context* context, SDL_Window* window, SDL_Event& ev);
 
 // Converts the SDL key to RmlUi key.
 Rml::Input::KeyIdentifier ConvertKey(int sdl_key);

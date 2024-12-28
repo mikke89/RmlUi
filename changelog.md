@@ -107,6 +107,22 @@ The font face will be inherited from the element it is being applied to. However
 
 - Fix incorrect clipping when using multiple contexts of different dimensions. #677 #680 (thanks @s1sw)
 
+### Backends
+
+- Update SFML backend to support SFML 3, in addition to the existing SFML 2 support.
+  - By default, SFML 3 is preferred before SFML 2 during CMake configuration. To override the automatic selection, set the CMake variable `RMLUI_SFML_VERSION_MAJOR` to the desired version (2 or 3).
+- Update SDL backends to support SDL 3, in addition to the existing SDL 2 support.
+  - By default, SDL 3 is preferred before SDL 2 during CMake configuration. To override the automatic selection, set the CMake variable `RMLUI_SDL_VERSION_MAJOR` to the desired version (2 or 3).
+- SDL 3-specific improvements:
+  - Enable high DPI support.
+  - Enable positioning of the input method editor (IME) to the text cursor.
+- Improvements to both SDL 2 and SDL 3:
+  - Keyboard is activated and deactivated when focusing text input fields.
+  - Text input events are only submitted when text input fields are focused.
+- `SDL_GL2`-specific improvements:
+  - GLEW is no longer required, and no longer linked to.
+  - Use OpenGL directly instead of the SDL renderer, just like the `SDL_GL3` renderer.
+
 ### Plugins
 
 - Log warnings when SVG or Lottie files cannot be rendered. #687
@@ -142,7 +158,7 @@ The font face will be inherited from the element it is being applied to. However
   - They now take the new `RenderBox` class as input. The `Element::GetRenderBox` method can be used to construct it.
 - Changed `ComputedValues::border_radius` to return an array instead of `Vector4f`.
 - `Rml::ReleaseMemoryPools` is no longer exposed publicly. This function is automatically called during shutdown and should not be used manually.
-
+- SDL backends: The SDL platform's `InputEventHandler` function now takes an additional parameter `window`. 
 
 ## RmlUi 6.0
 

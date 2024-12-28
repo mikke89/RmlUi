@@ -155,13 +155,13 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Platforms
 
-| Platform support | Basic windowing | Clipboard | High DPI | Comments                                          |
-|------------------|:---------------:|:---------:|:----------:|---------------------------------------------------|
-| Win32            |        ✔️        |     ✔️     |     ✔️    | High DPI only supported on Windows 10 and newer.  |
-| X11              |        ✔️        |     ✔️     |     ❌    |                                                   |
-| SFML             |        ✔️        |     ⚠️     |     ❌    | Some issues with Unicode characters in clipboard. |
-| GLFW             |        ✔️        |     ✔️     |     ✔️    |                                                   |
-| SDL              |        ✔️        |     ✔️     |     ❌    |                                                   |
+| Platform support | Basic windowing | Clipboard | High DPI | Comments  |
+|------------------|:---------------:|:---------:|:--------:|-----------|
+| Win32            |       ✔️        |    ✔️     |    ✔️    | High DPI only supported on Windows 10 and newer. |
+| X11              |       ✔️        |    ✔️     |    ❌     |  |
+| SFML             |       ✔️        |    ⚠️     |    ❌     | Supports SFML 2 and SFML 3. Some issues with Unicode characters in clipboard. |
+| GLFW             |       ✔️        |    ✔️     |    ✔️    |  |
+| SDL              |       ✔️        |    ✔️     |    ✔️    | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3. |
 
 **Basic windowing**: Open windows, react to resize events, submit inputs to the RmlUi context.\
 **Clipboard**: Read from and write to the system clipboard.\
@@ -169,13 +169,13 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Backends
 
-| Platform \ Renderer | OpengGL 2 | OpengGL 3 | Vulkan | SDLrenderer |
-|---------------------|:---------:|:---------:|:---------:|:-----------:|
-| Win32               |     ✔️     |           |    ✔️     |             |
-| X11                 |     ✔️     |           |          |             |
-| SFML                |     ✔️     |           |          |             |
-| GLFW                |     ✔️     |     ✔️    |     ✔️    |             |
-| SDL¹                |     ✔️     |     ✔️²   |     ✔️    |      ✔️     |
+| Platform \ Renderer | OpenGL 2 (GL2) | OpenGL 3 (GL3) | Vulkan (VK) | SDLrenderer |
+|---------------------|:--------------:|:--------------:|:-----------:|:-----------:|
+| Win32               |       ✔️       |                |     ✔️      |             |
+| X11                 |       ✔️       |                |             |             |
+| SFML                |       ✔️       |                |             |             |
+| GLFW                |       ✔️       |       ✔️       |     ✔️      |             |
+| SDL¹                |       ✔️       |      ✔️²       |     ✔️      |     ✔️      |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
