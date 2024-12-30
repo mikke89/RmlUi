@@ -109,9 +109,9 @@ The font face will be inherited from the element it is being applied to. However
 
 ### Backends
 
-- Update SFML backend to support SFML 3, in addition to the existing SFML 2 support.
+- Update the SFML backend to support SFML 3, in addition to the existing SFML 2 support.
   - By default, SFML 3 is preferred before SFML 2 during CMake configuration. To override the automatic selection, set the CMake variable `RMLUI_SFML_VERSION_MAJOR` to the desired version (2 or 3).
-- Update SDL backends to support SDL 3, in addition to the existing SDL 2 support.
+- Update all SDL backends to support SDL 3, in addition to the existing SDL 2 support.
   - By default, SDL 3 is preferred before SDL 2 during CMake configuration. To override the automatic selection, set the CMake variable `RMLUI_SDL_VERSION_MAJOR` to the desired version (2 or 3).
 - SDL 3-specific improvements:
   - Enable high DPI support.
@@ -126,6 +126,7 @@ The font face will be inherited from the element it is being applied to. However
 ### Plugins
 
 - Log warnings when SVG or Lottie files cannot be rendered. #687
+- Support for LunaSVG 3.0 with the SVG plugin.
 
 ### Unit testing
 
@@ -145,7 +146,7 @@ The font face will be inherited from the element it is being applied to. However
 - Remove `OpenGL::GL` dependency for GL3 backends. #684 (thanks @std-microblock)
 - Fix missing header in the GL3 renderer, causing a compilation error on Visual Studio 17.12.
 - Fix unit tests and missing sample data when building with Emscripten.
-- Support LunaSVG 3.0.
+- Libraries and archives will now be placed in the top-level binary directory, unless overridden by users or parent projects. This matches the existing runtime output directory.
 
 ### Documentation
 
@@ -159,6 +160,7 @@ The font face will be inherited from the element it is being applied to. However
 - Changed `ComputedValues::border_radius` to return an array instead of `Vector4f`.
 - `Rml::ReleaseMemoryPools` is no longer exposed publicly. This function is automatically called during shutdown and should not be used manually.
 - SDL backends: The SDL platform's `InputEventHandler` function now takes an additional parameter `window`. 
+
 
 ## RmlUi 6.0
 

@@ -119,7 +119,7 @@ include("CMake/Utilities.cmake")
 include("CMake/Dependencies.cmake")
 
 include("CMake/RuntimeUtilities.cmake")
-setup_runtime_output_directory()
+setup_binary_output_directories()
 setup_runtime_dependency_set_arg()
 
 add_subdirectory("Source")

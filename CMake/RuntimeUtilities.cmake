@@ -3,13 +3,20 @@
 ]]
 
 #[[
-	Change the runtime output directory of all targets declared in this scope. This is particularly helpful on Windows
-	when building the project as a shared library, so that all DLLs are located together with any built executables. The
-	set() call is guarded against pre-definitions in order to respect consumer choice.
+	Change the output directories of binaries and libraries of all targets declared in this scope. This is particularly
+	helpful on Windows when building the project as a shared library, so that all DLLs are located together with any
+	built executables. More generally, placing these files in the top-level binary directory makes them easier to
+	locate. The set() call is guarded against pre-definitions in order to respect consumer choice.
 ]]
-function(setup_runtime_output_directory)
+function(setup_binary_output_directories)
 	if(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 		set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" PARENT_SCOPE)
+	endif()
+	if(NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+		set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" PARENT_SCOPE)
+	endif()
+	if(NOT DEFINED CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+		set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" PARENT_SCOPE)
 	endif()
 endfunction()
 
