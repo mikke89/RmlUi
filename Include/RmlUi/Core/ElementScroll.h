@@ -80,6 +80,8 @@ public:
 	/// Updates the scrollbar elements to reflect their current state.
 	void UpdateProperties();
 
+	void AlignScrollbarOppositeEdge(Orientation orientation, bool align_opposite_edge);
+
 private:
 	struct Scrollbar {
 		Scrollbar();
@@ -89,6 +91,7 @@ private:
 		UniquePtr<WidgetScroll> widget;
 		bool enabled = false;
 		float size = 0;
+		bool align_opposite_edge = false;
 	};
 
 	// Creates one of the scroll component's scrollbar.

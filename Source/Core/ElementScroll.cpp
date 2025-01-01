@@ -135,6 +135,11 @@ float ElementScroll::GetScrollbarSize(Orientation orientation)
 	return scrollbars[orientation].size;
 }
 
+void ElementScroll::AlignScrollbarOppositeEdge(Orientation orientation, bool align_opposite_edge)
+{
+      scrollbars[orientation].align_opposite_edge = align_opposite_edge;
+}
+
 void ElementScroll::FormatScrollbars()
 {
 	const Box& element_box = element->GetBox();
@@ -177,9 +182,18 @@ void ElementScroll::FormatScrollbars()
 
 		int variable_axis = i == VERTICAL ? 0 : 1;
 		Vector2f offset = element_box.GetPosition(BoxArea::Padding);
-		offset[variable_axis] += containing_block[variable_axis] -
-			(scrollbars[i].element->GetBox().GetSize(BoxArea::Border)[variable_axis] +
-				scrollbars[i].element->GetBox().GetEdge(BoxArea::Margin, i == VERTICAL ? BoxEdge::Right : BoxEdge::Bottom));
+		if (scrollbars[i].align_opposite_edge)
+		{
+			offset[variable_axis] += /*containing_block[variable_axis] -*/
+				(scrollbars[i].element->GetBox().GetSize(BoxArea::Border)[variable_axis] +
+					scrollbars[i].element->GetBox().GetEdge(BoxArea::Margin, i == VERTICAL ? BoxEdge::Right : BoxEdge::Bottom));
+		}
+		else
+		{
+			offset[variable_axis] += containing_block[variable_axis] -
+				(scrollbars[i].element->GetBox().GetSize(BoxArea::Border)[variable_axis] +
+					scrollbars[i].element->GetBox().GetEdge(BoxArea::Margin, i == VERTICAL ? BoxEdge::Right : BoxEdge::Bottom));
+		}
 		// Add the top or left margin (as appropriate) onto the scrollbar's position.
 		offset[1 - variable_axis] += scrollbars[i].element->GetBox().GetEdge(BoxArea::Margin, i == VERTICAL ? BoxEdge::Top : BoxEdge::Left);
 		scrollbars[i].element->SetOffset(offset, element, true);
