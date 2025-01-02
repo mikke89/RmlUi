@@ -219,6 +219,11 @@ StableVectorIndex RenderManager::InsertGeometry(Mesh&& mesh)
 	return geometry_list.insert(GeometryData{std::move(mesh), CompiledGeometryHandle{}});
 }
 
+void RenderManager::StartFrame()
+{
+	frame_id++;
+}
+
 CompiledGeometryHandle RenderManager::GetCompiledGeometryHandle(StableVectorIndex index)
 {
 	if (index == StableVectorIndex::Invalid)
@@ -232,6 +237,7 @@ CompiledGeometryHandle RenderManager::GetCompiledGeometryHandle(StableVectorInde
 		if (!geometry.handle)
 			Log::Message(Log::LT_ERROR, "Got empty compiled geometry.");
 	}
+	geometry.last_used_frame_id = frame_id;
 	return geometry.handle;
 }
 
@@ -281,6 +287,17 @@ void RenderManager::ReleaseAllCompiledGeometry()
 {
 	geometry_list.for_each([this](GeometryData& data) {
 		if (data.handle)
+		{
+			render_interface->ReleaseGeometry(data.handle);
+			data.handle = {};
+		}
+	});
+}
+
+void RenderManager::ReleaseOldCompiledGeometry()
+{
+	geometry_list.for_each([this](GeometryData& data) {
+		if (data.handle && (frame_id - data.last_used_frame_id) > 5)
 		{
 			render_interface->ReleaseGeometry(data.handle);
 			data.handle = {};

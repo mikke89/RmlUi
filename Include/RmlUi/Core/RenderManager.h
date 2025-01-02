@@ -76,6 +76,9 @@ public:
 	RenderManager(RenderInterface* render_interface);
 	~RenderManager();
 
+	void StartFrame();
+	void ReleaseOldCompiledGeometry();
+
 	void PrepareRender(Vector2i dimensions);
 	void SetViewport(Vector2i dimensions);
 	Vector2i GetViewport() const;
@@ -135,6 +138,7 @@ private:
 	struct GeometryData {
 		Mesh mesh;
 		CompiledGeometryHandle handle = {};
+		uint32_t last_used_frame_id = 0;
 	};
 
 	RenderInterface* render_interface = nullptr;
@@ -144,6 +148,7 @@ private:
 
 	int compiled_filter_count = 0;
 	int compiled_shader_count = 0;
+	uint32_t frame_id = 0;
 
 	RenderState state;
 	Vector2i viewport_dimensions;
