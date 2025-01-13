@@ -41,10 +41,10 @@ public:
 	void Shutdown() override;
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
-	bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight) override;
+	bool LoadFontFace(const String& file_name, int face_index, bool fallback_face, Style::FontWeight weight) override;
 
 	/// Adds a new font face to the database using the provided family, style and weight.
-	bool LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+	bool LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
 		bool fallback_face) override;
 
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match

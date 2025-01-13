@@ -104,7 +104,7 @@ void FontProvider::ReleaseFontResources()
 		name_family.second->ReleaseFontResources();
 }
 
-bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight)
+bool FontProvider::LoadFontFace(const String& file_name, int face_index, bool fallback_face, Style::FontWeight weight)
 {
 	Rml::FileInterface* file_interface = Rml::GetFileInterface();
 	Rml::FileHandle handle = file_interface->Open(file_name);
@@ -122,28 +122,28 @@ bool FontProvider::LoadFontFace(const String& file_name, bool fallback_face, Sty
 	file_interface->Read(buffer, length, handle);
 	file_interface->Close(handle);
 
-	bool result = Get().LoadFontFace({buffer, length}, fallback_face, std::move(buffer_ptr), file_name, {}, Style::FontStyle::Normal, weight);
+	bool result = Get().LoadFontFace({buffer, length}, face_index, fallback_face, std::move(buffer_ptr), file_name, {}, Style::FontStyle::Normal, weight);
 
 	return result;
 }
 
-bool FontProvider::LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
+bool FontProvider::LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight,
 	bool fallback_face)
 {
 	const String source = "memory";
 
-	bool result = Get().LoadFontFace(data, fallback_face, nullptr, source, font_family, style, weight);
+	bool result = Get().LoadFontFace(data, face_index, fallback_face, nullptr, source, font_family, style, weight);
 
 	return result;
 }
 
-bool FontProvider::LoadFontFace(Span<const byte> data, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source, String font_family,
+bool FontProvider::LoadFontFace(Span<const byte> data, int face_index, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source, String font_family,
 	Style::FontStyle style, Style::FontWeight weight)
 {
 	using Style::FontWeight;
 
 	Vector<Rml::FaceVariation> face_variations;
-	if (!Rml::FreeType::GetFaceVariations(data, face_variations))
+	if (!Rml::FreeType::GetFaceVariations(data, face_variations, face_index))
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to load font face from '%s': Invalid or unsupported font face file format.", source.c_str());
 		return false;
@@ -200,7 +200,7 @@ bool FontProvider::LoadFontFace(Span<const byte> data, bool fallback_face, Uniqu
 
 	for (const Rml::FaceVariation& variation : load_variations)
 	{
-		FontFaceHandleFreetype ft_face = Rml::FreeType::LoadFace(data, source, variation.named_instance_index);
+		FontFaceHandleFreetype ft_face = Rml::FreeType::LoadFace(data, source, face_index, variation.named_instance_index);
 		if (!ft_face)
 			return false;
 

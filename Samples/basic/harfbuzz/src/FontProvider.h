@@ -67,10 +67,10 @@ public:
 	static FontFaceHandleHarfBuzz* GetFontFaceHandle(const String& family, Style::FontStyle style, Style::FontWeight weight, int size);
 
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
-	static bool LoadFontFace(const String& file_name, bool fallback_face, Style::FontWeight weight = Style::FontWeight::Auto);
+	static bool LoadFontFace(const String& file_name, int face_index, bool fallback_face, Style::FontWeight weight = Style::FontWeight::Auto);
 
 	/// Adds a new font face from memory.
-	static bool LoadFontFace(Span<const byte> data, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
+	static bool LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
 
 	/// Return the number of fallback font faces.
 	static int CountFallbackFontFaces();
@@ -87,7 +87,7 @@ private:
 
 	static FontProvider& Get();
 
-	bool LoadFontFace(Span<const byte> data, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source, String font_family,
+	bool LoadFontFace(Span<const byte> data, int face_index, bool fallback_face, UniquePtr<byte[]> face_memory, const String& source, String font_family,
 		Style::FontStyle style,
 		Style::FontWeight weight);
 
