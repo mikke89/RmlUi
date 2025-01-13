@@ -2140,6 +2140,16 @@ const Gfx::FramebufferData& RenderInterface_GL3::RenderLayerStack::EnsureFramebu
 	return fb;
 }
 
+const Rml::Matrix4f& RenderInterface_GL3::GetTransform() const
+{
+	return transform;
+}
+
+void RenderInterface_GL3::ResetProgram()
+{
+	UseProgram(ProgramId::None);
+}
+
 bool RmlGL3::Initialize(Rml::String* out_message)
 {
 #if defined RMLUI_PLATFORM_EMSCRIPTEN

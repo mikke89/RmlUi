@@ -100,6 +100,11 @@ public:
 	// Can be passed to RenderGeometry() to leave the bound texture and used program unchanged.
 	static constexpr Rml::TextureHandle TexturePostprocess = Rml::TextureHandle(-2);
 
+	// -- Utility functions for clients --
+
+	const Rml::Matrix4f& GetTransform() const;
+	void ResetProgram();
+
 private:
 	void UseProgram(ProgramId program_id);
 	int GetUniformLocation(UniformId uniform_id) const;
