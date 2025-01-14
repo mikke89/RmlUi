@@ -205,7 +205,7 @@ Rml::TextureHandle RenderInterface_SDL::LoadTexture(Rml::Vector2i& texture_dimen
 
 Rml::TextureHandle RenderInterface_SDL::GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions)
 {
-	RMLUI_ASSERT(source.data() && source.size() == source_dimensions.x * source_dimensions.y * 4);
+	RMLUI_ASSERT(source.data() && source.size() == size_t(source_dimensions.x * source_dimensions.y * 4));
 
 #if SDL_MAJOR_VERSION >= 3
 	auto CreateSurface = [&]() {
