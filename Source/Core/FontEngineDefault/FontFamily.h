@@ -60,6 +60,8 @@ public:
 	/// @return True if the face was loaded successfully, false otherwise.
 	FontFace* AddFace(FontFaceHandleFreetype ft_face, Style::FontStyle style, Style::FontWeight weight, UniquePtr<byte[]> face_memory);
 
+	void OnBeginFrame();
+
 	/// Releases resources owned by sized font faces, including their textures and rendered glyphs.
 	void ReleaseFontResources();
 

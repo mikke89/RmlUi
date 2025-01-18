@@ -39,6 +39,8 @@ void FontEngineInterface::Initialize() {}
 
 void FontEngineInterface::Shutdown() {}
 
+void FontEngineInterface::OnBeginFrame() {}
+
 bool FontEngineInterface::LoadFontFace(const String& /*file_path*/, int /*face_index*/, bool /*fallback_face*/, Style::FontWeight /*weight*/)
 {
 	return false;
@@ -78,6 +80,11 @@ int FontEngineInterface::GenerateString(RenderManager& /*render_manager*/, FontF
 	const TextShapingContext& /*text_shaping_context*/, TexturedMeshList& /*mesh_list*/)
 {
 	return 0;
+}
+
+bool FontEngineInterface::EnsureGlyphs(FontFaceHandle /*handle*/, StringView /*string*/)
+{
+	return true;
 }
 
 int FontEngineInterface::GetVersion(FontFaceHandle /*handle*/)

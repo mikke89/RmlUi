@@ -69,6 +69,13 @@ void FontProvider::Shutdown()
 	FreeType::Shutdown();
 }
 
+void FontProvider::OnBeginFrame()
+{
+	auto &font_families = Get().font_families;
+	for (auto iterator = font_families.begin(); iterator != font_families.end(); ++iterator)
+		iterator->second->OnBeginFrame();
+}
+
 FontProvider& FontProvider::Get()
 {
 	RMLUI_ASSERT(g_font_provider);

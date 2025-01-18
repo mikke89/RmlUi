@@ -40,6 +40,8 @@ public:
 	/// Called when RmlUi is being shut down.
 	void Shutdown() override;
 
+	void OnBeginFrame() override;
+
 	/// Adds a new font face to the database. The face's family, style and weight will be determined from the face itself.
 	bool LoadFontFace(const String& file_name, int face_index, bool fallback_face, Style::FontWeight weight) override;
 
@@ -65,6 +67,8 @@ public:
 	int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle effects_handle, StringView string,
 		Vector2f position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context,
 		TexturedMeshList& mesh_list) override;
+
+	bool EnsureGlyphs(FontFaceHandle face_handle, StringView string) override;
 
 	/// Returns the current version of the font face.
 	int GetVersion(FontFaceHandle handle) override;

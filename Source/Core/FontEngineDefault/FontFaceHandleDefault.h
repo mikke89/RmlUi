@@ -35,7 +35,9 @@
 #include "../../../Include/RmlUi/Core/Geometry.h"
 #include "../../../Include/RmlUi/Core/Texture.h"
 #include "../../../Include/RmlUi/Core/Traits.h"
+#include "../../../Include/RmlUi/Core/Types.h"
 #include "FontTypes.h"
+#include "LruList.h"
 
 namespace Rml {
 
@@ -55,6 +57,8 @@ public:
 	const FontMetrics& GetFontMetrics() const;
 
 	const FontGlyphMap& GetGlyphs() const;
+
+	void PurgeUnusedGlyphs();
 
 	/// Returns the width a string will take up if rendered with this handle.
 	/// @param[in] string The string to measure.
@@ -88,6 +92,8 @@ public:
 	/// @return The width, in pixels, of the string geometry.
 	int GenerateString(RenderManager& render_manager, TexturedMeshList& mesh_list, StringView string, Vector2f position, ColourbPremultiplied colour,
 		float opacity, float letter_spacing, int layer_configuration);
+	
+	bool EnsureGlyphs(StringView string);
 
 	/// Version is changed whenever the layers are dirtied, requiring regeneration of string geometry.
 	int GetVersion() const;
@@ -117,7 +123,12 @@ private:
 	// (Re-)generate a layer in this font face handle.
 	bool GenerateLayer(FontFaceLayer* layer);
 
+	using GlyphLruList = LruList<Character>;
 	FontGlyphMap glyphs;
+	GlyphLruList glyph_lru_list;
+	UnorderedMap<Character, GlyphLruList::Handle> glyph_lru_list_handle_map;
+	Vector<Character> new_characters;
+	Vector<const FontGlyphMap::value_type*> new_glyphs;
 
 	struct EffectLayerPair {
 		const FontEffect* font_effect;

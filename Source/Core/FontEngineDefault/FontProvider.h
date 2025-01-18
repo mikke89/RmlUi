@@ -48,6 +48,7 @@ class FontProvider {
 public:
 	static bool Initialise();
 	static void Shutdown();
+	static void OnBeginFrame();
 
 	/// Returns a handle to a font face that can be used to position and render text. This will return the closest match
 	/// it can find, but in the event a font family is requested that does not exist, nullptr will be returned instead of a
