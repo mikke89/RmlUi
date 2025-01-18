@@ -33,7 +33,9 @@
 #include "../../../Include/RmlUi/Core/FontGlyph.h"
 #include "../../../Include/RmlUi/Core/Geometry.h"
 #include "../../../Include/RmlUi/Core/MeshUtilities.h"
+#include "../../../Include/RmlUi/Core/Types.h"
 #include "../TextureLayout.h"
+#include "SpriteSet.h"
 
 namespace Rml {
 
@@ -57,7 +59,10 @@ public:
 	/// @param[in] clone The layer to optionally clone geometry and texture data from.
 	/// @param[in] clone_glyph_origins True to keep the character origins from the cloned layer, false to generate new ones.
 	/// @return True if the layer was generated successfully, false if not.
-	bool Generate(const FontFaceHandleDefault* handle, const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false);
+	bool Generate(
+		const FontFaceHandleDefault* handle, const Vector<const FontGlyphMap::value_type*> &newGlyphs,
+		const FontFaceLayer* clone = nullptr, bool clone_glyph_origins = false
+	);
 
 	/// Generates the texture data for a layer (for the texture database).
 	/// @param[out] texture_data The generated texture data.
@@ -87,6 +92,8 @@ public:
 		Mesh& mesh = mesh_list[box.texture_index].mesh;
 		MeshUtilities::GenerateQuad(mesh, (position + box.origin).Round(), box.dimensions, colour, box.texcoords[0], box.texcoords[1]);
 	}
+
+	void RemoveGlyphs(const Vector<Character> &characters);
 
 	/// Returns the effect used to generate the layer.
 	const FontEffect* GetFontEffect() const;
@@ -120,9 +127,13 @@ private:
 	TextureList textures_owned;
 	TextureList* textures_ptr = &textures_owned;
 
-	TextureLayout texture_layout;
+	//TextureLayout texture_layout;
 	CharacterMap character_boxes;
 	Colourb colour;
+
+	SpriteSet sprite_set{4, 1024, 1};
+	UnorderedMap<Character, SpriteSet::Handle> sprite_set_handle_map;
+	Vector<const unsigned char*> sprite_set_textures;
 };
 
 } // namespace Rml

@@ -17,6 +17,9 @@ target_sources(rmlui_core PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/FontTypes.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FreeTypeInterface.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FreeTypeInterface.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/LruList.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SpriteSet.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/SpriteSet.h"
 )
 
 target_compile_definitions(rmlui_core PRIVATE "RMLUI_FONT_ENGINE_FREETYPE")
