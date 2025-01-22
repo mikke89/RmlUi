@@ -611,12 +611,12 @@ public:
 	/// Return the computed values of the element's properties. These values are updated as appropriate on every Context::Update.
 	const ComputedValues& GetComputedValues() const;
 
+	/// Updates definition, computed values, and runs OnPropertyChange on this element.
+	void UpdateProperties(float dp_ratio, Vector2f vp_dimensions);
+
 protected:
 	void Update(float dp_ratio, Vector2f vp_dimensions);
 	void Render();
-
-	/// Updates definition, computed values, and runs OnPropertyChange on this element.
-	void UpdateProperties(float dp_ratio, Vector2f vp_dimensions);
 
 	/// Forces the element to generate a local stacking context, regardless of the value of its z-index property.
 	void ForceLocalStackingContext();
