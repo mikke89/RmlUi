@@ -33,6 +33,8 @@
 #include "Geometry.h"
 #include "Header.h"
 
+#include <string_view>
+
 namespace Rml {
 
 /**
@@ -47,7 +49,7 @@ public:
 	virtual ~ElementText();
 
 	/// Sets the raw string this text element contains. The actual rendered text may be different due to whitespace formatting.
-	void SetText(const String& text);
+	void SetText(std::string_view text);
 	/// Returns the raw string this text element contains.
 	const String& GetText() const;
 

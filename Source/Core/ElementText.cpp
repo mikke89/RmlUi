@@ -76,7 +76,7 @@ ElementText::ElementText(const String& tag) :
 
 ElementText::~ElementText() {}
 
-void ElementText::SetText(const String& _text)
+void ElementText::SetText(std::string_view _text)
 {
 	if (text != _text)
 	{
