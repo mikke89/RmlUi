@@ -131,7 +131,7 @@ bool FontFaceLayer::Generate(
 			{
 				if (glyph.color_format == ColorFormat::RGBA8)
 				{
-					sprite_set_handle = sprite_set.add(glyph_dimensions.x, glyph_dimensions.y, glyph.bitmap_data);
+					sprite_set_handle = sprite_set.Add(glyph_dimensions.x, glyph_dimensions.y, glyph.bitmap_data);
 				}
 				else
 				{
@@ -140,19 +140,19 @@ bool FontFaceLayer::Generate(
 					for (int i = 0; i < glyph_pixel_count; ++i)
 						for (int c = 0; c < 4; ++c)
 							unpacked_bitmap[i * 4 + c] = glyph.bitmap_data[i];
-					sprite_set_handle = sprite_set.add(glyph_dimensions.x, glyph_dimensions.y, unpacked_bitmap.data());
+					sprite_set_handle = sprite_set.Add(glyph_dimensions.x, glyph_dimensions.y, unpacked_bitmap.data());
 				}
 			}
 			else
 			{
 				Vector<unsigned char> processed_bitmap(glyph_dimensions.x * glyph_dimensions.y * 4);
 				effect->GenerateGlyphTexture(processed_bitmap.data(), glyph_dimensions, glyph_dimensions.x * 4, glyph);
-				sprite_set_handle = sprite_set.add(glyph_dimensions.x, glyph_dimensions.y, processed_bitmap.data());
+				sprite_set_handle = sprite_set.Add(glyph_dimensions.x, glyph_dimensions.y, processed_bitmap.data());
 			}
 			sprite_set_handle_map.emplace(character, sprite_set_handle);
-			const auto sprite_data = sprite_set.get(sprite_set_handle);
+			const auto sprite_data = sprite_set.Get(sprite_set_handle);
 			// Set the character's texture index.
-			box.texture_index = sprite_data.textureId;
+			box.texture_index = sprite_data.texture_id;
 			// Generate the character's texture coordinates.
 			const float texture_size = 1024.f;
 			box.texcoords[0].x = static_cast<float>(sprite_data.x) / texture_size;
@@ -192,7 +192,7 @@ bool FontFaceLayer::Generate(
 		}
 		*/
 
-		sprite_set_textures = sprite_set.getTextures();
+		sprite_set_textures = sprite_set.GetTextures();
 		const FontEffect* effect_ptr = effect.get();
 		const int handle_version = handle->GetVersion();
 
@@ -300,7 +300,7 @@ void FontFaceLayer::RemoveGlyphs(const Vector<Character> &characters)
 	for (const auto character : characters)
 	{
 		character_boxes.erase(character);
-		sprite_set.remove(sprite_set_handle_map[character]);
+		sprite_set.Remove(sprite_set_handle_map[character]);
 		sprite_set_handle_map.erase(character);
 	}
 }
