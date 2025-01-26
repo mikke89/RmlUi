@@ -805,10 +805,12 @@ RenderInterface_GL3::~RenderInterface_GL3()
 	}
 }
 
-void RenderInterface_GL3::SetViewport(int width, int height)
+void RenderInterface_GL3::SetViewport(int width, int height, int offset_x, int offset_y)
 {
 	viewport_width = Rml::Math::Max(width, 1);
 	viewport_height = Rml::Math::Max(height, 1);
+	viewport_offset_x = offset_x;
+	viewport_offset_y = offset_y;
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 }
 
@@ -909,6 +911,7 @@ void RenderInterface_GL3::EndFrame()
 
 	// Draw to backbuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(viewport_offset_x, viewport_offset_y, viewport_width, viewport_height);
 
 	// Assuming we have an opaque background, we can just write to it with the premultiplied alpha blend mode and we'll get the correct result.
 	// Instead, if we had a transparent destination that didn't use premultiplied alpha, we would need to perform a manual un-premultiplication step.
