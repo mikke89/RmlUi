@@ -43,6 +43,7 @@ endfunction()
 		- package_name: Name of the package to search for
 		- target_name: Name of the CMake target the project will link against
 		- success_message: Message to show when the target exists (optional)
+	Note: The name and signature of this function should match the macro in `RmlUiConfig.cmake.in`.
 ]]
 function(report_dependency_found package_name target_name)
 	set(message "")
@@ -61,7 +62,8 @@ endfunction()
 		- friendly_name: Friendly name of the dependency
 		- package_name: Name of the package to search for
 		- target_name: Name of the CMake target the project will link against
-		- success_message: Message to show when the target exists (optional)
+		- success_message [optional]: Message to show when the target exists
+	Note: The name and signature of this function should match the macro in `RmlUiConfig.cmake.in`.
 ]]
 function(report_dependency_found_or_error friendly_name package_name target_name)
 	if(NOT TARGET ${target_name})
