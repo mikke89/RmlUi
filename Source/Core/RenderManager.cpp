@@ -104,7 +104,7 @@ Texture RenderManager::LoadTexture(const String& source, const String& document_
 	else
 		GetSystemInterface()->JoinPath(path, StringUtilities::Replace(document_path, '|', ':'), source);
 
-	return Texture(this, texture_database->file_database.LoadTexture(render_interface, path));
+	return Texture(this, texture_database->file_database.InsertTexture(path));
 }
 
 CallbackTexture RenderManager::MakeCallbackTexture(CallbackTextureFunction callback)
