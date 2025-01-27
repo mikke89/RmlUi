@@ -110,6 +110,8 @@ public:
 	/// @note The destruction of the document is deferred until the next call to Context::Update().
 	void Close();
 
+	void Focus(FocusFlag focus_flag = FocusFlag::Auto);
+
 	/// Creates the named element.
 	/// @param[in] name The tag name of the element.
 	ElementPtr CreateElement(const String& name);

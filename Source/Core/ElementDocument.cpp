@@ -383,12 +383,26 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 	case ModalFlag::Keep: break;
 	}
 
+	// Set to visible and switch focus if necessary.
+	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+
+	// Update the document now, otherwise the focusing methods below do not think we are visible. This is also important
+	// to ensure correct layout for any event handlers, such as for focused input fields to submit the proper caret
+	// position.
+	UpdateDocument();
+
+	Focus(focus_flag);
+
+	DispatchEvent(EventId::Show, Dictionary());
+}
+
+void ElementDocument::Focus(FocusFlag focus_flag)
+{
 	bool focus = false;
 	bool autofocus = false;
 	bool focus_previous = false;
 
-	switch (focus_flag)
-	{
+	switch (focus_flag) {
 	case FocusFlag::None: break;
 	case FocusFlag::Document: focus = true; break;
 	case FocusFlag::Keep:
@@ -401,39 +415,25 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 		break;
 	}
 
-	// Set to visible and switch focus if necessary.
-	SetProperty(PropertyId::Visibility, Property(Style::Visibility::Visible));
+	if (focus) {
+		Element *focus_element = this;
 
-	// Update the document now, otherwise the focusing methods below do not think we are visible. This is also important
-	// to ensure correct layout for any event handlers, such as for focused input fields to submit the proper caret
-	// position.
-	UpdateDocument();
+		if (autofocus) {
+			Element *first_element = nullptr;
+			Element *element = FindNextTabElement(this, true);
 
-	if (focus)
-	{
-		Element* focus_element = this;
-
-		if (autofocus)
-		{
-			Element* first_element = nullptr;
-			Element* element = FindNextTabElement(this, true);
-
-			while (element && element != first_element)
-			{
+			while (element && element != first_element) {
 				if (!first_element)
 					first_element = element;
 
-				if (element->HasAttribute("autofocus"))
-				{
+				if (element->HasAttribute("autofocus")) {
 					focus_element = element;
 					break;
 				}
 
 				element = FindNextTabElement(element, true);
 			}
-		}
-		else if (focus_previous)
-		{
+		} else if (focus_previous) {
 			focus_element = GetFocusLeafNode();
 		}
 
@@ -442,8 +442,6 @@ void ElementDocument::Show(ModalFlag modal_flag, FocusFlag focus_flag)
 		if (focused && focus_element != this)
 			focus_element->ScrollIntoView(false);
 	}
-
-	DispatchEvent(EventId::Show, Dictionary());
 }
 
 void ElementDocument::Hide()
