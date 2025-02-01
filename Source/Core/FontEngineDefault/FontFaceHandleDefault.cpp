@@ -62,6 +62,8 @@ bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_siz
 
 	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics, load_default_glyphs))
 		return false;
+	for (auto iterator = glyphs.begin(); iterator != glyphs.end(); ++iterator)
+		new_glyphs.push_back(&*iterator);
 
 	has_kerning = FreeType::HasKerning(ft_face);
 	FillKerningPairCache();
@@ -69,6 +71,8 @@ bool FontFaceHandleDefault::Initialize(FontFaceHandleFreetype face, int font_siz
 	// Generate the default layer and layer configuration.
 	base_layer = GetOrCreateLayer(nullptr);
 	layer_configurations.push_back(LayerConfiguration{base_layer});
+
+	new_glyphs.clear();
 
 	return true;
 }
@@ -81,6 +85,21 @@ const FontMetrics& FontFaceHandleDefault::GetFontMetrics() const
 const FontGlyphMap& FontFaceHandleDefault::GetGlyphs() const
 {
 	return glyphs;
+}
+
+void FontFaceHandleDefault::PurgeUnusedGlyphs() {
+	glyph_lru_list.tick();
+	Vector<Character> purged_characters;
+	while (glyph_lru_list.getLastEntryAge() > 600) {
+		const Character character = *glyph_lru_list.getLast();
+		glyphs.erase(character);
+		glyph_lru_list_handle_map.erase(character);
+		glyph_lru_list.evictLast();
+		purged_characters.push_back(character);
+	}
+	if (!purged_characters.empty())
+		for (auto& pair : layers)
+			pair.layer->RemoveGlyphs(purged_characters);
 }
 
 int FontFaceHandleDefault::GetStringWidth(StringView string, float letter_spacing, Character prior_character)
@@ -269,6 +288,29 @@ int FontFaceHandleDefault::GenerateString(RenderManager& render_manager, Texture
 	return Math::Max(line_width, 0);
 }
 
+bool FontFaceHandleDefault::EnsureGlyphs(StringView string)
+{
+	bool all_alive = true;
+	for (auto it_string = StringIteratorU8(string); it_string; ++it_string)
+	{
+		Character character = *it_string;
+		if ((char32_t)character < (char32_t)' ')
+			continue;
+		if (glyphs.find(character) == glyphs.end())
+		{
+			new_characters.push_back(character);
+			all_alive = false;
+		}
+		else
+		{
+			glyph_lru_list.ping(glyph_lru_list_handle_map[character]);
+		}
+	}
+	if (!all_alive)
+		is_layers_dirty = true;
+	return all_alive;
+}
+
 bool FontFaceHandleDefault::UpdateLayersOnDirty()
 {
 	bool result = false;
@@ -282,11 +324,16 @@ bool FontFaceHandleDefault::UpdateLayersOnDirty()
 		// Regenerate all the layers.
 		// Note: The layer regeneration needs to happen in the order in which the layers were created,
 		// otherwise we may end up cloning a layer which has not yet been regenerated. This means trouble!
+		for (const auto character : new_characters)
+			new_glyphs.push_back(&*glyphs.find(character));
+
 		for (auto& pair : layers)
 		{
 			GenerateLayer(pair.layer.get());
 		}
 
+		new_characters.clear();
+		new_glyphs.clear();
 		result = true;
 	}
 
@@ -300,8 +347,9 @@ int FontFaceHandleDefault::GetVersion() const
 
 bool FontFaceHandleDefault::AppendGlyph(Character character)
 {
-	bool result = FreeType::AppendGlyph(ft_face, metrics.size, character, glyphs);
-	return result;
+	if (!FreeType::AppendGlyph(ft_face, metrics.size, character, glyphs))
+		return false;
+	return true;
 }
 
 void FontFaceHandleDefault::FillKerningPairCache()
@@ -377,6 +425,8 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, b
 				RMLUI_ERROR;
 				return nullptr;
 			}
+			glyph_lru_list_handle_map.emplace(character, glyph_lru_list.add(character));
+			new_characters.push_back(character);
 
 			is_layers_dirty = true;
 		}
@@ -409,6 +459,8 @@ const FontGlyph* FontFaceHandleDefault::GetOrAppendGlyph(Character& character, b
 				if (it_glyph == glyphs.end())
 					return nullptr;
 			}
+			glyph_lru_list_handle_map.emplace(character, glyph_lru_list.add(character));
+			new_characters.push_back(character);
 		}
 		else
 		{
@@ -448,7 +500,7 @@ bool FontFaceHandleDefault::GenerateLayer(FontFaceLayer* layer)
 
 	if (!font_effect)
 	{
-		result = layer->Generate(this);
+		result = layer->Generate(this, new_glyphs);
 	}
 	else
 	{
@@ -471,7 +523,7 @@ bool FontFaceHandleDefault::GenerateLayer(FontFaceLayer* layer)
 		}
 
 		// Create a new layer.
-		result = layer->Generate(this, clone, clone_glyph_origins);
+		result = layer->Generate(this, new_glyphs, clone, clone_glyph_origins);
 
 		// Cache the layer in the layer cache if it generated its own textures (ie, didn't clone).
 		if (!clone)
