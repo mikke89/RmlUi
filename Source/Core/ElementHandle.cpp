@@ -45,10 +45,12 @@ public:
 	using MoveData = ElementHandle::MoveData;
 	using SizeData = ElementHandle::SizeData;
 
-	ElementHandleTargetData(Element* target, Context* context, const Array<NumericValue, NUM_EDGES>& edge_margin) :
-		target(target), computed(target->GetComputedValues()), box(target->GetBox()), parent_box(GetParentBox(target, context)),
+	ElementHandleTargetData(Element* target, Context* context, const Array<NumericValue, NUM_EDGES>& edge_margin, bool size_edge_right,
+		bool size_edge_bottom) :
+		target(target),
+		computed(target->GetComputedValues()), box(target->GetBox()), parent_box(GetParentBox(target, context)),
 		containing_block(target->GetContainingBlock()), position(computed.position()),
-		resolved_edge_margin(ResolveEdgeMargin(target, box, edge_margin))
+		resolved_edge_margin(ResolveEdgeMargin(target, box, edge_margin)), size_edge_right(size_edge_right), size_edge_bottom(size_edge_bottom)
 	{
 		SetDefiniteMargins();
 	}
@@ -68,8 +70,7 @@ public:
 	//   left & right & width | left += dx;             | width += dx
 	//
 	// For simplicity, this table only specifies the horizontal direction. The same behavior applies for the
-	// corresponding properties in the vertical direction. For now, we assume that the handle is anchored to the
-	// bottom-right corner of the target element.
+	// corresponding properties in the vertical direction.
 
 	MoveData GetMoveData(Vector2f& drag_delta_min, Vector2f& drag_delta_max) const
 	{
@@ -99,10 +100,13 @@ public:
 		SizeData data = {};
 
 		data.original_size = box.GetSize(computed.box_sizing() == BoxSizing::BorderBox ? BoxArea::Border : BoxArea::Content);
+		data.original_position_top_left = {GetPositionLeft(), GetPositionTop()};
 		data.original_position_bottom_right = {GetPositionRight(), GetPositionBottom()};
 
 		data.bottom_right.x = (computed.right().type != Right::Auto);
 		data.bottom_right.y = (computed.bottom().type != Bottom::Auto);
+		data.top_left.x = (!data.bottom_right.x || computed.left().type != Left::Auto);
+		data.top_left.y = (!data.bottom_right.y || computed.top().type != Top::Auto);
 		data.width_height.x = (computed.left().type == Left::Auto || computed.right().type == Right::Auto || computed.width().type != Width::Auto);
 		data.width_height.y = (computed.top().type == Top::Auto || computed.bottom().type == Bottom::Auto || computed.height().type != Height::Auto);
 
@@ -114,11 +118,21 @@ public:
 			ResolveValueOr(computed.max_width(), containing_block.x, FLT_MAX),
 			ResolveValueOr(computed.max_height(), containing_block.y, FLT_MAX),
 		};
-		const Vector2f distance_to_bottom_right = DistanceToBottomRight(DistanceToTopLeft());
+		const Vector2f distance_to_top_left = DistanceToTopLeft();
+		const Vector2f distance_to_bottom_right = DistanceToBottomRight(distance_to_top_left);
 
 		drag_delta_min = Math::Max(drag_delta_min, min_size - data.original_size);
 		drag_delta_max = Math::Min(drag_delta_max, max_size - data.original_size);
-		drag_delta_max = Math::Min(drag_delta_max, Vector2f{-resolved_edge_margin[RIGHT], -resolved_edge_margin[BOTTOM]} + distance_to_bottom_right);
+
+		if (size_edge_right)
+			drag_delta_max.x = Math::Min(drag_delta_max.x, distance_to_bottom_right.x - resolved_edge_margin[RIGHT]);
+		else
+			drag_delta_max.x = Math::Min(drag_delta_max.x, distance_to_top_left.x - resolved_edge_margin[LEFT]);
+
+		if (size_edge_bottom)
+			drag_delta_max.y = Math::Min(drag_delta_max.y, distance_to_bottom_right.y - resolved_edge_margin[BOTTOM]);
+		else
+			drag_delta_max.y = Math::Min(drag_delta_max.y, distance_to_top_left.y - resolved_edge_margin[TOP]);
 
 		return data;
 	}
@@ -216,6 +230,8 @@ private:
 	const Vector2f containing_block;
 	const Style::Position position;
 	const Array<float, NUM_EDGES> resolved_edge_margin;
+	const bool size_edge_right;
+	const bool size_edge_bottom;
 };
 
 class HandleEdgeMarginParser {
@@ -252,14 +268,14 @@ public:
 	}
 };
 
-ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0)
+ElementHandle::ElementHandle(const String& tag) : Element(tag), drag_start(0, 0), drag_from_bottom(false), drag_from_right(false)
 {
 	// Make sure we can be dragged!
 	SetProperty(PropertyId::Drag, Property(Style::Drag::Drag));
 
+	initialised = false;
 	move_target = nullptr;
 	size_target = nullptr;
-	initialised = false;
 }
 
 ElementHandle::~ElementHandle() {}
@@ -314,15 +330,31 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 			drag_delta_min = {-FLT_MAX, -FLT_MAX};
 			drag_delta_max = {FLT_MAX, FLT_MAX};
 
+			Element* offset_parent = GetOffsetParent();
+			if (offset_parent)
+			{
+				Vector2f parent_top_left = offset_parent->GetAbsoluteOffset();
+				Vector2f parent_bottom_right = parent_top_left + offset_parent->GetBox().GetSize(BoxArea::Border);
+
+				float distance_to_left = fabs(drag_start.x - parent_top_left.x);
+				float distance_to_top = fabs(drag_start.y - parent_top_left.y);
+
+				float distance_to_right = fabs(drag_start.x - parent_bottom_right.x);
+				float distance_to_bottom = fabs(drag_start.y - parent_bottom_right.y);
+
+				drag_from_bottom = distance_to_bottom < distance_to_top;
+				drag_from_right = distance_to_right < distance_to_left;
+			}
+
 			if (move_target && context)
 			{
-				ElementHandleTargetData move_target_data(move_target, context, edge_margin);
+				ElementHandleTargetData move_target_data(move_target, context, edge_margin, drag_from_right, drag_from_bottom);
 				move_data = move_target_data.GetMoveData(drag_delta_min, drag_delta_max);
 			}
 
 			if (size_target && context)
 			{
-				ElementHandleTargetData size_target_data(size_target, context, edge_margin);
+				ElementHandleTargetData size_target_data(size_target, context, edge_margin, drag_from_right, drag_from_bottom);
 				size_data = size_target_data.GetSizeData(drag_delta_min, drag_delta_max);
 			}
 
@@ -331,7 +363,7 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 		}
 		else if (event == EventId::Drag)
 		{
-			const Vector2f delta = Math::Clamp(event.GetUnprojectedMouseScreenPos() - drag_start, drag_delta_min, drag_delta_max);
+			Vector2f delta = Math::Clamp(event.GetUnprojectedMouseScreenPos() - drag_start, drag_delta_min, drag_delta_max);
 
 			if (move_target)
 			{
@@ -350,8 +382,46 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 
 			if (size_target)
 			{
+				Vector2f size_delta;
+				if (drag_from_bottom)
+					size_delta.y = event.GetUnprojectedMouseScreenPos().y - drag_start.y;
+				else
+					size_delta.y = drag_start.y - event.GetUnprojectedMouseScreenPos().y;
+
+				if (drag_from_right)
+					size_delta.x = event.GetUnprojectedMouseScreenPos().x - drag_start.x;
+				else
+					size_delta.x = drag_start.x - event.GetUnprojectedMouseScreenPos().x;
+
+				delta = Math::Clamp(size_delta, drag_delta_min, drag_delta_max);
 				const Vector2f new_size = Math::Max((size_data.original_size + delta).Round(), Vector2f(0.f));
-				const Vector2f new_position_bottom_right = (size_data.original_position_bottom_right - delta).Round();
+				Vector2f new_position_bottom_right;
+				Vector2f new_position_top_left;
+
+				if (drag_from_bottom)
+				{
+					new_position_bottom_right.y = size_data.original_position_bottom_right.y - delta.y;
+					new_position_top_left.y = size_data.original_position_top_left.y;
+				}
+				else
+				{
+					new_position_bottom_right.y = size_data.original_position_bottom_right.y;
+					new_position_top_left.y = size_data.original_position_top_left.y - delta.y;
+				}
+
+				if (drag_from_right)
+				{
+					new_position_bottom_right.x = size_data.original_position_bottom_right.x - delta.x;
+					new_position_top_left.x = size_data.original_position_top_left.x;
+				}
+				else
+				{
+					new_position_bottom_right.x = size_data.original_position_bottom_right.x;
+					new_position_top_left.x = size_data.original_position_top_left.x - delta.x;
+				}
+
+				new_position_bottom_right = new_position_bottom_right.Round();
+				new_position_top_left = new_position_top_left.Round();
 
 				if (size_data.width_height.x)
 					size_target->SetProperty(PropertyId::Width, Property(new_size.x, Unit::PX));
@@ -361,6 +431,10 @@ void ElementHandle::ProcessDefaultAction(Event& event)
 					size_target->SetProperty(PropertyId::Right, Property(new_position_bottom_right.x, Unit::PX));
 				if (size_data.bottom_right.y)
 					size_target->SetProperty(PropertyId::Bottom, Property(new_position_bottom_right.y, Unit::PX));
+				if (size_data.top_left.x)
+					size_target->SetProperty(PropertyId::Left, Property(new_position_top_left.x, Unit::PX));
+				if (size_data.top_left.y)
+					size_target->SetProperty(PropertyId::Top, Property(new_position_top_left.y, Unit::PX));
 			}
 
 			Dictionary parameters;

@@ -57,8 +57,10 @@ public:
 
 	struct SizeData {
 		Vector2f original_size;
+		Vector2f original_position_top_left;
 		Vector2f original_position_bottom_right;
 		Vector2<bool> width_height;
+		Vector2<bool> top_left;
 		Vector2<bool> bottom_right;
 	};
 
@@ -74,6 +76,8 @@ protected:
 	Vector2f drag_start;
 	Vector2f drag_delta_min;
 	Vector2f drag_delta_max;
+	bool drag_from_bottom;
+	bool drag_from_right;
 
 	MoveData move_data;
 	SizeData size_data;
