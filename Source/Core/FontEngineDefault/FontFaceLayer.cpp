@@ -221,9 +221,9 @@ bool FontFaceLayer::Generate(
 	return true;
 }
 
-bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& glyphs)
+bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& /*glyphs*/)
 {
-	if (texture_id < 0 || texture_id > sprite_set_textures.size())
+	if (texture_id < 0 || texture_id > static_cast<int>(sprite_set_textures.size()))
 		return false;
 
 	const unsigned char *const source = sprite_set_textures[texture_id];
