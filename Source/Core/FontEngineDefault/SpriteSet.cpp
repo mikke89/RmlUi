@@ -120,9 +120,9 @@ SpriteSet::Handle SpriteSet::Add(
 	)
 	{
 		auto texture_start = page.texture_data->begin() + (top_padding_y * page_size + slot.x) * bytes_per_pixel;
-		std::fill(texture_start, texture_start + padded_width * bytes_per_pixel, 0);
+		std::fill(texture_start, texture_start + padded_width * bytes_per_pixel, static_cast<unsigned char>(0));
 		texture_start = page.texture_data->begin() + (bottom_padding_y * page_size + slot.x) * bytes_per_pixel;
-		std::fill(texture_start, texture_start + padded_width * bytes_per_pixel, 0);
+		std::fill(texture_start, texture_start + padded_width * bytes_per_pixel, static_cast<unsigned char>(0));
 	}
 	const unsigned int texture_y = shelf.y + sprite_padding;
 	for (unsigned int local_y = 0; local_y != height; ++local_y)
@@ -130,9 +130,10 @@ SpriteSet::Handle SpriteSet::Add(
 		const unsigned char* const data_start = data + local_y * row_stride * bytes_per_pixel;
 		const auto texture_start = page.texture_data->begin()
 			+ ((texture_y + local_y) * page_size + slot.x) * bytes_per_pixel;
-		std::fill(texture_start, texture_start + sprite_padding * bytes_per_pixel, 0);
+		std::fill(texture_start, texture_start + sprite_padding * bytes_per_pixel, static_cast<unsigned char>(0));
 		std::fill(
-			texture_start + (sprite_padding + width) * bytes_per_pixel, texture_start + padded_width * bytes_per_pixel, 0
+			texture_start + (sprite_padding + width) * bytes_per_pixel, texture_start + padded_width * bytes_per_pixel,
+			static_cast<unsigned char>(0)
 		);
 		std::copy(data_start, data_start + width * bytes_per_pixel, texture_start + sprite_padding * bytes_per_pixel);
 	}
@@ -466,28 +467,6 @@ Vector<const unsigned char*> SpriteSet::GetTextures() const
 		page_index = page.next_index;
 	}
 	return textures;
-}
-
-void SpriteSet::Dump(Vector<SpriteSet::SpriteData> &sprites) const
-{
-	if (first_page_index == null_index)
-		return;
-	for (
-		unsigned int shelf_index = page_pool[first_page_index].first_shelf_index;
-		shelf_index != null_index; shelf_index = shelf_pool[shelf_index].next_index
-	)
-	{
-		const unsigned int shelfY = shelf_pool[shelf_index].y;
-		for (
-			unsigned int slot_index = shelf_pool[shelf_index].first_slot_index;
-			slot_index != null_index; slot_index = slot_pool[slot_index].next_index
-		)
-		{
-			const Slot& slot = slot_pool[slot_index];
-			if (slot.allocated)
-				sprites.push_back({slot.x, shelfY, slot.width, slot.height});
-		}
-	}
 }
 
 } // namespace Rml

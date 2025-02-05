@@ -69,8 +69,6 @@ public:
 	/// @return An array of pointers to each page's texture data.
 	Vector<const unsigned char*> GetTextures() const;
 
-	void Dump(std::vector<SpriteData> &sprites) const;
-
 private:
 	struct Page {
 		unsigned int previous_index, next_index;
