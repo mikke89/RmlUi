@@ -203,7 +203,7 @@ bool FontFaceLayer::Generate(
 			CallbackTextureFunction texture_callback = [handle, effect_ptr, texture_id, handle_version](
 														   const CallbackTextureInterface& texture_interface) -> bool {
 				Vector2i dimensions;
-				Vector<byte> data;
+				Span<const byte> data;
 				if (!handle->GenerateLayerTexture(data, dimensions, effect_ptr, texture_id, handle_version) || data.empty())
 					return false;
 				if (!texture_interface.GenerateTexture(data, dimensions))
@@ -221,13 +221,13 @@ bool FontFaceLayer::Generate(
 	return true;
 }
 
-bool FontFaceLayer::GenerateTexture(Vector<byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& /*glyphs*/)
+bool FontFaceLayer::GenerateTexture(Span<const byte>& texture_data, Vector2i& texture_dimensions, int texture_id, const FontGlyphMap& /*glyphs*/)
 {
 	if (texture_id < 0 || texture_id > static_cast<int>(sprite_set_textures.size()))
 		return false;
 
 	const unsigned char *const source = sprite_set_textures[texture_id];
-	texture_data.insert(texture_data.end(), source, source + 1024 * 1024 * 4);
+	texture_data = {source, 1024 * 1024 * 4};
 	texture_dimensions = {1024, 1024};
 
 	/*
