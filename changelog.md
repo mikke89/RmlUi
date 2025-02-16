@@ -25,6 +25,7 @@ Fixes several situations with single pixel gaps and overlaps:
 - Gap of 1px between border or backgrounds of neighboring elements.
 - Overlap of 1px between border or backgrounds of neighboring elements.
 - Table cell backgrounds overlaps the table border by 1px.
+- Gap between nested elements in a flex container.
 - Clipping area offset by 1px compared to the border area.
 
 ![Single pixel gap fix examples - before and after comparisons](https://github.com/user-attachments/assets/f1b29382-4686-4fea-a4dc-ea9628669b80)
@@ -154,6 +155,7 @@ The font face will be inherited from the element it is being applied to. However
 
 ### Breaking changes
 
+- Layouts may see 1px shifts in various places due to the improvements to prevent single pixel gaps.
 - The target of the `<handle>` element will no longer move outside its containing block by default, see above for how to override this behavior.
 - Changed the signature of `MeshUtilities::GenerateBackground` and  `MeshUtilities::GenerateBackgroundBorder`.
   - They now take the new `RenderBox` class as input. The `Element::GetRenderBox` method can be used to construct it.
