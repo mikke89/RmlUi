@@ -117,7 +117,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 
 Vector2f FlexFormattingContext::GetMaxContentSize(Element* element)
 {
-	// A large but finite number is used here, since layouting doesn't always work well infinities.
+	// A large but finite number is used here, since layouting doesn't always work well with infinities.
 	const Vector2f infinity(10000.0f, 10000.0f);
 	RootBox root(infinity);
 	auto flex_container_box = MakeUnique<FlexContainer>(element, &root);

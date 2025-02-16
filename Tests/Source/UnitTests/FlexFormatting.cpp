@@ -99,7 +99,8 @@ TEST_CASE("FlexFormatting")
 
 		CAPTURE(test_case.align_items);
 		CAPTURE(test_case.flex_direction);
-		CHECK(checkbox->GetBox().GetSize() == test_case.expected_size);
+		CHECK(checkbox->GetBox().GetSize().x == doctest::Approx(test_case.expected_size.x));
+		CHECK(checkbox->GetBox().GetSize().y == doctest::Approx(test_case.expected_size.y));
 	}
 
 	document->Close();
