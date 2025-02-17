@@ -258,6 +258,23 @@ static const Vector<MatchesSelector> matches_selectors =
 	{ "G", "p#G[missing]",   false },
 	{ "B", "[unit='m']",     true }
 };
+
+struct ScopeSelector : public QuerySelector {
+	String scope_selector;
+
+	ScopeSelector(const String &scope_selector, const String &selector, const String &expected_ids) :
+		QuerySelector(selector, expected_ids),
+		scope_selector(scope_selector)
+	{
+	}
+};
+static const Vector<ScopeSelector> scope_selectors =
+{
+	{ "",       ":scope *",                  "X Y Z P A B C D D0 D1 E F F0 G H I" }, // should be equivalent to just "*"
+	{ "",       ":scope > *",                "X Y Z P I" },
+	{ "",       ":scope > *:not(:checked)",  "X Y Z P" },
+	{ "#P",     ":scope > p",                "B C D F G H" }
+};
 // clang-format on
 
 // Recursively iterate through 'element' and all of its descendants to find all
@@ -452,6 +469,36 @@ TEST_CASE("Selectors")
 
 			bool matches = start->Matches(selector.selector);
 			CHECK_MESSAGE(matches == selector.expected_result, "Matches() selector '" << selector.selector << "' from " << selector.id);
+		}
+		context->UnloadDocument(document);
+	}
+
+	SUBCASE("Scope")
+	{
+		const String document_string = doc_begin + doc_end;
+		ElementDocument* document = context->LoadDocumentFromMemory(document_string);
+		REQUIRE(document);
+
+		for (const ScopeSelector& selector : scope_selectors)
+		{
+			Element* start = !selector.scope_selector.empty() ? document->QuerySelector(selector.scope_selector) : document;
+			REQUIRE(start);
+
+			ElementList elements;
+			start->QuerySelectorAll(elements, selector.selector);
+			String matching_ids = ElementListToIds(elements);
+
+			Element* first_element = start->QuerySelector(selector.selector);
+			if (first_element)
+			{
+				CHECK_MESSAGE(first_element == elements[0], "QuerySelector does not return the first match of QuerySelectorAll.");
+			}
+			else
+			{
+				CHECK_MESSAGE(elements.empty(), "QuerySelector found nothing, while QuerySelectorAll found " << elements.size() << " element(s).");
+			}
+
+			CHECK_MESSAGE(matching_ids == selector.expected_ids, "QuerySelector: " << selector.selector);
 		}
 		context->UnloadDocument(document);
 	}
