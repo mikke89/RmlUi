@@ -144,6 +144,7 @@ The provided backends on the other hand are not intended to be used directly by 
 | OpenGL 3 (GL3)    |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
 | SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| DirectX 11        |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2D layouts.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
