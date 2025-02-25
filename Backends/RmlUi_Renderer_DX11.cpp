@@ -130,7 +130,7 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
 
 enum class ShaderGradientFunction { Linear, Radial, Conic, RepeatingLinear, RepeatingRadial, RepeatingConic }; // Must match shader definitions below.
 
-// We need to round up at compile-time so that we can embed the 
+// We need to round up at compile-time so that we can address each element of the float4s
 #define CEILING(x, y) (((x) + (y)-1) / (y))
 static const char shader_frag_gradient[] = RMLUI_SHADER_HEADER "#define MAX_NUM_STOPS_PACKED (uint)" RMLUI_STRINGIFY(CEILING(MAX_NUM_STOPS, 4)) R"(
 #define LINEAR 0
