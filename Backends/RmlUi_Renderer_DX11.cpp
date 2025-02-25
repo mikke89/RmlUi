@@ -196,8 +196,8 @@ float4 PSMain(const PS_Input IN) : SV_TARGET
     }
     else if (m_func == CONIC || m_func == REPEATING_CONIC) {
         float2x2 R = float2x2(m_v.x, -m_v.y, m_v.y, m_v.x);
-        float2 V = mul(R, (IN.uv.xy - m_p));
-        t = 0.5 + atan2(V.y, -V.x) / (2.0 * PI);
+        float2 V = mul((IN.uv.xy - m_p), R);
+        t = 0.5 + atan2(-V.x, V.y) / (2.0 * PI);
     }
 
     if (m_func == REPEATING_LINEAR || m_func == REPEATING_RADIAL || m_func == REPEATING_CONIC) {
