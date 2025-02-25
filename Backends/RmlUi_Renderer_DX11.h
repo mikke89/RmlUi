@@ -29,14 +29,17 @@
 #ifndef RMLUI_BACKENDS_RENDERER_DX11_H
 #define RMLUI_BACKENDS_RENDERER_DX11_H
 
-    #include <RmlUi/Core/Platform.h>
+#include <RmlUi/Core/Platform.h>
 
-    #if defined RMLUI_PLATFORM_WIN32
-        #include <RmlUi/Core/RenderInterface.h>
+#ifndef RMLUI_PLATFORM_WIN32
+	#error "Cannot build DX11 renderer on non-Windows platforms"
+#endif // RMLUI_PLATFORM_WIN32
 
-        #include <d3d11.h>
-        #include <dxgi1_3.h>
-        #include <d3d11_1.h>
+#include <RmlUi/Core/RenderInterface.h>
+
+#include <d3d11.h>
+#include <dxgi1_3.h>
+#include <d3d11_1.h>
 
 #ifdef RMLUI_DEBUG
     #define RMLUI_DX_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(SUCCEEDED(statement), msg)
@@ -328,7 +331,5 @@ private:
 
     RenderLayerStack m_render_layers;
 };
-
-#endif // RMLUI_PLATFORM_WIN32
 
 #endif // RMLUI_BACKENDS_RENDERER_DX11_H

@@ -28,24 +28,26 @@
 
 #include <RmlUi/Core/Platform.h>
 
-#if defined RMLUI_PLATFORM_WIN32
+#include "RmlUi_Renderer_DX11.h"
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/DecorationTypes.h>
+#include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/Geometry.h>
+#include <RmlUi/Core/Log.h>
+#include <RmlUi/Core/MeshUtilities.h>
+#include <RmlUi/Core/SystemInterface.h>
 
-    #include "RmlUi_Renderer_DX11.h"
-    #include <RmlUi/Core/Core.h>
-    #include <RmlUi/Core/DecorationTypes.h>
-    #include <RmlUi/Core/FileInterface.h>
-    #include <RmlUi/Core/Geometry.h>
-    #include <RmlUi/Core/Log.h>
-    #include <RmlUi/Core/MeshUtilities.h>
-    #include <RmlUi/Core/SystemInterface.h>
+#include "RmlUi_Include_Windows.h"
 
-    #include "RmlUi_Include_Windows.h"
+#ifndef RMLUI_PLATFORM_WIN32
+	#error "Cannot build DX11 renderer on non-Windows platforms"
+#endif // RMLUI_PLATFORM_WIN32
 
-    #include "d3dcompiler.h"
+#include "d3dcompiler.h"
 
-    #ifdef RMLUI_DX_DEBUG
-        #include <dxgidebug.h>
-    #endif
+#ifdef RMLUI_DX_DEBUG
+    #include <dxgidebug.h>
+#endif
 
 // Shader source code
 
@@ -2965,4 +2967,3 @@ const Gfx::RenderTargetData& RenderInterface_DX11::RenderLayerStack::EnsureRende
         Gfx::CreateRenderTarget(m_d3d_device, rt, m_width, m_height, 0, Gfx::RenderTargetAttachment::None, 0);
     return rt;
 }
-#endif // RMLUI_PLATFORM_WIN32
