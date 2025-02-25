@@ -45,7 +45,7 @@
     #define RMLUI_DX_ASSERTMSG(statement, msg) RMLUI_ASSERTMSG(SUCCEEDED(statement), msg)
 
     // Uncomment the following line to enable additional DirectX debugging.
-    #define RMLUI_DX_DEBUG
+    // #define RMLUI_DX_DEBUG
 #else
     #define RMLUI_DX_ASSERTMSG(statement, msg) static_cast<void>(statement)
 #endif
