@@ -374,7 +374,7 @@ static bool CreateDeviceD3D(HWND hwnd)
 	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 	UINT createDeviceFlags = 0;
-#ifdef RMLUI_DEBUG
+#ifdef RMLUI_DX_DEBUG
 	// Enable debug layer
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
