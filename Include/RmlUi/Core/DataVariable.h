@@ -106,6 +106,19 @@ public:
 		return true;
 	}
 	bool Set(void* ptr, const Variant& variant) override { return variant.GetInto<T>(*static_cast<T*>(ptr)); }
+	DataVariable Child(const DataModel& model, void* void_ptr, const DataAddressEntry& address)
+	{
+		if constexpr (std::is_same_v<T, Rml::String>)
+		{
+			if (address.name == "size")
+			{
+				T* ptr = static_cast<T*>(void_ptr);
+				return MakeLiteralIntVariable(int(ptr->size()));
+			}
+		}
+
+		return VariableDefinition::Child(model, void_ptr, address);
+	}
 };
 
 class RMLUICORE_API FuncDefinition final : public VariableDefinition {
