@@ -203,6 +203,8 @@ WidgetTextInput::WidgetTextInput(ElementFormControl* _parent)
 	parent->AddEventListener(EventId::Dblclick, this, true);
 	parent->AddEventListener(EventId::Drag, this, true);
 
+	read_only = parent->HasAttribute("readonly");
+
 	ElementPtr unique_text = Factory::InstanceElement(parent, "#text", "#text", XMLAttributes());
 	text_element = rmlui_dynamic_cast<ElementText*>(unique_text.get());
 	ElementPtr unique_selected_text = Factory::InstanceElement(parent, "#text", "#text", XMLAttributes());
@@ -297,6 +299,11 @@ void WidgetTextInput::SetValue(String value)
 		FormatElement();
 		UpdateCursorPosition(true);
 	}
+}
+
+void WidgetTextInput::SetReadOnly(bool is_read_only)
+{
+	read_only = is_read_only;
 }
 
 void WidgetTextInput::TransformValue(String& /*value*/) {}
@@ -559,18 +566,24 @@ void WidgetTextInput::ProcessEvent(Event& event)
 
 		case Input::KI_BACK:
 		{
-			CursorMovement direction = (ctrl ? CursorMovement::PreviousWord : CursorMovement::Left);
-			DeleteCharacters(direction);
-			ShowCursor(true);
+			if (!read_only)
+			{
+				CursorMovement direction = (ctrl ? CursorMovement::PreviousWord : CursorMovement::Left);
+				DeleteCharacters(direction);
+				ShowCursor(true);
+			}
 		}
 		break;
 
 		case Input::KI_DECIMAL:	if (numlock) break; //-fallthrough
 		case Input::KI_DELETE:
 		{
-			CursorMovement direction = (ctrl ? CursorMovement::NextWord : CursorMovement::Right);
-			DeleteCharacters(direction);
-			ShowCursor(true);
+			if (!read_only)
+			{
+				CursorMovement direction = (ctrl ? CursorMovement::NextWord : CursorMovement::Right);
+				DeleteCharacters(direction);
+				ShowCursor(true);
+			}
 		}
 		break;
 			// clang-format on
@@ -601,16 +614,19 @@ void WidgetTextInput::ProcessEvent(Event& event)
 			if (ctrl && selection_length > 0)
 			{
 				CopySelection();
-				DeleteSelection();
-				DispatchChangeEvent();
-				ShowCursor(true);
+				if (!read_only)
+				{
+					DeleteSelection();
+					DispatchChangeEvent();
+					ShowCursor(true);
+				}
 			}
 		}
 		break;
 
 		case Input::KI_V:
 		{
-			if (ctrl && !alt)
+			if (ctrl && !alt && !read_only)
 			{
 				String clipboard_text;
 				GetSystemInterface()->GetClipboardText(clipboard_text);
@@ -636,15 +652,19 @@ void WidgetTextInput::ProcessEvent(Event& event)
 
 	case EventId::Textinput:
 	{
-		// Only process the text if no modifier keys are pressed.
-		if (event.GetParameter<int>("ctrl_key", 0) == 0 && event.GetParameter<int>("alt_key", 0) == 0 && event.GetParameter<int>("meta_key", 0) == 0)
+		if (!read_only)
 		{
-			String text = event.GetParameter("text", String{});
-			AddCharacters(text);
-		}
+			// Only process the text if no modifier keys are pressed.
+			if (event.GetParameter<int>("ctrl_key", 0) == 0 && event.GetParameter<int>("alt_key", 0) == 0 &&
+				event.GetParameter<int>("meta_key", 0) == 0)
+			{
+				String text = event.GetParameter("text", String{});
+				AddCharacters(text);
+			}
 
-		ShowCursor(true);
-		event.StopPropagation();
+			ShowCursor(true);
+			event.StopPropagation();
+		}
 	}
 	break;
 	case EventId::Focus:

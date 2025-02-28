@@ -68,6 +68,8 @@ public:
 	/// Returns the current length (in characters) of this text field.
 	int GetLength() const;
 
+	void SetReadOnly(bool is_read_only);
+
 	/// Selects all text.
 	void Select();
 	/// Selects the text in the given character range.
@@ -249,6 +251,8 @@ private:
 
 	using LineList = Vector<Line>;
 	LineList lines;
+
+	bool read_only;
 
 	// Length in number of characters.
 	int max_length;
