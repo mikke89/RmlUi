@@ -529,12 +529,19 @@ input.range slidertrack {
 input.range:focus-visible slidertrack {
 	decorator: ninepatch( range-track-focus, range-track-focus-inner, 1.0 );
 }
+input.range sliderprogress {
+	background: rgba(100, 0, 0, 80);
+	height: 7dp;
+	position: relative;
+	top: 8dp;
+}
 input.range sliderbar {
 	margin-left: -8dp;
 	margin-right: -7dp;
 	margin-top: -3dp;
 	width: 34dp;
 	height: 23dp;
+	z-index: 1;
 	decorator: image( range-bar );
 }
 input.range sliderbar:hover, input.range slidertrack:hover + sliderbar  {
