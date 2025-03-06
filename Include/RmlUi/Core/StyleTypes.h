@@ -137,6 +137,13 @@ namespace Style {
 	enum class TextTransform : uint8_t { None, Capitalize, Uppercase, Lowercase };
 	enum class WhiteSpace : uint8_t { Normal, Pre, Nowrap, Prewrap, Preline };
 	enum class WordBreak : uint8_t { Normal, BreakAll, BreakWord };
+	struct TextOverflow {
+		enum Type : uint8_t { Clip, Ellipsis, Custom } type;
+		String value; // For custom type
+		TextOverflow(Type type = Clip) : type(type), value() {}
+		TextOverflow(String value) : type(Custom), value(value) {}
+		TextOverflow(Type type, String value) : type(type), value(value) {}
+	};
 
 	enum class Drag : uint8_t { None, Drag, DragDrop, Block, Clone };
 	enum class TabIndex : uint8_t { None, Auto };

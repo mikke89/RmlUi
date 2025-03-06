@@ -205,6 +205,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 	using namespace Style;
 	const auto& computed = GetComputedValues();
 	WhiteSpace white_space_property = computed.white_space();
+	TextOverflow text_overflow_property = computed.text_overflow();
 	bool collapse_white_space =
 		white_space_property == WhiteSpace::Normal || white_space_property == WhiteSpace::Nowrap || white_space_property == WhiteSpace::Preline;
 	bool break_at_line = (maximum_line_width >= 0) &&
@@ -218,11 +219,30 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 
 	FontEngineInterface* font_engine_interface = GetFontEngineInterface();
 
+	// Calculate text-overflow
+	String text_overflow_token;
+	float text_overflow_token_width = 0.0f;
+	if (maximum_line_width >= 0)
+	{
+		if (text_overflow_property.type == TextOverflow::Ellipsis)
+			text_overflow_token = "\xE2\x80\xA6";
+		else if (text_overflow_property.type == TextOverflow::Custom)
+			text_overflow_token = text_overflow_property.value;
+
+		if (!text_overflow_token.empty())
+		{
+			text_overflow_token_width = font_engine_interface->GetStringWidth(font_face_handle, text_overflow_token, text_shaping_context);
+			break_at_line = true;
+			word_break = WordBreak::BreakAll;
+		}
+	}
+
 	// Starting at the line_begin character, we generate sections of the text (we'll call them tokens) depending on the
 	// white-space parsing parameters. Each section is then appended to the line if it can fit. If not, or if an
 	// endline is found (and we're processing them), then the line is ended. kthxbai!
 	const char* token_begin = text.c_str() + line_begin;
 	const char* string_end = text.c_str() + text.size();
+	bool relayout_for_text_overflow_token = false;
 	while (token_begin != string_end)
 	{
 		String token;
@@ -249,6 +269,31 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 				{
 					// Try to break up the word
 					max_token_width = int(maximum_line_width - line_width);
+
+					if (!relayout_for_text_overflow_token && !text_overflow_token.empty())
+					{
+						if (max_token_width < text_overflow_token_width)
+						{
+							// There is not enough remaining space for the text-overflow token,
+							// to simplify this algorithm we are going to restart the parsing
+							// from the start again but with a reduced maximum_line_width so
+							// that the next layout attempt will leave room for the
+							// text-overflow token.
+							maximum_line_width -= text_overflow_token_width;
+							token_begin = text.c_str() + line_begin;
+							string_end = text.c_str() + text.size();
+							line.clear();
+							line_length = 0;
+							line_width = 0.0f;
+							relayout_for_text_overflow_token = true;
+							continue;
+						}
+						else
+						{
+							max_token_width -= text_overflow_token_width;
+						}
+					}
+
 					const int token_max_size = int(next_token_begin - token_begin);
 					bool force_loop_break_after_next = false;
 
@@ -264,13 +309,17 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 
 						if (force_loop_break_after_next || token_width <= max_token_width)
 						{
+							token.append(text_overflow_token);
 							break;
 						}
 						else if (next_token_begin == token_begin)
 						{
 							// This means the first character of the token doesn't fit. Let it overflow into the next line if we can.
 							if (allow_empty || !line.empty())
+							{
+								token.append(text_overflow_token);
 								return false;
+							}
 
 							// Not even the first character of the line fits. Go back to consume the first character even though it will overflow.
 							i += 2;

@@ -115,8 +115,8 @@ namespace Style {
 		InheritedValues() :
 			font_weight(FontWeight::Normal), has_letter_spacing(0), font_style(FontStyle::Normal), has_font_effect(false),
 			pointer_events(PointerEvents::Auto), focus(Focus::Auto), text_align(TextAlign::Left), text_decoration(TextDecoration::None),
-			text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal), direction(Direction::Auto),
-			line_height_inherit_type(LineHeight::Number)
+			text_overflow(TextOverflow::Clip), text_transform(TextTransform::None), white_space(WhiteSpace::Normal), word_break(WordBreak::Normal),
+			direction(Direction::Auto), line_height_inherit_type(LineHeight::Number)
 		{}
 
 		// Font face used to render text and resolve ex properties. Does not represent a true property
@@ -149,6 +149,7 @@ namespace Style {
 		float line_height_inherit = 1.2f;
 
 		String language = "";
+		TextOverflow text_overflow;
 	};
 
 	struct RareValues {
@@ -263,6 +264,7 @@ namespace Style {
 		Focus          focus()            const { return inherited.focus; }
 		TextAlign      text_align()       const { return inherited.text_align; }
 		TextDecoration text_decoration()  const { return inherited.text_decoration; }
+		TextOverflow   text_overflow()    const { return inherited.text_overflow; }
 		TextTransform  text_transform()   const { return inherited.text_transform; }
 		WhiteSpace     white_space()      const { return inherited.white_space; }
 		WordBreak      word_break()       const { return inherited.word_break; }
@@ -363,6 +365,7 @@ namespace Style {
 		void focus             (Focus value)          { inherited.focus              = value; }
 		void text_align        (TextAlign value)      { inherited.text_align         = value; }
 		void text_decoration   (TextDecoration value) { inherited.text_decoration    = value; }
+		void text_overflow     (TextOverflow value)   { inherited.text_overflow      = value; }
 		void text_transform    (TextTransform value)  { inherited.text_transform     = value; }
 		void white_space       (WhiteSpace value)     { inherited.white_space        = value; }
 		void word_break        (WordBreak value)      { inherited.word_break         = value; }

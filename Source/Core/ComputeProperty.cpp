@@ -271,6 +271,16 @@ uint16_t ComputeBorderWidth(float computed_length)
 	return uint16_t(computed_length + 0.5f);
 }
 
+Style::TextOverflow ComputeTextOverflow(const Property* property)
+{
+	if (property->unit == Unit::KEYWORD)
+		return Style::TextOverflow(static_cast<Style::TextOverflow::Type>(property->Get<int>()));
+	else if (property->unit == Unit::STRING)
+		return Style::TextOverflow(Style::TextOverflow::Type::Custom, property->Get<String>());
+	RMLUI_ERRORMSG("Invalid text-overflow type");
+	return Style::TextOverflow();
+}
+
 String GetFontFaceDescription(const String& font_family, Style::FontStyle style, Style::FontWeight weight)
 {
 	String font_attributes;

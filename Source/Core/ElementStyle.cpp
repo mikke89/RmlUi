@@ -785,6 +785,9 @@ PropertyIdSet ElementStyle::ComputeValues(Style::ComputedValues& values, const S
 		case PropertyId::TextDecoration:
 			values.text_decoration((TextDecoration)p->Get<int>());
 			break;
+		case PropertyId::TextOverflow:
+			values.text_overflow(ComputeTextOverflow(p));
+			break;
 		case PropertyId::TextTransform:
 			values.text_transform((TextTransform)p->Get<int>());
 			break;

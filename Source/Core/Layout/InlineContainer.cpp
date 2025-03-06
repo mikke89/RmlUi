@@ -52,7 +52,7 @@ InlineContainer::InlineContainer(BlockContainer* _parent, float _available_width
 
 	const auto& computed = parent->GetElement()->GetComputedValues();
 	element_line_height = computed.line_height().value;
-	wrap_content = (computed.white_space() != Style::WhiteSpace::Nowrap);
+	wrap_content = (computed.white_space() != Style::WhiteSpace::Nowrap) || (computed.text_overflow().type != Style::TextOverflow::Clip);
 	text_align = computed.text_align();
 }
 
