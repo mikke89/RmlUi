@@ -859,8 +859,8 @@ namespace Parse {
 		Expression(parser);
 
 		size_t end = parser.InstructionIndex();
-		parser.PatchInstruction(jump_false_branch, InstructionData{Instruction::JumpIfZero, Variant(false_branch)});
-		parser.PatchInstruction(jump_end, InstructionData{Instruction::Jump, Variant(end)});
+		parser.PatchInstruction(jump_false_branch, InstructionData{Instruction::JumpIfZero, Variant((uint64_t)false_branch)});
+		parser.PatchInstruction(jump_end, InstructionData{Instruction::Jump, Variant((uint64_t)end)});
 	}
 
 	static void Function(DataParser& parser, Instruction function_type, String&& func_name, bool first_argument_piped)
