@@ -50,7 +50,6 @@ class DataParser;
     The abstract machine has three registers:
         R  Typically results and right-hand side arguments.
         L  Typically left-hand side arguments.
-        C  Typically center arguments (eg. in ternary operator).
 
     And a stack:
         S  The program stack.
@@ -64,9 +63,9 @@ class DataParser;
 */
 enum class Instruction {
 	// clang-format off
-	// Assignment (register/stack) = Read (register R/L/C, instruction data D, or stack)
+	// Assignment (register/stack) = Read (register R/L, instruction data D, or stack)
 	Push            = 'P',     //      S+ = R
-	Pop             = 'o',     // <R/L/C> = S-  (D determines R/L/C)
+	Pop             = 'o',     //   <R/L> = S-  (D determines R/L)
 	Literal         = 'D',     //       R = D
 	Variable        = 'V',     //       R = DataModel.GetVariable(D)  (D is an index into the variable address list)
 	Add             = '+',     //       R = L + R
@@ -88,8 +87,8 @@ enum class Instruction {
 	Assign          = 'A',     //       DataModel.SetVariable(D, R)
 	DynamicVariable = 'Y',     //       DataModel.GetVariable(DataModel.ParseAddress(R)) (Looks up a variable by path in R)
 	CastToInt       = 'I',     //       R = (int)R
-	Jump		= 'J',	   //       Jumps to instruction index D
-	JumpIfZero	= 'Z',	   //       If R is false, jumps to instruction index D
+	Jump            = 'J',     //       Jumps to instruction index D
+	JumpIfZero      = 'Z',     //       If R is false, jumps to instruction index D
 	// clang-format on
 };
 
@@ -256,7 +255,7 @@ public:
 	}
 	void Variable(const String& data_address) { VariableGetSet(data_address, false); }
 	void Assign(const String& data_address) { VariableGetSet(data_address, true); }
-	size_t InstructionIndex() { return program.size(); }
+	size_t InstructionIndex() const { return program.size(); }
 	void PatchInstruction(size_t index, InstructionData data) { program[index] = data; }
 
 	ProgramState GetProgramState() { return ProgramState{program.size(), program_stack_size}; }
