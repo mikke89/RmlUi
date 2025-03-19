@@ -38,7 +38,7 @@
 #include "../../../Include/RmlUi/Core/Math.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "../../../Include/RmlUi/Core/Property.h"
-#include "../DataModel.h"
+#include "../../../Include/RmlUi/Core/DataModel.h"
 
 namespace Rml {
 

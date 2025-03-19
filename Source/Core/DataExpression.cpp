@@ -30,7 +30,7 @@
 #include "../../Include/RmlUi/Core/DataModelHandle.h"
 #include "../../Include/RmlUi/Core/Event.h"
 #include "../../Include/RmlUi/Core/Variant.h"
-#include "DataModel.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
 #include <stack>
 
 #ifdef _MSC_VER

@@ -39,7 +39,7 @@
 #include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
-#include "DataModel.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
 #include "EventDispatcher.h"
 #include "PluginRegistry.h"
 #include "ScrollController.h"

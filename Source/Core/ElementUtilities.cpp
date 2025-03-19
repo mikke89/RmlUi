@@ -39,7 +39,7 @@
 #include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/TextShapingContext.h"
 #include "DataController.h"
-#include "DataModel.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
 #include "DataView.h"
 #include "ElementBackgroundBorder.h"
 #include "Layout/LayoutDetails.h"

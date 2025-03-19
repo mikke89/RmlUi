@@ -44,7 +44,7 @@
 #include "../../Include/RmlUi/Core/TransformPrimitive.h"
 #include "Clock.h"
 #include "ComputeProperty.h"
-#include "DataModel.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
 #include "ElementAnimation.h"
 #include "ElementBackgroundBorder.h"
 #include "ElementDefinition.h"

@@ -300,13 +300,13 @@ public:
 	double GetNextUpdateDelay() const;
 
 	// Builds the parameters for a generic key event.
-	void GenerateKeyEventParameters(Dictionary &parameters, Input::KeyIdentifier key_identifier);
+	void GenerateKeyEventParameters(Dictionary& parameters, Input::KeyIdentifier key_identifier);
 	// Builds the parameters for a generic mouse event.
-	void GenerateMouseEventParameters(Dictionary &parameters, int button_index = -1);
+	void GenerateMouseEventParameters(Dictionary& parameters, int button_index = -1);
 	// Builds the parameters for the key modifier state.
-	void GenerateKeyModifierEventParameters(Dictionary &parameters, int key_modifier_state);
+	void GenerateKeyModifierEventParameters(Dictionary& parameters, int key_modifier_state);
 	// Builds the parameters for a drag event.
-	void GenerateDragEventParameters(Dictionary &parameters);
+	void GenerateDragEventParameters(Dictionary& parameters);
 
 protected:
 	void Release() override;
@@ -412,9 +412,11 @@ private:
 	// Scroll the target by the given amount, using smooth scrolling.
 	void PerformSmoothscrollOnTarget(Element* target, Vector2f delta_offset, ScrollBehavior scroll_behavior);
 
+public:
 	// Returns the data model with the provided name, or nullptr if it does not exist.
 	DataModel* GetDataModelPtr(const String& name) const;
 
+protected:
 	// Releases all unloaded documents pending destruction.
 	void ReleaseUnloadedDocuments();
 

@@ -27,7 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/DataModelHandle.h"
-#include "DataModel.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
 
 namespace Rml {
 

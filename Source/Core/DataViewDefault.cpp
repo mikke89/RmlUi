@@ -35,7 +35,7 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/Variant.h"
 #include "DataExpression.h"
-#include "DataModel.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
 #include "XMLParseTools.h"
 
 namespace Rml {

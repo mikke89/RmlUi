@@ -29,11 +29,11 @@
 #ifndef RMLUI_CORE_DATAMODEL_H
 #define RMLUI_CORE_DATAMODEL_H
 
-#include "../../Include/RmlUi/Core/DataModelHandle.h"
-#include "../../Include/RmlUi/Core/DataTypes.h"
-#include "../../Include/RmlUi/Core/Header.h"
-#include "../../Include/RmlUi/Core/Traits.h"
-#include "../../Include/RmlUi/Core/Types.h"
+#include "DataModelHandle.h"
+#include "DataTypes.h"
+#include "Header.h"
+#include "Traits.h"
+#include "Types.h"
 
 namespace Rml {
 
