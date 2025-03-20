@@ -113,6 +113,7 @@ bool WidgetSlider::Initialise()
 
 	const Property drag_property = Property(Style::Drag::Drag);
 	track->SetProperty(PropertyId::Drag, drag_property);
+	progress->SetProperty(PropertyId::Drag, drag_property);
 	bar->SetProperty(PropertyId::Drag, drag_property);
 
 	// Attach the listeners
@@ -444,7 +445,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 
 	case EventId::Dragstart:
 	{
-		if (event.GetTargetElement() == bar || event.GetTargetElement() == track)
+		if (event.GetTargetElement() == bar || event.GetTargetElement() == track || event.GetTargetElement() == progress)
 		{
 			bar->SetPseudoClass("active", true);
 
@@ -457,7 +458,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 	break;
 	case EventId::Drag:
 	{
-		if (event.GetTargetElement() == bar || event.GetTargetElement() == track)
+		if (event.GetTargetElement() == bar || event.GetTargetElement() == track || event.GetTargetElement() == progress)
 		{
 			float new_bar_offset = event.GetParameter<float>((orientation == HORIZONTAL ? "mouse_x" : "mouse_y"), 0) - bar_drag_anchor;
 			float new_bar_position = AbsolutePositionToBarPosition(new_bar_offset);
@@ -468,7 +469,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 	break;
 	case EventId::Dragend:
 	{
-		if (event.GetTargetElement() == bar || event.GetTargetElement() == track)
+		if (event.GetTargetElement() == bar || event.GetTargetElement() == track || event.GetTargetElement() == progress)
 		{
 			bar->SetPseudoClass("active", false);
 		}
