@@ -106,8 +106,8 @@ bool WidgetSlider::Initialise()
 
 	// Add them as non-DOM elements.
 	track = parent->AppendChild(std::move(track_element), false);
-	bar = parent->AppendChild(std::move(bar_element), false);
 	progress = parent->AppendChild(std::move(progress_element), false);
+	bar = parent->AppendChild(std::move(bar_element), false);
 	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
 	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
 
@@ -297,7 +297,6 @@ void WidgetSlider::FormatElements(const Vector2f containing_block, float slider_
 		offset.y += arrows[0]->GetBox().GetSize(BoxArea::Border).y + arrows[0]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom) +
 			track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		track->SetOffset(offset, parent);
-		progress->SetOffset(offset, parent);
 
 		offset.x = arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
 		offset.y += track->GetBox().GetSize(BoxArea::Border).y + track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom) +
@@ -313,7 +312,6 @@ void WidgetSlider::FormatElements(const Vector2f containing_block, float slider_
 			track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
 		offset.y = track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
 		track->SetOffset(offset, parent);
-		progress->SetOffset(offset, parent);
 
 		offset.x += track->GetBox().GetSize(BoxArea::Border).x + track->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right) +
 			arrows[1]->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
@@ -363,6 +361,7 @@ void WidgetSlider::FormatProgress()
 	auto& computed = progress->GetComputedValues();
 
 	Vector2f progress_box_content = progress_box.GetSize();
+
 	if (orientation == HORIZONTAL)
 	{
 		if (computed.height().type == Style::Height::Auto)
@@ -372,6 +371,12 @@ void WidgetSlider::FormatProgress()
 	// Set the new dimensions on the progress element to re-decorate it.
 	progress_box.SetContent(progress_box_content);
 	progress->SetBox(progress_box);
+
+        Vector2f offset = track->GetRelativeOffset();
+        offset.x += progress->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+        offset.y += progress->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
+
+        progress->SetOffset(offset, parent);
 
 	ResizeProgress();
 }
