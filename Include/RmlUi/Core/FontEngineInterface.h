@@ -55,6 +55,8 @@ public:
 	/// Called when RmlUi is being shut down.
 	virtual void Shutdown();
 
+	virtual void OnBeginFrame();
+
 	/// Called by RmlUi when it wants to load a font face from file.
 	/// @param[in] file_name The file to load the face from.
 	/// @param[in] face_index The index of the font face within a font collection.
@@ -117,6 +119,8 @@ public:
 	/// @return The width, in pixels, of the string mesh.
 	virtual int GenerateString(RenderManager& render_manager, FontFaceHandle face_handle, FontEffectsHandle font_effects_handle, StringView string,
 		Vector2f position, ColourbPremultiplied colour, float opacity, const TextShapingContext& text_shaping_context, TexturedMeshList& mesh_list);
+
+	virtual bool EnsureGlyphs(FontFaceHandle face_handle, StringView string);
 
 	/// Called by RmlUi to determine if the text geometry is required to be re-generated. Whenever the returned version
 	/// is changed, all geometry belonging to the given face handle will be re-generated.
