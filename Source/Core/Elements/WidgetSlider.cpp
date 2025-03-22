@@ -70,10 +70,10 @@ WidgetSlider::~WidgetSlider()
 {
 	if (bar)
 		parent->RemoveChild(bar);
+	if (track && progress)
+		track->RemoveChild(progress);
 	if (track)
 		parent->RemoveChild(track);
-	if (progress)
-		parent->RemoveChild(progress);
 
 	parent->RemoveEventListener(EventId::Blur, this);
 	parent->RemoveEventListener(EventId::Focus, this);
@@ -106,7 +106,7 @@ bool WidgetSlider::Initialise()
 
 	// Add them as non-DOM elements.
 	track = parent->AppendChild(std::move(track_element), false);
-	progress = parent->AppendChild(std::move(progress_element), false);
+	progress = track->AppendChild(std::move(progress_element), false);
 	bar = parent->AppendChild(std::move(bar_element), false);
 	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
 	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
