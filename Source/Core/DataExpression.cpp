@@ -937,7 +937,8 @@ public:
 	{
 		bool success = true;
 		size_t i = 0;
-		while (i < program.size())
+                const size_t programSize = program.size();
+		while (i < programSize)
 		{
 			size_t next_instruction = i + 1;
 			if (!Execute(program[i].instruction, program[i].data, next_instruction))
