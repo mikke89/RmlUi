@@ -529,6 +529,11 @@ input.range slidertrack {
 input.range:focus-visible slidertrack {
 	decorator: ninepatch( range-track-focus, range-track-focus-inner, 1.0 );
 }
+input.range sliderprogress {
+	background: rgba(100, 0, 0, 80);
+	margin-top: 8dp;
+	height: 7dp;
+}
 input.range sliderbar {
 	margin-left: -8dp;
 	margin-right: -7dp;

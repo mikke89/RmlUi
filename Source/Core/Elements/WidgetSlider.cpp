@@ -49,6 +49,7 @@ WidgetSlider::WidgetSlider(ElementFormControl* _parent)
 
 	track = nullptr;
 	bar = nullptr;
+	progress = nullptr;
 	arrows[0] = nullptr;
 	arrows[1] = nullptr;
 
@@ -69,6 +70,8 @@ WidgetSlider::~WidgetSlider()
 {
 	if (bar)
 		parent->RemoveChild(bar);
+	if (track && progress)
+		track->RemoveChild(progress);
 	if (track)
 		parent->RemoveChild(track);
 
@@ -94,20 +97,23 @@ bool WidgetSlider::Initialise()
 	// Create all of our child elements as standard elements, and abort if we can't create them.
 	ElementPtr track_element = Factory::InstanceElement(parent, "*", "slidertrack", XMLAttributes());
 	ElementPtr bar_element = Factory::InstanceElement(parent, "*", "sliderbar", XMLAttributes());
+	ElementPtr progress_element = Factory::InstanceElement(parent, "*", "sliderprogress", XMLAttributes());
 	ElementPtr arrow0_element = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
 	ElementPtr arrow1_element = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
 
-	if (!track_element || !bar_element || !arrow0_element || !arrow1_element)
+	if (!track_element || !bar_element || !progress_element || !arrow0_element || !arrow1_element)
 		return false;
 
 	// Add them as non-DOM elements.
 	track = parent->AppendChild(std::move(track_element), false);
+	progress = track->AppendChild(std::move(progress_element), false);
 	bar = parent->AppendChild(std::move(bar_element), false);
 	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
 	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
 
 	const Property drag_property = Property(Style::Drag::Drag);
 	track->SetProperty(PropertyId::Drag, drag_property);
+	progress->SetProperty(PropertyId::Drag, drag_property);
 	bar->SetProperty(PropertyId::Drag, drag_property);
 
 	// Attach the listeners
@@ -155,6 +161,7 @@ void WidgetSlider::SetBarPosition(float _bar_position)
 {
 	bar_position = Math::Clamp(_bar_position, 0.0f, 1.0f);
 	PositionBar();
+	ResizeProgress();
 }
 
 float WidgetSlider::GetBarPosition()
@@ -314,12 +321,14 @@ void WidgetSlider::FormatElements(const Vector2f containing_block, float slider_
 	}
 
 	FormatBar();
+	FormatProgress();
 
 	if (parent->IsDisabled())
 	{
 		// Propagate disabled state to child elements
 		bar->SetPseudoClass("disabled", true);
 		track->SetPseudoClass("disabled", true);
+		progress->SetPseudoClass("disabled", true);
 		arrows[0]->SetPseudoClass("disabled", true);
 		arrows[1]->SetPseudoClass("disabled", true);
 	}
@@ -346,6 +355,33 @@ void WidgetSlider::FormatBar()
 	PositionBar();
 }
 
+void WidgetSlider::FormatProgress()
+{
+	Box progress_box;
+	ElementUtilities::BuildBox(progress_box, parent->GetBox().GetSize(), progress);
+	auto& computed = progress->GetComputedValues();
+
+	Vector2f progress_box_content = progress_box.GetSize();
+
+	if (orientation == HORIZONTAL)
+	{
+		if (computed.height().type == Style::Height::Auto)
+			progress_box_content.y = track->GetBox().GetSize().y;
+	}
+
+	// Set the new dimensions on the progress element to re-decorate it.
+	progress_box.SetContent(progress_box_content);
+	progress->SetBox(progress_box);
+
+        Vector2f offset = track->GetRelativeOffset();
+        offset.x += progress->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
+        offset.y += progress->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
+
+        progress->SetOffset(offset, parent);
+
+	ResizeProgress();
+}
+
 Element* WidgetSlider::GetParent() const
 {
 	return parent;
@@ -364,7 +400,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 		if (event.GetParameter("button", -1) != 0)
 			break;
 
-		if (event.GetTargetElement() == track)
+		if (event.GetTargetElement() == track || event.GetTargetElement() == progress)
 		{
 			float mouse_position, bar_halfsize;
 
@@ -409,7 +445,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 
 	case EventId::Dragstart:
 	{
-		if (event.GetTargetElement() == bar || event.GetTargetElement() == track)
+		if (event.GetTargetElement() == bar || event.GetTargetElement() == track || event.GetTargetElement() == progress)
 		{
 			bar->SetPseudoClass("active", true);
 
@@ -422,7 +458,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 	break;
 	case EventId::Drag:
 	{
-		if (event.GetTargetElement() == bar || event.GetTargetElement() == track)
+		if (event.GetTargetElement() == bar || event.GetTargetElement() == track || event.GetTargetElement() == progress)
 		{
 			float new_bar_offset = event.GetParameter<float>((orientation == HORIZONTAL ? "mouse_x" : "mouse_y"), 0) - bar_drag_anchor;
 			float new_bar_position = AbsolutePositionToBarPosition(new_bar_offset);
@@ -433,7 +469,7 @@ void WidgetSlider::ProcessEvent(Event& event)
 	break;
 	case EventId::Dragend:
 	{
-		if (event.GetTargetElement() == bar || event.GetTargetElement() == track)
+		if (event.GetTargetElement() == bar || event.GetTargetElement() == track || event.GetTargetElement() == progress)
 		{
 			bar->SetPseudoClass("active", false);
 		}
@@ -557,6 +593,21 @@ void WidgetSlider::PositionBar()
 		};
 		bar->SetOffset(offset.Round(), parent);
 	}
+}
+
+void WidgetSlider::ResizeProgress()
+{
+	Box progress_box = progress->GetBox();
+	Vector2f new_size = progress_box.GetSize();
+
+	if (orientation == VERTICAL) {
+		new_size.y = bar->GetOffsetTop();
+	} else {
+		new_size.x = bar->GetOffsetLeft();
+	}
+
+	progress_box.SetContent(new_size);
+	progress->SetBox(progress_box);
 }
 
 float WidgetSlider::SetValueInternal(float new_value, bool force_submit_change_event)
