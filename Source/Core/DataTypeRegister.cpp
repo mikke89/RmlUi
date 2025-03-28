@@ -115,6 +115,12 @@ void TransformFuncRegister::Register(const String& name, DataTransformFunc trans
 	}
 }
 
+void TransformFuncRegister::Replace(const String& name, DataTransformFunc transform_func)
+{
+	RMLUI_ASSERT(transform_func);
+	transform_functions.insert_or_assign(name, std::move(transform_func));
+}
+
 bool TransformFuncRegister::Call(const String& name, const VariantList& arguments, Variant& out_result) const
 {
 	auto it = transform_functions.find(name);
