@@ -28,6 +28,7 @@
 
 #include "DataViewDefault.h"
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/DataModel.h"
 #include "../../Include/RmlUi/Core/DataVariable.h"
 #include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
@@ -35,7 +36,7 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "../../Include/RmlUi/Core/Variant.h"
 #include "DataExpression.h"
-#include "../../Include/RmlUi/Core/DataModel.h"
+#include "EventSpecification.h"
 #include "XMLParseTools.h"
 
 namespace Rml {
@@ -600,6 +601,47 @@ bool DataViewAlias::Initialize(DataModel& model, Element* element, const String&
 }
 
 void DataViewAlias::Release()
+{
+	delete this;
+}
+
+DataViewTriggerEvent::DataViewTriggerEvent(Element* element) : DataView(element, 0), event_id(Rml::EventId::Change) {}
+
+StringList DataViewTriggerEvent::GetVariableNameList() const
+{
+	return StringList{address.front().name};
+}
+
+bool DataViewTriggerEvent::Update(DataModel& model)
+{
+	Rml::Dictionary parameters;
+	DataVariable variable = model.GetVariable(address);
+	if (variable.Type() == DataVariableType::Scalar)
+	{
+		Rml::Variant value;
+		if (variable.Get(value))
+		{
+			parameters["value"] = value;
+		}
+	}
+
+	GetElement()->DispatchEvent(event_id, parameters);
+	return true;
+}
+
+bool DataViewTriggerEvent::Initialize(DataModel& model, Element* element, const String& expression, const String& modifier)
+{
+	if (!modifier.empty())
+		event_id = EventSpecificationInterface::GetIdOrInsert(modifier);
+
+	address = model.ResolveAddress(expression, element);
+	if (address.empty())
+		return false;
+
+	return true;
+}
+
+void DataViewTriggerEvent::Release()
 {
 	delete this;
 }

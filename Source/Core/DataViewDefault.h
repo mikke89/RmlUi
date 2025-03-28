@@ -187,5 +187,21 @@ private:
 	StringList variables;
 };
 
+class DataViewTriggerEvent final : public DataView {
+public:
+	DataViewTriggerEvent(Element* element);
+	virtual StringList GetVariableNameList() const override;
+
+	bool Update(DataModel& model) override;
+	bool Initialize(DataModel& model, Element* element, const String& expression, const String& modifier) override;
+
+protected:
+	void Release() override;
+
+private:
+	DataAddress address;
+	Rml::EventId event_id;
+};
+
 } // namespace Rml
 #endif
