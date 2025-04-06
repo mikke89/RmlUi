@@ -258,6 +258,23 @@ static const Vector<MatchesSelector> matches_selectors =
 	{ "G", "p#G[missing]",   false },
 	{ "B", "[unit='m']",     true }
 };
+
+struct ContainsSelector {
+	String element_id;
+	String target_id;
+	bool expected_result;
+};
+static const Vector<ContainsSelector> contains_selectors =
+{
+	{ "A",  "A",  true },
+	{ "P",  "A",  true },
+	{ "A",  "P",  false },
+	{ "P",  "D0", true },
+	{ "D0", "P",  false },
+	{ "X",  "P",  false },
+	{ "P",  "X",  false },
+};
+
 // clang-format on
 
 // Recursively iterate through 'element' and all of its descendants to find all
@@ -452,6 +469,24 @@ TEST_CASE("Selectors")
 
 			bool matches = start->Matches(selector.selector);
 			CHECK_MESSAGE(matches == selector.expected_result, "Matches() selector '" << selector.selector << "' from " << selector.id);
+		}
+		context->UnloadDocument(document);
+	}
+
+	SUBCASE("Contains")
+	{
+		const String document_string = doc_begin + doc_end;
+		ElementDocument* document = context->LoadDocumentFromMemory(document_string);
+		REQUIRE(document);
+
+		for (const ContainsSelector& selector : contains_selectors)
+		{
+			Element* element = document->GetElementById(selector.element_id);
+			Element* target = document->GetElementById(selector.target_id);
+			REQUIRE(element);
+			REQUIRE(target);
+			CHECK_MESSAGE(element->Contains(target) == selector.expected_result,
+				"'" << selector.element_id << "' contains '" << selector.target_id << "'");
 		}
 		context->UnloadDocument(document);
 	}

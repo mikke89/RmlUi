@@ -1620,6 +1620,17 @@ bool Element::Matches(const String& selectors)
 	return false;
 }
 
+bool Element::Contains(Element* element) const
+{
+	while (element)
+	{
+		if (element == this)
+			return true;
+		element = element->GetParentNode();
+	}
+	return false;
+}
+
 EventDispatcher* Element::GetEventDispatcher() const
 {
 	return &meta->event_dispatcher;

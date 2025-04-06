@@ -572,10 +572,14 @@ public:
 	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @performance Prefer GetElementById/TagName/ClassName whenever possible.
 	void QuerySelectorAll(ElementList& elements, const String& selector);
-	/// Check if the element matches the given RCSS selector query.
+	/// Checks if the element matches the given RCSS selector query.
 	/// @param[in] selector The selector or comma-separated selectors to match against.
 	/// @return True if the element matches the given RCSS selector query, false otherwise.
 	bool Matches(const String& selector);
+	/// Checks if the provided element is a descendant of the current element.
+	/// @param[in] element The element to test with.
+	/// @return True if the provided element is a descendant of this element, false otherwise.
+	bool Contains(Element* element) const;
 
 	//@}
 
