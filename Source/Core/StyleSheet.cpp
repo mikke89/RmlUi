@@ -209,7 +209,7 @@ SharedPtr<const ElementDefinition> StyleSheet::GetElementDefinition(const Elemen
 				// We found a node that has at least one requirement matching the element. Now see if we satisfy the remaining requirements of the
 				// node, including all ancestor nodes. What this involves is traversing the style nodes backwards, trying to match nodes in the
 				// element's hierarchy to nodes in the style hierarchy.
-				if (node->IsApplicable(element))
+				if (node->IsApplicable(element, nullptr))
 					applicable_nodes.push_back(node);
 			}
 		}
@@ -236,7 +236,7 @@ SharedPtr<const ElementDefinition> StyleSheet::GetElementDefinition(const Elemen
 	// Also check all remaining nodes that don't contain any indexed requirements.
 	for (const StyleSheetNode* node : styled_node_index.other)
 	{
-		if (node->IsApplicable(element))
+		if (node->IsApplicable(element, nullptr))
 			applicable_nodes.push_back(node);
 	}
 
