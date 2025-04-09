@@ -35,6 +35,7 @@
 #include "../../Include/RmlUi/Core/ElementScroll.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
+#include "../../Include/RmlUi/Core/Math.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/PropertiesIteratorView.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
@@ -769,7 +770,7 @@ bool Element::Project(Vector2f& point) const noexcept
 		Vector3f ray = local_points[1] - local_points[0];
 
 		// Only continue if we are not close to parallel with the plane.
-		if (std::fabs(ray.z) > 1.0f)
+		if (Math::Absolute(ray.z) > 1.0f)
 		{
 			// Solving the line equation p = p0 + t*ray for t, knowing that p.z = 0, produces the following.
 			float t = -local_points[0].z / ray.z;
