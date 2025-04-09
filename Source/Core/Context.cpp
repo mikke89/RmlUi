@@ -993,6 +993,13 @@ bool Context::OnFocusChange(Element* new_focus, bool focus_visible)
 	if (old_document && old_document->IsModal() && (!new_document || !(new_document->IsModal() || new_document->IsFocusableFromModal())))
 		return false;
 
+	// If the document of the new focus has been closed, deny the request.
+	if (std::find_if(unloaded_documents.begin(), unloaded_documents.end(),
+			[&](const auto& unloaded_document) { return unloaded_document.get() == new_document; }) != unloaded_documents.end())
+	{
+		return false;
+	}
+
 	// Build the old chains
 	Element* element = old_focus;
 	while (element)
