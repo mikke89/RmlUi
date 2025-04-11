@@ -258,6 +258,15 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 						token.clear();
 						next_token_begin = token_begin;
 						const char* partial_string_end = StringUtilities::SeekBackwardUTF8(token_begin + i, token_begin);
+                        // When the char is multibyte it may happen that token_begin + i is the second byte of the same character as token_begin
+                        // then BuildToken() fails. I think this happens when first character of the token is a multibyte character and StringUtilities::SeekBackwardUTF8
+						// returns the same char.
+						if (partial_string_end == token_begin)
+						{
+							i += 2;
+							force_loop_break_after_next = true;
+							continue;
+						}
 						BuildToken(token, next_token_begin, partial_string_end, line.empty() && trim_whitespace_prefix, collapse_white_space,
 							break_at_endline, text_transform_property, decode_escape_characters);
 						token_width = font_engine_interface->GetStringWidth(font_face_handle, token, text_shaping_context, previous_codepoint);
