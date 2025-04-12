@@ -42,8 +42,11 @@ public:
 	WidgetTextInputSingleLinePassword(ElementFormControl* parent);
 
 protected:
-	/// Transforms the displayed value of the text box, typically used for password fields.
 	void TransformValue(String& value) override;
+
+	int DisplayIndexToAttributeIndex(int display_index, const String& attribute_value) override;
+
+	int AttributeIndexToDisplayIndex(int attribute_index, const String& attribute_value) override;
 };
 
 } // namespace Rml
