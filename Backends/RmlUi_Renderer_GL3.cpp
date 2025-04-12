@@ -717,6 +717,27 @@ static void DestroyFramebuffer(FramebufferData& fb)
 	fb = {};
 }
 
+static GLuint CreateTexture(Rml::Span<const Rml::byte> source_data, Rml::Vector2i source_dimensions)
+{
+	GLuint texture_id = 0;
+	glGenTextures(1, &texture_id);
+	if (texture_id == 0)
+		return 0;
+
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source_data.data());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return texture_id;
+}
+
 static void BindTexture(const FramebufferData& fb)
 {
 	if (!fb.color_tex_buffer)
@@ -1277,25 +1298,12 @@ Rml::TextureHandle RenderInterface_GL3::GenerateTexture(Rml::Span<const Rml::byt
 {
 	RMLUI_ASSERT(source_data.data() && source_data.size() == size_t(source_dimensions.x * source_dimensions.y * 4));
 
-	GLuint texture_id = 0;
-	glGenTextures(1, &texture_id);
+	GLuint texture_id = Gfx::CreateTexture(source_data, source_dimensions);
 	if (texture_id == 0)
 	{
 		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to generate texture.");
-		return false;
+		return {};
 	}
-
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, source_dimensions.x, source_dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, source_data.data());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
 	return (Rml::TextureHandle)texture_id;
 }
 
@@ -1956,9 +1964,12 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture()
 	RMLUI_ASSERT(scissor_state.Valid());
 	const Rml::Rectanglei bounds = scissor_state;
 
-	Rml::TextureHandle render_texture = GenerateTexture({}, bounds.Size());
-	if (!render_texture)
+	GLuint render_texture = Gfx::CreateTexture({}, bounds.Size());
+	if (render_texture == 0)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR, "Failed to create render texture.");
 		return {};
+	}
 
 	BlitLayerToPostprocessPrimary(render_layers.GetTopLayerHandle());
 
@@ -1978,7 +1989,7 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture()
 		GL_COLOR_BUFFER_BIT, GL_NEAREST                 //
 	);
 
-	glBindTexture(GL_TEXTURE_2D, (GLuint)render_texture);
+	glBindTexture(GL_TEXTURE_2D, render_texture);
 
 	const Gfx::FramebufferData& texture_source = destination;
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, texture_source.framebuffer);
@@ -1988,7 +1999,7 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture()
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
 	Gfx::CheckGLError("SaveLayerAsTexture");
 
-	return render_texture;
+	return (Rml::TextureHandle)render_texture;
 }
 
 Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
