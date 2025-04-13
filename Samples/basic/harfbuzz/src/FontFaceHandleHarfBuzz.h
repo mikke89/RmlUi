@@ -119,12 +119,6 @@ private:
 	// Build and append fallback glyph to 'fallback_glyphs'.
 	bool AppendFallbackGlyph(Character character);
 
-	// Build a kerning cache for common characters.
-	void FillKerningPairCache();
-
-	// Return the kerning for a codepoint pair.
-	int GetKerning(FontGlyphIndex lhs, FontGlyphIndex rhs) const;
-
 	/// Retrieve a glyph from the given code index, building and appending a new glyph if not already built.
 	/// @param[in] glyph_index  The glyph index.
 	/// @param[in-out] character  The character codepoint, can be changed e.g. to the replacement character if no glyph is found..
@@ -168,13 +162,6 @@ private:
 	// Each font layer that generated geometry or textures, indexed by the font-effect's fingerprint key.
 	FontLayerCache layer_cache;
 
-	// Pre-cache kerning pairs for some ascii subset of all characters.
-	using AsciiPair = uint16_t;
-	using KerningIntType = int16_t;
-	using KerningPairs = UnorderedMap<AsciiPair, KerningIntType>;
-	KerningPairs kerning_pair_cache;
-
-	bool has_kerning = false;
 	bool is_layers_dirty = false;
 	int version = 0;
 

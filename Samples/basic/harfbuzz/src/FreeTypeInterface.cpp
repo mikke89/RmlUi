@@ -80,32 +80,6 @@ bool AppendGlyph(FontFaceHandleFreetype face, int font_size, FontGlyphIndex glyp
 	return true;
 }
 
-int GetKerning(FontFaceHandleFreetype face, int font_size, FontGlyphIndex lhs, FontGlyphIndex rhs)
-{
-	FT_Face ft_face = (FT_Face)face;
-
-	RMLUI_ASSERT(FT_HAS_KERNING(ft_face));
-
-	// Set face size again in case it was used at another size in another font face handle.
-	// Font size value of zero assumes it is already set.
-	if (font_size > 0)
-	{
-		float bitmap_scaling_factor = 1.0f;
-		if (!SetFontSize(ft_face, font_size, bitmap_scaling_factor) || bitmap_scaling_factor != 1.0f)
-			return 0;
-	}
-
-	FT_Vector ft_kerning;
-
-	FT_Error ft_error = FT_Get_Kerning(ft_face, lhs, rhs, FT_KERNING_DEFAULT, &ft_kerning);
-
-	if (ft_error)
-		return 0;
-
-	int kerning = ft_kerning.x >> 6;
-	return kerning;
-}
-
 FontGlyphIndex GetGlyphIndexFromCharacter(FontFaceHandleFreetype face, Character character)
 {
 	return FT_Get_Char_Index((FT_Face)face, (FT_ULong)character);

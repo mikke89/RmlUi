@@ -68,12 +68,10 @@ bool FontFaceHandleHarfBuzz::Initialize(FontFaceHandleFreetype face, int font_si
 	if (!FreeType::InitialiseFaceHandle(ft_face, font_size, glyphs, metrics, load_default_glyphs))
 		return false;
 
-	has_kerning = Rml::FreeType::HasKerning(ft_face);
-	FillKerningPairCache();
-
 	hb_font = hb_ft_font_create_referenced((FT_Face)ft_face);
 	RMLUI_ASSERT(hb_font != nullptr);
 	hb_font_set_ptem(hb_font, (float)font_size);
+	hb_ft_font_set_funcs(hb_font);
 
 	// Generate the default layer and layer configuration.
 	base_layer = GetOrCreateLayer(nullptr);
@@ -98,7 +96,7 @@ const FallbackFontGlyphMap& FontFaceHandleHarfBuzz::GetFallbackGlyphs() const
 }
 
 int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingContext& text_shaping_context,
-	const LanguageDataMap& registered_languages, Character prior_character)
+	const LanguageDataMap& registered_languages, Character /*prior_character*/)
 {
 	int width = 0;
 
@@ -109,10 +107,9 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 	hb_buffer_add_utf8(shaping_buffer, string.begin(), (int)string.size(), 0, (int)string.size());
 	hb_shape(hb_font, shaping_buffer, nullptr, 0);
 
-	FontGlyphIndex prior_glyph_codepoint = FreeType::GetGlyphIndexFromCharacter(ft_face, prior_character);
-
 	unsigned int glyph_count = 0;
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
+	hb_glyph_position_t* glyph_positions = hb_buffer_get_glyph_positions(shaping_buffer, &glyph_count);
 
 	for (int g = 0; g < (int)glyph_count; ++g)
 	{
@@ -121,19 +118,19 @@ int FontFaceHandleHarfBuzz::GetStringWidth(StringView string, const TextShapingC
 		if (IsASCIIControlCharacter(character))
 			continue;
 
-		FontGlyphIndex glyph_codepoint = glyph_info[g].codepoint;
-		const FontGlyph* glyph = GetOrAppendGlyph(glyph_codepoint, character);
+		FontGlyphIndex glyph_index = glyph_info[g].codepoint;
+		const FontGlyph* glyph = GetOrAppendGlyph(glyph_index, character);
 		if (!glyph)
 			continue;
 
-		// Adjust the cursor for the kerning between this character and the previous one.
-		width += GetKerning(prior_glyph_codepoint, glyph_codepoint);
-
 		// Adjust the cursor for this character's advance.
-		width += glyph->advance;
-		width += (int)text_shaping_context.letter_spacing;
+		if (glyph_index != 0)
+			width += glyph_positions[g].x_advance >> 6;
+		else
+			// Use the unshaped advance for unsupported characters.
+			width += glyph->advance;
 
-		prior_glyph_codepoint = glyph_codepoint;
+		width += (int)text_shaping_context.letter_spacing;
 	}
 
 	hb_buffer_destroy(shaping_buffer);
@@ -265,7 +262,6 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 		RMLUI_ASSERT(geometry_index + num_textures <= (int)mesh_list.size());
 
 		line_width = 0;
-		FontGlyphIndex prior_glyph_codepoint = 0;
 
 		// Set the mesh and textures to the geometries.
 		for (int tex_index = 0; tex_index < num_textures; ++tex_index)
@@ -279,6 +275,7 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 
 		unsigned int glyph_count = 0;
 		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(shaping_buffer, &glyph_count);
+		hb_glyph_position_t* glyph_positions = hb_buffer_get_glyph_positions(shaping_buffer, &glyph_count);
 
 		mesh_list[geometry_index].mesh.indices.reserve(string.size() * 6);
 		mesh_list[geometry_index].mesh.vertices.reserve(string.size() * 4);
@@ -291,25 +288,28 @@ int FontFaceHandleHarfBuzz::GenerateString(RenderManager& render_manager, Textur
 			if (IsASCIIControlCharacter(character))
 				continue;
 
-			FontGlyphIndex glyph_codepoint = glyph_info[g].codepoint;
-			const FontGlyph* glyph = GetOrAppendGlyph(glyph_codepoint, character);
+			FontGlyphIndex glyph_index = glyph_info[g].codepoint;
+			const FontGlyph* glyph = GetOrAppendGlyph(glyph_index, character);
 			if (!glyph)
 				continue;
-
-			// Adjust the cursor for the kerning between this character and the previous one.
-			line_width += GetKerning(prior_glyph_codepoint, glyph_codepoint);
 
 			ColourbPremultiplied glyph_color = layer_colour;
 			// Use white vertex colors on RGB glyphs.
 			if (layer == base_layer && glyph->color_format == ColorFormat::RGBA8)
 				glyph_color = ColourbPremultiplied(layer_colour.alpha, layer_colour.alpha);
 
-			layer->GenerateGeometry(&mesh_list[geometry_index], glyph_codepoint, character, Vector2f(position.x + line_width, position.y),
-				glyph_color);
+			Vector2f glyph_offset = {float(glyph_positions[g].x_offset >> 6), float(glyph_positions[g].y_offset >> 6)};
+			Vector2f glyph_geometry_position = Vector2f{position.x + line_width, position.y} + glyph_offset;
+			layer->GenerateGeometry(&mesh_list[geometry_index], glyph_index, character, glyph_geometry_position, glyph_color);
 
-			line_width += glyph->advance;
+			// Adjust the cursor for this character's advance.
+			if (glyph_index != 0)
+				line_width += glyph_positions[g].x_advance >> 6;
+			else
+				// Use the unshaped advance for unsupported characters.
+				line_width += glyph->advance;
+
 			line_width += (int)text_shaping_context.letter_spacing;
-			prior_glyph_codepoint = glyph_codepoint;
 		}
 
 		geometry_index += num_textures;
@@ -381,49 +381,6 @@ bool FontFaceHandleHarfBuzz::AppendFallbackGlyph(Character character)
 	}
 
 	return false;
-}
-
-void FontFaceHandleHarfBuzz::FillKerningPairCache()
-{
-	if (!has_kerning)
-		return;
-
-	static constexpr char32_t KerningCache_AsciiSubsetBegin = 32;
-	static constexpr char32_t KerningCache_AsciiSubsetLast = 126;
-
-	for (char32_t i = KerningCache_AsciiSubsetBegin; i <= KerningCache_AsciiSubsetLast; i++)
-	{
-		for (char32_t j = KerningCache_AsciiSubsetBegin; j <= KerningCache_AsciiSubsetLast; j++)
-		{
-			const bool first_iteration = (i == KerningCache_AsciiSubsetBegin && j == KerningCache_AsciiSubsetBegin);
-
-			// Fetch the kerning from the font face. Submit zero font size on subsequent iterations for performance reasons.
-			const int kerning = FreeType::GetKerning(ft_face, first_iteration ? metrics.size : 0,
-				FreeType::GetGlyphIndexFromCharacter(ft_face, Character(i)), FreeType::GetGlyphIndexFromCharacter(ft_face, Character(j)));
-			if (kerning != 0)
-			{
-				kerning_pair_cache.emplace(AsciiPair((i << 8) | j), KerningIntType(kerning));
-			}
-		}
-	}
-}
-
-int FontFaceHandleHarfBuzz::GetKerning(FontGlyphIndex lhs, FontGlyphIndex rhs) const
-{
-	// Check if we have no kerning, or if we are have an unsupported character.
-	if (!has_kerning || lhs == 0 || rhs == 0)
-		return 0;
-
-	// See if the kerning pair has been cached.
-	const auto it = kerning_pair_cache.find(AsciiPair((int(lhs) << 8) | int(rhs)));
-	if (it != kerning_pair_cache.end())
-	{
-		return it->second;
-	}
-
-	// Fetch it from the font face instead.
-	const int result = FreeType::GetKerning(ft_face, metrics.size, lhs, rhs);
-	return result;
 }
 
 const FontGlyph* FontFaceHandleHarfBuzz::GetOrAppendGlyph(FontGlyphIndex glyph_index, Character& character, bool look_in_fallback_fonts)
