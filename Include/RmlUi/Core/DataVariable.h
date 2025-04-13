@@ -261,13 +261,13 @@ public:
 	bool Set(void* ptr, const Variant& variant) override { return SetDetail(ptr, variant); }
 
 private:
-	template <typename T = MemberGetType, typename std::enable_if<IsVoidMemberFunc<T>::value, int>::type = 0>
+	template <typename T = MemberGetType, typename std::enable_if_t<IsVoidMemberFunc<T>::value, int> = 0>
 	bool GetDetail(void* /*ptr*/, Variant& /*variant*/)
 	{
 		return false;
 	}
 
-	template <typename T = MemberGetType, typename std::enable_if<!IsVoidMemberFunc<T>::value, int>::type = 0>
+	template <typename T = MemberGetType, typename std::enable_if_t<!IsVoidMemberFunc<T>::value, int> = 0>
 	bool GetDetail(void* ptr, Variant& variant)
 	{
 		RMLUI_ASSERT(member_get_func_ptr);
@@ -277,13 +277,13 @@ private:
 		return result;
 	}
 
-	template <typename T = MemberSetType, typename std::enable_if<IsVoidMemberFunc<T>::value, int>::type = 0>
+	template <typename T = MemberSetType, typename std::enable_if_t<IsVoidMemberFunc<T>::value, int> = 0>
 	bool SetDetail(void* /*ptr*/, const Variant& /*variant*/)
 	{
 		return false;
 	}
 
-	template <typename T = MemberSetType, typename std::enable_if<!IsVoidMemberFunc<T>::value, int>::type = 0>
+	template <typename T = MemberSetType, typename std::enable_if_t<!IsVoidMemberFunc<T>::value, int> = 0>
 	bool SetDetail(void* ptr, const Variant& variant)
 	{
 		RMLUI_ASSERT(member_set_func_ptr);
