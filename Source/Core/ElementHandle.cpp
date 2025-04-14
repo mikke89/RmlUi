@@ -27,6 +27,9 @@
  */
 
 #include "ElementHandle.h"
+
+#include <cmath>
+
 #include "../../Include/RmlUi/Core/ComputedValues.h"
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/ElementUtilities.h"
