@@ -51,7 +51,7 @@ jobs:
 
 
   Linux-legacy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     env:
       BUILD_TYPE: Release
