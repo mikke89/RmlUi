@@ -101,13 +101,14 @@ void ElementText::OnRender()
 		return;
 
 	RenderManager& render_manager = GetContext()->GetRenderManager();
+	FontEngineInterface& font_engine_interface = *GetFontEngineInterface();
 
 	// If our font effects have potentially changed, update it and force a geometry generation if necessary.
 	if (font_effects_dirty && UpdateFontEffects())
 		geometry_dirty = true;
 
 	// Dirty geometry if font version has changed.
-	int new_version = GetFontEngineInterface()->GetVersion(font_face_handle);
+	int new_version = font_engine_interface.GetVersion(font_face_handle);
 	if (new_version != font_handle_version)
 	{
 		font_handle_version = new_version;
@@ -115,7 +116,11 @@ void ElementText::OnRender()
 	}
 
 	// Regenerate the geometry if the colour or font configuration has altered.
-	if (geometry_dirty)
+	bool should_regenerate = geometry_dirty;
+	if (!should_regenerate)
+		for (size_t i = 0; i < lines.size(); ++i)
+			should_regenerate = !font_engine_interface.EnsureGlyphs(font_face_handle, lines[i].text) || should_regenerate;
+	if (should_regenerate)
 		GenerateGeometry(render_manager, font_face_handle);
 
 	// Regenerate text decoration if necessary.
