@@ -37,7 +37,7 @@
 
 namespace Rml {
 
-#ifdef RMLUI_PLATFORM_WIN32
+#if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
 bool LogDefault::LogMessage(Log::Type type, const String& message)
 {
 	#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
