@@ -33,7 +33,7 @@
 #include <RmlUi/Core/Platform.h>
 #include <string.h>
 
-#if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
+#if defined RMLUI_PLATFORM_WIN32_NATIVE
 	// function call missing argument list
 	#pragma warning(disable : 4551)
 	// unreferenced local function has been removed

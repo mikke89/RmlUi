@@ -233,7 +233,7 @@ void ReleaseTextureGeometry(Rml::RenderInterface* render_interface, TextureGeome
 }
 
 // Suppress warnings emitted by lodepng
-#if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
+#if defined RMLUI_PLATFORM_WIN32_NATIVE
 	#pragma warning(disable : 4334)
 	#pragma warning(disable : 4267)
 #endif
