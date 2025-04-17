@@ -57,6 +57,8 @@
 #endif
 
 #if defined(RMLUI_PLATFORM_WIN32) && !defined(__MINGW32__)
+	#define RMLUI_PLATFORM_WIN32_NATIVE
+
 	// declaration of 'identifier' hides class member
 	#pragma warning(disable : 4458)
 
