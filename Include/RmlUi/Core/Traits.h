@@ -70,25 +70,6 @@ public:
 	}
 };
 
-enum class FamilyId : int {};
-
-class RMLUICORE_API FamilyBase {
-protected:
-	static int GetNewId();
-};
-
-template <typename T>
-class Family : FamilyBase {
-public:
-	// Get a unique ID for a given type.
-	// Note: An ID for a given type may not match across DLL-boundaries.
-	static FamilyId Id()
-	{
-		static int id = GetNewId();
-		return static_cast<FamilyId>(id);
-	}
-};
-
 } // namespace Rml
 
 #ifdef RMLUI_CUSTOM_RTTI

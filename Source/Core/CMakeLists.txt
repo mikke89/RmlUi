@@ -199,7 +199,6 @@ add_library(rmlui_core
 	TextureLayoutRow.h
 	TextureLayoutTexture.cpp
 	TextureLayoutTexture.h
-	Traits.cpp
 	Transform.cpp
 	TransformPrimitive.cpp
 	TransformState.cpp
