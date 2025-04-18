@@ -202,6 +202,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.RELEASE_TOKEN }}
           name: RmlUi ${{ github.ref_name }}
           files: "*.zip"
           draft: true
