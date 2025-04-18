@@ -78,7 +78,7 @@ private:
 	VariableDefinition* GetDefinitionDetail()
 	{
 		static_assert(!std::is_const<T>::value, "Data binding variables cannot point to constant variables.");
-		FamilyId id = Family<T>::Id();
+		FamilyId id {rmlui_type_name<T>()};
 
 		auto result = type_register.emplace(id, nullptr);
 		bool inserted = result.second;
@@ -95,7 +95,7 @@ private:
 	template <typename T, typename std::enable_if_t<!PointerTraits<T>::is_pointer::value && !is_builtin_data_scalar<T>::value, int> = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
-		FamilyId id = Family<T>::Id();
+		FamilyId id {rmlui_type_name<T>()};
 		auto it = type_register.find(id);
 		if (it == type_register.end())
 		{
@@ -129,7 +129,7 @@ private:
 		}
 
 		// Get or create the pointer wrapper definition.
-		FamilyId id = Family<T>::Id();
+		FamilyId id {rmlui_type_name<T>()};
 
 		auto result = type_register.emplace(id, nullptr);
 		bool inserted = result.second;

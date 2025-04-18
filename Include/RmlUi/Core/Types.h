@@ -100,7 +100,6 @@ struct BoxShadow;
 enum class EventId : uint16_t;
 enum class PropertyId : uint8_t;
 enum class MediaQueryId : uint8_t;
-enum class FamilyId : int;
 
 // Types for external interfaces.
 using FileHandle = uintptr_t;
@@ -154,6 +153,7 @@ class DataView;
 using DataViewPtr = UniqueReleaserPtr<DataView>;
 class DataController;
 using DataControllerPtr = UniqueReleaserPtr<DataController>;
+using FamilyId = String;
 
 } // namespace Rml
 
@@ -172,15 +172,6 @@ template <>
 struct hash<::Rml::Character> {
 	using utype = ::std::underlying_type_t<::Rml::Character>;
 	size_t operator()(const ::Rml::Character& t) const noexcept
-	{
-		::std::hash<utype> h;
-		return h(static_cast<utype>(t));
-	}
-};
-template <>
-struct hash<::Rml::FamilyId> {
-	using utype = ::std::underlying_type_t<::Rml::FamilyId>;
-	size_t operator()(const ::Rml::FamilyId& t) const noexcept
 	{
 		::std::hash<utype> h;
 		return h(static_cast<utype>(t));

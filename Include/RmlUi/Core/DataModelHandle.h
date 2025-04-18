@@ -146,7 +146,7 @@ inline bool DataModelConstructor::RegisterScalar(DataTypeGetFunc<T> get_func, Da
 	// Though enum is builtin scalar type, we allow custom getter/setter on it.
 	static_assert(!is_builtin_data_scalar<T>::value || std::is_enum<T>::value,
 		"Cannot register scalar data type function. Arithmetic types and String are handled internally and does not need to be registered.");
-	const FamilyId id = Family<T>::Id();
+	const FamilyId id {rmlui_type_name<T>()};
 
 	auto scalar_func_definition = Rml::MakeUnique<ScalarFuncDefinition<T>>(get_func, set_func);
 
@@ -163,7 +163,7 @@ inline bool DataModelConstructor::RegisterScalar(DataTypeGetFunc<T> get_func, Da
 template <typename T>
 inline bool DataModelConstructor::RegisterCustomDataVariableDefinition(UniquePtr<VariableDefinition> definition)
 {
-	const FamilyId id = Family<T>::Id();
+	const FamilyId id {rmlui_type_name<T>()};
 
 	const bool inserted = type_register->RegisterDefinition(id, std::move(definition));
 	if (!inserted)
@@ -179,7 +179,7 @@ template <typename T>
 inline StructHandle<T> DataModelConstructor::RegisterStruct()
 {
 	static_assert(std::is_class<T>::value, "Type must be a struct or class type.");
-	const FamilyId id = Family<T>::Id();
+	const FamilyId id {rmlui_type_name<T>()};
 
 	auto struct_definition = Rml::MakeUnique<StructDefinition>();
 	StructDefinition* struct_variable_raw = struct_definition.get();
@@ -203,7 +203,7 @@ inline bool DataModelConstructor::RegisterArray()
 	if (!value_variable)
 		return false;
 
-	const FamilyId container_id = Family<Container>::Id();
+	const FamilyId container_id {rmlui_type_name<Container>()};
 	auto array_definition = Rml::MakeUnique<ArrayDefinition<Container>>(value_variable);
 
 	const bool inserted = type_register->RegisterDefinition(container_id, std::move(array_definition));
