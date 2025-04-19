@@ -660,7 +660,7 @@ form .nav-auto, form input.checkbox, form input.radio
 		<div style="width: 96dp; height: 85dp; decorator: image( demo-title-bar );"/>
 		<div style="width: 250dp; height: 85dp; decorator: tiled-horizontal( title-bar-l, title-bar-c, title-bar-r );"/>
 	</div>
-	<p>In the third example we show the same title bar that is used to style the sample windows.</p>
+	<p>In the third example we show the same title bar used to style the sample windows.</p>
 
 
 	<h1>Tiled-vertical decorator</h1>
@@ -902,7 +902,7 @@ form .nav-auto, form input.checkbox, form input.radio
 		<col/>
 		<tr id="row_source">
 			<td><textarea id="sandbox_rml_source" wrap="nowrap" onchange="set_sandbox_body"></textarea></td>
-			<td id="vertical_slider"><handle class="slider"size_target="col_rml_source"/></td>
+			<td id="vertical_slider"><handle class="slider" size_target="col_rml_source"/></td>
 			<td><textarea id="sandbox_rcss_source" wrap="nowrap" onchange="set_sandbox_style"></textarea></td>
 		</tr>
 		<tr>

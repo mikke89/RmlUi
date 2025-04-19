@@ -76,7 +76,7 @@ public:
 	/// @param[in] class_name Class name to search for.
 	static void GetElementsByClassName(ElementList& elements, Element* root_element, const String& class_name);
 
-	/// Returns an element's density-independent pixel ratio, defined by it's context
+	/// Returns an element's density-independent pixel ratio, defined by its context.
 	/// @param[in] element The element to determine the density-independent pixel ratio for.
 	/// @return The density-independent pixel ratio of the context, or 1.0 if no context assigned.
 	static float GetDensityIndependentPixelRatio(Element* element);
@@ -128,7 +128,7 @@ public:
 	/// @param anchor[in] Defines which corner or edge the border is to be positioned relative to.
 	static bool PositionElement(Element* element, Vector2f offset, PositionAnchor anchor);
 
-	/// Applies an element's accumulated transform matrix, determined from its and ancestor's `perspective' and `transform' properties.
+	/// Applies an element's accumulated transform matrix, determined from the `perspective` and `transform` properties of itself and ancestors.
 	/// @param[in] element The element whose transform to apply, or nullptr for identity transform.
 	/// @return True if the transform could be submitted to the render interface.
 	static bool ApplyTransform(Element& element);

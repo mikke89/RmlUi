@@ -65,7 +65,7 @@ public:
 	/// @param[in] value The new value of the form control.
 	virtual void SetValue(const String& value) = 0;
 	/// Returns if this value should be submitted with the form.
-	/// @return True if the value should be be submitted with the form, false otherwise.
+	/// @return True if the value should be submitted with the form, false otherwise.
 	virtual bool IsSubmitted();
 
 	/// Returns the disabled status of the form control.

@@ -1089,8 +1089,8 @@ void RenderInterface_GL3::ReleaseGeometry(Rml::CompiledGeometryHandle handle)
 	delete geometry;
 }
 
-/// Flip vertical axis of the rectangle, and move its origin to the vertically opposite side of the viewport.
-/// @note Changes coordinate system from RmlUi to OpenGL, or equivalently in reverse.
+/// Flip the vertical axis of the rectangle, and move its origin to the vertically opposite side of the viewport.
+/// @note Changes the coordinate system from RmlUi to OpenGL, or equivalently in reverse.
 /// @note The Rectangle::Top and Rectangle::Bottom members will have reverse meaning in the returned rectangle.
 static Rml::Rectanglei VerticallyFlipped(Rml::Rectanglei rect, int viewport_height)
 {

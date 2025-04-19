@@ -47,16 +47,16 @@ public:
 	ElementTabSet(const String& tag);
 	~ElementTabSet();
 
-	/// Sets the specifed tab index's tab title RML.
+	/// Sets the specified tab index's tab title RML.
 	/// @param[in] tab_index The tab index to set. If it doesn't already exist, it will be created.
 	/// @param[in] rml The RML to set on the tab title.
 	void SetTab(int tab_index, const String& rml);
-	/// Sets the specifed tab index's tab panel RML.
+	/// Sets the specified tab index's tab panel RML.
 	/// @param[in] tab_index The tab index to set. If it doesn't already exist, it will be created.
 	/// @param[in] rml The RML to set on the tab panel.
 	void SetPanel(int tab_index, const String& rml);
 
-	/// Set the specifed tab index's title element.
+	/// Set the specified tab index's title element.
 	/// @param[in] tab_index The tab index to set. If it doesn't already exist, it will be created.
 	/// @param[in] element The root of the element tree to set as the tab title.
 	void SetTab(int tab_index, ElementPtr element);

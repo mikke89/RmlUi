@@ -60,7 +60,7 @@ RMLUICORE_API void Shutdown();
 /// @return The version number.
 RMLUICORE_API String GetVersion();
 
-/// Sets the interface through which all system requests are made. This is not required to be called, but if it is it
+/// Sets the interface through which all system requests are made. This is not required to be called, but if it is, it
 /// must be called before Initialise().
 /// @param[in] system_interface A non-owning pointer to the application-specified logging interface.
 /// @lifetime The interface must be kept alive until after the call to Rml::Shutdown.
@@ -77,7 +77,7 @@ RMLUICORE_API void SetRenderInterface(RenderInterface* render_interface);
 /// Returns RmlUi's default's render interface.
 RMLUICORE_API RenderInterface* GetRenderInterface();
 
-/// Sets the interface through which all file I/O requests are made. This is not required to be called, but if it is it
+/// Sets the interface through which all file I/O requests are made. This is not required to be called, but if it is, it
 /// must be called before Initialise().
 /// @param[in] file_interface A non-owning pointer to the application-specified file interface.
 /// @lifetime The interface must be kept alive until after the call to Rml::Shutdown.
@@ -85,7 +85,7 @@ RMLUICORE_API void SetFileInterface(FileInterface* file_interface);
 /// Returns RmlUi's file interface.
 RMLUICORE_API FileInterface* GetFileInterface();
 
-/// Sets the interface through which all font requests are made. This is not required to be called, but if it is
+/// Sets the interface through which all font requests are made. This is not required to be called, but if it is,
 /// it must be called before Initialise().
 /// @param[in] font_interface A non-owning pointer to the application-specified font engine interface.
 /// @lifetime The interface must be kept alive until after the call to Rml::Shutdown.
@@ -108,13 +108,13 @@ RMLUICORE_API TextInputHandler* GetTextInputHandler();
 /// @param[in] text_input_handler The custom text input handler to use, or nullptr to use the default.
 /// @lifetime If specified, the render interface and the text input handler must be kept alive until after the call to
 ///           Rml::Shutdown. Alternatively, the render interface can be destroyed after all contexts it belongs to have been
-///           destroyed and a subsequent call has been made to Rml::ReleaseRenderManagers.
+///           destroyed, and a subsequent call has been made to Rml::ReleaseRenderManagers.
 /// @return A non-owning pointer to the new context, or nullptr if the context could not be created.
 RMLUICORE_API Context* CreateContext(const String& name, Vector2i dimensions, RenderInterface* render_interface = nullptr,
 	TextInputHandler* text_input_handler = nullptr);
 /// Removes and destroys a context.
 /// @param[in] name The name of the context to remove.
-/// @return True if name is a valid context, false otherwise.
+/// @return True if the name is a valid context, false otherwise.
 RMLUICORE_API bool RemoveContext(const String& name);
 /// Fetches a previously constructed context by name.
 /// @param[in] name The name of the desired context.
@@ -128,7 +128,7 @@ RMLUICORE_API Context* GetContext(int index);
 /// @return The total number of active RmlUi contexts.
 RMLUICORE_API int GetNumContexts();
 
-/// Adds a new font face to the font engine. The face's family, style and weight will be determined from the face itself.
+/// Adds a new font face to the font engine. The face's family, style, and weight will be determined from the face itself.
 /// @param[in] file_path The path to the file to load the face from. The path is passed directly to the file interface which is used to load the file.
 /// The default file interface accepts both absolute paths and paths relative to the working directory.
 /// @param[in] fallback_face True to use this font face for unknown characters in other font faces.
@@ -136,8 +136,9 @@ RMLUICORE_API int GetNumContexts();
 /// loads all found font weights.
 /// @param[in] face_index The index of the font face within a font collection.
 /// @return True if the face was loaded successfully, false otherwise.
-RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = false, Style::FontWeight weight = Style::FontWeight::Auto, int face_index = 0);
-/// Adds a new font face from memory to the font engine. The face's family, style and weight is given by the parameters.
+RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = false, Style::FontWeight weight = Style::FontWeight::Auto,
+	int face_index = 0);
+/// Adds a new font face from memory to the font engine. The face's family, style, and weight are given by the parameters.
 /// @param[in] data The font data.
 /// @param[in] family The family to register the font as.
 /// @param[in] style The style to register the font as.

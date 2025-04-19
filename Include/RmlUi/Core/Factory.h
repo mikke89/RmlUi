@@ -62,9 +62,6 @@ enum class EventId : uint16_t;
 /**
     The Factory contains a registry of instancers for different types.
 
-    All instantiation of these rmlui types should go through the factory
-    so that scripting API's can bind in new types.
-
     @author Lloyd Weehuizen
  */
 
@@ -165,7 +162,7 @@ public:
 	static SharedPtr<StyleSheetContainer> InstanceStyleSheetStream(Stream* stream);
 	/// Clears the style sheet cache. This will force style sheets to be reloaded.
 	static void ClearStyleSheetCache();
-	/// Clears the template cache. This will force template to be reloaded.
+	/// Clears the template cache. This will force templates to be reloaded.
 	static void ClearTemplateCache();
 
 	/// Registers an instancer for all events.
@@ -193,15 +190,15 @@ public:
 	/// Register an instancer for data views.
 	/// Structural views start a special XML parsing procedure when encountering a declaration of the view. Instead of instancing
 	/// children elements, the raw inner XML/RML contents are submitted to the initializing procedure of the view.
-	/// @param[in] instancer  The instancer to be called.
-	/// @param[in] type_name  The type name of the view, determines the element attribute that is used to initialize it.
+	/// @param[in] instancer The instancer to be called.
+	/// @param[in] type_name The type name of the view, determines the element attribute used to initialize it.
 	/// @param[in] is_structural_view  Set true if the view should be parsed as a structural view.
 	/// @lifetime The instancer must be kept alive until after the call to Rml::Shutdown.
 	static void RegisterDataViewInstancer(DataViewInstancer* instancer, const String& type_name, bool is_structural_view = false);
 
 	/// Register an instancer for data controllers.
-	/// @param[in] instancer  The instancer to be called.
-	/// @param[in] type_name  The type name of the controller, determines the element attribute that is used to initialize it.
+	/// @param[in] instancer The instancer to be called.
+	/// @param[in] type_name The type name of the controller, determines the element attribute used to initialize it.
 	/// @lifetime The instancer must be kept alive until after the call to Rml::Shutdown.
 	static void RegisterDataControllerInstancer(DataControllerInstancer* instancer, const String& type_name);
 
