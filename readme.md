@@ -350,7 +350,7 @@ int main(int argc, char** argv)
 
 ![Hello world document](Samples/assets/hello_world.png)
 
-Users can now edit the text field to change the animal. The data bindings ensure that both the document text as well as the application string `my_data.animal` are automatically modified accordingly.
+Users can now edit the text field to change the animal. The data bindings ensure that both the document text and the application string `my_data.animal` are automatically modified accordingly.
 
 
 ## Gallery

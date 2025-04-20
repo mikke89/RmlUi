@@ -56,6 +56,8 @@ decorator: text("Hello 🌎 world!" blue bottom right);
 
 The font face will be inherited from the element it is being applied to. However, it can be colored independently. Further, the text can be freely aligned within the element using lengths, percentages, or keywords. Unicode numerical references are supported with the HTML syntax, e.g. `&#x1F30E;`.
 
+![Text decorator examples](https://github.com/mikke89/RmlUiDoc/blob/b050d5d0b316c961cd05ed37cdd3dda1b809d80e/assets/images/decorators/text.png)
+
 ### Flexbox layout improvements
 
 - Apply automatic minimum size of flex items in column mode with auto size. #658
