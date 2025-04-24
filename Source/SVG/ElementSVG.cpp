@@ -48,8 +48,7 @@ ElementSVG::~ElementSVG() {}
 
 bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
-	if (source_dirty)
-		LoadSource();
+	EnsureSourceLoaded();
 
 	dimensions = intrinsic_dimensions;
 
@@ -66,6 +65,12 @@ bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 		ratio = dimensions.x / dimensions.y;
 
 	return true;
+}
+
+void ElementSVG::EnsureSourceLoaded()
+{
+	if (source_dirty)
+		LoadSource();
 }
 
 void ElementSVG::OnRender()

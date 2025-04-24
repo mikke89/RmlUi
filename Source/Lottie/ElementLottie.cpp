@@ -47,8 +47,7 @@ ElementLottie::~ElementLottie() {}
 
 bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
-	if (animation_dirty)
-		LoadAnimation();
+	EnsureSourceLoaded();
 
 	dimensions = intrinsic_dimensions;
 	if (dimensions.y > 0)
@@ -57,10 +56,15 @@ bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 	return true;
 }
 
-void ElementLottie::OnUpdate()
+void ElementLottie::EnsureSourceLoaded()
 {
 	if (animation_dirty)
 		LoadAnimation();
+}
+
+void ElementLottie::OnUpdate()
+{
+	EnsureSourceLoaded();
 
 	if (!animation)
 		return;

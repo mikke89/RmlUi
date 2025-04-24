@@ -50,9 +50,7 @@ ElementImage::~ElementImage() {}
 
 bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 {
-	// Check if we need to reload the texture.
-	if (texture_dirty)
-		LoadTexture();
+	EnsureSourceLoaded();
 
 	// Calculate the x dimension.
 	if (HasAttribute("width"))
@@ -78,6 +76,11 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 	_ratio = dimensions.x / dimensions.y;
 
 	return true;
+}
+void ElementImage::EnsureSourceLoaded()
+{
+	if (texture_dirty)
+		LoadTexture();
 }
 
 void ElementImage::OnRender()
