@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019- The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
-#include "DecoratorSVGInstancer.h"
+#include "DecoratorSVG.h"
 #include "SVGCache.h"
 
 namespace Rml {
@@ -42,6 +42,8 @@ namespace SVG {
 	public:
 		void OnInitialise() override
 		{
+			SVGCache::Initialize();
+
 			element_instancer = MakeUnique<ElementInstancerGeneric<ElementSVG>>();
 			Factory::RegisterElementInstancer("svg", element_instancer.get());
 
@@ -54,8 +56,7 @@ namespace SVG {
 		void OnShutdown() override
 		{
 			delete this;
-
-			SVGCache::Deninitialize();
+			SVGCache::Shutdown();
 		}
 
 		int GetEventClasses() override { return Plugin::EVT_BASIC; }

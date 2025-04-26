@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019- The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,43 +27,32 @@
  */
 
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
-#include "../../Include/RmlUi/Core/ComputedValues.h"
-#include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/ElementDocument.h"
-#include "../../Include/RmlUi/Core/Math.h"
-#include "../../Include/RmlUi/Core/MeshUtilities.h"
+#include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
-#include "../../Include/RmlUi/Core/RenderManager.h"
-#include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "SVGCache.h"
-#include <cmath>
-#include <string.h>
 
 namespace Rml {
 
-ElementSVG::ElementSVG(const String& tag) : Element(tag), geometry(nullptr) {}
+ElementSVG::ElementSVG(const String& tag) : Element(tag) {}
 
 ElementSVG::~ElementSVG()
 {
-	if (handle != 0u)
-	{
-		SVG::SVGCache::ReleaseHandle(handle);
-	}
+	handle.reset();
 }
 
 bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
 	UpdateCachedData();
 
-	dimensions = intrinsic_dimensions;
+	dimensions = handle ? handle->intrinsic_dimensions : Vector2f(0);
 
 	if (HasAttribute("width"))
 	{
-		dimensions.x = GetAttribute<float>("width", -1);
+		dimensions.x = GetAttribute<float>("width", 0);
 	}
 	if (HasAttribute("height"))
 	{
-		dimensions.y = GetAttribute<float>("height", -1);
+		dimensions.y = GetAttribute<float>("height", 0);
 	}
 
 	if (dimensions.y > 0)
@@ -80,13 +69,13 @@ void ElementSVG::EnsureSourceLoaded()
 void ElementSVG::OnRender()
 {
 	UpdateCachedData();
-	if (geometry)
-		geometry->Render(GetAbsoluteOffset(BoxArea::Content), Texture(texture));
+	if (handle)
+		handle->geometry.Render(GetAbsoluteOffset(BoxArea::Content), handle->texture);
 }
 
 void ElementSVG::OnResize()
 {
-	is_dirty = true;
+	svg_dirty = true;
 }
 
 void ElementSVG::OnAttributeChange(const ElementAttributes& changed_attributes)
@@ -95,14 +84,13 @@ void ElementSVG::OnAttributeChange(const ElementAttributes& changed_attributes)
 
 	if (changed_attributes.count("src"))
 	{
-		source_dirty = true;
+		svg_dirty = true;
 		DirtyLayout();
 	}
 
 	if (changed_attributes.count("crop-to-content"))
 	{
-		content_fit = GetAttribute<bool>("crop-to-content", false);
-		is_dirty = true;
+		svg_dirty = true;
 		DirtyLayout();
 	}
 
@@ -118,62 +106,27 @@ void ElementSVG::OnPropertyChange(const PropertyIdSet& changed_properties)
 
 	if (changed_properties.Contains(PropertyId::ImageColor) || changed_properties.Contains(PropertyId::Opacity))
 	{
-		is_dirty = true;
+		svg_dirty = true;
 	}
 }
 
 void ElementSVG::UpdateCachedData()
 {
-	if (!is_dirty || !source_dirty)
+	if (!svg_dirty)
 		return;
 
-	if (source_dirty)
+	svg_dirty = false;
+
+	const std::string source = GetAttribute<String>("src", "");
+	if (source.empty())
 	{
-		const String attribute_src = GetAttribute<String>("src", "");
-
-		if (!attribute_src.empty())
-		{
-			source_path = attribute_src;
-
-			if (ElementDocument* document = GetOwnerDocument())
-			{
-				const String document_source_url = StringUtilities::Replace(document->GetSourceURL(), '|', ':');
-				GetSystemInterface()->JoinPath(source_path, document_source_url, attribute_src);
-			}
-		}
-	}
-
-	if (source_path.empty())
-	{
-		if (handle != 0u)
-		{
-			SVG::SVGCache::ReleaseHandle(handle);
-		}
-
-		geometry = nullptr;
-		intrinsic_dimensions.x = 0.f;
-		intrinsic_dimensions.y = 0.f;
+		handle.reset();
 		return;
 	}
 
-	const SVG::SVGHandle new_handle = SVG::SVGCache::GetHandle(source_path, this, content_fit, BoxArea::Content);
-	if (new_handle == 0u)
-	{
-		geometry = nullptr;
-		intrinsic_dimensions.x = 0.f;
-		intrinsic_dimensions.y = 0.f;
-		return;
-	}
+	const bool crop_to_content = HasAttribute("crop-to-content");
 
-	geometry = SVG::SVGCache::GetGeometry(new_handle, intrinsic_dimensions);
-
-	if (handle != 0u)
-	{
-		SVG::SVGCache::ReleaseHandle(handle);
-	}
-
-	handle = new_handle;
-	is_dirty = false;
+	handle = SVG::SVGCache::GetHandle(source, this, crop_to_content, BoxArea::Content);
 }
 
 } // namespace Rml

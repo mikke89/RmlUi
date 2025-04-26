@@ -72,11 +72,14 @@ int main(int /*argc*/, char** /*argv*/)
 	Rml::Debugger::Initialise(context);
 	Shell::LoadFonts();
 
-	// Load and show the demo document.
-	if (Rml::ElementDocument* document = context->LoadDocument("basic/svg/data/svg.rml"))
+	// Load and show the documents.
+	for (const char* filename : {"basic/svg/data/svg_element.rml", "basic/svg/data/svg_decorator.rml"})
 	{
-		document->Show();
-		document->GetElementById("title")->SetInnerRML("SVG");
+		if (Rml::ElementDocument* document = context->LoadDocument(filename))
+		{
+			document->Show();
+			document->GetElementById("title")->SetInnerRML("SVG");
+		}
 	}
 
 	bool running = true;

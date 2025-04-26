@@ -30,17 +30,11 @@
 #define RMLUI_CORE_DECORATORSVG_H
 
 #include "../../Include/RmlUi/Core/Decorator.h"
-#include "../../Include/RmlUi/SVG/SVGTypes.h"
 
 namespace Rml {
-
-class Geometry;
-
 namespace SVG {
 
-	/**
-	    @author Leah Lindner
-	 */
+	struct SVGData;
 
 	class DecoratorSVG : public Decorator {
 	public:
@@ -54,8 +48,8 @@ namespace SVG {
 
 	private:
 		struct Data {
-			SVG::SVGHandle handle = 0u;
-			Geometry* geometry = nullptr;
+			SharedPtr<SVGData> handle;
+			BoxArea paint_area;
 		};
 
 		String source_path;

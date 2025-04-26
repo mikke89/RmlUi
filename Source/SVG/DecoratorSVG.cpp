@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019 The RmlUi Team, and contributors
+ * Copyright (c) 2019- The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@
 
 #include "DecoratorSVG.h"
 #include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/PropertyDefinition.h"
 #include "SVGCache.h"
@@ -44,14 +45,14 @@ namespace SVG {
 
 	DecoratorDataHandle DecoratorSVG::GenerateElementData(Element* element, BoxArea paint_area) const
 	{
-		const SVGHandle handle = SVGCache::GetHandle(source_path, element, crop_to_content, BoxArea::Padding);
-		if (handle == 0u)
-			return 0u;
+		SharedPtr<SVGData> handle = SVGCache::GetHandle(source_path, element, crop_to_content, paint_area);
+		if (!handle)
+			return {};
 
-		Data* const data = new Data();
-		data->handle = handle;
-		Vector2f dimensions;
-		data->geometry = SVGCache::GetGeometry(handle, dimensions);
+		Data* data = new Data{
+			std::move(handle),
+			paint_area,
+		};
 
 		return reinterpret_cast<DecoratorDataHandle>(data);
 	}
@@ -59,22 +60,21 @@ namespace SVG {
 	void DecoratorSVG::ReleaseElementData(DecoratorDataHandle element_data) const
 	{
 		Data* data = reinterpret_cast<Data*>(element_data);
-		SVGCache::ReleaseHandle(data->handle);
 		delete data;
 	}
 
 	void DecoratorSVG::RenderElement(Element* element, DecoratorDataHandle element_data) const
 	{
 		Data* data = reinterpret_cast<Data*>(element_data);
-		if (data)
-			data->geometry->Render(element->GetAbsoluteOffset(BoxArea::Padding).Round());
+		RMLUI_ASSERT(data && data->handle);
+		data->handle->geometry.Render(element->GetAbsoluteOffset(data->paint_area), data->handle->texture);
 	}
 
 	DecoratorSVGInstancer::DecoratorSVGInstancer()
 	{
 		source_id = RegisterProperty("source", "").AddParser("string").GetId();
-		crop_id = RegisterProperty("cropping", "none").AddParser("keyword", "none, content").GetId();
-		RegisterShorthand("decorator", "source, cropping", ShorthandType::FallThrough);
+		crop_id = RegisterProperty("crop", "crop-none").AddParser("keyword", "crop-none, crop-to-content").GetId();
+		RegisterShorthand("decorator", "source, crop", ShorthandType::FallThrough);
 	}
 
 	DecoratorSVGInstancer::~DecoratorSVGInstancer() {}
@@ -85,9 +85,6 @@ namespace SVG {
 		String source = properties.GetProperty(source_id)->Get<String>();
 		if (source.empty())
 			return nullptr;
-
-		if (source[source.size() - 1u] == ',') // there seems to be an issue where the decorator csvs include the comma
-			source = source.substr(0, source.size() - 1u);
 
 		const bool crop_to_content = properties.GetProperty(crop_id)->Get<int>() != 0;
 
