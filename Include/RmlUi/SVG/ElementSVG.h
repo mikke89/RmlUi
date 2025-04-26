@@ -33,13 +33,11 @@
 #include "../Core/Element.h"
 #include "../Core/Geometry.h"
 #include "../Core/Header.h"
-
 #include "SVGTypes.h"
 
 namespace Rml {
 
-class RMLUICORE_API ElementSVG : public Element
-{
+class RMLUICORE_API ElementSVG : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
 
@@ -73,7 +71,7 @@ private:
 	bool is_dirty = false;
 	bool source_dirty = false;
 
-	SVG::SVGHandle handle = 0;
+	SVG::SVGHandle handle = {};
 
 	// The texture this element is rendering from.
 	CallbackTexture texture;

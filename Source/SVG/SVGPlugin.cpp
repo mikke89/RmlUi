@@ -26,56 +26,49 @@
  *
  */
 
-
-#include "../../Include/RmlUi/SVG/ElementSVG.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
-
-#include "SVGCache.h"
+#include "../../Include/RmlUi/SVG/ElementSVG.h"
 #include "DecoratorSVGInstancer.h"
+#include "SVGCache.h"
 
 namespace Rml {
 namespace SVG {
 
+	class SVGPlugin : public Plugin {
+	public:
+		void OnInitialise() override
+		{
+			element_instancer = MakeUnique<ElementInstancerGeneric<ElementSVG>>();
+			Factory::RegisterElementInstancer("svg", element_instancer.get());
 
-class SVGPlugin : public Plugin {
-public:
-	void OnInitialise() override
+			decorator_instancer = MakeUnique<DecoratorSVGInstancer>();
+			Factory::RegisterDecoratorInstancer("svg", decorator_instancer.get());
+
+			Log::Message(Log::LT_INFO, "SVG plugin initialised.");
+		}
+
+		void OnShutdown() override
+		{
+			delete this;
+
+			SVGCache::Deninitialize();
+		}
+
+		int GetEventClasses() override { return Plugin::EVT_BASIC; }
+
+	private:
+		UniquePtr<ElementInstancerGeneric<ElementSVG>> element_instancer;
+		UniquePtr<DecoratorSVGInstancer> decorator_instancer;
+	};
+
+	void Initialise()
 	{
-		element_instancer = MakeUnique<ElementInstancerGeneric<ElementSVG> >();
-		Factory::RegisterElementInstancer("svg", element_instancer.get());
-
-		decorator_instancer = MakeUnique<DecoratorSVGInstancer>();
-		Factory::RegisterDecoratorInstancer("svg", decorator_instancer.get());
-
-		Log::Message(Log::LT_INFO, "SVG plugin initialised.");
+		RegisterPlugin(new SVGPlugin);
 	}
-
-	void OnShutdown() override
-	{
-		delete this;
-
-		SVGCache::Deninitialize();
-	}
-
-	int GetEventClasses() override
-	{
-		return Plugin::EVT_BASIC;
-	}
-
-private:
-	UniquePtr<ElementInstancerGeneric<ElementSVG>> element_instancer;
-	UniquePtr<DecoratorSVGInstancer> decorator_instancer;
-};
-
-
-void Initialise()
-{
-	RegisterPlugin(new SVGPlugin);
-}
 
 } // namespace SVG
 } // namespace Rml

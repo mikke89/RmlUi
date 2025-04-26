@@ -3,8 +3,6 @@
 target_sources(rmlui_core PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/DecoratorSVG.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/DecoratorSVG.h"
-	"${CMAKE_CURRENT_SOURCE_DIR}/DecoratorSVGInstancer.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/DecoratorSVGInstancer.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/ElementSVG.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SVGCache.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SVGCache.h"

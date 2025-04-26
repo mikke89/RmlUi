@@ -53,11 +53,6 @@ ElementSVG::~ElementSVG()
 
 bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
-	EnsureSourceLoaded();
-
-	if (source_path.empty() && !source_dirty)
-		return false;
-
 	UpdateCachedData();
 
 	dimensions = intrinsic_dimensions;
@@ -79,18 +74,14 @@ bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 
 void ElementSVG::EnsureSourceLoaded()
 {
-	if (source_dirty)
-		LoadSource();
+	UpdateCachedData();
 }
 
 void ElementSVG::OnRender()
 {
 	UpdateCachedData();
 	if (geometry)
-	{
-		UpdateTexture();
 		geometry->Render(GetAbsoluteOffset(BoxArea::Content), Texture(texture));
-	}
 }
 
 void ElementSVG::OnResize()
@@ -165,7 +156,7 @@ void ElementSVG::UpdateCachedData()
 		return;
 	}
 
-	SVG::SVGHandle const new_handle = SVG::SVGCache::GetHandle(source_path, this, content_fit, Box::CONTENT);
+	const SVG::SVGHandle new_handle = SVG::SVGCache::GetHandle(source_path, this, content_fit, BoxArea::Content);
 	if (new_handle == 0u)
 	{
 		geometry = nullptr;
