@@ -82,8 +82,9 @@ int LuaRmlUiCreateContext(lua_State* L, LuaRmlUi* /*obj*/)
 int LuaRmlUiLoadFontFace(lua_State* L, LuaRmlUi* /*obj*/)
 {
 	const char* file = luaL_checkstring(L, 1);
-	int face_index = lua_gettop(L) == 1 ? 0 : static_cast<int>(luaL_checkinteger(L, 2));
-	lua_pushboolean(L, LoadFontFace(file, face_index));
+	bool fallback_face = lua_gettop(L) <= 1 ? false : RMLUI_CHECK_BOOL(L, 2);
+	int face_index = lua_gettop(L) <= 2 ? 0 : static_cast<int>(luaL_checkinteger(L, 3));
+	lua_pushboolean(L, LoadFontFace(file, fallback_face, Style::FontWeight::Auto, face_index));
 	return 1;
 }
 
