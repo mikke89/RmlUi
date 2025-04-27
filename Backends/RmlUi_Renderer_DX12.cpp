@@ -621,7 +621,8 @@ void RenderInterface_DX12::EndFrame()
 
 		CD3DX12_RESOURCE_BARRIER offscreen_texture_barrier_for_shader = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
 			D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		CD3DX12_RESOURCE_BARRIER restore_state_of_postprocess_texture_return_to_rt = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		CD3DX12_RESOURCE_BARRIER restore_state_of_postprocess_texture_return_to_rt = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		this->m_p_command_graphics_list->ResourceBarrier(1, &offscreen_texture_barrier_for_shader);
 
@@ -687,7 +688,7 @@ void RenderInterface_DX12::Clear()
 
 	this->m_p_command_graphics_list->ResourceBarrier(1, &barrier);
 
-	FLOAT clear_color[] = {0.0f, 0.0f, 0.0f, 1.0f};
+	constexpr FLOAT clear_color[] = {RMLUUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
 		this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
 
@@ -1128,8 +1129,8 @@ RenderInterface_DX12::RenderLayerStack::RenderLayerStack() :
 	// that validation supposed to be for memory leaks or wrong resource handling (like you forgot to delete resource somehow)
 	// if you didn't get it check this: https://en.cppreference.com/w/cpp/container/vector/reserve
 
-	// otherwise if your default implementation requires more layers by default, thus we have a field at compile-time (or at runtime as dynamic extension)
-	// RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
+	// otherwise if your default implementation requires more layers by default, thus we have a field at compile-time (or at runtime as dynamic
+	// extension) RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
 	this->m_fb_layers.reserve(RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS);
 	this->m_p_depth_stencil = new Gfx::FramebufferData();
 	this->m_p_depth_stencil->Set_RenderTarget(false);
@@ -1197,6 +1198,7 @@ Rml::LayerHandle RenderInterface_DX12::RenderLayerStack::PushLayer()
 		this->m_fb_layers.push_back(Gfx::FramebufferData{});
 		auto* p_buffer = &this->m_fb_layers.back();
 		this->CreateFramebuffer(p_buffer, m_width, m_height, RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT, false);
+		p_buffer->Set_ID(this->m_fb_layers.size() - 1);
 
 	#ifdef RMLUI_DX_DEBUG
 		wchar_t framebuffer_name[32];
@@ -1332,7 +1334,7 @@ const Gfx::FramebufferData& RenderInterface_DX12::RenderLayerStack::EnsureFrameb
 	{
 		this->CreateFramebuffer(&fb, this->m_width, this->m_height, 1, false);
 
-		#ifdef RMLUI_DX_DEBUG
+	#ifdef RMLUI_DX_DEBUG
 		if (fb.Get_Texture())
 		{
 			wchar_t framebuffer_name[32];
@@ -1362,7 +1364,7 @@ const Gfx::FramebufferData& RenderInterface_DX12::RenderLayerStack::EnsureFrameb
 				}
 			}
 		}
-		#endif
+	#endif
 	}
 
 	return fb;
@@ -1424,6 +1426,9 @@ void RenderInterface_DX12::RenderLayerStack::CreateFramebuffer(Gfx::FramebufferD
 		}
 	#endif
 
+		// todo: move to debug build configuration because this information is not useful (?)
+		p_result->Set_Width(width);
+		p_result->Set_Height(height);
 		p_result->Set_Texture(p_resource);
 		D3D12_RESOURCE_FLAGS flags{};
 
@@ -1483,7 +1488,7 @@ Rml::LayerHandle RenderInterface_DX12::PushLayer()
 	this->m_p_command_graphics_list->OMSetRenderTargets(1, &framebuffer.Get_DescriptorResourceView(), FALSE,
 		&shared_depthstencil.Get_DescriptorResourceView());
 
-	FLOAT clear_color[] = {0.0f, 0.0f, 0.0f, 1.0f};
+	constexpr FLOAT clear_color[] = {RMLUUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
 	this->m_p_command_graphics_list->ClearRenderTargetView(framebuffer.Get_DescriptorResourceView(), clear_color, 0, nullptr);
 	this->m_p_command_graphics_list->ClearDepthStencilView(shared_depthstencil.Get_DescriptorResourceView(),
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
@@ -2483,8 +2488,8 @@ void RenderInterface_DX12::Create_Resource_DepthStencil()
 
 	D3D12_CLEAR_VALUE depth_optimized_clear_value = {};
 	depth_optimized_clear_value.Format = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
-	depth_optimized_clear_value.DepthStencil.Depth = 1.0f;
-	depth_optimized_clear_value.DepthStencil.Stencil = 0;
+	depth_optimized_clear_value.DepthStencil.Depth = RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE;
+	depth_optimized_clear_value.DepthStencil.Stencil = RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE;
 
 	ID3D12Resource* p_temp{};
 	auto status = this->m_p_allocator->CreateResource(&desc_alloc, &desc_texture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_DEPTH_WRITE,
@@ -5199,9 +5204,30 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 		D3D12MA::ALLOCATION_DESC desc_allocation = {};
 		desc_allocation.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
+		D3D12_CLEAR_VALUE optimized_clear_value = {};
+
+		if (p_impl->Is_RenderTarget())
+		{
+			optimized_clear_value.Format = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
+
+			constexpr FLOAT color[] = {RMLUUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
+
+			optimized_clear_value.Color[0] = color[0];
+			optimized_clear_value.Color[1] = color[1];
+			optimized_clear_value.Color[2] = color[2];
+			optimized_clear_value.Color[3] = color[3];
+		}
+		else
+		{
+			optimized_clear_value.Format = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
+			optimized_clear_value.DepthStencil.Depth = RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE;
+			optimized_clear_value.DepthStencil.Stencil = RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE;
+		}
+
 		ID3D12Resource* p_resource{};
 		D3D12MA::Allocation* p_allocation{};
-		auto status = this->m_p_allocator->CreateResource(&desc_allocation, &desc, initial_state, nullptr, &p_allocation, IID_PPV_ARGS(&p_resource));
+		auto status = this->m_p_allocator->CreateResource(&desc_allocation, &desc, initial_state, &optimized_clear_value, &p_allocation,
+			IID_PPV_ARGS(&p_resource));
 
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateResource (D3D12MA) (RenderTargetTexture)");
 

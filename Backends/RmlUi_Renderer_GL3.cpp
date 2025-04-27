@@ -806,6 +806,7 @@ RenderInterface_GL3::~RenderInterface_GL3()
 
 void RenderInterface_GL3::SetViewport(int width, int height)
 {
+	OutputDebugStringA("::SetViewport\n");
 	viewport_width = Rml::Math::Max(width, 1);
 	viewport_height = Rml::Math::Max(height, 1);
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
@@ -813,6 +814,7 @@ void RenderInterface_GL3::SetViewport(int width, int height)
 
 void RenderInterface_GL3::BeginFrame()
 {
+	OutputDebugStringA("BeginFrame\n");
 	RMLUI_ASSERT(viewport_width >= 1 && viewport_height >= 1);
 
 	// Backup GL state.
@@ -894,6 +896,7 @@ void RenderInterface_GL3::BeginFrame()
 
 void RenderInterface_GL3::EndFrame()
 {
+	OutputDebugStringA("EndFrame\n");
 	const Gfx::FramebufferData& fb_active = render_layers.GetTopLayer();
 	const Gfx::FramebufferData& fb_postprocess = render_layers.GetPostprocessPrimary();
 
@@ -965,6 +968,7 @@ void RenderInterface_GL3::EndFrame()
 
 void RenderInterface_GL3::Clear()
 {
+	OutputDebugStringA("::Clear\n");
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -1070,6 +1074,7 @@ static Rml::Rectanglei VerticallyFlipped(Rml::Rectanglei rect, int viewport_heig
 
 void RenderInterface_GL3::SetScissor(Rml::Rectanglei region, bool vertically_flip)
 {
+	OutputDebugStringA("::SetScissor\n");
 	if (region.Valid() != scissor_state.Valid())
 	{
 		if (region.Valid())
@@ -1096,6 +1101,7 @@ void RenderInterface_GL3::SetScissor(Rml::Rectanglei region, bool vertically_fli
 
 void RenderInterface_GL3::EnableScissorRegion(bool enable)
 {
+	OutputDebugStringA("::EnableScissorRegion\n");
 	// Assume enable is immediately followed by a SetScissorRegion() call, and ignore it here.
 	if (!enable)
 		SetScissor(Rml::Rectanglei::MakeInvalid(), false);
@@ -1103,11 +1109,13 @@ void RenderInterface_GL3::EnableScissorRegion(bool enable)
 
 void RenderInterface_GL3::SetScissorRegion(Rml::Rectanglei region)
 {
+	OutputDebugStringA("::SetScissorRegion\n");
 	SetScissor(region);
 }
 
 void RenderInterface_GL3::EnableClipMask(bool enable)
 {
+	OutputDebugStringA("::EnableClipMask\n");
 	if (enable)
 		glEnable(GL_STENCIL_TEST);
 	else
@@ -1116,6 +1124,7 @@ void RenderInterface_GL3::EnableClipMask(bool enable)
 
 void RenderInterface_GL3::RenderToClipMask(Rml::ClipMaskOperation operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation)
 {
+	OutputDebugStringA("::RenderToClipMask\n");
 	RMLUI_ASSERT(glIsEnabled(GL_STENCIL_TEST));
 	using Rml::ClipMaskOperation;
 
@@ -1287,11 +1296,13 @@ Rml::TextureHandle RenderInterface_GL3::GenerateTexture(Rml::Span<const Rml::byt
 
 void RenderInterface_GL3::DrawFullscreenQuad()
 {
+	OutputDebugStringA("::DrawFullscreenQuad\n");
 	RenderGeometry(fullscreen_quad_geometry, {}, RenderInterface_GL3::TexturePostprocess);
 }
 
 void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling)
 {
+	OutputDebugStringA("::DrawFullscreenQuad\n");
 	Rml::Mesh mesh;
 	Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
 	if (uv_offset != Rml::Vector2f() || uv_scaling != Rml::Vector2f(1.f))
@@ -1465,6 +1476,7 @@ void RenderInterface_GL3::ReleaseTexture(Rml::TextureHandle texture_handle)
 
 void RenderInterface_GL3::SetTransform(const Rml::Matrix4f* new_transform)
 {
+	OutputDebugStringA("::SetTransform\n");
 	transform = (new_transform ? (projection * (*new_transform)) : projection);
 	program_transform_dirty.set();
 }
@@ -1695,6 +1707,10 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 	const CompiledShaderType type = shader.type;
 	const Gfx::CompiledGeometryData& geometry = *reinterpret_cast<Gfx::CompiledGeometryData*>(geometry_handle);
 
+	char buffer[32];
+	std::sprintf(buffer, "\tShaderType=%d\n", (int)type);
+	OutputDebugStringA(buffer);
+
 	switch (type)
 	{
 	case CompiledShaderType::Gradient:
@@ -1765,7 +1781,9 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 	{
 		const CompiledFilter& filter = *reinterpret_cast<const CompiledFilter*>(filter_handle);
 		const FilterType type = filter.type;
-
+		char buffer[32];
+		std::sprintf(buffer, "\tFilter=%d\n", (int)type);
+		OutputDebugStringA(buffer);
 		switch (type)
 		{
 		case FilterType::Passthrough:
@@ -2007,6 +2025,9 @@ Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
 
 void RenderInterface_GL3::UseProgram(ProgramId program_id)
 {
+	char buffer[32];
+	std::sprintf(buffer, "::UserProgram=%d\n", program_id);
+	OutputDebugStringA(buffer);
 	RMLUI_ASSERT(program_data);
 	if (active_program != program_id)
 	{
@@ -2023,6 +2044,7 @@ int RenderInterface_GL3::GetUniformLocation(UniformId uniform_id) const
 
 void RenderInterface_GL3::SubmitTransformUniform(Rml::Vector2f translation)
 {
+	OutputDebugStringA("SubmitTransformUniform\n");
 	static_assert((size_t)ProgramId::Count < MaxNumPrograms, "Maximum number of programs exceeded.");
 	const size_t program_index = (size_t)active_program;
 

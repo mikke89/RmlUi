@@ -76,13 +76,16 @@ RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
 #endif
 
 #ifdef RMLUI_PLATFORM_WIN32
+	// clang-format off
+	// keep in mind that order of helpers define header guard for native windows sdk that's visible by default thus if you put first <directx/d3dx12.h> header lower than let's say D3D12MemAlloc.h header then you will get compilation errors it is clearly stated on official repository of Microsoft (see https://github.com/microsoft/DirectX-Headers?tab=readme-ov-file#use-on-windows) 
 	#include <directx/d3dx12.h>
-	#include <d3dcompiler.h>
-	#include <dxgi1_6.h>
-	#include <chrono>
 	#include "RmlUi_DirectX/D3D12MemAlloc.h"
 	#include "RmlUi_DirectX/offsetAllocator.hpp"
 	#include <bitset>
+	#include <chrono>
+	#include <d3dcompiler.h>
+	#include <dxgi1_6.h>
+	// clang-format on
 
 	// user's preprocessor overrides
 
@@ -199,7 +202,7 @@ static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION > 0 
 		#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
 	#else
 		#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT 2
-	#endif	
+	#endif
 
 	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_RTV
 		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_RTV
@@ -211,6 +214,29 @@ static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION > 0 
 		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
 	#else
 		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV 8
+	#endif
+
+	// specifes general (for all depth stencil textures that might be allocated by backend) depth value on clear operation (::ClearDepthStencilView)
+	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE
+		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
+	#else
+		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE 1.0f
+	#endif
+
+	// specifies general (for all depth stencil textures that might be allocated by backend) stencil value on clear operation
+	// (::ClearDepthStencilView)
+	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE
+		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE \
+			RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE
+	#else
+		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE 0
+	#endif
+
+	#ifdef RMLUUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE
+		#define RMLUUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE \
+			RMLUUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE
+	#else
+		#define RMLUUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE 0.0f, 0.0f, 0.0f, 1.0f
 	#endif
 
 enum class ProgramId;
