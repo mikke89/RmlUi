@@ -457,6 +457,11 @@ Element* Context::GetRootElement()
 	return root.get();
 }
 
+const ElementList& Context::GetRootElementStackingContext()
+{
+	return root->stacking_context;
+}
+
 void Context::PullDocumentToFront(ElementDocument* document)
 {
 	if (document != root->GetLastChild())

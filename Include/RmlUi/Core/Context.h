@@ -150,6 +150,7 @@ public:
 	/// Returns the root element that holds all the documents
 	/// @return The root element.
 	Element* GetRootElement();
+	const ElementList& GetRootElementStackingContext();
 
 	// Returns the youngest descendent of the given element which is under the given point in screen coordinates.
 	// @param[in] point The point to test.
