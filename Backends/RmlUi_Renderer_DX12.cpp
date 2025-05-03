@@ -1498,10 +1498,47 @@ Rml::LayerHandle RenderInterface_DX12::PushLayer()
 
 void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_id)
 {
-	const auto& source_framebuffer = this->m_manager_render_layer.GetLayer(layer_id);
-	const auto& destination_framebuffer = this->m_manager_render_layer.GetPostprocessPrimary();
+	const Gfx::FramebufferData& source_framebuffer = this->m_manager_render_layer.GetLayer(layer_id);
+	const Gfx::FramebufferData& destination_framebuffer = this->m_manager_render_layer.GetPostprocessPrimary();
 
-	RMLUI_ASSERT(!"todo: implement resolve msaa on dx12 side"[0]);
+	RMLUI_ASSERT(source_framebuffer.Get_Texture() && "texture must be presented when you call this method!");
+	RMLUI_ASSERT(destination_framebuffer.Get_Texture() && "texture must be presented when you call this method!");
+
+	RMLUI_ASSERT(source_framebuffer.Get_Texture()->Get_Info().Get_BufferIndex() == -1 &&
+		"expected that this texture was allocated as committed since it is 'framebuffer' ");
+	RMLUI_ASSERT(destination_framebuffer.Get_Texture()->Get_Info().Get_BufferIndex() == -1 &&
+		"expected that this texture was allocated as committed since it is 'framebuffer' ");
+
+	RMLUI_ASSERT(source_framebuffer.Get_Texture()->Get_Resource() && "texture must contain allocated and valid resource!");
+	RMLUI_ASSERT(destination_framebuffer.Get_Texture()->Get_Resource() && "texture must contain allocated and valid resource!");
+
+	ID3D12Resource* p_src = static_cast<D3D12MA::Allocation*>(source_framebuffer.Get_Texture()->Get_Resource())->GetResource();
+	ID3D12Resource* p_dst = static_cast<D3D12MA::Allocation*>(destination_framebuffer.Get_Texture()->Get_Resource())->GetResource();
+
+	RMLUI_ASSERT(p_src && "must be valid && allocated");
+	RMLUI_ASSERT(p_dst && "must be valid && allocated");
+
+	RMLUI_ASSERT(this->m_p_command_graphics_list && "must be initialized before calling this method");
+
+	if (!this->m_p_command_graphics_list)
+		return;
+
+	D3D12_RESOURCE_BARRIER barriers[2] = {CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
+											  D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE),
+		CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
+			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_DEST)};
+
+	this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
+
+	this->m_p_command_graphics_list->ResolveSubresource(p_dst, 0, p_src, 0, RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT);
+
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_DEST,
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
+		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+	// todo: should we convert src to render target ? probably yes, but need to be sure later after debugging
+	this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
 }
 
 static Rml::Pair<int, float> SigmaToParameters(const float desired_sigma)
@@ -1596,6 +1633,7 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 void RenderInterface_DX12::PopLayer()
 {
 	//	RMLUI_ASSERT(false && "todo");
+	this->m_manager_render_layer.PopLayer();
 }
 
 Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture(Rml::Vector2i dimensions)
