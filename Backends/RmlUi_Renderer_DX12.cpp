@@ -148,7 +148,7 @@ struct sOutputData
 sOutputData main(const sInputData inArgs)
 {
 	sOutputData result;
-	result.outPosition = float4(inArgs.inPosition.x, inArgs.inPosition.y, 0.0f, 0.0f);
+	result.outPosition = float4(inArgs.inPosition.x, inArgs.inPosition.y, 0.0f, 1.0f);
 	result.outColor = inArgs.inColor;
 	result.outUV = inArgs.inTexCoord;
 
@@ -628,8 +628,9 @@ void RenderInterface_DX12::EndFrame()
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
 			this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_dsv(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart());
 
-		this->m_p_command_graphics_list->OMSetRenderTargets(1, &handle_rtv, FALSE, nullptr);
+		this->m_p_command_graphics_list->OMSetRenderTargets(1, &handle_rtv, FALSE, &handle_dsv);
 
 		this->UseProgram(ProgramId::Passthrough);
 		D3D12_GPU_DESCRIPTOR_HANDLE srv_handle;
@@ -806,6 +807,7 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 		scissor.bottom = this->m_height;
 
 		this->m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
+		OutputDebugStringA("GraphicsQueue::RSSetScissorRects | !this->m_is_scissor_was_set\n");
 	}
 
 	if (p_constant_buffer)
@@ -825,55 +827,55 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 					p_dx_resource->GetGPUVirtualAddress() + p_constant_buffer->Get_AllocInfo().Get_Offset());
 			}
 		}
-
-		auto* p_dx_buffer_vertex = this->m_manager_buffer.Get_BufferByIndex(p_handle_geometry->Get_InfoVertex().Get_BufferIndex());
-
-		RMLUI_ASSERT(p_dx_buffer_vertex && "must be valid!");
-
-		this->m_p_command_graphics_list->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		if (p_dx_buffer_vertex)
-		{
-			auto* p_dx_resource = p_dx_buffer_vertex->GetResource();
-
-			RMLUI_ASSERT(p_dx_resource && "must be valid!");
-
-			if (p_dx_resource)
-			{
-				D3D12_VERTEX_BUFFER_VIEW view_vertex_buffer = {};
-
-				view_vertex_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + p_handle_geometry->Get_InfoVertex().Get_Offset();
-				view_vertex_buffer.StrideInBytes = sizeof(Rml::Vertex);
-				view_vertex_buffer.SizeInBytes = static_cast<UINT>(p_handle_geometry->Get_InfoVertex().Get_Size());
-
-				this->m_p_command_graphics_list->IASetVertexBuffers(0, 1, &view_vertex_buffer);
-			}
-		}
-
-		auto* p_dx_buffer_index = this->m_manager_buffer.Get_BufferByIndex(p_handle_geometry->Get_InfoIndex().Get_BufferIndex());
-
-		RMLUI_ASSERT(p_dx_buffer_index && "must be valid!");
-
-		if (p_dx_buffer_index)
-		{
-			auto* p_dx_resource = p_dx_buffer_index->GetResource();
-
-			RMLUI_ASSERT(p_dx_resource && "must be valid!");
-
-			if (p_dx_resource)
-			{
-				D3D12_INDEX_BUFFER_VIEW view_index_buffer = {};
-
-				view_index_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + p_handle_geometry->Get_InfoIndex().Get_Offset();
-				view_index_buffer.Format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT;
-				view_index_buffer.SizeInBytes = p_handle_geometry->Get_InfoIndex().Get_Size();
-
-				this->m_p_command_graphics_list->IASetIndexBuffer(&view_index_buffer);
-			}
-		}
-
-		this->m_p_command_graphics_list->DrawIndexedInstanced(p_handle_geometry->Get_NumIndecies(), 1, 0, 0, 0);
 	}
+
+	auto* p_dx_buffer_vertex = this->m_manager_buffer.Get_BufferByIndex(p_handle_geometry->Get_InfoVertex().Get_BufferIndex());
+
+	RMLUI_ASSERT(p_dx_buffer_vertex && "must be valid!");
+
+	this->m_p_command_graphics_list->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	if (p_dx_buffer_vertex)
+	{
+		auto* p_dx_resource = p_dx_buffer_vertex->GetResource();
+
+		RMLUI_ASSERT(p_dx_resource && "must be valid!");
+
+		if (p_dx_resource)
+		{
+			D3D12_VERTEX_BUFFER_VIEW view_vertex_buffer = {};
+
+			view_vertex_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + p_handle_geometry->Get_InfoVertex().Get_Offset();
+			view_vertex_buffer.StrideInBytes = sizeof(Rml::Vertex);
+			view_vertex_buffer.SizeInBytes = static_cast<UINT>(p_handle_geometry->Get_InfoVertex().Get_Size());
+
+			this->m_p_command_graphics_list->IASetVertexBuffers(0, 1, &view_vertex_buffer);
+		}
+	}
+
+	auto* p_dx_buffer_index = this->m_manager_buffer.Get_BufferByIndex(p_handle_geometry->Get_InfoIndex().Get_BufferIndex());
+
+	RMLUI_ASSERT(p_dx_buffer_index && "must be valid!");
+
+	if (p_dx_buffer_index)
+	{
+		auto* p_dx_resource = p_dx_buffer_index->GetResource();
+
+		RMLUI_ASSERT(p_dx_resource && "must be valid!");
+
+		if (p_dx_resource)
+		{
+			D3D12_INDEX_BUFFER_VIEW view_index_buffer = {};
+
+			view_index_buffer.BufferLocation = p_dx_resource->GetGPUVirtualAddress() + p_handle_geometry->Get_InfoIndex().Get_Offset();
+			view_index_buffer.Format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT;
+			view_index_buffer.SizeInBytes = p_handle_geometry->Get_InfoIndex().Get_Size();
+
+			this->m_p_command_graphics_list->IASetIndexBuffer(&view_index_buffer);
+		}
+	}
+
+	this->m_p_command_graphics_list->DrawIndexedInstanced(p_handle_geometry->Get_NumIndecies(), 1, 0, 0, 0);
 }
 
 Rml::CompiledGeometryHandle RenderInterface_DX12::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
@@ -900,15 +902,23 @@ void RenderInterface_DX12::ReleaseGeometry(Rml::CompiledGeometryHandle geometry)
 
 void RenderInterface_DX12::EnableScissorRegion(bool enable)
 {
+	OutputDebugStringA("::EnableScissorRegion\n");
 	if (!enable)
 	{
+		OutputDebugStringA("\t");
 		SetScissor(Rml::Rectanglei::MakeInvalid(), false);
 	}
 }
 
 void RenderInterface_DX12::SetScissorRegion(Rml::Rectanglei region)
 {
-	SetScissor(Rml::Rectanglei::FromPositionSize({region.Left(), region.Right()}, {region.Width(), region.Height()}));
+	static int call_count = 0;
+	++call_count;
+	char msg[32];
+	std::sprintf(msg, "::SetScissorRegion=%d\n\t", call_count);
+	OutputDebugStringA(msg);
+
+	SetScissor(region);
 }
 
 void RenderInterface_DX12::EnableClipMask(bool enable)
@@ -1628,6 +1638,8 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 	Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
 	BlitLayerToPostprocessPrimary(source);
+
+	// RenderFilters(filters);
 }
 
 void RenderInterface_DX12::PopLayer()
@@ -3854,6 +3866,12 @@ void RenderInterface_DX12::PrintAdapterDesc(IDXGIAdapter* p_adapter)
 
 void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_flip)
 {
+	static int call_count = 0;
+	++call_count;
+	char msg[32];
+	std::sprintf(msg, "::SetScissor=%d\n", call_count);
+	OutputDebugStringA(msg);
+
 	if (region.Valid() != m_scissor.Valid())
 	{
 		if (!region.Valid())
@@ -3873,11 +3891,19 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 		if (this->m_p_command_graphics_list)
 		{
 			D3D12_RECT scissor;
-			scissor.left = region.Left();
-			scissor.right = region.Right();
-			scissor.bottom = region.Bottom();
-			scissor.top = region.Top();
+
+			const int x = Rml::Math::Clamp(region.Left(), 0, this->m_width);
+			const int y = Rml::Math::Clamp(this->m_height - region.Bottom(), 0, this->m_height);
+
+			scissor.left = x;
+			scissor.right = x + region.Width();
+			scissor.bottom = this->m_height - y;
+			scissor.top = this->m_height - (y + region.Height());
 			this->m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
+			char msg[256];
+			std::sprintf(msg, "GraphicsQueue::RSSetScissorRects(%d,%d,%d,%d) | region.Valid() && region != this->m_scissor\n", scissor.left,
+				scissor.right, scissor.bottom, scissor.top);
+			OutputDebugStringA(msg);
 			this->m_is_scissor_was_set = true;
 		}
 	}

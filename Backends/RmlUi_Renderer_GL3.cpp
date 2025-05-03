@@ -896,7 +896,7 @@ void RenderInterface_GL3::BeginFrame()
 
 void RenderInterface_GL3::EndFrame()
 {
-	OutputDebugStringA("EndFrame\n");
+	OutputDebugStringA("::EndFrame\n");
 	const Gfx::FramebufferData& fb_active = render_layers.GetTopLayer();
 	const Gfx::FramebufferData& fb_postprocess = render_layers.GetPostprocessPrimary();
 
@@ -1074,7 +1074,13 @@ static Rml::Rectanglei VerticallyFlipped(Rml::Rectanglei rect, int viewport_heig
 
 void RenderInterface_GL3::SetScissor(Rml::Rectanglei region, bool vertically_flip)
 {
-	OutputDebugStringA("::SetScissor\n");
+	static int call_count = 0;
+	++call_count;
+	char msg[32];
+//	if (call_count == 13)
+//		DebugBreak();
+	std::sprintf(msg, "::SetScissor=%d\n", call_count);
+	OutputDebugStringA(msg);
 	if (region.Valid() != scissor_state.Valid())
 	{
 		if (region.Valid())
@@ -1092,7 +1098,10 @@ void RenderInterface_GL3::SetScissor(Rml::Rectanglei region, bool vertically_fli
 		const int x = Rml::Math::Clamp(region.Left(), 0, viewport_width);
 		const int y = Rml::Math::Clamp(viewport_height - region.Bottom(), 0, viewport_height);
 
-		glScissor(x, y, region.Width(), region.Height());
+		char msg[64];
+		std::sprintf(msg, "Scissor=%d,%d,%d,%d\n", x,y,region.Width(),region.Height());
+		OutputDebugStringA(msg);
+		glScissor(x, y, region.Width(), region.Height());	
 	}
 
 	Gfx::CheckGLError("SetScissorRegion");
@@ -1104,12 +1113,20 @@ void RenderInterface_GL3::EnableScissorRegion(bool enable)
 	OutputDebugStringA("::EnableScissorRegion\n");
 	// Assume enable is immediately followed by a SetScissorRegion() call, and ignore it here.
 	if (!enable)
+	{
+		OutputDebugStringA("\t");
 		SetScissor(Rml::Rectanglei::MakeInvalid(), false);
+	}
 }
 
 void RenderInterface_GL3::SetScissorRegion(Rml::Rectanglei region)
 {
-	OutputDebugStringA("::SetScissorRegion\n");
+	static int call_count = 0;
+	++call_count;
+	char msg[32];
+	std::sprintf(msg, "::SetScissorRegion=%d\n\t", call_count);
+	OutputDebugStringA(msg);
+
 	SetScissor(region);
 }
 
@@ -1700,6 +1717,7 @@ Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& 
 void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
 	Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
 {
+	return;
 	OutputDebugStringA("::RenderShader()\n");
 
 	RMLUI_ASSERT(shader_handle && geometry_handle);
@@ -1928,7 +1946,7 @@ void RenderInterface_GL3::CompositeLayers(Rml::LayerHandle source_handle, Rml::L
 	BlitLayerToPostprocessPrimary(source_handle);
 
 	// Render the filters, the PostprocessPrimary framebuffer is used for both input and output.
-	RenderFilters(filters);
+	//RenderFilters(filters);
 
 	// Render to the destination layer.
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(destination_handle).framebuffer);
@@ -1959,6 +1977,7 @@ void RenderInterface_GL3::PopLayer()
 
 Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensions)
 {
+	return Rml::TextureHandle();
 	OutputDebugStringA("::SaveLayerAsTexture()\n");
 	Rml::TextureHandle render_texture = GenerateTexture({}, dimensions);
 	if (!render_texture)
@@ -2026,7 +2045,7 @@ Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
 void RenderInterface_GL3::UseProgram(ProgramId program_id)
 {
 	char buffer[32];
-	std::sprintf(buffer, "::UserProgram=%d\n", program_id);
+	std::sprintf(buffer, "::UseProgram=%d\n", program_id);
 	OutputDebugStringA(buffer);
 	RMLUI_ASSERT(program_data);
 	if (active_program != program_id)
