@@ -133,24 +133,26 @@ float4 main(const sInputData inputArgs) : SV_TARGET
 constexpr const char pShaderSourceText_Vertex_PassThrough[] = R"(
 struct sInputData 
 {
-	float2 inPosition : POSITION;
-	float4 inColor : COLOR;
-	float2 inTexCoord : TEXCOORD;
+	float2 position : POSITION;
+	float4 color : COLOR;
+	float2 uv : TEXCOORD;
 };
 
 struct sOutputData
 {
-	float4 outPosition : SV_Position;
-	float4 outColor : COLOR;
-	float2 outUV : TEXCOORD;
+	float4 position : SV_Position;
+	float4 color : COLOR;
+	float2 uv : TEXCOORD;
 };
 
 sOutputData main(const sInputData inArgs)
 {
 	sOutputData result;
-	result.outPosition = float4(inArgs.inPosition.x, inArgs.inPosition.y, 0.0f, 1.0f);
-	result.outColor = inArgs.inColor;
-	result.outUV = inArgs.inTexCoord;
+	result.position = float4(inArgs.position.x, inArgs.position.y, 0.0f, 1.0f);
+	result.color = inArgs.color;
+	// need to flip here since Mesh::GenerateQuad makes valid data for GL APIs but on DirectX 
+	// it is not valid UV (otherwise image will be flipped)
+	result.uv = float2(inArgs.uv.x, 1.0f - inArgs.uv.y); 
 
 	return result;
 }
@@ -159,9 +161,9 @@ sOutputData main(const sInputData inArgs)
 constexpr const char pShaderSourceText_Pixel_Passthrough[] = R"(
 struct sInputData
 {
-	float4 inputPos : SV_Position;
-	float4 inputColor : COLOR;
-	float2 inputUV : TEXCOORD;
+	float4 pos : SV_Position;
+	float4 color : COLOR;
+	float2 uv : TEXCOORD;
 };
 
 Texture2D g_InputTexture : register(t0);
@@ -171,7 +173,7 @@ SamplerState g_SamplerLinear : register(s0);
 
 float4 main(const sInputData inputArgs) : SV_TARGET 
 { 
-	return g_InputTexture.Sample(g_SamplerLinear, inputArgs.inputUV); 
+	return g_InputTexture.Sample(g_SamplerLinear, inputArgs.uv); 
 }
 )";
 
@@ -697,6 +699,13 @@ void RenderInterface_DX12::Clear()
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	this->m_p_command_graphics_list->ClearRenderTargetView(rtv, clear_color, 0, nullptr);
+
+	auto& p_current_rtv = this->m_manager_render_layer.GetTopLayer().Get_DescriptorResourceView();
+	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
+
+	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color, 0, nullptr);
+	this->m_p_command_graphics_list->ClearDepthStencilView(p_current_dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
 }
 
 void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
