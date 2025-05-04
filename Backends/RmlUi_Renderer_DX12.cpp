@@ -1156,8 +1156,6 @@ RenderInterface_DX12::RenderLayerStack::RenderLayerStack() :
 
 RenderInterface_DX12::RenderLayerStack::~RenderLayerStack()
 {
-	this->DestroyFramebuffers();
-
 	this->m_p_device = nullptr;
 	this->m_p_manager_buffer = nullptr;
 	this->m_p_manager_texture = nullptr;
@@ -1191,6 +1189,11 @@ void RenderInterface_DX12::RenderLayerStack::Initialize(RenderInterface_DX12* p_
 		this->m_p_manager_buffer = &p_owner->Get_BufferManager();
 		this->m_p_manager_texture = &p_owner->Get_TextureManager();
 	}
+}
+
+void RenderInterface_DX12::RenderLayerStack::Shutdown()
+{
+	this->DestroyFramebuffers();
 }
 
 Rml::LayerHandle RenderInterface_DX12::RenderLayerStack::PushLayer()
@@ -1873,6 +1876,9 @@ void RenderInterface_DX12::Shutdown() noexcept
 	}
 
 	this->Flush();
+
+	this->m_manager_render_layer.Shutdown();
+
 	this->Destroy_Resource_Pipelines();
 
 	if (this->m_precompiled_fullscreen_quad_geometry)

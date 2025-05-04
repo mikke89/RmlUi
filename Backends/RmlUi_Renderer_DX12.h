@@ -633,7 +633,7 @@ such as filters. They are used both as input and output during rendering, and do
 		~RenderLayerStack();
 
 		void Initialize(RenderInterface_DX12* p_owner);
-
+		void Shutdown();
 		// Push a new layer. All references to previously retrieved layers are invalidated.
 		Rml::LayerHandle PushLayer();
 
