@@ -150,7 +150,7 @@ sOutputData main(const sInputData inArgs)
 	sOutputData result;
 	result.position = float4(inArgs.position.x, inArgs.position.y, 0.0f, 1.0f);
 	result.color = inArgs.color;
-	// need to flip here since Mesh::GenerateQuad makes valid data for GL APIs but on DirectX 
+	// need to flip here since Rml::MeshUtilities::GenerateQuad makes valid data for GL APIs but on DirectX 
 	// it is not valid UV (otherwise image will be flipped)
 	result.uv = float2(inArgs.uv.x, 1.0f - inArgs.uv.y); 
 
@@ -705,7 +705,6 @@ void RenderInterface_DX12::Clear()
 
 	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color, 0, nullptr);
 	this->m_p_command_graphics_list->ClearDepthStencilView(p_current_dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
-
 }
 
 void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
