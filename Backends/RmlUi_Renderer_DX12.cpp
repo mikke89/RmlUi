@@ -294,8 +294,9 @@ static constexpr int NUM_MSAA_SAMPLES = 2;
 		#pragma comment(lib, "dxguid.lib")
 	#endif
 
-namespace Gfx 
-{
+	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
+namespace Gfx {
+
 enum RenderState { Valid, Invalid_Scissor, Invalid_Unknown };
 
 inline const char* convert_render_state_to_str(unsigned char state) noexcept
@@ -320,12 +321,16 @@ inline const char* convert_render_state_to_str(unsigned char state) noexcept
 	}
 	}
 }
-}
+} // namespace Gfx
+	#endif
 
 RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, ID3D12Device* p_user_device, IDXGISwapChain* p_user_swapchain, bool use_vsync) :
 	m_is_full_initialization{false}, m_is_shutdown_called{}, m_is_use_vsync{use_vsync}, m_is_use_tearing{}, m_is_scissor_was_set{},
-	m_render_state{static_cast<unsigned char>(Gfx::RenderState::Valid)}, m_width{}, m_height{}, m_current_clip_operation{-1}, m_active_program_id{},
-	m_size_descriptor_heap_render_target_view{}, m_size_descriptor_heap_shaders{}, m_p_descriptor_heap_shaders{}, m_current_back_buffer_index{}
+	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
+	m_render_state{static_cast<unsigned char>(Gfx::RenderState::Valid)},
+	#endif
+	m_width{}, m_height{}, m_current_clip_operation{-1}, m_active_program_id{}, m_size_descriptor_heap_render_target_view{},
+	m_size_descriptor_heap_shaders{}, m_p_descriptor_heap_shaders{}, m_current_back_buffer_index{}
 {
 	RMLUI_ASSERT(p_window_handle && "you can't pass an empty window handle! (also it must be castable to HWND)");
 	RMLUI_ASSERT(p_user_device && "you can't pass an empty device!");
@@ -403,10 +408,13 @@ private:
 
 RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, bool use_vsync) :
 	m_is_full_initialization{true}, m_is_shutdown_called{}, m_is_use_vsync{use_vsync}, m_is_use_tearing{}, m_is_scissor_was_set{},
-	m_is_stencil_enabled{}, m_is_stencil_equal{}, m_render_state{static_cast<unsigned char>(Gfx::RenderState::Valid)}, m_width{}, m_height{},
-	m_current_clip_operation{-1}, m_active_program_id{}, m_size_descriptor_heap_render_target_view{}, m_size_descriptor_heap_shaders{},
-	m_current_back_buffer_index{}, m_p_device{}, m_p_command_queue{}, m_p_copy_queue{}, m_p_swapchain{}, m_p_command_graphics_list{},
-	m_p_descriptor_heap_render_target_view{}, m_p_descriptor_heap_render_target_view_for_texture_manager{},
+	m_is_stencil_enabled{}, m_is_stencil_equal{},
+	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
+	m_render_state{static_cast<unsigned char>(Gfx::RenderState::Valid)},
+	#endif
+	m_width{}, m_height{}, m_current_clip_operation{-1}, m_active_program_id{}, m_size_descriptor_heap_render_target_view{},
+	m_size_descriptor_heap_shaders{}, m_current_back_buffer_index{}, m_p_device{}, m_p_command_queue{}, m_p_copy_queue{}, m_p_swapchain{},
+	m_p_command_graphics_list{}, m_p_descriptor_heap_render_target_view{}, m_p_descriptor_heap_render_target_view_for_texture_manager{},
 	m_p_descriptor_heap_depth_stencil_view_for_texture_manager{}, m_p_descriptor_heap_shaders{}, m_p_descriptor_heap_depthstencil{},
 	m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_adapter{}, m_p_copy_allocator{}, m_p_copy_command_list{}, m_p_allocator{},
 	m_p_offset_allocator_for_descriptor_heap_shaders{}, m_p_window_handle{}, m_p_fence_event{}, m_fence_value{},
@@ -513,15 +521,17 @@ void RenderInterface_DX12::BeginFrame()
 	{
 		this->m_p_command_graphics_list->Reset(p_command_allocator, nullptr);
 
+	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 		if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
 		{
-	#ifdef RMLUI_DEBUG
+		#ifdef RMLUI_DEBUG
 			Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
-	#endif
+		#endif
 
 			this->m_manager_render_layer.BeginFrame(this->m_width, this->m_height);
 			return;
 		}
+	#endif
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
 			this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
@@ -585,15 +595,16 @@ void RenderInterface_DX12::BeginFrame()
 
 void RenderInterface_DX12::EndFrame()
 {
-	// this was implement due to nature of verbose validation layers of DirectX 12 (I suppose the same thing in Vulkan) and if we get different
+	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
+	// this was implemented due to nature of verbose validation layers of DirectX 12 (I suppose the same thing in Vulkan) and if we get different
 	// invalid states we don't need to render them but in real developers need to resolve a such situation and don't issue rendering at all so it is
 	// some kind of "hack" but tbh getting verbose assertion on driver is not good thing at all a such situation was arised when scissor comes from
 	// Rml side as invalid and instead of having valid rectengular region we get a line (y0==y1)
 	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
 	{
-	#ifdef RMLUI_DEBUG
+		#ifdef RMLUI_DEBUG
 		Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
-	#endif
+		#endif
 
 		// suppose that next frame will be valid and thus we make our state valid
 		// since we didn't execute "invalid" rendering state
@@ -606,6 +617,7 @@ void RenderInterface_DX12::EndFrame()
 		this->m_manager_render_layer.EndFrame();
 		return;
 	}
+	#endif
 
 	auto* p_resource_backbuffer = this->m_backbuffers_resources.at(this->m_current_back_buffer_index);
 
@@ -752,7 +764,7 @@ void RenderInterface_DX12::Clear()
 
 	this->m_p_command_graphics_list->ResourceBarrier(1, &barrier);
 
-	constexpr FLOAT clear_color[] = {RMLUUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
+	constexpr FLOAT clear_color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
 		this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
 
@@ -770,13 +782,15 @@ void RenderInterface_DX12::Clear()
 
 void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
+	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
 	{
-	#ifdef RMLUI_DEBUG
+		#ifdef RMLUI_DEBUG
 		Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
-	#endif
+		#endif
 		return;
 	}
+	#endif
 
 	GeometryHandleType* p_handle_geometry = reinterpret_cast<GeometryHandleType*>(geometry);
 	TextureHandleType* p_handle_texture{};
@@ -1578,7 +1592,7 @@ Rml::LayerHandle RenderInterface_DX12::PushLayer()
 	this->m_p_command_graphics_list->OMSetRenderTargets(1, &framebuffer.Get_DescriptorResourceView(), FALSE,
 		&shared_depthstencil.Get_DescriptorResourceView());
 
-	constexpr FLOAT clear_color[] = {RMLUUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
+	constexpr FLOAT clear_color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
 	this->m_p_command_graphics_list->ClearRenderTargetView(framebuffer.Get_DescriptorResourceView(), clear_color, 0, nullptr);
 	this->m_p_command_graphics_list->ClearDepthStencilView(shared_depthstencil.Get_DescriptorResourceView(),
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
@@ -1674,14 +1688,16 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 
 void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
 {
+	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
 	{
-	#ifdef RMLUI_DEBUG
+		#ifdef RMLUI_DEBUG
 		Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
-	#endif
+		#endif
 
 		return;
 	}
+	#endif
 
 	for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
 	{
@@ -1937,14 +1953,16 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 {
 	RMLUI_ASSERT(shader_handle && geometry_handle);
 
+	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
 	{
-	#ifdef RMLUI_DEBUG
+		#ifdef RMLUI_DEBUG
 		Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
-	#endif
+		#endif
 
 		return;
 	}
+	#endif
 
 	const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
 	const CompiledShaderType type = shader.type;
@@ -2423,8 +2441,8 @@ void RenderInterface_DX12::Initialize_Swapchain(int width, int height) noexcept
 	RMLUI_DX_ASSERTMSG(CreateDXGIFactory2(create_factory_flags, IID_PPV_ARGS(&p_factory)), "failed to CreateDXGIFactory2");
 
 	// todo: use information from user's initialization data structure
-	// todo: if user specified MSAA as ON but forgot to pass any valid data, use this field RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT as fallback
-	// default handling value
+	// todo: if user specified MSAA as ON but forgot to pass any valid data, use this field RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT as
+	// fallback default handling value
 	#pragma todo("read this!");
 	this->m_desc_sample.Count = RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT;
 	this->m_desc_sample.Quality = 0;
@@ -4022,6 +4040,7 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 			scissor.bottom = this->m_height - y;
 			scissor.top = this->m_height - (y + region.Height());
 
+#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 			if (region.p0.y == region.p1.y || region.p0.x == region.p1.x)
 			{
 				if (static_cast<Gfx::RenderState>(this->m_render_state) == Gfx::RenderState::Valid)
@@ -4039,7 +4058,7 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 					this->m_render_state = static_cast<unsigned char>(Gfx::RenderState::Valid);
 				}
 			}
-			
+#endif
 
 			this->m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
 			char msg[256];
@@ -5416,7 +5435,7 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 		{
 			optimized_clear_value.Format = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 
-			constexpr FLOAT color[] = {RMLUUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
+			constexpr FLOAT color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
 
 			optimized_clear_value.Color[0] = color[0];
 			optimized_clear_value.Color[1] = color[1];
