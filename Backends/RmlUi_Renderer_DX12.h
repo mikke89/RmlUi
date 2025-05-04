@@ -245,6 +245,7 @@ class RenderLayerStack;
 namespace Gfx {
 struct ProgramData;
 struct FramebufferData;
+enum RenderState;
 } // namespace Gfx
 
 /**
@@ -852,6 +853,9 @@ private:
 	bool m_is_scissor_was_set;
 	bool m_is_stencil_enabled;
 	bool m_is_stencil_equal;
+	// determines should we render or not due to different reasons for current frame execution
+	// see enum RenderState
+	unsigned char m_render_state;
 	int m_width;
 	int m_height;
 	int m_current_clip_operation;

@@ -1717,7 +1717,6 @@ Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& 
 void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
 	Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
 {
-	return;
 	OutputDebugStringA("::RenderShader()\n");
 
 	RMLUI_ASSERT(shader_handle && geometry_handle);

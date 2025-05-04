@@ -294,10 +294,38 @@ static constexpr int NUM_MSAA_SAMPLES = 2;
 		#pragma comment(lib, "dxguid.lib")
 	#endif
 
+namespace Gfx 
+{
+enum RenderState { Valid, Invalid_Scissor, Invalid_Unknown };
+
+inline const char* convert_render_state_to_str(unsigned char state) noexcept
+{
+	switch (static_cast<RenderState>(state))
+	{
+	case RenderState::Valid:
+	{
+		return "Valid";
+	}
+	case RenderState::Invalid_Scissor:
+	{
+		return "Invalid scissor";
+	}
+	case RenderState::Invalid_Unknown:
+	{
+		return "Unknown reason";
+	}
+	default:
+	{
+		return "Undefined state (report to developers!)";
+	}
+	}
+}
+}
+
 RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, ID3D12Device* p_user_device, IDXGISwapChain* p_user_swapchain, bool use_vsync) :
-	m_is_full_initialization{false}, m_is_shutdown_called{}, m_is_use_vsync{use_vsync}, m_is_use_tearing{}, m_is_scissor_was_set{}, m_width{},
-	m_height{}, m_current_clip_operation{-1}, m_active_program_id{}, m_size_descriptor_heap_render_target_view{}, m_size_descriptor_heap_shaders{},
-	m_p_descriptor_heap_shaders{}, m_current_back_buffer_index{}
+	m_is_full_initialization{false}, m_is_shutdown_called{}, m_is_use_vsync{use_vsync}, m_is_use_tearing{}, m_is_scissor_was_set{},
+	m_render_state{static_cast<unsigned char>(Gfx::RenderState::Valid)}, m_width{}, m_height{}, m_current_clip_operation{-1}, m_active_program_id{},
+	m_size_descriptor_heap_render_target_view{}, m_size_descriptor_heap_shaders{}, m_p_descriptor_heap_shaders{}, m_current_back_buffer_index{}
 {
 	RMLUI_ASSERT(p_window_handle && "you can't pass an empty window handle! (also it must be castable to HWND)");
 	RMLUI_ASSERT(p_user_device && "you can't pass an empty device!");
@@ -375,13 +403,14 @@ private:
 
 RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, bool use_vsync) :
 	m_is_full_initialization{true}, m_is_shutdown_called{}, m_is_use_vsync{use_vsync}, m_is_use_tearing{}, m_is_scissor_was_set{},
-	m_is_stencil_enabled{}, m_is_stencil_equal{}, m_width{}, m_height{}, m_current_clip_operation{-1}, m_active_program_id{},
-	m_size_descriptor_heap_render_target_view{}, m_size_descriptor_heap_shaders{}, m_current_back_buffer_index{}, m_p_device{}, m_p_command_queue{},
-	m_p_copy_queue{}, m_p_swapchain{}, m_p_command_graphics_list{}, m_p_descriptor_heap_render_target_view{},
-	m_p_descriptor_heap_render_target_view_for_texture_manager{}, m_p_descriptor_heap_depth_stencil_view_for_texture_manager{},
-	m_p_descriptor_heap_shaders{}, m_p_descriptor_heap_depthstencil{}, m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_adapter{},
-	m_p_copy_allocator{}, m_p_copy_command_list{}, m_p_allocator{}, m_p_offset_allocator_for_descriptor_heap_shaders{}, m_p_window_handle{},
-	m_p_fence_event{}, m_fence_value{}, m_precompiled_fullscreen_quad_geometry{}
+	m_is_stencil_enabled{}, m_is_stencil_equal{}, m_render_state{static_cast<unsigned char>(Gfx::RenderState::Valid)}, m_width{}, m_height{},
+	m_current_clip_operation{-1}, m_active_program_id{}, m_size_descriptor_heap_render_target_view{}, m_size_descriptor_heap_shaders{},
+	m_current_back_buffer_index{}, m_p_device{}, m_p_command_queue{}, m_p_copy_queue{}, m_p_swapchain{}, m_p_command_graphics_list{},
+	m_p_descriptor_heap_render_target_view{}, m_p_descriptor_heap_render_target_view_for_texture_manager{},
+	m_p_descriptor_heap_depth_stencil_view_for_texture_manager{}, m_p_descriptor_heap_shaders{}, m_p_descriptor_heap_depthstencil{},
+	m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_adapter{}, m_p_copy_allocator{}, m_p_copy_command_list{}, m_p_allocator{},
+	m_p_offset_allocator_for_descriptor_heap_shaders{}, m_p_window_handle{}, m_p_fence_event{}, m_fence_value{},
+	m_precompiled_fullscreen_quad_geometry{}
 {
 	RMLUI_ASSERT(p_window_handle && "you can't pass an empty window handle! (also it must be castable to HWND)");
 	RMLUI_ASSERT(RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT >= 1 && "must be non zero!");
@@ -484,6 +513,16 @@ void RenderInterface_DX12::BeginFrame()
 	{
 		this->m_p_command_graphics_list->Reset(p_command_allocator, nullptr);
 
+		if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
+		{
+	#ifdef RMLUI_DEBUG
+			Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
+	#endif
+
+			this->m_manager_render_layer.BeginFrame(this->m_width, this->m_height);
+			return;
+		}
+
 		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
 			this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
 
@@ -546,6 +585,28 @@ void RenderInterface_DX12::BeginFrame()
 
 void RenderInterface_DX12::EndFrame()
 {
+	// this was implement due to nature of verbose validation layers of DirectX 12 (I suppose the same thing in Vulkan) and if we get different
+	// invalid states we don't need to render them but in real developers need to resolve a such situation and don't issue rendering at all so it is
+	// some kind of "hack" but tbh getting verbose assertion on driver is not good thing at all a such situation was arised when scissor comes from
+	// Rml side as invalid and instead of having valid rectengular region we get a line (y0==y1)
+	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
+	{
+	#ifdef RMLUI_DEBUG
+		Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
+	#endif
+
+		// suppose that next frame will be valid and thus we make our state valid
+		// since we didn't execute "invalid" rendering state
+		this->m_render_state = static_cast<unsigned char>(Gfx::RenderState::Valid);
+
+		if (this->m_p_command_graphics_list)
+		{
+			RMLUI_DX_ASSERTMSG(this->m_p_command_graphics_list->Close(), "failed to Close");
+		}
+		this->m_manager_render_layer.EndFrame();
+		return;
+	}
+
 	auto* p_resource_backbuffer = this->m_backbuffers_resources.at(this->m_current_back_buffer_index);
 
 	RMLUI_ASSERT(p_resource_backbuffer && "should be allocated and initialized! Probably early calling");
@@ -709,6 +770,14 @@ void RenderInterface_DX12::Clear()
 
 void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
+	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
+	{
+	#ifdef RMLUI_DEBUG
+		Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
+	#endif
+		return;
+	}
+
 	GeometryHandleType* p_handle_geometry = reinterpret_cast<GeometryHandleType*>(geometry);
 	TextureHandleType* p_handle_texture{};
 
@@ -1605,6 +1674,15 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 
 void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
 {
+	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
+	{
+	#ifdef RMLUI_DEBUG
+		Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
+	#endif
+
+		return;
+	}
+
 	for (const Rml::CompiledFilterHandle filter_handle : filter_handles)
 	{
 		const CompiledFilter& filter = *reinterpret_cast<const CompiledFilter*>(filter_handle);
@@ -1857,7 +1935,37 @@ Rml::CompiledShaderHandle RenderInterface_DX12::CompileShader(const Rml::String&
 void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
 	Rml::Vector2f translation, Rml::TextureHandle texture)
 {
-	//	RMLUI_ASSERT(false && "todo");
+	RMLUI_ASSERT(shader_handle && geometry_handle);
+
+	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
+	{
+	#ifdef RMLUI_DEBUG
+		Rml::Log::Message(Rml::Log::LT_WARNING, "you have invalid rendering state: %s", Gfx::convert_render_state_to_str(this->m_render_state));
+	#endif
+
+		return;
+	}
+
+	const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
+	const CompiledShaderType type = shader.type;
+	const GeometryHandleType* geometry = reinterpret_cast<GeometryHandleType*>(geometry_handle);
+
+	switch (type)
+	{
+	case CompiledShaderType::Gradient:
+	{
+		break;
+	}
+	case CompiledShaderType::Creation:
+	{
+		break;
+	}
+	case CompiledShaderType::Invalid:
+	{
+		Rml::Log::Message(Rml::Log::LT_WARNING, "Unhandled render shader %d", (int)type);
+		break;
+	}
+	}
 }
 
 void RenderInterface_DX12::ReleaseShader(Rml::CompiledShaderHandle effect_handle)
@@ -3913,6 +4021,26 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 			scissor.right = x + region.Width();
 			scissor.bottom = this->m_height - y;
 			scissor.top = this->m_height - (y + region.Height());
+
+			if (region.p0.y == region.p1.y || region.p0.x == region.p1.x)
+			{
+				if (static_cast<Gfx::RenderState>(this->m_render_state) == Gfx::RenderState::Valid)
+				{
+					this->m_render_state = static_cast<unsigned char>(Gfx::RenderState::Invalid_Scissor);
+
+					this->m_is_scissor_was_set = true;
+					return;
+				}
+			}
+			else
+			{
+				if (static_cast<Gfx::RenderState>(this->m_render_state) == Gfx::RenderState::Invalid_Scissor)
+				{
+					this->m_render_state = static_cast<unsigned char>(Gfx::RenderState::Valid);
+				}
+			}
+			
+
 			this->m_p_command_graphics_list->RSSetScissorRects(1, &scissor);
 			char msg[256];
 			std::sprintf(msg, "GraphicsQueue::RSSetScissorRects(%d,%d,%d,%d) | region.Valid() && region != this->m_scissor\n", scissor.left,
