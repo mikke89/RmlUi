@@ -239,6 +239,8 @@ static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION > 0 
 		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE 0.0f, 0.0f, 0.0f, 1.0f
 	#endif
 
+	// if enabled catches warning situations on Debug build type in order to prevent receiving assertion like invalid scissor (y0==y1) and make some
+	// other cases that might happen during future development
 	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_IGNORE_RENDERER_INVALID_STATES
 		#define RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_IGNORE_RENDERER_INVALID_STATES
 	#else
