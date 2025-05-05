@@ -50,11 +50,18 @@ namespace Backend {
 /// initialize device, queues and other things by its own (in case of OpenGL it will load functions & will init OpenGL) so in case where you already
 /// have own renderer and that renderer is initialized you want to prevent a such initialization and thus RmlUi needs to know user data.
 class RmlRenderInitInfo {
+
+	struct Settings
+	{
+		bool vsync{};
+		unsigned char msaa_sample_count{};
+	};
+
 public:
 	/// @brief This is constructor for initializing class
 	/// @param p_user_device ID3D12Device raw pointer (e.g. ID3D12Device* don't pass ComPtr instance!) or you pass VkDevice instance.
-	RmlRenderInitInfo(void* p_window_handle, void* p_user_device, bool use_vsync) :
-		m_is_full_initialization{true}, m_is_use_vsync{use_vsync}, m_p_native_window_handle{p_window_handle}, m_p_user_device{p_user_device}
+	RmlRenderInitInfo(void* p_window_handle, void* p_user_device) :
+		m_is_full_initialization{true}, m_p_native_window_handle{p_window_handle}, m_p_user_device{p_user_device}, m_settings{}
 	{
 		RMLUI_ASSERT(p_user_device &&
 			"if you want to initialize renderer by system you don't need to pass this parameter as nullptr just use second constructor and set "
@@ -63,8 +70,8 @@ public:
 
 	/// @brief This is constructor for older graphics API where don't require Devices, Queues etc...
 	/// @param p_window_handle HWND or similar types to OS's window handle
-	RmlRenderInitInfo(void* p_window_handle, bool is_full_initialization, bool use_vsync) :
-		m_is_full_initialization{is_full_initialization}, m_is_use_vsync{use_vsync}, m_p_native_window_handle{p_window_handle}, m_p_user_device{}
+	RmlRenderInitInfo(void* p_window_handle, bool is_full_initialization) :
+		m_is_full_initialization{is_full_initialization}, m_p_native_window_handle{p_window_handle}, m_p_user_device{}, m_settings{}
 	{}
 
 	~RmlRenderInitInfo() {}
@@ -87,16 +94,15 @@ public:
 	/// is_full_initialization to true
 	bool Is_FullInitialization(void) const { return this->m_is_full_initialization; }
 
-	bool Is_UseVSync() const { return this->m_is_use_vsync; }
+	Settings& Get_Settings() { return this->m_settings; }
 
 private:
 	bool m_is_full_initialization;
-	/// @brief use vsync feature of render api (if supports at all); true = means enable feature; false = disable feature.
-	bool m_is_use_vsync;
 	/// @brief it is user's handle of OS's handle, so if it is Windows you pass HWND* here
 	void* m_p_native_window_handle;
 	/// @brief Type that hides ID3D12Device*, VkDevice or something else depends on context and which renderer user initializes
 	void* m_p_user_device;
+	Settings m_settings;
 };
 
 // Initializes the backend, including the custom system and render interfaces, and opens a window for rendering the RmlUi context.

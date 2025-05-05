@@ -167,7 +167,9 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 	if (!p_info)
 	{
 		// legacy calling, by default we think that user in that case wants to initialize renderer fully
-		p_info = new RmlRenderInitInfo(data->window_handle, true, false);
+		p_info = new RmlRenderInitInfo(data->window_handle, true);
+
+		p_info->Get_Settings().vsync = false;
 
 		// remember pointer in order to delete it
 		p_legacy_instance = p_info;

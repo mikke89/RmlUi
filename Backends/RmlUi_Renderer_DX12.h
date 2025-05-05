@@ -658,7 +658,8 @@ such as filters. They are used both as input and output during rendering, and do
 
 		const Gfx::FramebufferData& GetLayer(Rml::LayerHandle layer) const;
 		const Gfx::FramebufferData& GetTopLayer() const;
-		const Gfx::FramebufferData& Get_SharedDepthStencil();
+		const Gfx::FramebufferData& Get_SharedDepthStencil_Layers();
+		const Gfx::FramebufferData& Get_SharedDepthStencil_Postprocess();
 		Rml::LayerHandle GetTopLayerHandle() const;
 
 		const Gfx::FramebufferData& GetPostprocessPrimary() { return EnsureFramebufferPostprocess(0); }
@@ -680,13 +681,15 @@ such as filters. They are used both as input and output during rendering, and do
 		void DestroyFramebuffer(Gfx::FramebufferData* p_data);
 
 	private:
+		unsigned char m_msaa_sample_count;
 		int m_width, m_height;
 		// The number of active layers is manually tracked since we re-use the framebuffers stored in the fb_layers stack.
 		int m_layers_size;
 		TextureMemoryManager* m_p_manager_texture;
 		BufferMemoryManager* m_p_manager_buffer;
 		ID3D12Device* m_p_device;
-		Gfx::FramebufferData* m_p_depth_stencil;
+		Gfx::FramebufferData* m_p_depth_stencil_for_layers;
+		Gfx::FramebufferData* m_p_depth_stencil_for_postprocess;
 		Rml::Vector<Gfx::FramebufferData> m_fb_layers;
 		Rml::Vector<Gfx::FramebufferData> m_fb_postprocess;
 	};
@@ -695,8 +698,8 @@ public:
 	// RenderInterface_DX12(ID3D12Device* p_user_device, ID3D12CommandQueue* p_user_command_queue,
 	//	ID3D12GraphicsCommandList* p_user_graphics_command_list);
 
-	RenderInterface_DX12(void* p_window_handle, ID3D12Device* p_user_device, IDXGISwapChain* p_user_swapchain, bool use_vsync);
-	RenderInterface_DX12(void* p_window_handle, bool use_vsync);
+	RenderInterface_DX12(void* p_window_handle, ID3D12Device* p_user_device, IDXGISwapChain* p_user_swapchain, bool use_vsync, unsigned char msaa_sample_count);
+	RenderInterface_DX12(void* p_window_handle, bool use_vsync, unsigned char msaa_sample_count);
 	~RenderInterface_DX12();
 
 	// using CreateSurfaceCallback = bool (*)(VkInstance instance, VkSurfaceKHR* out_surface);
@@ -770,6 +773,8 @@ public:
 	TextureMemoryManager& Get_TextureManager(void);
 	BufferMemoryManager& Get_BufferManager(void);
 
+	unsigned char Get_MSAASampleCount(void) const;
+
 private:
 	void Initialize_Device(void) noexcept;
 	void Initialize_Adapter(void) noexcept;
@@ -818,6 +823,9 @@ private:
 	void Create_Resource_Pipeline_Gradient();
 	void Create_Resource_Pipeline_Creation();
 	void Create_Resource_Pipeline_Passthrough();
+	// glBlendFunc(GL_CONSTANT_ALPHA, GL_ZERO);
+	void Create_Resource_Pipeline_Passthrough_ColorMask();
+	void Create_Resource_Pipeline_Passthrough_NoBlend();
 	void Create_Resource_Pipeline_ColorMatrix();
 	void Create_Resource_Pipeline_BlendMask();
 	void Create_Resource_Pipeline_Blur();
@@ -860,7 +868,16 @@ private:
 	void DrawFullscreenQuad();
 	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f));
 
-private:
+	void BindTexture(TextureHandleType* p_texture, UINT root_parameter_index=0);
+	void BindRenderTarget(const Gfx::FramebufferData& framebuffer, bool depth_included=true);
+
+	// 1 means not supported
+	// otherwise return max value of supported multisample count
+	unsigned char GetMSAASupportedSampleCount(void);
+
+	bool IsMSAAValidForCurrentSettings(unsigned char msaa_sample_count);
+
+ private:
 	bool m_is_full_initialization;
 	bool m_is_shutdown_called;
 	bool m_is_use_vsync;
@@ -868,6 +885,8 @@ private:
 	bool m_is_scissor_was_set;
 	bool m_is_stencil_enabled;
 	bool m_is_stencil_equal;
+	bool m_is_use_msaa;
+	unsigned char m_msaa_sample_count;
 	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 	// determines should we render or not due to different reasons for current frame execution
 	// see enum RenderState
@@ -901,8 +920,8 @@ private:
 	ID3D12Fence* m_p_backbuffer_fence;
 	IDXGIAdapter* m_p_adapter;
 
-	ID3D12PipelineState* m_pipelines[17];
-	ID3D12RootSignature* m_root_signatures[17];
+	ID3D12PipelineState* m_pipelines[20];
+	ID3D12RootSignature* m_root_signatures[20];
 
 	ID3D12CommandAllocator* m_p_copy_allocator;
 	ID3D12GraphicsCommandList* m_p_copy_command_list;
