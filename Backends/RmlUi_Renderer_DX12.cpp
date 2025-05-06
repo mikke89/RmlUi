@@ -1924,7 +1924,7 @@ void RenderInterface_DX12::BindRenderTarget(const Gfx::FramebufferData& framebuf
 	}
 }
 
-unsigned char RenderInterface_DX12::GetMSAASupportedSampleCount(void)
+unsigned char RenderInterface_DX12::GetMSAASupportedSampleCount(unsigned char max_samples)
 {
 	RMLUI_ASSERT(this->m_p_device && "early calling this must be initialized before calling!");
 
@@ -1935,7 +1935,7 @@ unsigned char RenderInterface_DX12::GetMSAASupportedSampleCount(void)
 	#endif
 
 		D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS desc{};
-		desc.SampleCount = 64;
+		desc.SampleCount = static_cast<UINT>(max_samples);
 		desc.Format = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 		desc.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
 
@@ -2108,10 +2108,10 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 	this->DrawFullscreenQuad();
 
 	// should we set like return blend state as enabled?
-	// if (blend_mode == Rml::BlendMode::Replace)
-	//{
-	//	this->UseProgram(ProgramId::Passthrough);
-	//}
+	if (blend_mode == Rml::BlendMode::Replace)
+	{
+		this->UseProgram(ProgramId::Passthrough);
+	}
 
 	if (destination != this->m_manager_render_layer.GetTopLayerHandle())
 	{
@@ -2593,7 +2593,7 @@ void RenderInterface_DX12::Initialize(void) noexcept
 		this->Initialize_Adapter();
 		this->Initialize_Device();
 
-		unsigned char max_msaa_supported_sample_count = this->GetMSAASupportedSampleCount();
+		unsigned char max_msaa_supported_sample_count = this->GetMSAASupportedSampleCount(64);
 
 		this->m_is_use_msaa = this->m_msaa_sample_count <= max_msaa_supported_sample_count;
 

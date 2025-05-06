@@ -873,7 +873,7 @@ private:
 
 	// 1 means not supported
 	// otherwise return max value of supported multisample count
-	unsigned char GetMSAASupportedSampleCount(void);
+	unsigned char GetMSAASupportedSampleCount(unsigned char max_samples);
 
 	bool IsMSAAValidForCurrentSettings(unsigned char msaa_sample_count);
 
