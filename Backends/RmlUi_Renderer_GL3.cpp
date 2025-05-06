@@ -920,6 +920,7 @@ void RenderInterface_GL3::BeginFrame()
 void RenderInterface_GL3::EndFrame()
 {
 	OutputDebugStringA("::EndFrame\n");
+	RMLUI_GL_MARKER_BEGIN("EndFrame");
 	const Gfx::FramebufferData& fb_active = render_layers.GetTopLayer();
 	const Gfx::FramebufferData& fb_postprocess = render_layers.GetPostprocessPrimary();
 
@@ -986,14 +987,17 @@ void RenderInterface_GL3::EndFrame()
 	glStencilOpSeparate(GL_BACK, glstate_backup.stencil_back.fail, glstate_backup.stencil_back.pass_depth_fail,
 		glstate_backup.stencil_back.pass_depth_pass);
 
+	RMLUI_GL_MARKER_END();
 	Gfx::CheckGLError("EndFrame");
 }
 
 void RenderInterface_GL3::Clear()
 {
 	OutputDebugStringA("::Clear\n");
+	RMLUI_GL_MARKER_BEGIN("Clear");
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
+	RMLUI_GL_MARKER_END();
 }
 
 Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
@@ -1044,7 +1048,7 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Span<const
 void RenderInterface_GL3::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
 	Gfx::CompiledGeometryData* geometry = (Gfx::CompiledGeometryData*)handle;
-
+	RMLUI_GL_MARKER_BEGIN("RenderGeometry");
 	if (texture == TexturePostprocess)
 	{
 		// Do nothing.
@@ -1069,6 +1073,7 @@ void RenderInterface_GL3::RenderGeometry(Rml::CompiledGeometryHandle handle, Rml
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	RMLUI_GL_MARKER_END();
 	Gfx::CheckGLError("RenderCompiledGeometry");
 }
 
@@ -1104,6 +1109,7 @@ void RenderInterface_GL3::SetScissor(Rml::Rectanglei region, bool vertically_fli
 //		DebugBreak();
 	std::sprintf(msg, "::SetScissor=%d\n", call_count);
 	OutputDebugStringA(msg);
+	RMLUI_GL_MARKER_BEGIN("SetScissor");
 	if (region.Valid() != scissor_state.Valid())
 	{
 		if (region.Valid())
@@ -1129,6 +1135,7 @@ void RenderInterface_GL3::SetScissor(Rml::Rectanglei region, bool vertically_fli
 
 	Gfx::CheckGLError("SetScissorRegion");
 	scissor_state = region;
+	RMLUI_GL_MARKER_END();
 }
 
 void RenderInterface_GL3::EnableScissorRegion(bool enable)
@@ -1138,7 +1145,9 @@ void RenderInterface_GL3::EnableScissorRegion(bool enable)
 	if (!enable)
 	{
 		OutputDebugStringA("\t");
+		RMLUI_GL_MARKER_BEGIN("EnableScissorRegion");
 		SetScissor(Rml::Rectanglei::MakeInvalid(), false);
+		RMLUI_GL_MARKER_END();
 	}
 }
 
@@ -1150,22 +1159,28 @@ void RenderInterface_GL3::SetScissorRegion(Rml::Rectanglei region)
 	std::sprintf(msg, "::SetScissorRegion=%d\n\t", call_count);
 	OutputDebugStringA(msg);
 
+	RMLUI_GL_MARKER_BEGIN("SetScissorRegion");
 	SetScissor(region);
+	RMLUI_GL_MARKER_END();
 }
 
 void RenderInterface_GL3::EnableClipMask(bool enable)
 {
 	OutputDebugStringA("::EnableClipMask\n");
+
+	RMLUI_GL_MARKER_BEGIN("EnableClipMask");
 	if (enable)
 		glEnable(GL_STENCIL_TEST);
 	else
 		glDisable(GL_STENCIL_TEST);
+	RMLUI_GL_MARKER_END();
 }
 
 void RenderInterface_GL3::RenderToClipMask(Rml::ClipMaskOperation operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation)
 {
 	OutputDebugStringA("::RenderToClipMask\n");
 	RMLUI_ASSERT(glIsEnabled(GL_STENCIL_TEST));
+	RMLUI_GL_MARKER_BEGIN("RenderToClipMask");
 	using Rml::ClipMaskOperation;
 
 	const bool clear_stencil = (operation == ClipMaskOperation::Set || operation == ClipMaskOperation::SetInverse);
@@ -1210,6 +1225,7 @@ void RenderInterface_GL3::RenderToClipMask(Rml::ClipMaskOperation operation, Rml
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	glStencilFunc(GL_EQUAL, stencil_test_value, GLuint(-1));
+	RMLUI_GL_MARKER_END();
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
@@ -1337,12 +1353,15 @@ Rml::TextureHandle RenderInterface_GL3::GenerateTexture(Rml::Span<const Rml::byt
 void RenderInterface_GL3::DrawFullscreenQuad()
 {
 	OutputDebugStringA("::DrawFullscreenQuad\n");
+	RMLUI_GL_MARKER_BEGIN("DrawFullscreenQuad");
 	RenderGeometry(fullscreen_quad_geometry, {}, RenderInterface_GL3::TexturePostprocess);
+	RMLUI_GL_MARKER_END();
 }
 
 void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling)
 {
 	OutputDebugStringA("::DrawFullscreenQuad\n");
+	RMLUI_GL_MARKER_BEGIN("DrawFullscreenQuad(uv,uv)");
 	Rml::Mesh mesh;
 	Rml::MeshUtilities::GenerateQuad(mesh, Rml::Vector2f(-1), Rml::Vector2f(2), {});
 	if (uv_offset != Rml::Vector2f() || uv_scaling != Rml::Vector2f(1.f))
@@ -1353,6 +1372,7 @@ void RenderInterface_GL3::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vecto
 	const Rml::CompiledGeometryHandle geometry = CompileGeometry(mesh.vertices, mesh.indices);
 	RenderGeometry(geometry, {}, RenderInterface_GL3::TexturePostprocess);
 	ReleaseGeometry(geometry);
+	RMLUI_GL_MARKER_END();
 }
 
 static Rml::Colourf ConvertToColorf(Rml::ColourbPremultiplied c0)
@@ -1410,6 +1430,7 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 	OutputDebugStringA("::RenderBlur()\n");
 	RMLUI_ASSERT(&source_destination != &temp && source_destination.width == temp.width && source_destination.height == temp.height);
 	RMLUI_ASSERT(window_flipped.Valid());
+	RMLUI_GL_MARKER_BEGIN("RenderBlur");
 
 	int pass_level = 0;
 	SigmaToParameters(sigma, pass_level, sigma);
@@ -1505,7 +1526,7 @@ void RenderInterface_GL3::RenderBlur(float sigma, const Gfx::FramebufferData& so
 
 	// Restore render state.
 	SetScissor(original_scissor);
-
+	RMLUI_GL_MARKER_END();
 	Gfx::CheckGLError("Blur");
 }
 
@@ -1741,7 +1762,7 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 	Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
 {
 	OutputDebugStringA("::RenderShader()\n");
-
+	RMLUI_GL_MARKER_BEGIN("RenderShader");
 	RMLUI_ASSERT(shader_handle && geometry_handle);
 	const CompiledShader& shader = *reinterpret_cast<CompiledShader*>(shader_handle);
 	const CompiledShaderType type = shader.type;
@@ -1793,6 +1814,7 @@ void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, 
 	break;
 	}
 
+	RMLUI_GL_MARKER_END();
 	Gfx::CheckGLError("RenderShader");
 }
 
@@ -1804,6 +1826,8 @@ void RenderInterface_GL3::ReleaseShader(Rml::CompiledShaderHandle shader_handle)
 void RenderInterface_GL3::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_handle)
 {
 	OutputDebugStringA("::BlitLayerToPostprocessPrimary()\n");
+	RMLUI_GL_MARKER_BEGIN("BlitLayerToPostprocessPrimary");
+
 	const Gfx::FramebufferData& source = render_layers.GetLayer(layer_handle);
 	const Gfx::FramebufferData& destination = render_layers.GetPostprocessPrimary();
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, source.framebuffer);
@@ -1940,17 +1964,20 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 		}
 	}
 
+	RMLUI_GL_MARKER_END();
 	Gfx::CheckGLError("RenderFilter");
 }
 
 Rml::LayerHandle RenderInterface_GL3::PushLayer()
 {
 	OutputDebugStringA("::PushLayer()\n");
-
+	RMLUI_GL_MARKER_BEGIN("PushLayer");
 	const Rml::LayerHandle layer_handle = render_layers.PushLayer();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(layer_handle).framebuffer);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	RMLUI_GL_MARKER_END();
 
 	return layer_handle;
 }
@@ -1959,48 +1986,53 @@ void RenderInterface_GL3::CompositeLayers(Rml::LayerHandle source_handle, Rml::L
 	Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
 	OutputDebugStringA("::CompositeLayers()\n");
-
+	RMLUI_GL_MARKER_BEGIN("CompositeLayers");
 	using Rml::BlendMode;
 
 	// Blit source layer to postprocessing buffer. Do this regardless of whether we actually have any filters to be
 	// applied, because we need to resolve the multi-sampled framebuffer in any case.
 	// @performance If we have BlendMode::Replace and no filters or mask then we can just blit directly to the destination.
-	BlitLayerToPostprocessPrimary(source_handle);
+//	BlitLayerToPostprocessPrimary(source_handle);
 
 	// Render the filters, the PostprocessPrimary framebuffer is used for both input and output.
 	//RenderFilters(filters);
 
 	// Render to the destination layer.
-	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(destination_handle).framebuffer);
-	Gfx::BindTexture(render_layers.GetPostprocessPrimary());
+//	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(destination_handle).framebuffer);
+//	Gfx::BindTexture(render_layers.GetPostprocessPrimary());
 
-	UseProgram(ProgramId::Passthrough);
+//	UseProgram(ProgramId::Passthrough);
 
-	if (blend_mode == BlendMode::Replace)
-		glDisable(GL_BLEND);
+//	if (blend_mode == BlendMode::Replace)
+//		glDisable(GL_BLEND);
 
-	DrawFullscreenQuad();
+//	DrawFullscreenQuad();
 
-	if (blend_mode == BlendMode::Replace)
-		glEnable(GL_BLEND);
+//	if (blend_mode == BlendMode::Replace)
+//		glEnable(GL_BLEND);
 
-	if (destination_handle != render_layers.GetTopLayerHandle())
-		glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
+//	if (destination_handle != render_layers.GetTopLayerHandle())
+//		glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
 
+	RMLUI_GL_MARKER_END();
 	Gfx::CheckGLError("CompositeLayers");
 }
 
 void RenderInterface_GL3::PopLayer()
 {
 	OutputDebugStringA("::PopLayer()\n");
+	RMLUI_GL_MARKER_BEGIN("PopLayer");
 	render_layers.PopLayer();
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
+	RMLUI_GL_MARKER_END();
 }
 
 Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensions)
 {
 	return Rml::TextureHandle();
 	OutputDebugStringA("::SaveLayerAsTexture()\n");
+	RMLUI_GL_MARKER_BEGIN("SaveLayerAsTexture");
+
 	Rml::TextureHandle render_texture = GenerateTexture({}, dimensions);
 	if (!render_texture)
 		return {};
@@ -2036,13 +2068,15 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensi
 	SetScissor(initial_scissor_state);
 	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
 	Gfx::CheckGLError("SaveLayerAsTexture");
-
+	RMLUI_GL_MARKER_END();
 	return render_texture;
 }
 
 Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
 {
+	return Rml::CompiledFilterHandle();
 	OutputDebugStringA("::SaveLayerAsMaskImage()\n");
+	RMLUI_GL_MARKER_BEGIN("SaveLayerAsMaskImage");
 	BlitLayerToPostprocessPrimary(render_layers.GetTopLayerHandle());
 
 	const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
@@ -2061,6 +2095,7 @@ Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
 
 	CompiledFilter filter = {};
 	filter.type = FilterType::MaskImage;
+	RMLUI_GL_MARKER_END();
 	return reinterpret_cast<Rml::CompiledFilterHandle>(new CompiledFilter(std::move(filter)));
 }
 
