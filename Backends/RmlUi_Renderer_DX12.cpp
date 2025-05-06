@@ -42,6 +42,10 @@
 #include <algorithm>
 #include <string.h>
 
+#ifndef RMLUI_PLATFORM_WIN32
+	#error unable to compile platform specific renderer required Windows OS that support DirectX-12
+#endif
+
 #ifdef RMLUI_PLATFORM_WIN32
 	#include <RmlUi_Platform_Win32.h>
 	#ifdef RMLUI_DX_DEBUG
@@ -2059,7 +2063,7 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 		Rml::Log::Message(Rml::Log::LT_WARNING, "[RenderInterface_DX12::RenderFilters] you have invalid rendering state: %s",
 			Gfx::convert_render_state_to_str(this->m_render_state));
 		#endif
-		
+
 		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
 		return;
@@ -2166,12 +2170,12 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 
 	if (blend_mode == Rml::BlendMode::Replace)
 	{
-		this->UseProgram(ProgramId::Passthrough_NoBlend);
+	    this->UseProgram(ProgramId::Passthrough_NoBlend);
 	}
 	else
 	{
-		// since we use msaa render target we should use appropriate version of pipeline
-		this->UseProgram(ProgramId::Passthrough_MSAA);
+	    // since we use msaa render target we should use appropriate version of pipeline
+	    this->UseProgram(ProgramId::Passthrough_MSAA);
 	}
 
 	this->BindTexture(this->m_manager_render_layer.GetPostprocessPrimary().Get_Texture());
@@ -2181,12 +2185,12 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 	// should we set like return blend state as enabled?
 	if (blend_mode == Rml::BlendMode::Replace)
 	{
-		this->UseProgram(ProgramId::Passthrough);
+	    this->UseProgram(ProgramId::Passthrough);
 	}
 
 	if (destination != this->m_manager_render_layer.GetTopLayerHandle())
 	{
-		this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
+	    this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
 	}
 	*/
 
@@ -3791,30 +3795,22 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Color()
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Color_Stencil_Disabled)");
 
 	#ifdef RMLUI_DX_DEBUG
-		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Always)]->SetName(
-			TEXT("rs of Color_Stencil_Always"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Always)]->SetName(TEXT("rs of Color_Stencil_Always"));
 		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Always)]->SetName(TEXT("pipeline Color_Stencil_Always"));
 
-		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Set)]->SetName(
-			TEXT("rs of Color_Stencil_Set"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Set)]->SetName(TEXT("rs of Color_Stencil_Set"));
 		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Set)]->SetName(TEXT("pipeline Color_Stencil_Set"));
 
-		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_SetInverse)]->SetName(
-			TEXT("rs of Color_Stencil_SetInverse"));
-		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_SetInverse)]->SetName(
-			TEXT("pipeline Color_Stencil_SetInverse"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_SetInverse)]->SetName(TEXT("rs of Color_Stencil_SetInverse"));
+		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_SetInverse)]->SetName(TEXT("pipeline Color_Stencil_SetInverse"));
 
-		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Intersect)]->SetName(
-			TEXT("rs of Color_Stencil_Intersect"));
-		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Intersect)]->SetName(
-			TEXT("pipeline Color_Stencil_Intersect"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Intersect)]->SetName(TEXT("rs of Color_Stencil_Intersect"));
+		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Intersect)]->SetName(TEXT("pipeline Color_Stencil_Intersect"));
 
-		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Equal)]->SetName(
-			TEXT("rs of Color_Stencil_Equal"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Equal)]->SetName(TEXT("rs of Color_Stencil_Equal"));
 		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Equal)]->SetName(TEXT("pipeline Color_Stencil_Equal"));
 
-		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Disabled)]->SetName(
-			TEXT("rs of Color_Stencil_Disabled"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Disabled)]->SetName(TEXT("rs of Color_Stencil_Disabled"));
 		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Disabled)]->SetName(TEXT("pipeline Color_Stencil_Disabled"));
 	#endif
 	}
@@ -4085,18 +4081,14 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Texture()
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Texture_Stencil_Disabled)");
 
 	#ifdef RMLUI_DX_DEBUG
-		this->m_root_signatures[static_cast<int>(ProgramId::Texture_Stencil_Always)]->SetName(
-			TEXT("rs of Texture_Stencil_Always"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Texture_Stencil_Always)]->SetName(TEXT("rs of Texture_Stencil_Always"));
 		this->m_pipelines[static_cast<int>(ProgramId::Texture_Stencil_Always)]->SetName(TEXT("pipeline Texture_Stencil_Always"));
 
-		this->m_root_signatures[static_cast<int>(ProgramId::Texture_Stencil_Equal)]->SetName(
-			TEXT("rs of Texture_Stencil_Equal"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Texture_Stencil_Equal)]->SetName(TEXT("rs of Texture_Stencil_Equal"));
 		this->m_pipelines[static_cast<int>(ProgramId::Texture_Stencil_Equal)]->SetName(TEXT("pipeline Texture_Stencil_Equal"));
 
-		this->m_root_signatures[static_cast<int>(ProgramId::Texture_Stencil_Disabled)]->SetName(
-			TEXT("rs of Texture_Stencil_Disabled"));
-		this->m_pipelines[static_cast<int>(ProgramId::Texture_Stencil_Disabled)]->SetName(
-			TEXT("pipeline Texture_Stencil_Disabled"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Texture_Stencil_Disabled)]->SetName(TEXT("rs of Texture_Stencil_Disabled"));
+		this->m_pipelines[static_cast<int>(ProgramId::Texture_Stencil_Disabled)]->SetName(TEXT("pipeline Texture_Stencil_Disabled"));
 	#endif
 	}
 }
@@ -4333,8 +4325,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough)");
 
 	#ifdef RMLUI_DX_DEBUG
-		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough)]->SetName(
-			TEXT("rs of Passthrough"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough)]->SetName(TEXT("rs of Passthrough"));
 		this->m_pipelines[static_cast<int>(ProgramId::Passthrough)]->SetName(TEXT("pipeline Passthrough"));
 	#endif
 
@@ -4345,8 +4336,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough_MSAA)");
 
 	#ifdef RMLUI_DX_DEBUG
-		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(
-			TEXT("rs of Passthrough_MSAA"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("rs of Passthrough_MSAA"));
 		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("pipeline Passthrough_MSAA"));
 	#endif
 	}
@@ -4563,8 +4553,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_ColorMask()
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough_ColorMask)");
 
 	#ifdef RMLUI_DX_DEBUG
-		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_ColorMask)]->SetName(
-			TEXT("rs of Passthrough_ColorMask"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_ColorMask)]->SetName(TEXT("rs of Passthrough_ColorMask"));
 		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_ColorMask)]->SetName(TEXT("pipeline Passthrough_ColorMask"));
 	#endif
 	}
@@ -4783,8 +4772,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_NoBlend()
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough_NoBlend)");
 
 	#ifdef RMLUI_DX_DEBUG
-		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_NoBlend)]->SetName(
-			TEXT("rs of Passthrough_NoBlend"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_NoBlend)]->SetName(TEXT("rs of Passthrough_NoBlend"));
 		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_NoBlend)]->SetName(TEXT("pipeline Passthrough_NoBlend"));
 	#endif
 	}
