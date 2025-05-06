@@ -2156,6 +2156,8 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 	RMLUI_ZoneScopedN("DirectX 12 - CompositeLayers");
 
 	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "CompositeLayers");
+
+	/*
 	BlitLayerToPostprocessPrimary(source);
 
 	RenderFilters(filters);
@@ -2186,6 +2188,7 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 	{
 		this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
 	}
+	*/
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }

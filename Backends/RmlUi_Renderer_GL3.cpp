@@ -69,6 +69,26 @@ static constexpr int NUM_MSAA_SAMPLES = 2;
 #define RMLUI_SHADER_HEADER \
 	RMLUI_SHADER_HEADER_VERSION "#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n#line " RMLUI_STRINGIFY(__LINE__) "\n"
 
+typedef void(GLAD_API_PTR* PFNGLPUSHDEBUGGROUPKHRPROC)(GLenum source, GLuint id, GLsizei length, const GLchar* message);
+GLAPI PFNGLPUSHDEBUGGROUPKHRPROC glad_glPushDebugGroupKHR;
+#define glPushDebugGroupKHR glad_glPushDebugGroupKHR
+typedef void(GLAD_API_PTR* PFNGLPOPDEBUGGROUPKHRPROC)(void);
+GLAPI PFNGLPOPDEBUGGROUPKHRPROC glad_glPopDebugGroupKHR;
+#define glPopDebugGroupKHR glad_glPopDebugGroupKHR
+typedef void(GLAD_API_PTR* PFNGLOBJECTLABELKHRPROC)(GLenum identifier, GLuint name, GLsizei length, const GLchar* label);
+GLAPI PFNGLOBJECTLABELKHRPROC glad_glObjectLabelKHR;
+#define glObjectLabelKHR glad_glObjectLabelKHR
+
+PFNGLPUSHDEBUGGROUPKHRPROC glad_glPushDebugGroupKHR=0;
+PFNGLPOPDEBUGGROUPKHRPROC glad_glPopDebugGroupKHR=0;
+PFNGLOBJECTLABELKHRPROC glad_glObjectLabelKHR = 0;
+
+#define RMLUI_GL_MARKER_BEGIN(name) if (glPushDebugGroupKHR) glPushDebugGroupKHR(0x824A, 0, -1, name);
+#define RMLUI_GL_MARKER_END() if(glPopDebugGroupKHR) glPopDebugGroupKHR();
+#define RMLUI_GL_SETNAME(resource_type, id, name) if (glObjectLabelKHR) glObjectLabelKHR(resource_type, id, -1, name);
+
+
+
 static const char* shader_vert_main = RMLUI_SHADER_HEADER R"(
 uniform vec2 _translate;
 uniform mat4 _transform;
@@ -817,6 +837,8 @@ void RenderInterface_GL3::BeginFrame()
 	OutputDebugStringA("BeginFrame\n");
 	RMLUI_ASSERT(viewport_width >= 1 && viewport_height >= 1);
 
+	RMLUI_GL_MARKER_BEGIN("BeginFrame");
+
 	// Backup GL state.
 	glstate_backup.enable_cull_face = glIsEnabled(GL_CULL_FACE);
 	glstate_backup.enable_blend = glIsEnabled(GL_BLEND);
@@ -891,6 +913,7 @@ void RenderInterface_GL3::BeginFrame()
 	program_transform_dirty.set();
 	scissor_state = Rml::Rectanglei::MakeInvalid();
 
+	RMLUI_GL_MARKER_END();
 	Gfx::CheckGLError("BeginFrame");
 }
 
@@ -2201,6 +2224,17 @@ bool RmlGL3::Initialize(Rml::String* out_message)
 
 	if (out_message)
 		*out_message = Rml::CreateString(128, "Loaded OpenGL %d.%d.", GLAD_VERSION_MAJOR(gl_version), GLAD_VERSION_MINOR(gl_version));
+
+	void* handle = glad_gl_dlopen_handle();
+	if (handle)
+	{
+		
+		auto userptr = glad_gl_build_userptr(handle);
+		glPushDebugGroupKHR = (PFNGLPUSHDEBUGGROUPKHRPROC)glad_gl_get_proc(&userptr, "glPushDebugGroupKHR");
+		glPopDebugGroupKHR = glad_gl_get_proc(&userptr, "glPopDebugGroupKHR");
+		glObjectLabelKHR = (PFNGLOBJECTLABELKHRPROC)glad_gl_get_proc(&userptr, "glObjectLabelKHR");
+		glad_close_dlopen_handle(handle);
+	}
 #endif
 
 	return true;
