@@ -303,6 +303,21 @@ static constexpr int NUM_MSAA_SAMPLES = 2;
 		#pragma comment(lib, "dxguid.lib")
 	#endif
 
+	#ifdef RMLUI_DX_DEBUG
+		// first argument specifies that input string is char if it is needed to use other languages than English then use u8 prefix
+	    // example: RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "::RenderGeometry");
+	    // example UTF8: RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, u8"::RenderGeometry");
+		#define RMLUI_DX_MARKER_BEGIN(list, name) \
+			if (list)                             \
+				list->BeginEvent(1, reinterpret_cast<const char*>(name), sizeof(name));
+		#define RMLUI_DX_MARKER_END(list) \
+			if (list)                     \
+				list->EndEvent();
+	#else
+		#define RMLUI_DX_MARKER_BEGIN(list, name)
+		#define RMLUI_DX_MARKER_END(list)
+	#endif
+
 	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 namespace Gfx {
 
@@ -598,6 +613,8 @@ void RenderInterface_DX12::BeginFrame()
 	{
 		this->m_p_command_graphics_list->Reset(p_command_allocator, nullptr);
 
+		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "BeginFrame");
+
 	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 		if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
 		{
@@ -670,6 +687,8 @@ void RenderInterface_DX12::BeginFrame()
 		this->UseProgram(ProgramId::None);
 		this->m_is_stencil_equal = false;
 		//	this->m_program_state_transform_dirty.set();
+
+		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 	}
 }
 
@@ -695,6 +714,8 @@ void RenderInterface_DX12::EndFrame()
 
 		if (this->m_p_command_graphics_list)
 		{
+			RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "EndFrame");
+			RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 			RMLUI_DX_ASSERTMSG(this->m_p_command_graphics_list->Close(), "failed to Close");
 		}
 		this->m_manager_render_layer.EndFrame();
@@ -711,6 +732,7 @@ void RenderInterface_DX12::EndFrame()
 	// TODO: здесь я должен выставлять backbuffer из свапчейна и при этом делать резолв для последнего постпроцесса (см. код реализации GL3)
 	if (this->m_p_command_graphics_list)
 	{
+		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "EndFrame");
 		CD3DX12_RESOURCE_BARRIER backbuffer_barrier_from_rt_to_present =
 			CD3DX12_RESOURCE_BARRIER::Transition(p_resource_backbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
@@ -789,6 +811,8 @@ void RenderInterface_DX12::EndFrame()
 		this->m_p_command_graphics_list->ResourceBarrier(1, &backbuffer_barrier_from_rt_to_present);
 		this->m_p_command_graphics_list->ResourceBarrier(1, &restore_state_of_postprocess_texture_return_to_rt);
 
+		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
+
 		RMLUI_DX_ASSERTMSG(this->m_p_command_graphics_list->Close(), "failed to Close");
 
 		ID3D12CommandList* const lists[] = {this->m_p_command_graphics_list};
@@ -827,6 +851,8 @@ void RenderInterface_DX12::Clear()
 
 	RMLUI_ASSERT(this->m_p_command_graphics_list && "early calling prob!");
 
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "Clear");
+
 	auto* p_backbuffer = this->m_backbuffers_resources.at(this->m_current_back_buffer_index);
 
 	CD3DX12_RESOURCE_BARRIER barrier =
@@ -848,11 +874,15 @@ void RenderInterface_DX12::Clear()
 
 	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color, 0, nullptr);
 	this->m_p_command_graphics_list->ClearDepthStencilView(p_current_dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - RenderGeometry");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "RenderGeometry");
+
 	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
 	{
@@ -860,6 +890,8 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 		Rml::Log::Message(Rml::Log::LT_WARNING, "[RenderInterface_DX12::RenderGeometry] you have invalid rendering state: %s",
 			Gfx::convert_render_state_to_str(this->m_render_state));
 		#endif
+
+		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 		return;
 	}
 	#endif
@@ -1039,11 +1071,14 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 	}
 
 	this->m_p_command_graphics_list->DrawIndexedInstanced(p_handle_geometry->Get_NumIndecies(), 1, 0, 0, 0);
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 Rml::CompiledGeometryHandle RenderInterface_DX12::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - CompileGeometry");
+	//	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "CompileGeometry");
 
 	GeometryHandleType* p_handle = new GeometryHandleType();
 
@@ -1053,6 +1088,7 @@ Rml::CompiledGeometryHandle RenderInterface_DX12::CompileGeometry(Rml::Span<cons
 		this->m_manager_buffer.Alloc_Index(indices.data(), static_cast<int>(indices.size()), sizeof(int), p_handle);
 		//	p_handle->Get_ConstantBuffer().Set_AllocInfo(this->m_manager_buffer.Alloc_ConstantBuffer(&p_handle->Get_ConstantBuffer(), 72));
 	}
+	//	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
 	return reinterpret_cast<Rml::CompiledGeometryHandle>(p_handle);
 }
@@ -1072,13 +1108,16 @@ void RenderInterface_DX12::EnableScissorRegion(bool enable)
 	if (!enable)
 	{
 		OutputDebugStringA("\t");
+		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "EnableScissorRegion");
 		SetScissor(Rml::Rectanglei::MakeInvalid(), false);
+		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 	}
 }
 
 void RenderInterface_DX12::SetScissorRegion(Rml::Rectanglei region)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SetScissorRegion");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SetScissorRegion");
 
 	static int call_count = 0;
 	++call_count;
@@ -1087,6 +1126,8 @@ void RenderInterface_DX12::SetScissorRegion(Rml::Rectanglei region)
 	OutputDebugStringA(msg);
 
 	SetScissor(region);
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::EnableClipMask(bool enable)
@@ -1100,6 +1141,7 @@ void RenderInterface_DX12::RenderToClipMask(Rml::ClipMaskOperation mask_operatio
 {
 	RMLUI_ZoneScopedN("DirectX 12 - RenderToClipMask");
 	RMLUI_ASSERT(this->m_is_stencil_enabled && "must be enabled!");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "RenderToClipMask");
 
 	const bool clear_stencil = (mask_operation == Rml::ClipMaskOperation::Set || mask_operation == Rml::ClipMaskOperation::SetInverse);
 
@@ -1134,6 +1176,8 @@ void RenderInterface_DX12::RenderToClipMask(Rml::ClipMaskOperation mask_operatio
 
 	this->m_is_stencil_equal = true;
 	this->m_current_clip_operation = -1;
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 // Set to byte packing, or the compiler will expand our struct, which means it won't read correctly from file
@@ -1786,6 +1830,7 @@ void RenderInterface_DX12::RenderLayerStack::DestroyFramebuffer(Gfx::Framebuffer
 Rml::LayerHandle RenderInterface_DX12::PushLayer()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - PushLayer");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "PushLayer");
 
 	const Rml::LayerHandle layer_handle = this->m_manager_render_layer.PushLayer();
 
@@ -1802,12 +1847,15 @@ Rml::LayerHandle RenderInterface_DX12::PushLayer()
 	this->m_p_command_graphics_list->ClearDepthStencilView(shared_depthstencil.Get_DescriptorResourceView(),
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
+
 	return layer_handle;
 }
 
 void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_id)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - BlitLayerToPostprocessPrimary");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "BlitLayerToPostprocessPrimary");
 
 	const Gfx::FramebufferData& source_framebuffer = this->m_manager_render_layer.GetLayer(layer_id);
 	const Gfx::FramebufferData& destination_framebuffer = this->m_manager_render_layer.GetPostprocessPrimary();
@@ -1850,6 +1898,8 @@ void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
 
 	// todo: should we convert src to render target ? probably yes, but need to be sure later after debugging
 	this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 static Rml::Pair<int, float> SigmaToParameters(const float desired_sigma)
@@ -1872,8 +1922,9 @@ void RenderInterface_DX12::DrawFullscreenQuad()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - DrawFullscreenQuad()");
 	RMLUI_ASSERT(this->m_p_command_graphics_list && "must be valid!");
-
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "DrawFullscreenQuad");
 	RenderGeometry(this->m_precompiled_fullscreen_quad_geometry, {}, TexturePostprocess);
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling)
@@ -1887,6 +1938,7 @@ void RenderInterface_DX12::BindTexture(TextureHandleType* p_texture, UINT root_p
 	RMLUI_ASSERT(p_texture && "you have to pass a valid pointer!");
 	RMLUI_ASSERT(this->m_p_command_graphics_list && "early calling must be initialized before calling this method!");
 	RMLUI_ASSERT(this->m_p_descriptor_heap_shaders && "early calling must be initialzed before calling this method!");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "BindTexture");
 
 	if (this->m_p_command_graphics_list)
 	{
@@ -1902,11 +1954,14 @@ void RenderInterface_DX12::BindTexture(TextureHandleType* p_texture, UINT root_p
 			}
 		}
 	}
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::BindRenderTarget(const Gfx::FramebufferData& framebuffer, bool depth_included)
 {
 	RMLUI_ASSERT(this->m_p_command_graphics_list && "early calling must be initialized before calling this method!");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "BindRenderTarget");
 
 	if (this->m_p_command_graphics_list)
 	{
@@ -1922,6 +1977,8 @@ void RenderInterface_DX12::BindRenderTarget(const Gfx::FramebufferData& framebuf
 
 		this->m_p_command_graphics_list->OMSetRenderTargets(1, p_rtv_handle, FALSE, p_dsv_handle);
 	}
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 unsigned char RenderInterface_DX12::GetMSAASupportedSampleCount(unsigned char max_samples)
@@ -1979,16 +2036,22 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	RMLUI_ASSERT(source_destination.Get_Height() == temp.Get_Height() && "must be equal to the same size!");
 	RMLUI_ASSERT(window_flipped.Valid() && "must be valid!");
 
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "RenderBlur");
+
 	int pass_level = 0;
 	const Rml::Pair<int, float>& pass_level_and_sigma = SigmaToParameters(sigma);
 
 	const Rml::Rectanglei original_scissor = this->m_scissor;
 	Rml::Rectanglei scissor = window_flipped;
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHandle> filter_handles)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - RenderFilters");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "RenderFilters");
+
 	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
 	{
@@ -1996,6 +2059,8 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 		Rml::Log::Message(Rml::Log::LT_WARNING, "[RenderInterface_DX12::RenderFilters] you have invalid rendering state: %s",
 			Gfx::convert_render_state_to_str(this->m_render_state));
 		#endif
+		
+		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
 		return;
 	}
@@ -2081,12 +2146,16 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 		}
 		}
 	}
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHandle destination, Rml::BlendMode blend_mode,
 	Rml::Span<const Rml::CompiledFilterHandle> filters)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - CompositeLayers");
+
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "CompositeLayers");
 	BlitLayerToPostprocessPrimary(source);
 
 	RenderFilters(filters);
@@ -2117,6 +2186,8 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 	{
 		this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
 	}
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::PopLayer()
@@ -2130,6 +2201,10 @@ Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture(Rml::Vector2i dimens
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SaveLayerAsTexture");
 	//	RMLUI_ASSERT(false && "todo");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SaveLayerAsTexture");
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
+
 	return Rml::TextureHandle();
 }
 
@@ -2137,6 +2212,11 @@ Rml::CompiledFilterHandle RenderInterface_DX12::SaveLayerAsMaskImage()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SaveLayerAsMaskImage");
 	//	RMLUI_ASSERT(false && "todo");
+
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SaveLayerAsMaskImage");
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
+
 	return Rml::CompiledFilterHandle();
 }
 
@@ -2331,6 +2411,7 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 {
 	RMLUI_ZoneScopedN("DirectX 12 - RenderShader");
 	RMLUI_ASSERT(shader_handle && geometry_handle);
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "RenderShader");
 
 	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 	if (static_cast<Gfx::RenderState>(this->m_render_state) != Gfx::RenderState::Valid)
@@ -2339,6 +2420,8 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 		Rml::Log::Message(Rml::Log::LT_WARNING, "[RenderInterface_DX12::RenderShader] you have invalid rendering state: %s",
 			Gfx::convert_render_state_to_str(this->m_render_state));
 		#endif
+
+		RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
 		return;
 	}
@@ -2364,6 +2447,8 @@ void RenderInterface_DX12::RenderShader(Rml::CompiledShaderHandle shader_handle,
 		break;
 	}
 	}
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 void RenderInterface_DX12::ReleaseShader(Rml::CompiledShaderHandle effect_handle)
@@ -4936,6 +5021,7 @@ void RenderInterface_DX12::PrintAdapterDesc(IDXGIAdapter* p_adapter)
 void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_flip)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SetScissor");
+
 	static int call_count = 0;
 	++call_count;
 	char msg[32];
@@ -4950,6 +5036,8 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 			return;
 		}
 	}
+
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "SetScissor");
 
 	if (region.Valid() && vertically_flip)
 	{
@@ -4978,6 +5066,7 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 					this->m_render_state = static_cast<unsigned char>(Gfx::RenderState::Invalid_Scissor);
 
 					this->m_is_scissor_was_set = true;
+					RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 					return;
 				}
 			}
@@ -4998,6 +5087,8 @@ void RenderInterface_DX12::SetScissor(Rml::Rectanglei region, bool vertically_fl
 			this->m_is_scissor_was_set = true;
 		}
 	}
+
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
 	// this->m_scissor = region;
 }
@@ -5041,6 +5132,7 @@ void RenderInterface_DX12::UseProgram(ProgramId pipeline_id)
 	RMLUI_ZoneScopedN("DirectX 12 - UseProgram");
 	RMLUI_ASSERT(pipeline_id < ProgramId::Count && "overflow, too big value for indexing");
 
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "UseProgram");
 	if (pipeline_id != ProgramId::None)
 	{
 		RMLUI_ASSERT(this->m_pipelines[static_cast<int>(pipeline_id)] && "you forgot to initialize or deleted!");
@@ -5052,6 +5144,7 @@ void RenderInterface_DX12::UseProgram(ProgramId pipeline_id)
 		ID3D12DescriptorHeap* p_heaps[] = {this->m_p_descriptor_heap_shaders};
 		this->m_p_command_graphics_list->SetDescriptorHeaps(_countof(p_heaps), p_heaps);
 	}
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
 	this->m_active_program_id = pipeline_id;
 }
