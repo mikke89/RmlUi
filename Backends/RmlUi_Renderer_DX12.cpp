@@ -3789,30 +3789,30 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Color()
 
 	#ifdef RMLUI_DX_DEBUG
 		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Always)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Color_Stencil_Always"));
-		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Always)]->SetName(TEXT("[D3D12][Debug Name] pipeline Color_Stencil_Always"));
+			TEXT("rs of Color_Stencil_Always"));
+		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Always)]->SetName(TEXT("pipeline Color_Stencil_Always"));
 
 		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Set)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Color_Stencil_Set"));
-		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Set)]->SetName(TEXT("[D3D12][Debug Name] pipeline Color_Stencil_Set"));
+			TEXT("rs of Color_Stencil_Set"));
+		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Set)]->SetName(TEXT("pipeline Color_Stencil_Set"));
 
 		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_SetInverse)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Color_Stencil_SetInverse"));
+			TEXT("rs of Color_Stencil_SetInverse"));
 		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_SetInverse)]->SetName(
-			TEXT("[D3D12][Debug Name] pipeline Color_Stencil_SetInverse"));
+			TEXT("pipeline Color_Stencil_SetInverse"));
 
 		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Intersect)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Color_Stencil_Intersect"));
+			TEXT("rs of Color_Stencil_Intersect"));
 		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Intersect)]->SetName(
-			TEXT("[D3D12][Debug Name] pipeline Color_Stencil_Intersect"));
+			TEXT("pipeline Color_Stencil_Intersect"));
 
 		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Equal)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Color_Stencil_Equal"));
-		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Equal)]->SetName(TEXT("[D3D12][Debug Name] pipeline Color_Stencil_Equal"));
+			TEXT("rs of Color_Stencil_Equal"));
+		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Equal)]->SetName(TEXT("pipeline Color_Stencil_Equal"));
 
 		this->m_root_signatures[static_cast<int>(ProgramId::Color_Stencil_Disabled)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Color_Stencil_Disabled"));
-		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Disabled)]->SetName(TEXT("[D3D12][Debug Name] pipeline Color_Stencil_Disabled"));
+			TEXT("rs of Color_Stencil_Disabled"));
+		this->m_pipelines[static_cast<int>(ProgramId::Color_Stencil_Disabled)]->SetName(TEXT("pipeline Color_Stencil_Disabled"));
 	#endif
 	}
 }
@@ -4083,17 +4083,17 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Texture()
 
 	#ifdef RMLUI_DX_DEBUG
 		this->m_root_signatures[static_cast<int>(ProgramId::Texture_Stencil_Always)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Texture_Stencil_Always"));
-		this->m_pipelines[static_cast<int>(ProgramId::Texture_Stencil_Always)]->SetName(TEXT("[D3D12][Debug Name] pipeline Texture_Stencil_Always"));
+			TEXT("rs of Texture_Stencil_Always"));
+		this->m_pipelines[static_cast<int>(ProgramId::Texture_Stencil_Always)]->SetName(TEXT("pipeline Texture_Stencil_Always"));
 
 		this->m_root_signatures[static_cast<int>(ProgramId::Texture_Stencil_Equal)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Texture_Stencil_Equal"));
-		this->m_pipelines[static_cast<int>(ProgramId::Texture_Stencil_Equal)]->SetName(TEXT("[D3D12][Debug Name] pipeline Texture_Stencil_Equal"));
+			TEXT("rs of Texture_Stencil_Equal"));
+		this->m_pipelines[static_cast<int>(ProgramId::Texture_Stencil_Equal)]->SetName(TEXT("pipeline Texture_Stencil_Equal"));
 
 		this->m_root_signatures[static_cast<int>(ProgramId::Texture_Stencil_Disabled)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Texture_Stencil_Disabled"));
+			TEXT("rs of Texture_Stencil_Disabled"));
 		this->m_pipelines[static_cast<int>(ProgramId::Texture_Stencil_Disabled)]->SetName(
-			TEXT("[D3D12][Debug Name] pipeline Texture_Stencil_Disabled"));
+			TEXT("pipeline Texture_Stencil_Disabled"));
 	#endif
 	}
 }
@@ -4331,8 +4331,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 
 	#ifdef RMLUI_DX_DEBUG
 		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Passthrough"));
-		this->m_pipelines[static_cast<int>(ProgramId::Passthrough)]->SetName(TEXT("[D3D12][Debug Name] pipeline Passthrough"));
+			TEXT("rs of Passthrough"));
+		this->m_pipelines[static_cast<int>(ProgramId::Passthrough)]->SetName(TEXT("pipeline Passthrough"));
 	#endif
 
 		desc_pipeline.SampleDesc = this->m_desc_sample;
@@ -4343,8 +4343,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 
 	#ifdef RMLUI_DX_DEBUG
 		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Passthrough_MSAA"));
-		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("[D3D12][Debug Name] pipeline Passthrough_MSAA"));
+			TEXT("rs of Passthrough_MSAA"));
+		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("pipeline Passthrough_MSAA"));
 	#endif
 	}
 }
@@ -4561,8 +4561,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_ColorMask()
 
 	#ifdef RMLUI_DX_DEBUG
 		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_ColorMask)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Passthrough_ColorMask"));
-		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_ColorMask)]->SetName(TEXT("[D3D12][Debug Name] pipeline Passthrough_ColorMask"));
+			TEXT("rs of Passthrough_ColorMask"));
+		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_ColorMask)]->SetName(TEXT("pipeline Passthrough_ColorMask"));
 	#endif
 	}
 }
@@ -4781,8 +4781,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_NoBlend()
 
 	#ifdef RMLUI_DX_DEBUG
 		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_NoBlend)]->SetName(
-			TEXT("[D3D12][Debug Name] root signature of pipeline Passthrough_NoBlend"));
-		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_NoBlend)]->SetName(TEXT("[D3D12][Debug Name] pipeline Passthrough_NoBlend"));
+			TEXT("rs of Passthrough_NoBlend"));
+		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_NoBlend)]->SetName(TEXT("pipeline Passthrough_NoBlend"));
 	#endif
 	}
 }
