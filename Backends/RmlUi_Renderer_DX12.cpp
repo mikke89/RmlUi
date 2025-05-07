@@ -52,13 +52,6 @@
 		#include <dxgidebug.h>
 	#endif
 
-struct aaa {
-	Rml::Matrix4f m;
-	float m1[2];
-	float m2[2];
-	Rml::Vector4f m3[11];
-};
-
 constexpr const char pShaderSourceText_Color[] = R"(
 struct sInputData
 {
@@ -2201,7 +2194,10 @@ void RenderInterface_DX12::PopLayer()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - PopLayer");
 	//	RMLUI_ASSERT(false && "todo");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list,"PopLayer");
 	this->m_manager_render_layer.PopLayer();
+	this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
+	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
 Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture(Rml::Vector2i dimensions)

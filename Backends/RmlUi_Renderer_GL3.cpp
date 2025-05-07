@@ -1008,6 +1008,8 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Span<const
 	GLuint vbo = 0;
 	GLuint ibo = 0;
 
+	RMLUI_GL_MARKER_BEGIN("CompileGeometry");
+
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
 	glGenBuffers(1, &ibo);
@@ -1041,6 +1043,8 @@ Rml::CompiledGeometryHandle RenderInterface_GL3::CompileGeometry(Rml::Span<const
 	geometry->vbo = vbo;
 	geometry->ibo = ibo;
 	geometry->draw_count = (GLsizei)indices.size();
+
+	RMLUI_GL_MARKER_END();
 
 	return (Rml::CompiledGeometryHandle)geometry;
 }
