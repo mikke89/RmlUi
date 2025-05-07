@@ -34,9 +34,12 @@
 /**
  * Include third-party dependencies.
  */
-#ifdef RMLUI_PLATFORM_WIN32
-	#include "RmlUi_Include_Windows.h"
+
+#ifndef RMLUI_PLATFORM_WIN32
+	#error unable to compile platform specific renderer required Windows OS that support DirectX-12
 #endif
+
+#include "RmlUi_Include_Windows.h"
 
 #if (_MSC_VER > 0)
 	#define RMLUI_DISABLE_ALL_COMPILER_WARNINGS_PUSH _Pragma("warning(push, 0)")
@@ -75,9 +78,8 @@ RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
 	#define RMLUI_DX_ASSERTMSG(statement, msg) static_cast<void>(statement)
 #endif
 
-#ifdef RMLUI_PLATFORM_WIN32
-	// clang-format off
-	// keep in mind that order of helpers define header guard for native windows sdk that's visible by default thus if you put first <directx/d3dx12.h> header lower than let's say D3D12MemAlloc.h header then you will get compilation errors it is clearly stated on official repository of Microsoft (see https://github.com/microsoft/DirectX-Headers?tab=readme-ov-file#use-on-windows) 
+// clang-format off
+	// todo: after finishing implementation remove this header and reimplenebt using only original D3D12 header from native windows sdk that comes out-of-box please (since we have to keep backends as lightweight and thus depends less and less on some dependencies)
 	#include <directx/d3dx12.h>
 	#include "RmlUi_DirectX/D3D12MemAlloc.h"
 	#include "RmlUi_DirectX/offsetAllocator.hpp"
@@ -85,171 +87,170 @@ RMLUI_DISABLE_ALL_COMPILER_WARNINGS_POP
 	#include <chrono>
 	#include <d3dcompiler.h>
 	#include <dxgi1_6.h>
-	// clang-format on
+// clang-format on
 
-	// user's preprocessor overrides
+// user's preprocessor overrides
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
-		// system field (it is not supposed to specify by initialization structure)
-		// on some render backend implementations (Vulkan/DirectX-12) we have to check memory leaks but
-		// if we don't reserve memory for a field that contains layers (it is vector)
-		// at runtime we will get a called dtor of move-to-copy object (because of reallocation)
-		// and for that matter we will get a false-positive trigger of assert and it is not right generally
-		#define RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
-	#else
-		// system field (it is not supposed to specify by initialization structure)
-		// on some render backend implementations (Vulkan/DirectX-12) we have to check memory leaks but
-		// if we don't reserve memory for a field that contains layers (it is vector)
-		// at runtime we will get a called dtor of move-to-copy object (because of reallocation)
-		// and for that matter we will get a false-positive trigger of assert and it is not right generally
-		#define RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS 6
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
+	// system field (it is not supposed to specify by initialization structure)
+	// on some render backend implementations (Vulkan/DirectX-12) we have to check memory leaks but
+	// if we don't reserve memory for a field that contains layers (it is vector)
+	// at runtime we will get a called dtor of move-to-copy object (because of reallocation)
+	// and for that matter we will get a false-positive trigger of assert and it is not right generally
+	#define RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS
+#else
+	// system field (it is not supposed to specify by initialization structure)
+	// on some render backend implementations (Vulkan/DirectX-12) we have to check memory leaks but
+	// if we don't reserve memory for a field that contains layers (it is vector)
+	// at runtime we will get a called dtor of move-to-copy object (because of reallocation)
+	// and for that matter we will get a false-positive trigger of assert and it is not right generally
+	#define RMLUI_RENDER_BACKEND_FIELD_RESERVECOUNT_OF_RENDERSTACK_LAYERS 6
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_SWAPCHAIN_BACKBUFFER_COUNT
-		// this field specifies the default amount of swapchain buffer that will be created
-		// but it is used only when user provided invalid input in initialization structure of backend
-		#define RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_SWAPCHAIN_BACKBUFFER_COUNT
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_SWAPCHAIN_BACKBUFFER_COUNT
+	// this field specifies the default amount of swapchain buffer that will be created
+	// but it is used only when user provided invalid input in initialization structure of backend
+	#define RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_SWAPCHAIN_BACKBUFFER_COUNT
 static_assert(RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT > 0 && "invalid value for RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT");
-	#else
-		// this field specifies the default amount of swapchain buffer that will be created
-		// but it is used only when user provided invalid input in initialization structure of backend
-		#define RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT 3
-	#endif
+#else
+	// this field specifies the default amount of swapchain buffer that will be created
+	// but it is used only when user provided invalid input in initialization structure of backend
+	#define RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT 3
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION
-		// this field specifies the default amount of videomemory that will be used on creation
-		// this field is used when user provided invalid input in initialization structure of backend
-		#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION
+	// this field specifies the default amount of videomemory that will be used on creation
+	// this field is used when user provided invalid input in initialization structure of backend
+	#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION
 static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION > 0 &&
 	"invalid value for RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION");
-	#else
-		// this field specifies the default amount of videomemory that will be used on creation
-		// this field is used when user provided invalid input in initialization structure of backend
-		#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION 1048576 // (4 * 512 * 512 = bytes or 1 Megabytes)
-	#endif
+#else
+	// this field specifies the default amount of videomemory that will be used on creation
+	// this field is used when user provided invalid input in initialization structure of backend
+	#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION 1048576 // (4 * 512 * 512 = bytes or 1 Megabytes)
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION
-		// this field specifies the default amount of videomemory that will be used for texture creation
-		// on some backends it determines the size of a temp buffer that might be used not trivial (just for uploading texture by copying data in it)
-		// like on DirectX-12 it has a placement resources feature and making this value lower (4 Mb) the placement resource feature becomes pointless
-		// and doesn't gain any performance related boosting
-		#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION
+	// this field specifies the default amount of videomemory that will be used for texture creation
+	// on some backends it determines the size of a temp buffer that might be used not trivial (just for uploading texture by copying data in it)
+	// like on DirectX-12 it has a placement resources feature and making this value lower (4 Mb) the placement resource feature becomes pointless
+	// and doesn't gain any performance related boosting
+	#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION
 static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION > 0 &&
 	"invalid value for RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION");
-	#else
-		// this field specifies the default amount of videomemory that will be used for texture creation
-		// on some backends it determines the size of a temp buffer that might be used not trivial (just for uploading texture by copying data in it)
-		// like on DirectX-12 it has a placement resources feature and making this value lower (4 Mb) the placement resource feature becomes pointless
-		// and doesn't gain any performance related boosting
-		#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION 4194304 // (4 * 1024 * 1024 = bytes or 4 Megabytes)
-	#endif
+#else
+	// this field specifies the default amount of videomemory that will be used for texture creation
+	// on some backends it determines the size of a temp buffer that might be used not trivial (just for uploading texture by copying data in it)
+	// like on DirectX-12 it has a placement resources feature and making this value lower (4 Mb) the placement resource feature becomes pointless
+	// and doesn't gain any performance related boosting
+	#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION 4194304 // (4 * 1024 * 1024 = bytes or 4 Megabytes)
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_ALIGNMENT_FOR_BUFFER
-		// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like
-		// we always use it, not just because we handling invalid input from user)
-		#define RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_ALIGNMENT_FOR_BUFFER
-	#else
-		// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
-		// use it, not just because we handling invalid input from user)
-		#define RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_ALIGNMENT_FOR_BUFFER
+	// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like
+	// we always use it, not just because we handling invalid input from user)
+	#define RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_ALIGNMENT_FOR_BUFFER
+#else
+	// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
+	// use it, not just because we handling invalid input from user)
+	#define RMLUI_RENDER_BACKEND_FIELD_ALIGNMENT_FOR_BUFFER D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_COLOR_TEXTURE_FORMAT
-		// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
-		// use it, not just because we handling invalid input from user)
-		#define RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_COLOR_TEXTURE_FORMAT
-	#else
-		// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
-		// use it, not just because we handling invalid input from user)
-		#define RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_COLOR_TEXTURE_FORMAT
+	// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
+	// use it, not just because we handling invalid input from user)
+	#define RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_COLOR_TEXTURE_FORMAT
+#else
+	// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
+	// use it, not just because we handling invalid input from user)
+	#define RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM
+#endif
 
-	#ifdef RMLUI_REDNER_BACKEND_OVERRIDE_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT
-		#define RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT RMLUI_REDNER_BACKEND_OVERRIDE_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT
-	#else
-		// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
-		// use it, not just because we handling invalid input from user)
-		#define RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT_S8X24_UINT
-	#endif
+#ifdef RMLUI_REDNER_BACKEND_OVERRIDE_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT
+	#define RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT RMLUI_REDNER_BACKEND_OVERRIDE_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT
+#else
+	// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
+	// use it, not just because we handling invalid input from user)
+	#define RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT_S8X24_UINT
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV
-		// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
-		// use it, not just because we handling invalid input from user)
-		// notice: this field is shared for all srv and cbv and uav it doesn't mean that it specifically allocates for srv, cbv and uav
-		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV
-	#else
-		// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
-		// use it, not just because we handling invalid input from user)
-		// notice: this field is shared for all srv and cbv and uav it doesn't mean that it specifically allocates for srv 128, cbv 128 and uav 128,
-		// no! it allocates only on descriptor for all of such types and total amount is 128 not 3 * 128 = 384 !!!
-		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV 128
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV
+	// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
+	// use it, not just because we handling invalid input from user)
+	// notice: this field is shared for all srv and cbv and uav it doesn't mean that it specifically allocates for srv, cbv and uav
+	#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV
+#else
+	// system field that is not supposed to be in initialization structure and used as default (input user doesn't affect it at all like we always
+	// use it, not just because we handling invalid input from user)
+	// notice: this field is shared for all srv and cbv and uav it doesn't mean that it specifically allocates for srv 128, cbv 128 and uav 128,
+	// no! it allocates only on descriptor for all of such types and total amount is 128 not 3 * 128 = 384 !!!
+	#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTORAMOUNT_FOR_SRV_CBV_UAV 128
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MAXNUMPROGRAMS
-		#define RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MAXNUMPROGRAMS
-	#else
-		#define RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS 32
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MAXNUMPROGRAMS
+	#define RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MAXNUMPROGRAMS
+#else
+	#define RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS 32
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
-		#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
-	#else
-		// for getting total size of constant buffers you should multiply kPreAllocatedConstantBuffers * kSwapchainBackBufferCount e.g. 250 * 3 = 750
-		#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS 250
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
+	#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
+#else
+	// for getting total size of constant buffers you should multiply kPreAllocatedConstantBuffers * kSwapchainBackBufferCount e.g. 250 * 3 = 750
+	#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS 250
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
-		#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
-	#else
-		#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT 2
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
+	#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
+#else
+	#define RMLUI_RENDER_BACKEND_FIELD_MSAA_SAMPLE_COUNT 2
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_RTV
-		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_RTV
-	#else
-		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV 8
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_RTV
+	#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_RTV
+#else
+	#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_RTV 8
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
-		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
-	#else
-		#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV 8
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
+	#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
+#else
+	#define RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV 8
+#endif
 
-	// specifes general (for all depth stencil textures that might be allocated by backend) depth value on clear operation (::ClearDepthStencilView)
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE
-		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
-	#else
-		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE 1.0f
-	#endif
+// specifes general (for all depth stencil textures that might be allocated by backend) depth value on clear operation (::ClearDepthStencilView)
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE
+	#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_DESCRIPTOR_HEAP_DSV
+#else
+	#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE 1.0f
+#endif
 
-	// specifies general (for all depth stencil textures that might be allocated by backend) stencil value on clear operation
-	// (::ClearDepthStencilView)
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE
-		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE \
-			RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE
-	#else
-		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE 0
-	#endif
+// specifies general (for all depth stencil textures that might be allocated by backend) stencil value on clear operation
+// (::ClearDepthStencilView)
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE
+	#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE \
+		RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE
+#else
+	#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE 0
+#endif
 
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VALUE
-		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE \
-			RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VALUE
-	#else
-		#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE 0.0f, 0.0f, 0.0f, 1.0f
-	#endif
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VALUE
+	#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VALUE
+#else
+	#define RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE 0.0f, 0.0f, 0.0f, 1.0f
+#endif
 
-	// if enabled catches warning situations on Debug build type in order to prevent receiving assertion like invalid scissor (y0==y1) and make some
-	// other cases that might happen during future development
-	#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_IGNORE_RENDERER_INVALID_STATES
-		#define RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_IGNORE_RENDERER_INVALID_STATES
+// if enabled catches warning situations on Debug build type in order to prevent receiving assertion like invalid scissor (y0==y1) and make some
+// other cases that might happen during future development
+#ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_IGNORE_RENDERER_INVALID_STATES
+	#define RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_IGNORE_RENDERER_INVALID_STATES
+#else
+	#ifdef RMLUI_DEBUG
+		#define RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES 1
 	#else
-		#ifdef RMLUI_DEBUG
-			#define RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES 1
-		#else
-			#define RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES 0
-		#endif
+		#define RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES 0
 	#endif
+#endif
 
 enum class ProgramId;
 
@@ -258,9 +259,9 @@ namespace Gfx {
 struct ProgramData;
 struct FramebufferData;
 
-	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
+#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 enum RenderState;
-	#endif
+#endif
 } // namespace Gfx
 
 /**
@@ -270,12 +271,12 @@ enum RenderState;
 
 class RenderInterface_DX12 : public Rml::RenderInterface {
 public:
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 	// only for your mouse course to see how it is in MBs, just move cursor to variable on left side from = and you see the value of MBs
 
 	static constexpr size_t kDebugMB_BA = (RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION / 1024) / 1024;
 	static constexpr size_t kDebugMB_TA = (RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION / 1024) / 1024;
-	#endif
+#endif
 
 public:
 	class GraphicsAllocationInfo {
@@ -305,16 +306,16 @@ public:
 	class TextureHandleType {
 	public:
 		TextureHandleType() :
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 			m_is_destroyed{},
-	#endif
+#endif
 			m_p_resource{}
 		{}
 		~TextureHandleType()
 		{
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 			RMLUI_ASSERT(this->m_is_destroyed && "you forgot to destroy the resource!");
-	#endif
+#endif
 		}
 
 		const GraphicsAllocationInfo& Get_Info() const noexcept { return this->m_info; }
@@ -330,31 +331,31 @@ public:
 		/// @return debug resource name when the source string is passed in LoadTexture method
 		const Rml::String& Get_ResourceName(void) const
 		{
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 			return this->m_debug_resource_name;
-	#else
+#else
 			return Rml::String();
-	#endif
+#endif
 		}
 
 		/// @brief sets m_debug_resource_name field with specified argument as resource_name
 		/// @param resource_name this string is getting from LoadTexture method from source argument
 		void Set_ResourceName(const Rml::String& resource_name)
 		{
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 			this->m_debug_resource_name = resource_name;
-	#else
+#else
 			resource_name;
-	#endif
+#endif
 		}
 
 		// this method calls texture manager! don't call it manually because you must ensure that you freed virtual block if it had
 		void Destroy()
 		{
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 			if (!this->m_is_destroyed)
 			{
-	#endif
+#endif
 				if (this->m_p_resource)
 				{
 					if (this->m_info.Get_BufferIndex() != -1)
@@ -377,13 +378,13 @@ public:
 
 					this->m_info = GraphicsAllocationInfo();
 					this->m_p_resource = nullptr;
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 					this->m_is_destroyed = true;
-	#endif
+#endif
 				}
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 			}
-	#endif
+#endif
 		}
 
 		const OffsetAllocator::Allocation& Get_Allocation_DescriptorHeap(void) const noexcept { return this->m_allocation_descriptor_heap; }
@@ -393,16 +394,16 @@ public:
 		}
 
 	private:
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 		bool m_is_destroyed;
-	#endif
+#endif
 
 		GraphicsAllocationInfo m_info;
 		OffsetAllocator::Allocation m_allocation_descriptor_heap;
 		void* m_p_resource; // placed or committed (CreateResource from D3D12MA)
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 		Rml::String m_debug_resource_name;
-	#endif
+#endif
 	};
 
 	class ConstantBufferType {
@@ -496,10 +497,10 @@ public:
 
 	private:
 		void Alloc_Buffer(size_t size
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 			,
 			const Rml::String& debug_name
-	#endif
+#endif
 		);
 
 		/// @brief searches for block that has enough memory for requested allocation size otherwise returns nullptr that means no block!
@@ -551,19 +552,19 @@ public:
 		void Shutdown();
 
 		ID3D12Resource* Alloc_Texture(D3D12_RESOURCE_DESC& desc, TextureHandleType* p_impl, const Rml::byte* p_data
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 			,
 			const Rml::String& debug_name
-	#endif
+#endif
 		);
 
 		// if you want to create texture for rendering to it aka render target texture
 		ID3D12Resource* Alloc_Texture(D3D12_RESOURCE_DESC& desc, Gfx::FramebufferData* p_impl, D3D12_RESOURCE_FLAGS flags,
 			D3D12_RESOURCE_STATES initial_state
-	#ifdef RMLUI_DX_DEBUG
+#ifdef RMLUI_DX_DEBUG
 			,
 			const Rml::String& debug_name
-	#endif
+#endif
 		);
 
 		void Free_Texture(TextureHandleType* type);
@@ -698,7 +699,8 @@ public:
 	// RenderInterface_DX12(ID3D12Device* p_user_device, ID3D12CommandQueue* p_user_command_queue,
 	//	ID3D12GraphicsCommandList* p_user_graphics_command_list);
 
-	RenderInterface_DX12(void* p_window_handle, ID3D12Device* p_user_device, IDXGISwapChain* p_user_swapchain, bool use_vsync, unsigned char msaa_sample_count);
+	RenderInterface_DX12(void* p_window_handle, ID3D12Device* p_user_device, IDXGISwapChain* p_user_swapchain, bool use_vsync,
+		unsigned char msaa_sample_count);
 	RenderInterface_DX12(void* p_window_handle, bool use_vsync, unsigned char msaa_sample_count);
 	~RenderInterface_DX12();
 
@@ -868,16 +870,14 @@ private:
 	void DrawFullscreenQuad();
 	void DrawFullscreenQuad(Rml::Vector2f uv_offset, Rml::Vector2f uv_scaling = Rml::Vector2f(1.f));
 
-	void BindTexture(TextureHandleType* p_texture, UINT root_parameter_index=0);
-	void BindRenderTarget(const Gfx::FramebufferData& framebuffer, bool depth_included=true);
+	void BindTexture(TextureHandleType* p_texture, UINT root_parameter_index = 0);
+	void BindRenderTarget(const Gfx::FramebufferData& framebuffer, bool depth_included = true);
 
 	// 1 means not supported
 	// otherwise return max value of supported multisample count
 	unsigned char GetMSAASupportedSampleCount(unsigned char max_samples);
 
-	bool IsMSAAValidForCurrentSettings(unsigned char msaa_sample_count);
-
- private:
+private:
 	bool m_is_full_initialization;
 	bool m_is_shutdown_called;
 	bool m_is_use_vsync;
@@ -887,11 +887,11 @@ private:
 	bool m_is_stencil_equal;
 	bool m_is_use_msaa;
 	unsigned char m_msaa_sample_count;
-	#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
+#if RMLUI_RENDER_BACKEND_FIELD_IGNORE_RENDERER_INVALID_STATES == 1
 	// determines should we render or not due to different reasons for current frame execution
 	// see enum RenderState
 	unsigned char m_render_state;
-	#endif
+#endif
 
 	int m_width;
 	int m_height;
@@ -976,7 +976,5 @@ RenderInterface_DX12* Initialize(Rml::String* out_message, Backend::RmlRenderIni
 void Shutdown(RenderInterface_DX12* p_instance);
 
 } // namespace RmlDX12
-
-#endif // RMLUI_PLATFORM_WIN32
 
 #endif
