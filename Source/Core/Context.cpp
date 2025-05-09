@@ -623,28 +623,29 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 
 	bool propagate = true;
 
+	Element* new_focus = hover;
+
+	// Set the currently hovered element to focus if it isn't already the focus.
+	if (hover)
+	{
+		new_focus = FindFocusElement(hover);
+		if (new_focus && new_focus != focus)
+		{
+			if (!new_focus->Focus())
+				return !IsMouseInteracting();
+		}
+	}
+
+	// Save the just-pressed-on element as the pressed element.
+	active = new_focus;
+
+	// Call 'onmousedown' on every item in the hover chain, and copy the hover chain to the active chain.
+	if (hover)
+		propagate = hover->DispatchEvent(EventId::Mousedown, parameters);
+
+	// Dblclick is only for primary mouse button
 	if (button_index == 0)
 	{
-		Element* new_focus = hover;
-
-		// Set the currently hovered element to focus if it isn't already the focus.
-		if (hover)
-		{
-			new_focus = FindFocusElement(hover);
-			if (new_focus && new_focus != focus)
-			{
-				if (!new_focus->Focus())
-					return !IsMouseInteracting();
-			}
-		}
-
-		// Save the just-pressed-on element as the pressed element.
-		active = new_focus;
-
-		// Call 'onmousedown' on every item in the hover chain, and copy the hover chain to the active chain.
-		if (hover)
-			propagate = hover->DispatchEvent(EventId::Mousedown, parameters);
-
 		if (propagate)
 		{
 			// Check for a double-click on an element; if one has occured, we send the 'dblclick' event to the hover
@@ -671,33 +672,28 @@ bool Context::ProcessMouseButtonDown(int button_index, int key_modifier_state)
 		}
 
 		last_click_mouse_position = mouse_position;
-
-		active_chain.insert(active_chain.end(), hover_chain.begin(), hover_chain.end());
-
-		if (propagate)
-		{
-			// Traverse down the hierarchy of the newly focused element (if any), and see if we can begin dragging it.
-			drag_started = false;
-			drag = hover;
-			while (drag)
-			{
-				Style::Drag drag_style = drag->GetComputedValues().drag();
-				switch (drag_style)
-				{
-				case Style::Drag::None: drag = drag->GetParentNode(); continue;
-				case Style::Drag::Block: drag = nullptr; continue;
-				default: drag_verbose = (drag_style == Style::Drag::DragDrop || drag_style == Style::Drag::Clone);
-				}
-
-				break;
-			}
-		}
 	}
-	else
+
+	active_chain.insert(active_chain.end(), hover_chain.begin(), hover_chain.end());
+
+	// Drag is only for primary mouse button
+	if (button_index == 0 && propagate)
 	{
-		// Not the primary mouse button, so we're not doing any special processing.
-		if (hover)
-			propagate = hover->DispatchEvent(EventId::Mousedown, parameters);
+		// Traverse down the hierarchy of the newly focused element (if any), and see if we can begin dragging it.
+		drag_started = false;
+		drag = hover;
+		while (drag)
+		{
+			Style::Drag drag_style = drag->GetComputedValues().drag();
+			switch (drag_style)
+			{
+			case Style::Drag::None: drag = drag->GetParentNode(); continue;
+			case Style::Drag::Block: drag = nullptr; continue;
+			default: drag_verbose = (drag_style == Style::Drag::DragDrop || drag_style == Style::Drag::Clone);
+			}
+
+			break;
+		}
 	}
 
 	if (scroll_controller->GetMode() == ScrollController::Mode::Autoscroll)
@@ -729,66 +725,65 @@ bool Context::ProcessMouseButtonUp(int button_index, int key_modifier_state)
 	// capture the event.
 	const bool result = !IsMouseInteracting();
 
-	// Process primary click.
-	if (button_index == 0)
-	{
-		// The elements in the new hover chain have the 'onmouseup' event called on them.
-		if (hover)
-			hover->DispatchEvent(EventId::Mouseup, parameters);
+	// The elements in the new hover chain have the 'onmouseup' event called on them.
+	if (hover)
+		hover->DispatchEvent(EventId::Mouseup, parameters);
 
-		// If the active element (the one that was being hovered over when the mouse button was pressed) is still being
-		// hovered over, we click it.
-		if (hover && active && active == FindFocusElement(hover))
+	// Process primary click.
+	// If the active element (the one that was being hovered over when the mouse button was pressed) is still being
+	// hovered over, we click it.
+	if (hover && active && active == FindFocusElement(hover))
+	{
+		if (button_index == 0)
 		{
 			active->DispatchEvent(EventId::Click, parameters);
 		}
-
-		// Unset the 'active' pseudo-class on all the elements in the active chain; because they may not necessarily
-		// have had 'onmouseup' called on them, we can't guarantee this has happened already.
-		for (Element* element : active_chain)
-			element->SetPseudoClass("active", false);
-		active_chain.clear();
-		active = nullptr;
-
-		if (drag)
+		else if (button_index == 1)
 		{
-			if (drag_started)
-			{
-				Dictionary drag_parameters;
-				GenerateMouseEventParameters(drag_parameters);
-				GenerateDragEventParameters(drag_parameters);
-				GenerateKeyModifierEventParameters(drag_parameters, key_modifier_state);
-
-				if (drag_hover)
-				{
-					if (drag_verbose)
-					{
-						drag_hover->DispatchEvent(EventId::Dragdrop, drag_parameters);
-						// User may have removed the element, do an extra check.
-						if (drag_hover)
-							drag_hover->DispatchEvent(EventId::Dragout, drag_parameters);
-					}
-				}
-
-				if (drag)
-					drag->DispatchEvent(EventId::Dragend, drag_parameters);
-
-				ReleaseDragClone();
-			}
-
-			drag = nullptr;
-			drag_hover = nullptr;
-			drag_hover_chain.clear();
-
-			// We may have changes under our mouse, this ensures that the hover chain is properly updated
-			ProcessMouseMove(mouse_position.x, mouse_position.y, key_modifier_state);
+			active->DispatchEvent(EventId::Contextmenu, parameters);
 		}
 	}
-	else
+
+	// Unset the 'active' pseudo-class on all the elements in the active chain; because they may not necessarily
+	// have had 'onmouseup' called on them, we can't guarantee this has happened already.
+	for (Element* element : active_chain)
+		element->SetPseudoClass("active", false);
+	active_chain.clear();
+	active = nullptr;
+
+	// Drag is only for primary mouse button
+	if (drag && button_index == 0)
 	{
-		// Not the left mouse button, so we're not doing any special processing.
-		if (hover)
-			hover->DispatchEvent(EventId::Mouseup, parameters);
+		if (drag_started)
+		{
+			Dictionary drag_parameters;
+			GenerateMouseEventParameters(drag_parameters);
+			GenerateDragEventParameters(drag_parameters);
+			GenerateKeyModifierEventParameters(drag_parameters, key_modifier_state);
+
+			if (drag_hover)
+			{
+				if (drag_verbose)
+				{
+					drag_hover->DispatchEvent(EventId::Dragdrop, drag_parameters);
+					// User may have removed the element, do an extra check.
+					if (drag_hover)
+						drag_hover->DispatchEvent(EventId::Dragout, drag_parameters);
+				}
+			}
+
+			if (drag)
+				drag->DispatchEvent(EventId::Dragend, drag_parameters);
+
+			ReleaseDragClone();
+		}
+
+		drag = nullptr;
+		drag_hover = nullptr;
+		drag_hover_chain.clear();
+
+		// We may have changes under our mouse, this ensures that the hover chain is properly updated
+		ProcessMouseMove(mouse_position.x, mouse_position.y, key_modifier_state);
 	}
 
 	// If we have autoscrolled while holding the middle mouse button, release the autoscroll mode now.

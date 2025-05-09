@@ -50,6 +50,7 @@ struct EventSpecificationData {
 		{EventId::Mouseup       , "mouseup"       , true  , true  , DefaultActionPhase::TargetAndBubble},
 		{EventId::Click         , "click"         , true  , true  , DefaultActionPhase::TargetAndBubble},
 		{EventId::Dblclick      , "dblclick"      , true  , true  , DefaultActionPhase::TargetAndBubble},
+		{EventId::Contextmenu   , "contextmenu"   , true  , true  , DefaultActionPhase::TargetAndBubble},
 		{EventId::Load          , "load"          , false , false , DefaultActionPhase::None},
 		{EventId::Unload        , "unload"        , false , false , DefaultActionPhase::None},
 		{EventId::Show          , "show"          , false , false , DefaultActionPhase::None},

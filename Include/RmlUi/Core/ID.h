@@ -228,6 +228,7 @@ enum class EventId : uint16_t {
 	Mouseup,
 	Click,
 	Dblclick,
+	Contextmenu,
 	Load,
 	Unload,
 	Show,
