@@ -278,14 +278,6 @@ void WidgetDropDown::OnLayout()
 	// Layout the button box. The selection element layout is deferred until it is opened.
 	ElementUtilities::PositionElement(button_element, Vector2f(0, 0), ElementUtilities::TOP_RIGHT);
 
-	// Calculate the value element position and size.
-	Vector2f size;
-	size.x = parent_element->GetBox().GetSize(BoxArea::Content).x - button_element->GetBox().GetSize(BoxArea::Margin).x;
-	size.y = parent_element->GetBox().GetSize(BoxArea::Content).y;
-
-	value_element->SetOffset(parent_element->GetBox().GetPosition(BoxArea::Content), parent_element);
-	value_element->SetBox(Box(size));
-
 	box_layout_dirty = true;
 	value_layout_dirty = true;
 }
