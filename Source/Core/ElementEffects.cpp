@@ -162,12 +162,15 @@ void ElementEffects::ReloadEffectsData()
 		{
 			for (DecoratorEntry& decorator : *list)
 			{
-				if (decorator.decorator_data)
-					decorator.decorator->ReleaseElementData(decorator.decorator_data);
+				const DecoratorDataHandle old_data = decorator.decorator_data;
 
 				decorator.decorator_data = decorator.decorator->GenerateElementData(element, decorator.paint_area);
 				if (!decorator.decorator_data)
 					decorator_data_failed = true;
+
+				// Release old element data after generating new data, so that the decorator can reuse any cache.
+				if (old_data)
+					decorator.decorator->ReleaseElementData(old_data);
 			}
 		}
 
