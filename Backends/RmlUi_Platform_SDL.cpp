@@ -195,7 +195,12 @@ bool RmlSDL::InputEventHandler(Rml::Context* context, SDL_Window* window, SDL_Ev
 	{
 	case event_mouse_motion:
 	{
-		result = context->ProcessMouseMove(int(ev.motion.x), int(ev.motion.y), GetKeyModifierState());
+#if SDL_MAJOR_VERSION >= 3
+		const float pixel_density = SDL_GetWindowPixelDensity(window);
+#else
+		constexpr float pixel_density = 1.f;
+#endif
+		result = context->ProcessMouseMove(int(ev.motion.x * pixel_density), int(ev.motion.y * pixel_density), GetKeyModifierState());
 	}
 	break;
 	case event_mouse_down:
