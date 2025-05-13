@@ -1,0 +1,40 @@
+<rml>
+	<head>
+		<title>Image Ratio Sizing - Attribute</title>
+		<link type="text/rcss" href="../style.rcss"/>
+		<meta name="Description" content="When a width or height is set the image should be scaled keeping its aspect ratio. All but the last example should be a square." />
+		<style>
+			.width-50 { width: 50px; }
+			.height-50 { height: 50px; }
+			.height-100 { height: 100px; }
+		</style>
+	</head>
+
+	<body>
+	    <table>
+	        <tr><td>Attribute</td><td>CSS</td></tr>
+	        <tr><td colspan="2">Original size (square 100x100):</td></tr>
+	        <tr>
+	            <td colspan="2"><img src="/assets/present.tga" alt="no width/height set" /></td>
+            </tr>
+
+	        <tr><td colspan="2">Set height to 50, width auto, expect half sized square:</td></tr>
+	        <tr>
+	            <td><img src="/assets/present.tga" height="50" alt="height 50 only, attribute" /></td>
+	            <td><img src="/assets/present.tga" class="height-50" /></td>
+            </tr>
+
+	        <tr><td colspan="2">Set width to 50, height auto, expect half sized square:</td></tr>
+	        <tr>
+	            <td><img src="/assets/present.tga" width="50" alt="width 50 only, attribute" /></td>
+	            <td><img src="/assets/present.tga" class="width-50" /></td>
+            </tr>
+
+	        <tr><td colspan="2">Set width to 50 and height to 100 (via attributes), expect rectangular:</td></tr>
+	        <tr>
+	            <td><img src="/assets/present.tga" width="50" height="100" alt="height 100, width 50, attribute" /></td>
+	            <td><img src="/assets/present.tga" class="height-100 width-50" /></td>
+            </tr>
+        </table>
+	</body>
+</rml>
