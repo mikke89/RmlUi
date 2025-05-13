@@ -54,33 +54,32 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 
 	if (rect_source == RectSource::None)
 	{
-		dimensions.x = (float)texture.GetDimensions().x;
-		dimensions.y = (float)texture.GetDimensions().y;
-	} else
+		dimensions = Vector2f(texture.GetDimensions());
+	}
+	else
 	{
-		dimensions.x = rect.Width();
-		dimensions.y = rect.Height();
+		dimensions = rect.Size();
 	}
 
-	//Calculate the source ratio
+	// Calculate the source ratio
 	_ratio = dimensions.x / dimensions.y;
 
-	//Scale based on attributes (this only appears to be done by LayoutDetails for CSS set height/width)
+	// Scale based on attributes (this only appears to be done by LayoutDetails for CSS set height/width)
 	auto requested_width = GetAttribute<float>("width", -1);
 	auto requested_height = GetAttribute<float>("height", -1);
-	if (requested_height>0 && requested_width>0)
+	if (requested_height > 0 && requested_width > 0)
 	{
-		//If both a height and width are set update the ratio to match
+		// If both a height and width are set update the ratio to match
 		_ratio = requested_width / requested_height;
 		dimensions.x = requested_width;
 		dimensions.y = requested_height;
 	}
-	else if (requested_height>0)
+	else if (requested_height > 0)
 	{
 		dimensions.x = requested_height * _ratio;
 		dimensions.y = requested_height;
 	}
-	else if (requested_width>0)
+	else if (requested_width > 0)
 	{
 		dimensions.x = requested_width;
 		dimensions.y = requested_width / _ratio;
