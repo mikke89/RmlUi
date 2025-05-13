@@ -169,7 +169,6 @@ TEST_CASE("elementimage.preserve_ratio")
 		Element* img_test5 = document->GetElementById("test5");
 		CHECK(img_test5->GetClientWidth() == 50);
 		CHECK(img_test5->GetClientHeight() == 25);
-		FAIL("test");
 	}
 
 	{
