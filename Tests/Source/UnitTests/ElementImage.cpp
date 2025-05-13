@@ -136,40 +136,55 @@ TEST_CASE("elementimage.preserve_ratio")
 	document->Show();
 
 	// Texture size is hardcoded in test render interface to 512x256
-	INFO("original image size");
-	Element* img_test1 = document->GetElementById("test1");
-	CHECK(img_test1->GetClientWidth() == 512);
-	CHECK(img_test1->GetClientHeight() == 256);
+	{
+		INFO("original image size");
+		Element* img_test1 = document->GetElementById("test1");
+		CHECK(img_test1->GetClientWidth() == 512);
+		CHECK(img_test1->GetClientHeight() == 256);
+	}
 
-	INFO("height only - attribute set");
-	Element* img_test2 = document->GetElementById("test2");
-	CHECK(img_test2->GetClientWidth() == 100);
-	CHECK(img_test2->GetClientHeight() == 50);
+	{
+		INFO("height only - attribute set");
+		Element* img_test2 = document->GetElementById("test2");
+		CHECK(img_test2->GetClientWidth() == 100);
+		CHECK(img_test2->GetClientHeight() == 50);
+	}
 
-	INFO("height only - css set");
-	Element* img_test3 = document->GetElementById("test3");
-	CHECK(img_test3->GetClientWidth() == 100);
-	CHECK(img_test3->GetClientHeight() == 50);
+	{
+		INFO("height only - css set");
+		Element* img_test3 = document->GetElementById("test3");
+		CHECK(img_test3->GetClientWidth() == 100);
+		CHECK(img_test3->GetClientHeight() == 50);
+	}
 
-	INFO("width only - attribute set");
-	Element* img_test4 = document->GetElementById("test4");
-	CHECK(img_test4->GetClientWidth() == 50);
-	CHECK(img_test4->GetClientHeight() == 25);
+	{
+		INFO("width only - attribute set");
+		Element* img_test4 = document->GetElementById("test4");
+		CHECK(img_test4->GetClientWidth() == 50);
+		CHECK(img_test4->GetClientHeight() == 25);
+	}
 
-	INFO("width only - attribute set");
-	Element* img_test5 = document->GetElementById("test5");
-	CHECK(img_test5->GetClientWidth() == 50);
-	CHECK(img_test5->GetClientHeight() == 25);
+	{
+		INFO("width only - css set");
+		Element* img_test5 = document->GetElementById("test5");
+		CHECK(img_test5->GetClientWidth() == 50);
+		CHECK(img_test5->GetClientHeight() == 25);
+		FAIL("test");
+	}
 
-	INFO("height and width - attribute set");
-	Element* img_test6 = document->GetElementById("test6");
-	CHECK(img_test6->GetClientWidth() == 50);
-	CHECK(img_test6->GetClientHeight() == 100);
+	{
+		INFO("height and width - attribute set");
+		Element* img_test6 = document->GetElementById("test6");
+		CHECK(img_test6->GetClientWidth() == 50);
+		CHECK(img_test6->GetClientHeight() == 100);
+	}
 
-	INFO("height and width - css set");
-	Element* img_test7 = document->GetElementById("test7");
-	CHECK(img_test7->GetClientWidth() == 50);
-	CHECK(img_test7->GetClientHeight() == 100);
+	{
+		INFO("height and width - css set");
+		Element* img_test7 = document->GetElementById("test7");
+		CHECK(img_test7->GetClientWidth() == 50);
+		CHECK(img_test7->GetClientHeight() == 100);
+	}
 
 	TestsShell::RenderLoop();
 
