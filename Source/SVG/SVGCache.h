@@ -26,53 +26,48 @@
  *
  */
 
-#ifndef RMLUI_SVG_ELEMENT_SVG_H
-#define RMLUI_SVG_ELEMENT_SVG_H
+#ifndef RMLUI_SVG_SVG_CACHE_H
+#define RMLUI_SVG_SVG_CACHE_H
 
-#include "../Core/Element.h"
-#include "../Core/Header.h"
+#include "../../Include/RmlUi/Core/Texture.h"
+#include "../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
+
+class Element;
+class Geometry;
+
 namespace SVG {
-	struct SVGData;
-}
 
-class RMLUICORE_API ElementSVG : public Element {
-public:
-	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
+	struct SVGKey;
 
-	ElementSVG(const String& tag);
-	virtual ~ElementSVG();
+	struct SVGData : NonCopyMoveable {
+		SVGData(Geometry& geometry, Texture texture, Vector2f intrinsic_dimensions, const SVGKey& cache_key);
+		~SVGData();
 
-	/// Returns the element's inherent size.
-	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
+		Geometry& geometry;
+		Texture texture;
+		Vector2f intrinsic_dimensions;
+		const SVGKey& cache_key;
+	};
 
-	/// Loads the current source file if needed. This normally happens automatically during layouting.
-	void EnsureSourceLoaded();
+	class SVGCache {
+	public:
+		static void Initialize();
+		static void Shutdown();
 
-protected:
-	/// Renders the image.
-	void OnRender() override;
+		/// Returns a handle to SVG data matching the parameters - creates new data if none is found.
+		/// @param[in] source Path to a file containing the SVG source data.
+		/// @param[in] element Element for which to calculate the dimensions and color.
+		/// @param[in] crop_to_content Crop the rendered SVG to its contents.
+		/// @param[in] area The area of the element used to determine the SVG dimensions.
+		/// @return A handle to the SVG data, with automatic reference counting.
+		///	@note When changing color or dimensions of an SVG without changing the source file, it's best to get a
+		/// new handle before releasing the old one, to avoid unnecessarily reloading data.
+		static SharedPtr<SVGData> GetHandle(const String& source, Element* element, bool crop_to_content, BoxArea area);
+	};
 
-	/// Regenerates the element's geometry.
-	void OnResize() override;
-
-	/// Checks for changes to the image's source or dimensions.
-	/// @param[in] changed_attributes A list of attributes changed on the element.
-	void OnAttributeChange(const ElementAttributes& changed_attributes) override;
-
-	/// Called when properties on the element are changed.
-	/// @param[in] changed_properties The properties changed on the element.
-	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
-
-private:
-	void UpdateCachedData();
-
-	bool svg_dirty = false;
-
-	SharedPtr<SVG::SVGData> handle;
-};
-
+} // namespace SVG
 } // namespace Rml
 
 #endif

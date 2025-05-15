@@ -26,53 +26,49 @@
  *
  */
 
-#ifndef RMLUI_SVG_ELEMENT_SVG_H
-#define RMLUI_SVG_ELEMENT_SVG_H
+#ifndef RMLUI_CORE_DECORATORSVG_H
+#define RMLUI_CORE_DECORATORSVG_H
 
-#include "../Core/Element.h"
-#include "../Core/Header.h"
+#include "../../Include/RmlUi/Core/Decorator.h"
 
 namespace Rml {
 namespace SVG {
+
 	struct SVGData;
-}
 
-class RMLUICORE_API ElementSVG : public Element {
-public:
-	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
+	class DecoratorSVG : public Decorator {
+	public:
+		DecoratorSVG(const String& source, const bool crop_to_content);
+		virtual ~DecoratorSVG();
 
-	ElementSVG(const String& tag);
-	virtual ~ElementSVG();
+		DecoratorDataHandle GenerateElementData(Element* element, BoxArea paint_area) const override;
+		void ReleaseElementData(DecoratorDataHandle element_data) const override;
 
-	/// Returns the element's inherent size.
-	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
+		void RenderElement(Element* element, DecoratorDataHandle element_data) const override;
 
-	/// Loads the current source file if needed. This normally happens automatically during layouting.
-	void EnsureSourceLoaded();
+	private:
+		struct Data {
+			SharedPtr<SVGData> handle;
+			BoxArea paint_area;
+		};
 
-protected:
-	/// Renders the image.
-	void OnRender() override;
+		String source_path;
+		bool crop_to_content;
+	};
 
-	/// Regenerates the element's geometry.
-	void OnResize() override;
+	class DecoratorSVGInstancer : public DecoratorInstancer {
+	public:
+		DecoratorSVGInstancer();
+		~DecoratorSVGInstancer();
 
-	/// Checks for changes to the image's source or dimensions.
-	/// @param[in] changed_attributes A list of attributes changed on the element.
-	void OnAttributeChange(const ElementAttributes& changed_attributes) override;
+		SharedPtr<Decorator> InstanceDecorator(const String&, const PropertyDictionary& properties, const DecoratorInstancerInterface&) override;
 
-	/// Called when properties on the element are changed.
-	/// @param[in] changed_properties The properties changed on the element.
-	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
+	private:
+		PropertyId source_id;
+		PropertyId crop_id;
+	};
 
-private:
-	void UpdateCachedData();
-
-	bool svg_dirty = false;
-
-	SharedPtr<SVG::SVGData> handle;
-};
-
+} // namespace SVG
 } // namespace Rml
 
 #endif

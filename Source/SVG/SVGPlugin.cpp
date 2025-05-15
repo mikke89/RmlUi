@@ -4,7 +4,7 @@
  * For the latest information, see http://github.com/mikke89/RmlUi
  *
  * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
- * Copyright (c) 2019-2023 The RmlUi Team, and contributors
+ * Copyright (c) 2019- The RmlUi Team, and contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,8 @@
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
+#include "DecoratorSVG.h"
+#include "SVGCache.h"
 
 namespace Rml {
 namespace SVG {
@@ -40,19 +42,28 @@ namespace SVG {
 	public:
 		void OnInitialise() override
 		{
-			instancer = MakeUnique<ElementInstancerGeneric<ElementSVG>>();
+			SVGCache::Initialize();
 
-			Factory::RegisterElementInstancer("svg", instancer.get());
+			element_instancer = MakeUnique<ElementInstancerGeneric<ElementSVG>>();
+			Factory::RegisterElementInstancer("svg", element_instancer.get());
+
+			decorator_instancer = MakeUnique<DecoratorSVGInstancer>();
+			Factory::RegisterDecoratorInstancer("svg", decorator_instancer.get());
 
 			Log::Message(Log::LT_INFO, "SVG plugin initialised.");
 		}
 
-		void OnShutdown() override { delete this; }
+		void OnShutdown() override
+		{
+			delete this;
+			SVGCache::Shutdown();
+		}
 
 		int GetEventClasses() override { return Plugin::EVT_BASIC; }
 
 	private:
-		UniquePtr<ElementInstancerGeneric<ElementSVG>> instancer;
+		UniquePtr<ElementInstancerGeneric<ElementSVG>> element_instancer;
+		UniquePtr<DecoratorSVGInstancer> decorator_instancer;
 	};
 
 	void Initialise()
