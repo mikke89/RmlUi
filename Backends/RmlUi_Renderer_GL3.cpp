@@ -1873,91 +1873,22 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 		break;
 		case FilterType::Blur:
 		{
-			glDisable(GL_BLEND);
 
-			const Gfx::FramebufferData& source_destination = render_layers.GetPostprocessPrimary();
-			const Gfx::FramebufferData& temp = render_layers.GetPostprocessSecondary();
-
-			const Rml::Rectanglei window_flipped = VerticallyFlipped(scissor_state, viewport_height);
-			RenderBlur(filter.sigma, source_destination, temp, window_flipped);
-
-			glEnable(GL_BLEND);
 		}
 		break;
 		case FilterType::DropShadow:
 		{
-			UseProgram(ProgramId::DropShadow);
-			glDisable(GL_BLEND);
 
-			Rml::Colourf color = ConvertToColorf(filter.color);
-			glUniform4fv(GetUniformLocation(UniformId::Color), 1, &color[0]);
-
-			const Gfx::FramebufferData& primary = render_layers.GetPostprocessPrimary();
-			const Gfx::FramebufferData& secondary = render_layers.GetPostprocessSecondary();
-			Gfx::BindTexture(primary);
-			glBindFramebuffer(GL_FRAMEBUFFER, secondary.framebuffer);
-
-			const Rml::Rectanglei window_flipped = VerticallyFlipped(scissor_state, viewport_height);
-			SetTexCoordLimits(GetUniformLocation(UniformId::TexCoordMin), GetUniformLocation(UniformId::TexCoordMax), window_flipped,
-				{primary.width, primary.height});
-
-			const Rml::Vector2f uv_offset = filter.offset / Rml::Vector2f(-(float)viewport_width, (float)viewport_height);
-			DrawFullscreenQuad(uv_offset);
-
-			if (filter.sigma >= 0.5f)
-			{
-				const Gfx::FramebufferData& tertiary = render_layers.GetPostprocessTertiary();
-				RenderBlur(filter.sigma, secondary, tertiary, window_flipped);
-			}
-
-			UseProgram(ProgramId::Passthrough);
-			BindTexture(primary);
-			glEnable(GL_BLEND);
-			DrawFullscreenQuad();
-
-			render_layers.SwapPostprocessPrimarySecondary();
 		}
 		break;
 		case FilterType::ColorMatrix:
 		{
-			UseProgram(ProgramId::ColorMatrix);
-			glDisable(GL_BLEND);
 
-			const GLint uniform_location = program_data->uniforms.Get(ProgramId::ColorMatrix, UniformId::ColorMatrix);
-			constexpr bool transpose = std::is_same<decltype(filter.color_matrix), Rml::RowMajorMatrix4f>::value;
-			glUniformMatrix4fv(uniform_location, 1, transpose, filter.color_matrix.data());
-
-			const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
-			const Gfx::FramebufferData& destination = render_layers.GetPostprocessSecondary();
-			Gfx::BindTexture(source);
-			glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
-
-			DrawFullscreenQuad();
-
-			render_layers.SwapPostprocessPrimarySecondary();
-			glEnable(GL_BLEND);
 		}
 		break;
 		case FilterType::MaskImage:
 		{
-			UseProgram(ProgramId::BlendMask);
-			glDisable(GL_BLEND);
 
-			const Gfx::FramebufferData& source = render_layers.GetPostprocessPrimary();
-			const Gfx::FramebufferData& blend_mask = render_layers.GetBlendMask();
-			const Gfx::FramebufferData& destination = render_layers.GetPostprocessSecondary();
-
-			Gfx::BindTexture(source);
-			glActiveTexture(GL_TEXTURE1);
-			Gfx::BindTexture(blend_mask);
-			glActiveTexture(GL_TEXTURE0);
-
-			glBindFramebuffer(GL_FRAMEBUFFER, destination.framebuffer);
-
-			DrawFullscreenQuad();
-
-			render_layers.SwapPostprocessPrimarySecondary();
-			glEnable(GL_BLEND);
 		}
 		break;
 		case FilterType::Invalid:
@@ -1996,27 +1927,27 @@ void RenderInterface_GL3::CompositeLayers(Rml::LayerHandle source_handle, Rml::L
 	// Blit source layer to postprocessing buffer. Do this regardless of whether we actually have any filters to be
 	// applied, because we need to resolve the multi-sampled framebuffer in any case.
 	// @performance If we have BlendMode::Replace and no filters or mask then we can just blit directly to the destination.
-//	BlitLayerToPostprocessPrimary(source_handle);
+	BlitLayerToPostprocessPrimary(source_handle);
 
 	// Render the filters, the PostprocessPrimary framebuffer is used for both input and output.
-	//RenderFilters(filters);
+	RenderFilters(filters);
 
 	// Render to the destination layer.
-//	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(destination_handle).framebuffer);
-//	Gfx::BindTexture(render_layers.GetPostprocessPrimary());
+	glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetLayer(destination_handle).framebuffer);
+	Gfx::BindTexture(render_layers.GetPostprocessPrimary());
 
-//	UseProgram(ProgramId::Passthrough);
+	UseProgram(ProgramId::Passthrough);
 
-//	if (blend_mode == BlendMode::Replace)
-//		glDisable(GL_BLEND);
+	if (blend_mode == BlendMode::Replace)
+		glDisable(GL_BLEND);
 
-//	DrawFullscreenQuad();
+	DrawFullscreenQuad();
 
-//	if (blend_mode == BlendMode::Replace)
-//		glEnable(GL_BLEND);
+	if (blend_mode == BlendMode::Replace)
+		glEnable(GL_BLEND);
 
-//	if (destination_handle != render_layers.GetTopLayerHandle())
-//		glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
+	if (destination_handle != render_layers.GetTopLayerHandle())
+		glBindFramebuffer(GL_FRAMEBUFFER, render_layers.GetTopLayer().framebuffer);
 
 	RMLUI_GL_MARKER_END();
 	Gfx::CheckGLError("CompositeLayers");
