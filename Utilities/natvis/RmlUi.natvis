@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Rml::Variant">
+    <DisplayString Condition="type == '-'">{type,en}</DisplayString>
+    <DisplayString Condition="type == 'B'">{type,en}: {*((bool*)data)}</DisplayString>
+    <DisplayString Condition="type == 'b'">{type,en}: {*((Rml::byte*)data)}</DisplayString>
+    <DisplayString Condition="type == 'c'">{type,en}: '{*((char*)data)}'</DisplayString>
+    <DisplayString Condition="type == 'f'">{type,en}: {*((float*)data)}</DisplayString>
+    <DisplayString Condition="type == 'd'">{type,en}: {*((double*)data)}</DisplayString>
+    <DisplayString Condition="type == 'i'">{type,en}: {*((int*)data)}</DisplayString>
+    <DisplayString Condition="type == 'I'">{type,en}: {*((int64_t*)data)}</DisplayString>
+    <DisplayString Condition="type == 'u'">{type,en}: {*((unsigned int*)data)}</DisplayString>
+    <DisplayString Condition="type == 'U'">{type,en}: {*((uint64_t*)data)}</DisplayString>
+    <DisplayString Condition="type == 's'">{type,en}: {*((Rml::String*)data)}</DisplayString>
+    <DisplayString Condition="type == '2'">{type,en}: {*((Rml::Vector2f*)data)}</DisplayString>
+    <DisplayString Condition="type == '3'">{type,en}: {*((Rml::Vector3f*)data)}</DisplayString>
+    <DisplayString Condition="type == '4'">{type,en}: {*((Rml::Vector4f*)data)}</DisplayString>
+    <DisplayString Condition="type == 'g'">{type,en}: {*((Rml::Colourf*)data)}</DisplayString>
+    <DisplayString Condition="type == 'h'">{type,en}: {*((Rml::Colourb*)data)}</DisplayString>
+    <DisplayString Condition="type == 'p'">{type,en}: {*((Rml::ScriptInterface**)data)}</DisplayString>
+    <DisplayString Condition="type == 't'">{type,en}: {*((Rml::TransformPtr*)data)}</DisplayString>
+    <DisplayString Condition="type == 'T'">{type,en}: {*((Rml::TransitionList*)data)}</DisplayString>
+    <DisplayString Condition="type == 'A'">{type,en}: {*((Rml::AnimationList*)data)}</DisplayString>
+    <DisplayString Condition="type == 'D'">{type,en}: {*((Rml::DecoratorsPtr*)data)}</DisplayString>
+    <DisplayString Condition="type == 'F'">{type,en}: {*((Rml::FiltersPtr*)data)}</DisplayString>
+    <DisplayString Condition="type == 'E'">{type,en}: {*((Rml::FontEffectsPtr*)data)}</DisplayString>
+    <DisplayString Condition="type == 'C'">{type,en}: {*((Rml::ColorStopList*)data)}</DisplayString>
+    <DisplayString Condition="type == 'S'">{type,en}: {*((Rml::BoxShadowList*)data)}</DisplayString>
+    <DisplayString Condition="type == '*'">{type,en}: {*((void**)data)}</DisplayString>
+    <DisplayString>Unknown type: {(char)type}</DisplayString>
+
+    <Expand>
+      <Item Name="[type]">type</Item>
+      <Item Name="[value]" Condition="type == 'B'">*((bool*)data)</Item>
+      <Item Name="[value]" Condition="type == 'b'">*((Rml::byte*)data)</Item>
+      <Item Name="[value]" Condition="type == 'c'">*((char*)data)</Item>
+      <Item Name="[value]" Condition="type == 'f'">*((float*)data)</Item>
+      <Item Name="[value]" Condition="type == 'd'">*((double*)data)</Item>
+      <Item Name="[value]" Condition="type == 'i'">*((int*)data)</Item>
+      <Item Name="[value]" Condition="type == 'I'">*((int64_t*)data)</Item>
+      <Item Name="[value]" Condition="type == 'u'">*((unsigned int*)data)</Item>
+      <Item Name="[value]" Condition="type == 'U'">*((uint64_t*)data)</Item>
+      <Item Name="[value]" Condition="type == 's'">*((Rml::String*)data)</Item>
+      <Item Name="[value]" Condition="type == '2'">*((Rml::Vector2f*)data)</Item>
+      <Item Name="[value]" Condition="type == '3'">*((Rml::Vector3f*)data)</Item>
+      <Item Name="[value]" Condition="type == '4'">*((Rml::Vector4f*)data)</Item>
+      <Item Name="[value]" Condition="type == 'g'">*((Rml::Colourf*)data)</Item>
+      <Item Name="[value]" Condition="type == 'h'">*((Rml::Colourb*)data)</Item>
+      <Item Name="[value]" Condition="type == 'p'">*((Rml::ScriptInterface**)data)</Item>
+      <Item Name="[value]" Condition="type == 't'">*((Rml::TransformPtr*)data)</Item>
+      <Item Name="[value]" Condition="type == 'T'">*((Rml::TransitionList*)data)</Item>
+      <Item Name="[value]" Condition="type == 'A'">*((Rml::AnimationList*)data)</Item>
+      <Item Name="[value]" Condition="type == 'D'">*((Rml::DecoratorsPtr*)data)</Item>
+      <Item Name="[value]" Condition="type == 'F'">*((Rml::FiltersPtr*)data)</Item>
+      <Item Name="[value]" Condition="type == 'E'">*((Rml::FontEffectsPtr*)data)</Item>
+      <Item Name="[value]" Condition="type == 'C'">*((Rml::ColorStopList*)data)</Item>
+      <Item Name="[value]" Condition="type == 'S'">*((Rml::BoxShadowList*)data)</Item>
+      <Item Name="[value]" Condition="type == '*'">*((void**)data)</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>
