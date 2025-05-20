@@ -45,9 +45,9 @@
 #include "ScrollController.h"
 #include "StreamFile.h"
 #include <algorithm>
+#include <clocale>
 #include <iterator>
 #include <limits>
-#include <locale>
 
 namespace Rml {
 
