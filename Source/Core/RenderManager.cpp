@@ -363,15 +363,10 @@ Mesh RenderManager::ReleaseResource(const Geometry& geometry)
 {
 	RMLUI_ASSERT(geometry.render_manager == this && geometry.resource_handle != geometry.InvalidHandle());
 
-	GeometryData& data = geometry_list[geometry.resource_handle];
+	GeometryData data = geometry_list.erase(geometry.resource_handle);
 	if (data.handle)
-	{
 		render_interface->ReleaseGeometry(data.handle);
-		data.handle = {};
-	}
-	Mesh result = std::exchange(data.mesh, Mesh());
-	geometry_list.erase(geometry.resource_handle);
-	return result;
+	return std::move(data.mesh);
 }
 
 void RenderManager::ReleaseResource(const CompiledFilter& filter)
