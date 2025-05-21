@@ -61,17 +61,22 @@ static int FormatString(String& string, const char* format, va_list argument_lis
 			return 0;
 		}
 
-		if ((size_t)length < max_size || i > 0)
+		if (i > 0)
+		{
+			RMLUI_ASSERT(string.size() == (size_t)length);
 			break;
+		}
 
+		if ((size_t)length < max_size)
+		{
+			string = buffer_ptr;
+			break;
+		}
+
+		string.resize((size_t)length);
 		max_size = (size_t)length + 1;
-		buffer_ptr = new char[max_size];
+		buffer_ptr = &(*string.begin()); // C++17 Upgrade: Replace with string.data()
 	}
-
-	string = buffer_ptr;
-
-	if (buffer_ptr != buffer)
-		delete[] buffer_ptr;
 
 	return length;
 }
@@ -84,6 +89,7 @@ int FormatString(String& string, const char* format, ...)
 	va_end(argument_list);
 	return result;
 }
+
 String CreateString(const char* format, ...)
 {
 	String result;
