@@ -54,6 +54,8 @@ public:
 
 	Mesh Release(ReleaseMode mode = ReleaseMode::ReturnMesh);
 
+	const Mesh& GetMesh() const;
+
 private:
 	Geometry(RenderManager* render_manager, StableVectorIndex resource_handle);
 	friend class RenderManager;

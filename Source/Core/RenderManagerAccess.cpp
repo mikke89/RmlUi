@@ -53,6 +53,11 @@ void RenderManagerAccess::GetTextureSourceList(RenderManager* render_manager, St
 	render_manager->GetTextureSourceList(source_list);
 }
 
+const Mesh& RenderManagerAccess::GetMesh(RenderManager* render_manager, const Geometry& geometry)
+{
+	return render_manager->GetMesh(geometry);
+}
+
 bool RenderManagerAccess::ReleaseTexture(RenderManager* render_manager, const String& texture_source)
 {
 	return render_manager->ReleaseTexture(texture_source);

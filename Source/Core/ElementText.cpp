@@ -308,7 +308,6 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 void ElementText::ClearLines()
 {
 	RMLUI_ZoneScoped;
-	geometry.clear();
 	lines.clear();
 	generated_decoration = Style::TextDecoration::None;
 }
@@ -367,8 +366,6 @@ void ElementText::OnPropertyChange(const PropertyIdSet& changed_properties)
 		changed_properties.Contains(PropertyId::RmlUi_Direction))
 	{
 		font_face_changed = true;
-
-		geometry.clear();
 		geometry_dirty = true;
 
 		font_effects_handle = 0;
@@ -456,10 +453,8 @@ void ElementText::GenerateGeometry(RenderManager& render_manager, const FontFace
 	const auto& computed = GetComputedValues();
 	const TextShapingContext text_shaping_context{computed.language(), computed.direction(), computed.letter_spacing()};
 
-	// Release the old geometry, and reuse the mesh buffers.
-	TexturedMeshList mesh_list(geometry.size());
-	for (size_t i = 0; i < geometry.size(); i++)
-		mesh_list[i].mesh = geometry[i].geometry.Release(Geometry::ReleaseMode::ClearMesh);
+	TexturedMeshList mesh_list;
+	mesh_list.reserve(geometry.size());
 
 	// Generate the new geometry, one line at a time.
 	for (size_t i = 0; i < lines.size(); ++i)
@@ -468,11 +463,14 @@ void ElementText::GenerateGeometry(RenderManager& render_manager, const FontFace
 			lines[i].position, colour, opacity, text_shaping_context, mesh_list);
 	}
 
-	// Apply the new geometry and textures.
+	// Apply the new geometry and textures. Reuse the old geometry if the mesh matches, which can be relatively common
+	// where the layout is changed in a way that does not visually affect this element.
 	geometry.resize(mesh_list.size());
-	for (size_t i = 0; i < geometry.size(); i++)
+	for (size_t i = 0; i < mesh_list.size(); i++)
 	{
-		geometry[i].geometry = render_manager.MakeGeometry(std::move(mesh_list[i].mesh));
+		if (!geometry[i].geometry || geometry[i].geometry.GetMesh() != mesh_list[i].mesh)
+			geometry[i].geometry = render_manager.MakeGeometry(std::move(mesh_list[i].mesh));
+
 		geometry[i].texture = mesh_list[i].texture;
 	}
 
