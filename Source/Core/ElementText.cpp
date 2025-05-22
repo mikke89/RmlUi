@@ -307,6 +307,7 @@ bool ElementText::GenerateLine(String& line, int& line_length, float& line_width
 
 void ElementText::ClearLines()
 {
+	RMLUI_ZoneScoped;
 	geometry.clear();
 	lines.clear();
 	generated_decoration = Style::TextDecoration::None;

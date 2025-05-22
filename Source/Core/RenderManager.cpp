@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/RenderManager.h"
 #include "../../Include/RmlUi/Core/Core.h"
 #include "../../Include/RmlUi/Core/Geometry.h"
+#include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/RenderInterface.h"
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "TextureDatabase.h"
@@ -227,6 +228,7 @@ CompiledGeometryHandle RenderManager::GetCompiledGeometryHandle(StableVectorInde
 	GeometryData& geometry = geometry_list[index];
 	if (!geometry.handle && !geometry.mesh.indices.empty())
 	{
+		RMLUI_ZoneScopedNC("CompileGeometry", 0x1E60D2);
 		geometry.handle = render_interface->CompileGeometry(geometry.mesh.vertices, geometry.mesh.indices);
 
 		if (!geometry.handle)
@@ -254,6 +256,7 @@ void RenderManager::Render(const Geometry& geometry, Vector2f translation, Textu
 		else if (texture.callback_index != StableVectorIndex::Invalid)
 			texture_handle = texture_database->callback_database.GetHandle(this, render_interface, texture.callback_index);
 
+		RMLUI_ZoneScopedNC("RenderGeometry", 0x3E60B2);
 		if (shader)
 			render_interface->RenderShader(shader.resource_handle, geometry_handle, translation, texture_handle);
 		else
@@ -362,6 +365,7 @@ void RenderManager::ReleaseResource(const CallbackTexture& texture)
 Mesh RenderManager::ReleaseResource(const Geometry& geometry)
 {
 	RMLUI_ASSERT(geometry.render_manager == this && geometry.resource_handle != geometry.InvalidHandle());
+	RMLUI_ZoneScopedNC("ReleaseGeometry", 0x1E60D2);
 
 	GeometryData data = geometry_list.erase(geometry.resource_handle);
 	if (data.handle)
