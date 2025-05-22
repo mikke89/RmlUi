@@ -68,7 +68,6 @@ UniquePtr<LayoutBox> ReplacedFormattingContext::Format(ContainerBox* parent_cont
 void ReplacedBox::Close()
 {
 	element->SetBox(box);
-	element->OnLayout();
 }
 
 String ReplacedBox::DebugDumpTree(int depth) const
