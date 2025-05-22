@@ -82,9 +82,6 @@ protected:
 	// Set the inner-to-outer spacing (margin + border + padding) for inline boxes.
 	void SetInlineBoxSpacing(float spacing_left, float spacing_right);
 
-	// Calls Element::OnLayout (proxy for private access to Element).
-	void SubmitElementOnLayout();
-
 private:
 	float height_above_baseline = 0.f;
 	float depth_below_baseline = 0.f;

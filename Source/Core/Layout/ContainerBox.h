@@ -82,8 +82,6 @@ protected:
 
 	// Set the element's baseline (proxy for private access to Element).
 	void SetElementBaseline(float element_baseline);
-	// Calls Element::OnLayout (proxy for private access to Element).
-	void SubmitElementLayout();
 
 	// The element this box represents, if any.
 	Element* const element;

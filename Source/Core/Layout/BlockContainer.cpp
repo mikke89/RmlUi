@@ -119,8 +119,6 @@ bool BlockContainer::Close(BlockContainer* parent_block_container)
 
 	EnsureEmptyInterruptedLineBox();
 
-	SubmitElementLayout();
-
 	return true;
 }
 

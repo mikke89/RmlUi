@@ -3019,12 +3019,23 @@ void Element::ClampScrollOffset()
 	meta->scroll.UpdateProperties();
 }
 
-void Element::ClampScrollOffsetRecursive()
+void Element::CommitLayoutRecursive()
 {
+	if (GetDisplay() == Style::Display::None)
+		return;
+
+	OnLayout();
+
+	// The size of the scrollable area might have changed, so clamp the scroll offset to avoid scrolling outside the
+	// scrollable area. During layouting, we might be changing the scrollable overflow area of the element several
+	// times, such as after enabling scrollbars. For this reason, we don't clamp the scroll offset during layouting, as
+	// that could inadvertently clamp it to a temporary size. Now that we know the final layout, including the size of
+	// each element's scrollable area, we can finally clamp the scroll offset.
 	ClampScrollOffset();
+
 	const int num_children = GetNumChildren();
 	for (int i = 0; i < num_children; ++i)
-		GetChild(i)->ClampScrollOffsetRecursive();
+		GetChild(i)->CommitLayoutRecursive();
 }
 
 } // namespace Rml

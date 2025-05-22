@@ -124,11 +124,6 @@ void ContainerBox::SetElementBaseline(float element_baseline)
 	element->SetBaseline(element_baseline);
 }
 
-void ContainerBox::SubmitElementLayout()
-{
-	element->OnLayout();
-}
-
 ContainerBox::ContainerBox(Type type, Element* element, ContainerBox* parent_container) :
 	LayoutBox(type), element(element), parent_container(parent_container)
 {
@@ -269,7 +264,6 @@ bool FlexContainer::Close(const Vector2f content_overflow_size, const Box& box, 
 
 	ClosePositionedElements();
 
-	SubmitElementLayout();
 	SetElementBaseline(element_baseline);
 	return true;
 }
@@ -304,7 +298,6 @@ void TableWrapper::Close(const Vector2f content_overflow_size, const Box& box, f
 
 	ClosePositionedElements();
 
-	SubmitElementLayout();
 	SetElementBaseline(element_baseline);
 }
 

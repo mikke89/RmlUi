@@ -706,7 +706,7 @@ private:
 	void DirtyFontFaceRecursive();
 
 	void ClampScrollOffset();
-	void ClampScrollOffsetRecursive();
+	void CommitLayoutRecursive();
 
 	/// Start an animation, replacing any existing animations of the same property name. If start_value is null, the element's current value is used.
 	ElementAnimationList::iterator StartAnimation(PropertyId property_id, const Property* start_value, int num_iterations, bool alternate_direction,

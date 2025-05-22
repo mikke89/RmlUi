@@ -147,7 +147,6 @@ void InlineBox::Submit(const PlacedFragment& placed_fragment)
 		element_offset = border_position;
 		element->SetOffset(border_position, placed_fragment.offset_parent);
 		element->SetBox(element_box);
-		SubmitElementOnLayout();
 	}
 	else
 	{

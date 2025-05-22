@@ -48,11 +48,6 @@ void InlineLevelBox::operator delete(void* chunk, size_t size)
 
 InlineLevelBox::~InlineLevelBox() {}
 
-void InlineLevelBox::SubmitElementOnLayout()
-{
-	element->OnLayout();
-}
-
 const FontMetrics& InlineLevelBox::GetFontMetrics() const
 {
 	if (FontFaceHandle handle = element->GetFontFaceHandle())
@@ -162,7 +157,6 @@ void InlineLevelBox_Atomic::Submit(const PlacedFragment& placed_fragment)
 
 	GetElement()->SetOffset(border_position, placed_fragment.offset_parent);
 	GetElement()->SetBox(box);
-	SubmitElementOnLayout();
 }
 
 InlineLevelBox_Text::InlineLevelBox_Text(ElementText* element) : InlineLevelBox(element) {}
