@@ -29,6 +29,7 @@
 #ifndef RMLUI_CORE_ELEMENTUTILITIES_H
 #define RMLUI_CORE_ELEMENTUTILITIES_H
 
+#include "Element.h"
 #include "Header.h"
 #include "RenderManager.h"
 #include "Types.h"
@@ -142,6 +143,40 @@ public:
 	/// Right now, this only applies to the 'data-for' view.
 	/// @return True if a data view was constructed.
 	static bool ApplyStructuralDataViews(Element* element, const String& inner_rml);
+
+	enum class CallbackControlFlow { Continue, SkipChildren, Break };
+
+	template <typename Func>
+	static void BreadthFirstSearch(Element* root_element, Func&& func)
+	{
+		// Breadth-first search over the element tree, break when 'func' returns true.
+		Queue<Element*> search_queue;
+		search_queue.push(root_element);
+
+		while (!search_queue.empty())
+		{
+			Element* element = search_queue.front();
+			search_queue.pop();
+
+			if constexpr (std::is_same_v<std::invoke_result_t<Func, Element*>, CallbackControlFlow>)
+			{
+				const CallbackControlFlow control_flow = func(element);
+				if (control_flow == CallbackControlFlow::Break)
+					break;
+				if (control_flow == CallbackControlFlow::SkipChildren)
+					continue;
+			}
+			else
+			{
+				func(element);
+			}
+
+			// Add all children to search
+			const int num_children = element->GetNumChildren();
+			for (int i = 0; i < num_children; i++)
+				search_queue.push(element->GetChild(i));
+		}
+	}
 };
 
 } // namespace Rml
