@@ -98,7 +98,7 @@ endfunction()
 		- target: The name of the target to set
 ]]
 function(set_common_target_options target)
-	target_compile_features(${target} PUBLIC cxx_std_14)
+	target_compile_features(${target} PUBLIC cxx_std_17)
 	set_target_properties(${target} PROPERTIES C_EXTENSIONS OFF CXX_EXTENSIONS OFF)
 
 	if(RMLUI_COMPILER_OPTIONS)
