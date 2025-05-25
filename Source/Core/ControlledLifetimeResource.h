@@ -65,7 +65,12 @@ public:
 		pointer = nullptr;
 	}
 
-	T* operator->()
+	T& operator*() const
+	{
+		RMLUI_ASSERTMSG(pointer, "Resource used before it was initialized, or after it was shut down.");
+		return *pointer;
+	}
+	T* operator->() const
 	{
 		RMLUI_ASSERTMSG(pointer, "Resource used before it was initialized, or after it was shut down.");
 		return pointer;

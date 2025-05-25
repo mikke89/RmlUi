@@ -31,8 +31,11 @@
 #include "../../../Include/RmlUi/Core/Element.h"
 #include "../../../Include/RmlUi/Core/Profiling.h"
 #include "BlockFormattingContext.h"
+#include "ContainerBox.h"
 #include "FlexFormattingContext.h"
+#include "FormattingContextDebug.h"
 #include "LayoutBox.h"
+#include "LayoutDetails.h"
 #include "ReplacedFormattingContext.h"
 #include "TableFormattingContext.h"
 
@@ -66,22 +69,59 @@ FormattingContextType FormattingContext::GetFormattingContextType(Element* eleme
 UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_container, Element* element, const Box* override_initial_box,
 	FormattingContextType default_context)
 {
+	RMLUI_ASSERT(parent_container && element);
 	RMLUI_ZoneScopedC(0xAFAFAF);
 
 	FormattingContextType type = GetFormattingContextType(element);
 	if (type == FormattingContextType::None)
 		type = default_context;
 
+#ifdef RMLUI_DEBUG
+	auto* debug_tracker = FormatIndependentDebugTracker::GetIf();
+	FormatIndependentDebugTracker::Entry* tracker_entry = nullptr;
+	if (debug_tracker && type != FormattingContextType::None)
+	{
+		tracker_entry = &debug_tracker->entries.emplace_back(FormatIndependentDebugTracker::Entry{
+			debug_tracker->current_stack_level,
+			parent_container->GetElement() ? parent_container->GetElement()->GetAddress() : "",
+			parent_container->GetAbsolutePositioningContainingBlockElementForDebug()
+				? parent_container->GetAbsolutePositioningContainingBlockElementForDebug()->GetAddress()
+				: "",
+			parent_container->GetContainingBlockSize(Style::Position::Static),
+			parent_container->GetContainingBlockSize(Style::Position::Absolute),
+			element->GetAddress(),
+			override_initial_box ? Optional<Box>{*override_initial_box} : std::nullopt,
+			type,
+		});
+		debug_tracker->current_stack_level += 1;
+	}
+#endif
+
+	UniquePtr<LayoutBox> layout_box;
 	switch (type)
 	{
-	case FormattingContextType::Block: return BlockFormattingContext::Format(parent_container, element, override_initial_box);
-	case FormattingContextType::Table: return TableFormattingContext::Format(parent_container, element, override_initial_box);
-	case FormattingContextType::Flex: return FlexFormattingContext::Format(parent_container, element, override_initial_box);
-	case FormattingContextType::Replaced: return ReplacedFormattingContext::Format(parent_container, element, override_initial_box);
+	case FormattingContextType::Block: layout_box = BlockFormattingContext::Format(parent_container, element, override_initial_box); break;
+	case FormattingContextType::Table: layout_box = TableFormattingContext::Format(parent_container, element, override_initial_box); break;
+	case FormattingContextType::Flex: layout_box = FlexFormattingContext::Format(parent_container, element, override_initial_box); break;
+	case FormattingContextType::Replaced: layout_box = ReplacedFormattingContext::Format(parent_container, element, override_initial_box); break;
 	case FormattingContextType::None: break;
 	}
 
-	return nullptr;
+#ifdef RMLUI_DEBUG
+	if (tracker_entry)
+	{
+		debug_tracker->current_stack_level -= 1;
+		if (layout_box)
+		{
+			tracker_entry->layout = Optional<FormatIndependentDebugTracker::Entry::LayoutResults>({
+				layout_box->GetVisibleOverflowSize(),
+				layout_box->GetIfBox() ? Optional<Box>{*layout_box->GetIfBox()} : std::nullopt,
+			});
+		}
+	}
+#endif
+
+	return layout_box;
 }
 
 } // namespace Rml

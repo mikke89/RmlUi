@@ -14,6 +14,8 @@ target_sources(rmlui_core PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/FloatedBoxSpace.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FormattingContext.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/FormattingContext.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FormattingContextDebug.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FormattingContextDebug.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/InlineBox.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/InlineBox.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/InlineContainer.cpp"
