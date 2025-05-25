@@ -45,6 +45,7 @@
 	#include <list>
 	#include <map>
 	#include <memory>
+	#include <optional>
 	#include <queue>
 	#include <stack>
 	#include <string>
@@ -123,6 +124,8 @@ template <typename T>
 using Hash = std::hash<T>;
 template <typename T>
 using Function = std::function<T>;
+template <typename T>
+using Optional = std::optional<T>;
 template <typename Iterator>
 inline std::move_iterator<Iterator> MakeMoveIterator(Iterator it)
 {
