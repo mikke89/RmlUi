@@ -26,46 +26,38 @@
  *
  */
 
-#ifndef RMLUI_CORE_ELEMENTMETA_H
-#define RMLUI_CORE_ELEMENTMETA_H
-
-#include "../../Include/RmlUi/Core/ComputedValues.h"
-#include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/ElementScroll.h"
-#include "../../Include/RmlUi/Core/Traits.h"
-#include "../../Include/RmlUi/Core/Types.h"
-#include "ControlledLifetimeResource.h"
-#include "ElementBackgroundBorder.h"
-#include "ElementEffects.h"
-#include "ElementStyle.h"
-#include "EventDispatcher.h"
-#include "Layout/LayoutNode.h"
-#include "Pool.h"
+#include "LayoutNode.h"
+#include "../../../Include/RmlUi/Core/ComputedValues.h"
+#include "../../../Include/RmlUi/Core/Element.h"
+#include "../../../Include/RmlUi/Core/Log.h"
+#include "FormattingContext.h"
 
 namespace Rml {
 
-// Meta objects for element collected in a single struct to reduce memory allocations
-struct ElementMeta {
-	explicit ElementMeta(Element* el) :
-		event_dispatcher(el), style(el), background_border(), effects(el), scroll(el), computed_values(el), layout_node(el)
-	{}
-	SmallUnorderedMap<EventId, EventListener*> attribute_event_listeners;
-	EventDispatcher event_dispatcher;
-	ElementStyle style;
-	ElementBackgroundBorder background_border;
-	ElementEffects effects;
-	ElementScroll scroll;
-	Style::ComputedValues computed_values;
-	LayoutNode layout_node;
-};
+LayoutNode* LayoutNode::GetClosestLayoutBoundary() const
+{
+	for (Element* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
+	{
+		LayoutNode* parent_node = parent->GetLayoutNode();
+		if (parent_node->IsLayoutBoundary())
+			return parent_node;
+	}
+	return nullptr;
+}
 
-struct ElementMetaPool {
-	Pool<ElementMeta> pool{50, true};
+bool LayoutNode::IsLayoutBoundary() const
+{
+	const FormattingContextType formatting_context = FormattingContext::GetFormattingContextType(element);
+	if (formatting_context == FormattingContextType::None)
+		return false;
 
-	static ControlledLifetimeResource<ElementMetaPool> element_meta_pool;
-	static void Initialize();
-	static void Shutdown();
-};
+	using namespace Style;
+	auto& computed = element->GetComputedValues();
+
+	if (computed.position() == Position::Absolute || computed.position() == Position::Fixed)
+		return true;
+
+	return false;
+}
 
 } // namespace Rml
-#endif

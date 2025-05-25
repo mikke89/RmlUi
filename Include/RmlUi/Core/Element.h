@@ -56,6 +56,7 @@ class ElementDefinition;
 class ElementDocument;
 class ElementScroll;
 class ElementStyle;
+class LayoutNode;
 class LayoutEngine;
 class ContainerBox;
 class InlineLevelBox;
@@ -601,6 +602,8 @@ public:
 	const TransformState* GetTransformState() const noexcept;
 	/// Returns the data model of this element.
 	DataModel* GetDataModel() const;
+	/// Returns the layout node of this element.
+	LayoutNode* GetLayoutNode() const;
 	//@}
 
 	/// Sets the instancer to use for releasing this element.
@@ -657,9 +660,7 @@ protected:
 	virtual void OnChildRemove(Element* child);
 
 	/// Forces a re-layout of this element, and any other elements required.
-	virtual void DirtyLayout();
-	/// Returns true if the element has been marked as needing a re-layout.
-	virtual bool IsLayoutDirty();
+	void DirtyLayout();
 
 	/// Returns the RML of this element and all children.
 	/// @param[out] content The content of this element and those under it, in XML form.

@@ -19,6 +19,7 @@ add_executable(${TARGET_NAME}
 	Filter.cpp
 	FlexFormatting.cpp
 	Layout.cpp
+	LayoutIsolation.cpp
 	Localization.cpp
 	main.cpp
 	Math.cpp

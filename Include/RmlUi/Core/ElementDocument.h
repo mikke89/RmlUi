@@ -163,9 +163,7 @@ private:
 	Element* FindNextNavigationElement(Element* current_element, NavigationSearchDirection direction, const Property& property);
 
 	/// Sets the dirty flag on the layout so the document will format its children before the next render.
-	void DirtyLayout() override;
-	/// Returns true if the document has been marked as needing a re-layout.
-	bool IsLayoutDirty() override;
+	void DirtyDocumentLayout();
 
 	/// Notify the document that media query-related properties have changed and that style sheets need to be re-evaluated.
 	void DirtyMediaQueries();
@@ -196,6 +194,7 @@ private:
 
 	friend class Rml::Context;
 	friend class Rml::Factory;
+	friend class Rml::Element; // TODO: Remove
 };
 
 } // namespace Rml
