@@ -1,0 +1,374 @@
+/*
+ * This source file is part of RmlUi, the HTML/CSS Interface Middleware
+ *
+ * For the latest information, see http://github.com/mikke89/RmlUi
+ *
+ * Copyright (c) 2008-2010 CodePoint Ltd, Shift Technology Ltd
+ * Copyright (c) 2019-2025 The RmlUi Team, and contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+#include "../../../Source/Core/Layout/FormattingContextDebug.h"
+#include "../Common/TestsShell.h"
+#include "../Common/TypesToString.h"
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/ElementText.h>
+#include <doctest.h>
+
+using namespace Rml;
+
+static const String document_isolation_rml = R"(
+<rml>
+<head>
+    <link type="text/rcss" href="/assets/rml.rcss"/>
+    <style>
+        body {
+            width: 800px;
+            height: 600px;
+            background-color: #ddd;
+			font-family: LatoLatin;
+			font-size: 14px;
+        }
+		scrollbarvertical {
+			width: 12px;
+			cursor: arrow;
+			margin-right: -1px;
+			padding-right: 1px;
+		}
+		scrollbarvertical slidertrack {
+			background-color: #f0f0f0;
+		}
+		scrollbarvertical sliderbar {
+			background-color: #666;
+		}
+        .container {
+            width: 200px;
+            margin: 20px;
+            padding: 10px;
+            background-color: #bbb;
+        }
+        .container > div {
+            background-color: #aaa;
+            margin: 5px;
+            padding: 10px;
+        }
+        #flex-container {
+            display: flex;
+            flex-direction: column;
+        }
+        #overflow-container {
+            overflow: auto;
+            height: 150px;
+        }
+        #absolute-container {
+            position: absolute;
+            top: 300px;
+            left: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="flex-container">
+        <div>Flex item 1</div>
+        <div id="flex-item">Flex item 2</div>
+        <div id="flex-item-next">Flex item 3</div>
+    </div>
+
+    <div class="container" id="overflow-container">
+        <div>Overflow item 1</div>
+        <div id="overflow-item">Overflow item 2</div>
+        <div>Overflow item 3</div>
+        <div>Overflow item 4</div>
+        <div>Overflow item 5</div>
+    </div>
+
+    <div class="container" id="absolute-container">
+        <div id="absolute-item">Absolute item 1</div>
+        <div>Absolute item 2</div>
+    </div>
+
+    <div class="container" id="normal-container">
+        <div id="normal-item">Normal block box</div>
+    </div>
+</body>
+</rml>
+)";
+
+TEST_CASE("LayoutIsolation.InsideOutsideFormattingContexts")
+{
+	Context* context = TestsShell::GetContext();
+	ElementDocument* document = context->LoadDocumentFromMemory(document_isolation_rml);
+	document->Show();
+	TestsShell::RenderLoop();
+
+	SUBCASE("Flex")
+	{
+		Element* element = document->GetElementById("flex-item");
+		Element* next_sibling = element->GetNextSibling();
+		Element* next_outside_overflow = document->GetElementById("normal-container");
+		REQUIRE(element);
+		REQUIRE(next_sibling);
+		REQUIRE(next_outside_overflow);
+
+		const Vector2f absolute_offset_element = element->GetAbsoluteOffset();
+		const Vector2f absolute_offset_next_sibling = next_sibling->GetAbsoluteOffset();
+		const Vector2f absolute_offset_next_outside_overflow = next_outside_overflow->GetAbsoluteOffset();
+		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
+
+		TestsShell::RenderLoop();
+		CHECK(element->GetAbsoluteOffset() == absolute_offset_element);
+		CHECK(next_sibling->GetAbsoluteOffset() != absolute_offset_next_sibling);
+		CHECK(next_outside_overflow->GetAbsoluteOffset() != absolute_offset_next_outside_overflow);
+	}
+
+	SUBCASE("Overflow")
+	{
+		Element* element = document->GetElementById("overflow-item");
+		Element* next_sibling = element->GetNextSibling();
+		Element* next_outside_overflow = document->GetElementById("normal-container");
+		REQUIRE(element);
+		REQUIRE(next_sibling);
+		REQUIRE(next_outside_overflow);
+
+		const Vector2f absolute_offset_element = element->GetAbsoluteOffset();
+		const Vector2f absolute_offset_next_sibling = next_sibling->GetAbsoluteOffset();
+		const Vector2f absolute_offset_next_outside_overflow = next_outside_overflow->GetAbsoluteOffset();
+		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
+
+		TestsShell::RenderLoop();
+		CHECK(element->GetAbsoluteOffset() == absolute_offset_element);
+		CHECK(next_sibling->GetAbsoluteOffset() != absolute_offset_next_sibling);
+		CHECK(next_outside_overflow->GetAbsoluteOffset() == absolute_offset_next_outside_overflow);
+	}
+
+	SUBCASE("Absolute")
+	{
+		Element* element = document->GetElementById("absolute-item");
+		Element* next_sibling = element->GetNextSibling();
+		REQUIRE(element);
+		REQUIRE(next_sibling);
+
+		const Vector2f absolute_offset_element = element->GetAbsoluteOffset();
+		const Vector2f absolute_offset_next_sibling = next_sibling->GetAbsoluteOffset();
+		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
+
+		TestsShell::RenderLoop();
+		CHECK(element->GetAbsoluteOffset() == absolute_offset_element);
+		CHECK(next_sibling->GetAbsoluteOffset() != absolute_offset_next_sibling);
+	}
+
+	SUBCASE("Normal")
+	{
+		Element* element = document->GetElementById("normal-item");
+		REQUIRE(element);
+
+		const float initial_width = element->GetBox().GetSize().x;
+		element->SetProperty("width", "250px");
+
+		TestsShell::RenderLoop();
+
+		float new_width = element->GetBox().GetSize().x;
+		CHECK(new_width != initial_width);
+		CHECK(new_width == doctest::Approx(250.0f));
+	}
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+#ifdef RMLUI_DEBUG
+// Wrap all the following tests under this condition, since the format independent debug tracker is only available in debug mode.
+
+TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
+{
+	Context* context = TestsShell::GetContext();
+	auto& format_independent_tracker = FormatIndependentDebugTracker::Initialize();
+	ElementDocument* document = context->LoadDocumentFromMemory(document_isolation_rml);
+
+	document->Show();
+	TestsShell::RenderLoop();
+
+	Log::Message(Log::LT_DEBUG, "%s", format_independent_tracker.ToString().c_str());
+
+	const auto count_level_1 = std::count_if(format_independent_tracker.entries.begin(), format_independent_tracker.entries.end(),
+		[](const auto& entry) { return entry.level == 1; });
+	CHECK_MESSAGE(count_level_1 == 3, "Expecting one entry for each of flex, overflow, and absolute");
+
+	// There are quite a few flex item format occurrences being performed currently. We might reduce the following
+	// number while working on the flex formatting engine. If this fails for any other reason, it is likely a bug.
+	CHECK(format_independent_tracker.entries.size() == 10);
+
+	FormatIndependentDebugTracker::Shutdown();
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+static const String document_isolation_absolute_rml = R"(
+<rml>
+<head>
+    <link type="text/rcss" href="/assets/rml.rcss"/>
+    <style>
+        body {
+            width: 800px;
+            height: 600px;
+            background-color: #ddd;
+			font-family: LatoLatin;
+			font-size: 14px;
+        }
+		scrollbarvertical {
+			width: 12px;
+			cursor: arrow;
+			margin-right: -1px;
+			padding-right: 1px;
+		}
+		scrollbarvertical slidertrack {
+			background-color: #f0f0f0;
+		}
+		scrollbarvertical sliderbar {
+			background-color: #666;
+		}
+        .container {
+            width: 200px;
+            margin: 20px;
+            padding: 10px;
+            background-color: #bbb;
+        }
+        .container > div {
+            background-color: #aaa;
+            margin: 5px;
+            padding: 10px;
+        }
+        #absolute-container {
+            position: absolute;
+            top: 300px;
+            left: 300px;
+			width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="absolute-container">
+        <div id="absolute-item">Absolutely positioned box</div>
+    </div>
+
+    <div class="container" id="normal-container">
+		<div id="normal-item">Normal block box</div>
+	</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("LayoutIsolation.Absolute")
+{
+	Context* context = TestsShell::GetContext();
+
+	auto& format_independent_tracker = FormatIndependentDebugTracker::Initialize();
+
+	ElementDocument* document = context->LoadDocumentFromMemory(document_isolation_absolute_rml);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	SUBCASE("Modify absolute content")
+	{
+		Element* element = document->GetElementById("absolute-item");
+		const float initial_height = element->GetOffsetHeight();
+
+		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
+		TestsShell::RenderLoop();
+
+		CHECK(element->GetOffsetHeight() != initial_height);
+		CHECK(format_independent_tracker.entries.size() == 1);
+	}
+
+	SUBCASE("Modify absolute width")
+	{
+		Element* container = document->GetElementById("absolute-container");
+		Element* element = document->GetElementById("absolute-item");
+		const float container_initial_width = container->GetOffsetWidth();
+		const float element_initial_width = element->GetOffsetWidth();
+
+		container->SetProperty("width", "300px");
+		TestsShell::RenderLoop();
+
+		CHECK(container->GetOffsetWidth() != container_initial_width);
+		CHECK(element->GetOffsetWidth() != element_initial_width);
+		CHECK(format_independent_tracker.entries.size() == 1);
+	}
+
+	SUBCASE("Modify document width")
+	{
+		Element* container = document->GetElementById("absolute-container");
+		Element* element = document->GetElementById("absolute-item");
+
+		const float document_width = document->GetOffsetWidth();
+		const float container_width = container->GetOffsetWidth();
+		const float element_width = element->GetOffsetWidth();
+
+		document->SetProperty("width", "1000px");
+		TestsShell::RenderLoop();
+
+		CHECK(document->GetOffsetWidth() != document_width);
+		CHECK(container->GetOffsetWidth() != container_width);
+		CHECK(element->GetOffsetWidth() != element_width);
+	}
+
+	SUBCASE("Modify normal content")
+	{
+		Element* element = document->GetElementById("normal-item");
+		const float initial_height = element->GetOffsetHeight();
+
+		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
+
+		TestsShell::RenderLoop();
+		CHECK(element->GetOffsetHeight() != initial_height);
+
+		CHECK(format_independent_tracker.entries.size() == 1);
+	}
+
+	SUBCASE("Modify normal content and absolute content")
+	{
+		Element* absolute_element = document->GetElementById("absolute-item");
+		Element* normal_element = document->GetElementById("normal-item");
+		const float absolute_initial_height = absolute_element->GetOffsetHeight();
+		const float normal_initial_height = normal_element->GetOffsetHeight();
+
+		rmlui_dynamic_cast<ElementText*>(absolute_element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
+		rmlui_dynamic_cast<ElementText*>(normal_element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
+
+		TestsShell::RenderLoop();
+		CHECK(absolute_element->GetOffsetHeight() != absolute_initial_height);
+		CHECK(normal_element->GetOffsetHeight() != normal_initial_height);
+
+		CHECK(format_independent_tracker.entries.size() == 2);
+	}
+
+	Log::Message(Log::LT_DEBUG, "%s", format_independent_tracker.ToString().c_str());
+	FormatIndependentDebugTracker::Shutdown();
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+#endif // RMLUI_DEBUG

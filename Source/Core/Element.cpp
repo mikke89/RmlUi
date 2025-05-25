@@ -175,6 +175,13 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 		if (Context* ctx = GetContext())
 			ctx->RequestNextUpdate(0);
 	}
+
+	LayoutNode* layout_node = GetLayoutNode();
+	if (layout_node->IsSelfDirty())
+	{
+		if (LayoutNode* layout_boundary = layout_node->GetClosestLayoutBoundary())
+			layout_boundary->SetDirty(DirtyLayoutType::Child);
+	}
 }
 
 void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)
@@ -1657,6 +1664,11 @@ DataModel* Element::GetDataModel() const
 	return data_model;
 }
 
+LayoutNode* Element::GetLayoutNode() const
+{
+	return &meta->layout_node;
+}
+
 void Element::SetInstancer(ElementInstancer* _instancer)
 {
 	// Only record the first instancer being set as some instancers call other instancers to do their dirty work, in
@@ -1794,7 +1806,8 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	);
 
 	// See if the document layout needs to be updated.
-	if (!IsLayoutDirty())
+	// TODO
+	// if (!IsLayoutDirty())
 	{
 		// Force a relayout if any of the changed properties require it.
 		const PropertyIdSet changed_properties_forcing_layout =
@@ -1961,15 +1974,10 @@ void Element::OnChildRemove(Element* /*child*/) {}
 
 void Element::DirtyLayout()
 {
-	if (Element* document = GetOwnerDocument())
-		document->DirtyLayout();
-}
+	GetLayoutNode()->SetDirty(DirtyLayoutType::DOM);
 
-bool Element::IsLayoutDirty()
-{
-	if (Element* document = GetOwnerDocument())
-		return document->IsLayoutDirty();
-	return false;
+	if (ElementDocument* document = GetOwnerDocument())
+		document->DirtyDocumentLayout();
 }
 
 Element* Element::GetClosestScrollableContainer()
@@ -3025,6 +3033,8 @@ void Element::CommitLayoutRecursive()
 		return;
 
 	OnLayout();
+
+	GetLayoutNode()->ClearDirty();
 
 	// The size of the scrollable area might have changed, so clamp the scroll offset to avoid scrolling outside the
 	// scrollable area. During layouting, we might be changing the scrollable overflow area of the element several

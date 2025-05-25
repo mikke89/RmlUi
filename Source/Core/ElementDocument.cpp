@@ -29,6 +29,7 @@
 #include "../../Include/RmlUi/Core/ElementDocument.h"
 #include "../../Include/RmlUi/Core/Context.h"
 #include "../../Include/RmlUi/Core/ElementText.h"
+#include "../../Include/RmlUi/Core/ElementUtilities.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
 #include "../../Include/RmlUi/Core/StreamMemory.h"
@@ -39,6 +40,7 @@
 #include "EventDispatcher.h"
 #include "Layout/LayoutDetails.h"
 #include "Layout/LayoutEngine.h"
+#include "Layout/LayoutNode.h"
 #include "StreamFile.h"
 #include "StyleSheetFactory.h"
 #include "Template.h"
@@ -527,7 +529,28 @@ void ElementDocument::UpdateLayout()
 		if (GetParentNode() != nullptr)
 			containing_block = GetParentNode()->GetBox().GetSize();
 
-		LayoutEngine::FormatElement(this, containing_block);
+		bool any_layout_updates = false;
+
+		ElementUtilities::BreadthFirstSearch(this, [&](Element* element) {
+			LayoutNode* layout_node = element->GetLayoutNode();
+			if (layout_node->IsDirty())
+			{
+				RMLUI_ASSERTMSG(layout_node->IsLayoutBoundary(),
+					"Dirty layout should have propagated to the closest layout boundary during Element::Update().")
+				if (element->GetOwnerDocument() != this)
+					Log::Message(Log::LT_INFO, "Doing partial layout update on element: %s", element->GetAddress().c_str());
+
+				// TODO: Use correct containing block
+				// TODO: Check if size changed, such that we need to do a layout update in its parent.
+				LayoutEngine::FormatElement(element, containing_block);
+				any_layout_updates = true;
+				return ElementUtilities::CallbackControlFlow::SkipChildren;
+			}
+			return ElementUtilities::CallbackControlFlow::Continue;
+		});
+
+		if (!any_layout_updates)
+			Log::Message(Log::LT_INFO, "Didn't update layout on anything for document: %s", GetAddress().c_str());
 
 		// Ignore dirtied layout during document formatting. Layouting must not require re-iteration.
 		// In particular, scrollbars being enabled may set the dirty flag, but this case is already handled within the layout engine.
@@ -581,14 +604,9 @@ void ElementDocument::DirtyPosition()
 	position_dirty = true;
 }
 
-void ElementDocument::DirtyLayout()
+void ElementDocument::DirtyDocumentLayout()
 {
 	layout_dirty = true;
-}
-
-bool ElementDocument::IsLayoutDirty()
-{
-	return layout_dirty;
 }
 
 void ElementDocument::DirtyVwAndVhProperties()
