@@ -31,6 +31,7 @@
 
 #include "Header.h"
 #include "Types.h"
+#include <stdarg.h>
 
 namespace Rml {
 
@@ -139,6 +140,10 @@ namespace StringUtilities {
 
 	/// Converts a byte offset of a UTF-8 string to a character position.
 	RMLUICORE_API int ConvertByteOffsetToCharacterOffset(StringView string, int byte_offset);
+
+	namespace Detail {
+		int FormatString(String& string, const char* format, va_list argument_list);
+	}
 } // namespace StringUtilities
 
 /*

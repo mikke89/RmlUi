@@ -37,7 +37,7 @@
 
 namespace Rml {
 
-static int FormatString(String& string, const char* format, va_list argument_list)
+int StringUtilities::Detail::FormatString(String& string, const char* format, va_list argument_list)
 {
 	constexpr size_t InternalBufferSize = 256;
 	char buffer[InternalBufferSize];
@@ -85,7 +85,7 @@ int FormatString(String& string, const char* format, ...)
 {
 	va_list argument_list;
 	va_start(argument_list, format);
-	int result = FormatString(string, format, argument_list);
+	int result = StringUtilities::Detail::FormatString(string, format, argument_list);
 	va_end(argument_list);
 	return result;
 }
@@ -95,7 +95,7 @@ String CreateString(const char* format, ...)
 	String result;
 	va_list argument_list;
 	va_start(argument_list, format);
-	FormatString(result, format, argument_list);
+	StringUtilities::Detail::FormatString(result, format, argument_list);
 	va_end(argument_list);
 	return result;
 }
