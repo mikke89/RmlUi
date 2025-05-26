@@ -35,11 +35,12 @@
 
 namespace Rml {
 
-void LayoutEngine::FormatElement(Element* element, Vector2f containing_block)
+void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, Vector2f absolutely_positioning_containing_block)
 {
 	RMLUI_ASSERT(element && containing_block.x >= 0 && containing_block.y >= 0);
 
-	RootBox root(containing_block);
+	RootBox absolute_root(absolutely_positioning_containing_block);
+	RootBox root(containing_block, &absolute_root);
 
 	auto layout_box = FormattingContext::FormatIndependent(&root, element, nullptr, FormattingContextType::Block);
 	if (!layout_box)

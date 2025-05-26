@@ -99,6 +99,9 @@ public:
 	/// @param area The area to use.
 	Vector2f GetFrameSize(BoxArea area) const;
 
+	/// Compares all area edges against another box, excluding the content area.
+	/// @return True if the boxes represent the same area edges.
+	bool EqualAreaEdges(const Box& other) const;
 	/// Compares the size of the content area and the other area edges.
 	/// @return True if the boxes represent the same area.
 	bool operator==(const Box& rhs) const;

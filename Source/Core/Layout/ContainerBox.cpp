@@ -121,6 +121,16 @@ bool ContainerBox::IsScrollContainer() const
 	return LayoutDetails::IsScrollContainer(overflow_x, overflow_y);
 }
 
+bool ContainerBox::IsMaxContentConstraint() const
+{
+	if (parent_container)
+		return parent_container->IsMaxContentConstraint();
+	// TODO: Very hacky
+	if (const Box* box = GetIfBox())
+		return box->GetSize().x >= 10'000.f;
+	return false;
+}
+
 void ContainerBox::ClosePositionedElements()
 {
 	// Any relatively positioned elements that we act as containing block for may need to have their positions

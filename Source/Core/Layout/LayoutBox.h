@@ -50,7 +50,7 @@ public:
 	virtual const Box* GetIfBox() const;
 	// Returns the baseline of the last line of this box, if any. Returns true if a baseline was found, otherwise false.
 	virtual bool GetBaselineOfLastLine(float& out_baseline) const;
-	// Calculates the box's inner content width, i.e. the size used to calculate the shrink-to-fit width.
+	// Calculates the box's inner content width, i.e. the size used to calculate the shrink-to-fit width. Only valid under max-content constraint.
 	virtual float GetShrinkToFitWidth() const;
 
 	// Debug dump layout tree.

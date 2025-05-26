@@ -203,7 +203,7 @@ TEST_CASE("LayoutIsolation.InsideOutsideFormattingContexts")
 TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
 {
 	Context* context = TestsShell::GetContext();
-	auto& format_independent_tracker = FormatIndependentDebugTracker::Initialize();
+	FormatIndependentDebugTracker format_independent_tracker;
 	ElementDocument* document = context->LoadDocumentFromMemory(document_isolation_rml);
 
 	document->Show();
@@ -219,7 +219,6 @@ TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
 	// number while working on the flex formatting engine. If this fails for any other reason, it is likely a bug.
 	CHECK(format_independent_tracker.entries.size() == 10);
 
-	FormatIndependentDebugTracker::Shutdown();
 	document->Close();
 	TestsShell::ShutdownShell();
 }
@@ -283,13 +282,12 @@ TEST_CASE("LayoutIsolation.Absolute")
 {
 	Context* context = TestsShell::GetContext();
 
-	auto& format_independent_tracker = FormatIndependentDebugTracker::Initialize();
-
 	ElementDocument* document = context->LoadDocumentFromMemory(document_isolation_absolute_rml);
 	document->Show();
 
 	TestsShell::RenderLoop();
 
+	FormatIndependentDebugTracker format_independent_tracker;
 	SUBCASE("Modify absolute content")
 	{
 		Element* element = document->GetElementById("absolute-item");
@@ -365,7 +363,6 @@ TEST_CASE("LayoutIsolation.Absolute")
 	}
 
 	Log::Message(Log::LT_DEBUG, "%s", format_independent_tracker.ToString().c_str());
-	FormatIndependentDebugTracker::Shutdown();
 
 	document->Close();
 	TestsShell::ShutdownShell();

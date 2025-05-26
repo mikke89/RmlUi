@@ -62,6 +62,8 @@ public:
 
 	/// Returns true if this container can have scrollbars enabled, as determined by its overflow properties.
 	bool IsScrollContainer() const;
+	/// Returns true if this container is being layed-out under max-content constraint.
+	bool IsMaxContentConstraint() const;
 
 	void AssertMatchesParentContainer(ContainerBox* container_box) const
 	{
@@ -126,6 +128,7 @@ class RootBox final : public ContainerBox {
 public:
 	RootBox(Vector2f containing_block) : ContainerBox(Type::Root, nullptr, nullptr), box(containing_block) {}
 	RootBox(const Box& box) : ContainerBox(Type::Root, nullptr, nullptr), box(box) {}
+	RootBox(Vector2f containing_block, RootBox* absolute_root) : ContainerBox(Type::Root, nullptr, absolute_root), box(containing_block) {}
 
 	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;
@@ -174,6 +177,22 @@ public:
 	String DebugDumpTree(int depth) const override;
 
 	Box& GetBox() { return box; }
+
+private:
+	Box box;
+};
+
+/**
+    A box which is produced when we matched the existing layout.
+
+*/
+class CachedContainer final : public ContainerBox {
+public:
+	CachedContainer(Vector2f containing_block) : ContainerBox(Type::Root, nullptr, nullptr), box(containing_block) {}
+	CachedContainer(const Box& box) : ContainerBox(Type::Root, nullptr, nullptr), box(box) {}
+
+	const Box* GetIfBox() const override { return &box; }
+	String DebugDumpTree(int depth) const override;
 
 private:
 	Box box;
