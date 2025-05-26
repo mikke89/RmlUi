@@ -43,21 +43,32 @@ namespace Rml {
 */
 class ContainerBox : public LayoutBox {
 public:
-	// Enable or disable scrollbars for the element we represent, preparing it for the first round of layouting, according to our properties.
+	/// Enable or disable scrollbars for the element we represent, preparing it for the first round of layouting, according to our properties.
 	void ResetScrollbars(const Box& box);
 
-	// Adds an absolutely positioned element, to be formatted and positioned when closing this container, see 'ClosePositionedElements'.
+	/// Adds an absolutely positioned element located within this container. The element is added to the absolute
+	/// positioning containing block box, and will be formatted and positioned when closing that box, see
+	/// 'ClosePositionedElements'.
 	void AddAbsoluteElement(Element* element, Vector2f static_position, Element* static_relative_offset_parent);
-	// Adds a relatively positioned element which we act as a containing block for.
+	/// Adds a relatively positioned element which this container acts as a containing block for.
 	void AddRelativeElement(Element* element);
 
-	ContainerBox* GetParent() { return parent_container; }
 	Element* GetElement() { return element; }
 
+	/// Returns the size of the containing block for a box taking part in this container.
+	/// @param[in] position The position property of the current box.
+	/// @return The containing size, possibly indefinite (represented by negative size) along one or both axes.
+	Vector2f GetContainingBlockSize(Style::Position position) const;
+
+	/// Returns true if this container can have scrollbars enabled, as determined by its overflow properties.
 	bool IsScrollContainer() const;
 
-	// Returns true if this box acts as a containing block for absolutely positioned descendants.
-	bool IsAbsolutePositioningContainingBlock() const { return is_absolute_positioning_containing_block; }
+	void AssertMatchesParentContainer(ContainerBox* container_box) const
+	{
+		RMLUI_ASSERTMSG(container_box == parent_container, "Mismatched parent box.");
+		(void)container_box;
+	}
+	Element* GetAbsolutePositioningContainingBlockElementForDebug() const { return absolute_positioning_containing_block->element; }
 
 protected:
 	ContainerBox(Type type, Element* element, ContainerBox* parent_container);
@@ -67,14 +78,14 @@ protected:
 	/// @param[in] content_overflow_size The size of the visible content, relative to our content area.
 	/// @param[in] box The box built for the element, possibly with a non-determinate height.
 	/// @param[in] max_height Maximum height of the content area, if any.
-	/// @returns True if no overflow occured, false if it did.
+	/// @returns True if no overflow occurred, false if it did.
 	bool CatchOverflow(const Vector2f content_overflow_size, const Box& box, const float max_height) const;
 
 	/// Set the box and scrollable area on our element, possibly catching any overflow.
 	/// @param[in] content_overflow_size The size of the visible content, relative to our content area.
 	/// @param[in] box The box to be set on the element.
 	/// @param[in] max_height Maximum height of the content area, if any.
-	/// @returns True if no overflow occured, false if it did.
+	/// @returns True if no overflow occurred, false if it did.
 	bool SubmitBox(const Vector2f content_overflow_size, const Box& box, const float max_height);
 
 	/// Formats, sizes, and positions all absolute elements whose containing block is this, and offsets relative elements.
@@ -98,9 +109,14 @@ private:
 
 	Style::Overflow overflow_x = Style::Overflow::Visible;
 	Style::Overflow overflow_y = Style::Overflow::Visible;
-	bool is_absolute_positioning_containing_block = false;
 
 	ContainerBox* parent_container = nullptr;
+
+	// For absolutely positioned boxes we use the first positioned ancestor. We deviate from the CSS specs where they
+	// use a separate containing block for fixed boxes. In RCSS, we use the same rules on fixed boxes, as this is
+	// particularly helpful on handles and other widgets that should not scroll with the window. This is a common design
+	// pattern in target applications for this library.
+	ContainerBox* absolute_positioning_containing_block = nullptr; // [not null]
 };
 
 /**

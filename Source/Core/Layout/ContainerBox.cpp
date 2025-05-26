@@ -56,7 +56,7 @@ void ContainerBox::ResetScrollbars(const Box& box)
 void ContainerBox::AddAbsoluteElement(Element* element, Vector2f static_position, Element* static_relative_offset_parent)
 {
 	// We may possibly be adding the same element from a previous layout iteration. If so, this ensures it is updated with the latest static position.
-	absolute_elements[element] = AbsoluteElement{static_position, static_relative_offset_parent};
+	absolute_positioning_containing_block->absolute_elements[element] = AbsoluteElement{static_position, static_relative_offset_parent};
 }
 
 void ContainerBox::AddRelativeElement(Element* element)
@@ -66,6 +66,56 @@ void ContainerBox::AddRelativeElement(Element* element)
 		relative_elements.push_back(element);
 }
 
+Vector2f ContainerBox::GetContainingBlockSize(Style::Position position) const
+{
+	RMLUI_ASSERT(absolute_positioning_containing_block);
+	using Style::Position;
+
+	Vector2f result;
+
+	switch (position)
+	{
+	case Position::Static:
+	case Position::Relative:
+	{
+		const Box* box = GetIfBox();
+		if (!box)
+		{
+			RMLUI_ERROR;
+			return {};
+		}
+		result = box->GetSize(BoxArea::Content);
+		if (element)
+		{
+			// For static elements we subtract the scrollbar size so that elements normally don't overlap their parent's
+			// scrollbars. In CSS, this would also be done for absolutely positioned elements. We might want to copy
+			// that behavior in the future. Then, we would also need to change the element offset behavior and ideally
+			// also make positioned boxes contribute to the scrollable area.
+			ElementScroll* element_scroll = element->GetElementScroll();
+			if (result.x >= 0.f)
+				result.x = Math::Max(result.x - element_scroll->GetScrollbarSize(ElementScroll::VERTICAL), 0.f);
+			if (result.y >= 0.f)
+				result.y = Math::Max(result.y - element_scroll->GetScrollbarSize(ElementScroll::HORIZONTAL), 0.f);
+		}
+	}
+	break;
+	case Position::Absolute:
+	case Position::Fixed:
+	{
+		const Box* box = absolute_positioning_containing_block->GetIfBox();
+		if (!box)
+		{
+			RMLUI_ERROR;
+			return {};
+		}
+		result = box->GetSize(BoxArea::Padding);
+	}
+	break;
+	}
+
+	return result;
+}
+
 bool ContainerBox::IsScrollContainer() const
 {
 	return LayoutDetails::IsScrollContainer(overflow_x, overflow_y);
@@ -73,7 +123,7 @@ bool ContainerBox::IsScrollContainer() const
 
 void ContainerBox::ClosePositionedElements()
 {
-	// Any relatively positioned elements that we act as containing block for may need to be have their positions
+	// Any relatively positioned elements that we act as containing block for may need to have their positions
 	// updated to reflect changes to the size of this block box. Update relative offsets before handling absolute
 	// elements, as this may affect the resolved static position of the absolute elements.
 	for (Element* child : relative_elements)
@@ -127,6 +177,7 @@ void ContainerBox::SetElementBaseline(float element_baseline)
 ContainerBox::ContainerBox(Type type, Element* element, ContainerBox* parent_container) :
 	LayoutBox(type), element(element), parent_container(parent_container)
 {
+	bool is_absolute_positioning_containing_block = false;
 	if (element)
 	{
 		const auto& computed = element->GetComputedValues();
@@ -135,6 +186,11 @@ ContainerBox::ContainerBox(Type type, Element* element, ContainerBox* parent_con
 		is_absolute_positioning_containing_block = (computed.position() != Style::Position::Static || computed.has_local_transform() ||
 			computed.has_local_perspective() || computed.has_filter() || computed.has_backdrop_filter() || computed.has_mask_image());
 	}
+
+	if (is_absolute_positioning_containing_block || !parent_container)
+		absolute_positioning_containing_block = this;
+	else
+		absolute_positioning_containing_block = parent_container->absolute_positioning_containing_block;
 }
 
 bool ContainerBox::CatchOverflow(const Vector2f content_overflow_size, const Box& box, const float max_height) const
@@ -227,7 +283,7 @@ bool ContainerBox::SubmitBox(const Vector2f content_overflow_size, const Box& bo
 
 		// Set the visible overflow size so that ancestors can catch any overflow produced by us. That is, hiding it or
 		// providing a scrolling mechanism. If this box is a scroll container we catch our own overflow here. Thus, in
-		// this case, only our border box is visible from our ancestor's perpective.
+		// this case, only our border box is visible from our ancestor's perspective.
 		if (is_scroll_container)
 		{
 			visible_overflow_size = border_size;

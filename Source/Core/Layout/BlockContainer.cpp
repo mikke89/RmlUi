@@ -84,7 +84,7 @@ bool BlockContainer::Close(BlockContainer* parent_block_container)
 	// If we are the root of our block formatting context, this will be null. Otherwise increment our parent's cursor to account for this box.
 	if (parent_block_container)
 	{
-		RMLUI_ASSERTMSG(GetParent() == parent_block_container, "Mismatched parent box.");
+		AssertMatchesParentContainer(parent_block_container);
 
 		// If this close fails, it means this block box has caused our parent box to generate an automatic vertical scrollbar.
 		if (!parent_block_container->EncloseChildBox(this, position, box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Border),

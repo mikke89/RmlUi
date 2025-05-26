@@ -49,7 +49,7 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 		return table_wrapper_box;
 	}
 
-	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent_container, element_table->GetPosition()).size;
+	const Vector2f containing_block = parent_container->GetContainingBlockSize(element_table->GetPosition());
 	RMLUI_ASSERT(containing_block.x >= 0.f);
 	const ComputedValues& computed_table = element_table->GetComputedValues();
 

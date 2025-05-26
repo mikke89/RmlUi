@@ -51,11 +51,6 @@ struct ComputedAxisSize {
 	Style::BoxSizing box_sizing;
 };
 
-struct ContainingBlock {
-	ContainerBox* container;
-	Vector2f size;
-};
-
 enum class BuildBoxMode {
 	Block,          // Sets edges and size if available, auto width can result in shrink-to-fit width, auto margins are used for alignment.
 	Inline,         // Sets edges, ignores width, height, and auto margins.
@@ -86,12 +81,6 @@ public:
 	// heights from an element's computed values.
 	static void GetDefiniteMinMaxHeight(float& min_height, float& max_height, const ComputedValues& computed, const Box& box,
 		float containing_block_height);
-
-	/// Returns the containing block for a box.
-	/// @param[in] parent_container The parent container of the current box.
-	/// @param[in] position The position property of the current box.
-	/// @return The containing block box and size, possibly indefinite (represented by negative size) along one or both axes.
-	static ContainingBlock GetContainingBlock(ContainerBox* parent_container, Style::Position position);
 
 	/// Builds margins of a Box, and resolves any auto width or height for non-inline elements. The height may be left unresolved if it depends on the
 	/// element's children.
