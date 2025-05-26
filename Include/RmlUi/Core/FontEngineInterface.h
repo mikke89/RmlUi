@@ -74,6 +74,11 @@ public:
 	/// @note The debugger plugin will load its embedded font faces through this method using the family name 'rmlui-debugger-font'.
 	virtual bool LoadFontFace(Span<const byte> data, int face_index, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
 
+	/// Return if any face of the font family is loaded.
+	/// @param[in] family The desired font family.
+	/// @return True if any face of the font family is loaded, false otherwise.
+	virtual bool IsFontFamilyLoaded(const String& family);
+
 	/// Called by RmlUi when a font configuration is resolved for an element. Should return a handle that
 	/// can later be used to resolve properties of the face, and generate string geometry to be rendered.
 	/// @param[in] family The family of the desired font handle.

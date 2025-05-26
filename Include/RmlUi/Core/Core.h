@@ -150,6 +150,10 @@ RMLUICORE_API bool LoadFontFace(const String& file_path, bool fallback_face = fa
 /// @lifetime The pointed to 'data' must remain available until after the call to Rml::Shutdown.
 RMLUICORE_API bool LoadFontFace(Span<const byte> data, const String& family, Style::FontStyle style,
 	Style::FontWeight weight = Style::FontWeight::Auto, bool fallback_face = false, int face_index = 0);
+/// Return if any face of the font family is loaded.
+/// @param[in] family The desired font family.
+/// @return True if any face of the font family is loaded, false otherwise.
+RMLUICORE_API bool IsFontFamilyLoaded(const String& family);
 
 /// Registers a generic RmlUi plugin.
 RMLUICORE_API void RegisterPlugin(Plugin* plugin);

@@ -366,6 +366,11 @@ bool LoadFontFace(Span<const byte> data, const String& family, Style::FontStyle 
 	return font_interface->LoadFontFace(data, face_index, family, style, weight, fallback_face);
 }
 
+bool IsFontFamilyLoaded(const String& family)
+{
+	return font_interface->IsFontFamilyLoaded(family);
+}
+
 void RegisterPlugin(Plugin* plugin)
 {
 	if (initialised)

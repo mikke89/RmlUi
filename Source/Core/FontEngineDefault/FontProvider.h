@@ -65,6 +65,9 @@ public:
 	/// Adds a new font face from memory.
 	static bool LoadFontFace(Span<const byte> data, int face_index, const String& font_family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face);
 
+	/// Return if any face of the font family is loaded.
+	static bool IsFontFamilyLoaded(const String& family);
+
 	/// Return the number of fallback font faces.
 	static int CountFallbackFontFaces();
 

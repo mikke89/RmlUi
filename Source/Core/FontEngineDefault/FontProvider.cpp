@@ -229,6 +229,14 @@ bool FontProvider::LoadFontFace(Span<const byte> data, int face_index, bool fall
 	return true;
 }
 
+bool FontProvider::IsFontFamilyLoaded(const String& family)
+{
+	RMLUI_ASSERTMSG(family == StringUtilities::ToLower(family), "Font family name must be converted to lowercase before entering here.");
+
+	FontFamilyMap& families = Get().font_families;
+	return (families.find(family) != families.end());
+}
+
 bool FontProvider::AddFace(FontFaceHandleFreetype face, const String& family, Style::FontStyle style, Style::FontWeight weight, bool fallback_face,
 	UniquePtr<byte[]> face_memory)
 {
