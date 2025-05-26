@@ -122,9 +122,14 @@ Vector2f Box::GetFrameSize(BoxArea area) const
 	};
 }
 
+bool Box::EqualAreaEdges(const Box& other) const
+{
+	return memcmp(area_edges, other.area_edges, sizeof(area_edges)) == 0;
+}
+
 bool Box::operator==(const Box& rhs) const
 {
-	return content == rhs.content && memcmp(area_edges, rhs.area_edges, sizeof(area_edges)) == 0;
+	return content == rhs.content && EqualAreaEdges(rhs);
 }
 
 bool Box::operator!=(const Box& rhs) const

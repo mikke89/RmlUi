@@ -525,32 +525,48 @@ void ElementDocument::UpdateLayout()
 		RMLUI_ZoneScoped;
 		RMLUI_ZoneText(source_url.c_str(), source_url.size());
 
-		Vector2f containing_block(0, 0);
-		if (GetParentNode() != nullptr)
-			containing_block = GetParentNode()->GetBox().GetSize();
-
+		bool force_full_document_layout = false;
 		bool any_layout_updates = false;
 
 		ElementUtilities::BreadthFirstSearch(this, [&](Element* element) {
 			LayoutNode* layout_node = element->GetLayoutNode();
-			if (layout_node->IsDirty())
-			{
-				RMLUI_ASSERTMSG(layout_node->IsLayoutBoundary(),
-					"Dirty layout should have propagated to the closest layout boundary during Element::Update().")
-				if (element->GetOwnerDocument() != this)
-					Log::Message(Log::LT_INFO, "Doing partial layout update on element: %s", element->GetAddress().c_str());
+			if (!layout_node->IsDirty())
+				return ElementUtilities::CallbackControlFlow::Continue;
 
-				// TODO: Use correct containing block
-				// TODO: Check if size changed, such that we need to do a layout update in its parent.
-				LayoutEngine::FormatElement(element, containing_block);
-				any_layout_updates = true;
-				return ElementUtilities::CallbackControlFlow::SkipChildren;
+			RMLUI_ASSERTMSG(layout_node->IsLayoutBoundary(),
+				"Dirty layout should have propagated to the closest layout boundary during Element::Update().")
+			any_layout_updates = true;
+
+			const Optional<CommittedLayout>& committed_layout = layout_node->GetCommittedLayout();
+			if (!committed_layout)
+			{
+				if (element->GetOwnerDocument() != this)
+					Log::Message(Log::LT_INFO, "Forcing full layout update due to element: %s", element->GetAddress().c_str());
+				force_full_document_layout = true;
+				return ElementUtilities::CallbackControlFlow::Break;
 			}
-			return ElementUtilities::CallbackControlFlow::Continue;
+
+			if (element->GetOwnerDocument() != this)
+				Log::Message(Log::LT_INFO, "Doing partial layout update on element: %s", element->GetAddress().c_str());
+
+			// TODO: In some cases, we need to check if size changed, such that we need to do a layout update in its parent.
+			LayoutEngine::FormatElement(element, committed_layout->containing_block_size,
+				committed_layout->absolutely_positioning_containing_block_size);
+
+			return ElementUtilities::CallbackControlFlow::SkipChildren;
 		});
 
 		if (!any_layout_updates)
 			Log::Message(Log::LT_INFO, "Didn't update layout on anything for document: %s", GetAddress().c_str());
+
+		if (force_full_document_layout)
+		{
+			Vector2f containing_block;
+			if (Element* parent = GetParentNode())
+				containing_block = parent->GetBox().GetSize();
+
+			LayoutEngine::FormatElement(this, containing_block, containing_block);
+		}
 
 		// Ignore dirtied layout during document formatting. Layouting must not require re-iteration.
 		// In particular, scrollbars being enabled may set the dirty flag, but this case is already handled within the layout engine.

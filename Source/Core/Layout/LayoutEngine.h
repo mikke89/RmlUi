@@ -46,7 +46,8 @@ public:
 	/// Formats the contents for a root-level element, usually a document, or a replaced element with custom formatting.
 	/// @param[in] element The element to lay out.
 	/// @param[in] containing_block The size of the containing block.
-	static void FormatElement(Element* element, Vector2f containing_block);
+	/// @param[in] absolutely_positioning_containing_block The size of the absolutely positioning containing block.
+	static void FormatElement(Element* element, Vector2f containing_block, Vector2f absolutely_positioning_containing_block);
 };
 
 } // namespace Rml

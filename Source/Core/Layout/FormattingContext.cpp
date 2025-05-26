@@ -36,6 +36,7 @@
 #include "FormattingContextDebug.h"
 #include "LayoutBox.h"
 #include "LayoutDetails.h"
+#include "LayoutNode.h"
 #include "ReplacedFormattingContext.h"
 #include "TableFormattingContext.h"
 
@@ -97,6 +98,22 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	}
 #endif
 
+	const bool is_under_max_content_constraint = parent_container->IsMaxContentConstraint();
+	if (type != FormattingContextType::None && !is_under_max_content_constraint)
+	{
+		LayoutNode* layout_node = element->GetLayoutNode();
+		if (layout_node->CommittedLayoutMatches(parent_container->GetContainingBlockSize(Style::Position::Static),
+				parent_container->GetContainingBlockSize(Style::Position::Static), override_initial_box))
+		{
+			Log::Message(Log::LT_DEBUG, "Layout cache match on element: %s", element->GetAddress().c_str());
+			// TODO: Construct a new CachedContainer and return that.
+			// TODO: How to deal with ShrinkToFitWidth, in particular for the returned box? Store it in the LayoutNode?
+			// Maybe best not to use this committed layout at all during max-content layouting. Instead, skip this here,
+			// return zero in the CacheContainerBox, and make a separate LayoutNode cache for shrink-to-fit width that
+			// is fetched in LayoutDetails::ShrinkToFitWidth().
+		}
+	}
+
 	UniquePtr<LayoutBox> layout_box;
 	switch (type)
 	{
@@ -105,6 +122,13 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	case FormattingContextType::Flex: layout_box = FlexFormattingContext::Format(parent_container, element, override_initial_box); break;
 	case FormattingContextType::Replaced: layout_box = ReplacedFormattingContext::Format(parent_container, element, override_initial_box); break;
 	case FormattingContextType::None: break;
+	}
+
+	if (layout_box && !is_under_max_content_constraint)
+	{
+		LayoutNode* layout_node = element->GetLayoutNode();
+		layout_node->CommitLayout(parent_container->GetContainingBlockSize(Style::Position::Static),
+			parent_container->GetContainingBlockSize(Style::Position::Absolute), override_initial_box);
 	}
 
 #ifdef RMLUI_DEBUG

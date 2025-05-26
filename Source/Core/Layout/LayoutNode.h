@@ -29,6 +29,8 @@
 #ifndef RMLUI_CORE_LAYOUT_LAYOUTNODE_H
 #define RMLUI_CORE_LAYOUT_LAYOUTNODE_H
 
+#include "../../../Include/RmlUi/Core/Box.h"
+#include "../../../Include/RmlUi/Core/Element.h"
 #include "../../../Include/RmlUi/Core/Types.h"
 
 namespace Rml {
@@ -55,6 +57,13 @@ inline DirtyLayoutType operator&(DirtyLayoutType lhs, DirtyLayoutType rhs)
 	return DirtyLayoutType(T(lhs) & T(rhs));
 }
 
+struct CommittedLayout {
+	Vector2f containing_block_size;
+	Vector2f absolutely_positioning_containing_block_size;
+
+	Optional<Box> override_box;
+};
+
 /*
     A LayoutNode TODO
 */
@@ -72,6 +81,48 @@ public:
 	bool IsDirty() const { return dirty_flag != DirtyLayoutType::None; }
 	bool IsSelfDirty() const { return !(dirty_flag == DirtyLayoutType::None || dirty_flag == DirtyLayoutType::Child); }
 
+	void CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box)
+	{
+		committed_layout.emplace(CommittedLayout{
+			containing_block_size,
+			absolutely_positioning_containing_block_size,
+			override_box ? Optional<Box>(*override_box) : Optional<Box>(),
+		});
+		ClearDirty();
+	}
+
+	bool CommittedLayoutMatches(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box) const
+	{
+		if (IsDirty())
+			return false;
+		if (!committed_layout.has_value())
+			return false;
+		if (committed_layout->containing_block_size != containing_block_size ||
+			committed_layout->absolutely_positioning_containing_block_size != absolutely_positioning_containing_block_size)
+			return false;
+
+		if (!override_box)
+			return !committed_layout->override_box.has_value();
+
+		const Box& compare_box = committed_layout->override_box.has_value() ? *committed_layout->override_box : element->GetBox();
+		if (!override_box->EqualAreaEdges(*committed_layout->override_box))
+			return false;
+
+		if (override_box->GetSize() == compare_box.GetSize())
+			return true;
+
+		// Lastly, if we have an indefinite size on the committed box, see if the layed-out size matches the input override box.
+		Vector2f compare_size = compare_box.GetSize();
+		if (compare_size.x < 0.f)
+			compare_size.x = element->GetBox().GetSize().x;
+		if (compare_size.y < 0.f)
+			compare_size.y = element->GetBox().GetSize().y;
+
+		return override_box->GetSize() == compare_size;
+	}
+
+	const Optional<CommittedLayout>& GetCommittedLayout() const { return committed_layout; }
+
 	// A.k.a. reflow root.
 	bool IsLayoutBoundary() const;
 
@@ -86,6 +137,8 @@ private:
 
 	// Store this for partial layout updates / reflow. If this changes, always do layout again, regardless of any cache.
 	Vector2f containing_block;
+
+	Optional<CommittedLayout> committed_layout;
 };
 
 } // namespace Rml
