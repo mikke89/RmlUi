@@ -48,7 +48,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 	ElementScroll* element_scroll = element->GetElementScroll();
 	const ComputedValues& computed = element->GetComputedValues();
 
-	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent_container, element->GetPosition()).size;
+	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
 	RMLUI_ASSERT(containing_block.x >= 0.f);
 
 	// Build the initial box as specified by the flex's style, as if it was a normal block element.
@@ -285,8 +285,7 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		}
 		else if (computed.position() == Style::Position::Absolute || computed.position() == Style::Position::Fixed)
 		{
-			ContainerBox* absolute_containing_block = LayoutDetails::GetContainingBlock(flex_container_box, computed.position()).container;
-			absolute_containing_block->AddAbsoluteElement(element, {}, element_flex);
+			flex_container_box->AddAbsoluteElement(element, {}, element_flex);
 			continue;
 		}
 		else if (computed.position() == Style::Position::Relative)

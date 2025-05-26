@@ -170,54 +170,6 @@ void LayoutDetails::GetDefiniteMinMaxHeight(float& min_height, float& max_height
 	}
 }
 
-ContainingBlock LayoutDetails::GetContainingBlock(ContainerBox* parent_container, const Style::Position position)
-{
-	RMLUI_ASSERT(parent_container);
-	using Style::Position;
-
-	ContainerBox* container = parent_container;
-	BoxArea area = BoxArea::Content;
-
-	// For absolutely positioned boxes we look for the first positioned ancestor. We deviate from the CSS specs by using
-	// the same rules for fixed boxes, as that is particularly helpful on handles and other widgets that should not
-	// scroll with the window. This is a common design pattern in target applications for this library, although this
-	// behavior may be reconsidered in the future.
-	if (position == Position::Absolute || position == Position::Fixed)
-	{
-		area = BoxArea::Padding;
-
-		while (container->GetParent() && !container->IsAbsolutePositioningContainingBlock())
-			container = container->GetParent();
-	}
-
-	const Box* box = container->GetIfBox();
-	if (!box)
-	{
-		RMLUI_ERROR;
-		return {container, {}};
-	}
-
-	Vector2f containing_block = box->GetSize(area);
-
-	if (position == Position::Static || position == Position::Relative)
-	{
-		// For static elements we subtract the scrollbar size so that elements normally don't overlap their parent's
-		// scrollbars. In CSS, this would also be done for absolutely positioned elements, we might want to copy that
-		// behavior in the future. If so, we would also need to change the element offset behavior, and ideally also
-		// make positioned boxes contribute to the scrollable area.
-		if (Element* element = container->GetElement())
-		{
-			ElementScroll* element_scroll = element->GetElementScroll();
-			if (containing_block.x >= 0.f)
-				containing_block.x = Math::Max(containing_block.x - element_scroll->GetScrollbarSize(ElementScroll::VERTICAL), 0.f);
-			if (containing_block.y >= 0.f)
-				containing_block.y = Math::Max(containing_block.y - element_scroll->GetScrollbarSize(ElementScroll::HORIZONTAL), 0.f);
-		}
-	}
-
-	return {container, containing_block};
-}
-
 void LayoutDetails::BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f max_size, Vector2f containing_block, Element* element,
 	BuildBoxMode box_context, bool replaced_element)
 {

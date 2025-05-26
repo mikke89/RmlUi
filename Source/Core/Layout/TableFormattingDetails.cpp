@@ -289,8 +289,7 @@ void TableGrid::PushRow(Element* element_row, ElementList cell_elements, TableWr
 		const Style::Position cell_position = element_cell->GetPosition();
 		if (cell_position == Style::Position::Absolute || cell_position == Style::Position::Fixed)
 		{
-			ContainerBox* containing_box = LayoutDetails::GetContainingBlock(&table_wrapper, cell_position).container;
-			containing_box->AddAbsoluteElement(element_cell, {}, table_wrapper.GetElement());
+			table_wrapper.AddAbsoluteElement(element_cell, {}, table_wrapper.GetElement());
 		}
 		else
 		{

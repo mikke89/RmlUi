@@ -122,7 +122,7 @@ UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_contain
 	RMLUI_ZoneName(name.c_str(), name.size());
 #endif
 
-	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent_container, element->GetPosition()).size;
+	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
 
 	Box box;
 	if (override_initial_box)
@@ -164,7 +164,7 @@ UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_contain
 bool BlockFormattingContext::FormatBlockBox(BlockContainer* parent_container, Element* element)
 {
 	RMLUI_ZoneScopedC(0x2F4F4F);
-	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent_container, element->GetPosition()).size;
+	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
 
 	Box box;
 	LayoutDetails::BuildBox(box, containing_block, element);
@@ -192,7 +192,7 @@ bool BlockFormattingContext::FormatBlockBox(BlockContainer* parent_container, El
 bool BlockFormattingContext::FormatInlineBox(BlockContainer* parent_container, Element* element)
 {
 	RMLUI_ZoneScopedC(0x3F6F6F);
-	const Vector2f containing_block = LayoutDetails::GetContainingBlock(parent_container, element->GetPosition()).size;
+	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
 
 	Box box;
 	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::Inline);
@@ -238,8 +238,7 @@ bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_co
 	if (position_property == Style::Position::Absolute || position_property == Style::Position::Fixed)
 	{
 		const Vector2f static_position = parent_container->GetOpenStaticPosition(display) - parent_container->GetPosition();
-		ContainingBlock containing_block = LayoutDetails::GetContainingBlock(parent_container, position_property);
-		containing_block.container->AddAbsoluteElement(element, static_position, parent_container->GetElement());
+		parent_container->AddAbsoluteElement(element, static_position, parent_container->GetElement());
 		return true;
 	}
 
