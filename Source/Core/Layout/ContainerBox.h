@@ -96,6 +96,8 @@ protected:
 	// Set the element's baseline (proxy for private access to Element).
 	void SetElementBaseline(float element_baseline);
 
+	int CountAbsolutelyPositionedBoxes() const { return (int)absolute_elements.size(); }
+
 	// The element this box represents, if any.
 	Element* const element;
 
@@ -132,6 +134,8 @@ public:
 
 	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;
+
+	using ContainerBox::CountAbsolutelyPositionedBoxes;
 
 private:
 	Box box;

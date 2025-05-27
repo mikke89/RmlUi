@@ -48,6 +48,13 @@ void LayoutEngine::FormatElement(Element* element, Vector2f containing_block, Ve
 		Log::Message(Log::LT_ERROR, "Error while formatting element: %s", element->GetAddress().c_str());
 	}
 
+	if (int num_absolute_boxes = absolute_root.CountAbsolutelyPositionedBoxes(); num_absolute_boxes != 0)
+	{
+		// In the end, this might be fine, but needs further investigation.
+		Log::Message(Log::LT_ERROR, "%d absolutely positioned box(es) not closed, while formatting: %s", num_absolute_boxes,
+			element->GetAddress().c_str());
+	}
+
 	{
 		RMLUI_ZoneScopedN("CommitLayoutRecursive");
 		element->CommitLayoutRecursive();
