@@ -39,6 +39,12 @@ void LayoutNode::DirtyUpToClosestLayoutBoundary()
 	if (!IsSelfDirty())
 		return;
 
+	// Later on, we might expand the definition of layout boundaries from just absolutely positioned elements. For
+	// example, for flexible boxes, we can make them conditional, in the sense that its parent layout boundary needs to
+	// be layed-out again if (and only if) the flex container changes size after its next layout.
+	if (IsLayoutBoundary())
+		return;
+
 	for (Element* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
 	{
 		LayoutNode* parent_node = parent->GetLayoutNode();
