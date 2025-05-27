@@ -121,10 +121,10 @@ bool ContainerBox::IsScrollContainer() const
 	return LayoutDetails::IsScrollContainer(overflow_x, overflow_y);
 }
 
-bool ContainerBox::IsMaxContentConstraint() const
+bool ContainerBox::IsUnderMaxContentConstraint() const
 {
 	if (parent_container)
-		return parent_container->IsMaxContentConstraint();
+		return parent_container->IsUnderMaxContentConstraint();
 	// TODO: Very hacky
 	if (const Box* box = GetIfBox())
 		return box->GetSize().x >= 10'000.f;
@@ -380,6 +380,27 @@ float TableWrapper::GetShrinkToFitWidth() const
 String TableWrapper::DebugDumpTree(int depth) const
 {
 	return String(depth * 2, ' ') + "TableWrapper" + " | " + LayoutDetails::GetDebugElementName(element);
+}
+
+bool CachedContainer::GetBaselineOfLastLine(float& out_baseline) const
+{
+	if (baseline_of_last_line.has_value())
+	{
+		out_baseline = *baseline_of_last_line;
+		return true;
+	}
+	return false;
+}
+
+float CachedContainer::GetShrinkToFitWidth() const
+{
+	RMLUI_ERRORMSG("Internal error: CachedContainer should not be used under a max-content constraint.");
+	return 0.f;
+}
+
+String CachedContainer::DebugDumpTree(int depth) const
+{
+	return String(depth * 2, ' ') + "CachedContainer" + " | " + LayoutDetails::GetDebugElementName(element);
 }
 
 } // namespace Rml

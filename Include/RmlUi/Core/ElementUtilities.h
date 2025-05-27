@@ -172,6 +172,34 @@ public:
 				search_queue.push(element->GetChild(i));
 		}
 	}
+
+	template <typename Func>
+	static CallbackControlFlow VisitElementsDepthOrder(Element* element, Func&& func, int tree_depth = 0)
+	{
+		if constexpr (std::is_same_v<std::invoke_result_t<Func, Element*, int>, CallbackControlFlow>)
+		{
+			const CallbackControlFlow control_flow = func(element, tree_depth);
+			if (control_flow == CallbackControlFlow::Break)
+				return CallbackControlFlow::Break;
+			if (control_flow == CallbackControlFlow::SkipChildren)
+				return CallbackControlFlow::Continue;
+		}
+		else
+		{
+			func(element, tree_depth);
+		}
+
+		const int num_children = element->GetNumChildren();
+		for (int i = 0; i < num_children; i++)
+		{
+			const CallbackControlFlow control_flow = VisitElementsDepthOrder(element->GetChild(i), func, tree_depth + 1);
+			if (control_flow == CallbackControlFlow::Break)
+				return control_flow;
+			RMLUI_ASSERT(control_flow != CallbackControlFlow::SkipChildren);
+		}
+
+		return CallbackControlFlow::Continue;
+	}
 };
 
 } // namespace Rml

@@ -39,7 +39,7 @@ namespace Rml {
 */
 class LayoutBox {
 public:
-	enum class Type { Root, BlockContainer, InlineContainer, FlexContainer, TableWrapper, Replaced };
+	enum class Type { Root, BlockContainer, InlineContainer, FlexContainer, TableWrapper, Replaced, CachedContainer };
 
 	virtual ~LayoutBox() = default;
 

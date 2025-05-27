@@ -107,7 +107,7 @@ String FormatIndependentDebugTracker::ToString() const
 
 		if (entry.layout)
 		{
-			result += newline + "|   Layout results:";
+			result += newline + "|   Layout results" + (entry.layout->from_cache ? " (cached)" : "") + ":";
 			result += newline + "|       Visible overflow: " + Rml::ToString(entry.layout->visible_overflow_size.x) + " x " +
 				Rml::ToString(entry.layout->visible_overflow_size.y);
 

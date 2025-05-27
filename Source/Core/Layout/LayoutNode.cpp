@@ -34,15 +34,18 @@
 
 namespace Rml {
 
-LayoutNode* LayoutNode::GetClosestLayoutBoundary() const
+void LayoutNode::DirtyUpToClosestLayoutBoundary()
 {
+	if (!IsSelfDirty())
+		return;
+
 	for (Element* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
 	{
 		LayoutNode* parent_node = parent->GetLayoutNode();
+		parent_node->SetDirty(DirtyLayoutType::Child);
 		if (parent_node->IsLayoutBoundary())
-			return parent_node;
+			break;
 	}
-	return nullptr;
 }
 
 bool LayoutNode::IsLayoutBoundary() const

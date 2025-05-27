@@ -52,6 +52,7 @@ public:
 		Optional<Box> override_box;
 		FormattingContextType type;
 		struct LayoutResults {
+			bool from_cache;
 			Vector2f visible_overflow_size;
 			Optional<Box> box;
 		};
