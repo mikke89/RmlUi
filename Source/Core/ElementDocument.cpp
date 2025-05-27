@@ -516,6 +516,13 @@ void ElementDocument::UpdateDocument()
 	UpdatePosition();
 }
 
+void ElementDocument::UpdatePropertiesForDebug()
+{
+	const float dp_ratio = (context ? context->GetDensityIndependentPixelRatio() : 1.0f);
+	const Vector2f vp_dimensions = (context ? Vector2f(context->GetDimensions()) : Vector2f(1.0f));
+	Update(dp_ratio, vp_dimensions);
+}
+
 void ElementDocument::UpdateLayout()
 {
 	// Note: Carefully consider when to call this function for performance reasons.
@@ -524,15 +531,6 @@ void ElementDocument::UpdateLayout()
 	{
 		RMLUI_ZoneScoped;
 		RMLUI_ZoneText(source_url.c_str(), source_url.size());
-
-		String tree_dirty_state;
-		ElementUtilities::VisitElementsDepthOrder(this, [&](Element* element, int tree_depth) {
-			tree_dirty_state += '\n' + String(size_t(4 * tree_depth), ' ');
-			tree_dirty_state += CreateString("%s: Dirty: %d  Dirty Self: %d", element->GetAddress().c_str(), element->GetLayoutNode()->IsDirty(),
-				element->GetLayoutNode()->IsSelfDirty());
-		});
-
-		Log::Message(Log::LT_INFO, "ElementDocument::UpdateLayout - Tree dirty state:\n%s\n\n", tree_dirty_state.c_str());
 
 		bool force_full_document_layout = false;
 		bool any_layout_updates = false;

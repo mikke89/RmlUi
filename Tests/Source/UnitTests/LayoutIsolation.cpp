@@ -27,6 +27,7 @@
  */
 
 #include "../../../Source/Core/Layout/FormattingContextDebug.h"
+#include "../../../Source/Core/Layout/LayoutNode.h"
 #include "../Common/TestsShell.h"
 #include "../Common/TypesToString.h"
 #include <RmlUi/Core/Context.h>
@@ -34,9 +35,66 @@
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/ElementText.h>
+#include <RmlUi/Core/ElementUtilities.h>
 #include <doctest.h>
 
 using namespace Rml;
+
+struct ElementLayoutInfo {
+	ElementLayoutInfo(int tree_depth, const String& address, const Box& box, Vector2f absolute_offset) :
+		tree_depth(tree_depth), address(address), box(box), absolute_offset(absolute_offset)
+	{}
+
+	int tree_depth;
+	String address;
+	Box box;
+	Vector2f absolute_offset;
+
+	bool operator==(const ElementLayoutInfo& other) const
+	{
+		return tree_depth == other.tree_depth && address == other.address && box == other.box && absolute_offset == other.absolute_offset;
+	}
+	bool operator!=(const ElementLayoutInfo& other) const { return !(*this == other); }
+
+	String ToString() const
+	{
+		return String(size_t(4 * tree_depth), ' ') +
+			CreateString("%s :: box = %g x %g (outer %g x %g) :: absolute_offset = %g x %g", address.c_str(), box.GetSize().x, box.GetSize().y,
+				box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin), box.GetSizeAcross(BoxDirection::Vertical, BoxArea::Margin),
+				absolute_offset.x, absolute_offset.y);
+	}
+};
+
+static Vector<ElementLayoutInfo> CaptureLayoutTree(Element* root_element)
+{
+	Vector<ElementLayoutInfo> layout_info_list;
+	ElementUtilities::VisitElementsDepthOrder(root_element, [&](Element* element, int tree_depth) {
+		layout_info_list.emplace_back(tree_depth, element->GetAddress(false, false), element->GetBox(), element->GetAbsoluteOffset());
+	});
+	return layout_info_list;
+}
+
+static void LogLayoutTree(const Vector<ElementLayoutInfo>& layout_info_list)
+{
+	String message = "Element layout tree:\n";
+	for (const auto& layout_info : layout_info_list)
+		message += layout_info.ToString() + "\n";
+
+	Rml::Log::Message(Rml::Log::LT_DEBUG, "%s", message.c_str());
+}
+
+static void LogDirtyLayoutTree(Element* root_element)
+{
+	String tree_dirty_state;
+	ElementUtilities::VisitElementsDepthOrder(root_element, [&](Element* element, int tree_depth) {
+		tree_dirty_state += String(size_t(4 * tree_depth), ' ');
+		tree_dirty_state += CreateString("%s: Dirty: %d  Dirty Self: %d", element->GetAddress(false, tree_depth == 0).c_str(),
+			element->GetLayoutNode()->IsDirty(), element->GetLayoutNode()->IsSelfDirty());
+		tree_dirty_state += '\n';
+	});
+
+	Log::Message(Log::LT_INFO, "Dirty layout tree:\n%s\n", tree_dirty_state.c_str());
+}
 
 static const String document_isolation_rml = R"(
 <rml>
@@ -209,7 +267,7 @@ TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
 	document->Show();
 	TestsShell::RenderLoop();
 
-	Log::Message(Log::LT_INFO, "%s", format_independent_tracker.ToString().c_str());
+	format_independent_tracker.LogMessage();
 
 	const auto count_level_1 = std::count_if(format_independent_tracker.entries.begin(), format_independent_tracker.entries.end(),
 		[](const auto& entry) { return entry.level == 1; });
@@ -217,7 +275,8 @@ TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
 
 	// There are quite a few flex item format occurrences being performed currently. We might reduce the following
 	// number while working on the flex formatting engine. If this fails for any other reason, it is likely a bug.
-	CHECK(format_independent_tracker.entries.size() == 10);
+	CHECK(format_independent_tracker.CountEntries() == 10);
+	CHECK(format_independent_tracker.CountFormattedEntries() == 10);
 
 	document->Close();
 	TestsShell::ShutdownShell();
@@ -297,7 +356,7 @@ TEST_CASE("LayoutIsolation.Absolute")
 		TestsShell::RenderLoop();
 
 		CHECK(element->GetOffsetHeight() != initial_height);
-		CHECK(format_independent_tracker.entries.size() == 1);
+		CHECK(format_independent_tracker.CountFormattedEntries() == 1);
 	}
 
 	SUBCASE("Modify absolute width")
@@ -308,11 +367,17 @@ TEST_CASE("LayoutIsolation.Absolute")
 		const float element_initial_width = element->GetOffsetWidth();
 
 		container->SetProperty("width", "300px");
+
+		LogDirtyLayoutTree(document);
+		document->UpdatePropertiesForDebug();
+		LogDirtyLayoutTree(document);
+
 		TestsShell::RenderLoop();
 
 		CHECK(container->GetOffsetWidth() != container_initial_width);
 		CHECK(element->GetOffsetWidth() != element_initial_width);
-		CHECK(format_independent_tracker.entries.size() == 1);
+		CHECK(format_independent_tracker.CountEntries() == 1);
+		CHECK(format_independent_tracker.CountFormattedEntries() == 1);
 	}
 
 	SUBCASE("Modify document width")
@@ -337,12 +402,14 @@ TEST_CASE("LayoutIsolation.Absolute")
 		Element* element = document->GetElementById("normal-item");
 		const float initial_height = element->GetOffsetHeight();
 
+		LogLayoutTree(CaptureLayoutTree(document));
+
 		rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text that is long enough to cause line break");
 
 		TestsShell::RenderLoop();
 		CHECK(element->GetOffsetHeight() != initial_height);
 
-		CHECK(format_independent_tracker.entries.size() == 1);
+		CHECK(format_independent_tracker.CountFormattedEntries() == 1);
 	}
 
 	SUBCASE("Modify normal content and absolute content")
@@ -359,10 +426,10 @@ TEST_CASE("LayoutIsolation.Absolute")
 		CHECK(absolute_element->GetOffsetHeight() != absolute_initial_height);
 		CHECK(normal_element->GetOffsetHeight() != normal_initial_height);
 
-		CHECK(format_independent_tracker.entries.size() == 2);
+		CHECK(format_independent_tracker.CountFormattedEntries() == 2);
 	}
 
-	Log::Message(Log::LT_INFO, "%s", format_independent_tracker.ToString().c_str());
+	format_independent_tracker.LogMessage();
 
 	document->Close();
 	TestsShell::ShutdownShell();
