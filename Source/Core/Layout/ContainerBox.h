@@ -63,7 +63,7 @@ public:
 	/// Returns true if this container can have scrollbars enabled, as determined by its overflow properties.
 	bool IsScrollContainer() const;
 	/// Returns true if this container is being layed-out under max-content constraint.
-	bool IsMaxContentConstraint() const;
+	bool IsUnderMaxContentConstraint() const;
 
 	void AssertMatchesParentContainer(ContainerBox* container_box) const
 	{
@@ -183,19 +183,26 @@ private:
 };
 
 /**
-    A box which is produced when we matched the existing layout.
-
+    A box which is produced after matching the existing layout.
 */
 class CachedContainer final : public ContainerBox {
 public:
-	CachedContainer(Vector2f containing_block) : ContainerBox(Type::Root, nullptr, nullptr), box(containing_block) {}
-	CachedContainer(const Box& box) : ContainerBox(Type::Root, nullptr, nullptr), box(box) {}
+	CachedContainer(Element* element, ContainerBox* parent_container, const Box& box, Vector2f visible_overflow_size,
+		Optional<float> baseline_of_last_line) :
+		ContainerBox(Type::CachedContainer, element, parent_container), box(box), baseline_of_last_line(baseline_of_last_line)
+	{
+		SetVisibleOverflowSize(visible_overflow_size);
+	}
 
 	const Box* GetIfBox() const override { return &box; }
+	bool GetBaselineOfLastLine(float& out_baseline) const override;
+	float GetShrinkToFitWidth() const override;
+
 	String DebugDumpTree(int depth) const override;
 
 private:
-	Box box;
+	const Box& box;
+	Optional<float> baseline_of_last_line;
 };
 
 } // namespace Rml

@@ -209,7 +209,7 @@ TEST_CASE("LayoutIsolation.FullLayoutFormatIndependentCount")
 	document->Show();
 	TestsShell::RenderLoop();
 
-	Log::Message(Log::LT_DEBUG, "%s", format_independent_tracker.ToString().c_str());
+	Log::Message(Log::LT_INFO, "%s", format_independent_tracker.ToString().c_str());
 
 	const auto count_level_1 = std::count_if(format_independent_tracker.entries.begin(), format_independent_tracker.entries.end(),
 		[](const auto& entry) { return entry.level == 1; });
@@ -362,7 +362,7 @@ TEST_CASE("LayoutIsolation.Absolute")
 		CHECK(format_independent_tracker.entries.size() == 2);
 	}
 
-	Log::Message(Log::LT_DEBUG, "%s", format_independent_tracker.ToString().c_str());
+	Log::Message(Log::LT_INFO, "%s", format_independent_tracker.ToString().c_str());
 
 	document->Close();
 	TestsShell::ShutdownShell();

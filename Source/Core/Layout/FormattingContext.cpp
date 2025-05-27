@@ -98,37 +98,48 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 	}
 #endif
 
-	const bool is_under_max_content_constraint = parent_container->IsMaxContentConstraint();
+	UniquePtr<LayoutBox> layout_box;
+
+	const bool is_under_max_content_constraint = parent_container->IsUnderMaxContentConstraint();
 	if (type != FormattingContextType::None && !is_under_max_content_constraint)
 	{
 		LayoutNode* layout_node = element->GetLayoutNode();
 		if (layout_node->CommittedLayoutMatches(parent_container->GetContainingBlockSize(Style::Position::Static),
 				parent_container->GetContainingBlockSize(Style::Position::Static), override_initial_box))
 		{
-			Log::Message(Log::LT_DEBUG, "Layout cache match on element: %s", element->GetAddress().c_str());
-			// TODO: Construct a new CachedContainer and return that.
+			Log::Message(Log::LT_INFO, "Layout cache match on element: %s", element->GetAddress().c_str());
 			// TODO: How to deal with ShrinkToFitWidth, in particular for the returned box? Store it in the LayoutNode?
-			// Maybe best not to use this committed layout at all during max-content layouting. Instead, skip this here,
-			// return zero in the CacheContainerBox, and make a separate LayoutNode cache for shrink-to-fit width that
-			// is fetched in LayoutDetails::ShrinkToFitWidth().
+			//   Maybe best not to use this committed layout at all during max-content layouting. Instead, skip this here,
+			//   return zero in the CacheContainerBox, and make a separate LayoutNode cache for shrink-to-fit width that
+			//   is fetched in LayoutDetails::ShrinkToFitWidth().
+			layout_box = MakeUnique<CachedContainer>(element, parent_container, element->GetBox(),
+				layout_node->GetCommittedLayout()->visible_overflow_size, layout_node->GetCommittedLayout()->baseline_of_last_line);
 		}
 	}
 
-	UniquePtr<LayoutBox> layout_box;
-	switch (type)
+	if (!layout_box)
 	{
-	case FormattingContextType::Block: layout_box = BlockFormattingContext::Format(parent_container, element, override_initial_box); break;
-	case FormattingContextType::Table: layout_box = TableFormattingContext::Format(parent_container, element, override_initial_box); break;
-	case FormattingContextType::Flex: layout_box = FlexFormattingContext::Format(parent_container, element, override_initial_box); break;
-	case FormattingContextType::Replaced: layout_box = ReplacedFormattingContext::Format(parent_container, element, override_initial_box); break;
-	case FormattingContextType::None: break;
+		switch (type)
+		{
+		case FormattingContextType::Block: layout_box = BlockFormattingContext::Format(parent_container, element, override_initial_box); break;
+		case FormattingContextType::Table: layout_box = TableFormattingContext::Format(parent_container, element, override_initial_box); break;
+		case FormattingContextType::Flex: layout_box = FlexFormattingContext::Format(parent_container, element, override_initial_box); break;
+		case FormattingContextType::Replaced: layout_box = ReplacedFormattingContext::Format(parent_container, element, override_initial_box); break;
+		case FormattingContextType::None: break;
+		}
 	}
 
 	if (layout_box && !is_under_max_content_constraint)
 	{
+		Optional<float> baseline_of_last_line;
+		float baseline_of_last_line_value = 0.f;
+		if (layout_box->GetBaselineOfLastLine(baseline_of_last_line_value))
+			baseline_of_last_line = baseline_of_last_line_value;
+
 		LayoutNode* layout_node = element->GetLayoutNode();
 		layout_node->CommitLayout(parent_container->GetContainingBlockSize(Style::Position::Static),
-			parent_container->GetContainingBlockSize(Style::Position::Absolute), override_initial_box);
+			parent_container->GetContainingBlockSize(Style::Position::Absolute), override_initial_box, layout_box->GetVisibleOverflowSize(),
+			baseline_of_last_line);
 	}
 
 #ifdef RMLUI_DEBUG
@@ -137,7 +148,9 @@ UniquePtr<LayoutBox> FormattingContext::FormatIndependent(ContainerBox* parent_c
 		debug_tracker->current_stack_level -= 1;
 		if (layout_box)
 		{
+			const bool from_cache = (layout_box->GetType() == LayoutBox::Type::CachedContainer);
 			tracker_entry->layout = Optional<FormatIndependentDebugTracker::Entry::LayoutResults>({
+				from_cache,
 				layout_box->GetVisibleOverflowSize(),
 				layout_box->GetIfBox() ? Optional<Box>{*layout_box->GetIfBox()} : std::nullopt,
 			});

@@ -60,8 +60,10 @@ inline DirtyLayoutType operator&(DirtyLayoutType lhs, DirtyLayoutType rhs)
 struct CommittedLayout {
 	Vector2f containing_block_size;
 	Vector2f absolutely_positioning_containing_block_size;
-
 	Optional<Box> override_box;
+
+	Vector2f visible_overflow_size;
+	Optional<float> baseline_of_last_line;
 };
 
 /*
@@ -73,7 +75,7 @@ public:
 
 	LayoutNode(Element* element) : element(element) {}
 
-	LayoutNode* GetClosestLayoutBoundary() const;
+	void DirtyUpToClosestLayoutBoundary();
 
 	void ClearDirty() { dirty_flag = DirtyLayoutType::None; }
 	void SetDirty(DirtyLayoutType dirty_type) { dirty_flag = dirty_flag | dirty_type; }
@@ -81,12 +83,15 @@ public:
 	bool IsDirty() const { return dirty_flag != DirtyLayoutType::None; }
 	bool IsSelfDirty() const { return !(dirty_flag == DirtyLayoutType::None || dirty_flag == DirtyLayoutType::Child); }
 
-	void CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box)
+	void CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
+		Vector2f visible_overflow_size, Optional<float> baseline_of_last_line)
 	{
 		committed_layout.emplace(CommittedLayout{
 			containing_block_size,
 			absolutely_positioning_containing_block_size,
 			override_box ? Optional<Box>(*override_box) : Optional<Box>(),
+			visible_overflow_size,
+			baseline_of_last_line,
 		});
 		ClearDirty();
 	}

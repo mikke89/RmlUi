@@ -177,11 +177,7 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 	}
 
 	LayoutNode* layout_node = GetLayoutNode();
-	if (layout_node->IsSelfDirty())
-	{
-		if (LayoutNode* layout_boundary = layout_node->GetClosestLayoutBoundary())
-			layout_boundary->SetDirty(DirtyLayoutType::Child);
-	}
+	layout_node->DirtyUpToClosestLayoutBoundary();
 }
 
 void Element::UpdateProperties(const float dp_ratio, const Vector2f vp_dimensions)
