@@ -141,6 +141,9 @@ public:
 	/// has already been called after the change. This has a performance penalty, only call when necessary.
 	void UpdateDocument();
 
+	// TODO: Remove
+	void UpdatePropertiesForDebug();
+
 protected:
 	/// Repositions the document if necessary.
 	void OnPropertyChange(const PropertyIdSet& changed_properties) override;

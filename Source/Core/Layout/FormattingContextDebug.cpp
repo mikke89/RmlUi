@@ -138,6 +138,16 @@ void FormatIndependentDebugTracker::LogMessage() const
 	Log::Message(Log::LT_INFO, "%s", ToString().c_str());
 }
 
+int FormatIndependentDebugTracker::CountCachedEntries() const
+{
+	return (int)std::count_if(entries.begin(), entries.end(), [](const auto& entry) { return entry.layout.has_value() && entry.layout->from_cache; });
+}
+
+int FormatIndependentDebugTracker::CountFormattedEntries() const
+{
+	return (int)entries.size() - CountCachedEntries();
+}
+
 int FormatIndependentDebugTracker::CountEntries() const
 {
 	return (int)entries.size();

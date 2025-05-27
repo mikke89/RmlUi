@@ -67,6 +67,8 @@ public:
 	String ToString() const;
 	void LogMessage() const;
 	int CountEntries() const;
+	int CountCachedEntries() const;
+	int CountFormattedEntries() const;
 };
 
 #endif // RMLUI_DEBUG
