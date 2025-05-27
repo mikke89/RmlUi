@@ -540,8 +540,18 @@ void ElementDocument::UpdateLayout()
 			if (!layout_node->IsDirty())
 				return ElementUtilities::CallbackControlFlow::Continue;
 
-			RMLUI_ASSERTMSG(layout_node->IsLayoutBoundary(),
-				"Dirty layout should have propagated to the closest layout boundary during Element::Update().")
+			if (!layout_node->IsLayoutBoundary())
+			{
+				// Normally the dirty layout should have propagated to the closest layout boundary during
+				// Element::Update(), which then invokes formatting on that boundary element, and which again clears the
+				// dirty layout on this element. This didn't happen here, which may be caused by modifying the layout
+				// during layouting itself. For now, we simply skip this element and keep going. The element should
+				// normally be properly layed-out on the next context update.
+				// TODO: Might want to investigate this further.
+				Log::Message(Log::LT_INFO, "Dirty layout on non-layout boundary element: %s", element->GetAddress().c_str());
+				return ElementUtilities::CallbackControlFlow::Continue;
+			}
+
 			any_layout_updates = true;
 
 			const Optional<CommittedLayout>& committed_layout = layout_node->GetCommittedLayout();
@@ -563,9 +573,6 @@ void ElementDocument::UpdateLayout()
 			return ElementUtilities::CallbackControlFlow::SkipChildren;
 		});
 
-		if (!any_layout_updates)
-			Log::Message(Log::LT_INFO, "Didn't update layout on anything for document: %s", GetAddress().c_str());
-
 		if (force_full_document_layout)
 		{
 			Vector2f containing_block;
@@ -574,6 +581,9 @@ void ElementDocument::UpdateLayout()
 
 			LayoutEngine::FormatElement(this, containing_block, containing_block);
 		}
+
+		if (!any_layout_updates)
+			Log::Message(Log::LT_INFO, "Didn't make any layout updates on dirty document: %s", GetAddress().c_str());
 
 		// Ignore dirtied layout during document formatting. Layouting must not require re-iteration.
 		// In particular, scrollbars being enabled may set the dirty flag, but this case is already handled within the layout engine.
