@@ -56,6 +56,11 @@ bool ElementLottie::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 	return true;
 }
 
+bool ElementLottie::IsReplaced()
+{
+	return true;
+}
+
 void ElementLottie::EnsureSourceLoaded()
 {
 	if (animation_dirty)

@@ -50,6 +50,9 @@ public:
 	/// Returns the element's inherent size.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
 
+	/// Returns true if the element is replaced.
+	bool IsReplaced() override;
+
 	/// Loads the current source file if needed. This normally happens automatically during layouting.
 	void EnsureSourceLoaded();
 

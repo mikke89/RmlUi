@@ -61,6 +61,11 @@ bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 	return true;
 }
 
+bool ElementSVG::IsReplaced()
+{
+	return true;
+}
+
 void ElementSVG::EnsureSourceLoaded()
 {
 	UpdateCachedData();
