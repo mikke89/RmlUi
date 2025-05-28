@@ -58,7 +58,7 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 	if (override_initial_box)
 		box = *override_initial_box;
 	else
-		LayoutDetails::BuildBox(box, containing_block, element_table, BuildBoxMode::Block);
+		LayoutDetails::BuildBox(box, containing_block, element_table, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
 
 	TableFormattingContext context;
 	context.element_table = element_table;
@@ -99,8 +99,7 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 	if (table_content_size != initial_content_size)
 	{
 		// Perform this step to re-evaluate any auto margins.
-		LayoutDetails::BuildBoxSizeAndMargins(box, context.table_min_size, context.table_max_size, containing_block, element_table,
-			BuildBoxMode::Block, true);
+		LayoutDetails::BuildAutoMarginsForBlockBox(box, containing_block, element_table);
 	}
 
 	// Change the table baseline coordinates to the element baseline, which is defined as the distance from the element's bottom margin edge.

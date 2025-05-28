@@ -210,7 +210,7 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, float slider_
 
 	// Build the box for the containing slider element.
 	Box parent_box;
-	LayoutDetails::BuildBox(parent_box, containing_block, parent);
+	LayoutDetails::BuildBox(parent_box, containing_block, parent, BuildBoxMode::UnalignedBlock);
 	slider_length -= orientation == VERTICAL
 		? (parent_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Top) + parent_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Bottom))
 		: (parent_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Left) + parent_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Right));
@@ -224,7 +224,7 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, float slider_
 
 	// Generate the initial dimensions for the track. It'll need to be cut down to fit the arrows.
 	Box track_box;
-	LayoutDetails::BuildBox(track_box, parent_box.GetSize(), track);
+	LayoutDetails::BuildBox(track_box, parent_box.GetSize(), track, BuildBoxMode::Block);
 	content = track_box.GetSize();
 	content[length_axis] = slider_length -= orientation == VERTICAL
 		? (track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Top) + track_box.GetCumulativeEdge(BoxArea::Content, BoxEdge::Bottom))
@@ -238,7 +238,7 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, float slider_
 	for (int i = 0; i < 2; i++)
 	{
 		Box arrow_box;
-		LayoutDetails::BuildBox(arrow_box, parent_box.GetSize(), arrows[i]);
+		LayoutDetails::BuildBox(arrow_box, parent_box.GetSize(), arrows[i], BuildBoxMode::Block);
 
 		// Clamp the size to (0, 0).
 		Vector2f arrow_size = arrow_box.GetSize();
@@ -292,7 +292,7 @@ void WidgetScroll::FormatElements(const Vector2f containing_block, float slider_
 void WidgetScroll::FormatBar()
 {
 	Box bar_box;
-	LayoutDetails::BuildBox(bar_box, parent->GetBox().GetSize(), bar);
+	LayoutDetails::BuildBox(bar_box, parent->GetBox().GetSize(), bar, BuildBoxMode::Block);
 
 	const auto& computed = bar->GetComputedValues();
 

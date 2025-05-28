@@ -121,16 +121,6 @@ bool ContainerBox::IsScrollContainer() const
 	return LayoutDetails::IsScrollContainer(overflow_x, overflow_y);
 }
 
-bool ContainerBox::IsUnderMaxContentConstraint() const
-{
-	if (parent_container)
-		return parent_container->IsUnderMaxContentConstraint();
-	// TODO: Very hacky
-	if (const Box* box = GetIfBox())
-		return box->GetSize().x >= 10'000.f;
-	return false;
-}
-
 void ContainerBox::ClosePositionedElements()
 {
 	// Any relatively positioned elements that we act as containing block for may need to have their positions
@@ -184,8 +174,8 @@ void ContainerBox::SetElementBaseline(float element_baseline)
 	element->SetBaseline(element_baseline);
 }
 
-ContainerBox::ContainerBox(Type type, Element* element, ContainerBox* parent_container) :
-	LayoutBox(type), element(element), parent_container(parent_container)
+ContainerBox::ContainerBox(Type type, Element* element, ContainerBox* parent_container, const FormattingMode& formatting_mode) :
+	LayoutBox(type), element(element), formatting_mode(formatting_mode), parent_container(parent_container)
 {
 	bool is_absolute_positioning_containing_block = false;
 	if (element)
@@ -318,7 +308,8 @@ String RootBox::DebugDumpTree(int depth) const
 	return String(depth * 2, ' ') + "RootBox";
 }
 
-FlexContainer::FlexContainer(Element* element, ContainerBox* parent_container) : ContainerBox(Type::FlexContainer, element, parent_container)
+FlexContainer::FlexContainer(Element* element, ContainerBox* parent_container) :
+	ContainerBox(Type::FlexContainer, element, parent_container, parent_container->GetFormattingMode())
 {
 	RMLUI_ASSERT(element);
 }
@@ -341,7 +332,7 @@ float FlexContainer::GetShrinkToFitWidth() const
 		return box.GetSize().x;
 
 	// Infer shrink-to-fit width from the intrinsic width of the element.
-	return FlexFormattingContext::GetMaxContentSize(element).x;
+	return FlexFormattingContext::GetMaxContentSize(element, GetFormattingMode()).x;
 }
 
 String FlexContainer::DebugDumpTree(int depth) const
@@ -349,7 +340,8 @@ String FlexContainer::DebugDumpTree(int depth) const
 	return String(depth * 2, ' ') + "FlexContainer" + " | " + LayoutDetails::GetDebugElementName(element);
 }
 
-TableWrapper::TableWrapper(Element* element, ContainerBox* parent_container) : ContainerBox(Type::TableWrapper, element, parent_container)
+TableWrapper::TableWrapper(Element* element, ContainerBox* parent_container) :
+	ContainerBox(Type::TableWrapper, element, parent_container, parent_container->GetFormattingMode())
 {
 	RMLUI_ASSERT(element);
 }

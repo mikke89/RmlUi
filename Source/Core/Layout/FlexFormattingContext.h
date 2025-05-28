@@ -37,6 +37,7 @@ namespace Rml {
 class LayoutBox;
 class ContainerBox;
 class FlexContainer;
+struct FormattingMode;
 
 /*
     Formats a flex container element and its flex items according to flexible box (flexbox) layout rules.
@@ -47,7 +48,7 @@ public:
 	static UniquePtr<LayoutBox> Format(ContainerBox* parent_container, Element* element, const Box* override_initial_box);
 
 	/// Computes max-content size for a flex container.
-	static Vector2f GetMaxContentSize(Element* element);
+	static Vector2f GetMaxContentSize(Element* element, const FormattingMode& formatting_mode);
 
 private:
 	FlexFormattingContext() = default;

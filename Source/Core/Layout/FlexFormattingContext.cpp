@@ -56,7 +56,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 	if (override_initial_box)
 		box = *override_initial_box;
 	else
-		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::Block);
+		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
 
 	// Start with any auto-scrollbars off.
 	flex_container_box->ResetScrollbars(box);
@@ -115,11 +115,13 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 	return flex_container_box;
 }
 
-Vector2f FlexFormattingContext::GetMaxContentSize(Element* element)
+Vector2f FlexFormattingContext::GetMaxContentSize(Element* element, const FormattingMode& formatting_mode)
 {
+	RMLUI_ASSERT(formatting_mode.constraint == FormattingMode::Constraint::MaxContent);
+
 	// A large but finite number is used here, since layouting doesn't always work well with infinities.
 	const Vector2f infinity(10000.0f, 10000.0f);
-	RootBox root(infinity);
+	RootBox root(Box(infinity), formatting_mode);
 	auto flex_container_box = MakeUnique<FlexContainer>(element, &root);
 
 	FlexFormattingContext context;
@@ -347,7 +349,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 		}
 		else if (main_axis_horizontal)
 		{
-			item.inner_flex_base_size = LayoutDetails::GetShrinkToFitWidth(element, flex_content_containing_block);
+			item.inner_flex_base_size =
+				LayoutDetails::GetShrinkToFitWidth(element, flex_content_containing_block, flex_container_box->GetFormattingMode());
 		}
 		else
 		{
@@ -715,7 +718,8 @@ void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector
 				{
 					item.box.SetContent(Vector2f(content_size.x, GetInnerUsedMainSize(item)));
 					item.hypothetical_cross_size =
-						LayoutDetails::GetShrinkToFitWidth(item.element, flex_content_containing_block) + item.cross.sum_edges;
+						LayoutDetails::GetShrinkToFitWidth(item.element, flex_content_containing_block, flex_container_box->GetFormattingMode()) +
+						item.cross.sum_edges;
 				}
 				else
 				{

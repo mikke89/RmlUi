@@ -324,7 +324,7 @@ bool ElementUtilities::PositionElement(Element* element, Vector2f offset, Positi
 	containing_block.y -= parent->GetElementScroll()->GetScrollbarSize(ElementScroll::HORIZONTAL);
 
 	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element);
+	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::Block);
 	if (box.GetSize().y < 0.f)
 		box.SetContent(Vector2f(box.GetSize().x, containing_block.y));
 	element->SetBox(box);
