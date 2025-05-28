@@ -154,6 +154,7 @@ TEST_CASE("ElementHandle")
 
 		context->Update();
 		REQUIRE(target->GetBox().GetSize() == Vector2f(100, 100));
+		CHECK(target->GetAbsoluteOffset() == Vector2f(350, 350));
 
 		dispatch_mouse_event(EventId::Dragstart, handle, {0, 0});
 		dispatch_mouse_event(EventId::Drag, handle, {10, 10});
