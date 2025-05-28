@@ -128,7 +128,7 @@ UniquePtr<LayoutBox> BlockFormattingContext::Format(ContainerBox* parent_contain
 	if (override_initial_box)
 		box = *override_initial_box;
 	else
-		LayoutDetails::BuildBox(box, containing_block, element);
+		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
 
 	float min_height, max_height;
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
@@ -167,7 +167,7 @@ bool BlockFormattingContext::FormatBlockBox(BlockContainer* parent_container, El
 	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
 
 	Box box;
-	LayoutDetails::BuildBox(box, containing_block, element);
+	LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
 	float min_height, max_height;
 	LayoutDetails::GetDefiniteMinMaxHeight(min_height, max_height, element->GetComputedValues(), box, containing_block.y);
 

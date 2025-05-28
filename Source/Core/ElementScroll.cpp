@@ -66,7 +66,7 @@ void ElementScroll::EnableScrollbar(Orientation orientation, float element_width
 
 	// Determine the size of the scrollbar.
 	Box box;
-	LayoutDetails::BuildBox(box, Vector2f(element_width, element_width), scrollbars[orientation].element);
+	LayoutDetails::BuildBox(box, Vector2f(element_width, element_width), scrollbars[orientation].element, BuildBoxMode::UnalignedBlock);
 
 	if (orientation == VERTICAL)
 		scrollbars[orientation].size = box.GetSize(BoxArea::Margin).x;
@@ -191,7 +191,7 @@ void ElementScroll::FormatScrollbars()
 		CreateCorner();
 
 		Box corner_box;
-		LayoutDetails::BuildBox(corner_box, Vector2f(containing_block.x), corner);
+		LayoutDetails::BuildBox(corner_box, Vector2f(containing_block.x), corner, BuildBoxMode::UnalignedBlock);
 
 		corner_box.SetContent(Vector2f(scrollbars[VERTICAL].size, scrollbars[HORIZONTAL].size));
 		corner->SetBox(corner_box);

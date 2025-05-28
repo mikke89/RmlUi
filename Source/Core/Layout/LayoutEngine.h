@@ -47,7 +47,8 @@ public:
 	/// @param[in] element The element to lay out.
 	/// @param[in] containing_block The size of the containing block.
 	/// @param[in] absolutely_positioning_containing_block The size of the absolutely positioning containing block.
-	static void FormatElement(Element* element, Vector2f containing_block, Vector2f absolutely_positioning_containing_block);
+	/// @param[in] allow_cache True to allow skipping layout of elements that match the current layout.
+	static void FormatElement(Element* element, Vector2f containing_block, Vector2f absolutely_positioning_containing_block, bool allow_cache = true);
 };
 
 } // namespace Rml

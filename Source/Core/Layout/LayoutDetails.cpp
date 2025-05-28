@@ -49,8 +49,10 @@ static inline float BorderSizeToContentSize(float border_size, float border_padd
 	return Math::Max(0.0f, border_size - border_padding_edges_size);
 }
 
-void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* element, BuildBoxMode box_context)
+void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* element, BuildBoxMode box_mode, const FormattingMode* formatting_mode)
 {
+	// A shrinkable block may start formatting, thus the current formatting mode must be provided.
+	RMLUI_ASSERT(box_mode != BuildBoxMode::ShrinkableBlock || formatting_mode != nullptr);
 	if (!element)
 	{
 		box.SetContent(containing_block);
@@ -84,7 +86,7 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 
 	// Calculate the content area and constraints. 'auto' width and height are handled later.
 	// For inline non-replaced elements, width and height are ignored, so we can skip the calculations.
-	if (box_context == BuildBoxMode::Block || box_context == BuildBoxMode::UnalignedBlock || replaced_element)
+	if (box_mode == BuildBoxMode::Block || box_mode == BuildBoxMode::ShrinkableBlock || box_mode == BuildBoxMode::UnalignedBlock || replaced_element)
 	{
 		content_area.x = ResolveValueOr(computed.width(), containing_block.x, -1.f);
 		content_area.y = ResolveValueOr(computed.height(), containing_block.y, -1.f);
@@ -125,7 +127,8 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 	box.SetContent(content_area);
 
 	// Evaluate the margins, and width and height if they are auto.
-	BuildBoxSizeAndMargins(box, min_size, max_size, containing_block, element, box_context, replaced_element);
+	BuildBoxSizeAndMargins(box, min_size, max_size, containing_block, element, box_mode, replaced_element,
+		(box_mode == BuildBoxMode::ShrinkableBlock ? formatting_mode : nullptr));
 }
 
 void LayoutDetails::GetMinMaxWidth(float& min_width, float& max_width, const ComputedValues& computed, const Box& box, float containing_block_width)
@@ -170,12 +173,24 @@ void LayoutDetails::GetDefiniteMinMaxHeight(float& min_height, float& max_height
 	}
 }
 
+void LayoutDetails::BuildAutoMarginsForBlockBox(Box& box, Vector2f containing_block, Element* element)
+{
+	RMLUI_ASSERT(box.GetSize().x >= 0.f && box.GetSize().y >= 0.f);
+	const Vector2f initial_content_size = box.GetSize();
+
+	const Vector2f min_size = {0, 0};
+	const Vector2f max_size = {FLT_MAX, FLT_MAX};
+
+	BuildBoxSizeAndMargins(box, min_size, max_size, containing_block, element, BuildBoxMode::Block, true, nullptr);
+	RMLUI_ASSERT(box.GetSize() == initial_content_size);
+}
+
 void LayoutDetails::BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f max_size, Vector2f containing_block, Element* element,
-	BuildBoxMode box_context, bool replaced_element)
+	BuildBoxMode box_mode, bool replaced_element, const FormattingMode* formatting_mode)
 {
 	const ComputedValues& computed = element->GetComputedValues();
 
-	if (box_context == BuildBoxMode::Inline || box_context == BuildBoxMode::UnalignedBlock)
+	if (box_mode == BuildBoxMode::Inline || box_mode == BuildBoxMode::UnalignedBlock)
 	{
 		// For inline elements, their calculations are straightforward. No worrying about auto margins and dimensions, etc.
 		// Evaluate the margins. Any declared as 'auto' will resolve to 0.
@@ -187,12 +202,12 @@ void LayoutDetails::BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f
 	else
 	{
 		// The element is block, so we need to run the box through the ringer to potentially evaluate auto margins and dimensions.
-		BuildBoxWidth(box, computed, min_size.x, max_size.x, containing_block, element, replaced_element);
+		BuildBoxWidth(box, computed, min_size.x, max_size.x, containing_block, element, replaced_element, formatting_mode);
 		BuildBoxHeight(box, computed, min_size.y, max_size.y, containing_block.y);
 	}
 }
 
-float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_block)
+float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_block, const FormattingMode& current_formatting_mode)
 {
 	RMLUI_ASSERT(element);
 
@@ -222,11 +237,14 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 	const float max_content_constraint_width = containing_block.x + 10'000.f;
 	box.SetContent({max_content_constraint_width, box.GetSize().y});
 
+	FormattingMode formatting_mode = current_formatting_mode;
+	formatting_mode.constraint = FormattingMode::Constraint::MaxContent;
+
 	// First, format the element under the above-generated box. Then we ask the resulting box for its shrink-to-fit
 	// width. For block containers, this is essentially its largest line or child box.
 	// @performance. Some formatting can be simplified, e.g. absolute elements do not contribute to the shrink-to-fit
 	// width. Also, children of elements with a fixed width and height don't need to be formatted further.
-	RootBox root(Math::Max(containing_block, Vector2f(0.f)));
+	RootBox root(Box(Math::Max(containing_block, Vector2f(0.f))), formatting_mode);
 	UniquePtr<LayoutBox> layout_box = FormattingContext::FormatIndependent(&root, element, &box, FormattingContextType::Block);
 
 	float shrink_to_fit_width = layout_box->GetShrinkToFitWidth();
@@ -361,7 +379,7 @@ Vector2f LayoutDetails::CalculateSizeForReplacedElement(const Vector2f specified
 }
 
 void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, float min_width, float max_width, Vector2f containing_block,
-	Element* element, bool replaced_element, float override_shrink_to_fit_width)
+	Element* element, bool replaced_element, const FormattingMode* formatting_mode, float override_shrink_to_fit_width)
 {
 	RMLUI_ZoneScoped;
 
@@ -403,15 +421,15 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 	{
 		// Apply the shrink-to-fit algorithm here to find the width of the element.
 		// See CSS 2.1 section 10.3.7 for when this should be applied.
-		const bool shrink_to_fit = !replaced_element &&
+		const bool shrink_to_fit = formatting_mode != nullptr && !replaced_element &&
 			((computed.float_() != Style::Float::None) || (absolutely_positioned && inset_auto) ||
 				(computed.display() == Style::Display::InlineBlock || computed.display() == Style::Display::InlineFlex));
 
 		if (!shrink_to_fit)
 		{
 			// The width is set to whatever remains of the containing block.
-			content_area.x = containing_block.x - (GetInsetWidth() + box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding));
-			content_area.x = Math::Max(0.0f, content_area.x);
+			const float accumulated_edges = GetInsetWidth() + box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin, BoxArea::Padding);
+			content_area.x = Math::Max(containing_block.x - accumulated_edges, 0.f);
 		}
 		else if (override_shrink_to_fit_width >= 0)
 		{
@@ -419,7 +437,7 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		}
 		else
 		{
-			content_area.x = GetShrinkToFitWidth(element, containing_block);
+			content_area.x = GetShrinkToFitWidth(element, containing_block, *formatting_mode);
 			override_shrink_to_fit_width = content_area.x;
 		}
 	}
@@ -444,7 +462,7 @@ void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, floa
 		box.SetContent(content_area);
 
 		if (num_auto_margins > 0)
-			BuildBoxWidth(box, computed, min_width, max_width, containing_block, element, replaced_element, clamped_width);
+			BuildBoxWidth(box, computed, min_width, max_width, containing_block, element, replaced_element, formatting_mode, clamped_width);
 	}
 	else
 		box.SetContent(content_area);

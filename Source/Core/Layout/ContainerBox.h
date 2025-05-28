@@ -36,6 +36,16 @@
 
 namespace Rml {
 
+struct FormattingMode {
+	enum class Constraint : uint8_t {
+		None,
+		MaxContent,
+	};
+
+	Constraint constraint = Constraint::None;
+	bool allow_format_independent_cache = true;
+};
+
 /**
     Abstraction for layout boxes that can act as a containing block.
 
@@ -62,8 +72,8 @@ public:
 
 	/// Returns true if this container can have scrollbars enabled, as determined by its overflow properties.
 	bool IsScrollContainer() const;
-	/// Returns true if this container is being layed-out under max-content constraint.
-	bool IsUnderMaxContentConstraint() const;
+	/// Returns the currently active formatting mode for this container tree.
+	const FormattingMode& GetFormattingMode() const { return formatting_mode; }
 
 	void AssertMatchesParentContainer(ContainerBox* container_box) const
 	{
@@ -73,7 +83,7 @@ public:
 	Element* GetAbsolutePositioningContainingBlockElementForDebug() const { return absolute_positioning_containing_block->element; }
 
 protected:
-	ContainerBox(Type type, Element* element, ContainerBox* parent_container);
+	ContainerBox(Type type, Element* element, ContainerBox* parent_container, const FormattingMode& formatting_mode);
 
 	/// Checks if we have a new overflow on an auto-scrolling element. If so, our vertical scrollbar will be enabled and
 	/// our block boxes will be destroyed. All content will need to be re-formatted.
@@ -114,6 +124,8 @@ private:
 	Style::Overflow overflow_x = Style::Overflow::Visible;
 	Style::Overflow overflow_y = Style::Overflow::Visible;
 
+	FormattingMode formatting_mode;
+
 	ContainerBox* parent_container = nullptr;
 
 	// For absolutely positioned boxes we use the first positioned ancestor. We deviate from the CSS specs where they
@@ -128,9 +140,9 @@ private:
 */
 class RootBox final : public ContainerBox {
 public:
-	RootBox(Vector2f containing_block) : ContainerBox(Type::Root, nullptr, nullptr), box(containing_block) {}
-	RootBox(const Box& box) : ContainerBox(Type::Root, nullptr, nullptr), box(box) {}
-	RootBox(Vector2f containing_block, RootBox* absolute_root) : ContainerBox(Type::Root, nullptr, absolute_root), box(containing_block) {}
+	RootBox(const Box& box, FormattingMode formatting_mode) : ContainerBox(Type::Root, nullptr, nullptr, formatting_mode), box(box) {}
+	RootBox(const Box& box, RootBox* absolute_root) : ContainerBox(Type::Root, nullptr, absolute_root, absolute_root->GetFormattingMode()), box(box)
+	{}
 
 	const Box* GetIfBox() const override { return &box; }
 	String DebugDumpTree(int depth) const override;
@@ -193,7 +205,8 @@ class CachedContainer final : public ContainerBox {
 public:
 	CachedContainer(Element* element, ContainerBox* parent_container, const Box& box, Vector2f visible_overflow_size,
 		Optional<float> baseline_of_last_line) :
-		ContainerBox(Type::CachedContainer, element, parent_container), box(box), baseline_of_last_line(baseline_of_last_line)
+		ContainerBox(Type::CachedContainer, element, parent_container, parent_container->GetFormattingMode()), box(box),
+		baseline_of_last_line(baseline_of_last_line)
 	{
 		SetVisibleOverflowSize(visible_overflow_size);
 	}

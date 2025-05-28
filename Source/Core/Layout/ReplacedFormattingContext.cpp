@@ -47,7 +47,7 @@ UniquePtr<LayoutBox> ReplacedFormattingContext::Format(ContainerBox* parent_cont
 	else
 	{
 		const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
-		LayoutDetails::BuildBox(box, containing_block, element);
+		LayoutDetails::BuildBox(box, containing_block, element, BuildBoxMode::ShrinkableBlock, &parent_container->GetFormattingMode());
 	}
 
 	// Submit the box and notify the element.
@@ -58,7 +58,7 @@ UniquePtr<LayoutBox> ReplacedFormattingContext::Format(ContainerBox* parent_cont
 	// own rendering, this could cause conflicting or strange layout results, and is done at the user's own risk.
 	if (element->HasChildNodes())
 	{
-		RootBox root(box);
+		RootBox root(box, parent_container->GetFormattingMode());
 		BlockFormattingContext::Format(&root, element, &box);
 	}
 
