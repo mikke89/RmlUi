@@ -93,6 +93,12 @@ bool ElementImage::GetIntrinsicDimensions(Vector2f& _dimensions, float& _ratio)
 
 	return true;
 }
+
+bool ElementImage::IsReplaced()
+{
+	return true;
+}
+
 void ElementImage::EnsureSourceLoaded()
 {
 	if (texture_dirty)

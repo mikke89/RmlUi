@@ -180,7 +180,7 @@ public:
 	virtual bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio);
 	/// Returns true if the element is replaced, thereby handling its own rendering.
 	/// @return True if the element is a replaced element.
-	bool IsReplaced();
+	virtual bool IsReplaced();
 
 	/// Checks if a given point in screen coordinates lies within the bordered area of this element.
 	/// @param[in] point The point to test.
