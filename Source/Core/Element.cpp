@@ -358,7 +358,7 @@ void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_f
 		relative_offset_base = offset;
 		offset_fixed = _offset_fixed;
 		offset_parent = _offset_parent;
-		UpdateOffset();
+		UpdateRelativeOffsetFromInsetConstraints();
 		DirtyAbsoluteOffset();
 	}
 
@@ -369,7 +369,7 @@ void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_f
 		const Vector2f old_base = relative_offset_base;
 		const Vector2f old_position = relative_offset_position;
 
-		UpdateOffset();
+		UpdateRelativeOffsetFromInsetConstraints();
 
 		if (old_base != relative_offset_base || old_position != relative_offset_position)
 			DirtyAbsoluteOffset();
@@ -1834,7 +1834,7 @@ void Element::OnPropertyChange(const PropertyIdSet& changed_properties)
 	// Update the position.
 	if (top_right_bottom_left_changed)
 	{
-		UpdateOffset();
+		UpdateRelativeOffsetFromInsetConstraints();
 		DirtyAbsoluteOffset();
 	}
 
@@ -2206,7 +2206,7 @@ void Element::DirtyAbsoluteOffsetRecursive()
 		children[i]->DirtyAbsoluteOffsetRecursive();
 }
 
-void Element::UpdateOffset()
+void Element::UpdateRelativeOffsetFromInsetConstraints()
 {
 	using namespace Style;
 	const auto& computed = meta->computed_values;
