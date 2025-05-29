@@ -570,6 +570,9 @@ void ElementDocument::UpdateLayout()
 			LayoutEngine::FormatElement(element, committed_layout->containing_block_size,
 				committed_layout->absolutely_positioning_containing_block_size);
 
+			// TODO: A bit ugly
+			element->UpdateRelativeOffsetFromInsetConstraints();
+
 			return ElementUtilities::CallbackControlFlow::SkipChildren;
 		});
 
@@ -580,6 +583,8 @@ void ElementDocument::UpdateLayout()
 				containing_block = parent->GetBox().GetSize();
 
 			LayoutEngine::FormatElement(this, containing_block, containing_block);
+			// TODO: A bit ugly
+			this->UpdateRelativeOffsetFromInsetConstraints();
 		}
 
 		if (!any_layout_updates)

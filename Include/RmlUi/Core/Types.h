@@ -43,7 +43,7 @@ using byte = unsigned char;
 using ScriptObject = void*;
 
 enum class Character : char32_t { Null, Replacement = 0xfffd }; // Unicode code point
-enum class BoxArea { Margin, Border, Padding, Content, Auto };
+enum class BoxArea : uint8_t { Margin, Border, Padding, Content, Auto };
 
 } // namespace Rml
 

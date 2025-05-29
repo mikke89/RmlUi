@@ -157,14 +157,10 @@ void ContainerBox::ClosePositionedElements()
 			// Lay out the element.
 			FormattingContext::FormatIndependent(this, absolute_element, nullptr, FormattingContextType::Block);
 
-			// Now that the element's box has been built, we can offset the position we determined was appropriate for
-			// it by the element's margin. This is necessary because the coordinate system for the box begins at the
-			// border, not the margin.
-			offset.x += absolute_element->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left);
-			offset.y += absolute_element->GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top);
-
 			// Set the offset of the element; the element itself will take care of any RCSS-defined positional offsets.
-			absolute_element->SetOffset(offset, element);
+			// Use the margin box area as the origin, so that the element can modify its own box and have that reflected
+			// in its position, without having to do a new layout run in its this element.
+			absolute_element->SetOffset(offset, element, false, BoxArea::Margin);
 		}
 	}
 }
