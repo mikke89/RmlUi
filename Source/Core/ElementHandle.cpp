@@ -170,7 +170,8 @@ private:
 		return fallback_func();
 	}
 
-	// The following is derived at by solving the expressions in 'Element::UpdateOffset' for the computed top/left/bottom/right values.
+	// The following is derived at by solving the expressions in 'Element::UpdateRelativeOffsetFromInsetConstraints' for the computed
+	// top/left/bottom/right values.
 	float GetPositionTop() const
 	{
 		return ResolveValueOrInvoke(computed.top(), containing_block.y, position, [&] {

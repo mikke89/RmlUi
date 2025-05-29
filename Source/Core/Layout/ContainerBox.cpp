@@ -127,7 +127,7 @@ void ContainerBox::ClosePositionedElements()
 	// updated to reflect changes to the size of this block box. Update relative offsets before handling absolute
 	// elements, as this may affect the resolved static position of the absolute elements.
 	for (Element* child : relative_elements)
-		child->UpdateOffset();
+		child->UpdateRelativeOffsetFromInsetConstraints();
 
 	relative_elements.clear();
 

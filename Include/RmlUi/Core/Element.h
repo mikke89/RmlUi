@@ -690,7 +690,7 @@ private:
 	void DirtyAbsoluteOffset();
 	void DirtyAbsoluteOffsetRecursive();
 	void UpdateAbsoluteOffsetAndRenderBoxData();
-	void UpdateOffset();
+	void UpdateRelativeOffsetFromInsetConstraints();
 	void SetBaseline(float baseline);
 
 	void BuildLocalStackingContext();
@@ -818,6 +818,7 @@ private:
 	friend class Rml::ReplacedBox;
 	friend class Rml::LayoutEngine;
 	friend class Rml::ElementScroll;
+	friend class Rml::ElementDocument; // TODO: Remove
 	friend RMLUICORE_API void Rml::ReleaseFontResources();
 };
 
