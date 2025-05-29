@@ -121,7 +121,7 @@ public:
 	/// @param[in] offset The offset (in pixels) of our primary box's top-left border corner from our offset parent's top-left border corner.
 	/// @param[in] offset_parent The element this element is being positioned relative to.
 	/// @param[in] offset_fixed True if the element is fixed in place (and will not scroll), false if not.
-	void SetOffset(Vector2f offset, Element* offset_parent, bool offset_fixed = false);
+	void SetOffset(Vector2f offset, Element* offset_parent, bool offset_fixed = false, BoxArea relative_offset_area = BoxArea::Border);
 	/// Returns the position of the top-left corner of one of the areas of this element's primary box, relative to its
 	/// offset parent's top-left border corner.
 	/// @param[in] area The desired area position.
@@ -738,8 +738,10 @@ private:
 
 	bool visible; // True if the element is visible and active.
 
-	bool offset_fixed;
 	bool absolute_offset_dirty;
+	bool offset_fixed : 1;
+
+	BoxArea relative_offset_area : 2;
 	bool rounded_main_padding_size_dirty : 1;
 
 	bool dirty_definition : 1; // Implies dirty child definitions as well.

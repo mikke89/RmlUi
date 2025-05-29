@@ -94,9 +94,9 @@ static float GetScrollOffsetDelta(ScrollAlignment alignment, float begin_offset,
 
 Element::Element(const String& tag) :
 	local_stacking_context(false), local_stacking_context_forced(false), stacking_context_dirty(false), computed_values_are_default_initialized(true),
-	visible(true), offset_fixed(false), absolute_offset_dirty(true), rounded_main_padding_size_dirty(true), dirty_definition(false),
-	dirty_child_definitions(false), dirty_animation(false), dirty_transition(false), dirty_transform(false), dirty_perspective(false), tag(tag),
-	relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0)
+	visible(true), absolute_offset_dirty(true), offset_fixed(false), relative_offset_area(BoxArea::Border), rounded_main_padding_size_dirty(true),
+	dirty_definition(false), dirty_child_definitions(false), dirty_animation(false), dirty_transition(false), dirty_transform(false),
+	dirty_perspective(false), tag(tag), relative_offset_base(0, 0), relative_offset_position(0, 0), absolute_offset(0, 0), scroll_offset(0, 0)
 {
 	RMLUI_ASSERT(tag == StringUtilities::ToLower(tag));
 	parent = nullptr;
@@ -347,17 +347,19 @@ String Element::GetAddress(bool include_pseudo_classes, bool include_parents) co
 		return address;
 }
 
-void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_fixed)
+void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_fixed, BoxArea _relative_offset_area)
 {
 	_offset_fixed |= GetPosition() == Style::Position::Fixed;
 
 	// If our offset has definitely changed, or any of our parenting has, then these are set and
 	// updated based on our left / right / top / bottom properties.
-	if (relative_offset_base != offset || offset_parent != _offset_parent || offset_fixed != _offset_fixed)
+	if (relative_offset_base != offset || offset_parent != _offset_parent || offset_fixed != _offset_fixed ||
+		relative_offset_area != _relative_offset_area)
 	{
 		relative_offset_base = offset;
 		offset_fixed = _offset_fixed;
 		offset_parent = _offset_parent;
+		relative_offset_area = _relative_offset_area;
 		UpdateRelativeOffsetFromInsetConstraints();
 		DirtyAbsoluteOffset();
 	}
@@ -378,13 +380,13 @@ void Element::SetOffset(Vector2f offset, Element* _offset_parent, bool _offset_f
 
 Vector2f Element::GetRelativeOffset(BoxArea area)
 {
-	return relative_offset_base + relative_offset_position + GetBox().GetPosition(area);
+	return relative_offset_base + relative_offset_position + GetBox().GetPosition(area) - GetBox().GetPosition(relative_offset_area);
 }
 
 Vector2f Element::GetAbsoluteOffset(BoxArea area)
 {
 	UpdateAbsoluteOffsetAndRenderBoxData();
-	return area == BoxArea::Border ? absolute_offset : absolute_offset + GetBox().GetPosition(area);
+	return absolute_offset + GetBox().GetPosition(area);
 }
 
 void Element::UpdateAbsoluteOffsetAndRenderBoxData()
@@ -409,7 +411,7 @@ void Element::UpdateAbsoluteOffsetAndRenderBoxData()
 				offset_from_ancestors += ancestor->relative_offset_position;
 		}
 
-		const Vector2f relative_offset = relative_offset_base + relative_offset_position;
+		const Vector2f relative_offset = relative_offset_base + relative_offset_position - GetBox().GetPosition(relative_offset_area);
 		absolute_offset = relative_offset + offset_from_ancestors;
 
 		// Next, we find the rounded size of the box so that elements can be placed border-to-border next to each other
@@ -964,12 +966,12 @@ Element* Element::GetOffsetParent()
 
 float Element::GetOffsetLeft()
 {
-	return relative_offset_base.x + relative_offset_position.x;
+	return relative_offset_base.x + relative_offset_position.x - GetBox().GetPosition(relative_offset_area).x;
 }
 
 float Element::GetOffsetTop()
 {
-	return relative_offset_base.y + relative_offset_position.y;
+	return relative_offset_base.y + relative_offset_position.y - GetBox().GetPosition(relative_offset_area).y;
 }
 
 float Element::GetOffsetWidth()

@@ -237,6 +237,21 @@ bool BlockFormattingContext::FormatBlockContainerChild(BlockContainer* parent_co
 	const Style::Position position_property = computed.position();
 	if (position_property == Style::Position::Absolute || position_property == Style::Position::Fixed)
 	{
+		// TODO: When laying out an absolutely positioned element independently, we need to do the equivalent of this,
+		// and the following `ContainerBox::ClosePositionedElements`. Do we need to store the static position and parent
+		// container element? Hmm, I guess we can assume that the static position stays the same, since otherwise we
+		// would have had an update occur in our parent, thereby closing it in the formatting context of the static
+		// element. ... Looking more closely at it, looks like all we need is to call
+		// `UpdateRelativeOffsetFromInsetConstraints`?
+		// TODO Part 2: UpdateRelativeOffsetFromInsetConstraints alone solves some problems, but not all. Another issue
+		// is when the box on the absolute element is changed, particularly margin edges. Then `ClosePositionedElements`
+		// would change the submitted offset. Should we store this in the layout cache? Should we store the static
+		// position and element, directly on the element? Maybe either/or that we are using the element's margin. Hmm,
+		// don't really like that. Can we know that we are in a block formatting context? No, shouldn't depend directly
+		// on that. Hacky solution: If absolutely positioned element layed out separately, check changed margin edges,
+		// and apply the diff to SetOffset with otherwise the same as existing.
+		// Can we set the static position directly on the element (here basically), and just call a function to update
+		// everything at the end?
 		const Vector2f static_position = parent_container->GetOpenStaticPosition(display) - parent_container->GetPosition();
 		parent_container->AddAbsoluteElement(element, static_position, parent_container->GetElement());
 		return true;
