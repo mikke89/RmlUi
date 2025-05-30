@@ -2219,12 +2219,13 @@ void Element::UpdateRelativeOffsetFromInsetConstraints()
 		if (offset_parent != nullptr)
 		{
 			const Box& parent_box = offset_parent->GetBox();
-			Vector2f containing_block = parent_box.GetSize(BoxArea::Padding);
+			const Vector2f containing_block = parent_box.GetSize(BoxArea::Padding);
+			const Vector2f relative_offset_origin = GetBox().GetPosition(relative_offset_area);
 
 			// If the element is anchored left, then the position is offset by that resolved value.
 			if (computed.left().type != Left::Auto)
 				relative_offset_base.x = parent_box.GetEdge(BoxArea::Border, BoxEdge::Left) +
-					(ResolveValue(computed.left(), containing_block.x) + GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left));
+					(ResolveValue(computed.left(), containing_block.x) + GetBox().GetEdge(BoxArea::Margin, BoxEdge::Left)) + relative_offset_origin.x;
 
 			// If the element is anchored right, then the position is set first so the element's right-most edge
 			// (including margins) will render up against the containing box's right-most content edge, and then
@@ -2233,14 +2234,15 @@ void Element::UpdateRelativeOffsetFromInsetConstraints()
 			{
 				relative_offset_base.x = containing_block.x + parent_box.GetEdge(BoxArea::Border, BoxEdge::Left) -
 					(ResolveValue(computed.right(), containing_block.x) + GetBox().GetSize(BoxArea::Border).x +
-						GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right));
+						GetBox().GetEdge(BoxArea::Margin, BoxEdge::Right)) +
+					relative_offset_origin.x;
 			}
 
 			// If the element is anchored top, then the position is offset by that resolved value.
 			if (computed.top().type != Top::Auto)
 			{
 				relative_offset_base.y = parent_box.GetEdge(BoxArea::Border, BoxEdge::Top) +
-					(ResolveValue(computed.top(), containing_block.y) + GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top));
+					(ResolveValue(computed.top(), containing_block.y) + GetBox().GetEdge(BoxArea::Margin, BoxEdge::Top)) + relative_offset_origin.y;
 			}
 
 			// If the element is anchored bottom, then the position is set first so the element's right-most edge
@@ -2250,7 +2252,8 @@ void Element::UpdateRelativeOffsetFromInsetConstraints()
 			{
 				relative_offset_base.y = containing_block.y + parent_box.GetEdge(BoxArea::Border, BoxEdge::Top) -
 					(ResolveValue(computed.bottom(), containing_block.y) + GetBox().GetSize(BoxArea::Border).y +
-						GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom));
+						GetBox().GetEdge(BoxArea::Margin, BoxEdge::Bottom)) +
+					relative_offset_origin.y;
 			}
 		}
 	}
