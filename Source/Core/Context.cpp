@@ -41,6 +41,7 @@
 #include "../../Include/RmlUi/Core/SystemInterface.h"
 #include "DataModel.h"
 #include "EventDispatcher.h"
+#include "Layout/LayoutNode.h"
 #include "PluginRegistry.h"
 #include "ScrollController.h"
 #include "StreamFile.h"
@@ -163,6 +164,7 @@ void Context::SetDimensions(const Vector2i _dimensions)
 				document->DirtyVwAndVhProperties();
 				document->DirtyLayout();
 				document->DirtyPosition();
+				document->GetLayoutNode()->ClearCommittedLayout();
 				document->DispatchEvent(EventId::Resize, Dictionary());
 			}
 		}

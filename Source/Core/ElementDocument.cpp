@@ -532,10 +532,17 @@ void ElementDocument::UpdateLayout()
 		RMLUI_ZoneScoped;
 		RMLUI_ZoneText(source_url.c_str(), source_url.size());
 
+		constexpr bool debug_logging = false;
+		if (debug_logging)
+			Log::Message(Log::LT_INFO, "UpdateLayout start: %s", GetAddress().c_str());
+
 		bool force_full_document_layout = false;
 		bool any_layout_updates = false;
 
 		ElementUtilities::BreadthFirstSearch(this, [&](Element* element) {
+			if (element->GetDisplay() == Style::Display::None)
+				return ElementUtilities::CallbackControlFlow::SkipChildren;
+
 			LayoutNode* layout_node = element->GetLayoutNode();
 			if (!layout_node->IsDirty())
 				return ElementUtilities::CallbackControlFlow::Continue;
@@ -548,7 +555,8 @@ void ElementDocument::UpdateLayout()
 				// during layouting itself. For now, we simply skip this element and keep going. The element should
 				// normally be properly layed-out on the next context update.
 				// TODO: Might want to investigate this further.
-				Log::Message(Log::LT_INFO, "Dirty layout on non-layout boundary element: %s", element->GetAddress().c_str());
+				if (debug_logging)
+					Log::Message(Log::LT_INFO, "Dirty layout on non-layout boundary element: %s", element->GetAddress().c_str());
 				return ElementUtilities::CallbackControlFlow::Continue;
 			}
 
@@ -557,13 +565,15 @@ void ElementDocument::UpdateLayout()
 			const Optional<CommittedLayout>& committed_layout = layout_node->GetCommittedLayout();
 			if (!committed_layout)
 			{
-				if (element->GetOwnerDocument() != this)
-					Log::Message(Log::LT_INFO, "Forcing full layout update due to element: %s", element->GetAddress().c_str());
+				if (element != this && debug_logging)
+					Log::Message(Log::LT_INFO, "Forcing full layout update due to missing committed layout on element: %s",
+						element->GetAddress().c_str());
 				force_full_document_layout = true;
+				// TODO: When is the committed layout dirtied?
 				return ElementUtilities::CallbackControlFlow::Break;
 			}
 
-			if (element->GetOwnerDocument() != this)
+			if (element != this && debug_logging)
 				Log::Message(Log::LT_INFO, "Doing partial layout update on element: %s", element->GetAddress().c_str());
 
 			// TODO: In some cases, we need to check if size changed, such that we need to do a layout update in its parent.
@@ -587,12 +597,15 @@ void ElementDocument::UpdateLayout()
 			this->UpdateRelativeOffsetFromInsetConstraints();
 		}
 
-		if (!any_layout_updates)
+		if (!any_layout_updates && debug_logging)
 			Log::Message(Log::LT_INFO, "Didn't make any layout updates on dirty document: %s", GetAddress().c_str());
 
 		// Ignore dirtied layout during document formatting. Layouting must not require re-iteration.
 		// In particular, scrollbars being enabled may set the dirty flag, but this case is already handled within the layout engine.
 		layout_dirty = false;
+
+		if (debug_logging)
+			Log::Message(Log::LT_INFO, "Document layout: Clear dirty on %s", GetAddress().c_str());
 	}
 }
 
@@ -644,6 +657,7 @@ void ElementDocument::DirtyPosition()
 
 void ElementDocument::DirtyDocumentLayout()
 {
+	// Log::Message(Log::LT_INFO, "DirtyDocumentLayout: %s", GetAddress().c_str());
 	layout_dirty = true;
 }
 

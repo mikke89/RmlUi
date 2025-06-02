@@ -30,12 +30,14 @@
 #include "../../../Source/Core/Layout/LayoutNode.h"
 #include "../Common/TestsShell.h"
 #include "../Common/TypesToString.h"
+#include <RmlUi/Core/ComputedValues.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/ElementText.h>
 #include <RmlUi/Core/ElementUtilities.h>
+#include <RmlUi/Debugger/Debugger.h>
 #include <doctest.h>
 
 using namespace Rml;
@@ -88,8 +90,8 @@ static void LogDirtyLayoutTree(Element* root_element)
 	String tree_dirty_state;
 	ElementUtilities::VisitElementsDepthOrder(root_element, [&](Element* element, int tree_depth) {
 		tree_dirty_state += String(size_t(4 * tree_depth), ' ');
-		tree_dirty_state += CreateString("%s: Dirty: %d  Dirty Self: %d", element->GetAddress(false, tree_depth == 0).c_str(),
-			element->GetLayoutNode()->IsDirty(), element->GetLayoutNode()->IsSelfDirty());
+		tree_dirty_state += CreateString("%s.  Self: %d  Child: %d", element->GetAddress(false, tree_depth == 0).c_str(),
+			element->GetLayoutNode()->IsSelfDirty(), element->GetLayoutNode()->IsChildDirty());
 		tree_dirty_state += '\n';
 	});
 
@@ -376,8 +378,10 @@ TEST_CASE("LayoutIsolation.Absolute")
 
 		CHECK(container->GetOffsetWidth() != container_initial_width);
 		CHECK(element->GetOffsetWidth() != element_initial_width);
-		CHECK(format_independent_tracker.CountEntries() == 1);
-		CHECK(format_independent_tracker.CountFormattedEntries() == 1);
+		// The following could in principle be reduced to 1, since the size of an absolute element should not affect the
+		// layout of the formatting context it takes part in.
+		CHECK(format_independent_tracker.CountEntries() == 2);
+		CHECK(format_independent_tracker.CountFormattedEntries() == 2);
 	}
 
 	SUBCASE("Modify document width")
@@ -425,6 +429,196 @@ TEST_CASE("LayoutIsolation.Absolute")
 		TestsShell::RenderLoop();
 		CHECK(absolute_element->GetOffsetHeight() != absolute_initial_height);
 		CHECK(normal_element->GetOffsetHeight() != normal_initial_height);
+
+		CHECK(format_independent_tracker.CountFormattedEntries() == 2);
+	}
+
+	format_independent_tracker.LogMessage();
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+static const String layout_isolation_hidden_absolute_rml = R"(
+<rml>
+<head>
+	<title>Demo</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			font-family: LatoLatin;
+			font-size: 14px;
+			border: 5px #a66;
+			background: #cca;
+			color: black;
+
+			top: 200px;
+			right: 300px;
+			bottom: 200px;
+			left: 300px;
+		}
+		div {
+			width: 300px;
+			height: 200px;
+			left: 100px;
+			top: 100px;
+		}
+		.hide {
+			display: none;
+		}
+		.absolute {
+			position: absolute;
+		}
+		.wide {
+			width: 400px;
+		}
+	</style>
+</head>
+<body id="body">
+	This is a sample.
+	<div id="child">Child element</div>
+</body>
+</rml>
+)";
+
+TEST_CASE("LayoutIsolation.HiddenSkipsFormatting")
+{
+	Context* context = TestsShell::GetContext();
+
+	ElementDocument* document = context->LoadDocumentFromMemory(layout_isolation_hidden_absolute_rml);
+	Element* element = document->GetElementById("child");
+	element->SetClass("hide", true);
+
+	SUBCASE("Static") {}
+	SUBCASE("Absolute")
+	{
+		element->SetClass("absolute", true);
+	}
+
+	FormatIndependentDebugTracker format_independent_tracker;
+	document->Show();
+	TestsShell::RenderLoop();
+	CHECK(format_independent_tracker.CountFormattedEntries() == 1);
+
+	rmlui_dynamic_cast<ElementText*>(element->GetFirstChild())->SetText("Modified text");
+	CHECK(format_independent_tracker.CountFormattedEntries() == 1);
+
+	// Modifying text in a hidden element should not trigger a new layout.
+	TestsShell::RenderLoop();
+	CHECK(format_independent_tracker.CountFormattedEntries() == 1);
+
+	format_independent_tracker.LogMessage();
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+TEST_CASE("LayoutIsolation.HiddenToggleAndModify")
+{
+	Context* context = TestsShell::GetContext();
+
+	ElementDocument* document = context->LoadDocumentFromMemory(layout_isolation_hidden_absolute_rml);
+	Element* element = document->GetElementById("child");
+	element->SetClass("hide", true);
+
+	float element_offset_left = 0;
+	SUBCASE("Static")
+	{
+		element_offset_left = 305;
+	}
+	SUBCASE("Absolute")
+	{
+		element->SetClass("absolute", true);
+		element_offset_left = 405;
+	}
+
+	document->Show();
+	TestsShell::RenderLoop();
+	CHECK(element->IsVisible() == false);
+
+	element->SetClass("hide", false);
+	document->UpdatePropertiesForDebug();
+	TestsShell::RenderLoop();
+	CHECK(element->GetAbsoluteLeft() == element_offset_left);
+	CHECK(element->IsVisible() == true);
+	CHECK(element->GetComputedValues().width().value == 300);
+	CHECK(element->GetOffsetWidth() == 300.f);
+
+	element->SetClass("hide", true);
+	document->UpdatePropertiesForDebug();
+	TestsShell::RenderLoop();
+	CHECK(element->IsVisible() == false);
+	CHECK(element->GetComputedValues().width().value == 300);
+	CHECK(element->GetOffsetWidth() == 300.f);
+
+	element->SetClass("wide", true);
+	document->UpdatePropertiesForDebug();
+	TestsShell::RenderLoop();
+	CHECK(element->IsVisible() == false);
+	CHECK(element->GetComputedValues().width().value == 400);
+	CHECK(element->GetOffsetWidth() == 300.f);
+
+	element->SetClass("hide", false);
+	document->UpdatePropertiesForDebug();
+	TestsShell::RenderLoop();
+	CHECK(element->IsVisible() == true);
+	CHECK(element->GetComputedValues().width().value == 400);
+	CHECK(element->GetOffsetWidth() == 400.f);
+
+	document->Close();
+	TestsShell::ShutdownShell();
+}
+
+static const String layout_isolation_document_rml = R"(
+<rml>
+<head>
+	<title>Demo</title>
+	<link type="text/rcss" href="/assets/rml.rcss"/>
+	<style>
+		body {
+			font-family: LatoLatin;
+			font-size: 14px;
+			border: 5px #a66;
+			background: #cca;
+			color: black;
+
+			top: 200px;
+			right: 300px;
+			bottom: 200px;
+			left: 300px;
+		}
+	</style>
+</head>
+<body>
+	This is a sample.
+</body>
+</rml>
+)";
+
+TEST_CASE("LayoutIsolation.Document")
+{
+	Context* context = TestsShell::GetContext();
+	REQUIRE(context->GetDimensions() == Rml::Vector2i{1500, 800});
+
+	FormatIndependentDebugTracker format_independent_tracker;
+
+	ElementDocument* document = context->LoadDocumentFromMemory(layout_isolation_document_rml);
+	document->Show();
+
+	TestsShell::RenderLoop();
+
+	CHECK(document->GetOffsetWidth() == 900.f);
+	CHECK(document->GetOffsetHeight() == 400.f);
+
+	SUBCASE("Modify absolute content")
+	{
+		context->SetDimensions(Rml::Vector2i{1600, 900});
+
+		document->UpdatePropertiesForDebug();
+		TestsShell::RenderLoop();
+
+		CHECK(document->GetOffsetWidth() == 1000.f);
+		CHECK(document->GetOffsetHeight() == 500.f);
 
 		CHECK(format_independent_tracker.CountFormattedEntries() == 2);
 	}

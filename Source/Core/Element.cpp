@@ -411,6 +411,7 @@ void Element::UpdateAbsoluteOffsetAndRenderBoxData()
 				offset_from_ancestors += ancestor->relative_offset_position;
 		}
 
+		// Absolute offset is defined by the border-box of the element.
 		const Vector2f relative_offset = relative_offset_base + relative_offset_position - GetBox().GetPosition(relative_offset_area);
 		absolute_offset = relative_offset + offset_from_ancestors;
 
@@ -3031,7 +3032,10 @@ void Element::ClampScrollOffset()
 void Element::CommitLayoutRecursive()
 {
 	if (GetDisplay() == Style::Display::None)
+	{
+		GetLayoutNode()->ClearDirty();
 		return;
+	}
 
 	OnLayout();
 

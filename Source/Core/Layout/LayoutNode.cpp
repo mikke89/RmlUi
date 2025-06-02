@@ -39,11 +39,24 @@ void LayoutNode::DirtyUpToClosestLayoutBoundary()
 	if (!IsSelfDirty())
 		return;
 
-	// Later on, we might expand the definition of layout boundaries from just absolutely positioned elements. For
-	// example, for flexible boxes, we can make them conditional, in the sense that its parent layout boundary needs to
-	// be layed-out again if (and only if) the flex container changes size after its next layout.
-	if (IsLayoutBoundary())
-		return;
+	// We may be able to skip formatting in ancestor elements if this is a layout boundary, in some scenarios. Consider
+	// some scenarios for illustration:
+	//
+	// 1. Absolute element. `display: block` to `display: none`. This does not need a new layout. Same with margin and
+	//    size, only the current element need to be reformatted, not ancestors.
+	// 2. Absolute element. `display: none` to `display: block`. This *does* need to be layed out, since we don't know
+	//    our static position or containing block. We could in principle ignore static position in some situations where
+	//    it is not used, and could in principle find our containing block. But it is tricky.
+	// 3. Flex container contents changed. If (and only if) it results in a new layed out size, its parent needs to be
+	//    reformatted again. If so, it should be able to reuse the flex container's layout cache.
+	//
+	// Currently, we don't have all of this information here. So skip this for now.
+	// - TODO: This information could be provided as part of DirtyLayout.
+	// - TODO: Consider if some of this logic should be moved to the layout engine.
+	//
+	// ```
+	//     if (IsLayoutBoundary()) return;
+	// ```
 
 	for (Element* parent = element->GetParentNode(); parent; parent = parent->GetParentNode())
 	{
@@ -54,14 +67,55 @@ void LayoutNode::DirtyUpToClosestLayoutBoundary()
 	}
 }
 
+void LayoutNode::ClearDirty()
+{
+	// Log::Message(Log::LT_INFO, "ClearDirty (was Self %d  Child %d)  Element: %s", (dirty_flag & DirtyLayoutType::DOM) != DirtyLayoutType::None,
+	//	(dirty_flag & DirtyLayoutType::Child) != DirtyLayoutType::None, element->GetAddress().c_str());
+	dirty_flag = DirtyLayoutType::None;
+}
+
+void LayoutNode::SetDirty(DirtyLayoutType dirty_type)
+{
+	// Log::Message(Log::LT_INFO, "SetDirty. Self %d  Child %d  Element: %s", (dirty_type & DirtyLayoutType::DOM) != DirtyLayoutType::None,
+	//	(dirty_type & DirtyLayoutType::Child) != DirtyLayoutType::None, element->GetAddress().c_str());
+	dirty_flag = dirty_flag | dirty_type;
+}
+
+void LayoutNode::CommitLayout(Vector2f containing_block_size, Vector2f absolutely_positioning_containing_block_size, const Box* override_box,
+	Vector2f visible_overflow_size, Optional<float> baseline_of_last_line)
+{
+	// TODO: This is mixing slightly different concepts. Rather, it might be advantageous to separate what is the input
+	// to the layout of the current element, and what is the output. That way we can e.g. set the containing block size
+	// even if there is nothing to format (for example due to `display: none`), or if the element itself can be cached
+	// despite ancestor changes. This way we can resume the layout here, without formatting its ancestors, if it is
+	// dirtied in a non-parent-mutable way.
+	// - E.g. consider scenario 2 above with Absolute element `display: none` to `display: block`.
+	//
+	// Conversely, the output of the layout passed in here can later be used by when formatting ancestors, when the
+	// current element does not need a new layout by itself.
+	committed_layout.emplace(CommittedLayout{
+		containing_block_size,
+		absolutely_positioning_containing_block_size,
+		override_box ? Optional<Box>(*override_box) : Optional<Box>(),
+		visible_overflow_size,
+		baseline_of_last_line,
+	});
+	ClearDirty();
+}
+
 bool LayoutNode::IsLayoutBoundary() const
 {
+	using namespace Style;
+	auto& computed = element->GetComputedValues();
+
+	// TODO: Should this be moved into DirtyUpToClosestLayoutBoundary() instead? It's not really a layout boundary, or
+	// maybe it's okay?
+	if (computed.display() == Display::None)
+		return true;
+
 	const FormattingContextType formatting_context = FormattingContext::GetFormattingContextType(element);
 	if (formatting_context == FormattingContextType::None)
 		return false;
-
-	using namespace Style;
-	auto& computed = element->GetComputedValues();
 
 	if (computed.position() == Position::Absolute || computed.position() == Position::Fixed)
 		return true;
