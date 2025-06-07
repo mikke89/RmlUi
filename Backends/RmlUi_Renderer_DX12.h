@@ -901,7 +901,7 @@ private:
 	uint32_t m_size_descriptor_heap_render_target_view;
 	uint32_t m_size_descriptor_heap_shaders;
 	uint32_t m_current_back_buffer_index;
-
+	UINT m_stencil_ref_value;
 	/// @brief depends on compile build type if it is debug it means D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION otherwise it is 0
 	UINT m_default_shader_flags;
 	std::bitset<RMLUI_RENDER_BACKEND_FIELD_MAXNUMPROGRAMS> m_program_state_transform_dirty;

@@ -349,7 +349,7 @@ RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, ID3D12Device* 
 	m_render_state{static_cast<unsigned char>(Gfx::RenderState::Valid)},
 	#endif
 	m_width{}, m_height{}, m_current_clip_operation{-1}, m_active_program_id{}, m_size_descriptor_heap_render_target_view{},
-	m_size_descriptor_heap_shaders{}, m_p_descriptor_heap_shaders{}, m_current_back_buffer_index{}
+	m_size_descriptor_heap_shaders{}, m_p_descriptor_heap_shaders{}, m_current_back_buffer_index{}, m_stencil_ref_value{}
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Constructor (user)");
 	RMLUI_ASSERT(p_window_handle && "you can't pass an empty window handle! (also it must be castable to HWND)");
@@ -490,7 +490,8 @@ RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, bool use_vsync
 	m_render_state{static_cast<unsigned char>(Gfx::RenderState::Valid)},
 	#endif
 	m_width{}, m_height{}, m_current_clip_operation{-1}, m_active_program_id{}, m_size_descriptor_heap_render_target_view{},
-	m_size_descriptor_heap_shaders{}, m_current_back_buffer_index{}, m_p_device{}, m_p_command_queue{}, m_p_copy_queue{}, m_p_swapchain{},
+	m_size_descriptor_heap_shaders{}, m_current_back_buffer_index{}, m_stencil_ref_value{}, m_p_device{}, m_p_command_queue{}, m_p_copy_queue{},
+	m_p_swapchain{},
 	m_p_command_graphics_list{}, m_p_descriptor_heap_render_target_view{}, m_p_descriptor_heap_render_target_view_for_texture_manager{},
 	m_p_descriptor_heap_depth_stencil_view_for_texture_manager{}, m_p_descriptor_heap_shaders{}, m_p_descriptor_heap_depthstencil{},
 	m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_adapter{}, m_p_copy_allocator{}, m_p_copy_command_list{}, m_p_allocator{},
@@ -624,6 +625,8 @@ void RenderInterface_DX12::BeginFrame()
 			this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_dsv(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart());
+		
+		this->m_stencil_ref_value=0;
 
 		// TODO: я не должен устанавливать здесь backbuffer который из свапчейна, а смотреть код GL3 реализации
 		//	this->m_p_command_graphics_list->OMSetRenderTargets(1, &handle_rtv, FALSE, &handle_dsv);
@@ -900,7 +903,6 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 	{
 		p_handle_texture = reinterpret_cast<TextureHandleType*>(texture);
 		RMLUI_ASSERT(p_handle_texture && "expected valid pointer!");
-		this->m_p_command_graphics_list->OMSetStencilRef(1);
 
 		if (this->m_is_stencil_enabled)
 		{
@@ -1127,6 +1129,23 @@ void RenderInterface_DX12::EnableClipMask(bool enable)
 	RMLUI_ZoneScopedN("DirectX 12 - EnableClipMask");
 
 	this->m_is_stencil_enabled = enable;
+
+	if (enable)
+	{
+		RMLUI_ASSERT(this->m_p_command_graphics_list && "must be valid!");
+		if (this->m_p_command_graphics_list)
+		{
+			this->m_p_command_graphics_list->OMSetStencilRef(m_stencil_ref_value);
+		}
+	}
+	else
+	{
+		RMLUI_ASSERT(this->m_p_command_graphics_list && "mmust be valid!");
+		if (this->m_p_command_graphics_list)
+		{
+			this->m_p_command_graphics_list->OMSetStencilRef(0);
+		}
+	}
 }
 
 void RenderInterface_DX12::RenderToClipMask(Rml::ClipMaskOperation mask_operation, Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation)
@@ -1149,26 +1168,31 @@ void RenderInterface_DX12::RenderToClipMask(Rml::ClipMaskOperation mask_operatio
 	{
 		this->m_current_clip_operation = static_cast<int>(Rml::ClipMaskOperation::Set);
 		//	this->m_p_command_graphics_list->OMSetStencilRef(1);
+		m_stencil_ref_value = 1;
 		break;
 	}
 	case Rml::ClipMaskOperation::SetInverse:
 	{
 		this->m_current_clip_operation = static_cast<int>(Rml::ClipMaskOperation::SetInverse);
 		//	this->m_p_command_graphics_list->OMSetStencilRef(0);
+		m_stencil_ref_value = 0;
 		break;
 	}
 	case Rml::ClipMaskOperation::Intersect:
 	{
 		this->m_current_clip_operation = static_cast<int>(Rml::ClipMaskOperation::Intersect);
+		m_stencil_ref_value += 1;
 		break;
 	}
 	}
+
+	this->m_p_command_graphics_list->OMSetStencilRef(1);
 
 	RenderGeometry(geometry, translation, {});
 
 	this->m_is_stencil_equal = true;
 	this->m_current_clip_operation = -1;
-
+	this->m_p_command_graphics_list->OMSetStencilRef(m_stencil_ref_value);
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
