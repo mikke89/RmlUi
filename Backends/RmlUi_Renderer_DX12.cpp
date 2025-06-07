@@ -55,29 +55,29 @@
 constexpr const char pShaderSourceText_Color[] = R"(
 struct sInputData
 {
-	float4 inputPos : SV_Position;
-	float4 inputColor : COLOR;
-	float2 inputUV : TEXCOORD;
+	float4 pos : SV_Position;
+	float4 color : COLOR;
+	float2 uv : TEXCOORD;
 };
 
-float4 main(const sInputData inputArgs) : SV_TARGET 
+float4 main(const sInputData IN) : SV_TARGET 
 { 
-	return inputArgs.inputColor; 
+	return IN.color; 
 }
 )";
 constexpr const char pShaderSourceText_Vertex[] = R"(
 struct sInputData 
 {
-	float2 inPosition : POSITION;
-	float4 inColor : COLOR;
-	float2 inTexCoord : TEXCOORD;
+	float2 position : POSITION;
+	float4 color : COLOR;
+	float2 uv : TEXCOORD;
 };
 
 struct sOutputData
 {
-	float4 outPosition : SV_Position;
-	float4 outColor : COLOR;
-	float2 outUV : TEXCOORD;
+	float4 position : SV_Position;
+	float4 color : COLOR;
+	float2 uv : TEXCOORD;
 };
 
 cbuffer ConstantBuffer : register(b0)
@@ -88,32 +88,27 @@ cbuffer ConstantBuffer : register(b0)
 	float4 m_padding1[11];
 };
 
-sOutputData main(const sInputData inArgs)
+sOutputData main(const sInputData IN)
 {
-	sOutputData result;
+	sOutputData OUT;
 
-	float2 translatedPos = inArgs.inPosition + m_translate;
+	float2 translatedPos = IN.position + m_translate;
 	float4 resPos = mul(m_transform, float4(translatedPos.x, translatedPos.y, 0.0, 1.0));
 
-	result.outPosition = resPos;
-	result.outColor = inArgs.inColor;
-	result.outUV = inArgs.inTexCoord;
+	OUT.position = resPos;
+	OUT.color = IN.color;
+	OUT.uv = IN.uv;
 
-#if defined(RMLUI_PREMULTIPLIED_ALPHA)
-	// Pre-multiply vertex colors with their alpha.
-	result.outColor.rgb = result.outColor.rgb * result.outColor.a;
-#endif
-
-	return result;
+	return OUT;
 };
 )";
 
 constexpr const char pShaderSourceText_Texture[] = R"(
 struct sInputData
 {
-	float4 inputPos : SV_Position;
-	float4 inputColor : COLOR;
-	float2 inputUV : TEXCOORD;
+	float4 pos : SV_Position;
+	float4 color : COLOR;
+	float2 uv : TEXCOORD;
 };
 
 Texture2D g_InputTexture : register(t0);
@@ -121,9 +116,9 @@ Texture2D g_InputTexture : register(t0);
 SamplerState g_SamplerLinear : register(s0);
 
 
-float4 main(const sInputData inputArgs) : SV_TARGET 
+float4 main(const sInputData IN) : SV_TARGET 
 { 
-	return inputArgs.inputColor * g_InputTexture.Sample(g_SamplerLinear, inputArgs.inputUV); 
+	return IN.color * g_InputTexture.Sample(g_SamplerLinear, IN.uv); 
 }
 )";
 
