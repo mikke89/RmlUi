@@ -278,7 +278,7 @@ enum class ProgramId : int {
 // Determines the anti-aliasing quality when creating layers. Enables better-looking visuals, especially when transforms are applied.
 static constexpr int NUM_MSAA_SAMPLES = 2;
 
-	#define RMLUI_PREMULTIPLIED_ALPHA 1
+	#define RMLUI_PREMULTIPLIED_ALPHA 0
 
 	#define MAX_NUM_STOPS 16
 	#define BLUR_SIZE 7
@@ -3749,10 +3749,10 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Color()
 		const D3D12_RENDER_TARGET_BLEND_DESC editedRenderTargetBlend2 = {
 			TRUE,
 			FALSE,
-			D3D12_BLEND_SRC_ALPHA,
+			D3D12_BLEND_ONE,
 			D3D12_BLEND_INV_SRC_ALPHA,
 			D3D12_BLEND_OP_ADD,
-			D3D12_BLEND_SRC_ALPHA,
+			D3D12_BLEND_ONE,
 			D3D12_BLEND_INV_SRC_ALPHA,
 			D3D12_BLEND_OP_SUBTRACT,
 			D3D12_LOGIC_OP_NOOP,
@@ -3908,7 +3908,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Texture()
 		ID3DBlob* p_shader_pixel{};
 		ID3DBlob* p_error_buff{};
 
-		const D3D_SHADER_MACRO macros[] = {"RMLUI_PREMULTIPLIED_ALPHA", NULL, NULL, NULL};
+		const D3D_SHADER_MACRO macros[] = {NULL, NULL, NULL, NULL};
 
 		status = D3DCompile(pShaderSourceText_Vertex, sizeof(pShaderSourceText_Vertex), nullptr, macros, nullptr, "main", "vs_5_0",
 			this->m_default_shader_flags, 0, &p_shader_vertex, &p_error_buff);
