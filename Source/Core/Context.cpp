@@ -227,10 +227,11 @@ bool Context::Update()
 
 	for (int i = 0; i < root->GetNumChildren(); ++i)
 	{
-		if (auto doc = root->GetChild(i)->GetOwnerDocument())
+		ElementDocument* document = root->GetChild(i)->GetOwnerDocument();
+		if (document && document->IsVisible())
 		{
-			doc->UpdateLayout();
-			doc->UpdatePosition();
+			document->UpdateLayout();
+			document->UpdatePosition();
 		}
 	}
 
