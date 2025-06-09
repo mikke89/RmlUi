@@ -50,7 +50,7 @@ UniquePtr<LayoutBox> TableFormattingContext::Format(ContainerBox* parent_contain
 	}
 
 	const Vector2f containing_block = parent_container->GetContainingBlockSize(element_table->GetPosition());
-	RMLUI_ASSERT(containing_block.x >= 0.f);
+	RMLUI_ASSERT(containing_block.x >= 0.f || parent_container->GetFormattingMode().constraint == FormattingMode::Constraint::MaxContent);
 	const ComputedValues& computed_table = element_table->GetComputedValues();
 
 	// Build the initial box as specified by the table's style, as if it was a normal block element.

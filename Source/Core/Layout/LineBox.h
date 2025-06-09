@@ -185,7 +185,7 @@ private:
 
 	// Position of the line, relative to our block formatting context root.
 	Vector2f line_position;
-	// Available space for the line. Based on our parent box content width, possibly shrinked due to floating boxes.
+	// Available space for the line, -1 if indefinite. Based on our parent box content width, possibly shrunk due to floating boxes.
 	float line_width = 0.f;
 	// Lower-bound estimate for the line box height.
 	float line_minimum_height = 0.f;

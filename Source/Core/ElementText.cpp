@@ -183,9 +183,8 @@ void ElementText::OnRender()
 bool ElementText::GenerateLine(String& line, int& line_length, float& line_width, int line_begin, float maximum_line_width, float right_spacing_width,
 	bool trim_whitespace_prefix, bool decode_escape_characters, bool allow_empty)
 {
+	RMLUI_ASSERT(maximum_line_width < FLT_MAX); // Infinity should be given by -1.
 	RMLUI_ZoneScoped;
-	RMLUI_ASSERT(
-		maximum_line_width >= 0.f); // TODO: Check all callers for conformance, check break at line condition below. Possibly check for FLT_MAX.
 
 	FontFaceHandle font_face_handle = GetFontFaceHandle();
 

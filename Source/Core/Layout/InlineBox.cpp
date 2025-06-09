@@ -114,7 +114,7 @@ InlineBox::InlineBox(const InlineLevelBox* parent, Element* element, const Box& 
 FragmentConstructor InlineBox::CreateFragment(InlineLayoutMode mode, float available_width, float right_spacing_width, bool /*first_box*/,
 	LayoutOverflowHandle /*overflow_handle*/)
 {
-	if (mode != InlineLayoutMode::WrapAny || right_spacing_width <= available_width + GetSpacingLeft())
+	if (available_width < 0.f || mode != InlineLayoutMode::WrapAny || right_spacing_width <= available_width + GetSpacingLeft())
 		return FragmentConstructor{FragmentType::InlineBox, -1.f, {}, {}};
 
 	return {};
