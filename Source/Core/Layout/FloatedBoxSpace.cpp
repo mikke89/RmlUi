@@ -101,7 +101,8 @@ Vector2f FloatedBoxSpace::NextBoxPosition(const BlockContainer* parent, float& m
 {
 	const float parent_scrollbar_width = parent->GetElement()->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL);
 	const float parent_edge_left = parent->GetPosition().x + parent->GetBox().GetPosition().x;
-	const float parent_edge_right = parent_edge_left + parent->GetBox().GetSize().x - parent_scrollbar_width;
+	const float parent_edge_right = (parent->GetBox().GetSize().x < 0.f ? FloatedBoxSpace::edge_right_position_for_indefinite_size
+																		: parent_edge_left + parent->GetBox().GetSize().x - parent_scrollbar_width);
 
 	const AnchorEdge box_edge = (float_property == Style::Float::Right ? RIGHT : LEFT);
 

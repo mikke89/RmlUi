@@ -44,7 +44,7 @@ BlockContainer::BlockContainer(ContainerBox* _parent_container, FloatedBoxSpace*
 	max_height(_max_height), space(_space)
 {
 	RMLUI_ASSERT(element);
-	RMLUI_ASSERT(box.GetSize().x >= 0.f);
+	RMLUI_ASSERT(box.GetSize().x >= 0.f || GetFormattingMode().constraint == FormattingMode::Constraint::MaxContent);
 
 	if (!space)
 	{
@@ -384,7 +384,7 @@ float BlockContainer::GetShrinkToFitWidth() const
 		// our context. The basic algorithm used can produce overestimates, since floats may not be located next to the
 		// rest of the content.
 		const float edge_left = box.GetPosition().x;
-		const float edge_right = edge_left + box.GetSize().x;
+		const float edge_right = (box.GetSize().x < 0.f ? FloatedBoxSpace::edge_right_position_for_indefinite_size : edge_left + box.GetSize().x);
 		content_width += space->GetShrinkToFitWidth(edge_left, edge_right);
 	}
 
@@ -472,7 +472,7 @@ InlineContainer* BlockContainer::EnsureOpenInlineContainer()
 	if (!inline_container)
 	{
 		const float scrollbar_width = (IsScrollContainer() ? element->GetElementScroll()->GetScrollbarSize(ElementScroll::VERTICAL) : 0.f);
-		const float available_width = box.GetSize().x - scrollbar_width;
+		const float available_width = (box.GetSize().x < 0.f ? -1.f : box.GetSize().x - scrollbar_width);
 
 		auto inline_container_ptr = MakeUnique<InlineContainer>(this, available_width);
 		inline_container = inline_container_ptr.get();

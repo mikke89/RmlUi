@@ -111,7 +111,7 @@ private:
 	BlockContainer* parent; // [not-null]
 
 	Vector2f position;
-	Vector2f box_size;
+	Vector2f box_size; // -1 for indefinite size
 
 	// The element's computed line-height. Not necessarily the same as the height of our lines.
 	float element_line_height = 0.f;

@@ -81,7 +81,7 @@ public:
 	float DetermineClearPosition(float cursor, Style::Clear clear_property) const;
 
 	/// Returns the size of the rectangle encompassing all boxes within the space, relative to the block formatting context space.
-	/// @param[in] edges Which edge of the boxes to encompass.
+	/// @param[in] edge Which edge of the boxes to encompass.
 	Vector2f GetDimensions(FloatedBoxEdge edge) const;
 
 	/// Get the width of the floated boxes for calculating the shrink-to-fit width.
@@ -96,6 +96,8 @@ public:
 		extent_bottom_right_overflow = {};
 		extent_bottom_right_margin = {};
 	}
+
+	static constexpr float edge_right_position_for_indefinite_size = 10'000.f;
 
 	void* operator new(size_t size);
 	void operator delete(void* chunk, size_t size);

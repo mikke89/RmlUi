@@ -143,7 +143,7 @@ FragmentConstructor InlineLevelBox_Atomic::CreateFragment(InlineLayoutMode mode,
 {
 	const float outer_width = box.GetSizeAcross(BoxDirection::Horizontal, BoxArea::Margin);
 
-	if (mode != InlineLayoutMode::WrapAny || outer_width + right_spacing_width <= available_width)
+	if (available_width < 0.f || mode != InlineLayoutMode::WrapAny || outer_width + right_spacing_width <= available_width)
 		return FragmentConstructor{FragmentType::SizedBox, outer_width, {}, {}};
 
 	return {};

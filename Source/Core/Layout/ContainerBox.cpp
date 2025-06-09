@@ -84,7 +84,7 @@ Vector2f ContainerBox::GetContainingBlockSize(Style::Position position) const
 			RMLUI_ERROR;
 			return {};
 		}
-		result = box->GetSize(BoxArea::Content);
+		result = box->GetSize();
 		if (element)
 		{
 			// For static elements we subtract the scrollbar size so that elements normally don't overlap their parent's

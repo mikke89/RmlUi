@@ -242,12 +242,6 @@ float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_b
 		return 0.f;
 	}
 
-	// Use a large size for the box content width, so that it is practically unconstrained. This makes the formatting
-	// procedure act as if under a maximum content constraint. Children with percentage sizing values may be scaled
-	// based on this width (such as 'width' or 'margin'), if so, the layout is considered undefined like in CSS 2.
-	const float max_content_constraint_width = containing_block.x + 10'000.f;
-	box.SetContent({max_content_constraint_width, box.GetSize().y});
-
 	FormattingMode formatting_mode = current_formatting_mode;
 	formatting_mode.constraint = FormattingMode::Constraint::MaxContent;
 

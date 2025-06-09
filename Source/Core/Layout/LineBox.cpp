@@ -57,8 +57,8 @@ bool LineBox::AddBox(InlineLevelBox* box, InlineLayoutMode layout_mode, LayoutOv
 
 	const float box_placement_cursor = box_cursor + open_spacing_left;
 
-	float available_width = FLT_MAX;
-	if (layout_mode != InlineLayoutMode::Nowrap)
+	float available_width = -1.f;
+	if (line_width >= 0.f && layout_mode != InlineLayoutMode::Nowrap)
 	{
 		available_width = Math::RoundUp(line_width - box_placement_cursor);
 		if (available_width < 0.f)
@@ -325,7 +325,7 @@ void LineBox::Close(Element* offset_parent, Vector2f offset_parent_position, Sty
 	RMLUI_ASSERT(is_vertically_positioned && !is_closed);
 
 	// Horizontal alignment using available space on our line.
-	if (box_cursor < line_width)
+	if (line_width >= 0.f && box_cursor < line_width)
 	{
 		switch (text_align)
 		{

@@ -49,7 +49,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 	const ComputedValues& computed = element->GetComputedValues();
 
 	const Vector2f containing_block = parent_container->GetContainingBlockSize(element->GetPosition());
-	RMLUI_ASSERT(containing_block.x >= 0.f);
+	RMLUI_ASSERT(containing_block.x >= 0.f || parent_container->GetFormattingMode().constraint == FormattingMode::Constraint::MaxContent);
 
 	// Build the initial box as specified by the flex's style, as if it was a normal block element.
 	Box& box = flex_container_box->GetBox();
