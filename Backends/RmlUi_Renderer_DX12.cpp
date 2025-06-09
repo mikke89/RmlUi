@@ -3593,7 +3593,6 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 	RMLUI_ZoneScopedN("DirectX 12 - Create_Resource_Pipelines");
 	for (auto& vec_cb : this->m_constantbuffers)
 	{
-		vec_cb.reserve(RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS);
 		vec_cb.resize(RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS);
 	}
 

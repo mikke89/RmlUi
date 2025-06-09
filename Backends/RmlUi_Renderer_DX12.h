@@ -127,7 +127,7 @@ static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION > 0 &
 #else
 	// this field specifies the default amount of videomemory that will be used on creation
 	// this field is used when user provided invalid input in initialization structure of backend
-	#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION 1048576 // (4 * 512 * 512 = bytes or 1 Megabytes)
+	#define RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_BUFFER_ALLOCATION 1048576 * 2 // (2 * 1024 * 1024 = bytes or 2 Megabytes)
 #endif
 
 #ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION
@@ -196,8 +196,18 @@ static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION > 0 
 #ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
 	#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
 #else
-	// for getting total size of constant buffers you should multiply kPreAllocatedConstantBuffers * kSwapchainBackBufferCount e.g. 128 * RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT = 384
-	#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS 128
+	// for getting total size of constant buffers you should multiply kPreAllocatedConstantBuffers * kSwapchainBackBufferCount e.g. 512 *
+	// RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT = 1536 (if RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT=3) but keep in mind that
+	// allocation per constant buffer is 512 bytes (due to fact of the max presented CB in shaders) so 1536 * 512 will be 786'432 bytes and knowing
+	// that default buffer budget is just 2Mb (2'097'152) you will have 1'310'720 bytes (~37% of budget took by CBs) but some information will go to vertices and some information
+	// will go to indices and then you will have some free space (maybe small depends on your input) for handling other constant buffers that weren't sufficient for your current frame
+	// aka reallocation happens at some point it is fine just because the memory management of this backend handles a reallocation situations and you
+	// will just get a new allocated buffer and all stuff goes to that buffer but I give you this reasoning for being a developer that cares about
+	// optimizations and cares about pipeline development for end user and for that reason I gave you understanding that generally constant buffers
+	// even 512 bytes but uses so much in frame will take a big chunk from your VB/IB budget just because GAPI needs to handle many frames from
+	// swapchain, just because we expect indeed hard scene for rendering, but for average mid or low pages that's enough for sure (in terms of
+	// preallocated memory for VB,IB,CB)
+	#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS 512
 #endif
 
 #ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
