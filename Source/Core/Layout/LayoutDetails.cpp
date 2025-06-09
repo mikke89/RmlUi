@@ -53,6 +53,8 @@ void LayoutDetails::BuildBox(Box& box, Vector2f containing_block, Element* eleme
 {
 	// A shrinkable block may start formatting, thus the current formatting mode must be provided.
 	RMLUI_ASSERT(box_mode != BuildBoxMode::ShrinkableBlock || formatting_mode != nullptr);
+	RMLUI_ZoneScoped;
+
 	if (!element)
 	{
 		box.SetContent(containing_block);
@@ -210,6 +212,12 @@ void LayoutDetails::BuildBoxSizeAndMargins(Box& box, Vector2f min_size, Vector2f
 float LayoutDetails::GetShrinkToFitWidth(Element* element, Vector2f containing_block, const FormattingMode& current_formatting_mode)
 {
 	RMLUI_ASSERT(element);
+#ifdef RMLUI_TRACY_PROFILING
+	RMLUI_ZoneScoped;
+	const String zone_text = CreateString("%s    %x    Containing block: %g x %g", element->GetAddress(false, false).c_str(), element,
+		containing_block.x, containing_block.y);
+	RMLUI_ZoneText(zone_text.c_str(), zone_text.size());
+#endif
 
 	// @performance Can we lay out the elements directly using a fit-content size mode, instead of fetching the
 	// shrink-to-fit width first? Use a non-definite placeholder for the box content width, and available width as a
@@ -381,8 +389,6 @@ Vector2f LayoutDetails::CalculateSizeForReplacedElement(const Vector2f specified
 void LayoutDetails::BuildBoxWidth(Box& box, const ComputedValues& computed, float min_width, float max_width, Vector2f containing_block,
 	Element* element, bool replaced_element, const FormattingMode* formatting_mode, float override_shrink_to_fit_width)
 {
-	RMLUI_ZoneScoped;
-
 	Vector2f content_area = box.GetSize();
 
 	// Determine if the element has automatic margins.
