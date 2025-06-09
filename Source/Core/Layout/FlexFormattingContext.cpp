@@ -118,6 +118,7 @@ UniquePtr<LayoutBox> FlexFormattingContext::Format(ContainerBox* parent_containe
 Vector2f FlexFormattingContext::GetMaxContentSize(Element* element, const FormattingMode& formatting_mode)
 {
 	RMLUI_ASSERT(formatting_mode.constraint == FormattingMode::Constraint::MaxContent);
+	RMLUI_ZoneScopedC(0xBFBF3F);
 
 	// A large but finite number is used here, since layouting doesn't always work well with infinities.
 	const Vector2f infinity(10000.0f, 10000.0f);
@@ -240,6 +241,7 @@ static float GetInnerUsedCrossSize(const FlexItem& item)
 
 void FlexFormattingContext::Format(Vector2f& flex_resulting_content_size, Vector2f& flex_content_overflow_size, float& flex_baseline) const
 {
+	RMLUI_ZoneScopedC(0xAFAF7F);
 	// The following procedure is based on the CSS flexible box layout algorithm.
 	// For details, see https://drafts.csswg.org/css-flexbox/#layout-algorithm
 
