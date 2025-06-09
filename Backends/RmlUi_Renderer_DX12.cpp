@@ -52,28 +52,40 @@
 		#include <dxgidebug.h>
 	#endif
 
+/// @brief in bytes see pShaderSourceText_Vertex - > cbuffer ConstantBuffer : register(b0)
+constexpr uint32_t kAllocationSize_ConstantBuffer_Vertex_Main = 72;
+
+/// @brief in bytes see pShaderSourceText_Vertex_Blur - > cbuffer SharedConstantBuffer : register(b0)
+constexpr uint32_t kAllocationSize_ConstantBufer_Vertex_Blur = 96;
+
+constexpr uint32_t kAllocationSize_ConstantBuffer_Pixel_Gradient = 416;
+
+/// @brief generally saying it is not universal approach but for keeping things not so much complex better to specify max amount of constantbuffer that's enough to satisfy all shaders otherwise better to use only those which size is required for allocation
+constexpr uint32_t kAllocationSizeMax_ConstantBuffer =
+	std::max({kAllocationSize_ConstantBuffer_Vertex_Main, kAllocationSize_ConstantBufer_Vertex_Blur, kAllocationSize_ConstantBuffer_Pixel_Gradient});
+
 constexpr const char pShaderSourceText_Color[] = R"(
-struct sInputData
+struct VS_INPUT
 {
 	float4 pos : SV_Position;
 	float4 color : COLOR;
 	float2 uv : TEXCOORD;
 };
 
-float4 main(const sInputData IN) : SV_TARGET 
+float4 main(const VS_INPUT IN) : SV_TARGET 
 { 
 	return IN.color; 
 }
 )";
 constexpr const char pShaderSourceText_Vertex[] = R"(
-struct sInputData 
+struct VS_INPUT 
 {
 	float2 position : POSITION;
 	float4 color : COLOR;
 	float2 uv : TEXCOORD;
 };
 
-struct sOutputData
+struct PS_OUTPUT
 {
 	float4 position : SV_Position;
 	float4 color : COLOR;
@@ -84,13 +96,11 @@ cbuffer ConstantBuffer : register(b0)
 {
 	float4x4 m_transform;
 	float2 m_translate;
-	float2 m_padding;
-	float4 m_padding1[11];
 };
 
-sOutputData main(const sInputData IN)
+PS_OUTPUT main(const VS_INPUT IN)
 {
-	sOutputData OUT;
+	PS_OUTPUT OUT;
 
 	float2 translatedPos = IN.position + m_translate;
 	float4 resPos = mul(m_transform, float4(translatedPos.x, translatedPos.y, 0.0, 1.0));
@@ -104,7 +114,7 @@ sOutputData main(const sInputData IN)
 )";
 
 constexpr const char pShaderSourceText_Texture[] = R"(
-struct sInputData
+struct VS_INPUT
 {
 	float4 pos : SV_Position;
 	float4 color : COLOR;
@@ -116,42 +126,42 @@ Texture2D g_InputTexture : register(t0);
 SamplerState g_SamplerLinear : register(s0);
 
 
-float4 main(const sInputData IN) : SV_TARGET 
+float4 main(const VS_INPUT IN) : SV_TARGET 
 { 
 	return IN.color * g_InputTexture.Sample(g_SamplerLinear, IN.uv); 
 }
 )";
 
 constexpr const char pShaderSourceText_Vertex_PassThrough[] = R"(
-struct sInputData 
+struct VS_INPUT 
 {
 	float2 position : POSITION;
 	float4 color : COLOR;
 	float2 uv : TEXCOORD;
 };
 
-struct sOutputData
+struct PS_OUTPUT
 {
 	float4 position : SV_Position;
 	float4 color : COLOR;
 	float2 uv : TEXCOORD;
 };
 
-sOutputData main(const sInputData inArgs)
+PS_OUTPUT main(const VS_INPUT IN)
 {
-	sOutputData result;
-	result.position = float4(inArgs.position.x, inArgs.position.y, 0.0f, 1.0f);
-	result.color = inArgs.color;
+	PS_OUTPUT OUT;
+	OUT.position = float4(IN.position.x, IN.position.y, 0.0f, 1.0f);
+	OUT.color = IN.color;
 	// need to flip here since Rml::MeshUtilities::GenerateQuad makes valid data for GL APIs but on DirectX 
 	// it is not valid UV (otherwise image will be flipped)
-	result.uv = float2(inArgs.uv.x, 1.0f - inArgs.uv.y); 
+	OUT.uv = float2(IN.uv.x, 1.0f - IN.uv.y); 
 
-	return result;
+	return OUT;
 }
 )";
 
 constexpr const char pShaderSourceText_Pixel_Passthrough[] = R"(
-struct sInputData
+struct PS_INPUT
 {
 	float4 pos : SV_Position;
 	float4 color : COLOR;
@@ -163,11 +173,49 @@ Texture2D g_InputTexture : register(t0);
 SamplerState g_SamplerLinear : register(s0);
 
 
-float4 main(const sInputData inputArgs) : SV_TARGET 
+float4 main(const PS_INPUT inputArgs) : SV_TARGET 
 { 
 	return g_InputTexture.Sample(g_SamplerLinear, inputArgs.uv); 
 }
 )";
+
+constexpr const char pShaderSourceText_Vertex_Blur[] = R"(
+struct VS_INPUT
+{
+    float2 position : POSITION;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD;
+};
+
+struct PS_INPUT
+{
+    float4 position : SV_Position;
+    float2 uv[BLUR_SIZE] : TEXCOORD;
+};
+
+cbuffer SharedConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+    float2 m_texelOffset;
+    float4 m_weights;
+    float2 m_texCoordMin;
+    float2 m_texCoordMax;
+};
+
+PS_INPUT VSMain(const VS_INPUT IN)
+{
+    PS_INPUT result = (PS_INPUT)0;
+
+    for (int i = 0; i < BLUR_SIZE; i++) {
+        result.uv[i] = IN.uv - float(i - BLUR_NUM_WEIGHTS + 1) * m_texelOffset;
+    }
+    result.position = float4(IN.position.xy, 1.0, 1.0);
+
+    return result;
+};
+)";
+
 
 // AlignUp(314, 256) = 512
 template <typename T>
@@ -825,14 +873,11 @@ void RenderInterface_DX12::EndFrame()
 		RMLUI_DX_ASSERTMSG(this->m_p_swapchain->Present(sync_interval, present_flags), "failed to Present");
 
 	#ifdef RMLUI_DX_DEBUG
-		if (this->m_current_back_buffer_index == 0)
-		{
-			Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] current allocated constant buffers per draw (for frame[%d]): %zu",
-				this->m_current_back_buffer_index, this->m_constant_buffer_count_per_frame[m_current_back_buffer_index]);
-		}
+		Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12] current allocated constant buffers per draw (for frame[%d]): %zu",
+			this->m_current_back_buffer_index, this->m_constant_buffer_count_per_frame[m_current_back_buffer_index]);
 	#endif
 
-		this->m_constant_buffer_count_per_frame[0] = 0;
+		this->m_constant_buffer_count_per_frame[this->m_current_back_buffer_index] = 0;
 
 		this->m_current_back_buffer_index = (uint32_t)this->m_p_swapchain->GetCurrentBackBufferIndex();
 
@@ -922,7 +967,7 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 
 		// this->SubmitTransformUniform(p_handle_geometry->Get_ConstantBuffer(), translation);
 
-		p_constant_buffer = this->Get_ConstantBuffer(0);
+		p_constant_buffer = this->Get_ConstantBuffer(this->m_current_back_buffer_index);
 
 		this->SubmitTransformUniform(*p_constant_buffer, translation);
 
@@ -982,7 +1027,7 @@ void RenderInterface_DX12::RenderGeometry(Rml::CompiledGeometryHandle geometry, 
 		}
 
 		// this->SubmitTransformUniform(p_handle_geometry->Get_ConstantBuffer(), translation);
-		p_constant_buffer = this->Get_ConstantBuffer(0);
+		p_constant_buffer = this->Get_ConstantBuffer(this->m_current_back_buffer_index);
 
 		this->SubmitTransformUniform(*p_constant_buffer, translation);
 	}
@@ -2057,8 +2102,84 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	int pass_level = 0;
 	const Rml::Pair<int, float>& pass_level_and_sigma = SigmaToParameters(sigma);
 
+	if (pass_level_and_sigma.second == 0.0f)
+		return;
+
 	const Rml::Rectanglei original_scissor = this->m_scissor;
 	Rml::Rectanglei scissor = window_flipped;
+
+	UseProgram(ProgramId::Passthrough_NoBlend);
+	SetScissor(scissor, true);
+
+	D3D12_VIEWPORT vp{};
+
+	vp.TopLeftX = 0;
+	vp.TopLeftY = source_destination.Get_Height()/2.0f;
+	vp.Width = source_destination
+				   .Get_Width()/2.0f;
+	vp.Height = source_destination.Get_Height()/2.0f;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+
+	this->m_p_command_graphics_list->RSSetViewports(1, &vp);
+
+	const Rml::Vector2f uv_scaling = {(source_destination.Get_Width() % 2 == 1) ? (1.f - 1.f / float(source_destination.Get_Width())) : 1.f,
+		(source_destination.Get_Height() % 2 == 1) ? (1.f - 1.f / float(source_destination.Get_Height())) : 1.f};
+
+	for (int i = 0; i < pass_level; i++)
+	{
+		scissor.p0 = (scissor.p0 + Rml::Vector2i(1)) / 2;
+		scissor.p1 = Rml::Math::Max(scissor.p1 / 2, scissor.p0);
+		const bool from_source = (i % 2 == 0);
+
+		this->BindRenderTarget(from_source ? temp : source_destination);
+
+		RenderInterface_DX12::TextureHandleType* p_texture = nullptr;
+
+		if (from_source)
+		{
+			p_texture = temp.Get_Texture();
+		}
+		else
+		{
+			p_texture = source_destination.Get_Texture();
+		}
+
+		RMLUI_ASSERT(p_texture && "must be valid!");
+
+		this->BindTexture(p_texture);
+
+
+		SetScissor(scissor, true);
+
+		DrawFullscreenQuad({}, uv_scaling);
+	}
+
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	vp.Width = static_cast<FLOAT>(source_destination.Get_Width());
+	vp.Height = static_cast<FLOAT>(source_destination.Get_Height());
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+
+	this->m_p_command_graphics_list->RSSetViewports(1, &vp);
+	const bool transfer_to_temp_buffer = (pass_level % 2 == 0);	
+
+	if (transfer_to_temp_buffer)
+	{
+		this->BindRenderTarget(temp);
+		
+		RenderInterface_DX12::TextureHandleType* p_texture = temp.Get_Texture();
+
+		RMLUI_ASSERT(p_texture && "must be valid!");
+
+		this->BindTexture(p_texture);
+
+		DrawFullscreenQuad();
+	}
+
+
+
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
@@ -2136,6 +2257,13 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 		}
 		case FilterType::Blur:
 		{
+			break;
+			const Gfx::FramebufferData& source = this->m_manager_render_layer.GetPostprocessPrimary();
+			const Gfx::FramebufferData& temp = this->m_manager_render_layer.GetPostprocessSecondary();
+
+			const Rml::Rectanglei window_flipped = VerticallyFlipped(this->m_scissor, this->m_height);
+			RenderBlur(filter.sigma, source, temp, window_flipped);
+
 			break;
 		}
 		case FilterType::DropShadow:
@@ -3465,6 +3593,7 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 	RMLUI_ZoneScopedN("DirectX 12 - Create_Resource_Pipelines");
 	for (auto& vec_cb : this->m_constantbuffers)
 	{
+		vec_cb.reserve(RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS);
 		vec_cb.resize(RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS);
 	}
 
@@ -3472,7 +3601,7 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 	{
 		for (auto& cb : vec_cb)
 		{
-			const auto& info = this->m_manager_buffer.Alloc_ConstantBuffer(&cb, 72);
+			const auto& info = this->m_manager_buffer.Alloc_ConstantBuffer(&cb, kAllocationSizeMax_ConstantBuffer);
 			cb.Set_AllocInfo(info);
 		}
 	}
@@ -3482,7 +3611,7 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 
 	this->Create_Resource_For_Shaders();
 	this->Create_Resource_Pipeline_BlendMask();
-	this->Create_Resource_Pipeline_Blur();
+//	this->Create_Resource_Pipeline_Blur();
 	this->Create_Resource_Pipeline_Color();
 	this->Create_Resource_Pipeline_ColorMatrix();
 	this->Create_Resource_Pipeline_Count();
@@ -4804,6 +4933,239 @@ void RenderInterface_DX12::Create_Resource_Pipeline_BlendMask()
 void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Create_Resource_Pipeline_Blur");
+
+	RMLUI_ASSERT(this->m_p_device && "must be valid when we call this method!");
+	RMLUI_ASSERT(Rml::GetFileInterface() && "must be valid when we call this method!");
+
+	auto* p_filesystem = Rml::GetFileInterface();
+
+	if (this->m_p_device && p_filesystem)
+	{
+		D3D12_DESCRIPTOR_RANGE ranges[1];
+		ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		ranges[0].NumDescriptors = 1;
+		ranges[0].BaseShaderRegister = 0;
+		ranges[0].RegisterSpace = 0;
+		ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+		D3D12_ROOT_DESCRIPTOR_TABLE table{};
+		table.NumDescriptorRanges = sizeof(ranges) / sizeof(decltype(ranges[0]));
+		table.pDescriptorRanges = ranges;
+
+		D3D12_ROOT_PARAMETER parameters[1];
+		parameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		parameters[0].DescriptorTable = table;
+		parameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+		D3D12_STATIC_SAMPLER_DESC sampler = {};
+		sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.MipLODBias = 0;
+		sampler.MaxAnisotropy = 0;
+		sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+		sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+		sampler.MinLOD = 0.0f;
+		sampler.MaxLOD = D3D12_FLOAT32_MAX;
+		sampler.ShaderRegister = 0;
+		sampler.RegisterSpace = 0;
+		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+		CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
+			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+
+		ID3DBlob* p_signature{};
+		ID3DBlob* p_error{};
+		auto status = D3D12SerializeRootSignature(&desc_rootsignature, D3D_ROOT_SIGNATURE_VERSION_1, &p_signature, &p_error);
+	#ifdef RMLUI_DX_DEBUG
+		if (FAILED(status))
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12][ERROR] failed to D3D12SerializeRootSignature: %s",
+				(char*)p_error->GetBufferPointer());
+		}
+	#endif
+		RMLUI_DX_ASSERTMSG(status, "failed to D3D12SerializeRootSignature");
+
+		status = this->m_p_device->CreateRootSignature(0, p_signature->GetBufferPointer(), p_signature->GetBufferSize(),
+			IID_PPV_ARGS(&this->m_root_signatures[static_cast<int>(ProgramId::Blur)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateRootSignature");
+
+		if (p_signature)
+		{
+			p_signature->Release();
+			p_signature = nullptr;
+		}
+
+		if (p_error)
+		{
+			p_error->Release();
+			p_error = nullptr;
+		}
+
+		ID3DBlob* p_shader_vertex{};
+		ID3DBlob* p_shader_pixel{};
+		ID3DBlob* p_error_buff{};
+
+		const D3D_SHADER_MACRO macros[] = {NULL, NULL, NULL, NULL};
+
+		status = D3DCompile(pShaderSourceText_Vertex_PassThrough, sizeof(pShaderSourceText_Vertex_PassThrough), nullptr, macros, nullptr, "main",
+			"vs_5_0", this->m_default_shader_flags, 0, &p_shader_vertex, &p_error_buff);
+		RMLUI_DX_ASSERTMSG(status, "failed to D3DCompile");
+
+	#ifdef RMLUI_DX_DEBUG
+		if (FAILED(status))
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12][ERROR] failed to compile shader: %s", (char*)p_error_buff->GetBufferPointer());
+		}
+	#endif
+
+		if (p_error_buff)
+		{
+			p_error_buff->Release();
+			p_error_buff = nullptr;
+		}
+
+		status = D3DCompile(pShaderSourceText_Pixel_Passthrough, sizeof(pShaderSourceText_Pixel_Passthrough), nullptr, nullptr, nullptr, "main",
+			"ps_5_0", this->m_default_shader_flags, 0, &p_shader_pixel, &p_error_buff);
+	#ifdef RMLUI_DX_DEBUG
+		if (FAILED(status))
+		{
+			Rml::Log::Message(Rml::Log::Type::LT_DEBUG, "[DirectX-12][ERROR] failed to compile shader: %s",
+				(char*)(p_error_buff->GetBufferPointer()));
+		}
+	#endif
+		RMLUI_DX_ASSERTMSG(status, "failed to D3DCompile");
+
+		if (p_error_buff)
+		{
+			p_error_buff->Release();
+			p_error_buff = nullptr;
+		}
+
+		D3D12_SHADER_BYTECODE desc_bytecode_pixel_shader = {};
+		desc_bytecode_pixel_shader.BytecodeLength = p_shader_pixel->GetBufferSize();
+		desc_bytecode_pixel_shader.pShaderBytecode = p_shader_pixel->GetBufferPointer();
+
+		D3D12_SHADER_BYTECODE desc_bytecode_vertex_shader = {};
+		desc_bytecode_vertex_shader.BytecodeLength = p_shader_vertex->GetBufferSize();
+		desc_bytecode_vertex_shader.pShaderBytecode = p_shader_vertex->GetBufferPointer();
+
+		D3D12_INPUT_ELEMENT_DESC desc_input_layout_elements[] = {
+			{"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+			{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 8, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+			{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}};
+
+		D3D12_INPUT_LAYOUT_DESC desc_input_layout = {};
+
+		desc_input_layout.NumElements = sizeof(desc_input_layout_elements) / sizeof(D3D12_INPUT_ELEMENT_DESC);
+		desc_input_layout.pInputElementDescs = desc_input_layout_elements;
+
+		D3D12_RASTERIZER_DESC desc_rasterizer = {};
+
+		desc_rasterizer.AntialiasedLineEnable = FALSE;
+		desc_rasterizer.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+		desc_rasterizer.CullMode = D3D12_CULL_MODE_NONE;
+		desc_rasterizer.DepthBias = 0;
+		desc_rasterizer.DepthBiasClamp = 0;
+		desc_rasterizer.DepthClipEnable = FALSE;
+		desc_rasterizer.ForcedSampleCount = 0;
+		desc_rasterizer.FrontCounterClockwise = FALSE;
+		desc_rasterizer.MultisampleEnable = FALSE;
+		desc_rasterizer.FillMode = D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;
+		desc_rasterizer.SlopeScaledDepthBias = 0;
+
+		D3D12_BLEND_DESC desc_blend_state = {};
+
+		desc_blend_state.AlphaToCoverageEnable = FALSE;
+		desc_blend_state.IndependentBlendEnable = FALSE;
+		const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
+			TRUE,
+			FALSE,
+	#ifdef RMLUI_PREMULTIPLIED_ALPHA
+			D3D12_BLEND_ONE,
+	#else
+			D3D12_BLEND_SRC_ALPHA,
+	#endif
+			D3D12_BLEND_INV_SRC_ALPHA,
+			D3D12_BLEND_OP_ADD,
+	#ifdef RMLUI_PREMULTIPLIED_ALPHA
+			D3D12_BLEND_ONE,
+	#else
+			D3D12_BLEND_SRC_ALPHA,
+	#endif
+			D3D12_BLEND_INV_SRC_ALPHA,
+			D3D12_BLEND_OP_ADD,
+			D3D12_LOGIC_OP_NOOP,
+			D3D12_COLOR_WRITE_ENABLE_ALL,
+		};
+		for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+			desc_blend_state.RenderTarget[i] = defaultRenderTargetBlendDesc;
+
+		D3D12_DEPTH_STENCIL_DESC desc_depth_stencil = {};
+
+		desc_depth_stencil.DepthEnable = FALSE;
+		desc_depth_stencil.StencilEnable = TRUE;
+		desc_depth_stencil.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+		desc_depth_stencil.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		desc_depth_stencil.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+		desc_depth_stencil.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+
+		desc_depth_stencil.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		desc_depth_stencil.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+
+		desc_depth_stencil.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+		desc_depth_stencil.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		desc_depth_stencil.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc_pipeline = {};
+
+		desc_pipeline.InputLayout = desc_input_layout;
+		desc_pipeline.pRootSignature = this->m_root_signatures[static_cast<int>(ProgramId::Passthrough)];
+		desc_pipeline.VS = desc_bytecode_vertex_shader;
+		desc_pipeline.PS = desc_bytecode_pixel_shader;
+		desc_pipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		desc_pipeline.RTVFormats[0] = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
+		desc_pipeline.DSVFormat = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
+
+		// since it is used for presenting MSAA texture on screen, we create swapchain and all RTs as NO-MSAA, keep this in mind
+		// otherwise it is wrong to mix target texture with different sample count than swapchain's
+		desc_pipeline.SampleDesc.Count = 1;
+		desc_pipeline.SampleDesc.Quality = 0;
+
+		desc_pipeline.SampleMask = 0xffffffff;
+		desc_pipeline.RasterizerState = desc_rasterizer;
+		desc_pipeline.BlendState = desc_blend_state;
+		desc_pipeline.NumRenderTargets = 1;
+		desc_pipeline.DepthStencilState = desc_depth_stencil;
+
+		status =
+			this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline, IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Passthrough)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough)");
+
+	#ifdef RMLUI_DX_DEBUG
+		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough)]->SetName(TEXT("rs of Passthrough"));
+		this->m_pipelines[static_cast<int>(ProgramId::Passthrough)]->SetName(TEXT("pipeline Passthrough"));
+	#endif
+
+		desc_pipeline.SampleDesc = this->m_desc_sample;
+
+		status = this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline,
+			IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough_MSAA)");
+
+	#ifdef RMLUI_DX_DEBUG
+		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("rs of Passthrough_MSAA"));
+		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("pipeline Passthrough_MSAA"));
+	#endif
+	}
+
+
 }
 
 void RenderInterface_DX12::Create_Resource_Pipeline_DropShadow()
@@ -5185,7 +5547,7 @@ RenderInterface_DX12::ConstantBufferType* RenderInterface_DX12::Get_ConstantBuff
 
 	if (p_result->Get_AllocInfo().Get_BufferIndex() == -1)
 	{
-		const auto& info_alloc = this->m_manager_buffer.Alloc_ConstantBuffer(p_result, 72);
+		const auto& info_alloc = this->m_manager_buffer.Alloc_ConstantBuffer(p_result, kAllocationSizeMax_ConstantBuffer);
 		p_result->Set_AllocInfo(info_alloc);
 	}
 

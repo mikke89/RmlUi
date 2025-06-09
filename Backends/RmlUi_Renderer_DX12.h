@@ -196,8 +196,8 @@ static_assert(RMLUI_RENDER_BACKEND_FIELD_VIDEOMEMORY_FOR_TEXTURE_ALLOCATION > 0 
 #ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
 	#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_PREALLOCATED_CONSTANTBUFFERS
 #else
-	// for getting total size of constant buffers you should multiply kPreAllocatedConstantBuffers * kSwapchainBackBufferCount e.g. 250 * 3 = 750
-	#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS 250
+	// for getting total size of constant buffers you should multiply kPreAllocatedConstantBuffers * kSwapchainBackBufferCount e.g. 128 * RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT = 384
+	#define RMLUI_RENDER_BACKEND_FIELD_PREALLOCATED_CONSTANTBUFFERS 128
 #endif
 
 #ifdef RMLUI_RENDER_BACKEND_OVERRIDE_FIELD_MSAA_SAMPLE_COUNT
@@ -941,7 +941,7 @@ private:
 	Rml::Array<size_t, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_constant_buffer_count_per_frame;
 	Rml::Array<size_t, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_vertex_and_index_buffer_count_per_frame;
 	// per object (per draw)
-	Rml::Array<Rml::Vector<ConstantBufferType>, 1> m_constantbuffers;
+	Rml::Array<Rml::Vector<ConstantBufferType>, RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT> m_constantbuffers;
 	Rml::Vector<GeometryHandleType*> m_pending_for_deletion_geometry;
 	// todo: delete this if final implementation doesn't use this
 	Rml::Vector<TextureHandleType*> m_pending_for_deletion_textures;
