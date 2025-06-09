@@ -60,9 +60,17 @@ constexpr uint32_t kAllocationSize_ConstantBufer_Vertex_Blur = 96;
 
 constexpr uint32_t kAllocationSize_ConstantBuffer_Pixel_Gradient = 416;
 
-/// @brief generally saying it is not universal approach but for keeping things not so much complex better to specify max amount of constantbuffer that's enough to satisfy all shaders otherwise better to use only those which size is required for allocation
+/// @brief generally saying it is not universal approach but for keeping things not so much complex better to specify max amount of constantbuffer
+/// that's enough to satisfy all shaders otherwise better to use only those which size is required for allocation
 constexpr uint32_t kAllocationSizeMax_ConstantBuffer =
 	std::max({kAllocationSize_ConstantBuffer_Vertex_Main, kAllocationSize_ConstantBufer_Vertex_Blur, kAllocationSize_ConstantBuffer_Pixel_Gradient});
+
+	#define MAX_NUM_STOPS 16
+	#define BLUR_SIZE 7
+	#define BLUR_NUM_WEIGHTS ((BLUR_SIZE + 1) / 2)
+
+	#define RMLUI_STRINGIFY_IMPL(x) #x
+	#define RMLUI_STRINGIFY(x) RMLUI_STRINGIFY_IMPL(x)
 
 constexpr const char pShaderSourceText_Color[] = R"(
 struct VS_INPUT
@@ -179,8 +187,13 @@ float4 main(const PS_INPUT inputArgs) : SV_TARGET
 }
 )";
 
-constexpr const char pShaderSourceText_Vertex_Blur[] = R"(
-struct VS_INPUT
+#define RMLUI_SHADER_HEADER "#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n#line " RMLUI_STRINGIFY(__LINE__) "\n"
+
+	#define RMLUI_SHADER_BLUR_HEADER \
+		RMLUI_SHADER_HEADER "\n#define BLUR_SIZE " RMLUI_STRINGIFY(BLUR_SIZE) "\n#define BLUR_NUM_WEIGHTS " RMLUI_STRINGIFY(BLUR_NUM_WEIGHTS)
+
+constexpr const char pShaderSourceText_Vertex_Blur[] = RMLUI_SHADER_BLUR_HEADER R"(
+struct VS_Input
 {
     float2 position : POSITION;
     float4 color : COLOR;
@@ -203,7 +216,7 @@ cbuffer SharedConstantBuffer : register(b0)
     float2 m_texCoordMax;
 };
 
-PS_INPUT VSMain(const VS_INPUT IN)
+PS_INPUT VSMain(const VS_Input IN)
 {
     PS_INPUT result = (PS_INPUT)0;
 
@@ -216,6 +229,37 @@ PS_INPUT VSMain(const VS_INPUT IN)
 };
 )";
 
+constexpr const char pShaderSourceText_Pixel_Blur[] = RMLUI_SHADER_BLUR_HEADER R"(
+Texture2D g_InputTexture : register(t0);
+SamplerState g_SamplerLinear : register(s0);
+
+cbuffer SharedConstantBuffer : register(b0)
+{
+    float4x4 m_transform;
+    float2 m_translate;
+    float2 m_texelOffset;
+    float4 m_weights;
+    float2 m_texCoordMin;
+    float2 m_texCoordMax;
+};
+
+struct PS_INPUT
+{
+    float4 position : SV_Position;
+    float2 uv[BLUR_SIZE] : TEXCOORD;
+};
+
+float4 PSMain(const PS_INPUT IN) : SV_TARGET
+{
+    float4 color = float4(0.0, 0.0, 0.0, 0.0);
+    for(int i = 0; i < BLUR_SIZE; i++)
+    {
+        float2 in_region = step(m_texCoordMin, IN.uv[i]) * step(IN.uv[i], m_texCoordMax);
+        color += g_InputTexture.Sample(g_SamplerLinear, float2(IN.uv[i].x, 1.0f - IN.uv[i].y)) * in_region.x * in_region.y * m_weights[abs(i - BLUR_NUM_WEIGHTS + 1)];
+    }
+    return color;
+};
+)";
 
 // AlignUp(314, 256) = 512
 template <typename T>
@@ -539,12 +583,11 @@ RenderInterface_DX12::RenderInterface_DX12(void* p_window_handle, bool use_vsync
 	#endif
 	m_width{}, m_height{}, m_current_clip_operation{-1}, m_active_program_id{}, m_size_descriptor_heap_render_target_view{},
 	m_size_descriptor_heap_shaders{}, m_current_back_buffer_index{}, m_stencil_ref_value{}, m_p_device{}, m_p_command_queue{}, m_p_copy_queue{},
-	m_p_swapchain{},
-	m_p_command_graphics_list{}, m_p_descriptor_heap_render_target_view{}, m_p_descriptor_heap_render_target_view_for_texture_manager{},
-	m_p_descriptor_heap_depth_stencil_view_for_texture_manager{}, m_p_descriptor_heap_shaders{}, m_p_descriptor_heap_depthstencil{},
-	m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_adapter{}, m_p_copy_allocator{}, m_p_copy_command_list{}, m_p_allocator{},
-	m_p_offset_allocator_for_descriptor_heap_shaders{}, m_p_window_handle{}, m_p_fence_event{}, m_fence_value{},
-	m_precompiled_fullscreen_quad_geometry{}
+	m_p_swapchain{}, m_p_command_graphics_list{}, m_p_descriptor_heap_render_target_view{},
+	m_p_descriptor_heap_render_target_view_for_texture_manager{}, m_p_descriptor_heap_depth_stencil_view_for_texture_manager{},
+	m_p_descriptor_heap_shaders{}, m_p_descriptor_heap_depthstencil{}, m_p_depthstencil_resource{}, m_p_backbuffer_fence{}, m_p_adapter{},
+	m_p_copy_allocator{}, m_p_copy_command_list{}, m_p_allocator{}, m_p_offset_allocator_for_descriptor_heap_shaders{}, m_p_window_handle{},
+	m_p_fence_event{}, m_fence_value{}, m_precompiled_fullscreen_quad_geometry{}
 {
 	RMLUI_ZoneScopedN("DirectX 12 - Constructor (non user)");
 
@@ -673,8 +716,8 @@ void RenderInterface_DX12::BeginFrame()
 			this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_dsv(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart());
-		
-		this->m_stencil_ref_value=0;
+
+		this->m_stencil_ref_value = 0;
 
 		// TODO: я не должен устанавливать здесь backbuffer который из свапчейна, а смотреть код GL3 реализации
 		//	this->m_p_command_graphics_list->OMSetRenderTargets(1, &handle_rtv, FALSE, &handle_dsv);
@@ -2114,10 +2157,9 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	D3D12_VIEWPORT vp{};
 
 	vp.TopLeftX = 0;
-	vp.TopLeftY = source_destination.Get_Height()/2.0f;
-	vp.Width = source_destination
-				   .Get_Width()/2.0f;
-	vp.Height = source_destination.Get_Height()/2.0f;
+	vp.TopLeftY = source_destination.Get_Height() / 2.0f;
+	vp.Width = source_destination.Get_Width() / 2.0f;
+	vp.Height = source_destination.Get_Height() / 2.0f;
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
 
@@ -2149,7 +2191,6 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 
 		this->BindTexture(p_texture);
 
-
 		SetScissor(scissor, true);
 
 		DrawFullscreenQuad({}, uv_scaling);
@@ -2163,12 +2204,12 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	vp.MaxDepth = 1.0f;
 
 	this->m_p_command_graphics_list->RSSetViewports(1, &vp);
-	const bool transfer_to_temp_buffer = (pass_level % 2 == 0);	
+	const bool transfer_to_temp_buffer = (pass_level % 2 == 0);
 
 	if (transfer_to_temp_buffer)
 	{
 		this->BindRenderTarget(temp);
-		
+
 		RenderInterface_DX12::TextureHandleType* p_texture = temp.Get_Texture();
 
 		RMLUI_ASSERT(p_texture && "must be valid!");
@@ -2177,9 +2218,6 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 
 		DrawFullscreenQuad();
 	}
-
-
-
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
@@ -2309,12 +2347,12 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 
 	if (blend_mode == Rml::BlendMode::Replace)
 	{
-	    this->UseProgram(ProgramId::Passthrough_NoBlend);
+		this->UseProgram(ProgramId::Passthrough_NoBlend);
 	}
 	else
 	{
-	    // since we use msaa render target we should use appropriate version of pipeline
-	    this->UseProgram(ProgramId::Passthrough_MSAA);
+		// since we use msaa render target we should use appropriate version of pipeline
+		this->UseProgram(ProgramId::Passthrough_MSAA);
 	}
 
 	this->BindTexture(this->m_manager_render_layer.GetPostprocessPrimary().Get_Texture());
@@ -2324,12 +2362,12 @@ void RenderInterface_DX12::CompositeLayers(Rml::LayerHandle source, Rml::LayerHa
 	// should we set like return blend state as enabled?
 	if (blend_mode == Rml::BlendMode::Replace)
 	{
-	    this->UseProgram(ProgramId::Passthrough);
+		this->UseProgram(ProgramId::Passthrough);
 	}
 
 	if (destination != this->m_manager_render_layer.GetTopLayerHandle())
 	{
-	    this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
+		this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
 	}
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
@@ -2339,7 +2377,7 @@ void RenderInterface_DX12::PopLayer()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - PopLayer");
 	//	RMLUI_ASSERT(false && "todo");
-	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list,"PopLayer");
+	RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "PopLayer");
 	this->m_manager_render_layer.PopLayer();
 	this->BindRenderTarget(this->m_manager_render_layer.GetTopLayer());
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
@@ -3610,7 +3648,7 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 
 	this->Create_Resource_For_Shaders();
 	this->Create_Resource_Pipeline_BlendMask();
-//	this->Create_Resource_Pipeline_Blur();
+	//	this->Create_Resource_Pipeline_Blur();
 	this->Create_Resource_Pipeline_Color();
 	this->Create_Resource_Pipeline_ColorMatrix();
 	this->Create_Resource_Pipeline_Count();
@@ -5163,8 +5201,6 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("pipeline Passthrough_MSAA"));
 	#endif
 	}
-
-
 }
 
 void RenderInterface_DX12::Create_Resource_Pipeline_DropShadow()

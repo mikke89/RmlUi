@@ -1765,6 +1765,7 @@ Rml::CompiledShaderHandle RenderInterface_GL3::CompileShader(const Rml::String& 
 void RenderInterface_GL3::RenderShader(Rml::CompiledShaderHandle shader_handle, Rml::CompiledGeometryHandle geometry_handle,
 	Rml::Vector2f translation, Rml::TextureHandle /*texture*/)
 {
+	return;
 	OutputDebugStringA("::RenderShader()\n");
 	RMLUI_GL_MARKER_BEGIN("RenderShader");
 	RMLUI_ASSERT(shader_handle && geometry_handle);
@@ -1873,6 +1874,7 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 		break;
 		case FilterType::Blur:
 		{
+			break;
 			glDisable(GL_BLEND);
 
 			const Gfx::FramebufferData& source_destination = render_layers.GetPostprocessPrimary();
@@ -1886,6 +1888,7 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 		break;
 		case FilterType::DropShadow:
 		{
+			break;
 			UseProgram(ProgramId::DropShadow);
 			glDisable(GL_BLEND);
 
@@ -1920,6 +1923,7 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 		break;
 		case FilterType::ColorMatrix:
 		{
+			break;
 			UseProgram(ProgramId::ColorMatrix);
 			glDisable(GL_BLEND);
 
@@ -1940,6 +1944,7 @@ void RenderInterface_GL3::RenderFilters(Rml::Span<const Rml::CompiledFilterHandl
 		break;
 		case FilterType::MaskImage:
 		{
+			break;
 			UseProgram(ProgramId::BlendMask);
 			glDisable(GL_BLEND);
 
