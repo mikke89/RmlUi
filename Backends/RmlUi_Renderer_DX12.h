@@ -835,7 +835,6 @@ private:
 	void Create_Resource_Pipeline_Gradient();
 	void Create_Resource_Pipeline_Creation();
 	void Create_Resource_Pipeline_Passthrough();
-	// glBlendFunc(GL_CONSTANT_ALPHA, GL_ZERO);
 	void Create_Resource_Pipeline_Passthrough_ColorMask();
 	void Create_Resource_Pipeline_Passthrough_NoBlend();
 	void Create_Resource_Pipeline_ColorMatrix();
