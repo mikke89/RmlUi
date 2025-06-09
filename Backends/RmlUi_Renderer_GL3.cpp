@@ -1964,7 +1964,6 @@ void RenderInterface_GL3::PopLayer()
 
 Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensions)
 {
-	return Rml::TextureHandle();
 	OutputDebugStringA("::SaveLayerAsTexture()\n");
 	RMLUI_GL_MARKER_BEGIN("SaveLayerAsTexture");
 
@@ -2009,7 +2008,6 @@ Rml::TextureHandle RenderInterface_GL3::SaveLayerAsTexture(Rml::Vector2i dimensi
 
 Rml::CompiledFilterHandle RenderInterface_GL3::SaveLayerAsMaskImage()
 {
-	return Rml::CompiledFilterHandle();
 	OutputDebugStringA("::SaveLayerAsMaskImage()\n");
 	RMLUI_GL_MARKER_BEGIN("SaveLayerAsMaskImage");
 	BlitLayerToPostprocessPrimary(render_layers.GetTopLayerHandle());
