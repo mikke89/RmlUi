@@ -193,7 +193,7 @@ float4 main(const PS_INPUT inputArgs) : SV_TARGET
 		RMLUI_SHADER_HEADER "\n#define BLUR_SIZE " RMLUI_STRINGIFY(BLUR_SIZE) "\n#define BLUR_NUM_WEIGHTS " RMLUI_STRINGIFY(BLUR_NUM_WEIGHTS)
 
 constexpr const char pShaderSourceText_Vertex_Blur[] = RMLUI_SHADER_BLUR_HEADER R"(
-struct VS_Input
+struct VS_INPUT
 {
     float2 position : POSITION;
     float4 color : COLOR;
@@ -216,7 +216,7 @@ cbuffer SharedConstantBuffer : register(b0)
     float2 m_texCoordMax;
 };
 
-PS_INPUT VSMain(const VS_Input IN)
+PS_INPUT VSMain(const VS_INPUT IN)
 {
     PS_INPUT result = (PS_INPUT)0;
 
@@ -955,8 +955,9 @@ void RenderInterface_DX12::Clear()
 	auto& p_current_rtv = this->m_manager_render_layer.GetTopLayer().Get_DescriptorResourceView();
 	auto& p_current_dsv = this->m_manager_render_layer.GetTopLayer().Get_SharedDepthStencilTexture()->Get_DescriptorResourceView();
 
-	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color, 0, nullptr);
-	this->m_p_command_graphics_list->ClearDepthStencilView(p_current_dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+	constexpr FLOAT clear_color_framebuffer[] = {0.0f, 0.0f, 0.0f, 0.0f};
+	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color_framebuffer, 0, nullptr);
+//	this->m_p_command_graphics_list->ClearDepthStencilView(p_current_dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
@@ -1246,8 +1247,13 @@ void RenderInterface_DX12::RenderToClipMask(Rml::ClipMaskOperation mask_operatio
 
 	if (clear_stencil)
 	{
-		this->m_p_command_graphics_list->ClearDepthStencilView(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart(),
-			D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+		// todo: probably I need to remove DS for swapchain's RT
+	//	this->m_p_command_graphics_list->ClearDepthStencilView(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart(),
+		//	D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+		Rml::LayerHandle layer_handle = m_manager_render_layer.GetTopLayerHandle();
+		const Gfx::FramebufferData& framebuffer = m_manager_render_layer.GetLayer(layer_handle);
+
+		this->m_p_command_graphics_list->ClearDepthStencilView(framebuffer.Get_SharedDepthStencilTexture()->Get_DescriptorResourceView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 	}
 
 	switch (mask_operation)
@@ -1946,10 +1952,11 @@ Rml::LayerHandle RenderInterface_DX12::PushLayer()
 	this->m_p_command_graphics_list->OMSetRenderTargets(1, &framebuffer.Get_DescriptorResourceView(), FALSE,
 		&shared_depthstencil.Get_DescriptorResourceView());
 
-	constexpr FLOAT clear_color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
+	constexpr FLOAT clear_color[] = {0.0f, 0.0f, 0.0f, 0.0f};
+
 	this->m_p_command_graphics_list->ClearRenderTargetView(framebuffer.Get_DescriptorResourceView(), clear_color, 0, nullptr);
-	this->m_p_command_graphics_list->ClearDepthStencilView(shared_depthstencil.Get_DescriptorResourceView(),
-		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+//	this->m_p_command_graphics_list->ClearDepthStencilView(shared_depthstencil.Get_DescriptorResourceView(),
+//		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
@@ -2280,7 +2287,7 @@ void RenderInterface_DX12::RenderFilters(Rml::Span<const Rml::CompiledFilterHand
 
 			this->BindRenderTarget(destination);
 
-			const FLOAT blend_factor[] = {0.0f, 0.0f, 0.0f, filter.blend_factor};
+			const FLOAT blend_factor[] = {filter.blend_factor, filter.blend_factor, filter.blend_factor, filter.blend_factor};
 			this->m_p_command_graphics_list->OMSetBlendFactor(blend_factor);
 
 			this->UseProgram(ProgramId::Passthrough_ColorMask);
@@ -3819,12 +3826,12 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Color()
 		const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc = {
 			TRUE,
 			FALSE,
-			D3D12_BLEND_SRC_ALPHA,
+			D3D12_BLEND_ONE,
 			D3D12_BLEND_INV_SRC_ALPHA,
 			D3D12_BLEND_OP_ADD,
-			D3D12_BLEND_SRC_ALPHA,
+			D3D12_BLEND_ONE,
 			D3D12_BLEND_INV_SRC_ALPHA,
-			D3D12_BLEND_OP_SUBTRACT,
+			D3D12_BLEND_OP_ADD,
 			D3D12_LOGIC_OP_NOOP,
 			D3D12_COLOR_WRITE_ENABLE_ALL,
 		};
@@ -3883,12 +3890,12 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Color()
 		const D3D12_RENDER_TARGET_BLEND_DESC editedRenderTargetBlend = {
 			TRUE,
 			FALSE,
-			D3D12_BLEND_SRC_ALPHA,
+			D3D12_BLEND_ONE,
 			D3D12_BLEND_INV_SRC_ALPHA,
 			D3D12_BLEND_OP_ADD,
-			D3D12_BLEND_SRC_ALPHA,
+			D3D12_BLEND_ONE,
 			D3D12_BLEND_INV_SRC_ALPHA,
-			D3D12_BLEND_OP_SUBTRACT,
+			D3D12_BLEND_OP_ADD,
 			D3D12_LOGIC_OP_NOOP,
 			0,
 		};
@@ -5048,7 +5055,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 
 		const D3D_SHADER_MACRO macros[] = {NULL, NULL, NULL, NULL};
 
-		status = D3DCompile(pShaderSourceText_Vertex_PassThrough, sizeof(pShaderSourceText_Vertex_PassThrough), nullptr, macros, nullptr, "main",
+		status = D3DCompile(pShaderSourceText_Vertex_Blur, sizeof(pShaderSourceText_Vertex_Blur), nullptr, macros, nullptr, "main",
 			"vs_5_0", this->m_default_shader_flags, 0, &p_shader_vertex, &p_error_buff);
 		RMLUI_DX_ASSERTMSG(status, "failed to D3DCompile");
 
@@ -5065,7 +5072,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 			p_error_buff = nullptr;
 		}
 
-		status = D3DCompile(pShaderSourceText_Pixel_Passthrough, sizeof(pShaderSourceText_Pixel_Passthrough), nullptr, nullptr, nullptr, "main",
+		status = D3DCompile(pShaderSourceText_Pixel_Blur, sizeof(pShaderSourceText_Pixel_Blur), nullptr, nullptr, nullptr, "main",
 			"ps_5_0", this->m_default_shader_flags, 0, &p_shader_pixel, &p_error_buff);
 	#ifdef RMLUI_DX_DEBUG
 		if (FAILED(status))
@@ -5170,10 +5177,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 		desc_pipeline.RTVFormats[0] = RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT;
 		desc_pipeline.DSVFormat = RMLUI_RENDER_BACKEND_FIELD_DEPTHSTENCIL_TEXTURE_FORMAT;
 
-		// since it is used for presenting MSAA texture on screen, we create swapchain and all RTs as NO-MSAA, keep this in mind
-		// otherwise it is wrong to mix target texture with different sample count than swapchain's
-		desc_pipeline.SampleDesc.Count = 1;
-		desc_pipeline.SampleDesc.Quality = 0;
+		desc_pipeline.SampleDesc = this->m_desc_sample;
 
 		desc_pipeline.SampleMask = 0xffffffff;
 		desc_pipeline.RasterizerState = desc_rasterizer;
@@ -5182,23 +5186,12 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 		desc_pipeline.DepthStencilState = desc_depth_stencil;
 
 		status =
-			this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline, IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Passthrough)]));
-		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough)");
+			this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline, IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Blur)]));
+		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Blur)");
 
 	#ifdef RMLUI_DX_DEBUG
-		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough)]->SetName(TEXT("rs of Passthrough"));
-		this->m_pipelines[static_cast<int>(ProgramId::Passthrough)]->SetName(TEXT("pipeline Passthrough"));
-	#endif
-
-		desc_pipeline.SampleDesc = this->m_desc_sample;
-
-		status = this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline,
-			IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]));
-		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Passthrough_MSAA)");
-
-	#ifdef RMLUI_DX_DEBUG
-		this->m_root_signatures[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("rs of Passthrough_MSAA"));
-		this->m_pipelines[static_cast<int>(ProgramId::Passthrough_MSAA)]->SetName(TEXT("pipeline Passthrough_MSAA"));
+		this->m_root_signatures[static_cast<int>(ProgramId::Blur)]->SetName(TEXT("rs of Blur"));
+		this->m_pipelines[static_cast<int>(ProgramId::Blur)]->SetName(TEXT("pipeline Blur"));
 	#endif
 	}
 }
@@ -6919,10 +6912,10 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 
 			constexpr FLOAT color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
 
-			optimized_clear_value.Color[0] = color[0];
-			optimized_clear_value.Color[1] = color[1];
-			optimized_clear_value.Color[2] = color[2];
-			optimized_clear_value.Color[3] = color[3];
+			optimized_clear_value.Color[0] = 0.0f;
+			optimized_clear_value.Color[1] = 0.0f;
+			optimized_clear_value.Color[2] = 0.0f;
+			optimized_clear_value.Color[3] = 0.0f;
 		}
 		else
 		{
@@ -6930,7 +6923,7 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 			optimized_clear_value.DepthStencil.Depth = RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE;
 			optimized_clear_value.DepthStencil.Stencil = RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE;
 		}
-
+		
 		ID3D12Resource* p_resource{};
 		D3D12MA::Allocation* p_allocation{};
 		auto status = this->m_p_allocator->CreateResource(&desc_allocation, &desc, initial_state, &optimized_clear_value, &p_allocation,
