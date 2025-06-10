@@ -8,18 +8,19 @@
 				height: 225px;
 				margin: auto;
 				left: -400px;
-				top: -400px;
+				top: 200px;
 			}
 
 			svg {
 				display: block;
-				max-width: 80%;
-				max-height: 80%;
-				margin: auto;
+				margin: 0 auto;
 			}
 		</style>
 	</head>
 	<body template="window">
-		<svg src="tiger.svg"></svg>
+		<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50">
+            <circle cx="25" cy="25" r="20" stroke="black" stroke-width="3" fill="red" />
+        </svg>
+        <button id="svg_inline_button">Click Me</button>
 	</body>
 </rml>

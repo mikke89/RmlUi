@@ -26,57 +26,32 @@
  *
  */
 
-#include "../../Include/RmlUi/Core/Core.h"
-#include "../../Include/RmlUi/Core/ElementInstancer.h"
-#include "../../Include/RmlUi/Core/Factory.h"
-#include "../../Include/RmlUi/Core/Log.h"
-#include "../../Include/RmlUi/Core/Plugin.h"
-#include "../../Include/RmlUi/SVG/ElementSVG.h"
-#include "DecoratorSVG.h"
-#include "SVGCache.h"
 #include "XMLNodeHandlerSVG.h"
+#include "../../Include/RmlUi/Core/Element.h"
+#include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/SVG/ElementSVG.h"
 
 namespace Rml {
 namespace SVG {
+	XMLNodeHandlerSVG::XMLNodeHandlerSVG() = default;
+	XMLNodeHandlerSVG::~XMLNodeHandlerSVG() = default;
 
-	class SVGPlugin : public Plugin {
-	public:
-		void OnInitialise() override
-		{
-			SVGCache::Initialize();
-
-			// Initialize the static rng used in ElementSVG
-			ElementSVG::Initialize();
-
-			element_instancer = MakeUnique<ElementInstancerGeneric<ElementSVG>>();
-			Factory::RegisterElementInstancer("svg", element_instancer.get());
-
-			decorator_instancer = MakeUnique<DecoratorSVGInstancer>();
-			Factory::RegisterDecoratorInstancer("svg", decorator_instancer.get());
-
-			XMLParser::RegisterNodeHandler("svg", MakeShared<XMLNodeHandlerSVG>());
-			XMLParser::PreRegisterCDataTag("svg");
-
-			Log::Message(Log::LT_INFO, "SVG plugin initialised.");
-		}
-
-		void OnShutdown() override
-		{
-			delete this;
-			SVGCache::Shutdown();
-		}
-
-		int GetEventClasses() override { return Plugin::EVT_BASIC; }
-
-	private:
-		UniquePtr<ElementInstancerGeneric<ElementSVG>> element_instancer;
-		UniquePtr<DecoratorSVGInstancer> decorator_instancer;
-	};
-
-	void Initialise()
+	bool XMLNodeHandlerSVG::ElementData(XMLParser* parser, const String& data, XMLDataType type)
 	{
-		RegisterPlugin(new SVGPlugin);
-	}
+		const String& tag = parser->GetParseFrame()->tag;
 
+		// Store the title
+		if (tag == "svg" && type == XMLDataType::CData)
+		{
+			// Determine the parent
+			Element* parent = parser->GetParseFrame()->element;
+			RMLUI_ASSERT(parent);
+
+			// For CDATA tags make the CDATA available through the _cdata attribute
+			parent->SetAttribute("_cdata", data);
+		}
+
+		return true;
+	}
 } // namespace SVG
 } // namespace Rml

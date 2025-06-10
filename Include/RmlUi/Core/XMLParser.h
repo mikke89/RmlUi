@@ -51,6 +51,10 @@ public:
 	XMLParser(Element* root);
 	~XMLParser();
 
+	/// Registers a tag were its contents should be treated as CDATA
+	/// @param[in] _tag The tag for contents to be treated as CDATA
+	static void PreRegisterCDataTag(const String& _tag);
+
 	/// Registers a custom node handler to be used to a given tag.
 	/// @param[in] tag The tag the custom parser will handle.
 	/// @param[in] handler The custom handler.

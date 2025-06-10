@@ -31,6 +31,7 @@
 
 #include "../Core/Element.h"
 #include "../Core/Header.h"
+#include <random>
 
 namespace Rml {
 namespace SVG {
@@ -41,8 +42,11 @@ class RMLUICORE_API ElementSVG : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
 
-	ElementSVG(const String& tag);
-	virtual ~ElementSVG();
+	static void Initialize();
+
+	explicit ElementSVG(const String& tag);
+	~ElementSVG() override;
+	void SetInnerRML(const String& rml) override;
 
 	/// Returns the element's inherent size.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;
@@ -71,6 +75,9 @@ private:
 	bool svg_dirty = false;
 
 	SharedPtr<SVG::SVGData> handle;
+
+	/// Generate unique internal ids for SVG elements using inline SVG.
+	static std::mt19937 rand_gen;
 };
 
 } // namespace Rml

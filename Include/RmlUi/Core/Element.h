@@ -470,7 +470,7 @@ public:
 	String GetInnerRML() const;
 	/// Sets the markup and content of the element. All existing children will be replaced.
 	/// @param[in] rml The new content of the element.
-	void SetInnerRML(const String& rml);
+	virtual void SetInnerRML(const String& rml);
 
 	//@}
 

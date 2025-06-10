@@ -41,6 +41,7 @@ namespace Rml {
 
 struct XmlParserData {
 	UnorderedMap<String, SharedPtr<XMLNodeHandler>> node_handlers;
+	UnorderedSet<String> cdata_tags;
 	SharedPtr<XMLNodeHandler> default_node_handler;
 };
 
@@ -50,6 +51,10 @@ XMLParser::XMLParser(Element* root)
 {
 	RegisterCDATATag("script");
 	RegisterCDATATag("style");
+	for (const String& cdata_tag : xml_parser_data->cdata_tags)
+	{
+		RegisterCDATATag(cdata_tag);
+	}
 
 	for (const String& name : Factory::GetStructuralDataViewAttributeNames())
 		RegisterInnerXMLAttribute(name);
@@ -65,6 +70,19 @@ XMLParser::XMLParser(Element* root)
 }
 
 XMLParser::~XMLParser() {}
+
+void XMLParser::PreRegisterCDataTag(const String& _tag)
+{
+	if (!xml_parser_data)
+		xml_parser_data.Initialize();
+
+	String tag = StringUtilities::ToLower(_tag);
+
+	if (tag.empty())
+		return;
+
+	xml_parser_data->cdata_tags.insert(tag);
+}
 
 XMLNodeHandler* XMLParser::RegisterNodeHandler(const String& _tag, SharedPtr<XMLNodeHandler> handler)
 {

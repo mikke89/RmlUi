@@ -8,6 +8,8 @@ target_sources(rmlui_core PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/SVGCache.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SVGPlugin.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/SVGPlugin.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/XMLNodeHandlerSVG.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/XMLNodeHandlerSVG.h"
 	"${PROJECT_SOURCE_DIR}/Include/RmlUi/SVG/ElementSVG.h"
 )
 

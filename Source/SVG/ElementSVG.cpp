@@ -30,14 +30,31 @@
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "SVGCache.h"
+#include <chrono>
+#include <random>
 
 namespace Rml {
+
+std::mt19937 Rml::ElementSVG::rand_gen;
+
+void ElementSVG::Initialize()
+{
+	// Initialize static rng for generating element ids for non file based svg tags to be used as cache keys
+	std::random_device rd;
+	rand_gen = std::mt19937(rd());
+}
 
 ElementSVG::ElementSVG(const String& tag) : Element(tag) {}
 
 ElementSVG::~ElementSVG()
 {
 	handle.reset();
+}
+
+void ElementSVG::SetInnerRML(const String& rml)
+{
+	RMLUI_ZoneScopedC(0x6495ED);
+	SetAttribute("_cdata", rml);
 }
 
 bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
@@ -82,13 +99,7 @@ void ElementSVG::OnAttributeChange(const ElementAttributes& changed_attributes)
 {
 	Element::OnAttributeChange(changed_attributes);
 
-	if (changed_attributes.count("src"))
-	{
-		svg_dirty = true;
-		DirtyLayout();
-	}
-
-	if (changed_attributes.count("crop-to-content"))
+	if (changed_attributes.count("src") || changed_attributes.count("crop-to-content") || changed_attributes.count("_cdata"))
 	{
 		svg_dirty = true;
 		DirtyLayout();
@@ -117,16 +128,48 @@ void ElementSVG::UpdateCachedData()
 
 	svg_dirty = false;
 
+	const bool crop_to_content = HasAttribute("crop-to-content");
 	const std::string source = GetAttribute<String>("src", "");
 	if (source.empty())
 	{
-		handle.reset();
-		return;
+		auto cdata = GetAttribute<String>("_cdata", "");
+		if (handle)
+			handle.reset(); // The old handle won't be re-used so clear it.
+
+		if (cdata.empty())
+			return;
+
+		// Build an svg wrapper tag, copying all but src/_cdata attributes (expected attributes could be width, height, viewBox, etc.)
+		String svg_tag = "<svg ";
+		ElementAttributes attrs = GetAttributes();
+		for (auto& attr : attrs)
+		{
+			if (attr.first == "_source-id" || attr.first == "_cdata" || attr.first == "src")
+				continue;
+			svg_tag.append(attr.first);
+			svg_tag.append("=\"");
+			svg_tag.append(StringUtilities::Replace(attr.second.Get<String>(), "\"", "&quot;"));
+			svg_tag.append("\" ");
+		}
+		svg_tag.append(">");
+		String svg_data = svg_tag + cdata + "</svg>";
+		cdata.erase(); // Clean up early
+
+		auto source_id = GetAttribute<String>("_source-id", "");
+		if (source_id.empty())
+		{
+			source_id = "svg_" +
+				std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) +
+				"_" + std::to_string(std::generate_canonical<double, 10>(rand_gen) * 1000000);
+			SetAttribute("_source-id", source_id);
+		}
+
+		handle = SVG::SVGCache::GetHandle(source_id, svg_data, SVG::SVGCache::SOURCE_DATA, this, crop_to_content, BoxArea::Content);
 	}
-
-	const bool crop_to_content = HasAttribute("crop-to-content");
-
-	handle = SVG::SVGCache::GetHandle(source, this, crop_to_content, BoxArea::Content);
+	else
+	{
+		handle = SVG::SVGCache::GetHandle(source, source, SVG::SVGCache::SOURCE_FILE, this, crop_to_content, BoxArea::Content);
+	}
 }
 
 } // namespace Rml
