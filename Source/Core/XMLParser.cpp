@@ -27,6 +27,7 @@
  */
 
 #include "../../Include/RmlUi/Core/XMLParser.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Profiling.h"
