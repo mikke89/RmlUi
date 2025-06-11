@@ -46,7 +46,6 @@ public:
 
 	explicit ElementSVG(const String& tag);
 	~ElementSVG() override;
-	void SetInnerRML(const String& rml) override;
 
 	/// Returns the element's inherent size.
 	bool GetIntrinsicDimensions(Vector2f& dimensions, float& ratio) override;

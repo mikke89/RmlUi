@@ -51,12 +51,6 @@ ElementSVG::~ElementSVG()
 	handle.reset();
 }
 
-void ElementSVG::SetInnerRML(const String& rml)
-{
-	RMLUI_ZoneScopedC(0x6495ED);
-	SetAttribute("_cdata", rml);
-}
-
 bool ElementSVG::GetIntrinsicDimensions(Vector2f& dimensions, float& ratio)
 {
 	UpdateCachedData();

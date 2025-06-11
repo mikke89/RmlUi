@@ -355,6 +355,12 @@ ElementPtr Factory::InstanceElement(Element* parent, const String& instancer_nam
 bool Factory::InstanceElementText(Element* parent, const String& in_text)
 {
 	RMLUI_ASSERT(parent);
+	XMLParser parser(parent);
+	if (parser.IsCDATATag(parent->GetTagName()))
+	{
+		parser.HandleData(in_text, XMLDataType::CData);
+		return true;
+	}
 
 	String text;
 	if (SystemInterface* system_interface = GetSystemInterface())

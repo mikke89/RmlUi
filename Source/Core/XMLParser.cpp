@@ -62,6 +62,19 @@ XMLParser::XMLParser(Element* root)
 	// Add the first frame.
 	ParseFrame frame;
 	frame.element = root;
+	if (root != nullptr)
+	{
+		frame.tag = root->GetTagName();
+		auto itr = xml_parser_data->node_handlers.find(root->GetTagName());
+		if (itr != xml_parser_data->node_handlers.end())
+		{
+			frame.node_handler = itr->second.get();
+		}
+		else
+		{
+			frame.node_handler = xml_parser_data->default_node_handler.get();
+		}
+	}
 	stack.push(frame);
 
 	active_handler = nullptr;

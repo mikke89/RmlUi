@@ -55,6 +55,10 @@ public:
 	/// @param[in] tag The tag to register as containing generic character data.
 	void RegisterCDATATag(const String& tag);
 
+	/// Checks if the given tag is registered as a CDATA tag.
+	/// @param[in] tag The tag to check if it is registered as containing generic character data
+	bool IsCDATATag(const String& tag);
+
 	/// When an XML attribute with the given name is encountered during parsing, then all content below the current
 	/// node is treated as data.
 	/// @note While children nodes are treated as data (text), it is assumed that the content represents valid XML.

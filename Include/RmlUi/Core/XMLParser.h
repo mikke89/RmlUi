@@ -99,13 +99,14 @@ public:
 	/// Returns the source URL of this parse.
 	const URL& GetSourceURL() const;
 
+	/// Called when the parser encounters data.
+	void HandleData(const String& data, XMLDataType type) override;
+
 protected:
 	/// Called when the parser finds the beginning of an element tag.
 	void HandleElementStart(const String& name, const XMLAttributes& attributes) override;
 	/// Called when the parser finds the end of an element tag.
 	void HandleElementEnd(const String& name) override;
-	/// Called when the parser encounters data.
-	void HandleData(const String& data, XMLDataType type) override;
 
 private:
 	UniquePtr<DocumentHeader> header;
