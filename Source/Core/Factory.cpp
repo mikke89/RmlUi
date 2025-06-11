@@ -358,7 +358,7 @@ bool Factory::InstanceElementText(Element* parent, const String& in_text)
 	XMLParser parser(parent);
 	if (parser.IsCDATATag(parent->GetTagName()))
 	{
-		parser.HandleData(in_text, XMLDataType::CData);
+		parser.HandleData(in_text, XMLDataType::CDATA);
 		return true;
 	}
 

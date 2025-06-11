@@ -281,7 +281,7 @@ bool BaseXMLParser::ReadOpenTag()
 				open_tag_depth--;
 				if (!data.empty())
 				{
-					HandleDataInternal(data, XMLDataType::CData);
+					HandleDataInternal(data, XMLDataType::CDATA);
 					data.clear();
 				}
 				HandleElementEndInternal(tag_name);

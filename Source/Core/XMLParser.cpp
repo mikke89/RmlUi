@@ -85,7 +85,7 @@ XMLParser::XMLParser(Element* root)
 
 XMLParser::~XMLParser() {}
 
-void XMLParser::PreRegisterCDataTag(const String& _tag)
+void XMLParser::PreRegisterCDATATag(const String& _tag)
 {
 	if (!xml_parser_data)
 		xml_parser_data.Initialize();

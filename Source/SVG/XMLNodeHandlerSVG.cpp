@@ -41,7 +41,7 @@ namespace SVG {
 		const String& tag = parser->GetParseFrame()->tag;
 
 		// Store the title
-		if (tag == "svg" && type == XMLDataType::CData)
+		if (tag == "svg" && type == XMLDataType::CDATA)
 		{
 			// Determine the parent
 			Element* parent = parser->GetParseFrame()->element;

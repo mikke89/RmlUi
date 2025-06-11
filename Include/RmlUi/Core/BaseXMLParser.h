@@ -39,7 +39,7 @@ class Stream;
 class URL;
 using XMLAttributes = Dictionary;
 
-enum class XMLDataType { Text, CData, InnerXML };
+enum class XMLDataType { Text, CDATA, InnerXML };
 
 /**
     @author Peter Curry
