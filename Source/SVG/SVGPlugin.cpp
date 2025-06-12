@@ -45,9 +45,6 @@ namespace SVG {
 		{
 			SVGCache::Initialize();
 
-			// Initialize the static rng used in ElementSVG
-			ElementSVG::Initialize();
-
 			element_instancer = MakeUnique<ElementInstancerGeneric<ElementSVG>>();
 			Factory::RegisterElementInstancer("svg", element_instancer.get());
 

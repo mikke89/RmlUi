@@ -49,6 +49,10 @@ namespace SVG {
 
 		/// Called for element data
 		bool ElementData(XMLParser* parser, const String& data, XMLDataType type) override;
+
+	protected:
+		/// Generate unique internal ids for SVG elements using inline SVG.
+		std::mt19937 rand_gen;
 	};
 
 } // namespace SVG
