@@ -27,16 +27,12 @@
  */
 
 #include "XMLNodeHandlerSVG.h"
-#include "../../Include/RmlUi/Core/Element.h"
-#include "../../Include/RmlUi/Core/XMLParser.h"
-#include "../../Include/RmlUi/SVG/ElementSVG.h"
-#include <chrono>
 
 namespace Rml {
 namespace SVG {
 	XMLNodeHandlerSVG::XMLNodeHandlerSVG()
 	{
-		// Initialize static rng for generating element ids for non file based svg tags to be used as cache keys
+		// Initialize rng for generating element ids for non file based svg tags to be used as cache keys
 		std::random_device rd;
 		rand_gen = std::mt19937(rd());
 	};
@@ -46,22 +42,28 @@ namespace SVG {
 	{
 		const String& tag = parser->GetParseFrame()->tag;
 
-		// Store the title
+		// Shouldn't be necessary but just to make sure
 		if (tag == "svg" && type == XMLDataType::CDATA)
 		{
-			// Determine the parent
 			auto* parent = rmlui_static_cast<ElementSVG*>(parser->GetParseFrame()->element);
 			RMLUI_ASSERT(parent);
+
+			// Try to get the existing text node, or create if its missing (it is inserted as a non DOM child so should be at the start)
 			Element* data_element = parent->GetChild(0);
 			if (!data_element || data_element->GetTagName() != "#text")
 				data_element = parent->AppendChild(parent->GetOwnerDocument()->CreateElement("#text"), false);
 
-			rmlui_static_cast<ElementText*>(data_element)->SetText(data);
-			data_element->SetAttribute("_source-id",
+			// Set a unique id for the element, used as a cache key for SVGCache
+			data_element->SetAttribute("id",
 				"svg_" +
 					std::to_string(
 						std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) +
 					"_" + std::to_string(std::generate_canonical<double, 10>(rand_gen) * 1000000));
+
+			// Set the content of the text node to the SVG data
+			rmlui_static_cast<ElementText*>(data_element)->SetText(data);
+
+			// Force the SVG element to re-render
 			parent->SetDirtyFlag();
 		}
 

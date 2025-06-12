@@ -31,7 +31,6 @@
 
 #include "../Core/Element.h"
 #include "../Core/Header.h"
-#include <random>
 
 namespace Rml {
 namespace SVG {
@@ -41,8 +40,6 @@ namespace SVG {
 class RMLUICORE_API ElementSVG : public Element {
 public:
 	RMLUI_RTTI_DefineWithParent(ElementSVG, Element)
-
-	static void Initialize();
 
 	explicit ElementSVG(const String& tag);
 	~ElementSVG() override;
@@ -56,7 +53,11 @@ public:
 	/// Sets the dirty flag for the element.
 	/// @param[in] flag_value The value to set the dirty flag to. Defaults to true.
 	/// @param[in] force_relayout For layout to be re-evaluated after flag is set. Defaults to true.
-	void SetDirtyFlag(bool flag_value=true, bool force_relayout=true);
+	void SetDirtyFlag(bool flag_value = true, bool force_relayout = true);
+
+	/// Gets the SVG XML data (as text) if using inline SVG, if using a file source this will return a blank string
+	/// @param[out] content The SVG XML data (as text) or blank string
+	void GetInnerRML(String& content) const override;
 
 protected:
 	/// Renders the image.

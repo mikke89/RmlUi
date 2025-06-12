@@ -30,13 +30,10 @@
 #include "../../Include/RmlUi/Core/Geometry.h"
 #include "../../Include/RmlUi/Core/PropertyIdSet.h"
 #include "SVGCache.h"
-#include <chrono>
-#include <random>
 
 namespace Rml {
 
 ElementSVG::ElementSVG(const String& tag) : Element(tag) {}
-
 ElementSVG::~ElementSVG()
 {
 	handle.reset();
@@ -111,6 +108,27 @@ void ElementSVG::SetDirtyFlag(const bool flag_value, const bool force_relayout)
 	svg_dirty = flag_value;
 	if (force_relayout)
 		DirtyLayout();
+}
+
+void ElementSVG::GetInnerRML(String& content) const
+{
+	// If the SVG is from a file source return an empty string.
+	const auto source = GetAttribute<String>("src", "");
+	if (!source.empty())
+	{
+		content = "";
+		return;
+	}
+
+	// Try to get the text node that should contain the SVG data.
+	Element* data_element = GetChild(0);
+	if (data_element == nullptr || data_element->GetTagName() != "#text")
+	{
+		content = "";
+		return;
+	}
+
+	content = rmlui_static_cast<ElementText*>(data_element)->GetText();
 }
 
 void ElementSVG::UpdateCachedData()

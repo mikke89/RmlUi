@@ -27,11 +27,16 @@
  */
 
 #include "../../Include/RmlUi/Core/Core.h"
+#include "../../Include/RmlUi/Core/Element.h"
 #include "../../Include/RmlUi/Core/ElementInstancer.h"
 #include "../../Include/RmlUi/Core/Factory.h"
 #include "../../Include/RmlUi/Core/Log.h"
 #include "../../Include/RmlUi/Core/Plugin.h"
+#include "../../Include/RmlUi/Core/XMLParser.h"
 #include "../../Include/RmlUi/SVG/ElementSVG.h"
+#include <chrono>
+#include <random>
+
 #ifndef RMLUI_CORE_XMLNODEHANDLERSVG_H
 	#define RMLUI_CORE_XMLNODEHANDLERSVG_H
 
