@@ -38,7 +38,6 @@ namespace Rml {
 class RenderInterface;
 
 class CallbackTextureDatabase : NonCopyMoveable {
-	const uint8_t MAX_TEXTURE_LOAD_ATTEMPTS = 3; // Maximum number of attempts to load a texture before giving up.
 
 public:
 	CallbackTextureDatabase();
@@ -59,7 +58,7 @@ private:
 		CallbackTextureFunction callback;
 		TextureHandle texture_handle = {};
 		Vector2i dimensions;
-		uint8_t failed_load_count = 0; // Number of times the callback failed to load the texture.
+		bool load_failed = false;
 	};
 
 	CallbackTextureEntry& EnsureLoaded(RenderManager* render_manager, RenderInterface* render_interface, StableVectorIndex callback_index);
