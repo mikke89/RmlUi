@@ -51,7 +51,7 @@ namespace SVG {
 			// Try to get the existing text node, or create if its missing (it is inserted as a non DOM child so should be at the start)
 			Element* data_element = parent->GetChild(0);
 			if (!data_element || data_element->GetTagName() != "#text")
-				data_element = parent->AppendChild(parent->GetOwnerDocument()->CreateElement("#text"), false);
+				data_element = parent->AppendChild(Factory::InstanceElement(parent, "#text", "#text", XMLAttributes()), false);
 
 			// Set a unique id for the element, used as a cache key for SVGCache
 			data_element->SetAttribute("id",
