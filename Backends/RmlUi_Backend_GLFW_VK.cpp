@@ -69,6 +69,8 @@ bool Backend::Initialize(const char* window_name, int width, int height, bool al
 {
 	RMLUI_ASSERT(!data);
 
+	// todo: provide implementation for this thing please, for now temporary for fixing unused warning that treated as error
+	if (p_info) { p_info = nullptr; }
 	glfwSetErrorCallback(LogErrorFromGLFW);
 
 	if (!glfwInit())
