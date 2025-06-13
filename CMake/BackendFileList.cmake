@@ -25,20 +25,6 @@ set(Win32_VK_HDR_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Vulkan/vk_mem_alloc.h
 )
 
-set(Win32_DX12_SRC_FILES
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_Win32.cpp
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_DX12.cpp
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Backend_Win32_DX12.cpp
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_DirectX/D3D12MemAlloc.cpp
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_DirectX/offsetAllocator.cpp
-)
-set(Win32_DX12_HDR_FILES
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_Win32.h
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_DX12.h
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_DirectX/D3D12MemAlloc.h
-	${PROJECT_SOURCE_DIR}/Backends/RmlUi_DirectX/offsetAllocator.hpp
-)
-
 set(X11_GL2_SRC_FILES
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Platform_X11.cpp
 	${PROJECT_SOURCE_DIR}/Backends/RmlUi_Renderer_GL2.cpp
