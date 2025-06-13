@@ -121,8 +121,13 @@ void ElementSVG::GetInnerRML(String& content) const
 	}
 
 	// Try to get the text node that should contain the SVG data.
-	Element* data_element = GetChild(0);
-	if (data_element == nullptr || data_element->GetTagName() != "#text")
+	Element* data_element = nullptr;
+	const int non_dom_children = GetNumChildren(true) - GetNumChildren(false);
+	for (int i = 0; i < non_dom_children; i++)
+		if (GetChild(i)->GetTagName() == "#svgdata")
+			data_element = GetChild(i);
+
+	if (data_element == nullptr)
 	{
 		content = "";
 		return;
@@ -142,8 +147,13 @@ void ElementSVG::UpdateCachedData()
 	const auto source = GetAttribute<String>("src", "");
 	if (source.empty())
 	{
-		Element* data_element = GetChild(0);
-		if (data_element == nullptr || data_element->GetTagName() != "#text")
+		Element* data_element = nullptr;
+		const int non_dom_children = GetNumChildren(true) - GetNumChildren(false);
+		for (int i = 0; i < non_dom_children; i++)
+			if (GetChild(i)->GetTagName() == "#svgdata")
+				data_element = GetChild(i);
+
+		if (data_element == nullptr)
 			return;
 
 		const String cdata = rmlui_static_cast<ElementText*>(data_element)->GetText();
