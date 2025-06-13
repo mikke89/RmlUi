@@ -52,6 +52,9 @@
 		#include <dxgidebug.h>
 	#endif
 
+#include "RmlUi_DirectX\D3D12MemAlloc.cpp"
+#include "RmlUi_DirectX\offsetAllocator.cpp"
+
 /// @brief in bytes see pShaderSourceText_Vertex - > cbuffer ConstantBuffer : register(b0)
 constexpr uint32_t kAllocationSize_ConstantBuffer_Vertex_Main = 72;
 
@@ -187,7 +190,7 @@ float4 main(const PS_INPUT inputArgs) : SV_TARGET
 }
 )";
 
-#define RMLUI_SHADER_HEADER "#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n#line " RMLUI_STRINGIFY(__LINE__) "\n"
+	#define RMLUI_SHADER_HEADER "#define MAX_NUM_STOPS " RMLUI_STRINGIFY(MAX_NUM_STOPS) "\n#line " RMLUI_STRINGIFY(__LINE__) "\n"
 
 	#define RMLUI_SHADER_BLUR_HEADER \
 		RMLUI_SHADER_HEADER "\n#define BLUR_SIZE " RMLUI_STRINGIFY(BLUR_SIZE) "\n#define BLUR_NUM_WEIGHTS " RMLUI_STRINGIFY(BLUR_NUM_WEIGHTS)
@@ -338,6 +341,156 @@ static void SetTexCoordLimits(Rml::Vector2f& p_tex_coord_min, Rml::Vector2f& p_t
 	p_tex_coord_max.y = max.y;
 }
 
+/// @brief helper function from d3dx12 header (but we don't need to use a such dependency since we have aim to keep implementation without any
+/// possible dependecies at all aka lightweight see
+/// https://github.com/microsoft/DirectX-Graphics-Samples/blob/71f3c57648b6cecde532f67dccd07265485e2313/TechniqueDemos/D3D12MemoryManagement/src/d3dx12.h#L1761C5-L1762C43)
+/// @param pDestinationResource
+/// @param FirstSubresource
+/// @param NumSubresources
+/// @return
+inline UINT64 GetRequiredIntermediateSize(_In_ ID3D12Resource* pDestinationResource, _In_range_(0, D3D12_REQ_SUBRESOURCES) UINT FirstSubresource,
+	_In_range_(0, D3D12_REQ_SUBRESOURCES - FirstSubresource) UINT NumSubresources)
+{
+	D3D12_RESOURCE_DESC Desc = pDestinationResource->GetDesc();
+	UINT64 RequiredSize = 0;
+
+	ID3D12Device* pDevice;
+	pDestinationResource->GetDevice(__uuidof(*pDevice), reinterpret_cast<void**>(&pDevice));
+	pDevice->GetCopyableFootprints(&Desc, FirstSubresource, NumSubresources, 0, nullptr, nullptr, nullptr, &RequiredSize);
+	pDevice->Release();
+
+	return RequiredSize;
+}
+
+/// @brief
+/// https://github.com/microsoft/DirectX-Graphics-Samples/blob/71f3c57648b6cecde532f67dccd07265485e2313/TechniqueDemos/D3D12MemoryManagement/src/d3dx12.h#L1740
+/// @param pDest
+/// @param pSrc
+/// @param RowSizeInBytes
+/// @param NumRows
+/// @param NumSlices
+inline void MemcpySubresource(const _In_ D3D12_MEMCPY_DEST* pDest, const _In_ D3D12_SUBRESOURCE_DATA* pSrc, SIZE_T RowSizeInBytes, UINT NumRows,
+	UINT NumSlices)
+{
+	for (UINT z = 0; z < NumSlices; ++z)
+	{
+		BYTE* pDestSlice = reinterpret_cast<BYTE*>(pDest->pData) + pDest->SlicePitch * z;
+		const BYTE* pSrcSlice = reinterpret_cast<const BYTE*>(pSrc->pData) + pSrc->SlicePitch * z;
+		for (UINT y = 0; y < NumRows; ++y)
+		{
+			memcpy(pDestSlice + pDest->RowPitch * y, pSrcSlice + pSrc->RowPitch * y, RowSizeInBytes);
+		}
+	}
+}
+
+/// @brief
+/// https://github.com/microsoft/DirectX-Graphics-Samples/blob/71f3c57648b6cecde532f67dccd07265485e2313/TechniqueDemos/D3D12MemoryManagement/src/d3dx12.h#L1780C15-L1780C33
+/// @param pCmdList
+/// @param pDestinationResource
+/// @param pIntermediate
+/// @param FirstSubresource
+/// @param NumSubresources
+/// @param RequiredSize
+/// @param pLayouts
+/// @param pNumRows
+/// @param pRowSizesInBytes
+/// @param pSrcData
+/// @return
+inline UINT64 UpdateSubresources(_In_ ID3D12GraphicsCommandList* pCmdList, _In_ ID3D12Resource* pDestinationResource,
+	_In_ ID3D12Resource* pIntermediate, _In_range_(0, D3D12_REQ_SUBRESOURCES) UINT FirstSubresource,
+	_In_range_(0, D3D12_REQ_SUBRESOURCES - FirstSubresource) UINT NumSubresources, UINT64 RequiredSize,
+	_In_reads_(NumSubresources) const D3D12_PLACED_SUBRESOURCE_FOOTPRINT* pLayouts, _In_reads_(NumSubresources) const UINT* pNumRows,
+	_In_reads_(NumSubresources) const UINT64* pRowSizesInBytes, _In_reads_(NumSubresources) const D3D12_SUBRESOURCE_DATA* pSrcData)
+{
+	// Minor validation
+	D3D12_RESOURCE_DESC IntermediateDesc = pIntermediate->GetDesc();
+	D3D12_RESOURCE_DESC DestinationDesc = pDestinationResource->GetDesc();
+	if (IntermediateDesc.Dimension != D3D12_RESOURCE_DIMENSION_BUFFER || IntermediateDesc.Width < RequiredSize + pLayouts[0].Offset ||
+		RequiredSize > (SIZE_T)-1 ||
+		(DestinationDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER && (FirstSubresource != 0 || NumSubresources != 1)))
+	{
+		return 0;
+	}
+
+	BYTE* pData;
+	HRESULT hr = pIntermediate->Map(0, NULL, reinterpret_cast<void**>(&pData));
+	if (FAILED(hr))
+	{
+		return 0;
+	}
+
+	for (UINT i = 0; i < NumSubresources; ++i)
+	{
+		if (pRowSizesInBytes[i] > (SIZE_T)-1)
+			return 0;
+		D3D12_MEMCPY_DEST DestData = {pData + pLayouts[i].Offset, pLayouts[i].Footprint.RowPitch, pLayouts[i].Footprint.RowPitch * pNumRows[i]};
+		MemcpySubresource(&DestData, &pSrcData[i], (SIZE_T)pRowSizesInBytes[i], pNumRows[i], pLayouts[i].Footprint.Depth);
+	}
+	pIntermediate->Unmap(0, NULL);
+
+	if (DestinationDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
+	{
+		D3D12_BOX SrcBox;
+		SrcBox.left = UINT(pLayouts[0].Offset);
+		SrcBox.right = UINT(pLayouts[0].Offset + pLayouts[0].Footprint.Width);
+		SrcBox.top = 0;
+		SrcBox.front = 0;
+		SrcBox.bottom = 1;
+		SrcBox.back = 1;
+
+		pCmdList->CopyBufferRegion(pDestinationResource, 0, pIntermediate, pLayouts[0].Offset, pLayouts[0].Footprint.Width);
+	}
+	else
+	{
+		for (UINT i = 0; i < NumSubresources; ++i)
+		{
+			D3D12_TEXTURE_COPY_LOCATION Dst;
+			Dst.pResource = pDestinationResource;
+			Dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+			Dst.SubresourceIndex = i + FirstSubresource;
+
+			D3D12_TEXTURE_COPY_LOCATION Src;
+			Src.pResource = pIntermediate;
+			Src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+			Src.PlacedFootprint = pLayouts[i];
+
+			pCmdList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
+		}
+	}
+
+	return RequiredSize;
+}
+
+/// @brief stack-allocating
+/// (https://github.com/microsoft/DirectX-Graphics-Samples/blob/71f3c57648b6cecde532f67dccd07265485e2313/TechniqueDemos/D3D12MemoryManagement/src/d3dx12.h#L1876)
+/// @tparam MaxSubresources
+/// @param pCmdList
+/// @param pDestinationResource
+/// @param pIntermediate
+/// @param IntermediateOffset
+/// @param FirstSubresource
+/// @param NumSubresources
+/// @param pSrcData
+/// @return
+template <UINT MaxSubresources>
+inline UINT64 UpdateSubresources(_In_ ID3D12GraphicsCommandList* pCmdList, _In_ ID3D12Resource* pDestinationResource,
+	_In_ ID3D12Resource* pIntermediate, UINT64 IntermediateOffset, _In_range_(0, MaxSubresources) UINT FirstSubresource,
+	_In_range_(1, MaxSubresources - FirstSubresource) UINT NumSubresources, _In_reads_(NumSubresources) D3D12_SUBRESOURCE_DATA* pSrcData)
+{
+	UINT64 RequiredSize = 0;
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT Layouts[MaxSubresources];
+	UINT NumRows[MaxSubresources];
+	UINT64 RowSizesInBytes[MaxSubresources];
+
+	D3D12_RESOURCE_DESC Desc = pDestinationResource->GetDesc();
+	ID3D12Device* pDevice;
+	pDestinationResource->GetDevice(__uuidof(*pDevice), reinterpret_cast<void**>(&pDevice));
+	pDevice->GetCopyableFootprints(&Desc, FirstSubresource, NumSubresources, IntermediateOffset, Layouts, NumRows, RowSizesInBytes, &RequiredSize);
+	pDevice->Release();
+
+	return UpdateSubresources(pCmdList, pDestinationResource, pIntermediate, FirstSubresource, NumSubresources, RequiredSize, Layouts, NumRows,
+		RowSizesInBytes, pSrcData);
+}
 
 enum class ShaderGradientFunction { Linear, Radial, Conic, RepeatingLinear, RepeatingRadial, RepeatingConic }; // Must match shader definitions below.
 
@@ -749,10 +902,10 @@ void RenderInterface_DX12::BeginFrame()
 		}
 	#endif
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
-			this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
+		D3D12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
+		handle_rtv.ptr += (this->m_current_back_buffer_index * this->m_size_descriptor_heap_render_target_view);
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_dsv(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart());
+		D3D12_CPU_DESCRIPTOR_HANDLE handle_dsv(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart());
 
 		this->m_stencil_ref_value = 0;
 
@@ -856,8 +1009,16 @@ void RenderInterface_DX12::EndFrame()
 	if (this->m_p_command_graphics_list)
 	{
 		RMLUI_DX_MARKER_BEGIN(this->m_p_command_graphics_list, "EndFrame");
-		CD3DX12_RESOURCE_BARRIER backbuffer_barrier_from_rt_to_present =
-			CD3DX12_RESOURCE_BARRIER::Transition(p_resource_backbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		//		CD3DX12_RESOURCE_BARRIER backbuffer_barrier_from_rt_to_present =
+		//			CD3DX12_RESOURCE_BARRIER::Transition(p_resource_backbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		D3D12_RESOURCE_BARRIER backbuffer_barrier_from_rt_to_present;
+
+		backbuffer_barrier_from_rt_to_present.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		backbuffer_barrier_from_rt_to_present.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		backbuffer_barrier_from_rt_to_present.Transition.pResource = p_resource_backbuffer;
+		backbuffer_barrier_from_rt_to_present.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		backbuffer_barrier_from_rt_to_present.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+		backbuffer_barrier_from_rt_to_present.Transition.Subresource = 0;
 
 		// делаем резовл из лейра для постпроцесса
 		// делаем OMSetRenderTargets на наш swapchain's backbuffer
@@ -894,14 +1055,36 @@ void RenderInterface_DX12::EndFrame()
 		RMLUI_ASSERT(p_postprocess_texture && "can't be, must be a valid texture!");
 		RMLUI_ASSERT(p_handle_postprocess_texture && "must be valid!");
 
-		CD3DX12_RESOURCE_BARRIER barriers[2]{};
-		barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(p_msaa_texture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+		D3D12_RESOURCE_BARRIER barriers[2]{};
+		//	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(p_msaa_texture, D3D12_RESOURCE_STATE_RENDER_TARGET,
+		// D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
 
-		barriers[1] =
-			CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+		barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barriers[0].Transition.Subresource = 0;
+		barriers[0].Transition.pResource = p_msaa_texture;
+		barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
+		barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-		CD3DX12_RESOURCE_BARRIER barrier_transition_from_msaa_resolve_source_to_rt =
-			CD3DX12_RESOURCE_BARRIER::Transition(p_msaa_texture, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		//		barriers[1] =
+		//			CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture, D3D12_RESOURCE_STATE_RENDER_TARGET,
+		// D3D12_RESOURCE_STATE_RESOLVE_DEST);
+		barriers[1].Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barriers[1].Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barriers[1].Transition.Subresource = 0;
+		barriers[1].Transition.pResource = p_postprocess_texture;
+		barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+		barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+		//	CD3DX12_RESOURCE_BARRIER barrier_transition_from_msaa_resolve_source_to_rt =
+		//		CD3DX12_RESOURCE_BARRIER::Transition(p_msaa_texture, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		D3D12_RESOURCE_BARRIER barrier_transition_from_msaa_resolve_source_to_rt;
+		barrier_transition_from_msaa_resolve_source_to_rt.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barrier_transition_from_msaa_resolve_source_to_rt.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrier_transition_from_msaa_resolve_source_to_rt.Transition.Subresource = 0;
+		barrier_transition_from_msaa_resolve_source_to_rt.Transition.pResource = p_msaa_texture;
+		barrier_transition_from_msaa_resolve_source_to_rt.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		barrier_transition_from_msaa_resolve_source_to_rt.Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
 
 		this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
 
@@ -910,16 +1093,33 @@ void RenderInterface_DX12::EndFrame()
 
 		this->m_p_command_graphics_list->ResourceBarrier(1, &barrier_transition_from_msaa_resolve_source_to_rt);
 
-		CD3DX12_RESOURCE_BARRIER offscreen_texture_barrier_for_shader = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
-			D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		CD3DX12_RESOURCE_BARRIER restore_state_of_postprocess_texture_return_to_rt = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		// CD3DX12_RESOURCE_BARRIER offscreen_texture_barrier_for_shader = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
+		//	D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		D3D12_RESOURCE_BARRIER offscreen_texture_barrier_for_shader;
+		offscreen_texture_barrier_for_shader.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		offscreen_texture_barrier_for_shader.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		offscreen_texture_barrier_for_shader.Transition.pResource = p_postprocess_texture;
+		offscreen_texture_barrier_for_shader.Transition.Subresource = 0;
+		offscreen_texture_barrier_for_shader.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		offscreen_texture_barrier_for_shader.Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+
+		//	CD3DX12_RESOURCE_BARRIER restore_state_of_postprocess_texture_return_to_rt = CD3DX12_RESOURCE_BARRIER::Transition(p_postprocess_texture,
+		//		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		D3D12_RESOURCE_BARRIER restore_state_of_postprocess_texture_return_to_rt;
+		restore_state_of_postprocess_texture_return_to_rt.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		restore_state_of_postprocess_texture_return_to_rt.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		restore_state_of_postprocess_texture_return_to_rt.Transition.Subresource = 0;
+		restore_state_of_postprocess_texture_return_to_rt.Transition.pResource = p_postprocess_texture;
+		restore_state_of_postprocess_texture_return_to_rt.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		restore_state_of_postprocess_texture_return_to_rt.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
 		this->m_p_command_graphics_list->ResourceBarrier(1, &offscreen_texture_barrier_for_shader);
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
-			this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
-		CD3DX12_CPU_DESCRIPTOR_HANDLE handle_dsv(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart());
+		//	CD3DX12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
+		//		this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
+		D3D12_CPU_DESCRIPTOR_HANDLE handle_rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
+		handle_rtv.ptr += this->m_current_back_buffer_index * (this->m_size_descriptor_heap_render_target_view);
+		D3D12_CPU_DESCRIPTOR_HANDLE handle_dsv(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart());
 
 		this->m_p_command_graphics_list->OMSetRenderTargets(1, &handle_rtv, FALSE, &handle_dsv);
 
@@ -975,14 +1175,23 @@ void RenderInterface_DX12::Clear()
 
 	auto* p_backbuffer = this->m_backbuffers_resources.at(this->m_current_back_buffer_index);
 
-	CD3DX12_RESOURCE_BARRIER barrier =
-		CD3DX12_RESOURCE_BARRIER::Transition(p_backbuffer, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	//	CD3DX12_RESOURCE_BARRIER barrier =
+	//		CD3DX12_RESOURCE_BARRIER::Transition(p_backbuffer, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	D3D12_RESOURCE_BARRIER barrier;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Transition.pResource = p_backbuffer;
+	barrier.Transition.Subresource = 0;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 
 	this->m_p_command_graphics_list->ResourceBarrier(1, &barrier);
 
 	constexpr FLOAT clear_color[] = {RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_RENDERTARGET_COLOR_VAlUE};
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
-		this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
+	//	CD3DX12_CPU_DESCRIPTOR_HANDLE rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart(),
+	//		this->m_current_back_buffer_index, this->m_size_descriptor_heap_render_target_view);
+	D3D12_CPU_DESCRIPTOR_HANDLE rtv(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
+	rtv.ptr += this->m_current_back_buffer_index * (this->m_size_descriptor_heap_render_target_view);
 
 	this->m_p_command_graphics_list->ClearDepthStencilView(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart(),
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
@@ -994,7 +1203,7 @@ void RenderInterface_DX12::Clear()
 
 	constexpr FLOAT clear_color_framebuffer[] = {0.0f, 0.0f, 0.0f, 0.0f};
 	this->m_p_command_graphics_list->ClearRenderTargetView(p_current_rtv, clear_color_framebuffer, 0, nullptr);
-//	this->m_p_command_graphics_list->ClearDepthStencilView(p_current_dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+	//	this->m_p_command_graphics_list->ClearDepthStencilView(p_current_dsv, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
@@ -1285,12 +1494,13 @@ void RenderInterface_DX12::RenderToClipMask(Rml::ClipMaskOperation mask_operatio
 	if (clear_stencil)
 	{
 		// todo: probably I need to remove DS for swapchain's RT
-	//	this->m_p_command_graphics_list->ClearDepthStencilView(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart(),
+		//	this->m_p_command_graphics_list->ClearDepthStencilView(this->m_p_descriptor_heap_depthstencil->GetCPUDescriptorHandleForHeapStart(),
 		//	D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 		Rml::LayerHandle layer_handle = m_manager_render_layer.GetTopLayerHandle();
 		const Gfx::FramebufferData& framebuffer = m_manager_render_layer.GetLayer(layer_handle);
 
-		this->m_p_command_graphics_list->ClearDepthStencilView(framebuffer.Get_SharedDepthStencilTexture()->Get_DescriptorResourceView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+		this->m_p_command_graphics_list->ClearDepthStencilView(framebuffer.Get_SharedDepthStencilTexture()->Get_DescriptorResourceView(),
+			D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 	}
 
 	switch (mask_operation)
@@ -1992,8 +2202,8 @@ Rml::LayerHandle RenderInterface_DX12::PushLayer()
 	constexpr FLOAT clear_color[] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	this->m_p_command_graphics_list->ClearRenderTargetView(framebuffer.Get_DescriptorResourceView(), clear_color, 0, nullptr);
-//	this->m_p_command_graphics_list->ClearDepthStencilView(shared_depthstencil.Get_DescriptorResourceView(),
-//		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+	//	this->m_p_command_graphics_list->ClearDepthStencilView(shared_depthstencil.Get_DescriptorResourceView(),
+	//		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 
@@ -2030,19 +2240,40 @@ void RenderInterface_DX12::BlitLayerToPostprocessPrimary(Rml::LayerHandle layer_
 	if (!this->m_p_command_graphics_list)
 		return;
 
-	D3D12_RESOURCE_BARRIER barriers[2] = {CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
-											  D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE),
-		CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
-			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_DEST)};
+	//	D3D12_RESOURCE_BARRIER barriers[2] = {CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
+	//											  D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE),
+	//		CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET,
+	//			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_DEST)};
+	D3D12_RESOURCE_BARRIER barriers[2];
+	barriers[0].Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barriers[0].Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barriers[0].Transition.pResource = p_src;
+	barriers[0].Transition.Subresource = 0;
+	barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
+	barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+	barriers[1].Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barriers[1].Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barriers[1].Transition.pResource = p_dst;
+	barriers[1].Transition.Subresource = 0;
+	barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+	barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 	this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
 
 	this->m_p_command_graphics_list->ResolveSubresource(p_dst, 0, p_src, 0, RMLUI_RENDER_BACKEND_FIELD_COLOR_TEXTURE_FORMAT);
 
-	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_DEST,
-		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
-	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
-		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	//	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(p_dst, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_DEST,
+	//		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	barriers[0].Transition.pResource = p_dst;
+	barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+
+	//	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(p_src, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
+	//		D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	barriers[1].Transition.pResource = p_src;
+	barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
 
 	// todo: should we convert src to render target ? probably yes, but need to be sure later after debugging
 	this->m_p_command_graphics_list->ResourceBarrier(2, barriers);
@@ -2272,22 +2503,20 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 
 	RMLUI_ASSERT(p_cb_begin && "must be valid pointer of buffer where CB was allocated!");
 
-	std::uint8_t* p_cb_real_begin = p_cb_begin +
-		p_cb->Get_AllocInfo().Get_Offset();
+	std::uint8_t* p_cb_real_begin = p_cb_begin + p_cb->Get_AllocInfo().Get_Offset();
 
 	struct {
 		Rml::Vector4f weights;
 		Rml::Vector2f texel_offset;
 		Rml::Vector2f texcoord_min;
-		Rml::Vector2f texcoord_max;	
+		Rml::Vector2f texcoord_max;
 	} ShaderConstantBufferMapping_Blur;
 
 	SetBlurWeights(ShaderConstantBufferMapping_Blur.weights, sigma);
 	SetTexCoordLimits(ShaderConstantBufferMapping_Blur.texcoord_min, ShaderConstantBufferMapping_Blur.texcoord_max, scissor,
 		{source_destination.Get_Width(), source_destination.Get_Height()});
 
-	ShaderConstantBufferMapping_Blur.texel_offset = Rml::Vector2f(0.f, 1.f) *
-		(1.0f / (temp.Get_Height()));
+	ShaderConstantBufferMapping_Blur.texel_offset = Rml::Vector2f(0.f, 1.f) * (1.0f / (temp.Get_Height()));
 
 	std::memcpy(p_cb_real_begin, &ShaderConstantBufferMapping_Blur, sizeof(ShaderConstantBufferMapping_Blur));
 
@@ -2318,8 +2547,8 @@ void RenderInterface_DX12::RenderBlur(float sigma, const Gfx::FramebufferData& s
 	// blitting with linear filtering, pixels outside the 'src' region can be blended into the output. On the other
 	// hand, it looks like Nvidia clamps the pixels to the source edge, which is what we really want. Regardless, we
 	// work around the issue with this extra step.
-//	scissor.Extend(1);
-//	SetScissor(scissor, true);
+	//	scissor.Extend(1);
+	//	SetScissor(scissor, true);
 
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
@@ -2485,7 +2714,7 @@ void RenderInterface_DX12::PopLayer()
 	RMLUI_DX_MARKER_END(this->m_p_command_graphics_list);
 }
 
-Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture(Rml::Vector2i dimensions)
+Rml::TextureHandle RenderInterface_DX12::SaveLayerAsTexture()
 {
 	RMLUI_ZoneScopedN("DirectX 12 - SaveLayerAsTexture");
 	//	RMLUI_ASSERT(false && "todo");
@@ -3011,7 +3240,7 @@ void RenderInterface_DX12::Initialize(void) noexcept
 		this->m_p_descriptor_heap_depth_stencil_view_for_texture_manager = this->Create_Resource_DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
 			D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE, RMLUI_RENDER_BACKEND_FIELD_DESCRIPTOR_HEAP_DSV);
 
-		this->m_handle_shaders = CD3DX12_CPU_DESCRIPTOR_HANDLE(this->m_p_descriptor_heap_shaders->GetCPUDescriptorHandleForHeapStart());
+		this->m_handle_shaders = D3D12_CPU_DESCRIPTOR_HANDLE(this->m_p_descriptor_heap_shaders->GetCPUDescriptorHandleForHeapStart());
 
 		this->m_size_descriptor_heap_render_target_view = this->m_p_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		this->m_size_descriptor_heap_shaders = this->m_p_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -3599,7 +3828,7 @@ void RenderInterface_DX12::Create_Resource_RenderTargetViews()
 			if (this->m_p_descriptor_heap_render_target_view)
 			{
 				auto rtv_size = this->m_p_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-				CD3DX12_CPU_DESCRIPTOR_HANDLE rtv_handle(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
+				D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle(this->m_p_descriptor_heap_render_target_view->GetCPUDescriptorHandleForHeapStart());
 
 				for (auto i = 0; i < RMLUI_RENDER_BACKEND_FIELD_SWAPCHAIN_BACKBUFFER_COUNT; ++i)
 				{
@@ -3611,7 +3840,7 @@ void RenderInterface_DX12::Create_Resource_RenderTargetViews()
 
 					this->m_backbuffers_resources[i] = p_back_buffer;
 
-					rtv_handle.Offset(rtv_size);
+					rtv_handle.ptr += (rtv_size);
 				}
 			}
 		}
@@ -3750,7 +3979,7 @@ void RenderInterface_DX12::Create_Resource_Pipelines()
 
 	this->Create_Resource_For_Shaders();
 	this->Create_Resource_Pipeline_BlendMask();
-//	this->Create_Resource_Pipeline_Blur();
+	//	this->Create_Resource_Pipeline_Blur();
 	this->Create_Resource_Pipeline_Color();
 	this->Create_Resource_Pipeline_ColorMatrix();
 	this->Create_Resource_Pipeline_Count();
@@ -3797,10 +4026,19 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Color()
 		parameters[0].Descriptor = descriptor_cbv;
 		parameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-		CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		desc_rootsignature.Init(_countof(parameters), parameters, 0, nullptr,
-			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		//	desc_rootsignature.Init(_countof(parameters), parameters, 0, nullptr,
+		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+
+		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+		desc_rootsignature.NumStaticSamplers = 0;
+		desc_rootsignature.pParameters = parameters;
+		desc_rootsignature.NumParameters = _countof(parameters);
+		desc_rootsignature.pStaticSamplers = nullptr;
 
 		ID3DBlob* p_signature{};
 		ID3DBlob* p_error{};
@@ -4154,10 +4392,18 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Texture()
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-		CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		//	desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
+		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+		desc_rootsignature.NumParameters = _countof(parameters);
+		desc_rootsignature.pParameters = parameters;
+		desc_rootsignature.pStaticSamplers = &sampler;
+		desc_rootsignature.NumStaticSamplers = 1;
 
 		ID3DBlob* p_signature{};
 		ID3DBlob* p_error{};
@@ -4425,10 +4671,19 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough()
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-		CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+		// CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		// desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
+		//	D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		//		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+
+		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		desc_rootsignature.NumParameters = _countof(parameters);
+		desc_rootsignature.pParameters = parameters;
+		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+		desc_rootsignature.NumStaticSamplers = 1;
+		desc_rootsignature.pStaticSamplers = &sampler;
 
 		ID3DBlob* p_signature{};
 		ID3DBlob* p_error{};
@@ -4664,10 +4919,19 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_ColorMask()
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-		CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		//	desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
+		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+
+		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+		desc_rootsignature.NumParameters = _countof(parameters);
+		desc_rootsignature.pParameters = parameters;
+		desc_rootsignature.NumStaticSamplers = 1;
+		desc_rootsignature.pStaticSamplers = &sampler;
 
 		ID3DBlob* p_signature{};
 		ID3DBlob* p_error{};
@@ -4881,10 +5145,19 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Passthrough_NoBlend()
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-		CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		//	desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
+		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+
+		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+		desc_rootsignature.NumParameters = _countof(parameters);
+		desc_rootsignature.pParameters = parameters;
+		desc_rootsignature.NumStaticSamplers = 1;
+		desc_rootsignature.pStaticSamplers = &sampler;
 
 		ID3DBlob* p_signature{};
 		ID3DBlob* p_error{};
@@ -5111,10 +5384,19 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 		sampler.RegisterSpace = 0;
 		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-		CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
-		desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
-			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+		//	CD3DX12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		//	desc_rootsignature.Init(_countof(parameters), parameters, 1, &sampler,
+		//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		//			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS);
+
+		D3D12_ROOT_SIGNATURE_DESC desc_rootsignature;
+		desc_rootsignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+		desc_rootsignature.NumParameters = _countof(parameters);
+		desc_rootsignature.pParameters = parameters;
+		desc_rootsignature.NumStaticSamplers = 1;
+		desc_rootsignature.pStaticSamplers = &sampler;
 
 		ID3DBlob* p_signature{};
 		ID3DBlob* p_error{};
@@ -5150,8 +5432,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 
 		const D3D_SHADER_MACRO macros[] = {NULL, NULL, NULL, NULL};
 
-		status = D3DCompile(pShaderSourceText_Vertex_Blur, sizeof(pShaderSourceText_Vertex_Blur), nullptr, macros, nullptr, "main",
-			"vs_5_0", this->m_default_shader_flags, 0, &p_shader_vertex, &p_error_buff);
+		status = D3DCompile(pShaderSourceText_Vertex_Blur, sizeof(pShaderSourceText_Vertex_Blur), nullptr, macros, nullptr, "main", "vs_5_0",
+			this->m_default_shader_flags, 0, &p_shader_vertex, &p_error_buff);
 		RMLUI_DX_ASSERTMSG(status, "failed to D3DCompile");
 
 	#ifdef RMLUI_DX_DEBUG
@@ -5167,8 +5449,8 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 			p_error_buff = nullptr;
 		}
 
-		status = D3DCompile(pShaderSourceText_Pixel_Blur, sizeof(pShaderSourceText_Pixel_Blur), nullptr, nullptr, nullptr, "main",
-			"ps_5_0", this->m_default_shader_flags, 0, &p_shader_pixel, &p_error_buff);
+		status = D3DCompile(pShaderSourceText_Pixel_Blur, sizeof(pShaderSourceText_Pixel_Blur), nullptr, nullptr, nullptr, "main", "ps_5_0",
+			this->m_default_shader_flags, 0, &p_shader_pixel, &p_error_buff);
 	#ifdef RMLUI_DX_DEBUG
 		if (FAILED(status))
 		{
@@ -5280,8 +5562,7 @@ void RenderInterface_DX12::Create_Resource_Pipeline_Blur()
 		desc_pipeline.NumRenderTargets = 1;
 		desc_pipeline.DepthStencilState = desc_depth_stencil;
 
-		status =
-			this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline, IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Blur)]));
+		status = this->m_p_device->CreateGraphicsPipelineState(&desc_pipeline, IID_PPV_ARGS(&this->m_pipelines[static_cast<int>(ProgramId::Blur)]));
 		RMLUI_DX_ASSERTMSG(status, "failed to CreateGraphicsPipelineState (Blur)");
 
 	#ifdef RMLUI_DX_DEBUG
@@ -5750,7 +6031,7 @@ bool RenderInterface_DX12::BufferMemoryManager::Is_Initialized(void) const
 }
 
 void RenderInterface_DX12::BufferMemoryManager::Initialize(ID3D12Device* p_device, D3D12MA::Allocator* p_allocator,
-	OffsetAllocator::Allocator* p_offset_allocator_for_descriptor_heap_srv_cbv_uav, CD3DX12_CPU_DESCRIPTOR_HANDLE* p_handle,
+	OffsetAllocator::Allocator* p_offset_allocator_for_descriptor_heap_srv_cbv_uav, D3D12_CPU_DESCRIPTOR_HANDLE* p_handle,
 	uint32_t size_descriptor_srv_cbv_uav, size_t size_for_allocation, size_t size_alignment)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - BufferMemoryManager::Initialize");
@@ -6132,7 +6413,10 @@ void RenderInterface_DX12::BufferMemoryManager::Alloc_Buffer(size_t size
 	RMLUI_DX_ASSERTMSG(result, "failed to CreateResource");
 
 	void* p_begin_writable_data{};
-	CD3DX12_RANGE range(0, 0);
+	D3D12_RANGE range;
+	range.Begin = 0;
+	range.End = 0;
+
 	result = p_allocation->GetResource()->Map(0, &range, &p_begin_writable_data);
 
 	RMLUI_DX_ASSERTMSG(result, "failed to ID3D12Resource::Map");
@@ -6499,7 +6783,7 @@ bool RenderInterface_DX12::TextureMemoryManager::Is_Initialized(void) const
 void RenderInterface_DX12::TextureMemoryManager::Initialize(D3D12MA::Allocator* p_allocator,
 	OffsetAllocator::Allocator* p_offset_allocator_for_descriptor_heap_srv_cbv_uav, ID3D12Device* p_device, ID3D12GraphicsCommandList* p_command_list,
 	ID3D12CommandAllocator* p_allocator_command, ID3D12DescriptorHeap* p_descriptor_heap_srv, ID3D12DescriptorHeap* p_descriptor_heap_rtv,
-	ID3D12DescriptorHeap* p_descriptor_heap_dsv, ID3D12CommandQueue* p_copy_queue, CD3DX12_CPU_DESCRIPTOR_HANDLE* p_handle,
+	ID3D12DescriptorHeap* p_descriptor_heap_dsv, ID3D12CommandQueue* p_copy_queue, D3D12_CPU_DESCRIPTOR_HANDLE* p_handle,
 	RenderInterface_DX12* p_renderer, size_t size_for_placed_heap)
 {
 	RMLUI_ZoneScopedN("DirectX 12 - TextureMemoryManager::Initialize");
@@ -7018,7 +7302,7 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Committed(size_t base_
 			optimized_clear_value.DepthStencil.Depth = RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_DEPTH_VALUE;
 			optimized_clear_value.DepthStencil.Stencil = RMLUI_RENDER_BACKEND_FIELD_CLEAR_VALUE_DEPTHSTENCIL_STENCIL_VALUE;
 		}
-		
+
 		ID3D12Resource* p_resource{};
 		D3D12MA::Allocation* p_allocation{};
 		auto status = this->m_p_allocator->CreateResource(&desc_allocation, &desc, initial_state, &optimized_clear_value, &p_allocation,
@@ -7140,7 +7424,12 @@ void RenderInterface_DX12::TextureMemoryManager::Alloc_As_Placed(size_t base_mem
 		p_impl->Set_Resource(p_resource);
 	}
 
-	bar = CD3DX12_RESOURCE_BARRIER::Aliasing(nullptr, p_resource);
+	//	bar = CD3DX12_RESOURCE_BARRIER::Aliasing(nullptr, p_resource);
+
+	bar.Flags = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	bar.Type = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
+	bar.Aliasing.pResourceBefore = nullptr;
+	bar.Aliasing.pResourceAfter = p_resource;
 
 	if (this->m_p_command_allocator)
 	{
@@ -7185,7 +7474,21 @@ void RenderInterface_DX12::TextureMemoryManager::Upload(bool is_committed, Textu
 	D3D12MA::Allocation* p_allocation{};
 
 	ID3D12Resource* p_upload_buffer{};
-	auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_size);
+	//	auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_size);
+	D3D12_RESOURCE_DESC buffer_desc;
+
+	buffer_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	buffer_desc.Alignment = 0;
+	buffer_desc.Width = upload_size;
+	buffer_desc.Height=1;
+	buffer_desc.DepthOrArraySize =1;
+	buffer_desc.MipLevels=1;
+	buffer_desc.Format = DXGI_FORMAT_UNKNOWN;
+	buffer_desc.SampleDesc.Count=1;
+	buffer_desc.SampleDesc.Quality=0;
+	buffer_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	buffer_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
 	auto status = this->m_p_allocator->CreateResource(&desc_alloc, &buffer_desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, &p_allocation,
 		IID_PPV_ARGS(&p_upload_buffer));
 
@@ -7420,8 +7723,18 @@ Rml::Pair<ID3D12Heap*, D3D12MA::VirtualBlock*> RenderInterface_DX12::TextureMemo
 
 	this->m_blocks.push_back(p_block);
 
-	CD3DX12_HEAP_DESC desc_heap(this->m_size_for_placed_heap, D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT, 0,
-		D3D12_HEAP_FLAG_DENY_BUFFERS | D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES);
+	//	CD3DX12_HEAP_DESC desc_heap(this->m_size_for_placed_heap, D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT, 0,
+	//		D3D12_HEAP_FLAG_DENY_BUFFERS | D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES);
+
+	D3D12_HEAP_DESC desc_heap;
+	desc_heap.Flags = D3D12_HEAP_FLAG_DENY_BUFFERS | D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES;
+	desc_heap.SizeInBytes = this->m_size_for_placed_heap;
+	desc_heap.Alignment = 0;
+	desc_heap.Properties.Type = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_DEFAULT;
+	desc_heap.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	desc_heap.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	desc_heap.Properties.CreationNodeMask = 1;
+	desc_heap.Properties.VisibleNodeMask = 1;
 
 	ID3D12Heap* p_heap{};
 	status = this->m_p_device->CreateHeap(&desc_heap, IID_PPV_ARGS(&p_heap));

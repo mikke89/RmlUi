@@ -111,6 +111,7 @@ struct BackendData {
 	SystemInterface_Win32 system_interface;
 	// deferred initialization, because of Render
 	RenderInterface_DX12* render_interface{};
+	TextInputMethodEditor_Win32 text_input_method_editor;
 
 	HINSTANCE instance_handle = nullptr;
 	std::wstring instance_name;
@@ -375,7 +376,7 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
 		if (key_down_callback && !key_down_callback(context, rml_key, rml_modifier, native_dp_ratio, true))
 			return 0;
 		// Otherwise, hand the event over to the context by calling the input handler as normal.
-		if (!RmlWin32::WindowProcedure(context, window_handle, message, w_param, l_param))
+		if (!RmlWin32::WindowProcedure(context, data->text_input_method_editor, window_handle, message, w_param, l_param))
 			return 0;
 		// The key was not consumed by the context either, try keyboard shortcuts of lower priority.
 		if (key_down_callback && !key_down_callback(context, rml_key, rml_modifier, native_dp_ratio, false))
@@ -386,7 +387,7 @@ static LRESULT CALLBACK WindowProcedureHandler(HWND window_handle, UINT message,
 	default:
 	{
 		// Submit it to the platform handler for default input handling.
-		if (!RmlWin32::WindowProcedure(data->context, window_handle, message, w_param, l_param))
+		if (!RmlWin32::WindowProcedure(data->context, data->text_input_method_editor, window_handle, message, w_param, l_param))
 			return 0;
 	}
 	break;

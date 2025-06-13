@@ -1,4 +1,5 @@
-if(NOT RMLUI_BACKEND MATCHES "GL3$")
+# add new backend just using |XX like |DX11 will be not ignored DX11 backend and effects will be added to samples
+if(NOT RMLUI_BACKEND MATCHES ".*(GL3|DX12).*")
 	message(STATUS "Effects sample disabled - only available on GL3 backends")
 	return()
 endif()

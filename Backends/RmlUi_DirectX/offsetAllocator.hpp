@@ -3,6 +3,8 @@
 
 //#define USE_16_BIT_OFFSETS
 
+#pragma once
+
 namespace OffsetAllocator
 {
     typedef unsigned char uint8;
