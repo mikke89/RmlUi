@@ -63,6 +63,8 @@ bool Backend::Initialize(const char* name, int width, int height, bool allow_res
 {
 	RMLUI_ASSERT(!data);
 
+	p_info = nullptr;
+
 	glfwSetErrorCallback(LogErrorFromGLFW);
 
 	if (!glfwInit())
